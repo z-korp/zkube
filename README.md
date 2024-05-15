@@ -1,5 +1,9 @@
 # zKube
 
+<p align="center">
+  <img src="assets/zkube.png" height="256">
+</p>
+
 A fully on-chain game, with Dojo on Starknet.
 
 ## Overview
