@@ -10,6 +10,14 @@ zKube is an engaging puzzle game that puts players' strategic thinking to the te
   <img src="assets/overview.png" height="256">
 </p>
 
+## Gameplay
+
+In zKube, players face the task of managing a grid populated by falling blocks. After each player turn, a new line of blocks appears at the bottom of the grid. Players can then strategically slide any block horizontally to arrange them in a manner that clears lines. Clearing a line rewards players with points, and bonus points are awarded for clearing multiple lines simultaneously. However, the challenge intensifies as the grid fills up, requiring players to think critically about each move to prevent the grid from reaching capacity. With its emphasis on thoughtful decision-making and puzzle-solving, zKube promises an immersive gameplay experience that will keep players engaged for hours on end.
+
+<p align="center">
+  <img src="assets/gameplay.png" height="256">
+</p>
+
 ## Team
 
 At the heart of zKube is the dedicated team of developers from zKorp. With their expertise and passion for gaming, they have brought this innovative puzzle experience to life. As the creators of zKube, the zKorp team is committed to delivering quality gameplay and engaging challenges to players worldwide. We welcome collaboration and encourage aspiring developers to join us on our journey. If you're interested in contributing to zKube or exploring the Starknet dojo framework, we invite you to reach out and become part of the dojo growing community. Together, let's shape the future of gaming.
@@ -19,11 +27,3 @@ At the heart of zKube is the dedicated team of developers from zKorp. With their
 - [Cheelax](https://github.com/Cheelax)
 - [Cosmos](https://github.com/ClanCo)
 - You?
-
-## Gameplay
-
-In zKube, players face the task of managing a grid populated by falling blocks. After each player turn, a new line of blocks appears at the bottom of the grid. Players can then strategically slide any block horizontally to arrange them in a manner that clears lines. Clearing a line rewards players with points, and bonus points are awarded for clearing multiple lines simultaneously. However, the challenge intensifies as the grid fills up, requiring players to think critically about each move to prevent the grid from reaching capacity. With its emphasis on thoughtful decision-making and puzzle-solving, zKube promises an immersive gameplay experience that will keep players engaged for hours on end.
-
-<p align="center">
-  <img src="assets/gameplay.png" height="256">
-</p>
