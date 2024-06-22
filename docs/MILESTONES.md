@@ -1,7 +1,7 @@
 # Milestones
 
 <p align="center">
-  <img src="assets/zkube.png" height="256">
+  <img src="../assets/zkube.png" height="256">
 </p>
 
 # Starknet Hacker House
