@@ -30,4 +30,3 @@ At the heart of zKube is the dedicated team of developers from zKorp. With their
 - [Cheelax](https://github.com/Cheelax)
 - [Cosmos](https://github.com/ClanCo) (remote)
 - [TAdev0](https://github.com/tadev0)
-- You?
