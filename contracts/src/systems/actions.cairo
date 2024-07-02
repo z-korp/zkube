@@ -20,6 +20,13 @@ trait IActions<TContractState> {
         self: @TContractState, world: IWorldDispatcher, proof: Proof, seed: felt252, beta: felt252
     ) -> u32;
     fn surrender(self: @TContractState, world: IWorldDispatcher);
+    fn move(
+        self: @ComponentState<TContractState>,
+        world: IWorldDispatcher,
+        index: u8,
+        direction: bool,
+        count: u8
+    );
 }
 
 // Contracts
@@ -113,6 +120,16 @@ mod actions {
 
         fn surrender(self: @ContractState, world: IWorldDispatcher) {
             self.playable.surrender(world);
+        }
+
+        fn move(
+            self: @ComponentState<TContractState>,
+            world: IWorldDispatcher,
+            index: u8,
+            direction: bool,
+            count: u8
+        ) {
+            self.playable.move(world, index, direction, count);
         }
     }
 }

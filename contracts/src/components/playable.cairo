@@ -134,6 +134,11 @@ mod PlayableComponent {
         ) {
             // [Setup] Datastore
             let store: Store = StoreImpl::new(world);
+
+            // [Check] Player exists
+            let caller = get_caller_address();
+            let mut player = store.player(caller.into());
+            player.assert_exists();
         }
     }
 }
