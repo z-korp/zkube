@@ -1,0 +1,50 @@
+[package]
+name = "zkube"
+version = "0.0.0"
+edition = "2023_10"
+
+[cairo]
+sierra-replace-ids = true
+
+[scripts]
+dev = "sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate plan && sozo --profile dev migrate apply"
+
+[dependencies]
+alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria", rev = "78b0d51" }
+origami = { git = "https://github.com/dojoengine/origami", tag = "v0.7.2" }
+dojo = { git = "https://github.com/dojoengine/dojo", tag = "v0.7.2" }
+stark_vrf = { git = "https://github.com/dojoengine/stark-vrf", rev = "5a9e81e" }
+
+[[target.dojo]]
+
+[tool.dojo]
+initializer_class_hash = "0xbeef"
+
+[profile.dev.tool.dojo.env]
+rpc_url = "http://localhost:5050/"
+account_address = "0x6b86e40118f29ebe393a75469b4d926c7a44c2e2681b6d319520b7c1156d114"
+private_key = "0x1c9053c053edf324aec366a34c6901b1095b07af69495bffec7d7fe21effb1b"
+
+[profile.slot.tool.dojo.env]
+rpc_url = "https://api.cartridge.gg/x/zkube/katana"
+account_address = ""
+private_key = ""
+
+# Sepolia
+[profile.sepolia.tool.dojo.env]
+rpc_url = "https://starknet-sepolia.public.blastapi.io/rpc/v0_7"
+account_address = ""
+private_key = ""
+
+[tool.dojo.world]
+name = "zKube"
+description = "Solo strategy card game where you manage resources and upgrade your village to maximize points. Make tactical decisions to help your village grow and flourish."
+cover_uri = "file://assets/cover.png"
+icon_uri = "file://assets/icon.png"
+website = "https://app.zkube.xyz"
+
+[tool.dojo.world.socials]
+x = "https://x.com/ohayo_dojo"
+discord = "https://discord.gg/FB2wR6uF"
+github = "https://github.com/dojoengine/dojo-starter"
+telegram = "https://t.me/dojoengine"
