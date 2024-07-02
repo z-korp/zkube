@@ -120,14 +120,12 @@ mod PlayableComponent {
 
             // [Effect] Update game
             store.set_game(game);
-
-            // [Effect] Update player
-            store.set_player(player);
         }
 
         fn move(
             self: @ComponentState<TContractState>,
             world: IWorldDispatcher,
+            raw: u8,
             index: u8,
             direction: bool,
             count: u8
@@ -139,6 +137,16 @@ mod PlayableComponent {
             let caller = get_caller_address();
             let mut player = store.player(caller.into());
             player.assert_exists();
+
+            // [Check] Game exists and not over
+            let mut game = store.game(player.game_id);
+            game.assert_exists();
+            game.assert_not_over();
+
+            game.move(row, index, direction, count);
+
+            // [Effect] Update game
+            store.set_game(game);
         }
     }
 }

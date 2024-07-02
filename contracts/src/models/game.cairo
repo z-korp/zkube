@@ -27,6 +27,9 @@ impl GameImpl of GameTrait {
 
     #[inline(always)]
     fn start(ref self: Game) {}
+
+    #[inline(always)]
+    fn move(ref self: Game, raw: u8, index: u8, direction: bool, count: u8) {}
 }
 
 impl ZeroableGame of core::Zeroable<Game> {

@@ -125,11 +125,12 @@ mod actions {
         fn move(
             self: @ComponentState<TContractState>,
             world: IWorldDispatcher,
+            row: u8,
             index: u8,
             direction: bool,
             count: u8
         ) {
-            self.playable.move(world, index, direction, count);
+            self.playable.move(world, row, index, direction, count);
         }
     }
 }
