@@ -21,8 +21,9 @@ trait IActions<TContractState> {
     ) -> u32;
     fn surrender(self: @TContractState, world: IWorldDispatcher);
     fn move(
-        self: @ComponentState<TContractState>,
+        self: @TContractState,
         world: IWorldDispatcher,
+        row: u8,
         index: u8,
         direction: bool,
         count: u8
@@ -123,7 +124,7 @@ mod actions {
         }
 
         fn move(
-            self: @ComponentState<TContractState>,
+            self: @ContractState,
             world: IWorldDispatcher,
             row: u8,
             index: u8,

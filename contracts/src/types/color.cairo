@@ -39,7 +39,7 @@ impl IntoU8Color of core::Into<u8, Color> {
         let action: felt252 = self.into();
         match action {
             0 => Color::None,
-            1 => Color::blue,
+            1 => Color::Blue,
             2 => Color::Red,
             3 => Color::Yellow,
             4 => Color::Black,
