@@ -125,7 +125,7 @@ mod PlayableComponent {
         fn move(
             self: @ComponentState<TContractState>,
             world: IWorldDispatcher,
-            raw: u8,
+            row: u8,
             index: u8,
             direction: bool,
             count: u8

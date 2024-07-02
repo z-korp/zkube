@@ -124,7 +124,7 @@ mod actions {
         }
 
         fn move(
-            self: @ComponentState<TContractState>,
+            self: @ContractState,
             world: IWorldDispatcher,
             row: u8,
             index: u8,
