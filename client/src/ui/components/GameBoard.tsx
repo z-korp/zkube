@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Card } from "@/ui/elements/ui/card";
+import React, { useState, useEffect } from 'react';
+import { Card } from '@/ui/elements/ui/card';
 
 interface Piece {
   id: number;
@@ -195,7 +195,7 @@ const getElementColor = (element: any) => {
     case "stone4":
       return "!bg-yellow-500";
     default:
-      return "";
+      return '';
   }
 };
 
