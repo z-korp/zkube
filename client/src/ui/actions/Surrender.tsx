@@ -16,14 +16,16 @@ import {
 } from "@/ui/elements/dialog";
 
 export const Surrender = () => {
-  const {
-    account: { account },
-    master,
-    setup: {
-      systemCalls: { surrender },
-    },
-  } = useDojo();
-
+  // const {
+  //   account: { account },
+  //   master,
+  //   setup: {
+  //     systemCalls: { surrender },
+  //   },
+  // } = useDojo();
+  const account = { address: "0x56" };
+  const master = "0x56";
+  account.address = "0x56";
   const { player } = usePlayer({ playerId: account.address });
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
@@ -34,14 +36,16 @@ export const Surrender = () => {
   const handleClick = useCallback(async () => {
     setIsLoading(true);
     try {
-      await surrender({ account: account as Account });
+      // await surrender({ account: account as Account });
     } finally {
       setIsLoading(false);
     }
   }, [account]);
 
   const disabled = useMemo(() => {
-    return !account || !master || account === master || !player || !game;
+    return (
+      !account || !master || account.address === master || !player || !game
+    );
   }, [account, master, player, game]);
 
   if (disabled) return null;
