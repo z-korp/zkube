@@ -143,7 +143,7 @@ mod PlayableComponent {
             game.assert_exists();
             game.assert_not_over();
 
-            game.move(row, index, direction, count);
+            // game.move(row, index, direction, count);
 
             // [Effect] Update game
             store.set_game(game);

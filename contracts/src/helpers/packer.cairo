@@ -20,9 +20,8 @@ impl Packer<
     T,
     U,
     V,
-    +Into<u8, T>,
-    +Into<U, T>,
-    +TryInto<T, U>,
+    +Into<u32, T>,
+    +TryInto<T, u32>,
     +NumericLiteral<T>,
     +PartialEq<T>,
     +Zeroable<T>,
@@ -34,6 +33,7 @@ impl Packer<
     +Copy<T>,
     +PartialEq<U>,
     +Into<u32, U>,
+    +Into<U, u32>,
     +Drop<U>,
     +Copy<U>,
     +Into<V, T>,
@@ -52,8 +52,8 @@ impl Packer<
             if packed.is_zero() {
                 break false;
             }
-            let raw: U = (packed % modulo).try_into().unwrap();
-            if value == raw {
+            let raw: u32 = (packed % modulo).try_into().unwrap();
+            if value == raw.into() {
                 break true;
             }
             packed = packed / modulo;
@@ -69,8 +69,8 @@ impl Packer<
             if packed.is_zero() {
                 break;
             }
-            let value: U = (packed % modulo).try_into().unwrap();
-            result.append(value);
+            let value: u32 = (packed % modulo).try_into().unwrap();
+            result.append(value.into());
             packed = packed / modulo;
             index += 1;
         };
@@ -87,9 +87,10 @@ impl Packer<
             if packed.is_zero() {
                 break;
             }
-            let value: U = (packed % modulo).try_into().unwrap();
-            if value != item {
-                result.append(value);
+            let value: u32 = (packed % modulo).try_into().unwrap();
+            let current: U = value.into();
+            if current != item {
+                result.append(current);
             } else {
                 removed = true;
             }
@@ -111,9 +112,10 @@ impl Packer<
             if packed.is_zero() {
                 break;
             }
-            let raw_value: U = (packed % modulo).try_into().unwrap();
+            let raw_value: u32 = (packed % modulo).try_into().unwrap();
+            let item: U = raw_value.into();
             if idx != index {
-                result.append(raw_value);
+                result.append(item);
             } else {
                 result.append(value);
                 removed = true;
@@ -130,11 +132,12 @@ impl Packer<
     fn pack(mut unpacked: Array<U>, size: V) -> T {
         let mut result: T = Zeroable::zero();
         let mut modulo: T = size.into();
-        let mut offset: T = 1_u8.into();
+        let mut offset: T = 1_u32.into();
         loop {
             match unpacked.pop_front() {
                 Option::Some(value) => {
-                    result = result + offset * value.into();
+                    let value_u32: u32 = value.into();
+                    result = result + offset.into() * value_u32.into();
                     if unpacked.is_empty() {
                         break;
                     }
