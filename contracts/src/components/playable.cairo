@@ -124,5 +124,21 @@ mod PlayableComponent {
             // [Effect] Update player
             store.set_player(player);
         }
+
+        fn move(
+            self: @ComponentState<TContractState>,
+            world: IWorldDispatcher,
+            index: u8,
+            direction: bool,
+            count: u8
+        ) {
+            // [Setup] Datastore
+            let store: Store = StoreImpl::new(world);
+
+            // [Check] Player exists
+            let caller = get_caller_address();
+            let mut player = store.player(caller.into());
+            player.assert_exists();
+        }
     }
 }
