@@ -18,21 +18,23 @@ import { MAX_CHAR_PSEUDO } from "../constants";
 export const Create = () => {
   const [playerName, setPlayerName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const account = "0x56";
+  const master = "0x56";
+  const player = "0x56";
+  // const {
+  //   account: { account },
+  //   master,
+  //   setup: {
+  //     systemCalls: { create },
+  //   },
+  // } = useDojo();
 
-  const {
-    account: { account },
-    master,
-    setup: {
-      systemCalls: { create },
-    },
-  } = useDojo();
-
-  const { player } = usePlayer({ playerId: account.address });
+  // const { player } = usePlayer({ playerId: account.address });
 
   const handleClick = useCallback(async () => {
     setIsLoading(true);
     try {
-      await create({ account: account as Account, name: playerName });
+      // await create({ account: account as Account, name: playerName });
     } finally {
       setIsLoading(false);
     }

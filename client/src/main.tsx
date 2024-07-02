@@ -6,9 +6,10 @@ import { setup, SetupResult } from "./dojo/setup.ts";
 import { DojoProvider } from "./dojo/context.tsx";
 import { dojoConfig } from "../dojo.config.ts";
 import { Loading } from "@/ui/screens/Loading";
+import { Home } from "@/ui/screens/Home";
 
 const root = ReactDOM.createRoot(
-  document.getElementById("root") as HTMLElement,
+  document.getElementById("root") as HTMLElement
 );
 
 function Main() {
@@ -18,30 +19,31 @@ function Main() {
 
   const loading = useMemo(
     () => !enter || !setupResult || !ready,
-    [enter, setupResult, ready],
+    [enter, setupResult, ready]
   );
 
   useEffect(() => {
     async function initialize() {
-      const result = await setup(dojoConfig());
+      // Simulons le chargement des données
+      const result = await new Promise<SetupResult>((resolve) =>
+        setTimeout(() => resolve({} as SetupResult), 1000)
+      );
       setSetupResult(result);
+      setReady(true);
     }
 
-    initialize();
-  }, [enter]);
-
-  useEffect(() => {
-    if (!enter) return;
-    setTimeout(() => setReady(true), 2000);
+    if (enter) {
+      initialize();
+    }
   }, [enter]);
 
   return (
     <React.StrictMode>
-      {!loading && setupResult ? (
-        <DojoProvider value={setupResult}>
-          <App />
-        </DojoProvider>
+      {enter && ready ? (
+        // <DojoProvider value={setupResult}>
+        <App />
       ) : (
+        // </DojoProvider>
         <Loading enter={enter} setEnter={setEnter} />
       )}
     </React.StrictMode>
