@@ -16,30 +16,73 @@ const GameBoard = () => {
   }, []);
 
   const initializeGrid = () => {
-    const newGrid = [];
+    const newGrid: Cell[][] = [];
     for (let i = 0; i < rows; i++) {
-      const row = [];
+      const row: Cell[] = [];
       for (let j = 0; j < cols; j++) {
-        row.push({ id: `${i}-${j}`, element: getRandomElement() });
+        if (Math.random() < 0.33) {
+          row.push({ id: `${i}-${j}`, element: getRandomElement() });
+        } else {
+          row.push({ id: `${i}-${j}`, element: null });
+        }
       }
       newGrid.push(row);
     }
-    setGrid(newGrid as any);
+    setGrid(newGrid);
   };
 
-  const getRandomElement = () => {
-    const elements = ["stone1", "stone2", "stone3", "stone4", null];
+  const getRandomElement = (): string | null => {
+    const elements: (string | null)[] = [
+      "stone1",
+      "stone2",
+      "stone3",
+      "stone4",
+    ];
     return elements[Math.floor(Math.random() * elements.length)];
+  };
+
+  const applyGravity = () => {
+    const newGrid = [...grid];
+    for (let col = 0; col < cols; col++) {
+      let emptyRow = rows - 1;
+      for (let row = rows - 1; row >= 0; row--) {
+        if (newGrid[row][col].element) {
+          if (row !== emptyRow) {
+            newGrid[emptyRow][col].element = newGrid[row][col].element;
+            newGrid[row][col].element = null;
+          }
+          emptyRow--;
+        }
+      }
+    }
+    setGrid(newGrid);
+  };
+
+  const fillEmptySpaces = () => {
+    // ... (code de fillEmptySpaces ici)
+  };
+
+  const handleCellClick = (rowIndex: number, colIndex: number) => {
+    const newGrid = [...grid];
+    newGrid[rowIndex][colIndex].element = null;
+    setGrid(newGrid);
+
+    // Appliquer la gravité et remplir les espaces vides après un court délai
+    setTimeout(() => {
+      applyGravity();
+      setTimeout(fillEmptySpaces, 300); // Délai avant de remplir les espaces vides
+    }, 100);
   };
 
   return (
     <Card className="p-4 bg-slate-800">
       <div className="grid grid-cols-6 gap-1">
         {grid.map((row, rowIndex) =>
-          row.map((cell: any) => (
+          row.map((cell, colIndex) => (
             <div
               key={cell.id}
-              className="w-12 h-12 bg-slate-700 flex items-center justify-center"
+              className="w-12 h-12 bg-slate-700 flex items-center justify-center cursor-pointer"
+              onClick={() => handleCellClick(rowIndex, colIndex)}
             >
               {cell.element && (
                 <div
