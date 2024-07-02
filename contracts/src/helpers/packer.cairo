@@ -19,7 +19,8 @@ trait PackerTrait<T, U, V> {
 impl Packer<
     T,
     +Into<u8, T>,
-    +TryInto<T, u8>,
+    +Into<U, T>,
+    +TryInto<T, U>,
     +NumericLiteral<T>,
     +PartialEq<T>,
     +Zeroable<T>,
@@ -31,8 +32,7 @@ impl Packer<
     +Copy<T>,
     U,
     +PartialEq<U>,
-    +Into<u8, U>,
-    +Into<U, u8>,
+    +Into<u32, U>,
     +Drop<U>,
     +Copy<U>,
     V,
@@ -52,7 +52,7 @@ impl Packer<
             if packed.is_zero() {
                 break false;
             }
-            let raw: u8 = (packed % modulo).try_into().unwrap();
+            let raw: U = (packed % modulo).try_into().unwrap();
             if value == raw.into() {
                 break true;
             }
@@ -69,7 +69,7 @@ impl Packer<
             if packed.is_zero() {
                 break;
             }
-            let value: u8 = (packed % modulo).try_into().unwrap();
+            let value: U = (packed % modulo).try_into().unwrap();
             result.append(value.into());
             packed = packed / modulo;
             index += 1;
@@ -86,7 +86,7 @@ impl Packer<
             if packed.is_zero() {
                 break;
             }
-            let value: u8 = (packed % modulo).try_into().unwrap();
+            let value: U = (packed % modulo).try_into().unwrap();
             let current: U = value.into();
             if current != item {
                 result.append(current);
@@ -111,7 +111,7 @@ impl Packer<
             if packed.is_zero() {
                 break;
             }
-            let raw_value: u8 = (packed % modulo).try_into().unwrap();
+            let raw_value: U = (packed % modulo).try_into().unwrap();
             let item: U = raw_value.into();
             if idx != index {
                 result.append(item);
@@ -135,8 +135,8 @@ impl Packer<
         loop {
             match unpacked.pop_front() {
                 Option::Some(value) => {
-                    let value_u8: u8 = value.into();
-                    result = result + offset.into() * value_u8.into();
+                    let value_u32: U = value.into();
+                    result = result + offset.into() * value_u32.into();
                     if unpacked.is_empty() {
                         break;
                     }
