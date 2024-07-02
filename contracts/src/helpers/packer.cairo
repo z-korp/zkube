@@ -18,8 +18,11 @@ trait PackerTrait<T, U, V> {
 
 impl Packer<
     T,
+    U,
+    V,
     +Into<u8, T>,
-    +TryInto<T, u8>,
+    +Into<U, T>,
+    +TryInto<T, U>,
     +NumericLiteral<T>,
     +PartialEq<T>,
     +Zeroable<T>,
@@ -29,13 +32,10 @@ impl Packer<
     +Div<T>,
     +Drop<T>,
     +Copy<T>,
-    U,
     +PartialEq<U>,
-    +Into<u8, U>,
-    +Into<U, u8>,
+    +Into<u32, U>,
     +Drop<U>,
     +Copy<U>,
-    V,
     +Into<V, T>,
     +Drop<V>,
     +Copy<V>,
@@ -52,8 +52,8 @@ impl Packer<
             if packed.is_zero() {
                 break false;
             }
-            let raw: u8 = (packed % modulo).try_into().unwrap();
-            if value == raw.into() {
+            let raw: U = (packed % modulo).try_into().unwrap();
+            if value == raw {
                 break true;
             }
             packed = packed / modulo;
@@ -69,11 +69,12 @@ impl Packer<
             if packed.is_zero() {
                 break;
             }
-            let value: u8 = (packed % modulo).try_into().unwrap();
-            result.append(value.into());
+            let value: U = (packed % modulo).try_into().unwrap();
+            result.append(value);
             packed = packed / modulo;
             index += 1;
         };
+
         result
     }
 
@@ -86,10 +87,9 @@ impl Packer<
             if packed.is_zero() {
                 break;
             }
-            let value: u8 = (packed % modulo).try_into().unwrap();
-            let current: U = value.into();
-            if current != item {
-                result.append(current);
+            let value: U = (packed % modulo).try_into().unwrap();
+            if value != item {
+                result.append(value);
             } else {
                 removed = true;
             }
@@ -111,10 +111,9 @@ impl Packer<
             if packed.is_zero() {
                 break;
             }
-            let raw_value: u8 = (packed % modulo).try_into().unwrap();
-            let item: U = raw_value.into();
+            let raw_value: U = (packed % modulo).try_into().unwrap();
             if idx != index {
-                result.append(item);
+                result.append(raw_value);
             } else {
                 result.append(value);
                 removed = true;
@@ -135,8 +134,7 @@ impl Packer<
         loop {
             match unpacked.pop_front() {
                 Option::Some(value) => {
-                    let value_u8: u8 = value.into();
-                    result = result + offset.into() * value_u8.into();
+                    result = result + offset * value.into();
                     if unpacked.is_empty() {
                         break;
                     }
@@ -145,6 +143,7 @@ impl Packer<
                 Option::None => { break; }
             }
         };
+
         result
     }
 }
