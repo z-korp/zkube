@@ -123,23 +123,6 @@ const GameBoard = () => {
   };
 
   const handleCellClick = (rowIndex: number, colIndex: number) => {
-    const newGrid = [...grid];
-    if (newGrid[rowIndex][colIndex].pieceId !== null) {
-      const piece = PIECES.find(
-        (p) => p.id === newGrid[rowIndex][colIndex].pieceId
-      );
-      if (piece) {
-        // Effacer toute la largeur de la pièce
-        for (let i = 0; i < piece.width; i++) {
-          if (colIndex + i < cols) {
-            newGrid[rowIndex][colIndex + i].pieceId = null;
-            newGrid[rowIndex][colIndex + i].isStart = false;
-          }
-        }
-      }
-    }
-    setGrid(newGrid);
-
     // Appliquer la gravité et remplir les espaces vides après un court délai
     setTimeout(() => {
       applyGravity();
