@@ -137,23 +137,30 @@ const GameBoard = () => {
   const renderCell = (cell: Cell, rowIndex: number, colIndex: number) => {
     const piece = PIECES.find((p) => p.id === cell.pieceId);
 
-    return (
-      <div
-        key={cell.id}
-        className={`relative w-12 h-12 bg-slate-700 flex items-center justify-center cursor-pointer ${
-          piece ? getElementColor(piece.element) : ""
-        }`}
-        onClick={() => handleCellClick(rowIndex, colIndex)}
-      >
-        {debugMode && cell.pieceId !== null && (
-          <div className="absolute bottom-0 right-0 text-xs text-white bg-black bg-opacity-50 p-1">
-            id:{cell.pieceId}
-            <br />
-            start:{cell.isStart.toString()}
-          </div>
-        )}
-      </div>
-    );
+    if (cell.isStart && piece) {
+      return (
+        <div
+          key={cell.id}
+          className={`relative h-12 bg-slate-700 flex items-center justify-center cursor-pointer ${getElementColor(piece.element)}`}
+          style={{
+            width: `${piece.width * 3}rem`,
+            gridColumn: `span ${piece.width}`,
+          }}
+          onClick={() => handleCellClick(rowIndex, colIndex)}
+        >
+          {debugMode && (
+            <div className="absolute bottom-0 right-0 text-xs text-white bg-black bg-opacity-50 p-1">
+              id:{cell.pieceId}
+              <br />
+              width:{piece.width}
+            </div>
+          )}
+        </div>
+      );
+    } else if (!cell.pieceId) {
+      return <div key={cell.id} className="w-12 h-12 bg-slate-700" />;
+    }
+    return null; // Ne rien rendre pour les cellules non-start d'une pièce multi-cases
   };
 
   return (
@@ -167,9 +174,11 @@ const GameBoard = () => {
         </button>
       </div>
       <div className="grid grid-cols-8 gap-1">
-        {grid.map((row, rowIndex) =>
-          row.map((cell, colIndex) => renderCell(cell, rowIndex, colIndex))
-        )}
+        {grid.map((row, rowIndex) => (
+          <React.Fragment key={rowIndex}>
+            {row.map((cell, colIndex) => renderCell(cell, rowIndex, colIndex))}
+          </React.Fragment>
+        ))}
       </div>
     </Card>
   );
