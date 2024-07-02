@@ -18,6 +18,8 @@ trait PackerTrait<T, U, V> {
 
 impl Packer<
     T,
+    U,
+    V,
     +Into<u8, T>,
     +Into<U, T>,
     +TryInto<T, U>,
@@ -30,12 +32,10 @@ impl Packer<
     +Div<T>,
     +Drop<T>,
     +Copy<T>,
-    U,
     +PartialEq<U>,
     +Into<u32, U>,
     +Drop<U>,
     +Copy<U>,
-    V,
     +Into<V, T>,
     +Drop<V>,
     +Copy<V>,
