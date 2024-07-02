@@ -56,4 +56,3 @@ impl WidthPrint of core::debug::PrintTrait<Width> {
     }
 }
 
-
