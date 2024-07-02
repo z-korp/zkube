@@ -22,7 +22,7 @@ mod elements {
 
 mod helpers {
     mod packer;
-    // mod controller;
+    mod controller;
     mod gravity;
 }
 

@@ -51,6 +51,14 @@ impl Gravity of GravityTrait {
             6 => 64,
             7 => 128,
             8 => 256,
+            9 => 512,
+            10 => 1024,
+            11 => 2048,
+            12 => 4096,
+            13 => 8192,
+            14 => 16384,
+            15 => 32768,
+            16 => 65536,
             _ => 0,
         }
     }
@@ -65,27 +73,38 @@ mod tests {
     #[test]
     fn test_gravity_apply_01() {
         let top: u32 = 0b000_000_000_000_010_010_000_001;
-        let bottom: u32 = 0b000_000_000_000_000_000_000_000;
-        let (new_top, new_bottom) = Gravity::apply(top, bottom);
+        let bot: u32 = 0b000_000_000_000_000_000_000_000;
+        let (new_top, new_bot) = Gravity::apply(top, bot);
         assert_eq!(new_top, 0b000_000_000_000_000_000_000_000);
-        assert_eq!(new_bottom, 0b000_000_000_000_010_010_000_001);
+        assert_eq!(new_bot, 0b000_000_000_000_010_010_000_001);
     }
 
     #[test]
     fn test_gravity_apply_02() {
         let top: u32 = 0b000_000_000_000_010_010_000_001;
-        let bottom: u32 = 0b000_000_000_000_001_000_000_000;
-        let (new_top, new_bottom) = Gravity::apply(top, bottom);
+        let bot: u32 = 0b000_000_000_000_001_000_000_000;
+        let (new_top, new_bot) = Gravity::apply(top, bot);
         assert_eq!(new_top, 0b000_000_000_000_010_010_000_000);
-        assert_eq!(new_bottom, 0b000_000_000_000_001_000_000_001);
+        assert_eq!(new_bot, 0b000_000_000_000_001_000_000_001);
     }
 
     #[test]
     fn test_gravity_apply_03() {
         let top: u32 = 0b001_001_001_001_001_001_001_001;
-        let bottom: u32 = 0b000_000_000_000_001_000_000_000;
-        let (new_top, new_bottom) = Gravity::apply(top, bottom);
+        let bot: u32 = 0b000_000_000_000_001_000_000_000;
+        let (new_top, new_bot) = Gravity::apply(top, bot);
         assert_eq!(new_top, 0b000_000_000_000_001_000_000_000);
-        assert_eq!(new_bottom, 0b001_001_001_001_001_001_001_001);
+        assert_eq!(new_bot, 0b001_001_001_001_001_001_001_001);
+    }
+
+    #[test]
+    fn test_gravity_apply_04() {
+        // 0b010_010_000_000_100_100_100_100
+        // 0b001_010_010_000_011_011_011_000
+        let top: u32 = 0b010_010_000_000_100_100_100_100;
+        let bot: u32 = 0b001_010_010_000_011_011_011_000;
+        let (new_top, new_bot) = Gravity::apply(top, bot);
+        assert_eq!(new_top, 0b010_010_000_000_100_100_100_100);
+        assert_eq!(new_bot, 0b001_010_010_000_011_011_011_000);
     }
 }
