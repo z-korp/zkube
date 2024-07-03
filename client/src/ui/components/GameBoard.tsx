@@ -146,21 +146,13 @@ const GameBoard = () => {
             gridColumn: `span ${piece.width * 4}`,
           }}
           onClick={() => handleCellClick(rowIndex, colIndex)}
-        >
-          {debugMode && (
-            <div className="absolute bottom-0 right-0 text-xs text-white bg-black bg-opacity-50 p-1">
-              id:{cell.pieceId}
-              <br />
-              width:{piece.width}
-            </div>
-          )}
-        </div>
+        ></div>
       );
     } else if (!cell.pieceId) {
       return (
         <div
           key={cell.id}
-          className="h-12 bg-slate-700"
+          className="h-12 w-12 bg-slate-700"
           style={{ gridColumn: "span 4" }}
         />
       );
