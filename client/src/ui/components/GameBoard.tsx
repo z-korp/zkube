@@ -55,12 +55,13 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     }
   };
 
-  const checkCollision = (row: number, newCol: number, piece: Piece) => {
-    if (newCol < 0 || newCol + piece.width > cols) return true;
+  const checkCollision = (row: number, col: number, piece: Piece) => {
+    if (col < 0 || col + piece.width > cols) return true;
     for (let i = 0; i < piece.width; i++) {
+      if (col + i >= cols) return true;
       if (
-        grid[row][newCol + i].pieceId !== null &&
-        grid[row][newCol + i].pieceId !== piece.id
+        grid[row][col + i].pieceId !== null &&
+        grid[row][col + i].pieceId !== piece.id
       ) {
         return true;
       }
@@ -105,26 +106,52 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       const gridRect = gridRef.current.getBoundingClientRect();
       const cellWidth = gridRect.width / cols;
       const piece = PIECES.find(
-        (p) => p.id === grid[draggingPiece.row][draggingPiece.col].pieceId
+        (p) => p.id === grid[draggingPiece.row][draggingPiece.col].pieceId,
       );
       if (!piece) return;
 
       let newX = e.clientX - draggingPiece.clickOffset;
       const totalDrag = newX - draggingPiece.startX;
-      const draggedCells = Math.round(totalDrag / cellWidth);
-      let newCol = draggingPiece.col + draggedCells;
+
+      // Calculez la nouvelle colonne, mais ne l'arrondissez pas
+      let newCol = draggingPiece.col + totalDrag / cellWidth;
 
       // Vérifiez les limites
-      newCol = Math.max(0, Math.min(cols - piece.width, newCol));
+      const minCol = 0;
+      const maxCol = cols - piece.width;
 
-      // Calculez la nouvelle position X basée sur la nouvelle colonne
-      newX = draggingPiece.startX + (newCol - draggingPiece.col) * cellWidth;
+      if (newCol < minCol) newCol = minCol;
+      if (newCol > maxCol) newCol = maxCol;
 
-      if (!checkCollision(draggingPiece.row, newCol, piece)) {
+      // Vérifiez les collisions
+      const leftCol = Math.floor(newCol);
+      const rightCol = Math.ceil(newCol);
+
+      if (
+        !checkCollision(draggingPiece.row, leftCol, piece) &&
+        !checkCollision(draggingPiece.row, rightCol, piece)
+      ) {
+        // Si pas de collision, mettez à jour la position
+        newX = draggingPiece.startX + (newCol - draggingPiece.col) * cellWidth;
+        setDraggingPiece({ ...draggingPiece, currentX: newX });
+      } else {
+        // En cas de collision, trouvez la position valide la plus proche
+        let validCol = draggingPiece.col;
+        const direction = newCol > draggingPiece.col ? 1 : -1;
+        while (
+          validCol !== newCol &&
+          !checkCollision(draggingPiece.row, validCol, piece)
+        ) {
+          validCol += direction;
+        }
+        validCol -= direction; // Reculez d'une case pour obtenir la dernière position valide
+
+        newX =
+          draggingPiece.startX + (validCol - draggingPiece.col) * cellWidth;
         setDraggingPiece({ ...draggingPiece, currentX: newX });
       }
     },
-    [isDragging, draggingPiece, grid, cols]
+    [isDragging, draggingPiece, grid, cols],
   );
 
   const handleMouseUp = useCallback(() => {
