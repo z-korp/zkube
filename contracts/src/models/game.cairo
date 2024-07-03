@@ -70,12 +70,14 @@ impl GameImpl of GameTrait {
             true => final_index - start_index,
             false => start_index - final_index,
         };
+
         // [Effect] Swipe block
         let (new_blocks, new_colors) = Controller::swipe(
             self.blocks, self.colors, row_index, start_index, direction, count
         );
         self.blocks = new_blocks;
         self.colors = new_colors;
+
         // [Effect] Assess game
         let mut counter = 1;
         let mut points = 0;
@@ -91,6 +93,7 @@ impl GameImpl of GameTrait {
         self.setup_next();
 
         // [Effect] Assess game
+        let mut points = 0;
         self.assess_game(ref counter, ref points);
     }
 
@@ -98,14 +101,15 @@ impl GameImpl of GameTrait {
         let mut blocks = 0;
         loop {
             if blocks == self.blocks {
+                self.points += points;
                 break;
             };
             blocks = self.blocks;
             let (new_blocks, new_colors) = Controller::apply_gravity(self.blocks, self.colors);
             self.blocks = Controller::assess_lines(new_blocks, ref counter, ref points, true);
             self.colors = Controller::assess_lines(new_colors, ref counter, ref points, false);
-            self.points += points;
         };
+        self.points += points;
     }
 
     #[inline(always)]
