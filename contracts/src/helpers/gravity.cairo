@@ -2,6 +2,10 @@
 
 use core::debug::PrintTrait;
 
+// External imports
+
+use alexandria_math::fast_power::fast_power;
+
 // Internal imports
 
 use zkube::constants;
@@ -25,7 +29,7 @@ impl Gravity of GravityTrait {
                 pointer *= constants::BLOCK_SIZE.into();
                 continue;
             };
-            let size = Math::two_power(upper * constants::BLOCK_BIT_COUNT.into());
+            let size: u32 = fast_power(2, upper * constants::BLOCK_BIT_COUNT.into());
             let lower = bottom % size;
             let lower_mask = pointer - 1;
             pointer *= size;
