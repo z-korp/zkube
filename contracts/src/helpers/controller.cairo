@@ -1,6 +1,11 @@
+use core::traits::TryInto;
 // Core imports
 
 use core::debug::PrintTrait;
+
+// External imports
+
+use origami::random::deck::{Deck, DeckTrait};
 
 // External imports
 
@@ -9,9 +14,13 @@ use alexandria_math::fast_power::fast_power;
 // Internal imports
 
 use zkube::constants;
+use zkube::elements::decks::easy;
 use zkube::helpers::math::Math;
 use zkube::helpers::packer::Packer;
 use zkube::helpers::gravity::Gravity;
+use zkube::helpers::math::Math;
+use zkube::types::cards::Card;
+
 
 mod errors {
     const CONTROLLER_NOT_ENOUGH_ROOM: felt252 = 'Controller: not enough room';
@@ -83,6 +92,29 @@ impl Controller of ControllerTrait {
         };
         let result: u256 = Packer::pack(new_rows, constants::ROW_SIZE);
         result.try_into().unwrap()
+    }
+
+    fn create_line(seed: felt252) -> felt252 {
+        let mut new_line: u32 = 0;
+        let mut zero_location: u256 = seed.into() % constants::BLOCK_SIZE.into();
+        zero_location *= constants::BLOCK_BIT_COUNT.try_into().unwrap();
+        new_line = Math::two_power(zero_location.try_into().unwrap());
+
+        let mut deck: Deck = DeckTrait::new(seed, easy::DeckDataImpl::count());
+
+        while deck.remaining != 0 {
+            let new_block: u8 = DeckTrait::draw(ref deck);
+            let mut value_to_set: u32 = (new_block + 1).into();
+
+            let mut i = 0;
+            while constants::DEFAULT_GRID_HEIGHT != i {
+                let block_pos = i * constants::BLOCK_BIT_COUNT;
+                let block_value = new_line * Math::two_power(block_pos.into());
+            }
+        };
+
+        let x: felt252 = 'return';
+        x
     }
 
     #[inline(always)]
