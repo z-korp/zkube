@@ -27,6 +27,20 @@ export const Home = () => {
   const { game } = useGame({ gameId: player?.game_id || "0x0" });
   const [animationDone, setAnimationDone] = useState(false);
 
+  const testGrid = [
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 0, 4, 4, 4, 4, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 4, 4, 4, 4, 0, 0, 0],
+    [0, 0, 0, 0, 2, 2, 0, 0],
+    [1, 0, 0, 0, 2, 2, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 4, 4, 4, 4, 0, 0, 0],
+    [1, 0, 0, 0, 2, 2, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+  ];
+
+
   const { theme } = useTheme();
   const imageTotemTheme = theme === "dark" ? imageTotemDark : imageTotemLight;
 

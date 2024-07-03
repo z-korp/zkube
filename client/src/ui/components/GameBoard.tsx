@@ -28,6 +28,7 @@ interface Cell {
 
 const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
   const [grid, setGrid] = useState<Cell[][]>([]);
+  const [debugMode, setDebugMode] = useState(false);
   const [draggingPiece, setDraggingPiece] = useState<{
     row: number;
     col: number;
@@ -56,37 +57,51 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
   };
 
   const applyGravity = () => {
-    const newGrid = [...grid];
-    for (let col = 0; col < cols; col++) {
-      let emptyRow = rows - 1;
-      for (let row = rows - 1; row >= 0; row--) {
-        if (newGrid[row][col].pieceId !== null) {
-          if (row !== emptyRow) {
+    let newGrid = grid.map((row) => row.map((cell) => ({ ...cell })));
+    let changesMade = false;
+
+    do {
+      changesMade = false;
+      for (let row = rows - 2; row >= 0; row--) {
+        for (let col = 0; col < cols; col++) {
+          if (newGrid[row][col].pieceId !== null && newGrid[row][col].isStart) {
             const piece = PIECES.find(
               (p) => p.id === newGrid[row][col].pieceId,
             );
-            if (piece && newGrid[row][col].isStart) {
-              // Assurez-vous que la pièce ne dépasse pas le bas de la grille
-              const targetRow = Math.max(emptyRow - piece.width + 1, 0);
+            if (piece) {
+              let canFall = true;
               for (let i = 0; i < piece.width; i++) {
-                newGrid[targetRow + i][col].pieceId =
-                  newGrid[row][col + i].pieceId;
-                newGrid[targetRow + i][col].isStart = i === 0;
-                if (targetRow + i !== row) {
-                  newGrid[row][col + i].pieceId = null;
-                  newGrid[row][col + i].isStart = false;
+                if (
+                  col + i >= cols ||
+                  newGrid[row + 1][col + i].pieceId !== null
+                ) {
+                  canFall = false;
+                  break;
                 }
               }
-              emptyRow = targetRow - 1;
-              col += piece.width - 1; // Sauter les colonnes déjà traitées
+
+              if (canFall) {
+                // Déplacer la pièce d'une ligne vers le bas
+                for (let i = 0; i < piece.width; i++) {
+                  newGrid[row + 1][col + i] = { ...newGrid[row][col + i] };
+                  newGrid[row][col + i] = {
+                    id: `${row}-${col + i}`,
+                    pieceId: null,
+                    isStart: false,
+                  };
+                }
+                changesMade = true;
+              }
             }
-          } else {
-            emptyRow--;
           }
         }
       }
-    }
-    setGrid(newGrid);
+
+      if (changesMade) {
+        setGrid(newGrid);
+        newGrid = newGrid.map((row) => row.map((cell) => ({ ...cell })));
+      }
+    } while (changesMade);
   };
 
   const placePiece = (
@@ -123,9 +138,13 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     const piece = PIECES.find((p) => p.id === grid[rowIndex][colIndex].pieceId);
     if (!piece) return;
 
-    // Trouvez le début de la pièce
+    // Assurez-vous que nous commençons par la cellule de départ pour cette pièce
     let startCol = colIndex;
-    while (startCol > 0 && grid[rowIndex][startCol - 1].pieceId === piece.id) {
+    while (
+      startCol > 0 &&
+      grid[rowIndex][startCol - 1].pieceId === piece.id &&
+      !grid[rowIndex][startCol].isStart
+    ) {
       startCol--;
     }
 
@@ -159,20 +178,14 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       let newX = e.clientX - draggingPiece.clickOffset;
       const totalDrag = newX - draggingPiece.startX;
 
-      // Calculez la nouvelle colonne, mais ne l'arrondissez pas
+      // Calculez la nouvelle colonne
       let newCol = draggingPiece.col + totalDrag / cellWidth;
 
       // Vérifiez les limites
-      const minCol = 0;
-      const maxCol = cols - piece.width;
-
-      if (newCol < minCol) newCol = minCol;
-      if (newCol > maxCol) newCol = maxCol;
-
-      // Vérifiez les collisions
+      newCol = Math.max(0, Math.min(cols - piece.width, newCol));
       const leftCol = Math.floor(newCol);
       const rightCol = Math.ceil(newCol);
-
+      // Vérifiez les collisions
       if (
         !checkCollision(draggingPiece.row, leftCol, piece) &&
         !checkCollision(draggingPiece.row, rightCol, piece)
@@ -301,9 +314,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
 
     if (cell.isStart && piece) {
       const isDragging =
-        draggingPiece?.row === rowIndex &&
-        colIndex >= draggingPiece.col &&
-        colIndex < draggingPiece.col + piece.width;
+        draggingPiece?.row === rowIndex && draggingPiece.col === colIndex;
 
       const dragOffset = isDragging
         ? draggingPiece.currentX - draggingPiece.startX
@@ -321,18 +332,26 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
           }}
           onMouseDown={(e) => startDragging(rowIndex, colIndex, e)}
         >
-          <div className="absolute inset-0 flex items-center justify-center text-white text-xl font-bold">
-            {cell.uniqueId} {/* Affichez l'identifiant unique ici */}
-          </div>
+          {debugMode && (
+            <div className="absolute top-0 left-0 bg-black text-white text-xs p-1">
+              {rowIndex}, {colIndex}
+            </div>
+          )}
         </div>
       );
     } else if (!cell.pieceId) {
       return (
         <div
           key={cell.id}
-          className="h-12 w-12 bg-secondary"
+          className="h-12 w-12 bg-secondary relative"
           style={{ gridColumn: "span 4" }}
-        />
+        >
+          {debugMode && (
+            <div className="absolute top-0 left-0 bg-black text-white text-xs p-1">
+              {rowIndex}, {colIndex}
+            </div>
+          )}
+        </div>
       );
     }
     return null;
@@ -346,6 +365,12 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
           className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
         >
           Apply Gravity
+        </button>
+        <button
+          onClick={() => setDebugMode(!debugMode)}
+          className="px-4 py-2 bg-green-500 text-white rounded"
+        >
+          {debugMode ? "Disable Debug Mode" : "Enable Debug Mode"}
         </button>
       </div>
       <div className="bg-slate-800">
