@@ -23,10 +23,9 @@ trait IActions<TContractState> {
     fn move(
         self: @TContractState,
         world: IWorldDispatcher,
-        row: u8,
-        index: u8,
-        direction: bool,
-        count: u8
+        row_index: u8,
+        start_index: u8,
+        final_index: u8,
     );
 }
 
@@ -126,12 +125,11 @@ mod actions {
         fn move(
             self: @ContractState,
             world: IWorldDispatcher,
-            row: u8,
-            index: u8,
-            direction: bool,
-            count: u8
+            row_index: u8,
+            start_index: u8,
+            final_index: u8,
         ) {
-            self.playable.move(world, row, index, direction, count);
+            self.playable.move(world, row_index, start_index, final_index);
         }
     }
 }

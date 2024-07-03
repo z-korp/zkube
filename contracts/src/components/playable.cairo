@@ -125,10 +125,9 @@ mod PlayableComponent {
         fn move(
             self: @ComponentState<TContractState>,
             world: IWorldDispatcher,
-            row: u8,
-            index: u8,
-            direction: bool,
-            count: u8
+            row_index: u8,
+            start_index: u8,
+            final_index: u8,
         ) {
             // [Setup] Datastore
             let store: Store = StoreImpl::new(world);
