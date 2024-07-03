@@ -23,6 +23,7 @@ interface Cell {
   id: string;
   pieceId: number | null;
   isStart: boolean;
+  uniqueId: number | null;
 }
 
 const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
@@ -43,6 +44,17 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
   useEffect(() => {
     initializeGrid(initialGrid);
   }, [initialGrid]);
+
+  const applyGravityUntilStable = () => {
+    let previousGrid = JSON.stringify(grid);
+    let currentGrid;
+    do {
+      applyGravity();
+      currentGrid = JSON.stringify(grid);
+      if (currentGrid === previousGrid) break;
+      previousGrid = currentGrid;
+    } while (true);
+  };
 
   const applyGravity = () => {
     let newGrid = grid.map((row) => row.map((cell) => ({ ...cell })));
@@ -257,6 +269,8 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
 
   const initializeGrid = (initialGrid: number[][]) => {
     const newGrid: Cell[][] = [];
+    let uniqueIdCounter = 1;
+
     for (let i = 0; i < rows; i++) {
       const row: Cell[] = [];
       for (let j = 0; j < cols; j++) {
@@ -265,6 +279,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
           id: `${i}-${j}`,
           pieceId: value !== 0 ? value : null,
           isStart: false,
+          uniqueId: value !== 0 ? uniqueIdCounter++ : null, // Ajoutez cette ligne
         });
       }
       newGrid.push(row);
@@ -282,6 +297,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
           for (let k = 1; k < pieceId; k++) {
             if (j + k < cols && grid[i][j + k].pieceId === pieceId) {
               grid[i][j + k].isStart = false;
+              grid[i][j + k].uniqueId = grid[i][j].uniqueId; // Assurez-vous que l'identifiant unique est propagé
             } else {
               isStart = false;
               break;
@@ -345,7 +361,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     <Card className="p-4 bg-secondary">
       <div className="mb-4">
         <button
-          onClick={applyGravity}
+          onClick={applyGravityUntilStable}
           className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
         >
           Apply Gravity

@@ -10,6 +10,10 @@ use dojo::world::IWorldDispatcher;
 
 use stark_vrf::ecvrf::Proof;
 
+// Interla imports
+
+use zkube::types::bonus::Bonus;
+
 // Interfaces
 
 #[starknet::interface]
@@ -26,6 +30,9 @@ trait IActions<TContractState> {
         row_index: u8,
         start_index: u8,
         final_index: u8,
+    );
+    fn apply_bonus(
+        self: @TContractState, world: IWorldDispatcher, bonus: Bonus, row_index: u8, line_index: u8
     );
 }
 
@@ -46,6 +53,7 @@ mod actions {
     use zkube::components::manageable::ManageableComponent;
     use zkube::components::manageable::ManageableComponent::InternalTrait;
     use zkube::components::playable::PlayableComponent;
+    use zkube::types::bonus::Bonus;
 
     // Local imports
 
@@ -130,6 +138,16 @@ mod actions {
             final_index: u8,
         ) {
             self.playable.move(world, row_index, start_index, final_index);
+        }
+
+        fn apply_bonus(
+            self: @ContractState,
+            world: IWorldDispatcher,
+            bonus: Bonus,
+            row_index: u8,
+            line_index: u8
+        ) {
+            self.playable.apply_bonus(world, bonus, row_index, line_index);
         }
     }
 }

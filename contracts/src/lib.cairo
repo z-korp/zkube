@@ -19,6 +19,9 @@ mod types {
 mod elements {
     mod bonuses {
         mod interface;
+        mod hammer;
+        mod totem;
+        mod wave;
     }
     mod difficulties {
         mod easy;
@@ -27,7 +30,6 @@ mod elements {
 }
 
 mod helpers {
-    mod math;
     mod packer;
     mod controller;
     mod gravity;

@@ -8,8 +8,6 @@ mod PlayableComponent {
 
     // Starknet imports
 
-    use zkube::models::game::AssertTrait;
-    use zkube::store::StoreTrait;
     use starknet::ContractAddress;
     use starknet::info::{get_contract_address, get_caller_address, get_block_timestamp};
 
@@ -28,6 +26,9 @@ mod PlayableComponent {
     use zkube::store::{Store, StoreImpl};
     use zkube::models::game::{Game, GameTrait, GameAssert};
     use zkube::models::player::{Player, PlayerTrait, PlayerAssert};
+    use zkube::models::game::AssertTrait;
+    use zkube::store::StoreTrait;
+    use zkube::types::bonus::Bonus;
 
     // Errors
 
@@ -144,6 +145,33 @@ mod PlayableComponent {
 
             // [Effect] Perform move
             game.move(row_index, start_index, final_index);
+
+            // [Effect] Update game
+            store.set_game(game);
+        }
+
+        fn apply_bonus(
+            self: @ComponentState<TContractState>,
+            world: IWorldDispatcher,
+            bonus: Bonus,
+            row_index: u8,
+            index: u8,
+        ) {
+            // [Setup] Datastore
+            let store: Store = StoreImpl::new(world);
+
+            // [Check] Player exists
+            let caller = get_caller_address();
+            let mut player = store.player(caller.into());
+            player.assert_exists();
+
+            // [Check] Game exists and not over
+            let mut game = store.game(player.game_id);
+            game.assert_exists();
+            game.assert_not_over();
+
+            // [Effect] Apply bonus
+            game.apply_bonus(bonus, row_index, index);
 
             // [Effect] Update game
             store.set_game(game);

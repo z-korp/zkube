@@ -1,12 +1,12 @@
-import { ReactNode } from 'react';
-import { motion, MotionProps } from 'framer-motion';
+import { ReactNode } from "react";
+import { motion, MotionProps } from "framer-motion";
 
 interface BackgroundImageProps {
   children: ReactNode;
   imageBackground: string;
-  animate?: MotionProps['animate'];
-  initial?: MotionProps['initial'];
-  transition?: MotionProps['transition'];
+  animate?: MotionProps["animate"];
+  initial?: MotionProps["initial"];
+  transition?: MotionProps["transition"];
 }
 
 const BackgroundBoard: React.FC<BackgroundImageProps> = ({
