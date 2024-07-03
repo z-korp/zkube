@@ -1,11 +1,11 @@
-import { motion } from 'framer-motion';
-import React from 'react';
+import { motion } from "framer-motion";
+import React from "react";
 
 const palmVariants = {
-  hiddenRight: { x: '34%' },
-  hiddenLeft: { x: '-34%' },
-  visibleLeft: { x: '100%' },
-  visibleRight: { x: '-100%' },
+  hiddenRight: { x: "34%" },
+  hiddenLeft: { x: "-34%" },
+  visibleLeft: { x: "100%" },
+  visibleRight: { x: "-100%" },
 };
 
 interface PalmTreeProps {
@@ -16,8 +16,14 @@ interface PalmTreeProps {
   position: string;
 }
 
-const PalmTree: React.FC<PalmTreeProps> = ({ image, initial, animate, duration, position }) => {
-  const classNamePos = position === 'left' ? '-left-2/3' : '-right-2/3';
+const PalmTree: React.FC<PalmTreeProps> = ({
+  image,
+  initial,
+  animate,
+  duration,
+  position,
+}) => {
+  const classNamePos = position === "left" ? "-left-2/3" : "-right-2/3";
 
   return (
     <motion.div

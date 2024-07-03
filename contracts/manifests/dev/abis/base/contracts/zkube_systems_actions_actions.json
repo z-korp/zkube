@@ -73,6 +73,28 @@
     ]
   },
   {
+    "type": "enum",
+    "name": "zkube::types::bonus::Bonus",
+    "variants": [
+      {
+        "name": "None",
+        "type": "()"
+      },
+      {
+        "name": "Hammer",
+        "type": "()"
+      },
+      {
+        "name": "Totem",
+        "type": "()"
+      },
+      {
+        "name": "Wave",
+        "type": "()"
+      }
+    ]
+  },
+  {
     "type": "interface",
     "name": "zkube::systems::actions::IActions",
     "items": [
@@ -166,6 +188,30 @@
           },
           {
             "name": "final_index",
+            "type": "core::integer::u8"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "apply_bonus",
+        "inputs": [
+          {
+            "name": "world",
+            "type": "dojo::world::IWorldDispatcher"
+          },
+          {
+            "name": "bonus",
+            "type": "zkube::types::bonus::Bonus"
+          },
+          {
+            "name": "row_index",
+            "type": "core::integer::u8"
+          },
+          {
+            "name": "line_index",
             "type": "core::integer::u8"
           }
         ],
