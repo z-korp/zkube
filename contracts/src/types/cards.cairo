@@ -7,3 +7,11 @@ enum Card {
     Three,
     Four
 }
+
+
+#[generate_trait]
+impl CardImpl of CardTrait {
+    fn get_bits(card: Card) -> u32 {
+        return 0;
+    }
+}

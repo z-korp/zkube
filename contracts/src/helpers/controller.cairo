@@ -14,13 +14,12 @@ use alexandria_math::fast_power::fast_power;
 // Internal imports
 
 use zkube::constants;
-use zkube::elements::decks::easy;
+use zkube::elements::decks::easy::DeckDataImpl;
+use zkube::elements::decks::interface::DeckTrait as DeckTrait2;
 use zkube::helpers::math::Math;
 use zkube::helpers::packer::Packer;
 use zkube::helpers::gravity::Gravity;
-use zkube::helpers::math::Math;
-use zkube::types::cards::Card;
-
+use zkube::types::cards::{Card, CardTrait};
 
 mod errors {
     const CONTROLLER_NOT_ENOUGH_ROOM: felt252 = 'Controller: not enough room';
@@ -94,27 +93,28 @@ impl Controller of ControllerTrait {
         result.try_into().unwrap()
     }
 
-    fn create_line(seed: felt252) -> felt252 {
+    fn create_line(seed: felt252) -> u32 {
+        let mut blocks_added: u32 = 0;
         let mut new_line: u32 = 0;
-        let mut zero_location: u256 = seed.into() % constants::BLOCK_SIZE.into();
-        zero_location *= constants::BLOCK_BIT_COUNT.try_into().unwrap();
-        new_line = Math::two_power(zero_location.try_into().unwrap());
-
-        let mut deck: Deck = DeckTrait::new(seed, easy::DeckDataImpl::count());
+        let mut deck: Deck = DeckTrait::new(seed, DeckDataImpl::count());
 
         while deck.remaining != 0 {
-            let new_block: u8 = DeckTrait::draw(ref deck);
-            let mut value_to_set: u32 = (new_block + 1).into();
-
-            let mut i = 0;
-            while constants::DEFAULT_GRID_HEIGHT != i {
-                let block_pos = i * constants::BLOCK_BIT_COUNT;
-                let block_value = new_line * Math::two_power(block_pos.into());
+            if (blocks_added == 8) {
+                break;
             }
+
+            let new_block_id: u8 = DeckTrait::draw(ref deck);
+            let new_block: Card = DeckTrait2::reveal(new_block_id);
+
+            let block_in_bits = CardTrait::get_bits(new_block);
+
+            let number_blocks: u32 = Self::add_block_to_line(ref new_line, block_in_bits);
+
+            blocks_added += number_blocks;
+            deck.remaining -= 1;
         };
 
-        let x: felt252 = 'return';
-        x
+        new_line
     }
 
     #[inline(always)]
@@ -202,6 +202,11 @@ impl Controller of ControllerTrait {
             true => Self::swipe_left(bitmap, row_index, block_index, count),
             false => Self::swipe_right(bitmap, row_index, block_index, count),
         }
+    }
+
+    #[inline(always)]
+    fn add_block_to_line(ref line: u32, block: u32) -> u32 {
+        return 0;
     }
 }
 
