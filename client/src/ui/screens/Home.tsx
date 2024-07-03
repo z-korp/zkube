@@ -16,6 +16,18 @@ import { GameBonus } from '../containers/GameBonus';
 
 export const Home = () => {
   const [animationDone, setAnimationDone] = useState(false);
+  const testGrid = [
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 2, 2, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 4, 4, 4, 4, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 2, 2, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 4, 4, 4, 4, 0, 0, 0],
+    [1, 0, 0, 0, 2, 2, 0, 0],
+    [1, 0, 0, 0, 2, 2, 0, 0],
+  ];
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -39,7 +51,7 @@ export const Home = () => {
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute top-10 flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
               <GameBonus />
-              <GameBoard />
+              <GameBoard initialGrid={testGrid} />
               <Create />
               <Start />
             </div>

@@ -25,53 +25,46 @@ interface Cell {
   isStart: boolean;
 }
 
-const GameBoard = () => {
+const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
   const [grid, setGrid] = useState<Cell[][]>([]);
   const rows = 10;
   const cols = 8;
 
   useEffect(() => {
-    initializeGrid();
-  }, []);
+    initializeGrid(initialGrid);
+  }, [initialGrid]);
 
-  const initializeGrid = () => {
+  const initializeGrid = (initialGrid: number[][]) => {
     const newGrid: Cell[][] = [];
     for (let i = 0; i < rows; i++) {
       const row: Cell[] = [];
       for (let j = 0; j < cols; j++) {
-        row.push({ id: `${i}-${j}`, pieceId: null, isStart: false });
+        const value = initialGrid[i][j];
+        row.push({ id: `${i}-${j}`, pieceId: value !== 0 ? value : null, isStart: false });
       }
       newGrid.push(row);
     }
-    console.log('Grid initialized:', newGrid);
-    addRandomPieces(newGrid);
-  };
-
-  const addRandomPieces = (grid: Cell[][]) => {
-    const newGrid = [...grid];
-    for (let i = 0; i < rows; i++) {
-      let j = 0;
-      while (j < cols) {
-        if (Math.random() < 0.3) {
-          const piece = PIECES[Math.floor(Math.random() * PIECES.length)];
-          if (j + piece.width <= cols) {
-            placePiece(newGrid, i, j, piece);
-            j += piece.width;
-          } else {
-            j++;
-          }
-        } else {
-          j++;
-        }
-      }
-    }
+    markStartingCells(newGrid);
     setGrid(newGrid);
   };
 
-  const placePiece = (grid: Cell[][], row: number, col: number, piece: Piece) => {
-    for (let j = 0; j < piece.width; j++) {
-      grid[row][col + j].pieceId = piece.id;
-      grid[row][col + j].isStart = j === 0;
+  const markStartingCells = (grid: Cell[][]) => {
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        const pieceId = grid[i][j].pieceId;
+        if (pieceId !== null) {
+          let isStart = true;
+          for (let k = 1; k < pieceId; k++) {
+            if (j + k < cols && grid[i][j + k].pieceId === pieceId) {
+              grid[i][j + k].isStart = false;
+            } else {
+              isStart = false;
+              break;
+            }
+          }
+          grid[i][j].isStart = isStart;
+        }
+      }
     }
   };
 
@@ -118,13 +111,33 @@ const GameBoard = () => {
 const getElementStyle = (element: string) => {
   switch (element) {
     case 'stone1':
-      return { backgroundImage: `url(${stone1Image})`, backgroundSize: 'cover' };
+      return {
+        backgroundImage: `url(${stone1Image})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      };
     case 'stone2':
-      return { backgroundImage: `url(${stone2Image})`, backgroundSize: 'cover' };
+      return {
+        backgroundImage: `url(${stone2Image})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      };
     case 'stone3':
-      return { backgroundImage: `url(${stone3Image})`, backgroundSize: 'cover' };
+      return {
+        backgroundImage: `url(${stone3Image})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      };
     case 'stone4':
-      return { backgroundImage: `url(${stone4Image})`, backgroundSize: 'cover' };
+      return {
+        backgroundImage: `url(${stone4Image})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      };
     default:
       return {};
   }
