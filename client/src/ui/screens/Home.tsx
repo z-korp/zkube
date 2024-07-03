@@ -38,8 +38,6 @@ export const Home = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  if (!game) return null;
-
   return (
     <div className="relative flex flex-col">
       <Header />
@@ -59,7 +57,7 @@ export const Home = () => {
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute top-10 flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
               <GameBonus />
-              <GameBoard initialGrid={game.blocks} />
+              {!!game && <GameBoard initialGrid={game.blocks} />}
               <Create />
               <Start />
             </div>
