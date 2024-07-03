@@ -12,14 +12,15 @@ mod types {
     mod bonus;
     mod color;
     mod width;
-    mod cards;
+    mod block;
+    mod difficulty;
 }
 
 mod elements {
     mod bonuses {
         mod interface;
     }
-    mod decks {
+    mod difficulties {
         mod easy;
         mod interface;
     }

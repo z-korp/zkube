@@ -47,7 +47,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     grid: Cell[][],
     row: number,
     col: number,
-    piece: Piece
+    piece: Piece,
   ) => {
     for (let j = 0; j < piece.width; j++) {
       grid[row][col + j].pieceId = piece.id;
@@ -71,7 +71,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
   const startDragging = (
     rowIndex: number,
     colIndex: number,
-    e: React.MouseEvent
+    e: React.MouseEvent,
   ) => {
     const piece = PIECES.find((p) => p.id === grid[rowIndex][colIndex].pieceId);
     if (!piece) return;
@@ -137,7 +137,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
 
     const newCol = Math.max(
       0,
-      Math.min(cols - 1, draggingPiece.col + draggedCells)
+      Math.min(cols - 1, draggingPiece.col + draggedCells),
     );
 
     const newGrid = [...grid];
@@ -145,7 +145,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     console.log(draggingPiece.row, draggingPiece.col, newCol);
     console.log(grid[draggingPiece.row][draggingPiece.col]);
     const piece = PIECES.find(
-      (p) => p.id === grid[draggingPiece.row][draggingPiece.col].pieceId
+      (p) => p.id === grid[draggingPiece.row][draggingPiece.col].pieceId,
     );
     if (piece && !checkCollision(draggingPiece.row, newCol, piece)) {
       // Effacer l'ancienne position
@@ -235,7 +235,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       return (
         <div
           key={cell.id}
-          className={`h-12 bg-slate-700 flex items-center justify-center cursor-move`}
+          className={`h-12 bg-secondary flex items-center justify-center cursor-move`}
           style={{
             ...getElementStyle(piece.element),
             gridColumn: `span ${piece.width * 4}`,
@@ -249,7 +249,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       return (
         <div
           key={cell.id}
-          className="h-12 w-12 bg-slate-700"
+          className="h-12 w-12 bg-secondary"
           style={{ gridColumn: "span 4" }}
         />
       );
