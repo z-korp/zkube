@@ -141,10 +141,9 @@ const GameBoard = () => {
       return (
         <div
           key={cell.id}
-          className={`relative h-12 bg-slate-700 flex items-center justify-center cursor-pointer ${getElementColor(piece.element)}`}
+          className={`h-12 bg-slate-700 flex items-center justify-center cursor-pointer ${getElementColor(piece.element)}`}
           style={{
-            width: `${piece.width * 3}rem`,
-            gridColumn: `span ${piece.width}`,
+            gridColumn: `span ${piece.width * 4}`,
           }}
           onClick={() => handleCellClick(rowIndex, colIndex)}
         >
@@ -158,9 +157,15 @@ const GameBoard = () => {
         </div>
       );
     } else if (!cell.pieceId) {
-      return <div key={cell.id} className="w-12 h-12 bg-slate-700" />;
+      return (
+        <div
+          key={cell.id}
+          className="h-12 bg-slate-700"
+          style={{ gridColumn: "span 4" }}
+        />
+      );
     }
-    return null; // Ne rien rendre pour les cellules non-start d'une pièce multi-cases
+    return null;
   };
 
   return (
@@ -173,7 +178,7 @@ const GameBoard = () => {
           Toggle Debug Mode
         </button>
       </div>
-      <div className="grid grid-cols-8 gap-1">
+      <div className="grid grid-cols-[repeat(32,1fr)] gap-1">
         {grid.map((row, rowIndex) => (
           <React.Fragment key={rowIndex}>
             {row.map((cell, colIndex) => renderCell(cell, rowIndex, colIndex))}
