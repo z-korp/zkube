@@ -15,7 +15,9 @@ struct Game {
     over: bool,
     points: u32,
     next_row: u32,
+    next_color: u32,
     bonuses: u16,
     blocks: felt252,
+    colors: felt252,
     seed: felt252,
 }

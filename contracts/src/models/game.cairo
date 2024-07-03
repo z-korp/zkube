@@ -29,8 +29,18 @@ mod errors {
 impl GameImpl of GameTrait {
     #[inline(always)]
     fn new(id: u32, seed: felt252) -> Game {
-        let row = Controller::create_line(seed, DIFFICULTY);
-        Game { id, over: false, next_row: row, bonuses: 0, blocks: 0, seed, points: 0 }
+        let (row, color) = Controller::create_line(seed, DIFFICULTY);
+        Game {
+            id,
+            over: false,
+            next_row: row,
+            next_color: color,
+            bonuses: 0,
+            blocks: 0,
+            colors: 0,
+            seed,
+            points: 0
+        }
     }
 
     #[inline(always)]
@@ -40,9 +50,10 @@ impl GameImpl of GameTrait {
 
     #[inline(always)]
     fn setup_next(ref self: Game) {
-        let row = Controller::create_line(self.seed, DIFFICULTY);
+        let (row, color) = Controller::create_line(self.seed, DIFFICULTY);
         self.blocks = Controller::add_line(self.blocks, self.next_row);
         self.next_row = row;
+        self.next_color = color;
     }
 
     #[inline(always)]
@@ -60,8 +71,11 @@ impl GameImpl of GameTrait {
             false => start_index - final_index,
         };
         // [Effect] Swipe block
-        self.blocks = Controller::swipe(self.blocks, row_index, start_index, direction, count);
-
+        let (new_blocks, new_colors) = Controller::swipe(
+            self.blocks, self.colors, row_index, start_index, direction, count
+        );
+        self.blocks = new_blocks;
+        self.colors = new_colors;
         // [Effect] Assess game
         let mut counter = 1;
         let mut points = 0;
@@ -87,8 +101,9 @@ impl GameImpl of GameTrait {
                 break;
             };
             blocks = self.blocks;
-            self.blocks = Controller::apply_gravity(self.blocks);
-            self.blocks = Controller::assess_lines(self.blocks, ref counter, ref points);
+            let (new_blocks, new_colors) = Controller::apply_gravity(self.blocks, self.colors);
+            self.blocks = Controller::assess_lines(new_blocks, ref counter, ref points, true);
+            self.colors = Controller::assess_lines(new_colors, ref counter, ref points, false);
             self.points += points;
         };
     }
@@ -103,7 +118,17 @@ impl GameImpl of GameTrait {
 impl ZeroableGame of core::Zeroable<Game> {
     #[inline(always)]
     fn zero() -> Game {
-        Game { id: 0, over: false, next_row: 0, bonuses: 0, blocks: 0, seed: 0, points: 0 }
+        Game {
+            id: 0,
+            over: false,
+            next_row: 0,
+            next_color: 0,
+            bonuses: 0,
+            blocks: 0,
+            colors: 0,
+            seed: 0,
+            points: 0
+        }
     }
 
     #[inline(always)]
