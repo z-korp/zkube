@@ -6,6 +6,7 @@ use core::debug::PrintTrait;
 
 use zkube::constants;
 use zkube::helpers::packer::Packer;
+use zkube::helpers::math::Math;
 
 #[generate_trait]
 impl Gravity of GravityTrait {
@@ -24,7 +25,7 @@ impl Gravity of GravityTrait {
                 pointer *= constants::BLOCK_SIZE.into();
                 continue;
             };
-            let size = Self::two_power(upper * constants::BLOCK_BIT_COUNT.into());
+            let size = Math::two_power(upper * constants::BLOCK_BIT_COUNT.into());
             let lower = bottom % size;
             let lower_mask = pointer - 1;
             pointer *= size;
@@ -38,29 +39,6 @@ impl Gravity of GravityTrait {
             bottom /= size;
         };
         (new_top, new_bottom)
-    }
-
-    fn two_power(power: u32) -> u32 {
-        match power {
-            0 => 1,
-            1 => 2,
-            2 => 4,
-            3 => 8,
-            4 => 16,
-            5 => 32,
-            6 => 64,
-            7 => 128,
-            8 => 256,
-            9 => 512,
-            10 => 1024,
-            11 => 2048,
-            12 => 4096,
-            13 => 8192,
-            14 => 16384,
-            15 => 32768,
-            16 => 65536,
-            _ => 0,
-        }
     }
 }
 
