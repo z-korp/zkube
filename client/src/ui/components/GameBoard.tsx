@@ -43,6 +43,36 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     initializeGrid(initialGrid);
   }, [initialGrid]);
 
+  const applyGravity = () => {
+    const newGrid = [...grid];
+    for (let col = 0; col < cols; col++) {
+      let emptyRow = rows - 1;
+      for (let row = rows - 1; row >= 0; row--) {
+        if (newGrid[row][col].pieceId !== null) {
+          if (row !== emptyRow) {
+            const piece = PIECES.find(
+              (p) => p.id === newGrid[row][col].pieceId,
+            );
+            if (piece && newGrid[row][col].isStart) {
+              for (let i = 0; i < piece.width; i++) {
+                newGrid[emptyRow][col + i].pieceId =
+                  newGrid[row][col + i].pieceId;
+                newGrid[emptyRow][col + i].isStart = i === 0;
+                newGrid[row][col + i].pieceId = null;
+                newGrid[row][col + i].isStart = false;
+              }
+              emptyRow--;
+              col += piece.width - 1; // Sauter les colonnes déjà traitées
+            }
+          } else {
+            emptyRow--;
+          }
+        }
+      }
+    }
+    setGrid(newGrid);
+  };
+
   const placePiece = (
     grid: Cell[][],
     row: number,
@@ -286,6 +316,14 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
 
   return (
     <Card className="p-4 bg-secondary">
+      <div className="mb-4">
+        <button
+          onClick={applyGravity}
+          className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
+        >
+          Apply Gravity
+        </button>
+      </div>
       <div className="bg-slate-800">
         <div
           ref={gridRef}
