@@ -1,0 +1,35 @@
+kind = "DojoModel"
+class_hash = "0x88de8a4bccfe15346c3f416af1d800dda8ce2efdab198af7f2924f16996412"
+original_class_hash = "0x88de8a4bccfe15346c3f416af1d800dda8ce2efdab198af7f2924f16996412"
+abi = "manifests/dev/abis/base/models/zkube_models_index_game.json"
+name = "zkube::models::index::game"
+
+[[members]]
+name = "id"
+type = "u32"
+key = true
+
+[[members]]
+name = "over"
+type = "bool"
+key = false
+
+[[members]]
+name = "next_row"
+type = "u32"
+key = false
+
+[[members]]
+name = "bonuses"
+type = "u16"
+key = false
+
+[[members]]
+name = "blocks"
+type = "felt252"
+key = false
+
+[[members]]
+name = "seed"
+type = "felt252"
+key = false

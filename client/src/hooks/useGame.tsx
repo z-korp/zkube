@@ -5,23 +5,22 @@ import { useComponentValue } from "@dojoengine/react";
 import { Entity } from "@dojoengine/recs";
 
 export const useGame = ({ gameId }: { gameId: string | undefined }) => {
-  // const {
-  //   setup: {
-  //     clientModels: {
-  //       models: { Game },
-  //       classes: { Game: GameClass },
-  //     },
-  //   },
-  // } = useDojo();
+  const {
+    setup: {
+      clientModels: {
+        models: { Game },
+        classes: { Game: GameClass },
+      },
+    },
+  } = useDojo();
 
   const gameKey = useMemo(
     () => getEntityIdFromKeys([BigInt(gameId || 0)]) as Entity,
-    [gameId]
+    [gameId],
   );
-  // const component = useComponentValue(Game, gameKey);
-  // const game = useMemo(() => {
-  //   return component ? new GameClass(component) : null;
-  // }, [component]);
-  const game: { id: string } = { id: "0x56" };
+  const component = useComponentValue(Game, gameKey);
+  const game = useMemo(() => {
+    return component ? new GameClass(component) : null;
+  }, [component]);
   return { game, gameKey };
 };

@@ -13,6 +13,7 @@ struct Game {
     #[key]
     id: u32,
     over: bool,
+    points: u32,
     next_row: u32,
     bonuses: u16,
     blocks: felt252,
