@@ -3,7 +3,7 @@ import { Create } from '../actions/Create';
 import { Start } from '../actions/Start';
 import GameBoard from '../components/GameBoard';
 import BackGroundBoard from '../components/BackgroundBoard';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
 import imageBackground from '/assets/theme-2.png';
