@@ -11,6 +11,7 @@ use alexandria_math::bitmap::Bitmap;
 // Inernal imports
 
 use zkube::models::index::Game;
+use zkube::helpers::controller::Controller;
 
 mod errors {
     const GAME_NOT_EXISTS: felt252 = 'Game: does not exist';
@@ -28,10 +29,26 @@ impl GameImpl of GameTrait {
     #[inline(always)]
     fn start(ref self: Game) {}
 
-    #[inline(always)]
-    fn move(
-        ref self: Game, raw: u8, index: u8, direction: bool, count: u8
-    ) { // logic and checks to make a move here
+    fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8,) {
+        // [Compute] Move direction and step counts
+        let direction = final_index > start_index;
+        let count = match direction {
+            true => final_index - start_index,
+            false => start_index - final_index,
+        };
+        // [Effect] Swipe block
+        self.blocks = Controller::swipe(self.blocks, row_index, start_index, direction, count);
+        let mut blocks = 0;
+        loop {
+            if blocks == self.blocks {
+                break;
+            };
+            blocks = self.blocks;
+            self.blocks = Controller::apply_gravity(self.blocks);
+            self.blocks = Controller::assess_lines(self.blocks);
+        };
+    // [Effect] Add a new line
+
     }
 }
 
