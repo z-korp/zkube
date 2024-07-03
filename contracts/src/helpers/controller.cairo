@@ -5,22 +5,17 @@ use core::debug::PrintTrait;
 
 // External imports
 
-use origami::random::deck::{Deck, DeckTrait};
-
-// External imports
-
 use alexandria_math::fast_power::fast_power;
+use origami::random::deck::{Deck, DeckTrait};
 
 // Internal imports
 
 use zkube::constants;
-use zkube::elements::decks::easy;
 use zkube::helpers::math::Math;
 use zkube::helpers::packer::Packer;
 use zkube::helpers::gravity::Gravity;
-use zkube::helpers::math::Math;
-use zkube::types::cards::Card;
-
+use zkube::types::block::{Block, BlockTrait};
+use zkube::types::difficulty::{Difficulty, DifficultyTrait};
 
 mod errors {
     const CONTROLLER_NOT_ENOUGH_ROOM: felt252 = 'Controller: not enough room';
@@ -94,27 +89,23 @@ impl Controller of ControllerTrait {
         result.try_into().unwrap()
     }
 
-    fn create_line(seed: felt252) -> felt252 {
+    fn create_line(seed: felt252, difficulty: Difficulty) -> u32 {
+        let mut blocks_added: u8 = 0;
         let mut new_line: u32 = 0;
-        let mut zero_location: u256 = seed.into() % constants::BLOCK_SIZE.into();
-        zero_location *= constants::BLOCK_BIT_COUNT.try_into().unwrap();
-        new_line = Math::two_power(zero_location.try_into().unwrap());
-
-        let mut deck: Deck = DeckTrait::new(seed, easy::DeckDataImpl::count());
-
-        while deck.remaining != 0 {
-            let new_block: u8 = DeckTrait::draw(ref deck);
-            let mut value_to_set: u32 = (new_block + 1).into();
-
-            let mut i = 0;
-            while constants::DEFAULT_GRID_HEIGHT != i {
-                let block_pos = i * constants::BLOCK_BIT_COUNT;
-                let block_value = new_line * Math::two_power(block_pos.into());
-            }
+        let mut deck: Deck = DeckTrait::new(seed, difficulty.count());
+        while deck.remaining != 0 || blocks_added < constants::DEFAULT_GRID_WIDTH {
+            let new_block: Block = difficulty.reveal(deck.draw());
+            if new_block.size() > (constants::DEFAULT_GRID_WIDTH - blocks_added) {
+                continue;
+            };
+            let power: u32 = new_block.size().into() * constants::BLOCK_BIT_COUNT.into();
+            new_line.print();
+            power.print();
+            new_line = new_line * fast_power(2, power);
+            new_line += new_block.get_bits();
+            blocks_added += new_block.size();
         };
-
-        let x: felt252 = 'return';
-        x
+        new_line
     }
 
     #[inline(always)]
@@ -203,13 +194,18 @@ impl Controller of ControllerTrait {
             false => Self::swipe_right(bitmap, row_index, block_index, count),
         }
     }
+
+    #[inline(always)]
+    fn add_block_to_line(ref line: u32, block: u32) -> u32 {
+        return 0;
+    }
 }
 
 #[cfg(test)]
 mod tests {
     // Local imports
 
-    use super::Controller;
+    use super::{Controller, Difficulty};
 
     #[test]
     fn test_apply_gravity() {
@@ -345,5 +341,21 @@ mod tests {
         assert_eq!(Controller::get_row(new_blocks, 0), 0b001_010_010_000_000_011_011_011);
         assert_eq!(Controller::get_row(new_blocks, 1), 0b010_010_010_010_100_100_100_100);
         assert_eq!(Controller::get_row(new_blocks, 2), 0b000_000_000_001_000_000_000_001);
+    }
+
+    #[test]
+    fn test_controller_create_line_01() {
+        let seed: felt252 = 'SEED';
+        let easy: Difficulty = Difficulty::Easy;
+        let line = Controller::create_line(seed, easy);
+        assert_eq!(line, 0b010_010_001_001_001_000_000_001);
+    }
+
+    #[test]
+    fn test_controller_create_line_02() {
+        let seed: felt252 = 'DEES';
+        let easy: Difficulty = Difficulty::Easy;
+        let line = Controller::create_line(seed, easy);
+        assert_eq!(line, 0b001_001_000_001_010_010_010_010);
     }
 }

@@ -4,13 +4,11 @@ use core::debug::PrintTrait;
 use core::poseidon::{PoseidonTrait, HashState};
 use core::hash::HashStateTrait;
 
-// External imports
-
-use alexandria_math::bitmap::Bitmap;
-
 // Inernal imports
 
 use zkube::models::index::Game;
+use zkube::constants;
+use zkube::helpers::packer::Packer;
 use zkube::helpers::controller::Controller;
 
 mod errors {
@@ -29,6 +27,13 @@ impl GameImpl of GameTrait {
     #[inline(always)]
     fn start(ref self: Game) {}
 
+    #[inline(always)]
+    fn assess_over(ref self: Game) {
+        let bitmap: u256 = self.blocks.into();
+        let rows: Array<u32> = Packer::unpack(bitmap, constants::BLOCK_SIZE);
+        self.over = rows.len() == constants::DEFAULT_GRID_HEIGHT.into();
+    }
+
     fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8,) {
         // [Compute] Move direction and step counts
         let direction = final_index > start_index;
@@ -38,6 +43,7 @@ impl GameImpl of GameTrait {
         };
         // [Effect] Swipe block
         self.blocks = Controller::swipe(self.blocks, row_index, start_index, direction, count);
+        // [Effect] Assess game
         let mut blocks = 0;
         loop {
             if blocks == self.blocks {
@@ -47,8 +53,17 @@ impl GameImpl of GameTrait {
             self.blocks = Controller::apply_gravity(self.blocks);
             self.blocks = Controller::assess_lines(self.blocks);
         };
-    // [Effect] Add a new line
-
+        // [Effect] Add a new line
+        // [Effect] Assess game
+        let mut blocks = 0;
+        loop {
+            if blocks == self.blocks {
+                break;
+            };
+            blocks = self.blocks;
+            self.blocks = Controller::apply_gravity(self.blocks);
+            self.blocks = Controller::assess_lines(self.blocks);
+        };
     }
 }
 
