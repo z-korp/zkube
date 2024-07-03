@@ -1,12 +1,16 @@
-import { useDojo } from '@/dojo/useDojo';
-import { useGame } from '@/hooks/useGame';
-import { usePlayer } from '@/hooks/usePlayer';
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useMusicPlayer } from './music';
+import { useDojo } from "@/dojo/useDojo";
+import { useGame } from "@/hooks/useGame";
+import { usePlayer } from "@/hooks/usePlayer";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { useMusicPlayer } from "./music";
 
 const SoundPlayerContext = createContext({});
 
-export const SoundPlayerProvider = ({ children }: { children: React.ReactNode }) => {
+export const SoundPlayerProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const { setTheme, playStart, playOver } = useMusicPlayer();
   const [over, setOver] = useState(false);
   const [start, setStart] = useState(false);
@@ -40,7 +44,11 @@ export const SoundPlayerProvider = ({ children }: { children: React.ReactNode })
     }
   }, [game, start, over]);
 
-  return <SoundPlayerContext.Provider value={{}}>{children}</SoundPlayerContext.Provider>;
+  return (
+    <SoundPlayerContext.Provider value={{}}>
+      {children}
+    </SoundPlayerContext.Provider>
+  );
 };
 
 export const useSoundPlayer = () => {

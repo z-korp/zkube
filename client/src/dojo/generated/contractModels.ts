@@ -14,6 +14,7 @@ export function defineContractComponents(world: World) {
         {
           id: RecsType.Number,
           over: RecsType.Boolean,
+          next_row: RecsType.Number,
           bonuses: RecsType.Number,
           blocks: RecsType.BigInt,
           seed: RecsType.BigInt,
@@ -21,7 +22,7 @@ export function defineContractComponents(world: World) {
         {
           metadata: {
             name: "Game",
-            types: ["u32", "bool", "u16", "felt252", "felt252"],
+            types: ["u32", "bool", "u32", "u16", "felt252", "felt252"],
             customTypes: [],
           },
         },
