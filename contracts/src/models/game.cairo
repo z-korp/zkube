@@ -8,8 +8,15 @@ use core::hash::HashStateTrait;
 
 use zkube::models::index::Game;
 use zkube::constants;
+use zkube::types::difficulty::Difficulty;
 use zkube::helpers::packer::Packer;
 use zkube::helpers::controller::Controller;
+
+// Constants
+
+const DIFFICULTY: Difficulty = Difficulty::Easy;
+
+// Errors
 
 mod errors {
     const GAME_NOT_EXISTS: felt252 = 'Game: does not exist';
@@ -21,11 +28,21 @@ mod errors {
 impl GameImpl of GameTrait {
     #[inline(always)]
     fn new(id: u32, seed: felt252) -> Game {
-        Game { id, over: false, bonuses: 0, blocks: 0, seed, }
+        let row = Controller::create_line(seed, DIFFICULTY);
+        Game { id, over: false, next_row: row, bonuses: 0, blocks: 0, seed, }
     }
 
     #[inline(always)]
-    fn start(ref self: Game) {}
+    fn start(ref self: Game) {
+        self.setup_next();
+    }
+
+    #[inline(always)]
+    fn setup_next(ref self: Game) {
+        let row = Controller::create_line(self.seed, DIFFICULTY);
+        self.blocks = Controller::add_line(self.blocks, self.next_row);
+        self.next_row = row;
+    }
 
     #[inline(always)]
     fn assess_over(ref self: Game) {
@@ -53,7 +70,16 @@ impl GameImpl of GameTrait {
             self.blocks = Controller::apply_gravity(self.blocks);
             self.blocks = Controller::assess_lines(self.blocks);
         };
+
+        // [Effect] Assess game over
+        self.assess_over();
+        if self.over {
+            return;
+        };
+
         // [Effect] Add a new line
+        self.setup_next();
+
         // [Effect] Assess game
         let mut blocks = 0;
         loop {
@@ -70,7 +96,7 @@ impl GameImpl of GameTrait {
 impl ZeroableGame of core::Zeroable<Game> {
     #[inline(always)]
     fn zero() -> Game {
-        Game { id: 0, over: false, bonuses: 0, blocks: 0, seed: 0, }
+        Game { id: 0, over: false, next_row: 0, bonuses: 0, blocks: 0, seed: 0, }
     }
 
     #[inline(always)]
