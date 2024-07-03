@@ -76,12 +76,25 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     const piece = PIECES.find((p) => p.id === grid[rowIndex][colIndex].pieceId);
     if (!piece) return;
 
-    const startCol = colIndex;
+    // Trouvez le début de la pièce
+    let startCol = colIndex;
+    while (startCol > 0 && grid[rowIndex][startCol - 1].pieceId === piece.id) {
+      startCol--;
+    }
+
+    const gridRect = gridRef.current?.getBoundingClientRect();
+    const cellWidth = gridRect ? gridRect.width / cols : 0;
+    const startX = gridRect ? gridRect.left + startCol * cellWidth : 0;
+
+    // Calculez le décalage entre le point de clic et le début de la pièce
+    const clickOffset = e.clientX - startX;
+
     setDraggingPiece({
       row: rowIndex,
       col: startCol,
-      startX: e.clientX,
-      currentX: e.clientX,
+      startX: startX,
+      currentX: startX,
+      clickOffset: clickOffset,
     });
     setIsDragging(true);
   };
@@ -96,16 +109,17 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       );
       if (!piece) return;
 
-      const maxDrag = (cols - draggingPiece.col - piece.width) * cellWidth;
-      const minDrag = -draggingPiece.col * cellWidth;
-
-      let newX = e.clientX;
+      let newX = e.clientX - draggingPiece.clickOffset;
       const totalDrag = newX - draggingPiece.startX;
+      const draggedCells = Math.round(totalDrag / cellWidth);
+      let newCol = draggingPiece.col + draggedCells;
 
-      if (totalDrag > maxDrag) newX = draggingPiece.startX + maxDrag;
-      if (totalDrag < minDrag) newX = draggingPiece.startX + minDrag;
+      // Vérifiez les limites
+      newCol = Math.max(0, Math.min(cols - piece.width, newCol));
 
-      const newCol = Math.floor((newX - gridRect.left) / cellWidth);
+      // Calculez la nouvelle position X basée sur la nouvelle colonne
+      newX = draggingPiece.startX + (newCol - draggingPiece.col) * cellWidth;
+
       if (!checkCollision(draggingPiece.row, newCol, piece)) {
         setDraggingPiece({ ...draggingPiece, currentX: newX });
       }
@@ -210,7 +224,10 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
 
     if (cell.isStart && piece) {
       const isDragging =
-        draggingPiece?.row === rowIndex && draggingPiece?.col === colIndex;
+        draggingPiece?.row === rowIndex &&
+        colIndex >= draggingPiece.col &&
+        colIndex < draggingPiece.col + piece.width;
+
       const dragOffset = isDragging
         ? draggingPiece.currentX - draggingPiece.startX
         : 0;
