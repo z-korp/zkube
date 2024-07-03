@@ -2,7 +2,7 @@ import { Header } from '@/ui/containers/Header';
 import { Create } from '../actions/Create';
 import { Start } from '../actions/Start';
 import GameBoard from '../components/GameBoard';
-import BackGroundBoard from '../components/BackGroundBoard';
+import BackGroundBoard from '../components/BackgroundBoard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
