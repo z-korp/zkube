@@ -1,5 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { Card } from "@/ui/elements/ui/card";
+import React, { useState, useEffect } from 'react';
+import { Card } from '@/ui/elements/ui/card';
+
+import stone1Image from '/assets/block-1.png';
+import stone2Image from '/assets/block-2.png';
+import stone3Image from '/assets/block-3.png';
+import stone4Image from '/assets/block-4.png';
 
 interface Piece {
   id: number;
@@ -8,10 +13,10 @@ interface Piece {
 }
 
 const PIECES: Piece[] = [
-  { id: 1, width: 1, element: "stone1" },
-  { id: 2, width: 2, element: "stone2" },
-  { id: 3, width: 3, element: "stone3" },
-  { id: 4, width: 4, element: "stone4" },
+  { id: 1, width: 1, element: 'stone1' },
+  { id: 2, width: 2, element: 'stone2' },
+  { id: 3, width: 3, element: 'stone3' },
+  { id: 4, width: 4, element: 'stone4' },
 ];
 
 interface Cell {
@@ -38,7 +43,7 @@ const GameBoard = () => {
       }
       newGrid.push(row);
     }
-    console.log("Grid initialized:", newGrid);
+    console.log('Grid initialized:', newGrid);
     addRandomPieces(newGrid);
   };
 
@@ -63,73 +68,11 @@ const GameBoard = () => {
     setGrid(newGrid);
   };
 
-  const placePiece = (
-    grid: Cell[][],
-    row: number,
-    col: number,
-    piece: Piece
-  ) => {
+  const placePiece = (grid: Cell[][], row: number, col: number, piece: Piece) => {
     for (let j = 0; j < piece.width; j++) {
       grid[row][col + j].pieceId = piece.id;
       grid[row][col + j].isStart = j === 0;
     }
-  };
-
-  const applyGravity = () => {
-    const newGrid = [...grid];
-    for (let col = 0; col < cols; col++) {
-      let emptyRow = rows - 1;
-      for (let row = rows - 1; row >= 0; row--) {
-        if (newGrid[row][col].pieceId !== null) {
-          if (row !== emptyRow) {
-            const piece = PIECES.find(
-              (p) => p.id === newGrid[row][col].pieceId
-            );
-            if (piece && newGrid[row][col].isStart) {
-              for (let i = 0; i < piece.width; i++) {
-                newGrid[emptyRow][col + i].pieceId =
-                  newGrid[row][col + i].pieceId;
-                newGrid[emptyRow][col + i].isStart = i === 0;
-                newGrid[row][col + i].pieceId = null;
-                newGrid[row][col + i].isStart = false;
-              }
-              emptyRow--;
-              col += piece.width - 1; // Sauter les colonnes déjà traitées
-            }
-          } else {
-            emptyRow--;
-          }
-        }
-      }
-    }
-    setGrid(newGrid);
-  };
-
-  const fillEmptySpaces = () => {
-    const newGrid = [...grid];
-    for (let col = 0; col < cols; col++) {
-      if (newGrid[0][col].pieceId === null) {
-        const availableWidth = cols - col;
-        const possiblePieces = PIECES.filter((p) => p.width <= availableWidth);
-        if (possiblePieces.length > 0) {
-          const piece =
-            possiblePieces[Math.floor(Math.random() * possiblePieces.length)];
-          placePiece(newGrid, 0, col, piece);
-          col += piece.width - 1; // Sauter les colonnes déjà remplies
-        }
-      }
-    }
-    setGrid(newGrid);
-  };
-
-  const handleCellClick = (rowIndex: number, colIndex: number) => {
-    // Appliquer la gravité et remplir les espaces vides après un court délai
-    setTimeout(() => {
-      applyGravity();
-      setTimeout(() => {
-        fillEmptySpaces();
-      }, 300);
-    }, 100);
   };
 
   const [debugMode, setDebugMode] = useState(false);
@@ -141,21 +84,15 @@ const GameBoard = () => {
       return (
         <div
           key={cell.id}
-          className={`h-12 bg-slate-700 flex items-center justify-center cursor-pointer ${getElementColor(piece.element)}`}
+          className={'h-12 bg-slate-700 flex items-center justify-center cursor-pointer'}
           style={{
+            ...getElementStyle(piece.element),
             gridColumn: `span ${piece.width * 4}`,
           }}
-          onClick={() => handleCellClick(rowIndex, colIndex)}
         ></div>
       );
     } else if (!cell.pieceId) {
-      return (
-        <div
-          key={cell.id}
-          className="h-12 w-12 bg-slate-700"
-          style={{ gridColumn: "span 4" }}
-        />
-      );
+      return <div key={cell.id} className="h-12 w-12 bg-slate-700" style={{ gridColumn: 'span 4' }} />;
     }
     return null;
   };
@@ -163,10 +100,7 @@ const GameBoard = () => {
   return (
     <Card className="p-4 bg-slate-800">
       <div className="mb-4">
-        <button
-          onClick={() => setDebugMode(!debugMode)}
-          className="px-4 py-2 bg-blue-500 text-white rounded"
-        >
+        <button onClick={() => setDebugMode(!debugMode)} className="px-4 py-2 bg-blue-500 text-white rounded">
           Toggle Debug Mode
         </button>
       </div>
@@ -181,27 +115,18 @@ const GameBoard = () => {
   );
 };
 
-// const getPieceColor = (pieceId: number): string => {
-//   const piece = PIECES.find((p) => p.id === pieceId);
-//   console.log(
-//     `Piece color for id ${pieceId}:`,
-//     piece ? piece.color : "not found"
-//   ); // we'll need to change this as color is not dictated by size of the element
-//   return piece ? piece.color : "";
-// };
-
-const getElementColor = (element: any) => {
+const getElementStyle = (element: string) => {
   switch (element) {
-    case "stone1":
-      return "!bg-red-500";
-    case "stone2":
-      return "!bg-blue-500";
-    case "stone3":
-      return "!bg-green-500";
-    case "stone4":
-      return "!bg-yellow-500";
+    case 'stone1':
+      return { backgroundImage: `url(${stone1Image})`, backgroundSize: 'cover' };
+    case 'stone2':
+      return { backgroundImage: `url(${stone2Image})`, backgroundSize: 'cover' };
+    case 'stone3':
+      return { backgroundImage: `url(${stone3Image})`, backgroundSize: 'cover' };
+    case 'stone4':
+      return { backgroundImage: `url(${stone4Image})`, backgroundSize: 'cover' };
     default:
-      return "";
+      return {};
   }
 };
 

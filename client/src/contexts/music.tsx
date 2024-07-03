@@ -7,13 +7,13 @@ type Track = {
 };
 
 const menuTracks: Track[] = [
-  { name: 'Intro', url: '/sounds/musics/intro.mp3' },
-  { name: 'Intro', url: '/sounds/musics/intro.mp3' },
+  { name: 'Intro', url: '/sounds/musics/theme-jungle2.mp3' },
+  { name: 'Intro', url: '/sounds/musics/theme-jungle2.mp3' },
 ];
 
 const playTracks: Track[] = [
-  { name: 'Play', url: '/sounds/musics/theme-jungle.mp3' },
-  { name: 'Play', url: '/sounds/musics/theme-jungle.mp3' },
+  { name: 'Play', url: '/sounds/musics/theme-jungle3.mp3' },
+  { name: 'Play', url: '/sounds/musics/theme-jungle3.mp3' },
 ];
 
 const effectTracks: Track[] = [

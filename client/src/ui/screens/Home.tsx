@@ -11,6 +11,8 @@ import imageBackgroundTotem from '/assets/theme-2-totem-2.png';
 import palmLeft from '/assets/palmtree-left.png';
 import palmRight from '/assets/palmtree-right.png';
 import PalmTree from '../components/PalmTree';
+import { Game } from '@/dojo/game/models/game';
+import { GameBonus } from '../containers/GameBonus';
 
 export const Home = () => {
   const [animationDone, setAnimationDone] = useState(false);
@@ -26,6 +28,7 @@ export const Home = () => {
   return (
     <div className="relative flex flex-col">
       <Header />
+
       <BackGroundBoard imageBackground={imageBackground}>
         <BackGroundBoard
           imageBackground={imageBackgroundTotem}
@@ -35,6 +38,7 @@ export const Home = () => {
         >
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute top-10 flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
+              <GameBonus />
               <GameBoard />
               <Create />
               <Start />
