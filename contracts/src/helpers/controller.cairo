@@ -11,11 +11,12 @@ use origami::random::deck::{Deck, DeckTrait};
 // Internal imports
 
 use zkube::constants;
-use zkube::helpers::math::Math;
 use zkube::helpers::packer::Packer;
 use zkube::helpers::gravity::Gravity;
 use zkube::types::block::{Block, BlockTrait};
 use zkube::types::difficulty::{Difficulty, DifficultyTrait};
+
+// Errors
 
 mod errors {
     const CONTROLLER_NOT_ENOUGH_ROOM: felt252 = 'Controller: not enough room';
@@ -23,7 +24,12 @@ mod errors {
 
 #[generate_trait]
 impl Controller of ControllerTrait {
-    fn apply_gravity(bitmap: felt252) -> felt252 {
+    /// Apply gravity to the grid.
+    /// # Arguments
+    /// * `bitmap` - The grid.
+    /// # Returns
+    /// The updated grid.
+    fn apply_gravity(mut bitmap: felt252) -> felt252 {
         let value: u256 = bitmap.into();
         let mut rows: Array<u32> = Packer::unpack(value, constants::ROW_SIZE);
         let mut new_rows: Array<u32> = array![];
@@ -48,33 +54,29 @@ impl Controller of ControllerTrait {
         result.try_into().unwrap()
     }
 
+    /// Remove all full lines and return the new grid.
+    /// # Arguments
+    /// * `bitmap` - The grid.
+    /// * `counter` - The combo counter.
+    /// * `points_earned` - The points earned.
+    /// # Returns
+    /// The new grid.
     fn assess_lines(bitmap: felt252, ref counter: u32, ref points_earned: u32) -> felt252 {
         let bitmap: u256 = bitmap.into();
         let mut new_rows: Array<u32> = array![];
         let mut rows: Array<u32> = Packer::unpack(bitmap, constants::ROW_SIZE);
-
         loop {
             match rows.pop_front() {
                 Option::Some(row) => {
-                    let mut blocks: Array<u8> = Packer::unpack(row, constants::BLOCK_SIZE);
-                    let mut line_removed: bool = true;
-                    loop {
-                        match blocks.pop_front() {
-                            Option::Some(block) => {
-                                if block == 0 {
-                                    new_rows.append(row);
-                                    line_removed = false;
-                                    break;
-                                }
-                            },
-                            Option::None => {
-                                if line_removed {
-                                    points_earned += counter;
-                                    counter += 1;
-                                }
-                                break;
-                            },
-                        };
+                    if row == 0 {
+                        continue;
+                    }
+                    let new_row = Self::assess_line(row);
+                    if new_row != 0 {
+                        new_rows.append(new_row);
+                    } else {
+                        points_earned += counter;
+                        counter += 1;
                     };
                 },
                 Option::None => { break; },
@@ -84,6 +86,29 @@ impl Controller of ControllerTrait {
         result.try_into().unwrap()
     }
 
+    /// Returns the row if it is not full, otherwise returns 0
+    /// # Arguments
+    /// * `row` - The row.
+    /// # Returns
+    /// The updated row.
+    fn assess_line(row: u32) -> u32 {
+        let mut blocks: Array<u8> = Packer::unpack(row, constants::BLOCK_SIZE);
+        loop {
+            match blocks.pop_front() {
+                Option::Some(block) => { if block == 0 {
+                    break row;
+                } },
+                Option::None => { break 0; },
+            };
+        }
+    }
+
+    /// Add a line to the grid.
+    /// # Arguments
+    /// * `bitmap` - The grid.
+    /// * `line` - The new line.
+    /// # Returns
+    /// The updated grid.
     fn add_line(bitmap: felt252, line: u32) -> felt252 {
         let bitmap: u256 = bitmap.into();
         let mut new_rows: Array<u32> = array![line];
@@ -98,6 +123,12 @@ impl Controller of ControllerTrait {
         result.try_into().unwrap()
     }
 
+    /// Create a new line.
+    /// # Arguments
+    /// * `seed` - The seed.
+    /// * `difficulty` - The difficulty.
+    /// # Returns
+    /// The new line.
     fn create_line(seed: felt252, difficulty: Difficulty) -> u32 {
         let mut blocks_added: u8 = 0;
         let mut new_line: u32 = 0;
@@ -115,6 +146,12 @@ impl Controller of ControllerTrait {
         new_line
     }
 
+    /// Get the row from the grid.
+    /// # Arguments
+    /// * `bitmap` - The grid.
+    /// * `row_index` - The row index.
+    /// # Returns
+    /// The row.
     #[inline(always)]
     fn get_row(bitmap: felt252, row_index: u8) -> u32 {
         let bitmap: u256 = bitmap.into();
@@ -126,6 +163,12 @@ impl Controller of ControllerTrait {
         (row / fast_power(2, (row_index * constants::ROW_BIT_COUNT).into())).try_into().unwrap()
     }
 
+    /// Get the block from the row.
+    /// # Arguments
+    /// * `row` - The row.
+    /// * `block_index` - The block index.
+    /// # Returns
+    /// The block.
     #[inline(always)]
     fn get_block_from_row(row: u32, block_index: u8) -> u8 {
         let mask_left: u32 = fast_power(2, ((block_index + 1) * constants::BLOCK_BIT_COUNT).into())
@@ -138,12 +181,27 @@ impl Controller of ControllerTrait {
             .unwrap()
     }
 
+    /// Get the block from the grid.
+    /// # Arguments
+    /// * `bitmap` - The grid.
+    /// * `row_index` - The row index.
+    /// * `block_index` - The block index.
+    /// # Returns
+    /// The block.
     #[inline(always)]
     fn get_block(bitmap: felt252, row_index: u8, block_index: u8) -> u8 {
         let row = Self::get_row(bitmap, row_index);
         Self::get_block_from_row(row, block_index)
     }
 
+    /// Swipe the blocks in the grid to the left.
+    /// # Arguments
+    /// * `bitmap` - The grid.
+    /// * `row_index` - The row index.
+    /// * `block_index` - The block index.
+    /// * `count` - The count.
+    /// # Returns
+    /// The updated grid.
     #[inline(always)]
     fn swipe_left(bitmap: felt252, row_index: u8, block_index: u8, mut count: u8) -> felt252 {
         let mut row = Self::get_row(bitmap, row_index);
@@ -168,6 +226,14 @@ impl Controller of ControllerTrait {
         Packer::replace(bitmap, row_index, constants::ROW_SIZE, row).try_into().unwrap()
     }
 
+    /// Swipe the blocks in the grid to the right.
+    /// # Arguments
+    /// * `bitmap` - The grid.
+    /// * `row_index` - The row index.
+    /// * `block_index` - The block index.
+    /// * `count` - The count.
+    /// # Returns
+    /// The updated grid.
     #[inline(always)]
     fn swipe_right(bitmap: felt252, row_index: u8, block_index: u8, mut count: u8) -> felt252 {
         let mut row = Self::get_row(bitmap, row_index);
@@ -192,6 +258,15 @@ impl Controller of ControllerTrait {
         Packer::replace(bitmap, row_index, constants::ROW_SIZE, row).try_into().unwrap()
     }
 
+    /// Swipe the blocks in the grid.
+    /// # Arguments
+    /// * `bitmap` - The grid.
+    /// * `row_index` - The row index.
+    /// * `block_index` - The block index.
+    /// * `direction` - The direction.
+    /// * `count` - The count.
+    /// # Returns
+    /// The updated grid.
     #[inline(always)]
     fn swipe(
         bitmap: felt252, row_index: u8, block_index: u8, direction: bool, mut count: u8
@@ -201,15 +276,14 @@ impl Controller of ControllerTrait {
             false => Self::swipe_right(bitmap, row_index, block_index, count),
         }
     }
-
-    #[inline(always)]
-    fn add_block_to_line(ref line: u32, block: u32) -> u32 {
-        return 0;
-    }
 }
 
 #[cfg(test)]
 mod tests {
+    // Core imports
+
+    use core::debug::PrintTrait;
+
     // Local imports
 
     use super::{Controller, Difficulty};
@@ -261,9 +335,6 @@ mod tests {
         // 010_010_000_000_100_100_100_100
         // 001_010_010_000_011_011_011_000
         // Final grid = 0
-        // 000_000_000_001_000_000_000_001
-        // 010_010_010_010_100_100_100_100
-        // 001_010_010_000_011_011_011_000
         let mut counter = 1;
         let mut points = 0;
         let blocks: felt252 =

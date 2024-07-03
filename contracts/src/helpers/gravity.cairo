@@ -10,10 +10,15 @@ use alexandria_math::fast_power::fast_power;
 
 use zkube::constants;
 use zkube::helpers::packer::Packer;
-use zkube::helpers::math::Math;
 
 #[generate_trait]
 impl Gravity of GravityTrait {
+    /// Apply gravity to the given top and bottom rows.
+    /// # Arguments
+    /// * `top` - The top row.
+    /// * `bottom` - The bottom row.
+    /// # Returns
+    /// A tuple containing the new top and bottom rows.
     fn apply(mut top: u32, mut bottom: u32) -> (u32, u32) {
         let mut pointer: u32 = 1;
         let mut new_top: u32 = top;

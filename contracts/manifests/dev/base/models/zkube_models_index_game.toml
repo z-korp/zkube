@@ -1,6 +1,6 @@
 kind = "DojoModel"
-class_hash = "0x88de8a4bccfe15346c3f416af1d800dda8ce2efdab198af7f2924f16996412"
-original_class_hash = "0x88de8a4bccfe15346c3f416af1d800dda8ce2efdab198af7f2924f16996412"
+class_hash = "0x6d24f3618faf952cdd04e4074eba3d0c1241d1eede4beea8531c5bd95465e34"
+original_class_hash = "0x6d24f3618faf952cdd04e4074eba3d0c1241d1eede4beea8531c5bd95465e34"
 abi = "manifests/dev/abis/base/models/zkube_models_index_game.json"
 name = "zkube::models::index::game"
 
@@ -12,6 +12,11 @@ key = true
 [[members]]
 name = "over"
 type = "bool"
+key = false
+
+[[members]]
+name = "points"
+type = "u32"
 key = false
 
 [[members]]
