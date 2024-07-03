@@ -11,6 +11,7 @@ use zkube::constants;
 use zkube::types::difficulty::Difficulty;
 use zkube::helpers::packer::Packer;
 use zkube::helpers::controller::Controller;
+use zkube::types::bonus::{Bonus, BonusTrait};
 
 // Constants
 
@@ -51,7 +52,7 @@ impl GameImpl of GameTrait {
         self.over = rows.len() == constants::DEFAULT_GRID_HEIGHT.into();
     }
 
-    fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8,) {
+    fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8) {
         // [Compute] Move direction and step counts
         let direction = final_index > start_index;
         let count = match direction {
@@ -60,20 +61,11 @@ impl GameImpl of GameTrait {
         };
         // [Effect] Swipe block
         self.blocks = Controller::swipe(self.blocks, row_index, start_index, direction, count);
+
         // [Effect] Assess game
-        let mut blocks = 0;
         let mut counter = 1;
         let mut points = 0;
-        loop {
-            if blocks == self.blocks {
-                break;
-            };
-            blocks = self.blocks;
-            self.blocks = Controller::apply_gravity(self.blocks);
-            let blocks = Controller::assess_lines(self.blocks, ref counter, ref points);
-            self.blocks = blocks;
-            self.points += points;
-        };
+        self.assess_game(ref counter, ref points);
 
         // [Effect] Assess game over
         self.assess_over();
@@ -85,6 +77,10 @@ impl GameImpl of GameTrait {
         self.setup_next();
 
         // [Effect] Assess game
+        self.assess_game(ref counter, ref points);
+    }
+
+    fn assess_game(ref self: Game, ref counter: u32, ref points: u32) {
         let mut blocks = 0;
         loop {
             if blocks == self.blocks {
@@ -92,11 +88,17 @@ impl GameImpl of GameTrait {
             };
             blocks = self.blocks;
             self.blocks = Controller::apply_gravity(self.blocks);
-            let blocks = Controller::assess_lines(self.blocks, ref counter, ref points);
-            self.blocks = blocks;
+            self.blocks = Controller::assess_lines(self.blocks, ref counter, ref points);
+            self.points += points;
         };
     }
+
+    #[inline(always)]
+    fn apply_bonus(ref self: Game, bonus: Bonus, row_index: u8, index: u8) {
+        self.blocks = bonus.apply_bonus(self.blocks, row_index, index)
+    }
 }
+
 
 impl ZeroableGame of core::Zeroable<Game> {
     #[inline(always)]

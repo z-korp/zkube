@@ -1,9 +1,23 @@
-#[derive(Drop)]
+// Internal imports
+
+use zkube::elements::bonuses::hammer;
+
+#[derive(Drop, Copy, Serde)]
 enum Bonus {
     None,
     Hammer,
     Totem,
     Wave,
+}
+
+#[generate_trait]
+impl BonusImpl of BonusTrait {
+    fn apply_bonus(self: Bonus, bitmap: felt252, row_index: u8, index: u8) -> felt252 {
+        match self {
+            Bonus::Hammer => hammer::BonusImpl::apply_bonus(bitmap, self, row_index, index),
+            _ => bitmap,
+        }
+    }
 }
 
 

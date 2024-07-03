@@ -19,6 +19,7 @@ mod types {
 mod elements {
     mod bonuses {
         mod interface;
+        mod hammer;
     }
     mod difficulties {
         mod easy;
