@@ -20,6 +20,8 @@ mod elements {
     mod bonuses {
         mod interface;
         mod hammer;
+        mod totem;
+        mod wave;
     }
     mod difficulties {
         mod easy;

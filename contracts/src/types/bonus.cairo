@@ -1,6 +1,9 @@
 // Internal imports
 
 use zkube::elements::bonuses::hammer;
+use zkube::elements::bonuses::totem;
+use zkube::elements::bonuses::wave;
+
 
 #[derive(Drop, Copy, Serde)]
 enum Bonus {
@@ -14,12 +17,13 @@ enum Bonus {
 impl BonusImpl of BonusTrait {
     fn apply_bonus(self: Bonus, bitmap: felt252, row_index: u8, index: u8) -> felt252 {
         match self {
+            Bonus::None => bitmap,
             Bonus::Hammer => hammer::BonusImpl::apply_bonus(bitmap, self, row_index, index),
-            _ => bitmap,
+            Bonus::Totem => totem::BonusImpl::apply_bonus(bitmap, self, row_index, index),
+            Bonus::Wave => wave::BonusImpl::apply_bonus(bitmap, self, row_index, index),
         }
     }
 }
-
 
 impl IntoBonusFelt252 of core::Into<Bonus, felt252> {
     #[inline(always)]
