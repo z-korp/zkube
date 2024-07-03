@@ -5,7 +5,6 @@ import stone1Image from "/assets/block-1.png";
 import stone2Image from "/assets/block-2.png";
 import stone3Image from "/assets/block-3.png";
 import stone4Image from "/assets/block-4.png";
-import { start } from "repl";
 
 interface Piece {
   id: number;
@@ -46,77 +45,51 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
   }, [initialGrid]);
 
   const applyGravity = () => {
-    console.log("Grid before", JSON.parse(JSON.stringify(grid)));
-
-    const newGrid = grid.map((row) => row.map((cell) => ({ ...cell })));
-
-    console.log("NewGrid after deep copy", JSON.parse(JSON.stringify(newGrid)));
-
+    let newGrid = grid.map((row) => row.map((cell) => ({ ...cell })));
     let changesMade = false;
 
-    for (let col = 0; col < cols; col++) {
-      let emptyRow = rows - 1;
-      for (let row = rows - 1; row >= 0; row--) {
-        if (newGrid[row][col].pieceId !== null) {
-          const piece = PIECES.find((p) => p.id === newGrid[row][col].pieceId);
-          if (piece && newGrid[row][col].isStart) {
-            console.log(`Checking piece at [${row}, ${col}]:`, piece);
-
-            let targetRow = row;
-            while (
-              targetRow < emptyRow &&
-              canDrop(newGrid, targetRow, col, targetRow + 1, piece)
-            ) {
-              targetRow++;
-            }
-
-            console.log(`Can drop to [${targetRow}, ${col}]`);
-
-            if (targetRow !== row) {
-              console.log(
-                `Moving piece from [${row}, ${col}] to [${targetRow}, ${col}]`,
-              );
-              // Déplacer la pièce
+    do {
+      changesMade = false;
+      for (let row = rows - 2; row >= 0; row--) {
+        for (let col = 0; col < cols; col++) {
+          if (newGrid[row][col].pieceId !== null && newGrid[row][col].isStart) {
+            const piece = PIECES.find(
+              (p) => p.id === newGrid[row][col].pieceId,
+            );
+            if (piece) {
+              let canFall = true;
               for (let i = 0; i < piece.width; i++) {
-                newGrid[targetRow][col + i] = { ...newGrid[row][col + i] };
-                newGrid[row][col + i] = {
-                  id: `${row}-${col + i}`,
-                  pieceId: null,
-                  isStart: false,
-                };
+                if (
+                  col + i >= cols ||
+                  newGrid[row + 1][col + i].pieceId !== null
+                ) {
+                  canFall = false;
+                  break;
+                }
               }
-              changesMade = true;
-            }
 
-            emptyRow = targetRow - 1;
-            col += piece.width - 1;
+              if (canFall) {
+                // Déplacer la pièce d'une ligne vers le bas
+                for (let i = 0; i < piece.width; i++) {
+                  newGrid[row + 1][col + i] = { ...newGrid[row][col + i] };
+                  newGrid[row][col + i] = {
+                    id: `${row}-${col + i}`,
+                    pieceId: null,
+                    isStart: false,
+                  };
+                }
+                changesMade = true;
+              }
+            }
           }
         }
       }
-    }
 
-    console.log("Changes made:", changesMade);
-    console.log("Grid after gravity", JSON.parse(JSON.stringify(newGrid)));
-
-    if (changesMade) {
-      setGrid(newGrid);
-    } else {
-      console.log("No changes were made to the grid.");
-    }
-  };
-
-  const canDrop = (grid, startRow, startCol, targetRow, piece) => {
-    if (targetRow >= rows) return false; // Empêcher de tomber en dehors de la grille
-    for (let i = 0; i < piece.width; i++) {
-      if (startCol + i >= cols) return false; // Vérifier les limites horizontales
-      if (
-        grid[targetRow][startCol + i].pieceId !== null &&
-        grid[targetRow][startCol + i].pieceId !== piece.id
-      ) {
-        return false; // Il y a une autre pièce à la position cible
+      if (changesMade) {
+        setGrid(newGrid);
+        newGrid = newGrid.map((row) => row.map((cell) => ({ ...cell })));
       }
-    }
-    return true;
+    } while (changesMade);
   };
 
   const placePiece = (
