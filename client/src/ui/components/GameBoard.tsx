@@ -107,9 +107,13 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     const piece = PIECES.find((p) => p.id === grid[rowIndex][colIndex].pieceId);
     if (!piece) return;
 
-    // Trouvez le début de la pièce
+    // Assurez-vous que nous commençons par la cellule de départ pour cette pièce
     let startCol = colIndex;
-    while (startCol > 0 && grid[rowIndex][startCol - 1].pieceId === piece.id) {
+    while (
+      startCol > 0 &&
+      grid[rowIndex][startCol - 1].pieceId === piece.id &&
+      !grid[rowIndex][startCol].isStart
+    ) {
       startCol--;
     }
 
@@ -143,20 +147,14 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       let newX = e.clientX - draggingPiece.clickOffset;
       const totalDrag = newX - draggingPiece.startX;
 
-      // Calculez la nouvelle colonne, mais ne l'arrondissez pas
+      // Calculez la nouvelle colonne
       let newCol = draggingPiece.col + totalDrag / cellWidth;
 
       // Vérifiez les limites
-      const minCol = 0;
-      const maxCol = cols - piece.width;
-
-      if (newCol < minCol) newCol = minCol;
-      if (newCol > maxCol) newCol = maxCol;
-
-      // Vérifiez les collisions
+      newCol = Math.max(0, Math.min(cols - piece.width, newCol));
       const leftCol = Math.floor(newCol);
       const rightCol = Math.ceil(newCol);
-
+      // Vérifiez les collisions
       if (
         !checkCollision(draggingPiece.row, leftCol, piece) &&
         !checkCollision(draggingPiece.row, rightCol, piece)
@@ -281,9 +279,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
 
     if (cell.isStart && piece) {
       const isDragging =
-        draggingPiece?.row === rowIndex &&
-        colIndex >= draggingPiece.col &&
-        colIndex < draggingPiece.col + piece.width;
+        draggingPiece?.row === rowIndex && draggingPiece.col === colIndex;
 
       const dragOffset = isDragging
         ? draggingPiece.currentX - draggingPiece.startX
