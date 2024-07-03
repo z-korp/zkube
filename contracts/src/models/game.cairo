@@ -44,12 +44,28 @@ impl GameImpl of GameTrait {
     }
 
     #[inline(always)]
+    fn reseed(ref self: Game) {
+        let state: HashState = PoseidonTrait::new();
+        let state = state.update(self.seed);
+        self.seed = state.finalize();
+    }
+
+    #[inline(always)]
     fn start(ref self: Game) {
+        // [Effect] Add new lines
         self.setup_next();
+        self.setup_next();
+        self.setup_next();
+        self.setup_next();
+        self.setup_next();
+        // [Effect] Assess game
+        let mut counter = 1;
+        self.assess_game(ref counter);
     }
 
     #[inline(always)]
     fn setup_next(ref self: Game) {
+        self.reseed();
         let (row, color) = Controller::create_line(self.seed, DIFFICULTY);
         self.blocks = Controller::add_line(self.blocks, self.next_row);
         self.next_row = row;
@@ -80,8 +96,7 @@ impl GameImpl of GameTrait {
 
         // [Effect] Assess game
         let mut counter = 1;
-        let mut points = 0;
-        self.assess_game(ref counter, ref points);
+        self.points += self.assess_game(ref counter);
 
         // [Effect] Assess game over
         self.assess_over();
@@ -93,23 +108,21 @@ impl GameImpl of GameTrait {
         self.setup_next();
 
         // [Effect] Assess game
-        let mut points = 0;
-        self.assess_game(ref counter, ref points);
+        self.points += self.assess_game(ref counter);
     }
 
-    fn assess_game(ref self: Game, ref counter: u32, ref points: u32) {
+    fn assess_game(ref self: Game, ref counter: u32) -> u32 {
         let mut blocks = 0;
+        let mut points = 0;
         loop {
             if blocks == self.blocks {
-                self.points += points;
-                break;
+                break points;
             };
             blocks = self.blocks;
             let (new_blocks, new_colors) = Controller::apply_gravity(self.blocks, self.colors);
             self.blocks = Controller::assess_lines(new_blocks, ref counter, ref points, true);
             self.colors = Controller::assess_lines(new_colors, ref counter, ref points, false);
-        };
-        self.points += points;
+        }
     }
 
     #[inline(always)]

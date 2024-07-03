@@ -1020,8 +1020,8 @@
     {
       "kind": "DojoContract",
       "address": "0x37c4bfa511d77ff1299712ad4a608037255f35a4b5f44e230681e4fd744fcbd",
-      "class_hash": "0x56969258167789f05f580abce013f6205e4733a36a2d0f784b52c61a890a9d4",
-      "original_class_hash": "0x56969258167789f05f580abce013f6205e4733a36a2d0f784b52c61a890a9d4",
+      "class_hash": "0x3be9b14f034c047f96808712f1e5991dfab8e771016207cb85dcdf768159d4d",
+      "original_class_hash": "0x3be9b14f034c047f96808712f1e5991dfab8e771016207cb85dcdf768159d4d",
       "base_class_hash": "0x22f3e55b61d86c2ac5239fa3b3b8761f26b9a5c0b5f61ddbd5d756ced498b46",
       "abi": [
         {
@@ -1094,6 +1094,28 @@
             {
               "name": "sqrt_ratio_hint",
               "type": "core::felt252"
+            }
+          ]
+        },
+        {
+          "type": "enum",
+          "name": "zkube::types::bonus::Bonus",
+          "variants": [
+            {
+              "name": "None",
+              "type": "()"
+            },
+            {
+              "name": "Hammer",
+              "type": "()"
+            },
+            {
+              "name": "Totem",
+              "type": "()"
+            },
+            {
+              "name": "Wave",
+              "type": "()"
             }
           ]
         },
@@ -1191,6 +1213,30 @@
                 },
                 {
                   "name": "final_index",
+                  "type": "core::integer::u8"
+                }
+              ],
+              "outputs": [],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "apply_bonus",
+              "inputs": [
+                {
+                  "name": "world",
+                  "type": "dojo::world::IWorldDispatcher"
+                },
+                {
+                  "name": "bonus",
+                  "type": "zkube::types::bonus::Bonus"
+                },
+                {
+                  "name": "row_index",
+                  "type": "core::integer::u8"
+                },
+                {
+                  "name": "line_index",
                   "type": "core::integer::u8"
                 }
               ],
@@ -1315,6 +1361,11 @@
           "key": false
         },
         {
+          "name": "next_color",
+          "type": "u32",
+          "key": false
+        },
+        {
           "name": "bonuses",
           "type": "u16",
           "key": false
@@ -1325,13 +1376,18 @@
           "key": false
         },
         {
+          "name": "colors",
+          "type": "felt252",
+          "key": false
+        },
+        {
           "name": "seed",
           "type": "felt252",
           "key": false
         }
       ],
-      "class_hash": "0x6d24f3618faf952cdd04e4074eba3d0c1241d1eede4beea8531c5bd95465e34",
-      "original_class_hash": "0x6d24f3618faf952cdd04e4074eba3d0c1241d1eede4beea8531c5bd95465e34",
+      "class_hash": "0x7a1df6a99bffa07b38d570c7298f150e008e7a860a2818fe97fd8838a496e0e",
+      "original_class_hash": "0x7a1df6a99bffa07b38d570c7298f150e008e7a860a2818fe97fd8838a496e0e",
       "abi": [
         {
           "type": "impl",
@@ -1691,11 +1747,19 @@
               "type": "core::integer::u32"
             },
             {
+              "name": "next_color",
+              "type": "core::integer::u32"
+            },
+            {
               "name": "bonuses",
               "type": "core::integer::u16"
             },
             {
               "name": "blocks",
+              "type": "core::felt252"
+            },
+            {
+              "name": "colors",
               "type": "core::felt252"
             },
             {
