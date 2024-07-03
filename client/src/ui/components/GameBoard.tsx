@@ -23,6 +23,7 @@ interface Cell {
   id: string;
   pieceId: number | null;
   isStart: boolean;
+  uniqueId: number | null;
 }
 
 const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
@@ -43,6 +44,17 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     initializeGrid(initialGrid);
   }, [initialGrid]);
 
+  const applyGravityUntilStable = () => {
+    let previousGrid = JSON.stringify(grid);
+    let currentGrid;
+    do {
+      applyGravity();
+      currentGrid = JSON.stringify(grid);
+      if (currentGrid === previousGrid) break;
+      previousGrid = currentGrid;
+    } while (true);
+  };
+
   const applyGravity = () => {
     const newGrid = [...grid];
     for (let col = 0; col < cols; col++) {
@@ -54,14 +66,18 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
               (p) => p.id === newGrid[row][col].pieceId,
             );
             if (piece && newGrid[row][col].isStart) {
+              // Assurez-vous que la pièce ne dépasse pas le bas de la grille
+              const targetRow = Math.max(emptyRow - piece.width + 1, 0);
               for (let i = 0; i < piece.width; i++) {
-                newGrid[emptyRow][col + i].pieceId =
+                newGrid[targetRow + i][col].pieceId =
                   newGrid[row][col + i].pieceId;
-                newGrid[emptyRow][col + i].isStart = i === 0;
-                newGrid[row][col + i].pieceId = null;
-                newGrid[row][col + i].isStart = false;
+                newGrid[targetRow + i][col].isStart = i === 0;
+                if (targetRow + i !== row) {
+                  newGrid[row][col + i].pieceId = null;
+                  newGrid[row][col + i].isStart = false;
+                }
               }
-              emptyRow--;
+              emptyRow = targetRow - 1;
               col += piece.width - 1; // Sauter les colonnes déjà traitées
             }
           } else {
@@ -240,6 +256,8 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
 
   const initializeGrid = (initialGrid: number[][]) => {
     const newGrid: Cell[][] = [];
+    let uniqueIdCounter = 1;
+
     for (let i = 0; i < rows; i++) {
       const row: Cell[] = [];
       for (let j = 0; j < cols; j++) {
@@ -248,6 +266,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
           id: `${i}-${j}`,
           pieceId: value !== 0 ? value : null,
           isStart: false,
+          uniqueId: value !== 0 ? uniqueIdCounter++ : null, // Ajoutez cette ligne
         });
       }
       newGrid.push(row);
@@ -265,6 +284,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
           for (let k = 1; k < pieceId; k++) {
             if (j + k < cols && grid[i][j + k].pieceId === pieceId) {
               grid[i][j + k].isStart = false;
+              grid[i][j + k].uniqueId = grid[i][j].uniqueId; // Assurez-vous que l'identifiant unique est propagé
             } else {
               isStart = false;
               break;
@@ -292,7 +312,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       return (
         <div
           key={cell.id}
-          className={`h-12 bg-secondary flex items-center justify-center cursor-move`}
+          className={`h-12 bg-secondary flex items-center justify-center cursor-move relative`}
           style={{
             ...getElementStyle(piece.element),
             gridColumn: `span ${piece.width * 4}`,
@@ -300,7 +320,11 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
             transition: isDragging ? "none" : "transform 0.3s ease-out",
           }}
           onMouseDown={(e) => startDragging(rowIndex, colIndex, e)}
-        ></div>
+        >
+          <div className="absolute inset-0 flex items-center justify-center text-white text-xl font-bold">
+            {cell.uniqueId} {/* Affichez l'identifiant unique ici */}
+          </div>
+        </div>
       );
     } else if (!cell.pieceId) {
       return (
@@ -318,7 +342,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     <Card className="p-4 bg-secondary">
       <div className="mb-4">
         <button
-          onClick={applyGravity}
+          onClick={applyGravityUntilStable}
           className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
         >
           Apply Gravity
