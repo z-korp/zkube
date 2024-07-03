@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Card } from "@/ui/elements/ui/card";
 
 import stone1Image from "/assets/block-1.png";
@@ -37,6 +37,8 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
   const cols = 8;
   const gridRef = useRef<HTMLDivElement>(null);
 
+  const [isDragging, setIsDragging] = useState(false);
+
   useEffect(() => {
     initializeGrid(initialGrid);
   }, [initialGrid]);
@@ -53,26 +55,66 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     }
   };
 
+  const checkCollision = (row: number, newCol: number, piece: Piece) => {
+    if (newCol < 0 || newCol + piece.width > cols) return true;
+    for (let i = 0; i < piece.width; i++) {
+      if (
+        grid[row][newCol + i].pieceId !== null &&
+        grid[row][newCol + i].pieceId !== piece.id
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   const startDragging = (
     rowIndex: number,
     colIndex: number,
     e: React.MouseEvent
   ) => {
+    const piece = PIECES.find((p) => p.id === grid[rowIndex][colIndex].pieceId);
+    if (!piece) return;
+
+    const startCol = colIndex;
     setDraggingPiece({
       row: rowIndex,
-      col: colIndex,
+      col: startCol,
       startX: e.clientX,
       currentX: e.clientX,
     });
+    setIsDragging(true);
   };
 
-  const onDrag = (e: React.MouseEvent) => {
-    if (!draggingPiece) return;
-    setDraggingPiece({ ...draggingPiece, currentX: e.clientX });
-  };
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isDragging || !draggingPiece || !gridRef.current) return;
+      const gridRect = gridRef.current.getBoundingClientRect();
+      const cellWidth = gridRect.width / cols;
+      const piece = PIECES.find(
+        (p) => p.id === grid[draggingPiece.row][draggingPiece.col].pieceId
+      );
+      if (!piece) return;
 
-  const endDragging = () => {
-    if (!draggingPiece || !gridRef.current) return;
+      const maxDrag = (cols - draggingPiece.col - piece.width) * cellWidth;
+      const minDrag = -draggingPiece.col * cellWidth;
+
+      let newX = e.clientX;
+      const totalDrag = newX - draggingPiece.startX;
+
+      if (totalDrag > maxDrag) newX = draggingPiece.startX + maxDrag;
+      if (totalDrag < minDrag) newX = draggingPiece.startX + minDrag;
+
+      const newCol = Math.floor((newX - gridRect.left) / cellWidth);
+      if (!checkCollision(draggingPiece.row, newCol, piece)) {
+        setDraggingPiece({ ...draggingPiece, currentX: newX });
+      }
+    },
+    [isDragging, draggingPiece, grid, cols]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    if (!isDragging || !draggingPiece || !gridRef.current) return;
 
     const gridRect = gridRef.current.getBoundingClientRect();
     const cellWidth = gridRect.width / cols;
@@ -85,10 +127,13 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     );
 
     const newGrid = [...grid];
+
+    console.log(draggingPiece.row, draggingPiece.col, newCol);
+    console.log(grid[draggingPiece.row][draggingPiece.col]);
     const piece = PIECES.find(
       (p) => p.id === grid[draggingPiece.row][draggingPiece.col].pieceId
     );
-    if (piece) {
+    if (piece && !checkCollision(draggingPiece.row, newCol, piece)) {
       // Effacer l'ancienne position
       for (let i = 0; i < piece.width; i++) {
         const oldCol = draggingPiece.col + i;
@@ -104,11 +149,23 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       // Placer à la nouvelle position
       const finalCol = Math.min(newCol, cols - piece.width);
       placePiece(newGrid, draggingPiece.row, finalCol, piece);
+      setGrid(newGrid);
     }
 
-    setGrid(newGrid);
     setDraggingPiece(null);
-  };
+    setIsDragging(false);
+  }, [isDragging, draggingPiece, grid, cols]);
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   const initializeGrid = (initialGrid: number[][]) => {
     const newGrid: Cell[][] = [];
@@ -148,8 +205,6 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     }
   };
 
-  const [debugMode, setDebugMode] = useState(false);
-
   const renderCell = (cell: Cell, rowIndex: number, colIndex: number) => {
     const piece = PIECES.find((p) => p.id === cell.pieceId);
 
@@ -187,13 +242,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
 
   return (
     <Card className="p-4 bg-slate-800">
-      <div
-        ref={gridRef}
-        className="grid grid-cols-[repeat(32,1fr)] gap-1"
-        onMouseMove={onDrag}
-        onMouseUp={endDragging}
-        onMouseLeave={endDragging}
-      >
+      <div ref={gridRef} className="grid grid-cols-[repeat(32,1fr)] gap-1">
         {grid.map((row, rowIndex) => (
           <React.Fragment key={rowIndex}>
             {row.map((cell, colIndex) => renderCell(cell, rowIndex, colIndex))}
