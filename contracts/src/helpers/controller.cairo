@@ -99,8 +99,6 @@ impl Controller of ControllerTrait {
                 continue;
             };
             let power: u32 = new_block.size().into() * constants::BLOCK_BIT_COUNT.into();
-            new_line.print();
-            power.print();
             new_line = new_line * fast_power(2, power);
             new_line += new_block.get_bits();
             blocks_added += new_block.size();
