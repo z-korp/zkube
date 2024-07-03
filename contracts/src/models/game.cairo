@@ -29,7 +29,7 @@ impl GameImpl of GameTrait {
     #[inline(always)]
     fn new(id: u32, seed: felt252) -> Game {
         let row = Controller::create_line(seed, DIFFICULTY);
-        Game { id, over: false, next_row: row, bonuses: 0, blocks: 0, seed, }
+        Game { id, over: false, next_row: row, bonuses: 0, blocks: 0, seed, points: 0 }
     }
 
     #[inline(always)]
@@ -62,13 +62,17 @@ impl GameImpl of GameTrait {
         self.blocks = Controller::swipe(self.blocks, row_index, start_index, direction, count);
         // [Effect] Assess game
         let mut blocks = 0;
+        let mut counter = 1;
+        let mut points = 0;
         loop {
             if blocks == self.blocks {
                 break;
             };
             blocks = self.blocks;
             self.blocks = Controller::apply_gravity(self.blocks);
-            self.blocks = Controller::assess_lines(self.blocks);
+            let blocks = Controller::assess_lines(self.blocks, ref counter, ref points);
+            self.blocks = blocks;
+            self.points += points;
         };
 
         // [Effect] Assess game over
@@ -88,7 +92,8 @@ impl GameImpl of GameTrait {
             };
             blocks = self.blocks;
             self.blocks = Controller::apply_gravity(self.blocks);
-            self.blocks = Controller::assess_lines(self.blocks);
+            let blocks = Controller::assess_lines(self.blocks, ref counter, ref points);
+            self.blocks = blocks;
         };
     }
 }
@@ -96,7 +101,7 @@ impl GameImpl of GameTrait {
 impl ZeroableGame of core::Zeroable<Game> {
     #[inline(always)]
     fn zero() -> Game {
-        Game { id: 0, over: false, next_row: 0, bonuses: 0, blocks: 0, seed: 0, }
+        Game { id: 0, over: false, next_row: 0, bonuses: 0, blocks: 0, seed: 0, points: 0 }
     }
 
     #[inline(always)]
