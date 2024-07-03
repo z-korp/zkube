@@ -1,14 +1,24 @@
-import { useCallback } from 'react';
-import { Account } from '@/ui/components/Account';
-import { Separator } from '@/ui/elements/separator';
-import { useNavigate } from 'react-router-dom';
-import { ModeToggle } from '@/ui/components/Theme';
-import { useDojo } from '@/dojo/useDojo';
-import { usePlayer } from '@/hooks/usePlayer';
-import { useMediaQuery } from 'react-responsive';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/ui/elements/drawer';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faGear, faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
+import { useCallback } from "react";
+import { Account } from "@/ui/components/Account";
+import { Separator } from "@/ui/elements/separator";
+import { useNavigate } from "react-router-dom";
+import { ModeToggle } from "@/ui/components/Theme";
+import { useDojo } from "@/dojo/useDojo";
+import { usePlayer } from "@/hooks/usePlayer";
+import { useMediaQuery } from "react-responsive";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/ui/elements/drawer";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faBars,
+  faGear,
+  faArrowUpRightFromSquare,
+} from "@fortawesome/free-solid-svg-icons";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -16,29 +26,32 @@ import {
   DropdownMenuLabel,
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from '@/ui/elements/dropdown-menu';
-import { Button } from '../elements/button';
-import { MusicPlayer } from '../modules/MusicPlayer';
+} from "@/ui/elements/dropdown-menu";
+import { Button } from "../elements/button";
+import { MusicPlayer } from "../modules/MusicPlayer";
 
 export const Header = () => {
   // const {
   //   account: { account },
   // } = useDojo();
 
-  const isMdOrLarger = useMediaQuery({ query: '(min-width: 768px)' });
+  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   // const { player } = usePlayer({ playerId: account.address });
 
   const navigate = useNavigate();
 
   const handleClick = useCallback(() => {
-    navigate('', { replace: true });
+    navigate("", { replace: true });
   }, [navigate]);
 
   return isMdOrLarger ? (
     <div>
-      <div className="flex justify-center items-center p-4 flex-wrap md:justify-between">
-        <div className="cursor-pointer flex gap-8 items-center" onClick={handleClick}>
+      <div className="flex justify-center items-center p-4 flex-wrap md:justify-between border-4">
+        <div
+          className="cursor-pointer flex gap-8 items-center"
+          onClick={handleClick}
+        >
           <p className="text-4xl font-bold">zKube</p>
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
@@ -48,7 +61,7 @@ export const Header = () => {
           <div className="flex gap-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" className="border-4">
                   <FontAwesomeIcon icon={faGear} />
                 </Button>
               </DropdownMenuTrigger>
