@@ -92,7 +92,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       const gridRect = gridRef.current.getBoundingClientRect();
       const cellWidth = gridRect.width / cols;
       const piece = PIECES.find(
-        (p) => p.id === grid[draggingPiece.row][draggingPiece.col].pieceId
+        (p) => p.id === grid[draggingPiece.row][draggingPiece.col].pieceId,
       );
       if (!piece) return;
 
@@ -110,7 +110,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
         setDraggingPiece({ ...draggingPiece, currentX: newX });
       }
     },
-    [isDragging, draggingPiece, grid, cols]
+    [isDragging, draggingPiece, grid, cols],
   );
 
   const handleMouseUp = useCallback(() => {
@@ -241,13 +241,20 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
   };
 
   return (
-    <Card className="p-4 bg-slate-800">
-      <div ref={gridRef} className="grid grid-cols-[repeat(32,1fr)] gap-1">
-        {grid.map((row, rowIndex) => (
-          <React.Fragment key={rowIndex}>
-            {row.map((cell, colIndex) => renderCell(cell, rowIndex, colIndex))}
-          </React.Fragment>
-        ))}
+    <Card className="p-4 bg-secondary">
+      <div className="bg-slate-800">
+        <div
+          ref={gridRef}
+          className="border-4 border-slate-800 grid grid-cols-[repeat(32,1fr)] gap-1"
+        >
+          {grid.map((row, rowIndex) => (
+            <React.Fragment key={rowIndex}>
+              {row.map((cell, colIndex) =>
+                renderCell(cell, rowIndex, colIndex),
+              )}
+            </React.Fragment>
+          ))}
+        </div>
       </div>
     </Card>
   );
