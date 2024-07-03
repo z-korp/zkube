@@ -4,7 +4,7 @@ enum Color {
     Blue,
     Red,
     Yellow,
-    Black,
+    Green,
 }
 
 impl IntoColorFelt252 of core::Into<Color, felt252> {
@@ -15,7 +15,7 @@ impl IntoColorFelt252 of core::Into<Color, felt252> {
             Color::Blue => 'BLUE',
             Color::Red => 'RED',
             Color::Yellow => 'YELLOW',
-            Color::Black => 'FOUR',
+            Color::Green => 'GREEN',
         }
     }
 }
@@ -28,7 +28,7 @@ impl IntoColorU8 of core::Into<Color, u8> {
             Color::Blue => 1,
             Color::Red => 2,
             Color::Yellow => 3,
-            Color::Black => 4,
+            Color::Green => 4,
         }
     }
 }
@@ -42,7 +42,7 @@ impl IntoU8Color of core::Into<u8, Color> {
             1 => Color::Blue,
             2 => Color::Red,
             3 => Color::Yellow,
-            4 => Color::Black,
+            4 => Color::Green,
             _ => Color::None,
         }
     }
