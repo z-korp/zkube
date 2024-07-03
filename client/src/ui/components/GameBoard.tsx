@@ -27,12 +27,69 @@ interface Cell {
 
 const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
   const [grid, setGrid] = useState<Cell[][]>([]);
+  const [selectedPiece, setSelectedPiece] = useState<{
+    row: number;
+    col: number;
+  } | null>(null);
   const rows = 10;
   const cols = 8;
 
   useEffect(() => {
     initializeGrid(initialGrid);
   }, [initialGrid]);
+
+  const handlePieceClick = (rowIndex: number, colIndex: number) => {
+    if (selectedPiece && selectedPiece.row === rowIndex) {
+      setSelectedPiece(null); // Désélectionner si déjà sélectionné
+    } else {
+      setSelectedPiece({ row: rowIndex, col: colIndex });
+    }
+  };
+
+  const placePiece = (grid: Cell[][], row: number, col: number, piece: Piece) => {
+    for (let j = 0; j < piece.width; j++) {
+      grid[row][col + j].pieceId = piece.id;
+      grid[row][col + j].isStart = j === 0;
+    }
+  };
+
+  const movePiece = (direction: 'left' | 'right') => {
+    if (!selectedPiece) return;
+
+    const { row, col } = selectedPiece;
+    const piece = PIECES.find((p) => p.id === grid[row][col].pieceId);
+    if (!piece) return;
+
+    const newGrid = [...grid];
+    const newCol = direction === 'left' ? col - 1 : col + 1;
+
+    if (newCol >= 0 && newCol + piece.width <= cols) {
+      // Effacer l'ancienne position
+      for (let i = 0; i < piece.width; i++) {
+        newGrid[row][col + i] = {
+          id: `${row}-${col + i}`,
+          pieceId: null,
+          isStart: false,
+        };
+      }
+
+      // Placer à la nouvelle position
+      placePiece(newGrid, row, newCol, piece);
+
+      setGrid(newGrid);
+      setSelectedPiece({ row, col: newCol });
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') movePiece('left');
+      if (e.key === 'ArrowRight') movePiece('right');
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedPiece, grid]);
 
   const initializeGrid = (initialGrid: number[][]) => {
     const newGrid: Cell[][] = [];
@@ -74,14 +131,16 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     const piece = PIECES.find((p) => p.id === cell.pieceId);
 
     if (cell.isStart && piece) {
+      const isSelected = selectedPiece?.row === rowIndex && selectedPiece?.col === colIndex;
       return (
         <div
           key={cell.id}
-          className={'h-12 bg-slate-700 flex items-center justify-center cursor-pointer'}
+          className={`h-12 bg-slate-700 flex items-center justify-center cursor-pointer ${isSelected ? 'ring-2 ring-yellow-500' : ''}`}
           style={{
             ...getElementStyle(piece.element),
             gridColumn: `span ${piece.width * 4}`,
           }}
+          onClick={() => handlePieceClick(rowIndex, colIndex)}
         ></div>
       );
     } else if (!cell.pieceId) {
@@ -95,6 +154,12 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       <div className="mb-4">
         <button onClick={() => setDebugMode(!debugMode)} className="px-4 py-2 bg-blue-500 text-white rounded">
           Toggle Debug Mode
+        </button>
+        <button onClick={() => movePiece('left')} className="px-4 py-2 bg-green-500 text-white rounded ml-2">
+          Move Left
+        </button>
+        <button onClick={() => movePiece('right')} className="px-4 py-2 bg-green-500 text-white rounded ml-2">
+          Move Right
         </button>
       </div>
       <div className="grid grid-cols-[repeat(32,1fr)] gap-1">
