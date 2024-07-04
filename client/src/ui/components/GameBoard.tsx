@@ -340,6 +340,7 @@ const GameBoard = ({
       const finalCol = Math.min(newCol, cols - piece.width);
       placePiece(newGrid, draggingPiece.row, finalCol, piece);
       setGrid(newGrid);
+      loopGravityAndClear();
     }
 
     setDraggingPiece(null);
