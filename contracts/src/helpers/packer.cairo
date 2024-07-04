@@ -147,16 +147,6 @@ impl Packer<
     }
 }
 
-trait SizedPackerTrait<T, U, V> {
-    fn get(packed: T, index: u8, size: V, len: u8) -> U;
-    fn contains(packed: T, value: U, size: V, len: u8) -> bool;
-    fn unpack(packed: T, size: V, len: u8) -> Array<U>;
-    fn remove(packed: T, item: U, size: V, len: u8) -> T;
-    fn replace(packed: T, index: u8, size: V, value: U, len: u8) -> T;
-    fn pack(unpacked: Array<U>, size: V) -> T;
-}
-
-
 #[cfg(test)]
 mod tests {
     // Core imports

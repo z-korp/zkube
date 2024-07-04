@@ -117,16 +117,19 @@ impl Controller of ControllerTrait {
     /// * `row` - The row.
     /// # Returns
     /// The updated row.
+    #[inline(always)]
     fn assess_line(row: u32) -> u32 {
-        let mut blocks: Array<u8> = Packer::unpack(row, constants::BLOCK_SIZE);
-        loop {
-            match blocks.pop_front() {
-                Option::Some(block) => { if block == 0 {
-                    break row;
-                } },
-                Option::None => { break 0; },
-            };
+        // [Check] Left block is not empty
+        let exp: u32 = constants::ROW_BIT_COUNT.into() - constants::BLOCK_BIT_COUNT.into();
+        let bound: u32 = fast_power(2, exp);
+        if row < bound {
+            return row;
         }
+        // [Check] Each block must be not 0
+        if Packer::contains(row, 0_u8, constants::BLOCK_SIZE) {
+            return row;
+        }
+        0
     }
 
     /// Add a line to the grid.
@@ -137,15 +140,8 @@ impl Controller of ControllerTrait {
     /// The updated grid.
     fn add_line(bitmap: felt252, line: u32) -> felt252 {
         let bitmap: u256 = bitmap.into();
-        let mut new_rows: Array<u32> = array![line];
-        let mut rows: Array<u32> = Packer::unpack(bitmap, constants::ROW_SIZE);
-        loop {
-            match rows.pop_front() {
-                Option::Some(row) => { new_rows.append(row); },
-                Option::None => { break; },
-            };
-        };
-        let result: u256 = Packer::pack(new_rows, constants::ROW_SIZE);
+        let shift: u256 = constants::ROW_SIZE.into();
+        let result: u256 = bitmap * shift + line.into();
         result.try_into().unwrap()
     }
 
@@ -156,20 +152,24 @@ impl Controller of ControllerTrait {
     /// # Returns
     /// The new line.
     fn create_line(seed: felt252, difficulty: Difficulty) -> (u32, u32) {
+        let mut validated: bool = false;
         let mut size: u8 = 0;
         let mut blocks: u32 = 0;
         let mut colors: u32 = 0;
         let mut deck: Deck = DeckTrait::new(seed, difficulty.count());
         let mut dice: Dice = DiceTrait::new(COLOR_COUNT, seed);
-        while deck.remaining != 0 || size < constants::DEFAULT_GRID_WIDTH {
+        while deck.remaining != 0 && size < constants::DEFAULT_GRID_WIDTH {
             let block: Block = difficulty.reveal(deck.draw());
             let block_size: u8 = block.size().into();
-            if block_size > (constants::DEFAULT_GRID_WIDTH - size) {
+            if block_size > (constants::DEFAULT_GRID_WIDTH - size)
+                || (block_size == (constants::DEFAULT_GRID_WIDTH - size) && !validated) {
                 continue;
             };
             let color: u32 = dice.roll().into();
             let power: u32 = block_size.into() * constants::BLOCK_BIT_COUNT.into();
             let exp: u32 = fast_power(2, power);
+            // [Compute] Update validated flag
+            validated = validated || block.get_bits() == 0;
             // [Compute] Update blocks and colors bitmaps
             blocks = blocks * exp;
             blocks += block.get_bits();
