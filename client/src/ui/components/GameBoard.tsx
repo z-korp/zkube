@@ -330,6 +330,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
             gridColumn: `span ${piece.width * 4}`,
             transform: `translateX(${dragOffset}px)`,
             transition: isDragging ? "none" : "transform 0.3s ease-out",
+            zIndex: 1000,
           }}
           onMouseDown={(e) => startDragging(rowIndex, colIndex, e)}
         >
