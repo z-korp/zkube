@@ -130,6 +130,7 @@ const GameBoard = ({
     }
 
     //return rowsCleared;
+  };
   const insertNewLine = () => {
     setGrid((prevGrid) => {
       // Créez une nouvelle grille en décalant toutes les lignes vers le haut

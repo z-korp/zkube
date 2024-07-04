@@ -41,7 +41,7 @@ export const Home = () => {
     [2, 2, 1, 3, 3, 3, 2, 2],
   ];
 
-    const testline = [1, 3, 3, 3, 2, 2, 2, 2];
+  const testline = [1, 3, 3, 3, 2, 2, 2, 2];
 
   const { theme } = useTheme();
   const imageTotemTheme = theme === "dark" ? imageTotemDark : imageTotemLight;
