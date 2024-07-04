@@ -5,6 +5,8 @@ import stone1Image from "/assets/block-1.png";
 import stone2Image from "/assets/block-2.png";
 import stone3Image from "/assets/block-3.png";
 import stone4Image from "/assets/block-4.png";
+import { of } from "rxjs";
+import { useMediaQuery } from "react-responsive";
 
 interface Piece {
   id: number;
@@ -43,6 +45,8 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
   useEffect(() => {
     initializeGrid(initialGrid);
   }, [initialGrid]);
+
+  const isSmallScreen = useMediaQuery({ query: "(min-width: 640px)" });
 
   const applyGravity = () => {
     let newGrid = grid.map((row) => row.map((cell) => ({ ...cell })));
@@ -326,6 +330,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       const cellWidth = gridRect ? gridRect.width / cols : 0;
       const cellHeight = gridRect ? gridRect.height / rows : 0; // Supposons que chaque cellule a une hauteur uniforme.
 
+      const offsetGap = isSmallScreen ? 4 : 2;
       return (
         <div
           key={cell.id}
@@ -334,8 +339,8 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
             ...getElementStyle(piece.element),
             width: `${piece.width * cellWidth}px`,
             height: `${cellHeight}px`,
-            left: `${colIndex * cellWidth}px`,
-            top: `${rowIndex * cellHeight}px`,
+            left: `${colIndex * cellWidth - offsetGap}px`,
+            top: `${rowIndex * cellHeight - offsetGap}px`,
             transform: `translateX(${dragOffset}px)`,
             transition: isDragging ? "none" : "transform 0.3s ease-out",
             zIndex: isDragging ? 1000 : 500, // Utilisez un zIndex élevé pour s'assurer qu'il est au-dessus.
