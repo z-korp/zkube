@@ -329,7 +329,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       return (
         <div
           key={cell.id}
-          className={`h-12 bg-secondary flex items-center justify-center cursor-move absolute`}
+          className={`bg-secondary flex items-center justify-center cursor-move absolute`}
           style={{
             ...getElementStyle(piece.element),
             width: `${piece.width * cellWidth}px`,
@@ -372,18 +372,18 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       <div className="bg-slate-800 relative">
         <div
           ref={gridRef}
-          className="border-4 border-slate-800 grid grid-cols-[repeat(32,1fr)] gap-1"
-          style={{ position: "relative" }} // Assurez-vous que c'est relatif pour positionner absolument les pièces.
+          className="border-4 border-slate-800 grid grid-cols-[repeat(32,1fr)] sm:gap-2 gap-[2px]"
+         style={{ position: "relative" }}
         >
           {/* Grille de fond */}
           {Array.from({ length: rows }).map((_, rowIndex) => (
             <React.Fragment key={rowIndex}>
               {Array.from({ length: cols }).map((_, colIndex) => (
-                <div
-                  key={`${rowIndex}-${colIndex}`}
-                  className="h-12 w-12 bg-secondary relative"
-                  style={{ gridColumn: "span 4" }}
-                >
+                 <div
+          key={cell.id}
+          className="h-10 w-10 sm:h-12 sm:w-12 bg-secondary relative"
+          style={{ gridColumn: "span 4" }}
+        >
                   {debugMode && (
                     <div className="absolute top-0 left-0 bg-black text-white text-xs p-1">
                       {rowIndex}, {colIndex}
