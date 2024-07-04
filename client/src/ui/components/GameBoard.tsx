@@ -7,6 +7,7 @@ import stone3Image from "/assets/block-3.png";
 import stone4Image from "/assets/block-4.png";
 import { of } from "rxjs";
 import { useMediaQuery } from "react-responsive";
+import { set } from "mobx";
 
 interface Piece {
   id: number;
@@ -55,82 +56,91 @@ const GameBoard = ({
   const isSmallScreen = useMediaQuery({ query: "(min-width: 640px)" });
 
   const applyGravity = () => {
-    let newGrid = grid.map((row) => row.map((cell) => ({ ...cell })));
     let changesMade = false;
 
-    do {
-      changesMade = false;
-      for (let row = rows - 2; row >= 0; row--) {
-        for (let col = 0; col < cols; col++) {
-          if (newGrid[row][col].pieceId !== null && newGrid[row][col].isStart) {
-            const piece = PIECES.find(
-              (p) => p.id === newGrid[row][col].pieceId,
-            );
-            if (piece) {
-              let canFall = true;
-              for (let i = 0; i < piece.width; i++) {
-                if (
-                  col + i >= cols ||
-                  newGrid[row + 1][col + i].pieceId !== null
-                ) {
-                  canFall = false;
-                  break;
-                }
-              }
+    setGrid((prevGrid) => {
+      const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
 
-              if (canFall) {
-                // Déplacer la pièce d'une ligne vers le bas
+      do {
+        changesMade = false;
+        for (let row = rows - 2; row >= 0; row--) {
+          for (let col = 0; col < cols; col++) {
+            if (
+              newGrid[row][col].pieceId !== null &&
+              newGrid[row][col].isStart
+            ) {
+              const piece = PIECES.find(
+                (p) => p.id === newGrid[row][col].pieceId,
+              );
+              if (piece) {
+                let canFall = true;
                 for (let i = 0; i < piece.width; i++) {
-                  newGrid[row + 1][col + i] = { ...newGrid[row][col + i] };
-                  newGrid[row][col + i] = {
-                    id: `${row}-${col + i}`,
-                    pieceId: null,
-                    isStart: false,
-                  };
+                  if (
+                    col + i >= cols ||
+                    newGrid[row + 1][col + i].pieceId !== null
+                  ) {
+                    canFall = false;
+                    break;
+                  }
                 }
-                changesMade = true;
+
+                if (canFall) {
+                  // Déplacer la pièce d'une ligne vers le bas
+                  for (let i = 0; i < piece.width; i++) {
+                    newGrid[row + 1][col + i] = { ...newGrid[row][col + i] };
+                    newGrid[row][col + i] = {
+                      id: `${row}-${col + i}`,
+                      pieceId: null,
+                      isStart: false,
+                    };
+                  }
+                  changesMade = true;
+                }
               }
             }
           }
         }
-      }
+      } while (changesMade);
 
-      if (changesMade) {
-        setGrid(newGrid);
-        newGrid = newGrid.map((row) => row.map((cell) => ({ ...cell })));
-      }
-    } while (changesMade);
+      return newGrid;
+    });
+
+    return changesMade;
   };
 
-  const checkAndClearFullLines = (grid: Cell[][]) => {
-    const newGrid = grid.map((row) => row.map((cell) => ({ ...cell })));
+  const checkAndClearFullLines = () => {
     let rowsCleared = false;
+    setGrid((prevGrid) => {
+      const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
 
-    for (let row = 0; row < rows; row++) {
-      if (newGrid[row].every((cell) => cell.pieceId !== null)) {
-        // Ligne complète, on la supprime
-        rowsCleared = true;
-        for (let i = row; i > 0; i--) {
-          newGrid[i] = newGrid[i - 1].map((cell) => ({
-            ...cell,
-            id: `${i}-${cell.id.split("-")[1]}`,
+      for (let row = 0; row < rows; row++) {
+        if (newGrid[row].every((cell) => cell.pieceId !== null)) {
+          // Ligne complète, on la supprime
+          rowsCleared = true;
+          for (let i = row; i > 0; i--) {
+            newGrid[i] = newGrid[i - 1].map((cell) => ({
+              ...cell,
+              id: `${i}-${cell.id.split("-")[1]}`,
+            }));
+          }
+          // Vider la première ligne
+          newGrid[0] = newGrid[0].map((cell, col) => ({
+            id: `0-${col}`,
+            pieceId: null,
+            isStart: false,
           }));
         }
-        // Vider la première ligne
-        newGrid[0] = newGrid[0].map((cell, col) => ({
-          id: `0-${col}`,
-          pieceId: null,
-          isStart: false,
-        }));
       }
-    }
 
-    if (rowsCleared) {
-      setGrid(newGrid);
-    }
+      if (rowsCleared) {
+        console.log(newGrid);
+      }
 
-    //return rowsCleared;
+      return newGrid;
+    });
+    return rowsCleared;
   };
+
   const insertNewLine = () => {
     setGrid((prevGrid) => {
       // Créez une nouvelle grille en décalant toutes les lignes vers le haut
@@ -151,6 +161,26 @@ const GameBoard = ({
 
       return newGrid;
     });
+  };
+
+  const loopGravityAndClear = () => {
+    console.log("Looping gravity and clear");
+
+    let changesMade = false;
+    let rowsCleared = false;
+    do {
+      changesMade = applyGravity();
+      rowsCleared = checkAndClearFullLines();
+    } while (rowsCleared);
+
+    insertNewLine();
+
+    changesMade = false;
+    rowsCleared = false;
+    do {
+      changesMade = applyGravity();
+      rowsCleared = checkAndClearFullLines();
+    } while (rowsCleared);
   };
 
   const placePiece = (
@@ -430,7 +460,7 @@ const GameBoard = ({
     <Card className="p-4 bg-secondary">
       <div className="mb-4">
         <button
-          onClick={() => applyGravity()}
+          onClick={() => loopGravityAndClear()}
           className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
         >
           Apply Gravity
