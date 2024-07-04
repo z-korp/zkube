@@ -40,7 +40,6 @@ export const Home = () => {
     [0, 0, 0, 0, 0, 0, 0, 0],
   ];
 
-
   const { theme } = useTheme();
   const imageTotemTheme = theme === "dark" ? imageTotemDark : imageTotemLight;
 
