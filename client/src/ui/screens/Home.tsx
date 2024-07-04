@@ -41,14 +41,7 @@ export const Home = () => {
     [0, 0, 0, 3, 3, 3, 0, 0],
   ];
 
-  const testline = [1, 3, 3, 3, 2, 2, 2, 2];
-
-  useEffect(() => {
-    if (game) {
-      // console.log(game.blocks);
-      console.log(testGrid);
-    }
-  }, [game]);
+    const testline = [1, 3, 3, 3, 2, 2, 2, 2];
 
   const { theme } = useTheme();
   const imageTotemTheme = theme === "dark" ? imageTotemDark : imageTotemLight;
