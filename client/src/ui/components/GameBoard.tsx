@@ -5,7 +5,6 @@ import stone1Image from "/assets/block-1.png";
 import stone2Image from "/assets/block-2.png";
 import stone3Image from "/assets/block-3.png";
 import stone4Image from "/assets/block-4.png";
-import { of } from "rxjs";
 import { useMediaQuery } from "react-responsive";
 import { useDojo } from "@/dojo/useDojo";
 
@@ -26,6 +25,7 @@ interface Cell {
   id: string;
   pieceId: number | null;
   isStart: boolean;
+  pieceIndex: number | null;
 }
 
 const GameBoard = ({
@@ -50,6 +50,7 @@ const GameBoard = ({
     col: number;
     startX: number;
     currentX: number;
+    clickOffset: number;
   } | null>(null);
   const rows = 10;
   const cols = 8;
@@ -95,6 +96,7 @@ const GameBoard = ({
                     id: `${row}-${col + i}`,
                     pieceId: null,
                     isStart: false,
+                    pieceIndex: null,
                   };
                 }
                 changesMade = true;
@@ -121,6 +123,7 @@ const GameBoard = ({
         id: `${rows - 1}-${index}`,
         pieceId: value !== 0 ? value : null,
         isStart: false,
+        pieceIndex: null,
       }));
 
       // Ajoutez la nouvelle ligne en bas de la grille
@@ -142,6 +145,7 @@ const GameBoard = ({
     for (let j = 0; j < piece.width; j++) {
       grid[row][col + j].pieceId = piece.id;
       grid[row][col + j].isStart = j === 0;
+      grid[row][col + j].pieceIndex = row * cols + col;
     }
   };
 
@@ -152,16 +156,17 @@ const GameBoard = ({
     piece: Piece,
   ) => {
     const direction = endCol > startCol ? 1 : -1;
-    for (let col = startCol; col !== endCol + direction; col += direction) {
+    for (let col = startCol; col !== endCol; col += direction) {
       if (col < 0 || col + piece.width > cols) return true;
-      for (let i = 0; i < piece.width; i++) {
-        if (col + i >= cols) return true;
-        if (
-          grid[row][col + i].pieceId !== null &&
-          grid[row][col + i].pieceId !== piece.id
-        ) {
-          return true;
-        }
+      const current: Cell = grid[row][col];
+      const left: Cell = grid[row][col - 1];
+      const right: Cell = grid[row][col + piece.width];
+      if (
+        direction === -1
+          ? !!left?.pieceIndex && left.pieceIndex !== current.pieceIndex
+          : !!right?.pieceIndex && right.pieceIndex !== current.pieceIndex
+      ) {
+        return true;
       }
     }
     return false;
@@ -300,6 +305,7 @@ const GameBoard = ({
             id: `${draggingPiece.row}-${oldCol}`,
             pieceId: null,
             isStart: false,
+            pieceIndex: null,
           };
         }
       }
@@ -340,6 +346,7 @@ const GameBoard = ({
           id: `${i}-${j}`,
           pieceId: value !== 0 ? value : null,
           isStart: false,
+          pieceIndex: null,
         });
       }
       newGrid.push(row);
@@ -357,23 +364,21 @@ const GameBoard = ({
           const piece = PIECES.find((p) => p.id === currentPiece);
           if (piece) {
             // Marquer le début de la pièce
+            const pieceIndex = i * cols + j;
             grid[i][j].isStart = true;
+            grid[i][j].pieceIndex = pieceIndex;
 
             // Marquer le reste de la pièce comme non-début
             for (let k = 1; k < piece.width && j + k < cols; k++) {
-              if (grid[i][j + k].pieceId === currentPiece) {
-                grid[i][j + k].isStart = false;
-              } else {
-                break; // Si la pièce est interrompue, arrêter
-              }
+              grid[i][j + k].isStart = false;
+              grid[i][j + k].pieceIndex = pieceIndex;
             }
 
             // Sauter à la fin de cette pièce
             j += piece.width;
           } else {
             // Si la pièce n'est pas trouvée dans PIECES, traiter comme une seule cellule
-            grid[i][j].isStart = true;
-            j++;
+            throw new Error(`Piece not found for id: ${currentPiece}`);
           }
         } else {
           grid[i][j].isStart = false;
