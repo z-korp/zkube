@@ -27,7 +27,13 @@ interface Cell {
   isStart: boolean;
 }
 
-const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
+const GameBoard = ({
+  initialGrid,
+  nextLine,
+}: {
+  initialGrid: number[][];
+  nextLine: number[];
+}) => {
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [debugMode, setDebugMode] = useState(false);
   const [draggingPiece, setDraggingPiece] = useState<{
@@ -96,6 +102,28 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     } while (changesMade);
   };
 
+  const insertNewLine = () => {
+    setGrid((prevGrid) => {
+      // Créez une nouvelle grille en décalant toutes les lignes vers le haut
+      const newGrid = prevGrid.slice(1);
+
+      // Créez la nouvelle ligne à partir de nextLine
+      const newLine: Cell[] = nextLine.map((value, index) => ({
+        id: `${rows - 1}-${index}`,
+        pieceId: value !== 0 ? value : null,
+        isStart: false,
+      }));
+
+      // Ajoutez la nouvelle ligne en bas de la grille
+      newGrid.push(newLine);
+
+      // Mettez à jour les isStart pour la nouvelle ligne
+      markStartingCells(newGrid);
+
+      return newGrid;
+    });
+  };
+
   const placePiece = (
     grid: Cell[][],
     row: number,
@@ -108,15 +136,23 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     }
   };
 
-  const checkCollision = (row: number, col: number, piece: Piece) => {
-    if (col < 0 || col + piece.width > cols) return true;
-    for (let i = 0; i < piece.width; i++) {
-      if (col + i >= cols) return true;
-      if (
-        grid[row][col + i].pieceId !== null &&
-        grid[row][col + i].pieceId !== piece.id
-      ) {
-        return true;
+  const checkCollision = (
+    row: number,
+    startCol: number,
+    endCol: number,
+    piece: Piece,
+  ) => {
+    const direction = endCol > startCol ? 1 : -1;
+    for (let col = startCol; col !== endCol + direction; col += direction) {
+      if (col < 0 || col + piece.width > cols) return true;
+      for (let i = 0; i < piece.width; i++) {
+        if (col + i >= cols) return true;
+        if (
+          grid[row][col + i].pieceId !== null &&
+          grid[row][col + i].pieceId !== piece.id
+        ) {
+          return true;
+        }
       }
     }
     return false;
@@ -171,16 +207,14 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       const totalDrag = newX - draggingPiece.startX;
 
       // Calculez la nouvelle colonne
-      let newCol = draggingPiece.col + totalDrag / cellWidth;
+      let newCol = Math.round(draggingPiece.col + totalDrag / cellWidth);
 
       // Vérifiez les limites
       newCol = Math.max(0, Math.min(cols - piece.width, newCol));
-      const leftCol = Math.floor(newCol);
-      const rightCol = Math.ceil(newCol);
-      // Vérifiez les collisions
+
+      // Vérifiez les collisions sur tout le chemin
       if (
-        !checkCollision(draggingPiece.row, leftCol, piece) &&
-        !checkCollision(draggingPiece.row, rightCol, piece)
+        !checkCollision(draggingPiece.row, draggingPiece.col, newCol, piece)
       ) {
         // Si pas de collision, mettez à jour la position
         newX = draggingPiece.startX + (newCol - draggingPiece.col) * cellWidth;
@@ -191,11 +225,15 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
         const direction = newCol > draggingPiece.col ? 1 : -1;
         while (
           validCol !== newCol &&
-          !checkCollision(draggingPiece.row, validCol, piece)
+          !checkCollision(
+            draggingPiece.row,
+            draggingPiece.col,
+            validCol + direction,
+            piece,
+          )
         ) {
           validCol += direction;
         }
-        validCol -= direction; // Reculez d'une case pour obtenir la dernière position valide
 
         newX =
           draggingPiece.startX + (validCol - draggingPiece.col) * cellWidth;
@@ -220,12 +258,13 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
 
     const newGrid = [...grid];
 
-    console.log(draggingPiece.row, draggingPiece.col, newCol);
-    console.log(grid[draggingPiece.row][draggingPiece.col]);
     const piece = PIECES.find(
       (p) => p.id === grid[draggingPiece.row][draggingPiece.col].pieceId,
     );
-    if (piece && !checkCollision(draggingPiece.row, newCol, piece)) {
+    if (
+      piece &&
+      !checkCollision(draggingPiece.row, draggingPiece.col, newCol, piece)
+    ) {
       // Effacer l'ancienne position
       for (let i = 0; i < piece.width; i++) {
         const oldCol = draggingPiece.col + i;
@@ -360,7 +399,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
 
   return (
     <Card className="p-4 bg-secondary">
-      {/* <div className="mb-4">
+      <div className="mb-4">
         <button
           onClick={applyGravity}
           className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
@@ -368,12 +407,13 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
           Apply Gravity
         </button>
         <button
-          onClick={() => setDebugMode(!debugMode)}
+          onClick={() => insertNewLine()}
+          // onClick={() => setDebugMode(!debugMode)}
           className="px-4 py-2 bg-green-500 text-white rounded"
         >
           {debugMode ? "Disable Debug Mode" : "Enable Debug Mode"}
         </button>
-      </div> */}
+      </div>
       <div className="bg-slate-800 relative">
         <div
           ref={gridRef}

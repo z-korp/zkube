@@ -80,7 +80,9 @@ export const Home = () => {
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
               <GameBonus />
-              {!!game && <GameBoard initialGrid={testGrid} />}
+              {!!game && (
+                <GameBoard initialGrid={testGrid} nextLine={testline} />
+              )}
               {!!game && <NextLine numbers={testline} />}
               <Create />
               <Start />
