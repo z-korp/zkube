@@ -144,7 +144,9 @@ impl GameImpl of GameTrait {
 
     #[inline(always)]
     fn apply_bonus(ref self: Game, bonus: Bonus, row_index: u8, index: u8) {
-        self.blocks = bonus.apply_bonus(self.blocks, row_index, index);
+        let (blocks, colors) = bonus.apply(self.blocks, self.colors, row_index, index);
+        self.blocks = blocks;
+        self.colors = colors;
 
         // [Effect] Assess game
         let mut counter = 1;
