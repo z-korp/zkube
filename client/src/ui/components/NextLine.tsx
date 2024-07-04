@@ -1,9 +1,24 @@
 import React from "react";
 import { Card } from "@/ui/elements/ui/card";
 
-const NextLine = ({ numbers }: { numbers: number[] }) => {
-  const cols = 8; // Définissez le nombre de colonnes pour la grille
-  const rows = Math.ceil(numbers.length / cols); // Calculez le nombre de lignes nécessaires
+// Images importées
+import stone1Image from "/assets/block-1.png";
+import stone2Image from "/assets/block-2.png";
+import stone3Image from "/assets/block-3.png";
+import stone4Image from "/assets/block-4.png";
+
+// Mapping des nombres aux images
+const numberToImage = {
+  1: stone1Image,
+  2: stone2Image,
+  3: stone3Image,
+  4: stone4Image,
+  // Ajoutez plus si nécessaire
+};
+
+const NumberDisplay = ({ numbers }) => {
+  const cols = 8;
+  const rows = Math.ceil(numbers.length / cols);
 
   return (
     <Card className="p-4 bg-secondary">
@@ -15,13 +30,14 @@ const NextLine = ({ numbers }: { numbers: number[] }) => {
           {numbers.map((number, index) => (
             <div
               key={index}
-              className="h-12 w-12 bg-secondary flex items-center justify-center text-white"
+              className="h-12 w-12 bg-secondary flex items-center justify-center"
               style={{
-                gridColumn: "span 1",
+                backgroundImage: `url(${numberToImage[number]})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
               }}
-            >
-              {number}
-            </div>
+            ></div>
           ))}
         </div>
       </div>
@@ -29,4 +45,4 @@ const NextLine = ({ numbers }: { numbers: number[] }) => {
   );
 };
 
-export default NextLine;
+export default NumberDisplay;

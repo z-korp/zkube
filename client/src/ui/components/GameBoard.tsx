@@ -335,7 +335,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
             width: `${piece.width * cellWidth}px`,
             height: `${cellHeight}px`,
             left: `${colIndex * cellWidth}px`,
-            top: `${rowIndex * cellHeight - 3}px`,
+            top: `${rowIndex * cellHeight}px`,
             transform: `translateX(${dragOffset}px)`,
             transition: isDragging ? "none" : "transform 0.3s ease-out",
             zIndex: isDragging ? 1000 : 500, // Utilisez un zIndex élevé pour s'assurer qu'il est au-dessus.
@@ -355,7 +355,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
 
   return (
     <Card className="p-4 bg-secondary">
-      <div className="mb-4">
+      {/* <div className="mb-4">
         <button
           onClick={applyGravity}
           className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
@@ -368,22 +368,22 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
         >
           {debugMode ? "Disable Debug Mode" : "Enable Debug Mode"}
         </button>
-      </div>
+      </div> */}
       <div className="bg-slate-800 relative">
         <div
           ref={gridRef}
           className="border-4 border-slate-800 grid grid-cols-[repeat(32,1fr)] sm:gap-2 gap-[2px]"
-         style={{ position: "relative" }}
+          style={{ position: "relative" }}
         >
           {/* Grille de fond */}
           {Array.from({ length: rows }).map((_, rowIndex) => (
             <React.Fragment key={rowIndex}>
               {Array.from({ length: cols }).map((_, colIndex) => (
-                 <div
-          key={cell.id}
-          className="h-10 w-10 sm:h-12 sm:w-12 bg-secondary relative"
-          style={{ gridColumn: "span 4" }}
-        >
+                <div
+                  key={`${rowIndex}-${colIndex}`}
+                  className="h-10 w-10 sm:h-12 sm:w-12 bg-secondary relative"
+                  style={{ gridColumn: "span 4" }}
+                >
                   {debugMode && (
                     <div className="absolute top-0 left-0 bg-black text-white text-xs p-1">
                       {rowIndex}, {colIndex}
