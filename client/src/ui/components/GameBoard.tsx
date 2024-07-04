@@ -23,7 +23,6 @@ interface Cell {
   id: string;
   pieceId: number | null;
   isStart: boolean;
-  uniqueId: number | null;
 }
 
 const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
@@ -44,17 +43,6 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
   useEffect(() => {
     initializeGrid(initialGrid);
   }, [initialGrid]);
-
-  const applyGravityUntilStable = () => {
-    let previousGrid = JSON.stringify(grid);
-    let currentGrid;
-    do {
-      applyGravity();
-      currentGrid = JSON.stringify(grid);
-      if (currentGrid === previousGrid) break;
-      previousGrid = currentGrid;
-    } while (true);
-  };
 
   const applyGravity = () => {
     let newGrid = grid.map((row) => row.map((cell) => ({ ...cell })));
@@ -279,7 +267,6 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
           id: `${i}-${j}`,
           pieceId: value !== 0 ? value : null,
           isStart: false,
-          uniqueId: value !== 0 ? uniqueIdCounter++ : null, // Ajoutez cette ligne
         });
       }
       newGrid.push(row);
@@ -290,20 +277,34 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
 
   const markStartingCells = (grid: Cell[][]) => {
     for (let i = 0; i < rows; i++) {
-      for (let j = 0; j < cols; j++) {
-        const pieceId = grid[i][j].pieceId;
-        if (pieceId !== null) {
-          let isStart = true;
-          for (let k = 1; k < pieceId; k++) {
-            if (j + k < cols && grid[i][j + k].pieceId === pieceId) {
-              grid[i][j + k].isStart = false;
-              grid[i][j + k].uniqueId = grid[i][j].uniqueId; // Assurez-vous que l'identifiant unique est propagé
-            } else {
-              isStart = false;
-              break;
+      let j = 0;
+      while (j < cols) {
+        const currentPiece = grid[i][j].pieceId;
+        if (currentPiece !== null) {
+          const piece = PIECES.find((p) => p.id === currentPiece);
+          if (piece) {
+            // Marquer le début de la pièce
+            grid[i][j].isStart = true;
+
+            // Marquer le reste de la pièce comme non-début
+            for (let k = 1; k < piece.width && j + k < cols; k++) {
+              if (grid[i][j + k].pieceId === currentPiece) {
+                grid[i][j + k].isStart = false;
+              } else {
+                break; // Si la pièce est interrompue, arrêter
+              }
             }
+
+            // Sauter à la fin de cette pièce
+            j += piece.width;
+          } else {
+            // Si la pièce n'est pas trouvée dans PIECES, traiter comme une seule cellule
+            grid[i][j].isStart = true;
+            j++;
           }
-          grid[i][j].isStart = isStart;
+        } else {
+          grid[i][j].isStart = false;
+          j++;
         }
       }
     }
@@ -361,7 +362,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     <Card className="p-4 bg-secondary">
       <div className="mb-4">
         <button
-          onClick={applyGravityUntilStable}
+          onClick={applyGravity}
           className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
         >
           Apply Gravity
