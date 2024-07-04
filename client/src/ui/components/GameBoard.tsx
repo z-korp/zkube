@@ -96,6 +96,36 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     } while (changesMade);
   };
 
+  const checkAndClearFullLines = (grid: Cell[][]) => {
+    const newGrid = grid.map((row) => row.map((cell) => ({ ...cell })));
+    let rowsCleared = false;
+
+    for (let row = 0; row < rows; row++) {
+      if (newGrid[row].every((cell) => cell.pieceId !== null)) {
+        // Ligne complète, on la supprime
+        rowsCleared = true;
+        for (let i = row; i > 0; i--) {
+          newGrid[i] = newGrid[i - 1].map((cell) => ({
+            ...cell,
+            id: `${i}-${cell.id.split("-")[1]}`,
+          }));
+        }
+        // Vider la première ligne
+        newGrid[0] = newGrid[0].map((cell, col) => ({
+          id: `0-${col}`,
+          pieceId: null,
+          isStart: false,
+        }));
+      }
+    }
+
+    if (rowsCleared) {
+      setGrid(newGrid);
+    }
+
+    //return rowsCleared;
+  };
+
   const placePiece = (
     grid: Cell[][],
     row: number,
@@ -360,9 +390,9 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
 
   return (
     <Card className="p-4 bg-secondary">
-      {/* <div className="mb-4">
+      <div className="mb-4">
         <button
-          onClick={applyGravity}
+          onClick={() => applyGravity()}
           className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
         >
           Apply Gravity
@@ -373,7 +403,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
         >
           {debugMode ? "Disable Debug Mode" : "Enable Debug Mode"}
         </button>
-      </div> */}
+      </div>
       <div className="bg-slate-800 relative">
         <div
           ref={gridRef}
