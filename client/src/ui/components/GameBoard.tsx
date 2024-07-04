@@ -5,6 +5,8 @@ import stone1Image from "/assets/block-1.png";
 import stone2Image from "/assets/block-2.png";
 import stone3Image from "/assets/block-3.png";
 import stone4Image from "/assets/block-4.png";
+import { of } from "rxjs";
+import { useMediaQuery } from "react-responsive";
 
 interface Piece {
   id: number;
@@ -25,7 +27,13 @@ interface Cell {
   isStart: boolean;
 }
 
-const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
+const GameBoard = ({
+  initialGrid,
+  nextLine,
+}: {
+  initialGrid: number[][];
+  nextLine: number[];
+}) => {
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [debugMode, setDebugMode] = useState(false);
   const [draggingPiece, setDraggingPiece] = useState<{
@@ -43,6 +51,8 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
   useEffect(() => {
     initializeGrid(initialGrid);
   }, [initialGrid]);
+
+  const isSmallScreen = useMediaQuery({ query: "(min-width: 640px)" });
 
   const applyGravity = () => {
     let newGrid = grid.map((row) => row.map((cell) => ({ ...cell })));
@@ -92,6 +102,28 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     } while (changesMade);
   };
 
+  const insertNewLine = () => {
+    setGrid((prevGrid) => {
+      // Créez une nouvelle grille en décalant toutes les lignes vers le haut
+      const newGrid = prevGrid.slice(1);
+
+      // Créez la nouvelle ligne à partir de nextLine
+      const newLine: Cell[] = nextLine.map((value, index) => ({
+        id: `${rows - 1}-${index}`,
+        pieceId: value !== 0 ? value : null,
+        isStart: false,
+      }));
+
+      // Ajoutez la nouvelle ligne en bas de la grille
+      newGrid.push(newLine);
+
+      // Mettez à jour les isStart pour la nouvelle ligne
+      markStartingCells(newGrid);
+
+      return newGrid;
+    });
+  };
+
   const placePiece = (
     grid: Cell[][],
     row: number,
@@ -104,15 +136,23 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
     }
   };
 
-  const checkCollision = (row: number, col: number, piece: Piece) => {
-    if (col < 0 || col + piece.width > cols) return true;
-    for (let i = 0; i < piece.width; i++) {
-      if (col + i >= cols) return true;
-      if (
-        grid[row][col + i].pieceId !== null &&
-        grid[row][col + i].pieceId !== piece.id
-      ) {
-        return true;
+  const checkCollision = (
+    row: number,
+    startCol: number,
+    endCol: number,
+    piece: Piece,
+  ) => {
+    const direction = endCol > startCol ? 1 : -1;
+    for (let col = startCol; col !== endCol + direction; col += direction) {
+      if (col < 0 || col + piece.width > cols) return true;
+      for (let i = 0; i < piece.width; i++) {
+        if (col + i >= cols) return true;
+        if (
+          grid[row][col + i].pieceId !== null &&
+          grid[row][col + i].pieceId !== piece.id
+        ) {
+          return true;
+        }
       }
     }
     return false;
@@ -167,16 +207,14 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       const totalDrag = newX - draggingPiece.startX;
 
       // Calculez la nouvelle colonne
-      let newCol = draggingPiece.col + totalDrag / cellWidth;
+      let newCol = Math.round(draggingPiece.col + totalDrag / cellWidth);
 
       // Vérifiez les limites
       newCol = Math.max(0, Math.min(cols - piece.width, newCol));
-      const leftCol = Math.floor(newCol);
-      const rightCol = Math.ceil(newCol);
-      // Vérifiez les collisions
+
+      // Vérifiez les collisions sur tout le chemin
       if (
-        !checkCollision(draggingPiece.row, leftCol, piece) &&
-        !checkCollision(draggingPiece.row, rightCol, piece)
+        !checkCollision(draggingPiece.row, draggingPiece.col, newCol, piece)
       ) {
         // Si pas de collision, mettez à jour la position
         newX = draggingPiece.startX + (newCol - draggingPiece.col) * cellWidth;
@@ -187,11 +225,15 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
         const direction = newCol > draggingPiece.col ? 1 : -1;
         while (
           validCol !== newCol &&
-          !checkCollision(draggingPiece.row, validCol, piece)
+          !checkCollision(
+            draggingPiece.row,
+            draggingPiece.col,
+            validCol + direction,
+            piece,
+          )
         ) {
           validCol += direction;
         }
-        validCol -= direction; // Reculez d'une case pour obtenir la dernière position valide
 
         newX =
           draggingPiece.startX + (validCol - draggingPiece.col) * cellWidth;
@@ -216,12 +258,13 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
 
     const newGrid = [...grid];
 
-    console.log(draggingPiece.row, draggingPiece.col, newCol);
-    console.log(grid[draggingPiece.row][draggingPiece.col]);
     const piece = PIECES.find(
       (p) => p.id === grid[draggingPiece.row][draggingPiece.col].pieceId,
     );
-    if (piece && !checkCollision(draggingPiece.row, newCol, piece)) {
+    if (
+      piece &&
+      !checkCollision(draggingPiece.row, draggingPiece.col, newCol, piece)
+    ) {
       // Effacer l'ancienne position
       for (let i = 0; i < piece.width; i++) {
         const oldCol = draggingPiece.col + i;
@@ -321,15 +364,25 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
         ? draggingPiece.currentX - draggingPiece.startX
         : 0;
 
+      // Assurez-vous d'avoir les mesures exactes de la grille.
+      const gridRect = gridRef.current?.getBoundingClientRect();
+      const cellWidth = gridRect ? gridRect.width / cols : 0;
+      const cellHeight = gridRect ? gridRect.height / rows : 0; // Supposons que chaque cellule a une hauteur uniforme.
+
+      const offsetGap = isSmallScreen ? 4 : 2;
       return (
         <div
           key={cell.id}
-          className={`h-12 bg-secondary flex items-center justify-center cursor-move relative`}
+          className={`bg-secondary flex items-center justify-center cursor-move absolute`}
           style={{
             ...getElementStyle(piece.element),
-            gridColumn: `span ${piece.width * 4}`,
+            width: `${piece.width * cellWidth}px`,
+            height: `${cellHeight}px`,
+            left: `${colIndex * cellWidth - offsetGap}px`,
+            top: `${rowIndex * cellHeight - offsetGap}px`,
             transform: `translateX(${dragOffset}px)`,
             transition: isDragging ? "none" : "transform 0.3s ease-out",
+            zIndex: isDragging ? 1000 : 500, // Utilisez un zIndex élevé pour s'assurer qu'il est au-dessus.
           }}
           onMouseDown={(e) => startDragging(rowIndex, colIndex, e)}
         >
@@ -340,22 +393,8 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
           )}
         </div>
       );
-    } else if (!cell.pieceId) {
-      return (
-        <div
-          key={cell.id}
-          className="h-12 w-12 bg-secondary relative"
-          style={{ gridColumn: "span 4" }}
-        >
-          {debugMode && (
-            <div className="absolute top-0 left-0 bg-black text-white text-xs p-1">
-              {rowIndex}, {colIndex}
-            </div>
-          )}
-        </div>
-      );
     }
-    return null;
+    return null; // Rien à rendre si ce n'est pas une pièce de départ ou s'il n'y a pas de pièce.
   };
 
   return (
@@ -368,19 +407,41 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
           Apply Gravity
         </button>
         <button
-          onClick={() => setDebugMode(!debugMode)}
+          onClick={() => insertNewLine()}
+          // onClick={() => setDebugMode(!debugMode)}
           className="px-4 py-2 bg-green-500 text-white rounded"
         >
           {debugMode ? "Disable Debug Mode" : "Enable Debug Mode"}
         </button>
       </div>
-      <div className="bg-slate-800">
+      <div className="bg-slate-800 relative">
         <div
           ref={gridRef}
-          className="border-4 border-slate-800 grid grid-cols-[repeat(32,1fr)] gap-1"
+          className="border-4 border-slate-800 grid grid-cols-[repeat(32,1fr)] sm:gap-2 gap-[2px]"
+          style={{ position: "relative" }}
         >
-          {grid.map((row, rowIndex) => (
+          {/* Grille de fond */}
+          {Array.from({ length: rows }).map((_, rowIndex) => (
             <React.Fragment key={rowIndex}>
+              {Array.from({ length: cols }).map((_, colIndex) => (
+                <div
+                  key={`${rowIndex}-${colIndex}`}
+                  className="h-10 w-10 sm:h-12 sm:w-12 bg-secondary relative"
+                  style={{ gridColumn: "span 4" }}
+                >
+                  {debugMode && (
+                    <div className="absolute top-0 left-0 bg-black text-white text-xs p-1">
+                      {rowIndex}, {colIndex}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </React.Fragment>
+          ))}
+
+          {/* Pièces placées */}
+          {grid.map((row, rowIndex) => (
+            <React.Fragment key={`piece-${rowIndex}`}>
               {row.map((cell, colIndex) =>
                 renderCell(cell, rowIndex, colIndex),
               )}

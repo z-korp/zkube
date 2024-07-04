@@ -18,6 +18,7 @@ import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useDojo } from "@/dojo/useDojo";
 import { useTheme } from "@/ui/elements/theme-provider";
+import NextLine from "../components/NextLine";
 
 export const Home = () => {
   const {
@@ -36,9 +37,11 @@ export const Home = () => {
     [1, 0, 0, 0, 2, 2, 0, 1],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 4, 4, 4, 4, 0, 0, 0],
-    [1, 0, 0, 0, 2, 2, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 2, 2, 2, 2],
+    [0, 0, 0, 3, 3, 3, 0, 0],
   ];
+
+    const testline = [1, 3, 3, 3, 2, 2, 2, 2];
 
   const { theme } = useTheme();
   const imageTotemTheme = theme === "dark" ? imageTotemDark : imageTotemLight;
@@ -68,9 +71,12 @@ export const Home = () => {
           }}
         >
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
-            <div className="absolute top-10 flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
+            <div className="absolute flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
               <GameBonus />
-              {!!game && <GameBoard initialGrid={game.blocks} />}
+              {!!game && (
+                <GameBoard initialGrid={testGrid} nextLine={testline} />
+              )}
+              {!!game && <NextLine numbers={testline} />}
               <Create />
               <Start />
             </div>
