@@ -20,12 +20,11 @@ const BonusButton: React.FC<BonusButtonProps> = ({ onClick, urlImage }) => {
   };
 
   return (
-    <motion.button
+    <motion.div
       initial={{ rotate: 0 }}
       exit={{ rotate: 0 }}
       whileHover={isClicked ? {} : { rotate: [0, -10, 10, -10, 10, 0] }}
       transition={{ duration: 0.5 }}
-      disabled={isClicked}
     >
       <Button
         variant="outline"
@@ -36,7 +35,7 @@ const BonusButton: React.FC<BonusButtonProps> = ({ onClick, urlImage }) => {
       >
         <img src={urlImage} alt={altText} />
       </Button>
-    </motion.button>
+    </motion.div>
   );
 };
 
