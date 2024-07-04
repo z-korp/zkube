@@ -7,6 +7,7 @@ import stone3Image from "/assets/block-3.png";
 import stone4Image from "/assets/block-4.png";
 import { of } from "rxjs";
 import { useMediaQuery } from "react-responsive";
+import { useDojo } from "@/dojo/useDojo";
 
 interface Piece {
   id: number;
@@ -34,6 +35,14 @@ const GameBoard = ({
   initialGrid: number[][];
   nextLine: number[];
 }) => {
+  const {
+    account: { account },
+    setup: {
+      systemCalls: { move },
+    },
+  } = useDojo();
+
+  const [isLoading, setIsLoading] = useState(false);
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [debugMode, setDebugMode] = useState(false);
   const [draggingPiece, setDraggingPiece] = useState<{
@@ -243,6 +252,15 @@ const GameBoard = ({
     [isDragging, draggingPiece, grid, cols],
   );
 
+  const handleMove = useCallback(async (rowIndex: number, startIndex: number, finalOndex: number) => {
+    setIsLoading(true);
+    try {
+      await move({ account: account, row_index: rowIndex, start_index: startIndex, final_index: finalOndex, });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [account, ])
+
   const handleMouseUp = useCallback(() => {
     if (!isDragging || !draggingPiece || !gridRef.current) return;
 
@@ -281,6 +299,9 @@ const GameBoard = ({
       const finalCol = Math.min(newCol, cols - piece.width);
       placePiece(newGrid, draggingPiece.row, finalCol, piece);
       setGrid(newGrid);
+
+      // Send move tx
+      handleMove(rows - draggingPiece.row - 1, draggingPiece.col, finalCol);
     }
 
     setDraggingPiece(null);
