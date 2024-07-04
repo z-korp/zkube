@@ -1,5 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import useSound from 'use-sound';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import useSound from "use-sound";
 
 type Track = {
   name: string;
@@ -7,19 +13,19 @@ type Track = {
 };
 
 const menuTracks: Track[] = [
-  { name: 'Intro', url: '/sounds/musics/theme-jungle2.mp3' },
-  { name: 'Intro', url: '/sounds/musics/theme-jungle2.mp3' },
+  { name: "Intro", url: "/sounds/musics/theme-jungle2.mp3" },
+  { name: "Intro", url: "/sounds/musics/theme-jungle2.mp3" },
 ];
 
 const playTracks: Track[] = [
-  { name: 'Play', url: '/sounds/musics/theme-jungle3.mp3' },
-  { name: 'Play', url: '/sounds/musics/theme-jungle3.mp3' },
+  { name: "Play", url: "/sounds/musics/theme-jungle3.mp3" },
+  { name: "Play", url: "/sounds/musics/theme-jungle3.mp3" },
 ];
 
 const effectTracks: Track[] = [
-  { name: 'Start', url: '/sounds/effects/start.mp3' },
-  { name: 'Start', url: '/sounds/effects/start.mp3' },
-  { name: 'Over', url: '/sounds/effects/over.mp3' },
+  { name: "Start", url: "/sounds/effects/start.mp3" },
+  { name: "Start", url: "/sounds/effects/start.mp3" },
+  { name: "Over", url: "/sounds/effects/over.mp3" },
 ];
 
 const MusicPlayerContext = createContext({
@@ -37,7 +43,11 @@ const MusicPlayerContext = createContext({
   playOver: () => {},
 });
 
-export const MusicPlayerProvider = ({ children }: { children: React.ReactNode }) => {
+export const MusicPlayerProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [currentEffectIndex, setCurrentEffectIndex] = useState(0);
   const [tracks, setTracks] = useState(menuTracks);
@@ -59,19 +69,25 @@ export const MusicPlayerProvider = ({ children }: { children: React.ReactNode })
     setCurrentEffectIndex(2);
   }, []);
 
-  const [playTheme, { stop: stopTheme }] = useSound(tracks[currentTrackIndex].url, {
-    volume,
-    onplay: () => setIsPlaying(true),
-    onstop: () => setIsPlaying(false),
-    onend: () => {
-      setIsPlaying(false);
-      goToNextTrack();
+  const [playTheme, { stop: stopTheme }] = useSound(
+    tracks[currentTrackIndex].url,
+    {
+      volume,
+      onplay: () => setIsPlaying(true),
+      onstop: () => setIsPlaying(false),
+      onend: () => {
+        setIsPlaying(false);
+        goToNextTrack();
+      },
     },
-  });
+  );
 
-  const [playEffect, { stop: stopEffect }] = useSound(effectTracks[currentEffectIndex].url, {
-    volume,
-  });
+  const [playEffect, { stop: stopEffect }] = useSound(
+    effectTracks[currentEffectIndex].url,
+    {
+      volume,
+    },
+  );
 
   useEffect(() => {
     playTheme();

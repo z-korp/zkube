@@ -14,10 +14,20 @@ import palmRight from "/assets/palmtree-right.png";
 import PalmTree from "../components/PalmTree";
 import { Game } from "@/dojo/game/models/game";
 import { GameBonus } from "../containers/GameBonus";
-import { useTheme } from "../elements/theme-provider";
+import { useGame } from "@/hooks/useGame";
+import { usePlayer } from "@/hooks/usePlayer";
+import { useDojo } from "@/dojo/useDojo";
+import { useTheme } from "@/ui/elements/theme-provider";
+import NextLine from "../components/NextLine";
 
 export const Home = () => {
+  const {
+    account: { account },
+  } = useDojo();
+  const { player } = usePlayer({ playerId: account.address });
+  const { game } = useGame({ gameId: player?.game_id || "0x0" });
   const [animationDone, setAnimationDone] = useState(false);
+
   const testGrid = [
     [0, 0, 0, 0, 0, 0, 0, 0],
     [1, 0, 4, 4, 4, 4, 0, 1],
@@ -27,9 +37,18 @@ export const Home = () => {
     [1, 0, 0, 0, 2, 2, 0, 1],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 4, 4, 4, 4, 0, 0, 0],
-    [1, 0, 0, 0, 2, 2, 0, 0],
+    [1, 0, 0, 0, 2, 2, 2, 2],
     [0, 0, 0, 0, 0, 0, 0, 0],
   ];
+
+  const testline = [1, 0, 0, 0, 2, 2, 2, 2];
+
+  useEffect(() => {
+    if (game) {
+      // console.log(game.blocks);
+      console.log(testGrid);
+    }
+  }, [game]);
 
   const { theme } = useTheme();
   const imageTotemTheme = theme === "dark" ? imageTotemDark : imageTotemLight;
@@ -59,9 +78,10 @@ export const Home = () => {
           }}
         >
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
-            <div className="absolute top-10 flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
+            <div className="absolute flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
               <GameBonus />
-              <GameBoard initialGrid={testGrid} />
+              {!!game && <GameBoard initialGrid={testGrid} />}
+              {!!game && <NextLine numbers={testline} />}
               <Create />
               <Start />
             </div>

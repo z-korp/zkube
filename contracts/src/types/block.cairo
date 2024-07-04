@@ -1,3 +1,7 @@
+// Internal imports
+
+use zkube::types::width::Width;
+
 #[derive(Copy, Drop, Serde)]
 enum Block {
     None,
@@ -10,6 +14,7 @@ enum Block {
 
 #[generate_trait]
 impl BlockImpl of BlockTrait {
+    #[inline(always)]
     fn get_bits(self: Block) -> u32 {
         match self {
             Block::None => 0,
@@ -21,14 +26,15 @@ impl BlockImpl of BlockTrait {
         }
     }
 
-    fn size(self: Block) -> u8 {
+    #[inline(always)]
+    fn size(self: Block) -> Width {
         match self {
-            Block::None => 0,
-            Block::Zero => 1,
-            Block::One => 1,
-            Block::Two => 2,
-            Block::Three => 3,
-            Block::Four => 4,
+            Block::None => Width::None,
+            Block::Zero => Width::One,
+            Block::One => Width::One,
+            Block::Two => Width::Two,
+            Block::Three => Width::Three,
+            Block::Four => Width::Four,
         }
     }
 }

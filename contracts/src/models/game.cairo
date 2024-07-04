@@ -11,6 +11,7 @@ use zkube::constants;
 use zkube::types::difficulty::Difficulty;
 use zkube::helpers::packer::Packer;
 use zkube::helpers::controller::Controller;
+use zkube::types::bonus::{Bonus, BonusTrait};
 
 // Constants
 
@@ -28,20 +29,47 @@ mod errors {
 impl GameImpl of GameTrait {
     #[inline(always)]
     fn new(id: u32, seed: felt252) -> Game {
-        let row = Controller::create_line(seed, DIFFICULTY);
-        Game { id, over: false, next_row: row, bonuses: 0, blocks: 0, seed, }
+        let (row, color) = Controller::create_line(seed, DIFFICULTY);
+        Game {
+            id,
+            over: false,
+            next_row: row,
+            next_color: color,
+            bonuses: 0,
+            blocks: 0,
+            colors: 0,
+            seed,
+            points: 0
+        }
+    }
+
+    #[inline(always)]
+    fn reseed(ref self: Game) {
+        let state: HashState = PoseidonTrait::new();
+        let state = state.update(self.seed);
+        self.seed = state.finalize();
     }
 
     #[inline(always)]
     fn start(ref self: Game) {
+        // [Effect] Add new lines
         self.setup_next();
+        self.setup_next();
+        self.setup_next();
+        self.setup_next();
+        self.setup_next();
+        // [Effect] Assess game
+        let mut counter = 1;
+        self.assess_game(ref counter);
     }
 
     #[inline(always)]
     fn setup_next(ref self: Game) {
-        let row = Controller::create_line(self.seed, DIFFICULTY);
+        self.reseed();
+        let (row, color) = Controller::create_line(self.seed, DIFFICULTY);
         self.blocks = Controller::add_line(self.blocks, self.next_row);
         self.next_row = row;
+        self.next_color = color;
     }
 
     #[inline(always)]
@@ -51,25 +79,24 @@ impl GameImpl of GameTrait {
         self.over = rows.len() == constants::DEFAULT_GRID_HEIGHT.into();
     }
 
-    fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8,) {
+    fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8) {
         // [Compute] Move direction and step counts
         let direction = final_index > start_index;
         let count = match direction {
             true => final_index - start_index,
             false => start_index - final_index,
         };
+
         // [Effect] Swipe block
-        self.blocks = Controller::swipe(self.blocks, row_index, start_index, direction, count);
+        let (new_blocks, new_colors) = Controller::swipe(
+            self.blocks, self.colors, row_index, start_index, direction, count
+        );
+        self.blocks = new_blocks;
+        self.colors = new_colors;
+
         // [Effect] Assess game
-        let mut blocks = 0;
-        loop {
-            if blocks == self.blocks {
-                break;
-            };
-            blocks = self.blocks;
-            self.blocks = Controller::apply_gravity(self.blocks);
-            self.blocks = Controller::assess_lines(self.blocks);
-        };
+        let mut counter = 1;
+        self.points += self.assess_game(ref counter);
 
         // [Effect] Assess game over
         self.assess_over();
@@ -81,22 +108,44 @@ impl GameImpl of GameTrait {
         self.setup_next();
 
         // [Effect] Assess game
+        self.points += self.assess_game(ref counter);
+    }
+
+    fn assess_game(ref self: Game, ref counter: u32) -> u32 {
         let mut blocks = 0;
+        let mut points = 0;
         loop {
             if blocks == self.blocks {
-                break;
+                break points;
             };
             blocks = self.blocks;
-            self.blocks = Controller::apply_gravity(self.blocks);
-            self.blocks = Controller::assess_lines(self.blocks);
-        };
+            let (new_blocks, new_colors) = Controller::apply_gravity(self.blocks, self.colors);
+            self.blocks = Controller::assess_lines(new_blocks, ref counter, ref points, true);
+            self.colors = Controller::assess_lines(new_colors, ref counter, ref points, false);
+        }
+    }
+
+    #[inline(always)]
+    fn apply_bonus(ref self: Game, bonus: Bonus, row_index: u8, index: u8) {
+        self.blocks = bonus.apply_bonus(self.blocks, row_index, index)
     }
 }
+
 
 impl ZeroableGame of core::Zeroable<Game> {
     #[inline(always)]
     fn zero() -> Game {
-        Game { id: 0, over: false, next_row: 0, bonuses: 0, blocks: 0, seed: 0, }
+        Game {
+            id: 0,
+            over: false,
+            next_row: 0,
+            next_color: 0,
+            bonuses: 0,
+            blocks: 0,
+            colors: 0,
+            seed: 0,
+            points: 0
+        }
     }
 
     #[inline(always)]
