@@ -307,7 +307,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       return (
         <div
           key={cell.id}
-          className={`h-12 bg-secondary flex items-center justify-center cursor-move relative`}
+          className={`bg-secondary flex items-center justify-center cursor-move relative`}
           style={{
             ...getElementStyle(piece.element),
             gridColumn: `span ${piece.width * 4}`,
@@ -327,7 +327,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       return (
         <div
           key={cell.id}
-          className="h-12 w-12 bg-secondary relative"
+          className="h-10 w-10 sm:h-12 sm:w-12 bg-secondary relative"
           style={{ gridColumn: "span 4" }}
         >
           {debugMode && (
@@ -360,7 +360,7 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
       <div className="bg-slate-800">
         <div
           ref={gridRef}
-          className="border-4 border-slate-800 grid grid-cols-[repeat(32,1fr)] gap-1"
+          className="border-4 border-slate-800 grid grid-cols-[repeat(32,1fr)] sm:gap-2 gap-[2px]"
         >
           {grid.map((row, rowIndex) => (
             <React.Fragment key={rowIndex}>
