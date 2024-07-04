@@ -127,10 +127,13 @@ impl GameImpl of GameTrait {
 
     #[inline(always)]
     fn apply_bonus(ref self: Game, bonus: Bonus, row_index: u8, index: u8) {
-        self.blocks = bonus.apply_bonus(self.blocks, row_index, index)
+        self.blocks = bonus.apply_bonus(self.blocks, row_index, index);
+
+        // [Effect] Assess game
+        let mut counter = 1;
+        self.points += self.assess_game(ref counter);
     }
 }
-
 
 impl ZeroableGame of core::Zeroable<Game> {
     #[inline(always)]

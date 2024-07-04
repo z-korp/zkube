@@ -127,10 +127,28 @@ export function systems({
     );
   };
 
+  const move = async ({ account, ...props }: SystemTypes.Move) => {
+    await handleTransaction(
+      account,
+      () => client.actions.move({ account, ...props }),
+      "Player has been moved.",
+    );
+  };
+
+  const bonus = async ({ account, ...props }: SystemTypes.Bonus) => {
+    await handleTransaction(
+      account,
+      () => client.actions.bonus({ account, ...props }),
+      "Bonus has been applied.",
+    );
+  };
+
   return {
     create,
     rename,
     start,
     surrender,
+    move,
+    bonus,
   };
 }
