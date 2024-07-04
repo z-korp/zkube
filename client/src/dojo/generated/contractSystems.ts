@@ -28,6 +28,18 @@ export interface Start extends Signer {
 
 export interface Surrender extends Signer {}
 
+export interface Move extends Signer {
+  row_index: number;
+  start_index: number;
+  final_index: number;
+}
+
+export interface Bonus extends Signer {
+  bonus: number;
+  row_index: number;
+  block_index: number;
+}
+
 export type IWorld = Awaited<ReturnType<typeof setupWorld>>;
 
 export const getContractByName = (manifest: any, name: string) => {
@@ -141,12 +153,63 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       }
     };
 
+    const move = async ({
+      account,
+      row_index,
+      start_index,
+      final_index,
+    }: Move) => {
+      try {
+        return await provider.execute(
+          account,
+          {
+            contractName: contract_name,
+            entrypoint: "move",
+            calldata: [
+              provider.getWorldAddress(),
+              row_index,
+              start_index,
+              final_index,
+            ],
+          },
+          details,
+        );
+      } catch (error) {
+        console.error("Error executing move:", error);
+        throw error;
+      }
+    };
+
+    const bonus = async ({ account, bonus, row_index, block_index }: Bonus) => {
+      try {
+        return await provider.execute(
+          account,
+          {
+            contractName: contract_name,
+            entrypoint: "apply_bonus",
+            calldata: [
+              provider.getWorldAddress(),
+              bonus,
+              row_index,
+              block_index,
+            ],
+          },
+          details,
+        );
+      } catch (error) {
+        console.error("Error executing bonus:", error);
+        throw error;
+      }
+    };
+
     return {
       address: contract.address,
       create,
       rename,
       start,
       surrender,
+      move,
+      bonus,
     };
   }
 
