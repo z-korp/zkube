@@ -321,16 +321,24 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
         ? draggingPiece.currentX - draggingPiece.startX
         : 0;
 
+      // Assurez-vous d'avoir les mesures exactes de la grille.
+      const gridRect = gridRef.current?.getBoundingClientRect();
+      const cellWidth = gridRect ? gridRect.width / cols : 0;
+      const cellHeight = gridRect ? gridRect.height / rows : 0; // Supposons que chaque cellule a une hauteur uniforme.
+
       return (
         <div
           key={cell.id}
-          className={`h-12 bg-secondary flex items-center justify-center cursor-move relative`}
+          className={`h-12 bg-secondary flex items-center justify-center cursor-move absolute`}
           style={{
             ...getElementStyle(piece.element),
-            gridColumn: `span ${piece.width * 4}`,
+            width: `${piece.width * cellWidth}px`,
+            height: `${cellHeight}px`,
+            left: `${colIndex * cellWidth}px`,
+            top: `${rowIndex * cellHeight - 3}px`,
             transform: `translateX(${dragOffset}px)`,
             transition: isDragging ? "none" : "transform 0.3s ease-out",
-            zIndex: 1000,
+            zIndex: isDragging ? 1000 : 500, // Utilisez un zIndex élevé pour s'assurer qu'il est au-dessus.
           }}
           onMouseDown={(e) => startDragging(rowIndex, colIndex, e)}
         >
@@ -341,22 +349,8 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
           )}
         </div>
       );
-    } else if (!cell.pieceId) {
-      return (
-        <div
-          key={cell.id}
-          className="h-12 w-12 bg-secondary relative"
-          style={{ gridColumn: "span 4" }}
-        >
-          {debugMode && (
-            <div className="absolute top-0 left-0 bg-black text-white text-xs p-1">
-              {rowIndex}, {colIndex}
-            </div>
-          )}
-        </div>
-      );
     }
-    return null;
+    return null; // Rien à rendre si ce n'est pas une pièce de départ ou s'il n'y a pas de pièce.
   };
 
   return (
@@ -375,13 +369,34 @@ const GameBoard = ({ initialGrid }: { initialGrid: number[][] }) => {
           {debugMode ? "Disable Debug Mode" : "Enable Debug Mode"}
         </button>
       </div>
-      <div className="bg-slate-800">
+      <div className="bg-slate-800 relative">
         <div
           ref={gridRef}
           className="border-4 border-slate-800 grid grid-cols-[repeat(32,1fr)] gap-1"
+          style={{ position: "relative" }} // Assurez-vous que c'est relatif pour positionner absolument les pièces.
         >
-          {grid.map((row, rowIndex) => (
+          {/* Grille de fond */}
+          {Array.from({ length: rows }).map((_, rowIndex) => (
             <React.Fragment key={rowIndex}>
+              {Array.from({ length: cols }).map((_, colIndex) => (
+                <div
+                  key={`${rowIndex}-${colIndex}`}
+                  className="h-12 w-12 bg-secondary relative"
+                  style={{ gridColumn: "span 4" }}
+                >
+                  {debugMode && (
+                    <div className="absolute top-0 left-0 bg-black text-white text-xs p-1">
+                      {rowIndex}, {colIndex}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </React.Fragment>
+          ))}
+
+          {/* Pièces placées */}
+          {grid.map((row, rowIndex) => (
+            <React.Fragment key={`piece-${rowIndex}`}>
               {row.map((cell, colIndex) =>
                 renderCell(cell, rowIndex, colIndex),
               )}
