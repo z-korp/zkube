@@ -253,6 +253,7 @@ const GameBoard = ({
   );
 
   const handleMove = useCallback(async (rowIndex: number, startIndex: number, finalOndex: number) => {
+    if (startIndex === finalOndex) return;
     setIsLoading(true);
     try {
       await move({ account: account, row_index: rowIndex, start_index: startIndex, final_index: finalOndex, });
