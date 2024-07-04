@@ -4,6 +4,10 @@ use core::debug::PrintTrait;
 use core::poseidon::{PoseidonTrait, HashState};
 use core::hash::HashStateTrait;
 
+// External imports
+
+use alexandria_math::fast_power::fast_power;
+
 // Inernal imports
 
 use zkube::models::index::Game;
@@ -50,17 +54,19 @@ impl GameImpl of GameTrait {
         self.seed = state.finalize();
     }
 
-    #[inline(always)]
     fn start(ref self: Game) {
-        // [Effect] Add new lines
-        self.setup_next();
-        self.setup_next();
-        self.setup_next();
-        self.setup_next();
-        self.setup_next();
-        // [Effect] Assess game
+        // [Effect] Add lines until we have 5 remaining
         let mut counter = 1;
-        self.assess_game(ref counter);
+        let div: u256 = fast_power(2_u256, 4 * constants::ROW_BIT_COUNT.into()) - 1;
+        loop {
+            if self.blocks.into() / div > 0 {
+                break;
+            };
+            // [Effect] Add line
+            self.setup_next();
+            // [Effect] Assess game
+            self.assess_game(ref counter);
+        };
     }
 
     #[inline(always)]
@@ -68,15 +74,17 @@ impl GameImpl of GameTrait {
         self.reseed();
         let (row, color) = Controller::create_line(self.seed, DIFFICULTY);
         self.blocks = Controller::add_line(self.blocks, self.next_row);
+        self.colors = Controller::add_line(self.colors, self.next_color);
         self.next_row = row;
         self.next_color = color;
     }
 
     #[inline(always)]
     fn assess_over(ref self: Game) {
-        let bitmap: u256 = self.blocks.into();
-        let rows: Array<u32> = Packer::unpack(bitmap, constants::BLOCK_SIZE);
-        self.over = rows.len() == constants::DEFAULT_GRID_HEIGHT.into();
+        let exp: u256 = (constants::DEFAULT_GRID_HEIGHT.into() - 1)
+            * constants::ROW_BIT_COUNT.into();
+        let div: u256 = fast_power(2, exp) - 1;
+        self.over = self.blocks.into() / div > 0;
     }
 
     fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8) {
@@ -112,16 +120,25 @@ impl GameImpl of GameTrait {
     }
 
     fn assess_game(ref self: Game, ref counter: u32) -> u32 {
-        let mut blocks = 0;
         let mut points = 0;
+        let mut upper_blocks = 0;
         loop {
-            if blocks == self.blocks {
+            let mut inner_blocks = 0;
+            loop {
+                if inner_blocks == self.blocks {
+                    break;
+                };
+                inner_blocks = self.blocks;
+                let (new_blocks, new_colors) = Controller::apply_gravity(self.blocks, self.colors);
+                self.blocks = new_blocks;
+                self.colors = new_colors;
+            };
+            self.blocks = Controller::assess_lines(self.blocks, ref counter, ref points, true);
+            self.colors = Controller::assess_lines(self.colors, ref counter, ref points, false);
+            if upper_blocks == self.blocks {
                 break points;
             };
-            blocks = self.blocks;
-            let (new_blocks, new_colors) = Controller::apply_gravity(self.blocks, self.colors);
-            self.blocks = Controller::assess_lines(new_blocks, ref counter, ref points, true);
-            self.colors = Controller::assess_lines(new_colors, ref counter, ref points, false);
+            upper_blocks = self.blocks;
         }
     }
 
