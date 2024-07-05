@@ -103,3 +103,37 @@ body {
   touch-action: none; /* Prevents touch-based panning */
   height: 100vh;
 }
+
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.wiggle {
+  animation: wiggle 0.2s ease-in-out infinite;
+}
+
+.blink {
+  animation: blink 0.5s ease-in-out infinite;
+}
+
+.wiggle-blink {
+  animation:
+    wiggle 0.2s ease-in-out infinite,
+    blink 0.5s ease-in-out infinite;
+}

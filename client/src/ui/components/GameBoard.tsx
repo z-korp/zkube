@@ -154,8 +154,7 @@ const GameBoard = ({
         changesMade = await applyGravity();
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
-      count++;
-      console.log(`Gravity loop ${count} done`);
+      await new Promise((resolve) => setTimeout(resolve, 800));
       rowsCleared = await checkAndClearFullLines();
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
@@ -163,15 +162,13 @@ const GameBoard = ({
     await insertNewLine();
 
     rowsCleared = true;
-    count = 0;
     while (rowsCleared) {
       let changesMade = true;
       while (changesMade) {
         changesMade = await applyGravity();
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
-      count++;
-      console.log(`Gravity loop ${count} done`);
+      await new Promise((resolve) => setTimeout(resolve, 800));
       rowsCleared = await checkAndClearFullLines();
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
@@ -527,7 +524,16 @@ const GameBoard = ({
     }
   };
 
-  const renderCell = (cell: Cell, rowIndex: number, colIndex: number) => {
+  const isLineComplete = (row) => {
+    return row.every((cell) => cell.pieceId !== null);
+  };
+
+  const renderCell = (
+    cell: Cell,
+    rowIndex: number,
+    colIndex: number,
+    isLineComplete,
+  ) => {
     const piece = PIECES.find((p) => p.id === cell.pieceId);
 
     if (cell.isStart && piece) {
@@ -546,7 +552,7 @@ const GameBoard = ({
       return (
         <div
           key={cell.id}
-          className={`bg-secondary flex items-center justify-center cursor-move absolute`}
+          className={`bg-secondary flex items-center justify-center cursor-move absolute ${isLineComplete ? "wiggle-blink" : ""}`}
           style={{
             ...getElementStyle(piece.element),
             width: `${piece.width * cellWidth}px`,
@@ -609,13 +615,16 @@ const GameBoard = ({
           ))}
 
           {/* Pièces placées */}
-          {grid.map((row, rowIndex) => (
-            <React.Fragment key={`piece-${rowIndex}`}>
-              {row.map((cell, colIndex) =>
-                renderCell(cell, rowIndex, colIndex),
-              )}
-            </React.Fragment>
-          ))}
+          {grid.map((row, rowIndex) => {
+            const complete = isLineComplete(row);
+            return (
+              <React.Fragment key={`piece-${rowIndex}`}>
+                {row.map((cell, colIndex) =>
+                  renderCell(cell, rowIndex, colIndex, complete),
+                )}
+              </React.Fragment>
+            );
+          })}
         </div>
       </div>
     </Card>
