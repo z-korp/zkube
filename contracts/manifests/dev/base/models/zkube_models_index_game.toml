@@ -1,6 +1,6 @@
 kind = "DojoModel"
-class_hash = "0xbcec822a7091fdec790097935a2486792e6c8d1a8e183552cec89ce27ec204"
-original_class_hash = "0xbcec822a7091fdec790097935a2486792e6c8d1a8e183552cec89ce27ec204"
+class_hash = "0x7f9ef38357da1be1090e5c94c8e3edd015252e1465b76bff44de696c17e722d"
+original_class_hash = "0x7f9ef38357da1be1090e5c94c8e3edd015252e1465b76bff44de696c17e722d"
 abi = "manifests/dev/abis/base/models/zkube_models_index_game.json"
 name = "zkube::models::index::game"
 
@@ -30,8 +30,23 @@ type = "u32"
 key = false
 
 [[members]]
-name = "bonuses"
-type = "u16"
+name = "hammer_bonus"
+type = "u8"
+key = false
+
+[[members]]
+name = "wave_bonus"
+type = "u8"
+key = false
+
+[[members]]
+name = "totem_bonus"
+type = "u8"
+key = false
+
+[[members]]
+name = "combo_counter"
+type = "u8"
 key = false
 
 [[members]]

@@ -55,7 +55,7 @@ impl BonusImpl of BonusTrait {
     }
 
     #[inline(always)]
-    fn get_count(self: Bonus, game: Game) -> u8 {
-        game.totem_bonus
+    fn get_count(score: u32, combo_count: u8) -> u8 {
+        return 0;
     }
 }

@@ -37,7 +37,16 @@ impl BonusImpl of BonusTrait {
     }
 
     #[inline(always)]
-    fn get_count(self: Bonus, game: Game) -> u8 {
-        game.hammer_bonus
+    fn get_count(score: u32, combo_count: u8) -> u8 {
+        if score > 90 {
+            return 3;
+        }
+        if score > 60 {
+            return 2;
+        }
+        if score > 30 {
+            return 1;
+        }
+        return 0;
     }
 }

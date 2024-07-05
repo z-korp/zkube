@@ -15,6 +15,7 @@ enum Bonus {
 
 #[generate_trait]
 impl BonusImpl of BonusTrait {
+    #[inline(always)]
     fn apply(
         self: Bonus, blocks: felt252, colors: felt252, row_index: u8, index: u8
     ) -> (felt252, felt252) {
@@ -26,12 +27,13 @@ impl BonusImpl of BonusTrait {
         }
     }
 
-    fn get_count(self: Bonus, game: Game) -> u8 {
+    #[inline(always)]
+    fn get_count(self: Bonus, score: u32, combo_count: u8) -> u8 {
         match self {
             Bonus::None => 0,
-            Bonus::Hammer => self.get_count(game),
-            Bonus::Totem => self.get_count(game),
-            Bonus::Wave => self.get_count(game),
+            Bonus::Hammer => hammer::BonusImpl::get_count(score, combo_count),
+            Bonus::Totem => totem::BonusImpl::get_count(score, combo_count),
+            Bonus::Wave => wave::BonusImpl::get_count(score, combo_count),
         }
     }
 }

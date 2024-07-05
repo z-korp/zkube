@@ -11,20 +11,30 @@ import {
   DrawerTrigger,
 } from "@/ui/elements/drawer";
 import { Button } from "@/ui/elements/button";
-import { BonusDetail, Game } from "@/dojo/game/models/game";
-import { useMemo, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/ui/elements/card";
+import { BonusDetail, Player } from "@/dojo/game/models/player";
+import { useMemo } from "react";
 import { useMediaQuery } from "react-responsive";
 import { useDojo } from "@/dojo/useDojo";
 import { usePlayer } from "@/hooks/usePlayer";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 
-export const Bonuses = () => {
+export const Achievements = () => {
   const {
     account: { account },
   } = useDojo();
 
   const { player } = usePlayer({ playerId: account.address });
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
-  const bonuses = useMemo(() => Game.getBonuses(), []);
+  const bonuses = useMemo(() => Player.getBonuses(), []);
 
   return (
     <Drawer handleOnly={true}>
@@ -44,7 +54,7 @@ export const Bonuses = () => {
             orientation={"horizontal"}
             opts={{ dragFree: isMdOrLarger }}
           >
-            <CarouselContent className="flex items-end">
+            <CarouselContent className="flex items-stretch">
               {bonuses.map((detail, index) => (
                 <CarouselItem
                   key={index}
@@ -62,17 +72,35 @@ export const Bonuses = () => {
 };
 
 export const Canvas = ({ detail }: { detail: BonusDetail }) => {
-  const { bonus, score, combo, description } = detail;
+  const { bonus, score, combo, description, name } = detail;
   const enabled = true;
 
   return (
-    <div className="flex flex-col justify-center items-center gap-2 pb-2">
-      <div className={`${!enabled && "grayscale"}`}>
-        <div>{score}</div>
-        <div>{combo}</div>
-        <div>{description}</div>
-        <img src={bonus.getIcon()} alt={"icon"} />
-      </div>
-    </div>
+    <Card className="h-full">
+      <CardHeader className="flex flex-col justify-center items-center">
+        <CardTitle>{name}</CardTitle>
+        <CardDescription>{bonus.getEffect()}</CardDescription>
+      </CardHeader>
+      <CardContent
+        className={`flex justify-center items-center ${!enabled && "grayscale"}`}
+      >
+        <img className="h-20" src={bonus.getIcon()} alt={"icon"} />
+      </CardContent>
+      <CardFooter className="flex flex-col gap-4 justify-between items-center">
+        {!!score && (
+          <div className="flex gap-2 justify-center items-center text-2xl">
+            {score}
+            <FontAwesomeIcon icon={faStar} className="text-yellow-500" />
+          </div>
+        )}
+        {!!combo && (
+          <div className="flex gap-2 justify-center items-center text-2xl">
+            {combo}
+            <FontAwesomeIcon icon={faKhanda} className="text-slate-500" />
+          </div>
+        )}
+        {!!description && <div>{description}</div>}
+      </CardFooter>
+    </Card>
   );
 };

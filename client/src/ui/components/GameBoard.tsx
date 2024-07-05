@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Card } from "@/ui/elements/ui/card";
+import { Card } from "@/ui/elements/card";
 
 import stone1Image from "/assets/block-1.png";
 import stone2Image from "/assets/block-2.png";

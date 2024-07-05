@@ -24,7 +24,16 @@ impl BonusImpl of BonusTrait {
     }
 
     #[inline(always)]
-    fn get_count(self: Bonus, game: Game) -> u8 {
-        game.wave_bonus
+    fn get_count(score: u32, combo_count: u8) -> u8 {
+        if combo_count > 9 {
+            return 3;
+        }
+        if combo_count > 6 {
+            return 2;
+        }
+        if combo_count > 3 {
+            return 1;
+        }
+        return 0;
     }
 }

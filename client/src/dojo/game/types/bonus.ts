@@ -37,8 +37,8 @@ export class Bonus {
   public static getBonuses(): Bonus[] {
     return [
       new Bonus(BonusType.Hammer),
-      new Bonus(BonusType.Wave),
       new Bonus(BonusType.Totem),
+      new Bonus(BonusType.Wave),
     ];
   }
 
@@ -93,6 +93,32 @@ export class Bonus {
         return Totem.getDescription();
       case BonusType.Wave:
         return Wave.getDescription();
+      default:
+        return "";
+    }
+  }
+
+  public getName(): string {
+    switch (this.value) {
+      case BonusType.Hammer:
+        return "Hammer";
+      case BonusType.Totem:
+        return "Totem";
+      case BonusType.Wave:
+        return "Wave";
+      default:
+        return "";
+    }
+  }
+
+  public getEffect(): string {
+    switch (this.value) {
+      case BonusType.Hammer:
+        return "Remove a single block";
+      case BonusType.Totem:
+        return "Remove all blocks of a color";
+      case BonusType.Wave:
+        return "Remove a row of blocks";
       default:
         return "";
     }

@@ -29,6 +29,7 @@ mod PlayableComponent {
     use zkube::models::game::AssertTrait;
     use zkube::store::StoreTrait;
     use zkube::types::bonus::Bonus;
+    use zkube::helpers::math::Math;
 
     // Errors
 
@@ -147,7 +148,13 @@ mod PlayableComponent {
             game.assert_not_over();
 
             // [Effect] Perform move
-            game.move(row_index, start_index, final_index);
+            let (hammer, totem, wave) = game.move(row_index, start_index, final_index);
+
+            // [Effect] Update player
+            player.hammer_bonus = Math::min(player.hammer_bonus, hammer);
+            player.totem_bonus = Math::min(player.totem_bonus, totem);
+            player.wave_bonus = Math::min(player.wave_bonus, wave);
+            store.set_player(player);
 
             // [Effect] Update game
             store.set_game(game);
@@ -174,11 +181,10 @@ mod PlayableComponent {
             game.assert_not_over();
 
             // [Check] Bonus is available
-            let count: u8 = game.get_count(bonus);
-            if count > 0 {
-                // [Effect] Apply bonus
-                game.apply_bonus(bonus, row_index, index);
-            }
+            game.assert_is_available(bonus);
+
+            // [Effect] Apply bonus
+            game.apply_bonus(bonus, row_index, index);
 
             // [Effect] Update game
             store.set_game(game);

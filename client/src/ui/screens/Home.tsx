@@ -12,14 +12,13 @@ import imageTotemLight from "/assets/theme-2-totem-light.png";
 import palmLeft from "/assets/palmtree-left.png";
 import palmRight from "/assets/palmtree-right.png";
 import PalmTree from "../components/PalmTree";
-import { Game } from "@/dojo/game/models/game";
-import { GameBonus } from "../containers/GameBonus";
 import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useDojo } from "@/dojo/useDojo";
 import { useTheme } from "@/ui/elements/theme-provider";
 import NextLine from "../components/NextLine";
 import { Surrender } from "../actions/Surrender";
+import { Content as Leaderboard } from "../modules/Leaderboard";
 
 export const Home = () => {
   const {
@@ -75,19 +74,20 @@ export const Home = () => {
             <div className="absolute flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
               <Create />
               <Start />
+              {(!game || !!game.over) && (
+                <div className="bg-slate-900 w-[500px] p-6 rounded-xl">
+                  <Leaderboard />
+                </div>
+              )}
               {!!game && !game.over && (
                 <div className="relative w-full">
                   <div className="flex flex-col items-center">
-                    {!!game && (
-                      <GameBoard
-                        initialGrid={game.blocks}
-                        nextLine={game.next_row}
-                        score={game.score}
-                      />
-                    )}
-                    {!!game && !game.over && (
-                      <NextLine numbers={game.next_row} />
-                    )}
+                    <GameBoard
+                      initialGrid={game.blocks}
+                      nextLine={game.next_row}
+                      score={game.score}
+                    />
+                    <NextLine numbers={game.next_row} />
                   </div>
                   <div className="mt-4 sm:mt-0 sm:absolute sm:right-0 sm:bottom-0 sm:mb-4 flex justify-center sm:justify-end w-full">
                     <Surrender />

@@ -27,7 +27,7 @@ import { Button } from "@/ui/elements/button";
 import { Game } from "@/dojo/game/models/game";
 import { useGames } from "@/hooks/useGames";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faStar } from "@fortawesome/free-solid-svg-icons";
+import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -38,9 +38,7 @@ export const Leaderboard = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="text-xl" variant="outline">
-          Leaderboard
-        </Button>
+        <Button variant="outline">Leaderboard</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader className="flex items-center text-2xl">
@@ -61,8 +59,10 @@ export const Content = () => {
   const [pageCount, setPageCount] = useState<number>(0);
 
   const sorteds = useMemo(() => {
-    return games.sort((a, b) => b.score - a.score);
-    // .filter((game) => !!game.score);
+    return games
+      .sort((a, b) => b.combo - a.combo)
+      .sort((a, b) => b.score - a.score);
+    // .filter((game) => !!game.score || !!game.combo);
   }, [games]);
 
   useEffect(() => {
@@ -96,9 +96,12 @@ export const Content = () => {
         </TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-left">Rank</TableHead>
-            <TableHead className="text-center">
+            <TableHead className="text-left w-[100px]">Rank</TableHead>
+            <TableHead className="text-center w-[100px]">
               <FontAwesomeIcon icon={faStar} className="text-yellow-500" />
+            </TableHead>
+            <TableHead className="text-center w-[100px]">
+              <FontAwesomeIcon icon={faKhanda} className="text-slate-500" />
             </TableHead>
             <TableHead>Name</TableHead>
           </TableRow>
@@ -153,6 +156,11 @@ export const Row = ({ rank, game }: { rank: number; game: Game }) => {
       <TableCell className="text-right">
         <p className="flex gap-1 justify-center items-center">
           <span className="font-bold">{game.score}</span>
+        </p>
+      </TableCell>
+      <TableCell className="text-right">
+        <p className="flex gap-1 justify-center items-center">
+          <span className="font-bold">{game.combo}</span>
         </p>
       </TableCell>
       <TableCell className="text-left max-w-36 truncate">

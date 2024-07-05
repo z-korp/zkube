@@ -1,5 +1,5 @@
 import React from "react";
-import { Card } from "@/ui/elements/ui/card";
+import { Card } from "@/ui/elements/card";
 
 import stone1Image from "/assets/block-1.png";
 import stone2Image from "/assets/block-2.png";
@@ -13,7 +13,7 @@ const numberToImage = {
   4: stone4Image,
 };
 
-const NextLine = ({ numbers }) => {
+const NextLine = ({ numbers }: { numbers: any }) => {
   const cols = 8;
 
   return (

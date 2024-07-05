@@ -6,7 +6,6 @@ import {
   DEFAULT_GRID_HEIGHT,
   DEFAULT_GRID_WIDTH,
 } from "../constants";
-import { Bonus, Condition } from "../types/bonus";
 
 export interface Block {
   width: number;
@@ -18,16 +17,13 @@ export interface Row {
   blocks: Block[];
 }
 
-export interface BonusDetail {
-  bonus: Bonus;
-  score: number;
-  combo: number;
-  description: string;
-}
-
 export class Game {
   public id: string;
   public over: boolean;
+  public hammer: number;
+  public wave: number;
+  public totem: number;
+  public combo: number;
   public score: number;
   public next_row: number[];
   public next_color: number[];
@@ -45,6 +41,10 @@ export class Game {
       BigInt(BLOCK_BIT_COUNT),
       DEFAULT_GRID_WIDTH,
     );
+    this.hammer = game.hammer_bonus;
+    this.wave = game.wave_bonus;
+    this.totem = game.totem_bonus;
+    this.combo = game.combo_counter;
     this.score = game.score;
     this.next_color = Packer.sized_unpack(
       BigInt(game.next_color),
@@ -53,7 +53,6 @@ export class Game {
     );
     this.bonuses = game.bonuses;
     this.player_id = game.player_id.toString(16);
-    console.log("player_id", this.player_id);
     this.seed = game.seed;
 
     // Destructure blocks and colors bitmaps in to Rows and Blocks
@@ -98,24 +97,5 @@ export class Game {
 
   public isOver(): boolean {
     return this.over;
-  }
-
-  public static getBonuses(): BonusDetail[] {
-    const details: BonusDetail[] = [];
-    const bonuses = Bonus.getBonuses();
-    bonuses.forEach((bonus) => {
-      const conditions: Condition[] = bonus.getConditions();
-      const description = bonus.getDescription();
-      const bonus_conditions = conditions.map((condition) => {
-        return {
-          bonus,
-          score: condition.score,
-          combo: condition.combo,
-          description,
-        };
-      });
-      details.push(...bonus_conditions);
-    });
-    return details;
   }
 }

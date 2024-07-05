@@ -27,6 +27,7 @@ mod errors {
     const GAME_NOT_EXISTS: felt252 = 'Game: does not exist';
     const GAME_IS_OVER: felt252 = 'Game: is over';
     const GAME_NOT_OVER: felt252 = 'Game: not over';
+    const GAME_BONUS_NOT_AVAILABLE: felt252 = 'Game: bonus not available';
 }
 
 #[generate_trait]
@@ -98,7 +99,7 @@ impl GameImpl of GameTrait {
         self.over = self.blocks.into() / div > 0;
     }
 
-    fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8) {
+    fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8) -> (u8, u8, u8) {
         // [Compute] Move direction and step counts
         let direction = final_index > start_index;
         let count = match direction {
@@ -120,7 +121,10 @@ impl GameImpl of GameTrait {
         // [Effect] Assess game over
         self.assess_over();
         if self.over {
-            return;
+            let hammer = Bonus::Hammer.get_count(self.score, self.combo_counter);
+            let totem = Bonus::Totem.get_count(self.score, self.combo_counter);
+            let wave = Bonus::Wave.get_count(self.score, self.combo_counter);
+            return (hammer, totem, wave);
         };
 
         // [Effect] Add a new line
@@ -128,6 +132,9 @@ impl GameImpl of GameTrait {
 
         // [Effect] Assess game
         self.score += self.assess_game(ref counter);
+
+        // [Return] Null values
+        (0, 0, 0)
     }
 
     fn assess_game(ref self: Game, ref counter: u32) -> u32 {
@@ -169,11 +176,6 @@ impl GameImpl of GameTrait {
             Bonus::Totem => self.totem_bonus -= 1,
             Bonus::Wave => self.wave_bonus -= 1,
         }
-    }
-
-    #[inline(always)]
-    fn get_count(ref self: Game, bonus: Bonus) -> u8 {
-        bonus.get_count(self)
     }
 }
 
@@ -223,6 +225,17 @@ impl GameAssert of AssertTrait {
     #[inline(always)]
     fn assert_is_over(self: Game) {
         assert(self.over || self.is_zero(), errors::GAME_NOT_OVER);
+    }
+
+    #[inline(always)]
+    fn assert_is_available(self: Game, bonus: Bonus) {
+        let count = match bonus {
+            Bonus::Hammer => self.hammer_bonus,
+            Bonus::Totem => self.totem_bonus,
+            Bonus::Wave => self.wave_bonus,
+            _ => 0,
+        };
+        assert(count > 0, errors::GAME_BONUS_NOT_AVAILABLE);
     }
 }
 
