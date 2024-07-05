@@ -152,11 +152,11 @@ const GameBoard = ({
       let changesMade = true;
       while (changesMade) {
         changesMade = await applyGravity();
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       rowsCleared = await checkAndClearFullLines();
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 300));
     }
 
     await insertNewLine();
@@ -166,11 +166,11 @@ const GameBoard = ({
       let changesMade = true;
       while (changesMade) {
         changesMade = await applyGravity();
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       rowsCleared = await checkAndClearFullLines();
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
     setIsAnimating(false);
   };
@@ -196,6 +196,7 @@ const GameBoard = ({
               id: `0-${col}`,
               pieceId: null,
               isStart: false,
+              pieceIndex: null,
             }));
           }
         }
@@ -252,6 +253,7 @@ const GameBoard = ({
           id: `${rows - 1}-${index}`,
           pieceId: value !== 0 ? value : null,
           isStart: false,
+          pieceIndex: null,
         }));
 
         // Ajoutez la nouvelle ligne en bas de la grille
@@ -312,6 +314,7 @@ const GameBoard = ({
     colIndex: number,
     e: React.MouseEvent,
   ) => {
+    if (isAnimating) return;
     const piece = PIECES.find((p) => p.id === grid[rowIndex][colIndex].pieceId);
     if (!piece) return;
 
@@ -344,6 +347,8 @@ const GameBoard = ({
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
+      if (isAnimating) return;
+
       if (!isDragging || !draggingPiece || !gridRef.current) return;
       const gridRect = gridRef.current.getBoundingClientRect();
       const cellWidth = gridRect.width / cols;
@@ -395,6 +400,8 @@ const GameBoard = ({
   const handleMove = useCallback(
     async (rowIndex: number, startIndex: number, finalOndex: number) => {
       if (startIndex === finalOndex) return;
+      if (isAnimating) return;
+
       setIsLoading(true);
       try {
         await move({
@@ -411,6 +418,8 @@ const GameBoard = ({
   );
 
   const handleMouseUp = useCallback(() => {
+    if (isAnimating) return;
+
     if (!isDragging || !draggingPiece || !gridRef.current) return;
 
     const gridRect = gridRef.current.getBoundingClientRect();
