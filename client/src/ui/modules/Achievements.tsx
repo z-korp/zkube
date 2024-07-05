@@ -39,7 +39,7 @@ export const Achievements = () => {
   }, [player]);
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
-  const bonuses = useMemo(() => Player.getBonuses({ counts }), []);
+  const bonuses = useMemo(() => Player.getBonuses({ counts }), [counts]);
 
   return (
     <Drawer handleOnly={true}>
@@ -63,7 +63,7 @@ export const Achievements = () => {
               {bonuses.map((detail, index) => (
                 <CarouselItem
                   key={index}
-                  className="sm:basis-1/2 md:basis-1/3 lg:basis-1/5 xl:basis-1/6"
+                  className="sm:basis-1/2 md:basis-1/3 lg:basis-1/5 xl:basis-[14.2857143%]"
                 >
                   <Canvas detail={detail} />
                 </CarouselItem>
@@ -83,7 +83,9 @@ export const Canvas = ({ detail }: { detail: BonusDetail }) => {
     <Card className="h-full">
       <CardHeader className="flex flex-col justify-center items-center">
         <CardTitle>{name}</CardTitle>
-        <CardDescription>{bonus.getEffect()}</CardDescription>
+        <CardDescription className="text-center">
+          {bonus.getEffect()}
+        </CardDescription>
       </CardHeader>
       <CardContent
         className={`flex justify-center items-center ${!has && "grayscale"}`}

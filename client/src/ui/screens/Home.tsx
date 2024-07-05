@@ -56,10 +56,6 @@ export const Home = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    console.log(game);
-  }, [game]);
-
   return (
     <div className="relative flex flex-col h-screen">
       <Header />
