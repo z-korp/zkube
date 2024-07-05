@@ -161,15 +161,15 @@ const GameBoard = ({
       let changesMade = true;
       while (changesMade) {
         changesMade = await applyGravity();
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 200));
       }
       setIsFalling(false);
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 200));
       rowsCleared = await checkAndClearFullLines();
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 200));
     }
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
     await insertNewLine();
 
