@@ -7,6 +7,15 @@ enum Width {
     Four,
 }
 
+impl WidthPartialEq of core::PartialEq<Width> {
+    #[inline(always)]
+    fn eq(lhs: @Width, rhs: @Width) -> bool {
+        let lhs_u8: u8 = (*lhs).into();
+        let rhs_u8: u8 = (*rhs).into();
+        lhs_u8 == rhs_u8
+    }
+}
+
 impl IntoWidthFelt252 of core::Into<Width, felt252> {
     #[inline(always)]
     fn into(self: Width) -> felt252 {

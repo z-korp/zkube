@@ -4,8 +4,6 @@ import { Account } from "starknet";
 import { Button } from "@/ui/elements/button";
 import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFontAwesome } from "@fortawesome/free-solid-svg-icons";
 import {
   Dialog,
   DialogContent,
@@ -40,18 +38,23 @@ export const Surrender = () => {
   }, [account]);
 
   const disabled = useMemo(() => {
-    return !account || !master || account === master || !player || !game;
+    return (
+      !account || !master || account === master || !player || !game || game.over
+    );
   }, [account, master, player, game]);
 
   if (disabled) return null;
 
   return (
     <div className="flex gap-4">
-      <div className="text-2xl hidden md:block">Surrender</div>
       <Dialog>
         <DialogTrigger asChild>
-          <Button size={"icon"} disabled={isLoading} isLoading={isLoading}>
-            <FontAwesomeIcon icon={faFontAwesome} className="h-6 w-6" />
+          <Button
+            disabled={isLoading}
+            isLoading={isLoading}
+            className="text-xl"
+          >
+            Surrender
           </Button>
         </DialogTrigger>
         <DialogContent>

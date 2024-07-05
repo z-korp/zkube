@@ -10,7 +10,7 @@ export const GameBonus = () => {
   };
 
   return (
-    <div className="grid grid-cols-3 md:gap-12 sm:gap-8 gap-6 md:w-1/2 w-2/3 bg-color">
+    <div className="grid grid-cols-3 md:gap-3 sm:gap-4 gap-6 w-60 pb-2">
       <div className="flex flex-col items-start">
         <BonusButton onClick={handleClick} urlImage={imageHammer} />
       </div>

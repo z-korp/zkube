@@ -22,8 +22,8 @@ name = "dojo::base::base"
 [[contracts]]
 kind = "DojoContract"
 address = "0x37c4bfa511d77ff1299712ad4a608037255f35a4b5f44e230681e4fd744fcbd"
-class_hash = "0x4e761b8f91319d948361bf3b160bffd8a7add466c8b0244f75f9275532805a7"
-original_class_hash = "0x4e761b8f91319d948361bf3b160bffd8a7add466c8b0244f75f9275532805a7"
+class_hash = "0x4a1982db1f7de0ab043c411e78e8dc7cf26862182cab4e8666049845dc19dc4"
+original_class_hash = "0x4a1982db1f7de0ab043c411e78e8dc7cf26862182cab4e8666049845dc19dc4"
 base_class_hash = "0x22f3e55b61d86c2ac5239fa3b3b8761f26b9a5c0b5f61ddbd5d756ced498b46"
 abi = "manifests/dev/abis/deployments/contracts/zkube_systems_actions_actions.json"
 reads = []
@@ -37,8 +37,8 @@ name = "zkube::systems::actions::actions"
 
 [[models]]
 kind = "DojoModel"
-class_hash = "0x7a1df6a99bffa07b38d570c7298f150e008e7a860a2818fe97fd8838a496e0e"
-original_class_hash = "0x7a1df6a99bffa07b38d570c7298f150e008e7a860a2818fe97fd8838a496e0e"
+class_hash = "0x7f9ef38357da1be1090e5c94c8e3edd015252e1465b76bff44de696c17e722d"
+original_class_hash = "0x7f9ef38357da1be1090e5c94c8e3edd015252e1465b76bff44de696c17e722d"
 abi = "manifests/dev/abis/deployments/models/zkube_models_index_game.json"
 name = "zkube::models::index::game"
 
@@ -53,7 +53,7 @@ type = "bool"
 key = false
 
 [[models.members]]
-name = "points"
+name = "score"
 type = "u32"
 key = false
 
@@ -68,8 +68,23 @@ type = "u32"
 key = false
 
 [[models.members]]
-name = "bonuses"
-type = "u16"
+name = "hammer_bonus"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "wave_bonus"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "totem_bonus"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "combo_counter"
+type = "u8"
 key = false
 
 [[models.members]]
@@ -83,14 +98,19 @@ type = "felt252"
 key = false
 
 [[models.members]]
+name = "player_id"
+type = "felt252"
+key = false
+
+[[models.members]]
 name = "seed"
 type = "felt252"
 key = false
 
 [[models]]
 kind = "DojoModel"
-class_hash = "0x6f44091a6b6bc6a4fcdd0c84989ef056920a4c413943f1eec9d81bc3e985f3c"
-original_class_hash = "0x6f44091a6b6bc6a4fcdd0c84989ef056920a4c413943f1eec9d81bc3e985f3c"
+class_hash = "0x5fed3730bb3d7d98cc66dfe1c18a3a06b2af4db5fdaa2f4aada377fc550d74"
+original_class_hash = "0x5fed3730bb3d7d98cc66dfe1c18a3a06b2af4db5fdaa2f4aada377fc550d74"
 abi = "manifests/dev/abis/deployments/models/zkube_models_index_player.json"
 name = "zkube::models::index::player"
 
@@ -102,6 +122,21 @@ key = true
 [[models.members]]
 name = "game_id"
 type = "u32"
+key = false
+
+[[models.members]]
+name = "hammer_bonus"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "wave_bonus"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "totem_bonus"
+type = "u8"
 key = false
 
 [[models.members]]

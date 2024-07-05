@@ -53,6 +53,15 @@ impl ColorImpl of ColorTrait {
     }
 }
 
+impl ColorPartialEq of core::PartialEq<Color> {
+    #[inline(always)]
+    fn eq(lhs: @Color, rhs: @Color) -> bool {
+        let lhs_u8: u8 = (*lhs).into();
+        let rhs_u8: u8 = (*rhs).into();
+        lhs_u8 == rhs_u8
+    }
+}
+
 impl IntoColorFelt252 of core::Into<Color, felt252> {
     #[inline(always)]
     fn into(self: Color) -> felt252 {
