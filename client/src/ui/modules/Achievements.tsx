@@ -33,8 +33,13 @@ export const Achievements = () => {
   } = useDojo();
 
   const { player } = usePlayer({ playerId: account.address });
+  const counts = useMemo(() => {
+    if (!player) return undefined;
+    return [player.hammer, player.totem, player.wave];
+  }, [player]);
+
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
-  const bonuses = useMemo(() => Player.getBonuses(), []);
+  const bonuses = useMemo(() => Player.getBonuses({ counts }), []);
 
   return (
     <Drawer handleOnly={true}>
@@ -72,8 +77,7 @@ export const Achievements = () => {
 };
 
 export const Canvas = ({ detail }: { detail: BonusDetail }) => {
-  const { bonus, score, combo, description, name } = detail;
-  const enabled = true;
+  const { bonus, score, combo, description, name, has } = detail;
 
   return (
     <Card className="h-full">
@@ -82,7 +86,7 @@ export const Canvas = ({ detail }: { detail: BonusDetail }) => {
         <CardDescription>{bonus.getEffect()}</CardDescription>
       </CardHeader>
       <CardContent
-        className={`flex justify-center items-center ${!enabled && "grayscale"}`}
+        className={`flex justify-center items-center ${!has && "grayscale"}`}
       >
         <img className="h-20" src={bonus.getIcon()} alt={"icon"} />
       </CardContent>

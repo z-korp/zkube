@@ -9,16 +9,23 @@ export interface BonusDetail {
   combo: number;
   description: string;
   name: string;
+  has: boolean;
 }
 
 export class Player {
   public id: string;
   public game_id: string;
+  public hammer: number;
+  public wave: number;
+  public totem: number;
   public name: string;
 
   constructor(player: ComponentValue) {
     this.id = player.id;
     this.game_id = player.game_id;
+    this.hammer = player.hammer_bonus;
+    this.wave = player.wave_bonus;
+    this.totem = player.totem_bonus;
     this.name = shortString.decodeShortString(player.name);
   }
 
@@ -26,10 +33,15 @@ export class Player {
     return shortenHex(this.id);
   }
 
-  public static getBonuses(): BonusDetail[] {
+  public static getBonuses({
+    counts = [0, 0, 0],
+  }: {
+    counts?: number[];
+  }): BonusDetail[] {
     const details: BonusDetail[] = [];
     const bonuses = Bonus.getBonuses();
-    bonuses.forEach((bonus) => {
+    bonuses.forEach((bonus, bonus_index) => {
+      const count = bonus_index < counts.length ? counts[bonus_index] : 0;
       const conditions: Condition[] = bonus.getConditions();
       const description = bonus.getDescription();
       const name = bonus.getName();
@@ -40,6 +52,7 @@ export class Player {
           combo: condition.combo,
           description,
           name: `${name} ${index + 1}`,
+          has: count > index,
         };
       });
       details.push(...bonus_conditions);
