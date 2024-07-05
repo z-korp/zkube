@@ -43,7 +43,6 @@ export const Home = () => {
 
   const testline = [1, 0, 0, 2, 2, 0, 2, 2];
 
-
   const { theme } = useTheme();
   const imageTotemTheme = theme === "dark" ? imageTotemDark : imageTotemLight;
 
@@ -54,6 +53,10 @@ export const Home = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    console.log(game);
+  }, [game]);
 
   return (
     <div className="relative flex flex-col h-screen">

@@ -51,6 +51,7 @@ const GameBoard = ({
   const [isLoading, setIsLoading] = useState(false);
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [debugMode, setDebugMode] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const [draggingPiece, setDraggingPiece] = useState<{
     row: number;
     col: number;
@@ -65,8 +66,9 @@ const GameBoard = ({
   const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
+    if (isAnimating) return;
     initializeGrid(initialGrid);
-  }, [initialGrid]);
+  }, [initialGrid, isAnimating]);
 
   const isSmallScreen = useMediaQuery({ query: "(min-width: 640px)" });
 
@@ -141,6 +143,7 @@ const GameBoard = ({
 
   // Fonction pour appliquer la gravité en boucle tant qu'il y a des changements
   const applyGravityLoop = async () => {
+    setIsAnimating(true);
     let rowsCleared = true;
     let count = 0;
     while (rowsCleared) {
@@ -170,6 +173,7 @@ const GameBoard = ({
       rowsCleared = await checkAndClearFullLines();
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
+    setIsAnimating(false);
   };
 
   const checkAndClearFullLines = async () => {
@@ -201,7 +205,6 @@ const GameBoard = ({
         return newGrid;
       });
     });
-
     return rowsCleared;
   };
 
@@ -450,7 +453,7 @@ const GameBoard = ({
       loopGravityAndClear();
 
       // Send move tx
-      //handleMove(rows - draggingPiece.row - 1, draggingPiece.col, finalCol);
+      handleMove(rows - draggingPiece.row - 1, draggingPiece.col, finalCol);
     }
 
     setDraggingPiece(null);
