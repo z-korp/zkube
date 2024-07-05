@@ -19,6 +19,7 @@ import { usePlayer } from "@/hooks/usePlayer";
 import { useDojo } from "@/dojo/useDojo";
 import { useTheme } from "@/ui/elements/theme-provider";
 import NextLine from "../components/NextLine";
+import { Surrender } from "../actions/Surrender";
 
 export const Home = () => {
   const {
@@ -55,7 +56,7 @@ export const Home = () => {
   }, []);
 
   return (
-    <div className="relative flex flex-col">
+    <div className="relative flex flex-col h-screen">
       <Header />
 
       <BackGroundBoard imageBackground={imageBackground}>
@@ -71,18 +72,19 @@ export const Home = () => {
           }}
         >
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
-            <div className="absolute flex flex-col items-center  w-full p-4 max-w-4xl">
-              {!!game && <GameBonus />}
-              {!!game && (
+            <div className="absolute flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
+              <Create />
+              <Start />
+              <Surrender />
+              {!!game && !game.over && <GameBonus />}
+              {!!game && !game.over && (
                 <GameBoard
                   initialGrid={game.blocks}
                   nextLine={game.next_row}
-                  score={game.points}
+                  score={game.score}
                 />
               )}
-              {!!game && <NextLine numbers={game.next_row} />}
-              <Create />
-              <Start />
+              {!!game && !game.over && <NextLine numbers={game.next_row} />}
             </div>
           </div>
           <AnimatePresence>
