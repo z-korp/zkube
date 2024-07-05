@@ -6,6 +6,7 @@ import stone2Image from "/assets/block-2.png";
 import stone3Image from "/assets/block-3.png";
 import stone4Image from "/assets/block-4.png";
 import { useMediaQuery } from "react-responsive";
+import { set } from "mobx";
 import { useDojo } from "@/dojo/useDojo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar } from "@fortawesome/free-solid-svg-icons";
@@ -69,76 +70,203 @@ const GameBoard = ({
 
   const isSmallScreen = useMediaQuery({ query: "(min-width: 640px)" });
 
-  const applyGravity = () => {
-    let newGrid = grid.map((row) => row.map((cell) => ({ ...cell })));
+  const printGrid = (grid: Cell[][]) => {
+    for (const row of grid) {
+      let rowStr = "";
+      for (const cell of row) {
+        if (cell.isStart) {
+          rowStr += "[S] "; // S pour Start
+        } else if (cell.pieceId !== null) {
+          rowStr += `[${cell.pieceId}] `;
+        } else {
+          rowStr += "[ ] ";
+        }
+      }
+      console.log(rowStr);
+    }
+  };
+
+  const applyGravity = async () => {
     let changesMade = false;
 
-    do {
-      changesMade = false;
-      for (let row = rows - 2; row >= 0; row--) {
-        for (let col = 0; col < cols; col++) {
-          if (newGrid[row][col].pieceId !== null && newGrid[row][col].isStart) {
-            const piece = PIECES.find(
-              (p) => p.id === newGrid[row][col].pieceId,
-            );
-            if (piece) {
-              let canFall = true;
-              for (let i = 0; i < piece.width; i++) {
-                if (
-                  col + i >= cols ||
-                  newGrid[row + 1][col + i].pieceId !== null
-                ) {
-                  canFall = false;
-                  break;
-                }
-              }
+    await new Promise((resolve) => {
+      setGrid((prevGrid) => {
+        const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
+        changesMade = false;
 
-              if (canFall) {
-                // Déplacer la pièce d'une ligne vers le bas
+        for (let row = rows - 2; row >= 0; row--) {
+          for (let col = 0; col < cols; col++) {
+            if (
+              newGrid[row][col].pieceId !== null &&
+              newGrid[row][col].isStart
+            ) {
+              const piece = PIECES.find(
+                (p) => p.id === newGrid[row][col].pieceId,
+              );
+              if (piece) {
+                let canFall = true;
                 for (let i = 0; i < piece.width; i++) {
-                  newGrid[row + 1][col + i] = { ...newGrid[row][col + i] };
-                  newGrid[row][col + i] = {
-                    id: `${row}-${col + i}`,
-                    pieceId: null,
-                    isStart: false,
-                    pieceIndex: null,
-                  };
+                  if (
+                    col + i >= cols ||
+                    newGrid[row + 1][col + i].pieceId !== null
+                  ) {
+                    canFall = false;
+                    break;
+                  }
                 }
-                changesMade = true;
+                if (canFall) {
+                  // Déplacer la pièce d'une ligne vers le bas
+                  for (let i = 0; i < piece.width; i++) {
+                    newGrid[row + 1][col + i] = { ...newGrid[row][col + i] };
+                    newGrid[row][col + i] = {
+                      id: `${row}-${col + i}`,
+                      pieceId: null,
+                      isStart: false,
+                      pieceIndex: null,
+                    };
+                  }
+                  changesMade = true;
+                }
               }
             }
           }
         }
-      }
+        resolve(newGrid);
+        return newGrid;
+      });
+    });
 
-      if (changesMade) {
-        setGrid(newGrid);
-        newGrid = newGrid.map((row) => row.map((cell) => ({ ...cell })));
-      }
-    } while (changesMade);
+    return changesMade;
   };
 
-  const insertNewLine = () => {
-    setGrid((prevGrid) => {
-      // Créez une nouvelle grille en décalant toutes les lignes vers le haut
-      const newGrid = prevGrid.slice(1);
+  // Fonction pour appliquer la gravité en boucle tant qu'il y a des changements
+  const applyGravityLoop = async () => {
+    let rowsCleared = true;
+    let count = 0;
+    while (rowsCleared) {
+      let changesMade = true;
+      while (changesMade) {
+        changesMade = await applyGravity();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+      count++;
+      console.log(`Gravity loop ${count} done`);
+      rowsCleared = await checkAndClearFullLines();
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
 
-      // Créez la nouvelle ligne à partir de nextLine
-      const newLine: Cell[] = nextLine.map((value, index) => ({
-        id: `${rows - 1}-${index}`,
-        pieceId: value !== 0 ? value : null,
-        isStart: false,
-        pieceIndex: null,
-      }));
+    await insertNewLine();
 
-      // Ajoutez la nouvelle ligne en bas de la grille
-      newGrid.push(newLine);
+    rowsCleared = true;
+    count = 0;
+    while (rowsCleared) {
+      let changesMade = true;
+      while (changesMade) {
+        changesMade = await applyGravity();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+      count++;
+      console.log(`Gravity loop ${count} done`);
+      rowsCleared = await checkAndClearFullLines();
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  };
 
-      // Mettez à jour les isStart pour la nouvelle ligne
-      markStartingCells(newGrid);
+  const checkAndClearFullLines = async () => {
+    let rowsCleared = false;
+    await new Promise((resolve) => {
+      setGrid((prevGrid) => {
+        const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
 
-      return newGrid;
+        for (let row = 0; row < rows; row++) {
+          if (newGrid[row].every((cell) => cell.pieceId !== null)) {
+            // Ligne complète, on la supprime
+            rowsCleared = true;
+            for (let i = row; i > 0; i--) {
+              newGrid[i] = newGrid[i - 1].map((cell) => ({
+                ...cell,
+                id: `${i}-${cell.id.split("-")[1]}`,
+              }));
+            }
+            // Vider la première ligne
+            newGrid[0] = newGrid[0].map((cell, col) => ({
+              id: `0-${col}`,
+              pieceId: null,
+              isStart: false,
+            }));
+          }
+        }
+
+        resolve(newGrid);
+        return newGrid;
+      });
     });
+
+    return rowsCleared;
+  };
+
+  const checkAndClearFullLinesFromBot = async () => {
+    let rowsCleared = false;
+    await new Promise((resolve) => {
+      setGrid((prevGrid) => {
+        const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
+
+        for (let row = rows - 1; row >= 0; row--) {
+          if (newGrid[row].every((cell) => cell.pieceId !== null)) {
+            // Ligne complète, on la supprime
+            rowsCleared = true;
+            for (let i = row; i > 0; i--) {
+              newGrid[i] = newGrid[i - 1].map((cell) => ({
+                ...cell,
+                id: `${i}-${cell.id.split("-")[1]}`,
+              }));
+            }
+            // Vider la première ligne
+            newGrid[0] = newGrid[0].map((cell, col) => ({
+              id: `0-${col}`,
+              pieceId: null,
+              isStart: false,
+            }));
+            break;
+          }
+        }
+
+        resolve(newGrid);
+        return newGrid;
+      });
+    });
+
+    return rowsCleared;
+  };
+
+  const insertNewLine = async () => {
+    await new Promise((resolve) => {
+      setGrid((prevGrid) => {
+        // Créez une nouvelle grille en décalant toutes les lignes vers le haut
+        const newGrid = prevGrid.slice(1);
+
+        // Créez la nouvelle ligne à partir de nextLine
+        const newLine: Cell[] = nextLine.map((value, index) => ({
+          id: `${rows - 1}-${index}`,
+          pieceId: value !== 0 ? value : null,
+          isStart: false,
+        }));
+
+        // Ajoutez la nouvelle ligne en bas de la grille
+        newGrid.push(newLine);
+
+        // Mettez à jour les isStart pour la nouvelle ligne
+        markStartingCells(newGrid);
+
+        resolve(newGrid);
+
+        return newGrid;
+      });
+    });
+  };
+
+  const loopGravityAndClear = async () => {
+    applyGravityLoop();
   };
 
   const placePiece = (
@@ -319,9 +447,10 @@ const GameBoard = ({
       const finalCol = Math.min(newCol, cols - piece.width);
       placePiece(newGrid, draggingPiece.row, finalCol, piece);
       setGrid(newGrid);
+      loopGravityAndClear();
 
       // Send move tx
-      handleMove(rows - draggingPiece.row - 1, draggingPiece.col, finalCol);
+      //handleMove(rows - draggingPiece.row - 1, draggingPiece.col, finalCol);
     }
 
     setDraggingPiece(null);
@@ -404,10 +533,9 @@ const GameBoard = ({
         ? draggingPiece.currentX - draggingPiece.startX
         : 0;
 
-      // Assurez-vous d'avoir les mesures exactes de la grille.
       const gridRect = gridRef.current?.getBoundingClientRect();
       const cellWidth = gridRect ? gridRect.width / cols : 0;
-      const cellHeight = gridRect ? gridRect.height / rows : 0; // Supposons que chaque cellule a une hauteur uniforme.
+      const cellHeight = gridRect ? gridRect.height / rows : 0;
 
       const offsetGap = isSmallScreen ? 4 : 2;
       return (
@@ -422,7 +550,7 @@ const GameBoard = ({
             top: `${rowIndex * cellHeight - offsetGap}px`,
             transform: `translateX(${dragOffset}px)`,
             transition: isDragging ? "none" : "transform 0.3s ease-out",
-            zIndex: isDragging ? 1000 : 500, // Utilisez un zIndex élevé pour s'assurer qu'il est au-dessus.
+            zIndex: isDragging ? 1000 : 500,
           }}
           onMouseDown={(e) => startDragging(rowIndex, colIndex, e)}
         >
@@ -434,7 +562,7 @@ const GameBoard = ({
         </div>
       );
     }
-    return null; // Rien à rendre si ce n'est pas une pièce de départ ou s'il n'y a pas de pièce.
+    return null;
   };
 
   return (
