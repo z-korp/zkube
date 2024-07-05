@@ -496,7 +496,9 @@ const GameBoard = ({
       const finalCol = Math.min(newCol, cols - piece.width);
       placePiece(newGrid, draggingPiece.row, finalCol, piece);
       setGrid(newGrid);
-      loopGravityAndClear();
+      if (draggingPiece.col !== finalCol) {
+        loopGravityAndClear();
+      }
 
       // Send move tx
       handleMove(rows - draggingPiece.row - 1, draggingPiece.col, finalCol);
