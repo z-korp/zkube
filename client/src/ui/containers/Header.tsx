@@ -29,6 +29,7 @@ import {
 } from "@/ui/elements/dropdown-menu";
 import { Button } from "../elements/button";
 import { Leaderboard } from "../modules/Leaderboard";
+import { Bonuses } from "../modules/Bonuses";
 import { MusicPlayer } from "../modules/MusicPlayer";
 
 export const Header = () => {
@@ -55,6 +56,7 @@ export const Header = () => {
         >
           <p className="text-4xl font-bold">zKube</p>
           <Leaderboard />
+          <Bonuses />
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
           {!!player && (

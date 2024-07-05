@@ -6,6 +6,7 @@ import {
   DEFAULT_GRID_HEIGHT,
   DEFAULT_GRID_WIDTH,
 } from "../constants";
+import { Bonus, Condition } from "../types/bonus";
 
 export interface Block {
   width: number;
@@ -15,6 +16,13 @@ export interface Block {
 
 export interface Row {
   blocks: Block[];
+}
+
+export interface BonusDetail {
+  bonus: Bonus;
+  score: number;
+  combo: number;
+  description: string;
 }
 
 export class Game {
@@ -90,5 +98,24 @@ export class Game {
 
   public isOver(): boolean {
     return this.over;
+  }
+
+  public static getBonuses(): BonusDetail[] {
+    const details: BonusDetail[] = [];
+    const bonuses = Bonus.getBonuses();
+    bonuses.forEach((bonus) => {
+      const conditions: Condition[] = bonus.getConditions();
+      const description = bonus.getDescription();
+      const bonus_conditions = conditions.map((condition) => {
+        return {
+          bonus,
+          score: condition.score,
+          combo: condition.combo,
+          description,
+        };
+      });
+      details.push(...bonus_conditions);
+    });
+    return details;
   }
 }
