@@ -90,7 +90,10 @@ mod PlayableComponent {
 
             // [Effect] Create game
             let game_id: u32 = world.uuid() + 1;
-            let mut game = GameTrait::new(game_id, player.id, beta);
+            let mut game = GameTrait::new(
+                game_id, player.id, beta, player.hammer_bonus, player.wave_bonus, player.totem_bonus
+            );
+
             game.start();
             store.set_game(game);
 
@@ -170,8 +173,12 @@ mod PlayableComponent {
             game.assert_exists();
             game.assert_not_over();
 
-            // [Effect] Apply bonus
-            game.apply_bonus(bonus, row_index, index);
+            // [Check] Bonus is available
+            let count: u8 = game.get_count(bonus);
+            if count > 0 {
+                // [Effect] Apply bonus
+                game.apply_bonus(bonus, row_index, index);
+            }
 
             // [Effect] Update game
             store.set_game(game);

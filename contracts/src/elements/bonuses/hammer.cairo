@@ -7,6 +7,8 @@ use alexandria_math::fast_power::fast_power;
 use zkube::constants;
 use zkube::elements::bonuses::interface::BonusTrait;
 use zkube::helpers::controller::Controller;
+use zkube::models::game::Game;
+use zkube::types::bonus::Bonus;
 use zkube::types::width::Width;
 
 // Errors
@@ -32,5 +34,10 @@ impl BonusImpl of BonusTrait {
         let mut bitmap: u256 = blocks.into();
         bitmap = bitmap & ~mask;
         (bitmap.try_into().unwrap(), colors)
+    }
+
+    #[inline(always)]
+    fn get_count(self: Bonus, game: Game) -> u8 {
+        game.hammer_bonus
     }
 }

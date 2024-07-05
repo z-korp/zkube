@@ -21,7 +21,7 @@ impl PlayerImpl of PlayerTrait {
         // [Check] Name is valid
         assert(name != 0, errors::INVALID_NAME);
         // [Return] Player
-        Player { id, game_id: 0, name, }
+        Player { id, game_id: 0, hammer_bonus: 0, wave_bonus: 0, totem_bonus: 0, name, }
     }
 
     #[inline(always)]
@@ -49,7 +49,7 @@ impl PlayerAssert of AssertTrait {
 impl ZeroablePlayerImpl of core::Zeroable<Player> {
     #[inline(always)]
     fn zero() -> Player {
-        Player { id: 0, game_id: 0, name: 0 }
+        Player { id: 0, game_id: 0, hammer_bonus: 0, wave_bonus: 0, totem_bonus: 0, name: 0 }
     }
 
     #[inline(always)]

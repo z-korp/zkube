@@ -3,6 +3,7 @@
 use zkube::elements::bonuses::hammer;
 use zkube::elements::bonuses::totem;
 use zkube::elements::bonuses::wave;
+use zkube::models::game::Game;
 
 #[derive(Drop, Copy, Serde)]
 enum Bonus {
@@ -22,6 +23,15 @@ impl BonusImpl of BonusTrait {
             Bonus::Hammer => hammer::BonusImpl::apply(blocks, colors, row_index, index),
             Bonus::Totem => totem::BonusImpl::apply(blocks, colors, row_index, index),
             Bonus::Wave => wave::BonusImpl::apply(blocks, colors, row_index, index),
+        }
+    }
+
+    fn get_count(self: Bonus, game: Game) -> u8 {
+        match self {
+            Bonus::None => 0,
+            Bonus::Hammer => self.get_count(game),
+            Bonus::Totem => self.get_count(game),
+            Bonus::Wave => self.get_count(game),
         }
     }
 }

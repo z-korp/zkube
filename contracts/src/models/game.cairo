@@ -32,7 +32,14 @@ mod errors {
 #[generate_trait]
 impl GameImpl of GameTrait {
     #[inline(always)]
-    fn new(id: u32, player_id: felt252, seed: felt252) -> Game {
+    fn new(
+        id: u32,
+        player_id: felt252,
+        seed: felt252,
+        hammer_bonus: u8,
+        wave_bonus: u8,
+        totem_bonus: u8
+    ) -> Game {
         let (row, color) = Controller::create_line(seed, DIFFICULTY);
         Game {
             id,
@@ -40,7 +47,10 @@ impl GameImpl of GameTrait {
             next_row: row,
             next_color: color,
             score: 0,
-            bonuses: 0,
+            hammer_bonus,
+            wave_bonus,
+            totem_bonus,
+            combo_counter: 0,
             blocks: 0,
             colors: 0,
             player_id,
@@ -152,6 +162,18 @@ impl GameImpl of GameTrait {
         // [Effect] Assess game
         let mut counter = 1;
         self.score += self.assess_game(ref counter);
+
+        match bonus {
+            Bonus::None => {},
+            Bonus::Hammer => self.hammer_bonus -= 1,
+            Bonus::Totem => self.totem_bonus -= 1,
+            Bonus::Wave => self.wave_bonus -= 1,
+        }
+    }
+
+    #[inline(always)]
+    fn get_count(ref self: Game, bonus: Bonus) -> u8 {
+        bonus.get_count(self)
     }
 }
 
@@ -164,7 +186,10 @@ impl ZeroableGame of core::Zeroable<Game> {
             score: 0,
             next_row: 0,
             next_color: 0,
-            bonuses: 0,
+            hammer_bonus: 0,
+            wave_bonus: 0,
+            totem_bonus: 0,
+            combo_counter: 0,
             blocks: 0,
             colors: 0,
             player_id: 0,
@@ -220,7 +245,7 @@ mod tests {
     #[test]
     fn test_game_new() {
         // [Effect] Create game
-        let game = GameTrait::new(GAME_ID, PLAYER_ID, SEED);
+        let game = GameTrait::new(GAME_ID, PLAYER_ID, SEED, 0, 0, 0);
         game.assert_exists();
         game.assert_not_over();
         // [Assert] Game seed
