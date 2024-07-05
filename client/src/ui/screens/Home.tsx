@@ -41,7 +41,7 @@ export const Home = () => {
     [0, 0, 0, 3, 3, 3, 0, 0],
   ];
 
-    const testline = [1, 3, 3, 3, 2, 2, 2, 2];
+  const testline = [1, 3, 3, 3, 2, 2, 2, 2];
 
   const { theme } = useTheme();
   const imageTotemTheme = theme === "dark" ? imageTotemDark : imageTotemLight;
@@ -74,9 +74,13 @@ export const Home = () => {
             <div className="absolute flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
               <GameBonus />
               {!!game && (
-                <GameBoard initialGrid={testGrid} nextLine={testline} />
+                <GameBoard
+                  initialGrid={game.blocks}
+                  nextLine={game.next_row}
+                  score={game.points}
+                />
               )}
-              {!!game && <NextLine numbers={testline} />}
+              {!!game && <NextLine numbers={game.next_row} />}
               <Create />
               <Start />
             </div>
