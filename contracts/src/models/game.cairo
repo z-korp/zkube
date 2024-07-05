@@ -132,6 +132,9 @@ impl GameImpl of GameTrait {
 
         // [Effect] Assess game over
         self.assess_over();
+        if self.over {
+            return;
+        };
 
         // [Effect] Add a new line
         self.setup_next();
