@@ -156,8 +156,9 @@ const GameBoard = ({
       }
       await new Promise((resolve) => setTimeout(resolve, 100));
       rowsCleared = await checkAndClearFullLines();
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     await insertNewLine();
 
@@ -168,7 +169,7 @@ const GameBoard = ({
         changesMade = await applyGravity();
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       rowsCleared = await checkAndClearFullLines();
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
@@ -243,6 +244,7 @@ const GameBoard = ({
   };
 
   const insertNewLine = async () => {
+    console.log("insertNewLine");
     await new Promise((resolve) => {
       setGrid((prevGrid) => {
         // Créez une nouvelle grille en décalant toutes les lignes vers le haut
