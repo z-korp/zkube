@@ -19,6 +19,8 @@ import { useTheme } from "@/ui/elements/theme-provider";
 import NextLine from "../components/NextLine";
 import { Surrender } from "../actions/Surrender";
 import { Content as Leaderboard } from "../modules/Leaderboard";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 
 export const Home = () => {
   const {
@@ -74,9 +76,24 @@ export const Home = () => {
             <div className="absolute flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
               <Create />
               <Start />
-              {(!game || !!game.over) && (
-                <div className="bg-slate-900 w-[500px] p-6 rounded-xl">
+              {!game && (
+                <div className="absolute top translate-y-[100%] bg-slate-900 w-[500px] p-6 rounded-xl">
                   <Leaderboard />
+                </div>
+              )}
+              {(!!game && game.over) && (
+                <div className="flex flex-col gap-4 absolute top translate-y-[325%]">
+                  <p className="text-4xl">Game Over</p>
+                  <div className="flex gap-4 justify-center items-center">
+                    <div className="grow text-4xl flex gap-2 justify-end">
+                      {game.score}
+                      <FontAwesomeIcon icon={faStar} className="text-yellow-500 ml-2" />
+                    </div>
+                    <div className="grow text-4xl flex gap-2 justify-end">
+                      {game.combo}
+                      <FontAwesomeIcon icon={faKhanda} className="text-slate-500 ml-2" />
+                    </div>
+                  </div>
                 </div>
               )}
               {!!game && !game.over && (
