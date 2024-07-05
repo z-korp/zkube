@@ -6,6 +6,7 @@ use alexandria_math::bitmap::Bitmap;
 
 use zkube::constants;
 use zkube::models::index::Player;
+use zkube::helpers::math::Math;
 
 mod errors {
     const PLAYER_NOT_EXIST: felt252 = 'Player: Does not exist';
@@ -30,6 +31,13 @@ impl PlayerImpl of PlayerTrait {
         assert(name != 0, errors::INVALID_NAME);
         // [Effect] Change the name
         self.name = name;
+    }
+
+    #[inline(always)]
+    fn update(ref self: Player, hammer: u8, totem: u8, wave: u8) {
+        self.hammer_bonus = Math::max(self.hammer_bonus, hammer);
+        self.totem_bonus = Math::max(self.totem_bonus, totem);
+        self.wave_bonus = Math::max(self.wave_bonus, wave);
     }
 }
 
