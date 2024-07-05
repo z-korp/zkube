@@ -31,7 +31,7 @@ const BonusButton: React.FC<BonusButtonProps> = ({ onClick, urlImage }) => {
         size="icon"
         className="md:p-2 sm:p-1 p-1"
         onClick={handleClick}
-        disabled={isClicked}
+        disabled={true}
       >
         <img src={urlImage} alt={altText} />
       </Button>
