@@ -7,6 +7,8 @@ import stone3Image from "/assets/block-3.png";
 import stone4Image from "/assets/block-4.png";
 import { useMediaQuery } from "react-responsive";
 import { useDojo } from "@/dojo/useDojo";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faStar } from "@fortawesome/free-solid-svg-icons";
 
 interface Piece {
   id: number;
@@ -31,9 +33,11 @@ interface Cell {
 const GameBoard = ({
   initialGrid,
   nextLine,
+  score,
 }: {
   initialGrid: number[][];
   nextLine: number[];
+  score: number;
 }) => {
   const {
     account: { account },
@@ -434,8 +438,8 @@ const GameBoard = ({
 
   return (
     <Card className="p-4 bg-secondary">
-      <div className="mb-4">
-        <button
+      <div className="mb-4 flex justify-start items-center">
+        {/* <button
           onClick={applyGravity}
           className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
         >
@@ -447,7 +451,11 @@ const GameBoard = ({
           className="px-4 py-2 bg-green-500 text-white rounded"
         >
           {debugMode ? "Disable Debug Mode" : "Enable Debug Mode"}
-        </button>
+        </button> */}
+        <div className="grow text-4xl flex gap-2 justify-end">
+          {score}
+          <FontAwesomeIcon icon={faStar} className="text-yellow-500 ml-2" />
+        </div>
       </div>
       <div className="bg-slate-800 relative">
         <div

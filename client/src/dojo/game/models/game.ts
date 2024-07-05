@@ -20,6 +20,7 @@ export interface Row {
 export class Game {
   public id: string;
   public over: boolean;
+  public points: number;
   public next_row: number[];
   public next_color: number[];
   public bonuses: number[];
@@ -35,6 +36,7 @@ export class Game {
       BigInt(BLOCK_BIT_COUNT),
       DEFAULT_GRID_WIDTH,
     );
+    this.points = game.points;
     this.next_color = Packer.sized_unpack(
       BigInt(game.next_color),
       BigInt(BLOCK_BIT_COUNT),
@@ -81,6 +83,7 @@ export class Game {
       }
       return { blocks };
     });
+    console.log("points", this.points);
   }
 
   public isOver(): boolean {
