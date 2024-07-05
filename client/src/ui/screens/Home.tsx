@@ -12,13 +12,13 @@ import imageTotemLight from "/assets/theme-2-totem-light.png";
 import palmLeft from "/assets/palmtree-left.png";
 import palmRight from "/assets/palmtree-right.png";
 import PalmTree from "../components/PalmTree";
-import { Game } from "@/dojo/game/models/game";
-import { GameBonus } from "../containers/GameBonus";
 import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useDojo } from "@/dojo/useDojo";
 import { useTheme } from "@/ui/elements/theme-provider";
 import NextLine from "../components/NextLine";
+import { Surrender } from "../actions/Surrender";
+import { Content as Leaderboard } from "../modules/Leaderboard";
 
 export const Home = () => {
   const {
@@ -32,16 +32,16 @@ export const Home = () => {
     [0, 0, 0, 0, 0, 0, 0, 0],
     [1, 0, 4, 4, 4, 4, 0, 1],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 4, 4, 4, 4, 0, 0, 0],
+    [0, 3, 3, 3, 0, 0, 0, 0],
     [0, 0, 0, 0, 2, 2, 0, 0],
-    [1, 0, 0, 0, 2, 2, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 4, 4, 4, 4, 0, 0, 0],
-    [1, 0, 0, 0, 2, 2, 2, 2],
-    [0, 0, 0, 3, 3, 3, 0, 0],
+    [0, 4, 4, 4, 4, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 2, 2],
+    [2, 2, 1, 3, 3, 3, 1, 0],
   ];
 
-  const testline = [1, 3, 3, 3, 2, 2, 2, 2];
+  const testline = [1, 0, 0, 2, 2, 0, 2, 2];
 
   const { theme } = useTheme();
   const imageTotemTheme = theme === "dark" ? imageTotemDark : imageTotemLight;
@@ -55,7 +55,7 @@ export const Home = () => {
   }, []);
 
   return (
-    <div className="relative flex flex-col">
+    <div className="relative flex flex-col h-screen">
       <Header />
 
       <BackGroundBoard imageBackground={imageBackground}>
@@ -72,21 +72,29 @@ export const Home = () => {
         >
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
-              <GameBonus />
-              {!!game &&
-                /*<GameBoard initialGrid={testGrid} nextLine={testline} />*/
-                !!game && (
-                  <GameBoard
-                    initialGrid={game.blocks}
-                    nextLine={game.next_row}
-                  />
-                )}
-
-              {!!game && ( //<NextLine numbers={testline} />
-                <NextLine numbers={game.next_row} />
-              )}
               <Create />
               <Start />
+              {(!game || !!game.over) && (
+                <div className="bg-slate-900 w-[500px] p-6 rounded-xl">
+                  <Leaderboard />
+                </div>
+              )}
+              {!!game && !game.over && (
+                <div className="relative w-full">
+                  <div className="flex flex-col items-center">
+                    <GameBoard
+                      initialGrid={game.blocks}
+                      nextLine={game.next_row}
+                      score={game.score}
+                      combo={game.combo}
+                    />
+                    <NextLine numbers={game.next_row} />
+                  </div>
+                  <div className="mt-4 sm:mt-0 sm:absolute sm:right-0 sm:bottom-0 sm:mb-4 flex justify-center sm:justify-end w-full">
+                    <Surrender />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           <AnimatePresence>

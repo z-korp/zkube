@@ -6,6 +6,8 @@ use alexandria_math::fast_power::fast_power;
 
 use zkube::constants;
 use zkube::elements::bonuses::interface::BonusTrait;
+use zkube::models::game::Game;
+use zkube::types::bonus::Bonus;
 
 impl BonusImpl of BonusTrait {
     #[inline(always)]
@@ -19,5 +21,19 @@ impl BonusImpl of BonusTrait {
         let mut bitmap: u256 = blocks.into();
         bitmap = bitmap & ~mask;
         (bitmap.try_into().unwrap(), colors)
+    }
+
+    #[inline(always)]
+    fn get_count(score: u32, combo_count: u8) -> u8 {
+        if combo_count > 9 {
+            return 3;
+        }
+        if combo_count > 6 {
+            return 2;
+        }
+        if combo_count > 3 {
+            return 1;
+        }
+        return 0;
     }
 }

@@ -13,6 +13,7 @@ use alexandria_math::fast_power::fast_power;
 use zkube::models::index::Game;
 use zkube::constants;
 use zkube::types::difficulty::Difficulty;
+use zkube::helpers::math::Math;
 use zkube::helpers::packer::Packer;
 use zkube::helpers::controller::Controller;
 use zkube::types::bonus::{Bonus, BonusTrait};
@@ -27,23 +28,35 @@ mod errors {
     const GAME_NOT_EXISTS: felt252 = 'Game: does not exist';
     const GAME_IS_OVER: felt252 = 'Game: is over';
     const GAME_NOT_OVER: felt252 = 'Game: not over';
+    const GAME_BONUS_NOT_AVAILABLE: felt252 = 'Game: bonus not available';
 }
 
 #[generate_trait]
 impl GameImpl of GameTrait {
     #[inline(always)]
-    fn new(id: u32, seed: felt252) -> Game {
+    fn new(
+        id: u32,
+        player_id: felt252,
+        seed: felt252,
+        hammer_bonus: u8,
+        wave_bonus: u8,
+        totem_bonus: u8
+    ) -> Game {
         let (row, color) = Controller::create_line(seed, DIFFICULTY);
         Game {
             id,
             over: false,
             next_row: row,
             next_color: color,
-            bonuses: 0,
+            score: 0,
+            hammer_bonus,
+            wave_bonus,
+            totem_bonus,
+            combo_counter: 0,
             blocks: 0,
             colors: 0,
+            player_id,
             seed,
-            points: 0
         }
     }
 
@@ -56,7 +69,7 @@ impl GameImpl of GameTrait {
 
     fn start(ref self: Game) {
         // [Effect] Add lines until we have 5 remaining
-        let mut counter = 1;
+        let mut counter = 0;
         let div: u256 = fast_power(2_u256, 4 * constants::ROW_BIT_COUNT.into()) - 1;
         loop {
             if self.blocks.into() / div > 0 {
@@ -87,7 +100,7 @@ impl GameImpl of GameTrait {
         self.over = self.blocks.into() / div > 0;
     }
 
-    fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8) {
+    fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8) -> (u8, u8, u8) {
         // [Compute] Move direction and step counts
         let direction = final_index > start_index;
         let count = match direction {
@@ -103,23 +116,30 @@ impl GameImpl of GameTrait {
         self.colors = new_colors;
 
         // [Effect] Assess game
-        let mut counter = 1;
-        self.points += self.assess_game(ref counter);
+        let mut counter: u8 = 0;
+        self.score += self.assess_game(ref counter);
 
         // [Effect] Assess game over
         self.assess_over();
         if self.over {
-            return;
+            let hammer = Bonus::Hammer.get_count(self.score, self.combo_counter);
+            let totem = Bonus::Totem.get_count(self.score, self.combo_counter);
+            let wave = Bonus::Wave.get_count(self.score, self.combo_counter);
+            return (hammer, totem, wave);
         };
 
         // [Effect] Add a new line
         self.setup_next();
 
         // [Effect] Assess game
-        self.points += self.assess_game(ref counter);
+        self.score += self.assess_game(ref counter);
+        self.combo_counter = Math::max(self.combo_counter, counter);
+
+        // [Return] Null values
+        (0, 0, 0)
     }
 
-    fn assess_game(ref self: Game, ref counter: u32) -> u32 {
+    fn assess_game(ref self: Game, ref counter: u8) -> u32 {
         let mut points = 0;
         let mut upper_blocks = 0;
         loop {
@@ -149,8 +169,16 @@ impl GameImpl of GameTrait {
         self.colors = colors;
 
         // [Effect] Assess game
-        let mut counter = 1;
-        self.points += self.assess_game(ref counter);
+        let mut counter = 0;
+        self.score += self.assess_game(ref counter);
+        self.combo_counter = Math::max(self.combo_counter, counter);
+
+        match bonus {
+            Bonus::None => {},
+            Bonus::Hammer => self.hammer_bonus -= 1,
+            Bonus::Totem => self.totem_bonus -= 1,
+            Bonus::Wave => self.wave_bonus -= 1,
+        }
     }
 }
 
@@ -160,13 +188,17 @@ impl ZeroableGame of core::Zeroable<Game> {
         Game {
             id: 0,
             over: false,
+            score: 0,
             next_row: 0,
             next_color: 0,
-            bonuses: 0,
+            hammer_bonus: 0,
+            wave_bonus: 0,
+            totem_bonus: 0,
+            combo_counter: 0,
             blocks: 0,
             colors: 0,
+            player_id: 0,
             seed: 0,
-            points: 0
         }
     }
 
@@ -197,6 +229,17 @@ impl GameAssert of AssertTrait {
     fn assert_is_over(self: Game) {
         assert(self.over || self.is_zero(), errors::GAME_NOT_OVER);
     }
+
+    #[inline(always)]
+    fn assert_is_available(self: Game, bonus: Bonus) {
+        let count = match bonus {
+            Bonus::Hammer => self.hammer_bonus,
+            Bonus::Totem => self.totem_bonus,
+            Bonus::Wave => self.wave_bonus,
+            _ => 0,
+        };
+        assert(count > 0, errors::GAME_BONUS_NOT_AVAILABLE);
+    }
 }
 
 #[cfg(test)]
@@ -212,12 +255,13 @@ mod tests {
     // Constants
 
     const GAME_ID: u32 = 1;
+    const PLAYER_ID: felt252 = 'PLAYER';
     const SEED: felt252 = 'SEED';
 
     #[test]
     fn test_game_new() {
         // [Effect] Create game
-        let game = GameTrait::new(GAME_ID, SEED);
+        let game = GameTrait::new(GAME_ID, PLAYER_ID, SEED, 0, 0, 0);
         game.assert_exists();
         game.assert_not_over();
         // [Assert] Game seed

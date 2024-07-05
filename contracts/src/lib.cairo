@@ -30,6 +30,7 @@ mod elements {
 }
 
 mod helpers {
+    mod math;
     mod packer;
     mod controller;
     mod gravity;

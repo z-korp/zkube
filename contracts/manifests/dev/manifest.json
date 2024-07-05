@@ -1020,8 +1020,8 @@
     {
       "kind": "DojoContract",
       "address": "0x37c4bfa511d77ff1299712ad4a608037255f35a4b5f44e230681e4fd744fcbd",
-      "class_hash": "0x4e761b8f91319d948361bf3b160bffd8a7add466c8b0244f75f9275532805a7",
-      "original_class_hash": "0x4e761b8f91319d948361bf3b160bffd8a7add466c8b0244f75f9275532805a7",
+      "class_hash": "0x22d10b435abac188d128da25914f06ec8b11353a7bd3e8be178a634c9633481",
+      "original_class_hash": "0x22d10b435abac188d128da25914f06ec8b11353a7bd3e8be178a634c9633481",
       "base_class_hash": "0x22f3e55b61d86c2ac5239fa3b3b8761f26b9a5c0b5f61ddbd5d756ced498b46",
       "abi": [
         {
@@ -1351,7 +1351,7 @@
           "key": false
         },
         {
-          "name": "points",
+          "name": "score",
           "type": "u32",
           "key": false
         },
@@ -1366,8 +1366,23 @@
           "key": false
         },
         {
-          "name": "bonuses",
-          "type": "u16",
+          "name": "hammer_bonus",
+          "type": "u8",
+          "key": false
+        },
+        {
+          "name": "wave_bonus",
+          "type": "u8",
+          "key": false
+        },
+        {
+          "name": "totem_bonus",
+          "type": "u8",
+          "key": false
+        },
+        {
+          "name": "combo_counter",
+          "type": "u8",
           "key": false
         },
         {
@@ -1381,13 +1396,18 @@
           "key": false
         },
         {
+          "name": "player_id",
+          "type": "felt252",
+          "key": false
+        },
+        {
           "name": "seed",
           "type": "felt252",
           "key": false
         }
       ],
-      "class_hash": "0x7a1df6a99bffa07b38d570c7298f150e008e7a860a2818fe97fd8838a496e0e",
-      "original_class_hash": "0x7a1df6a99bffa07b38d570c7298f150e008e7a860a2818fe97fd8838a496e0e",
+      "class_hash": "0x7f9ef38357da1be1090e5c94c8e3edd015252e1465b76bff44de696c17e722d",
+      "original_class_hash": "0x7f9ef38357da1be1090e5c94c8e3edd015252e1465b76bff44de696c17e722d",
       "abi": [
         {
           "type": "impl",
@@ -1739,7 +1759,7 @@
               "type": "core::bool"
             },
             {
-              "name": "points",
+              "name": "score",
               "type": "core::integer::u32"
             },
             {
@@ -1751,8 +1771,20 @@
               "type": "core::integer::u32"
             },
             {
-              "name": "bonuses",
-              "type": "core::integer::u16"
+              "name": "hammer_bonus",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "wave_bonus",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "totem_bonus",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "combo_counter",
+              "type": "core::integer::u8"
             },
             {
               "name": "blocks",
@@ -1760,6 +1792,10 @@
             },
             {
               "name": "colors",
+              "type": "core::felt252"
+            },
+            {
+              "name": "player_id",
               "type": "core::felt252"
             },
             {
@@ -1809,13 +1845,28 @@
           "key": false
         },
         {
+          "name": "hammer_bonus",
+          "type": "u8",
+          "key": false
+        },
+        {
+          "name": "wave_bonus",
+          "type": "u8",
+          "key": false
+        },
+        {
+          "name": "totem_bonus",
+          "type": "u8",
+          "key": false
+        },
+        {
           "name": "name",
           "type": "felt252",
           "key": false
         }
       ],
-      "class_hash": "0x6f44091a6b6bc6a4fcdd0c84989ef056920a4c413943f1eec9d81bc3e985f3c",
-      "original_class_hash": "0x6f44091a6b6bc6a4fcdd0c84989ef056920a4c413943f1eec9d81bc3e985f3c",
+      "class_hash": "0x5fed3730bb3d7d98cc66dfe1c18a3a06b2af4db5fdaa2f4aada377fc550d74",
+      "original_class_hash": "0x5fed3730bb3d7d98cc66dfe1c18a3a06b2af4db5fdaa2f4aada377fc550d74",
       "abi": [
         {
           "type": "impl",
@@ -2151,6 +2202,18 @@
             {
               "name": "game_id",
               "type": "core::integer::u32"
+            },
+            {
+              "name": "hammer_bonus",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "wave_bonus",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "totem_bonus",
+              "type": "core::integer::u8"
             },
             {
               "name": "name",

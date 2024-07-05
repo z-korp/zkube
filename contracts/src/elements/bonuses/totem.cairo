@@ -11,8 +11,10 @@ use alexandria_math::fast_power::fast_power;
 
 use zkube::constants;
 use zkube::elements::bonuses::interface::BonusTrait;
-use zkube::types::color::Color;
 use zkube::helpers::controller::Controller;
+use zkube::models::game::Game;
+use zkube::types::bonus::Bonus;
+use zkube::types::color::Color;
 
 // Errors
 
@@ -50,5 +52,10 @@ impl BonusImpl of BonusTrait {
         let new_blocks: u256 = blocks.into() & ~mask;
         let new_colors: u256 = colors.into() & ~mask;
         (new_blocks.try_into().unwrap(), new_colors.try_into().unwrap())
+    }
+
+    #[inline(always)]
+    fn get_count(score: u32, combo_count: u8) -> u8 {
+        return 0;
     }
 }

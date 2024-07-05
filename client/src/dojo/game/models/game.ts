@@ -20,11 +20,17 @@ export interface Row {
 export class Game {
   public id: string;
   public over: boolean;
+  public hammer: number;
+  public wave: number;
+  public totem: number;
+  public combo: number;
+  public score: number;
   public next_row: number[];
   public next_color: number[];
   public bonuses: number[];
   public blocks: number[][];
   public rows: Row[];
+  public player_id: string;
   public seed: bigint;
 
   constructor(game: ComponentValue) {
@@ -35,12 +41,18 @@ export class Game {
       BigInt(BLOCK_BIT_COUNT),
       DEFAULT_GRID_WIDTH,
     );
+    this.hammer = game.hammer_bonus;
+    this.wave = game.wave_bonus;
+    this.totem = game.totem_bonus;
+    this.combo = game.combo_counter;
+    this.score = game.score;
     this.next_color = Packer.sized_unpack(
       BigInt(game.next_color),
       BigInt(BLOCK_BIT_COUNT),
       DEFAULT_GRID_WIDTH,
     );
     this.bonuses = game.bonuses;
+    this.player_id = game.player_id.toString(16);
     this.seed = game.seed;
 
     // Destructure blocks and colors bitmaps in to Rows and Blocks

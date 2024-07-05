@@ -29,7 +29,7 @@ const BonusButton: React.FC<BonusButtonProps> = ({ onClick, urlImage }) => {
       <Button
         variant="outline"
         size="icon"
-        className="md:p-4 sm:p-2 p-1 md:border-8 sm:border-4 border-3"
+        className="md:p-2 sm:p-1 p-1"
         onClick={handleClick}
         disabled={isClicked}
       >

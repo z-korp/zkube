@@ -17,12 +17,12 @@ const BackgroundBoard: React.FC<BackgroundImageProps> = ({
   transition,
 }) => {
   return (
-    <div className="relative w-full h-screen overflow-hidden">
+    <div className="relative w-full grow h-full overflow-hidden">
       <motion.div
         className="absolute top-0 left-0 w-full h-full bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${imageBackground})` }}
-        initial={initial || {}} // Utilise initial si défini, sinon un objet vide
-        animate={animate || {}} // Utilise animate si défini, sinon un objet vide
+        initial={initial || {}}
+        animate={animate || {}}
         transition={transition || {}}
       />
       {children}
