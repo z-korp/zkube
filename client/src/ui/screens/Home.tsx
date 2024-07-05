@@ -74,7 +74,7 @@ export const Home = () => {
             <div className="absolute flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
               <GameBonus />
               {!!game && (
-                <GameBoard initialGrid={testGrid} nextLine={testline} />
+                <GameBoard initialGrid={game.blocks} nextLine={game.next_row} />
                 //<GameBoard initialGrid={game.blocks} nextLine={game.next_row} />
               )}
               {!!game && (
