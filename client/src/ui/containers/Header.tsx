@@ -31,13 +31,13 @@ import { Button } from "../elements/button";
 import { MusicPlayer } from "../modules/MusicPlayer";
 
 export const Header = () => {
-  // const {
-  //   account: { account },
-  // } = useDojo();
+  const {
+    account: { account },
+  } = useDojo();
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
-  // const { player } = usePlayer({ playerId: account.address });
+  const { player } = usePlayer({ playerId: account.address });
 
   const navigate = useNavigate();
 
@@ -55,9 +55,9 @@ export const Header = () => {
           <p className="text-4xl font-bold">zKube</p>
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
-          {/* {!!player && (
+          {!!player && (
             <p className="text-2xl max-w-44 truncate">{player.name}</p>
-          )} */}
+          )}
           <div className="flex gap-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -71,10 +71,10 @@ export const Header = () => {
                   <MusicPlayer />
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                {/*<DropdownMenuLabel>Burner Account</DropdownMenuLabel>
+                <DropdownMenuLabel>Burner Account</DropdownMenuLabel>
                 <DropdownMenuItem>
                   <Account />
-                </DropdownMenuItem>*/}
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <ModeToggle />
