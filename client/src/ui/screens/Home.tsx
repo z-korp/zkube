@@ -71,8 +71,8 @@ export const Home = () => {
           }}
         >
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
-            <div className="absolute flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
-              <GameBonus />
+            <div className="absolute flex flex-col items-center  w-full p-4 max-w-4xl">
+              {!!game && <GameBonus />}
               {!!game && (
                 <GameBoard
                   initialGrid={game.blocks}
