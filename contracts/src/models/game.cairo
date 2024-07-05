@@ -13,6 +13,7 @@ use alexandria_math::fast_power::fast_power;
 use zkube::models::index::Game;
 use zkube::constants;
 use zkube::types::difficulty::Difficulty;
+use zkube::helpers::math::Math;
 use zkube::helpers::packer::Packer;
 use zkube::helpers::controller::Controller;
 use zkube::types::bonus::{Bonus, BonusTrait};
@@ -68,7 +69,7 @@ impl GameImpl of GameTrait {
 
     fn start(ref self: Game) {
         // [Effect] Add lines until we have 5 remaining
-        let mut counter = 1;
+        let mut counter = 0;
         let div: u256 = fast_power(2_u256, 4 * constants::ROW_BIT_COUNT.into()) - 1;
         loop {
             if self.blocks.into() / div > 0 {
@@ -115,7 +116,7 @@ impl GameImpl of GameTrait {
         self.colors = new_colors;
 
         // [Effect] Assess game
-        let mut counter = 1;
+        let mut counter: u8 = 0;
         self.score += self.assess_game(ref counter);
 
         // [Effect] Assess game over
@@ -132,12 +133,13 @@ impl GameImpl of GameTrait {
 
         // [Effect] Assess game
         self.score += self.assess_game(ref counter);
+        self.combo_counter = Math::max(self.combo_counter, counter);
 
         // [Return] Null values
         (0, 0, 0)
     }
 
-    fn assess_game(ref self: Game, ref counter: u32) -> u32 {
+    fn assess_game(ref self: Game, ref counter: u8) -> u32 {
         let mut points = 0;
         let mut upper_blocks = 0;
         loop {
@@ -167,8 +169,9 @@ impl GameImpl of GameTrait {
         self.colors = colors;
 
         // [Effect] Assess game
-        let mut counter = 1;
+        let mut counter = 0;
         self.score += self.assess_game(ref counter);
+        self.combo_counter = Math::max(self.combo_counter, counter);
 
         match bonus {
             Bonus::None => {},

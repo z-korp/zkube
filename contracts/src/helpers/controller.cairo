@@ -86,7 +86,7 @@ impl Controller of ControllerTrait {
     /// # Returns
     /// The new grid.
     fn assess_lines(
-        bitmap: felt252, ref counter: u32, ref points_earned: u32, accountable: bool
+        bitmap: felt252, ref counter: u8, ref points_earned: u32, accountable: bool
     ) -> felt252 {
         let bitmap: u256 = bitmap.into();
         let mut new_rows: Array<u32> = array![];
@@ -101,8 +101,8 @@ impl Controller of ControllerTrait {
                     if new_row != 0 {
                         new_rows.append(new_row);
                     } else if accountable {
-                        points_earned += counter;
                         counter += 1;
+                        points_earned += counter.into();
                     };
                 },
                 Option::None => { break; },
@@ -356,7 +356,7 @@ mod tests {
         // 000_000_000_001_000_000_000_001
         // 010_010_010_010_100_100_100_100
         // 001_010_010_000_011_011_011_000
-        let mut counter = 1;
+        let mut counter = 0;
         let mut points = 0;
         let bitmap: felt252 =
             0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_001_010_010_000_011_011_011_000;
@@ -379,7 +379,7 @@ mod tests {
         // Final grid = 0
         // 000_000_000_001_000_000_000_001
         // 001_010_010_000_011_011_011_000
-        let mut counter = 1;
+        let mut counter = 0;
         let mut points = 0;
         let blocks: felt252 =
             0b000_000_000_001_000_000_000_001_010_010_010_010_100_100_100_100_001_010_010_000_011_011_011_000;
@@ -395,7 +395,7 @@ mod tests {
         // 010_010_000_000_100_100_100_100
         // 001_010_010_000_011_011_011_000
         // Final grid = 0
-        let mut counter = 1;
+        let mut counter = 0;
         let mut points = 0;
         let bitmap: felt252 =
             0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_001_010_010_000_011_011_011_000;

@@ -87,6 +87,7 @@ export const Home = () => {
                       initialGrid={game.blocks}
                       nextLine={game.next_row}
                       score={game.score}
+                      combo={game.combo}
                     />
                     <NextLine numbers={game.next_row} />
                   </div>
