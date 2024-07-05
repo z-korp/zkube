@@ -75,18 +75,23 @@ export const Home = () => {
             <div className="absolute flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
               <Create />
               <Start />
-              <Surrender />
               {!!game && !game.over && (
-                <div className="absolute flex flex-col items-center  w-full p-4 max-w-4xl">
-                  {/* {!!game && <GameBonus />} */}
-                  {!!game && (
-                    <GameBoard
-                      initialGrid={game.blocks}
-                      nextLine={game.next_row}
-                      score={game.score}
-                    />
-                  )}
-                  {!!game && !game.over && <NextLine numbers={game.next_row} />}
+                <div className="relative w-full">
+                  <div className="flex flex-col items-center">
+                    {!!game && (
+                      <GameBoard
+                        initialGrid={game.blocks}
+                        nextLine={game.next_row}
+                        score={game.score}
+                      />
+                    )}
+                    {!!game && !game.over && (
+                      <NextLine numbers={game.next_row} />
+                    )}
+                  </div>
+                  <div className="absolute right-0 bottom-0 mb-4">
+                    <Surrender />
+                  </div>
                 </div>
               )}
             </div>
