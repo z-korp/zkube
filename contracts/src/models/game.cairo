@@ -100,7 +100,18 @@ impl GameImpl of GameTrait {
         self.over = self.blocks.into() / div > 0;
     }
 
-    fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8) -> (u8, u8, u8) {
+    #[inline(always)]
+    fn assess_bonuses(self: Game) -> (u8, u8, u8) {
+        if !self.over {
+            return (0, 0, 0);
+        }
+        let hammer = Bonus::Hammer.get_count(self.score, self.combo_counter);
+        let totem = Bonus::Totem.get_count(self.score, self.combo_counter);
+        let wave = Bonus::Wave.get_count(self.score, self.combo_counter);
+        (hammer, totem, wave)
+    }
+
+    fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8) {
         // [Compute] Move direction and step counts
         let direction = final_index > start_index;
         let count = match direction {
@@ -122,10 +133,7 @@ impl GameImpl of GameTrait {
         // [Effect] Assess game over
         self.assess_over();
         if self.over {
-            let hammer = Bonus::Hammer.get_count(self.score, self.combo_counter);
-            let totem = Bonus::Totem.get_count(self.score, self.combo_counter);
-            let wave = Bonus::Wave.get_count(self.score, self.combo_counter);
-            return (hammer, totem, wave);
+            return;
         };
 
         // [Effect] Add a new line
@@ -134,9 +142,6 @@ impl GameImpl of GameTrait {
         // [Effect] Assess game
         self.score += self.assess_game(ref counter);
         self.combo_counter = Math::max(self.combo_counter, counter);
-
-        // [Return] Null values
-        (0, 0, 0)
     }
 
     fn assess_game(ref self: Game, ref counter: u8) -> u32 {

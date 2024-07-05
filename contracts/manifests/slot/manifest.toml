@@ -2,16 +2,16 @@
 kind = "WorldContract"
 class_hash = "0x3f63cecdc4964acafb921ba2934c6507d1b3c344edb64c2762cf08053169ab9"
 original_class_hash = "0x3f63cecdc4964acafb921ba2934c6507d1b3c344edb64c2762cf08053169ab9"
-abi = "manifests/dev/abis/deployments/dojo_world_world.json"
-address = "0x22398e03adf49f1cecb0fbc45cb7e09cb3907de1aba4a321ef190266e5460e1"
-transaction_hash = "0x540bba05650d82438029d2358435bdf2b42232fd8e9ea0f6c9a09bf49ce131f"
+abi = "manifests/slot/abis/deployments/dojo_world_world.json"
+address = "0x26663f285f4571e8b1f980cb6537f1a6eeb63291e2aed8216bf4ea5678ffc8a"
+transaction_hash = "0x6d7ee6589d537e4d456a54d6a413ac7a90545fb907716a0e5a26e6b9119231d"
 block_number = 3
-seed = "zkube"
+seed = "v0"
 name = "dojo::world::world"
 
 [world.metadata]
-profile_name = "dev"
-rpc_url = "http://localhost:5050/"
+profile_name = "slot"
+rpc_url = "https://api.cartridge.gg/x/zkube/katana"
 
 [base]
 kind = "Class"
@@ -21,11 +21,11 @@ name = "dojo::base::base"
 
 [[contracts]]
 kind = "DojoContract"
-address = "0x37c4bfa511d77ff1299712ad4a608037255f35a4b5f44e230681e4fd744fcbd"
-class_hash = "0x6b6e6d72f82eafd55ef31513a0057d026dfdc2f4a1d7abdd908bc6d4b72a643"
-original_class_hash = "0x6b6e6d72f82eafd55ef31513a0057d026dfdc2f4a1d7abdd908bc6d4b72a643"
+address = "0x48c385d3723393ea180a5987e3611c1a0ec3086764809eac9bb0924e1cb79a2"
+class_hash = "0x4ed9f1af618a5bd13a0c7d7a64bc5bfef583c83bd97d1696315419a3b373851"
+original_class_hash = "0x4ed9f1af618a5bd13a0c7d7a64bc5bfef583c83bd97d1696315419a3b373851"
 base_class_hash = "0x22f3e55b61d86c2ac5239fa3b3b8761f26b9a5c0b5f61ddbd5d756ced498b46"
-abi = "manifests/dev/abis/deployments/contracts/zkube_systems_actions_actions.json"
+abi = "manifests/slot/abis/deployments/contracts/zkube_systems_actions_actions.json"
 reads = []
 writes = [
     "Player",
@@ -39,7 +39,7 @@ name = "zkube::systems::actions::actions"
 kind = "DojoModel"
 class_hash = "0x7f9ef38357da1be1090e5c94c8e3edd015252e1465b76bff44de696c17e722d"
 original_class_hash = "0x7f9ef38357da1be1090e5c94c8e3edd015252e1465b76bff44de696c17e722d"
-abi = "manifests/dev/abis/deployments/models/zkube_models_index_game.json"
+abi = "manifests/slot/abis/deployments/models/zkube_models_index_game.json"
 name = "zkube::models::index::game"
 
 [[models.members]]
@@ -111,7 +111,7 @@ key = false
 kind = "DojoModel"
 class_hash = "0x5fed3730bb3d7d98cc66dfe1c18a3a06b2af4db5fdaa2f4aada377fc550d74"
 original_class_hash = "0x5fed3730bb3d7d98cc66dfe1c18a3a06b2af4db5fdaa2f4aada377fc550d74"
-abi = "manifests/dev/abis/deployments/models/zkube_models_index_player.json"
+abi = "manifests/slot/abis/deployments/models/zkube_models_index_player.json"
 name = "zkube::models::index::player"
 
 [[models.members]]

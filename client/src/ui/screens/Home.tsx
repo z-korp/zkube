@@ -56,10 +56,6 @@ export const Home = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    console.log(game);
-  }, [game]);
-
   return (
     <div className="relative flex flex-col h-screen">
       <Header />
@@ -85,17 +81,23 @@ export const Home = () => {
                   <Leaderboard />
                 </div>
               )}
-              {(!!game && game.over) && (
+              {!!game && game.over && (
                 <div className="flex flex-col gap-4 absolute top translate-y-[325%]">
                   <p className="text-4xl">Game Over</p>
                   <div className="flex gap-4 justify-center items-center">
                     <div className="grow text-4xl flex gap-2 justify-end">
                       {game.score}
-                      <FontAwesomeIcon icon={faStar} className="text-yellow-500 ml-2" />
+                      <FontAwesomeIcon
+                        icon={faStar}
+                        className="text-yellow-500 ml-2"
+                      />
                     </div>
                     <div className="grow text-4xl flex gap-2 justify-end">
                       {game.combo}
-                      <FontAwesomeIcon icon={faKhanda} className="text-slate-500 ml-2" />
+                      <FontAwesomeIcon
+                        icon={faKhanda}
+                        className="text-slate-500 ml-2"
+                      />
                     </div>
                   </div>
                 </div>
