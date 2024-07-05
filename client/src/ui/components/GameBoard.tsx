@@ -66,6 +66,7 @@ const GameBoard = ({
   const gridRef = useRef<HTMLDivElement>(null);
 
   const [isDragging, setIsDragging] = useState(false);
+  const [bonusWave, setBonusWave] = useState(false);
 
   useEffect(() => {
     if (isAnimating) return;
@@ -239,6 +240,26 @@ const GameBoard = ({
     });
 
     return rowsCleared;
+  };
+
+  const clearSelectedLine = async (selectedRow) => {
+    await new Promise((resolve) => {
+      setGrid((prevGrid) => {
+        const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
+
+        // Vérifier et supprimer tous les blocs assignés de la ligne sélectionnée
+        if (selectedRow >= 0 && selectedRow < newGrid.length) {
+          newGrid[selectedRow] = newGrid[selectedRow].map((cell, col) => ({
+            id: `${selectedRow}-${col}`,
+            pieceId: null,
+            isStart: false,
+          }));
+        }
+
+        resolve(newGrid);
+        return newGrid;
+      });
+    });
   };
 
   const insertNewLine = async () => {
@@ -524,6 +545,38 @@ const GameBoard = ({
     }
   };
 
+  const handleBonusWaveClick = () => {
+    setBonusWave(true);
+  };
+
+  const handleRowClick = (rowIndex) => {
+    if (bonusWave) {
+      checkAndClearSelectedLine(rowIndex);
+      setBonusWave(false);
+      applyGravityLoop();
+    }
+  };
+
+  const checkAndClearSelectedLine = async (selectedRow) => {
+    await new Promise((resolve) => {
+      setGrid((prevGrid) => {
+        const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
+
+        // Vérifier et supprimer tous les blocs assignés de la ligne sélectionnée
+        if (selectedRow >= 0 && selectedRow < newGrid.length) {
+          newGrid[selectedRow] = newGrid[selectedRow].map((cell, col) => ({
+            id: `${selectedRow}-${col}`,
+            pieceId: null,
+            isStart: false,
+          }));
+        }
+
+        resolve(newGrid);
+        return newGrid;
+      });
+    });
+  };
+
   const isLineComplete = (row) => {
     return row.every((cell) => cell.pieceId !== null);
   };
@@ -564,6 +617,7 @@ const GameBoard = ({
             zIndex: isDragging ? 1000 : 500,
           }}
           onMouseDown={(e) => startDragging(rowIndex, colIndex, e)}
+          onClick={() => handleRowClick(rowIndex)}
         >
           {debugMode && (
             <div className="absolute top-0 left-0 bg-black text-white text-xs p-1">
@@ -579,7 +633,7 @@ const GameBoard = ({
   return (
     <Card className="p-4 bg-secondary">
       <div className="mb-4 flex justify-start items-center">
-        <GameBonus />
+        <GameBonus onBonusWaveClick={handleBonusWaveClick} />
         <div className="grow text-4xl flex gap-2 justify-end">
           {score}
           <FontAwesomeIcon icon={faStar} className="text-yellow-500 ml-2" />
