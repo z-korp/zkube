@@ -156,7 +156,7 @@ const GameBoard = ({
       }
       await new Promise((resolve) => setTimeout(resolve, 100));
       rowsCleared = await checkAndClearFullLines();
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 200));
     }
 
     await insertNewLine();
