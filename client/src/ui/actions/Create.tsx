@@ -74,7 +74,7 @@ export const Create = () => {
             isLoading={isLoading}
             onClick={handleClick}
           >
-            Create my Profile
+            Create player
           </Button>
         </DialogClose>
       </DialogContent>
