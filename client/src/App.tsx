@@ -5,7 +5,7 @@ import { ThemeProvider } from "./ui/elements/theme-provider";
 
 export default () => {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
