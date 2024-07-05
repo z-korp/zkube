@@ -28,6 +28,7 @@ import {
   DropdownMenuSeparator,
 } from "@/ui/elements/dropdown-menu";
 import { Button } from "../elements/button";
+import { Leaderboard } from "../modules/Leaderboard";
 import { MusicPlayer } from "../modules/MusicPlayer";
 
 export const Header = () => {
@@ -53,6 +54,7 @@ export const Header = () => {
           onClick={handleClick}
         >
           <p className="text-4xl font-bold">zKube</p>
+          <Leaderboard />
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
           {!!player && (
