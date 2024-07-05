@@ -89,7 +89,7 @@ export const Home = () => {
                       <NextLine numbers={game.next_row} />
                     )}
                   </div>
-                  <div className="absolute right-0 bottom-0 mb-4">
+                  <div className="mt-4 sm:mt-0 sm:absolute sm:right-0 sm:bottom-0 sm:mb-4 flex justify-center sm:justify-end w-full">
                     <Surrender />
                   </div>
                 </div>
