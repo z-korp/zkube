@@ -9,7 +9,7 @@ import { useMediaQuery } from "react-responsive";
 import { set } from "mobx";
 import { useDojo } from "@/dojo/useDojo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faStar } from "@fortawesome/free-solid-svg-icons";
+import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
 
 interface Piece {
@@ -36,10 +36,12 @@ const GameBoard = ({
   initialGrid,
   nextLine,
   score,
+  combo,
 }: {
   initialGrid: number[][];
   nextLine: number[];
   score: number;
+  combo: number;
 }) => {
   const {
     account: { account },
@@ -575,6 +577,10 @@ const GameBoard = ({
         <div className="grow text-4xl flex gap-2 justify-end">
           {score}
           <FontAwesomeIcon icon={faStar} className="text-yellow-500 ml-2" />
+        </div>
+        <div className="grow text-4xl flex gap-2 justify-end">
+          {combo}
+          <FontAwesomeIcon icon={faKhanda} className="text-slate-500 ml-2" />
         </div>
       </div>
       <div className="bg-slate-800 relative">
