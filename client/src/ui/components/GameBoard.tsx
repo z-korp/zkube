@@ -54,6 +54,7 @@ const GameBoard = ({
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [debugMode, setDebugMode] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isFalling, setIsFalling] = useState(false);
   const [draggingPiece, setDraggingPiece] = useState<{
     row: number;
     col: number;
@@ -146,6 +147,8 @@ const GameBoard = ({
   // Fonction pour appliquer la gravité en boucle tant qu'il y a des changements
   const applyGravityLoop = async () => {
     setIsAnimating(true);
+    setIsFalling(true);
+
     let rowsCleared = true;
     let count = 0;
     while (rowsCleared) {
@@ -154,6 +157,8 @@ const GameBoard = ({
         changesMade = await applyGravity();
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
+      setIsFalling(false);
+
       await new Promise((resolve) => setTimeout(resolve, 100));
       rowsCleared = await checkAndClearFullLines();
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -166,7 +171,9 @@ const GameBoard = ({
     while (rowsCleared) {
       let changesMade = true;
       while (changesMade) {
+        setIsFalling(true);
         changesMade = await applyGravity();
+        setIsFalling(false);
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
       await new Promise((resolve) => setTimeout(resolve, 500));
@@ -536,7 +543,7 @@ const GameBoard = ({
   };
 
   const isLineComplete = (row) => {
-    return row.every((cell) => cell.pieceId !== null);
+    return row.every((cell) => cell.pieceId !== null && !isFalling);
   };
 
   const renderCell = (
