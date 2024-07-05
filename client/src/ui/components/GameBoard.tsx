@@ -9,6 +9,7 @@ import { useMediaQuery } from "react-responsive";
 import { useDojo } from "@/dojo/useDojo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar } from "@fortawesome/free-solid-svg-icons";
+import { GameBonus } from "../containers/GameBonus";
 
 interface Piece {
   id: number;
@@ -439,19 +440,7 @@ const GameBoard = ({
   return (
     <Card className="p-4 bg-secondary">
       <div className="mb-4 flex justify-start items-center">
-        {/* <button
-          onClick={applyGravity}
-          className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
-        >
-          Apply Gravity
-        </button>
-        <button
-          onClick={() => insertNewLine()}
-          // onClick={() => setDebugMode(!debugMode)}
-          className="px-4 py-2 bg-green-500 text-white rounded"
-        >
-          {debugMode ? "Disable Debug Mode" : "Enable Debug Mode"}
-        </button> */}
+        <GameBonus />
         <div className="grow text-4xl flex gap-2 justify-end">
           {score}
           <FontAwesomeIcon icon={faStar} className="text-yellow-500 ml-2" />
