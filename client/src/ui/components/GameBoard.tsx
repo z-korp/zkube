@@ -52,6 +52,7 @@ const GameBoard = ({
 
   const [isLoading, setIsLoading] = useState(false);
   const [grid, setGrid] = useState<Cell[][]>([]);
+  const [isTxProcessing, setIsTxProcessingd] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isFalling, setIsFalling] = useState(false);
@@ -70,9 +71,13 @@ const GameBoard = ({
   const [bonusWave, setBonusWave] = useState(false);
 
   useEffect(() => {
-    if (isAnimating) return;
+    setIsTxProcessingd(false);
+  }, [initialGrid]);
+
+  useEffect(() => {
+    if (isAnimating || isTxProcessing) return;
     initializeGrid(initialGrid);
-  }, [initialGrid, isAnimating]);
+  }, [initialGrid, isAnimating, isTxProcessing]);
 
   const isSmallScreen = useMediaQuery({ query: "(min-width: 640px)" });
 
@@ -435,6 +440,7 @@ const GameBoard = ({
       if (isAnimating) return;
 
       setIsLoading(true);
+      setIsTxProcessingd(true);
       try {
         await move({
           account: account,
