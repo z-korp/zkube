@@ -14,12 +14,13 @@ export function defineContractComponents(world: World) {
         {
           id: RecsType.Number,
           over: RecsType.Boolean,
-          points: RecsType.Number,
+          score: RecsType.Number,
           next_row: RecsType.Number,
           next_color: RecsType.Number,
           bonuses: RecsType.Number,
           blocks: RecsType.BigInt,
           colors: RecsType.BigInt,
+          player_id: RecsType.BigInt,
           seed: RecsType.BigInt,
         },
         {
@@ -32,6 +33,7 @@ export function defineContractComponents(world: World) {
               "u32",
               "u32",
               "u16",
+              "felt252",
               "felt252",
               "felt252",
               "felt252",

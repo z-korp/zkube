@@ -32,18 +32,19 @@ mod errors {
 #[generate_trait]
 impl GameImpl of GameTrait {
     #[inline(always)]
-    fn new(id: u32, seed: felt252) -> Game {
+    fn new(id: u32, player_id: felt252, seed: felt252) -> Game {
         let (row, color) = Controller::create_line(seed, DIFFICULTY);
         Game {
             id,
             over: false,
             next_row: row,
             next_color: color,
+            score: 0,
             bonuses: 0,
             blocks: 0,
             colors: 0,
+            player_id,
             seed,
-            points: 0
         }
     }
 
@@ -104,7 +105,7 @@ impl GameImpl of GameTrait {
 
         // [Effect] Assess game
         let mut counter = 1;
-        self.points += self.assess_game(ref counter);
+        self.score += self.assess_game(ref counter);
 
         // [Effect] Assess game over
         self.assess_over();
@@ -116,7 +117,7 @@ impl GameImpl of GameTrait {
         self.setup_next();
 
         // [Effect] Assess game
-        self.points += self.assess_game(ref counter);
+        self.score += self.assess_game(ref counter);
     }
 
     fn assess_game(ref self: Game, ref counter: u32) -> u32 {
@@ -150,7 +151,7 @@ impl GameImpl of GameTrait {
 
         // [Effect] Assess game
         let mut counter = 1;
-        self.points += self.assess_game(ref counter);
+        self.score += self.assess_game(ref counter);
     }
 }
 
@@ -160,13 +161,14 @@ impl ZeroableGame of core::Zeroable<Game> {
         Game {
             id: 0,
             over: false,
+            score: 0,
             next_row: 0,
             next_color: 0,
             bonuses: 0,
             blocks: 0,
             colors: 0,
+            player_id: 0,
             seed: 0,
-            points: 0
         }
     }
 
@@ -212,12 +214,13 @@ mod tests {
     // Constants
 
     const GAME_ID: u32 = 1;
+    const PLAYER_ID: felt252 = 'PLAYER';
     const SEED: felt252 = 'SEED';
 
     #[test]
     fn test_game_new() {
         // [Effect] Create game
-        let game = GameTrait::new(GAME_ID, SEED);
+        let game = GameTrait::new(GAME_ID, PLAYER_ID, SEED);
         game.assert_exists();
         game.assert_not_over();
         // [Assert] Game seed
