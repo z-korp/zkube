@@ -80,14 +80,14 @@ const GameBoard = ({
     }
   };
 
-  const applyGravity = async () => {
+  const applyGravity = () => {
     let changesMade = false;
 
-    await new Promise((resolve) => {
-      setGrid((prevGrid) => {
-        const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
-        changesMade = false;
+    setGrid((prevGrid) => {
+      const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
 
+      do {
+        changesMade = false;
         for (let row = rows - 2; row >= 0; row--) {
           for (let col = 0; col < cols; col++) {
             if (
@@ -125,142 +125,88 @@ const GameBoard = ({
             }
           }
         }
-        resolve(newGrid);
-        return newGrid;
-      });
+        printGrid(newGrid);
+      } while (changesMade);
+
+      return newGrid;
     });
 
     return changesMade;
   };
 
-  // Fonction pour appliquer la gravité en boucle tant qu'il y a des changements
-  const applyGravityLoop = async () => {
-    let rowsCleared = true;
-    let count = 0;
-    while (rowsCleared) {
-      let changesMade = true;
-      while (changesMade) {
-        changesMade = await applyGravity();
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-      count++;
-      console.log(`Gravity loop ${count} done`);
-      rowsCleared = await checkAndClearFullLines();
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-
-    await insertNewLine();
-
-    rowsCleared = true;
-    count = 0;
-    while (rowsCleared) {
-      let changesMade = true;
-      while (changesMade) {
-        changesMade = await applyGravity();
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-      count++;
-      console.log(`Gravity loop ${count} done`);
-      rowsCleared = await checkAndClearFullLines();
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-  };
-
-  const checkAndClearFullLines = async () => {
+  const checkAndClearFullLines = () => {
     let rowsCleared = false;
-    await new Promise((resolve) => {
-      setGrid((prevGrid) => {
-        const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
+    setGrid((prevGrid) => {
+      const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
 
-        for (let row = 0; row < rows; row++) {
-          if (newGrid[row].every((cell) => cell.pieceId !== null)) {
-            // Ligne complète, on la supprime
-            rowsCleared = true;
-            for (let i = row; i > 0; i--) {
-              newGrid[i] = newGrid[i - 1].map((cell) => ({
-                ...cell,
-                id: `${i}-${cell.id.split("-")[1]}`,
-              }));
-            }
-            // Vider la première ligne
-            newGrid[0] = newGrid[0].map((cell, col) => ({
-              id: `0-${col}`,
-              pieceId: null,
-              isStart: false,
+      for (let row = 0; row < rows; row++) {
+        if (newGrid[row].every((cell) => cell.pieceId !== null)) {
+          // Ligne complète, on la supprime
+          rowsCleared = true;
+          for (let i = row; i > 0; i--) {
+            newGrid[i] = newGrid[i - 1].map((cell) => ({
+              ...cell,
+              id: `${i}-${cell.id.split("-")[1]}`,
             }));
           }
+          // Vider la première ligne
+          newGrid[0] = newGrid[0].map((cell, col) => ({
+            id: `0-${col}`,
+            pieceId: null,
+            isStart: false,
+          }));
         }
+      }
 
-        resolve(newGrid);
-        return newGrid;
-      });
+      if (rowsCleared) {
+        console.log(newGrid);
+      }
+
+      return newGrid;
     });
-
     return rowsCleared;
   };
 
-  const checkAndClearFullLinesFromBot = async () => {
+  const insertNewLine = () => {
+    setGrid((prevGrid) => {
+      // Créez une nouvelle grille en décalant toutes les lignes vers le haut
+      const newGrid = prevGrid.slice(1);
+
+      // Créez la nouvelle ligne à partir de nextLine
+      const newLine: Cell[] = nextLine.map((value, index) => ({
+        id: `${rows - 1}-${index}`,
+        pieceId: value !== 0 ? value : null,
+        isStart: false,
+      }));
+
+      // Ajoutez la nouvelle ligne en bas de la grille
+      newGrid.push(newLine);
+
+      // Mettez à jour les isStart pour la nouvelle ligne
+      markStartingCells(newGrid);
+
+      return newGrid;
+    });
+  };
+
+  const loopGravityAndClear = () => {
+    console.log("Looping gravity and clear");
+
+    let changesMade = false;
     let rowsCleared = false;
-    await new Promise((resolve) => {
-      setGrid((prevGrid) => {
-        const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
+    do {
+      changesMade = applyGravity();
+      rowsCleared = checkAndClearFullLines();
+    } while (rowsCleared);
 
-        for (let row = rows - 1; row >= 0; row--) {
-          if (newGrid[row].every((cell) => cell.pieceId !== null)) {
-            // Ligne complète, on la supprime
-            rowsCleared = true;
-            for (let i = row; i > 0; i--) {
-              newGrid[i] = newGrid[i - 1].map((cell) => ({
-                ...cell,
-                id: `${i}-${cell.id.split("-")[1]}`,
-              }));
-            }
-            // Vider la première ligne
-            newGrid[0] = newGrid[0].map((cell, col) => ({
-              id: `0-${col}`,
-              pieceId: null,
-              isStart: false,
-            }));
-            break;
-          }
-        }
+    insertNewLine();
 
-        resolve(newGrid);
-        return newGrid;
-      });
-    });
-
-    return rowsCleared;
-  };
-
-  const insertNewLine = async () => {
-    await new Promise((resolve) => {
-      setGrid((prevGrid) => {
-        // Créez une nouvelle grille en décalant toutes les lignes vers le haut
-        const newGrid = prevGrid.slice(1);
-
-        // Créez la nouvelle ligne à partir de nextLine
-        const newLine: Cell[] = nextLine.map((value, index) => ({
-          id: `${rows - 1}-${index}`,
-          pieceId: value !== 0 ? value : null,
-          isStart: false,
-        }));
-
-        // Ajoutez la nouvelle ligne en bas de la grille
-        newGrid.push(newLine);
-
-        // Mettez à jour les isStart pour la nouvelle ligne
-        markStartingCells(newGrid);
-
-        resolve(newGrid);
-
-        return newGrid;
-      });
-    });
-  };
-
-  const loopGravityAndClear = async () => {
-    applyGravityLoop();
+    changesMade = false;
+    rowsCleared = false;
+    do {
+      changesMade = applyGravity();
+      rowsCleared = checkAndClearFullLines();
+    } while (rowsCleared);
   };
 
   const placePiece = (
@@ -524,9 +470,10 @@ const GameBoard = ({
         ? draggingPiece.currentX - draggingPiece.startX
         : 0;
 
+      // Assurez-vous d'avoir les mesures exactes de la grille.
       const gridRect = gridRef.current?.getBoundingClientRect();
       const cellWidth = gridRect ? gridRect.width / cols : 0;
-      const cellHeight = gridRect ? gridRect.height / rows : 0;
+      const cellHeight = gridRect ? gridRect.height / rows : 0; // Supposons que chaque cellule a une hauteur uniforme.
 
       const offsetGap = isSmallScreen ? 4 : 2;
       return (
@@ -541,7 +488,7 @@ const GameBoard = ({
             top: `${rowIndex * cellHeight - offsetGap}px`,
             transform: `translateX(${dragOffset}px)`,
             transition: isDragging ? "none" : "transform 0.3s ease-out",
-            zIndex: isDragging ? 1000 : 500,
+            zIndex: isDragging ? 1000 : 500, // Utilisez un zIndex élevé pour s'assurer qu'il est au-dessus.
           }}
           onMouseDown={(e) => startDragging(rowIndex, colIndex, e)}
         >
@@ -553,7 +500,7 @@ const GameBoard = ({
         </div>
       );
     }
-    return null;
+    return null; // Rien à rendre si ce n'est pas une pièce de départ ou s'il n'y a pas de pièce.
   };
 
   return (
