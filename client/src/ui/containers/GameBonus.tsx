@@ -4,7 +4,7 @@ import imageHammer from "/assets/bonus/hammer.png";
 import imageTiki from "/assets/bonus/tiki.png";
 import imageWave from "/assets/bonus/wave.png";
 
-export const GameBonus = ({ onBonusWaveClick }) => {
+export const GameBonus = ({ onBonusWaveClick }: { onBonusWaveClick: any }) => {
   const handleClickWave = () => {
     console.log("Ready to be binded");
     onBonusWaveClick();

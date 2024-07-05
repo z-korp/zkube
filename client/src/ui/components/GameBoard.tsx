@@ -238,6 +238,7 @@ const GameBoard = ({
               id: `0-${col}`,
               pieceId: null,
               isStart: false,
+              pieceIndex: null,
             }));
             break;
           }
@@ -251,7 +252,7 @@ const GameBoard = ({
     return rowsCleared;
   };
 
-  const clearSelectedLine = async (selectedRow) => {
+  const clearSelectedLine = async (selectedRow: number) => {
     await new Promise((resolve) => {
       setGrid((prevGrid) => {
         const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
@@ -262,6 +263,7 @@ const GameBoard = ({
             id: `${selectedRow}-${col}`,
             pieceId: null,
             isStart: false,
+            pieceIndex: null,
           }));
         }
 
@@ -567,7 +569,7 @@ const GameBoard = ({
     setBonusWave(true);
   };
 
-  const handleRowClick = (rowIndex) => {
+  const handleRowClick = (rowIndex: number) => {
     if (bonusWave) {
       checkAndClearSelectedLine(rowIndex);
       setBonusWave(false);
@@ -575,7 +577,7 @@ const GameBoard = ({
     }
   };
 
-  const checkAndClearSelectedLine = async (selectedRow) => {
+  const checkAndClearSelectedLine = async (selectedRow: number) => {
     await new Promise((resolve) => {
       setGrid((prevGrid) => {
         const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
@@ -586,6 +588,7 @@ const GameBoard = ({
             id: `${selectedRow}-${col}`,
             pieceId: null,
             isStart: false,
+            pieceIndex: null,
           }));
         }
 
@@ -595,15 +598,15 @@ const GameBoard = ({
     });
   };
 
-  const isLineComplete = (row) => {
-    return row.every((cell) => cell.pieceId !== null && !isFalling);
+  const isLineComplete = (row: any) => {
+    return row.every((cell: any) => cell.pieceId !== null && !isFalling);
   };
 
   const renderCell = (
     cell: Cell,
     rowIndex: number,
     colIndex: number,
-    isLineComplete,
+    isLineComplete: boolean,
   ) => {
     const piece = PIECES.find((p) => p.id === cell.pieceId);
 
