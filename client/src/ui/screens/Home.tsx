@@ -45,6 +45,86 @@ export const Home = () => {
 
   const testline = [1, 0, 0, 2, 2, 0, 2, 2];
 
+  const TetrisGrid = () => {
+    // Définir les pièces avec leurs positions et tailles
+    const pieces = [
+      { size: 1, positions: [{ x: 1, y: 1 }] },
+      {
+        size: 2,
+        positions: [
+          { x: 3, y: 2 },
+          { x: 4, y: 2 },
+        ],
+      },
+      {
+        size: 3,
+        positions: [
+          { x: 5, y: 4 },
+          { x: 6, y: 4 },
+          { x: 7, y: 4 },
+        ],
+      },
+    ];
+
+    // Fonction pour calculer le bounding box d'une pièce
+    const getBoundingBox = (positions) => {
+      const xs = positions.map((pos) => pos.x);
+      const ys = positions.map((pos) => pos.y);
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+
+      return {
+        x: minX,
+        y: minY,
+        width: (maxX - minX + 1) * 40,
+        height: (maxY - minY + 1) * 40,
+      };
+    };
+
+    return (
+      <div className="relative w-[320px] h-[400px] bg-gray-800 grid grid-cols-8 grid-rows-10 gap-1">
+        {/* Créer les cellules de la grille */}
+        {[...Array(80)].map((_, index) => (
+          <div
+            key={index}
+            className="w-full h-full bg-gray-700 border border-gray-600"
+          ></div>
+        ))}
+
+        {/* Afficher les pièces */}
+        {pieces.map((piece, pieceIndex) => {
+          const { x, y, width, height } = getBoundingBox(piece.positions);
+          return (
+            <div
+              key={pieceIndex}
+              className="absolute bg-blue-500"
+              style={{
+                top: `${y * 40}px`,
+                left: `${x * 40}px`,
+                width: `${width}px`,
+                height: `${height}px`,
+              }}
+            >
+              {piece.positions.map((pos, cellIndex) => (
+                <div
+                  key={cellIndex}
+                  className="w-8 h-8 bg-blue-500"
+                  style={{
+                    position: "absolute",
+                    top: `${(pos.y - y) * 40}px`,
+                    left: `${(pos.x - x) * 40}px`,
+                  }}
+                ></div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const { theme } = useTheme();
   const imageTotemTheme = theme === "dark" ? imageTotemDark : imageTotemLight;
 

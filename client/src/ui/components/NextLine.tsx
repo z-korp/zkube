@@ -1,41 +1,76 @@
-import React from "react";
 import { Card } from "@/ui/elements/card";
+import BlockAssets from "@/utils/BlocksAssets";
 
-import stone1Image from "/assets/block-1.png";
-import stone2Image from "/assets/block-2.png";
-import stone3Image from "/assets/block-3.png";
-import stone4Image from "/assets/block-4.png";
+interface Block {
+  number: number;
+  count: number;
+}
 
-const numberToImage: {
-  [key: number]: string;
-} = {
-  1: stone1Image,
-  2: stone2Image,
-  3: stone3Image,
-  4: stone4Image,
+interface BlocksResult {
+  blocks: Block[];
+  toString: () => string;
+}
+
+const createBlocks = ({ numbers }: { numbers: number[] }): BlocksResult => {
+  if (!numbers || numbers.length === 0) {
+    return {
+      blocks: [],
+      toString: () => "No blocks available",
+    };
+  }
+
+  const blocks: Block[] = [];
+  let currentNumber = numbers[0];
+  let currentCount = 1;
+
+  for (let i = 1; i < numbers.length; i++) {
+    if (
+      numbers[i] === currentNumber &&
+      currentCount < numbers[i] &&
+      numbers[i] !== 0
+    ) {
+      currentCount++;
+    } else {
+      blocks.push({ number: currentNumber, count: currentCount });
+      currentNumber = numbers[i];
+      currentCount = 1;
+    }
+  }
+  blocks.push({ number: currentNumber, count: currentCount });
+
+  return {
+    blocks,
+    toString: function () {
+      return this.blocks
+        .map((block) => `${block.count} x ${block.number}`)
+        .join(", ");
+    },
+  };
 };
 
-const NextLine = ({ numbers }: { numbers: any }) => {
-  const cols = 8;
+const NextLine = ({ numbers }: { numbers: number[] }) => {
+  const result = createBlocks({ numbers });
 
   return (
-    <Card className="px-4 bg-secondary">
-      <div className="bg-slate-800 relative">
+    <Card className="px-4 bg-secondary p-4">
+      <div className="bg-slate-800 relative p-1">
         <div
-          className="border-4 border-slate-800 grid grid-cols-[repeat(32,1fr)] sm:gap-2 gap-[2px]"
-          style={{ position: "relative" }}
+          className="border-4 border-slate-800 grid w-[450px] gap-1"
+          style={{
+            gridTemplateColumns: "repeat(8, 1fr)",
+          }}
         >
-          {Array.from({ length: cols }).map((_, colIndex) => (
+          {result.blocks.map((block, blockIndex) => (
             <div
-              key={`cell-${colIndex}`}
-              className="h-10 w-10 sm:h-12 sm:w-12 bg-secondary relative"
-              style={{ gridColumn: "span 4" }}
+              key={`block-${blockIndex}`}
+              className="h-10 sm:h-12 bg-secondary relative"
+              style={{ gridColumn: `span ${block.count}` }}
             >
-              {numbers[colIndex] !== 0 && (
+              {block.number !== 0 && (
                 <div
                   className="absolute inset-0 flex items-center justify-center"
                   style={{
-                    backgroundImage: `url(${numberToImage[numbers[colIndex]]})`,
+                    backgroundImage: `url(${BlockAssets[block.number]})`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",

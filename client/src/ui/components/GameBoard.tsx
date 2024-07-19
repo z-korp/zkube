@@ -6,7 +6,6 @@ import stone2Image from "/assets/block-2.png";
 import stone3Image from "/assets/block-3.png";
 import stone4Image from "/assets/block-4.png";
 import { useMediaQuery } from "react-responsive";
-import { set } from "mobx";
 import { useDojo } from "@/dojo/useDojo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
@@ -172,6 +171,8 @@ const GameBoard = ({
     await new Promise((resolve) => setTimeout(resolve, 200));
 
     await insertNewLine();
+
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
     rowsCleared = true;
     while (rowsCleared) {
@@ -521,7 +522,6 @@ const GameBoard = ({
 
   const initializeGrid = (initialGrid: number[][]) => {
     const newGrid: Cell[][] = [];
-    let uniqueIdCounter = 1;
 
     for (let i = 0; i < rows; i++) {
       const row: Cell[] = [];
@@ -672,10 +672,10 @@ const GameBoard = ({
           <FontAwesomeIcon icon={faKhanda} className="text-slate-500 ml-2" />
         </div>
       </div>
-      <div className="bg-slate-800 relative">
+      <div className="bg-slate-800 relative px-1">
         <div
           ref={gridRef}
-          className="border-4 border-slate-800 grid grid-cols-[repeat(32,1fr)] sm:gap-2 gap-[2px]"
+          className="border-4 border-slate-800 grid grid-cols-8 grid-rows-10 sm:gap-2 gap-[2px]"
           style={{ position: "relative" }}
         >
           {/* Grille de fond */}
@@ -685,7 +685,6 @@ const GameBoard = ({
                 <div
                   key={`${rowIndex}-${colIndex}`}
                   className="h-10 w-10 sm:h-12 sm:w-12 bg-secondary relative"
-                  style={{ gridColumn: "span 4" }}
                 >
                   {debugMode && (
                     <div className="absolute top-0 left-0 bg-black text-white text-xs p-1">
