@@ -1,5 +1,5 @@
 import { Card } from "@/ui/elements/card";
-import BlockAssets from "@/utils/BlocksAssets";
+import BlockAssets from "@/ui/theme/BlocksAssets";
 
 interface Block {
   number: number;

@@ -6,11 +6,7 @@ import BackGroundBoard from "../components/BackgroundBoard";
 import { AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 
-import imageBackground from "/assets/theme-2-1.png";
-import imageTotemDark from "/assets/theme-2-totem-dark.png";
-import imageTotemLight from "/assets/theme-2-totem-light.png";
-import palmLeft from "/assets/palmtree-left.png";
-import palmRight from "/assets/palmtree-right.png";
+import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
@@ -126,7 +122,8 @@ export const Home = () => {
   };
 
   const { theme } = useTheme();
-  const imageTotemTheme = theme === "dark" ? imageTotemDark : imageTotemLight;
+  const imageTotemTheme =
+    theme === "dark" ? ImageAssets.imageTotemDark : ImageAssets.imageTotemLight;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -140,7 +137,7 @@ export const Home = () => {
     <div className="relative flex flex-col h-screen">
       <Header />
 
-      <BackGroundBoard imageBackground={imageBackground}>
+      <BackGroundBoard imageBackground={ImageAssets.imageBackground}>
         <BackGroundBoard
           imageBackground={imageTotemTheme}
           initial={{ scale: 1 }}
@@ -205,14 +202,14 @@ export const Home = () => {
               <>
                 <>
                   <PalmTree
-                    image={palmRight}
+                    image={ImageAssets.palmRight}
                     initial="visibleRight"
                     animate="hiddenRight"
                     duration={3}
                     position="right"
                   />
                   <PalmTree
-                    image={palmLeft}
+                    image={ImageAssets.palmLeft}
                     initial="visibleLeft"
                     animate="hiddenLeft"
                     duration={3}

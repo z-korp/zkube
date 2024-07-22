@@ -2,9 +2,7 @@ import { Hammer } from "../elements/bonuses/hammer";
 import { Totem } from "../elements/bonuses/totem";
 import { Wave } from "../elements/bonuses/wave";
 
-import hammer from "/assets/bonus/hammer.png";
-import tiki from "/assets/bonus/tiki.png";
-import wave from "/assets/bonus/wave.png";
+import ImageAssets from "@/ui/theme/ImageAssets";
 
 export enum BonusType {
   None = "None",
@@ -49,11 +47,11 @@ export class Bonus {
   public getIcon(): string {
     switch (this.value) {
       case BonusType.Hammer:
-        return hammer;
+        return ImageAssets.hammer;
       case BonusType.Totem:
-        return tiki;
+        return ImageAssets.tiki;
       case BonusType.Wave:
-        return wave;
+        return ImageAssets.wave;
       default:
         return "";
     }

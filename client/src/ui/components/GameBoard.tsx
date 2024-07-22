@@ -1,15 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Card } from "@/ui/elements/card";
 
-import stone1Image from "/assets/block-1.png";
-import stone2Image from "/assets/block-2.png";
-import stone3Image from "/assets/block-3.png";
-import stone4Image from "/assets/block-4.png";
 import { useMediaQuery } from "react-responsive";
 import { useDojo } from "@/dojo/useDojo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
+import GetElementStyle from "../theme/GetElementStyle";
 
 interface Piece {
   id: number;
@@ -155,7 +152,6 @@ const GameBoard = ({
     setIsFalling(true);
 
     let rowsCleared = true;
-    let count = 0;
     while (rowsCleared) {
       let changesMade = true;
       while (changesMade) {
@@ -636,7 +632,7 @@ const GameBoard = ({
           key={cell.id}
           className={`bg-secondary flex items-center justify-center cursor-move absolute ${isLineComplete ? "wiggle-blink" : ""}`}
           style={{
-            ...getElementStyle(piece.element),
+            ...GetElementStyle(piece.element),
             width: `${piece.width * cellWidth}px`,
             height: `${cellHeight}px`,
             left: `${colIndex * cellWidth - offsetGap}px`,
@@ -711,41 +707,6 @@ const GameBoard = ({
       </div>
     </Card>
   );
-};
-
-const getElementStyle = (element: string) => {
-  switch (element) {
-    case "stone1":
-      return {
-        backgroundImage: `url(${stone1Image})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      };
-    case "stone2":
-      return {
-        backgroundImage: `url(${stone2Image})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      };
-    case "stone3":
-      return {
-        backgroundImage: `url(${stone3Image})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      };
-    case "stone4":
-      return {
-        backgroundImage: `url(${stone4Image})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      };
-    default:
-      return {};
-  }
 };
 
 export default GameBoard;

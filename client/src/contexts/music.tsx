@@ -7,25 +7,27 @@ import React, {
 } from "react";
 import useSound from "use-sound";
 
+import SoundAssets from "@/ui/theme/SoundAssets";
+
 type Track = {
   name: string;
   url: string;
 };
 
 const menuTracks: Track[] = [
-  { name: "Intro", url: "/sounds/musics/theme-jungle2.mp3" },
-  { name: "Intro", url: "/sounds/musics/theme-jungle2.mp3" },
+  { name: "Intro", url: SoundAssets.jungle2 },
+  { name: "Intro", url: SoundAssets.jungle2 },
 ];
 
 const playTracks: Track[] = [
-  { name: "Play", url: "/sounds/musics/theme-jungle3.mp3" },
-  { name: "Play", url: "/sounds/musics/theme-jungle3.mp3" },
+  { name: "Play", url: SoundAssets.jungle3 },
+  { name: "Play", url: SoundAssets.jungle3 },
 ];
 
 const effectTracks: Track[] = [
-  { name: "Start", url: "/sounds/effects/start.mp3" },
-  { name: "Start", url: "/sounds/effects/start.mp3" },
-  { name: "Over", url: "/sounds/effects/over.mp3" },
+  { name: "Start", url: SoundAssets.start },
+  { name: "Start", url: SoundAssets.start },
+  { name: "Over", url: SoundAssets.over },
 ];
 
 const MusicPlayerContext = createContext({
