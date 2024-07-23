@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Card } from "@/ui/elements/card";
-import { useMediaQuery } from "react-responsive";
 import { useDojo } from "@/dojo/useDojo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
-import useTemplateTheme from "@/hooks/useTemplateTheme";
 import { Piece, Cell as CellType } from "@/types/types";
 import Cell from "./Cell";
 

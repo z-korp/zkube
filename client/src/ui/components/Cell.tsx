@@ -76,7 +76,17 @@ const Cell: React.FC<CellProps> = ({
           zIndex: isDragging ? 1000 : 500,
         }}
         onMouseDown={(e) => startDragging(rowIndex, colIndex, e)}
-        onTouchStart={(e) => startDragging(rowIndex, colIndex, e)}
+        onTouchStart={(
+          e:
+            | React.TouchEvent<HTMLDivElement>
+            | React.MouseEvent<HTMLDivElement, MouseEvent>,
+        ) =>
+          startDragging(
+            rowIndex,
+            colIndex,
+            e as React.MouseEvent<HTMLDivElement, MouseEvent>,
+          )
+        }
         onClick={() => handleRowClick(rowIndex)}
       ></div>
     );
