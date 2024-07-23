@@ -1,19 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Card } from "@/ui/elements/card";
-
 import { useMediaQuery } from "react-responsive";
 import { useDojo } from "@/dojo/useDojo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
-import GetElementStyle from "../theme/GetElementStyle";
 import useTemplateTheme from "@/hooks/useTemplateTheme";
-
-interface Piece {
-  id: number;
-  width: number;
-  element: string;
-}
+import { Piece, Cell as CellType } from "@/types/types";
+import Cell from "./Cell";
 
 const PIECES: Piece[] = [
   { id: 1, width: 1, element: "stone1" },
@@ -21,13 +15,6 @@ const PIECES: Piece[] = [
   { id: 3, width: 3, element: "stone3" },
   { id: 4, width: 4, element: "stone4" },
 ];
-
-interface Cell {
-  id: string;
-  pieceId: number | null;
-  isStart: boolean;
-  pieceIndex: number | null;
-}
 
 const GameBoard = ({
   initialGrid,
@@ -48,7 +35,7 @@ const GameBoard = ({
   } = useDojo();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [grid, setGrid] = useState<Cell[][]>([]);
+  const [grid, setGrid] = useState<CellType[][]>([]);
   const [isTxProcessing, setIsTxProcessingd] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -80,7 +67,7 @@ const GameBoard = ({
 
   const isSmallScreen = useMediaQuery({ query: "(min-width: 640px)" });
 
-  const printGrid = (grid: Cell[][]) => {
+  const printGrid = (grid: CellType[][]) => {
     for (const row of grid) {
       let rowStr = "";
       for (const cell of row) {
@@ -286,7 +273,7 @@ const GameBoard = ({
         const newGrid = prevGrid.slice(1);
 
         // Créez la nouvelle ligne à partir de nextLine
-        const newLine: Cell[] = nextLine.map((value, index) => ({
+        const newLine: CellType[] = nextLine.map((value, index) => ({
           id: `${rows - 1}-${index}`,
           pieceId: value !== 0 ? value : null,
           isStart: false,
@@ -311,7 +298,7 @@ const GameBoard = ({
   };
 
   const placePiece = (
-    grid: Cell[][],
+    grid: CellType[][],
     row: number,
     col: number,
     piece: Piece,
@@ -332,9 +319,9 @@ const GameBoard = ({
     const direction = endCol > startCol ? 1 : -1;
     for (let col = startCol; col !== endCol; col += direction) {
       if (col < 0 || col + piece.width > cols) return true;
-      const current: Cell = grid[row][col];
-      const left: Cell = grid[row][col - 1];
-      const right: Cell = grid[row][col + piece.width];
+      const current: CellType = grid[row][col];
+      const left: CellType = grid[row][col - 1];
+      const right: CellType = grid[row][col + piece.width];
       if (
         direction === -1
           ? !!left?.pieceIndex && left.pieceIndex !== current.pieceIndex
@@ -346,11 +333,11 @@ const GameBoard = ({
     return false;
   };
 
-  const startDragging = (
+  function startDragging(
     rowIndex: number,
     colIndex: number,
     e: React.MouseEvent,
-  ) => {
+  ) {
     if (isAnimating) return;
     const piece = PIECES.find((p) => p.id === grid[rowIndex][colIndex].pieceId);
     if (!piece) return;
@@ -380,7 +367,7 @@ const GameBoard = ({
       clickOffset: clickOffset,
     });
     setIsDragging(true);
-  };
+  }
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
@@ -520,10 +507,10 @@ const GameBoard = ({
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   const initializeGrid = (initialGrid: number[][]) => {
-    const newGrid: Cell[][] = [];
+    const newGrid: CellType[][] = [];
 
     for (let i = 0; i < rows; i++) {
-      const row: Cell[] = [];
+      const row: CellType[] = [];
       for (let j = 0; j < cols; j++) {
         const value = initialGrid[i][j];
         row.push({
@@ -539,7 +526,7 @@ const GameBoard = ({
     setGrid(newGrid);
   };
 
-  const markStartingCells = (grid: Cell[][]) => {
+  const markStartingCells = (grid: CellType[][]) => {
     for (let i = 0; i < rows; i++) {
       let j = 0;
       while (j < cols) {
@@ -606,56 +593,7 @@ const GameBoard = ({
   };
 
   const isLineComplete = (row: any) => {
-    return row.every((cell: any) => cell.pieceId !== null && !isFalling);
-  };
-
-  const renderCell = (
-    cell: Cell,
-    rowIndex: number,
-    colIndex: number,
-    isLineComplete: boolean,
-  ) => {
-    const piece = PIECES.find((p) => p.id === cell.pieceId);
-
-    if (cell.isStart && piece) {
-      const isDragging =
-        draggingPiece?.row === rowIndex && draggingPiece.col === colIndex;
-
-      const dragOffset = isDragging
-        ? draggingPiece.currentX - draggingPiece.startX
-        : 0;
-
-      const gridRect = gridRef.current?.getBoundingClientRect();
-      const cellWidth = gridRect ? gridRect.width / cols : 0;
-      const cellHeight = gridRect ? gridRect.height / rows : 0;
-
-      const offsetGap = isSmallScreen ? 4 : 2;
-      return (
-        <div
-          key={cell.id}
-          className={`bg-secondary flex items-center justify-center cursor-move absolute ${isLineComplete ? "wiggle-blink" : ""}`}
-          style={{
-            ...GetElementStyle(piece.element, themeTemplate),
-            width: `${piece.width * cellWidth}px`,
-            height: `${cellHeight}px`,
-            left: `${colIndex * cellWidth - offsetGap}px`,
-            top: `${rowIndex * cellHeight - offsetGap}px`,
-            transform: `translateX(${dragOffset}px)`,
-            transition: isDragging ? "none" : "transform 0.3s ease-out",
-            zIndex: isDragging ? 1000 : 500,
-          }}
-          onMouseDown={(e) => startDragging(rowIndex, colIndex, e)}
-          onClick={() => handleRowClick(rowIndex)}
-        >
-          {debugMode && (
-            <div className="absolute top-0 left-0 bg-black text-white text-xs p-1">
-              {rowIndex}, {colIndex}
-            </div>
-          )}
-        </div>
-      );
-    }
-    return null;
+    return row.every((cell: CellType) => cell.pieceId !== null && !isFalling);
   };
 
   return (
@@ -700,8 +638,23 @@ const GameBoard = ({
             const complete = isLineComplete(row);
             return (
               <React.Fragment key={`piece-${rowIndex}`}>
-                {row.map((cell, colIndex) =>
-                  renderCell(cell, rowIndex, colIndex, complete),
+                {row.map(
+                  (cell, colIndex) => (
+                    <Cell
+                      key={cell.id}
+                      cell={cell}
+                      rowIndex={rowIndex}
+                      colIndex={colIndex}
+                      isLineComplete={complete}
+                      draggingPiece={draggingPiece}
+                      gridRef={gridRef}
+                      cols={cols}
+                      rows={rows}
+                      startDragging={startDragging}
+                      handleRowClick={handleRowClick}
+                    />
+                  ),
+                  //renderCell(cell, rowIndex, colIndex, complete),
                 )}
               </React.Fragment>
             );

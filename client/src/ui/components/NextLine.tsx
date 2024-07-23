@@ -53,7 +53,7 @@ const NextLine = ({ numbers }: { numbers: number[] }) => {
   const result = createBlocks({ numbers });
 
   const { themeTemplate } = useTemplateTheme();
-  const imgsBlock = ImageBlock(themeTemplate);
+  const imgsBlock: { [key: number]: string } = ImageBlock(themeTemplate);
 
   return (
     <Card className="px-4 bg-secondary p-4">
