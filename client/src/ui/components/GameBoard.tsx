@@ -36,7 +36,7 @@ const GameBoard = ({
 
   const [isLoading, setIsLoading] = useState(false);
   const [grid, setGrid] = useState<CellType[][]>([]);
-  const [isTxProcessing, setIsTxProcessingd] = useState(false);
+  const [isTxProcessing, setIsTxProcessing] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isFalling, setIsFalling] = useState(false);
@@ -57,7 +57,7 @@ const GameBoard = ({
   const { themeTemplate } = useTemplateTheme();
 
   useEffect(() => {
-    setIsTxProcessingd(false);
+    setIsTxProcessing(false);
   }, [initialGrid]);
 
   useEffect(() => {
@@ -372,6 +372,7 @@ const GameBoard = ({
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (isAnimating) return;
+      if (isTxProcessing) return;
 
       if (!isDragging || !draggingPiece || !gridRef.current) return;
       const gridRect = gridRef.current.getBoundingClientRect();
@@ -427,7 +428,7 @@ const GameBoard = ({
       if (isAnimating) return;
 
       setIsLoading(true);
-      setIsTxProcessingd(true);
+      setIsTxProcessing(true);
       try {
         await move({
           account: account,
@@ -597,7 +598,9 @@ const GameBoard = ({
   };
 
   return (
-    <Card className="p-4 bg-secondary">
+    <Card
+      className={`p-4 bg-secondary ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"}`}
+    >
       <div className="mb-4 flex justify-start items-center">
         <GameBonus onBonusWaveClick={handleBonusWaveClick} />
         <div className="grow text-4xl flex gap-2 justify-end">
@@ -638,24 +641,23 @@ const GameBoard = ({
             const complete = isLineComplete(row);
             return (
               <React.Fragment key={`piece-${rowIndex}`}>
-                {row.map(
-                  (cell, colIndex) => (
-                    <Cell
-                      key={cell.id}
-                      cell={cell}
-                      rowIndex={rowIndex}
-                      colIndex={colIndex}
-                      isLineComplete={complete}
-                      draggingPiece={draggingPiece}
-                      gridRef={gridRef}
-                      cols={cols}
-                      rows={rows}
-                      startDragging={startDragging}
-                      handleRowClick={handleRowClick}
-                    />
-                  ),
-                  //renderCell(cell, rowIndex, colIndex, complete),
-                )}
+                {row.map((cell, colIndex) => (
+                  <Cell
+                    key={cell.id}
+                    cell={cell}
+                    rowIndex={rowIndex}
+                    colIndex={colIndex}
+                    isLineComplete={complete}
+                    draggingPiece={draggingPiece}
+                    gridRef={gridRef}
+                    cols={cols}
+                    rows={rows}
+                    startDragging={startDragging}
+                    handleRowClick={handleRowClick}
+                    isTxProcessing={isTxProcessing}
+                    isAnimating={isAnimating}
+                  />
+                ))}
               </React.Fragment>
             );
           })}

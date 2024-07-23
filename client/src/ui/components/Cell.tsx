@@ -20,6 +20,8 @@ interface CellProps {
   gridRef: any;
   cols: number;
   rows: number;
+  isTxProcessing: boolean;
+  isAnnimating: boolean;
   startDragging: (
     rowIndex: number,
     colIndex: number,
@@ -37,6 +39,8 @@ const Cell: React.FC<CellProps> = ({
   gridRef,
   cols,
   rows,
+  isTxProcessing,
+  isAnimating,
   startDragging,
   handleRowClick,
 }) => {
@@ -60,7 +64,7 @@ const Cell: React.FC<CellProps> = ({
     return (
       <div
         key={cell.id}
-        className={`bg-secondary flex items-center justify-center cursor-move absolute ${isLineComplete ? "wiggle-blink" : ""}`}
+        className={`bg-secondary flex items-center justify-center cursor-move absolute ${isLineComplete ? "wiggle-blink" : ""}  ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"} `}
         style={{
           ...GetElementStyle(piece.element, themeTemplate),
           width: `${piece.width * cellWidth}px`,
