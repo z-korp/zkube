@@ -1,8 +1,12 @@
+import useTemplateTheme from "@/hooks/useTemplateTheme";
 import { Hammer } from "../elements/bonuses/hammer";
 import { Totem } from "../elements/bonuses/totem";
 import { Wave } from "../elements/bonuses/wave";
 
 import ImageAssets from "@/ui/theme/ImageAssets";
+
+const theme = "theme-1";
+const imgAssets = ImageAssets(theme);
 
 export enum BonusType {
   None = "None",
@@ -47,11 +51,11 @@ export class Bonus {
   public getIcon(): string {
     switch (this.value) {
       case BonusType.Hammer:
-        return ImageAssets.hammer;
+        return imgAssets.hammer;
       case BonusType.Totem:
-        return ImageAssets.tiki;
+        return imgAssets.tiki;
       case BonusType.Wave:
-        return ImageAssets.wave;
+        return imgAssets.wave;
       default:
         return "";
     }
