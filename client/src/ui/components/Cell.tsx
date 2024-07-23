@@ -21,7 +21,7 @@ interface CellProps {
   cols: number;
   rows: number;
   isTxProcessing: boolean;
-  isAnnimating: boolean;
+  isAnimating: boolean;
   startDragging: (
     rowIndex: number,
     colIndex: number,
@@ -76,6 +76,7 @@ const Cell: React.FC<CellProps> = ({
           zIndex: isDragging ? 1000 : 500,
         }}
         onMouseDown={(e) => startDragging(rowIndex, colIndex, e)}
+        onTouchStart={(e) => startDragging(rowIndex, colIndex, e)}
         onClick={() => handleRowClick(rowIndex)}
       ></div>
     );

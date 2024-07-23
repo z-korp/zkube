@@ -68,7 +68,7 @@ export const Home = () => {
     ];
 
     // Fonction pour calculer le bounding box d'une pièce
-    const getBoundingBox = (positions) => {
+    const getBoundingBox = (positions: number) => {
       const xs = positions.map((pos) => pos.x);
       const ys = positions.map((pos) => pos.y);
       const minX = Math.min(...xs);

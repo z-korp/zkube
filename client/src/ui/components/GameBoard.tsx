@@ -54,8 +54,6 @@ const GameBoard = ({
   const [isDragging, setIsDragging] = useState(false);
   const [bonusWave, setBonusWave] = useState(false);
 
-  const { themeTemplate } = useTemplateTheme();
-
   useEffect(() => {
     setIsTxProcessing(false);
   }, [initialGrid]);
@@ -64,8 +62,6 @@ const GameBoard = ({
     if (isAnimating || isTxProcessing) return;
     initializeGrid(initialGrid);
   }, [initialGrid, isAnimating, isTxProcessing]);
-
-  const isSmallScreen = useMediaQuery({ query: "(min-width: 640px)" });
 
   const printGrid = (grid: CellType[][]) => {
     for (const row of grid) {
@@ -333,11 +329,7 @@ const GameBoard = ({
     return false;
   };
 
-  function startDragging(
-    rowIndex: number,
-    colIndex: number,
-    e: React.MouseEvent,
-  ) {
+  function startDragging(rowIndex: number, colIndex: number, e: any) {
     if (isAnimating) return;
     const piece = PIECES.find((p) => p.id === grid[rowIndex][colIndex].pieceId);
     if (!piece) return;
@@ -357,7 +349,8 @@ const GameBoard = ({
     const startX = gridRect ? gridRect.left + startCol * cellWidth : 0;
 
     // Calculez le décalage entre le point de clic et le début de la pièce
-    const clickOffset = e.clientX - startX;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clickOffset = clientX - startX;
 
     setDraggingPiece({
       row: rowIndex,
@@ -368,6 +361,59 @@ const GameBoard = ({
     });
     setIsDragging(true);
   }
+
+  const handleTouchMove = useCallback(
+    (e: TouchEvent) => {
+      if (isAnimating) return;
+      if (isTxProcessing) return;
+
+      if (!isDragging || !draggingPiece || !gridRef.current) return;
+      const gridRect = gridRef.current.getBoundingClientRect();
+      const cellWidth = gridRect.width / cols;
+      const piece = PIECES.find(
+        (p) => p.id === grid[draggingPiece.row][draggingPiece.col].pieceId,
+      );
+      if (!piece) return;
+
+      let newX = e.touches[0].clientX - draggingPiece.clickOffset;
+      const totalDrag = newX - draggingPiece.startX;
+
+      // Calculez la nouvelle colonne
+      let newCol = Math.round(draggingPiece.col + totalDrag / cellWidth);
+
+      // Vérifiez les limites
+      newCol = Math.max(0, Math.min(cols - piece.width, newCol));
+
+      // Vérifiez les collisions sur tout le chemin
+      if (
+        !checkCollision(draggingPiece.row, draggingPiece.col, newCol, piece)
+      ) {
+        // Si pas de collision, mettez à jour la position
+        newX = draggingPiece.startX + (newCol - draggingPiece.col) * cellWidth;
+        setDraggingPiece({ ...draggingPiece, currentX: newX });
+      } else {
+        // En cas de collision, trouvez la position valide la plus proche
+        let validCol = draggingPiece.col;
+        const direction = newCol > draggingPiece.col ? 1 : -1;
+        while (
+          validCol !== newCol &&
+          !checkCollision(
+            draggingPiece.row,
+            draggingPiece.col,
+            validCol + direction,
+            piece,
+          )
+        ) {
+          validCol += direction;
+        }
+
+        newX =
+          draggingPiece.startX + (validCol - draggingPiece.col) * cellWidth;
+        setDraggingPiece({ ...draggingPiece, currentX: newX });
+      }
+    },
+    [isDragging, draggingPiece, grid, cols],
+  );
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
@@ -421,6 +467,73 @@ const GameBoard = ({
     },
     [isDragging, draggingPiece, grid, cols],
   );
+
+  const handleMouseEnd = useCallback(() => {
+    if (isAnimating) return;
+
+    if (!isDragging || !draggingPiece || !gridRef.current) return;
+
+    const gridRect = gridRef.current.getBoundingClientRect();
+    const cellWidth = gridRect.width / cols;
+    const totalDrag = draggingPiece.currentX - draggingPiece.startX;
+    const draggedCells = Math.round(totalDrag / cellWidth);
+
+    const newCol = Math.max(
+      0,
+      Math.min(cols - 1, draggingPiece.col + draggedCells),
+    );
+
+    const newGrid = [...grid];
+
+    const piece = PIECES.find(
+      (p) => p.id === grid[draggingPiece.row][draggingPiece.col].pieceId,
+    );
+    if (
+      piece &&
+      !checkCollision(draggingPiece.row, draggingPiece.col, newCol, piece)
+    ) {
+      // Effacer l'ancienne position
+      for (let i = 0; i < piece.width; i++) {
+        const oldCol = draggingPiece.col + i;
+        if (oldCol < cols) {
+          newGrid[draggingPiece.row][oldCol] = {
+            id: `${draggingPiece.row}-${oldCol}`,
+            pieceId: null,
+            isStart: false,
+            pieceIndex: null,
+          };
+        }
+      }
+
+      // Placer à la nouvelle position
+      const finalCol = Math.min(newCol, cols - piece.width);
+      placePiece(newGrid, draggingPiece.row, finalCol, piece);
+      setGrid(newGrid);
+      if (draggingPiece.col !== finalCol) {
+        loopGravityAndClear();
+      }
+
+      // Send move tx
+      handleMove(rows - draggingPiece.row - 1, draggingPiece.col, finalCol);
+    }
+
+    setDraggingPiece(null);
+    setIsDragging(false);
+  }, [isDragging, draggingPiece, grid, cols]);
+
+  useEffect(() => {
+    const gridElement = gridRef.current;
+
+    if (gridElement) {
+      gridElement.addEventListener("touchmove", handleTouchMove);
+      gridElement.addEventListener("touchend", handleMouseEnd);
+
+      return () => {
+        gridElement.removeEventListener("touchmove", handleTouchMove);
+        gridElement.removeEventListener("touchend", handleMouseEnd);
+      };
+    }
+  }, [handleTouchMove, handleMouseEnd]);
 
   const handleMove = useCallback(
     async (rowIndex: number, startIndex: number, finalOndex: number) => {
