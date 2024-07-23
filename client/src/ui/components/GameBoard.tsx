@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
 import GetElementStyle from "../theme/GetElementStyle";
+import useTemplateTheme from "@/hooks/useTemplateTheme";
 
 interface Piece {
   id: number;
@@ -65,6 +66,8 @@ const GameBoard = ({
 
   const [isDragging, setIsDragging] = useState(false);
   const [bonusWave, setBonusWave] = useState(false);
+
+  const { themeTemplate } = useTemplateTheme();
 
   useEffect(() => {
     setIsTxProcessingd(false);
@@ -632,7 +635,7 @@ const GameBoard = ({
           key={cell.id}
           className={`bg-secondary flex items-center justify-center cursor-move absolute ${isLineComplete ? "wiggle-blink" : ""}`}
           style={{
-            ...GetElementStyle(piece.element),
+            ...GetElementStyle(piece.element, themeTemplate),
             width: `${piece.width * cellWidth}px`,
             height: `${cellHeight}px`,
             left: `${colIndex * cellWidth - offsetGap}px`,

@@ -1,7 +1,11 @@
 import ImageAssets from "@/ui/theme/ImageAssets";
 import BonusButton from "../components/BonusBouton";
+import useTemplateTheme from "@/hooks/useTemplateTheme";
 
 export const GameBonus = ({ onBonusWaveClick }: { onBonusWaveClick: any }) => {
+  const { themeTemplate } = useTemplateTheme();
+  const imgAssets = ImageAssets(themeTemplate);
+
   const handleClickWave = () => {
     console.log("Ready to be binded");
     onBonusWaveClick();
@@ -18,16 +22,13 @@ export const GameBonus = ({ onBonusWaveClick }: { onBonusWaveClick: any }) => {
   return (
     <div className="grid grid-cols-3 md:gap-3 sm:gap-4 gap-6 w-60 pb-2">
       <div className="flex flex-col items-start">
-        <BonusButton
-          onClick={handleClickHammer}
-          urlImage={ImageAssets.hammer}
-        />
+        <BonusButton onClick={handleClickHammer} urlImage={imgAssets.hammer} />
       </div>
       <div className="flex flex-col items-center">
-        <BonusButton onClick={handleClickTiki} urlImage={ImageAssets.tiki} />
+        <BonusButton onClick={handleClickTiki} urlImage={imgAssets.tiki} />
       </div>
       <div className="flex flex-col w-full items-end ">
-        <BonusButton onClick={handleClickWave} urlImage={ImageAssets.wave} />
+        <BonusButton onClick={handleClickWave} urlImage={imgAssets.wave} />
       </div>
     </div>
   );

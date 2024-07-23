@@ -1,5 +1,6 @@
 import { Card } from "@/ui/elements/card";
-import BlockAssets from "@/ui/theme/BlocksAssets";
+import ImageBlock from "../theme/ImageBlock";
+import useTemplateTheme from "@/hooks/useTemplateTheme";
 
 interface Block {
   number: number;
@@ -51,6 +52,9 @@ const createBlocks = ({ numbers }: { numbers: number[] }): BlocksResult => {
 const NextLine = ({ numbers }: { numbers: number[] }) => {
   const result = createBlocks({ numbers });
 
+  const { themeTemplate } = useTemplateTheme();
+  const imgsBlock = ImageBlock(themeTemplate);
+
   return (
     <Card className="px-4 bg-secondary p-4">
       <div className="bg-slate-800 relative p-1">
@@ -70,7 +74,7 @@ const NextLine = ({ numbers }: { numbers: number[] }) => {
                 <div
                   className="absolute inset-0 flex items-center justify-center"
                   style={{
-                    backgroundImage: `url(${BlockAssets[block.number]})`,
+                    backgroundImage: `url(${imgsBlock[block.number]})`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",

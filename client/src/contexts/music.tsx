@@ -6,29 +6,13 @@ import React, {
   useCallback,
 } from "react";
 import useSound from "use-sound";
-
 import SoundAssets from "@/ui/theme/SoundAssets";
+import useTemplateTheme from "@/hooks/useTemplateTheme";
 
 type Track = {
   name: string;
   url: string;
 };
-
-const menuTracks: Track[] = [
-  { name: "Intro", url: SoundAssets.jungle2 },
-  { name: "Intro", url: SoundAssets.jungle2 },
-];
-
-const playTracks: Track[] = [
-  { name: "Play", url: SoundAssets.jungle3 },
-  { name: "Play", url: SoundAssets.jungle3 },
-];
-
-const effectTracks: Track[] = [
-  { name: "Start", url: SoundAssets.start },
-  { name: "Start", url: SoundAssets.start },
-  { name: "Over", url: SoundAssets.over },
-];
 
 const MusicPlayerContext = createContext({
   playTheme: () => {},
@@ -50,6 +34,25 @@ export const MusicPlayerProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
+  const { themeTemplate } = useTemplateTheme();
+  const soundAssets = SoundAssets(themeTemplate);
+
+  const menuTracks: Track[] = [
+    { name: "Intro", url: soundAssets.jungle2 },
+    { name: "Intro", url: soundAssets.jungle2 },
+  ];
+
+  const playTracks: Track[] = [
+    { name: "Play", url: soundAssets.jungle3 },
+    { name: "Play", url: soundAssets.jungle3 },
+  ];
+
+  const effectTracks: Track[] = [
+    { name: "Start", url: soundAssets.start },
+    { name: "Start", url: soundAssets.start },
+    { name: "Over", url: soundAssets.over },
+  ];
+
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [currentEffectIndex, setCurrentEffectIndex] = useState(0);
   const [tracks, setTracks] = useState(menuTracks);
