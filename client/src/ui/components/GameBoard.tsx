@@ -362,117 +362,54 @@ const GameBoard = ({
     setIsDragging(true);
   }
 
-  const handleTouchMove = useCallback(
-    (e: TouchEvent) => {
-      if (isAnimating) return;
-      if (isTxProcessing) return;
+  function computeXAndDrag(e: any) {
+    if (gridRef.current === null || draggingPiece === null) return;
+    const gridRect = gridRef.current.getBoundingClientRect();
+    const cellWidth = gridRect.width / cols;
+    const piece = PIECES.find(
+      (p) => p.id === grid[draggingPiece?.row][draggingPiece.col].pieceId,
+    );
+    if (!piece) return;
 
-      if (!isDragging || !draggingPiece || !gridRef.current) return;
-      const gridRect = gridRef.current.getBoundingClientRect();
-      const cellWidth = gridRect.width / cols;
-      const piece = PIECES.find(
-        (p) => p.id === grid[draggingPiece.row][draggingPiece.col].pieceId,
-      );
-      if (!piece) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    let newX = clientX - draggingPiece.clickOffset;
 
-      let newX = e.touches[0].clientX - draggingPiece.clickOffset;
-      const totalDrag = newX - draggingPiece.startX;
+    const totalDrag = newX - draggingPiece.startX;
 
-      // Calculez la nouvelle colonne
-      let newCol = Math.round(draggingPiece.col + totalDrag / cellWidth);
+    // Calculez la nouvelle colonne
+    let newCol = Math.round(draggingPiece.col + totalDrag / cellWidth);
 
-      // Vérifiez les limites
-      newCol = Math.max(0, Math.min(cols - piece.width, newCol));
+    // Vérifiez les limites
+    newCol = Math.max(0, Math.min(cols - piece.width, newCol));
 
-      // Vérifiez les collisions sur tout le chemin
-      if (
-        !checkCollision(draggingPiece.row, draggingPiece.col, newCol, piece)
+    // Vérifiez les collisions sur tout le chemin
+    if (!checkCollision(draggingPiece.row, draggingPiece.col, newCol, piece)) {
+      // Si pas de collision, mettez à jour la position
+      newX = draggingPiece.startX + (newCol - draggingPiece.col) * cellWidth;
+      setDraggingPiece({ ...draggingPiece, currentX: newX });
+    } else {
+      // En cas de collision, trouvez la position valide la plus proche
+      let validCol = draggingPiece.col;
+      const direction = newCol > draggingPiece.col ? 1 : -1;
+      while (
+        validCol !== newCol &&
+        !checkCollision(
+          draggingPiece.row,
+          draggingPiece.col,
+          validCol + direction,
+          piece,
+        )
       ) {
-        // Si pas de collision, mettez à jour la position
-        newX = draggingPiece.startX + (newCol - draggingPiece.col) * cellWidth;
-        setDraggingPiece({ ...draggingPiece, currentX: newX });
-      } else {
-        // En cas de collision, trouvez la position valide la plus proche
-        let validCol = draggingPiece.col;
-        const direction = newCol > draggingPiece.col ? 1 : -1;
-        while (
-          validCol !== newCol &&
-          !checkCollision(
-            draggingPiece.row,
-            draggingPiece.col,
-            validCol + direction,
-            piece,
-          )
-        ) {
-          validCol += direction;
-        }
-
-        newX =
-          draggingPiece.startX + (validCol - draggingPiece.col) * cellWidth;
-        setDraggingPiece({ ...draggingPiece, currentX: newX });
+        validCol += direction;
       }
-    },
-    [isDragging, draggingPiece, grid, cols],
-  );
 
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      if (isAnimating) return;
-      if (isTxProcessing) return;
+      newX = draggingPiece.startX + (validCol - draggingPiece.col) * cellWidth;
+      setDraggingPiece({ ...draggingPiece, currentX: newX });
+    }
+  }
 
-      if (!isDragging || !draggingPiece || !gridRef.current) return;
-      const gridRect = gridRef.current.getBoundingClientRect();
-      const cellWidth = gridRect.width / cols;
-      const piece = PIECES.find(
-        (p) => p.id === grid[draggingPiece.row][draggingPiece.col].pieceId,
-      );
-      if (!piece) return;
-
-      let newX = e.clientX - draggingPiece.clickOffset;
-      const totalDrag = newX - draggingPiece.startX;
-
-      // Calculez la nouvelle colonne
-      let newCol = Math.round(draggingPiece.col + totalDrag / cellWidth);
-
-      // Vérifiez les limites
-      newCol = Math.max(0, Math.min(cols - piece.width, newCol));
-
-      // Vérifiez les collisions sur tout le chemin
-      if (
-        !checkCollision(draggingPiece.row, draggingPiece.col, newCol, piece)
-      ) {
-        // Si pas de collision, mettez à jour la position
-        newX = draggingPiece.startX + (newCol - draggingPiece.col) * cellWidth;
-        setDraggingPiece({ ...draggingPiece, currentX: newX });
-      } else {
-        // En cas de collision, trouvez la position valide la plus proche
-        let validCol = draggingPiece.col;
-        const direction = newCol > draggingPiece.col ? 1 : -1;
-        while (
-          validCol !== newCol &&
-          !checkCollision(
-            draggingPiece.row,
-            draggingPiece.col,
-            validCol + direction,
-            piece,
-          )
-        ) {
-          validCol += direction;
-        }
-
-        newX =
-          draggingPiece.startX + (validCol - draggingPiece.col) * cellWidth;
-        setDraggingPiece({ ...draggingPiece, currentX: newX });
-      }
-    },
-    [isDragging, draggingPiece, grid, cols],
-  );
-
-  const handleMouseEnd = useCallback(() => {
-    if (isAnimating) return;
-
-    if (!isDragging || !draggingPiece || !gridRef.current) return;
-
+  function setPieceToNewPositionAndTx() {
+    if (gridRef.current === null || draggingPiece === null) return;
     const gridRect = gridRef.current.getBoundingClientRect();
     const cellWidth = gridRect.width / cols;
     const totalDrag = draggingPiece.currentX - draggingPiece.startX;
@@ -519,6 +456,34 @@ const GameBoard = ({
 
     setDraggingPiece(null);
     setIsDragging(false);
+  }
+
+  const handleTouchMove = useCallback(
+    (e: TouchEvent) => {
+      if (isAnimating) return;
+      if (isTxProcessing) return;
+      if (!isDragging || !draggingPiece || !gridRef.current) return;
+
+      computeXAndDrag(e);
+    },
+    [isDragging, draggingPiece, grid, cols],
+  );
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (isAnimating) return;
+      if (isTxProcessing) return;
+      if (!isDragging || !draggingPiece || !gridRef.current) return;
+      computeXAndDrag(e);
+    },
+    [isDragging, draggingPiece, grid, cols],
+  );
+
+  const handleMouseEnd = useCallback(() => {
+    if (isAnimating) return;
+    if (!isDragging || !draggingPiece || !gridRef.current) return;
+
+    setPieceToNewPositionAndTx();
   }, [isDragging, draggingPiece, grid, cols]);
 
   useEffect(() => {
@@ -558,55 +523,9 @@ const GameBoard = ({
 
   const handleMouseUp = useCallback(() => {
     if (isAnimating) return;
-
     if (!isDragging || !draggingPiece || !gridRef.current) return;
 
-    const gridRect = gridRef.current.getBoundingClientRect();
-    const cellWidth = gridRect.width / cols;
-    const totalDrag = draggingPiece.currentX - draggingPiece.startX;
-    const draggedCells = Math.round(totalDrag / cellWidth);
-
-    const newCol = Math.max(
-      0,
-      Math.min(cols - 1, draggingPiece.col + draggedCells),
-    );
-
-    const newGrid = [...grid];
-
-    const piece = PIECES.find(
-      (p) => p.id === grid[draggingPiece.row][draggingPiece.col].pieceId,
-    );
-    if (
-      piece &&
-      !checkCollision(draggingPiece.row, draggingPiece.col, newCol, piece)
-    ) {
-      // Effacer l'ancienne position
-      for (let i = 0; i < piece.width; i++) {
-        const oldCol = draggingPiece.col + i;
-        if (oldCol < cols) {
-          newGrid[draggingPiece.row][oldCol] = {
-            id: `${draggingPiece.row}-${oldCol}`,
-            pieceId: null,
-            isStart: false,
-            pieceIndex: null,
-          };
-        }
-      }
-
-      // Placer à la nouvelle position
-      const finalCol = Math.min(newCol, cols - piece.width);
-      placePiece(newGrid, draggingPiece.row, finalCol, piece);
-      setGrid(newGrid);
-      if (draggingPiece.col !== finalCol) {
-        loopGravityAndClear();
-      }
-
-      // Send move tx
-      handleMove(rows - draggingPiece.row - 1, draggingPiece.col, finalCol);
-    }
-
-    setDraggingPiece(null);
-    setIsDragging(false);
+    setPieceToNewPositionAndTx();
   }, [isDragging, draggingPiece, grid, cols]);
 
   useEffect(() => {
