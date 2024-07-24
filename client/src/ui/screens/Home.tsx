@@ -19,6 +19,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import useTemplateTheme from "@/hooks/useTemplateTheme";
 
+interface position {
+  x: number;
+  y: number;
+}
+
 export const Home = () => {
   const {
     account: { account },
@@ -68,9 +73,9 @@ export const Home = () => {
     ];
 
     // Fonction pour calculer le bounding box d'une pièce
-    const getBoundingBox = (positions: any) => {
-      const xs = positions.map((pos: any) => pos.x);
-      const ys = positions.map((pos: any) => pos.y);
+    const getBoundingBox = (positions: position[]) => {
+      const xs = positions.map((pos: position) => pos.x);
+      const ys = positions.map((pos: position) => pos.y);
       const minX = Math.min(...xs);
       const maxX = Math.max(...xs);
       const minY = Math.min(...ys);
