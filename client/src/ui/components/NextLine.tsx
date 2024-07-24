@@ -78,7 +78,7 @@ const NextLine = ({ numbers }: { numbers: number[] }) => {
                   className="absolute inset-0 flex items-center justify-center"
                   style={{
                     backgroundImage: `url(${imgsBlock[block.number]})`,
-                    backgroundSize: "cover",
+                    backgroundSize: "100% 100%",
                     backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",
                   }}

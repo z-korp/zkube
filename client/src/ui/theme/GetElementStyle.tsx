@@ -7,28 +7,28 @@ const getElementStyle = (element: string, theme: string) => {
     case "stone1":
       return {
         backgroundImage: `url(${imgBlock[1]})`,
-        backgroundSize: "cover",
+        backgroundSize: "100% 100%",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
       };
     case "stone2":
       return {
         backgroundImage: `url(${imgBlock[2]})`,
-        backgroundSize: "cover",
+        backgroundSize: "100% 100%",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
       };
     case "stone3":
       return {
         backgroundImage: `url(${imgBlock[3]})`,
-        backgroundSize: "cover",
+        backgroundSize: "100% 100%",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
       };
     case "stone4":
       return {
         backgroundImage: `url(${imgBlock[4]})`,
-        backgroundSize: "cover",
+        backgroundSize: "100% 100%",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
       };
