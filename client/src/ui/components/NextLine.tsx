@@ -1,6 +1,7 @@
 import { Card } from "@/ui/elements/card";
 import ImageBlock from "../theme/ImageBlock";
 import useTemplateTheme from "@/hooks/useTemplateTheme";
+import { useMediaQuery } from "react-responsive";
 
 interface Block {
   number: number;
@@ -52,6 +53,8 @@ const createBlocks = ({ numbers }: { numbers: number[] }): BlocksResult => {
 const NextLine = ({ numbers }: { numbers: number[] }) => {
   const result = createBlocks({ numbers });
 
+  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
+
   const { themeTemplate } = useTemplateTheme();
   const imgsBlock: { [key: number]: string } = ImageBlock(themeTemplate);
 
@@ -59,7 +62,7 @@ const NextLine = ({ numbers }: { numbers: number[] }) => {
     <Card className="px-4 bg-secondary p-4">
       <div className="bg-slate-800 relative p-1">
         <div
-          className="border-4 border-slate-800 grid w-[450px] gap-1"
+          className={`border-4 border-slate-800 grid gap-1 ${isMdOrLarger ? "w-[413px]" : "w-[300px]"}`}
           style={{
             gridTemplateColumns: "repeat(8, 1fr)",
           }}
@@ -67,7 +70,7 @@ const NextLine = ({ numbers }: { numbers: number[] }) => {
           {result.blocks.map((block, blockIndex) => (
             <div
               key={`block-${blockIndex}`}
-              className="h-10 sm:h-12 bg-secondary relative"
+              className="h-9 sm:h-12 bg-secondary relative"
               style={{ gridColumn: `span ${block.count}` }}
             >
               {block.number !== 0 && (

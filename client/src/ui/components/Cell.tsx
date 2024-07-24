@@ -59,18 +59,20 @@ const Cell: React.FC<CellProps> = ({
     const gridRect = gridRef.current?.getBoundingClientRect();
     const cellWidth = gridRect ? gridRect.width / cols : 0;
     const cellHeight = gridRect ? gridRect.height / rows : 0;
+    const offsetGapWidth = isSmallScreen ? 3 : 5;
+    const offsetGapHeight = isSmallScreen ? 4 : 4;
+    const widthPiece = isSmallScreen ? 48 : 32;
 
-    const offsetGap = isSmallScreen ? 4 : 2;
     return (
       <div
         key={cell.id}
         className={`bg-secondary flex items-center justify-center cursor-move absolute ${isLineComplete ? "wiggle-blink" : ""}  ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"} `}
         style={{
           ...GetElementStyle(piece.element, themeTemplate),
-          width: `${piece.width * cellWidth}px`,
-          height: `${cellHeight}px`,
-          left: `${colIndex * cellWidth - offsetGap}px`,
-          top: `${rowIndex * cellHeight - offsetGap}px`,
+          width: `${piece.width * widthPiece + (piece.width - 1) * offsetGapWidth + offsetGapHeight}px`,
+          height: `${widthPiece}px`,
+          left: `${colIndex * widthPiece + colIndex * offsetGapWidth - offsetGapHeight / 2}px`,
+          top: `${rowIndex * widthPiece + rowIndex * offsetGapHeight}px`,
           transform: `translateX(${dragOffset}px)`,
           transition: isDragging ? "none" : "transform 0.3s ease-out",
           zIndex: isDragging ? 1000 : 500,

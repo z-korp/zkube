@@ -6,6 +6,7 @@ import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
 import { Piece, Cell as CellType } from "@/types/types";
 import Cell from "./Cell";
+import { useMediaQuery } from "react-responsive";
 
 const PIECES: Piece[] = [
   { id: 1, width: 1, element: "stone1" },
@@ -51,6 +52,8 @@ const GameBoard = ({
 
   const [isDragging, setIsDragging] = useState(false);
   const [bonusWave, setBonusWave] = useState(false);
+
+  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   useEffect(() => {
     setIsTxProcessing(false);
@@ -628,72 +631,70 @@ const GameBoard = ({
   };
 
   return (
-    <Card
-      className={`p-4 bg-secondary ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"}`}
-    >
-      <div className="mb-4 flex justify-start items-center">
-        <GameBonus onBonusWaveClick={handleBonusWaveClick} />
-        <div className="grow text-4xl flex gap-2 justify-end">
-          {score}
-          <FontAwesomeIcon icon={faStar} className="text-yellow-500 ml-2" />
-        </div>
-        <div className="grow text-4xl flex gap-2 justify-end">
-          {combo}
-          <FontAwesomeIcon icon={faKhanda} className="text-slate-500 ml-2" />
-        </div>
-      </div>
-      <div className="bg-slate-800 relative px-1">
+    <>
+      <Card
+        className={`p-4 bg-secondary ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"}`}
+      >
         <div
-          ref={gridRef}
-          className="border-4 border-slate-800 grid grid-cols-8 grid-rows-10 sm:gap-2 gap-[2px]"
-          style={{ position: "relative" }}
+          className={`${isMdOrLarger ? "w-[413px]" : "w-[300px]"} mb-4 flex justify-start items-center`}
         >
-          {/* Grille de fond */}
-          {Array.from({ length: rows }).map((_, rowIndex) => (
-            <React.Fragment key={rowIndex}>
-              {Array.from({ length: cols }).map((_, colIndex) => (
-                <div
-                  key={`${rowIndex}-${colIndex}`}
-                  className="h-10 w-10 sm:h-12 sm:w-12 bg-secondary relative"
-                >
-                  {debugMode && (
-                    <div className="absolute top-0 left-0 bg-black text-white text-xs p-1">
-                      {rowIndex}, {colIndex}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </React.Fragment>
-          ))}
-
-          {/* Pièces placées */}
-          {grid.map((row, rowIndex) => {
-            const complete = isLineComplete(row);
-            return (
-              <React.Fragment key={`piece-${rowIndex}`}>
-                {row.map((cell, colIndex) => (
-                  <Cell
-                    key={cell.id}
-                    cell={cell}
-                    rowIndex={rowIndex}
-                    colIndex={colIndex}
-                    isLineComplete={complete}
-                    draggingPiece={draggingPiece}
-                    gridRef={gridRef}
-                    cols={cols}
-                    rows={rows}
-                    startDragging={startDragging}
-                    handleRowClick={handleRowClick}
-                    isTxProcessing={isTxProcessing}
-                    isAnimating={isAnimating}
-                  />
+          <GameBonus onBonusWaveClick={handleBonusWaveClick} />
+          <div className="grow text-4xl flex sm:gap-2 gap-[2px] justify-end">
+            {score}
+            <FontAwesomeIcon icon={faStar} className="text-yellow-500 ml-2" />
+          </div>
+          <div className="grow text-4xl flex sm:gap-2 gap-[2px] justify-end">
+            {combo}
+            <FontAwesomeIcon icon={faKhanda} className="text-slate-500 ml-2" />
+          </div>
+        </div>
+        <div className="bg-slate-800 relative">
+          <div
+            ref={gridRef}
+            className={`${isMdOrLarger ? "w-[412px]" : "w-[300px]"} border-4 border-slate-800 grid grid-cols-8 grid-rows-10 gap-1`}
+            style={{ position: "relative" }}
+          >
+            {/* Grille de fond */}
+            {Array.from({ length: rows }).map((_, rowIndex) => (
+              <React.Fragment key={rowIndex}>
+                {Array.from({ length: cols }).map((_, colIndex) => (
+                  <div
+                    key={`${rowIndex}-${colIndex}`}
+                    className="h-8 w-8 sm:w-12 sm:h-12 bg-secondary relative"
+                  ></div>
                 ))}
               </React.Fragment>
-            );
-          })}
+            ))}
+
+            {/* Pièces placées */}
+            {grid.map((row, rowIndex) => {
+              const complete = isLineComplete(row);
+              return (
+                <React.Fragment key={`piece-${rowIndex}`}>
+                  {row.map((cell, colIndex) => (
+                    <Cell
+                      key={cell.id}
+                      cell={cell}
+                      rowIndex={rowIndex}
+                      colIndex={colIndex}
+                      isLineComplete={complete}
+                      draggingPiece={draggingPiece}
+                      gridRef={gridRef}
+                      cols={cols}
+                      rows={rows}
+                      startDragging={startDragging}
+                      handleRowClick={handleRowClick}
+                      isTxProcessing={isTxProcessing}
+                      isAnimating={isAnimating}
+                    />
+                  ))}
+                </React.Fragment>
+              );
+            })}
+          </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </>
   );
 };
 
