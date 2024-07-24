@@ -60,9 +60,9 @@ const NextLine = ({ numbers }: { numbers: number[] }) => {
 
   return (
     <Card className="px-4 bg-secondary p-4">
-      <div className="bg-slate-800 relative p-1">
+      <div className="bg-slate-800 relative">
         <div
-          className={`border-4 border-slate-800 grid gap-1 ${isMdOrLarger ? "w-[413px]" : "w-[300px]"}`}
+          className={`border-4 border-slate-800 grid gap-1 ${isMdOrLarger ? "w-[412px]" : "w-[300px]"}`}
           style={{
             gridTemplateColumns: "repeat(8, 1fr)",
           }}
@@ -70,7 +70,7 @@ const NextLine = ({ numbers }: { numbers: number[] }) => {
           {result.blocks.map((block, blockIndex) => (
             <div
               key={`block-${blockIndex}`}
-              className="h-9 sm:h-12 bg-secondary relative"
+              className="h-8 sm:h-12 bg-secondary relative"
               style={{ gridColumn: `span ${block.count}` }}
             >
               {block.number !== 0 && (

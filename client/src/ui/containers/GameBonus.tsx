@@ -20,7 +20,7 @@ export const GameBonus = ({ onBonusWaveClick }: { onBonusWaveClick: any }) => {
   };
 
   return (
-    <div className="grid grid-cols-3 md:gap-3 sm:gap-4 gap-6 w-60 pb-2">
+    <div className="grid grid-cols-3 gap-2 px-4 pb-2">
       <div className="flex flex-col items-start">
         <BonusButton onClick={handleClickHammer} urlImage={imgAssets.hammer} />
       </div>

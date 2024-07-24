@@ -639,11 +639,15 @@ const GameBoard = ({
           className={`${isMdOrLarger ? "w-[413px]" : "w-[300px]"} mb-4 flex justify-start items-center`}
         >
           <GameBonus onBonusWaveClick={handleBonusWaveClick} />
-          <div className="grow text-4xl flex sm:gap-2 gap-[2px] justify-end">
+          <div
+            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end mx-2`}
+          >
             {score}
             <FontAwesomeIcon icon={faStar} className="text-yellow-500 ml-2" />
           </div>
-          <div className="grow text-4xl flex sm:gap-2 gap-[2px] justify-end">
+          <div
+            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end mx-2`}
+          >
             {combo}
             <FontAwesomeIcon icon={faKhanda} className="text-slate-500 ml-2" />
           </div>
