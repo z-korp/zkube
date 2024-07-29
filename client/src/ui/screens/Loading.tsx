@@ -1,6 +1,6 @@
-import useTemplateTheme from "@/hooks/useTemplateTheme";
 import { Button } from "@/ui/elements/button";
 import ImageAssets from "@/ui/theme/ImageAssets";
+import { useTheme } from "@/ui/elements/theme-provider";
 
 export const Loading = ({
   enter,
@@ -10,7 +10,7 @@ export const Loading = ({
   setEnter: (state: boolean) => void;
 }) => {
   //const { theme }: { theme: string } = useTheme() as { theme: string };
-  const { themeTemplate } = useTemplateTheme();
+  const { themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
 
   return (

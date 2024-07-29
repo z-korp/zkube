@@ -1,7 +1,7 @@
 import React from "react";
 import { Piece, Cell as CellType } from "@/types/types";
 import GetElementStyle from "../theme/GetElementStyle";
-import useTemplateTheme from "@/hooks/useTemplateTheme";
+import { useTheme } from "@/ui/elements/theme-provider";
 import { useMediaQuery } from "react-responsive";
 
 const PIECES: Piece[] = [
@@ -45,7 +45,7 @@ const Cell: React.FC<CellProps> = ({
   handleRowClick,
 }) => {
   const piece = PIECES.find((p) => p.id === cell.pieceId);
-  const { themeTemplate } = useTemplateTheme();
+  const { themeTemplate } = useTheme();
   const isSmallScreen = useMediaQuery({ query: "(min-width: 640px)" });
 
   if (cell.isStart && piece) {

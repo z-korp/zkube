@@ -3,7 +3,7 @@ import { Create } from "../actions/Create";
 import { Start } from "../actions/Start";
 import GameBoard from "../components/GameBoard";
 import BackGroundBoard from "../components/BackgroundBoard";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 import ImageAssets from "@/ui/theme/ImageAssets";
@@ -17,7 +17,6 @@ import { Surrender } from "../actions/Surrender";
 import { Content as Leaderboard } from "../modules/Leaderboard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
-import useTemplateTheme from "@/hooks/useTemplateTheme";
 import GoogleFormEmbed from "../components/GoogleFormEmbed";
 
 interface position {
@@ -30,13 +29,10 @@ export const Home = () => {
     account: { account },
   } = useDojo();
   const { player } = usePlayer({ playerId: account.address });
-  console.log("account from game ==============>", account.address);
-  console.log("player from game ==============>", player);
   const { game } = useGame({ gameId: player?.game_id || "0x0" });
   const [animationDone, setAnimationDone] = useState(false);
 
-  const { theme } = useTheme();
-  const { themeTemplate } = useTemplateTheme();
+  const { theme, themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
 
   const testGrid = [
@@ -148,7 +144,6 @@ export const Home = () => {
   return (
     <div className="relative flex flex-col h-screen">
       <Header />
-
       <BackGroundBoard imageBackground={imgAssets.imageBackground}>
         <BackGroundBoard
           imageBackground={imageTotemTheme}
@@ -191,6 +186,19 @@ export const Home = () => {
                       </div>
                     </div>
                   </div>
+                  <motion.h1
+                    className="md:text-2xl  md:mt-4 mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg"
+                    initial={{ scale: 1 }}
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      repeatType: "reverse",
+                      ease: "easeInOut",
+                    }}
+                  >
+                    Give feedback and get a chance to win STRK
+                  </motion.h1>
                   <GoogleFormEmbed />
                 </>
               )}

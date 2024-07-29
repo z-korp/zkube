@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import useSound from "use-sound";
 import SoundAssets from "@/ui/theme/SoundAssets";
-import useTemplateTheme from "@/hooks/useTemplateTheme";
+import { useTheme } from "@/ui/elements/theme-provider";
 
 type Track = {
   name: string;
@@ -34,7 +34,7 @@ export const MusicPlayerProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const { themeTemplate } = useTemplateTheme();
+  const { themeTemplate } = useTheme();
   const soundAssets = SoundAssets(themeTemplate);
 
   const menuTracks: Track[] = [
@@ -108,7 +108,7 @@ export const MusicPlayerProvider = ({
   useEffect(() => {
     setTracks(theme ? menuTracks : playTracks);
     setCurrentTrackIndex(0);
-  }, [theme]);
+  }, [theme, themeTemplate]);
 
   return (
     <MusicPlayerContext.Provider

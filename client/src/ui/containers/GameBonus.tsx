@@ -1,9 +1,9 @@
 import ImageAssets from "@/ui/theme/ImageAssets";
 import BonusButton from "../components/BonusBouton";
-import useTemplateTheme from "@/hooks/useTemplateTheme";
+import { useTheme } from "@/ui/elements/theme-provider";
 
 export const GameBonus = ({ onBonusWaveClick }: { onBonusWaveClick: any }) => {
-  const { themeTemplate } = useTemplateTheme();
+  const { themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
 
   const handleClickWave = () => {

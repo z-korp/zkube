@@ -1,4 +1,4 @@
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Theater } from "lucide-react";
 
 import { Button } from "@/ui/elements/button";
 import {
@@ -11,7 +11,7 @@ import { useTheme } from "@/ui/elements/theme-provider";
 import { useMediaQuery } from "react-responsive";
 
 export function ModeToggle() {
-  const { setTheme } = useTheme();
+  const { setTheme, setThemeTemplate } = useTheme();
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 

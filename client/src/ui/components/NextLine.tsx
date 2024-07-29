@@ -1,6 +1,6 @@
 import { Card } from "@/ui/elements/card";
 import ImageBlock from "../theme/ImageBlock";
-import useTemplateTheme from "@/hooks/useTemplateTheme";
+import { useTheme } from "@/ui/elements/theme-provider";
 import { useMediaQuery } from "react-responsive";
 
 interface Block {
@@ -55,7 +55,8 @@ const NextLine = ({ numbers }: { numbers: number[] }) => {
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
-  const { themeTemplate } = useTemplateTheme();
+  const { themeTemplate } = useTheme();
+
   const imgsBlock: { [key: number]: string } = ImageBlock(themeTemplate);
 
   return (

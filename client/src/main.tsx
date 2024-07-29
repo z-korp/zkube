@@ -8,6 +8,7 @@ import { dojoConfig } from "../dojo.config.ts";
 import { Loading } from "@/ui/screens/Loading";
 import { MusicPlayerProvider } from "./contexts/music.tsx";
 import { SoundPlayerProvider } from "./contexts/sound.tsx";
+import { ThemeProvider } from "./ui/elements/theme-provider.tsx";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,
@@ -41,17 +42,19 @@ function Main() {
 
   return (
     <React.StrictMode>
-      <MusicPlayerProvider>
-        {!loading && setupResult ? (
-          <DojoProvider value={setupResult}>
-            <SoundPlayerProvider>
-              <App />
-            </SoundPlayerProvider>
-          </DojoProvider>
-        ) : (
-          <Loading enter={enter} setEnter={setEnter} />
-        )}
-      </MusicPlayerProvider>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <MusicPlayerProvider>
+          {!loading && setupResult ? (
+            <DojoProvider value={setupResult}>
+              <SoundPlayerProvider>
+                <App />
+              </SoundPlayerProvider>
+            </DojoProvider>
+          ) : (
+            <Loading enter={enter} setEnter={setEnter} />
+          )}
+        </MusicPlayerProvider>
+      </ThemeProvider>
     </React.StrictMode>
   );
 }
