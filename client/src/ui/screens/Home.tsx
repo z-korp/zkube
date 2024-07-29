@@ -162,7 +162,7 @@ export const Home = () => {
               <Start />
               {!game && (
                 <div className="absolute top translate-y-[100%] bg-slate-900 w-[500px] p-6 rounded-xl">
-                  {/*<Leaderboard />*/}
+                  <Leaderboard />
                 </div>
               )}
               {!!game && game.over && (
