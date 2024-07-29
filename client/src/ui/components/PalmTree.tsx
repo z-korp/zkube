@@ -27,7 +27,7 @@ const PalmTree: React.FC<PalmTreeProps> = ({
 
   return (
     <motion.div
-      className={`absolute top-0 ${classNamePos} w-2/3 h-full bg-cover bg-center`}
+      className={`absolute top-0 ${classNamePos} w-2/3 h-full bg-cover bg-center z-[1000]`}
       style={{ backgroundImage: `url(${image})` }}
       initial={initial}
       animate={animate}

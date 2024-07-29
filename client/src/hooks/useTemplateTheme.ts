@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 const useTemplateTheme = () => {
-  const [themeTemplate, setThemeTemplate] = useState("theme-1");
+  const [themeTemplate, setThemeTemplate] = useState("theme-2");
 
   return { themeTemplate };
 };

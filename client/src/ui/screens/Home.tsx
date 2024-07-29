@@ -18,6 +18,7 @@ import { Content as Leaderboard } from "../modules/Leaderboard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import useTemplateTheme from "@/hooks/useTemplateTheme";
+import GoogleFormEmbed from "../components/GoogleFormEmbed";
 
 interface position {
   x: number;
@@ -29,6 +30,8 @@ export const Home = () => {
     account: { account },
   } = useDojo();
   const { player } = usePlayer({ playerId: account.address });
+  console.log("account from game ==============>", account.address);
+  console.log("player from game ==============>", player);
   const { game } = useGame({ gameId: player?.game_id || "0x0" });
   const [animationDone, setAnimationDone] = useState(false);
 
@@ -164,29 +167,32 @@ export const Home = () => {
               <Start />
               {!game && (
                 <div className="absolute top translate-y-[100%] bg-slate-900 w-[500px] p-6 rounded-xl">
-                  <Leaderboard />
+                  {/*<Leaderboard />*/}
                 </div>
               )}
               {!!game && game.over && (
-                <div className="flex flex-col gap-4 absolute top translate-y-[325%]">
-                  <p className="text-4xl">Game Over</p>
-                  <div className="flex gap-4 justify-center items-center">
-                    <div className="grow text-4xl flex gap-2 justify-end">
-                      {game.score}
-                      <FontAwesomeIcon
-                        icon={faStar}
-                        className="text-yellow-500 ml-2"
-                      />
-                    </div>
-                    <div className="grow text-4xl flex gap-2 justify-end">
-                      {game.combo}
-                      <FontAwesomeIcon
-                        icon={faKhanda}
-                        className="text-slate-500 ml-2"
-                      />
+                <>
+                  <div className="flex flex-col gap-4 mt-8">
+                    <p className="text-4xl">Game Over</p>
+                    <div className="flex gap-4 justify-center items-center">
+                      <div className="grow text-4xl flex gap-2 justify-end">
+                        {game.score}
+                        <FontAwesomeIcon
+                          icon={faStar}
+                          className="text-yellow-500 ml-2"
+                        />
+                      </div>
+                      <div className="grow text-4xl flex gap-2 justify-end">
+                        {game.combo}
+                        <FontAwesomeIcon
+                          icon={faKhanda}
+                          className="text-slate-500 ml-2"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
+                  <GoogleFormEmbed />
+                </>
               )}
               {!!game && !game.over && (
                 <div className="relative w-full">

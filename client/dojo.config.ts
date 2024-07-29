@@ -31,5 +31,10 @@ export function dojoConfig() {
       VITE_PUBLIC_FEE_TOKEN_ADDRESS ||
       "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
     manifest: VITE_PUBLIC_SLOT ? slot : VITE_PUBLIC_SEPOLIA ? local : local,
+    stringverif: VITE_PUBLIC_SLOT
+      ? "slot"
+      : VITE_PUBLIC_SEPOLIA
+        ? "local"
+        : "local",
   };
 }
