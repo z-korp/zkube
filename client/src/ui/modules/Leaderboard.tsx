@@ -30,6 +30,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMediaQuery } from "react-responsive";
 
 const GAME_PER_PAGE = 5;
 const MAX_PAGE_COUNT = 5;
@@ -88,6 +89,8 @@ export const Content = () => {
 
   const disabled = useMemo(() => sorteds.length > 0, [sorteds]);
 
+  const isSmallScreen = useMediaQuery({ query: "(min-width: 640px)" });
+
   return (
     <>
       <Table className="text-md">
@@ -96,14 +99,14 @@ export const Content = () => {
         </TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-left w-[100px]">Rank</TableHead>
-            <TableHead className="text-center w-[100px]">
+            <TableHead className="text-left w-1/5">Rank</TableHead>
+            <TableHead className="text-center w-1/5">
               <FontAwesomeIcon icon={faStar} className="text-yellow-500" />
             </TableHead>
-            <TableHead className="text-center w-[100px]">
+            <TableHead className="text-center w-1/5">
               <FontAwesomeIcon icon={faKhanda} className="text-slate-500" />
             </TableHead>
-            <TableHead>Name</TableHead>
+            <TableHead className="w-3/5">Name</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -124,18 +127,19 @@ export const Content = () => {
               onClick={handlePrevious}
             />
           </PaginationItem>
-          {Array.from({ length: Math.min(pageCount, MAX_PAGE_COUNT) }).map(
-            (_, index) => (
-              <PaginationItem key={index}>
-                <PaginationLink
-                  isActive={index + 1 === page}
-                  onClick={() => setPage(index + 1)}
-                >
-                  {index + 1}
-                </PaginationLink>
-              </PaginationItem>
-            ),
-          )}
+          {isSmallScreen &&
+            Array.from({ length: Math.min(pageCount, MAX_PAGE_COUNT) }).map(
+              (_, index) => (
+                <PaginationItem key={index}>
+                  <PaginationLink
+                    isActive={index + 1 === page}
+                    onClick={() => setPage(index + 1)}
+                  >
+                    {index + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ),
+            )}
           <PaginationItem>
             <PaginationNext
               className={`${page === Math.min(pageCount, MAX_PAGE_COUNT) && "opacity-50"}`}

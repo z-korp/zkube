@@ -161,7 +161,7 @@ export const Home = () => {
               <Create />
               <Start />
               {!game && (
-                <div className="absolute top md:translate-y-[100%] translate-y-[40%] bg-slate-900 md:w-[500px] m-1 p-6 rounded-xl">
+                <div className="absolute top md:translate-y-[100%] translate-y-[40%] bg-slate-900 w-11/12 p-6 rounded-xl">
                   <Leaderboard />
                 </div>
               )}
