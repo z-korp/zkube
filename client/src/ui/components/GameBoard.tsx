@@ -170,6 +170,16 @@ const GameBoard = ({
       rowsCleared = await checkAndClearFullLines();
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
+
+    if (isGridEmpty(grid)) {
+      handleEmptyGrid();
+
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      await insertNewLine();
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
     setIsAnimating(false);
   };
 
@@ -522,6 +532,23 @@ const GameBoard = ({
     [account],
   );
 
+  const handleEmptyGrid = useCallback(async () => {
+    if (isAnimating) return;
+
+    setIsLoading(true);
+    setIsTxProcessing(true);
+    try {
+      await move({
+        account: account,
+        row_index: 0,
+        start_index: 0,
+        final_index: 0,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [account]);
+
   const handleMouseUp = useCallback(() => {
     if (isAnimating) return;
     if (!isDragging || !draggingPiece || !gridRef.current) return;
@@ -560,6 +587,16 @@ const GameBoard = ({
     setGrid(newGrid);
   };
 
+  const isGridEmpty = (grid: CellType[][]) => {
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        const value = grid[i][j];
+        if (value.pieceIndex != null) return false;
+      }
+    }
+    return true;
+  };
+
   const markStartingCells = (grid: CellType[][]) => {
     for (let i = 0; i < rows; i++) {
       let j = 0;
@@ -591,6 +628,10 @@ const GameBoard = ({
         }
       }
     }
+  };
+
+  const handleClickTest = () => {
+    console.log(isGridEmpty(grid));
   };
 
   const handleBonusWaveClick = () => {
