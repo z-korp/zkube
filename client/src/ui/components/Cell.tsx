@@ -28,6 +28,7 @@ interface CellProps {
     e: React.MouseEvent<HTMLDivElement, MouseEvent>,
   ) => void;
   handleRowClick: (rowIndex: number) => void;
+  handleCellClick: (rowIndex: number, colIndex: number) => void;
 }
 
 const Cell: React.FC<CellProps> = ({
@@ -43,6 +44,7 @@ const Cell: React.FC<CellProps> = ({
   isAnimating,
   startDragging,
   handleRowClick,
+  handleCellClick,
 }) => {
   const piece = PIECES.find((p) => p.id === cell.pieceId);
   const { themeTemplate } = useTheme();
@@ -89,7 +91,10 @@ const Cell: React.FC<CellProps> = ({
             e as React.MouseEvent<HTMLDivElement, MouseEvent>,
           )
         }
-        onClick={() => handleRowClick(rowIndex)}
+        onClick={() => {
+          handleRowClick(rowIndex);
+          handleCellClick(rowIndex, colIndex); 
+        }}
       ></div>
     );
   }
