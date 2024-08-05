@@ -35,6 +35,7 @@ const GameBoard = ({
 
   const [isLoading, setIsLoading] = useState(false);
   const [grid, setGrid] = useState<CellType[][]>([]);
+  const stateGridRef = useRef(grid);
   const [isTxProcessing, setIsTxProcessing] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -171,7 +172,7 @@ const GameBoard = ({
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
-    if (isGridEmpty(grid)) {
+    if (isGridEmpty(stateGridRef.current)) {
       handleEmptyGrid();
 
       await new Promise((resolve) => setTimeout(resolve, 200));
@@ -210,6 +211,7 @@ const GameBoard = ({
         }
 
         resolve(newGrid);
+        stateGridRef.current = newGrid;
         return newGrid;
       });
     });
