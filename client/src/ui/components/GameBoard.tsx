@@ -535,7 +535,7 @@ const GameBoard = ({
   );
 
   const handleEmptyGrid = useCallback(async () => {
-    if (isAnimating) return;
+    //if (isAnimating) return;
 
     setIsLoading(true);
     setIsTxProcessing(true);
