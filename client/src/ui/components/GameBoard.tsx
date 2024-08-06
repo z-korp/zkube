@@ -29,7 +29,7 @@ const GameBoard = ({
   const {
     account: { account },
     setup: {
-      systemCalls: { move },
+      systemCalls: { move, bonus },
     },
   } = useDojo();
 
@@ -655,6 +655,25 @@ const GameBoard = ({
       checkAndClearSelectedLine(rowIndex);
       setBonusWave(false);
       applyGravityLoop();
+
+      // Call TX for bonus wave
+      handleBonusWaveTx(rowIndex);
+    }
+  };
+
+  const handleBonusWaveTx = async (rowIndex: number) => {
+    setIsLoading(true);
+    setIsTxProcessing(true);
+    try {
+      await bonus({
+        account: account,
+        bonus: 2,  
+        row_index: rowIndex,
+        block_index: 1, 
+      });
+    } finally {
+      setIsLoading(false);
+      setIsTxProcessing(false);
     }
   };
 
@@ -663,11 +682,13 @@ const GameBoard = ({
       removePieceFromGridByCell(rowIndex, colIndex);
       setBonusTiki(false);
       applyGravityLoop();
+      //CALL TX
     }
     if (bonusHammer) {
       removePieceFromGrid(rowIndex, colIndex);
       setBonusHammer(false);
       applyGravityLoop();
+      //CALL TX
     }
 
   };
