@@ -172,6 +172,18 @@
       },
       {
         "type": "function",
+        "name": "insert_new_line",
+        "inputs": [
+          {
+            "name": "world",
+            "type": "dojo::world::IWorldDispatcher"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
         "name": "move",
         "inputs": [
           {

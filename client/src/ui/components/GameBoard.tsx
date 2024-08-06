@@ -7,6 +7,7 @@ import { GameBonus } from "../containers/GameBonus";
 import { Piece, Cell as CellType } from "@/types/types";
 import Cell from "./Cell";
 import { useMediaQuery } from "react-responsive";
+import { Button } from "../elements/button";
 
 const PIECES: Piece[] = [
   { id: 1, width: 1, element: "stone1" },
@@ -29,7 +30,7 @@ const GameBoard = ({
   const {
     account: { account },
     setup: {
-      systemCalls: { move },
+      systemCalls: { move, insert_new_line },
     },
   } = useDojo();
 
@@ -534,6 +535,18 @@ const GameBoard = ({
     [account],
   );
 
+  const handleNewLine = useCallback(async () => {
+    //if (isAnimating) return;
+
+    setIsLoading(true);
+    setIsTxProcessing(true);
+    try {
+      await insert_new_line({ account: account });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [account]);
+
   const handleEmptyGrid = useCallback(async () => {
     //if (isAnimating) return;
 
@@ -542,9 +555,9 @@ const GameBoard = ({
     try {
       await move({
         account: account,
-        row_index: 0,
-        start_index: 0,
-        final_index: 0,
+        row_index: 5,
+        start_index: 3,
+        final_index: 3,
       });
     } finally {
       setIsLoading(false);
@@ -675,6 +688,7 @@ const GameBoard = ({
 
   return (
     <>
+      <Button onClick={handleNewLine}>Test</Button>
       <Card
         className={`p-4 bg-secondary ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"}`}
       >

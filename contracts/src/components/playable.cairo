@@ -134,6 +134,34 @@ mod PlayableComponent {
             }
         }
 
+        fn insert_new_line(self: @ComponentState<TContractState>, world: IWorldDispatcher) {
+            // [Setup] Datastore
+            let store: Store = StoreImpl::new(world);
+
+            // [Check] Player exists
+            let caller = get_caller_address();
+            let mut player = store.player(caller.into());
+            player.assert_exists();
+
+            // [Check] Game exists and not over
+            let mut game = store.game(player.game_id);
+            game.assert_exists();
+            game.assert_not_over();
+
+            // [Effect] Perform new line
+            game.insert_new_line();
+
+            // [Effect] Update game
+            store.set_game(game);
+            
+            // [Effect] Update player if game is over
+            if game.over {
+                let (hammer, totem, wave) = game.assess_bonuses();
+                player.update(hammer, totem, wave);
+                store.set_player(player);
+            }
+        }
+
         fn move(
             self: @ComponentState<TContractState>,
             world: IWorldDispatcher,

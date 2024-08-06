@@ -111,6 +111,10 @@ impl GameImpl of GameTrait {
         (hammer, totem, wave)
     }
 
+    fn insert_new_line(ref self: Game){
+        self.setup_next();
+    }
+
     fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8) {
         // [Compute] Move direction and step counts
         let direction = final_index > start_index;
