@@ -139,6 +139,10 @@
             "type": "dojo::world::IWorldDispatcher"
           },
           {
+            "name": "difficulty",
+            "type": "core::integer::u8"
+          },
+          {
             "name": "proof",
             "type": "stark_vrf::ecvrf::Proof"
           },

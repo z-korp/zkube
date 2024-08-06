@@ -119,7 +119,7 @@ export function systems({
     );
   };
 
-  const surrender = async ({ account, ...props }: SystemTypes.Surrender) => {
+  const surrender = async ({ account, ...props }: SystemTypes.Signer) => {
     await handleTransaction(
       account,
       () => client.actions.surrender({ account, ...props }),

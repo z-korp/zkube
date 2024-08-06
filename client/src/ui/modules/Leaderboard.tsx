@@ -153,7 +153,7 @@ export const Content = () => {
 };
 
 export const Row = ({ rank, game }: { rank: number; game: Game }) => {
-  const { player } = usePlayer({ playerId: "0x" + game.player_id });
+  const { player } = usePlayer({ playerId: game.player_id });
 
   return (
     <TableRow>

@@ -7,7 +7,8 @@ edition = "2023_10"
 sierra-replace-ids = true
 
 [scripts]
-dev = "sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate plan && sozo --profile dev migrate apply"
+dev = "NAME=v0 && sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate plan --name $NAME && sozo --profile dev migrate apply --name $NAME "
+slot = "NAME=v0 && sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate plan --name $NAME && sozo --profile slot migrate apply --name $NAME"
 
 [dependencies]
 alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria", rev = "78b0d51" }

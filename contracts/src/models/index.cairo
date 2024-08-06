@@ -15,6 +15,7 @@ struct Player {
 struct Game {
     #[key]
     id: u32,
+    difficulty: u8,
     over: bool,
     score: u32,
     next_row: u32,

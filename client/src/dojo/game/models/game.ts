@@ -1,5 +1,6 @@
 import { ComponentValue } from "@dojoengine/recs";
 import { Packer } from "../helpers/packer";
+import { Difficulty } from "../types/difficulty";
 import {
   BLOCK_BIT_COUNT,
   ROW_BIT_COUNT,
@@ -19,6 +20,7 @@ export interface Row {
 
 export class Game {
   public id: string;
+  public difficulty: Difficulty;
   public over: boolean;
   public hammer: number;
   public wave: number;
@@ -35,6 +37,7 @@ export class Game {
 
   constructor(game: ComponentValue) {
     this.id = game.id;
+    this.difficulty = new Difficulty(game.difficulty);
     this.over = game.over ? true : false;
     this.next_row = Packer.sized_unpack(
       BigInt(game.next_row),

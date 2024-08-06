@@ -1,3 +1,4 @@
+use core::traits::Into;
 // Core imports
 
 use core::debug::PrintTrait;
@@ -20,7 +21,7 @@ use zkube::types::bonus::{Bonus, BonusTrait};
 
 // Constants
 
-const DIFFICULTY: Difficulty = Difficulty::Easy;
+const DEFAULT_DIFFICULTY: Difficulty = Difficulty::VeryEasy;
 
 // Errors
 
@@ -37,14 +38,16 @@ impl GameImpl of GameTrait {
     fn new(
         id: u32,
         player_id: felt252,
+        difficulty: Difficulty,
         seed: felt252,
         hammer_bonus: u8,
         wave_bonus: u8,
         totem_bonus: u8
     ) -> Game {
-        let (row, color) = Controller::create_line(seed, DIFFICULTY);
+        let (row, color) = Controller::create_line(seed, difficulty);
         Game {
             id,
+            difficulty: difficulty.into(),
             over: false,
             next_row: row,
             next_color: color,
@@ -85,7 +88,20 @@ impl GameImpl of GameTrait {
     #[inline(always)]
     fn setup_next(ref self: Game) {
         self.reseed();
-        let (row, color) = Controller::create_line(self.seed, DIFFICULTY);
+        // let mut difficulty = DEFAULT_DIFFICULTY;
+        // if (self.score > 10) {
+        //     difficulty = Difficulty::Easy;
+        // } else if (self.score > 20) {
+        //     difficulty = Difficulty::Medium;
+        // } else if (self.score > 30) {
+        //     difficulty = Difficulty::Hard;
+        // } else if (self.score > 40) {
+        //     difficulty = Difficulty::Expert;
+        // } else if (self.score > 50) {
+        //     difficulty = Difficulty::Master;
+        // }
+
+        let (row, color) = Controller::create_line(self.seed, self.difficulty.into());
         self.blocks = Controller::add_line(self.blocks, self.next_row);
         self.colors = Controller::add_line(self.colors, self.next_color);
         self.next_row = row;
@@ -192,6 +208,7 @@ impl ZeroableGame of core::Zeroable<Game> {
     fn zero() -> Game {
         Game {
             id: 0,
+            difficulty: 0,
             over: false,
             score: 0,
             next_row: 0,
@@ -256,6 +273,7 @@ mod tests {
     // Local imports
 
     use super::{Game, GameTrait, AssertTrait};
+    use zkube::types::difficulty::Difficulty;
 
     // Constants
 
@@ -266,7 +284,7 @@ mod tests {
     #[test]
     fn test_game_new() {
         // [Effect] Create game
-        let game = GameTrait::new(GAME_ID, PLAYER_ID, SEED, 0, 0, 0);
+        let game = GameTrait::new(GAME_ID, PLAYER_ID, Difficulty::Easy, SEED, 0, 0, 0);
         game.assert_exists();
         game.assert_not_over();
         // [Assert] Game seed

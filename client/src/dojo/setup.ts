@@ -2,7 +2,6 @@ import { getSyncEntities } from "@dojoengine/state";
 import * as torii from "@dojoengine/torii-client";
 import { models } from "./models.ts";
 import { systems } from "./systems.ts";
-
 import { defineContractComponents } from "./generated/contractModels";
 import { world } from "./world.ts";
 import { Config } from "../../dojo.config.ts";

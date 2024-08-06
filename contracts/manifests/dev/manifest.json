@@ -999,10 +999,10 @@
         ]
       }
     ],
-    "address": "0x22398e03adf49f1cecb0fbc45cb7e09cb3907de1aba4a321ef190266e5460e1",
-    "transaction_hash": "0x540bba05650d82438029d2358435bdf2b42232fd8e9ea0f6c9a09bf49ce131f",
-    "block_number": 3,
-    "seed": "zkube",
+    "address": "0x186696a4d2aebe47e032b5ec5c69ce96373b3bf97f147a2ac5fc2bd17ba5dc6",
+    "transaction_hash": "0x179d7e319c043c2167a4eed84ee9e1b3c71d392d7b9fb807c04f0324a61cde",
+    "block_number": 147,
+    "seed": "v1202",
     "metadata": {
       "profile_name": "dev",
       "rpc_url": "http://localhost:5050/"
@@ -1019,9 +1019,9 @@
   "contracts": [
     {
       "kind": "DojoContract",
-      "address": "0x37c4bfa511d77ff1299712ad4a608037255f35a4b5f44e230681e4fd744fcbd",
-      "class_hash": "0x6b6e6d72f82eafd55ef31513a0057d026dfdc2f4a1d7abdd908bc6d4b72a643",
-      "original_class_hash": "0x6b6e6d72f82eafd55ef31513a0057d026dfdc2f4a1d7abdd908bc6d4b72a643",
+      "address": "0x7086cd16b5398a5a8c7eb706a22b9e5225a4c88f2debd52c3331250e33c0ba0",
+      "class_hash": "0x4f04b1804c8d2e0f298ab10d8b9a7ee64aade852cd9a8407840597d3bb383ae",
+      "original_class_hash": "0x4f04b1804c8d2e0f298ab10d8b9a7ee64aade852cd9a8407840597d3bb383ae",
       "base_class_hash": "0x22f3e55b61d86c2ac5239fa3b3b8761f26b9a5c0b5f61ddbd5d756ced498b46",
       "abi": [
         {
@@ -1162,6 +1162,10 @@
                 {
                   "name": "world",
                   "type": "dojo::world::IWorldDispatcher"
+                },
+                {
+                  "name": "difficulty",
+                  "type": "core::integer::u8"
                 },
                 {
                   "name": "proof",
@@ -1346,6 +1350,11 @@
           "key": true
         },
         {
+          "name": "difficulty",
+          "type": "u8",
+          "key": false
+        },
+        {
           "name": "over",
           "type": "bool",
           "key": false
@@ -1406,8 +1415,8 @@
           "key": false
         }
       ],
-      "class_hash": "0x7f9ef38357da1be1090e5c94c8e3edd015252e1465b76bff44de696c17e722d",
-      "original_class_hash": "0x7f9ef38357da1be1090e5c94c8e3edd015252e1465b76bff44de696c17e722d",
+      "class_hash": "0x4bf2e070c7936a710afbc9a6e93288d9aa7d524ae7c3bb39e2d1a5ab0f08ad2",
+      "original_class_hash": "0x4bf2e070c7936a710afbc9a6e93288d9aa7d524ae7c3bb39e2d1a5ab0f08ad2",
       "abi": [
         {
           "type": "impl",
@@ -1753,6 +1762,10 @@
             {
               "name": "id",
               "type": "core::integer::u32"
+            },
+            {
+              "name": "difficulty",
+              "type": "core::integer::u8"
             },
             {
               "name": "over",
