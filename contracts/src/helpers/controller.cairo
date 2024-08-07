@@ -176,79 +176,72 @@ impl Controller of ControllerTrait {
             colors = colors * exp + color;
             size += block_size;
         };
-        println!("<<<<<<");
-        println!("Before: {}", blocks);
 
-        // Perform circular shift
-        let mut shift_rng: Dice = DiceTrait::new(10, seed); // Random shift between 0 and 9
-        let shift_amount = 3 * shift_rng.roll();
-        let total_bits = size * constants::BLOCK_BIT_COUNT.into();
+        // Shuffle because often the hole is at the end of the line
+        Self::shuffle_line(blocks, colors, seed)
+    }
 
-        blocks = Self::circular_shift_right(blocks, shift_amount, 24);
-        colors = Self::circular_shift_right(colors, shift_amount, 24);
+    /// Shuffle the line
+    /// # Arguments
+    /// * `blocks` - The row
+    /// * `colors` - The row
+    /// # Returns
+    /// The new row.
+    fn shuffle_line(blocks: u32, colors: u32, seed: felt252) -> (u32, u32) {
+        let mut shift_rng: Dice = DiceTrait::new(10, seed);
+        let shift_amount = constants::BLOCK_BIT_COUNT * shift_rng.roll();
 
-        println!("Middle: {}", blocks);
-
-        // Align blocks if necessary
-        blocks = Self::align_blocks(ref blocks, constants::BLOCK_BIT_COUNT, 24);
-        colors = Self::align_blocks(ref colors, constants::BLOCK_BIT_COUNT, 24);
-
-        println!("After: {}", blocks);
-        println!(">>>>>>");
-        // 001_010_010_010_010_010_010
-        // 010_010_010_000_001_010_010_010
+        let blocks = Self::circular_shift_right(blocks, shift_amount, constants::ROW_BIT_COUNT);
+        let colors = Self::circular_shift_right(colors, shift_amount, constants::ROW_BIT_COUNT);
 
         (blocks, colors)
     }
 
-    fn align_blocks(ref blocks: u32, block_bit_count: u8, row_bit_count: u8) -> u32 {
-        while !Self::are_block_aligned(blocks, block_bit_count) {
-            blocks = Self::circular_shift_right(blocks, block_bit_count, row_bit_count);
+    /// Align block while some are not aligned (eg cut in half).
+    /// # Arguments
+    /// * `blocks` - The row
+    /// # Returns
+    /// The new row.
+    fn align_blocks(ref blocks: u32) -> u32 {
+        while !Self::are_block_aligned(blocks) {
+            blocks =
+                Self::circular_shift_right(
+                    blocks, constants::BLOCK_BIT_COUNT, constants::ROW_BIT_COUNT
+                );
         };
         blocks
     }
 
-    fn bits_to_hold(mut number: u32) -> u8 {
-        if number == 0 {
-            return 1; // Special case: 0 needs 1 bit to represent
-        }
-
-        let mut bit_count: u8 = 0;
-        while number != 0 {
-            number = BitShift::shr(number, 1); // number /= 2;
-            bit_count += 1;
-        };
-
-        bit_count
-    }
-
-    fn circular_shift_right(value: u32, shift: u8, total_bits: u8) -> u32 {
-        println!("=====");
-        println!("value: {}", value);
-        println!("shift: {}", shift);
-        println!("total_bits: {}", total_bits);
+    /// Shift the bits to the right.
+    /// Bits shifted out are wrapped around.
+    /// # Arguments
+    /// * `bitmap` - The bitmap to shift
+    /// * `shift` - The shift amount.
+    /// * `total_bits` - The total bits.
+    /// # Returns
+    /// A bool indicating if the blocks are aligned.
+    fn circular_shift_right(bitmap: u32, shift: u8, total_bits: u8) -> u32 {
         let shift = shift % total_bits;
-        println!("Shift: {}", shift);
         let mask = BitShift::shl(1, total_bits.into()) - 1;
-        println!("Mask: {}", mask);
 
-        // Shift right
-        let right_shifted = BitShift::shr(value, shift.into());
-        println!("Right_shifted: {}", right_shifted);
+        let right_shifted = BitShift::shr(bitmap, shift.into());
 
         // Get the bits that were shifted out
         let wrapped_bits = BitShift::shl(
-            value & (BitShift::shl(1, shift.into()) - 1), (total_bits - shift).into()
+            bitmap & (BitShift::shl(1, shift.into()) - 1), (total_bits - shift).into()
         );
-        println!("wrapped_bits: {}", wrapped_bits);
 
         // Combine and mask
-        println!("Result: {}", (right_shifted | wrapped_bits) & mask);
-        println!("=====");
         (right_shifted | wrapped_bits) & mask
     }
 
-    fn are_block_aligned(blocks: u32, block_bit_count: u8) -> bool {
+    /// Check if the blocks are aligned.
+    /// Call after the shuffling, to check if no blocks are cut in half.
+    /// # Arguments
+    /// * `blocks` - The row.
+    /// # Returns
+    /// A bool indicating if the blocks are aligned.
+    fn are_block_aligned(blocks: u32) -> bool {
         let mask = 0b111;
         let first_block = blocks & mask;
 
@@ -257,9 +250,11 @@ impl Controller of ControllerTrait {
         } else if (first_block == 2) {
             let mask = 0b111111;
             let b = blocks & mask;
-            let mask2 = 0b111_111_111_000_000_111_111_111;
+            let mask2 = 0b111000000;
             let c = blocks & mask2;
-            return b == 0b010_010 && c != 0b010_010_010_000_000_010_010_010; // edge case for 2
+            let mask3 = 0b111000000000;
+            let d = blocks & mask3;
+            return b == 0b010_010 && (c != 0b010_000_000 && d != 0b010_000_000_000);
         } else if (first_block == 3) {
             let mask = 0b11111111;
             let b = blocks & mask;
@@ -506,21 +501,21 @@ mod tests {
     #[test]
     fn test_are_block_aligned() {
         let mut blocks: u32 = 0b000_010_010_000_011_011_011_000;
-        assert_eq!(Controller::are_block_aligned(blocks, 3), true);
+        assert_eq!(Controller::are_block_aligned(blocks), true);
         blocks = 0b001_010_010_000_011_011_011_000;
-        assert_eq!(Controller::are_block_aligned(blocks, 3), true);
+        assert_eq!(Controller::are_block_aligned(blocks), true);
         blocks = 0b010_010_000_011_011_011_000_000;
-        assert_eq!(Controller::are_block_aligned(blocks, 3), true);
+        assert_eq!(Controller::are_block_aligned(blocks), true);
         blocks = 0b010_000_011_011_011_000_000_010;
-        assert_eq!(Controller::are_block_aligned(blocks, 3), false);
+        assert_eq!(Controller::are_block_aligned(blocks), false);
         blocks = 0b011_011_011_000_001_010_010_000;
-        assert_eq!(Controller::are_block_aligned(blocks, 3), true);
+        assert_eq!(Controller::are_block_aligned(blocks), true);
         blocks = 0b011_011_000_001_010_010_000_011;
-        assert_eq!(Controller::are_block_aligned(blocks, 3), false);
+        assert_eq!(Controller::are_block_aligned(blocks), false);
         blocks = 0b100_100_100_100_001_010_010_000;
-        assert_eq!(Controller::are_block_aligned(blocks, 3), true);
+        assert_eq!(Controller::are_block_aligned(blocks), true);
         blocks = 0b100_100_100_001_010_010_000_100;
-        assert_eq!(Controller::are_block_aligned(blocks, 3), false);
+        assert_eq!(Controller::are_block_aligned(blocks), false);
     }
 
     #[test]
@@ -529,33 +524,20 @@ mod tests {
             Controller::circular_shift_right(0b000_000_000_001_000_000_000_001, 3, 24),
             0b001_000_000_000_001_000_000_000
         );
-
-        assert_eq!(
-            Controller::circular_shift_right(0b100_100_100_010_010_001_100, 3, 24),
-            0b100_100_100_100_010_010_001
-        );
     }
-
-    // Before 0b1_001_011_011_011_010_010
-    // Middle 0b11_010_010_001_001_011_011
-    // After  0b11_011_000_011_010_010_001_001
 
     #[test]
     fn test_align_block() {
         let mut blocks = 0b000_010_010_000_011_011_011_000;
-        assert_eq!(Controller::align_blocks(ref blocks, 3, 24), 0b000_010_010_000_011_011_011_000);
+        assert_eq!(Controller::align_blocks(ref blocks), 0b000_010_010_000_011_011_011_000);
         blocks = 0b000_010_010_000_011_011_011_001;
-        assert_eq!(Controller::align_blocks(ref blocks, 3, 24), 0b000_010_010_000_011_011_011_001);
+        assert_eq!(Controller::align_blocks(ref blocks), 0b000_010_010_000_011_011_011_001);
         blocks = 0b010_000_000_011_011_011_000_010;
-        assert_eq!(Controller::align_blocks(ref blocks, 3, 24), 0b010_010_000_000_011_011_011_000);
+        assert_eq!(Controller::align_blocks(ref blocks), 0b010_010_000_000_011_011_011_000);
         blocks = 0b011_011_000_001_010_010_000_011;
-        assert_eq!(Controller::align_blocks(ref blocks, 3, 24), 0b011_011_011_000_001_010_010_000);
+        assert_eq!(Controller::align_blocks(ref blocks), 0b011_011_011_000_001_010_010_000);
         blocks = 0b100_100_100_001_010_010_000_100;
-        assert_eq!(Controller::align_blocks(ref blocks, 3, 24), 0b100_100_100_100_001_010_010_000);
-
-        // real case
-        blocks = 0b100_100_100_010_010_001_100;
-        assert_eq!(Controller::align_blocks(ref blocks, 3, 24), 0b100_100_100_100_010_010_001);
+        assert_eq!(Controller::align_blocks(ref blocks), 0b100_100_100_100_001_010_010_000);
     }
 
     #[test]
@@ -673,7 +655,7 @@ mod tests {
         let seed: felt252 = 'SEED';
         let easy: Difficulty = Difficulty::Easy;
         let (blocks, _colors) = Controller::create_line(seed, easy);
-        assert_eq!(blocks, 0b010_010_001_001_001_000_000_001);
+        assert_eq!(blocks, 0b001_010_010_001_001_001_000_000);
     }
 
     #[test]
@@ -681,6 +663,6 @@ mod tests {
         let seed: felt252 = 'DEES';
         let easy: Difficulty = Difficulty::Easy;
         let (blocks, _colors) = Controller::create_line(seed, easy);
-        assert_eq!(blocks, 0b001_001_000_001_010_010_010_010);
+        assert_eq!(blocks, 0b010_001_001_000_001_010_010_010);
     }
 }

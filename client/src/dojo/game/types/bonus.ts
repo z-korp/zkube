@@ -1,4 +1,3 @@
-import useTemplateTheme from "@/hooks/useTemplateTheme";
 import { Hammer } from "../elements/bonuses/hammer";
 import { Totem } from "../elements/bonuses/totem";
 import { Wave } from "../elements/bonuses/wave";
