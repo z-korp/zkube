@@ -158,26 +158,25 @@ impl Controller of ControllerTrait {
         let mut colors: u32 = 0;
         let mut deck: Deck = DeckTrait::new(seed, difficulty.count());
         let mut dice: Dice = DiceTrait::new(COLOR_COUNT, seed);
-        while deck.remaining != 0
-            && size < constants::DEFAULT_GRID_WIDTH {
-                let block: Block = difficulty.reveal(deck.draw());
-                let block_size: u8 = block.size().into();
-                if block_size > (constants::DEFAULT_GRID_WIDTH - size)
-                    || (block_size == (constants::DEFAULT_GRID_WIDTH - size) && !validated) {
-                    continue;
-                };
-                let color: u32 = dice.roll().into();
-                let power: u32 = block_size.into() * constants::BLOCK_BIT_COUNT.into();
-                let exp: u32 = fast_power(2, power);
-                // [Compute] Update validated flag
-                validated = validated || block.get_bits() == 0;
-                // [Compute] Update blocks and colors bitmaps
-                blocks = blocks * exp;
-                blocks += block.get_bits();
-                colors = colors * exp;
-                colors += color;
-                size += block_size;
+        while deck.remaining != 0 && size < constants::DEFAULT_GRID_WIDTH {
+            let block: Block = difficulty.reveal(deck.draw());
+            let block_size: u8 = block.size().into();
+            if block_size > (constants::DEFAULT_GRID_WIDTH - size)
+                || (block_size == (constants::DEFAULT_GRID_WIDTH - size) && !validated) {
+                continue;
             };
+            let color: u32 = dice.roll().into();
+            let power: u32 = block_size.into() * constants::BLOCK_BIT_COUNT.into();
+            let exp: u32 = fast_power(2, power);
+            // [Compute] Update validated flag
+            validated = validated || block.get_bits() == 0;
+            // [Compute] Update blocks and colors bitmaps
+            blocks = blocks * exp;
+            blocks += block.get_bits();
+            colors = colors * exp;
+            colors += color;
+            size += block_size;
+        };
         (blocks, colors)
     }
 
