@@ -1,5 +1,5 @@
 import local from "../contracts/manifests/dev/manifest.json";
-import slot from "../contracts/manifests/slot/manifest.json";
+import slot from "../contracts/manifests/slottest/manifest.json";
 
 const {
   VITE_PUBLIC_NODE_URL,

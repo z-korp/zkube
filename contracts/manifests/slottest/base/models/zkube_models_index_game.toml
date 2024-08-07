@@ -1,13 +1,18 @@
 kind = "DojoModel"
-class_hash = "0x7f9ef38357da1be1090e5c94c8e3edd015252e1465b76bff44de696c17e722d"
-original_class_hash = "0x7f9ef38357da1be1090e5c94c8e3edd015252e1465b76bff44de696c17e722d"
-abi = "manifests/slot/abis/base/models/zkube_models_index_game.json"
+class_hash = "0x4bf2e070c7936a710afbc9a6e93288d9aa7d524ae7c3bb39e2d1a5ab0f08ad2"
+original_class_hash = "0x4bf2e070c7936a710afbc9a6e93288d9aa7d524ae7c3bb39e2d1a5ab0f08ad2"
+abi = "manifests/slottest/abis/base/models/zkube_models_index_game.json"
 name = "zkube::models::index::game"
 
 [[members]]
 name = "id"
 type = "u32"
 key = true
+
+[[members]]
+name = "difficulty"
+type = "u8"
+key = false
 
 [[members]]
 name = "over"

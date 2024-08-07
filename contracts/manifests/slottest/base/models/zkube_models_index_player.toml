@@ -1,7 +1,7 @@
 kind = "DojoModel"
 class_hash = "0x5fed3730bb3d7d98cc66dfe1c18a3a06b2af4db5fdaa2f4aada377fc550d74"
 original_class_hash = "0x5fed3730bb3d7d98cc66dfe1c18a3a06b2af4db5fdaa2f4aada377fc550d74"
-abi = "manifests/slot/abis/base/models/zkube_models_index_player.json"
+abi = "manifests/slottest/abis/base/models/zkube_models_index_player.json"
 name = "zkube::models::index::player"
 
 [[members]]

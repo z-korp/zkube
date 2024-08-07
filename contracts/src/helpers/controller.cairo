@@ -194,22 +194,29 @@ impl Controller of ControllerTrait {
         let blocks = Self::circular_shift_right(blocks, shift_amount, constants::ROW_BIT_COUNT);
         let colors = Self::circular_shift_right(colors, shift_amount, constants::ROW_BIT_COUNT);
 
-        (blocks, colors)
+        Self::align_line(blocks, colors)
     }
 
-    /// Align block while some are not aligned (eg cut in half).
+    /// Align line while some blocks are not aligned (eg cut in half).
     /// # Arguments
     /// * `blocks` - The row
     /// # Returns
     /// The new row.
-    fn align_blocks(ref blocks: u32) -> u32 {
-        while !Self::are_block_aligned(blocks) {
-            blocks =
+    fn align_line(blocks: u32, colors: u32) -> (u32, u32) {
+        let mut new_blocks = blocks;
+        let mut new_colors = colors;
+        while !Self::are_block_aligned(new_blocks) {
+            new_blocks =
                 Self::circular_shift_right(
-                    blocks, constants::BLOCK_BIT_COUNT, constants::ROW_BIT_COUNT
+                    new_blocks, constants::BLOCK_BIT_COUNT, constants::ROW_BIT_COUNT
+                );
+
+            new_colors =
+                Self::circular_shift_right(
+                    new_colors, constants::BLOCK_BIT_COUNT, constants::ROW_BIT_COUNT
                 );
         };
-        blocks
+        (new_blocks, new_colors)
     }
 
     /// Shift the bits to the right.
@@ -248,21 +255,21 @@ impl Controller of ControllerTrait {
         if (first_block == 0 || first_block == 1) {
             true
         } else if (first_block == 2) {
-            let mask = 0b111111;
+            let mask = 0b111_111;
             let b = blocks & mask;
-            let mask2 = 0b111000000;
+            let mask2 = 0b111_000_000;
             let c = blocks & mask2;
-            let mask3 = 0b111000000000;
+            let mask3 = 0b111_000_000_000;
             let d = blocks & mask3;
             return b == 0b010_010 && (c != 0b010_000_000 && d != 0b010_000_000_000);
         } else if (first_block == 3) {
-            let mask = 0b11111111;
+            let mask = 0b111_111_111;
             let b = blocks & mask;
-            let mask2 = 0b111111111111;
+            let mask2 = 0b111_111_111_111;
             let c = blocks & mask2;
             return b == 0b011_011_011 && c != 0b011_011_011_011;
         } else if (first_block == 4) {
-            let mask = 0b111111111111;
+            let mask = 0b111_111_111_111;
             let b = blocks & mask;
             return b == 0b100_100_100_100;
         } else {
@@ -529,15 +536,31 @@ mod tests {
     #[test]
     fn test_align_block() {
         let mut blocks = 0b000_010_010_000_011_011_011_000;
-        assert_eq!(Controller::align_blocks(ref blocks), 0b000_010_010_000_011_011_011_000);
+        let mut colors = 0b000_010_010_000_011_011_011_000;
+        assert_eq!(
+            Controller::align_line(blocks, colors),
+            (0b000_010_010_000_011_011_011_000, 0b000_010_010_000_011_011_011_000)
+        );
         blocks = 0b000_010_010_000_011_011_011_001;
-        assert_eq!(Controller::align_blocks(ref blocks), 0b000_010_010_000_011_011_011_001);
+        assert_eq!(
+            Controller::align_line(blocks, colors),
+            (0b000_010_010_000_011_011_011_001, 0b000_010_010_000_011_011_011_001)
+        );
         blocks = 0b010_000_000_011_011_011_000_010;
-        assert_eq!(Controller::align_blocks(ref blocks), 0b010_010_000_000_011_011_011_000);
+        assert_eq!(
+            Controller::align_line(blocks, colors),
+            (0b010_010_000_000_011_011_011_000, 0b010_010_000_000_011_011_011_000)
+        );
         blocks = 0b011_011_000_001_010_010_000_011;
-        assert_eq!(Controller::align_blocks(ref blocks), 0b011_011_011_000_001_010_010_000);
+        assert_eq!(
+            Controller::align_line(blocks, colors),
+            (0b011_011_011_000_001_010_010_000, 0b011_011_011_000_001_010_010_000)
+        );
         blocks = 0b100_100_100_001_010_010_000_100;
-        assert_eq!(Controller::align_blocks(ref blocks), 0b100_100_100_100_001_010_010_000);
+        assert_eq!(
+            Controller::align_line(blocks, colors),
+            (0b100_100_100_100_001_010_010_000, 0b100_100_100_100_001_010_010_000)
+        );
     }
 
     #[test]
