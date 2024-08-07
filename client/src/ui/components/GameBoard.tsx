@@ -173,15 +173,15 @@ const GameBoard = ({
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
-    if (isGridEmpty(stateGridRef.current)) {
-      handleEmptyGrid();
+    // Uncomment if animation of new line when empty grid is needed
+    // if you uncomment this, you need to update contrat move function
+    // if (isGridEmpty(stateGridRef.current)) {
+    //   handleEmptyGrid();
+    //   await new Promise((resolve) => setTimeout(resolve, 200));
+    //   await insertNewLine();
+    //   await new Promise((resolve) => setTimeout(resolve, 300));
+    // }
 
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
-      await insertNewLine();
-
-      await new Promise((resolve) => setTimeout(resolve, 300));
-    }
     setIsAnimating(false);
   };
 
@@ -645,10 +645,6 @@ const GameBoard = ({
     }
   };
 
-  const handleClickTest = () => {
-    console.log(isGridEmpty(grid));
-  };
-
   const handleBonusWaveClick = () => {
     setBonusWave(true);
   };
@@ -688,7 +684,6 @@ const GameBoard = ({
 
   return (
     <>
-      <Button onClick={handleNewLine}>Test</Button>
       <Card
         className={`p-4 bg-secondary ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"}`}
       >

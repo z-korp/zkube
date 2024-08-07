@@ -49,3 +49,23 @@ fn test_actions_move_02() {
     // [Move]
     systems.actions.move(world, 2, 1, 0);
 }
+
+#[test]
+fn test_actions_move_03() {
+    // Empty grid after move and new line insertion, should add a new line 
+
+    // [Setup]
+    let (world, systems, context) = setup::spawn_game();
+    let store = StoreTrait::new(world);
+    let mut game = store.game(context.game_id);
+    game.blocks = 0b000_000_000_000_000_000_010_010;
+    game.colors = 0b000_000_000_000_000_000_010_010;
+    store.set_game(game);
+
+    // [Move]
+    systems.actions.move(world, 0, 0, 2);
+
+    let mut game2 = store.game(context.game_id);
+
+    assert_eq!(game2.blocks, 19334538249);
+}

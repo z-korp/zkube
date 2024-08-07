@@ -146,7 +146,16 @@ impl GameImpl of GameTrait {
         // [Effect] Assess game
         self.score += self.assess_game(ref counter);
         self.combo_counter = Math::max(self.combo_counter, counter);
+
+        // [Effect] Grid empty add a new line
+        if self.is_empty_grid() {
+            self.setup_next();
+        }
     }
+
+    fn is_empty_grid(ref self: Game) -> bool {
+        self.blocks == 0
+    }   
 
     fn assess_game(ref self: Game, ref counter: u8) -> u32 {
         let mut points = 0;
