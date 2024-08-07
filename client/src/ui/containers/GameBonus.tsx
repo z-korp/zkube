@@ -1,22 +1,41 @@
+import React from 'react';
 import ImageAssets from "@/ui/theme/ImageAssets";
 import BonusButton from "../components/BonusBouton";
 import { useTheme } from "@/ui/elements/theme-provider";
 
-export const GameBonus = ({ onBonusWaveClick }: { onBonusWaveClick: any }) => {
+interface GameBonusProps {
+  onBonusWaveClick: () => void;
+  onBonusTikiClick: () => void;
+  onBonusHammerClick: () => void;
+}
+
+export const GameBonus: React.FC<GameBonusProps> = ({
+  onBonusWaveClick,
+  onBonusTikiClick,
+  onBonusHammerClick,
+}) => {
   const { themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
 
+  console.log('Props received in GameBonus:', {
+    onBonusWaveClick,
+    onBonusTikiClick,
+    onBonusHammerClick,
+  });
+
   const handleClickWave = () => {
-    console.log("Ready to be binded");
+    console.log("Wave button clicked");
     onBonusWaveClick();
   };
+
   const handleClickTiki = () => {
-    console.log("Ready to be binded");
-    //onBonusWaveClick();
+    console.log("Tiki button clicked");
+    onBonusTikiClick();
   };
+
   const handleClickHammer = () => {
-    console.log("Ready to be binded");
-    //onBonusWaveClick();
+    console.log("Hammer button clicked");
+    onBonusHammerClick();
   };
 
   return (
@@ -27,9 +46,11 @@ export const GameBonus = ({ onBonusWaveClick }: { onBonusWaveClick: any }) => {
       <div className="flex flex-col items-center">
         <BonusButton onClick={handleClickTiki} urlImage={imgAssets.tiki} />
       </div>
-      <div className="flex flex-col w-full items-end ">
+      <div className="flex flex-col w-full items-end">
         <BonusButton onClick={handleClickWave} urlImage={imgAssets.wave} />
       </div>
     </div>
   );
 };
+
+export default GameBonus;
