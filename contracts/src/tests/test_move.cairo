@@ -50,7 +50,10 @@ fn test_actions_move_02() {
     systems.actions.move(world, 2, 1, 0);
 }
 
-/// Test empty grid after move and new line insertion, should add a new line 
+/// Test when grid is empty after a new line is inserted.
+/// # Arguments
+/// # Returns
+/// Asserts that the grid is equal to new line.
 #[test]
 fn test_actions_move_03() {
     // [Setup]
