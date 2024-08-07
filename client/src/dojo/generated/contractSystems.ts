@@ -28,6 +28,8 @@ export interface Start extends Signer {
 
 export interface Surrender extends Signer {}
 
+export interface NewLine extends Signer {}
+
 export interface Move extends Signer {
   row_index: number;
   start_index: number;
@@ -153,6 +155,23 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       }
     };
 
+    const insert_new_line = async ({ account }: NewLine) => {
+      try {
+        return await provider.execute(
+          account,
+          {
+            contractName: contract_name,
+            entrypoint: "insert_new_line",
+            calldata: [provider.getWorldAddress()],
+          },
+          details,
+        );
+      } catch (error) {
+        console.error("Error executing insert new line:", error);
+        throw error;
+      }
+    };
+
     const move = async ({
       account,
       row_index,
@@ -208,6 +227,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       rename,
       start,
       surrender,
+      insert_new_line,
       move,
       bonus,
     };

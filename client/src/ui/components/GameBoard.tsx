@@ -7,6 +7,7 @@ import { GameBonus } from "../containers/GameBonus";
 import { Piece, Cell as CellType } from "@/types/types";
 import Cell from "./Cell";
 import { useMediaQuery } from "react-responsive";
+import { Button } from "../elements/button";
 
 const PIECES: Piece[] = [
   { id: 1, width: 1, element: "stone1" },
@@ -29,7 +30,7 @@ const GameBoard = ({
   const {
     account: { account },
     setup: {
-      systemCalls: { move },
+      systemCalls: { move, insert_new_line },
     },
   } = useDojo();
 
@@ -174,15 +175,15 @@ const GameBoard = ({
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
-    if (isGridEmpty(stateGridRef.current)) {
-      handleEmptyGrid();
+    // Uncomment if animation of new line when empty grid is needed
+    // if you uncomment this, you need to update contrat move function
+    // if (isGridEmpty(stateGridRef.current)) {
+    //   handleEmptyGrid();
+    //   await new Promise((resolve) => setTimeout(resolve, 200));
+    //   await insertNewLine();
+    //   await new Promise((resolve) => setTimeout(resolve, 300));
+    // }
 
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
-      await insertNewLine();
-
-      await new Promise((resolve) => setTimeout(resolve, 300));
-    }
     setIsAnimating(false);
   };
 
@@ -536,6 +537,18 @@ const GameBoard = ({
     [account],
   );
 
+  const handleNewLine = useCallback(async () => {
+    //if (isAnimating) return;
+
+    setIsLoading(true);
+    setIsTxProcessing(true);
+    try {
+      await insert_new_line({ account: account });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [account]);
+
   const handleEmptyGrid = useCallback(async () => {
     //if (isAnimating) return;
 
@@ -544,9 +557,9 @@ const GameBoard = ({
     try {
       await move({
         account: account,
-        row_index: 0,
-        start_index: 0,
-        final_index: 0,
+        row_index: 5,
+        start_index: 3,
+        final_index: 3,
       });
     } finally {
       setIsLoading(false);
@@ -632,10 +645,6 @@ const GameBoard = ({
         }
       }
     }
-  };
-
-  const handleClickTest = () => {
-    console.log(isGridEmpty(grid));
   };
 
   const handleBonusWaveClick = () => {

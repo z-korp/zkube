@@ -135,6 +135,17 @@ export function systems({
     );
   };
 
+  const insert_new_line = async ({
+    account,
+    ...props
+  }: SystemTypes.NewLine) => {
+    await handleTransaction(
+      account,
+      () => client.actions.insert_new_line({ account, ...props }),
+      "New line is inserted.",
+    );
+  };
+
   const bonus = async ({ account, ...props }: SystemTypes.Bonus) => {
     await handleTransaction(
       account,
@@ -148,6 +159,7 @@ export function systems({
     rename,
     start,
     surrender,
+    insert_new_line,
     move,
     bonus,
   };

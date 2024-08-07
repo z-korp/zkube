@@ -24,6 +24,7 @@ trait IActions<TContractState> {
         self: @TContractState, world: IWorldDispatcher, proof: Proof, seed: felt252, beta: felt252
     ) -> u32;
     fn surrender(self: @TContractState, world: IWorldDispatcher);
+    fn insert_new_line(self: @TContractState, world: IWorldDispatcher);
     fn move(
         self: @TContractState,
         world: IWorldDispatcher,
@@ -128,6 +129,10 @@ mod actions {
 
         fn surrender(self: @ContractState, world: IWorldDispatcher) {
             self.playable.surrender(world);
+        }
+
+        fn insert_new_line(self: @ContractState, world: IWorldDispatcher) {
+            self.playable.insert_new_line(world);
         }
 
         fn move(
