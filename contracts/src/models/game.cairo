@@ -111,7 +111,7 @@ impl GameImpl of GameTrait {
         (hammer, totem, wave)
     }
 
-    fn insert_new_line(ref self: Game){
+    fn insert_new_line(ref self: Game) {
         self.setup_next();
     }
 
@@ -155,7 +155,7 @@ impl GameImpl of GameTrait {
 
     fn is_empty_grid(ref self: Game) -> bool {
         self.blocks == 0
-    }   
+    }
 
     fn assess_game(ref self: Game, ref counter: u8) -> u32 {
         let mut points = 0;

@@ -153,7 +153,7 @@ mod PlayableComponent {
 
             // [Effect] Update game
             store.set_game(game);
-            
+
             // [Effect] Update player if game is over
             if game.over {
                 let (hammer, totem, wave) = game.assess_bonuses();

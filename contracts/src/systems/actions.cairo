@@ -134,7 +134,7 @@ mod actions {
         fn insert_new_line(self: @ContractState, world: IWorldDispatcher) {
             self.playable.insert_new_line(world);
         }
-        
+
         fn move(
             self: @ContractState,
             world: IWorldDispatcher,
