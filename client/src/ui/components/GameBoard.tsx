@@ -54,6 +54,8 @@ const GameBoard = ({
 
   const [isDragging, setIsDragging] = useState(false);
   const [bonusWave, setBonusWave] = useState(false);
+  const [bonusTiki, setBonusTiki] = useState(false);
+  const [bonusHammer, setBonusHammer] = useState(false);
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
@@ -649,12 +651,34 @@ const GameBoard = ({
     setBonusWave(true);
   };
 
+  const handleBonusTikiClick = () => {
+    setBonusTiki(true);
+  };
+
+  const handleBonusHammerClick = () => {
+    setBonusHammer(true);
+  };
+
   const handleRowClick = (rowIndex: number) => {
     if (bonusWave) {
       checkAndClearSelectedLine(rowIndex);
       setBonusWave(false);
       applyGravityLoop();
     }
+  };
+
+  const handleCellClick = (rowIndex: number, colIndex: number) => {
+    if (bonusTiki) {
+      removePieceFromGridByCell(rowIndex, colIndex);
+      setBonusTiki(false);
+      applyGravityLoop();
+    }
+    if (bonusHammer) {
+      removePieceFromGrid(rowIndex, colIndex);
+      setBonusHammer(false);
+      applyGravityLoop();
+    }
+
   };
 
   const checkAndClearSelectedLine = async (selectedRow: number) => {
@@ -678,6 +702,67 @@ const GameBoard = ({
     });
   };
 
+  const removePieceFromGridByCell = async (rowIndex: number, colIndex: number) => {
+    await new Promise((resolve) => {
+      setGrid((prevGrid) => {
+        const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
+
+        // Vérifier que les indices sont valides
+        if (rowIndex >= 0 && rowIndex < newGrid.length && colIndex >= 0 && colIndex < newGrid[0].length) {
+          const pieceIdToRemove = newGrid[rowIndex][colIndex].pieceId;
+
+          // Parcourir chaque cellule de la grille et supprimer les cellules appartenant à la pièce spécifiée
+          for (let row = 0; row < newGrid.length; row++) {
+            for (let col = 0; col < newGrid[row].length; col++) {
+              if (newGrid[row][col].pieceId === pieceIdToRemove) {
+                newGrid[row][col] = {
+                  id: `${row}-${col}`,
+                  pieceId: null,
+                  isStart: false,
+                  pieceIndex: null,
+                };
+              }
+            }
+          }
+        }
+
+        resolve(newGrid);
+        return newGrid;
+      });
+    });
+  };
+
+  const removePieceFromGrid = async (rowIndex: number, colIndex: number) => {
+    await new Promise((resolve) => {
+      setGrid((prevGrid) => {
+        const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
+
+        // Vérifier que les indices sont valides
+        if (rowIndex >= 0 && rowIndex < newGrid.length && colIndex >= 0 && colIndex < newGrid[0].length) {
+          const pieceIdToRemove = newGrid[rowIndex][colIndex].pieceId;
+          const pieceIndexToRemove = newGrid[rowIndex][colIndex].pieceIndex;
+
+          // Parcourir chaque cellule de la grille et supprimer les cellules appartenant à la pièce spécifiée
+          for (let row = 0; row < newGrid.length; row++) {
+            for (let col = 0; col < newGrid[row].length; col++) {
+              if (newGrid[row][col].pieceId === pieceIdToRemove && newGrid[row][col].pieceIndex === pieceIndexToRemove) {
+                newGrid[row][col] = {
+                  id: `${row}-${col}`,
+                  pieceId: null,
+                  isStart: false,
+                  pieceIndex: null,
+                };
+              }
+            }
+          }
+        }
+
+        resolve(newGrid);
+        return newGrid;
+      });
+    });
+  };
+
   const isLineComplete = (row: any) => {
     return row.every((cell: CellType) => cell.pieceId !== null && !isFalling);
   };
@@ -690,7 +775,7 @@ const GameBoard = ({
         <div
           className={`${isMdOrLarger ? "w-[413px]" : "w-[300px]"} mb-4 flex justify-start items-center`}
         >
-          <GameBonus onBonusWaveClick={handleBonusWaveClick} />
+          <GameBonus onBonusWaveClick={handleBonusWaveClick} onBonusTikiClick={handleBonusTikiClick} onBonusHammerClick={handleBonusHammerClick} />
           <div
             className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end mx-2`}
           >
@@ -740,6 +825,7 @@ const GameBoard = ({
                       rows={rows}
                       startDragging={startDragging}
                       handleRowClick={handleRowClick}
+                      handleCellClick={handleCellClick}
                       isTxProcessing={isTxProcessing}
                       isAnimating={isAnimating}
                     />
