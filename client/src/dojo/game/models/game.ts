@@ -55,7 +55,7 @@ export class Game {
       DEFAULT_GRID_WIDTH,
     );
     this.bonuses = game.bonuses;
-    this.player_id = game.player_id.toString(16);
+    this.player_id = "0x" + game.player_id.toString(16);
     this.seed = game.seed;
 
     // Destructure blocks and colors bitmaps in to Rows and Blocks
