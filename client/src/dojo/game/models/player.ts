@@ -55,6 +55,7 @@ export class Player {
           has: count > index,
         };
       });
+      // console.log(`Bonus: ${name}, Count: ${count}`);
       details.push(...bonus_conditions);
     });
     return details;
