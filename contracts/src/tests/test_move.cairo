@@ -50,10 +50,9 @@ fn test_actions_move_02() {
     systems.actions.move(world, 2, 1, 0);
 }
 
+// Test empty grid after move and new line insertion, should add a new line 
 #[test]
 fn test_actions_move_03() {
-    // Empty grid after move and new line insertion, should add a new line 
-
     // [Setup]
     let (world, systems, context) = setup::spawn_game();
     let store = StoreTrait::new(world);
