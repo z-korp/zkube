@@ -30,8 +30,6 @@ function Main() {
       setSetupResult(result);
     }
 
-    console.log("Dojo config:");
-    console.log(dojoConfig().stringverif);
     initialize();
   }, [enter]);
 
