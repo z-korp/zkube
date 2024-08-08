@@ -24,7 +24,7 @@ const Balance = ({ address, token_address }: BalanceProps) => {
     abi: erc20ABI,
     address: token_address,
     watch: true,
-    blockIdentifier: BlockTag.pending,
+    blockIdentifier: BlockTag.PENDING,
   });
 
   if (isLoading) return <div>Loading ...</div>;
