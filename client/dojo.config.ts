@@ -19,6 +19,7 @@ export function dojoConfig() {
   console.log(
     VITE_PUBLIC_SLOT ? "slot" : VITE_PUBLIC_SEPOLIA ? "sepolia" : "local",
   );
+  console.log("VITE_PUBLIC_SLOT", VITE_PUBLIC_SLOT);
   return {
     rpcUrl: VITE_PUBLIC_NODE_URL || "http://localhost:5050",
     toriiUrl: VITE_PUBLIC_TORII || "http://0.0.0.0:8080",
