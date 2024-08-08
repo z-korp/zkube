@@ -16,6 +16,9 @@ const {
 export type Config = ReturnType<typeof dojoConfig>;
 
 export function dojoConfig() {
+  console.log(
+    VITE_PUBLIC_SLOT ? "slot" : VITE_PUBLIC_SEPOLIA ? "sepolia" : "local",
+  );
   return {
     rpcUrl: VITE_PUBLIC_NODE_URL || "http://localhost:5050",
     toriiUrl: VITE_PUBLIC_TORII || "http://0.0.0.0:8080",
