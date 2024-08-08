@@ -8,16 +8,6 @@ const actions_contract_address = getContractByName(
   "zkube::systems::actions::actions",
 )?.address;
 
-console.log(
-  "import.meta.env.VITE_PUBLIC_FEE_TOKEN_ADDRESS",
-  import.meta.env.VITE_PUBLIC_FEE_TOKEN_ADDRESS,
-);
-console.log(
-  "import.meta.env.VITE_PUBLIC_ACCOUNT_CLASS_HASH",
-  import.meta.env.VITE_PUBLIC_ACCOUNT_CLASS_HASH,
-);
-console.log("actions_contract_address", actions_contract_address);
-
 const cartridgeConnector = new CartridgeConnector(
   [
     {
