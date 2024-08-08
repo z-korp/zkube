@@ -9,17 +9,12 @@ const {
   VITE_PUBLIC_MASTER_PRIVATE_KEY,
   VITE_PUBLIC_ACCOUNT_CLASS_HASH,
   VITE_PUBLIC_FEE_TOKEN_ADDRESS,
-  VITE_PUBLIC_SEPOLIA,
-  VITE_PUBLIC_SLOT,
+  VITE_PUBLIC_DEPLOY_TYPE,
 } = import.meta.env;
 
 export type Config = ReturnType<typeof dojoConfig>;
 
 export function dojoConfig() {
-  console.log(
-    VITE_PUBLIC_SLOT ? "slot" : VITE_PUBLIC_SEPOLIA ? "sepolia" : "local",
-  );
-  console.log("VITE_PUBLIC_SLOT", VITE_PUBLIC_SLOT);
   return {
     rpcUrl: VITE_PUBLIC_NODE_URL || "http://localhost:5050",
     toriiUrl: VITE_PUBLIC_TORII || "http://0.0.0.0:8080",
@@ -35,11 +30,11 @@ export function dojoConfig() {
     feeTokenAddress:
       VITE_PUBLIC_FEE_TOKEN_ADDRESS ||
       "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-    manifest: VITE_PUBLIC_SLOT ? slot : VITE_PUBLIC_SEPOLIA ? sepolia : local,
-    stringverif: VITE_PUBLIC_SLOT
-      ? "slot"
-      : VITE_PUBLIC_SEPOLIA
-        ? "sepolia"
-        : "local",
+    manifest:
+      VITE_PUBLIC_DEPLOY_TYPE === "sepolia"
+        ? sepolia
+        : VITE_PUBLIC_DEPLOY_TYPE === "slot"
+          ? slot
+          : local,
   };
 }
