@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
-import "./index.css";
 import { setup, SetupResult } from "./dojo/setup.ts";
 import { DojoProvider } from "./dojo/context.tsx";
 import { dojoConfig } from "../dojo.config.ts";
@@ -9,12 +8,26 @@ import { Loading } from "@/ui/screens/Loading";
 import { MusicPlayerProvider } from "./contexts/music.tsx";
 import { SoundPlayerProvider } from "./contexts/sound.tsx";
 import { ThemeProvider } from "./ui/elements/theme-provider.tsx";
+import { StarknetConfig, jsonRpcProvider } from "@starknet-react/core";
+import { sepolia } from "@starknet-react/chains";
+import cartridgeConnector from "./cartridgeConnector.tsx";
+
+import "./index.css";
+
+function rpc() {
+  return {
+    nodeUrl: import.meta.env.VITE_PUBLIC_NODE_URL,
+  };
+}
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,
 );
 
 function Main() {
+  const chains = [sepolia];
+  const connectors = [cartridgeConnector];
+
   const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
   const [ready, setReady] = useState(false);
   const [enter, setEnter] = useState(false);
@@ -29,9 +42,6 @@ function Main() {
       const result = await setup(dojoConfig());
       setSetupResult(result);
     }
-
-    console.log("Dojo config:");
-    console.log(dojoConfig().stringverif);
     initialize();
   }, [enter]);
 
@@ -43,17 +53,24 @@ function Main() {
   return (
     <React.StrictMode>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <MusicPlayerProvider>
-          {!loading && setupResult ? (
-            <DojoProvider value={setupResult}>
-              <SoundPlayerProvider>
-                <App />
-              </SoundPlayerProvider>
-            </DojoProvider>
-          ) : (
-            <Loading enter={enter} setEnter={setEnter} />
-          )}
-        </MusicPlayerProvider>
+        <StarknetConfig
+          chains={chains}
+          provider={jsonRpcProvider({ rpc })}
+          connectors={connectors}
+          autoConnect
+        >
+          <MusicPlayerProvider>
+            {!loading && setupResult ? (
+              <DojoProvider value={setupResult}>
+                <SoundPlayerProvider>
+                  <App />
+                </SoundPlayerProvider>
+              </DojoProvider>
+            ) : (
+              <Loading enter={enter} setEnter={setEnter} />
+            )}
+          </MusicPlayerProvider>
+        </StarknetConfig>
       </ThemeProvider>
     </React.StrictMode>
   );

@@ -19,6 +19,7 @@ import {
   faGear,
   faArrowUpRightFromSquare,
 } from "@fortawesome/free-solid-svg-icons";
+import Connect from "../components/Connect";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -31,15 +32,16 @@ import { Button } from "../elements/button";
 import { Leaderboard } from "../modules/Leaderboard";
 import { Achievements } from "../modules/Achievements";
 import { MusicPlayer } from "../modules/MusicPlayer";
+import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
+import Balance from "../components/Balance";
+import { useAccount } from "@starknet-react/core";
 
 export const Header = () => {
-  const {
-    account: { account },
-  } = useDojo();
+  const { account } = useAccount();
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
-  const { player } = usePlayer({ playerId: account.address });
+  const { player } = usePlayer({ playerId: account?.address });
 
   const navigate = useNavigate();
 
@@ -62,6 +64,7 @@ export const Header = () => {
           {!!player && (
             <p className="text-2xl max-w-44 truncate">{player.name}</p>
           )}
+          <Connect />
           <div className="flex gap-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -117,9 +120,17 @@ export const Header = () => {
         </Drawer>
         <div className="w-full flex justify-between items-center">
           <p className="text-4xl font-bold">zKube</p>
-          {/* {!!player && (
-            <p className="text-2xl max-w-44 truncate">{player.name}</p>
-          )} */}
+          {!!player && account ? (
+            <div className="flex gap-2 items-center">
+              <p className="text-2xl max-w-44 truncate">{player.name}</p>
+              <Balance
+                address={account.address}
+                token_address={KATANA_ETH_CONTRACT_ADDRESS}
+              />
+            </div>
+          ) : (
+            <Connect />
+          )}
         </div>
       </div>
       <Separator />

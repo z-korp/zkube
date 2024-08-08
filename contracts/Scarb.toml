@@ -8,6 +8,8 @@ sierra-replace-ids = true
 
 [scripts]
 dev = "sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate plan && sozo --profile dev migrate apply"
+sepolia = "NAME=zkube-v2 && sozo --profile sepolia clean && sozo --profile sepolia clean && sozo --profile sepolia build && sozo --profile sepolia migrate plan --name $NAME && sozo --profile sepolia migrate apply --fee-estimate-multiplier 10 --verbose  --name $NAME"
+
 
 [dependencies]
 alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria", rev = "78b0d51" }
@@ -32,8 +34,8 @@ private_key = "0x4b5b87f25c379f5f5088cc4b14fe7963dfc7675cfdb94e1c263a849f3c2b9d3
 
 [profile.sepolia.tool.dojo.env]
 rpc_url = "https://starknet-sepolia.public.blastapi.io/rpc/v0_7"
-account_address = ""
-private_key = ""
+account_address = "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7"
+private_key = "0x9a2816a70849c36ce6ef74a8b5d8007e40f36f3e96d1ce72d2bced106e8b1f"
 
 [tool.dojo.world]
 name = "zKube"

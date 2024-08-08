@@ -18,6 +18,7 @@ import { Content as Leaderboard } from "../modules/Leaderboard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import GoogleFormEmbed from "../components/GoogleFormEmbed";
+import { useAccount } from "@starknet-react/core";
 
 interface position {
   x: number;
@@ -25,10 +26,8 @@ interface position {
 }
 
 export const Home = () => {
-  const {
-    account: { account },
-  } = useDojo();
-  const { player } = usePlayer({ playerId: account.address });
+  const { account } = useAccount();
+  const { player } = usePlayer({ playerId: account?.address });
   const { game } = useGame({ gameId: player?.game_id || "0x0" });
   const [animationDone, setAnimationDone] = useState(false);
 

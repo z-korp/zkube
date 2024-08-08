@@ -5,17 +5,18 @@ import { Button } from "@/ui/elements/button";
 import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
 import { fetchVrfData } from "@/api/vrf";
+import { useAccount } from "@starknet-react/core";
 
 export const Start = () => {
+  const { account } = useAccount();
   const {
-    account: { account },
     master,
     setup: {
       systemCalls: { start },
     },
   } = useDojo();
 
-  const { player } = usePlayer({ playerId: account.address });
+  const { player } = usePlayer({ playerId: account?.address });
 
   const { game } = useGame({
     gameId: player?.game_id || "0x0",

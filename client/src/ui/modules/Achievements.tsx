@@ -22,17 +22,15 @@ import {
 import { BonusDetail, Player } from "@/dojo/game/models/player";
 import { useMemo } from "react";
 import { useMediaQuery } from "react-responsive";
-import { useDojo } from "@/dojo/useDojo";
 import { usePlayer } from "@/hooks/usePlayer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
+import { useAccount } from "@starknet-react/core";
 
 export const Achievements = () => {
-  const {
-    account: { account },
-  } = useDojo();
+  const { account } = useAccount();
 
-  const { player } = usePlayer({ playerId: account.address });
+  const { player } = usePlayer({ playerId: account?.address });
   const counts = useMemo(() => {
     if (!player) return undefined;
     return [player.hammer, player.totem, player.wave];
