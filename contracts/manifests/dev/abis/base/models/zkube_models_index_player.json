@@ -349,6 +349,10 @@
       {
         "name": "name",
         "type": "core::felt252"
+      },
+      {
+        "name": "points",
+        "type": "core::integer::u32"
       }
     ]
   },

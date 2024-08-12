@@ -61,11 +61,12 @@ export function defineContractComponents(world: World) {
           wave_bonus: RecsType.Number,
           totem_bonus: RecsType.Number,
           name: RecsType.BigInt,
+          points: RecsType.Number,
         },
         {
           metadata: {
             name: "Player",
-            types: ["felt252", "u32", "u8", "u8", "u8", "felt252"],
+            types: ["felt252", "u32", "u8", "u8", "u8", "felt252", "u32"],
             customTypes: [],
           },
         },
