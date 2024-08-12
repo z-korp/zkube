@@ -158,7 +158,6 @@ impl Controller of ControllerTrait {
         let mut size: u8 = 0;
         let mut blocks: u32 = 0;
         let mut colors: u32 = 0;
-        let diff: u8 = difficulty.into();
 
         let mut deck: Deck = DeckTrait::new(seed, difficulty.count());
         let mut dice: Dice = DiceTrait::new(COLOR_COUNT, seed);
