@@ -90,27 +90,31 @@ export const Test = () => {
               <Create />
               <Start difficulty={selectedDifficulty} />
               {!game && (
-                <div className="absolute top translate-y-[100%] bg-slate-900 w-[500px] p-6 rounded-xl">
-                  <Leaderboard />
-                </div>
+                <>
+                  {" "}
+                  <div className="absolute top translate-y-[100%] bg-slate-900 w-[500px] p-6 rounded-xl">
+                    <Leaderboard />
+                  </div>
+                  <Select
+                    onValueChange={handleDifficultyChange}
+                    value={selectedDifficulty || undefined}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Difficulty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getEnumValues(DifficultyType)
+                        .filter((e) => e !== DifficultyType.None)
+                        .map((difficulty) => (
+                          <SelectItem key={difficulty} value={difficulty}>
+                            {difficulty}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </>
               )}
-              <Select
-                onValueChange={handleDifficultyChange}
-                value={selectedDifficulty || undefined}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Difficulty" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getEnumValues(DifficultyType)
-                    .filter((e) => e !== DifficultyType.None)
-                    .map((difficulty) => (
-                      <SelectItem key={difficulty} value={difficulty}>
-                        {difficulty}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+
               {!!game && game.over && (
                 <div className="flex flex-col gap-4 absolute top translate-y-[325%]">
                   <p className="text-4xl">Game Over</p>

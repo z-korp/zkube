@@ -33,6 +33,29 @@ export const difficultyTypeToNumber = (difficulty: DifficultyType): number => {
   }
 };
 
+export const numberToDifficultyType = (difficulty: number): DifficultyType => {
+  switch (difficulty) {
+    case 1:
+      return DifficultyType.VeryEasy;
+    case 2:
+      return DifficultyType.Easy;
+    case 3:
+      return DifficultyType.Medium;
+    case 4:
+      return DifficultyType.MediumHard;
+    case 5:
+      return DifficultyType.Hard;
+    case 6:
+      return DifficultyType.VeryHard;
+    case 7:
+      return DifficultyType.Expert;
+    case 8:
+      return DifficultyType.Master;
+    default:
+      return DifficultyType.None;
+  }
+};
+
 export class Difficulty {
   value: DifficultyType;
 

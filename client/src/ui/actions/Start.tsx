@@ -43,7 +43,6 @@ export const Start: React.FC<StartProps> = ({ difficulty }) => {
         proof_verify_hint,
         beta,
       } = await fetchVrfData();
-      console.log("difficulty", difficultyTypeToNumber(difficulty));
       await start({
         account: account as Account,
         difficulty: difficultyTypeToNumber(difficulty),

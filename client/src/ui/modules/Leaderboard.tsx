@@ -1,9 +1,9 @@
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogTrigger,
 } from "@/ui/elements/dialog";
 import {
@@ -24,13 +24,20 @@ import {
   PaginationPrevious,
 } from "@/ui/elements/pagination";
 import { Button } from "@/ui/elements/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/elements/select";
 import { Game } from "@/dojo/game/models/game";
 import { useGames } from "@/hooks/useGames";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import { usePlayer } from "@/hooks/usePlayer";
-import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "react-responsive";
+import { DifficultyType } from "@/dojo/game/types/difficulty";
 
 const GAME_PER_PAGE = 5;
 const MAX_PAGE_COUNT = 5;
@@ -44,7 +51,6 @@ export const Leaderboard = () => {
       <DialogContent>
         <DialogHeader className="flex items-center text-2xl">
           <DialogTitle>Leaderboard</DialogTitle>
-          <DialogDescription />
         </DialogHeader>
         <div className="m-auto">
           <Content />
@@ -58,17 +64,31 @@ export const Content = () => {
   const { games } = useGames();
   const [page, setPage] = useState<number>(1);
   const [pageCount, setPageCount] = useState<number>(0);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyType>(
+    DifficultyType.None,
+  );
 
   const sorteds = useMemo(() => {
+    games.map((game) =>
+      console.log("game", game.difficulty.value, selectedDifficulty),
+    );
     return games
+      .filter((game) => game.over)
+      .filter(
+        (game) =>
+          selectedDifficulty === DifficultyType.None ||
+          game.difficulty.value === selectedDifficulty,
+      )
       .sort((a, b) => b.combo - a.combo)
       .sort((a, b) => b.score - a.score);
-    // .filter((game) => !!game.score || !!game.combo);
-  }, [games]);
+  }, [games, selectedDifficulty]);
+
+  console.log("sorteds", sorteds);
 
   useEffect(() => {
     const rem = Math.floor(sorteds.length / (GAME_PER_PAGE + 1)) + 1;
     setPageCount(rem);
+    setPage(1); // Reset to first page when difficulty changes
   }, [sorteds]);
 
   const { start, end } = useMemo(() => {
@@ -93,9 +113,30 @@ export const Content = () => {
 
   return (
     <>
+      <Select
+        value={selectedDifficulty}
+        onValueChange={(value) =>
+          setSelectedDifficulty(value as DifficultyType)
+        }
+      >
+        <SelectTrigger className="w-[180px] mb-4">
+          <SelectValue placeholder="Select Difficulty" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={DifficultyType.None}>All Difficulties</SelectItem>
+          {Object.values(DifficultyType)
+            .filter((d) => d !== DifficultyType.None)
+            .map((difficulty: DifficultyType) => (
+              <SelectItem key={difficulty} value={difficulty}>
+                {difficulty}
+              </SelectItem>
+            ))}
+        </SelectContent>
+      </Select>
+
       <Table className="text-md">
         <TableCaption className={`${disabled && "hidden"}`}>
-          Leaderbord is waiting for its best players to make history
+          Leaderboard is waiting for its best players to make history
         </TableCaption>
         <TableHeader>
           <TableRow>
