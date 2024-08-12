@@ -69,9 +69,6 @@ export const Content = () => {
   );
 
   const sorteds = useMemo(() => {
-    games.map((game) =>
-      console.log("game", game.difficulty.value, selectedDifficulty),
-    );
     return games
       .filter((game) => game.over)
       .filter(
@@ -82,8 +79,6 @@ export const Content = () => {
       .sort((a, b) => b.combo - a.combo)
       .sort((a, b) => b.score - a.score);
   }, [games, selectedDifficulty]);
-
-  console.log("sorteds", sorteds);
 
   useEffect(() => {
     const rem = Math.floor(sorteds.length / (GAME_PER_PAGE + 1)) + 1;
