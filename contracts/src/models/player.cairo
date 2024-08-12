@@ -70,4 +70,3 @@ impl ZeroablePlayerImpl of core::Zeroable<Player> {
         !self.is_zero()
     }
 }
-

@@ -1,3 +1,4 @@
+use core::traits::Into;
 // Core imports
 
 use core::debug::PrintTrait;
@@ -18,10 +19,6 @@ use zkube::helpers::packer::Packer;
 use zkube::helpers::controller::Controller;
 use zkube::types::bonus::{Bonus, BonusTrait};
 
-// Constants
-
-const DIFFICULTY: Difficulty = Difficulty::Easy;
-
 // Errors
 
 mod errors {
@@ -37,18 +34,21 @@ impl GameImpl of GameTrait {
     fn new(
         id: u32,
         player_id: felt252,
+        difficulty: Difficulty,
         seed: felt252,
         hammer_bonus: u8,
         wave_bonus: u8,
         totem_bonus: u8
     ) -> Game {
-        let (row, color) = Controller::create_line(seed, DIFFICULTY);
+        let (row, color) = Controller::create_line(seed, difficulty);
         Game {
             id,
+            difficulty: difficulty.into(),
             over: false,
             next_row: row,
             next_color: color,
             score: 0,
+            moves: 0,
             hammer_bonus,
             wave_bonus,
             totem_bonus,
@@ -85,7 +85,9 @@ impl GameImpl of GameTrait {
     #[inline(always)]
     fn setup_next(ref self: Game) {
         self.reseed();
-        let (row, color) = Controller::create_line(self.seed, DIFFICULTY);
+
+        let (row, color) = Controller::create_line(self.seed, self.get_difficulty());
+
         self.blocks = Controller::add_line(self.blocks, self.next_row);
         self.colors = Controller::add_line(self.colors, self.next_color);
         self.next_row = row;
@@ -109,6 +111,28 @@ impl GameImpl of GameTrait {
         let totem = Bonus::Totem.get_count(self.score, self.combo_counter);
         let wave = Bonus::Wave.get_count(self.score, self.combo_counter);
         (hammer, totem, wave)
+    }
+
+    #[inline(always)]
+    fn get_difficulty(ref self: Game) -> Difficulty {
+        let mut difficulty = self.difficulty.into();
+        if (difficulty == Difficulty::None) { // Difficulty::None meaning increasing difficulty
+            difficulty = Difficulty::Master;
+            if (self.moves < 10) {
+                difficulty = Difficulty::Easy;
+            } else if (self.moves < 20) {
+                difficulty = Difficulty::Medium;
+            } else if (self.moves < 40) {
+                difficulty = Difficulty::MediumHard;
+            } else if (self.moves < 60) {
+                difficulty = Difficulty::Hard;
+            } else if (self.moves < 80) {
+                difficulty = Difficulty::VeryHard;
+            } else if (self.moves < 100) {
+                difficulty = Difficulty::Expert;
+            }
+        }
+        difficulty
     }
 
     fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8) {
@@ -142,6 +166,7 @@ impl GameImpl of GameTrait {
         // [Effect] Assess game
         self.score += self.assess_game(ref counter);
         self.combo_counter = Math::max(self.combo_counter, counter);
+        self.moves += 1;
     }
 
     fn assess_game(ref self: Game, ref counter: u8) -> u32 {
@@ -192,8 +217,10 @@ impl ZeroableGame of core::Zeroable<Game> {
     fn zero() -> Game {
         Game {
             id: 0,
+            difficulty: 0,
             over: false,
             score: 0,
+            moves: 0,
             next_row: 0,
             next_color: 0,
             hammer_bonus: 0,
@@ -256,6 +283,7 @@ mod tests {
     // Local imports
 
     use super::{Game, GameTrait, AssertTrait};
+    use zkube::types::difficulty::Difficulty;
 
     // Constants
 
@@ -266,7 +294,7 @@ mod tests {
     #[test]
     fn test_game_new() {
         // [Effect] Create game
-        let game = GameTrait::new(GAME_ID, PLAYER_ID, SEED, 0, 0, 0);
+        let game = GameTrait::new(GAME_ID, PLAYER_ID, Difficulty::Easy, SEED, 0, 0, 0);
         game.assert_exists();
         game.assert_not_over();
         // [Assert] Game seed

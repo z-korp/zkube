@@ -29,6 +29,7 @@ mod PlayableComponent {
     use zkube::models::game::AssertTrait;
     use zkube::store::StoreTrait;
     use zkube::types::bonus::Bonus;
+    use zkube::types::difficulty::Difficulty;
 
     // Errors
 
@@ -58,6 +59,7 @@ mod PlayableComponent {
         fn start(
             self: @ComponentState<TContractState>,
             world: IWorldDispatcher,
+            difficulty: Difficulty,
             proof: Proof,
             seed: felt252,
             beta: felt252
@@ -91,7 +93,13 @@ mod PlayableComponent {
             // [Effect] Create game
             let game_id: u32 = world.uuid() + 1;
             let mut game = GameTrait::new(
-                game_id, player.id, beta, player.hammer_bonus, player.wave_bonus, player.totem_bonus
+                game_id,
+                player.id,
+                difficulty,
+                beta,
+                player.hammer_bonus,
+                player.wave_bonus,
+                player.totem_bonus
             );
 
             // [Effect] Start game

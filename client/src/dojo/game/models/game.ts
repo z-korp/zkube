@@ -1,5 +1,6 @@
 import { ComponentValue } from "@dojoengine/recs";
 import { Packer } from "../helpers/packer";
+import { Difficulty, numberToDifficultyType } from "../types/difficulty";
 import {
   BLOCK_BIT_COUNT,
   ROW_BIT_COUNT,
@@ -19,12 +20,14 @@ export interface Row {
 
 export class Game {
   public id: string;
+  public difficulty: Difficulty;
   public over: boolean;
   public hammer: number;
   public wave: number;
   public totem: number;
   public combo: number;
   public score: number;
+  public moves: number;
   public next_row: number[];
   public next_color: number[];
   public bonuses: number[];
@@ -35,6 +38,7 @@ export class Game {
 
   constructor(game: ComponentValue) {
     this.id = game.id;
+    this.difficulty = new Difficulty(numberToDifficultyType(game.difficulty));
     this.over = game.over ? true : false;
     this.next_row = Packer.sized_unpack(
       BigInt(game.next_row),
@@ -46,13 +50,14 @@ export class Game {
     this.totem = game.totem_bonus;
     this.combo = game.combo_counter;
     this.score = game.score;
+    this.moves = game.moves;
     this.next_color = Packer.sized_unpack(
       BigInt(game.next_color),
       BigInt(BLOCK_BIT_COUNT),
       DEFAULT_GRID_WIDTH,
     );
     this.bonuses = game.bonuses;
-    this.player_id = game.player_id.toString(16);
+    this.player_id = "0x" + game.player_id.toString(16);
     this.seed = game.seed;
 
     // Destructure blocks and colors bitmaps in to Rows and Blocks

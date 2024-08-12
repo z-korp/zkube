@@ -21,7 +21,12 @@ trait IActions<TContractState> {
     fn create(self: @TContractState, world: IWorldDispatcher, name: felt252);
     fn rename(self: @TContractState, world: IWorldDispatcher, name: felt252);
     fn start(
-        self: @TContractState, world: IWorldDispatcher, proof: Proof, seed: felt252, beta: felt252
+        self: @TContractState,
+        world: IWorldDispatcher,
+        difficulty: u8,
+        proof: Proof,
+        seed: felt252,
+        beta: felt252
     ) -> u32;
     fn surrender(self: @TContractState, world: IWorldDispatcher);
     fn move(
@@ -42,6 +47,7 @@ trait IActions<TContractState> {
 mod actions {
     // Dojo imports
 
+    use core::traits::Into;
     use dojo::world;
     use dojo::world::IWorldDispatcher;
     use dojo::world::IWorldDispatcherTrait;
@@ -119,11 +125,12 @@ mod actions {
         fn start(
             self: @ContractState,
             world: IWorldDispatcher,
+            difficulty: u8,
             proof: Proof,
             seed: felt252,
             beta: felt252
         ) -> u32 {
-            self.playable.start(world, proof, seed, beta)
+            self.playable.start(world, difficulty.into(), proof, seed, beta)
         }
 
         fn surrender(self: @ContractState, world: IWorldDispatcher) {

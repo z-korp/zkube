@@ -7,7 +7,9 @@ edition = "2023_10"
 sierra-replace-ids = true
 
 [scripts]
-dev = "sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate plan && sozo --profile dev migrate apply"
+dev = "NAME=v023 && sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate plan --name $NAME && sozo --profile dev migrate apply --name $NAME "
+slot = "NAME=v0 && sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate plan --name $NAME && sozo --profile slot migrate apply --name $NAME"
+slottest = "NAME=v1 && sozo --profile slottest clean && sozo --profile slottest build && sozo --profile slottest migrate plan --name $NAME && sozo --profile slottest migrate apply --name $NAME"
 
 [dependencies]
 alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria", rev = "78b0d51" }
@@ -29,6 +31,11 @@ private_key = "0x1c9053c053edf324aec366a34c6901b1095b07af69495bffec7d7fe21effb1b
 rpc_url = "https://api.cartridge.gg/x/zkube/katana"
 account_address = "0x1c10815b8e3fb0830a702eddb77a566ee78e3d173557bf3ed7b9a8b28f048ca"
 private_key = "0x4b5b87f25c379f5f5088cc4b14fe7963dfc7675cfdb94e1c263a849f3c2b9d3"
+
+[profile.slottest.tool.dojo.env]
+rpc_url = "https://api.cartridge.gg/x/zkube-test/katana"
+account_address = "0x7980711be3f885d4d3541384022a88b02e46f72c74693269b322ac7133fdba5"
+private_key = "0x52587b88673203343049bae0275f80c870ab2e4c931ba86c6ab175f8403e922"
 
 [profile.sepolia.tool.dojo.env]
 rpc_url = "https://starknet-sepolia.public.blastapi.io/rpc/v0_7"

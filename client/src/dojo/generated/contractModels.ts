@@ -13,8 +13,10 @@ export function defineContractComponents(world: World) {
         world,
         {
           id: RecsType.Number,
+          difficulty: RecsType.Number,
           over: RecsType.Boolean,
           score: RecsType.Number,
+          moves: RecsType.Number,
           next_row: RecsType.Number,
           next_color: RecsType.Number,
           hammer_bonus: RecsType.Number,
@@ -31,7 +33,9 @@ export function defineContractComponents(world: World) {
             name: "Game",
             types: [
               "u32",
+              "u8",
               "bool",
+              "u32",
               "u32",
               "u32",
               "u32",

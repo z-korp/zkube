@@ -1,6 +1,0 @@
-VITE_VRF_URL=https://z-vrf.vercel.app/api/vrf
-VITE_PUBLIC_NODE_URL=https://api.cartridge.gg/x/zkubev2/katana
-VITE_PUBLIC_TORII=https://api.cartridge.gg/x/zkubev2/torii
-VITE_PUBLIC_MASTER_ADDRESS=0x1c10815b8e3fb0830a702eddb77a566ee78e3d173557bf3ed7b9a8b28f048ca
-VITE_PUBLIC_MASTER_PRIVATE_KEY=0x4b5b87f25c379f5f5088cc4b14fe7963dfc7675cfdb94e1c263a849f3c2b9d3
-VITE_PUBLIC_SLOT=true

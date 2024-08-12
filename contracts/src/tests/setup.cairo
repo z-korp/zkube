@@ -1,6 +1,7 @@
 mod setup {
     // Core imports
 
+    use core::traits::Into;
     use core::debug::PrintTrait;
 
     // Starknet imports
@@ -20,6 +21,7 @@ mod setup {
     // Internal imports
 
     use zkube::models::game::{Game, GameTrait};
+    use zkube::types::difficulty::Difficulty;
     use zkube::models::player::Player;
     use zkube::systems::actions::{actions, IActions, IActionsDispatcher, IActionsDispatcherTrait};
 
@@ -73,7 +75,7 @@ mod setup {
         };
         let seed = 48;
         let beta = 502998338520997804786462808944365626190955582373168748079635287864535203785;
-        let game_id = systems.actions.start(world, proof, seed, beta);
+        let game_id = systems.actions.start(world, Difficulty::Easy.into(), proof, seed, beta);
 
         let context = Context {
             player_id: PLAYER().into(), player_name: PLAYER_NAME, game_id: game_id,

@@ -999,10 +999,10 @@
         ]
       }
     ],
-    "address": "0x22398e03adf49f1cecb0fbc45cb7e09cb3907de1aba4a321ef190266e5460e1",
-    "transaction_hash": "0x540bba05650d82438029d2358435bdf2b42232fd8e9ea0f6c9a09bf49ce131f",
+    "address": "0x7c3128bc7317614c01b2f210dbd134795cd996017af65dfbe153f2fe216265e",
+    "transaction_hash": "0x5a2a2636838ed19afb3ddf696ad70bcfeb071aa485daffe6cd0937b6c79b877",
     "block_number": 3,
-    "seed": "zkube",
+    "seed": "v023",
     "metadata": {
       "profile_name": "dev",
       "rpc_url": "http://localhost:5050/"
@@ -1019,9 +1019,9 @@
   "contracts": [
     {
       "kind": "DojoContract",
-      "address": "0x37c4bfa511d77ff1299712ad4a608037255f35a4b5f44e230681e4fd744fcbd",
-      "class_hash": "0x4ed9f1af618a5bd13a0c7d7a64bc5bfef583c83bd97d1696315419a3b373851",
-      "original_class_hash": "0x4ed9f1af618a5bd13a0c7d7a64bc5bfef583c83bd97d1696315419a3b373851",
+      "address": "0x601ee769c9135a490b0e33e23625b95530550551953602c14d88b679f663ef1",
+      "class_hash": "0x1631c400b2f9e057987558695c3c4a4486b4315c0bc3415657474f399140414",
+      "original_class_hash": "0x1631c400b2f9e057987558695c3c4a4486b4315c0bc3415657474f399140414",
       "base_class_hash": "0x22f3e55b61d86c2ac5239fa3b3b8761f26b9a5c0b5f61ddbd5d756ced498b46",
       "abi": [
         {
@@ -1162,6 +1162,10 @@
                 {
                   "name": "world",
                   "type": "dojo::world::IWorldDispatcher"
+                },
+                {
+                  "name": "difficulty",
+                  "type": "core::integer::u8"
                 },
                 {
                   "name": "proof",
@@ -1346,12 +1350,22 @@
           "key": true
         },
         {
+          "name": "difficulty",
+          "type": "u8",
+          "key": false
+        },
+        {
           "name": "over",
           "type": "bool",
           "key": false
         },
         {
           "name": "score",
+          "type": "u32",
+          "key": false
+        },
+        {
+          "name": "moves",
           "type": "u32",
           "key": false
         },
@@ -1406,8 +1420,8 @@
           "key": false
         }
       ],
-      "class_hash": "0x7f9ef38357da1be1090e5c94c8e3edd015252e1465b76bff44de696c17e722d",
-      "original_class_hash": "0x7f9ef38357da1be1090e5c94c8e3edd015252e1465b76bff44de696c17e722d",
+      "class_hash": "0x7a2153b5a6d29ea11aa7a7a5aaeb4135b7ac8cf986792fa91589bc4885032be",
+      "original_class_hash": "0x7a2153b5a6d29ea11aa7a7a5aaeb4135b7ac8cf986792fa91589bc4885032be",
       "abi": [
         {
           "type": "impl",
@@ -1755,11 +1769,19 @@
               "type": "core::integer::u32"
             },
             {
+              "name": "difficulty",
+              "type": "core::integer::u8"
+            },
+            {
               "name": "over",
               "type": "core::bool"
             },
             {
               "name": "score",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "moves",
               "type": "core::integer::u32"
             },
             {
