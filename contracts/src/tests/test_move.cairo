@@ -49,3 +49,25 @@ fn test_actions_move_02() {
     // [Move]
     systems.actions.move(world, 2, 1, 0);
 }
+
+/// Test when grid is empty after a new line is inserted.
+/// # Arguments
+/// # Returns
+/// Asserts that the grid is equal to new line.
+#[test]
+fn test_actions_move_03() {
+    // [Setup]
+    let (world, systems, context) = setup::spawn_game();
+    let store = StoreTrait::new(world);
+    let mut game = store.game(context.game_id);
+    game.blocks = 0b000_000_000_000_000_000_010_010;
+    game.colors = 0b000_000_000_000_000_000_010_010;
+    store.set_game(game);
+
+    // [Move]
+    systems.actions.move(world, 0, 0, 2);
+
+    let mut game2 = store.game(context.game_id);
+
+    assert_eq!(game2.blocks, 7185417);
+}

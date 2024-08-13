@@ -76,7 +76,7 @@ impl GameImpl of GameTrait {
                 break;
             };
             // [Effect] Add line
-            self.setup_next();
+            self.insert_new_line();
             // [Effect] Assess game
             self.assess_game(ref counter);
         };
@@ -135,6 +135,10 @@ impl GameImpl of GameTrait {
         difficulty
     }
 
+    fn insert_new_line(ref self: Game) {
+        self.setup_next();
+    }
+
     fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8) {
         // [Compute] Move direction and step counts
         let direction = final_index > start_index;
@@ -161,12 +165,21 @@ impl GameImpl of GameTrait {
         };
 
         // [Effect] Add a new line
-        self.setup_next();
+        self.insert_new_line();
 
         // [Effect] Assess game
         self.score += self.assess_game(ref counter);
         self.combo_counter = Math::max(self.combo_counter, counter);
         self.moves += 1;
+
+        // [Effect] Grid empty add a new line
+        if self.is_empty_grid() {
+            self.setup_next();
+        }
+    }
+
+    fn is_empty_grid(ref self: Game) -> bool {
+        self.blocks == 0
     }
 
     fn assess_game(ref self: Game, ref counter: u8) -> u32 {

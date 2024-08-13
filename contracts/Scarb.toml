@@ -10,7 +10,7 @@ sierra-replace-ids = true
 dev = "NAME=v023 && sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate plan --name $NAME && sozo --profile dev migrate apply --name $NAME "
 slot = "NAME=v0 && sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate plan --name $NAME && sozo --profile slot migrate apply --name $NAME"
 slottest = "NAME=v1 && sozo --profile slottest clean && sozo --profile slottest build && sozo --profile slottest migrate plan --name $NAME && sozo --profile slottest migrate apply --name $NAME"
-slotdev = "NAME=v0 && sozo --profile slotdev clean && sozo --profile slotdev build && sozo --profile slotdev migrate plan --name $NAME && sozo --profile slotdev migrate apply --name $NAME"
+slotdev = "NAME=v1 && sozo --profile slotdev clean && sozo --profile slotdev build && sozo --profile slotdev migrate plan --name $NAME && sozo --profile slotdev migrate apply --name $NAME"
 
 [dependencies]
 alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria", rev = "78b0d51" }
