@@ -34,6 +34,7 @@ export function systems({
       onClick: () =>
         window.open(
           `https://worlds.dev/networks/slot/worlds/zkube/txs/${transaction_hash}`,
+          //`https://sepolia.voyager.online/tx/${transaction_hash}`,
         ),
     };
   };
@@ -119,7 +120,7 @@ export function systems({
     );
   };
 
-  const surrender = async ({ account, ...props }: SystemTypes.Surrender) => {
+  const surrender = async ({ account, ...props }: SystemTypes.Signer) => {
     await handleTransaction(
       account,
       () => client.actions.surrender({ account, ...props }),

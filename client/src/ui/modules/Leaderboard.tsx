@@ -1,9 +1,9 @@
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogTrigger,
 } from "@/ui/elements/dialog";
 import {
@@ -24,13 +24,20 @@ import {
   PaginationPrevious,
 } from "@/ui/elements/pagination";
 import { Button } from "@/ui/elements/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/elements/select";
 import { Game } from "@/dojo/game/models/game";
 import { useGames } from "@/hooks/useGames";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import { usePlayer } from "@/hooks/usePlayer";
-import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "react-responsive";
+import { DifficultyType } from "@/dojo/game/types/difficulty";
 
 const GAME_PER_PAGE = 5;
 const MAX_PAGE_COUNT = 5;
@@ -44,7 +51,6 @@ export const Leaderboard = () => {
       <DialogContent>
         <DialogHeader className="flex items-center text-2xl">
           <DialogTitle>Leaderboard</DialogTitle>
-          <DialogDescription />
         </DialogHeader>
         <div className="m-auto">
           <Content />
@@ -63,12 +69,12 @@ export const Content = () => {
     return games
       .sort((a, b) => b.combo - a.combo)
       .sort((a, b) => b.score - a.score);
-    // .filter((game) => !!game.score || !!game.combo);
   }, [games]);
 
   useEffect(() => {
     const rem = Math.floor(sorteds.length / (GAME_PER_PAGE + 1)) + 1;
     setPageCount(rem);
+    setPage(1); // Reset to first page when difficulty changes
   }, [sorteds]);
 
   const { start, end } = useMemo(() => {
@@ -95,7 +101,7 @@ export const Content = () => {
     <>
       <Table className="text-md">
         <TableCaption className={`${disabled && "hidden"}`}>
-          Leaderbord is waiting for its best players to make history
+          Leaderboard is waiting for its best players to make history
         </TableCaption>
         <TableHeader>
           <TableRow>
@@ -153,7 +159,7 @@ export const Content = () => {
 };
 
 export const Row = ({ rank, game }: { rank: number; game: Game }) => {
-  const { player } = usePlayer({ playerId: "0x" + game.player_id });
+  const { player } = usePlayer({ playerId: game.player_id });
 
   return (
     <TableRow>

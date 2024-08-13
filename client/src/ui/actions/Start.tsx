@@ -5,8 +5,16 @@ import { Button } from "@/ui/elements/button";
 import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
 import { fetchVrfData } from "@/api/vrf";
+import {
+  DifficultyType,
+  difficultyTypeToNumber,
+} from "@/dojo/game/types/difficulty";
 
-export const Start = () => {
+interface StartProps {
+  difficulty: DifficultyType;
+}
+
+export const Start: React.FC<StartProps> = ({ difficulty }) => {
   const {
     account: { account },
     master,
@@ -37,6 +45,7 @@ export const Start = () => {
       } = await fetchVrfData();
       await start({
         account: account as Account,
+        difficulty: difficultyTypeToNumber(difficulty),
         seed,
         x: proof_gamma_x,
         y: proof_gamma_y,
@@ -48,7 +57,7 @@ export const Start = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [account]);
+  }, [account, difficulty]);
 
   const disabled = useMemo(() => {
     return (

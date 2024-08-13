@@ -15,8 +15,10 @@ struct Player {
 struct Game {
     #[key]
     id: u32,
+    difficulty: u8,
     over: bool,
     score: u32,
+    moves: u32,
     next_row: u32,
     next_color: u32,
     hammer_bonus: u8,

@@ -24,7 +24,14 @@ mod elements {
         mod wave;
     }
     mod difficulties {
+        mod veryeasy;
         mod easy;
+        mod medium;
+        mod mediumhard;
+        mod hard;
+        mod veryhard;
+        mod expert;
+        mod master;
         mod interface;
     }
 }

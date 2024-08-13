@@ -17,6 +17,7 @@ export interface Rename extends Signer {
 }
 
 export interface Start extends Signer {
+  difficulty: number;
   x: bigint;
   y: bigint;
   c: bigint;
@@ -25,8 +26,6 @@ export interface Start extends Signer {
   seed: bigint;
   beta: bigint;
 }
-
-export interface Surrender extends Signer {}
 
 export interface Move extends Signer {
   row_index: number;
@@ -103,6 +102,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
     const start = async ({
       account,
+      difficulty,
       x,
       y,
       c,
@@ -119,6 +119,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "start",
             calldata: [
               provider.getWorldAddress(),
+              difficulty,
               x,
               y,
               c,
@@ -136,7 +137,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       }
     };
 
-    const surrender = async ({ account }: Surrender) => {
+    const surrender = async ({ account }: Signer) => {
       try {
         return await provider.execute(
           account,

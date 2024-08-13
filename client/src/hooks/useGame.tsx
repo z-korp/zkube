@@ -22,5 +22,7 @@ export const useGame = ({ gameId }: { gameId: string | undefined }) => {
   const game = useMemo(() => {
     return component ? new GameClass(component) : null;
   }, [component]);
+
+  console.log("game", game?.moves);
   return { game, gameKey };
 };

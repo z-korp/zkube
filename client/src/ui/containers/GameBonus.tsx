@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import BonusButton from "../components/BonusBouton";
 import { useTheme } from "@/ui/elements/theme-provider";
@@ -16,12 +16,6 @@ export const GameBonus: React.FC<GameBonusProps> = ({
 }) => {
   const { themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
-
-  console.log('Props received in GameBonus:', {
-    onBonusWaveClick,
-    onBonusTikiClick,
-    onBonusHammerClick,
-  });
 
   const handleClickWave = () => {
     console.log("Wave button clicked");
