@@ -17,7 +17,7 @@ export interface Rename extends Signer {
 }
 
 export interface Start extends Signer {
-  difficulty: number;
+  mode: number;
   x: bigint;
   y: bigint;
   c: bigint;
@@ -102,7 +102,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
     const start = async ({
       account,
-      difficulty,
+      mode,
       x,
       y,
       c,
@@ -119,7 +119,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "start",
             calldata: [
               provider.getWorldAddress(),
-              difficulty,
+              mode,
               x,
               y,
               c,

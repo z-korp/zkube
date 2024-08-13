@@ -1,6 +1,6 @@
 kind = "DojoModel"
-class_hash = "0x7a2153b5a6d29ea11aa7a7a5aaeb4135b7ac8cf986792fa91589bc4885032be"
-original_class_hash = "0x7a2153b5a6d29ea11aa7a7a5aaeb4135b7ac8cf986792fa91589bc4885032be"
+class_hash = "0x6814652ce2e34a351f5f958e7eb3c51cfe0711f0991530db71e42955f4e4268"
+original_class_hash = "0x6814652ce2e34a351f5f958e7eb3c51cfe0711f0991530db71e42955f4e4268"
 abi = "manifests/dev/abis/base/models/zkube_models_index_game.json"
 name = "zkube::models::index::game"
 
@@ -77,4 +77,9 @@ key = false
 [[members]]
 name = "seed"
 type = "felt252"
+key = false
+
+[[members]]
+name = "mode"
+type = "u8"
 key = false

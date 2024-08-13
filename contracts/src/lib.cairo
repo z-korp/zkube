@@ -6,6 +6,7 @@ mod models {
     mod index;
     mod game;
     mod player;
+    mod tournament;
 }
 
 mod types {
@@ -13,6 +14,7 @@ mod types {
     mod color;
     mod width;
     mod block;
+    mod mode;
     mod difficulty;
 }
 
@@ -44,13 +46,15 @@ mod helpers {
 }
 
 mod components {
-    mod initializable;
+    mod hostable;
     mod manageable;
+    mod payable;
     mod playable;
 }
 
 mod systems {
-    mod actions;
+    mod account;
+    mod dailygame;
 }
 
 #[cfg(test)]

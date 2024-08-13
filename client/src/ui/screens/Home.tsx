@@ -19,6 +19,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import GoogleFormEmbed from "../components/GoogleFormEmbed";
 import { DifficultyType } from "@/dojo/game/types/difficulty";
+import { ModeType } from "@/dojo/game/types/mode";
 
 interface position {
   x: number;
@@ -173,7 +174,8 @@ export const Home = () => {
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
               <Create />
-              <Start difficulty={DifficultyType.None} />
+              <Start mode={ModeType.Daily} />
+              <Start mode={ModeType.Normal} />
               {!game && (
                 <div className="absolute top md:translate-y-[100%] translate-y-[40%] bg-slate-900 w-11/12 p-6 rounded-xl">
                   <Leaderboard />

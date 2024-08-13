@@ -1,0 +1,10 @@
+kind = "DojoContract"
+class_hash = "0x3a5d9b8f8aa610129f2b222f51a0f2b551334954df7aa1f21d6ff16c1c49d48"
+original_class_hash = "0x3a5d9b8f8aa610129f2b222f51a0f2b551334954df7aa1f21d6ff16c1c49d48"
+base_class_hash = "0x0"
+abi = "manifests/dev/abis/base/contracts/zkube_systems_dailygame_dailygame.json"
+reads = []
+writes = []
+computed = []
+init_calldata = []
+name = "zkube::systems::dailygame::dailygame"

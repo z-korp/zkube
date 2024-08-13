@@ -319,8 +319,8 @@
   },
   {
     "type": "impl",
-    "name": "gameImpl",
-    "interface_name": "zkube::models::index::Igame"
+    "name": "tournamentImpl",
+    "interface_name": "zkube::models::index::Itournament"
   },
   {
     "type": "enum",
@@ -338,77 +338,57 @@
   },
   {
     "type": "struct",
-    "name": "zkube::models::index::Game",
+    "name": "zkube::models::index::Tournament",
     "members": [
       {
         "name": "id",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "prize",
+        "type": "core::felt252"
+      },
+      {
+        "name": "top1_player_id",
+        "type": "core::felt252"
+      },
+      {
+        "name": "top2_player_id",
+        "type": "core::felt252"
+      },
+      {
+        "name": "top3_player_id",
+        "type": "core::felt252"
+      },
+      {
+        "name": "top1_score",
         "type": "core::integer::u32"
       },
       {
-        "name": "difficulty",
-        "type": "core::integer::u8"
+        "name": "top2_score",
+        "type": "core::integer::u32"
       },
       {
-        "name": "over",
+        "name": "top3_score",
+        "type": "core::integer::u32"
+      },
+      {
+        "name": "top1_claimed",
         "type": "core::bool"
       },
       {
-        "name": "score",
-        "type": "core::integer::u32"
+        "name": "top2_claimed",
+        "type": "core::bool"
       },
       {
-        "name": "moves",
-        "type": "core::integer::u32"
-      },
-      {
-        "name": "next_row",
-        "type": "core::integer::u32"
-      },
-      {
-        "name": "next_color",
-        "type": "core::integer::u32"
-      },
-      {
-        "name": "hammer_bonus",
-        "type": "core::integer::u8"
-      },
-      {
-        "name": "wave_bonus",
-        "type": "core::integer::u8"
-      },
-      {
-        "name": "totem_bonus",
-        "type": "core::integer::u8"
-      },
-      {
-        "name": "combo_counter",
-        "type": "core::integer::u8"
-      },
-      {
-        "name": "blocks",
-        "type": "core::felt252"
-      },
-      {
-        "name": "colors",
-        "type": "core::felt252"
-      },
-      {
-        "name": "player_id",
-        "type": "core::felt252"
-      },
-      {
-        "name": "seed",
-        "type": "core::felt252"
-      },
-      {
-        "name": "mode",
-        "type": "core::integer::u8"
+        "name": "top3_claimed",
+        "type": "core::bool"
       }
     ]
   },
   {
     "type": "interface",
-    "name": "zkube::models::index::Igame",
+    "name": "zkube::models::index::Itournament",
     "items": [
       {
         "type": "function",
@@ -416,7 +396,7 @@
         "inputs": [
           {
             "name": "model",
-            "type": "zkube::models::index::Game"
+            "type": "zkube::models::index::Tournament"
           }
         ],
         "outputs": [],
@@ -426,7 +406,7 @@
   },
   {
     "type": "event",
-    "name": "zkube::models::index::game::Event",
+    "name": "zkube::models::index::tournament::Event",
     "kind": "enum",
     "variants": []
   }

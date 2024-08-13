@@ -29,4 +29,22 @@ struct Game {
     colors: felt252,
     player_id: felt252,
     seed: felt252,
+    mode: u8,
+}
+
+#[derive(Copy, Drop, Serde, IntrospectPacked)]
+#[dojo::model]
+struct Tournament {
+    #[key]
+    id: u64,
+    prize: felt252,
+    top1_player_id: felt252,
+    top2_player_id: felt252,
+    top3_player_id: felt252,
+    top1_score: u32,
+    top2_score: u32,
+    top3_score: u32,
+    top1_claimed: bool,
+    top2_claimed: bool,
+    top3_claimed: bool,
 }

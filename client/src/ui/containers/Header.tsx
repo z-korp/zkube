@@ -31,6 +31,7 @@ import { Button } from "../elements/button";
 import { Leaderboard } from "../modules/Leaderboard";
 import { Achievements } from "../modules/Achievements";
 import { MusicPlayer } from "../modules/MusicPlayer";
+import { ModeType } from "@/dojo/game/types/mode";
 
 export const Header = () => {
   const {
@@ -55,7 +56,8 @@ export const Header = () => {
           onClick={handleClick}
         >
           <p className="text-4xl font-bold">zKube</p>
-          <Leaderboard />
+          <Leaderboard modeType={ModeType.Daily} />
+          <Leaderboard modeType={ModeType.Normal} />
           <Achievements />
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">

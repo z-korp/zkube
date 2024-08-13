@@ -27,6 +27,7 @@ export function defineContractComponents(world: World) {
           colors: RecsType.BigInt,
           player_id: RecsType.BigInt,
           seed: RecsType.BigInt,
+          mode: RecsType.Number,
         },
         {
           metadata: {
@@ -47,6 +48,7 @@ export function defineContractComponents(world: World) {
               "felt252",
               "felt252",
               "felt252",
+              "u8",
             ],
             customTypes: [],
           },

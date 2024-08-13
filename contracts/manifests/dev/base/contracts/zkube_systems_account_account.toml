@@ -1,0 +1,10 @@
+kind = "DojoContract"
+class_hash = "0x3c2bc8488a2393534b0ddc8c39d06bf7e181057a56d088ce882c2a5fc8a558d"
+original_class_hash = "0x3c2bc8488a2393534b0ddc8c39d06bf7e181057a56d088ce882c2a5fc8a558d"
+base_class_hash = "0x0"
+abi = "manifests/dev/abis/base/contracts/zkube_systems_account_account.json"
+reads = []
+writes = []
+computed = []
+init_calldata = []
+name = "zkube::systems::account::account"

@@ -22,8 +22,8 @@ name = "dojo::base::base"
 [[contracts]]
 kind = "DojoContract"
 address = "0x601ee769c9135a490b0e33e23625b95530550551953602c14d88b679f663ef1"
-class_hash = "0x1631c400b2f9e057987558695c3c4a4486b4315c0bc3415657474f399140414"
-original_class_hash = "0x1631c400b2f9e057987558695c3c4a4486b4315c0bc3415657474f399140414"
+class_hash = "0x484a2546eac2453e91633488caba48e56b50f62fa851bee9b574ee6e0a85011"
+original_class_hash = "0x484a2546eac2453e91633488caba48e56b50f62fa851bee9b574ee6e0a85011"
 base_class_hash = "0x22f3e55b61d86c2ac5239fa3b3b8761f26b9a5c0b5f61ddbd5d756ced498b46"
 abi = "manifests/dev/abis/deployments/contracts/zkube_systems_actions_actions.json"
 reads = []
@@ -37,8 +37,8 @@ name = "zkube::systems::actions::actions"
 
 [[models]]
 kind = "DojoModel"
-class_hash = "0x7a2153b5a6d29ea11aa7a7a5aaeb4135b7ac8cf986792fa91589bc4885032be"
-original_class_hash = "0x7a2153b5a6d29ea11aa7a7a5aaeb4135b7ac8cf986792fa91589bc4885032be"
+class_hash = "0x6814652ce2e34a351f5f958e7eb3c51cfe0711f0991530db71e42955f4e4268"
+original_class_hash = "0x6814652ce2e34a351f5f958e7eb3c51cfe0711f0991530db71e42955f4e4268"
 abi = "manifests/dev/abis/deployments/models/zkube_models_index_game.json"
 name = "zkube::models::index::game"
 
@@ -115,6 +115,11 @@ key = false
 [[models.members]]
 name = "seed"
 type = "felt252"
+key = false
+
+[[models.members]]
+name = "mode"
+type = "u8"
 key = false
 
 [[models]]

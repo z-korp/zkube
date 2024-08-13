@@ -139,7 +139,7 @@
             "type": "dojo::world::IWorldDispatcher"
           },
           {
-            "name": "difficulty",
+            "name": "mode",
             "type": "core::integer::u8"
           },
           {

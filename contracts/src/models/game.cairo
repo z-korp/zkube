@@ -1,3 +1,4 @@
+use zkube::types::mode::ModeTrait;
 use core::traits::Into;
 // Core imports
 
@@ -18,6 +19,7 @@ use zkube::helpers::math::Math;
 use zkube::helpers::packer::Packer;
 use zkube::helpers::controller::Controller;
 use zkube::types::bonus::{Bonus, BonusTrait};
+use zkube::types::mode::Mode;
 
 // Errors
 
@@ -34,16 +36,18 @@ impl GameImpl of GameTrait {
     fn new(
         id: u32,
         player_id: felt252,
-        difficulty: Difficulty,
         seed: felt252,
         hammer_bonus: u8,
         wave_bonus: u8,
-        totem_bonus: u8
+        totem_bonus: u8,
+        mode: Mode,
+        time: u64,
     ) -> Game {
-        let (row, color) = Controller::create_line(seed, difficulty);
+        let difficulty = mode.difficulty();
+        let game_seed = mode.seed(time, id, seed);
+        let (row, color) = Controller::create_line(game_seed, difficulty);
         Game {
             id,
-            difficulty: difficulty.into(),
             over: false,
             next_row: row,
             next_color: color,
@@ -56,7 +60,9 @@ impl GameImpl of GameTrait {
             blocks: 0,
             colors: 0,
             player_id,
-            seed,
+            seed: game_seed,
+            difficulty: difficulty.into(),
+            mode: mode.into(),
         }
     }
 
@@ -244,6 +250,7 @@ impl ZeroableGame of core::Zeroable<Game> {
             colors: 0,
             player_id: 0,
             seed: 0,
+            mode: 0,
         }
     }
 
@@ -297,6 +304,7 @@ mod tests {
 
     use super::{Game, GameTrait, AssertTrait};
     use zkube::types::difficulty::Difficulty;
+    use zkube::types::mode::Mode;
 
     // Constants
 
@@ -307,7 +315,9 @@ mod tests {
     #[test]
     fn test_game_new() {
         // [Effect] Create game
-        let game = GameTrait::new(GAME_ID, PLAYER_ID, Difficulty::Easy, SEED, 0, 0, 0);
+        let game = GameTrait::new(
+            GAME_ID, PLAYER_ID, Difficulty::Easy, SEED, 0, 0, 0, Mode::Normal
+        );
         game.assert_exists();
         game.assert_not_over();
         // [Assert] Game seed

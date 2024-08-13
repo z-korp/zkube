@@ -31,7 +31,7 @@ mod ManageableComponent {
     impl InternalImpl<
         TContractState, +HasComponent<TContractState>
     > of InternalTrait<TContractState> {
-        fn create(self: @ComponentState<TContractState>, world: IWorldDispatcher, name: felt252,) {
+        fn _create(self: @ComponentState<TContractState>, world: IWorldDispatcher, name: felt252,) {
             // [Setup] Datastore
             let store: Store = StoreImpl::new(world);
 
@@ -45,7 +45,7 @@ mod ManageableComponent {
             store.set_player(player);
         }
 
-        fn rename(self: @ComponentState<TContractState>, world: IWorldDispatcher, name: felt252,) {
+        fn _rename(self: @ComponentState<TContractState>, world: IWorldDispatcher, name: felt252,) {
             // [Setup] Datastore
             let store: Store = StoreImpl::new(world);
 
