@@ -543,21 +543,25 @@ mod tests {
             (0b000_010_010_000_011_011_011_000, 0b000_010_010_000_011_011_011_000)
         );
         blocks = 0b000_010_010_000_011_011_011_001;
+        colors = 0b000_010_010_000_011_011_011_001;
         assert_eq!(
             Controller::align_line(blocks, colors),
             (0b000_010_010_000_011_011_011_001, 0b000_010_010_000_011_011_011_001)
         );
         blocks = 0b010_000_000_011_011_011_000_010;
+        colors = 0b010_000_000_011_011_011_000_010;
         assert_eq!(
             Controller::align_line(blocks, colors),
             (0b010_010_000_000_011_011_011_000, 0b010_010_000_000_011_011_011_000)
         );
         blocks = 0b011_011_000_001_010_010_000_011;
+        colors = 0b011_011_000_001_010_010_000_011;
         assert_eq!(
             Controller::align_line(blocks, colors),
             (0b011_011_011_000_001_010_010_000, 0b011_011_011_000_001_010_010_000)
         );
         blocks = 0b100_100_100_001_010_010_000_100;
+        colors = 0b100_100_100_001_010_010_000_100;
         assert_eq!(
             Controller::align_line(blocks, colors),
             (0b100_100_100_100_001_010_010_000, 0b100_100_100_100_001_010_010_000)
@@ -687,6 +691,6 @@ mod tests {
         let seed: felt252 = 'DEES';
         let easy: Difficulty = Difficulty::Easy;
         let (blocks, _colors) = Controller::create_line(seed, easy);
-        assert_eq!(blocks, 0b010_001_001_000_001_010_010_010);
+        assert_eq!(blocks, 0b010_010_001_001_000_001_010_010);
     }
 }
