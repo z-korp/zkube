@@ -20,48 +20,122 @@ mod setup {
 
     // Internal imports
 
-    use zkube::models::game::{Game, GameTrait};
-    use zkube::types::difficulty::Difficulty;
+    use zkube::constants;
+    use zkube::models::game::{Game, GameTrait, GameImpl};
     use zkube::models::player::Player;
-    use zkube::systems::actions::{actions, IActions, IActionsDispatcher, IActionsDispatcherTrait};
+    use zkube::models::tournament::Tournament;
+    use zkube::types::difficulty::Difficulty;
+    use zkube::types::mode::Mode;
+    use zkube::systems::account::{account, IAccountDispatcher, IAccountDispatcherTrait};
+    use zkube::tests::mocks::erc20::{
+        IERC20Dispatcher, IERC20DispatcherTrait, IERC20FaucetDispatcher,
+        IERC20FaucetDispatcherTrait, ERC20
+    };
+    use zkube::systems::dailygame::{dailygame, IDailyGameDispatcher, IDailyGameDispatcherTrait};
 
     // Constants
 
-    fn PLAYER() -> ContractAddress {
-        starknet::contract_address_const::<'PLAYER'>()
+    fn PLAYER1() -> ContractAddress {
+        starknet::contract_address_const::<'PLAYER1'>()
     }
+    const PLAYER1_NAME: felt252 = 'PLAYER1';
 
-    const PLAYER_NAME: felt252 = 'PLAYER';
+    fn PLAYER2() -> ContractAddress {
+        starknet::contract_address_const::<'PLAYER2'>()
+    }
+    const PLAYER2_NAME: felt252 = 'PLAYER2';
+
+    fn PLAYER3() -> ContractAddress {
+        starknet::contract_address_const::<'PLAYER3'>()
+    }
+    const PLAYER3_NAME: felt252 = 'PLAYER3';
+
+    fn PLAYER4() -> ContractAddress {
+        starknet::contract_address_const::<'PLAYER4'>()
+    }
+    const PLAYER4_NAME: felt252 = 'PLAYER4';
+
 
     #[derive(Drop)]
     struct Systems {
-        actions: IActionsDispatcher,
+        account: IAccountDispatcher,
+        dailygame: IDailyGameDispatcher,
     }
 
     #[derive(Drop)]
     struct Context {
-        player_id: felt252,
-        player_name: felt252,
+        player1_id: felt252,
+        player1_name: felt252,
+        player2_id: felt252,
+        player2_name: felt252,
+        player3_id: felt252,
+        player3_name: felt252,
+        player4_id: felt252,
+        player4_name: felt252,
         game_id: u32,
+        game_duration: u64,
+        erc20: IERC20Dispatcher,
+    }
+
+    fn deploy_erc20() -> IERC20Dispatcher {
+        let (address, _) = starknet::deploy_syscall(
+            ERC20::TEST_CLASS_HASH.try_into().expect('Class hash conversion failed'),
+            0,
+            array![].span(),
+            false
+        )
+            .expect('ERC20 deploy failed');
+        IERC20Dispatcher { contract_address: address }
     }
 
     #[inline(always)]
-    fn spawn_game() -> (IWorldDispatcher, Systems, Context) {
+    fn spawn_game(mode: Mode) -> (IWorldDispatcher, Systems, Context) {
         // [Setup] World
         let mut models = core::array::ArrayTrait::new();
         models.append(zkube::models::index::game::TEST_CLASS_HASH);
         models.append(zkube::models::index::player::TEST_CLASS_HASH);
+        models.append(zkube::models::index::tournament::TEST_CLASS_HASH);
         let world = spawn_test_world(models);
+        let erc20 = deploy_erc20();
 
-        // [Setup] Systems
-        let actions_address = deploy_contract(actions::TEST_CLASS_HASH, array![].span());
+        // [Setup] SystemsDrop
+        let account_calldata: Array<felt252> = array![];
+        let account_address = world
+            .deploy_contract(
+                'account', account::TEST_CLASS_HASH.try_into().unwrap(), account_calldata.span()
+            );
+        let dailygame_calldata: Array<felt252> = array![constants::TOKEN_ADDRESS().into(),];
+        let dailygame_address = world
+            .deploy_contract(
+                'dailygame',
+                dailygame::TEST_CLASS_HASH.try_into().unwrap(),
+                dailygame_calldata.span()
+            );
+
         let systems = Systems {
-            actions: IActionsDispatcher { contract_address: actions_address },
+            account: IAccountDispatcher { contract_address: account_address },
+            dailygame: IDailyGameDispatcher { contract_address: dailygame_address },
         };
 
         // [Setup] Context
-        set_contract_address(PLAYER());
-        systems.actions.create(world, PLAYER_NAME);
+        let faucet = IERC20FaucetDispatcher { contract_address: erc20.contract_address };
+        set_contract_address(PLAYER1());
+        faucet.mint();
+        erc20.approve(dailygame_address, ERC20::FAUCET_AMOUNT);
+        systems.account.create(PLAYER1_NAME);
+        set_contract_address(PLAYER2());
+        faucet.mint();
+        erc20.approve(dailygame_address, ERC20::FAUCET_AMOUNT);
+        systems.account.create(PLAYER2_NAME);
+        set_contract_address(PLAYER3());
+        faucet.mint();
+        erc20.approve(dailygame_address, ERC20::FAUCET_AMOUNT);
+        systems.account.create(PLAYER3_NAME);
+        set_contract_address(PLAYER4());
+        faucet.mint();
+        erc20.approve(dailygame_address, ERC20::FAUCET_AMOUNT);
+        systems.account.create(PLAYER4_NAME);
+        let duration: u64 = 0;
 
         // [Setup] Game if mode is set
         let proof = Proof {
@@ -75,10 +149,25 @@ mod setup {
         };
         let seed = 48;
         let beta = 502998338520997804786462808944365626190955582373168748079635287864535203785;
-        let game_id = systems.actions.start(world, Difficulty::Easy.into(), proof, seed, beta);
+
+        // [Setup] Game if mode is set
+        let game_id = match mode {
+            Mode::Daily => systems.dailygame.create(proof, seed, beta,),
+            _ => 0,
+        };
 
         let context = Context {
-            player_id: PLAYER().into(), player_name: PLAYER_NAME, game_id: game_id,
+            player1_id: PLAYER1().into(),
+            player1_name: PLAYER1_NAME,
+            player2_id: PLAYER2().into(),
+            player2_name: PLAYER2_NAME,
+            player3_id: PLAYER3().into(),
+            player3_name: PLAYER3_NAME,
+            player4_id: PLAYER4().into(),
+            player4_name: PLAYER4_NAME,
+            game_id: game_id,
+            game_duration: duration,
+            erc20: erc20,
         };
 
         // [Return]

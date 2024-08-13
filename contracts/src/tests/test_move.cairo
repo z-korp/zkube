@@ -16,16 +16,17 @@ use zkube::constants;
 use zkube::store::{Store, StoreTrait};
 use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{Player, PlayerTrait};
-use zkube::systems::actions::IActionsDispatcherTrait;
+use zkube::systems::dailygame::IDailyGameDispatcherTrait;
+use zkube::types::mode::Mode;
 
 // Test imports
 
-use zkube::tests::setup::{setup, setup::{Systems, PLAYER}};
+use zkube::tests::setup::{setup, setup::{Systems, PLAYER1}};
 
 #[test]
 fn test_actions_move_01() {
     // [Setup]
-    let (world, systems, context) = setup::spawn_game();
+    let (world, systems, context) = setup::spawn_game(Mode::Daily);
     let store = StoreTrait::new(world);
     let mut game = store.game(context.game_id);
     game.blocks = 0x9240526d825221b6906d96d8924049;
@@ -33,13 +34,13 @@ fn test_actions_move_01() {
     store.set_game(game);
 
     // [Move]
-    systems.actions.move(world, 1, 1, 0);
+    systems.dailygame.move(1, 1, 0);
 }
 
 #[test]
 fn test_actions_move_02() {
     // [Setup]
-    let (world, systems, context) = setup::spawn_game();
+    let (world, systems, context) = setup::spawn_game(Mode::Daily);
     let store = StoreTrait::new(world);
     let mut game = store.game(context.game_id);
     game.blocks = 0x48020924892429244829129048b6c8;
@@ -47,7 +48,7 @@ fn test_actions_move_02() {
     store.set_game(game);
 
     // [Move]
-    systems.actions.move(world, 2, 1, 0);
+    systems.dailygame.move(2, 1, 0);
 }
 
 /// Test when grid is empty after a new line is inserted.
@@ -57,7 +58,7 @@ fn test_actions_move_02() {
 #[test]
 fn test_actions_move_03() {
     // [Setup]
-    let (world, systems, context) = setup::spawn_game();
+    let (world, systems, context) = setup::spawn_game(Mode::Daily);
     let store = StoreTrait::new(world);
     let mut game = store.game(context.game_id);
     game.blocks = 0b000_000_000_000_000_000_010_010;
@@ -65,9 +66,9 @@ fn test_actions_move_03() {
     store.set_game(game);
 
     // [Move]
-    systems.actions.move(world, 0, 0, 2);
+    systems.dailygame.move(0, 0, 2);
 
     let mut game2 = store.game(context.game_id);
 
-    assert_eq!(game2.blocks, 7185417);
+    assert_eq!(game2.blocks, 19332072018);
 }

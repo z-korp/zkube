@@ -16,16 +16,17 @@ use zkube::constants;
 use zkube::store::{Store, StoreTrait};
 use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{Player, PlayerTrait};
-use zkube::systems::actions::IActionsDispatcherTrait;
+use zkube::systems::dailygame::IDailyGameDispatcherTrait;
+use zkube::types::mode::Mode;
 
 // Test imports
 
-use zkube::tests::setup::{setup, setup::{Systems, PLAYER}};
+use zkube::tests::setup::{setup, setup::{Systems, PLAYER1}};
 
 #[test]
 fn test_actions_create() {
     // [Setup]
-    let (world, _, context) = setup::spawn_game();
+    let (world, _, context) = setup::spawn_game(Mode::Daily);
     let store = StoreTrait::new(world);
 
     // [Assert]

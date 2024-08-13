@@ -299,6 +299,8 @@ mod tests {
     // Core imports
 
     use core::debug::PrintTrait;
+    use core::poseidon::{PoseidonTrait, HashState};
+    use core::hash::HashStateTrait;
 
     // Local imports
 
@@ -315,12 +317,16 @@ mod tests {
     #[test]
     fn test_game_new() {
         // [Effect] Create game
-        let game = GameTrait::new(
-            GAME_ID, PLAYER_ID, Difficulty::Easy, SEED, 0, 0, 0, Mode::Normal
-        );
+        let game = GameTrait::new(GAME_ID, PLAYER_ID, SEED, 0, 0, 0, Mode::Normal, 0);
         game.assert_exists();
         game.assert_not_over();
-        // [Assert] Game seed
-        assert_eq!(game.seed, SEED);
+        // [Assert] Game seed has changed
+
+        let state: HashState = PoseidonTrait::new();
+        let state = state.update(SEED);
+        let state = state.update(GAME_ID.into());
+        let state = state.update(0);
+
+        assert_eq!(game.seed, state.finalize());
     }
 }
