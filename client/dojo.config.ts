@@ -1,5 +1,6 @@
 import local from "../contracts/manifests/dev/manifest.json";
-import slot from "../contracts/manifests/slottest/manifest.json";
+import slot from "../contracts/manifests/slot/manifest.json";
+import slotdev from "../contracts/manifests/slotdev/manifest.json";
 import sepolia from "../contracts/manifests/slot/manifest.json";
 
 const {
@@ -35,6 +36,8 @@ export function dojoConfig() {
         ? sepolia
         : VITE_PUBLIC_DEPLOY_TYPE === "slot"
           ? slot
-          : local,
+          : VITE_PUBLIC_DEPLOY_TYPE === "slotdev"
+            ? slotdev
+            : local,
   };
 }
