@@ -62,6 +62,7 @@ mod tests {
     mod setup;
     mod test_create;
     mod test_move;
+    mod test_dailygame;
 
     mod mocks {
         mod erc20;

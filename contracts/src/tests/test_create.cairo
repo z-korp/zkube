@@ -26,10 +26,14 @@ use zkube::tests::setup::{setup, setup::{Systems, PLAYER1}};
 #[test]
 fn test_actions_create() {
     // [Setup]
-    let (world, _, context) = setup::spawn_game(Mode::Daily);
+    let (world, systems, context) = setup::create_accounts(Mode::Daily);
     let store = StoreTrait::new(world);
 
+    // [Create]
+    set_contract_address(PLAYER1());
+    let game_id = systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
+
     // [Assert]
-    let game = store.game(context.game_id);
-    assert(game.id == context.game_id, 'Game: id');
+    let game = store.game(game_id);
+    assert(game.id == game_id, 'Game: id');
 }

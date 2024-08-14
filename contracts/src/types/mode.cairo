@@ -57,8 +57,8 @@ impl ModeImpl of ModeTrait {
     #[inline(always)]
     fn duration(self: Mode) -> u64 {
         match self {
-            Mode::Normal => constants::DAILY_MODE_DURATION,
-            Mode::Daily => constants::NORMAL_MODE_DURATION,
+            Mode::Normal => constants::NORMAL_MODE_DURATION,
+            Mode::Daily => constants::DAILY_MODE_DURATION,
             _ => 0,
         }
     }

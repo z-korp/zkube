@@ -4,7 +4,9 @@ use core::debug::PrintTrait;
 
 // Starknet imports
 
-use starknet::testing::{set_contract_address, set_transaction_hash};
+use starknet::testing::{
+    set_contract_address, set_transaction_hash, set_caller_address, set_block_timestamp
+};
 
 // Dojo imports
 
@@ -26,9 +28,14 @@ use zkube::tests::setup::{setup, setup::{Systems, PLAYER1}};
 #[test]
 fn test_actions_move_01() {
     // [Setup]
-    let (world, systems, context) = setup::spawn_game(Mode::Daily);
+    let (world, systems, context) = setup::create_accounts(Mode::Daily);
     let store = StoreTrait::new(world);
-    let mut game = store.game(context.game_id);
+
+    // [Set] Game
+    set_contract_address(PLAYER1());
+    let game_id = systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
+
+    let mut game = store.game(game_id);
     game.blocks = 0x9240526d825221b6906d96d8924049;
     game.colors = 0x9240526d825221b6906d96d8924049;
     store.set_game(game);
@@ -40,9 +47,14 @@ fn test_actions_move_01() {
 #[test]
 fn test_actions_move_02() {
     // [Setup]
-    let (world, systems, context) = setup::spawn_game(Mode::Daily);
+    let (world, systems, context) = setup::create_accounts(Mode::Daily);
     let store = StoreTrait::new(world);
-    let mut game = store.game(context.game_id);
+
+    // [Set] Game
+    set_contract_address(PLAYER1());
+    let game_id = systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
+
+    let mut game = store.game(game_id);
     game.blocks = 0x48020924892429244829129048b6c8;
     game.colors = 0x4ab00120890981181a0410220c8111;
     store.set_game(game);
@@ -58,9 +70,14 @@ fn test_actions_move_02() {
 #[test]
 fn test_actions_move_03() {
     // [Setup]
-    let (world, systems, context) = setup::spawn_game(Mode::Daily);
+    let (world, systems, context) = setup::create_accounts(Mode::Daily);
     let store = StoreTrait::new(world);
-    let mut game = store.game(context.game_id);
+
+    // [Set] Game
+    set_contract_address(PLAYER1());
+    let game_id = systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
+
+    let mut game = store.game(game_id);
     game.blocks = 0b000_000_000_000_000_000_010_010;
     game.colors = 0b000_000_000_000_000_000_010_010;
     store.set_game(game);
@@ -68,7 +85,7 @@ fn test_actions_move_03() {
     // [Move]
     systems.dailygame.move(0, 0, 2);
 
-    let mut game2 = store.game(context.game_id);
+    let game = store.game(game_id);
 
-    assert_eq!(game2.blocks, 19332072018);
+    assert_eq!(game.blocks, 19332072018);
 }

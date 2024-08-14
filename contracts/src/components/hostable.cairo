@@ -86,6 +86,7 @@ mod HostableComponent {
             // [Check] Player exists
             let caller = get_caller_address();
             let mut player = store.player(caller.into());
+
             player.assert_exists();
 
             // [Check] Game is over

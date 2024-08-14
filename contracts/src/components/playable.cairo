@@ -31,6 +31,7 @@ mod PlayableComponent {
     use zkube::types::bonus::Bonus;
     use zkube::types::difficulty::Difficulty;
     use zkube::types::mode::Mode;
+    use zkube::models::tournament::TournamentImpl;
 
 
     // Storage
@@ -74,6 +75,20 @@ mod PlayableComponent {
                 player.update(hammer, totem, wave);
                 store.set_player(player);
             }
+
+            // [Effect] Update tournament on game over
+            let time = get_block_timestamp();
+            let tournament_id = TournamentImpl::compute_id(game.start_time, game.duration());
+            let id_end = TournamentImpl::compute_id(time, game.duration());
+            if tournament_id == id_end && game.over {
+                // [Effect] Update tournament
+                let mut tournament = store.tournament(tournament_id);
+                tournament.score(player.id, game.score);
+                store.set_tournament(tournament);
+
+                // [Effect] Add tournament id to game
+                game.tournament_id = tournament_id;
+            }
         }
 
         fn _move(
@@ -107,6 +122,20 @@ mod PlayableComponent {
                 let (hammer, totem, wave) = game.assess_bonuses();
                 player.update(hammer, totem, wave);
                 store.set_player(player);
+            }
+
+            // [Effect] Update tournament on game over
+            let time = get_block_timestamp();
+            let tournament_id = TournamentImpl::compute_id(game.start_time, game.duration());
+            let id_end = TournamentImpl::compute_id(time, game.duration());
+            if tournament_id == id_end && game.over {
+                // [Effect] Update tournament
+                let mut tournament = store.tournament(tournament_id);
+                tournament.score(player.id, game.score);
+                store.set_tournament(tournament);
+
+                // [Effect] Add tournament id to game
+                game.tournament_id = tournament_id;
             }
         }
 

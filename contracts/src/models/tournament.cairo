@@ -196,7 +196,7 @@ mod tests {
 
     // Local imports
 
-    use super::{Tournament, TournamentImpl};
+    use super::{Tournament, TournamentImpl, constants};
 
     // Constants
 
@@ -225,15 +225,15 @@ mod tests {
 
     #[test]
     fn test_compute_id_zero() {
-        let id = TournamentImpl::compute_id(0, 604800);
+        let id = TournamentImpl::compute_id(0, constants::NORMAL_MODE_DURATION);
         assert(0 == id, 'Tournament: wrong id');
     }
 
     #[test]
     fn test_compute_id_today() {
         let time = 1710347593;
-        let id = TournamentImpl::compute_id(time, 604800);
-        assert(2827 == id, 'Tournament: wrong id');
+        let id = TournamentImpl::compute_id(time, constants::NORMAL_MODE_DURATION);
+        assert(28 == id, 'Tournament: wrong id');
     }
 
     #[test]
@@ -261,17 +261,17 @@ mod tests {
         tournament.score(3, 15);
 
         // First claims the reward
-        let reward = tournament.claim(2, 1, TIME, 604800);
+        let reward = tournament.claim(2, 1, TIME, constants::NORMAL_MODE_DURATION);
         assert(56 == reward, 'Tournament: wrong reward');
         assert(tournament.top1_claimed, 'Tournament: not claimed');
 
         // Second claims the reward
-        let reward = tournament.claim(3, 2, TIME, 604800);
+        let reward = tournament.claim(3, 2, TIME, constants::NORMAL_MODE_DURATION);
         assert(28 == reward, 'Tournament: wrong reward');
         assert(tournament.top2_claimed, 'Tournament: not claimed');
 
         // Third claims the reward
-        let reward = tournament.claim(1, 3, TIME, 604800);
+        let reward = tournament.claim(1, 3, TIME, constants::NORMAL_MODE_DURATION);
         assert(16 == reward, 'Tournament: wrong reward');
         assert(tournament.top3_claimed, 'Tournament: not claimed');
     }
@@ -284,12 +284,12 @@ mod tests {
         tournament.score(3, 15);
 
         // First claims the reward
-        let reward = tournament.claim(2, 1, TIME, 604800);
+        let reward = tournament.claim(2, 1, TIME, constants::NORMAL_MODE_DURATION);
         assert(67 == reward, 'Tournament: wrong reward');
         assert(tournament.top1_claimed, 'Tournament: not claimed');
 
         // Second claims the reward
-        let reward = tournament.claim(3, 2, TIME, 604800);
+        let reward = tournament.claim(3, 2, TIME, constants::NORMAL_MODE_DURATION);
         assert(33 == reward, 'Tournament: wrong reward');
         assert(tournament.top2_claimed, 'Tournament: not claimed');
     }
@@ -301,7 +301,7 @@ mod tests {
         tournament.score(2, 20);
 
         // First claims the reward
-        let reward = tournament.claim(2, 1, TIME, 604800);
+        let reward = tournament.claim(2, 1, TIME, constants::NORMAL_MODE_DURATION);
         assert(100 == reward, 'Tournament: wrong reward');
         assert(tournament.top1_claimed, 'Tournament: not claimed');
     }
@@ -315,7 +315,7 @@ mod tests {
         tournament.score(3, 15);
 
         // First claims the reward
-        tournament.claim(3, 1, TIME, 604800);
+        tournament.claim(3, 1, TIME, constants::NORMAL_MODE_DURATION);
     }
 
     #[test]
@@ -328,7 +328,7 @@ mod tests {
         tournament.score(3, 15);
 
         // First claims the reward
-        tournament.claim(1, 3, 0, 604800);
+        tournament.claim(1, 3, 0, constants::NORMAL_MODE_DURATION);
     }
 
     #[test]
@@ -341,8 +341,8 @@ mod tests {
         tournament.score(3, 15);
 
         // First claims the reward
-        tournament.claim(1, 3, TIME, 604800);
-        tournament.claim(1, 3, TIME, 604800);
+        tournament.claim(1, 3, TIME, constants::NORMAL_MODE_DURATION);
+        tournament.claim(1, 3, TIME, constants::NORMAL_MODE_DURATION);
     }
 }
 

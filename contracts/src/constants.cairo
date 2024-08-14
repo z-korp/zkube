@@ -1,14 +1,8 @@
 // World
 
-fn WORLD() -> starknet::ContractAddress {
-    starknet::contract_address_const::<
-        0x1e3b79a25df98dd5032e519c0637d0136f2e69f2cb1906d22dc336420a3ca16
-    >()
-}
-
 fn TOKEN_ADDRESS() -> starknet::ContractAddress {
     starknet::contract_address_const::<
-        0x21d38979aa1388702436102d42e0db359d32760ee2d939bf96b3941fc606153
+        0x7BAE177CD2B998927B7637F0BA047609CD9A81A7D4AEA8F6DD216BA39FAFE9D
     >()
 }
 
@@ -31,9 +25,9 @@ const MASK_7: u32 = 0x7;
 
 // Modes
 
-const DAILY_MODE_PRICE: felt252 = 0;
+const DAILY_MODE_PRICE: felt252 = 1_000_000_000_000_000_000_000;
 const DAILY_MODE_DURATION: u64 = 86400; // = 1 day = 24x60x60
 const DAILY_MODE_DAILY_CREDITS: u16 = 3;
-const NORMAL_MODE_PRICE: felt252 = 0;
+const NORMAL_MODE_PRICE: felt252 = 1_000_000_000_000_000_000_000;
 const NORMAL_MODE_DURATION: u64 = 60480000; // 100 weeks
 const NORMAL_MODE_DAILY_CREDITS: u16 = 1;

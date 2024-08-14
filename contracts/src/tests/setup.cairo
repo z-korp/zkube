@@ -72,9 +72,10 @@ mod setup {
         player3_name: felt252,
         player4_id: felt252,
         player4_name: felt252,
-        game_id: u32,
-        game_duration: u64,
         erc20: IERC20Dispatcher,
+        proof: Proof,
+        seed: felt252,
+        beta: felt252,
     }
 
     fn deploy_erc20() -> IERC20Dispatcher {
@@ -89,7 +90,7 @@ mod setup {
     }
 
     #[inline(always)]
-    fn spawn_game(mode: Mode) -> (IWorldDispatcher, Systems, Context) {
+    fn create_accounts(mode: Mode) -> (IWorldDispatcher, Systems, Context) {
         // [Setup] World
         let mut models = core::array::ArrayTrait::new();
         models.append(zkube::models::index::game::TEST_CLASS_HASH);
@@ -119,23 +120,26 @@ mod setup {
 
         // [Setup] Context
         let faucet = IERC20FaucetDispatcher { contract_address: erc20.contract_address };
+
         set_contract_address(PLAYER1());
         faucet.mint();
         erc20.approve(dailygame_address, ERC20::FAUCET_AMOUNT);
         systems.account.create(PLAYER1_NAME);
+
         set_contract_address(PLAYER2());
         faucet.mint();
         erc20.approve(dailygame_address, ERC20::FAUCET_AMOUNT);
         systems.account.create(PLAYER2_NAME);
+
         set_contract_address(PLAYER3());
         faucet.mint();
         erc20.approve(dailygame_address, ERC20::FAUCET_AMOUNT);
         systems.account.create(PLAYER3_NAME);
+
         set_contract_address(PLAYER4());
         faucet.mint();
         erc20.approve(dailygame_address, ERC20::FAUCET_AMOUNT);
         systems.account.create(PLAYER4_NAME);
-        let duration: u64 = 0;
 
         // [Setup] Game if mode is set
         let proof = Proof {
@@ -150,12 +154,6 @@ mod setup {
         let seed = 48;
         let beta = 502998338520997804786462808944365626190955582373168748079635287864535203785;
 
-        // [Setup] Game if mode is set
-        let game_id = match mode {
-            Mode::Daily => systems.dailygame.create(proof, seed, beta,),
-            _ => 0,
-        };
-
         let context = Context {
             player1_id: PLAYER1().into(),
             player1_name: PLAYER1_NAME,
@@ -165,9 +163,10 @@ mod setup {
             player3_name: PLAYER3_NAME,
             player4_id: PLAYER4().into(),
             player4_name: PLAYER4_NAME,
-            game_id: game_id,
-            game_duration: duration,
             erc20: erc20,
+            proof: proof,
+            seed: seed,
+            beta: beta,
         };
 
         // [Return]

@@ -61,9 +61,22 @@ impl GameImpl of GameTrait {
             colors: 0,
             player_id,
             seed: game_seed,
-            difficulty: difficulty.into(),
             mode: mode.into(),
+            start_time: time,
+            tournament_id: 0,
         }
+    }
+
+    #[inline(always)]
+    fn duration(self: Game) -> u64 {
+        let mode: Mode = self.mode.into();
+        mode.duration()
+    }
+
+    #[inline(always)]
+    fn difficulty(self: Game) -> Difficulty {
+        let mode: Mode = self.mode.into();
+        mode.difficulty()
     }
 
     #[inline(always)]
@@ -121,7 +134,7 @@ impl GameImpl of GameTrait {
 
     #[inline(always)]
     fn get_difficulty(ref self: Game) -> Difficulty {
-        let mut difficulty = self.difficulty.into();
+        let mut difficulty = self.difficulty();
         if (difficulty == Difficulty::None) { // Difficulty::None meaning increasing difficulty
             difficulty = Difficulty::Master;
             if (self.moves < 10) {
@@ -236,7 +249,6 @@ impl ZeroableGame of core::Zeroable<Game> {
     fn zero() -> Game {
         Game {
             id: 0,
-            difficulty: 0,
             over: false,
             score: 0,
             moves: 0,
@@ -251,6 +263,8 @@ impl ZeroableGame of core::Zeroable<Game> {
             player_id: 0,
             seed: 0,
             mode: 0,
+            start_time: 0,
+            tournament_id: 0,
         }
     }
 

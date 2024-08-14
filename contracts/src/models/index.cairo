@@ -15,7 +15,6 @@ struct Player {
 struct Game {
     #[key]
     id: u32,
-    difficulty: u8,
     over: bool,
     score: u32,
     moves: u32,
@@ -30,6 +29,8 @@ struct Game {
     player_id: felt252,
     seed: felt252,
     mode: u8,
+    start_time: u64,
+    tournament_id: u64,
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
