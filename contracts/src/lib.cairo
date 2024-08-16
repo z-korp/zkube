@@ -44,7 +44,6 @@ mod helpers {
 }
 
 mod components {
-    mod initializable;
     mod manageable;
     mod playable;
 }

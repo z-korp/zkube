@@ -1,0 +1,36 @@
+kind = "DojoModel"
+class_hash = "0x5f00b2c50323719e15ea7ea8f763b011d19ad7c3bbe099ac78fa1c1e692a9a6"
+original_class_hash = "0x5f00b2c50323719e15ea7ea8f763b011d19ad7c3bbe099ac78fa1c1e692a9a6"
+abi = "manifests/dev/base/abis/models/zkube-Player-a3c56d30.json"
+tag = "zkube-Player"
+manifest_name = "zkube-Player-a3c56d30"
+
+[[members]]
+name = "id"
+type = "felt252"
+key = true
+
+[[members]]
+name = "game_id"
+type = "u32"
+key = false
+
+[[members]]
+name = "hammer_bonus"
+type = "u8"
+key = false
+
+[[members]]
+name = "wave_bonus"
+type = "u8"
+key = false
+
+[[members]]
+name = "totem_bonus"
+type = "u8"
+key = false
+
+[[members]]
+name = "name"
+type = "felt252"
+key = false
