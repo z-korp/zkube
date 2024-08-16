@@ -1,6 +1,6 @@
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
 #[dojo::model]
-struct Player {
+pub struct Player {
     #[key]
     id: felt252,
     game_id: u32,
@@ -12,7 +12,7 @@ struct Player {
 
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
 #[dojo::model]
-struct Game {
+pub struct Game {
     #[key]
     id: u32,
     difficulty: u8,

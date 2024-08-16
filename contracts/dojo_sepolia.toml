@@ -1,0 +1,21 @@
+[world]
+name = "zKlash"
+description = "Autobattler where you hire creatures and improve them to defeat waves of enemies."
+# cover_uri = "file://assets/cover.png"
+# icon_uri = "file://assets/icon.png"
+website = "https://github.com/dojoengine/dojo-starter"
+seed = "zKube"
+
+[world.socials]
+x = "https://x.com/ohayo_dojo"
+discord = "https://discord.gg/FB2wR6uF"
+github = "https://github.com/dojoengine/dojo-starter"
+telegram = "https://t.me/dojoengine"
+
+[namespace]
+default = "zklash"
+
+[env]
+rpc_url = "https://starknet-sepolia.public.blastapi.io/rpc/v0_7"
+account_address = ""
+private_key = ""

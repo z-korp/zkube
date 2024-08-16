@@ -8,8 +8,8 @@ use core::debug::PrintTrait;
 
 use alexandria_math::fast_power::fast_power;
 use alexandria_math::BitShift;
-use origami::random::deck::{Deck, DeckTrait};
-use origami::random::dice::{Dice, DiceTrait};
+use origami_random::deck::{Deck, DeckTrait};
+use origami_random::dice::{Dice, DiceTrait};
 
 // Internal imports
 

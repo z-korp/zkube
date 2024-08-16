@@ -1,0 +1,21 @@
+[world]
+name = "zKube"
+description = "Solo strategy card game where you manage resources and upgrade your village to maximize points. Make tactical decisions to help your village grow and flourish."
+cover_uri = "file://assets/cover.png"
+icon_uri = "file://assets/icon.png"
+website = "https://app.zkube.xyz"
+seed = "zKube"
+
+[world.socials]
+x = "https://x.com/ohayo_dojo"
+discord = "https://discord.gg/FB2wR6uF"
+github = "https://github.com/dojoengine/dojo-starter"
+telegram = "https://t.me/dojoengine"
+
+[namespace]
+default = "zkube"
+
+[env]
+rpc_url = "https://api.cartridge.gg/x/zkube-test/katana"
+account_address = "0x7980711be3f885d4d3541384022a88b02e46f72c74693269b322ac7133fdba5"
+private_key = "0x52587b88673203343049bae0275f80c870ab2e4c931ba86c6ab175f8403e922"

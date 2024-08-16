@@ -54,31 +54,22 @@ dependencies = [
 ]
 
 [[package]]
-name = "cubit"
-version = "1.3.0"
-source = "git+https://github.com/notV4l/cubit.git?branch=cairo_2.7#cadb27aa62509ad9059dfac4f075317893f1f614"
-
-[[package]]
 name = "dojo"
-version = "0.7.2"
-source = "git+https://github.com/dojoengine/dojo?tag=v0.7.2#3da5cad9fdd39b81551e0668015d88262e6c5fc4"
+version = "1.0.0-alpha.4"
+source = "git+https://github.com/dojoengine/dojo?tag=v1.0.0-alpha.5#6878242e120d3135d3bc1bb94135d7135693069b"
 dependencies = [
  "dojo_plugin",
 ]
 
 [[package]]
 name = "dojo_plugin"
-version = "0.3.11"
-source = "git+https://github.com/dojoengine/dojo?tag=v0.3.11#1e651b5d4d3b79b14a7d8aa29a92062fcb9e6659"
+version = "1.0.0-alpha.4"
+source = "git+https://github.com/dojoengine/dojo?rev=f15def33#f15def330c0d099e79351d11c197f63e8cc1ff36"
 
 [[package]]
-name = "origami"
-version = "0.7.2"
-source = "git+https://github.com/dojoengine/origami?tag=v0.7.2#c537966098c9c6a42421a920cfb83d82ed8e120c"
-dependencies = [
- "cubit",
- "dojo",
-]
+name = "origami_random"
+version = "1.0.0-alpha.5"
+source = "git+https://github.com/dojoengine/origami?tag=v1.0.0-alpha.5#d942d89c892cf166bc535a7f6116575b439d6aad"
 
 [[package]]
 name = "stark_vrf"
@@ -87,10 +78,10 @@ source = "git+https://github.com/dojoengine/stark-vrf?rev=5a9e81e#5a9e81ea24e708
 
 [[package]]
 name = "zkube"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "alexandria_math",
  "dojo",
- "origami",
+ "origami_random",
  "stark_vrf",
 ]
