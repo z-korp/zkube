@@ -90,7 +90,7 @@ mod setup {
     }
 
     #[inline(always)]
-    fn create_accounts(mode: Mode) -> (IWorldDispatcher, Systems, Context) {
+    fn create_accounts() -> (IWorldDispatcher, Systems, Context) {
         // [Setup] World
         let mut models = core::array::ArrayTrait::new();
         models.append(zkube::models::index::game::TEST_CLASS_HASH);

@@ -28,7 +28,7 @@ use zkube::tests::setup::{setup, setup::{Systems, PLAYER1}};
 #[test]
 fn test_actions_move_01() {
     // [Setup]
-    let (world, systems, context) = setup::create_accounts(Mode::Daily);
+    let (world, systems, context) = setup::create_accounts();
     let store = StoreTrait::new(world);
 
     // [Set] Game
@@ -47,7 +47,7 @@ fn test_actions_move_01() {
 #[test]
 fn test_actions_move_02() {
     // [Setup]
-    let (world, systems, context) = setup::create_accounts(Mode::Daily);
+    let (world, systems, context) = setup::create_accounts();
     let store = StoreTrait::new(world);
 
     // [Set] Game
@@ -70,7 +70,7 @@ fn test_actions_move_02() {
 #[test]
 fn test_actions_move_03() {
     // [Setup]
-    let (world, systems, context) = setup::create_accounts(Mode::Daily);
+    let (world, systems, context) = setup::create_accounts();
     let store = StoreTrait::new(world);
 
     // [Set] Game
