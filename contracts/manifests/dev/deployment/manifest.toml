@@ -1,0 +1,159 @@
+[world]
+kind = "WorldContract"
+class_hash = "0x76ced5a15cb43c7be7176cff4779cd57c56638a46ddf2c9da709d22298c5e5a"
+original_class_hash = "0x76ced5a15cb43c7be7176cff4779cd57c56638a46ddf2c9da709d22298c5e5a"
+abi = "manifests/dev/deployment/abis/dojo-world.json"
+address = "0x19fe9c3f2e740b08df807afae6a7e882685c801d3a552f5728e65fc2bac58b4"
+transaction_hash = "0x138dd075cc3f92f9da426c8563fc40fd3810db408b5546e05b96f991e6651"
+block_number = 3
+seed = "zKube"
+manifest_name = "dojo-world"
+
+[world.metadata]
+profile_name = "dev"
+rpc_url = "http://localhost:5050/"
+
+[base]
+kind = "Class"
+class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
+original_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
+abi = "manifests/dev/deployment/abis/dojo-base.json"
+tag = "dojo-base"
+manifest_name = "dojo-base"
+
+[[contracts]]
+kind = "DojoContract"
+address = "0x7d714b0f8830f6df1f1e208d99f0567ac7ea3e177bf0bfddc4ea22ca68c693d"
+class_hash = "0x69a01548ec88ed63e787d645de67e62ca7b1d066e4ed110392a7a83ce94e6cb"
+original_class_hash = "0x69a01548ec88ed63e787d645de67e62ca7b1d066e4ed110392a7a83ce94e6cb"
+base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
+abi = "manifests/dev/deployment/abis/contracts/zkube-actions-21961658.json"
+reads = []
+writes = [
+    "zkube-Player",
+    "zkube-Game",
+]
+init_calldata = []
+tag = "zkube-actions"
+manifest_name = "zkube-actions-21961658"
+
+[[models]]
+kind = "DojoModel"
+class_hash = "0x33630a8b0e4096eedb806b674154e036729b483f479d814bb5d6fc6572bce24"
+original_class_hash = "0x33630a8b0e4096eedb806b674154e036729b483f479d814bb5d6fc6572bce24"
+abi = "manifests/dev/deployment/abis/models/zkube-Game-17e542e0.json"
+tag = "zkube-Game"
+manifest_name = "zkube-Game-17e542e0"
+
+[[models.members]]
+name = "id"
+type = "u32"
+key = true
+
+[[models.members]]
+name = "difficulty"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "over"
+type = "bool"
+key = false
+
+[[models.members]]
+name = "score"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "moves"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "next_row"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "next_color"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "hammer_bonus"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "wave_bonus"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "totem_bonus"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "combo_counter"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "blocks"
+type = "felt252"
+key = false
+
+[[models.members]]
+name = "colors"
+type = "felt252"
+key = false
+
+[[models.members]]
+name = "player_id"
+type = "felt252"
+key = false
+
+[[models.members]]
+name = "seed"
+type = "felt252"
+key = false
+
+[[models]]
+kind = "DojoModel"
+class_hash = "0x5f00b2c50323719e15ea7ea8f763b011d19ad7c3bbe099ac78fa1c1e692a9a6"
+original_class_hash = "0x5f00b2c50323719e15ea7ea8f763b011d19ad7c3bbe099ac78fa1c1e692a9a6"
+abi = "manifests/dev/deployment/abis/models/zkube-Player-a3c56d30.json"
+tag = "zkube-Player"
+manifest_name = "zkube-Player-a3c56d30"
+
+[[models.members]]
+name = "id"
+type = "felt252"
+key = true
+
+[[models.members]]
+name = "game_id"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "hammer_bonus"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "wave_bonus"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "totem_bonus"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "name"
+type = "felt252"
+key = false

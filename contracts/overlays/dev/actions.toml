@@ -1,4 +1,4 @@
-tag = "zkube-account"
+tag = "zkube-actions"
 writes = [
     "zkube-Player",
     "zkube-Game",

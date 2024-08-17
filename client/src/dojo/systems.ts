@@ -1,6 +1,6 @@
-import type { IWorld } from "./generated/contractSystems";
+import type { IWorld } from "./contractSystems";
 import { toast } from "sonner";
-import * as SystemTypes from "./generated/contractSystems";
+import * as SystemTypes from "./contractSystems";
 import { ClientModels } from "./models";
 import { shortenHex } from "@dojoengine/utils";
 import { Account } from "starknet";

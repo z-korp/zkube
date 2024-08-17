@@ -19,6 +19,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import GoogleFormEmbed from "../components/GoogleFormEmbed";
 import { DifficultyType } from "@/dojo/game/types/difficulty";
+import { useQuerySync } from "@dojoengine/react";
 
 interface position {
   x: number;
@@ -28,7 +29,11 @@ interface position {
 export const Home = () => {
   const {
     account: { account },
+    setup: { toriiClient, contractComponents },
   } = useDojo();
+
+  useQuerySync(toriiClient, contractComponents as any, []);
+
   const { player } = usePlayer({ playerId: account.address });
   const { game } = useGame({ gameId: player?.game_id || "0x0" });
   const [animationDone, setAnimationDone] = useState(false);
