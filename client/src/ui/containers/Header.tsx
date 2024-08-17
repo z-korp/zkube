@@ -3,7 +3,6 @@ import { Account } from "@/ui/components/Account";
 import { Separator } from "@/ui/elements/separator";
 import { useNavigate } from "react-router-dom";
 import { ModeToggle } from "@/ui/components/Theme";
-import { useDojo } from "@/dojo/useDojo";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useMediaQuery } from "react-responsive";
 import {
@@ -30,7 +29,7 @@ import { MusicPlayer } from "../modules/MusicPlayer";
 import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
 import Balance from "../components/Balance";
 import { useAccount } from "@starknet-react/core";
-import { Connect } from "vite";
+import Connect from "../components/Connect";
 
 export const Header = () => {
   const { account } = useAccount();

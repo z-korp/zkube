@@ -1,6 +1,5 @@
-import { useConnect, useAccount, useDisconnect } from "@starknet-react/core";
+import { useConnect, useAccount } from "@starknet-react/core";
 import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
-import { Copy } from "lucide-react";
 import { Button } from "../elements/button";
 import Balance from "./Balance";
 import { useMediaQuery } from "react-responsive";
