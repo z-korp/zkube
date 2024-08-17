@@ -20,6 +20,7 @@ import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import GoogleFormEmbed from "../components/GoogleFormEmbed";
 import { DifficultyType } from "@/dojo/game/types/difficulty";
 import { useQuerySync } from "@dojoengine/react";
+import { useAccount } from "@starknet-react/core";
 
 interface position {
   x: number;
@@ -28,13 +29,14 @@ interface position {
 
 export const Home = () => {
   const {
-    account: { account },
     setup: { toriiClient, contractComponents },
   } = useDojo();
 
   useQuerySync(toriiClient, contractComponents as any, []);
 
-  const { player } = usePlayer({ playerId: account.address });
+  const { account } = useAccount();
+  const { player } = usePlayer({ playerId: account?.address });
+
   const { game } = useGame({ gameId: player?.game_id || "0x0" });
   const [animationDone, setAnimationDone] = useState(false);
 
@@ -178,7 +180,7 @@ export const Home = () => {
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
               <Create />
-              <Start difficulty={DifficultyType.None} />
+              <Start />
               {!game && (
                 <div className="absolute top md:translate-y-[100%] translate-y-[40%] bg-slate-900 w-11/12 p-6 rounded-xl">
                   <Leaderboard />

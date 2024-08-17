@@ -5,25 +5,19 @@ import { Button } from "@/ui/elements/button";
 import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
 import { fetchVrfData } from "@/api/vrf";
-import {
-  DifficultyType,
-  difficultyTypeToNumber,
-} from "@/dojo/game/types/difficulty";
+import { useAccount } from "@starknet-react/core";
+import { difficultyTypeToNumber } from "@/dojo/game/types/difficulty";
 
-interface StartProps {
-  difficulty: DifficultyType;
-}
-
-export const Start: React.FC<StartProps> = ({ difficulty }) => {
+export const Start = () => {
+  const { account } = useAccount();
   const {
-    account: { account },
     master,
     setup: {
       systemCalls: { start },
     },
   } = useDojo();
 
-  const { player } = usePlayer({ playerId: account.address });
+  const { player } = usePlayer({ playerId: account?.address });
 
   const { game } = useGame({
     gameId: player?.game_id || "0x0",

@@ -3,6 +3,7 @@ import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useMusicPlayer } from "./music";
+import { useAccount } from "@starknet-react/core";
 
 const SoundPlayerContext = createContext({});
 
@@ -15,10 +16,8 @@ export const SoundPlayerProvider = ({
   const [over, setOver] = useState(false);
   const [start, setStart] = useState(false);
 
-  const {
-    account: { account },
-  } = useDojo();
-  const { player } = usePlayer({ playerId: account.address });
+  const { account } = useAccount();
+  const { player } = usePlayer({ playerId: account?.address });
   const { game } = useGame({ gameId: player?.game_id });
 
   useEffect(() => {

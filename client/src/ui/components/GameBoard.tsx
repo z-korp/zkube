@@ -7,6 +7,8 @@ import { GameBonus } from "../containers/GameBonus";
 import { Piece, Cell as CellType } from "@/types/types";
 import Cell from "./Cell";
 import { useMediaQuery } from "react-responsive";
+import { useAccount } from "@starknet-react/core";
+import { Account } from "starknet";
 
 const PIECES: Piece[] = [
   { id: 1, width: 1, element: "stone1" },
@@ -26,8 +28,8 @@ const GameBoard = ({
   score: number;
   combo: number;
 }) => {
+  const { account } = useAccount();
   const {
-    account: { account },
     setup: {
       systemCalls: { move },
     },
@@ -519,12 +521,13 @@ const GameBoard = ({
     async (rowIndex: number, startIndex: number, finalOndex: number) => {
       if (startIndex === finalOndex) return;
       if (isAnimating) return;
+      if (!account) return;
 
       setIsLoading(true);
       setIsTxProcessing(true);
       try {
         await move({
-          account: account,
+          account: account as Account,
           row_index: rowIndex,
           start_index: startIndex,
           final_index: finalOndex,
@@ -538,12 +541,13 @@ const GameBoard = ({
 
   const handleEmptyGrid = useCallback(async () => {
     //if (isAnimating) return;
+    if (!account) return;
 
     setIsLoading(true);
     setIsTxProcessing(true);
     try {
       await move({
-        account: account,
+        account: account as Account,
         row_index: 0,
         start_index: 0,
         final_index: 0,
@@ -669,7 +673,6 @@ const GameBoard = ({
       setBonusHammer(false);
       applyGravityLoop();
     }
-
   };
 
   const checkAndClearSelectedLine = async (selectedRow: number) => {
@@ -693,13 +696,21 @@ const GameBoard = ({
     });
   };
 
-  const removePieceFromGridByCell = async (rowIndex: number, colIndex: number) => {
+  const removePieceFromGridByCell = async (
+    rowIndex: number,
+    colIndex: number,
+  ) => {
     await new Promise((resolve) => {
       setGrid((prevGrid) => {
         const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
 
         // Vérifier que les indices sont valides
-        if (rowIndex >= 0 && rowIndex < newGrid.length && colIndex >= 0 && colIndex < newGrid[0].length) {
+        if (
+          rowIndex >= 0 &&
+          rowIndex < newGrid.length &&
+          colIndex >= 0 &&
+          colIndex < newGrid[0].length
+        ) {
           const pieceIdToRemove = newGrid[rowIndex][colIndex].pieceId;
 
           // Parcourir chaque cellule de la grille et supprimer les cellules appartenant à la pièce spécifiée
@@ -729,14 +740,22 @@ const GameBoard = ({
         const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
 
         // Vérifier que les indices sont valides
-        if (rowIndex >= 0 && rowIndex < newGrid.length && colIndex >= 0 && colIndex < newGrid[0].length) {
+        if (
+          rowIndex >= 0 &&
+          rowIndex < newGrid.length &&
+          colIndex >= 0 &&
+          colIndex < newGrid[0].length
+        ) {
           const pieceIdToRemove = newGrid[rowIndex][colIndex].pieceId;
           const pieceIndexToRemove = newGrid[rowIndex][colIndex].pieceIndex;
 
           // Parcourir chaque cellule de la grille et supprimer les cellules appartenant à la pièce spécifiée
           for (let row = 0; row < newGrid.length; row++) {
             for (let col = 0; col < newGrid[row].length; col++) {
-              if (newGrid[row][col].pieceId === pieceIdToRemove && newGrid[row][col].pieceIndex === pieceIndexToRemove) {
+              if (
+                newGrid[row][col].pieceId === pieceIdToRemove &&
+                newGrid[row][col].pieceIndex === pieceIndexToRemove
+              ) {
                 newGrid[row][col] = {
                   id: `${row}-${col}`,
                   pieceId: null,
@@ -766,7 +785,11 @@ const GameBoard = ({
         <div
           className={`${isMdOrLarger ? "w-[413px]" : "w-[300px]"} mb-4 flex justify-start items-center`}
         >
-          <GameBonus onBonusWaveClick={handleBonusWaveClick} onBonusTikiClick={handleBonusTikiClick} onBonusHammerClick={handleBonusHammerClick} />
+          <GameBonus
+            onBonusWaveClick={handleBonusWaveClick}
+            onBonusTikiClick={handleBonusTikiClick}
+            onBonusHammerClick={handleBonusHammerClick}
+          />
           <div
             className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end mx-2`}
           >
