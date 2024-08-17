@@ -23,5 +23,7 @@ export const usePlayer = ({ playerId }: { playerId: string | undefined }) => {
     return component ? new PlayerClass(component) : null;
   }, [component]);
 
+  console.log("player", player);
+
   return { player, playerKey };
 };

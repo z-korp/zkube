@@ -1327,10 +1327,7 @@
         }
       ],
       "reads": [],
-      "writes": [
-        "Player",
-        "Game"
-      ],
+      "writes": ["Player", "Game"],
       "computed": [],
       "init_calldata": [],
       "name": "zkube::systems::actions::actions"
@@ -1863,10 +1860,15 @@
           "name": "name",
           "type": "felt252",
           "key": false
+        },
+        {
+          "name": "points",
+          "type": "u32",
+          "key": false
         }
       ],
-      "class_hash": "0x5fed3730bb3d7d98cc66dfe1c18a3a06b2af4db5fdaa2f4aada377fc550d74",
-      "original_class_hash": "0x5fed3730bb3d7d98cc66dfe1c18a3a06b2af4db5fdaa2f4aada377fc550d74",
+      "class_hash": "0x48c5c142d93f231d6ab5fb1fd54fa4c13eca4a9f9466b9389eea0a5acbc0d8d",
+      "original_class_hash": "0x48c5c142d93f231d6ab5fb1fd54fa4c13eca4a9f9466b9389eea0a5acbc0d8d",
       "abi": [
         {
           "type": "impl",
@@ -2218,6 +2220,10 @@
             {
               "name": "name",
               "type": "core::felt252"
+            },
+            {
+              "name": "points",
+              "type": "core::integer::u32"
             }
           ]
         },

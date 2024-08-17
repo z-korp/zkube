@@ -2,6 +2,7 @@ import { ComponentValue } from "@dojoengine/recs";
 import { shortenHex } from "@dojoengine/utils";
 import { shortString } from "starknet";
 import { Bonus, Condition } from "../types/bonus";
+import { Level } from "../types/level";
 
 export interface BonusDetail {
   bonus: Bonus;
@@ -19,6 +20,8 @@ export class Player {
   public wave: number;
   public totem: number;
   public name: string;
+  public points: number;
+  public level: Level;
 
   constructor(player: ComponentValue) {
     this.id = player.id;
@@ -27,6 +30,8 @@ export class Player {
     this.wave = player.wave_bonus;
     this.totem = player.totem_bonus;
     this.name = shortString.decodeShortString(player.name);
+    this.points = player.points;
+    this.level = Level.fromPoints(this.points);
   }
 
   public getShortAddress(): string {

@@ -33,3 +33,8 @@ key = false
 name = "name"
 type = "felt252"
 key = false
+
+[[members]]
+name = "points"
+type = "u32"
+key = false

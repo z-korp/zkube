@@ -14,12 +14,7 @@ import {
   DrawerTrigger,
 } from "@/ui/elements/drawer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faBars,
-  faGear,
-  faArrowUpRightFromSquare,
-} from "@fortawesome/free-solid-svg-icons";
-import Connect from "../components/Connect";
+import { faBars, faGear } from "@fortawesome/free-solid-svg-icons";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -35,6 +30,7 @@ import { MusicPlayer } from "../modules/MusicPlayer";
 import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
 import Balance from "../components/Balance";
 import { useAccount } from "@starknet-react/core";
+import { Connect } from "vite";
 
 export const Header = () => {
   const { account } = useAccount();
@@ -62,7 +58,7 @@ export const Header = () => {
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
           {!!player && (
-            <p className="text-2xl max-w-44 truncate">{player.name}</p>
+            <p className="text-2xl max-w-66 truncate">{`${player.name} - lvl ${player.level.value}`}</p>
           )}
           <Connect />
           <div className="flex gap-4">

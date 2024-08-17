@@ -8,6 +8,7 @@ pub struct Player {
     wave_bonus: u8,
     totem_bonus: u8,
     name: felt252,
+    points: u32,
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked)]

@@ -137,7 +137,7 @@ mod PlayableComponent {
             // [Effect] Update player if game is over
             if game.over {
                 let (hammer, totem, wave) = game.assess_bonuses();
-                player.update(hammer, totem, wave);
+                player.update(hammer, totem, wave, game.score);
                 store.set_player(player);
             }
         }
@@ -171,7 +171,7 @@ mod PlayableComponent {
             // [Effect] Update player if game is over
             if game.over {
                 let (hammer, totem, wave) = game.assess_bonuses();
-                player.update(hammer, totem, wave);
+                player.update(hammer, totem, wave, game.score);
                 store.set_player(player);
             }
         }

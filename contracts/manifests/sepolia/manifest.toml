@@ -142,3 +142,8 @@ key = false
 name = "name"
 type = "felt252"
 key = false
+
+[[models.members]]
+name = "points"
+type = "u32"
+key = false
