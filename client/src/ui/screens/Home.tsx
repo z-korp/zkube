@@ -236,6 +236,9 @@ export const Home = () => {
                       nextLine={game.next_row}
                       score={game.score}
                       combo={game.combo}
+                      hammerCount={game.hammer}
+                      totemCount={game.totem}
+                      waveCount={game.wave}
                     />
                     <NextLine numbers={game.next_row} />
                   </div>

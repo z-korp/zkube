@@ -1,8 +1,6 @@
 import { DojoProvider } from "@dojoengine/core";
 import { Config } from "../../dojo.config.ts";
 import { Account, UniversalDetails, shortString } from "starknet";
-import { create } from "domain";
-import { rename } from "fs";
 
 const NAMESPACE = "zkube";
 

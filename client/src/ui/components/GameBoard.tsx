@@ -10,6 +10,9 @@ import { useMediaQuery } from "react-responsive";
 import { useAccount } from "@starknet-react/core";
 import { Account } from "starknet";
 
+//NOTE : Row commence en bas de la grille.
+//NOTE : Back : PieceId numéro de la piece dans la ligne (de gauche à droite)
+
 const PIECES: Piece[] = [
   { id: 1, width: 1, element: "stone1" },
   { id: 2, width: 2, element: "stone2" },
@@ -22,16 +25,22 @@ const GameBoard = ({
   nextLine,
   score,
   combo,
+  waveCount,
+  hammerCount,
+  totemCount,
 }: {
   initialGrid: number[][];
   nextLine: number[];
   score: number;
   combo: number;
+  hammerCount: number;
+  waveCount: number;
+  totemCount: number;
 }) => {
   const { account } = useAccount();
   const {
     setup: {
-      systemCalls: { move },
+      systemCalls: { move, bonus },
     },
   } = useDojo();
 
@@ -57,6 +66,7 @@ const GameBoard = ({
   const [bonusWave, setBonusWave] = useState(false);
   const [bonusTiki, setBonusTiki] = useState(false);
   const [bonusHammer, setBonusHammer] = useState(false);
+  const [clickedPieceId, setClickedPieceId] = useState<number | null>(null);
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
@@ -158,7 +168,10 @@ const GameBoard = ({
     }
     await new Promise((resolve) => setTimeout(resolve, 200));
 
-    await insertNewLine();
+    //Si aucun bonus n'est utilisé alors nouvelle ligne
+    if (!bonusHammer && !bonusTiki && !bonusWave) {
+      await insertNewLine();
+    }
 
     await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -644,43 +657,100 @@ const GameBoard = ({
 
   const handleBonusWaveClick = () => {
     setBonusWave(true);
+    setBonusTiki(false);
+    setBonusHammer(false);
   };
 
   const handleBonusTikiClick = () => {
+    setBonusWave(false);
     setBonusTiki(true);
+    setBonusHammer(false);
   };
 
   const handleBonusHammerClick = () => {
+    setBonusWave(false);
+    setBonusTiki(false);
     setBonusHammer(true);
+  };
+
+  const handleCellClick = (rowIndex: number, colIndex: number) => {
+    const actualRowIndex = rows - 1 - rowIndex;
+    const clickedPiece = grid[rowIndex][colIndex];
+
+    if (bonusHammer && clickedPiece.pieceId !== null) {
+      setClickedPieceId(clickedPiece.pieceId);
+      removePieceFromGrid(actualRowIndex, colIndex);
+      setBonusHammer(false);
+      applyGravityLoop();
+      handleBonusHammerTx(actualRowIndex, colIndex);
+    }
+
+    // if (bonusTiki && clickedPiece.pieceId !== null) {
+    //   removePieceFromGridByCell(actualRowIndex, colIndex);
+    //   setBonusTiki(false);
+    //   applyGravityLoop();
+    //   // TODO: Appeler la transaction pour le bonus Tiki si nécessaire
+    // }
   };
 
   const handleRowClick = (rowIndex: number) => {
     if (bonusWave) {
+      const actualRowIndex = rows - 1 - rowIndex;
       checkAndClearSelectedLine(rowIndex);
       setBonusWave(false);
       applyGravityLoop();
+      // Call TX for bonus wave
+      handleBonusWaveTx(actualRowIndex);
     }
   };
 
-  const handleCellClick = (rowIndex: number, colIndex: number) => {
-    if (bonusTiki) {
-      removePieceFromGridByCell(rowIndex, colIndex);
-      setBonusTiki(false);
-      applyGravityLoop();
-    }
-    if (bonusHammer) {
-      removePieceFromGrid(rowIndex, colIndex);
-      setBonusHammer(false);
-      applyGravityLoop();
-    }
-  };
+  const handleBonusWaveTx = useCallback(
+    async (rowIndex: number) => {
+      if (isAnimating) return;
+      if (!account) return;
 
+      setIsLoading(true);
+      setIsTxProcessing(true);
+      try {
+        await bonus({
+          account: account as Account,
+          bonus: 3,
+          row_index: rowIndex,
+          block_index: 0,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [account],
+  );
+
+  const handleBonusHammerTx = useCallback(
+    async (rowIndex: number, colIndex: number) => {
+      if (isAnimating) return;
+
+      setIsLoading(true);
+      setIsTxProcessing(true);
+      try {
+        await bonus({
+          account: account as Account,
+          bonus: 1,
+          row_index: rowIndex,
+          block_index: colIndex,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [account],
+  );
+
+  //WAVE EFFECT
   const checkAndClearSelectedLine = async (selectedRow: number) => {
     await new Promise((resolve) => {
       setGrid((prevGrid) => {
         const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
 
-        // Vérifier et supprimer tous les blocs assignés de la ligne sélectionnée
         if (selectedRow >= 0 && selectedRow < newGrid.length) {
           newGrid[selectedRow] = newGrid[selectedRow].map((cell, col) => ({
             id: `${selectedRow}-${col}`,
@@ -696,6 +766,7 @@ const GameBoard = ({
     });
   };
 
+  //TIKI EFFECT
   const removePieceFromGridByCell = async (
     rowIndex: number,
     colIndex: number,
@@ -704,7 +775,6 @@ const GameBoard = ({
       setGrid((prevGrid) => {
         const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
 
-        // Vérifier que les indices sont valides
         if (
           rowIndex >= 0 &&
           rowIndex < newGrid.length &&
@@ -713,7 +783,6 @@ const GameBoard = ({
         ) {
           const pieceIdToRemove = newGrid[rowIndex][colIndex].pieceId;
 
-          // Parcourir chaque cellule de la grille et supprimer les cellules appartenant à la pièce spécifiée
           for (let row = 0; row < newGrid.length; row++) {
             for (let col = 0; col < newGrid[row].length; col++) {
               if (newGrid[row][col].pieceId === pieceIdToRemove) {
@@ -734,12 +803,12 @@ const GameBoard = ({
     });
   };
 
+  //HAMMER EFFECT
   const removePieceFromGrid = async (rowIndex: number, colIndex: number) => {
     await new Promise((resolve) => {
       setGrid((prevGrid) => {
         const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
 
-        // Vérifier que les indices sont valides
         if (
           rowIndex >= 0 &&
           rowIndex < newGrid.length &&
@@ -749,7 +818,6 @@ const GameBoard = ({
           const pieceIdToRemove = newGrid[rowIndex][colIndex].pieceId;
           const pieceIndexToRemove = newGrid[rowIndex][colIndex].pieceIndex;
 
-          // Parcourir chaque cellule de la grille et supprimer les cellules appartenant à la pièce spécifiée
           for (let row = 0; row < newGrid.length; row++) {
             for (let col = 0; col < newGrid[row].length; col++) {
               if (
@@ -789,6 +857,9 @@ const GameBoard = ({
             onBonusWaveClick={handleBonusWaveClick}
             onBonusTikiClick={handleBonusTikiClick}
             onBonusHammerClick={handleBonusHammerClick}
+            hammerCount={hammerCount}
+            tikiCount={totemCount}
+            waveCount={waveCount}
           />
           <div
             className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end mx-2`}
@@ -821,7 +892,6 @@ const GameBoard = ({
               </React.Fragment>
             ))}
 
-            {/* Pièces placées */}
             {grid.map((row, rowIndex) => {
               const complete = isLineComplete(row);
               return (
