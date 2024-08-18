@@ -379,18 +379,6 @@
         "type": "core::integer::u32"
       },
       {
-        "name": "hammer_bonus",
-        "type": "core::integer::u8"
-      },
-      {
-        "name": "wave_bonus",
-        "type": "core::integer::u8"
-      },
-      {
-        "name": "totem_bonus",
-        "type": "core::integer::u8"
-      },
-      {
         "name": "name",
         "type": "core::felt252"
       },

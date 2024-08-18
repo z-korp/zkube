@@ -16,9 +16,6 @@ export interface BonusDetail {
 export class Player {
   public id: string;
   public game_id: string;
-  public hammer: number;
-  public wave: number;
-  public totem: number;
   public name: string;
   public points: number;
   public level: Level;
@@ -26,9 +23,6 @@ export class Player {
   constructor(player: ComponentValue) {
     this.id = player.id;
     this.game_id = player.game_id;
-    this.hammer = player.hammer_bonus;
-    this.wave = player.wave_bonus;
-    this.totem = player.totem_bonus;
     this.name = shortString.decodeShortString(player.name);
     this.points = player.points;
     this.level = Level.fromPoints(this.points);

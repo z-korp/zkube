@@ -63,6 +63,9 @@ mod tests {
     mod test_create;
     mod test_move;
     mod test_dailygame;
+    mod test_bonus_hammer;
+    mod test_bonus_wave;
+    mod test_bonus_totem;
 
     mod mocks {
         mod erc20;

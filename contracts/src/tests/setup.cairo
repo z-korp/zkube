@@ -8,11 +8,13 @@ mod setup {
 
     use starknet::ContractAddress;
     use starknet::testing::{set_contract_address, set_caller_address};
+    use starknet::info::{get_contract_address, get_caller_address, get_block_timestamp};
 
     // Dojo imports
 
     use dojo::world::{IWorldDispatcherTrait, IWorldDispatcher};
-    use dojo::test_utils::{spawn_test_world, deploy_contract};
+    use dojo::utils::test::{spawn_test_world, deploy_contract};
+    use dojo::model::Model;
 
     // External dependencies
 
@@ -32,6 +34,11 @@ mod setup {
         IERC20FaucetDispatcherTrait, ERC20
     };
     use zkube::systems::dailygame::{dailygame, IDailyGameDispatcher, IDailyGameDispatcherTrait};
+
+    #[starknet::interface]
+    trait IDojoInit<ContractState> {
+        fn dojo_init(self: @ContractState, token_address: ContractAddress,) -> felt252;
+    }
 
     // Constants
 
@@ -64,6 +71,7 @@ mod setup {
 
     #[derive(Drop)]
     struct Context {
+        owner: ContractAddress,
         player1_id: felt252,
         player1_name: felt252,
         player2_id: felt252,
@@ -91,27 +99,28 @@ mod setup {
 
     #[inline(always)]
     fn create_accounts() -> (IWorldDispatcher, Systems, Context) {
+        let owner = get_contract_address();
+
         // [Setup] World
         let mut models = core::array::ArrayTrait::new();
         models.append(zkube::models::index::game::TEST_CLASS_HASH);
         models.append(zkube::models::index::player::TEST_CLASS_HASH);
         models.append(zkube::models::index::tournament::TEST_CLASS_HASH);
-        let world = spawn_test_world(models);
+        let world = spawn_test_world("zkube", models);
+
         let erc20 = deploy_erc20();
 
         // [Setup] SystemsDrop
-        let account_calldata: Array<felt252> = array![];
         let account_address = world
-            .deploy_contract(
-                'account', account::TEST_CLASS_HASH.try_into().unwrap(), account_calldata.span()
-            );
-        let dailygame_calldata: Array<felt252> = array![constants::TOKEN_ADDRESS().into(),];
+            .deploy_contract('account', account::TEST_CLASS_HASH.try_into().unwrap());
         let dailygame_address = world
-            .deploy_contract(
-                'dailygame',
-                dailygame::TEST_CLASS_HASH.try_into().unwrap(),
-                dailygame_calldata.span()
-            );
+            .deploy_contract('dailygame', dailygame::TEST_CLASS_HASH.try_into().unwrap());
+
+        let selector = selector_from_tag!("zkube-dailygame");
+        world.init_contract(selector, array![erc20.contract_address.into()].span());
+
+        world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), account_address);
+        world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), dailygame_address);
 
         let systems = Systems {
             account: IAccountDispatcher { contract_address: account_address },
@@ -155,6 +164,7 @@ mod setup {
         let beta = 502998338520997804786462808944365626190955582373168748079635287864535203785;
 
         let context = Context {
+            owner: owner,
             player1_id: PLAYER1().into(),
             player1_name: PLAYER1_NAME,
             player2_id: PLAYER2().into(),
@@ -168,6 +178,9 @@ mod setup {
             seed: seed,
             beta: beta,
         };
+
+        // [Set] Caller back to owner
+        set_contract_address(context.owner);
 
         // [Return]
         (world, systems, context)

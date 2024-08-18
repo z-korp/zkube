@@ -5,12 +5,14 @@ use core::debug::PrintTrait;
 // Starknet imports
 
 use starknet::testing::{
-    set_contract_address, set_transaction_hash, set_caller_address, set_block_timestamp
+    set_contract_address, set_account_contract_address, set_transaction_hash, set_caller_address,
+    set_block_timestamp
 };
 
 // Dojo imports
 
 use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait};
+use dojo::model::Model;
 
 // Internal imports
 
@@ -31,6 +33,8 @@ fn test_actions_move_01() {
     let (world, systems, context) = setup::create_accounts();
     let store = StoreTrait::new(world);
 
+    world.grant_writer(Model::<Game>::selector(), PLAYER1());
+
     // [Set] Game
     set_contract_address(PLAYER1());
     let game_id = systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
@@ -49,6 +53,8 @@ fn test_actions_move_02() {
     // [Setup]
     let (world, systems, context) = setup::create_accounts();
     let store = StoreTrait::new(world);
+
+    world.grant_writer(Model::<Game>::selector(), PLAYER1());
 
     // [Set] Game
     set_contract_address(PLAYER1());
@@ -72,6 +78,8 @@ fn test_actions_move_03() {
     // [Setup]
     let (world, systems, context) = setup::create_accounts();
     let store = StoreTrait::new(world);
+
+    world.grant_writer(Model::<Game>::selector(), PLAYER1());
 
     // [Set] Game
     set_contract_address(PLAYER1());

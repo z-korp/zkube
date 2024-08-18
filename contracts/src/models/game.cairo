@@ -33,16 +33,7 @@ mod errors {
 #[generate_trait]
 impl GameImpl of GameTrait {
     #[inline(always)]
-    fn new(
-        id: u32,
-        player_id: felt252,
-        seed: felt252,
-        hammer_bonus: u8,
-        wave_bonus: u8,
-        totem_bonus: u8,
-        mode: Mode,
-        time: u64,
-    ) -> Game {
+    fn new(id: u32, player_id: felt252, seed: felt252, mode: Mode, time: u64,) -> Game {
         let difficulty = mode.difficulty();
         let game_seed = mode.seed(time, id, seed);
         let (row, color) = Controller::create_line(game_seed, difficulty);
@@ -53,10 +44,14 @@ impl GameImpl of GameTrait {
             next_color: color,
             score: 0,
             moves: 0,
-            hammer_bonus,
-            wave_bonus,
-            totem_bonus,
+            hammer_bonus: 0,
+            wave_bonus: 0,
+            totem_bonus: 0,
+            hammer_used: 0,
+            wave_used: 0,
+            totem_used: 0,
             combo_counter: 0,
+            max_combo: 0,
             blocks: 0,
             colors: 0,
             player_id,
@@ -123,12 +118,9 @@ impl GameImpl of GameTrait {
 
     #[inline(always)]
     fn assess_bonuses(self: Game) -> (u8, u8, u8) {
-        if !self.over {
-            return (0, 0, 0);
-        }
-        let hammer = Bonus::Hammer.get_count(self.score, self.combo_counter);
-        let totem = Bonus::Totem.get_count(self.score, self.combo_counter);
-        let wave = Bonus::Wave.get_count(self.score, self.combo_counter);
+        let hammer = Bonus::Hammer.get_count(self.score, self.combo_counter, self.max_combo);
+        let totem = Bonus::Totem.get_count(self.score, self.combo_counter, self.max_combo);
+        let wave = Bonus::Wave.get_count(self.score, self.combo_counter, self.max_combo);
         (hammer, totem, wave)
     }
 
@@ -137,17 +129,17 @@ impl GameImpl of GameTrait {
         let mut difficulty = self.difficulty();
         if (difficulty == Difficulty::None) { // Difficulty::None meaning increasing difficulty
             difficulty = Difficulty::Master;
-            if (self.moves < 10) {
+            if (self.moves < 20) {
                 difficulty = Difficulty::Easy;
-            } else if (self.moves < 20) {
-                difficulty = Difficulty::Medium;
             } else if (self.moves < 40) {
-                difficulty = Difficulty::MediumHard;
-            } else if (self.moves < 60) {
-                difficulty = Difficulty::Hard;
+                difficulty = Difficulty::Medium;
             } else if (self.moves < 80) {
+                difficulty = Difficulty::MediumHard;
+            } else if (self.moves < 120) {
+                difficulty = Difficulty::Hard;
+            } else if (self.moves < 160) {
                 difficulty = Difficulty::VeryHard;
-            } else if (self.moves < 100) {
+            } else if (self.moves < 200) {
                 difficulty = Difficulty::Expert;
             }
         }
@@ -177,6 +169,12 @@ impl GameImpl of GameTrait {
         let mut counter: u8 = 0;
         self.score += self.assess_game(ref counter);
 
+        // [Effect] Assess bonuses
+        let (hammer, totem, wave) = self.assess_bonuses();
+        self.hammer_bonus = hammer;
+        self.totem_bonus = totem;
+        self.wave_bonus = wave;
+
         // [Effect] Assess game over
         self.assess_over();
         if self.over {
@@ -188,8 +186,14 @@ impl GameImpl of GameTrait {
 
         // [Effect] Assess game
         self.score += self.assess_game(ref counter);
-        self.combo_counter = Math::max(self.combo_counter, counter);
+        self.combo_counter += counter;
+        self.max_combo = Math::max(self.max_combo, counter);
         self.moves += 1;
+
+        let (hammer, totem, wave) = self.assess_bonuses();
+        self.hammer_bonus = hammer;
+        self.totem_bonus = totem;
+        self.wave_bonus = wave;
 
         // [Effect] Grid empty add a new line
         if self.is_empty_grid() {
@@ -233,13 +237,14 @@ impl GameImpl of GameTrait {
         // [Effect] Assess game
         let mut counter = 0;
         self.score += self.assess_game(ref counter);
-        self.combo_counter = Math::max(self.combo_counter, counter);
+        self.combo_counter += counter;
+        self.max_combo = Math::max(self.max_combo, counter);
 
         match bonus {
             Bonus::None => {},
-            Bonus::Hammer => self.hammer_bonus -= 1,
-            Bonus::Totem => self.totem_bonus -= 1,
-            Bonus::Wave => self.wave_bonus -= 1,
+            Bonus::Hammer => self.hammer_used += 1,
+            Bonus::Totem => self.totem_used += 1,
+            Bonus::Wave => self.wave_used += 1,
         }
     }
 }
@@ -257,7 +262,11 @@ impl ZeroableGame of core::Zeroable<Game> {
             hammer_bonus: 0,
             wave_bonus: 0,
             totem_bonus: 0,
+            hammer_used: 0,
+            wave_used: 0,
+            totem_used: 0,
             combo_counter: 0,
+            max_combo: 0,
             blocks: 0,
             colors: 0,
             player_id: 0,
@@ -299,9 +308,9 @@ impl GameAssert of AssertTrait {
     #[inline(always)]
     fn assert_is_available(self: Game, bonus: Bonus) {
         let count = match bonus {
-            Bonus::Hammer => self.hammer_bonus,
-            Bonus::Totem => self.totem_bonus,
-            Bonus::Wave => self.wave_bonus,
+            Bonus::Hammer => self.hammer_bonus - self.hammer_used,
+            Bonus::Totem => self.totem_bonus - self.totem_used,
+            Bonus::Wave => self.wave_bonus - self.wave_used,
             _ => 0,
         };
         assert(count > 0, errors::GAME_BONUS_NOT_AVAILABLE);
@@ -331,7 +340,7 @@ mod tests {
     #[test]
     fn test_game_new() {
         // [Effect] Create game
-        let game = GameTrait::new(GAME_ID, PLAYER_ID, SEED, 0, 0, 0, Mode::Normal, 0);
+        let game = GameTrait::new(GAME_ID, PLAYER_ID, SEED, Mode::Normal, 0);
         game.assert_exists();
         game.assert_not_over();
         // [Assert] Game seed has changed

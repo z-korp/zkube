@@ -1,6 +1,6 @@
 kind = "DojoModel"
-class_hash = "0x58feddde1281dd90eaa745e765c66dc32b3b13f741b263c64c5ec31835bfb48"
-original_class_hash = "0x58feddde1281dd90eaa745e765c66dc32b3b13f741b263c64c5ec31835bfb48"
+class_hash = "0x25f3580abaf4c8357aa3f6a284d4bee0b79362f48930fedc74059c1cd2c0da4"
+original_class_hash = "0x25f3580abaf4c8357aa3f6a284d4bee0b79362f48930fedc74059c1cd2c0da4"
 abi = "manifests/dev/base/abis/models/zkube-Game-17e542e0.json"
 tag = "zkube-Game"
 manifest_name = "zkube-Game-17e542e0"
@@ -47,6 +47,21 @@ key = false
 
 [[members]]
 name = "totem_bonus"
+type = "u8"
+key = false
+
+[[members]]
+name = "hammer_used"
+type = "u8"
+key = false
+
+[[members]]
+name = "wave_used"
+type = "u8"
+key = false
+
+[[members]]
+name = "totem_used"
 type = "u8"
 key = false
 

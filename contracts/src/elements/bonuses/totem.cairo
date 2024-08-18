@@ -15,6 +15,8 @@ use zkube::helpers::controller::Controller;
 use zkube::models::game::Game;
 use zkube::types::bonus::Bonus;
 use zkube::types::color::Color;
+use zkube::types::block::Block;
+use zkube::types::width::Width;
 
 // Errors
 
@@ -25,11 +27,11 @@ mod errors {
 impl BonusImpl of BonusTrait {
     fn apply(blocks: felt252, colors: felt252, row_index: u8, index: u8) -> (felt252, felt252) {
         // [Check] Color of the block is valid
-        let block_color = Controller::get_block(colors, row_index, index);
-        let color: Color = block_color.into();
-        assert(color != Color::None, errors::INVALID_BLOCK_COLOR);
+        let block_size = Controller::get_block(blocks, row_index, index);
+        let block: Width = block_size.into();
+        assert(block != Width::None, errors::INVALID_BLOCK_COLOR);
         // [Compute] Mask of the block
-        let mut packed: u256 = colors.into();
+        let mut packed: u256 = blocks.into();
         let block_mask: u256 = (constants::BLOCK_SIZE - 1).into();
         let mut mask: u256 = 0;
         let mut shift: u256 = 1;
@@ -38,8 +40,8 @@ impl BonusImpl of BonusTrait {
             if packed.is_zero() {
                 break;
             }
-            let color: u8 = (packed % modulo).try_into().unwrap();
-            if color == block_color {
+            let block: u8 = (packed % modulo).try_into().unwrap();
+            if block == block_size {
                 mask += block_mask * shift;
             }
             packed = packed / modulo;
@@ -55,7 +57,16 @@ impl BonusImpl of BonusTrait {
     }
 
     #[inline(always)]
-    fn get_count(score: u32, combo_count: u8) -> u8 {
+    fn get_count(score: u32, combo_count: u8, max_combo: u8) -> u8 {
+        if max_combo >= 6 {
+            return 3;
+        }
+        if combo_count >= 4 {
+            return 2;
+        }
+        if combo_count >= 2 {
+            return 1;
+        }
         return 0;
     }
 }

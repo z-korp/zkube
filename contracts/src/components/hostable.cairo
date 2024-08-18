@@ -95,16 +95,7 @@ mod HostableComponent {
             // [Effect] Create game
             let game_id: u32 = world.uuid() + 1;
             let time = get_block_timestamp();
-            let mut game = GameTrait::new(
-                game_id,
-                player.id,
-                beta,
-                player.hammer_bonus,
-                player.wave_bonus,
-                player.totem_bonus,
-                mode: mode.into(),
-                time: time,
-            );
+            let mut game = GameTrait::new(game_id, player.id, beta, mode: mode.into(), time: time,);
 
             // [Effect] Start game
             game.start();

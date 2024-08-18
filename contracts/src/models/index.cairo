@@ -4,9 +4,6 @@ pub struct Player {
     #[key]
     id: felt252,
     game_id: u32,
-    hammer_bonus: u8,
-    wave_bonus: u8,
-    totem_bonus: u8,
     name: felt252,
     points: u32,
 }
@@ -21,10 +18,19 @@ pub struct Game {
     moves: u32,
     next_row: u32,
     next_color: u32,
+    // ------------------------
+    // Bonuses
+    // Bonuses usable during the game (start (0, 0, 0) and will evolve)
     hammer_bonus: u8,
     wave_bonus: u8,
     totem_bonus: u8,
+    // Bonuses used during the game
+    hammer_used: u8,
+    wave_used: u8,
+    totem_used: u8,
+    // ------------------------
     combo_counter: u8,
+    max_combo: u8,
     blocks: felt252,
     colors: felt252,
     player_id: felt252,
