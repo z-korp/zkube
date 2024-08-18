@@ -23,24 +23,40 @@ manifest_name = "dojo-base"
 
 [[contracts]]
 kind = "DojoContract"
-address = "0x7d714b0f8830f6df1f1e208d99f0567ac7ea3e177bf0bfddc4ea22ca68c693d"
-class_hash = "0x69a01548ec88ed63e787d645de67e62ca7b1d066e4ed110392a7a83ce94e6cb"
-original_class_hash = "0x69a01548ec88ed63e787d645de67e62ca7b1d066e4ed110392a7a83ce94e6cb"
+address = "0x2b4f0e952d12b43d3bb93639be357a7ece3aa364f55d8f1f1e6e6ca68c7f285"
+class_hash = "0x32ff262fda01b4c3bb3f0509fc23b75a13ce0daf6e45539d37e33c928ad90b3"
+original_class_hash = "0x32ff262fda01b4c3bb3f0509fc23b75a13ce0daf6e45539d37e33c928ad90b3"
 base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
-abi = "manifests/dev/deployment/abis/contracts/zkube-actions-21961658.json"
+abi = "manifests/dev/deployment/abis/contracts/zkube-account-6d28004d.json"
 reads = []
 writes = [
     "zkube-Player",
     "zkube-Game",
 ]
 init_calldata = []
-tag = "zkube-actions"
-manifest_name = "zkube-actions-21961658"
+tag = "zkube-account"
+manifest_name = "zkube-account-6d28004d"
+
+[[contracts]]
+kind = "DojoContract"
+address = "0x5bad75c9017268d7072f4b4946aa7bcd8126bef87e1561ab75df807f9889aad"
+class_hash = "0x1613479aa485d0e3e0630f5024b05697009a91f4ce051f9d188ef70c5e0c2fd"
+original_class_hash = "0x1613479aa485d0e3e0630f5024b05697009a91f4ce051f9d188ef70c5e0c2fd"
+base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
+abi = "manifests/dev/deployment/abis/contracts/zkube-dailygame-2e941267.json"
+reads = []
+writes = [
+    "zkube-Player",
+    "zkube-Game",
+]
+init_calldata = []
+tag = "zkube-dailygame"
+manifest_name = "zkube-dailygame-2e941267"
 
 [[models]]
 kind = "DojoModel"
-class_hash = "0x33630a8b0e4096eedb806b674154e036729b483f479d814bb5d6fc6572bce24"
-original_class_hash = "0x33630a8b0e4096eedb806b674154e036729b483f479d814bb5d6fc6572bce24"
+class_hash = "0x58feddde1281dd90eaa745e765c66dc32b3b13f741b263c64c5ec31835bfb48"
+original_class_hash = "0x58feddde1281dd90eaa745e765c66dc32b3b13f741b263c64c5ec31835bfb48"
 abi = "manifests/dev/deployment/abis/models/zkube-Game-17e542e0.json"
 tag = "zkube-Game"
 manifest_name = "zkube-Game-17e542e0"
@@ -49,11 +65,6 @@ manifest_name = "zkube-Game-17e542e0"
 name = "id"
 type = "u32"
 key = true
-
-[[models.members]]
-name = "difficulty"
-type = "u8"
-key = false
 
 [[models.members]]
 name = "over"
@@ -120,10 +131,25 @@ name = "seed"
 type = "felt252"
 key = false
 
+[[models.members]]
+name = "mode"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "start_time"
+type = "u64"
+key = false
+
+[[models.members]]
+name = "tournament_id"
+type = "u64"
+key = false
+
 [[models]]
 kind = "DojoModel"
-class_hash = "0x5f00b2c50323719e15ea7ea8f763b011d19ad7c3bbe099ac78fa1c1e692a9a6"
-original_class_hash = "0x5f00b2c50323719e15ea7ea8f763b011d19ad7c3bbe099ac78fa1c1e692a9a6"
+class_hash = "0x5f4a8383dfc575b1dbd826cf4bce31b22f1c4395749e2b6ad9c905e3324e5c2"
+original_class_hash = "0x5f4a8383dfc575b1dbd826cf4bce31b22f1c4395749e2b6ad9c905e3324e5c2"
 abi = "manifests/dev/deployment/abis/models/zkube-Player-a3c56d30.json"
 tag = "zkube-Player"
 manifest_name = "zkube-Player-a3c56d30"
@@ -156,4 +182,72 @@ key = false
 [[models.members]]
 name = "name"
 type = "felt252"
+key = false
+
+[[models.members]]
+name = "points"
+type = "u32"
+key = false
+
+[[models]]
+kind = "DojoModel"
+class_hash = "0x40192a8af7bea738cee0feffb7de37f6b15e21f6809cff453268e65f240d1b6"
+original_class_hash = "0x40192a8af7bea738cee0feffb7de37f6b15e21f6809cff453268e65f240d1b6"
+abi = "manifests/dev/deployment/abis/models/zkube-Tournament-120c37d1.json"
+tag = "zkube-Tournament"
+manifest_name = "zkube-Tournament-120c37d1"
+
+[[models.members]]
+name = "id"
+type = "u64"
+key = true
+
+[[models.members]]
+name = "prize"
+type = "felt252"
+key = false
+
+[[models.members]]
+name = "top1_player_id"
+type = "felt252"
+key = false
+
+[[models.members]]
+name = "top2_player_id"
+type = "felt252"
+key = false
+
+[[models.members]]
+name = "top3_player_id"
+type = "felt252"
+key = false
+
+[[models.members]]
+name = "top1_score"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "top2_score"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "top3_score"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "top1_claimed"
+type = "bool"
+key = false
+
+[[models.members]]
+name = "top2_claimed"
+type = "bool"
+key = false
+
+[[models.members]]
+name = "top3_claimed"
+type = "bool"
 key = false

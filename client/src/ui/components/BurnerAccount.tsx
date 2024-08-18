@@ -18,7 +18,7 @@ import { shortenHex } from "@dojoengine/utils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faRocket } from "@fortawesome/free-solid-svg-icons";
 
-export const Account = () => {
+export const BurnerAccount = () => {
   const {
     account: { account, create, clear, list, select },
   } = useDojo();

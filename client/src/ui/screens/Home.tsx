@@ -22,6 +22,7 @@ import { DifficultyType } from "@/dojo/game/types/difficulty";
 import { useQuerySync } from "@dojoengine/react";
 import { useAccount } from "@starknet-react/core";
 import { ModeType } from "@/dojo/game/types/mode";
+import { useControllerUsername } from "@/hooks/useControllerUsername";
 
 interface position {
   x: number;
@@ -163,6 +164,8 @@ export const Home = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const { username } = useControllerUsername();
+
   return (
     <div className="relative flex flex-col h-screen">
       <Header />
@@ -185,7 +188,7 @@ export const Home = () => {
               <Start mode={ModeType.Normal} />
               {!game && (
                 <div className="absolute top md:translate-y-[100%] translate-y-[40%] bg-slate-900 w-11/12 p-6 rounded-xl">
-                  <Leaderboard />
+                  <Leaderboard modeType={ModeType.Daily} />
                 </div>
               )}
               {!!game && game.over && (

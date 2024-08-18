@@ -1,6 +1,6 @@
 kind = "DojoModel"
-class_hash = "0x5f00b2c50323719e15ea7ea8f763b011d19ad7c3bbe099ac78fa1c1e692a9a6"
-original_class_hash = "0x5f00b2c50323719e15ea7ea8f763b011d19ad7c3bbe099ac78fa1c1e692a9a6"
+class_hash = "0x5f4a8383dfc575b1dbd826cf4bce31b22f1c4395749e2b6ad9c905e3324e5c2"
+original_class_hash = "0x5f4a8383dfc575b1dbd826cf4bce31b22f1c4395749e2b6ad9c905e3324e5c2"
 abi = "manifests/dev/base/abis/models/zkube-Player-a3c56d30.json"
 tag = "zkube-Player"
 manifest_name = "zkube-Player-a3c56d30"
@@ -33,4 +33,9 @@ key = false
 [[members]]
 name = "name"
 type = "felt252"
+key = false
+
+[[members]]
+name = "points"
+type = "u32"
 key = false

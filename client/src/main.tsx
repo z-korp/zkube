@@ -8,7 +8,7 @@ import { Loading } from "@/ui/screens/Loading";
 import { MusicPlayerProvider } from "./contexts/music.tsx";
 import { SoundPlayerProvider } from "./contexts/sound.tsx";
 import { ThemeProvider } from "./ui/elements/theme-provider.tsx";
-import { StarknetConfig, jsonRpcProvider } from "@starknet-react/core";
+import { StarknetConfig, jsonRpcProvider, voyager } from "@starknet-react/core";
 import { sepolia } from "@starknet-react/chains";
 import cartridgeConnector from "./cartridgeConnector.tsx";
 
@@ -25,7 +25,6 @@ const root = ReactDOM.createRoot(
 );
 
 function Main() {
-  const chains = [sepolia];
   const connectors = [cartridgeConnector];
 
   const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
@@ -54,10 +53,11 @@ function Main() {
     <React.StrictMode>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <StarknetConfig
-          chains={chains}
-          provider={jsonRpcProvider({ rpc })}
-          connectors={connectors}
           autoConnect
+          chains={[sepolia]}
+          connectors={connectors}
+          explorer={voyager}
+          provider={jsonRpcProvider({ rpc })}
         >
           <MusicPlayerProvider>
             {!loading && setupResult ? (

@@ -6,7 +6,7 @@ use core::debug::PrintTrait;
 
 // External imports
 
-use origami::random::deck::{Deck as OrigamiDeck, DeckTrait as OrigamiDeckTrait};
+use origami_random::deck::{Deck as OrigamiDeck, DeckTrait as OrigamiDeckTrait};
 use alexandria_math::bitmap::Bitmap;
 
 // Internal imports

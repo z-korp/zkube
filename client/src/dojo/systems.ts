@@ -99,7 +99,7 @@ export function systems({
   const create = async ({ account, ...props }: SystemTypes.Create) => {
     await handleTransaction(
       account,
-      () => client.actions.create({ account, ...props }),
+      () => client.account.create({ account, ...props }),
       "Player has been created.",
     );
   };
@@ -107,7 +107,7 @@ export function systems({
   const rename = async ({ account, ...props }: SystemTypes.Rename) => {
     await handleTransaction(
       account,
-      () => client.actions.rename({ account, ...props }),
+      () => client.account.rename({ account, ...props }),
       "Player has been renamed.",
     );
   };
@@ -115,7 +115,7 @@ export function systems({
   const start = async ({ account, ...props }: SystemTypes.Start) => {
     await handleTransaction(
       account,
-      () => client.actions.start({ account, ...props }),
+      () => client.dailygame.start({ account, ...props }),
       "Game has been started.",
     );
   };
@@ -123,7 +123,7 @@ export function systems({
   const surrender = async ({ account, ...props }: SystemTypes.Signer) => {
     await handleTransaction(
       account,
-      () => client.actions.surrender({ account, ...props }),
+      () => client.dailygame.surrender({ account, ...props }),
       "Game has been surrendered.",
     );
   };
@@ -131,7 +131,7 @@ export function systems({
   const move = async ({ account, ...props }: SystemTypes.Move) => {
     await handleTransaction(
       account,
-      () => client.actions.move({ account, ...props }),
+      () => client.dailygame.move({ account, ...props }),
       "Player has been moved.",
     );
   };
@@ -139,7 +139,7 @@ export function systems({
   const bonus = async ({ account, ...props }: SystemTypes.Bonus) => {
     await handleTransaction(
       account,
-      () => client.actions.bonus({ account, ...props }),
+      () => client.dailygame.bonus({ account, ...props }),
       "Bonus has been applied.",
     );
   };

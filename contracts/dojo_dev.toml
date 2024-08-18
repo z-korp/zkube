@@ -1,6 +1,6 @@
 [world]
 name = "zKube"
-description = "Solo strategy card game where you manage resources and upgrade your village to maximize points. Make tactical decisions to help your village grow and flourish."
+description = "Reversed tetris fully onchain."
 cover_uri = "file://assets/cover.png"
 icon_uri = "file://assets/icon.png"
 website = "https://app.zkube.xyz"

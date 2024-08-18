@@ -1250,9 +1250,9 @@
   "contracts": [
     {
       "kind": "DojoContract",
-      "address": "0x7d714b0f8830f6df1f1e208d99f0567ac7ea3e177bf0bfddc4ea22ca68c693d",
-      "class_hash": "0x69a01548ec88ed63e787d645de67e62ca7b1d066e4ed110392a7a83ce94e6cb",
-      "original_class_hash": "0x69a01548ec88ed63e787d645de67e62ca7b1d066e4ed110392a7a83ce94e6cb",
+      "address": "0x2b4f0e952d12b43d3bb93639be357a7ece3aa364f55d8f1f1e6e6ca68c7f285",
+      "class_hash": "0x32ff262fda01b4c3bb3f0509fc23b75a13ce0daf6e45539d37e33c928ad90b3",
+      "original_class_hash": "0x32ff262fda01b4c3bb3f0509fc23b75a13ce0daf6e45539d37e33c928ad90b3",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {
@@ -1385,11 +1385,11 @@
         {
           "type": "impl",
           "name": "IDojoInitImpl",
-          "interface_name": "zkube::systems::actions::actions::IDojoInit"
+          "interface_name": "zkube::systems::account::account::IDojoInit"
         },
         {
           "type": "interface",
-          "name": "zkube::systems::actions::actions::IDojoInit",
+          "name": "zkube::systems::account::account::IDojoInit",
           "items": [
             {
               "type": "function",
@@ -1402,8 +1402,280 @@
         },
         {
           "type": "impl",
-          "name": "ActionsImpl",
-          "interface_name": "zkube::systems::actions::IActions"
+          "name": "AccountImpl",
+          "interface_name": "zkube::systems::account::IAccount"
+        },
+        {
+          "type": "interface",
+          "name": "zkube::systems::account::IAccount",
+          "items": [
+            {
+              "type": "function",
+              "name": "create",
+              "inputs": [
+                {
+                  "name": "name",
+                  "type": "core::felt252"
+                }
+              ],
+              "outputs": [],
+              "state_mutability": "external"
+            },
+            {
+              "type": "function",
+              "name": "rename",
+              "inputs": [
+                {
+                  "name": "name",
+                  "type": "core::felt252"
+                }
+              ],
+              "outputs": [],
+              "state_mutability": "external"
+            }
+          ]
+        },
+        {
+          "type": "impl",
+          "name": "UpgradableImpl",
+          "interface_name": "dojo::contract::upgradeable::IUpgradeable"
+        },
+        {
+          "type": "interface",
+          "name": "dojo::contract::upgradeable::IUpgradeable",
+          "items": [
+            {
+              "type": "function",
+              "name": "upgrade",
+              "inputs": [
+                {
+                  "name": "new_class_hash",
+                  "type": "core::starknet::class_hash::ClassHash"
+                }
+              ],
+              "outputs": [],
+              "state_mutability": "external"
+            }
+          ]
+        },
+        {
+          "type": "event",
+          "name": "dojo::contract::upgradeable::upgradeable::Upgraded",
+          "kind": "struct",
+          "members": [
+            {
+              "name": "class_hash",
+              "type": "core::starknet::class_hash::ClassHash",
+              "kind": "data"
+            }
+          ]
+        },
+        {
+          "type": "event",
+          "name": "dojo::contract::upgradeable::upgradeable::Event",
+          "kind": "enum",
+          "variants": [
+            {
+              "name": "Upgraded",
+              "type": "dojo::contract::upgradeable::upgradeable::Upgraded",
+              "kind": "nested"
+            }
+          ]
+        },
+        {
+          "type": "event",
+          "name": "zkube::components::manageable::ManageableComponent::Event",
+          "kind": "enum",
+          "variants": []
+        },
+        {
+          "type": "event",
+          "name": "zkube::systems::account::account::Event",
+          "kind": "enum",
+          "variants": [
+            {
+              "name": "UpgradeableEvent",
+              "type": "dojo::contract::upgradeable::upgradeable::Event",
+              "kind": "nested"
+            },
+            {
+              "name": "ManageableEvent",
+              "type": "zkube::components::manageable::ManageableComponent::Event",
+              "kind": "flat"
+            }
+          ]
+        }
+      ],
+      "reads": [],
+      "writes": [
+        "zkube-Player",
+        "zkube-Game"
+      ],
+      "init_calldata": [],
+      "tag": "zkube-account",
+      "manifest_name": "zkube-account-6d28004d"
+    },
+    {
+      "kind": "DojoContract",
+      "address": "0x5bad75c9017268d7072f4b4946aa7bcd8126bef87e1561ab75df807f9889aad",
+      "class_hash": "0x1613479aa485d0e3e0630f5024b05697009a91f4ce051f9d188ef70c5e0c2fd",
+      "original_class_hash": "0x1613479aa485d0e3e0630f5024b05697009a91f4ce051f9d188ef70c5e0c2fd",
+      "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
+      "abi": [
+        {
+          "type": "impl",
+          "name": "ContractImpl",
+          "interface_name": "dojo::contract::contract::IContract"
+        },
+        {
+          "type": "struct",
+          "name": "core::byte_array::ByteArray",
+          "members": [
+            {
+              "name": "data",
+              "type": "core::array::Array::<core::bytes_31::bytes31>"
+            },
+            {
+              "name": "pending_word",
+              "type": "core::felt252"
+            },
+            {
+              "name": "pending_word_len",
+              "type": "core::integer::u32"
+            }
+          ]
+        },
+        {
+          "type": "interface",
+          "name": "dojo::contract::contract::IContract",
+          "items": [
+            {
+              "type": "function",
+              "name": "contract_name",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "core::byte_array::ByteArray"
+                }
+              ],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "namespace",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "core::byte_array::ByteArray"
+                }
+              ],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "tag",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "core::byte_array::ByteArray"
+                }
+              ],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "name_hash",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "core::felt252"
+                }
+              ],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "namespace_hash",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "core::felt252"
+                }
+              ],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "selector",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "core::felt252"
+                }
+              ],
+              "state_mutability": "view"
+            }
+          ]
+        },
+        {
+          "type": "impl",
+          "name": "WorldProviderImpl",
+          "interface_name": "dojo::world::world_contract::IWorldProvider"
+        },
+        {
+          "type": "struct",
+          "name": "dojo::world::world_contract::IWorldDispatcher",
+          "members": [
+            {
+              "name": "contract_address",
+              "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ]
+        },
+        {
+          "type": "interface",
+          "name": "dojo::world::world_contract::IWorldProvider",
+          "items": [
+            {
+              "type": "function",
+              "name": "world",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "dojo::world::world_contract::IWorldDispatcher"
+                }
+              ],
+              "state_mutability": "view"
+            }
+          ]
+        },
+        {
+          "type": "impl",
+          "name": "IDojoInitImpl",
+          "interface_name": "zkube::systems::dailygame::dailygame::IDojoInit"
+        },
+        {
+          "type": "interface",
+          "name": "zkube::systems::dailygame::dailygame::IDojoInit",
+          "items": [
+            {
+              "type": "function",
+              "name": "dojo_init",
+              "inputs": [
+                {
+                  "name": "token_address",
+                  "type": "core::starknet::contract_address::ContractAddress"
+                }
+              ],
+              "outputs": [],
+              "state_mutability": "external"
+            }
+          ]
+        },
+        {
+          "type": "impl",
+          "name": "DailyGameImpl",
+          "interface_name": "zkube::systems::dailygame::IDailyGame"
         },
         {
           "type": "struct",
@@ -1465,40 +1737,12 @@
         },
         {
           "type": "interface",
-          "name": "zkube::systems::actions::IActions",
+          "name": "zkube::systems::dailygame::IDailyGame",
           "items": [
             {
               "type": "function",
               "name": "create",
               "inputs": [
-                {
-                  "name": "name",
-                  "type": "core::felt252"
-                }
-              ],
-              "outputs": [],
-              "state_mutability": "external"
-            },
-            {
-              "type": "function",
-              "name": "rename",
-              "inputs": [
-                {
-                  "name": "name",
-                  "type": "core::felt252"
-                }
-              ],
-              "outputs": [],
-              "state_mutability": "external"
-            },
-            {
-              "type": "function",
-              "name": "start",
-              "inputs": [
-                {
-                  "name": "difficulty",
-                  "type": "core::integer::u8"
-                },
                 {
                   "name": "proof",
                   "type": "stark_vrf::ecvrf::Proof"
@@ -1517,6 +1761,34 @@
                   "type": "core::integer::u32"
                 }
               ],
+              "state_mutability": "external"
+            },
+            {
+              "type": "function",
+              "name": "claim",
+              "inputs": [
+                {
+                  "name": "tournament_id",
+                  "type": "core::integer::u64"
+                },
+                {
+                  "name": "rank",
+                  "type": "core::integer::u8"
+                }
+              ],
+              "outputs": [],
+              "state_mutability": "external"
+            },
+            {
+              "type": "function",
+              "name": "sponsor",
+              "inputs": [
+                {
+                  "name": "amount",
+                  "type": "core::felt252"
+                }
+              ],
+              "outputs": [],
               "state_mutability": "external"
             },
             {
@@ -1617,7 +1889,13 @@
         },
         {
           "type": "event",
-          "name": "zkube::components::manageable::ManageableComponent::Event",
+          "name": "zkube::components::hostable::HostableComponent::Event",
+          "kind": "enum",
+          "variants": []
+        },
+        {
+          "type": "event",
+          "name": "zkube::components::payable::PayableComponent::Event",
           "kind": "enum",
           "variants": []
         },
@@ -1629,7 +1907,7 @@
         },
         {
           "type": "event",
-          "name": "zkube::systems::actions::actions::Event",
+          "name": "zkube::systems::dailygame::dailygame::Event",
           "kind": "enum",
           "variants": [
             {
@@ -1638,8 +1916,13 @@
               "kind": "nested"
             },
             {
-              "name": "ManageableEvent",
-              "type": "zkube::components::manageable::ManageableComponent::Event",
+              "name": "HostableEvent",
+              "type": "zkube::components::hostable::HostableComponent::Event",
+              "kind": "flat"
+            },
+            {
+              "name": "PayableEvent",
+              "type": "zkube::components::payable::PayableComponent::Event",
               "kind": "flat"
             },
             {
@@ -1656,8 +1939,8 @@
         "zkube-Game"
       ],
       "init_calldata": [],
-      "tag": "zkube-actions",
-      "manifest_name": "zkube-actions-21961658"
+      "tag": "zkube-dailygame",
+      "manifest_name": "zkube-dailygame-2e941267"
     }
   ],
   "models": [
@@ -1668,11 +1951,6 @@
           "name": "id",
           "type": "u32",
           "key": true
-        },
-        {
-          "name": "difficulty",
-          "type": "u8",
-          "key": false
         },
         {
           "name": "over",
@@ -1738,10 +2016,25 @@
           "name": "seed",
           "type": "felt252",
           "key": false
+        },
+        {
+          "name": "mode",
+          "type": "u8",
+          "key": false
+        },
+        {
+          "name": "start_time",
+          "type": "u64",
+          "key": false
+        },
+        {
+          "name": "tournament_id",
+          "type": "u64",
+          "key": false
         }
       ],
-      "class_hash": "0x33630a8b0e4096eedb806b674154e036729b483f479d814bb5d6fc6572bce24",
-      "original_class_hash": "0x33630a8b0e4096eedb806b674154e036729b483f479d814bb5d6fc6572bce24",
+      "class_hash": "0x58feddde1281dd90eaa745e765c66dc32b3b13f741b263c64c5ec31835bfb48",
+      "original_class_hash": "0x58feddde1281dd90eaa745e765c66dc32b3b13f741b263c64c5ec31835bfb48",
       "abi": [
         {
           "type": "impl",
@@ -2133,10 +2426,6 @@
               "type": "core::integer::u32"
             },
             {
-              "name": "difficulty",
-              "type": "core::integer::u8"
-            },
-            {
               "name": "over",
               "type": "core::bool"
             },
@@ -2187,6 +2476,18 @@
             {
               "name": "seed",
               "type": "core::felt252"
+            },
+            {
+              "name": "mode",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "start_time",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "tournament_id",
+              "type": "core::integer::u64"
             }
           ]
         },
@@ -2250,10 +2551,15 @@
           "name": "name",
           "type": "felt252",
           "key": false
+        },
+        {
+          "name": "points",
+          "type": "u32",
+          "key": false
         }
       ],
-      "class_hash": "0x5f00b2c50323719e15ea7ea8f763b011d19ad7c3bbe099ac78fa1c1e692a9a6",
-      "original_class_hash": "0x5f00b2c50323719e15ea7ea8f763b011d19ad7c3bbe099ac78fa1c1e692a9a6",
+      "class_hash": "0x5f4a8383dfc575b1dbd826cf4bce31b22f1c4395749e2b6ad9c905e3324e5c2",
+      "original_class_hash": "0x5f4a8383dfc575b1dbd826cf4bce31b22f1c4395749e2b6ad9c905e3324e5c2",
       "abi": [
         {
           "type": "impl",
@@ -2649,6 +2955,10 @@
             {
               "name": "name",
               "type": "core::felt252"
+            },
+            {
+              "name": "points",
+              "type": "core::integer::u32"
             }
           ]
         },
@@ -2679,6 +2989,527 @@
       ],
       "tag": "zkube-Player",
       "manifest_name": "zkube-Player-a3c56d30"
+    },
+    {
+      "kind": "DojoModel",
+      "members": [
+        {
+          "name": "id",
+          "type": "u64",
+          "key": true
+        },
+        {
+          "name": "prize",
+          "type": "felt252",
+          "key": false
+        },
+        {
+          "name": "top1_player_id",
+          "type": "felt252",
+          "key": false
+        },
+        {
+          "name": "top2_player_id",
+          "type": "felt252",
+          "key": false
+        },
+        {
+          "name": "top3_player_id",
+          "type": "felt252",
+          "key": false
+        },
+        {
+          "name": "top1_score",
+          "type": "u32",
+          "key": false
+        },
+        {
+          "name": "top2_score",
+          "type": "u32",
+          "key": false
+        },
+        {
+          "name": "top3_score",
+          "type": "u32",
+          "key": false
+        },
+        {
+          "name": "top1_claimed",
+          "type": "bool",
+          "key": false
+        },
+        {
+          "name": "top2_claimed",
+          "type": "bool",
+          "key": false
+        },
+        {
+          "name": "top3_claimed",
+          "type": "bool",
+          "key": false
+        }
+      ],
+      "class_hash": "0x40192a8af7bea738cee0feffb7de37f6b15e21f6809cff453268e65f240d1b6",
+      "original_class_hash": "0x40192a8af7bea738cee0feffb7de37f6b15e21f6809cff453268e65f240d1b6",
+      "abi": [
+        {
+          "type": "impl",
+          "name": "DojoModelImpl",
+          "interface_name": "dojo::model::model::IModel"
+        },
+        {
+          "type": "struct",
+          "name": "core::byte_array::ByteArray",
+          "members": [
+            {
+              "name": "data",
+              "type": "core::array::Array::<core::bytes_31::bytes31>"
+            },
+            {
+              "name": "pending_word",
+              "type": "core::felt252"
+            },
+            {
+              "name": "pending_word_len",
+              "type": "core::integer::u32"
+            }
+          ]
+        },
+        {
+          "type": "enum",
+          "name": "core::option::Option::<core::integer::u32>",
+          "variants": [
+            {
+              "name": "Some",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "None",
+              "type": "()"
+            }
+          ]
+        },
+        {
+          "type": "struct",
+          "name": "core::array::Span::<core::integer::u8>",
+          "members": [
+            {
+              "name": "snapshot",
+              "type": "@core::array::Array::<core::integer::u8>"
+            }
+          ]
+        },
+        {
+          "type": "struct",
+          "name": "dojo::model::layout::FieldLayout",
+          "members": [
+            {
+              "name": "selector",
+              "type": "core::felt252"
+            },
+            {
+              "name": "layout",
+              "type": "dojo::model::layout::Layout"
+            }
+          ]
+        },
+        {
+          "type": "struct",
+          "name": "core::array::Span::<dojo::model::layout::FieldLayout>",
+          "members": [
+            {
+              "name": "snapshot",
+              "type": "@core::array::Array::<dojo::model::layout::FieldLayout>"
+            }
+          ]
+        },
+        {
+          "type": "struct",
+          "name": "core::array::Span::<dojo::model::layout::Layout>",
+          "members": [
+            {
+              "name": "snapshot",
+              "type": "@core::array::Array::<dojo::model::layout::Layout>"
+            }
+          ]
+        },
+        {
+          "type": "enum",
+          "name": "dojo::model::layout::Layout",
+          "variants": [
+            {
+              "name": "Fixed",
+              "type": "core::array::Span::<core::integer::u8>"
+            },
+            {
+              "name": "Struct",
+              "type": "core::array::Span::<dojo::model::layout::FieldLayout>"
+            },
+            {
+              "name": "Tuple",
+              "type": "core::array::Span::<dojo::model::layout::Layout>"
+            },
+            {
+              "name": "Array",
+              "type": "core::array::Span::<dojo::model::layout::Layout>"
+            },
+            {
+              "name": "ByteArray",
+              "type": "()"
+            },
+            {
+              "name": "Enum",
+              "type": "core::array::Span::<dojo::model::layout::FieldLayout>"
+            }
+          ]
+        },
+        {
+          "type": "struct",
+          "name": "core::array::Span::<core::felt252>",
+          "members": [
+            {
+              "name": "snapshot",
+              "type": "@core::array::Array::<core::felt252>"
+            }
+          ]
+        },
+        {
+          "type": "struct",
+          "name": "dojo::model::introspect::Member",
+          "members": [
+            {
+              "name": "name",
+              "type": "core::felt252"
+            },
+            {
+              "name": "attrs",
+              "type": "core::array::Span::<core::felt252>"
+            },
+            {
+              "name": "ty",
+              "type": "dojo::model::introspect::Ty"
+            }
+          ]
+        },
+        {
+          "type": "struct",
+          "name": "core::array::Span::<dojo::model::introspect::Member>",
+          "members": [
+            {
+              "name": "snapshot",
+              "type": "@core::array::Array::<dojo::model::introspect::Member>"
+            }
+          ]
+        },
+        {
+          "type": "struct",
+          "name": "dojo::model::introspect::Struct",
+          "members": [
+            {
+              "name": "name",
+              "type": "core::felt252"
+            },
+            {
+              "name": "attrs",
+              "type": "core::array::Span::<core::felt252>"
+            },
+            {
+              "name": "children",
+              "type": "core::array::Span::<dojo::model::introspect::Member>"
+            }
+          ]
+        },
+        {
+          "type": "struct",
+          "name": "core::array::Span::<(core::felt252, dojo::model::introspect::Ty)>",
+          "members": [
+            {
+              "name": "snapshot",
+              "type": "@core::array::Array::<(core::felt252, dojo::model::introspect::Ty)>"
+            }
+          ]
+        },
+        {
+          "type": "struct",
+          "name": "dojo::model::introspect::Enum",
+          "members": [
+            {
+              "name": "name",
+              "type": "core::felt252"
+            },
+            {
+              "name": "attrs",
+              "type": "core::array::Span::<core::felt252>"
+            },
+            {
+              "name": "children",
+              "type": "core::array::Span::<(core::felt252, dojo::model::introspect::Ty)>"
+            }
+          ]
+        },
+        {
+          "type": "struct",
+          "name": "core::array::Span::<dojo::model::introspect::Ty>",
+          "members": [
+            {
+              "name": "snapshot",
+              "type": "@core::array::Array::<dojo::model::introspect::Ty>"
+            }
+          ]
+        },
+        {
+          "type": "enum",
+          "name": "dojo::model::introspect::Ty",
+          "variants": [
+            {
+              "name": "Primitive",
+              "type": "core::felt252"
+            },
+            {
+              "name": "Struct",
+              "type": "dojo::model::introspect::Struct"
+            },
+            {
+              "name": "Enum",
+              "type": "dojo::model::introspect::Enum"
+            },
+            {
+              "name": "Tuple",
+              "type": "core::array::Span::<dojo::model::introspect::Ty>"
+            },
+            {
+              "name": "Array",
+              "type": "core::array::Span::<dojo::model::introspect::Ty>"
+            },
+            {
+              "name": "ByteArray",
+              "type": "()"
+            }
+          ]
+        },
+        {
+          "type": "interface",
+          "name": "dojo::model::model::IModel",
+          "items": [
+            {
+              "type": "function",
+              "name": "name",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "core::byte_array::ByteArray"
+                }
+              ],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "namespace",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "core::byte_array::ByteArray"
+                }
+              ],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "tag",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "core::byte_array::ByteArray"
+                }
+              ],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "version",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "core::integer::u8"
+                }
+              ],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "selector",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "core::felt252"
+                }
+              ],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "name_hash",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "core::felt252"
+                }
+              ],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "namespace_hash",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "core::felt252"
+                }
+              ],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "unpacked_size",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "core::option::Option::<core::integer::u32>"
+                }
+              ],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "packed_size",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "core::option::Option::<core::integer::u32>"
+                }
+              ],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "layout",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "dojo::model::layout::Layout"
+                }
+              ],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "schema",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "dojo::model::introspect::Ty"
+                }
+              ],
+              "state_mutability": "view"
+            }
+          ]
+        },
+        {
+          "type": "impl",
+          "name": "tournamentImpl",
+          "interface_name": "zkube::models::index::Itournament"
+        },
+        {
+          "type": "enum",
+          "name": "core::bool",
+          "variants": [
+            {
+              "name": "False",
+              "type": "()"
+            },
+            {
+              "name": "True",
+              "type": "()"
+            }
+          ]
+        },
+        {
+          "type": "struct",
+          "name": "zkube::models::index::Tournament",
+          "members": [
+            {
+              "name": "id",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "prize",
+              "type": "core::felt252"
+            },
+            {
+              "name": "top1_player_id",
+              "type": "core::felt252"
+            },
+            {
+              "name": "top2_player_id",
+              "type": "core::felt252"
+            },
+            {
+              "name": "top3_player_id",
+              "type": "core::felt252"
+            },
+            {
+              "name": "top1_score",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "top2_score",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "top3_score",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "top1_claimed",
+              "type": "core::bool"
+            },
+            {
+              "name": "top2_claimed",
+              "type": "core::bool"
+            },
+            {
+              "name": "top3_claimed",
+              "type": "core::bool"
+            }
+          ]
+        },
+        {
+          "type": "interface",
+          "name": "zkube::models::index::Itournament",
+          "items": [
+            {
+              "type": "function",
+              "name": "ensure_abi",
+              "inputs": [
+                {
+                  "name": "model",
+                  "type": "zkube::models::index::Tournament"
+                }
+              ],
+              "outputs": [],
+              "state_mutability": "view"
+            }
+          ]
+        },
+        {
+          "type": "event",
+          "name": "zkube::models::index::tournament::Event",
+          "kind": "enum",
+          "variants": []
+        }
+      ],
+      "tag": "zkube-Tournament",
+      "manifest_name": "zkube-Tournament-120c37d1"
     }
   ]
 }

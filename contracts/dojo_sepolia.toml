@@ -1,6 +1,6 @@
 [world]
-name = "zKlash"
-description = "Autobattler where you hire creatures and improve them to defeat waves of enemies."
+name = "zKube"
+description = "Reversed tetris fully onchain."
 # cover_uri = "file://assets/cover.png"
 # icon_uri = "file://assets/icon.png"
 website = "https://github.com/dojoengine/dojo-starter"
@@ -13,7 +13,7 @@ github = "https://github.com/dojoengine/dojo-starter"
 telegram = "https://t.me/dojoengine"
 
 [namespace]
-default = "zklash"
+default = "zkube"
 
 [env]
 rpc_url = "https://starknet-sepolia.public.blastapi.io/rpc/v0_7"

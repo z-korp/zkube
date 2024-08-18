@@ -1,5 +1,6 @@
-tag = "zkube-actions"
+tag = "zkube-account"
 writes = [
     "zkube-Player",
     "zkube-Game",
+    "zkube-Tournament",
 ]

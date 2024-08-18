@@ -8,7 +8,7 @@ use core::Zeroable;
 
 // External imports
 
-use origami::random::deck::{Deck as OrigamiDeck, DeckTrait};
+use origami_random::deck::{Deck as OrigamiDeck, DeckTrait};
 
 // Internal imports
 

@@ -389,10 +389,6 @@
         "type": "core::integer::u32"
       },
       {
-        "name": "difficulty",
-        "type": "core::integer::u8"
-      },
-      {
         "name": "over",
         "type": "core::bool"
       },
@@ -443,6 +439,18 @@
       {
         "name": "seed",
         "type": "core::felt252"
+      },
+      {
+        "name": "mode",
+        "type": "core::integer::u8"
+      },
+      {
+        "name": "start_time",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "tournament_id",
+        "type": "core::integer::u64"
       }
     ]
   },

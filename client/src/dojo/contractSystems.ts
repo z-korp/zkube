@@ -1,6 +1,8 @@
 import { DojoProvider } from "@dojoengine/core";
 import { Config } from "../../dojo.config.ts";
 import { Account, UniversalDetails, shortString } from "starknet";
+import { create } from "domain";
+import { rename } from "fs";
 
 const NAMESPACE = "zkube";
 
@@ -55,8 +57,8 @@ export const getContractByName = (manifest: any, name: string) => {
 export async function setupWorld(provider: DojoProvider, config: Config) {
   const details: UniversalDetails | undefined = undefined; // { maxFee: 1e15 };
 
-  function actions() {
-    const contract_name = "actions";
+  function account() {
+    const contract_name = "account";
     const contract = config.manifest.contracts.find((c: any) =>
       c.tag.includes(contract_name),
     );
@@ -101,6 +103,22 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
         throw error;
       }
     };
+
+    return {
+      address: contract.address,
+      create,
+      rename,
+    };
+  }
+
+  function dailygame() {
+    const contract_name = "account";
+    const contract = config.manifest.contracts.find((c: any) =>
+      c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      throw new Error(`Contract ${contract_name} not found in manifest`);
+    }
 
     const start = async ({
       account,
@@ -191,8 +209,6 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
     return {
       address: contract.address,
-      create,
-      rename,
       start,
       surrender,
       move,
@@ -201,6 +217,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
   }
 
   return {
-    actions: actions(),
+    account: account(),
+    dailygame: dailygame(),
   };
 }

@@ -17,7 +17,6 @@ mod HostableComponent {
     use dojo::world::IWorldDispatcher;
     use dojo::world::IWorldDispatcherTrait;
     use dojo::world::IWorldProvider;
-    use dojo::world::IDojoResourceProvider;
 
     // Internal imports
 
