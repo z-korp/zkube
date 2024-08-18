@@ -24,58 +24,67 @@ import {
   PaginationPrevious,
 } from "@/ui/elements/pagination";
 import { Button } from "@/ui/elements/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/ui/elements/select";
 import { Game } from "@/dojo/game/models/game";
 import { useGames } from "@/hooks/useGames";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useMediaQuery } from "react-responsive";
-import { DifficultyType } from "@/dojo/game/types/difficulty";
+import { ModeType, Mode } from "@/dojo/game/types/mode";
 
 const GAME_PER_PAGE = 5;
 const MAX_PAGE_COUNT = 5;
 
-export const Leaderboard = () => {
+interface LeaderboardProps {
+  modeType: ModeType;
+}
+
+export const Leaderboard: React.FC<LeaderboardProps> = ({ modeType }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">Leaderboard</Button>
+        <Button variant="outline">
+          {modeType === ModeType.Daily ? "Top Daily" : "Leaderboard"}
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader className="flex items-center text-2xl">
-          <DialogTitle>Leaderboard</DialogTitle>
+          <DialogTitle>
+            {modeType === ModeType.Daily ? "Top Daily" : "Leaderboard"}
+          </DialogTitle>
         </DialogHeader>
         <div className="m-auto">
-          <Content />
+          <Content modeType={modeType} />
         </div>
       </DialogContent>
     </Dialog>
   );
 };
 
-export const Content = () => {
+interface ContentProps {
+  modeType: ModeType;
+}
+
+export const Content: React.FC<ContentProps> = ({ modeType }) => {
   const { games } = useGames();
   const [page, setPage] = useState<number>(1);
   const [pageCount, setPageCount] = useState<number>(0);
 
-  const sorteds = useMemo(() => {
-    return games
+  const filteredGames = useMemo(() => {
+    return games.filter((game) => game.mode.value === modeType);
+  }, [games, modeType]);
+
+  const sortedGames = useMemo(() => {
+    return filteredGames
       .sort((a, b) => b.combo - a.combo)
       .sort((a, b) => b.score - a.score);
-  }, [games]);
+  }, [filteredGames]);
 
   useEffect(() => {
-    const rem = Math.floor(sorteds.length / (GAME_PER_PAGE + 1)) + 1;
+    const rem = Math.floor(sortedGames.length / (GAME_PER_PAGE + 1)) + 1;
     setPageCount(rem);
-    setPage(1); // Reset to first page when difficulty changes
-  }, [sorteds]);
+    setPage(1); // Reset to first page when mode changes
+  }, [sortedGames]);
 
   const { start, end } = useMemo(() => {
     const start = (page - 1) * GAME_PER_PAGE;
@@ -93,7 +102,7 @@ export const Content = () => {
     setPage((prev) => prev + 1);
   }, [page, pageCount]);
 
-  const disabled = useMemo(() => sorteds.length > 0, [sorteds]);
+  const disabled = useMemo(() => sortedGames.length > 0, [sortedGames]);
 
   const isSmallScreen = useMediaQuery({ query: "(min-width: 640px)" });
 
@@ -116,7 +125,7 @@ export const Content = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sorteds.slice(start, end).map((game, index) => (
+          {sortedGames.slice(start, end).map((game, index) => (
             <Row
               key={index}
               rank={(page - 1) * GAME_PER_PAGE + index + 1}

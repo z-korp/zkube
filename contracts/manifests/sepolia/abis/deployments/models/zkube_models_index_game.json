@@ -391,6 +391,10 @@
       {
         "name": "seed",
         "type": "core::felt252"
+      },
+      {
+        "name": "mode",
+        "type": "core::integer::u8"
       }
     ]
   },

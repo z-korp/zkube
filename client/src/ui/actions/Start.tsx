@@ -5,17 +5,22 @@ import { Button } from "@/ui/elements/button";
 import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
 import { fetchVrfData } from "@/api/vrf";
+import { Mode, ModeType } from "@/dojo/game/types/mode";
 import { useAccount } from "@starknet-react/core";
-import { difficultyTypeToNumber } from "@/dojo/game/types/difficulty";
 
-export const Start = () => {
-  const { account } = useAccount();
+interface StartProps {
+  mode: ModeType;
+}
+
+export const Start: React.FC<StartProps> = ({ mode }) => {
   const {
     master,
     setup: {
       systemCalls: { start },
     },
   } = useDojo();
+
+  const { account } = useAccount();
 
   const { player } = usePlayer({ playerId: account?.address });
 
@@ -39,7 +44,7 @@ export const Start = () => {
       } = await fetchVrfData();
       await start({
         account: account as Account,
-        difficulty: difficultyTypeToNumber(difficulty),
+        mode: new Mode(mode).into(),
         seed,
         x: proof_gamma_x,
         y: proof_gamma_y,
@@ -51,7 +56,7 @@ export const Start = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [account, difficulty]);
+  }, [account, mode]);
 
   const disabled = useMemo(() => {
     return (
@@ -72,7 +77,7 @@ export const Start = () => {
       onClick={handleClick}
       className="text-xl"
     >
-      Start a Game
+      {`Start ${mode}`}
     </Button>
   );
 };

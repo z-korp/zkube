@@ -30,6 +30,7 @@ import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
 import Balance from "../components/Balance";
 import { useAccount } from "@starknet-react/core";
 import Connect from "../components/Connect";
+import { ModeType } from "@/dojo/game/types/mode";
 
 export const Header = () => {
   const { account } = useAccount();
@@ -52,7 +53,8 @@ export const Header = () => {
           onClick={handleClick}
         >
           <p className="text-4xl font-bold">zKube</p>
-          <Leaderboard />
+          <Leaderboard modeType={ModeType.Daily} />
+          <Leaderboard modeType={ModeType.Normal} />
           <Achievements />
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">

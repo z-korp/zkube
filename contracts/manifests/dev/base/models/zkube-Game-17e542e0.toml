@@ -1,6 +1,6 @@
 kind = "DojoModel"
-class_hash = "0x33630a8b0e4096eedb806b674154e036729b483f479d814bb5d6fc6572bce24"
-original_class_hash = "0x33630a8b0e4096eedb806b674154e036729b483f479d814bb5d6fc6572bce24"
+class_hash = "0x58feddde1281dd90eaa745e765c66dc32b3b13f741b263c64c5ec31835bfb48"
+original_class_hash = "0x58feddde1281dd90eaa745e765c66dc32b3b13f741b263c64c5ec31835bfb48"
 abi = "manifests/dev/base/abis/models/zkube-Game-17e542e0.json"
 tag = "zkube-Game"
 manifest_name = "zkube-Game-17e542e0"
@@ -9,11 +9,6 @@ manifest_name = "zkube-Game-17e542e0"
 name = "id"
 type = "u32"
 key = true
-
-[[members]]
-name = "difficulty"
-type = "u8"
-key = false
 
 [[members]]
 name = "over"
@@ -78,4 +73,19 @@ key = false
 [[members]]
 name = "seed"
 type = "felt252"
+key = false
+
+[[members]]
+name = "mode"
+type = "u8"
+key = false
+
+[[members]]
+name = "start_time"
+type = "u64"
+key = false
+
+[[members]]
+name = "tournament_id"
+type = "u64"
 key = false

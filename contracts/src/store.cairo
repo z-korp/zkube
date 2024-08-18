@@ -12,6 +12,7 @@ use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait};
 
 use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{Player, PlayerTrait};
+use zkube::models::tournament::Tournament;
 
 /// Store struct.
 #[derive(Copy, Drop)]
@@ -38,6 +39,11 @@ impl StoreImpl of StoreTrait {
     }
 
     #[inline(always)]
+    fn tournament(self: Store, tournament_id: u64) -> Tournament {
+        get!(self.world, tournament_id, (Tournament))
+    }
+
+    #[inline(always)]
     fn set_game(self: Store, game: Game) {
         set!(self.world, (game))
     }
@@ -45,5 +51,10 @@ impl StoreImpl of StoreTrait {
     #[inline(always)]
     fn set_player(self: Store, player: Player) {
         set!(self.world, (player))
+    }
+
+    #[inline(always)]
+    fn set_tournament(self: Store, tournament: Tournament) {
+        set!(self.world, (tournament))
     }
 }

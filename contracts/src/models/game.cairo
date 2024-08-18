@@ -1,3 +1,4 @@
+use zkube::types::mode::ModeTrait;
 use core::traits::Into;
 // Core imports
 
@@ -18,6 +19,7 @@ use zkube::helpers::math::Math;
 use zkube::helpers::packer::Packer;
 use zkube::helpers::controller::Controller;
 use zkube::types::bonus::{Bonus, BonusTrait};
+use zkube::types::mode::Mode;
 
 // Errors
 
@@ -34,16 +36,18 @@ impl GameImpl of GameTrait {
     fn new(
         id: u32,
         player_id: felt252,
-        difficulty: Difficulty,
         seed: felt252,
         hammer_bonus: u8,
         wave_bonus: u8,
-        totem_bonus: u8
+        totem_bonus: u8,
+        mode: Mode,
+        time: u64,
     ) -> Game {
-        let (row, color) = Controller::create_line(seed, difficulty);
+        let difficulty = mode.difficulty();
+        let game_seed = mode.seed(time, id, seed);
+        let (row, color) = Controller::create_line(game_seed, difficulty);
         Game {
             id,
-            difficulty: difficulty.into(),
             over: false,
             next_row: row,
             next_color: color,
@@ -56,8 +60,23 @@ impl GameImpl of GameTrait {
             blocks: 0,
             colors: 0,
             player_id,
-            seed,
+            seed: game_seed,
+            mode: mode.into(),
+            start_time: time,
+            tournament_id: 0,
         }
+    }
+
+    #[inline(always)]
+    fn duration(self: Game) -> u64 {
+        let mode: Mode = self.mode.into();
+        mode.duration()
+    }
+
+    #[inline(always)]
+    fn difficulty(self: Game) -> Difficulty {
+        let mode: Mode = self.mode.into();
+        mode.difficulty()
     }
 
     #[inline(always)]
@@ -115,7 +134,7 @@ impl GameImpl of GameTrait {
 
     #[inline(always)]
     fn get_difficulty(ref self: Game) -> Difficulty {
-        let mut difficulty = self.difficulty.into();
+        let mut difficulty = self.difficulty();
         if (difficulty == Difficulty::None) { // Difficulty::None meaning increasing difficulty
             difficulty = Difficulty::Master;
             if (self.moves < 10) {
@@ -230,7 +249,6 @@ impl ZeroableGame of core::Zeroable<Game> {
     fn zero() -> Game {
         Game {
             id: 0,
-            difficulty: 0,
             over: false,
             score: 0,
             moves: 0,
@@ -244,6 +262,9 @@ impl ZeroableGame of core::Zeroable<Game> {
             colors: 0,
             player_id: 0,
             seed: 0,
+            mode: 0,
+            start_time: 0,
+            tournament_id: 0,
         }
     }
 
@@ -292,11 +313,14 @@ mod tests {
     // Core imports
 
     use core::debug::PrintTrait;
+    use core::poseidon::{PoseidonTrait, HashState};
+    use core::hash::HashStateTrait;
 
     // Local imports
 
     use super::{Game, GameTrait, AssertTrait};
     use zkube::types::difficulty::Difficulty;
+    use zkube::types::mode::Mode;
 
     // Constants
 
@@ -307,10 +331,16 @@ mod tests {
     #[test]
     fn test_game_new() {
         // [Effect] Create game
-        let game = GameTrait::new(GAME_ID, PLAYER_ID, Difficulty::Easy, SEED, 0, 0, 0);
+        let game = GameTrait::new(GAME_ID, PLAYER_ID, SEED, 0, 0, 0, Mode::Normal, 0);
         game.assert_exists();
         game.assert_not_over();
-        // [Assert] Game seed
-        assert_eq!(game.seed, SEED);
+        // [Assert] Game seed has changed
+
+        let state: HashState = PoseidonTrait::new();
+        let state = state.update(SEED);
+        let state = state.update(GAME_ID.into());
+        let state = state.update(0);
+
+        assert_eq!(game.seed, state.finalize());
     }
 }

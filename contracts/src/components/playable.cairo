@@ -30,21 +30,14 @@ mod PlayableComponent {
     use zkube::store::StoreTrait;
     use zkube::types::bonus::Bonus;
     use zkube::types::difficulty::Difficulty;
+    use zkube::types::mode::Mode;
+    use zkube::models::tournament::TournamentImpl;
 
-    // Errors
-
-    mod errors {
-        const PLAYABLE_INVALID_PROOF: felt252 = 'Playable:: invalid proof';
-        const PLAYABLE_INVALID_BETA: felt252 = 'Playable:: invalid beta';
-        const PLAYABLE_INVALID_SEED: felt252 = 'Playable:: invalid seed';
-    }
 
     // Storage
 
     #[storage]
-    struct Storage {
-        seeds: LegacyMap::<felt252, bool>,
-    }
+    struct Storage {}
 
     // Events
 
@@ -56,65 +49,7 @@ mod PlayableComponent {
     impl InternalImpl<
         TContractState, +HasComponent<TContractState>
     > of InternalTrait<TContractState> {
-        fn start(
-            self: @ComponentState<TContractState>,
-            world: IWorldDispatcher,
-            difficulty: Difficulty,
-            proof: Proof,
-            seed: felt252,
-            beta: felt252
-        ) -> u32 {
-            // [Setup] Datastore
-            let store: Store = StoreImpl::new(world);
-
-            // [Check] Verify new seed
-            assert(!self.seeds.read(beta), errors::PLAYABLE_INVALID_SEED);
-
-            // [Check] Verify seed
-            let public_key = Point {
-                x: 1173415989117130929327570255074235160147948257071299476886506896372006087277,
-                y: 2678963217040729019448869120760864799670267652070964164868211652985974476023,
-            };
-            let ecvrf = ECVRFTrait::new(public_key);
-            let computed = ecvrf
-                .verify(proof, array![seed].span())
-                .expect(errors::PLAYABLE_INVALID_PROOF);
-            assert(computed == beta, errors::PLAYABLE_INVALID_BETA);
-
-            // [Check] Player exists
-            let caller = get_caller_address();
-            let mut player = store.player(caller.into());
-            player.assert_exists();
-
-            // [Check] Game is over
-            let game = store.game(player.game_id);
-            game.assert_is_over();
-
-            // [Effect] Create game
-            let game_id: u32 = world.uuid() + 1;
-            let mut game = GameTrait::new(
-                game_id,
-                player.id,
-                difficulty,
-                beta,
-                player.hammer_bonus,
-                player.wave_bonus,
-                player.totem_bonus
-            );
-
-            // [Effect] Start game
-            game.start();
-            store.set_game(game);
-
-            // [Effect] Update player
-            player.game_id = game_id;
-            store.set_player(player);
-
-            // [Return] Game id
-            game_id
-        }
-
-        fn surrender(self: @ComponentState<TContractState>, world: IWorldDispatcher) {
+        fn _surrender(self: @ComponentState<TContractState>, world: IWorldDispatcher) {
             // [Setup] Datastore
             let store: Store = StoreImpl::new(world);
 
@@ -140,9 +75,23 @@ mod PlayableComponent {
                 player.update(hammer, totem, wave, game.score);
                 store.set_player(player);
             }
+
+            // [Effect] Update tournament on game over
+            let time = get_block_timestamp();
+            let tournament_id = TournamentImpl::compute_id(game.start_time, game.duration());
+            let id_end = TournamentImpl::compute_id(time, game.duration());
+            if tournament_id == id_end && game.over {
+                // [Effect] Update tournament
+                let mut tournament = store.tournament(tournament_id);
+                tournament.score(player.id, game.score);
+                store.set_tournament(tournament);
+
+                // [Effect] Add tournament id to game
+                game.tournament_id = tournament_id;
+            }
         }
 
-        fn move(
+        fn _move(
             self: @ComponentState<TContractState>,
             world: IWorldDispatcher,
             row_index: u8,
@@ -174,9 +123,23 @@ mod PlayableComponent {
                 player.update(hammer, totem, wave, game.score);
                 store.set_player(player);
             }
+
+            // [Effect] Update tournament on game over
+            let time = get_block_timestamp();
+            let tournament_id = TournamentImpl::compute_id(game.start_time, game.duration());
+            let id_end = TournamentImpl::compute_id(time, game.duration());
+            if tournament_id == id_end && game.over {
+                // [Effect] Update tournament
+                let mut tournament = store.tournament(tournament_id);
+                tournament.score(player.id, game.score);
+                store.set_tournament(tournament);
+
+                // [Effect] Add tournament id to game
+                game.tournament_id = tournament_id;
+            }
         }
 
-        fn apply_bonus(
+        fn _apply_bonus(
             self: @ComponentState<TContractState>,
             world: IWorldDispatcher,
             bonus: Bonus,

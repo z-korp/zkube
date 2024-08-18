@@ -1019,9 +1019,9 @@
   "contracts": [
     {
       "kind": "DojoContract",
-      "address": "0x2c43187941a28e669cca7332d27d66c889992c0f8cc7dce3a1e4e1430ba1114",
-      "class_hash": "0x4ed9f1af618a5bd13a0c7d7a64bc5bfef583c83bd97d1696315419a3b373851",
-      "original_class_hash": "0x4ed9f1af618a5bd13a0c7d7a64bc5bfef583c83bd97d1696315419a3b373851",
+      "address": "0x601ee769c9135a490b0e33e23625b95530550551953602c14d88b679f663ef1",
+      "class_hash": "0x484a2546eac2453e91633488caba48e56b50f62fa851bee9b574ee6e0a85011",
+      "original_class_hash": "0x484a2546eac2453e91633488caba48e56b50f62fa851bee9b574ee6e0a85011",
       "base_class_hash": "0x22f3e55b61d86c2ac5239fa3b3b8761f26b9a5c0b5f61ddbd5d756ced498b46",
       "abi": [
         {
@@ -1164,6 +1164,13 @@
                   "type": "dojo::world::IWorldDispatcher"
                 },
                 {
+<<<<<<< HEAD:contracts/manifests/sepolia/manifest.json
+=======
+                  "name": "mode",
+                  "type": "core::integer::u8"
+                },
+                {
+>>>>>>> tournaments:contracts/manifests/dev/manifest.json
                   "name": "proof",
                   "type": "stark_vrf::ecvrf::Proof"
                 },
@@ -1401,10 +1408,20 @@
           "name": "seed",
           "type": "felt252",
           "key": false
+        },
+        {
+          "name": "mode",
+          "type": "u8",
+          "key": false
         }
       ],
+<<<<<<< HEAD:contracts/manifests/sepolia/manifest.json
       "class_hash": "0x7f9ef38357da1be1090e5c94c8e3edd015252e1465b76bff44de696c17e722d",
       "original_class_hash": "0x7f9ef38357da1be1090e5c94c8e3edd015252e1465b76bff44de696c17e722d",
+=======
+      "class_hash": "0x6814652ce2e34a351f5f958e7eb3c51cfe0711f0991530db71e42955f4e4268",
+      "original_class_hash": "0x6814652ce2e34a351f5f958e7eb3c51cfe0711f0991530db71e42955f4e4268",
+>>>>>>> tournaments:contracts/manifests/dev/manifest.json
       "abi": [
         {
           "type": "impl",
@@ -1798,6 +1815,10 @@
             {
               "name": "seed",
               "type": "core::felt252"
+            },
+            {
+              "name": "mode",
+              "type": "core::integer::u8"
             }
           ]
         },

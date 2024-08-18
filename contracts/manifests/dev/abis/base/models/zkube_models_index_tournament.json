@@ -319,58 +319,76 @@
   },
   {
     "type": "impl",
-    "name": "playerImpl",
-    "interface_name": "zkube::models::index::Iplayer"
+    "name": "tournamentImpl",
+    "interface_name": "zkube::models::index::Itournament"
+  },
+  {
+    "type": "enum",
+    "name": "core::bool",
+    "variants": [
+      {
+        "name": "False",
+        "type": "()"
+      },
+      {
+        "name": "True",
+        "type": "()"
+      }
+    ]
   },
   {
     "type": "struct",
-    "name": "zkube::models::index::Player",
+    "name": "zkube::models::index::Tournament",
     "members": [
       {
         "name": "id",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "prize",
         "type": "core::felt252"
       },
       {
-        "name": "game_id",
+        "name": "top1_player_id",
+        "type": "core::felt252"
+      },
+      {
+        "name": "top2_player_id",
+        "type": "core::felt252"
+      },
+      {
+        "name": "top3_player_id",
+        "type": "core::felt252"
+      },
+      {
+        "name": "top1_score",
         "type": "core::integer::u32"
       },
       {
-        "name": "hammer_bonus",
-        "type": "core::integer::u8"
+        "name": "top2_score",
+        "type": "core::integer::u32"
       },
       {
-        "name": "wave_bonus",
-        "type": "core::integer::u8"
+        "name": "top3_score",
+        "type": "core::integer::u32"
       },
       {
-        "name": "totem_bonus",
-        "type": "core::integer::u8"
+        "name": "top1_claimed",
+        "type": "core::bool"
       },
       {
-        "name": "name",
-        "type": "core::felt252"
+        "name": "top2_claimed",
+        "type": "core::bool"
       },
       {
-        "name": "colors",
-        "type": "core::felt252"
-      },
-      {
-        "name": "player_id",
-        "type": "core::felt252"
-      },
-      {
-        "name": "seed",
-        "type": "core::felt252"
-      },
-      {
-        "name": "mode",
-        "type": "core::integer::u8"
+        "name": "top3_claimed",
+        "type": "core::bool"
       }
     ]
   },
   {
     "type": "interface",
-    "name": "zkube::models::index::Iplayer",
+    "name": "zkube::models::index::Itournament",
     "items": [
       {
         "type": "function",
@@ -378,7 +396,7 @@
         "inputs": [
           {
             "name": "model",
-            "type": "zkube::models::index::Player"
+            "type": "zkube::models::index::Tournament"
           }
         ],
         "outputs": [],
@@ -388,7 +406,7 @@
   },
   {
     "type": "event",
-    "name": "zkube::models::index::player::Event",
+    "name": "zkube::models::index::tournament::Event",
     "kind": "enum",
     "variants": []
   }

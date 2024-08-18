@@ -240,7 +240,11 @@
         "name": "start",
         "inputs": [
           {
-            "name": "difficulty",
+            "name": "world",
+            "type": "dojo::world::IWorldDispatcher"
+          },
+          {
+            "name": "mode",
             "type": "core::integer::u8"
           },
           {
