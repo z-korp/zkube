@@ -1,4 +1,4 @@
-tag = "zkube-dailygame"
+tag = "zkube-play"
 writes = [
     "zkube-Player",
     "zkube-Game",

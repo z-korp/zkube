@@ -25,19 +25,14 @@ import { useMediaQuery } from "react-responsive";
 import { usePlayer } from "@/hooks/usePlayer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
-import { useAccount } from "@starknet-react/core";
+import useAccountCustom from "@/hooks/useAccountCustom";
 
 export const Achievements = () => {
-  const { account } = useAccount();
+  const { account } = useAccountCustom();
 
   const { player } = usePlayer({ playerId: account?.address });
-  const counts = useMemo(() => {
-    if (!player) return undefined;
-    return [player.hammer, player.totem, player.wave];
-  }, [player]);
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
-  const bonuses = useMemo(() => Player.getBonuses({ counts }), [counts]);
 
   return (
     <Drawer handleOnly={true}>
@@ -56,18 +51,7 @@ export const Achievements = () => {
             className="w-full"
             orientation={"horizontal"}
             opts={{ dragFree: isMdOrLarger }}
-          >
-            <CarouselContent className="flex items-stretch">
-              {bonuses.map((detail, index) => (
-                <CarouselItem
-                  key={index}
-                  className="sm:basis-1/2 md:basis-1/3 lg:basis-1/5 xl:basis-[14.2857143%]"
-                >
-                  <Canvas detail={detail} />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
+          ></Carousel>
         </div>
       </DrawerContent>
     </Drawer>

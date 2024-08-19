@@ -23,14 +23,14 @@ const account_contract_address = getContractByName(
   "account",
 )?.address;
 
-const dailygame_contract_address = getContractByName(
+const play_contract_address = getContractByName(
   manifest,
   "zkube",
-  "dailygame",
+  "play",
 )?.address;
 
 console.log("account_contract_address", account_contract_address);
-console.log("dailygame_contract_address", dailygame_contract_address);
+console.log("play_contract_address", play_contract_address);
 
 const policies = [
   {
@@ -46,21 +46,21 @@ const policies = [
     target: account_contract_address,
     method: "rename",
   },
-  // dailygame
+  // play
   {
-    target: dailygame_contract_address,
+    target: play_contract_address,
     method: "start",
   },
   {
-    target: dailygame_contract_address,
+    target: play_contract_address,
     method: "surrender",
   },
   {
-    target: dailygame_contract_address,
+    target: play_contract_address,
     method: "move",
   },
   {
-    target: dailygame_contract_address,
+    target: play_contract_address,
     method: "apply_bonus",
   },
 ];

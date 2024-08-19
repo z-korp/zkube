@@ -109,14 +109,16 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
     };
   }
 
-  function dailygame() {
-    const contract_name = "account";
+  function play() {
+    const contract_name = "play";
     const contract = config.manifest.contracts.find((c: any) =>
       c.tag.includes(contract_name),
     );
     if (!contract) {
       throw new Error(`Contract ${contract_name} not found in manifest`);
     }
+
+    console.log("play contract", contract);
 
     const start = async ({
       account,
@@ -134,7 +136,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
           account,
           {
             contractName: contract_name,
-            entrypoint: "start",
+            entrypoint: "create",
             calldata: [mode, x, y, c, s, sqrt_ratio_hint, seed, beta],
           },
           NAMESPACE,
@@ -216,6 +218,6 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
   return {
     account: account(),
-    dailygame: dailygame(),
+    play: play(),
   };
 }

@@ -20,7 +20,7 @@ use zkube::constants;
 use zkube::store::{Store, StoreTrait};
 use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{Player, PlayerTrait};
-use zkube::systems::dailygame::IDailyGameDispatcherTrait;
+use zkube::systems::play::IPlayDispatcherTrait;
 use zkube::types::mode::Mode;
 
 // Test imports
@@ -37,7 +37,7 @@ fn test_actions_move_01() {
 
     // [Set] Game
     set_contract_address(PLAYER1());
-    let game_id = systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
 
     let mut game = store.game(game_id);
     game.blocks = 0x9240526d825221b6906d96d8924049;
@@ -45,7 +45,7 @@ fn test_actions_move_01() {
     store.set_game(game);
 
     // [Move]
-    systems.dailygame.move(1, 1, 0);
+    systems.play.move(1, 1, 0);
 }
 
 #[test]
@@ -58,7 +58,7 @@ fn test_actions_move_02() {
 
     // [Set] Game
     set_contract_address(PLAYER1());
-    let game_id = systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
 
     let mut game = store.game(game_id);
     game.blocks = 0x48020924892429244829129048b6c8;
@@ -66,7 +66,7 @@ fn test_actions_move_02() {
     store.set_game(game);
 
     // [Move]
-    systems.dailygame.move(2, 1, 0);
+    systems.play.move(2, 1, 0);
 }
 
 /// Test when grid is empty after a new line is inserted.
@@ -83,7 +83,7 @@ fn test_actions_move_03() {
 
     // [Set] Game
     set_contract_address(PLAYER1());
-    let game_id = systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
 
     let mut game = store.game(game_id);
     game.blocks = 0b000_000_000_000_000_000_010_010;
@@ -91,7 +91,7 @@ fn test_actions_move_03() {
     store.set_game(game);
 
     // [Move]
-    systems.dailygame.move(0, 0, 2);
+    systems.play.move(0, 0, 2);
 
     let game = store.game(game_id);
 

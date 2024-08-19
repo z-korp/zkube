@@ -186,8 +186,10 @@ impl GameImpl of GameTrait {
 
         // [Effect] Assess game
         self.score += self.assess_game(ref counter);
-        self.combo_counter += counter;
-        self.max_combo = Math::max(self.max_combo, counter);
+        if (counter > 1) {
+            self.combo_counter += counter;
+            self.max_combo = Math::max(self.max_combo, counter);
+        }
         self.moves += 1;
 
         let (hammer, totem, wave) = self.assess_bonuses();
@@ -237,8 +239,10 @@ impl GameImpl of GameTrait {
         // [Effect] Assess game
         let mut counter = 0;
         self.score += self.assess_game(ref counter);
-        self.combo_counter += counter;
-        self.max_combo = Math::max(self.max_combo, counter);
+        if (counter > 1) {
+            self.combo_counter += counter;
+            self.max_combo = Math::max(self.max_combo, counter);
+        }
 
         match bonus {
             Bonus::None => {},

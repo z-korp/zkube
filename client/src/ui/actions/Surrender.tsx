@@ -12,10 +12,10 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/ui/elements/dialog";
-import { useAccount } from "@starknet-react/core";
+import useAccountCustom from "@/hooks/useAccountCustom";
 
 export const Surrender = () => {
-  const { account } = useAccount();
+  const { account } = useAccountCustom();
   const {
     master,
     setup: {

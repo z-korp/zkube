@@ -54,7 +54,7 @@ mod components {
 
 mod systems {
     mod account;
-    mod dailygame;
+    mod play;
 }
 
 #[cfg(test)]
@@ -62,7 +62,7 @@ mod tests {
     mod setup;
     mod test_create;
     mod test_move;
-    mod test_dailygame;
+    mod test_play;
     mod test_bonus_hammer;
     mod test_bonus_wave;
     mod test_bonus_totem;

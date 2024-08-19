@@ -6,7 +6,7 @@ import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
 import { fetchVrfData } from "@/api/vrf";
 import { Mode, ModeType } from "@/dojo/game/types/mode";
-import { useAccount } from "@starknet-react/core";
+import useAccountCustom from "@/hooks/useAccountCustom";
 
 interface StartProps {
   mode: ModeType;
@@ -20,7 +20,7 @@ export const Start: React.FC<StartProps> = ({ mode }) => {
     },
   } = useDojo();
 
-  const { account } = useAccount();
+  const { account } = useAccountCustom();
 
   const { player } = usePlayer({ playerId: account?.address });
 
@@ -42,6 +42,7 @@ export const Start: React.FC<StartProps> = ({ mode }) => {
         proof_verify_hint,
         beta,
       } = await fetchVrfData();
+
       await start({
         account: account as Account,
         mode: new Mode(mode).into(),

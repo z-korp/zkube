@@ -78,8 +78,8 @@
   },
   {
     "type": "impl",
-    "name": "DailyGameImpl",
-    "interface_name": "zkube::systems::dailygame::IDailyGame"
+    "name": "PlayImpl",
+    "interface_name": "zkube::systems::dailygame::IPlay"
   },
   {
     "type": "struct",
@@ -141,7 +141,7 @@
   },
   {
     "type": "interface",
-    "name": "zkube::systems::dailygame::IDailyGame",
+    "name": "zkube::systems::dailygame::IPlay",
     "items": [
       {
         "type": "function",

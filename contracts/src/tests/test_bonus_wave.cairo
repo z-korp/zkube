@@ -12,7 +12,7 @@ use dojo::model::Model;
 use zkube::constants;
 use zkube::store::{Store, StoreTrait};
 use zkube::models::game::{Game, GameTrait, GameAssert};
-use zkube::systems::dailygame::IDailyGameDispatcherTrait;
+use zkube::systems::play::IPlayDispatcherTrait;
 use zkube::types::bonus::Bonus;
 
 // Test imports
@@ -45,7 +45,7 @@ fn test_game_wave_bonus_unlock() {
     world.grant_writer(Model::<Game>::selector(), PLAYER1());
 
     set_contract_address(PLAYER1());
-    let game_id = systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Initial state
     let mut game = store.game(game_id);
@@ -73,7 +73,7 @@ fn test_game_wave_bonus_usage() {
     world.grant_writer(Model::<Game>::selector(), PLAYER1());
 
     set_contract_address(PLAYER1());
-    let game_id = systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Initial state
     let mut game = store.game(game_id);
@@ -89,7 +89,7 @@ fn test_game_wave_bonus_usage() {
     game.assert_is_available(Bonus::Wave);
 
     // [Effect] Use wave bonus
-    systems.dailygame.apply_bonus(Bonus::Wave, 0, 1);
+    systems.play.apply_bonus(Bonus::Wave, 0, 1);
 
     // [Assert] Check wave bonus
     let game = store.game(game_id);
@@ -112,12 +112,12 @@ fn test_game_wave_bonus_not_available() {
     world.grant_writer(Model::<Game>::selector(), PLAYER1());
 
     set_contract_address(PLAYER1());
-    let game_id = systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Initial state
     let mut game = store.game(game_id);
     assert(game.wave_bonus == 0, 'Init wave should be 0');
 
     // [Effect] Use wave bonus
-    systems.dailygame.apply_bonus(Bonus::Wave, 0, 1);
+    systems.play.apply_bonus(Bonus::Wave, 0, 1);
 }

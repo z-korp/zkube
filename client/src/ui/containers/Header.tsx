@@ -1,20 +1,19 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { Separator } from "@/ui/elements/separator";
 import { useNavigate } from "react-router-dom";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useMediaQuery } from "react-responsive";
 import { Leaderboard } from "../modules/Leaderboard";
 import { Achievements } from "../modules/Achievements";
-import { useAccount } from "@starknet-react/core";
 import Connect from "../components/Connect";
 import { ModeType } from "@/dojo/game/types/mode";
 import SettingsDropDown from "../components/SettingsDropDown";
 import MobileMenu from "../components/MobileMenu";
 import LevelIndicator from "../components/LevelIndicator";
-import { Button } from "../elements/button";
+import useAccountCustom from "@/hooks/useAccountCustom";
 
 export const Header = () => {
-  const { account } = useAccount();
+  const { account } = useAccountCustom();
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 

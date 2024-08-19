@@ -12,16 +12,15 @@ import {
 import { Leaderboard } from "../modules/Leaderboard";
 import { MusicPlayer } from "../modules/MusicPlayer";
 import AccountDetails from "./AccountDetails";
-import Balance from "./Balance";
 import { ModeToggle } from "./Theme";
 import Connect from "./Connect";
-import { useAccount } from "@starknet-react/core";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import DisconnectButton from "./DisconnectButton";
+import useAccountCustom from "@/hooks/useAccountCustom";
 
 const MobileMenu = () => {
-  const { account } = useAccount();
+  const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
   const { username } = useControllerUsername();
 

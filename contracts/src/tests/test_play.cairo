@@ -17,20 +17,20 @@ use zkube::constants;
 use zkube::store::{Store, StoreTrait};
 use zkube::models::game::{Game, GameTrait, GameAssert};
 use zkube::models::tournament::{TournamentImpl};
-use zkube::systems::dailygame::IDailyGameDispatcherTrait;
+use zkube::systems::play::IPlayDispatcherTrait;
 
 use zkube::tests::setup::{
     setup, setup::{Mode, Systems, PLAYER1, PLAYER2, PLAYER3, PLAYER4, IERC20DispatcherTrait}
 };
 
 #[test]
-fn test_dailygame_play_ranked_tournament_started() {
+fn test_play_play_ranked_tournament_started() {
     // [Setup]
     let (world, systems, context) = setup::create_accounts();
     let store = StoreTrait::new(world);
 
     set_contract_address(PLAYER1());
-    let game_id = systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Game
     let mut game = store.game(game_id);
@@ -39,7 +39,7 @@ fn test_dailygame_play_ranked_tournament_started() {
 
 
 #[test]
-fn test_dailygame_play_daily_tournament_claim() {
+fn test_play_play_daily_tournament_claim() {
     // [Setup]
     let (world, systems, context) = setup::create_accounts();
     let store = StoreTrait::new(world);
@@ -49,7 +49,7 @@ fn test_dailygame_play_daily_tournament_claim() {
     // [Start] Player1
     set_contract_address(PLAYER1());
     let player1_balance = context.erc20.balance_of(PLAYER1());
-    let game_id = systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Balance post creation
     let balance = context.erc20.balance_of(PLAYER1());
@@ -60,7 +60,7 @@ fn test_dailygame_play_daily_tournament_claim() {
     // [Start] Player2
     set_contract_address(PLAYER2());
     let player2_balance = context.erc20.balance_of(PLAYER2());
-    let game_id = systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
 
     let game = store.game(game_id);
     // 011_011_011_011_011_011_001_000
@@ -69,7 +69,7 @@ fn test_dailygame_play_daily_tournament_claim() {
     // 001_000_001_011_011_011_010_010
     // 001_000_010_010_001_011_011_011
     game.assert_exists();
-    systems.dailygame.move(1, 5, 6);
+    systems.play.move(1, 5, 6);
     let game = store.game(game_id);
     // println!("blocks {}", game.blocks);
     // 011_011_011_011_011_011_001_000
@@ -80,12 +80,12 @@ fn test_dailygame_play_daily_tournament_claim() {
     // println!("game.score {}", game.score);
     assert(game.score == 1, 'Score post move');
 
-    systems.dailygame.move(1, 7, 5);
+    systems.play.move(1, 7, 5);
     let game = store.game(game_id);
     // println!("game.score {}", game.score);
     assert(game.score == 4, 'Score post move');
 
-    systems.dailygame.surrender();
+    systems.play.surrender();
     let game = store.game(game_id);
     game.assert_is_over();
 
@@ -94,7 +94,7 @@ fn test_dailygame_play_daily_tournament_claim() {
     // [Start] Player3
     set_contract_address(PLAYER3());
     let player3_balance = context.erc20.balance_of(PLAYER3());
-    let game_id = systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
 
     let game = store.game(game_id);
     // println!("blocks {}", game.blocks);
@@ -105,7 +105,7 @@ fn test_dailygame_play_daily_tournament_claim() {
     // 001_000_001_011_011_011_010_010
     // 001_000_010_010_001_011_011_011
 
-    systems.dailygame.move(1, 5, 6);
+    systems.play.move(1, 5, 6);
     let game = store.game(game_id);
     // println!("blocks {}", game.blocks);
     // 011_011_011_011_011_011_001_000
@@ -117,12 +117,12 @@ fn test_dailygame_play_daily_tournament_claim() {
     // println!("game.score {}", game.score);
     assert(game.score == 1, 'Score post move');
 
-    systems.dailygame.move(4, 1, 0);
+    systems.play.move(4, 1, 0);
     let game = store.game(game_id);
     // println!("game.score {}", game.score);
     assert(game.score == 2, 'Score post move');
 
-    systems.dailygame.surrender();
+    systems.play.surrender();
     let game = store.game(game_id);
     game.assert_is_over();
     let top2_score = game.score;
@@ -130,7 +130,7 @@ fn test_dailygame_play_daily_tournament_claim() {
     // [Start] Player 4
     set_contract_address(PLAYER4());
     let player4_balance = context.erc20.balance_of(PLAYER4());
-    let game_id = systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
 
     let game = store.game(game_id);
     // println!("blocks {}", game.blocks);
@@ -142,7 +142,7 @@ fn test_dailygame_play_daily_tournament_claim() {
     // 001_000_001_011_011_011_010_010
     // 001_000_010_010_001_011_011_011
 
-    systems.dailygame.move(1, 5, 6);
+    systems.play.move(1, 5, 6);
     let game = store.game(game_id);
     // println!("blocks {}", game.blocks);
     // 011_011_011_011_011_011_001_000
@@ -153,7 +153,7 @@ fn test_dailygame_play_daily_tournament_claim() {
     // println!("game.score {}", game.score);
 
     assert(game.score == 1, 'Score post move');
-    systems.dailygame.surrender();
+    systems.play.surrender();
     let game = store.game(game_id);
     game.assert_is_over();
 
@@ -175,7 +175,7 @@ fn test_dailygame_play_daily_tournament_claim() {
     set_block_timestamp(constants::DAILY_MODE_DURATION);
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
     let rank = 1;
-    systems.dailygame.claim(tournament_id, rank);
+    systems.play.claim(tournament_id, rank);
 
     // [Assert] Player1 balance
     let final_player1 = context.erc20.balance_of(PLAYER2());
@@ -190,7 +190,7 @@ fn test_dailygame_play_daily_tournament_claim() {
     set_contract_address(PLAYER3());
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
     let rank = 2;
-    systems.dailygame.claim(tournament_id, rank);
+    systems.play.claim(tournament_id, rank);
 
     // [Assert] Player2 balance
     let final_player2 = context.erc20.balance_of(PLAYER3());
@@ -205,7 +205,7 @@ fn test_dailygame_play_daily_tournament_claim() {
     set_contract_address(PLAYER4());
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
     let rank = 3;
-    systems.dailygame.claim(tournament_id, rank);
+    systems.play.claim(tournament_id, rank);
 
     // [Assert] Player3 balance
     let final_player3 = context.erc20.balance_of(PLAYER4());
@@ -223,34 +223,34 @@ fn test_dailygame_play_daily_tournament_claim() {
 
 #[test]
 #[should_panic(expected: ('Tournament: not over', 'ENTRYPOINT_FAILED',))]
-fn test_dailygame_play_ranked_tournament_claim_revert_not_over() {
+fn test_play_play_ranked_tournament_claim_revert_not_over() {
     // [Setup]
     let (world, systems, context) = setup::create_accounts();
     let time = 0;
     set_block_timestamp(time);
 
     set_contract_address(PLAYER1());
-    systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
+    systems.play.create(context.proof.clone(), context.seed, context.beta);
 
     // [Claim]
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
-    systems.dailygame.claim(tournament_id, 1);
+    systems.play.claim(tournament_id, 1);
 }
 
 #[test]
 #[should_panic(expected: ('Tournament: invalid player', 'ENTRYPOINT_FAILED',))]
-fn test_dailygame_play_ranked_tournament_claim_revert_invalid_player() {
+fn test_play_play_ranked_tournament_claim_revert_invalid_player() {
     // [Setup]
     let (world, systems, context) = setup::create_accounts();
     let time = 0;
     set_block_timestamp(time);
 
     set_contract_address(PLAYER1());
-    systems.dailygame.create(context.proof.clone(), context.seed, context.beta);
+    systems.play.create(context.proof.clone(), context.seed, context.beta);
 
     // [Claim]
     set_block_timestamp(constants::DAILY_MODE_DURATION);
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
-    systems.dailygame.claim(tournament_id, 1);
+    systems.play.claim(tournament_id, 1);
 }
 

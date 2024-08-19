@@ -2,13 +2,18 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBolt,
+  faBomb,
+  faFire,
+  faStar,
+} from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
 import { Piece, Cell as CellType } from "@/types/types";
 import Cell from "./Cell";
 import { useMediaQuery } from "react-responsive";
-import { useAccount } from "@starknet-react/core";
 import { Account } from "starknet";
+import useAccountCustom from "@/hooks/useAccountCustom";
 
 //NOTE : Row commence en bas de la grille.
 //NOTE : Back : PieceId numéro de la piece dans la ligne (de gauche à droite)
@@ -20,29 +25,33 @@ const PIECES: Piece[] = [
   { id: 4, width: 4, element: "stone4" },
 ];
 
-const GameBoard = ({
-  initialGrid,
-  nextLine,
-  score,
-  combo,
-  waveCount,
-  hammerCount,
-  totemCount,
-}: {
+interface GameBoardProps {
   initialGrid: number[][];
   nextLine: number[];
   score: number;
   combo: number;
+  maxCombo: number;
   hammerCount: number;
   waveCount: number;
   totemCount: number;
+}
+
+const GameBoard: React.FC<GameBoardProps> = ({
+  initialGrid,
+  nextLine,
+  score,
+  combo,
+  maxCombo,
+  waveCount,
+  hammerCount,
+  totemCount,
 }) => {
-  const { account } = useAccount();
   const {
     setup: {
-      systemCalls: { move, bonus },
+      systemCalls: { move, applyBonus },
     },
   } = useDojo();
+  const { account } = useAccountCustom();
 
   const [isLoading, setIsLoading] = useState(false);
   const [grid, setGrid] = useState<CellType[][]>([]);
@@ -712,7 +721,7 @@ const GameBoard = ({
       setIsLoading(true);
       setIsTxProcessing(true);
       try {
-        await bonus({
+        await applyBonus({
           account: account as Account,
           bonus: 3,
           row_index: rowIndex,
@@ -732,7 +741,7 @@ const GameBoard = ({
       setIsLoading(true);
       setIsTxProcessing(true);
       try {
-        await bonus({
+        await applyBonus({
           account: account as Account,
           bonus: 1,
           row_index: rowIndex,
@@ -862,16 +871,46 @@ const GameBoard = ({
             waveCount={waveCount}
           />
           <div
-            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end mx-2`}
+            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end ml-4`}
           >
             {score}
-            <FontAwesomeIcon icon={faStar} className="text-yellow-500 ml-2" />
+            <div className="relative inline-block">
+              <FontAwesomeIcon
+                icon={faStar}
+                className="text-yellow-500"
+                width={26}
+                height={26}
+              />
+            </div>
           </div>
           <div
-            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end mx-2`}
+            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end relative ml-4`}
           >
             {combo}
-            <FontAwesomeIcon icon={faKhanda} className="text-slate-500 ml-2" />
+            <div className="relative inline-block">
+              <FontAwesomeIcon
+                icon={faFire}
+                className="text-slate-500"
+                width={26}
+                height={26}
+              />
+            </div>
+          </div>
+          <div
+            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end mx-2 relative ml-4`}
+          >
+            {maxCombo}
+            <div className="relative inline-block">
+              <FontAwesomeIcon
+                icon={faFire}
+                className="text-slate-500"
+                width={26}
+                height={26}
+              />
+              <span className="absolute text-xs -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 pointer-events-none">
+                max
+              </span>
+            </div>
           </div>
         </div>
         <div className="bg-slate-800 relative">

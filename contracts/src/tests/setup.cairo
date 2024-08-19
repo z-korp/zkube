@@ -33,7 +33,7 @@ mod setup {
         IERC20Dispatcher, IERC20DispatcherTrait, IERC20FaucetDispatcher,
         IERC20FaucetDispatcherTrait, ERC20
     };
-    use zkube::systems::dailygame::{dailygame, IDailyGameDispatcher, IDailyGameDispatcherTrait};
+    use zkube::systems::play::{play, IPlayDispatcher, IPlayDispatcherTrait};
 
     #[starknet::interface]
     trait IDojoInit<ContractState> {
@@ -66,7 +66,7 @@ mod setup {
     #[derive(Drop)]
     struct Systems {
         account: IAccountDispatcher,
-        dailygame: IDailyGameDispatcher,
+        play: IPlayDispatcher,
     }
 
     #[derive(Drop)]
@@ -113,18 +113,17 @@ mod setup {
         // [Setup] SystemsDrop
         let account_address = world
             .deploy_contract('account', account::TEST_CLASS_HASH.try_into().unwrap());
-        let dailygame_address = world
-            .deploy_contract('dailygame', dailygame::TEST_CLASS_HASH.try_into().unwrap());
+        let play_address = world.deploy_contract('play', play::TEST_CLASS_HASH.try_into().unwrap());
 
-        let selector = selector_from_tag!("zkube-dailygame");
+        let selector = selector_from_tag!("zkube-play");
         world.init_contract(selector, array![erc20.contract_address.into()].span());
 
         world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), account_address);
-        world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), dailygame_address);
+        world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), play_address);
 
         let systems = Systems {
             account: IAccountDispatcher { contract_address: account_address },
-            dailygame: IDailyGameDispatcher { contract_address: dailygame_address },
+            play: IPlayDispatcher { contract_address: play_address },
         };
 
         // [Setup] Context
@@ -132,22 +131,22 @@ mod setup {
 
         set_contract_address(PLAYER1());
         faucet.mint();
-        erc20.approve(dailygame_address, ERC20::FAUCET_AMOUNT);
+        erc20.approve(play_address, ERC20::FAUCET_AMOUNT);
         systems.account.create(PLAYER1_NAME);
 
         set_contract_address(PLAYER2());
         faucet.mint();
-        erc20.approve(dailygame_address, ERC20::FAUCET_AMOUNT);
+        erc20.approve(play_address, ERC20::FAUCET_AMOUNT);
         systems.account.create(PLAYER2_NAME);
 
         set_contract_address(PLAYER3());
         faucet.mint();
-        erc20.approve(dailygame_address, ERC20::FAUCET_AMOUNT);
+        erc20.approve(play_address, ERC20::FAUCET_AMOUNT);
         systems.account.create(PLAYER3_NAME);
 
         set_contract_address(PLAYER4());
         faucet.mint();
-        erc20.approve(dailygame_address, ERC20::FAUCET_AMOUNT);
+        erc20.approve(play_address, ERC20::FAUCET_AMOUNT);
         systems.account.create(PLAYER4_NAME);
 
         // [Setup] Game if mode is set

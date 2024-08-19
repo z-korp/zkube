@@ -129,11 +129,11 @@
   {
     "type": "impl",
     "name": "IDojoInitImpl",
-    "interface_name": "zkube::systems::dailygame::dailygame::IDojoInit"
+    "interface_name": "zkube::systems::play::play::IDojoInit"
   },
   {
     "type": "interface",
-    "name": "zkube::systems::dailygame::dailygame::IDojoInit",
+    "name": "zkube::systems::play::play::IDojoInit",
     "items": [
       {
         "type": "function",
@@ -152,7 +152,25 @@
   {
     "type": "impl",
     "name": "PlayImpl",
-    "interface_name": "zkube::systems::dailygame::IPlay"
+    "interface_name": "zkube::systems::play::IPlay"
+  },
+  {
+    "type": "enum",
+    "name": "zkube::types::mode::Mode",
+    "variants": [
+      {
+        "name": "None",
+        "type": "()"
+      },
+      {
+        "name": "Normal",
+        "type": "()"
+      },
+      {
+        "name": "Daily",
+        "type": "()"
+      }
+    ]
   },
   {
     "type": "struct",
@@ -214,12 +232,16 @@
   },
   {
     "type": "interface",
-    "name": "zkube::systems::dailygame::IPlay",
+    "name": "zkube::systems::play::IPlay",
     "items": [
       {
         "type": "function",
         "name": "create",
         "inputs": [
+          {
+            "name": "mode",
+            "type": "zkube::types::mode::Mode"
+          },
           {
             "name": "proof",
             "type": "stark_vrf::ecvrf::Proof"
@@ -245,6 +267,10 @@
         "name": "claim",
         "inputs": [
           {
+            "name": "mode",
+            "type": "zkube::types::mode::Mode"
+          },
+          {
             "name": "tournament_id",
             "type": "core::integer::u64"
           },
@@ -260,6 +286,10 @@
         "type": "function",
         "name": "sponsor",
         "inputs": [
+          {
+            "name": "mode",
+            "type": "zkube::types::mode::Mode"
+          },
           {
             "name": "amount",
             "type": "core::felt252"
@@ -384,7 +414,7 @@
   },
   {
     "type": "event",
-    "name": "zkube::systems::dailygame::dailygame::Event",
+    "name": "zkube::systems::play::play::Event",
     "kind": "enum",
     "variants": [
       {

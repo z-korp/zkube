@@ -14,13 +14,13 @@ import { Input } from "@/ui/elements/input";
 import { usePlayer } from "@/hooks/usePlayer";
 import { Account } from "starknet";
 import { MAX_CHAR_PSEUDO } from "../constants";
-import { useAccount } from "@starknet-react/core";
+import useAccountCustom from "@/hooks/useAccountCustom";
 
 export const Create = () => {
   const [playerName, setPlayerName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const { account } = useAccount();
+  const { account } = useAccountCustom();
   const {
     master,
     setup: {

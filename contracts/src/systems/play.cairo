@@ -16,17 +16,19 @@ use zkube::types::bonus::Bonus;
 use zkube::types::mode::Mode;
 
 #[dojo::interface]
-trait IDailyGame<TContractState> {
-    fn create(ref world: IWorldDispatcher, proof: Proof, seed: felt252, beta: felt252) -> u32;
-    fn claim(ref world: IWorldDispatcher, tournament_id: u64, rank: u8,);
-    fn sponsor(ref world: IWorldDispatcher, amount: felt252);
+trait IPlay<TContractState> {
+    fn create(
+        ref world: IWorldDispatcher, mode: Mode, proof: Proof, seed: felt252, beta: felt252
+    ) -> u32;
+    fn claim(ref world: IWorldDispatcher, mode: Mode, tournament_id: u64, rank: u8,);
+    fn sponsor(ref world: IWorldDispatcher, mode: Mode, amount: felt252);
     fn surrender(ref world: IWorldDispatcher);
     fn move(ref world: IWorldDispatcher, row_index: u8, start_index: u8, final_index: u8,);
     fn apply_bonus(ref world: IWorldDispatcher, bonus: Bonus, row_index: u8, line_index: u8);
 }
 
 #[dojo::contract]
-mod dailygame {
+mod play {
     // Starknet imports
 
     use starknet::{ContractAddress, ClassHash};
@@ -42,7 +44,7 @@ mod dailygame {
 
     // Local imports
 
-    use super::{IDailyGame, Proof, Bonus, Mode};
+    use super::{IPlay, Proof, Bonus, Mode};
 
     // Components
 
@@ -88,10 +90,12 @@ mod dailygame {
     // Implementations
 
     #[abi(embed_v0)]
-    impl DailyGameImpl of IDailyGame<ContractState> {
-        fn create(ref world: IWorldDispatcher, proof: Proof, seed: felt252, beta: felt252,) -> u32 {
+    impl PlayImpl of IPlay<ContractState> {
+        fn create(
+            ref world: IWorldDispatcher, mode: Mode, proof: Proof, seed: felt252, beta: felt252,
+        ) -> u32 {
             // [Effect] Create a game
-            let (game_id, amount) = self.hostable._create(world, proof, seed, beta, Mode::Daily);
+            let (game_id, amount) = self.hostable._create(world, proof, seed, beta, mode);
             // [Interaction] Pay entry price
             let caller = get_caller_address();
             self.payable._pay(caller, amount);
@@ -99,14 +103,14 @@ mod dailygame {
             game_id
         }
 
-        fn claim(ref world: IWorldDispatcher, tournament_id: u64, rank: u8) {
-            let reward = self.hostable._claim(world, tournament_id, rank, Mode::Daily);
+        fn claim(ref world: IWorldDispatcher, mode: Mode, tournament_id: u64, rank: u8) {
+            let reward = self.hostable._claim(world, tournament_id, rank, mode);
             let caller = get_caller_address();
             self.payable._refund(caller, reward);
         }
 
-        fn sponsor(ref world: IWorldDispatcher, amount: felt252) {
-            let amount = self.hostable._sponsor(world, amount, Mode::Daily);
+        fn sponsor(ref world: IWorldDispatcher, mode: Mode, amount: felt252) {
+            let amount = self.hostable._sponsor(world, amount, mode);
             let caller = get_caller_address();
             self.payable._pay(caller, amount);
         }

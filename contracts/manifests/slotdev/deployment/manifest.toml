@@ -24,8 +24,8 @@ manifest_name = "dojo-base"
 [[contracts]]
 kind = "DojoContract"
 address = "0x2b4f0e952d12b43d3bb93639be357a7ece3aa364f55d8f1f1e6e6ca68c7f285"
-class_hash = "0x32ff262fda01b4c3bb3f0509fc23b75a13ce0daf6e45539d37e33c928ad90b3"
-original_class_hash = "0x32ff262fda01b4c3bb3f0509fc23b75a13ce0daf6e45539d37e33c928ad90b3"
+class_hash = "0x7c17fdc4e6a3f65ef1cf9e8a52eb8eb6ad04ca413ab0fb733565cdbf749d378"
+original_class_hash = "0x7c17fdc4e6a3f65ef1cf9e8a52eb8eb6ad04ca413ab0fb733565cdbf749d378"
 base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
 abi = "manifests/slotdev/deployment/abis/contracts/zkube-account-6d28004d.json"
 reads = []
@@ -41,8 +41,8 @@ manifest_name = "zkube-account-6d28004d"
 [[contracts]]
 kind = "DojoContract"
 address = "0x5bad75c9017268d7072f4b4946aa7bcd8126bef87e1561ab75df807f9889aad"
-class_hash = "0x1613479aa485d0e3e0630f5024b05697009a91f4ce051f9d188ef70c5e0c2fd"
-original_class_hash = "0x1613479aa485d0e3e0630f5024b05697009a91f4ce051f9d188ef70c5e0c2fd"
+class_hash = "0x1de897d44026065022fb6f719f28f5d07bfd8e30d6f1d0749fd8073ef25be7f"
+original_class_hash = "0x1de897d44026065022fb6f719f28f5d07bfd8e30d6f1d0749fd8073ef25be7f"
 base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
 abi = "manifests/slotdev/deployment/abis/contracts/zkube-dailygame-2e941267.json"
 reads = []
@@ -57,8 +57,8 @@ manifest_name = "zkube-dailygame-2e941267"
 
 [[models]]
 kind = "DojoModel"
-class_hash = "0x58feddde1281dd90eaa745e765c66dc32b3b13f741b263c64c5ec31835bfb48"
-original_class_hash = "0x58feddde1281dd90eaa745e765c66dc32b3b13f741b263c64c5ec31835bfb48"
+class_hash = "0x5e1d8bd1fc67cef0ef1b9e642a44c13474d93cd5123e2b233cdbac9dc79de0c"
+original_class_hash = "0x5e1d8bd1fc67cef0ef1b9e642a44c13474d93cd5123e2b233cdbac9dc79de0c"
 abi = "manifests/slotdev/deployment/abis/models/zkube-Game-17e542e0.json"
 tag = "zkube-Game"
 manifest_name = "zkube-Game-17e542e0"
@@ -109,7 +109,27 @@ type = "u8"
 key = false
 
 [[models.members]]
+name = "hammer_used"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "wave_used"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "totem_used"
+type = "u8"
+key = false
+
+[[models.members]]
 name = "combo_counter"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "max_combo"
 type = "u8"
 key = false
 
@@ -150,8 +170,8 @@ key = false
 
 [[models]]
 kind = "DojoModel"
-class_hash = "0x5f4a8383dfc575b1dbd826cf4bce31b22f1c4395749e2b6ad9c905e3324e5c2"
-original_class_hash = "0x5f4a8383dfc575b1dbd826cf4bce31b22f1c4395749e2b6ad9c905e3324e5c2"
+class_hash = "0xf9b6c922045b89af068513b0a9c3df3c687a437dfece00c51f7b09ee22444"
+original_class_hash = "0xf9b6c922045b89af068513b0a9c3df3c687a437dfece00c51f7b09ee22444"
 abi = "manifests/slotdev/deployment/abis/models/zkube-Player-a3c56d30.json"
 tag = "zkube-Player"
 manifest_name = "zkube-Player-a3c56d30"
@@ -164,21 +184,6 @@ key = true
 [[models.members]]
 name = "game_id"
 type = "u32"
-key = false
-
-[[models.members]]
-name = "hammer_bonus"
-type = "u8"
-key = false
-
-[[models.members]]
-name = "wave_bonus"
-type = "u8"
-key = false
-
-[[models.members]]
-name = "totem_bonus"
-type = "u8"
 key = false
 
 [[models.members]]

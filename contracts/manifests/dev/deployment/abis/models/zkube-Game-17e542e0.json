@@ -421,7 +421,23 @@
         "type": "core::integer::u8"
       },
       {
+        "name": "hammer_used",
+        "type": "core::integer::u8"
+      },
+      {
+        "name": "wave_used",
+        "type": "core::integer::u8"
+      },
+      {
+        "name": "totem_used",
+        "type": "core::integer::u8"
+      },
+      {
         "name": "combo_counter",
+        "type": "core::integer::u8"
+      },
+      {
+        "name": "max_combo",
         "type": "core::integer::u8"
       },
       {

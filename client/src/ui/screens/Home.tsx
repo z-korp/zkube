@@ -5,7 +5,6 @@ import GameBoard from "../components/GameBoard";
 import BackGroundBoard from "../components/BackgroundBoard";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
-
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useGame } from "@/hooks/useGame";
@@ -18,11 +17,9 @@ import { Content as Leaderboard } from "../modules/Leaderboard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import GoogleFormEmbed from "../components/GoogleFormEmbed";
-import { DifficultyType } from "@/dojo/game/types/difficulty";
 import { useQuerySync } from "@dojoengine/react";
-import { useAccount } from "@starknet-react/core";
 import { ModeType } from "@/dojo/game/types/mode";
-import { useControllerUsername } from "@/hooks/useControllerUsername";
+import useAccountCustom from "@/hooks/useAccountCustom";
 
 interface position {
   x: number;
@@ -36,7 +33,7 @@ export const Home = () => {
 
   useQuerySync(toriiClient, contractComponents as any, []);
 
-  const { account } = useAccount();
+  const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
 
   const { game } = useGame({ gameId: player?.game_id || "0x0" });
@@ -164,8 +161,6 @@ export const Home = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const { username } = useControllerUsername();
-
   return (
     <div className="relative flex flex-col h-screen">
       <Header />
@@ -236,9 +231,10 @@ export const Home = () => {
                       nextLine={game.next_row}
                       score={game.score}
                       combo={game.combo}
-                      hammerCount={game.hammer}
-                      totemCount={game.totem}
-                      waveCount={game.wave}
+                      maxCombo={game.max_combo}
+                      hammerCount={game.hammer - game.hammer_used}
+                      totemCount={game.totem - game.totem_used}
+                      waveCount={game.wave - game.wave_used}
                     />
                     <NextLine numbers={game.next_row} />
                   </div>
