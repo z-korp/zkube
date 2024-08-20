@@ -1,8 +1,4 @@
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/ui/elements/carousel";
+import { Carousel } from "@/ui/elements/carousel";
 import {
   Drawer,
   DrawerContent,
@@ -27,7 +23,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
 import useAccountCustom from "@/hooks/useAccountCustom";
 
-export const Achievements = () => {
+export const Bonuses = () => {
   const { account } = useAccountCustom();
 
   const { player } = usePlayer({ playerId: account?.address });

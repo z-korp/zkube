@@ -15,7 +15,11 @@ import NextLine from "../components/NextLine";
 import { Surrender } from "../actions/Surrender";
 import { Content as Leaderboard } from "../modules/Leaderboard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
+import {
+  faFire,
+  faStar,
+  faWebAwesome,
+} from "@fortawesome/free-solid-svg-icons";
 import GoogleFormEmbed from "../components/GoogleFormEmbed";
 import { useQuerySync } from "@dojoengine/react";
 import { ModeType } from "@/dojo/game/types/mode";
@@ -177,7 +181,7 @@ export const Home = () => {
           }}
         >
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
-            <div className="absolute flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
+            <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
               <Create />
               <Start mode={ModeType.Daily} />
               <Start mode={ModeType.Normal} />
@@ -188,8 +192,8 @@ export const Home = () => {
               )}
               {!!game && game.over && (
                 <>
-                  <div className="flex flex-col gap-4 mt-8">
-                    <p className="text-4xl">Game Over</p>
+                  <div className="flex flex-col gap-4 mt-8 ">
+                    <p className="text-4xl text-center">Game Over</p>
                     <div className="flex gap-4 justify-center items-center">
                       <div className="grow text-4xl flex gap-2 justify-end">
                         {game.score}
@@ -201,8 +205,15 @@ export const Home = () => {
                       <div className="grow text-4xl flex gap-2 justify-end">
                         {game.combo}
                         <FontAwesomeIcon
-                          icon={faKhanda}
-                          className="text-slate-500 ml-2"
+                          icon={faFire}
+                          className="text-slate-700 ml-2"
+                        />
+                      </div>
+                      <div className="grow text-4xl flex gap-2 justify-end">
+                        {game.max_combo}
+                        <FontAwesomeIcon
+                          icon={faWebAwesome}
+                          className="text-slate-700 ml-2"
                         />
                       </div>
                     </div>

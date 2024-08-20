@@ -21,8 +21,8 @@ export class Level {
 
   public static fromPoints(points: number): Level {
     const pointsTable = [
-      300, 600, 1_000, 1_500, 2_200, 3_100, 4_300, 5_800, 7_800, 10_300, 13_500,
-      17_500, 22_500, 28_500, 36_000, 45_000, 56_000, 70_000, 100_000,
+      100, 300, 600, 1_000, 1_500, 2_200, 3_100, 4_300, 5_800, 7_800, 10_300,
+      13_500, 17_500, 22_500, 28_500, 36_000, 45_000, 56_000, 70_000, 100_000,
     ];
     const level = pointsTable.findIndex((threshold) => points < threshold) + 1;
     return new Level(level === 0 ? MAX_LEVEL : level);

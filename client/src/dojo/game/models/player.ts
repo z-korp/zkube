@@ -18,14 +18,12 @@ export class Player {
   public game_id: string;
   public name: string;
   public points: number;
-  public level: Level;
 
   constructor(player: ComponentValue) {
     this.id = player.id;
     this.game_id = player.game_id;
     this.name = shortString.decodeShortString(player.name);
     this.points = player.points;
-    this.level = Level.fromPoints(this.points);
   }
 
   public getShortAddress(): string {

@@ -4,13 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useMediaQuery } from "react-responsive";
 import { Leaderboard } from "../modules/Leaderboard";
-import { Achievements } from "../modules/Achievements";
 import Connect from "../components/Connect";
 import { ModeType } from "@/dojo/game/types/mode";
 import SettingsDropDown from "../components/SettingsDropDown";
 import MobileMenu from "../components/MobileMenu";
 import LevelIndicator from "../components/LevelIndicator";
-import useAccountCustom from "@/hooks/useAccountCustom";
+import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 
 export const Header = () => {
   const { account } = useAccountCustom();
@@ -33,9 +32,7 @@ export const Header = () => {
           onClick={handleClick}
         >
           <p className="text-4xl font-bold">zKube</p>
-          <Leaderboard modeType={ModeType.Daily} />
-          <Leaderboard modeType={ModeType.Normal} />
-          <Achievements />
+          <Leaderboard />
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
           {!!player && (
@@ -45,7 +42,7 @@ export const Header = () => {
             </div>
           )}
 
-          <Connect />
+          {ACCOUNT_CONNECTOR === "controller" && <Connect />}
           <div className="flex gap-4">
             <SettingsDropDown />
             {/*<ModeToggle />*/}

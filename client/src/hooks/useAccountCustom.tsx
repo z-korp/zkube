@@ -3,6 +3,8 @@ import { useAccount } from "@starknet-react/core";
 import { useState, useEffect } from "react";
 import { Account } from "starknet";
 
+export const ACCOUNT_CONNECTOR: "burner" | "controller" = "burner";
+
 const useAccountCustom = () => {
   const { account } = useAccount();
 
@@ -15,10 +17,13 @@ const useAccountCustom = () => {
   }, [customAccount]);
 
   useEffect(() => {
-    /*if (account) {
-      setCustomAccount(account as Account);
-    }*/
-    if (burner.account) setCustomAccount(burner.account as Account);
+    if (ACCOUNT_CONNECTOR === "burner") {
+      if (burner.account) setCustomAccount(burner.account as Account);
+    } else {
+      if (account) {
+        setCustomAccount(account as Account);
+      }
+    }
   }, [burner]);
 
   return { account: customAccount };

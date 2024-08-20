@@ -7,6 +7,7 @@ import {
   faBomb,
   faFire,
   faStar,
+  faWebAwesome,
 } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
 import { Piece, Cell as CellType } from "@/types/types";
@@ -897,20 +898,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
             </div>
           </div>
           <div
-            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end mx-2 relative ml-4`}
+            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end relative ml-4`}
           >
             {maxCombo}
-            <div className="relative inline-block">
-              <FontAwesomeIcon
-                icon={faFire}
-                className="text-slate-500"
-                width={26}
-                height={26}
-              />
-              <span className="absolute text-xs -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 pointer-events-none">
-                max
-              </span>
-            </div>
+            <FontAwesomeIcon
+              icon={faWebAwesome}
+              className="text-slate-500"
+              width={28}
+              height={28}
+            />
           </div>
         </div>
         <div className="bg-slate-800 relative">

@@ -12,6 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../elements/dropdown-menu";
+import { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
+import { BurnerAccount } from "./BurnerAccount";
 
 export const SettingsDropDown = () => {
   const { username } = useControllerUsername();
@@ -31,14 +33,20 @@ export const SettingsDropDown = () => {
         <DropdownMenuLabel className="text-xl font-bold">
           Account
         </DropdownMenuLabel>
-        <div className="p-1 flex flex-col gap-2">
-          <div className="px-1">{username}</div>
-          <AccountDetails />
-        </div>
-        {/*<DropdownMenuLabel>Burner Account</DropdownMenuLabel>
-      <DropdownMenuItem>
-        <BurnerAccount />
-      </DropdownMenuItem>*/}
+        {ACCOUNT_CONNECTOR === "controller" && (
+          <div className="p-1 flex flex-col gap-2">
+            <div className="px-1">{username}</div>
+            <AccountDetails />
+          </div>
+        )}
+        {ACCOUNT_CONNECTOR === "burner" && (
+          <>
+            <DropdownMenuLabel>Burner Account</DropdownMenuLabel>
+            <DropdownMenuItem>
+              <BurnerAccount />
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

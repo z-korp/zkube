@@ -17,7 +17,7 @@ import Connect from "./Connect";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import DisconnectButton from "./DisconnectButton";
-import useAccountCustom from "@/hooks/useAccountCustom";
+import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 
 const MobileMenu = () => {
   const { account } = useAccountCustom();
@@ -51,8 +51,7 @@ const MobileMenu = () => {
             </div>
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Leaderboard</p>
-              <Leaderboard modeType={ModeType.Daily} />
-              <Leaderboard modeType={ModeType.Normal} />
+              <Leaderboard />
             </div>
           </div>
         </DrawerContent>
@@ -62,7 +61,7 @@ const MobileMenu = () => {
         {!!player && account ? (
           <div className="flex gap-3 items-center">
             <p className="text-2xl max-w-44 truncate">{player.name}</p>
-            <DisconnectButton />
+            {ACCOUNT_CONNECTOR === "controller" && <DisconnectButton />}
           </div>
         ) : (
           <Connect />

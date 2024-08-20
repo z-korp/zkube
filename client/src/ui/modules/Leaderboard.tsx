@@ -27,40 +27,51 @@ import { Button } from "@/ui/elements/button";
 import { Game } from "@/dojo/game/models/game";
 import { useGames } from "@/hooks/useGames";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
+import {
+  faFire,
+  faWebAwesome,
+  faStar,
+} from "@fortawesome/free-solid-svg-icons";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useMediaQuery } from "react-responsive";
-import { ModeType, Mode } from "@/dojo/game/types/mode";
+import { ModeType } from "@/dojo/game/types/mode";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/elements/tabs";
+import { Level } from "@/dojo/game/types/level";
 
 const GAME_PER_PAGE = 5;
 const MAX_PAGE_COUNT = 5;
 
-interface LeaderboardProps {
-  modeType: ModeType;
-}
+export const Leaderboard = () => {
+  const [activeTab, setActiveTab] = useState<ModeType>(ModeType.Daily);
 
-export const Leaderboard: React.FC<LeaderboardProps> = ({ modeType }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">
-          {modeType === ModeType.Daily ? "Top Daily" : "Leaderboard"}
-        </Button>
+        <Button variant="outline">Leaderboards</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader className="flex items-center text-2xl">
-          <DialogTitle>
-            {modeType === ModeType.Daily ? "Top Daily" : "Leaderboard"}
-          </DialogTitle>
+          <DialogTitle>Leaderboards</DialogTitle>
         </DialogHeader>
-        <div className="m-auto">
-          <Content modeType={modeType} />
-        </div>
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as ModeType)}
+        >
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value={ModeType.Daily}>Daily</TabsTrigger>
+            <TabsTrigger value={ModeType.Normal}>Normal</TabsTrigger>
+          </TabsList>
+          <TabsContent value={ModeType.Daily}>
+            <Content modeType={ModeType.Daily} />
+          </TabsContent>
+          <TabsContent value={ModeType.Normal}>
+            <Content modeType={ModeType.Normal} />
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
 };
-
 interface ContentProps {
   modeType: ModeType;
 }
@@ -76,6 +87,7 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
 
   const sortedGames = useMemo(() => {
     return filteredGames
+      .filter((game) => game.score > 0)
       .sort((a, b) => b.combo - a.combo)
       .sort((a, b) => b.score - a.score);
   }, [filteredGames]);
@@ -108,20 +120,33 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
 
   return (
     <>
-      <Table className="text-md">
+      <Table className="text-md w-full">
         <TableCaption className={`${disabled && "hidden"}`}>
           Leaderboard is waiting for its best players to make history
         </TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-left w-1/5">Rank</TableHead>
-            <TableHead className="text-center w-1/5">
-              <FontAwesomeIcon icon={faStar} className="text-yellow-500" />
+            <TableHead className="w-[10%] text-center">Rank</TableHead>
+            <TableHead className="w-[35%] text-center">Name</TableHead>
+            <TableHead className="w-[10%] text-center">lvl</TableHead>
+            <TableHead className="w-[15%] text-center">
+              <div className="flex items-center justify-center gap-1">
+                <FontAwesomeIcon icon={faStar} className="text-yellow-500" />
+              </div>
             </TableHead>
-            <TableHead className="text-center w-1/5">
-              <FontAwesomeIcon icon={faKhanda} className="text-slate-500" />
+            <TableHead className="w-[15%] text-center">
+              <div className="flex items-center justify-center gap-1">
+                <FontAwesomeIcon icon={faFire} className="text-slate-500" />
+              </div>
             </TableHead>
-            <TableHead className="w-3/5">Name</TableHead>
+            <TableHead className="w-[15%] text-center">
+              <div className="flex items-center justify-center gap-1">
+                <FontAwesomeIcon
+                  icon={faWebAwesome}
+                  className="text-slate-500"
+                />
+              </div>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -134,7 +159,7 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
           ))}
         </TableBody>
       </Table>
-      <Pagination className={`${!disabled && "hidden"}`}>
+      <Pagination className={`${!disabled && "hidden"} mt-5`}>
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
@@ -170,22 +195,20 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
 export const Row = ({ rank, game }: { rank: number; game: Game }) => {
   const { player } = usePlayer({ playerId: game.player_id });
 
+  console.log(player);
+
   return (
-    <TableRow>
-      <TableCell>{`# ${rank}`}</TableCell>
-      <TableCell className="text-right">
-        <p className="flex gap-1 justify-center items-center">
-          <span className="font-bold">{game.score}</span>
-        </p>
-      </TableCell>
-      <TableCell className="text-right">
-        <p className="flex gap-1 justify-center items-center">
-          <span className="font-bold">{game.combo}</span>
-        </p>
-      </TableCell>
+    <TableRow className="hover:bg-slate-100 dark:hover:bg-slate-800">
+      <TableCell className="text-center font-semibold">{`#${rank}`}</TableCell>
       <TableCell className="text-left max-w-36 truncate">
         {player?.name || "-"}
       </TableCell>
+      <TableCell className="text-center">
+        {player?.points ? Level.fromPoints(player?.points).value : ""}
+      </TableCell>
+      <TableCell className="text-center font-bold">{game.score}</TableCell>
+      <TableCell className="text-center font-bold">{game.combo}</TableCell>
+      <TableCell className="text-center font-bold">{game.max_combo}</TableCell>
     </TableRow>
   );
 };

@@ -40,11 +40,11 @@ manifest_name = "zkube-account-6d28004d"
 
 [[contracts]]
 kind = "DojoContract"
-address = "0x5bad75c9017268d7072f4b4946aa7bcd8126bef87e1561ab75df807f9889aad"
-class_hash = "0x1de897d44026065022fb6f719f28f5d07bfd8e30d6f1d0749fd8073ef25be7f"
-original_class_hash = "0x1de897d44026065022fb6f719f28f5d07bfd8e30d6f1d0749fd8073ef25be7f"
+address = "0x37ca0df8243680d63aa3477d8b0e42eba6a49ff3fbbd689608d90181c82a02e"
+class_hash = "0x4e2ad53cb0c7a05884e65ced79c0ba292c731a2189f6b6f2e2648c52e4fa531"
+original_class_hash = "0x4e2ad53cb0c7a05884e65ced79c0ba292c731a2189f6b6f2e2648c52e4fa531"
 base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
-abi = "manifests/slotdev/deployment/abis/contracts/zkube-dailygame-2e941267.json"
+abi = "manifests/slotdev/deployment/abis/contracts/zkube-play-19ee70b3.json"
 reads = []
 writes = [
     "zkube-Player",
@@ -52,8 +52,8 @@ writes = [
     "zkube-Tournament",
 ]
 init_calldata = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
-tag = "zkube-dailygame"
-manifest_name = "zkube-dailygame-2e941267"
+tag = "zkube-play"
+manifest_name = "zkube-play-19ee70b3"
 
 [[models]]
 kind = "DojoModel"
