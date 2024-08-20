@@ -5,7 +5,6 @@ import GameBoard from "../components/GameBoard";
 import BackGroundBoard from "../components/BackgroundBoard";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
-
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useGame } from "@/hooks/useGame";
@@ -16,9 +15,15 @@ import NextLine from "../components/NextLine";
 import { Surrender } from "../actions/Surrender";
 import { Content as Leaderboard } from "../modules/Leaderboard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
+import {
+  faFire,
+  faStar,
+  faWebAwesome,
+} from "@fortawesome/free-solid-svg-icons";
 import GoogleFormEmbed from "../components/GoogleFormEmbed";
-import { DifficultyType } from "@/dojo/game/types/difficulty";
+import { useQuerySync } from "@dojoengine/react";
+import { ModeType } from "@/dojo/game/types/mode";
+import useAccountCustom from "@/hooks/useAccountCustom";
 
 interface position {
   x: number;
@@ -27,9 +32,14 @@ interface position {
 
 export const Home = () => {
   const {
-    account: { account },
+    setup: { toriiClient, contractComponents },
   } = useDojo();
-  const { player } = usePlayer({ playerId: account.address });
+
+  useQuerySync(toriiClient, contractComponents as any, []);
+
+  const { account } = useAccountCustom();
+  const { player } = usePlayer({ playerId: account?.address });
+
   const { game } = useGame({ gameId: player?.game_id || "0x0" });
   const [animationDone, setAnimationDone] = useState(false);
 
@@ -171,18 +181,19 @@ export const Home = () => {
           }}
         >
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
-            <div className="absolute flex flex-col items-center gap-4 w-full p-4 max-w-4xl">
+            <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
               <Create />
-              <Start difficulty={DifficultyType.None} />
+              <Start mode={ModeType.Daily} />
+              <Start mode={ModeType.Normal} />
               {!game && (
                 <div className="absolute top md:translate-y-[100%] translate-y-[40%] bg-slate-900 w-11/12 p-6 rounded-xl">
-                  <Leaderboard />
+                  <Leaderboard modeType={ModeType.Daily} />
                 </div>
               )}
               {!!game && game.over && (
                 <>
-                  <div className="flex flex-col gap-4 mt-8">
-                    <p className="text-4xl">Game Over</p>
+                  <div className="flex flex-col gap-4 mt-8 ">
+                    <p className="text-4xl text-center">Game Over</p>
                     <div className="flex gap-4 justify-center items-center">
                       <div className="grow text-4xl flex gap-2 justify-end">
                         {game.score}
@@ -194,8 +205,15 @@ export const Home = () => {
                       <div className="grow text-4xl flex gap-2 justify-end">
                         {game.combo}
                         <FontAwesomeIcon
-                          icon={faKhanda}
-                          className="text-slate-500 ml-2"
+                          icon={faFire}
+                          className="text-slate-700 ml-2"
+                        />
+                      </div>
+                      <div className="grow text-4xl flex gap-2 justify-end">
+                        {game.max_combo}
+                        <FontAwesomeIcon
+                          icon={faWebAwesome}
+                          className="text-slate-700 ml-2"
                         />
                       </div>
                     </div>
@@ -224,6 +242,10 @@ export const Home = () => {
                       nextLine={game.next_row}
                       score={game.score}
                       combo={game.combo}
+                      maxCombo={game.max_combo}
+                      hammerCount={game.hammer - game.hammer_used}
+                      totemCount={game.totem - game.totem_used}
+                      waveCount={game.wave - game.wave_used}
                     />
                     <NextLine numbers={game.next_row} />
                   </div>

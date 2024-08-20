@@ -24,58 +24,79 @@ import {
   PaginationPrevious,
 } from "@/ui/elements/pagination";
 import { Button } from "@/ui/elements/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/ui/elements/select";
 import { Game } from "@/dojo/game/models/game";
 import { useGames } from "@/hooks/useGames";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
+import {
+  faFire,
+  faWebAwesome,
+  faStar,
+} from "@fortawesome/free-solid-svg-icons";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useMediaQuery } from "react-responsive";
-import { DifficultyType } from "@/dojo/game/types/difficulty";
+import { ModeType } from "@/dojo/game/types/mode";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/elements/tabs";
+import { Level } from "@/dojo/game/types/level";
 
 const GAME_PER_PAGE = 5;
 const MAX_PAGE_COUNT = 5;
 
 export const Leaderboard = () => {
+  const [activeTab, setActiveTab] = useState<ModeType>(ModeType.Daily);
+
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">Leaderboard</Button>
+        <Button variant="outline">Leaderboards</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader className="flex items-center text-2xl">
-          <DialogTitle>Leaderboard</DialogTitle>
+          <DialogTitle>Leaderboards</DialogTitle>
         </DialogHeader>
-        <div className="m-auto">
-          <Content />
-        </div>
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as ModeType)}
+        >
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value={ModeType.Daily}>Daily</TabsTrigger>
+            <TabsTrigger value={ModeType.Normal}>Normal</TabsTrigger>
+          </TabsList>
+          <TabsContent value={ModeType.Daily}>
+            <Content modeType={ModeType.Daily} />
+          </TabsContent>
+          <TabsContent value={ModeType.Normal}>
+            <Content modeType={ModeType.Normal} />
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
 };
+interface ContentProps {
+  modeType: ModeType;
+}
 
-export const Content = () => {
+export const Content: React.FC<ContentProps> = ({ modeType }) => {
   const { games } = useGames();
   const [page, setPage] = useState<number>(1);
   const [pageCount, setPageCount] = useState<number>(0);
 
-  const sorteds = useMemo(() => {
-    return games
+  const filteredGames = useMemo(() => {
+    return games.filter((game) => game.mode.value === modeType);
+  }, [games, modeType]);
+
+  const sortedGames = useMemo(() => {
+    return filteredGames
+      .filter((game) => game.score > 0)
       .sort((a, b) => b.combo - a.combo)
       .sort((a, b) => b.score - a.score);
-  }, [games]);
+  }, [filteredGames]);
 
   useEffect(() => {
-    const rem = Math.floor(sorteds.length / (GAME_PER_PAGE + 1)) + 1;
+    const rem = Math.floor(sortedGames.length / (GAME_PER_PAGE + 1)) + 1;
     setPageCount(rem);
-    setPage(1); // Reset to first page when difficulty changes
-  }, [sorteds]);
+    setPage(1); // Reset to first page when mode changes
+  }, [sortedGames]);
 
   const { start, end } = useMemo(() => {
     const start = (page - 1) * GAME_PER_PAGE;
@@ -93,30 +114,43 @@ export const Content = () => {
     setPage((prev) => prev + 1);
   }, [page, pageCount]);
 
-  const disabled = useMemo(() => sorteds.length > 0, [sorteds]);
+  const disabled = useMemo(() => sortedGames.length > 0, [sortedGames]);
 
   const isSmallScreen = useMediaQuery({ query: "(min-width: 640px)" });
 
   return (
     <>
-      <Table className="text-md">
+      <Table className="text-md w-full">
         <TableCaption className={`${disabled && "hidden"}`}>
           Leaderboard is waiting for its best players to make history
         </TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-left w-1/5">Rank</TableHead>
-            <TableHead className="text-center w-1/5">
-              <FontAwesomeIcon icon={faStar} className="text-yellow-500" />
+            <TableHead className="w-[10%] text-center">Rank</TableHead>
+            <TableHead className="w-[35%] text-center">Name</TableHead>
+            <TableHead className="w-[10%] text-center">lvl</TableHead>
+            <TableHead className="w-[15%] text-center">
+              <div className="flex items-center justify-center gap-1">
+                <FontAwesomeIcon icon={faStar} className="text-yellow-500" />
+              </div>
             </TableHead>
-            <TableHead className="text-center w-1/5">
-              <FontAwesomeIcon icon={faKhanda} className="text-slate-500" />
+            <TableHead className="w-[15%] text-center">
+              <div className="flex items-center justify-center gap-1">
+                <FontAwesomeIcon icon={faFire} className="text-slate-500" />
+              </div>
             </TableHead>
-            <TableHead className="w-3/5">Name</TableHead>
+            <TableHead className="w-[15%] text-center">
+              <div className="flex items-center justify-center gap-1">
+                <FontAwesomeIcon
+                  icon={faWebAwesome}
+                  className="text-slate-500"
+                />
+              </div>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sorteds.slice(start, end).map((game, index) => (
+          {sortedGames.slice(start, end).map((game, index) => (
             <Row
               key={index}
               rank={(page - 1) * GAME_PER_PAGE + index + 1}
@@ -125,7 +159,7 @@ export const Content = () => {
           ))}
         </TableBody>
       </Table>
-      <Pagination className={`${!disabled && "hidden"}`}>
+      <Pagination className={`${!disabled && "hidden"} mt-5`}>
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
@@ -161,22 +195,20 @@ export const Content = () => {
 export const Row = ({ rank, game }: { rank: number; game: Game }) => {
   const { player } = usePlayer({ playerId: game.player_id });
 
+  console.log(player);
+
   return (
-    <TableRow>
-      <TableCell>{`# ${rank}`}</TableCell>
-      <TableCell className="text-right">
-        <p className="flex gap-1 justify-center items-center">
-          <span className="font-bold">{game.score}</span>
-        </p>
-      </TableCell>
-      <TableCell className="text-right">
-        <p className="flex gap-1 justify-center items-center">
-          <span className="font-bold">{game.combo}</span>
-        </p>
-      </TableCell>
+    <TableRow className="hover:bg-slate-100 dark:hover:bg-slate-800">
+      <TableCell className="text-center font-semibold">{`#${rank}`}</TableCell>
       <TableCell className="text-left max-w-36 truncate">
         {player?.name || "-"}
       </TableCell>
+      <TableCell className="text-center">
+        {player?.points ? Level.fromPoints(player?.points).value : ""}
+      </TableCell>
+      <TableCell className="text-center font-bold">{game.score}</TableCell>
+      <TableCell className="text-center font-bold">{game.combo}</TableCell>
+      <TableCell className="text-center font-bold">{game.max_combo}</TableCell>
     </TableRow>
   );
 };

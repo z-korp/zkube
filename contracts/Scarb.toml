@@ -1,62 +1,28 @@
 [package]
 name = "zkube"
-version = "0.0.0"
+cairo-version = "=2.7.0"
+version = "0.1.0"
 edition = "2023_10"
 
 [cairo]
 sierra-replace-ids = true
 
 [scripts]
-dev = "NAME=v023 && sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate plan --name $NAME && sozo --profile dev migrate apply --name $NAME "
-slot = "NAME=v0 && sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate plan --name $NAME && sozo --profile slot migrate apply --name $NAME"
-slottest = "NAME=v1 && sozo --profile slottest clean && sozo --profile slottest build && sozo --profile slottest migrate plan --name $NAME && sozo --profile slottest migrate apply --name $NAME"
-slotdev = "NAME=v1 && sozo --profile slotdev clean && sozo --profile slotdev build && sozo --profile slotdev migrate plan --name $NAME && sozo --profile slotdev migrate apply --name $NAME"
+dev = "sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate apply"
+slot = "sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate apply"
+slotdev = "sozo --profile slotdev clean && sozo --profile slotdev build && sozo --profile slotdev migrate apply"
+sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build && sozo --profile sepolia migrate apply"
 
 [dependencies]
 alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria", rev = "78b0d51" }
-origami = { git = "https://github.com/dojoengine/origami", tag = "v0.7.2" }
-dojo = { git = "https://github.com/dojoengine/dojo", tag = "v0.7.2" }
+origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.0.0-alpha.5" }
+dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-alpha.5" }
 stark_vrf = { git = "https://github.com/dojoengine/stark-vrf", rev = "5a9e81e" }
 
 [[target.dojo]]
 
-[tool.dojo]
-initializer_class_hash = "0xbeef"
-
-[profile.dev.tool.dojo.env]
-rpc_url = "http://localhost:5050/"
-account_address = "0x6b86e40118f29ebe393a75469b4d926c7a44c2e2681b6d319520b7c1156d114"
-private_key = "0x1c9053c053edf324aec366a34c6901b1095b07af69495bffec7d7fe21effb1b"
-
-[profile.slot.tool.dojo.env]
-rpc_url = "https://api.cartridge.gg/x/zkube/katana"
-account_address = "0x1c10815b8e3fb0830a702eddb77a566ee78e3d173557bf3ed7b9a8b28f048ca"
-private_key = "0x4b5b87f25c379f5f5088cc4b14fe7963dfc7675cfdb94e1c263a849f3c2b9d3"
-
-[profile.slottest.tool.dojo.env]
-rpc_url = "https://api.cartridge.gg/x/zkube-test/katana"
-account_address = "0x7980711be3f885d4d3541384022a88b02e46f72c74693269b322ac7133fdba5"
-private_key = "0x52587b88673203343049bae0275f80c870ab2e4c931ba86c6ab175f8403e922"
-
-[profile.slotdev.tool.dojo.env]
-rpc_url = "https://api.cartridge.gg/x/zkube-slotdev/katana"
-account_address = "0x7b2ad9c0a331a84015dc07f71dd3d54545bac6f09b5385aa171db29fc32fbb6"
-private_key = "0x562b095dfdef600413f27b79a3fd908957b9449bd0c9e0fbdfb68594d6fa1f6"
-
-[profile.sepolia.tool.dojo.env]
-rpc_url = "https://starknet-sepolia.public.blastapi.io/rpc/v0_7"
-account_address = ""
-private_key = ""
-
-[tool.dojo.world]
-name = "zKube"
-description = "Solo strategy card game where you manage resources and upgrade your village to maximize points. Make tactical decisions to help your village grow and flourish."
-cover_uri = "file://assets/cover.png"
-icon_uri = "file://assets/icon.png"
-website = "https://app.zkube.xyz"
-
-[tool.dojo.world.socials]
-x = "https://x.com/ohayo_dojo"
-discord = "https://discord.gg/FB2wR6uF"
-github = "https://github.com/dojoengine/dojo-starter"
-telegram = "https://t.me/dojoengine"
+# Custom profiles
+[profile.slot]
+[profile.slotdev]
+[profile.slottest]
+[profile.sepolia]

@@ -12,16 +12,17 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/ui/elements/dialog";
+import useAccountCustom from "@/hooks/useAccountCustom";
 
 export const Surrender = () => {
+  const { account } = useAccountCustom();
   const {
-    account: { account },
     master,
     setup: {
       systemCalls: { surrender },
     },
   } = useDojo();
-  const { player } = usePlayer({ playerId: account.address });
+  const { player } = usePlayer({ playerId: account?.address });
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
   });

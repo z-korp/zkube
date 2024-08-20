@@ -1,3 +1,4 @@
+use zkube::types::mode::ModeTrait;
 use core::traits::Into;
 // Core imports
 
@@ -18,6 +19,7 @@ use zkube::helpers::math::Math;
 use zkube::helpers::packer::Packer;
 use zkube::helpers::controller::Controller;
 use zkube::types::bonus::{Bonus, BonusTrait};
+use zkube::types::mode::Mode;
 
 // Errors
 
@@ -31,33 +33,45 @@ mod errors {
 #[generate_trait]
 impl GameImpl of GameTrait {
     #[inline(always)]
-    fn new(
-        id: u32,
-        player_id: felt252,
-        difficulty: Difficulty,
-        seed: felt252,
-        hammer_bonus: u8,
-        wave_bonus: u8,
-        totem_bonus: u8
-    ) -> Game {
-        let (row, color) = Controller::create_line(seed, difficulty);
+    fn new(id: u32, player_id: felt252, seed: felt252, mode: Mode, time: u64,) -> Game {
+        let difficulty = mode.difficulty();
+        let game_seed = mode.seed(time, id, seed);
+        let (row, color) = Controller::create_line(game_seed, difficulty);
         Game {
             id,
-            difficulty: difficulty.into(),
             over: false,
             next_row: row,
             next_color: color,
             score: 0,
             moves: 0,
-            hammer_bonus,
-            wave_bonus,
-            totem_bonus,
+            hammer_bonus: 0,
+            wave_bonus: 0,
+            totem_bonus: 0,
+            hammer_used: 0,
+            wave_used: 0,
+            totem_used: 0,
             combo_counter: 0,
+            max_combo: 0,
             blocks: 0,
             colors: 0,
             player_id,
-            seed,
+            seed: game_seed,
+            mode: mode.into(),
+            start_time: time,
+            tournament_id: 0,
         }
+    }
+
+    #[inline(always)]
+    fn duration(self: Game) -> u64 {
+        let mode: Mode = self.mode.into();
+        mode.duration()
+    }
+
+    #[inline(always)]
+    fn difficulty(self: Game) -> Difficulty {
+        let mode: Mode = self.mode.into();
+        mode.difficulty()
     }
 
     #[inline(always)]
@@ -104,31 +118,28 @@ impl GameImpl of GameTrait {
 
     #[inline(always)]
     fn assess_bonuses(self: Game) -> (u8, u8, u8) {
-        if !self.over {
-            return (0, 0, 0);
-        }
-        let hammer = Bonus::Hammer.get_count(self.score, self.combo_counter);
-        let totem = Bonus::Totem.get_count(self.score, self.combo_counter);
-        let wave = Bonus::Wave.get_count(self.score, self.combo_counter);
+        let hammer = Bonus::Hammer.get_count(self.score, self.combo_counter, self.max_combo);
+        let totem = Bonus::Totem.get_count(self.score, self.combo_counter, self.max_combo);
+        let wave = Bonus::Wave.get_count(self.score, self.combo_counter, self.max_combo);
         (hammer, totem, wave)
     }
 
     #[inline(always)]
     fn get_difficulty(ref self: Game) -> Difficulty {
-        let mut difficulty = self.difficulty.into();
+        let mut difficulty = self.difficulty();
         if (difficulty == Difficulty::None) { // Difficulty::None meaning increasing difficulty
             difficulty = Difficulty::Master;
-            if (self.moves < 10) {
+            if (self.moves < 20) {
                 difficulty = Difficulty::Easy;
-            } else if (self.moves < 20) {
-                difficulty = Difficulty::Medium;
             } else if (self.moves < 40) {
-                difficulty = Difficulty::MediumHard;
-            } else if (self.moves < 60) {
-                difficulty = Difficulty::Hard;
+                difficulty = Difficulty::Medium;
             } else if (self.moves < 80) {
+                difficulty = Difficulty::MediumHard;
+            } else if (self.moves < 120) {
+                difficulty = Difficulty::Hard;
+            } else if (self.moves < 160) {
                 difficulty = Difficulty::VeryHard;
-            } else if (self.moves < 100) {
+            } else if (self.moves < 200) {
                 difficulty = Difficulty::Expert;
             }
         }
@@ -158,6 +169,12 @@ impl GameImpl of GameTrait {
         let mut counter: u8 = 0;
         self.score += self.assess_game(ref counter);
 
+        // [Effect] Assess bonuses
+        let (hammer, totem, wave) = self.assess_bonuses();
+        self.hammer_bonus = hammer;
+        self.totem_bonus = totem;
+        self.wave_bonus = wave;
+
         // [Effect] Assess game over
         self.assess_over();
         if self.over {
@@ -169,8 +186,16 @@ impl GameImpl of GameTrait {
 
         // [Effect] Assess game
         self.score += self.assess_game(ref counter);
-        self.combo_counter = Math::max(self.combo_counter, counter);
+        if (counter > 1) {
+            self.combo_counter += counter;
+            self.max_combo = Math::max(self.max_combo, counter);
+        }
         self.moves += 1;
+
+        let (hammer, totem, wave) = self.assess_bonuses();
+        self.hammer_bonus = hammer;
+        self.totem_bonus = totem;
+        self.wave_bonus = wave;
 
         // [Effect] Grid empty add a new line
         if self.is_empty_grid() {
@@ -214,13 +239,16 @@ impl GameImpl of GameTrait {
         // [Effect] Assess game
         let mut counter = 0;
         self.score += self.assess_game(ref counter);
-        self.combo_counter = Math::max(self.combo_counter, counter);
+        if (counter > 1) {
+            self.combo_counter += counter;
+            self.max_combo = Math::max(self.max_combo, counter);
+        }
 
         match bonus {
             Bonus::None => {},
-            Bonus::Hammer => self.hammer_bonus -= 1,
-            Bonus::Totem => self.totem_bonus -= 1,
-            Bonus::Wave => self.wave_bonus -= 1,
+            Bonus::Hammer => self.hammer_used += 1,
+            Bonus::Totem => self.totem_used += 1,
+            Bonus::Wave => self.wave_used += 1,
         }
     }
 }
@@ -230,7 +258,6 @@ impl ZeroableGame of core::Zeroable<Game> {
     fn zero() -> Game {
         Game {
             id: 0,
-            difficulty: 0,
             over: false,
             score: 0,
             moves: 0,
@@ -239,11 +266,18 @@ impl ZeroableGame of core::Zeroable<Game> {
             hammer_bonus: 0,
             wave_bonus: 0,
             totem_bonus: 0,
+            hammer_used: 0,
+            wave_used: 0,
+            totem_used: 0,
             combo_counter: 0,
+            max_combo: 0,
             blocks: 0,
             colors: 0,
             player_id: 0,
             seed: 0,
+            mode: 0,
+            start_time: 0,
+            tournament_id: 0,
         }
     }
 
@@ -278,9 +312,9 @@ impl GameAssert of AssertTrait {
     #[inline(always)]
     fn assert_is_available(self: Game, bonus: Bonus) {
         let count = match bonus {
-            Bonus::Hammer => self.hammer_bonus,
-            Bonus::Totem => self.totem_bonus,
-            Bonus::Wave => self.wave_bonus,
+            Bonus::Hammer => self.hammer_bonus - self.hammer_used,
+            Bonus::Totem => self.totem_bonus - self.totem_used,
+            Bonus::Wave => self.wave_bonus - self.wave_used,
             _ => 0,
         };
         assert(count > 0, errors::GAME_BONUS_NOT_AVAILABLE);
@@ -292,11 +326,14 @@ mod tests {
     // Core imports
 
     use core::debug::PrintTrait;
+    use core::poseidon::{PoseidonTrait, HashState};
+    use core::hash::HashStateTrait;
 
     // Local imports
 
     use super::{Game, GameTrait, AssertTrait};
     use zkube::types::difficulty::Difficulty;
+    use zkube::types::mode::Mode;
 
     // Constants
 
@@ -307,10 +344,16 @@ mod tests {
     #[test]
     fn test_game_new() {
         // [Effect] Create game
-        let game = GameTrait::new(GAME_ID, PLAYER_ID, Difficulty::Easy, SEED, 0, 0, 0);
+        let game = GameTrait::new(GAME_ID, PLAYER_ID, SEED, Mode::Normal, 0);
         game.assert_exists();
         game.assert_not_over();
-        // [Assert] Game seed
-        assert_eq!(game.seed, SEED);
+        // [Assert] Game seed has changed
+
+        let state: HashState = PoseidonTrait::new();
+        let state = state.update(SEED);
+        let state = state.update(GAME_ID.into());
+        let state = state.update(0);
+
+        assert_eq!(game.seed, state.finalize());
     }
 }

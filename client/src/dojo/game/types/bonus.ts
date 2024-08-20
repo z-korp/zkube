@@ -17,6 +17,7 @@ export enum BonusType {
 export interface Condition {
   score: number;
   combo: number;
+  max_combo: number;
 }
 
 export class Bonus {
@@ -60,14 +61,14 @@ export class Bonus {
     }
   }
 
-  public getCount(score: number, combo: number): number {
+  public getCount(score: number, combo: number, max_combo: number): number {
     switch (this.value) {
       case BonusType.Hammer:
-        return Hammer.getCount(score, combo);
+        return Hammer.getCount(score, combo, max_combo);
       case BonusType.Totem:
-        return Totem.getCount(score, combo);
+        return Totem.getCount(score, combo, max_combo);
       case BonusType.Wave:
-        return Wave.getCount(score, combo);
+        return Wave.getCount(score, combo, max_combo);
       default:
         return 0;
     }

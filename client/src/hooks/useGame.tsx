@@ -23,6 +23,5 @@ export const useGame = ({ gameId }: { gameId: string | undefined }) => {
     return component ? new GameClass(component) : null;
   }, [component]);
 
-  console.log("game", game?.moves);
   return { game, gameKey };
 };

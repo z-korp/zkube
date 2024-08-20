@@ -24,14 +24,14 @@ impl BonusImpl of BonusTrait {
     }
 
     #[inline(always)]
-    fn get_count(score: u32, combo_count: u8) -> u8 {
-        if combo_count >= 9 {
+    fn get_count(score: u32, combo_count: u8, max_combo: u8) -> u8 {
+        if combo_count >= 24 {
             return 3;
         }
-        if combo_count >= 6 {
+        if combo_count >= 16 {
             return 2;
         }
-        if combo_count >= 3 {
+        if combo_count >= 8 {
             return 1;
         }
         return 0;

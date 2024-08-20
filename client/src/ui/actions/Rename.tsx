@@ -14,20 +14,21 @@ import { Input } from "@/ui/elements/input";
 import { usePlayer } from "@/hooks/usePlayer";
 import { Account } from "starknet";
 import { MAX_CHAR_PSEUDO } from "../constants";
+import useAccountCustom from "@/hooks/useAccountCustom";
 
 export const Create = () => {
   const [playerName, setPlayerName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const { account } = useAccountCustom();
   const {
-    account: { account },
     master,
     setup: {
       systemCalls: { rename },
     },
   } = useDojo();
 
-  const { player } = usePlayer({ playerId: account.address });
+  const { player } = usePlayer({ playerId: account?.address });
 
   const handleClick = useCallback(async () => {
     setIsLoading(true);

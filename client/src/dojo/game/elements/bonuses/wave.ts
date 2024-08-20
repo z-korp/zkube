@@ -1,12 +1,16 @@
 import { Condition } from "../../types/bonus";
 
 export class Wave {
-  public static getCount(_score: number, combo: number): number {
-    if (combo >= 9) {
+  public static getCount(
+    _score: number,
+    combo: number,
+    _max_combo: number,
+  ): number {
+    if (combo >= 8) {
       return 3;
-    } else if (combo >= 6) {
+    } else if (combo >= 16) {
       return 2;
-    } else if (combo >= 3) {
+    } else if (combo >= 24) {
       return 1;
     } else {
       return 0;
@@ -15,9 +19,9 @@ export class Wave {
 
   public static getConditions(): Condition[] {
     return [
-      { score: 0, combo: 3 },
-      { score: 0, combo: 6 },
-      { score: 0, combo: 9 },
+      { score: 0, combo: 8, max_combo: 0 },
+      { score: 0, combo: 16, max_combo: 0 },
+      { score: 0, combo: 24, max_combo: 0 },
     ];
   }
 

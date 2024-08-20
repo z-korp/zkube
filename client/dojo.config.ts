@@ -1,7 +1,7 @@
-import local from "../contracts/manifests/dev/manifest.json";
-import slot from "../contracts/manifests/slot/manifest.json";
-import slotdev from "../contracts/manifests/slotdev/manifest.json";
-import sepolia from "../contracts/manifests/slot/manifest.json";
+import local from "../contracts/manifests/dev/deployment/manifest.json";
+import slot from "../contracts/manifests/dev/deployment/manifest.json";
+import slotdev from "../contracts/manifests/slotdev/deployment/manifest.json";
+import sepolia from "../contracts/manifests/dev/deployment/manifest.json";
 
 const {
   VITE_PUBLIC_NODE_URL,

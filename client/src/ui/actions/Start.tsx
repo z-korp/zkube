@@ -5,25 +5,24 @@ import { Button } from "@/ui/elements/button";
 import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
 import { fetchVrfData } from "@/api/vrf";
-import {
-  DifficultyType,
-  difficultyTypeToNumber,
-} from "@/dojo/game/types/difficulty";
+import { Mode, ModeType } from "@/dojo/game/types/mode";
+import useAccountCustom from "@/hooks/useAccountCustom";
 
 interface StartProps {
-  difficulty: DifficultyType;
+  mode: ModeType;
 }
 
-export const Start: React.FC<StartProps> = ({ difficulty }) => {
+export const Start: React.FC<StartProps> = ({ mode }) => {
   const {
-    account: { account },
     master,
     setup: {
       systemCalls: { start },
     },
   } = useDojo();
 
-  const { player } = usePlayer({ playerId: account.address });
+  const { account } = useAccountCustom();
+
+  const { player } = usePlayer({ playerId: account?.address });
 
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
@@ -43,9 +42,10 @@ export const Start: React.FC<StartProps> = ({ difficulty }) => {
         proof_verify_hint,
         beta,
       } = await fetchVrfData();
+
       await start({
         account: account as Account,
-        difficulty: difficultyTypeToNumber(difficulty),
+        mode: new Mode(mode).into(),
         seed,
         x: proof_gamma_x,
         y: proof_gamma_y,
@@ -57,7 +57,7 @@ export const Start: React.FC<StartProps> = ({ difficulty }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [account, difficulty]);
+  }, [account, mode]);
 
   const disabled = useMemo(() => {
     return (
@@ -78,7 +78,7 @@ export const Start: React.FC<StartProps> = ({ difficulty }) => {
       onClick={handleClick}
       className="text-xl"
     >
-      Start a Game
+      {`Start ${mode}`}
     </Button>
   );
 };
