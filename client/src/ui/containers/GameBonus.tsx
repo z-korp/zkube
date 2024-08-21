@@ -58,25 +58,47 @@ export const GameBonus: React.FC<GameBonusProps> = ({
             </TooltipTrigger>
             <TooltipContent>
               <div className="text-sm">
-                <p> Test tooltip</p>
+                <p> Use to destroy a single block</p>
               </div>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
       <div className="flex flex-col items-center">
-        <BonusButton
-          onClick={handleClickWave}
-          urlImage={imgAssets.wave}
-          bonusCount={waveCount}
-        />
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <BonusButton
+                onClick={handleClickWave}
+                urlImage={imgAssets.wave}
+                bonusCount={waveCount}
+              />
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="text-sm">
+                <p> Use to destroy an entire line</p>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       <div className="flex flex-col w-full items-end">
-        <BonusButton
-          onClick={handleClickTiki}
-          urlImage={imgAssets.tiki}
-          bonusCount={tikiCount}
-        />
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <BonusButton
+                onClick={handleClickTiki}
+                urlImage={imgAssets.tiki}
+                bonusCount={tikiCount}
+              />
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="text-sm">
+                <p> Use to destroy all piecies of a specific size</p>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   );
