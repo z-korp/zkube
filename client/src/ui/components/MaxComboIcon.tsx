@@ -1,5 +1,6 @@
-const MaxComboIcon = () => (
+const MaxComboIcon = ({ className }: { className: string }) => (
   <svg
+    className={className}
     width="26"
     height="26"
     viewBox="0 0 26 26"
