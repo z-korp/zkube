@@ -15,6 +15,7 @@ import Cell from "./Cell";
 import { useMediaQuery } from "react-responsive";
 import { Account } from "starknet";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import MaxComboIcon from "./maxComboIcon";
 
 //NOTE : Row commence en bas de la grille.
 //NOTE : Back : PieceId numéro de la piece dans la ligne (de gauche à droite)
@@ -901,12 +902,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end relative ml-4`}
           >
             {maxCombo}
-            <FontAwesomeIcon
-              icon={faWebAwesome}
-              className="text-slate-500"
-              width={28}
-              height={28}
-            />
+            <MaxComboIcon />
           </div>
         </div>
         <div className="bg-slate-800 relative">
