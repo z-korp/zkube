@@ -37,12 +37,11 @@ const MaxComboIcon = ({ className }: { className: string }) => (
     className={className}
     width="26"
     height="36"
-    viewBox="0 0 26 36"
+    viewBox="0 0 26 29.72"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
-    preserveAspectRatio="xMidYMid meet"
   >
-    <g clipPath="url(#clip0_2923_1893)" transform="translate(0, 5)">
+    <g clipPath="url(#clip0_2923_1893)">
       <path
         d="M18.8601 0.745414C18.8601 0.333806 19.1933 0 19.6056 0C22.8994 0 25.5689 2.66952 25.5689 5.96332C25.5689 9.25712 22.8994 11.9266 19.6056 11.9266C16.3118 11.9266 13.6422 9.25712 13.6422 5.96332C13.6422 4.29545 14.3285 2.78599 15.4322 1.70374C15.7261 1.41582 16.1976 1.42048 16.4865 1.71445C16.7753 2.00866 16.7707 2.48083 16.4748 2.76968C15.6462 3.58032 15.1331 4.71242 15.1331 5.96332C15.1331 8.4325 17.1154 10.4358 19.6056 10.4358C22.0747 10.4358 24.078 8.4325 24.078 5.96332C24.078 3.74804 22.4661 1.90756 20.351 1.55256V2.23624C20.351 2.64855 20.0179 2.98166 19.6056 2.98166C19.1933 2.98166 18.8601 2.64855 18.8601 2.23624V0.745414Z"
         fill="#64748B"
@@ -60,7 +59,7 @@ const MaxComboIcon = ({ className }: { className: string }) => (
     </g>
     <defs>
       <clipPath id="clip0_2923_1893">
-        <rect width="26" height="26" fill="white" />
+        <rect width="26" height="29.72" fill="white" />
       </clipPath>
     </defs>
   </svg>
