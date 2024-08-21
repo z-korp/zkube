@@ -901,7 +901,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end relative ml-4`}
           >
             {maxCombo}
-            <MaxComboIcon className="mt-2" />
+            <MaxComboIcon className="w-[26px] h-[30px]" />
           </div>
         </div>
         <div className="bg-slate-800 relative">
