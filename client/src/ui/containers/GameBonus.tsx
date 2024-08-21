@@ -2,6 +2,12 @@ import React from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import BonusButton from "../components/BonusBouton";
 import { useTheme } from "@/ui/elements/theme-provider";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/ui/elements/tooltip";
 
 interface GameBonusProps {
   onBonusWaveClick: () => void;
@@ -41,24 +47,35 @@ export const GameBonus: React.FC<GameBonusProps> = ({
   return (
     <div className="grid grid-cols-3 gap-3">
       <div className="flex flex-col items-start">
-        <BonusButton
-          onClick={handleClickHammer}
-          urlImage={imgAssets.hammer}
-          bonusCount={hammerCount}
-        />
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <BonusButton
+                onClick={handleClickHammer}
+                urlImage={imgAssets.hammer}
+                bonusCount={hammerCount}
+              />
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="text-sm">
+                <p> Test tooltip</p>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       <div className="flex flex-col items-center">
-        <BonusButton
-          onClick={handleClickTiki}
-          urlImage={imgAssets.tiki}
-          bonusCount={tikiCount}
-        />
-      </div>
-      <div className="flex flex-col w-full items-end">
         <BonusButton
           onClick={handleClickWave}
           urlImage={imgAssets.wave}
           bonusCount={waveCount}
+        />
+      </div>
+      <div className="flex flex-col w-full items-end">
+        <BonusButton
+          onClick={handleClickTiki}
+          urlImage={imgAssets.tiki}
+          bonusCount={tikiCount}
         />
       </div>
     </div>
