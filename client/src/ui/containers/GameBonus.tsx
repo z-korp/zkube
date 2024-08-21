@@ -56,7 +56,7 @@ export const GameBonus: React.FC<GameBonusProps> = ({
                 bonusCount={hammerCount}
               />
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent dir="bottom">
               <div className="text-sm">
                 <p> Use to destroy a single block</p>
               </div>
@@ -74,7 +74,7 @@ export const GameBonus: React.FC<GameBonusProps> = ({
                 bonusCount={waveCount}
               />
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent dir="bottom">
               <div className="text-sm">
                 <p> Use to destroy an entire line</p>
               </div>
@@ -92,7 +92,7 @@ export const GameBonus: React.FC<GameBonusProps> = ({
                 bonusCount={tikiCount}
               />
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent dir="bottom">
               <div className="text-sm">
                 <p> Use to destroy all piecies of a specific size</p>
               </div>

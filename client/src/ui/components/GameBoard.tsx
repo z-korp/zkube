@@ -7,7 +7,6 @@ import {
   faBomb,
   faFire,
   faStar,
-  faWebAwesome,
 } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
 import { Piece, Cell as CellType } from "@/types/types";
@@ -15,7 +14,7 @@ import Cell from "./Cell";
 import { useMediaQuery } from "react-responsive";
 import { Account } from "starknet";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import MaxComboIcon from "./maxComboIcon";
+import MaxComboIcon from "./MaxComboIcon";
 
 //NOTE : Row commence en bas de la grille.
 //NOTE : Back : PieceId numéro de la piece dans la ligne (de gauche à droite)
