@@ -76,7 +76,7 @@ export const Start: React.FC<StartProps> = ({ mode }) => {
       disabled={isLoading}
       isLoading={isLoading}
       onClick={handleClick}
-      className="text-xl"
+      className="text-xl w-[200px]"
     >
       {`Start ${mode}`}
     </Button>
