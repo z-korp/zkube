@@ -878,7 +878,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             <div className="relative inline-block">
               <FontAwesomeIcon
                 icon={faStar}
-                className="text-yellow-500"
+                className="text-yellow-500 w-[26px] h-[26px]"
                 width={26}
                 height={26}
               />
@@ -891,7 +891,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
             <div className="relative inline-block">
               <FontAwesomeIcon
                 icon={faFire}
-                className="text-slate-500"
+                // className="text-slate-500"
+                className="text-yellow-500 w-[26px] h-[26px]"
                 width={26}
                 height={26}
               />
@@ -901,7 +902,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end relative ml-4`}
           >
             {maxCombo}
-            <MaxComboIcon className="w-[26px] h-[36px]" />
+            <MaxComboIcon className="text-slate-500 w-[26px] h-[26px]" />
           </div>
         </div>
         <div className="bg-slate-800 relative">
