@@ -14,9 +14,7 @@ import Cell from "./Cell";
 import { useMediaQuery } from "react-responsive";
 import { Account } from "starknet";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import ImageAssets from "../theme/ImageAssets";
-import { useTheme } from "../elements/theme-provider";
-// import MaxComboIcon from "./MaxComboIcon";
+import MaxComboIcon from "./MaxComboIcon";
 
 //NOTE : Row commence en bas de la grille.
 //NOTE : Back : PieceId numéro de la piece dans la ligne (de gauche à droite)
@@ -81,9 +79,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [clickedPieceId, setClickedPieceId] = useState<number | null>(null);
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
-  const { themeTemplate } = useTheme();
 
-  const imgAssets = ImageAssets(themeTemplate);
   useEffect(() => {
     setIsTxProcessing(false);
   }, [initialGrid]);
@@ -903,14 +899,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
             </div>
           </div>
           <div
-            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end relative ml-4 items-center`}
+            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end relative ml-4`}
           >
             {maxCombo}
-            <img
-              src={imgAssets.turnStreak}
-              alt="Turn Streak"
-              className="w-[26px] h-[26px]"
-            />
+            <MaxComboIcon className="text-slate-500 w-[26px] h-[46px]" />
           </div>
         </div>
         <div className="bg-slate-800 relative">

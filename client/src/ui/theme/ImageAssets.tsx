@@ -17,7 +17,6 @@ const ImageAssets = (theme: string) => {
     imageTotemLight: PathAssets + "theme-2-totem-light.png",
     palmLeft: PathAssets + "palmtree-left.png",
     palmRight: PathAssets + "palmtree-right.png",
-    turnStreak: PathAssets + "TurnStreak.svg",
   };
 };
 
