@@ -903,7 +903,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
           >
             {maxCombo}
             <MaxComboIcon
-              className={`text-slate-500 ${isMdOrLarger ? "" : "mb-3"} w-[30px] h-[36px]`}
+              className={`text-slate-500 ${isMdOrLarger ? "" : "mb-1"} w-[30px] h-[36px]`}
             />
           </div>
         </div>
