@@ -25,16 +25,6 @@ const AccountDetails = () => {
               token_address={KATANA_ETH_CONTRACT_ADDRESS}
             />
           </div>
-          <div className="flex items-center gap-1 md:gap-2 rounded-lg px-2 md:px-3 py-1 justify-between border h-[36px]">
-            <p className="text-sm">
-              Strk Bal:
-            </p>
-            <Balance
-              address={address}
-              token_address={KATANA_ETH_CONTRACT_ADDRESS}
-              symbol="STRK"
-            />
-          </div>
           <DisconnectButton />
         </div>
       </div>

@@ -19,7 +19,7 @@ export class Player {
   public name: string;
   public points: number;
 
-  public daily_games_played: number;
+  public daily_games_available: number;
   public readonly daily_games_limit: number;
 
   constructor(player: ComponentValue) {
@@ -29,7 +29,7 @@ export class Player {
     this.points = player.points;
 
     this.daily_games_limit = 3;
-    this.daily_games_played = 3;
+    this.daily_games_available = 3;
   }
 
   public getShortAddress(): string {

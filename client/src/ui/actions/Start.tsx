@@ -76,9 +76,9 @@ export const Start: React.FC<StartProps> = ({ mode }) => {
       disabled={isLoading}
       isLoading={isLoading}
       onClick={handleClick}
-      className="text-xl w-[200px]"
+      className="text-xl w-[250px]"
     >
-      {`Start ${mode}`}
+      {`Start ${mode} ${mode == ModeType.Daily ? `${player?.daily_games_available}/${player?.daily_games_limit}` : `0.01 ETH`}`}
     </Button>
   );
 };

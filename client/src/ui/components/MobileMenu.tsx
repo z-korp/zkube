@@ -20,6 +20,7 @@ import DisconnectButton from "./DisconnectButton";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 import Balance from "./Balance";
 import DailyGameStatus from "./DailyGameStatus";
+import HeaderBalance from "./HeaderBalance";
 
 const MobileMenu = () => {
   const { account } = useAccountCustom();
@@ -62,7 +63,8 @@ const MobileMenu = () => {
       <div className="w-full flex justify-between items-center">
         <p className="text-4xl font-bold">zKube</p>
         <div className="flex gap-2">
-          <DailyGameStatus />
+          {/* <DailyGameStatus /> */}
+          <HeaderBalance />
           {!!player && account ? (
             <div className="flex gap-3 items-center">
               <p className="text-2xl max-w-44 truncate">{player.name}</p>

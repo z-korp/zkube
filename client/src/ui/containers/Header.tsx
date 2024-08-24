@@ -11,6 +11,7 @@ import MobileMenu from "../components/MobileMenu";
 import LevelIndicator from "../components/LevelIndicator";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 import DailyGameStatus from "../components/DailyGameStatus";
+import HeaderBalance from "../components/HeaderBalance";
 
 export const Header = () => {
   const { account } = useAccountCustom();
@@ -18,8 +19,6 @@ export const Header = () => {
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   const { player } = usePlayer({ playerId: account?.address });
-
-  console.log({ daily_games_limit: player?.daily_games_limit, daily_games_played: player?.daily_games_played })
   
   const navigate = useNavigate();
 
@@ -36,7 +35,8 @@ export const Header = () => {
         >
           <p className="text-4xl font-bold">zKube</p>
           <Leaderboard />
-          <DailyGameStatus />
+          {/* <DailyGameStatus />  */}
+          <HeaderBalance />
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
           {!!player && (
