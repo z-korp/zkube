@@ -64,21 +64,31 @@ export const Start: React.FC<StartProps> = ({ mode }) => {
       !account ||
       !master ||
       account === master ||
-      !player ||
+      !player || 
+      (player?.daily_games_available === 0) ||
       (!!game && !game.isOver())
     );
   }, [account, master, player, game]);
 
-  if (disabled) return null;
+  const buttonText = useMemo(() => {
+    if (!player || !account) return "Loading...";
+
+    return mode === ModeType.Daily
+      ? `Start Free ${player.daily_games_available}/${player.daily_games_limit}`
+      : "Start 0.01 ETH";
+  }, [player, account, mode]);
+
+
+  // if (disabled) return null;
 
   return (
     <Button
-      disabled={isLoading}
+      disabled={isLoading || disabled}
       isLoading={isLoading}
       onClick={handleClick}
-      className="text-xl w-[250px]"
+      className="text-xl w-[200px]"
     >
-      {`Start ${mode} ${mode == ModeType.Daily ? `${player?.daily_games_available}/${player?.daily_games_limit}` : `0.01 ETH`}`}
+      {buttonText}
     </Button>
   );
 };
