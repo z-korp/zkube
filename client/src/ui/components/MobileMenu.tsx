@@ -51,7 +51,6 @@ const MobileMenu = () => {
               <p className="self-start">Account</p>
               <div className="px-1">{username}</div>
               <AccountDetails />
-              <DailyGameStatus />
             </div>
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Leaderboard</p>
@@ -63,7 +62,7 @@ const MobileMenu = () => {
       <div className="w-full flex justify-between items-center">
         <p className="text-4xl font-bold">zKube</p>
         <div className="flex gap-2">
-          {/* <DailyGameStatus /> */}
+          <DailyGameStatus />
           <HeaderBalance />
           {!!player && account ? (
             <div className="flex gap-3 items-center">

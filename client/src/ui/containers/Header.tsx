@@ -19,7 +19,7 @@ export const Header = () => {
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   const { player } = usePlayer({ playerId: account?.address });
-  
+
   const navigate = useNavigate();
 
   const handleClick = useCallback(() => {
@@ -35,7 +35,9 @@ export const Header = () => {
         >
           <p className="text-4xl font-bold">zKube</p>
           <Leaderboard />
-          {/* <DailyGameStatus />  */}
+        </div>
+        <div className="flex item-center gap-4">
+          <DailyGameStatus />
           <HeaderBalance />
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
