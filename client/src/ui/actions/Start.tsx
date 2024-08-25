@@ -71,7 +71,7 @@ export const Start: React.FC<StartProps> = ({ mode }) => {
   }, [account, master, player, game]);
 
   const cost = useMemo(() =>{
-    if(player && player?.daily_games_available >0) return "1 credit"
+    if(player && player?.daily_games_available >0) return "Free"
     return "0.01 STRK" //TODO: replace with actual cost
   }, [player, account])
 
