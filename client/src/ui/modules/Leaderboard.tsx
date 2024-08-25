@@ -31,6 +31,8 @@ import {
   faFire,
   faWebAwesome,
   faStar,
+  faHandHoldingDollar,
+  faTrophy
 } from "@fortawesome/free-solid-svg-icons";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useMediaQuery } from "react-responsive";
@@ -145,6 +147,16 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
                   icon={faWebAwesome}
                   className="text-slate-500"
                 />
+              </div>
+            </TableHead>
+            <TableHead className="w-[15%] text-center">
+              <div className="flex items-center justify-center gap-1">
+              <FontAwesomeIcon icon={faHandHoldingDollar}  className="text-yellow-500" />
+              </div>
+            </TableHead>
+            <TableHead className="w-[15%] text-center">
+              <div className="flex items-center justify-center gap-1">
+              <FontAwesomeIcon icon={faTrophy}  className="text-yellow-500" />
               </div>
             </TableHead>
           </TableRow>
