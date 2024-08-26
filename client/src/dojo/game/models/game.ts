@@ -34,7 +34,7 @@ export class Game {
   public max_combo: number;
   public score: number;
   public moves: number;
-  public buyIn: number;
+  public buyIn: number = 100; // Set default buy-in of $100
   public next_row: number[];
   public next_color: number[];
   public bonuses: number[];
@@ -62,7 +62,7 @@ export class Game {
     this.combo = game.combo_counter;
     this.max_combo = game.max_combo;
     this.score = game.score;
-    this.buyIn = game.buyIn;
+    this.buyIn = 100;
     this.moves = game.moves;
     this.next_color = Packer.sized_unpack(
       BigInt(game.next_color),
