@@ -198,7 +198,7 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
               <FontAwesomeIcon icon={faTrophy}  className="text-yellow-500" />
               </button>
               </TooltipTrigger>
-              <TooltipContent side="top" className=" w-[180px] text-base">
+              <TooltipContent side="top" align="start" className=" w-[180px] text-base">
               Potential winnnings 1st place: 45%, 2nd place: 25%, 3rd place: 15%, 4th place: 10%, 5th place: 10%, Zkube: 10%
               </TooltipContent>
                </Tooltip>
