@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 
-const getTimeUntil = (targetDate: any) => {
-  const now: any = new Date();
-  const distance = targetDate - now;
+const getTimeUntil = (targetDate: Date) => {
+  const now: Date = new Date();
+  const distance = Number(targetDate) - Number(now);
   
   if (distance < 0) {
     return { days: 0, hours: 0, minutes: 0, seconds: 0 };
