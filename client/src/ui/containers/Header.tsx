@@ -10,6 +10,8 @@ import SettingsDropDown from "../components/SettingsDropDown";
 import MobileMenu from "../components/MobileMenu";
 import LevelIndicator from "../components/LevelIndicator";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
+import DailyGameStatus from "../components/DailyGameStatus";
+import HeaderBalance from "../components/HeaderBalance";
 
 export const Header = () => {
   const { account } = useAccountCustom();
@@ -33,6 +35,10 @@ export const Header = () => {
         >
           <p className="text-4xl font-bold">zKube</p>
           <Leaderboard />
+        </div>
+        <div className="flex item-center gap-4">
+          <DailyGameStatus />
+          <HeaderBalance />
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
           {!!player && (
