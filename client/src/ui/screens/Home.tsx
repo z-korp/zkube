@@ -186,15 +186,16 @@ export const Home = () => {
               {/* <Start mode={ModeType.Daily} />
               <Start mode={ModeType.Normal} /> */}
               <div className="flex bg-gray-900 p-4 rounded-xl mt-12 w-[93%] gap-4 items-center justify-evenly">
-              <Start
-                mode={ModeType.Daily}
-                potentialWinnings="100 STRK"
-                remainingTime="02:15:00"
-              />
-              <Start
-                mode={ModeType.Normal}
-                potentialWinnings="50 STRK"
-              />
+                <Start
+                  mode={ModeType.Daily}
+                  potentialWinnings="100 STRK"
+                  remainingTime="02:15:00"
+                />
+                <Start
+                  mode={ModeType.Normal}
+                  potentialWinnings="50 STRK"
+                  remainingTime="02:15:00"
+                />
               </div>
               {!game && (
                 <div className="absolute top md:translate-y-[100%] translate-y-[40%] bg-slate-900 w-11/12 p-6 rounded-xl">
