@@ -34,12 +34,13 @@ export class Game {
   public max_combo: number;
   public score: number;
   public moves: number;
+  public buyIn: number;
   public next_row: number[];
   public next_color: number[];
   public bonuses: number[];
   public blocks: number[][];
   public rows: Row[];
-  public player_id: string;
+  public player_id: string; 
   public seed: bigint;
 
   constructor(game: ComponentValue) {
@@ -61,6 +62,7 @@ export class Game {
     this.combo = game.combo_counter;
     this.max_combo = game.max_combo;
     this.score = game.score;
+    this.buyIn = game.buyIn;
     this.moves = game.moves;
     this.next_color = Packer.sized_unpack(
       BigInt(game.next_color),

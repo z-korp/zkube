@@ -39,6 +39,9 @@ import { useMediaQuery } from "react-responsive";
 import { ModeType } from "@/dojo/game/types/mode";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/elements/tabs";
 import { Level } from "@/dojo/game/types/level";
+import Tooltip from '@mui/material/Tooltip';
+import IconButton from '@mui/material/IconButton';
+
 
 const GAME_PER_PAGE = 5;
 const MAX_PAGE_COUNT = 5;
@@ -87,12 +90,31 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
     return games.filter((game) => game.mode.value === modeType);
   }, [games, modeType]);
 
-  const sortedGames = useMemo(() => {
-    return filteredGames
+  const { sortedGames, totalBuyIn, winningPool } = useMemo(() => {
+    const sorted = filteredGames
       .filter((game) => game.score > 0)
       .sort((a, b) => b.combo - a.combo)
       .sort((a, b) => b.score - a.score);
+
+    const totalBuyIn = sorted.reduce((sum, game) => sum + game.buyIn, 0);
+    const winningPool = totalBuyIn * 0.9; // Assuming 10% goes to Zkube
+
+    return { sortedGames: sorted, totalBuyIn, winningPool };
   }, [filteredGames]);
+
+
+    // Distribute potential winnings amongs top 3 winners
+    const gamesWithWinnings = useMemo(() => {
+      return sortedGames.map((game, index) => {
+        let potentialWinnings = 0;
+        if (index === 0) potentialWinnings = winningPool * 0.5; // 50% for 1st place
+        else if (index === 1) potentialWinnings = winningPool * 0.3; // 30% for 2nd place
+        else if (index === 2) potentialWinnings = winningPool * 0.2; // 20% for 3rd place
+  
+        return { ...game, potentialWinnings, isOver: () => game.over };
+      });
+    }, [sortedGames, winningPool]);
+
 
   useEffect(() => {
     const rem = Math.floor(sortedGames.length / (GAME_PER_PAGE + 1)) + 1;
@@ -151,7 +173,13 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
             </TableHead>
             <TableHead className="w-[15%] text-center">
               <div className="flex items-center justify-center gap-1">
-              <FontAwesomeIcon icon={faHandHoldingDollar}  className="text-yellow-500" />
+                <Tooltip title="Information about the icon">
+                <IconButton>
+                <FontAwesomeIcon icon={faHandHoldingDollar}   className="text-slate-500"/>
+              </IconButton>
+              
+                </Tooltip>
+             
               </div>
             </TableHead>
             <TableHead className="w-[15%] text-center">
@@ -162,7 +190,7 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sortedGames.slice(start, end).map((game, index) => (
+          {gamesWithWinnings.slice(start, end).map((game, index) => (
             <Row
               key={index}
               rank={(page - 1) * GAME_PER_PAGE + index + 1}
@@ -204,7 +232,7 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
   );
 };
 
-export const Row = ({ rank, game }: { rank: number; game: Game }) => {
+export const Row = ({ rank, game }: { rank: number; game: Game & { potentialWinnings: number }}) => {
   const { player } = usePlayer({ playerId: game.player_id });
 
   console.log(player);
@@ -221,6 +249,8 @@ export const Row = ({ rank, game }: { rank: number; game: Game }) => {
       <TableCell className="text-center font-bold">{game.score}</TableCell>
       <TableCell className="text-center font-bold">{game.combo}</TableCell>
       <TableCell className="text-center font-bold">{game.max_combo}</TableCell>
+      <TableCell className="text-center font-bold">{game.buyIn}</TableCell>
+      <TableCell className="text-center font-bold">{game.potentialWinnings.toFixed(2)}</TableCell>
     </TableRow>
   );
 };
