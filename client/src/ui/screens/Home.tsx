@@ -183,8 +183,19 @@ export const Home = () => {
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
               <Create />
-              <Start mode={ModeType.Daily} />
-              <Start mode={ModeType.Normal} />
+              {/* <Start mode={ModeType.Daily} />
+              <Start mode={ModeType.Normal} /> */}
+              <div className="flex bg-gray-900 p-4 rounded-xl mt-12 w-[93%] gap-4 items-center justify-evenly">
+              <Start
+                mode={ModeType.Daily}
+                potentialWinnings="100 STRK"
+                remainingTime="02:15:00"
+              />
+              <Start
+                mode={ModeType.Normal}
+                potentialWinnings="50 STRK"
+              />
+              </div>
               {!game && (
                 <div className="absolute top md:translate-y-[100%] translate-y-[40%] bg-slate-900 w-11/12 p-6 rounded-xl">
                   <Leaderboard modeType={ModeType.Daily} />
