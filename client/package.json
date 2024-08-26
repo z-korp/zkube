@@ -13,7 +13,8 @@
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "codegen": "graphql-codegen",
-    "gen:models": "npx create-models ../contracts/manifests/dev/manifest.json ./src/dojo/generated/contractModels.ts"
+    "gen:models": "npx create-models ../contracts/manifests/dev/manifest.json ./src/dojo/generated/contractModels.ts",
+    "test": "jest"
   },
   "bin": {
     "create-models": "./bin/models.cjs"
