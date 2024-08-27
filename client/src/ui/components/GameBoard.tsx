@@ -16,6 +16,8 @@ import { useMediaQuery } from "react-responsive";
 import { Account } from "starknet";
 import useAccountCustom from "@/hooks/useAccountCustom";
 
+import PlayerPanel from "./PlayerPanel";
+
 //NOTE : Row commence en bas de la grille.
 //NOTE : Back : PieceId numéro de la piece dans la ligne (de gauche à droite)
 
@@ -860,8 +862,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
       <Card
         className={`p-4 bg-secondary ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"}`}
       >
-        <div
-          className={`${isMdOrLarger ? "w-[413px]" : "w-[300px]"} mb-4 flex justify-start items-center`}
+        <PlayerPanel
+          styleBoolean={isMdOrLarger}
+          score={score}
+          combo={combo}
+          maxCombo={maxCombo}
         >
           <GameBonus
             onBonusWaveClick={handleBonusWaveClick}
@@ -871,19 +876,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
             tikiCount={totemCount}
             waveCount={waveCount}
           />
-          <div
-            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end ml-4`}
-          >
-            {score}
-            <div className="relative inline-block">
-              <FontAwesomeIcon
-                icon={faStar}
-                className="text-yellow-500"
-                width={26}
-                height={26}
-              />
-            </div>
-          </div>
+          </PlayerPanel>
+          
           <div
             className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end relative ml-4`}
           >
