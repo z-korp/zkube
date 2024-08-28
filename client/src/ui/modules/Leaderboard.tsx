@@ -48,6 +48,38 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/ui/e
 const GAME_PER_PAGE = 5;
 const MAX_PAGE_COUNT = 5;
 
+// enum ModeType {
+//   Daily = 'daily',
+//   Normal = 'normal',
+// }
+
+interface TabListProps {
+  activeTab: ModeType;
+  setActiveTab: React.Dispatch<React.SetStateAction<ModeType>>;
+}
+
+const TabList: React.FC<TabListProps> = ({ activeTab, setActiveTab }) => (
+  <TabsList className="grid w-[80%] mx-auto sm:w-full grid-cols-2">
+    <TabsTrigger value={ModeType.Daily} onClick={() => setActiveTab(ModeType.Daily)}>Daily</TabsTrigger>
+    <TabsTrigger value={ModeType.Normal} onClick={() => setActiveTab(ModeType.Normal)}>Normal</TabsTrigger>
+  </TabsList>
+);
+
+interface TabContentProps {
+  modeType: ModeType;
+}
+
+const TabContent: React.FC<TabContentProps> = ({ modeType }) => (
+  <>
+    <TabsContent value={ModeType.Daily} hidden={modeType !== ModeType.Daily}>
+      <Content modeType={ModeType.Daily} />
+    </TabsContent>
+    <TabsContent value={ModeType.Normal} hidden={modeType !== ModeType.Normal}>
+      <Content modeType={ModeType.Normal} />
+    </TabsContent>
+  </>
+);
+
 const getNextDailyChallengeTime = () => {
   const now = new Date();
   const nextMidnight = new Date(now);
@@ -69,24 +101,13 @@ export const Leaderboard = () => {
       <DialogTrigger asChild>
         <Button variant="outline">Leaderboards</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] ">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader className="flex items-center text-2xl">
           <DialogTitle>Leaderboards</DialogTitle>
         </DialogHeader>
-        <Tabs
-          value={activeTab}
-          onValueChange={(value) => setActiveTab(value as ModeType)}
-        >
-          <TabsList className="grid w-[80%] mx-auto sm:w-full grid-cols-2">
-            <TabsTrigger value={ModeType.Daily}>Daily</TabsTrigger>
-            <TabsTrigger value={ModeType.Normal}>Normal</TabsTrigger>
-          </TabsList>
-          <TabsContent value={ModeType.Daily}>
-            <Content modeType={ModeType.Daily} />
-          </TabsContent>
-          <TabsContent value={ModeType.Normal}>
-            <Content modeType={ModeType.Normal} />
-          </TabsContent>
+        <Tabs value={activeTab}>
+          <TabList activeTab={activeTab} setActiveTab={setActiveTab} />
+          <TabContent modeType={activeTab} />
         </Tabs>
       </DialogContent>
     </Dialog>
@@ -118,18 +139,18 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
   }, [filteredGames]);
 
 
-    // Distribute potential winnings amongs top 3 winners
-    const gamesWithWinnings = useMemo(() => {
-      return sortedGames.map((game, index) => {
-        let potentialWinnings = 0;
-        if (index === 0) potentialWinnings = winningPool * 0.4; // 40% for 1st place
-        else if (index === 1) potentialWinnings = winningPool * 0.25; // 25% for 2nd place
-        else if (index === 2) potentialWinnings = winningPool * 0.15; // 15% for 3rd place
-        else if (index === 3) potentialWinnings = winningPool * 0.1; // 10% for 3rd place
-        else if (index === 4) potentialWinnings = winningPool * 0.1; // 10% for 3rd place
-        return { ...game, potentialWinnings, isOver: () => game.over };
-      });
-    }, [sortedGames, winningPool]);
+    // Distribute potential winnings amongs top 5 winners
+    const distributionPercentages = [0.4, 0.25, 0.15, 0.1, 0.1];
+
+const gamesWithWinnings = useMemo(() => {
+  return sortedGames.map((game, index) => {
+    let potentialWinnings = 0;
+    if (index < distributionPercentages.length) {
+      potentialWinnings = winningPool * distributionPercentages[index];
+    }
+    return { ...game, potentialWinnings, isOver: () => game.over };
+  });
+}, [sortedGames, winningPool]);
 
 
   useEffect(() => {
@@ -201,22 +222,7 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
                 />
               </div>
             </TableHead>
-            <TableHead className="w-[15%] text-center">
-              <div className="flex items-center justify-center gap-1">
-                      <Tooltip>
-              <TooltipTrigger asChild>
-                <button>
-                <FontAwesomeIcon icon={faHandHoldingDollar}   className="text-slate-500"/>
-                </button>
-            
-              </TooltipTrigger>
-              <TooltipContent side="top" className=" text-xl">
-              Buy in amount
-              </TooltipContent>
-               </Tooltip>
-              </div>
-
-            </TableHead>
+          
             <TableHead className="w-[15%] text-center">
               <div className="flex items-center justify-center gap-1">
 
@@ -295,7 +301,6 @@ export const Row = ({ rank, game }: { rank: number; game: Game & { potentialWinn
       <TableCell className="text-center font-bold">{game.score}</TableCell>
       <TableCell className="text-center font-bold">{game.combo}</TableCell>
       <TableCell className="text-center font-bold">{game.max_combo}</TableCell>
-      <TableCell className="text-center font-bold">{game.buyIn.toFixed(2)}</TableCell>
       <TableCell className="text-center font-bold">{game.potentialWinnings.toFixed(2)}</TableCell>
     </TableRow>
   );
