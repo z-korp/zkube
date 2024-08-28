@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import useCountdown from "@/hooks/useCountdown";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +47,19 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/ui/e
 
 const GAME_PER_PAGE = 5;
 const MAX_PAGE_COUNT = 5;
+
+const getNextDailyChallengeTime = () => {
+  const now = new Date();
+  const nextMidnight = new Date(now);
+  nextMidnight.setUTCHours(24, 0, 0, 0);
+  return nextMidnight;
+};
+
+const getNextNormalChallengeTime = () => {
+  const now = new Date();
+  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  return nextMonth;
+};
 
 export const Leaderboard = () => {
   const [activeTab, setActiveTab] = useState<ModeType>(ModeType.Daily);
@@ -144,8 +158,22 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
 
   const isSmallScreen = useMediaQuery({ query: "(min-width: 640px)" });
 
+  const countdownDate = useMemo(() => {
+    return modeType === ModeType.Daily
+      ? getNextDailyChallengeTime()
+      : getNextNormalChallengeTime();
+  }, [modeType]);
+
+  const { days, hours, minutes, seconds } = useCountdown(countdownDate);
+
   return (
     <>
+    <div className="w-full border-b border-white flex justify-between items-center my-4">
+          <h2 className="text-lg font-semibold">Next Challenge In:</h2>
+          <p className="text-lg font-bold">
+            {`${days}d ${hours}h ${minutes}m ${seconds}s`}
+          </p>
+        </div>
       <Table className="text-sm sm:text-base sm:w-full ">
         <TableCaption className={`${disabled && "hidden"}`}>
           Leaderboard is waiting for its best players to make history
