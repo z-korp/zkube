@@ -908,6 +908,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               height={28}
             />
           </div>
+         
         </div>
         <div className="bg-slate-800 relative">
           <div
