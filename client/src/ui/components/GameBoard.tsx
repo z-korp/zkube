@@ -1066,7 +1066,45 @@ const GameBoard: React.FC<GameBoardProps> = ({
             waveCount={waveCount}
           />
         </PlayerPanel>
-
+          <div
+            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end ml-4`}
+          >
+            {score}
+            <div className="relative inline-block">
+              <FontAwesomeIcon
+                icon={faStar}
+                className="text-yellow-500"
+                width={26}
+                height={26}
+              />
+            </div>
+          </div>
+          <div
+            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end relative ml-4`}
+          >
+            {combo}
+            <div className="relative inline-block">
+              <FontAwesomeIcon
+                icon={faFire}
+                className="text-slate-500"
+                width={26}
+                height={26}
+              />
+            </div>
+          </div>
+          <div
+            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end relative ml-4`}
+          >
+            {maxCombo}
+            <FontAwesomeIcon
+              icon={faWebAwesome}
+              className="text-slate-500"
+              width={28}
+              height={28}
+            />
+          </div>
+         
+        </div>
         <div className="bg-slate-800 relative">
           <div
             ref={gridRef}

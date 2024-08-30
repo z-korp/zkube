@@ -269,7 +269,7 @@ export const Home = () => {
             </div>
           </div>
           <AnimatePresence>
-            {!animationDone && (
+            {!animationDone && ( 
               <>
                 <>
                   <PalmTree
