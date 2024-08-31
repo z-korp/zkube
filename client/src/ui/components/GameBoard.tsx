@@ -1,20 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faBolt,
-  faBomb,
-  faFire,
-  faStar,
-  faWebAwesome,
-} from "@fortawesome/free-solid-svg-icons";
-import { GameBonus } from "../containers/GameBonus";
-import { Piece, Cell as CellType } from "@/types/types";
-import Cell from "./Cell";
 import { useMediaQuery } from "react-responsive";
 import { Account } from "starknet";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import ScoreDisplay from "./ScoreDisplay";
+import BonusPanel from "./BonusPanel";
+import Grid from "./Grid";
+import { CellType, Piece } from "@/types/types";
 
 //NOTE : Row commence en bas de la grille.
 //NOTE : Back : PieceId numéro de la piece dans la ligne (de gauche à droite)
@@ -43,8 +36,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
   score,
   combo,
   maxCombo,
-  waveCount,
   hammerCount,
+  waveCount,
   totemCount,
 }) => {
   const {
@@ -120,7 +113,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               newGrid[row][col].isStart
             ) {
               const piece = PIECES.find(
-                (p) => p.id === newGrid[row][col].pieceId,
+                (p) => p.id === newGrid[row][col].pieceId
               );
               if (piece) {
                 let canFall = true;
@@ -337,7 +330,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     grid: CellType[][],
     row: number,
     col: number,
-    piece: Piece,
+    piece: Piece
   ) => {
     for (let j = 0; j < piece.width; j++) {
       grid[row][col + j].pieceId = piece.id;
@@ -350,7 +343,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     row: number,
     startCol: number,
     endCol: number,
-    piece: Piece,
+    piece: Piece
   ) => {
     const direction = endCol > startCol ? 1 : -1;
     for (let col = startCol; col !== endCol; col += direction) {
@@ -407,7 +400,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     const gridRect = gridRef.current.getBoundingClientRect();
     const cellWidth = gridRect.width / cols;
     const piece = PIECES.find(
-      (p) => p.id === grid[draggingPiece?.row][draggingPiece.col].pieceId,
+      (p) => p.id === grid[draggingPiece?.row][draggingPiece.col].pieceId
     );
     if (!piece) return;
 
@@ -437,7 +430,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
           draggingPiece.row,
           draggingPiece.col,
           validCol + direction,
-          piece,
+          piece
         )
       ) {
         validCol += direction;
@@ -457,13 +450,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
     const newCol = Math.max(
       0,
-      Math.min(cols - 1, draggingPiece.col + draggedCells),
+      Math.min(cols - 1, draggingPiece.col + draggedCells)
     );
 
     const newGrid = [...grid];
 
     const piece = PIECES.find(
-      (p) => p.id === grid[draggingPiece.row][draggingPiece.col].pieceId,
+      (p) => p.id === grid[draggingPiece.row][draggingPiece.col].pieceId
     );
     if (
       piece &&
@@ -506,7 +499,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
       computeXAndDrag(e);
     },
-    [isDragging, draggingPiece, grid, cols],
+    [isDragging, draggingPiece, grid, cols]
   );
 
   const handleMouseMove = useCallback(
@@ -516,7 +509,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       if (!isDragging || !draggingPiece || !gridRef.current) return;
       computeXAndDrag(e);
     },
-    [isDragging, draggingPiece, grid, cols],
+    [isDragging, draggingPiece, grid, cols]
   );
 
   const handleMouseEnd = useCallback(() => {
@@ -559,7 +552,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         setIsLoading(false);
       }
     },
-    [account],
+    [account]
   );
 
   const handleEmptyGrid = useCallback(async () => {
@@ -732,7 +725,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         setIsLoading(false);
       }
     },
-    [account],
+    [account]
   );
 
   const handleBonusHammerTx = useCallback(
@@ -752,7 +745,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         setIsLoading(false);
       }
     },
-    [account],
+    [account]
   );
 
   //WAVE EFFECT
@@ -779,7 +772,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   //TIKI EFFECT
   const removePieceFromGridByCell = async (
     rowIndex: number,
-    colIndex: number,
+    colIndex: number
   ) => {
     await new Promise((resolve) => {
       setGrid((prevGrid) => {
@@ -858,12 +851,16 @@ const GameBoard: React.FC<GameBoardProps> = ({
   return (
     <>
       <Card
-        className={`p-4 bg-secondary ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"}`}
+        className={`p-4 bg-secondary ${
+          isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"
+        }`}
       >
         <div
-          className={`${isMdOrLarger ? "w-[413px]" : "w-[300px]"} mb-4 flex justify-start items-center`}
+          className={`${
+            isMdOrLarger ? "w-[413px]" : "w-[300px]"
+          } mb-4 flex justify-start items-center`}
         >
-          <GameBonus
+          <BonusPanel
             onBonusWaveClick={handleBonusWaveClick}
             onBonusTikiClick={handleBonusTikiClick}
             onBonusHammerClick={handleBonusHammerClick}
@@ -871,89 +868,27 @@ const GameBoard: React.FC<GameBoardProps> = ({
             tikiCount={totemCount}
             waveCount={waveCount}
           />
-          <div
-            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end ml-4`}
-          >
-            {score}
-            <div className="relative inline-block">
-              <FontAwesomeIcon
-                icon={faStar}
-                className="text-yellow-500"
-                width={26}
-                height={26}
-              />
-            </div>
-          </div>
-          <div
-            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end relative ml-4`}
-          >
-            {combo}
-            <div className="relative inline-block">
-              <FontAwesomeIcon
-                icon={faFire}
-                className="text-slate-500"
-                width={26}
-                height={26}
-              />
-            </div>
-          </div>
-          <div
-            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end relative ml-4`}
-          >
-            {maxCombo}
-            <FontAwesomeIcon
-              icon={faWebAwesome}
-              className="text-slate-500"
-              width={28}
-              height={28}
-            />
-          </div>
-         
+          <ScoreDisplay
+            score={score}
+            combo={combo}
+            maxCombo={maxCombo}
+            isMdOrLarger={isMdOrLarger}
+          />
         </div>
         <div className="bg-slate-800 relative">
-          <div
-            ref={gridRef}
-            className={`${isMdOrLarger ? "w-[412px]" : "w-[300px]"} border-4 border-slate-800 grid grid-cols-8 grid-rows-10 gap-1`}
-            style={{ position: "relative" }}
-          >
-            {/* Grille de fond */}
-            {Array.from({ length: rows }).map((_, rowIndex) => (
-              <React.Fragment key={rowIndex}>
-                {Array.from({ length: cols }).map((_, colIndex) => (
-                  <div
-                    key={`${rowIndex}-${colIndex}`}
-                    className="h-8 w-8 sm:w-12 sm:h-12 bg-secondary relative"
-                  ></div>
-                ))}
-              </React.Fragment>
-            ))}
-
-            {grid.map((row, rowIndex) => {
-              const complete = isLineComplete(row);
-              return (
-                <React.Fragment key={`piece-${rowIndex}`}>
-                  {row.map((cell, colIndex) => (
-                    <Cell
-                      key={cell.id}
-                      cell={cell}
-                      rowIndex={rowIndex}
-                      colIndex={colIndex}
-                      isLineComplete={complete}
-                      draggingPiece={draggingPiece}
-                      gridRef={gridRef}
-                      cols={cols}
-                      rows={rows}
-                      startDragging={startDragging}
-                      handleRowClick={handleRowClick}
-                      handleCellClick={handleCellClick}
-                      isTxProcessing={isTxProcessing}
-                      isAnimating={isAnimating}
-                    />
-                  ))}
-                </React.Fragment>
-              );
-            })}
-          </div>
+          <Grid
+            grid={grid}
+            rows={rows}
+            cols={cols}
+            draggingPiece={draggingPiece}
+            gridRef={gridRef}
+            startDragging={startDragging}
+            handleRowClick={handleRowClick}
+            handleCellClick={handleCellClick}
+            isTxProcessing={isTxProcessing}
+            isAnimating={isAnimating}
+            isLineComplete={isLineComplete}
+          />
         </div>
       </Card>
     </>
