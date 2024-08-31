@@ -1,6 +1,6 @@
 import React from "react";
 import Cell from "./Cell";
-import { CellType } from "@/types/types";
+import { Cell as CellType } from "@/types/types";
 
 interface GridProps {
   grid: CellType[][];
@@ -76,3 +76,5 @@ const Grid: React.FC<GridProps> = ({
     </div>
   );
 };
+
+export default Grid;
