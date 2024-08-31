@@ -13,3 +13,5 @@ interface BonusPanelProps {
 const BonusPanel: React.FC<BonusPanelProps> = (props) => {
   return <GameBonus {...props} />;
 };
+
+export default BonusPanel;

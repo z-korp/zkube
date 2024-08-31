@@ -67,3 +67,5 @@ const ScoreDisplay: React.FC<ScoreDisplayProps> = ({
     </>
   );
 };
+
+export default ScoreDisplay;
