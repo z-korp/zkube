@@ -695,12 +695,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
       handleBonusHammerTx(actualRowIndex, colIndex);
     }
 
-    // if (bonusTiki && clickedPiece.pieceId !== null) {
-    //   removePieceFromGridByCell(actualRowIndex, colIndex);
-    //   setBonusTiki(false);
-    //   applyGravityLoop();
-    //   // TODO: Appeler la transaction pour le bonus Tiki si nécessaire
-    // }
+    if (bonusTiki && clickedPiece.pieceId !== null) {
+      //TODO fix logic tu use the tiki one
+      removePieceFromGridByCell(actualRowIndex, colIndex);
+      setBonusTiki(false);
+      applyGravityLoop();
+      handleBonusTikiTx(actualRowIndex, colIndex);
+    }
   };
 
   const handleRowClick = (rowIndex: number) => {
@@ -745,6 +746,26 @@ const GameBoard: React.FC<GameBoardProps> = ({
         await applyBonus({
           account: account as Account,
           bonus: 1,
+          row_index: rowIndex,
+          block_index: colIndex,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [account],
+  );
+
+  const handleBonusTikiTx = useCallback(
+    async (rowIndex: number, colIndex: number) => {
+      if (isAnimating) return;
+
+      setIsLoading(true);
+      setIsTxProcessing(true);
+      try {
+        await applyBonus({
+          account: account as Account,
+          bonus: 2,
           row_index: rowIndex,
           block_index: colIndex,
         });
