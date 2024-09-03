@@ -36,15 +36,13 @@ export const Header = () => {
           <p className="text-4xl font-bold">zKube</p>
           <Leaderboard />
         </div>
-        <div className="flex item-center gap-4">
-          <DailyGameStatus />
-          <HeaderBalance />
-        </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
           {!!player && (
             <div className="flex gap-3">
               <p className="text-2xl max-w-66 truncate">{player.name}</p>
               <LevelIndicator currentXP={player.points} />
+              <DailyGameStatus />
+              <HeaderBalance />
             </div>
           )}
 
