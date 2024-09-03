@@ -30,9 +30,8 @@ import { useGames } from "@/hooks/useGames";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faFire,
-  faWebAwesome,
+  faGlobe,
   faStar,
-  faHandHoldingDollar,
   faTrophy
 } from "@fortawesome/free-solid-svg-icons";
 import { usePlayer } from "@/hooks/usePlayer";
@@ -40,7 +39,7 @@ import { useMediaQuery } from "react-responsive";
 import { ModeType } from "@/dojo/game/types/mode";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/elements/tabs";
 import { Level } from "@/dojo/game/types/level";
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/ui/elements/tooltip"; 
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/ui/elements/tooltip"; 
 
 
 
@@ -217,7 +216,7 @@ const gamesWithWinnings = useMemo(() => {
             <TableHead className="w-[15%] text-center">
               <div className="flex items-center justify-center gap-1">
                 <FontAwesomeIcon
-                  icon={faWebAwesome}
+                  icon={faGlobe}
                   className="text-slate-500"
                 />
               </div>

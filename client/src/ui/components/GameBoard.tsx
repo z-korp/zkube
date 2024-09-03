@@ -3,11 +3,9 @@ import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faBolt,
-  faBomb,
   faFire,
+  faGlobe,
   faStar,
-  faWebAwesome,
 } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
 import { Piece, Cell as CellType } from "@/types/types";
@@ -902,11 +900,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
           >
             {maxCombo}
             <FontAwesomeIcon
-              icon={faWebAwesome}
-              className="text-slate-500"
-              width={28}
-              height={28}
-            />
+                  icon={faGlobe}
+                  className="text-slate-500"
+                  width={28}
+                  height={28}
+                />
           </div>
          
         </div>

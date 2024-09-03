@@ -10,12 +10,14 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 
 interface StartProps {
   mode: ModeType;
+  handleGameMode: () => void;
   potentialWinnings: string; // New prop for potential winnings
   remainingTime?: string; // New prop for remaining time (optional for Normal mode)
 }
 
 export const Start: React.FC<StartProps> = ({
   mode,
+  handleGameMode,
   potentialWinnings,
   remainingTime,
 }) => {
@@ -60,6 +62,7 @@ export const Start: React.FC<StartProps> = ({
         sqrt_ratio_hint: proof_verify_hint,
         beta: beta,
       });
+      handleGameMode()
     } finally {
       setIsLoading(false);
     }
