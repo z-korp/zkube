@@ -3,9 +3,8 @@ import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faBolt,
-  faBomb,
   faFire,
+  faGlobe,
   faStar,
 } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
@@ -927,6 +926,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               className={`text-slate-500 ${isMdOrLarger ? "w-[30px] h-[36px]" : "w-[26px] h-[32px] mb-1"}`}
             />
           </div>
+         
         </div>
         <div className="bg-slate-800 relative">
           <div

@@ -10,6 +10,8 @@ import SettingsDropDown from "../components/SettingsDropDown";
 import MobileMenu from "../components/MobileMenu";
 import LevelIndicator from "../components/LevelIndicator";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
+import DailyGameStatus from "../components/DailyGameStatus";
+import HeaderBalance from "../components/HeaderBalance";
 
 export const Header = () => {
   const { account } = useAccountCustom();
@@ -39,6 +41,8 @@ export const Header = () => {
             <div className="flex gap-3">
               <p className="text-2xl max-w-66 truncate">{player.name}</p>
               <LevelIndicator currentXP={player.points} />
+              <DailyGameStatus />
+              <HeaderBalance />
             </div>
           )}
 
