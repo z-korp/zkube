@@ -4,7 +4,7 @@ import { Start } from "../actions/Start";
 import GameBoard from "../components/GameBoard";
 import BackGroundBoard from "../components/BackgroundBoard";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useGame } from "@/hooks/useGame";
@@ -24,6 +24,9 @@ import GoogleFormEmbed from "../components/GoogleFormEmbed";
 import { useQuerySync } from "@dojoengine/react";
 import { ModeType } from "@/dojo/game/types/mode";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import { Level } from "@/dojo/game/types/level";
+import { toPng } from "html-to-image";
+import { TweetPreview } from "../components/TweetPreview";
 
 interface position {
   x: number;
@@ -45,6 +48,44 @@ export const Home = () => {
 
   const { theme, themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
+  const gameGrid: React.RefObject<HTMLDivElement> | null = useRef(null);
+  const [isUnmounting, setIsUnmounting] = useState(false);
+  const [isGameOn, setIsGameOn] = useState<"idle" | "isOn" | "isOver">("idle");
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [level, setLevel] = useState<number | "">(0);
+  const [score, setScore] = useState<number | undefined>(0);
+  const [imgData, setImgData] = useState<string>('');
+
+  useEffect(() => {
+    if (game?.over) {
+      if (gameGrid.current !== null) {
+        toPng(gameGrid.current, { cacheBust: true })
+          .then((dataUrl) => {
+            console.log("Screenshot taken");
+            setImgData(dataUrl);
+            composeTweet();
+          })
+          .catch((err) => {
+            console.error(`Screenshot failed`, err);
+          });
+      }
+      setIsGameOn("isOver");
+    }
+  }, [game?.over, isUnmounting]);
+
+  useEffect(() => {
+    if (!!game && !game.over) {
+      setIsGameOn("isOn");
+    } else {
+      setIsGameOn("isOver");
+    }
+  }, [game?.over]);
+
+  const composeTweet = () => {
+    setLevel(player?.points ? Level.fromPoints(player?.points).value : "");
+    setScore(game?.score);
+    setIsPreviewOpen(true);
+  };
 
   const testGrid = [
     [0, 0, 0, 0, 0, 0, 0, 0],
@@ -183,14 +224,20 @@ export const Home = () => {
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
               <Create />
-              <Start mode={ModeType.Daily} />
-              <Start mode={ModeType.Normal} />
+              <Start
+                mode={ModeType.Daily}
+                handleGameMode={() => setIsGameOn("isOn")}
+              />
+              <Start
+                mode={ModeType.Normal}
+                handleGameMode={() => setIsGameOn("isOn")}
+              />
               {!game && (
                 <div className="absolute top md:translate-y-[100%] translate-y-[40%] bg-slate-900 w-11/12 p-6 rounded-xl">
                   <Leaderboard modeType={ModeType.Daily} />
                 </div>
               )}
-              {!!game && game.over && (
+              {!!game && isGameOn === "isOver" && (
                 <>
                   <div className="flex flex-col gap-4 mt-8 ">
                     <p className="text-4xl text-center">Game Over</p>
@@ -234,9 +281,9 @@ export const Home = () => {
                   <GoogleFormEmbed />
                 </>
               )}
-              {!!game && !game.over && (
+              {!!game && isGameOn === "isOn" && (
                 <div className="relative w-full">
-                  <div className="flex flex-col items-center">
+                  <div ref={gameGrid} className="flex flex-col items-center">
                     <GameBoard
                       initialGrid={game.blocks}
                       nextLine={game.next_row}
@@ -250,12 +297,13 @@ export const Home = () => {
                     <NextLine numbers={game.next_row} />
                   </div>
                   <div className="mt-4 sm:mt-0 sm:absolute sm:right-0 sm:bottom-0 sm:mb-4 flex justify-center sm:justify-end w-full">
-                    <Surrender />
+                    <Surrender setIsUnmounting={setIsUnmounting} />
                   </div>
                 </div>
               )}
             </div>
           </div>
+          <TweetPreview open={isPreviewOpen} setOpen={setIsPreviewOpen} level={level} score={score} imgSrc={imgData} />
           <AnimatePresence>
             {!animationDone && (
               <>

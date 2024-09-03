@@ -10,9 +10,10 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 
 interface StartProps {
   mode: ModeType;
+  handleGameMode: () => void;
 }
 
-export const Start: React.FC<StartProps> = ({ mode }) => {
+export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
   const {
     master,
     setup: {
@@ -54,6 +55,7 @@ export const Start: React.FC<StartProps> = ({ mode }) => {
         sqrt_ratio_hint: proof_verify_hint,
         beta: beta,
       });
+      handleGameMode()
     } finally {
       setIsLoading(false);
     }
