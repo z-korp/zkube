@@ -17,8 +17,8 @@ import { Content as Leaderboard } from "../modules/Leaderboard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faFire,
+  faGlobe,
   faStar,
-  faWebAwesome,
 } from "@fortawesome/free-solid-svg-icons";
 import GoogleFormEmbed from "../components/GoogleFormEmbed";
 import { useQuerySync } from "@dojoengine/react";
@@ -224,9 +224,7 @@ export const Home = () => {
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
               <Create />
-              {/* <Start mode={ModeType.Daily} />
-              <Start mode={ModeType.Normal} /> */}
-              <div className="flex bg-gray-900 p-4 rounded-xl mt-12 w-[93%] gap-4 items-center justify-evenly">
+              {!game && (<div className="flex bg-gray-900 p-4 rounded-xl mt-12 w-[93%] gap-4 items-center justify-evenly">
                 <Start
                   mode={ModeType.Daily}
                   handleGameMode={() => setIsGameOn("isOn")}
@@ -239,7 +237,7 @@ export const Home = () => {
                   potentialWinnings="50 STRK"
                   remainingTime="02:15:00"
                 />
-              </div>
+              </div>)}
               {!game && (
                 <div className="absolute top md:translate-y-[100%] translate-y-[40%] bg-slate-900 w-11/12 p-6 rounded-xl">
                   <Leaderboard modeType={ModeType.Daily} />
@@ -267,9 +265,9 @@ export const Home = () => {
                       <div className="grow text-4xl flex gap-2 justify-end">
                         {game.max_combo}
                         <FontAwesomeIcon
-                          icon={faWebAwesome}
-                          className="text-slate-700 ml-2"
-                        />
+                  icon={faGlobe}
+                  className="text-slate-700 ml-2"
+                />
                       </div>
                     </div>
                   </div>
