@@ -26,7 +26,7 @@ export const useGames = (): { games: Game[] } => {
       }
       return new GameClass(component);
     });
-
+ 
     const objectified = components.reduce(
       (obj: any, game: Game | undefined) => {
         if (game) {
