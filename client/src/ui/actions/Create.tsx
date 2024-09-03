@@ -25,6 +25,7 @@ export const Create = () => {
     setup: {
       systemCalls: { create },
     },
+    syncCall
   } = useDojo();
 
   const { player } = usePlayer({ playerId: account?.address });
@@ -34,6 +35,7 @@ export const Create = () => {
     try {
       await create({ account: account as Account, name: playerName });
     } finally {
+      await syncCall();
       setIsLoading(false);
     }
   }, [account, playerName]);
