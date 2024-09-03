@@ -695,7 +695,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
     }
 
     if (bonusTiki && clickedPiece.pieceId !== null) {
-      //TODO fix logic tu use the tiki one
       removePieceFromGridByCell(actualRowIndex, colIndex);
       setBonusTiki(false);
       applyGravityLoop();
@@ -881,7 +880,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         className={`p-4 bg-secondary ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"}`}
       >
         <div className={`${isMdOrLarger ? "w-[413px]" : "w-[300px]"} mb-4 flex justify-between`}>
-        <div className="w-1/2">
+        <div className="w-5/12">
     <GameBonus
       onBonusWaveClick={handleBonusWaveClick}
       onBonusTikiClick={handleBonusTikiClick}
