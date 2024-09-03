@@ -666,21 +666,21 @@ const GameBoard: React.FC<GameBoardProps> = ({
   };
 
   const handleBonusWaveClick = () => {
-    setBonusWave(true);
-    setBonusTiki(false);
-    setBonusHammer(false);
+    // setBonusWave(true);
+    // setBonusTiki(false);
+    // setBonusHammer(false);
   };
 
   const handleBonusTikiClick = () => {
-    setBonusWave(false);
-    setBonusTiki(true);
-    setBonusHammer(false);
+    // setBonusWave(false);
+    // setBonusTiki(true);
+    // setBonusHammer(false);
   };
 
   const handleBonusHammerClick = () => {
-    setBonusWave(false);
-    setBonusTiki(false);
-    setBonusHammer(true);
+    // setBonusWave(false);
+    // setBonusTiki(false);
+    // setBonusHammer(true);
   };
 
   const handleCellClick = (rowIndex: number, colIndex: number) => {
