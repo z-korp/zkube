@@ -880,54 +880,47 @@ const GameBoard: React.FC<GameBoardProps> = ({
       <Card
         className={`p-4 bg-secondary ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"}`}
       >
-        <div
-          className={`${isMdOrLarger ? "w-[413px]" : "w-[300px]"} mb-4 flex justify-start items-center`}
-        >
-          <GameBonus
-            onBonusWaveClick={handleBonusWaveClick}
-            onBonusTikiClick={handleBonusTikiClick}
-            onBonusHammerClick={handleBonusHammerClick}
-            hammerCount={hammerCount}
-            tikiCount={totemCount}
-            waveCount={waveCount}
-          />
-          <div
-            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end ml-4`}
-          >
-            {score}
-            <div className="relative inline-block">
-              <FontAwesomeIcon
-                icon={faStar}
-                className="text-yellow-500 w-[26px] h-[36px]"
-                width={26}
-                height={26}
-              />
-            </div>
-          </div>
-          <div
-            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end relative ml-4`}
-          >
-            {combo}
-            <div className="relative inline-block">
-              <FontAwesomeIcon
-                icon={faFire}
-                // className="text-slate-500"
-                className="text-yellow-500"
-                width={26}
-                height={26}
-              />
-            </div>
-          </div>
-          <div
-            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end relative ml-4`}
-          >
-            {maxCombo}
-            <MaxComboIcon
-              className={`text-slate-500 ${isMdOrLarger ? "w-[30px] h-[36px]" : "w-[26px] h-[32px] mb-1"}`}
-            />
-          </div>
-         
-        </div>
+        <div className={`${isMdOrLarger ? "w-[413px]" : "w-[300px]"} mb-4 flex items-center justify-between`}>
+  <GameBonus
+    onBonusWaveClick={handleBonusWaveClick}
+    onBonusTikiClick={handleBonusTikiClick}
+    onBonusHammerClick={handleBonusHammerClick}
+    hammerCount={hammerCount}
+    tikiCount={totemCount}
+    waveCount={waveCount}
+  />
+  
+  <div className="flex items-center space-x-4">
+    <div className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}>
+      <span>{score}</span>
+      <FontAwesomeIcon
+        icon={faStar}
+        className="text-yellow-500 ml-2"
+        width={isMdOrLarger ? 30 : 26}
+        height={isMdOrLarger ? 30 : 26}
+      />
+    </div>
+    
+    <div className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}>
+      <span>{combo}</span>
+      <FontAwesomeIcon
+        icon={faFire}
+        className="text-yellow-500 ml-2"
+        width={isMdOrLarger ? 30 : 26}
+        height={isMdOrLarger ? 30 : 26}
+      />
+    </div>
+    
+    <div className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}>
+      <span>{maxCombo}</span>
+      <MaxComboIcon
+        width={isMdOrLarger ? 36 : 28}
+        height={isMdOrLarger ? 36 : 28}
+        className={`text-yellow-500 ml-2 `}
+      />
+    </div>
+  </div>
+</div>
         <div className="bg-slate-800 relative">
           <div
             ref={gridRef}
