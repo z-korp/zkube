@@ -224,7 +224,7 @@ export const Home = () => {
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
               <Create />
-              {!game && (<div className="flex bg-gray-900 p-4 rounded-xl mt-12 w-[93%] gap-4 items-center justify-evenly">
+              {(!game || (!!game && isGameOn === "isOver" ))&& (<div className="flex  p-4 rounded-xl mt-12 w-[93%] gap-4 items-center justify-evenly">
                 <Start
                   mode={ModeType.Daily}
                   handleGameMode={() => setIsGameOn("isOn")}
