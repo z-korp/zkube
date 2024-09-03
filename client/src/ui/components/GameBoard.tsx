@@ -880,24 +880,26 @@ const GameBoard: React.FC<GameBoardProps> = ({
       <Card
         className={`p-4 bg-secondary ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"}`}
       >
-        <div className={`${isMdOrLarger ? "w-[413px]" : "w-[300px]"} mb-4 flex items-center justify-between`}>
-  <GameBonus
-    onBonusWaveClick={handleBonusWaveClick}
-    onBonusTikiClick={handleBonusTikiClick}
-    onBonusHammerClick={handleBonusHammerClick}
-    hammerCount={hammerCount}
-    tikiCount={totemCount}
-    waveCount={waveCount}
-  />
+        <div className={`${isMdOrLarger ? "w-[413px]" : "w-[300px]"} mb-4 flex justify-between`}>
+        <div className="w-1/2">
+    <GameBonus
+      onBonusWaveClick={handleBonusWaveClick}
+      onBonusTikiClick={handleBonusTikiClick}
+      onBonusHammerClick={handleBonusHammerClick}
+      hammerCount={hammerCount}
+      tikiCount={totemCount}
+      waveCount={waveCount}
+    />
+  </div>
   
-  <div className="flex items-center space-x-4">
+  <div className="flex gap-1">
     <div className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}>
       <span>{score}</span>
       <FontAwesomeIcon
         icon={faStar}
         className="text-yellow-500 ml-2"
-        width={isMdOrLarger ? 30 : 26}
-        height={isMdOrLarger ? 30 : 26}
+        width={ 26}
+        height={ 26}
       />
     </div>
     
@@ -906,16 +908,16 @@ const GameBoard: React.FC<GameBoardProps> = ({
       <FontAwesomeIcon
         icon={faFire}
         className="text-yellow-500 ml-2"
-        width={isMdOrLarger ? 30 : 26}
-        height={isMdOrLarger ? 30 : 26}
+        width={ 26}
+        height={26}
       />
     </div>
     
     <div className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}>
       <span>{maxCombo}</span>
       <MaxComboIcon
-        width={isMdOrLarger ? 36 : 28}
-        height={isMdOrLarger ? 36 : 28}
+        width={26}
+        height={26}
         className={`text-yellow-500 ml-2 `}
       />
     </div>

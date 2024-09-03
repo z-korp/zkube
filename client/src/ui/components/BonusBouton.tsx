@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Button } from "../elements/button"; // Assurez-vous d'avoir le bon chemin pour l'importation
+import { Button } from "../elements/button";
 
 interface BonusButtonProps {
   onClick?: () => void;
