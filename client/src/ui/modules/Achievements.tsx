@@ -1,96 +1,39 @@
-import { Alert, AlertDescription, AlertTitle } from "@/ui/elements/alert";
-import { Trophy, Star } from "lucide-react";
-import { motion } from "framer-motion";
-import { Game } from "@/dojo/game/models/game";
-import { useTheme } from "@/ui/elements/theme-provider";
-import getElementStyle from "../theme/GetElementStyle";
+import { Medal, Trophy, Star } from "lucide-react";
+import { AchievementAlert } from "./AchievementAlert";
 
 interface AchievementsProps {
-  gamesByThresholds: { threshold: number; games: Game[] }[];
-  combosByThresholds: { threshold: number; games: Game[] }[];
+  level: number;
+  highestCombo: number;
+  highestScore: number;
 }
 
-const AchievementAlert: React.FC<{
-  threshold: number;
-  games: Game[];
-  type: "score" | "combo";
-}> = ({ threshold, type }) => {
-  const { themeTemplate } = useTheme();
-  const backgroundStyle = getElementStyle("stone3", themeTemplate);
-
-  return (
-    <Alert
-      key={`${type}-${threshold}`}
-      style={{
-        ...backgroundStyle,
-      }}
-    >
-      <div className="w-full h-full bg-black/70 px-4 py-3">
-        <motion.div
-          initial={{ scale: 0.2, rotate: 0 }}
-          animate={{
-            scale: [0.2, 2, 1],
-            rotate: [0, 15, -15, 15, -15, 0],
-          }}
-          transition={{
-            duration: 0.8,
-            ease: "easeInOut",
-          }}
-          style={{
-            display: "inline-block",
-          }}
-        >
-          {type === "score" ? (
-            <Trophy className="h-4 w-4 text-yellow-500" />
-          ) : (
-            <Star className="h-4 w-4 text-yellow-500" />
-          )}
-        </motion.div>
-        <AlertTitle className="drop-shadow-lg text-white font-bold">
-          {type === "score"
-            ? "Achievement Unlocked !"
-            : "Combo Achievement Unlocked !"}
-        </AlertTitle>
-        <span>
-          <AlertDescription className="text-white font-bold">
-            {type === "score"
-              ? <>You reached a score of <span className="text-yellow-500">{threshold} </span> points !</>
-              : <>You reached a combo of <span className="text-yellow-500">{threshold}</span> !</>}
-
-          </AlertDescription>
-
-        </span>
-      </div>
-    </Alert>
-  );
-};
-
+// Displays highest score, highest combo (by 5), and player level.
 export const Achievements: React.FC<AchievementsProps> = ({
-  gamesByThresholds,
-  combosByThresholds,
+  level,
+  highestCombo,
+  highestScore,
 }) => (
-    <main className="flex flex-col items-center justify-start p-6 space-y-6">
-      {gamesByThresholds.map(
-        ({ threshold, games }) =>
-          games.length > 0 && (
-            <AchievementAlert
-              key={`score-${threshold}`}
-              threshold={threshold}
-              games={games}
-              type="score"
-            />
-          ),
-      )}
-      {combosByThresholds.map(
-        ({ threshold, games }) =>
-          games.length > 0 && (
-            <AchievementAlert
-              key={`combo-${threshold}`}
-              threshold={threshold}
-              games={games}
-              type="combo"
-            />
-          ),
-      )}
-    </main>
+  <main className="flex flex-col items-center justify-start p-6 space-y-6">
+    <AchievementAlert
+      label="Level Reached"
+      value={level}
+      icon={<Medal className="h-4 w-4 text-yellow-500" />}
+      step={1}
+      type="level"
+    />
+    <AchievementAlert
+      label="Highest Combo"
+      value={highestCombo}
+      icon={<Star className="h-4 w-4 text-yellow-500" />}
+      step={5} // Combo increments by 5
+      type="combo"
+    />
+    <AchievementAlert
+      label="Highest Score"
+      value={highestScore}
+      icon={<Trophy className="h-4 w-4 text-yellow-500" />}
+      step={1} // Score steps are defined in level.ts
+      type="score"
+    />
+  </main>
 );

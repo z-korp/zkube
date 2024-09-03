@@ -4,7 +4,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/ui/elements/card";
 import {
   Select,
@@ -38,51 +37,37 @@ import {
   TableHeader,
   TableRow,
 } from "@/ui/elements/table";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faFire,
-  faWebAwesome,
   faStar,
-  faCalendar,
   faArrowsAltH,
 } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Game } from "@/dojo/game/models/game";
 
-// Fonction utilitaire pour formater les dates
-const formatDate = (date: Date): string => {
-  return `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1)
+// Format dates
+const formatDate = (date: Date): string =>
+  `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1)
     .toString()
     .padStart(2, "0")}/${date.getFullYear()}`;
-};
 
-// Fonction pour générer les données de graphique
-const generateChartData = (
-  games: Game[],
-): { score: number; date: string; combo: number; moves: number }[] => {
-  return games.map((game) => {
-    const gameDate = new Date(Number(game.start_time) * 1000);
-    return {
-      score: game.score,
-      date: formatDate(gameDate),
-      combo: game.combo,
-      moves: game.moves,
-    };
-  });
-};
+// Generate data for charts 
+const generateChartData = (games: Game[]) =>
+  games.map((game) => ({
+    score: game.score,
+    date: formatDate(new Date(Number(game.start_time) * 1000)),
+    combo: game.combo,
+    moves: game.moves,
+  }));
 
-// Fonction utilitaire pour calculer les statistiques
+// Compute stats 
 const calculateStatistics = (games: Game[]) => {
   const totalGamesPlayed = games.length;
   const totalScore = games.reduce((sum, game) => sum + game.score, 0);
   const highestScore = Math.max(...games.map((game) => game.score), 0);
   const averageScore = totalGamesPlayed > 0 ? totalScore / totalGamesPlayed : 0;
 
-  return {
-    highestScore,
-    totalGamesPlayed,
-    totalScore,
-    averageScore,
-  };
+  return { highestScore, totalGamesPlayed, totalScore, averageScore };
 };
 
 const filterGamesByDate = (games: Game[], period: string) => {
@@ -109,30 +94,24 @@ const filterGamesByDate = (games: Game[], period: string) => {
   });
 };
 
-// Ajout de la gestion des utilisations des bonus
-const calculateBonusUsage = (
-  games: Game[],
-): { hammerTotal: number; waveTotal: number; totemTotal: number, hammerUsed: number, waveUsed: number, totemUsed: number } => {
-  return games.reduce(
-    (acc, game) => {
-      acc.hammerTotal += game.hammer;
-      acc.waveTotal += game.wave;
-      acc.totemTotal += game.totem;
-      acc.hammerUsed += game.hammer_used;
-      acc.waveUsed += game.wave_used;
-      acc.totemUsed += game.totem_used;
-      return acc;
-    },
-    { hammerTotal: 0, waveTotal: 0, totemTotal: 0, hammerUsed: 0, waveUsed: 0, totemUsed:0 },
+// Bonus usage management 
+const calculateBonusUsage = (games: Game[]) =>
+  games.reduce(
+    (acc, game) => ({
+      hammerTotal: acc.hammerTotal + game.hammer,
+      waveTotal: acc.waveTotal + game.wave,
+      totemTotal: acc.totemTotal + game.totem,
+      hammerUsed: acc.hammerUsed + game.hammer_used,
+      waveUsed: acc.waveUsed + game.wave_used,
+      totemUsed: acc.totemUsed + game.totem_used,
+    }),
+    { hammerTotal: 0, waveTotal: 0, totemTotal: 0, hammerUsed: 0, waveUsed: 0, totemUsed: 0 }
   );
-};
 
 export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
   const [selectedPeriod, setSelectedPeriod] = useState("All");
   const [filteredGames, setFilteredGames] = useState<Game[]>([]);
-  const [data, setData] = useState<
-    { score: number; date: string; combo: number; moves: number }[]
-  >([]);
+  const [data, setData] = useState(generateChartData(filteredGames));
 
   useEffect(() => {
     const filtered = filterGamesByDate(games, selectedPeriod);
@@ -155,15 +134,6 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
       { bonusType: "Totem", count: totemTotal, use: totemUsed },
     ];
   }, [games, selectedPeriod]);
-
-  const chartData = [
-    { month: "January", desktop: 186 },
-    { month: "February", desktop: 305 },
-    { month: "March", desktop: 237 },
-    { month: "April", desktop: 273 },
-    { month: "May", desktop: 209 },
-    { month: "June", desktop: 214 },
-  ];
 
   return (
     <main className="flex flex-col items-center justify-start">
@@ -268,7 +238,7 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
                   <CardContent>
                     <ChartContainer
                       config={chartConfig}
-                      className="mx-auto aspect-square ]"
+                      className="mx-auto aspect-square"
                     >
                       <RadarChart data={bonusData}>
                         <PolarGrid />

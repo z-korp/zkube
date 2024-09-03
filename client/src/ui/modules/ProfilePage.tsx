@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,59 +14,28 @@ import Connect from "../components/Connect";
 import { useGames } from "@/hooks/useGames";
 import { usePlayer } from "@/hooks/usePlayer";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
+import { Level } from "@/dojo/game/types/level";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/elements/tabs";
 import { motion } from "framer-motion";
-import { Game } from "@/dojo/game/models/game";
 
-// Constantes pour les seuils de score et de combo
-const SCORE_THRESHOLDS = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
-const COMBO_THRESHOLDS = [5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-
-// Typage des résultats des filtrages
-type GamesByThreshold = {
-  threshold: number;
-  games: Game[];
-};
-
-// Composant principal de la page profil
 export const ProfilePage = () => {
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
   const { games } = useGames();
 
-  // ACHIEVEMENTS
-  // Filtre les jeux en fonction de l'utilisateur connecté
   const filteredGames = useMemo(() => {
     if (!account?.address || !games) return [];
     return games.filter((game) => game.player_id === account?.address);
   }, [games, account?.address]);
 
-
-  // Fonction générique pour obtenir les jeux par seuil
-  const getGamesByThresholds = useCallback(
-    (
-      games: Game[],
-      thresholds: number[],
-      key: keyof Game,
-    ): GamesByThreshold[] => {
-      return thresholds.map((threshold) => ({
-        threshold,
-        games: games.filter((game) => Number(game[key]) >= threshold),
-      }));
-    },
-    [],
+  const levelPlayer = player?.points ? Level.fromPoints(player.points) : null;
+  const highestCombo = useMemo(
+    () => Math.max(...filteredGames.map((game) => game.combo), 0),
+    [filteredGames]
   );
-
-  // Récupère les jeux par seuil de score
-  const gamesByScoreThresholds = useMemo(
-    () => getGamesByThresholds(filteredGames, SCORE_THRESHOLDS, "score"),
-    [filteredGames, getGamesByThresholds],
-  );
-
-  // Récupère les jeux par seuil de combo
-  const gamesByComboThresholds = useMemo(
-    () => getGamesByThresholds(filteredGames, COMBO_THRESHOLDS, "combo"),
-    [filteredGames, getGamesByThresholds],
+  const highestScore = useMemo(
+    () => Math.max(...filteredGames.map((game) => Level.fromPoints(game.score).getPoints()), 0),
+    [filteredGames]
   );
 
   return (
@@ -99,8 +68,9 @@ export const ProfilePage = () => {
                 >
                   <CardContent>
                     <Achievements
-                      gamesByThresholds={gamesByScoreThresholds}
-                      combosByThresholds={gamesByComboThresholds}
+                      level={levelPlayer?.value || 1}
+                      highestScore={highestScore}
+                      highestCombo={highestCombo}
                     />
                   </CardContent>
                 </motion.div>
