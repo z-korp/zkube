@@ -24,7 +24,6 @@ import GoogleFormEmbed from "../components/GoogleFormEmbed";
 import { useQuerySync } from "@dojoengine/react";
 import { ModeType } from "@/dojo/game/types/mode";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import ContentTabs from "../components/ContentTabs";
 
 interface position {
   x: number;
@@ -168,7 +167,6 @@ export const Home = () => {
 
   return (
     <div className="relative flex flex-col h-screen">
-      {createPortal(<ContentTabs />, document.body)}
       <Header />
       <BackGroundBoard imageBackground={imgAssets.imageBackground}>
         <BackGroundBoard
