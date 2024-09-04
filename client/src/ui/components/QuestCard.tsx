@@ -18,7 +18,7 @@ export default function QuestCard({
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="text-base flex flex-col gap-y-4">
+      <CardContent className="sm:text-base text-sm flex flex-col sm:gap-y-4 gap-y-2">
         <p>Objective: {objective}</p>
         <p>Reward: {reward}</p>
         <p>Deadline: {deadline}</p>

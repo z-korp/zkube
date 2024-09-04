@@ -2,7 +2,7 @@ import QuestCard from "./QuestCard";
 
 export default function WeeklyQuests() {
   return (
-    <div className="grid grid-cols-3 gap-x-3 bg-[#11172a] py-5  pt-[35px] px-8">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-3 bg-[#11172a] sm:py-5 py-3  pt-[35px] px-4 sm:px-8">
       <QuestCard
         title="Quest 1"
         objective="Capture the flag"

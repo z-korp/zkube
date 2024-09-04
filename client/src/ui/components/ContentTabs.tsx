@@ -1,7 +1,6 @@
 import React from "react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/elements/tabs";
-import { Card, CardHeader, CardContent, CardTitle } from "@/ui/elements/card";
 import WeeklyQuests from "./WeeklyQuests";
 import News from "./News";
 import Chests from "./Chests";
@@ -12,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../elements/dialog";
-import { Button } from "../elements/button";
+import { Button } from "@/ui/elements/button";
 
 const ContentTabs = () => {
   const [selectedTab, setSelectedTab] = useState("weekly-quests");
@@ -22,12 +21,12 @@ const ContentTabs = () => {
       <DialogTrigger asChild>
         <Button variant="outline">Extras</Button>
       </DialogTrigger>
-      <DialogContent className="min-w-[1000px]">
-        <DialogHeader className="flex items-center text-2xl">
+      <DialogContent className="sm:min-w-[1000px]">
+        <DialogHeader className="flex items-center text-base sm:text-2xl">
           <DialogTitle>Extras</DialogTitle>
         </DialogHeader>
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="">
-          <TabsList className="flex justify-center text-2xl gap-x-4">
+          <TabsList className="flex justify-center text-base sm:text-2xl gap-x-4">
             <TabsTrigger
               value="weekly-quests"
               className="px-4 py-2 data-[state=active]:bg-[#1c283a] bg-[#10172a] rounded-t-md"
@@ -50,16 +49,16 @@ const ContentTabs = () => {
 
           <TabsContent
             value="weekly-quests"
-            className="py-8 bg-[#1c283a] rounded"
+            className="py-4 sm:py-8 bg-[#1c283a] rounded"
           >
             <WeeklyQuests />
           </TabsContent>
 
-          <TabsContent value="news" className="py-8 bg-[#1c283a] rounded">
+          <TabsContent value="news" className="py-4 sm:py-8 bg-[#1c283a] rounded">
             <News />
           </TabsContent>
 
-          <TabsContent value="chests" className="py-8 bg-[#1c283a] rounded">
+          <TabsContent value="chests" className="py-4 sm:py-8 bg-[#1c283a] rounded">
             <Chests />
           </TabsContent>
         </Tabs>
