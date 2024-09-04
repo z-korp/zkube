@@ -10,6 +10,7 @@ import {
   DrawerTitle,
 } from "../elements/drawer";
 import { Leaderboard } from "../modules/Leaderboard";
+import { ProfilePage } from "../modules/ProfilePage";
 import { MusicPlayer } from "../modules/MusicPlayer";
 import AccountDetails from "./AccountDetails";
 import { ModeToggle } from "./Theme";
@@ -55,6 +56,10 @@ const MobileMenu = () => {
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Leaderboard</p>
               <Leaderboard />
+            </div>
+            <div className="flex flex-col gap-2 items-center">
+              <p className="self-start">Profile</p>
+              <ProfilePage />
             </div>
           </div>
         </DrawerContent>
