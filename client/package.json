@@ -69,6 +69,7 @@
     "react-responsive": "^10.0.0",
     "react-router-dom": "^6.23.1",
     "react-tooltip": "^5.28.0",
+    "recharts": "^2.12.7",
     "rxjs": "^7.8.1",
     "sonner": "^1.5.0",
     "starknet": "6.11.0",

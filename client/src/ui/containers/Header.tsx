@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useMediaQuery } from "react-responsive";
 import { Leaderboard } from "../modules/Leaderboard";
+import { ProfilePage } from "../modules/ProfilePage";
 import Connect from "../components/Connect";
 import { ModeType } from "@/dojo/game/types/mode";
 import SettingsDropDown from "../components/SettingsDropDown";
@@ -39,11 +40,11 @@ export const Header = () => {
         <div className="flex flex-col gap-4 items-center md:flex-row">
           {!!player && (
             <div className="flex gap-3">
-              <p className="text-2xl max-w-66 truncate">{player.name}</p>
-              <LevelIndicator currentXP={player.points} />
-              <DailyGameStatus />
+            <ProfilePage />
+            <LevelIndicator currentXP={player.points} />
+          <DailyGameStatus />
               <HeaderBalance />
-            </div>
+          </div>
           )}
 
           {ACCOUNT_CONNECTOR === "controller" && <Connect />}
