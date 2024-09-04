@@ -13,6 +13,7 @@ import LevelIndicator from "../components/LevelIndicator";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 import DailyGameStatus from "../components/DailyGameStatus";
 import HeaderBalance from "../components/HeaderBalance";
+import ContentTabs from "../components/ContentTabs";
 
 export const Header = () => {
   const { account } = useAccountCustom();
@@ -36,15 +37,16 @@ export const Header = () => {
         >
           <p className="text-4xl font-bold">zKube</p>
           <Leaderboard />
+          <ContentTabs />
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
           {!!player && (
             <div className="flex gap-3">
-            <ProfilePage />
-            <LevelIndicator currentXP={player.points} />
-          <DailyGameStatus />
+              <ProfilePage />
+              <LevelIndicator currentXP={player.points} />
+              <DailyGameStatus />
               <HeaderBalance />
-          </div>
+            </div>
           )}
 
           {ACCOUNT_CONNECTOR === "controller" && <Connect />}
