@@ -20,7 +20,7 @@ const ContentTabs = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">Extras</Butt>
+        <Button variant="outline">Extras</Button>
       </DialogTrigger>
       <DialogContent className="min-w-[1000px]">
         <DialogHeader className="flex items-center text-2xl">
