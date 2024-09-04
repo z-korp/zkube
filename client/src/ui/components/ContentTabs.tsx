@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/elements/tabs";
 import { Card, CardHeader, CardContent, CardTitle } from "@/ui/elements/card";
 import WeeklyQuests from "./WeeklyQuests";
 import News from "./News";
@@ -20,7 +20,7 @@ const ContentTabs = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">Extras</Button>
+        <Button variant="outline">Extras</Butt>
       </DialogTrigger>
       <DialogContent className="min-w-[1000px]">
         <DialogHeader className="flex items-center text-2xl">
