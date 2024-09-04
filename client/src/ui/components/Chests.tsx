@@ -2,7 +2,7 @@ import ChestCard from "./ChestCard";
 
 export default function Chests() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-x-3 gap-y-10 bg-[#11172a] md:py-5 py-3  pt-[35px] px-4 md:px-8 md:max-h-fit max-h-[500px] overflow-y-auto">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-x-3 gap-y-10 bg-[#11172a] md:py-9 py-3  pt-[35px] px-4 md:px-8 md:max-h-fit max-h-[500px] overflow-y-auto">
       <ChestCard type="Gold" reward="100" availability="12 / 128" image="" />
       <ChestCard
         type="Silver"

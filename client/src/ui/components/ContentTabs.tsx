@@ -21,7 +21,7 @@ const ContentTabs = () => {
       <DialogTrigger asChild>
         <Button variant="outline">Extras</Button>
       </DialogTrigger>
-      <DialogContent className="md:w-[65%] w-[90%]">
+      <DialogContent className="md:max-w-[65%] w-[90%]">
         <DialogHeader className="flex items-center text-base md:text-2xl">
           <DialogTitle>Extras</DialogTitle>
         </DialogHeader>
