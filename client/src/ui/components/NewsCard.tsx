@@ -12,9 +12,9 @@ export default function NewsCard({
   timestamp: string;
 }) {
   return (
-    <Card className=" bg-[#1c283a] w-full shadow-md rounded-lg h-[250px]">
+    <Card className=" bg-[#1c283a] w-full shadow-md rounded-lg md:h-[250px]">
       <CardHeader className="flex flex-col justify-center items-center">
-        <CardTitle className="p-3 mt-[-50px] bg-[#172232] rounded-md">
+        <CardTitle className="p-2 md:p-3 mt-[-50px] bg-[#172232] rounded-md">
           News {index}
         </CardTitle>
       </CardHeader>

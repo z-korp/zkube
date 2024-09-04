@@ -21,27 +21,27 @@ const ContentTabs = () => {
       <DialogTrigger asChild>
         <Button variant="outline">Extras</Button>
       </DialogTrigger>
-      <DialogContent className="sm:min-w-[1000px]">
-        <DialogHeader className="flex items-center text-base sm:text-2xl">
+      <DialogContent className="md:w-[65%] w-[90%]">
+        <DialogHeader className="flex items-center text-base md:text-2xl">
           <DialogTitle>Extras</DialogTitle>
         </DialogHeader>
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="">
-          <TabsList className="flex justify-center text-base sm:text-2xl gap-x-4">
+        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+          <TabsList className="flex w-full justify-center bg-transparent text-base md:text-2xl gap-x-1 md:gap-x-4">
             <TabsTrigger
               value="weekly-quests"
-              className="px-4 py-2 data-[state=active]:bg-[#1c283a] bg-[#10172a] rounded-t-md"
+              className="px-4 py-2 w-fit data-[state=active]:bg-[#1c283a] bg-[#10172a] rounded-none rounded-t-md"
             >
               Weekly Quests
             </TabsTrigger>
             <TabsTrigger
               value="news"
-              className="px-4 py-2 data-[state=active]:bg-[#1c283a] bg-[#10172a] rounded-t-md"
+              className="px-4 py-2 data-[state=active]:bg-[#1c283a] bg-[#10172a] rounded-none rounded-t-md"
             >
               News
             </TabsTrigger>
             <TabsTrigger
               value="chests"
-              className="px-4 py-2 data-[state=active]:bg-[#1c283a] bg-[#10172a] rounded-t-md"
+              className="px-4 py-2 data-[state=active]:bg-[#1c283a] bg-[#10172a] rounded-none rounded-t-md"
             >
               Chests
             </TabsTrigger>
@@ -49,16 +49,22 @@ const ContentTabs = () => {
 
           <TabsContent
             value="weekly-quests"
-            className="py-4 sm:py-8 bg-[#1c283a] rounded"
+            className="py-4 mt-0 md:py-8 bg-[#1c283a] rounded"
           >
             <WeeklyQuests />
           </TabsContent>
 
-          <TabsContent value="news" className="py-4 sm:py-8 bg-[#1c283a] rounded">
+          <TabsContent
+            value="news"
+            className="py-4 md:py-8 mt-0 bg-[#1c283a] rounded"
+          >
             <News />
           </TabsContent>
 
-          <TabsContent value="chests" className="py-4 sm:py-8 bg-[#1c283a] rounded">
+          <TabsContent
+            value="chests"
+            className="py-4 md:py-8 mt-0 bg-[#1c283a] rounded"
+          >
             <Chests />
           </TabsContent>
         </Tabs>

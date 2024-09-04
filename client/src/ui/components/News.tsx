@@ -2,7 +2,7 @@ import NewsCard from "./NewsCard";
 
 export default function News() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-3 bg-[#11172a] sm:py-5 py-3  pt-[35px] px-4 sm:px-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-x-3 gap-y-10 bg-[#11172a] md:py-5 py-3  pt-[35px] px-4 md:px-8 md:max-h-fit max-h-[500px] overflow-y-auto">
       <NewsCard
         title="Zkube gets a major upgrade"
         index="1"
