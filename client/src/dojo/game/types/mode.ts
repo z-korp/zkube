@@ -2,6 +2,7 @@ export enum ModeType {
   None = "None",
   Normal = "Normal",
   Daily = "Daily",
+  Tutorial = "Totorial",
 }
 
 export class Mode {

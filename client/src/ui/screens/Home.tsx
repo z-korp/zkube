@@ -15,11 +15,7 @@ import NextLine from "../components/NextLine";
 import { Surrender } from "../actions/Surrender";
 import { Content as Leaderboard } from "../modules/Leaderboard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faFire,
-  faGlobe,
-  faStar,
-} from "@fortawesome/free-solid-svg-icons";
+import { faFire, faGlobe, faStar } from "@fortawesome/free-solid-svg-icons";
 import GoogleFormEmbed from "../components/GoogleFormEmbed";
 import { useQuerySync } from "@dojoengine/react";
 import { ModeType } from "@/dojo/game/types/mode";
@@ -54,7 +50,7 @@ export const Home = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [level, setLevel] = useState<number | "">(0);
   const [score, setScore] = useState<number | undefined>(0);
-  const [imgData, setImgData] = useState<string>('');
+  const [imgData, setImgData] = useState<string>("");
 
   useEffect(() => {
     if (game?.over) {
@@ -224,20 +220,28 @@ export const Home = () => {
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
               <Create />
-              {(!game || (!!game && isGameOn === "isOver" ))&& (<div className="flex  p-4 rounded-xl mt-12 w-[93%] gap-4 items-center justify-evenly">
-                <Start
-                  mode={ModeType.Daily}
-                  handleGameMode={() => setIsGameOn("isOn")}
-                  potentialWinnings="100 STRK"
-                  remainingTime="02:15:00"
+              {(!game || (!!game && isGameOn === "isOver")) && (
+                <div className="flex  p-4 rounded-xl mt-12 w-[93%] gap-4 items-center justify-evenly">
+                  <Start
+                    mode={ModeType.Daily}
+                    handleGameMode={() => setIsGameOn("isOn")}
+                    potentialWinnings="100 STRK"
+                    remainingTime="02:15:00"
                   />
-                <Start
-                  mode={ModeType.Normal}
-                  handleGameMode={() => setIsGameOn("isOn")}
-                  potentialWinnings="50 STRK"
-                  remainingTime="02:15:00"
-                />
-              </div>)}
+                  <Start
+                    mode={ModeType.Daily}
+                    handleGameMode={() => setIsGameOn("isOn")}
+                    potentialWinnings="100 STRK"
+                    remainingTime="02:15:00"
+                  />
+                  <Start
+                    mode={ModeType.Tutorial}
+                    handleGameMode={() => setIsGameOn("isOn")}
+                    potentialWinnings="0 STRK"
+                    remainingTime="02:15:00"
+                  />
+                </div>
+              )}
               {!game && (
                 <div className="absolute top md:translate-y-[100%] translate-y-[40%] bg-slate-900 w-11/12 p-6 rounded-xl">
                   <Leaderboard modeType={ModeType.Daily} />
@@ -265,9 +269,9 @@ export const Home = () => {
                       <div className="grow text-4xl flex gap-2 justify-end">
                         {game.max_combo}
                         <FontAwesomeIcon
-                  icon={faGlobe}
-                  className="text-slate-700 ml-2"
-                />
+                          icon={faGlobe}
+                          className="text-slate-700 ml-2"
+                        />
                       </div>
                     </div>
                   </div>
@@ -309,9 +313,15 @@ export const Home = () => {
               )}
             </div>
           </div>
-          <TweetPreview open={isPreviewOpen} setOpen={setIsPreviewOpen} level={level} score={score} imgSrc={imgData} />
+          <TweetPreview
+            open={isPreviewOpen}
+            setOpen={setIsPreviewOpen}
+            level={level}
+            score={score}
+            imgSrc={imgData}
+          />
           <AnimatePresence>
-            {!animationDone && ( 
+            {!animationDone && (
               <>
                 <>
                   <PalmTree

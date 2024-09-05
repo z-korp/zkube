@@ -62,7 +62,7 @@ export const Start: React.FC<StartProps> = ({
         sqrt_ratio_hint: proof_verify_hint,
         beta: beta,
       });
-      handleGameMode()
+      handleGameMode();
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +87,18 @@ export const Start: React.FC<StartProps> = ({
   return (
     <div className=" p-4 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
       <h2 className="text-2xl font-bold mb-2">
-        {mode === ModeType.Daily ? "Daily Mode" : "Normal Mode"}
+        {(() => {
+          switch (mode) {
+            case ModeType.Daily:
+              return <>Daily Mode</>;
+            case ModeType.Normal:
+              return <>Normal Mode</>;
+            case ModeType.Tutorial:
+              return <>Tutorial Mode</>;
+            default:
+              return <>Normal Mode</>;
+          }
+        })()}
       </h2>
       <p className="text-lg">
         <strong>Potential Winnings:</strong> {potentialWinnings}
