@@ -95,8 +95,12 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
   useEffect(() => {
     const rem = Math.floor(sortedGames.length / (GAME_PER_PAGE + 1)) + 1;
     setPageCount(rem);
-    setPage(1); // Reset to first page when mode changes
+    //setPage(1); // Reset to first page when mode changes
   }, [sortedGames]);
+
+  useEffect(() => {
+    setPage(1); // Reset to first page only when mode changes
+  }, [modeType]);
 
   const { start, end } = useMemo(() => {
     const start = (page - 1) * GAME_PER_PAGE;
