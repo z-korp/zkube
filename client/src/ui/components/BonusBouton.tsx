@@ -8,7 +8,11 @@ interface BonusButtonProps {
   bonusCount: number;
 }
 
-const BonusButton: React.FC<BonusButtonProps> = ({ onClick, urlImage, bonusCount }) => {
+const BonusButton: React.FC<BonusButtonProps> = ({
+  onClick,
+  urlImage,
+  bonusCount,
+}) => {
   const [isClicked, setIsClicked] = useState(false);
 
   const altText = "image for bonus";
@@ -36,7 +40,7 @@ const BonusButton: React.FC<BonusButtonProps> = ({ onClick, urlImage, bonusCount
         size="icon"
         className="md:p-2 sm:p-1 p-1 border"
         onClick={handleClick}
-        disabled={false}
+        disabled={true}
       >
         <img src={urlImage} alt={altText} />
       </Button>
