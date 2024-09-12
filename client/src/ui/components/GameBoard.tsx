@@ -185,6 +185,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const insertNewLine = async () => {
     const newPieces = pieces.map(piece => ({ ...piece, row: piece.row - 1 }));
+    
     const newLinePieces = nextLine.map((type, index) => ({
       id: Date.now() + index,
       type,
@@ -196,7 +197,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       isFalling: false,
       isClearing: false,
     }));
-
+    console.log("newLinePieces", newLinePieces);
     const updatedPieces = [...newPieces, ...newLinePieces];
     console.log("Inserting new line, updated pieces:", updatedPieces);
     setPieces(updatedPieces);
@@ -243,9 +244,16 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
     if (isValidPosition({ ...draggingPiece, col: newCol }, grid)) {
       console.log("Dragging piece to new position:", { col: newCol });
-      //Todo debug draggingPiece
-      console.log("Dragging piece:", draggingPiece);
-      setDraggingPiece({ ...draggingPiece, col: newCol });
+      const updatedPiece = { ...draggingPiece, col: newCol };
+      setDraggingPiece(updatedPiece);
+      
+      // Update the pieces array and grid to reflect the new position
+      const newPieces = pieces.map(p => 
+        p.id === updatedPiece.id ? updatedPiece : p
+      );
+      setPieces(newPieces);
+      const newGrid = updateGridWithPieces(grid, newPieces);
+      setGrid(newGrid);
     }
   }
 
