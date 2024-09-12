@@ -5,11 +5,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFire, faGlobe, faStar } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
 import { PieceNew, Cell as CellType, PIECE_TYPES } from "@/types/types";
-import Cell from "./Cell";
+import Cell from "./Piece";
 import { useMediaQuery } from "react-responsive";
 import { Account } from "starknet";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { convertGridToPieces, updateGridWithPieces, findPieceAtCell, isValidPosition } from '@/utils/piece';
+import Piece from "./Piece";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -183,11 +184,14 @@ const GameBoard: React.FC<GameBoardProps> = ({
     return false;
   };
 
+  const generateUniqueId = () => {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  };
+
   const insertNewLine = async () => {
     const newPieces = pieces.map(piece => ({ ...piece, row: piece.row - 1 }));
-    
     const newLinePieces = nextLine.map((type, index) => ({
-      id: Date.now() + index,
+      id: generateUniqueId(),
       type,
       width: PIECE_TYPES.find(p => p.type === type)?.width || 1,
       row: rows - 1,
@@ -538,31 +542,23 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
             {/* Render pieces */}
             {pieces.map((piece) => (
-              <React.Fragment key={piece.id}>
-                {Array.from({ length: piece.width }).map((_, i) => (
-                  <Cell
-                    key={`${piece.id}-${i}`}
-                    cell={{
-                      id: `${piece.row}-${piece.col + i}`,
-                      pieceId: piece.type,
-                      isStart: i === 0,
-                      pieceIndex: piece.id,
-                    }}
-                    rowIndex={piece.row}
-                    colIndex={piece.col + i}
-                    isLineComplete={isLineComplete(piece.row)}
-                    draggingPiece={draggingPiece}
-                    gridRef={gridRef}
-                    cols={cols}
-                    rows={rows}
-                    startDragging={startDragging}
-                    handleRowClick={handleRowClick}
-                    handleCellClick={handleCellClick}
-                    isTxProcessing={isTxProcessing}
-                    isAnimating={isAnimating}
-                  />
-                ))}
-              </React.Fragment>
+  <React.Fragment key={piece.id}>
+    {Array.from({ length: piece.width }).map((_, i) => (
+      <Piece
+        key={`${piece.id}-${i}`}
+        piece={piece}
+        cellIndex={i}
+        isLineComplete={isLineComplete(piece.row)}
+        isDragging={draggingPiece?.id === piece.id}
+        dragOffset={draggingPiece?.id === piece.id ? draggingPiece.currentX - draggingPiece.startX : 0}
+        isTxProcessing={isTxProcessing}
+        isAnimating={isAnimating}
+        startDragging={startDragging}
+        handleRowClick={handleRowClick}
+        handleCellClick={handleCellClick}
+      />
+    ))}
+  </React.Fragment>
             ))}
           </div>
         </div>
