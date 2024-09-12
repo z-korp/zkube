@@ -1,15 +1,8 @@
 import React from "react";
-import { Piece, Cell as CellType } from "@/types/types";
+import { Piece, Cell as CellType, PIECE_TYPES } from "@/types/types";
 import GetElementStyle from "../theme/GetElementStyle";
 import { useTheme } from "@/ui/elements/theme-provider";
 import { useMediaQuery } from "react-responsive";
-
-const PIECES: Piece[] = [
-  { id: 1, width: 1, element: "stone1" },
-  { id: 2, width: 2, element: "stone2" },
-  { id: 3, width: 3, element: "stone3" },
-  { id: 4, width: 4, element: "stone4" },
-];
 
 interface CellProps {
   cell: CellType;
@@ -46,7 +39,7 @@ const Cell: React.FC<CellProps> = ({
   handleRowClick,
   handleCellClick,
 }) => {
-  const piece = PIECES.find((p) => p.id === cell.pieceId);
+  const piece = PIECE_TYPES.find((p) => p.type === cell.pieceId);
   const { themeTemplate } = useTheme();
   const isSmallScreen = useMediaQuery({ query: "(min-width: 640px)" });
 
