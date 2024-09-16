@@ -129,11 +129,11 @@
   {
     "type": "impl",
     "name": "IDojoInitImpl",
-    "interface_name": "zkube::systems::actions::actions::IDojoInit"
+    "interface_name": "zkube::systems::account::account::IDojoInit"
   },
   {
     "type": "interface",
-    "name": "zkube::systems::actions::actions::IDojoInit",
+    "name": "zkube::systems::account::account::IDojoInit",
     "items": [
       {
         "type": "function",
@@ -146,70 +146,12 @@
   },
   {
     "type": "impl",
-    "name": "ActionsImpl",
-    "interface_name": "zkube::systems::actions::IActions"
-  },
-  {
-    "type": "struct",
-    "name": "stark_vrf::ecvrf::Point",
-    "members": [
-      {
-        "name": "x",
-        "type": "core::felt252"
-      },
-      {
-        "name": "y",
-        "type": "core::felt252"
-      }
-    ]
-  },
-  {
-    "type": "struct",
-    "name": "stark_vrf::ecvrf::Proof",
-    "members": [
-      {
-        "name": "gamma",
-        "type": "stark_vrf::ecvrf::Point"
-      },
-      {
-        "name": "c",
-        "type": "core::felt252"
-      },
-      {
-        "name": "s",
-        "type": "core::felt252"
-      },
-      {
-        "name": "sqrt_ratio_hint",
-        "type": "core::felt252"
-      }
-    ]
-  },
-  {
-    "type": "enum",
-    "name": "zkube::types::bonus::Bonus",
-    "variants": [
-      {
-        "name": "None",
-        "type": "()"
-      },
-      {
-        "name": "Hammer",
-        "type": "()"
-      },
-      {
-        "name": "Totem",
-        "type": "()"
-      },
-      {
-        "name": "Wave",
-        "type": "()"
-      }
-    ]
+    "name": "AccountImpl",
+    "interface_name": "zkube::systems::account::IAccount"
   },
   {
     "type": "interface",
-    "name": "zkube::systems::actions::IActions",
+    "name": "zkube::systems::account::IAccount",
     "items": [
       {
         "type": "function",
@@ -230,85 +172,6 @@
           {
             "name": "name",
             "type": "core::felt252"
-          }
-        ],
-        "outputs": [],
-        "state_mutability": "external"
-      },
-      {
-        "type": "function",
-        "name": "start",
-        "inputs": [
-          {
-            "name": "world",
-            "type": "dojo::world::IWorldDispatcher"
-          },
-          {
-            "name": "mode",
-            "type": "core::integer::u8"
-          },
-          {
-            "name": "proof",
-            "type": "stark_vrf::ecvrf::Proof"
-          },
-          {
-            "name": "seed",
-            "type": "core::felt252"
-          },
-          {
-            "name": "beta",
-            "type": "core::felt252"
-          }
-        ],
-        "outputs": [
-          {
-            "type": "core::integer::u32"
-          }
-        ],
-        "state_mutability": "external"
-      },
-      {
-        "type": "function",
-        "name": "surrender",
-        "inputs": [],
-        "outputs": [],
-        "state_mutability": "external"
-      },
-      {
-        "type": "function",
-        "name": "move",
-        "inputs": [
-          {
-            "name": "row_index",
-            "type": "core::integer::u8"
-          },
-          {
-            "name": "start_index",
-            "type": "core::integer::u8"
-          },
-          {
-            "name": "final_index",
-            "type": "core::integer::u8"
-          }
-        ],
-        "outputs": [],
-        "state_mutability": "external"
-      },
-      {
-        "type": "function",
-        "name": "apply_bonus",
-        "inputs": [
-          {
-            "name": "bonus",
-            "type": "zkube::types::bonus::Bonus"
-          },
-          {
-            "name": "row_index",
-            "type": "core::integer::u8"
-          },
-          {
-            "name": "line_index",
-            "type": "core::integer::u8"
           }
         ],
         "outputs": [],
@@ -371,13 +234,7 @@
   },
   {
     "type": "event",
-    "name": "zkube::components::playable::PlayableComponent::Event",
-    "kind": "enum",
-    "variants": []
-  },
-  {
-    "type": "event",
-    "name": "zkube::systems::actions::actions::Event",
+    "name": "zkube::systems::account::account::Event",
     "kind": "enum",
     "variants": [
       {
@@ -388,11 +245,6 @@
       {
         "name": "ManageableEvent",
         "type": "zkube::components::manageable::ManageableComponent::Event",
-        "kind": "flat"
-      },
-      {
-        "name": "PlayableEvent",
-        "type": "zkube::components::playable::PlayableComponent::Event",
         "kind": "flat"
       }
     ]

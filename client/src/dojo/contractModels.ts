@@ -34,7 +34,8 @@ export function defineContractComponents(world: World) {
         },
         {
           metadata: {
-            name: "zkube-Game",
+            namespace: "zkube",
+            name: "Game",
             types: [
               "u32",
               "bool",
@@ -74,7 +75,8 @@ export function defineContractComponents(world: World) {
         },
         {
           metadata: {
-            name: "zkube-Player",
+            namespace: "zkube",
+            name: "Player",
             types: ["felt252", "u32", "felt252", "u32"],
             customTypes: [],
           },

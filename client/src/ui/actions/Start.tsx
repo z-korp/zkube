@@ -62,7 +62,7 @@ export const Start: React.FC<StartProps> = ({
         sqrt_ratio_hint: proof_verify_hint,
         beta: beta,
       });
-      handleGameMode()
+      handleGameMode();
     } finally {
       setIsLoading(false);
     }
@@ -104,7 +104,7 @@ export const Start: React.FC<StartProps> = ({
         disabled={isLoading || disabled}
         isLoading={isLoading}
         onClick={handleClick}
-        className="text-xl mt-4 w-full"
+        className="text-xl mt-4 w-full transition-transform duration-300 ease-in-out hover:scale-105"
       >
         Play
       </Button>

@@ -1507,11 +1507,7 @@
         }
       ],
       "reads": [],
-      "writes": [
-        "zkube-Player",
-        "zkube-Game",
-        "zkube-Tournament"
-      ],
+      "writes": ["zkube-Player", "zkube-Game", "zkube-Tournament"],
       "init_calldata": [],
       "tag": "zkube-account",
       "manifest_name": "zkube-account-6d28004d"
@@ -1965,11 +1961,7 @@
         }
       ],
       "reads": [],
-      "writes": [
-        "zkube-Player",
-        "zkube-Game",
-        "zkube-Tournament"
-      ],
+      "writes": ["zkube-Player", "zkube-Game", "zkube-Tournament"],
       "init_calldata": [
         "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
       ],

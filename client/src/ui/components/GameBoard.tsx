@@ -4,8 +4,8 @@ import { useDojo } from "@/dojo/useDojo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faFire,
-  faGlobe,
   faStar,
+  faWebAwesome,
 } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
 import { Piece, Cell as CellType } from "@/types/types";
@@ -13,6 +13,7 @@ import Cell from "./Cell";
 import { useMediaQuery } from "react-responsive";
 import { Account } from "starknet";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import MaxComboIcon from "./MaxComboIcon";
 
 //NOTE : Row commence en bas de la grille.
 //NOTE : Back : PieceId numéro de la piece dans la ligne (de gauche à droite)
@@ -693,12 +694,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
       handleBonusHammerTx(actualRowIndex, colIndex);
     }
 
-    // if (bonusTiki && clickedPiece.pieceId !== null) {
-    //   removePieceFromGridByCell(actualRowIndex, colIndex);
-    //   setBonusTiki(false);
-    //   applyGravityLoop();
-    //   // TODO: Appeler la transaction pour le bonus Tiki si nécessaire
-    // }
+    if (bonusTiki && clickedPiece.pieceId !== null) {
+      removePieceFromGridByCell(actualRowIndex, colIndex);
+      setBonusTiki(false);
+      applyGravityLoop();
+      handleBonusTikiTx(actualRowIndex, colIndex);
+    }
   };
 
   const handleRowClick = (rowIndex: number) => {
@@ -743,6 +744,26 @@ const GameBoard: React.FC<GameBoardProps> = ({
         await applyBonus({
           account: account as Account,
           bonus: 1,
+          row_index: rowIndex,
+          block_index: colIndex,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [account],
+  );
+
+  const handleBonusTikiTx = useCallback(
+    async (rowIndex: number, colIndex: number) => {
+      if (isAnimating) return;
+
+      setIsLoading(true);
+      setIsTxProcessing(true);
+      try {
+        await applyBonus({
+          account: account as Account,
+          bonus: 2,
           row_index: rowIndex,
           block_index: colIndex,
         });
@@ -858,56 +879,49 @@ const GameBoard: React.FC<GameBoardProps> = ({
       <Card
         className={`p-4 bg-secondary ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"}`}
       >
-        <div
-          className={`${isMdOrLarger ? "w-[413px]" : "w-[300px]"} mb-4 flex justify-start items-center`}
-        >
-          <GameBonus
-            onBonusWaveClick={handleBonusWaveClick}
-            onBonusTikiClick={handleBonusTikiClick}
-            onBonusHammerClick={handleBonusHammerClick}
-            hammerCount={hammerCount}
-            tikiCount={totemCount}
-            waveCount={waveCount}
-          />
-          <div
-            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end ml-4`}
-          >
-            {score}
-            <div className="relative inline-block">
-              <FontAwesomeIcon
-                icon={faStar}
-                className="text-yellow-500"
-                width={26}
-                height={26}
-              />
-            </div>
-          </div>
-          <div
-            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end relative ml-4`}
-          >
-            {combo}
-            <div className="relative inline-block">
-              <FontAwesomeIcon
-                icon={faFire}
-                className="text-slate-500"
-                width={26}
-                height={26}
-              />
-            </div>
-          </div>
-          <div
-            className={`flex grow ${isMdOrLarger ? "text-4xl" : "text-2xl"} sm:gap-2 gap-[2px] justify-end relative ml-4`}
-          >
-            {maxCombo}
-            <FontAwesomeIcon
-                  icon={faGlobe}
-                  className="text-slate-500"
-                  width={28}
-                  height={28}
-                />
-          </div>
-         
-        </div>
+        <div className={`${isMdOrLarger ? "w-[413px]" : "w-[300px]"} mb-4 flex justify-between`}>
+        <div className="w-5/12">
+    <GameBonus
+      onBonusWaveClick={handleBonusWaveClick}
+      onBonusTikiClick={handleBonusTikiClick}
+      onBonusHammerClick={handleBonusHammerClick}
+      hammerCount={hammerCount}
+      tikiCount={totemCount}
+      waveCount={waveCount}
+    />
+  </div>
+  
+  <div className="flex gap-1">
+    <div className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}>
+      <span>{score}</span>
+      <FontAwesomeIcon
+        icon={faStar}
+        className="text-yellow-500 ml-2"
+        width={ 26}
+        height={ 26}
+      />
+    </div>
+    
+    <div className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}>
+      <span>{combo}</span>
+      <FontAwesomeIcon
+        icon={faFire}
+        className="text-yellow-500 ml-2"
+        width={ 26}
+        height={26}
+      />
+    </div>
+    
+    <div className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}>
+      <span>{maxCombo}</span>
+      <MaxComboIcon
+        width={26}
+        height={26}
+        className={`text-yellow-500 ml-2 `}
+      />
+    </div>
+  </div>
+</div>
         <div className="bg-slate-800 relative">
           <div
             ref={gridRef}

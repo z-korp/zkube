@@ -1,6 +1,6 @@
 import React from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
-import BonusButton from "../components/BonusBouton";
+import BonusButton from "../components/BonusButton";
 import { useTheme } from "@/ui/elements/theme-provider";
 
 interface GameBonusProps {
@@ -23,42 +23,30 @@ export const GameBonus: React.FC<GameBonusProps> = ({
   const { themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
 
-  const handleClickWave = () => {
-    console.log("Wave button clicked");
-    onBonusWaveClick();
-  };
-
-  const handleClickTiki = () => {
-    console.log("Tiki button clicked");
-    onBonusTikiClick();
-  };
-
-  const handleClickHammer = () => {
-    console.log("Hammer button clicked");
-    onBonusHammerClick();
-  };
-
   return (
     <div className="grid grid-cols-3 gap-3">
       <div className="flex flex-col items-start">
         <BonusButton
-          onClick={handleClickHammer}
+          onClick={onBonusHammerClick}
           urlImage={imgAssets.hammer}
           bonusCount={hammerCount}
+          tooltipText="Destroys a block"
         />
       </div>
       <div className="flex flex-col items-center">
         <BonusButton
-          onClick={handleClickTiki}
-          urlImage={imgAssets.tiki}
-          bonusCount={tikiCount}
+          onClick={onBonusWaveClick}
+          urlImage={imgAssets.wave}
+          bonusCount={waveCount}
+          tooltipText="Destroys an entire line"
         />
       </div>
       <div className="flex flex-col w-full items-end">
         <BonusButton
-          onClick={handleClickWave}
-          urlImage={imgAssets.wave}
-          bonusCount={waveCount}
+          onClick={onBonusTikiClick}
+          urlImage={imgAssets.tiki}
+          bonusCount={tikiCount}
+          tooltipText="Destroys all blocks of a specific size"
         />
       </div>
     </div>
