@@ -4,8 +4,8 @@ import { useDojo } from "@/dojo/useDojo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faFire,
-  faGlobe,
   faStar,
+  faWebAwesome,
 } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
 import { Piece, Cell as CellType } from "@/types/types";
@@ -900,13 +900,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
           >
             {maxCombo}
             <FontAwesomeIcon
-                  icon={faGlobe}
-                  className="text-slate-500"
-                  width={28}
-                  height={28}
-                />
+              icon={faWebAwesome}
+              className="text-slate-500"
+              width={28}
+              height={28}
+            />
           </div>
-         
         </div>
         <div className="bg-slate-800 relative">
           <div
