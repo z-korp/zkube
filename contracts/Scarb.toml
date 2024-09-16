@@ -9,14 +9,15 @@ sierra-replace-ids = true
 
 [scripts]
 dev = "sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate apply"
-slot = "sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate apply"
-slotdev = "sozo --profile slotdev clean && sozo --profile slotdev build && sozo --profile slotdev migrate apply"
-sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build && sozo --profile sepolia migrate apply"
+slot = "sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate apply --walnut"
+slotdev = "sozo --profile slotdev clean && sozo --profile slotdev build && sozo --profile slotdev migrate apply --walnut"
+sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build && sozo --profile sepolia migrate apply --walnut"
+playground = "sozo --profile playground clean && sozo --profile playground build && sozo --profile playground migrate apply --walnut"
 
 [dependencies]
 alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria", rev = "78b0d51" }
-origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.0.0-alpha.5" }
-dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-alpha.5" }
+origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.0.0-alpha.11" }
+dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-alpha.11" }
 stark_vrf = { git = "https://github.com/dojoengine/stark-vrf", rev = "5a9e81e" }
 
 [[target.dojo]]
@@ -26,3 +27,4 @@ stark_vrf = { git = "https://github.com/dojoengine/stark-vrf", rev = "5a9e81e" }
 [profile.slotdev]
 [profile.slottest]
 [profile.sepolia]
+[profile.playground]

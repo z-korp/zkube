@@ -1,8 +1,8 @@
 {
   "world": {
     "kind": "WorldContract",
-    "class_hash": "0x76ced5a15cb43c7be7176cff4779cd57c56638a46ddf2c9da709d22298c5e5a",
-    "original_class_hash": "0x76ced5a15cb43c7be7176cff4779cd57c56638a46ddf2c9da709d22298c5e5a",
+    "class_hash": "0x6f4515274ee23404789c3351a77107d0ec07508530119822046600ca6948d6e",
+    "original_class_hash": "0x6f4515274ee23404789c3351a77107d0ec07508530119822046600ca6948d6e",
     "abi": [
       {
         "type": "impl",
@@ -945,6 +945,11 @@
             "kind": "data"
           },
           {
+            "name": "entity_id",
+            "type": "core::felt252",
+            "kind": "data"
+          },
+          {
             "name": "keys",
             "type": "core::array::Span::<core::felt252>",
             "kind": "data"
@@ -1229,8 +1234,8 @@
         ]
       }
     ],
-    "address": "0x19fe9c3f2e740b08df807afae6a7e882685c801d3a552f5728e65fc2bac58b4",
-    "transaction_hash": "0x138dd075cc3f92f9da426c8563fc40fd3810db408b5546e05b96f991e6651",
+    "address": "0x5ef8195dbf43ea66b14d7bfec4ed6b565386a49dff34aa474c3cd29aa0fa615",
+    "transaction_hash": "0x1936d91a2a323450269e92abf17ffc1bc659063cf204f6919d81ecdd7713ba1",
     "block_number": 3,
     "seed": "zKube",
     "metadata": {
@@ -1250,9 +1255,9 @@
   "contracts": [
     {
       "kind": "DojoContract",
-      "address": "0x2b4f0e952d12b43d3bb93639be357a7ece3aa364f55d8f1f1e6e6ca68c7f285",
-      "class_hash": "0x7c17fdc4e6a3f65ef1cf9e8a52eb8eb6ad04ca413ab0fb733565cdbf749d378",
-      "original_class_hash": "0x7c17fdc4e6a3f65ef1cf9e8a52eb8eb6ad04ca413ab0fb733565cdbf749d378",
+      "address": "0x7362142438f82017175c44aff9ef6a1887824d57843e42a094d765bfbc0adf8",
+      "class_hash": "0x3f913c9315437cf9300ea2c7babe6487fde58d4c458329ffad19580041cf675",
+      "original_class_hash": "0x3f913c9315437cf9300ea2c7babe6487fde58d4c458329ffad19580041cf675",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {
@@ -1514,13 +1519,17 @@
       ],
       "init_calldata": [],
       "tag": "zkube-account",
+      "systems": [
+        "create",
+        "rename"
+      ],
       "manifest_name": "zkube-account-6d28004d"
     },
     {
       "kind": "DojoContract",
-      "address": "0x37ca0df8243680d63aa3477d8b0e42eba6a49ff3fbbd689608d90181c82a02e",
-      "class_hash": "0x4e2ad53cb0c7a05884e65ced79c0ba292c731a2189f6b6f2e2648c52e4fa531",
-      "original_class_hash": "0x4e2ad53cb0c7a05884e65ced79c0ba292c731a2189f6b6f2e2648c52e4fa531",
+      "address": "0x8fbe72f6d350f76cfd6554872befc4d61889d4029a66cf3897506a908f77ca",
+      "class_hash": "0x2c5035e137d5fb47fb340020cb9cb823d5f505545605a1a8b91c6b66d598241",
+      "original_class_hash": "0x2c5035e137d5fb47fb340020cb9cb823d5f505545605a1a8b91c6b66d598241",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {
@@ -1974,6 +1983,13 @@
         "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
       ],
       "tag": "zkube-play",
+      "systems": [
+        "claim",
+        "sponsor",
+        "surrender",
+        "move",
+        "apply_bonus"
+      ],
       "manifest_name": "zkube-play-19ee70b3"
     }
   ],
@@ -2587,6 +2603,7 @@
         }
       ],
       "tag": "zkube-Game",
+      "qualified_path": "zkube::models::index::game",
       "manifest_name": "zkube-Game-17e542e0"
     },
     {
@@ -3031,6 +3048,7 @@
         }
       ],
       "tag": "zkube-Player",
+      "qualified_path": "zkube::models::index::player",
       "manifest_name": "zkube-Player-a3c56d30"
     },
     {
@@ -3552,6 +3570,7 @@
         }
       ],
       "tag": "zkube-Tournament",
+      "qualified_path": "zkube::models::index::tournament",
       "manifest_name": "zkube-Tournament-120c37d1"
     }
   ]

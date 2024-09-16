@@ -14,11 +14,14 @@ export const usePlayer = ({ playerId }: { playerId: string | undefined }) => {
     },
   } = useDojo();
 
+  console.log("playerId", playerId);
   const playerKey = useMemo(
     () => getEntityIdFromKeys([BigInt(playerId ? playerId : -1)]) as Entity,
     [playerId],
   );
+  console.log("playerKey", playerKey);
   const component = useComponentValue(Player, playerKey);
+  console.log("component", component);
   const player = useMemo(() => {
     return component ? new PlayerClass(component) : null;
   }, [component]);
