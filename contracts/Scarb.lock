@@ -56,7 +56,7 @@ dependencies = [
 [[package]]
 name = "dojo"
 version = "1.0.0-alpha.4"
-source = "git+https://github.com/dojoengine/dojo?tag=v1.0.0-alpha.5#6878242e120d3135d3bc1bb94135d7135693069b"
+source = "git+https://github.com/dojoengine/dojo?tag=v1.0.0-alpha.11#fbff45b249e2b931f5007edf2d526beef7dc553f"
 dependencies = [
  "dojo_plugin",
 ]
@@ -68,8 +68,8 @@ source = "git+https://github.com/dojoengine/dojo?rev=f15def33#f15def330c0d099e79
 
 [[package]]
 name = "origami_random"
-version = "1.0.0-alpha.5"
-source = "git+https://github.com/dojoengine/origami?tag=v1.0.0-alpha.5#d942d89c892cf166bc535a7f6116575b439d6aad"
+version = "1.0.0-alpha.11"
+source = "git+https://github.com/dojoengine/origami?tag=v1.0.0-alpha.11#8cbb96d7524b0a03dd1cb48066064a8f17857cf3"
 
 [[package]]
 name = "stark_vrf"

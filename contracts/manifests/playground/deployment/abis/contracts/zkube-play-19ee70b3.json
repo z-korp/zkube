@@ -129,16 +129,21 @@
   {
     "type": "impl",
     "name": "IDojoInitImpl",
-    "interface_name": "zkube::systems::actions::actions::IDojoInit"
+    "interface_name": "zkube::systems::play::play::IDojoInit"
   },
   {
     "type": "interface",
-    "name": "zkube::systems::actions::actions::IDojoInit",
+    "name": "zkube::systems::play::play::IDojoInit",
     "items": [
       {
         "type": "function",
         "name": "dojo_init",
-        "inputs": [],
+        "inputs": [
+          {
+            "name": "token_address",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
         "outputs": [],
         "state_mutability": "external"
       }
@@ -146,8 +151,26 @@
   },
   {
     "type": "impl",
-    "name": "ActionsImpl",
-    "interface_name": "zkube::systems::actions::IActions"
+    "name": "PlayImpl",
+    "interface_name": "zkube::systems::play::IPlay"
+  },
+  {
+    "type": "enum",
+    "name": "zkube::types::mode::Mode",
+    "variants": [
+      {
+        "name": "None",
+        "type": "()"
+      },
+      {
+        "name": "Normal",
+        "type": "()"
+      },
+      {
+        "name": "Daily",
+        "type": "()"
+      }
+    ]
   },
   {
     "type": "struct",
@@ -209,43 +232,15 @@
   },
   {
     "type": "interface",
-    "name": "zkube::systems::actions::IActions",
+    "name": "zkube::systems::play::IPlay",
     "items": [
       {
         "type": "function",
         "name": "create",
         "inputs": [
           {
-            "name": "name",
-            "type": "core::felt252"
-          }
-        ],
-        "outputs": [],
-        "state_mutability": "external"
-      },
-      {
-        "type": "function",
-        "name": "rename",
-        "inputs": [
-          {
-            "name": "name",
-            "type": "core::felt252"
-          }
-        ],
-        "outputs": [],
-        "state_mutability": "external"
-      },
-      {
-        "type": "function",
-        "name": "start",
-        "inputs": [
-          {
-            "name": "world",
-            "type": "dojo::world::IWorldDispatcher"
-          },
-          {
             "name": "mode",
-            "type": "core::integer::u8"
+            "type": "zkube::types::mode::Mode"
           },
           {
             "name": "proof",
@@ -265,6 +260,42 @@
             "type": "core::integer::u32"
           }
         ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "claim",
+        "inputs": [
+          {
+            "name": "mode",
+            "type": "zkube::types::mode::Mode"
+          },
+          {
+            "name": "tournament_id",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "rank",
+            "type": "core::integer::u8"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "sponsor",
+        "inputs": [
+          {
+            "name": "mode",
+            "type": "zkube::types::mode::Mode"
+          },
+          {
+            "name": "amount",
+            "type": "core::felt252"
+          }
+        ],
+        "outputs": [],
         "state_mutability": "external"
       },
       {
@@ -365,7 +396,13 @@
   },
   {
     "type": "event",
-    "name": "zkube::components::manageable::ManageableComponent::Event",
+    "name": "zkube::components::hostable::HostableComponent::Event",
+    "kind": "enum",
+    "variants": []
+  },
+  {
+    "type": "event",
+    "name": "zkube::components::payable::PayableComponent::Event",
     "kind": "enum",
     "variants": []
   },
@@ -377,7 +414,7 @@
   },
   {
     "type": "event",
-    "name": "zkube::systems::actions::actions::Event",
+    "name": "zkube::systems::play::play::Event",
     "kind": "enum",
     "variants": [
       {
@@ -386,8 +423,13 @@
         "kind": "nested"
       },
       {
-        "name": "ManageableEvent",
-        "type": "zkube::components::manageable::ManageableComponent::Event",
+        "name": "HostableEvent",
+        "type": "zkube::components::hostable::HostableComponent::Event",
+        "kind": "flat"
+      },
+      {
+        "name": "PayableEvent",
+        "type": "zkube::components::payable::PayableComponent::Event",
         "kind": "flat"
       },
       {
