@@ -4,7 +4,7 @@ import GetElementStyle from "../theme/GetElementStyle";
 import { useTheme } from "@/ui/elements/theme-provider";
 import { useMediaQuery } from "react-responsive";
 
-const PIECES: Piece[] = [
+export const PIECES: Piece[] = [
   { id: 1, width: 1, element: "stone1" },
   { id: 2, width: 2, element: "stone2" },
   { id: 3, width: 3, element: "stone3" },
