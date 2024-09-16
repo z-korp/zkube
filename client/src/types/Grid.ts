@@ -1,7 +1,7 @@
 // Grid.ts
 import { Piece } from "@/types/Piece";
 import { Cell } from "@/types/Cell";
-import { PIECES } from "@/ui/components/CellComponent";
+import { PIECES } from "@/ui/components/PieceComponent";
 
 export class Grid {
   rows: number;
@@ -51,17 +51,13 @@ export class Grid {
     for (let row = 0; row < this.rows; row++) {
       for (let col = 0; col < this.cols; col++) {
         const cell = this.cells[row][col];
-        // console.log(`Cell at (${row}, ${col}) has piece id ${JSON.stringify(cell)}`);
         if (cell.piece !== null && cell.isStart && !visited.has(cell.id)) {
-          console.log(`Found starting piece at (${row}, ${col}) with id ${cell.id}`);
           const piece = PIECES.find((p) => p === cell.piece);
           if (piece) {
             pieces.push({ piece, startRow: row, startCol: col });
-            console.log(`Piece added: ${piece.id} at start position (${row}, ${col})`);
             for (let i = 0; i < piece.width; i++) {
               const cellToVisit = `${row}-${col + i}`;
               visited.add(cellToVisit);
-              console.log(`Marking cell as visited: ${cellToVisit}`);
             }
           }
         }

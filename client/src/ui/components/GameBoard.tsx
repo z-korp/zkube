@@ -4,16 +4,15 @@ import { useDojo } from "@/dojo/useDojo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
-import { Piece } from "@/types/Piece";
 import { Cell } from "@/types/Cell";
 import { Grid } from "@/types/Grid";
-//Todo remove one of the two Cell
-import { PIECES } from "./CellComponent";
+import { PIECES } from "./PieceComponent";
 import { useMediaQuery } from "react-responsive";
 import { Account } from "starknet";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import MaxComboIcon from "./MaxComboIcon";
 import PieceComponent from "./PieceComponent";
+import CellComponent from "./CellComponent"; // Importation du composant Cell
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -43,7 +42,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   } = useDojo();
   const { account } = useAccountCustom();
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isTxProcessing, setIsTxProcessing] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isFalling, setIsFalling] = useState(false);
@@ -54,26 +52,16 @@ const GameBoard: React.FC<GameBoardProps> = ({
     currentX: number;
     clickOffset: number;
   } | null>(null);
+
   const rows = 10;
   const cols = 8;
   const gridRef = useRef<HTMLDivElement>(null);
-
   const [isDragging, setIsDragging] = useState(false);
   const [bonusWave, setBonusWave] = useState(false);
   const [bonusTiki, setBonusTiki] = useState(false);
   const [bonusHammer, setBonusHammer] = useState(false);
-  // const [clickedPieceId, setClickedPieceId] = useState<number | null>(null);
-
-  // Initialiser la grille avec une instance de la classe Grid
   const [grid, setGrid] = useState(new Grid(rows, cols, initialGrid));
-
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
-
-  useEffect(() => {
-    setIsTxProcessing(false);
-    console.log("initialGrid", initialGrid);
-    console.log("grid", grid);
-  }, [initialGrid]);
 
   useEffect(() => {
     if (isAnimating || isTxProcessing) return;
@@ -81,149 +69,29 @@ const GameBoard: React.FC<GameBoardProps> = ({
     console.log("Grid updated:", initialGrid); // Log pour déboguer
   }, [initialGrid, isAnimating, isTxProcessing]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const printGrid = (grid: Cell[][]) => {
-    console.log("Current grid state:"); // Log pour déboguer
-    for (const row of grid) {
-      let rowStr = "";
-      for (const cell of row) {
-        if (cell.isStart) {
-          rowStr += "[S] "; // S pour Start
-        } else if (cell.piece !== null) {
-          rowStr += `[${cell.piece}] `;
-        } else {
-          rowStr += "[ ] ";
-        }
-      }
-      console.log(rowStr);
-    }
+  const handleBonusWaveClick = () => {
+    setBonusWave(true);
+    setBonusTiki(false);
+    setBonusHammer(false);
   };
 
-  const applyGravity = async () => {
-    const changesMade = grid.applyGravity();
-    const numericGrid = grid.cells.map(row => row.map(cell => cell.piece?.id ?? 0));
-    setGrid(new Grid(rows, cols, numericGrid));
-    return changesMade;
+  const handleBonusTikiClick = () => {
+    setBonusWave(false);
+    setBonusTiki(true);
+    setBonusHammer(false);
   };
 
-  // Fonction pour appliquer la gravité en boucle tant qu'il y a des changements
-  const applyGravityLoop = async () => {
-    setIsAnimating(true);
-    setIsFalling(true);
-  
-    let rowsCleared = true;
-    while (rowsCleared) {
-      let changesMade = true;
-      while (changesMade) {
-        changesMade = await applyGravity();
-        await new Promise((resolve) => setTimeout(resolve, 200));
-      }
-      setIsFalling(false);
-  
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      rowsCleared = await checkAndClearFullLines();
-      await new Promise((resolve) => setTimeout(resolve, 200));
-    }
-    await new Promise((resolve) => setTimeout(resolve, 200));
-  
-    // Si aucun bonus n'est utilisé alors nouvelle ligne
-    if (!bonusHammer && !bonusTiki && !bonusWave) {
-      await insertNewLine();
-    }
-  
-    await new Promise((resolve) => setTimeout(resolve, 300));
-  
-    rowsCleared = true;
-    while (rowsCleared) {
-      let changesMade = true;
-      while (changesMade) {
-        setIsFalling(true);
-        changesMade = await applyGravity();
-        setIsFalling(false);
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      rowsCleared = await checkAndClearFullLines();
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-  
-    if (grid.isEmpty()) {
-      handleEmptyGrid();
-  
-      await new Promise((resolve) => setTimeout(resolve, 200));
-  
-      await insertNewLine();
-  
-      await new Promise((resolve) => setTimeout(resolve, 300));
-    }
-    setIsAnimating(false);
+  const handleBonusHammerClick = () => {
+    setBonusWave(false);
+    setBonusTiki(false);
+    setBonusHammer(true);
   };
 
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // const clearSelectedLine = async (selectedRow: number) => {
-  //   await new Promise((resolve) => {
-  //     setGrid((prevGrid) => {
-  //       const newGrid = prevGrid.map((row) => row.map((cell) => ({ ...cell })));
-
-  //       // Vérifier et supprimer tous les blocs assignés de la ligne sélectionnée
-  //       if (selectedRow >= 0 && selectedRow < newGrid.length) {
-  //         newGrid[selectedRow] = newGrid[selectedRow].map((cell, col) => ({
-  //           id: `${selectedRow}-${col}`,
-  //           piece: null,
-  //           isStart: false,
-  //           pieceIndex: null,
-  //         }));
-  //       }
-
-  //       resolve(newGrid);
-  //       return newGrid;
-  //     });
-  //   });
-  // };
-
-  const insertNewLine = async () => {
-    console.log("insertNewLine");
-    await new Promise((resolve) => {
-      setGrid((prevGrid) => {
-        // Create a new grid by shifting all lines up
-        const numericGrid = prevGrid.cells.slice(1).map(row => row.map(cell => (cell.piece?.id ?? 0) as number));
-        const newGrid = new Grid(rows, cols, numericGrid);
-
-        // Créez la nouvelle ligne à partir de nextLine
-        const newLine: Cell[] = nextLine.map((value, index) => 
-          new Cell(`${rows - 1}-${index}`, value !== 0 ? PIECES.find((p) => p.id === value) : null, false, null)
-        );
-
-        // Add the new line at the bottom of the grid
-        newGrid.cells.push(newLine);
-
-        // Update the isStart for the new line
-        newGrid.markStartingCells();
-
-        resolve(newGrid);
-
-        return newGrid;
-      });
-    });
-  };
-
-  const loopGravityAndClear = async () => {
-    applyGravityLoop();
-  };
-
-  const placePiece = (
-    grid: Cell[][],
-    row: number,
-    col: number,
-    piece: Piece,
-  ) => {
-    for (let j = 0; j < piece.width; j++) {
-      grid[row][col + j].piece = piece;
-      grid[row][col + j].isStart = j === 0;
-      grid[row][col + j].pieceIndex = row * cols + col;
-    }
-  };
+  useEffect(() => {
+    setIsTxProcessing(false);
+    console.log("initialGrid", initialGrid);
+    console.log("grid", grid);
+  }, [initialGrid]);
 
   const checkCollision = (
     row: number,
@@ -247,39 +115,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
     }
     return false;
   };
-
-  function startDragging(rowIndex: number, colIndex: number, e: any) {
-    if (isAnimating) return;
-    const piece = PIECES.find((p) => p === grid.cells[rowIndex][colIndex].piece);
-    if (!piece) return;
-
-    // Assurez-vous que nous commençons par la cellule de départ pour cette pièce
-    let startCol = colIndex;
-    while (
-      startCol > 0 &&
-      grid.cells[rowIndex][startCol - 1].piece === piece &&
-      !grid.cells[rowIndex][startCol].isStart
-    ) {
-      startCol--;
-    }
-
-    const gridRect = gridRef.current?.getBoundingClientRect();
-    const cellWidth = gridRect ? gridRect.width / cols : 0;
-    const startX = gridRect ? gridRect.left + startCol * cellWidth : 0;
-
-    // Calculez le décalage entre le point de clic et le début de la pièce
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clickOffset = clientX - startX;
-
-    setDraggingPiece({
-      row: rowIndex,
-      col: startCol,
-      startX: startX,
-      currentX: startX,
-      clickOffset: clickOffset,
-    });
-    setIsDragging(true);
-  }
 
   function computeXAndDrag(e: any) {
     if (gridRef.current === null || draggingPiece === null) return;
@@ -379,6 +214,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const handleTouchMove = useCallback(
     (e: TouchEvent) => {
+      console.log("handleTouchMove", e);  
       if (isAnimating) return;
       if (isTxProcessing) return;
       if (!isDragging || !draggingPiece || !gridRef.current) return;
@@ -408,9 +244,39 @@ const GameBoard: React.FC<GameBoardProps> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDragging, draggingPiece, grid, cols]);
 
+  const handleMouseUp = useCallback(() => {
+    if (isAnimating) return;
+    if (!isDragging || !draggingPiece || !gridRef.current) return;
+
+    setPieceToNewPositionAndTx();
+  }, [isDragging, draggingPiece, grid, cols]);
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+
   useEffect(() => {
     const gridElement = gridRef.current;
-
+    console.log("EEEEEEEEEEEEEEEEEEEEEEE")
+    //TODO CHECKER ICI
     if (gridElement) {
       gridElement.addEventListener("touchmove", handleTouchMove);
       gridElement.addEventListener("touchend", handleMouseEnd);
@@ -444,6 +310,65 @@ const GameBoard: React.FC<GameBoardProps> = ({
     [account],
   );
 
+  useEffect(() => {
+    if (isAnimating || isTxProcessing) return;
+    setGrid(new Grid(rows, cols, initialGrid));
+    console.log("Grid updated:", initialGrid);
+  }, [initialGrid, isAnimating, isTxProcessing]);
+
+  const applyGravity = async () => {
+    const changesMade = grid.applyGravity();
+    const numericGrid = grid.cells.map(row => row.map(cell => cell.piece?.id ?? 0));
+    setGrid(new Grid(rows, cols, numericGrid));
+    return changesMade;
+  };
+
+  const applyGravityLoop = async () => {
+    setIsAnimating(true);
+    setIsFalling(true);
+
+    let rowsCleared = true;
+    while (rowsCleared) {
+      let changesMade = true;
+      while (changesMade) {
+        changesMade = await applyGravity();
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+      setIsFalling(false);
+
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      rowsCleared = await grid.checkAndClearFullLines();
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+
+    if (!bonusHammer && !bonusTiki && !bonusWave) {
+      await insertNewLine();
+    }
+
+    rowsCleared = true;
+    while (rowsCleared) {
+      let changesMade = true;
+      while (changesMade) {
+        setIsFalling(true);
+        changesMade = await applyGravity();
+        setIsFalling(false);
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      rowsCleared = await grid.checkAndClearFullLines();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    if (grid.isEmpty()) {
+      handleEmptyGrid();
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      await insertNewLine();
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+
+    setIsAnimating(false);
+  };
+
   const handleEmptyGrid = useCallback(async () => {
     if (!account) return;
 
@@ -461,74 +386,61 @@ const GameBoard: React.FC<GameBoardProps> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account]);
 
-  const handleMouseUp = useCallback(() => {
-    if (isAnimating) return;
-    if (!isDragging || !draggingPiece || !gridRef.current) return;
+  const insertNewLine = async () => {
+    await new Promise((resolve) => {
+      setGrid((prevGrid) => {
+        const numericGrid = prevGrid.cells.slice(1).map(row => row.map(cell => (cell.piece?.id ?? 0) as number));
+        const newGrid = new Grid(rows, cols, numericGrid);
 
-    setPieceToNewPositionAndTx();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDragging, draggingPiece, grid, cols]);
+        const newLine: Cell[] = nextLine.map((value, index) => 
+          new Cell(`${rows - 1}-${index}`, value !== 0 ? PIECES.find((p) => p.id === value) : null, false, null)
+        );
 
-  useEffect(() => {
-    if (isDragging) {
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
-    }
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [isDragging, handleMouseMove, handleMouseUp]);
+        newGrid.cells.push(newLine);
+        newGrid.markStartingCells();
+        resolve(newGrid);
 
-  const handleBonusWaveClick = () => {
-    setBonusWave(true);
-    setBonusTiki(false);
-    setBonusHammer(false);
+        return newGrid;
+      });
+    });
   };
 
-  const handleBonusTikiClick = () => {
-    setBonusWave(false);
-    setBonusTiki(true);
-    setBonusHammer(false);
+  const removePieceFromGrid = async (rowIndex: number, colIndex: number) => {
+    await new Promise((resolve) => {
+      setGrid((prevGrid) => {
+        const numericGrid = prevGrid.cells.map(row => row.map(cell => cell.piece?.id ?? 0));
+        const newGrid = new Grid(rows, cols, numericGrid);
+
+        if (
+          rowIndex >= 0 &&
+          rowIndex < newGrid.rows &&
+          colIndex >= 0 &&
+          colIndex < newGrid.cols
+        ) {
+          const pieceToRemove = newGrid.cells[rowIndex][colIndex].piece;
+          const pieceIndexToRemove = newGrid.cells[rowIndex][colIndex].pieceIndex;
+          for (let row = 0; row < newGrid.rows; row++) {
+            for (let col = 0; col < newGrid.cols; col++) {
+              if (
+                newGrid.cells[row][col].piece === pieceToRemove &&
+                newGrid.cells[row][col].pieceIndex === pieceIndexToRemove
+              ) {
+                newGrid.cells[row][col] = new Cell(
+                  `${row}-${col}`,
+                  null,
+                  false,
+                  null
+                );
+              }
+            }
+          }
+        }
+
+        resolve(newGrid);
+        return newGrid;
+      });
+    });
   };
-
-  const handleBonusHammerClick = () => {
-    setBonusWave(false);
-    setBonusTiki(false);
-    setBonusHammer(true);
-  };
-
-  const handleCellClick = (rowIndex: number, colIndex: number) => {
-    const actualRowIndex = rows - 1 - rowIndex;
-    const clickedPiece = grid.cells[rowIndex][colIndex];
-
-    if (bonusHammer && clickedPiece.piece !== null) {
-      // setClickedPieceId(clickedPiece.piece);
-      removePieceFromGrid(actualRowIndex, colIndex);
-      setBonusHammer(false);
-      applyGravityLoop();
-      handleBonusHammerTx(actualRowIndex, colIndex);
-    }
-
-    if (bonusTiki && clickedPiece.piece !== null) {
-      removePieceFromGridByCell(actualRowIndex, colIndex);
-      setBonusTiki(false);
-      applyGravityLoop();
-      handleBonusTikiTx(actualRowIndex, colIndex);
-    }
-  };
-
-  const handleRowClick = (rowIndex: number) => {
-    if (bonusWave) {
-      const actualRowIndex = rows - 1 - rowIndex;
-      grid.checkAndClearFullLines();
-      setBonusWave(false);
-      applyGravityLoop();
-      // Call TX for bonus wave
-      handleBonusWaveTx(actualRowIndex);
-    }
-  };
-
   const handleBonusWaveTx = useCallback(
     async (rowIndex: number) => {
       if (isAnimating) return;
@@ -588,87 +500,89 @@ const GameBoard: React.FC<GameBoardProps> = ({
     [account],
   );
 
-  //WAVE EFFECT
-  const checkAndClearFullLines = async () => {
-    const rowsCleared = grid.checkAndClearFullLines();
-    const numericGrid = grid.cells.map(row => row.map(cell => cell.piece?.id ?? 0));
-    setGrid(new Grid(rows, cols, numericGrid)); // Mettre à jour l'état avec la nouvelle grille
-    return rowsCleared;
+  const handleCellClick = (rowIndex: number, colIndex: number) => {
+    console.log("handleCellClick", rowIndex, colIndex);
+    const actualRowIndex = rows - 1 - rowIndex;
+    const clickedPiece = grid.cells[rowIndex][colIndex];
+
+    if (bonusHammer && clickedPiece.piece !== null) {
+      removePieceFromGrid(actualRowIndex, colIndex);
+      setBonusHammer(false);
+      applyGravityLoop();
+      handleBonusHammerTx(actualRowIndex, colIndex);
+    }
+
+    if (bonusTiki && clickedPiece.piece !== null) {
+      removePieceFromGrid(actualRowIndex, colIndex);
+      setBonusTiki(false);
+      applyGravityLoop();
+      handleBonusTikiTx(actualRowIndex, colIndex);
+    }
   };
 
-  //TIKI EFFECT
-  const removePieceFromGridByCell = async (
-    rowIndex: number,
-    colIndex: number,
-  ) => {
-    await new Promise((resolve) => {
-      setGrid((prevGrid) => {
-        const numericGrid = prevGrid.cells.map(row => row.map(cell => cell.piece?.id ?? 0));
-        const newGrid = new Grid(rows, cols, numericGrid);
+  const handleRowClick = (rowIndex: number) => {
+    if (bonusWave) {
+      const actualRowIndex = rows - 1 - rowIndex;
+      grid.checkAndClearFullLines();
+      setBonusWave(false);
+      applyGravityLoop();
+      handleBonusWaveTx(actualRowIndex);
+    }
+  };
 
-        if (
-          rowIndex >= 0 &&
-          rowIndex < newGrid.rows &&
-          colIndex >= 0 &&
-          colIndex < newGrid.cols
-        ) {
-          const pieceToRemove = newGrid.cells[rowIndex][colIndex].piece;
+  function startDragging(rowIndex: number, colIndex: number, e: any) {
+    if (isAnimating) return;
+    const piece = PIECES.find((p) => p === grid.cells[rowIndex][colIndex].piece);
+    if (!piece) return;
 
-          for (let row = 0; row < newGrid.rows; row++) {
-            for (let col = 0; col < newGrid.cols; col++) {
-              if (newGrid.cells[row][col].piece === pieceToRemove) {
-                newGrid.cells[row][col] = new Cell(
-                  `${row}-${col}`,
-                  null,
-                  false,
-                  null
-                );
-              }
-            }
-          }
-        }
+    // Assurez-vous que nous commençons par la cellule de départ pour cette pièce
+    let startCol = colIndex;
+    while (
+      startCol > 0 &&
+      grid.cells[rowIndex][startCol - 1].piece === piece &&
+      !grid.cells[rowIndex][startCol].isStart
+    ) {
+      startCol--;
+    }
 
-        resolve(newGrid);
-        return newGrid;
-      });
+    const gridRect = gridRef.current?.getBoundingClientRect();
+    const cellWidth = gridRect ? gridRect.width / cols : 0;
+    const startX = gridRect ? gridRect.left + startCol * cellWidth : 0;
+
+    // Calculez le décalage entre le point de clic et le début de la pièce
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clickOffset = clientX - startX;
+    console.log("startDragging", rowIndex, startCol, startX, clickOffset);
+    setDraggingPiece({
+      row: rowIndex,
+      col: startCol,
+      startX: startX,
+      currentX: startX,
+      clickOffset: clickOffset,
     });
-  };
+    setIsDragging(true);
+  }
 
-  //HAMMER EFFECT
-  const removePieceFromGrid = async (rowIndex: number, colIndex: number) => {
-    await new Promise((resolve) => {
-      setGrid((prevGrid) => {
-        const numericGrid = prevGrid.cells.map(row => row.map(cell => cell.piece?.id ?? 0));
-        const newGrid = new Grid(rows, cols, numericGrid);
-
-        if (
-          rowIndex >= 0 &&
-          rowIndex < newGrid.rows &&
-          colIndex >= 0 &&
-          colIndex < newGrid.cols
-        ) {
-          const pieceToRemove = newGrid.cells[rowIndex][colIndex].piece;
-          const pieceIndexToRemove = newGrid.cells[rowIndex][colIndex].pieceIndex;
-          for (let row = 0; row < newGrid.rows; row++) {
-            for (let col = 0; col < newGrid.cols; col++) {
-              if (
-                newGrid.cells[row][col].piece === pieceToRemove &&
-                newGrid.cells[row][col].pieceIndex === pieceIndexToRemove
-              ) {
-                newGrid.cells[row][col] = new Cell(
-                  `${row}-${col}`,
-                  null,
-                  false,
-                  null
-                );
-              }
-            }
-          }
-        }
-
-        resolve(newGrid);
-        return newGrid;
-      });
+  const renderPieces = () => {
+    //TODO: debug rows ici
+    // console.log("Rendering pieces:", grid.pieces);
+    return grid.pieces.map((pieceInfo, index) => {
+      // console.log(`Piece ${index}:`, pieceInfo);
+      return (
+        <PieceComponent
+          key={`piece-${index}`}
+          piece={pieceInfo.piece}
+          startRow={pieceInfo.startRow}
+          startCol={pieceInfo.startCol}
+          draggingPiece={draggingPiece}
+          gridRef={gridRef}
+          cols={cols}
+          rows={rows}
+          isTxProcessing={isTxProcessing}
+          isAnimating={isAnimating}
+          startDragging={startDragging}
+        />
+      );
     });
   };
 
@@ -678,86 +592,54 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   return (
     <>
-      <Card
-        className={`p-4 bg-secondary ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"}`}
-      >
+      <Card className={`p-4 bg-secondary ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"}`}>
         <div className={`${isMdOrLarger ? "w-[413px]" : "w-[300px]"} mb-4 flex justify-between`}>
-        <div className="w-5/12">
-    <GameBonus
-      onBonusWaveClick={handleBonusWaveClick}
-      onBonusTikiClick={handleBonusTikiClick}
-      onBonusHammerClick={handleBonusHammerClick}
-      hammerCount={hammerCount}
-      tikiCount={totemCount}
-      waveCount={waveCount}
-    />
-  </div>
-  
-  <div className="flex gap-1">
-    <div className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}>
-      <span>{score}</span>
-      <FontAwesomeIcon
-        icon={faStar}
-        className="text-yellow-500 ml-2"
-        width={ 26}
-        height={ 26}
-      />
-    </div>
-    
-    <div className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}>
-      <span>{combo}</span>
-      <FontAwesomeIcon
-        icon={faFire}
-        className="text-yellow-500 ml-2"
-        width={ 26}
-        height={26}
-      />
-    </div>
-    
-    <div className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}>
-      <span>{maxCombo}</span>
-      <MaxComboIcon
-        width={26}
-        height={26}
-        className={`text-yellow-500 ml-2 `}
-      />
-    </div>
-  </div>
-</div>
+          <div className="w-5/12">
+            <GameBonus
+              onBonusWaveClick={handleBonusWaveClick}
+              onBonusTikiClick={handleBonusTikiClick}
+              onBonusHammerClick={handleBonusHammerClick}
+              hammerCount={hammerCount}
+              tikiCount={totemCount}
+              waveCount={waveCount}
+            />
+          </div>
+          <div className="flex gap-1">
+            <div className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}>
+              <span>{score}</span>
+              <FontAwesomeIcon icon={faStar} className="text-yellow-500 ml-2" width={26} height={26} />
+            </div>
+            <div className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}>
+              <span>{combo}</span>
+              <FontAwesomeIcon icon={faFire} className="text-yellow-500 ml-2" width={26} height={26} />
+            </div>
+            <div className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}>
+              <span>{maxCombo}</span>
+              <MaxComboIcon width={26} height={26} className={`text-yellow-500 ml-2`} />
+            </div>
+          </div>
+        </div>
         <div className="bg-slate-800 relative">
-          <div
-            ref={gridRef}
-            className={`${isMdOrLarger ? "w-[412px]" : "w-[300px]"} border-4 border-slate-800 grid grid-cols-8 grid-rows-10 gap-1`}
-            style={{ position: "relative" }}
-          >
-            {/* Grille de fond */}
-            {Array.from({ length: rows }).map((_, rowIndex) => (
+          <div ref={gridRef} className={`${isMdOrLarger ? "w-[412px]" : "w-[300px]"} border-4 border-slate-800 grid grid-cols-8 grid-rows-10 gap-1`} style={{ position: "relative" }}>
+            {/* Rendu des cellules de fond */}
+            {grid.cells.map((row, rowIndex) => (
               <React.Fragment key={rowIndex}>
-                {Array.from({ length: cols }).map((_, colIndex) => (
-                  <div
+                {row.map((cell, colIndex) => (
+                  <CellComponent
                     key={`${rowIndex}-${colIndex}`}
-                    className="h-8 w-8 sm:w-12 sm:h-12 bg-secondary relative"
-                  ></div>
+                    cell={cell}
+                    rowIndex={rowIndex}
+                    colIndex={colIndex}
+                    handleCellClick={handleCellClick}
+                    isLineComplete={isLineComplete(row)}
+                  />
                 ))}
               </React.Fragment>
             ))}
 
-            {grid.pieces.map(({ piece, startRow, startCol }, index) => (
-                          <PieceComponent
-                            key={index}
-                            piece={piece}
-                            startRow={startRow}
-                            startCol={startCol}
-                            draggingPiece={draggingPiece}
-                            gridRef={gridRef}
-                            cols={cols}
-                            rows={rows}
-                            isTxProcessing={isTxProcessing}
-                            isAnimating={isAnimating}
-                            startDragging={startDragging}
-                          />
-                      ))}
-            </div>
+            {/* Rendu des pièces */}
+            {renderPieces()}
+          </div>
         </div>
       </Card>
     </>
