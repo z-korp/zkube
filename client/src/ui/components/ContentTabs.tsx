@@ -16,7 +16,7 @@ import { Button } from "@/ui/elements/button";
 const ContentTabs = () => {
   const [selectedTab, setSelectedTab] = useState("weekly-quests");
 
-  return (
+  return ( 
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline">Extras</Button>

@@ -27,6 +27,8 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { Level } from "@/dojo/game/types/level";
 import { toPng } from "html-to-image";
 import { TweetPreview } from "../components/TweetPreview";
+import { CubeSlidingTutorial } from "@/dojo/game/models/CubeSlidingTutorial";
+import { TutorialComponent } from "../modules/TutorialComponent";
 
 interface position {
   x: number;
@@ -206,9 +208,22 @@ export const Home = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const [isTutorialActive, setIsTutorialActive] = useState(false);
+  const [tutorial, setTutorial] = useState<CubeSlidingTutorial | null>(null);
+
+  const startTutorial = () => {
+    setTutorial(new CubeSlidingTutorial());
+    setIsTutorialActive(true);
+  };
+
+  const endTutorial = () => {
+    setTutorial(null);
+    setIsTutorialActive(false);
+  };
+
   return (
     <div className="relative flex flex-col h-screen">
-      <Header />
+      <Header onStartTutorial={startTutorial}/>
       <BackGroundBoard imageBackground={imgAssets.imageBackground}>
         <BackGroundBoard
           imageBackground={imageTotemTheme}
@@ -223,6 +238,14 @@ export const Home = () => {
         >
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
+
+              {isTutorialActive && tutorial ? (
+                <TutorialComponent 
+                  tutorial={tutorial} 
+                  onEndTutorial={endTutorial}
+                />
+              ) : (
+                <>
               <Create />
               {(!game || (!!game && isGameOn === "isOver" ))&& (<div className="flex  p-4 rounded-xl mt-12 w-[93%] gap-4 items-center justify-evenly">
                 <Start
@@ -307,6 +330,9 @@ export const Home = () => {
                   </div>
                 </div>
               )}
+
+              </>
+                )}
             </div>
           </div>
           <TweetPreview open={isPreviewOpen} setOpen={setIsPreviewOpen} level={level} score={score} imgSrc={imgData} />

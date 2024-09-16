@@ -36,6 +36,9 @@ export class TutorialGame extends Game {
     this.steps[this.currentStep].setup(this);
   }
 
+
+  
+
   // Override necessary Game methods
   // For example:
 //   applyAction(action: GameAction) {

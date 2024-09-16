@@ -15,7 +15,12 @@ import DailyGameStatus from "../components/DailyGameStatus";
 import HeaderBalance from "../components/HeaderBalance";
 import ContentTabs from "../components/ContentTabs";
 
-export const Header = () => {
+
+interface HeaderProps {
+  onStartTutorial: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onStartTutorial }) => {
   const { account } = useAccountCustom();
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
@@ -38,6 +43,12 @@ export const Header = () => {
           <p className="text-4xl font-bold">zKube</p>
           <Leaderboard />
           <ContentTabs />
+          <button 
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          onClick={onStartTutorial}
+        >
+          Tutorial
+        </button>
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
           {!!player && (
