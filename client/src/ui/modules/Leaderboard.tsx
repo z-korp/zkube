@@ -107,7 +107,7 @@ export const Leaderboard = () => {
       <DialogTrigger asChild>
         <Button variant="outline">Leaderboards</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[700px] w-[95%] rounded-lg p-4">
         <DialogHeader className="flex items-center text-2xl">
           <DialogTitle>Leaderboards</DialogTitle>
         </DialogHeader>
@@ -195,8 +195,8 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
   const { days, hours, minutes, seconds } = useCountdown(countdownDate);
 
   return (
-    <>
-      <div className="w-full border-b border-white flex justify-between items-center my-4">
+    <div className="flex flex-col gap-4">
+      <div className="w-full border-b border-white flex justify-between items-center my-4 p-2">
         <h2 className="text-lg font-semibold">Next Challenge In:</h2>
         <p className="text-lg font-bold">
           {`${days}d ${hours}h ${minutes}m ${seconds}s`}
@@ -290,7 +290,7 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
           </PaginationItem>
         </PaginationContent>
       </Pagination>
-    </>
+    </div>
   );
 };
 
