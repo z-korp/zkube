@@ -64,6 +64,7 @@ mod HostableComponent {
             seed: felt252,
             beta: felt252,
             mode: Mode,
+            was_free: bool,
         ) -> (u32, u256) {
             // [Setup] Datastore
             let store: Store = StoreImpl::new(world);
@@ -106,15 +107,16 @@ mod HostableComponent {
             store.set_player(player);
 
             // [Effect] Update tournament
-            let tournament_id = TournamentImpl::compute_id(time, mode.duration());
-            let mut tournament = store.tournament(tournament_id);
-            tournament.buyin(mode.price());
-
-            // [Effect] Store tournament
-            store.set_tournament(tournament);
+            let mut amount: u256 = 0;
+            if (!was_free) {
+                let tournament_id = TournamentImpl::compute_id(time, mode.duration());
+                let mut tournament = store.tournament(tournament_id);
+                tournament.buyin(mode.price());
+                store.set_tournament(tournament);
+                amount = mode.price().into();
+            }
 
             // [Return] Game ID and amount to pay
-            let amount: u256 = mode.price().into();
             (game_id, amount)
         }
 

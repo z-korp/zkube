@@ -106,7 +106,8 @@ mod setup {
         models.append(zkube::models::index::game::TEST_CLASS_HASH);
         models.append(zkube::models::index::player::TEST_CLASS_HASH);
         models.append(zkube::models::index::tournament::TEST_CLASS_HASH);
-        let world = spawn_test_world("zkube", models);
+        models.append(zkube::models::index::credits::TEST_CLASS_HASH);
+        let world = spawn_test_world(["zkube"].span(), models.span());
 
         let erc20 = deploy_erc20();
 

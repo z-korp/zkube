@@ -54,7 +54,9 @@ fn test_game_hammer_bonus_unlock() {
     world.grant_writer(Model::<Game>::selector(), PLAYER1());
 
     set_contract_address(PLAYER1());
-    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems
+        .play
+        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Initial state
     let mut game = store.game(game_id);
@@ -81,7 +83,9 @@ fn test_game_hammer_bonus_usage() {
     world.grant_writer(Model::<Game>::selector(), PLAYER1());
 
     set_contract_address(PLAYER1());
-    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems
+        .play
+        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Initial state
     let mut game = store.game(game_id);
@@ -120,7 +124,9 @@ fn test_game_hammer_bonus_not_available() {
     world.grant_writer(Model::<Game>::selector(), PLAYER1());
 
     set_contract_address(PLAYER1());
-    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems
+        .play
+        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Initial state
     let mut game = store.game(game_id);

@@ -38,14 +38,6 @@ impl ModeImpl of ModeTrait {
         }
     }
 
-    fn daily_credits(self: Mode) -> u16 {
-        match self {
-            Mode::Normal => constants::NORMAL_MODE_DAILY_CREDITS,
-            Mode::Daily => constants::DAILY_MODE_DAILY_CREDITS,
-            _ => 0,
-        }
-    }
-
     fn difficulty(self: Mode) -> Difficulty {
         match self {
             Mode::Normal => Difficulty::None, // meaning increasing difficulty

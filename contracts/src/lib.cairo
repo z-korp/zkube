@@ -7,6 +7,7 @@ mod models {
     mod game;
     mod player;
     mod tournament;
+    mod credits;
 }
 
 mod types {
@@ -50,6 +51,7 @@ mod components {
     mod manageable;
     mod payable;
     mod playable;
+    mod creditable;
 }
 
 mod systems {

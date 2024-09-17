@@ -41,6 +41,7 @@ mod play {
     use zkube::components::hostable::HostableComponent;
     use zkube::components::payable::PayableComponent;
     use zkube::components::playable::PlayableComponent;
+    use zkube::components::creditable::CreditableComponent;
 
     // Local imports
 
@@ -54,6 +55,8 @@ mod play {
     impl PayableInternalImpl = PayableComponent::InternalImpl<ContractState>;
     component!(path: PlayableComponent, storage: playable, event: PlayableEvent);
     impl PlayableInternalImpl = PlayableComponent::InternalImpl<ContractState>;
+    component!(path: CreditableComponent, storage: creditable, event: CreditableEvent);
+    impl CreditableInternalImpl = CreditableComponent::InternalImpl<ContractState>;
 
     // Storage
 
@@ -65,6 +68,8 @@ mod play {
         payable: PayableComponent::Storage,
         #[substorage(v0)]
         playable: PlayableComponent::Storage,
+        #[substorage(v0)]
+        creditable: CreditableComponent::Storage,
     }
 
     // Events
@@ -78,6 +83,8 @@ mod play {
         PayableEvent: PayableComponent::Event,
         #[flat]
         PlayableEvent: PlayableComponent::Event,
+        #[flat]
+        CreditableEvent: CreditableComponent::Event,
     }
 
     // Constructor
@@ -94,11 +101,23 @@ mod play {
         fn create(
             ref world: IWorldDispatcher, mode: Mode, proof: Proof, seed: felt252, beta: felt252,
         ) -> u32 {
-            // [Effect] Create a game
-            let (game_id, amount) = self.hostable._create(world, proof, seed, beta, mode);
+            let mut was_free = false;
             // [Interaction] Pay entry price
+            // [Check] Player exists
             let caller = get_caller_address();
-            self.payable._pay(caller, amount);
+            if (self.creditable._has_credits(world, caller)) {
+                was_free = true;
+            }
+
+            // [Effect] Create a game
+            let (game_id, amount) = self.hostable._create(world, proof, seed, beta, mode, was_free);
+
+            if (was_free) {
+                self.creditable._use_credit(world, caller);
+            } else {
+                self.payable._pay(caller, amount);
+            }
+
             // [Return] Game ID
             game_id
         }
