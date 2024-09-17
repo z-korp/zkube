@@ -13,6 +13,7 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import MaxComboIcon from "./MaxComboIcon";
 import PieceComponent from "./PieceComponent";
 import CellComponent from "./CellComponent"; // Importation du composant Cell
+import { Piece } from "@/types/Piece";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -107,8 +108,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
       const right: Cell = grid.cells[row][col + piece.width];
       if (
         direction === -1
-          ? !!left?.pieceIndex && left.pieceIndex !== current.pieceIndex
-          : !!right?.pieceIndex && right.pieceIndex !== current.pieceIndex
+          ? !!left?.piece?.id && left.piece?.id !== current.piece?.id
+          : !!right?.piece?.id && right.piece?.id !== current.piece?.id
       ) {
         return true;
       }
@@ -275,8 +276,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   useEffect(() => {
     const gridElement = gridRef.current;
-    console.log("EEEEEEEEEEEEEEEEEEEEEEE")
-    //TODO CHECKER ICI
     if (gridElement) {
       gridElement.addEventListener("touchmove", handleTouchMove);
       gridElement.addEventListener("touchend", handleMouseEnd);

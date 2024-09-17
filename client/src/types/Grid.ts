@@ -64,7 +64,6 @@ export class Grid {
       }
     }
 
-    console.log(`Total pieces extracted: ${pieces.length}`);
     return pieces;
   }
 
