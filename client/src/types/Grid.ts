@@ -22,7 +22,7 @@ export class Grid {
       const row: Cell[] = [];
       for (let j = 0; j < this.cols; j++) {
         const cellId = `${i}-${j}`;
-        const value = initialGrid[i][j];
+        const value = initialGrid && initialGrid[i] ? initialGrid[i][j] : 0;
         const piece = value !== 0 ? PIECES.find((p) => p.id === value) : null;
         const isStart = piece !== null && (j === 0 || initialGrid[i][j - 1] !== value);
         const cell = new Cell(cellId, piece, isStart);
@@ -47,23 +47,25 @@ export class Grid {
 
   extractPiecesFromGrid(): { piece: Piece; startRow: number; startCol: number }[] {
     const pieces: { piece: Piece; startRow: number; startCol: number }[] = [];
-    const visited: Set<string> = new Set();
     for (let row = 0; row < this.rows; row++) {
-      for (let col = 0; col < this.cols; col++) {
+      let col = 0;
+      while (col < this.cols) {
         const cell = this.cells[row][col];
-        if (cell.piece !== null && cell.isStart && !visited.has(cell.id)) {
-          const piece = PIECES.find((p) => p === cell.piece);
+        if (cell.piece !== null) {
+          const piece = PIECES.find((p) => p.id === cell.piece?.id);
           if (piece) {
             pieces.push({ piece, startRow: row, startCol: col });
-            for (let i = 0; i < piece.width; i++) {
-              const cellToVisit = `${row}-${col + i}`;
-              visited.add(cellToVisit);
-            }
+            // Move to the next column after this piece
+            col += piece.width;
+          } else {
+            col++; // Move to the next column if no matching piece is found
           }
+        } else {
+          col++; // Move to the next column for empty cells
         }
       }
     }
-
+  
     return pieces;
   }
 
