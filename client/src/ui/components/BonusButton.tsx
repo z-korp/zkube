@@ -35,7 +35,7 @@ const BonusButton: React.FC<BonusButtonProps> = ({
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
           <motion.div
             initial={{ rotate: 0 }}
             exit={{ rotate: 0 }}

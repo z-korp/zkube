@@ -5,7 +5,7 @@ mod ManageableComponent {
     // Starknet imports
 
     use starknet::ContractAddress;
-    use starknet::info::get_caller_address;
+    use starknet::info::{get_caller_address, get_block_timestamp};
 
     // Dojo imports
 
@@ -15,6 +15,7 @@ mod ManageableComponent {
 
     use zkube::store::{Store, StoreImpl};
     use zkube::models::player::{Player, PlayerTrait, PlayerAssert};
+    use zkube::models::credits::{Credits, CreditsTrait};
 
     // Storage
 
@@ -43,6 +44,9 @@ mod ManageableComponent {
             // [Effect] Create a new player
             let player = PlayerTrait::new(caller.into(), name);
             store.set_player(player);
+
+            let credits = CreditsTrait::new(caller.into(), get_block_timestamp());
+            store.set_credits(credits);
         }
 
         fn _rename(self: @ComponentState<TContractState>, world: IWorldDispatcher, name: felt252,) {

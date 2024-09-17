@@ -15,19 +15,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/ui/elements/card";
-import { BonusDetail, Player } from "@/dojo/game/models/player";
-import { useMemo } from "react";
+import { BonusDetail } from "@/dojo/game/models/player";
 import { useMediaQuery } from "react-responsive";
-import { usePlayer } from "@/hooks/usePlayer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKhanda, faStar } from "@fortawesome/free-solid-svg-icons";
-import useAccountCustom from "@/hooks/useAccountCustom";
 
 export const Bonuses = () => {
-  const { account } = useAccountCustom();
-
-  const { player } = usePlayer({ playerId: account?.address });
-
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   return (

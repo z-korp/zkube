@@ -7,6 +7,7 @@ import { usePlayer } from "@/hooks/usePlayer";
 import { fetchVrfData } from "@/api/vrf";
 import { Mode, ModeType } from "@/dojo/game/types/mode";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import { useCredits } from "@/hooks/useCredits";
 
 interface StartProps {
   mode: ModeType;
@@ -31,6 +32,7 @@ export const Start: React.FC<StartProps> = ({
   const { account } = useAccountCustom();
 
   const { player } = usePlayer({ playerId: account?.address });
+  const { credits } = useCredits({ playerId: account?.address });
 
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
@@ -54,6 +56,7 @@ export const Start: React.FC<StartProps> = ({
       await start({
         account: account as Account,
         mode: new Mode(mode).into(),
+        price: 5000000000000000n,
         seed,
         x: proof_gamma_x,
         y: proof_gamma_y,
@@ -74,15 +77,15 @@ export const Start: React.FC<StartProps> = ({
       !master ||
       account === master ||
       !player ||
-      player?.daily_games_available === 0 ||
       (!!game && !game.isOver())
     );
   }, [account, master, player, game]);
 
   const cost = useMemo(() => {
-    if (player && player?.daily_games_available > 0) return "Free";
-    return "0.01 STRK"; //TODO: replace with actual cost
-  }, [player, account]);
+    if (player && credits && credits.get_remaining(Date.now() / 1000) > 0)
+      return "Free";
+    return "0.0005 ETH"; //TODO: replace with actual cost
+  }, [player, credits]);
 
   return (
     <div className=" p-4 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">

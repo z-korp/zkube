@@ -3,7 +3,7 @@ import React from "react";
 import Balance from "./Balance";
 import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
 
-const HeaderBalance = () => {
+const HeaderBalance = React.memo(() => {
   const { account } = useAccountCustom();
 
   if (account) {
@@ -12,11 +12,13 @@ const HeaderBalance = () => {
         <Balance
           address={account?.address}
           token_address={KATANA_ETH_CONTRACT_ADDRESS}
-          symbol="STRK"
+          symbol="ETH"
         />
       </div>
     );
   }
-};
+});
 
-export default React.memo(HeaderBalance);
+HeaderBalance.displayName = "HeaderBalance";
+
+export default HeaderBalance;

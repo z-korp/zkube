@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState, memo } from "react";
 import useCountdown from "@/hooks/useCountdown";
 import {
   Dialog,
@@ -44,17 +44,12 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/ui/elements/tooltip";
 const GAME_PER_PAGE = 5;
 const MAX_PAGE_COUNT = 5;
 
-// enum ModeType {
-//   Daily = 'daily',
-//   Normal = 'normal',
-// }
-
 interface TabListProps {
   activeTab: ModeType;
   setActiveTab: React.Dispatch<React.SetStateAction<ModeType>>;
 }
 
-const TabList: React.FC<TabListProps> = ({ activeTab, setActiveTab }) => (
+const TabList = memo<TabListProps>(({ activeTab, setActiveTab }) => (
   <TabsList className="grid w-[80%] mx-auto sm:w-full grid-cols-2">
     <TabsTrigger
       value={ModeType.Daily}
@@ -69,13 +64,13 @@ const TabList: React.FC<TabListProps> = ({ activeTab, setActiveTab }) => (
       Normal
     </TabsTrigger>
   </TabsList>
-);
+));
 
 interface TabContentProps {
   modeType: ModeType;
 }
 
-const TabContent: React.FC<TabContentProps> = ({ modeType }) => (
+const TabContent = memo<TabContentProps>(({ modeType }) => (
   <>
     <TabsContent value={ModeType.Daily} hidden={modeType !== ModeType.Daily}>
       <Content modeType={ModeType.Daily} />
@@ -84,7 +79,7 @@ const TabContent: React.FC<TabContentProps> = ({ modeType }) => (
       <Content modeType={ModeType.Normal} />
     </TabsContent>
   </>
-);
+));
 
 const getNextDailyChallengeTime = () => {
   const now = new Date();
@@ -294,32 +289,34 @@ export const Content: React.FC<ContentProps> = ({ modeType }) => {
   );
 };
 
-export const Row = ({
-  rank,
-  game,
-}: {
-  rank: number;
-  game: Game & { potentialWinnings: number };
-}) => {
-  const { player } = usePlayer({ playerId: game.player_id });
+export const Row = memo(
+  ({
+    rank,
+    game,
+  }: {
+    rank: number;
+    game: Game & { potentialWinnings: number };
+  }) => {
+    const { player } = usePlayer({ playerId: game.player_id });
 
-  console.log(player);
-
-  return (
-    <TableRow className="hover:bg-slate-100 dark:hover:bg-slate-800">
-      <TableCell className="text-center font-semibold">{`#${rank}`}</TableCell>
-      <TableCell className="text-left sm:max-w-36 truncate">
-        {player?.name || "-"}
-      </TableCell>
-      <TableCell className="text-center">
-        {player?.points ? Level.fromPoints(player?.points).value : ""}
-      </TableCell>
-      <TableCell className="text-center font-bold">{game.score}</TableCell>
-      <TableCell className="text-center font-bold">{game.combo}</TableCell>
-      <TableCell className="text-center font-bold">{game.max_combo}</TableCell>
-      <TableCell className="text-center font-bold">
-        {game.potentialWinnings.toFixed(2)}
-      </TableCell>
-    </TableRow>
-  );
-};
+    return (
+      <TableRow className="hover:bg-slate-100 dark:hover:bg-slate-800">
+        <TableCell className="text-center font-semibold">{`#${rank}`}</TableCell>
+        <TableCell className="text-left sm:max-w-36 truncate">
+          {player?.name || "-"}
+        </TableCell>
+        <TableCell className="text-center">
+          {player?.points ? Level.fromPoints(player?.points).value : ""}
+        </TableCell>
+        <TableCell className="text-center font-bold">{game.score}</TableCell>
+        <TableCell className="text-center font-bold">{game.combo}</TableCell>
+        <TableCell className="text-center font-bold">
+          {game.max_combo}
+        </TableCell>
+        <TableCell className="text-center font-bold">
+          {game.potentialWinnings.toFixed(2)}
+        </TableCell>
+      </TableRow>
+    );
+  },
+);

@@ -1,18 +1,18 @@
 kind = "DojoModel"
-class_hash = "0x6af0db3fffcd6a03fde475e8706a713a51a6ea8feda79b0a8c7aa07b93c4d6f"
-original_class_hash = "0x6af0db3fffcd6a03fde475e8706a713a51a6ea8feda79b0a8c7aa07b93c4d6f"
+class_hash = "0x2d07e33460dde8b110ef5359231c986a3c597a389e0da1cfead5904371da1cc"
+original_class_hash = "0x2d07e33460dde8b110ef5359231c986a3c597a389e0da1cfead5904371da1cc"
 abi = "manifests/dev/base/abis/models/zkube-Credits-20403c75.json"
 tag = "zkube-Credits"
 qualified_path = "zkube::models::index::credits"
 manifest_name = "zkube-Credits-20403c75"
 
 [[members]]
-name = "player_id"
+name = "id"
 type = "felt252"
 key = true
 
 [[members]]
-name = "id"
+name = "day_id"
 type = "u64"
 key = false
 

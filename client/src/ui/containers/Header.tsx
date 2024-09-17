@@ -6,7 +6,6 @@ import { useMediaQuery } from "react-responsive";
 import { Leaderboard } from "../modules/Leaderboard";
 import { ProfilePage } from "../modules/ProfilePage";
 import Connect from "../components/Connect";
-import { ModeType } from "@/dojo/game/types/mode";
 import SettingsDropDown from "../components/SettingsDropDown";
 import MobileMenu from "../components/MobileMenu";
 import LevelIndicator from "../components/LevelIndicator";

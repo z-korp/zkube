@@ -68,6 +68,7 @@ mod PayableComponent {
             // [Interaction] Transfer
             let contract = get_contract_address();
             let erc20 = IERC20Dispatcher { contract_address: self.token_address.read() };
+
             let status = erc20.transferFrom(caller, contract, amount);
 
             // [Check] Status

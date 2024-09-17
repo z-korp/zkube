@@ -4,11 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/ui/elements/dialog";
-
-const GAME_PER_PAGE = 5;
-const MAX_PAGE_COUNT = 5;
 
 interface TweetPreviewProps {
   open: boolean;
@@ -60,13 +56,17 @@ export const TweetPreview: React.FC<TweetPreviewProps> = ({
         twitterMetaCard.setAttribute("content", "summary_large_image");
         document.head.appendChild(twitterMetaCard);
       }
-      console.log("second => ", imgSrc, bodyRef.current);
+      //console.log("second => ", imgSrc, bodyRef.current);
     }
   }, [imgSrc, bodyRef, bodyRef.current]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent ref={bodyRef} className="sm:max-w-[500px]">
+      <DialogContent
+        ref={bodyRef}
+        className="sm:max-w-[500px]"
+        aria-description=""
+      >
         <DialogHeader className="flex items-center text-2xl">
           <DialogTitle>Share Progress on X</DialogTitle>
         </DialogHeader>

@@ -25,6 +25,12 @@ mod errors {
 
 #[generate_trait]
 impl CreditsImpl of CreditsTrait {
+    fn new(id: felt252, time: u64) -> Credits {
+        let day_id = CreditsImpl::compute_id(time);
+
+        Credits { id, day_id, remaining: constants::DAILY_CREDITS }
+    }
+
     #[inline(always)]
     fn compute_id(time: u64) -> u64 {
         time / constants::SECONDS_PER_DAY

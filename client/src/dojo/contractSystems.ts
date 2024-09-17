@@ -1,6 +1,6 @@
-import { DojoProvider } from "@dojoengine/core";
+import { DojoProvider, KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
 import { Config } from "../../dojo.config.ts";
-import { Account, UniversalDetails, shortString } from "starknet";
+import { Account, UniversalDetails, cairo, shortString } from "starknet";
 
 const NAMESPACE = "zkube";
 
@@ -18,6 +18,7 @@ export interface Rename extends Signer {
 
 export interface Start extends Signer {
   mode: number;
+  price: bigint;
   x: bigint;
   y: bigint;
   c: bigint;
@@ -118,11 +119,10 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       throw new Error(`Contract ${contract_name} not found in manifest`);
     }
 
-    console.log("play contract", contract);
-
     const start = async ({
       account,
       mode,
+      price,
       x,
       y,
       c,
@@ -131,14 +131,27 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       seed,
       beta,
     }: Start) => {
+      const contract_address = contract.address;
       try {
         return await provider.execute(
           account,
-          {
-            contractName: contract_name,
-            entrypoint: "create",
-            calldata: [mode, x, y, c, s, sqrt_ratio_hint, seed, beta],
-          },
+          [
+            {
+              contractAddress: KATANA_ETH_CONTRACT_ADDRESS,
+              entrypoint: "approve",
+              calldata: [contract_address, cairo.uint256(price)], // Set allowance
+            },
+            {
+              contractName: contract_name,
+              entrypoint: "create",
+              calldata: [mode, x, y, c, s, sqrt_ratio_hint, seed, beta],
+            },
+            {
+              contractAddress: KATANA_ETH_CONTRACT_ADDRESS,
+              entrypoint: "approve",
+              calldata: [contract_address, cairo.uint256(0)], // Clear allowance
+            },
+          ],
           NAMESPACE,
           details,
         );

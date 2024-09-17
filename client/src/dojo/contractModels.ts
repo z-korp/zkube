@@ -83,5 +83,23 @@ export function defineContractComponents(world: World) {
         },
       );
     })(),
+    Credits: (() => {
+      return defineComponent(
+        world,
+        {
+          id: RecsType.BigInt, // player_id (address)
+          day_id: RecsType.Number,
+          remaining: RecsType.Number,
+        },
+        {
+          metadata: {
+            namespace: "zkube",
+            name: "Credits",
+            types: ["felt252", "u64", "u8"],
+            customTypes: [],
+          },
+        },
+      );
+    })(),
   };
 }

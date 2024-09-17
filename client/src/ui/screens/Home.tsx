@@ -24,11 +24,6 @@ import { Level } from "@/dojo/game/types/level";
 import { toPng } from "html-to-image";
 import { TweetPreview } from "../components/TweetPreview";
 
-interface position {
-  x: number;
-  y: number;
-}
-
 export const Home = () => {
   const {
     setup: { toriiClient, contractComponents },
@@ -57,7 +52,6 @@ export const Home = () => {
       if (gameGrid.current !== null) {
         toPng(gameGrid.current, { cacheBust: true })
           .then((dataUrl) => {
-            console.log("Screenshot taken");
             setImgData(dataUrl);
             composeTweet();
           })
@@ -81,114 +75,6 @@ export const Home = () => {
     setLevel(player?.points ? Level.fromPoints(player?.points).value : "");
     setScore(game?.score);
     setIsPreviewOpen(true);
-  };
-
-  const testGrid = [
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 1, 1, 3, 3, 3, 1, 0],
-  ];
-
-  const testEmptyGrid = [
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-  ];
-
-  const testline = [1, 0, 0, 2, 2, 0, 2, 2];
-
-  const TetrisGrid = () => {
-    // Définir les pièces avec leurs positions et tailles
-    const pieces = [
-      { size: 1, positions: [{ x: 1, y: 1 }] },
-      {
-        size: 2,
-        positions: [
-          { x: 3, y: 2 },
-          { x: 4, y: 2 },
-        ],
-      },
-      {
-        size: 3,
-        positions: [
-          { x: 5, y: 4 },
-          { x: 6, y: 4 },
-          { x: 7, y: 4 },
-        ],
-      },
-    ];
-
-    // Fonction pour calculer le bounding box d'une pièce
-    const getBoundingBox = (positions: position[]) => {
-      const xs = positions.map((pos: position) => pos.x);
-      const ys = positions.map((pos: position) => pos.y);
-      const minX = Math.min(...xs);
-      const maxX = Math.max(...xs);
-      const minY = Math.min(...ys);
-      const maxY = Math.max(...ys);
-
-      return {
-        x: minX,
-        y: minY,
-        width: (maxX - minX + 1) * 40,
-        height: (maxY - minY + 1) * 40,
-      };
-    };
-
-    return (
-      <div className="relative w-[320px] h-[400px] bg-gray-800 grid grid-cols-8 grid-rows-10 gap-1">
-        {/* Créer les cellules de la grille */}
-        {[...Array(80)].map((_, index) => (
-          <div
-            key={index}
-            className="w-full h-full bg-gray-700 border border-gray-600"
-          ></div>
-        ))}
-
-        {/* Afficher les pièces */}
-        {pieces.map((piece, pieceIndex) => {
-          const { x, y, width, height } = getBoundingBox(piece.positions);
-          return (
-            <div
-              key={pieceIndex}
-              className="absolute bg-blue-500"
-              style={{
-                top: `${y * 40}px`,
-                left: `${x * 40}px`,
-                width: `${width}px`,
-                height: `${height}px`,
-              }}
-            >
-              {piece.positions.map((pos, cellIndex) => (
-                <div
-                  key={cellIndex}
-                  className="w-8 h-8 bg-blue-500"
-                  style={{
-                    position: "absolute",
-                    top: `${(pos.y - y) * 40}px`,
-                    left: `${(pos.x - x) * 40}px`,
-                  }}
-                ></div>
-              ))}
-            </div>
-          );
-        })}
-      </div>
-    );
   };
 
   const imageTotemTheme =
@@ -225,13 +111,13 @@ export const Home = () => {
                   <Start
                     mode={ModeType.Daily}
                     handleGameMode={() => setIsGameOn("isOn")}
-                    potentialWinnings="100 STRK"
+                    potentialWinnings="100 ETH"
                     remainingTime="02:15:00"
                   />
                   <Start
                     mode={ModeType.Normal}
                     handleGameMode={() => setIsGameOn("isOn")}
-                    potentialWinnings="50 STRK"
+                    potentialWinnings="50 ETH"
                     remainingTime="02:15:00"
                   />
                 </div>

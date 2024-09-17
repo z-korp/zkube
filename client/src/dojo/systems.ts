@@ -16,8 +16,21 @@ export function systems({
 }) {
   const TOAST_ID = "unique-id";
 
+  function extractErrorMessages(errorString: string) {
+    const regex = /Error message:(.*?)(?=\n|$)/gs;
+    const matches = errorString.match(regex);
+
+    if (matches) {
+      return matches.map((match) => match.replace("Error message:", "").trim());
+    } else {
+      return [];
+    }
+  }
+
   const extractedMessage = (message: string) => {
-    return message.match(/\('([^']+)'\)/)?.[1];
+    const errorMessages = extractErrorMessages(message);
+
+    return errorMessages.length > 0 ? errorMessages[0] : message;
   };
 
   const isMdOrLarger = (): boolean => {
@@ -93,6 +106,7 @@ export function systems({
       notify(successMessage, transaction);
     } catch (error: any) {
       toast.error(extractedMessage(error.message), { id: TOAST_ID });
+      throw error;
     }
   };
 

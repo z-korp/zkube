@@ -6,7 +6,7 @@ import { BlockTag } from "starknet";
 interface BalanceProps {
   address: string;
   token_address: string;
-  symbol?: string
+  symbol?: string;
 }
 
 interface BalanceData {
@@ -15,7 +15,7 @@ interface BalanceData {
   };
 }
 
-const Balance = ({ address, token_address, symbol='ETH' }: BalanceProps) => {
+const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   // useBalance doesn't work on Katana, don't know why
@@ -32,6 +32,7 @@ const Balance = ({ address, token_address, symbol='ETH' }: BalanceProps) => {
   if (isError || !data) return <div>{error?.message}</div>;
 
   const balanceData = data as BalanceData; // Type assertion here
+  console.log("------> balanceData", balanceData.balance.low);
 
   return (
     <div className="text-sm">{`${parseFloat(

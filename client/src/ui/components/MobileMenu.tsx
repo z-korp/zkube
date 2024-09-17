@@ -19,7 +19,6 @@ import { usePlayer } from "@/hooks/usePlayer";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import DisconnectButton from "./DisconnectButton";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
-import Balance from "./Balance";
 import DailyGameStatus from "./DailyGameStatus";
 import HeaderBalance from "./HeaderBalance";
 import ContentTabs from "./ContentTabs";

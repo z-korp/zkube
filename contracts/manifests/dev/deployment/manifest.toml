@@ -24,8 +24,8 @@ manifest_name = "dojo-base"
 [[contracts]]
 kind = "DojoContract"
 address = "0x7362142438f82017175c44aff9ef6a1887824d57843e42a094d765bfbc0adf8"
-class_hash = "0x3f913c9315437cf9300ea2c7babe6487fde58d4c458329ffad19580041cf675"
-original_class_hash = "0x3f913c9315437cf9300ea2c7babe6487fde58d4c458329ffad19580041cf675"
+class_hash = "0x13b2fca532997e789de9e51aad67d530ea6300976b03617831443e95fff40c0"
+original_class_hash = "0x13b2fca532997e789de9e51aad67d530ea6300976b03617831443e95fff40c0"
 base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
 abi = "manifests/dev/deployment/abis/contracts/zkube-account-6d28004d.json"
 reads = []
@@ -33,6 +33,7 @@ writes = [
     "zkube-Player",
     "zkube-Game",
     "zkube-Tournament",
+    "zkube-Credits",
 ]
 init_calldata = []
 tag = "zkube-account"
@@ -45,8 +46,8 @@ manifest_name = "zkube-account-6d28004d"
 [[contracts]]
 kind = "DojoContract"
 address = "0x8fbe72f6d350f76cfd6554872befc4d61889d4029a66cf3897506a908f77ca"
-class_hash = "0x2c5035e137d5fb47fb340020cb9cb823d5f505545605a1a8b91c6b66d598241"
-original_class_hash = "0x2c5035e137d5fb47fb340020cb9cb823d5f505545605a1a8b91c6b66d598241"
+class_hash = "0x8aed566fc89e3dd0e3799e9ac50bcd70798b35fd10b1b9da46785fb418044a"
+original_class_hash = "0x8aed566fc89e3dd0e3799e9ac50bcd70798b35fd10b1b9da46785fb418044a"
 base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
 abi = "manifests/dev/deployment/abis/contracts/zkube-play-19ee70b3.json"
 reads = []
@@ -54,6 +55,7 @@ writes = [
     "zkube-Player",
     "zkube-Game",
     "zkube-Tournament",
+    "zkube-Credits",
 ]
 init_calldata = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
 tag = "zkube-play"
@@ -65,6 +67,30 @@ systems = [
     "apply_bonus",
 ]
 manifest_name = "zkube-play-19ee70b3"
+
+[[models]]
+kind = "DojoModel"
+class_hash = "0x2d07e33460dde8b110ef5359231c986a3c597a389e0da1cfead5904371da1cc"
+original_class_hash = "0x2d07e33460dde8b110ef5359231c986a3c597a389e0da1cfead5904371da1cc"
+abi = "manifests/dev/deployment/abis/models/zkube-Credits-20403c75.json"
+tag = "zkube-Credits"
+qualified_path = "zkube::models::index::credits"
+manifest_name = "zkube-Credits-20403c75"
+
+[[models.members]]
+name = "id"
+type = "felt252"
+key = true
+
+[[models.members]]
+name = "day_id"
+type = "u64"
+key = false
+
+[[models.members]]
+name = "remaining"
+type = "u8"
+key = false
 
 [[models]]
 kind = "DojoModel"

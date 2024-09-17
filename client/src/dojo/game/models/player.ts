@@ -2,7 +2,6 @@ import { ComponentValue } from "@dojoengine/recs";
 import { shortenHex } from "@dojoengine/utils";
 import { shortString } from "starknet";
 import { Bonus, Condition } from "../types/bonus";
-import { Level } from "../types/level";
 
 export interface BonusDetail {
   bonus: Bonus;
@@ -19,17 +18,11 @@ export class Player {
   public name: string;
   public points: number;
 
-  public daily_games_available: number;
-  public readonly daily_games_limit: number;
-
   constructor(player: ComponentValue) {
     this.id = player.id;
     this.game_id = player.game_id;
     this.name = shortString.decodeShortString(player.name);
     this.points = player.points;
-
-    this.daily_games_limit = 3;
-    this.daily_games_available = 3;
   }
 
   public getShortAddress(): string {
