@@ -37,7 +37,9 @@ fn test_actions_move_01() {
 
     // [Set] Game
     set_contract_address(PLAYER1());
-    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems
+        .play
+        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     let mut game = store.game(game_id);
     game.blocks = 0x9240526d825221b6906d96d8924049;
@@ -58,7 +60,9 @@ fn test_actions_move_02() {
 
     // [Set] Game
     set_contract_address(PLAYER1());
-    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems
+        .play
+        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     let mut game = store.game(game_id);
     game.blocks = 0x48020924892429244829129048b6c8;
@@ -83,7 +87,9 @@ fn test_actions_move_03() {
 
     // [Set] Game
     set_contract_address(PLAYER1());
-    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems
+        .play
+        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     let mut game = store.game(game_id);
     game.blocks = 0b000_000_000_000_000_000_010_010;

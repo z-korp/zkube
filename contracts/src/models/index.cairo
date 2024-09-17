@@ -56,3 +56,12 @@ struct Tournament {
     top2_claimed: bool,
     top3_claimed: bool,
 }
+
+#[derive(Copy, Drop, Serde, IntrospectPacked)]
+#[dojo::model]
+struct Credits {
+    #[key]
+    id: felt252, // player_id (address)
+    day_id: u64,
+    remaining: u8,
+}

@@ -178,7 +178,7 @@ impl ZeroableTournament of Zeroable<Tournament> {
 
     #[inline(always)]
     fn is_zero(self: Tournament) -> bool {
-        self.prize == 0
+        self.id == 0
     }
 
     #[inline(always)]
