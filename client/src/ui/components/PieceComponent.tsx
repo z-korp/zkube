@@ -4,6 +4,7 @@ import { Piece } from "@/types/Piece";
 import { useTheme } from "@/ui/elements/theme-provider";
 import GetElementStyle from "../theme/GetElementStyle";
 import { useMediaQuery } from "react-responsive";
+import { useSpring, animated } from '@react-spring/web';
 
 interface PieceComponentProps {
   piece: Piece;
@@ -15,6 +16,7 @@ interface PieceComponentProps {
   rows: number;
   isTxProcessing: boolean;
   isAnimating: boolean;
+  isDisappearing: boolean;
   startDragging: (
     rowIndex: number,
     colIndex: number,
@@ -22,12 +24,7 @@ interface PieceComponentProps {
   ) => void;
 }
 
-export const PIECES: Piece[] = [
-    { id: 1, width: 1, element: "stone1" },
-    { id: 2, width: 2, element: "stone2" },
-    { id: 3, width: 3, element: "stone3" },
-    { id: 4, width: 4, element: "stone4" },
-  ];
+
 
 const PieceComponent: React.FC<PieceComponentProps> = ({
   piece,
@@ -39,6 +36,7 @@ const PieceComponent: React.FC<PieceComponentProps> = ({
   rows,
   isTxProcessing,
   isAnimating,
+  isDisappearing,
   startDragging,
 }) => {
   const { themeTemplate } = useTheme();
@@ -57,8 +55,15 @@ const PieceComponent: React.FC<PieceComponentProps> = ({
   const offsetGapHeight = isSmallScreen ? 4 : 4;
   const widthPiece = isSmallScreen ? 48 : 32;
 
+  // React Spring animation
+  const springProps = useSpring({
+    opacity: isDisappearing ? 0 : 1,
+    scale: isDisappearing ? 0.8 : 1,
+    config: { tension: 300, friction: 10 },
+  });
+
   return (
-    <div
+    <animated.div
       className={`absolute ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"}`}
       style={{
         ...GetElementStyle(piece.element, themeTemplate),
@@ -69,6 +74,7 @@ const PieceComponent: React.FC<PieceComponentProps> = ({
         transform: `translateX(${dragOffset}px)`,
         transition: isDragging ? "none" : "transform 0.3s ease-out",
         zIndex: isDragging ? 1000 : 500,
+        ...springProps,
       }}
       onMouseDown={(e) => startDragging(startRow, startCol, e)}
       onTouchStart={(
@@ -82,7 +88,7 @@ const PieceComponent: React.FC<PieceComponentProps> = ({
           e as React.MouseEvent<HTMLDivElement, MouseEvent>
         )
       }
-    ></div>
+    ></animated.div>
   );
 };
 

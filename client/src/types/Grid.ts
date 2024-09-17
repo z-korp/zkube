@@ -1,7 +1,7 @@
 // Grid.ts
 import { Piece } from "@/types/Piece";
 import { Cell } from "@/types/Cell";
-import { PIECES } from "@/ui/components/PieceComponent";
+import { PIECES } from "./types";
 
 export class Grid {
   rows: number;
@@ -24,9 +24,16 @@ export class Grid {
         const cellId = `${i}-${j}`;
         const value = initialGrid && initialGrid[i] ? initialGrid[i][j] : 0;
         const piece = value !== 0 ? PIECES.find((p) => p.id === value) : null;
-        const isStart = piece !== null && (j === 0 || initialGrid[i][j - 1] !== value);
-        const cell = new Cell(cellId, piece, isStart);
-        row.push(cell);
+        if (piece) {
+          const newPiece = new Piece(piece.id, piece.width, piece.element);
+          for (let k = 0; k < piece.width; k++) {
+            const isStart = k === 0;
+            row.push(new Cell(cellId, newPiece, isStart, j + k));
+          }
+          j += piece.width - 1; // Skip the cells we've just filled
+        } else {
+          row.push(new Cell(cellId, null, false, null));
+        }
       }
       newGrid.push(row);
     }
@@ -52,9 +59,10 @@ export class Grid {
       while (col < this.cols) {
         const cell = this.cells[row][col];
         if (cell.piece !== null) {
-          const piece = PIECES.find((p) => p.id === cell.piece?.id);
+          const piece = PIECES.find((p) => p.element === cell.piece?.element);
           if (piece) {
-            pieces.push({ piece, startRow: row, startCol: col });
+            const newPiece = new Piece(piece.id, piece.width, piece.element);
+            pieces.push({ piece: newPiece, startRow: row, startCol: col });
             // Move to the next column after this piece
             col += piece.width;
           } else {
@@ -77,10 +85,9 @@ export class Grid {
         const currentCell = this.cells[row][col];
 
         if (currentCell.piece !== null && currentCell.isStart) {
-          const piece = PIECES.find((p) => p === currentCell.piece);
-          if (piece) {
+        //   const piece = PIECES.find((p) => p === currentCell.piece);
             let canFall = true;
-            for (let i = 0; i < piece.width; i++) {
+            for (let i = 0; i < currentCell.piece?.width; i++) {
               if (
                 col + i >= this.cols ||
                 this.cells[row + 1][col + i].piece !== null
@@ -91,17 +98,22 @@ export class Grid {
             }
             if (canFall) {
               // Move the piece one row down
-              for (let i = 0; i < piece.width; i++) {
-                this.cells[row + 1][col + i].setPiece(
-                  this.cells[row][col + i].piece ?? null,
-                  this.cells[row][col + i].isStart,
-                  this.cells[row][col + i].pieceIndex
-                );
+              for (let i = 0; i < currentCell.piece?.width; i++) {
+                const currentPiece = this.cells[row][col + i].piece;
+                if (currentPiece) {
+                  this.cells[row + 1][col + i].setPiece(
+                    currentPiece,
+                    this.cells[row][col + i].isStart,
+                    this.cells[row][col + i].pieceIndex
+                  );
+                } else {
+                  this.cells[row + 1][col + i].setPiece(null, false, null);
+                }
                 this.cells[row][col + i] = new Cell(`${row}-${col + i}`);
               }
               changesMade = true;
             }
-          }
+          
         }
       }
     }
@@ -111,6 +123,16 @@ export class Grid {
     }
 
     return changesMade;
+  }
+
+  getFullLines(): number[] {
+    const fullLines: number[] = [];
+    for (let row = 0; row < this.rows; row++) {
+      if (this.cells[row].every((cell) => cell.piece !== null)) {
+        fullLines.push(row);
+      }
+    }
+    return fullLines;
   }
 
   checkAndClearFullLines(): boolean {
@@ -141,10 +163,30 @@ export class Grid {
     // Shift all lines upwards
     this.cells = this.cells.slice(1);
 
-    // Create the new line from `nextLine`
-    const newLine: Cell[] = nextLine.map(
-      (value, index) => new Cell(`${this.rows - 1}-${index}`, value !== 0 ? PIECES.find((p) => p.id === value) : null)
-    );
+    const newLine: Cell[] = [];
+    let currentPiece: Piece | null = null;
+    let pieceStartIndex = 0;
+
+    for (let index = 0; index < nextLine.length; index++) {
+      const value = nextLine[index];
+      
+      if (value !== 0 && !currentPiece) {
+        const piece = PIECES.find((p) => p.id === value);
+        if (piece) {
+          currentPiece = new Piece(value, piece.width, piece.element);
+          pieceStartIndex = index;
+        }
+      }
+
+      if (currentPiece) {
+        newLine.push(new Cell(`${this.rows - 1}-${index}`, currentPiece, index === pieceStartIndex, null));
+        if (index - pieceStartIndex + 1 === currentPiece.width) {
+          currentPiece = null;
+        }
+      } else {
+        newLine.push(new Cell(`${this.rows - 1}-${index}`, null, false, null));
+      }
+    }
 
     // Add the new line at the bottom of the grid
     this.cells.push(newLine);
@@ -159,22 +201,20 @@ export class Grid {
       while (j < this.cols) {
         const currentPiece = this.cells[i][j].piece;
         if (currentPiece !== null) {
-          const piece = PIECES.find((p) => p === currentPiece);
-          if (piece) {
             // Mark the start of the piece
             const pieceIndex = i * this.cols + j;
             this.cells[i][j].isStart = true;
             this.cells[i][j].pieceIndex = pieceIndex;
 
             // Mark the rest of the piece as non-start
-            for (let k = 1; k < piece.width && j + k < this.cols; k++) {
+            for (let k = 1; k < currentPiece.width && j + k < this.cols; k++) {
               this.cells[i][j + k].isStart = false;
               this.cells[i][j + k].pieceIndex = pieceIndex;
             }
 
             // Skip to the end of this piece
-            j += piece.width;
-          }
+            j += currentPiece.width;
+          
         } else {
           this.cells[i][j].isStart = false;
           j++;

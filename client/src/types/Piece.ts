@@ -1,11 +1,13 @@
 // Piece.ts
 export class Piece {
-    id: number;
+    id: string;
+    size: number;
     width: number;
     element: string;
   
-    constructor(id: number, width: number, element: string) {
-      this.id = id;
+    constructor(size: number, width: number, element: string) {
+      this.id = crypto.randomUUID();
+      this.size = size;
       this.width = width;
       this.element = element;
     }
