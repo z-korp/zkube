@@ -63,11 +63,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [bonusHammer, setBonusHammer] = useState(false);
   const [grid, setGrid] = useState(new Grid(rows, cols, initialGrid));
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
-  const [disappearingPieces, setDisappearingPieces] = useState<Set<string>>(new Set());
+  const [disappearingPieces, setDisappearingPieces] = useState<Set<string>>(
+    new Set(),
+  );
 
   useEffect(() => {
     if (isAnimating || isTxProcessing) return;
-    console.log('UPDATE GRID State', initialGrid);
+    console.log("UPDATE GRID State", initialGrid);
     setGrid(new Grid(rows, cols, initialGrid)); // Réinitialiser la grille lorsque l'état initial change
   }, [initialGrid, isAnimating, isTxProcessing]);
 
@@ -169,10 +171,40 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
     const newCol = Math.max(
       0,
-      Math.min(cols - 1, draggingPiece.col + draggedCells)
+      Math.min(cols - 1, draggingPiece.col + draggedCells),
     );
-    const numericGrid = grid.cells.slice(1).map(row => row.map(cell => cell.piece?.size ?? 0));
+    const numericGrid = grid.cells.map((row) =>
+      row.map((cell) => cell.piece?.size ?? 0),
+    );
+
+    console.log("=================================================");
+    console.log(
+      "numericGrid Cells Before remove ----------------->",
+      grid.cells,
+    );
+    console.log("=================================================");
+
+    console.log("=================================================");
+    console.log(
+      "numericGrid Pieces Before remove ----------------->",
+      numericGrid,
+    );
+    console.log("=================================================");
+
+    console.log("=================================================");
     const newGrid = new Grid(rows, cols, numericGrid);
+    console.log(
+      "newGrid Cells Before remove ----------------->",
+      newGrid.cells,
+    );
+    console.log("=================================================");
+
+    console.log("=================================================");
+    console.log(
+      "newGrid Pieces Before remove ----------------->",
+      newGrid.pieces,
+    );
+    console.log("=================================================");
 
     const piece = grid.cells[draggingPiece.row][draggingPiece.col].piece;
     if (
@@ -187,19 +219,21 @@ const GameBoard: React.FC<GameBoardProps> = ({
             `${draggingPiece.row}-${oldCol}`,
             null,
             false,
-            null
+            null,
           );
         }
       }
 
       // Placer à la nouvelle position
       const finalCol = Math.min(newCol, cols - piece.width);
+      console.log("=================================================");
       placePiece(newGrid.cells, draggingPiece.row, finalCol, piece);
-      console.log('newGrid', newGrid.cells);
-      setGrid(newGrid);
+      console.log("newGrid after remove ----------------->", newGrid.cells);
+      console.log("=================================================");
+      //setGrid(newGrid);
 
       if (draggingPiece.col !== finalCol) {
-        loopGravityAndClear();
+        //loopGravityAndClear();
       }
 
       // Send move tx
@@ -229,7 +263,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const handleTouchMove = useCallback(
     (e: TouchEvent) => {
-      console.log("handleTouchMove", e);  
+      console.log("handleTouchMove", e);
       if (isAnimating) return;
       if (isTxProcessing) return;
       if (!isDragging || !draggingPiece || !gridRef.current) return;
@@ -254,15 +288,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const handleMouseEnd = useCallback(() => {
     if (isAnimating) return;
     if (!isDragging || !draggingPiece || !gridRef.current) return;
-
+    console.log("handleMouseEnd");
     setPieceToNewPositionAndTx();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDragging, draggingPiece, grid, cols]);
 
   const handleMouseUp = useCallback(() => {
     if (isAnimating) return;
     if (!isDragging || !draggingPiece || !gridRef.current) return;
-    console.log('handleMouseUp');
+    console.log("handleMouseUp");
     setPieceToNewPositionAndTx();
   }, [isDragging, draggingPiece, grid, cols]);
 
@@ -316,7 +350,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
           final_index: finalOndex,
         });
       } finally {
-         setIsTxProcessing(false);
+        setIsTxProcessing(false);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -331,12 +365,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const applyGravity = async () => {
     const changesMade = grid.applyGravity();
-    const numericGrid = grid.cells.map(row => row.map(cell => cell.piece?.size ?? 0));
+    const numericGrid = grid.cells.map((row) =>
+      row.map((cell) => cell.piece?.size ?? 0),
+    );
     setGrid(new Grid(rows, cols, numericGrid));
     console.log("Grid applyGravity:", numericGrid);
     return changesMade;
   };
-
 
   const applyGravityLoop = async () => {
     setIsAnimating(true);
@@ -356,21 +391,21 @@ const GameBoard: React.FC<GameBoardProps> = ({
       const linesToClear = grid.getFullLines();
       if (linesToClear.length > 0) {
         const piecesToDisappear = new Set<string>();
-      linesToClear.forEach(row => {
-        grid.cells[row].forEach((cell, col) => {
-          if (cell.piece) {
-            piecesToDisappear.add(`${cell.piece.id}-${row}-${col}`);
-          }
+        linesToClear.forEach((row) => {
+          grid.cells[row].forEach((cell, col) => {
+            if (cell.piece) {
+              piecesToDisappear.add(`${cell.piece.id}-${row}-${col}`);
+            }
+          });
         });
-      });
-      setDisappearingPieces(piecesToDisappear);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setDisappearingPieces(new Set());
-      grid.checkAndClearFullLines();
-    } else {
-      rowsCleared = false;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 200));
+        setDisappearingPieces(piecesToDisappear);
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        setDisappearingPieces(new Set());
+        grid.checkAndClearFullLines();
+      } else {
+        rowsCleared = false;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 200));
     }
 
     if (!bonusHammer && !bonusTiki && !bonusWave) {
@@ -413,17 +448,31 @@ const GameBoard: React.FC<GameBoardProps> = ({
     } finally {
       setIsTxProcessing(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account]);
 
   const insertNewLine = async () => {
     await new Promise((resolve) => {
       setGrid((prevGrid) => {
-        const numericGrid = prevGrid.cells.slice(1).map(row => row.map(cell => (cell.piece?.size ?? 0)));
+        const numericGrid = prevGrid.cells
+          .slice(1)
+          .map((row) => row.map((cell) => cell.piece?.size ?? 0));
         const newGrid = new Grid(rows, cols, numericGrid);
 
-        const newLine: Cell[] = nextLine.map((value, index) => 
-          new Cell(`${rows - 1}-${index}`, value !== 0 ? new Piece(value, PIECES.find((p) => p.id === value)?.width || 0, PIECES.find((p) => p.id === value)?.element || "") : null, false, null)
+        const newLine: Cell[] = nextLine.map(
+          (value, index) =>
+            new Cell(
+              `${rows - 1}-${index}`,
+              value !== 0
+                ? new Piece(
+                    value,
+                    PIECES.find((p) => p.id === value)?.width || 0,
+                    PIECES.find((p) => p.id === value)?.element || "",
+                  )
+                : null,
+              false,
+              null,
+            ),
         );
 
         newGrid.cells.push(newLine);
@@ -432,14 +481,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
         console.log("Grid insertNewLine:", newGrid.cells);
         return newGrid;
       });
-     
     });
   };
 
   const removePieceFromGrid = async (rowIndex: number, colIndex: number) => {
     await new Promise((resolve) => {
       setGrid((prevGrid) => {
-        const numericGrid = prevGrid.cells.map(row => row.map(cell => cell.piece?.size ?? 0));
+        const numericGrid = prevGrid.cells.map((row) =>
+          row.map((cell) => cell.piece?.size ?? 0),
+        );
         const newGrid = new Grid(rows, cols, numericGrid);
 
         if (
@@ -449,7 +499,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
           colIndex < newGrid.cols
         ) {
           const pieceToRemove = newGrid.cells[rowIndex][colIndex].piece;
-          const pieceIndexToRemove = newGrid.cells[rowIndex][colIndex].pieceIndex;
+          const pieceIndexToRemove =
+            newGrid.cells[rowIndex][colIndex].pieceIndex;
           for (let row = 0; row < newGrid.rows; row++) {
             for (let col = 0; col < newGrid.cols; col++) {
               if (
@@ -460,7 +511,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
                   `${row}-${col}`,
                   null,
                   false,
-                  null
+                  null,
                 );
               }
             }
@@ -598,7 +649,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     //TODO: debug rows ici
     // console.log("Rendering pieces:", grid.pieces);
     return grid.pieces.map((pieceInfo, index) => {
-      console.log('pieceInfo', pieceInfo);
+      //console.log("pieceInfo", pieceInfo);
       return (
         <PieceComponent
           key={`piece-${index}`}
@@ -611,7 +662,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
           rows={rows}
           isTxProcessing={isTxProcessing}
           isAnimating={isAnimating}
-          isDisappearing={disappearingPieces.has(`${pieceInfo.piece.id}-${pieceInfo.startRow}-${pieceInfo.startCol}`)}
+          isDisappearing={disappearingPieces.has(
+            `${pieceInfo.piece.id}-${pieceInfo.startRow}-${pieceInfo.startCol}`,
+          )}
           startDragging={startDragging}
         />
       );
@@ -624,8 +677,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   return (
     <>
-      <Card className={`p-4 bg-secondary ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"}`}>
-        <div className={`${isMdOrLarger ? "w-[413px]" : "w-[300px]"} mb-4 flex justify-between`}>
+      <Card
+        className={`p-4 bg-secondary ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"}`}
+      >
+        <div
+          className={`${isMdOrLarger ? "w-[413px]" : "w-[300px]"} mb-4 flex justify-between`}
+        >
           <div className="w-5/12">
             <GameBonus
               onBonusWaveClick={handleBonusWaveClick}
@@ -637,22 +694,46 @@ const GameBoard: React.FC<GameBoardProps> = ({
             />
           </div>
           <div className="flex gap-1">
-            <div className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}>
+            <div
+              className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
+            >
               <span>{score}</span>
-              <FontAwesomeIcon icon={faStar} className="text-yellow-500 ml-2" width={26} height={26} />
+              <FontAwesomeIcon
+                icon={faStar}
+                className="text-yellow-500 ml-2"
+                width={26}
+                height={26}
+              />
             </div>
-            <div className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}>
+            <div
+              className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
+            >
               <span>{combo}</span>
-              <FontAwesomeIcon icon={faFire} className="text-yellow-500 ml-2" width={26} height={26} />
+              <FontAwesomeIcon
+                icon={faFire}
+                className="text-yellow-500 ml-2"
+                width={26}
+                height={26}
+              />
             </div>
-            <div className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}>
+            <div
+              className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
+            >
               <span>{maxCombo}</span>
-              <MaxComboIcon width={26} height={26} className={`text-yellow-500 ml-2`} />
+              <MaxComboIcon
+                width={26}
+                height={26}
+                className={`text-yellow-500 ml-2`}
+              />
             </div>
           </div>
         </div>
         <div className="bg-slate-800 relative">
-          <div ref={gridRef} className={`${isMdOrLarger ? "w-[412px]" : "w-[300px]"} border-4 border-slate-800 grid grid-cols-8 grid-rows-10 gap-1`} style={{ position: "relative" }}>
+          <div
+            ref={gridRef}
+            className={`${isMdOrLarger ? "w-[412px]" : "w-[300px]"} border-4 border-slate-800 grid grid-cols-8 grid-rows-10 gap-1`}
+            style={{ position: "relative" }}
+          >
             {/* Rendu des cellules de fond */}
             {grid.cells.map((row, rowIndex) => (
               <React.Fragment key={rowIndex}>
