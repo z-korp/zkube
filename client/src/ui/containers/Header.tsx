@@ -14,6 +14,8 @@ import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 import DailyGameStatus from "../components/DailyGameStatus";
 import HeaderBalance from "../components/HeaderBalance";
 import ContentTabs from "../components/ContentTabs";
+import { TutorialComponent } from "../modules/TutorialComponent";
+import { Button } from "../elements/button";
 
 
 interface HeaderProps {
@@ -43,12 +45,7 @@ export const Header: React.FC<HeaderProps> = ({ onStartTutorial }) => {
           <p className="text-4xl font-bold">zKube</p>
           <Leaderboard />
           <ContentTabs />
-          <button 
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          onClick={onStartTutorial}
-        >
-          Tutorial
-        </button>
+          <Button variant="outline" onClick={onStartTutorial}>Tutorial</Button>
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
           {!!player && (

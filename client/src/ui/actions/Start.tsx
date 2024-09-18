@@ -17,7 +17,7 @@ interface StartProps {
 
 export const Start: React.FC<StartProps> = ({
   mode,
-  handleGameMode,
+  handleGameMode, 
   potentialWinnings,
   remainingTime,
 }) => {

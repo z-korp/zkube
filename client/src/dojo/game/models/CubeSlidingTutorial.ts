@@ -16,7 +16,7 @@ export class CubeSlidingTutorial {
       this.grid = new TutorialGrid(4, 4);
       this.currentStep = 0;
       this.instructions = [
-        "Welcome to the cube sliding tutorial!",
+        "Welcome to the Zkube tutorial!",
         "Tap and drag the highlighted cube to move it.",
         "Slide the cube to complete a line.",
         "Great job! You've completed the basic sliding tutorial."
