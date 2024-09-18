@@ -69,7 +69,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   useEffect(() => {
     if (isAnimating || isTxProcessing) return;
-    console.log("UPDATE GRID State", initialGrid);
+    console.log("UPDATE GRID FROM CONTRACT", initialGrid);
     setGrid(new Grid(rows, cols, initialGrid)); // Réinitialiser la grille lorsque l'état initial change
   }, [initialGrid, isAnimating, isTxProcessing]);
 
@@ -162,60 +162,65 @@ const GameBoard: React.FC<GameBoardProps> = ({
     }
   }
 
+  const cloneGrid = (grid: Grid): Grid => {
+
+  
+    const newCells = grid.cells.map((row, rowIndex) => {
+      if (!Array.isArray(row)) {
+        console.error(`Row ${rowIndex} is not an array:`, row);
+        return [];
+      }
+  
+      return row.map((cell, colIndex) => {
+        if (!cell) {
+          console.error(`Cell at (${rowIndex}, ${colIndex}) is undefined:`, cell);
+          return new Cell(`${rowIndex}-${colIndex}`, null, false, null);
+        }
+  
+        // Create a new cloned cell
+        return new Cell(
+          `${cell.id}`,
+          cell.piece ? new Piece(cell.piece.size, cell.piece.width, cell.piece.element) : null,
+          cell.isStart,
+          cell.pieceIndex
+        );
+      });
+    });
+    const numericGrid = newCells.map((row) =>
+      row.map((cell) => cell.piece?.size ?? 0),
+    );
+    return new Grid(grid.rows, grid.cols, numericGrid);
+  };
+
   function setPieceToNewPositionAndTx() {
     if (gridRef.current === null || draggingPiece === null) return;
     const gridRect = gridRef.current.getBoundingClientRect();
     const cellWidth = gridRect.width / cols;
     const totalDrag = draggingPiece.currentX - draggingPiece.startX;
     const draggedCells = Math.round(totalDrag / cellWidth);
-
+  
     const newCol = Math.max(
       0,
       Math.min(cols - 1, draggingPiece.col + draggedCells),
     );
+
     const numericGrid = grid.cells.map((row) =>
       row.map((cell) => cell.piece?.size ?? 0),
     );
 
-    console.log("=================================================");
-    console.log(
-      "numericGrid Cells Before remove ----------------->",
-      grid.cells,
-    );
-    console.log("=================================================");
-
-    console.log("=================================================");
-    console.log(
-      "numericGrid Pieces Before remove ----------------->",
-      numericGrid,
-    );
-    console.log("=================================================");
-
-    console.log("=================================================");
-    const newGrid = new Grid(rows, cols, numericGrid);
-    console.log(
-      "newGrid Cells Before remove ----------------->",
-      newGrid.cells,
-    );
-    console.log("=================================================");
-
-    console.log("=================================================");
-    console.log(
-      "newGrid Pieces Before remove ----------------->",
-      newGrid.pieces,
-    );
-    console.log("=================================================");
-
+    
     const piece = grid.cells[draggingPiece.row][draggingPiece.col].piece;
     if (
       piece &&
       !checkCollision(draggingPiece.row, draggingPiece.col, newCol, piece)
     ) {
-      // Effacer l'ancienne position
+      const newGrid = new Grid(rows, cols, numericGrid);
+  
+      const workgrid = cloneGrid(newGrid);
       for (let i = 0; i < piece.width; i++) {
         const oldCol = draggingPiece.col + i;
         if (oldCol < cols) {
-          newGrid.cells[draggingPiece.row][oldCol] = new Cell(
+          workgrid.cells[draggingPiece.row][oldCol] = new Cell(
             `${draggingPiece.row}-${oldCol}`,
             null,
             false,
@@ -223,23 +228,26 @@ const GameBoard: React.FC<GameBoardProps> = ({
           );
         }
       }
-
+      
       // Placer à la nouvelle position
       const finalCol = Math.min(newCol, cols - piece.width);
-      console.log("=================================================");
-      placePiece(newGrid.cells, draggingPiece.row, finalCol, piece);
-      console.log("newGrid after remove ----------------->", newGrid.cells);
-      console.log("=================================================");
-      //setGrid(newGrid);
-
+      console.log("after REMOVE PIECE OK=====================", workgrid.cells);
+      // Mettre à jour la grille après le placement
+      const newGrid2 = placePiece(workgrid, draggingPiece.row, finalCol, piece);
+      console.log("newGrid VARRRR====================", newGrid2.cells);
+      // setGrid(newGrid2);
+      const numericGrid2 = newGrid2.cells.map((row) =>
+        row.map((cell) => cell.piece?.size ?? 0),
+      );
+      setGrid(new Grid(rows, cols, numericGrid2));
       if (draggingPiece.col !== finalCol) {
-        //loopGravityAndClear();
+        loopGravityAndClear();
       }
-
+  
       // Send move tx
       handleMove(rows - draggingPiece.row - 1, draggingPiece.col, finalCol);
     }
-
+  
     setDraggingPiece(null);
     setIsDragging(false);
   }
@@ -249,16 +257,20 @@ const GameBoard: React.FC<GameBoardProps> = ({
   };
 
   const placePiece = (
-    grid: Cell[][],
+    grid: Grid,
     row: number,
     col: number,
     piece: Piece,
   ) => {
+    const newGrid = cloneGrid(grid);
+    
     for (let j = 0; j < piece.width; j++) {
-      grid[row][col + j].piece = piece;
-      grid[row][col + j].isStart = j === 0;
-      grid[row][col + j].pieceIndex = row * cols + col;
+      newGrid.cells[row][col + j].piece = piece;
+      newGrid.cells[row][col + j].isStart = j === 0;
+      newGrid.cells[row][col + j].pieceIndex = row * cols + col;
     }
+    
+    return newGrid;
   };
 
   const handleTouchMove = useCallback(
@@ -364,6 +376,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   }, [initialGrid, isAnimating, isTxProcessing]);
 
   const applyGravity = async () => {
+    console.log("applyGravity", grid.cells);
     const changesMade = grid.applyGravity();
     const numericGrid = grid.cells.map((row) =>
       row.map((cell) => cell.piece?.size ?? 0),
@@ -431,7 +444,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       await new Promise((resolve) => setTimeout(resolve, 200));
     }
 
-    setIsAnimating(false);
+     setIsAnimating(false);
   };
 
   const handleEmptyGrid = useCallback(async () => {
