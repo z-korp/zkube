@@ -13,7 +13,7 @@ mod ManageableComponent {
 
     // Internal imports
 
-    use zkube::store::{Store, StoreImpl};
+    use zkube::store::{Store, StoreTrait};
     use zkube::models::player::{Player, PlayerTrait, PlayerAssert};
     use zkube::models::credits::{Credits, CreditsTrait};
 
@@ -34,7 +34,7 @@ mod ManageableComponent {
     > of InternalTrait<TContractState> {
         fn _create(self: @ComponentState<TContractState>, world: IWorldDispatcher, name: felt252,) {
             // [Setup] Datastore
-            let store: Store = StoreImpl::new(world);
+            let store: Store = StoreTrait::new(world);
 
             // [Check] Player not already exists
             let caller = get_caller_address();
@@ -45,13 +45,14 @@ mod ManageableComponent {
             let player = PlayerTrait::new(caller.into(), name);
             store.set_player(player);
 
-            let credits = CreditsTrait::new(caller.into(), get_block_timestamp());
+            let settings = store.settings();
+            let credits = CreditsTrait::new(caller.into(), get_block_timestamp(), settings);
             store.set_credits(credits);
         }
 
         fn _rename(self: @ComponentState<TContractState>, world: IWorldDispatcher, name: felt252,) {
             // [Setup] Datastore
-            let store: Store = StoreImpl::new(world);
+            let store: Store = StoreTrait::new(world);
 
             // [Check] Player exists
             let caller = get_caller_address();

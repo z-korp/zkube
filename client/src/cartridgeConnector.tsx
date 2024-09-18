@@ -1,12 +1,13 @@
 import { Connector } from "@starknet-react/core";
 import CartridgeConnector from "@cartridge/connector";
 import { getContractByName } from "@dojoengine/core";
-import { ControllerOptions } from "@cartridge/controller";
+import { ControllerOptions, PaymasterOptions } from "@cartridge/controller";
 
 import local from "../../contracts/manifests/dev/deployment/manifest.json";
 import slot from "../../contracts/manifests/dev/deployment/manifest.json";
 import slotdev from "../../contracts/manifests/slotdev/deployment/manifest.json";
 import sepolia from "../../contracts/manifests/dev/deployment/manifest.json";
+import { shortString } from "starknet";
 
 const manifest =
   import.meta.env.VITE_PUBLIC_DEPLOY_TYPE === "sepolia"
@@ -65,9 +66,14 @@ const policies = [
   },
 ];
 
+const paymaster: PaymasterOptions = {
+  caller: shortString.encodeShortString("ANY_CALLER"),
+};
+
 const options: ControllerOptions = {
   rpc: import.meta.env.VITE_PUBLIC_NODE_URL,
   policies,
+  paymaster,
 };
 
 const cartridgeConnector = new CartridgeConnector(

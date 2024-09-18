@@ -16,6 +16,7 @@ use core::Zeroable;
 
 use zkube::constants;
 use zkube::models::index::Credits;
+use zkube::models::settings::Settings;
 
 // Errors
 
@@ -25,10 +26,10 @@ mod errors {
 
 #[generate_trait]
 impl CreditsImpl of CreditsTrait {
-    fn new(id: felt252, time: u64) -> Credits {
+    fn new(id: felt252, time: u64, settings: Settings) -> Credits {
         let day_id = CreditsImpl::compute_id(time);
 
-        Credits { id, day_id, remaining: constants::DAILY_CREDITS }
+        Credits { id, day_id, remaining: settings.free_daily_credits }
     }
 
     #[inline(always)]
@@ -36,13 +37,13 @@ impl CreditsImpl of CreditsTrait {
         time / constants::SECONDS_PER_DAY
     }
 
-    fn use_credit(ref self: Credits, time: u64) {
+    fn use_credit(ref self: Credits, time: u64, settings: Settings) {
         let current_day_id = CreditsImpl::compute_id(time);
 
         if current_day_id != self.day_id {
             // New day, reinitialize credits
             self.day_id = current_day_id;
-            self.remaining = constants::DAILY_CREDITS;
+            self.remaining = settings.free_daily_credits;
         }
 
         self.assert_has_credits(time);
@@ -97,7 +98,8 @@ mod tests {
     // Internal imports
 
     use zkube::constants;
-
+    use zkube::models::index::Settings;
+    use zkube::models::settings::SettingsTrait;
 
     // Helper function to create a Credits instance
     fn create_credits(id: felt252, day_id: u64, remaining: u8) -> Credits {
@@ -114,16 +116,18 @@ mod tests {
 
     #[test]
     fn test_use_credit_same_day() {
+        let mut settings = SettingsTrait::new();
         let mut credits = create_credits(1, 1, 3);
-        credits.use_credit(86400); // 1 day in seconds
+        credits.use_credit(86400, settings); // 1 day in seconds
         assert(credits.day_id == 1, 'ID should not change');
         assert(credits.remaining == 2, 'Remaining should decrease');
     }
 
     #[test]
     fn test_use_credit_new_day() {
+        let mut settings = SettingsTrait::new();
         let mut credits = create_credits(1, 1, 1);
-        credits.use_credit(172800); // 2 days in seconds
+        credits.use_credit(172800, settings); // 2 days in seconds
         assert(credits.day_id == 2, 'ID should update');
         assert(credits.remaining == constants::DAILY_CREDITS - 1, 'Remain should reset & -1');
     }
@@ -131,8 +135,9 @@ mod tests {
     #[test]
     #[should_panic(expected: ('Credits: No credits remaining',))]
     fn test_use_credit_no_remaining() {
+        let mut settings = SettingsTrait::new();
         let mut credits = create_credits(1, 1, 0);
-        credits.use_credit(86400);
+        credits.use_credit(86400, settings);
     }
 
     #[test]

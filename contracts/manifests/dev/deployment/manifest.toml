@@ -2,22 +2,22 @@
 kind = "WorldContract"
 class_hash = "0x6f4515274ee23404789c3351a77107d0ec07508530119822046600ca6948d6e"
 original_class_hash = "0x6f4515274ee23404789c3351a77107d0ec07508530119822046600ca6948d6e"
-abi = "manifests/dev/deployment/abis/dojo-world.json"
+abi = "manifests/slotdev/deployment/abis/dojo-world.json"
 address = "0x5ef8195dbf43ea66b14d7bfec4ed6b565386a49dff34aa474c3cd29aa0fa615"
-transaction_hash = "0x1936d91a2a323450269e92abf17ffc1bc659063cf204f6919d81ecdd7713ba1"
+transaction_hash = "0x1e00e184dfd939745424d2e91d460b431220db250a328f66cfbebd092e3814c"
 block_number = 3
 seed = "zKube"
 manifest_name = "dojo-world"
 
 [world.metadata]
-profile_name = "dev"
-rpc_url = "http://localhost:5050/"
+profile_name = "slotdev"
+rpc_url = "https://api.cartridge.gg/x/zkube-slotdev/katana"
 
 [base]
 kind = "Class"
 class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
 original_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
-abi = "manifests/dev/deployment/abis/dojo-base.json"
+abi = "manifests/slotdev/deployment/abis/dojo-base.json"
 tag = "dojo-base"
 manifest_name = "dojo-base"
 
@@ -27,7 +27,7 @@ address = "0x7362142438f82017175c44aff9ef6a1887824d57843e42a094d765bfbc0adf8"
 class_hash = "0x13b2fca532997e789de9e51aad67d530ea6300976b03617831443e95fff40c0"
 original_class_hash = "0x13b2fca532997e789de9e51aad67d530ea6300976b03617831443e95fff40c0"
 base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
-abi = "manifests/dev/deployment/abis/contracts/zkube-account-6d28004d.json"
+abi = "manifests/slotdev/deployment/abis/contracts/zkube-account-6d28004d.json"
 reads = []
 writes = [
     "zkube-Player",
@@ -46,10 +46,10 @@ manifest_name = "zkube-account-6d28004d"
 [[contracts]]
 kind = "DojoContract"
 address = "0x8fbe72f6d350f76cfd6554872befc4d61889d4029a66cf3897506a908f77ca"
-class_hash = "0x8aed566fc89e3dd0e3799e9ac50bcd70798b35fd10b1b9da46785fb418044a"
-original_class_hash = "0x8aed566fc89e3dd0e3799e9ac50bcd70798b35fd10b1b9da46785fb418044a"
+class_hash = "0x48e480a0494db904cd6f64b787824c6a33eaf12c6bb264d8351934b0a26b1ae"
+original_class_hash = "0x48e480a0494db904cd6f64b787824c6a33eaf12c6bb264d8351934b0a26b1ae"
 base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
-abi = "manifests/dev/deployment/abis/contracts/zkube-play-19ee70b3.json"
+abi = "manifests/slotdev/deployment/abis/contracts/zkube-play-19ee70b3.json"
 reads = []
 writes = [
     "zkube-Player",
@@ -72,7 +72,7 @@ manifest_name = "zkube-play-19ee70b3"
 kind = "DojoModel"
 class_hash = "0x2d07e33460dde8b110ef5359231c986a3c597a389e0da1cfead5904371da1cc"
 original_class_hash = "0x2d07e33460dde8b110ef5359231c986a3c597a389e0da1cfead5904371da1cc"
-abi = "manifests/dev/deployment/abis/models/zkube-Credits-20403c75.json"
+abi = "manifests/slotdev/deployment/abis/models/zkube-Credits-20403c75.json"
 tag = "zkube-Credits"
 qualified_path = "zkube::models::index::credits"
 manifest_name = "zkube-Credits-20403c75"
@@ -96,7 +96,7 @@ key = false
 kind = "DojoModel"
 class_hash = "0x5e1d8bd1fc67cef0ef1b9e642a44c13474d93cd5123e2b233cdbac9dc79de0c"
 original_class_hash = "0x5e1d8bd1fc67cef0ef1b9e642a44c13474d93cd5123e2b233cdbac9dc79de0c"
-abi = "manifests/dev/deployment/abis/models/zkube-Game-17e542e0.json"
+abi = "manifests/slotdev/deployment/abis/models/zkube-Game-17e542e0.json"
 tag = "zkube-Game"
 qualified_path = "zkube::models::index::game"
 manifest_name = "zkube-Game-17e542e0"
@@ -210,7 +210,7 @@ key = false
 kind = "DojoModel"
 class_hash = "0xf9b6c922045b89af068513b0a9c3df3c687a437dfece00c51f7b09ee22444"
 original_class_hash = "0xf9b6c922045b89af068513b0a9c3df3c687a437dfece00c51f7b09ee22444"
-abi = "manifests/dev/deployment/abis/models/zkube-Player-a3c56d30.json"
+abi = "manifests/slotdev/deployment/abis/models/zkube-Player-a3c56d30.json"
 tag = "zkube-Player"
 qualified_path = "zkube::models::index::player"
 manifest_name = "zkube-Player-a3c56d30"
@@ -239,7 +239,7 @@ key = false
 kind = "DojoModel"
 class_hash = "0x40192a8af7bea738cee0feffb7de37f6b15e21f6809cff453268e65f240d1b6"
 original_class_hash = "0x40192a8af7bea738cee0feffb7de37f6b15e21f6809cff453268e65f240d1b6"
-abi = "manifests/dev/deployment/abis/models/zkube-Tournament-120c37d1.json"
+abi = "manifests/slotdev/deployment/abis/models/zkube-Tournament-120c37d1.json"
 tag = "zkube-Tournament"
 qualified_path = "zkube::models::index::tournament"
 manifest_name = "zkube-Tournament-120c37d1"

@@ -13,6 +13,7 @@ use alexandria_math::bitmap::Bitmap;
 
 use zkube::constants;
 use zkube::types::difficulty::Difficulty;
+use zkube::models::settings::{Settings, SettingsTrait};
 
 // Constants
 
@@ -30,12 +31,8 @@ enum Mode {
 #[generate_trait]
 impl ModeImpl of ModeTrait {
     #[inline(always)]
-    fn price(self: Mode) -> felt252 {
-        match self {
-            Mode::Normal => constants::NORMAL_MODE_PRICE,
-            Mode::Daily => constants::DAILY_MODE_PRICE,
-            _ => 0,
-        }
+    fn price(self: Mode, settings: Settings) -> felt252 {
+        settings.get_mode_price(self)
     }
 
     fn difficulty(self: Mode) -> Difficulty {

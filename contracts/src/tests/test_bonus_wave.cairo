@@ -12,6 +12,7 @@ use dojo::model::Model;
 use zkube::constants;
 use zkube::store::{Store, StoreTrait};
 use zkube::models::game::{Game, GameTrait, GameAssert};
+use zkube::models::settings::Settings;
 use zkube::systems::play::IPlayDispatcherTrait;
 use zkube::types::bonus::Bonus;
 use zkube::types::mode::Mode;

@@ -31,11 +31,17 @@ export const ProfilePage = () => {
   const levelPlayer = player?.points ? Level.fromPoints(player.points) : null;
   const highestCombo = useMemo(
     () => Math.max(...filteredGames.map((game) => game.combo), 0),
-    [filteredGames]
+    [filteredGames],
   );
   const highestScore = useMemo(
-    () => Math.max(...filteredGames.map((game) => Level.fromPoints(game.score).getPoints()), 0),
-    [filteredGames]
+    () =>
+      Math.max(
+        ...filteredGames.map((game) =>
+          Level.fromPoints(game.score).getPoints(),
+        ),
+        0,
+      ),
+    [filteredGames],
   );
 
   return (
@@ -45,7 +51,10 @@ export const ProfilePage = () => {
           <DialogTrigger asChild>
             <Button variant="outline">{player.name}</Button>
           </DialogTrigger>
-          <DialogContent className="w-full max-w-2xl">
+          <DialogContent
+            className="w-full max-w-2xl"
+            aria-describedby={undefined}
+          >
             <DialogHeader className="flex items-center text-2xl">
               <DialogTitle>Profile</DialogTitle>
             </DialogHeader>

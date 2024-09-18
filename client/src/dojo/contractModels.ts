@@ -101,5 +101,24 @@ export function defineContractComponents(world: World) {
         },
       );
     })(),
+    Settings: (() => {
+      return defineComponent(
+        world,
+        {
+          id: RecsType.Number,
+          free_daily_credits: RecsType.Number,
+          daily_mode_price: RecsType.BigInt,
+          normal_mode_price: RecsType.BigInt,
+        },
+        {
+          metadata: {
+            namespace: "zkube",
+            name: "Settings",
+            types: ["u8", "u8", "felt252", "felt252"],
+            customTypes: [],
+          },
+        },
+      );
+    })(),
   };
 }

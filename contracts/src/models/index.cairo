@@ -65,3 +65,13 @@ struct Credits {
     day_id: u64,
     remaining: u8,
 }
+
+#[derive(Copy, Drop, Serde, IntrospectPacked)]
+#[dojo::model]
+struct Settings {
+    #[key]
+    id: u8,
+    free_daily_credits: u8,
+    daily_mode_price: felt252,
+    normal_mode_price: felt252,
+}

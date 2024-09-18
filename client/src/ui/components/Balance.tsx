@@ -26,18 +26,24 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
     address: token_address,
     watch: true,
     blockIdentifier: BlockTag.PENDING,
+    refetchInterval: 500,
   });
 
   if (isLoading) return <div>Loading ...</div>;
   if (isError || !data) return <div>{error?.message}</div>;
 
   const balanceData = data as BalanceData; // Type assertion here
-  console.log("------> balanceData", balanceData.balance.low);
 
   return (
-    <div className="text-sm">{`${parseFloat(
-      formatUnits(balanceData.balance.low, 18),
-    ).toFixed(isMdOrLarger ? 5 : 2)} ${symbol}`}</div>
+    <div className="text-sm">
+      {`${parseFloat(formatUnits(balanceData.balance.low, 18))
+        .toString()
+        .split(".")
+        .map((part, index) =>
+          index === 1 ? part.slice(0, isMdOrLarger ? 5 : 2) : part,
+        )
+        .join(".")} ${symbol}`}
+    </div>
   );
 };
 

@@ -363,34 +363,34 @@
   },
   {
     "type": "impl",
-    "name": "playerImpl",
-    "interface_name": "zkube::models::index::Iplayer"
+    "name": "settingsImpl",
+    "interface_name": "zkube::models::index::Isettings"
   },
   {
     "type": "struct",
-    "name": "zkube::models::index::Player",
+    "name": "zkube::models::index::Settings",
     "members": [
       {
         "name": "id",
+        "type": "core::integer::u8"
+      },
+      {
+        "name": "free_daily_credits",
+        "type": "core::integer::u8"
+      },
+      {
+        "name": "daily_mode_price",
         "type": "core::felt252"
       },
       {
-        "name": "game_id",
-        "type": "core::integer::u32"
-      },
-      {
-        "name": "name",
+        "name": "normal_mode_price",
         "type": "core::felt252"
-      },
-      {
-        "name": "points",
-        "type": "core::integer::u32"
       }
     ]
   },
   {
     "type": "interface",
-    "name": "zkube::models::index::Iplayer",
+    "name": "zkube::models::index::Isettings",
     "items": [
       {
         "type": "function",
@@ -398,7 +398,7 @@
         "inputs": [
           {
             "name": "model",
-            "type": "zkube::models::index::Player"
+            "type": "zkube::models::index::Settings"
           }
         ],
         "outputs": [],
@@ -408,7 +408,7 @@
   },
   {
     "type": "event",
-    "name": "zkube::models::index::player::Event",
+    "name": "zkube::models::index::settings::Event",
     "kind": "enum",
     "variants": []
   }

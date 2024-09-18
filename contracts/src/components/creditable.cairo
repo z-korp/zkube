@@ -17,7 +17,7 @@ mod CreditableComponent {
     // Internal imports
 
     use zkube::constants;
-    use zkube::store::{Store, StoreImpl};
+    use zkube::store::{Store, StoreTrait};
     use zkube::models::credits::{Credits, CreditsTrait, CreditsAssert};
     use zkube::models::player::{Player, PlayerTrait, PlayerAssert};
 
@@ -40,14 +40,16 @@ mod CreditableComponent {
             caller: ContractAddress
         ) {
             // [Setup] Datastore
-            let store: Store = StoreImpl::new(world);
+            let store: Store = StoreTrait::new(world);
+
             let player = store.player(caller.into());
             player.assert_exists();
 
             let mut credits = store.credits(caller.into());
             let time = get_block_timestamp();
             credits.assert_has_credits(time);
-            credits.use_credit(time);
+            let settings = store.settings();
+            credits.use_credit(time, settings);
 
             store.set_credits(credits);
         }
@@ -56,7 +58,7 @@ mod CreditableComponent {
             self: @ComponentState<TContractState>, world: IWorldDispatcher, caller: ContractAddress
         ) -> bool {
             // [Setup] Datastore
-            let store: Store = StoreImpl::new(world);
+            let store: Store = StoreTrait::new(world);
             let player = store.player(caller.into());
             player.assert_exists();
 

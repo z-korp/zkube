@@ -63,7 +63,7 @@ export const Surrender: React.FC<SurrenderProps> = ({ setIsUnmounting }) => {
             Surrender
           </Button>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Surrender Game?</DialogTitle>
           </DialogHeader>

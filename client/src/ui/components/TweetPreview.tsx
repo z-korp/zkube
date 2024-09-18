@@ -65,7 +65,7 @@ export const TweetPreview: React.FC<TweetPreviewProps> = ({
       <DialogContent
         ref={bodyRef}
         className="sm:max-w-[500px]"
-        aria-description=""
+        aria-describedby={undefined}
       >
         <DialogHeader className="flex items-center text-2xl">
           <DialogTitle>Share Progress on X</DialogTitle>

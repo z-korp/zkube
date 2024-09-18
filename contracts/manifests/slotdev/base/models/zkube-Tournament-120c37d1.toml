@@ -3,6 +3,7 @@ class_hash = "0x40192a8af7bea738cee0feffb7de37f6b15e21f6809cff453268e65f240d1b6"
 original_class_hash = "0x40192a8af7bea738cee0feffb7de37f6b15e21f6809cff453268e65f240d1b6"
 abi = "manifests/slotdev/base/abis/models/zkube-Tournament-120c37d1.json"
 tag = "zkube-Tournament"
+qualified_path = "zkube::models::index::tournament"
 manifest_name = "zkube-Tournament-120c37d1"
 
 [[members]]

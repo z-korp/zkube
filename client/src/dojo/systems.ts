@@ -66,6 +66,7 @@ export function systems({
   const toastPlacement = getToastPlacement();
 
   const notify = (message: string, transaction: any) => {
+    console.log("transaction", transaction);
     if (transaction.execution_status !== "REVERTED") {
       toast.success(message, {
         id: TOAST_ID,
@@ -105,7 +106,13 @@ export function systems({
 
       notify(successMessage, transaction);
     } catch (error: any) {
-      toast.error(extractedMessage(error.message), { id: TOAST_ID });
+      console.error("Error executing transaction:", error);
+      if (!error?.message) {
+        toast.error("Transaction cancelled", { id: TOAST_ID });
+      } else {
+        toast.error(extractedMessage(error.message), { id: TOAST_ID });
+      }
+
       throw error;
     }
   };

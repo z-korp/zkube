@@ -3,6 +3,7 @@ class_hash = "0xf9b6c922045b89af068513b0a9c3df3c687a437dfece00c51f7b09ee22444"
 original_class_hash = "0xf9b6c922045b89af068513b0a9c3df3c687a437dfece00c51f7b09ee22444"
 abi = "manifests/slotdev/base/abis/models/zkube-Player-a3c56d30.json"
 tag = "zkube-Player"
+qualified_path = "zkube::models::index::player"
 manifest_name = "zkube-Player-a3c56d30"
 
 [[members]]

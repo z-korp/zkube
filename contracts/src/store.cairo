@@ -14,6 +14,7 @@ use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{Player, PlayerTrait};
 use zkube::models::tournament::Tournament;
 use zkube::models::credits::Credits;
+use zkube::models::settings::Settings;
 
 /// Store struct.
 #[derive(Copy, Drop)]
@@ -28,6 +29,8 @@ impl StoreImpl of StoreTrait {
     fn new(world: IWorldDispatcher) -> Store {
         Store { world: world }
     }
+
+    // GETTERS
 
     #[inline(always)]
     fn player(self: Store, player_id: felt252) -> Player {
@@ -50,6 +53,13 @@ impl StoreImpl of StoreTrait {
     }
 
     #[inline(always)]
+    fn settings(self: Store) -> Settings {
+        get!(self.world, 1, (Settings))
+    }
+
+    // SETTERS
+
+    #[inline(always)]
     fn set_game(self: Store, game: Game) {
         set!(self.world, (game))
     }
@@ -67,5 +77,10 @@ impl StoreImpl of StoreTrait {
     #[inline(always)]
     fn set_credits(self: Store, credits: Credits) {
         set!(self.world, (credits))
+    }
+
+    #[inline(always)]
+    fn set_settings(self: Store, settings: Settings) {
+        set!(self.world, (settings))
     }
 }

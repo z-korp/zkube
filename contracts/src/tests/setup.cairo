@@ -24,6 +24,7 @@ mod setup {
 
     use zkube::constants;
     use zkube::models::game::{Game, GameTrait, GameImpl};
+    use zkube::models::settings::Settings;
     use zkube::models::player::Player;
     use zkube::models::tournament::Tournament;
     use zkube::types::difficulty::Difficulty;
@@ -107,6 +108,7 @@ mod setup {
         models.append(zkube::models::index::player::TEST_CLASS_HASH);
         models.append(zkube::models::index::tournament::TEST_CLASS_HASH);
         models.append(zkube::models::index::credits::TEST_CLASS_HASH);
+        models.append(zkube::models::index::settings::TEST_CLASS_HASH);
         let world = spawn_test_world(["zkube"].span(), models.span());
 
         let erc20 = deploy_erc20();
@@ -116,11 +118,15 @@ mod setup {
             .deploy_contract('account', account::TEST_CLASS_HASH.try_into().unwrap());
         let play_address = world.deploy_contract('play', play::TEST_CLASS_HASH.try_into().unwrap());
 
-        let selector = selector_from_tag!("zkube-play");
-        world.init_contract(selector, array![erc20.contract_address.into()].span());
-
+        // [Setup] Permissions
         world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), account_address);
         world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), play_address);
+        //world.grant_writer(selector_from_tag!("zkube-Settings"), play_address);
+        //world.grant_writer(Model::<Settings>::selector(), play_address);
+
+        // [Setup] Contract
+        let selector = selector_from_tag!("zkube-play");
+        world.init_contract(selector, array![erc20.contract_address.into()].span());
 
         let systems = Systems {
             account: IAccountDispatcher { contract_address: account_address },

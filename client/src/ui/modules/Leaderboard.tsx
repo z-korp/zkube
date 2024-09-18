@@ -102,7 +102,10 @@ export const Leaderboard = () => {
       <DialogTrigger asChild>
         <Button variant="outline">Leaderboards</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] w-[95%] rounded-lg p-4">
+      <DialogContent
+        className="sm:max-w-[700px] w-[95%] rounded-lg p-4"
+        aria-describedby={undefined}
+      >
         <DialogHeader className="flex items-center text-2xl">
           <DialogTitle>Leaderboards</DialogTitle>
         </DialogHeader>

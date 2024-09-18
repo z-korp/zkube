@@ -1235,12 +1235,12 @@
       }
     ],
     "address": "0x5ef8195dbf43ea66b14d7bfec4ed6b565386a49dff34aa474c3cd29aa0fa615",
-    "transaction_hash": "0x1936d91a2a323450269e92abf17ffc1bc659063cf204f6919d81ecdd7713ba1",
+    "transaction_hash": "0x1e00e184dfd939745424d2e91d460b431220db250a328f66cfbebd092e3814c",
     "block_number": 3,
     "seed": "zKube",
     "metadata": {
-      "profile_name": "dev",
-      "rpc_url": "http://localhost:5050/"
+      "profile_name": "slotdev",
+      "rpc_url": "https://api.cartridge.gg/x/zkube-slotdev/katana"
     },
     "manifest_name": "dojo-world"
   },
@@ -1248,7 +1248,7 @@
     "kind": "Class",
     "class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
     "original_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
-    "abi": "manifests/dev/deployment/abis/dojo-base.json",
+    "abi": "manifests/slotdev/deployment/abis/dojo-base.json",
     "tag": "dojo-base",
     "manifest_name": "dojo-base"
   },
@@ -1529,8 +1529,8 @@
     {
       "kind": "DojoContract",
       "address": "0x8fbe72f6d350f76cfd6554872befc4d61889d4029a66cf3897506a908f77ca",
-      "class_hash": "0x8aed566fc89e3dd0e3799e9ac50bcd70798b35fd10b1b9da46785fb418044a",
-      "original_class_hash": "0x8aed566fc89e3dd0e3799e9ac50bcd70798b35fd10b1b9da46785fb418044a",
+      "class_hash": "0x48e480a0494db904cd6f64b787824c6a33eaf12c6bb264d8351934b0a26b1ae",
+      "original_class_hash": "0x48e480a0494db904cd6f64b787824c6a33eaf12c6bb264d8351934b0a26b1ae",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {

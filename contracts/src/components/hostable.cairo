@@ -21,7 +21,7 @@ mod HostableComponent {
     // Internal imports
 
     use zkube::constants;
-    use zkube::store::{Store, StoreImpl};
+    use zkube::store::{Store, StoreTrait};
     use zkube::models::game::{Game, GameImpl, GameAssert};
     use zkube::models::player::{Player, PlayerImpl, PlayerAssert};
     use zkube::types::mode::{Mode, ModeTrait};
@@ -67,7 +67,7 @@ mod HostableComponent {
             was_free: bool,
         ) -> (u32, u256) {
             // [Setup] Datastore
-            let store: Store = StoreImpl::new(world);
+            let store: Store = StoreTrait::new(world);
 
             // [Check] Verify new seed
             assert(!self.seeds.read(beta), errors::PLAYABLE_INVALID_SEED);
@@ -111,9 +111,11 @@ mod HostableComponent {
             if (!was_free) {
                 let tournament_id = TournamentImpl::compute_id(time, mode.duration());
                 let mut tournament = store.tournament(tournament_id);
-                tournament.buyin(mode.price());
+                let settings = store.settings();
+                let price = mode.price(settings);
+                tournament.buyin(price);
                 store.set_tournament(tournament);
-                amount = mode.price().into();
+                amount = price.into(); // convert to u256
             }
 
             // [Return] Game ID and amount to pay
@@ -128,7 +130,7 @@ mod HostableComponent {
             mode: Mode,
         ) -> u256 {
             // [Setup] Datastore
-            let store: Store = StoreImpl::new(world);
+            let store: Store = StoreTrait::new(world);
 
             // [Check] Player exists
             let caller = get_caller_address();
@@ -155,7 +157,7 @@ mod HostableComponent {
             mode: Mode
         ) -> u256 {
             // [Setup] Datastore
-            let store: Store = StoreImpl::new(world);
+            let store: Store = StoreTrait::new(world);
 
             // [Check] Tournament exists
             let time = get_block_timestamp();

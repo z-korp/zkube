@@ -23,11 +23,10 @@ mod PlayableComponent {
     // Internal imports
 
     use zkube::constants;
-    use zkube::store::{Store, StoreImpl};
+    use zkube::store::{Store, StoreTrait};
     use zkube::models::game::{Game, GameTrait, GameAssert};
     use zkube::models::player::{Player, PlayerTrait, PlayerAssert};
     use zkube::models::game::AssertTrait;
-    use zkube::store::StoreTrait;
     use zkube::types::bonus::Bonus;
     use zkube::types::difficulty::Difficulty;
     use zkube::types::mode::Mode;
@@ -51,7 +50,7 @@ mod PlayableComponent {
     > of InternalTrait<TContractState> {
         fn _surrender(self: @ComponentState<TContractState>, world: IWorldDispatcher) {
             // [Setup] Datastore
-            let store: Store = StoreImpl::new(world);
+            let store: Store = StoreTrait::new(world);
 
             // [Check] Player exists
             let caller = get_caller_address();
@@ -98,7 +97,7 @@ mod PlayableComponent {
             final_index: u8,
         ) {
             // [Setup] Datastore
-            let store: Store = StoreImpl::new(world);
+            let store: Store = StoreTrait::new(world);
 
             // [Check] Player exists
             let caller = get_caller_address();
@@ -145,7 +144,7 @@ mod PlayableComponent {
             index: u8,
         ) {
             // [Setup] Datastore
-            let store: Store = StoreImpl::new(world);
+            let store: Store = StoreTrait::new(world);
 
             // [Check] Player exists
             let caller = get_caller_address();

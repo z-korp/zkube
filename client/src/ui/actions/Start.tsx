@@ -56,7 +56,7 @@ export const Start: React.FC<StartProps> = ({
       await start({
         account: account as Account,
         mode: new Mode(mode).into(),
-        price: 5000000000000000n,
+        price: 5000000000000000n, // 0.0005 ETH
         seed,
         x: proof_gamma_x,
         y: proof_gamma_y,

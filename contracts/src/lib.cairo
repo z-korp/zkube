@@ -8,6 +8,7 @@ mod models {
     mod player;
     mod tournament;
     mod credits;
+    mod settings;
 }
 
 mod types {

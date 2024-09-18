@@ -14,6 +14,8 @@ use stark_vrf::ecvrf::{Proof, Point, ECVRFTrait};
 
 use zkube::types::bonus::Bonus;
 use zkube::types::mode::Mode;
+use zkube::models::settings::{Settings, SettingsTrait};
+use zkube::store::{Store, StoreTrait};
 
 #[dojo::interface]
 trait IPlay<TContractState> {
@@ -45,7 +47,7 @@ mod play {
 
     // Local imports
 
-    use super::{IPlay, Proof, Bonus, Mode};
+    use super::{IPlay, Proof, Bonus, Mode, Settings, SettingsTrait, Store, StoreTrait};
 
     // Components
 
@@ -92,6 +94,11 @@ mod play {
     fn dojo_init(ref world: IWorldDispatcher, token_address: ContractAddress,) {
         // [Effect] Initialize components
         self.payable._initialize(token_address);
+
+        // [Effect] Create the settings entity
+        let store: Store = StoreTrait::new(world);
+        let settings: Settings = SettingsTrait::new();
+        store.set_settings(settings);
     }
 
     // Implementations
@@ -112,6 +119,7 @@ mod play {
             // [Effect] Create a game
             let (game_id, amount) = self.hostable._create(world, proof, seed, beta, mode, was_free);
 
+            // Get the settings
             if (was_free) {
                 self.creditable._use_credit(world, caller);
             } else {
