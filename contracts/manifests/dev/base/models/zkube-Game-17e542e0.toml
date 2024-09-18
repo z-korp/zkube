@@ -3,6 +3,7 @@ class_hash = "0x5e1d8bd1fc67cef0ef1b9e642a44c13474d93cd5123e2b233cdbac9dc79de0c"
 original_class_hash = "0x5e1d8bd1fc67cef0ef1b9e642a44c13474d93cd5123e2b233cdbac9dc79de0c"
 abi = "manifests/dev/base/abis/models/zkube-Game-17e542e0.json"
 tag = "zkube-Game"
+qualified_path = "zkube::models::index::game"
 manifest_name = "zkube-Game-17e542e0"
 
 [[members]]
