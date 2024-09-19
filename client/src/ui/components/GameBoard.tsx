@@ -11,7 +11,7 @@ import { Account } from "starknet";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import MaxComboIcon from "./MaxComboIcon";
 import PieceComponent from "./PieceComponent";
-import CellComponent from "./CellComponent"; // Import of the Cell component
+import CellComponent from "./CellComponent";
 import { Piece } from "@/types/Piece";
 import { PIECES } from "@/types/types";
 
@@ -394,7 +394,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
     }
 
     if (!bonusHammer && !bonusTiki && !bonusWave) {
-      await insertNewLine();
+      grid.insertNewLine(nextLine);
+
     }
     while (rowsCleared) {
       let changesMade = true;
@@ -412,7 +413,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     if (grid.isEmpty()) {
       handleEmptyGrid();
       await new Promise((resolve) => setTimeout(resolve, 200));
-      await insertNewLine();
+      grid.insertNewLine(nextLine);
       await new Promise((resolve) => setTimeout(resolve, 200));
     }
 
@@ -436,72 +437,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account]);
 
-  const insertNewLine = async () => {
-    await new Promise((resolve) => {
-      setGrid((prevGrid) => {
-        const numericGrid = prevGrid.cells
-          .slice(1)
-          .map((row) => row.map((cell) => cell.piece?.width ?? 0));
-        const newGrid = new Grid(rows, cols, numericGrid);
 
-        const newLine: Cell[] = nextLine.map(
-          (value, index) =>
-            new Cell(
-              `${rows - 1}-${index}`,
-              value !== 0
-                ? new Piece(
-                    value,
-                    PIECES.find((p) => p.id === value)?.width || 0,
-                    PIECES.find((p) => p.id === value)?.element || "",
-                  )
-                : null,
-              false,
-            ),
-        );
 
-        newGrid.cells.push(newLine);
-        newGrid.markStartingCells();
-        resolve(newGrid);
-        console.log("Grid insertNewLine:", newGrid.cells);
-        return newGrid;
-      });
-    });
-  };
+ 
 
   const removePieceFromGrid = async (rowIndex: number, colIndex: number) => {
-    await new Promise((resolve) => {
-      setGrid((prevGrid) => {
-        const numericGrid = prevGrid.cells.map((row) =>
-          row.map((cell) => cell.piece?.width ?? 0),
-        );
-        const newGrid = new Grid(rows, cols, numericGrid);
-
-        if (
-          rowIndex >= 0 &&
-          rowIndex < newGrid.rows &&
-          colIndex >= 0 &&
-          colIndex < newGrid.cols
-        ) {
-          const pieceToRemove = newGrid.cells[rowIndex][colIndex].piece;
-          for (let row = 0; row < newGrid.rows; row++) {
-            for (let col = 0; col < newGrid.cols; col++) {
-              if (
-                newGrid.cells[row][col].piece === pieceToRemove 
-              ) {
-                newGrid.cells[row][col] = new Cell(
-                  `${row}-${col}`,
-                  null,
-                  false,
-                );
-              }
-            }
-          }
-        }
-        console.log("Grid removePieceFromGrid:", newGrid.cells);
-        resolve(newGrid);
-        return newGrid;
-      });
-    });
+    grid.removePiece(rowIndex, colIndex);
   };
   const handleBonusWaveTx = useCallback(
     async (rowIndex: number) => {
@@ -626,10 +567,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   }
 
   const renderPieces = () => {
-    //TODO: debug rows here
-    // console.log("Rendering pieces:", grid.pieces);
     return grid.pieces.map((pieceInfo, index) => {
-      //console.log("pieceInfo", pieceInfo);
       return (
         <PieceComponent
           key={`piece-${index}`}

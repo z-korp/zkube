@@ -40,6 +40,28 @@ export class Grid {
     return newGrid;
   }
 
+  removePiece(rowIndex: number, colIndex: number): void {
+    if (
+      rowIndex >= 0 &&
+      rowIndex < this.rows &&
+      colIndex >= 0 &&
+      colIndex < this.cols
+    ) {
+      const pieceToRemove = this.cells[rowIndex][colIndex].piece;
+      if (pieceToRemove) {
+        for (let row = 0; row < this.rows; row++) {
+          for (let col = 0; col < this.cols; col++) {
+            if (this.cells[row][col].piece === pieceToRemove) {
+              this.cells[row][col] = new Cell(`${row}-${col}`, null, false);
+            }
+          }
+        }
+        // Update the pieces list after removing a piece
+        this.pieces = this.extractPiecesFromGrid();
+      }
+    }
+  }
+
   isEmpty(): boolean {
     // Vérifie si toutes les cellules sont vides (i.e., aucune pièce présente)
     for (const row of this.cells) {
