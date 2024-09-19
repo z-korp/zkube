@@ -28,7 +28,8 @@ export class Grid {
           const newPiece = new Piece(piece.id, piece.width, piece.element);
           for (let k = 0; k < piece.width; k++) {
             const isStart = k === 0;
-            row.push(new Cell(cellId, newPiece, isStart));
+            const currentCellId = `${i}-${j + k}`;
+            row.push(new Cell(currentCellId, newPiece, isStart));
           }
           j += piece.width - 1; // Skip the cells we've just filled
         } else {
