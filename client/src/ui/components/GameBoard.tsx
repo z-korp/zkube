@@ -78,7 +78,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
     if (grid && !isAnimating && triggerGravity) {
       loopGravityAndClear();
     }
-  }, [grid]); 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [grid, isAnimating, triggerGravity]); 
 
   const handleBonusWaveClick = () => {
     setBonusWave(true);
@@ -275,17 +276,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
     console.log("handleMouseUp");
     setPieceToNewPositionAndTx();
   }, [isDragging, draggingPiece, grid, cols]);
-
-  useEffect(() => {
-    if (isDragging) {
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
-    }
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   useEffect(() => {
     if (isDragging) {

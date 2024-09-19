@@ -52,7 +52,7 @@ export class Grid {
         for (let row = 0; row < this.rows; row++) {
           for (let col = 0; col < this.cols; col++) {
             if (this.cells[row][col].piece === pieceToRemove) {
-              this.cells[row][col] = new Cell(`${row}-${col}`, null, false);
+              this.cells[row][col].setPiece(null, false);
             }
           }
         }
@@ -219,23 +219,17 @@ export class Grid {
 
   markStartingCells() {
     for (let i = 0; i < this.rows; i++) {
-      let j = 0;
-      while (j < this.cols) {
-        const currentPiece = this.cells[i][j].piece;
-        if (currentPiece !== null) {
-            // Mark the start of the piece
-            this.cells[i][j].isStart = true;
-
-            // Mark the rest of the piece as non-start
-            for (let k = 1; k < currentPiece.width && j + k < this.cols; k++) {
-              this.cells[i][j + k].isStart = false;
-            }
-
-            // Skip to the end of this piece
-            j += currentPiece.width;
-          
+      for (let j = 0; j < this.cols; ) {
+        const cell = this.cells[i][j];
+        if (cell.piece !== null) {
+          const pieceWidth = cell.piece.width;
+          for (let k = 0; k < pieceWidth && j + k < this.cols; k++) {
+            const currentCell = this.cells[i][j + k];
+            currentCell.isStart = k === 0;
+          }
+          j += pieceWidth;
         } else {
-          this.cells[i][j].isStart = false;
+          cell.isStart = false;
           j++;
         }
       }
