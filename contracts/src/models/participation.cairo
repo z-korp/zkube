@@ -75,9 +75,7 @@ impl ZeroableParticipation of Zeroable<Participation> {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        Chest, ChestImpl, Participation, ParticipationImpl, ZeroableChest, ZeroableParticipation
-    };
+    use super::{Participation, ParticipationImpl, ZeroableParticipation};
     use core::Zeroable;
 
     #[test]
@@ -85,7 +83,7 @@ mod tests {
         let participation = ParticipationImpl::new(1, 123);
         assert(participation.chest_id == 1, 'Chest id should be 1');
         assert(participation.player_id == 123, 'Player id should be 123');
-        assert(participation.score == 0, 'Initial score should be 0');
+        assert(participation.points == 0, 'Initial score should be 0');
         assert(!participation.claimed, 'Should not be claimed initially');
     }
 
@@ -93,15 +91,15 @@ mod tests {
     fn test_participation_add_points() {
         let mut participation = ParticipationImpl::new(1, 123);
         participation.add_points(50);
-        assert(participation.score == 50, 'Score should be 50');
+        assert(participation.points == 50, 'Score should be 50');
         participation.add_points(30);
-        assert(participation.score == 80, 'Score should be 80');
+        assert(participation.points == 80, 'Score should be 80');
     }
 
     #[test]
     fn test_participation_claim() {
         let mut participation = ParticipationImpl::new(1, 123);
-        participation.claim();
+        participation.claim(100, 1000);
         assert(participation.claimed, 'Participation should be claimed');
     }
 
@@ -109,17 +107,8 @@ mod tests {
     #[should_panic(expected: ('Participation already claimed',))]
     fn test_participation_claim_twice() {
         let mut participation = ParticipationImpl::new(1, 123);
-        participation.claim();
-        participation.claim(); // This should panic
-    }
-
-    #[test]
-    fn test_zero_chest() {
-        let zero_chest: Chest = Zeroable::zero();
-        assert(zero_chest.id == 0, 'Zero chest id should be 0');
-        assert(zero_chest.point_target == 0, 'Zero chest target should be 0');
-        assert(zero_chest.points == 0, 'Zero chest points should be 0');
-        assert(zero_chest.prize == 0, 'Zero chest prize should be 0');
+        participation.claim(100, 1000);
+        participation.claim(100, 1000); // This should panic
     }
 
     #[test]
@@ -127,7 +116,7 @@ mod tests {
         let zero_participation: Participation = Zeroable::zero();
         assert(zero_participation.chest_id == 0, 'Zero part chest_id should be 0');
         assert(zero_participation.player_id == 0, 'Zero part player_id should be 0');
-        assert(zero_participation.score == 0, 'Zero part score should be 0');
+        assert(zero_participation.points == 0, 'Zero part score should be 0');
         assert(!zero_participation.claimed, 'Zero part should not be claimed');
     }
 }

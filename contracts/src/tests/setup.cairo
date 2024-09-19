@@ -29,12 +29,14 @@ mod setup {
     use zkube::models::tournament::Tournament;
     use zkube::types::difficulty::Difficulty;
     use zkube::types::mode::Mode;
-    use zkube::systems::account::{account, IAccountDispatcher, IAccountDispatcherTrait};
     use zkube::tests::mocks::erc20::{
         IERC20Dispatcher, IERC20DispatcherTrait, IERC20FaucetDispatcher,
         IERC20FaucetDispatcherTrait, ERC20
     };
+    use zkube::systems::account::{account, IAccountDispatcher, IAccountDispatcherTrait};
     use zkube::systems::play::{play, IPlayDispatcher, IPlayDispatcherTrait};
+    use zkube::systems::chest::{chest, IChestDispatcher, IChestDispatcherTrait};
+    use zkube::systems::settings::{settings, ISettingsDispatcher, ISettingsDispatcherTrait};
 
     #[starknet::interface]
     trait IDojoInit<ContractState> {
@@ -109,6 +111,9 @@ mod setup {
         models.append(zkube::models::index::tournament::TEST_CLASS_HASH);
         models.append(zkube::models::index::credits::TEST_CLASS_HASH);
         models.append(zkube::models::index::settings::TEST_CLASS_HASH);
+        models.append(zkube::models::index::participation::TEST_CLASS_HASH);
+        models.append(zkube::models::index::chest::TEST_CLASS_HASH);
+        models.append(zkube::models::index::admin::TEST_CLASS_HASH);
         let world = spawn_test_world(["zkube"].span(), models.span());
 
         let erc20 = deploy_erc20();
@@ -117,16 +122,28 @@ mod setup {
         let account_address = world
             .deploy_contract('account', account::TEST_CLASS_HASH.try_into().unwrap());
         let play_address = world.deploy_contract('play', play::TEST_CLASS_HASH.try_into().unwrap());
+        let settings_address = world
+            .deploy_contract('settings', settings::TEST_CLASS_HASH.try_into().unwrap());
+        let chest_address = world
+            .deploy_contract('chest', chest::TEST_CLASS_HASH.try_into().unwrap());
 
         // [Setup] Permissions
         world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), account_address);
         world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), play_address);
+        world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), chest_address);
+        world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), settings_address);
         //world.grant_writer(selector_from_tag!("zkube-Settings"), play_address);
         //world.grant_writer(Model::<Settings>::selector(), play_address);
 
         // [Setup] Contract
         let selector = selector_from_tag!("zkube-play");
         world.init_contract(selector, array![erc20.contract_address.into()].span());
+
+        let selector = selector_from_tag!("zkube-chest");
+        world.init_contract(selector, array![erc20.contract_address.into()].span());
+
+        let selector = selector_from_tag!("zkube-settings");
+        world.init_contract(selector, array![].span());
 
         let systems = Systems {
             account: IAccountDispatcher { contract_address: account_address },

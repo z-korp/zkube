@@ -24,6 +24,7 @@ mod settings {
     // Component imports
 
     // Local imports
+
     use super::{ISettings, Settings, get_caller_address};
     use zkube::store::{Store, StoreTrait};
     use zkube::models::settings::SettingsTrait;

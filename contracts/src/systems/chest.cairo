@@ -24,7 +24,7 @@ trait IChest<TContractState> {
 }
 
 #[dojo::contract]
-mod play {
+mod chest {
     // Starknet imports
 
     use starknet::{ContractAddress, ClassHash};

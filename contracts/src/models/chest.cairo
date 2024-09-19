@@ -80,14 +80,12 @@ impl ZeroableChest of Zeroable<Chest> {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        Chest, ChestImpl, Participation, ParticipationImpl, ZeroableChest, ZeroableParticipation
-    };
     use core::Zeroable;
+    use super::{Chest, ChestTrait, ZeroableChest};
 
     #[test]
     fn test_chest_new() {
-        let chest = ChestImpl::new(1, 100, 1000);
+        let chest = ChestTrait::new(1, 100, 1000);
         assert(chest.id == 1, 'Chest id should be 1');
         assert(chest.point_target == 100, 'Point target should be 100');
         assert(chest.points == 0, 'Initial points should be 0');
@@ -96,7 +94,7 @@ mod tests {
 
     #[test]
     fn test_chest_add_points() {
-        let mut chest = ChestImpl::new(1, 100, 1000);
+        let mut chest = ChestTrait::new(1, 100, 1000);
         chest.add_points(50);
         assert(chest.points == 50, 'Points should be 50');
         chest.add_points(60);
@@ -105,7 +103,7 @@ mod tests {
 
     #[test]
     fn test_chest_is_complete() {
-        let mut chest = ChestImpl::new(1, 100, 1000);
+        let mut chest = ChestTrait::new(1, 100, 1000);
         assert(!chest.is_complete(), 'Chest should not be complete');
         chest.add_points(100);
         assert(chest.is_complete(), 'Chest should be complete');
@@ -113,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_chest_remaining_points() {
-        let mut chest = ChestImpl::new(1, 100, 1000);
+        let mut chest = ChestTrait::new(1, 100, 1000);
         assert(chest.remaining_points() == 100, 'Remaining should be 100');
         chest.add_points(60);
         assert(chest.remaining_points() == 40, 'Remaining should be 40');

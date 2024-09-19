@@ -53,29 +53,21 @@ impl ZeroableAdmin of Zeroable<Admin> {
 
 #[cfg(test)]
 mod tests {
-    use super::{Admin, AdminImpl, ZeroableAdmin};
+    use super::{Admin, AdminTrait, ZeroableAdmin};
     use core::Zeroable;
 
     #[test]
     fn test_admin_new() {
-        let admin = AdminImpl::new(1);
+        let admin = AdminTrait::new(1);
         assert(admin.id == 1, 'Admin id should be 1');
         assert(admin.is_admin, 'Should be an admin');
-    }
-
-    #[test]
-    fn test_admin_set_admin() {
-        let mut admin = AdminImpl::new(1);
-        assert(admin.is_admin, 'Should be an admin');
-        admin.set_admin(false);
-        assert(!admin.is_admin, 'Should not be an admin');
     }
 
     #[test]
     fn test_admin_zeroable() {
         let zero_admin = ZeroableAdmin::zero();
         assert(zero_admin.is_zero(), 'Should be zero');
-        let admin = AdminImpl::new(1);
+        let admin = AdminTrait::new(1);
         assert(admin.is_non_zero(), 'Should be non-zero');
     }
 }
