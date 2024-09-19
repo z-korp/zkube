@@ -182,7 +182,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     );
 
     const numericGrid = grid.cells.map((row) =>
-      row.map((cell) => cell.piece?.size ?? 0),
+      row.map((cell) => cell.piece?.width ?? 0),
     );
 
     
@@ -211,7 +211,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       const newGrid2 = placePiece(workgrid, draggingPiece.row, finalCol, piece);
       // setGrid(newGrid2);
       const numericGrid2 = newGrid2.cells.map((row) =>
-        row.map((cell) => cell.piece?.size ?? 0),
+        row.map((cell) => cell.piece?.width ?? 0),
       );
       setTriggerGravity(true);
       setGrid(new Grid(rows, cols, numericGrid2));
@@ -350,7 +350,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     console.log("applyGravity", grid.cells);
     const changesMade = grid.applyGravity();
     const numericGrid = grid.cells.map((row) =>
-      row.map((cell) => cell.piece?.size ?? 0),
+      row.map((cell) => cell.piece?.width ?? 0),
     );
     setTriggerGravity(false);
     setGrid(new Grid(rows, cols, numericGrid));
@@ -441,7 +441,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       setGrid((prevGrid) => {
         const numericGrid = prevGrid.cells
           .slice(1)
-          .map((row) => row.map((cell) => cell.piece?.size ?? 0));
+          .map((row) => row.map((cell) => cell.piece?.width ?? 0));
         const newGrid = new Grid(rows, cols, numericGrid);
 
         const newLine: Cell[] = nextLine.map(
@@ -472,7 +472,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     await new Promise((resolve) => {
       setGrid((prevGrid) => {
         const numericGrid = prevGrid.cells.map((row) =>
-          row.map((cell) => cell.piece?.size ?? 0),
+          row.map((cell) => cell.piece?.width ?? 0),
         );
         const newGrid = new Grid(rows, cols, numericGrid);
 
