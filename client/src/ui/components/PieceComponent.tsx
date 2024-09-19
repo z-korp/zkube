@@ -69,7 +69,7 @@ const PieceComponent: React.FC<PieceComponentProps> = ({
         left: `${startCol * widthPiece + startCol * offsetGapWidth - offsetGapHeight / 2}px`,
         top: `${startRow * widthPiece + startRow * offsetGapHeight}px`,
         transform: `translateX(${dragOffset}px)`,
-        transition: isDragging ? "none" : "transform 0.3s ease-out",
+        // transition: isDragging ? "none" : "transform 0.3s ease-out",
         zIndex: isDragging ? 1000 : 500,
         ...springProps,
       }}
