@@ -63,15 +63,15 @@ export class Grid {
   }
 
   isEmpty(): boolean {
-    // Vérifie si toutes les cellules sont vides (i.e., aucune pièce présente)
+    // Check if all cells are empty (i.e., no piece present)
     for (const row of this.cells) {
       for (const cell of row) {
         if (cell.piece !== null) {
-          return false; // Si une pièce est trouvée, la grille n'est pas vide
+          return false; // If a piece is found, the grid is not empty
         }
       }
     }
-    return true; // Aucune pièce trouvée, donc la grille est vide
+    return true; // No piece found, so the grid is empty
   }
 
   extractPiecesFromGrid(): { piece: Piece; startRow: number; startCol: number }[] {
@@ -107,7 +107,6 @@ export class Grid {
         const currentCell = this.cells[row][col];
 
         if (currentCell.piece !== null && currentCell.isStart) {
-        //   const piece = PIECES.find((p) => p === currentCell.piece);
             let canFall = true;
             for (let i = 0; i < currentCell.piece?.width; i++) {
               if (
@@ -134,7 +133,6 @@ export class Grid {
               }
               changesMade = true;
             }
-          
         }
       }
     }
@@ -239,5 +237,16 @@ export class Grid {
         }
       }
     }
+  }
+
+  placePiece(row: number, col: number, piece: Piece): Grid {
+    for (let j = 0; j < piece.width; j++) {
+      if (row < this.rows && col + j < this.cols) {
+        this.cells[row][col + j].piece = piece;
+        this.cells[row][col + j].isStart = j === 0;
+      }
+    }
+    this.pieces = this.extractPiecesFromGrid(); // Update the pieces list after placing a new piece
+    return this;
   }
 }

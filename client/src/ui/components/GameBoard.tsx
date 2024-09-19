@@ -208,7 +208,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       // Place at the new position
       const finalCol = Math.min(newCol, cols - piece.width);
       // Update the grid after placement
-      const newGrid2 = placePiece(workgrid, draggingPiece.row, finalCol, piece);
+      const newGrid2 = workgrid.placePiece(draggingPiece.row, finalCol, piece);
       // setGrid(newGrid2);
       const numericGrid2 = newGrid2.cells.map((row) =>
         row.map((cell) => cell.piece?.width ?? 0),
@@ -228,21 +228,21 @@ const GameBoard: React.FC<GameBoardProps> = ({
     applyGravityLoop();
   };
 
-  const placePiece = (
-    grid: Grid,
-    row: number,
-    col: number,
-    piece: Piece,
-  ) => {
-    const newGrid = grid;
+  // const placePiece = (
+  //   grid: Grid,
+  //   row: number,
+  //   col: number,
+  //   piece: Piece,
+  // ) => {
+  //   const newGrid = grid;
     
-    for (let j = 0; j < piece.width; j++) {
-      newGrid.cells[row][col + j].piece = piece;
-      newGrid.cells[row][col + j].isStart = j === 0;
-    }
+  //   for (let j = 0; j < piece.width; j++) {
+  //     newGrid.cells[row][col + j].piece = piece;
+  //     newGrid.cells[row][col + j].isStart = j === 0;
+  //   }
     
-    return newGrid;
-  };
+  //   return newGrid;
+  // };
 
   const handleTouchMove = useCallback(
     (e: TouchEvent) => {
@@ -436,9 +436,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account]);
-
-
-
  
 
   const removePieceFromGrid = async (rowIndex: number, colIndex: number) => {
