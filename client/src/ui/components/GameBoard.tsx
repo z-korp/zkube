@@ -11,7 +11,7 @@ import { Account } from "starknet";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import MaxComboIcon from "./MaxComboIcon";
 import PieceComponent from "./PieceComponent";
-import CellComponent from "./CellComponent"; // Importation du composant Cell
+import CellComponent from "./CellComponent"; // Import of the Cell component
 import { Piece } from "@/types/Piece";
 import { PIECES } from "@/types/types";
 
@@ -71,7 +71,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   useEffect(() => {
     if (isAnimating || isTxProcessing) return;
     console.log("UPDATE GRID FROM CONTRACT", initialGrid);
-    setGrid(new Grid(rows, cols, initialGrid)); // Réinitialiser la grille lorsque l'état initial change
+    setGrid(new Grid(rows, cols, initialGrid)); // Reset the grid when the initial state changes
   }, [initialGrid, isAnimating, isTxProcessing]);
 
   useEffect(() => {
@@ -137,19 +137,19 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
     const totalDrag = newX - draggingPiece.startX;
 
-    // Calculez la nouvelle colonne
+    // Calculate the new column
     let newCol = Math.round(draggingPiece.col + totalDrag / cellWidth);
 
-    // Vérifiez les limites
+    // Check boundaries
     newCol = Math.max(0, Math.min(cols - piece.width, newCol));
 
-    // Vérifiez les collisions sur tout le chemin
+    // Check collisions along the entire path
     if (!checkCollision(draggingPiece.row, draggingPiece.col, newCol, piece)) {
-      // Si pas de collision, mettez à jour la position
+      // If no collision, update the position
       newX = draggingPiece.startX + (newCol - draggingPiece.col) * cellWidth;
       setDraggingPiece({ ...draggingPiece, currentX: newX });
     } else {
-      // En cas de collision, trouvez la position valide la plus proche
+      // In case of collision, find the closest valid position
       let validCol = draggingPiece.col;
       const direction = newCol > draggingPiece.col ? 1 : -1;
       while (
@@ -206,9 +206,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
         }
       }
       
-      // Placer à la nouvelle position
+      // Place at the new position
       const finalCol = Math.min(newCol, cols - piece.width);
-      // Mettre à jour la grille après le placement
+      // Update the grid after placement
       const newGrid2 = placePiece(workgrid, draggingPiece.row, finalCol, piece);
       // setGrid(newGrid2);
       const numericGrid2 = newGrid2.cells.map((row) =>
@@ -216,9 +216,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
       );
       setTriggerGravity(true);
       setGrid(new Grid(rows, cols, numericGrid2));
-      // if (draggingPiece.col !== finalCol) {
-      //   loopGravityAndClear();
-      // }
   
       // Send move tx
       handleMove(rows - draggingPiece.row - 1, draggingPiece.col, finalCol);
@@ -607,7 +604,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     const piece = grid.cells[rowIndex][colIndex].piece;
     if (!piece) return;
 
-    // Assurez-vous que nous commençons par la cellule de départ pour cette pièce
+    // Make sure we start with the starting cell for this piece
     let startCol = colIndex;
     while (
       startCol > 0 &&
@@ -621,7 +618,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     const cellWidth = gridRect ? gridRect.width / cols : 0;
     const startX = gridRect ? gridRect.left + startCol * cellWidth : 0;
 
-    // Calculez le décalage entre le point de clic et le début de la pièce
+    // Calculate the offset between the click point and the start of the piece
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clickOffset = clientX - startX;
     console.log("startDragging", rowIndex, startCol, startX, clickOffset);
@@ -636,7 +633,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   }
 
   const renderPieces = () => {
-    //TODO: debug rows ici
+    //TODO: debug rows here
     // console.log("Rendering pieces:", grid.pieces);
     return grid.pieces.map((pieceInfo, index) => {
       //console.log("pieceInfo", pieceInfo);
@@ -724,7 +721,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             className={`${isMdOrLarger ? "w-[412px]" : "w-[300px]"} border-4 border-slate-800 grid grid-cols-8 grid-rows-10 gap-1`}
             style={{ position: "relative" }}
           >
-            {/* Rendu des cellules de fond */}
+            {/* Rendering of background cells */}
             {grid.cells.map((row, rowIndex) => (
               <React.Fragment key={rowIndex}>
                 {row.map((cell, colIndex) => (
@@ -740,7 +737,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               </React.Fragment>
             ))}
 
-            {/* Rendu des pièces */}
+            {/* Rendering of pieces */}
             {renderPieces()}
           </div>
         </div>
