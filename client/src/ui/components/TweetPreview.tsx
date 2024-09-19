@@ -26,16 +26,16 @@ export const TweetPreview: React.FC<TweetPreviewProps> = ({
 
   useEffect(() => {
     setTweetMsg(
-      `Just had a blast on @zkorp_ 's zkube game but lost with a score of ${score} at Level ${level} 😅. But I’m not giving up—next stop, Level ${Number(level) ? Number(level) + 1 : 1} \n\n🏆! Who’s ready to join me on this epic adventure? 🚀🚀 \n\n#GameOn #ChallengeAccepte\n\n`,
+      `🎮 Just crushed it on ZKUBE a @zkorp_ game with an awesome score of ${score}! 💥 Can you beat that? 😎\n\nI'm pumped to go even higher\nWho's ready to join the challenge? 🚀 Let's see who can set the new high score!\n\n#HighScore #GameOn #ChallengeAccepted`,
     );
-  }, [open, score, level]);
+  }, [open, score]);
 
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setTweetMsg(event.target.value);
   };
 
   // const textQuery = encodeURIComponent(
-  //   `Just had a blast on @zkorp_ 's zkube game but lost with a score of ${score} at Level ${level} 😅. But I’m not giving up—next stop, Level ${Number(level) ? Number(level) + 1 : 1} \n\n🏆! Who’s ready to join me on this epic adventure? 🚀🚀 \n\n#GameOn #ChallengeAccepte\n\n`,
+  //   `Just had a blast on @zkorp_ 's zkube game but lost with a score of ${score} 😅. But I’m not giving up—next stop, Level ${Number(level) ? Number(level) + 1 : 1} \n\n🏆! Who’s ready to join me on this epic adventure? 🚀🚀 \n\n#GameOn #ChallengeAccepte\n\n`,
   // );
   const tweetText = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetMsg)}&url=app.zkube.xyz`;
   useEffect(() => {
