@@ -15,6 +15,9 @@ use zkube::models::player::{Player, PlayerTrait};
 use zkube::models::tournament::Tournament;
 use zkube::models::credits::Credits;
 use zkube::models::settings::Settings;
+use zkube::models::chest::Chest;
+use zkube::models::participation::Participation;
+use zkube::models::admin::Admin;
 
 /// Store struct.
 #[derive(Copy, Drop)]
@@ -57,6 +60,21 @@ impl StoreImpl of StoreTrait {
         get!(self.world, 1, (Settings))
     }
 
+    #[inline(always)]
+    fn chest(self: Store, chest_id: u32) -> Chest {
+        get!(self.world, chest_id, (Chest))
+    }
+
+    #[inline(always)]
+    fn participation(self: Store, chest_id: u32, player_id: felt252) -> Participation {
+        get!(self.world, (chest_id, player_id), (Participation))
+    }
+
+    #[inline(always)]
+    fn admin(self: Store, address: felt252) -> Admin {
+        get!(self.world, address, (Admin))
+    }
+
     // SETTERS
 
     #[inline(always)]
@@ -82,5 +100,27 @@ impl StoreImpl of StoreTrait {
     #[inline(always)]
     fn set_settings(self: Store, settings: Settings) {
         set!(self.world, (settings))
+    }
+
+    #[inline(always)]
+    fn set_chest(self: Store, chest: Chest) {
+        set!(self.world, (chest))
+    }
+
+    #[inline(always)]
+    fn set_participation(self: Store, participation: Participation) {
+        set!(self.world, (participation))
+    }
+
+    #[inline(always)]
+    fn set_admin(self: Store, admin: Admin) {
+        set!(self.world, (admin))
+    }
+
+    // DELETE
+    #[inline(always)]
+    fn delete_admin(self: Store, address: felt252) {
+        let admin = self.admin(address);
+        delete!(self.world, (admin));
     }
 }

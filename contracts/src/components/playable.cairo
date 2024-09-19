@@ -5,6 +5,7 @@ mod PlayableComponent {
     // Core imports
 
     use core::debug::PrintTrait;
+    use core::Zeroable;
 
     // Starknet imports
 
@@ -31,6 +32,8 @@ mod PlayableComponent {
     use zkube::types::difficulty::Difficulty;
     use zkube::types::mode::Mode;
     use zkube::models::tournament::TournamentImpl;
+    use zkube::models::chest::ChestTrait;
+    use zkube::models::participation::{Participation, ParticipationTrait, ZeroableParticipation};
 
 
     // Storage
@@ -68,10 +71,41 @@ mod PlayableComponent {
             // [Effect] Update game
             store.set_game(game);
 
-            // [Effect] Update player if game is over
             if game.over {
-                player.update(game.score);
+                let points = game.score;
+
+                // [Effect] Update player
+                player.update(points);
                 store.set_player(player);
+
+                // [Effect] Update Chest
+                let mut i = 0;
+                loop {
+                    if i >= 11 {
+                        break;
+                    }
+                    let mut chest = store.chest(i);
+                    // [Effect] Add points to first imcomplete chest
+                    if (!chest.is_complete()) {
+                        // [Effect] Add points to chest
+                        chest.add_points(points);
+                        store.set_chest(chest);
+
+                        // [Effect] Add participation
+                        let mut participation = store.participation(i, player.id);
+                        if (participation.is_zero()) {
+                            let mut participation: Participation = ParticipationTrait::new(
+                                i, player.id
+                            );
+                            participation.add_points(points);
+                            store.set_participation(participation);
+                        } else {
+                            participation.add_points(points);
+                            store.set_participation(participation);
+                        }
+                    }
+                    i += 1;
+                };
             }
 
             // [Effect] Update tournament on game over

@@ -1,0 +1,27 @@
+kind = "DojoModel"
+class_hash = "0x513cb81bd8bc264578471ef018241fb0a8938b645ab443708be4284d99dd92a"
+original_class_hash = "0x513cb81bd8bc264578471ef018241fb0a8938b645ab443708be4284d99dd92a"
+abi = "manifests/dev/base/abis/models/zkube-Participation-7b168a64.json"
+tag = "zkube-Participation"
+qualified_path = "zkube::models::index::participation"
+manifest_name = "zkube-Participation-7b168a64"
+
+[[members]]
+name = "chest_id"
+type = "u32"
+key = true
+
+[[members]]
+name = "player_id"
+type = "felt252"
+key = true
+
+[[members]]
+name = "points"
+type = "u32"
+key = false
+
+[[members]]
+name = "claimed"
+type = "bool"
+key = false

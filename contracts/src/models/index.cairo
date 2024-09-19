@@ -75,3 +75,32 @@ struct Settings {
     daily_mode_price: felt252,
     normal_mode_price: felt252,
 }
+
+#[derive(Copy, Drop, Serde, IntrospectPacked)]
+#[dojo::model]
+struct Chest {
+    #[key]
+    id: u32,
+    point_target: u32,
+    points: u32,
+    prize: felt252,
+}
+
+#[derive(Copy, Drop, Serde, IntrospectPacked)]
+#[dojo::model]
+struct Participation {
+    #[key]
+    chest_id: u32,
+    #[key]
+    player_id: felt252,
+    points: u32,
+    claimed: bool,
+}
+
+#[derive(Copy, Drop, Serde, IntrospectPacked)]
+#[dojo::model]
+struct Admin {
+    #[key]
+    id: felt252,
+    is_admin: bool, // only required because we need a variable with the key
+}

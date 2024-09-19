@@ -94,11 +94,6 @@ mod play {
     fn dojo_init(ref world: IWorldDispatcher, token_address: ContractAddress,) {
         // [Effect] Initialize components
         self.payable._initialize(token_address);
-
-        // [Effect] Create the settings entity
-        let store: Store = StoreTrait::new(world);
-        let settings: Settings = SettingsTrait::new();
-        store.set_settings(settings);
     }
 
     // Implementations

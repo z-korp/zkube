@@ -9,6 +9,9 @@ mod models {
     mod tournament;
     mod credits;
     mod settings;
+    mod chest;
+    mod admin;
+    mod participation;
 }
 
 mod types {
@@ -58,6 +61,8 @@ mod components {
 mod systems {
     mod account;
     mod play;
+    mod chest;
+    mod settings;
 }
 
 #[cfg(test)]
