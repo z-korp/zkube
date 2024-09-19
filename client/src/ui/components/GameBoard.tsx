@@ -201,7 +201,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
             `${draggingPiece.row}-${oldCol}`,
             null,
             false,
-            null,
           );
         }
       }
@@ -240,7 +239,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
     for (let j = 0; j < piece.width; j++) {
       newGrid.cells[row][col + j].piece = piece;
       newGrid.cells[row][col + j].isStart = j === 0;
-      newGrid.cells[row][col + j].pieceIndex = row * cols + col;
     }
     
     return newGrid;
@@ -458,7 +456,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
                   )
                 : null,
               false,
-              null,
             ),
         );
 
@@ -486,19 +483,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
           colIndex < newGrid.cols
         ) {
           const pieceToRemove = newGrid.cells[rowIndex][colIndex].piece;
-          const pieceIndexToRemove =
-            newGrid.cells[rowIndex][colIndex].pieceIndex;
           for (let row = 0; row < newGrid.rows; row++) {
             for (let col = 0; col < newGrid.cols; col++) {
               if (
-                newGrid.cells[row][col].piece === pieceToRemove &&
-                newGrid.cells[row][col].pieceIndex === pieceIndexToRemove
+                newGrid.cells[row][col].piece === pieceToRemove 
               ) {
                 newGrid.cells[row][col] = new Cell(
                   `${row}-${col}`,
                   null,
                   false,
-                  null,
                 );
               }
             }

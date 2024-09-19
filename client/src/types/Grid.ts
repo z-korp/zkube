@@ -28,11 +28,11 @@ export class Grid {
           const newPiece = new Piece(piece.id, piece.width, piece.element);
           for (let k = 0; k < piece.width; k++) {
             const isStart = k === 0;
-            row.push(new Cell(cellId, newPiece, isStart, j + k));
+            row.push(new Cell(cellId, newPiece, isStart));
           }
           j += piece.width - 1; // Skip the cells we've just filled
         } else {
-          row.push(new Cell(cellId, null, false, null));
+          row.push(new Cell(cellId, null, false));
         }
       }
       newGrid.push(row);
@@ -104,10 +104,9 @@ export class Grid {
                   this.cells[row + 1][col + i].setPiece(
                     currentPiece,
                     this.cells[row][col + i].isStart,
-                    this.cells[row][col + i].pieceIndex
                   );
                 } else {
-                  this.cells[row + 1][col + i].setPiece(null, false, null);
+                  this.cells[row + 1][col + i].setPiece(null, false);
                 }
                 this.cells[row][col + i] = new Cell(`${row}-${col + i}`);
               }
@@ -144,7 +143,7 @@ export class Grid {
         for (let i = row; i > 0; i--) {
           this.cells[i] = this.cells[i - 1].map(
             (cell, col) =>
-              new Cell(`${i}-${col}`, cell.piece, cell.isStart, cell.pieceIndex)
+              new Cell(`${i}-${col}`, cell.piece, cell.isStart)
           );
         }
         // Clear the first line
@@ -179,12 +178,12 @@ export class Grid {
       }
 
       if (currentPiece) {
-        newLine.push(new Cell(`${this.rows - 1}-${index}`, currentPiece, index === pieceStartIndex, null));
+        newLine.push(new Cell(`${this.rows - 1}-${index}`, currentPiece, index === pieceStartIndex));
         if (index - pieceStartIndex + 1 === currentPiece.width) {
           currentPiece = null;
         }
       } else {
-        newLine.push(new Cell(`${this.rows - 1}-${index}`, null, false, null));
+        newLine.push(new Cell(`${this.rows - 1}-${index}`, null, false));
       }
     }
 
@@ -202,14 +201,11 @@ export class Grid {
         const currentPiece = this.cells[i][j].piece;
         if (currentPiece !== null) {
             // Mark the start of the piece
-            const pieceIndex = i * this.cols + j;
             this.cells[i][j].isStart = true;
-            this.cells[i][j].pieceIndex = pieceIndex;
 
             // Mark the rest of the piece as non-start
             for (let k = 1; k < currentPiece.width && j + k < this.cols; k++) {
               this.cells[i][j + k].isStart = false;
-              this.cells[i][j + k].pieceIndex = pieceIndex;
             }
 
             // Skip to the end of this piece

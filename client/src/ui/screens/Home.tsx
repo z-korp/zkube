@@ -160,11 +160,11 @@ export const Home = () => {
         ))}
 
         {/* Afficher les pièces */}
-        {pieces.map((piece, pieceIndex) => {
+        {pieces.map((piece) => {
           const { x, y, width, height } = getBoundingBox(piece.positions);
           return (
             <div
-              key={pieceIndex}
+              key={piece.positions[0].x + piece.positions[0].y}
               className="absolute bg-blue-500"
               style={{
                 top: `${y * 40}px`,
