@@ -214,6 +214,9 @@ export class Grid {
     this.pieces = this.extractPiecesFromGrid(); // Update the pieces list after inserting a new line
   }
 
+  getNumericGrid = (): number[][] =>
+    this.cells.map((row) => row.map((cell) => cell.piece?.width ?? 0));
+
   markStartingCells() {
     for (let i = 0; i < this.rows; i++) {
       let j = 0;

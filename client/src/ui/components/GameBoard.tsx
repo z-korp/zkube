@@ -180,18 +180,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
       0,
       Math.min(cols - 1, draggingPiece.col + draggedCells),
     );
-
-    const numericGrid = grid.cells.map((row) =>
-      row.map((cell) => cell.piece?.width ?? 0),
-    );
-
-    
+ 
     const piece = grid.cells[draggingPiece.row][draggingPiece.col].piece;
     if (
       piece &&
       !checkCollision(draggingPiece.row, draggingPiece.col, newCol, piece)
     ) {
-      const newGrid = new Grid(rows, cols, numericGrid);
+      const newGrid = new Grid(rows, cols, grid.getNumericGrid());
   
       const workgrid = newGrid;
       for (let i = 0; i < piece.width; i++) {
@@ -210,11 +205,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
       // Update the grid after placement
       const newGrid2 = workgrid.placePiece(draggingPiece.row, finalCol, piece);
       // setGrid(newGrid2);
-      const numericGrid2 = newGrid2.cells.map((row) =>
-        row.map((cell) => cell.piece?.width ?? 0),
-      );
+
       setTriggerGravity(true);
-      setGrid(new Grid(rows, cols, numericGrid2));
+      setGrid(new Grid(rows, cols, newGrid2.getNumericGrid()));
   
       // Send move tx
       handleMove(rows - draggingPiece.row - 1, draggingPiece.col, finalCol);
@@ -349,12 +342,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const applyGravity = async () => {
     console.log("applyGravity", grid.cells);
     const changesMade = grid.applyGravity();
-    const numericGrid = grid.cells.map((row) =>
-      row.map((cell) => cell.piece?.width ?? 0),
-    );
+
     setTriggerGravity(false);
-    setGrid(new Grid(rows, cols, numericGrid));
-    console.log("Grid applyGravity:", numericGrid);
+    setGrid(new Grid(rows, cols, grid.getNumericGrid()));
     return changesMade;
   };
 
