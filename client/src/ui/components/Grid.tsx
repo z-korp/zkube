@@ -72,7 +72,6 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
   const [isDragging, setIsDragging] = useState(false); // Indique si un bloc est en cours de déplacement
   const [dragStartX, setDragStartX] = useState(0); // Position de départ de la souris
   const [initialX, setInitialX] = useState(0); // Position initiale du bloc
-  const [blocksStable, setBlocksStable] = useState(true); // Indicateur de stabilité des blocs
   const [isMoving, setIsMoving] = useState(true); // Indicateur de mouvement des blocs
   const [pendingMove, setPendingMove] = useState<{
     rowIndex: number;
@@ -84,6 +83,7 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
   const gridWidth = 8; // Nombre de colonnes
   const gridHeight = 10; // Nombre de lignes
   const gravitySpeed = 100; // Intervalle de temps pour l'animation de chute (en ms)
+  const transitionDuration = 100; // Durée des transitions en ms (correspond à 0.1s)
 
   useEffect(() => {
     // Mettre à jour l'état des blocs avec les nouvelles données initiales
@@ -182,14 +182,14 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
 
   const handleMove = useCallback(
     async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
-      if (startColIndex === finalColIndex) return; // Ne pas envoyer si aucune modification
+      if (startColIndex === finalColIndex || isMoving) return; // Ne pas envoyer si aucune modification ou si des blocs bougent encore
       if (!account) return;
 
       try {
         await move({
           account: account as Account,
           row_index: gridHeight - 1 - rowIndex, // Inverser l'index de la colonne
-          start_index: Math.trunc(startColIndex), // Arrondir à l'entier le plus proche (parfois il y a des décimales très proches)
+          start_index: Math.trunc(startColIndex), // Arrondir à l'entier le plus proche
           final_index: Math.trunc(finalColIndex),
         });
         console.log(
@@ -199,7 +199,7 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
         console.error("Erreur lors de l'envoi de la transaction", error);
       }
     },
-    [account],
+    [account, isMoving],
   );
 
   // Vérifie s'il y a un bloc qui bloque le chemin
@@ -303,7 +303,7 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
 
   // Supprimer les lignes complètes lorsque les blocs sont stables
   useEffect(() => {
-    if (blocksStable && !isMoving) {
+    if (!isMoving) {
       setBlocks((prevBlocks) => {
         const cleanedBlocks = removeCompleteRows(
           prevBlocks,
@@ -313,29 +313,18 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
         return cleanedBlocks;
       });
     }
-  }, [blocksStable, isMoving]);
+  }, [isMoving]);
 
   useEffect(() => {
     if (!isMoving) {
       // Les blocs sont stables
-      setBlocksStable(true);
-      if (pendingMove && blocksStable) {
+      if (pendingMove) {
         // Si un mouvement est en attente, on appelle handleMove
         const { rowIndex, startX, finalX } = pendingMove;
-        console.log("=================================== trigerrrrr");
-        console.log(rowIndex, startX, finalX);
         handleMove(rowIndex, startX, finalX);
         setPendingMove(null); // Réinitialiser pendingMove après l'appel
       }
-    } else {
-      // Les blocs sont en mouvement
-      setBlocksStable(false);
     }
-
-    //console.log("===================================");
-
-    // Logique supplémentaire pour visualiser la grille si besoin
-    //console.log(transformToGridFormat(blocks, gridWidth, gridHeight));
   }, [isMoving, pendingMove, handleMove, blocks, gridWidth, gridHeight]);
 
   return (
@@ -357,7 +346,7 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
               left: `${block.x * gridSize + 1}px`, // Position X (colonne)
               width: `${block.width * gridSize}px`, // Largeur en fonction du nombre de colonnes
               height: `${gridSize}px`, // Hauteur d'une ligne
-              transition: "top 0.1s linear",
+              transition: `top ${transitionDuration / 1000}s linear`, // Transition de 0.1s
               color: "white",
             }}
             onMouseDown={(e) => handleMouseDown(e, block)} // Début du drag pour souris
