@@ -15,7 +15,7 @@ mod errors {
 #[generate_trait]
 impl AdminImpl of AdminTrait {
     fn new(id: felt252) -> Admin {
-        Admin { id, is_admin: true }
+        Admin { id, is_set: true }
     }
 }
 
@@ -33,17 +33,17 @@ impl AdminAssert of AssertTrait {
 
     #[inline(always)]
     fn assert_is_admin(self: Admin) {
-        assert(self.is_admin, errors::NOT_ADMIN);
+        assert(self.is_non_zero(), errors::NOT_ADMIN);
     }
 }
 
 impl ZeroableAdmin of Zeroable<Admin> {
     fn zero() -> Admin {
-        Admin { id: 0, is_admin: false }
+        Admin { id: 0, is_set: false }
     }
 
     fn is_zero(self: Admin) -> bool {
-        self.id == 0 && !self.is_admin
+        !self.is_set
     }
 
     fn is_non_zero(self: Admin) -> bool {
@@ -60,7 +60,7 @@ mod tests {
     fn test_admin_new() {
         let admin = AdminTrait::new(1);
         assert(admin.id == 1, 'Admin id should be 1');
-        assert(admin.is_admin, 'Should be an admin');
+        assert(admin.is_set, 'Should be set');
     }
 
     #[test]

@@ -1,0 +1,14 @@
+kind = "DojoContract"
+class_hash = "0x3aaa59a369ef5b55ea0d6c032b34a4c9ab8fe514e1b813723abcb07ea47559a"
+original_class_hash = "0x3aaa59a369ef5b55ea0d6c032b34a4c9ab8fe514e1b813723abcb07ea47559a"
+base_class_hash = "0x0"
+abi = "manifests/dev/base/abis/contracts/zkube-chest-5d3b3ea3.json"
+reads = []
+writes = []
+init_calldata = []
+tag = "zkube-chest"
+systems = [
+    "claim",
+    "sponsor",
+]
+manifest_name = "zkube-chest-5d3b3ea3"

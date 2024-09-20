@@ -69,7 +69,7 @@ impl ZeroableChest of Zeroable<Chest> {
     }
 
     fn is_zero(self: Chest) -> bool {
-        self.id == 0 && self.point_target == 0 && self.points == 0 && self.prize == 0
+        self.point_target == 0
     }
 
     fn is_non_zero(self: Chest) -> bool {

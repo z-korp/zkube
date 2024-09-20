@@ -1,6 +1,7 @@
 // Starknet imports
 
 use starknet::info::{get_caller_address};
+use starknet::ContractAddress;
 
 // Dojo imports
 
@@ -25,7 +26,7 @@ mod settings {
 
     // Local imports
 
-    use super::{ISettings, Settings, get_caller_address};
+    use super::{ISettings, Settings, get_caller_address, ContractAddress};
     use zkube::store::{Store, StoreTrait};
     use zkube::models::settings::SettingsTrait;
     use zkube::models::admin::{AdminTrait, AdminAssert};
@@ -42,11 +43,23 @@ mod settings {
     enum Event {}
 
     // Constructor
-    fn dojo_init(ref world: IWorldDispatcher) {
+    fn dojo_init(ref world: IWorldDispatcher, admin_address: ContractAddress) {
         // [Effect] Create the settings entity
         let store: Store = StoreTrait::new(world);
         let settings: Settings = SettingsTrait::new();
         store.set_settings(settings);
+
+        // [Effect] Create the admin entity
+        let caller = get_caller_address();
+        let admin = AdminTrait::new(caller.into());
+        store.set_admin(admin);
+
+        // [Effect] Set admin if provided
+        let admin_address_felt: felt252 = admin_address.into();
+        if admin_address_felt != 0 {
+            let admin = AdminTrait::new(admin_address_felt);
+            store.set_admin(admin);
+        }
     }
 
     // Implementations
@@ -58,7 +71,7 @@ mod settings {
             // [Check] Only admin can update settings
             let caller = get_caller_address();
             let mut admin = store.admin(caller.into());
-            admin.assert_exists();
+            admin.assert_is_admin();
 
             // [Effect] Update free daily credits
             let mut settings = store.settings();
@@ -72,7 +85,7 @@ mod settings {
             // [Check] Only admin can update settings
             let caller = get_caller_address();
             let mut admin = store.admin(caller.into());
-            admin.assert_exists();
+            admin.assert_is_admin();
 
             // [Effect] Update daily mode price
             let mut settings = store.settings();
@@ -86,7 +99,7 @@ mod settings {
             // [Check] Only admin can update settings
             let caller = get_caller_address();
             let mut admin = store.admin(caller.into());
-            admin.assert_exists();
+            admin.assert_is_admin();
 
             // [Effect] Update normal mode price
             let mut settings = store.settings();
@@ -100,7 +113,7 @@ mod settings {
             // [Check] Only admin can set another admin
             let caller = get_caller_address();
             let mut admin = store.admin(caller.into());
-            admin.assert_exists();
+            admin.assert_is_admin();
 
             // [Effect] Create and set admin
             let admin = store.admin(address);

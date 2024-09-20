@@ -45,6 +45,7 @@ pub struct Game {
 struct Tournament {
     #[key]
     id: u64,
+    is_set: bool,
     prize: felt252,
     top1_player_id: felt252,
     top2_player_id: felt252,
@@ -71,6 +72,7 @@ struct Credits {
 struct Settings {
     #[key]
     id: u8,
+    is_set: bool,
     free_daily_credits: u8,
     daily_mode_price: felt252,
     normal_mode_price: felt252,
@@ -93,6 +95,7 @@ struct Participation {
     chest_id: u32,
     #[key]
     player_id: felt252,
+    is_set: bool,
     points: u32,
     claimed: bool,
 }
@@ -102,5 +105,5 @@ struct Participation {
 struct Admin {
     #[key]
     id: felt252,
-    is_admin: bool, // only required because we need a variable with the key
+    is_set: bool,
 }

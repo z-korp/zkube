@@ -1,6 +1,6 @@
 kind = "DojoModel"
-class_hash = "0x2ee9ebe75fc086dd63c029fb7eb582f16b2b231f1cdb0f8cc3803c4ec8281f9"
-original_class_hash = "0x2ee9ebe75fc086dd63c029fb7eb582f16b2b231f1cdb0f8cc3803c4ec8281f9"
+class_hash = "0x518d5600abe39045eca19b504a360619479532921f49ffc218f6856b1b1eab2"
+original_class_hash = "0x518d5600abe39045eca19b504a360619479532921f49ffc218f6856b1b1eab2"
 abi = "manifests/dev/base/abis/models/zkube-Settings-161104df.json"
 tag = "zkube-Settings"
 qualified_path = "zkube::models::index::settings"
@@ -10,6 +10,11 @@ manifest_name = "zkube-Settings-161104df"
 name = "id"
 type = "u8"
 key = true
+
+[[members]]
+name = "is_set"
+type = "bool"
+key = false
 
 [[members]]
 name = "free_daily_credits"

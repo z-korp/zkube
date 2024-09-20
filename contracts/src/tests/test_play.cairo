@@ -286,6 +286,19 @@ fn test_play_play_ranked_tournament_claim_revert_not_over() {
     set_block_timestamp(time);
 
     set_contract_address(PLAYER1());
+    // free game 1
+    systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    systems.play.surrender();
+
+    // free game 2
+    systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    systems.play.surrender();
+
+    // free game 3
+    systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    systems.play.surrender();
+
+    // paid game 1
     systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Claim]
@@ -302,11 +315,26 @@ fn test_play_play_ranked_tournament_claim_revert_invalid_player() {
     set_block_timestamp(time);
 
     set_contract_address(PLAYER1());
+
+    // free game 1
+    systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    systems.play.surrender();
+
+    // free game 2
+    systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    systems.play.surrender();
+
+    // free game 3
+    systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    systems.play.surrender();
+
+    // paid game 1
     systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Claim]
     set_block_timestamp(2 * constants::DAILY_MODE_DURATION);
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
+    set_contract_address(PLAYER2());
     systems.play.claim(Mode::Daily, tournament_id, 1);
 }
 

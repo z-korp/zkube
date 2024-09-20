@@ -18,7 +18,7 @@ mod errors {
 #[generate_trait]
 impl ParticipationImpl of ParticipationTrait {
     fn new(chest_id: u32, player_id: felt252) -> Participation {
-        Participation { chest_id, player_id, points: 0, claimed: false }
+        Participation { chest_id, player_id, points: 0, claimed: false, is_set: true }
     }
 
     fn add_points(ref self: Participation, points: u32) {
@@ -61,11 +61,11 @@ impl ParticipationAssert of AssertTrait {
 
 impl ZeroableParticipation of Zeroable<Participation> {
     fn zero() -> Participation {
-        Participation { chest_id: 0, player_id: 0, points: 0, claimed: false }
+        Participation { chest_id: 0, player_id: 0, is_set: false, points: 0, claimed: false }
     }
 
     fn is_zero(self: Participation) -> bool {
-        self.chest_id == 0 && self.player_id == 0
+        !self.is_set
     }
 
     fn is_non_zero(self: Participation) -> bool {

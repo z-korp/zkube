@@ -70,6 +70,8 @@ mod setup {
     struct Systems {
         account: IAccountDispatcher,
         play: IPlayDispatcher,
+        settings: ISettingsDispatcher,
+        chest: IChestDispatcher,
     }
 
     #[derive(Drop)]
@@ -143,11 +145,13 @@ mod setup {
         world.init_contract(selector, array![erc20.contract_address.into()].span());
 
         let selector = selector_from_tag!("zkube-settings");
-        world.init_contract(selector, array![].span());
+        world.init_contract(selector, array![PLAYER1().into()].span()); // player1 is admin
 
         let systems = Systems {
             account: IAccountDispatcher { contract_address: account_address },
             play: IPlayDispatcher { contract_address: play_address },
+            settings: ISettingsDispatcher { contract_address: settings_address },
+            chest: IChestDispatcher { contract_address: chest_address },
         };
 
         // [Setup] Context

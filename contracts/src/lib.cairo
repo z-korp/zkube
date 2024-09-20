@@ -74,6 +74,7 @@ mod tests {
     mod test_bonus_hammer;
     mod test_bonus_wave;
     mod test_bonus_totem;
+    mod test_admin;
 
     mod mocks {
         mod erc20;

@@ -78,7 +78,7 @@ impl ZeroableCredits of Zeroable<Credits> {
 
     #[inline(always)]
     fn is_zero(self: Credits) -> bool {
-        self.id == 0
+        self.day_id == 0
     }
 
     #[inline(always)]

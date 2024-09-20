@@ -114,6 +114,7 @@ mod HostableComponent {
                 let settings = store.settings();
                 let price = mode.price(settings);
                 tournament.buyin(price);
+                tournament.is_set = true;
                 store.set_tournament(tournament);
                 amount = price.into(); // convert to u256
             }
