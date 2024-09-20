@@ -1,0 +1,55 @@
+.grid-background {
+  position: relative;
+  width: 322px; /* 8 columns of 50px */
+  height: 402px; /* 10 rows of 50px */
+  border: 2px solid #000;
+  opacity: 0.8;
+  background-image: linear-gradient(#444cf7 2px, transparent 2px),
+    linear-gradient(to right, #444cf7 2px, #e5e5f7 2px);
+  background-size: 40px 40px;
+}
+
+.grid-container {
+  position: relative;
+  width: 320px; /* 8 colonnes de 40px */
+  height: 400px; /* 10 lignes de 50px */
+  display: grid;
+  grid-template-columns: repeat(8, 40px);
+  grid-template-rows: repeat(10, 40px);
+  padding-right: 1px;
+  padding-bottom: 1px;
+  touch-action: none;
+}
+
+.block {
+  position: absolute;
+  background-color: rgb(15, 15, 15);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: grab;
+}
+
+.block-1 {
+  background-image: url("public/assets/block-1.png");
+  background-size: cover;
+  /*background-color: lightgreen;*/
+}
+
+.block-2 {
+  background-image: url("public/assets/block-2.png");
+  background-size: cover;
+  /*background-color: lightcoral;*/
+}
+
+.block-3 {
+  background-image: url("public/assets/block-3.png");
+  background-size: cover;
+  /*background-color: lightskyblue;*/
+}
+
+.block-4 {
+  background-image: url("public/assets/block-4.png");
+  background-size: cover;
+  /*background-color: lightgoldenrodyellow;*/
+}
