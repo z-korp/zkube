@@ -85,6 +85,11 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
   const gridHeight = 10; // Nombre de lignes
   const gravitySpeed = 100; // Intervalle de temps pour l'animation de chute (en ms)
 
+  useEffect(() => {
+    // Mettre à jour l'état des blocs avec les nouvelles données initiales
+    setBlocks(initialData);
+  }, [initialData]);
+
   const handleDragMove = (x: number) => {
     if (!dragging) return; // Si aucun bloc n'est en train d'être déplacé
 
@@ -152,7 +157,7 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
         if (b.id === dragging.id) {
           const finalX = Math.round(b.x); // Arrondir à la grille
           // Appeler handleMove avec les coordonnées actuelles après la mise à jour
-          handleMove(b.y, initialX, finalX);
+          setPendingMove({ rowIndex: b.y, startX: initialX, finalX });
           return { ...b, x: finalX }; // Mettre à jour la position du bloc
         }
         return b;
@@ -183,9 +188,9 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
       try {
         await move({
           account: account as Account,
-          row_index: rowIndex,
-          start_index: startColIndex,
-          final_index: finalColIndex,
+          row_index: gridHeight - 1 - rowIndex, // Inverser l'index de la colonne
+          start_index: Math.trunc(startColIndex), // Arrondir à l'entier le plus proche (parfois il y a des décimales très proches)
+          final_index: Math.trunc(finalColIndex),
         });
         console.log(
           `Mouvement effectué : Ligne ${rowIndex}, de ${startColIndex} à ${finalColIndex}`,
@@ -194,7 +199,7 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
         console.error("Erreur lors de l'envoi de la transaction", error);
       }
     },
-    [account, move],
+    [account],
   );
 
   // Vérifie s'il y a un bloc qui bloque le chemin
@@ -310,25 +315,28 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
     }
   }, [blocksStable, isMoving]);
 
-  // Mettre à jour l'état de stabilité des blocs
   useEffect(() => {
     if (!isMoving) {
+      // Les blocs sont stables
       setBlocksStable(true);
+      if (pendingMove && blocksStable) {
+        // Si un mouvement est en attente, on appelle handleMove
+        const { rowIndex, startX, finalX } = pendingMove;
+        console.log("=================================== trigerrrrr");
+        console.log(rowIndex, startX, finalX);
+        handleMove(rowIndex, startX, finalX);
+        setPendingMove(null); // Réinitialiser pendingMove après l'appel
+      }
     } else {
+      // Les blocs sont en mouvement
       setBlocksStable(false);
     }
-    console.log(transformToGridFormat(blocks, gridWidth, gridHeight));
-  }, [isMoving]);
 
-  // Effet pour appeler handleMove lorsque les blocs deviennent stables
-  useEffect(() => {
-    if (!isMoving && pendingMove) {
-      // Si les blocs sont stables et qu'il y a un mouvement en attente
-      const { rowIndex, startX, finalX } = pendingMove;
-      handleMove(rowIndex, startX, finalX); // Appeler handleMove avec les bonnes positions
-      setPendingMove(null); // Réinitialiser pendingMove après l'appel
-    }
-  }, [isMoving, pendingMove, handleMove]);
+    //console.log("===================================");
+
+    // Logique supplémentaire pour visualiser la grille si besoin
+    //console.log(transformToGridFormat(blocks, gridWidth, gridHeight));
+  }, [isMoving, pendingMove, handleMove, blocks, gridWidth, gridHeight]);
 
   return (
     <div className="grid-background">
