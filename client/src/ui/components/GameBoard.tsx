@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
-import { Piece, Cell as CellType } from "@/types/types";
-import Cell from "./Cell";
+import { Cell as CellType } from "@/types/types";
 import { useMediaQuery } from "react-responsive";
 import { Account } from "starknet";
 import useAccountCustom from "@/hooks/useAccountCustom";
@@ -64,7 +63,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 }) => {
   const {
     setup: {
-      systemCalls: { move, applyBonus },
+      systemCalls: { applyBonus },
     },
   } = useDojo();
   const { account } = useAccountCustom();
@@ -90,8 +89,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
     [0, 0, 0, 0, 0, 0, 0, 0], // Aucun bloc
     [1, 2, 2, 4, 4, 4, 4, 1], // un bloc de 1, 1 bloc de 2 et un bloc de 4, un bloc de 1
   ];
-
-  const result = transformDataContratIntoBlock(dataContrat);
 
   const handleBonusWaveClick = () => {
     setBonusWave(true);
@@ -170,7 +167,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
               waveCount={waveCount}
             />
           </div>
-
           <div className="flex gap-1">
             <div
               className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
@@ -183,7 +179,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
                 height={26}
               />
             </div>
-
             <div
               className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
             >
@@ -208,7 +203,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
           </div>
         </div>
         <div className="flex justify-center items-center">
-          <Grid initialData={result} />
+          <Grid initialData={transformDataContratIntoBlock(initialGrid)} />
         </div>
       </Card>
     </>

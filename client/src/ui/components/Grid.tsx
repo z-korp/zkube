@@ -1,5 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import "../../grid.css";
+import { Account } from "starknet";
+import { useDojo } from "@/dojo/useDojo";
+import useAccountCustom from "@/hooks/useAccountCustom";
 
 interface Block {
   id: number;
@@ -58,6 +61,12 @@ const removeCompleteRows = (
 };
 
 const Grid: React.FC<GridProps> = ({ initialData }) => {
+  const {
+    setup: {
+      systemCalls: { move },
+    },
+  } = useDojo();
+  const { account } = useAccountCustom();
   const [blocks, setBlocks] = useState<Block[]>(initialData);
   const [dragging, setDragging] = useState<Block | null>(null); // Le bloc actuellement déplacé
   const [isDragging, setIsDragging] = useState(false); // Indique si un bloc est en cours de déplacement
@@ -65,6 +74,11 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
   const [initialX, setInitialX] = useState(0); // Position initiale du bloc
   const [blocksStable, setBlocksStable] = useState(true); // Indicateur de stabilité des blocs
   const [isMoving, setIsMoving] = useState(true); // Indicateur de mouvement des blocs
+  const [pendingMove, setPendingMove] = useState<{
+    rowIndex: number;
+    startX: number;
+    finalX: number;
+  } | null>(null);
 
   const gridSize = 40; // Taille d'une cellule de la grille (40px)
   const gridWidth = 8; // Nombre de colonnes
@@ -132,10 +146,18 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
   const endDrag = () => {
     if (!dragging) return;
     // Clamper la position du bloc à la grille la plus proche
+
     setBlocks((prevBlocks) => {
-      const updatedBlocks = prevBlocks.map((b) =>
-        b.id === dragging.id ? { ...b, x: Math.round(b.x) } : b,
-      );
+      const updatedBlocks = prevBlocks.map((b) => {
+        if (b.id === dragging.id) {
+          const finalX = Math.round(b.x); // Arrondir à la grille
+          // Appeler handleMove avec les coordonnées actuelles après la mise à jour
+          handleMove(b.y, initialX, finalX);
+          return { ...b, x: finalX }; // Mettre à jour la position du bloc
+        }
+        return b;
+      });
+
       // On ne change pas encore l'état des blocs pour la suppression des lignes
       return updatedBlocks;
     });
@@ -153,6 +175,28 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
     endDrag();
   };
 
+  const handleMove = useCallback(
+    async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
+      if (startColIndex === finalColIndex) return; // Ne pas envoyer si aucune modification
+      if (!account) return;
+
+      try {
+        await move({
+          account: account as Account,
+          row_index: rowIndex,
+          start_index: startColIndex,
+          final_index: finalColIndex,
+        });
+        console.log(
+          `Mouvement effectué : Ligne ${rowIndex}, de ${startColIndex} à ${finalColIndex}`,
+        );
+      } catch (error) {
+        console.error("Erreur lors de l'envoi de la transaction", error);
+      }
+    },
+    [account, move],
+  );
+
   // Vérifie s'il y a un bloc qui bloque le chemin
   const isBlocked = (
     initialX: number,
@@ -169,7 +213,7 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
     // Déterminer si le déplacement est vers la droite ou la gauche
     if (newX > initialX) {
       // Mouvement vers la droite : vérifier les blocs entre initialX et newX
-      for (let block of rowBlocks) {
+      for (const block of rowBlocks) {
         if (block.x >= initialX + width && block.x < newX + width) {
           // Bloc trouvé dans le chemin à droite
           return true;
@@ -177,7 +221,7 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
       }
     } else {
       // Mouvement vers la gauche : vérifier les blocs entre initialX et newX
-      for (let block of rowBlocks) {
+      for (const block of rowBlocks) {
         if (block.x + block.width > newX && block.x <= initialX) {
           // Bloc trouvé dans le chemin à gauche
           return true;
@@ -275,6 +319,16 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
     }
     console.log(transformToGridFormat(blocks, gridWidth, gridHeight));
   }, [isMoving]);
+
+  // Effet pour appeler handleMove lorsque les blocs deviennent stables
+  useEffect(() => {
+    if (!isMoving && pendingMove) {
+      // Si les blocs sont stables et qu'il y a un mouvement en attente
+      const { rowIndex, startX, finalX } = pendingMove;
+      handleMove(rowIndex, startX, finalX); // Appeler handleMove avec les bonnes positions
+      setPendingMove(null); // Réinitialiser pendingMove après l'appel
+    }
+  }, [isMoving, pendingMove, handleMove]);
 
   return (
     <div className="grid-background">
