@@ -235,13 +235,13 @@ export const Home = () => {
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
 
-              {isTutorialActive && tutorial ? (
+              {/* {isTutorialActive && tutorial ? (
                 <TutorialComponent 
                   tutorial={tutorial} 
                   onEndTutorial={endTutorial}
                 />
               ) : (
-                <>
+                <> */}
               <Create />
               {(!game || (!!game && isGameOn === "isOver")) && (
                 <div className="flex  p-4 rounded-xl w-[93%] gap-4 items-center justify-evenly">
@@ -328,9 +328,9 @@ export const Home = () => {
                   </div>
                 </div>
               )}
-
+{/* 
               </>
-                )}
+                )} */}
             </div>
           </div>
           <TweetPreview

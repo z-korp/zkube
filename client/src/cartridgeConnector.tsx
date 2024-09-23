@@ -67,11 +67,11 @@ const policies = [
 
 const options: ControllerOptions = {
   rpc: import.meta.env.VITE_PUBLIC_NODE_URL,
-  policies,
+  // policies,
 };
 
 const cartridgeConnector = new CartridgeConnector(
-  options,
+  // options,
 ) as never as Connector;
 
 export default cartridgeConnector;
