@@ -1,0 +1,81 @@
+import React, { useEffect, useRef, useState } from "react";
+
+interface BlockProps {
+  block: {
+    id: number;
+    width: number;
+    x: number;
+    y: number;
+  };
+  gridSize: number;
+  transitionDuration: number;
+  handleMouseDown: (
+    e: React.MouseEvent<HTMLDivElement>,
+    block: BlockProps["block"],
+  ) => void;
+  handleTouchStart: (
+    e: React.TouchEvent<HTMLDivElement>,
+    block: BlockProps["block"],
+  ) => void;
+  onTransitionBlockStart: () => void;
+  onTransitionBlockEnd: () => void;
+}
+
+const Block: React.FC<BlockProps> = ({
+  block,
+  gridSize,
+  transitionDuration,
+  handleMouseDown,
+  handleTouchStart,
+  onTransitionBlockStart,
+  onTransitionBlockEnd,
+}) => {
+  const [transitionStatus, setTransition] = useState("End");
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (ref.current === null) return;
+
+    const onTransitionStart = () => {
+      onTransitionBlockStart();
+      setTransition("Start");
+    };
+
+    // Ajout de l'événement
+    ref.current.addEventListener("transitionstart", onTransitionStart);
+
+    // Nettoyage de l'événement à la fin du cycle de vie
+    return () => {
+      ref.current?.removeEventListener("transitionstart", onTransitionStart);
+    };
+  }, []);
+
+  // Gestion de la fin de la transition via l'événement onTransitionEnd
+  const handleTransitionEnd = () => {
+    setTransition("End");
+    onTransitionBlockEnd(); // Notifier que la transition est terminée
+  };
+
+  return (
+    <div
+      className={`block block-${block.width}`}
+      ref={ref}
+      style={{
+        position: "absolute",
+        top: `${block.y * gridSize + 1}px`,
+        left: `${block.x * gridSize + 1}px`,
+        width: `${block.width * gridSize}px`,
+        height: `${gridSize}px`,
+        transition: `top ${transitionDuration / 1000}s linear`,
+        color: "white",
+      }}
+      onMouseDown={(e) => handleMouseDown(e, block)}
+      onTouchStart={(e) => handleTouchStart(e, block)}
+      onTransitionEnd={handleTransitionEnd}
+    >
+      <b>{transitionStatus}</b> : {block.id}
+    </div>
+  );
+};
+
+export default Block;

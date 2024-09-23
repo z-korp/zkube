@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import "../../grid.css";
 import { Account } from "starknet";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import Block from "./Block";
 
 interface Block {
   id: number;
@@ -78,18 +79,39 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
     startX: number;
     finalX: number;
   } | null>(null);
+  const [transitioningBlocks, setTransitioningBlocks] = useState<number[]>([]);
+  const transitioningBlocksRef = useRef(transitioningBlocks); // Référence pour les valeurs mises à jour
 
   const gridSize = 40; // Taille d'une cellule de la grille (40px)
   const gridWidth = 8; // Nombre de colonnes
   const gridHeight = 10; // Nombre de lignes
   const gravitySpeed = 100; // Intervalle de temps pour l'animation de chute (en ms)
-  const transitionDuration = 100; // Durée des transitions en ms (correspond à 0.1s)
+  const transitionDuration = 1000; // Durée des transitions en ms (correspond à 0.1s)
 
   useEffect(() => {
     // Mettre à jour l'état des blocs avec les nouvelles données initiales
     setBlocks(initialData);
   }, [initialData]);
 
+  useEffect(() => {
+    transitioningBlocksRef.current = transitioningBlocks;
+  }, [transitioningBlocks]);
+
+  const handleTransitionBlockStart = (id: number) => {
+    setTransitioningBlocks((prev) => {
+      const updatedBlocks = prev.includes(id) ? prev : [...prev, id];
+      transitioningBlocksRef.current = updatedBlocks; // Synchronise le ref
+      return updatedBlocks;
+    });
+  };
+
+  const handleTransitionBlockEnd = (id: number) => {
+    setTransitioningBlocks((prev) => {
+      const updatedBlocks = prev.filter((blockId) => blockId !== id);
+      transitioningBlocksRef.current = updatedBlocks; // Synchronise le ref
+      return updatedBlocks;
+    });
+  };
   const handleDragMove = (x: number) => {
     if (!dragging) return; // Si aucun bloc n'est en train d'être déplacé
 
@@ -180,7 +202,7 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
     endDrag();
   };
 
-  const handleMove = useCallback(
+  const handleMoveTX = useCallback(
     async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
       if (startColIndex === finalColIndex || isMoving) return; // Ne pas envoyer si aucune modification ou si des blocs bougent encore
       if (!account) return;
@@ -199,7 +221,7 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
         console.error("Erreur lors de l'envoi de la transaction", error);
       }
     },
-    [account, isMoving],
+    [account, isMoving, gridHeight, move],
   );
 
   // Vérifie s'il y a un bloc qui bloque le chemin
@@ -316,16 +338,15 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
   }, [isMoving]);
 
   useEffect(() => {
-    if (!isMoving) {
-      // Les blocs sont stables
+    if (!isMoving && !transitioningBlocksRef.current.length) {
       if (pendingMove) {
         // Si un mouvement est en attente, on appelle handleMove
         const { rowIndex, startX, finalX } = pendingMove;
-        handleMove(rowIndex, startX, finalX);
+        handleMoveTX(rowIndex, startX, finalX);
         setPendingMove(null); // Réinitialiser pendingMove après l'appel
       }
     }
-  }, [isMoving, pendingMove, handleMove, blocks, gridWidth, gridHeight]);
+  }, [isMoving, pendingMove, handleMoveTX]);
 
   return (
     <div className="grid-background">
@@ -337,23 +358,16 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
         onTouchEnd={handleTouchEnd}
       >
         {blocks.map((block) => (
-          <div
+          <Block
             key={block.id}
-            className={`block block-${block.width}`}
-            style={{
-              position: "absolute",
-              top: `${block.y * gridSize + 1}px`, // Position Y (ligne)
-              left: `${block.x * gridSize + 1}px`, // Position X (colonne)
-              width: `${block.width * gridSize}px`, // Largeur en fonction du nombre de colonnes
-              height: `${gridSize}px`, // Hauteur d'une ligne
-              transition: `top ${transitionDuration / 1000}s linear`, // Transition de 0.1s
-              color: "white",
-            }}
-            onMouseDown={(e) => handleMouseDown(e, block)} // Début du drag pour souris
-            onTouchStart={(e) => handleTouchStart(e, block)} // Début du drag pour mobile
-          >
-            Block {block.id}
-          </div>
+            block={block}
+            gridSize={gridSize}
+            transitionDuration={transitionDuration}
+            handleMouseDown={handleMouseDown}
+            handleTouchStart={handleTouchStart}
+            onTransitionBlockStart={() => handleTransitionBlockStart(block.id)}
+            onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
+          />
         ))}
       </div>
     </div>
