@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { GameState } from "@/enums/gameEnums";
 
 interface BlockProps {
   block: {
@@ -9,6 +10,7 @@ interface BlockProps {
   };
   gridSize: number;
   transitionDuration: number;
+  state: GameState;
   handleMouseDown: (
     e: React.MouseEvent<HTMLDivElement>,
     block: BlockProps["block"],
@@ -25,6 +27,7 @@ const Block: React.FC<BlockProps> = ({
   block,
   gridSize,
   transitionDuration,
+  state,
   handleMouseDown,
   handleTouchStart,
   onTransitionBlockStart,
@@ -66,7 +69,10 @@ const Block: React.FC<BlockProps> = ({
         left: `${block.x * gridSize + 1}px`,
         width: `${block.width * gridSize}px`,
         height: `${gridSize}px`,
-        transition: `top ${transitionDuration / 1000}s linear`,
+        transition:
+          state === GameState.GRAVITY
+            ? `top ${transitionDuration / 1000}s linear`
+            : "none", // Désactivation de la transition autrement
         color: "white",
       }}
       onMouseDown={(e) => handleMouseDown(e, block)}
