@@ -7,25 +7,25 @@ import {
 
 interface TournamentInfo {
   id: number;
-  endDate: Date;
+  endTimestamp: number;
 }
 
 const useTournament = (mode: ModeType): TournamentInfo => {
   const [tournamentInfo, setTournamentInfo] = useState<TournamentInfo>({
     id: 0,
-    endDate: new Date(),
+    endTimestamp: 0,
   });
 
   useEffect(() => {
     const updateTournamentInfo = () => {
-      const currentTime = Math.floor(Date.now() / 1000);
+      const currentTimestamp = Math.floor(Date.now() / 1000);
       const duration =
         mode === ModeType.Daily ? DAILY_MODE_DURATION : NORMAL_MODE_DURATION;
-      const id = Math.floor(currentTime / duration);
-      const endTimestamp = (id + 1) * duration;
-      const endDate = new Date(endTimestamp * 1000);
 
-      setTournamentInfo({ id, endDate });
+      const id = Math.floor(currentTimestamp / duration);
+      const endTimestamp = (id + 1) * duration;
+
+      setTournamentInfo({ id, endTimestamp });
     };
 
     updateTournamentInfo();

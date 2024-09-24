@@ -1822,8 +1822,8 @@
     {
       "kind": "DojoContract",
       "address": "0x8fbe72f6d350f76cfd6554872befc4d61889d4029a66cf3897506a908f77ca",
-      "class_hash": "0x633c4760b73be82e6a42bcce1e5017477f83bd8f7a459594c03a73c02983700",
-      "original_class_hash": "0x633c4760b73be82e6a42bcce1e5017477f83bd8f7a459594c03a73c02983700",
+      "class_hash": "0x50a71605b38e966a2049a7f63851a50b3f9296a7c56f7f4ee339e7ab784d475",
+      "original_class_hash": "0x50a71605b38e966a2049a7f63851a50b3f9296a7c56f7f4ee339e7ab784d475",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {
@@ -2232,7 +2232,9 @@
         "zkube-Game",
         "zkube-Tournament",
         "zkube-Credits",
-        "zkube-Settings"
+        "zkube-Settings",
+        "zkube-Chest",
+        "zkube-Participation"
       ],
       "init_calldata": [],
       "tag": "zkube-play",
@@ -2246,8 +2248,8 @@
     {
       "kind": "DojoContract",
       "address": "0x35dc8374e5f49a4611ffc33f8b3e4381a7baecab3d8ae3d4e2d3c48ea46a488",
-      "class_hash": "0x9b89b1f20504124fde2b48853ddd233db87e26f5a4cd380fcc78299bbb736c",
-      "original_class_hash": "0x9b89b1f20504124fde2b48853ddd233db87e26f5a4cd380fcc78299bbb736c",
+      "class_hash": "0x326f47d7df1e3f944732e9f6426196e93c75af588e7cabef6740021c5c76e2",
+      "original_class_hash": "0x326f47d7df1e3f944732e9f6426196e93c75af588e7cabef6740021c5c76e2",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {
@@ -2565,8 +2567,8 @@
     {
       "kind": "DojoContract",
       "address": "0x7c69d31836f184012fa03b84601a6a3550a4e224baa6237c0b2c5481f3f9c9c",
-      "class_hash": "0x1bb4732cda2087cc8bf584175f55a6aef412cc89aa969fda1e11020f1fd1f83",
-      "original_class_hash": "0x1bb4732cda2087cc8bf584175f55a6aef412cc89aa969fda1e11020f1fd1f83",
+      "class_hash": "0x1a7c904419829a724e8d80eaed61a90eea559e1ec0c532fc15f0ed31ae6d268",
+      "original_class_hash": "0x1a7c904419829a724e8d80eaed61a90eea559e1ec0c532fc15f0ed31ae6d268",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {

@@ -9,6 +9,8 @@ import { Mode, ModeType } from "@/dojo/game/types/mode";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useCredits } from "@/hooks/useCredits";
 import TournamentTimer from "../components/TournamentTimer";
+import { useSettings } from "@/hooks/useSettings";
+import { ethers } from "ethers";
 
 interface StartProps {
   mode: ModeType;
@@ -34,6 +36,7 @@ export const Start: React.FC<StartProps> = ({
 
   const { player } = usePlayer({ playerId: account?.address });
   const { credits } = useCredits({ playerId: account?.address });
+  const { settings } = useSettings();
 
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
@@ -85,7 +88,16 @@ export const Start: React.FC<StartProps> = ({
   const cost = useMemo(() => {
     if (player && credits && credits.get_remaining(Date.now() / 1000) > 0)
       return "Free";
-    return "0.0005 ETH"; //TODO: replace with actual cost
+    else if (!settings) return "";
+
+    const weiCost =
+      mode === ModeType.Daily
+        ? settings.daily_mode_price
+        : settings.normal_mode_price;
+
+    const ethCost = ethers.utils.formatEther(weiCost);
+
+    return `${ethCost} ETH`;
   }, [player, credits]);
 
   return (

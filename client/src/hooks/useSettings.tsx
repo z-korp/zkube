@@ -4,37 +4,27 @@ import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
 import { Entity } from "@dojoengine/recs";
 
-export const usePlayer = ({ playerId }: { playerId: string | undefined }) => {
+export const useSettings = () => {
   const {
     setup: {
       clientModels: {
-        models: { Player },
-        classes: { Player: PlayerClass },
+        models: { Settings },
+        classes: { Settings: SettingsClass },
       },
     },
   } = useDojo();
 
-  /*const gameEntities: any = useEntityQuery([Has(Player)]);
-  const games = useMemo(
-    () => gameEntities.map((id: any) => getComponentValue(Player, id)),
-    [gameEntities, Player],
+  const settingsKey = useMemo(
+    () => getEntityIdFromKeys([BigInt(1)]) as Entity,
+    [],
   );
-  console.log(
-    "XXXXXXXXXXXXXX",
-    games.map((game: any) => game.id.toString(16)),
-  );*/
 
-  //console.log("playerId", playerId);
-  const playerKey = useMemo(
-    () => getEntityIdFromKeys([BigInt(playerId ? playerId : -1)]) as Entity,
-    [playerId],
-  );
-  //console.log("playerKey", playerKey);
-  const component = useComponentValue(Player, playerKey);
-  //console.log("component", component);
-  const player = useMemo(() => {
-    return component ? new PlayerClass(component) : null;
+  const component = useComponentValue(Settings, settingsKey);
+  const settings = useMemo(() => {
+    return component ? new SettingsClass(component) : null;
   }, [component]);
 
-  return { player, playerKey };
+  //console.log("settings", settings);
+
+  return { settings, settingsKey };
 };

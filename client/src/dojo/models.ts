@@ -2,6 +2,9 @@ import { ContractComponents } from "./contractModels";
 import { Game } from "./game/models/game";
 import { Player } from "./game/models/player";
 import { Credits } from "./game/models/credits";
+import { Settings } from "./game/models/settings";
+import { Tournament } from "./game/models/tournament";
+import { Participation } from "./game/models/participation";
 
 export type ClientModels = ReturnType<typeof models>;
 
@@ -18,6 +21,9 @@ export function models({
       Game,
       Player,
       Credits,
+      Settings,
+      Tournament,
+      Participation,
     },
   };
 }

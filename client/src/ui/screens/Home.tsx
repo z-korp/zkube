@@ -13,7 +13,6 @@ import { useDojo } from "@/dojo/useDojo";
 import { useTheme } from "@/ui/elements/theme-provider";
 import NextLine from "../components/NextLine";
 import { Surrender } from "../actions/Surrender";
-import { Content as Leaderboard } from "../modules/Leaderboard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFire, faGlobe, faStar } from "@fortawesome/free-solid-svg-icons";
 import GoogleFormEmbed from "../components/GoogleFormEmbed";
@@ -23,7 +22,7 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { Level } from "@/dojo/game/types/level";
 import { toPng } from "html-to-image";
 import { TweetPreview } from "../components/TweetPreview";
-import useTournament from "@/hooks/useTournament";
+import { Leaderboard } from "../modules/Leaderboard";
 
 export const Home = () => {
   const {
@@ -89,9 +88,6 @@ export const Home = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const daily = useTournament(ModeType.Daily);
-  const normal = useTournament(ModeType.Normal);
-
   return (
     <div className="relative flex flex-col h-screen">
       <Header />
@@ -128,7 +124,7 @@ export const Home = () => {
               )}
               {!game && (
                 <div className="bg-slate-900 w-11/12 p-6 rounded-xl">
-                  <Leaderboard modeType={ModeType.Daily} />
+                  <Leaderboard />
                 </div>
               )}
               {!!game && isGameOn === "isOver" && (

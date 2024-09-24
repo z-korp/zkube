@@ -1,19 +1,4 @@
 import { ComponentValue } from "@dojoengine/recs";
-import { ModeType } from "../types/mode";
-import { DAILY_MODE_DURATION, NORMAL_MODE_DURATION } from "../constants";
-
-export function computeTournamentId(time: number, mode: ModeType) {
-  const duration =
-    mode === ModeType.Daily ? DAILY_MODE_DURATION : NORMAL_MODE_DURATION;
-  return Math.floor(time / duration);
-}
-
-export function getTournamentEndDate(tournamentId: number, mode: ModeType) {
-  const duration =
-    mode === ModeType.Daily ? DAILY_MODE_DURATION : NORMAL_MODE_DURATION;
-  const endTimestamp = (tournamentId + 1) * duration;
-  return new Date(endTimestamp * 1000); // Convert seconds to milliseconds
-}
 
 export class Tournament {
   id: number;
