@@ -1,23 +1,21 @@
 // Starknet imports
-
 use starknet::info::{get_caller_address};
 use starknet::ContractAddress;
 
 // Dojo imports
-
 use dojo::world::IWorldDispatcher;
 
 // Internal imports
-
 use zkube::models::settings::Settings;
 
 #[dojo::interface]
 trait ISettings<TContractState> {
+    fn update_zkorp_address(ref world: IWorldDispatcher, address: ContractAddress);
     fn update_free_daily_credits(ref world: IWorldDispatcher, value: u8);
     fn update_daily_mode_price(ref world: IWorldDispatcher, value: felt252);
     fn update_normal_mode_price(ref world: IWorldDispatcher, value: felt252);
-    fn set_admin(ref world: IWorldDispatcher, address: felt252);
-    fn delete_admin(ref world: IWorldDispatcher, address: felt252);
+    fn set_admin(ref world: IWorldDispatcher, address: ContractAddress);
+    fn delete_admin(ref world: IWorldDispatcher, address: ContractAddress);
 }
 
 #[dojo::contract]
@@ -25,7 +23,6 @@ mod settings {
     // Component imports
 
     // Local imports
-
     use super::{ISettings, Settings, get_caller_address, ContractAddress};
     use zkube::store::{Store, StoreTrait};
     use zkube::models::settings::SettingsTrait;
@@ -65,6 +62,20 @@ mod settings {
     // Implementations
     #[abi(embed_v0)]
     impl SettingsImpl of ISettings<ContractState> {
+        fn update_zkorp_address(ref world: IWorldDispatcher, address: ContractAddress) {
+            let store: Store = StoreTrait::new(world);
+
+            // [Check] Only admin can update settings
+            let caller = get_caller_address();
+            let mut admin = store.admin(caller.into());
+            admin.assert_is_admin();
+
+            // [Effect] Update zkorp address
+            let mut settings = store.settings();
+            settings.set_zkorp_address(address);
+            store.set_settings(settings);
+        }
+
         fn update_free_daily_credits(ref world: IWorldDispatcher, value: u8) {
             let store: Store = StoreTrait::new(world);
 
@@ -107,7 +118,7 @@ mod settings {
             store.set_settings(settings);
         }
 
-        fn set_admin(ref world: IWorldDispatcher, address: felt252) {
+        fn set_admin(ref world: IWorldDispatcher, address: ContractAddress) {
             let store: Store = StoreTrait::new(world);
 
             // [Check] Only admin can set another admin
@@ -120,11 +131,11 @@ mod settings {
             admin.assert_not_exists();
 
             // [Effect] Create and set admin
-            let admin = AdminTrait::new(address);
+            let admin = AdminTrait::new(address.into());
             store.set_admin(admin);
         }
 
-        fn delete_admin(ref world: IWorldDispatcher, address: felt252) {
+        fn delete_admin(ref world: IWorldDispatcher, address: ContractAddress) {
             let store: Store = StoreTrait::new(world);
 
             // [Check] Only admin can update settings

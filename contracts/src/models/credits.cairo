@@ -46,16 +46,16 @@ impl CreditsImpl of CreditsTrait {
             self.remaining = settings.free_daily_credits;
         }
 
-        self.assert_has_credits(time);
+        self.assert_has_credits(time, settings);
         self.remaining -= 1;
     }
 
     #[inline(always)]
-    fn has_credits(self: Credits, time: u64) -> bool {
+    fn has_credits(self: Credits, time: u64, settings: Settings) -> bool {
         let current_day_id = CreditsImpl::compute_id(time);
         if current_day_id != self.day_id {
             // If it's a new day, they would have full credits
-            true
+            settings.free_daily_credits > 0
         } else {
             self.remaining > 0
         }
@@ -65,8 +65,8 @@ impl CreditsImpl of CreditsTrait {
 #[generate_trait]
 impl CreditsAssert of AssertTrait {
     #[inline(always)]
-    fn assert_has_credits(self: Credits, time: u64) {
-        assert(self.has_credits(time), errors::NO_CREDITS_REMAINING);
+    fn assert_has_credits(self: Credits, time: u64, settings: Settings) {
+        assert(self.has_credits(time, settings), errors::NO_CREDITS_REMAINING);
     }
 }
 
@@ -135,42 +135,47 @@ mod tests {
     #[test]
     #[should_panic(expected: ('Credits: No credits remaining',))]
     fn test_use_credit_no_remaining() {
-        let mut settings = SettingsTrait::new();
+        let settings = SettingsTrait::new();
         let mut credits = create_credits(1, 1, 0);
         credits.use_credit(86400, settings);
     }
 
     #[test]
     fn test_has_credits_same_day() {
+        let settings = SettingsTrait::new();
         let credits = create_credits(1, 1, 1);
-        assert(credits.has_credits(86400), 'Should have credits');
+        assert(credits.has_credits(86400, settings), 'Should have credits');
     }
 
     #[test]
     fn test_has_credits_new_day() {
+        let settings = SettingsTrait::new();
         let credits = create_credits(1, 1, 0);
-        assert(credits.has_credits(172800), 'Should have credits on new day');
+        assert(credits.has_credits(172800, settings), 'Should have credits on new day');
     }
 
     #[test]
     fn test_has_credits_no_remaining() {
+        let settings = SettingsTrait::new();
         let credits = create_credits(1, 1, 0);
-        assert(!credits.has_credits(86400), 'Should not have credits');
+        assert(!credits.has_credits(86400, settings), 'Should not have credits');
     }
 
     #[test]
     fn test_assert_has_credits() {
+        let settings = SettingsTrait::new();
         let time = 86400;
         let credits = create_credits(1, 1, 1);
-        credits.assert_has_credits(time);
+        credits.assert_has_credits(time, settings);
     }
 
     #[test]
     #[should_panic(expected: ('Credits: No credits remaining',))]
     fn test_assert_has_credits_fail() {
+        let settings = SettingsTrait::new();
         let time = 86400;
         let credits = create_credits(1, 1, 0);
-        credits.assert_has_credits(time);
+        credits.assert_has_credits(time, settings);
     }
 
     #[test]

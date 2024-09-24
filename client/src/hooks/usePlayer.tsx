@@ -36,5 +36,7 @@ export const usePlayer = ({ playerId }: { playerId: string | undefined }) => {
     return component ? new PlayerClass(component) : null;
   }, [component]);
 
+  if (!playerId) return { player: null, playerKey: null };
+
   return { player, playerKey };
 };

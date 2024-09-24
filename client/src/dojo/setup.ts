@@ -57,7 +57,6 @@ export async function setup({ ...config }: Config) {
   try {
     await burnerManager.init();
 
-    console.log("------> burnerManager.list()", burnerManager.list());
     if (burnerManager.list().length === 0) {
       await burnerManager.create();
     } else {

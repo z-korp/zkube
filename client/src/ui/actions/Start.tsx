@@ -8,6 +8,7 @@ import { fetchVrfData } from "@/api/vrf";
 import { Mode, ModeType } from "@/dojo/game/types/mode";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useCredits } from "@/hooks/useCredits";
+import TournamentTimer from "../components/TournamentTimer";
 
 interface StartProps {
   mode: ModeType;
@@ -98,11 +99,7 @@ export const Start: React.FC<StartProps> = ({
       <p className="text-lg">
         <strong>Price:</strong> {cost}
       </p>
-      {remainingTime && (
-        <p className="text-lg text-red-500">
-          <strong>Remaining Time:</strong> {remainingTime}
-        </p>
-      )}
+      {remainingTime && <TournamentTimer mode={mode} />}
       <Button
         disabled={isLoading || disabled}
         isLoading={isLoading}

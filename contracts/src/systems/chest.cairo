@@ -1,17 +1,13 @@
 // Starknet imports
-
 use starknet::ContractAddress;
 
 // Dojo imports
-
 use dojo::world::IWorldDispatcher;
 
 // External imports
-
 use stark_vrf::ecvrf::{Proof, Point, ECVRFTrait};
 
 // Internal imports
-
 use zkube::types::bonus::Bonus;
 use zkube::types::mode::Mode;
 use zkube::models::settings::{Settings, SettingsTrait};
@@ -21,6 +17,7 @@ use zkube::store::{Store, StoreTrait};
 trait IChest<TContractState> {
     fn claim(ref world: IWorldDispatcher, chest_id: u32);
     fn sponsor(ref world: IWorldDispatcher, chest_id: u32, amount: felt252);
+    fn sponsor_unknown(ref world: IWorldDispatcher, amount: felt252);
 }
 
 #[dojo::contract]
@@ -103,7 +100,7 @@ mod chest {
     // Implementations
 
     #[abi(embed_v0)]
-    impl ChestImpl of IChest<ContractState> {
+    impl ChestSystemImpl of IChest<ContractState> {
         fn claim(ref world: IWorldDispatcher, chest_id: u32) {
             let store = StoreTrait::new(world);
             let chest = store.chest(chest_id);
@@ -115,6 +112,7 @@ mod chest {
             participation.assert_exists();
 
             let reward_u64 = participation.claim(chest.points, chest.prize);
+            store.set_participation(participation);
 
             // Transfer the reward to the caller
             self.payable._refund(caller, reward_u64.into());
@@ -130,6 +128,11 @@ mod chest {
             chest.add_prize(amount);
             store.set_chest(chest);
 
+            let caller = get_caller_address();
+            self.payable._pay(caller, amount.into());
+        }
+
+        fn sponsor_unknown(ref world: IWorldDispatcher, amount: felt252) {
             let caller = get_caller_address();
             self.payable._pay(caller, amount.into());
         }

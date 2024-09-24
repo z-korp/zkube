@@ -11,15 +11,11 @@ export let ACCOUNT_CONNECTOR: AccountType = "controller";
 const useAccountCustom = () => {
   const { account } = useAccount();
 
-  const { account: burner } = useDojo();
+  //const { account: burner } = useDojo();
 
   const [customAccount, setCustomAccount] = useState<Account | null>(null);
 
-  useEffect(() => {
-    console.log("------> customAccount", customAccount);
-  }, [customAccount]);
-
-  useEffect(() => {
+  /*useEffect(() => {
     if (ACCOUNT_CONNECTOR === "burner") {
       if (burner.account) {
         //console.log("------> setCustomAccount burner.account", burner.account);
@@ -31,7 +27,16 @@ const useAccountCustom = () => {
         setCustomAccount(account as Account);
       }
     }
-  }, [burner, account]);
+  }, [burner, account]);*/
+
+  useEffect(() => {
+    if (account) {
+      //console.log("------> setCustomAccount account", account);
+      setCustomAccount(account as Account);
+    } else {
+      setCustomAccount(null);
+    }
+  }, [account]);
 
   return { account: customAccount };
 };

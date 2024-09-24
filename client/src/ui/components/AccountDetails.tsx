@@ -10,7 +10,7 @@ const shortAddress = (address: string, size = 4) => {
 };
 
 const AccountDetails = () => {
-  //const { address, status } = useAccount();
+  const { status } = useAccount();
   const { account } = useAccountCustom();
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 

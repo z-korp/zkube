@@ -19,10 +19,17 @@ impl SettingsImpl of SettingsTrait {
         Settings {
             id: 1,
             is_set: true,
+            zkorp_address: constants::ZKORP_ADDRESS,
             free_daily_credits: constants::DAILY_CREDITS,
             daily_mode_price: constants::DAILY_MODE_PRICE,
             normal_mode_price: constants::NORMAL_MODE_PRICE,
         }
+    }
+
+    #[inline(always)]
+    fn set_zkorp_address(ref self: Settings, value: ContractAddress) {
+        // [Effect] Update zkorp address
+        self.zkorp_address = value.into();
     }
 
     #[inline(always)]
@@ -78,7 +85,12 @@ impl ZeroableSettingsImpl of core::Zeroable<Settings> {
     #[inline(always)]
     fn zero() -> Settings {
         Settings {
-            id: 0, is_set: false, free_daily_credits: 0, daily_mode_price: 0, normal_mode_price: 0
+            id: 0,
+            is_set: false,
+            zkorp_address: 0,
+            free_daily_credits: 0,
+            daily_mode_price: 0,
+            normal_mode_price: 0
         }
     }
 

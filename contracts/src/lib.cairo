@@ -63,6 +63,13 @@ mod systems {
     mod play;
     mod chest;
     mod settings;
+    mod tournament;
+    mod zkorp;
+}
+
+mod interfaces {
+    mod ierc20;
+    mod ierc721;
 }
 
 #[cfg(test)]
@@ -75,6 +82,7 @@ mod tests {
     mod test_bonus_wave;
     mod test_bonus_totem;
     mod test_admin;
+    mod test_chest;
 
     mod mocks {
         mod erc20;

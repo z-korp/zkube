@@ -1,0 +1,67 @@
+kind = "DojoModel"
+class_hash = "0x6ecc639f92decc1fa67b18288e29c553f7ec5fa5fd10f278abd66886cc45e46"
+original_class_hash = "0x6ecc639f92decc1fa67b18288e29c553f7ec5fa5fd10f278abd66886cc45e46"
+abi = "manifests/slot/base/abis/models/zkube-Tournament-120c37d1.json"
+tag = "zkube-Tournament"
+qualified_path = "zkube::models::index::tournament"
+manifest_name = "zkube-Tournament-120c37d1"
+
+[[members]]
+name = "id"
+type = "u64"
+key = true
+
+[[members]]
+name = "is_set"
+type = "bool"
+key = false
+
+[[members]]
+name = "prize"
+type = "felt252"
+key = false
+
+[[members]]
+name = "top1_player_id"
+type = "felt252"
+key = false
+
+[[members]]
+name = "top2_player_id"
+type = "felt252"
+key = false
+
+[[members]]
+name = "top3_player_id"
+type = "felt252"
+key = false
+
+[[members]]
+name = "top1_score"
+type = "u32"
+key = false
+
+[[members]]
+name = "top2_score"
+type = "u32"
+key = false
+
+[[members]]
+name = "top3_score"
+type = "u32"
+key = false
+
+[[members]]
+name = "top1_claimed"
+type = "bool"
+key = false
+
+[[members]]
+name = "top2_claimed"
+type = "bool"
+key = false
+
+[[members]]
+name = "top3_claimed"
+type = "bool"
+key = false

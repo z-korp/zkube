@@ -23,7 +23,7 @@ mod PlayableComponent {
 
     // Internal imports
 
-    use zkube::constants;
+    use zkube::constants::PRECISION_FACTOR;
     use zkube::store::{Store, StoreTrait};
     use zkube::models::game::{Game, GameTrait, GameAssert};
     use zkube::models::player::{Player, PlayerTrait, PlayerAssert};
@@ -34,6 +34,7 @@ mod PlayableComponent {
     use zkube::models::tournament::TournamentImpl;
     use zkube::models::chest::ChestTrait;
     use zkube::models::participation::{Participation, ParticipationTrait, ZeroableParticipation};
+    use zkube::helpers::math::Math;
 
 
     // Storage
@@ -72,40 +73,7 @@ mod PlayableComponent {
             store.set_game(game);
 
             if game.over {
-                let points = game.score;
-
-                // [Effect] Update player
-                player.update(points);
-                store.set_player(player);
-
-                // [Effect] Update Chest
-                let mut i = 0;
-                loop {
-                    if i >= 11 {
-                        break;
-                    }
-                    let mut chest = store.chest(i);
-                    // [Effect] Add points to first imcomplete chest
-                    if (!chest.is_complete()) {
-                        // [Effect] Add points to chest
-                        chest.add_points(points);
-                        store.set_chest(chest);
-
-                        // [Effect] Add participation
-                        let mut participation = store.participation(i, player.id);
-                        if (participation.is_zero()) {
-                            let mut participation: Participation = ParticipationTrait::new(
-                                i, player.id
-                            );
-                            participation.add_points(points);
-                            store.set_participation(participation);
-                        } else {
-                            participation.add_points(points);
-                            store.set_participation(participation);
-                        }
-                    }
-                    i += 1;
-                };
+                self._handle_game_over(world, store, game, player);
             }
 
             // [Effect] Update tournament on game over
@@ -151,8 +119,7 @@ mod PlayableComponent {
 
             // [Effect] Update player if game is over
             if game.over {
-                player.update(game.score);
-                store.set_player(player);
+                self._handle_game_over(world, store, game, player);
             }
 
             // [Effect] Update tournament on game over
@@ -198,6 +165,71 @@ mod PlayableComponent {
 
             // [Effect] Update game
             store.set_game(game);
+        }
+
+        fn _handle_game_over(
+            self: @ComponentState<TContractState>,
+            world: IWorldDispatcher,
+            store: Store,
+            mut game: Game,
+            mut player: Player,
+        ) {
+            let points = game.score;
+
+            // [Effect] Update player
+            player.update(points);
+            store.set_player(player);
+
+            // [Effect] Update Chest
+            let total_points = points;
+            let mut remaining_points: u32 = points;
+            let mut remaining_prize: u256 = game.pending_chest_prize.into()
+                * PRECISION_FACTOR.into();
+            let mut i = 0;
+            loop {
+                if i >= 11 || remaining_points == 0 {
+                    break;
+                }
+                let mut chest = store.chest(i);
+                // [Effect] Add points to first incomplete chest
+                if (!chest.is_complete()) {
+                    // [Effect] Add points to chest
+                    let points_to_add: u32 = Math::min(remaining_points, chest.remaining_points());
+                    chest.add_points(points_to_add);
+
+                    // [Effect] Add prize proportionally to the points added
+                    let prize_to_add: u256 = (remaining_prize * points_to_add.into())
+                        / total_points.into();
+                    chest.add_prize((prize_to_add / PRECISION_FACTOR.into()).try_into().unwrap());
+                    store.set_chest(chest);
+
+                    // [Effect] Add participation
+                    let mut participation = store.participation(i, player.id);
+                    if (participation.is_zero()) {
+                        participation = ParticipationTrait::new(i, player.id);
+                    }
+                    participation.add_points(points_to_add);
+                    store.set_participation(participation);
+
+                    remaining_points = remaining_points - points_to_add;
+                    remaining_prize = remaining_prize - prize_to_add;
+                }
+                i += 1;
+            };
+
+            // [Effect] Update tournament
+            let time = get_block_timestamp();
+            let tournament_id = TournamentImpl::compute_id(game.start_time, game.duration());
+            let id_end = TournamentImpl::compute_id(time, game.duration());
+            if tournament_id == id_end {
+                let mut tournament = store.tournament(tournament_id);
+                tournament.score(player.id, game.score);
+                store.set_tournament(tournament);
+
+                // [Effect] Add tournament id to game
+                game.tournament_id = tournament_id;
+                store.set_game(game);
+            }
         }
     }
 }

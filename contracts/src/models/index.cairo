@@ -38,6 +38,10 @@ pub struct Game {
     mode: u8,
     start_time: u64,
     tournament_id: u64,
+    // ------------------------
+    pending_chest_prize: felt252, // prize to be added to the right chest
+// the right chest is the one that is not complete and has the highest point_target
+// only known after the game is over
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
@@ -73,6 +77,7 @@ struct Settings {
     #[key]
     id: u8,
     is_set: bool,
+    zkorp_address: felt252,
     free_daily_credits: u8,
     daily_mode_price: felt252,
     normal_mode_price: felt252,

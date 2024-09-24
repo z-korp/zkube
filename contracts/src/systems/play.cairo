@@ -4,7 +4,7 @@ use starknet::ContractAddress;
 
 // Dojo imports
 
-use dojo::world::IWorldDispatcher;
+use dojo::world::{IWorldDispatcher, Resource};
 
 // External imports
 
@@ -22,8 +22,6 @@ trait IPlay<TContractState> {
     fn create(
         ref world: IWorldDispatcher, mode: Mode, proof: Proof, seed: felt252, beta: felt252
     ) -> u32;
-    fn claim(ref world: IWorldDispatcher, mode: Mode, tournament_id: u64, rank: u8,);
-    fn sponsor(ref world: IWorldDispatcher, mode: Mode, amount: felt252);
     fn surrender(ref world: IWorldDispatcher);
     fn move(ref world: IWorldDispatcher, row_index: u8, start_index: u8, final_index: u8,);
     fn apply_bonus(ref world: IWorldDispatcher, bonus: Bonus, row_index: u8, line_index: u8);
@@ -41,20 +39,20 @@ mod play {
     // Component imports
 
     use zkube::components::hostable::HostableComponent;
-    use zkube::components::payable::PayableComponent;
     use zkube::components::playable::PlayableComponent;
     use zkube::components::creditable::CreditableComponent;
+    use zkube::systems::chest::{IChestDispatcher, IChestDispatcherTrait};
+    use zkube::systems::zkorp::{IZKorpDispatcher, IZKorpDispatcherTrait};
+    use zkube::systems::tournament::{ITournamentDispatcher, ITournamentDispatcherTrait};
 
     // Local imports
 
-    use super::{IPlay, Proof, Bonus, Mode, Settings, SettingsTrait, Store, StoreTrait};
+    use super::{IPlay, Proof, Bonus, Mode, Settings, SettingsTrait, Store, StoreTrait, Resource};
 
     // Components
 
     component!(path: HostableComponent, storage: hostable, event: HostableEvent);
     impl HostableInternalImpl = HostableComponent::InternalImpl<ContractState>;
-    component!(path: PayableComponent, storage: payable, event: PayableEvent);
-    impl PayableInternalImpl = PayableComponent::InternalImpl<ContractState>;
     component!(path: PlayableComponent, storage: playable, event: PlayableEvent);
     impl PlayableInternalImpl = PlayableComponent::InternalImpl<ContractState>;
     component!(path: CreditableComponent, storage: creditable, event: CreditableEvent);
@@ -66,8 +64,6 @@ mod play {
     struct Storage {
         #[substorage(v0)]
         hostable: HostableComponent::Storage,
-        #[substorage(v0)]
-        payable: PayableComponent::Storage,
         #[substorage(v0)]
         playable: PlayableComponent::Storage,
         #[substorage(v0)]
@@ -82,8 +78,6 @@ mod play {
         #[flat]
         HostableEvent: HostableComponent::Event,
         #[flat]
-        PayableEvent: PayableComponent::Event,
-        #[flat]
         PlayableEvent: PlayableComponent::Event,
         #[flat]
         CreditableEvent: CreditableComponent::Event,
@@ -91,10 +85,7 @@ mod play {
 
     // Constructor
 
-    fn dojo_init(ref world: IWorldDispatcher, token_address: ContractAddress,) {
-        // [Effect] Initialize components
-        self.payable._initialize(token_address);
-    }
+    fn dojo_init(ref world: IWorldDispatcher) {}
 
     // Implementations
 
@@ -103,7 +94,10 @@ mod play {
         fn create(
             ref world: IWorldDispatcher, mode: Mode, proof: Proof, seed: felt252, beta: felt252,
         ) -> u32 {
+            let store = StoreTrait::new(world);
+
             let mut was_free = false;
+
             // [Interaction] Pay entry price
             // [Check] Player exists
             let caller = get_caller_address();
@@ -112,29 +106,46 @@ mod play {
             }
 
             // [Effect] Create a game
-            let (game_id, amount) = self.hostable._create(world, proof, seed, beta, mode, was_free);
+            let (
+                game_id,
+                tournament_id,
+                tournament_amount,
+                chest_amount,
+                referrer_amount,
+                zkorp_amount
+            ) =
+                self
+                .hostable
+                ._create(world, proof, seed, beta, mode, was_free);
 
             // Get the settings
             if (was_free) {
                 self.creditable._use_credit(world, caller);
             } else {
-                self.payable._pay(caller, amount);
+                // [Setup] Settings
+                if let Resource::Contract((class_hash, contract_address)) = world
+                    .resource(selector_from_tag!("zkube-tournament")) {
+                    let tournament_system_dispatcher = ITournamentDispatcher { contract_address };
+                    tournament_system_dispatcher.sponsor(tournament_id, mode, tournament_amount);
+                }
+
+                // Chest pool
+                if let Resource::Contract((class_hash, contract_address)) = world
+                    .resource(selector_from_tag!("zkube-chest")) {
+                    let chest_system_dispatcher = IChestDispatcher { contract_address };
+                    chest_system_dispatcher.sponsor_unknown(chest_amount);
+                }
+
+                // zKorp
+                if let Resource::Contract((class_hash, contract_address)) = world
+                    .resource(selector_from_tag!("zkube-zkorp")) {
+                    let zkorp_system_dispatcher = IZKorpDispatcher { contract_address };
+                    zkorp_system_dispatcher.sponsor(chest_amount);
+                }
             }
 
             // [Return] Game ID
             game_id
-        }
-
-        fn claim(ref world: IWorldDispatcher, mode: Mode, tournament_id: u64, rank: u8) {
-            let reward = self.hostable._claim(world, tournament_id, rank, mode);
-            let caller = get_caller_address();
-            self.payable._refund(caller, reward);
-        }
-
-        fn sponsor(ref world: IWorldDispatcher, mode: Mode, amount: felt252) {
-            let amount = self.hostable._sponsor(world, amount, mode);
-            let caller = get_caller_address();
-            self.payable._pay(caller, amount);
         }
 
         fn surrender(ref world: IWorldDispatcher) {

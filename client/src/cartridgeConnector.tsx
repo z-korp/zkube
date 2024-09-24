@@ -1,10 +1,13 @@
 import { Connector } from "@starknet-react/core";
 import CartridgeConnector from "@cartridge/connector";
-import { getContractByName } from "@dojoengine/core";
+import {
+  getContractByName,
+  KATANA_ETH_CONTRACT_ADDRESS,
+} from "@dojoengine/core";
 import { ControllerOptions, PaymasterOptions } from "@cartridge/controller";
 
 import local from "../../contracts/manifests/dev/deployment/manifest.json";
-import slot from "../../contracts/manifests/dev/deployment/manifest.json";
+import slot from "../../contracts/manifests/slot/deployment/manifest.json";
 import slotdev from "../../contracts/manifests/slotdev/deployment/manifest.json";
 import sepolia from "../../contracts/manifests/dev/deployment/manifest.json";
 import { shortString } from "starknet";
@@ -35,7 +38,7 @@ console.log("play_contract_address", play_contract_address);
 
 const policies = [
   {
-    target: import.meta.env.VITE_PUBLIC_FEE_TOKEN_ADDRESS,
+    target: KATANA_ETH_CONTRACT_ADDRESS,
     method: "approve",
   },
   // account
@@ -50,7 +53,7 @@ const policies = [
   // play
   {
     target: play_contract_address,
-    method: "start",
+    method: "create",
   },
   {
     target: play_contract_address,

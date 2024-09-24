@@ -23,6 +23,7 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { Level } from "@/dojo/game/types/level";
 import { toPng } from "html-to-image";
 import { TweetPreview } from "../components/TweetPreview";
+import useTournament from "@/hooks/useTournament";
 
 export const Home = () => {
   const {
@@ -87,6 +88,9 @@ export const Home = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  const daily = useTournament(ModeType.Daily);
+  const normal = useTournament(ModeType.Normal);
 
   return (
     <div className="relative flex flex-col h-screen">

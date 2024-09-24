@@ -24,7 +24,7 @@ export const Bonuses = () => {
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   return (
-    <Drawer handleOnly={true}>
+    <Drawer>
       <DrawerTrigger asChild>
         <Button variant="outline">Achievements</Button>
       </DrawerTrigger>

@@ -1,18 +1,8 @@
-// World
-
-fn TOKEN_ADDRESS() -> starknet::ContractAddress {
-    starknet::contract_address_const::<
-        0x7BAE177CD2B998927B7637F0BA047609CD9A81A7D4AEA8F6DD216BA39FAFE9D
-    >()
-}
-
 // Game
-
 const DEFAULT_GRID_WIDTH: u8 = 8;
 const DEFAULT_GRID_HEIGHT: u8 = 10;
 
 // Packing
-
 const COLOR_SIZE: u8 = 8;
 const BLOCK_SIZE: u8 = 8;
 const BLOCK_BIT_COUNT: u8 = 3;
@@ -24,12 +14,24 @@ const MASK_1: u128 = 0x1;
 const MASK_7: u32 = 0x7;
 
 // Modes
-
-const DAILY_MODE_PRICE: felt252 = 500000000000000; // = 0.0005
+const DAILY_MODE_PRICE: felt252 = 5000000000000; // = 0.000005
 const DAILY_MODE_DURATION: u64 = 86400; // = 1 day = 24x60x60
-const NORMAL_MODE_PRICE: felt252 = 500000000000000; // = 0.0005
-const NORMAL_MODE_DURATION: u64 = 60480000; // 100 weeks
+const NORMAL_MODE_PRICE: felt252 = 5000000000000; // = 0.000005
+const NORMAL_MODE_DURATION: u64 = 2419200; // 4 weeks
 
 // Credits
 const SECONDS_PER_DAY: u64 = 86400;
 const DAILY_CREDITS: u8 = 3;
+
+// Paid game percentages
+const TOURNAMENT_PERCENTAGE: u8 = 30;
+const CHEST_PERCENTAGE: u8 = 35;
+const ZKORP_PERCENTAGE: u8 = 30;
+const REFERRER_PERCENTAGE: u8 = 5;
+
+// zKorp
+const ZKORP_ADDRESS: felt252 = 0x7BAE177CD2B998927B7637F0BA047609CD9A81A7D4AEA8F6DD216BA39FAFE9D;
+
+// Computation
+const PRECISION_FACTOR: felt252 = 1_000_000;
+

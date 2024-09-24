@@ -1,15 +1,13 @@
-//! Store struct and component management methods.
+// Starknet imports
+use starknet::ContractAddress;
 
 // Core imports
-
 use core::debug::PrintTrait;
 
 // Dojo imports
-
 use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait};
 
 // Models imports
-
 use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{Player, PlayerTrait};
 use zkube::models::tournament::Tournament;
@@ -71,7 +69,8 @@ impl StoreImpl of StoreTrait {
     }
 
     #[inline(always)]
-    fn admin(self: Store, address: felt252) -> Admin {
+    fn admin(self: Store, address: ContractAddress) -> Admin {
+        let address: felt252 = address.into();
         get!(self.world, address, (Admin))
     }
 
@@ -119,8 +118,8 @@ impl StoreImpl of StoreTrait {
 
     // DELETE
     #[inline(always)]
-    fn delete_admin(self: Store, address: felt252) {
-        let admin = self.admin(address);
+    fn delete_admin(self: Store, address: ContractAddress) {
+        let admin = self.admin(address.into());
         delete!(self.world, (admin));
     }
 }

@@ -1,6 +1,6 @@
 kind = "DojoModel"
-class_hash = "0x518d5600abe39045eca19b504a360619479532921f49ffc218f6856b1b1eab2"
-original_class_hash = "0x518d5600abe39045eca19b504a360619479532921f49ffc218f6856b1b1eab2"
+class_hash = "0x1a3488e053dbb77a0bbed2f2074d72a07f898e49c99d9844b53266a91ef3f96"
+original_class_hash = "0x1a3488e053dbb77a0bbed2f2074d72a07f898e49c99d9844b53266a91ef3f96"
 abi = "manifests/dev/base/abis/models/zkube-Settings-161104df.json"
 tag = "zkube-Settings"
 qualified_path = "zkube::models::index::settings"
@@ -14,6 +14,11 @@ key = true
 [[members]]
 name = "is_set"
 type = "bool"
+key = false
+
+[[members]]
+name = "zkorp_address"
+type = "felt252"
 key = false
 
 [[members]]

@@ -47,8 +47,8 @@ mod CreditableComponent {
 
             let mut credits = store.credits(caller.into());
             let time = get_block_timestamp();
-            credits.assert_has_credits(time);
             let settings = store.settings();
+            credits.assert_has_credits(time, settings);
             credits.use_credit(time, settings);
 
             store.set_credits(credits);
@@ -64,7 +64,8 @@ mod CreditableComponent {
 
             let credits = store.credits(caller.into());
             let time = get_block_timestamp();
-            credits.has_credits(time)
+            let settings = store.settings();
+            credits.has_credits(time, settings)
         }
     }
 }

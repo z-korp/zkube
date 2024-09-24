@@ -40,6 +40,35 @@ export interface Bonus extends Signer {
   block_index: number;
 }
 
+export interface ChestSponsor extends Signer {
+  chest_id: number;
+  amount: bigint;
+}
+
+export interface ChestClaim extends Signer {
+  chest_id: number;
+}
+
+export interface UpdateFreeDailyCredits extends Signer {
+  value: number;
+}
+
+export interface UpdateDailyModePrice extends Signer {
+  value: bigint;
+}
+
+export interface UpdateNormalModePrice extends Signer {
+  value: bigint;
+}
+
+export interface SetAdmin extends Signer {
+  address: bigint;
+}
+
+export interface DeleteAdmin extends Signer {
+  address: bigint;
+}
+
 export type IWorld = Awaited<ReturnType<typeof setupWorld>>;
 
 export const getContractByName = (manifest: any, name: string) => {
@@ -229,8 +258,180 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
     };
   }
 
+  function chest() {
+    const contract_name = "chest";
+    const contract = config.manifest.contracts.find((c: any) =>
+      c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      throw new Error(`Contract ${contract_name} not found in manifest`);
+    }
+
+    const claim = async ({ account, chest_id }: ChestClaim) => {
+      try {
+        return await provider.execute(
+          account,
+          {
+            contractName: contract_name,
+            entrypoint: "claim",
+            calldata: [chest_id],
+          },
+          NAMESPACE,
+          details,
+        );
+      } catch (error) {
+        console.error("Error executing claim:", error);
+        throw error;
+      }
+    };
+
+    const sponsor = async ({ account, chest_id, amount }: ChestSponsor) => {
+      try {
+        return await provider.execute(
+          account,
+          {
+            contractName: contract_name,
+            entrypoint: "sponsor",
+            calldata: [chest_id, amount],
+          },
+          NAMESPACE,
+          details,
+        );
+      } catch (error) {
+        console.error("Error executing sponsor:", error);
+        throw error;
+      }
+    };
+
+    return {
+      address: contract.address,
+      claim,
+      sponsor,
+    };
+  }
+
+  function settings() {
+    const contract_name = "settings";
+    const contract = config.manifest.contracts.find((c: any) =>
+      c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      throw new Error(`Contract ${contract_name} not found in manifest`);
+    }
+
+    const update_free_daily_credits = async ({
+      account,
+      value,
+    }: UpdateFreeDailyCredits) => {
+      try {
+        return await provider.execute(
+          account,
+          {
+            contractName: contract_name,
+            entrypoint: "update_free_daily_credits",
+            calldata: [value],
+          },
+          NAMESPACE,
+          details,
+        );
+      } catch (error) {
+        console.error("Error executing update_free_daily_credits:", error);
+        throw error;
+      }
+    };
+
+    const update_daily_mode_price = async ({
+      account,
+      value,
+    }: UpdateDailyModePrice) => {
+      try {
+        return await provider.execute(
+          account,
+          {
+            contractName: contract_name,
+            entrypoint: "update_daily_mode_price",
+            calldata: [value],
+          },
+          NAMESPACE,
+          details,
+        );
+      } catch (error) {
+        console.error("Error executing update_daily_mode_price:", error);
+        throw error;
+      }
+    };
+
+    const update_normal_mode_price = async ({
+      account,
+      value,
+    }: UpdateNormalModePrice) => {
+      try {
+        return await provider.execute(
+          account,
+          {
+            contractName: contract_name,
+            entrypoint: "update_normal_mode_price",
+            calldata: [value],
+          },
+          NAMESPACE,
+          details,
+        );
+      } catch (error) {
+        console.error("Error executing update_normal_mode_price:", error);
+        throw error;
+      }
+    };
+
+    const set_admin = async ({ account, address }: SetAdmin) => {
+      try {
+        return await provider.execute(
+          account,
+          {
+            contractName: contract_name,
+            entrypoint: "set_admin",
+            calldata: [address],
+          },
+          NAMESPACE,
+          details,
+        );
+      } catch (error) {
+        console.error("Error executing set_admin:", error);
+        throw error;
+      }
+    };
+
+    const delete_admin = async ({ account, address }: DeleteAdmin) => {
+      try {
+        return await provider.execute(
+          account,
+          {
+            contractName: contract_name,
+            entrypoint: "delete_admin",
+            calldata: [address],
+          },
+          NAMESPACE,
+          details,
+        );
+      } catch (error) {
+        console.error("Error executing delete_admin:", error);
+        throw error;
+      }
+    };
+
+    return {
+      address: contract.address,
+      update_free_daily_credits,
+      update_daily_mode_price,
+      update_normal_mode_price,
+      set_admin,
+      delete_admin,
+    };
+  }
+
   return {
     account: account(),
     play: play(),
+    chest: chest(),
+    settings: settings(),
   };
 }

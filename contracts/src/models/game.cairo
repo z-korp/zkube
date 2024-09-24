@@ -59,6 +59,7 @@ impl GameImpl of GameTrait {
             mode: mode.into(),
             start_time: time,
             tournament_id: 0,
+            pending_chest_prize: 0,
         }
     }
 
@@ -278,6 +279,7 @@ impl ZeroableGame of core::Zeroable<Game> {
             mode: 0,
             start_time: 0,
             tournament_id: 0,
+            pending_chest_prize: 0,
         }
     }
 

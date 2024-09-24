@@ -14,13 +14,13 @@ mod HostableComponent {
     // Dojo imports
 
     use dojo::world;
-    use dojo::world::IWorldDispatcher;
-    use dojo::world::IWorldDispatcherTrait;
-    use dojo::world::IWorldProvider;
+    use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait, IWorldProvider};
 
     // Internal imports
 
-    use zkube::constants;
+    use zkube::constants::{
+        REFERRER_PERCENTAGE, CHEST_PERCENTAGE, TOURNAMENT_PERCENTAGE, PRECISION_FACTOR
+    };
     use zkube::store::{Store, StoreTrait};
     use zkube::models::game::{Game, GameImpl, GameAssert};
     use zkube::models::player::{Player, PlayerImpl, PlayerAssert};
@@ -65,7 +65,7 @@ mod HostableComponent {
             beta: felt252,
             mode: Mode,
             was_free: bool,
-        ) -> (u32, u256) {
+        ) -> (u32, u64, felt252, felt252, felt252, felt252) {
             // [Setup] Datastore
             let store: Store = StoreTrait::new(world);
 
@@ -106,72 +106,53 @@ mod HostableComponent {
             player.game_id = game_id;
             store.set_player(player);
 
-            // [Effect] Update tournament
-            let mut amount: u256 = 0;
-            if (!was_free) {
+            if (was_free) {
+                // [Return] Game ID and amounts to pay
+                (game_id, 0, 0, 0, 0, 0)
+            } else {
+                // [Effect] Update tournament and compute prices
+
+                // Price shared between parties
+                let settings = store.settings();
+                let price: felt252 = mode.price(settings);
+
+                // Apply PRECISION_FACTOR to price at the beginning
+                let precise_price: u256 = price.into() * PRECISION_FACTOR.into();
+
+                // Tournament
                 let tournament_id = TournamentImpl::compute_id(time, mode.duration());
                 let mut tournament = store.tournament(tournament_id);
-                let settings = store.settings();
-                let price = mode.price(settings);
-                tournament.buyin(price);
+                let tournament_amount: u256 = (precise_price * TOURNAMENT_PERCENTAGE.into()) / 100;
+
+                tournament.buyin(tournament_amount.try_into().unwrap());
                 tournament.is_set = true;
                 store.set_tournament(tournament);
-                amount = price.into(); // convert to u256
+
+                // Chest
+                let chest_amount: u256 = (precise_price * CHEST_PERCENTAGE.into()) / 100;
+                let mut game = store.game(game_id);
+                game.pending_chest_prize = chest_amount.try_into().unwrap();
+                store.set_game(game);
+
+                // Referrer
+                let referrer_amount: u256 = (precise_price * REFERRER_PERCENTAGE.into()) / 100;
+
+                // zKorp
+                let zkorp_amount: u256 = precise_price
+                    - tournament_amount
+                    - chest_amount
+                    - referrer_amount;
+
+                // [Return] Game ID and amounts to pay
+                (
+                    game_id,
+                    tournament_id,
+                    (tournament_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
+                    (chest_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
+                    (referrer_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
+                    (zkorp_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
+                )
             }
-
-            // [Return] Game ID and amount to pay
-            (game_id, amount)
-        }
-
-        fn _claim(
-            self: @ComponentState<TContractState>,
-            world: IWorldDispatcher,
-            tournament_id: u64,
-            rank: u8,
-            mode: Mode,
-        ) -> u256 {
-            // [Setup] Datastore
-            let store: Store = StoreTrait::new(world);
-
-            // [Check] Player exists
-            let caller = get_caller_address();
-            let mut player = store.player(caller.into());
-            player.assert_exists();
-
-            // [Check] Tournament exists
-            let mut tournament = store.tournament(tournament_id);
-            tournament.assert_exists();
-
-            // [Effect] Update claim
-            let time = get_block_timestamp();
-            let reward = tournament.claim(player.id, rank, time, mode.duration());
-            store.set_tournament(tournament);
-
-            // [Return] Pay reward
-            reward
-        }
-
-        fn _sponsor(
-            self: @ComponentState<TContractState>,
-            world: IWorldDispatcher,
-            amount: felt252,
-            mode: Mode
-        ) -> u256 {
-            // [Setup] Datastore
-            let store: Store = StoreTrait::new(world);
-
-            // [Check] Tournament exists
-            let time = get_block_timestamp();
-            let tournament_id = TournamentImpl::compute_id(time, mode.duration());
-            let mut tournament = store.tournament(tournament_id);
-            tournament.assert_exists();
-
-            // [Effect] Add amount to the current tournament prize pool
-            tournament.buyin(amount);
-            store.set_tournament(tournament);
-
-            // [Return] Amount to pay
-            amount.into()
         }
     }
 }
