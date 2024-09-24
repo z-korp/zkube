@@ -14,7 +14,11 @@ import {
 } from "@/ui/elements/dialog";
 import useAccountCustom from "@/hooks/useAccountCustom";
 
-export const Surrender = () => {
+interface SurrenderProps {
+  setIsUnmounting: (value: boolean) => void;
+}
+
+export const Surrender: React.FC<SurrenderProps> = ({ setIsUnmounting }) => {
   const { account } = useAccountCustom();
   const {
     master,
@@ -30,6 +34,7 @@ export const Surrender = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleClick = useCallback(async () => {
+    setIsUnmounting(true);
     setIsLoading(true);
     try {
       await surrender({ account: account as Account });
@@ -58,7 +63,7 @@ export const Surrender = () => {
             Surrender
           </Button>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Surrender Game?</DialogTitle>
           </DialogHeader>

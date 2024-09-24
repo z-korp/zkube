@@ -2,7 +2,6 @@ import { ComponentValue } from "@dojoengine/recs";
 import { shortenHex } from "@dojoengine/utils";
 import { shortString } from "starknet";
 import { Bonus, Condition } from "../types/bonus";
-import { Level } from "../types/level";
 
 export interface BonusDetail {
   bonus: Bonus;

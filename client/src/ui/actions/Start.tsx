@@ -7,12 +7,22 @@ import { usePlayer } from "@/hooks/usePlayer";
 import { fetchVrfData } from "@/api/vrf";
 import { Mode, ModeType } from "@/dojo/game/types/mode";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import { useCredits } from "@/hooks/useCredits";
+import TournamentTimer from "../components/TournamentTimer";
 
 interface StartProps {
   mode: ModeType;
+  handleGameMode: () => void;
+  potentialWinnings: string; // New prop for potential winnings
+  remainingTime?: string; // New prop for remaining time (optional for Normal mode)
 }
 
-export const Start: React.FC<StartProps> = ({ mode }) => {
+export const Start: React.FC<StartProps> = ({
+  mode,
+  handleGameMode,
+  potentialWinnings,
+  remainingTime,
+}) => {
   const {
     master,
     setup: {
@@ -23,6 +33,7 @@ export const Start: React.FC<StartProps> = ({ mode }) => {
   const { account } = useAccountCustom();
 
   const { player } = usePlayer({ playerId: account?.address });
+  const { credits } = useCredits({ playerId: account?.address });
 
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
@@ -46,6 +57,7 @@ export const Start: React.FC<StartProps> = ({ mode }) => {
       await start({
         account: account as Account,
         mode: new Mode(mode).into(),
+        price: 5000000000000000n, // 0.0005 ETH
         seed,
         x: proof_gamma_x,
         y: proof_gamma_y,
@@ -54,6 +66,7 @@ export const Start: React.FC<StartProps> = ({ mode }) => {
         sqrt_ratio_hint: proof_verify_hint,
         beta: beta,
       });
+      handleGameMode();
     } finally {
       setIsLoading(false);
     }
@@ -69,16 +82,32 @@ export const Start: React.FC<StartProps> = ({ mode }) => {
     );
   }, [account, master, player, game]);
 
-  if (disabled) return null;
+  const cost = useMemo(() => {
+    if (player && credits && credits.get_remaining(Date.now() / 1000) > 0)
+      return "Free";
+    return "0.0005 ETH"; //TODO: replace with actual cost
+  }, [player, credits]);
 
   return (
-    <Button
-      disabled={isLoading}
-      isLoading={isLoading}
-      onClick={handleClick}
-      className="text-xl w-[200px]"
-    >
-      {`Start ${mode}`}
-    </Button>
+    <div className=" p-4 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
+      <h2 className="text-2xl font-bold mb-2">
+        {mode === ModeType.Daily ? "Daily Mode" : "Normal Mode"}
+      </h2>
+      <p className="text-lg">
+        <strong>Potential Winnings:</strong> {potentialWinnings}
+      </p>
+      <p className="text-lg">
+        <strong>Price:</strong> {cost}
+      </p>
+      {remainingTime && <TournamentTimer mode={mode} />}
+      <Button
+        disabled={isLoading || disabled}
+        isLoading={isLoading}
+        onClick={handleClick}
+        className="text-xl mt-4 w-full transition-transform duration-300 ease-in-out hover:scale-105"
+      >
+        Play
+      </Button>
+    </div>
   );
 };

@@ -4,7 +4,7 @@ import { Start } from "../actions/Start";
 import GameBoard from "../components/GameBoard";
 import BackGroundBoard from "../components/BackgroundBoard";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useGame } from "@/hooks/useGame";
@@ -15,20 +15,15 @@ import NextLine from "../components/NextLine";
 import { Surrender } from "../actions/Surrender";
 import { Content as Leaderboard } from "../modules/Leaderboard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faFire,
-  faStar,
-  faWebAwesome,
-} from "@fortawesome/free-solid-svg-icons";
+import { faFire, faGlobe, faStar } from "@fortawesome/free-solid-svg-icons";
 import GoogleFormEmbed from "../components/GoogleFormEmbed";
 import { useQuerySync } from "@dojoengine/react";
 import { ModeType } from "@/dojo/game/types/mode";
 import useAccountCustom from "@/hooks/useAccountCustom";
-
-interface position {
-  x: number;
-  y: number;
-}
+import { Level } from "@/dojo/game/types/level";
+import { toPng } from "html-to-image";
+import { TweetPreview } from "../components/TweetPreview";
+import useTournament from "@/hooks/useTournament";
 
 export const Home = () => {
   const {
@@ -45,113 +40,42 @@ export const Home = () => {
 
   const { theme, themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
+  const gameGrid: React.RefObject<HTMLDivElement> | null = useRef(null);
+  const [isUnmounting, setIsUnmounting] = useState(false);
+  const [isGameOn, setIsGameOn] = useState<"idle" | "isOn" | "isOver">("idle");
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [level, setLevel] = useState<number | "">(0);
+  const [score, setScore] = useState<number | undefined>(0);
+  const [imgData, setImgData] = useState<string>("");
 
-  const testGrid = [
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 1, 1, 3, 3, 3, 1, 0],
-  ];
+  useEffect(() => {
+    if (game?.over) {
+      if (gameGrid.current !== null) {
+        toPng(gameGrid.current, { cacheBust: true })
+          .then((dataUrl) => {
+            setImgData(dataUrl);
+            composeTweet();
+          })
+          .catch((err) => {
+            console.error(`Screenshot failed`, err);
+          });
+      }
+      setIsGameOn("isOver");
+    }
+  }, [game?.over, isUnmounting]);
 
-  const testEmptyGrid = [
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-  ];
+  useEffect(() => {
+    if (!!game && !game.over) {
+      setIsGameOn("isOn");
+    } else {
+      setIsGameOn("isOver");
+    }
+  }, [game?.over]);
 
-  const testline = [1, 0, 0, 2, 2, 0, 2, 2];
-
-  const TetrisGrid = () => {
-    // Définir les pièces avec leurs positions et tailles
-    const pieces = [
-      { size: 1, positions: [{ x: 1, y: 1 }] },
-      {
-        size: 2,
-        positions: [
-          { x: 3, y: 2 },
-          { x: 4, y: 2 },
-        ],
-      },
-      {
-        size: 3,
-        positions: [
-          { x: 5, y: 4 },
-          { x: 6, y: 4 },
-          { x: 7, y: 4 },
-        ],
-      },
-    ];
-
-    // Fonction pour calculer le bounding box d'une pièce
-    const getBoundingBox = (positions: position[]) => {
-      const xs = positions.map((pos: position) => pos.x);
-      const ys = positions.map((pos: position) => pos.y);
-      const minX = Math.min(...xs);
-      const maxX = Math.max(...xs);
-      const minY = Math.min(...ys);
-      const maxY = Math.max(...ys);
-
-      return {
-        x: minX,
-        y: minY,
-        width: (maxX - minX + 1) * 40,
-        height: (maxY - minY + 1) * 40,
-      };
-    };
-
-    return (
-      <div className="relative w-[320px] h-[400px] bg-gray-800 grid grid-cols-8 grid-rows-10 gap-1">
-        {/* Créer les cellules de la grille */}
-        {[...Array(80)].map((_, index) => (
-          <div
-            key={index}
-            className="w-full h-full bg-gray-700 border border-gray-600"
-          ></div>
-        ))}
-
-        {/* Afficher les pièces */}
-        {pieces.map((piece, pieceIndex) => {
-          const { x, y, width, height } = getBoundingBox(piece.positions);
-          return (
-            <div
-              key={pieceIndex}
-              className="absolute bg-blue-500"
-              style={{
-                top: `${y * 40}px`,
-                left: `${x * 40}px`,
-                width: `${width}px`,
-                height: `${height}px`,
-              }}
-            >
-              {piece.positions.map((pos, cellIndex) => (
-                <div
-                  key={cellIndex}
-                  className="w-8 h-8 bg-blue-500"
-                  style={{
-                    position: "absolute",
-                    top: `${(pos.y - y) * 40}px`,
-                    left: `${(pos.x - x) * 40}px`,
-                  }}
-                ></div>
-              ))}
-            </div>
-          );
-        })}
-      </div>
-    );
+  const composeTweet = () => {
+    setLevel(player?.points ? Level.fromPoints(player?.points).value : "");
+    setScore(game?.score);
+    setIsPreviewOpen(true);
   };
 
   const imageTotemTheme =
@@ -164,6 +88,9 @@ export const Home = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  const daily = useTournament(ModeType.Daily);
+  const normal = useTournament(ModeType.Normal);
 
   return (
     <div className="relative flex flex-col h-screen">
@@ -183,14 +110,28 @@ export const Home = () => {
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
               <Create />
-              <Start mode={ModeType.Daily} />
-              <Start mode={ModeType.Normal} />
+              {(!game || (!!game && isGameOn === "isOver")) && (
+                <div className="flex  p-4 rounded-xl w-[93%] gap-4 items-center justify-evenly">
+                  <Start
+                    mode={ModeType.Daily}
+                    handleGameMode={() => setIsGameOn("isOn")}
+                    potentialWinnings="100 ETH"
+                    remainingTime="02:15:00"
+                  />
+                  <Start
+                    mode={ModeType.Normal}
+                    handleGameMode={() => setIsGameOn("isOn")}
+                    potentialWinnings="50 ETH"
+                    remainingTime="02:15:00"
+                  />
+                </div>
+              )}
               {!game && (
-                <div className="absolute top md:translate-y-[100%] translate-y-[40%] bg-slate-900 w-11/12 p-6 rounded-xl">
+                <div className="bg-slate-900 w-11/12 p-6 rounded-xl">
                   <Leaderboard modeType={ModeType.Daily} />
                 </div>
               )}
-              {!!game && game.over && (
+              {!!game && isGameOn === "isOver" && (
                 <>
                   <div className="flex flex-col gap-4 mt-8 ">
                     <p className="text-4xl text-center">Game Over</p>
@@ -212,7 +153,7 @@ export const Home = () => {
                       <div className="grow text-4xl flex gap-2 justify-end">
                         {game.max_combo}
                         <FontAwesomeIcon
-                          icon={faWebAwesome}
+                          icon={faGlobe}
                           className="text-slate-700 ml-2"
                         />
                       </div>
@@ -234,9 +175,9 @@ export const Home = () => {
                   <GoogleFormEmbed />
                 </>
               )}
-              {!!game && !game.over && (
+              {!!game && isGameOn === "isOn" && (
                 <div className="relative w-full">
-                  <div className="flex flex-col items-center">
+                  <div ref={gameGrid} className="flex flex-col items-center">
                     <GameBoard
                       initialGrid={game.blocks}
                       nextLine={game.next_row}
@@ -250,12 +191,19 @@ export const Home = () => {
                     <NextLine numbers={game.next_row} />
                   </div>
                   <div className="mt-4 sm:mt-0 sm:absolute sm:right-0 sm:bottom-0 sm:mb-4 flex justify-center sm:justify-end w-full">
-                    <Surrender />
+                    <Surrender setIsUnmounting={setIsUnmounting} />
                   </div>
                 </div>
               )}
             </div>
           </div>
+          <TweetPreview
+            open={isPreviewOpen}
+            setOpen={setIsPreviewOpen}
+            level={level}
+            score={score}
+            imgSrc={imgData}
+          />
           <AnimatePresence>
             {!animationDone && (
               <>

@@ -12,8 +12,10 @@ use dojo::model::Model;
 use zkube::constants;
 use zkube::store::{Store, StoreTrait};
 use zkube::models::game::{Game, GameTrait, GameAssert};
+use zkube::models::settings::Settings;
 use zkube::systems::play::IPlayDispatcherTrait;
 use zkube::types::bonus::Bonus;
+use zkube::types::mode::Mode;
 
 // Test imports
 use zkube::tests::setup::{setup, setup::{Systems, PLAYER1}};
@@ -45,7 +47,9 @@ fn test_game_wave_bonus_unlock() {
     world.grant_writer(Model::<Game>::selector(), PLAYER1());
 
     set_contract_address(PLAYER1());
-    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems
+        .play
+        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Initial state
     let mut game = store.game(game_id);
@@ -73,7 +77,9 @@ fn test_game_wave_bonus_usage() {
     world.grant_writer(Model::<Game>::selector(), PLAYER1());
 
     set_contract_address(PLAYER1());
-    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems
+        .play
+        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Initial state
     let mut game = store.game(game_id);
@@ -112,7 +118,9 @@ fn test_game_wave_bonus_not_available() {
     world.grant_writer(Model::<Game>::selector(), PLAYER1());
 
     set_contract_address(PLAYER1());
-    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems
+        .play
+        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Initial state
     let mut game = store.game(game_id);

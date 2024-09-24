@@ -56,7 +56,8 @@ export const DojoProvider = ({
     burnerManager,
   });
 
-  console.log("account", account);
+  console.log("------> DojoProvider account", account);
+  console.log("------> DojoProvider masterAccount", masterAccount);
 
   return (
     <DojoContext.Provider

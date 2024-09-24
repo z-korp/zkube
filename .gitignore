@@ -30,3 +30,6 @@ target
 .vercel
 
 client/dev-dist/
+
+*.db
+output_file

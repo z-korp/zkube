@@ -21,6 +21,7 @@ impl PlayerImpl of PlayerTrait {
     fn new(id: felt252, name: felt252) -> Player {
         // [Check] Name is valid
         assert(name != 0, errors::INVALID_NAME);
+
         // [Return] Player
         Player { id, game_id: 0, name, points: 0 }
     }
@@ -60,7 +61,7 @@ impl ZeroablePlayerImpl of core::Zeroable<Player> {
 
     #[inline(always)]
     fn is_zero(self: Player) -> bool {
-        0 == self.name
+        self.name == 0
     }
 
     #[inline(always)]

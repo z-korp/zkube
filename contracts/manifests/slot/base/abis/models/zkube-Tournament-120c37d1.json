@@ -389,6 +389,10 @@
         "type": "core::integer::u64"
       },
       {
+        "name": "is_set",
+        "type": "core::bool"
+      },
+      {
         "name": "prize",
         "type": "core::felt252"
       },

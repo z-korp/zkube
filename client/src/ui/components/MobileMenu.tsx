@@ -10,6 +10,7 @@ import {
   DrawerTitle,
 } from "../elements/drawer";
 import { Leaderboard } from "../modules/Leaderboard";
+import { ProfilePage } from "../modules/ProfilePage";
 import { MusicPlayer } from "../modules/MusicPlayer";
 import AccountDetails from "./AccountDetails";
 import { ModeToggle } from "./Theme";
@@ -18,6 +19,9 @@ import { usePlayer } from "@/hooks/usePlayer";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import DisconnectButton from "./DisconnectButton";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
+import DailyGameStatus from "./DailyGameStatus";
+import HeaderBalance from "./HeaderBalance";
+import ContentTabs from "./ContentTabs";
 
 const MobileMenu = () => {
   const { account } = useAccountCustom();
@@ -53,19 +57,31 @@ const MobileMenu = () => {
               <p className="self-start">Leaderboard</p>
               <Leaderboard />
             </div>
+            <div className="flex flex-col gap-2 items-center">
+              <p className="self-start">Extras</p>
+              <ContentTabs />
+            </div>
+            <div className="flex flex-col gap-2 items-center">
+              <p className="self-start">Profile</p>
+              <ProfilePage />
+            </div>
           </div>
         </DrawerContent>
       </Drawer>
       <div className="w-full flex justify-between items-center">
         <p className="text-4xl font-bold">zKube</p>
-        {!!player && account ? (
-          <div className="flex gap-3 items-center">
-            <p className="text-2xl max-w-44 truncate">{player.name}</p>
-            {ACCOUNT_CONNECTOR === "controller" && <DisconnectButton />}
-          </div>
-        ) : (
-          <Connect />
-        )}
+        <div className="flex gap-2">
+          <DailyGameStatus />
+          <HeaderBalance />
+          {!!player && account ? (
+            <div className="flex gap-3 items-center">
+              <p className="text-2xl max-w-44 truncate">{player.name}</p>
+              {ACCOUNT_CONNECTOR === "controller" && <DisconnectButton />}
+            </div>
+          ) : (
+            <Connect />
+          )}
+        </div>
       </div>
     </div>
   );

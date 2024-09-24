@@ -1,0 +1,21 @@
+[world]
+name = "zKube"
+description = "Reversed tetris fully onchain."
+cover_uri = "file://assets/cover.png"
+icon_uri = "file://assets/icon.png"
+website = "https://app.zkube.xyz"
+seed = "zKube2"
+
+[world.socials]
+x = "https://x.com/ohayo_dojo"
+discord = "https://discord.gg/FB2wR6uF"
+github = "https://github.com/dojoengine/dojo-starter"
+telegram = "https://t.me/dojoengine"
+
+[namespace]
+default = "zkube"
+
+[env]
+rpc_url = "https://api.cartridge.gg/x/zkorp-playground/katana"
+account_address = "0xb125fc0090fdc75c5b8a5145c8e7eaa99725a764e386954eafee9eff80d8f1"
+private_key = "0x1c50d6dbcb52ebd5cb02ec5128fe68b7bdf8f958763080fb310c2d5ead632a4"

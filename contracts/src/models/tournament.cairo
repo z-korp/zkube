@@ -163,6 +163,7 @@ impl ZeroableTournament of Zeroable<Tournament> {
     fn zero() -> Tournament {
         Tournament {
             id: 0,
+            is_set: false,
             prize: 0,
             top1_player_id: 0,
             top2_player_id: 0,
@@ -178,7 +179,7 @@ impl ZeroableTournament of Zeroable<Tournament> {
 
     #[inline(always)]
     fn is_zero(self: Tournament) -> bool {
-        self.prize == 0
+        !self.is_set
     }
 
     #[inline(always)]
@@ -209,6 +210,7 @@ mod tests {
         fn default() -> Tournament {
             Tournament {
                 id: 0,
+                is_set: false,
                 prize: 0,
                 top1_player_id: 0,
                 top2_player_id: 0,

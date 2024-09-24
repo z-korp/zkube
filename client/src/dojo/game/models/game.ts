@@ -34,6 +34,7 @@ export class Game {
   public max_combo: number;
   public score: number;
   public moves: number;
+  public buyIn: number;
   public next_row: number[];
   public next_color: number[];
   public bonuses: number[];
@@ -41,6 +42,7 @@ export class Game {
   public rows: Row[];
   public player_id: string;
   public seed: bigint;
+  public start_time: Date;
 
   constructor(game: ComponentValue) {
     this.id = game.id;
@@ -61,6 +63,7 @@ export class Game {
     this.combo = game.combo_counter;
     this.max_combo = game.max_combo;
     this.score = game.score;
+    this.buyIn = 100; // Set default buy-in of $100
     this.moves = game.moves;
     this.next_color = Packer.sized_unpack(
       BigInt(game.next_color),
@@ -70,6 +73,7 @@ export class Game {
     this.bonuses = game.bonuses;
     this.player_id = "0x" + game.player_id.toString(16);
     this.seed = game.seed;
+    this.start_time = game.start_time;
 
     // Destructure blocks and colors bitmaps in to Rows and Blocks
     this.blocks = Packer.sized_unpack(

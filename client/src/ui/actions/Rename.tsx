@@ -50,7 +50,7 @@ export const Create = () => {
       <DialogTrigger asChild>
         <Button disabled={disabled}>Rename</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>Rename the player</DialogTitle>
           <DialogDescription>Choose a name.</DialogDescription>
