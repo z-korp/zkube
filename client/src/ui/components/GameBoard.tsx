@@ -30,8 +30,6 @@ interface Block {
 }
 
 function transformDataContratIntoBlock(grid: number[][]): Block[] {
-  let blockId = 1; // Pour générer des identifiants uniques pour chaque bloc
-
   return grid.flatMap((row, y) => {
     const blocks: Block[] = [];
     let x = 0;
@@ -40,7 +38,12 @@ function transformDataContratIntoBlock(grid: number[][]): Block[] {
       const currentValue = row[x];
       if (currentValue > 0) {
         // La largeur est définie par la valeur
-        blocks.push({ id: blockId++, x, y, width: currentValue });
+        blocks.push({
+          id: Math.floor(Math.random() * 1000000),
+          x,
+          y,
+          width: currentValue,
+        });
         x += currentValue; // Passer à la prochaine position après ce bloc
       } else {
         x++; // Passer à la colonne suivante si la valeur est 0
@@ -203,7 +206,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
           </div>
         </div>
         <div className="flex justify-center items-center">
-          <Grid initialData={transformDataContratIntoBlock(initialGrid)} />
+          <Grid
+            initialData={transformDataContratIntoBlock(initialGrid)}
+            nextLineData={transformDataContratIntoBlock([nextLine])}
+          />
         </div>
       </Card>
     </>

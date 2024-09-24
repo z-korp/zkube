@@ -15,6 +15,7 @@ interface Block {
 
 interface GridProps {
   initialData: Block[];
+  nextLineData: Block[];
 }
 
 const transformToGridFormat = (
@@ -56,12 +57,29 @@ const removeCompleteRows = (
   return updatedBlocks;
 };
 
-const Grid: React.FC<GridProps> = ({ initialData }) => {
+const concatenateAndShiftBlocks = (
+  initialData: Block[],
+  nextLineData: Block[],
+  gridHeight: number,
+): Block[] => {
+  const shiftedInitialData = initialData.map((block) => ({
+    ...block,
+    y: block.y - 1,
+  }));
+  const shiftedNextLineData = nextLineData.map((block) => ({
+    ...block,
+    y: gridHeight - 1,
+  }));
+  return [...shiftedInitialData, ...shiftedNextLineData];
+};
+
+const Grid: React.FC<GridProps> = ({ initialData, nextLineData }) => {
   const {
     setup: {
       systemCalls: { move },
     },
   } = useDojo();
+
   const { account } = useAccountCustom();
   const [blocks, setBlocks] = useState<Block[]>(initialData);
   const [dragging, setDragging] = useState<Block | null>(null);
@@ -80,7 +98,7 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
   const gridWidth = 8;
   const gridHeight = 10;
   const gravitySpeed = 100;
-  const transitionDuration = 100;
+  const transitionDuration = 500;
 
   useEffect(() => {
     setBlocks(initialData);
@@ -280,7 +298,7 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (gameState === GameState.GRAVITY) {
+      if (gameState === GameState.GRAVITY || gameState === GameState.GRAVITY2) {
         applyGravity();
       }
     }, gravitySpeed);
@@ -288,33 +306,66 @@ const Grid: React.FC<GridProps> = ({ initialData }) => {
     return () => clearInterval(interval);
   }, [gameState]);
 
-  useEffect(() => {
+  const handleGravityState = (gravityState: GameState, newState: GameState) => {
     if (
-      gameState === GameState.GRAVITY &&
+      gameState === gravityState &&
       !isMoving &&
       transitioningBlocks.length === 0
     ) {
-      console.log("fin de la gravité");
-      setGameState(GameState.LINE_CLEAR);
-    } else {
-      console.log("En attente de la fin de la gravité");
+      setGameState(newState);
     }
-  });
+  };
 
   useEffect(() => {
-    if (gameState === GameState.LINE_CLEAR) {
+    handleGravityState(GameState.GRAVITY, GameState.LINE_CLEAR);
+    handleGravityState(GameState.GRAVITY2, GameState.LINE_CLEAR2);
+  }, [gameState, isMoving, transitioningBlocks]);
+
+  const handleLineClear = (
+    lineClearState: GameState,
+    newGravityState: GameState,
+    newStateOnComplete: GameState,
+  ) => {
+    if (gameState === lineClearState) {
       const cleanedBlocks = removeCompleteRows(blocks, gridWidth, gridHeight);
       if (cleanedBlocks.length < blocks.length) {
         setBlocks(cleanedBlocks);
         setIsMoving(true);
-        setGameState(GameState.GRAVITY);
-        console.log("Back to gravity state");
+        setGameState(newGravityState);
       } else {
-        console.log("Move TX state");
-        setGameState(GameState.MOVE_TX);
+        setGameState(newStateOnComplete);
       }
     }
+  };
+
+  useEffect(() => {
+    handleLineClear(
+      GameState.LINE_CLEAR,
+      GameState.GRAVITY,
+      GameState.ADD_LINE,
+    );
+    handleLineClear(
+      GameState.LINE_CLEAR2,
+      GameState.GRAVITY2,
+      GameState.MOVE_TX,
+    );
   }, [gameState, blocks]);
+
+  useEffect(() => {
+    if (gameState === GameState.ADD_LINE && pendingMove) {
+      const { rowIndex, startX, finalX } = pendingMove;
+      if (startX !== finalX) {
+        const updatedBlocks = concatenateAndShiftBlocks(
+          blocks,
+          nextLineData,
+          gridHeight,
+        );
+        setBlocks(updatedBlocks);
+      }
+      setIsMoving(true);
+      setGameState(GameState.GRAVITY2);
+    }
+  }, [gameState, blocks, pendingMove]);
 
   useEffect(() => {
     if (gameState === GameState.MOVE_TX && pendingMove) {

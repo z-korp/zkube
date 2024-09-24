@@ -70,7 +70,7 @@ const Block: React.FC<BlockProps> = ({
         width: `${block.width * gridSize}px`,
         height: `${gridSize}px`,
         transition:
-          state === GameState.GRAVITY
+          state === GameState.GRAVITY || state === GameState.GRAVITY2
             ? `top ${transitionDuration / 1000}s linear`
             : "none", // Désactivation de la transition autrement
         color: "white",
