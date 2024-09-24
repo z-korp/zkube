@@ -118,6 +118,11 @@ mod play {
                 .hostable
                 ._create(world, proof, seed, beta, mode, was_free);
 
+            println!("tournament_amount: {}", tournament_amount);
+            println!("chest_amount: {}", chest_amount);
+            println!("referrer_amount: {}", referrer_amount);
+            println!("zkorp_amount: {}", zkorp_amount);
+
             // Get the settings
             if (was_free) {
                 self.creditable._use_credit(world, caller);

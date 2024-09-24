@@ -16,14 +16,12 @@ interface StartProps {
   mode: ModeType;
   handleGameMode: () => void;
   potentialWinnings: string; // New prop for potential winnings
-  remainingTime?: string; // New prop for remaining time (optional for Normal mode)
 }
 
 export const Start: React.FC<StartProps> = ({
   mode,
   handleGameMode,
   potentialWinnings,
-  remainingTime,
 }) => {
   const {
     master,
@@ -45,6 +43,8 @@ export const Start: React.FC<StartProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleClick = useCallback(async () => {
+    if (!settings) return;
+
     setIsLoading(true);
     try {
       const {
@@ -60,7 +60,10 @@ export const Start: React.FC<StartProps> = ({
       await start({
         account: account as Account,
         mode: new Mode(mode).into(),
-        price: 5000000000000000n, // 0.0005 ETH
+        price:
+          mode === ModeType.Daily
+            ? settings.daily_mode_price
+            : settings.normal_mode_price,
         seed,
         x: proof_gamma_x,
         y: proof_gamma_y,
@@ -73,7 +76,7 @@ export const Start: React.FC<StartProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [account, mode]);
+  }, [account, mode, settings]);
 
   const disabled = useMemo(() => {
     return (
@@ -98,7 +101,7 @@ export const Start: React.FC<StartProps> = ({
     const ethCost = ethers.utils.formatEther(weiCost);
 
     return `${ethCost} ETH`;
-  }, [player, credits]);
+  }, [player, credits, settings, mode]);
 
   return (
     <div className=" p-4 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
@@ -111,7 +114,7 @@ export const Start: React.FC<StartProps> = ({
       <p className="text-lg">
         <strong>Price:</strong> {cost}
       </p>
-      {remainingTime && <TournamentTimer mode={mode} />}
+      <TournamentTimer mode={mode} />
       <Button
         disabled={isLoading || disabled}
         isLoading={isLoading}

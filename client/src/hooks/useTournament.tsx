@@ -1,9 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ModeType } from "../dojo/game/types/mode";
 import {
   DAILY_MODE_DURATION,
   NORMAL_MODE_DURATION,
 } from "../dojo/game/constants";
+import { useComponentValue } from "@dojoengine/react";
+import { Entity } from "@dojoengine/recs";
+import { getEntityIdFromKeys } from "@dojoengine/utils";
+import { useDojo } from "@/dojo/useDojo";
 
 interface TournamentInfo {
   id: number;
@@ -11,10 +15,17 @@ interface TournamentInfo {
 }
 
 const useTournament = (mode: ModeType): TournamentInfo => {
-  const [tournamentInfo, setTournamentInfo] = useState<TournamentInfo>({
-    id: 0,
-    endTimestamp: 0,
-  });
+  const {
+    setup: {
+      clientModels: {
+        models: { Tournament },
+        classes: { Tournament: TournamentClass },
+      },
+    },
+  } = useDojo();
+
+  const [id, setId] = useState(0);
+  const [endTimestamp, setEndTimestamp] = useState(0);
 
   useEffect(() => {
     const updateTournamentInfo = () => {
@@ -23,9 +34,10 @@ const useTournament = (mode: ModeType): TournamentInfo => {
         mode === ModeType.Daily ? DAILY_MODE_DURATION : NORMAL_MODE_DURATION;
 
       const id = Math.floor(currentTimestamp / duration);
-      const endTimestamp = (id + 1) * duration;
+      const end = (id + 1) * duration;
 
-      setTournamentInfo({ id, endTimestamp });
+      setEndTimestamp(end);
+      setId(id);
     };
 
     updateTournamentInfo();
@@ -35,7 +47,19 @@ const useTournament = (mode: ModeType): TournamentInfo => {
     return () => clearInterval(intervalId);
   }, [mode]);
 
-  return tournamentInfo;
+  const tournamentKey = useMemo(
+    () => getEntityIdFromKeys([BigInt(id)]) as Entity,
+    [id],
+  );
+
+  const component = useComponentValue(Tournament, tournamentKey);
+  const tournament = useMemo(() => {
+    return component ? new TournamentClass(component) : null;
+  }, [component]);
+
+  //console.log("tournament", tournament);
+
+  return { id, endTimestamp };
 };
 
 export default useTournament;

@@ -1822,8 +1822,8 @@
     {
       "kind": "DojoContract",
       "address": "0x8fbe72f6d350f76cfd6554872befc4d61889d4029a66cf3897506a908f77ca",
-      "class_hash": "0x50a71605b38e966a2049a7f63851a50b3f9296a7c56f7f4ee339e7ab784d475",
-      "original_class_hash": "0x50a71605b38e966a2049a7f63851a50b3f9296a7c56f7f4ee339e7ab784d475",
+      "class_hash": "0x6041d254da540fa7f73b53bdda4afb972350d08c3b6c25a2b919f151b10ac44",
+      "original_class_hash": "0x6041d254da540fa7f73b53bdda4afb972350d08c3b6c25a2b919f151b10ac44",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {
@@ -2567,8 +2567,8 @@
     {
       "kind": "DojoContract",
       "address": "0x7c69d31836f184012fa03b84601a6a3550a4e224baa6237c0b2c5481f3f9c9c",
-      "class_hash": "0x1a7c904419829a724e8d80eaed61a90eea559e1ec0c532fc15f0ed31ae6d268",
-      "original_class_hash": "0x1a7c904419829a724e8d80eaed61a90eea559e1ec0c532fc15f0ed31ae6d268",
+      "class_hash": "0x356114277c16d615cd9f555f5248c444fbfa80e2921ca58226d854a940d1c27",
+      "original_class_hash": "0x356114277c16d615cd9f555f5248c444fbfa80e2921ca58226d854a940d1c27",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {
