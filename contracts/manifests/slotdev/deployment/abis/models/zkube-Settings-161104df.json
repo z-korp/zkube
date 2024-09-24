@@ -367,12 +367,34 @@
     "interface_name": "zkube::models::index::Isettings"
   },
   {
+    "type": "enum",
+    "name": "core::bool",
+    "variants": [
+      {
+        "name": "False",
+        "type": "()"
+      },
+      {
+        "name": "True",
+        "type": "()"
+      }
+    ]
+  },
+  {
     "type": "struct",
     "name": "zkube::models::index::Settings",
     "members": [
       {
         "name": "id",
         "type": "core::integer::u8"
+      },
+      {
+        "name": "is_set",
+        "type": "core::bool"
+      },
+      {
+        "name": "zkorp_address",
+        "type": "core::felt252"
       },
       {
         "name": "free_daily_credits",

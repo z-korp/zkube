@@ -138,12 +138,7 @@
       {
         "type": "function",
         "name": "dojo_init",
-        "inputs": [
-          {
-            "name": "token_address",
-            "type": "core::starknet::contract_address::ContractAddress"
-          }
-        ],
+        "inputs": [],
         "outputs": [],
         "state_mutability": "external"
       }
@@ -264,42 +259,6 @@
       },
       {
         "type": "function",
-        "name": "claim",
-        "inputs": [
-          {
-            "name": "mode",
-            "type": "zkube::types::mode::Mode"
-          },
-          {
-            "name": "tournament_id",
-            "type": "core::integer::u64"
-          },
-          {
-            "name": "rank",
-            "type": "core::integer::u8"
-          }
-        ],
-        "outputs": [],
-        "state_mutability": "external"
-      },
-      {
-        "type": "function",
-        "name": "sponsor",
-        "inputs": [
-          {
-            "name": "mode",
-            "type": "zkube::types::mode::Mode"
-          },
-          {
-            "name": "amount",
-            "type": "core::felt252"
-          }
-        ],
-        "outputs": [],
-        "state_mutability": "external"
-      },
-      {
-        "type": "function",
         "name": "surrender",
         "inputs": [],
         "outputs": [],
@@ -402,12 +361,6 @@
   },
   {
     "type": "event",
-    "name": "zkube::components::payable::PayableComponent::Event",
-    "kind": "enum",
-    "variants": []
-  },
-  {
-    "type": "event",
     "name": "zkube::components::playable::PlayableComponent::Event",
     "kind": "enum",
     "variants": []
@@ -431,11 +384,6 @@
       {
         "name": "HostableEvent",
         "type": "zkube::components::hostable::HostableComponent::Event",
-        "kind": "flat"
-      },
-      {
-        "name": "PayableEvent",
-        "type": "zkube::components::payable::PayableComponent::Event",
         "kind": "flat"
       },
       {

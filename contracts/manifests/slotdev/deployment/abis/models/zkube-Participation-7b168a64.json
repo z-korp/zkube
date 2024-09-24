@@ -363,8 +363,8 @@
   },
   {
     "type": "impl",
-    "name": "settingsImpl",
-    "interface_name": "zkube::models::index::Isettings"
+    "name": "participationImpl",
+    "interface_name": "zkube::models::index::Iparticipation"
   },
   {
     "type": "enum",
@@ -382,37 +382,33 @@
   },
   {
     "type": "struct",
-    "name": "zkube::models::index::Settings",
+    "name": "zkube::models::index::Participation",
     "members": [
       {
-        "name": "id",
-        "type": "core::integer::u8"
+        "name": "chest_id",
+        "type": "core::integer::u32"
+      },
+      {
+        "name": "player_id",
+        "type": "core::felt252"
       },
       {
         "name": "is_set",
         "type": "core::bool"
       },
       {
-        "name": "zkorp_address",
-        "type": "core::felt252"
+        "name": "points",
+        "type": "core::integer::u32"
       },
       {
-        "name": "free_daily_credits",
-        "type": "core::integer::u8"
-      },
-      {
-        "name": "daily_mode_price",
-        "type": "core::felt252"
-      },
-      {
-        "name": "normal_mode_price",
-        "type": "core::felt252"
+        "name": "claimed",
+        "type": "core::bool"
       }
     ]
   },
   {
     "type": "interface",
-    "name": "zkube::models::index::Isettings",
+    "name": "zkube::models::index::Iparticipation",
     "items": [
       {
         "type": "function",
@@ -420,7 +416,7 @@
         "inputs": [
           {
             "name": "model",
-            "type": "zkube::models::index::Settings"
+            "type": "zkube::models::index::Participation"
           }
         ],
         "outputs": [],
@@ -430,7 +426,7 @@
   },
   {
     "type": "event",
-    "name": "zkube::models::index::settings::Event",
+    "name": "zkube::models::index::participation::Event",
     "kind": "enum",
     "variants": []
   }

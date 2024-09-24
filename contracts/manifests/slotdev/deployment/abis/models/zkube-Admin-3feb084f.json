@@ -363,8 +363,8 @@
   },
   {
     "type": "impl",
-    "name": "settingsImpl",
-    "interface_name": "zkube::models::index::Isettings"
+    "name": "adminImpl",
+    "interface_name": "zkube::models::index::Iadmin"
   },
   {
     "type": "enum",
@@ -382,37 +382,21 @@
   },
   {
     "type": "struct",
-    "name": "zkube::models::index::Settings",
+    "name": "zkube::models::index::Admin",
     "members": [
       {
         "name": "id",
-        "type": "core::integer::u8"
+        "type": "core::felt252"
       },
       {
         "name": "is_set",
         "type": "core::bool"
-      },
-      {
-        "name": "zkorp_address",
-        "type": "core::felt252"
-      },
-      {
-        "name": "free_daily_credits",
-        "type": "core::integer::u8"
-      },
-      {
-        "name": "daily_mode_price",
-        "type": "core::felt252"
-      },
-      {
-        "name": "normal_mode_price",
-        "type": "core::felt252"
       }
     ]
   },
   {
     "type": "interface",
-    "name": "zkube::models::index::Isettings",
+    "name": "zkube::models::index::Iadmin",
     "items": [
       {
         "type": "function",
@@ -420,7 +404,7 @@
         "inputs": [
           {
             "name": "model",
-            "type": "zkube::models::index::Settings"
+            "type": "zkube::models::index::Admin"
           }
         ],
         "outputs": [],
@@ -430,7 +414,7 @@
   },
   {
     "type": "event",
-    "name": "zkube::models::index::settings::Event",
+    "name": "zkube::models::index::admin::Event",
     "kind": "enum",
     "variants": []
   }
