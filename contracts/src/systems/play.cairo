@@ -43,7 +43,7 @@ mod play {
     use zkube::components::creditable::CreditableComponent;
     use zkube::systems::chest::{IChestDispatcher, IChestDispatcherTrait};
     use zkube::systems::zkorp::{IZKorpDispatcher, IZKorpDispatcherTrait};
-    use zkube::systems::tournament::{ITournamentDispatcher, ITournamentDispatcherTrait};
+    use zkube::systems::tournament::{ITournamentSystemDispatcher, ITournamentSystemDispatcherTrait};
 
     // Local imports
 
@@ -118,34 +118,32 @@ mod play {
                 .hostable
                 ._create(world, proof, seed, beta, mode, was_free);
 
-            println!("tournament_amount: {}", tournament_amount);
-            println!("chest_amount: {}", chest_amount);
-            println!("referrer_amount: {}", referrer_amount);
-            println!("zkorp_amount: {}", zkorp_amount);
-
             // Get the settings
             if (was_free) {
                 self.creditable._use_credit(world, caller);
             } else {
+                let caller_felt: felt252 = caller.into();
                 // [Setup] Settings
                 if let Resource::Contract((class_hash, contract_address)) = world
                     .resource(selector_from_tag!("zkube-tournament")) {
-                    let tournament_system_dispatcher = ITournamentDispatcher { contract_address };
-                    tournament_system_dispatcher.sponsor(tournament_id, mode, tournament_amount);
+                    let tournament_system_dispatcher = ITournamentSystemDispatcher {
+                        contract_address
+                    };
+                    tournament_system_dispatcher
+                        .sponsor(tournament_id, mode, tournament_amount, caller);
                 }
-
                 // Chest pool
                 if let Resource::Contract((class_hash, contract_address)) = world
                     .resource(selector_from_tag!("zkube-chest")) {
                     let chest_system_dispatcher = IChestDispatcher { contract_address };
-                    chest_system_dispatcher.sponsor_unknown(chest_amount);
+                    chest_system_dispatcher.sponsor_unknown(chest_amount, caller);
                 }
 
                 // zKorp
                 if let Resource::Contract((class_hash, contract_address)) = world
                     .resource(selector_from_tag!("zkube-zkorp")) {
                     let zkorp_system_dispatcher = IZKorpDispatcher { contract_address };
-                    zkorp_system_dispatcher.sponsor(chest_amount);
+                    zkorp_system_dispatcher.sponsor(zkorp_amount + referrer_amount, caller);
                 }
             }
 

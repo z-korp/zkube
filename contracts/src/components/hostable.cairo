@@ -124,14 +124,18 @@ mod HostableComponent {
                 let mut tournament = store.tournament(tournament_id);
                 let tournament_amount: u256 = (precise_price * TOURNAMENT_PERCENTAGE.into()) / 100;
 
-                tournament.buyin(tournament_amount.try_into().unwrap());
+                //tournament.buyin((tournament_amount /
+                //PRECISION_FACTOR.into()).try_into().unwrap());
                 tournament.is_set = true;
                 store.set_tournament(tournament);
 
                 // Chest
                 let chest_amount: u256 = (precise_price * CHEST_PERCENTAGE.into()) / 100;
                 let mut game = store.game(game_id);
-                game.pending_chest_prize = chest_amount.try_into().unwrap();
+                game
+                    .pending_chest_prize = (chest_amount / PRECISION_FACTOR.into())
+                    .try_into()
+                    .unwrap();
                 store.set_game(game);
 
                 // Referrer

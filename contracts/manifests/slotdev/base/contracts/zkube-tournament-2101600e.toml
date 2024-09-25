@@ -1,6 +1,6 @@
 kind = "DojoContract"
-class_hash = "0x356114277c16d615cd9f555f5248c444fbfa80e2921ca58226d854a940d1c27"
-original_class_hash = "0x356114277c16d615cd9f555f5248c444fbfa80e2921ca58226d854a940d1c27"
+class_hash = "0x18aa155da7b83ecf9622f283cbd0f5c7f701b0f1b1445bb58714e2fa654ddd4"
+original_class_hash = "0x18aa155da7b83ecf9622f283cbd0f5c7f701b0f1b1445bb58714e2fa654ddd4"
 base_class_hash = "0x0"
 abi = "manifests/slotdev/base/abis/contracts/zkube-tournament-2101600e.json"
 reads = []

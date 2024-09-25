@@ -21,7 +21,7 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { Level } from "@/dojo/game/types/level";
 import { toPng } from "html-to-image";
 import { TweetPreview } from "../components/TweetPreview";
-import { Leaderboard } from "../modules/Leaderboard";
+import { LeaderboardContent } from "../modules/Leaderboard";
 
 export const Home = () => {
   const {
@@ -106,7 +106,7 @@ export const Home = () => {
             <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
               <Create />
               {(!game || (!!game && isGameOn === "isOver")) && (
-                <div className="flex  p-4 rounded-xl w-[93%] gap-4 items-center justify-evenly">
+                <div className="flex flex-col md:flex-row p-4 rounded-xl w-[93%] gap-4 items-center justify-evenly">
                   <Start
                     mode={ModeType.Daily}
                     handleGameMode={() => setIsGameOn("isOn")}
@@ -121,7 +121,7 @@ export const Home = () => {
               )}
               {!game && (
                 <div className="bg-slate-900 w-11/12 p-6 rounded-xl">
-                  <Leaderboard />
+                  <LeaderboardContent />
                 </div>
               )}
               {!!game && isGameOn === "isOver" && (
@@ -189,13 +189,13 @@ export const Home = () => {
               )}
             </div>
           </div>
-          <TweetPreview
+          {/*<TweetPreview
             open={isPreviewOpen}
             setOpen={setIsPreviewOpen}
             level={level}
             score={score}
             imgSrc={imgData}
-          />
+          />*/}
           <AnimatePresence>
             {!animationDone && (
               <>
