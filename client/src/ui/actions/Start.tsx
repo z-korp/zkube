@@ -11,18 +11,14 @@ import { useCredits } from "@/hooks/useCredits";
 import TournamentTimer from "../components/TournamentTimer";
 import { useSettings } from "@/hooks/useSettings";
 import { ethers } from "ethers";
+import useTournament from "@/hooks/useTournament";
 
 interface StartProps {
   mode: ModeType;
   handleGameMode: () => void;
-  potentialWinnings: string; // New prop for potential winnings
 }
 
-export const Start: React.FC<StartProps> = ({
-  mode,
-  handleGameMode,
-  potentialWinnings,
-}) => {
+export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
   const {
     master,
     setup: {
@@ -35,6 +31,7 @@ export const Start: React.FC<StartProps> = ({
   const { player } = usePlayer({ playerId: account?.address });
   const { credits } = useCredits({ playerId: account?.address });
   const { settings } = useSettings();
+  const { endTimestamp, tournament } = useTournament(mode);
 
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
@@ -103,18 +100,26 @@ export const Start: React.FC<StartProps> = ({
     return `${ethCost} ETH`;
   }, [player, credits, settings, mode]);
 
+  const ethPrize = useMemo(() => {
+    if (!tournament) return "0 ETH";
+
+    const ethPrize = ethers.utils.formatEther(tournament.prize);
+
+    return `${ethPrize} ETH`;
+  }, [tournament]);
+
   return (
     <div className=" p-4 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
       <h2 className="text-2xl font-bold mb-2">
         {mode === ModeType.Daily ? "Daily Mode" : "Normal Mode"}
       </h2>
       <p className="text-lg">
-        <strong>Potential Winnings:</strong> {potentialWinnings}
+        <strong>Potential Winnings:</strong> {ethPrize}
       </p>
       <p className="text-lg">
         <strong>Price:</strong> {cost}
       </p>
-      <TournamentTimer mode={mode} />
+      <TournamentTimer mode={mode} endTimestamp={endTimestamp} />
       <Button
         disabled={isLoading || disabled}
         isLoading={isLoading}
