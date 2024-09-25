@@ -65,8 +65,8 @@ manifest_name = "zkube-chest-5d3b3ea3"
 [[contracts]]
 kind = "DojoContract"
 address = "0x8fbe72f6d350f76cfd6554872befc4d61889d4029a66cf3897506a908f77ca"
-class_hash = "0x2bfad9e584ece5af01c07baed67f0a053b6397f8ff4d4f7a2dbf6ba0892bcf3"
-original_class_hash = "0x2bfad9e584ece5af01c07baed67f0a053b6397f8ff4d4f7a2dbf6ba0892bcf3"
+class_hash = "0x5dd01fb7c73704470441bfe4b9c9cfd730804a43817f5135bced95d39ea6973"
+original_class_hash = "0x5dd01fb7c73704470441bfe4b9c9cfd730804a43817f5135bced95d39ea6973"
 base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
 abi = "manifests/slot/deployment/abis/contracts/zkube-play-19ee70b3.json"
 reads = []

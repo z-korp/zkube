@@ -193,6 +193,10 @@
           {
             "name": "amount",
             "type": "core::felt252"
+          },
+          {
+            "name": "caller",
+            "type": "core::starknet::contract_address::ContractAddress"
           }
         ],
         "outputs": [],
