@@ -5,7 +5,6 @@ import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import BlockContainer from "./Block";
 import { GameState } from "@/enums/gameEnums";
-import { useMediaQuery } from "react-responsive";
 import { Block } from "@/types/types";
 import {
   removeCompleteRows,
