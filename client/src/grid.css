@@ -17,25 +17,25 @@
 }
 
 .block-1 {
-  background-image: url("public/assets/block-1.png");
+  background-image: url("/assets/block-1.png");
   background-size: cover;
   /*background-color: lightgreen;*/
 }
 
 .block-2 {
-  background-image: url("public/assets/block-2.png");
+  background-image: url("/assets/block-2.png");
   background-size: cover;
   /*background-color: lightcoral;*/
 }
 
 .block-3 {
-  background-image: url("public/assets/block-3.png");
+  background-image: url("/assets/block-3.png");
   background-size: cover;
   /*background-color: lightskyblue;*/
 }
 
 .block-4 {
-  background-image: url("public/assets/block-4.png");
+  background-image: url("/assets/block-4.png");
   background-size: cover;
   /*background-color: lightgoldenrodyellow;*/
 }
