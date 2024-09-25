@@ -22,6 +22,7 @@ import { Level } from "@/dojo/game/types/level";
 import { toPng } from "html-to-image";
 import { TweetPreview } from "../components/TweetPreview";
 import { LeaderboardContent } from "../modules/Leaderboard";
+import { useMediaQuery } from "react-responsive";
 
 export const Home = () => {
   const {
@@ -45,6 +46,8 @@ export const Home = () => {
   const [level, setLevel] = useState<number | "">(0);
   const [score, setScore] = useState<number | undefined>(0);
   const [imgData, setImgData] = useState<string>("");
+
+  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   useEffect(() => {
     if (game?.over) {
@@ -152,20 +155,24 @@ export const Home = () => {
                       </div>
                     </div>
                   </div>
-                  <motion.h1
-                    className="md:text-2xl  md:mt-4 mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg"
-                    initial={{ scale: 1 }}
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      repeatType: "reverse",
-                      ease: "easeInOut",
-                    }}
-                  >
-                    Give feedback and get a chance to win STRK
-                  </motion.h1>
-                  <GoogleFormEmbed />
+                  {isMdOrLarger && (
+                    <>
+                      <motion.h1
+                        className="md:text-2xl  md:mt-4 mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg"
+                        initial={{ scale: 1 }}
+                        animate={{ scale: [1, 1.1, 1] }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          repeatType: "reverse",
+                          ease: "easeInOut",
+                        }}
+                      >
+                        Give feedback and get a chance to win STRK
+                      </motion.h1>
+                      <GoogleFormEmbed />
+                    </>
+                  )}
                 </>
               )}
               {!!game && isGameOn === "isOn" && (
