@@ -18,6 +18,7 @@ use zkube::store::{Store, StoreTrait};
 use zkube::models::game::{Game, GameTrait, GameAssert};
 use zkube::models::tournament::{TournamentImpl};
 use zkube::systems::play::IPlayDispatcherTrait;
+use zkube::systems::tournament::ITournamentSystemDispatcherTrait;
 use zkube::models::credits::{Credits, CreditsImpl, CreditsAssert};
 
 use zkube::tests::setup::{
@@ -46,6 +47,7 @@ fn test_play_play_daily_tournament_claim() {
     // [Setup]
     let (world, systems, context) = setup::create_accounts();
     let store = StoreTrait::new(world);
+    let settings = store.settings();
     let time = constants::DAILY_MODE_DURATION + 1;
     set_block_timestamp(time);
 
@@ -89,6 +91,9 @@ fn test_play_play_daily_tournament_claim() {
     assert(credits.remaining == 0, 'Should have 0 credits');
 
     // game 4, paid
+    context.erc20.approve(context.tournament_address, settings.daily_mode_price.into());
+    context.erc20.approve(context.chest_address, settings.daily_mode_price.into());
+    context.erc20.approve(context.zkorp_address, settings.daily_mode_price.into());
     let game_id = systems
         .play
         .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -107,6 +112,9 @@ fn test_play_play_daily_tournament_claim() {
     );
 
     // game 5, paid
+    context.erc20.approve(context.tournament_address, settings.daily_mode_price.into());
+    context.erc20.approve(context.chest_address, settings.daily_mode_price.into());
+    context.erc20.approve(context.zkorp_address, settings.daily_mode_price.into());
     let game_id = systems
         .play
         .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -225,9 +233,14 @@ fn test_play_play_daily_tournament_claim() {
     // [Assert] Tournament
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
     let tournament = store.tournament(tournament_id);
-    // println!("tournament.prize {}", tournament.prize);
-    // println!("constants::DAILY_MODE_PRICE {}", constants::DAILY_MODE_PRICE);
-    assert(tournament.prize == constants::DAILY_MODE_PRICE * 2, 'Tournament prize');
+
+    // Calculate the expected prize
+    let total_paid_games = 2_u256;
+    let prize_per_game = constants::DAILY_MODE_PRICE.into()
+        * constants::TOURNAMENT_PERCENTAGE.into()
+        / 100_u256;
+    let expected_prize = prize_per_game * total_paid_games;
+    assert(tournament.prize.into() == expected_prize, 'Tournament prize mismatch');
     assert(tournament.top1_player_id == PLAYER2().into(), 'Tournament top1_player_id');
     assert(tournament.top2_player_id == PLAYER3().into(), 'Tournament top2_player_id');
     assert(tournament.top3_player_id == PLAYER4().into(), 'Tournament top3_player_id');
@@ -240,7 +253,7 @@ fn test_play_play_daily_tournament_claim() {
     set_block_timestamp(2 * constants::DAILY_MODE_DURATION);
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
     let rank = 1;
-    systems.play.claim(Mode::Daily, tournament_id, rank);
+    systems.tournament.claim(Mode::Daily, tournament_id, rank);
 
     // [Assert] Player2 balance
     let final_player2 = context.erc20.balance_of(PLAYER2());
@@ -252,7 +265,7 @@ fn test_play_play_daily_tournament_claim() {
     set_contract_address(PLAYER3());
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
     let rank = 2;
-    systems.play.claim(Mode::Daily, tournament_id, rank);
+    systems.tournament.claim(Mode::Daily, tournament_id, rank);
 
     // [Assert] Player3 balance
     let final_player3 = context.erc20.balance_of(PLAYER3());
@@ -264,7 +277,7 @@ fn test_play_play_daily_tournament_claim() {
     set_contract_address(PLAYER4());
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
     let rank = 3;
-    systems.play.claim(Mode::Daily, tournament_id, rank);
+    systems.tournament.claim(Mode::Daily, tournament_id, rank);
 
     // [Assert] Player4 balance
     let final_player4 = context.erc20.balance_of(PLAYER4());
@@ -282,6 +295,8 @@ fn test_play_play_daily_tournament_claim() {
 fn test_play_play_ranked_tournament_claim_revert_not_over() {
     // [Setup]
     let (world, systems, context) = setup::create_accounts();
+    let store = StoreTrait::new(world);
+    let settings = store.settings();
     let time = constants::DAILY_MODE_DURATION + 1;
     set_block_timestamp(time);
 
@@ -299,11 +314,14 @@ fn test_play_play_ranked_tournament_claim_revert_not_over() {
     systems.play.surrender();
 
     // paid game 1
+    context.erc20.approve(context.tournament_address, settings.daily_mode_price.into());
+    context.erc20.approve(context.chest_address, settings.daily_mode_price.into());
+    context.erc20.approve(context.zkorp_address, settings.daily_mode_price.into());
     systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Claim]
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
-    systems.play.claim(Mode::Daily, tournament_id, 1);
+    systems.tournament.claim(Mode::Daily, tournament_id, 1);
 }
 
 #[test]
@@ -311,6 +329,9 @@ fn test_play_play_ranked_tournament_claim_revert_not_over() {
 fn test_play_play_ranked_tournament_claim_revert_invalid_player() {
     // [Setup]
     let (world, systems, context) = setup::create_accounts();
+    let store = StoreTrait::new(world);
+    let settings = store.settings();
+
     let time = constants::DAILY_MODE_DURATION + 1;
     set_block_timestamp(time);
 
@@ -329,12 +350,15 @@ fn test_play_play_ranked_tournament_claim_revert_invalid_player() {
     systems.play.surrender();
 
     // paid game 1
+    context.erc20.approve(context.tournament_address, settings.daily_mode_price.into());
+    context.erc20.approve(context.chest_address, settings.daily_mode_price.into());
+    context.erc20.approve(context.zkorp_address, settings.daily_mode_price.into());
     systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Claim]
     set_block_timestamp(2 * constants::DAILY_MODE_DURATION);
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
     set_contract_address(PLAYER2());
-    systems.play.claim(Mode::Daily, tournament_id, 1);
+    systems.tournament.claim(Mode::Daily, tournament_id, 1);
 }
 

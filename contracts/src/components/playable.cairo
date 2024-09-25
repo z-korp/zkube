@@ -75,20 +75,6 @@ mod PlayableComponent {
             if game.over {
                 self._handle_game_over(world, store, game, player);
             }
-
-            // [Effect] Update tournament on game over
-            let time = get_block_timestamp();
-            let tournament_id = TournamentImpl::compute_id(game.start_time, game.duration());
-            let id_end = TournamentImpl::compute_id(time, game.duration());
-            if tournament_id == id_end && game.over {
-                // [Effect] Update tournament
-                let mut tournament = store.tournament(tournament_id);
-                tournament.score(player.id, game.score);
-                store.set_tournament(tournament);
-
-                // [Effect] Add tournament id to game
-                game.tournament_id = tournament_id;
-            }
         }
 
         fn _move(
@@ -120,20 +106,6 @@ mod PlayableComponent {
             // [Effect] Update player if game is over
             if game.over {
                 self._handle_game_over(world, store, game, player);
-            }
-
-            // [Effect] Update tournament on game over
-            let time = get_block_timestamp();
-            let tournament_id = TournamentImpl::compute_id(game.start_time, game.duration());
-            let id_end = TournamentImpl::compute_id(time, game.duration());
-            if tournament_id == id_end && game.over {
-                // [Effect] Update tournament
-                let mut tournament = store.tournament(tournament_id);
-                tournament.score(player.id, game.score);
-                store.set_tournament(tournament);
-
-                // [Effect] Add tournament id to game
-                game.tournament_id = tournament_id;
             }
         }
 
@@ -198,8 +170,18 @@ mod PlayableComponent {
                     chest.add_points(points_to_add);
 
                     // [Effect] Add prize proportionally to the points added
+                    println!(
+                        "Adding prize to chest {} with points {} ({})",
+                        i,
+                        points_to_add,
+                        remaining_points
+                    );
+                    println!("Remaining prize: {}", remaining_prize);
                     let prize_to_add: u256 = (remaining_prize * points_to_add.into())
                         / total_points.into();
+                    println!("total_points: {}", total_points);
+                    println!("Prize to add: {}", prize_to_add);
+
                     chest.add_prize((prize_to_add / PRECISION_FACTOR.into()).try_into().unwrap());
                     store.set_chest(chest);
 

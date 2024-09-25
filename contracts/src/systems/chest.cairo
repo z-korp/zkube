@@ -17,7 +17,7 @@ use zkube::store::{Store, StoreTrait};
 trait IChest<TContractState> {
     fn claim(ref world: IWorldDispatcher, chest_id: u32);
     fn sponsor(ref world: IWorldDispatcher, chest_id: u32, amount: felt252);
-    fn sponsor_unknown(ref world: IWorldDispatcher, amount: felt252);
+    fn sponsor_unknown(ref world: IWorldDispatcher, amount: felt252, caller: ContractAddress);
 }
 
 #[dojo::contract]
@@ -132,8 +132,7 @@ mod chest {
             self.payable._pay(caller, amount.into());
         }
 
-        fn sponsor_unknown(ref world: IWorldDispatcher, amount: felt252) {
-            let caller = get_caller_address();
+        fn sponsor_unknown(ref world: IWorldDispatcher, amount: felt252, caller: ContractAddress) {
             self.payable._pay(caller, amount.into());
         }
     }

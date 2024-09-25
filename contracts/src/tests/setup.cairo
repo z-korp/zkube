@@ -37,6 +37,10 @@ mod setup {
     use zkube::systems::play::{play, IPlayDispatcher, IPlayDispatcherTrait};
     use zkube::systems::chest::{chest, IChestDispatcher, IChestDispatcherTrait};
     use zkube::systems::settings::{settings, ISettingsDispatcher, ISettingsDispatcherTrait};
+    use zkube::systems::tournament::{
+        tournament, ITournamentSystemDispatcher, ITournamentSystemDispatcherTrait
+    };
+    use zkube::systems::zkorp::{zkorp, IZKorpDispatcher, IZKorpDispatcherTrait};
 
     #[starknet::interface]
     trait IDojoInit<ContractState> {
@@ -72,6 +76,8 @@ mod setup {
         play: IPlayDispatcher,
         settings: ISettingsDispatcher,
         chest: IChestDispatcher,
+        tournament: ITournamentSystemDispatcher,
+        zkorp: IZKorpDispatcher,
     }
 
     #[derive(Drop)]
@@ -89,6 +95,11 @@ mod setup {
         proof: Proof,
         seed: felt252,
         beta: felt252,
+        play_address: ContractAddress,
+        tournament_address: ContractAddress,
+        zkorp_address: ContractAddress,
+        chest_address: ContractAddress,
+        account_address: ContractAddress,
     }
 
     fn deploy_erc20() -> IERC20Dispatcher {
@@ -128,20 +139,32 @@ mod setup {
             .deploy_contract('settings', settings::TEST_CLASS_HASH.try_into().unwrap());
         let chest_address = world
             .deploy_contract('chest', chest::TEST_CLASS_HASH.try_into().unwrap());
+        let tournament_address = world
+            .deploy_contract('tournament', tournament::TEST_CLASS_HASH.try_into().unwrap());
+        let zkorp_address = world
+            .deploy_contract('zkorp', zkorp::TEST_CLASS_HASH.try_into().unwrap());
 
         // [Setup] Permissions
         world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), account_address);
         world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), play_address);
         world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), chest_address);
         world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), settings_address);
+        world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), tournament_address);
+        world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), zkorp_address);
         //world.grant_writer(selector_from_tag!("zkube-Settings"), play_address);
         //world.grant_writer(Model::<Settings>::selector(), play_address);
 
         // [Setup] Contract
         let selector = selector_from_tag!("zkube-play");
-        world.init_contract(selector, array![erc20.contract_address.into()].span());
+        world.init_contract(selector, array![].span());
 
         let selector = selector_from_tag!("zkube-chest");
+        world.init_contract(selector, array![erc20.contract_address.into()].span());
+
+        let selector = selector_from_tag!("zkube-tournament");
+        world.init_contract(selector, array![erc20.contract_address.into()].span());
+
+        let selector = selector_from_tag!("zkube-zkorp");
         world.init_contract(selector, array![erc20.contract_address.into()].span());
 
         let selector = selector_from_tag!("zkube-settings");
@@ -152,6 +175,8 @@ mod setup {
             play: IPlayDispatcher { contract_address: play_address },
             settings: ISettingsDispatcher { contract_address: settings_address },
             chest: IChestDispatcher { contract_address: chest_address },
+            tournament: ITournamentSystemDispatcher { contract_address: tournament_address },
+            zkorp: IZKorpDispatcher { contract_address: zkorp_address },
         };
 
         // [Setup] Context
@@ -204,6 +229,11 @@ mod setup {
             proof: proof,
             seed: seed,
             beta: beta,
+            play_address,
+            tournament_address,
+            zkorp_address,
+            chest_address,
+            account_address,
         };
 
         // [Set] Caller back to owner

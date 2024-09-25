@@ -68,31 +68,7 @@ const TabList = memo<TabListProps>(({ activeTab, setActiveTab }) => (
   </TabsList>
 ));
 
-interface TabContentProps {
-  mode: ModeType;
-  secondsLeft: number;
-}
-
-const TabContent = memo<TabContentProps>(({ mode, secondsLeft }) => (
-  <>
-    <TabsContent value={ModeType.Daily} hidden={mode !== ModeType.Daily}>
-      <Content mode={ModeType.Daily} secondsLeft={secondsLeft} />
-    </TabsContent>
-    <TabsContent value={ModeType.Normal} hidden={mode !== ModeType.Normal}>
-      <Content mode={ModeType.Normal} secondsLeft={secondsLeft} />
-    </TabsContent>
-  </>
-));
-
 export const Leaderboard = () => {
-  const [activeTab, setActiveTab] = useState<ModeType>(ModeType.Daily);
-
-  const dailyEndTimestamp = useTournament(ModeType.Daily).endTimestamp;
-  const normalEndTimestamp = useTournament(ModeType.Normal).endTimestamp;
-
-  const dailySecondsLeft = useCountdown(new Date(dailyEndTimestamp * 1000));
-  const normalSecondsLeft = useCountdown(new Date(normalEndTimestamp * 1000));
-
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -105,20 +81,34 @@ export const Leaderboard = () => {
         <DialogHeader className="flex items-center text-2xl">
           <DialogTitle>Leaderboards</DialogTitle>
         </DialogHeader>
-        <Tabs
-          value={activeTab}
-          onValueChange={(value) => setActiveTab(value as ModeType)}
-        >
-          <TabList activeTab={activeTab} setActiveTab={setActiveTab} />
-          <TabsContent value={ModeType.Daily}>
-            <Content mode={ModeType.Daily} secondsLeft={dailySecondsLeft} />
-          </TabsContent>
-          <TabsContent value={ModeType.Normal}>
-            <Content mode={ModeType.Normal} secondsLeft={normalSecondsLeft} />
-          </TabsContent>
-        </Tabs>
+        <LeaderboardContent />
       </DialogContent>
     </Dialog>
+  );
+};
+
+export const LeaderboardContent: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<ModeType>(ModeType.Daily);
+
+  const dailyEndTimestamp = useTournament(ModeType.Daily).endTimestamp;
+  const normalEndTimestamp = useTournament(ModeType.Normal).endTimestamp;
+
+  const dailySecondsLeft = useCountdown(new Date(dailyEndTimestamp * 1000));
+  const normalSecondsLeft = useCountdown(new Date(normalEndTimestamp * 1000));
+
+  return (
+    <Tabs
+      value={activeTab}
+      onValueChange={(value) => setActiveTab(value as ModeType)}
+    >
+      <TabList activeTab={activeTab} setActiveTab={setActiveTab} />
+      <TabsContent value={ModeType.Daily}>
+        <Content mode={ModeType.Daily} secondsLeft={dailySecondsLeft} />
+      </TabsContent>
+      <TabsContent value={ModeType.Normal}>
+        <Content mode={ModeType.Normal} secondsLeft={normalSecondsLeft} />
+      </TabsContent>
+    </Tabs>
   );
 };
 
