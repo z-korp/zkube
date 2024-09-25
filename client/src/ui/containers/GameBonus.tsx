@@ -29,7 +29,7 @@ export const GameBonus: React.FC<GameBonusProps> = ({
 
   return (
     <div className="grid grid-cols-3 gap-3">
-      <div className="flex flex-col items-start">
+      {/*<div className="flex flex-col items-start">
         <BonusButton
           onClick={onBonusHammerClick}
           urlImage={imgAssets.hammer}
@@ -49,7 +49,7 @@ export const GameBonus: React.FC<GameBonusProps> = ({
           bonus={bonus}
         />
       </div>
-      {/* <div className="flex flex-col w-full items-end">
+       <div className="flex flex-col w-full items-end">
         <BonusButton
           onClick={onBonusTikiClick}
           urlImage={imgAssets.tiki}
