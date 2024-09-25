@@ -175,6 +175,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             gridWidth={cols}
           />
         </div>
+        <br />
         <div className="flex justify-center items-center">
           <NextLine
             nextLineData={transformDataContratIntoBlock([nextLine])}
