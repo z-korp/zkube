@@ -51,8 +51,8 @@ const Grid: React.FC<GridProps> = ({
   const [isTxProcessing, setIsTxProcessing] = useState(false);
 
   const borderSize = 2;
-  const gravitySpeed = 250;
-  const transitionDuration = 500;
+  const gravitySpeed = 100;
+  const transitionDuration = 250;
 
   useEffect(() => {
     setBlocks(initialData);
