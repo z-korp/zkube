@@ -18,6 +18,7 @@ interface GridProps {
   gridSize: number;
   gridWidth: number;
   gridHeight: number;
+  selectBlock: (block: Block) => void;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -26,6 +27,7 @@ const Grid: React.FC<GridProps> = ({
   gridHeight,
   gridWidth,
   gridSize,
+  selectBlock,
 }) => {
   const {
     setup: {
@@ -368,6 +370,7 @@ const Grid: React.FC<GridProps> = ({
             handleTouchStart={handleTouchStart}
             onTransitionBlockStart={() => handleTransitionBlockStart(block.id)}
             onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
+            selectBlock={selectBlock}
           />
         ))}
       </div>

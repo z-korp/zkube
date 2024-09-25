@@ -22,6 +22,7 @@ interface BlockProps {
   ) => void;
   onTransitionBlockStart?: () => void;
   onTransitionBlockEnd?: () => void;
+  selectBlock?: (block: BlockProps["block"]) => void;
 }
 
 const Block: React.FC<BlockProps> = ({
@@ -34,6 +35,7 @@ const Block: React.FC<BlockProps> = ({
   handleTouchStart = () => {},
   onTransitionBlockStart = () => {},
   onTransitionBlockEnd = () => {},
+  selectBlock = () => {},
 }) => {
   const [transitionStatus, setTransition] = useState("End");
   const ref = useRef<HTMLDivElement | null>(null);
@@ -80,6 +82,7 @@ const Block: React.FC<BlockProps> = ({
       onMouseDown={(e) => handleMouseDown(e, block)}
       onTouchStart={(e) => handleTouchStart(e, block)}
       onTransitionEnd={handleTransitionEnd}
+      onClick={() => selectBlock(block)}
     ></div>
   );
 };
