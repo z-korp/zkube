@@ -21,7 +21,6 @@ import DisconnectButton from "./DisconnectButton";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 import DailyGameStatus from "./DailyGameStatus";
 import HeaderBalance from "./HeaderBalance";
-import ContentTabs from "./ContentTabs";
 
 const MobileMenu = () => {
   const { account } = useAccountCustom();
@@ -57,10 +56,10 @@ const MobileMenu = () => {
               <p className="self-start">Leaderboard</p>
               <Leaderboard />
             </div>
-            <div className="flex flex-col gap-2 items-center">
+            {/*<div className="flex flex-col gap-2 items-center">
               <p className="self-start">Extras</p>
               <ContentTabs />
-            </div>
+            </div>*/}
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Profile</p>
               <ProfilePage />

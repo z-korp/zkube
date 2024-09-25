@@ -36,7 +36,7 @@ export const Header = () => {
         >
           <p className="text-4xl font-bold">zKube</p>
           <Leaderboard />
-          <ContentTabs />
+          {/*<ContentTabs />*/}
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
           {!!player && (
