@@ -8,10 +8,12 @@ import { useComponentValue } from "@dojoengine/react";
 import { Entity } from "@dojoengine/recs";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useDojo } from "@/dojo/useDojo";
+import { Tournament } from "@/dojo/game/models/tournament";
 
 interface TournamentInfo {
   id: number;
   endTimestamp: number;
+  tournament: Tournament | null;
 }
 
 const useTournament = (mode: ModeType): TournamentInfo => {
@@ -57,9 +59,7 @@ const useTournament = (mode: ModeType): TournamentInfo => {
     return component ? new TournamentClass(component) : null;
   }, [component]);
 
-  //console.log("tournament", tournament);
-
-  return { id, endTimestamp };
+  return { id, endTimestamp, tournament };
 };
 
 export default useTournament;
