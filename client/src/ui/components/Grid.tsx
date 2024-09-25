@@ -3,76 +3,19 @@ import "../../grid.css";
 import { Account } from "starknet";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import Block from "./Block";
+import BlockContainer from "./Block";
 import { GameState } from "@/enums/gameEnums";
 import { useMediaQuery } from "react-responsive";
-
-interface Block {
-  id: number;
-  x: number;
-  y: number;
-  width: number;
-}
+import { Block } from "@/types/types";
+import {
+  removeCompleteRows,
+  concatenateAndShiftBlocks,
+} from "@/utils/gridUtils";
 
 interface GridProps {
   initialData: Block[];
   nextLineData: Block[];
 }
-
-const transformToGridFormat = (
-  blocks: Block[],
-  gridWidth: number,
-  gridHeight: number,
-): number[][] => {
-  const grid = Array.from({ length: gridHeight }, () =>
-    Array(gridWidth).fill(0),
-  );
-
-  blocks.forEach((block) => {
-    for (let i = 0; i < block.width; i++) {
-      grid[block.y][block.x + i] = block.id;
-    }
-  });
-
-  return grid;
-};
-
-const removeCompleteRows = (
-  blocks: Block[],
-  gridWidth: number,
-  gridHeight: number,
-) => {
-  const grid = transformToGridFormat(blocks, gridWidth, gridHeight);
-
-  const completeRows = grid
-    .map((row, index) => (row.every((cell) => cell !== 0) ? index : -1))
-    .filter((index) => index !== -1);
-
-  const updatedBlocks = blocks.filter((block) => {
-    const isBlockOnCompleteRow = completeRows.some((rowIndex) => {
-      return block.y === rowIndex;
-    });
-    return !isBlockOnCompleteRow;
-  });
-
-  return updatedBlocks;
-};
-
-const concatenateAndShiftBlocks = (
-  initialData: Block[],
-  nextLineData: Block[],
-  gridHeight: number,
-): Block[] => {
-  const shiftedInitialData = initialData.map((block) => ({
-    ...block,
-    y: block.y - 1,
-  }));
-  const shiftedNextLineData = nextLineData.map((block) => ({
-    ...block,
-    y: gridHeight - 1,
-  }));
-  return [...shiftedInitialData, ...shiftedNextLineData];
-};
 
 const Grid: React.FC<GridProps> = ({ initialData, nextLineData }) => {
   const {
@@ -396,7 +339,7 @@ const Grid: React.FC<GridProps> = ({ initialData, nextLineData }) => {
         onTouchEnd={handleTouchEnd}
       >
         {blocks.map((block) => (
-          <Block
+          <BlockContainer
             key={block.id}
             block={block}
             gridSize={gridSize}

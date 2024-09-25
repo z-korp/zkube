@@ -10,3 +10,10 @@ export interface Piece {
   width: number;
   element: string;
 }
+
+export interface Block {
+  id: number;
+  x: number;
+  y: number;
+  width: number;
+}

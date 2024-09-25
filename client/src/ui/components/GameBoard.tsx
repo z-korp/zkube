@@ -10,6 +10,8 @@ import { Account } from "starknet";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import MaxComboIcon from "./MaxComboIcon";
 import Grid from "./Grid";
+import { transformDataContratIntoBlock } from "@/utils/gridUtils";
+import { dataContrat } from "@/fixtures/dataTest";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -20,38 +22,6 @@ interface GameBoardProps {
   hammerCount: number;
   waveCount: number;
   totemCount: number;
-}
-
-interface Block {
-  id: number;
-  x: number;
-  y: number;
-  width: number;
-}
-
-function transformDataContratIntoBlock(grid: number[][]): Block[] {
-  return grid.flatMap((row, y) => {
-    const blocks: Block[] = [];
-    let x = 0;
-
-    while (x < row.length) {
-      const currentValue = row[x];
-      if (currentValue > 0) {
-        // La largeur est définie par la valeur
-        blocks.push({
-          id: Math.floor(Math.random() * 1000000),
-          x,
-          y,
-          width: currentValue,
-        });
-        x += currentValue; // Passer à la prochaine position après ce bloc
-      } else {
-        x++; // Passer à la colonne suivante si la valeur est 0
-      }
-    }
-
-    return blocks; // Retourner les blocs trouvés dans cette ligne
-  });
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -82,16 +52,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [bonusHammer, setBonusHammer] = useState(false);
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
-
-  const dataContrat = [
-    [0, 2, 2, 2, 2, 0, 0, 0], // Deux blocs de 2
-    [0, 4, 4, 4, 4, 0, 0, 0], // Un bloc de 5
-    [0, 0, 0, 0, 0, 0, 0, 0], // Aucun bloc
-    [0, 0, 0, 0, 0, 0, 0, 0], // Aucun bloc
-    [0, 1, 1, 3, 3, 3, 0, 0], // Deux blocks de 1 et un bloc de 3
-    [0, 0, 0, 0, 0, 0, 0, 0], // Aucun bloc
-    [1, 2, 2, 4, 4, 4, 4, 1], // un bloc de 1, 1 bloc de 2 et un bloc de 4, un bloc de 1
-  ];
 
   const handleBonusWaveClick = () => {
     setBonusWave(true);
