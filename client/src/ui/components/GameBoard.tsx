@@ -158,7 +158,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         className={`p-4 bg-secondary ${isTxProcessing || isAnimating ? "cursor-wait" : "cursor-move"}`}
       >
         <div
-          className={`${isMdOrLarger ? "w-[413px]" : "w-[300px]"} mb-4 flex justify-between`}
+          className={`${isMdOrLarger ? "w-[420px]" : "w-[320px]"} mb-4 flex justify-between`}
         >
           <div className="w-5/12">
             <GameBonus

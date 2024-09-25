@@ -78,9 +78,7 @@ const Block: React.FC<BlockProps> = ({
       onMouseDown={(e) => handleMouseDown(e, block)}
       onTouchStart={(e) => handleTouchStart(e, block)}
       onTransitionEnd={handleTransitionEnd}
-    >
-      <b>{transitionStatus}</b> : {block.id}
-    </div>
+    ></div>
   );
 };
 

@@ -5,6 +5,7 @@ import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import Block from "./Block";
 import { GameState } from "@/enums/gameEnums";
+import { useMediaQuery } from "react-responsive";
 
 interface Block {
   id: number;
@@ -94,9 +95,11 @@ const Grid: React.FC<GridProps> = ({ initialData, nextLineData }) => {
   const [transitioningBlocks, setTransitioningBlocks] = useState<number[]>([]);
   const [gameState, setGameState] = useState<GameState>(GameState.WAITING);
 
-  const gridSize = 40;
+  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
+  const gridSize = isMdOrLarger ? 50 : 40;
   const gridWidth = 8;
   const gridHeight = 10;
+  const borderSize = 2;
   const gravitySpeed = 100;
   const transitionDuration = 500;
 
@@ -377,9 +380,16 @@ const Grid: React.FC<GridProps> = ({ initialData, nextLineData }) => {
   }, [gameState, pendingMove, handleMoveTX]);
 
   return (
-    <div className="grid-background">
+    <div className={`grid-background`}>
       <div
-        className="grid-container"
+        className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)]`}
+        style={{
+          height: `${gridHeight * gridSize + borderSize}px`,
+          width: `${gridWidth * gridSize + borderSize}px`,
+          backgroundImage:
+            "linear-gradient(#1E293B 2px, transparent 2px), linear-gradient(to right, #1E293B 2px, #10172A 2px)",
+          backgroundSize: `${gridSize}px ${gridSize}px`,
+        }}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onTouchMove={handleTouchMove}
