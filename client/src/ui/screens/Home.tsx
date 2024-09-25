@@ -106,7 +106,7 @@ export const Home = () => {
             <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
               <Create />
               {(!game || (!!game && isGameOn === "isOver")) && (
-                <div className="flex  p-4 rounded-xl w-[93%] gap-4 items-center justify-evenly">
+                <div className="flex flex-col md:flex-row p-4 rounded-xl w-[93%] gap-4 items-center justify-evenly">
                   <Start
                     mode={ModeType.Daily}
                     handleGameMode={() => setIsGameOn("isOn")}
@@ -189,13 +189,13 @@ export const Home = () => {
               )}
             </div>
           </div>
-          <TweetPreview
+          {/*<TweetPreview
             open={isPreviewOpen}
             setOpen={setIsPreviewOpen}
             level={level}
             score={score}
             imgSrc={imgData}
-          />
+          />*/}
           <AnimatePresence>
             {!animationDone && (
               <>

@@ -69,13 +69,13 @@ const MobileMenu = () => {
         </DrawerContent>
       </Drawer>
       <div className="w-full flex justify-between items-center">
-        <p className="text-4xl font-bold">zKube</p>
+        <p className="text-2xl font-bold">zKube</p>
         <div className="flex gap-2">
           <DailyGameStatus />
           <HeaderBalance />
           {!!player && account ? (
             <div className="flex gap-3 items-center">
-              <p className="text-2xl max-w-44 truncate">{player.name}</p>
+              {/*<p className="text-2xl max-w-44 truncate">{player.name}</p>*/}
               {ACCOUNT_CONNECTOR === "controller" && <DisconnectButton />}
             </div>
           ) : (
