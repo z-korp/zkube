@@ -78,6 +78,12 @@ const Grid: React.FC<GridProps> = ({
     const newX = initialX + deltaX / gridSize;
     const boundedX = Math.max(0, Math.min(gridWidth - dragging.width, newX));
 
+    // Vérifie si le nouveau X est en dehors des limites de la grille
+    if (boundedX <= 0 || boundedX >= gridWidth - dragging.width) {
+      endDrag(); // Appelle endDrag si le drag sort de la grille
+      return; // Sort de la fonction
+    }
+
     if (
       !isBlocked(
         initialX,
@@ -309,7 +315,6 @@ const Grid: React.FC<GridProps> = ({
 
   useEffect(() => {
     if (gameState === GameState.ADD_LINE && pendingMove) {
-      console.log("ADD LINE =========================>");
       const { rowIndex, startX, finalX } = pendingMove;
       if (startX !== finalX) {
         const updatedBlocks = concatenateAndShiftBlocks(
