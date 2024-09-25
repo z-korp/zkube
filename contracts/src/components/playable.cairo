@@ -170,17 +170,8 @@ mod PlayableComponent {
                     chest.add_points(points_to_add);
 
                     // [Effect] Add prize proportionally to the points added
-                    println!(
-                        "Adding prize to chest {} with points {} ({})",
-                        i,
-                        points_to_add,
-                        remaining_points
-                    );
-                    println!("Remaining prize: {}", remaining_prize);
                     let prize_to_add: u256 = (remaining_prize * points_to_add.into())
                         / total_points.into();
-                    println!("total_points: {}", total_points);
-                    println!("Prize to add: {}", prize_to_add);
 
                     chest.add_prize((prize_to_add / PRECISION_FACTOR.into()).try_into().unwrap());
                     store.set_chest(chest);
