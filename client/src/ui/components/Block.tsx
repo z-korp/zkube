@@ -9,6 +9,7 @@ interface BlockProps {
     y: number;
   };
   gridSize: number;
+  isTxProcessing?: boolean;
   transitionDuration?: number;
   state?: GameState;
   handleMouseDown?: (
@@ -27,6 +28,7 @@ const Block: React.FC<BlockProps> = ({
   block,
   gridSize,
   transitionDuration = 100,
+  isTxProcessing = false,
   state,
   handleMouseDown = () => {},
   handleTouchStart = () => {},
@@ -61,7 +63,7 @@ const Block: React.FC<BlockProps> = ({
 
   return (
     <div
-      className={`block block-${block.width}`}
+      className={`block block-${block.width} ${isTxProcessing ? "cursor-wait" : ""}`}
       ref={ref}
       style={{
         position: "absolute",

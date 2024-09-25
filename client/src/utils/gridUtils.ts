@@ -79,3 +79,7 @@ export const transformDataContratIntoBlock = (grid: number[][]): Block[] => {
     return blocks; // Retourner les blocs trouvés dans cette ligne
   });
 };
+
+export const isGridFull = (blocks: { y: number }[]): boolean => {
+  return blocks.some((block) => block.y < 0);
+};

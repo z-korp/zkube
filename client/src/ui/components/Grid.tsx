@@ -10,6 +10,7 @@ import { Block } from "@/types/types";
 import {
   removeCompleteRows,
   concatenateAndShiftBlocks,
+  isGridFull,
 } from "@/utils/gridUtils";
 
 interface GridProps {
@@ -46,6 +47,7 @@ const Grid: React.FC<GridProps> = ({
   } | null>(null);
   const [transitioningBlocks, setTransitioningBlocks] = useState<number[]>([]);
   const [gameState, setGameState] = useState<GameState>(GameState.WAITING);
+  const [isTxProcessing, setIsTxProcessing] = useState(false);
 
   const borderSize = 2;
   const gravitySpeed = 100;
@@ -53,6 +55,7 @@ const Grid: React.FC<GridProps> = ({
 
   useEffect(() => {
     setBlocks(initialData);
+    setIsTxProcessing(false);
   }, [initialData]);
 
   const handleTransitionBlockStart = (id: number) => {
@@ -127,6 +130,8 @@ const Grid: React.FC<GridProps> = ({
       const updatedBlocks = prevBlocks.map((b) => {
         if (b.id === dragging.id) {
           const finalX = Math.round(b.x);
+          if (Math.trunc(finalX) !== Math.trunc(initialX))
+            setIsTxProcessing(true);
           setPendingMove({ rowIndex: b.y, startX: initialX, finalX });
           return { ...b, x: finalX };
         }
@@ -152,7 +157,7 @@ const Grid: React.FC<GridProps> = ({
     async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
       if (startColIndex === finalColIndex || isMoving) return;
       if (!account) return;
-
+      setIsTxProcessing(true);
       try {
         await move({
           account: account as Account,
@@ -304,6 +309,7 @@ const Grid: React.FC<GridProps> = ({
 
   useEffect(() => {
     if (gameState === GameState.ADD_LINE && pendingMove) {
+      console.log("ADD LINE =========================>");
       const { rowIndex, startX, finalX } = pendingMove;
       if (startX !== finalX) {
         const updatedBlocks = concatenateAndShiftBlocks(
@@ -311,7 +317,9 @@ const Grid: React.FC<GridProps> = ({
           nextLineData,
           gridHeight,
         );
-        setBlocks(updatedBlocks);
+        if (isGridFull(updatedBlocks)) {
+          setGameState(GameState.MOVE_TX);
+        } else setBlocks(updatedBlocks);
       }
       setIsMoving(true);
       setGameState(GameState.GRAVITY2);
@@ -328,7 +336,7 @@ const Grid: React.FC<GridProps> = ({
   }, [gameState, pendingMove, handleMoveTX]);
 
   return (
-    <div className={`grid-background`}>
+    <div className={`grid-background ${isTxProcessing ? "cursor-wait" : ""}`}>
       <div
         className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)]`}
         style={{
@@ -348,6 +356,7 @@ const Grid: React.FC<GridProps> = ({
             key={block.id}
             block={block}
             gridSize={gridSize}
+            isTxProcessing={isTxProcessing}
             transitionDuration={transitionDuration}
             state={gameState}
             handleMouseDown={handleMouseDown}

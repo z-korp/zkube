@@ -14,7 +14,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  cursor: grab;
 }
 
 .block-1 {
