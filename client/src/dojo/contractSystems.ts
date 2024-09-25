@@ -160,7 +160,35 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       seed,
       beta,
     }: Start) => {
-      const contract_address = contract.address;
+      const contract_name_chest = "chest";
+      const contract_chest = config.manifest.contracts.find((c: any) =>
+        c.tag.includes(contract_name_chest),
+      );
+      if (!contract_chest) {
+        throw new Error(
+          `Contract ${contract_name_chest} not found in manifest`,
+        );
+      }
+      const contract_name_tournament = "tournament";
+      const contract_tournament = config.manifest.contracts.find((c: any) =>
+        c.tag.includes(contract_name_tournament),
+      );
+      if (!contract_tournament) {
+        throw new Error(
+          `Contract ${contract_name_tournament} not found in manifest`,
+        );
+      }
+
+      const contract_name_zkorp = "zkorp";
+      const contract_zkorp = config.manifest.contracts.find((c: any) =>
+        c.tag.includes(contract_name_zkorp),
+      );
+      if (!contract_zkorp) {
+        throw new Error(
+          `Contract ${contract_name_zkorp} not found in manifest`,
+        );
+      }
+
       try {
         return await provider.execute(
           account,
@@ -168,7 +196,17 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             {
               contractAddress: KATANA_ETH_CONTRACT_ADDRESS,
               entrypoint: "approve",
-              calldata: [contract_address, cairo.uint256(price)], // Set allowance
+              calldata: [contract_zkorp.address, cairo.uint256(price)], // Set allowance
+            },
+            {
+              contractAddress: KATANA_ETH_CONTRACT_ADDRESS,
+              entrypoint: "approve",
+              calldata: [contract_chest.address, cairo.uint256(price)], // Set allowance
+            },
+            {
+              contractAddress: KATANA_ETH_CONTRACT_ADDRESS,
+              entrypoint: "approve",
+              calldata: [contract_tournament.address, cairo.uint256(price)], // Set allowance
             },
             {
               contractName: contract_name,
@@ -178,7 +216,17 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             {
               contractAddress: KATANA_ETH_CONTRACT_ADDRESS,
               entrypoint: "approve",
-              calldata: [contract_address, cairo.uint256(0)], // Clear allowance
+              calldata: [contract_zkorp.address, cairo.uint256(0)], // Clear allowance
+            },
+            {
+              contractAddress: KATANA_ETH_CONTRACT_ADDRESS,
+              entrypoint: "approve",
+              calldata: [contract_chest.address, cairo.uint256(0)], // Clear allowance
+            },
+            {
+              contractAddress: KATANA_ETH_CONTRACT_ADDRESS,
+              entrypoint: "approve",
+              calldata: [contract_tournament.address, cairo.uint256(0)], // Clear allowance
             },
           ],
           NAMESPACE,

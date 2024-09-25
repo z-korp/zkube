@@ -21,7 +21,7 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { Level } from "@/dojo/game/types/level";
 import { toPng } from "html-to-image";
 import { TweetPreview } from "../components/TweetPreview";
-import { Leaderboard } from "../modules/Leaderboard";
+import { LeaderboardContent } from "../modules/Leaderboard";
 
 export const Home = () => {
   const {
@@ -121,7 +121,7 @@ export const Home = () => {
               )}
               {!game && (
                 <div className="bg-slate-900 w-11/12 p-6 rounded-xl">
-                  <Leaderboard />
+                  <LeaderboardContent />
                 </div>
               )}
               {!!game && isGameOn === "isOver" && (

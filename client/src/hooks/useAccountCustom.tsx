@@ -31,7 +31,7 @@ const useAccountCustom = () => {
 
   useEffect(() => {
     if (account) {
-      //console.log("------> setCustomAccount account", account);
+      console.log("------> setCustomAccount account", account.address);
       setCustomAccount(account as Account);
     } else {
       setCustomAccount(null);

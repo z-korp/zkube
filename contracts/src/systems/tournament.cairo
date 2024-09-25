@@ -14,9 +14,15 @@ use zkube::models::settings::{Settings, SettingsTrait};
 use zkube::store::{Store, StoreTrait};
 
 #[dojo::interface]
-trait ITournament<TContractState> {
-    fn claim(ref world: IWorldDispatcher, tournament_id: u64, rank: u8, mode: Mode);
-    fn sponsor(ref world: IWorldDispatcher, tournament_id: u64, mode: Mode, amount: felt252);
+trait ITournamentSystem<TContractState> {
+    fn claim(ref world: IWorldDispatcher, mode: Mode, tournament_id: u64, rank: u8);
+    fn sponsor(
+        ref world: IWorldDispatcher,
+        tournament_id: u64,
+        mode: Mode,
+        amount: felt252,
+        caller: ContractAddress
+    );
 }
 
 #[dojo::contract]
@@ -31,7 +37,7 @@ mod tournament {
     use zkube::components::payable::PayableComponent;
 
     // Local imports
-    use super::{ITournament, Proof, Bonus, Mode, Settings, SettingsTrait, Store, StoreTrait};
+    use super::{ITournamentSystem, Proof, Bonus, Mode, Settings, SettingsTrait, Store, StoreTrait};
     use zkube::models::tournament::{TournamentTrait, TournamentAssert, TournamentImpl};
     use zkube::models::player::{PlayerTrait, PlayerAssert};
     use zkube::models::participation::{ParticipationTrait, ParticipationAssert};
@@ -69,8 +75,8 @@ mod tournament {
 
     // Implementations
     #[abi(embed_v0)]
-    impl TournamentSystemImpl of ITournament<ContractState> {
-        fn claim(ref world: IWorldDispatcher, tournament_id: u64, rank: u8, mode: Mode) {
+    impl TournamentSystemImpl of ITournamentSystem<ContractState> {
+        fn claim(ref world: IWorldDispatcher, mode: Mode, tournament_id: u64, rank: u8) {
             // [Setup] Datastore
             let store: Store = StoreTrait::new(world);
 
@@ -92,7 +98,13 @@ mod tournament {
             self.payable._refund(caller, reward.into());
         }
 
-        fn sponsor(ref world: IWorldDispatcher, tournament_id: u64, mode: Mode, amount: felt252) {
+        fn sponsor(
+            ref world: IWorldDispatcher,
+            tournament_id: u64,
+            mode: Mode,
+            amount: felt252,
+            caller: ContractAddress
+        ) {
             // [Setup] Datastore
             let store: Store = StoreTrait::new(world);
 
@@ -107,7 +119,6 @@ mod tournament {
             store.set_tournament(tournament);
 
             // [Return] Amount to pay
-            let caller = get_caller_address();
             self.payable._pay(caller, amount.try_into().unwrap());
         }
     }
