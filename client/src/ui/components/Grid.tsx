@@ -52,7 +52,7 @@ const Grid: React.FC<GridProps> = ({
 
   const borderSize = 2;
   const gravitySpeed = 100;
-  const transitionDuration = 500;
+  const transitionDuration = 250;
 
   useEffect(() => {
     setBlocks(initialData);
