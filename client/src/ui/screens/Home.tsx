@@ -11,7 +11,6 @@ import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useDojo } from "@/dojo/useDojo";
 import { useTheme } from "@/ui/elements/theme-provider";
-import NextLine from "../components/NextLine";
 import { Surrender } from "../actions/Surrender";
 import { Content as Leaderboard } from "../modules/Leaderboard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -184,7 +183,6 @@ export const Home = () => {
                       totemCount={game.totem - game.totem_used}
                       waveCount={game.wave - game.wave_used}
                     />
-                    <NextLine numbers={game.next_row} />
                   </div>
                   <div className="mt-4 sm:mt-0 sm:absolute sm:right-0 sm:bottom-0 sm:mb-4 flex justify-center sm:justify-end w-full">
                     <Surrender setIsUnmounting={setIsUnmounting} />

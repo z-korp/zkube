@@ -9,29 +9,29 @@ interface BlockProps {
     y: number;
   };
   gridSize: number;
-  transitionDuration: number;
-  state: GameState;
-  handleMouseDown: (
+  transitionDuration?: number;
+  state?: GameState;
+  handleMouseDown?: (
     e: React.MouseEvent<HTMLDivElement>,
     block: BlockProps["block"],
   ) => void;
-  handleTouchStart: (
+  handleTouchStart?: (
     e: React.TouchEvent<HTMLDivElement>,
     block: BlockProps["block"],
   ) => void;
-  onTransitionBlockStart: () => void;
-  onTransitionBlockEnd: () => void;
+  onTransitionBlockStart?: () => void;
+  onTransitionBlockEnd?: () => void;
 }
 
 const Block: React.FC<BlockProps> = ({
   block,
   gridSize,
-  transitionDuration,
+  transitionDuration = 100,
   state,
-  handleMouseDown,
-  handleTouchStart,
-  onTransitionBlockStart,
-  onTransitionBlockEnd,
+  handleMouseDown = () => {},
+  handleTouchStart = () => {},
+  onTransitionBlockStart = () => {},
+  onTransitionBlockEnd = () => {},
 }) => {
   const [transitionStatus, setTransition] = useState("End");
   const ref = useRef<HTMLDivElement | null>(null);

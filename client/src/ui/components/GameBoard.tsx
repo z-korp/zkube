@@ -11,6 +11,7 @@ import MaxComboIcon from "./MaxComboIcon";
 import Grid from "./Grid";
 import { transformDataContratIntoBlock } from "@/utils/gridUtils";
 import { dataContrat } from "@/fixtures/dataTest";
+import NextLine from "./NextLine";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -42,14 +43,16 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const [isTxProcessing, setIsTxProcessing] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
+
   const rows = 10;
   const cols = 8;
+  const gridSize = isMdOrLarger ? 50 : 40;
 
   const [bonusWave, setBonusWave] = useState(false);
   const [bonusTiki, setBonusTiki] = useState(false);
   const [bonusHammer, setBonusHammer] = useState(false);
-
-  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   const handleBonusWaveClick = () => {
     setBonusWave(true);
@@ -167,6 +170,17 @@ const GameBoard: React.FC<GameBoardProps> = ({
           <Grid
             initialData={transformDataContratIntoBlock(initialGrid)}
             nextLineData={transformDataContratIntoBlock([nextLine])}
+            gridSize={gridSize}
+            gridHeight={rows}
+            gridWidth={cols}
+          />
+        </div>
+        <div className="flex justify-center items-center">
+          <NextLine
+            nextLineData={transformDataContratIntoBlock([nextLine])}
+            gridSize={gridSize}
+            gridHeight={1}
+            gridWidth={cols}
           />
         </div>
       </Card>

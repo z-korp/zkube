@@ -15,9 +15,18 @@ import {
 interface GridProps {
   initialData: Block[];
   nextLineData: Block[];
+  gridSize: number;
+  gridWidth: number;
+  gridHeight: number;
 }
 
-const Grid: React.FC<GridProps> = ({ initialData, nextLineData }) => {
+const Grid: React.FC<GridProps> = ({
+  initialData,
+  nextLineData,
+  gridHeight,
+  gridWidth,
+  gridSize,
+}) => {
   const {
     setup: {
       systemCalls: { move },
@@ -38,10 +47,6 @@ const Grid: React.FC<GridProps> = ({ initialData, nextLineData }) => {
   const [transitioningBlocks, setTransitioningBlocks] = useState<number[]>([]);
   const [gameState, setGameState] = useState<GameState>(GameState.WAITING);
 
-  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
-  const gridSize = isMdOrLarger ? 50 : 40;
-  const gridWidth = 8;
-  const gridHeight = 10;
   const borderSize = 2;
   const gravitySpeed = 100;
   const transitionDuration = 500;
