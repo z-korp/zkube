@@ -97,6 +97,7 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const handleDragStart = (x: number, block: Block) => {
+    if (isTxProcessing) return;
     setDragging(block);
     setDragStartX(x);
     setInitialX(block.x);
