@@ -14,6 +14,7 @@ import { dataContrat } from "@/fixtures/dataTest";
 import NextLine from "./NextLine";
 import { Block } from "@/types/types";
 import { BonusName } from "@/enums/bonusEnum";
+import { set } from "mobx";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -83,7 +84,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         await applyBonus({
           account: account as Account,
           bonus: 3,
-          row_index: rowIndex - 1,
+          row_index: rows - rowIndex - 1,
           block_index: 0,
         });
       } finally {
@@ -98,11 +99,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
       if (!account) return;
 
       setIsTxProcessing(true);
+      console.log("hammer with block", rowIndex, cols - colIndex);
       try {
         await applyBonus({
           account: account as Account,
           bonus: 1,
-          row_index: rowIndex - 1,
+          row_index: rows - rowIndex - 1,
           block_index: colIndex,
         });
       } finally {
@@ -121,7 +123,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         await applyBonus({
           account: account as Account,
           bonus: 2,
-          row_index: rowIndex - 1,
+          row_index: rows - rowIndex - 1,
           block_index: colIndex,
         });
       } finally {
@@ -145,12 +147,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
       handleBonusHammerTx(block.y, block.x);
     }
     if (bonus === BonusName.NONE) {
-      console.log("none");
+      console.log("none", block);
     }
   };
 
   useEffect(() => {
     setIsTxProcessing(false);
+    setBonus(BonusName.NONE);
   }, [initialGrid]);
 
   return (
