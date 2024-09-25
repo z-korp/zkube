@@ -63,16 +63,19 @@ export const Surrender: React.FC<SurrenderProps> = ({ setIsUnmounting }) => {
             Surrender
           </Button>
         </DialogTrigger>
-        <DialogContent aria-describedby={undefined}>
+        <DialogContent
+          aria-describedby={undefined}
+          className="w-[90%] p-8 flex flex-col gap-4"
+        >
           <DialogHeader>
             <DialogTitle>Surrender Game?</DialogTitle>
           </DialogHeader>
 
-          <div className="flex gap-2 w-full">
-            <DialogClose asChild className="w-1/2">
+          <div className="flex flex-col gap-4">
+            <DialogClose asChild className="">
               <Button>No, Continue Playing</Button>
             </DialogClose>
-            <DialogClose asChild className="w-1/2">
+            <DialogClose asChild className="">
               <Button
                 variant="destructive"
                 disabled={isLoading}
