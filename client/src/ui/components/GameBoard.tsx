@@ -4,7 +4,6 @@ import { useDojo } from "@/dojo/useDojo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
-import { Cell as CellType } from "@/types/types";
 import { useMediaQuery } from "react-responsive";
 import { Account } from "starknet";
 import useAccountCustom from "@/hooks/useAccountCustom";
@@ -41,7 +40,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   } = useDojo();
   const { account } = useAccountCustom();
 
-  const [grid, setGrid] = useState<CellType[][]>([]);
   const [isTxProcessing, setIsTxProcessing] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const rows = 10;
@@ -73,13 +71,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const handleCellClick = (rowIndex: number, colIndex: number) => {
     const actualRowIndex = rows - 1 - rowIndex;
-    const clickedPiece = grid[rowIndex][colIndex];
+    //const clickedPiece = grid[rowIndex][colIndex];
 
-    if (bonusTiki && clickedPiece.pieceId !== null) {
-      //removePieceFromGridByCell(actualRowIndex, colIndex);
-      setBonusTiki(false);
-      //handleBonusTikiTx(actualRowIndex, colIndex);
-    }
+    //if (bonusTiki && clickedPiece.pieceId !== null) {
+    //removePieceFromGridByCell(actualRowIndex, colIndex);
+    setBonusTiki(false);
+    //handleBonusTikiTx(actualRowIndex, colIndex);
+    // }
   };
 
   const handleRowClick = (rowIndex: number) => {
