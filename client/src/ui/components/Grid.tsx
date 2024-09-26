@@ -11,6 +11,8 @@ import {
   concatenateAndShiftBlocks,
   isGridFull,
 } from "@/utils/gridUtils";
+import { MoveType } from "@/enums/moveEnum";
+import { set } from "mobx";
 
 interface GridProps {
   initialData: Block[];
@@ -73,18 +75,12 @@ const Grid: React.FC<GridProps> = ({
     });
   };
 
-  const handleDragMove = (x: number) => {
+  const handleDragMove = (x: number, moveType: MoveType) => {
     if (!dragging) return;
 
     const deltaX = x - dragStartX;
     const newX = initialX + deltaX / gridSize;
     const boundedX = Math.max(0, Math.min(gridWidth - dragging.width, newX));
-
-    // Vérifie si le nouveau X est en dehors des limites de la grille
-    if (boundedX <= 0 || boundedX >= gridWidth - dragging.width) {
-      endDrag(); // Appelle endDrag si le drag sort de la grille
-      return; // Sort de la fonction
-    }
 
     if (
       !isBlocked(
@@ -96,6 +92,16 @@ const Grid: React.FC<GridProps> = ({
         dragging.id,
       )
     ) {
+      // Vérifie si le nouveau X est en dehors des limites de la grille
+      if (boundedX <= 0 || boundedX >= gridWidth - dragging.width) {
+        if (moveType === MoveType.TOUCH) {
+          endDrag(); // Appelle endDrag si le drag sort de la grille sur un touch
+          return;
+        } else {
+          // Si on est en dehors de la grille, cela implique que la nouvelle start position a changer et on doit la mettre à jour
+          setInitialX(blocks.find((b) => b.id === dragging.id)?.x ?? 0);
+        }
+      }
       setBlocks((prevBlocks) =>
         prevBlocks.map((b) =>
           b.id === dragging.id ? { ...b, x: boundedX } : b,
@@ -124,12 +130,12 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    handleDragMove(e.clientX);
+    handleDragMove(e.clientX, MoveType.MOUSE);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     const touch = e.touches[0];
-    handleDragMove(touch.clientX);
+    handleDragMove(touch.clientX, MoveType.TOUCH);
   };
 
   const endDrag = () => {
