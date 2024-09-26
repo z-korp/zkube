@@ -52,7 +52,7 @@ const Grid: React.FC<GridProps> = ({
 
   const borderSize = 2;
   const gravitySpeed = 100;
-  const transitionDuration = 500;
+  const transitionDuration = 200;
 
   useEffect(() => {
     setBlocks(initialData);
@@ -114,6 +114,7 @@ const Grid: React.FC<GridProps> = ({
 
   const handleMouseDown = (e: React.MouseEvent, block: Block) => {
     e.preventDefault();
+    selectBlock(block);
     handleDragStart(e.clientX, block);
   };
 
@@ -370,7 +371,6 @@ const Grid: React.FC<GridProps> = ({
             handleTouchStart={handleTouchStart}
             onTransitionBlockStart={() => handleTransitionBlockStart(block.id)}
             onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
-            selectBlock={selectBlock}
           />
         ))}
       </div>
