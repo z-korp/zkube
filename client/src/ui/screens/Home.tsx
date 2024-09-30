@@ -113,12 +113,10 @@ export const Home = () => {
                   <Start
                     mode={ModeType.Daily}
                     handleGameMode={() => setIsGameOn("isOn")}
-                    potentialWinnings="100 ETH"
                   />
                   <Start
                     mode={ModeType.Normal}
                     handleGameMode={() => setIsGameOn("isOn")}
-                    potentialWinnings="50 ETH"
                   />
                 </div>
               )}

@@ -42,6 +42,8 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/ui/elements/tooltip";
 import useTournament from "@/hooks/useTournament";
 import useCountdown from "@/hooks/useCountdown";
 import { formatRemainingTime } from "../utils";
+import { Tournament } from "@/dojo/game/models/tournament";
+import { ethers } from "ethers";
 
 const GAME_PER_PAGE = 5;
 const MAX_PAGE_COUNT = 5;
@@ -90,8 +92,10 @@ export const Leaderboard = () => {
 export const LeaderboardContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ModeType>(ModeType.Daily);
 
-  const dailyEndTimestamp = useTournament(ModeType.Daily).endTimestamp;
-  const normalEndTimestamp = useTournament(ModeType.Normal).endTimestamp;
+  const { endTimestamp: dailyEndTimestamp, tournament: dailyTournament } =
+    useTournament(ModeType.Daily);
+  const { endTimestamp: normalEndTimestamp, tournament: normalTournament } =
+    useTournament(ModeType.Normal);
 
   const dailySecondsLeft = useCountdown(new Date(dailyEndTimestamp * 1000));
   const normalSecondsLeft = useCountdown(new Date(normalEndTimestamp * 1000));
@@ -103,10 +107,18 @@ export const LeaderboardContent: React.FC = () => {
     >
       <TabList activeTab={activeTab} setActiveTab={setActiveTab} />
       <TabsContent value={ModeType.Daily}>
-        <Content mode={ModeType.Daily} secondsLeft={dailySecondsLeft} />
+        <Content
+          mode={ModeType.Daily}
+          secondsLeft={dailySecondsLeft}
+          tournament={dailyTournament}
+        />
       </TabsContent>
       <TabsContent value={ModeType.Normal}>
-        <Content mode={ModeType.Normal} secondsLeft={normalSecondsLeft} />
+        <Content
+          mode={ModeType.Normal}
+          secondsLeft={normalSecondsLeft}
+          tournament={normalTournament}
+        />
       </TabsContent>
     </Tabs>
   );
@@ -115,9 +127,14 @@ export const LeaderboardContent: React.FC = () => {
 interface ContentProps {
   mode: ModeType;
   secondsLeft: number;
+  tournament: Tournament | null;
 }
 
-export const Content: React.FC<ContentProps> = ({ mode, secondsLeft }) => {
+export const Content: React.FC<ContentProps> = ({
+  mode,
+  secondsLeft,
+  tournament,
+}) => {
   const { games } = useGames();
   const [page, setPage] = useState<number>(1);
   const [pageCount, setPageCount] = useState<number>(0);
@@ -126,30 +143,36 @@ export const Content: React.FC<ContentProps> = ({ mode, secondsLeft }) => {
     return games.filter((game) => game.mode.value === mode);
   }, [games, mode]);
 
-  const { sortedGames, totalBuyIn, winningPool } = useMemo(() => {
+  const { sortedGames } = useMemo(() => {
     const sorted = filteredGames
       .filter((game) => game.score > 0)
       .sort((a, b) => b.combo - a.combo)
       .sort((a, b) => b.score - a.score);
 
-    const totalBuyIn = sorted.reduce((sum, game) => sum + game.buyIn, 0);
-    const winningPool = totalBuyIn * 0.9; // Assuming 10% goes to Zkube
-
-    return { sortedGames: sorted, totalBuyIn, winningPool };
+    return { sortedGames: sorted };
   }, [filteredGames]);
 
   // Distribute potential winnings amongs top 5 winners
-  const distributionPercentages = [0.4, 0.25, 0.15, 0.1, 0.1];
+  const distributionRatios = [
+    { numerator: 5n, denominator: 9n },
+    { numerator: 5n, denominator: 18n },
+    { numerator: 1n, denominator: 6n },
+  ];
 
   const gamesWithWinnings = useMemo(() => {
     return sortedGames.map((game, index) => {
-      let potentialWinnings = 0;
-      if (index < distributionPercentages.length) {
-        potentialWinnings = winningPool * distributionPercentages[index];
+      let potentialWinnings = [0n, 0n, 0n];
+      if (index < distributionRatios.length && tournament) {
+        potentialWinnings = distributionRatios.map(
+          ({ numerator, denominator }) => {
+            // Calculate (prize * numerator) / denominator
+            return (BigInt(tournament.prize) * numerator) / denominator;
+          },
+        );
       }
-      return { ...game, potentialWinnings, isOver: () => game.over };
+      return { ...game, isOver: () => game.over, potentialWinnings };
     });
-  }, [sortedGames, winningPool]);
+  }, [sortedGames, tournament]);
 
   useEffect(() => {
     const rem = Math.floor(sortedGames.length / (GAME_PER_PAGE + 1)) + 1;
@@ -229,8 +252,7 @@ export const Content: React.FC<ContentProps> = ({ mode, secondsLeft }) => {
                     align="start"
                     className=" w-[180px] text-base"
                   >
-                    Potential winnnings 1st place: 45%, 2nd place: 25%, 3rd
-                    place: 15%, 4th place: 10%, 5th place: 10%, Zkube: 10%
+                    Potential winnnings for top 3 players
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -280,34 +302,56 @@ export const Content: React.FC<ContentProps> = ({ mode, secondsLeft }) => {
   );
 };
 
-export const Row = memo(
-  ({
-    rank,
-    game,
-  }: {
-    rank: number;
-    game: Game & { potentialWinnings: number };
-  }) => {
-    const { player } = usePlayer({ playerId: game.player_id });
+function formatSmallEther(value: bigint, significantDigits = 2) {
+  const number = parseFloat(ethers.utils.formatEther(value));
+  if (number === 0) return "0 ETH";
 
-    return (
-      <TableRow className="hover:bg-slate-100 dark:hover:bg-slate-800">
-        <TableCell className="text-center font-semibold">{`#${rank}`}</TableCell>
-        <TableCell className="text-left sm:max-w-36 truncate">
-          {player?.name || "-"}
-        </TableCell>
-        <TableCell className="text-center">
-          {player?.points ? Level.fromPoints(player?.points).value : ""}
-        </TableCell>
-        <TableCell className="text-center font-bold">{game.score}</TableCell>
-        <TableCell className="text-center font-bold">{game.combo}</TableCell>
-        <TableCell className="text-center font-bold">
-          {game.max_combo}
-        </TableCell>
-        <TableCell className="text-center font-bold">
-          {game.potentialWinnings.toFixed(2)}
-        </TableCell>
-      </TableRow>
-    );
-  },
-);
+  // Convert to string and remove scientific notation
+  let str = number.toFixed(20);
+
+  // Find the first non-zero digit
+  const firstNonZero = str.match(/[1-9]/);
+  if (!firstNonZero) return "0 ETH";
+
+  const index = str.indexOf(firstNonZero[0]);
+
+  // Keep only the significant digits
+  str = str.slice(0, index + significantDigits);
+
+  // Remove trailing zeros after the decimal point
+  str = str.replace(/\.?0+$/, "");
+
+  // Ensure we have a decimal point
+  if (!str.includes(".")) {
+    str += ".0";
+  }
+
+  return str + " ETH";
+}
+
+interface RowProps {
+  rank: number;
+  game: Game & { potentialWinnings: bigint[] };
+}
+
+export const Row: React.FC<RowProps> = memo(({ rank, game }) => {
+  const { player } = usePlayer({ playerId: game.player_id });
+
+  return (
+    <TableRow className="hover:bg-slate-100 dark:hover:bg-slate-800">
+      <TableCell className="text-center font-semibold">{`#${rank}`}</TableCell>
+      <TableCell className="text-left sm:max-w-36 truncate">
+        {player?.name || "-"}
+      </TableCell>
+      <TableCell className="text-center">
+        {player?.points ? Level.fromPoints(player?.points).value : ""}
+      </TableCell>
+      <TableCell className="text-center font-bold">{game.score}</TableCell>
+      <TableCell className="text-center font-bold">{game.combo}</TableCell>
+      <TableCell className="text-center font-bold">{game.max_combo}</TableCell>
+      <TableCell className="text-center font-bold">
+        {rank <= 3 ? formatSmallEther(game.potentialWinnings[rank - 1]) : ""}
+      </TableCell>
+    </TableRow>
+  );
+});
