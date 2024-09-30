@@ -22,6 +22,7 @@ import { Level } from "@/dojo/game/types/level";
 import { toPng } from "html-to-image";
 import { TweetPreview } from "../components/TweetPreview";
 import { LeaderboardContent } from "../modules/Leaderboard";
+import CollectiveTreasureChest from "../components/TreasureChest";
 
 export const Home = () => {
   const {
@@ -90,6 +91,7 @@ export const Home = () => {
   return (
     <div className="relative flex flex-col h-screen">
       <Header />
+
       <BackGroundBoard imageBackground={imgAssets.imageBackground}>
         <BackGroundBoard
           imageBackground={imageTotemTheme}
