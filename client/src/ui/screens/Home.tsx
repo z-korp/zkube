@@ -20,7 +20,6 @@ import { ModeType } from "@/dojo/game/types/mode";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { Level } from "@/dojo/game/types/level";
 import { toPng } from "html-to-image";
-import { TweetPreview } from "../components/TweetPreview";
 import { LeaderboardContent } from "../modules/Leaderboard";
 import { useMediaQuery } from "react-responsive";
 
@@ -93,6 +92,7 @@ export const Home = () => {
   return (
     <div className="relative flex flex-col h-screen">
       <Header />
+
       <BackGroundBoard imageBackground={imgAssets.imageBackground}>
         <BackGroundBoard
           imageBackground={imageTotemTheme}
