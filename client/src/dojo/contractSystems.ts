@@ -1,8 +1,10 @@
-import { DojoProvider, KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
+import { DojoProvider } from "@dojoengine/core";
 import { Config } from "../../dojo.config.ts";
 import { Account, UniversalDetails, cairo, shortString } from "starknet";
 
 const NAMESPACE = "zkube";
+
+const { VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
 
 export interface Signer {
   account: Account;
@@ -194,17 +196,17 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
           account,
           [
             {
-              contractAddress: KATANA_ETH_CONTRACT_ADDRESS,
+              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
               entrypoint: "approve",
               calldata: [contract_zkorp.address, cairo.uint256(price)], // Set allowance
             },
             {
-              contractAddress: KATANA_ETH_CONTRACT_ADDRESS,
+              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
               entrypoint: "approve",
               calldata: [contract_chest.address, cairo.uint256(price)], // Set allowance
             },
             {
-              contractAddress: KATANA_ETH_CONTRACT_ADDRESS,
+              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
               entrypoint: "approve",
               calldata: [contract_tournament.address, cairo.uint256(price)], // Set allowance
             },
@@ -214,17 +216,17 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
               calldata: [mode, x, y, c, s, sqrt_ratio_hint, seed, beta],
             },
             {
-              contractAddress: KATANA_ETH_CONTRACT_ADDRESS,
+              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
               entrypoint: "approve",
               calldata: [contract_zkorp.address, cairo.uint256(0)], // Clear allowance
             },
             {
-              contractAddress: KATANA_ETH_CONTRACT_ADDRESS,
+              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
               entrypoint: "approve",
               calldata: [contract_chest.address, cairo.uint256(0)], // Clear allowance
             },
             {
-              contractAddress: KATANA_ETH_CONTRACT_ADDRESS,
+              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
               entrypoint: "approve",
               calldata: [contract_tournament.address, cairo.uint256(0)], // Clear allowance
             },

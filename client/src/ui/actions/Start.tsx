@@ -13,6 +13,8 @@ import { useSettings } from "@/hooks/useSettings";
 import { ethers } from "ethers";
 import useTournament from "@/hooks/useTournament";
 
+const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
+
 interface StartProps {
   mode: ModeType;
   handleGameMode: () => void;
@@ -97,15 +99,22 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
 
     const ethCost = ethers.utils.formatEther(weiCost);
 
-    return `${ethCost} ETH`;
+    // Remove trailing '.0' if the number is whole
+    const formattedCost =
+      parseFloat(ethCost) % 1 === 0 ? parseInt(ethCost).toString() : ethCost;
+
+    return `${formattedCost} ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`;
   }, [player, credits, settings, mode]);
 
   const ethPrize = useMemo(() => {
-    if (!tournament) return "0 ETH";
+    if (!tournament) return `0 ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`;
 
-    const ethPrize = ethers.utils.formatEther(tournament.prize);
+    const rawEthPrize = ethers.utils.formatEther(tournament.prize);
 
-    return `${ethPrize} ETH`;
+    // Remove trailing zeros after the decimal point
+    const formattedPrize = parseFloat(rawEthPrize).toString();
+
+    return `${formattedPrize} ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`;
   }, [tournament]);
 
   return (

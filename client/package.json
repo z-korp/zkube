@@ -52,7 +52,7 @@
     "@radix-ui/react-toggle-group": "^1.0.4",
     "@radix-ui/react-tooltip": "^1.0.7",
     "@starknet-react/chains": "^0.1.7",
-    "@starknet-react/core": "2.8.2",
+    "@starknet-react/core": "2.9.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

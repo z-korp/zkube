@@ -35,12 +35,12 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
   const balanceData = data as BalanceData; // Type assertion here
 
   return (
-    <div className="text-sm">
+    <div className="text-xs">
       {`${parseFloat(formatUnits(balanceData.balance.low, 18))
         .toString()
         .split(".")
         .map((part, index) =>
-          index === 1 ? part.slice(0, isMdOrLarger ? 5 : 2) : part,
+          index === 1 ? part.slice(0, isMdOrLarger ? 5 : 3) : part,
         )
         .join(".")} ${symbol}`}
     </div>

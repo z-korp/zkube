@@ -1,53 +1,16 @@
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
 import { Progress } from "../elements/progress";
-import { ScrollArea, ScrollBar } from "../elements/scroll-area";
-import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useAllChests } from "@/hooks/useAllChests";
 import { Chest } from "@/dojo/game/models/chest";
 import { useParticipations } from "@/hooks/useParticipations";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { ethers } from "ethers";
 import { useChestContribution } from "@/hooks/useChestContribution";
+import ChestTimeline from "./ChestTimeline";
 
-interface ChestIconProps {
-  chest: Chest;
-  isActive: boolean;
-  onClick: (chest: Chest) => void;
-}
-
-const ChestIcon: React.FC<ChestIconProps> = ({ chest, isActive, onClick }) => {
-  const isCompleted = chest.isCompleted();
-  const baseClasses =
-    "w-[50px] h-[50px] rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 shadow-lg overflow-hidden";
-  const activeClasses = isActive ? "" : "";
-  const stateClasses = isActive
-    ? "ring-2 ring-yellow-300"
-    : isCompleted
-      ? "ring-2 ring-gray-800"
-      : "";
-  const isCurrentChest = chest.points !== 0;
-
-  return (
-    <div
-      className={`${baseClasses} ${stateClasses} ${activeClasses} ${!isCurrentChest && "grayscale"} relative`}
-      onClick={() => onClick(chest)}
-    >
-      <img
-        src={chest.getIcon()}
-        alt={`${chest.id} Chest`}
-        className="w-[26px]"
-      />
-      {isCompleted && (
-        <div className="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center">
-          <div className="bg-gray-800 rounded-full p-1">
-            <Check className="w-6 h-6 text-white" />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
 interface CollectiveTreasureChestProps {
   isOpen: boolean;
@@ -117,11 +80,11 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
               <ChevronRight className="w-6 h-6" />
             </button>
             <img
-              className="self-center h-[180px]"
+              className={`self-center h-[180px] ${currentChest.points === 0 && "grayscale"}`}
               src={currentChest.getIcon()}
             />
             <p className="text-lg font-semibold mt-2">
-              Total Prize: {ethers.utils.formatEther(currentChest.prize)} ETH
+              {`Total Prize: ${ethers.utils.formatEther(currentChest.prize)} ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`}
             </p>
           </div>
 
@@ -137,48 +100,33 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
               />
               <div className="absolute inset-0 flex justify-center items-center">
                 <span className="text-sm font-bold text-white">
-                  {currentChest.points.toLocaleString()} /{" "}
-                  {currentChest.point_target.toLocaleString()} points (
-                  {collectiveProgress.toFixed(1)}%)
+                  {`${currentChest.points.toLocaleString()} / ${currentChest.point_target.toLocaleString()} points (${collectiveProgress.toFixed(1)}%)`}
                 </span>
               </div>
             </div>
           </div>
 
           <div className="mb-6">
-            <h3 className="text-lg font-semibold">Your Contribution</h3>
+            <h3 className="text-lg font-semibold">Your Impact</h3>
             <div className="text-sm text-center">
               <p>
-                Your participation: {userContribution} points -{" "}
-                {userParticipationPercentage.toFixed(2)}%
+                {`You've contributed ${userContribution.toLocaleString()} points`}
               </p>
               <p>
-                Your ETH share: {ethers.utils.formatEther(userPrizeShare)} ETH
+                {`That's ${userParticipationPercentage.toFixed(2)}% of the total effort!`}
+              </p>
+              <p>
+                {`Potential reward: ${ethers.utils.formatEther(userPrizeShare)} ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`}
               </p>
             </div>
           </div>
 
           {/* Bottom Section */}
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Chest Timeline</h3>
-            <ScrollArea className="w-full whitespace-nowrap rounded-md">
-              <div className="flex p-4 justify-between">
-                {chests.map((chest) => (
-                  <div
-                    key={chest.id}
-                    className="flex flex-col items-center mr-4 last:mr-0"
-                  >
-                    <ChestIcon
-                      chest={chest}
-                      isActive={chest.id === currentChest.id}
-                      onClick={handleChestClick}
-                    />
-                  </div>
-                ))}
-              </div>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-          </div>
+          <ChestTimeline
+            chests={chests}
+            currentChestIndex={currentChestIndex}
+            setCurrentChestIndex={setCurrentChestIndex}
+          />
 
           {/* Leaderboard Toggle */}
           {/*<button

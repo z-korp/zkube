@@ -45,6 +45,8 @@ import { formatRemainingTime } from "../utils";
 import { Tournament } from "@/dojo/game/models/tournament";
 import { ethers } from "ethers";
 
+const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
+
 const GAME_PER_PAGE = 5;
 const MAX_PAGE_COUNT = 5;
 
@@ -74,16 +76,20 @@ export const Leaderboard = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">Leaderboards</Button>
+        <Button variant="outline" className="w-full">
+          Leaderboards
+        </Button>
       </DialogTrigger>
       <DialogContent
-        className="sm:max-w-[700px] w-[95%] rounded-lg p-4"
+        className="sm:max-w-[700px] w-[95%] rounded-lg p-4 flex flex-col"
         aria-describedby={undefined}
       >
         <DialogHeader className="flex items-center text-2xl">
           <DialogTitle>Leaderboards</DialogTitle>
         </DialogHeader>
-        <LeaderboardContent />
+        <div className="flex-grow min-h-[460px] flex flex-col">
+          <LeaderboardContent />
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -140,8 +146,11 @@ export const Content: React.FC<ContentProps> = ({
   const [pageCount, setPageCount] = useState<number>(0);
 
   const filteredGames = useMemo(() => {
-    return games.filter((game) => game.mode.value === mode);
-  }, [games, mode]);
+    return games.filter(
+      (game) =>
+        game.mode.value === mode && game.tournament_id === tournament?.id,
+    );
+  }, [games, mode, tournament]);
 
   const { sortedGames } = useMemo(() => {
     const sorted = filteredGames
@@ -204,72 +213,76 @@ export const Content: React.FC<ContentProps> = ({
   const isSmallScreen = useMediaQuery({ query: "(min-width: 640px)" });
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col min-h-[400px]">
       <div className="w-full border-b border-white flex justify-between items-center my-4 p-2">
         <h2 className="text-lg font-semibold">Next Challenge In:</h2>
         <p className="text-lg font-bold">
           {formatRemainingTime(mode, secondsLeft)}
         </p>
       </div>
-      <Table className="text-sm sm:text-base sm:w-full ">
-        <TableCaption className={`${disabled && "hidden"}`}>
-          Leaderboard is waiting for its best players to make history
-        </TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[10%] text-center">Rank</TableHead>
-            <TableHead className="w-[35%] text-center">Name</TableHead>
-            <TableHead className="w-[10%] text-center">lvl</TableHead>
-            <TableHead className="w-[15%] text-center">
-              <div className="flex items-center justify-center gap-1">
-                <FontAwesomeIcon icon={faStar} className="text-yellow-500" />
-              </div>
-            </TableHead>
-            <TableHead className="w-[15%] text-center">
-              <div className="flex items-center justify-center gap-1">
-                <FontAwesomeIcon icon={faFire} className="text-slate-500" />
-              </div>
-            </TableHead>
-            <TableHead className="w-[15%] text-center">
-              <div className="flex items-center justify-center gap-1">
-                <FontAwesomeIcon icon={faGlobe} className="text-slate-500" />
-              </div>
-            </TableHead>
+      <div className="flex-grow overflow-auto">
+        <Table className="text-sm sm:text-base sm:w-full ">
+          <TableCaption className={`${disabled && "hidden"}`}>
+            Leaderboard is waiting for its best players to make history
+          </TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[8%] text-center">Rank</TableHead>
+              <TableHead className="w-[27%] text-center">Name</TableHead>
+              <TableHead className="w-[10%] text-center hidden md:table-cell">
+                lvl
+              </TableHead>
+              <TableHead className="w-[15%] text-center">
+                <div className="flex items-center justify-center gap-1">
+                  <FontAwesomeIcon icon={faStar} className="text-yellow-500" />
+                </div>
+              </TableHead>
+              <TableHead className="w-[10%] text-center">
+                <div className="flex items-center justify-center gap-1">
+                  <FontAwesomeIcon icon={faFire} className="text-slate-500" />
+                </div>
+              </TableHead>
+              <TableHead className="w-[10%] text-center">
+                <div className="flex items-center justify-center gap-1">
+                  <FontAwesomeIcon icon={faGlobe} className="text-slate-500" />
+                </div>
+              </TableHead>
 
-            <TableHead className="w-[15%] text-center">
-              <div className="flex items-center justify-center gap-1">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button className="">
-                      <FontAwesomeIcon
-                        icon={faTrophy}
-                        className="text-yellow-500"
-                      />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="top"
-                    align="start"
-                    className=" w-[180px] text-base"
-                  >
-                    Potential winnnings for top 3 players
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {gamesWithWinnings.slice(start, end).map((game, index) => (
-            <Row
-              key={index}
-              rank={(page - 1) * GAME_PER_PAGE + index + 1}
-              game={game}
-            />
-          ))}
-        </TableBody>
-      </Table>
-      <Pagination className={`${!disabled && "hidden"} mt-5`}>
+              <TableHead className="w-[35%] text-center">
+                <div className="flex items-center justify-center gap-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="">
+                        <FontAwesomeIcon
+                          icon={faTrophy}
+                          className="text-yellow-500"
+                        />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="top"
+                      align="start"
+                      className=" w-[180px] text-base"
+                    >
+                      Potential winnnings for top 3 players
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {gamesWithWinnings.slice(start, end).map((game, index) => (
+              <Row
+                key={index}
+                rank={(page - 1) * GAME_PER_PAGE + index + 1}
+                game={game}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <Pagination className={`${!disabled && "hidden"} mt-auto`}>
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
@@ -304,14 +317,14 @@ export const Content: React.FC<ContentProps> = ({
 
 function formatSmallEther(value: bigint, significantDigits = 2) {
   const number = parseFloat(ethers.utils.formatEther(value));
-  if (number === 0) return "0 ETH";
+  if (number === 0) return `0 ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`;
 
   // Convert to string and remove scientific notation
   let str = number.toFixed(20);
 
   // Find the first non-zero digit
   const firstNonZero = str.match(/[1-9]/);
-  if (!firstNonZero) return "0 ETH";
+  if (!firstNonZero) return `0 ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`;
 
   const index = str.indexOf(firstNonZero[0]);
 
@@ -321,12 +334,12 @@ function formatSmallEther(value: bigint, significantDigits = 2) {
   // Remove trailing zeros after the decimal point
   str = str.replace(/\.?0+$/, "");
 
-  // Ensure we have a decimal point
-  if (!str.includes(".")) {
-    str += ".0";
+  // Remove the decimal point if it's the last character
+  if (str.endsWith(".")) {
+    str = str.slice(0, -1);
   }
 
-  return str + " ETH";
+  return str + ` ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`;
 }
 
 interface RowProps {
@@ -343,7 +356,7 @@ export const Row: React.FC<RowProps> = memo(({ rank, game }) => {
       <TableCell className="text-left sm:max-w-36 truncate">
         {player?.name || "-"}
       </TableCell>
-      <TableCell className="text-center">
+      <TableCell className="text-center hidden md:table-cell">
         {player?.points ? Level.fromPoints(player?.points).value : ""}
       </TableCell>
       <TableCell className="text-center font-bold">{game.score}</TableCell>

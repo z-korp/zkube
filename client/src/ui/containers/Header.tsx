@@ -46,14 +46,14 @@ export const Header = () => {
           <Leaderboard />
           {/*<ContentTabs />*/}
           <Button variant={"outline"} onClick={() => setIsOpen(true)}>
-            Chests
+            Collective Chests
           </Button>
           <CollectiveTreasureChest isOpen={isOpen} onClose={onClose} />
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
           {!!player && (
             <div className="flex gap-3">
-              <ProfilePage />
+              <ProfilePage wfit />
               <LevelIndicator currentXP={player.points} />
               <DailyGameStatus />
               <HeaderBalance />

@@ -17,8 +17,13 @@ import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 import { Level } from "@/dojo/game/types/level";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/elements/tabs";
 import { motion } from "framer-motion";
+import { Rewards } from "./Rewards";
 
-export const ProfilePage = () => {
+interface ProfilePageProps {
+  wfit: boolean;
+}
+
+export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
   const { games } = useGames();
@@ -49,7 +54,9 @@ export const ProfilePage = () => {
       {player && (
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline">{player.name}</Button>
+            <Button variant="outline" className={`w-${wfit ? "fit" : "full"}`}>
+              {player.name}
+            </Button>
           </DialogTrigger>
           <DialogContent
             className="w-full max-w-2xl"
@@ -58,29 +65,33 @@ export const ProfilePage = () => {
             <DialogHeader className="flex items-center text-2xl">
               <DialogTitle>Profile</DialogTitle>
             </DialogHeader>
-            <Tabs defaultValue="achievements">
+            <Tabs defaultValue="rewards">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="achievements">Achievements</TabsTrigger>
+                {/*<TabsTrigger value="achievements">Achievements</TabsTrigger>*/}
+                <TabsTrigger value="rewards">Rewards</TabsTrigger>
                 <TabsTrigger value="stats">Statistics</TabsTrigger>
               </TabsList>
               <TabsContent
                 className="max-h-[50vh] overflow-y-auto"
-                value="achievements"
+                value="rewards"
                 asChild
               >
                 <motion.div
-                  key="achievements"
+                  key="rewards"
                   initial={{ opacity: 0, x: -50 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 50 }}
                   transition={{ duration: 0.5, ease: "easeInOut" }}
                 >
-                  <CardContent>
+                  {/*<CardContent>
                     <Achievements
                       level={levelPlayer?.value || 1}
                       highestScore={highestScore}
                       highestCombo={highestCombo}
                     />
+                  </CardContent>*/}
+                  <CardContent className="p-0 mt-2">
+                    <Rewards />
                   </CardContent>
                 </motion.div>
               </TabsContent>
