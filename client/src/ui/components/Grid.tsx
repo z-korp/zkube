@@ -51,6 +51,7 @@ const Grid: React.FC<GridProps> = ({
   const [transitioningBlocks, setTransitioningBlocks] = useState<number[]>([]);
   const [gameState, setGameState] = useState<GameState>(GameState.WAITING);
   const [isTxProcessing, setIsTxProcessing] = useState(false);
+  const [isPlayerInDanger, setIsPlayerInDanger] = useState(false);
 
   const borderSize = 2;
   const gravitySpeed = 100;
@@ -59,6 +60,10 @@ const Grid: React.FC<GridProps> = ({
   useEffect(() => {
     setBlocks(initialData);
     setIsTxProcessing(false);
+
+    const inDanger = initialData.some((block) => block.y < 2);
+    setIsPlayerInDanger(inDanger);
+    console.log("Player in danger", inDanger);
   }, [initialData]);
 
   const handleTransitionBlockStart = (id: number) => {
@@ -352,7 +357,7 @@ const Grid: React.FC<GridProps> = ({
   return (
     <div className={`grid-background ${isTxProcessing ? "cursor-wait" : ""}`}>
       <div
-        className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)]`}
+        className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${isPlayerInDanger ? "shadow-inner shadow-xl shadow-red-500/50" : ""}`}
         style={{
           height: `${gridHeight * gridSize + borderSize}px`,
           width: `${gridWidth * gridSize + borderSize}px`,
