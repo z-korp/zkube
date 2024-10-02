@@ -1,24 +1,29 @@
 import { motion } from "framer-motion";
 import "../../grid.css";
+import { ComboMessages } from "@/enums/comboEnum";
 
 interface AnimatedTextProps {
-  text: string;
+  textEnum: ComboMessages;
+  reset: () => void;
 }
 
-const AnimatedText: React.FC<AnimatedTextProps> = ({ text }) => {
+const AnimatedText: React.FC<AnimatedTextProps> = ({ textEnum, reset }) => {
   return (
     <motion.div
+      key={textEnum}
       animate={{
-        scale: [1, 2, 2, 1, 1, 2, 2],
-        rotate: [0, 0, 270, 270, 0],
-        borderRadius: ["20%", "20%", "50%", "50%", "20%"],
+        scale: [1, 2, 2, 1, 1, 2, 2, 0, 0, 0, 0],
+        rotate: [0, 0, 270, 270, 0, 0, 0, 0, 0, 0, 0],
       }}
       transition={{
         ease: "easeInOut",
-        duration: 1.5,
+        duration: 3,
       }}
+      onAnimationComplete={reset}
     >
-      <div className="text-4xl text-shine p-4">{text}</div>
+      <div className="text-4xl text-shine p-4">
+        {textEnum != ComboMessages.None ? textEnum : ""}
+      </div>
     </motion.div>
   );
 };

@@ -13,6 +13,7 @@ import {
 } from "@/utils/gridUtils";
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
+import { ComboMessages } from "@/enums/comboEnum";
 
 interface GridProps {
   initialData: Block[];
@@ -53,6 +54,9 @@ const Grid: React.FC<GridProps> = ({
   const [isTxProcessing, setIsTxProcessing] = useState(false);
   const [isPlayerInDanger, setIsPlayerInDanger] = useState(false);
   const [lineExplodedCount, setLineExplodedCount] = useState(0);
+  const [animateText, setAnimateText] = useState<ComboMessages>(
+    ComboMessages.None,
+  );
 
   const borderSize = 2;
   const gravitySpeed = 100;
@@ -64,8 +68,15 @@ const Grid: React.FC<GridProps> = ({
 
     const inDanger = initialData.some((block) => block.y < 2);
     setIsPlayerInDanger(inDanger);
+    if (lineExplodedCount > 1) {
+      setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
+    }
     setLineExplodedCount(0);
   }, [initialData]);
+
+  const resetAnimateText = (): void => {
+    setAnimateText(ComboMessages.None);
+  };
 
   const handleTransitionBlockStart = (id: number) => {
     setTransitioningBlocks((prev) => {
@@ -353,6 +364,7 @@ const Grid: React.FC<GridProps> = ({
 
   useEffect(() => {
     if (gameState === GameState.MOVE_TX && pendingMove) {
+      console.log("MOVE_TX ========================> ", pendingMove);
       const { rowIndex, startX, finalX } = pendingMove;
       handleMoveTX(rowIndex, startX, finalX);
       setPendingMove(null);
@@ -391,7 +403,7 @@ const Grid: React.FC<GridProps> = ({
           />
         ))}
         <div className="flex items-center justify-center font-sans ">
-          <AnimatedText text="Well played" />
+          <AnimatedText textEnum={animateText} reset={resetAnimateText} />
         </div>
       </div>
     </div>

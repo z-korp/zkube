@@ -85,6 +85,8 @@
   -webkit-text-fill-color: transparent;
   -webkit-text-stroke: 1.5px white;
   animation: shine 4s infinite linear;
+
+  pointer-events: none;
 }
 
 @keyframes shine {
