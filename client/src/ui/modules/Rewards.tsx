@@ -1,61 +1,102 @@
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useAllChests } from "@/hooks/useAllChests";
-import { useParticipations } from "@/hooks/useParticipations";
-import { useMemo } from "react";
-import { ethers } from "ethers";
+import { useCallback } from "react";
 import { RewardCard } from "./RewardCard";
+import { Mode } from "@/dojo/game/types/mode";
+import { Tournament } from "@/dojo/game/models/tournament";
+import { useDojo } from "@/dojo/useDojo";
+import { useRewardsStore } from "@/stores/rewardsStore";
 
-// Assuming VITE_PUBLIC_GAME_TOKEN_SYMBOL is defined in your environment variables
-const VITE_PUBLIC_GAME_TOKEN_SYMBOL =
-  import.meta.env.VITE_PUBLIC_GAME_TOKEN_SYMBOL || "ETH";
+export type TournamentReward = {
+  player_id: string;
+  rank: 1 | 2 | 3;
+  prize: string;
+  tournament_id: number;
+  mode: Mode;
+  tournament: Tournament;
+};
 
 export const Rewards = () => {
+  const {
+    setup: {
+      systemCalls: { claimTournament, claimChest },
+    },
+  } = useDojo();
   const { account } = useAccountCustom();
   const chests = useAllChests();
-  const participations = useParticipations({ player_id: account?.address });
 
-  const filteredParticipations = useMemo(() => {
-    if (!account?.address || !participations) return [];
-    return participations
-      .filter((participation) => {
-        const chest = chests.find(
-          (chest) => chest.id === participation.chest_id,
-        );
-        return chest?.isCompleted() && !participation.claimed;
-      })
-      .map((participation) => {
-        const chest = chests.find(
-          (chest) => chest.id === participation.chest_id,
-        );
-        const rawPrize = chest ? BigInt(chest.prize) : BigInt(0);
+  const { tournamentRewards, filteredParticipations } = useRewardsStore();
 
-        const formattedPrize = (() => {
-          const rawEthPrize = ethers.utils.formatEther(rawPrize);
-          const formattedPrize = parseFloat(rawEthPrize).toString();
-          return `${formattedPrize} ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`;
-        })();
+  const handleClaimChest = useCallback(
+    async (chest_id: number) => {
+      if (!account?.address) return;
+      try {
+        await claimChest({ account, chest_id });
+      } catch (error) {
+        console.error("Error claiming chest:", error);
+      }
+    },
+    [account?.address, claimChest],
+  );
 
-        return {
-          ...participation,
-          rawPrize,
-          formattedPrize,
-        };
-      });
-  }, [participations, account?.address, chests]);
+  const handleClaimTournament = useCallback(
+    async (mode: Mode, tournament_id: number, rank: number) => {
+      if (!account?.address) return;
+      try {
+        await claimTournament({
+          account,
+          mode: mode.into(),
+          tournament_id,
+          rank,
+        });
+        // You might want to add some state update or notification here
+      } catch (error) {
+        console.error("Error claiming tournament reward:", error);
+        // Handle error (e.g., show an error message to the user)
+      }
+    },
+    [account?.address, claimTournament],
+  );
+
+  if (filteredParticipations.length === 0 && tournamentRewards.length === 0) {
+    return (
+      <div className="text-center text-sm mt-6 text-gray-300 flex flex-col gap-3">
+        <p>
+          Place in the top 3 of a tournament or help open the collective chest
+          to earn rewards.
+        </p>
+        <p>Keep competing for great rewards!</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
+    <div className="flex flex-col gap-3">
       {filteredParticipations.map((p) => (
         <RewardCard
           key={p.chest_id}
           type="chest"
-          amount={p.formattedPrize}
+          amount={p.formatted_prize}
           chest={chests.find((chest) => chest.id === p.chest_id)}
           userContribution={p.points}
-          userPrizeShare={p.rawPrize}
-          onClaim={() => {
-            return;
-          }}
+          userPrizeShare={p.raw_prize}
+          onClaim={() => handleClaimChest(p.chest_id)}
+        />
+      ))}
+      {tournamentRewards.map((reward) => (
+        <RewardCard
+          key={reward.tournament_id + "_" + reward.rank}
+          type="tournament"
+          amount={reward.prize}
+          tournament={reward.tournament}
+          tournament_reward={reward}
+          onClaim={() =>
+            handleClaimTournament(
+              reward.mode,
+              reward.tournament_id,
+              reward.rank,
+            )
+          }
         />
       ))}
     </div>

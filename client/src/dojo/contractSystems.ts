@@ -71,6 +71,12 @@ export interface DeleteAdmin extends Signer {
   address: bigint;
 }
 
+export interface TournamentClaim extends Signer {
+  mode: number;
+  tournament_id: number;
+  rank: number;
+}
+
 export type IWorld = Awaited<ReturnType<typeof setupWorld>>;
 
 export const getContractByName = (manifest: any, name: string) => {
@@ -478,10 +484,49 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
     };
   }
 
+  function tournament() {
+    const contract_name = "tournament";
+    const contract = config.manifest.contracts.find((c: any) =>
+      c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      throw new Error(`Contract ${contract_name} not found in manifest`);
+    }
+
+    const claim = async ({
+      account,
+      mode,
+      tournament_id,
+      rank,
+    }: TournamentClaim) => {
+      try {
+        return await provider.execute(
+          account,
+          {
+            contractName: contract_name,
+            entrypoint: "claim",
+            calldata: [mode, tournament_id, rank],
+          },
+          NAMESPACE,
+          details,
+        );
+      } catch (error) {
+        console.error("Error executing claim:", error);
+        throw error;
+      }
+    };
+
+    return {
+      address: contract.address,
+      claim,
+    };
+  }
+
   return {
     account: account(),
     play: play(),
     chest: chest(),
+    tournament: tournament(),
     settings: settings(),
   };
 }

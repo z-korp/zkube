@@ -1,14 +1,14 @@
 import { ComponentValue } from "@dojoengine/recs";
-import chest1 from "../../../../public/assets/chests/chest1.png";
-import chest2 from "../../../../public/assets/chests/chest2.png";
-import chest3 from "../../../../public/assets/chests/chest3.png";
-import chest4 from "../../../../public/assets/chests/chest4.png";
-import chest5 from "../../../../public/assets/chests/chest5.png";
-import chest6 from "../../../../public/assets/chests/chest6.png";
-import chest7 from "../../../../public/assets/chests/chest7.png";
-import chest8 from "../../../../public/assets/chests/chest8.png";
-import chest9 from "../../../../public/assets/chests/chest9.png";
-import chest10 from "../../../../public/assets/chests/chest10.png";
+import chest1 from "../../../../public/assets/chests/c1.png";
+import chest2 from "../../../../public/assets/chests/c2.png";
+import chest3 from "../../../../public/assets/chests/c3.png";
+import chest4 from "../../../../public/assets/chests/c4.png";
+import chest5 from "../../../../public/assets/chests/c5.png";
+import chest6 from "../../../../public/assets/chests/c6.png";
+import chest7 from "../../../../public/assets/chests/c7.png";
+import chest8 from "../../../../public/assets/chests/c8.png";
+import chest9 from "../../../../public/assets/chests/c9.png";
+import chest10 from "../../../../public/assets/chests/c10.png";
 
 export class Chest {
   public id: number;
@@ -27,34 +27,34 @@ export class Chest {
     let icon = chest1;
     switch (this.id) {
       case 1:
-        icon = chest4;
+        icon = chest10;
         break;
       case 2:
-        icon = chest2;
+        icon = chest9;
         break;
       case 3:
         icon = chest8;
         break;
       case 4:
-        icon = chest1;
-        break;
-      case 5:
         icon = chest7;
         break;
-      case 6:
+      case 5:
         icon = chest6;
         break;
+      case 6:
+        icon = chest5;
+        break;
       case 7:
-        icon = chest9;
+        icon = chest4;
         break;
       case 8:
         icon = chest3;
         break;
       case 9:
-        icon = chest5;
+        icon = chest2;
         break;
       case 10:
-        icon = chest10;
+        icon = chest1;
         break;
     }
     return icon;

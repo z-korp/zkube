@@ -51,7 +51,7 @@ export const ChestIcon: React.FC<ChestIconProps> = ({
         className={`
           absolute inset-0 bg-yellow-100 
           transition-opacity duration-300 
-          ${isActive ? "opacity-20" : "opacity-0"}
+          ${isActive && !isCurrentChest ? "opacity-20" : "opacity-0"}
         `}
       />
     </div>

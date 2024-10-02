@@ -27,12 +27,7 @@ import { Button } from "@/ui/elements/button";
 import { Game } from "@/dojo/game/models/game";
 import { useGames } from "@/hooks/useGames";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faFire,
-  faGlobe,
-  faStar,
-  faTrophy,
-} from "@fortawesome/free-solid-svg-icons";
+import { faFire, faStar, faTrophy } from "@fortawesome/free-solid-svg-icons";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useMediaQuery } from "react-responsive";
 import { ModeType } from "@/dojo/game/types/mode";
@@ -44,6 +39,7 @@ import useCountdown from "@/hooks/useCountdown";
 import { formatRemainingTime } from "../utils";
 import { Tournament } from "@/dojo/game/models/tournament";
 import { ethers } from "ethers";
+import MaxComboIcon from "../components/MaxComboIcon";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -244,7 +240,11 @@ export const Content: React.FC<ContentProps> = ({
               </TableHead>
               <TableHead className="w-[10%] text-center">
                 <div className="flex items-center justify-center gap-1">
-                  <FontAwesomeIcon icon={faGlobe} className="text-slate-500" />
+                  <MaxComboIcon
+                    width={17}
+                    height={17}
+                    className="text-slate-500"
+                  />
                 </div>
               </TableHead>
 

@@ -36,7 +36,9 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
 
   return (
     <div className="text-xs">
-      {`${parseFloat(formatUnits(balanceData.balance.low, 18))
+      {`${parseFloat(
+        formatUnits(balanceData.balance.low, 18, symbol === "ETH" ? 6 : 2),
+      )
         .toString()
         .split(".")
         .map((part, index) =>
@@ -83,7 +85,11 @@ https://github.com/wevm/viem/blob/main/src/utils/unit/formatUnits.ts
  * formatUnits(420000000000n, 9)
  * // '420'
  */
-function formatUnits(value: bigint, decimals: number) {
+function formatUnits(
+  value: bigint,
+  decimals: number,
+  displayDecimals: number = decimals,
+) {
   let display = value.toString();
 
   const negative = display.startsWith("-");
@@ -96,6 +102,12 @@ function formatUnits(value: bigint, decimals: number) {
     display.slice(0, display.length - decimals),
     display.slice(display.length - decimals),
   ];
+
+  // Trim the fraction to the desired number of decimal places
+  fraction = fraction.slice(0, displayDecimals);
+
+  // Remove trailing zeros
   fraction = fraction.replace(/(0+)$/, "");
+
   return `${negative ? "-" : ""}${integer || "0"}${fraction ? `.${fraction}` : ""}`;
 }

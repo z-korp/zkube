@@ -36,8 +36,22 @@ const play_contract_address = getContractByName(
   "play",
 )?.address;
 
+const chest_contract_address = getContractByName(
+  manifest,
+  "zkube",
+  "chest",
+)?.address;
+
+const tournament_contract_address = getContractByName(
+  manifest,
+  "zkube",
+  "tournament",
+)?.address;
+
 console.log("account_contract_address", account_contract_address);
 console.log("play_contract_address", play_contract_address);
+console.log("chest_contract_address", chest_contract_address);
+console.log("tournament_contract_address", tournament_contract_address);
 
 const policies = [
   {
@@ -73,6 +87,16 @@ const policies = [
   {
     target: play_contract_address,
     method: "apply_bonus",
+  },
+  // chest
+  {
+    target: chest_contract_address,
+    method: "claim",
+  },
+  // tournament
+  {
+    target: tournament_contract_address,
+    method: "claim",
   },
 ];
 

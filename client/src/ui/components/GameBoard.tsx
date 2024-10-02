@@ -10,11 +10,9 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import MaxComboIcon from "./MaxComboIcon";
 import Grid from "./Grid";
 import { transformDataContratIntoBlock } from "@/utils/gridUtils";
-import { dataContrat } from "@/fixtures/dataTest";
 import NextLine from "./NextLine";
 import { Block } from "@/types/types";
 import { BonusName } from "@/enums/bonusEnum";
-import { set } from "mobx";
 
 interface GameBoardProps {
   initialGrid: number[][];

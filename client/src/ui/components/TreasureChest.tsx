@@ -6,9 +6,10 @@ import { useAllChests } from "@/hooks/useAllChests";
 import { Chest } from "@/dojo/game/models/chest";
 import { useParticipations } from "@/hooks/useParticipations";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import { ethers } from "ethers";
 import { useChestContribution } from "@/hooks/useChestContribution";
 import ChestTimeline from "./ChestTimeline";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { formatPrize } from "@/utils/wei";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -56,12 +57,13 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="sm:max-w-[800px] h-[700px] flex flex-col mx-auto justify-start"
+        className="sm:max-w-[700px] w-[95%] flex flex-col mx-auto justify-start"
         aria-describedby={undefined}
       >
-        <DialogTitle className="h-0" />
-
-        <div className="flex-1 flex flex-col px-6 ">
+        <DialogTitle>
+          <VisuallyHidden.Root>Collective Treasure Chest</VisuallyHidden.Root>
+        </DialogTitle>
+        <div className="flex-1 flex flex-col">
           {/* Top Section */}
           <div className="text-center mb-6 flex flex-col relative">
             <button
@@ -84,7 +86,7 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
               src={currentChest.getIcon()}
             />
             <p className="text-lg font-semibold mt-2">
-              {`Total Prize: ${ethers.utils.formatEther(currentChest.prize)} ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`}
+              {`Total Prize: ${formatPrize(currentChest.prize, VITE_PUBLIC_GAME_TOKEN_SYMBOL)}`}
             </p>
           </div>
 
@@ -115,9 +117,7 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
               <p>
                 {`That's ${userParticipationPercentage.toFixed(2)}% of the total effort!`}
               </p>
-              <p>
-                {`Potential reward: ${ethers.utils.formatEther(userPrizeShare)} ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`}
-              </p>
+              <p>{`Potential reward: ${formatPrize(userPrizeShare, VITE_PUBLIC_GAME_TOKEN_SYMBOL)}`}</p>
             </div>
           </div>
 

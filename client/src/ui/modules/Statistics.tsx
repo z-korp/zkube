@@ -1,10 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/ui/elements/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/ui/elements/card";
 import {
   Select,
   SelectContent,
@@ -38,12 +33,9 @@ import {
   TableRow,
 } from "@/ui/elements/table";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faFire,
-  faStar,
-  faArrowsAltH,
-} from "@fortawesome/free-solid-svg-icons";
+import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
 import { Game } from "@/dojo/game/models/game";
+import MaxComboIcon from "../components/MaxComboIcon";
 
 // Format dates
 const formatDate = (date: Date): string =>
@@ -51,7 +43,7 @@ const formatDate = (date: Date): string =>
     .toString()
     .padStart(2, "0")}/${date.getFullYear()}`;
 
-// Generate data for charts 
+// Generate data for charts
 const generateChartData = (games: Game[]) =>
   games.map((game) => ({
     score: game.score,
@@ -60,7 +52,7 @@ const generateChartData = (games: Game[]) =>
     moves: game.moves,
   }));
 
-// Compute stats 
+// Compute stats
 const calculateStatistics = (games: Game[]) => {
   const totalGamesPlayed = games.length;
   const totalScore = games.reduce((sum, game) => sum + game.score, 0);
@@ -94,7 +86,7 @@ const filterGamesByDate = (games: Game[], period: string) => {
   });
 };
 
-// Bonus usage management 
+// Bonus usage management
 const calculateBonusUsage = (games: Game[]) =>
   games.reduce(
     (acc, game) => ({
@@ -105,7 +97,14 @@ const calculateBonusUsage = (games: Game[]) =>
       waveUsed: acc.waveUsed + game.wave_used,
       totemUsed: acc.totemUsed + game.totem_used,
     }),
-    { hammerTotal: 0, waveTotal: 0, totemTotal: 0, hammerUsed: 0, waveUsed: 0, totemUsed: 0 }
+    {
+      hammerTotal: 0,
+      waveTotal: 0,
+      totemTotal: 0,
+      hammerUsed: 0,
+      waveUsed: 0,
+      totemUsed: 0,
+    },
   );
 
 export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
@@ -126,8 +125,14 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
 
   const bonusData = useMemo(() => {
     const filteredGames = filterGamesByDate(games, selectedPeriod);
-    const { hammerTotal, waveTotal, totemTotal, hammerUsed, waveUsed, totemUsed } =
-      calculateBonusUsage(filteredGames);
+    const {
+      hammerTotal,
+      waveTotal,
+      totemTotal,
+      hammerUsed,
+      waveUsed,
+      totemUsed,
+    } = calculateBonusUsage(filteredGames);
     return [
       { bonusType: "Hammer", count: hammerTotal, use: hammerUsed },
       { bonusType: "Wave", count: waveTotal, use: waveUsed },
@@ -138,8 +143,8 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
   return (
     <main className="flex flex-col items-center justify-start">
       <div className="w-full max-w-4xl mx-auto space-y-6">
-        <Card>
-          <CardHeader>
+        <Card className="border-0 p-0">
+          <CardHeader className="p-0 mt-3">
             <Select onValueChange={setSelectedPeriod} defaultValue="All">
               <SelectTrigger className="w-full">
                 <SelectValue
@@ -155,7 +160,7 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
             </Select>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="p-0 mt-3">
             <Tabs defaultValue="overview">
               <TabsList className="w-full">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -163,7 +168,7 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
                 <TabsTrigger value="details">Details</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="overview">
+              <TabsContent value="overview" className="pt-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Card>
                     <CardHeader>
@@ -198,14 +203,21 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
                 </div>
               </TabsContent>
 
-              <TabsContent value="charts">
-                <Card>
+              <TabsContent
+                value="charts"
+                className="overflow-y-auto max-h-[320px]"
+              >
+                <Card className="max-w-[400px] mx-auto">
                   <CardHeader>
                     <CardTitle>Score per game</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ChartContainer config={chartConfig}>
-                      <AreaChart data={data} margin={{ left: 12, right: 12 }}>
+                      <AreaChart
+                        data={data}
+                        margin={{ left: 12, right: 12 }}
+                        height={360}
+                      >
                         <CartesianGrid vertical={false} />
                         <XAxis
                           dataKey="date"
@@ -231,7 +243,7 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
                     </ChartContainer>
                   </CardContent>
                 </Card>
-                <Card>
+                <Card className="max-w-[400px] mx-auto mt-3">
                   <CardHeader>
                     <CardTitle>Bonus earned and used</CardTitle>
                   </CardHeader>
@@ -240,7 +252,7 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
                       config={chartConfig}
                       className="mx-auto aspect-square"
                     >
-                      <RadarChart data={bonusData}>
+                      <RadarChart data={bonusData} width={360} height={360}>
                         <PolarGrid />
                         <PolarAngleAxis dataKey="bonusType" />
                         <Radar
@@ -266,7 +278,11 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
                   </CardContent>
                 </Card>
               </TabsContent>
-              <TabsContent value="details">
+
+              <TabsContent
+                value="details"
+                className="overflow-y-auto max-h-[320px]"
+              >
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -284,9 +300,10 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
                         />
                       </TableHead>
                       <TableHead>
-                        <FontAwesomeIcon
-                          icon={faArrowsAltH}
-                          className="text-yellow-500"
+                        <MaxComboIcon
+                          width={15}
+                          height={15}
+                          className={`text-yellow-500`}
                         />
                       </TableHead>
                     </TableRow>

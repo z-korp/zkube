@@ -22,11 +22,14 @@ import { Level } from "@/dojo/game/types/level";
 import { toPng } from "html-to-image";
 import { LeaderboardContent } from "../modules/Leaderboard";
 import { useMediaQuery } from "react-responsive";
+import { useRewardsCalculator } from "@/stores/rewardsStore";
 
 export const Home = () => {
   const {
     setup: { toriiClient, contractComponents },
   } = useDojo();
+
+  useRewardsCalculator();
 
   useQuerySync(toriiClient, contractComponents as any, []);
 

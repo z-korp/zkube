@@ -165,6 +165,25 @@ export function systems({
     );
   };
 
+  const claimChest = async ({ account, ...props }: SystemTypes.ChestClaim) => {
+    await handleTransaction(
+      account,
+      () => client.chest.claim({ account, ...props }),
+      "Chest rewards have been claimed.",
+    );
+  };
+
+  const claimTournament = async ({
+    account,
+    ...props
+  }: SystemTypes.TournamentClaim) => {
+    await handleTransaction(
+      account,
+      () => client.tournament.claim({ account, ...props }),
+      "Tournament rewards have been claimed.",
+    );
+  };
+
   return {
     // account
     create,
@@ -174,5 +193,9 @@ export function systems({
     surrender,
     move,
     applyBonus,
+    // chest
+    claimChest,
+    // tournament
+    claimTournament,
   };
 }
