@@ -22,7 +22,7 @@ export const removeCompleteRows = (
   blocks: Block[],
   gridWidth: number,
   gridHeight: number,
-) => {
+): { updatedBlocks: Block[]; completeRows: number[] } => {
   const grid = transformToGridFormat(blocks, gridWidth, gridHeight);
 
   const completeRows = grid
@@ -36,7 +36,7 @@ export const removeCompleteRows = (
     return !isBlockOnCompleteRow;
   });
 
-  return updatedBlocks;
+  return { updatedBlocks, completeRows };
 };
 
 export const concatenateAndShiftBlocks = (

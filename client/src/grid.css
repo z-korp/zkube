@@ -73,3 +73,25 @@
   animation: fadeInOutDanger 2s infinite;
   pointer-events: none; /* Pour ne pas interférer avec les interactions utilisateurs */
 }
+
+.text-shine {
+  background: linear-gradient(
+    to right,
+    hsl(240, 30%, 54%) 0,
+    hsl(0, 0%, 100%) 10%,
+    hsl(240, 30%, 54%) 20%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 1.5px white;
+  animation: shine 4s infinite linear;
+}
+
+@keyframes shine {
+  0% {
+    background-position: 0px;
+  }
+  100% {
+    background-position: 600px;
+  }
+}

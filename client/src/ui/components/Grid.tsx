@@ -12,7 +12,7 @@ import {
   isGridFull,
 } from "@/utils/gridUtils";
 import { MoveType } from "@/enums/moveEnum";
-import { set } from "mobx";
+import AnimatedText from "../elements/animatedText";
 
 interface GridProps {
   initialData: Block[];
@@ -52,6 +52,7 @@ const Grid: React.FC<GridProps> = ({
   const [gameState, setGameState] = useState<GameState>(GameState.WAITING);
   const [isTxProcessing, setIsTxProcessing] = useState(false);
   const [isPlayerInDanger, setIsPlayerInDanger] = useState(false);
+  const [lineExplodedCount, setLineExplodedCount] = useState(0);
 
   const borderSize = 2;
   const gravitySpeed = 100;
@@ -63,7 +64,7 @@ const Grid: React.FC<GridProps> = ({
 
     const inDanger = initialData.some((block) => block.y < 2);
     setIsPlayerInDanger(inDanger);
-    console.log("Player in danger", inDanger);
+    setLineExplodedCount(0);
   }, [initialData]);
 
   const handleTransitionBlockStart = (id: number) => {
@@ -303,9 +304,14 @@ const Grid: React.FC<GridProps> = ({
     newStateOnComplete: GameState,
   ) => {
     if (gameState === lineClearState) {
-      const cleanedBlocks = removeCompleteRows(blocks, gridWidth, gridHeight);
-      if (cleanedBlocks.length < blocks.length) {
-        setBlocks(cleanedBlocks);
+      const { updatedBlocks, completeRows } = removeCompleteRows(
+        blocks,
+        gridWidth,
+        gridHeight,
+      );
+      if (updatedBlocks.length < blocks.length) {
+        setLineExplodedCount(lineExplodedCount + completeRows.length);
+        setBlocks(updatedBlocks);
         setIsMoving(true);
         setGameState(newGravityState);
       } else {
@@ -384,7 +390,9 @@ const Grid: React.FC<GridProps> = ({
             onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
           />
         ))}
-        <div is="size-parent"></div>
+        <div className="flex items-center justify-center font-sans ">
+          <AnimatedText text="Well played" />
+        </div>
       </div>
     </div>
   );
