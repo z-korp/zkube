@@ -10,6 +10,9 @@ import {
   removeCompleteRows,
   concatenateAndShiftBlocks,
   isGridFull,
+  removeBlocksSameWidth,
+  removeBlocksSameRow,
+  removeBlockId,
 } from "@/utils/gridUtils";
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
@@ -147,6 +150,9 @@ const Grid: React.FC<GridProps> = ({
   const handleMouseDown = (e: React.MouseEvent, block: Block) => {
     e.preventDefault();
     selectBlock(block);
+    //setBlocks(removeBlocksSameWidth(block, blocks));
+    //setBlocks(removeBlocksSameRow(block, blocks));
+    //setBlocks(removeBlockId(block, blocks));
     handleDragStart(e.clientX, block);
   };
 
@@ -297,7 +303,11 @@ const Grid: React.FC<GridProps> = ({
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (gameState === GameState.GRAVITY || gameState === GameState.GRAVITY2) {
+      if (
+        gameState === GameState.GRAVITY ||
+        gameState === GameState.GRAVITY2 ||
+        gameState === GameState.GRAVITY_BONUS
+      ) {
         applyGravity();
       }
     }, gravitySpeed);
@@ -318,6 +328,7 @@ const Grid: React.FC<GridProps> = ({
   useEffect(() => {
     handleGravityState(GameState.GRAVITY, GameState.LINE_CLEAR);
     handleGravityState(GameState.GRAVITY2, GameState.LINE_CLEAR2);
+    handleGravityState(GameState.GRAVITY_BONUS, GameState.BONUS_TX);
   }, [gameState, isMoving, transitioningBlocks]);
 
   const handleLineClear = (
@@ -351,6 +362,11 @@ const Grid: React.FC<GridProps> = ({
     handleLineClear(
       GameState.LINE_CLEAR2,
       GameState.GRAVITY2,
+      GameState.MOVE_TX,
+    );
+    handleLineClear(
+      GameState.LINE_CLEAR2,
+      GameState.GRAVITY_BONUS,
       GameState.MOVE_TX,
     );
   }, [gameState, blocks]);
