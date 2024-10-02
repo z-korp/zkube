@@ -14,6 +14,7 @@ import {
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
+import { motion } from "framer-motion";
 
 interface GridProps {
   initialData: Block[];
@@ -57,6 +58,7 @@ const Grid: React.FC<GridProps> = ({
   const [animateText, setAnimateText] = useState<ComboMessages>(
     ComboMessages.None,
   );
+  const [shouldBounce, setShouldBounce] = useState(false);
 
   const borderSize = 2;
   const gravitySpeed = 100;
@@ -77,6 +79,13 @@ const Grid: React.FC<GridProps> = ({
   const resetAnimateText = (): void => {
     setAnimateText(ComboMessages.None);
   };
+
+  useEffect(() => {
+    if (lineExplodedCount > 0) {
+      setShouldBounce(true); // Trigger bounce animation
+      setTimeout(() => setShouldBounce(false), 500); // Stop bouncing after 0.5s
+    }
+  }, [lineExplodedCount]);
 
   const handleTransitionBlockStart = (id: number) => {
     setTransitioningBlocks((prev) => {
@@ -187,7 +196,9 @@ const Grid: React.FC<GridProps> = ({
 
   const handleMoveTX = useCallback(
     async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
+      console.log("handleMoveTX");
       if (startColIndex === finalColIndex || isMoving) return;
+      console.log("return 1");
       if (!account) return;
       setIsTxProcessing(true);
       try {
@@ -373,40 +384,49 @@ const Grid: React.FC<GridProps> = ({
   }, [gameState, pendingMove, handleMoveTX]);
 
   return (
-    <div className={`grid-background ${isTxProcessing ? " cursor-wait" : ""} `}>
+    <motion.div
+      animate={shouldBounce ? { scale: [1, 1.1, 1, 1.1, 1] } : {}}
+      transition={{ duration: 0.2, ease: "easeInOut" }}
+    >
       <div
-        className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${isPlayerInDanger ? " animated-box-player-danger" : ""}`}
-        style={{
-          height: `${gridHeight * gridSize + borderSize}px`,
-          width: `${gridWidth * gridSize + borderSize}px`,
-          backgroundImage:
-            "linear-gradient(#1E293B 2px, transparent 2px), linear-gradient(to right, #1E293B 2px, #10172A 2px)",
-          backgroundSize: `${gridSize}px ${gridSize}px`,
-        }}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        className={`grid-background ${isTxProcessing ? " cursor-wait" : ""} `}
       >
-        {blocks.map((block) => (
-          <BlockContainer
-            key={block.id}
-            block={block}
-            gridSize={gridSize}
-            isTxProcessing={isTxProcessing}
-            transitionDuration={transitionDuration}
-            state={gameState}
-            handleMouseDown={handleMouseDown}
-            handleTouchStart={handleTouchStart}
-            onTransitionBlockStart={() => handleTransitionBlockStart(block.id)}
-            onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
-          />
-        ))}
-        <div className="flex items-center justify-center font-sans ">
-          <AnimatedText textEnum={animateText} reset={resetAnimateText} />
+        <div
+          className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${isPlayerInDanger ? " animated-box-player-danger" : ""}`}
+          style={{
+            height: `${gridHeight * gridSize + borderSize}px`,
+            width: `${gridWidth * gridSize + borderSize}px`,
+            backgroundImage:
+              "linear-gradient(#1E293B 2px, transparent 2px), linear-gradient(to right, #1E293B 2px, #10172A 2px)",
+            backgroundSize: `${gridSize}px ${gridSize}px`,
+          }}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {blocks.map((block) => (
+            <BlockContainer
+              key={block.id}
+              block={block}
+              gridSize={gridSize}
+              isTxProcessing={isTxProcessing}
+              transitionDuration={transitionDuration}
+              state={gameState}
+              handleMouseDown={handleMouseDown}
+              handleTouchStart={handleTouchStart}
+              onTransitionBlockStart={() =>
+                handleTransitionBlockStart(block.id)
+              }
+              onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
+            />
+          ))}
+          <div className="flex items-center justify-center font-sans">
+            <AnimatedText textEnum={animateText} reset={resetAnimateText} />
+          </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
