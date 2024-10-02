@@ -39,3 +39,37 @@
   background-size: cover;
   /*background-color: lightgoldenrodyellow;*/
 }
+
+@keyframes fadeInOutDanger {
+  0% {
+    box-shadow:
+      inset 0.5em 0.5em rgba(255, 215, 0, 0),
+      inset -0.5em -0.5em rgba(255, 215, 0, 0);
+  }
+  50% {
+    box-shadow:
+      inset 0.5em 0.5em 1em rgb(209, 18, 28),
+      inset -0.5em -0.5em 1em rgb(209, 18, 28);
+  }
+  100% {
+    box-shadow:
+      inset 0.5em 0.5em rgba(255, 215, 0, 0),
+      inset -0.5em -0.5em rgba(255, 215, 0, 0);
+  }
+}
+
+.animated-box-player-danger {
+  position: relative;
+}
+
+.animated-box-player-danger::before {
+  content: "";
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  z-index: 999;
+  animation: fadeInOutDanger 2s infinite;
+  pointer-events: none; /* Pour ne pas interférer avec les interactions utilisateurs */
+}

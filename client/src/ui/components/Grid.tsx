@@ -355,9 +355,9 @@ const Grid: React.FC<GridProps> = ({
   }, [gameState, pendingMove, handleMoveTX]);
 
   return (
-    <div className={`grid-background ${isTxProcessing ? "cursor-wait" : ""}`}>
+    <div className={`grid-background ${isTxProcessing ? " cursor-wait" : ""} `}>
       <div
-        className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${isPlayerInDanger ? "shadow-inner shadow-xl shadow-red-500/50" : ""}`}
+        className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${isPlayerInDanger ? " animated-box-player-danger" : ""}`}
         style={{
           height: `${gridHeight * gridSize + borderSize}px`,
           width: `${gridWidth * gridSize + borderSize}px`,
@@ -384,6 +384,7 @@ const Grid: React.FC<GridProps> = ({
             onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
           />
         ))}
+        <div is="size-parent"></div>
       </div>
     </div>
   );
