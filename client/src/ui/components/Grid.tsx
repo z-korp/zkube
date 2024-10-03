@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import "../../grid.css";
 import { Account } from "starknet";
 import { useDojo } from "@/dojo/useDojo";
-import useAccountCustom from "@/hooks/useAccountCustom";
 import BlockContainer from "./Block";
 import { GameState } from "@/enums/gameEnums";
 import { Block } from "@/types/types";
@@ -18,6 +17,7 @@ import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
 import { motion } from "framer-motion";
+import { BonusName } from "@/enums/bonusEnum";
 
 interface GridProps {
   initialData: Block[];
@@ -26,6 +26,8 @@ interface GridProps {
   gridWidth: number;
   gridHeight: number;
   selectBlock: (block: Block) => void;
+  bonus: BonusName;
+  account: Account | null;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -35,6 +37,8 @@ const Grid: React.FC<GridProps> = ({
   gridWidth,
   gridSize,
   selectBlock,
+  bonus,
+  account,
 }) => {
   const {
     setup: {
@@ -42,13 +46,13 @@ const Grid: React.FC<GridProps> = ({
     },
   } = useDojo();
 
-  const { account } = useAccountCustom();
   const [blocks, setBlocks] = useState<Block[]>(initialData);
   const [dragging, setDragging] = useState<Block | null>(null);
   const [dragStartX, setDragStartX] = useState(0);
   const [initialX, setInitialX] = useState(0);
   const [isMoving, setIsMoving] = useState(true);
   const [pendingMove, setPendingMove] = useState<{
+    block: Block;
     rowIndex: number;
     startX: number;
     finalX: number;
@@ -58,6 +62,7 @@ const Grid: React.FC<GridProps> = ({
   const [isTxProcessing, setIsTxProcessing] = useState(false);
   const [isPlayerInDanger, setIsPlayerInDanger] = useState(false);
   const [lineExplodedCount, setLineExplodedCount] = useState(0);
+  const [blockBonus, setBlockBonus] = useState<Block | null>(null);
   const [animateText, setAnimateText] = useState<ComboMessages>(
     ComboMessages.None,
   );
@@ -69,7 +74,6 @@ const Grid: React.FC<GridProps> = ({
 
   useEffect(() => {
     setBlocks(initialData);
-    setIsTxProcessing(false);
 
     const inDanger = initialData.some((block) => block.y < 2);
     setIsPlayerInDanger(inDanger);
@@ -77,6 +81,7 @@ const Grid: React.FC<GridProps> = ({
       setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
     }
     setLineExplodedCount(0);
+    setIsTxProcessing(false);
   }, [initialData]);
 
   const resetAnimateText = (): void => {
@@ -149,10 +154,23 @@ const Grid: React.FC<GridProps> = ({
 
   const handleMouseDown = (e: React.MouseEvent, block: Block) => {
     e.preventDefault();
-    selectBlock(block);
-    //setBlocks(removeBlocksSameWidth(block, blocks));
-    //setBlocks(removeBlocksSameRow(block, blocks));
-    //setBlocks(removeBlockId(block, blocks));
+
+    setBlockBonus(block);
+    if (bonus === BonusName.WAVE) {
+      setBlocks(removeBlocksSameRow(block, blocks));
+    }
+    if (bonus === BonusName.TIKI) {
+      setBlocks(removeBlocksSameWidth(block, blocks));
+    }
+    if (bonus === BonusName.HAMMER) {
+      setBlocks(removeBlockId(block, blocks));
+    }
+    if (bonus !== BonusName.NONE) {
+      setIsTxProcessing(true);
+      setIsMoving(true);
+      setGameState(GameState.GRAVITY_BONUS);
+      return;
+    }
     handleDragStart(e.clientX, block);
   };
 
@@ -179,7 +197,12 @@ const Grid: React.FC<GridProps> = ({
           const finalX = Math.round(b.x);
           if (Math.trunc(finalX) !== Math.trunc(initialX))
             setIsTxProcessing(true);
-          setPendingMove({ rowIndex: b.y, startX: initialX, finalX });
+          setPendingMove({
+            block: b,
+            rowIndex: b.y,
+            startX: initialX,
+            finalX,
+          });
           return { ...b, x: finalX };
         }
         return b;
@@ -192,19 +215,27 @@ const Grid: React.FC<GridProps> = ({
     setGameState(GameState.GRAVITY);
   };
 
-  const handleMouseUp = () => {
-    endDrag();
-  };
-
   const handleTouchEnd = () => {
     endDrag();
   };
 
+  useEffect(() => {
+    const handleMouseUp = (event: MouseEvent) => {
+      endDrag(); // Appeler directement endDrag() ici.
+    };
+
+    // Ajoute l'écouteur d'événements pour le document une seule fois.
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      // Nettoie l'écouteur d'événements lorsque le composant est démonté.
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [dragging]);
+
   const handleMoveTX = useCallback(
     async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
-      console.log("handleMoveTX");
       if (startColIndex === finalColIndex || isMoving) return;
-      console.log("return 1");
       if (!account) return;
       setIsTxProcessing(true);
       try {
@@ -328,7 +359,7 @@ const Grid: React.FC<GridProps> = ({
   useEffect(() => {
     handleGravityState(GameState.GRAVITY, GameState.LINE_CLEAR);
     handleGravityState(GameState.GRAVITY2, GameState.LINE_CLEAR2);
-    handleGravityState(GameState.GRAVITY_BONUS, GameState.BONUS_TX);
+    handleGravityState(GameState.GRAVITY_BONUS, GameState.LINE_CLEAR_BONUS);
   }, [gameState, isMoving, transitioningBlocks]);
 
   const handleLineClear = (
@@ -365,9 +396,9 @@ const Grid: React.FC<GridProps> = ({
       GameState.MOVE_TX,
     );
     handleLineClear(
-      GameState.LINE_CLEAR2,
+      GameState.LINE_CLEAR_BONUS,
       GameState.GRAVITY_BONUS,
-      GameState.MOVE_TX,
+      GameState.BONUS_TX,
     );
   }, [gameState, blocks]);
 
@@ -390,12 +421,18 @@ const Grid: React.FC<GridProps> = ({
   }, [gameState, blocks, pendingMove]);
 
   useEffect(() => {
-    if (gameState === GameState.MOVE_TX && pendingMove) {
-      console.log("MOVE_TX ========================> ", pendingMove);
-      const { rowIndex, startX, finalX } = pendingMove;
-      handleMoveTX(rowIndex, startX, finalX);
-      setPendingMove(null);
+    if (gameState === GameState.BONUS_TX) {
+      selectBlock(blockBonus as Block);
+      setBlockBonus(null);
       setGameState(GameState.WAITING);
+    }
+    if (gameState === GameState.MOVE_TX) {
+      if (pendingMove) {
+        const { rowIndex, startX, finalX } = pendingMove;
+        handleMoveTX(rowIndex, startX, finalX);
+        setPendingMove(null);
+        setGameState(GameState.WAITING);
+      }
     }
   }, [gameState, pendingMove, handleMoveTX]);
 
@@ -417,7 +454,7 @@ const Grid: React.FC<GridProps> = ({
             backgroundSize: `${gridSize}px ${gridSize}px`,
           }}
           onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
+          //onMouseUp={handleMouseUp}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >

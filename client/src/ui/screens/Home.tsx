@@ -187,6 +187,7 @@ export const Home = () => {
                       hammerCount={game.hammer - game.hammer_used}
                       totemCount={game.totem - game.totem_used}
                       waveCount={game.wave - game.wave_used}
+                      account={account}
                     />
                   </div>
                   <div className="mt-4 sm:mt-0 sm:absolute sm:right-0 sm:bottom-0 sm:mb-4 flex justify-center sm:justify-end w-full">
