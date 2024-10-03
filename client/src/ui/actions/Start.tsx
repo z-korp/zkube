@@ -123,7 +123,7 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
         {mode === ModeType.Daily ? "Daily Mode" : "Normal Mode"}
       </h2>
       <p className="text-lg">
-        <strong>Potential Winnings:</strong> {ethPrize}
+        <strong>Potential Win:</strong> {ethPrize}
       </p>
       <p className="text-lg">
         <strong>Price:</strong> {cost}

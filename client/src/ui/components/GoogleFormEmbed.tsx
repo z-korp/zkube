@@ -1,19 +1,12 @@
 const GoogleFormEmbed = () => {
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "60vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
+    <div className="w-full h-full pt-4 mx-auto">
       <iframe
         src="https://forms.gle/FzcHPa5vikMnW51H7"
-        width="80%"
-        height="90%"
+        className="mx-auto"
         style={{
+          width: "95%",
+          height: "100%",
           borderRadius: "15px",
           overflow: "hidden",
         }}
