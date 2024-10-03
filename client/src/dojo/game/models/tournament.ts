@@ -9,6 +9,11 @@ const distributionRatios = [
   { numerator: 1n, denominator: 6n },
 ];
 
+interface TournamentIds {
+  dailyId: number;
+  normalId: number;
+}
+
 export class Tournament {
   id: number;
   prize: bigint;
@@ -38,10 +43,9 @@ export class Tournament {
     this.top1_claimed = tournament.top1_claimed;
     this.top2_claimed = tournament.top2_claimed;
     this.top3_claimed = tournament.top3_claimed;
-    this.mode =
-      tournament.id > 19000
-        ? new Mode(ModeType.Daily)
-        : new Mode(ModeType.Normal);
+    this.mode = this.isDailyMode(tournament.id)
+      ? new Mode(ModeType.Daily)
+      : new Mode(ModeType.Normal);
     this.top1_prize =
       (BigInt(tournament.prize) * distributionRatios[0].numerator) /
       distributionRatios[0].denominator;
@@ -62,12 +66,17 @@ export class Tournament {
     return new Date(startTimestamp * 1000); // Convert seconds to milliseconds
   }
 
-  getEndDate(): Date | null {
-    if (this.mode.value === ModeType.Daily) {
-      return null; // Daily tournaments don't have an end date
-    }
-    const startTimestamp = this.id * NORMAL_MODE_DURATION;
-    const endTimestamp = startTimestamp + NORMAL_MODE_DURATION;
+  getEndDate(): Date {
+    const startTimestamp =
+      this.id *
+      (this.mode.value === ModeType.Daily
+        ? DAILY_MODE_DURATION
+        : NORMAL_MODE_DURATION);
+    const endTimestamp =
+      startTimestamp +
+      (this.mode.value === ModeType.Daily
+        ? DAILY_MODE_DURATION
+        : NORMAL_MODE_DURATION);
     return new Date(endTimestamp * 1000); // Convert seconds to milliseconds
   }
 
@@ -82,4 +91,24 @@ export class Tournament {
     const endDate = this.getEndDate();
     return endDate ? endDate < new Date() : false;
   }
+
+  computeTournamentIds = (date: Date): TournamentIds => {
+    const timestamp = Math.floor(date.getTime() / 1000); // Convert to seconds
+    const startOfDay = timestamp - (timestamp % DAILY_MODE_DURATION);
+
+    return {
+      dailyId: Math.floor(startOfDay / DAILY_MODE_DURATION),
+      normalId: Math.floor(startOfDay / NORMAL_MODE_DURATION),
+    };
+  };
+
+  isDailyMode = (id: number): boolean => {
+    const today = new Date();
+    const { dailyId, normalId } = this.computeTournamentIds(today);
+
+    const dailyDiff = Math.abs(id - dailyId);
+    const normalDiff = Math.abs(id - normalId);
+
+    return dailyDiff < normalDiff;
+  };
 }

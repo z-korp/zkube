@@ -49,10 +49,10 @@ export const RewardCard: React.FC<{
 
     if (endDate) {
       // Normal (monthly) tournament
-      return `${format(startDate, "MMM d")} - ${format(endDate, "MMM d, yyyy")}`;
+      return `${format(startDate, "MMM d, HH:mm")} - ${format(endDate, "MMM d, HH:mm, yyyy")}`;
     } else {
       // Daily tournament
-      return format(startDate, "MMM d, yyyy");
+      return format(startDate, "MMM d, HH:mm, yyyy");
     }
   };
 

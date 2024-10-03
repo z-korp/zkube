@@ -24,13 +24,12 @@ export const useTournaments = ({
   useEffect(() => {
     const components = tournamentKeys.map((entity) => {
       const component = getComponentValue(Tournament, entity);
+
       if (!component) {
         return undefined;
       }
       return new TournamentClass(component);
     });
-
-    console.log(components);
 
     setTournaments(
       components
