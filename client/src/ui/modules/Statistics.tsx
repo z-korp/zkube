@@ -169,36 +169,38 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
               </TabsList>
 
               <TabsContent value="overview" className="pt-1">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
                   <Card>
-                    <CardHeader>
+                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8">
                       <CardTitle>Games Played</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-4xl">
+                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:px-10">
                       {totalGamesPlayed}
                     </CardContent>
                   </Card>
                   <Card>
-                    <CardHeader>
+                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8">
                       <CardTitle>Highest Score</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-4xl">
+                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:px-10">
                       {highestScore}
                     </CardContent>
                   </Card>
                   <Card>
-                    <CardHeader>
+                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8">
                       <CardTitle>Average Score</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-4xl">
+                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:px-10">
                       {averageScore.toFixed(1)}
                     </CardContent>
                   </Card>
                   <Card>
-                    <CardHeader>
+                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8">
                       <CardTitle>Total Score</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-4xl">{totalScore}</CardContent>
+                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:px-10">
+                      {totalScore}
+                    </CardContent>
                   </Card>
                 </div>
               </TabsContent>

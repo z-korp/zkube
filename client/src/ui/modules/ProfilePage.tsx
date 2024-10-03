@@ -66,7 +66,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
             </Button>
           </DialogTrigger>
           <DialogContent
-            className="sm:max-w-[700px] w-[95%]"
+            className="sm:max-w-[700px] w-[95%] rounded-lg p-2 pt-4"
             aria-describedby={undefined}
           >
             <DialogHeader className="flex items-center text-2xl">
