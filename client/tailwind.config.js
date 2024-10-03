@@ -18,6 +18,7 @@ module.exports = {
     },
     extend: {
       fontFamily: {
+        sans: ["Bangers", "sans-serif"],
         display: ["Fredericka the Great", "sans"],
         body: ["Fredericka the Great", "sans"],
       },
