@@ -134,7 +134,7 @@ export const Home = () => {
                 </div>
               )}
               {!game && (
-                <div className="bg-slate-900 w-11/12 p-6 rounded-xl">
+                <div className="bg-slate-900 w-11/12 p-4 rounded-xl mb-4 max-h-[55vh]">
                   <LeaderboardContent />
                 </div>
               )}
