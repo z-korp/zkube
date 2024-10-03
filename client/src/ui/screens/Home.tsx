@@ -116,11 +116,11 @@ export const Home = () => {
             ease: "easeInOut",
           }}
         >
-          <div className="relative flex flex-col gap-8 grow items-center justify-start">
-            <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
+          <div className="relative flex flex-col gap-4 sm:gap-8 grow items-center justify-start">
+            <div className="absolute flex flex-col items-center gap-2 sm:gap-4 w-full p-2 max-w-4xl mt-2 sm:mt-4">
               <Create />
               {(!game || (!!game && isGameOn === "isOver")) && (
-                <div className="flex flex-col md:flex-row p-4 rounded-xl w-[93%] gap-4 items-center justify-evenly">
+                <div className="flex flex-col sm:flex-row p-2 sm:p-4 rounded-xl w-[93%] gap-2 sm:gap-4 items-center justify-evenly">
                   <Start
                     mode={ModeType.Daily}
                     handleGameMode={() => setIsGameOn("isOn")}
