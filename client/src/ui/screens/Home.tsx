@@ -23,9 +23,14 @@ import { toPng } from "html-to-image";
 import { LeaderboardContent } from "../modules/Leaderboard";
 import { useMediaQuery } from "react-responsive";
 import { useRewardsCalculator } from "@/stores/rewardsStore";
-import { Dialog } from "@/ui/elements/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
-import ReactDOM from "react-dom";
 
 export const Home = () => {
   const {
@@ -51,18 +56,6 @@ export const Home = () => {
   const [level, setLevel] = useState<number | "">(0);
   const [score, setScore] = useState<number | undefined>(0);
   const [imgData, setImgData] = useState<string>("");
-
-  const renderDialog = () => {
-    return ReactDOM.createPortal(
-      <Dialog open={isFeedbackModalOpen}>
-        <div className=" bg-white rounded-lg shadow-lg max-w-md mx-auto">
-          <GoogleFormEmbed />
-          <Button onClick={() => setIsFeedbackModalOpen(false)}>Close</Button>
-        </div>
-      </Dialog>,
-      document.getElementById("portal-root") as HTMLElement
-    );
-  };
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
@@ -110,8 +103,7 @@ export const Home = () => {
   }, []);
 
   return (
-    <div className="relative flex flex-col h-screen"  id="portal-root">
-      {isFeedbackModalOpen && renderDialog()}
+    <div className="relative flex flex-col h-screen" id="portal-root">
       <Header />
 
       <BackGroundBoard imageBackground={imgAssets.imageBackground}>
@@ -174,25 +166,30 @@ export const Home = () => {
                       </div>
                     </div>
                   </div>
-                  {isMdOrLarger && (
-                    <>
-                      <Button
-                        onClick={() => setIsFeedbackModalOpen(true)}
-                        className="md:text-2xl md:mt-4 mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg"
-                      >
-                        Give feedback and get a chance to win STRK
-                      </Button>
-                      {/* <Dialog
-                        open={isFeedbackModalOpen}
-                        // onClose={() => setIsFeedbackModalOpen(false)}
-                      >
-                        <div className="p-4">
-                          <h2 className="text-2xl font-bold mb-4">Feedback Form</h2>
-                          <GoogleFormEmbed />
+
+                  <>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          onClick={() => setIsFeedbackModalOpen(true)}
+                          className="md:text-2xl md:mt-4 mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg"
+                        >
+                          Give feedback and get a chance to win STRK
+                        </Button>
+                      </DialogTrigger>
+
+                      <DialogContent className="flex items-center justify-centerbg-opacity-50">
+                        <div className="flex flex-col h-[90vh] w-[90vw] max-w-4xl rounded-lg shadow-lg">
+                          <DialogHeader className="flex items-center text-2x">
+                            <DialogTitle>Feedback</DialogTitle>
+                          </DialogHeader>
+                          <div className="flex-grow overflow-auto px-2">
+                            <GoogleFormEmbed />
+                          </div>
                         </div>
-                      </Dialog> */}
-                    </>
-                  )}
+                      </DialogContent>
+                    </Dialog>
+                  </>
                 </>
               )}
               {!!game && isGameOn === "isOn" && (
@@ -247,7 +244,6 @@ export const Home = () => {
           </AnimatePresence>
         </BackGroundBoard>
       </BackGroundBoard>
-      
     </div>
   );
 };
