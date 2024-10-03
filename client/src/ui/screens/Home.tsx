@@ -23,6 +23,9 @@ import { toPng } from "html-to-image";
 import { LeaderboardContent } from "../modules/Leaderboard";
 import { useMediaQuery } from "react-responsive";
 import { useRewardsCalculator } from "@/stores/rewardsStore";
+import { Dialog } from "@/ui/elements/dialog";
+import { Button } from "@/ui/elements/button";
+import ReactDOM from "react-dom";
 
 export const Home = () => {
   const {
@@ -49,7 +52,21 @@ export const Home = () => {
   const [score, setScore] = useState<number | undefined>(0);
   const [imgData, setImgData] = useState<string>("");
 
+  const renderDialog = () => {
+    return ReactDOM.createPortal(
+      <Dialog open={isFeedbackModalOpen}>
+        <div className=" bg-white rounded-lg shadow-lg max-w-md mx-auto">
+          <GoogleFormEmbed />
+          <Button onClick={() => setIsFeedbackModalOpen(false)}>Close</Button>
+        </div>
+      </Dialog>,
+      document.getElementById("portal-root") as HTMLElement
+    );
+  };
+
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
+
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   useEffect(() => {
     if (game?.over) {
@@ -93,7 +110,8 @@ export const Home = () => {
   }, []);
 
   return (
-    <div className="relative flex flex-col h-screen">
+    <div className="relative flex flex-col h-screen"  id="portal-root">
+      {isFeedbackModalOpen && renderDialog()}
       <Header />
 
       <BackGroundBoard imageBackground={imgAssets.imageBackground}>
@@ -158,20 +176,21 @@ export const Home = () => {
                   </div>
                   {isMdOrLarger && (
                     <>
-                      <motion.h1
-                        className="md:text-2xl  md:mt-4 mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg"
-                        initial={{ scale: 1 }}
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          repeatType: "reverse",
-                          ease: "easeInOut",
-                        }}
+                      <Button
+                        onClick={() => setIsFeedbackModalOpen(true)}
+                        className="md:text-2xl md:mt-4 mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg"
                       >
                         Give feedback and get a chance to win STRK
-                      </motion.h1>
-                      <GoogleFormEmbed />
+                      </Button>
+                      {/* <Dialog
+                        open={isFeedbackModalOpen}
+                        // onClose={() => setIsFeedbackModalOpen(false)}
+                      >
+                        <div className="p-4">
+                          <h2 className="text-2xl font-bold mb-4">Feedback Form</h2>
+                          <GoogleFormEmbed />
+                        </div>
+                      </Dialog> */}
                     </>
                   )}
                 </>
@@ -228,6 +247,7 @@ export const Home = () => {
           </AnimatePresence>
         </BackGroundBoard>
       </BackGroundBoard>
+      
     </div>
   );
 };
