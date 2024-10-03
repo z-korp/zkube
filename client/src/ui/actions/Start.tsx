@@ -122,10 +122,10 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
       <h2 className="text-lg sm:text-2xl font-bold mb-1 sm:mb-2">
         {mode === ModeType.Daily ? "Daily Mode" : "Normal Mode"}
       </h2>
-      <p className="text-sm sm:text-lg">
+      <p className="text-xs sm:text-lg">
         <strong>Potential Win:</strong> {ethPrize}
       </p>
-      <p className="text-sm sm:text-lg">
+      <p className="text-xs sm:text-lg">
         <strong>Price:</strong> {cost}
       </p>
       <TournamentTimer mode={mode} endTimestamp={endTimestamp} />
@@ -133,7 +133,7 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
         disabled={isLoading || disabled}
         isLoading={isLoading}
         onClick={handleClick}
-        className="text-sm sm:text-xl mt-2 sm:mt-4 w-full transition-transform duration-300 ease-in-out hover:scale-105"
+        className="text-xs sm:text-xl mt-2 sm:mt-4 w-full transition-transform duration-300 ease-in-out hover:scale-105"
       >
         Play
       </Button>
