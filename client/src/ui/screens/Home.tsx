@@ -59,8 +59,6 @@ export const Home = () => {
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
-  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
-
   useEffect(() => {
     if (game?.over) {
       if (gameGrid.current !== null) {
@@ -173,17 +171,14 @@ export const Home = () => {
                   <>
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button
-                          onClick={() => setIsFeedbackModalOpen(true)}
-                          className="md:text-2xl md:mt-4 mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg"
-                        >
+                        <Button className="md:text-2xl md:mt-4 mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg">
                           Give feedback and get a chance to win STRK
                         </Button>
                       </DialogTrigger>
 
                       <DialogContent className="flex items-center justify-centerbg-opacity-50">
                         <div className="flex flex-col h-[90vh] w-[90vw] max-w-4xl rounded-lg shadow-lg">
-                          <DialogHeader className="flex items-center text-2x">
+                          <DialogHeader className="flex items-center">
                             <DialogTitle>Feedback</DialogTitle>
                           </DialogHeader>
                           <div className="flex-grow overflow-auto px-2">
