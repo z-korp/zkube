@@ -141,28 +141,31 @@ export const Home = () => {
               {!!game && isGameOn === "isOver" && (
                 <>
                   <div className="flex flex-col gap-4 mt-8 ">
-                    <p className="text-4xl text-center">Game Over</p>
-                    <div className="flex gap-4 justify-center items-center">
-                      <div className="grow text-4xl flex gap-2 justify-end">
-                        {game.score}
-                        <FontAwesomeIcon
-                          icon={faStar}
-                          className="text-yellow-500 ml-2"
-                        />
-                      </div>
-                      <div className="grow text-4xl flex gap-2 justify-end">
-                        {game.combo}
-                        <FontAwesomeIcon
-                          icon={faFire}
-                          className="text-slate-700 ml-2"
-                        />
-                      </div>
-                      <div className="grow text-4xl flex gap-2 justify-end">
-                        {game.max_combo}
-                        <FontAwesomeIcon
-                          icon={faGlobe}
-                          className="text-slate-700 ml-2"
-                        />
+                    <div className=" p-6 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
+                      <p className="text-4xl text-center">Game Over</p>
+
+                      <div className="flex gap-4 justify-center items-center">
+                        <div className="grow text-4xl flex gap-2 justify-end">
+                          {game.score}
+                          <FontAwesomeIcon
+                            icon={faStar}
+                            className="text-yellow-500 ml-2"
+                          />
+                        </div>
+                        <div className="grow text-4xl flex gap-2 justify-end">
+                          {game.combo}
+                          <FontAwesomeIcon
+                            icon={faFire}
+                            className="text-slate-700 ml-2"
+                          />
+                        </div>
+                        <div className="grow text-4xl flex gap-2 justify-end">
+                          {game.max_combo}
+                          <FontAwesomeIcon
+                            icon={faGlobe}
+                            className="text-slate-700 ml-2"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
