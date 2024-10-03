@@ -23,6 +23,7 @@ import { toPng } from "html-to-image";
 import { LeaderboardContent } from "../modules/Leaderboard";
 import { useMediaQuery } from "react-responsive";
 import { useRewardsCalculator } from "@/stores/rewardsStore";
+import MaxComboIcon from "../components/MaxComboIcon";
 
 export const Home = () => {
   const {
@@ -149,9 +150,10 @@ export const Home = () => {
                       </div>
                       <div className="grow text-4xl flex gap-2 justify-end">
                         {game.max_combo}
-                        <FontAwesomeIcon
-                          icon={faGlobe}
-                          className="text-slate-700 ml-2"
+                        <MaxComboIcon
+                          width={36}
+                          height={36}
+                          className={`text-slate-700 ml-2 `}
                         />
                       </div>
                     </div>
