@@ -57,6 +57,7 @@ export const Home = () => {
   const [level, setLevel] = useState<number | "">(0);
   const [score, setScore] = useState<number | undefined>(0);
   const [imgData, setImgData] = useState<string>("");
+  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
@@ -169,7 +170,6 @@ export const Home = () => {
                       </div>
                     </div>
                   </div>
-
                   <>
                     <Dialog>
                       <DialogTrigger asChild>
