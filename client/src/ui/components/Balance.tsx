@@ -35,11 +35,13 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
   });
 
   useEffect(() => {
-    if (data) {
+    if (data !== undefined) {
       const balanceData = data as BalanceData;
       const formattedBalance = parseFloat(
         formatUnits(balanceData.balance.low, 18, symbol === "ETH" ? 6 : 2),
       );
+
+      console.log("formattedBalance", formattedBalance);
 
       setTargetBalance(formattedBalance);
     }
@@ -56,7 +58,7 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
 
   if (isLoading) return <div>Loading ...</div>;
   if (isError || !data) return <div>{error?.message}</div>;
-  if (!displayBalance) return <div></div>;
+  if (displayBalance == undefined) return <div></div>;
 
   return (
     <div className="text-xs">
