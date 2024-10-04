@@ -23,6 +23,14 @@ import { toPng } from "html-to-image";
 import { LeaderboardContent } from "../modules/Leaderboard";
 import { useMediaQuery } from "react-responsive";
 import { useRewardsCalculator } from "@/stores/rewardsStore";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/ui/elements/dialog";
+import { Button } from "@/ui/elements/button";
 
 export const Home = () => {
   const {
@@ -93,7 +101,7 @@ export const Home = () => {
   }, []);
 
   return (
-    <div className="relative flex flex-col h-screen">
+    <div className="relative flex flex-col h-screen" id="portal-root">
       <Header />
 
       <BackGroundBoard imageBackground={imgAssets.imageBackground}>
@@ -108,11 +116,11 @@ export const Home = () => {
             ease: "easeInOut",
           }}
         >
-          <div className="relative flex flex-col gap-8 grow items-center justify-start">
-            <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
+          <div className="relative flex flex-col gap-4 sm:gap-8 grow items-center justify-start">
+            <div className="absolute flex flex-col items-center gap-2 sm:gap-4 w-full p-2 max-w-4xl mt-2 sm:mt-4">
               <Create />
               {(!game || (!!game && isGameOn === "isOver")) && (
-                <div className="flex flex-col md:flex-row p-4 rounded-xl w-[93%] gap-4 items-center justify-evenly">
+                <div className="flex flex-col sm:flex-row p-2 sm:p-4 rounded-xl w-[93%] gap-2 sm:gap-4 items-center justify-evenly">
                   <Start
                     mode={ModeType.Daily}
                     handleGameMode={() => setIsGameOn("isOn")}
@@ -124,56 +132,62 @@ export const Home = () => {
                 </div>
               )}
               {!game && (
-                <div className="bg-slate-900 w-11/12 p-6 rounded-xl">
+                <div className="bg-slate-900 w-11/12 p-4 rounded-xl mb-4 max-h-[55vh]">
                   <LeaderboardContent />
                 </div>
               )}
               {!!game && isGameOn === "isOver" && (
                 <>
                   <div className="flex flex-col gap-4 mt-8 ">
-                    <p className="text-4xl text-center">Game Over</p>
-                    <div className="flex gap-4 justify-center items-center">
-                      <div className="grow text-4xl flex gap-2 justify-end">
-                        {game.score}
-                        <FontAwesomeIcon
-                          icon={faStar}
-                          className="text-yellow-500 ml-2"
-                        />
-                      </div>
-                      <div className="grow text-4xl flex gap-2 justify-end">
-                        {game.combo}
-                        <FontAwesomeIcon
-                          icon={faFire}
-                          className="text-slate-700 ml-2"
-                        />
-                      </div>
-                      <div className="grow text-4xl flex gap-2 justify-end">
-                        {game.max_combo}
-                        <FontAwesomeIcon
-                          icon={faGlobe}
-                          className="text-slate-700 ml-2"
-                        />
+                    <div className=" p-6 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
+                      <p className="text-4xl text-center">Game Over</p>
+
+                      <div className="flex gap-4 justify-center items-center">
+                        <div className="grow text-4xl flex gap-2 justify-end">
+                          {game.score}
+                          <FontAwesomeIcon
+                            icon={faStar}
+                            className="text-yellow-500 ml-2"
+                          />
+                        </div>
+                        <div className="grow text-4xl flex gap-2 justify-end">
+                          {game.combo}
+                          <FontAwesomeIcon
+                            icon={faFire}
+                            className="text-slate-700 ml-2"
+                          />
+                        </div>
+                        <div className="grow text-4xl flex gap-2 justify-end">
+                          {game.max_combo}
+                          <FontAwesomeIcon
+                            icon={faGlobe}
+                            className="text-slate-700 ml-2"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
-                  {isMdOrLarger && (
-                    <>
-                      <motion.h1
-                        className="md:text-2xl  md:mt-4 mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg"
-                        initial={{ scale: 1 }}
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          repeatType: "reverse",
-                          ease: "easeInOut",
-                        }}
-                      >
-                        Give feedback and get a chance to win STRK
-                      </motion.h1>
-                      <GoogleFormEmbed />
-                    </>
-                  )}
+
+                  <>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="md:text-2xl md:mt-4 mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg">
+                          Give feedback and get a chance to win STRK
+                        </Button>
+                      </DialogTrigger>
+
+                      <DialogContent className="flex items-center justify-centerbg-opacity-50">
+                        <div className="flex flex-col h-[90vh] w-[90vw] max-w-4xl rounded-lg shadow-lg">
+                          <DialogHeader className="flex items-center">
+                            <DialogTitle>Feedback</DialogTitle>
+                          </DialogHeader>
+                          <div className="flex-grow overflow-auto px-2">
+                            <GoogleFormEmbed />
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </>
                 </>
               )}
               {!!game && isGameOn === "isOn" && (
