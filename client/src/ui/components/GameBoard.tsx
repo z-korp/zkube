@@ -12,6 +12,7 @@ import { transformDataContratIntoBlock } from "@/utils/gridUtils";
 import NextLine from "./NextLine";
 import { Block } from "@/types/types";
 import { BonusName } from "@/enums/bonusEnum";
+import { useLerpNumber } from "@/hooks/useLerpNumber";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -166,13 +167,23 @@ const GameBoard: React.FC<GameBoardProps> = ({
     [nextLine],
   );
 
+  const displayScore = useLerpNumber(score, {
+    integer: true,
+  });
+  const displayCombo = useLerpNumber(combo, {
+    integer: true,
+  });
+  const displayMaxCombo = useLerpNumber(maxCombo, {
+    integer: true,
+  });
+
   return (
     <>
       <Card
         className={`p-4 bg-secondary ${isTxProcessing ? "cursor-wait" : "cursor-move"}`}
       >
         <div
-          className={`${isMdOrLarger ? "w-[420px]" : "w-[320px]"} mb-4 flex justify-between`}
+          className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} mb-4 flex justify-between`}
         >
           <div className="w-5/12">
             <GameBonus
@@ -185,14 +196,14 @@ const GameBoard: React.FC<GameBoardProps> = ({
               bonus={bonus}
             />
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-2">
             <div
               className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
             >
-              <span>{score}</span>
+              <span>{displayScore}</span>
               <FontAwesomeIcon
                 icon={faStar}
-                className="text-yellow-500 ml-2"
+                className="text-yellow-500 ml-1"
                 width={26}
                 height={26}
               />
@@ -200,10 +211,14 @@ const GameBoard: React.FC<GameBoardProps> = ({
             <div
               className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
             >
-              <span>{combo}</span>
+              <span
+                className={`${isMdOrLarger ? "w-[38px]" : "w-[26px]"} text-right`}
+              >
+                {displayCombo}
+              </span>
               <FontAwesomeIcon
                 icon={faFire}
-                className="text-yellow-500 ml-2"
+                className="text-yellow-500 ml-1"
                 width={26}
                 height={26}
               />
@@ -211,11 +226,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
             <div
               className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
             >
-              <span>{maxCombo}</span>
+              <span
+                className={`${isMdOrLarger ? "w-[20px]" : "w-[13px]"} text-right`}
+              >
+                {displayMaxCombo}
+              </span>
               <MaxComboIcon
-                width={26}
-                height={26}
-                className={`text-yellow-500 ml-2 `}
+                width={isMdOrLarger ? 31 : 25}
+                height={isMdOrLarger ? 31 : 25}
+                className="text-yellow-500 ml-1"
               />
             </div>
           </div>

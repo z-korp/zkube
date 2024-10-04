@@ -10,6 +10,7 @@ mod errors {
     const CHEST_NOT_EXIST: felt252 = 'Chest: Does not exist';
     const CHEST_ALREADY_EXIST: felt252 = 'Chest: Already exist';
     const CHEST_IS_NOT_COMPLETE: felt252 = 'Chest: Is not complete';
+    const CHEST_IS_COMPLETE: felt252 = 'Chest: Is complete';
 }
 
 
@@ -59,7 +60,7 @@ impl ChestAssert of AssertTrait {
 
     #[inline(always)]
     fn assert_not_complete(self: Chest) {
-        assert(!self.is_complete(), errors::CHEST_IS_NOT_COMPLETE);
+        assert(!self.is_complete(), errors::CHEST_IS_COMPLETE);
     }
 }
 

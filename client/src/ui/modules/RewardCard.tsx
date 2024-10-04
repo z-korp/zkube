@@ -10,6 +10,9 @@ import silver from "../../../public/assets/trophies/silver.png";
 import gold from "../../../public/assets/trophies/gold.png";
 import { format } from "date-fns";
 import { ModeType } from "@/dojo/game/types/mode";
+import { formatPrize } from "@/utils/wei";
+
+const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
 export const RewardCard: React.FC<{
   type: "chest" | "tournament";
@@ -18,7 +21,6 @@ export const RewardCard: React.FC<{
   // chest
   chest?: Chest;
   userContribution?: number;
-  userPrizeShare?: bigint;
   // tournament
   tournament?: Tournament;
   tournament_reward?: TournamentReward;
@@ -82,7 +84,13 @@ export const RewardCard: React.FC<{
           <div>
             {type === "chest" ? (
               <>
-                <p className="mb-2">A {amount} chest opened collectively.</p>
+                <p className="mb-2">
+                  A{" "}
+                  {chest?.prize
+                    ? formatPrize(chest?.prize, VITE_PUBLIC_GAME_TOKEN_SYMBOL)
+                    : ""}{" "}
+                  chest opened collectively.
+                </p>
                 <p className="mb-2">
                   Your contribution: {userContribution?.toLocaleString()} /{" "}
                   {chest?.point_target} points

@@ -14,6 +14,7 @@ const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 interface ParticipationWithPrize extends Participation {
   raw_prize: bigint;
   formatted_prize: string;
+  formatted_user_prize: string;
 }
 
 export type TournamentReward = {
@@ -69,13 +70,27 @@ export const useRewardsCalculator = () => {
           const chest = chests.find(
             (chest) => chest.id === participation.chest_id,
           );
-          const rawPrize = chest ? BigInt(chest.prize) : BigInt(0);
+
+          if (!chest)
+            return {
+              ...participation,
+              raw_prize: 0n,
+              formatted_prize: "",
+              formatted_user_prize: "",
+            };
+
+          const rawPrize = BigInt(chest.prize);
+          const totalPoints = BigInt(chest?.point_target);
 
           return {
             ...participation,
             raw_prize: rawPrize,
             formatted_prize: formatPrize(
               rawPrize,
+              VITE_PUBLIC_GAME_TOKEN_SYMBOL,
+            ),
+            formatted_user_prize: formatPrize(
+              (rawPrize * BigInt(participation.points)) / totalPoints,
               VITE_PUBLIC_GAME_TOKEN_SYMBOL,
             ),
           };

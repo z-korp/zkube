@@ -76,10 +76,9 @@ export const Rewards = () => {
         <RewardCard
           key={p.chest_id}
           type="chest"
-          amount={p.formatted_prize}
+          amount={p.formatted_user_prize}
           chest={chests.find((chest) => chest.id === p.chest_id)}
           userContribution={p.points}
-          userPrizeShare={p.raw_prize}
           onClaim={() => handleClaimChest(p.chest_id)}
         />
       ))}

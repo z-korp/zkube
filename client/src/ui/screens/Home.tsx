@@ -3,7 +3,7 @@ import { Create } from "../actions/Create";
 import { Start } from "../actions/Start";
 import GameBoard from "../components/GameBoard";
 import BackGroundBoard from "../components/BackgroundBoard";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
@@ -13,7 +13,7 @@ import { useDojo } from "@/dojo/useDojo";
 import { useTheme } from "@/ui/elements/theme-provider";
 import { Surrender } from "../actions/Surrender";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFire, faGlobe, faStar } from "@fortawesome/free-solid-svg-icons";
+import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
 import GoogleFormEmbed from "../components/GoogleFormEmbed";
 import { useQuerySync } from "@dojoengine/react";
 import { ModeType } from "@/dojo/game/types/mode";
@@ -31,6 +31,7 @@ import {
   DialogTrigger,
 } from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
+import MaxComboIcon from "../components/MaxComboIcon";
 
 export const Home = () => {
   const {
@@ -159,9 +160,10 @@ export const Home = () => {
                         </div>
                         <div className="grow text-4xl flex gap-2 justify-end">
                           {game.max_combo}
-                          <FontAwesomeIcon
-                            icon={faGlobe}
-                            className="text-slate-700 ml-2"
+                          <MaxComboIcon
+                            width={36}
+                            height={36}
+                            className={`text-slate-700 ml-2 `}
                           />
                         </div>
                       </div>
@@ -194,14 +196,21 @@ export const Home = () => {
                 <div className="relative w-full">
                   <div ref={gameGrid} className="flex flex-col items-center">
                     <GameBoard
-                      initialGrid={game.blocks}
-                      nextLine={game.next_row}
-                      score={game.score}
-                      combo={game.combo}
-                      maxCombo={game.max_combo}
-                      hammerCount={game.hammer - game.hammer_used}
-                      totemCount={game.totem - game.totem_used}
-                      waveCount={game.wave - game.wave_used}
+                      // check if game is over because otherwise we can display
+                      // previous game data on the board while the new game is starting
+                      // and torii indexing
+                      initialGrid={game.isOver() ? [] : game.blocks}
+                      nextLine={game.isOver() ? [] : game.next_row}
+                      score={game.isOver() ? 0 : game.score}
+                      combo={game.isOver() ? 0 : game.combo}
+                      maxCombo={game.isOver() ? 0 : game.max_combo}
+                      hammerCount={
+                        game.isOver() ? 0 : game.hammer - game.hammer_used
+                      }
+                      totemCount={
+                        game.isOver() ? 0 : game.totem - game.totem_used
+                      }
+                      waveCount={game.isOver() ? 0 : game.wave - game.wave_used}
                       account={account}
                     />
                   </div>

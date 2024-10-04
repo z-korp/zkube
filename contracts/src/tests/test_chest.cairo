@@ -14,8 +14,16 @@ use zkube::types::mode::Mode;
 use zkube::constants::{PRECISION_FACTOR, DAILY_MODE_DURATION, CHEST_PERCENTAGE, DAILY_MODE_PRICE};
 
 use zkube::tests::setup::{
-    setup, setup::{Systems, PLAYER1, PLAYER2, PLAYER3, PLAYER4, IERC20DispatcherTrait}
+    setup, setup::{Systems, PLAYER1, PLAYER2, PLAYER3, PLAYER4, IERC20DispatcherTrait, IChestDispatcherTrait}
 };
+
+fn abs_difference(a: u256, b: u256) -> u256 {
+    if a >= b {
+        a - b
+    } else {
+        b - a
+    }
+}
 
 #[test]
 fn test_chest_creation_and_completion() {
@@ -110,8 +118,13 @@ fn test_chest_claim() {
     chest.points = 9_982;
     store.set_chest(chest);
 
-    // Player 1
+    // Sponsor the chest
     set_contract_address(PLAYER1());
+    let sponso: u256 = 1000_000_000_000_000_000_000;
+    context.erc20.approve(context.chest_address, sponso);
+    systems.chest.sponsor(1, sponso.try_into().unwrap()); // 1000 LORDS
+
+    // Player 1
     let player1_balance = context.erc20.balance_of(PLAYER1());
     context.erc20.approve(context.tournament_address, settings.daily_mode_price.into());
     context.erc20.approve(context.chest_address, settings.daily_mode_price.into());
@@ -170,6 +183,9 @@ fn test_chest_claim() {
     // [Assert] Player balances
     let daily_mode_price: felt252 = DAILY_MODE_PRICE;
     let daily_mode_price_u256 = daily_mode_price.into();
+    println!("Daily mode price: {}", daily_mode_price_u256);
+    println!("Player1 balance: {}", player1_balance);
+    println!("Player1 new balance: {}", player1_new_balance);
     assert(player1_new_balance == player1_balance - daily_mode_price_u256, 'Player1 balance wrong');
     assert(player2_new_balance == player2_balance - daily_mode_price_u256, 'Player2 balance wrong');
     assert(player3_new_balance == player3_balance - daily_mode_price_u256, 'Player3 balance wrong');
@@ -188,7 +204,7 @@ fn test_chest_claim() {
     // Chest 1 gets 3 full games + 4/7 of the last game
     let chest1_fraction = (3_u256 * PRECISION_FACTOR.into())
         + (4_u256 * PRECISION_FACTOR.into()) / 7_u256;
-    let expected_prize1 = (prize_per_game * chest1_fraction) / PRECISION_FACTOR.into();
+    let expected_prize1 = (prize_per_game * chest1_fraction) / PRECISION_FACTOR.into() ;
 
     // Chest 2 gets 3/7 of the last game
     let chest2_fraction = 3_u256 * PRECISION_FACTOR.into() / 7_u256;
@@ -196,17 +212,25 @@ fn test_chest_claim() {
 
     println!("Chest 1 prize: {}", chest.prize);
     println!("Expected prize 1: {}", expected_prize1);
-    assert(chest.prize.into() - expected_prize1, 'Chest1 prize mismatch');
+    println!("(Chest 1 prize - Expected prize 1): {}", chest.prize.into() - expected_prize1);
+    assert(abs_difference(chest.prize.into(), expected_prize1 + sponso) < 5000000000000 , 'Chest1 prize mismatch'); // because of rounding
 
     let chest2 = store.chest(2);
     println!("Chest 2 prize: {}", chest2.prize);
     println!("Expected prize 2: {}", expected_prize2);
-    assert(chest2.prize.into() == expected_prize2, 'Chest2 prize mismatch');
+    println!("abs_difference(chest2.prize.into(), expected_prize2): {}", abs_difference(chest2.prize.into(), expected_prize2));
+    assert(abs_difference(chest2.prize.into(), expected_prize2) < 5000000000000, 'Chest2 prize mismatch');
 
     let chest2 = store.chest(2);
     assert(chest2.points == 3, 'Chest2 points should be 3');
     assert(!chest2.is_complete(), 'Chest2 should not be completed');
-    assert(chest2.remaining_points() == 24_999, 'Chest2 remain pts should 24999');
-    assert(chest.prize == 0, 'Chest2 wrong prize');
+    assert(chest2.remaining_points() == 24_997, 'Chest2 remain pts should 24_997');
+
+    // Claim
+    let chest_balance = context.erc20.balance_of(context.chest_address);
+    println!("chest_balance {}", chest_balance);
+    let expected_chest_balance = expected_prize1 + expected_prize2 + sponso;
+    println!("expected_chest_balance {}", expected_chest_balance);
+    assert(chest_balance == expected_chest_balance , 'Wrong chest balance');
 }
 
