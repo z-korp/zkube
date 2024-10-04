@@ -8,7 +8,6 @@ import {
 } from "@/ui/elements/dialog";
 import { CardContent } from "@/ui/elements/card";
 import { Button } from "@/ui/elements/button";
-import { Achievements } from "./Achievements";
 import { Statistics } from "./Statistics";
 import Connect from "../components/Connect";
 import { useGames } from "@/hooks/useGames";
@@ -17,11 +16,20 @@ import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 import { Level } from "@/dojo/game/types/level";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/elements/tabs";
 import { motion } from "framer-motion";
+import { Rewards } from "./Rewards";
+import { useRewardsStore } from "@/stores/rewardsStore";
+import NotifCount from "../components/NotifCount";
 
-export const ProfilePage = () => {
+interface ProfilePageProps {
+  wfit: boolean;
+}
+
+export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
   const { games } = useGames();
+
+  const rewardsCount = useRewardsStore((state) => state.rewardsCount);
 
   const filteredGames = useMemo(() => {
     if (!account?.address || !games) return [];
@@ -49,46 +57,58 @@ export const ProfilePage = () => {
       {player && (
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline">{player.name}</Button>
+            <Button
+              variant="outline"
+              className={`relative w-${wfit ? "fit" : "full"}`}
+            >
+              {player.name}
+              {rewardsCount > 0 && <NotifCount count={rewardsCount} />}
+            </Button>
           </DialogTrigger>
           <DialogContent
-            className="w-full max-w-2xl"
+            className="sm:max-w-[700px] w-[95%] rounded-lg p-2 pt-4"
             aria-describedby={undefined}
           >
             <DialogHeader className="flex items-center text-2xl">
               <DialogTitle>Profile</DialogTitle>
             </DialogHeader>
-            <Tabs defaultValue="achievements">
+            <Tabs
+              defaultValue="rewards"
+              className="flex-grow min-h-[480px] flex flex-col"
+            >
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="achievements">Achievements</TabsTrigger>
+                {/*<TabsTrigger value="achievements">Achievements</TabsTrigger>*/}
+                <TabsTrigger value="rewards" className="relative">
+                  Rewards
+                  {rewardsCount > 0 && <NotifCount count={rewardsCount} />}
+                </TabsTrigger>
                 <TabsTrigger value="stats">Statistics</TabsTrigger>
               </TabsList>
               <TabsContent
-                className="max-h-[50vh] overflow-y-auto"
-                value="achievements"
+                className="max-h-[480px] overflow-y-auto"
+                value="rewards"
                 asChild
               >
                 <motion.div
-                  key="achievements"
+                  key="rewards"
                   initial={{ opacity: 0, x: -50 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 50 }}
                   transition={{ duration: 0.5, ease: "easeInOut" }}
                 >
-                  <CardContent>
+                  {/*<CardContent>
                     <Achievements
                       level={levelPlayer?.value || 1}
                       highestScore={highestScore}
                       highestCombo={highestCombo}
                     />
+                  </CardContent>*/}
+                  <CardContent className="p-0 mt-2">
+                    <Rewards />
                   </CardContent>
                 </motion.div>
               </TabsContent>
-              <TabsContent
-                className="max-h-[50vh] overflow-y-auto"
-                value="stats"
-                asChild
-              >
+              <TabsContent className="max-h-[480px]" value="stats" asChild>
                 <motion.div
                   key="statistics"
                   initial={{ opacity: 0, x: -50 }}
@@ -96,7 +116,7 @@ export const ProfilePage = () => {
                   exit={{ opacity: 0, x: 50 }}
                   transition={{ duration: 0.5, ease: "easeInOut" }}
                 >
-                  <CardContent>
+                  <CardContent className="p-0">
                     <Statistics games={filteredGames} />
                   </CardContent>
                 </motion.div>

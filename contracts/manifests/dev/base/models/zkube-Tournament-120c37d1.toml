@@ -1,6 +1,6 @@
 kind = "DojoModel"
-class_hash = "0x6ecc639f92decc1fa67b18288e29c553f7ec5fa5fd10f278abd66886cc45e46"
-original_class_hash = "0x6ecc639f92decc1fa67b18288e29c553f7ec5fa5fd10f278abd66886cc45e46"
+class_hash = "0x5f70cc3ff995fbbd09d926feb148fec575a1b9b12b529937473ded65567ffe1"
+original_class_hash = "0x5f70cc3ff995fbbd09d926feb148fec575a1b9b12b529937473ded65567ffe1"
 abi = "manifests/dev/base/abis/models/zkube-Tournament-120c37d1.json"
 tag = "zkube-Tournament"
 qualified_path = "zkube::models::index::tournament"
@@ -18,7 +18,7 @@ key = false
 
 [[members]]
 name = "prize"
-type = "felt252"
+type = "u128"
 key = false
 
 [[members]]

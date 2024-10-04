@@ -41,25 +41,23 @@ impl SettingsImpl of SettingsTrait {
     }
 
     #[inline(always)]
-    fn set_daily_mode_price(ref self: Settings, value: felt252) {
-        let value_u256: u256 = value.into();
+    fn set_daily_mode_price(ref self: Settings, value: u128) {
         // [Check] Value is valid (you might want to add more specific checks)
-        assert(value_u256 >= 0, errors::INVALID_DAILY_MODE_PRICE);
+        assert(value >= 0, errors::INVALID_DAILY_MODE_PRICE);
         // [Effect] Update daily mode price
         self.daily_mode_price = value;
     }
 
     #[inline(always)]
-    fn set_normal_mode_price(ref self: Settings, value: felt252) {
-        let value_u256: u256 = value.into();
+    fn set_normal_mode_price(ref self: Settings, value: u128) {
         // [Check] Value is valid (you might want to add more specific checks)
-        assert(value_u256 >= 0, errors::INVALID_NORMAL_MODE_PRICE);
+        assert(value >= 0, errors::INVALID_NORMAL_MODE_PRICE);
         // [Effect] Update normal mode prize
         self.normal_mode_price = value;
     }
 
     #[inline(always)]
-    fn get_mode_price(self: Settings, mode: Mode) -> felt252 {
+    fn get_mode_price(self: Settings, mode: Mode) -> u128 {
         match mode {
             Mode::Normal => self.normal_mode_price,
             Mode::Daily => self.daily_mode_price,

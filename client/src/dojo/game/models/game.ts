@@ -43,6 +43,7 @@ export class Game {
   public player_id: string;
   public seed: bigint;
   public start_time: Date;
+  public tournament_id: number;
 
   constructor(game: ComponentValue) {
     this.id = game.id;
@@ -74,6 +75,7 @@ export class Game {
     this.player_id = "0x" + game.player_id.toString(16);
     this.seed = game.seed;
     this.start_time = game.start_time;
+    this.tournament_id = game.tournament_id;
 
     // Destructure blocks and colors bitmaps in to Rows and Blocks
     this.blocks = Packer.sized_unpack(

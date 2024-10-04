@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -6,15 +6,13 @@ import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
 import { useMediaQuery } from "react-responsive";
 import { Account } from "starknet";
-import useAccountCustom from "@/hooks/useAccountCustom";
 import MaxComboIcon from "./MaxComboIcon";
 import Grid from "./Grid";
 import { transformDataContratIntoBlock } from "@/utils/gridUtils";
-import { dataContrat } from "@/fixtures/dataTest";
 import NextLine from "./NextLine";
 import { Block } from "@/types/types";
 import { BonusName } from "@/enums/bonusEnum";
-import { set } from "mobx";
+import { useLerpNumber } from "@/hooks/useLerpNumber";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -25,6 +23,7 @@ interface GameBoardProps {
   hammerCount: number;
   waveCount: number;
   totemCount: number;
+  account: Account | null;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -36,13 +35,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
   waveCount,
   hammerCount,
   totemCount,
+  account,
 }) => {
   const {
     setup: {
       systemCalls: { applyBonus },
     },
   } = useDojo();
-  const { account } = useAccountCustom();
 
   const [isTxProcessing, setIsTxProcessing] = useState(false);
 
@@ -133,28 +132,50 @@ const GameBoard: React.FC<GameBoardProps> = ({
     [account],
   );
 
-  const selectBlock = (block: Block) => {
-    if (bonus === BonusName.WAVE) {
-      console.log("wave with block", block);
-      handleBonusWaveTx(block.y);
-    }
-    if (bonus === BonusName.TIKI) {
-      console.log("tiki with block", block);
-      handleBonusTikiTx(block.y, block.x);
-    }
-    if (bonus === BonusName.HAMMER) {
-      console.log("hammer with block", block);
-      handleBonusHammerTx(block.y, block.x);
-    }
-    if (bonus === BonusName.NONE) {
-      console.log("none", block);
-    }
-  };
+  const selectBlock = useCallback(
+    async (block: Block) => {
+      if (bonus === BonusName.WAVE) {
+        console.log("wave with block", block);
+        handleBonusWaveTx(block.y);
+      }
+      if (bonus === BonusName.TIKI) {
+        console.log("tiki with block", block);
+        handleBonusTikiTx(block.y, block.x);
+      }
+      if (bonus === BonusName.HAMMER) {
+        console.log("hammer with block", block);
+        handleBonusHammerTx(block.y, block.x);
+      }
+      if (bonus === BonusName.NONE) {
+        console.log("none", block);
+      }
+    },
+    [bonus],
+  );
 
   useEffect(() => {
     setIsTxProcessing(false);
     setBonus(BonusName.NONE);
   }, [initialGrid]);
+
+  const memorizedInitialData = useMemo(
+    () => transformDataContratIntoBlock(initialGrid),
+    [initialGrid],
+  );
+  const memorizedNextLineData = useMemo(
+    () => transformDataContratIntoBlock([nextLine]),
+    [nextLine],
+  );
+
+  const displayScore = useLerpNumber(score, {
+    integer: true,
+  });
+  const displayCombo = useLerpNumber(combo, {
+    integer: true,
+  });
+  const displayMaxCombo = useLerpNumber(maxCombo, {
+    integer: true,
+  });
 
   return (
     <>
@@ -162,7 +183,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         className={`p-4 bg-secondary ${isTxProcessing ? "cursor-wait" : "cursor-move"}`}
       >
         <div
-          className={`${isMdOrLarger ? "w-[420px]" : "w-[320px]"} mb-4 flex justify-between`}
+          className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} mb-4 flex justify-between`}
         >
           <div className="w-5/12">
             <GameBonus
@@ -175,14 +196,14 @@ const GameBoard: React.FC<GameBoardProps> = ({
               bonus={bonus}
             />
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-2">
             <div
               className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
             >
-              <span>{score}</span>
+              <span>{displayScore}</span>
               <FontAwesomeIcon
                 icon={faStar}
-                className="text-yellow-500 ml-2"
+                className="text-yellow-500 ml-1"
                 width={26}
                 height={26}
               />
@@ -190,10 +211,14 @@ const GameBoard: React.FC<GameBoardProps> = ({
             <div
               className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
             >
-              <span>{combo}</span>
+              <span
+                className={`${isMdOrLarger ? "w-[38px]" : "w-[26px]"} text-right`}
+              >
+                {displayCombo}
+              </span>
               <FontAwesomeIcon
                 icon={faFire}
-                className="text-yellow-500 ml-2"
+                className="text-yellow-500 ml-1"
                 width={26}
                 height={26}
               />
@@ -201,23 +226,29 @@ const GameBoard: React.FC<GameBoardProps> = ({
             <div
               className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
             >
-              <span>{maxCombo}</span>
+              <span
+                className={`${isMdOrLarger ? "w-[20px]" : "w-[13px]"} text-right`}
+              >
+                {displayMaxCombo}
+              </span>
               <MaxComboIcon
-                width={26}
-                height={26}
-                className={`text-yellow-500 ml-2 `}
+                width={isMdOrLarger ? 31 : 25}
+                height={isMdOrLarger ? 31 : 25}
+                className="text-yellow-500 ml-1"
               />
             </div>
           </div>
         </div>
         <div className="flex justify-center items-center">
           <Grid
-            initialData={transformDataContratIntoBlock(initialGrid)}
-            nextLineData={transformDataContratIntoBlock([nextLine])}
+            initialData={memorizedInitialData}
+            nextLineData={memorizedNextLineData}
             gridSize={gridSize}
             gridHeight={rows}
             gridWidth={cols}
             selectBlock={selectBlock}
+            bonus={bonus}
+            account={account}
           />
         </div>
         <br />

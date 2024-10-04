@@ -14,26 +14,4 @@ export class Participation {
     this.points = participation.points;
     this.claimed = participation.claimed;
   }
-
-  public isParticipating(): boolean {
-    return this.is_set;
-  }
-
-  public addPoints(pointsToAdd: number): void {
-    this.points += pointsToAdd;
-  }
-
-  public canClaim(): boolean {
-    return this.is_set && !this.claimed;
-  }
-
-  public claim(): void {
-    if (this.canClaim()) {
-      this.claimed = true;
-    }
-  }
-
-  public getProgress(targetPoints: number): number {
-    return Math.min(this.points / targetPoints, 1);
-  }
 }

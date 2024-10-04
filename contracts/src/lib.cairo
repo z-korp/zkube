@@ -83,6 +83,7 @@ mod tests {
     mod test_bonus_totem;
     mod test_admin;
     mod test_chest;
+    mod test_bonus;
 
     mod mocks {
         mod erc20;

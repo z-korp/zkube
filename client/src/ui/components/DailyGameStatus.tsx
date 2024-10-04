@@ -12,9 +12,9 @@ const DailyGameStatus = React.memo(() => {
 
   if (player && credits) {
     return (
-      <div className="items-center flex rounded-lg px-2 md:px-3 py-1 border h-[36px]">
+      <div className="items-center flex rounded-lg px-2 md:px-3 py-1 text-sm md:text-md md:h-[36px] bg-secondary text-secondary-foreground shadow-sm">
         <div className="text-sm">
-          {isSmOrLarger ? "Free Games: " : "Free: "}
+          {isSmOrLarger ? "Free Games: " : "Free : "}
           {credits.get_remaining(Date.now() / 1000)}/{credits.get_max_per_day()}
         </div>
       </div>

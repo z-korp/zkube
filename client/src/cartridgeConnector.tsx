@@ -1,23 +1,26 @@
 import { Connector } from "@starknet-react/core";
 import CartridgeConnector from "@cartridge/connector";
-import {
-  getContractByName,
-  KATANA_ETH_CONTRACT_ADDRESS,
-} from "@dojoengine/core";
+import { getContractByName } from "@dojoengine/core";
 import { ControllerOptions, PaymasterOptions } from "@cartridge/controller";
+import { shortString } from "starknet";
 
 import local from "../../contracts/manifests/dev/deployment/manifest.json";
 import slot from "../../contracts/manifests/slot/deployment/manifest.json";
 import slotdev from "../../contracts/manifests/slotdev/deployment/manifest.json";
 import sepolia from "../../contracts/manifests/dev/deployment/manifest.json";
-import { shortString } from "starknet";
+
+const {
+  VITE_PUBLIC_DEPLOY_TYPE,
+  VITE_PUBLIC_GAME_TOKEN_ADDRESS,
+  VITE_PUBLIC_NODE_URL,
+} = import.meta.env;
 
 const manifest =
-  import.meta.env.VITE_PUBLIC_DEPLOY_TYPE === "sepolia"
+  VITE_PUBLIC_DEPLOY_TYPE === "sepolia"
     ? sepolia
-    : import.meta.env.VITE_PUBLIC_DEPLOY_TYPE === "slot"
+    : VITE_PUBLIC_DEPLOY_TYPE === "slot"
       ? slot
-      : import.meta.env.VITE_PUBLIC_DEPLOY_TYPE === "slotdev"
+      : VITE_PUBLIC_DEPLOY_TYPE === "slotdev"
         ? slotdev
         : local;
 
@@ -33,13 +36,31 @@ const play_contract_address = getContractByName(
   "play",
 )?.address;
 
+const chest_contract_address = getContractByName(
+  manifest,
+  "zkube",
+  "chest",
+)?.address;
+
+const tournament_contract_address = getContractByName(
+  manifest,
+  "zkube",
+  "tournament",
+)?.address;
+
 console.log("account_contract_address", account_contract_address);
 console.log("play_contract_address", play_contract_address);
+console.log("chest_contract_address", chest_contract_address);
+console.log("tournament_contract_address", tournament_contract_address);
 
 const policies = [
   {
-    target: KATANA_ETH_CONTRACT_ADDRESS,
+    target: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
     method: "approve",
+  },
+  {
+    target: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
+    method: "faucet",
   },
   // account
   {
@@ -67,6 +88,16 @@ const policies = [
     target: play_contract_address,
     method: "apply_bonus",
   },
+  // chest
+  {
+    target: chest_contract_address,
+    method: "claim",
+  },
+  // tournament
+  {
+    target: tournament_contract_address,
+    method: "claim",
+  },
 ];
 
 const paymaster: PaymasterOptions = {
@@ -74,7 +105,7 @@ const paymaster: PaymasterOptions = {
 };
 
 const options: ControllerOptions = {
-  rpc: import.meta.env.VITE_PUBLIC_NODE_URL,
+  rpc: VITE_PUBLIC_NODE_URL,
   policies,
   paymaster,
 };

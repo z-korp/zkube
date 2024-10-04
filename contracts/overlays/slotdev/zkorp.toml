@@ -2,5 +2,5 @@ tag = "zkube-zkorp"
 writes = [
 ]
 init_calldata = [
-    "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+    "0x020b7c0e13e199e9eccd9e4d626fc28fe077509966b6a4e93b5242741de64076",
 ]

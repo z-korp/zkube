@@ -11,18 +11,16 @@ import { useCredits } from "@/hooks/useCredits";
 import TournamentTimer from "../components/TournamentTimer";
 import { useSettings } from "@/hooks/useSettings";
 import { ethers } from "ethers";
+import useTournament from "@/hooks/useTournament";
+
+const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
 interface StartProps {
   mode: ModeType;
   handleGameMode: () => void;
-  potentialWinnings: string; // New prop for potential winnings
 }
 
-export const Start: React.FC<StartProps> = ({
-  mode,
-  handleGameMode,
-  potentialWinnings,
-}) => {
+export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
   const {
     master,
     setup: {
@@ -35,6 +33,7 @@ export const Start: React.FC<StartProps> = ({
   const { player } = usePlayer({ playerId: account?.address });
   const { credits } = useCredits({ playerId: account?.address });
   const { settings } = useSettings();
+  const { endTimestamp, tournament } = useTournament(mode);
 
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
@@ -100,26 +99,41 @@ export const Start: React.FC<StartProps> = ({
 
     const ethCost = ethers.utils.formatEther(weiCost);
 
-    return `${ethCost} ETH`;
+    // Remove trailing '.0' if the number is whole
+    const formattedCost =
+      parseFloat(ethCost) % 1 === 0 ? parseInt(ethCost).toString() : ethCost;
+
+    return `${formattedCost} ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`;
   }, [player, credits, settings, mode]);
 
+  const ethPrize = useMemo(() => {
+    if (!tournament) return `0 ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`;
+
+    const rawEthPrize = ethers.utils.formatEther(tournament.prize);
+
+    // Remove trailing zeros after the decimal point
+    const formattedPrize = parseFloat(rawEthPrize).toString();
+
+    return `${formattedPrize} ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`;
+  }, [tournament]);
+
   return (
-    <div className=" p-4 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
-      <h2 className="text-2xl font-bold mb-2">
+    <div className="p-2 sm:p-4 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
+      <h2 className="text-lg sm:text-2xl font-bold mb-1 sm:mb-2">
         {mode === ModeType.Daily ? "Daily Mode" : "Normal Mode"}
       </h2>
-      <p className="text-lg">
-        <strong>Potential Winnings:</strong> {potentialWinnings}
+      <p className="text-xs sm:text-lg">
+        <strong>Potential Win:</strong> {ethPrize}
       </p>
-      <p className="text-lg">
+      <p className="text-xs sm:text-lg">
         <strong>Price:</strong> {cost}
       </p>
-      <TournamentTimer mode={mode} />
+      <TournamentTimer mode={mode} endTimestamp={endTimestamp} />
       <Button
         disabled={isLoading || disabled}
         isLoading={isLoading}
         onClick={handleClick}
-        className="text-xl mt-4 w-full transition-transform duration-300 ease-in-out hover:scale-105"
+        className="text-xs sm:text-xl mt-2 sm:mt-4 w-full transition-transform duration-300 ease-in-out hover:scale-105"
       >
         Play
       </Button>

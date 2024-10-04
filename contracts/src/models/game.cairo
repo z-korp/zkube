@@ -200,7 +200,7 @@ impl GameImpl of GameTrait {
 
         // [Effect] Grid empty add a new line
         if self.is_empty_grid() {
-            self.setup_next();
+            self.insert_new_line()
         }
     }
 
@@ -250,6 +250,11 @@ impl GameImpl of GameTrait {
             Bonus::Hammer => self.hammer_used += 1,
             Bonus::Totem => self.totem_used += 1,
             Bonus::Wave => self.wave_used += 1,
+        }
+
+        // [Effect] Grid empty add a new line
+        if self.is_empty_grid() {
+            self.insert_new_line()
         }
     }
 }

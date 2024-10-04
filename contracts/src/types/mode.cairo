@@ -31,7 +31,7 @@ enum Mode {
 #[generate_trait]
 impl ModeImpl of ModeTrait {
     #[inline(always)]
-    fn price(self: Mode, settings: Settings) -> felt252 {
+    fn price(self: Mode, settings: Settings) -> u128 {
         settings.get_mode_price(self)
     }
 
