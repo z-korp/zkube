@@ -22,7 +22,7 @@ export const removeCompleteRows = (
   blocks: Block[],
   gridWidth: number,
   gridHeight: number,
-) => {
+): { updatedBlocks: Block[]; completeRows: number[] } => {
   const grid = transformToGridFormat(blocks, gridWidth, gridHeight);
 
   const completeRows = grid
@@ -36,7 +36,7 @@ export const removeCompleteRows = (
     return !isBlockOnCompleteRow;
   });
 
-  return updatedBlocks;
+  return { updatedBlocks, completeRows };
 };
 
 export const concatenateAndShiftBlocks = (
@@ -82,4 +82,19 @@ export const transformDataContratIntoBlock = (grid: number[][]): Block[] => {
 
 export const isGridFull = (blocks: { y: number }[]): boolean => {
   return blocks.some((block) => block.y < 0);
+};
+
+export const removeBlocksSameWidth = (
+  block: Block,
+  blocks: Block[],
+): Block[] => {
+  return blocks.filter((b) => b.width !== block.width);
+};
+
+export const removeBlocksSameRow = (block: Block, blocks: Block[]): Block[] => {
+  return blocks.filter((b) => b.y !== block.y);
+};
+
+export const removeBlockId = (block: Block, blocks: Block[]): Block[] => {
+  return blocks.filter((b) => b.id !== block.id);
 };

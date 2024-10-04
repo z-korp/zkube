@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import "../../grid.css";
 import { Account } from "starknet";
 import { useDojo } from "@/dojo/useDojo";
-import useAccountCustom from "@/hooks/useAccountCustom";
 import BlockContainer from "./Block";
 import { GameState } from "@/enums/gameEnums";
 import { Block } from "@/types/types";
@@ -10,7 +9,15 @@ import {
   removeCompleteRows,
   concatenateAndShiftBlocks,
   isGridFull,
+  removeBlocksSameWidth,
+  removeBlocksSameRow,
+  removeBlockId,
 } from "@/utils/gridUtils";
+import { MoveType } from "@/enums/moveEnum";
+import AnimatedText from "../elements/animatedText";
+import { ComboMessages } from "@/enums/comboEnum";
+import { motion } from "framer-motion";
+import { BonusName } from "@/enums/bonusEnum";
 
 interface GridProps {
   initialData: Block[];
@@ -19,6 +26,8 @@ interface GridProps {
   gridWidth: number;
   gridHeight: number;
   selectBlock: (block: Block) => void;
+  bonus: BonusName;
+  account: Account | null;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -28,6 +37,8 @@ const Grid: React.FC<GridProps> = ({
   gridWidth,
   gridSize,
   selectBlock,
+  bonus,
+  account,
 }) => {
   const {
     setup: {
@@ -35,13 +46,13 @@ const Grid: React.FC<GridProps> = ({
     },
   } = useDojo();
 
-  const { account } = useAccountCustom();
   const [blocks, setBlocks] = useState<Block[]>(initialData);
   const [dragging, setDragging] = useState<Block | null>(null);
   const [dragStartX, setDragStartX] = useState(0);
   const [initialX, setInitialX] = useState(0);
   const [isMoving, setIsMoving] = useState(true);
   const [pendingMove, setPendingMove] = useState<{
+    block: Block;
     rowIndex: number;
     startX: number;
     finalX: number;
@@ -49,15 +60,40 @@ const Grid: React.FC<GridProps> = ({
   const [transitioningBlocks, setTransitioningBlocks] = useState<number[]>([]);
   const [gameState, setGameState] = useState<GameState>(GameState.WAITING);
   const [isTxProcessing, setIsTxProcessing] = useState(false);
+  const [isPlayerInDanger, setIsPlayerInDanger] = useState(false);
+  const [lineExplodedCount, setLineExplodedCount] = useState(0);
+  const [blockBonus, setBlockBonus] = useState<Block | null>(null);
+  const [animateText, setAnimateText] = useState<ComboMessages>(
+    ComboMessages.None,
+  );
+  const [shouldBounce, setShouldBounce] = useState(false);
 
   const borderSize = 2;
   const gravitySpeed = 100;
-  const transitionDuration = 500;
+  const transitionDuration = 200;
 
   useEffect(() => {
     setBlocks(initialData);
+
+    const inDanger = initialData.some((block) => block.y < 2);
+    setIsPlayerInDanger(inDanger);
+    if (lineExplodedCount > 1) {
+      setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
+    }
+    setLineExplodedCount(0);
     setIsTxProcessing(false);
   }, [initialData]);
+
+  const resetAnimateText = (): void => {
+    setAnimateText(ComboMessages.None);
+  };
+
+  useEffect(() => {
+    if (lineExplodedCount > 0) {
+      setShouldBounce(true); // Trigger bounce animation
+      setTimeout(() => setShouldBounce(false), 500); // Stop bouncing after 0.5s
+    }
+  }, [lineExplodedCount]);
 
   const handleTransitionBlockStart = (id: number) => {
     setTransitioningBlocks((prev) => {
@@ -73,18 +109,12 @@ const Grid: React.FC<GridProps> = ({
     });
   };
 
-  const handleDragMove = (x: number) => {
+  const handleDragMove = (x: number, moveType: MoveType) => {
     if (!dragging) return;
 
     const deltaX = x - dragStartX;
     const newX = initialX + deltaX / gridSize;
     const boundedX = Math.max(0, Math.min(gridWidth - dragging.width, newX));
-
-    // Vérifie si le nouveau X est en dehors des limites de la grille
-    if (boundedX <= 0 || boundedX >= gridWidth - dragging.width) {
-      endDrag(); // Appelle endDrag si le drag sort de la grille
-      return; // Sort de la fonction
-    }
 
     if (
       !isBlocked(
@@ -96,6 +126,16 @@ const Grid: React.FC<GridProps> = ({
         dragging.id,
       )
     ) {
+      // Vérifie si le nouveau X est en dehors des limites de la grille
+      if (boundedX <= 0 || boundedX >= gridWidth - dragging.width) {
+        if (moveType === MoveType.TOUCH) {
+          endDrag(); // Appelle endDrag si le drag sort de la grille sur un touch
+          return;
+        } else {
+          // Si on est en dehors de la grille, cela implique que la nouvelle start position a changer et on doit la mettre à jour
+          setInitialX(blocks.find((b) => b.id === dragging.id)?.x ?? 0);
+        }
+      }
       setBlocks((prevBlocks) =>
         prevBlocks.map((b) =>
           b.id === dragging.id ? { ...b, x: boundedX } : b,
@@ -114,6 +154,23 @@ const Grid: React.FC<GridProps> = ({
 
   const handleMouseDown = (e: React.MouseEvent, block: Block) => {
     e.preventDefault();
+
+    setBlockBonus(block);
+    if (bonus === BonusName.WAVE) {
+      setBlocks(removeBlocksSameRow(block, blocks));
+    }
+    if (bonus === BonusName.TIKI) {
+      setBlocks(removeBlocksSameWidth(block, blocks));
+    }
+    if (bonus === BonusName.HAMMER) {
+      setBlocks(removeBlockId(block, blocks));
+    }
+    if (bonus !== BonusName.NONE) {
+      setIsTxProcessing(true);
+      setIsMoving(true);
+      setGameState(GameState.GRAVITY_BONUS);
+      return;
+    }
     handleDragStart(e.clientX, block);
   };
 
@@ -123,12 +180,12 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    handleDragMove(e.clientX);
+    handleDragMove(e.clientX, MoveType.MOUSE);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     const touch = e.touches[0];
-    handleDragMove(touch.clientX);
+    handleDragMove(touch.clientX, MoveType.TOUCH);
   };
 
   const endDrag = () => {
@@ -140,7 +197,12 @@ const Grid: React.FC<GridProps> = ({
           const finalX = Math.round(b.x);
           if (Math.trunc(finalX) !== Math.trunc(initialX))
             setIsTxProcessing(true);
-          setPendingMove({ rowIndex: b.y, startX: initialX, finalX });
+          setPendingMove({
+            block: b,
+            rowIndex: b.y,
+            startX: initialX,
+            finalX,
+          });
           return { ...b, x: finalX };
         }
         return b;
@@ -153,13 +215,23 @@ const Grid: React.FC<GridProps> = ({
     setGameState(GameState.GRAVITY);
   };
 
-  const handleMouseUp = () => {
-    endDrag();
-  };
-
   const handleTouchEnd = () => {
     endDrag();
   };
+
+  useEffect(() => {
+    const handleMouseUp = (event: MouseEvent) => {
+      endDrag(); // Appeler directement endDrag() ici.
+    };
+
+    // Ajoute l'écouteur d'événements pour le document une seule fois.
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      // Nettoie l'écouteur d'événements lorsque le composant est démonté.
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [dragging]);
 
   const handleMoveTX = useCallback(
     async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
@@ -262,7 +334,11 @@ const Grid: React.FC<GridProps> = ({
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (gameState === GameState.GRAVITY || gameState === GameState.GRAVITY2) {
+      if (
+        gameState === GameState.GRAVITY ||
+        gameState === GameState.GRAVITY2 ||
+        gameState === GameState.GRAVITY_BONUS
+      ) {
         applyGravity();
       }
     }, gravitySpeed);
@@ -283,6 +359,7 @@ const Grid: React.FC<GridProps> = ({
   useEffect(() => {
     handleGravityState(GameState.GRAVITY, GameState.LINE_CLEAR);
     handleGravityState(GameState.GRAVITY2, GameState.LINE_CLEAR2);
+    handleGravityState(GameState.GRAVITY_BONUS, GameState.LINE_CLEAR_BONUS);
   }, [gameState, isMoving, transitioningBlocks]);
 
   const handleLineClear = (
@@ -291,9 +368,14 @@ const Grid: React.FC<GridProps> = ({
     newStateOnComplete: GameState,
   ) => {
     if (gameState === lineClearState) {
-      const cleanedBlocks = removeCompleteRows(blocks, gridWidth, gridHeight);
-      if (cleanedBlocks.length < blocks.length) {
-        setBlocks(cleanedBlocks);
+      const { updatedBlocks, completeRows } = removeCompleteRows(
+        blocks,
+        gridWidth,
+        gridHeight,
+      );
+      if (updatedBlocks.length < blocks.length) {
+        setLineExplodedCount(lineExplodedCount + completeRows.length);
+        setBlocks(updatedBlocks);
         setIsMoving(true);
         setGameState(newGravityState);
       } else {
@@ -312,6 +394,11 @@ const Grid: React.FC<GridProps> = ({
       GameState.LINE_CLEAR2,
       GameState.GRAVITY2,
       GameState.MOVE_TX,
+    );
+    handleLineClear(
+      GameState.LINE_CLEAR_BONUS,
+      GameState.GRAVITY_BONUS,
+      GameState.BONUS_TX,
     );
   }, [gameState, blocks]);
 
@@ -334,47 +421,65 @@ const Grid: React.FC<GridProps> = ({
   }, [gameState, blocks, pendingMove]);
 
   useEffect(() => {
-    if (gameState === GameState.MOVE_TX && pendingMove) {
-      const { rowIndex, startX, finalX } = pendingMove;
-      handleMoveTX(rowIndex, startX, finalX);
-      setPendingMove(null);
+    if (gameState === GameState.BONUS_TX) {
+      selectBlock(blockBonus as Block);
+      setBlockBonus(null);
       setGameState(GameState.WAITING);
+    }
+    if (gameState === GameState.MOVE_TX) {
+      if (pendingMove) {
+        const { rowIndex, startX, finalX } = pendingMove;
+        handleMoveTX(rowIndex, startX, finalX);
+        setPendingMove(null);
+        setGameState(GameState.WAITING);
+      }
     }
   }, [gameState, pendingMove, handleMoveTX]);
 
   return (
-    <div className={`grid-background ${isTxProcessing ? "cursor-wait" : ""}`}>
+    <motion.div
+      animate={shouldBounce ? { scale: [1, 1.1, 1, 1.1, 1] } : {}}
+      transition={{ duration: 0.2, ease: "easeInOut" }}
+    >
       <div
-        className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)]`}
-        style={{
-          height: `${gridHeight * gridSize + borderSize}px`,
-          width: `${gridWidth * gridSize + borderSize}px`,
-          backgroundImage:
-            "linear-gradient(#1E293B 2px, transparent 2px), linear-gradient(to right, #1E293B 2px, #10172A 2px)",
-          backgroundSize: `${gridSize}px ${gridSize}px`,
-        }}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        className={`grid-background ${isTxProcessing ? " cursor-wait" : ""} `}
       >
-        {blocks.map((block) => (
-          <BlockContainer
-            key={block.id}
-            block={block}
-            gridSize={gridSize}
-            isTxProcessing={isTxProcessing}
-            transitionDuration={transitionDuration}
-            state={gameState}
-            handleMouseDown={handleMouseDown}
-            handleTouchStart={handleTouchStart}
-            onTransitionBlockStart={() => handleTransitionBlockStart(block.id)}
-            onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
-            selectBlock={selectBlock}
-          />
-        ))}
+        <div
+          className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${isPlayerInDanger ? " animated-box-player-danger" : ""}`}
+          style={{
+            height: `${gridHeight * gridSize + borderSize}px`,
+            width: `${gridWidth * gridSize + borderSize}px`,
+            backgroundImage:
+              "linear-gradient(#1E293B 2px, transparent 2px), linear-gradient(to right, #1E293B 2px, #10172A 2px)",
+            backgroundSize: `${gridSize}px ${gridSize}px`,
+          }}
+          onMouseMove={handleMouseMove}
+          //onMouseUp={handleMouseUp}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {blocks.map((block) => (
+            <BlockContainer
+              key={block.id}
+              block={block}
+              gridSize={gridSize}
+              isTxProcessing={isTxProcessing}
+              transitionDuration={transitionDuration}
+              state={gameState}
+              handleMouseDown={handleMouseDown}
+              handleTouchStart={handleTouchStart}
+              onTransitionBlockStart={() =>
+                handleTransitionBlockStart(block.id)
+              }
+              onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
+            />
+          ))}
+          <div className="flex items-center justify-center font-sans">
+            <AnimatedText textEnum={animateText} reset={resetAnimateText} />
+          </div>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

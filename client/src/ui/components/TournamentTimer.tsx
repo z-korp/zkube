@@ -16,7 +16,7 @@ const TournamentTimer: React.FC<TournamentTimerProps> = ({
 
   return (
     <div>
-      <p className="text-lg">
+      <p className="text-xs sm:text-lg">
         <strong>Time Remaining</strong>:{" "}
         {formatRemainingTime(mode, secondsLeft)}
       </p>
