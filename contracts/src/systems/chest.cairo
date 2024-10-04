@@ -16,8 +16,8 @@ use zkube::store::{Store, StoreTrait};
 #[dojo::interface]
 trait IChest<TContractState> {
     fn claim(ref world: IWorldDispatcher, chest_id: u32);
-    fn sponsor(ref world: IWorldDispatcher, chest_id: u32, amount: felt252);
-    fn sponsor_unknown(ref world: IWorldDispatcher, amount: felt252, caller: ContractAddress);
+    fn sponsor(ref world: IWorldDispatcher, chest_id: u32, amount: u128);
+    fn sponsor_from(ref world: IWorldDispatcher, amount: u128, caller: ContractAddress);
 }
 
 #[dojo::contract]
@@ -111,15 +111,15 @@ mod chest {
             let mut participation = store.participation(chest_id, caller.into());
             participation.assert_exists();
 
-            let reward_u64 = participation.claim(chest.points, chest.prize);
+            let rewards = participation.claim(chest.points, chest.prize);
             store.set_participation(participation);
 
             // Transfer the reward to the caller
-            self.payable._refund(caller, reward_u64.into());
+            self.payable._refund(caller, rewards.into());
         // TODO Emit event
         }
 
-        fn sponsor(ref world: IWorldDispatcher, chest_id: u32, amount: felt252) {
+        fn sponsor(ref world: IWorldDispatcher, chest_id: u32, amount: u128) {
             let store = StoreTrait::new(world);
             let mut chest = store.chest(chest_id);
             chest.assert_exists();
@@ -132,7 +132,7 @@ mod chest {
             self.payable._pay(caller, amount.into());
         }
 
-        fn sponsor_unknown(ref world: IWorldDispatcher, amount: felt252, caller: ContractAddress) {
+        fn sponsor_from(ref world: IWorldDispatcher, amount: u128, caller: ContractAddress) {
             self.payable._pay(caller, amount.into());
         }
     }

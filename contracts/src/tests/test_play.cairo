@@ -258,7 +258,7 @@ fn test_play_play_daily_tournament_claim() {
     // [Assert] Player2 balance
     let final_player2 = context.erc20.balance_of(PLAYER2());
     let tournament = store.tournament(tournament_id);
-    let reward = tournament.reward(rank);
+    let reward: u256 = tournament.reward(rank).into();
     assert(final_player2 == player2_balance + reward, 'Player2 balance post claim');
 
     // [Claim]
@@ -270,7 +270,7 @@ fn test_play_play_daily_tournament_claim() {
     // [Assert] Player3 balance
     let final_player3 = context.erc20.balance_of(PLAYER3());
     let tournament = store.tournament(tournament_id);
-    let reward = tournament.reward(rank);
+    let reward: u256 = tournament.reward(rank).into();
     assert(final_player3 == player3_balance + reward, 'Player3 balance post claim');
 
     // [Claim]
@@ -282,7 +282,7 @@ fn test_play_play_daily_tournament_claim() {
     // [Assert] Player4 balance
     let final_player4 = context.erc20.balance_of(PLAYER4());
     let tournament = store.tournament(tournament_id);
-    let reward = tournament.reward(rank);
+    let reward: u256 = tournament.reward(rank).into();
     assert(final_player4 == player4_balance + reward, 'Player3 balance post claim');
 
     // [Assert] Rewards

@@ -65,7 +65,7 @@ mod HostableComponent {
             beta: felt252,
             mode: Mode,
             was_free: bool,
-        ) -> (u32, u64, felt252, felt252, felt252, felt252) {
+        ) -> (u32, u64, u128, u128, u128, u128) {
             // [Setup] Datastore
             let store: Store = StoreTrait::new(world);
 
@@ -114,7 +114,7 @@ mod HostableComponent {
 
                 // Price shared between parties
                 let settings = store.settings();
-                let price: felt252 = mode.price(settings);
+                let price = mode.price(settings);
 
                 // Apply PRECISION_FACTOR to price at the beginning
                 let precise_price: u256 = price.into() * PRECISION_FACTOR.into();
@@ -124,7 +124,7 @@ mod HostableComponent {
                 let mut tournament = store.tournament(tournament_id);
                 let tournament_amount: u256 = (precise_price * TOURNAMENT_PERCENTAGE.into()) / 100;
 
-                //tournament.buyin((tournament_amount /
+                //tournament.pay_entry_fee((tournament_amount /
                 //PRECISION_FACTOR.into()).try_into().unwrap());
                 tournament.is_set = true;
                 store.set_tournament(tournament);

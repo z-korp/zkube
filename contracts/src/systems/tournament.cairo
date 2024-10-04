@@ -20,7 +20,7 @@ trait ITournamentSystem<TContractState> {
         ref world: IWorldDispatcher,
         tournament_id: u64,
         mode: Mode,
-        amount: felt252,
+        amount: u128,
         caller: ContractAddress
     );
 }
@@ -102,7 +102,7 @@ mod tournament {
             ref world: IWorldDispatcher,
             tournament_id: u64,
             mode: Mode,
-            amount: felt252,
+            amount: u128,
             caller: ContractAddress
         ) {
             // [Setup] Datastore
@@ -115,11 +115,11 @@ mod tournament {
             tournament.assert_exists();
 
             // [Effect] Add amount to the current tournament prize pool
-            tournament.buyin(amount);
+            tournament.pay_entry_fee(amount);
             store.set_tournament(tournament);
 
             // [Return] Amount to pay
-            self.payable._pay(caller, amount.try_into().unwrap());
+            self.payable._pay(caller, amount.into());
         }
     }
 }

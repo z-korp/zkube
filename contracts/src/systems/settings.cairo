@@ -12,8 +12,8 @@ use zkube::models::settings::Settings;
 trait ISettings<TContractState> {
     fn update_zkorp_address(ref world: IWorldDispatcher, address: ContractAddress);
     fn update_free_daily_credits(ref world: IWorldDispatcher, value: u8);
-    fn update_daily_mode_price(ref world: IWorldDispatcher, value: felt252);
-    fn update_normal_mode_price(ref world: IWorldDispatcher, value: felt252);
+    fn update_daily_mode_price(ref world: IWorldDispatcher, value: u128);
+    fn update_normal_mode_price(ref world: IWorldDispatcher, value: u128);
     fn set_admin(ref world: IWorldDispatcher, address: ContractAddress);
     fn delete_admin(ref world: IWorldDispatcher, address: ContractAddress);
 }
@@ -90,7 +90,7 @@ mod settings {
             store.set_settings(settings);
         }
 
-        fn update_daily_mode_price(ref world: IWorldDispatcher, value: felt252) {
+        fn update_daily_mode_price(ref world: IWorldDispatcher, value: u128) {
             let store: Store = StoreTrait::new(world);
 
             // [Check] Only admin can update settings
@@ -104,7 +104,7 @@ mod settings {
             store.set_settings(settings);
         }
 
-        fn update_normal_mode_price(ref world: IWorldDispatcher, value: felt252) {
+        fn update_normal_mode_price(ref world: IWorldDispatcher, value: u128) {
             let store: Store = StoreTrait::new(world);
 
             // [Check] Only admin can update settings
