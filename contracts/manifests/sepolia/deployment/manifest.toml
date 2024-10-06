@@ -1,0 +1,508 @@
+[world]
+kind = "WorldContract"
+class_hash = "0x6f4515274ee23404789c3351a77107d0ec07508530119822046600ca6948d6e"
+original_class_hash = "0x6f4515274ee23404789c3351a77107d0ec07508530119822046600ca6948d6e"
+abi = "manifests/sepolia/deployment/abis/dojo-world.json"
+address = "0x5ef8195dbf43ea66b14d7bfec4ed6b565386a49dff34aa474c3cd29aa0fa615"
+transaction_hash = "0x6d3936184f5e2c63d76d2357ef548f1c102a1077b494058d87a2b4295ee6e57"
+seed = "zKube"
+manifest_name = "dojo-world"
+
+[world.metadata]
+profile_name = "sepolia"
+rpc_url = "https://api.cartridge.gg/x/starknet/sepolia"
+
+[base]
+kind = "Class"
+class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
+original_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
+abi = "manifests/sepolia/deployment/abis/dojo-base.json"
+tag = "dojo-base"
+manifest_name = "dojo-base"
+
+[[contracts]]
+kind = "DojoContract"
+address = "0x7362142438f82017175c44aff9ef6a1887824d57843e42a094d765bfbc0adf8"
+class_hash = "0x46d81486de0a2182d0033cfae4f8113f4432168a7050d45974263b788f583a1"
+original_class_hash = "0x46d81486de0a2182d0033cfae4f8113f4432168a7050d45974263b788f583a1"
+base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
+abi = "manifests/sepolia/deployment/abis/contracts/zkube-account-6d28004d.json"
+reads = []
+writes = [
+    "zkube-Player",
+    "zkube-Credits",
+]
+init_calldata = []
+tag = "zkube-account"
+systems = [
+    "create",
+    "rename",
+]
+manifest_name = "zkube-account-6d28004d"
+
+[[contracts]]
+kind = "DojoContract"
+address = "0x3f94559e4ed0821c5930bad9dd8275896afc657a1c8e0eb40d717dd71862d34"
+class_hash = "0x261fb0322818d856cda306ed7479874b965b9faead1b6485f1186449d9609f6"
+original_class_hash = "0x261fb0322818d856cda306ed7479874b965b9faead1b6485f1186449d9609f6"
+base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
+abi = "manifests/sepolia/deployment/abis/contracts/zkube-chest-5d3b3ea3.json"
+reads = []
+writes = [
+    "zkube-Chest",
+    "zkube-Participation",
+]
+init_calldata = ["0x021d1aa0b2c3413f0b8a1c14ddcdbaf404debfb0d4d858d0bb6ccb48ec1c0c51"]
+tag = "zkube-chest"
+systems = [
+    "claim",
+    "sponsor",
+    "sponsor_from",
+]
+manifest_name = "zkube-chest-5d3b3ea3"
+
+[[contracts]]
+kind = "DojoContract"
+address = "0x8fbe72f6d350f76cfd6554872befc4d61889d4029a66cf3897506a908f77ca"
+class_hash = "0x7a51c798e869e9aefcdb2ddea73ccad730c40dd61be8f7d60b3a4c11d09af57"
+original_class_hash = "0x7a51c798e869e9aefcdb2ddea73ccad730c40dd61be8f7d60b3a4c11d09af57"
+base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
+abi = "manifests/sepolia/deployment/abis/contracts/zkube-play-19ee70b3.json"
+reads = []
+writes = [
+    "zkube-Player",
+    "zkube-Game",
+    "zkube-Tournament",
+    "zkube-Credits",
+    "zkube-Settings",
+    "zkube-Chest",
+    "zkube-Participation",
+]
+init_calldata = []
+tag = "zkube-play"
+systems = [
+    "surrender",
+    "move",
+    "apply_bonus",
+]
+manifest_name = "zkube-play-19ee70b3"
+
+[[contracts]]
+kind = "DojoContract"
+address = "0x35dc8374e5f49a4611ffc33f8b3e4381a7baecab3d8ae3d4e2d3c48ea46a488"
+class_hash = "0x27e87f8f3658b5b33c91d1c020177f0333bdf3532ed8f3bcdfa544166ff4dd6"
+original_class_hash = "0x27e87f8f3658b5b33c91d1c020177f0333bdf3532ed8f3bcdfa544166ff4dd6"
+base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
+abi = "manifests/sepolia/deployment/abis/contracts/zkube-settings-3b7c4918.json"
+reads = []
+writes = [
+    "zkube-Settings",
+    "zkube-Admin",
+]
+init_calldata = ["0x0"]
+tag = "zkube-settings"
+systems = [
+    "update_zkorp_address",
+    "update_free_daily_credits",
+    "update_daily_mode_price",
+    "update_normal_mode_price",
+    "set_admin",
+    "delete_admin",
+]
+manifest_name = "zkube-settings-3b7c4918"
+
+[[contracts]]
+kind = "DojoContract"
+address = "0x7c69d31836f184012fa03b84601a6a3550a4e224baa6237c0b2c5481f3f9c9c"
+class_hash = "0x73f9affb7f1cc02ee3600fe5802177506dc2ecf4170d12aae3c13293e5435fe"
+original_class_hash = "0x73f9affb7f1cc02ee3600fe5802177506dc2ecf4170d12aae3c13293e5435fe"
+base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
+abi = "manifests/sepolia/deployment/abis/contracts/zkube-tournament-2101600e.json"
+reads = []
+writes = ["zkube-Tournament"]
+init_calldata = ["0x021d1aa0b2c3413f0b8a1c14ddcdbaf404debfb0d4d858d0bb6ccb48ec1c0c51"]
+tag = "zkube-tournament"
+systems = [
+    "claim",
+    "sponsor",
+]
+manifest_name = "zkube-tournament-2101600e"
+
+[[contracts]]
+kind = "DojoContract"
+address = "0x50a3d645c6e4b27820ae2a9710415fcc17eff60c6820e997ec62cb5b15c7940"
+class_hash = "0x12b37d078e6ee707b24a3d5e32684bdd0ca0d2afbc569a5b73175b489497115"
+original_class_hash = "0x12b37d078e6ee707b24a3d5e32684bdd0ca0d2afbc569a5b73175b489497115"
+base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
+abi = "manifests/sepolia/deployment/abis/contracts/zkube-zkorp-6cdc1046.json"
+reads = []
+writes = []
+init_calldata = ["0x021d1aa0b2c3413f0b8a1c14ddcdbaf404debfb0d4d858d0bb6ccb48ec1c0c51"]
+tag = "zkube-zkorp"
+systems = [
+    "claim",
+    "sponsor",
+]
+manifest_name = "zkube-zkorp-6cdc1046"
+
+[[models]]
+kind = "DojoModel"
+class_hash = "0x75ca4403fec8334e5819c3b134ab67420cf93d86b9809a7cfc2d2509530622f"
+original_class_hash = "0x75ca4403fec8334e5819c3b134ab67420cf93d86b9809a7cfc2d2509530622f"
+abi = "manifests/sepolia/deployment/abis/models/zkube-Admin-3feb084f.json"
+tag = "zkube-Admin"
+qualified_path = "zkube::models::index::admin"
+manifest_name = "zkube-Admin-3feb084f"
+
+[[models.members]]
+name = "id"
+type = "felt252"
+key = true
+
+[[models.members]]
+name = "is_set"
+type = "bool"
+key = false
+
+[[models]]
+kind = "DojoModel"
+class_hash = "0x4ebc00a7ff8d99ef6a898161a20ce5f8e8a5cb96f471207a2b4d8a518262c0e"
+original_class_hash = "0x4ebc00a7ff8d99ef6a898161a20ce5f8e8a5cb96f471207a2b4d8a518262c0e"
+abi = "manifests/sepolia/deployment/abis/models/zkube-Chest-4d11a491.json"
+tag = "zkube-Chest"
+qualified_path = "zkube::models::index::chest"
+manifest_name = "zkube-Chest-4d11a491"
+
+[[models.members]]
+name = "id"
+type = "u32"
+key = true
+
+[[models.members]]
+name = "point_target"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "points"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "prize"
+type = "u128"
+key = false
+
+[[models]]
+kind = "DojoModel"
+class_hash = "0x2d07e33460dde8b110ef5359231c986a3c597a389e0da1cfead5904371da1cc"
+original_class_hash = "0x2d07e33460dde8b110ef5359231c986a3c597a389e0da1cfead5904371da1cc"
+abi = "manifests/sepolia/deployment/abis/models/zkube-Credits-20403c75.json"
+tag = "zkube-Credits"
+qualified_path = "zkube::models::index::credits"
+manifest_name = "zkube-Credits-20403c75"
+
+[[models.members]]
+name = "id"
+type = "felt252"
+key = true
+
+[[models.members]]
+name = "day_id"
+type = "u64"
+key = false
+
+[[models.members]]
+name = "remaining"
+type = "u8"
+key = false
+
+[[models]]
+kind = "DojoModel"
+class_hash = "0x64c431125a39703d768a327ee2ea57691ed50ef4f83f9a2459e47a57838ca62"
+original_class_hash = "0x64c431125a39703d768a327ee2ea57691ed50ef4f83f9a2459e47a57838ca62"
+abi = "manifests/sepolia/deployment/abis/models/zkube-Game-17e542e0.json"
+tag = "zkube-Game"
+qualified_path = "zkube::models::index::game"
+manifest_name = "zkube-Game-17e542e0"
+
+[[models.members]]
+name = "id"
+type = "u32"
+key = true
+
+[[models.members]]
+name = "over"
+type = "bool"
+key = false
+
+[[models.members]]
+name = "score"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "moves"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "next_row"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "next_color"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "hammer_bonus"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "wave_bonus"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "totem_bonus"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "hammer_used"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "wave_used"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "totem_used"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "combo_counter"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "max_combo"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "blocks"
+type = "felt252"
+key = false
+
+[[models.members]]
+name = "colors"
+type = "felt252"
+key = false
+
+[[models.members]]
+name = "player_id"
+type = "felt252"
+key = false
+
+[[models.members]]
+name = "seed"
+type = "felt252"
+key = false
+
+[[models.members]]
+name = "mode"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "start_time"
+type = "u64"
+key = false
+
+[[models.members]]
+name = "tournament_id"
+type = "u64"
+key = false
+
+[[models.members]]
+name = "pending_chest_prize"
+type = "u128"
+key = false
+
+[[models]]
+kind = "DojoModel"
+class_hash = "0x6d487a9e257063fa50bd2f6331ba3d8d82a62a4851b95802756a0b1b6f4a1de"
+original_class_hash = "0x6d487a9e257063fa50bd2f6331ba3d8d82a62a4851b95802756a0b1b6f4a1de"
+abi = "manifests/sepolia/deployment/abis/models/zkube-Participation-7b168a64.json"
+tag = "zkube-Participation"
+qualified_path = "zkube::models::index::participation"
+manifest_name = "zkube-Participation-7b168a64"
+
+[[models.members]]
+name = "chest_id"
+type = "u32"
+key = true
+
+[[models.members]]
+name = "player_id"
+type = "felt252"
+key = true
+
+[[models.members]]
+name = "is_set"
+type = "bool"
+key = false
+
+[[models.members]]
+name = "points"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "claimed"
+type = "bool"
+key = false
+
+[[models]]
+kind = "DojoModel"
+class_hash = "0xf9b6c922045b89af068513b0a9c3df3c687a437dfece00c51f7b09ee22444"
+original_class_hash = "0xf9b6c922045b89af068513b0a9c3df3c687a437dfece00c51f7b09ee22444"
+abi = "manifests/sepolia/deployment/abis/models/zkube-Player-a3c56d30.json"
+tag = "zkube-Player"
+qualified_path = "zkube::models::index::player"
+manifest_name = "zkube-Player-a3c56d30"
+
+[[models.members]]
+name = "id"
+type = "felt252"
+key = true
+
+[[models.members]]
+name = "game_id"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "name"
+type = "felt252"
+key = false
+
+[[models.members]]
+name = "points"
+type = "u32"
+key = false
+
+[[models]]
+kind = "DojoModel"
+class_hash = "0x1faf1fb96f5e756885d39feaa8b2777f21845d67c1d5e8df770372173ee62a9"
+original_class_hash = "0x1faf1fb96f5e756885d39feaa8b2777f21845d67c1d5e8df770372173ee62a9"
+abi = "manifests/sepolia/deployment/abis/models/zkube-Settings-161104df.json"
+tag = "zkube-Settings"
+qualified_path = "zkube::models::index::settings"
+manifest_name = "zkube-Settings-161104df"
+
+[[models.members]]
+name = "id"
+type = "u8"
+key = true
+
+[[models.members]]
+name = "is_set"
+type = "bool"
+key = false
+
+[[models.members]]
+name = "zkorp_address"
+type = "felt252"
+key = false
+
+[[models.members]]
+name = "free_daily_credits"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "daily_mode_price"
+type = "u128"
+key = false
+
+[[models.members]]
+name = "normal_mode_price"
+type = "u128"
+key = false
+
+[[models]]
+kind = "DojoModel"
+class_hash = "0x5f70cc3ff995fbbd09d926feb148fec575a1b9b12b529937473ded65567ffe1"
+original_class_hash = "0x5f70cc3ff995fbbd09d926feb148fec575a1b9b12b529937473ded65567ffe1"
+abi = "manifests/sepolia/deployment/abis/models/zkube-Tournament-120c37d1.json"
+tag = "zkube-Tournament"
+qualified_path = "zkube::models::index::tournament"
+manifest_name = "zkube-Tournament-120c37d1"
+
+[[models.members]]
+name = "id"
+type = "u64"
+key = true
+
+[[models.members]]
+name = "is_set"
+type = "bool"
+key = false
+
+[[models.members]]
+name = "prize"
+type = "u128"
+key = false
+
+[[models.members]]
+name = "top1_player_id"
+type = "felt252"
+key = false
+
+[[models.members]]
+name = "top2_player_id"
+type = "felt252"
+key = false
+
+[[models.members]]
+name = "top3_player_id"
+type = "felt252"
+key = false
+
+[[models.members]]
+name = "top1_score"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "top2_score"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "top3_score"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "top1_claimed"
+type = "bool"
+key = false
+
+[[models.members]]
+name = "top2_claimed"
+type = "bool"
+key = false
+
+[[models.members]]
+name = "top3_claimed"
+type = "bool"
+key = false

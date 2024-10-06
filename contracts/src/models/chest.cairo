@@ -10,12 +10,13 @@ mod errors {
     const CHEST_NOT_EXIST: felt252 = 'Chest: Does not exist';
     const CHEST_ALREADY_EXIST: felt252 = 'Chest: Already exist';
     const CHEST_IS_NOT_COMPLETE: felt252 = 'Chest: Is not complete';
+    const CHEST_IS_COMPLETE: felt252 = 'Chest: Is complete';
 }
 
 
 #[generate_trait]
 impl ChestImpl of ChestTrait {
-    fn new(id: u32, point_target: u32, prize: felt252) -> Chest {
+    fn new(id: u32, point_target: u32, prize: u128) -> Chest {
         Chest { id, point_target, points: 0, prize }
     }
 
@@ -23,7 +24,7 @@ impl ChestImpl of ChestTrait {
         self.points += points;
     }
 
-    fn add_prize(ref self: Chest, prize: felt252) {
+    fn add_prize(ref self: Chest, prize: u128) {
         self.prize += prize;
     }
 
@@ -59,7 +60,7 @@ impl ChestAssert of AssertTrait {
 
     #[inline(always)]
     fn assert_not_complete(self: Chest) {
-        assert(!self.is_complete(), errors::CHEST_IS_NOT_COMPLETE);
+        assert(!self.is_complete(), errors::CHEST_IS_COMPLETE);
     }
 }
 

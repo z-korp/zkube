@@ -27,7 +27,14 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
   const participations = useParticipations({ player_id: account?.address });
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [selectedChest, setSelectedChest] = useState<Chest | null>(null);
-  const [currentChestIndex, setCurrentChestIndex] = useState(0);
+
+  // Find the index of the first incomplete chest
+  const initialChestIndex = chests.findIndex(
+    (chest) => chest.points < chest.point_target,
+  );
+  const [currentChestIndex, setCurrentChestIndex] = useState(
+    initialChestIndex !== -1 ? initialChestIndex : 0,
+  );
 
   const currentChest = chests[currentChestIndex];
 

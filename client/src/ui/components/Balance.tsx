@@ -1,5 +1,7 @@
+import { useLerpNumber } from "@/hooks/useLerpNumber";
 import { erc20ABI } from "@/utils/erc20";
 import { useContractRead } from "@starknet-react/core";
+import { useState, useEffect, useMemo } from "react";
 import { useMediaQuery } from "react-responsive";
 import { BlockTag } from "starknet";
 
@@ -17,6 +19,9 @@ interface BalanceData {
 
 const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
+  const [targetBalance, setTargetBalance] = useState<number | undefined>(
+    undefined,
+  );
 
   // useBalance doesn't work on Katana, don't know why
   const { data, isError, isLoading, error } = useContractRead({
@@ -29,16 +34,36 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
     refetchInterval: 500,
   });
 
+  useEffect(() => {
+    if (data !== undefined) {
+      const balanceData = data as BalanceData;
+      const formattedBalance = parseFloat(
+        formatUnits(balanceData.balance.low, 18, symbol === "ETH" ? 6 : 2),
+      );
+
+      console.log("formattedBalance", formattedBalance);
+
+      setTargetBalance(formattedBalance);
+    }
+  }, [data, symbol]);
+
+  const decimalNumber = useMemo(() => {
+    return symbol === "ETH" ? 6 : 2;
+  }, [symbol]);
+
+  const displayBalance = useLerpNumber(targetBalance, {
+    decimals: decimalNumber,
+    integer: false,
+  });
+
   if (isLoading) return <div>Loading ...</div>;
   if (isError || !data) return <div>{error?.message}</div>;
-
-  const balanceData = data as BalanceData; // Type assertion here
+  if (displayBalance == undefined) return <div></div>;
 
   return (
     <div className="text-xs">
-      {`${parseFloat(
-        formatUnits(balanceData.balance.low, 18, symbol === "ETH" ? 6 : 2),
-      )
+      {`${displayBalance
+        .toFixed(decimalNumber)
         .toString()
         .split(".")
         .map((part, index) =>

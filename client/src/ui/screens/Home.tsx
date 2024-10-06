@@ -3,7 +3,7 @@ import { Create } from "../actions/Create";
 import { Start } from "../actions/Start";
 import GameBoard from "../components/GameBoard";
 import BackGroundBoard from "../components/BackgroundBoard";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
@@ -13,7 +13,7 @@ import { useDojo } from "@/dojo/useDojo";
 import { useTheme } from "@/ui/elements/theme-provider";
 import { Surrender } from "../actions/Surrender";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFire, faGlobe, faStar } from "@fortawesome/free-solid-svg-icons";
+import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
 import GoogleFormEmbed from "../components/GoogleFormEmbed";
 import { useQuerySync } from "@dojoengine/react";
 import { ModeType } from "@/dojo/game/types/mode";
@@ -23,6 +23,15 @@ import { toPng } from "html-to-image";
 import { LeaderboardContent } from "../modules/Leaderboard";
 import { useMediaQuery } from "react-responsive";
 import { useRewardsCalculator } from "@/stores/rewardsStore";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/ui/elements/dialog";
+import { Button } from "@/ui/elements/button";
+import MaxComboIcon from "../components/MaxComboIcon";
 
 export const Home = () => {
   const {
@@ -48,6 +57,7 @@ export const Home = () => {
   const [level, setLevel] = useState<number | "">(0);
   const [score, setScore] = useState<number | undefined>(0);
   const [imgData, setImgData] = useState<string>("");
+  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
@@ -93,7 +103,7 @@ export const Home = () => {
   }, []);
 
   return (
-    <div className="relative flex flex-col h-screen">
+    <div className="relative flex flex-col h-screen" id="portal-root">
       <Header />
 
       <BackGroundBoard imageBackground={imgAssets.imageBackground}>
@@ -108,11 +118,11 @@ export const Home = () => {
             ease: "easeInOut",
           }}
         >
-          <div className="relative flex flex-col gap-8 grow items-center justify-start">
-            <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
+          <div className="relative flex flex-col gap-4 sm:gap-8 grow items-center justify-start">
+            <div className="absolute flex flex-col items-center gap-2 sm:gap-4 w-full p-2 max-w-4xl mt-2 sm:mt-4">
               <Create />
               {(!game || (!!game && isGameOn === "isOver")) && (
-                <div className="flex flex-col md:flex-row p-4 rounded-xl w-[93%] gap-4 items-center justify-evenly">
+                <div className="flex flex-col sm:flex-row p-2 sm:p-4 rounded-xl w-[93%] gap-2 sm:gap-4 items-center justify-evenly">
                   <Start
                     mode={ModeType.Daily}
                     handleGameMode={() => setIsGameOn("isOn")}
@@ -124,70 +134,83 @@ export const Home = () => {
                 </div>
               )}
               {!game && (
-                <div className="bg-slate-900 w-11/12 p-6 rounded-xl">
+                <div className="bg-slate-900 w-11/12 p-4 rounded-xl mb-4 max-h-[55vh]">
                   <LeaderboardContent />
                 </div>
               )}
               {!!game && isGameOn === "isOver" && (
                 <>
                   <div className="flex flex-col gap-4 mt-8 ">
-                    <p className="text-4xl text-center">Game Over</p>
-                    <div className="flex gap-4 justify-center items-center">
-                      <div className="grow text-4xl flex gap-2 justify-end">
-                        {game.score}
-                        <FontAwesomeIcon
-                          icon={faStar}
-                          className="text-yellow-500 ml-2"
-                        />
-                      </div>
-                      <div className="grow text-4xl flex gap-2 justify-end">
-                        {game.combo}
-                        <FontAwesomeIcon
-                          icon={faFire}
-                          className="text-slate-700 ml-2"
-                        />
-                      </div>
-                      <div className="grow text-4xl flex gap-2 justify-end">
-                        {game.max_combo}
-                        <FontAwesomeIcon
-                          icon={faGlobe}
-                          className="text-slate-700 ml-2"
-                        />
+                    <div className=" p-6 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
+                      <p className="text-4xl text-center">Game Over</p>
+
+                      <div className="flex gap-4 justify-center items-center">
+                        <div className="grow text-4xl flex gap-2 justify-end">
+                          {game.score}
+                          <FontAwesomeIcon
+                            icon={faStar}
+                            className="text-yellow-500 ml-2"
+                          />
+                        </div>
+                        <div className="grow text-4xl flex gap-2 justify-end">
+                          {game.combo}
+                          <FontAwesomeIcon
+                            icon={faFire}
+                            className="text-slate-700 ml-2"
+                          />
+                        </div>
+                        <div className="grow text-4xl flex gap-2 justify-end">
+                          {game.max_combo}
+                          <MaxComboIcon
+                            width={36}
+                            height={36}
+                            className={`text-slate-700 ml-2 `}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
-                  {isMdOrLarger && (
-                    <>
-                      <motion.h1
-                        className="md:text-2xl  md:mt-4 mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg"
-                        initial={{ scale: 1 }}
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          repeatType: "reverse",
-                          ease: "easeInOut",
-                        }}
-                      >
-                        Give feedback and get a chance to win STRK
-                      </motion.h1>
-                      <GoogleFormEmbed />
-                    </>
-                  )}
+                  <>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="md:text-2xl md:mt-4 mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg">
+                          Give feedback and get a chance to win STRK
+                        </Button>
+                      </DialogTrigger>
+
+                      <DialogContent className="flex items-center justify-centerbg-opacity-50">
+                        <div className="flex flex-col h-[90vh] w-[90vw] max-w-4xl rounded-lg shadow-lg">
+                          <DialogHeader className="flex items-center">
+                            <DialogTitle>Feedback</DialogTitle>
+                          </DialogHeader>
+                          <div className="flex-grow overflow-auto px-2">
+                            <GoogleFormEmbed />
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </>
                 </>
               )}
               {!!game && isGameOn === "isOn" && (
                 <div className="relative w-full">
                   <div ref={gameGrid} className="flex flex-col items-center">
                     <GameBoard
-                      initialGrid={game.blocks}
-                      nextLine={game.next_row}
-                      score={game.score}
-                      combo={game.combo}
-                      maxCombo={game.max_combo}
-                      hammerCount={game.hammer - game.hammer_used}
-                      totemCount={game.totem - game.totem_used}
-                      waveCount={game.wave - game.wave_used}
+                      // check if game is over because otherwise we can display
+                      // previous game data on the board while the new game is starting
+                      // and torii indexing
+                      initialGrid={game.isOver() ? [] : game.blocks}
+                      nextLine={game.isOver() ? [] : game.next_row}
+                      score={game.isOver() ? 0 : game.score}
+                      combo={game.isOver() ? 0 : game.combo}
+                      maxCombo={game.isOver() ? 0 : game.max_combo}
+                      hammerCount={
+                        game.isOver() ? 0 : game.hammer - game.hammer_used
+                      }
+                      totemCount={
+                        game.isOver() ? 0 : game.totem - game.totem_used
+                      }
+                      waveCount={game.isOver() ? 0 : game.wave - game.wave_used}
                       account={account}
                     />
                   </div>
