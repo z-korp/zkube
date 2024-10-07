@@ -1,0 +1,27 @@
+kind = "DojoModel"
+class_hash = "0x4deedbaef68409689bda33fe4777a65b0785acbef70d8378d9b4a96d706dc83"
+original_class_hash = "0x4deedbaef68409689bda33fe4777a65b0785acbef70d8378d9b4a96d706dc83"
+abi = "manifests/slotdev/base/abis/models/zkube-Chest-4d11a491.json"
+tag = "zkube-Chest"
+qualified_path = "zkube::models::index::chest"
+manifest_name = "zkube-Chest-4d11a491"
+
+[[members]]
+name = "id"
+type = "u32"
+key = true
+
+[[members]]
+name = "point_target"
+type = "u32"
+key = false
+
+[[members]]
+name = "points"
+type = "u32"
+key = false
+
+[[members]]
+name = "prize"
+type = "felt252"
+key = false

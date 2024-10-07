@@ -35,15 +35,16 @@ export class Game {
   public max_combo: number;
   public score: number;
   public moves: number;
-  public buyIn: number = 100; // Set default buy-in of $100
+  public buyIn: number;
   public next_row: number[];
   public next_color: number[];
   public bonuses: number[];
   public blocks: number[][];
   public rows: Row[];
-  public player_id: string; 
+  public player_id: string;
   public seed: bigint;
   public start_time: Date;
+  public tournament_id: number;
   public tutorial: CubeSlidingTutorial | null;
 
   constructor(game: ComponentValue) {
@@ -65,7 +66,7 @@ export class Game {
     this.combo = game.combo_counter;
     this.max_combo = game.max_combo;
     this.score = game.score;
-    this.buyIn = 100;
+    this.buyIn = 100; // Set default buy-in of $100
     this.moves = game.moves;
     this.next_color = Packer.sized_unpack(
       BigInt(game.next_color),
@@ -76,6 +77,7 @@ export class Game {
     this.player_id = "0x" + game.player_id.toString(16);
     this.seed = game.seed;
     this.start_time = game.start_time;
+    this.tournament_id = game.tournament_id;
     this.tutorial = this.mode.isTutorial() ? new CubeSlidingTutorial() : null;
     // Destructure blocks and colors bitmaps in to Rows and Blocks
     this.blocks = Packer.sized_unpack(

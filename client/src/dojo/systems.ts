@@ -16,8 +16,21 @@ export function systems({
 }) {
   const TOAST_ID = "unique-id";
 
+  function extractErrorMessages(errorString: string) {
+    const regex = /Error message:(.*?)(?=\n|$)/gs;
+    const matches = errorString.match(regex);
+
+    if (matches) {
+      return matches.map((match) => match.replace("Error message:", "").trim());
+    } else {
+      return [];
+    }
+  }
+
   const extractedMessage = (message: string) => {
-    return message.match(/\('([^']+)'\)/)?.[1];
+    const errorMessages = extractErrorMessages(message);
+
+    return errorMessages.length > 0 ? errorMessages[0] : message;
   };
 
   const isMdOrLarger = (): boolean => {
@@ -53,6 +66,7 @@ export function systems({
   const toastPlacement = getToastPlacement();
 
   const notify = (message: string, transaction: any) => {
+    console.log("transaction", transaction);
     if (transaction.execution_status !== "REVERTED") {
       toast.success(message, {
         id: TOAST_ID,
@@ -92,7 +106,14 @@ export function systems({
 
       notify(successMessage, transaction);
     } catch (error: any) {
-      toast.error(extractedMessage(error.message), { id: TOAST_ID });
+      console.error("Error executing transaction:", error);
+      if (!error?.message) {
+        toast.error("Transaction cancelled", { id: TOAST_ID });
+      } else {
+        toast.error(extractedMessage(error.message), { id: TOAST_ID });
+      }
+
+      throw error;
     }
   };
 
@@ -144,6 +165,25 @@ export function systems({
     );
   };
 
+  const claimChest = async ({ account, ...props }: SystemTypes.ChestClaim) => {
+    await handleTransaction(
+      account,
+      () => client.chest.claim({ account, ...props }),
+      "Chest rewards have been claimed.",
+    );
+  };
+
+  const claimTournament = async ({
+    account,
+    ...props
+  }: SystemTypes.TournamentClaim) => {
+    await handleTransaction(
+      account,
+      () => client.tournament.claim({ account, ...props }),
+      "Tournament rewards have been claimed.",
+    );
+  };
+
   return {
     // account
     create,
@@ -153,5 +193,9 @@ export function systems({
     surrender,
     move,
     applyBonus,
+    // chest
+    claimChest,
+    // tournament
+    claimTournament,
   };
 }

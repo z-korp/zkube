@@ -1,6 +1,5 @@
 tag = "zkube-account"
 writes = [
     "zkube-Player",
-    "zkube-Game",
-    "zkube-Tournament",
+    "zkube-Credits",
 ]

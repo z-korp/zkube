@@ -1,5 +1,3 @@
-import { ModeType } from "@/dojo/game/types/mode";
-import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -16,33 +14,33 @@ import AccountDetails from "./AccountDetails";
 import { ModeToggle } from "./Theme";
 import Connect from "./Connect";
 import { usePlayer } from "@/hooks/usePlayer";
-import { useControllerUsername } from "@/hooks/useControllerUsername";
-import DisconnectButton from "./DisconnectButton";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
-import Balance from "./Balance";
-import DailyGameStatus from "./DailyGameStatus";
 import HeaderBalance from "./HeaderBalance";
-import ContentTabs from "./ContentTabs";
+import { Button } from "../elements/button";
+import CollectiveTreasureChest from "./TreasureChest";
+import { useState } from "react";
 
 const MobileMenu = () => {
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
-  const { username } = useControllerUsername();
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  const onClose = () => {
+    setIsOpen(false);
+  };
 
   return (
-    <div className="px-3 py-2 flex gap-5">
+    <div className="px-3 py-2 flex gap-3">
       <Drawer direction="left">
         <DrawerTrigger>
           <FontAwesomeIcon icon={faBars} size="xl" />
         </DrawerTrigger>
         <DrawerContent>
-          <DrawerHeader className="mt-4">
-            <DrawerTitle>Menu</DrawerTitle>
+          <DrawerHeader>
+            <DrawerTitle className="text-2xl">zKube</DrawerTitle>
           </DrawerHeader>
           <div className="flex flex-col gap-5 p-4">
-            {/*<div className="flex flex-col gap-2 items-center">
-                <p className="self-start">Burner Account</p> <BurnerAccount />
-              </div>*/}
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Theme</p> <ModeToggle />
             </div>
@@ -51,36 +49,42 @@ const MobileMenu = () => {
             </div>
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Account</p>
-              <div className="px-1">{username}</div>
               <AccountDetails />
             </div>
             <div className="flex flex-col gap-2 items-center">
-              <p className="self-start">Leaderboard</p>
+              <p className="self-start">Menu</p>
               <Leaderboard />
+              <Button
+                variant="outline"
+                onClick={() => setIsOpen(true)}
+                className="w-full"
+              >
+                Collective Chests
+              </Button>
+              <CollectiveTreasureChest isOpen={isOpen} onClose={onClose} />
             </div>
-            <div className="flex flex-col gap-2 items-center">
+
+            {/*<div className="flex flex-col gap-2 items-center">
               <p className="self-start">Extras</p>
               <ContentTabs />
-            </div>
+            </div>*/}
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Profile</p>
-              <ProfilePage />
+              <ProfilePage wfit={false} />
             </div>
           </div>
         </DrawerContent>
       </Drawer>
       <div className="w-full flex justify-between items-center">
-        <p className="text-4xl font-bold">zKube</p>
+        <p className="text-2xl font-bold">zKube</p>
         <div className="flex gap-2">
-          <DailyGameStatus />
-          <HeaderBalance />
           {!!player && account ? (
             <div className="flex gap-3 items-center">
-              <p className="text-2xl max-w-44 truncate">{player.name}</p>
-              {ACCOUNT_CONNECTOR === "controller" && <DisconnectButton />}
+              <HeaderBalance />
+              <ProfilePage wfit />
             </div>
           ) : (
-            <Connect />
+            ACCOUNT_CONNECTOR === "controller" && <Connect />
           )}
         </div>
       </div>

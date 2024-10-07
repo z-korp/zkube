@@ -59,6 +59,7 @@ impl GameImpl of GameTrait {
             mode: mode.into(),
             start_time: time,
             tournament_id: 0,
+            pending_chest_prize: 0,
         }
     }
 
@@ -199,7 +200,7 @@ impl GameImpl of GameTrait {
 
         // [Effect] Grid empty add a new line
         if self.is_empty_grid() {
-            self.setup_next();
+            self.insert_new_line()
         }
     }
 
@@ -250,6 +251,11 @@ impl GameImpl of GameTrait {
             Bonus::Totem => self.totem_used += 1,
             Bonus::Wave => self.wave_used += 1,
         }
+
+        // [Effect] Grid empty add a new line
+        if self.is_empty_grid() {
+            self.insert_new_line()
+        }
     }
 }
 
@@ -278,6 +284,7 @@ impl ZeroableGame of core::Zeroable<Game> {
             mode: 0,
             start_time: 0,
             tournament_id: 0,
+            pending_chest_prize: 0,
         }
     }
 

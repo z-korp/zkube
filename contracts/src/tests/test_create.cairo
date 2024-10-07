@@ -31,7 +31,9 @@ fn test_actions_create() {
 
     // [Create]
     set_contract_address(PLAYER1());
-    let game_id = systems.play.create(context.proof.clone(), context.seed, context.beta);
+    let game_id = systems
+        .play
+        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Assert]
     let game = store.game(game_id);

@@ -1,18 +1,21 @@
-//! Store struct and component management methods.
+// Starknet imports
+use starknet::ContractAddress;
 
 // Core imports
-
 use core::debug::PrintTrait;
 
 // Dojo imports
-
 use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait};
 
 // Models imports
-
 use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{Player, PlayerTrait};
 use zkube::models::tournament::Tournament;
+use zkube::models::credits::Credits;
+use zkube::models::settings::Settings;
+use zkube::models::chest::Chest;
+use zkube::models::participation::Participation;
+use zkube::models::admin::Admin;
 
 /// Store struct.
 #[derive(Copy, Drop)]
@@ -27,6 +30,8 @@ impl StoreImpl of StoreTrait {
     fn new(world: IWorldDispatcher) -> Store {
         Store { world: world }
     }
+
+    // GETTERS
 
     #[inline(always)]
     fn player(self: Store, player_id: felt252) -> Player {
@@ -44,6 +49,34 @@ impl StoreImpl of StoreTrait {
     }
 
     #[inline(always)]
+    fn credits(self: Store, player_id: felt252) -> Credits {
+        get!(self.world, player_id, (Credits))
+    }
+
+    #[inline(always)]
+    fn settings(self: Store) -> Settings {
+        get!(self.world, 1, (Settings))
+    }
+
+    #[inline(always)]
+    fn chest(self: Store, chest_id: u32) -> Chest {
+        get!(self.world, chest_id, (Chest))
+    }
+
+    #[inline(always)]
+    fn participation(self: Store, chest_id: u32, player_id: felt252) -> Participation {
+        get!(self.world, (chest_id, player_id), (Participation))
+    }
+
+    #[inline(always)]
+    fn admin(self: Store, address: ContractAddress) -> Admin {
+        let address: felt252 = address.into();
+        get!(self.world, address, (Admin))
+    }
+
+    // SETTERS
+
+    #[inline(always)]
     fn set_game(self: Store, game: Game) {
         set!(self.world, (game))
     }
@@ -56,5 +89,37 @@ impl StoreImpl of StoreTrait {
     #[inline(always)]
     fn set_tournament(self: Store, tournament: Tournament) {
         set!(self.world, (tournament))
+    }
+
+    #[inline(always)]
+    fn set_credits(self: Store, credits: Credits) {
+        set!(self.world, (credits))
+    }
+
+    #[inline(always)]
+    fn set_settings(self: Store, settings: Settings) {
+        set!(self.world, (settings))
+    }
+
+    #[inline(always)]
+    fn set_chest(self: Store, chest: Chest) {
+        set!(self.world, (chest))
+    }
+
+    #[inline(always)]
+    fn set_participation(self: Store, participation: Participation) {
+        set!(self.world, (participation))
+    }
+
+    #[inline(always)]
+    fn set_admin(self: Store, admin: Admin) {
+        set!(self.world, (admin))
+    }
+
+    // DELETE
+    #[inline(always)]
+    fn delete_admin(self: Store, address: ContractAddress) {
+        let admin = self.admin(address.into());
+        delete!(self.world, (admin));
     }
 }

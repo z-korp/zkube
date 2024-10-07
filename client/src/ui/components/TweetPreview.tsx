@@ -4,11 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/ui/elements/dialog";
-
-const GAME_PER_PAGE = 5;
-const MAX_PAGE_COUNT = 5;
 
 interface TweetPreviewProps {
   open: boolean;
@@ -30,16 +26,16 @@ export const TweetPreview: React.FC<TweetPreviewProps> = ({
 
   useEffect(() => {
     setTweetMsg(
-      `Just had a blast on @zkorp_ 's zkube game but lost with a score of ${score} at Level ${level} 😅. But I’m not giving up—next stop, Level ${Number(level) ? Number(level) + 1 : 1} \n\n🏆! Who’s ready to join me on this epic adventure? 🚀🚀 \n\n#GameOn #ChallengeAccepte\n\n`,
+      `🎮 Just crushed it on ZKUBE a @zkorp_ game with an awesome score of ${score}! 💥 Can you beat that? 😎\n\nI'm pumped to go even higher\nWho's ready to join the challenge? 🚀 Let's see who can set the new high score!\n\n#HighScore #GameOn #ChallengeAccepted`,
     );
-  }, [open, score, level]);
+  }, [open, score]);
 
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setTweetMsg(event.target.value);
   };
 
   // const textQuery = encodeURIComponent(
-  //   `Just had a blast on @zkorp_ 's zkube game but lost with a score of ${score} at Level ${level} 😅. But I’m not giving up—next stop, Level ${Number(level) ? Number(level) + 1 : 1} \n\n🏆! Who’s ready to join me on this epic adventure? 🚀🚀 \n\n#GameOn #ChallengeAccepte\n\n`,
+  //   `Just had a blast on @zkorp_ 's zkube game but lost with a score of ${score} 😅. But I’m not giving up—next stop, Level ${Number(level) ? Number(level) + 1 : 1} \n\n🏆! Who’s ready to join me on this epic adventure? 🚀🚀 \n\n#GameOn #ChallengeAccepte\n\n`,
   // );
   const tweetText = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetMsg)}&url=app.zkube.xyz`;
   useEffect(() => {
@@ -60,13 +56,17 @@ export const TweetPreview: React.FC<TweetPreviewProps> = ({
         twitterMetaCard.setAttribute("content", "summary_large_image");
         document.head.appendChild(twitterMetaCard);
       }
-      console.log("second => ", imgSrc, bodyRef.current);
+      //console.log("second => ", imgSrc, bodyRef.current);
     }
   }, [imgSrc, bodyRef, bodyRef.current]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent ref={bodyRef} className="sm:max-w-[500px]">
+      <DialogContent
+        ref={bodyRef}
+        className="sm:max-w-[500px]"
+        aria-describedby={undefined}
+      >
         <DialogHeader className="flex items-center text-2xl">
           <DialogTitle>Share Progress on X</DialogTitle>
         </DialogHeader>

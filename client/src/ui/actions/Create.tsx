@@ -51,7 +51,7 @@ export const Create = () => {
           Sign Up
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>Create a new player</DialogTitle>
           <DialogDescription>Choose a name.</DialogDescription>

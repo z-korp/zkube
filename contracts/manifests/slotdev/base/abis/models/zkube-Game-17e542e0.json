@@ -467,6 +467,10 @@
       {
         "name": "tournament_id",
         "type": "core::integer::u64"
+      },
+      {
+        "name": "pending_chest_prize",
+        "type": "core::felt252"
       }
     ]
   },

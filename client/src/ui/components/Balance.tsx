@@ -1,12 +1,14 @@
+import { useLerpNumber } from "@/hooks/useLerpNumber";
 import { erc20ABI } from "@/utils/erc20";
 import { useContractRead } from "@starknet-react/core";
+import { useState, useEffect, useMemo } from "react";
 import { useMediaQuery } from "react-responsive";
 import { BlockTag } from "starknet";
 
 interface BalanceProps {
   address: string;
   token_address: string;
-  symbol?: string
+  symbol?: string;
 }
 
 interface BalanceData {
@@ -15,8 +17,11 @@ interface BalanceData {
   };
 }
 
-const Balance = ({ address, token_address, symbol='ETH' }: BalanceProps) => {
+const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
+  const [targetBalance, setTargetBalance] = useState<number | undefined>(
+    undefined,
+  );
 
   // useBalance doesn't work on Katana, don't know why
   const { data, isError, isLoading, error } = useContractRead({
@@ -26,17 +31,46 @@ const Balance = ({ address, token_address, symbol='ETH' }: BalanceProps) => {
     address: token_address,
     watch: true,
     blockIdentifier: BlockTag.PENDING,
+    refetchInterval: 500,
+  });
+
+  useEffect(() => {
+    if (data !== undefined) {
+      const balanceData = data as BalanceData;
+      const formattedBalance = parseFloat(
+        formatUnits(balanceData.balance.low, 18, symbol === "ETH" ? 6 : 2),
+      );
+
+      console.log("formattedBalance", formattedBalance);
+
+      setTargetBalance(formattedBalance);
+    }
+  }, [data, symbol]);
+
+  const decimalNumber = useMemo(() => {
+    return symbol === "ETH" ? 6 : 2;
+  }, [symbol]);
+
+  const displayBalance = useLerpNumber(targetBalance, {
+    decimals: decimalNumber,
+    integer: false,
   });
 
   if (isLoading) return <div>Loading ...</div>;
   if (isError || !data) return <div>{error?.message}</div>;
-
-  const balanceData = data as BalanceData; // Type assertion here
+  if (displayBalance == undefined) return <div></div>;
 
   return (
-    <div className="text-sm">{`${parseFloat(
-      formatUnits(balanceData.balance.low, 18),
-    ).toFixed(isMdOrLarger ? 5 : 2)} ${symbol}`}</div>
+    <div className="text-xs">
+      {`${displayBalance
+        .toFixed(decimalNumber)
+        .toString()
+        .split(".")
+        .map((part, index) =>
+          index === 1 ? part.slice(0, isMdOrLarger ? 5 : 3) : part,
+        )
+        .join(".")} ${symbol}`}
+    </div>
   );
 };
 
@@ -76,7 +110,11 @@ https://github.com/wevm/viem/blob/main/src/utils/unit/formatUnits.ts
  * formatUnits(420000000000n, 9)
  * // '420'
  */
-function formatUnits(value: bigint, decimals: number) {
+function formatUnits(
+  value: bigint,
+  decimals: number,
+  displayDecimals: number = decimals,
+) {
   let display = value.toString();
 
   const negative = display.startsWith("-");
@@ -89,6 +127,12 @@ function formatUnits(value: bigint, decimals: number) {
     display.slice(0, display.length - decimals),
     display.slice(display.length - decimals),
   ];
+
+  // Trim the fraction to the desired number of decimal places
+  fraction = fraction.slice(0, displayDecimals);
+
+  // Remove trailing zeros
   fraction = fraction.replace(/(0+)$/, "");
+
   return `${negative ? "-" : ""}${integer || "0"}${fraction ? `.${fraction}` : ""}`;
 }

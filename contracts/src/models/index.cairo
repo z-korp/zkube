@@ -38,6 +38,10 @@ pub struct Game {
     mode: u8,
     start_time: u64,
     tournament_id: u64,
+    // ------------------------
+    pending_chest_prize: u128, // prize to be added to the right chest
+// the right chest is the one that is not complete and has the highest point_target
+// only known after the game is over
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
@@ -45,7 +49,8 @@ pub struct Game {
 struct Tournament {
     #[key]
     id: u64,
-    prize: felt252,
+    is_set: bool,
+    prize: u128,
     top1_player_id: felt252,
     top2_player_id: felt252,
     top3_player_id: felt252,
@@ -55,4 +60,55 @@ struct Tournament {
     top1_claimed: bool,
     top2_claimed: bool,
     top3_claimed: bool,
+}
+
+#[derive(Copy, Drop, Serde, IntrospectPacked)]
+#[dojo::model]
+struct Credits {
+    #[key]
+    id: felt252, // player_id (address)
+    day_id: u64,
+    remaining: u8,
+}
+
+#[derive(Copy, Drop, Serde, IntrospectPacked)]
+#[dojo::model]
+struct Settings {
+    #[key]
+    id: u8,
+    is_set: bool,
+    zkorp_address: felt252,
+    free_daily_credits: u8,
+    daily_mode_price: u128,
+    normal_mode_price: u128,
+}
+
+#[derive(Copy, Drop, Serde, IntrospectPacked)]
+#[dojo::model]
+struct Chest {
+    #[key]
+    id: u32,
+    point_target: u32,
+    points: u32,
+    prize: u128,
+}
+
+#[derive(Copy, Drop, Serde, IntrospectPacked)]
+#[dojo::model]
+struct Participation {
+    #[key]
+    chest_id: u32,
+    #[key]
+    player_id: felt252,
+    is_set: bool,
+    points: u32,
+    claimed: bool,
+}
+
+#[derive(Copy, Drop, Serde, IntrospectPacked)]
+#[dojo::model]
+struct Admin {
+    #[key]
+    id: felt252,
+    is_set: bool,
 }

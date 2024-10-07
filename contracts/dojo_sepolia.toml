@@ -16,6 +16,6 @@ telegram = "https://t.me/dojoengine"
 default = "zkube"
 
 [env]
-rpc_url = "https://starknet-sepolia.public.blastapi.io/rpc/v0_7"
-account_address = ""
-private_key = ""
+rpc_url = "https://api.cartridge.gg/x/starknet/sepolia"
+account_address = "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7"
+private_key = "0x9a2816a70849c36ce6ef74a8b5d8007e40f36f3e96d1ce72d2bced106e8b1f"

@@ -17,5 +17,5 @@ default = "zkube"
 
 [env]
 rpc_url = "https://api.cartridge.gg/x/zkube-slot/katana"
-account_address = "0x1c10815b8e3fb0830a702eddb77a566ee78e3d173557bf3ed7b9a8b28f048ca"
-private_key = "0x4b5b87f25c379f5f5088cc4b14fe7963dfc7675cfdb94e1c263a849f3c2b9d3"
+account_address = "0x8262c97c9d8e32c89d909a27501df68d3bc8d341f9a97e25d3100c9e5400bf"
+private_key = "0x22a71ec86a65c35a69d30c0680fb131576f2de4a4406bb1d10c43462e14dfc"

@@ -1,10 +1,14 @@
 kind = "DojoContract"
-class_hash = "0x7c17fdc4e6a3f65ef1cf9e8a52eb8eb6ad04ca413ab0fb733565cdbf749d378"
-original_class_hash = "0x7c17fdc4e6a3f65ef1cf9e8a52eb8eb6ad04ca413ab0fb733565cdbf749d378"
+class_hash = "0xcf80a07e7bbe46e35df0a376bab3608604ec36b916af569d0ab62e5d94156e"
+original_class_hash = "0xcf80a07e7bbe46e35df0a376bab3608604ec36b916af569d0ab62e5d94156e"
 base_class_hash = "0x0"
 abi = "manifests/slotdev/base/abis/contracts/zkube-account-6d28004d.json"
 reads = []
 writes = []
 init_calldata = []
 tag = "zkube-account"
+systems = [
+    "create",
+    "rename",
+]
 manifest_name = "zkube-account-6d28004d"
