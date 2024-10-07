@@ -59,8 +59,6 @@ export const Home = () => {
   const [imgData, setImgData] = useState<string>("");
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
-  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
-
   useEffect(() => {
     if (game?.over) {
       if (gameGrid.current !== null) {
@@ -214,9 +212,11 @@ export const Home = () => {
                       account={account}
                     />
                   </div>
-                  <div className="mt-4 sm:mt-0 sm:absolute sm:right-0 sm:bottom-0 sm:mb-4 flex justify-center sm:justify-end w-full">
-                    <Surrender setIsUnmounting={setIsUnmounting} />
-                  </div>
+                  {isMdOrLarger && (
+                    <div className="mt-4 sm:mt-0 sm:absolute sm:right-0 sm:bottom-0 sm:mb-4 flex justify-center sm:justify-end w-full">
+                      <Surrender />
+                    </div>
+                  )}
                 </div>
               )}
             </div>

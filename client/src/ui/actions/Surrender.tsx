@@ -13,13 +13,20 @@ import {
   DialogClose,
 } from "@/ui/elements/dialog";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import { useGeneralStore } from "@/stores/generalStore";
+import { cn } from "../utils";
 
 interface SurrenderProps {
-  setIsUnmounting: (value: boolean) => void;
+  outline?: boolean;
+  className?: string;
 }
 
-export const Surrender: React.FC<SurrenderProps> = ({ setIsUnmounting }) => {
+export const Surrender: React.FC<SurrenderProps> = ({
+  outline = false,
+  className,
+}) => {
   const { account } = useAccountCustom();
+  const { setIsUnmounting } = useGeneralStore();
   const {
     master,
     setup: {
@@ -52,13 +59,14 @@ export const Surrender: React.FC<SurrenderProps> = ({ setIsUnmounting }) => {
   if (disabled) return null;
 
   return (
-    <div className="flex gap-4">
+    <div className={cn("flex gap-4", className)}>
       <Dialog>
         <DialogTrigger asChild>
           <Button
             disabled={isLoading}
             isLoading={isLoading}
-            className="text-xl"
+            variant={outline ? "outline" : "default"}
+            className={cn("text-xl", className)}
           >
             Surrender
           </Button>

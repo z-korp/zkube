@@ -19,6 +19,7 @@ import HeaderBalance from "./HeaderBalance";
 import { Button } from "../elements/button";
 import CollectiveTreasureChest from "./TreasureChest";
 import { useState } from "react";
+import { Surrender } from "../actions/Surrender";
 
 const MobileMenu = () => {
   const { account } = useAccountCustom();
@@ -53,6 +54,8 @@ const MobileMenu = () => {
             </div>
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Menu</p>
+
+              <Surrender outline className="w-full text-sm" />
               <Leaderboard />
               <Button
                 variant="outline"
