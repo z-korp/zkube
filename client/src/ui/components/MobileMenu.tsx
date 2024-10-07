@@ -42,12 +42,12 @@ const MobileMenu = () => {
             <DrawerTitle className="text-2xl">zKube</DrawerTitle>
           </DrawerHeader>
           <div className="flex flex-col gap-5 p-4">
-            <div className="flex flex-col gap-2 items-center">
+            {/* <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Theme</p> <ModeToggle />
-            </div>
-            <div className="flex flex-col gap-2 items-center">
+            </div> */}
+            {/* <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Sound</p> <MusicPlayer />
-            </div>
+            </div> */}
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Account</p>
               <AccountDetails />
@@ -55,7 +55,7 @@ const MobileMenu = () => {
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Menu</p>
 
-              <Surrender outline className="w-full text-sm" />
+              <Surrender outline red className="w-full text-sm" />
               <Leaderboard />
               <Button
                 variant="outline"

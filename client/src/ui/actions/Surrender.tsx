@@ -18,11 +18,13 @@ import { cn } from "../utils";
 
 interface SurrenderProps {
   outline?: boolean;
+  red?: boolean;
   className?: string;
 }
 
 export const Surrender: React.FC<SurrenderProps> = ({
   outline = false,
+  red = false,
   className,
 }) => {
   const { account } = useAccountCustom();
@@ -66,7 +68,7 @@ export const Surrender: React.FC<SurrenderProps> = ({
             disabled={isLoading}
             isLoading={isLoading}
             variant={outline ? "outline" : "default"}
-            className={cn("text-xl", className)}
+            className={cn("text-xl", className, red && "bg-red-600")}
           >
             Surrender
           </Button>
