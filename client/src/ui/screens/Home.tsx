@@ -32,6 +32,7 @@ import {
 } from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
 import MaxComboIcon from "../components/MaxComboIcon";
+import { CubeSlidingTutorial } from "@/dojo/game/models/CubeSlidingTutorial";
 
 export const Home = () => {
   const {
@@ -57,7 +58,6 @@ export const Home = () => {
   const [level, setLevel] = useState<number | "">(0);
   const [score, setScore] = useState<number | undefined>(0);
   const [imgData, setImgData] = useState<string>("");
-  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
