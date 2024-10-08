@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { memo, useCallback, useEffect, useState } from "react";
 import "../../grid.css";
 import { Account } from "starknet";
 import { useDojo } from "@/dojo/useDojo";
@@ -47,6 +47,7 @@ const Grid: React.FC<GridProps> = ({
   } = useDojo();
 
   const [blocks, setBlocks] = useState<Block[]>(initialData);
+  const [applyData, setApplyData] = useState(false);
   const [dragging, setDragging] = useState<Block | null>(null);
   const [dragStartX, setDragStartX] = useState(0);
   const [initialX, setInitialX] = useState(0);
@@ -73,7 +74,12 @@ const Grid: React.FC<GridProps> = ({
   const transitionDuration = 200;
 
   useEffect(() => {
-    setBlocks(initialData);
+    if (applyData) {
+      setBlocks(initialData);
+      console.log("Apply data", initialData);
+      setApplyData(false);
+    }
+    //setBlocks(initialData);
 
     const inDanger = initialData.some((block) => block.y < 2);
     setIsPlayerInDanger(inDanger);
@@ -82,7 +88,7 @@ const Grid: React.FC<GridProps> = ({
     }
     setLineExplodedCount(0);
     setIsTxProcessing(false);
-  }, [initialData]);
+  }, [initialData, applyData]);
 
   const resetAnimateText = (): void => {
     setAnimateText(ComboMessages.None);
@@ -221,7 +227,7 @@ const Grid: React.FC<GridProps> = ({
 
   useEffect(() => {
     const handleMouseUp = (event: MouseEvent) => {
-      endDrag(); // Appeler directement endDrag() ici.
+      endDrag();
     };
 
     // Ajoute l'écouteur d'événements pour le document une seule fois.
@@ -233,9 +239,16 @@ const Grid: React.FC<GridProps> = ({
     };
   }, [dragging]);
 
+  useEffect(() => {
+    if (pendingMove) {
+      const { block, rowIndex, startX, finalX } = pendingMove;
+      handleMoveTX(rowIndex, startX, finalX);
+    }
+  }, [pendingMove]);
+
   const handleMoveTX = useCallback(
     async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
-      if (startColIndex === finalColIndex || isMoving) return;
+      if (startColIndex === finalColIndex) return;
       if (!account) return;
       setIsTxProcessing(true);
       try {
@@ -428,8 +441,9 @@ const Grid: React.FC<GridProps> = ({
     }
     if (gameState === GameState.MOVE_TX) {
       if (pendingMove) {
-        const { rowIndex, startX, finalX } = pendingMove;
-        handleMoveTX(rowIndex, startX, finalX);
+        // const { rowIndex, startX, finalX } = pendingMove;
+        // handleMoveTX(rowIndex, startX, finalX);
+        setApplyData(true);
         setPendingMove(null);
         setGameState(GameState.WAITING);
       }
