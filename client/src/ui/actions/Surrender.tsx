@@ -17,13 +17,19 @@ import { useGeneralStore } from "@/stores/generalStore";
 import { cn } from "../utils";
 
 interface SurrenderProps {
-  outline?: boolean;
+  variant?:
+    | "default"
+    | "link"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost";
   red?: boolean;
   className?: string;
 }
 
 export const Surrender: React.FC<SurrenderProps> = ({
-  outline = false,
+  variant = "default",
   red = false,
   className,
 }) => {
@@ -67,7 +73,7 @@ export const Surrender: React.FC<SurrenderProps> = ({
           <Button
             disabled={isLoading}
             isLoading={isLoading}
-            variant={outline ? "outline" : "default"}
+            variant={variant}
             className={cn("text-xl", className, red && "bg-red-600")}
           >
             Surrender

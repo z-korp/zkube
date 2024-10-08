@@ -55,7 +55,7 @@ const MobileMenu = () => {
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Menu</p>
 
-              <Surrender outline red className="w-full text-sm" />
+              <Surrender red variant="outline" className="w-full text-sm" />
               <Leaderboard />
               <Button
                 variant="outline"
