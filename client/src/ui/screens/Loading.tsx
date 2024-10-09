@@ -20,7 +20,7 @@ export const Loading = ({
         <div
           className="absolute inset-0 bg-cover bg-center opacity-50 animate-zoom-in-out"
           style={{ backgroundImage: `url('${imgAssets.background}')` }}
-        />
+        /> 
       </div>
 
       {/* Logo */}

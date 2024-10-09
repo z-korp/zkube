@@ -33,6 +33,8 @@ import {
 import { Button } from "@/ui/elements/button";
 import MaxComboIcon from "../components/MaxComboIcon";
 import { CubeSlidingTutorial } from "@/dojo/game/models/CubeSlidingTutorial";
+import Grid from "../components/Grid";
+import { Block } from "@/types/types";
 
 export const Home = () => {
   const {
@@ -104,6 +106,8 @@ export const Home = () => {
 
   const [isTutorialActive, setIsTutorialActive] = useState(false);
   const [tutorial, setTutorial] = useState<CubeSlidingTutorial | null>(null);
+  const [showGrid, setShowGrid] = useState(false);
+  const [showTutorialText, setShowTutorialText] = useState(true);
 
   const startTutorial = () => {
     setTutorial(new CubeSlidingTutorial());
@@ -115,9 +119,23 @@ export const Home = () => {
     setIsTutorialActive(false);
   };
 
+  const handleStartTutorial = () => {
+    setShowGrid(true);
+    setShowTutorialText(false);
+  };
+
+
+
+  const initialData: Block[] = Array.from({ length: 25 }, (_, index) => ({
+    id: index + 1,
+    x: index % 5,
+    y: Math.floor(index / 5),
+    width: 1, // Adjust if needed
+    height: 1, // Adjust if needed
+  }));
   return (
     <div className="relative flex flex-col h-screen">
-      <Header onStartTutorial={startTutorial}/>
+      <Header onStartTutorial={handleStartTutorial}/>
       <BackGroundBoard imageBackground={imgAssets.imageBackground}>
         <BackGroundBoard
           imageBackground={imageTotemTheme}
@@ -140,6 +158,25 @@ export const Home = () => {
                 />
               ) : (
                 <> */}
+
+
+            <div className="flex flex-col items-center w-[500px]">
+                    {showGrid && (
+                      <>
+                        {showTutorialText && <h2 className="text-center">Slide Cube</h2>}
+                        <Grid
+                          initialData={initialData}
+                          nextLineData={[]} // Provide next line data if needed
+                          gridSize={5} // Assuming a 5x5 grid
+                          gridHeight={5}
+                          gridWidth={5}
+                          selectBlock={(block) => console.log(block)} // Replace with your block selection logic
+                          bonus={0} // Adjust bonus as needed
+                          account={null} // Pass account info if necessary
+                        />
+                      </>
+                    )}
+                  </div>
               <Create />
               {(!game || (!!game && isGameOn === "isOver")) && (
                 <div className="flex flex-col sm:flex-row p-2 sm:p-4 rounded-xl w-[93%] gap-2 sm:gap-4 items-center justify-evenly">

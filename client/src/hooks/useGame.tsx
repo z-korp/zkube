@@ -24,4 +24,4 @@ export const useGame = ({ gameId }: { gameId: string | undefined }) => {
   }, [component]);
 
   return { game, gameKey };
-};
+}; 
