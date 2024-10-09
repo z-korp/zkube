@@ -57,11 +57,11 @@ export async function setup({ ...config }: Config) {
   try {
     await burnerManager.init();
 
-    /*if (burnerManager.list().length === 0) {
+    if (burnerManager.list().length === 0) {
       await burnerManager.create();
     } else {
       burnerManager.select(burnerManager.list()[0].address);
-    }*/
+    }
   } catch (e) {
     console.error(e);
   }

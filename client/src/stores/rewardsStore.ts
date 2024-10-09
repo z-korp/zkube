@@ -100,12 +100,14 @@ export const useRewardsCalculator = () => {
       const calculatedTournamentRewards: TournamentReward[] = [];
       const player_id = BigInt(account.address).toString(16);
 
+      console.log("tournaments", tournaments);
       tournaments.forEach((tournament) => {
         if (!tournament.isOver()) return;
 
         if (
           tournament.top1_player_id.toString(16) === player_id &&
-          !tournament.top1_claimed
+          !tournament.top1_claimed &&
+          tournament.top1_prize !== 0n
         ) {
           calculatedTournamentRewards.push({
             player_id: account.address,
@@ -121,7 +123,8 @@ export const useRewardsCalculator = () => {
         }
         if (
           tournament.top2_player_id.toString(16) === player_id &&
-          !tournament.top2_claimed
+          !tournament.top2_claimed &&
+          tournament.top2_prize !== 0n
         ) {
           calculatedTournamentRewards.push({
             player_id: account.address,
@@ -137,7 +140,8 @@ export const useRewardsCalculator = () => {
         }
         if (
           tournament.top3_player_id.toString(16) === player_id &&
-          !tournament.top3_claimed
+          !tournament.top3_claimed &&
+          tournament.top3_prize !== 0n
         ) {
           calculatedTournamentRewards.push({
             player_id: account.address,

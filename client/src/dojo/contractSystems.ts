@@ -91,7 +91,7 @@ export const getContractByName = (manifest: any, name: string) => {
 };
 
 export async function setupWorld(provider: DojoProvider, config: Config) {
-  const details: UniversalDetails | undefined = undefined; // { maxFee: 1e15 };
+  const details: UniversalDetails | undefined = { maxFee: 1e15 };
 
   function account() {
     const contract_name = "account";

@@ -158,13 +158,14 @@ const GameBoard: React.FC<GameBoardProps> = ({
     setBonus(BonusName.NONE);
   }, [initialGrid]);
 
-  const memorizedInitialData = useMemo(
-    () => transformDataContratIntoBlock(initialGrid),
-    [initialGrid],
-  );
+  const memorizedInitialData = useMemo(() => {
+    return transformDataContratIntoBlock(initialGrid);
+  }, [initialGrid]);
+
+  //console.log("memorized initial data", memorizedInitialData);
   const memorizedNextLineData = useMemo(
     () => transformDataContratIntoBlock([nextLine]),
-    [nextLine],
+    [initialGrid],
   );
 
   const displayScore = useLerpNumber(score, {
@@ -254,7 +255,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         <br />
         <div className="flex justify-center items-center">
           <NextLine
-            nextLineData={transformDataContratIntoBlock([nextLine])}
+            nextLineData={memorizedNextLineData}
             gridSize={gridSize}
             gridHeight={1}
             gridWidth={cols}

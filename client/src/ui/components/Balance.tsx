@@ -56,8 +56,14 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
     integer: false,
   });
 
+  useEffect(() => {
+    if (isError) {
+      console.error("Error fetching balance", error);
+    }
+  }, [isError, error]);
+
   if (isLoading) return <div>Loading ...</div>;
-  if (isError || !data) return <div>{error?.message}</div>;
+  if (isError || !data) return <div></div>;
   if (displayBalance == undefined) return <div></div>;
 
   return (
