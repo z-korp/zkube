@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import "../../grid.css";
 import { Account } from "starknet";
 import { useDojo } from "@/dojo/useDojo";
@@ -12,6 +12,7 @@ import {
   removeBlocksSameWidth,
   removeBlocksSameRow,
   removeBlockId,
+  deepCompareBlocks,
 } from "@/utils/gridUtils";
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
@@ -47,6 +48,8 @@ const Grid: React.FC<GridProps> = ({
   } = useDojo();
 
   const [blocks, setBlocks] = useState<Block[]>(initialData);
+  const [saveGridStateblocks, setSaveGridStateblocks] =
+    useState<Block[]>(initialData);
   const [applyData, setApplyData] = useState(false);
   const [dragging, setDragging] = useState<Block | null>(null);
   const [dragStartX, setDragStartX] = useState(0);
@@ -75,20 +78,23 @@ const Grid: React.FC<GridProps> = ({
 
   useEffect(() => {
     if (applyData) {
+      if (deepCompareBlocks(saveGridStateblocks, initialData)) {
+        return;
+      }
+      setSaveGridStateblocks(initialData);
       setBlocks(initialData);
       console.log("Apply data", initialData);
       setApplyData(false);
-    }
-    //setBlocks(initialData);
 
-    const inDanger = initialData.some((block) => block.y < 2);
-    setIsPlayerInDanger(inDanger);
-    if (lineExplodedCount > 1) {
-      setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
+      const inDanger = initialData.some((block) => block.y < 2);
+      setIsPlayerInDanger(inDanger);
+      if (lineExplodedCount > 1) {
+        setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
+      }
+      setLineExplodedCount(0);
+      setIsTxProcessing(false);
     }
-    setLineExplodedCount(0);
-    setIsTxProcessing(false);
-  }, [initialData, applyData]);
+  }, [applyData, initialData]);
 
   const resetAnimateText = (): void => {
     setAnimateText(ComboMessages.None);
@@ -201,14 +207,14 @@ const Grid: React.FC<GridProps> = ({
       const updatedBlocks = prevBlocks.map((b) => {
         if (b.id === dragging.id) {
           const finalX = Math.round(b.x);
-          if (Math.trunc(finalX) !== Math.trunc(initialX))
-            setIsTxProcessing(true);
-          setPendingMove({
-            block: b,
-            rowIndex: b.y,
-            startX: initialX,
-            finalX,
-          });
+          if (Math.trunc(finalX) !== Math.trunc(initialX)) {
+            setPendingMove({
+              block: b,
+              rowIndex: b.y,
+              startX: initialX,
+              finalX,
+            });
+          }
           return { ...b, x: finalX };
         }
         return b;

@@ -44,7 +44,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   } = useDojo();
 
   const [isTxProcessing, setIsTxProcessing] = useState(false);
-  const [grid, setGrid] = useState<number[][]>(initialGrid);
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
@@ -154,32 +153,19 @@ const GameBoard: React.FC<GameBoardProps> = ({
     [bonus],
   );
 
-  const areGridsEqual = (grid1: number[][], grid2: number[][]) => {
-    if (grid1.length !== grid2.length) return false;
-    for (let i = 0; i < grid1.length; i++) {
-      if (grid1[i].length !== grid2[i].length) return false;
-      for (let j = 0; j < grid1[i].length; j++) {
-        if (grid1[i][j] !== grid2[i][j]) return false;
-      }
-    }
-    return true;
-  };
-
   useEffect(() => {
     setIsTxProcessing(false);
     setBonus(BonusName.NONE);
-    if (!areGridsEqual(grid, initialGrid)) {
-      setGrid(initialGrid);
-    }
   }, [initialGrid]);
 
-  const memorizedInitialData = useMemo(
-    () => transformDataContratIntoBlock(grid),
-    [grid],
-  );
+  const memorizedInitialData = useMemo(() => {
+    return transformDataContratIntoBlock(initialGrid);
+  }, [initialGrid]);
+
+  //console.log("memorized initial data", memorizedInitialData);
   const memorizedNextLineData = useMemo(
     () => transformDataContratIntoBlock([nextLine]),
-    [grid],
+    [initialGrid],
   );
 
   const displayScore = useLerpNumber(score, {
