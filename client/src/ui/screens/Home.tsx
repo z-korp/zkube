@@ -58,6 +58,8 @@ export const Home = () => {
   const [score, setScore] = useState<number | undefined>(0);
   const [imgData, setImgData] = useState<string>("");
 
+  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
+
   useEffect(() => {
     if (game?.over) {
       if (gameGrid.current !== null) {
