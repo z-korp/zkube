@@ -167,16 +167,16 @@ export const Home = () => {
                         <Grid
                           initialData={initialData}
                           nextLineData={[]} // Provide next line data if needed
-                          gridSize={5} // Assuming a 5x5 grid
-                          gridHeight={5}
-                          gridWidth={5}
+                          gridSize={50} // Assuming a 5x5 grid
+                          gridHeight={15}
+                          gridWidth={15}
                           selectBlock={(block) => console.log(block)} // Replace with your block selection logic
                           bonus={0} // Adjust bonus as needed
                           account={null} // Pass account info if necessary
                         />
                       </>
                     )}
-                  </div>
+                  </div> 
               <Create />
               {(!game || (!!game && isGameOn === "isOver")) && (
                 <div className="flex flex-col sm:flex-row p-2 sm:p-4 rounded-xl w-[93%] gap-2 sm:gap-4 items-center justify-evenly">
