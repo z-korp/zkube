@@ -22,7 +22,6 @@ import { LeaderboardContent } from "../modules/Leaderboard";
 import { useRewardsCalculator } from "@/stores/rewardsStore";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -33,6 +32,7 @@ import MaxComboIcon from "../components/MaxComboIcon";
 import GameModeCard from "../components/GameModeCard";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import useAutoSignup from "@/hooks/useAutoSignup";
+import { useMediaQuery } from "react-responsive";
 
 export const Home = () => {
   const {
