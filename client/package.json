@@ -9,6 +9,8 @@
     "slottest": "vite --mode slottest",
     "slotdev": "vite --mode slotdev",
     "sepolia": "vite --mode sepolia --host",
+    "sepoliadev1": "vite --mode sepoliadev1 --host",
+    "sepoliadev2": "vite --mode sepoliadev2 --host",
     "build": "tsc && vite build",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",

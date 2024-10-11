@@ -402,11 +402,11 @@
       },
       {
         "name": "daily_mode_price",
-        "type": "core::felt252"
+        "type": "core::integer::u128"
       },
       {
         "name": "normal_mode_price",
-        "type": "core::felt252"
+        "type": "core::integer::u128"
       }
     ]
   },

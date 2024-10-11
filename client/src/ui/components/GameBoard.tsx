@@ -218,7 +218,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               </span>
               <FontAwesomeIcon
                 icon={faFire}
-                className="text-yellow-500 ml-1"
+                className="text-slate-500 ml-1"
                 width={26}
                 height={26}
               />
@@ -234,7 +234,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               <MaxComboIcon
                 width={isMdOrLarger ? 31 : 25}
                 height={isMdOrLarger ? 31 : 25}
-                className="text-yellow-500 ml-1"
+                className="text-slate-500 ml-1"
               />
             </div>
           </div>

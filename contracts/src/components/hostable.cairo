@@ -98,6 +98,17 @@ mod HostableComponent {
             let time = get_block_timestamp();
             let mut game = GameTrait::new(game_id, player.id, beta, mode: mode.into(), time: time,);
 
+            // [Effect] Create tournament if not existing
+            let tournament_id = TournamentImpl::compute_id(time, mode.duration());
+            let mut tournament = store.tournament(tournament_id);
+            tournament.is_set = true;
+            tournament.score(player.id, game_id, 0); // by default it's added, otherwise 
+            // could have tournement without winners
+            store.set_tournament(tournament);
+
+            // [Effect] Add tournament id to game
+            game.tournament_id = tournament_id;
+
             // [Effect] Start game
             game.start();
             store.set_game(game);
@@ -110,7 +121,7 @@ mod HostableComponent {
                 // [Return] Game ID and amounts to pay
                 (game_id, 0, 0, 0, 0, 0)
             } else {
-                // [Effect] Update tournament and compute prices
+                // [Effect] Compute prices
 
                 // Price shared between parties
                 let settings = store.settings();
@@ -120,14 +131,7 @@ mod HostableComponent {
                 let precise_price: u256 = price.into() * PRECISION_FACTOR.into();
 
                 // Tournament
-                let tournament_id = TournamentImpl::compute_id(time, mode.duration());
-                let mut tournament = store.tournament(tournament_id);
                 let tournament_amount: u256 = (precise_price * TOURNAMENT_PERCENTAGE.into()) / 100;
-
-                //tournament.pay_entry_fee((tournament_amount /
-                //PRECISION_FACTOR.into()).try_into().unwrap());
-                tournament.is_set = true;
-                store.set_tournament(tournament);
 
                 // Chest
                 let chest_amount: u256 = (precise_price * CHEST_PERCENTAGE.into()) / 100;

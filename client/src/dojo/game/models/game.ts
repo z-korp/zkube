@@ -43,6 +43,9 @@ export class Game {
   public player_id: string;
   public seed: bigint;
   public start_time: Date;
+  public score_in_tournament: number;
+  public combo_counter_in_tournament: number;
+  public max_combo_in_tournament: number;
   public tournament_id: number;
 
   constructor(game: ComponentValue) {
@@ -74,7 +77,10 @@ export class Game {
     this.bonuses = game.bonuses;
     this.player_id = "0x" + game.player_id.toString(16);
     this.seed = game.seed;
-    this.start_time = game.start_time;
+    this.start_time = new Date(game.start_time * 1000);
+    this.score_in_tournament = game.score_in_tournament;
+    this.combo_counter_in_tournament = game.combo_counter_in_tournament;
+    this.max_combo_in_tournament = game.max_combo_in_tournament;
     this.tournament_id = game.tournament_id;
 
     // Destructure blocks and colors bitmaps in to Rows and Blocks

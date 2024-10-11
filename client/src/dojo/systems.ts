@@ -7,6 +7,8 @@ import { Account } from "starknet";
 
 export type SystemCalls = ReturnType<typeof systems>;
 
+const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
+
 export function systems({
   client,
   clientModels,
@@ -46,8 +48,11 @@ export function systems({
       label: "View",
       onClick: () =>
         window.open(
-          `https://worlds.dev/networks/slot/worlds/zkube/txs/${transaction_hash}`,
-          //`https://sepolia.voyager.online/tx/${transaction_hash}`,
+          VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ||
+            VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev1" ||
+            VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev2"
+            ? `https://sepolia.starkscan.co/tx//${transaction_hash}`
+            : `https://worlds.dev/networks/slot/worlds/zkube-${VITE_PUBLIC_DEPLOY_TYPE}/txs/${transaction_hash}`,
         ),
     };
   };
@@ -66,7 +71,6 @@ export function systems({
   const toastPlacement = getToastPlacement();
 
   const notify = (message: string, transaction: any) => {
-    console.log("transaction", transaction);
     if (transaction.execution_status !== "REVERTED") {
       toast.success(message, {
         id: TOAST_ID,

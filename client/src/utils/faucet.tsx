@@ -1,4 +1,6 @@
-import { Abi, Contract, uint256 } from "starknet";
+import { Abi, Account, CallData, Contract, uint256 } from "starknet";
+
+const { VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
 
 export const faucetAbi = [
   {
@@ -61,40 +63,33 @@ export const faucetAbi = [
 export const FAUCET_AMOUNT = uint256.bnToUint256(1000n * 10n ** 18n);
 export const FAUCET_COOLDOWN = 86400; // 24 hours in seconds
 
-export async function claimFromFaucet(contract: Contract) {
-  try {
-    console.log("qqqqqq");
-    await contract.faucet();
-    return { success: true, message: "Successfully claimed from faucet" };
-  } catch (error: any) {
-    console.log("Failed to claim from faucet: " + error.message);
-    return {
-      success: false,
-      message: "Failed to claim from faucet: " + error.message,
-    };
-  }
-}
+export const createFaucetClaimHandler = (
+  account: Account | undefined,
+  contract: Contract | undefined,
+  setIsPending: (isPending: boolean) => void,
+) => {
+  return async () => {
+    if (!contract || !account) {
+      console.error("Account or contract is undefined");
+      return;
+    }
 
-export async function getLastFaucetClaim(
-  contract: Contract,
-  address: string,
-): Promise<number> {
-  try {
-    const result = await contract.last_faucet_claim(address);
-    return Number(result);
-  } catch (error) {
-    console.error("Failed to get last faucet claim:", error);
-    return 0;
-  }
-}
+    setIsPending(true);
+    try {
+      const transaction = await account.execute({
+        contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
+        entrypoint: "faucet",
+        calldata: CallData.compile({}),
+      });
 
-export function canClaimFromFaucet(lastClaimTime: number): boolean {
-  const currentTime = Math.floor(Date.now() / 1000);
-  return currentTime >= lastClaimTime + FAUCET_COOLDOWN;
-}
-
-export function getTimeUntilNextClaim(lastClaimTime: number): number {
-  const currentTime = Math.floor(Date.now() / 1000);
-  const nextClaimTime = lastClaimTime + FAUCET_COOLDOWN;
-  return Math.max(0, nextClaimTime - currentTime);
-}
+      await account.waitForTransaction(transaction.transaction_hash, {
+        retryInterval: 1000,
+      });
+      console.log("Successfully claimed from faucet");
+    } catch (error) {
+      console.error("Error claiming from faucet:", error);
+    } finally {
+      setIsPending(false);
+    }
+  };
+};

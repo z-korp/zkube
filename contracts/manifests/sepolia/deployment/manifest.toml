@@ -64,8 +64,8 @@ manifest_name = "zkube-chest-5d3b3ea3"
 [[contracts]]
 kind = "DojoContract"
 address = "0x8fbe72f6d350f76cfd6554872befc4d61889d4029a66cf3897506a908f77ca"
-class_hash = "0x7a51c798e869e9aefcdb2ddea73ccad730c40dd61be8f7d60b3a4c11d09af57"
-original_class_hash = "0x7a51c798e869e9aefcdb2ddea73ccad730c40dd61be8f7d60b3a4c11d09af57"
+class_hash = "0x50770a5234a70bf01fe1f9656a8054a14ec0107c8e8ce338054330d426f8aea"
+original_class_hash = "0x50770a5234a70bf01fe1f9656a8054a14ec0107c8e8ce338054330d426f8aea"
 base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
 abi = "manifests/sepolia/deployment/abis/contracts/zkube-play-19ee70b3.json"
 reads = []
@@ -114,8 +114,8 @@ manifest_name = "zkube-settings-3b7c4918"
 [[contracts]]
 kind = "DojoContract"
 address = "0x7c69d31836f184012fa03b84601a6a3550a4e224baa6237c0b2c5481f3f9c9c"
-class_hash = "0x73f9affb7f1cc02ee3600fe5802177506dc2ecf4170d12aae3c13293e5435fe"
-original_class_hash = "0x73f9affb7f1cc02ee3600fe5802177506dc2ecf4170d12aae3c13293e5435fe"
+class_hash = "0x36c03bd01b9563629148ee08521382a7bf4424f3b973fe881f9330cc67843f7"
+original_class_hash = "0x36c03bd01b9563629148ee08521382a7bf4424f3b973fe881f9330cc67843f7"
 base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
 abi = "manifests/sepolia/deployment/abis/contracts/zkube-tournament-2101600e.json"
 reads = []
@@ -440,8 +440,8 @@ key = false
 
 [[models]]
 kind = "DojoModel"
-class_hash = "0x5f70cc3ff995fbbd09d926feb148fec575a1b9b12b529937473ded65567ffe1"
-original_class_hash = "0x5f70cc3ff995fbbd09d926feb148fec575a1b9b12b529937473ded65567ffe1"
+class_hash = "0xd28fd534451aca076dda7a67fee4a48f120bb478b5b27be15879ac0037f6e5"
+original_class_hash = "0xd28fd534451aca076dda7a67fee4a48f120bb478b5b27be15879ac0037f6e5"
 abi = "manifests/sepolia/deployment/abis/models/zkube-Tournament-120c37d1.json"
 tag = "zkube-Tournament"
 qualified_path = "zkube::models::index::tournament"
@@ -505,4 +505,19 @@ key = false
 [[models.members]]
 name = "top3_claimed"
 type = "bool"
+key = false
+
+[[models.members]]
+name = "top1_game_id"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "top2_game_id"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "top3_game_id"
+type = "u32"
 key = false

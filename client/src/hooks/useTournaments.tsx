@@ -2,12 +2,9 @@ import { useDojo } from "@/dojo/useDojo";
 import { useEffect, useState } from "react";
 import { useEntityQuery } from "@dojoengine/react";
 import { ComponentValue, getComponentValue, Has } from "@dojoengine/recs";
+import { ModeType } from "@/dojo/game/types/mode";
 
-export const useTournaments = ({
-  player_id,
-}: {
-  player_id: string | undefined;
-}) => {
+export const useTournaments = ({ mode }: { mode: ModeType }) => {
   const {
     setup: {
       clientModels: {
@@ -34,17 +31,10 @@ export const useTournaments = ({
     setTournaments(
       components
         .map((component) => new TournamentClass(component as ComponentValue))
-        .filter((tournament) => {
-          if (!player_id) return false;
-          const id = BigInt(player_id).toString(16);
-          return (
-            tournament.top1_player_id.toString(16) === id ||
-            tournament.top2_player_id.toString(16) === id ||
-            tournament.top3_player_id.toString(16) === id
-          );
-        }),
+        .filter((tournament) => tournament.mode.value === mode)
+        .sort((a, b) => b.getEndDate().getTime() - a.getEndDate().getTime()),
     );
-  }, [tournamentKeys, player_id]);
+  }, [tournamentKeys]);
 
   return tournaments;
 };

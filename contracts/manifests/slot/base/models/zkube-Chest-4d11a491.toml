@@ -1,6 +1,6 @@
 kind = "DojoModel"
-class_hash = "0x4deedbaef68409689bda33fe4777a65b0785acbef70d8378d9b4a96d706dc83"
-original_class_hash = "0x4deedbaef68409689bda33fe4777a65b0785acbef70d8378d9b4a96d706dc83"
+class_hash = "0x4ebc00a7ff8d99ef6a898161a20ce5f8e8a5cb96f471207a2b4d8a518262c0e"
+original_class_hash = "0x4ebc00a7ff8d99ef6a898161a20ce5f8e8a5cb96f471207a2b4d8a518262c0e"
 abi = "manifests/slot/base/abis/models/zkube-Chest-4d11a491.json"
 tag = "zkube-Chest"
 qualified_path = "zkube::models::index::chest"
@@ -23,5 +23,5 @@ key = false
 
 [[members]]
 name = "prize"
-type = "felt252"
+type = "u128"
 key = false

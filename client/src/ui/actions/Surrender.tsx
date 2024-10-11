@@ -71,11 +71,11 @@ export const Surrender: React.FC<SurrenderProps> = ({ setIsUnmounting }) => {
             <DialogTitle>Surrender Game?</DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col gap-4">
-            <DialogClose asChild className="">
+          <div className="flex gap-4">
+            <DialogClose asChild className="w-full">
               <Button>No, Continue Playing</Button>
             </DialogClose>
-            <DialogClose asChild className="">
+            <DialogClose asChild className="w-full">
               <Button
                 variant="destructive"
                 disabled={isLoading}

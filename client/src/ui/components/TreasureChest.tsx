@@ -49,10 +49,6 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
     account?.address || "",
   );
 
-  const handleChestClick = (chest: Chest) => {
-    setSelectedChest(chest);
-  };
-
   const handlePrevious = () => {
     setCurrentChestIndex((prev) => Math.max(0, prev - 1));
   };

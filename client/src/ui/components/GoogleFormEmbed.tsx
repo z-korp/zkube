@@ -7,7 +7,7 @@ const GoogleFormEmbed = () => {
         style={{
           width: "95%",
           height: "100%",
-          borderRadius: "15px",
+          borderRadius: "8px",
           overflow: "hidden",
         }}
       >
