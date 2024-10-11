@@ -1813,7 +1813,7 @@
         "zkube-Participation"
       ],
       "init_calldata": [
-        "0x00e4bfd1c1f7151e747c19bbbb6e4d17c0670d1f14d7164b9fbb6ba7ddaaaf49"
+        "0x0730b8077dc0db1ac0138b2474a85b70b833a3ad6318059f60671ebb09195e67"
       ],
       "tag": "zkube-chest",
       "systems": [
@@ -1826,8 +1826,8 @@
     {
       "kind": "DojoContract",
       "address": "0x74f6168087ac21c952b2655380989dcee1f6d3661a986c961a40b4b1866d48f",
-      "class_hash": "0x50770a5234a70bf01fe1f9656a8054a14ec0107c8e8ce338054330d426f8aea",
-      "original_class_hash": "0x50770a5234a70bf01fe1f9656a8054a14ec0107c8e8ce338054330d426f8aea",
+      "class_hash": "0x5cbc5e731107f9ac652676ccba05b93903fa2571809d46c5a453193c4a42b32",
+      "original_class_hash": "0x5cbc5e731107f9ac652676ccba05b93903fa2571809d46c5a453193c4a42b32",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {
@@ -2575,8 +2575,8 @@
     {
       "kind": "DojoContract",
       "address": "0x7220769888b6d47d0770aba9bc61e61668499a9bc2d2ade4702dd1437895c64",
-      "class_hash": "0x36c03bd01b9563629148ee08521382a7bf4424f3b973fe881f9330cc67843f7",
-      "original_class_hash": "0x36c03bd01b9563629148ee08521382a7bf4424f3b973fe881f9330cc67843f7",
+      "class_hash": "0x754255d4521a1674abe2549c351e732ebf48896aef6922a8e939f3a574982c7",
+      "original_class_hash": "0x754255d4521a1674abe2549c351e732ebf48896aef6922a8e939f3a574982c7",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {
@@ -2882,7 +2882,7 @@
         "zkube-Tournament"
       ],
       "init_calldata": [
-        "0x00e4bfd1c1f7151e747c19bbbb6e4d17c0670d1f14d7164b9fbb6ba7ddaaaf49"
+        "0x0730b8077dc0db1ac0138b2474a85b70b833a3ad6318059f60671ebb09195e67"
       ],
       "tag": "zkube-tournament",
       "systems": [
@@ -3156,7 +3156,7 @@
       "reads": [],
       "writes": [],
       "init_calldata": [
-        "0x00e4bfd1c1f7151e747c19bbbb6e4d17c0670d1f14d7164b9fbb6ba7ddaaaf49"
+        "0x0730b8077dc0db1ac0138b2474a85b70b833a3ad6318059f60671ebb09195e67"
       ],
       "tag": "zkube-zkorp",
       "systems": [
@@ -4598,13 +4598,28 @@
           "key": false
         },
         {
+          "name": "score_in_tournament",
+          "type": "u32",
+          "key": false
+        },
+        {
+          "name": "combo_counter_in_tournament",
+          "type": "u8",
+          "key": false
+        },
+        {
+          "name": "max_combo_in_tournament",
+          "type": "u8",
+          "key": false
+        },
+        {
           "name": "pending_chest_prize",
           "type": "u128",
           "key": false
         }
       ],
-      "class_hash": "0x64c431125a39703d768a327ee2ea57691ed50ef4f83f9a2459e47a57838ca62",
-      "original_class_hash": "0x64c431125a39703d768a327ee2ea57691ed50ef4f83f9a2459e47a57838ca62",
+      "class_hash": "0x5ad70a3174e1a5fd24b713489e49b9d1b695f8901c94d24a39a7c2330569227",
+      "original_class_hash": "0x5ad70a3174e1a5fd24b713489e49b9d1b695f8901c94d24a39a7c2330569227",
       "abi": [
         {
           "type": "impl",
@@ -5074,6 +5089,18 @@
             {
               "name": "tournament_id",
               "type": "core::integer::u64"
+            },
+            {
+              "name": "score_in_tournament",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "combo_counter_in_tournament",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "max_combo_in_tournament",
+              "type": "core::integer::u8"
             },
             {
               "name": "pending_chest_prize",
