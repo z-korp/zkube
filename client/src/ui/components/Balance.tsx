@@ -41,8 +41,6 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
         formatUnits(balanceData.balance.low, 18, symbol === "ETH" ? 6 : 2),
       );
 
-      console.log("formattedBalance", formattedBalance);
-
       setTargetBalance(formattedBalance);
     }
   }, [data, symbol]);

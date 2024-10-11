@@ -1,6 +1,6 @@
 kind = "DojoModel"
-class_hash = "0x1a3488e053dbb77a0bbed2f2074d72a07f898e49c99d9844b53266a91ef3f96"
-original_class_hash = "0x1a3488e053dbb77a0bbed2f2074d72a07f898e49c99d9844b53266a91ef3f96"
+class_hash = "0x1faf1fb96f5e756885d39feaa8b2777f21845d67c1d5e8df770372173ee62a9"
+original_class_hash = "0x1faf1fb96f5e756885d39feaa8b2777f21845d67c1d5e8df770372173ee62a9"
 abi = "manifests/slotdev/base/abis/models/zkube-Settings-161104df.json"
 tag = "zkube-Settings"
 qualified_path = "zkube::models::index::settings"
@@ -28,10 +28,10 @@ key = false
 
 [[members]]
 name = "daily_mode_price"
-type = "felt252"
+type = "u128"
 key = false
 
 [[members]]
 name = "normal_mode_price"
-type = "felt252"
+type = "u128"
 key = false

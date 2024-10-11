@@ -1234,10 +1234,10 @@
         ]
       }
     ],
-    "address": "0x5ef8195dbf43ea66b14d7bfec4ed6b565386a49dff34aa474c3cd29aa0fa615",
+    "address": "0x1b25d486fe164098812ad7a6e0c43ff92ed743b07bd9e6f5de90975dfdca403",
     "transaction_hash": "0x6d3936184f5e2c63d76d2357ef548f1c102a1077b494058d87a2b4295ee6e57",
     "block_number": null,
-    "seed": "zKube",
+    "seed": "zKube1",
     "metadata": {
       "profile_name": "sepolia",
       "rpc_url": "https://api.cartridge.gg/x/starknet/sepolia"
@@ -1255,7 +1255,7 @@
   "contracts": [
     {
       "kind": "DojoContract",
-      "address": "0x7362142438f82017175c44aff9ef6a1887824d57843e42a094d765bfbc0adf8",
+      "address": "0x605b1554bb7728972efb3c1a31ab477e1542795f5ab8f3f4cfaa18c8ef7ed6",
       "class_hash": "0x46d81486de0a2182d0033cfae4f8113f4432168a7050d45974263b788f583a1",
       "original_class_hash": "0x46d81486de0a2182d0033cfae4f8113f4432168a7050d45974263b788f583a1",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
@@ -1526,7 +1526,7 @@
     },
     {
       "kind": "DojoContract",
-      "address": "0x3f94559e4ed0821c5930bad9dd8275896afc657a1c8e0eb40d717dd71862d34",
+      "address": "0x5749e6680ad24e505eb70c1893c3cf8df150d38bb4b37636a676c8bdf174536",
       "class_hash": "0x261fb0322818d856cda306ed7479874b965b9faead1b6485f1186449d9609f6",
       "original_class_hash": "0x261fb0322818d856cda306ed7479874b965b9faead1b6485f1186449d9609f6",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
@@ -1825,9 +1825,9 @@
     },
     {
       "kind": "DojoContract",
-      "address": "0x8fbe72f6d350f76cfd6554872befc4d61889d4029a66cf3897506a908f77ca",
-      "class_hash": "0x7a51c798e869e9aefcdb2ddea73ccad730c40dd61be8f7d60b3a4c11d09af57",
-      "original_class_hash": "0x7a51c798e869e9aefcdb2ddea73ccad730c40dd61be8f7d60b3a4c11d09af57",
+      "address": "0x4c100c0423e682d64b8c29fef6feb59859fee1c997ee268f70626fdfc9c371c",
+      "class_hash": "0x5cbc5e731107f9ac652676ccba05b93903fa2571809d46c5a453193c4a42b32",
+      "original_class_hash": "0x5cbc5e731107f9ac652676ccba05b93903fa2571809d46c5a453193c4a42b32",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {
@@ -1994,6 +1994,10 @@
             },
             {
               "name": "Daily",
+              "type": "()"
+            },
+            {
+              "name": "Free",
               "type": "()"
             }
           ]
@@ -2251,7 +2255,7 @@
     },
     {
       "kind": "DojoContract",
-      "address": "0x35dc8374e5f49a4611ffc33f8b3e4381a7baecab3d8ae3d4e2d3c48ea46a488",
+      "address": "0x795b3e1b62b0385d2a88afb62a9c07d06fe6dce5b82516f9bcb4de836502928",
       "class_hash": "0x27e87f8f3658b5b33c91d1c020177f0333bdf3532ed8f3bcdfa544166ff4dd6",
       "original_class_hash": "0x27e87f8f3658b5b33c91d1c020177f0333bdf3532ed8f3bcdfa544166ff4dd6",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
@@ -2570,9 +2574,9 @@
     },
     {
       "kind": "DojoContract",
-      "address": "0x7c69d31836f184012fa03b84601a6a3550a4e224baa6237c0b2c5481f3f9c9c",
-      "class_hash": "0x73f9affb7f1cc02ee3600fe5802177506dc2ecf4170d12aae3c13293e5435fe",
-      "original_class_hash": "0x73f9affb7f1cc02ee3600fe5802177506dc2ecf4170d12aae3c13293e5435fe",
+      "address": "0x4937669033e1a301aa6f65fb8f3e12cb7d0f6c86055fa3391eeb82ae412a6c6",
+      "class_hash": "0x754255d4521a1674abe2549c351e732ebf48896aef6922a8e939f3a574982c7",
+      "original_class_hash": "0x754255d4521a1674abe2549c351e732ebf48896aef6922a8e939f3a574982c7",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {
@@ -2745,6 +2749,10 @@
             {
               "name": "Daily",
               "type": "()"
+            },
+            {
+              "name": "Free",
+              "type": "()"
             }
           ]
         },
@@ -2885,7 +2893,7 @@
     },
     {
       "kind": "DojoContract",
-      "address": "0x50a3d645c6e4b27820ae2a9710415fcc17eff60c6820e997ec62cb5b15c7940",
+      "address": "0x3189f3dce9850bdd603e0ce44569c9d59f5de19faa91de880e5d8db06747135",
       "class_hash": "0x12b37d078e6ee707b24a3d5e32684bdd0ca0d2afbc569a5b73175b489497115",
       "original_class_hash": "0x12b37d078e6ee707b24a3d5e32684bdd0ca0d2afbc569a5b73175b489497115",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
@@ -4590,13 +4598,28 @@
           "key": false
         },
         {
+          "name": "score_in_tournament",
+          "type": "u32",
+          "key": false
+        },
+        {
+          "name": "combo_counter_in_tournament",
+          "type": "u8",
+          "key": false
+        },
+        {
+          "name": "max_combo_in_tournament",
+          "type": "u8",
+          "key": false
+        },
+        {
           "name": "pending_chest_prize",
           "type": "u128",
           "key": false
         }
       ],
-      "class_hash": "0x64c431125a39703d768a327ee2ea57691ed50ef4f83f9a2459e47a57838ca62",
-      "original_class_hash": "0x64c431125a39703d768a327ee2ea57691ed50ef4f83f9a2459e47a57838ca62",
+      "class_hash": "0x5ad70a3174e1a5fd24b713489e49b9d1b695f8901c94d24a39a7c2330569227",
+      "original_class_hash": "0x5ad70a3174e1a5fd24b713489e49b9d1b695f8901c94d24a39a7c2330569227",
       "abi": [
         {
           "type": "impl",
@@ -5066,6 +5089,18 @@
             {
               "name": "tournament_id",
               "type": "core::integer::u64"
+            },
+            {
+              "name": "score_in_tournament",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "combo_counter_in_tournament",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "max_combo_in_tournament",
+              "type": "core::integer::u8"
             },
             {
               "name": "pending_chest_prize",
@@ -6554,10 +6589,25 @@
           "name": "top3_claimed",
           "type": "bool",
           "key": false
+        },
+        {
+          "name": "top1_game_id",
+          "type": "u32",
+          "key": false
+        },
+        {
+          "name": "top2_game_id",
+          "type": "u32",
+          "key": false
+        },
+        {
+          "name": "top3_game_id",
+          "type": "u32",
+          "key": false
         }
       ],
-      "class_hash": "0x5f70cc3ff995fbbd09d926feb148fec575a1b9b12b529937473ded65567ffe1",
-      "original_class_hash": "0x5f70cc3ff995fbbd09d926feb148fec575a1b9b12b529937473ded65567ffe1",
+      "class_hash": "0xd28fd534451aca076dda7a67fee4a48f120bb478b5b27be15879ac0037f6e5",
+      "original_class_hash": "0xd28fd534451aca076dda7a67fee4a48f120bb478b5b27be15879ac0037f6e5",
       "abi": [
         {
           "type": "impl",
@@ -6991,6 +7041,18 @@
             {
               "name": "top3_claimed",
               "type": "core::bool"
+            },
+            {
+              "name": "top1_game_id",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "top2_game_id",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "top3_game_id",
+              "type": "core::integer::u32"
             }
           ]
         },

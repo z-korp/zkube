@@ -1,6 +1,6 @@
 kind = "DojoModel"
-class_hash = "0x5f70cc3ff995fbbd09d926feb148fec575a1b9b12b529937473ded65567ffe1"
-original_class_hash = "0x5f70cc3ff995fbbd09d926feb148fec575a1b9b12b529937473ded65567ffe1"
+class_hash = "0xd28fd534451aca076dda7a67fee4a48f120bb478b5b27be15879ac0037f6e5"
+original_class_hash = "0xd28fd534451aca076dda7a67fee4a48f120bb478b5b27be15879ac0037f6e5"
 abi = "manifests/dev/base/abis/models/zkube-Tournament-120c37d1.json"
 tag = "zkube-Tournament"
 qualified_path = "zkube::models::index::tournament"
@@ -64,4 +64,19 @@ key = false
 [[members]]
 name = "top3_claimed"
 type = "bool"
+key = false
+
+[[members]]
+name = "top1_game_id"
+type = "u32"
+key = false
+
+[[members]]
+name = "top2_game_id"
+type = "u32"
+key = false
+
+[[members]]
+name = "top3_game_id"
+type = "u32"
 key = false

@@ -13,13 +13,28 @@ import {
   DialogClose,
 } from "@/ui/elements/dialog";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import { useGeneralStore } from "@/stores/generalStore";
+import { cn } from "../utils";
 
 interface SurrenderProps {
-  setIsUnmounting: (value: boolean) => void;
+  variant?:
+    | "default"
+    | "link"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost";
+  red?: boolean;
+  className?: string;
 }
 
-export const Surrender: React.FC<SurrenderProps> = ({ setIsUnmounting }) => {
+export const Surrender: React.FC<SurrenderProps> = ({
+  variant = "default",
+  red = false,
+  className,
+}) => {
   const { account } = useAccountCustom();
+  const { setIsUnmounting } = useGeneralStore();
   const {
     master,
     setup: {
@@ -52,13 +67,14 @@ export const Surrender: React.FC<SurrenderProps> = ({ setIsUnmounting }) => {
   if (disabled) return null;
 
   return (
-    <div className="flex gap-4">
+    <div className={cn("flex gap-4", className)}>
       <Dialog>
         <DialogTrigger asChild>
           <Button
             disabled={isLoading}
             isLoading={isLoading}
-            className="text-xl"
+            variant={variant}
+            className={cn("text-xl", className, red && "bg-red-600")}
           >
             Surrender
           </Button>
@@ -71,11 +87,11 @@ export const Surrender: React.FC<SurrenderProps> = ({ setIsUnmounting }) => {
             <DialogTitle>Surrender Game?</DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col gap-4">
-            <DialogClose asChild className="">
+          <div className="flex gap-4">
+            <DialogClose asChild className="w-full">
               <Button>No, Continue Playing</Button>
             </DialogClose>
-            <DialogClose asChild className="">
+            <DialogClose asChild className="w-full">
               <Button
                 variant="destructive"
                 disabled={isLoading}
