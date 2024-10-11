@@ -22,6 +22,7 @@ import { LeaderboardContent } from "../modules/Leaderboard";
 import { useRewardsCalculator } from "@/stores/rewardsStore";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -42,7 +43,7 @@ export const Home = () => {
 
   useQuerySync(toriiClient, contractComponents as any, []);
 
-  //useAutoSignup();
+  const isSigning = useAutoSignup();
 
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
@@ -105,6 +106,13 @@ export const Home = () => {
     <div className="relative flex flex-col h-screen" id="portal-root">
       <Header />
 
+      {/* Loading Dialog */}
+      <Dialog open={isSigning} modal>
+        <DialogContent className="flex flex-col items-center justify-center p-6 ">
+          <p className="mt-8 mb-7">Aligning the blocks for your signup...</p>
+        </DialogContent>
+      </Dialog>
+
       <BackGroundBoard imageBackground={imgAssets.imageBackground}>
         <BackGroundBoard
           imageBackground={imageTotemTheme}
@@ -119,7 +127,7 @@ export const Home = () => {
         >
           <div className="relative flex flex-col gap-4 sm:gap-8 grow items-center justify-start">
             <div className="absolute flex flex-col items-center gap-4 sm:gap-8 w-full max-w-4xl mt-2 sm:mt-4 p-2 md:p-0">
-              <Create />
+              {!isSigning && <Create />}
               {(!game || (!!game && isGameOn === "isOver")) && (
                 <>
                   <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center">

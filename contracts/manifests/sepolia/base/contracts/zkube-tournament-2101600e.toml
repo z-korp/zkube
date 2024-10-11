@@ -1,6 +1,6 @@
 kind = "DojoContract"
-class_hash = "0x36c03bd01b9563629148ee08521382a7bf4424f3b973fe881f9330cc67843f7"
-original_class_hash = "0x36c03bd01b9563629148ee08521382a7bf4424f3b973fe881f9330cc67843f7"
+class_hash = "0x754255d4521a1674abe2549c351e732ebf48896aef6922a8e939f3a574982c7"
+original_class_hash = "0x754255d4521a1674abe2549c351e732ebf48896aef6922a8e939f3a574982c7"
 base_class_hash = "0x0"
 abi = "manifests/sepolia/base/abis/contracts/zkube-tournament-2101600e.json"
 reads = []

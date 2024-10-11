@@ -103,6 +103,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
     }
 
     const create = async ({ account, name }: Create) => {
+      console.log("contract", contract);
       try {
         const encoded_name = shortString.encodeShortString(name);
         return await provider.execute(
