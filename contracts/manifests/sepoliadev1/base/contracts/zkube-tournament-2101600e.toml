@@ -1,0 +1,14 @@
+kind = "DojoContract"
+class_hash = "0x36c03bd01b9563629148ee08521382a7bf4424f3b973fe881f9330cc67843f7"
+original_class_hash = "0x36c03bd01b9563629148ee08521382a7bf4424f3b973fe881f9330cc67843f7"
+base_class_hash = "0x0"
+abi = "manifests/sepoliadev1/base/abis/contracts/zkube-tournament-2101600e.json"
+reads = []
+writes = []
+init_calldata = []
+tag = "zkube-tournament"
+systems = [
+    "claim",
+    "sponsor",
+]
+manifest_name = "zkube-tournament-2101600e"

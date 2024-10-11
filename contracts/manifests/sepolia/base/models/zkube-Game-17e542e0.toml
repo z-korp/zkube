@@ -1,6 +1,6 @@
 kind = "DojoModel"
-class_hash = "0x64c431125a39703d768a327ee2ea57691ed50ef4f83f9a2459e47a57838ca62"
-original_class_hash = "0x64c431125a39703d768a327ee2ea57691ed50ef4f83f9a2459e47a57838ca62"
+class_hash = "0x5ad70a3174e1a5fd24b713489e49b9d1b695f8901c94d24a39a7c2330569227"
+original_class_hash = "0x5ad70a3174e1a5fd24b713489e49b9d1b695f8901c94d24a39a7c2330569227"
 abi = "manifests/sepolia/base/abis/models/zkube-Game-17e542e0.json"
 tag = "zkube-Game"
 qualified_path = "zkube::models::index::game"
@@ -109,6 +109,21 @@ key = false
 [[members]]
 name = "tournament_id"
 type = "u64"
+key = false
+
+[[members]]
+name = "score_in_tournament"
+type = "u32"
+key = false
+
+[[members]]
+name = "combo_counter_in_tournament"
+type = "u8"
+key = false
+
+[[members]]
+name = "max_combo_in_tournament"
+type = "u8"
 key = false
 
 [[members]]

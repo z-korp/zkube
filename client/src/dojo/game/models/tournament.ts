@@ -1,18 +1,10 @@
 import { ComponentValue } from "@dojoengine/recs";
 import { Mode, ModeType } from "../types/mode";
-import { DAILY_MODE_DURATION, NORMAL_MODE_DURATION } from "../constants";
-
-// Distribute potential winnings amongs top 3 winners
-const distributionRatios = [
-  { numerator: 5n, denominator: 9n },
-  { numerator: 5n, denominator: 18n },
-  { numerator: 1n, denominator: 6n },
-];
-
-interface TournamentIds {
-  dailyId: number;
-  normalId: number;
-}
+import {
+  DAILY_MODE_DURATION,
+  FREE_MODE_DURATION,
+  NORMAL_MODE_DURATION,
+} from "../constants";
 
 export class Tournament {
   id: number;
@@ -29,6 +21,9 @@ export class Tournament {
   top1_prize: bigint;
   top2_prize: bigint;
   top3_prize: bigint;
+  top1_game_id: number;
+  top2_game_id: number;
+  top3_game_id: number;
   mode: Mode;
 
   constructor(tournament: ComponentValue) {
@@ -43,40 +38,76 @@ export class Tournament {
     this.top1_claimed = tournament.top1_claimed;
     this.top2_claimed = tournament.top2_claimed;
     this.top3_claimed = tournament.top3_claimed;
-    this.mode = this.isDailyMode(tournament.id)
-      ? new Mode(ModeType.Daily)
-      : new Mode(ModeType.Normal);
-    this.top1_prize =
-      (BigInt(tournament.prize) * distributionRatios[0].numerator) /
-      distributionRatios[0].denominator;
-    this.top2_prize =
-      (BigInt(tournament.prize) * distributionRatios[1].numerator) /
-      distributionRatios[1].denominator;
-    this.top3_prize =
-      (BigInt(tournament.prize) * distributionRatios[2].numerator) /
-      distributionRatios[2].denominator;
+
+    // Determine the mode based on the tournament ID
+    const modeType = this.determineModeById(tournament.id);
+    this.mode = new Mode(modeType);
+
+    this.top1_game_id = tournament.top1_game_id;
+    this.top2_game_id = tournament.top2_game_id;
+    this.top3_game_id = tournament.top3_game_id;
+
+    // Compute prizes using the reward function
+    this.top1_prize = this.reward(1);
+    this.top2_prize = this.reward(2);
+    this.top3_prize = this.reward(3);
+  }
+
+  static createNullTournament(id: number, mode: ModeType): Tournament {
+    return new Tournament({
+      id,
+      prize: 0n,
+      top1_player_id: 0n,
+      top2_player_id: 0n,
+      top3_player_id: 0n,
+      top1_score: 0,
+      top2_score: 0,
+      top3_score: 0,
+      top1_claimed: false,
+      top2_claimed: false,
+      top3_claimed: false,
+      top1_prize: 0n,
+      top2_prize: 0n,
+      top3_prize: 0n,
+      mode: new Mode(mode),
+    });
+  }
+
+  reward(rank: number): bigint {
+    switch (rank) {
+      case 0:
+        return 0n;
+      case 1: {
+        const secondPrize = this.reward(2);
+        const thirdPrize = this.reward(3);
+        return this.prize - secondPrize - thirdPrize;
+      }
+      case 2: {
+        if (this.top2_player_id === 0n) {
+          return 0n;
+        }
+        const thirdReward = this.reward(3);
+        return (this.prize - thirdReward) / 3n;
+      }
+      case 3: {
+        if (this.top3_player_id === 0n) {
+          return 0n;
+        }
+        return this.prize / 6n;
+      }
+      default:
+        return 0n;
+    }
   }
 
   getStartDate(): Date {
-    const startTimestamp =
-      this.id *
-      (this.mode.value === ModeType.Daily
-        ? DAILY_MODE_DURATION
-        : NORMAL_MODE_DURATION);
+    const startTimestamp = this.id * this.mode.duration();
     return new Date(startTimestamp * 1000); // Convert seconds to milliseconds
   }
 
   getEndDate(): Date {
-    const startTimestamp =
-      this.id *
-      (this.mode.value === ModeType.Daily
-        ? DAILY_MODE_DURATION
-        : NORMAL_MODE_DURATION);
-    const endTimestamp =
-      startTimestamp +
-      (this.mode.value === ModeType.Daily
-        ? DAILY_MODE_DURATION
-        : NORMAL_MODE_DURATION);
+    const startTimestamp = this.id * this.mode.duration(); // Tournament start time is the same as the end time
+    const endTimestamp = startTimestamp + this.mode.duration();
     return new Date(endTimestamp * 1000); // Convert seconds to milliseconds
   }
 
@@ -92,23 +123,68 @@ export class Tournament {
     return endDate ? endDate < new Date() : false;
   }
 
-  computeTournamentIds = (date: Date): TournamentIds => {
+  computeTournamentIds = (date: Date): { [key in ModeType]?: number } => {
     const timestamp = Math.floor(date.getTime() / 1000); // Convert to seconds
-    const startOfDay = timestamp - (timestamp % DAILY_MODE_DURATION);
 
-    return {
-      dailyId: Math.floor(startOfDay / DAILY_MODE_DURATION),
-      normalId: Math.floor(startOfDay / NORMAL_MODE_DURATION),
-    };
+    // Initialize an object to store IDs
+    const ids: { [key in ModeType]?: number } = {};
+
+    // Loop through each mode type
+    for (const modeType of Object.values(ModeType)) {
+      // Skip the 'None' mode
+      if (modeType === ModeType.None) {
+        continue;
+      }
+
+      let duration: number;
+
+      switch (modeType) {
+        case ModeType.Daily:
+          duration = DAILY_MODE_DURATION;
+          break;
+        case ModeType.Normal:
+          duration = NORMAL_MODE_DURATION;
+          break;
+        case ModeType.Free:
+          duration = FREE_MODE_DURATION;
+          break;
+        default:
+          throw new Error(`Unknown mode type: ${modeType}`);
+      }
+
+      // Compute the start of the period for the current mode
+      const startOfPeriod = timestamp - (timestamp % duration);
+
+      // Compute the tournament ID for the current mode
+      ids[modeType] = Math.floor(startOfPeriod / duration);
+    }
+
+    return ids;
   };
 
-  isDailyMode = (id: number): boolean => {
-    const today = new Date();
-    const { dailyId, normalId } = this.computeTournamentIds(today);
+  determineModeById = (id: number): ModeType => {
+    const date = new Date();
+    const ids = this.computeTournamentIds(date);
 
-    const dailyDiff = Math.abs(id - dailyId);
-    const normalDiff = Math.abs(id - normalId);
+    // Find the mode whose ID matches the given ID
+    let closestMode: ModeType = ModeType.Normal;
+    let smallestDiff = Infinity;
 
-    return dailyDiff < normalDiff;
+    for (const modeType of Object.values(ModeType)) {
+      if (modeType === ModeType.None) {
+        continue;
+      }
+
+      const modeId = ids[modeType];
+      if (modeId !== undefined) {
+        const diff = Math.abs(id - modeId);
+        if (diff < smallestDiff) {
+          smallestDiff = diff;
+          closestMode = modeType;
+        }
+      }
+    }
+
+    return closestMode;
   };
 }

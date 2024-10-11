@@ -1,6 +1,5 @@
 import { Header } from "@/ui/containers/Header";
 import { Create } from "../actions/Create";
-import { Start } from "../actions/Start";
 import GameBoard from "../components/GameBoard";
 import BackGroundBoard from "../components/BackgroundBoard";
 import { AnimatePresence } from "framer-motion";
@@ -17,14 +16,13 @@ import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
 import GoogleFormEmbed from "../components/GoogleFormEmbed";
 import { useQuerySync } from "@dojoengine/react";
 import { ModeType } from "@/dojo/game/types/mode";
-import useAccountCustom from "@/hooks/useAccountCustom";
 import { Level } from "@/dojo/game/types/level";
 import { toPng } from "html-to-image";
 import { LeaderboardContent } from "../modules/Leaderboard";
-import { useMediaQuery } from "react-responsive";
 import { useRewardsCalculator } from "@/stores/rewardsStore";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -32,6 +30,9 @@ import {
 } from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
 import MaxComboIcon from "../components/MaxComboIcon";
+import GameModeCard from "../components/GameModeCard";
+import useAccountCustom from "@/hooks/useAccountCustom";
+import useAutoSignup from "@/hooks/useAutoSignup";
 
 export const Home = () => {
   const {
@@ -41,6 +42,8 @@ export const Home = () => {
   useRewardsCalculator();
 
   useQuerySync(toriiClient, contractComponents as any, []);
+
+  const isSigning = useAutoSignup();
 
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
@@ -105,6 +108,13 @@ export const Home = () => {
     <div className="relative flex flex-col h-screen" id="portal-root">
       <Header />
 
+      {/* Loading Dialog */}
+      <Dialog open={isSigning} modal>
+        <DialogContent className="flex flex-col items-center justify-center p-6 ">
+          <p className="mt-8 mb-7">Aligning the blocks for your signup...</p>
+        </DialogContent>
+      </Dialog>
+
       <BackGroundBoard imageBackground={imgAssets.imageBackground}>
         <BackGroundBoard
           imageBackground={imageTotemTheme}
@@ -118,19 +128,27 @@ export const Home = () => {
           }}
         >
           <div className="relative flex flex-col gap-4 sm:gap-8 grow items-center justify-start">
-            <div className="absolute flex flex-col items-center gap-2 sm:gap-4 w-full p-2 max-w-4xl mt-2 sm:mt-4">
-              <Create />
+            <div className="absolute flex flex-col items-center gap-4 sm:gap-8 w-full max-w-4xl mt-2 sm:mt-4 p-2 md:p-0">
+              {!isSigning && <Create />}
               {(!game || (!!game && isGameOn === "isOver")) && (
-                <div className="flex flex-col sm:flex-row p-2 sm:p-4 rounded-xl w-[93%] gap-2 sm:gap-4 items-center justify-evenly">
-                  <Start
-                    mode={ModeType.Daily}
-                    handleGameMode={() => setIsGameOn("isOn")}
-                  />
-                  <Start
-                    mode={ModeType.Normal}
-                    handleGameMode={() => setIsGameOn("isOn")}
-                  />
-                </div>
+                <>
+                  <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center">
+                    <GameModeCard
+                      mode={ModeType.Free}
+                      handleGameMode={() => setIsGameOn("isOn")}
+                    />
+                  </div>
+                  <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-start justify-center">
+                    <GameModeCard
+                      mode={ModeType.Daily}
+                      handleGameMode={() => setIsGameOn("isOn")}
+                    />
+                    <GameModeCard
+                      mode={ModeType.Normal}
+                      handleGameMode={() => setIsGameOn("isOn")}
+                    />
+                  </div>
+                </>
               )}
               {!game && (
                 <div className="bg-slate-900 w-11/12 p-4 rounded-xl mb-4 max-h-[55vh]">
@@ -139,7 +157,7 @@ export const Home = () => {
               )}
               {!!game && isGameOn === "isOver" && (
                 <>
-                  <div className="flex flex-col gap-4 mt-8 ">
+                  <div className="flex flex-col gap-4 mt-4">
                     <div className=" p-6 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
                       <p className="text-4xl text-center">Game Over</p>
 
@@ -177,14 +195,12 @@ export const Home = () => {
                         </Button>
                       </DialogTrigger>
 
-                      <DialogContent className="flex items-center justify-centerbg-opacity-50">
-                        <div className="flex flex-col h-[90vh] w-[90vw] max-w-4xl rounded-lg shadow-lg">
-                          <DialogHeader className="flex items-center">
-                            <DialogTitle>Feedback</DialogTitle>
-                          </DialogHeader>
-                          <div className="flex-grow overflow-auto px-2">
-                            <GoogleFormEmbed />
-                          </div>
+                      <DialogContent className="sm:max-w-[700px] w-[95%] h-[580px] flex flex-col mx-auto justify-start items-center bg-opacity-50 rounded-lg shadow-lg">
+                        <DialogHeader className="flex items-center">
+                          <DialogTitle>Feedback</DialogTitle>
+                        </DialogHeader>
+                        <div className="flex-grow overflow-auto px-2 w-full h-full">
+                          <GoogleFormEmbed />
                         </div>
                       </DialogContent>
                     </Dialog>

@@ -1,7 +1,9 @@
 import local from "../contracts/manifests/dev/deployment/manifest.json";
 import slot from "../contracts/manifests/slot/deployment/manifest.json";
 import slotdev from "../contracts/manifests/slotdev/deployment/manifest.json";
-import sepolia from "../contracts/manifests/dev/deployment/manifest.json";
+import sepolia from "../contracts/manifests/sepolia/deployment/manifest.json";
+import sepoliadev1 from "../contracts/manifests/sepoliadev1/deployment/manifest.json";
+import sepoliadev2 from "../contracts/manifests/sepoliadev2/deployment/manifest.json";
 
 const {
   VITE_PUBLIC_NODE_URL,
@@ -34,10 +36,14 @@ export function dojoConfig() {
     manifest:
       VITE_PUBLIC_DEPLOY_TYPE === "sepolia"
         ? sepolia
-        : VITE_PUBLIC_DEPLOY_TYPE === "slot"
-          ? slot
-          : VITE_PUBLIC_DEPLOY_TYPE === "slotdev"
-            ? slotdev
-            : local,
+        : VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev1"
+          ? sepoliadev1
+          : VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev2"
+            ? sepoliadev2
+            : VITE_PUBLIC_DEPLOY_TYPE === "slot"
+              ? slot
+              : VITE_PUBLIC_DEPLOY_TYPE === "slotdev"
+                ? slotdev
+                : local,
   };
 }

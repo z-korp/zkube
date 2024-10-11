@@ -1,6 +1,6 @@
 kind = "DojoModel"
-class_hash = "0x37563a9794473d8efb4690b5988b3fa3b066b10891c49b4f86a4319986d48aa"
-original_class_hash = "0x37563a9794473d8efb4690b5988b3fa3b066b10891c49b4f86a4319986d48aa"
+class_hash = "0x64c431125a39703d768a327ee2ea57691ed50ef4f83f9a2459e47a57838ca62"
+original_class_hash = "0x64c431125a39703d768a327ee2ea57691ed50ef4f83f9a2459e47a57838ca62"
 abi = "manifests/slotdev/base/abis/models/zkube-Game-17e542e0.json"
 tag = "zkube-Game"
 qualified_path = "zkube::models::index::game"
@@ -113,5 +113,5 @@ key = false
 
 [[members]]
 name = "pending_chest_prize"
-type = "felt252"
+type = "u128"
 key = false

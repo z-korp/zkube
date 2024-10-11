@@ -3,10 +3,10 @@ kind = "WorldContract"
 class_hash = "0x6f4515274ee23404789c3351a77107d0ec07508530119822046600ca6948d6e"
 original_class_hash = "0x6f4515274ee23404789c3351a77107d0ec07508530119822046600ca6948d6e"
 abi = "manifests/slot/deployment/abis/dojo-world.json"
-address = "0x5ef8195dbf43ea66b14d7bfec4ed6b565386a49dff34aa474c3cd29aa0fa615"
-transaction_hash = "0x344dfac3024edbd74392c04afd9f414f4e3eb904ba2250b40a0cc9209d2c14c"
-block_number = 3
-seed = "zKube"
+address = "0x1b25d486fe164098812ad7a6e0c43ff92ed743b07bd9e6f5de90975dfdca403"
+transaction_hash = "0x761a25cfdcb43b9f8901810ecacc4565e12afcd7781e80aa21237db720364ee"
+block_number = 68
+seed = "zKube1"
 manifest_name = "dojo-world"
 
 [world.metadata]
@@ -23,9 +23,9 @@ manifest_name = "dojo-base"
 
 [[contracts]]
 kind = "DojoContract"
-address = "0x7362142438f82017175c44aff9ef6a1887824d57843e42a094d765bfbc0adf8"
-class_hash = "0xcf80a07e7bbe46e35df0a376bab3608604ec36b916af569d0ab62e5d94156e"
-original_class_hash = "0xcf80a07e7bbe46e35df0a376bab3608604ec36b916af569d0ab62e5d94156e"
+address = "0x605b1554bb7728972efb3c1a31ab477e1542795f5ab8f3f4cfaa18c8ef7ed6"
+class_hash = "0x46d81486de0a2182d0033cfae4f8113f4432168a7050d45974263b788f583a1"
+original_class_hash = "0x46d81486de0a2182d0033cfae4f8113f4432168a7050d45974263b788f583a1"
 base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
 abi = "manifests/slot/deployment/abis/contracts/zkube-account-6d28004d.json"
 reads = []
@@ -43,9 +43,9 @@ manifest_name = "zkube-account-6d28004d"
 
 [[contracts]]
 kind = "DojoContract"
-address = "0x3f94559e4ed0821c5930bad9dd8275896afc657a1c8e0eb40d717dd71862d34"
-class_hash = "0x2a301bd0661e7e82f19bcc4f46bb267e724f6c68ea22d9ba01d7d893d3b4a35"
-original_class_hash = "0x2a301bd0661e7e82f19bcc4f46bb267e724f6c68ea22d9ba01d7d893d3b4a35"
+address = "0x5749e6680ad24e505eb70c1893c3cf8df150d38bb4b37636a676c8bdf174536"
+class_hash = "0x261fb0322818d856cda306ed7479874b965b9faead1b6485f1186449d9609f6"
+original_class_hash = "0x261fb0322818d856cda306ed7479874b965b9faead1b6485f1186449d9609f6"
 base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
 abi = "manifests/slot/deployment/abis/contracts/zkube-chest-5d3b3ea3.json"
 reads = []
@@ -53,20 +53,20 @@ writes = [
     "zkube-Chest",
     "zkube-Participation",
 ]
-init_calldata = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
+init_calldata = ["0x0730b8077dc0db1ac0138b2474a85b70b833a3ad6318059f60671ebb09195e67"]
 tag = "zkube-chest"
 systems = [
     "claim",
     "sponsor",
-    "sponsor_unknown",
+    "sponsor_from",
 ]
 manifest_name = "zkube-chest-5d3b3ea3"
 
 [[contracts]]
 kind = "DojoContract"
-address = "0x8fbe72f6d350f76cfd6554872befc4d61889d4029a66cf3897506a908f77ca"
-class_hash = "0x5dd01fb7c73704470441bfe4b9c9cfd730804a43817f5135bced95d39ea6973"
-original_class_hash = "0x5dd01fb7c73704470441bfe4b9c9cfd730804a43817f5135bced95d39ea6973"
+address = "0x4c100c0423e682d64b8c29fef6feb59859fee1c997ee268f70626fdfc9c371c"
+class_hash = "0x5cbc5e731107f9ac652676ccba05b93903fa2571809d46c5a453193c4a42b32"
+original_class_hash = "0x5cbc5e731107f9ac652676ccba05b93903fa2571809d46c5a453193c4a42b32"
 base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
 abi = "manifests/slot/deployment/abis/contracts/zkube-play-19ee70b3.json"
 reads = []
@@ -90,9 +90,9 @@ manifest_name = "zkube-play-19ee70b3"
 
 [[contracts]]
 kind = "DojoContract"
-address = "0x35dc8374e5f49a4611ffc33f8b3e4381a7baecab3d8ae3d4e2d3c48ea46a488"
-class_hash = "0x326f47d7df1e3f944732e9f6426196e93c75af588e7cabef6740021c5c76e2"
-original_class_hash = "0x326f47d7df1e3f944732e9f6426196e93c75af588e7cabef6740021c5c76e2"
+address = "0x795b3e1b62b0385d2a88afb62a9c07d06fe6dce5b82516f9bcb4de836502928"
+class_hash = "0x27e87f8f3658b5b33c91d1c020177f0333bdf3532ed8f3bcdfa544166ff4dd6"
+original_class_hash = "0x27e87f8f3658b5b33c91d1c020177f0333bdf3532ed8f3bcdfa544166ff4dd6"
 base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
 abi = "manifests/slot/deployment/abis/contracts/zkube-settings-3b7c4918.json"
 reads = []
@@ -100,7 +100,7 @@ writes = [
     "zkube-Settings",
     "zkube-Admin",
 ]
-init_calldata = ["0x0"]
+init_calldata = ["0x01a988f1faf473743f144dd6d7c04026d363fe72e697a35292eeb18be2ca8717"]
 tag = "zkube-settings"
 systems = [
     "update_zkorp_address",
@@ -114,14 +114,14 @@ manifest_name = "zkube-settings-3b7c4918"
 
 [[contracts]]
 kind = "DojoContract"
-address = "0x7c69d31836f184012fa03b84601a6a3550a4e224baa6237c0b2c5481f3f9c9c"
-class_hash = "0x18aa155da7b83ecf9622f283cbd0f5c7f701b0f1b1445bb58714e2fa654ddd4"
-original_class_hash = "0x18aa155da7b83ecf9622f283cbd0f5c7f701b0f1b1445bb58714e2fa654ddd4"
+address = "0x4937669033e1a301aa6f65fb8f3e12cb7d0f6c86055fa3391eeb82ae412a6c6"
+class_hash = "0x754255d4521a1674abe2549c351e732ebf48896aef6922a8e939f3a574982c7"
+original_class_hash = "0x754255d4521a1674abe2549c351e732ebf48896aef6922a8e939f3a574982c7"
 base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
 abi = "manifests/slot/deployment/abis/contracts/zkube-tournament-2101600e.json"
 reads = []
 writes = ["zkube-Tournament"]
-init_calldata = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
+init_calldata = ["0x0730b8077dc0db1ac0138b2474a85b70b833a3ad6318059f60671ebb09195e67"]
 tag = "zkube-tournament"
 systems = [
     "claim",
@@ -131,14 +131,14 @@ manifest_name = "zkube-tournament-2101600e"
 
 [[contracts]]
 kind = "DojoContract"
-address = "0x50a3d645c6e4b27820ae2a9710415fcc17eff60c6820e997ec62cb5b15c7940"
-class_hash = "0x1428ed920a35cc7d1135281a516734db4032fdde52291bbf7c00008c656b109"
-original_class_hash = "0x1428ed920a35cc7d1135281a516734db4032fdde52291bbf7c00008c656b109"
+address = "0x3189f3dce9850bdd603e0ce44569c9d59f5de19faa91de880e5d8db06747135"
+class_hash = "0x12b37d078e6ee707b24a3d5e32684bdd0ca0d2afbc569a5b73175b489497115"
+original_class_hash = "0x12b37d078e6ee707b24a3d5e32684bdd0ca0d2afbc569a5b73175b489497115"
 base_class_hash = "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2"
 abi = "manifests/slot/deployment/abis/contracts/zkube-zkorp-6cdc1046.json"
 reads = []
 writes = []
-init_calldata = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
+init_calldata = ["0x0730b8077dc0db1ac0138b2474a85b70b833a3ad6318059f60671ebb09195e67"]
 tag = "zkube-zkorp"
 systems = [
     "claim",
@@ -167,8 +167,8 @@ key = false
 
 [[models]]
 kind = "DojoModel"
-class_hash = "0x4deedbaef68409689bda33fe4777a65b0785acbef70d8378d9b4a96d706dc83"
-original_class_hash = "0x4deedbaef68409689bda33fe4777a65b0785acbef70d8378d9b4a96d706dc83"
+class_hash = "0x4ebc00a7ff8d99ef6a898161a20ce5f8e8a5cb96f471207a2b4d8a518262c0e"
+original_class_hash = "0x4ebc00a7ff8d99ef6a898161a20ce5f8e8a5cb96f471207a2b4d8a518262c0e"
 abi = "manifests/slot/deployment/abis/models/zkube-Chest-4d11a491.json"
 tag = "zkube-Chest"
 qualified_path = "zkube::models::index::chest"
@@ -191,7 +191,7 @@ key = false
 
 [[models.members]]
 name = "prize"
-type = "felt252"
+type = "u128"
 key = false
 
 [[models]]
@@ -220,8 +220,8 @@ key = false
 
 [[models]]
 kind = "DojoModel"
-class_hash = "0x37563a9794473d8efb4690b5988b3fa3b066b10891c49b4f86a4319986d48aa"
-original_class_hash = "0x37563a9794473d8efb4690b5988b3fa3b066b10891c49b4f86a4319986d48aa"
+class_hash = "0x5ad70a3174e1a5fd24b713489e49b9d1b695f8901c94d24a39a7c2330569227"
+original_class_hash = "0x5ad70a3174e1a5fd24b713489e49b9d1b695f8901c94d24a39a7c2330569227"
 abi = "manifests/slot/deployment/abis/models/zkube-Game-17e542e0.json"
 tag = "zkube-Game"
 qualified_path = "zkube::models::index::game"
@@ -333,8 +333,23 @@ type = "u64"
 key = false
 
 [[models.members]]
+name = "score_in_tournament"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "combo_counter_in_tournament"
+type = "u8"
+key = false
+
+[[models.members]]
+name = "max_combo_in_tournament"
+type = "u8"
+key = false
+
+[[models.members]]
 name = "pending_chest_prize"
-type = "felt252"
+type = "u128"
 key = false
 
 [[models]]
@@ -402,8 +417,8 @@ key = false
 
 [[models]]
 kind = "DojoModel"
-class_hash = "0x1a3488e053dbb77a0bbed2f2074d72a07f898e49c99d9844b53266a91ef3f96"
-original_class_hash = "0x1a3488e053dbb77a0bbed2f2074d72a07f898e49c99d9844b53266a91ef3f96"
+class_hash = "0x1faf1fb96f5e756885d39feaa8b2777f21845d67c1d5e8df770372173ee62a9"
+original_class_hash = "0x1faf1fb96f5e756885d39feaa8b2777f21845d67c1d5e8df770372173ee62a9"
 abi = "manifests/slot/deployment/abis/models/zkube-Settings-161104df.json"
 tag = "zkube-Settings"
 qualified_path = "zkube::models::index::settings"
@@ -431,18 +446,18 @@ key = false
 
 [[models.members]]
 name = "daily_mode_price"
-type = "felt252"
+type = "u128"
 key = false
 
 [[models.members]]
 name = "normal_mode_price"
-type = "felt252"
+type = "u128"
 key = false
 
 [[models]]
 kind = "DojoModel"
-class_hash = "0x6ecc639f92decc1fa67b18288e29c553f7ec5fa5fd10f278abd66886cc45e46"
-original_class_hash = "0x6ecc639f92decc1fa67b18288e29c553f7ec5fa5fd10f278abd66886cc45e46"
+class_hash = "0xd28fd534451aca076dda7a67fee4a48f120bb478b5b27be15879ac0037f6e5"
+original_class_hash = "0xd28fd534451aca076dda7a67fee4a48f120bb478b5b27be15879ac0037f6e5"
 abi = "manifests/slot/deployment/abis/models/zkube-Tournament-120c37d1.json"
 tag = "zkube-Tournament"
 qualified_path = "zkube::models::index::tournament"
@@ -460,7 +475,7 @@ key = false
 
 [[models.members]]
 name = "prize"
-type = "felt252"
+type = "u128"
 key = false
 
 [[models.members]]
@@ -506,4 +521,19 @@ key = false
 [[models.members]]
 name = "top3_claimed"
 type = "bool"
+key = false
+
+[[models.members]]
+name = "top1_game_id"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "top2_game_id"
+type = "u32"
+key = false
+
+[[models.members]]
+name = "top3_game_id"
+type = "u32"
 key = false

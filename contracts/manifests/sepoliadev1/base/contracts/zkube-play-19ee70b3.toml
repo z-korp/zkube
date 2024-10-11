@@ -1,0 +1,15 @@
+kind = "DojoContract"
+class_hash = "0x50770a5234a70bf01fe1f9656a8054a14ec0107c8e8ce338054330d426f8aea"
+original_class_hash = "0x50770a5234a70bf01fe1f9656a8054a14ec0107c8e8ce338054330d426f8aea"
+base_class_hash = "0x0"
+abi = "manifests/sepoliadev1/base/abis/contracts/zkube-play-19ee70b3.json"
+reads = []
+writes = []
+init_calldata = []
+tag = "zkube-play"
+systems = [
+    "surrender",
+    "move",
+    "apply_bonus",
+]
+manifest_name = "zkube-play-19ee70b3"

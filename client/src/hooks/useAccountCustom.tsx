@@ -24,6 +24,7 @@ const useAccountCustom = () => {
         setCustomAccount(null);
       }
     } else {
+      console.log("Controller account", account);
       if (account) {
         console.log("------> setCustomAccount account", account);
         setCustomAccount(account as Account);
@@ -32,15 +33,6 @@ const useAccountCustom = () => {
       }
     }
   }, [burner, account]);
-
-  /*useEffect(() => {
-    if (account) {
-      console.log("------> setCustomAccount account", account.address);
-      setCustomAccount(account as Account);
-    } else {
-      setCustomAccount(null);
-    }
-  }, [account]);*/
 
   return { account: customAccount };
 };

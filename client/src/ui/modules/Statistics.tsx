@@ -47,7 +47,7 @@ const formatDate = (date: Date): string =>
 const generateChartData = (games: Game[]) =>
   games.map((game) => ({
     score: game.score,
-    date: formatDate(new Date(Number(game.start_time) * 1000)),
+    date: formatDate(game.start_time),
     combo: game.combo,
     moves: game.moves,
   }));
@@ -67,7 +67,7 @@ const filterGamesByDate = (games: Game[], period: string) => {
   now.setHours(0, 0, 0, 0);
 
   return games.filter((game) => {
-    const gameDate = new Date(Number(game.start_time) * 1000);
+    const gameDate = game.start_time;
     gameDate.setHours(0, 0, 0, 0);
 
     switch (period) {
@@ -298,14 +298,14 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
                       <TableHead>
                         <FontAwesomeIcon
                           icon={faFire}
-                          className="text-yellow-500"
+                          className="text-slate-500"
                         />
                       </TableHead>
                       <TableHead>
                         <MaxComboIcon
                           width={15}
                           height={15}
-                          className={`text-yellow-500`}
+                          className="text-slate-500"
                         />
                       </TableHead>
                     </TableRow>

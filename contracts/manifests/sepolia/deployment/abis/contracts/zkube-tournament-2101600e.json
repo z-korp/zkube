@@ -169,6 +169,10 @@
       {
         "name": "Daily",
         "type": "()"
+      },
+      {
+        "name": "Free",
+        "type": "()"
       }
     ]
   },
