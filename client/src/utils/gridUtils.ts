@@ -98,3 +98,28 @@ export const removeBlocksSameRow = (block: Block, blocks: Block[]): Block[] => {
 export const removeBlockId = (block: Block, blocks: Block[]): Block[] => {
   return blocks.filter((b) => b.id !== block.id);
 };
+
+export const deepCompareBlocks = (
+  array1: { id: number; x: number; y: number; width: number }[],
+  array2: { id: number; x: number; y: number; width: number }[],
+): boolean => {
+  console.log("deep compare:", array1, array2);
+  // Vérifie si les longueurs des deux tableaux sont différentes
+  if (array1.length !== array2.length) {
+    return false;
+  }
+
+  // Parcourt chaque objet des deux tableaux
+  for (let i = 0; i < array1.length; i++) {
+    const obj1 = array1[i];
+    const obj2 = array2[i];
+
+    // Comparaison des propriétés des objets (id, x, y, width)
+    if (obj1.x !== obj2.x || obj1.y !== obj2.y || obj1.width !== obj2.width) {
+      return false;
+    }
+  }
+
+  // Si aucune différence n'a été trouvée, les deux tableaux sont identiques
+  return true;
+};

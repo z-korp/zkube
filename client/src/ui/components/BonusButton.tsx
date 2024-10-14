@@ -32,7 +32,6 @@ const BonusButton: React.FC<BonusButtonProps> = ({
 
   const handleClick = () => {
     setIsClicked(isClicked);
-    console.log("click on bonus button");
     if (onClick) {
       onClick();
     }

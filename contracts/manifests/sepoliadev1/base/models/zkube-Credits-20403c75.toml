@@ -1,0 +1,22 @@
+kind = "DojoModel"
+class_hash = "0x2d07e33460dde8b110ef5359231c986a3c597a389e0da1cfead5904371da1cc"
+original_class_hash = "0x2d07e33460dde8b110ef5359231c986a3c597a389e0da1cfead5904371da1cc"
+abi = "manifests/sepoliadev1/base/abis/models/zkube-Credits-20403c75.json"
+tag = "zkube-Credits"
+qualified_path = "zkube::models::index::credits"
+manifest_name = "zkube-Credits-20403c75"
+
+[[members]]
+name = "id"
+type = "felt252"
+key = true
+
+[[members]]
+name = "day_id"
+type = "u64"
+key = false
+
+[[members]]
+name = "remaining"
+type = "u8"
+key = false

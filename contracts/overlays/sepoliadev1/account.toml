@@ -1,0 +1,5 @@
+tag = "zkube-account"
+writes = [
+    "zkube-Player",
+    "zkube-Credits",
+]

@@ -12,6 +12,8 @@ dev = "sozo --profile dev clean && sozo --profile dev build && sozo --profile de
 slot = "sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate apply"
 slotdev = "sozo --profile slotdev clean && sozo --profile slotdev build && sozo --profile slotdev migrate apply"
 sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build && sozo --profile sepolia migrate apply --walnut"
+sepoliadev1 = "sozo --profile sepoliadev1 clean && sozo --profile sepoliadev1 build && sozo --profile sepoliadev1 migrate apply"
+sepoliadev2 = "sozo --profile sepoliadev2 clean && sozo --profile sepoliadev2 build && sozo --profile sepoliadev2 migrate apply"
 playground = "sozo --profile playground clean && sozo --profile playground build && sozo --profile playground migrate apply --walnut"
 
 [dependencies]
@@ -27,4 +29,6 @@ stark_vrf = { git = "https://github.com/dojoengine/stark-vrf", rev = "5a9e81e" }
 [profile.slotdev]
 [profile.slottest]
 [profile.sepolia]
+[profile.sepoliadev1]
+[profile.sepoliadev2]
 [profile.playground]

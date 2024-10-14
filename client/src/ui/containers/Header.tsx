@@ -12,7 +12,6 @@ import LevelIndicator from "../components/LevelIndicator";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 import DailyGameStatus from "../components/DailyGameStatus";
 import HeaderBalance from "../components/HeaderBalance";
-import ContentTabs from "../components/ContentTabs";
 import CollectiveTreasureChest from "../components/TreasureChest";
 import { Button } from "../elements/button";
 

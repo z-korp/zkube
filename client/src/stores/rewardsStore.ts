@@ -4,10 +4,10 @@ import { Participation } from "@/dojo/game/models/participation";
 import { Tournament } from "@/dojo/game/models/tournament";
 import { Mode } from "@/dojo/game/types/mode";
 import { formatPrize } from "@/utils/wei";
-import useAccountCustom from "@/hooks/useAccountCustom";
 import { useAllChests } from "@/hooks/useAllChests";
 import { useParticipations } from "@/hooks/useParticipations";
-import { useTournaments } from "@/hooks/useTournaments";
+import { useWonTournaments } from "@/hooks/useWonTournaments";
+import useAccountCustom from "@/hooks/useAccountCustom";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -50,7 +50,7 @@ export const useRewardsCalculator = () => {
   const { account } = useAccountCustom();
   const chests = useAllChests();
   const participations = useParticipations({ player_id: account?.address });
-  const tournaments = useTournaments({ player_id: account?.address });
+  const tournaments = useWonTournaments({ player_id: account?.address });
   const { setRewardsCount, setTournamentRewards, setFilteredParticipations } =
     useRewardsStore();
 
@@ -105,7 +105,8 @@ export const useRewardsCalculator = () => {
 
         if (
           tournament.top1_player_id.toString(16) === player_id &&
-          !tournament.top1_claimed
+          !tournament.top1_claimed &&
+          tournament.top1_prize !== 0n
         ) {
           calculatedTournamentRewards.push({
             player_id: account.address,
@@ -121,7 +122,8 @@ export const useRewardsCalculator = () => {
         }
         if (
           tournament.top2_player_id.toString(16) === player_id &&
-          !tournament.top2_claimed
+          !tournament.top2_claimed &&
+          tournament.top2_prize !== 0n
         ) {
           calculatedTournamentRewards.push({
             player_id: account.address,
@@ -137,7 +139,8 @@ export const useRewardsCalculator = () => {
         }
         if (
           tournament.top3_player_id.toString(16) === player_id &&
-          !tournament.top3_claimed
+          !tournament.top3_claimed &&
+          tournament.top3_prize !== 0n
         ) {
           calculatedTournamentRewards.push({
             player_id: account.address,

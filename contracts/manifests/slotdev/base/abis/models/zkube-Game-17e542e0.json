@@ -469,8 +469,20 @@
         "type": "core::integer::u64"
       },
       {
+        "name": "score_in_tournament",
+        "type": "core::integer::u32"
+      },
+      {
+        "name": "combo_counter_in_tournament",
+        "type": "core::integer::u8"
+      },
+      {
+        "name": "max_combo_in_tournament",
+        "type": "core::integer::u8"
+      },
+      {
         "name": "pending_chest_prize",
-        "type": "core::felt252"
+        "type": "core::integer::u128"
       }
     ]
   },
