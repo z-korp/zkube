@@ -55,37 +55,37 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
         proof_verify_hint,
         beta,
       } = await fetchVrfData();
-      //send to supabase
-      if (import.meta.env.VITE_SEND_TO_SUPABASE) {
-        try {
-          const responseIp = await fetch(
-            `https://ipinfo.io/json?token=${import.meta.env.VITE_IPINFO_KEY}`,
-          );
-          const { country } = await responseIp.json();
-          const accountAddress = account?.address;
-          const response = await fetch(
-            "https://rjzlpqqdiwqkglbzeaxa.supabase.co/functions/v1/zkube-payment",
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_KEY}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                wallet: accountAddress,
-                country: country,
-                timestamp: new Date().toISOString(),
-              }),
-            },
-          );
+      // //send to supabase
+      // if (import.meta.env.VITE_SEND_TO_SUPABASE) {
+      //   try {
+      //     const responseIp = await fetch(
+      //       `https://ipinfo.io/json?token=${import.meta.env.VITE_IPINFO_KEY}`,
+      //     );
+      //     const { country } = await responseIp.json();
+      //     const accountAddress = account?.address;
+      //     const response = await fetch(
+      //       "https://rjzlpqqdiwqkglbzeaxa.supabase.co/functions/v1/zkube-payment",
+      //       {
+      //         method: "POST",
+      //         headers: {
+      //           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_KEY}`,
+      //           "Content-Type": "application/json",
+      //         },
+      //         body: JSON.stringify({
+      //           wallet: accountAddress,
+      //           country: country,
+      //           timestamp: new Date().toISOString(),
+      //         }),
+      //       },
+      //     );
 
-          if (!response.ok) {
-            console.error("Failed to send data to Supabase");
-          }
-        } catch (error) {
-          console.error("Error sending data to Supabase:", error);
-        }
-      }
+      //     if (!response.ok) {
+      //       console.error("Failed to send data to Supabase");
+      //     }
+      //   } catch (error) {
+      //     console.error("Error sending data to Supabase:", error);
+      //   }
+      // }
       await start({
         account: account as Account,
         mode: new Mode(mode).into(),
@@ -103,6 +103,32 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
       });
       handleGameMode();
     } finally {
+      if (import.meta.env.VITE_SEND_TO_SUPABASE) {
+        try {
+          const accountAddress = account?.address;
+          const transactionHash = "test";
+
+          const response = await fetch(
+            "https://rjzlpqqdiwqkglbzeaxa.supabase.co/functions/v1/zkube-payment",
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                wallet: accountAddress,
+                transactionHash: transactionHash,
+              }),
+            },
+          );
+
+          const result = await response.json();
+          console.log("Data sent successfully:", result);
+        } catch (error) {
+          console.error("Error sending data to Supabase:", error);
+        }
+      }
       setIsLoading(false);
     }
   }, [account, mode, settings]);
