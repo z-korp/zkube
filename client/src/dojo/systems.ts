@@ -109,6 +109,7 @@ export function systems({
       });
 
       notify(successMessage, transaction);
+      return transaction_hash;
     } catch (error: any) {
       console.error("Error executing transaction:", error);
       if (!error?.message) {
@@ -138,7 +139,7 @@ export function systems({
   };
 
   const start = async ({ account, ...props }: SystemTypes.Start) => {
-    await handleTransaction(
+    return await handleTransaction(
       account,
       () => client.play.start({ account, ...props }),
       "Game has been started.",
