@@ -180,7 +180,10 @@ const Grid: React.FC<GridProps> = ({
       setBlocks(removeBlocksSameWidth(block, blocks));
     } else if (bonus === BonusName.HAMMER) {
       setBlocks(removeBlockId(block, blocks));
-    } else if (bonus !== BonusName.NONE) {
+    }
+
+    // if we have a bonus, we go in state gravity_bonus
+    if (bonus !== BonusName.NONE) {
       setIsTxProcessing(true);
       setIsMoving(true);
       setGameState(GameState.GRAVITY_BONUS);
