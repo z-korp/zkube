@@ -12,6 +12,7 @@ import { createFaucetClaimHandler } from "@/utils/faucet";
 import { useContract } from "@starknet-react/core";
 import { erc20ABI } from "@/utils/erc20";
 import { useCredits } from "@/hooks/useCredits";
+import supabase from "@/utils/supabase";
 
 interface BalanceData {
   balance: {
@@ -105,38 +106,9 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
         proof_verify_hint,
         beta,
       } = await fetchVrfData();
-      // //send to supabase
-      // if (import.meta.env.VITE_SEND_TO_SUPABASE) {
-      //   try {
-      //     const responseIp = await fetch(
-      //       `https://ipinfo.io/json?token=${import.meta.env.VITE_IPINFO_KEY}`,
-      //     );
-      //     const { country } = await responseIp.json();
-      //     const accountAddress = account?.address;
-      //     const response = await fetch(
-      //       "https://rjzlpqqdiwqkglbzeaxa.supabase.co/functions/v1/zkube-payment",
-      //       {
-      //         method: "POST",
-      //         headers: {
-      //           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_KEY}`,
-      //           "Content-Type": "application/json",
-      //         },
-      //         body: JSON.stringify({
-      //           wallet: accountAddress,
-      //           country: country,
-      //           timestamp: new Date().toISOString(),
-      //         }),
-      //       },
-      //     );
+      //send to supabase
 
-      //     if (!response.ok) {
-      //       console.error("Failed to send data to Supabase");
-      //     }
-      //   } catch (error) {
-      //     console.error("Error sending data to Supabase:", error);
-      //   }
-      // }
-      await start({
+      const transactionHash = await start({
         account: account as Account,
         mode: new Mode(mode).into(),
         price:
@@ -151,34 +123,25 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
         sqrt_ratio_hint: proof_verify_hint,
         beta: beta,
       });
-      handleGameMode();
-    } finally {
+
       if (import.meta.env.VITE_SEND_TO_SUPABASE) {
         try {
-          const accountAddress = account?.address;
-          const transactionHash = "test";
-
-          const response = await fetch(
-            "https://rjzlpqqdiwqkglbzeaxa.supabase.co/functions/v1/zkube-payment",
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_KEY}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                wallet: accountAddress,
-                transactionHash: transactionHash,
-              }),
+          const { error } = await supabase.functions.invoke("zkube-payment", {
+            body: {
+              timestamp: new Date().toISOString(),
+              transactionHash: transactionHash,
             },
-          );
+          });
 
-          const result = await response.json();
-          console.log("Data sent successfully:", result);
+          if (error) {
+            console.error("Failed to send data to Supabase", error);
+          }
         } catch (error) {
           console.error("Error sending data to Supabase:", error);
         }
       }
+      handleGameMode();
+    } finally {
       setIsLoading(false);
     }
   }, [account, mode, settings, credits]);
