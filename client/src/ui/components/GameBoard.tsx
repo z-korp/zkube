@@ -45,7 +45,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const COLS = 8;
   const GRID_SIZE = isMdOrLarger ? 50 : 40;
 
-  const [isBonusTxProcessing, setIsBonusTxProcessing] = useState(false);
+  const [isTxProcessing, setIsTxProcessing] = useState(false);
 
   // State that will allow us to hide or display the next line
   const [nextLineHasBeenConsumed, setNextLineHasBeenConsumed] = useState(false);
@@ -97,7 +97,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     async (rowIndex: number) => {
       if (!account) return;
 
-      setIsBonusTxProcessing(true);
+      setIsTxProcessing(true);
       try {
         await applyBonus({
           account: account as Account,
@@ -116,7 +116,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     async (rowIndex: number, colIndex: number) => {
       if (!account) return;
 
-      setIsBonusTxProcessing(true);
+      setIsTxProcessing(true);
       console.log("hammer with block", rowIndex, COLS - colIndex);
       try {
         await applyBonus({
@@ -136,7 +136,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     async (rowIndex: number, colIndex: number) => {
       if (!account) return;
 
-      setIsBonusTxProcessing(true);
+      setIsTxProcessing(true);
       try {
         await applyBonus({
           account: account as Account,
@@ -172,7 +172,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   useEffect(() => {
     // Reset the isTxProcessing state and the bonus state when the grid changes
     // meaning the tx as been processed, and the client state updated
-    setIsBonusTxProcessing(false);
+    setIsTxProcessing(false);
     setBonus(BonusName.NONE);
   }, [initialGrid]);
 
@@ -190,7 +190,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   return (
     <>
       <Card
-        className={`p-3 pt-4 bg-secondary ${isBonusTxProcessing && "cursor-wait"}`}
+        className={`p-3 pt-4 bg-secondary ${isTxProcessing && "cursor-wait"}`}
       >
         <div
           className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} mb-3 flex justify-between px-1`}
@@ -214,7 +214,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
           />
         </div>
         <div
-          className={`flex justify-center items-center ${!isBonusTxProcessing && "cursor-move"}`}
+          className={`flex justify-center items-center ${!isTxProcessing && "cursor-move"}`}
         >
           <Grid
             initialData={memorizedInitialData}
@@ -229,6 +229,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
             setOptimisticScore={setOptimisticScore}
             setOptimisticCombo={setOptimisticCombo}
             setOptimisticMaxCombo={setOptimisticMaxCombo}
+            isTxProcessing={isTxProcessing}
+            setIsTxProcessing={setIsTxProcessing}
           />
         </div>
         <div className="flex justify-center items-center mt-3">

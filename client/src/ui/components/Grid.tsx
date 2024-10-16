@@ -31,6 +31,8 @@ interface GridProps {
   selectBlock: (block: Block) => void;
   bonus: BonusName;
   account: Account | null;
+  isTxProcessing: boolean;
+  setIsTxProcessing: React.Dispatch<React.SetStateAction<boolean>>;
   setOptimisticScore: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
@@ -49,6 +51,8 @@ const Grid: React.FC<GridProps> = ({
   setOptimisticScore,
   setOptimisticCombo,
   setOptimisticMaxCombo,
+  isTxProcessing,
+  setIsTxProcessing,
 }) => {
   const {
     setup: {
@@ -72,7 +76,6 @@ const Grid: React.FC<GridProps> = ({
   } | null>(null);
   const [transitioningBlocks, setTransitioningBlocks] = useState<number[]>([]);
   const [gameState, setGameState] = useState<GameState>(GameState.WAITING);
-  const [isTxProcessing, setIsTxProcessing] = useState(false);
   const [isPlayerInDanger, setIsPlayerInDanger] = useState(false);
   const [lineExplodedCount, setLineExplodedCount] = useState(0);
   const [blockBonus, setBlockBonus] = useState<Block | null>(null);
