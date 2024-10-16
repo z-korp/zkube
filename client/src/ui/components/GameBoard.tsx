@@ -117,7 +117,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
       if (!account) return;
 
       setIsTxProcessing(true);
-      console.log("hammer with block", rowIndex, COLS - colIndex);
       try {
         await applyBonus({
           account: account as Account,
@@ -154,13 +153,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const selectBlock = useCallback(
     async (block: Block) => {
       if (bonus === BonusName.WAVE) {
-        console.log("wave with block", block);
         handleBonusWaveTx(block.y);
       } else if (bonus === BonusName.TIKI) {
-        console.log("tiki with block", block);
         handleBonusTikiTx(block.y, block.x);
       } else if (bonus === BonusName.HAMMER) {
-        console.log("hammer with block", block);
         handleBonusHammerTx(block.y, block.x);
       } else if (bonus === BonusName.NONE) {
         console.log("none", block);
@@ -172,7 +168,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   useEffect(() => {
     // Reset the isTxProcessing state and the bonus state when the grid changes
     // meaning the tx as been processed, and the client state updated
-    setIsTxProcessing(false);
     setBonus(BonusName.NONE);
   }, [initialGrid]);
 

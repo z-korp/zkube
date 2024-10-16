@@ -132,6 +132,7 @@ const Grid: React.FC<GridProps> = ({
 
   const handleDragMove = (x: number, moveType: MoveType) => {
     if (!dragging) return;
+    if (isTxProcessing) return;
 
     const deltaX = x - dragStartX;
     const newX = initialX + deltaX / gridSize;
@@ -166,7 +167,6 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const handleDragStart = (x: number, block: Block) => {
-    if (isTxProcessing) return;
     setDragging(block);
     setDragStartX(x);
     setInitialX(block.x);
@@ -175,6 +175,7 @@ const Grid: React.FC<GridProps> = ({
 
   const handleMouseDown = (e: React.MouseEvent, block: Block) => {
     e.preventDefault();
+    if (isTxProcessing) return;
 
     setBlockBonus(block);
     if (bonus === BonusName.WAVE) {
@@ -196,6 +197,8 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const handleTouchStart = (e: React.TouchEvent, block: Block) => {
+    if (isTxProcessing) return;
+
     const touch = e.touches[0];
     handleDragStart(touch.clientX, block);
   };
@@ -211,6 +214,7 @@ const Grid: React.FC<GridProps> = ({
 
   const endDrag = () => {
     if (!dragging) return;
+    if (isTxProcessing) return;
 
     setBlocks((prevBlocks) => {
       const updatedBlocks = prevBlocks.map((b) => {
@@ -462,6 +466,7 @@ const Grid: React.FC<GridProps> = ({
 
   useEffect(() => {
     if (gameState === GameState.BONUS_TX) {
+      setApplyData(true);
       selectBlock(blockBonus as Block);
       setBlockBonus(null);
       setGameState(GameState.WAITING);
