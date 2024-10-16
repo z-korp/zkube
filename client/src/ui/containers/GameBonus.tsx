@@ -1,8 +1,6 @@
-import React from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import BonusButton from "../components/BonusButton";
 import { useTheme } from "@/ui/elements/theme-provider";
-import { Bonus } from "@/dojo/game/types/bonus";
 import { BonusName } from "@/enums/bonusEnum";
 
 interface GameBonusProps {

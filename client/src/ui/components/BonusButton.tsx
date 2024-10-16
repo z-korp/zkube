@@ -28,8 +28,6 @@ const BonusButton: React.FC<BonusButtonProps> = ({
 }) => {
   const [isClicked, setIsClicked] = useState(false);
 
-  const altText = "image for bonus";
-
   const handleClick = () => {
     setIsClicked(isClicked);
     if (onClick) {
@@ -54,11 +52,11 @@ const BonusButton: React.FC<BonusButtonProps> = ({
             <Button
               variant="outline"
               size="icon"
-              className={`md:p-2 sm:p-1 p-1 border ${bonus == bonusName ? "bg-yellow-500" : ""}`}
+              className={`md:p-2 sm:p-1 p-1 border ${bonus == bonusName ? "bg-yellow-500" : ""} cursor-pointer`}
               onClick={handleClick}
               disabled={false}
             >
-              <img src={urlImage} alt={altText} />
+              <img src={urlImage} alt="image for bonus" />
             </Button>
           </motion.div>
         </TooltipTrigger>
