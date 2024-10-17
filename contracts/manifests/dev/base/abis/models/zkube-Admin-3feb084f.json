@@ -363,46 +363,40 @@
   },
   {
     "type": "impl",
-    "name": "playerImpl",
-    "interface_name": "zkube::models::index::Iplayer"
+    "name": "adminImpl",
+    "interface_name": "zkube::models::index::Iadmin"
+  },
+  {
+    "type": "enum",
+    "name": "core::bool",
+    "variants": [
+      {
+        "name": "False",
+        "type": "()"
+      },
+      {
+        "name": "True",
+        "type": "()"
+      }
+    ]
   },
   {
     "type": "struct",
-    "name": "zkube::models::index::Player",
+    "name": "zkube::models::index::Admin",
     "members": [
       {
         "name": "id",
         "type": "core::felt252"
       },
       {
-        "name": "game_id",
-        "type": "core::integer::u32"
-      },
-      {
-        "name": "name",
-        "type": "core::felt252"
-      },
-      {
-        "name": "points",
-        "type": "core::integer::u32"
-      },
-      {
-        "name": "daily_streak",
-        "type": "core::integer::u8"
-      },
-      {
-        "name": "last_active_day",
-        "type": "core::integer::u32"
-      },
-      {
-        "name": "account_creation_day",
-        "type": "core::integer::u32"
+        "name": "is_set",
+        "type": "core::bool"
       }
     ]
   },
   {
     "type": "interface",
-    "name": "zkube::models::index::Iplayer",
+    "name": "zkube::models::index::Iadmin",
     "items": [
       {
         "type": "function",
@@ -410,7 +404,7 @@
         "inputs": [
           {
             "name": "model",
-            "type": "zkube::models::index::Player"
+            "type": "zkube::models::index::Admin"
           }
         ],
         "outputs": [],
@@ -420,7 +414,7 @@
   },
   {
     "type": "event",
-    "name": "zkube::models::index::player::Event",
+    "name": "zkube::models::index::admin::Event",
     "kind": "enum",
     "variants": []
   }

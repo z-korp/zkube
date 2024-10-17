@@ -1,7 +1,7 @@
 kind = "DojoModel"
 class_hash = "0x1dc8b9f85a186d551a8d53b5b46cffe82a5505fa6855c0f9af7facb6946db09"
 original_class_hash = "0x1dc8b9f85a186d551a8d53b5b46cffe82a5505fa6855c0f9af7facb6946db09"
-abi = "manifests/sepolia/base/abis/models/zkube-Player-a3c56d30.json"
+abi = "manifests/dev/base/abis/models/zkube-Player-a3c56d30.json"
 tag = "zkube-Player"
 qualified_path = "zkube::models::index::player"
 manifest_name = "zkube-Player-a3c56d30"

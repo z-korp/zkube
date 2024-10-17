@@ -1,6 +1,6 @@
 kind = "DojoContract"
-class_hash = "0x5cbc5e731107f9ac652676ccba05b93903fa2571809d46c5a453193c4a42b32"
-original_class_hash = "0x5cbc5e731107f9ac652676ccba05b93903fa2571809d46c5a453193c4a42b32"
+class_hash = "0x70cc0bdc949dd2362fdb1a9a34e1e2d8bc10eaf92e0e2bde95c415132ea070b"
+original_class_hash = "0x70cc0bdc949dd2362fdb1a9a34e1e2d8bc10eaf92e0e2bde95c415132ea070b"
 base_class_hash = "0x0"
 abi = "manifests/sepolia/base/abis/contracts/zkube-play-19ee70b3.json"
 reads = []

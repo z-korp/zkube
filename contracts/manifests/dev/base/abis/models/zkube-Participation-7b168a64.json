@@ -363,46 +363,52 @@
   },
   {
     "type": "impl",
-    "name": "playerImpl",
-    "interface_name": "zkube::models::index::Iplayer"
+    "name": "participationImpl",
+    "interface_name": "zkube::models::index::Iparticipation"
+  },
+  {
+    "type": "enum",
+    "name": "core::bool",
+    "variants": [
+      {
+        "name": "False",
+        "type": "()"
+      },
+      {
+        "name": "True",
+        "type": "()"
+      }
+    ]
   },
   {
     "type": "struct",
-    "name": "zkube::models::index::Player",
+    "name": "zkube::models::index::Participation",
     "members": [
       {
-        "name": "id",
-        "type": "core::felt252"
-      },
-      {
-        "name": "game_id",
+        "name": "chest_id",
         "type": "core::integer::u32"
       },
       {
-        "name": "name",
+        "name": "player_id",
         "type": "core::felt252"
+      },
+      {
+        "name": "is_set",
+        "type": "core::bool"
       },
       {
         "name": "points",
         "type": "core::integer::u32"
       },
       {
-        "name": "daily_streak",
-        "type": "core::integer::u8"
-      },
-      {
-        "name": "last_active_day",
-        "type": "core::integer::u32"
-      },
-      {
-        "name": "account_creation_day",
-        "type": "core::integer::u32"
+        "name": "claimed",
+        "type": "core::bool"
       }
     ]
   },
   {
     "type": "interface",
-    "name": "zkube::models::index::Iplayer",
+    "name": "zkube::models::index::Iparticipation",
     "items": [
       {
         "type": "function",
@@ -410,7 +416,7 @@
         "inputs": [
           {
             "name": "model",
-            "type": "zkube::models::index::Player"
+            "type": "zkube::models::index::Participation"
           }
         ],
         "outputs": [],
@@ -420,7 +426,7 @@
   },
   {
     "type": "event",
-    "name": "zkube::models::index::player::Event",
+    "name": "zkube::models::index::participation::Event",
     "kind": "enum",
     "variants": []
   }

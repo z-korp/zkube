@@ -183,12 +183,12 @@ export const Home = () => {
 
   const renderMobileView = () => (
     <div className="flex flex-col w-full gap-4 px-4 mt-4">
-      <Button
+      {/*<Button
         onClick={handleTournaments}
         className="w-full py-3 bg-primary text-secondary rounded-lg text-lg"
       >
         Tutorial
-      </Button>
+      </Button>*/}
       <Start mode={ModeType.Free} handleGameMode={handlePlay} />
 
       <Button
@@ -291,7 +291,7 @@ export const Home = () => {
                   {!isTournamentsOpen && (
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button className="text-lg md:text-2xl mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg">
+                        <Button className="text-md md:text-2xl mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg">
                           Give feedback and get a chance to win STRK
                         </Button>
                       </DialogTrigger>

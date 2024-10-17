@@ -86,7 +86,7 @@ const Grid: React.FC<GridProps> = ({
 
   const borderSize = 2;
   const gravitySpeed = 100;
-  const transitionDuration = 200;
+  const transitionDuration = 400;
 
   useEffect(() => {
     if (applyData) {
@@ -95,7 +95,6 @@ const Grid: React.FC<GridProps> = ({
       }
       setSaveGridStateblocks(initialData);
       setBlocks(initialData);
-      console.log("Apply data", initialData);
       setApplyData(false);
 
       const inDanger = initialData.some((block) => block.y < 2);
@@ -277,9 +276,6 @@ const Grid: React.FC<GridProps> = ({
           start_index: Math.trunc(startColIndex),
           final_index: Math.trunc(finalColIndex),
         });
-        console.log(
-          `Mouvement effectué : Ligne ${rowIndex}, de ${startColIndex} à ${finalColIndex}`,
-        );
       } catch (error) {
         console.error("Erreur lors de l'envoi de la transaction", error);
       }
