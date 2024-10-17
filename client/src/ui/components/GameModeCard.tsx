@@ -99,7 +99,9 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
   return (
     <Card className="w-full max-w-sm bg-gray-900 text-white border-0">
       <CardHeader className="pb-4">
-        <CardTitle className="text-xl md:text-2xl font-bold">{mode}</CardTitle>
+        <CardTitle className="text-xl md:text-2xl font-bold text-center">
+          {mode}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-1 text-sm md:text-base pb-4">
         <div className="flex items-center space-x-2 gap-2">

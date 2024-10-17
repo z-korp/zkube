@@ -18,7 +18,7 @@ import { useQuerySync } from "@dojoengine/react";
 import { ModeType } from "@/dojo/game/types/mode";
 import { Level } from "@/dojo/game/types/level";
 import { toPng } from "html-to-image";
-import { LeaderboardContent } from "../modules/Leaderboard";
+import { Leaderboard } from "../modules/Leaderboard";
 import { useRewardsCalculator } from "@/stores/rewardsStore";
 import {
   Dialog,
@@ -33,6 +33,10 @@ import GameModeCard from "../components/GameModeCard";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import useAutoSignup from "@/hooks/useAutoSignup";
 import { useMediaQuery } from "react-responsive";
+import { Start } from "../actions/Start";
+import { ChevronLeft } from "lucide-react";
+import CollectiveTreasureChest from "../components/TreasureChest";
+import GameOverDialog from "../components/GameOverDialog";
 
 export const Home = () => {
   const {
@@ -62,6 +66,9 @@ export const Home = () => {
   const [imgData, setImgData] = useState<string>("");
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
+
+  // State variables for modals
+  const [isTournamentsOpen, setIsTournamentsOpen] = useState(false);
 
   useEffect(() => {
     if (game?.over) {
@@ -104,6 +111,103 @@ export const Home = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Handlers for mobile buttons
+  const handlePlay = () => {
+    setIsGameOn("isOn"); // Start the game
+  };
+
+  const handleTournaments = () => {
+    setIsTournamentsOpen(true); // Open Tournaments modal
+  };
+
+  const [chestIsOpen, setChestIsOpen] = useState(false);
+  const [isGameOverOpen, setIsGameOverOpen] = useState(false);
+  const prevGameOverRef = useRef<boolean | undefined>(game?.over);
+
+  useEffect(() => {
+    if (prevGameOverRef.current !== undefined) {
+      // Check if game.over transitioned from false to true
+      if (!prevGameOverRef.current && game?.over) {
+        setIsGameOverOpen(true);
+      }
+    }
+    // Update the ref with the current value of game.over
+    prevGameOverRef.current = game?.over;
+  }, [game?.over]);
+
+  // Define render functions
+  const renderDesktopView = () => (
+    <>
+      <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center">
+        <GameModeCard
+          mode={ModeType.Free}
+          handleGameMode={() => setIsGameOn("isOn")}
+        />
+      </div>
+      <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-start justify-center">
+        <GameModeCard
+          mode={ModeType.Daily}
+          handleGameMode={() => setIsGameOn("isOn")}
+        />
+        <GameModeCard
+          mode={ModeType.Normal}
+          handleGameMode={() => setIsGameOn("isOn")}
+        />
+      </div>
+    </>
+  );
+
+  const renderTournamentsView = () => (
+    <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center">
+      <div className="flex justify-center items-center w-full relative h-[36px]">
+        <Button
+          onClick={() => setIsTournamentsOpen(false)}
+          className="flex items-center absolute left-0 top-0"
+          variant="ghost"
+        >
+          <ChevronLeft /> Back
+        </Button>
+        <h1 className="text-center text-xl">Tournaments</h1>
+      </div>
+
+      <GameModeCard
+        mode={ModeType.Daily}
+        handleGameMode={() => setIsGameOn("isOn")}
+      />
+      <GameModeCard
+        mode={ModeType.Normal}
+        handleGameMode={() => setIsGameOn("isOn")}
+      />
+    </div>
+  );
+
+  const renderMobileView = () => (
+    <div className="flex flex-col w-full gap-4 px-4 mt-4">
+      {/*<Button
+        onClick={handleTournaments}
+        className="w-full py-3 bg-primary text-secondary rounded-lg text-lg"
+      >
+        Tutorial
+      </Button>*/}
+      <Start mode={ModeType.Free} handleGameMode={handlePlay} />
+
+      <Button
+        onClick={handleTournaments}
+        className="w-full py-3 bg-primary text-secondary rounded-lg text-lg"
+      >
+        Tournaments
+      </Button>
+      <Button
+        onClick={() => setChestIsOpen(true)}
+        className="w-full py-3 bg-primary text-secondary rounded-lg text-lg"
+      >
+        Collective Chest
+      </Button>
+
+      <Leaderboard buttonType="default" textSize="lg" />
+    </div>
+  );
+
   return (
     <div className="relative flex flex-col h-screen" id="portal-root">
       <Header />
@@ -114,6 +218,11 @@ export const Home = () => {
           <p className="mt-8 mb-7">Aligning the blocks for your signup...</p>
         </DialogContent>
       </Dialog>
+
+      <CollectiveTreasureChest
+        isOpen={chestIsOpen}
+        onClose={() => setChestIsOpen(false)}
+      />
 
       <BackGroundBoard imageBackground={imgAssets.imageBackground}>
         <BackGroundBoard
@@ -132,48 +241,39 @@ export const Home = () => {
               {!isSigning && <Create />}
               {(!game || (!!game && isGameOn === "isOver")) && (
                 <>
-                  <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center">
-                    <GameModeCard
-                      mode={ModeType.Free}
-                      handleGameMode={() => setIsGameOn("isOn")}
-                    />
-                  </div>
-                  <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-start justify-center">
-                    <GameModeCard
-                      mode={ModeType.Daily}
-                      handleGameMode={() => setIsGameOn("isOn")}
-                    />
-                    <GameModeCard
-                      mode={ModeType.Normal}
-                      handleGameMode={() => setIsGameOn("isOn")}
-                    />
-                  </div>
+                  {isMdOrLarger
+                    ? renderDesktopView()
+                    : isTournamentsOpen
+                      ? renderTournamentsView()
+                      : renderMobileView()}
                 </>
               )}
-              {!game && (
-                <div className="bg-slate-900 w-11/12 p-4 rounded-xl mb-4 max-h-[55vh]">
-                  <LeaderboardContent />
-                </div>
+              {game && (
+                <GameOverDialog
+                  isOpen={isGameOverOpen}
+                  onClose={() => setIsGameOverOpen(false)}
+                  game={game}
+                />
               )}
-              {!!game && isGameOn === "isOver" && (
+              {!!game && isGameOn === "isOver" && !isTournamentsOpen && (
                 <>
-                  <div className="flex flex-col gap-4 mt-4">
-                    <div className=" p-6 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
-                      <p className="text-4xl text-center">Game Over</p>
+                  <div className="flex flex-col gap-4 mt-4 md:mt-0">
+                    <div className="p-6 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
+                      <p className="text-4xl text-center mb-2">Game Over</p>
 
                       <div className="flex gap-4 justify-center items-center">
                         <div className="grow text-4xl flex gap-2 justify-end">
                           {game.score}
                           <FontAwesomeIcon
                             icon={faStar}
-                            className="text-yellow-500 ml-2"
+                            className="text-yellow-500"
                           />
                         </div>
                         <div className="grow text-4xl flex gap-2 justify-end">
                           {game.combo}
                           <FontAwesomeIcon
                             icon={faFire}
-                            className="text-slate-700 ml-2"
+                            className="text-slate-700"
                           />
                         </div>
                         <div className="grow text-4xl flex gap-2 justify-end">
@@ -181,16 +281,17 @@ export const Home = () => {
                           <MaxComboIcon
                             width={36}
                             height={36}
-                            className={`text-slate-700 ml-2 `}
+                            className="text-slate-700"
                           />
                         </div>
                       </div>
                     </div>
                   </div>
-                  <>
+
+                  {!isTournamentsOpen && (
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button className="md:text-2xl md:mt-4 mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg">
+                        <Button className="text-md md:text-2xl mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg">
                           Give feedback and get a chance to win STRK
                         </Button>
                       </DialogTrigger>
@@ -204,14 +305,14 @@ export const Home = () => {
                         </div>
                       </DialogContent>
                     </Dialog>
-                  </>
+                  )}
                 </>
               )}
               {!!game && isGameOn === "isOn" && (
                 <div className="relative w-full">
                   <div ref={gameGrid} className="flex flex-col items-center">
                     <GameBoard
-                      // check if game is over because otherwise we can display
+                      // Check if game is over because otherwise we can display
                       // previous game data on the board while the new game is starting
                       // and torii indexing
                       initialGrid={game.isOver() ? [] : game.blocks}

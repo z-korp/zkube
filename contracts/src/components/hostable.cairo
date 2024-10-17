@@ -23,7 +23,7 @@ mod HostableComponent {
     };
     use zkube::store::{Store, StoreTrait};
     use zkube::models::game::{Game, GameImpl, GameAssert};
-    use zkube::models::player::{Player, PlayerImpl, PlayerAssert};
+    use zkube::models::player::{Player, PlayerTrait, PlayerAssert};
     use zkube::types::mode::{Mode, ModeTrait};
     use zkube::models::game::GameTrait;
     use zkube::models::tournament::{TournamentImpl, TournamentAssert};

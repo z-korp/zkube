@@ -24,7 +24,7 @@ const NextLine = ({
   }, [nextLineData]);
 
   return (
-    <div className={`grid-background`}>
+    <div className="grid-background static-border">
       <div
         className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)]`}
         style={{

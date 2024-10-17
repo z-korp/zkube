@@ -23,5 +23,7 @@ export const useGame = ({ gameId }: { gameId: string | undefined }) => {
     return component ? new GameClass(component) : null;
   }, [component]);
 
+  //console.log("game", game);
+
   return { game, gameKey };
 };

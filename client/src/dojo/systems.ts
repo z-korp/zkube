@@ -39,6 +39,10 @@ export function systems({
     return window.matchMedia("(min-width: 768px)").matches;
   };
 
+  const shouldShowToast = (): boolean => {
+    return isMdOrLarger();
+  };
+
   const isSmallHeight = (): boolean => {
     return window.matchMedia("(max-height: 768px)").matches;
   };
@@ -72,6 +76,7 @@ export function systems({
 
   const notify = (message: string, transaction: any) => {
     if (transaction.execution_status !== "REVERTED") {
+      if (!shouldShowToast()) return; // Exit if screen is smaller than medium
       toast.success(message, {
         id: TOAST_ID,
         description: shortenHex(transaction.transaction_hash),
@@ -91,18 +96,24 @@ export function systems({
     action: () => Promise<{ transaction_hash: string }>,
     successMessage: string,
   ) => {
-    toast.loading("Transaction in progress...", {
-      id: TOAST_ID,
-      position: toastPlacement,
-    });
-    try {
-      const { transaction_hash } = await action();
+    if (shouldShowToast()) {
       toast.loading("Transaction in progress...", {
-        description: shortenHex(transaction_hash),
-        action: getToastAction(transaction_hash),
         id: TOAST_ID,
         position: toastPlacement,
       });
+    }
+
+    try {
+      const { transaction_hash } = await action();
+
+      if (shouldShowToast()) {
+        toast.loading("Transaction in progress...", {
+          description: shortenHex(transaction_hash),
+          action: getToastAction(transaction_hash),
+          id: TOAST_ID,
+          position: toastPlacement,
+        });
+      }
 
       const transaction = await account.waitForTransaction(transaction_hash, {
         retryInterval: 100,
