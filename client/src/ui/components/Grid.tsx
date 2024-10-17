@@ -31,6 +31,8 @@ interface GridProps {
   selectBlock: (block: Block) => void;
   bonus: BonusName;
   account: Account | null;
+  isTxProcessing: boolean;
+  setIsTxProcessing: React.Dispatch<React.SetStateAction<boolean>>;
   setOptimisticScore: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
@@ -49,6 +51,8 @@ const Grid: React.FC<GridProps> = ({
   setOptimisticScore,
   setOptimisticCombo,
   setOptimisticMaxCombo,
+  isTxProcessing,
+  setIsTxProcessing,
 }) => {
   const {
     setup: {
@@ -72,7 +76,6 @@ const Grid: React.FC<GridProps> = ({
   } | null>(null);
   const [transitioningBlocks, setTransitioningBlocks] = useState<number[]>([]);
   const [gameState, setGameState] = useState<GameState>(GameState.WAITING);
-  const [isTxProcessing, setIsTxProcessing] = useState(false);
   const [isPlayerInDanger, setIsPlayerInDanger] = useState(false);
   const [lineExplodedCount, setLineExplodedCount] = useState(0);
   const [blockBonus, setBlockBonus] = useState<Block | null>(null);
@@ -129,6 +132,7 @@ const Grid: React.FC<GridProps> = ({
 
   const handleDragMove = (x: number, moveType: MoveType) => {
     if (!dragging) return;
+    if (isTxProcessing) return;
 
     const deltaX = x - dragStartX;
     const newX = initialX + deltaX / gridSize;
@@ -163,7 +167,6 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const handleDragStart = (x: number, block: Block) => {
-    if (isTxProcessing) return;
     setDragging(block);
     setDragStartX(x);
     setInitialX(block.x);
@@ -172,6 +175,7 @@ const Grid: React.FC<GridProps> = ({
 
   const handleMouseDown = (e: React.MouseEvent, block: Block) => {
     e.preventDefault();
+    if (isTxProcessing) return;
 
     setBlockBonus(block);
     if (bonus === BonusName.WAVE) {
@@ -180,7 +184,10 @@ const Grid: React.FC<GridProps> = ({
       setBlocks(removeBlocksSameWidth(block, blocks));
     } else if (bonus === BonusName.HAMMER) {
       setBlocks(removeBlockId(block, blocks));
-    } else if (bonus !== BonusName.NONE) {
+    }
+
+    // if we have a bonus, we go in state gravity_bonus
+    if (bonus !== BonusName.NONE) {
       setIsTxProcessing(true);
       setIsMoving(true);
       setGameState(GameState.GRAVITY_BONUS);
@@ -190,6 +197,8 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const handleTouchStart = (e: React.TouchEvent, block: Block) => {
+    if (isTxProcessing) return;
+
     const touch = e.touches[0];
     handleDragStart(touch.clientX, block);
   };
@@ -205,6 +214,7 @@ const Grid: React.FC<GridProps> = ({
 
   const endDrag = () => {
     if (!dragging) return;
+    if (isTxProcessing) return;
 
     setBlocks((prevBlocks) => {
       const updatedBlocks = prevBlocks.map((b) => {
@@ -456,6 +466,7 @@ const Grid: React.FC<GridProps> = ({
 
   useEffect(() => {
     if (gameState === GameState.BONUS_TX) {
+      setApplyData(true);
       selectBlock(blockBonus as Block);
       setBlockBonus(null);
       setGameState(GameState.WAITING);
