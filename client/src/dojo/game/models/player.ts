@@ -107,7 +107,7 @@ export class Player {
   }
 
   public getAccountAgeInDays(): number {
-    const currentDay = Date.now() / 1000 / 86400;
+    const currentDay = Math.floor(Date.now() / 1000 / 86400);
     return Math.floor(currentDay - this.account_creation_day);
   }
 
@@ -116,8 +116,7 @@ export class Player {
   }
 
   public getAccountAgeMultiplier(): number {
-    const currentDay = Math.floor(Date.now() / 1000 / 86400);
-    const accountAge = currentDay - this.account_creation_day;
+    const accountAge = this.getAccountAgeInDays();
 
     if (accountAge < 120) {
       return (
