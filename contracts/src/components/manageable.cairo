@@ -38,15 +38,16 @@ mod ManageableComponent {
 
             // [Check] Player not already exists
             let caller = get_caller_address();
+            let timestamp = get_block_timestamp();
             let player = store.player(caller.into());
             player.assert_not_exists();
 
             // [Effect] Create a new player
-            let player = PlayerTrait::new(caller.into(), name);
+            let player = PlayerTrait::new(caller.into(), name, timestamp);
             store.set_player(player);
 
             let settings = store.settings();
-            let credits = CreditsTrait::new(caller.into(), get_block_timestamp(), settings);
+            let credits = CreditsTrait::new(caller.into(), timestamp, settings);
             store.set_credits(credits);
         }
 

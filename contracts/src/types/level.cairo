@@ -27,8 +27,8 @@ impl LevelImpl of LevelTrait {
     #[inline(always)]
     fn get_points(self: Level) -> u32 {
         match self {
-            Level::One => 100,
-            Level::Two => 300,
+            Level::One => 0, // 0-299
+            Level::Two => 300, // 300-599
             Level::Three => 600,
             Level::Four => 1_000,
             Level::Five => 1_500,
@@ -118,6 +118,64 @@ impl LevelImpl of LevelTrait {
             Level::Eighteen => Option::Some(Level::Nineteen),
             Level::Nineteen => Option::Some(Level::Twenty),
             Level::Twenty => Option::None,
+        }
+    }
+}
+
+impl U8IntoLevel of core::Into<u8, Level> {
+    #[inline(always)]
+    fn into(self: u8) -> Level {
+        match self {
+            0 => Level::One,
+            1 => Level::One,
+            2 => Level::Two,
+            3 => Level::Three,
+            4 => Level::Four,
+            5 => Level::Five,
+            6 => Level::Six,
+            7 => Level::Seven,
+            8 => Level::Eight,
+            9 => Level::Nine,
+            10 => Level::Ten,
+            11 => Level::Eleven,
+            12 => Level::Twelve,
+            13 => Level::Thirteen,
+            14 => Level::Fourteen,
+            15 => Level::Fifteen,
+            16 => Level::Sixteen,
+            17 => Level::Seventeen,
+            18 => Level::Eighteen,
+            19 => Level::Nineteen,
+            20 => Level::Twenty,
+            _ => Level::Twenty,
+        }
+    }
+}
+
+impl LevelIntoU8 of core::Into<Level, u8> {
+    #[inline(always)]
+    fn into(self: Level) -> u8 {
+        match self {
+            Level::One => 1,
+            Level::Two => 2,
+            Level::Three => 3,
+            Level::Four => 4,
+            Level::Five => 5,
+            Level::Six => 6,
+            Level::Seven => 7,
+            Level::Eight => 8,
+            Level::Nine => 9,
+            Level::Ten => 10,
+            Level::Eleven => 11,
+            Level::Twelve => 12,
+            Level::Thirteen => 13,
+            Level::Fourteen => 14,
+            Level::Fifteen => 15,
+            Level::Sixteen => 16,
+            Level::Seventeen => 17,
+            Level::Eighteen => 18,
+            Level::Nineteen => 19,
+            Level::Twenty => 20,
         }
     }
 }

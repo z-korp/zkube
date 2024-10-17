@@ -41,3 +41,29 @@ const ZKORP_ADDRESS: felt252 = 0x7BAE177CD2B998927B7637F0BA047609CD9A81A7D4AEA8F
 // Computation
 const PRECISION_FACTOR: u128 = 1_000_000_000;
 
+// Multipliers
+// Daily streak
+const MULTIPLIER_SCALE: u32 = 1_000_000; // 1.0x represented as 1,000,000
+
+// Daily Streak Multiplier
+const STREAK_1_7_MULTIPLIER_START: u32 = 1_000_000; // 1.0x
+const STREAK_1_7_MULTIPLIER_INCREMENT: u32 = 10_000; // 0.01x per day (scaled by 1000)
+
+const STREAK_8_30_MULTIPLIER_START: u32 = 1_080_000; // 1.08x
+const STREAK_8_30_MULTIPLIER_INCREMENT: u32 = 3_000; // +0.003x per day
+
+const STREAK_31_PLUS_MULTIPLIER: u32 = 1_200_000; // 1.20x
+const STREAK_MULTIPLIER_CAP: u32 = 1_400_000; // 1.40x cap for streaks above 60 days
+
+// Level
+const LEVEL_MULTIPLIER_START: u32 = 1_000_000; // 1.00x at Level 1
+const LEVEL_MULTIPLIER_INCREMENT: u32 = 10_000; // +0.01x per level
+
+// Account age
+const ACCOUNT_AGE_MULTIPLIER_START: u32 = 1_000_000; // 1.00x at Level 1
+const ACCOUNT_AGE_MULTIPLIER_INCREMENT: u32 = 1_667; // 0.00167x per day -> 1 -> 1.2 in 4 months
+const ACCOUNT_AGE_MULTIPLIER_CAP: u32 = 1_200_000; // 1.20x cap for accounts older than 120 days 
+
+// Game mode
+const GAME_MODE_PAID_MULTIPLER: u32 = 1_500_000; // 1.50x if paid game
+const GAME_MODE_FREE_MULTIPLER: u32 = 1_000_000; // 1.00x if free game

@@ -35,6 +35,7 @@ mod PlayableComponent {
     use zkube::models::chest::ChestTrait;
     use zkube::models::participation::{Participation, ParticipationTrait, ZeroableParticipation};
     use zkube::helpers::math::Math;
+    use zkube::types::mode::ModeTrait;
 
 
     // Storage
@@ -179,15 +180,22 @@ mod PlayableComponent {
             game: Game,
             mut player: Player,
         ) {
-            let points = game.score;
+            let base_points = game.score;
 
             // [Effect] Update player
-            player.update(points);
+            let current_timestamp = get_block_timestamp();
+            player.update_daily_streak(current_timestamp);
+
+            let mode: Mode = game.mode.into();
+            let settings = store.settings();
+            let mode_multiplier = mode.get_multiplier(settings);
+
+            let final_points = player
+                .update_points(base_points, mode_multiplier, current_timestamp);
             store.set_player(player);
 
             // [Effect] Update Chest
-            let total_points = points;
-            let mut remaining_points: u32 = points;
+            let mut remaining_points: u32 = final_points;
             let mut remaining_prize: u256 = game.pending_chest_prize.into()
                 * PRECISION_FACTOR.into();
             let mut i = 0;

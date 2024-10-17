@@ -21,6 +21,7 @@ mod types {
     mod block;
     mod mode;
     mod difficulty;
+    mod level;
 }
 
 mod elements {
@@ -48,6 +49,7 @@ mod helpers {
     mod packer;
     mod controller;
     mod gravity;
+    mod timestamp;
 }
 
 mod components {
