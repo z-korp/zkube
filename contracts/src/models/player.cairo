@@ -10,7 +10,7 @@ use zkube::constants::{
     STREAK_1_7_MULTIPLIER_INCREMENT, STREAK_8_30_MULTIPLIER_START, STREAK_8_30_MULTIPLIER_INCREMENT,
     STREAK_31_PLUS_MULTIPLIER, STREAK_MULTIPLIER_CAP, LEVEL_MULTIPLIER_START,
     LEVEL_MULTIPLIER_INCREMENT, ACCOUNT_AGE_MULTIPLIER_START, ACCOUNT_AGE_MULTIPLIER_INCREMENT,
-    ACCOUNT_AGE_MULTIPLIER_CAP
+    ACCOUNT_AGE_MULTIPLIER_CAP, STREAK_31_PLUS_MULTIPLIER_INCREMENT
 };
 use zkube::models::index::Player;
 use zkube::helpers::math::Math;
@@ -97,22 +97,36 @@ impl PlayerImpl of PlayerTrait {
     }
 
     /// Calculate the daily streak multiplier based on the current streak.
-    #[inline(always)]
     fn get_daily_streak_multiplier(self: Player) -> u32 {
-        if self.daily_streak >= 1 && self.daily_streak <= 7 {
-            STREAK_1_7_MULTIPLIER_START + (self.daily_streak - 1) * STREAK_1_7_MULTIPLIER_INCREMENT
-        } else if self.daily_streak >= 8 && self.daily_streak <= 30 {
-            STREAK_8_30_MULTIPLIER_START
-                + (self.daily_streak - 8) * STREAK_8_30_MULTIPLIER_INCREMENT
-        } else if self.daily_streak >= 31 && self.daily_streak <= 60 {
-            STREAK_31_PLUS_MULTIPLIER
-                + (self.daily_streak - 31) * STREAK_31_PLUS_MULTIPLIER_INCREMENT
-        } else if self.daily_streak > 60 {
-            let multiplier = STREAK_31_PLUS_MULTIPLIER
-                + (self.daily_streak - 31) * STREAK_31_PLUS_MULTIPLIER_INCREMENT;
-            multiplier.min(STREAK_MULTIPLIER_CAP)
+        let daily_streak: u32 = self.daily_streak.into();
+
+        if daily_streak >= 1 {
+            if daily_streak <= 7 {
+                // Streak between 1 and 7 days
+                STREAK_1_7_MULTIPLIER_START + (daily_streak - 1) * STREAK_1_7_MULTIPLIER_INCREMENT
+            } else {
+                if daily_streak <= 30 {
+                    // Streak between 8 and 30 days
+                    STREAK_8_30_MULTIPLIER_START
+                        + (daily_streak - 8) * STREAK_8_30_MULTIPLIER_INCREMENT
+                } else {
+                    if daily_streak <= 60 {
+                        // Streak between 31 and 60 days
+                        STREAK_31_PLUS_MULTIPLIER
+                            + (daily_streak - 31) * STREAK_31_PLUS_MULTIPLIER_INCREMENT
+                    } else {
+                        // Streak greater than 60 days
+                        Math::min(
+                            STREAK_MULTIPLIER_CAP,
+                            STREAK_31_PLUS_MULTIPLIER
+                                + (daily_streak - 31) * STREAK_31_PLUS_MULTIPLIER_INCREMENT
+                        )
+                    }
+                }
+            }
         } else {
-            MULTIPLIER_SCALE // Default to 1.00x if no streak
+            // Default multiplier if daily_streak is less than 1
+            return MULTIPLIER_SCALE;
         }
     }
 

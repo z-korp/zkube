@@ -57,8 +57,6 @@ const STREAK_31_PLUS_MULTIPLIER_INCREMENT: u32 = 6_897; // ~0.0069x per day
 
 const STREAK_MULTIPLIER_CAP: u32 = 1_400_000; // 1.40x cap
 
-const MULTIPLIER_SCALE: u32 = 1_000_000; // Default 1.00x
-
 // Level
 const LEVEL_MULTIPLIER_START: u32 = 1_000_000; // 1.00x at Level 1
 const LEVEL_MULTIPLIER_INCREMENT: u32 = 10_000; // +0.01x per level
