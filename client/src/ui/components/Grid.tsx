@@ -17,7 +17,7 @@ import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
 import { motion } from "framer-motion";
-import { BonusName } from "@/enums/bonusEnum";
+import { BonusType } from "@/dojo/game/types/bonus";
 
 import "../../grid.css";
 
@@ -29,7 +29,7 @@ interface GridProps {
   gridWidth: number;
   gridHeight: number;
   selectBlock: (block: Block) => void;
-  bonus: BonusName;
+  bonus: BonusType;
   account: Account | null;
   isTxProcessing: boolean;
   setIsTxProcessing: React.Dispatch<React.SetStateAction<boolean>>;
@@ -178,16 +178,16 @@ const Grid: React.FC<GridProps> = ({
     if (isTxProcessing) return;
 
     setBlockBonus(block);
-    if (bonus === BonusName.WAVE) {
+    if (bonus === BonusType.Wave) {
       setBlocks(removeBlocksSameRow(block, blocks));
-    } else if (bonus === BonusName.TIKI) {
+    } else if (bonus === BonusType.Totem) {
       setBlocks(removeBlocksSameWidth(block, blocks));
-    } else if (bonus === BonusName.HAMMER) {
+    } else if (bonus === BonusType.Hammer) {
       setBlocks(removeBlockId(block, blocks));
     }
 
     // if we have a bonus, we go in state gravity_bonus
-    if (bonus !== BonusName.NONE) {
+    if (bonus !== BonusType.None) {
       setIsTxProcessing(true);
       setIsMoving(true);
       setGameState(GameState.GRAVITY_BONUS);

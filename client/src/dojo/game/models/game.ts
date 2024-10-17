@@ -6,6 +6,8 @@ import {
   ROW_BIT_COUNT,
   DEFAULT_GRID_HEIGHT,
   DEFAULT_GRID_WIDTH,
+  GAME_MODE_FREE_MULTIPLIER,
+  GAME_MODE_PAID_MULTIPLIER,
 } from "../constants";
 import { Mode } from "../types/mode";
 
@@ -132,7 +134,8 @@ export class Game {
   }
 
   public getGameModeMultiplier(): number {
-    if (this.mode.price() === 0n) return 1.0;
-    return 1.5;
+    return this.mode.price() === 0n
+      ? GAME_MODE_FREE_MULTIPLIER
+      : GAME_MODE_PAID_MULTIPLIER;
   }
 }

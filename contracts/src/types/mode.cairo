@@ -12,7 +12,7 @@ use alexandria_math::bitmap::Bitmap;
 // Internal imports
 
 use zkube::constants::{
-    GAME_MODE_PAID_MULTIPLER, GAME_MODE_FREE_MULTIPLER, NORMAL_MODE_DURATION, DAILY_MODE_DURATION,
+    GAME_MODE_PAID_MULTIPLIER, GAME_MODE_FREE_MULTIPLIER, NORMAL_MODE_DURATION, DAILY_MODE_DURATION,
     FREE_MODE_DURATION
 };
 use zkube::types::difficulty::Difficulty;
@@ -90,9 +90,9 @@ impl ModeImpl of ModeTrait {
     fn get_multiplier(self: Mode, settings: Settings) -> u32 {
         let game_price: u128 = self.price(settings);
         if game_price == 0_u128 {
-            GAME_MODE_FREE_MULTIPLER
+            GAME_MODE_FREE_MULTIPLIER
         } else {
-            GAME_MODE_PAID_MULTIPLER
+            GAME_MODE_PAID_MULTIPLIER
         }
     }
 }

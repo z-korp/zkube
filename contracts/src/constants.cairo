@@ -46,14 +46,18 @@ const PRECISION_FACTOR: u128 = 1_000_000_000;
 const MULTIPLIER_SCALE: u32 = 1_000_000; // 1.0x represented as 1,000,000
 
 // Daily Streak Multiplier
-const STREAK_1_7_MULTIPLIER_START: u32 = 1_000_000; // 1.0x
-const STREAK_1_7_MULTIPLIER_INCREMENT: u32 = 10_000; // 0.01x per day (scaled by 1000)
+const STREAK_1_7_MULTIPLIER_START: u32 = 1_000_000; // 1.00x
+const STREAK_1_7_MULTIPLIER_INCREMENT: u32 = 10_000; // 0.01x per day
 
-const STREAK_8_30_MULTIPLIER_START: u32 = 1_080_000; // 1.08x
-const STREAK_8_30_MULTIPLIER_INCREMENT: u32 = 3_000; // +0.003x per day
+const STREAK_8_30_MULTIPLIER_START: u32 = 1_060_000; // 1.06x
+const STREAK_8_30_MULTIPLIER_INCREMENT: u32 = 6_363; // ~0.00636x per day
 
 const STREAK_31_PLUS_MULTIPLIER: u32 = 1_200_000; // 1.20x
-const STREAK_MULTIPLIER_CAP: u32 = 1_400_000; // 1.40x cap for streaks above 60 days
+const STREAK_31_PLUS_MULTIPLIER_INCREMENT: u32 = 6_897; // ~0.0069x per day 
+
+const STREAK_MULTIPLIER_CAP: u32 = 1_400_000; // 1.40x cap
+
+const MULTIPLIER_SCALE: u32 = 1_000_000; // Default 1.00x
 
 // Level
 const LEVEL_MULTIPLIER_START: u32 = 1_000_000; // 1.00x at Level 1
@@ -65,5 +69,5 @@ const ACCOUNT_AGE_MULTIPLIER_INCREMENT: u32 = 1_667; // 0.00167x per day -> 1 ->
 const ACCOUNT_AGE_MULTIPLIER_CAP: u32 = 1_200_000; // 1.20x cap for accounts older than 120 days 
 
 // Game mode
-const GAME_MODE_PAID_MULTIPLER: u32 = 1_500_000; // 1.50x if paid game
-const GAME_MODE_FREE_MULTIPLER: u32 = 1_000_000; // 1.00x if free game
+const GAME_MODE_PAID_MULTIPLIER: u32 = 1_500_000; // 1.50x if paid game
+const GAME_MODE_FREE_MULTIPLIER: u32 = 1_000_000; // 1.00x if free game

@@ -122,7 +122,7 @@ export const Home = () => {
 
   const [chestIsOpen, setChestIsOpen] = useState(false);
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
-  const prevGameOverRef = useRef<boolean | undefined>(undefined);
+  const prevGameOverRef = useRef<boolean | undefined>(game?.over);
 
   useEffect(() => {
     if (prevGameOverRef.current !== undefined) {
@@ -134,6 +134,79 @@ export const Home = () => {
     // Update the ref with the current value of game.over
     prevGameOverRef.current = game?.over;
   }, [game?.over]);
+
+  // Define render functions
+  const renderDesktopView = () => (
+    <>
+      <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center">
+        <GameModeCard
+          mode={ModeType.Free}
+          handleGameMode={() => setIsGameOn("isOn")}
+        />
+      </div>
+      <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-start justify-center">
+        <GameModeCard
+          mode={ModeType.Daily}
+          handleGameMode={() => setIsGameOn("isOn")}
+        />
+        <GameModeCard
+          mode={ModeType.Normal}
+          handleGameMode={() => setIsGameOn("isOn")}
+        />
+      </div>
+    </>
+  );
+
+  const renderTournamentsView = () => (
+    <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center">
+      <div className="flex justify-center items-center w-full relative h-[36px]">
+        <Button
+          onClick={() => setIsTournamentsOpen(false)}
+          className="flex items-center absolute left-0 top-0"
+          variant="ghost"
+        >
+          <ChevronLeft /> Back
+        </Button>
+        <h1 className="text-center text-xl">Tournaments</h1>
+      </div>
+
+      <GameModeCard
+        mode={ModeType.Daily}
+        handleGameMode={() => setIsGameOn("isOn")}
+      />
+      <GameModeCard
+        mode={ModeType.Normal}
+        handleGameMode={() => setIsGameOn("isOn")}
+      />
+    </div>
+  );
+
+  const renderMobileView = () => (
+    <div className="flex flex-col w-full gap-4 px-4 mt-4">
+      <Button
+        onClick={handleTournaments}
+        className="w-full py-3 bg-primary text-secondary rounded-lg text-lg"
+      >
+        Tutorial
+      </Button>
+      <Start mode={ModeType.Free} handleGameMode={handlePlay} />
+
+      <Button
+        onClick={handleTournaments}
+        className="w-full py-3 bg-primary text-secondary rounded-lg text-lg"
+      >
+        Tournaments
+      </Button>
+      <Button
+        onClick={() => setChestIsOpen(true)}
+        className="w-full py-3 bg-primary text-secondary rounded-lg text-lg"
+      >
+        Collective Chest
+      </Button>
+
+      <Leaderboard buttonType="default" textSize="lg" />
+    </div>
+  );
 
   return (
     <div className="relative flex flex-col h-screen" id="portal-root">
@@ -168,77 +241,11 @@ export const Home = () => {
               {!isSigning && <Create />}
               {(!game || (!!game && isGameOn === "isOver")) && (
                 <>
-                  {isMdOrLarger ? (
-                    // Desktop: Show Game Mode Cards
-                    <>
-                      <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center">
-                        <GameModeCard
-                          mode={ModeType.Free}
-                          handleGameMode={() => setIsGameOn("isOn")}
-                        />
-                      </div>
-                      <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-start justify-center">
-                        <GameModeCard
-                          mode={ModeType.Daily}
-                          handleGameMode={() => setIsGameOn("isOn")}
-                        />
-                        <GameModeCard
-                          mode={ModeType.Normal}
-                          handleGameMode={() => setIsGameOn("isOn")}
-                        />
-                      </div>
-                    </>
-                  ) : // Mobile: Show Four Buttons
-                  isTournamentsOpen ? (
-                    <>
-                      <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center">
-                        <div className="flex justify-center items-center w-full relative h-[36px]">
-                          <Button
-                            onClick={() => setIsTournamentsOpen(false)}
-                            className="flex items-center absolute left-0 top-0"
-                            variant="ghost"
-                          >
-                            <ChevronLeft /> Back
-                          </Button>
-                          <h1 className="text-center text-xl">Tournaments</h1>
-                        </div>
-
-                        <GameModeCard
-                          mode={ModeType.Daily}
-                          handleGameMode={() => setIsGameOn("isOn")}
-                        />
-                        <GameModeCard
-                          mode={ModeType.Normal}
-                          handleGameMode={() => setIsGameOn("isOn")}
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex flex-col w-full gap-4 px-4 mt-4">
-                      <Button
-                        onClick={handleTournaments}
-                        className="w-full py-3 bg-primary text-secondary rounded-lg text-lg"
-                      >
-                        Tutorial
-                      </Button>
-                      <Start mode={ModeType.Free} handleGameMode={handlePlay} />
-
-                      <Button
-                        onClick={handleTournaments}
-                        className="w-full py-3 bg-primary text-secondary rounded-lg text-lg"
-                      >
-                        Tournaments
-                      </Button>
-                      <Button
-                        onClick={() => setChestIsOpen(true)}
-                        className="w-full py-3 bg-primary text-secondary rounded-lg text-lg"
-                      >
-                        Collective Chest
-                      </Button>
-
-                      <Leaderboard buttonType="default" textSize="lg" />
-                    </div>
-                  )}
+                  {isMdOrLarger
+                    ? renderDesktopView()
+                    : isTournamentsOpen
+                      ? renderTournamentsView()
+                      : renderMobileView()}
                 </>
               )}
               {game && (

@@ -55,7 +55,7 @@ export const concatenateAndShiftBlocks = (
   return [...shiftedInitialData, ...shiftedNextLineData];
 };
 
-export const transformDataContratIntoBlock = (grid: number[][]): Block[] => {
+export const transformDataContractIntoBlock = (grid: number[][]): Block[] => {
   return grid.flatMap((row, y) => {
     const blocks: Block[] = [];
     let x = 0;

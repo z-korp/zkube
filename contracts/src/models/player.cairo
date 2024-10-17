@@ -100,18 +100,19 @@ impl PlayerImpl of PlayerTrait {
     #[inline(always)]
     fn get_daily_streak_multiplier(self: Player) -> u32 {
         if self.daily_streak >= 1 && self.daily_streak <= 7 {
-            STREAK_1_7_MULTIPLIER_START
-                + (self.daily_streak.into() - 1_u32) * STREAK_1_7_MULTIPLIER_INCREMENT
+            STREAK_1_7_MULTIPLIER_START + (self.daily_streak - 1) * STREAK_1_7_MULTIPLIER_INCREMENT
         } else if self.daily_streak >= 8 && self.daily_streak <= 30 {
             STREAK_8_30_MULTIPLIER_START
-                + (self.daily_streak.into() - 8_u32) * STREAK_8_30_MULTIPLIER_INCREMENT
+                + (self.daily_streak - 8) * STREAK_8_30_MULTIPLIER_INCREMENT
         } else if self.daily_streak >= 31 && self.daily_streak <= 60 {
             STREAK_31_PLUS_MULTIPLIER
-                + (self.daily_streak.into() - 31_u32) * 2_u32 // Example: +0.002x per day
+                + (self.daily_streak - 31) * STREAK_31_PLUS_MULTIPLIER_INCREMENT
         } else if self.daily_streak > 60 {
-            STREAK_MULTIPLIER_CAP // Cap at 1.40x
+            let multiplier = STREAK_31_PLUS_MULTIPLIER
+                + (self.daily_streak - 31) * STREAK_31_PLUS_MULTIPLIER_INCREMENT;
+            multiplier.min(STREAK_MULTIPLIER_CAP)
         } else {
-            MULTIPLIER_SCALE // Default to 1.0x if no streak
+            MULTIPLIER_SCALE // Default to 1.00x if no streak
         }
     }
 
@@ -190,7 +191,7 @@ mod tests {
         SECONDS_PER_DAY, MULTIPLIER_SCALE, STREAK_1_7_MULTIPLIER_START,
         STREAK_1_7_MULTIPLIER_INCREMENT, STREAK_8_30_MULTIPLIER_START,
         STREAK_8_30_MULTIPLIER_INCREMENT, STREAK_31_PLUS_MULTIPLIER, STREAK_MULTIPLIER_CAP,
-        LEVEL_MULTIPLIER_START, LEVEL_MULTIPLIER_INCREMENT, GAME_MODE_FREE_MULTIPLER,
+        LEVEL_MULTIPLIER_START, LEVEL_MULTIPLIER_INCREMENT, GAME_MODE_FREE_MULTIPLIER,
         ACCOUNT_AGE_MULTIPLIER_CAP, ACCOUNT_AGE_MULTIPLIER_INCREMENT, ACCOUNT_AGE_MULTIPLIER_START
     };
     use zkube::helpers::timestamp::Timestamp;
@@ -440,7 +441,7 @@ mod tests {
         let expected_final_points_u32: u32 = expected_final_points.try_into().unwrap();
 
         let final_points = player
-            .update_points(base_points, GAME_MODE_FREE_MULTIPLER, initial_timestamp);
+            .update_points(base_points, GAME_MODE_FREE_MULTIPLIER, initial_timestamp);
         assert_eq!(final_points, expected_final_points_u32);
         assert_eq!(player.points, 500 + expected_final_points_u32);
     }

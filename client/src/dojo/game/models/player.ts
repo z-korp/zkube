@@ -7,14 +7,15 @@ import {
   STREAK_1_7_MULTIPLIER_INCREMENT,
   STREAK_8_30_MULTIPLIER_START,
   STREAK_8_30_MULTIPLIER_INCREMENT,
-  STREAK_31_PLUS_MULTIPLIER,
-  STREAK_CAP,
   MULTIPLIER_SCALE,
   LEVEL_MULTIPLIER_INCREMENT,
   LEVEL_MULTIPLIER_START,
   ACCOUNT_AGE_MULTIPLIER_INCREMENT,
   ACCOUNT_AGE_MULTIPLIER_START,
   ACCOUNT_AGE_MULTIPLIER_CAP,
+  STREAK_31_PLUS_MULTIPLIER_INCREMENT,
+  STREAK_31_PLUS_MULTIPLIER_START,
+  STREAK_MULTIPLIER_CAP,
 } from "../constants";
 import { Level } from "../types/level";
 
@@ -91,12 +92,13 @@ export class Player {
         STREAK_8_30_MULTIPLIER_START +
         (streak - 8) * STREAK_8_30_MULTIPLIER_INCREMENT
       );
-    } else if (streak >= 31 && streak <= 60) {
-      return STREAK_31_PLUS_MULTIPLIER + (streak - 31) * 0.002; // Assuming +0.002x per day
-    } else if (streak > 60) {
-      return STREAK_CAP; // Cap at 1.40x
+    } else if (streak >= 31) {
+      const multiplier =
+        STREAK_31_PLUS_MULTIPLIER_START +
+        (streak - 31) * STREAK_31_PLUS_MULTIPLIER_INCREMENT;
+      return Math.min(multiplier, STREAK_MULTIPLIER_CAP); // Cap the multiplier at 1.40x
     } else {
-      return MULTIPLIER_SCALE; // Default to 1.0x if no streak
+      return MULTIPLIER_SCALE; // Default to 1.00x if no streak
     }
   }
 

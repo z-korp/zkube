@@ -5,11 +5,11 @@ import { GameBonus } from "../containers/GameBonus";
 import { useMediaQuery } from "react-responsive";
 import { Account } from "starknet";
 import Grid from "./Grid";
-import { transformDataContratIntoBlock } from "@/utils/gridUtils";
+import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "./NextLine";
 import { Block } from "@/types/types";
-import { BonusName } from "@/enums/bonusEnum";
 import GameScores from "./GameScores";
+import { Bonus, BonusType } from "@/dojo/game/types/bonus";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -70,27 +70,27 @@ const GameBoard: React.FC<GameBoardProps> = ({
     setOptimisticMaxCombo(maxCombo);
   }, [initialGrid]);
 
-  const [bonus, setBonus] = useState<BonusName>(BonusName.NONE);
+  const [bonus, setBonus] = useState<BonusType>(BonusType.None);
 
   const handleBonusWaveClick = () => {
     if (waveCount === 0) return;
-    if (bonus === BonusName.WAVE) {
-      setBonus(BonusName.NONE);
-    } else setBonus(BonusName.WAVE);
+    if (bonus === BonusType.Wave) {
+      setBonus(BonusType.None);
+    } else setBonus(BonusType.Wave);
   };
 
   const handleBonusTikiClick = () => {
     if (totemCount === 0) return;
-    if (bonus === BonusName.TIKI) {
-      setBonus(BonusName.NONE);
-    } else setBonus(BonusName.TIKI);
+    if (bonus === BonusType.Totem) {
+      setBonus(BonusType.None);
+    } else setBonus(BonusType.Totem);
   };
 
   const handleBonusHammerClick = () => {
     if (hammerCount === 0) return;
-    if (bonus === BonusName.HAMMER) {
-      setBonus(BonusName.NONE);
-    } else setBonus(BonusName.HAMMER);
+    if (bonus === BonusType.Hammer) {
+      setBonus(BonusType.None);
+    } else setBonus(BonusType.Hammer);
   };
 
   const handleBonusWaveTx = useCallback(
@@ -101,7 +101,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       try {
         await applyBonus({
           account: account as Account,
-          bonus: 3,
+          bonus: new Bonus(BonusType.Wave).into(),
           row_index: ROWS - rowIndex - 1,
           block_index: 0,
         });
@@ -120,7 +120,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       try {
         await applyBonus({
           account: account as Account,
-          bonus: 1,
+          bonus: new Bonus(BonusType.Hammer).into(),
           row_index: ROWS - rowIndex - 1,
           block_index: colIndex,
         });
@@ -139,7 +139,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       try {
         await applyBonus({
           account: account as Account,
-          bonus: 2,
+          bonus: new Bonus(BonusType.Totem).into(),
           row_index: ROWS - rowIndex - 1,
           block_index: colIndex,
         });
@@ -152,13 +152,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const selectBlock = useCallback(
     async (block: Block) => {
-      if (bonus === BonusName.WAVE) {
+      if (bonus === BonusType.Wave) {
         handleBonusWaveTx(block.y);
-      } else if (bonus === BonusName.TIKI) {
+      } else if (bonus === BonusType.Totem) {
         handleBonusTikiTx(block.y, block.x);
-      } else if (bonus === BonusName.HAMMER) {
+      } else if (bonus === BonusType.Hammer) {
         handleBonusHammerTx(block.y, block.x);
-      } else if (bonus === BonusName.NONE) {
+      } else if (bonus === BonusType.None) {
         console.log("none", block);
       }
     },
@@ -168,18 +168,18 @@ const GameBoard: React.FC<GameBoardProps> = ({
   useEffect(() => {
     // Reset the isTxProcessing state and the bonus state when the grid changes
     // meaning the tx as been processed, and the client state updated
-    setBonus(BonusName.NONE);
+    setBonus(BonusType.None);
   }, [initialGrid]);
 
-  const memorizedInitialData = useMemo(() => {
-    return transformDataContratIntoBlock(initialGrid);
+  const memoizedInitialData = useMemo(() => {
+    return transformDataContractIntoBlock(initialGrid);
   }, [initialGrid]);
 
-  const memorizedNextLineData = useMemo(() => {
-    return transformDataContratIntoBlock([nextLine]);
+  const memoizedNextLineData = useMemo(() => {
+    return transformDataContractIntoBlock([nextLine]);
   }, [nextLine]);
 
-  if (memorizedInitialData.length === 0) return null; // otherwise sometimes
+  if (memoizedInitialData.length === 0) return null; // otherwise sometimes
   // the grid is not displayed in Grid because the data is not ready
 
   return (
@@ -212,8 +212,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
           className={`flex justify-center items-center ${!isTxProcessing && "cursor-move"}`}
         >
           <Grid
-            initialData={memorizedInitialData}
-            nextLineData={memorizedNextLineData}
+            initialData={memoizedInitialData}
+            nextLineData={memoizedNextLineData}
             setNextLineHasBeenConsumed={setNextLineHasBeenConsumed}
             gridSize={GRID_SIZE}
             gridHeight={ROWS}
@@ -230,7 +230,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         </div>
         <div className="flex justify-center items-center mt-3">
           <NextLine
-            nextLineData={nextLineHasBeenConsumed ? [] : memorizedNextLineData}
+            nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}
             gridSize={GRID_SIZE}
             gridHeight={1}
             gridWidth={COLS}

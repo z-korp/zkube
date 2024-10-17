@@ -38,7 +38,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
     },
     {
       type: "Account Age",
-      data: `${player?.getAccountAgeInDays()} days`,
+      data: player ? `${player.getAccountAgeInDays()} days` : "N/A",
       multiplier:
         accountAgeMultiplier > 1.0
           ? `x${accountAgeMultiplier.toFixed(3)}`
@@ -46,7 +46,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
     },
     {
       type: "Daily Streak",
-      data: `${player?.daily_streak} days`,
+      data: player ? `${player.daily_streak} days` : "N/A",
       multiplier:
         dailyStreakMultiplier > 1.0
           ? `x${dailyStreakMultiplier.toFixed(3)}`
@@ -59,12 +59,12 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
     },
   ];
 
-  console.log(
+  /*console.log(
     gameModeMultiplier,
     accountAgeMultiplier,
     dailyStreakMultiplier,
     levelMultiplier,
-  );
+  );*/
 
   // Calculate total multiplier
   const totalMultiplier =
