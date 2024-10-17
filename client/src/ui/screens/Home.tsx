@@ -47,7 +47,7 @@ export const Home = () => {
 
   useQuerySync(toriiClient, contractComponents as any, []);
 
-  const isSigning = false; //useAutoSignup();
+  const isSigning = useAutoSignup();
 
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
