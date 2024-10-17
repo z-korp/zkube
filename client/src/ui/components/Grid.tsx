@@ -21,6 +21,8 @@ import { BonusType } from "@/dojo/game/types/bonus";
 
 import "../../grid.css";
 
+const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
+
 interface GridProps {
   initialData: Block[];
   nextLineData: Block[];
@@ -86,7 +88,7 @@ const Grid: React.FC<GridProps> = ({
 
   const borderSize = 2;
   const gravitySpeed = 100;
-  const transitionDuration = 400;
+  const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
 
   useEffect(() => {
     if (applyData) {
