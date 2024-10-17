@@ -169,7 +169,7 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
               </TabsList>
 
               <TabsContent value="overview" className="pt-1">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
+                <div className="grid grid-cols-2 gap-2 md:gap-4">
                   <Card>
                     <CardHeader className="p-4 pb-0 md:p-6 md:pt-8">
                       <CardTitle>Games Played</CardTitle>

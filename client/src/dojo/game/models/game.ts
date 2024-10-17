@@ -126,4 +126,13 @@ export class Game {
   public isOver(): boolean {
     return this.over;
   }
+
+  public isPaid(): boolean {
+    return this.mode.price() > 0n;
+  }
+
+  public getGameModeMultiplier(): number {
+    if (this.mode.price() === 0n) return 1.0;
+    return 1.5;
+  }
 }
