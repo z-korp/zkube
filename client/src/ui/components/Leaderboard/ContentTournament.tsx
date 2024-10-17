@@ -142,7 +142,7 @@ export const ContentTournament: React.FC<ContentTournamentProps> = ({
           potentialWinnings = selectedTournament.top3_prize;
         }
       }
-      return { ...game, isOver: () => game.isOver(), potentialWinnings };
+      return { game, potentialWinnings };
     });
   }, [sortedGames, selectedTournament]);
 
@@ -282,11 +282,12 @@ export const ContentTournament: React.FC<ContentTournamentProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {gamesWithWinnings.slice(start, end).map((game, index) => (
+            {gamesWithWinnings.slice(start, end).map((element, index) => (
               <RowTournament
                 key={index}
                 rank={(page - 1) * GAME_PER_PAGE + index + 1}
-                game={game}
+                game={element.game}
+                potentialWinnings={element.potentialWinnings}
               />
             ))}
           </TableBody>
@@ -329,10 +330,15 @@ export const ContentTournament: React.FC<ContentTournamentProps> = ({
 
 interface RowTournamentProps {
   rank: number;
-  game: Game & { potentialWinnings: bigint };
+  game: Game;
+  potentialWinnings?: bigint;
 }
 
-export const RowTournament: React.FC<RowTournamentProps> = ({ rank, game }) => {
+export const RowTournament: React.FC<RowTournamentProps> = ({
+  rank,
+  game,
+  potentialWinnings,
+}) => {
   const { player } = usePlayer({ playerId: game.player_id });
 
   return (
@@ -354,8 +360,8 @@ export const RowTournament: React.FC<RowTournamentProps> = ({ rank, game }) => {
         {game.max_combo_in_tournament}
       </TableCell>
       <TableCell className="text-center font-bold">
-        {game.potentialWinnings
-          ? formatPrize(game.potentialWinnings, VITE_PUBLIC_GAME_TOKEN_SYMBOL)
+        {potentialWinnings
+          ? formatPrize(potentialWinnings, VITE_PUBLIC_GAME_TOKEN_SYMBOL)
           : "-"}
       </TableCell>
     </TableRow>
