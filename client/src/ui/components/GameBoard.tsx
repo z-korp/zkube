@@ -237,11 +237,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
           />
         </div>
       </Card>
-      <div className="flex gap-4">
-        <div>{score}</div>
-        <div>{combo}</div>
-        <div>{maxCombo}</div>
-      </div>
     </>
   );
 };

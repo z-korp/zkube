@@ -88,8 +88,8 @@ impl ModeImpl of ModeTrait {
 
     #[inline(always)]
     fn get_multiplier(self: Mode, settings: Settings) -> u32 {
-        let price: u128 = self.price(settings);
-        if price == 0_128 {
+        let game_price: u128 = self.price(settings);
+        if game_price == 0_u128 {
             GAME_MODE_FREE_MULTIPLER
         } else {
             GAME_MODE_PAID_MULTIPLER
