@@ -60,7 +60,7 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="sm:max-w-[700px] w-[95%] flex flex-col mx-auto justify-start"
+        className="sm:max-w-[700px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-4"
         aria-describedby={undefined}
       >
         <DialogTitle>

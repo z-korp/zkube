@@ -42,7 +42,7 @@ export const Header = () => {
           onClick={handleClick}
         >
           <p className="text-4xl font-bold">zKube</p>
-          <Leaderboard />
+          <Leaderboard buttonType="outline" textSize="sm" />
           {/*<ContentTabs />*/}
           <Button variant={"outline"} onClick={() => setIsOpen(true)}>
             Collective Chests

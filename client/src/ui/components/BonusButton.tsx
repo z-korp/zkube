@@ -7,15 +7,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/ui/elements/tooltip";
-import { BonusName } from "@/enums/bonusEnum";
+import { BonusType } from "@/dojo/game/types/bonus";
 
 interface BonusButtonProps {
   onClick?: () => void;
   urlImage: string;
   bonusCount: number;
   tooltipText: string; // Ajout d'une nouvelle prop pour le texte du tooltip
-  bonusName: BonusName;
-  bonus: BonusName;
+  bonusName: BonusType;
+  bonus: BonusType;
 }
 
 const BonusButton: React.FC<BonusButtonProps> = ({
@@ -27,8 +27,6 @@ const BonusButton: React.FC<BonusButtonProps> = ({
   bonus,
 }) => {
   const [isClicked, setIsClicked] = useState(false);
-
-  const altText = "image for bonus";
 
   const handleClick = () => {
     setIsClicked(isClicked);
@@ -54,11 +52,11 @@ const BonusButton: React.FC<BonusButtonProps> = ({
             <Button
               variant="outline"
               size="icon"
-              className={`md:p-2 sm:p-1 p-1 border ${bonus == bonusName ? "bg-yellow-500" : ""}`}
+              className={`md:p-2 sm:p-1 p-1 border ${bonus == bonusName ? "bg-yellow-500" : ""} cursor-pointer`}
               onClick={handleClick}
               disabled={false}
             >
-              <img src={urlImage} alt={altText} />
+              <img src={urlImage} alt="image for bonus" />
             </Button>
           </motion.div>
         </TooltipTrigger>

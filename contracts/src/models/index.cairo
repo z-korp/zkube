@@ -6,6 +6,12 @@ pub struct Player {
     game_id: u32,
     name: felt252,
     points: u32,
+    // Multipliers
+    // Daily streak
+    daily_streak: u8,
+    last_active_day: u32, // Number of days since epoch
+    // Account age
+    account_creation_day: u32,
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked)]

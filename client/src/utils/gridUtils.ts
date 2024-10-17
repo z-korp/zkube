@@ -55,7 +55,7 @@ export const concatenateAndShiftBlocks = (
   return [...shiftedInitialData, ...shiftedNextLineData];
 };
 
-export const transformDataContratIntoBlock = (grid: number[][]): Block[] => {
+export const transformDataContractIntoBlock = (grid: number[][]): Block[] => {
   return grid.flatMap((row, y) => {
     const blocks: Block[] = [];
     let x = 0;
@@ -103,7 +103,6 @@ export const deepCompareBlocks = (
   array1: { id: number; x: number; y: number; width: number }[],
   array2: { id: number; x: number; y: number; width: number }[],
 ): boolean => {
-  console.log("deep compare:", array1, array2);
   // Vérifie si les longueurs des deux tableaux sont différentes
   if (array1.length !== array2.length) {
     return false;

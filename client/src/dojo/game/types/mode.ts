@@ -1,7 +1,10 @@
 import {
   DAILY_MODE_DURATION,
+  DAILY_MODE_PRICE,
   FREE_MODE_DURATION,
+  FREE_MODE_PRICE,
   NORMAL_MODE_DURATION,
+  NORMAL_MODE_PRICE,
 } from "../constants";
 
 export enum ModeType {
@@ -45,11 +48,11 @@ export class Mode {
       case ModeType.None:
         return BigInt(0);
       case ModeType.Normal:
-        return BigInt(0);
+        return BigInt(NORMAL_MODE_PRICE);
       case ModeType.Daily:
-        return BigInt(0);
+        return BigInt(DAILY_MODE_PRICE);
       case ModeType.Free:
-        return BigInt(0);
+        return BigInt(FREE_MODE_PRICE);
     }
   }
 }

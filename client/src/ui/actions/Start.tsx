@@ -132,7 +132,7 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
       disabled={isLoading || disabled}
       isLoading={isLoading}
       onClick={handleClick}
-      className="text-sm sm:text-xl w-full transition-transform duration-300 ease-in-out hover:scale-105"
+      className="text-lg w-full transition-transform duration-300 ease-in-out hover:scale-105"
     >
       Play
     </Button>

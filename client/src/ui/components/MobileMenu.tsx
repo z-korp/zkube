@@ -9,9 +9,7 @@ import {
 } from "../elements/drawer";
 import { Leaderboard } from "../modules/Leaderboard";
 import { ProfilePage } from "../modules/ProfilePage";
-import { MusicPlayer } from "../modules/MusicPlayer";
 import AccountDetails from "./AccountDetails";
-import { ModeToggle } from "./Theme";
 import Connect from "./Connect";
 import { usePlayer } from "@/hooks/usePlayer";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
@@ -56,7 +54,7 @@ const MobileMenu = () => {
               <p className="self-start">Menu</p>
 
               <Surrender red variant="outline" className="w-full text-sm" />
-              <Leaderboard />
+              <Leaderboard buttonType="outline" textSize="sm" />
               <Button
                 variant="outline"
                 onClick={() => setIsOpen(true)}

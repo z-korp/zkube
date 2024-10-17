@@ -53,11 +53,27 @@ const TabList = memo<TabListProps>(
   ),
 );
 
-export const Leaderboard = () => {
+interface LeaderboardProps {
+  buttonType:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link"
+    | null
+    | undefined;
+  textSize?: "sm" | "md" | "lg";
+}
+
+export const Leaderboard: React.FC<LeaderboardProps> = ({
+  buttonType,
+  textSize = "lg",
+}) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full">
+        <Button variant={buttonType} className={`w-full text-${textSize}`}>
           Leaderboards
         </Button>
       </DialogTrigger>

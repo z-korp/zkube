@@ -11,6 +11,7 @@ import gold from "../../../public/assets/trophies/gold.png";
 import { format } from "date-fns";
 import { ModeType } from "@/dojo/game/types/mode";
 import { formatPrize } from "@/utils/wei";
+import { useMediaQuery } from "react-responsive";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -33,6 +34,8 @@ export const RewardCard: React.FC<{
   onClaim,
   tournament_reward,
 }) => {
+  const isMdOrLarger = useMediaQuery({ minWidth: 768 });
+
   const rewardTitle = type === "chest" ? "Treasure Chest" : "Tournament Reward";
 
   const getTournamentPlaceText = (place: number) => {
@@ -59,7 +62,7 @@ export const RewardCard: React.FC<{
   };
 
   return (
-    <div className="w-full p-4 relative border rounded-lg text-white">
+    <div className="w-full p-4 relative border rounded-lg text-white text-sm md:text-base">
       <div className="w-full">
         <motion.div
           className="flex items-start space-x-4"
@@ -78,7 +81,7 @@ export const RewardCard: React.FC<{
             <img
               src={getTournamentTrophyImage(tournament_reward?.rank)}
               alt={rewardTitle}
-              className="h-24 object-contain"
+              className="h-24 object-contain my-auto"
             />
           )}
           <div>
@@ -115,7 +118,9 @@ export const RewardCard: React.FC<{
         </motion.div>
 
         <div className="absolute bottom-4 right-4">
-          <Button onClick={onClaim}>Claim Reward</Button>
+          <Button
+            onClick={onClaim}
+          >{`Claim ${isMdOrLarger ? "Reward" : ""}`}</Button>
         </div>
       </div>
     </div>
