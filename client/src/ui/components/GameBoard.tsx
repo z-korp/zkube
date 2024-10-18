@@ -10,6 +10,9 @@ import NextLine from "./NextLine";
 import { Block } from "@/types/types";
 import GameScores from "./GameScores";
 import { Bonus, BonusType } from "@/dojo/game/types/bonus";
+import BonusAnimation from "./BonusAnimation";
+
+import "../../grid.css";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -178,6 +181,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   return (
     <>
+      <BonusAnimation
+        isMdOrLarger={isMdOrLarger}
+        optimisticScore={optimisticScore}
+        optimisticCombo={optimisticCombo}
+        optimisticMaxCombo={optimisticMaxCombo}
+      />
       <Card
         className={`p-3 pt-4 bg-secondary ${isTxProcessing && "cursor-wait"}`}
       >

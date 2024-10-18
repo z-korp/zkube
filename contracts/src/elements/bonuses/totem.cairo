@@ -1,14 +1,11 @@
 // Core imports
-
 use core::debug::PrintTrait;
 use core::Zeroable;
 
 // External imports
-
 use alexandria_math::fast_power::fast_power;
 
 // Internal imports
-
 use zkube::constants;
 use zkube::elements::bonuses::interface::BonusTrait;
 use zkube::helpers::controller::Controller;
@@ -19,7 +16,6 @@ use zkube::types::block::Block;
 use zkube::types::width::Width;
 
 // Errors
-
 mod errors {
     const INVALID_BLOCK_COLOR: felt252 = 'Totem: invalid block color';
 }
@@ -61,10 +57,10 @@ impl BonusImpl of BonusTrait {
         if max_combo >= 6 {
             return 3;
         }
-        if combo_count >= 4 {
+        if max_combo >= 4 {
             return 2;
         }
-        if combo_count >= 2 {
+        if max_combo >= 2 {
             return 1;
         }
         return 0;
