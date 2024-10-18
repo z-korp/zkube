@@ -515,6 +515,7 @@ const Grid: React.FC<GridProps> = ({
               key={block.id}
               block={block}
               gridSize={gridSize}
+              gridHeight={gridHeight}
               isTxProcessing={isTxProcessing}
               transitionDuration={transitionDuration}
               state={gameState}
@@ -526,7 +527,7 @@ const Grid: React.FC<GridProps> = ({
               onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
             />
           ))}
-          <div className="flex items-center justify-center font-sans">
+          <div className="flex items-center justify-center font-sans z-20 pointer-events-none">
             <AnimatedText textEnum={animateText} reset={resetAnimateText} />
           </div>
         </div>
