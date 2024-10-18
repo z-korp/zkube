@@ -12,6 +12,7 @@ import { createFaucetClaimHandler } from "@/utils/faucet";
 import { useContract } from "@starknet-react/core";
 import { erc20ABI } from "@/utils/erc20";
 import { useCredits } from "@/hooks/useCredits";
+import supabase from "@/utils/supabase";
 
 interface BalanceData {
   balance: {
@@ -105,8 +106,9 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
         proof_verify_hint,
         beta,
       } = await fetchVrfData();
+      //send to supabase
 
-      await start({
+      const transactionHash = await start({
         account: account as Account,
         mode: new Mode(mode).into(),
         price:
@@ -121,6 +123,23 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
         sqrt_ratio_hint: proof_verify_hint,
         beta: beta,
       });
+
+      if (import.meta.env.VITE_SEND_TO_SUPABASE) {
+        try {
+          const { error } = await supabase.functions.invoke("zkube-payment", {
+            body: {
+              timestamp: new Date().toISOString(),
+              transactionHash: transactionHash,
+            },
+          });
+
+          if (error) {
+            console.error("Failed to send data to Supabase", error);
+          }
+        } catch (error) {
+          console.error("Error sending data to Supabase:", error);
+        }
+      }
       handleGameMode();
     } finally {
       setIsLoading(false);
