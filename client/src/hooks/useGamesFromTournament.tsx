@@ -24,7 +24,6 @@ export const useGamesFromTournament = ({
     Has(Game),
     HasValue(Game, { tournament_id: tournamentId }),
   ]);
-  console.log("useGamesFromTournament", tournamentId, gameKeys.length);
 
   useEffect(() => {
     const components = gameKeys
