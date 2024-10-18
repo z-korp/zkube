@@ -5,6 +5,7 @@ import { Block } from "@/types/types";
 interface BlockProps {
   block: Block;
   gridSize: number;
+  gridHeight?: number;
   isTxProcessing?: boolean;
   transitionDuration?: number;
   state?: GameState;
@@ -23,6 +24,7 @@ interface BlockProps {
 const BlockContainer: React.FC<BlockProps> = ({
   block,
   gridSize,
+  gridHeight = 10,
   transitionDuration = 100,
   isTxProcessing = false,
   state,
@@ -59,7 +61,7 @@ const BlockContainer: React.FC<BlockProps> = ({
 
   return (
     <div
-      className={`block block-${block.width} ${isTxProcessing ? "cursor-wait" : ""}`}
+      className={`block block-${block.width} ${isTxProcessing ? "cursor-wait" : ""} ${block.y != gridHeight - 1 ? "z-10" : ""}`}
       ref={ref}
       style={{
         position: "absolute",
