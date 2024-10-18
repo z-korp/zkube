@@ -35,12 +35,12 @@ export const useGamesFromTournament = ({
         }
         return new GameClass(component);
       })
-      .filter((e) => e !== undefined);
+      .filter((e): e is Game => e !== undefined);
 
     if (components.length > 0) {
       setGames(
         components.sort(
-          (a: Game, b: Game) => b.score_in_tournament - a.score_in_tournament,
+          (a, b) => b.score_in_tournament - a.score_in_tournament,
         ),
       );
     }
