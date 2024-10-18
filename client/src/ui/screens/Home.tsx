@@ -328,6 +328,7 @@ export const Home = () => {
                       }
                       waveCount={game.isOver() ? 0 : game.wave - game.wave_used}
                       account={account}
+                      game={game}
                     />
                   </div>
                   {isMdOrLarger && (

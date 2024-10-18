@@ -19,19 +19,19 @@ const BonusAnimation: React.FC<BonusAnimationProps> = ({
   const prevComboRef = useRef(optimisticCombo);
   const prevMaxComboRef = useRef(optimisticMaxCombo);
 
+  const [wonBonus, setWonBonus] = useState<BonusType | null>(null);
+
   const [unlockedBonuses, setUnlockedBonuses] = useState({
     Hammer: false,
     Totem: false,
     Wave: false,
   });
 
-  const [wonBonus, setWonBonus] = useState<BonusType | null>(null);
-
   useEffect(() => {
     if (wonBonus) {
       const timer = setTimeout(() => {
         setWonBonus(null);
-      }, 1000);
+      }, 1200);
       return () => clearTimeout(timer);
     }
   }, [wonBonus]);
@@ -131,8 +131,6 @@ const BonusAnimation: React.FC<BonusAnimationProps> = ({
     prevMaxComboRef.current = optimisticMaxCombo;
   }, [optimisticMaxCombo, wonBonus, unlockedBonuses]);
 
-  if (!wonBonus) return null;
-
   return (
     <AnimatePresence>
       {wonBonus && (
@@ -142,35 +140,35 @@ const BonusAnimation: React.FC<BonusAnimationProps> = ({
             id: "init",
             scale: 0,
             rotate: 360,
-            x: 0,
-            y: -130,
+            top: isMdOrLarger ? 200 : 150,
+            left: "50%",
+            x: "-50%",
+            y: "-50%",
             opacity: 0,
           }}
           animate={{
             id: "animate",
             scale: isMdOrLarger ? 1 : 0.7,
             rotate: 360,
-            x: 0,
-            y: -130,
+            top: isMdOrLarger ? 200 : 150,
+            left: "50%",
+            x: "-50%",
+            y: "-50%",
             opacity: 1,
           }}
           exit={{
             id: "exit",
             scale: isMdOrLarger ? 0.27 : 0.23,
             rotate: 0,
-            x:
+            top: isMdOrLarger ? 40 : 35,
+            left:
               wonBonus === BonusType.Hammer
-                ? isMdOrLarger
-                  ? -180
-                  : -148
+                ? "9%"
                 : wonBonus === BonusType.Wave
-                  ? isMdOrLarger
-                    ? -120
-                    : -96
-                  : isMdOrLarger
-                    ? -58
-                    : -48,
-            y: isMdOrLarger ? -316 : -264,
+                  ? "23%"
+                  : "37%",
+            x: "-50%",
+            y: "-50%",
             transition: {
               type: "spring",
               duration: 1,
@@ -181,7 +179,7 @@ const BonusAnimation: React.FC<BonusAnimationProps> = ({
             stiffness: 150,
             damping: 20,
           }}
-          className="absolute inset-0 flex items-center justify-center z-50"
+          className="absolute flex items-center justify-center z-50"
         >
           <motion.img
             src={getBonusImage(wonBonus)}
