@@ -6,11 +6,11 @@ export class Wave {
     combo: number,
     _max_combo: number,
   ): number {
-    if (combo >= 8) {
+    if (combo >= 16) {
       return 3;
-    } else if (combo >= 16) {
+    } else if (combo >= 32) {
       return 2;
-    } else if (combo >= 24) {
+    } else if (combo >= 64) {
       return 1;
     } else {
       return 0;

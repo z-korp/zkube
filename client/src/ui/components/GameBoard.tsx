@@ -10,6 +10,14 @@ import NextLine from "./NextLine";
 import { Block } from "@/types/types";
 import GameScores from "./GameScores";
 import { Bonus, BonusType } from "@/dojo/game/types/bonus";
+import BonusAnimation from "./BonusAnimation";
+import TournamentTimer from "./TournamentTimer";
+import { ModeType } from "@/dojo/game/types/mode";
+import useTournament from "@/hooks/useTournament";
+import { Game } from "@/dojo/game/models/game";
+import useRank from "@/hooks/useRank";
+
+import "../../grid.css";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -21,6 +29,7 @@ interface GameBoardProps {
   waveCount: number;
   totemCount: number;
   account: Account | null;
+  game: Game;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -33,6 +42,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   hammerCount,
   totemCount,
   account,
+  game,
 }) => {
   const {
     setup: {
@@ -49,12 +59,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   // State that will allow us to hide or display the next line
   const [nextLineHasBeenConsumed, setNextLineHasBeenConsumed] = useState(false);
-
-  useEffect(() => {
-    if (nextLineHasBeenConsumed) {
-      setNextLineHasBeenConsumed(false);
-    }
-  }, [nextLine]);
 
   // Optimistic data (score, combo, maxcombo)
   const [optimisticScore, setOptimisticScore] = useState(score);
@@ -177,7 +181,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const memoizedNextLineData = useMemo(() => {
     return transformDataContractIntoBlock([nextLine]);
-  }, [nextLine]);
+  }, [initialGrid]);
+
+  const { endTimestamp } = useTournament(game.mode.value);
+  const { rank, suffix } = useRank({
+    tournamentId: game.tournament_id,
+    gameId: game.id,
+  });
 
   if (memoizedInitialData.length === 0) return null; // otherwise sometimes
   // the grid is not displayed in Grid because the data is not ready
@@ -185,8 +195,14 @@ const GameBoard: React.FC<GameBoardProps> = ({
   return (
     <>
       <Card
-        className={`p-3 pt-4 bg-secondary ${isTxProcessing && "cursor-wait"}`}
+        className={`relative p-3 pt-4 bg-secondary ${isTxProcessing && "cursor-wait"}`}
       >
+        <BonusAnimation
+          isMdOrLarger={isMdOrLarger}
+          optimisticScore={optimisticScore}
+          optimisticCombo={optimisticCombo}
+          optimisticMaxCombo={optimisticMaxCombo}
+        />
         <div
           className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} mb-3 flex justify-between px-1`}
         >
@@ -236,6 +252,25 @@ const GameBoard: React.FC<GameBoardProps> = ({
             gridWidth={COLS}
           />
         </div>
+        <div className="absolute text-xs top-2 right-2 rounded-full text-white flex items-center justify-center shadow-lg"></div>
+        {(game.mode.value === ModeType.Daily ||
+          game.mode.value === ModeType.Normal) && (
+          <div className="flex w-full items-center justify-between px-2 mt-2">
+            <div>
+              Ranked {rank}
+              <sup>{suffix}</sup>
+            </div>
+            <div className="flex gap-4">
+              <h2 className="text-sm md:text-base font-semibold">
+                Tournament:
+              </h2>
+              <TournamentTimer
+                mode={game.mode.value}
+                endTimestamp={endTimestamp}
+              />
+            </div>
+          </div>
+        )}
       </Card>
     </>
   );
