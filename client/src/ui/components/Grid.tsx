@@ -61,6 +61,7 @@ const Grid: React.FC<GridProps> = ({
   } = useDojo();
 
   const [blocks, setBlocks] = useState<Block[]>(initialData);
+  const [nextLine, setNextLine] = useState<Block[]>(nextLineData);
   const [saveGridStateblocks, setSaveGridStateblocks] =
     useState<Block[]>(initialData);
   const [applyData, setApplyData] = useState(false);
@@ -95,12 +96,14 @@ const Grid: React.FC<GridProps> = ({
       }
       setSaveGridStateblocks(initialData);
       setBlocks(initialData);
+      setNextLine(nextLineData);
       setApplyData(false);
 
       const inDanger = initialData.some((block) => block.y < 2);
       setIsPlayerInDanger(inDanger);
       setLineExplodedCount(0);
       setIsTxProcessing(false);
+      setNextLineHasBeenConsumed(false);
     }
   }, [applyData, initialData]);
 
@@ -131,7 +134,7 @@ const Grid: React.FC<GridProps> = ({
 
   const handleDragMove = (x: number, moveType: MoveType) => {
     if (!dragging) return;
-    if (isTxProcessing) return;
+    if (isTxProcessing || applyData) return;
 
     const deltaX = x - dragStartX;
     const newX = initialX + deltaX / gridSize;
@@ -174,7 +177,7 @@ const Grid: React.FC<GridProps> = ({
 
   const handleMouseDown = (e: React.MouseEvent, block: Block) => {
     e.preventDefault();
-    if (isTxProcessing) return;
+    if (isTxProcessing || applyData) return;
 
     setBlockBonus(block);
     if (bonus === BonusType.Wave) {
@@ -196,7 +199,7 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const handleTouchStart = (e: React.TouchEvent, block: Block) => {
-    if (isTxProcessing) return;
+    if (isTxProcessing || applyData) return;
 
     const touch = e.touches[0];
     handleDragStart(touch.clientX, block);
@@ -213,7 +216,7 @@ const Grid: React.FC<GridProps> = ({
 
   const endDrag = () => {
     if (!dragging) return;
-    if (isTxProcessing) return;
+    if (isTxProcessing || applyData) return;
 
     setBlocks((prevBlocks) => {
       const updatedBlocks = prevBlocks.map((b) => {
@@ -440,12 +443,16 @@ const Grid: React.FC<GridProps> = ({
   }, [gameState]);
 
   useEffect(() => {
-    if (gameState === GameState.ADD_LINE && pendingMove) {
+    if (
+      gameState === GameState.ADD_LINE &&
+      pendingMove &&
+      transitioningBlocks.length === 0
+    ) {
       const { rowIndex, startX, finalX } = pendingMove;
       if (startX !== finalX) {
         const updatedBlocks = concatenateAndShiftBlocks(
           blocks,
-          nextLineData,
+          nextLine,
           gridHeight,
         );
         setNextLineHasBeenConsumed(true);
@@ -458,7 +465,7 @@ const Grid: React.FC<GridProps> = ({
       setIsMoving(true);
       setGameState(GameState.GRAVITY2);
     }
-  }, [gameState, blocks, pendingMove]);
+  }, [gameState, blocks, pendingMove, transitioningBlocks]);
 
   useEffect(() => {
     if (gameState === GameState.BONUS_TX) {

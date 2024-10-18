@@ -50,12 +50,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   // State that will allow us to hide or display the next line
   const [nextLineHasBeenConsumed, setNextLineHasBeenConsumed] = useState(false);
 
-  useEffect(() => {
-    if (nextLineHasBeenConsumed) {
-      setNextLineHasBeenConsumed(false);
-    }
-  }, [nextLine]);
-
   // Optimistic data (score, combo, maxcombo)
   const [optimisticScore, setOptimisticScore] = useState(score);
   const [optimisticCombo, setOptimisticCombo] = useState(combo);
@@ -177,7 +171,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const memoizedNextLineData = useMemo(() => {
     return transformDataContractIntoBlock([nextLine]);
-  }, [nextLine]);
+  }, [initialGrid]);
 
   if (memoizedInitialData.length === 0) return null; // otherwise sometimes
   // the grid is not displayed in Grid because the data is not ready
