@@ -94,6 +94,21 @@ export const MusicPlayerProvider = ({
     },
   );
 
+  const handleVisibilityChange = useCallback(() => {
+    if (document.hidden) {
+      stopTheme();
+      stopEffect();
+      setIsPlaying(false);
+    }
+  }, [stopTheme, stopEffect]);
+
+  useEffect(() => {
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [handleVisibilityChange]);
+
   useEffect(() => {
     playTheme();
     return () => stopTheme();
