@@ -160,7 +160,7 @@ const BonusAnimation: React.FC<BonusAnimationProps> = ({
             id: "exit",
             scale: isMdOrLarger ? 0.27 : 0.23,
             rotate: 0,
-            top: isMdOrLarger ? 40 : 35,
+            top: isMdOrLarger ? 40 : 31,
             left:
               wonBonus === BonusType.Hammer
                 ? "9%"

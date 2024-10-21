@@ -53,7 +53,10 @@ export const Create = () => {
           Sign Up
         </Button>
       </DialogTrigger>
-      <DialogContent aria-describedby={undefined}>
+      <DialogContent
+        aria-describedby={undefined}
+        className="sm:max-w-[700px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-4"
+      >
         <DialogHeader>
           <DialogTitle>Create a new player</DialogTitle>
           <DialogDescription>Choose a name.</DialogDescription>

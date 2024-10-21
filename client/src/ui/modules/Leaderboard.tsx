@@ -34,18 +34,21 @@ const TabList = memo<TabListProps>(
       <TabsTrigger
         value={ModeType.Free}
         onClick={() => setActiveTab(ModeType.Free)}
+        className="font-semibold md:font-normal"
       >
         {isMdorLarger ? ModeType.Free : "Free"}
       </TabsTrigger>
       <TabsTrigger
         value={ModeType.Daily}
         onClick={() => setActiveTab(ModeType.Daily)}
+        className="font-semibold md:font-normal"
       >
         {isMdorLarger ? ModeType.Daily : "Daily"}
       </TabsTrigger>
       <TabsTrigger
         value={ModeType.Normal}
         onClick={() => setActiveTab(ModeType.Normal)}
+        className="font-semibold md:font-normal"
       >
         {isMdorLarger ? ModeType.Normal : "Weekly"}
       </TabsTrigger>

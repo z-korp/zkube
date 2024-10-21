@@ -62,7 +62,7 @@ export const RewardCard: React.FC<{
   };
 
   return (
-    <div className="w-full p-4 relative border rounded-lg text-white text-sm md:text-base">
+    <div className="w-full p-4 relative border rounded-lg text-white text-sm md:text-base font-semibold md:font-normal">
       <div className="w-full">
         <motion.div
           className="flex items-start space-x-4"
@@ -110,7 +110,7 @@ export const RewardCard: React.FC<{
                   Tournament: {tournament && formatTournamentDate(tournament)}
                 </p>
                 <p className="font-semibold">
-                  Your reward: {tournament_reward?.prize}
+                  Rewards: {tournament_reward?.prize}
                 </p>
               </>
             )}
