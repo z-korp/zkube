@@ -20,6 +20,7 @@ import { motion } from "framer-motion";
 import { BonusType } from "@/dojo/game/types/bonus";
 
 import "../../grid.css";
+import { set } from "date-fns";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -64,6 +65,7 @@ const Grid: React.FC<GridProps> = ({
 
   const [blocks, setBlocks] = useState<Block[]>(initialData);
   const [nextLine, setNextLine] = useState<Block[]>(nextLineData);
+  const [resetTxProcessing, setResetTxProcessing] = useState<boolean>(false);
   const [saveGridStateblocks, setSaveGridStateblocks] =
     useState<Block[]>(initialData);
   const [applyData, setApplyData] = useState(false);
@@ -104,10 +106,23 @@ const Grid: React.FC<GridProps> = ({
       const inDanger = initialData.some((block) => block.y < 2);
       setIsPlayerInDanger(inDanger);
       setLineExplodedCount(0);
-      setIsTxProcessing(false);
       setNextLineHasBeenConsumed(false);
+      setResetTxProcessing(true);
     }
   }, [applyData, initialData]);
+
+  useEffect(() => {
+    if (resetTxProcessing) {
+      const timeoutTXProcessing = setTimeout(() => {
+        setIsTxProcessing(false);
+        setResetTxProcessing(false);
+      }, 200);
+
+      return () => {
+        clearTimeout(timeoutTXProcessing);
+      };
+    }
+  }, [resetTxProcessing]);
 
   const resetAnimateText = (): void => {
     setAnimateText(ComboMessages.None);
