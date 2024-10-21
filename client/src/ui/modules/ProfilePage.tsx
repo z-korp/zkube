@@ -78,11 +78,19 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
             >
               <TabsList className="grid w-full grid-cols-2">
                 {/*<TabsTrigger value="achievements">Achievements</TabsTrigger>*/}
-                <TabsTrigger value="rewards" className="relative">
+                <TabsTrigger
+                  value="rewards"
+                  className="relative font-semibold md:font-normal"
+                >
                   Rewards
                   {rewardsCount > 0 && <NotifCount count={rewardsCount} />}
                 </TabsTrigger>
-                <TabsTrigger value="stats">Statistics</TabsTrigger>
+                <TabsTrigger
+                  value="stats"
+                  className="font-semibold md:font-normal"
+                >
+                  Statistics
+                </TabsTrigger>
               </TabsList>
               <TabsContent
                 className="max-h-[480px] overflow-y-auto"
@@ -117,7 +125,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
                   transition={{ duration: 0.5, ease: "easeInOut" }}
                 >
                   <CardContent className="p-0">
-                    <Statistics games={filteredGames} />
+                    <Statistics games={filteredGames} player={player} />
                   </CardContent>
                 </motion.div>
               </TabsContent>

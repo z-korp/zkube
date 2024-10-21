@@ -226,16 +226,18 @@ export const ContentTournament: React.FC<ContentTournamentProps> = ({
         </div>
       </div>
       <div className="flex-grow overflow-auto">
-        <Table className="text-sm sm:text-base sm:w-full ">
+        <Table className="text-sm sm:text-base sm:w-full font-semibold md:font-normal">
           <TableCaption className={`${disabled && "hidden"}`}>
             Leaderboard is waiting for its best players to make history
           </TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[3%] md:w-[8%] text-center">
+              <TableHead className="w-[3%] md:w-[8%] text-center font-semibold md:font-normal">
                 {isMdOrLarger ? "Rank" : "#"}
               </TableHead>
-              <TableHead className="w-[27%] text-start">Name</TableHead>
+              <TableHead className="w-[27%] text-start font-semibold md:font-normal">
+                Name
+              </TableHead>
               <TableHead className="w-[10%] text-center hidden md:table-cell">
                 lvl
               </TableHead>
@@ -348,7 +350,9 @@ export const RowTournament: React.FC<RowTournamentProps> = ({
         {player?.name || "-"}
       </TableCell>
       <TableCell className="text-center hidden md:table-cell">
-        {player?.points ? Level.fromPoints(player?.points).value : ""}
+        {player?.points !== undefined
+          ? Level.fromPoints(player?.points).value
+          : ""}
       </TableCell>
       <TableCell className="text-center font-bold">
         {game.score_in_tournament}

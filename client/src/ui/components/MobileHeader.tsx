@@ -18,8 +18,9 @@ import { Button } from "../elements/button";
 import CollectiveTreasureChest from "./TreasureChest";
 import { useState } from "react";
 import { Surrender } from "../actions/Surrender";
+import LevelIndicator from "./LevelIndicator";
 
-const MobileMenu = () => {
+const MobileHeader = () => {
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
 
@@ -39,7 +40,7 @@ const MobileMenu = () => {
           <DrawerHeader>
             <DrawerTitle className="text-2xl">zKube</DrawerTitle>
           </DrawerHeader>
-          <div className="flex flex-col gap-5 p-4">
+          <div className="flex flex-col gap-5 p-4 font-semibold md:font-normal">
             {/* <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Theme</p> <ModeToggle />
             </div> */}
@@ -83,6 +84,7 @@ const MobileMenu = () => {
             <div className="flex gap-3 items-center">
               <HeaderBalance />
               <ProfilePage wfit />
+              <LevelIndicator currentXP={player.points} />
             </div>
           ) : (
             ACCOUNT_CONNECTOR === "controller" && <Connect />
@@ -93,4 +95,4 @@ const MobileMenu = () => {
   );
 };
 
-export default MobileMenu;
+export default MobileHeader;

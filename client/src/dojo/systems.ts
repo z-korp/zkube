@@ -67,7 +67,7 @@ export function systems({
     | "bottom-right" => {
     if (!isMdOrLarger()) {
       // if mobile
-      return isSmallHeight() ? "top-center" : "bottom-center";
+      return isSmallHeight() ? "top-center" : "bottom-right";
     }
     return "bottom-right";
   };

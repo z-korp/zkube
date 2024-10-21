@@ -85,7 +85,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
         </DialogTitle>
 
         <div>
-          <div className="flex gap-4 justify-center items-center mx-auto mt-4 w-1/2">
+          <div className="flex gap-4 justify-center items-center mx-auto mt-4 w-1/2 ">
             <div className="grow text-4xl flex gap-2 justify-center">
               {game.score}
               <FontAwesomeIcon icon={faStar} className="text-yellow-500" />
@@ -105,7 +105,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
               Your Multipliers
             </h2>
             <div className="overflow-x-auto">
-              <table className="table-auto mx-auto text-left">
+              <table className="table-auto mx-auto text-left font-semibold md:font-normal">
                 <tbody>
                   {multiplierData.map((item) => (
                     <tr key={item.type}>
@@ -128,7 +128,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
             </div>
 
             {/* Visual Calculation */}
-            <div className="mt-4 text-center">
+            <div className="mt-4 text-center font-semibold md:font-normal">
               <div className="text-xl mt-2 border w-fit px-4 py-1 mx-auto border-white">
                 Final Score = {baseScore} × {totalMultiplier.toFixed(2)} ={" "}
                 <strong>{finalScore.toFixed(0)}</strong>

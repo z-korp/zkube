@@ -195,7 +195,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   return (
     <>
       <Card
-        className={`relative p-3 pt-4 bg-secondary ${isTxProcessing && "cursor-wait"}`}
+        className={`relative p-3 md:pt-4 bg-secondary ${isTxProcessing && "cursor-wait"} pb-2 md:pb-3`}
       >
         <BonusAnimation
           isMdOrLarger={isMdOrLarger}
@@ -204,7 +204,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
           optimisticMaxCombo={optimisticMaxCombo}
         />
         <div
-          className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} mb-3 flex justify-between px-1`}
+          className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} mb-2 md:mb-3 flex justify-between px-1`}
         >
           <div className="w-5/12">
             <GameBonus
@@ -224,6 +224,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             isMdOrLarger={isMdOrLarger}
           />
         </div>
+
         <div
           className={`flex justify-center items-center ${!isTxProcessing && "cursor-move"}`}
         >
@@ -244,7 +245,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
             setIsTxProcessing={setIsTxProcessing}
           />
         </div>
-        <div className="flex justify-center items-center mt-3">
+
+        <div className="flex justify-center items-center mt-2 md:mt-3">
           <NextLine
             nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}
             gridSize={GRID_SIZE}
@@ -252,10 +254,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
             gridWidth={COLS}
           />
         </div>
-        <div className="absolute text-xs top-2 right-2 rounded-full text-white flex items-center justify-center shadow-lg"></div>
+
         {(game.mode.value === ModeType.Daily ||
           game.mode.value === ModeType.Normal) && (
-          <div className="flex w-full items-center justify-between px-2 mt-2">
+          <div className="flex w-full items-center justify-between px-1 mt-2 md:mt-3 font-semibold md:font-normal">
             <div>
               Ranked {rank}
               <sup>{suffix}</sup>

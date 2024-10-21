@@ -159,16 +159,16 @@ export const Home = () => {
   );
 
   const renderTournamentsView = () => (
-    <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center">
+    <div className="flex flex-col sm:flex-row w-full gap-6 sm:gap-8 items-center justify-center">
       <div className="flex justify-center items-center w-full relative h-[36px]">
         <Button
           onClick={() => setIsTournamentsOpen(false)}
-          className="flex items-center absolute left-0 top-0"
-          variant="ghost"
+          className="flex items-center absolute left-0 top-0 p-0 pr-2"
+          variant="default"
         >
           <ChevronLeft /> Back
         </Button>
-        <h1 className="text-center text-xl">Tournaments</h1>
+        <h1 className="text-center text-2xl font-bold">Tournaments</h1>
       </div>
 
       <GameModeCard
@@ -307,7 +307,10 @@ export const Home = () => {
                 )}
                 {!!game && isGameOn === "isOn" && (
                   <div className="relative w-full">
-                    <div ref={gameGrid} className="flex flex-col items-center">
+                    <div
+                      ref={gameGrid}
+                      className="flex flex-col items-center game-container"
+                    >
                       <GameBoard
                         // Check if game is over because otherwise we can display
                         // previous game data on the board while the new game is starting
