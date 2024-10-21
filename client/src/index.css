@@ -100,10 +100,16 @@ img {
   pointer-events: none;
 }
 
+.h-screen-viewport {
+  height: calc(var(--vh, 1vh) * 100);
+}
+
 html,
 body {
   touch-action: none; /* Prevents touch-based panning */
-  height: 100vh;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 @keyframes wiggle {
