@@ -37,6 +37,7 @@ import { Start } from "../actions/Start";
 import { ChevronLeft } from "lucide-react";
 import CollectiveTreasureChest from "../components/TreasureChest";
 import GameOverDialog from "../components/GameOverDialog";
+import { TweetPreview } from "../components/TweetPreview";
 
 export const Home = () => {
   const {
@@ -340,13 +341,15 @@ export const Home = () => {
               )}
             </div>
           </div>
-          {/*<TweetPreview
+          <TweetPreview
             open={isPreviewOpen}
             setOpen={setIsPreviewOpen}
             level={level}
             score={score}
             imgSrc={imgData}
-          />*/}
+            gameId={game?.id ?? ""}
+            tournamentId={game?.tournament_id ?? 0}
+          />
           <AnimatePresence>
             {!animationDone && (
               <>
