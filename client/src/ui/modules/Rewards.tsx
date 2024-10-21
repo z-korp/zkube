@@ -60,7 +60,7 @@ export const Rewards = () => {
 
   if (filteredParticipations.length === 0 && tournamentRewards.length === 0) {
     return (
-      <div className="text-center text-sm mt-6 text-gray-300 flex flex-col gap-3">
+      <div className="text-center text-sm mt-6 text-gray-300 flex flex-col gap-3 font-semibold md:font-normal">
         <p>
           Place in the top 3 of a tournament or help open the collective chest
           to earn rewards.

@@ -100,10 +100,26 @@ img {
   pointer-events: none;
 }
 
+.h-screen-viewport {
+  height: calc(var(--vh, 1vh) * 100);
+}
+
+.game-container {
+  touch-action: none; /* Prevents touch-based panning */
+  overscroll-behavior: none; /* Prevents pull-to-refresh */
+}
+
+input,
+textarea,
+select {
+  font-size: 16px !important;
+} /* prevent zoom on mobile */
+
 html,
 body {
-  touch-action: none; /* Prevents touch-based panning */
-  height: 100vh;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 @keyframes wiggle {

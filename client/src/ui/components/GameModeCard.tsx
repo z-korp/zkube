@@ -22,6 +22,7 @@ import {
   TooltipTrigger,
 } from "../elements/tooltip";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import { useMediaQuery } from "react-responsive";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -39,6 +40,8 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
   const { credits } = useCredits({ playerId: account?.address });
   const { settings } = useSettings();
   const { endTimestamp, tournament } = useTournament(mode);
+
+  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   const freeGames = useMemo(() => {
     //console.log("credits", credits);
@@ -97,13 +100,19 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
   }, [mode]);
 
   return (
-    <Card className="w-full max-w-sm bg-gray-900 text-white border-0">
-      <CardHeader className="pb-4">
+    <Card className="w-full max-w-sm bg-gray-900 text-white border-0 relative font-semibold md:font-normal">
+      {isMdOrLarger &&
+        (mode === ModeType.Daily || mode === ModeType.Normal) && (
+          <div className="absolute top-0 bg-white text-black text-xs px-2 py-1 rounded-br-lg rounded-tl-xl">
+            Tournament
+          </div>
+        )}
+      <CardHeader className="pt-4 pb-2 md:pb-4">
         <CardTitle className="text-xl md:text-2xl font-bold text-center">
           {mode}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-1 text-sm md:text-base pb-4">
+      <CardContent className="space-y-2 text-sm md:text-base pb-4">
         <div className="flex items-center space-x-2 gap-2">
           <Coins className="h-5 w-5 flex-shrink-0" />
           <div className="flex-grow flex justify-between items-center">
@@ -113,6 +122,7 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
             </span>
           </div>
         </div>
+
         <div className="flex items-center space-x-2 gap-2">
           <Zap className="h-5 w-5 flex-shrink-0" />
           <div className="flex-grow flex justify-between items-center">
@@ -134,8 +144,7 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
         </div>
 
         {(mode === ModeType.Daily || mode === ModeType.Normal) && (
-          <div className="space-y-1 flex flex-col items-start w-full border-t-1 pt-1">
-            <div className="text-white text-base">Tournament</div>
+          <>
             <div className="flex items-center space-x-2 w-full gap-2">
               <Hourglass className="h-5 w-5 flex-shrink-0" />
               <div className="flex-grow flex justify-between items-center">
@@ -152,10 +161,10 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
                 <span className="text-slate-300">{potentialWin}</span>
               </div>
             </div>
-          </div>
+          </>
         )}
       </CardContent>
-      <CardFooter>
+      <CardFooter className="pb-5 md:pb-6">
         <Start mode={mode} handleGameMode={handleGameMode} />
       </CardFooter>
     </Card>

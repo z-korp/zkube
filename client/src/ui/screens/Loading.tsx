@@ -9,40 +9,35 @@ export const Loading = ({
   enter: boolean;
   setEnter: (state: boolean) => void;
 }) => {
-  //const { theme }: { theme: string } = useTheme() as { theme: string };
   const { themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
 
   return (
-    <div className="w-full h-screen flex justify-center items-center">
+    <div className="h-screen-viewport flex flex-col w-full justify-center items-center relative">
       {/* Background */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden z-10">
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-50 animate-zoom-in-out"
+          className="absolute inset-0 bg-cover bg-center animate-zoom-in-out"
           style={{ backgroundImage: `url('${imgAssets.background}')` }}
         />
       </div>
 
-      {/* Logo */}
-      <div className="absolute md:top-1/2 top-1:3 left-1/2 -translate-x-1/2 -translate-y-1/2 flex justify-center items-center w-full h-20">
+      {/* Logo and Enter Button */}
+      <div className="flex flex-col justify-center items-center w-full h-full z-30">
         <img
           src={imgAssets.logo}
           alt="logo"
-          className={`h-32 md:h-40  ${enter && "animate-load"}`}
+          className={`h-32 md:h-40 ${enter && "animate-load"}`}
         />
-      </div>
-
-      {/* Enter Button */}
-      <div
-        className={`absolute bottom-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 flex justify-center items-center z-[2000] ${enter && "hidden"}`}
-      >
-        <Button
-          onClick={() => setEnter(true)}
-          className="text-2xl"
-          variant="default"
-        >
-          Enter
-        </Button>
+        {!enter && (
+          <Button
+            onClick={() => setEnter(true)}
+            className="text-2xl mt-8"
+            variant="default"
+          >
+            Enter
+          </Button>
+        )}
       </div>
     </div>
   );
