@@ -11,7 +11,7 @@ use zkube::types::bonus::Bonus;
 
 impl BonusImpl of BonusTrait {
     #[inline(always)]
-    fn apply(blocks: felt252, colors: felt252, row_index: u8, index: u8) -> (felt252, felt252) {
+    fn apply(blocks: felt252, row_index: u8, index: u8) -> felt252 {
         // [Compute] Mask of the row
         let base_mask = constants::ROW_SIZE - 1;
         let exp = row_index * constants::ROW_BIT_COUNT;
@@ -20,7 +20,8 @@ impl BonusImpl of BonusTrait {
         // [Compute] Apply negative mask on bitmap to remove the row
         let mut bitmap: u256 = blocks.into();
         bitmap = bitmap & ~mask;
-        (bitmap.try_into().unwrap(), colors)
+
+        bitmap.try_into().unwrap()
     }
 
     #[inline(always)]

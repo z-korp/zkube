@@ -39,7 +39,7 @@ impl PlayerImpl of PlayerTrait {
             game_id: 0,
             name,
             points: 0,
-            daily_streak: 10,
+            daily_streak: 0,
             last_active_day: current_day,
             account_creation_day: current_day,
         }

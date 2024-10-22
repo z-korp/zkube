@@ -1256,8 +1256,8 @@
     {
       "kind": "DojoContract",
       "address": "0x7362142438f82017175c44aff9ef6a1887824d57843e42a094d765bfbc0adf8",
-      "class_hash": "0xcf80a07e7bbe46e35df0a376bab3608604ec36b916af569d0ab62e5d94156e",
-      "original_class_hash": "0xcf80a07e7bbe46e35df0a376bab3608604ec36b916af569d0ab62e5d94156e",
+      "class_hash": "0x6f202065370d0ccd384a4f2c545e618f55c25c09ced896d68f7bdc569ba8063",
+      "original_class_hash": "0x6f202065370d0ccd384a4f2c545e618f55c25c09ced896d68f7bdc569ba8063",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {
@@ -1527,8 +1527,8 @@
     {
       "kind": "DojoContract",
       "address": "0x3f94559e4ed0821c5930bad9dd8275896afc657a1c8e0eb40d717dd71862d34",
-      "class_hash": "0x722d9f4d485295e3f2fdef0a1b036413483913d951c53e9087c97725f322891",
-      "original_class_hash": "0x722d9f4d485295e3f2fdef0a1b036413483913d951c53e9087c97725f322891",
+      "class_hash": "0x261fb0322818d856cda306ed7479874b965b9faead1b6485f1186449d9609f6",
+      "original_class_hash": "0x261fb0322818d856cda306ed7479874b965b9faead1b6485f1186449d9609f6",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {
@@ -1712,7 +1712,7 @@
                 },
                 {
                   "name": "amount",
-                  "type": "core::felt252"
+                  "type": "core::integer::u128"
                 }
               ],
               "outputs": [],
@@ -1720,11 +1720,15 @@
             },
             {
               "type": "function",
-              "name": "sponsor_unknown",
+              "name": "sponsor_from",
               "inputs": [
                 {
                   "name": "amount",
-                  "type": "core::felt252"
+                  "type": "core::integer::u128"
+                },
+                {
+                  "name": "caller",
+                  "type": "core::starknet::contract_address::ContractAddress"
                 }
               ],
               "outputs": [],
@@ -1815,15 +1819,15 @@
       "systems": [
         "claim",
         "sponsor",
-        "sponsor_unknown"
+        "sponsor_from"
       ],
       "manifest_name": "zkube-chest-5d3b3ea3"
     },
     {
       "kind": "DojoContract",
       "address": "0x8fbe72f6d350f76cfd6554872befc4d61889d4029a66cf3897506a908f77ca",
-      "class_hash": "0x2b9ccdb8c674605563250fc8c161a3501cd996e414f5af69481b988b5be5973",
-      "original_class_hash": "0x2b9ccdb8c674605563250fc8c161a3501cd996e414f5af69481b988b5be5973",
+      "class_hash": "0x7c92a9b6e464b6c2982ad3da198656e7e1aa6d4272958cf5f0f8e49d3042e4d",
+      "original_class_hash": "0x7c92a9b6e464b6c2982ad3da198656e7e1aa6d4272958cf5f0f8e49d3042e4d",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {
@@ -1990,6 +1994,10 @@
             },
             {
               "name": "Daily",
+              "type": "()"
+            },
+            {
+              "name": "Free",
               "type": "()"
             }
           ]
@@ -2248,8 +2256,8 @@
     {
       "kind": "DojoContract",
       "address": "0x35dc8374e5f49a4611ffc33f8b3e4381a7baecab3d8ae3d4e2d3c48ea46a488",
-      "class_hash": "0x326f47d7df1e3f944732e9f6426196e93c75af588e7cabef6740021c5c76e2",
-      "original_class_hash": "0x326f47d7df1e3f944732e9f6426196e93c75af588e7cabef6740021c5c76e2",
+      "class_hash": "0x27e87f8f3658b5b33c91d1c020177f0333bdf3532ed8f3bcdfa544166ff4dd6",
+      "original_class_hash": "0x27e87f8f3658b5b33c91d1c020177f0333bdf3532ed8f3bcdfa544166ff4dd6",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {
@@ -2441,7 +2449,7 @@
               "inputs": [
                 {
                   "name": "value",
-                  "type": "core::felt252"
+                  "type": "core::integer::u128"
                 }
               ],
               "outputs": [],
@@ -2453,7 +2461,7 @@
               "inputs": [
                 {
                   "name": "value",
-                  "type": "core::felt252"
+                  "type": "core::integer::u128"
                 }
               ],
               "outputs": [],
@@ -2567,8 +2575,8 @@
     {
       "kind": "DojoContract",
       "address": "0x7c69d31836f184012fa03b84601a6a3550a4e224baa6237c0b2c5481f3f9c9c",
-      "class_hash": "0x356114277c16d615cd9f555f5248c444fbfa80e2921ca58226d854a940d1c27",
-      "original_class_hash": "0x356114277c16d615cd9f555f5248c444fbfa80e2921ca58226d854a940d1c27",
+      "class_hash": "0x7ece8a86dff2ae5211439a9b9815f1c33fddb124db613da204e63fc814ffab1",
+      "original_class_hash": "0x7ece8a86dff2ae5211439a9b9815f1c33fddb124db613da204e63fc814ffab1",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {
@@ -2724,7 +2732,7 @@
         {
           "type": "impl",
           "name": "TournamentSystemImpl",
-          "interface_name": "zkube::systems::tournament::ITournament"
+          "interface_name": "zkube::systems::tournament::ITournamentSystem"
         },
         {
           "type": "enum",
@@ -2741,17 +2749,25 @@
             {
               "name": "Daily",
               "type": "()"
+            },
+            {
+              "name": "Free",
+              "type": "()"
             }
           ]
         },
         {
           "type": "interface",
-          "name": "zkube::systems::tournament::ITournament",
+          "name": "zkube::systems::tournament::ITournamentSystem",
           "items": [
             {
               "type": "function",
               "name": "claim",
               "inputs": [
+                {
+                  "name": "mode",
+                  "type": "zkube::types::mode::Mode"
+                },
                 {
                   "name": "tournament_id",
                   "type": "core::integer::u64"
@@ -2759,10 +2775,6 @@
                 {
                   "name": "rank",
                   "type": "core::integer::u8"
-                },
-                {
-                  "name": "mode",
-                  "type": "zkube::types::mode::Mode"
                 }
               ],
               "outputs": [],
@@ -2782,7 +2794,11 @@
                 },
                 {
                   "name": "amount",
-                  "type": "core::felt252"
+                  "type": "core::integer::u128"
+                },
+                {
+                  "name": "caller",
+                  "type": "core::starknet::contract_address::ContractAddress"
                 }
               ],
               "outputs": [],
@@ -2878,8 +2894,8 @@
     {
       "kind": "DojoContract",
       "address": "0x50a3d645c6e4b27820ae2a9710415fcc17eff60c6820e997ec62cb5b15c7940",
-      "class_hash": "0x270fe124fe9c4abfdcdb165e6e4cd75fcfd781cd76cf6f01f20454b8b841d89",
-      "original_class_hash": "0x270fe124fe9c4abfdcdb165e6e4cd75fcfd781cd76cf6f01f20454b8b841d89",
+      "class_hash": "0x12b37d078e6ee707b24a3d5e32684bdd0ca0d2afbc569a5b73175b489497115",
+      "original_class_hash": "0x12b37d078e6ee707b24a3d5e32684bdd0ca0d2afbc569a5b73175b489497115",
       "base_class_hash": "0x2427dd10a58850ac9a5ca6ce04b7771b05330fd18f2e481831ad903b969e6b2",
       "abi": [
         {
@@ -3054,7 +3070,11 @@
               "inputs": [
                 {
                   "name": "amount",
-                  "type": "core::felt252"
+                  "type": "core::integer::u128"
+                },
+                {
+                  "name": "caller",
+                  "type": "core::starknet::contract_address::ContractAddress"
                 }
               ],
               "outputs": [],
@@ -3608,12 +3628,12 @@
         },
         {
           "name": "prize",
-          "type": "felt252",
+          "type": "u128",
           "key": false
         }
       ],
-      "class_hash": "0x4deedbaef68409689bda33fe4777a65b0785acbef70d8378d9b4a96d706dc83",
-      "original_class_hash": "0x4deedbaef68409689bda33fe4777a65b0785acbef70d8378d9b4a96d706dc83",
+      "class_hash": "0x4ebc00a7ff8d99ef6a898161a20ce5f8e8a5cb96f471207a2b4d8a518262c0e",
+      "original_class_hash": "0x4ebc00a7ff8d99ef6a898161a20ce5f8e8a5cb96f471207a2b4d8a518262c0e",
       "abi": [
         {
           "type": "impl",
@@ -4000,7 +4020,7 @@
             },
             {
               "name": "prize",
-              "type": "core::felt252"
+              "type": "core::integer::u128"
             }
           ]
         },
@@ -4498,11 +4518,6 @@
           "key": false
         },
         {
-          "name": "next_color",
-          "type": "u32",
-          "key": false
-        },
-        {
           "name": "hammer_bonus",
           "type": "u8",
           "key": false
@@ -4548,11 +4563,6 @@
           "key": false
         },
         {
-          "name": "colors",
-          "type": "felt252",
-          "key": false
-        },
-        {
           "name": "player_id",
           "type": "felt252",
           "key": false
@@ -4578,13 +4588,28 @@
           "key": false
         },
         {
+          "name": "score_in_tournament",
+          "type": "u32",
+          "key": false
+        },
+        {
+          "name": "combo_counter_in_tournament",
+          "type": "u8",
+          "key": false
+        },
+        {
+          "name": "max_combo_in_tournament",
+          "type": "u8",
+          "key": false
+        },
+        {
           "name": "pending_chest_prize",
-          "type": "felt252",
+          "type": "u128",
           "key": false
         }
       ],
-      "class_hash": "0x37563a9794473d8efb4690b5988b3fa3b066b10891c49b4f86a4319986d48aa",
-      "original_class_hash": "0x37563a9794473d8efb4690b5988b3fa3b066b10891c49b4f86a4319986d48aa",
+      "class_hash": "0x7df0095dee0c2eb9301e469f9f8268b4eadbd0c0c6ee21d29bee1cc6a35136f",
+      "original_class_hash": "0x7df0095dee0c2eb9301e469f9f8268b4eadbd0c0c6ee21d29bee1cc6a35136f",
       "abi": [
         {
           "type": "impl",
@@ -4992,10 +5017,6 @@
               "type": "core::integer::u32"
             },
             {
-              "name": "next_color",
-              "type": "core::integer::u32"
-            },
-            {
               "name": "hammer_bonus",
               "type": "core::integer::u8"
             },
@@ -5032,10 +5053,6 @@
               "type": "core::felt252"
             },
             {
-              "name": "colors",
-              "type": "core::felt252"
-            },
-            {
               "name": "player_id",
               "type": "core::felt252"
             },
@@ -5056,8 +5073,20 @@
               "type": "core::integer::u64"
             },
             {
+              "name": "score_in_tournament",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "combo_counter_in_tournament",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "max_combo_in_tournament",
+              "type": "core::integer::u8"
+            },
+            {
               "name": "pending_chest_prize",
-              "type": "core::felt252"
+              "type": "core::integer::u128"
             }
           ]
         },
@@ -5580,10 +5609,25 @@
           "name": "points",
           "type": "u32",
           "key": false
+        },
+        {
+          "name": "daily_streak",
+          "type": "u8",
+          "key": false
+        },
+        {
+          "name": "last_active_day",
+          "type": "u32",
+          "key": false
+        },
+        {
+          "name": "account_creation_day",
+          "type": "u32",
+          "key": false
         }
       ],
-      "class_hash": "0xf9b6c922045b89af068513b0a9c3df3c687a437dfece00c51f7b09ee22444",
-      "original_class_hash": "0xf9b6c922045b89af068513b0a9c3df3c687a437dfece00c51f7b09ee22444",
+      "class_hash": "0x1dc8b9f85a186d551a8d53b5b46cffe82a5505fa6855c0f9af7facb6946db09",
+      "original_class_hash": "0x1dc8b9f85a186d551a8d53b5b46cffe82a5505fa6855c0f9af7facb6946db09",
       "abi": [
         {
           "type": "impl",
@@ -5971,6 +6015,18 @@
             {
               "name": "points",
               "type": "core::integer::u32"
+            },
+            {
+              "name": "daily_streak",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "last_active_day",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "account_creation_day",
+              "type": "core::integer::u32"
             }
           ]
         },
@@ -6028,17 +6084,17 @@
         },
         {
           "name": "daily_mode_price",
-          "type": "felt252",
+          "type": "u128",
           "key": false
         },
         {
           "name": "normal_mode_price",
-          "type": "felt252",
+          "type": "u128",
           "key": false
         }
       ],
-      "class_hash": "0x1a3488e053dbb77a0bbed2f2074d72a07f898e49c99d9844b53266a91ef3f96",
-      "original_class_hash": "0x1a3488e053dbb77a0bbed2f2074d72a07f898e49c99d9844b53266a91ef3f96",
+      "class_hash": "0x1faf1fb96f5e756885d39feaa8b2777f21845d67c1d5e8df770372173ee62a9",
+      "original_class_hash": "0x1faf1fb96f5e756885d39feaa8b2777f21845d67c1d5e8df770372173ee62a9",
       "abi": [
         {
           "type": "impl",
@@ -6443,11 +6499,11 @@
             },
             {
               "name": "daily_mode_price",
-              "type": "core::felt252"
+              "type": "core::integer::u128"
             },
             {
               "name": "normal_mode_price",
-              "type": "core::felt252"
+              "type": "core::integer::u128"
             }
           ]
         },
@@ -6495,7 +6551,7 @@
         },
         {
           "name": "prize",
-          "type": "felt252",
+          "type": "u128",
           "key": false
         },
         {
@@ -6542,10 +6598,25 @@
           "name": "top3_claimed",
           "type": "bool",
           "key": false
+        },
+        {
+          "name": "top1_game_id",
+          "type": "u32",
+          "key": false
+        },
+        {
+          "name": "top2_game_id",
+          "type": "u32",
+          "key": false
+        },
+        {
+          "name": "top3_game_id",
+          "type": "u32",
+          "key": false
         }
       ],
-      "class_hash": "0x6ecc639f92decc1fa67b18288e29c553f7ec5fa5fd10f278abd66886cc45e46",
-      "original_class_hash": "0x6ecc639f92decc1fa67b18288e29c553f7ec5fa5fd10f278abd66886cc45e46",
+      "class_hash": "0xd28fd534451aca076dda7a67fee4a48f120bb478b5b27be15879ac0037f6e5",
+      "original_class_hash": "0xd28fd534451aca076dda7a67fee4a48f120bb478b5b27be15879ac0037f6e5",
       "abi": [
         {
           "type": "impl",
@@ -6942,7 +7013,7 @@
             },
             {
               "name": "prize",
-              "type": "core::felt252"
+              "type": "core::integer::u128"
             },
             {
               "name": "top1_player_id",
@@ -6979,6 +7050,18 @@
             {
               "name": "top3_claimed",
               "type": "core::bool"
+            },
+            {
+              "name": "top1_game_id",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "top2_game_id",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "top3_game_id",
+              "type": "core::integer::u32"
             }
           ]
         },

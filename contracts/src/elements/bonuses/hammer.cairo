@@ -19,7 +19,7 @@ mod errors {
 
 impl BonusImpl of BonusTrait {
     #[inline(always)]
-    fn apply(blocks: felt252, colors: felt252, row_index: u8, index: u8) -> (felt252, felt252) {
+    fn apply(blocks: felt252, row_index: u8, index: u8) -> felt252 {
         // [Check] Value of the block is valid
         let block = Controller::get_block(blocks, row_index, index);
         let width: Width = block.into();
@@ -33,7 +33,8 @@ impl BonusImpl of BonusTrait {
         // [Compute] Apply negative mask on bitmap to remove the block
         let mut bitmap: u256 = blocks.into();
         bitmap = bitmap & ~mask;
-        (bitmap.try_into().unwrap(), colors)
+
+        bitmap.try_into().unwrap()
     }
 
     #[inline(always)]

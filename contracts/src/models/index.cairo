@@ -23,7 +23,6 @@ pub struct Game {
     score: u32,
     moves: u32,
     next_row: u32,
-    next_color: u32,
     // ------------------------
     // Bonuses
     // Bonuses usable during the game (start (0, 0, 0) and will evolve)
@@ -38,7 +37,6 @@ pub struct Game {
     combo_counter: u8,
     max_combo: u8,
     blocks: felt252,
-    colors: felt252,
     player_id: felt252,
     seed: felt252,
     mode: u8,

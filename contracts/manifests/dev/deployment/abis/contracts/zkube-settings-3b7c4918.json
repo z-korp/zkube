@@ -188,7 +188,7 @@
         "inputs": [
           {
             "name": "value",
-            "type": "core::felt252"
+            "type": "core::integer::u128"
           }
         ],
         "outputs": [],
@@ -200,7 +200,7 @@
         "inputs": [
           {
             "name": "value",
-            "type": "core::felt252"
+            "type": "core::integer::u128"
           }
         ],
         "outputs": [],

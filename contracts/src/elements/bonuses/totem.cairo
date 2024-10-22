@@ -11,21 +11,20 @@ use zkube::elements::bonuses::interface::BonusTrait;
 use zkube::helpers::controller::Controller;
 use zkube::models::game::Game;
 use zkube::types::bonus::Bonus;
-use zkube::types::color::Color;
 use zkube::types::block::Block;
 use zkube::types::width::Width;
 
 // Errors
 mod errors {
-    const INVALID_BLOCK_COLOR: felt252 = 'Totem: invalid block color';
+    const INVALID_BLOCK_WIDTH: felt252 = 'Totem: invalid block width';
 }
 
 impl BonusImpl of BonusTrait {
-    fn apply(blocks: felt252, colors: felt252, row_index: u8, index: u8) -> (felt252, felt252) {
+    fn apply(blocks: felt252, row_index: u8, index: u8) -> felt252 {
         // [Check] Color of the block is valid
         let block_size = Controller::get_block(blocks, row_index, index);
         let block: Width = block_size.into();
-        assert(block != Width::None, errors::INVALID_BLOCK_COLOR);
+        assert(block != Width::None, errors::INVALID_BLOCK_WIDTH);
         // [Compute] Mask of the block
         let mut packed: u256 = blocks.into();
         let block_mask: u256 = (constants::BLOCK_SIZE - 1).into();
@@ -48,8 +47,7 @@ impl BonusImpl of BonusTrait {
             shift *= modulo;
         };
         let new_blocks: u256 = blocks.into() & ~mask;
-        let new_colors: u256 = colors.into() & ~mask;
-        (new_blocks.try_into().unwrap(), new_colors.try_into().unwrap())
+        new_blocks.try_into().unwrap()
     }
 
     #[inline(always)]
