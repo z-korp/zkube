@@ -1,5 +1,5 @@
 import { useDojo } from "@/dojo/useDojo";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
 import { Entity } from "@dojoengine/recs";
@@ -22,6 +22,12 @@ export const useGame = ({ gameId }: { gameId: string | undefined }) => {
   const game = useMemo(() => {
     return component ? new GameClass(component) : null;
   }, [component]);
+
+  useEffect(() => {
+    if (game) {
+      console.log("blocks", game.blocks);
+    }
+  }, [game?.blocks]);
 
   return { game, gameKey };
 };
