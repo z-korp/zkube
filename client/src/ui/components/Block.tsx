@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { GameState } from "@/enums/gameEnums";
 import { Block } from "@/types/types";
 import { ParticlesExplode } from "./ParticlesExplode";
@@ -36,24 +36,22 @@ const BlockContainer: React.FC<BlockProps> = ({
 }) => {
   const [transitionStatus, setTransition] = useState("End");
   const ref = useRef<HTMLDivElement | null>(null);
-  const [rectDiv, setRectDiv] = useState({
-    top: 0,
-    left: 0,
-    width: 0,
-    height: 0,
-  });
   const [triggerParticles, setTriggerParticles] = useState(false);
   const [emitterPosition, setEmitterPosition] = useState({ x: 50, y: 50 }); // Position par défaut du milieu
 
   useEffect(() => {
     if (ref.current) {
       const rect = ref.current.getBoundingClientRect();
-      setRectDiv({
-        top: rect.top,
-        left: rect.left,
-        width: rect.width,
-        height: rect.height,
+      setEmitterPosition({
+        x: ((rect.left + rect.width / 2) / window.innerWidth) * 100,
+        y: ((rect.top + rect.height / 2) / window.innerHeight) * 100,
       });
+      // setEmitterPosition({
+      //   x: ((block.x * gridSize) / window.innerWidth) * 100,
+      //   y: ((block.y * gridSize) / window.innerHeight) * 100,
+      // });
+      console.log("emitter ------------------------>", emitterPosition);
+      //setEmitterPosition({ x: 90, y: 10 });
     }
   }, []);
 
@@ -76,12 +74,13 @@ const BlockContainer: React.FC<BlockProps> = ({
   const handleTransitionEnd = () => {
     setTransition("End");
     setTriggerParticles(true);
-    setEmitterPosition({
-      x: rectDiv.top + rectDiv.height / 2,
-      y: rectDiv.left + rectDiv.width / 2,
-    });
     onTransitionBlockEnd(); // Notifier que la transition est terminée
   };
+
+  const handleParticlesComplete = useCallback(() => {
+    console.log("Particles animation complete!");
+    setTriggerParticles(false); // Met à jour l'état quand l'animation est terminée
+  }, []);
 
   return (
     <div
@@ -101,11 +100,24 @@ const BlockContainer: React.FC<BlockProps> = ({
             : "none", // Désactivation de la transition autrement
         color: "white",
       }}
-      onMouseDown={(e) => handleMouseDown(e, block)}
-      onTouchStart={(e) => handleTouchStart(e, block)}
+      onMouseDown={(e) => {
+        handleMouseDown(e, block);
+        console.log("emmiter", emitterPosition);
+        setTriggerParticles(true);
+      }}
+      onTouchStart={(e) => {
+        handleTouchStart(e, block);
+        console.log("emmiter", emitterPosition);
+        //setTriggerParticles(true);
+      }}
       onTransitionEnd={handleTransitionEnd}
     >
-      {triggerParticles && <ParticlesExplode position={emitterPosition} />}
+      {triggerParticles && (
+        <ParticlesExplode
+          handleParticlesComplete={handleParticlesComplete}
+          position={emitterPosition}
+        />
+      )}
     </div>
   );
 };

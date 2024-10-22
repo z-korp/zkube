@@ -5,10 +5,12 @@ import { Container } from "@tsparticles/engine";
 
 interface ParticlesExplodeProps {
   position: { x: number; y: number };
+  handleParticlesComplete: () => void;
 }
 
 export const ParticlesExplode: React.FC<ParticlesExplodeProps> = ({
   position,
+  handleParticlesComplete,
 }) => {
   const [init, setInit] = useState(false);
 
@@ -22,7 +24,7 @@ export const ParticlesExplode: React.FC<ParticlesExplodeProps> = ({
 
   const particlesLoaded = async (container?: Container): Promise<void> => {
     if (container) {
-      console.log(container);
+      //console.log(container);
     }
   };
 
@@ -30,7 +32,6 @@ export const ParticlesExplode: React.FC<ParticlesExplodeProps> = ({
     <>
       {init && (
         <Particles
-          id="tsparticles"
           particlesLoaded={particlesLoaded}
           options={{
             fullScreen: {
@@ -121,6 +122,7 @@ export const ParticlesExplode: React.FC<ParticlesExplodeProps> = ({
                 width: 0,
                 height: 0,
               },
+              onComplete: handleParticlesComplete,
             },
           }}
         />
