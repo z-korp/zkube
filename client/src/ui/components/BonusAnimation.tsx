@@ -75,8 +75,8 @@ const BonusAnimation: React.FC<BonusAnimationProps> = ({
   useEffect(() => {
     if (!wonBonus) {
       if (
-        optimisticCombo >= 24 &&
-        prevComboRef.current < 24 &&
+        optimisticCombo >= 64 &&
+        prevComboRef.current < 64 &&
         !unlockedBonuses.Wave
       ) {
         setWonBonus(BonusType.Wave);
