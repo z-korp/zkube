@@ -21,6 +21,7 @@ import { BonusType } from "@/dojo/game/types/bonus";
 
 import "../../grid.css";
 import { set } from "date-fns";
+import { useMusicPlayer } from "@/contexts/music";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -88,7 +89,7 @@ const Grid: React.FC<GridProps> = ({
     ComboMessages.None,
   );
   const [shouldBounce, setShouldBounce] = useState(false);
-
+  const { playExplode, playSwipe } = useMusicPlayer();
   const borderSize = 2;
   const gravitySpeed = 100;
   const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
@@ -289,6 +290,7 @@ const Grid: React.FC<GridProps> = ({
       if (startColIndex === finalColIndex) return;
       if (!account) return;
       setIsTxProcessing(true);
+      playSwipe();
       try {
         await move({
           account: account as Account,
@@ -416,6 +418,7 @@ const Grid: React.FC<GridProps> = ({
       gridHeight,
     );
     if (updatedBlocks.length < blocks.length) {
+      playExplode();
       setLineExplodedCount(lineExplodedCount + completeRows.length);
       setBlocks(updatedBlocks);
       setIsMoving(true);
