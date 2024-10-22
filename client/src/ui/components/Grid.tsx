@@ -18,9 +18,7 @@ import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
 import { motion } from "framer-motion";
 import { BonusType } from "@/dojo/game/types/bonus";
-
 import "../../grid.css";
-import { set } from "date-fns";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
