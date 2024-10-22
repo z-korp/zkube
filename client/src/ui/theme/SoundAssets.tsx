@@ -6,6 +6,8 @@ const SoundAssets = (theme: string) => {
     over: PathAssets + "sounds/effects/over.mp3",
     jungle2: PathAssets + "sounds/musics/theme-jungle2.mp3",
     jungle3: PathAssets + "sounds/musics/theme-jungle3.mp3",
+    swipe: PathAssets + "sounds/effects/swipe.mp3",
+    explode: PathAssets + "sounds/effects/explode.mp3",
   };
 };
 

@@ -27,6 +27,8 @@ const MusicPlayerContext = createContext({
   },
   playStart: () => {},
   playOver: () => {},
+  playSwipe: () => {},
+  playExplode: () => {},
 });
 
 export const MusicPlayerProvider = ({
@@ -47,18 +49,17 @@ export const MusicPlayerProvider = ({
     { name: "Play", url: soundAssets.jungle3 },
   ];
 
-  const effectTracks: Track[] = [
-    { name: "Start", url: soundAssets.start },
-    { name: "Start", url: soundAssets.start },
-    { name: "Over", url: soundAssets.over },
-  ];
-
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-  const [currentEffectIndex, setCurrentEffectIndex] = useState(0);
   const [tracks, setTracks] = useState(menuTracks);
   const [theme, setTheme] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.2);
+
+  // Hooks séparés pour chaque effet sonore
+  const [playStartSound] = useSound(soundAssets.start, { volume });
+  const [playOverSound] = useSound(soundAssets.over, { volume });
+  const [playSwipeSound] = useSound(soundAssets.swipe, { volume });
+  const [playExplodeSound] = useSound(soundAssets.explode, { volume });
 
   const goToNextTrack = () => {
     setCurrentTrackIndex((prevIndex) => {
@@ -66,13 +67,22 @@ export const MusicPlayerProvider = ({
     });
   };
 
+  // Fonctions de lecture d'effets sonores simplifiées
   const playStart = useCallback(() => {
-    setCurrentEffectIndex(1);
-  }, []);
+    playStartSound();
+  }, [playStartSound]);
 
   const playOver = useCallback(() => {
-    setCurrentEffectIndex(2);
-  }, []);
+    playOverSound();
+  }, [playOverSound]);
+
+  const playSwipe = useCallback(() => {
+    playSwipeSound();
+  }, [playSwipeSound]);
+
+  const playExplode = useCallback(() => {
+    playExplodeSound();
+  }, [playExplodeSound]);
 
   const [playTheme, { stop: stopTheme }] = useSound(
     tracks[currentTrackIndex].url,
@@ -87,20 +97,12 @@ export const MusicPlayerProvider = ({
     },
   );
 
-  const [playEffect, { stop: stopEffect }] = useSound(
-    effectTracks[currentEffectIndex].url,
-    {
-      volume,
-    },
-  );
-
   const handleVisibilityChange = useCallback(() => {
     if (document.hidden) {
       stopTheme();
-      stopEffect();
       setIsPlaying(false);
     }
-  }, [stopTheme, stopEffect]);
+  }, [stopTheme]);
 
   useEffect(() => {
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -113,12 +115,6 @@ export const MusicPlayerProvider = ({
     playTheme();
     return () => stopTheme();
   }, [currentTrackIndex, playTheme, stopTheme]);
-
-  useEffect(() => {
-    if (currentEffectIndex === 0) return;
-    playEffect();
-    return () => stopEffect();
-  }, [currentEffectIndex, playEffect, stopEffect]);
 
   useEffect(() => {
     setTracks(theme ? menuTracks : playTracks);
@@ -136,6 +132,8 @@ export const MusicPlayerProvider = ({
         setTheme,
         playStart,
         playOver,
+        playSwipe,
+        playExplode,
       }}
     >
       {children}

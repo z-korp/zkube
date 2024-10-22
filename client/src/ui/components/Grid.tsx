@@ -18,6 +18,7 @@ import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
 import { motion } from "framer-motion";
 import { BonusType } from "@/dojo/game/types/bonus";
+import { useMusicPlayer } from "@/contexts/music";
 
 import "../../grid.css";
 
@@ -87,7 +88,7 @@ const Grid: React.FC<GridProps> = ({
     ComboMessages.None,
   );
   const [shouldBounce, setShouldBounce] = useState(false);
-
+  const { playExplode, playSwipe } = useMusicPlayer();
   const borderSize = 2;
   const gravitySpeed = 100;
   const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
@@ -288,6 +289,7 @@ const Grid: React.FC<GridProps> = ({
       if (startColIndex === finalColIndex) return;
       if (!account) return;
       setIsTxProcessing(true);
+      playSwipe();
       try {
         console.log(
           "Move TX (row, start col, end col)",
@@ -421,6 +423,7 @@ const Grid: React.FC<GridProps> = ({
       gridHeight,
     );
     if (updatedBlocks.length < blocks.length) {
+      playExplode();
       setLineExplodedCount(lineExplodedCount + completeRows.length);
       setBlocks(updatedBlocks);
       setIsMoving(true);
