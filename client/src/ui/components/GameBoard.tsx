@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
 import { GameBonus } from "../containers/GameBonus";
@@ -16,9 +22,11 @@ import { ModeType } from "@/dojo/game/types/mode";
 import useTournament from "@/hooks/useTournament";
 import { Game } from "@/dojo/game/models/game";
 import useRank from "@/hooks/useRank";
+import ParticlesExplosionManager, {
+  ParticlesExplosionManagerHandles,
+} from "./ParticlesExplosionManager";
 
 import "../../grid.css";
-import { ParticlesExplode } from "./ParticlesExplode";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -55,6 +63,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const ROWS = 10;
   const COLS = 8;
   const GRID_SIZE = isMdOrLarger ? 50 : 40;
+
+  const explosionManagerRef = useRef<ParticlesExplosionManagerHandles>(null);
 
   const [isTxProcessing, setIsTxProcessing] = useState(false);
 
@@ -170,28 +180,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
     [bonus],
   );
 
-  // Utiliser une ref pour suivre si l'animation a déjà été jouée
-  const [particlePosition, setParticlePosition] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
-
-  // Fonction pour déclencher l'explosion de particules
-  const triggerParticleExplosion = useCallback(
-    (position: { x: number; y: number }) => {
-      console.log(
-        "triggerParticleExplosion ----------------------->",
-        position,
-      );
-      setParticlePosition(position);
-      // Réinitialiser la position après l'animation
-      setTimeout(() => {
-        setParticlePosition(null);
-      }, 1000);
-    },
-    [],
-  );
-
   useEffect(() => {
     // Reset the isTxProcessing state and the bonus state when the grid changes
     // meaning the tx as been processed, and the client state updated
@@ -211,6 +199,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
     tournamentId: game.tournament_id,
     gameId: game.id,
   });
+
+  const handleTriggerParticles = (position: { x: number; y: number }) => {
+    if (explosionManagerRef.current) {
+      explosionManagerRef.current.triggerExplosion({
+        x: position.x,
+        y: position.y,
+      });
+    }
+  };
 
   if (memoizedInitialData.length === 0) return null; // otherwise sometimes
   // the grid is not displayed in Grid because the data is not ready
@@ -266,9 +263,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
             setOptimisticMaxCombo={setOptimisticMaxCombo}
             isTxProcessing={isTxProcessing}
             setIsTxProcessing={setIsTxProcessing}
-            triggerParticles={triggerParticleExplosion}
+            triggerParticles={(position) =>
+              handleTriggerParticles({ x: position.x, y: position.y })
+            }
           />
-          {particlePosition && <ParticlesExplode position={particlePosition} />}
         </div>
 
         <div className="flex justify-center items-center mt-2 md:mt-3">
@@ -299,6 +297,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
           </div>
         )}
       </Card>
+      <ParticlesExplosionManager ref={explosionManagerRef} />
     </>
   );
 };

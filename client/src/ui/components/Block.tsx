@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { GameState } from "@/enums/gameEnums";
 import { Block } from "@/types/types";
 
@@ -28,10 +28,10 @@ const BlockContainer: React.FC<BlockProps> = ({
   transitionDuration = 100,
   isTxProcessing = false,
   state,
-  handleMouseDown = () => {},
-  handleTouchStart = () => {},
-  onTransitionBlockStart = () => {},
-  onTransitionBlockEnd = () => {},
+  handleMouseDown,
+  handleTouchStart,
+  onTransitionBlockStart,
+  onTransitionBlockEnd,
 }) => {
   const [transitionStatus, setTransition] = useState("End");
   const ref = useRef<HTMLDivElement | null>(null);
@@ -40,7 +40,7 @@ const BlockContainer: React.FC<BlockProps> = ({
     if (ref.current === null) return;
 
     const onTransitionStart = () => {
-      onTransitionBlockStart();
+      if (onTransitionBlockStart !== undefined) onTransitionBlockStart();
       setTransition("Start");
     };
 
@@ -55,7 +55,7 @@ const BlockContainer: React.FC<BlockProps> = ({
   const handleTransitionEnd = () => {
     setTransition("End");
     //setTriggerParticles(true);
-    onTransitionBlockEnd(); // Notifier que la transition est terminée
+    if (onTransitionBlockEnd !== undefined) onTransitionBlockEnd(); // Notifier que la transition est terminée
   };
 
   return (
@@ -77,10 +77,10 @@ const BlockContainer: React.FC<BlockProps> = ({
         color: "white",
       }}
       onMouseDown={(e) => {
-        handleMouseDown(e, block);
+        if (handleMouseDown !== undefined) handleMouseDown(e, block);
       }}
       onTouchStart={(e) => {
-        handleTouchStart(e, block);
+        if (handleTouchStart !== undefined) handleTouchStart(e, block);
       }}
       onTransitionEnd={handleTransitionEnd}
     ></div>

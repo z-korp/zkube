@@ -1,34 +1,16 @@
-import { useEffect, useState, useMemo } from "react";
-import Particles, { initParticlesEngine } from "@tsparticles/react";
-import { loadFull } from "tsparticles";
-import { Container } from "@tsparticles/engine";
+import React, { useRef } from "react";
+import Particles from "@tsparticles/react";
+import { Container, ISourceOptions } from "@tsparticles/engine";
 
 interface ParticlesExplodeProps {
   position: { x: number; y: number };
+  onAnimationEnd: () => void;
 }
 
-export const ParticlesExplode: React.FC<ParticlesExplodeProps> = ({
-  position,
-}) => {
-  const [init, setInit] = useState(false);
-
-  useEffect(() => {
-    initParticlesEngine(async (engine) => {
-      await loadFull(engine);
-    }).then(() => {
-      setInit(true);
-    });
-  }, []);
-
-  const particlesLoaded = async (container?: Container): Promise<void> => {
-    if (container) {
-      //console.log(container);
-    }
-  };
-
-  // Utiliser useMemo pour mémoriser les options des particules et empêcher la recréation
-  const particlesOptions = useMemo(
-    () => ({
+const ParticlesExplode: React.FC<ParticlesExplodeProps> = React.memo(
+  ({ position, onAnimationEnd }) => {
+    // Store particlesOptions in a ref to prevent it from changing on re-renders
+    const particlesOptionsRef = useRef<ISourceOptions>({
       fullScreen: {
         zIndex: 1,
       },
@@ -118,18 +100,28 @@ export const ParticlesExplode: React.FC<ParticlesExplodeProps> = ({
           height: 0,
         },
       },
-    }),
-    [position],
-  );
+    });
 
-  return (
-    <>
-      {init && (
-        <Particles
-          particlesLoaded={particlesLoaded}
-          options={particlesOptions} // Utilisation des options mémorisées
-        />
-      )}
-    </>
-  );
-};
+    // Handle when particles are loaded
+    const particlesLoaded = async (container?: Container): Promise<void> => {
+      if (container) {
+        // Call onAnimationEnd after the animation duration
+        setTimeout(() => {
+          onAnimationEnd();
+        }, 1000); // Adjust the timing to match your animation duration
+      }
+    };
+
+    return (
+      <Particles
+        options={particlesOptionsRef.current}
+        particlesLoaded={particlesLoaded}
+      />
+    );
+  },
+  (prevProps, nextProps) =>
+    prevProps.position.x === nextProps.position.x &&
+    prevProps.position.y === nextProps.position.y,
+);
+
+export default ParticlesExplode;
