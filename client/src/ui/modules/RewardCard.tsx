@@ -120,6 +120,7 @@ export const RewardCard: React.FC<{
         <div className="absolute bottom-4 right-4">
           <Button
             onClick={onClaim}
+            className={!isMdOrLarger ? "h-[26px]" : ""}
           >{`Claim ${isMdOrLarger ? "Reward" : ""}`}</Button>
         </div>
       </div>
