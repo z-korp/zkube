@@ -54,7 +54,10 @@ export const Home = () => {
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
 
-  const { game } = useGame({ gameId: player?.game_id || "0x0" });
+  const { game } = useGame({
+    gameId: player?.game_id || "0x0",
+    shouldLog: true,
+  });
   const [animationDone, setAnimationDone] = useState(false);
 
   const { theme, themeTemplate } = useTheme();

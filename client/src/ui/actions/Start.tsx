@@ -45,6 +45,7 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
 
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
+    shouldLog: false,
   });
 
   const [isLoading, setIsLoading] = useState(false);
