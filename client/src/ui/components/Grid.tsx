@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Account } from "starknet";
 import { useDojo } from "@/dojo/useDojo";
 import BlockContainer from "./Block";
@@ -12,6 +12,7 @@ import {
   removeBlocksSameRow,
   removeBlockId,
   deepCompareBlocks,
+  getBlocksSameRow,
 } from "@/utils/gridUtils";
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
@@ -19,6 +20,7 @@ import { ComboMessages } from "@/enums/comboEnum";
 import { motion } from "framer-motion";
 import { BonusType } from "@/dojo/game/types/bonus";
 import { useMusicPlayer } from "@/contexts/music";
+import useViewportDimensions from "@/hooks/useViewport";
 
 import "../../grid.css";
 
@@ -39,6 +41,10 @@ interface GridProps {
   setOptimisticScore: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
+  triggerParticles: (
+    position: { x: number; y: number },
+    colorSet: string[],
+  ) => void;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -56,12 +62,26 @@ const Grid: React.FC<GridProps> = ({
   setOptimisticMaxCombo,
   isTxProcessing,
   setIsTxProcessing,
+  triggerParticles,
 }) => {
   const {
     setup: {
       systemCalls: { move },
     },
   } = useDojo();
+
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  const [gridPosition, setGridPosition] = useState<DOMRect | null>(null);
+
+  const viewportDimensions = useViewportDimensions();
+
+  useEffect(() => {
+    if (gridRef.current) {
+      const gridPosition = gridRef.current.getBoundingClientRect();
+      // Pass the grid position to the parent via the callback
+      setGridPosition(gridPosition);
+    }
+  }, [gridRef.current]);
 
   const [blocks, setBlocks] = useState<Block[]>(initialData);
   const [nextLine, setNextLine] = useState<Block[]>(nextLineData);
@@ -422,9 +442,47 @@ const Grid: React.FC<GridProps> = ({
       gridWidth,
       gridHeight,
     );
+
     if (updatedBlocks.length < blocks.length) {
       playExplode();
       setLineExplodedCount(lineExplodedCount + completeRows.length);
+
+      // Trigger particle explosions for each cleared row
+      completeRows.forEach((rowIndex) => {
+        console.log("triggerParticles", rowIndex);
+
+        const blocksSameRow = getBlocksSameRow(rowIndex, blocks);
+
+        // Calculate the center position of the row
+        const centerX = (gridWidth * gridSize) / 2; // Center X
+        const centerY = rowIndex * gridSize; // Y position based on row index
+
+        // Calculate absolute position in the viewport
+        if (gridPosition === null) return;
+        const x = gridPosition.left + centerX;
+        const y = gridPosition.top + centerY;
+        const xPercentage = (x / viewportDimensions.width) * 100;
+        const yPercentage = (y / viewportDimensions.height) * 100;
+
+        // blocksSameRow.forEach((block) => {
+        //   triggerParticles(
+        //     {
+        //       x: xPercentage + block.width * 5,
+        //       y: yPercentage,
+        //     },
+        //     ["#47D1D9", "#8BA3BC", "#1974D1", "#44A4D9"],
+        //   );
+        // });
+
+        triggerParticles(
+          {
+            x: xPercentage,
+            y: yPercentage,
+          },
+          ["#47D1D9", "#8BA3BC", "#1974D1", "#44A4D9", "#01040B"],
+        );
+      });
+
       setBlocks(updatedBlocks);
       setIsMoving(true);
       setGameState(newGravityState);
@@ -518,6 +576,7 @@ const Grid: React.FC<GridProps> = ({
       <div
         className={`grid-background ${isTxProcessing ? " cursor-wait animated-border" : "static-border"}`}
         id="grid"
+        ref={gridRef}
       >
         <div
           className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${isPlayerInDanger ? " animated-box-player-danger" : ""}`}
