@@ -18,15 +18,15 @@ const useAccountCustom = () => {
   useEffect(() => {
     if (ACCOUNT_CONNECTOR === "burner") {
       if (burner.account) {
-        console.log("------> setCustomAccount burner.account", burner.account);
+        //console.log("------> setCustomAccount burner.account", burner.account);
         setCustomAccount(burner.account as Account);
       } else {
         setCustomAccount(null);
       }
     } else {
-      console.log("Controller account", account);
+      //console.log("Controller account", account);
       if (account) {
-        console.log("------> setCustomAccount account", account);
+        //console.log("------> setCustomAccount account", account);
         setCustomAccount(account as Account);
       } else {
         setCustomAccount(null);

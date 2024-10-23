@@ -41,6 +41,7 @@ export class Game {
   public next_color: number[];
   public bonuses: number[];
   public blocks: number[][];
+  public blocksRaw: bigint;
   public rows: Row[];
   public player_id: string;
   public seed: bigint;
@@ -86,6 +87,7 @@ export class Game {
     this.tournament_id = game.tournament_id;
 
     // Destructure blocks and colors bitmaps in to Rows and Blocks
+    this.blocksRaw = game.blocks;
     this.blocks = Packer.sized_unpack(
       BigInt(game.blocks),
       BigInt(ROW_BIT_COUNT),

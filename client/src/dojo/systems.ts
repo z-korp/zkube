@@ -46,17 +46,26 @@ export function systems({
     return window.matchMedia("(max-height: 768px)").matches;
   };
 
+  const getUrl = (transaction_hash: string) => {
+    if (
+      VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ||
+      VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev1" ||
+      VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev2"
+    ) {
+      return `https://sepolia.starkscan.co/tx/${transaction_hash}`;
+    } else {
+      return `https://worlds.dev/networks/slot/worlds/zkube-${VITE_PUBLIC_DEPLOY_TYPE}/txs/${transaction_hash}`;
+    }
+  };
+
+  const getWalnutUrl = (transaction_hash: string) => {
+    return `https://app.walnut.dev/transactions?rpcUrl=https%3A%2F%2Fapi.cartridge.gg%2Fx%2Fstarknet%2Fsepolia&txHash=${transaction_hash}`;
+  };
+
   const getToastAction = (transaction_hash: string) => {
     return {
       label: "View",
-      onClick: () =>
-        window.open(
-          VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ||
-            VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev1" ||
-            VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev2"
-            ? `https://sepolia.starkscan.co/tx/${transaction_hash}`
-            : `https://worlds.dev/networks/slot/worlds/zkube-${VITE_PUBLIC_DEPLOY_TYPE}/txs/${transaction_hash}`,
-        ),
+      onClick: () => window.open(getUrl(transaction_hash), "_blank"),
     };
   };
 
@@ -100,6 +109,12 @@ export function systems({
     try {
       // Initiate the transaction and obtain the transaction_hash
       const { transaction_hash } = await action();
+      console.log(
+        "transaction_hash",
+        transaction_hash,
+        getUrl(transaction_hash),
+        getWalnutUrl(transaction_hash),
+      );
 
       const toastId = transaction_hash; // Unique ID based on transaction_hash
 

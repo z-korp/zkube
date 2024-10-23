@@ -44,6 +44,7 @@ export const Surrender: React.FC<SurrenderProps> = ({
   const { player } = usePlayer({ playerId: account?.address });
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
+    shouldLog: false,
   });
 
   const [isLoading, setIsLoading] = useState(false);
