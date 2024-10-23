@@ -28,10 +28,10 @@ const BlockContainer: React.FC<BlockProps> = ({
   transitionDuration = 100,
   isTxProcessing = false,
   state,
-  handleMouseDown = () => {},
-  handleTouchStart = () => {},
-  onTransitionBlockStart = () => {},
-  onTransitionBlockEnd = () => {},
+  handleMouseDown,
+  handleTouchStart,
+  onTransitionBlockStart,
+  onTransitionBlockEnd,
 }) => {
   const [transitionStatus, setTransition] = useState("End");
   const ref = useRef<HTMLDivElement | null>(null);
@@ -40,14 +40,12 @@ const BlockContainer: React.FC<BlockProps> = ({
     if (ref.current === null) return;
 
     const onTransitionStart = () => {
-      onTransitionBlockStart();
+      if (onTransitionBlockStart !== undefined) onTransitionBlockStart();
       setTransition("Start");
     };
 
-    // Ajout de l'événement
     ref.current.addEventListener("transitionstart", onTransitionStart);
 
-    // Nettoyage de l'événement à la fin du cycle de vie
     return () => {
       ref.current?.removeEventListener("transitionstart", onTransitionStart);
     };
@@ -56,7 +54,8 @@ const BlockContainer: React.FC<BlockProps> = ({
   // Gestion de la fin de la transition via l'événement onTransitionEnd
   const handleTransitionEnd = () => {
     setTransition("End");
-    onTransitionBlockEnd(); // Notifier que la transition est terminée
+    //setTriggerParticles(true);
+    if (onTransitionBlockEnd !== undefined) onTransitionBlockEnd(); // Notifier que la transition est terminée
   };
 
   return (
@@ -77,8 +76,12 @@ const BlockContainer: React.FC<BlockProps> = ({
             : "none", // Désactivation de la transition autrement
         color: "white",
       }}
-      onMouseDown={(e) => handleMouseDown(e, block)}
-      onTouchStart={(e) => handleTouchStart(e, block)}
+      onMouseDown={(e) => {
+        if (handleMouseDown !== undefined) handleMouseDown(e, block);
+      }}
+      onTouchStart={(e) => {
+        if (handleTouchStart !== undefined) handleTouchStart(e, block);
+      }}
       onTransitionEnd={handleTransitionEnd}
     ></div>
   );

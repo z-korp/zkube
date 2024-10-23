@@ -1,25 +1,30 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 
-const useViewport = () => {
+const useViewportDimensions = () => {
+  const [viewportDimensions, setViewportDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
   useEffect(() => {
-    const setViewportHeight = () => {
-      // Get the viewport height and multiply by 1% to get a value for a vh unit
-      const vh = window.innerHeight * 0.01;
-      // Set the value in the --vh custom property to the root of the document
-      document.documentElement.style.setProperty("--vh", `${vh}px`);
+    const handleResize = () => {
+      setViewportDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
     };
 
-    // Initial call
-    setViewportHeight();
+    // Add event listener
+    window.addEventListener("resize", handleResize);
 
-    // Re-calculate on resize
-    window.addEventListener("resize", setViewportHeight);
+    // Initial call to set the dimensions
+    handleResize();
 
-    // Clean up the event listener on unmount
-    return () => {
-      window.removeEventListener("resize", setViewportHeight);
-    };
+    // Clean up event listener on unmount
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  return viewportDimensions;
 };
 
-export default useViewport;
+export default useViewportDimensions;
