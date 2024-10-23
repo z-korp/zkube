@@ -176,6 +176,7 @@ export const ContentTournament: React.FC<ContentTournamentProps> = ({
   const handleTournamentChange = useCallback((value: string) => {
     const numericValue = Number(value);
     setSelectedTournamentId(isNaN(numericValue) ? null : numericValue);
+    setPage(1);
   }, []);
 
   const formatTournamentDate = (tournament: Tournament) => {
