@@ -35,23 +35,6 @@ const BlockContainer: React.FC<BlockProps> = ({
 }) => {
   const [transitionStatus, setTransition] = useState("End");
   const ref = useRef<HTMLDivElement | null>(null);
-  const [emitterPosition, setEmitterPosition] = useState({ x: 50, y: 50 }); // Position par défaut du milieu
-
-  useEffect(() => {
-    if (ref.current) {
-      const rect = ref.current.getBoundingClientRect();
-      setEmitterPosition({
-        x: ((rect.left + rect.width / 2) / window.innerWidth) * 100,
-        y: ((rect.top + rect.height / 2) / window.innerHeight) * 100,
-      });
-      // setEmitterPosition({
-      //   x: ((block.x * gridSize) / window.innerWidth) * 100,
-      //   y: ((block.y * gridSize) / window.innerHeight) * 100,
-      // });
-      console.log("emitter ------------------------>", emitterPosition);
-      //setEmitterPosition({ x: 90, y: 10 });
-    }
-  }, []);
 
   useEffect(() => {
     if (ref.current === null) return;
@@ -95,11 +78,9 @@ const BlockContainer: React.FC<BlockProps> = ({
       }}
       onMouseDown={(e) => {
         handleMouseDown(e, block);
-        console.log("emmiter", emitterPosition);
       }}
       onTouchStart={(e) => {
         handleTouchStart(e, block);
-        console.log("emmiter", emitterPosition);
       }}
       onTransitionEnd={handleTransitionEnd}
     ></div>

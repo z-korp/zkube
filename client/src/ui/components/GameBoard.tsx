@@ -179,6 +179,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
   // Fonction pour déclencher l'explosion de particules
   const triggerParticleExplosion = useCallback(
     (position: { x: number; y: number }) => {
+      console.log(
+        "triggerParticleExplosion ----------------------->",
+        position,
+      );
       setParticlePosition(position);
       // Réinitialiser la position après l'animation
       setTimeout(() => {
