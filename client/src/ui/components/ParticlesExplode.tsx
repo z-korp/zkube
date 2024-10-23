@@ -97,7 +97,7 @@ const ParticlesExplode: React.FC<ParticlesExplodeProps> = React.memo(
           quantity: 150,
         },
         size: {
-          width: 0,
+          width: 25,
           height: 0,
         },
       },

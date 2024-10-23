@@ -12,6 +12,7 @@ import {
   removeBlocksSameRow,
   removeBlockId,
   deepCompareBlocks,
+  getBlocksSameRow,
 } from "@/utils/gridUtils";
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
@@ -441,6 +442,8 @@ const Grid: React.FC<GridProps> = ({
       completeRows.forEach((rowIndex) => {
         console.log("triggerParticles", rowIndex);
 
+        const blocksSameRow = getBlocksSameRow(rowIndex, blocks);
+
         // Calculate the center position of the row
         const centerX = (gridWidth * gridSize) / 2; // Center X
         const centerY = rowIndex * gridSize; // Y position based on row index
@@ -452,12 +455,22 @@ const Grid: React.FC<GridProps> = ({
         const xPercentage = (x / viewportDimensions.width) * 100;
         const yPercentage = (y / viewportDimensions.height) * 100;
 
+        // blocksSameRow.forEach((block) => {
+        //   triggerParticles(
+        //     {
+        //       x: xPercentage + block.width * 5,
+        //       y: yPercentage,
+        //     },
+        //     ["#47D1D9", "#8BA3BC", "#1974D1", "#44A4D9"],
+        //   );
+        // });
+
         triggerParticles(
           {
             x: xPercentage,
             y: yPercentage,
           },
-          ["#FFD700", "#FFA500", "#FF8C00", "#FF4500"],
+          ["#47D1D9", "#8BA3BC", "#1974D1", "#44A4D9", "#01040B"],
         );
       });
 

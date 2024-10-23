@@ -95,6 +95,13 @@ export const removeBlocksSameRow = (block: Block, blocks: Block[]): Block[] => {
   return blocks.filter((b) => b.y !== block.y);
 };
 
+export const getBlocksSameRow = (
+  rowIndex: number,
+  blocks: Block[],
+): Block[] => {
+  return blocks.filter((b) => b.y == rowIndex);
+};
+
 export const removeBlockId = (block: Block, blocks: Block[]): Block[] => {
   return blocks.filter((b) => b.id !== block.id);
 };
