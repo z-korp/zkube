@@ -417,7 +417,7 @@ const Grid: React.FC<GridProps> = ({
     );
     if (updatedBlocks.length < blocks.length) {
       setLineExplodedCount(lineExplodedCount + completeRows.length);
-      triggerParticles({ x: 50, y: 50 });
+      triggerParticles({ x: 50, y: completeRows[0] * 10 });
       setBlocks(updatedBlocks);
       setIsMoving(true);
       setGameState(newGravityState);
