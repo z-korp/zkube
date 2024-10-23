@@ -280,6 +280,7 @@ const Grid: React.FC<GridProps> = ({
   useEffect(() => {
     if (pendingMove) {
       const { rowIndex, startX, finalX } = pendingMove;
+      console.log("Pending move", rowIndex, startX, finalX);
       handleMoveTX(rowIndex, startX, finalX);
     }
   }, [pendingMove]);
