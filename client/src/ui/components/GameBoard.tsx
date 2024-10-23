@@ -200,12 +200,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
     gameId: game.id,
   });
 
-  const handleTriggerParticles = (position: { x: number; y: number }) => {
+  const handleTriggerParticles = (
+    position: { x: number; y: number },
+    colorSet: string[],
+  ) => {
     if (explosionManagerRef.current) {
-      explosionManagerRef.current.triggerExplosion({
-        x: position.x,
-        y: position.y,
-      });
+      explosionManagerRef.current.triggerExplosion(
+        { x: position.x, y: position.y },
+        colorSet,
+      );
     }
   };
 
@@ -263,8 +266,17 @@ const GameBoard: React.FC<GameBoardProps> = ({
             setOptimisticMaxCombo={setOptimisticMaxCombo}
             isTxProcessing={isTxProcessing}
             setIsTxProcessing={setIsTxProcessing}
-            triggerParticles={(position) =>
-              handleTriggerParticles({ x: position.x, y: position.y })
+            triggerParticles={(
+              position: { x: number; y: number },
+              colorSet: string[],
+            ) =>
+              handleTriggerParticles(
+                {
+                  x: position.x,
+                  y: position.y,
+                },
+                colorSet,
+              )
             }
           />
         </div>

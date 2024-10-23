@@ -4,11 +4,12 @@ import { Container, ISourceOptions } from "@tsparticles/engine";
 
 interface ParticlesExplodeProps {
   position: { x: number; y: number };
+  color: string[];
   onAnimationEnd: () => void;
 }
 
 const ParticlesExplode: React.FC<ParticlesExplodeProps> = React.memo(
-  ({ position, onAnimationEnd }) => {
+  ({ position, color, onAnimationEnd }) => {
     // Store particlesOptions in a ref to prevent it from changing on re-renders
     const particlesOptionsRef = useRef<ISourceOptions>({
       fullScreen: {
@@ -19,7 +20,7 @@ const ParticlesExplode: React.FC<ParticlesExplodeProps> = React.memo(
           value: 0,
         },
         color: {
-          value: ["#2A708C", "#0A9BC5", "#001424"],
+          value: color,
         },
         shape: {
           type: "square",
@@ -121,7 +122,8 @@ const ParticlesExplode: React.FC<ParticlesExplodeProps> = React.memo(
   },
   (prevProps, nextProps) =>
     prevProps.position.x === nextProps.position.x &&
-    prevProps.position.y === nextProps.position.y,
+    prevProps.position.y === nextProps.position.y &&
+    prevProps.color === nextProps.color,
 );
 
 export default ParticlesExplode;

@@ -39,7 +39,10 @@ interface GridProps {
   setOptimisticScore: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
-  triggerParticles: (position: { x: number; y: number }) => void;
+  triggerParticles: (
+    position: { x: number; y: number },
+    colorSet: string[],
+  ) => void;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -449,10 +452,13 @@ const Grid: React.FC<GridProps> = ({
         const xPercentage = (x / viewportDimensions.width) * 100;
         const yPercentage = (y / viewportDimensions.height) * 100;
 
-        triggerParticles({
-          x: xPercentage,
-          y: yPercentage,
-        });
+        triggerParticles(
+          {
+            x: xPercentage,
+            y: yPercentage,
+          },
+          ["#FFD700", "#FFA500", "#FF8C00", "#FF4500"],
+        );
       });
 
       setBlocks(updatedBlocks);

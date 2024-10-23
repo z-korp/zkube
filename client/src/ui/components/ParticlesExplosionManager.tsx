@@ -16,10 +16,16 @@ interface Explosion {
     x: number;
     y: number;
   };
+  color: {
+    value: string[];
+  };
 }
 
 export interface ParticlesExplosionManagerHandles {
-  triggerExplosion: (position: { x: number; y: number }) => void;
+  triggerExplosion: (
+    position: { x: number; y: number },
+    colorSet: string[],
+  ) => void;
 }
 
 const ParticlesExplosionManager = forwardRef<
@@ -48,9 +54,12 @@ const ParticlesExplosionManager = forwardRef<
 
   // Expose a method to trigger explosions
   useImperativeHandle(ref, () => ({
-    triggerExplosion(position: { x: number; y: number }) {
+    triggerExplosion(position: { x: number; y: number }, colorSet: string[]) {
       const id = explosionIdRef.current++;
-      setExplosions((prev) => [...prev, { id, position }]);
+      setExplosions((prev) => [
+        ...prev,
+        { id, position, color: { value: colorSet } },
+      ]);
     },
   }));
 
@@ -66,6 +75,7 @@ const ParticlesExplosionManager = forwardRef<
           <ParticlesExplode
             key={explosion.id}
             position={explosion.position}
+            color={explosion.color.value}
             onAnimationEnd={() => handleAnimationEnd(explosion.id)}
           />
         ))}
