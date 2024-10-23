@@ -18,6 +18,7 @@ import { Game } from "@/dojo/game/models/game";
 import useRank from "@/hooks/useRank";
 
 import "../../grid.css";
+import { ParticlesExplode } from "./ParticlesExplode";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -169,6 +170,24 @@ const GameBoard: React.FC<GameBoardProps> = ({
     [bonus],
   );
 
+  // Utiliser une ref pour suivre si l'animation a déjà été jouée
+  const [particlePosition, setParticlePosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+
+  // Fonction pour déclencher l'explosion de particules
+  const triggerParticleExplosion = useCallback(
+    (position: { x: number; y: number }) => {
+      setParticlePosition(position);
+      // Réinitialiser la position après l'animation
+      setTimeout(() => {
+        setParticlePosition(null);
+      }, 1000);
+    },
+    [],
+  );
+
   useEffect(() => {
     // Reset the isTxProcessing state and the bonus state when the grid changes
     // meaning the tx as been processed, and the client state updated
@@ -243,7 +262,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
             setOptimisticMaxCombo={setOptimisticMaxCombo}
             isTxProcessing={isTxProcessing}
             setIsTxProcessing={setIsTxProcessing}
+            triggerParticles={triggerParticleExplosion}
           />
+          {particlePosition && <ParticlesExplode position={particlePosition} />}
         </div>
 
         <div className="flex justify-center items-center mt-2 md:mt-3">

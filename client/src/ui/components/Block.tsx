@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { GameState } from "@/enums/gameEnums";
 import { Block } from "@/types/types";
-import { ParticlesExplode } from "./ParticlesExplode";
 
 interface BlockProps {
   block: Block;
@@ -36,7 +35,6 @@ const BlockContainer: React.FC<BlockProps> = ({
 }) => {
   const [transitionStatus, setTransition] = useState("End");
   const ref = useRef<HTMLDivElement | null>(null);
-  const [triggerParticles, setTriggerParticles] = useState(false);
   const [emitterPosition, setEmitterPosition] = useState({ x: 50, y: 50 }); // Position par défaut du milieu
 
   useEffect(() => {
@@ -73,18 +71,9 @@ const BlockContainer: React.FC<BlockProps> = ({
   // Gestion de la fin de la transition via l'événement onTransitionEnd
   const handleTransitionEnd = () => {
     setTransition("End");
-    setTriggerParticles(true);
+    //setTriggerParticles(true);
     onTransitionBlockEnd(); // Notifier que la transition est terminée
   };
-
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      console.log("Particles animation complete!");
-      setTriggerParticles(false);
-    }, 1000);
-
-    return () => clearTimeout(timeoutId);
-  }, [triggerParticles]);
 
   return (
     <div
@@ -107,17 +96,13 @@ const BlockContainer: React.FC<BlockProps> = ({
       onMouseDown={(e) => {
         handleMouseDown(e, block);
         console.log("emmiter", emitterPosition);
-        setTriggerParticles(true);
       }}
       onTouchStart={(e) => {
         handleTouchStart(e, block);
         console.log("emmiter", emitterPosition);
-        //setTriggerParticles(true);
       }}
       onTransitionEnd={handleTransitionEnd}
-    >
-      {triggerParticles && <ParticlesExplode position={emitterPosition} />}
-    </div>
+    ></div>
   );
 };
 

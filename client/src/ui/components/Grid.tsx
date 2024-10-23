@@ -37,6 +37,7 @@ interface GridProps {
   setOptimisticScore: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
+  triggerParticles: (position: { x: number; y: number }) => void;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -54,6 +55,7 @@ const Grid: React.FC<GridProps> = ({
   setOptimisticMaxCombo,
   isTxProcessing,
   setIsTxProcessing,
+  triggerParticles,
 }) => {
   const {
     setup: {
@@ -415,6 +417,7 @@ const Grid: React.FC<GridProps> = ({
     );
     if (updatedBlocks.length < blocks.length) {
       setLineExplodedCount(lineExplodedCount + completeRows.length);
+      triggerParticles({ x: 50, y: 50 });
       setBlocks(updatedBlocks);
       setIsMoving(true);
       setGameState(newGravityState);
