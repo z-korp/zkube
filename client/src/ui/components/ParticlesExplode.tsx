@@ -5,12 +5,10 @@ import { Container } from "@tsparticles/engine";
 
 interface ParticlesExplodeProps {
   position: { x: number; y: number };
-  handleParticlesComplete: () => void;
 }
 
 export const ParticlesExplode: React.FC<ParticlesExplodeProps> = ({
   position,
-  handleParticlesComplete,
 }) => {
   const [init, setInit] = useState(false);
 
@@ -122,7 +120,6 @@ export const ParticlesExplode: React.FC<ParticlesExplodeProps> = ({
                 width: 0,
                 height: 0,
               },
-              onComplete: handleParticlesComplete,
             },
           }}
         />

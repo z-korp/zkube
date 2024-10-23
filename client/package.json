@@ -82,6 +82,7 @@
     "starknet": "6.11.0",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
+    "tsparticles": "^3.5.0",
     "use-sound": "^4.0.1",
     "vaul": "^0.9.1",
     "vite-plugin-pwa": "^0.20.0",

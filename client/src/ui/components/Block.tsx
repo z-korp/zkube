@@ -77,10 +77,14 @@ const BlockContainer: React.FC<BlockProps> = ({
     onTransitionBlockEnd(); // Notifier que la transition est terminée
   };
 
-  const handleParticlesComplete = useCallback(() => {
-    console.log("Particles animation complete!");
-    setTriggerParticles(false); // Met à jour l'état quand l'animation est terminée
-  }, []);
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      console.log("Particles animation complete!");
+      setTriggerParticles(false);
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [triggerParticles]);
 
   return (
     <div
@@ -112,12 +116,7 @@ const BlockContainer: React.FC<BlockProps> = ({
       }}
       onTransitionEnd={handleTransitionEnd}
     >
-      {triggerParticles && (
-        <ParticlesExplode
-          handleParticlesComplete={handleParticlesComplete}
-          position={emitterPosition}
-        />
-      )}
+      {triggerParticles && <ParticlesExplode position={emitterPosition} />}
     </div>
   );
 };
