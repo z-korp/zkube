@@ -190,50 +190,50 @@ export const Statistics: React.FC<{ games: Game[]; player: Player }> = ({
               <TabsContent value="overview" className="pt-1">
                 <div className="grid grid-cols-2 gap-2 md:gap-4">
                   <Card>
-                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8">
+                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8 md:py-4">
                       <CardTitle>Daily Streak</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:px-10">
+                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:py-3 md:pt-0 md:px-10">
                       {player.daily_streak}
                     </CardContent>
                   </Card>
                   <Card>
-                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8">
+                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8 md:py-4">
                       <CardTitle>Account Age</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:px-10">
+                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:py-3 md:pt-0 md:px-10">
                       {player.getAccountAgeInDays()}
                     </CardContent>
                   </Card>
                   <Card>
-                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8">
+                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8 md:py-4">
                       <CardTitle>Games Played</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:px-10">
+                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:py-3 md:pt-0 md:px-10">
                       {totalGamesPlayed}
                     </CardContent>
                   </Card>
                   <Card>
-                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8">
+                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8 md:py-4">
                       <CardTitle>Highest Score</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:px-10">
+                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:py-3 md:pt-0 md:px-10">
                       {highestScore}
                     </CardContent>
                   </Card>
                   <Card>
-                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8">
+                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8 md:py-4">
                       <CardTitle>Average Score</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:px-10">
+                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:py-3 md:pt-0 md:px-10">
                       {averageScore.toFixed(1)}
                     </CardContent>
                   </Card>
                   <Card>
-                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8">
+                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8 md:py-4">
                       <CardTitle>Total Score</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:px-10">
+                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:py-3 md:pt-0 md:px-10">
                       {totalScore}
                     </CardContent>
                   </Card>
