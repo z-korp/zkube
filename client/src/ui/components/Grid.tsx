@@ -75,8 +75,6 @@ const Grid: React.FC<GridProps> = ({
 
   const viewportDimensions = useViewportDimensions();
 
-  const isDraggingRef = useRef(false);
-
   useEffect(() => {
     if (gridRef.current) {
       const gridPosition = gridRef.current.getBoundingClientRect();
@@ -211,7 +209,6 @@ const Grid: React.FC<GridProps> = ({
 
   const handleDragStart = (x: number, block: Block) => {
     setDragging(block);
-    isDraggingRef.current = true;
     setDragStartX(x);
     setInitialX(block.x);
     setGameState(GameState.DRAGGING);
@@ -241,7 +238,7 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const handleTouchStart = (e: React.TouchEvent, block: Block) => {
-    if (isTxProcessing || applyData) return;
+    if (isProcessingRef.current || isTxProcessing || applyData) return;
 
     const touch = e.touches[0];
     handleDragStart(touch.clientX, block);
@@ -257,16 +254,8 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const endDrag = () => {
-    console.log("endDrag 1");
-    if (!isDraggingRef.current) return;
-    isDraggingRef.current = false;
-
-    console.log("endDrag 2");
-
     if (!dragging) return;
-    if (isTxProcessing || applyData) return;
-
-    console.log("endDrag 3");
+    if (isProcessingRef.current || isTxProcessing || applyData) return;
 
     setBlocks((prevBlocks) => {
       const updatedBlocks = prevBlocks.map((b) => {
