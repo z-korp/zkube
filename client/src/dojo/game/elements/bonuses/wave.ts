@@ -6,11 +6,11 @@ export class Wave {
     combo: number,
     _max_combo: number,
   ): number {
-    if (combo >= 8) {
+    if (combo >= 64) {
       return 3;
-    } else if (combo >= 16) {
+    } else if (combo >= 32) {
       return 2;
-    } else if (combo >= 24) {
+    } else if (combo >= 16) {
       return 1;
     } else {
       return 0;
@@ -19,9 +19,9 @@ export class Wave {
 
   public static getConditions(): Condition[] {
     return [
-      { score: 0, combo: 8, max_combo: 0 },
       { score: 0, combo: 16, max_combo: 0 },
-      { score: 0, combo: 24, max_combo: 0 },
+      { score: 0, combo: 32, max_combo: 0 },
+      { score: 0, combo: 64, max_combo: 0 },
     ];
   }
 

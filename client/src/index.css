@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Bangers&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,10 +100,26 @@ img {
   pointer-events: none;
 }
 
+.h-screen-viewport {
+  height: calc(var(--vh, 1vh) * 100);
+}
+
+.game-container {
+  touch-action: none; /* Prevents touch-based panning */
+  overscroll-behavior: none; /* Prevents pull-to-refresh */
+}
+
+input,
+textarea,
+select {
+  font-size: 16px !important;
+} /* prevent zoom on mobile */
+
 html,
 body {
-  touch-action: none; /* Prevents touch-based panning */
-  height: 100vh;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 @keyframes wiggle {
@@ -153,16 +171,16 @@ body {
 }
 
 ::-webkit-scrollbar {
-  width: 12px; 
+  width: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  border-radius: 10px; 
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
   background-color: #888;
-  border-radius: 10px; 
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {

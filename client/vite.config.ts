@@ -75,5 +75,6 @@ export default defineConfig({
   },
   server: {
     host: true, // Allow access from local network
+    https: true, // Otherwise can't open locally on mobile
   },
 });

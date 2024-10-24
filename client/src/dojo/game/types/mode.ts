@@ -1,7 +1,17 @@
+import {
+  DAILY_MODE_DURATION,
+  DAILY_MODE_PRICE,
+  FREE_MODE_DURATION,
+  FREE_MODE_PRICE,
+  NORMAL_MODE_DURATION,
+  NORMAL_MODE_PRICE,
+} from "../constants";
+
 export enum ModeType {
   None = "None",
-  Normal = "Normal",
-  Daily = "Daily",
+  Normal = "Weekly Marathon",
+  Daily = "Daily Challenge",
+  Free = "Freeplay Arena",
 }
 
 export class Mode {
@@ -22,23 +32,27 @@ export class Mode {
 
   public duration(): number {
     switch (this.value) {
-      case ModeType.Normal:
-        return 60480000;
-      case ModeType.Daily:
-        return 86400;
       case ModeType.None:
         return 0;
+      case ModeType.Normal:
+        return NORMAL_MODE_DURATION;
+      case ModeType.Daily:
+        return DAILY_MODE_DURATION;
+      case ModeType.Free:
+        return FREE_MODE_DURATION;
     }
   }
 
   public price(): bigint {
     switch (this.value) {
-      case ModeType.Normal:
-        return BigInt(0);
-      case ModeType.Daily:
-        return BigInt(0);
       case ModeType.None:
         return BigInt(0);
+      case ModeType.Normal:
+        return BigInt(NORMAL_MODE_PRICE);
+      case ModeType.Daily:
+        return BigInt(DAILY_MODE_PRICE);
+      case ModeType.Free:
+        return BigInt(FREE_MODE_PRICE);
     }
   }
 }

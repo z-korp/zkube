@@ -25,8 +25,3 @@ In zKube, players face the task of managing a grid populated by falling blocks. 
 ## Team
 
 At the heart of zKube is the dedicated team of developers from zKorp. With their expertise and passion for gaming, they have brought this innovative puzzle experience to life. As the creators of zKube, the zKorp team is committed to delivering quality gameplay and engaging challenges to players worldwide. We welcome collaboration and encourage aspiring developers to join us on our journey. If you're interested in contributing to zKube or exploring the Starknet dojo framework, we invite you to reach out and become part of the dojo growing community. Together, let's shape the future of gaming.
-
-- [Bal7hazar](https://github.com/Bal7hazar)
-- [Cheelax](https://github.com/Cheelax)
-- [Cosmos](https://github.com/ClanCo) (remote)
-- [TAdev0](https://github.com/tadev0)

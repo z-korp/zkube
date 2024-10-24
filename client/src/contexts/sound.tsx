@@ -17,7 +17,7 @@ export const SoundPlayerProvider = ({
 
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
-  const { game } = useGame({ gameId: player?.game_id });
+  const { game } = useGame({ gameId: player?.game_id, shouldLog: false });
 
   useEffect(() => {
     setTheme(!game || game.isOver());

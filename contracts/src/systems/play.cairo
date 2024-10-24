@@ -136,7 +136,7 @@ mod play {
                 if let Resource::Contract((class_hash, contract_address)) = world
                     .resource(selector_from_tag!("zkube-chest")) {
                     let chest_system_dispatcher = IChestDispatcher { contract_address };
-                    chest_system_dispatcher.sponsor_unknown(chest_amount, caller);
+                    chest_system_dispatcher.sponsor_from(chest_amount, caller);
                 }
 
                 // zKorp

@@ -1,0 +1,27 @@
+kind = "DojoModel"
+class_hash = "0x4ebc00a7ff8d99ef6a898161a20ce5f8e8a5cb96f471207a2b4d8a518262c0e"
+original_class_hash = "0x4ebc00a7ff8d99ef6a898161a20ce5f8e8a5cb96f471207a2b4d8a518262c0e"
+abi = "manifests/sepoliadev2/base/abis/models/zkube-Chest-4d11a491.json"
+tag = "zkube-Chest"
+qualified_path = "zkube::models::index::chest"
+manifest_name = "zkube-Chest-4d11a491"
+
+[[members]]
+name = "id"
+type = "u32"
+key = true
+
+[[members]]
+name = "point_target"
+type = "u32"
+key = false
+
+[[members]]
+name = "points"
+type = "u32"
+key = false
+
+[[members]]
+name = "prize"
+type = "u128"
+key = false

@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from "../elements/button";
 import { MusicPlayer } from "../modules/MusicPlayer";
 import AccountDetails from "./AccountDetails";
-import { useControllerUsername } from "@/hooks/useControllerUsername";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +15,6 @@ import { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 import { BurnerAccount } from "./BurnerAccount";
 
 export const SettingsDropDown = () => {
-  const { username } = useControllerUsername();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -25,7 +23,9 @@ export const SettingsDropDown = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent sideOffset={20}>
-        <DropdownMenuLabel>Sound</DropdownMenuLabel>
+        <DropdownMenuLabel className="text-xl font-bold">
+          Sound
+        </DropdownMenuLabel>
         <DropdownMenuItem>
           <MusicPlayer />
         </DropdownMenuItem>
@@ -35,7 +35,6 @@ export const SettingsDropDown = () => {
         </DropdownMenuLabel>
         {ACCOUNT_CONNECTOR === "controller" && (
           <div className="p-1 flex flex-col gap-2">
-            <div className="px-1">{username}</div>
             <AccountDetails />
           </div>
         )}

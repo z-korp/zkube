@@ -13,13 +13,28 @@ import {
   DialogClose,
 } from "@/ui/elements/dialog";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import { useGeneralStore } from "@/stores/generalStore";
+import { cn } from "../utils";
 
 interface SurrenderProps {
-  setIsUnmounting: (value: boolean) => void;
+  variant?:
+    | "default"
+    | "link"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost";
+  red?: boolean;
+  className?: string;
 }
 
-export const Surrender: React.FC<SurrenderProps> = ({ setIsUnmounting }) => {
+export const Surrender: React.FC<SurrenderProps> = ({
+  variant = "default",
+  red = false,
+  className,
+}) => {
   const { account } = useAccountCustom();
+  const { setIsUnmounting } = useGeneralStore();
   const {
     master,
     setup: {
@@ -29,6 +44,7 @@ export const Surrender: React.FC<SurrenderProps> = ({ setIsUnmounting }) => {
   const { player } = usePlayer({ playerId: account?.address });
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
+    shouldLog: false,
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -52,35 +68,37 @@ export const Surrender: React.FC<SurrenderProps> = ({ setIsUnmounting }) => {
   if (disabled) return null;
 
   return (
-    <div className="flex gap-4">
+    <div className={cn("flex gap-4", className)}>
       <Dialog>
         <DialogTrigger asChild>
           <Button
             disabled={isLoading}
             isLoading={isLoading}
-            className="text-xl"
+            variant={variant}
+            className={cn("text-xl", className, red && "bg-red-600")}
           >
             Surrender
           </Button>
         </DialogTrigger>
         <DialogContent
           aria-describedby={undefined}
-          className="w-[90%] p-8 flex flex-col gap-4"
+          className="sm:max-w-[700px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-4"
         >
           <DialogHeader>
             <DialogTitle>Surrender Game?</DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col gap-4">
-            <DialogClose asChild className="">
-              <Button>No, Continue Playing</Button>
+          <div className="flex gap-4">
+            <DialogClose asChild className="w-full">
+              <Button className="flex-1">No, Continue</Button>
             </DialogClose>
-            <DialogClose asChild className="">
+            <DialogClose asChild className="w-full">
               <Button
                 variant="destructive"
                 disabled={isLoading}
                 isLoading={isLoading}
                 onClick={handleClick}
+                className="flex-1"
               >
                 Yes, Surrender
               </Button>

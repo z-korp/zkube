@@ -169,6 +169,10 @@
       {
         "name": "Daily",
         "type": "()"
+      },
+      {
+        "name": "Free",
+        "type": "()"
       }
     ]
   },
@@ -210,7 +214,7 @@
           },
           {
             "name": "amount",
-            "type": "core::felt252"
+            "type": "core::integer::u128"
           },
           {
             "name": "caller",

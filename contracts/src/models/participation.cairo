@@ -7,8 +7,7 @@ use core::Zeroable;
 
 use zkube::models::index::Participation;
 use zkube::models::index::Chest;
-
-const PRECISION: u128 = 1_000_000_000; // 9 decimal places
+use zkube::constants::PRECISION_FACTOR;
 
 mod errors {
     const PARTICIPATION_NOT_EXIST: felt252 = 'Parti.: Does not exist';
@@ -25,24 +24,17 @@ impl ParticipationImpl of ParticipationTrait {
         self.points += points;
     }
 
-    fn claim(ref self: Participation, total_points: u32, total_prize: felt252) -> u64 {
+    fn claim(ref self: Participation, total_points: u32, total_prize: u128) -> u128 {
         assert(!self.claimed, 'Participation already claimed');
 
-        let total_points: u128 = total_points.into();
-        let player_points: u128 = self.points.into();
-        let prize: u128 = total_prize.try_into().unwrap();
-
         // Calculate the reward using fixed-point arithmetic
-        let scaled_player_points: u128 = player_points * PRECISION;
-        let reward: u128 = (scaled_player_points / total_points) * prize / PRECISION;
-
-        // Convert reward back to u64 if necessary
-        let reward_u64: u64 = reward.try_into().unwrap();
+        let scaled_player_points: u256 = self.points.into() * PRECISION_FACTOR.into();
+        let reward: u256 = (scaled_player_points / total_points.into()) * total_prize.into() / PRECISION_FACTOR.into();
 
         // Update participation to mark as claimed
         self.claimed = true;
 
-        reward_u64
+        reward.try_into().unwrap()
     }
 }
 

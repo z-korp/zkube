@@ -6,8 +6,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogClose,
+  DialogTrigger,
 } from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
 import { Input } from "@/ui/elements/input";
@@ -19,6 +19,7 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 export const Create = () => {
   const [playerName, setPlayerName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [open, setOpen] = useState(true);
   const { account } = useAccountCustom();
   const {
     master,
@@ -33,10 +34,11 @@ export const Create = () => {
     setIsLoading(true);
     try {
       await create({ account: account as Account, name: playerName });
+      setOpen(false); // Close the dialog after successful creation
     } finally {
       setIsLoading(false);
     }
-  }, [account, playerName]);
+  }, [account, playerName, create]);
 
   const disabled = useMemo(() => {
     return !account || !master || account === master || !!player;
@@ -45,13 +47,16 @@ export const Create = () => {
   if (disabled) return null;
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button isLoading={isLoading} disabled={isLoading} className="text-xl">
           Sign Up
         </Button>
       </DialogTrigger>
-      <DialogContent aria-describedby={undefined}>
+      <DialogContent
+        aria-describedby={undefined}
+        className="sm:max-w-[700px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-4"
+      >
         <DialogHeader>
           <DialogTitle>Create a new player</DialogTitle>
           <DialogDescription>Choose a name.</DialogDescription>
@@ -75,7 +80,7 @@ export const Create = () => {
             isLoading={isLoading}
             onClick={handleClick}
           >
-            Create player
+            Create Player
           </Button>
         </DialogClose>
       </DialogContent>

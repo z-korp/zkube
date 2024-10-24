@@ -11,7 +11,10 @@ use alexandria_math::bitmap::Bitmap;
 
 // Internal imports
 
-use zkube::constants;
+use zkube::constants::{
+    GAME_MODE_PAID_MULTIPLIER, GAME_MODE_FREE_MULTIPLIER, NORMAL_MODE_DURATION, DAILY_MODE_DURATION,
+    FREE_MODE_DURATION
+};
 use zkube::types::difficulty::Difficulty;
 use zkube::models::settings::{Settings, SettingsTrait};
 
@@ -20,18 +23,20 @@ use zkube::models::settings::{Settings, SettingsTrait};
 const NONE: felt252 = 0;
 const NORMAL: felt252 = 'NORMAL';
 const DAILY: felt252 = 'DAILY';
+const FREE: felt252 = 'FREE';
 
 #[derive(Copy, Drop, Serde, PartialEq)]
 enum Mode {
     None,
     Normal,
     Daily,
+    Free,
 }
 
 #[generate_trait]
 impl ModeImpl of ModeTrait {
     #[inline(always)]
-    fn price(self: Mode, settings: Settings) -> felt252 {
+    fn price(self: Mode, settings: Settings) -> u128 {
         settings.get_mode_price(self)
     }
 
@@ -39,6 +44,7 @@ impl ModeImpl of ModeTrait {
         match self {
             Mode::Normal => Difficulty::None, // meaning increasing difficulty
             Mode::Daily => Difficulty::VeryHard,
+            Mode::Free => Difficulty::None, // meaning increasing difficulty
             _ => Difficulty::None,
         }
     }
@@ -46,8 +52,9 @@ impl ModeImpl of ModeTrait {
     #[inline(always)]
     fn duration(self: Mode) -> u64 {
         match self {
-            Mode::Normal => constants::NORMAL_MODE_DURATION,
-            Mode::Daily => constants::DAILY_MODE_DURATION,
+            Mode::Normal => NORMAL_MODE_DURATION,
+            Mode::Daily => DAILY_MODE_DURATION,
+            Mode::Free => FREE_MODE_DURATION,
             _ => 0,
         }
     }
@@ -68,7 +75,24 @@ impl ModeImpl of ModeTrait {
                 let state = state.update(id.into());
                 state.finalize()
             },
+            Mode::Free => {
+                let state: HashState = PoseidonTrait::new();
+                let state = state.update(salt);
+                let state = state.update(game_id.into());
+                let state = state.update(time.into());
+                state.finalize()
+            },
             _ => 0,
+        }
+    }
+
+    #[inline(always)]
+    fn get_multiplier(self: Mode, settings: Settings) -> u32 {
+        let game_price: u128 = self.price(settings);
+        if game_price == 0_u128 {
+            GAME_MODE_FREE_MULTIPLIER
+        } else {
+            GAME_MODE_PAID_MULTIPLIER
         }
     }
 }
@@ -79,6 +103,7 @@ impl IntoModeFelt252 of core::Into<Mode, felt252> {
         match self {
             Mode::Normal => NORMAL,
             Mode::Daily => DAILY,
+            Mode::Free => FREE,
             _ => NONE,
         }
     }
@@ -90,6 +115,7 @@ impl IntoModeU8 of core::Into<Mode, u8> {
         match self {
             Mode::Normal => 1,
             Mode::Daily => 2,
+            Mode::Free => 3,
             _ => 0,
         }
     }
@@ -102,6 +128,7 @@ impl IntoU8Mode of core::Into<u8, Mode> {
             0 => Mode::None,
             1 => Mode::Normal,
             2 => Mode::Daily,
+            3 => Mode::Free,
             _ => Mode::None,
         }
     }

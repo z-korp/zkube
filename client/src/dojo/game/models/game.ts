@@ -6,6 +6,8 @@ import {
   ROW_BIT_COUNT,
   DEFAULT_GRID_HEIGHT,
   DEFAULT_GRID_WIDTH,
+  GAME_MODE_FREE_MULTIPLIER,
+  GAME_MODE_PAID_MULTIPLIER,
 } from "../constants";
 import { Mode } from "../types/mode";
 
@@ -39,10 +41,15 @@ export class Game {
   public next_color: number[];
   public bonuses: number[];
   public blocks: number[][];
+  public blocksRaw: bigint;
   public rows: Row[];
   public player_id: string;
   public seed: bigint;
   public start_time: Date;
+  public score_in_tournament: number;
+  public combo_counter_in_tournament: number;
+  public max_combo_in_tournament: number;
+  public tournament_id: number;
 
   constructor(game: ComponentValue) {
     this.id = game.id;
@@ -73,9 +80,14 @@ export class Game {
     this.bonuses = game.bonuses;
     this.player_id = "0x" + game.player_id.toString(16);
     this.seed = game.seed;
-    this.start_time = game.start_time;
+    this.start_time = new Date(game.start_time * 1000);
+    this.score_in_tournament = game.score_in_tournament;
+    this.combo_counter_in_tournament = game.combo_counter_in_tournament;
+    this.max_combo_in_tournament = game.max_combo_in_tournament;
+    this.tournament_id = game.tournament_id;
 
     // Destructure blocks and colors bitmaps in to Rows and Blocks
+    this.blocksRaw = game.blocks;
     this.blocks = Packer.sized_unpack(
       BigInt(game.blocks),
       BigInt(ROW_BIT_COUNT),
@@ -117,5 +129,15 @@ export class Game {
 
   public isOver(): boolean {
     return this.over;
+  }
+
+  public isPaid(): boolean {
+    return this.mode.price() > 0n;
+  }
+
+  public getGameModeMultiplier(): number {
+    return this.mode.price() === 0n
+      ? GAME_MODE_FREE_MULTIPLIER
+      : GAME_MODE_PAID_MULTIPLIER;
   }
 }

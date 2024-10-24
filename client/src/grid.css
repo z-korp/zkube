@@ -1,11 +1,60 @@
-.grid-background {
-  position: relative;
-  border: 8px solid #030712;
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 90deg;
+  inherits: true;
+}
+
+@property --gradX {
+  syntax: "<percentage>";
+  initial-value: 50%;
+  inherits: true;
+}
+
+@property --gradY {
+  syntax: "<percentage>";
+  initial-value: 0%;
+  inherits: true;
+}
+
+:root {
+  --border-base-color: #030712; /* Static and base color */
+  --border-animation-color: rgba(100, 149, 237, 0.8); /* Animation color */
+  --d: 2500ms; /* Animation duration */
+  --angle: 90deg; /* Starting angle for conic gradient */
+  --gradX: 100%; /* Gradient X position for radial animation */
+  --gradY: 50%; /* Gradient Y position for radial animation */
+}
+
+/* Static Border Style */
+.grid-background.static-border {
+  border: 0.35rem solid #030712; /* Solid color matching your design */
   border-radius: 5px;
   opacity: 0.8;
+  padding: 1px; /* Adjust padding if necessary */
+}
+
+.grid-background.animated-border {
+  position: relative;
+  border: 0.35rem solid; /* Border thickness */
+  border-radius: 5px;
+  opacity: 0.8;
+  padding: 1px; /* Adjust padding to accommodate border-image */
+
+  /* Animated Border using conic-gradient */
+  border-image: conic-gradient(
+      from var(--angle),
+      var(--border-base-color),
+      var(--border-animation-color) 0.1turn,
+      var(--border-animation-color) 0.15turn,
+      var(--border-base-color) 0.25turn
+    )
+    30;
+
+  animation: borderRotate var(--d) linear infinite forwards;
 }
 
 .grid-container {
+  /* Existing styles */
 }
 
 .block {
@@ -38,4 +87,92 @@
   background-image: url("/assets/block-4.png");
   background-size: cover;
   /*background-color: lightgoldenrodyellow;*/
+}
+
+@keyframes borderRotate {
+  100% {
+    --angle: 420deg;
+  }
+}
+
+@keyframes borderRadial {
+  20% {
+    --gradX: 100%;
+    --gradY: 50%;
+  }
+  40% {
+    --gradX: 100%;
+    --gradY: 100%;
+  }
+  60% {
+    --gradX: 50%;
+    --gradY: 100%;
+  }
+  80% {
+    --gradX: 0%;
+    --gradY: 50%;
+  }
+  100% {
+    --gradX: 50%;
+    --gradY: 0%;
+  }
+}
+
+@keyframes fadeInOutDanger {
+  0% {
+    box-shadow:
+      inset 0.5em 0.5em rgba(255, 215, 0, 0),
+      inset -0.5em -0.5em rgba(255, 215, 0, 0);
+  }
+  50% {
+    box-shadow:
+      inset 0.5em 0.5em 1em rgb(209, 18, 28),
+      inset -0.5em -0.5em 1em rgb(209, 18, 28);
+  }
+  100% {
+    box-shadow:
+      inset 0.5em 0.5em rgba(255, 215, 0, 0),
+      inset -0.5em -0.5em rgba(255, 215, 0, 0);
+  }
+}
+
+/* Existing animations and styles */
+.animated-box-player-danger {
+  position: relative;
+}
+
+.animated-box-player-danger::before {
+  content: "";
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  z-index: 999;
+  animation: fadeInOutDanger 2s infinite;
+  pointer-events: none; /* To not interfere with user interactions */
+}
+
+.text-shine {
+  background: linear-gradient(
+    to right,
+    hsl(240, 30%, 54%) 0,
+    hsl(0, 0%, 100%) 10%,
+    hsl(240, 30%, 54%) 20%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 1.5px white;
+  animation: shine 4s infinite linear;
+
+  pointer-events: none;
+}
+
+@keyframes shine {
+  0% {
+    background-position: 0px;
+  }
+  100% {
+    background-position: 600px;
+  }
 }
