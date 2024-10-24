@@ -75,6 +75,8 @@ const Grid: React.FC<GridProps> = ({
 
   const viewportDimensions = useViewportDimensions();
 
+  const isDraggingRef = useRef(false);
+
   useEffect(() => {
     if (gridRef.current) {
       const gridPosition = gridRef.current.getBoundingClientRect();
@@ -82,6 +84,8 @@ const Grid: React.FC<GridProps> = ({
       setGridPosition(gridPosition);
     }
   }, [gridRef.current]);
+
+  const isProcessingRef = useRef(false);
 
   const [blocks, setBlocks] = useState<Block[]>(initialData);
   const [nextLine, setNextLine] = useState<Block[]>(nextLineData);
@@ -207,6 +211,7 @@ const Grid: React.FC<GridProps> = ({
 
   const handleDragStart = (x: number, block: Block) => {
     setDragging(block);
+    isDraggingRef.current = true;
     setDragStartX(x);
     setInitialX(block.x);
     setGameState(GameState.DRAGGING);
@@ -252,8 +257,16 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const endDrag = () => {
+    console.log("endDrag 1");
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+
+    console.log("endDrag 2");
+
     if (!dragging) return;
     if (isTxProcessing || applyData) return;
+
+    console.log("endDrag 3");
 
     setBlocks((prevBlocks) => {
       const updatedBlocks = prevBlocks.map((b) => {
@@ -279,7 +292,7 @@ const Grid: React.FC<GridProps> = ({
     setGameState(GameState.GRAVITY);
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
     endDrag();
   };
 
@@ -300,15 +313,21 @@ const Grid: React.FC<GridProps> = ({
   useEffect(() => {
     if (pendingMove) {
       const { rowIndex, startX, finalX } = pendingMove;
-      console.log("Pending move", rowIndex, startX, finalX);
+      console.log("Pending move");
       handleMoveTX(rowIndex, startX, finalX);
     }
   }, [pendingMove]);
 
   const handleMoveTX = useCallback(
     async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
+      if (isProcessingRef.current) {
+        console.warn("Already processing a move");
+        return;
+      }
       if (startColIndex === finalColIndex) return;
       if (!account) return;
+
+      isProcessingRef.current = true;
       setIsTxProcessing(true);
       playSwipe();
       try {
@@ -326,6 +345,8 @@ const Grid: React.FC<GridProps> = ({
         });
       } catch (error) {
         console.error("Erreur lors de l'envoi de la transaction", error);
+      } finally {
+        isProcessingRef.current = false; // Reset the ref
       }
     },
     [account, isMoving, gridHeight, move],
@@ -560,8 +581,6 @@ const Grid: React.FC<GridProps> = ({
     }
     if (gameState === GameState.MOVE_TX) {
       if (pendingMove) {
-        // const { rowIndex, startX, finalX } = pendingMove;
-        // handleMoveTX(rowIndex, startX, finalX);
         setApplyData(true);
         setPendingMove(null);
         setGameState(GameState.WAITING);

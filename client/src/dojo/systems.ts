@@ -193,6 +193,7 @@ export function systems({
   };
 
   const move = async ({ account, ...props }: SystemTypes.Move) => {
+    console.log("move", account, props);
     await handleTransaction(
       account,
       () => client.play.move({ account, ...props }),
