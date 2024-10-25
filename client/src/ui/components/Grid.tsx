@@ -113,6 +113,7 @@ const Grid: React.FC<GridProps> = ({
   const borderSize = 2;
   const gravitySpeed = 100;
   const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
+  const [resetTxProcessing, setResetTxProcessing] = useState(false);
 
   useEffect(() => {
     if (applyData) {
@@ -128,9 +129,22 @@ const Grid: React.FC<GridProps> = ({
       setIsPlayerInDanger(inDanger);
       setLineExplodedCount(0);
       setNextLineHasBeenConsumed(false);
-      setIsTxProcessing(false);
+      // Is used to add a delay before resetting the tx processing state
+      setResetTxProcessing(true);
     }
   }, [applyData, initialData]);
+
+  useEffect(() => {
+    if (resetTxProcessing) {
+      const timeoutId = setTimeout(() => {
+        // Reset the tx processing state after a delay
+        setIsTxProcessing(false);
+        setResetTxProcessing(false);
+      }, 200);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [resetTxProcessing]);
 
   const resetAnimateText = (): void => {
     setAnimateText(ComboMessages.None);
