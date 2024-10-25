@@ -83,7 +83,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     setOptimisticScore(score);
     setOptimisticCombo(combo);
     setOptimisticMaxCombo(maxCombo);
-  }, [initialGrid]);
+  }, [combo, initialGrid, maxCombo, score]);
 
   const [bonus, setBonus] = useState<BonusType>(BonusType.None);
 
@@ -124,7 +124,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         //setIsLoading(false);
       }
     },
-    [account],
+    [account, applyBonus],
   );
 
   const handleBonusHammerTx = useCallback(
@@ -143,7 +143,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         //setIsLoading(false);
       }
     },
-    [account],
+    [account, applyBonus],
   );
 
   const handleBonusTikiTx = useCallback(
@@ -162,7 +162,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         //setIsLoading(false);
       }
     },
-    [account],
+    [account, applyBonus],
   );
 
   const selectBlock = useCallback(
@@ -177,7 +177,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         console.log("none", block);
       }
     },
-    [bonus],
+    [bonus, handleBonusHammerTx, handleBonusTikiTx, handleBonusWaveTx],
   );
 
   useEffect(() => {
@@ -192,7 +192,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const memoizedNextLineData = useMemo(() => {
     return transformDataContractIntoBlock([nextLine]);
-  }, [initialGrid]);
+  }, [nextLine]);
 
   const { endTimestamp } = useTournament(game.mode.value);
   const { rank, suffix } = useRank({

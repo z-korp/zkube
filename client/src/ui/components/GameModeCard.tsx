@@ -43,12 +43,6 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
-  const freeGames = useMemo(() => {
-    //console.log("credits", credits);
-    if (!credits) return 0;
-    return credits.get_remaining(Date.now() / 1000);
-  }, [credits]);
-
   const potentialWin = useMemo(() => {
     if (!tournament) return `0 ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`;
     const rawEthPrize = ethers.utils.formatEther(tournament.prize);

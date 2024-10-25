@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
 import { Progress } from "../elements/progress";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useAllChests } from "@/hooks/useAllChests";
-import { Chest } from "@/dojo/game/models/chest";
 import { useParticipations } from "@/hooks/useParticipations";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useChestContribution } from "@/hooks/useChestContribution";
@@ -25,8 +24,6 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
   const { account } = useAccountCustom();
   const chests = useAllChests();
   const participations = useParticipations({ player_id: account?.address });
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [selectedChest, setSelectedChest] = useState<Chest | null>(null);
 
   // Find the index of the first incomplete chest
   const initialChestIndex = chests.findIndex(
@@ -140,13 +137,6 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
           </button>*/}
 
           {/* Leaderboard Panel */}
-          {showLeaderboard && (
-            <div className="mt-4 p-4 bg-gray-100 rounded">
-              <h3 className="text-lg font-semibold mb-2">Top Contributors</h3>
-              {/* Add your leaderboard content here */}
-              <p>Leaderboard content goes here...</p>
-            </div>
-          )}
         </div>
       </DialogContent>
     </Dialog>

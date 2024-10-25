@@ -93,7 +93,7 @@ export const ContentTournament: React.FC<ContentTournamentProps> = ({
       // Add currentTournamentToInclude at the beginning
       return [currentTournamentToInclude, ...allTournaments];
     }
-  }, [allTournaments, currentTournament]);
+  }, [allTournaments, currentTournament, mode, tournamentId]);
 
   useEffect(() => {
     // Update selectedTournamentId when the tournaments list changes
@@ -149,7 +149,7 @@ export const ContentTournament: React.FC<ContentTournamentProps> = ({
   useEffect(() => {
     const rem = Math.floor(sortedGames.length / (GAME_PER_PAGE + 1)) + 1;
     setPageCount(rem);
-  }, [sortedGames]);
+  }, [GAME_PER_PAGE, sortedGames]);
 
   useEffect(() => {
     setPage(1); // Reset to first page only when mode changes
@@ -159,7 +159,7 @@ export const ContentTournament: React.FC<ContentTournamentProps> = ({
     const start = (page - 1) * GAME_PER_PAGE;
     const end = start + GAME_PER_PAGE;
     return { start, end };
-  }, [page]);
+  }, [GAME_PER_PAGE, page]);
 
   const handlePrevious = useCallback(() => {
     if (page === 1) return;

@@ -7,7 +7,7 @@ import { dojoConfig } from "../dojo.config.ts";
 import { Loading } from "@/ui/screens/Loading";
 import { MusicPlayerProvider } from "./contexts/music.tsx";
 import { SoundPlayerProvider } from "./contexts/sound.tsx";
-import { ThemeProvider } from "./ui/elements/theme-provider.tsx";
+import { ThemeProvider } from "./ui/elements/theme-provider/index.tsx";
 import { StarknetConfig, jsonRpcProvider, voyager } from "@starknet-react/core";
 import { sepolia } from "@starknet-react/chains";
 import cartridgeConnector from "./cartridgeConnector.tsx";

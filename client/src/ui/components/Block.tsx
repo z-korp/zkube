@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { GameState } from "@/enums/gameEnums";
 import { Block } from "@/types/types";
 
@@ -33,27 +33,25 @@ const BlockContainer: React.FC<BlockProps> = ({
   onTransitionBlockStart,
   onTransitionBlockEnd,
 }) => {
-  const [transitionStatus, setTransition] = useState("End");
   const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (ref.current === null) return;
+    const element = ref.current
+    if (element === null) return;
 
     const onTransitionStart = () => {
       if (onTransitionBlockStart !== undefined) onTransitionBlockStart();
-      setTransition("Start");
     };
 
-    ref.current.addEventListener("transitionstart", onTransitionStart);
+    element.addEventListener("transitionstart", onTransitionStart);
 
     return () => {
-      ref.current?.removeEventListener("transitionstart", onTransitionStart);
+      element?.removeEventListener("transitionstart", onTransitionStart);
     };
-  }, []);
+  }, [onTransitionBlockStart]);
 
   // Gestion de la fin de la transition via l'événement onTransitionEnd
   const handleTransitionEnd = () => {
-    setTransition("End");
     //setTriggerParticles(true);
     if (onTransitionBlockEnd !== undefined) onTransitionBlockEnd(); // Notifier que la transition est terminée
   };

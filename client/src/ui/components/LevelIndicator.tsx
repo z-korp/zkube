@@ -91,7 +91,7 @@ const LevelIndicator: React.FC<LevelIndicatorProps> = ({ currentXP }) => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [currentXP]);
+  }, [currentXP, displayXP]);
 
   const strokeWidth = 4;
   const radius = 14;

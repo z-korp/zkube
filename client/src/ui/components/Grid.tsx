@@ -12,17 +12,16 @@ import {
   removeBlocksSameRow,
   removeBlockId,
   deepCompareBlocks,
-  getBlocksSameRow,
 } from "@/utils/gridUtils";
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
 import { motion } from "framer-motion";
 import { BonusType } from "@/dojo/game/types/bonus";
-import { useMusicPlayer } from "@/contexts/music";
 import useViewportDimensions from "@/hooks/useViewport";
 
 import "../../grid.css";
+import { useMusicPlayer } from '@/contexts/hooks';
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -81,7 +80,7 @@ const Grid: React.FC<GridProps> = ({
       // Pass the grid position to the parent via the callback
       setGridPosition(gridPosition);
     }
-  }, [gridRef.current]);
+  }, []);
 
   const isProcessingRef = useRef(false);
 
@@ -130,7 +129,7 @@ const Grid: React.FC<GridProps> = ({
       setNextLineHasBeenConsumed(false);
       setIsTxProcessing(false);
     }
-  }, [applyData, initialData]);
+  }, [applyData, initialData, nextLineData, saveGridStateblocks, setIsTxProcessing, setNextLineHasBeenConsumed]);
 
   const resetAnimateText = (): void => {
     setAnimateText(ComboMessages.None);
@@ -239,7 +238,7 @@ const Grid: React.FC<GridProps> = ({
     handleDragMove(touch.clientX, MoveType.TOUCH);
   };
 
-  const endDrag = () => {
+  const endDrag = useCallback(() => {
     if (!dragging) return;
     if (isProcessingRef.current || isTxProcessing || applyData) return;
 
@@ -265,14 +264,14 @@ const Grid: React.FC<GridProps> = ({
     setDragging(null);
     setIsMoving(true);
     setGameState(GameState.GRAVITY);
-  };
+  }, [applyData, dragging, initialX, isTxProcessing]);
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
+  const handleTouchEnd = () => {
     endDrag();
   };
 
   useEffect(() => {
-    const handleMouseUp = (event: MouseEvent) => {
+    const handleMouseUp = () => {
       endDrag();
     };
 
@@ -283,15 +282,7 @@ const Grid: React.FC<GridProps> = ({
       // Nettoie l'écouteur d'événements lorsque le composant est démonté.
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [dragging]);
-
-  useEffect(() => {
-    if (pendingMove) {
-      const { rowIndex, startX, finalX } = pendingMove;
-      console.log("Pending move");
-      handleMoveTX(rowIndex, startX, finalX);
-    }
-  }, [pendingMove]);
+  }, [dragging, endDrag]);
 
   const handleMoveTX = useCallback(
     async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
@@ -324,8 +315,16 @@ const Grid: React.FC<GridProps> = ({
         isProcessingRef.current = false; // Reset the ref
       }
     },
-    [account, isMoving, gridHeight, move],
+    [account, setIsTxProcessing, playSwipe, gridHeight, move],
   );
+
+  useEffect(() => {
+    if (pendingMove) {
+      const { rowIndex, startX, finalX } = pendingMove;
+      console.log("Pending move");
+      handleMoveTX(rowIndex, startX, finalX);
+    }
+  }, [handleMoveTX, pendingMove]);
 
   const isBlocked = (
     initialX: number,
@@ -356,7 +355,7 @@ const Grid: React.FC<GridProps> = ({
     return false;
   };
 
-  const calculateFallDistance = (block: Block, blocks: Block[]) => {
+  const calculateFallDistance = useCallback((block: Block, blocks: Block[]) => {
     let maxFall = gridHeight - block.y - 1;
     for (let y = block.y + 1; y < gridHeight; y++) {
       if (isCollision(block.x, y, block.width, blocks, block.id)) {
@@ -365,7 +364,7 @@ const Grid: React.FC<GridProps> = ({
       }
     }
     return maxFall;
-  };
+  }, [gridHeight]);
 
   const isCollision = (
     x: number,
@@ -383,7 +382,7 @@ const Grid: React.FC<GridProps> = ({
     );
   };
 
-  const applyGravity = () => {
+  const applyGravity = useCallback(() => {
     setBlocks((prevBlocks) => {
       const newBlocks = prevBlocks.map((block) => {
         const fallDistance = calculateFallDistance(block, prevBlocks);
@@ -393,7 +392,7 @@ const Grid: React.FC<GridProps> = ({
         return block;
       });
 
-      const blocksChanged = !prevBlocks.every((block, index) => {
+      const blocksChanged = !prevBlocks.every((block) => {
         const newBlock = newBlocks.find((b) => b.id === block.id);
         return newBlock && block.x === newBlock.x && block.y === newBlock.y;
       });
@@ -402,7 +401,7 @@ const Grid: React.FC<GridProps> = ({
 
       return newBlocks;
     });
-  };
+  }, [calculateFallDistance]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -416,7 +415,7 @@ const Grid: React.FC<GridProps> = ({
     }, gravitySpeed);
 
     return () => clearInterval(interval);
-  }, [gameState]);
+  }, [applyGravity, gameState]);
 
   useEffect(() => {
     if (!isMoving && transitioningBlocks.length === 0) {
@@ -430,7 +429,7 @@ const Grid: React.FC<GridProps> = ({
     }
   }, [gameState, isMoving, transitioningBlocks]);
 
-  const handleLineClear = (
+  const handleLineClear = useCallback((
     newGravityState: GameState,
     newStateOnComplete: GameState,
   ) => {
@@ -447,8 +446,6 @@ const Grid: React.FC<GridProps> = ({
       // Trigger particle explosions for each cleared row
       completeRows.forEach((rowIndex) => {
         console.log("triggerParticles", rowIndex);
-
-        const blocksSameRow = getBlocksSameRow(rowIndex, blocks);
 
         // Calculate the center position of the row
         const centerX = (gridWidth * gridSize) / 2; // Center X
@@ -486,7 +483,7 @@ const Grid: React.FC<GridProps> = ({
     } else {
       setGameState(newStateOnComplete);
     }
-  };
+  }, [blocks, gridHeight, gridPosition, gridSize, gridWidth, lineExplodedCount, playExplode, triggerParticles, viewportDimensions.height, viewportDimensions.width]);
 
   useEffect(() => {
     if (gameState === GameState.LINE_CLEAR) {
@@ -496,7 +493,7 @@ const Grid: React.FC<GridProps> = ({
     } else if (gameState === GameState.LINE_CLEAR_BONUS) {
       handleLineClear(GameState.GRAVITY_BONUS, GameState.BONUS_TX);
     }
-  }, [gameState, blocks]);
+  }, [gameState, blocks, handleLineClear]);
 
   useEffect(() => {
     // we calculate points and combo for optimistic rendering
@@ -520,7 +517,7 @@ const Grid: React.FC<GridProps> = ({
         setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
       }
     }
-  }, [gameState]);
+  }, [gameState, lineExplodedCount, setOptimisticCombo, setOptimisticMaxCombo, setOptimisticScore]);
 
   useEffect(() => {
     if (
@@ -528,7 +525,7 @@ const Grid: React.FC<GridProps> = ({
       pendingMove &&
       transitioningBlocks.length === 0
     ) {
-      const { rowIndex, startX, finalX } = pendingMove;
+      const { startX, finalX } = pendingMove;
       if (startX !== finalX) {
         const updatedBlocks = concatenateAndShiftBlocks(
           blocks,
@@ -545,7 +542,7 @@ const Grid: React.FC<GridProps> = ({
       setIsMoving(true);
       setGameState(GameState.GRAVITY2);
     }
-  }, [gameState, blocks, pendingMove, transitioningBlocks]);
+  }, [gameState, blocks, pendingMove, transitioningBlocks, nextLine, gridHeight, setNextLineHasBeenConsumed]);
 
   useEffect(() => {
     if (gameState === GameState.BONUS_TX) {
@@ -561,7 +558,7 @@ const Grid: React.FC<GridProps> = ({
         setGameState(GameState.WAITING);
       }
     }
-  }, [gameState, pendingMove, handleMoveTX]);
+  }, [gameState, pendingMove, handleMoveTX, selectBlock, blockBonus]);
 
   return (
     <motion.div

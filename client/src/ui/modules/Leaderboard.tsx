@@ -29,7 +29,7 @@ interface TabListProps {
 }
 
 const TabList = memo<TabListProps>(
-  ({ activeTab, setActiveTab, isMdorLarger }) => (
+  ({ setActiveTab, isMdorLarger }) => (
     <TabsList className="grid w-full mx-auto sm:w-full grid-cols-3">
       <TabsTrigger
         value={ModeType.Free}

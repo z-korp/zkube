@@ -6,7 +6,7 @@ import React, {
 } from "react";
 import useSound from "use-sound";
 import SoundAssets from "@/ui/theme/SoundAssets";
-import { useTheme } from "@/ui/elements/theme-provider";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import noop from '@/utils/noop';
 
 type Track = {

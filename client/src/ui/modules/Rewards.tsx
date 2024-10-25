@@ -36,6 +36,7 @@ export const Rewards = () => {
         console.error("Error claiming chest:", error);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [account?.address, claimChest],
   );
 
@@ -55,6 +56,7 @@ export const Rewards = () => {
         // Handle error (e.g., show an error message to the user)
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [account?.address, claimTournament],
   );
 
