@@ -17,18 +17,15 @@ const {
   VITE_PUBLIC_NODE_URL,
 } = import.meta.env;
 
-const manifest =
-  VITE_PUBLIC_DEPLOY_TYPE === "sepolia"
-    ? sepolia
-    : VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev1"
-      ? sepoliadev1
-      : VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev2"
-        ? sepoliadev2
-        : VITE_PUBLIC_DEPLOY_TYPE === "slot"
-          ? slot
-          : VITE_PUBLIC_DEPLOY_TYPE === "slotdev"
-            ? slotdev
-            : local;
+export const manifest = [
+  sepolia,
+  sepoliadev1,
+  sepoliadev2,
+  slot,
+  slotdev
+][VITE_PUBLIC_DEPLOY_TYPE] ?? local
+
+export type Manifest = typeof manifest
 
 const account_contract_address = getContractByName(
   manifest,

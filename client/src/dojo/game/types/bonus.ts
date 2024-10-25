@@ -64,11 +64,11 @@ export class Bonus {
   public getCount(score: number, combo: number, max_combo: number): number {
     switch (this.value) {
       case BonusType.Hammer:
-        return Hammer.getCount(score, combo, max_combo);
+        return Hammer.getCount(score);
       case BonusType.Totem:
-        return Totem.getCount(score, combo, max_combo);
+        return Totem.getCount(max_combo);
       case BonusType.Wave:
-        return Wave.getCount(score, combo, max_combo);
+        return Wave.getCount(combo);
       default:
         return 0;
     }

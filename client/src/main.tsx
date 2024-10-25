@@ -24,7 +24,7 @@ const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,
 );
 
-function Main() {
+export function Main() {
   const connectors = [cartridgeConnector];
 
   const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
@@ -75,4 +75,5 @@ function Main() {
     </React.StrictMode>
   );
 }
+
 root.render(<Main />);

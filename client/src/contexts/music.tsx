@@ -1,6 +1,5 @@
 import React, {
   createContext,
-  useContext,
   useState,
   useEffect,
   useCallback,
@@ -8,15 +7,27 @@ import React, {
 import useSound from "use-sound";
 import SoundAssets from "@/ui/theme/SoundAssets";
 import { useTheme } from "@/ui/elements/theme-provider";
+import noop from '@/utils/noop';
 
 type Track = {
   name: string;
   url: string;
 };
 
-const MusicPlayerContext = createContext({
-  playTheme: () => {},
-  stopTheme: () => {},
+export const MusicPlayerContext = createContext<{
+  playTheme: () => unknown,
+  stopTheme: () => unknown,
+  isPlaying: boolean,
+  volume: number,
+  setVolume: (volume: number) => unknown,
+  setTheme: (theme: boolean) => unknown,
+  playStart: () => unknown,
+  playOver: () => unknown,
+  playSwipe: () => unknown,
+  playExplode: () => unknown,
+}>({
+  playTheme: noop,
+  stopTheme: noop,
   isPlaying: false,
   volume: 0.2,
   setVolume: (volume: number) => {
@@ -25,10 +36,10 @@ const MusicPlayerContext = createContext({
   setTheme: (theme: boolean) => {
     theme;
   },
-  playStart: () => {},
-  playOver: () => {},
-  playSwipe: () => {},
-  playExplode: () => {},
+  playStart: noop,
+  playOver: noop,
+  playSwipe: noop,
+  playExplode: noop,
 });
 
 export const MusicPlayerProvider = ({
@@ -119,6 +130,7 @@ export const MusicPlayerProvider = ({
   useEffect(() => {
     setTracks(theme ? menuTracks : playTracks);
     setCurrentTrackIndex(0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme, themeTemplate]);
 
   return (
@@ -139,8 +151,4 @@ export const MusicPlayerProvider = ({
       {children}
     </MusicPlayerContext.Provider>
   );
-};
-
-export const useMusicPlayer = () => {
-  return useContext(MusicPlayerContext);
 };

@@ -3,7 +3,7 @@ import { Create } from "../actions/Create";
 import GameBoard from "../components/GameBoard";
 import BackGroundBoard from "../components/BackgroundBoard";
 import { AnimatePresence } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useGame } from "@/hooks/useGame";
@@ -38,6 +38,7 @@ import CollectiveTreasureChest from "../components/TreasureChest";
 import GameOverDialog from "../components/GameOverDialog";
 import useViewport from "@/hooks/useViewport";
 import { TweetPreview } from "../components/TweetPreview";
+import { Schema } from '@dojoengine/recs';
 
 export const Home = () => {
   const {
@@ -47,7 +48,7 @@ export const Home = () => {
   useViewport();
   useRewardsCalculator();
 
-  useQuerySync(toriiClient, contractComponents as any, []);
+  useQuerySync<Schema>(toriiClient, Object.values(contractComponents), []);
 
   const isSigning = false; //useAutoSignup();
 
@@ -63,7 +64,6 @@ export const Home = () => {
   const { theme, themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
   const gameGrid: React.RefObject<HTMLDivElement> | null = useRef(null);
-  const [isUnmounting, setIsUnmounting] = useState(false);
   const [isGameOn, setIsGameOn] = useState<"idle" | "isOn" | "isOver">("idle");
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [level, setLevel] = useState<number | "">(0);
@@ -74,6 +74,12 @@ export const Home = () => {
 
   // State variables for modals
   const [isTournamentsOpen, setIsTournamentsOpen] = useState(false);
+
+  const composeTweet = useCallback(() => {
+    setLevel(player?.points ? Level.fromPoints(player?.points).value : "");
+    setScore(game?.score);
+    setIsPreviewOpen(true);
+  }, [game?.score, player?.points]);
 
   useEffect(() => {
     if (game?.over) {
@@ -89,21 +95,15 @@ export const Home = () => {
       }
       setIsGameOn("isOver");
     }
-  }, [game?.over, isUnmounting]);
+  }, [composeTweet, game?.over]);
 
   useEffect(() => {
-    if (!!game && !game.over) {
+    if (!game?.over) {
       setIsGameOn("isOn");
     } else {
       setIsGameOn("isOver");
     }
   }, [game?.over]);
-
-  const composeTweet = () => {
-    setLevel(player?.points ? Level.fromPoints(player?.points).value : "");
-    setScore(game?.score);
-    setIsPreviewOpen(true);
-  };
 
   const imageTotemTheme =
     theme === "dark" ? imgAssets.imageTotemDark : imgAssets.imageTotemLight;

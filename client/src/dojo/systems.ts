@@ -1,9 +1,8 @@
 import type { IWorld } from "./contractSystems";
 import { toast } from "sonner";
 import * as SystemTypes from "./contractSystems";
-import { ClientModels } from "./models";
 import { shortenHex } from "@dojoengine/utils";
-import { Account } from "starknet";
+import { Account, GetTransactionReceiptResponse } from "starknet";
 
 export type SystemCalls = ReturnType<typeof systems>;
 
@@ -11,10 +10,8 @@ const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
 export function systems({
   client,
-  clientModels,
 }: {
   client: IWorld;
-  clientModels: ClientModels;
 }) {
   // Function to extract error messages from a given string
   function extractErrorMessages(errorString: string) {
@@ -82,22 +79,29 @@ export function systems({
 
   const toastPlacement = getToastPlacement();
 
-  const notify = (message: string, transaction: any) => {
-    const toastId = transaction.transaction_hash;
-
-    if (transaction.execution_status !== "REVERTED") {
-      if (!shouldShowToast()) return; // Exit if screen is smaller than medium
-      toast.success(message, {
-        id: toastId, // Use the transaction_hash as the unique toast ID
-        description: shortenHex(transaction.transaction_hash),
-        action: getToastAction(transaction.transaction_hash),
+  const notify = (message: string, transaction: GetTransactionReceiptResponse) => {
+    if (transaction.isError() || transaction.isRejected()) {
+      toast.error(transaction.isRejected() ? transaction.transaction_failure_reason.error_message : 'Unkown error occured', {
+        id: `error-${Date.now()}`, // Generic toast ID
         position: toastPlacement,
       });
     } else {
-      toast.error(extractedMessage(transaction.revert_reason), {
-        id: toastId, // Use the same transaction_hash ID for error
-        position: toastPlacement,
-      });
+      const toastId = transaction.transaction_hash
+
+      if (transaction.isSuccess()) {
+        if (!shouldShowToast()) return; // Exit if screen is smaller than medium
+        toast.success(message, {
+          id: toastId, // Use the transaction_hash as the unique toast ID
+          description: shortenHex(transaction.transaction_hash),
+          action: getToastAction(transaction.transaction_hash),
+          position: toastPlacement,
+        });
+      } else {
+        toast.error(transaction.revert_reason ? extractedMessage(transaction.revert_reason) : 'Unkown error occured', {
+          id: toastId, // Use the same transaction_hash ID for error
+          position: toastPlacement,
+        });
+      }
     }
   };
 
@@ -135,25 +139,14 @@ export function systems({
 
       // Notify success or error using the same toastId
       notify(successMessage, transaction);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error executing transaction:", error);
 
       if (shouldShowToast()) {
-        if (error?.transaction_hash) {
-          // If the error contains a transaction_hash, use it as the toastId
-          const toastId = error.transaction_hash;
-          toast.error(extractedMessage(error.message), {
-            id: toastId, // Use the transaction_hash as the toast ID
-            position: toastPlacement,
-          });
-        } else {
-          // For errors without a transaction_hash, use a generic unique ID
-          const genericToastId = `error-${Date.now()}`;
-          toast.error("Transaction failed.", {
-            id: genericToastId, // Unique ID to prevent overlapping with transaction-specific toasts
-            position: toastPlacement,
-          });
-        }
+        toast.error("Transaction failed.", {
+          id: `error-${Date.now()}`, // Generic toast ID
+          position: toastPlacement,
+        });
       }
 
       throw error;
