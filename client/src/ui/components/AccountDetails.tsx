@@ -34,18 +34,18 @@ const AccountDetails = () => {
         </div>
         <div className="flex w-full gap-3">
           <div className="rounded-lg px-2 md:px-3 py-1 bg-secondary text-secondary-foreground shadow-sm h-[36px] w-full flex justify-center items-center">
-            <Balance
+            {/*<Balance
               address={account.address}
               token_address={KATANA_ETH_CONTRACT_ADDRESS}
               symbol="ETH"
-            />
+            />*/}
           </div>
           <div className="rounded-lg px-2 md:px-3 py-1 bg-secondary text-secondary-foreground shadow-sm h-[36px] w-full flex justify-center items-center">
-            <Balance
+            {/*<Balance
               address={account.address}
               token_address={VITE_PUBLIC_GAME_TOKEN_ADDRESS}
               symbol={VITE_PUBLIC_GAME_TOKEN_SYMBOL}
-            />
+            />*/}
           </div>
         </div>
         <FaucetButton />

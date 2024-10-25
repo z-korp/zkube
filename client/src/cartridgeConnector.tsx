@@ -1,8 +1,7 @@
 import { Connector } from "@starknet-react/core";
-import CartridgeConnector from "@cartridge/connector";
+import CartridgeConnector from "@cartridge/connector/controller";
 import { getContractByName } from "@dojoengine/core";
-import { ControllerOptions, PaymasterOptions } from "@cartridge/controller";
-import { shortString } from "starknet";
+import { ControllerOptions } from "@cartridge/controller";
 
 import local from "../../contracts/manifests/dev/deployment/manifest.json";
 import slot from "../../contracts/manifests/slot/deployment/manifest.json";
@@ -106,14 +105,11 @@ const policies = [
   },
 ];
 
-const paymaster: PaymasterOptions = {
-  caller: shortString.encodeShortString("ANY_CALLER"),
-};
-
 const options: ControllerOptions = {
-  rpc: VITE_PUBLIC_NODE_URL,
+  rpc: VITE_PUBLIC_NODE_URL as string,
   policies,
-  paymaster,
+  url: "https://x.cartridge.gg",
+  theme: "zkube",
 };
 
 const cartridgeConnector = new CartridgeConnector(
