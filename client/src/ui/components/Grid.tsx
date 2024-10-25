@@ -21,7 +21,6 @@ import { motion } from "framer-motion";
 import { BonusType } from "@/dojo/game/types/bonus";
 import { useMusicPlayer } from "@/contexts/music";
 import useViewportDimensions from "@/hooks/useViewport";
-
 import "../../grid.css";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
@@ -113,38 +112,27 @@ const Grid: React.FC<GridProps> = ({
   const borderSize = 2;
   const gravitySpeed = 100;
   const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
-  const [resetTxProcessing, setResetTxProcessing] = useState(false);
 
   useEffect(() => {
     if (applyData) {
       if (deepCompareBlocks(saveGridStateblocks, initialData)) {
         return;
       }
-      setSaveGridStateblocks(initialData);
-      setBlocks(initialData);
-      setNextLine(nextLineData);
-      setApplyData(false);
+      if (!isProcessingRef.current) {
+        setSaveGridStateblocks(initialData);
+        setBlocks(initialData);
+        setNextLine(nextLineData);
 
-      const inDanger = initialData.some((block) => block.y < 2);
-      setIsPlayerInDanger(inDanger);
-      setLineExplodedCount(0);
-      setNextLineHasBeenConsumed(false);
-      // Is used to add a delay before resetting the tx processing state
-      setResetTxProcessing(true);
-    }
-  }, [applyData, initialData]);
+        const inDanger = initialData.some((block) => block.y < 2);
+        setIsPlayerInDanger(inDanger);
+        setLineExplodedCount(0);
+        setNextLineHasBeenConsumed(false);
 
-  useEffect(() => {
-    if (resetTxProcessing) {
-      const timeoutId = setTimeout(() => {
-        // Reset the tx processing state after a delay
+        setApplyData(false);
         setIsTxProcessing(false);
-        setResetTxProcessing(false);
-      }, 200);
-
-      return () => clearTimeout(timeoutId);
+      }
     }
-  }, [resetTxProcessing]);
+  }, [applyData, initialData, isProcessingRef.current]);
 
   const resetAnimateText = (): void => {
     setAnimateText(ComboMessages.None);
@@ -334,7 +322,9 @@ const Grid: React.FC<GridProps> = ({
         });
       } catch (error) {
         console.error("Erreur lors de l'envoi de la transaction", error);
+        isProcessingRef.current = false; // Reset the ref
       } finally {
+        console.log("=========================> reset ref");
         isProcessingRef.current = false; // Reset the ref
       }
     },

@@ -38,6 +38,7 @@ import CollectiveTreasureChest from "../components/TreasureChest";
 import GameOverDialog from "../components/GameOverDialog";
 import useViewport from "@/hooks/useViewport";
 import { TweetPreview } from "../components/TweetPreview";
+import { useGrid } from "@/hooks/useGrid";
 
 export const Home = () => {
   const {
@@ -58,6 +59,7 @@ export const Home = () => {
     gameId: player?.game_id || "0x0",
     shouldLog: true,
   });
+  const grid = useGrid({ gameId: game?.id ?? "", shouldLog: true });
   const [animationDone, setAnimationDone] = useState(false);
 
   const { theme, themeTemplate } = useTheme();
@@ -139,6 +141,10 @@ export const Home = () => {
     // Update the ref with the current value of game.over
     prevGameOverRef.current = game?.over;
   }, [game?.over]);
+
+  useEffect(() => {
+    console.log("==================> Grid is changing");
+  }, [grid]);
 
   // Define render functions
   const renderDesktopView = () => (
@@ -319,7 +325,7 @@ export const Home = () => {
                         // Check if game is over because otherwise we can display
                         // previous game data on the board while the new game is starting
                         // and torii indexing
-                        initialGrid={game.isOver() ? [] : game.blocks}
+                        initialGrid={grid}
                         nextLine={game.isOver() ? [] : game.next_row}
                         score={game.isOver() ? 0 : game.score}
                         combo={game.isOver() ? 0 : game.combo}
