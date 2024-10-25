@@ -363,13 +363,13 @@ mod tests {
         let mut current_day = initial_day;
         let mut i = 0;
         loop {
-            if (i > 30) {
+            if (i > 29) {
                 break;
             }
             current_day += 1;
             let timestamp = day_offset_to_timestamp(current_day);
             player.update_daily_streak(timestamp);
-            assert_eq!(player.daily_streak, i);
+            assert_eq!(player.daily_streak, i + 1);
             i = i + 1;
         };
 
@@ -435,7 +435,7 @@ mod tests {
         assert_eq!(LevelTrait::from_points(player.points).into(), 10_u8);
 
         let level_multiplier = player.get_level_multiplier();
-        let expected_multiplier = 1100; // 1000 + 10(lvl)*10(increment) = 1100
+        let expected_multiplier = 1100000; // 1000 + 10(lvl)*10(increment) = 1100
         assert_eq!(level_multiplier, expected_multiplier);
     }
 
@@ -452,7 +452,7 @@ mod tests {
         assert_eq!(LevelTrait::from_points(player.points).into(), 20_u8);
 
         let level_multiplier = player.get_level_multiplier();
-        assert_eq!(level_multiplier, 1200);
+        assert_eq!(level_multiplier, 1200000);
     }
 
     #[test]

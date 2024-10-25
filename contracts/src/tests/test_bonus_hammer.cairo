@@ -101,7 +101,7 @@ fn test_game_hammer_bonus_usage() {
     game.assert_is_available(Bonus::Hammer);
 
     // [Effect] Use hammer bonus
-    systems.play.apply_bonus(Bonus::Hammer, 0, 1);
+    systems.play.apply_bonus(Bonus::Hammer, 0, 0);
 
     // [Assert] Check hammer bonus
     let game = store.game(game_id);

@@ -214,7 +214,7 @@ fn test_actions_move_05_real_bug() {
 }
 
 #[test]
-#[should_panic(expected: ('Controller: not in boundaries',))]
+#[should_panic(expected: ('Controller: not in boundaries', 'ENTRYPOINT_FAILED'))]
 fn test_actions_move_06_real_bug() {
     // Initial grid
     // 000_000_000_000_000_000_000_000
@@ -276,6 +276,8 @@ fn test_actions_move_06_real_bug() {
 // 010_010_000_000_001_001_010_010
 //assert_eq!(
 //    game.blocks & 0b000_000_000_000_000_000_000_000,
+//
+//
 //
 //
 //

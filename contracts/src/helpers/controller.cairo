@@ -344,7 +344,10 @@ impl Controller of ControllerTrait {
                 valid = false;
                 break valid;
             }
-        }
+        };
+
+        //println!("check row coherence valid {}", valid);
+        valid
     }
 
     fn check_grid_coherence(blocks: felt252) -> bool {
