@@ -108,7 +108,6 @@ const policies = [
 const options: ControllerOptions = {
   rpc: VITE_PUBLIC_NODE_URL as string,
   policies,
-  url: "https://x.cartridge.gg",
   theme: "zkube",
 };
 
