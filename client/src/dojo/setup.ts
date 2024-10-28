@@ -9,7 +9,7 @@ import { setupWorld } from "./contractSystems.ts";
 import { DojoProvider } from "@dojoengine/core";
 import { BurnerManager } from "@dojoengine/create-burner";
 import { Account, RpcProvider } from "starknet";
-import { Schema } from '@dojoengine/recs';
+import { Schema } from "@dojoengine/recs";
 
 export type SetupResult = Awaited<ReturnType<typeof setup>>;
 

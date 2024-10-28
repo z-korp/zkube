@@ -8,11 +8,7 @@ export type SystemCalls = ReturnType<typeof systems>;
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
-export function systems({
-  client,
-}: {
-  client: IWorld;
-}) {
+export function systems({ client }: { client: IWorld }) {
   // Function to extract error messages from a given string
   function extractErrorMessages(errorString: string) {
     const regex = /Error message:(.*?)(?=\n|$)/gs;
@@ -79,14 +75,22 @@ export function systems({
 
   const toastPlacement = getToastPlacement();
 
-  const notify = (message: string, transaction: GetTransactionReceiptResponse) => {
+  const notify = (
+    message: string,
+    transaction: GetTransactionReceiptResponse,
+  ) => {
     if (transaction.isError() || transaction.isRejected()) {
-      toast.error(transaction.isRejected() ? transaction.transaction_failure_reason.error_message : 'Unkown error occured', {
-        id: `error-${Date.now()}`, // Generic toast ID
-        position: toastPlacement,
-      });
+      toast.error(
+        transaction.isRejected()
+          ? transaction.transaction_failure_reason.error_message
+          : "Unkown error occured",
+        {
+          id: `error-${Date.now()}`, // Generic toast ID
+          position: toastPlacement,
+        },
+      );
     } else {
-      const toastId = transaction.transaction_hash
+      const toastId = transaction.transaction_hash;
 
       if (transaction.isSuccess()) {
         if (!shouldShowToast()) return; // Exit if screen is smaller than medium
@@ -97,10 +101,15 @@ export function systems({
           position: toastPlacement,
         });
       } else {
-        toast.error(transaction.revert_reason ? extractedMessage(transaction.revert_reason) : 'Unkown error occured', {
-          id: toastId, // Use the same transaction_hash ID for error
-          position: toastPlacement,
-        });
+        toast.error(
+          transaction.revert_reason
+            ? extractedMessage(transaction.revert_reason)
+            : "Unkown error occured",
+          {
+            id: toastId, // Use the same transaction_hash ID for error
+            position: toastPlacement,
+          },
+        );
       }
     }
   };
