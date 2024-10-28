@@ -83,7 +83,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
     setOptimisticScore(score);
     setOptimisticCombo(combo);
     setOptimisticMaxCombo(maxCombo);
-  }, [combo, initialGrid, maxCombo, score]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialGrid]);
 
   const [bonus, setBonus] = useState<BonusType>(BonusType.None);
 
