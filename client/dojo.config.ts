@@ -1,4 +1,4 @@
-import { manifest } from './src/cartridgeConnector'
+import { manifest } from "./src/config/manifest.ts";
 
 const {
   VITE_PUBLIC_NODE_URL,
