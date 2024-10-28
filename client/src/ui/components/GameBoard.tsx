@@ -192,7 +192,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const memoizedNextLineData = useMemo(() => {
     return transformDataContractIntoBlock([nextLine]);
-  }, [nextLine]);
+    // initialGrid on purpose
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialGrid]);
 
   const { endTimestamp } = useTournament(game.mode.value);
   const { rank, suffix } = useRank({
