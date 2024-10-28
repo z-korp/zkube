@@ -18,8 +18,4 @@ const manifests = {
 // Fallback to `local` if deployType is not a key in `manifests`
 export const manifest = deployType in manifests ? manifests[deployType] : local;
 
-if (!manifest) {
-  console.warn(`No manifest found for deployType: ${deployType}`);
-}
-
 export type Manifest = typeof manifest;
