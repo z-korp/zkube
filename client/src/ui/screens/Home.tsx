@@ -38,7 +38,7 @@ import CollectiveTreasureChest from "../components/TreasureChest";
 import GameOverDialog from "../components/GameOverDialog";
 import useViewport from "@/hooks/useViewport";
 import { TweetPreview } from "../components/TweetPreview";
-import { Schema } from '@dojoengine/recs';
+import { Schema } from "@dojoengine/recs";
 
 export const Home = () => {
   const {
@@ -98,7 +98,9 @@ export const Home = () => {
   }, [composeTweet, game?.over]);
 
   useEffect(() => {
-    if (!game?.over) {
+    // Check if game is defined and not over
+    // the !!game is important to not display the twitter screen
+    if (!!game && !game.over) {
       setIsGameOn("isOn");
     } else {
       setIsGameOn("isOver");
