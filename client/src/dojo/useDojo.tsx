@@ -9,5 +9,6 @@ export const useDojo = () => {
     setup: context,
     account: context.account,
     master: context.master,
+    syncCall: context.syncCallback
   };
 };
