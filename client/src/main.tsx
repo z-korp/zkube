@@ -29,11 +29,10 @@ function Main() {
 
   const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
   const [ready, setReady] = useState(false);
-  const [enter, setEnter] = useState(false);
 
   const loading = useMemo(
-    () => !enter || !setupResult || !ready,
-    [enter, setupResult, ready],
+    () => !setupResult || !ready,
+    [setupResult, ready],
   );
 
   useEffect(() => {
@@ -42,12 +41,12 @@ function Main() {
       setSetupResult(result);
     }
     initialize();
-  }, [enter]);
+  }, []);
 
   useEffect(() => {
-    if (!enter) return;
+    if (!loading) return;
     setTimeout(() => setReady(true), 2000);
-  }, [enter]);
+  }, []);
 
   return (
     <React.StrictMode>
@@ -67,7 +66,7 @@ function Main() {
                 </SoundPlayerProvider>
               </DojoProvider>
             ) : (
-              <Loading enter={enter} setEnter={setEnter} />
+              <Loading />
             )}
           </MusicPlayerProvider>
         </StarknetConfig>
