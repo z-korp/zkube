@@ -5,9 +5,9 @@ import { Button } from "../elements/button";
 import { Tournament } from "@/dojo/game/models/tournament";
 import { TournamentReward } from "./Rewards";
 
-import bronze from "../../../public/assets/trophies/bronze.png";
-import silver from "../../../public/assets/trophies/silver.png";
-import gold from "../../../public/assets/trophies/gold.png";
+import bronze from "/assets/trophies/bronze.png";
+import silver from "/assets/trophies/silver.png";
+import gold from "/assets/trophies/gold.png";
 import { format } from "date-fns";
 import { ModeType } from "@/dojo/game/types/mode";
 import { formatPrize } from "@/utils/wei";
