@@ -10,6 +10,9 @@ import { useChestContribution } from "@/hooks/useChestContribution";
 import ChestTimeline from "./ChestTimeline";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { formatPrize } from "@/utils/wei";
+import { faUsers } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useMediaQuery } from "react-responsive";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -27,6 +30,7 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
   const participations = useParticipations({ player_id: account?.address });
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [selectedChest, setSelectedChest] = useState<Chest | null>(null);
+  const isMdOrLarger = useMediaQuery({ minWidth: 768 });
 
   // Find the index of the first incomplete chest
   const initialChestIndex = chests.findIndex(
@@ -76,7 +80,6 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
-
             <button
               onClick={handleNext}
               className="absolute right-2 top-1/2 transform -translate-y-1/2 transition-transform duration-300 ease-in-out hover:scale-150 rounded-full p-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
@@ -88,9 +91,16 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
               className={`self-center h-[180px] ${currentChest.points === 0 && "grayscale"}`}
               src={currentChest.getIcon()}
             />
-            <p className="text-lg font-semibold mt-2">
-              {`Total Prize: ${formatPrize(currentChest.prize, VITE_PUBLIC_GAME_TOKEN_SYMBOL)}`}
-            </p>
+            <div className="relative flex items-center justify-center gap-2 mt-4 w-full">
+              <p className="text-lg font-semibold text-center">
+                {`Total Prize: ${formatPrize(currentChest.prize, VITE_PUBLIC_GAME_TOKEN_SYMBOL)}`}
+              </p>
+              <button
+                className={`absolute w-10 h-10 rounded-full border border-yellow-300 transform transition-transform duration-300 hover:-translate-y-1 ${isMdOrLarger ? "right-20" : "right-0"}`}
+              >
+                <FontAwesomeIcon icon={faUsers} className="text-yellow-300" />
+              </button>
+            </div>
           </div>
 
           {/* Middle Section */}
