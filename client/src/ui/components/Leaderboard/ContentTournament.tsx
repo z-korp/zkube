@@ -269,12 +269,21 @@ export const ContentTournament: React.FC<ContentTournamentProps> = ({
                 </div>
               </TableHead>
               <TableHead className="w-[10%] text-center">
-                <div className="flex items-center justify-center gap-1">
-                  <FontAwesomeIcon
-                    icon={faFlagCheckered}
-                    className="text-slate-500"
-                  />
-                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <FontAwesomeIcon
+                      icon={faFlagCheckered}
+                      className="text-slate-500"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    align="start"
+                    className=" w-[180px] text-base"
+                  >
+                    Game on going
+                  </TooltipContent>
+                </Tooltip>
               </TableHead>
               <TableHead className="w-[35%] text-center">
                 <div className="flex items-center justify-center gap-1">

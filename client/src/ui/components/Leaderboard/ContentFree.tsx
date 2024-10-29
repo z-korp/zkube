@@ -29,6 +29,7 @@ import {
   faFlagCheckered,
   faStar,
 } from "@fortawesome/free-solid-svg-icons";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/ui/elements/tooltip";
 import MaxComboIcon from "../MaxComboIcon";
 
 const MAX_PAGE_COUNT = 5;
@@ -125,12 +126,21 @@ export const ContentFree: React.FC<ContentFreeProps> = ({
                 </div>
               </TableHead>
               <TableHead className="w-[10%] text-center">
-                <div className="flex items-center justify-center gap-1">
-                  <FontAwesomeIcon
-                    icon={faFlagCheckered}
-                    className="text-slate-500"
-                  />
-                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <FontAwesomeIcon
+                      icon={faFlagCheckered}
+                      className="text-slate-500"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    align="start"
+                    className=" w-[180px] text-base"
+                  >
+                    Game on going
+                  </TooltipContent>
+                </Tooltip>
               </TableHead>
             </TableRow>
           </TableHeader>
