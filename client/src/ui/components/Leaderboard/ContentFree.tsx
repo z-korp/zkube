@@ -22,7 +22,13 @@ import {
 import { usePlayer } from "@/hooks/usePlayer";
 import { Level } from "@/dojo/game/types/level";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCheckCircle,
+  faClock,
+  faFire,
+  faFlagCheckered,
+  faStar,
+} from "@fortawesome/free-solid-svg-icons";
 import MaxComboIcon from "../MaxComboIcon";
 
 const MAX_PAGE_COUNT = 5;
@@ -118,6 +124,14 @@ export const ContentFree: React.FC<ContentFreeProps> = ({
                   />
                 </div>
               </TableHead>
+              <TableHead className="w-[10%] text-center">
+                <div className="flex items-center justify-center gap-1">
+                  <FontAwesomeIcon
+                    icon={faFlagCheckered}
+                    className="text-slate-500"
+                  />
+                </div>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -191,6 +205,13 @@ export const RowFree: React.FC<RowFreeProps> = ({ rank, game }) => {
       </TableCell>
       <TableCell className="text-center font-bold">
         {game.max_combo_in_tournament}
+      </TableCell>
+      <TableCell className="text-center font-bold">
+        {game.isOver() ? (
+          <FontAwesomeIcon icon={faCheckCircle} className="text-green-300" />
+        ) : (
+          <FontAwesomeIcon icon={faClock} className="text-orange-300" />
+        )}
       </TableCell>
     </TableRow>
   );

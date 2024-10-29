@@ -33,7 +33,14 @@ import {
 import { format } from "date-fns";
 import { formatPrize } from "@/utils/wei";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFire, faStar, faTrophy } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCheckCircle,
+  faClock,
+  faFire,
+  faFlagCheckered,
+  faStar,
+  faTrophy,
+} from "@fortawesome/free-solid-svg-icons";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/ui/elements/tooltip";
 import MaxComboIcon from "../MaxComboIcon";
 import TournamentTimer from "../TournamentTimer";
@@ -261,6 +268,14 @@ export const ContentTournament: React.FC<ContentTournamentProps> = ({
                   />
                 </div>
               </TableHead>
+              <TableHead className="w-[10%] text-center">
+                <div className="flex items-center justify-center gap-1">
+                  <FontAwesomeIcon
+                    icon={faFlagCheckered}
+                    className="text-slate-500"
+                  />
+                </div>
+              </TableHead>
               <TableHead className="w-[35%] text-center">
                 <div className="flex items-center justify-center gap-1">
                   <Tooltip>
@@ -363,6 +378,13 @@ export const RowTournament: React.FC<RowTournamentProps> = ({
       </TableCell>
       <TableCell className="text-center font-bold">
         {game.max_combo_in_tournament}
+      </TableCell>
+      <TableCell className="text-center font-bold">
+        {game.isOver() ? (
+          <FontAwesomeIcon icon={faCheckCircle} className="text-green-300" />
+        ) : (
+          <FontAwesomeIcon icon={faClock} className="text-orange-300" />
+        )}
       </TableCell>
       <TableCell className="text-center font-bold">
         {potentialWinnings
