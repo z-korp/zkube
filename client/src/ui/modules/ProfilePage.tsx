@@ -133,7 +133,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
           </DialogContent>
         </Dialog>
       )}
-      {ACCOUNT_CONNECTOR === "controller" && <Connect />}
+      {ACCOUNT_CONNECTOR === "controller" && <Connect inMenu={true} />}
     </>
   );
 };
