@@ -18,13 +18,11 @@ const MusicPlayerContext = createContext({
   playTheme: () => {},
   stopTheme: () => {},
   isPlaying: false,
-  volume: 0.2,
-  setVolume: (volume: number) => {
-    volume;
-  },
-  setTheme: (theme: boolean) => {
-    theme;
-  },
+  musicVolume: 0.2,
+  setMusicVolume: (volume: number) => {},
+  effectsVolume: 0.2,
+  setEffectsVolume: (volume: number) => {},
+  setTheme: (theme: boolean) => {},
   playStart: () => {},
   playOver: () => {},
   playSwipe: () => {},
@@ -53,13 +51,20 @@ export const MusicPlayerProvider = ({
   const [tracks, setTracks] = useState(menuTracks);
   const [theme, setTheme] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.2);
+  const [musicVolume, setMusicVolume] = useState(0.2);
+  const [effectsVolume, setEffectsVolume] = useState(0.2);
 
-  // Hooks séparés pour chaque effet sonore
-  const [playStartSound] = useSound(soundAssets.start, { volume });
-  const [playOverSound] = useSound(soundAssets.over, { volume });
-  const [playSwipeSound] = useSound(soundAssets.swipe, { volume });
-  const [playExplodeSound] = useSound(soundAssets.explode, { volume });
+  // Hooks séparés pour chaque effet sonore avec volume indépendant
+  const [playStartSound] = useSound(soundAssets.start, {
+    volume: effectsVolume,
+  });
+  const [playOverSound] = useSound(soundAssets.over, { volume: effectsVolume });
+  const [playSwipeSound] = useSound(soundAssets.swipe, {
+    volume: effectsVolume,
+  });
+  const [playExplodeSound] = useSound(soundAssets.explode, {
+    volume: effectsVolume,
+  });
 
   const goToNextTrack = () => {
     setCurrentTrackIndex((prevIndex) => {
@@ -87,7 +92,7 @@ export const MusicPlayerProvider = ({
   const [playTheme, { stop: stopTheme }] = useSound(
     tracks[currentTrackIndex].url,
     {
-      volume,
+      volume: musicVolume,
       onplay: () => setIsPlaying(true),
       onstop: () => setIsPlaying(false),
       onend: () => {
@@ -127,8 +132,10 @@ export const MusicPlayerProvider = ({
         playTheme,
         stopTheme,
         isPlaying,
-        volume,
-        setVolume,
+        musicVolume,
+        setMusicVolume,
+        effectsVolume,
+        setEffectsVolume,
         setTheme,
         playStart,
         playOver,
