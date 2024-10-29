@@ -26,13 +26,11 @@ const root = ReactDOM.createRoot(
 
 function Main() {
   const connectors = [cartridgeConnector];
-
   const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
-  const [ready, setReady] = useState(false);
 
   const loading = useMemo(
-    () => !setupResult || !ready,
-    [setupResult, ready],
+    () => !setupResult,
+    [setupResult],
   );
 
   useEffect(() => {
@@ -41,11 +39,6 @@ function Main() {
       setSetupResult(result);
     }
     initialize();
-  }, []);
-
-  useEffect(() => {
-    if (!loading) return;
-    setTimeout(() => setReady(true), 2000);
   }, []);
 
   return (
