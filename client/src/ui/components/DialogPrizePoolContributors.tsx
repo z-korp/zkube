@@ -8,7 +8,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../elements/dialog";
-import { faUsers } from "@fortawesome/free-solid-svg-icons";
+import { ScrollArea } from "@/ui/elements/scroll-area";
+
+import { faHeart, faUsers } from "@fortawesome/free-solid-svg-icons";
+
+const fakeDataName = [
+  "EpicNoodleMaster",
+  "CactusSniper69",
+  "L33tPenguinWarrior",
+  "GlitterBombGamer",
+  "SirLagALot",
+  "NoobSlayerX",
+  "SpicyTacoHunter",
+  "QuantumFrogster",
+  "NinjaPastaChef",
+  "BouncingUnicorn47",
+];
 
 export function DialogPrizePoolContributors() {
   return (
@@ -20,23 +35,30 @@ export function DialogPrizePoolContributors() {
           <FontAwesomeIcon icon={faUsers} className="text-yellow-300" />
         </button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[650px] w-[95%]">
         <DialogHeader>
-          <DialogTitle>Edit profile</DialogTitle>
+          <DialogTitle>
+            <div className="text-2xl text-yellow-300">Real MVPs</div>
+          </DialogTitle>
           <DialogDescription>
-            Make changes to your profile here. Click save when you're done.
+            Here’s a shoutout to our top legends that contributed on the chest
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <p> Coucou</p>
+        <ScrollArea className="h-[300px]  p-4">
+          <div className="grid gap-4 py-4">
+            {fakeDataName.map((name, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between px-4 py-2 bg-sky-800 rounded-lg"
+              >
+                <div>{name}</div>
+                <div>1000 LORDS</div>
+              </div>
+            ))}
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <p> Coucou 2</p>
-          </div>
-        </div>
+        </ScrollArea>
         <DialogFooter>
-          <button type="submit">Save changes</button>
+          <FontAwesomeIcon icon={faHeart} className="text-yellow-300" />
         </DialogFooter>
       </DialogContent>
     </Dialog>
