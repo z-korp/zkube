@@ -10,9 +10,8 @@ import { useChestContribution } from "@/hooks/useChestContribution";
 import ChestTimeline from "./ChestTimeline";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { formatPrize } from "@/utils/wei";
-import { faUsers } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useMediaQuery } from "react-responsive";
+import { DialogPrizePoolContributors } from "./DialogPrizePoolContributors";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -95,11 +94,11 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
               <p className="text-lg font-semibold text-center">
                 {`Total Prize: ${formatPrize(currentChest.prize, VITE_PUBLIC_GAME_TOKEN_SYMBOL)}`}
               </p>
-              <button
-                className={`absolute w-10 h-10 rounded-full border border-yellow-300 transform transition-transform duration-300 hover:-translate-y-1 ${isMdOrLarger ? "right-20" : "right-0"}`}
+              <div
+                className={`absolute transition-transform duration-300 hover:-translate-y-1 ${isMdOrLarger ? "right-20" : "right-0"}`}
               >
-                <FontAwesomeIcon icon={faUsers} className="text-yellow-300" />
-              </button>
+                <DialogPrizePoolContributors />
+              </div>
             </div>
           </div>
 
