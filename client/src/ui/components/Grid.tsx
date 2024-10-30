@@ -464,9 +464,14 @@ const Grid: React.FC<GridProps> = ({
         const x = gridPosition.left + centerX;
         const y = gridPosition.top + centerY;
 
-        // blocksSameRow.forEach((block, index) => {
-        //   handleTrigger(x, y);
-        // });
+        blocksSameRow.forEach((block, index) => {
+          handleTriggerLocalExplosion(
+            gridPosition.left +
+              block.x * gridSize +
+              (block.width * gridSize) / 2,
+            gridPosition.top + block.y * gridSize,
+          );
+        });
 
         // triggerParticles(
         //   {
@@ -477,7 +482,7 @@ const Grid: React.FC<GridProps> = ({
         // );
 
         //handleTriggerLocalExplosion(x, y);
-        handleTriggerLineExplosion(x, y, 400);
+        // handleTriggerLineExplosion(x, y, 400);
       });
 
       setBlocks(updatedBlocks);

@@ -140,7 +140,7 @@ const ConfettiExplosion = forwardRef<
   const triggerLocalExplosion = (position: { x: number; y: number }) => {
     if (particleContainerRef.current) {
       const pR = particleContainerRef.current.retina.pixelRatio;
-      for (let i = 0; i < 200; i++) {
+      for (let i = 0; i < 10; i++) {
         particleContainerRef.current.particles.addParticle({
           x: position.x * pR,
           y: position.y * pR,
