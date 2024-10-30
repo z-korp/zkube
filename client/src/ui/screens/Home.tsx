@@ -39,6 +39,7 @@ import GameOverDialog from "../components/GameOverDialog";
 import useViewport from "@/hooks/useViewport";
 import { TweetPreview } from "../components/TweetPreview";
 import { useGrid } from "@/hooks/useGrid";
+import ConfettiExplosion from "../components/ConfettiExplosion";
 
 export const Home = () => {
   const {
@@ -383,6 +384,10 @@ export const Home = () => {
             </AnimatePresence>
           </BackGroundBoard>
         </BackGroundBoard>
+      </div>
+      <div className="h-[200px]">
+        <h1>Click to Explode Particles!</h1>
+        <ConfettiExplosion />
       </div>
     </div>
   );

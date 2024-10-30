@@ -113,6 +113,9 @@ dependencies:
   '@tsparticles/react':
     specifier: ^3.0.0
     version: 3.0.0(@tsparticles/engine@3.5.0)(react-dom@18.3.1)(react@18.3.1)
+  '@tsparticles/slim':
+    specifier: ^3.5.0
+    version: 3.5.0
   class-variance-authority:
     specifier: ^0.7.0
     version: 0.7.0
