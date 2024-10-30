@@ -1,8 +1,29 @@
 import { ISourceOptions, tsParticles, Container } from "@tsparticles/engine";
-import React, { useEffect, useRef } from "react";
+import React, {
+  useEffect,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { loadFull } from "tsparticles";
 
-const ConfettiExplosion: React.FC = () => {
+interface ConfettiExplosionProps {
+  colorSet: string[];
+}
+
+export interface ConfettiExplosionRef {
+  triggerLocalExplosion: (position: { x: number; y: number }) => void;
+  triggerLineExplosion: (position: {
+    x: number;
+    y: number;
+    range: number;
+  }) => void;
+}
+
+const ConfettiExplosion = forwardRef<
+  ConfettiExplosionRef,
+  ConfettiExplosionProps
+>(({ colorSet }, ref) => {
   const particleContainerRef = useRef<Container | null>(null);
   const mousePosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -12,7 +33,7 @@ const ConfettiExplosion: React.FC = () => {
         value: 0,
       },
       color: {
-        value: ["#47D1D9", "#8BA3BC", "#1974D1", "#44A4D9", "#01040B"],
+        value: colorSet,
       },
       shape: {
         type: "square",
@@ -116,21 +137,57 @@ const ConfettiExplosion: React.FC = () => {
     }
   };
 
+  const triggerLocalExplosion = (position: { x: number; y: number }) => {
+    if (particleContainerRef.current) {
+      const pR = particleContainerRef.current.retina.pixelRatio;
+      for (let i = 0; i < 200; i++) {
+        particleContainerRef.current.particles.addParticle({
+          x: position.x * pR,
+          y: position.y * pR,
+        });
+      }
+    }
+  };
+
+  const triggerLineExplosion = (position: {
+    x: number;
+    y: number;
+    range: number;
+  }) => {
+    if (particleContainerRef.current) {
+      const pR = particleContainerRef.current.retina.pixelRatio;
+      for (let i = 0; i < 300; i++) {
+        particleContainerRef.current.particles.addParticle({
+          x:
+            Math.random() * position.range * pR +
+            position.x * pR -
+            (position.range * pR) / 2,
+          y: position.y * pR,
+        });
+      }
+    }
+  };
+
+  // Expose the function
+  useImperativeHandle(ref, () => ({
+    triggerLocalExplosion,
+    triggerLineExplosion,
+  }));
+
   return (
-    <div onClick={handleClick}>
-      <div
-        id="tsparticles"
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          zIndex: 1000,
-        }}
-      />
-    </div>
+    <div
+      id="tsparticles"
+      className="pointer-events-none"
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        zIndex: 1000,
+      }}
+    />
   );
-};
+});
 
 export default ConfettiExplosion;

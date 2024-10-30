@@ -385,10 +385,6 @@ export const Home = () => {
           </BackGroundBoard>
         </BackGroundBoard>
       </div>
-      <div className="h-[200px]">
-        <h1>Click to Explode Particles!</h1>
-        <ConfettiExplosion />
-      </div>
     </div>
   );
 };

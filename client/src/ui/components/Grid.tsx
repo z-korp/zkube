@@ -22,6 +22,7 @@ import { BonusType } from "@/dojo/game/types/bonus";
 import { useMusicPlayer } from "@/contexts/music";
 import useViewportDimensions from "@/hooks/useViewport";
 import "../../grid.css";
+import ConfettiExplosion, { ConfettiExplosionRef } from "./ConfettiExplosion";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -462,26 +463,21 @@ const Grid: React.FC<GridProps> = ({
         if (gridPosition === null) return;
         const x = gridPosition.left + centerX;
         const y = gridPosition.top + centerY;
-        const xPercentage = (x / viewportDimensions.width) * 100;
-        const yPercentage = (y / viewportDimensions.height) * 100;
 
-        // blocksSameRow.forEach((block) => {
-        //   triggerParticles(
-        //     {
-        //       x: xPercentage + block.width * 5,
-        //       y: yPercentage,
-        //     },
-        //     ["#47D1D9", "#8BA3BC", "#1974D1", "#44A4D9"],
-        //   );
+        // blocksSameRow.forEach((block, index) => {
+        //   handleTrigger(x, y);
         // });
 
-        triggerParticles(
-          {
-            x: xPercentage,
-            y: yPercentage,
-          },
-          ["#47D1D9", "#8BA3BC", "#1974D1", "#44A4D9", "#01040B"],
-        );
+        // triggerParticles(
+        //   {
+        //     x: xPercentage,
+        //     y: yPercentage,
+        //   },
+        //   ["#47D1D9", "#8BA3BC", "#1974D1", "#44A4D9", "#01040B"],
+        // );
+
+        //handleTriggerLocalExplosion(x, y);
+        handleTriggerLineExplosion(x, y, 400);
       });
 
       setBlocks(updatedBlocks);
@@ -567,53 +563,73 @@ const Grid: React.FC<GridProps> = ({
     }
   }, [gameState, pendingMove, handleMoveTX]);
 
+  const explosionRef = useRef<ConfettiExplosionRef>(null);
+
+  const handleTriggerLocalExplosion = (x: number, y: number) => {
+    if (explosionRef.current) {
+      explosionRef.current.triggerLocalExplosion({ x, y });
+    }
+  };
+
+  const handleTriggerLineExplosion = (x: number, y: number, range: number) => {
+    if (explosionRef.current) {
+      explosionRef.current.triggerLineExplosion({ x, y, range });
+    }
+  };
+
   return (
-    <motion.div
-      animate={shouldBounce ? { scale: [1, 1.1, 1, 1.1, 1] } : {}}
-      transition={{ duration: 0.2, ease: "easeInOut" }}
-    >
-      <div
-        className={`grid-background ${isTxProcessing ? " cursor-wait animated-border" : "static-border"}`}
-        id="grid"
-        ref={gridRef}
+    <>
+      <ConfettiExplosion
+        ref={explosionRef}
+        colorSet={["#47D1D9", "#8BA3BC", "#1974D1", "#44A4D9", "#01040B"]}
+      />
+      <motion.div
+        animate={shouldBounce ? { scale: [1, 1.1, 1, 1.1, 1] } : {}}
+        transition={{ duration: 0.2, ease: "easeInOut" }}
       >
         <div
-          className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${isPlayerInDanger ? " animated-box-player-danger" : ""}`}
-          style={{
-            height: `${gridHeight * gridSize + borderSize}px`,
-            width: `${gridWidth * gridSize + borderSize}px`,
-            backgroundImage:
-              "linear-gradient(#1E293B 2px, transparent 2px), linear-gradient(to right, #1E293B 2px, #10172A 2px)",
-            backgroundSize: `${gridSize}px ${gridSize}px`,
-          }}
-          onMouseMove={handleMouseMove}
-          //onMouseUp={handleMouseUp}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+          className={`grid-background ${isTxProcessing ? " cursor-wait animated-border" : "static-border"}`}
+          id="grid"
+          ref={gridRef}
         >
-          {blocks.map((block) => (
-            <BlockContainer
-              key={block.id}
-              block={block}
-              gridSize={gridSize}
-              gridHeight={gridHeight}
-              isTxProcessing={isTxProcessing}
-              transitionDuration={transitionDuration}
-              state={gameState}
-              handleMouseDown={handleMouseDown}
-              handleTouchStart={handleTouchStart}
-              onTransitionBlockStart={() =>
-                handleTransitionBlockStart(block.id)
-              }
-              onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
-            />
-          ))}
-          <div className="flex items-center justify-center font-sans z-20 pointer-events-none">
-            <AnimatedText textEnum={animateText} reset={resetAnimateText} />
+          <div
+            className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${isPlayerInDanger ? " animated-box-player-danger" : ""}`}
+            style={{
+              height: `${gridHeight * gridSize + borderSize}px`,
+              width: `${gridWidth * gridSize + borderSize}px`,
+              backgroundImage:
+                "linear-gradient(#1E293B 2px, transparent 2px), linear-gradient(to right, #1E293B 2px, #10172A 2px)",
+              backgroundSize: `${gridSize}px ${gridSize}px`,
+            }}
+            onMouseMove={handleMouseMove}
+            //onMouseUp={handleMouseUp}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {blocks.map((block) => (
+              <BlockContainer
+                key={block.id}
+                block={block}
+                gridSize={gridSize}
+                gridHeight={gridHeight}
+                isTxProcessing={isTxProcessing}
+                transitionDuration={transitionDuration}
+                state={gameState}
+                handleMouseDown={handleMouseDown}
+                handleTouchStart={handleTouchStart}
+                onTransitionBlockStart={() =>
+                  handleTransitionBlockStart(block.id)
+                }
+                onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
+              />
+            ))}
+            <div className="flex items-center justify-center font-sans z-20 pointer-events-none">
+              <AnimatedText textEnum={animateText} reset={resetAnimateText} />
+            </div>
           </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </>
   );
 };
 
