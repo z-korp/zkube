@@ -39,7 +39,6 @@ import GameOverDialog from "../components/GameOverDialog";
 import useViewport from "@/hooks/useViewport";
 import { TweetPreview } from "../components/TweetPreview";
 import { useGrid } from "@/hooks/useGrid";
-import ConfettiExplosion from "../components/ConfettiExplosion";
 
 export const Home = () => {
   const {
@@ -236,7 +235,7 @@ export const Home = () => {
           <BackGroundBoard
             imageBackground={imageTotemTheme}
             initial={{ scale: 1 }}
-            animate={{ scale: [1, 0.995, 1] }}
+            animate={isMdOrLarger ? { scale: [1, 0.995, 1] } : {}}
             transition={{
               duration: 2,
               repeat: Infinity,
