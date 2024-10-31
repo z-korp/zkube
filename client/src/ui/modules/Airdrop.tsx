@@ -18,7 +18,7 @@ const Airdrop = () => {
     amount: "9",
     collections: [
       {
-        name: "ZKube Collection",
+        name: "Realms holder",
         amount: 5,
       },
       {
@@ -26,7 +26,7 @@ const Airdrop = () => {
         amount: 3,
       },
       {
-        name: "Early Adopter Collection",
+        name: "SLINK holder",
         amount: 1,
       },
     ],
@@ -50,34 +50,32 @@ const Airdrop = () => {
 
   if (!mockUserData.claimable) {
     return (
-      <Card className="w-full max-w-2xl mx-auto bg-gray-900/50">
-        <CardContent className="text-center p-6">
-          <AlertCircle className="mx-auto mb-4 text-gray-400" size={32} />
-          <p className="text-gray-300">
-            You are not eligible for the ZKube airdrop.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="text-center text-sm mt-6 text-gray-300 flex flex-col gap-3 font-semibold md:font-normal">
+        <AlertCircle className="mx-auto mb-4 text-gray-400" size={32} />
+        <p>You are not eligible for the ZKube airdrop.</p>
+        <p>Keep participating to earn rewards!</p>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4 w-full max-w-2xl mx-auto">
-      <Card className="bg-gray-900/50">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold text-white">
-            ZKube Airdrop Claim
+    <div className="flex flex-col gap-3 pt-4">
+      <Card className="bg-gray-800/50 p-4">
+        <CardHeader className="p-0 mb-4">
+          <CardTitle className="text-lg font-semibold text-white">
+            ZKube Airdrop
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="rounded-lg bg-gray-800/50 p-4 space-y-2">
+        <CardContent className="p-0">
+          <div className="flex flex-col gap-4">
             <div className="flex justify-between items-center">
               <span className="text-gray-300">Claimable Amount</span>
               <span className="text-white font-bold">
                 {mockUserData.amount} ZKUBE
               </span>
             </div>
-            <div className="space-y-1">
+
+            <div className="space-y-2">
               <span className="text-sm text-gray-400">Eligible for:</span>
               {mockUserData.collections.map((collection, index) => (
                 <div key={index} className="flex items-center gap-2">
@@ -88,10 +86,7 @@ const Airdrop = () => {
                 </div>
               ))}
             </div>
-          </div>
 
-          {/* Boutons d'action */}
-          <div className="space-y-4">
             {!claimStatus.claimed ? (
               <Button
                 className="w-full"
@@ -102,13 +97,11 @@ const Airdrop = () => {
                 Claim Airdrop
               </Button>
             ) : (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-green-500">
-                  <Check size={20} />
-                  <span>
-                    Successfully claimed {claimStatus.amountClaimed} ZKUBE
-                  </span>
-                </div>
+              <div className="flex items-center gap-2 text-green-500">
+                <Check size={20} />
+                <span>
+                  Successfully claimed {claimStatus.amountClaimed} ZKUBE
+                </span>
               </div>
             )}
           </div>

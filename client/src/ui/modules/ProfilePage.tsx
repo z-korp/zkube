@@ -104,9 +104,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
                 value="airdrop"
                 asChild
               >
-                <CardContent className="p-0">
-                  <Airdrop />
-                </CardContent>
+                <Airdrop />
               </TabsContent>
               <TabsContent
                 className="max-h-[480px] overflow-y-auto"
