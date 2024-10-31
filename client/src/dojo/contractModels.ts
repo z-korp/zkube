@@ -64,6 +64,26 @@ export function defineContractComponents(world: World) {
         },
       },
     ),
+    Player: defineComponent(
+      world,
+      {
+        id: RecsType.BigInt,
+        game_id: RecsType.Number,
+        name: RecsType.BigInt,
+        points: RecsType.Number,
+        daily_streak: RecsType.Number,
+        last_active_day: RecsType.Number,
+        account_creation_day: RecsType.Number,
+      },
+      {
+        metadata: {
+          namespace: "zkube",
+          name: "Player",
+          types: ["felt252", "u32", "felt252", "u32", "u8", "u32", "u32"],
+          customTypes: [],
+        },
+      },
+    ),
     Credits: defineComponent(
       world,
       {
