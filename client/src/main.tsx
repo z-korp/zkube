@@ -26,14 +26,11 @@ const root = ReactDOM.createRoot(
 
 export function Main() {
   const connectors = [cartridgeConnector];
-
   const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
-  const [ready, setReady] = useState(false);
-  const [enter, setEnter] = useState(false);
 
   const loading = useMemo(
-    () => !enter || !setupResult || !ready,
-    [enter, setupResult, ready],
+    () => !setupResult,
+    [setupResult],
   );
 
   useEffect(() => {
@@ -42,12 +39,7 @@ export function Main() {
       setSetupResult(result);
     }
     initialize();
-  }, [enter]);
-
-  useEffect(() => {
-    if (!enter) return;
-    setTimeout(() => setReady(true), 2000);
-  }, [enter]);
+  }, []);
 
   return (
     <React.StrictMode>
@@ -67,7 +59,7 @@ export function Main() {
                 </SoundPlayerProvider>
               </DojoProvider>
             ) : (
-              <Loading enter={enter} setEnter={setEnter} />
+              <Loading />
             )}
           </MusicPlayerProvider>
         </StarknetConfig>
