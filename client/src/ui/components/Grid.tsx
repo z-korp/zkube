@@ -376,16 +376,19 @@ const Grid: React.FC<GridProps> = ({
     return false;
   };
 
-  const calculateFallDistance = (block: Block, blocks: Block[]) => {
-    let maxFall = gridHeight - block.y - 1;
-    for (let y = block.y + 1; y < gridHeight; y++) {
-      if (isCollision(block.x, y, block.width, blocks, block.id)) {
-        maxFall = y - block.y - 1;
-        break;
+  const calculateFallDistance = useCallback(
+    (block: Block, blocks: Block[]) => {
+      let maxFall = gridHeight - block.y - 1;
+      for (let y = block.y + 1; y < gridHeight; y++) {
+        if (isCollision(block.x, y, block.width, blocks, block.id)) {
+          maxFall = y - block.y - 1;
+          break;
+        }
       }
-    }
-    return maxFall;
-  };
+      return maxFall;
+    },
+    [gridHeight],
+  );
 
   const isCollision = (
     x: number,
