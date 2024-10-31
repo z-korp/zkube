@@ -1,6 +1,6 @@
 import { Button } from "@/ui/elements/button";
 import { Slider } from "@/ui/elements/slider";
-import { useMusicPlayer } from "@/contexts/music";
+import { useMusicPlayer } from "@/contexts/hooks";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faVolumeHigh, faVolumeMute } from "@fortawesome/free-solid-svg-icons";
 

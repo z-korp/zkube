@@ -128,7 +128,7 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [account, mode, settings, credits]);
+  }, [account, credits, settings, contract, start, mode, handleGameMode]);
 
   return (
     <Button

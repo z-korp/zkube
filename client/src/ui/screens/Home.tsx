@@ -3,13 +3,13 @@ import { Create } from "../actions/Create";
 import GameBoard from "../components/GameBoard";
 import BackGroundBoard from "../components/BackgroundBoard";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useCallBack, useEffect, useRef, useState } from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useDojo } from "@/dojo/useDojo";
-import { useTheme } from "@/ui/elements/theme-provider";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { Surrender } from "../actions/Surrender";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
@@ -38,6 +38,7 @@ import CollectiveTreasureChest from "../components/TreasureChest";
 import GameOverDialog from "../components/GameOverDialog";
 import useViewport from "@/hooks/useViewport";
 import { TweetPreview } from "../components/TweetPreview";
+import { Schema } from "@dojoengine/recs";
 import { useGrid } from "@/hooks/useGrid";
 
 export const Home = () => {
@@ -48,7 +49,7 @@ export const Home = () => {
   useViewport();
   useRewardsCalculator();
 
-  useQuerySync(toriiClient, contractComponents as any, []);
+  useQuerySync<Schema>(toriiClient, Object.values(contractComponents), []);
 
   const isSigning = false; //useAutoSignup();
 
@@ -65,7 +66,6 @@ export const Home = () => {
   const { theme, themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
   const gameGrid: React.RefObject<HTMLDivElement> | null = useRef(null);
-  const [isUnmounting, setIsUnmounting] = useState(false);
   const [isGameOn, setIsGameOn] = useState<"idle" | "isOn" | "isOver">("idle");
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [level, setLevel] = useState<number | "">(0);
@@ -76,6 +76,12 @@ export const Home = () => {
 
   // State variables for modals
   const [isTournamentsOpen, setIsTournamentsOpen] = useState(false);
+
+  const composeTweet = useCallback(() => {
+    setLevel(player?.points ? Level.fromPoints(player?.points).value : "");
+    setScore(game?.score);
+    setIsPreviewOpen(true);
+  }, [game?.score, player?.points]);
 
   useEffect(() => {
     if (game?.over) {
@@ -91,21 +97,17 @@ export const Home = () => {
       }
       setIsGameOn("isOver");
     }
-  }, [game?.over, isUnmounting]);
+  }, [composeTweet, game?.over]);
 
   useEffect(() => {
+    // Check if game is defined and not over
+    // the !!game is important to not display the twitter screen
     if (!!game && !game.over) {
       setIsGameOn("isOn");
     } else {
       setIsGameOn("isOver");
     }
   }, [game?.over]);
-
-  const composeTweet = () => {
-    setLevel(player?.points ? Level.fromPoints(player?.points).value : "");
-    setScore(game?.score);
-    setIsPreviewOpen(true);
-  };
 
   const imageTotemTheme =
     theme === "dark" ? imgAssets.imageTotemDark : imgAssets.imageTotemLight;

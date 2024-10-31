@@ -1,11 +1,7 @@
 import { Condition } from "../../types/bonus";
 
 export class Wave {
-  public static getCount(
-    _score: number,
-    combo: number,
-    _max_combo: number,
-  ): number {
+  public static getCount(combo: number): number {
     if (combo >= 64) {
       return 3;
     } else if (combo >= 32) {

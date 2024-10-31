@@ -3,7 +3,7 @@ import { Toaster } from "./ui/elements/sonner";
 import { Home } from "./ui/screens/Home";
 import { TooltipProvider } from "@/ui/elements/tooltip";
 
-export default () => {
+export default function App() {
   return (
     <TooltipProvider>
       <Router>
@@ -14,4 +14,4 @@ export default () => {
       </Router>
     </TooltipProvider>
   );
-};
+}

@@ -1,6 +1,6 @@
 import { Button } from "@/ui/elements/button";
 import ImageAssets from "@/ui/theme/ImageAssets";
-import { useTheme } from "@/ui/elements/theme-provider";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
 
 export const Loading = ({
   enter,

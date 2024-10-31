@@ -10,13 +10,13 @@ import { Participation } from "./game/models/participation";
 export type ClientModels = ReturnType<typeof models>;
 
 export function models({
-  contractModels,
+  contractComponents,
 }: {
-  contractModels: ContractComponents;
+  contractComponents: ContractComponents;
 }) {
   return {
     models: {
-      ...contractModels,
+      ...contractComponents,
     },
     classes: {
       Game,

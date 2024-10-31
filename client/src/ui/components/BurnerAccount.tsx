@@ -39,7 +39,7 @@ export const BurnerAccount = () => {
       </TooltipProvider>
 
       <Select
-        onValueChange={(value: any) => select(value)}
+        onValueChange={(value) => select(value)}
         value={account.address}
       >
         <SelectTrigger>

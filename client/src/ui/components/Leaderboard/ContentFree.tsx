@@ -63,7 +63,7 @@ export const ContentFree: React.FC<ContentFreeProps> = ({
   useEffect(() => {
     const rem = Math.floor(sortedGames.length / (GAME_PER_PAGE + 1)) + 1;
     setPageCount(rem);
-  }, [sortedGames]);
+  }, [GAME_PER_PAGE, sortedGames]);
 
   useEffect(() => {
     setPage(1); // Reset to first page only when mode changes
@@ -73,7 +73,7 @@ export const ContentFree: React.FC<ContentFreeProps> = ({
     const start = (page - 1) * GAME_PER_PAGE;
     const end = start + GAME_PER_PAGE;
     return { start, end };
-  }, [page]);
+  }, [GAME_PER_PAGE, page]);
 
   const handlePrevious = useCallback(() => {
     if (page === 1) return;

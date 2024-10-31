@@ -83,6 +83,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     setOptimisticScore(score);
     setOptimisticCombo(combo);
     setOptimisticMaxCombo(maxCombo);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGrid]);
 
   const [bonus, setBonus] = useState<BonusType>(BonusType.None);
@@ -124,7 +125,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         //setIsLoading(false);
       }
     },
-    [account],
+    [account, applyBonus],
   );
 
   const handleBonusHammerTx = useCallback(
@@ -143,7 +144,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         //setIsLoading(false);
       }
     },
-    [account],
+    [account, applyBonus],
   );
 
   const handleBonusTikiTx = useCallback(
@@ -162,7 +163,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         //setIsLoading(false);
       }
     },
-    [account],
+    [account, applyBonus],
   );
 
   const selectBlock = useCallback(
@@ -177,7 +178,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         console.log("none", block);
       }
     },
-    [bonus],
+    [bonus, handleBonusHammerTx, handleBonusTikiTx, handleBonusWaveTx],
   );
 
   useEffect(() => {
@@ -192,6 +193,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const memoizedNextLineData = useMemo(() => {
     return transformDataContractIntoBlock([nextLine]);
+    // initialGrid on purpose
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGrid]);
 
   const { endTimestamp } = useTournament(game.mode.value);
