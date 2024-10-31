@@ -7,7 +7,7 @@ import { dojoConfig } from "../dojo.config.ts";
 import { Loading } from "@/ui/screens/Loading";
 import { MusicPlayerProvider } from "./contexts/music.tsx";
 import { SoundPlayerProvider } from "./contexts/sound.tsx";
-import { ThemeProvider } from "./ui/elements/theme-provider.tsx";
+import { ThemeProvider } from "./ui/elements/theme-provider/index.tsx";
 import { StarknetConfig, jsonRpcProvider, voyager } from "@starknet-react/core";
 import { sepolia } from "@starknet-react/chains";
 import cartridgeConnector from "./cartridgeConnector.tsx";
@@ -24,16 +24,13 @@ const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,
 );
 
-function Main() {
+export function Main() {
   const connectors = [cartridgeConnector];
-
   const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
-  const [ready, setReady] = useState(false);
-  const [enter, setEnter] = useState(false);
 
   const loading = useMemo(
-    () => !enter || !setupResult || !ready,
-    [enter, setupResult, ready],
+    () => !setupResult,
+    [setupResult],
   );
 
   useEffect(() => {
@@ -42,12 +39,7 @@ function Main() {
       setSetupResult(result);
     }
     initialize();
-  }, [enter]);
-
-  useEffect(() => {
-    if (!enter) return;
-    setTimeout(() => setReady(true), 2000);
-  }, [enter]);
+  }, []);
 
   return (
     <React.StrictMode>
@@ -67,7 +59,7 @@ function Main() {
                 </SoundPlayerProvider>
               </DojoProvider>
             ) : (
-              <Loading enter={enter} setEnter={setEnter} />
+              <Loading />
             )}
           </MusicPlayerProvider>
         </StarknetConfig>
@@ -75,4 +67,5 @@ function Main() {
     </React.StrictMode>
   );
 }
+
 root.render(<Main />);

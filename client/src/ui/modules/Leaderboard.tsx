@@ -29,7 +29,7 @@ interface TabListProps {
 }
 
 const TabList = memo<TabListProps>(
-  ({ activeTab, setActiveTab, isMdorLarger }) => (
+  ({ setActiveTab, isMdorLarger }) => (
     <TabsList className="grid w-full mx-auto sm:w-full grid-cols-3">
       <TabsTrigger
         value={ModeType.Free}
@@ -67,16 +67,23 @@ interface LeaderboardProps {
     | null
     | undefined;
   textSize?: "sm" | "md" | "lg";
+  inMenu?: boolean;
 }
 
 export const Leaderboard: React.FC<LeaderboardProps> = ({
   buttonType,
   textSize = "lg",
+  inMenu = false,
 }) => {
+  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
+
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant={buttonType} className={`w-full text-${textSize}`}>
+        <Button
+          variant={buttonType}
+          className={`w-full text-${textSize} ${!isMdOrLarger && !inMenu && "py-6 border-4 rounded-none bg-sky-200 font-sans"}`}
+        >
           Leaderboards
         </Button>
       </DialogTrigger>

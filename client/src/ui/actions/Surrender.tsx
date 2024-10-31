@@ -57,7 +57,7 @@ export const Surrender: React.FC<SurrenderProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [account]);
+  }, [account, setIsUnmounting, surrender]);
 
   const disabled = useMemo(() => {
     return (

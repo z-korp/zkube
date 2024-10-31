@@ -2,14 +2,14 @@ import { Header } from "@/ui/containers/Header";
 import { Create } from "../actions/Create";
 import GameBoard from "../components/GameBoard";
 import BackGroundBoard from "../components/BackgroundBoard";
-import { AnimatePresence } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useDojo } from "@/dojo/useDojo";
-import { useTheme } from "@/ui/elements/theme-provider";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { Surrender } from "../actions/Surrender";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
@@ -38,6 +38,8 @@ import CollectiveTreasureChest from "../components/TreasureChest";
 import GameOverDialog from "../components/GameOverDialog";
 import useViewport from "@/hooks/useViewport";
 import { TweetPreview } from "../components/TweetPreview";
+import { Schema } from "@dojoengine/recs";
+import { useGrid } from "@/hooks/useGrid";
 
 export const Home = () => {
   const {
@@ -47,7 +49,7 @@ export const Home = () => {
   useViewport();
   useRewardsCalculator();
 
-  useQuerySync(toriiClient, contractComponents as any, []);
+  useQuerySync<Schema>(toriiClient, Object.values(contractComponents), []);
 
   const isSigning = false; //useAutoSignup();
 
@@ -58,12 +60,12 @@ export const Home = () => {
     gameId: player?.game_id || "0x0",
     shouldLog: true,
   });
+  const grid = useGrid({ gameId: game?.id ?? "", shouldLog: true });
   const [animationDone, setAnimationDone] = useState(false);
 
   const { theme, themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
   const gameGrid: React.RefObject<HTMLDivElement> | null = useRef(null);
-  const [isUnmounting, setIsUnmounting] = useState(false);
   const [isGameOn, setIsGameOn] = useState<"idle" | "isOn" | "isOver">("idle");
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [level, setLevel] = useState<number | "">(0);
@@ -74,6 +76,12 @@ export const Home = () => {
 
   // State variables for modals
   const [isTournamentsOpen, setIsTournamentsOpen] = useState(false);
+
+  const composeTweet = useCallback(() => {
+    setLevel(player?.points ? Level.fromPoints(player?.points).value : "");
+    setScore(game?.score);
+    setIsPreviewOpen(true);
+  }, [game?.score, player?.points]);
 
   useEffect(() => {
     if (game?.over) {
@@ -89,21 +97,17 @@ export const Home = () => {
       }
       setIsGameOn("isOver");
     }
-  }, [game?.over, isUnmounting]);
+  }, [composeTweet, game?.over]);
 
   useEffect(() => {
+    // Check if game is defined and not over
+    // the !!game is important to not display the twitter screen
     if (!!game && !game.over) {
       setIsGameOn("isOn");
     } else {
       setIsGameOn("isOver");
     }
   }, [game?.over]);
-
-  const composeTweet = () => {
-    setLevel(player?.points ? Level.fromPoints(player?.points).value : "");
-    setScore(game?.score);
-    setIsPreviewOpen(true);
-  };
 
   const imageTotemTheme =
     theme === "dark" ? imgAssets.imageTotemDark : imgAssets.imageTotemLight;
@@ -139,6 +143,10 @@ export const Home = () => {
     // Update the ref with the current value of game.over
     prevGameOverRef.current = game?.over;
   }, [game?.over]);
+
+  useEffect(() => {
+    console.log("==================> Grid is changing");
+  }, [grid]);
 
   // Define render functions
   const renderDesktopView = () => (
@@ -192,15 +200,15 @@ export const Home = () => {
 
       <Button
         onClick={handleTournaments}
-        className="w-full py-3 bg-primary text-secondary rounded-lg text-lg"
+        className="w-full bg-primary text-secondary rounded-lg text-lg py-6 border-4 shadow-lg  bg-sky-200 font-sans rounded-none"
       >
-        Tournaments
+        <p>Tournaments</p>
       </Button>
       <Button
         onClick={() => setChestIsOpen(true)}
-        className="w-full py-3 bg-primary text-secondary rounded-lg text-lg"
+        className="w-full bg-primary text-secondary rounded-lg text-lg border-4  py-6 font-sans bg-sky-200  rounded-none"
       >
-        Collective Chest
+        Collective Chests
       </Button>
 
       <Leaderboard buttonType="default" textSize="lg" />
@@ -229,7 +237,7 @@ export const Home = () => {
           <BackGroundBoard
             imageBackground={imageTotemTheme}
             initial={{ scale: 1 }}
-            animate={{ scale: [1, 0.995, 1] }}
+            animate={isMdOrLarger ? { scale: [1, 0.995, 1] } : {}}
             transition={{
               duration: 2,
               repeat: Infinity,
@@ -319,7 +327,7 @@ export const Home = () => {
                         // Check if game is over because otherwise we can display
                         // previous game data on the board while the new game is starting
                         // and torii indexing
-                        initialGrid={game.isOver() ? [] : game.blocks}
+                        initialGrid={grid}
                         nextLine={game.isOver() ? [] : game.next_row}
                         score={game.isOver() ? 0 : game.score}
                         combo={game.isOver() ? 0 : game.combo}

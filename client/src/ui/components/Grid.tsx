@@ -13,16 +13,17 @@ import {
   removeBlockId,
   deepCompareBlocks,
   getBlocksSameRow,
+  getBlocksSameWidth,
 } from "@/utils/gridUtils";
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
 import { motion } from "framer-motion";
 import { BonusType } from "@/dojo/game/types/bonus";
-import { useMusicPlayer } from "@/contexts/music";
 import useViewportDimensions from "@/hooks/useViewport";
-
 import "../../grid.css";
+import ConfettiExplosion, { ConfettiExplosionRef } from "./ConfettiExplosion";
+import { useMusicPlayer } from "@/contexts/hooks";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -41,10 +42,6 @@ interface GridProps {
   setOptimisticScore: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
-  triggerParticles: (
-    position: { x: number; y: number },
-    colorSet: string[],
-  ) => void;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -62,7 +59,6 @@ const Grid: React.FC<GridProps> = ({
   setOptimisticMaxCombo,
   isTxProcessing,
   setIsTxProcessing,
-  triggerParticles,
 }) => {
   const {
     setup: {
@@ -87,7 +83,6 @@ const Grid: React.FC<GridProps> = ({
 
   const [blocks, setBlocks] = useState<Block[]>(initialData);
   const [nextLine, setNextLine] = useState<Block[]>(nextLineData);
-  const [resetTxProcessing, setResetTxProcessing] = useState<boolean>(false);
   const [saveGridStateblocks, setSaveGridStateblocks] =
     useState<Block[]>(initialData);
   const [applyData, setApplyData] = useState(false);
@@ -120,31 +115,21 @@ const Grid: React.FC<GridProps> = ({
       if (deepCompareBlocks(saveGridStateblocks, initialData)) {
         return;
       }
-      setSaveGridStateblocks(initialData);
-      setBlocks(initialData);
-      setNextLine(nextLineData);
-      setApplyData(false);
+      if (!isProcessingRef.current) {
+        setSaveGridStateblocks(initialData);
+        setBlocks(initialData);
+        setNextLine(nextLineData);
 
-      const inDanger = initialData.some((block) => block.y < 2);
-      setIsPlayerInDanger(inDanger);
-      setLineExplodedCount(0);
-      setNextLineHasBeenConsumed(false);
-      setResetTxProcessing(true);
-    }
-  }, [applyData, initialData]);
+        const inDanger = initialData.some((block) => block.y < 2);
+        setIsPlayerInDanger(inDanger);
+        setLineExplodedCount(0);
+        setNextLineHasBeenConsumed(false);
 
-  useEffect(() => {
-    if (resetTxProcessing) {
-      const timeoutTXProcessing = setTimeout(() => {
+        setApplyData(false);
         setIsTxProcessing(false);
-        setResetTxProcessing(false);
-      }, 200);
-
-      return () => {
-        clearTimeout(timeoutTXProcessing);
-      };
+      }
     }
-  }, [resetTxProcessing]);
+  }, [applyData, initialData, isProcessingRef.current]);
 
   const resetAnimateText = (): void => {
     setAnimateText(ComboMessages.None);
@@ -221,10 +206,29 @@ const Grid: React.FC<GridProps> = ({
     setBlockBonus(block);
     if (bonus === BonusType.Wave) {
       setBlocks(removeBlocksSameRow(block, blocks));
+      getBlocksSameRow(block.y, blocks).forEach((b) => {
+        if (gridPosition === null) return;
+        handleTriggerLocalExplosion(
+          gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
+          gridPosition.top + b.y * gridSize,
+        );
+      });
     } else if (bonus === BonusType.Totem) {
       setBlocks(removeBlocksSameWidth(block, blocks));
+      getBlocksSameWidth(block, blocks).forEach((b) => {
+        if (gridPosition === null) return;
+        handleTriggerLocalExplosion(
+          gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
+          gridPosition.top + b.y * gridSize,
+        );
+      });
     } else if (bonus === BonusType.Hammer) {
       setBlocks(removeBlockId(block, blocks));
+      if (gridPosition === null) return;
+      handleTriggerLocalExplosion(
+        gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
+        gridPosition.top + block.y * gridSize,
+      );
     }
 
     // if we have a bonus, we go in state gravity_bonus
@@ -334,7 +338,9 @@ const Grid: React.FC<GridProps> = ({
         });
       } catch (error) {
         console.error("Erreur lors de l'envoi de la transaction", error);
+        isProcessingRef.current = false; // Reset the ref
       } finally {
+        console.log("=========================> reset ref");
         isProcessingRef.current = false; // Reset the ref
       }
     },
@@ -397,7 +403,7 @@ const Grid: React.FC<GridProps> = ({
     );
   };
 
-  const applyGravity = () => {
+  const applyGravity = useCallback(() => {
     setBlocks((prevBlocks) => {
       const newBlocks = prevBlocks.map((block) => {
         const fallDistance = calculateFallDistance(block, prevBlocks);
@@ -407,7 +413,7 @@ const Grid: React.FC<GridProps> = ({
         return block;
       });
 
-      const blocksChanged = !prevBlocks.every((block, index) => {
+      const blocksChanged = !prevBlocks.every((block) => {
         const newBlock = newBlocks.find((b) => b.id === block.id);
         return newBlock && block.x === newBlock.x && block.y === newBlock.y;
       });
@@ -416,7 +422,7 @@ const Grid: React.FC<GridProps> = ({
 
       return newBlocks;
     });
-  };
+  }, [calculateFallDistance]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -472,26 +478,17 @@ const Grid: React.FC<GridProps> = ({
         if (gridPosition === null) return;
         const x = gridPosition.left + centerX;
         const y = gridPosition.top + centerY;
-        const xPercentage = (x / viewportDimensions.width) * 100;
-        const yPercentage = (y / viewportDimensions.height) * 100;
 
-        // blocksSameRow.forEach((block) => {
-        //   triggerParticles(
-        //     {
-        //       x: xPercentage + block.width * 5,
-        //       y: yPercentage,
-        //     },
-        //     ["#47D1D9", "#8BA3BC", "#1974D1", "#44A4D9"],
-        //   );
-        // });
+        blocksSameRow.forEach((block, index) => {
+          handleTriggerLocalExplosion(
+            gridPosition.left +
+              block.x * gridSize +
+              (block.width * gridSize) / 2,
+            gridPosition.top + block.y * gridSize,
+          );
+        });
 
-        triggerParticles(
-          {
-            x: xPercentage,
-            y: yPercentage,
-          },
-          ["#47D1D9", "#8BA3BC", "#1974D1", "#44A4D9", "#01040B"],
-        );
+        // handleTriggerLineExplosion(x, y, 400);
       });
 
       setBlocks(updatedBlocks);
@@ -577,53 +574,73 @@ const Grid: React.FC<GridProps> = ({
     }
   }, [gameState, pendingMove, handleMoveTX]);
 
+  const explosionRef = useRef<ConfettiExplosionRef>(null);
+
+  const handleTriggerLocalExplosion = (x: number, y: number) => {
+    if (explosionRef.current) {
+      explosionRef.current.triggerLocalExplosion({ x, y });
+    }
+  };
+
+  const handleTriggerLineExplosion = (x: number, y: number, range: number) => {
+    if (explosionRef.current) {
+      explosionRef.current.triggerLineExplosion({ x, y, range });
+    }
+  };
+
   return (
-    <motion.div
-      animate={shouldBounce ? { scale: [1, 1.1, 1, 1.1, 1] } : {}}
-      transition={{ duration: 0.2, ease: "easeInOut" }}
-    >
-      <div
-        className={`grid-background ${isTxProcessing ? " cursor-wait animated-border" : "static-border"}`}
-        id="grid"
-        ref={gridRef}
+    <>
+      <ConfettiExplosion
+        ref={explosionRef}
+        colorSet={["#47D1D9", "#8BA3BC", "#1974D1", "#44A4D9", "#01040B"]}
+      />
+      <motion.div
+        animate={shouldBounce ? { scale: [1, 1.1, 1, 1.1, 1] } : {}}
+        transition={{ duration: 0.2, ease: "easeInOut" }}
       >
         <div
-          className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${isPlayerInDanger ? " animated-box-player-danger" : ""}`}
-          style={{
-            height: `${gridHeight * gridSize + borderSize}px`,
-            width: `${gridWidth * gridSize + borderSize}px`,
-            backgroundImage:
-              "linear-gradient(#1E293B 2px, transparent 2px), linear-gradient(to right, #1E293B 2px, #10172A 2px)",
-            backgroundSize: `${gridSize}px ${gridSize}px`,
-          }}
-          onMouseMove={handleMouseMove}
-          //onMouseUp={handleMouseUp}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+          className={`grid-background ${isTxProcessing ? " cursor-wait animated-border" : "static-border"}`}
+          id="grid"
+          ref={gridRef}
         >
-          {blocks.map((block) => (
-            <BlockContainer
-              key={block.id}
-              block={block}
-              gridSize={gridSize}
-              gridHeight={gridHeight}
-              isTxProcessing={isTxProcessing}
-              transitionDuration={transitionDuration}
-              state={gameState}
-              handleMouseDown={handleMouseDown}
-              handleTouchStart={handleTouchStart}
-              onTransitionBlockStart={() =>
-                handleTransitionBlockStart(block.id)
-              }
-              onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
-            />
-          ))}
-          <div className="flex items-center justify-center font-sans z-20 pointer-events-none">
-            <AnimatedText textEnum={animateText} reset={resetAnimateText} />
+          <div
+            className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${isPlayerInDanger ? " animated-box-player-danger" : ""}`}
+            style={{
+              height: `${gridHeight * gridSize + borderSize}px`,
+              width: `${gridWidth * gridSize + borderSize}px`,
+              backgroundImage:
+                "linear-gradient(#1E293B 2px, transparent 2px), linear-gradient(to right, #1E293B 2px, #10172A 2px)",
+              backgroundSize: `${gridSize}px ${gridSize}px`,
+            }}
+            onMouseMove={handleMouseMove}
+            //onMouseUp={handleMouseUp}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {blocks.map((block) => (
+              <BlockContainer
+                key={block.id}
+                block={block}
+                gridSize={gridSize}
+                gridHeight={gridHeight}
+                isTxProcessing={isTxProcessing}
+                transitionDuration={transitionDuration}
+                state={gameState}
+                handleMouseDown={handleMouseDown}
+                handleTouchStart={handleTouchStart}
+                onTransitionBlockStart={() =>
+                  handleTransitionBlockStart(block.id)
+                }
+                onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
+              />
+            ))}
+            <div className="flex items-center justify-center font-sans z-20 pointer-events-none">
+              <AnimatedText textEnum={animateText} reset={resetAnimateText} />
+            </div>
           </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </>
   );
 };
 

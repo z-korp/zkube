@@ -9,6 +9,7 @@ import { setupWorld } from "./contractSystems.ts";
 import { DojoProvider } from "@dojoengine/core";
 import { BurnerManager } from "@dojoengine/create-burner";
 import { Account, RpcProvider } from "starknet";
+import { Schema } from "@dojoengine/recs";
 
 export type SetupResult = Awaited<ReturnType<typeof setup>>;
 
@@ -20,15 +21,15 @@ export async function setup({ ...config }: Config) {
     worldAddress: config.manifest.world.address || "",
   });
 
-  const contractModels = defineContractComponents(world);
+  const contractComponents = defineContractComponents(world);
 
-  const clientModels = models({ contractModels });
+  const clientModels = models({ contractComponents });
 
   // fetch all existing entities from torii
   // await getSyncEntities(toriiClient, contractModels as any, []);
-  const sync = await getSyncEntities(
+  const sync = await getSyncEntities<Schema>(
     toriiClient,
-    contractModels as any,
+    Object.values(contractComponents),
     [],
     1000,
   );
@@ -69,8 +70,8 @@ export async function setup({ ...config }: Config) {
   return {
     client,
     clientModels,
-    contractComponents: clientModels,
-    systemCalls: systems({ client, clientModels }),
+    contractComponents,
+    systemCalls: systems({ client }),
     config,
     world,
     burnerManager,

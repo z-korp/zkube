@@ -55,7 +55,7 @@ const MobileHeader = () => {
               <p className="self-start">Menu</p>
 
               <Surrender red variant="outline" className="w-full text-sm" />
-              <Leaderboard buttonType="outline" textSize="sm" />
+              <Leaderboard buttonType="outline" textSize="sm" inMenu={true} />
               <Button
                 variant="outline"
                 onClick={() => setIsOpen(true)}

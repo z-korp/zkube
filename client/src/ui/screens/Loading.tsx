@@ -1,14 +1,8 @@
 import { Button } from "@/ui/elements/button";
 import ImageAssets from "@/ui/theme/ImageAssets";
-import { useTheme } from "@/ui/elements/theme-provider";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
 
-export const Loading = ({
-  enter,
-  setEnter,
-}: {
-  enter: boolean;
-  setEnter: (state: boolean) => void;
-}) => {
+export const Loading = () => {
   const { themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
 
@@ -21,23 +15,13 @@ export const Loading = ({
           style={{ backgroundImage: `url('${imgAssets.background}')` }}
         />
       </div>
-
       {/* Logo and Enter Button */}
       <div className="flex flex-col justify-center items-center w-full h-full z-30">
         <img
           src={imgAssets.logo}
           alt="logo"
-          className={`h-32 md:h-40 ${enter && "animate-load"}`}
+          className={"h-32 md:h-40 animate-load"}
         />
-        {!enter && (
-          <Button
-            onClick={() => setEnter(true)}
-            className="text-2xl mt-8"
-            variant="default"
-          >
-            Enter
-          </Button>
-        )}
       </div>
     </div>
   );
