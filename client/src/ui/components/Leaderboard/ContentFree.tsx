@@ -136,9 +136,9 @@ export const ContentFree: React.FC<ContentFreeProps> = ({
                   <TooltipContent
                     side="top"
                     align="start"
-                    className=" w-[180px] text-base"
+                    className="text-base"
                   >
-                    Game on going
+                    Game Status
                   </TooltipContent>
                 </Tooltip>
               </TableHead>
@@ -218,9 +218,26 @@ export const RowFree: React.FC<RowFreeProps> = ({ rank, game }) => {
       </TableCell>
       <TableCell className="text-center font-bold">
         {game.isOver() ? (
-          <FontAwesomeIcon icon={faCheckCircle} className="text-green-300" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <FontAwesomeIcon
+                icon={faCheckCircle}
+                className="text-green-300"
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top" align="start" className="text-base">
+              Game is over
+            </TooltipContent>
+          </Tooltip>
         ) : (
-          <FontAwesomeIcon icon={faClock} className="text-orange-300" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <FontAwesomeIcon icon={faClock} className="text-orange-300" />
+            </TooltipTrigger>
+            <TooltipContent side="top" align="start" className="text-base">
+              Game on going
+            </TooltipContent>
+          </Tooltip>
         )}
       </TableCell>
     </TableRow>

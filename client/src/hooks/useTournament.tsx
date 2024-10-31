@@ -28,6 +28,7 @@ const useTournament = (mode: ModeType): TournamentInfo => {
   useEffect(() => {
     const updateTournamentInfo = () => {
       const currentTimestamp = Math.floor(Date.now() / 1000);
+
       const duration = new Mode(mode).duration();
 
       const id = Math.floor(currentTimestamp / duration);

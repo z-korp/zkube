@@ -39,6 +39,7 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
   const { player } = usePlayer({ playerId: account?.address });
   const { credits } = useCredits({ playerId: account?.address });
   const { settings } = useSettings();
+
   const { endTimestamp, tournament } = useTournament(mode);
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });

@@ -271,11 +271,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
         <div className="relative">
           <div className="absolute z-50 text-lg w-full flex justify-center items-center mt-2 md:mt-3 left-1/2 transform -translate-x-1/2">
-              {bonus !== BonusType.None && (
-                <h1 className={`text-yellow-500 p-2 rounded font-bold ${bonusDescription.length > 20 ? 'text-sm' : 'text-2xl'} md:text-lg bg-black bg-opacity-50 whitespace-nowrap overflow-hidden text-ellipsis`}>
-                  {bonusDescription}
-                </h1>
-              )}
+            {bonus !== BonusType.None && (
+              <h1
+                className={`text-yellow-500 p-2 rounded font-bold ${bonusDescription.length > 20 ? "text-sm" : "text-2xl"} md:text-lg bg-black bg-opacity-50 whitespace-nowrap overflow-hidden text-ellipsis`}
+              >
+                {bonusDescription}
+              </h1>
+            )}
           </div>
           <NextLine
             nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}

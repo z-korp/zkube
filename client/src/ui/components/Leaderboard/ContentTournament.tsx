@@ -72,7 +72,7 @@ export const ContentTournament: React.FC<ContentTournamentProps> = ({
     number | null
   >(allTournaments.length > 0 ? allTournaments[0].id : null);
 
-  const GAME_PER_PAGE = useMemo(() => (isMdOrLarger ? 7 : 6), [isMdOrLarger]);
+  const GAME_PER_PAGE = useMemo(() => (isMdOrLarger ? 5 : 6), [isMdOrLarger]);
 
   const selectedTournament = useMemo(() => {
     return allTournaments.find((t) => t.id === selectedTournamentId);
@@ -279,9 +279,9 @@ export const ContentTournament: React.FC<ContentTournamentProps> = ({
                   <TooltipContent
                     side="top"
                     align="start"
-                    className=" w-[180px] text-base"
+                    className="text-base"
                   >
-                    Game on going
+                    Game Status
                   </TooltipContent>
                 </Tooltip>
               </TableHead>
@@ -390,9 +390,26 @@ export const RowTournament: React.FC<RowTournamentProps> = ({
       </TableCell>
       <TableCell className="text-center font-bold">
         {game.isOver() ? (
-          <FontAwesomeIcon icon={faCheckCircle} className="text-green-300" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <FontAwesomeIcon
+                icon={faCheckCircle}
+                className="text-green-300"
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top" align="start" className="text-base">
+              Game is over
+            </TooltipContent>
+          </Tooltip>
         ) : (
-          <FontAwesomeIcon icon={faClock} className="text-orange-300" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <FontAwesomeIcon icon={faClock} className="text-orange-300" />
+            </TooltipTrigger>
+            <TooltipContent side="top" align="start" className="text-base">
+              Game on going
+            </TooltipContent>
+          </Tooltip>
         )}
       </TableCell>
       <TableCell className="text-center font-bold">

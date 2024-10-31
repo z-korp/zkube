@@ -77,7 +77,7 @@ Play now: app.zkube.xyz
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         ref={bodyRef}
-        className="sm:max-w-[500px]"
+        className="sm:max-w-[500px] rounded-lg"
         aria-describedby={undefined}
       >
         <DialogHeader className="flex items-center text-2xl">

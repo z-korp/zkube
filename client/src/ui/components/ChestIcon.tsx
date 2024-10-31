@@ -19,7 +19,7 @@ export const ChestIcon: React.FC<ChestIconProps> = ({
   const baseClasses =
     "w-[50px] h-[50px] rounded-full flex items-center justify-center cursor-pointer shadow-lg overflow-hidden relative";
   const stateClasses = isActive
-    ? "ring-2 ring-yellow-300"
+    ? "ring-2 ring-sky-300"
     : isCompleted
       ? "ring-2 ring-gray-800"
       : "";

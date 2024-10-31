@@ -11,7 +11,6 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { formatPrize } from "@/utils/wei";
 import { useMediaQuery } from "react-responsive";
 import { DialogPrizePoolContributors } from "./DialogPrizePoolContributors";
-import { Chest } from "@/dojo/game/models/chest";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -97,7 +96,7 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
               <div
                 className={`absolute transition-transform duration-300 hover:-translate-y-1 ${isMdOrLarger ? "right-20" : "right-0"}`}
               >
-                <DialogPrizePoolContributors />
+                <DialogPrizePoolContributors chest={currentChest} />
               </div>
             </div>
           </div>

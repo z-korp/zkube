@@ -38,9 +38,23 @@ export class Player {
   public account_creation_day: number;
 
   constructor(player: ComponentValue) {
-    this.id = player.id;
+    // It's weird but it seems that depending on the method use to extract the data
+    // the types are parsed differently
+    // usePlayer use useComponentValue which seems to return a bigint
+    // usePlayerList use useEntityQuery + getComponentValue which seems to return a string
+    // didn't dig more
+    if (typeof player.id === "bigint") {
+      this.id = player.id.toString(16);
+    } else {
+      this.id = player.id;
+    }
     this.game_id = player.game_id;
-    this.name = shortString.decodeShortString(player.name);
+
+    if (typeof player.name === "bigint") {
+      this.name = shortString.decodeShortString(player.name.toString());
+    } else {
+      this.name = player.name;
+    }
     this.points = player.points;
     this.daily_streak = player.daily_streak;
     this.last_active_day = player.last_active_day;
