@@ -237,7 +237,7 @@ export const Home = () => {
           <BackGroundBoard
             imageBackground={imageTotemTheme}
             initial={{ scale: 1 }}
-            animate={{ scale: [1, 0.995, 1] }}
+            animate={isMdOrLarger ? { scale: [1, 0.995, 1] } : {}}
             transition={{
               duration: 2,
               repeat: Infinity,
