@@ -77,7 +77,7 @@ const Grid: React.FC<GridProps> = ({
       // Pass the grid position to the parent via the callback
       setGridPosition(gridPosition);
     }
-  }, []);
+  }, [gridRef.current]);
 
   const isProcessingRef = useRef(false);
 
@@ -129,8 +129,7 @@ const Grid: React.FC<GridProps> = ({
         setIsTxProcessing(false);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applyData, initialData]);
+  }, [applyData, initialData, isProcessingRef.current]);
 
   const resetAnimateText = (): void => {
     setAnimateText(ComboMessages.None);
@@ -258,7 +257,7 @@ const Grid: React.FC<GridProps> = ({
     handleDragMove(touch.clientX, MoveType.TOUCH);
   };
 
-  const endDrag = useCallback(() => {
+  const endDrag = () => {
     if (!dragging) return;
     if (isProcessingRef.current || isTxProcessing || applyData) return;
 
@@ -284,14 +283,14 @@ const Grid: React.FC<GridProps> = ({
     setDragging(null);
     setIsMoving(true);
     setGameState(GameState.GRAVITY);
-  }, [applyData, dragging, initialX, isTxProcessing]);
+  };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
     endDrag();
   };
 
   useEffect(() => {
-    const handleMouseUp = () => {
+    const handleMouseUp = (event: MouseEvent) => {
       endDrag();
     };
 
@@ -302,7 +301,14 @@ const Grid: React.FC<GridProps> = ({
       // Nettoie l'écouteur d'événements lorsque le composant est démonté.
       document.removeEventListener("mouseup", handleMouseUp);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dragging]);
+
+  useEffect(() => {
+    if (pendingMove) {
+      const { rowIndex, startX, finalX } = pendingMove;
+      console.log("Pending move");
+      handleMoveTX(rowIndex, startX, finalX);
+    }
   }, [pendingMove]);
 
   const handleMoveTX = useCallback(
@@ -338,7 +344,7 @@ const Grid: React.FC<GridProps> = ({
         isProcessingRef.current = false; // Reset the ref
       }
     },
-    [account, setIsTxProcessing, playSwipe, gridHeight, move],
+    [account, isMoving, gridHeight, move],
   );
 
   const isBlocked = (
@@ -370,19 +376,16 @@ const Grid: React.FC<GridProps> = ({
     return false;
   };
 
-  const calculateFallDistance = useCallback(
-    (block: Block, blocks: Block[]) => {
-      let maxFall = gridHeight - block.y - 1;
-      for (let y = block.y + 1; y < gridHeight; y++) {
-        if (isCollision(block.x, y, block.width, blocks, block.id)) {
-          maxFall = y - block.y - 1;
-          break;
-        }
+  const calculateFallDistance = (block: Block, blocks: Block[]) => {
+    let maxFall = gridHeight - block.y - 1;
+    for (let y = block.y + 1; y < gridHeight; y++) {
+      if (isCollision(block.x, y, block.width, blocks, block.id)) {
+        maxFall = y - block.y - 1;
+        break;
       }
-      return maxFall;
-    },
-    [gridHeight],
-  );
+    }
+    return maxFall;
+  };
 
   const isCollision = (
     x: number,
@@ -433,7 +436,6 @@ const Grid: React.FC<GridProps> = ({
     }, gravitySpeed);
 
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState]);
 
   useEffect(() => {
@@ -448,54 +450,54 @@ const Grid: React.FC<GridProps> = ({
     }
   }, [gameState, isMoving, transitioningBlocks]);
 
-  const handleLineClear = useCallback(
-    (newGravityState: GameState, newStateOnComplete: GameState) => {
-      const { updatedBlocks, completeRows } = removeCompleteRows(
-        blocks,
-        gridWidth,
-        gridHeight,
-      );
+  const handleLineClear = (
+    newGravityState: GameState,
+    newStateOnComplete: GameState,
+  ) => {
+    const { updatedBlocks, completeRows } = removeCompleteRows(
+      blocks,
+      gridWidth,
+      gridHeight,
+    );
 
-      if (updatedBlocks.length < blocks.length) {
-        playExplode();
-        setLineExplodedCount(lineExplodedCount + completeRows.length);
+    if (updatedBlocks.length < blocks.length) {
+      playExplode();
+      setLineExplodedCount(lineExplodedCount + completeRows.length);
 
-        // Trigger particle explosions for each cleared row
-        completeRows.forEach((rowIndex) => {
-          console.log("triggerParticles", rowIndex);
+      // Trigger particle explosions for each cleared row
+      completeRows.forEach((rowIndex) => {
+        console.log("triggerParticles", rowIndex);
 
-          const blocksSameRow = getBlocksSameRow(rowIndex, blocks);
+        const blocksSameRow = getBlocksSameRow(rowIndex, blocks);
 
-          // Calculate the center position of the row
-          const centerX = (gridWidth * gridSize) / 2; // Center X
-          const centerY = rowIndex * gridSize; // Y position based on row index
+        // Calculate the center position of the row
+        const centerX = (gridWidth * gridSize) / 2; // Center X
+        const centerY = rowIndex * gridSize; // Y position based on row index
 
-          // Calculate absolute position in the viewport
-          if (gridPosition === null) return;
-          const x = gridPosition.left + centerX;
-          const y = gridPosition.top + centerY;
+        // Calculate absolute position in the viewport
+        if (gridPosition === null) return;
+        const x = gridPosition.left + centerX;
+        const y = gridPosition.top + centerY;
 
-          blocksSameRow.forEach((block, index) => {
-            handleTriggerLocalExplosion(
-              gridPosition.left +
-                block.x * gridSize +
-                (block.width * gridSize) / 2,
-              gridPosition.top + block.y * gridSize,
-            );
-          });
-
-          // handleTriggerLineExplosion(x, y, 400);
+        blocksSameRow.forEach((block, index) => {
+          handleTriggerLocalExplosion(
+            gridPosition.left +
+              block.x * gridSize +
+              (block.width * gridSize) / 2,
+            gridPosition.top + block.y * gridSize,
+          );
         });
 
-        setBlocks(updatedBlocks);
-        setIsMoving(true);
-        setGameState(newGravityState);
-      } else {
-        setGameState(newStateOnComplete);
-      }
-    },
-    [blocks, gridWidth, gridHeight, lineExplodedCount, playExplode],
-  );
+        // handleTriggerLineExplosion(x, y, 400);
+      });
+
+      setBlocks(updatedBlocks);
+      setIsMoving(true);
+      setGameState(newGravityState);
+    } else {
+      setGameState(newStateOnComplete);
+    }
+  };
 
   useEffect(() => {
     if (gameState === GameState.LINE_CLEAR) {
@@ -505,7 +507,6 @@ const Grid: React.FC<GridProps> = ({
     } else if (gameState === GameState.LINE_CLEAR_BONUS) {
       handleLineClear(GameState.GRAVITY_BONUS, GameState.BONUS_TX);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState, blocks]);
 
   useEffect(() => {
@@ -530,7 +531,6 @@ const Grid: React.FC<GridProps> = ({
         setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState]);
 
   useEffect(() => {
@@ -539,7 +539,7 @@ const Grid: React.FC<GridProps> = ({
       pendingMove &&
       transitioningBlocks.length === 0
     ) {
-      const { startX, finalX } = pendingMove;
+      const { rowIndex, startX, finalX } = pendingMove;
       if (startX !== finalX) {
         const updatedBlocks = concatenateAndShiftBlocks(
           blocks,
@@ -556,7 +556,6 @@ const Grid: React.FC<GridProps> = ({
       setIsMoving(true);
       setGameState(GameState.GRAVITY2);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState, blocks, pendingMove, transitioningBlocks]);
 
   useEffect(() => {
@@ -573,7 +572,6 @@ const Grid: React.FC<GridProps> = ({
         setGameState(GameState.WAITING);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState, pendingMove, handleMoveTX]);
 
   const explosionRef = useRef<ConfettiExplosionRef>(null);
