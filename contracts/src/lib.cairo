@@ -16,7 +16,6 @@ mod models {
 
 mod types {
     mod bonus;
-    mod color;
     mod width;
     mod block;
     mod mode;

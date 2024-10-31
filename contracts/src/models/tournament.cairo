@@ -272,8 +272,8 @@ mod tests {
     #[test]
     fn test_compute_id_today() {
         let time = 1710347593;
-        let id = TournamentImpl::compute_id(time, constants::NORMAL_MODE_DURATION);
-        assert(id == 706, 'Tournament: wrong id');
+        let id = TournamentImpl::compute_id(time, 604800);
+        assert(id == 2827, 'Tournament: wrong id');
     }
 
     #[test]

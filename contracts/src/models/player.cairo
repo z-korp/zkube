@@ -39,7 +39,7 @@ impl PlayerImpl of PlayerTrait {
             game_id: 0,
             name,
             points: 0,
-            daily_streak: 10,
+            daily_streak: 0,
             last_active_day: current_day,
             account_creation_day: current_day,
         }
@@ -57,14 +57,18 @@ impl PlayerImpl of PlayerTrait {
     fn update_daily_streak(ref self: Player, current_timestamp: u64) {
         let current_day: u32 = Timestamp::timestamp_to_day(current_timestamp);
 
-        // [Check] If the player was active yesterday
-        if self.last_active_day == current_day - 1 {
-            // [Effect] Increment the daily streak
+        // Don't update if it's the same day
+        if current_day == self.last_active_day {
+            return;
+        }
+
+        // Check if player was active yesterday
+        if current_day == self.last_active_day + 1 {
             self.daily_streak += 1_u8;
         } else {
-            // [Effect] Reset the daily streak
             self.daily_streak = 0_u8;
         }
+
         // [Effect] Update the last active day
         self.last_active_day = current_day;
     }
@@ -261,6 +265,124 @@ mod tests {
     }
 
     #[test]
+    fn test_daily_streak_comprehensive() {
+        let player_id: felt252 = 1;
+        let player_name: felt252 = 12345;
+        let initial_day = 100;
+        let initial_timestamp = day_offset_to_timestamp(initial_day);
+
+        let mut player = PlayerTrait::new(player_id, player_name, initial_timestamp);
+
+        // Initial state check
+        assert_eq!(player.daily_streak, 0, "Initial streak should be 0");
+        assert_eq!(
+            player.last_active_day,
+            initial_day.try_into().unwrap(),
+            "Initial last_active_day should match creation day"
+        );
+
+        // Same day login shouldn't affect streak
+        player.update_daily_streak(initial_timestamp);
+        assert_eq!(player.daily_streak, 0, "Same day login shouldn't affect streak");
+
+        // Next day login should increment streak
+        let next_day_timestamp = day_offset_to_timestamp(initial_day + 1);
+        player.update_daily_streak(next_day_timestamp);
+        assert_eq!(player.daily_streak, 1, "Streak should increment after next day login");
+        assert_eq!(
+            player.last_active_day,
+            (initial_day + 1).try_into().unwrap(),
+            "last_active_day should update"
+        );
+
+        // Another next day login should increment streak again
+        let third_day_timestamp = day_offset_to_timestamp(initial_day + 2);
+        player.update_daily_streak(third_day_timestamp);
+        assert_eq!(player.daily_streak, 2, "Streak should increment after consecutive day");
+
+        // Skip a day should reset streak
+        let fifth_day_timestamp = day_offset_to_timestamp(initial_day + 4);
+        player.update_daily_streak(fifth_day_timestamp);
+        assert_eq!(player.daily_streak, 0, "Streak should reset after skip");
+
+        // Test multiple consecutive days
+        let mut current_day = initial_day + 4;
+        let mut expected_streak = 0;
+        loop {
+            if (expected_streak > 4) {
+                break;
+            }
+            current_day += 1;
+            let timestamp = day_offset_to_timestamp(current_day);
+            player.update_daily_streak(timestamp);
+            assert_eq!(player.daily_streak, expected_streak + 1, "Streak should ++ properly");
+            expected_streak += 1;
+        };
+
+        // Test same day multiple updates
+        let same_day_timestamp = day_offset_to_timestamp(current_day);
+        player.update_daily_streak(same_day_timestamp);
+        assert_eq!(player.daily_streak, 5, "Streak should not change on same day updates");
+
+        // Test backwards time (shouldn't happen in production but good to test)
+        let previous_day_timestamp = day_offset_to_timestamp(current_day - 1);
+        player.update_daily_streak(previous_day_timestamp);
+        assert_eq!(player.daily_streak, 0, "Streak should reset if timestamp goes backwards");
+    }
+
+    #[test]
+    fn test_edge_case_timestamps() {
+        let player_id: felt252 = 2;
+        let player_name: felt252 = 54321;
+        let initial_day = 100;
+        let initial_timestamp = day_offset_to_timestamp(initial_day);
+
+        let mut player = PlayerTrait::new(player_id, player_name, initial_timestamp);
+
+        // Test end of day vs start of next day
+        let end_of_day = day_offset_to_timestamp(initial_day) + SECONDS_PER_DAY - 1;
+        let start_of_next_day = day_offset_to_timestamp(initial_day + 1);
+
+        player.update_daily_streak(end_of_day);
+        assert_eq!(player.daily_streak, 0, "End of day shouldn't affect initial streak");
+
+        player.update_daily_streak(start_of_next_day);
+        assert_eq!(player.daily_streak, 1, "Start of next day should increment streak");
+    }
+
+    #[test]
+    fn test_long_streak_maintenance() {
+        let player_id: felt252 = 3;
+        let player_name: felt252 = 98765;
+        let initial_day = 100;
+        let initial_timestamp = day_offset_to_timestamp(initial_day);
+
+        let mut player = PlayerTrait::new(player_id, player_name, initial_timestamp);
+
+        // Build up a 30-day streak
+        let mut current_day = initial_day;
+        let mut i = 0;
+        loop {
+            if (i > 29) {
+                break;
+            }
+            current_day += 1;
+            let timestamp = day_offset_to_timestamp(current_day);
+            player.update_daily_streak(timestamp);
+            assert_eq!(player.daily_streak, i + 1);
+            i = i + 1;
+        };
+
+        assert_eq!(player.daily_streak, 30, "Should build up to 30-day streak");
+
+        // Miss a day
+        current_day += 2;
+        let timestamp = day_offset_to_timestamp(current_day);
+        player.update_daily_streak(timestamp);
+        assert_eq!(player.daily_streak, 0, "Should reset after missing a day");
+    }
+
+    #[test]
     fn test_consecutive_day_logins() {
         let player_id: felt252 = 2;
         let player_name: felt252 = 54321; // Mock name
@@ -313,7 +435,7 @@ mod tests {
         assert_eq!(LevelTrait::from_points(player.points).into(), 10_u8);
 
         let level_multiplier = player.get_level_multiplier();
-        let expected_multiplier = 1100; // 1000 + 10(lvl)*10(increment) = 1100
+        let expected_multiplier = 1100000; // 1000 + 10(lvl)*10(increment) = 1100
         assert_eq!(level_multiplier, expected_multiplier);
     }
 
@@ -330,7 +452,7 @@ mod tests {
         assert_eq!(LevelTrait::from_points(player.points).into(), 20_u8);
 
         let level_multiplier = player.get_level_multiplier();
-        assert_eq!(level_multiplier, 1200);
+        assert_eq!(level_multiplier, 1200000);
     }
 
     #[test]

@@ -1,6 +1,6 @@
 kind = "DojoModel"
-class_hash = "0x5ad70a3174e1a5fd24b713489e49b9d1b695f8901c94d24a39a7c2330569227"
-original_class_hash = "0x5ad70a3174e1a5fd24b713489e49b9d1b695f8901c94d24a39a7c2330569227"
+class_hash = "0x7df0095dee0c2eb9301e469f9f8268b4eadbd0c0c6ee21d29bee1cc6a35136f"
+original_class_hash = "0x7df0095dee0c2eb9301e469f9f8268b4eadbd0c0c6ee21d29bee1cc6a35136f"
 abi = "manifests/slotdev/base/abis/models/zkube-Game-17e542e0.json"
 tag = "zkube-Game"
 qualified_path = "zkube::models::index::game"
@@ -28,11 +28,6 @@ key = false
 
 [[members]]
 name = "next_row"
-type = "u32"
-key = false
-
-[[members]]
-name = "next_color"
 type = "u32"
 key = false
 
@@ -78,11 +73,6 @@ key = false
 
 [[members]]
 name = "blocks"
-type = "felt252"
-key = false
-
-[[members]]
-name = "colors"
 type = "felt252"
 key = false
 
