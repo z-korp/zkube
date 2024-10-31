@@ -35,7 +35,7 @@ const ChestTimeline: React.FC<ChestTimelineProps> = ({
         </div>
         <div className="grid grid-cols-5 gap-2">
           {chests.slice(chestsPerRow).map((chest, index) => (
-            <div key={chest.id} className="flex flex-col items-center">
+            <div key={chest.id} className="flex flex-col items-center ">
               <ChestIcon
                 chest={chest}
                 isActive={index + chestsPerRow === currentChestIndex}

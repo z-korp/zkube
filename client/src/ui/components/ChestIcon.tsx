@@ -32,7 +32,7 @@ export const ChestIcon: React.FC<ChestIconProps> = ({
       <img
         src={chest.getIcon()}
         alt={`${chest.id} Chest`}
-        className="w-[26px] transition-opacity duration-300"
+        className="w-[26px] transition-opacity duration-300 "
         style={{ opacity: isActive ? 1 : 0.7 }}
       />
       {isCompleted && (

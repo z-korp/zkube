@@ -2,8 +2,8 @@ import { Header } from "@/ui/containers/Header";
 import { Create } from "../actions/Create";
 import GameBoard from "../components/GameBoard";
 import BackGroundBoard from "../components/BackgroundBoard";
-import { AnimatePresence } from "framer-motion";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useCallBack, useEffect, useRef, useState } from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useGame } from "@/hooks/useGame";
@@ -200,15 +200,15 @@ export const Home = () => {
 
       <Button
         onClick={handleTournaments}
-        className="w-full py-3 bg-primary text-secondary rounded-lg text-lg"
+        className="w-full bg-primary text-secondary rounded-lg text-lg py-6 border-4 shadow-lg  bg-sky-200 font-sans rounded-none"
       >
-        Tournaments
+        <p>Tournaments</p>
       </Button>
       <Button
         onClick={() => setChestIsOpen(true)}
-        className="w-full py-3 bg-primary text-secondary rounded-lg text-lg"
+        className="w-full bg-primary text-secondary rounded-lg text-lg border-4  py-6 font-sans bg-sky-200  rounded-none"
       >
-        Collective Chest
+        Collective Chests
       </Button>
 
       <Leaderboard buttonType="default" textSize="lg" />
