@@ -16,7 +16,8 @@ use zkube::store::{Store, StoreTrait};
 #[dojo::interface]
 trait IZKorp<TContractState> {
     fn claim(ref world: IWorldDispatcher);
-    fn sponsor(ref world: IWorldDispatcher, amount: u128, caller: ContractAddress);
+    fn sponsor(ref world: IWorldDispatcher, amount: u128);
+    fn sponsor_from(ref world: IWorldDispatcher, amount: u128, caller: ContractAddress);
 }
 
 #[dojo::contract]
@@ -79,9 +80,14 @@ mod zkorp {
             self.payable._refund(caller, claimable.into());
         }
 
-        fn sponsor(ref world: IWorldDispatcher, amount: u128, caller: ContractAddress) {
+        fn sponsor_from(ref world: IWorldDispatcher, amount: u128, caller: ContractAddress) {
             // [Effect] Pay reward
             self.payable._pay(caller, amount.into());
+        }
+
+        fn sponsor(ref world: IWorldDispatcher, amount: u128) {
+            // [Effect] Pay reward
+            self.sponsor_from(world, amount, get_caller_address());
         }
     }
 }

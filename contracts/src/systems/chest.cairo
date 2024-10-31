@@ -116,20 +116,10 @@ mod chest {
 
             // Transfer the reward to the caller
             self.payable._refund(caller, rewards.into());
-        // TODO Emit event
         }
 
-        fn sponsor(ref world: IWorldDispatcher, chest_id: u32, amount: u128) {
-            let store = StoreTrait::new(world);
-            let mut chest = store.chest(chest_id);
-            chest.assert_exists();
-            chest.assert_not_complete();
-
-            chest.add_prize(amount);
-            store.set_chest(chest);
-
-            let caller = get_caller_address();
-            self.payable._pay(caller, amount.into());
+        fn sponsor(ref world: IWorldDispatcher, amount: u128) {
+            self.payable._pay(get_caller_address(), amount.into());
         }
 
         fn sponsor_from(ref world: IWorldDispatcher, amount: u128, caller: ContractAddress) {

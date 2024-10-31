@@ -64,7 +64,7 @@ mod HostableComponent {
             seed: felt252,
             beta: felt252,
             mode: Mode,
-            was_free: bool,
+            price: u256,
         ) -> (u32, u64, u128, u128, u128, u128) {
             // [Setup] Datastore
             let store: Store = StoreTrait::new(world);
@@ -117,50 +117,41 @@ mod HostableComponent {
             player.game_id = game_id;
             store.set_player(player);
 
-            if (was_free) {
-                // [Return] Game ID and amounts to pay
-                (game_id, 0, 0, 0, 0, 0)
-            } else {
-                // [Effect] Compute prices
+            // [Effect] Compute prices
 
-                // Price shared between parties
-                let settings = store.settings();
-                let price = mode.price(settings);
+            // Price shared between parties
+            let settings = store.settings();
 
-                // Apply PRECISION_FACTOR to price at the beginning
-                let precise_price: u256 = price.into() * PRECISION_FACTOR.into();
+            // Apply PRECISION_FACTOR to price at the beginning
+            let precise_price: u256 = price * PRECISION_FACTOR.into();
 
-                // Tournament
-                let tournament_amount: u256 = (precise_price * TOURNAMENT_PERCENTAGE.into()) / 100;
+            // Tournament
+            let tournament_amount: u256 = (precise_price * TOURNAMENT_PERCENTAGE.into()) / 100;
 
-                // Chest
-                let chest_amount: u256 = (precise_price * CHEST_PERCENTAGE.into()) / 100;
-                let mut game = store.game(game_id);
-                game
-                    .pending_chest_prize = (chest_amount / PRECISION_FACTOR.into())
-                    .try_into()
-                    .unwrap();
-                store.set_game(game);
+            // Chest
+            let chest_amount: u256 = (precise_price * CHEST_PERCENTAGE.into()) / 100;
+            let mut game = store.game(game_id);
+            game.pending_chest_prize = (chest_amount / PRECISION_FACTOR.into()).try_into().unwrap();
+            store.set_game(game);
 
-                // Referrer
-                let referrer_amount: u256 = (precise_price * REFERRER_PERCENTAGE.into()) / 100;
+            // Referrer
+            let referrer_amount: u256 = (precise_price * REFERRER_PERCENTAGE.into()) / 100;
 
-                // zKorp
-                let zkorp_amount: u256 = precise_price
-                    - tournament_amount
-                    - chest_amount
-                    - referrer_amount;
+            // zKorp
+            let zkorp_amount: u256 = precise_price
+                - tournament_amount
+                - chest_amount
+                - referrer_amount;
 
-                // [Return] Game ID and amounts to pay
-                (
-                    game_id,
-                    tournament_id,
-                    (tournament_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
-                    (chest_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
-                    (referrer_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
-                    (zkorp_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
-                )
-            }
+            // [Return] Game ID and amounts to pay
+            (
+                game_id,
+                tournament_id,
+                (tournament_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
+                (chest_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
+                (referrer_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
+                (zkorp_amount / PRECISION_FACTOR.into()).try_into().unwrap()
+            )
         }
     }
 }

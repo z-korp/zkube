@@ -77,11 +77,10 @@ struct Tournament {
 
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
 #[dojo::model]
-struct Credits {
+struct Mint {
     #[key]
     id: felt252, // player_id (address)
-    day_id: u64,
-    remaining: u8,
+    number: u32,
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
@@ -91,9 +90,7 @@ struct Settings {
     id: u8,
     is_set: bool,
     zkorp_address: felt252,
-    free_daily_credits: u8,
-    daily_mode_price: u128,
-    normal_mode_price: u128,
+    erc71_address: felt252,
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked)]

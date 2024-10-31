@@ -7,9 +7,8 @@ const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
 #[starknet::interface]
 pub trait ZKubeCreditsMintable<TContractState> {
-    fn safe_mint(
-        ref self: TContractState, recipient: ContractAddress, token_id: u256, data: Span<felt252>
-    );
+    fn minter_mint(ref self: TContractState, recipient: ContractAddress);
+    fn public_mint(ref self: TContractState, recipient: ContractAddress);
 }
 
 #[starknet::contract]
@@ -24,7 +23,7 @@ mod ZKubeCredits {
     use openzeppelin::token::erc20::interface::IERC20Dispatcher;
     use openzeppelin::token::erc20::interface::IERC20DispatcherTrait;
     use super::{ContractAddress};
-    use starknet::get_caller_address;
+    use starknet::{get_caller_address, get_contract_address};
     use super::{PAUSER_ROLE, MINTER_ROLE};
     use starknet::storage::{
         Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
@@ -70,6 +69,7 @@ mod ZKubeCredits {
         erc20_token: ContractAddress,
         mint_price: u256,
         purchase_prices: Map<u256, u256>, // Mapping from token_id to purchase price
+        token_id: u256,
     }
 
     #[event]
@@ -95,6 +95,10 @@ mod ZKubeCredits {
         minter: ContractAddress,
         erc20_token: ContractAddress,
         mint_price: u256,
+        tournament_system: ContractAddress,
+        chest_system: ContractAddress,
+        zkorp_system: ContractAddress,
+        play_system: ContractAddress,
     ) {
         self.erc721.initializer("zKube-Credits", "ZKBC", "");
         self.accesscontrol.initializer();
@@ -105,6 +109,10 @@ mod ZKubeCredits {
         self.accesscontrol._grant_role(DEFAULT_ADMIN_ROLE, default_admin);
         self.accesscontrol._grant_role(PAUSER_ROLE, pauser);
         self.accesscontrol._grant_role(MINTER_ROLE, minter);
+
+        // Approve play system to spend unlimited ERC20 tokens
+        let erc20 = IERC20Dispatcher { contract_address: erc20_token };
+        erc20.approve(play_system, u256::MAX);
     }
 
     impl ERC721HooksImpl of ERC721Component::ERC721HooksTrait<ContractState> {
@@ -138,46 +146,64 @@ mod ZKubeCredits {
         #[external(v0)]
         fn burn(ref self: ContractState, token_id: u256) {
             self.erc721.update(Zero::zero(), token_id, get_caller_address());
+
+            let (tournament_amount, chest_amount, referrer_amount, zkorp_amount) = self
+                .compute_prices();
+
+            // Transfer tournament amount to tournament
+            let tournament_system_dispatcher = ITournamentSystemDispatcher {
+                contract_address: self.tournament.read()
+            };
+            tournament_system_dispatcher
+                .sponsor_from(token_id, Mode::Normal, tournament_amount, get_caller_address());
         }
 
         #[external(v0)]
-        fn minter_mint(
-            ref self: ContractState,
-            recipient: ContractAddress,
-            token_id: u256,
-            data: Span<felt252>,
-        ) {
+        fn minter_mint(ref self: ContractState, recipient: ContractAddress) {
+            let token_id = self.token_id.read() + 1;
+
             // Ensure caller has MINTER_ROLE
             self.accesscontrol.assert_only_role(MINTER_ROLE);
 
             // Mint the NFT without payment
-            self.erc721.safe_mint(recipient, token_id, data);
+            self.erc721.safe_mint(recipient, token_id, array![].span());
 
             // Store purchase price as zero for minter mints
-            self.purchase_prices.write(token_id, 0.into());
+            self.purchase_prices.write(token_id, 0_u256);
+
+            // Increment the token_id
+            self.token_id.write(token_id);
         }
 
         #[external(v0)]
-        fn public_mint(
-            ref self: ContractState,
-            recipient: ContractAddress,
-            token_id: u256,
-            data: Span<felt252>,
+        fn public_mint_from(
+            ref self: ContractState, recipient: ContractAddress, caller: ContractAddress
         ) {
-            // Check caller and set up ERC20 dispatcher
-            let caller = get_caller_address();
+            let token_id = self.token_id.read() + 1;
+
+            // Set up ERC20 dispatcher
             let mut erc20_dispatcher = IERC20Dispatcher {
                 contract_address: self.erc20_token.read()
             };
+            let erc20_token = self.erc20_token.read();
+            let mint_price = self.mint_price.read();
 
             // Transfer ERC20 tokens for mint price
-            erc20_dispatcher.transfer_from(caller, self.erc20_token.read(), self.mint_price.read());
+            erc20_dispatcher.transfer_from(caller, erc20_token, mint_price);
 
             // Mint the NFT
-            self.erc721.safe_mint(recipient, token_id, data);
+            self.erc721.safe_mint(recipient, token_id, array![].span());
 
             // Store the purchase price for the token
-            self.purchase_prices.write(token_id, self.mint_price.read());
+            self.purchase_prices.write(token_id, mint_price);
+
+            // Increment the token_id
+            self.token_id.write(token_id);
+        }
+
+        #[external(v0)]
+        fn public_mint(ref self: ContractState, recipient: ContractAddress) {
+            self.public_mint_from(recipient, get_caller_address());
         }
 
         fn get_purchase_price(self: @ContractState, token_id: u256) -> u256 {

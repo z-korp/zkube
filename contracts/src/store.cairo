@@ -11,7 +11,7 @@ use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait};
 use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{Player, PlayerTrait};
 use zkube::models::tournament::Tournament;
-use zkube::models::credits::Credits;
+use zkube::models::mint::Mint;
 use zkube::models::settings::Settings;
 use zkube::models::chest::Chest;
 use zkube::models::participation::Participation;
@@ -49,8 +49,8 @@ impl StoreImpl of StoreTrait {
     }
 
     #[inline(always)]
-    fn credits(self: Store, player_id: felt252) -> Credits {
-        get!(self.world, player_id, (Credits))
+    fn mint(self: Store, player_id: felt252) -> Mint {
+        get!(self.world, player_id, (Mint))
     }
 
     #[inline(always)]
@@ -92,8 +92,8 @@ impl StoreImpl of StoreTrait {
     }
 
     #[inline(always)]
-    fn set_credits(self: Store, credits: Credits) {
-        set!(self.world, (credits))
+    fn set_mint(self: Store, mint: Mint) {
+        set!(self.world, (mint))
     }
 
     #[inline(always)]

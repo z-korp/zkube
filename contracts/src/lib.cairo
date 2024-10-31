@@ -7,11 +7,11 @@ mod models {
     mod game;
     mod player;
     mod tournament;
-    mod credits;
     mod settings;
     mod chest;
     mod admin;
     mod participation;
+    mod mint;
 }
 
 mod types {
@@ -57,7 +57,6 @@ mod components {
     mod manageable;
     mod payable;
     mod playable;
-    mod creditable;
 }
 
 mod systems {
@@ -67,6 +66,7 @@ mod systems {
     mod settings;
     mod tournament;
     mod zkorp;
+    mod minter;
 }
 
 mod interfaces {
