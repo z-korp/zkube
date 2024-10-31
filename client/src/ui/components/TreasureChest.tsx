@@ -11,6 +11,7 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { formatPrize } from "@/utils/wei";
 import { useMediaQuery } from "react-responsive";
 import { DialogPrizePoolContributors } from "./DialogPrizePoolContributors";
+import { Chest } from "@/dojo/game/models/chest";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -26,8 +27,8 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
   const { account } = useAccountCustom();
   const chests = useAllChests();
   const participations = useParticipations({ player_id: account?.address });
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [selectedChest, setSelectedChest] = useState<Chest | null>(null);
+  // const [showLeaderboard, setShowLeaderboard] = useState(false);
+  // const [selectedChest, setSelectedChest] = useState<Chest | null>(null);
   const isMdOrLarger = useMediaQuery({ minWidth: 768 });
 
   // Find the index of the first incomplete chest

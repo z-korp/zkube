@@ -3,7 +3,7 @@ import { Create } from "../actions/Create";
 import GameBoard from "../components/GameBoard";
 import BackGroundBoard from "../components/BackgroundBoard";
 import { AnimatePresence, motion } from "framer-motion";
-import { useCallBack, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useGame } from "@/hooks/useGame";

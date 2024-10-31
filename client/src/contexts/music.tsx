@@ -1,13 +1,8 @@
-import React, {
-  createContext,
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
+import React, { createContext, useState, useEffect, useCallback } from "react";
 import useSound from "use-sound";
 import SoundAssets from "@/ui/theme/SoundAssets";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
-import noop from '@/utils/noop';
+import noop from "@/utils/noop";
 
 type Track = {
   name: string;
@@ -15,25 +10,29 @@ type Track = {
 };
 
 export const MusicPlayerContext = createContext<{
-  playTheme: () => unknown,
-  stopTheme: () => unknown,
-  isPlaying: boolean,
-  volume: number,
-  setVolume: (volume: number) => unknown,
-  setTheme: (theme: boolean) => unknown,
-  playStart: () => unknown,
-  playOver: () => unknown,
-  playSwipe: () => unknown,
-  playExplode: () => unknown,
+  playTheme: () => unknown;
+  stopTheme: () => unknown;
+  isPlaying: boolean;
+  musicVolume: number;
+  effectsVolume: number;
+  setMusicVolume: (volume: number) => unknown;
+  setEffectsVolume: (volume: number) => unknown;
+  setTheme: (theme: boolean) => unknown;
+  playStart: () => unknown;
+  playOver: () => unknown;
+  playSwipe: () => unknown;
+  playExplode: () => unknown;
 }>({
   playTheme: noop,
   stopTheme: noop,
   isPlaying: false,
   musicVolume: 0.2,
-  setMusicVolume: (volume: number) => { volume },
+  setMusicVolume: (volume: number) => {
+    volume;
+  },
   effectsVolume: 0.2,
-  setEffectsVolume: (volume: number) => { theme},
-  setTheme: (theme: boolean) => {},
+  setEffectsVolume: noop,
+  setTheme: noop,
   playStart: noop,
   playOver: noop,
   playSwipe: noop,
@@ -135,7 +134,7 @@ export const MusicPlayerProvider = ({
   useEffect(() => {
     setTracks(theme ? menuTracks : playTracks);
     setCurrentTrackIndex(0);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme, themeTemplate]);
 
   return (
