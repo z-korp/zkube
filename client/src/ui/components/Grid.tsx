@@ -13,11 +13,12 @@ import {
   removeBlockId,
   deepCompareBlocks,
   getBlocksSameRow,
+  getBlocksSameWidth,
 } from "@/utils/gridUtils";
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
-import { motion } from "framer-motion";
+import { color, motion } from "framer-motion";
 import { BonusType } from "@/dojo/game/types/bonus";
 import { useMusicPlayer } from "@/contexts/music";
 import useViewportDimensions from "@/hooks/useViewport";
@@ -41,10 +42,6 @@ interface GridProps {
   setOptimisticScore: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
-  triggerParticles: (
-    position: { x: number; y: number },
-    colorSet: string[],
-  ) => void;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -62,7 +59,6 @@ const Grid: React.FC<GridProps> = ({
   setOptimisticMaxCombo,
   isTxProcessing,
   setIsTxProcessing,
-  triggerParticles,
 }) => {
   const {
     setup: {
@@ -210,10 +206,29 @@ const Grid: React.FC<GridProps> = ({
     setBlockBonus(block);
     if (bonus === BonusType.Wave) {
       setBlocks(removeBlocksSameRow(block, blocks));
+      getBlocksSameRow(block.y, blocks).forEach((b) => {
+        if (gridPosition === null) return;
+        handleTriggerLocalExplosion(
+          gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
+          gridPosition.top + b.y * gridSize,
+        );
+      });
     } else if (bonus === BonusType.Totem) {
       setBlocks(removeBlocksSameWidth(block, blocks));
+      getBlocksSameWidth(block, blocks).forEach((b) => {
+        if (gridPosition === null) return;
+        handleTriggerLocalExplosion(
+          gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
+          gridPosition.top + b.y * gridSize,
+        );
+      });
     } else if (bonus === BonusType.Hammer) {
       setBlocks(removeBlockId(block, blocks));
+      if (gridPosition === null) return;
+      handleTriggerLocalExplosion(
+        gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
+        gridPosition.top + block.y * gridSize,
+      );
     }
 
     // if we have a bonus, we go in state gravity_bonus
@@ -473,15 +488,6 @@ const Grid: React.FC<GridProps> = ({
           );
         });
 
-        // triggerParticles(
-        //   {
-        //     x: xPercentage,
-        //     y: yPercentage,
-        //   },
-        //   ["#47D1D9", "#8BA3BC", "#1974D1", "#44A4D9", "#01040B"],
-        // );
-
-        //handleTriggerLocalExplosion(x, y);
         // handleTriggerLineExplosion(x, y, 400);
       });
 

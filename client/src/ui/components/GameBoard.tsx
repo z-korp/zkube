@@ -22,9 +22,6 @@ import { ModeType } from "@/dojo/game/types/mode";
 import useTournament from "@/hooks/useTournament";
 import { Game } from "@/dojo/game/models/game";
 import useRank from "@/hooks/useRank";
-import ParticlesExplosionManager, {
-  ParticlesExplosionManagerHandles,
-} from "./ParticlesExplosionManager";
 
 import "../../grid.css";
 
@@ -63,8 +60,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const ROWS = 10;
   const COLS = 8;
   const GRID_SIZE = isMdOrLarger ? 50 : 40;
-
-  const explosionManagerRef = useRef<ParticlesExplosionManagerHandles>(null);
 
   const [isTxProcessing, setIsTxProcessing] = useState(false);
 
@@ -200,18 +195,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
     gameId: game.id,
   });
 
-  const handleTriggerParticles = (
-    position: { x: number; y: number },
-    colorSet: string[],
-  ) => {
-    if (explosionManagerRef.current) {
-      explosionManagerRef.current.triggerExplosion(
-        { x: position.x, y: position.y },
-        colorSet,
-      );
-    }
-  };
-
   if (memoizedInitialData.length === 0) return null; // otherwise sometimes
   // the grid is not displayed in Grid because the data is not ready
 
@@ -266,18 +249,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
             setOptimisticMaxCombo={setOptimisticMaxCombo}
             isTxProcessing={isTxProcessing}
             setIsTxProcessing={setIsTxProcessing}
-            triggerParticles={(
-              position: { x: number; y: number },
-              colorSet: string[],
-            ) =>
-              handleTriggerParticles(
-                {
-                  x: position.x,
-                  y: position.y,
-                },
-                colorSet,
-              )
-            }
           />
         </div>
 
@@ -309,7 +280,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
           </div>
         )}
       </Card>
-      <ParticlesExplosionManager ref={explosionManagerRef} />
     </>
   );
 };

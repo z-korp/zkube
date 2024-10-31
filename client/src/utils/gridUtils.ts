@@ -91,6 +91,10 @@ export const removeBlocksSameWidth = (
   return blocks.filter((b) => b.width !== block.width);
 };
 
+export const getBlocksSameWidth = (block: Block, blocks: Block[]): Block[] => {
+  return blocks.filter((b) => b.width == block.width);
+};
+
 export const removeBlocksSameRow = (block: Block, blocks: Block[]): Block[] => {
   return blocks.filter((b) => b.y !== block.y);
 };

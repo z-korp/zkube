@@ -1,4 +1,9 @@
-import { ISourceOptions, tsParticles, Container } from "@tsparticles/engine";
+import {
+  ISourceOptions,
+  tsParticles,
+  Container,
+  Particle,
+} from "@tsparticles/engine";
 import React, {
   useEffect,
   useRef,
@@ -140,7 +145,7 @@ const ConfettiExplosion = forwardRef<
   const triggerLocalExplosion = (position: { x: number; y: number }) => {
     if (particleContainerRef.current) {
       const pR = particleContainerRef.current.retina.pixelRatio;
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < 50; i++) {
         particleContainerRef.current.particles.addParticle({
           x: position.x * pR,
           y: position.y * pR,
