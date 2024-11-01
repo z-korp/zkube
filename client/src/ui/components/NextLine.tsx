@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Block } from "@/types/types";
 import BlockContainer from "@/ui/components/Block";
 
