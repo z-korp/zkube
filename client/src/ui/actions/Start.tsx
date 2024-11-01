@@ -1,5 +1,5 @@
 import { useDojo } from "@/dojo/useDojo";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Account } from "starknet";
 import { Button } from "@/ui/elements/button";
 import { useGame } from "@/hooks/useGame";
@@ -12,6 +12,7 @@ import { createFaucetClaimHandler } from "@/utils/faucet";
 import { useContract } from "@starknet-react/core";
 import { erc20ABI } from "@/utils/erc20";
 import { useCredits } from "@/hooks/useCredits";
+import { useMediaQuery } from "react-responsive";
 
 interface BalanceData {
   balance: {
@@ -49,6 +50,7 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   const disabled = useMemo(() => {
     return (
@@ -126,16 +128,16 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [account, mode, settings, credits]);
+  }, [account, credits, settings, contract, start, mode, handleGameMode]);
 
   return (
     <Button
       disabled={isLoading || disabled}
       isLoading={isLoading}
       onClick={handleClick}
-      className="text-lg w-full transition-transform duration-300 ease-in-out hover:scale-105"
+      className={`text-lg w-full transition-transform duration-300 ease-in-out hover:scale-105 ${!isMdOrLarger && "py-6 border-4 border-white rounded-none text-white bg-sky-900 shadow-lg font-sans font-bold "}`}
     >
-      Play
+      Play !
     </Button>
   );
 };

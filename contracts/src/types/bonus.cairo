@@ -16,14 +16,12 @@ enum Bonus {
 #[generate_trait]
 impl BonusImpl of BonusTrait {
     #[inline(always)]
-    fn apply(
-        self: Bonus, blocks: felt252, colors: felt252, row_index: u8, index: u8
-    ) -> (felt252, felt252) {
+    fn apply(self: Bonus, blocks: felt252, row_index: u8, index: u8) -> felt252 {
         match self {
-            Bonus::None => (blocks, colors),
-            Bonus::Hammer => hammer::BonusImpl::apply(blocks, colors, row_index, index),
-            Bonus::Totem => totem::BonusImpl::apply(blocks, colors, row_index, index),
-            Bonus::Wave => wave::BonusImpl::apply(blocks, colors, row_index, index),
+            Bonus::None => blocks,
+            Bonus::Hammer => hammer::BonusImpl::apply(blocks, row_index, index),
+            Bonus::Totem => totem::BonusImpl::apply(blocks, row_index, index),
+            Bonus::Wave => wave::BonusImpl::apply(blocks, row_index, index),
         }
     }
 
@@ -108,7 +106,7 @@ mod tests {
         let bitmap: felt252 =
             0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_001_010_010_000_011_011_011_000;
         let bonus: Bonus = Bonus::Hammer;
-        let (blocks, _colors) = bonus.apply(bitmap, bitmap, 0, 1);
+        let blocks = bonus.apply(bitmap, 0, 1);
         assert_eq!(
             blocks,
             0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_001_010_010_000_000_000_000_000
@@ -129,7 +127,7 @@ mod tests {
         let bitmap: felt252 =
             0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_001_010_010_000_011_011_011_000;
         let bonus: Bonus = Bonus::Wave;
-        let (blocks, _colors) = bonus.apply(bitmap, bitmap, 0, 1);
+        let blocks = bonus.apply(bitmap, 0, 1);
         assert_eq!(
             blocks,
             0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_000_000_000_000_000_000_000_000
@@ -150,9 +148,9 @@ mod tests {
         let bitmap: felt252 =
             0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_001_010_010_000_011_011_011_000;
         let bonus: Bonus = Bonus::Totem;
-        let (_blocks, colors) = bonus.apply(bitmap, bitmap, 2, 4);
+        let blocks = bonus.apply(bitmap, 2, 4);
         assert_eq!(
-            colors,
+            blocks,
             0b000_000_000_001_000_000_000_001_000_000_000_000_000_000_000_000_000_000_000_000_100_100_100_100_001_000_000_000_011_011_011_000
         );
     }

@@ -1,11 +1,7 @@
 import { Condition } from "../../types/bonus";
 
 export class Totem {
-  public static getCount(
-    _score: number,
-    _combo: number,
-    max_combo: number,
-  ): number {
+  public static getCount(max_combo: number): number {
     if (max_combo >= 6) {
       return 3;
     } else if (max_combo >= 4) {

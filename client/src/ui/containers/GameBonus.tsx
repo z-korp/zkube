@@ -1,6 +1,6 @@
 import ImageAssets from "@/ui/theme/ImageAssets";
 import BonusButton from "../components/BonusButton";
-import { useTheme } from "@/ui/elements/theme-provider";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { BonusType } from "@/dojo/game/types/bonus";
 
 interface GameBonusProps {

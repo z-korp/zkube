@@ -115,16 +115,11 @@ function formatUnits(
 
   display = display.padStart(decimals, "0");
 
-  let [integer, fraction] = [
-    display.slice(0, display.length - decimals),
-    display.slice(display.length - decimals),
-  ];
+  const integer = display.slice(0, display.length - decimals)
 
   // Trim the fraction to the desired number of decimal places
-  fraction = fraction.slice(0, displayDecimals);
-
-  // Remove trailing zeros
-  fraction = fraction.replace(/(0+)$/, "");
+  // And remove trailing zeros
+  const fraction = display.slice(display.length - decimals).slice(0, displayDecimals).replace(/(0+)$/, "");
 
   return `${negative ? "-" : ""}${integer || "0"}${
     fraction ? `.${fraction}` : ""

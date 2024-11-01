@@ -19,14 +19,10 @@ impl Gravity of GravityTrait {
     /// * `bottom` - The bottom row.
     /// # Returns
     /// A tuple containing the new top and bottom rows.
-    fn apply(
-        mut top: u32, mut bottom: u32, mut top_color: u32, mut bottom_color: u32
-    ) -> (u32, u32, u32, u32) {
+    fn apply(mut top: u32, mut bottom: u32) -> (u32, u32) {
         let mut pointer: u32 = 1;
         let mut new_top: u32 = top;
         let mut new_bottom: u32 = bottom;
-        let mut new_top_color: u32 = top_color;
-        let mut new_bottom_color: u32 = bottom_color;
         loop {
             if top == 0 {
                 break;
@@ -46,14 +42,12 @@ impl Gravity of GravityTrait {
             if lower == 0 {
                 let mask = upper_mask - lower_mask;
                 new_bottom = new_bottom | (mask & new_top);
-                new_bottom_color = new_bottom_color | (mask & new_top_color);
                 new_top = new_top & ~mask;
-                new_top_color = new_top_color & ~mask;
             };
             top /= size;
             bottom /= size;
         };
-        (new_top, new_bottom, new_top_color, new_bottom_color)
+        (new_top, new_bottom,)
     }
 }
 
@@ -67,33 +61,27 @@ mod tests {
     fn test_gravity_apply_01() {
         let top: u32 = 0b000_000_000_000_010_010_000_001;
         let bot: u32 = 0b000_000_000_000_000_000_000_000;
-        let (new_top, new_bot, new_top_color, new_bot_color) = Gravity::apply(top, bot, top, bot);
+        let (new_top, new_bot) = Gravity::apply(top, bot);
         assert_eq!(new_top, 0b000_000_000_000_000_000_000_000);
         assert_eq!(new_bot, 0b000_000_000_000_010_010_000_001);
-        assert_eq!(new_top_color, 0b000_000_000_000_000_000_000_000);
-        assert_eq!(new_bot_color, 0b000_000_000_000_010_010_000_001);
     }
 
     #[test]
     fn test_gravity_apply_02() {
         let top: u32 = 0b000_000_000_000_010_010_000_001;
         let bot: u32 = 0b000_000_000_000_001_000_000_000;
-        let (new_top, new_bot, new_top_color, new_bot_color) = Gravity::apply(top, bot, top, bot);
+        let (new_top, new_bot) = Gravity::apply(top, bot);
         assert_eq!(new_top, 0b000_000_000_000_010_010_000_000);
         assert_eq!(new_bot, 0b000_000_000_000_001_000_000_001);
-        assert_eq!(new_top_color, 0b000_000_000_000_010_010_000_000);
-        assert_eq!(new_bot_color, 0b000_000_000_000_001_000_000_001);
     }
 
     #[test]
     fn test_gravity_apply_03() {
         let top: u32 = 0b001_001_001_001_001_001_001_001;
         let bot: u32 = 0b000_000_000_000_001_000_000_000;
-        let (new_top, new_bot, new_top_color, new_bot_color) = Gravity::apply(top, bot, top, bot);
+        let (new_top, new_bot) = Gravity::apply(top, bot);
         assert_eq!(new_top, 0b000_000_000_000_001_000_000_000);
         assert_eq!(new_bot, 0b001_001_001_001_001_001_001_001);
-        assert_eq!(new_top_color, 0b000_000_000_000_001_000_000_000);
-        assert_eq!(new_bot_color, 0b001_001_001_001_001_001_001_001);
     }
 
     #[test]
@@ -102,10 +90,8 @@ mod tests {
         // 0b001_010_010_000_011_011_011_000
         let top: u32 = 0b010_010_000_000_100_100_100_100;
         let bot: u32 = 0b001_010_010_000_011_011_011_000;
-        let (new_top, new_bot, new_top_color, new_bot_color) = Gravity::apply(top, bot, top, bot);
+        let (new_top, new_bot) = Gravity::apply(top, bot);
         assert_eq!(new_top, 0b010_010_000_000_100_100_100_100);
         assert_eq!(new_bot, 0b001_010_010_000_011_011_011_000);
-        assert_eq!(new_top_color, 0b010_010_000_000_100_100_100_100);
-        assert_eq!(new_bot_color, 0b001_010_010_000_011_011_011_000);
     }
 }

@@ -53,10 +53,6 @@
   animation: borderRotate var(--d) linear infinite forwards;
 }
 
-.grid-container {
-  /* Existing styles */
-}
-
 .block {
   position: absolute;
   background-color: rgb(15, 15, 15);
@@ -160,6 +156,7 @@
     hsl(0, 0%, 100%) 10%,
     hsl(240, 30%, 54%) 20%
   );
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   -webkit-text-stroke: 1.5px white;

@@ -28,33 +28,31 @@ interface TabListProps {
   isMdorLarger: boolean;
 }
 
-const TabList = memo<TabListProps>(
-  ({ activeTab, setActiveTab, isMdorLarger }) => (
-    <TabsList className="grid w-full mx-auto sm:w-full grid-cols-3">
-      <TabsTrigger
-        value={ModeType.Free}
-        onClick={() => setActiveTab(ModeType.Free)}
-        className="font-semibold md:font-normal"
-      >
-        {isMdorLarger ? ModeType.Free : "Free"}
-      </TabsTrigger>
-      <TabsTrigger
-        value={ModeType.Daily}
-        onClick={() => setActiveTab(ModeType.Daily)}
-        className="font-semibold md:font-normal"
-      >
-        {isMdorLarger ? ModeType.Daily : "Daily"}
-      </TabsTrigger>
-      <TabsTrigger
-        value={ModeType.Normal}
-        onClick={() => setActiveTab(ModeType.Normal)}
-        className="font-semibold md:font-normal"
-      >
-        {isMdorLarger ? ModeType.Normal : "Weekly"}
-      </TabsTrigger>
-    </TabsList>
-  ),
-);
+const TabList = memo<TabListProps>(({ setActiveTab, isMdorLarger }) => (
+  <TabsList className="grid w-full mx-auto sm:w-full grid-cols-3">
+    <TabsTrigger
+      value={ModeType.Free}
+      onClick={() => setActiveTab(ModeType.Free)}
+      className="font-semibold md:font-normal"
+    >
+      {isMdorLarger ? ModeType.Free : "Free"}
+    </TabsTrigger>
+    <TabsTrigger
+      value={ModeType.Daily}
+      onClick={() => setActiveTab(ModeType.Daily)}
+      className="font-semibold md:font-normal"
+    >
+      {isMdorLarger ? ModeType.Daily : "Daily"}
+    </TabsTrigger>
+    <TabsTrigger
+      value={ModeType.Normal}
+      onClick={() => setActiveTab(ModeType.Normal)}
+      className="font-semibold md:font-normal"
+    >
+      {isMdorLarger ? ModeType.Normal : "Weekly"}
+    </TabsTrigger>
+  </TabsList>
+));
 
 interface LeaderboardProps {
   buttonType:
@@ -67,16 +65,23 @@ interface LeaderboardProps {
     | null
     | undefined;
   textSize?: "sm" | "md" | "lg";
+  inMenu?: boolean;
 }
 
 export const Leaderboard: React.FC<LeaderboardProps> = ({
   buttonType,
   textSize = "lg",
+  inMenu = false,
 }) => {
+  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
+
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant={buttonType} className={`w-full text-${textSize}`}>
+        <Button
+          variant={buttonType}
+          className={`w-full text-${textSize} ${!isMdOrLarger && !inMenu && "py-6 border-4 rounded-none bg-sky-200 font-sans"}`}
+        >
           Leaderboards
         </Button>
       </DialogTrigger>

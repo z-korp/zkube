@@ -44,7 +44,6 @@ fn test_bonus_clean_board() {
 
     let mut game = store.game(game_id);
     game.blocks = 0b00100100100100011011011;
-    game.colors = 0b00100100100100011011011;
     game.wave_bonus = 1; // unlock 1 wave bonus
     game.wave_used = 0;
     store.set_game(game);

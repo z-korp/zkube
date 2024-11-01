@@ -14,17 +14,6 @@ export const usePlayer = ({ playerId }: { playerId: string | undefined }) => {
     },
   } = useDojo();
 
-  /*const gameEntities: any = useEntityQuery([Has(Player)]);
-  const games = useMemo(
-    () => gameEntities.map((id: any) => getComponentValue(Player, id)),
-    [gameEntities, Player],
-  );
-  console.log(
-    "XXXXXXXXXXXXXX",
-    games.map((game: any) => game.id.toString(16)),
-  );*/
-
-  //console.log("playerId", playerId);
   const playerKey = useMemo(
     () => getEntityIdFromKeys([BigInt(playerId ? playerId : -1)]) as Entity,
     [playerId],

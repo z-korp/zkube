@@ -19,7 +19,7 @@ export const ChestIcon: React.FC<ChestIconProps> = ({
   const baseClasses =
     "w-[50px] h-[50px] rounded-full flex items-center justify-center cursor-pointer shadow-lg overflow-hidden relative";
   const stateClasses = isActive
-    ? "ring-2 ring-yellow-300"
+    ? "ring-2 ring-sky-300"
     : isCompleted
       ? "ring-2 ring-gray-800"
       : "";
@@ -32,7 +32,7 @@ export const ChestIcon: React.FC<ChestIconProps> = ({
       <img
         src={chest.getIcon()}
         alt={`${chest.id} Chest`}
-        className="w-[26px] transition-opacity duration-300"
+        className="w-[26px] transition-opacity duration-300 "
         style={{ opacity: isActive ? 1 : 0.7 }}
       />
       {isCompleted && (

@@ -138,6 +138,7 @@ fn test_play_play_daily_tournament_claim() {
     // 010_010_001_000_100_100_100_100
     // 000_001_001_011_011_011_010_010
     // 000_100_100_100_100_011_011_011
+    println!("qqqqq 1");
     systems.play.move(1, 6, 7);
     let game = store.game(game_id);
     // println!("game.score {}", game.score);
@@ -147,15 +148,17 @@ fn test_play_play_daily_tournament_claim() {
     // 011_011_011_010_010_001_000_001
     // 000_000_001_000_100_100_100_100
     // 001_000_100_100_100_100_010_010
+    println!("qqqqq 2");
     systems.play.move(1, 5, 6);
     let game = store.game(game_id);
     // println!("game.score {}", game.score);
 
-    // println!("blocks {}", game.blocks);
+    println!("blocks {}", game.blocks);
     // 011_011_011_001_000_001_010_010
     // 011_011_011_010_010_001_000_001
     // 000_000_001_000_100_100_100_100
     // 001_000_100_100_100_100_010_010
+    println!("qqqqq 3");
     systems.play.move(1, 5, 6);
     let game = store.game(game_id);
 
@@ -181,6 +184,7 @@ fn test_play_play_daily_tournament_claim() {
     // 010_010_001_000_100_100_100_100
     // 000_001_001_011_011_011_010_010
     // 000_100_100_100_100_011_011_011
+    println!("qqqqq 4");
     systems.play.move(1, 6, 7);
     let game = store.game(game_id);
     // println!("game.score {}", game.score);
@@ -190,6 +194,7 @@ fn test_play_play_daily_tournament_claim() {
     // 011_011_011_010_010_001_000_001
     // 000_000_001_000_100_100_100_100
     // 001_000_100_100_100_100_010_010
+    println!("qqqqq 5");
     systems.play.move(1, 5, 6);
     let game = store.game(game_id);
     // println!("game.score {}", game.score);
@@ -218,6 +223,7 @@ fn test_play_play_daily_tournament_claim() {
     // 010_010_001_000_100_100_100_100
     // 000_001_001_011_011_011_010_010
     // 000_100_100_100_100_011_011_011
+    println!("qqqqq 6");
     systems.play.move(1, 6, 7);
     let game = store.game(game_id);
     // println!("game.score {}", game.score);

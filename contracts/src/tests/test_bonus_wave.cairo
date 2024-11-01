@@ -59,13 +59,13 @@ fn test_game_wave_bonus_unlock() {
 
     // Test different combo count thresholds
     update_combo_and_check(@store, game_id, 0, 0); // Below first threshold
-    update_combo_and_check(@store, game_id, 7, 0); // Just below first threshold
-    update_combo_and_check(@store, game_id, 8, 1); // At first threshold
-    update_combo_and_check(@store, game_id, 12, 1); // Between thresholds
-    update_combo_and_check(@store, game_id, 16, 2); // At second threshold
-    update_combo_and_check(@store, game_id, 20, 2); // Between thresholds
-    update_combo_and_check(@store, game_id, 24, 3); // At third threshold
-    update_combo_and_check(@store, game_id, 30, 3); // Above all thresholds
+    update_combo_and_check(@store, game_id, 15, 0); // Just below first threshold
+    update_combo_and_check(@store, game_id, 16, 1); // At first threshold
+    update_combo_and_check(@store, game_id, 31, 1); // Between thresholds
+    update_combo_and_check(@store, game_id, 32, 2); // At second threshold
+    update_combo_and_check(@store, game_id, 63, 2); // Between thresholds
+    update_combo_and_check(@store, game_id, 64, 3); // At third threshold
+    update_combo_and_check(@store, game_id, 100, 3); // Above all thresholds
 }
 
 #[test]
@@ -88,8 +88,8 @@ fn test_game_wave_bonus_usage() {
     game.assert_not_over();
 
     // Test different combo count thresholds
-    update_combo_and_check(@store, game_id, 7, 0); // Just below first threshold
-    update_combo_and_check(@store, game_id, 8, 1); // At first threshold
+    update_combo_and_check(@store, game_id, 15, 0); // Just below first threshold
+    update_combo_and_check(@store, game_id, 16, 1); // At first threshold
 
     let game = store.game(game_id);
     game.assert_is_available(Bonus::Wave);
@@ -100,9 +100,9 @@ fn test_game_wave_bonus_usage() {
     // [Assert] Check wave bonus
     let game = store.game(game_id);
     assert(game.wave_used == 1, 'Wave used should be 1');
-    update_combo_and_check(@store, game_id, 12, 0); // Between thresholds
+    update_combo_and_check(@store, game_id, 31, 0); // Between thresholds
 
-    update_combo_and_check(@store, game_id, 16, 1); // At second threshold
+    update_combo_and_check(@store, game_id, 32, 1); // At second threshold
 
     let game = store.game(game_id);
     game.assert_is_available(Bonus::Wave);

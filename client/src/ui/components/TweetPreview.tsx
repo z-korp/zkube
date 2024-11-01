@@ -20,7 +20,6 @@ interface TweetPreviewProps {
 export const TweetPreview: React.FC<TweetPreviewProps> = ({
   open,
   setOpen,
-  level,
   score,
   imgSrc,
   gameId,
@@ -28,6 +27,11 @@ export const TweetPreview: React.FC<TweetPreviewProps> = ({
 }) => {
   const bodyRef: React.RefObject<HTMLDivElement> | null = useRef(null);
   const [tweetMsg, setTweetMsg] = useState("");
+
+  const { rank, suffix } = useRank({
+    tournamentId,
+    gameId,
+  });
 
   useEffect(() => {
     setTweetMsg(
@@ -37,7 +41,7 @@ Ready to level up! Who's joining the challenge? 🚀
 Play now: app.zkube.xyz
 @zkorp_ @zkube_game`,
     );
-  }, [open, score]);
+  }, [open, rank, score, suffix]);
 
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setTweetMsg(event.target.value);
@@ -67,18 +71,13 @@ Play now: app.zkube.xyz
       }
       //console.log("second => ", imgSrc, bodyRef.current);
     }
-  }, [imgSrc, bodyRef, bodyRef.current]);
-
-  const { rank, suffix } = useRank({
-    tournamentId: tournamentId,
-    gameId: gameId,
-  });
+  }, [imgSrc, bodyRef]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         ref={bodyRef}
-        className="sm:max-w-[500px]"
+        className="sm:max-w-[500px] rounded-lg"
         aria-describedby={undefined}
       >
         <DialogHeader className="flex items-center text-2xl">

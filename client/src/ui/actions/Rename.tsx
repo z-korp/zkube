@@ -37,7 +37,7 @@ export const Create = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [account, playerName]);
+  }, [account, playerName, rename]);
 
   const disabled = useMemo(() => {
     return !account || !master || account === master || !player;

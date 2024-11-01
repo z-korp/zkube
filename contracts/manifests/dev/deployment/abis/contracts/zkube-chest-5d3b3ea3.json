@@ -180,7 +180,7 @@
           },
           {
             "name": "amount",
-            "type": "core::felt252"
+            "type": "core::integer::u128"
           }
         ],
         "outputs": [],
@@ -188,11 +188,15 @@
       },
       {
         "type": "function",
-        "name": "sponsor_unknown",
+        "name": "sponsor_from",
         "inputs": [
           {
             "name": "amount",
-            "type": "core::felt252"
+            "type": "core::integer::u128"
+          },
+          {
+            "name": "caller",
+            "type": "core::starknet::contract_address::ContractAddress"
           }
         ],
         "outputs": [],

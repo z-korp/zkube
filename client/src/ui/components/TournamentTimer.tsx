@@ -61,7 +61,7 @@ const TournamentTimer: React.FC<TournamentTimerProps> = ({
   mode,
   endTimestamp,
 }) => {
-  const secondsLeft = useCountdown(new Date(endTimestamp * 1000));
+  const secondsLeft = useCountdown(endTimestamp * 1000);
 
   return (
     <div>

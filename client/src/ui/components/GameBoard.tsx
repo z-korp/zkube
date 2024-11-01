@@ -22,9 +22,6 @@ import { ModeType } from "@/dojo/game/types/mode";
 import useTournament from "@/hooks/useTournament";
 import { Game } from "@/dojo/game/models/game";
 import useRank from "@/hooks/useRank";
-import ParticlesExplosionManager, {
-  ParticlesExplosionManagerHandles,
-} from "./ParticlesExplosionManager";
 
 import "../../grid.css";
 
@@ -64,8 +61,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const COLS = 8;
   const GRID_SIZE = isMdOrLarger ? 50 : 40;
 
-  const explosionManagerRef = useRef<ParticlesExplosionManagerHandles>(null);
-
   const [isTxProcessing, setIsTxProcessing] = useState(false);
 
   // State that will allow us to hide or display the next line
@@ -75,6 +70,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [optimisticScore, setOptimisticScore] = useState(score);
   const [optimisticCombo, setOptimisticCombo] = useState(combo);
   const [optimisticMaxCombo, setOptimisticMaxCombo] = useState(maxCombo);
+  const [bonusDescription, setBonusDescription] = useState("");
 
   useEffect(() => {
     // Every time the initial grid changes, we erase the optimistic data
@@ -83,6 +79,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     setOptimisticScore(score);
     setOptimisticCombo(combo);
     setOptimisticMaxCombo(maxCombo);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGrid]);
 
   const [bonus, setBonus] = useState<BonusType>(BonusType.None);
@@ -91,21 +88,33 @@ const GameBoard: React.FC<GameBoardProps> = ({
     if (waveCount === 0) return;
     if (bonus === BonusType.Wave) {
       setBonus(BonusType.None);
-    } else setBonus(BonusType.Wave);
+      setBonusDescription("");
+    } else {
+      setBonus(BonusType.Wave);
+      setBonusDescription("Select the line you want to destroy");
+    }
   };
 
   const handleBonusTikiClick = () => {
     if (totemCount === 0) return;
     if (bonus === BonusType.Totem) {
       setBonus(BonusType.None);
-    } else setBonus(BonusType.Totem);
+      setBonusDescription("");
+    } else {
+      setBonus(BonusType.Totem);
+      setBonusDescription("Select the block type you want to destroy");
+    }
   };
 
   const handleBonusHammerClick = () => {
     if (hammerCount === 0) return;
     if (bonus === BonusType.Hammer) {
       setBonus(BonusType.None);
-    } else setBonus(BonusType.Hammer);
+      setBonusDescription("");
+    } else {
+      setBonus(BonusType.Hammer);
+      setBonusDescription("Select the block you want to destroy");
+    }
   };
 
   const handleBonusWaveTx = useCallback(
@@ -124,7 +133,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         //setIsLoading(false);
       }
     },
-    [account],
+    [account, applyBonus],
   );
 
   const handleBonusHammerTx = useCallback(
@@ -143,7 +152,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         //setIsLoading(false);
       }
     },
-    [account],
+    [account, applyBonus],
   );
 
   const handleBonusTikiTx = useCallback(
@@ -162,7 +171,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         //setIsLoading(false);
       }
     },
-    [account],
+    [account, applyBonus],
   );
 
   const selectBlock = useCallback(
@@ -177,13 +186,14 @@ const GameBoard: React.FC<GameBoardProps> = ({
         console.log("none", block);
       }
     },
-    [bonus],
+    [bonus, handleBonusHammerTx, handleBonusTikiTx, handleBonusWaveTx],
   );
 
   useEffect(() => {
     // Reset the isTxProcessing state and the bonus state when the grid changes
     // meaning the tx as been processed, and the client state updated
     setBonus(BonusType.None);
+    setBonusDescription("");
   }, [initialGrid]);
 
   const memoizedInitialData = useMemo(() => {
@@ -192,6 +202,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const memoizedNextLineData = useMemo(() => {
     return transformDataContractIntoBlock([nextLine]);
+    // initialGrid on purpose
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGrid]);
 
   const { endTimestamp } = useTournament(game.mode.value);
@@ -199,18 +211,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
     tournamentId: game.tournament_id,
     gameId: game.id,
   });
-
-  const handleTriggerParticles = (
-    position: { x: number; y: number },
-    colorSet: string[],
-  ) => {
-    if (explosionManagerRef.current) {
-      explosionManagerRef.current.triggerExplosion(
-        { x: position.x, y: position.y },
-        colorSet,
-      );
-    }
-  };
 
   if (memoizedInitialData.length === 0) return null; // otherwise sometimes
   // the grid is not displayed in Grid because the data is not ready
@@ -266,22 +266,19 @@ const GameBoard: React.FC<GameBoardProps> = ({
             setOptimisticMaxCombo={setOptimisticMaxCombo}
             isTxProcessing={isTxProcessing}
             setIsTxProcessing={setIsTxProcessing}
-            triggerParticles={(
-              position: { x: number; y: number },
-              colorSet: string[],
-            ) =>
-              handleTriggerParticles(
-                {
-                  x: position.x,
-                  y: position.y,
-                },
-                colorSet,
-              )
-            }
           />
         </div>
 
-        <div className="flex justify-center items-center mt-2 md:mt-3">
+        <div className="relative">
+          <div className="absolute z-50 text-lg w-full flex justify-center items-center mt-2 md:mt-3 left-1/2 transform -translate-x-1/2">
+            {bonus !== BonusType.None && (
+              <h1
+                className={`text-yellow-500 p-2 rounded font-bold ${bonusDescription.length > 20 ? "text-sm" : "text-2xl"} md:text-lg bg-black bg-opacity-50 whitespace-nowrap overflow-hidden text-ellipsis`}
+              >
+                {bonusDescription}
+              </h1>
+            )}
+          </div>
           <NextLine
             nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}
             gridSize={GRID_SIZE}
@@ -298,7 +295,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               <sup>{suffix}</sup>
             </div>
             <div className="flex gap-4">
-              <h2 className="text-sm md:text-base font-semibold">
+              <h2 className="text-GRID_SIZEsm md:text-base font-semibold">
                 Tournament:
               </h2>
               <TournamentTimer
@@ -309,7 +306,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
           </div>
         )}
       </Card>
-      <ParticlesExplosionManager ref={explosionManagerRef} />
     </>
   );
 };

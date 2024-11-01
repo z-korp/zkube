@@ -1,14 +1,14 @@
 import { ComponentValue } from "@dojoengine/recs";
-import chest1 from "../../../../public/assets/chests/c1.png";
-import chest2 from "../../../../public/assets/chests/c2.png";
-import chest3 from "../../../../public/assets/chests/c3.png";
-import chest4 from "../../../../public/assets/chests/c4.png";
-import chest5 from "../../../../public/assets/chests/c5.png";
-import chest6 from "../../../../public/assets/chests/c6.png";
-import chest7 from "../../../../public/assets/chests/c7.png";
-import chest8 from "../../../../public/assets/chests/c8.png";
-import chest9 from "../../../../public/assets/chests/c9.png";
-import chest10 from "../../../../public/assets/chests/c10.png";
+import chest1 from "/assets/chests/c1.png";
+import chest2 from "/assets/chests/c2.png";
+import chest3 from "/assets/chests/c3.png";
+import chest4 from "/assets/chests/c4.png";
+import chest5 from "/assets/chests/c5.png";
+import chest6 from "/assets/chests/c6.png";
+import chest7 from "/assets/chests/c7.png";
+import chest8 from "/assets/chests/c8.png";
+import chest9 from "/assets/chests/c9.png";
+import chest10 from "/assets/chests/c10.png";
 
 export class Chest {
   public id: number;

@@ -5,7 +5,7 @@ interface GeneralState {
   setIsUnmounting: (value: boolean) => void;
 }
 
-export const useGeneralStore = create<GeneralState>((set: any) => ({
+export const useGeneralStore = create<GeneralState>((set) => ({
   isUnmounting: false,
   setIsUnmounting: (value: boolean) => set({ isUnmounting: value }),
 }));
