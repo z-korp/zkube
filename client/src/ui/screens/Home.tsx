@@ -4,7 +4,7 @@ import { Start } from "../actions/Start";
 import GameBoard from "../components/GameBoard";
 import BackGroundBoard from "../components/BackgroundBoard";
 import { AnimatePresence } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useGame } from "@/hooks/useGame";
@@ -23,6 +23,7 @@ import { toPng } from "html-to-image";
 import { LeaderboardContent } from "../modules/Leaderboard";
 import { useMediaQuery } from "react-responsive";
 import { useRewardsCalculator } from "@/stores/rewardsStore";
+import Tutorial from "./Tutorial";
 import {
   Dialog,
   DialogContent,
@@ -33,8 +34,7 @@ import {
 import { Button } from "@/ui/elements/button";
 import MaxComboIcon from "../components/MaxComboIcon";
 import { CubeSlidingTutorial } from "@/dojo/game/models/CubeSlidingTutorial";
-import Grid from "../components/Grid";
-import { Block } from "@/types/types";
+
 
 export const Home = () => {
   const {
@@ -99,7 +99,7 @@ export const Home = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setAnimationDone(true);
-    }, 4000);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -114,28 +114,17 @@ export const Home = () => {
     setIsTutorialActive(true);
   };
 
-  const endTutorial = () => {
-    setTutorial(null);
-    setIsTutorialActive(false);
-  };
+
 
   const handleStartTutorial = () => {
     setShowGrid(true);
+    startTutorial();
     setShowTutorialText(false);
   };
 
-
-
-  const initialData: Block[] = Array.from({ length: 25 }, (_, index) => ({
-    id: index + 1,
-    x: index % 5,
-    y: Math.floor(index / 5),
-    width: 1, // Adjust if needed
-    height: 1, // Adjust if needed
-  }));
   return (
     <div className="relative flex flex-col h-screen">
-      <Header onStartTutorial={handleStartTutorial}/>
+      <Header onStartTutorial={handleStartTutorial} />
       <BackGroundBoard imageBackground={imgAssets.imageBackground}>
         <BackGroundBoard
           imageBackground={imageTotemTheme}
@@ -150,33 +139,10 @@ export const Home = () => {
         >
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
-
-              {/* {isTutorialActive && tutorial ? (
-                <TutorialComponent 
-                  tutorial={tutorial} 
-                  onEndTutorial={endTutorial}
-                />
+              {isTutorialActive && tutorial ? (
+                <Tutorial showGrid={showGrid} showTutorialText={showTutorialText} tutorial={isTutorialActive} setTutorial={setIsTutorialActive} />
               ) : (
-                <> */}
-
-
-            <div className="flex flex-col items-center w-[500px]">
-                    {showGrid && (
-                      <>
-                        {showTutorialText && <h2 className="text-center">Slide Cube</h2>}
-                        <Grid
-                          initialData={initialData}
-                          nextLineData={[]} // Provide next line data if needed
-                          gridSize={50} // Assuming a 5x5 grid
-                          gridHeight={15}
-                          gridWidth={15}
-                          selectBlock={(block) => console.log(block)} // Replace with your block selection logic
-                          bonus={0} // Adjust bonus as needed
-                          account={null} // Pass account info if necessary
-                        />
-                      </>
-                    )}
-                  </div> 
+                <>
               <Create />
               {(!game || (!!game && isGameOn === "isOver")) && (
                 <div className="flex flex-col sm:flex-row p-2 sm:p-4 rounded-xl w-[93%] gap-2 sm:gap-4 items-center justify-evenly">
@@ -276,9 +242,8 @@ export const Home = () => {
                   </div>
                 </div>
               )}
-{/* 
               </>
-                )} */}
+                )}
             </div>
           </div>
           {/*<TweetPreview

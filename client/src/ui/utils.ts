@@ -27,3 +27,4 @@ export const formatRemainingTime = (
     return `${hours.toString().padStart(2, "0")}h ${minutes.toString().padStart(2, "0")}m ${secs.toString().padStart(2, "0")}s`;
   }
 };
+ 

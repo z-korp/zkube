@@ -4,3 +4,4 @@ export enum BonusName {
   HAMMER,
   NONE,
 }
+ 
