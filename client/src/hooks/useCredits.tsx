@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
 import { Entity } from "@dojoengine/recs";
+import useDeepMemo from "./useDeepMemo";
 
 export const useCredits = ({ playerId }: { playerId: string | undefined }) => {
   const {
@@ -21,7 +22,7 @@ export const useCredits = ({ playerId }: { playerId: string | undefined }) => {
   //console.log("[useCredits] creditsKey", creditsKey);
   const component = useComponentValue(Credits, creditsKey);
   //console.log("[useCredits] component", component);
-  const credits = useMemo(() => {
+  const credits = useDeepMemo(() => {
     return component ? new CreditsClass(component) : null;
   }, [component]);
   //console.log("[useCredits] credits", credits);

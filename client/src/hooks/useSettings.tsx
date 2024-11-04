@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
 import { Entity } from "@dojoengine/recs";
+import useDeepMemo from "./useDeepMemo";
 
 export const useSettings = () => {
   const {
@@ -20,7 +21,7 @@ export const useSettings = () => {
   );
 
   const component = useComponentValue(Settings, settingsKey);
-  const settings = useMemo(() => {
+  const settings = useDeepMemo(() => {
     return component ? new SettingsClass(component) : null;
   }, [component]);
 

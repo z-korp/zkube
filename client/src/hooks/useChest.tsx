@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
 import { Entity } from "@dojoengine/recs";
+import useDeepMemo from "./useDeepMemo";
 
 export const useChest = ({ id }: { id: number }) => {
   const {
@@ -17,7 +18,7 @@ export const useChest = ({ id }: { id: number }) => {
   const key = useMemo(() => getEntityIdFromKeys([BigInt(id)]) as Entity, [id]);
 
   const component = useComponentValue(Chest, key);
-  const chest = useMemo(() => {
+  const chest = useDeepMemo(() => {
     return component ? new ChestClass(component) : null;
   }, [component]);
 
