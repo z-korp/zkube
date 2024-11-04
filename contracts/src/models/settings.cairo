@@ -1,5 +1,5 @@
 // External imports
-use starknet::ContractAddress;
+use starknet::{ContractAddress, ContractAddressIntoFelt252};
 
 // Internal imports
 use zkube::models::index::Settings;
@@ -14,20 +14,25 @@ mod errors {
 #[generate_trait]
 impl SettingsImpl of SettingsTrait {
     #[inline(always)]
-    fn new(zkorp_address: ContractAddress, erc71_address: ContractAddress) -> Settings {
-        Settings { id: 1, is_set: true, zkorp_address, erc721_address, }
+    fn new(zkorp_address: ContractAddress, erc721_address: ContractAddress) -> Settings {
+        Settings {
+            id: 1,
+            is_set: true,
+            zkorp_address: zkorp_address.into(),
+            erc721_address: erc721_address.into(),
+        }
     }
 
     #[inline(always)]
-    fn set_zkorp_address(ref self: Settings, value: ContractAddress) {
+    fn set_zkorp_address(ref self: Settings, value: felt252) {
         // [Effect] Update zkorp address
-        self.zkorp_address = value.into();
+        self.zkorp_address = value;
     }
 
     #[inline(always)]
-    fn set_erc721_address(ref self: Settings, value: ContractAddress) {
+    fn set_erc721_address(ref self: Settings, value: felt252) {
         // [Effect] Update erc721 address
-        self.erc721_address = value.into();
+        self.erc721_address = value;
     }
 }
 
@@ -47,7 +52,7 @@ impl SettingsAssert of AssertTrait {
 impl ZeroableSettingsImpl of core::Zeroable<Settings> {
     #[inline(always)]
     fn zero() -> Settings {
-        Settings { id: 0, is_set: false, zkorp_address: 0, erc71_address: 0, }
+        Settings { id: 0, is_set: false, zkorp_address: 0, erc721_address: 0, }
     }
 
     #[inline(always)]

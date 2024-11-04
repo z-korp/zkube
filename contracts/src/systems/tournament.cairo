@@ -23,6 +23,7 @@ trait ITournamentSystem<TContractState> {
         amount: u128,
         caller: ContractAddress
     );
+    fn sponsor(ref world: IWorldDispatcher, tournament_id: u64, mode: Mode, amount: u128);
 }
 
 #[dojo::contract]
@@ -123,7 +124,7 @@ mod tournament {
         }
 
         fn sponsor(ref world: IWorldDispatcher, tournament_id: u64, mode: Mode, amount: u128) {
-            self.sponsor_from(world, tournament_id, mode, amount, get_caller_address());
+            self.sponsor_from(tournament_id, mode, amount, get_caller_address());
         }
     }
 }

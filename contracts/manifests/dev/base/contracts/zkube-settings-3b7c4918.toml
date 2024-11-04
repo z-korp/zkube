@@ -1,0 +1,16 @@
+kind = "DojoContract"
+class_hash = "0xe7f6c758f0b8b713fdab24c18c58e61d0ea88c445d9de59a8b85839851b6cb"
+original_class_hash = "0xe7f6c758f0b8b713fdab24c18c58e61d0ea88c445d9de59a8b85839851b6cb"
+base_class_hash = "0x0"
+abi = "manifests/dev/base/abis/contracts/zkube-settings-3b7c4918.json"
+reads = []
+writes = []
+init_calldata = []
+tag = "zkube-settings"
+systems = [
+    "update_zkorp_address",
+    "update_erc721_address",
+    "set_admin",
+    "delete_admin",
+]
+manifest_name = "zkube-settings-3b7c4918"

@@ -90,7 +90,7 @@ struct Settings {
     id: u8,
     is_set: bool,
     zkorp_address: felt252,
-    erc71_address: felt252,
+    erc721_address: felt252,
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked)]

@@ -36,10 +36,6 @@ enum Mode {
 #[generate_trait]
 impl ModeImpl of ModeTrait {
     #[inline(always)]
-    fn price(self: Mode, settings: Settings) -> u128 {
-        settings.get_mode_price(self)
-    }
-
     fn difficulty(self: Mode) -> Difficulty {
         match self {
             Mode::Normal => Difficulty::None, // meaning increasing difficulty
@@ -87,9 +83,8 @@ impl ModeImpl of ModeTrait {
     }
 
     #[inline(always)]
-    fn get_multiplier(self: Mode, settings: Settings) -> u32 {
-        let game_price: u128 = self.price(settings);
-        if game_price == 0_u128 {
+    fn get_multiplier(self: Mode) -> u32 {
+        if self == Mode::Free {
             GAME_MODE_FREE_MULTIPLIER
         } else {
             GAME_MODE_PAID_MULTIPLIER

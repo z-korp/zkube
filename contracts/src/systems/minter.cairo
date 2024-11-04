@@ -1,5 +1,5 @@
 // Starknet imports
-use starknet::ContractAddress;
+use starknet::{ContractAddress, Felt252TryIntoContractAddress};
 
 // Dojo imports
 use dojo::world::IWorldDispatcher;
@@ -19,7 +19,7 @@ pub trait IZKubeCreditsMintable<TContractState> {
 
 #[dojo::interface]
 trait IMinter<TContractState> {
-    fn mint(ref world: IWorldDispatcher, number: u32);
+    fn mint(ref world: IWorldDispatcher);
     fn claim_free_mint(ref world: IWorldDispatcher);
     fn add_free_mint(ref world: IWorldDispatcher, to: ContractAddress, number: u32);
 }
@@ -36,11 +36,13 @@ mod minter {
     // Component imports
     use zkube::components::payable::PayableComponent;
 
-
     // Local imports
-    use super::{IZKubeCreditsMintableDispatcher, IZKubeCreditsMintableDispatcherTrait};
     use super::{IMinter, Store, StoreTrait};
-    use zkube::models::chest::{ChestTrait, ChestAssert};
+    use zkube::interfaces::ierc721_game_credits::{
+        ierc721_game_credits, IERC721GameCreditsDispatcherTrait
+    };
+    use zkube::models::mint::{MintTrait, MintAssert};
+    use zkube::models::admin::{AdminTrait, AdminAssert};
 
     // Components
     component!(path: PayableComponent, storage: payable, event: PayableEvent);
@@ -70,19 +72,17 @@ mod minter {
     // Implementations
 
     #[abi(embed_v0)]
-    impl ChestSystemImpl of IChest<ContractState> {
-        fn mint(ref world: IWorldDispatcher, number: u32) {
+    impl MinterSystemImpl of IMinter<ContractState> {
+        fn mint(ref world: IWorldDispatcher) {
             let caller = get_caller_address();
 
             let store = StoreTrait::new(world);
             let settings = store.settings();
-            let mut mint = store.get_mint(caller.into());
+            let mut mint = store.mint(caller.into());
 
-            mint.mint(number);
+            mint.mint();
 
-            let erc721 = IZKubeCreditsMintableDispatcher {
-                contract_address: settings.erc721_address
-            };
+            let erc721 = ierc721_game_credits(settings.erc721_address.try_into().unwrap());
             erc721.public_mint_from(caller.into(), caller.into());
         }
 
@@ -91,14 +91,12 @@ mod minter {
 
             let store = StoreTrait::new(world);
             let settings = store.settings();
-            let mut mint = store.get_mint(caller.into());
+            let mut mint = store.mint(caller.into());
             mint.assert_has_mint();
-            mint.mint(mint.number);
+            mint.mint();
 
             // [Effect] Mint
-            let erc721 = IZKubeCreditsMintableDispatcher {
-                contract_address: settings.erc721_address
-            };
+            let erc721 = ierc721_game_credits(settings.erc721_address.try_into().unwrap());
             erc721.minter_mint(caller.into());
 
             // [Effect] Reset mint
@@ -108,11 +106,12 @@ mod minter {
         fn add_free_mint(ref world: IWorldDispatcher, to: ContractAddress, number: u32) {
             // [Check] Only admin can update settings
             let caller = get_caller_address();
+            let store = StoreTrait::new(world);
             let mut admin = store.admin(caller.into());
             admin.assert_is_admin();
 
             // [Update] Mint
-            let mut mint = store.get_mint(to.into());
+            let mut mint = store.mint(to.into());
             mint.number += number;
             store.set_mint(mint);
         }

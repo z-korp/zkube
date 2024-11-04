@@ -16,7 +16,7 @@ use zkube::store::{Store, StoreTrait};
 #[dojo::interface]
 trait IChest<TContractState> {
     fn claim(ref world: IWorldDispatcher, chest_id: u32);
-    fn sponsor(ref world: IWorldDispatcher, chest_id: u32, amount: u128);
+    fn sponsor_chest(ref world: IWorldDispatcher, chest_id: u32, amount: u128);
     fn sponsor_from(ref world: IWorldDispatcher, amount: u128, caller: ContractAddress);
 }
 
@@ -118,10 +118,24 @@ mod chest {
             self.payable._refund(caller, rewards.into());
         }
 
-        fn sponsor(ref world: IWorldDispatcher, amount: u128) {
-            self.payable._pay(get_caller_address(), amount.into());
+        /// Sponsor a chest
+        /// Everybody can sponsor a chest
+        fn sponsor_chest(ref world: IWorldDispatcher, chest_id: u32, amount: u128) {
+            let store = StoreTrait::new(world);
+            let mut chest = store.chest(chest_id);
+            chest.assert_exists();
+            chest.assert_not_complete();
+
+            chest.add_prize(amount);
+            store.set_chest(chest);
+
+            let caller = get_caller_address();
+            self.payable._pay(caller, amount.into());
         }
 
+        /// Sponsor but no Chest selected
+        /// The chest will be selected at the end of the game
+        /// For now the token will be stored in the contract
         fn sponsor_from(ref world: IWorldDispatcher, amount: u128, caller: ContractAddress) {
             self.payable._pay(caller, amount.into());
         }

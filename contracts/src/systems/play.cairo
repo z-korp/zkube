@@ -17,15 +17,16 @@ use zkube::types::mode::Mode;
 use zkube::models::settings::{Settings, SettingsTrait};
 use zkube::store::{Store, StoreTrait};
 
-#[starknet::interface]
-trait IERC721<TState> {
-    fn owner_of(self: @TState, token_id: u256) -> ContractAddress;
-}
 
 #[dojo::interface]
 trait IPlay<TContractState> {
     fn create(
-        ref world: IWorldDispatcher, mode: Mode, proof: Proof, seed: felt252, beta: felt252
+        ref world: IWorldDispatcher,
+        token_id: u256,
+        mode: Mode,
+        proof: Proof,
+        seed: felt252,
+        beta: felt252
     ) -> u32;
     fn surrender(ref world: IWorldDispatcher);
     fn move(ref world: IWorldDispatcher, row_index: u8, start_index: u8, final_index: u8,);
@@ -36,7 +37,7 @@ trait IPlay<TContractState> {
 mod play {
     // Starknet imports
 
-    use starknet::{ContractAddress, ClassHash};
+    use starknet::{ContractAddress, ClassHash, Felt252TryIntoContractAddress};
     use starknet::info::{
         get_block_timestamp, get_block_number, get_caller_address, get_contract_address
     };
@@ -48,13 +49,13 @@ mod play {
     use zkube::systems::chest::{IChestDispatcher, IChestDispatcherTrait};
     use zkube::systems::zkorp::{IZKorpDispatcher, IZKorpDispatcherTrait};
     use zkube::systems::tournament::{ITournamentSystemDispatcher, ITournamentSystemDispatcherTrait};
+    use zkube::interfaces::ierc721_game_credits::{
+        ierc721_game_credits, IERC721GameCreditsDispatcherTrait
+    };
 
     // Local imports
 
-    use super::{
-        IPlay, Proof, Bonus, Mode, Settings, SettingsTrait, Store, StoreTrait, Resource,
-        IERC721Dispatcher, IERC721DispatcherTrait
-    };
+    use super::{IPlay, Proof, Bonus, Mode, Settings, SettingsTrait, Store, StoreTrait, Resource};
 
     // Components
 
@@ -82,8 +83,6 @@ mod play {
         HostableEvent: HostableComponent::Event,
         #[flat]
         PlayableEvent: PlayableComponent::Event,
-        #[flat]
-        CreditableEvent: CreditableComponent::Event,
     }
 
     // Constructor
@@ -104,18 +103,19 @@ mod play {
         ) -> u32 {
             let store = StoreTrait::new(world);
             let settings = store.settings();
+            let erc721_address: ContractAddress = settings.erc721_address.try_into().unwrap();
 
             // [Interaction] Pay entry price
             // [Check] Player exists
-            let caller = get_caller_address();
-
-            let erc721 = IERC721Dispatcher { contract_address: store.settings().erc721_address, };
+            let caller: ContractAddress = get_caller_address();
 
             // [Check] Player owns the token
-            assert_eq!(erc721.owner_of(token_id), caller);
+            let erc721 = ierc721_game_credits(erc721_address);
+            //let owner: ContractAddress = erc721.owner_of(token_id);
+            assert(caller == erc721.owner_of(token_id), 'Not nft owner');
 
             // [Get] Entry price
-            let price = erc721.get_purchase_price(token_id, caller);
+            let price = erc721.get_purchase_price(token_id);
 
             // [Effect] Create a game
             let (
@@ -135,13 +135,13 @@ mod play {
                 .resource(selector_from_tag!("zkube-tournament")) {
                 let tournament_system_dispatcher = ITournamentSystemDispatcher { contract_address };
                 tournament_system_dispatcher
-                    .sponsor_from(tournament_id, mode, tournament_amount, settings.erc721_address);
+                    .sponsor_from(tournament_id, mode, tournament_amount, erc721_address);
             }
             // Chest pool
             if let Resource::Contract((class_hash, contract_address)) = world
                 .resource(selector_from_tag!("zkube-chest")) {
                 let chest_system_dispatcher = IChestDispatcher { contract_address };
-                chest_system_dispatcher.sponsor_from(chest_amount, settings.erc721_address);
+                chest_system_dispatcher.sponsor_from(chest_amount, erc721_address);
             }
 
             // zKorp
@@ -149,7 +149,7 @@ mod play {
                 .resource(selector_from_tag!("zkube-zkorp")) {
                 let zkorp_system_dispatcher = IZKorpDispatcher { contract_address };
                 zkorp_system_dispatcher
-                    .sponsor_from(zkorp_amount + referrer_amount, settings.erc721_address);
+                    .sponsor_from(zkorp_amount + referrer_amount, erc721_address);
             }
 
             // [Return] Game ID

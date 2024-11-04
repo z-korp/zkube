@@ -33,7 +33,6 @@ mod zkorp {
 
     // Local imports
     use super::{IZKorp, Settings, SettingsTrait, Store, StoreTrait};
-    use zkube::constants::ZKORP_ADDRESS;
     use zkube::interfaces::ierc20::{ierc20, IERC20Dispatcher, IERC20DispatcherTrait};
 
     // Components
@@ -68,9 +67,12 @@ mod zkorp {
     #[abi(embed_v0)]
     impl ZKorpImpl of IZKorp<ContractState> {
         fn claim(ref world: IWorldDispatcher) {
+            let store = StoreTrait::new(world);
+            let settings = store.settings();
+
             // [Check] Player exists
             let caller = get_caller_address();
-            assert!(caller.into() == ZKORP_ADDRESS, "Caller is not ZKorp");
+            assert!(caller.into() == settings.zkorp_address, "Caller is not ZKorp");
 
             let token_address = self.payable.token_address.read();
             let token_dispatcher = ierc20(token_address);
@@ -87,7 +89,7 @@ mod zkorp {
 
         fn sponsor(ref world: IWorldDispatcher, amount: u128) {
             // [Effect] Pay reward
-            self.sponsor_from(world, amount, get_caller_address());
+            self.sponsor_from(amount, get_caller_address());
         }
     }
 }

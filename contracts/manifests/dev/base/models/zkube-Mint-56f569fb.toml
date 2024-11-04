@@ -1,0 +1,17 @@
+kind = "DojoModel"
+class_hash = "0x24d58ae48a3fb0f45b36721d14fcd713f9f3069e25784551cb84e7dd841d3fb"
+original_class_hash = "0x24d58ae48a3fb0f45b36721d14fcd713f9f3069e25784551cb84e7dd841d3fb"
+abi = "manifests/dev/base/abis/models/zkube-Mint-56f569fb.json"
+tag = "zkube-Mint"
+qualified_path = "zkube::models::index::mint"
+manifest_name = "zkube-Mint-56f569fb"
+
+[[members]]
+name = "id"
+type = "felt252"
+key = true
+
+[[members]]
+name = "number"
+type = "u32"
+key = false

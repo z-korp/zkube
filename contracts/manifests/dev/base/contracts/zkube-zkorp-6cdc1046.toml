@@ -1,0 +1,15 @@
+kind = "DojoContract"
+class_hash = "0x4c632a5bacd97c4916fc4a22bb1d43a0eafc0e09d261b225c49c7806dfe5fb2"
+original_class_hash = "0x4c632a5bacd97c4916fc4a22bb1d43a0eafc0e09d261b225c49c7806dfe5fb2"
+base_class_hash = "0x0"
+abi = "manifests/dev/base/abis/contracts/zkube-zkorp-6cdc1046.json"
+reads = []
+writes = []
+init_calldata = []
+tag = "zkube-zkorp"
+systems = [
+    "claim",
+    "sponsor_from",
+    "sponsor",
+]
+manifest_name = "zkube-zkorp-6cdc1046"

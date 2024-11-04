@@ -187,8 +187,7 @@ mod PlayableComponent {
             player.update_daily_streak(current_timestamp);
 
             let mode: Mode = game.mode.into();
-            let settings = store.settings();
-            let mode_multiplier = mode.get_multiplier(settings);
+            let mode_multiplier = mode.get_multiplier();
 
             let final_points = player
                 .update_points(base_points, mode_multiplier, current_timestamp);

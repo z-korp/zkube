@@ -42,11 +42,11 @@ mod settings {
         ref world: IWorldDispatcher,
         admin_address: ContractAddress,
         zkorp_address: ContractAddress,
-        erc71_address: ContractAddress
+        erc721_address: ContractAddress
     ) {
         // [Effect] Create the settings entity
         let store: Store = StoreTrait::new(world);
-        let settings: Settings = SettingsTrait::new(zkorp_address, erc71_address);
+        let settings: Settings = SettingsTrait::new(zkorp_address, erc721_address);
         store.set_settings(settings);
 
         // [Effect] Create the admin entity
@@ -75,7 +75,7 @@ mod settings {
 
             // [Effect] Update zkorp address
             let mut settings = store.settings();
-            settings.set_zkorp_address(address);
+            settings.set_zkorp_address(address.into());
             store.set_settings(settings);
         }
 
@@ -89,7 +89,7 @@ mod settings {
 
             // [Effect] Update zkorp address
             let mut settings = store.settings();
-            settings.set_erc721_address(address);
+            settings.set_erc721_address(address.into());
             store.set_settings(settings);
         }
 
