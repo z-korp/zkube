@@ -5,6 +5,7 @@ import { Entity } from "@dojoengine/recs";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useDojo } from "@/dojo/useDojo";
 import { Tournament } from "@/dojo/game/models/tournament";
+import useDeepMemo from "./useDeepMemo";
 
 interface TournamentInfo {
   id: number;
@@ -58,6 +59,7 @@ const useTournament = (mode: ModeType): TournamentInfo => {
   );
 
   const component = useComponentValue(Tournament, tournamentKey);
+
   const tournament = useMemo(() => {
     return component ? new TournamentClass(component) : null;
   }, [component]);

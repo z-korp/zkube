@@ -49,7 +49,7 @@ export const Home = () => {
   useViewport();
   useRewardsCalculator();
 
-  useQuerySync<Schema>(toriiClient, Object.values(contractComponents), []);
+  useQuerySync<Schema>(toriiClient, contractComponents as any, []);
 
   const isSigning = false; //useAutoSignup();
 
@@ -145,9 +145,9 @@ export const Home = () => {
     prevGameOverRef.current = game?.over;
   }, [game?.over]);
 
-  useEffect(() => {
+  /*useEffect(() => {
     console.log("==================> Grid is changing");
-  }, [grid]);
+  }, [grid]);*/
 
   // Define render functions
   const renderDesktopView = () => (
@@ -328,7 +328,7 @@ export const Home = () => {
                         // Check if game is over because otherwise we can display
                         // previous game data on the board while the new game is starting
                         // and torii indexing
-                        initialGrid={game.isOver() ? [] : grid}
+                        initialGrid={game.isOver() ? [] : game.blocks}
                         nextLine={game.isOver() ? [] : game.next_row}
                         score={game.isOver() ? 0 : game.score}
                         combo={game.isOver() ? 0 : game.combo}

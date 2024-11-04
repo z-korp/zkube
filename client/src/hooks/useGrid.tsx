@@ -29,9 +29,13 @@ export const useGrid = ({
 
   // Utiliser useEffect pour gérer le log quand la grille change
   useEffect(() => {
+    console.log("[useGrid] useEffect");
     if (game?.blocks) {
+      console.log("[useGrid] game?.blocks", game?.blocks);
+      console.log("[useGrid] prevBlocksRef.current", prevBlocksRef.current);
       // Vérifier si la grille a changé
       if (!deepCompareNumberArrays(game.blocks, prevBlocksRef.current)) {
+        console.log("[useGrid] deepCompareNumberArrays");
         // Si shouldLog est true, on log les données
         if (shouldLog) {
           const num = game.blocksRaw;

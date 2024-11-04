@@ -28,10 +28,7 @@ export function Main() {
   const connectors = [cartridgeConnector];
   const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
 
-  const loading = useMemo(
-    () => !setupResult,
-    [setupResult],
-  );
+  const loading = useMemo(() => !setupResult, [setupResult]);
 
   useEffect(() => {
     async function initialize() {

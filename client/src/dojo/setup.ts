@@ -29,7 +29,7 @@ export async function setup({ ...config }: Config) {
   // await getSyncEntities(toriiClient, contractModels as any, []);
   const sync = await getSyncEntities<Schema>(
     toriiClient,
-    Object.values(contractComponents),
+    contractComponents as any,
     [],
     1000,
   );
