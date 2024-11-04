@@ -328,7 +328,7 @@ export const Home = () => {
                         // Check if game is over because otherwise we can display
                         // previous game data on the board while the new game is starting
                         // and torii indexing
-                        initialGrid={game.isOver() ? [] : game.blocks}
+                        initialGrid={grid}
                         nextLine={game.isOver() ? [] : game.next_row}
                         score={game.isOver() ? 0 : game.score}
                         combo={game.isOver() ? 0 : game.combo}
