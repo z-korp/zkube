@@ -24,7 +24,7 @@ const Tutorial = ({
   tutorial: any;
   setTutorial: (value: boolean) => void;
 }) => {
-  const [level, setLevel] = useState<number | "">(1);
+  const [level, setLevel] = useState<number>(1);
   const [score, setScore] = useState<number | undefined>(0);
   const [tutorialStep, setTutorialStep] = useState<number>(1); // Step 1 of the tutorial
   const [isIntermission, setIsIntermission] = useState<boolean>(false); // Intermission state
@@ -47,7 +47,9 @@ const Tutorial = ({
     [3, 0, 0, 1, 0, 0, 2], // 9th row
   ]);
 
-  const usebonus = useRef<{ useBonus: (bonus: any, row_index: any, block_index: any) => boolean } | null>(null);
+  const usebonus = useRef<{
+    useBonus: (bonus: any, row_index: any, block_index: any) => boolean;
+  } | null>(null);
   const rows = 10;
   const cols = 8;
   const gridSize = isMdOrLarger ? 50 : 40;
@@ -58,7 +60,7 @@ const Tutorial = ({
   const updateValue = (intermission: boolean) => {
     setScore((score ?? 0) + 15);
     setIsIntermission(intermission);
-  }
+  };
 
   const handleBonusWaveClick = () => {
     if (waveCount === 0) return;
@@ -97,12 +99,12 @@ const Tutorial = ({
           row_index,
           block_index,
         );
-  
+
         if (bonusApplied) {
-          console.log('Bonus applied successfully!');
+          console.log("Bonus applied successfully!");
           return true;
         } else {
-          console.log('Bonus not applied');
+          console.log("Bonus not applied");
           return false;
         }
       }
@@ -120,7 +122,7 @@ const Tutorial = ({
           row_index: block.y,
           block_index: block.x,
         });
-  
+
         if (bonusApplied) {
           // Move to intermission before Step 3
           setHammerCount(hammerCount - 1);
@@ -133,20 +135,20 @@ const Tutorial = ({
           row_index: block.y,
           block_index: block.x,
         });
-  
+
         if (bonusApplied) {
           // Move to intermission before Step 4
           setWaveCount(waveCount - 1);
           setScore((score ?? 0) + 400);
           setIsIntermission(true);
         }
-      }  else if (bonus === BonusName.TIKI && tutorialStep === 4) {
+      } else if (bonus === BonusName.TIKI && tutorialStep === 4) {
         const bonusApplied = await applybonus({
           bonus: BonusName.TIKI,
           row_index: block.y,
           block_index: block.x,
         });
-  
+
         if (bonusApplied) {
           // Move to intermission before Step 4
           setWaveCount(totemCount - 1);
@@ -209,15 +211,14 @@ const Tutorial = ({
   const displayCombo = useLerpNumber(combo, { integer: true });
   const displayMaxCombo = useLerpNumber(maxCombo, { integer: true });
 
-  
   const endTutorial = () => {
     setTutorial(false);
   };
   return (
     <div className="flex flex-col items-center w-[500px] relative">
       {showGrid && (
-            <>
-            {/* Intermission: Show Congratulations Message */}
+        <>
+          {/* Intermission: Show Congratulations Message */}
           {isIntermission && (
             <div className="absolute z-50 flex flex-col items-center p-6 bg-blue-600 rounded-lg shadow-md top-1/3">
               <h2 className="text-2xl font-bold mb-4">Congratulations!</h2>
@@ -231,140 +232,145 @@ const Tutorial = ({
                 Continue to the Next Step
               </button>
             </div>
-          )} 
-              <Card
-                className={`p-4 bg-secondary ${isTxProcessing ? "cursor-wait" : "cursor-move"}`}
-              >
+          )}
+          <Card
+            className={`p-4 bg-secondary ${isTxProcessing ? "cursor-wait" : "cursor-move"}`}
+          >
+            <div
+              className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} mb-4 flex justify-between`}
+            >
+              <div className="w-5/12">
+                <GameBonus
+                  onBonusWaveClick={handleBonusWaveClick}
+                  onBonusTikiClick={handleBonusTikiClick}
+                  onBonusHammerClick={handleBonusHammerClick}
+                  hammerCount={hammerCount}
+                  tikiCount={totemCount}
+                  waveCount={waveCount}
+                  bonus={bonus}
+                />
+              </div>
+              <div className="flex gap-2">
                 <div
-                  className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} mb-4 flex justify-between`}
+                  className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
                 >
-                  <div className="w-5/12">
-                    <GameBonus
-                      onBonusWaveClick={handleBonusWaveClick}
-                      onBonusTikiClick={handleBonusTikiClick}
-                      onBonusHammerClick={handleBonusHammerClick}
-                      hammerCount={hammerCount}
-                      tikiCount={totemCount}
-                      waveCount={waveCount}
-                      bonus={bonus}
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <div
-                      className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
-                    >
-                      <span>{displayScore}</span>
-                      <FontAwesomeIcon
-                        icon={faStar}
-                        className="text-yellow-500 ml-1"
-                        width={26}
-                        height={26}
-                      />
-                    </div>
-                    <div
-                      className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
-                    >
-                      <span
-                        className={`${isMdOrLarger ? "w-[38px]" : "w-[26px]"} text-right`}
-                      >
-                        {displayCombo}
-                      </span>
-                      <FontAwesomeIcon
-                        icon={faFire}
-                        className="text-yellow-500 ml-1"
-                        width={26}
-                        height={26}
-                      />
-                    </div>
-                    <div
-                      className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
-                    >
-                      <span
-                        className={`${isMdOrLarger ? "w-[20px]" : "w-[13px]"} text-right`}
-                      >
-                        {displayMaxCombo}
-                      </span>
-                      <MaxComboIcon
-                        width={isMdOrLarger ? 31 : 25}
-                        height={isMdOrLarger ? 31 : 25}
-                        className="text-yellow-500 ml-1"
-                      />
-                    </div>
-                  </div>
-                </div>
-                {/* Step-specific instructions */}
-                {tutorialStep === 1 && (
-                  <div className="text-center p-4 bg-blue-600 rounded-md mb-4 absolute -left-[22%] mt-2 z-50 w-[155px]">
-                    <h2>Step 1: Move the highlighted block two steps to the right.</h2>
-                  </div>
-                )}
-                {tutorialStep === 2 && (
-                  <div className="text-center p-4 bg-blue-600 rounded-md mb-4 absolute -left-[37%] mt-2 z-50 w-[225px]">
-                    <h2>
-                      Step 2: Click on the hammer icon on the top left of the game
-                      screen, then click on the highlighted block to use the bonus
-                      and remove it.
-                    </h2>
-                  </div>
-                )}
-                {tutorialStep === 3 && (
-                  <div className="text-center p-4 bg-blue-600 rounded-md mb-4 absolute -left-[37%] mt-2 z-50 w-[225px]">
-                    <h2>
-                      Step 3: Click on the wave icon on the top left of the game
-                      screen, then double click on the highlighted row of blocks to
-                      use the bonus and remove it.
-                    </h2>
-                  </div>
-                )}
-                {tutorialStep === 4 && (
-                  <div className="text-center p-4 bg-blue-600 rounded-md mb-4 absolute -left-[37%] mt-2 z-50 w-[225px]">
-                    <h2>
-                      Step 4: Click on the totem icon on the top left of the game
-                      screen, then click on the highlighted block to
-                      use the bonus and remove it and blocks of similar size.
-                    </h2>
-                  </div>
-                )}
-                {tutorialStep === 5 && (
-                  <div className="text-center p-4 bg-blue-600 rounded-md mb-4 absolute left-[14%] top-1/3 mt-2 z-50 w-[355px] h-fit">
-                    <h2>
-                      Step 5? There's no step 5. You're done! Congratulations! You've completed the tutorial. 
-
-                      use the button below to exit tutorial mode and play the real game.
-                    </h2>
-                    <button onClick={endTutorial} className="mt-4 bg-white text-black px-4 py-3 rounded-md">
-                      Exit Tutorial
-                    </button>
-                  </div>
-                )}
-                <div className="flex justify-center items-center">
-                  <TutorialGrid
-                    initialData={memorizedInitialData}
-                    nextLineData={memorizedNextLineData}
-                    gridSize={gridSize}
-                    gridHeight={rows}
-                    gridWidth={cols}
-                    selectBlock={selectBlock}
-                    bonus={bonus}
-                    account={null}
-                    tutorialStep={tutorialStep}
-                    intermission={isIntermission}
-                    tutorialTargetBlock={tutorialTargetBlock}
-                    onUpdate={updateValue}
-                    ref= {usebonus}
+                  <span>{displayScore}</span>
+                  <FontAwesomeIcon
+                    icon={faStar}
+                    className="text-yellow-500 ml-1"
+                    width={26}
+                    height={26}
                   />
                 </div>
-                <br />
-                <div className="flex justify-center items-center">
-                  <NextLine
-                    nextLineData={transformDataContratIntoBlock([nextLine])}
-                    gridSize={gridSize}
-                    gridHeight={1}
-                    gridWidth={cols}
+                <div
+                  className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
+                >
+                  <span
+                    className={`${isMdOrLarger ? "w-[38px]" : "w-[26px]"} text-right`}
+                  >
+                    {displayCombo}
+                  </span>
+                  <FontAwesomeIcon
+                    icon={faFire}
+                    className="text-yellow-500 ml-1"
+                    width={26}
+                    height={26}
                   />
                 </div>
-              </Card>
-            </>
+                <div
+                  className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
+                >
+                  <span
+                    className={`${isMdOrLarger ? "w-[20px]" : "w-[13px]"} text-right`}
+                  >
+                    {displayMaxCombo}
+                  </span>
+                  <MaxComboIcon
+                    width={isMdOrLarger ? 31 : 25}
+                    height={isMdOrLarger ? 31 : 25}
+                    className="text-yellow-500 ml-1"
+                  />
+                </div>
+              </div>
+            </div>
+            {/* Step-specific instructions */}
+            {tutorialStep === 1 && (
+              <div className="text-center p-4 bg-blue-600 rounded-md mb-4 absolute -left-[22%] mt-2 z-50 w-[155px]">
+                <h2>
+                  Step 1: Move the highlighted block two steps to the right.
+                </h2>
+              </div>
+            )}
+            {tutorialStep === 2 && (
+              <div className="text-center p-4 bg-blue-600 rounded-md mb-4 absolute -left-[37%] mt-2 z-50 w-[225px]">
+                <h2>
+                  Step 2: Click on the hammer icon on the top left of the game
+                  screen, then click on the highlighted block to use the bonus
+                  and remove it.
+                </h2>
+              </div>
+            )}
+            {tutorialStep === 3 && (
+              <div className="text-center p-4 bg-blue-600 rounded-md mb-4 absolute -left-[37%] mt-2 z-50 w-[225px]">
+                <h2>
+                  Step 3: Click on the wave icon on the top left of the game
+                  screen, then double click on the highlighted row of blocks to
+                  use the bonus and remove it.
+                </h2>
+              </div>
+            )}
+            {tutorialStep === 4 && (
+              <div className="text-center p-4 bg-blue-600 rounded-md mb-4 absolute -left-[37%] mt-2 z-50 w-[225px]">
+                <h2>
+                  Step 4: Click on the totem icon on the top left of the game
+                  screen, then click on the highlighted block to use the bonus
+                  and remove it and blocks of similar size.
+                </h2>
+              </div>
+            )}
+            {tutorialStep === 5 && (
+              <div className="text-center p-4 bg-blue-600 rounded-md mb-4 absolute left-[14%] top-1/3 mt-2 z-50 w-[355px] h-fit">
+                <h2>
+                  Step 5? There's no step 5. You're done! Congratulations!
+                  You've completed the tutorial. use the button below to exit
+                  tutorial mode and play the real game.
+                </h2>
+                <button
+                  onClick={endTutorial}
+                  className="mt-4 bg-white text-black px-4 py-3 rounded-md"
+                >
+                  Exit Tutorial
+                </button>
+              </div>
+            )}
+            <div className="flex justify-center items-center">
+              <TutorialGrid
+                initialData={memorizedInitialData}
+                nextLineData={memorizedNextLineData}
+                gridSize={gridSize}
+                gridHeight={rows}
+                gridWidth={cols}
+                selectBlock={selectBlock}
+                bonus={bonus}
+                account={null}
+                tutorialStep={tutorialStep}
+                intermission={isIntermission}
+                tutorialTargetBlock={tutorialTargetBlock}
+                onUpdate={updateValue}
+                ref={usebonus}
+              />
+            </div>
+            <br />
+            <div className="flex justify-center items-center">
+              <NextLine
+                nextLineData={transformDataContratIntoBlock([nextLine])}
+                gridSize={gridSize}
+                gridHeight={1}
+                gridWidth={cols}
+              />
+            </div>
+          </Card>
+        </>
       )}
     </div>
   );

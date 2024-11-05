@@ -126,13 +126,17 @@ body {
   }
 }
 
-
 .highlight {
   border: 3px solid #ffd700; /* gold border */
   box-shadow: 0px 0px 10px 5px rgba(255, 215, 0, 0.7); /* glowing effect */
   transition: all 0.3s ease-in-out;
-}
 
+  /* Respect user preferences for reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    box-shadow: 0px 0px 5px 2px rgba(255, 215, 0, 0.7);
+  }
+}
 
 .wiggle {
   animation: wiggle 0.2s ease-in-out infinite;

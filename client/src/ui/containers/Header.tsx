@@ -18,7 +18,6 @@ import { Button } from "../elements/button";
 import { TutorialComponent } from "../modules/TutorialComponent";
 import TutorialModal from "../components/TutorialModal";
 
-
 interface HeaderProps {
   onStartTutorial: () => void;
 }
@@ -38,26 +37,23 @@ export const Header: React.FC<HeaderProps> = ({ onStartTutorial }) => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
-  const [showGrid, setShowGrid] = useState(false);
-  const [showTutorialText, setShowTutorialText] = useState(true);
 
-
-  const handleTutorialOpen = () => {
+  const handleTutorialOpen = useCallback(() => {
     setIsTutorialOpen(true);
-  };
+  }, []);
 
-  const handleTutorialClose = () => {
+  const handleTutorialClose = useCallback(() => {
     setIsTutorialOpen(false);
-  };
-  
+  }, []);
+
   const onClose = () => {
     setIsOpen(false);
   };
 
-  const handleStartTutorial = () => {
-   handleTutorialClose();
-   onStartTutorial();
-  };
+  const handleStartTutorial = useCallback(() => {
+    handleTutorialClose();
+    onStartTutorial();
+  }, [handleTutorialClose, onStartTutorial]);
 
   return isMdOrLarger ? (
     <div>
@@ -73,10 +69,14 @@ export const Header: React.FC<HeaderProps> = ({ onStartTutorial }) => {
             Collective Chests
           </Button>
           <CollectiveTreasureChest isOpen={isOpen} onClose={onClose} />
-       <Button variant="outline" onClick={handleTutorialOpen}>
+          <Button variant="outline" onClick={handleTutorialOpen}>
             Tutorial
           </Button>
-          <TutorialModal isOpen={isTutorialOpen} onClose={handleTutorialClose}  onStartTutorial={handleStartTutorial}/>
+          <TutorialModal
+            isOpen={isTutorialOpen}
+            onClose={handleTutorialClose}
+            onStartTutorial={handleStartTutorial}
+          />
         </div>
         <div className="flex flex-col gap-4 items-center md:flex-row">
           {!!player && (

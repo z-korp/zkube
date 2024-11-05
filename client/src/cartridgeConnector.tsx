@@ -111,7 +111,7 @@ const options: ControllerOptions = {
 };
 
 const cartridgeConnector = new CartridgeConnector(
-  // options,
+  options,
 ) as never as Connector;
 
 export default cartridgeConnector;

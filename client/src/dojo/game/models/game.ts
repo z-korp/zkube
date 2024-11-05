@@ -8,7 +8,6 @@ import {
   DEFAULT_GRID_WIDTH,
 } from "../constants";
 import { Mode } from "../types/mode";
-import { CubeSlidingTutorial } from "./CubeSlidingTutorial";
 
 export interface Block {
   width: number;
@@ -45,7 +44,6 @@ export class Game {
   public seed: bigint;
   public start_time: Date;
   public tournament_id: number;
-  public tutorial: CubeSlidingTutorial | null;
 
   constructor(game: ComponentValue) {
     this.id = game.id;
@@ -78,7 +76,6 @@ export class Game {
     this.seed = game.seed;
     this.start_time = game.start_time;
     this.tournament_id = game.tournament_id;
-    this.tutorial = this.mode.isTutorial() ? new CubeSlidingTutorial() : null;
     // Destructure blocks and colors bitmaps in to Rows and Blocks
     this.blocks = Packer.sized_unpack(
       BigInt(game.blocks),
@@ -120,16 +117,7 @@ export class Game {
   }
 
 
-  public startTutorial(): void {
-    if (this.mode.isTutorial() && !this.tutorial) {
-      this.tutorial = new CubeSlidingTutorial();
-    }
-  }
 
-  public endTutorial(): void {
-    this.tutorial = null;
-  }
-  
   public isOver(): boolean {
     return this.over;
   }

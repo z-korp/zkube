@@ -33,8 +33,6 @@ import {
 } from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
 import MaxComboIcon from "../components/MaxComboIcon";
-import { CubeSlidingTutorial } from "@/dojo/game/models/CubeSlidingTutorial";
-
 
 export const Home = () => {
   const {
@@ -105,16 +103,12 @@ export const Home = () => {
   }, []);
 
   const [isTutorialActive, setIsTutorialActive] = useState(false);
-  const [tutorial, setTutorial] = useState<CubeSlidingTutorial | null>(null);
   const [showGrid, setShowGrid] = useState(false);
   const [showTutorialText, setShowTutorialText] = useState(true);
 
   const startTutorial = () => {
-    setTutorial(new CubeSlidingTutorial());
     setIsTutorialActive(true);
   };
-
-
 
   const handleStartTutorial = () => {
     setShowGrid(true);
@@ -139,111 +133,121 @@ export const Home = () => {
         >
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
-              {isTutorialActive && tutorial ? (
-                <Tutorial showGrid={showGrid} showTutorialText={showTutorialText} tutorial={isTutorialActive} setTutorial={setIsTutorialActive} />
+              {isTutorialActive ? (
+                <Tutorial
+                  showGrid={showGrid}
+                  showTutorialText={showTutorialText}
+                  tutorial={isTutorialActive}
+                  setTutorial={setIsTutorialActive}
+                />
               ) : (
                 <>
-              <Create />
-              {(!game || (!!game && isGameOn === "isOver")) && (
-                <div className="flex flex-col sm:flex-row p-2 sm:p-4 rounded-xl w-[93%] gap-2 sm:gap-4 items-center justify-evenly">
-                  <Start
-                    mode={ModeType.Daily}
-                    handleGameMode={() => setIsGameOn("isOn")}
-                  />
-                  <Start
-                    mode={ModeType.Normal}
-                    handleGameMode={() => setIsGameOn("isOn")}
-                  />
-                </div>
-              )}
-              {!game && (
-                <div className="bg-slate-900 w-11/12 p-4 rounded-xl mb-4 max-h-[55vh]">
-                  <LeaderboardContent />
-                </div>
-              )}
-              {!!game && isGameOn === "isOver" && (
-                <>
-                  <div className="flex flex-col gap-4 mt-8 ">
-                    <div className=" p-6 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
-                      <p className="text-4xl text-center">Game Over</p>
-
-                      <div className="flex gap-4 justify-center items-center">
-                        <div className="grow text-4xl flex gap-2 justify-end">
-                          {game.score}
-                          <FontAwesomeIcon
-                            icon={faStar}
-                            className="text-yellow-500 ml-2"
-                          />
-                        </div>
-                        <div className="grow text-4xl flex gap-2 justify-end">
-                          {game.combo}
-                          <FontAwesomeIcon
-                            icon={faFire}
-                            className="text-slate-700 ml-2"
-                          />
-                        </div>
-                        <div className="grow text-4xl flex gap-2 justify-end">
-                          {game.max_combo}
-                          <MaxComboIcon
-                            width={36}
-                            height={36}
-                            className={`text-slate-700 ml-2 `}
-                          />
-                        </div>
-                      </div>
+                  <Create />
+                  {(!game || (!!game && isGameOn === "isOver")) && (
+                    <div className="flex flex-col sm:flex-row p-2 sm:p-4 rounded-xl w-[93%] gap-2 sm:gap-4 items-center justify-evenly">
+                      <Start
+                        mode={ModeType.Daily}
+                        handleGameMode={() => setIsGameOn("isOn")}
+                      />
+                      <Start
+                        mode={ModeType.Normal}
+                        handleGameMode={() => setIsGameOn("isOn")}
+                      />
                     </div>
-                  </div>
-                  <>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button className="md:text-2xl md:mt-4 mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg">
-                          Give feedback and get a chance to win STRK
-                        </Button>
-                      </DialogTrigger>
+                  )}
+                  {!game && (
+                    <div className="bg-slate-900 w-11/12 p-4 rounded-xl mb-4 max-h-[55vh]">
+                      <LeaderboardContent />
+                    </div>
+                  )}
+                  {!!game && isGameOn === "isOver" && (
+                    <>
+                      <div className="flex flex-col gap-4 mt-8 ">
+                        <div className=" p-6 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
+                          <p className="text-4xl text-center">Game Over</p>
 
-                      <DialogContent className="flex items-center justify-centerbg-opacity-50">
-                        <div className="flex flex-col h-[90vh] w-[90vw] max-w-4xl rounded-lg shadow-lg">
-                          <DialogHeader className="flex items-center">
-                            <DialogTitle>Feedback</DialogTitle>
-                          </DialogHeader>
-                          <div className="flex-grow overflow-auto px-2">
-                            <GoogleFormEmbed />
+                          <div className="flex gap-4 justify-center items-center">
+                            <div className="grow text-4xl flex gap-2 justify-end">
+                              {game.score}
+                              <FontAwesomeIcon
+                                icon={faStar}
+                                className="text-yellow-500 ml-2"
+                              />
+                            </div>
+                            <div className="grow text-4xl flex gap-2 justify-end">
+                              {game.combo}
+                              <FontAwesomeIcon
+                                icon={faFire}
+                                className="text-slate-700 ml-2"
+                              />
+                            </div>
+                            <div className="grow text-4xl flex gap-2 justify-end">
+                              {game.max_combo}
+                              <MaxComboIcon
+                                width={36}
+                                height={36}
+                                className={`text-slate-700 ml-2 `}
+                              />
+                            </div>
                           </div>
                         </div>
-                      </DialogContent>
-                    </Dialog>
-                  </>
+                      </div>
+                      <>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button className="md:text-2xl md:mt-4 mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg">
+                              Give feedback and get a chance to win STRK
+                            </Button>
+                          </DialogTrigger>
+
+                          <DialogContent className="flex items-center justify-centerbg-opacity-50">
+                            <div className="flex flex-col h-[90vh] w-[90vw] max-w-4xl rounded-lg shadow-lg">
+                              <DialogHeader className="flex items-center">
+                                <DialogTitle>Feedback</DialogTitle>
+                              </DialogHeader>
+                              <div className="flex-grow overflow-auto px-2">
+                                <GoogleFormEmbed />
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </>
+                    </>
+                  )}
+                  {!!game && isGameOn === "isOn" && (
+                    <div className="relative w-full">
+                      <div
+                        ref={gameGrid}
+                        className="flex flex-col items-center"
+                      >
+                        <GameBoard
+                          // check if game is over because otherwise we can display
+                          // previous game data on the board while the new game is starting
+                          // and torii indexing
+                          initialGrid={game.isOver() ? [] : game.blocks}
+                          nextLine={game.isOver() ? [] : game.next_row}
+                          score={game.isOver() ? 0 : game.score}
+                          combo={game.isOver() ? 0 : game.combo}
+                          maxCombo={game.isOver() ? 0 : game.max_combo}
+                          hammerCount={
+                            game.isOver() ? 0 : game.hammer - game.hammer_used
+                          }
+                          totemCount={
+                            game.isOver() ? 0 : game.totem - game.totem_used
+                          }
+                          waveCount={
+                            game.isOver() ? 0 : game.wave - game.wave_used
+                          }
+                          account={account}
+                        />
+                      </div>
+                      <div className="mt-4 sm:mt-0 sm:absolute sm:right-0 sm:bottom-0 sm:mb-4 flex justify-center sm:justify-end w-full">
+                        <Surrender setIsUnmounting={setIsUnmounting} />
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
-              {!!game && isGameOn === "isOn" && (
-                <div className="relative w-full">
-                  <div ref={gameGrid} className="flex flex-col items-center">
-                    <GameBoard
-                      // check if game is over because otherwise we can display
-                      // previous game data on the board while the new game is starting
-                      // and torii indexing
-                      initialGrid={game.isOver() ? [] : game.blocks}
-                      nextLine={game.isOver() ? [] : game.next_row}
-                      score={game.isOver() ? 0 : game.score}
-                      combo={game.isOver() ? 0 : game.combo}
-                      maxCombo={game.isOver() ? 0 : game.max_combo}
-                      hammerCount={
-                        game.isOver() ? 0 : game.hammer - game.hammer_used
-                      }
-                      totemCount={
-                        game.isOver() ? 0 : game.totem - game.totem_used
-                      }
-                      waveCount={game.isOver() ? 0 : game.wave - game.wave_used}
-                      account={account}
-                    />
-                  </div>
-                  <div className="mt-4 sm:mt-0 sm:absolute sm:right-0 sm:bottom-0 sm:mb-4 flex justify-center sm:justify-end w-full">
-                    <Surrender setIsUnmounting={setIsUnmounting} />
-                  </div>
-                </div>
-              )}
-              </>
-                )}
             </div>
           </div>
           {/*<TweetPreview

@@ -19,13 +19,17 @@ const TutorialModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         className="sm:max-w-[700px] w-[95%] flex flex-col mx-auto justify-start"
-        aria-describedby={undefined}
+        aria-describedby="tutorial-description"
+ role="dialog"
       >
         <DialogTitle className="text-center">Tutorial</DialogTitle>
         <div className="flex justify-center items-center w-full h-10">
           <img src={imgAssets.logo} alt="logo" className={`h-28 md:h-32 `} />
         </div>
-        <div className="flex-1 flex flex-col items-center justify-center min-h-[300px] text-center p-6">
+        <div 
+     id="tutorial-description"
+     className="flex-1 flex flex-col items-center justify-center min-h-[300px] text-center p-6"
+    >
           <h2 className="text-2xl font-semibold mb-6">
             Welcome to ZKube Tutorial
           </h2>

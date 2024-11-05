@@ -2,7 +2,7 @@ export enum ModeType {
   None = "None",
   Normal = "Normal",
   Daily = "Daily",
-  Tutorial =  "tutorial"
+  Tutorial = "Tutorial",
 }
 
 export class Mode {
@@ -30,7 +30,7 @@ export class Mode {
       case ModeType.None:
         return 0;
       case ModeType.Tutorial:
-        return 0; 
+        return 0;
     }
   }
 
@@ -43,12 +43,11 @@ export class Mode {
       case ModeType.None:
         return BigInt(0);
       case ModeType.Tutorial:
-      return BigInt(0)
+        return BigInt(0);
     }
   }
 
-
-    public isTutorial(): boolean {
+  public isTutorial(): boolean {
     return this.value === ModeType.Tutorial;
   }
 }
