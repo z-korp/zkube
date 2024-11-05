@@ -64,26 +64,15 @@ const Tutorial = ({
     setIsIntermission(intermission);
   };
 
-  const handleBonusWaveClick = () => {
-    if (waveCount === 0) return;
-    if (bonus === BonusName.WAVE) {
-      setBonus(BonusName.NONE);
-    } else setBonus(BonusName.WAVE);
+  const handleBonusClick = (bonusType: BonusName, count: number) => {
+    if (count === 0) return;
+    setBonus(bonus === bonusType ? BonusName.NONE : bonusType);
   };
-
-  const handleBonusTikiClick = () => {
-    if (totemCount === 0) return;
-    if (bonus === BonusName.TIKI) {
-      setBonus(BonusName.NONE);
-    } else setBonus(BonusName.TIKI);
-  };
-
-  const handleBonusHammerClick = () => {
-    if (hammerCount === 0) return;
-    if (bonus === BonusName.HAMMER) {
-      setBonus(BonusName.NONE);
-    } else setBonus(BonusName.HAMMER);
-  };
+  
+  const handleBonusWaveClick = () => handleBonusClick(BonusName.WAVE, waveCount);
+  const handleBonusTikiClick = () => handleBonusClick(BonusName.TIKI, totemCount);
+  const handleBonusHammerClick = () => handleBonusClick(BonusName.HAMMER, hammerCount);
+  
 
   const applybonus = async ({
     bonus,
