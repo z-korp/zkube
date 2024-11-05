@@ -84,21 +84,11 @@ struct Mint {
 
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
 #[dojo::model]
-struct Credits {
-    #[key]
-    id: felt252, // player_id (address)
-    day_id: u64,
-    remaining: u8,
-}
-
-#[derive(Copy, Drop, Serde, IntrospectPacked)]
-#[dojo::model]
 struct Settings {
     #[key]
     id: u8,
     is_set: bool,
     zkorp_address: felt252,
-    free_daily_credits: u8,
     daily_mode_price: u128,
     normal_mode_price: u128,
 }

@@ -7,7 +7,6 @@ import HeaderBalance from "./HeaderBalance";
 import { Button } from "../elements/button";
 import CollectiveTreasureChest from "./TreasureChest";
 import { useCallback, useState } from "react";
-import DailyGameStatus from "./DailyGameStatus";
 import LevelIndicator from "./LevelIndicator";
 import SettingsDropDown from "./SettingsDropDown";
 import { useNavigate } from "react-router-dom";
@@ -46,7 +45,6 @@ const DesktopHeader = () => {
         {!!player && (
           <div className="flex gap-3">
             <HeaderBalance />
-            <DailyGameStatus />
             <ProfilePage wfit />
             <LevelIndicator currentXP={player.points} />
           </div>

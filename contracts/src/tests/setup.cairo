@@ -122,7 +122,6 @@ mod setup {
         models.append(zkube::models::index::game::TEST_CLASS_HASH);
         models.append(zkube::models::index::player::TEST_CLASS_HASH);
         models.append(zkube::models::index::tournament::TEST_CLASS_HASH);
-        models.append(zkube::models::index::credits::TEST_CLASS_HASH);
         models.append(zkube::models::index::settings::TEST_CLASS_HASH);
         models.append(zkube::models::index::participation::TEST_CLASS_HASH);
         models.append(zkube::models::index::chest::TEST_CLASS_HASH);

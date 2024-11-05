@@ -44,9 +44,8 @@ mod minter {
 
             let store = StoreTrait::new(world);
             let settings = store.settings();
-
-            let erc721 = ierc721_game_credits(settings.erc721_address.try_into().unwrap());
-            erc721.public_mint_from(caller.into(), caller.into());
+        //let erc721 = ierc721_game_credits(settings.erc721_address.try_into().unwrap());
+        //erc721.public_mint_from(caller.into(), caller.into());
         }
 
         /// Claim free mint that an admin has added to a user

@@ -24,9 +24,7 @@ const NORMAL_MODE_DURATION: u64 = 604800; // 1 weeks
 const FREE_MODE_DURATION: u64 = 1577880000; // 50 ans
 const FREE_MODE_PRICE: u128 = 0;
 
-// Credits
 const SECONDS_PER_DAY: u64 = 86400;
-const DAILY_CREDITS: u8 = 3;
 
 // Paid game percentages
 const TOURNAMENT_PERCENTAGE: u8 = 30;

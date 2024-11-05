@@ -7,7 +7,6 @@ use zkube::types::mode::Mode;
 use zkube::constants;
 
 mod errors {
-    const INVALID_FREE_DAILY_CREDITS: felt252 = 'Invalid free daily credits';
     const INVALID_DAILY_MODE_PRICE: felt252 = 'Invalid daily mode price';
     const INVALID_NORMAL_MODE_PRICE: felt252 = 'Invalid normal mode prize';
 }
@@ -20,7 +19,6 @@ impl SettingsImpl of SettingsTrait {
             id: 1,
             is_set: true,
             zkorp_address: constants::ZKORP_ADDRESS,
-            free_daily_credits: constants::DAILY_CREDITS,
             daily_mode_price: constants::DAILY_MODE_PRICE,
             normal_mode_price: constants::NORMAL_MODE_PRICE,
         }
@@ -30,14 +28,6 @@ impl SettingsImpl of SettingsTrait {
     fn set_zkorp_address(ref self: Settings, value: ContractAddress) {
         // [Effect] Update zkorp address
         self.zkorp_address = value.into();
-    }
-
-    #[inline(always)]
-    fn set_free_daily_credits(ref self: Settings, value: u8) {
-        // [Check] Value is valid (you might want to add more specific checks)
-        assert(value >= 0, errors::INVALID_FREE_DAILY_CREDITS);
-        // [Effect] Update free daily credits
-        self.free_daily_credits = value;
     }
 
     #[inline(always)]
@@ -84,12 +74,7 @@ impl ZeroableSettingsImpl of core::Zeroable<Settings> {
     #[inline(always)]
     fn zero() -> Settings {
         Settings {
-            id: 0,
-            is_set: false,
-            zkorp_address: 0,
-            free_daily_credits: 0,
-            daily_mode_price: 0,
-            normal_mode_price: 0
+            id: 0, is_set: false, zkorp_address: 0, daily_mode_price: 0, normal_mode_price: 0
         }
     }
 

@@ -52,10 +52,6 @@ export interface ChestClaim extends Signer {
   chest_id: number;
 }
 
-export interface UpdateFreeDailyCredits extends Signer {
-  value: number;
-}
-
 export interface UpdateDailyModePrice extends Signer {
   value: bigint;
 }
@@ -376,27 +372,6 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       throw new Error(`Contract ${contract_name} not found in manifest`);
     }
 
-    const update_free_daily_credits = async ({
-      account,
-      value,
-    }: UpdateFreeDailyCredits) => {
-      try {
-        return await provider.execute(
-          account,
-          {
-            contractName: contract_name,
-            entrypoint: "update_free_daily_credits",
-            calldata: [value],
-          },
-          NAMESPACE,
-          details,
-        );
-      } catch (error) {
-        console.error("Error executing update_free_daily_credits:", error);
-        throw error;
-      }
-    };
-
     const update_daily_mode_price = async ({
       account,
       value,
@@ -477,7 +452,6 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
     return {
       address: contract.address,
-      update_free_daily_credits,
       update_daily_mode_price,
       update_normal_mode_price,
       set_admin,

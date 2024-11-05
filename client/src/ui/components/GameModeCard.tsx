@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from "../elements/card";
 import { ModeType } from "@/dojo/game/types/mode";
-import { useCredits } from "@/hooks/useCredits";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useSettings } from "@/hooks/useSettings";
 import useTournament from "@/hooks/useTournament";
@@ -37,7 +36,6 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
 }) => {
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
-  const { credits } = useCredits({ playerId: account?.address });
   const { settings } = useSettings();
 
   const { endTimestamp, tournament } = useTournament(mode);
@@ -52,8 +50,6 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
   }, [tournament]);
 
   const cost = useMemo(() => {
-    if (player && credits && credits.get_remaining(Date.now() / 1000) > 0)
-      return "Free";
     if (!settings) return "";
     const weiCost =
       mode === ModeType.Daily
@@ -63,7 +59,7 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
     const formattedCost =
       parseFloat(ethCost) % 1 === 0 ? parseInt(ethCost).toString() : ethCost;
     return `${formattedCost} ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`;
-  }, [player, credits, settings, mode]);
+  }, [player, settings, mode]);
 
   const difficultyRule = useMemo(() => {
     switch (mode) {

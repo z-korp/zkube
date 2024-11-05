@@ -11,7 +11,6 @@ use zkube::models::settings::Settings;
 #[dojo::interface]
 trait ISettings<TContractState> {
     fn update_zkorp_address(ref world: IWorldDispatcher, address: ContractAddress);
-    fn update_free_daily_credits(ref world: IWorldDispatcher, value: u8);
     fn update_daily_mode_price(ref world: IWorldDispatcher, value: u128);
     fn update_normal_mode_price(ref world: IWorldDispatcher, value: u128);
     fn set_admin(ref world: IWorldDispatcher, address: ContractAddress);
@@ -73,20 +72,6 @@ mod settings {
             // [Effect] Update zkorp address
             let mut settings = store.settings();
             settings.set_zkorp_address(address);
-            store.set_settings(settings);
-        }
-
-        fn update_free_daily_credits(ref world: IWorldDispatcher, value: u8) {
-            let store: Store = StoreTrait::new(world);
-
-            // [Check] Only admin can update settings
-            let caller = get_caller_address();
-            let mut admin = store.admin(caller.into());
-            admin.assert_is_admin();
-
-            // [Effect] Update free daily credits
-            let mut settings = store.settings();
-            settings.set_free_daily_credits(value);
             store.set_settings(settings);
         }
 

@@ -15,7 +15,6 @@ mod ManageableComponent {
 
     use zkube::store::{Store, StoreTrait};
     use zkube::models::player::{Player, PlayerTrait, PlayerAssert};
-    use zkube::models::credits::{Credits, CreditsTrait};
 
     // Storage
 
@@ -45,10 +44,6 @@ mod ManageableComponent {
             // [Effect] Create a new player
             let player = PlayerTrait::new(caller.into(), name, timestamp);
             store.set_player(player);
-
-            let settings = store.settings();
-            let credits = CreditsTrait::new(caller.into(), timestamp, settings);
-            store.set_credits(credits);
         }
 
         fn _rename(self: @ComponentState<TContractState>, world: IWorldDispatcher, name: felt252,) {
