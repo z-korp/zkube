@@ -437,8 +437,6 @@ mod tests {
         // LEVEL_MULTIPLIER_INCREMENT)
         let level = LevelTrait::from_points(player.points);
         let level_u8: u8 = level.into();
-
-        let level_u8: u8 = level.into();
         let expected_level_multiplier = LEVEL_MULTIPLIER_START
             + (level_u8.into() * LEVEL_MULTIPLIER_INCREMENT);
 

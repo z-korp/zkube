@@ -81,6 +81,7 @@ struct Mint {
     #[key]
     id: felt252, // player_id (address)
     number: u32,
+    expiration_timestamp: u64,
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked)]

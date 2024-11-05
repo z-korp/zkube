@@ -19,7 +19,7 @@ impl SettingsImpl of SettingsTrait {
             id: 1,
             is_set: true,
             zkorp_address: zkorp_address.into(),
-            erc721_address: erc721_address.into(),
+            erc721_address: erc721_address.into()
         }
     }
 
