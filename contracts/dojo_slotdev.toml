@@ -19,3 +19,16 @@ default = "zkube"
 rpc_url = "https://api.cartridge.gg/x/zkube-slotdev/katana"
 account_address = "0x7b2ad9c0a331a84015dc07f71dd3d54545bac6f09b5385aa171db29fc32fbb6"
 private_key = "0x562b095dfdef600413f27b79a3fd908957b9449bd0c9e0fbdfb68594d6fa1f6"
+
+[init_call_args]
+"zkube-chest" = ["0x0730b8077dc0db1ac0138b2474a85b70b833a3ad6318059f60671ebb09195e67"]
+"zkube-settings" = ["0x6d15a8b41747e26dda93ba61f443a7467af7beb36d2e1b97204bce4fe20bec1"]
+"zkube-tournament" = ["0x0730b8077dc0db1ac0138b2474a85b70b833a3ad6318059f60671ebb09195e67"]
+"zkube-zkorp" = ["0x0730b8077dc0db1ac0138b2474a85b70b833a3ad6318059f60671ebb09195e67"]
+
+[writers]
+"zkube-account" = ["zkube-Player", "zkube-Credits"]
+"zkube-chest" = ["zkube-Chest", "zkube-Participation"]
+"zkube-play" = ["zkube-Player", "zkube-Game", "zkube-Tournament", "zkube-Credits", "zkube-Settings", "zkube-Chest", "zkube-Participation"]
+"zkube-settings" = ["zkube-Settings", "zkube-Admin"]
+"zkube-tournament" = ["zkube-Tournament"]

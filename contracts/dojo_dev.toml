@@ -19,3 +19,16 @@ default = "zkube"
 rpc_url = "http://localhost:5050/"
 account_address = "0x6b86e40118f29ebe393a75469b4d926c7a44c2e2681b6d319520b7c1156d114"
 private_key = "0x1c9053c053edf324aec366a34c6901b1095b07af69495bffec7d7fe21effb1b"
+
+[init_call_args]
+"zkube-chest" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
+"zkube-settings" = ["0x0"]
+"zkube-tournament" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
+"zkube-zkorp" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
+
+[writers]
+"zkube-account" = ["zkube-Player", "zkube-Credits"]
+"zkube-chest" = ["zkube-Chest", "zkube-Participation"]
+"zkube-play" = ["zkube-Player", "zkube-Game", "zkube-Tournament", "zkube-Credits", "zkube-Settings", "zkube-Chest", "zkube-Participation"]
+"zkube-settings" = ["zkube-Settings", "zkube-Admin"]
+"zkube-tournament" = ["zkube-Tournament"]

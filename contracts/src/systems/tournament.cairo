@@ -2,7 +2,7 @@
 use starknet::ContractAddress;
 
 // Dojo imports
-use dojo::world::IWorldDispatcher;
+use dojo::world::WorldStorage;
 
 // External imports
 use stark_vrf::ecvrf::{Proof, Point, ECVRFTrait};
@@ -15,9 +15,9 @@ use zkube::store::{Store, StoreTrait};
 
 #[dojo::interface]
 trait ITournamentSystem<TContractState> {
-    fn claim(ref world: IWorldDispatcher, mode: Mode, tournament_id: u64, rank: u8);
+    fn claim(ref self: ContractState, mode: Mode, tournament_id: u64, rank: u8);
     fn sponsor(
-        ref world: IWorldDispatcher,
+        ref self: ContractState,
         tournament_id: u64,
         mode: Mode,
         amount: u128,
@@ -37,7 +37,10 @@ mod tournament {
     use zkube::components::payable::PayableComponent;
 
     // Local imports
-    use super::{ITournamentSystem, Proof, Bonus, Mode, Settings, SettingsTrait, Store, StoreTrait};
+    use super::{
+        ITournamentSystem, Proof, Bonus, Mode, Settings, SettingsTrait, Store, StoreTrait,
+        WorldStorage
+    };
     use zkube::models::tournament::{TournamentTrait, TournamentAssert, TournamentImpl};
     use zkube::models::player::{PlayerTrait, PlayerAssert};
     use zkube::models::participation::{ParticipationTrait, ParticipationAssert};
@@ -65,8 +68,9 @@ mod tournament {
     }
 
     // Constructor
-    fn dojo_init(ref world: IWorldDispatcher, token_address: ContractAddress,) {
+    fn dojo_init(ref self: ContractState, token_address: ContractAddress,) {
         // [Setup] Datastore
+        let mut world = self.world_default();
         let store = StoreTrait::new(world);
 
         // [Effect] Initialize components
@@ -76,8 +80,9 @@ mod tournament {
     // Implementations
     #[abi(embed_v0)]
     impl TournamentSystemImpl of ITournamentSystem<ContractState> {
-        fn claim(ref world: IWorldDispatcher, mode: Mode, tournament_id: u64, rank: u8) {
+        fn claim(ref self: ContractState, mode: Mode, tournament_id: u64, rank: u8) {
             // [Setup] Datastore
+            let mut world = self.world_default();
             let store: Store = StoreTrait::new(world);
 
             // [Check] Player exists
@@ -99,13 +104,14 @@ mod tournament {
         }
 
         fn sponsor(
-            ref world: IWorldDispatcher,
+            ref self: ContractState,
             tournament_id: u64,
             mode: Mode,
             amount: u128,
             caller: ContractAddress
         ) {
             // [Setup] Datastore
+            let mut world = self.world_default();
             let store: Store = StoreTrait::new(world);
 
             // [Check] Tournament exists
@@ -120,6 +126,14 @@ mod tournament {
 
             // [Return] Amount to pay
             self.payable._pay(caller, amount.into());
+        }
+    }
+
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        /// This function is handy since the ByteArray can't be const.
+        fn world_default(self: @ContractState) -> WorldStorage {
+            self.world(@"zkube")
         }
     }
 }

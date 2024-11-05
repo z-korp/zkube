@@ -53,7 +53,7 @@ mod PlayableComponent {
     impl InternalImpl<
         TContractState, +HasComponent<TContractState>
     > of InternalTrait<TContractState> {
-        fn _surrender(self: @ComponentState<TContractState>, world: IWorldDispatcher) {
+        fn _surrender(self: @ComponentState<TContractState>, mut world: WorldStorage) {
             // [Setup] Datastore
             let store: Store = StoreTrait::new(world);
 
@@ -80,7 +80,7 @@ mod PlayableComponent {
 
         fn _move(
             self: @ComponentState<TContractState>,
-            world: IWorldDispatcher,
+            mut world: WorldStorage,
             row_index: u8,
             start_index: u8,
             final_index: u8,
@@ -118,7 +118,7 @@ mod PlayableComponent {
 
         fn _apply_bonus(
             self: @ComponentState<TContractState>,
-            world: IWorldDispatcher,
+            mut world: WorldStorage,
             bonus: Bonus,
             row_index: u8,
             index: u8,
@@ -154,7 +154,7 @@ mod PlayableComponent {
 
         fn _handle_score_for_tournament(
             self: @ComponentState<TContractState>,
-            world: IWorldDispatcher,
+            mut world: WorldStorage,
             store: Store,
             player: Player,
             ref game: Game,
@@ -175,7 +175,7 @@ mod PlayableComponent {
 
         fn _handle_game_over(
             self: @ComponentState<TContractState>,
-            world: IWorldDispatcher,
+            mut world: WorldStorage,
             store: Store,
             game: Game,
             mut player: Player,

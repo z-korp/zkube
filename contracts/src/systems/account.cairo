@@ -1,11 +1,11 @@
 // Dojo imports
 
-use dojo::world::IWorldDispatcher;
+use dojo::world::WorldStorage;
 
 #[dojo::interface]
 trait IAccount<TContractState> {
-    fn create(ref world: IWorldDispatcher, name: felt252);
-    fn rename(ref world: IWorldDispatcher, name: felt252);
+    fn create(ref self: ContractState, name: felt252);
+    fn rename(ref self: ContractState, name: felt252);
 }
 
 #[dojo::contract]
@@ -17,7 +17,7 @@ mod account {
 
     // Local imports
 
-    use super::{IAccount};
+    use super::{IAccount, WorldStorage};
 
     // Components
     component!(path: ManageableComponent, storage: manageable, event: ManageableEvent);
@@ -42,18 +42,28 @@ mod account {
 
     // Constructor
 
-    fn dojo_init(ref world: IWorldDispatcher) {}
+    fn dojo_init(ref self: ContractState) {}
 
     // Implementations
 
     #[abi(embed_v0)]
     impl AccountImpl of IAccount<ContractState> {
-        fn create(ref world: IWorldDispatcher, name: felt252) {
+        fn create(ref self: ContractState, name: felt252) {
+            let mut world = self.world_default();
             self.manageable._create(world, name);
         }
 
-        fn rename(ref world: IWorldDispatcher, name: felt252) {
+        fn rename(ref self: ContractState, name: felt252) {
+            let mut world = self.world_default();
             self.manageable._rename(world, name);
+        }
+    }
+
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        /// This function is handy since the ByteArray can't be const.
+        fn world_default(self: @ContractState) -> WorldStorage {
+            self.world(@"zkube")
         }
     }
 }

@@ -5,7 +5,8 @@ use starknet::ContractAddress;
 use core::debug::PrintTrait;
 
 // Dojo imports
-use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait};
+use dojo::world::{WorldStorage};
+use dojo::model::{ModelStorage};
 
 // Models imports
 use zkube::models::game::{Game, GameTrait};
@@ -20,14 +21,14 @@ use zkube::models::admin::Admin;
 /// Store struct.
 #[derive(Copy, Drop)]
 struct Store {
-    world: IWorldDispatcher,
+    world: WorldStorage,
 }
 
 /// Implementation of the `StoreTrait` trait for the `Store` struct.
 #[generate_trait]
 impl StoreImpl of StoreTrait {
     #[inline(always)]
-    fn new(world: IWorldDispatcher) -> Store {
+    fn new(world: WorldStorage) -> Store {
         Store { world: world }
     }
 
@@ -35,91 +36,91 @@ impl StoreImpl of StoreTrait {
 
     #[inline(always)]
     fn player(self: Store, player_id: felt252) -> Player {
-        get!(self.world, player_id, (Player))
+        self.world.read_model(player_id)
     }
 
     #[inline(always)]
     fn game(self: Store, game_id: u32) -> Game {
-        get!(self.world, game_id, (Game))
+        self.world.read_model(game_id)
     }
 
     #[inline(always)]
     fn tournament(self: Store, tournament_id: u64) -> Tournament {
-        get!(self.world, tournament_id, (Tournament))
+        self.world.read_model(tournament_id)
     }
 
     #[inline(always)]
     fn mint(self: Store, player_id: felt252) -> Mint {
-        get!(self.world, player_id, (Mint))
+        self.world.read_model(player_id)
     }
 
     #[inline(always)]
     fn settings(self: Store) -> Settings {
-        get!(self.world, 1, (Settings))
+        self.world.read_model(1)
     }
 
     #[inline(always)]
     fn chest(self: Store, chest_id: u32) -> Chest {
-        get!(self.world, chest_id, (Chest))
+        self.world.read_model(chest_id)
     }
 
     #[inline(always)]
     fn participation(self: Store, chest_id: u32, player_id: felt252) -> Participation {
-        get!(self.world, (chest_id, player_id), (Participation))
+        self.world.read_model((chest_id, player_id))
     }
 
     #[inline(always)]
     fn admin(self: Store, address: ContractAddress) -> Admin {
         let address: felt252 = address.into();
-        get!(self.world, address, (Admin))
+        self.world.read_model(address)
     }
 
     // SETTERS
 
     #[inline(always)]
-    fn set_game(self: Store, game: Game) {
-        set!(self.world, (game))
+    fn set_game(self: Store, mut game: Game) {
+        self.world.write_model(@game)
     }
 
     #[inline(always)]
     fn set_player(self: Store, player: Player) {
-        set!(self.world, (player))
+        self.world.write_model(@player)
     }
 
     #[inline(always)]
     fn set_tournament(self: Store, tournament: Tournament) {
-        set!(self.world, (tournament))
+        self.world.write_model(@tournament)
     }
 
     #[inline(always)]
     fn set_mint(self: Store, mint: Mint) {
-        set!(self.world, (mint))
+        self.world.write_model(@mint)
     }
 
     #[inline(always)]
     fn set_settings(self: Store, settings: Settings) {
-        set!(self.world, (settings))
+        self.world.write_model(@settings)
     }
 
     #[inline(always)]
     fn set_chest(self: Store, chest: Chest) {
-        set!(self.world, (chest))
+        self.world.write_model(@chest)
     }
 
     #[inline(always)]
     fn set_participation(self: Store, participation: Participation) {
-        set!(self.world, (participation))
+        self.world.write_model(@participation)
     }
 
     #[inline(always)]
     fn set_admin(self: Store, admin: Admin) {
-        set!(self.world, (admin))
+        self.world.write_model(@admin)
     }
 
     // DELETE
     #[inline(always)]
     fn delete_admin(self: Store, address: ContractAddress) {
         let admin = self.admin(address.into());
-        delete!(self.world, (admin));
+        self.world.erase_model(@admin);
     }
 }

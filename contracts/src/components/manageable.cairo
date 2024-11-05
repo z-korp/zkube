@@ -9,7 +9,7 @@ mod ManageableComponent {
 
     // Dojo imports
 
-    use dojo::world::IWorldDispatcher;
+    use dojo::world::WorldStorage;
 
     // Internal imports
 
@@ -31,7 +31,7 @@ mod ManageableComponent {
     impl InternalImpl<
         TContractState, +HasComponent<TContractState>
     > of InternalTrait<TContractState> {
-        fn _create(self: @ComponentState<TContractState>, world: IWorldDispatcher, name: felt252,) {
+        fn _create(self: @ComponentState<TContractState>, mut world: WorldStorage, name: felt252,) {
             // [Setup] Datastore
             let store: Store = StoreTrait::new(world);
 
@@ -46,7 +46,7 @@ mod ManageableComponent {
             store.set_player(player);
         }
 
-        fn _rename(self: @ComponentState<TContractState>, world: IWorldDispatcher, name: felt252,) {
+        fn _rename(self: @ComponentState<TContractState>, mut world: WorldStorage, name: felt252,) {
             // [Setup] Datastore
             let store: Store = StoreTrait::new(world);
 

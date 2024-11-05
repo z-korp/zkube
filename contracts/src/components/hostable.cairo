@@ -59,7 +59,7 @@ mod HostableComponent {
     > of InternalTrait<TContractState> {
         fn _create(
             self: @ComponentState<TContractState>,
-            world: IWorldDispatcher,
+            mut world: WorldStorage,
             proof: Proof,
             seed: felt252,
             beta: felt252,

@@ -3,18 +3,18 @@ use starknet::info::{get_caller_address};
 use starknet::ContractAddress;
 
 // Dojo imports
-use dojo::world::IWorldDispatcher;
+use dojo::world::WorldStorage;
 
 // Internal imports
 use zkube::models::settings::Settings;
 
 #[dojo::interface]
 trait ISettings<TContractState> {
-    fn update_zkorp_address(ref world: IWorldDispatcher, address: ContractAddress);
-    fn update_daily_mode_price(ref world: IWorldDispatcher, value: u128);
-    fn update_normal_mode_price(ref world: IWorldDispatcher, value: u128);
-    fn set_admin(ref world: IWorldDispatcher, address: ContractAddress);
-    fn delete_admin(ref world: IWorldDispatcher, address: ContractAddress);
+    fn update_zkorp_address(ref self: ContractState, address: ContractAddress);
+    fn update_daily_mode_price(ref self: ContractState, value: u128);
+    fn update_normal_mode_price(ref self: ContractState, value: u128);
+    fn set_admin(ref self: ContractState, address: ContractAddress);
+    fn delete_admin(ref self: ContractState, address: ContractAddress);
 }
 
 #[dojo::contract]
@@ -22,7 +22,7 @@ mod settings {
     // Component imports
 
     // Local imports
-    use super::{ISettings, Settings, get_caller_address, ContractAddress};
+    use super::{ISettings, Settings, get_caller_address, ContractAddress, WorldStorage};
     use zkube::store::{Store, StoreTrait};
     use zkube::models::settings::SettingsTrait;
     use zkube::models::admin::{AdminTrait, AdminAssert};
@@ -39,8 +39,9 @@ mod settings {
     enum Event {}
 
     // Constructor
-    fn dojo_init(ref world: IWorldDispatcher, admin_address: ContractAddress) {
+    fn dojo_init(ref self: ContractState, admin_address: ContractAddress) {
         // [Effect] Create the settings entity
+        let mut world = self.world_default();
         let store: Store = StoreTrait::new(world);
         let settings: Settings = SettingsTrait::new();
         store.set_settings(settings);
@@ -61,7 +62,8 @@ mod settings {
     // Implementations
     #[abi(embed_v0)]
     impl SettingsImpl of ISettings<ContractState> {
-        fn update_zkorp_address(ref world: IWorldDispatcher, address: ContractAddress) {
+        fn update_zkorp_address(ref self: ContractState, address: ContractAddress) {
+            let mut world = self.world_default();
             let store: Store = StoreTrait::new(world);
 
             // [Check] Only admin can update settings
@@ -75,7 +77,8 @@ mod settings {
             store.set_settings(settings);
         }
 
-        fn update_daily_mode_price(ref world: IWorldDispatcher, value: u128) {
+        fn update_daily_mode_price(ref self: ContractState, value: u128) {
+            let mut world = self.world_default();
             let store: Store = StoreTrait::new(world);
 
             // [Check] Only admin can update settings
@@ -89,7 +92,8 @@ mod settings {
             store.set_settings(settings);
         }
 
-        fn update_normal_mode_price(ref world: IWorldDispatcher, value: u128) {
+        fn update_normal_mode_price(ref self: ContractState, value: u128) {
+            let mut world = self.world_default();
             let store: Store = StoreTrait::new(world);
 
             // [Check] Only admin can update settings
@@ -103,7 +107,8 @@ mod settings {
             store.set_settings(settings);
         }
 
-        fn set_admin(ref world: IWorldDispatcher, address: ContractAddress) {
+        fn set_admin(ref self: ContractState, address: ContractAddress) {
+            let mut world = self.world_default();
             let store: Store = StoreTrait::new(world);
 
             // [Check] Only admin can set another admin
@@ -120,7 +125,8 @@ mod settings {
             store.set_admin(admin);
         }
 
-        fn delete_admin(ref world: IWorldDispatcher, address: ContractAddress) {
+        fn delete_admin(ref self: ContractState, address: ContractAddress) {
+            let mut world = self.world_default();
             let store: Store = StoreTrait::new(world);
 
             // [Check] Only admin can update settings
@@ -130,6 +136,14 @@ mod settings {
 
             // [Effect] Remove admin
             store.delete_admin(address);
+        }
+    }
+
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        /// This function is handy since the ByteArray can't be const.
+        fn world_default(self: @ContractState) -> WorldStorage {
+            self.world(@"zkube")
         }
     }
 }

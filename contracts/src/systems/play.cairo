@@ -4,7 +4,7 @@ use starknet::ContractAddress;
 
 // Dojo imports
 
-use dojo::world::{IWorldDispatcher, Resource};
+use dojo::world::{IWorldDispatcher, Resource, WorldStorage};
 
 // External imports
 
@@ -20,11 +20,11 @@ use zkube::store::{Store, StoreTrait};
 #[dojo::interface]
 trait IPlay<TContractState> {
     fn create(
-        ref world: IWorldDispatcher, mode: Mode, proof: Proof, seed: felt252, beta: felt252
+        ref self: ContractState, mode: Mode, proof: Proof, seed: felt252, beta: felt252
     ) -> u32;
-    fn surrender(ref world: IWorldDispatcher);
-    fn move(ref world: IWorldDispatcher, row_index: u8, start_index: u8, final_index: u8,);
-    fn apply_bonus(ref world: IWorldDispatcher, bonus: Bonus, row_index: u8, line_index: u8);
+    fn surrender(ref self: ContractState);
+    fn move(ref self: ContractState, row_index: u8, start_index: u8, final_index: u8,);
+    fn apply_bonus(ref self: ContractState, bonus: Bonus, row_index: u8, line_index: u8);
 }
 
 #[dojo::contract]
@@ -46,7 +46,10 @@ mod play {
 
     // Local imports
 
-    use super::{IPlay, Proof, Bonus, Mode, Settings, SettingsTrait, Store, StoreTrait, Resource};
+    use super::{
+        IPlay, Proof, Bonus, Mode, Settings, SettingsTrait, Store, StoreTrait, Resource,
+        WorldStorage
+    };
 
     // Components
 
@@ -78,15 +81,16 @@ mod play {
 
     // Constructor
 
-    fn dojo_init(ref world: IWorldDispatcher) {}
+    fn dojo_init(ref self: ContractState) {}
 
     // Implementations
 
     #[abi(embed_v0)]
     impl PlayImpl of IPlay<ContractState> {
         fn create(
-            ref world: IWorldDispatcher, mode: Mode, proof: Proof, seed: felt252, beta: felt252,
+            ref self: ContractState, mode: Mode, proof: Proof, seed: felt252, beta: felt252,
         ) -> u32 {
+            let mut world = world_default();
             let store = StoreTrait::new(world);
 
             let mut was_free = false;
@@ -134,16 +138,27 @@ mod play {
             game_id
         }
 
-        fn surrender(ref world: IWorldDispatcher) {
+        fn surrender(ref self: ContractState) {
+            let mut world = world_default();
             self.playable._surrender(world);
         }
 
-        fn move(ref world: IWorldDispatcher, row_index: u8, start_index: u8, final_index: u8,) {
+        fn move(ref self: ContractState, row_index: u8, start_index: u8, final_index: u8,) {
+            let mut world = world_default();
             self.playable._move(world, row_index, start_index, final_index);
         }
 
-        fn apply_bonus(ref world: IWorldDispatcher, bonus: Bonus, row_index: u8, line_index: u8) {
+        fn apply_bonus(ref self: ContractState, bonus: Bonus, row_index: u8, line_index: u8) {
+            let mut world = world_default();
             self.playable._apply_bonus(world, bonus, row_index, line_index);
+        }
+    }
+
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        /// This function is handy since the ByteArray can't be const.
+        fn world_default(self: @ContractState) -> WorldStorage {
+            self.world(@"zkube")
         }
     }
 }

@@ -2,7 +2,7 @@
 use starknet::ContractAddress;
 
 // Dojo imports
-use dojo::world::IWorldDispatcher;
+use dojo::world::WorldStorage;
 
 // External imports
 use stark_vrf::ecvrf::{Proof, Point, ECVRFTrait};
@@ -15,9 +15,9 @@ use zkube::store::{Store, StoreTrait};
 
 #[dojo::interface]
 trait IChest<TContractState> {
-    fn claim(ref world: IWorldDispatcher, chest_id: u32);
-    fn sponsor(ref world: IWorldDispatcher, chest_id: u32, amount: u128);
-    fn sponsor_from(ref world: IWorldDispatcher, amount: u128, caller: ContractAddress);
+    fn claim(ref self: ContractState, chest_id: u32);
+    fn sponsor(ref self: ContractState, chest_id: u32, amount: u128);
+    fn sponsor_from(ref self: ContractState, amount: u128, caller: ContractAddress);
 }
 
 #[dojo::contract]
@@ -35,7 +35,9 @@ mod chest {
 
     // Local imports
 
-    use super::{IChest, Proof, Bonus, Mode, Settings, SettingsTrait, Store, StoreTrait};
+    use super::{
+        IChest, Proof, Bonus, Mode, Settings, SettingsTrait, Store, StoreTrait, WorldStorage
+    };
     use zkube::models::chest::{ChestTrait, ChestAssert};
     use zkube::models::participation::{ParticipationTrait, ParticipationAssert};
 
@@ -63,8 +65,9 @@ mod chest {
 
     // Constructor
 
-    fn dojo_init(ref world: IWorldDispatcher, token_address: ContractAddress,) {
+    fn dojo_init(ref self: ContractState, token_address: ContractAddress,) {
         // [Setup] Datastore
+        let mut world = self.world_default();
         let store = StoreTrait::new(world);
 
         // [Effect] Initialize components
@@ -101,7 +104,7 @@ mod chest {
 
     #[abi(embed_v0)]
     impl ChestSystemImpl of IChest<ContractState> {
-        fn claim(ref world: IWorldDispatcher, chest_id: u32) {
+        fn claim(ref self: ContractState, chest_id: u32) {
             let store = StoreTrait::new(world);
             let chest = store.chest(chest_id);
             chest.assert_exists();
@@ -119,7 +122,7 @@ mod chest {
         // TODO Emit event
         }
 
-        fn sponsor(ref world: IWorldDispatcher, chest_id: u32, amount: u128) {
+        fn sponsor(ref self: ContractState, chest_id: u32, amount: u128) {
             let store = StoreTrait::new(world);
             let mut chest = store.chest(chest_id);
             chest.assert_exists();
@@ -132,8 +135,16 @@ mod chest {
             self.payable._pay(caller, amount.into());
         }
 
-        fn sponsor_from(ref world: IWorldDispatcher, amount: u128, caller: ContractAddress) {
+        fn sponsor_from(ref self: ContractState, amount: u128, caller: ContractAddress) {
             self.payable._pay(caller, amount.into());
+        }
+    }
+
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        /// This function is handy since the ByteArray can't be const.
+        fn world_default(self: @ContractState) -> WorldStorage {
+            self.world(@"zkube")
         }
     }
 }

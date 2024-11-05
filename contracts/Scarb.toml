@@ -1,8 +1,7 @@
 [package]
 name = "zkube"
-cairo-version = "=2.7.0"
-version = "0.1.0"
-edition = "2023_10"
+cairo-version = "=2.8.4"
+version = "1.0.0-rc.1"
 
 [cairo]
 sierra-replace-ids = true
@@ -17,18 +16,13 @@ sepoliadev2 = "sozo --profile sepoliadev2 clean && sozo --profile sepoliadev2 bu
 playground = "sozo --profile playground clean && sozo --profile playground build && sozo --profile playground migrate apply --walnut"
 
 [dependencies]
+dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-rc.1" }
 alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria", rev = "78b0d51" }
-origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.0.0-alpha.11" }
-dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-alpha.11" }
+origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.0.0-alpha.19" }
 stark_vrf = { git = "https://github.com/dojoengine/stark-vrf", rev = "5a9e81e" }
 
-[[target.dojo]]
+[[target.starknet-contract]]
+build-external-contracts = ["dojo::world::world_contract::world"]
 
-# Custom profiles
-[profile.slot]
-[profile.slotdev]
-[profile.slottest]
-[profile.sepolia]
-[profile.sepoliadev1]
-[profile.sepoliadev2]
-[profile.playground]
+[dev-dependencies]
+dojo_cairo_test = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-rc.1" }
