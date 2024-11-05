@@ -11,6 +11,7 @@ mod models {
     mod settings;
     mod chest;
     mod admin;
+    mod mint;
     mod participation;
 }
 
@@ -66,6 +67,7 @@ mod systems {
     mod settings;
     mod tournament;
     mod zkorp;
+    mod minter;
 }
 
 mod interfaces {

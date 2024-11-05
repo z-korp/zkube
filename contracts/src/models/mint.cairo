@@ -92,7 +92,7 @@ mod tests {
     }
 
     #[test]
-    fn test_zero_mint() {
+    fn test_mint_zero_mint() {
         let zero_mint: Mint = Zeroable::zero();
         assert(zero_mint.id == 0, 'Zero mint id should be 0');
         assert(zero_mint.number == 0, 'Zero mint number should be 0');
@@ -100,7 +100,7 @@ mod tests {
     }
 
     #[test]
-    fn test_is_zero() {
+    fn test_mint_is_zero() {
         let zero_mint: Mint = Zeroable::zero();
         assert(zero_mint.is_zero(), 'Zero mint should be zero');
         let non_zero_mint = create_mint(1, 1, 2000);
@@ -132,7 +132,7 @@ mod tests {
     }
 
     #[test]
-    fn test_add_mint_new() {
+    fn test_mint_add_mint_new() {
         let mut mint = Zeroable::zero();
         mint.add_mint(5, 2000, 1000);
         assert(mint.number == 5, 'Mint number should be updated');
@@ -140,7 +140,7 @@ mod tests {
     }
 
     #[test]
-    fn test_add_mint_existing_same_expiration() {
+    fn test_mint_add_mint_existing_same_expiration() {
         let mut mint = MintTrait::new(1, 5, 2000);
         mint.add_mint(5, 2000, 1000);
         assert(mint.number == 10, 'Mint number should be increased');
@@ -148,7 +148,7 @@ mod tests {
 
     #[test]
     #[should_panic(expected: ('Mint: Expiration mismatch',))]
-    fn test_add_mint_existing_different_expiration() {
+    fn test_mint_add_mint_existing_different_expiration() {
         let mut mint = MintTrait::new(1, 5, 2000);
         mint.add_mint(5, 3000, 1000);
     }
