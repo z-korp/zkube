@@ -371,12 +371,6 @@
   },
   {
     "type": "event",
-    "name": "zkube::components::creditable::CreditableComponent::Event",
-    "kind": "enum",
-    "variants": []
-  },
-  {
-    "type": "event",
     "name": "zkube::systems::play::play::Event",
     "kind": "enum",
     "variants": [
@@ -393,11 +387,6 @@
       {
         "name": "PlayableEvent",
         "type": "zkube::components::playable::PlayableComponent::Event",
-        "kind": "flat"
-      },
-      {
-        "name": "CreditableEvent",
-        "type": "zkube::components::creditable::CreditableComponent::Event",
         "kind": "flat"
       }
     ]

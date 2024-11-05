@@ -128,17 +128,44 @@
   },
   {
     "type": "impl",
-    "name": "IDojoInitImpl",
-    "interface_name": "zkube::systems::play::play::IDojoInit"
+    "name": "MinterSystemImpl",
+    "interface_name": "zkube::systems::minter::IMinter"
   },
   {
     "type": "interface",
-    "name": "zkube::systems::play::play::IDojoInit",
+    "name": "zkube::systems::minter::IMinter",
     "items": [
       {
         "type": "function",
-        "name": "dojo_init",
+        "name": "mint",
         "inputs": [],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "claim_free_mint",
+        "inputs": [],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "add_free_mint",
+        "inputs": [
+          {
+            "name": "to",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "number",
+            "type": "core::integer::u32"
+          },
+          {
+            "name": "expiration_timestamp",
+            "type": "core::integer::u64"
+          }
+        ],
         "outputs": [],
         "state_mutability": "external"
       }
@@ -146,167 +173,19 @@
   },
   {
     "type": "impl",
-    "name": "PlayImpl",
-    "interface_name": "zkube::systems::play::IPlay"
-  },
-  {
-    "type": "enum",
-    "name": "zkube::types::mode::Mode",
-    "variants": [
-      {
-        "name": "None",
-        "type": "()"
-      },
-      {
-        "name": "Normal",
-        "type": "()"
-      },
-      {
-        "name": "Daily",
-        "type": "()"
-      },
-      {
-        "name": "Free",
-        "type": "()"
-      }
-    ]
-  },
-  {
-    "type": "struct",
-    "name": "stark_vrf::ecvrf::Point",
-    "members": [
-      {
-        "name": "x",
-        "type": "core::felt252"
-      },
-      {
-        "name": "y",
-        "type": "core::felt252"
-      }
-    ]
-  },
-  {
-    "type": "struct",
-    "name": "stark_vrf::ecvrf::Proof",
-    "members": [
-      {
-        "name": "gamma",
-        "type": "stark_vrf::ecvrf::Point"
-      },
-      {
-        "name": "c",
-        "type": "core::felt252"
-      },
-      {
-        "name": "s",
-        "type": "core::felt252"
-      },
-      {
-        "name": "sqrt_ratio_hint",
-        "type": "core::felt252"
-      }
-    ]
-  },
-  {
-    "type": "enum",
-    "name": "zkube::types::bonus::Bonus",
-    "variants": [
-      {
-        "name": "None",
-        "type": "()"
-      },
-      {
-        "name": "Hammer",
-        "type": "()"
-      },
-      {
-        "name": "Totem",
-        "type": "()"
-      },
-      {
-        "name": "Wave",
-        "type": "()"
-      }
-    ]
+    "name": "IDojoInitImpl",
+    "interface_name": "zkube::systems::minter::minter::IDojoInit"
   },
   {
     "type": "interface",
-    "name": "zkube::systems::play::IPlay",
+    "name": "zkube::systems::minter::minter::IDojoInit",
     "items": [
       {
         "type": "function",
-        "name": "create",
-        "inputs": [
-          {
-            "name": "mode",
-            "type": "zkube::types::mode::Mode"
-          },
-          {
-            "name": "proof",
-            "type": "stark_vrf::ecvrf::Proof"
-          },
-          {
-            "name": "seed",
-            "type": "core::felt252"
-          },
-          {
-            "name": "beta",
-            "type": "core::felt252"
-          }
-        ],
-        "outputs": [
-          {
-            "type": "core::integer::u32"
-          }
-        ],
-        "state_mutability": "external"
-      },
-      {
-        "type": "function",
-        "name": "surrender",
+        "name": "dojo_init",
         "inputs": [],
         "outputs": [],
-        "state_mutability": "external"
-      },
-      {
-        "type": "function",
-        "name": "move",
-        "inputs": [
-          {
-            "name": "row_index",
-            "type": "core::integer::u8"
-          },
-          {
-            "name": "start_index",
-            "type": "core::integer::u8"
-          },
-          {
-            "name": "final_index",
-            "type": "core::integer::u8"
-          }
-        ],
-        "outputs": [],
-        "state_mutability": "external"
-      },
-      {
-        "type": "function",
-        "name": "apply_bonus",
-        "inputs": [
-          {
-            "name": "bonus",
-            "type": "zkube::types::bonus::Bonus"
-          },
-          {
-            "name": "row_index",
-            "type": "core::integer::u8"
-          },
-          {
-            "name": "line_index",
-            "type": "core::integer::u8"
-          }
-        ],
-        "outputs": [],
-        "state_mutability": "external"
+        "state_mutability": "view"
       }
     ]
   },
@@ -359,35 +238,13 @@
   },
   {
     "type": "event",
-    "name": "zkube::components::hostable::HostableComponent::Event",
-    "kind": "enum",
-    "variants": []
-  },
-  {
-    "type": "event",
-    "name": "zkube::components::playable::PlayableComponent::Event",
-    "kind": "enum",
-    "variants": []
-  },
-  {
-    "type": "event",
-    "name": "zkube::systems::play::play::Event",
+    "name": "zkube::systems::minter::minter::Event",
     "kind": "enum",
     "variants": [
       {
         "name": "UpgradeableEvent",
         "type": "dojo::contract::upgradeable::upgradeable::Event",
         "kind": "nested"
-      },
-      {
-        "name": "HostableEvent",
-        "type": "zkube::components::hostable::HostableComponent::Event",
-        "kind": "flat"
-      },
-      {
-        "name": "PlayableEvent",
-        "type": "zkube::components::playable::PlayableComponent::Event",
-        "kind": "flat"
       }
     ]
   }

@@ -397,10 +397,6 @@
         "type": "core::felt252"
       },
       {
-        "name": "free_daily_credits",
-        "type": "core::integer::u8"
-      },
-      {
         "name": "daily_mode_price",
         "type": "core::integer::u128"
       },

@@ -363,52 +363,30 @@
   },
   {
     "type": "impl",
-    "name": "settingsImpl",
-    "interface_name": "zkube::models::index::Isettings"
-  },
-  {
-    "type": "enum",
-    "name": "core::bool",
-    "variants": [
-      {
-        "name": "False",
-        "type": "()"
-      },
-      {
-        "name": "True",
-        "type": "()"
-      }
-    ]
+    "name": "mintImpl",
+    "interface_name": "zkube::models::index::Imint"
   },
   {
     "type": "struct",
-    "name": "zkube::models::index::Settings",
+    "name": "zkube::models::index::Mint",
     "members": [
       {
         "name": "id",
-        "type": "core::integer::u8"
-      },
-      {
-        "name": "is_set",
-        "type": "core::bool"
-      },
-      {
-        "name": "zkorp_address",
         "type": "core::felt252"
       },
       {
-        "name": "daily_mode_price",
-        "type": "core::integer::u128"
+        "name": "number",
+        "type": "core::integer::u32"
       },
       {
-        "name": "normal_mode_price",
-        "type": "core::integer::u128"
+        "name": "expiration_timestamp",
+        "type": "core::integer::u64"
       }
     ]
   },
   {
     "type": "interface",
-    "name": "zkube::models::index::Isettings",
+    "name": "zkube::models::index::Imint",
     "items": [
       {
         "type": "function",
@@ -416,7 +394,7 @@
         "inputs": [
           {
             "name": "model",
-            "type": "zkube::models::index::Settings"
+            "type": "zkube::models::index::Mint"
           }
         ],
         "outputs": [],
@@ -426,7 +404,7 @@
   },
   {
     "type": "event",
-    "name": "zkube::models::index::settings::Event",
+    "name": "zkube::models::index::mint::Event",
     "kind": "enum",
     "variants": []
   }
