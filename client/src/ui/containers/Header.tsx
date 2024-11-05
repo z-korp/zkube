@@ -66,7 +66,7 @@ export const Header: React.FC<HeaderProps> = ({ onStartTutorial }) => {
           <Button variant={"outline"} onClick={() => setIsOpen(true)}>
             Collective Chests
           </Button>
-          <CollectiveTreasureChest isOpen={isOpen} onClose={onClose} />+
+          <CollectiveTreasureChest isOpen={isOpen} onClose={onClose} />
           <Button
             variant="outline"
             onClick={(e) => {

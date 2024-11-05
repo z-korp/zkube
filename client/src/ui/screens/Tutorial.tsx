@@ -153,7 +153,7 @@ const Tutorial = ({
 
         if (bonusApplied) {
           // Move to intermission before Step 4
-          setWaveCount(totemCount - 1);
+          setTotemCount(totemCount - 1);
           setScore((score ?? 0) + 250);
           setIsIntermission(true);
         }
@@ -175,7 +175,7 @@ const Tutorial = ({
   );
 
   const handleContinue = () => {
-    // Move to the next step
+    if (tutorialStep >= 5) return;
     setIsIntermission(false);
     setTutorialStep(tutorialStep + 1);
   };
