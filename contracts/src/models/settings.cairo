@@ -61,6 +61,7 @@ impl SettingsImpl of SettingsTrait {
         match mode {
             Mode::Normal => self.normal_mode_price,
             Mode::Daily => self.daily_mode_price,
+            Mode::Free => 0,
             _ => 0,
         }
     }

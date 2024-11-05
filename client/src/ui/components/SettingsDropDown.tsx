@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from "../elements/button";
 import { MusicPlayer } from "../modules/MusicPlayer";
 import AccountDetails from "./AccountDetails";
-import { useControllerUsername } from "@/hooks/useControllerUsername";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,11 +13,8 @@ import {
 } from "../elements/dropdown-menu";
 import { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 import { BurnerAccount } from "./BurnerAccount";
-import { FaucetButton } from "./FaucetButton";
 
 export const SettingsDropDown = () => {
-  const { username } = useControllerUsername();
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

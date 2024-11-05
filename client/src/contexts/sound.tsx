@@ -1,27 +1,27 @@
 import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { useMusicPlayer } from "./music";
+import React, { createContext, useState, useEffect } from "react";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import { useMusicPlayer } from './hooks';
 
 const SoundPlayerContext = createContext({});
 
-export const SoundPlayerProvider = ({
+export function SoundPlayerProvider({
   children,
 }: {
   children: React.ReactNode;
-}) => {
+}) {
   const { setTheme, playStart, playOver } = useMusicPlayer();
   const [over, setOver] = useState(false);
   const [start, setStart] = useState(false);
 
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
-  const { game } = useGame({ gameId: player?.game_id });
+  const { game } = useGame({ gameId: player?.game_id, shouldLog: false });
 
   useEffect(() => {
     setTheme(!game || game.isOver());
-  }, [game, over]);
+  }, [game, over, setTheme]);
 
   // [Check] This is a useEffect hook that runs when the game is over
   useEffect(() => {
@@ -40,15 +40,11 @@ export const SoundPlayerProvider = ({
       setStart(false);
       playOver();
     }
-  }, [game, start, over]);
+  }, [game, start, over, playStart, playOver]);
 
   return (
     <SoundPlayerContext.Provider value={{}}>
       {children}
     </SoundPlayerContext.Provider>
   );
-};
-
-export const useSoundPlayer = () => {
-  return useContext(SoundPlayerContext);
-};
+}

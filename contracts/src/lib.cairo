@@ -16,11 +16,11 @@ mod models {
 
 mod types {
     mod bonus;
-    mod color;
     mod width;
     mod block;
     mod mode;
     mod difficulty;
+    mod level;
 }
 
 mod elements {
@@ -48,6 +48,7 @@ mod helpers {
     mod packer;
     mod controller;
     mod gravity;
+    mod timestamp;
 }
 
 mod components {

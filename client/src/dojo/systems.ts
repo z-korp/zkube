@@ -1,21 +1,15 @@
 import type { IWorld } from "./contractSystems";
 import { toast } from "sonner";
 import * as SystemTypes from "./contractSystems";
-import { ClientModels } from "./models";
 import { shortenHex } from "@dojoengine/utils";
-import { Account } from "starknet";
+import { Account, GetTransactionReceiptResponse } from "starknet";
 
 export type SystemCalls = ReturnType<typeof systems>;
 
-export function systems({
-  client,
-  clientModels,
-}: {
-  client: IWorld;
-  clientModels: ClientModels;
-}) {
-  const TOAST_ID = "unique-id";
+const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
+export function systems({ client }: { client: IWorld }) {
+  // Function to extract error messages from a given string
   function extractErrorMessages(errorString: string) {
     const regex = /Error message:(.*?)(?=\n|$)/gs;
     const matches = errorString.match(regex);
@@ -23,7 +17,7 @@ export function systems({
     if (matches) {
       return matches.map((match) => match.replace("Error message:", "").trim());
     } else {
-      return [];
+      return [errorString.trim()]; // Return the entire message if no specific pattern found
     }
   }
 
@@ -37,18 +31,34 @@ export function systems({
     return window.matchMedia("(min-width: 768px)").matches;
   };
 
+  const shouldShowToast = (): boolean => {
+    return isMdOrLarger();
+  };
+
   const isSmallHeight = (): boolean => {
     return window.matchMedia("(max-height: 768px)").matches;
+  };
+
+  const getUrl = (transaction_hash: string) => {
+    if (
+      VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ||
+      VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev1" ||
+      VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev2"
+    ) {
+      return `https://sepolia.starkscan.co/tx/${transaction_hash}`;
+    } else {
+      return `https://worlds.dev/networks/slot/worlds/zkube-${VITE_PUBLIC_DEPLOY_TYPE}/txs/${transaction_hash}`;
+    }
+  };
+
+  const getWalnutUrl = (transaction_hash: string) => {
+    return `https://app.walnut.dev/transactions?rpcUrl=https%3A%2F%2Fapi.cartridge.gg%2Fx%2Fstarknet%2Fsepolia&txHash=${transaction_hash}`;
   };
 
   const getToastAction = (transaction_hash: string) => {
     return {
       label: "View",
-      onClick: () =>
-        window.open(
-          `https://worlds.dev/networks/slot/worlds/zkube/txs/${transaction_hash}`,
-          //`https://sepolia.voyager.online/tx/${transaction_hash}`,
-        ),
+      onClick: () => window.open(getUrl(transaction_hash), "_blank"),
     };
   };
 
@@ -58,27 +68,49 @@ export function systems({
     | "bottom-right" => {
     if (!isMdOrLarger()) {
       // if mobile
-      return isSmallHeight() ? "top-center" : "bottom-center";
+      return isSmallHeight() ? "top-center" : "bottom-right";
     }
     return "bottom-right";
   };
 
   const toastPlacement = getToastPlacement();
 
-  const notify = (message: string, transaction: any) => {
-    console.log("transaction", transaction);
-    if (transaction.execution_status !== "REVERTED") {
-      toast.success(message, {
-        id: TOAST_ID,
-        description: shortenHex(transaction.transaction_hash),
-        action: getToastAction(transaction.transaction_hash),
-        position: toastPlacement,
-      });
+  const notify = (
+    message: string,
+    transaction: GetTransactionReceiptResponse,
+  ) => {
+    if (transaction.isError() || transaction.isRejected()) {
+      toast.error(
+        transaction.isRejected()
+          ? transaction.transaction_failure_reason.error_message
+          : "Unkown error occured",
+        {
+          id: `error-${Date.now()}`, // Generic toast ID
+          position: toastPlacement,
+        },
+      );
     } else {
-      toast.error(extractedMessage(transaction.revert_reason), {
-        id: TOAST_ID,
-        position: toastPlacement,
-      });
+      const toastId = transaction.transaction_hash;
+
+      if (transaction.isSuccess()) {
+        if (!shouldShowToast()) return; // Exit if screen is smaller than medium
+        toast.success(message, {
+          id: toastId, // Use the transaction_hash as the unique toast ID
+          description: shortenHex(transaction.transaction_hash),
+          action: getToastAction(transaction.transaction_hash),
+          position: toastPlacement,
+        });
+      } else {
+        toast.error(
+          transaction.revert_reason
+            ? extractedMessage(transaction.revert_reason)
+            : "Unkown error occured",
+          {
+            id: toastId, // Use the same transaction_hash ID for error
+            position: toastPlacement,
+          },
+        );
+      }
     }
   };
 
@@ -87,30 +119,43 @@ export function systems({
     action: () => Promise<{ transaction_hash: string }>,
     successMessage: string,
   ) => {
-    toast.loading("Transaction in progress...", {
-      id: TOAST_ID,
-      position: toastPlacement,
-    });
     try {
+      // Initiate the transaction and obtain the transaction_hash
       const { transaction_hash } = await action();
-      toast.loading("Transaction in progress...", {
-        description: shortenHex(transaction_hash),
-        action: getToastAction(transaction_hash),
-        id: TOAST_ID,
-        position: toastPlacement,
-      });
+      console.log(
+        "transaction_hash",
+        transaction_hash,
+        getUrl(transaction_hash),
+        getWalnutUrl(transaction_hash),
+      );
 
+      const toastId = transaction_hash; // Unique ID based on transaction_hash
+
+      if (shouldShowToast()) {
+        // Display a loading toast with the unique toastId
+        toast.loading("Transaction in progress...", {
+          description: shortenHex(transaction_hash),
+          action: getToastAction(transaction_hash),
+          id: toastId, // Assign the unique toastId
+          position: toastPlacement,
+        });
+      }
+
+      // Wait for the transaction to complete
       const transaction = await account.waitForTransaction(transaction_hash, {
         retryInterval: 100,
       });
 
+      // Notify success or error using the same toastId
       notify(successMessage, transaction);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error executing transaction:", error);
-      if (!error?.message) {
-        toast.error("Transaction cancelled", { id: TOAST_ID });
-      } else {
-        toast.error(extractedMessage(error.message), { id: TOAST_ID });
+
+      if (shouldShowToast()) {
+        toast.error("Transaction failed.", {
+          id: `error-${Date.now()}`, // Generic toast ID
+          position: toastPlacement,
+        });
       }
 
       throw error;
@@ -150,6 +195,7 @@ export function systems({
   };
 
   const move = async ({ account, ...props }: SystemTypes.Move) => {
+    console.log("move", account, props);
     await handleTransaction(
       account,
       () => client.play.move({ account, ...props }),

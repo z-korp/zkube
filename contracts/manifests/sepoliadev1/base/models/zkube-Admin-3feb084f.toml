@@ -1,0 +1,17 @@
+kind = "DojoModel"
+class_hash = "0x75ca4403fec8334e5819c3b134ab67420cf93d86b9809a7cfc2d2509530622f"
+original_class_hash = "0x75ca4403fec8334e5819c3b134ab67420cf93d86b9809a7cfc2d2509530622f"
+abi = "manifests/sepoliadev1/base/abis/models/zkube-Admin-3feb084f.json"
+tag = "zkube-Admin"
+qualified_path = "zkube::models::index::admin"
+manifest_name = "zkube-Admin-3feb084f"
+
+[[members]]
+name = "id"
+type = "felt252"
+key = true
+
+[[members]]
+name = "is_set"
+type = "bool"
+key = false

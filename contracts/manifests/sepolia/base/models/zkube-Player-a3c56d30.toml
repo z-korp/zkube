@@ -1,6 +1,6 @@
 kind = "DojoModel"
-class_hash = "0xf9b6c922045b89af068513b0a9c3df3c687a437dfece00c51f7b09ee22444"
-original_class_hash = "0xf9b6c922045b89af068513b0a9c3df3c687a437dfece00c51f7b09ee22444"
+class_hash = "0x1dc8b9f85a186d551a8d53b5b46cffe82a5505fa6855c0f9af7facb6946db09"
+original_class_hash = "0x1dc8b9f85a186d551a8d53b5b46cffe82a5505fa6855c0f9af7facb6946db09"
 abi = "manifests/sepolia/base/abis/models/zkube-Player-a3c56d30.json"
 tag = "zkube-Player"
 qualified_path = "zkube::models::index::player"
@@ -23,5 +23,20 @@ key = false
 
 [[members]]
 name = "points"
+type = "u32"
+key = false
+
+[[members]]
+name = "daily_streak"
+type = "u8"
+key = false
+
+[[members]]
+name = "last_active_day"
+type = "u32"
+key = false
+
+[[members]]
+name = "account_creation_day"
 type = "u32"
 key = false

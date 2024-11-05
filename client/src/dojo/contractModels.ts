@@ -1,5 +1,4 @@
 import { defineComponent, Type as RecsType, World } from "@dojoengine/recs";
-
 export type ContractComponents = Awaited<
   ReturnType<typeof defineContractComponents>
 >;
@@ -15,7 +14,6 @@ export function defineContractComponents(world: World) {
           score: RecsType.Number,
           moves: RecsType.Number,
           next_row: RecsType.Number,
-          next_color: RecsType.Number,
           hammer_bonus: RecsType.Number,
           wave_bonus: RecsType.Number,
           totem_bonus: RecsType.Number,
@@ -25,11 +23,13 @@ export function defineContractComponents(world: World) {
           combo_counter: RecsType.Number,
           max_combo: RecsType.Number,
           blocks: RecsType.BigInt,
-          colors: RecsType.BigInt,
           player_id: RecsType.BigInt,
           seed: RecsType.BigInt,
           mode: RecsType.Number,
           start_time: RecsType.Number,
+          score_in_tournament: RecsType.Number,
+          combo_counter_in_tournament: RecsType.Number,
+          max_combo_in_tournament: RecsType.Number,
           tournament_id: RecsType.Number,
         },
         {
@@ -42,7 +42,6 @@ export function defineContractComponents(world: World) {
               "u32",
               "u32",
               "u32",
-              "u32",
               "u8",
               "u8",
               "u8",
@@ -51,12 +50,14 @@ export function defineContractComponents(world: World) {
               "u8",
               "u8",
               "u8",
-              "felt252",
               "felt252",
               "felt252",
               "felt252",
               "u8",
               "u64",
+              "u32",
+              "u8",
+              "u8",
               "u64",
             ],
             customTypes: [],
@@ -72,12 +73,15 @@ export function defineContractComponents(world: World) {
           game_id: RecsType.Number,
           name: RecsType.BigInt,
           points: RecsType.Number,
+          daily_streak: RecsType.Number,
+          last_active_day: RecsType.Number,
+          account_creation_day: RecsType.Number,
         },
         {
           metadata: {
             namespace: "zkube",
             name: "Player",
-            types: ["felt252", "u32", "felt252", "u32"],
+            types: ["felt252", "u32", "felt252", "u32", "u8", "u32", "u32"],
             customTypes: [],
           },
         },
@@ -136,6 +140,9 @@ export function defineContractComponents(world: World) {
           top1_claimed: RecsType.Boolean,
           top2_claimed: RecsType.Boolean,
           top3_claimed: RecsType.Boolean,
+          top1_game_id: RecsType.Number,
+          top2_game_id: RecsType.Number,
+          top3_game_id: RecsType.Number,
         },
         {
           metadata: {
@@ -154,6 +161,9 @@ export function defineContractComponents(world: World) {
               "bool",
               "bool",
               "bool",
+              "u32",
+              "u32",
+              "u32",
             ],
             customTypes: [],
           },

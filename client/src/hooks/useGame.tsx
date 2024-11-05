@@ -3,8 +3,14 @@ import { useMemo } from "react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
 import { Entity } from "@dojoengine/recs";
+import useDeepMemo from "./useDeepMemo";
 
-export const useGame = ({ gameId }: { gameId: string | undefined }) => {
+export const useGame = ({
+  gameId,
+}: {
+  gameId: string | undefined;
+  shouldLog: boolean;
+}) => {
   const {
     setup: {
       clientModels: {
@@ -19,7 +25,8 @@ export const useGame = ({ gameId }: { gameId: string | undefined }) => {
     [gameId],
   );
   const component = useComponentValue(Game, gameKey);
-  const game = useMemo(() => {
+
+  const game = useDeepMemo(() => {
     return component ? new GameClass(component) : null;
   }, [component]);
 

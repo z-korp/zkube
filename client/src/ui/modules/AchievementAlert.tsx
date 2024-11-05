@@ -1,6 +1,6 @@
 import { Alert, AlertDescription, AlertTitle } from "@/ui/elements/alert";
 import { motion } from "framer-motion";
-import { useTheme } from "@/ui/elements/theme-provider";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import getElementStyle from "../theme/GetElementStyle";
 
 const generateAchievementMessage = (type: "score" | "combo" | "level", threshold: number) => {
@@ -56,7 +56,7 @@ export const AchievementAlert: React.FC<{
     icon: React.ReactNode;
     step: number;
     type: "score" | "combo" | "level";
-}> = ({ label, value, icon, step, type }) => {
+}> = ({ value, icon, step, type }) => {
     const { themeTemplate } = useTheme();
     const backgroundStyle = getElementStyle("stone3", themeTemplate);
 

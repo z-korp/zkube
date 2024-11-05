@@ -35,6 +35,7 @@ mod PlayableComponent {
     use zkube::models::chest::ChestTrait;
     use zkube::models::participation::{Participation, ParticipationTrait, ZeroableParticipation};
     use zkube::helpers::math::Math;
+    use zkube::types::mode::ModeTrait;
 
 
     // Storage
@@ -96,9 +97,15 @@ mod PlayableComponent {
             let mut game = store.game(player.game_id);
             game.assert_exists();
             game.assert_not_over();
+            let previous_score = game.score;
 
             // [Effect] Perform move
             game.move(row_index, start_index, final_index);
+
+            // [Effect] Update tournament points
+            if (game.score > previous_score) {
+                self._handle_score_for_tournament(world, store, player, ref game);
+            }
 
             // [Effect] Update game
             store.set_game(game);
@@ -128,6 +135,7 @@ mod PlayableComponent {
             let mut game = store.game(player.game_id);
             game.assert_exists();
             game.assert_not_over();
+            let previous_score = game.score;
 
             // [Check] Bonus is available
             game.assert_is_available(bonus);
@@ -135,26 +143,59 @@ mod PlayableComponent {
             // [Effect] Apply bonus
             game.apply_bonus(bonus, row_index, index);
 
+            // [Effect] Update tournament points
+            if (game.score > previous_score) {
+                self._handle_score_for_tournament(world, store, player, ref game);
+            }
+
             // [Effect] Update game
             store.set_game(game);
+        }
+
+        fn _handle_score_for_tournament(
+            self: @ComponentState<TContractState>,
+            world: IWorldDispatcher,
+            store: Store,
+            player: Player,
+            ref game: Game,
+        ) {
+            // [Effect] Update tournament
+            let time = get_block_timestamp();
+            let tournament_id = TournamentImpl::compute_id(game.start_time, game.duration());
+            let id_end = TournamentImpl::compute_id(time, game.duration());
+            if tournament_id == id_end {
+                let mut tournament = store.tournament(tournament_id);
+                tournament.score(player.id, game.id, game.score);
+                store.set_tournament(tournament);
+                game.score_in_tournament = game.score;
+                game.combo_counter_in_tournament = game.combo_counter;
+                game.max_combo_in_tournament = game.max_combo;
+            }
         }
 
         fn _handle_game_over(
             self: @ComponentState<TContractState>,
             world: IWorldDispatcher,
             store: Store,
-            mut game: Game,
+            game: Game,
             mut player: Player,
         ) {
-            let points = game.score;
+            let base_points = game.score;
 
             // [Effect] Update player
-            player.update(points);
+            let current_timestamp = get_block_timestamp();
+            player.update_daily_streak(current_timestamp);
+
+            let mode: Mode = game.mode.into();
+            let settings = store.settings();
+            let mode_multiplier = mode.get_multiplier(settings);
+
+            let final_points = player
+                .update_points(base_points, mode_multiplier, current_timestamp);
             store.set_player(player);
 
             // [Effect] Update Chest
-            let total_points = points;
-            let mut remaining_points: u32 = points;
+            let mut remaining_points: u32 = final_points;
             let mut remaining_prize: u256 = game.pending_chest_prize.into()
                 * PRECISION_FACTOR.into();
             let mut i = 0;
@@ -189,20 +230,6 @@ mod PlayableComponent {
                 }
                 i += 1;
             };
-
-            // [Effect] Update tournament
-            let time = get_block_timestamp();
-            let tournament_id = TournamentImpl::compute_id(game.start_time, game.duration());
-            let id_end = TournamentImpl::compute_id(time, game.duration());
-            if tournament_id == id_end {
-                let mut tournament = store.tournament(tournament_id);
-                tournament.score(player.id, game.score);
-                store.set_tournament(tournament);
-
-                // [Effect] Add tournament id to game
-                game.tournament_id = tournament_id;
-                store.set_game(game);
-            }
         }
     }
 }

@@ -1,32 +1,42 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
+import React, { createContext, useState, useEffect, useCallback } from "react";
 import useSound from "use-sound";
 import SoundAssets from "@/ui/theme/SoundAssets";
-import { useTheme } from "@/ui/elements/theme-provider";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import noop from "@/utils/noop";
 
 type Track = {
   name: string;
   url: string;
 };
 
-const MusicPlayerContext = createContext({
-  playTheme: () => {},
-  stopTheme: () => {},
+export const MusicPlayerContext = createContext<{
+  playTheme: () => unknown;
+  stopTheme: () => unknown;
+  isPlaying: boolean;
+  musicVolume: number;
+  effectsVolume: number;
+  setMusicVolume: (volume: number) => unknown;
+  setEffectsVolume: (volume: number) => unknown;
+  setTheme: (theme: boolean) => unknown;
+  playStart: () => unknown;
+  playOver: () => unknown;
+  playSwipe: () => unknown;
+  playExplode: () => unknown;
+}>({
+  playTheme: noop,
+  stopTheme: noop,
   isPlaying: false,
-  volume: 0.2,
-  setVolume: (volume: number) => {
+  musicVolume: 0.2,
+  setMusicVolume: (volume: number) => {
     volume;
   },
-  setTheme: (theme: boolean) => {
-    theme;
-  },
-  playStart: () => {},
-  playOver: () => {},
+  effectsVolume: 0.2,
+  setEffectsVolume: noop,
+  setTheme: noop,
+  playStart: noop,
+  playOver: noop,
+  playSwipe: noop,
+  playExplode: noop,
 });
 
 export const MusicPlayerProvider = ({
@@ -47,18 +57,24 @@ export const MusicPlayerProvider = ({
     { name: "Play", url: soundAssets.jungle3 },
   ];
 
-  const effectTracks: Track[] = [
-    { name: "Start", url: soundAssets.start },
-    { name: "Start", url: soundAssets.start },
-    { name: "Over", url: soundAssets.over },
-  ];
-
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-  const [currentEffectIndex, setCurrentEffectIndex] = useState(0);
   const [tracks, setTracks] = useState(menuTracks);
   const [theme, setTheme] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.2);
+  const [musicVolume, setMusicVolume] = useState(0.2);
+  const [effectsVolume, setEffectsVolume] = useState(0.2);
+
+  // Hooks séparés pour chaque effet sonore avec volume indépendant
+  const [playStartSound] = useSound(soundAssets.start, {
+    volume: effectsVolume,
+  });
+  const [playOverSound] = useSound(soundAssets.over, { volume: effectsVolume });
+  const [playSwipeSound] = useSound(soundAssets.swipe, {
+    volume: effectsVolume,
+  });
+  const [playExplodeSound] = useSound(soundAssets.explode, {
+    volume: effectsVolume,
+  });
 
   const goToNextTrack = () => {
     setCurrentTrackIndex((prevIndex) => {
@@ -66,18 +82,27 @@ export const MusicPlayerProvider = ({
     });
   };
 
+  // Fonctions de lecture d'effets sonores simplifiées
   const playStart = useCallback(() => {
-    setCurrentEffectIndex(1);
-  }, []);
+    playStartSound();
+  }, [playStartSound]);
 
   const playOver = useCallback(() => {
-    setCurrentEffectIndex(2);
-  }, []);
+    playOverSound();
+  }, [playOverSound]);
+
+  const playSwipe = useCallback(() => {
+    playSwipeSound();
+  }, [playSwipeSound]);
+
+  const playExplode = useCallback(() => {
+    playExplodeSound();
+  }, [playExplodeSound]);
 
   const [playTheme, { stop: stopTheme }] = useSound(
     tracks[currentTrackIndex].url,
     {
-      volume,
+      volume: musicVolume,
       onplay: () => setIsPlaying(true),
       onstop: () => setIsPlaying(false),
       onend: () => {
@@ -87,12 +112,19 @@ export const MusicPlayerProvider = ({
     },
   );
 
-  const [playEffect, { stop: stopEffect }] = useSound(
-    effectTracks[currentEffectIndex].url,
-    {
-      volume,
-    },
-  );
+  const handleVisibilityChange = useCallback(() => {
+    if (document.hidden) {
+      stopTheme();
+      setIsPlaying(false);
+    }
+  }, [stopTheme]);
+
+  useEffect(() => {
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [handleVisibilityChange]);
 
   useEffect(() => {
     playTheme();
@@ -100,14 +132,9 @@ export const MusicPlayerProvider = ({
   }, [currentTrackIndex, playTheme, stopTheme]);
 
   useEffect(() => {
-    if (currentEffectIndex === 0) return;
-    playEffect();
-    return () => stopEffect();
-  }, [currentEffectIndex, playEffect, stopEffect]);
-
-  useEffect(() => {
     setTracks(theme ? menuTracks : playTracks);
     setCurrentTrackIndex(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme, themeTemplate]);
 
   return (
@@ -116,18 +143,18 @@ export const MusicPlayerProvider = ({
         playTheme,
         stopTheme,
         isPlaying,
-        volume,
-        setVolume,
+        musicVolume,
+        setMusicVolume,
+        effectsVolume,
+        setEffectsVolume,
         setTheme,
         playStart,
         playOver,
+        playSwipe,
+        playExplode,
       }}
     >
       {children}
     </MusicPlayerContext.Provider>
   );
-};
-
-export const useMusicPlayer = () => {
-  return useContext(MusicPlayerContext);
 };

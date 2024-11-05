@@ -1,18 +1,29 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
 import { GameBonus } from "../containers/GameBonus";
 import { useMediaQuery } from "react-responsive";
 import { Account } from "starknet";
-import MaxComboIcon from "./MaxComboIcon";
 import Grid from "./Grid";
-import { transformDataContratIntoBlock } from "@/utils/gridUtils";
+import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "./NextLine";
 import { Block } from "@/types/types";
-import { BonusName } from "@/enums/bonusEnum";
-import { useLerpNumber } from "@/hooks/useLerpNumber";
+import GameScores from "./GameScores";
+import { Bonus, BonusType } from "@/dojo/game/types/bonus";
+import BonusAnimation from "./BonusAnimation";
+import TournamentTimer from "./TournamentTimer";
+import { ModeType } from "@/dojo/game/types/mode";
+import useTournament from "@/hooks/useTournament";
+import { Game } from "@/dojo/game/models/game";
+import useRank from "@/hooks/useRank";
+
+import "../../grid.css";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -24,6 +35,7 @@ interface GameBoardProps {
   waveCount: number;
   totemCount: number;
   account: Account | null;
+  game: Game;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -36,6 +48,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   hammerCount,
   totemCount,
   account,
+  game,
 }) => {
   const {
     setup: {
@@ -43,35 +56,65 @@ const GameBoard: React.FC<GameBoardProps> = ({
     },
   } = useDojo();
 
+  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
+  const ROWS = 10;
+  const COLS = 8;
+  const GRID_SIZE = isMdOrLarger ? 50 : 40;
+
   const [isTxProcessing, setIsTxProcessing] = useState(false);
 
-  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
+  // State that will allow us to hide or display the next line
+  const [nextLineHasBeenConsumed, setNextLineHasBeenConsumed] = useState(false);
 
-  const rows = 10;
-  const cols = 8;
-  const gridSize = isMdOrLarger ? 50 : 40;
+  // Optimistic data (score, combo, maxcombo)
+  const [optimisticScore, setOptimisticScore] = useState(score);
+  const [optimisticCombo, setOptimisticCombo] = useState(combo);
+  const [optimisticMaxCombo, setOptimisticMaxCombo] = useState(maxCombo);
+  const [bonusDescription, setBonusDescription] = useState("");
 
-  const [bonus, setBonus] = useState<BonusName>(BonusName.NONE);
+  useEffect(() => {
+    // Every time the initial grid changes, we erase the optimistic data
+    // and set the data to the one returned by the contract
+    // just in case of discrepancies
+    setOptimisticScore(score);
+    setOptimisticCombo(combo);
+    setOptimisticMaxCombo(maxCombo);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialGrid]);
+
+  const [bonus, setBonus] = useState<BonusType>(BonusType.None);
 
   const handleBonusWaveClick = () => {
     if (waveCount === 0) return;
-    if (bonus === BonusName.WAVE) {
-      setBonus(BonusName.NONE);
-    } else setBonus(BonusName.WAVE);
+    if (bonus === BonusType.Wave) {
+      setBonus(BonusType.None);
+      setBonusDescription("");
+    } else {
+      setBonus(BonusType.Wave);
+      setBonusDescription("Select the line you want to destroy");
+    }
   };
 
   const handleBonusTikiClick = () => {
     if (totemCount === 0) return;
-    if (bonus === BonusName.TIKI) {
-      setBonus(BonusName.NONE);
-    } else setBonus(BonusName.TIKI);
+    if (bonus === BonusType.Totem) {
+      setBonus(BonusType.None);
+      setBonusDescription("");
+    } else {
+      setBonus(BonusType.Totem);
+      setBonusDescription("Select the block type you want to destroy");
+    }
   };
 
   const handleBonusHammerClick = () => {
     if (hammerCount === 0) return;
-    if (bonus === BonusName.HAMMER) {
-      setBonus(BonusName.NONE);
-    } else setBonus(BonusName.HAMMER);
+    if (bonus === BonusType.Hammer) {
+      setBonus(BonusType.None);
+      setBonusDescription("");
+    } else {
+      setBonus(BonusType.Hammer);
+      setBonusDescription("Select the block you want to destroy");
+    }
   };
 
   const handleBonusWaveTx = useCallback(
@@ -82,15 +125,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
       try {
         await applyBonus({
           account: account as Account,
-          bonus: 3,
-          row_index: rows - rowIndex - 1,
+          bonus: new Bonus(BonusType.Wave).into(),
+          row_index: ROWS - rowIndex - 1,
           block_index: 0,
         });
       } finally {
         //setIsLoading(false);
       }
     },
-    [account],
+    [account, applyBonus],
   );
 
   const handleBonusHammerTx = useCallback(
@@ -98,19 +141,18 @@ const GameBoard: React.FC<GameBoardProps> = ({
       if (!account) return;
 
       setIsTxProcessing(true);
-      console.log("hammer with block", rowIndex, cols - colIndex);
       try {
         await applyBonus({
           account: account as Account,
-          bonus: 1,
-          row_index: rows - rowIndex - 1,
+          bonus: new Bonus(BonusType.Hammer).into(),
+          row_index: ROWS - rowIndex - 1,
           block_index: colIndex,
         });
       } finally {
         //setIsLoading(false);
       }
     },
-    [account],
+    [account, applyBonus],
   );
 
   const handleBonusTikiTx = useCallback(
@@ -121,69 +163,71 @@ const GameBoard: React.FC<GameBoardProps> = ({
       try {
         await applyBonus({
           account: account as Account,
-          bonus: 2,
-          row_index: rows - rowIndex - 1,
+          bonus: new Bonus(BonusType.Totem).into(),
+          row_index: ROWS - rowIndex - 1,
           block_index: colIndex,
         });
       } finally {
         //setIsLoading(false);
       }
     },
-    [account],
+    [account, applyBonus],
   );
 
   const selectBlock = useCallback(
     async (block: Block) => {
-      if (bonus === BonusName.WAVE) {
-        console.log("wave with block", block);
+      if (bonus === BonusType.Wave) {
         handleBonusWaveTx(block.y);
-      }
-      if (bonus === BonusName.TIKI) {
-        console.log("tiki with block", block);
+      } else if (bonus === BonusType.Totem) {
         handleBonusTikiTx(block.y, block.x);
-      }
-      if (bonus === BonusName.HAMMER) {
-        console.log("hammer with block", block);
+      } else if (bonus === BonusType.Hammer) {
         handleBonusHammerTx(block.y, block.x);
-      }
-      if (bonus === BonusName.NONE) {
+      } else if (bonus === BonusType.None) {
         console.log("none", block);
       }
     },
-    [bonus],
+    [bonus, handleBonusHammerTx, handleBonusTikiTx, handleBonusWaveTx],
   );
 
   useEffect(() => {
-    setIsTxProcessing(false);
-    setBonus(BonusName.NONE);
+    // Reset the isTxProcessing state and the bonus state when the grid changes
+    // meaning the tx as been processed, and the client state updated
+    setBonus(BonusType.None);
+    setBonusDescription("");
   }, [initialGrid]);
 
-  const memorizedInitialData = useMemo(
-    () => transformDataContratIntoBlock(initialGrid),
-    [initialGrid],
-  );
-  const memorizedNextLineData = useMemo(
-    () => transformDataContratIntoBlock([nextLine]),
-    [nextLine],
-  );
+  const memoizedInitialData = useMemo(() => {
+    return transformDataContractIntoBlock(initialGrid);
+  }, [initialGrid]);
 
-  const displayScore = useLerpNumber(score, {
-    integer: true,
+  const memoizedNextLineData = useMemo(() => {
+    return transformDataContractIntoBlock([nextLine]);
+    // initialGrid on purpose
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialGrid]);
+
+  const { endTimestamp } = useTournament(game.mode.value);
+  const { rank, suffix } = useRank({
+    tournamentId: game.tournament_id,
+    gameId: game.id,
   });
-  const displayCombo = useLerpNumber(combo, {
-    integer: true,
-  });
-  const displayMaxCombo = useLerpNumber(maxCombo, {
-    integer: true,
-  });
+
+  if (memoizedInitialData.length === 0) return null; // otherwise sometimes
+  // the grid is not displayed in Grid because the data is not ready
 
   return (
     <>
       <Card
-        className={`p-4 bg-secondary ${isTxProcessing ? "cursor-wait" : "cursor-move"}`}
+        className={`relative p-3 md:pt-4 bg-secondary ${isTxProcessing && "cursor-wait"} pb-2 md:pb-3`}
       >
+        <BonusAnimation
+          isMdOrLarger={isMdOrLarger}
+          optimisticScore={optimisticScore}
+          optimisticCombo={optimisticCombo}
+          optimisticMaxCombo={optimisticMaxCombo}
+        />
         <div
-          className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} mb-4 flex justify-between`}
+          className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} mb-2 md:mb-3 flex justify-between px-1`}
         >
           <div className="w-5/12">
             <GameBonus
@@ -196,70 +240,71 @@ const GameBoard: React.FC<GameBoardProps> = ({
               bonus={bonus}
             />
           </div>
-          <div className="flex gap-2">
-            <div
-              className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
-            >
-              <span>{displayScore}</span>
-              <FontAwesomeIcon
-                icon={faStar}
-                className="text-yellow-500 ml-1"
-                width={26}
-                height={26}
-              />
-            </div>
-            <div
-              className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
-            >
-              <span
-                className={`${isMdOrLarger ? "w-[38px]" : "w-[26px]"} text-right`}
-              >
-                {displayCombo}
-              </span>
-              <FontAwesomeIcon
-                icon={faFire}
-                className="text-yellow-500 ml-1"
-                width={26}
-                height={26}
-              />
-            </div>
-            <div
-              className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
-            >
-              <span
-                className={`${isMdOrLarger ? "w-[20px]" : "w-[13px]"} text-right`}
-              >
-                {displayMaxCombo}
-              </span>
-              <MaxComboIcon
-                width={isMdOrLarger ? 31 : 25}
-                height={isMdOrLarger ? 31 : 25}
-                className="text-yellow-500 ml-1"
-              />
-            </div>
-          </div>
+          <GameScores
+            score={optimisticScore}
+            combo={optimisticCombo}
+            maxCombo={optimisticMaxCombo}
+            isMdOrLarger={isMdOrLarger}
+          />
         </div>
-        <div className="flex justify-center items-center">
+
+        <div
+          className={`flex justify-center items-center ${!isTxProcessing && "cursor-move"}`}
+        >
           <Grid
-            initialData={memorizedInitialData}
-            nextLineData={memorizedNextLineData}
-            gridSize={gridSize}
-            gridHeight={rows}
-            gridWidth={cols}
+            initialData={memoizedInitialData}
+            nextLineData={memoizedNextLineData}
+            setNextLineHasBeenConsumed={setNextLineHasBeenConsumed}
+            gridSize={GRID_SIZE}
+            gridHeight={ROWS}
+            gridWidth={COLS}
             selectBlock={selectBlock}
             bonus={bonus}
             account={account}
+            setOptimisticScore={setOptimisticScore}
+            setOptimisticCombo={setOptimisticCombo}
+            setOptimisticMaxCombo={setOptimisticMaxCombo}
+            isTxProcessing={isTxProcessing}
+            setIsTxProcessing={setIsTxProcessing}
           />
         </div>
-        <br />
-        <div className="flex justify-center items-center">
+
+        <div className="relative">
+          <div className="absolute z-50 text-lg w-full flex justify-center items-center mt-2 md:mt-3 left-1/2 transform -translate-x-1/2">
+            {bonus !== BonusType.None && (
+              <h1
+                className={`text-yellow-500 p-2 rounded font-bold ${bonusDescription.length > 20 ? "text-sm" : "text-2xl"} md:text-lg bg-black bg-opacity-50 whitespace-nowrap overflow-hidden text-ellipsis`}
+              >
+                {bonusDescription}
+              </h1>
+            )}
+          </div>
           <NextLine
-            nextLineData={transformDataContratIntoBlock([nextLine])}
-            gridSize={gridSize}
+            nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}
+            gridSize={GRID_SIZE}
             gridHeight={1}
-            gridWidth={cols}
+            gridWidth={COLS}
           />
         </div>
+
+        {(game.mode.value === ModeType.Daily ||
+          game.mode.value === ModeType.Normal) && (
+          <div className="flex w-full items-center justify-between px-1 mt-2 md:mt-3 font-semibold md:font-normal">
+            <div>
+              Ranked {rank}
+              <sup>{suffix}</sup>
+            </div>
+            <div className="flex gap-4">
+              <h2 className="text-GRID_SIZEsm md:text-base font-semibold">
+                Tournament:
+              </h2>
+              <TournamentTimer
+                mode={game.mode.value}
+                endTimestamp={endTimestamp}
+              />
+            </div>
+          </div>
+        )}
       </Card>
     </>
   );

@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/elements/dialog";
+import useRank from "@/hooks/useRank";
 
 interface TweetPreviewProps {
   open: boolean;
@@ -12,23 +13,35 @@ interface TweetPreviewProps {
   level: number | "";
   score: number | undefined;
   imgSrc: string;
+  gameId: string;
+  tournamentId: number;
 }
 
 export const TweetPreview: React.FC<TweetPreviewProps> = ({
   open,
   setOpen,
-  level,
   score,
   imgSrc,
+  gameId,
+  tournamentId,
 }) => {
   const bodyRef: React.RefObject<HTMLDivElement> | null = useRef(null);
   const [tweetMsg, setTweetMsg] = useState("");
 
+  const { rank, suffix } = useRank({
+    tournamentId,
+    gameId,
+  });
+
   useEffect(() => {
     setTweetMsg(
-      `🎮 Just crushed it on ZKUBE a @zkorp_ game with an awesome score of ${score}! 💥 Can you beat that? 😎\n\nI'm pumped to go even higher\nWho's ready to join the challenge? 🚀 Let's see who can set the new high score!\n\n#HighScore #GameOn #ChallengeAccepted`,
+      `🎮 Just crushed it on ZKUBE with a score of ${score}! Ranked ${rank}${suffix} 💥
+Can you beat that? 😎
+Ready to level up! Who's joining the challenge? 🚀
+Play now: app.zkube.xyz
+@zkorp_ @zkube_game`,
     );
-  }, [open, score]);
+  }, [open, rank, score, suffix]);
 
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setTweetMsg(event.target.value);
@@ -58,13 +71,13 @@ export const TweetPreview: React.FC<TweetPreviewProps> = ({
       }
       //console.log("second => ", imgSrc, bodyRef.current);
     }
-  }, [imgSrc, bodyRef, bodyRef.current]);
+  }, [imgSrc, bodyRef]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         ref={bodyRef}
-        className="sm:max-w-[500px]"
+        className="sm:max-w-[500px] rounded-lg"
         aria-describedby={undefined}
       >
         <DialogHeader className="flex items-center text-2xl">
@@ -79,7 +92,6 @@ export const TweetPreview: React.FC<TweetPreviewProps> = ({
           onChange={handleChange}
           rows={6}
         />
-        <img src={imgSrc ? imgSrc : ""} />
         <div className="mt-8 flex w-full justify-center">
           <a
             className={

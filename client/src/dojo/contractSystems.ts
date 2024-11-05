@@ -1,6 +1,7 @@
 import { DojoProvider } from "@dojoengine/core";
 import { Config } from "../../dojo.config.ts";
 import { Account, UniversalDetails, cairo, shortString } from "starknet";
+import { Manifest } from '@/cartridgeConnector.tsx';
 
 const NAMESPACE = "zkube";
 
@@ -79,30 +80,20 @@ export interface TournamentClaim extends Signer {
 
 export type IWorld = Awaited<ReturnType<typeof setupWorld>>;
 
-export const getContractByName = (manifest: any, name: string) => {
-  const contract = manifest.contracts.find((contract: any) =>
-    contract.name.includes("::" + name),
-  );
-  if (contract) {
-    return contract.address;
-  } else {
-    return "";
-  }
-};
-
 export async function setupWorld(provider: DojoProvider, config: Config) {
-  const details: UniversalDetails | undefined = undefined; // { maxFee: 1e15 };
+  const details: UniversalDetails | undefined = { maxFee: 1e15 };
 
   function account() {
     const contract_name = "account";
-    const contract = config.manifest.contracts.find((c: any) =>
-      c.tag.includes(contract_name),
+    const contract = config.manifest.contracts.find((contract: Manifest['contracts'][number]) =>
+      contract.tag.includes(contract_name),
     );
     if (!contract) {
       throw new Error(`Contract ${contract_name} not found in manifest`);
     }
 
     const create = async ({ account, name }: Create) => {
+      console.log("contract", contract);
       try {
         const encoded_name = shortString.encodeShortString(name);
         return await provider.execute(
@@ -149,7 +140,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
   function play() {
     const contract_name = "play";
-    const contract = config.manifest.contracts.find((c: any) =>
+    const contract = config.manifest.contracts.find((c: Manifest['contracts'][number]) =>
       c.tag.includes(contract_name),
     );
     if (!contract) {
@@ -169,7 +160,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       beta,
     }: Start) => {
       const contract_name_chest = "chest";
-      const contract_chest = config.manifest.contracts.find((c: any) =>
+      const contract_chest = config.manifest.contracts.find((c: Manifest['contracts'][number]) =>
         c.tag.includes(contract_name_chest),
       );
       if (!contract_chest) {
@@ -178,7 +169,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
         );
       }
       const contract_name_tournament = "tournament";
-      const contract_tournament = config.manifest.contracts.find((c: any) =>
+      const contract_tournament = config.manifest.contracts.find((c: Manifest['contracts'][number]) =>
         c.tag.includes(contract_name_tournament),
       );
       if (!contract_tournament) {
@@ -188,7 +179,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       }
 
       const contract_name_zkorp = "zkorp";
-      const contract_zkorp = config.manifest.contracts.find((c: any) =>
+      const contract_zkorp = config.manifest.contracts.find((c: Manifest['contracts'][number]) =>
         c.tag.includes(contract_name_zkorp),
       );
       if (!contract_zkorp) {
@@ -316,7 +307,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
   function chest() {
     const contract_name = "chest";
-    const contract = config.manifest.contracts.find((c: any) =>
+    const contract = config.manifest.contracts.find((c: Manifest['contracts'][number]) =>
       c.tag.includes(contract_name),
     );
     if (!contract) {
@@ -368,7 +359,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
   function settings() {
     const contract_name = "settings";
-    const contract = config.manifest.contracts.find((c: any) =>
+    const contract = config.manifest.contracts.find((c: Manifest['contracts'][number]) =>
       c.tag.includes(contract_name),
     );
     if (!contract) {
@@ -486,7 +477,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
   function tournament() {
     const contract_name = "tournament";
-    const contract = config.manifest.contracts.find((c: any) =>
+    const contract = config.manifest.contracts.find((c: Manifest['contracts'][number]) =>
       c.tag.includes(contract_name),
     );
     if (!contract) {

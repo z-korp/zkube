@@ -36,12 +36,11 @@ impl GameImpl of GameTrait {
     fn new(id: u32, player_id: felt252, seed: felt252, mode: Mode, time: u64,) -> Game {
         let difficulty = mode.difficulty();
         let game_seed = mode.seed(time, id, seed);
-        let (row, color) = Controller::create_line(game_seed, difficulty);
+        let row = Controller::create_line(game_seed, difficulty);
         Game {
             id,
             over: false,
             next_row: row,
-            next_color: color,
             score: 0,
             moves: 0,
             hammer_bonus: 0,
@@ -53,12 +52,14 @@ impl GameImpl of GameTrait {
             combo_counter: 0,
             max_combo: 0,
             blocks: 0,
-            colors: 0,
             player_id,
             seed: game_seed,
             mode: mode.into(),
             start_time: time,
             tournament_id: 0,
+            score_in_tournament: 0,
+            combo_counter_in_tournament: 0,
+            max_combo_in_tournament: 0,
             pending_chest_prize: 0,
         }
     }
@@ -101,12 +102,10 @@ impl GameImpl of GameTrait {
     fn setup_next(ref self: Game) {
         self.reseed();
 
-        let (row, color) = Controller::create_line(self.seed, self.get_difficulty());
+        let row = Controller::create_line(self.seed, self.get_difficulty());
 
         self.blocks = Controller::add_line(self.blocks, self.next_row);
-        self.colors = Controller::add_line(self.colors, self.next_color);
         self.next_row = row;
-        self.next_color = color;
     }
 
     #[inline(always)]
@@ -160,11 +159,8 @@ impl GameImpl of GameTrait {
         };
 
         // [Effect] Swipe block
-        let (new_blocks, new_colors) = Controller::swipe(
-            self.blocks, self.colors, row_index, start_index, direction, count
-        );
+        let new_blocks = Controller::swipe(self.blocks, row_index, start_index, direction, count);
         self.blocks = new_blocks;
-        self.colors = new_colors;
 
         // [Effect] Assess game
         let mut counter: u8 = 0;
@@ -218,12 +214,10 @@ impl GameImpl of GameTrait {
                     break;
                 };
                 inner_blocks = self.blocks;
-                let (new_blocks, new_colors) = Controller::apply_gravity(self.blocks, self.colors);
+                let new_blocks = Controller::apply_gravity(self.blocks);
                 self.blocks = new_blocks;
-                self.colors = new_colors;
             };
             self.blocks = Controller::assess_lines(self.blocks, ref counter, ref points, true);
-            self.colors = Controller::assess_lines(self.colors, ref counter, ref points, false);
             if upper_blocks == self.blocks {
                 break points;
             };
@@ -233,9 +227,8 @@ impl GameImpl of GameTrait {
 
     #[inline(always)]
     fn apply_bonus(ref self: Game, bonus: Bonus, row_index: u8, index: u8) {
-        let (blocks, colors) = bonus.apply(self.blocks, self.colors, row_index, index);
+        let blocks = bonus.apply(self.blocks, row_index, index);
         self.blocks = blocks;
-        self.colors = colors;
 
         // [Effect] Assess game
         let mut counter = 0;
@@ -268,7 +261,6 @@ impl ZeroableGame of core::Zeroable<Game> {
             score: 0,
             moves: 0,
             next_row: 0,
-            next_color: 0,
             hammer_bonus: 0,
             wave_bonus: 0,
             totem_bonus: 0,
@@ -278,12 +270,14 @@ impl ZeroableGame of core::Zeroable<Game> {
             combo_counter: 0,
             max_combo: 0,
             blocks: 0,
-            colors: 0,
             player_id: 0,
             seed: 0,
             mode: 0,
             start_time: 0,
             tournament_id: 0,
+            score_in_tournament: 0,
+            combo_counter_in_tournament: 0,
+            max_combo_in_tournament: 0,
             pending_chest_prize: 0,
         }
     }

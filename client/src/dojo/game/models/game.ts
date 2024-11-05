@@ -6,13 +6,14 @@ import {
   ROW_BIT_COUNT,
   DEFAULT_GRID_HEIGHT,
   DEFAULT_GRID_WIDTH,
+  GAME_MODE_FREE_MULTIPLIER,
+  GAME_MODE_PAID_MULTIPLIER,
 } from "../constants";
 import { Mode } from "../types/mode";
 
 export interface Block {
   width: number;
   value: number;
-  color: number;
 }
 
 export interface Row {
@@ -36,13 +37,16 @@ export class Game {
   public moves: number;
   public buyIn: number;
   public next_row: number[];
-  public next_color: number[];
   public bonuses: number[];
   public blocks: number[][];
+  public blocksRaw: bigint;
   public rows: Row[];
   public player_id: string;
   public seed: bigint;
   public start_time: Date;
+  public score_in_tournament: number;
+  public combo_counter_in_tournament: number;
+  public max_combo_in_tournament: number;
   public tournament_id: number;
 
   constructor(game: ComponentValue) {
@@ -66,32 +70,18 @@ export class Game {
     this.score = game.score;
     this.buyIn = 100; // Set default buy-in of $100
     this.moves = game.moves;
-    this.next_color = Packer.sized_unpack(
-      BigInt(game.next_color),
-      BigInt(BLOCK_BIT_COUNT),
-      DEFAULT_GRID_WIDTH,
-    );
     this.bonuses = game.bonuses;
     this.player_id = "0x" + game.player_id.toString(16);
     this.seed = game.seed;
-    this.start_time = game.start_time;
+    this.start_time = new Date(game.start_time * 1000);
+    this.score_in_tournament = game.score_in_tournament;
+    this.combo_counter_in_tournament = game.combo_counter_in_tournament;
+    this.max_combo_in_tournament = game.max_combo_in_tournament;
     this.tournament_id = game.tournament_id;
     // Destructure blocks and colors bitmaps in to Rows and Blocks
+    this.blocksRaw = game.blocks;
     this.blocks = Packer.sized_unpack(
       BigInt(game.blocks),
-      BigInt(ROW_BIT_COUNT),
-      DEFAULT_GRID_HEIGHT,
-    )
-      .map((row) =>
-        Packer.sized_unpack(
-          BigInt(row),
-          BigInt(BLOCK_BIT_COUNT),
-          DEFAULT_GRID_WIDTH,
-        ),
-      )
-      .reverse();
-    const colors = Packer.sized_unpack(
-      BigInt(game.colors),
       BigInt(ROW_BIT_COUNT),
       DEFAULT_GRID_HEIGHT,
     )
@@ -108,8 +98,7 @@ export class Game {
       for (let index = 0; index < row.length; index++) {
         const value = row[index];
         const width = value ? value : 1;
-        const color = colors[rowIndex][index];
-        blocks.push({ width, value, color });
+        blocks.push({ width, value });
         index += width - 1;
       }
       return { blocks };
@@ -120,5 +109,15 @@ export class Game {
 
   public isOver(): boolean {
     return this.over;
+  }
+
+  public isPaid(): boolean {
+    return this.mode.price() > 0n;
+  }
+
+  public getGameModeMultiplier(): number {
+    return this.mode.price() === 0n
+      ? GAME_MODE_FREE_MULTIPLIER
+      : GAME_MODE_PAID_MULTIPLIER;
   }
 }

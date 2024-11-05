@@ -405,10 +405,6 @@
         "type": "core::integer::u32"
       },
       {
-        "name": "next_color",
-        "type": "core::integer::u32"
-      },
-      {
         "name": "hammer_bonus",
         "type": "core::integer::u8"
       },
@@ -445,10 +441,6 @@
         "type": "core::felt252"
       },
       {
-        "name": "colors",
-        "type": "core::felt252"
-      },
-      {
         "name": "player_id",
         "type": "core::felt252"
       },
@@ -467,6 +459,18 @@
       {
         "name": "tournament_id",
         "type": "core::integer::u64"
+      },
+      {
+        "name": "score_in_tournament",
+        "type": "core::integer::u32"
+      },
+      {
+        "name": "combo_counter_in_tournament",
+        "type": "core::integer::u8"
+      },
+      {
+        "name": "max_combo_in_tournament",
+        "type": "core::integer::u8"
       },
       {
         "name": "pending_chest_prize",

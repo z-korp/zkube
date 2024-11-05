@@ -36,6 +36,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
 import { Game } from "@/dojo/game/models/game";
 import MaxComboIcon from "../components/MaxComboIcon";
+import { Player } from "@/dojo/game/models/player";
 
 // Format dates
 const formatDate = (date: Date): string =>
@@ -47,7 +48,7 @@ const formatDate = (date: Date): string =>
 const generateChartData = (games: Game[]) =>
   games.map((game) => ({
     score: game.score,
-    date: formatDate(new Date(Number(game.start_time) * 1000)),
+    date: formatDate(game.start_time),
     combo: game.combo,
     moves: game.moves,
   }));
@@ -67,7 +68,7 @@ const filterGamesByDate = (games: Game[], period: string) => {
   now.setHours(0, 0, 0, 0);
 
   return games.filter((game) => {
-    const gameDate = new Date(Number(game.start_time) * 1000);
+    const gameDate = game.start_time;
     gameDate.setHours(0, 0, 0, 0);
 
     switch (period) {
@@ -107,7 +108,10 @@ const calculateBonusUsage = (games: Game[]) =>
     },
   );
 
-export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
+export const Statistics: React.FC<{ games: Game[]; player: Player }> = ({
+  games,
+  player,
+}) => {
   const [selectedPeriod, setSelectedPeriod] = useState("All");
   const [filteredGames, setFilteredGames] = useState<Game[]>([]);
   const [data, setData] = useState(generateChartData(filteredGames));
@@ -146,12 +150,12 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
         <Card className="border-0 p-0">
           <CardHeader className="p-0 mt-3">
             <Select onValueChange={setSelectedPeriod} defaultValue="All">
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full font-semibold md:font-normal">
                 <SelectValue
                   placeholder={`[ ${data[0]?.date} ~ ${data[data.length - 1]?.date} ]`}
                 />
               </SelectTrigger>
-              <SelectContent className="z-[2100]">
+              <SelectContent className="z-[2100] font-semibold md:font-normal">
                 <SelectItem value="Today">Today</SelectItem>
                 <SelectItem value="Month">This Month</SelectItem>
                 <SelectItem value="Year">This Year</SelectItem>
@@ -163,42 +167,73 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
           <CardContent className="p-0 mt-3">
             <Tabs defaultValue="overview">
               <TabsList className="w-full">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="charts">Charts</TabsTrigger>
-                <TabsTrigger value="details">Details</TabsTrigger>
+                <TabsTrigger
+                  value="overview"
+                  className="font-semibold md:font-normal"
+                >
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger
+                  value="charts"
+                  className="font-semibold md:font-normal"
+                >
+                  Charts
+                </TabsTrigger>
+                <TabsTrigger
+                  value="details"
+                  className="font-semibold md:font-normal"
+                >
+                  Details
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="pt-1">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
+                <div className="grid grid-cols-2 gap-2 md:gap-4">
                   <Card>
-                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8">
+                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8 md:py-4">
+                      <CardTitle>Daily Streak</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:py-3 md:pt-0 md:px-10">
+                      {player.daily_streak}
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8 md:py-4">
+                      <CardTitle>Account Age</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:py-3 md:pt-0 md:px-10">
+                      {player.getAccountAgeInDays()}
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8 md:py-4">
                       <CardTitle>Games Played</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:px-10">
+                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:py-3 md:pt-0 md:px-10">
                       {totalGamesPlayed}
                     </CardContent>
                   </Card>
                   <Card>
-                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8">
+                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8 md:py-4">
                       <CardTitle>Highest Score</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:px-10">
+                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:py-3 md:pt-0 md:px-10">
                       {highestScore}
                     </CardContent>
                   </Card>
                   <Card>
-                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8">
+                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8 md:py-4">
                       <CardTitle>Average Score</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:px-10">
+                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:py-3 md:pt-0 md:px-10">
                       {averageScore.toFixed(1)}
                     </CardContent>
                   </Card>
                   <Card>
-                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8">
+                    <CardHeader className="p-4 pb-0 md:p-6 md:pt-8 md:py-4">
                       <CardTitle>Total Score</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:px-10">
+                    <CardContent className="text-lg md:text-4xl p-4 pt-3 pb-2 md:p-6 md:py-3 md:pt-0 md:px-10">
                       {totalScore}
                     </CardContent>
                   </Card>
@@ -288,7 +323,9 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
+                      <TableHead className="font-semibold md:font-normal">
+                        Date
+                      </TableHead>
                       <TableHead>
                         <FontAwesomeIcon
                           icon={faStar}
@@ -298,21 +335,24 @@ export const Statistics: React.FC<{ games: Game[] }> = ({ games }) => {
                       <TableHead>
                         <FontAwesomeIcon
                           icon={faFire}
-                          className="text-yellow-500"
+                          className="text-slate-500"
                         />
                       </TableHead>
                       <TableHead>
                         <MaxComboIcon
                           width={15}
                           height={15}
-                          className={`text-yellow-500`}
+                          className="text-slate-500"
                         />
                       </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {data.map((game, index) => (
-                      <TableRow key={index}>
+                      <TableRow
+                        key={index}
+                        className="font-semibold md:font-normal"
+                      >
                         <TableCell>{game.date}</TableCell>
                         <TableCell>{game.score}</TableCell>
                         <TableCell>{game.combo}</TableCell>

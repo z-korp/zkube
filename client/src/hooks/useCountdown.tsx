@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 
-const getSecondsUntil = (targetDate: Date): number => {
-  const now: Date = new Date();
-  const distance = Number(targetDate) - Number(now);
+const getSecondsUntil = (targetTimestamp: number): number => {
+  const now = Date.now();
+  const distance = targetTimestamp - now;
 
   if (distance < 0) {
     return 0;
@@ -11,16 +11,20 @@ const getSecondsUntil = (targetDate: Date): number => {
   return Math.floor(distance / 1000);
 };
 
-const useCountdown = (targetDate: Date): number => {
-  const [secondsLeft, setSecondsLeft] = useState(getSecondsUntil(targetDate));
+const useCountdown = (targetTimestamp: number): number => {
+  const [secondsLeft, setSecondsLeft] = useState(() =>
+    getSecondsUntil(targetTimestamp),
+  );
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setSecondsLeft(getSecondsUntil(targetDate));
+      setSecondsLeft(getSecondsUntil(targetTimestamp));
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [targetDate]);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [targetTimestamp]);
 
   return secondsLeft;
 };

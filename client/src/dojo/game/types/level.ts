@@ -1,4 +1,26 @@
 const MAX_LEVEL = 20;
+const POINT_TABLE = [
+  300, // index 0
+  600, // index 1
+  1_000,
+  1_500,
+  2_200,
+  3_100,
+  4_300,
+  5_800,
+  7_800,
+  10_300,
+  13_500, // index 10
+  17_500,
+  22_500,
+  28_500,
+  36_000,
+  45_000,
+  56_000,
+  70_000,
+  100_000,
+  1_000_000, // index 19
+];
 
 export class Level {
   value: number;
@@ -12,20 +34,12 @@ export class Level {
   }
 
   public getPoints(): number {
-    const pointsTable = [
-      100, 300, 600, 1_000, 1_500, 2_200, 3_100, 4_300, 5_800, 7_800, 10_300,
-      13_500, 17_500, 22_500, 28_500, 36_000, 45_000, 56_000, 70_000, 100_000,
-    ];
-    return pointsTable[this.value - 1];
+    return POINT_TABLE[this.value - 1];
   }
 
   public static fromPoints(points: number): Level {
-    const pointsTable = [
-      100, 300, 600, 1_000, 1_500, 2_200, 3_100, 4_300, 5_800, 7_800, 10_300,
-      13_500, 17_500, 22_500, 28_500, 36_000, 45_000, 56_000, 70_000, 100_000,
-    ];
-    const level = pointsTable.findIndex((threshold) => points < threshold) + 1;
-    return new Level(level === 0 ? MAX_LEVEL : level);
+    const level = POINT_TABLE.findIndex((threshold) => points < threshold) + 1;
+    return new Level(level);
   }
 
   public next(): Level | null {

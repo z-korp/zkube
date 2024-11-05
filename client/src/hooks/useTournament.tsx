@@ -1,14 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
-import { ModeType } from "../dojo/game/types/mode";
-import {
-  DAILY_MODE_DURATION,
-  NORMAL_MODE_DURATION,
-} from "../dojo/game/constants";
+import { Mode, ModeType } from "../dojo/game/types/mode";
 import { useComponentValue } from "@dojoengine/react";
 import { Entity } from "@dojoengine/recs";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useDojo } from "@/dojo/useDojo";
 import { Tournament } from "@/dojo/game/models/tournament";
+import useDeepMemo from "./useDeepMemo";
 
 interface TournamentInfo {
   id: number;
@@ -32,22 +29,29 @@ const useTournament = (mode: ModeType): TournamentInfo => {
   useEffect(() => {
     const updateTournamentInfo = () => {
       const currentTimestamp = Math.floor(Date.now() / 1000);
-      const duration =
-        mode === ModeType.Daily ? DAILY_MODE_DURATION : NORMAL_MODE_DURATION;
+
+      const duration = new Mode(mode).duration();
 
       const id = Math.floor(currentTimestamp / duration);
       const end = (id + 1) * duration;
 
-      setEndTimestamp(end);
-      setId(id);
+      // Check if the current timestamp has reached or passed the end timestamp
+      if (currentTimestamp >= endTimestamp) {
+        // Reset to initial values
+        setEndTimestamp(end);
+        setId(id);
+      } else {
+        // Update remaining time
+        setEndTimestamp(end);
+      }
     };
 
     updateTournamentInfo();
-    // Update every minute
-    const intervalId = setInterval(updateTournamentInfo, 60000);
+    // Update every second instead of every minute
+    const intervalId = setInterval(updateTournamentInfo, 1000);
 
     return () => clearInterval(intervalId);
-  }, [mode]);
+  }, [mode, endTimestamp]);
 
   const tournamentKey = useMemo(
     () => getEntityIdFromKeys([BigInt(id)]) as Entity,
@@ -55,6 +59,7 @@ const useTournament = (mode: ModeType): TournamentInfo => {
   );
 
   const component = useComponentValue(Tournament, tournamentKey);
+
   const tournament = useMemo(() => {
     return component ? new TournamentClass(component) : null;
   }, [component]);

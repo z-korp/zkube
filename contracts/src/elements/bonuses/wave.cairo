@@ -11,7 +11,7 @@ use zkube::types::bonus::Bonus;
 
 impl BonusImpl of BonusTrait {
     #[inline(always)]
-    fn apply(blocks: felt252, colors: felt252, row_index: u8, index: u8) -> (felt252, felt252) {
+    fn apply(blocks: felt252, row_index: u8, index: u8) -> felt252 {
         // [Compute] Mask of the row
         let base_mask = constants::ROW_SIZE - 1;
         let exp = row_index * constants::ROW_BIT_COUNT;
@@ -20,18 +20,19 @@ impl BonusImpl of BonusTrait {
         // [Compute] Apply negative mask on bitmap to remove the row
         let mut bitmap: u256 = blocks.into();
         bitmap = bitmap & ~mask;
-        (bitmap.try_into().unwrap(), colors)
+
+        bitmap.try_into().unwrap()
     }
 
     #[inline(always)]
     fn get_count(score: u32, combo_count: u8, max_combo: u8) -> u8 {
-        if combo_count >= 24 {
+        if combo_count >= 64 {
             return 3;
         }
-        if combo_count >= 16 {
+        if combo_count >= 32 {
             return 2;
         }
-        if combo_count >= 8 {
+        if combo_count >= 16 {
             return 1;
         }
         return 0;

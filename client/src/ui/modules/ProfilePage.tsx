@@ -13,7 +13,6 @@ import Connect from "../components/Connect";
 import { useGames } from "@/hooks/useGames";
 import { usePlayer } from "@/hooks/usePlayer";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
-import { Level } from "@/dojo/game/types/level";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/elements/tabs";
 import { motion } from "framer-motion";
 import { Rewards } from "./Rewards";
@@ -35,22 +34,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
     if (!account?.address || !games) return [];
     return games.filter((game) => game.player_id === account?.address);
   }, [games, account?.address]);
-
-  const levelPlayer = player?.points ? Level.fromPoints(player.points) : null;
-  const highestCombo = useMemo(
-    () => Math.max(...filteredGames.map((game) => game.combo), 0),
-    [filteredGames],
-  );
-  const highestScore = useMemo(
-    () =>
-      Math.max(
-        ...filteredGames.map((game) =>
-          Level.fromPoints(game.score).getPoints(),
-        ),
-        0,
-      ),
-    [filteredGames],
-  );
 
   return (
     <>
@@ -78,11 +61,19 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
             >
               <TabsList className="grid w-full grid-cols-2">
                 {/*<TabsTrigger value="achievements">Achievements</TabsTrigger>*/}
-                <TabsTrigger value="rewards" className="relative">
+                <TabsTrigger
+                  value="rewards"
+                  className="relative font-semibold md:font-normal"
+                >
                   Rewards
                   {rewardsCount > 0 && <NotifCount count={rewardsCount} />}
                 </TabsTrigger>
-                <TabsTrigger value="stats">Statistics</TabsTrigger>
+                <TabsTrigger
+                  value="stats"
+                  className="font-semibold md:font-normal"
+                >
+                  Statistics
+                </TabsTrigger>
               </TabsList>
               <TabsContent
                 className="max-h-[480px] overflow-y-auto"
@@ -117,7 +108,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
                   transition={{ duration: 0.5, ease: "easeInOut" }}
                 >
                   <CardContent className="p-0">
-                    <Statistics games={filteredGames} />
+                    <Statistics games={filteredGames} player={player} />
                   </CardContent>
                 </motion.div>
               </TabsContent>
@@ -125,7 +116,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
           </DialogContent>
         </Dialog>
       )}
-      {ACCOUNT_CONNECTOR === "controller" && <Connect />}
+      {ACCOUNT_CONNECTOR === "controller" && <Connect inMenu={true} />}
     </>
   );
 };

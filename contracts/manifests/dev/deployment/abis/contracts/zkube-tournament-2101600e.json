@@ -152,7 +152,7 @@
   {
     "type": "impl",
     "name": "TournamentSystemImpl",
-    "interface_name": "zkube::systems::tournament::ITournament"
+    "interface_name": "zkube::systems::tournament::ITournamentSystem"
   },
   {
     "type": "enum",
@@ -169,17 +169,25 @@
       {
         "name": "Daily",
         "type": "()"
+      },
+      {
+        "name": "Free",
+        "type": "()"
       }
     ]
   },
   {
     "type": "interface",
-    "name": "zkube::systems::tournament::ITournament",
+    "name": "zkube::systems::tournament::ITournamentSystem",
     "items": [
       {
         "type": "function",
         "name": "claim",
         "inputs": [
+          {
+            "name": "mode",
+            "type": "zkube::types::mode::Mode"
+          },
           {
             "name": "tournament_id",
             "type": "core::integer::u64"
@@ -187,10 +195,6 @@
           {
             "name": "rank",
             "type": "core::integer::u8"
-          },
-          {
-            "name": "mode",
-            "type": "zkube::types::mode::Mode"
           }
         ],
         "outputs": [],
@@ -210,7 +214,11 @@
           },
           {
             "name": "amount",
-            "type": "core::felt252"
+            "type": "core::integer::u128"
+          },
+          {
+            "name": "caller",
+            "type": "core::starknet::contract_address::ContractAddress"
           }
         ],
         "outputs": [],

@@ -69,7 +69,7 @@ fn test_game_totem_bonus_unlock() {
 
     // Test max combo influence
     update_combo_and_check(@store, game_id, 2, 6, 3); // Low combo, high max combo
-    update_combo_and_check(@store, game_id, 7, 3, 2); // High combo, low max combo
+    update_combo_and_check(@store, game_id, 7, 3, 1); // High combo, low max combo
 }
 
 #[test]

@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
 import { Entity } from "@dojoengine/recs";
+import useDeepMemo from "./useDeepMemo";
 
 export const usePlayer = ({ playerId }: { playerId: string | undefined }) => {
   const {
@@ -14,17 +15,6 @@ export const usePlayer = ({ playerId }: { playerId: string | undefined }) => {
     },
   } = useDojo();
 
-  /*const gameEntities: any = useEntityQuery([Has(Player)]);
-  const games = useMemo(
-    () => gameEntities.map((id: any) => getComponentValue(Player, id)),
-    [gameEntities, Player],
-  );
-  console.log(
-    "XXXXXXXXXXXXXX",
-    games.map((game: any) => game.id.toString(16)),
-  );*/
-
-  //console.log("playerId", playerId);
   const playerKey = useMemo(
     () => getEntityIdFromKeys([BigInt(playerId ? playerId : -1)]) as Entity,
     [playerId],
@@ -32,7 +22,7 @@ export const usePlayer = ({ playerId }: { playerId: string | undefined }) => {
   //console.log("playerKey", playerKey);
   const component = useComponentValue(Player, playerKey);
   //console.log("component", component);
-  const player = useMemo(() => {
+  const player = useDeepMemo(() => {
     return component ? new PlayerClass(component) : null;
   }, [component]);
 

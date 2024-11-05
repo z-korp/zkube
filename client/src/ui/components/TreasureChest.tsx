@@ -3,13 +3,14 @@ import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
 import { Progress } from "../elements/progress";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useAllChests } from "@/hooks/useAllChests";
-import { Chest } from "@/dojo/game/models/chest";
 import { useParticipations } from "@/hooks/useParticipations";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useChestContribution } from "@/hooks/useChestContribution";
 import ChestTimeline from "./ChestTimeline";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { formatPrize } from "@/utils/wei";
+import { useMediaQuery } from "react-responsive";
+import { DialogPrizePoolContributors } from "./DialogPrizePoolContributors";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -25,8 +26,9 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
   const { account } = useAccountCustom();
   const chests = useAllChests();
   const participations = useParticipations({ player_id: account?.address });
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [selectedChest, setSelectedChest] = useState<Chest | null>(null);
+  // const [showLeaderboard, setShowLeaderboard] = useState(false);
+  // const [selectedChest, setSelectedChest] = useState<Chest | null>(null);
+  const isMdOrLarger = useMediaQuery({ minWidth: 768 });
 
   // Find the index of the first incomplete chest
   const initialChestIndex = chests.findIndex(
@@ -49,10 +51,6 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
     account?.address || "",
   );
 
-  const handleChestClick = (chest: Chest) => {
-    setSelectedChest(chest);
-  };
-
   const handlePrevious = () => {
     setCurrentChestIndex((prev) => Math.max(0, prev - 1));
   };
@@ -64,15 +62,15 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="sm:max-w-[700px] w-[95%] flex flex-col mx-auto justify-start"
+        className="sm:max-w-[700px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-4"
         aria-describedby={undefined}
       >
         <DialogTitle>
           <VisuallyHidden.Root>Collective Treasure Chest</VisuallyHidden.Root>
         </DialogTitle>
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col gap-4 font-semibold md:font-normal">
           {/* Top Section */}
-          <div className="text-center mb-6 flex flex-col relative">
+          <div className="text-center flex flex-col relative">
             <button
               onClick={handlePrevious}
               className="absolute left-2 top-1/2 transform -translate-y-1/2 transition-transform duration-300 ease-in-out hover:scale-150 rounded-full p-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
@@ -80,7 +78,6 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
-
             <button
               onClick={handleNext}
               className="absolute right-2 top-1/2 transform -translate-y-1/2 transition-transform duration-300 ease-in-out hover:scale-150 rounded-full p-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
@@ -92,14 +89,21 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
               className={`self-center h-[180px] ${currentChest.points === 0 && "grayscale"}`}
               src={currentChest.getIcon()}
             />
-            <p className="text-lg font-semibold mt-2">
-              {`Total Prize: ${formatPrize(currentChest.prize, VITE_PUBLIC_GAME_TOKEN_SYMBOL)}`}
-            </p>
+            <div className="relative flex items-center justify-center gap-2 mt-4 w-full">
+              <p className="text-lg font-semibold text-center">
+                {`Total Prize: ${formatPrize(currentChest.prize, VITE_PUBLIC_GAME_TOKEN_SYMBOL)}`}
+              </p>
+              <div
+                className={`absolute transition-transform duration-300 hover:-translate-y-1 ${isMdOrLarger ? "right-20" : "right-0"}`}
+              >
+                <DialogPrizePoolContributors chest={currentChest} />
+              </div>
+            </div>
           </div>
 
           {/* Middle Section */}
           <div>
-            <div className="relative mb-6">
+            <div className="relative">
               <h3 className="text-lg font-semibold mb-2">
                 Collective Progress
               </h3>
@@ -115,7 +119,7 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
             </div>
           </div>
 
-          <div className="mb-6">
+          <div className="">
             <h3 className="text-lg font-semibold">Your Impact</h3>
             <div className="text-sm text-center">
               <p>
@@ -144,13 +148,6 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
           </button>*/}
 
           {/* Leaderboard Panel */}
-          {showLeaderboard && (
-            <div className="mt-4 p-4 bg-gray-100 rounded">
-              <h3 className="text-lg font-semibold mb-2">Top Contributors</h3>
-              {/* Add your leaderboard content here */}
-              <p>Leaderboard content goes here...</p>
-            </div>
-          )}
         </div>
       </DialogContent>
     </Dialog>

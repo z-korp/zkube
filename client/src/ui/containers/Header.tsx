@@ -1,109 +1,19 @@
-import { useCallback, useState } from "react";
 import { Separator } from "@/ui/elements/separator";
-import { useNavigate } from "react-router-dom";
-import { usePlayer } from "@/hooks/usePlayer";
 import { useMediaQuery } from "react-responsive";
-import { Leaderboard } from "../modules/Leaderboard";
-import { ProfilePage } from "../modules/ProfilePage";
-import Connect from "../components/Connect";
-import SettingsDropDown from "../components/SettingsDropDown";
-import MobileMenu from "../components/MobileMenu";
-import LevelIndicator from "../components/LevelIndicator";
-import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
-import DailyGameStatus from "../components/DailyGameStatus";
-import HeaderBalance from "../components/HeaderBalance";
-import CollectiveTreasureChest from "../components/TreasureChest";
-import { Button } from "../elements/button";
-import TutorialModal from "../components/TutorialModal";
+import DesktopHeader from "../components/DesktopHeader";
+import MobileHeader from "../components/MobileHeader";
 
-interface HeaderProps {
-  onStartTutorial: () => void;
-}
-
-export const Header: React.FC<HeaderProps> = ({ onStartTutorial }) => {
-  const { account } = useAccountCustom();
-
+export const Header = () => {
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
-
-  const { player } = usePlayer({ playerId: account?.address });
-
-  const navigate = useNavigate();
-
-  const handleClick = useCallback(() => {
-    navigate("", { replace: true });
-  }, [navigate]);
-
-  const [isOpen, setIsOpen] = useState(false);
-  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
-
-  const handleTutorialOpen = useCallback(() => {
-    setIsTutorialOpen(true);
-  }, []);
-
-  const handleTutorialClose = useCallback(() => {
-    setIsTutorialOpen(false);
-  }, []);
-
-  const onClose = () => {
-    setIsOpen(false);
-  };
-
-  const handleStartTutorial = useCallback(() => {
-    handleTutorialClose();
-    onStartTutorial();
-  }, [handleTutorialClose, onStartTutorial]);
 
   return isMdOrLarger ? (
     <div>
-      <div className="flex justify-center items-center p-4 flex-wrap md:justify-between">
-        <div
-          className="cursor-pointer flex gap-8 items-center"
-          onClick={handleClick}
-        >
-          <p className="text-4xl font-bold">zKube</p>
-          <Leaderboard />
-          {/*<ContentTabs />*/}
-          <Button variant={"outline"} onClick={() => setIsOpen(true)}>
-            Collective Chests
-          </Button>
-          <CollectiveTreasureChest isOpen={isOpen} onClose={onClose} />
-          <Button
-            variant="outline"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleTutorialOpen();
-            }}
-          >
-            Tutorial
-          </Button>
-          <TutorialModal
-            isOpen={isTutorialOpen}
-            onClose={handleTutorialClose}
-            onStartTutorial={handleStartTutorial}
-          />
-        </div>
-        <div className="flex flex-col gap-4 items-center md:flex-row">
-          {!!player && (
-            <div className="flex gap-3">
-              <ProfilePage wfit />
-              <LevelIndicator currentXP={player.points} />
-              <DailyGameStatus />
-              <HeaderBalance />
-            </div>
-          )}
-
-          {ACCOUNT_CONNECTOR === "controller" && <Connect />}
-          <div className="flex gap-4">
-            <SettingsDropDown />
-            {/*<ModeToggle />*/}
-          </div>
-        </div>
-      </div>
+      <DesktopHeader />
       <Separator />
     </div>
   ) : (
     <div>
-      <MobileMenu />
+      <MobileHeader />
       <Separator />
     </div>
   );
