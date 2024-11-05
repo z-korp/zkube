@@ -18,11 +18,13 @@ const Tutorial = ({
   showTutorialText,
   tutorial,
   setTutorial,
+  endTutorial,
 }: {
   showGrid: any;
   showTutorialText: any;
   tutorial: any;
   setTutorial: (value: boolean) => void;
+  endTutorial: () => void;
 }) => {
   const [level, setLevel] = useState<number>(1);
   const [score, setScore] = useState<number | undefined>(0);
@@ -211,9 +213,7 @@ const Tutorial = ({
   const displayCombo = useLerpNumber(combo, { integer: true });
   const displayMaxCombo = useLerpNumber(maxCombo, { integer: true });
 
-  const endTutorial = () => {
-    setTutorial(false);
-  };
+
   return (
     <div className="flex flex-col items-center w-[500px] relative">
       {showGrid && (

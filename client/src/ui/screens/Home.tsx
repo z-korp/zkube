@@ -103,18 +103,63 @@ export const Home = () => {
   }, []);
 
   const [isTutorialActive, setIsTutorialActive] = useState(false);
-  const [showGrid, setShowGrid] = useState(false);
-  const [showTutorialText, setShowTutorialText] = useState(true);
+  const [tutorialState, setTutorialState] = useState({
+    isActive: false,
+    showGrid: false,
+    showText: true,
+  });
 
-  const startTutorial = () => {
-    setIsTutorialActive(true);
-  };
 
-  const handleStartTutorial = () => {
-    setShowGrid(true);
+  const handleTutorialCleanup = useCallback(() => {
+    setTutorialState({
+      isActive: false,
+      showGrid: false,
+      showText: false,
+    });
+  }, []);
+  
+
+
+  const startTutorial = useCallback(() => {
+    try {
+      setTutorialState(prev => ({
+        ...prev,
+        isActive: true,
+      }));
+    } catch (error) {
+      console.error('Failed to start tutorial:', error);
+      handleTutorialCleanup();
+    }
+  }, [handleTutorialCleanup]);
+
+
+
+  const handleStartTutorial = useCallback(() => {
+    setTutorialState({
+      isActive: true,
+      showGrid: true,
+      showText: false,
+    });
+
     startTutorial();
-    setShowTutorialText(false);
-  };
+  }, []);
+  
+
+  const endTutorial = useCallback(() => {
+    setTutorialState(prev => ({
+      ...prev,
+      isActive: false,
+    }));
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      handleTutorialCleanup();
+    };
+  }, [handleTutorialCleanup]);
+  
+
+
 
   return (
     <div className="relative flex flex-col h-screen">
@@ -133,13 +178,13 @@ export const Home = () => {
         >
           <div className="relative flex flex-col gap-8 grow items-center justify-start">
             <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
-              {isTutorialActive ? (
-                <Tutorial
-                  showGrid={showGrid}
-                  showTutorialText={showTutorialText}
-                  tutorial={isTutorialActive}
-                  setTutorial={setIsTutorialActive}
-                />
+            {tutorialState.isActive ? (
+              <Tutorial
+                showGrid={tutorialState.showGrid}
+                showTutorialText={tutorialState.showText}
+                tutorial={tutorialState.isActive}
+                endTutorial={endTutorial}
+              />
               ) : (
                 <>
                   <Create />

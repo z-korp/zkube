@@ -12,10 +12,8 @@ import LevelIndicator from "../components/LevelIndicator";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 import DailyGameStatus from "../components/DailyGameStatus";
 import HeaderBalance from "../components/HeaderBalance";
-import ContentTabs from "../components/ContentTabs";
 import CollectiveTreasureChest from "../components/TreasureChest";
 import { Button } from "../elements/button";
-import { TutorialComponent } from "../modules/TutorialComponent";
 import TutorialModal from "../components/TutorialModal";
 
 interface HeaderProps {
@@ -68,8 +66,14 @@ export const Header: React.FC<HeaderProps> = ({ onStartTutorial }) => {
           <Button variant={"outline"} onClick={() => setIsOpen(true)}>
             Collective Chests
           </Button>
-          <CollectiveTreasureChest isOpen={isOpen} onClose={onClose} />
-          <Button variant="outline" onClick={handleTutorialOpen}>
+          <CollectiveTreasureChest isOpen={isOpen} onClose={onClose} />+
+          <Button
+            variant="outline"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleTutorialOpen();
+            }}
+          >
             Tutorial
           </Button>
           <TutorialModal
