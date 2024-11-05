@@ -13,11 +13,11 @@ use zkube::types::mode::Mode;
 use zkube::models::settings::{Settings, SettingsTrait};
 use zkube::store::{Store, StoreTrait};
 
-#[dojo::interface]
-trait IChest<TContractState> {
-    fn claim(ref self: ContractState, chest_id: u32);
-    fn sponsor(ref self: ContractState, chest_id: u32, amount: u128);
-    fn sponsor_from(ref self: ContractState, amount: u128, caller: ContractAddress);
+#[starknet::interface]
+trait IChest<T> {
+    fn claim(ref self: T, chest_id: u32);
+    fn sponsor(ref self: T, chest_id: u32, amount: u128);
+    fn sponsor_from(ref self: T, amount: u128, caller: ContractAddress);
 }
 
 #[dojo::contract]
@@ -105,6 +105,7 @@ mod chest {
     #[abi(embed_v0)]
     impl ChestSystemImpl of IChest<ContractState> {
         fn claim(ref self: ContractState, chest_id: u32) {
+            let mut world = self.world_default();
             let store = StoreTrait::new(world);
             let chest = store.chest(chest_id);
             chest.assert_exists();
@@ -123,6 +124,7 @@ mod chest {
         }
 
         fn sponsor(ref self: ContractState, chest_id: u32, amount: u128) {
+            let mut world = self.world_default();
             let store = StoreTrait::new(world);
             let mut chest = store.chest(chest_id);
             chest.assert_exists();

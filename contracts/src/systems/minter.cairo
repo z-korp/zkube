@@ -4,13 +4,11 @@ use starknet::{ContractAddress, Felt252TryIntoContractAddress};
 // Dojo imports
 use dojo::world::WorldStorage;
 
-#[dojo::interface]
-trait IMinter<TContractState> {
-    fn mint(ref self: ContractState);
-    fn claim_free_mint(ref self: ContractState);
-    fn add_free_mint(
-        ref self: ContractState, to: ContractAddress, number: u32, expiration_timestamp: u64
-    );
+#[starknet::interface]
+trait IMinter<T> {
+    fn mint(ref self: T);
+    fn claim_free_mint(ref self: T);
+    fn add_free_mint(ref self: T, to: ContractAddress, number: u32, expiration_timestamp: u64);
 }
 
 #[dojo::contract]
@@ -42,7 +40,7 @@ mod minter {
         fn mint(ref self: ContractState) {
             let caller = get_caller_address();
 
-            let mut world = world_default();
+            let mut world = self.world_default();
             let store = StoreTrait::new(world);
             let settings = store.settings();
         //let erc721 = ierc721_game_credits(settings.erc721_address.try_into().unwrap());
@@ -53,7 +51,7 @@ mod minter {
         fn claim_free_mint(ref self: ContractState) {
             let caller = get_caller_address();
 
-            let mut world = world_default();
+            let mut world = self.world_default();
             let store = StoreTrait::new(world);
             let settings = store.settings();
             let mut mint = store.mint(caller.into());
@@ -85,7 +83,7 @@ mod minter {
         ) {
             // [Check] Only admin can update settings
             let caller = get_caller_address();
-            let mut world = world_default();
+            let mut world = self.world_default();
             let store = StoreTrait::new(world);
             let mut admin = store.admin(caller.into());
             admin.assert_is_admin();

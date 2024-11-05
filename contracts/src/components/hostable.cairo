@@ -12,9 +12,7 @@ mod HostableComponent {
     use starknet::info::{get_contract_address, get_caller_address, get_block_timestamp};
 
     // Dojo imports
-
-    use dojo::world;
-    use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait, IWorldProvider};
+    use dojo::world::{WorldStorage, IWorldDispatcherTrait};
 
     // Internal imports
 
@@ -94,7 +92,7 @@ mod HostableComponent {
             game.assert_is_over();
 
             // [Effect] Create game
-            let game_id: u32 = world.uuid() + 1;
+            let game_id: u32 = world.dispatcher.uuid() + 1;
             let time = get_block_timestamp();
             let mut game = GameTrait::new(game_id, player.id, beta, mode: mode.into(), time: time,);
 

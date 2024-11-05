@@ -8,13 +8,13 @@ use dojo::world::WorldStorage;
 // Internal imports
 use zkube::models::settings::Settings;
 
-#[dojo::interface]
-trait ISettings<TContractState> {
-    fn update_zkorp_address(ref self: ContractState, address: ContractAddress);
-    fn update_daily_mode_price(ref self: ContractState, value: u128);
-    fn update_normal_mode_price(ref self: ContractState, value: u128);
-    fn set_admin(ref self: ContractState, address: ContractAddress);
-    fn delete_admin(ref self: ContractState, address: ContractAddress);
+#[starknet::interface]
+trait ISettings<T> {
+    fn update_zkorp_address(ref self: T, address: ContractAddress);
+    fn update_daily_mode_price(ref self: T, value: u128);
+    fn update_normal_mode_price(ref self: T, value: u128);
+    fn set_admin(ref self: T, address: ContractAddress);
+    fn delete_admin(ref self: T, address: ContractAddress);
 }
 
 #[dojo::contract]

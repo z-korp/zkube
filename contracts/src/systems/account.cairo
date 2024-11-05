@@ -2,10 +2,10 @@
 
 use dojo::world::WorldStorage;
 
-#[dojo::interface]
-trait IAccount<TContractState> {
-    fn create(ref self: ContractState, name: felt252);
-    fn rename(ref self: ContractState, name: felt252);
+#[starknet::interface]
+trait IAccount<T> {
+    fn create(ref self: T, name: felt252);
+    fn rename(ref self: T, name: felt252);
 }
 
 #[dojo::contract]
@@ -13,7 +13,6 @@ mod account {
     // Component imports
 
     use zkube::components::manageable::ManageableComponent;
-    use zkube::components::manageable::ManageableComponent::InternalTrait;
 
     // Local imports
 

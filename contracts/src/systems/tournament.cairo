@@ -13,16 +13,10 @@ use zkube::types::mode::Mode;
 use zkube::models::settings::{Settings, SettingsTrait};
 use zkube::store::{Store, StoreTrait};
 
-#[dojo::interface]
-trait ITournamentSystem<TContractState> {
-    fn claim(ref self: ContractState, mode: Mode, tournament_id: u64, rank: u8);
-    fn sponsor(
-        ref self: ContractState,
-        tournament_id: u64,
-        mode: Mode,
-        amount: u128,
-        caller: ContractAddress
-    );
+#[starknet::interface]
+trait ITournamentSystem<T> {
+    fn claim(ref self: T, mode: Mode, tournament_id: u64, rank: u8);
+    fn sponsor(ref self: T, tournament_id: u64, mode: Mode, amount: u128, caller: ContractAddress);
 }
 
 #[dojo::contract]

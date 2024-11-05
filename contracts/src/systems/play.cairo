@@ -4,7 +4,7 @@ use starknet::ContractAddress;
 
 // Dojo imports
 
-use dojo::world::{IWorldDispatcher, Resource, WorldStorage};
+use dojo::world::{WorldStorage, WorldStorageTrait};
 
 // External imports
 
@@ -17,14 +17,12 @@ use zkube::types::mode::Mode;
 use zkube::models::settings::{Settings, SettingsTrait};
 use zkube::store::{Store, StoreTrait};
 
-#[dojo::interface]
-trait IPlay<TContractState> {
-    fn create(
-        ref self: ContractState, mode: Mode, proof: Proof, seed: felt252, beta: felt252
-    ) -> u32;
-    fn surrender(ref self: ContractState);
-    fn move(ref self: ContractState, row_index: u8, start_index: u8, final_index: u8,);
-    fn apply_bonus(ref self: ContractState, bonus: Bonus, row_index: u8, line_index: u8);
+#[starknet::interface]
+trait IPlay<T> {
+    fn create(ref self: T, mode: Mode, proof: Proof, seed: felt252, beta: felt252) -> u32;
+    fn surrender(ref self: T);
+    fn move(ref self: T, row_index: u8, start_index: u8, final_index: u8,);
+    fn apply_bonus(ref self: T, bonus: Bonus, row_index: u8, line_index: u8);
 }
 
 #[dojo::contract]
@@ -47,8 +45,8 @@ mod play {
     // Local imports
 
     use super::{
-        IPlay, Proof, Bonus, Mode, Settings, SettingsTrait, Store, StoreTrait, Resource,
-        WorldStorage
+        IPlay, Proof, Bonus, Mode, Settings, SettingsTrait, Store, StoreTrait, WorldStorage,
+        WorldStorageTrait,
     };
 
     // Components
@@ -90,7 +88,7 @@ mod play {
         fn create(
             ref self: ContractState, mode: Mode, proof: Proof, seed: felt252, beta: felt252,
         ) -> u32 {
-            let mut world = world_default();
+            let mut world = self.world_default();
             let store = StoreTrait::new(world);
 
             let mut was_free = false;
@@ -113,43 +111,58 @@ mod play {
                 ._create(world, proof, seed, beta, mode, was_free);
 
             let caller_felt: felt252 = caller.into();
-            // [Setup] Settings
-            if let Resource::Contract((class_hash, contract_address)) = world
-                .resource(selector_from_tag!("zkube-tournament")) {
-                let tournament_system_dispatcher = ITournamentSystemDispatcher { contract_address };
-                tournament_system_dispatcher
-                    .sponsor(tournament_id, mode, tournament_amount, caller);
-            }
+
+            match world.dns(@"zkube-tournament") {
+                Option::Some((
+                    addr, _
+                )) => {
+                    let tournament_system_dispatcher = ITournamentSystemDispatcher {
+                        contract_address: addr
+                    };
+                    tournament_system_dispatcher
+                        .sponsor(tournament_id, mode, tournament_amount, caller);
+                },
+                Option::None => {},
+            };
+
             // Chest pool
-            if let Resource::Contract((class_hash, contract_address)) = world
-                .resource(selector_from_tag!("zkube-chest")) {
-                let chest_system_dispatcher = IChestDispatcher { contract_address };
-                chest_system_dispatcher.sponsor_from(chest_amount, caller);
-            }
+            match world.dns(@"zkube-chest") {
+                Option::Some((
+                    addr, _
+                )) => {
+                    let chest_system_dispatcher = IChestDispatcher { contract_address: addr };
+                    chest_system_dispatcher.sponsor_from(chest_amount, caller);
+                },
+                Option::None => {},
+            };
 
             // zKorp
-            if let Resource::Contract((class_hash, contract_address)) = world
-                .resource(selector_from_tag!("zkube-zkorp")) {
-                let zkorp_system_dispatcher = IZKorpDispatcher { contract_address };
-                zkorp_system_dispatcher.sponsor(zkorp_amount + referrer_amount, caller);
-            }
+            match world.dns(@"zkube-zkorp") {
+                Option::Some((
+                    addr, _
+                )) => {
+                    let zkorp_system_dispatcher = IZKorpDispatcher { contract_address: addr };
+                    zkorp_system_dispatcher.sponsor(zkorp_amount, caller);
+                },
+                Option::None => {},
+            };
 
             // [Return] Game ID
             game_id
         }
 
         fn surrender(ref self: ContractState) {
-            let mut world = world_default();
+            let mut world = self.world_default();
             self.playable._surrender(world);
         }
 
         fn move(ref self: ContractState, row_index: u8, start_index: u8, final_index: u8,) {
-            let mut world = world_default();
+            let mut world = self.world_default();
             self.playable._move(world, row_index, start_index, final_index);
         }
 
         fn apply_bonus(ref self: ContractState, bonus: Bonus, row_index: u8, line_index: u8) {
-            let mut world = world_default();
+            let mut world = self.world_default();
             self.playable._apply_bonus(world, bonus, row_index, line_index);
         }
     }

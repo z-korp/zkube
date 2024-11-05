@@ -13,10 +13,10 @@ use zkube::types::mode::Mode;
 use zkube::models::settings::{Settings, SettingsTrait};
 use zkube::store::{Store, StoreTrait};
 
-#[dojo::interface]
-trait IZKorp<TContractState> {
-    fn claim(ref self: ContractState);
-    fn sponsor(ref self: ContractState, amount: u128, caller: ContractAddress);
+#[starknet::interface]
+trait IZKorp<T> {
+    fn claim(ref self: T);
+    fn sponsor(ref self: T, amount: u128, caller: ContractAddress);
 }
 
 #[dojo::contract]

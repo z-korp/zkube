@@ -14,8 +14,7 @@ mod PlayableComponent {
 
     // Dojo imports
 
-    use dojo::world::IWorldDispatcher;
-    use dojo::world::IWorldDispatcherTrait;
+    use dojo::world::WorldStorage;
 
     // External imports
 

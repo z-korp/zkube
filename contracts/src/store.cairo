@@ -5,8 +5,8 @@ use starknet::ContractAddress;
 use core::debug::PrintTrait;
 
 // Dojo imports
-use dojo::world::{WorldStorage};
-use dojo::model::{ModelStorage};
+use dojo::world::WorldStorage;
+use dojo::model::ModelStorage;
 
 // Models imports
 use zkube::models::game::{Game, GameTrait};
@@ -78,48 +78,48 @@ impl StoreImpl of StoreTrait {
     // SETTERS
 
     #[inline(always)]
-    fn set_game(self: Store, mut game: Game) {
+    fn set_game(mut self: Store, mut game: Game) {
         self.world.write_model(@game)
     }
 
     #[inline(always)]
-    fn set_player(self: Store, player: Player) {
+    fn set_player(mut self: Store, player: Player) {
         self.world.write_model(@player)
     }
 
     #[inline(always)]
-    fn set_tournament(self: Store, tournament: Tournament) {
+    fn set_tournament(mut self: Store, tournament: Tournament) {
         self.world.write_model(@tournament)
     }
 
     #[inline(always)]
-    fn set_mint(self: Store, mint: Mint) {
+    fn set_mint(mut self: Store, mint: Mint) {
         self.world.write_model(@mint)
     }
 
     #[inline(always)]
-    fn set_settings(self: Store, settings: Settings) {
+    fn set_settings(mut self: Store, settings: Settings) {
         self.world.write_model(@settings)
     }
 
     #[inline(always)]
-    fn set_chest(self: Store, chest: Chest) {
+    fn set_chest(mut self: Store, chest: Chest) {
         self.world.write_model(@chest)
     }
 
     #[inline(always)]
-    fn set_participation(self: Store, participation: Participation) {
+    fn set_participation(mut self: Store, participation: Participation) {
         self.world.write_model(@participation)
     }
 
     #[inline(always)]
-    fn set_admin(self: Store, admin: Admin) {
+    fn set_admin(mut self: Store, admin: Admin) {
         self.world.write_model(@admin)
     }
 
     // DELETE
     #[inline(always)]
-    fn delete_admin(self: Store, address: ContractAddress) {
+    fn delete_admin(mut self: Store, address: ContractAddress) {
         let admin = self.admin(address.into());
         self.world.erase_model(@admin);
     }
