@@ -17,13 +17,11 @@ const Tutorial = ({
   showGrid,
   showTutorialText,
   tutorial,
-  setTutorial,
   endTutorial,
 }: {
   showGrid: any;
   showTutorialText: any;
   tutorial: any;
-  setTutorial: (value: boolean) => void;
   endTutorial: () => void;
 }) => {
   const [level, setLevel] = useState<number>(1);
