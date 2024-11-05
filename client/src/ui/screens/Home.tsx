@@ -3,7 +3,7 @@ import { Create } from "../actions/Create";
 import GameBoard from "../components/GameBoard";
 import BackGroundBoard from "../components/BackgroundBoard";
 import { AnimatePresence } from "framer-motion";
-import { useCallback, useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useGame } from "@/hooks/useGame";
@@ -19,7 +19,6 @@ import { ModeType } from "@/dojo/game/types/mode";
 import { Level } from "@/dojo/game/types/level";
 import { toPng } from "html-to-image";
 import { Leaderboard } from "../modules/Leaderboard";
-import { useRewardsCalculator } from "@/stores/rewardsStore";
 import Tutorial from "./Tutorial";
 import {
   Dialog,
@@ -41,6 +40,7 @@ import useViewport from "@/hooks/useViewport";
 import { TweetPreview } from "../components/TweetPreview";
 import { Schema } from "@dojoengine/recs";
 import { useGrid } from "@/hooks/useGrid";
+import { useRewardsCalculator } from "@/stores/rewardsStore";
 
 export const Home = () => {
   const {
@@ -52,38 +52,86 @@ export const Home = () => {
 
   useQuerySync<Schema>(toriiClient, contractComponents as any, []);
 
-  const isSigning = false; //useAutoSignup();
-
+  const isSigning = false;
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
-
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
     shouldLog: true,
   });
   const grid = useGrid({ gameId: game?.id ?? "", shouldLog: true });
+  
+  // State declarations
   const [animationDone, setAnimationDone] = useState(false);
-
-  const { theme, themeTemplate } = useTheme();
-  const imgAssets = ImageAssets(themeTemplate);
-  const gameGrid: React.RefObject<HTMLDivElement> | null = useRef(null);
   const [isGameOn, setIsGameOn] = useState<"idle" | "isOn" | "isOver">("idle");
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [level, setLevel] = useState<number | "">(0);
   const [score, setScore] = useState<number | undefined>(0);
   const [imgData, setImgData] = useState<string>("");
+  const [isTournamentsOpen, setIsTournamentsOpen] = useState(false);
+  const [chestIsOpen, setChestIsOpen] = useState(false);
+  const [isGameOverOpen, setIsGameOverOpen] = useState(false);
+  const [tutorialState, setTutorialState] = useState({
+    isActive: false,
+    showGrid: false,
+    showText: true,
+  });
 
+  // Refs
+  const gameGrid = useRef<HTMLDivElement>(null);
+  const prevGameOverRef = useRef<boolean | undefined>(game?.over);
+
+  // Theme setup
+  const { theme, themeTemplate } = useTheme();
+  const imgAssets = ImageAssets(themeTemplate);
+  const imageTotemTheme = theme === "dark" ? imgAssets.imageTotemDark : imgAssets.imageTotemLight;
+  
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
-  // State variables for modals
-  const [isTournamentsOpen, setIsTournamentsOpen] = useState(false);
-
+  // Callbacks
   const composeTweet = useCallback(() => {
     setLevel(player?.points ? Level.fromPoints(player?.points).value : "");
     setScore(game?.score);
     setIsPreviewOpen(true);
   }, [game?.score, player?.points]);
 
+  const handleTutorialCleanup = useCallback(() => {
+    setTutorialState({
+      isActive: false,
+      showGrid: false,
+      showText: false,
+    });
+  }, []);
+
+  const startTutorial = useCallback(() => {
+    try {
+      setTutorialState(prev => ({
+        ...prev,
+        isActive: true,
+      }));
+    } catch (error) {
+      console.error('Failed to start tutorial:', error);
+      handleTutorialCleanup();
+    }
+  }, [handleTutorialCleanup]);
+
+  const handleStartTutorial = useCallback(() => {
+    setTutorialState({
+      isActive: true,
+      showGrid: true,
+      showText: false,
+    });
+    startTutorial();
+  }, [startTutorial]);
+
+  const endTutorial = useCallback(() => {
+    setTutorialState(prev => ({
+      ...prev,
+      isActive: false,
+    }));
+  }, []);
+
+  // Effects
   useEffect(() => {
     if (game?.over) {
       if (gameGrid.current !== null) {
@@ -101,75 +149,18 @@ export const Home = () => {
   }, [composeTweet, game?.over]);
 
   useEffect(() => {
-    // Check if game is defined and not over
-    // the !!game is important to not display the twitter screen
     if (!!game && !game.over) {
       setIsGameOn("isOn");
     } else {
       setIsGameOn("isOver");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game?.over]);
-
-  const imageTotemTheme =
-    theme === "dark" ? imgAssets.imageTotemDark : imgAssets.imageTotemLight;
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setAnimationDone(true);
     }, 2000);
-
     return () => clearTimeout(timer);
-  }, []);
-
-  const [isTutorialActive, setIsTutorialActive] = useState(false);
-  const [tutorialState, setTutorialState] = useState({
-    isActive: false,
-    showGrid: false,
-    showText: true,
-  });
-
-
-  const handleTutorialCleanup = useCallback(() => {
-    setTutorialState({
-      isActive: false,
-      showGrid: false,
-      showText: false,
-    });
-  }, []);
-  
-
-
-  const startTutorial = useCallback(() => {
-    try {
-      setTutorialState(prev => ({
-        ...prev,
-        isActive: true,
-      }));
-    } catch (error) {
-      console.error('Failed to start tutorial:', error);
-      handleTutorialCleanup();
-    }
-  }, [handleTutorialCleanup]);
-
-
-
-  const handleStartTutorial = useCallback(() => {
-    setTutorialState({
-      isActive: true,
-      showGrid: true,
-      showText: false,
-    });
-
-    startTutorial();
-  }, []);
-  
-
-  const endTutorial = useCallback(() => {
-    setTutorialState(prev => ({
-      ...prev,
-      isActive: false,
-    }));
   }, []);
 
   useEffect(() => {
@@ -177,39 +168,17 @@ export const Home = () => {
       handleTutorialCleanup();
     };
   }, [handleTutorialCleanup]);
-  
-
-
-
-  // Handlers for mobile buttons
-  const handlePlay = () => {
-    setIsGameOn("isOn"); // Start the game
-  };
-
-  const handleTournaments = () => {
-    setIsTournamentsOpen(true); // Open Tournaments modal
-  };
-
-  const [chestIsOpen, setChestIsOpen] = useState(false);
-  const [isGameOverOpen, setIsGameOverOpen] = useState(false);
-  const prevGameOverRef = useRef<boolean | undefined>(game?.over);
 
   useEffect(() => {
     if (prevGameOverRef.current !== undefined) {
-      // Check if game.over transitioned from false to true
       if (!prevGameOverRef.current && game?.over) {
         setIsGameOverOpen(true);
       }
     }
-    // Update the ref with the current value of game.over
     prevGameOverRef.current = game?.over;
   }, [game?.over]);
 
-  /*useEffect(() => {
-    console.log("==================> Grid is changing");
-  }, [grid]);*/
-
-  // Define render functions
+  // Render functions
   const renderDesktopView = () => (
     <>
       <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center">
@@ -257,43 +226,42 @@ export const Home = () => {
 
   const renderMobileView = () => (
     <div className="flex flex-col w-full gap-4 px-4 mt-4">
-      <Start mode={ModeType.Free} handleGameMode={handlePlay} />
-
+      <Start mode={ModeType.Free} handleGameMode={() => setIsGameOn("isOn")} />
       <Button
-        onClick={handleTournaments}
-        className="w-full bg-primary text-secondary text-lg py-6 border-4 shadow-lg  bg-sky-200 font-sans rounded-none"
+        onClick={() => setIsTournamentsOpen(true)}
+        className="w-full bg-primary text-secondary text-lg py-6 border-4 shadow-lg bg-sky-200 font-sans rounded-none"
       >
         <p>Tournaments</p>
       </Button>
       <Button
         onClick={() => setChestIsOpen(true)}
-        className="w-full bg-primary text-secondary text-lg border-4  py-6 font-sans bg-sky-200  rounded-none"
+        className="w-full bg-primary text-secondary text-lg border-4 py-6 font-sans bg-sky-200 rounded-none"
       >
         Collective Chests
       </Button>
-
       <Leaderboard buttonType="default" textSize="lg" />
     </div>
   );
 
   return (
     <div className="h-screen-viewport flex flex-col w-full" id="portal-root">
-      <Header />
-
-      {/* Content Area */}
+      <Header onStartTutorial={handleStartTutorial} />
+      
       <div className="flex flex-col flex-1 relative">
+        {/* Signing Dialog */}
         <Dialog open={isSigning} modal>
-          <DialogContent className="flex flex-col items-center justify-center p-6 ">
+          <DialogContent className="flex flex-col items-center justify-center p-6">
             <p className="mt-8 mb-7">Aligning the blocks for your signup...</p>
           </DialogContent>
         </Dialog>
 
+        {/* Treasure Chest */}
         <CollectiveTreasureChest
           isOpen={chestIsOpen}
           onClose={() => setChestIsOpen(false)}
         />
 
-        {/* Main Content */}
+        {/* Main Game Area */}
         <BackGroundBoard imageBackground={imgAssets.imageBackground}>
           <BackGroundBoard
             imageBackground={imageTotemTheme}
@@ -308,7 +276,9 @@ export const Home = () => {
           >
             <div className="relative flex flex-col gap-4 sm:gap-8 flex-grow items-center justify-start overflow-auto">
               <div className="flex flex-col items-center gap-4 sm:gap-8 w-full max-w-4xl mt-2 sm:mt-4 p-2 md:p-0">
+                {/* Game Content */}
                 {!isSigning && <Create />}
+                
                 {(!game || (!!game && isGameOn === "isOver")) && (
                   <>
                     {isMdOrLarger
@@ -318,6 +288,8 @@ export const Home = () => {
                         : renderMobileView()}
                   </>
                 )}
+
+                {/* Game Over Dialog */}
                 {game && (
                   <GameOverDialog
                     isOpen={isGameOverOpen}
@@ -325,107 +297,8 @@ export const Home = () => {
                     game={game}
                   />
                 )}
-                {!!game && isGameOn === "isOver" && !isTournamentsOpen && (
-                  <>
-                    <div className="flex flex-col gap-4 mt-4 md:mt-0">
-                      <div className="p-6 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
-                        <p className="text-4xl text-center mb-2">Game Over</p>
-    <div className="relative flex flex-col h-screen">
-      <Header onStartTutorial={handleStartTutorial} />
-      <BackGroundBoard imageBackground={imgAssets.imageBackground}>
-        <BackGroundBoard
-          imageBackground={imageTotemTheme}
-          initial={{ scale: 1 }}
-          animate={{ scale: [1, 0.995, 1] }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            repeatType: "reverse",
-            ease: "easeInOut",
-          }}
-        >
-          <div className="relative flex flex-col gap-8 grow items-center justify-start">
-            <div className="absolute flex flex-col items-center gap-4 w-full p-2 max-w-4xl mt-4">
-            {tutorialState.isActive ? (
-              <Tutorial
-                showGrid={tutorialState.showGrid}
-                showTutorialText={tutorialState.showText}
-                tutorial={tutorialState.isActive}
-                endTutorial={endTutorial}
-              />
-              ) : (
-                <>
-                  <Create />
-                  {(!game || (!!game && isGameOn === "isOver")) && (
-                    <div className="flex flex-col sm:flex-row p-2 sm:p-4 rounded-xl w-[93%] gap-2 sm:gap-4 items-center justify-evenly">
-                      <Start
-                        mode={ModeType.Daily}
-                        handleGameMode={() => setIsGameOn("isOn")}
-                      />
-                      <Start
-                        mode={ModeType.Normal}
-                        handleGameMode={() => setIsGameOn("isOn")}
-                      />
-                    </div>
-                  )}
-                  {!game && (
-                    <div className="bg-slate-900 w-11/12 p-4 rounded-xl mb-4 max-h-[55vh]">
-                      <LeaderboardContent />
-                    </div>
-                  )}
-                  {!!game && isGameOn === "isOver" && (
-                    <>
-                      <div className="flex flex-col gap-4 mt-8 ">
-                        <div className=" p-6 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
-                          <p className="text-4xl text-center">Game Over</p>
 
-                        <div className="flex gap-4 justify-center items-center">
-                          <div className="grow text-4xl flex gap-2 justify-end">
-                            {game.score}
-                            <FontAwesomeIcon
-                              icon={faStar}
-                              className="text-yellow-500"
-                            />
-                          </div>
-                          <div className="grow text-4xl flex gap-2 justify-end">
-                            {game.combo}
-                            <FontAwesomeIcon
-                              icon={faFire}
-                              className="text-slate-700"
-                            />
-                          </div>
-                          <div className="grow text-4xl flex gap-2 justify-end">
-                            {game.max_combo}
-                            <MaxComboIcon
-                              width={36}
-                              height={36}
-                              className="text-slate-700"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {!isTournamentsOpen && (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button className="text-md md:text-2xl mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg">
-                            Give feedback and get a chance to win STRK
-                          </Button>
-                        </DialogTrigger>
-
-                        <DialogContent className="sm:max-w-[700px] w-[95%] h-[580px] flex flex-col mx-auto justify-start items-center bg-opacity-50 rounded-lg shadow-lg">
-                          <DialogHeader className="flex items-center">
-                            <DialogTitle>Feedback</DialogTitle>
-                          </DialogHeader>
-                          <div className="flex-grow overflow-auto px-2 w-full h-full">
-                            <GoogleFormEmbed />
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    )}
-                  </>
-                )}
+                {/* Active Game Board */}
                 {!!game && isGameOn === "isOn" && (
                   <div className="relative w-full">
                     <div
@@ -433,23 +306,14 @@ export const Home = () => {
                       className="flex flex-col items-center game-container"
                     >
                       <GameBoard
-                        // Check if game is over because otherwise we can display
-                        // previous game data on the board while the new game is starting
-                        // and torii indexing
                         initialGrid={game.isOver() ? [] : game.blocks}
                         nextLine={game.isOver() ? [] : game.next_row}
                         score={game.isOver() ? 0 : game.score}
                         combo={game.isOver() ? 0 : game.combo}
                         maxCombo={game.isOver() ? 0 : game.max_combo}
-                        hammerCount={
-                          game.isOver() ? 0 : game.hammer - game.hammer_used
-                        }
-                        totemCount={
-                          game.isOver() ? 0 : game.totem - game.totem_used
-                        }
-                        waveCount={
-                          game.isOver() ? 0 : game.wave - game.wave_used
-                        }
+                        hammerCount={game.isOver() ? 0 : game.hammer - game.hammer_used}
+                        totemCount={game.isOver() ? 0 : game.totem - game.totem_used}
+                        waveCount={game.isOver() ? 0 : game.wave - game.wave_used}
                         account={account}
                         game={game}
                       />
@@ -461,8 +325,20 @@ export const Home = () => {
                     )}
                   </div>
                 )}
+
+                {/* Tutorial */}
+                {tutorialState.isActive && (
+                  <Tutorial
+                    showGrid={tutorialState.showGrid}
+                    showTutorialText={tutorialState.showText}
+                    tutorial={tutorialState.isActive}
+                    endTutorial={endTutorial}
+                  />
+                )}
               </div>
             </div>
+
+            {/* Tweet Preview */}
             <TweetPreview
               open={isPreviewOpen}
               setOpen={setIsPreviewOpen}
@@ -472,6 +348,8 @@ export const Home = () => {
               gameId={game?.id ?? ""}
               tournamentId={game?.tournament_id ?? 0}
             />
+
+            {/* Palm Tree Animations */}
             <AnimatePresence>
               {!animationDone && (
                 <>
