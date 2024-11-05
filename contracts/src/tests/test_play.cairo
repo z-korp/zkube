@@ -19,7 +19,6 @@ use zkube::models::game::{Game, GameTrait, GameAssert};
 use zkube::models::tournament::{TournamentImpl};
 use zkube::systems::play::IPlayDispatcherTrait;
 use zkube::systems::tournament::ITournamentSystemDispatcherTrait;
-use zkube::models::credits::{Credits, CreditsImpl, CreditsAssert};
 
 use zkube::tests::setup::{
     setup, setup::{Mode, Systems, PLAYER1, PLAYER2, PLAYER3, PLAYER4, IERC20DispatcherTrait}
@@ -86,9 +85,6 @@ fn test_play_play_daily_tournament_claim() {
     let game = store.game(game_id);
     game.assert_exists();
     systems.play.surrender();
-
-    let credits = store.credits(PLAYER1().into());
-    assert(credits.remaining == 0, 'Should have 0 credits');
 
     // game 4, paid
     context.erc20.approve(context.tournament_address, settings.daily_mode_price.into());

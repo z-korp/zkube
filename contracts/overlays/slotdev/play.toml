@@ -3,7 +3,6 @@ writes = [
     "zkube-Player",
     "zkube-Game",
     "zkube-Tournament",
-    "zkube-Credits",
     "zkube-Settings",
     "zkube-Chest",
     "zkube-Participation"

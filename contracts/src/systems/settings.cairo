@@ -108,7 +108,7 @@ mod settings {
 
             // [Check] Only admin can set another admin
             let caller = get_caller_address();
-            let mut admin = store.admin(caller.into());
+            let admin = store.admin(caller.into());
             admin.assert_is_admin();
 
             // [Effect] Create and set admin

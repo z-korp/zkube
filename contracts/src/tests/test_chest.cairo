@@ -107,13 +107,7 @@ fn test_chest_claim() {
 
     // [Create admin]
     set_contract_address(PLAYER1());
-    let new_free_daily_credits: u8 = 0;
-    systems.settings.update_free_daily_credits(new_free_daily_credits);
-
-    // [Assert] Settings updated
     let settings = store.settings();
-    assert(settings.free_daily_credits == new_free_daily_credits, 'Free credits not updated');
-
     // Now let's finish a chest with 4 players
 
     set_contract_address(context.owner);

@@ -44,28 +44,27 @@ fn test_admin_update_settings() {
 
     // [Update settings as admin]
     set_contract_address(PLAYER2());
-    let new_free_daily_credits: u8 = 5;
-    systems.settings.update_free_daily_credits(new_free_daily_credits);
+    systems.settings.update_daily_mode_price(150);
 
     // [Assert] Settings updated
     let settings = store.settings();
-    assert(settings.free_daily_credits == new_free_daily_credits, 'Free credits not updated');
+    assert(settings.daily_mode_price == 150, 'Daily mode price not updated');
 }
 
 #[test]
-#[should_panic(expected: ('Not an admin', 'ENTRYPOINT_FAILED'))]
-fn test_non_admin_update_settings() {
+#[should_panic(expected: ('Admin: Not an admin', 'ENTRYPOINT_FAILED'))]
+fn test_admin_non_admin_update_settings() {
     // [Setup]
     let (world, systems, _) = setup::create_accounts();
 
     // [Try to update settings as non-admin]
     set_contract_address(PLAYER3());
-    systems.settings.update_free_daily_credits(5);
+    systems.settings.set_admin(PLAYER2().into());
 }
 
 #[test]
 #[should_panic(expected: ('Admin: Already exist', 'ENTRYPOINT_FAILED'))]
-fn test_create_existing_admin() {
+fn test_admin_create_existing_admin() {
     // [Setup]
     let (world, systems, _) = setup::create_accounts();
 
@@ -78,7 +77,7 @@ fn test_create_existing_admin() {
 }
 
 #[test]
-fn test_multiple_admins() {
+fn test_admin_multiple_admins() {
     // [Setup]
     let (world, systems, _) = setup::create_accounts();
     let store = StoreTrait::new(world);

@@ -363,30 +363,30 @@
   },
   {
     "type": "impl",
-    "name": "creditsImpl",
-    "interface_name": "zkube::models::index::Icredits"
+    "name": "mintImpl",
+    "interface_name": "zkube::models::index::Imint"
   },
   {
     "type": "struct",
-    "name": "zkube::models::index::Credits",
+    "name": "zkube::models::index::Mint",
     "members": [
       {
         "name": "id",
         "type": "core::felt252"
       },
       {
-        "name": "day_id",
-        "type": "core::integer::u64"
+        "name": "number",
+        "type": "core::integer::u32"
       },
       {
-        "name": "remaining",
-        "type": "core::integer::u8"
+        "name": "expiration_timestamp",
+        "type": "core::integer::u64"
       }
     ]
   },
   {
     "type": "interface",
-    "name": "zkube::models::index::Icredits",
+    "name": "zkube::models::index::Imint",
     "items": [
       {
         "type": "function",
@@ -394,7 +394,7 @@
         "inputs": [
           {
             "name": "model",
-            "type": "zkube::models::index::Credits"
+            "type": "zkube::models::index::Mint"
           }
         ],
         "outputs": [],
@@ -404,7 +404,7 @@
   },
   {
     "type": "event",
-    "name": "zkube::models::index::credits::Event",
+    "name": "zkube::models::index::mint::Event",
     "kind": "enum",
     "variants": []
   }

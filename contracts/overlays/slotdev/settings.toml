@@ -4,5 +4,5 @@ writes = [
     "zkube-Admin",
 ]
 init_calldata = [
-    "0x01a988f1faf473743f144dd6d7c04026d363fe72e697a35292eeb18be2ca8717", 
+    "0x6d15a8b41747e26dda93ba61f443a7467af7beb36d2e1b97204bce4fe20bec1", 
 ]

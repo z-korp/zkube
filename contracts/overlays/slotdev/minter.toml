@@ -1,0 +1,4 @@
+tag = "zkube-minter"
+writes = [
+    "zkube-Mint",
+]

@@ -172,18 +172,6 @@
       },
       {
         "type": "function",
-        "name": "update_free_daily_credits",
-        "inputs": [
-          {
-            "name": "value",
-            "type": "core::integer::u8"
-          }
-        ],
-        "outputs": [],
-        "state_mutability": "external"
-      },
-      {
-        "type": "function",
         "name": "update_daily_mode_price",
         "inputs": [
           {

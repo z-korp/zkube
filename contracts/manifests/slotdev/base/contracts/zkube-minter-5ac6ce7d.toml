@@ -1,0 +1,15 @@
+kind = "DojoContract"
+class_hash = "0x3c0bf68935a257585b64017013f7ccdcf36fd4c65de82ac4e0df600477b9248"
+original_class_hash = "0x3c0bf68935a257585b64017013f7ccdcf36fd4c65de82ac4e0df600477b9248"
+base_class_hash = "0x0"
+abi = "manifests/slotdev/base/abis/contracts/zkube-minter-5ac6ce7d.json"
+reads = []
+writes = []
+init_calldata = []
+tag = "zkube-minter"
+systems = [
+    "mint",
+    "claim_free_mint",
+    "add_free_mint",
+]
+manifest_name = "zkube-minter-5ac6ce7d"

@@ -25,9 +25,9 @@ export const useFreeMint = ({
   );
 
   const component = useComponentValue(Mint, key);
-  const chest = useDeepMemo(() => {
+  const mint = useDeepMemo(() => {
     return component ? new MintClass(component) : null;
   }, [component]);
 
-  return { chest, key };
+  return mint;
 };
