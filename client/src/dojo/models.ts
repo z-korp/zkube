@@ -1,4 +1,5 @@
 import { ContractComponents } from "./contractModels";
+import { Mint } from "./game/models/mint";
 import { Game } from "./game/models/game";
 import { Chest } from "./game/models/chest";
 import { Player } from "./game/models/player";
@@ -19,6 +20,7 @@ export function models({
       ...contractComponents,
     },
     classes: {
+      Mint,
       Game,
       Chest,
       Player,
