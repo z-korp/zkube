@@ -55,7 +55,7 @@ export const concatenateAndShiftBlocks = (
   return [...shiftedInitialData, ...shiftedNextLineData];
 };
 
-export const transformDataContractIntoBlock = (grid: number[][]): Block[] => {
+export const transformDataContratIntoBlock = (grid: number[][]): Block[] => {
   return grid.flatMap((row, y) => {
     const blocks: Block[] = [];
     let x = 0;
@@ -91,24 +91,15 @@ export const removeBlocksSameWidth = (
   return blocks.filter((b) => b.width !== block.width);
 };
 
-export const getBlocksSameWidth = (block: Block, blocks: Block[]): Block[] => {
-  return blocks.filter((b) => b.width == block.width);
-};
-
 export const removeBlocksSameRow = (block: Block, blocks: Block[]): Block[] => {
   return blocks.filter((b) => b.y !== block.y);
-};
-
-export const getBlocksSameRow = (
-  rowIndex: number,
-  blocks: Block[],
-): Block[] => {
-  return blocks.filter((b) => b.y == rowIndex);
 };
 
 export const removeBlockId = (block: Block, blocks: Block[]): Block[] => {
   return blocks.filter((b) => b.id !== block.id);
 };
+
+
 
 export const deepCompareBlocks = (
   array1: { id: number; x: number; y: number; width: number }[],
