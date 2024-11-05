@@ -128,24 +128,6 @@
   },
   {
     "type": "impl",
-    "name": "IDojoInitImpl",
-    "interface_name": "zkube::systems::minter::minter::IDojoInit"
-  },
-  {
-    "type": "interface",
-    "name": "zkube::systems::minter::minter::IDojoInit",
-    "items": [
-      {
-        "type": "function",
-        "name": "dojo_init",
-        "inputs": [],
-        "outputs": [],
-        "state_mutability": "external"
-      }
-    ]
-  },
-  {
-    "type": "impl",
     "name": "MinterSystemImpl",
     "interface_name": "zkube::systems::minter::IMinter"
   },
@@ -178,10 +160,32 @@
           {
             "name": "number",
             "type": "core::integer::u32"
+          },
+          {
+            "name": "expiration_timestamp",
+            "type": "core::integer::u64"
           }
         ],
         "outputs": [],
         "state_mutability": "external"
+      }
+    ]
+  },
+  {
+    "type": "impl",
+    "name": "IDojoInitImpl",
+    "interface_name": "zkube::systems::minter::minter::IDojoInit"
+  },
+  {
+    "type": "interface",
+    "name": "zkube::systems::minter::minter::IDojoInit",
+    "items": [
+      {
+        "type": "function",
+        "name": "dojo_init",
+        "inputs": [],
+        "outputs": [],
+        "state_mutability": "view"
       }
     ]
   },
@@ -234,12 +238,6 @@
   },
   {
     "type": "event",
-    "name": "zkube::components::payable::PayableComponent::Event",
-    "kind": "enum",
-    "variants": []
-  },
-  {
-    "type": "event",
     "name": "zkube::systems::minter::minter::Event",
     "kind": "enum",
     "variants": [
@@ -247,11 +245,6 @@
         "name": "UpgradeableEvent",
         "type": "dojo::contract::upgradeable::upgradeable::Event",
         "kind": "nested"
-      },
-      {
-        "name": "PayableEvent",
-        "type": "zkube::components::payable::PayableComponent::Event",
-        "kind": "flat"
       }
     ]
   }

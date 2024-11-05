@@ -19,7 +19,6 @@ use zkube::models::game::{Game, GameTrait, GameAssert};
 use zkube::models::tournament::{TournamentImpl};
 use zkube::systems::play::IPlayDispatcherTrait;
 use zkube::systems::tournament::ITournamentSystemDispatcherTrait;
-use zkube::models::credits::{Credits, CreditsImpl, CreditsAssert};
 
 use zkube::tests::setup::{
     setup, setup::{Mode, Systems, PLAYER1, PLAYER2, PLAYER3, PLAYER4, IERC20DispatcherTrait}
@@ -34,7 +33,7 @@ fn test_play_play_ranked_tournament_started() {
     set_contract_address(PLAYER1());
     let game_id = systems
         .play
-        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Game
     let mut game = store.game(game_id);
@@ -58,7 +57,7 @@ fn test_play_play_daily_tournament_claim() {
     // game 1, free credits
     let game_id = systems
         .play
-        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Balance post creation
     let balance = context.erc20.balance_of(PLAYER1());
@@ -74,7 +73,7 @@ fn test_play_play_daily_tournament_claim() {
     // game 2, free credits
     let game_id = systems
         .play
-        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     let game = store.game(game_id);
     game.assert_exists();
     systems.play.surrender();
@@ -82,21 +81,18 @@ fn test_play_play_daily_tournament_claim() {
     // game 3, free credits
     let game_id = systems
         .play
-        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     let game = store.game(game_id);
     game.assert_exists();
     systems.play.surrender();
 
-    let credits = store.credits(PLAYER1().into());
-    assert(credits.remaining == 0, 'Should have 0 credits');
-
     // game 4, paid
-    context.erc20.approve(context.tournament_address, settings.daily_mode_price.into());
-    context.erc20.approve(context.chest_address, settings.daily_mode_price.into());
-    context.erc20.approve(context.zkorp_address, settings.daily_mode_price.into());
+    context.erc20.approve(context.tournament_address, 10_000_000_000_000_000_000);
+    context.erc20.approve(context.chest_address, 10_000_000_000_000_000_000);
+    context.erc20.approve(context.zkorp_address, 10_000_000_000_000_000_000);
     let game_id = systems
         .play
-        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     let game = store.game(game_id);
     game.assert_exists();
     systems.play.surrender();
@@ -112,12 +108,12 @@ fn test_play_play_daily_tournament_claim() {
     );
 
     // game 5, paid
-    context.erc20.approve(context.tournament_address, settings.daily_mode_price.into());
-    context.erc20.approve(context.chest_address, settings.daily_mode_price.into());
-    context.erc20.approve(context.zkorp_address, settings.daily_mode_price.into());
+    context.erc20.approve(context.tournament_address, 10_000_000_000_000_000_000);
+    context.erc20.approve(context.chest_address, 10_000_000_000_000_000_000);
+    context.erc20.approve(context.zkorp_address, 10_000_000_000_000_000_000);
     let game_id = systems
         .play
-        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     let game = store.game(game_id);
     game.assert_exists();
     systems.play.surrender();
@@ -127,7 +123,7 @@ fn test_play_play_daily_tournament_claim() {
     let player2_balance = context.erc20.balance_of(PLAYER2());
     let game_id = systems
         .play
-        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     let game = store.game(game_id);
     game.assert_exists();
@@ -173,7 +169,7 @@ fn test_play_play_daily_tournament_claim() {
     let player3_balance = context.erc20.balance_of(PLAYER3());
     let game_id = systems
         .play
-        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // println!("blocks {}", game.blocks);
     // 011_011_011_001_000_001_010_010
@@ -206,7 +202,7 @@ fn test_play_play_daily_tournament_claim() {
     let player4_balance = context.erc20.balance_of(PLAYER4());
     let game_id = systems
         .play
-        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     let game = store.game(game_id);
     // println!("blocks {}", game.blocks);
@@ -302,22 +298,22 @@ fn test_play_play_ranked_tournament_claim_revert_not_over() {
 
     set_contract_address(PLAYER1());
     // free game 1
-    systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    systems.play.create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
     // free game 2
-    systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    systems.play.create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
     // free game 3
-    systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    systems.play.create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
     // paid game 1
-    context.erc20.approve(context.tournament_address, settings.daily_mode_price.into());
-    context.erc20.approve(context.chest_address, settings.daily_mode_price.into());
-    context.erc20.approve(context.zkorp_address, settings.daily_mode_price.into());
-    systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    context.erc20.approve(context.tournament_address, 10_000_000_000_000_000_000);
+    context.erc20.approve(context.chest_address, 10_000_000_000_000_000_000);
+    context.erc20.approve(context.zkorp_address, 10_000_000_000_000_000_000);
+    systems.play.create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Claim]
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
@@ -338,22 +334,22 @@ fn test_play_play_ranked_tournament_claim_revert_invalid_player() {
     set_contract_address(PLAYER1());
 
     // free game 1
-    systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    systems.play.create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
     // free game 2
-    systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    systems.play.create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
     // free game 3
-    systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    systems.play.create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
     // paid game 1
-    context.erc20.approve(context.tournament_address, settings.daily_mode_price.into());
-    context.erc20.approve(context.chest_address, settings.daily_mode_price.into());
-    context.erc20.approve(context.zkorp_address, settings.daily_mode_price.into());
-    systems.play.create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    context.erc20.approve(context.tournament_address, 10_000_000_000_000_000_000);
+    context.erc20.approve(context.chest_address, 10_000_000_000_000_000_000);
+    context.erc20.approve(context.zkorp_address, 10_000_000_000_000_000_000);
+    systems.play.create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Claim]
     set_block_timestamp(2 * constants::DAILY_MODE_DURATION);

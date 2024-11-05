@@ -40,7 +40,7 @@ fn test_bonus_clean_board() {
     set_contract_address(PLAYER1());
     let game_id = systems
         .play
-        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     let mut game = store.game(game_id);
     game.blocks = 0b00100100100100011011011;

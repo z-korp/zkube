@@ -33,6 +33,10 @@ mod setup {
         IERC20Dispatcher, IERC20DispatcherTrait, IERC20FaucetDispatcher,
         IERC20FaucetDispatcherTrait, ERC20
     };
+    use zkube::tests::mocks::erc721_game_credits::ERC721;
+    use zkube::tests::mocks::openzeppelin::token::erc721::interface::{
+        IERC721Dispatcher, IERC721DispatcherTrait,
+    };
     use zkube::systems::account::{account, IAccountDispatcher, IAccountDispatcherTrait};
     use zkube::systems::play::{play, IPlayDispatcher, IPlayDispatcherTrait};
     use zkube::systems::chest::{chest, IChestDispatcher, IChestDispatcherTrait};
@@ -41,6 +45,17 @@ mod setup {
         tournament, ITournamentSystemDispatcher, ITournamentSystemDispatcherTrait
     };
     use zkube::systems::zkorp::{zkorp, IZKorpDispatcher, IZKorpDispatcherTrait};
+
+    use zkube::tests::mocks::openzeppelin::{
+        access::accesscontrol::{AccessControlComponent, DEFAULT_ADMIN_ROLE},
+        introspection::src5::SRC5Component, security::pausable::PausableComponent,
+        token::{
+            erc721::{
+                erc721::ERC721Component, extensions::ERC721EnumerableComponent,
+                interface::{IERC721ReceiverDispatcher, IERC721ReceiverDispatcherTrait},
+            }
+        },
+    };
 
     #[starknet::interface]
     trait IDojoInit<ContractState> {
@@ -113,6 +128,39 @@ mod setup {
         IERC20Dispatcher { contract_address: address }
     }
 
+    fn deploy_erc721(
+        default_admin: ContractAddress,
+        pauser: ContractAddress,
+        minter: ContractAddress,
+        erc20_token: ContractAddress,
+        mint_price: u256,
+        tournament_system: ContractAddress,
+        chest_system: ContractAddress,
+        zkorp_system: ContractAddress,
+        play_system: ContractAddress,
+    ) -> ContractAddress {
+        let mut args: Array<felt252> = array![
+            default_admin.into(),
+            pauser.into(),
+            minter.into(),
+            erc20_token.into(),
+            mint_price.low.into(),
+            mint_price.high.into(),
+            tournament_system.into(),
+            chest_system.into(),
+            zkorp_system.into(),
+            play_system.into()
+        ];
+        let (address, _) = starknet::deploy_syscall(
+            ERC721::TEST_CLASS_HASH.try_into().expect('Class hash conversion failed'),
+            0,
+            args.span(),
+            false
+        )
+            .expect('ERC721 deploy failed');
+        address
+    }
+
     #[inline(always)]
     fn create_accounts() -> (IWorldDispatcher, Systems, Context) {
         let owner = get_contract_address();
@@ -122,7 +170,7 @@ mod setup {
         models.append(zkube::models::index::game::TEST_CLASS_HASH);
         models.append(zkube::models::index::player::TEST_CLASS_HASH);
         models.append(zkube::models::index::tournament::TEST_CLASS_HASH);
-        models.append(zkube::models::index::credits::TEST_CLASS_HASH);
+        models.append(zkube::models::index::mint::TEST_CLASS_HASH);
         models.append(zkube::models::index::settings::TEST_CLASS_HASH);
         models.append(zkube::models::index::participation::TEST_CLASS_HASH);
         models.append(zkube::models::index::chest::TEST_CLASS_HASH);
@@ -201,6 +249,19 @@ mod setup {
         faucet.mint();
         erc20.approve(play_address, ERC20::FAUCET_AMOUNT);
         systems.account.create(PLAYER4_NAME);
+
+        // ERC721
+        let erc721 = deploy_erc721(
+            owner,
+            owner,
+            owner,
+            erc20.contract_address,
+            10_000_000_000_000_000_000,
+            tournament_address,
+            chest_address,
+            zkorp_address,
+            play_address,
+        );
 
         // [Setup] Game if mode is set
         let proof = Proof {

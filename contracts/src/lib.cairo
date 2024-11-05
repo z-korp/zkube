@@ -90,6 +90,49 @@ mod tests {
 
     mod mocks {
         mod erc20;
+        mod erc721_game_credits;
+
+        // OpenZeppelin mocks
+        mod openzeppelin {
+            mod token {
+                mod common;
+                mod erc1155;
+                mod erc20;
+                mod erc721;
+            }
+            mod introspection {
+                mod interface;
+                mod src5;
+            }
+            mod access {
+                mod accesscontrol;
+                mod ownable;
+            }
+            mod security {
+                mod initializable;
+                mod interface;
+                mod pausable;
+                mod reentrancyguard;
+
+                use initializable::InitializableComponent;
+                use pausable::PausableComponent;
+                use reentrancyguard::ReentrancyGuardComponent;
+            }
+            mod account {
+                mod account;
+                mod eth_account;
+                mod extensions;
+                mod interface;
+            }
+            mod utils {
+                mod cryptography;
+                mod deployments;
+                mod interfaces;
+                mod math;
+                mod serde;
+                mod structs;
+            }
+        }
     }
 }
 

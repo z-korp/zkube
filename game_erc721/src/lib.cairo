@@ -206,6 +206,12 @@ mod ZKubeCredits {
             self.public_mint_from(recipient, get_caller_address());
         }
 
+        #[external(v0)]
+        fn update_mint_price(ref self: ContractState, new_price: u256) {
+            self.accesscontrol.assert_only_role(MINTER_ROLE);
+            self.mint_price.write(new_price);
+        }
+
         fn get_purchase_price(self: @ContractState, token_id: u256) -> u256 {
             // Retrieve the purchase price for a given token_id
             self.purchase_prices.read(token_id)
