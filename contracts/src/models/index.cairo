@@ -89,8 +89,7 @@ struct Settings {
     pub id: u8,
     pub is_set: bool,
     pub zkorp_address: felt252,
-    pub daily_mode_price: u128,
-    pub normal_mode_price: u128,
+    pub erc721_address: felt252,
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]

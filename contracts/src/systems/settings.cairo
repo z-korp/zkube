@@ -11,8 +11,7 @@ use zkube::models::settings::Settings;
 #[starknet::interface]
 trait ISettings<T> {
     fn update_zkorp_address(ref self: T, address: ContractAddress);
-    fn update_daily_mode_price(ref self: T, value: u128);
-    fn update_normal_mode_price(ref self: T, value: u128);
+    fn update_erc721_address(ref self: T, address: ContractAddress);
     fn set_admin(ref self: T, address: ContractAddress);
     fn delete_admin(ref self: T, address: ContractAddress);
 }
@@ -39,11 +38,16 @@ mod settings {
     enum Event {}
 
     // Constructor
-    fn dojo_init(ref self: ContractState, admin_address: ContractAddress) {
+    fn dojo_init(
+        ref self: ContractState,
+        admin_address: ContractAddress,
+        zkorp_address: ContractAddress,
+        erc721_address: ContractAddress
+    ) {
         // [Effect] Create the settings entity
         let mut world = self.world_default();
         let store: Store = StoreTrait::new(world);
-        let settings: Settings = SettingsTrait::new();
+        let settings: Settings = SettingsTrait::new(zkorp_address, erc721_address);
         store.set_settings(settings);
 
         // [Effect] Create the admin entity
@@ -73,11 +77,11 @@ mod settings {
 
             // [Effect] Update zkorp address
             let mut settings = store.settings();
-            settings.set_zkorp_address(address);
+            settings.set_zkorp_address(address.into());
             store.set_settings(settings);
         }
 
-        fn update_daily_mode_price(ref self: ContractState, value: u128) {
+        fn update_erc721_address(ref self: ContractState, address: ContractAddress) {
             let mut world = self.world_default();
             let store: Store = StoreTrait::new(world);
 
@@ -86,24 +90,9 @@ mod settings {
             let mut admin = store.admin(caller.into());
             admin.assert_is_admin();
 
-            // [Effect] Update daily mode price
+            // [Effect] Update zkorp address
             let mut settings = store.settings();
-            settings.set_daily_mode_price(value);
-            store.set_settings(settings);
-        }
-
-        fn update_normal_mode_price(ref self: ContractState, value: u128) {
-            let mut world = self.world_default();
-            let store: Store = StoreTrait::new(world);
-
-            // [Check] Only admin can update settings
-            let caller = get_caller_address();
-            let mut admin = store.admin(caller.into());
-            admin.assert_is_admin();
-
-            // [Effect] Update normal mode price
-            let mut settings = store.settings();
-            settings.set_normal_mode_price(value);
+            settings.set_erc721_address(address.into());
             store.set_settings(settings);
         }
 

@@ -16,7 +16,10 @@ use zkube::store::{Store, StoreTrait};
 #[starknet::interface]
 trait ITournamentSystem<T> {
     fn claim(ref self: T, mode: Mode, tournament_id: u64, rank: u8);
-    fn sponsor(ref self: T, tournament_id: u64, mode: Mode, amount: u128, caller: ContractAddress);
+    fn sponsor_from(
+        ref self: T, tournament_id: u64, mode: Mode, amount: u128, caller: ContractAddress
+    );
+    fn sponsor(ref self: T, tournament_id: u64, mode: Mode, amount: u128);
 }
 
 #[dojo::contract]
@@ -97,7 +100,7 @@ mod tournament {
             self.payable._refund(caller, reward.into());
         }
 
-        fn sponsor(
+        fn sponsor_from(
             ref self: ContractState,
             tournament_id: u64,
             mode: Mode,
@@ -120,6 +123,10 @@ mod tournament {
 
             // [Return] Amount to pay
             self.payable._pay(caller, amount.into());
+        }
+
+        fn sponsor(ref self: ContractState, tournament_id: u64, mode: Mode, amount: u128) {
+            self.sponsor_from(tournament_id, mode, amount, get_caller_address());
         }
     }
 

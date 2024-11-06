@@ -26,9 +26,9 @@ mod minter {
     // Local imports
     use zkube::store::{Store, StoreTrait};
     use super::{IMinter, WorldStorage};
-    //use zkube::interfaces::ierc721_game_credits::{
-    //    ierc721_game_credits, IERC721GameCreditsDispatcherTrait
-    //};
+    use zkube::interfaces::ierc721_game_credits::{
+        ierc721_game_credits, IERC721GameCreditsDispatcherTrait
+    };
     use zkube::models::mint::{MintTrait, MintAssert};
     use zkube::models::admin::{AdminTrait, AdminAssert};
 
@@ -42,9 +42,10 @@ mod minter {
 
             let mut world = self.world_default();
             let store = StoreTrait::new(world);
-        //let settings = store.settings();
-        //let erc721 = ierc721_game_credits(settings.erc721_address.try_into().unwrap());
-        //erc721.public_mint_from(caller.into(), caller.into());
+
+            let settings = store.settings();
+            let erc721 = ierc721_game_credits(settings.erc721_address.try_into().unwrap());
+            erc721.public_mint_from(caller.into(), caller.into());
         }
 
         /// Claim free mint that an admin has added to a user
@@ -53,7 +54,7 @@ mod minter {
 
             let mut world = self.world_default();
             let store = StoreTrait::new(world);
-            //let settings = store.settings();
+            let settings = store.settings();
             let mut mint = store.mint(caller.into());
 
             let current_timestamp = get_block_timestamp();
@@ -64,8 +65,8 @@ mod minter {
                 mint.mint(current_timestamp);
 
                 // [Effect] Mint
-                //let erc721 = ierc721_game_credits(settings.erc721_address.try_into().unwrap());
-                //erc721.minter_mint(caller.into());
+                let erc721 = ierc721_game_credits(settings.erc721_address.try_into().unwrap());
+                erc721.minter_mint(caller.into());
 
                 i += 1;
                 if (i >= total_mints) {

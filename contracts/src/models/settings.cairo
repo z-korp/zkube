@@ -14,46 +14,25 @@ mod errors {
 #[generate_trait]
 impl SettingsImpl of SettingsTrait {
     #[inline(always)]
-    fn new() -> Settings {
+    fn new(zkorp_address: ContractAddress, erc721_address: ContractAddress) -> Settings {
         Settings {
             id: 1,
             is_set: true,
-            zkorp_address: constants::ZKORP_ADDRESS,
-            daily_mode_price: constants::DAILY_MODE_PRICE,
-            normal_mode_price: constants::NORMAL_MODE_PRICE,
+            zkorp_address: zkorp_address.into(),
+            erc721_address: erc721_address.into(),
         }
     }
 
     #[inline(always)]
-    fn set_zkorp_address(ref self: Settings, value: ContractAddress) {
+    fn set_zkorp_address(ref self: Settings, value: felt252) {
         // [Effect] Update zkorp address
-        self.zkorp_address = value.into();
+        self.zkorp_address = value;
     }
 
     #[inline(always)]
-    fn set_daily_mode_price(ref self: Settings, value: u128) {
-        // [Check] Value is valid (you might want to add more specific checks)
-        assert(value >= 0, errors::INVALID_DAILY_MODE_PRICE);
-        // [Effect] Update daily mode price
-        self.daily_mode_price = value;
-    }
-
-    #[inline(always)]
-    fn set_normal_mode_price(ref self: Settings, value: u128) {
-        // [Check] Value is valid (you might want to add more specific checks)
-        assert(value >= 0, errors::INVALID_NORMAL_MODE_PRICE);
-        // [Effect] Update normal mode prize
-        self.normal_mode_price = value;
-    }
-
-    #[inline(always)]
-    fn get_mode_price(self: Settings, mode: Mode) -> u128 {
-        match mode {
-            Mode::Normal => self.normal_mode_price,
-            Mode::Daily => self.daily_mode_price,
-            Mode::Free => 0,
-            _ => 0,
-        }
+    fn set_erc721_address(ref self: Settings, value: felt252) {
+        // [Effect] Update erc721 address
+        self.erc721_address = value;
     }
 }
 
@@ -73,9 +52,7 @@ impl SettingsAssert of AssertTrait {
 impl ZeroableSettingsImpl of core::Zeroable<Settings> {
     #[inline(always)]
     fn zero() -> Settings {
-        Settings {
-            id: 0, is_set: false, zkorp_address: 0, daily_mode_price: 0, normal_mode_price: 0
-        }
+        Settings { id: 0, is_set: false, zkorp_address: 0, erc721_address: 0, }
     }
 
     #[inline(always)]

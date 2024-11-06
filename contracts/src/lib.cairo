@@ -71,6 +71,7 @@ mod systems {
 mod interfaces {
     mod ierc20;
     mod ierc721;
+    mod ierc721_game_credits;
 }
 
 #[cfg(test)]

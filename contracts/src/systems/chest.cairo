@@ -16,7 +16,7 @@ use zkube::store::{Store, StoreTrait};
 #[starknet::interface]
 trait IChest<T> {
     fn claim(ref self: T, chest_id: u32);
-    fn sponsor(ref self: T, chest_id: u32, amount: u128);
+    fn sponsor_chest(ref self: T, chest_id: u32, amount: u128);
     fn sponsor_from(ref self: T, amount: u128, caller: ContractAddress);
 }
 
@@ -123,7 +123,7 @@ mod chest {
         // TODO Emit event
         }
 
-        fn sponsor(ref self: ContractState, chest_id: u32, amount: u128) {
+        fn sponsor_chest(ref self: ContractState, chest_id: u32, amount: u128) {
             let mut world = self.world_default();
             let store = StoreTrait::new(world);
             let mut chest = store.chest(chest_id);
