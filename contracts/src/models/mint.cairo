@@ -124,7 +124,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected: ('Mint: No mint remaining',))]
+    #[should_panic(expected: ('Mint: No mint remain. or exp.',))]
     fn test_mint_expired() {
         let mut mint = MintTrait::new(1, 5, 1000);
         let current_timestamp = 2000;
