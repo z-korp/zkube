@@ -22,7 +22,6 @@ export const Create = () => {
 
   const { account } = useAccountCustom();
   const {
-    master,
     setup: {
       systemCalls: { rename },
     },
@@ -40,8 +39,8 @@ export const Create = () => {
   }, [account, playerName, rename]);
 
   const disabled = useMemo(() => {
-    return !account || !master || account === master || !player;
-  }, [account, master, player]);
+    return !account || !player;
+  }, [account, player]);
 
   if (disabled) return null;
 

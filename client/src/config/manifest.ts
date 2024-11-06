@@ -1,9 +1,9 @@
-import local from "../../../contracts/manifests/dev/deployment/manifest.json";
-import slot from "../../../contracts/manifests/slot/deployment/manifest.json";
-import slotdev from "../../../contracts/manifests/slotdev/deployment/manifest.json";
-import sepolia from "../../../contracts/manifests/sepolia/deployment/manifest.json";
-import sepoliadev1 from "../../../contracts/manifests/sepoliadev1/deployment/manifest.json";
-import sepoliadev2 from "../../../contracts/manifests/sepoliadev2/deployment/manifest.json";
+import local from "../../../contracts/manifest_dev.json";
+import slot from "../../../contracts/manifest_slot.json";
+import slotdev from "../../../contracts/manifest_slotdev.json";
+import sepolia from "../../../contracts/manifest_sepolia.json";
+import sepoliadev1 from "../../../contracts/manifest_sepoliadev1.json";
+import sepoliadev2 from "../../../contracts/manifest_sepoliadev2.json";
 
 const deployType = import.meta.env.VITE_PUBLIC_DEPLOY_TYPE;
 

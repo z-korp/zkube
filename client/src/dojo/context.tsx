@@ -38,42 +38,15 @@ export const DojoProvider = ({
     [rpcProvider, masterAddress, masterPrivateKey],
   );
 
-  const {
-    create,
-    list,
-    get,
-    account,
-    select,
-    deselect,
-    remove,
-    isDeploying,
-    clear,
-    count,
-    copyToClipboard,
-    applyFromClipboard,
-    checkIsDeployed,
-  } = useBurnerManager({
-    burnerManager,
-  });
+  const burnerManagerData = useBurnerManager({ burnerManager });
 
   return (
     <DojoContext.Provider
       value={{
         ...value,
         account: {
-          create,
-          list,
-          get,
-          select,
-          deselect,
-          remove,
-          clear,
-          count,
-          account: account ? account : masterAccount,
-          isDeploying,
-          copyToClipboard,
-          applyFromClipboard,
-          checkIsDeployed,
+          ...burnerManagerData,
+          account: burnerManagerData.account || masterAccount,
         },
         master: masterAccount,
       }}

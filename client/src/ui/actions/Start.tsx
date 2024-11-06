@@ -28,7 +28,6 @@ interface StartProps {
 
 export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
   const {
-    master,
     setup: {
       systemCalls: { start },
     },
@@ -51,14 +50,8 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   const disabled = useMemo(() => {
-    return (
-      !account ||
-      !master ||
-      account === master ||
-      !player ||
-      (!!game && !game.isOver())
-    );
-  }, [account, master, player, game]);
+    return !account || !player || (!!game && !game.isOver());
+  }, [account, player, game]);
 
   const handleClick = useCallback(async () => {
     console.log(

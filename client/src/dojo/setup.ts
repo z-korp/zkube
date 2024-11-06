@@ -8,12 +8,12 @@ import { Config } from "../../dojo.config.ts";
 import { setupWorld } from "./contractSystems.ts";
 import { DojoProvider } from "@dojoengine/core";
 import { BurnerManager } from "@dojoengine/create-burner";
-import { Account, RpcProvider } from "starknet";
-import { Schema } from "@dojoengine/recs";
+import { Account } from "starknet";
 
 export type SetupResult = Awaited<ReturnType<typeof setup>>;
 
 export async function setup({ ...config }: Config) {
+  // Initialize Torii client for interacting with the Dojo network
   const toriiClient = await torii.createClient({
     rpcUrl: config.rpcUrl,
     toriiUrl: config.toriiUrl,
@@ -21,38 +21,41 @@ export async function setup({ ...config }: Config) {
     worldAddress: config.manifest.world.address || "",
   });
 
+  // Define contract components based on the world configuration
   const contractComponents = defineContractComponents(world);
 
+  // Create client-side components that mirror the contract components
   const clientModels = models({ contractComponents });
+
+  // Initialize the Dojo provider with the manifest and RPC URL
+  const dojoProvider = new DojoProvider(config.manifest, config.rpcUrl);
 
   // fetch all existing entities from torii
   // await getSyncEntities(toriiClient, contractModels as any, []);
-  const sync = await getSyncEntities<Schema>(
+  const sync = await getSyncEntities(
     toriiClient,
     contractComponents as any,
+    undefined,
     [],
-    1000,
+    30000,
+    false,
   );
 
-  const client = await setupWorld(
-    new DojoProvider(config.manifest, config.rpcUrl),
-    config,
-  );
+  // Set up the world client for interacting with smart contracts
+  const client = await setupWorld(dojoProvider, config);
 
-  const rpcProvider = new RpcProvider({
-    nodeUrl: config.rpcUrl,
-  });
-
+  // Initialize the burner account manager
   const burnerManager = new BurnerManager({
     masterAccount: new Account(
-      rpcProvider,
+      {
+        nodeUrl: config.rpcUrl,
+      },
       config.masterAddress,
       config.masterPrivateKey,
     ),
     feeTokenAddress: config.feeTokenAddress,
     accountClassHash: config.accountClassHash,
-
-    rpcProvider,
+    rpcProvider: dojoProvider.provider,
   });
 
   try {
@@ -75,7 +78,7 @@ export async function setup({ ...config }: Config) {
     config,
     world,
     burnerManager,
-    rpcProvider,
+    rpcProvider: dojoProvider.provider,
     sync,
     toriiClient,
   };

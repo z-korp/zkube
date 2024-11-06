@@ -7,13 +7,13 @@ version = "1.0.0-rc.1"
 sierra-replace-ids = true
 
 [scripts]
-dev = "sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate apply"
-slot = "sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate apply"
-slotdev = "sozo --profile slotdev clean && sozo --profile slotdev build && sozo --profile slotdev migrate apply"
-sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build && sozo --profile sepolia migrate apply --walnut"
-sepoliadev1 = "sozo --profile sepoliadev1 clean && sozo --profile sepoliadev1 build && sozo --profile sepoliadev1 migrate apply"
-sepoliadev2 = "sozo --profile sepoliadev2 clean && sozo --profile sepoliadev2 build && sozo --profile sepoliadev2 migrate apply"
-playground = "sozo --profile playground clean && sozo --profile playground build && sozo --profile playground migrate apply --walnut"
+dev = "sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate"
+slot = "sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate"
+slotdev = "sozo --profile slotdev clean && sozo --profile slotdev build && sozo --profile slotdev migrate"
+sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build && sozo --profile sepolia migrate --walnut"
+sepoliadev1 = "sozo --profile sepoliadev1 clean && sozo --profile sepoliadev1 build && sozo --profile sepoliadev1 migrate"
+sepoliadev2 = "sozo --profile sepoliadev2 clean && sozo --profile sepoliadev2 build && sozo --profile sepoliadev2 migrate"
+playground = "sozo --profile playground clean && sozo --profile playground build && sozo --profile playground migrate --walnut"
 
 [dependencies]
 dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-rc.1" }
@@ -26,3 +26,12 @@ build-external-contracts = ["dojo::world::world_contract::world"]
 
 [dev-dependencies]
 dojo_cairo_test = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-rc.1" }
+
+# Custom profiles
+[profile.slot]
+[profile.slotdev]
+[profile.slottest]
+[profile.sepolia]
+[profile.sepoliadev1]
+[profile.sepoliadev2]
+[profile.playground]
