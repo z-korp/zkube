@@ -8,15 +8,14 @@ import {
   TooltipTrigger,
 } from "@/ui/elements/tooltip";
 import { BonusType } from "@/dojo/game/types/bonus";
-import { BonusName } from "@/enums/bonusEnum";
 
 interface BonusButtonProps {
   onClick?: () => void;
   urlImage: string;
   bonusCount: number;
   tooltipText: string; // Ajout d'une nouvelle prop pour le texte du tooltip
-  bonusName: BonusName;
-  bonus: BonusName;
+  bonusName: BonusType;
+  bonus: BonusType;
 }
 
 const BonusButton: React.FC<BonusButtonProps> = ({

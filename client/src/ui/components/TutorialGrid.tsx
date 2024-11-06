@@ -16,7 +16,7 @@ import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
 import { motion } from "framer-motion";
-import { BonusName } from "@/enums/bonusEnum";
+import { BonusType } from "@/dojo/game/types/bonus";
 
 interface GridProps {
   initialData: Block[];
@@ -26,11 +26,11 @@ interface GridProps {
   gridHeight: number;
   selectBlock: (block: Block) => void;
   onMove?: (rowIndex: number, startIndex: number, finalIndex: number) => void;
-  bonus: BonusName;
+  bonus: BonusType;
   account: Account | null;
   tutorialStep: number;
   tutorialTargetBlock: { x: number; y: number; type: "block" | "row" } | null;
-  onUpdate: any;
+  onUpdate: (intermission: boolean) => void;
   ref: any;
   intermission?: boolean;
 }
@@ -78,8 +78,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(({
 
   const updateValue = () =>{
     const newvalue = tutorialStep + 1;
-    intermission = true;
-    onUpdate(intermission);
+    onUpdate(true);
   }
 
   useEffect(() => {
@@ -163,16 +162,16 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(({
   };
 
 const useBonus = (block: Block) => {
-  if (bonus === BonusName.WAVE) {
+  if (bonus === BonusType.Wave) {
     setBlocks(removeBlocksSameRow(block, blocks));
-  } else if (bonus === BonusName.TIKI) {
+  } else if (bonus === BonusType.Totem) {
     setBlocks(removeBlocksSameWidth(block, blocks));
-  } else if (bonus === BonusName.HAMMER) {
+  } else if (bonus === BonusType.Hammer) {
     setBlocks(removeBlockId(block, blocks));
   }
 
   // Return success if a bonus was applied
-  return bonus !== BonusName.NONE;
+  return bonus !== BonusType.None;
 };
 
 useImperativeHandle(ref, () => ({
@@ -183,17 +182,18 @@ useImperativeHandle(ref, () => ({
     e.preventDefault();
 
     setBlockBonus(block);
-    if (bonus === BonusName.WAVE) {
-      setBlocks(removeBlocksSameRow(block, blocks));
-    }
-    if (bonus === BonusName.TIKI) {
-      setBlocks(removeBlocksSameWidth(block, blocks));
-    }
-    if (bonus === BonusName.HAMMER) {
-      setBlocks(removeBlockId(block, blocks));
-    }
-    if (bonus !== BonusName.NONE) {
+    // if (bonus === BonusType.Wave) {
+    //   setBlocks(removeBlocksSameRow(block, blocks));
+    // }
+    // if (bonus === BonusType.Totem) {
+    //   setBlocks(removeBlocksSameWidth(block, blocks));
+    // }
+    // if (bonus === BonusType.Hammer) {
+    //   setBlocks(removeBlockId(block, blocks));
+    // }
+    if (bonus !== BonusType.None) {
     //   setIsTxProcessing(false);
+      useBonus(block);
       setIsMoving(true);
       setGameState(GameState.GRAVITY_BONUS);
       return;
@@ -222,7 +222,7 @@ useImperativeHandle(ref, () => ({
       const updatedBlocks = prevBlocks.map((b) => {
         if (b.id === dragging.id) {
           const finalX = Math.round(b.x);
-          if (Math.trunc(finalX) !== Math.trunc(initialX))
+          // if (Math.trunc(finalX) !== Math.trunc(initialX))
             // setIsTxProcessing(true);
           setPendingMove({
             block: b,

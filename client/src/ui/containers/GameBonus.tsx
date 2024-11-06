@@ -2,7 +2,6 @@ import ImageAssets from "@/ui/theme/ImageAssets";
 import BonusButton from "../components/BonusButton";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { BonusType } from "@/dojo/game/types/bonus";
-import { BonusName } from "@/enums/bonusEnum";
 
 interface GameBonusProps {
   onBonusWaveClick: () => void;
@@ -11,7 +10,7 @@ interface GameBonusProps {
   hammerCount: number;
   tikiCount: number;
   waveCount: number;
-  bonus: BonusName;
+  bonus: BonusType;
 }
 
 export const GameBonus: React.FC<GameBonusProps> = ({
@@ -34,7 +33,7 @@ export const GameBonus: React.FC<GameBonusProps> = ({
           urlImage={imgAssets.hammer}
           bonusCount={hammerCount}
           tooltipText="Destroys a block"
-          bonusName={BonusName.HAMMER}
+          bonusName={BonusType.Hammer}
           bonus={bonus}
         />
       </div>
@@ -44,7 +43,7 @@ export const GameBonus: React.FC<GameBonusProps> = ({
           urlImage={imgAssets.wave}
           bonusCount={waveCount}
           tooltipText="Destroys an entire line"
-          bonusName={BonusName.WAVE}
+          bonusName={BonusType.Wave}
           bonus={bonus}
         />
       </div>
@@ -54,7 +53,7 @@ export const GameBonus: React.FC<GameBonusProps> = ({
           urlImage={imgAssets.tiki}
           bonusCount={tikiCount}
           tooltipText="Destroys all blocks of a specific size"
-          bonusName={BonusName.TIKI}
+          bonusName={BonusType.Totem}
           bonus={bonus}
         />
       </div>

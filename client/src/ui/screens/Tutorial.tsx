@@ -4,7 +4,6 @@ import { Block } from "@/types/types";
 import { Card } from "../elements/card";
 import GameBonus from "../containers/GameBonus";
 import { transformDataContratIntoBlock } from "@/utils/gridUtils";
-import { BonusName } from "@/enums/bonusEnum";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import NextLine from "../components/NextLine";
 import { useMediaQuery } from "react-responsive";
@@ -12,6 +11,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import MaxComboIcon from "../components/MaxComboIcon";
 import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
 import { set } from "date-fns";
+import { BonusType } from "@/dojo/game/types/bonus";
 
 const Tutorial = ({
   showGrid,
@@ -32,7 +32,7 @@ const Tutorial = ({
   const [waveCount, setWaveCount] = useState(2);
   const [totemCount, setTotemCount] = useState(2);
   const [hammerCount, setHammerCount] = useState(3);
-  const [bonus, setBonus] = useState<BonusName>(BonusName.NONE);
+  const [bonus, setBonus] = useState<BonusType>(BonusType.None);
   const [isTxProcessing, setIsTxProcessing] = useState(false);
   const [gridData, setGridData] = useState<number[][]>([
     [0, 0, 0, 0, 0, 0, 0, 0],
@@ -62,15 +62,15 @@ const Tutorial = ({
     setIsIntermission(intermission);
   };
 
-  const handleBonusClick = (bonusType: BonusName, count: number) => {
+  const handleBonusClick = (bonusType: BonusType, count: number) => {
     if (count === 0) return;
-    setBonus(bonus === bonusType ? BonusName.NONE : bonusType);
+    setBonus(bonus === bonusType ? BonusType.None : bonusType);
   };
   
-  const handleBonusWaveClick = () => handleBonusClick(BonusName.WAVE, waveCount);
-  const handleBonusTikiClick = () => handleBonusClick(BonusName.TIKI, totemCount);
-  const handleBonusHammerClick = () => handleBonusClick(BonusName.HAMMER, hammerCount);
-  
+  const handleBonusWaveClick = () => handleBonusClick(BonusType.Wave, waveCount);
+  const handleBonusTikiClick = () => handleBonusClick(BonusType.Totem, totemCount);
+  const handleBonusHammerClick = () => handleBonusClick(BonusType.Hammer, hammerCount);
+
 
   const applybonus = async ({
     bonus,
@@ -105,9 +105,9 @@ const Tutorial = ({
 
   const selectBlock = useCallback(
     async (block: Block) => {
-      if (bonus === BonusName.HAMMER && tutorialStep === 2) {
+      if (bonus === BonusType.Hammer && tutorialStep === 2) {
         const bonusApplied = await applybonus({
-          bonus: BonusName.HAMMER,
+          bonus: BonusType.Hammer,
           row_index: block.y,
           block_index: block.x,
         });
@@ -118,9 +118,9 @@ const Tutorial = ({
           setScore((score ?? 0) + 25);
           setIsIntermission(true); // Show congratulations message
         }
-      } else if (bonus === BonusName.WAVE && tutorialStep === 3) {
+      } else if (bonus === BonusType.Wave && tutorialStep === 3) {
         const bonusApplied = await applybonus({
-          bonus: BonusName.WAVE,
+          bonus: BonusType.Wave,
           row_index: block.y,
           block_index: block.x,
         });
@@ -131,9 +131,9 @@ const Tutorial = ({
           setScore((score ?? 0) + 400);
           setIsIntermission(true);
         }
-      } else if (bonus === BonusName.TIKI && tutorialStep === 4) {
+      } else if (bonus === BonusType.Totem && tutorialStep === 4) {
         const bonusApplied = await applybonus({
-          bonus: BonusName.TIKI,
+          bonus: BonusType.Totem,
           row_index: block.y,
           block_index: block.x,
         });

@@ -159,7 +159,7 @@ export class Tournament {
       ids[modeType] = Math.floor(startOfPeriod / duration);
     }
 
-    return ids;
+    return ids; 
   };
 
   determineModeById = (id: number): ModeType => {
