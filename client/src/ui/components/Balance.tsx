@@ -38,7 +38,7 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
     address: token_address,
     watch: true,
     blockIdentifier: BlockTag.PENDING,
-    refetchInterval: 500,
+    refetchInterval: 2000,
   });
 
   useEffect(() => {
@@ -115,11 +115,14 @@ function formatUnits(
 
   display = display.padStart(decimals, "0");
 
-  const integer = display.slice(0, display.length - decimals)
+  const integer = display.slice(0, display.length - decimals);
 
   // Trim the fraction to the desired number of decimal places
   // And remove trailing zeros
-  const fraction = display.slice(display.length - decimals).slice(0, displayDecimals).replace(/(0+)$/, "");
+  const fraction = display
+    .slice(display.length - decimals)
+    .slice(0, displayDecimals)
+    .replace(/(0+)$/, "");
 
   return `${negative ? "-" : ""}${integer || "0"}${
     fraction ? `.${fraction}` : ""
