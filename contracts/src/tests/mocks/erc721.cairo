@@ -116,7 +116,8 @@ mod ERC721 {
 
         // Approve play system to spend unlimited ERC20 tokens
         let erc20 = IERC20Dispatcher { contract_address: erc20_token };
-        let max_u256: u256 = BoundedInt::max();
+        let max_u128 = 0xffffffffffffffffffffffffffffffff_u128;
+        let max_u256: u256 = u256 { low: max_u128, high: max_u128 };
         erc20.approve(play_system, max_u256);
     }
 
@@ -151,16 +152,6 @@ mod ERC721 {
         #[external(v0)]
         fn burn(ref self: ContractState, token_id: u256) {
             self.erc721.update(Zero::zero(), token_id, get_caller_address());
-
-            let (tournament_amount, chest_amount, referrer_amount, zkorp_amount) = self
-                .compute_prices();
-
-            // Transfer tournament amount to tournament
-            let tournament_system_dispatcher = ITournamentSystemDispatcher {
-                contract_address: self.tournament.read()
-            };
-            tournament_system_dispatcher
-                .sponsor_from(token_id, Mode::Normal, tournament_amount, get_caller_address());
         }
 
         #[external(v0)]

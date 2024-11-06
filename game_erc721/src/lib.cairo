@@ -148,16 +148,6 @@ mod ZKubeCredits {
         #[external(v0)]
         fn burn(ref self: ContractState, token_id: u256) {
             self.erc721.update(Zero::zero(), token_id, get_caller_address());
-
-            let (tournament_amount, chest_amount, referrer_amount, zkorp_amount) = self
-                .compute_prices();
-
-            // Transfer tournament amount to tournament
-            let tournament_system_dispatcher = ITournamentSystemDispatcher {
-                contract_address: self.tournament.read()
-            };
-            tournament_system_dispatcher
-                .sponsor_from(token_id, Mode::Normal, tournament_amount, get_caller_address());
         }
 
         #[external(v0)]

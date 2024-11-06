@@ -57,7 +57,7 @@ fn test_chest_creation_and_completion() {
     let player3_balance = context.erc20.balance_of(PLAYER1());
     let game_id = systems
         .play
-        .create(Mode::Free, context.proof.clone(), context.seed, context.beta);
+        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     systems.play.move(1, 6, 7);
     systems.play.move(1, 5, 6);
@@ -76,7 +76,7 @@ fn test_chest_creation_and_completion() {
     // 2nd game
     let game_id = systems
         .play
-        .create(Mode::Free, context.proof.clone(), context.seed, context.beta);
+        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     systems.play.move(1, 6, 7);
     systems.play.move(1, 5, 6);
@@ -119,19 +119,19 @@ fn test_chest_claim() {
     set_contract_address(PLAYER1());
     let sponso: u256 = 1000_000_000_000_000_000_000;
     context.erc20.approve(context.chest_address, sponso);
-    systems.chest.sponsor(1, sponso.try_into().unwrap()); // 1000 LORDS
+    systems.chest.sponsor_chest(1, sponso.try_into().unwrap()); // 1000 LORDS
     let chest_balance = context.erc20.balance_of(context.chest_address);
     assert(chest_balance == sponso, 'Wrong chest balance');
     assert(store.chest(1).prize == sponso.try_into().unwrap(), 'Wrong chest prize');
 
     // Player 1
     let player1_balance = context.erc20.balance_of(PLAYER1());
-    context.erc20.approve(context.tournament_address, settings.daily_mode_price.into());
-    context.erc20.approve(context.chest_address, settings.daily_mode_price.into());
-    context.erc20.approve(context.zkorp_address, settings.daily_mode_price.into());
+    context.erc20.approve(context.tournament_address, 10_000_000_000_000_000_000);
+    context.erc20.approve(context.chest_address, 10_000_000_000_000_000_000);
+    context.erc20.approve(context.zkorp_address, 10_000_000_000_000_000_000);
     let game_id = systems
         .play
-        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.move(1, 6, 7);
     systems.play.surrender(); // 3 points
     let player1_new_balance = context.erc20.balance_of(PLAYER1());
@@ -139,12 +139,12 @@ fn test_chest_claim() {
     // Player 2
     set_contract_address(PLAYER2());
     let player2_balance = context.erc20.balance_of(PLAYER2());
-    context.erc20.approve(context.tournament_address, settings.daily_mode_price.into());
-    context.erc20.approve(context.chest_address, settings.daily_mode_price.into());
-    context.erc20.approve(context.zkorp_address, settings.daily_mode_price.into());
+    context.erc20.approve(context.tournament_address, 10_000_000_000_000_000_000);
+    context.erc20.approve(context.chest_address, 10_000_000_000_000_000_000);
+    context.erc20.approve(context.zkorp_address, 10_000_000_000_000_000_000);
     let game_id = systems
         .play
-        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.move(1, 6, 7);
     systems.play.move(1, 5, 6);
     systems.play.surrender(); // 4 points
@@ -153,12 +153,12 @@ fn test_chest_claim() {
     // Player 3
     set_contract_address(PLAYER3());
     let player3_balance = context.erc20.balance_of(PLAYER3());
-    context.erc20.approve(context.tournament_address, settings.daily_mode_price.into());
-    context.erc20.approve(context.chest_address, settings.daily_mode_price.into());
-    context.erc20.approve(context.zkorp_address, settings.daily_mode_price.into());
+    context.erc20.approve(context.tournament_address, 10_000_000_000_000_000_000);
+    context.erc20.approve(context.chest_address, 10_000_000_000_000_000_000);
+    context.erc20.approve(context.zkorp_address, 10_000_000_000_000_000_000);
     let game_id = systems
         .play
-        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.move(1, 6, 7);
     systems.play.move(1, 5, 6);
     systems.play.move(1, 5, 6);
@@ -168,12 +168,12 @@ fn test_chest_claim() {
     // Player 4
     set_contract_address(PLAYER4());
     let player4_balance = context.erc20.balance_of(PLAYER4());
-    context.erc20.approve(context.tournament_address, settings.daily_mode_price.into());
-    context.erc20.approve(context.chest_address, settings.daily_mode_price.into());
-    context.erc20.approve(context.zkorp_address, settings.daily_mode_price.into());
+    context.erc20.approve(context.tournament_address, 10_000_000_000_000_000_000);
+    context.erc20.approve(context.chest_address, 10_000_000_000_000_000_000);
+    context.erc20.approve(context.zkorp_address, 10_000_000_000_000_000_000);
     let game_id = systems
         .play
-        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.move(1, 6, 7);
     systems.play.move(1, 5, 6);
     systems.play.move(1, 5, 6);

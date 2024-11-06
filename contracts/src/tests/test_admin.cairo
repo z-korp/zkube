@@ -1,6 +1,7 @@
 use core::traits::Into;
 use core::Zeroable;
 use starknet::testing::{set_contract_address, set_caller_address};
+use starknet::ContractAddress;
 
 use zkube::models::admin::{Admin, AdminTrait, AdminAssert, ZeroableAdmin};
 use zkube::models::settings::{Settings, SettingsTrait};
@@ -44,23 +45,26 @@ fn test_admin_update_settings() {
 
     // [Update settings as admin]
     set_contract_address(PLAYER2());
-    systems.settings.update_daily_mode_price(150);
+    let new_zkorp_address: ContractAddress = starknet::contract_address_const::<'0x123'>();
+    systems.settings.update_zkorp_address(new_zkorp_address);
 
     // [Assert] Settings updated
     let settings = store.settings();
-    assert(settings.daily_mode_price == 150, 'Daily mode price not updated');
+    assert(settings.zkorp_address == new_zkorp_address.into(), 'zkorp_address not updated');
 }
 
 #[test]
-#[should_panic(expected: ('Admin: Not an admin', 'ENTRYPOINT_FAILED'))]
+#[should_panic(expected: ('Not an admin', 'ENTRYPOINT_FAILED'))]
 fn test_admin_non_admin_update_settings() {
     // [Setup]
     let (world, systems, _) = setup::create_accounts();
 
     // [Try to update settings as non-admin]
     set_contract_address(PLAYER3());
-    systems.settings.set_admin(PLAYER2().into());
+    let new_zkorp_address: ContractAddress = starknet::contract_address_const::<'0x123'>();
+    systems.settings.update_zkorp_address(new_zkorp_address);
 }
+
 
 #[test]
 #[should_panic(expected: ('Admin: Already exist', 'ENTRYPOINT_FAILED'))]
@@ -92,16 +96,4 @@ fn test_admin_multiple_admins() {
     let admin3 = store.admin(PLAYER3().into());
     admin2.assert_exists();
     admin3.assert_exists();
-
-    // [Update settings with different admins]
-    set_contract_address(PLAYER2());
-    systems.settings.update_daily_mode_price(100);
-
-    set_contract_address(PLAYER3());
-    systems.settings.update_normal_mode_price(200);
-
-    // [Assert] Settings updated
-    let settings = store.settings();
-    assert(settings.daily_mode_price == 100, 'Daily mode price not updated');
-    assert(settings.normal_mode_price == 200, 'Normal mode price not updated');
 }
