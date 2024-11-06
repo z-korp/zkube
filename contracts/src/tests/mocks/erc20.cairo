@@ -6,20 +6,21 @@
 /// The ERC20 contract offers basic functionality and provides a
 /// fixed-supply mechanism for token distribution. The fixed supply is
 /// set in the constructor.
+///
 
-mod interface;
-mod erc20;
+use starknet::ContractAddress;
 
-use interface::{IERC20Dispatcher, IERC20DispatcherTrait};
+use openzeppelin_token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
 
 #[starknet::interface]
 trait IERC20Faucet<TState> {
     fn mint(ref self: TState);
+    fn balance_of(ref self: TState, owner: ContractAddress) -> u256;
 }
 
 #[starknet::contract]
 mod ERC20 {
-    use zkube::tests::mocks::erc20::erc20::ERC20Component;
+    use openzeppelin_token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
     use starknet::{ContractAddress, get_caller_address};
     const FAUCET_AMOUNT: u256 = 1_000_000_000_000_000_000_000_000; // 1E6 * 1E18
 
@@ -53,6 +54,6 @@ mod ERC20 {
 
     #[external(v0)]
     fn mint(ref self: ContractState) {
-        self.erc20._mint(get_caller_address(), FAUCET_AMOUNT);
+        self.erc20.mint(get_caller_address(), FAUCET_AMOUNT);
     }
 }
