@@ -89,6 +89,7 @@ mod tests {
 
     mod mocks {
         mod erc20;
+        mod erc721;
     }
 }
 

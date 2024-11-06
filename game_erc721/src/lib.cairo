@@ -112,7 +112,9 @@ mod ZKubeCredits {
 
         // Approve play system to spend unlimited ERC20 tokens
         let erc20 = IERC20Dispatcher { contract_address: erc20_token };
-        erc20.approve(play_system, u256::MAX);
+        let max_u128 = 0xffffffffffffffffffffffffffffffff_u128;
+        let max_u256: u256 = u256 { low: max_u128, high: max_u128 };
+        erc20.approve(play_system, max_u256);
     }
 
     impl ERC721HooksImpl of ERC721Component::ERC721HooksTrait<ContractState> {

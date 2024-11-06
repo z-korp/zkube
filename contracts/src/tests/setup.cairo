@@ -34,10 +34,13 @@ mod setup {
 
     use zkube::types::difficulty::Difficulty;
     use zkube::types::mode::Mode;
+
     use zkube::tests::mocks::erc20::{
         IERC20Dispatcher, IERC20DispatcherTrait, IERC20FaucetDispatcher,
         IERC20FaucetDispatcherTrait, ERC20
     };
+    use zkube::tests::mocks::erc721::{IERC721Dispatcher, IERC721DispatcherTrait, ERC721};
+
     use zkube::systems::account::{account, IAccountDispatcher, IAccountDispatcherTrait};
     use zkube::systems::play::{play, IPlayDispatcher, IPlayDispatcherTrait};
     use zkube::systems::chest::{chest, IChestDispatcher, IChestDispatcherTrait};
@@ -119,6 +122,17 @@ mod setup {
         IERC20Dispatcher { contract_address: address }
     }
 
+    fn deploy_erc721() -> IERC721Dispatcher {
+        let (address, _) = starknet::deploy_syscall(
+            ERC721::TEST_CLASS_HASH.try_into().expect('Class hash conversion failed'),
+            0,
+            array![].span(),
+            false
+        )
+            .expect('ERC20 deploy failed');
+        IERC721Dispatcher { contract_address: address }
+    }
+
     fn namespace_def(erc20_address: felt252, admin_address: felt252) -> NamespaceDef {
         let ndef = NamespaceDef {
             namespace: "zkube", resources: [
@@ -173,6 +187,7 @@ mod setup {
         let owner = get_contract_address();
 
         let erc20 = deploy_erc20();
+        let erc721 = deploy_erc721();
 
         // [Setup] World
         let ndef = namespace_def(erc20.contract_address.into(), PLAYER1().into());
