@@ -29,6 +29,7 @@ mod setup {
     use zkube::models::tournament::{Tournament, m_Tournament};
     use zkube::models::chest::{Chest, m_Chest};
     use zkube::models::admin::{Admin, m_Admin};
+    use zkube::models::mint::{Mint, m_Mint};
     use zkube::models::participation::{Participation, m_Participation};
 
     use zkube::types::difficulty::Difficulty;
@@ -45,6 +46,7 @@ mod setup {
         tournament, ITournamentSystemDispatcher, ITournamentSystemDispatcherTrait
     };
     use zkube::systems::zkorp::{zkorp, IZKorpDispatcher, IZKorpDispatcherTrait};
+    use zkube::systems::minter::{minter, IMinterDispatcher, IMinterDispatcherTrait};
 
     #[starknet::interface]
     trait IDojoInit<ContractState> {
@@ -81,6 +83,7 @@ mod setup {
         chest: IChestDispatcher,
         tournament: ITournamentSystemDispatcher,
         zkorp: IZKorpDispatcher,
+        minter: IMinterDispatcher,
     }
 
     #[derive(Drop)]
@@ -126,6 +129,7 @@ mod setup {
                 TestResource::Model(m_Player::TEST_CLASS_HASH.try_into().unwrap()),
                 TestResource::Model(m_Settings::TEST_CLASS_HASH.try_into().unwrap()),
                 TestResource::Model(m_Tournament::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Model(m_Mint::TEST_CLASS_HASH.try_into().unwrap()),
                 TestResource::Contract(
                     ContractDefTrait::new(account::TEST_CLASS_HASH, "account")
                         .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
@@ -154,6 +158,10 @@ mod setup {
                         .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
                         .with_init_calldata([erc20_address].span())
                 ),
+                TestResource::Contract(
+                    ContractDefTrait::new(minter::TEST_CLASS_HASH, "minter")
+                        .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
+                ),
             ].span()
         };
 
@@ -177,6 +185,7 @@ mod setup {
         let (chest_address, _) = world.dns(@"chest").unwrap();
         let (tournament_address, _) = world.dns(@"tournament").unwrap();
         let (zkorp_address, _) = world.dns(@"zkorp").unwrap();
+        let (minter_address, _) = world.dns(@"minter").unwrap();
 
         let systems = Systems {
             account: IAccountDispatcher { contract_address: account_address },
@@ -185,6 +194,7 @@ mod setup {
             chest: IChestDispatcher { contract_address: chest_address },
             tournament: ITournamentSystemDispatcher { contract_address: tournament_address },
             zkorp: IZKorpDispatcher { contract_address: zkorp_address },
+            minter: IMinterDispatcher { contract_address: minter_address },
         };
 
         // [Setup] Context

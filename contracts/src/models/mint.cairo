@@ -18,6 +18,7 @@ use zkube::models::index::{Mint, m_Mint};
 mod errors {
     const NO_MINT_REMAINING_OR_EXPIRED: felt252 = 'Mint: No mint remain. or exp.';
     const EXPIRATION_MISMATCH: felt252 = 'Mint: Expiration mismatch';
+    const EXPIRATION_PAST: felt252 = 'Mint: Expiration past';
 }
 
 #[generate_trait]
@@ -32,6 +33,8 @@ impl MintImpl of MintTrait {
     }
 
     fn add_mint(ref self: Mint, number: u32, expiration_timestamp: u64, current_timestamp: u64) {
+        assert(current_timestamp < expiration_timestamp, errors::EXPIRATION_PAST);
+
         // If no mint or expired mint, set the new mint
         if (self.number == 0 || self.expiration_timestamp < current_timestamp) {
             self.number = number;
@@ -151,6 +154,13 @@ mod tests {
     fn test_mint_add_mint_existing_different_expiration() {
         let mut mint = MintTrait::new(1, 5, 2000);
         mint.add_mint(5, 3000, 1000);
+    }
+
+    #[test]
+    #[should_panic(expected: ('Mint: Expiration past',))]
+    fn test_mint_add_mint_expired() {
+        let mut mint = MintTrait::new(1, 5, 1000);
+        mint.add_mint(5, 1000, 2000);
     }
 }
 

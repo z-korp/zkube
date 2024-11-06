@@ -85,6 +85,7 @@ mod tests {
     mod test_admin;
     mod test_chest;
     mod test_bonus;
+    mod test_minter;
 
     mod mocks {
         mod erc20;

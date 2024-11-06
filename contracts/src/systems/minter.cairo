@@ -57,6 +57,7 @@ mod minter {
             let mut mint = store.mint(caller.into());
 
             let current_timestamp = get_block_timestamp();
+            let total_mints = mint.number;
             let mut i = 0;
             loop {
                 // [Effect] Mint
@@ -67,7 +68,7 @@ mod minter {
                 //erc721.minter_mint(caller.into());
 
                 i += 1;
-                if (i >= mint.number - 1) {
+                if (i >= total_mints) {
                     break;
                 }
             };
