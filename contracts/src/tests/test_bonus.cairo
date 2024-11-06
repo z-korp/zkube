@@ -11,7 +11,8 @@ use starknet::testing::{
 
 // Dojo imports
 
-use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait};
+use dojo::world::{WorldStorage, IWorldDispatcherTrait, WorldStorageTrait};
+use dojo::model::{ModelStorage, ModelValueStorage, ModelStorageTest};
 use dojo::model::Model;
 
 // Internal imports
@@ -31,10 +32,8 @@ use zkube::tests::setup::{setup, setup::{Systems, PLAYER1}};
 #[test]
 fn test_bonus_clean_board() {
     // [Setup]
-    let (world, systems, context) = setup::create_accounts();
+    let (mut world, systems, context) = setup::create_accounts();
     let store = StoreTrait::new(world);
-
-    world.grant_writer(Model::<Game>::selector(), PLAYER1());
 
     // [Set] Game
     set_contract_address(PLAYER1());
@@ -46,7 +45,8 @@ fn test_bonus_clean_board() {
     game.blocks = 0b00100100100100011011011;
     game.wave_bonus = 1; // unlock 1 wave bonus
     game.wave_used = 0;
-    store.set_game(game);
+    //store.set_game(game);
+    world.write_model_test(@game);
 
     // [Move]
     systems.play.apply_bonus(Bonus::Wave, 0, 0);

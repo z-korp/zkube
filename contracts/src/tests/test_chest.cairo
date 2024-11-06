@@ -31,7 +31,7 @@ fn abs_difference(a: u256, b: u256) -> u256 {
 #[test]
 fn test_chest_creation_and_completion() {
     // [Setup]
-    let (world, systems, context) = setup::create_accounts();
+    let (mut world, systems, context) = setup::create_accounts();
     let store = StoreTrait::new(world);
 
     let time = DAILY_MODE_DURATION + 1;
@@ -99,7 +99,7 @@ fn test_chest_creation_and_completion() {
 #[test]
 fn test_chest_claim() {
     // [Setup]
-    let (world, systems, context) = setup::create_accounts();
+    let (mut world, systems, context) = setup::create_accounts();
     let store = StoreTrait::new(world);
 
     let time = DAILY_MODE_DURATION + 1;

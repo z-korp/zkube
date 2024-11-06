@@ -26,7 +26,7 @@ use zkube::tests::setup::{setup, setup::{Systems, PLAYER1}};
 #[test]
 fn test_actions_create() {
     // [Setup]
-    let (world, systems, context) = setup::create_accounts();
+    let (mut world, systems, context) = setup::create_accounts();
     let store = StoreTrait::new(world);
 
     // [Create]

@@ -12,8 +12,8 @@ mod setup {
 
     // Dojo imports
 
-    use dojo::world::{IWorldDispatcherTrait, IWorldDispatcher};
-    use dojo::utils::test::{spawn_test_world, deploy_contract};
+    use dojo::world::{WorldStorageTrait, WorldStorage};
+    use dojo_cairo_test::{spawn_test_world, NamespaceDef, TestResource, ContractDefTrait};
     use dojo::model::Model;
 
     // External dependencies
@@ -23,10 +23,14 @@ mod setup {
     // Internal imports
 
     use zkube::constants;
-    use zkube::models::game::{Game, GameTrait, GameImpl};
-    use zkube::models::settings::Settings;
-    use zkube::models::player::Player;
-    use zkube::models::tournament::Tournament;
+    use zkube::models::game::{Game, m_Game, GameTrait, GameImpl};
+    use zkube::models::settings::{Settings, m_Settings};
+    use zkube::models::player::{Player, m_Player};
+    use zkube::models::tournament::{Tournament, m_Tournament};
+    use zkube::models::chest::{Chest, m_Chest};
+    use zkube::models::admin::{Admin, m_Admin};
+    use zkube::models::participation::{Participation, m_Participation};
+
     use zkube::types::difficulty::Difficulty;
     use zkube::types::mode::Mode;
     use zkube::tests::mocks::erc20::{
@@ -68,7 +72,6 @@ mod setup {
         starknet::contract_address_const::<'PLAYER4'>()
     }
     const PLAYER4_NAME: felt252 = 'PLAYER4';
-
 
     #[derive(Drop)]
     struct Systems {
@@ -113,61 +116,67 @@ mod setup {
         IERC20Dispatcher { contract_address: address }
     }
 
-    #[inline(always)]
-    fn create_accounts() -> (IWorldDispatcher, Systems, Context) {
-        let owner = get_contract_address();
+    fn namespace_def(erc20_address: felt252, admin_address: felt252) -> NamespaceDef {
+        let ndef = NamespaceDef {
+            namespace: "zkube", resources: [
+                TestResource::Model(m_Admin::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Model(m_Chest::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Model(m_Game::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Model(m_Participation::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Model(m_Player::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Model(m_Settings::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Model(m_Tournament::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Contract(
+                    ContractDefTrait::new(account::TEST_CLASS_HASH, "account")
+                        .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
+                ),
+                TestResource::Contract(
+                    ContractDefTrait::new(play::TEST_CLASS_HASH, "play")
+                        .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
+                ),
+                TestResource::Contract(
+                    ContractDefTrait::new(chest::TEST_CLASS_HASH, "chest")
+                        .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
+                        .with_init_calldata([erc20_address].span())
+                ),
+                TestResource::Contract(
+                    ContractDefTrait::new(settings::TEST_CLASS_HASH, "settings")
+                        .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
+                        .with_init_calldata([admin_address].span())
+                ),
+                TestResource::Contract(
+                    ContractDefTrait::new(tournament::TEST_CLASS_HASH, "tournament")
+                        .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
+                        .with_init_calldata([erc20_address].span())
+                ),
+                TestResource::Contract(
+                    ContractDefTrait::new(zkorp::TEST_CLASS_HASH, "zkorp")
+                        .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
+                        .with_init_calldata([erc20_address].span())
+                ),
+            ].span()
+        };
 
-        // [Setup] World
-        let mut models = core::array::ArrayTrait::new();
-        models.append(zkube::models::index::game::TEST_CLASS_HASH);
-        models.append(zkube::models::index::player::TEST_CLASS_HASH);
-        models.append(zkube::models::index::tournament::TEST_CLASS_HASH);
-        models.append(zkube::models::index::settings::TEST_CLASS_HASH);
-        models.append(zkube::models::index::participation::TEST_CLASS_HASH);
-        models.append(zkube::models::index::chest::TEST_CLASS_HASH);
-        models.append(zkube::models::index::admin::TEST_CLASS_HASH);
-        let world = spawn_test_world(["zkube"].span(), models.span());
+        ndef
+    }
+
+    #[inline(always)]
+    fn create_accounts() -> (WorldStorage, Systems, Context) {
+        let owner = get_contract_address();
 
         let erc20 = deploy_erc20();
 
+        // [Setup] World
+        let ndef = namespace_def(erc20.contract_address.into(), PLAYER1().into());
+        let mut world = spawn_test_world([ndef].span());
+
         // [Setup] SystemsDrop
-        let account_address = world
-            .deploy_contract('account', account::TEST_CLASS_HASH.try_into().unwrap());
-        let play_address = world.deploy_contract('play', play::TEST_CLASS_HASH.try_into().unwrap());
-        let settings_address = world
-            .deploy_contract('settings', settings::TEST_CLASS_HASH.try_into().unwrap());
-        let chest_address = world
-            .deploy_contract('chest', chest::TEST_CLASS_HASH.try_into().unwrap());
-        let tournament_address = world
-            .deploy_contract('tournament', tournament::TEST_CLASS_HASH.try_into().unwrap());
-        let zkorp_address = world
-            .deploy_contract('zkorp', zkorp::TEST_CLASS_HASH.try_into().unwrap());
-
-        // [Setup] Permissions
-        world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), account_address);
-        world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), play_address);
-        world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), chest_address);
-        world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), settings_address);
-        world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), tournament_address);
-        world.grant_writer(dojo::utils::bytearray_hash(@"zkube"), zkorp_address);
-        //world.grant_writer(selector_from_tag!("zkube-Settings"), play_address);
-        //world.grant_writer(Model::<Settings>::selector(), play_address);
-
-        // [Setup] Contract
-        let selector = selector_from_tag!("zkube-play");
-        world.init_contract(selector, array![].span());
-
-        let selector = selector_from_tag!("zkube-chest");
-        world.init_contract(selector, array![erc20.contract_address.into()].span());
-
-        let selector = selector_from_tag!("zkube-tournament");
-        world.init_contract(selector, array![erc20.contract_address.into()].span());
-
-        let selector = selector_from_tag!("zkube-zkorp");
-        world.init_contract(selector, array![erc20.contract_address.into()].span());
-
-        let selector = selector_from_tag!("zkube-settings");
-        world.init_contract(selector, array![PLAYER1().into()].span()); // player1 is admin
+        let (account_address, _) = world.dns(@"account").unwrap();
+        let (play_address, _) = world.dns(@"play").unwrap();
+        let (settings_address, _) = world.dns(@"settings").unwrap();
+        let (chest_address, _) = world.dns(@"chest").unwrap();
+        let (tournament_address, _) = world.dns(@"tournament").unwrap();
+        let (zkorp_address, _) = world.dns(@"zkorp").unwrap();
 
         let systems = Systems {
             account: IAccountDispatcher { contract_address: account_address },

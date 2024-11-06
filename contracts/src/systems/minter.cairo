@@ -42,7 +42,7 @@ mod minter {
 
             let mut world = self.world_default();
             let store = StoreTrait::new(world);
-            let settings = store.settings();
+        //let settings = store.settings();
         //let erc721 = ierc721_game_credits(settings.erc721_address.try_into().unwrap());
         //erc721.public_mint_from(caller.into(), caller.into());
         }
@@ -53,7 +53,7 @@ mod minter {
 
             let mut world = self.world_default();
             let store = StoreTrait::new(world);
-            let settings = store.settings();
+            //let settings = store.settings();
             let mut mint = store.mint(caller.into());
 
             let current_timestamp = get_block_timestamp();

@@ -4,7 +4,7 @@ use core::debug::PrintTrait;
 use core::Default;
 use core::Zeroable;
 
-use zkube::models::index::Chest;
+use zkube::models::index::{Chest, m_Chest};
 
 mod errors {
     const CHEST_NOT_EXIST: felt252 = 'Chest: Does not exist';

@@ -13,7 +13,7 @@ use origami_random::deck::{Deck as OrigamiDeck, DeckTrait};
 // Internal imports
 
 use zkube::constants;
-use zkube::models::index::Tournament;
+use zkube::models::index::{Tournament, m_Tournament};
 
 // Errors
 

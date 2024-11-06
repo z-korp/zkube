@@ -27,7 +27,7 @@ use zkube::tests::setup::{
 #[test]
 fn test_play_play_ranked_tournament_started() {
     // [Setup]
-    let (world, systems, context) = setup::create_accounts();
+    let (mut world, systems, context) = setup::create_accounts();
     let store = StoreTrait::new(world);
 
     set_contract_address(PLAYER1());
@@ -44,7 +44,7 @@ fn test_play_play_ranked_tournament_started() {
 #[test]
 fn test_play_play_daily_tournament_claim() {
     // [Setup]
-    let (world, systems, context) = setup::create_accounts();
+    let (mut world, systems, context) = setup::create_accounts();
     let store = StoreTrait::new(world);
     let settings = store.settings();
     let time = constants::DAILY_MODE_DURATION + 1;
@@ -296,7 +296,7 @@ fn test_play_play_daily_tournament_claim() {
 #[should_panic(expected: ('Tournament: not over', 'ENTRYPOINT_FAILED',))]
 fn test_play_play_ranked_tournament_claim_revert_not_over() {
     // [Setup]
-    let (world, systems, context) = setup::create_accounts();
+    let (mut world, systems, context) = setup::create_accounts();
     let store = StoreTrait::new(world);
     let settings = store.settings();
     let time = constants::DAILY_MODE_DURATION + 1;
@@ -330,7 +330,7 @@ fn test_play_play_ranked_tournament_claim_revert_not_over() {
 #[should_panic(expected: ('Tournament: invalid player', 'ENTRYPOINT_FAILED',))]
 fn test_play_play_ranked_tournament_claim_revert_invalid_player() {
     // [Setup]
-    let (world, systems, context) = setup::create_accounts();
+    let (mut world, systems, context) = setup::create_accounts();
     let store = StoreTrait::new(world);
     let settings = store.settings();
 

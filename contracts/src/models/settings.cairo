@@ -2,7 +2,7 @@
 use starknet::ContractAddress;
 
 // Internal imports
-use zkube::models::index::Settings;
+use zkube::models::index::{Settings, m_Settings};
 use zkube::types::mode::Mode;
 use zkube::constants;
 
