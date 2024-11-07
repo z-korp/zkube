@@ -12,7 +12,12 @@ mod HostableComponent {
     use starknet::info::{get_contract_address, get_caller_address, get_block_timestamp};
 
     // Dojo imports
+
     use dojo::world::{WorldStorage, IWorldDispatcherTrait};
+
+    // External imports
+
+    use bushido_trophy::store::{Store as BushidoStore, StoreTrait as BushidoStoreTrait};
 
     // Internal imports
 
@@ -23,6 +28,7 @@ mod HostableComponent {
     use zkube::models::game::{Game, GameImpl, GameAssert};
     use zkube::models::player::{Player, PlayerTrait, PlayerAssert};
     use zkube::types::mode::{Mode, ModeTrait};
+    use zkube::types::task::{Task, TaskTrait};
     use zkube::models::game::GameTrait;
     use zkube::models::tournament::{TournamentImpl, TournamentAssert};
 
@@ -140,6 +146,15 @@ mod HostableComponent {
                 - tournament_amount
                 - chest_amount
                 - referrer_amount;
+
+            // [Trophy] Update progression, can manage the mode here to target specific game modes
+            if mode != Mode::None {
+                let player_id = player.id;
+                let task_id = Task::Playing.identifier(0);
+                let count = 1;
+                let store = BushidoStoreTrait::new(world);
+                store.progress(player_id, task_id, count, time);
+            }
 
             // [Return] Game ID and amounts to pay
             (
