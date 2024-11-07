@@ -19,6 +19,7 @@ use zkube::models::game::{Game, GameTrait, GameAssert};
 use zkube::models::tournament::{TournamentImpl};
 use zkube::systems::play::IPlayDispatcherTrait;
 use zkube::systems::tournament::ITournamentSystemDispatcherTrait;
+use zkube::tests::mocks::erc721::{IERC721MintableDispatcher, IERC721MintableDispatcherTrait};
 
 use zkube::tests::setup::{
     setup,
@@ -60,6 +61,11 @@ fn test_play_play_daily_tournament_claim() {
     let (mut world, systems, context) = setup::create_accounts();
     let erc721_addr = context.erc721.contract_address;
     let erc20_addr = context.erc20.contract_address;
+
+    let erc721_mintable = IERC721MintableDispatcher {
+        contract_address: context.erc721.contract_address
+    };
+    let price = erc721_mintable.get_mint_price();
 
     let store = StoreTrait::new(world);
     let settings = store.settings();
@@ -122,10 +128,7 @@ fn test_play_play_daily_tournament_claim() {
     // println!("balance {}", balance);
     // println!("player1_balance {}", player1_balance);
     // println!("constants::DAILY_MODE_PRICE {}", constants::DAILY_MODE_PRICE);
-    assert(
-        balance + constants::DAILY_MODE_PRICE.into() == player1_balance,
-        'Balance post paid creation'
-    );
+    assert(balance + price == player1_balance, 'Balance post paid creation');
 
     // game 5, paid
     let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
@@ -170,12 +173,12 @@ fn test_play_play_daily_tournament_claim() {
     // println!("game.score {}", game.score);
 
     println!("blocks {}", game.blocks);
-    // 011_011_011_001_000_001_010_010
+    // 000_000_000_001_000_001_010_010
     // 011_011_011_010_010_001_000_001
-    // 000_000_001_000_100_100_100_100
-    // 001_000_100_100_100_100_010_010
+    // 011_011_011_000_100_100_100_100
+    // 010_010_001_000_011_011_011_001
     println!("qqqqq 3");
-    systems.play.move(1, 5, 6);
+    systems.play.move(2, 2, 1);
     let game = store.game(game_id);
 
     // println!("game.score {}", game.score);
@@ -209,12 +212,12 @@ fn test_play_play_daily_tournament_claim() {
     // println!("game.score {}", game.score);
 
     // println!("blocks {}", game.blocks);
-    // 011_011_011_001_000_001_010_010
+    // 000_000_000_001_000_001_010_010
     // 011_011_011_010_010_001_000_001
-    // 000_000_001_000_100_100_100_100
-    // 001_000_100_100_100_100_010_010
+    // 011_011_011_000_100_100_100_100
+    // 010_010_001_000_011_011_011_001
     println!("qqqqq 5");
-    systems.play.move(1, 5, 6);
+    systems.play.move(2, 2, 1);
     let game = store.game(game_id);
     // println!("game.score {}", game.score);
 
@@ -264,9 +267,7 @@ fn test_play_play_daily_tournament_claim() {
 
     // Calculate the expected prize
     let total_paid_games = 2_u256;
-    let prize_per_game = constants::DAILY_MODE_PRICE.into()
-        * constants::TOURNAMENT_PERCENTAGE.into()
-        / 100_u256;
+    let prize_per_game = price * constants::TOURNAMENT_PERCENTAGE.into() / 100_u256;
     let expected_prize = prize_per_game * total_paid_games;
     assert(tournament.prize.into() == expected_prize, 'Tournament prize mismatch');
     assert(tournament.top1_player_id == PLAYER2().into(), 'Tournament top1_player_id');

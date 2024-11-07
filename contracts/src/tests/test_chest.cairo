@@ -11,7 +11,8 @@ use zkube::systems::play::IPlayDispatcherTrait;
 use zkube::models::settings::{Settings, SettingsTrait};
 use zkube::systems::settings::{ISettingsDispatcherTrait, ISettingsDispatcher};
 use zkube::types::mode::Mode;
-use zkube::constants::{PRECISION_FACTOR, DAILY_MODE_DURATION, CHEST_PERCENTAGE, DAILY_MODE_PRICE};
+use zkube::constants::{PRECISION_FACTOR, DAILY_MODE_DURATION, CHEST_PERCENTAGE};
+use zkube::tests::mocks::erc721::{IERC721MintableDispatcher, IERC721MintableDispatcherTrait};
 
 use zkube::tests::setup::{
     setup,
@@ -111,6 +112,11 @@ fn test_chest_claim() {
     let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
 
+    let erc721_mintable = IERC721MintableDispatcher {
+        contract_address: context.erc721.contract_address
+    };
+    let price = erc721_mintable.get_mint_price();
+
     let time = DAILY_MODE_DURATION + 1;
     set_block_timestamp(time);
 
@@ -126,10 +132,11 @@ fn test_chest_claim() {
 
     // Sponsor the chest
     impersonate(PLAYER1());
-    let sponso: u256 = 1000_000_000_000_000_000_000;
+    let sponso: u256 = 1000_000_000_000_000_000_000; // 1000 LORDS
     context.erc20.approve(context.chest_address, sponso);
-    systems.chest.sponsor_chest(1, sponso.try_into().unwrap()); // 1000 LORDS
+    systems.chest.sponsor_chest(1, sponso.try_into().unwrap());
     let chest_balance = context.erc20.balance_of(context.chest_address);
+    println!("Chest balance: {}", chest_balance);
     assert(chest_balance == sponso, 'Wrong chest balance');
     assert(store.chest(1).prize == sponso.try_into().unwrap(), 'Wrong chest prize');
 
@@ -141,6 +148,8 @@ fn test_chest_claim() {
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.move(1, 6, 7);
     systems.play.surrender(); // 3 points
+    let game = store.game(game_id);
+    assert(game.score == 3, 'Score should be 3');
     let player1_new_balance = context.erc20.balance_of(PLAYER1());
 
     // Player 2
@@ -153,6 +162,8 @@ fn test_chest_claim() {
     systems.play.move(1, 6, 7);
     systems.play.move(1, 5, 6);
     systems.play.surrender(); // 4 points
+    let game = store.game(game_id);
+    assert(game.score == 4, 'Score should be 4');
     let player2_new_balance = context.erc20.balance_of(PLAYER2());
 
     // Player 3
@@ -164,8 +175,10 @@ fn test_chest_claim() {
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.move(1, 6, 7);
     systems.play.move(1, 5, 6);
-    systems.play.move(1, 5, 6);
+    systems.play.move(2, 2, 1);
     systems.play.surrender(); // 7 points
+    let game = store.game(game_id);
+    assert(game.score == 7, 'Score should be 7 (1)');
     let player3_new_balance = context.erc20.balance_of(PLAYER3());
 
     // Player 4
@@ -177,16 +190,17 @@ fn test_chest_claim() {
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.move(1, 6, 7);
     systems.play.move(1, 5, 6);
-    systems.play.move(1, 5, 6);
+    systems.play.move(2, 2, 1);
     systems.play.surrender(); // 7 points
+    let game = store.game(game_id);
+    assert(game.score == 7, 'Score should be 7 (2)');
     let player4_new_balance = context.erc20.balance_of(PLAYER4());
 
-    // [Assert] Player balances
-    let daily_mode_price: u256 = DAILY_MODE_PRICE.into();
-    assert(player1_new_balance == player1_balance - daily_mode_price, 'Player1 balance wrong');
-    assert(player2_new_balance == player2_balance - daily_mode_price, 'Player2 balance wrong');
-    assert(player3_new_balance == player3_balance - daily_mode_price, 'Player3 balance wrong');
-    assert(player4_new_balance == player4_balance - daily_mode_price, 'Player4 balance wrong');
+    // [Assert] Player balances before claiming prizes
+    assert(player1_new_balance == player1_balance - price, 'Player1 balance wrong');
+    assert(player2_new_balance == player2_balance - price, 'Player2 balance wrong');
+    assert(player3_new_balance == player3_balance - price, 'Player3 balance wrong');
+    assert(player4_new_balance == player4_balance - price, 'Player4 balance wrong');
 
     // [Assert] Chest
     let chest = store.chest(1);
@@ -195,7 +209,7 @@ fn test_chest_claim() {
     assert(chest.remaining_points() == 0, 'Chest remain pts should be 0');
 
     // Calculate the chest prizes
-    let prize_per_game = DAILY_MODE_PRICE.into() * CHEST_PERCENTAGE.into() / 100_u256;
+    let prize_per_game = price * CHEST_PERCENTAGE.into() / 100_u256;
     let chest1_game_prize = prize_per_game
         * (3_u256 * 1_000_000_000_000_000_000_000_u256
             + (4_u256 * 1_000_000_000_000_000_000_000_u256) / 7_u256)
@@ -231,9 +245,19 @@ fn test_chest_claim() {
 
     // [Assert] Chest balance before all claims
     let chest_balance_before_claims = context.erc20.balance_of(context.chest_address);
+    println!("Chest balance before claims: {}", chest_balance_before_claims);
+
     let total_prize_added_in_chest_1: u256 = sponso
         + 3_u256 * prize_per_game
         + (4_u256 * prize_per_game) / 7_u256;
+    println!("Total prize added in chest 1: {}", total_prize_added_in_chest_1);
+    println!("player4_expected_prize_chest2: {}", player4_expected_prize_chest2);
+    println!(
+        "total_prize_added_in_chest_1 + player4_expected_prize_chest2: {}",
+        total_prize_added_in_chest_1 + player4_expected_prize_chest2
+    );
+    println!("sponso: {}", sponso);
+    println!("prize_per_game: {}", prize_per_game);
     assert(
         abs_difference(
             chest_balance_before_claims,
@@ -249,8 +273,7 @@ fn test_chest_claim() {
     let player1_balance_after_claim = context.erc20.balance_of(PLAYER1());
     assert(
         abs_difference(
-            player1_balance_after_claim,
-            player1_balance + player1_expected_prize_chest1 - DAILY_MODE_PRICE.into()
+            player1_balance_after_claim, player1_balance + player1_expected_prize_chest1 - price
         ) < 5_000_000_000_000,
         'P1 balance wrong after claim',
     );
@@ -261,8 +284,7 @@ fn test_chest_claim() {
     let player2_balance_after_claim = context.erc20.balance_of(PLAYER2());
     assert(
         abs_difference(
-            player2_balance_after_claim,
-            player2_balance + player2_expected_prize_chest1 - DAILY_MODE_PRICE.into()
+            player2_balance_after_claim, player2_balance + player2_expected_prize_chest1 - price
         ) < 5_000_000_000_000,
         'P2 balance wrong after claim',
     );
@@ -273,8 +295,7 @@ fn test_chest_claim() {
     let player3_balance_after_claim = context.erc20.balance_of(PLAYER3());
     assert(
         abs_difference(
-            player3_balance_after_claim,
-            player3_balance + player3_expected_prize_chest1 - DAILY_MODE_PRICE.into()
+            player3_balance_after_claim, player3_balance + player3_expected_prize_chest1 - price
         ) < 5_000_000_000_000,
         'P3 balance wrong after claim',
     );
@@ -285,14 +306,14 @@ fn test_chest_claim() {
     let player4_balance_after_claim = context.erc20.balance_of(PLAYER4());
     assert(
         abs_difference(
-            player4_balance_after_claim,
-            player4_balance + player4_expected_prize_chest1 - DAILY_MODE_PRICE.into()
+            player4_balance_after_claim, player4_balance + player4_expected_prize_chest1 - price
         ) < 5_000_000_000_000,
         'P4 balance wrong after claim',
     );
 
     // [Assert] Chest balance after all claims
     let chest_balance_after_claims = context.erc20.balance_of(context.chest_address);
+    println!("Chest balance after claims: {}", chest_balance_after_claims);
     let init_point_part_prize = total_prize_added_in_chest_1
         * 9_982
         / 10_000; // we compute the part corresponding to the points
