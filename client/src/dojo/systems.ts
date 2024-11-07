@@ -210,6 +210,14 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
+  const claimFreeMint = async ({ account, ...props }: SystemTypes.Signer) => {
+    await handleTransaction(
+      account,
+      () => client.minter.claim_free_mint({ account, ...props }),
+      "Games have been claimed.",
+    );
+  };
+
   return {
     // account
     create,
@@ -223,5 +231,7 @@ export function systems({ client }: { client: IWorld }) {
     claimChest,
     // tournament
     claimTournament,
+    // airdrops
+    claimFreeMint,
   };
 }
