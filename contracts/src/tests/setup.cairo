@@ -7,7 +7,7 @@ mod setup {
     // Starknet imports
 
     use starknet::ContractAddress;
-    use starknet::testing::{set_contract_address, set_caller_address};
+    use starknet::testing::{set_contract_address, set_account_contract_address};
     use starknet::info::{get_contract_address, get_caller_address, get_block_timestamp};
 
     // Dojo imports
@@ -278,29 +278,29 @@ mod setup {
         );
 
         // Now let's setup the erc721 contract address in the settings contract
-        set_contract_address(ADMIN());
+        impersonate(ADMIN());
         let settings = ISettingsDispatcher { contract_address: settings_address };
         settings.update_erc721_address(erc721.contract_address);
 
         // [Setup] Context
         let faucet = IERC20FaucetDispatcher { contract_address: erc20.contract_address };
 
-        set_contract_address(PLAYER1());
+        impersonate(PLAYER1());
         faucet.mint();
         erc20.approve(play_address, ERC20::FAUCET_AMOUNT);
         systems.account.create(PLAYER1_NAME);
 
-        set_contract_address(PLAYER2());
+        impersonate(PLAYER2());
         faucet.mint();
         erc20.approve(play_address, ERC20::FAUCET_AMOUNT);
         systems.account.create(PLAYER2_NAME);
 
-        set_contract_address(PLAYER3());
+        impersonate(PLAYER3());
         faucet.mint();
         erc20.approve(play_address, ERC20::FAUCET_AMOUNT);
         systems.account.create(PLAYER3_NAME);
 
-        set_contract_address(PLAYER4());
+        impersonate(PLAYER4());
         faucet.mint();
         erc20.approve(play_address, ERC20::FAUCET_AMOUNT);
         systems.account.create(PLAYER4_NAME);
@@ -345,10 +345,18 @@ mod setup {
         };
 
         // [Set] Caller back to owner
-        set_contract_address(context.owner);
+        impersonate(context.owner);
 
         // [Return]
         (world, systems, context)
+    }
+
+    // set_contract_address : to define the address of the calling contract,
+    // set_account_contract_address : to define the address of the account used for the current
+    // transaction.
+    fn impersonate(address: ContractAddress) {
+        set_contract_address(address);
+        set_account_contract_address(address);
     }
 
     fn user_mint_token(
@@ -371,7 +379,7 @@ mod setup {
         assert(initial_erc20_balance >= price, 'Insufficient ERC20 balance');
 
         // Set up approval
-        set_contract_address(recipient);
+        impersonate(recipient);
         erc20.approve(erc721_contract, price);
 
         // Verify approval
@@ -413,7 +421,7 @@ mod setup {
         let initial_contract_balance = erc20.balance_of(erc721_contract);
 
         // Set admin as caller
-        set_contract_address(ADMIN());
+        impersonate(ADMIN());
 
         // Mint token
         erc721_mintable.minter_mint(recipient);

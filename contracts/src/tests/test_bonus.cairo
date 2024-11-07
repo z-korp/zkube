@@ -5,8 +5,7 @@ use core::debug::PrintTrait;
 // Starknet imports
 
 use starknet::testing::{
-    set_contract_address, set_account_contract_address, set_transaction_hash, set_caller_address,
-    set_block_timestamp
+    set_contract_address, set_account_contract_address, set_transaction_hash, set_block_timestamp
 };
 
 // Dojo imports
@@ -27,7 +26,7 @@ use zkube::types::mode::Mode;
 
 // Test imports
 
-use zkube::tests::setup::{setup, setup::{Systems, PLAYER1, user_mint_token}};
+use zkube::tests::setup::{setup, setup::{Systems, PLAYER1, user_mint_token, impersonate}};
 
 #[test]
 fn test_bonus_clean_board() {
@@ -38,7 +37,7 @@ fn test_bonus_clean_board() {
     let store = StoreTrait::new(world);
 
     // [Set] Game
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
     let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play

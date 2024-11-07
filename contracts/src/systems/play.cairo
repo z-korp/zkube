@@ -110,8 +110,8 @@ mod play {
 
             // [Check] Player owns the token
             let erc721 = ierc721_game_credits(erc721_address);
-            //let owner: ContractAddress = erc721.owner_of(token_id);
-            assert(caller == erc721.owner_of(token_id), 'Not nft owner');
+            let owner = erc721.owner_of(token_id);
+            assert(caller == owner, 'Not nft owner');
 
             // [Get] Entry price
             let price = erc721.get_purchase_price(token_id);
@@ -129,8 +129,6 @@ mod play {
                 .hostable
                 ._create(world, proof, seed, beta, mode, price);
 
-            let caller_felt: felt252 = caller.into();
-
             // [Effect] Sponsor the tournament from the erc721 contract funds
             let (contract_address, _) = world.dns(@"tournament").unwrap();
             let tournament_system_dispatcher = ITournamentSystemDispatcher { contract_address };
@@ -140,14 +138,12 @@ mod play {
             // Chest pool
             let (contract_address, _) = world.dns(@"chest").unwrap();
             let contract_address_felt: felt252 = contract_address.into();
-            println!("chest contract_address_felt: {}", contract_address_felt);
             let chest_system_dispatcher = IChestDispatcher { contract_address };
             chest_system_dispatcher.sponsor_from(chest_amount, erc721_address);
 
             // zKorp
             let (contract_address, _) = world.dns(@"zkorp").unwrap();
             let contract_address_felt: felt252 = contract_address.into();
-            println!("zkorp contract_address_felt: {}", contract_address_felt);
             let zkorp_system_dispatcher = IZKorpDispatcher { contract_address };
             zkorp_system_dispatcher.sponsor_from(zkorp_amount + referrer_amount, erc721_address);
 

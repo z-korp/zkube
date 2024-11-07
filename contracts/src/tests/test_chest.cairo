@@ -1,6 +1,6 @@
 use core::traits::Into;
 use core::Zeroable;
-use starknet::testing::{set_contract_address, set_caller_address, set_block_timestamp};
+use starknet::testing::{set_contract_address, set_block_timestamp};
 
 use zkube::models::chest::{Chest, ChestTrait, ChestAssert, ZeroableChest};
 use zkube::models::participation::{
@@ -17,7 +17,7 @@ use zkube::tests::setup::{
     setup,
     setup::{
         Systems, PLAYER1, PLAYER2, PLAYER3, PLAYER4, IERC20DispatcherTrait, IChestDispatcherTrait,
-        user_mint_token, admin_mint_token
+        user_mint_token, admin_mint_token, impersonate
     }
 };
 
@@ -55,10 +55,11 @@ fn test_chest_creation_and_completion() {
     chest.points = 9_995;
     store.set_chest(chest);
 
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
     // 1st game
     let player3_balance = context.erc20.balance_of(PLAYER1());
     let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    impersonate(PLAYER1());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -79,6 +80,7 @@ fn test_chest_creation_and_completion() {
 
     // 2nd game
     let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    impersonate(PLAYER1());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -113,17 +115,17 @@ fn test_chest_claim() {
     set_block_timestamp(time);
 
     // [Create admin]
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
     let settings = store.settings();
     // Now let's finish a chest with 4 players
 
-    set_contract_address(context.owner);
+    impersonate(context.owner);
     let mut chest = store.chest(1);
     chest.points = 9_982;
     store.set_chest(chest);
 
     // Sponsor the chest
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
     let sponso: u256 = 1000_000_000_000_000_000_000;
     context.erc20.approve(context.chest_address, sponso);
     systems.chest.sponsor_chest(1, sponso.try_into().unwrap()); // 1000 LORDS
@@ -142,7 +144,7 @@ fn test_chest_claim() {
     let player1_new_balance = context.erc20.balance_of(PLAYER1());
 
     // Player 2
-    set_contract_address(PLAYER2());
+    impersonate(PLAYER2());
     let player2_balance = context.erc20.balance_of(PLAYER2());
     let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER2().into());
     let game_id = systems
@@ -154,7 +156,7 @@ fn test_chest_claim() {
     let player2_new_balance = context.erc20.balance_of(PLAYER2());
 
     // Player 3
-    set_contract_address(PLAYER3());
+    impersonate(PLAYER3());
     let player3_balance = context.erc20.balance_of(PLAYER3());
     let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER3().into());
     let game_id = systems
@@ -167,7 +169,7 @@ fn test_chest_claim() {
     let player3_new_balance = context.erc20.balance_of(PLAYER3());
 
     // Player 4
-    set_contract_address(PLAYER4());
+    impersonate(PLAYER4());
     let player4_balance = context.erc20.balance_of(PLAYER4());
     let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER4().into());
     let game_id = systems
@@ -242,7 +244,7 @@ fn test_chest_claim() {
 
     // [Assert] Player balances after claiming prizes
     // Player 1
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
     systems.chest.claim(1);
     let player1_balance_after_claim = context.erc20.balance_of(PLAYER1());
     assert(
@@ -254,7 +256,7 @@ fn test_chest_claim() {
     );
 
     // Player 2
-    set_contract_address(PLAYER2());
+    impersonate(PLAYER2());
     systems.chest.claim(1);
     let player2_balance_after_claim = context.erc20.balance_of(PLAYER2());
     assert(
@@ -266,7 +268,7 @@ fn test_chest_claim() {
     );
 
     // Player 3
-    set_contract_address(PLAYER3());
+    impersonate(PLAYER3());
     systems.chest.claim(1);
     let player3_balance_after_claim = context.erc20.balance_of(PLAYER3());
     assert(
@@ -278,7 +280,7 @@ fn test_chest_claim() {
     );
 
     // Player 4
-    set_contract_address(PLAYER4());
+    impersonate(PLAYER4());
     systems.chest.claim(1);
     let player4_balance_after_claim = context.erc20.balance_of(PLAYER4());
     assert(

@@ -5,7 +5,7 @@ use core::debug::PrintTrait;
 
 // Starknet imports
 
-use starknet::testing::{set_contract_address, set_caller_address, set_block_timestamp};
+use starknet::testing::{set_contract_address, set_block_timestamp};
 
 // Dojo imports
 
@@ -24,7 +24,7 @@ use zkube::tests::setup::{
     setup,
     setup::{
         Mode, Systems, PLAYER1, PLAYER2, PLAYER3, PLAYER4, IERC20DispatcherTrait,
-        verify_system_allowance, user_mint_token, admin_mint_token,
+        verify_system_allowance, user_mint_token, admin_mint_token, impersonate
     }
 };
 
@@ -38,7 +38,7 @@ fn test_play_play_ranked_tournament_started() {
 
     let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
 
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -67,11 +67,12 @@ fn test_play_play_daily_tournament_claim() {
     set_block_timestamp(time);
 
     // [Start] Player1
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
     let player1_balance = context.erc20.balance_of(PLAYER1());
 
     // game 1, free
     let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    impersonate(PLAYER1());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -89,6 +90,7 @@ fn test_play_play_daily_tournament_claim() {
 
     // game 2, free
     let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    impersonate(PLAYER1());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -98,6 +100,7 @@ fn test_play_play_daily_tournament_claim() {
 
     // game 3, free
     let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    impersonate(PLAYER1());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -134,9 +137,10 @@ fn test_play_play_daily_tournament_claim() {
     systems.play.surrender();
 
     // [Start] Player2
-    set_contract_address(PLAYER2());
+    impersonate(PLAYER2());
     let player2_balance = context.erc20.balance_of(PLAYER2());
     let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER2().into());
+    impersonate(PLAYER2());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -184,9 +188,11 @@ fn test_play_play_daily_tournament_claim() {
     let top1_score = game.score;
 
     // [Start] Player3
-    set_contract_address(PLAYER3());
+    impersonate(PLAYER3());
     let player3_balance = context.erc20.balance_of(PLAYER3());
     let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER3().into());
+    impersonate(PLAYER3());
+    println!("token_id {}", token_id);
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -220,9 +226,11 @@ fn test_play_play_daily_tournament_claim() {
     let top2_score = game.score;
 
     // [Start] Player 4
-    set_contract_address(PLAYER4());
+    impersonate(PLAYER4());
     let player4_balance = context.erc20.balance_of(PLAYER4());
     let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER4().into());
+    impersonate(PLAYER4());
+    println!("token_id {}", token_id);
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -269,7 +277,7 @@ fn test_play_play_daily_tournament_claim() {
     assert(tournament.top3_score == top3_score, 'Tournament top3_score');
 
     // [Claim]
-    set_contract_address(PLAYER2());
+    impersonate(PLAYER2());
     set_block_timestamp(2 * constants::DAILY_MODE_DURATION);
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
     let rank = 1;
@@ -282,7 +290,7 @@ fn test_play_play_daily_tournament_claim() {
     assert(final_player2 == player2_balance + reward, 'Player2 balance post claim');
 
     // [Claim]
-    set_contract_address(PLAYER3());
+    impersonate(PLAYER3());
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
     let rank = 2;
     systems.tournament.claim(Mode::Daily, tournament_id, rank);
@@ -294,7 +302,7 @@ fn test_play_play_daily_tournament_claim() {
     assert(final_player3 == player3_balance + reward, 'Player3 balance post claim');
 
     // [Claim]
-    set_contract_address(PLAYER4());
+    impersonate(PLAYER4());
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
     let rank = 3;
     systems.tournament.claim(Mode::Daily, tournament_id, rank);
@@ -322,24 +330,31 @@ fn test_play_play_ranked_tournament_claim_revert_not_over() {
     let time = constants::DAILY_MODE_DURATION + 1;
     set_block_timestamp(time);
 
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
     // free game 1
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    impersonate(PLAYER1());
+    println!("token_id {}", token_id);
     systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
     // free game 2
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    impersonate(PLAYER1());
+    println!("token_id {}", token_id);
     systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
     // free game 3
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    impersonate(PLAYER1());
+    println!("token_id {}", token_id);
     systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
     // paid game 1
     let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    println!("token_id {}", token_id);
     systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Claim]
@@ -360,20 +375,23 @@ fn test_play_play_ranked_tournament_claim_revert_invalid_player() {
     let time = constants::DAILY_MODE_DURATION + 1;
     set_block_timestamp(time);
 
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
 
     // free game 1
     let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    impersonate(PLAYER1());
     systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
     // free game 2
     let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    impersonate(PLAYER1());
     systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
     // free game 3
     let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    impersonate(PLAYER1());
     systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
@@ -384,7 +402,7 @@ fn test_play_play_ranked_tournament_claim_revert_invalid_player() {
     // [Claim]
     set_block_timestamp(2 * constants::DAILY_MODE_DURATION);
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
-    set_contract_address(PLAYER2());
+    impersonate(PLAYER2());
     systems.tournament.claim(Mode::Daily, tournament_id, 1);
 }
 
