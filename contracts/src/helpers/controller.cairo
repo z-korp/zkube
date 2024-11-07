@@ -810,7 +810,7 @@ mod tests {
         let blocks = Controller::swipe(bitmap, 0, 5, true, 2);
 
         println!("blocks: {}", blocks);
-    // 001_001_011_000_000_011_011_001_001_000
+        // 001_001_011_000_000_011_011_001_001_000
     }
 
     #[test]
