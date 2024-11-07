@@ -27,19 +27,22 @@ use zkube::types::mode::Mode;
 
 // Test imports
 
-use zkube::tests::setup::{setup, setup::{Systems, PLAYER1}};
+use zkube::tests::setup::{setup, setup::{Systems, PLAYER1, user_mint_token}};
 
 #[test]
 fn test_bonus_clean_board() {
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
 
     // [Set] Game
     set_contract_address(PLAYER1());
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     let mut game = store.game(game_id);
     game.blocks = 0b00100100100100011011011;

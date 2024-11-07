@@ -21,23 +21,36 @@ use zkube::systems::play::IPlayDispatcherTrait;
 use zkube::systems::tournament::ITournamentSystemDispatcherTrait;
 
 use zkube::tests::setup::{
-    setup, setup::{Mode, Systems, PLAYER1, PLAYER2, PLAYER3, PLAYER4, IERC20DispatcherTrait}
+    setup,
+    setup::{
+        Mode, Systems, PLAYER1, PLAYER2, PLAYER3, PLAYER4, IERC20DispatcherTrait,
+        verify_system_allowance, user_mint_token, admin_mint_token,
+    }
 };
 
 #[test]
 fn test_play_play_ranked_tournament_started() {
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
+
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
 
     set_contract_address(PLAYER1());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Game
     let mut game = store.game(game_id);
     game.assert_exists();
+
+    // Check if still full allowance
+    let max_u128 = 0xffffffffffffffffffffffffffffffff_u128;
+    let max_u256: u256 = u256 { low: max_u128, high: max_u128 };
+    verify_system_allowance(erc20_addr, erc721_addr, context.tournament_address, max_u256);
 }
 
 
@@ -45,6 +58,9 @@ fn test_play_play_ranked_tournament_started() {
 fn test_play_play_daily_tournament_claim() {
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
+
     let store = StoreTrait::new(world);
     let settings = store.settings();
     let time = constants::DAILY_MODE_DURATION + 1;
@@ -54,10 +70,11 @@ fn test_play_play_daily_tournament_claim() {
     set_contract_address(PLAYER1());
     let player1_balance = context.erc20.balance_of(PLAYER1());
 
-    // game 1, free credits
+    // game 1, free
+    let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Balance post creation
     let balance = context.erc20.balance_of(PLAYER1());
@@ -70,29 +87,29 @@ fn test_play_play_daily_tournament_claim() {
     game.assert_exists();
     systems.play.surrender();
 
-    // game 2, free credits
+    // game 2, free
+    let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     let game = store.game(game_id);
     game.assert_exists();
     systems.play.surrender();
 
-    // game 3, free credits
+    // game 3, free
+    let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     let game = store.game(game_id);
     game.assert_exists();
     systems.play.surrender();
 
     // game 4, paid
-    context.erc20.approve(context.tournament_address, 10_000_000_000_000_000_000);
-    context.erc20.approve(context.chest_address, 10_000_000_000_000_000_000);
-    context.erc20.approve(context.zkorp_address, 10_000_000_000_000_000_000);
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     let game = store.game(game_id);
     game.assert_exists();
     systems.play.surrender();
@@ -108,12 +125,10 @@ fn test_play_play_daily_tournament_claim() {
     );
 
     // game 5, paid
-    context.erc20.approve(context.tournament_address, 10_000_000_000_000_000_000);
-    context.erc20.approve(context.chest_address, 10_000_000_000_000_000_000);
-    context.erc20.approve(context.zkorp_address, 10_000_000_000_000_000_000);
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     let game = store.game(game_id);
     game.assert_exists();
     systems.play.surrender();
@@ -121,9 +136,10 @@ fn test_play_play_daily_tournament_claim() {
     // [Start] Player2
     set_contract_address(PLAYER2());
     let player2_balance = context.erc20.balance_of(PLAYER2());
+    let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER2().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     let game = store.game(game_id);
     game.assert_exists();
@@ -170,9 +186,10 @@ fn test_play_play_daily_tournament_claim() {
     // [Start] Player3
     set_contract_address(PLAYER3());
     let player3_balance = context.erc20.balance_of(PLAYER3());
+    let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER3().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // println!("blocks {}", game.blocks);
     // 011_011_011_001_000_001_010_010
@@ -205,9 +222,10 @@ fn test_play_play_daily_tournament_claim() {
     // [Start] Player 4
     set_contract_address(PLAYER4());
     let player4_balance = context.erc20.balance_of(PLAYER4());
+    let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER4().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     let game = store.game(game_id);
     // println!("blocks {}", game.blocks);
@@ -297,6 +315,8 @@ fn test_play_play_daily_tournament_claim() {
 fn test_play_play_ranked_tournament_claim_revert_not_over() {
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
     let settings = store.settings();
     let time = constants::DAILY_MODE_DURATION + 1;
@@ -304,22 +324,23 @@ fn test_play_play_ranked_tournament_claim_revert_not_over() {
 
     set_contract_address(PLAYER1());
     // free game 1
-    systems.play.create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
     // free game 2
-    systems.play.create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
     // free game 3
-    systems.play.create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
     // paid game 1
-    context.erc20.approve(context.tournament_address, 10_000_000_000_000_000_000);
-    context.erc20.approve(context.chest_address, 10_000_000_000_000_000_000);
-    context.erc20.approve(context.zkorp_address, 10_000_000_000_000_000_000);
-    systems.play.create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Claim]
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
@@ -331,6 +352,8 @@ fn test_play_play_ranked_tournament_claim_revert_not_over() {
 fn test_play_play_ranked_tournament_claim_revert_invalid_player() {
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
     let settings = store.settings();
 
@@ -340,22 +363,23 @@ fn test_play_play_ranked_tournament_claim_revert_invalid_player() {
     set_contract_address(PLAYER1());
 
     // free game 1
-    systems.play.create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
     // free game 2
-    systems.play.create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
     // free game 3
-    systems.play.create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.surrender();
 
     // paid game 1
-    context.erc20.approve(context.tournament_address, 10_000_000_000_000_000_000);
-    context.erc20.approve(context.chest_address, 10_000_000_000_000_000_000);
-    context.erc20.approve(context.zkorp_address, 10_000_000_000_000_000_000);
-    systems.play.create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Claim]
     set_block_timestamp(2 * constants::DAILY_MODE_DURATION);

@@ -26,7 +26,7 @@ use zkube::tests::mocks::erc721::{
 use zkube::tests::mocks::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
 use zkube::tests::setup::{
     setup,
-    setup::{Systems, ADMIN, PLAYER1, mint_token_for_user, get_user_tokens, get_user_token_by_index}
+    setup::{Systems, ADMIN, PLAYER1, user_mint_token, get_user_tokens, get_user_token_by_index}
 };
 
 #[test]
@@ -79,34 +79,37 @@ fn test_erc721_user_mint_for_himself() {
     // Verify allowance was consumed
     let final_allowance = erc20.allowance(PLAYER1().into(), erc721.contract_address);
     assert_eq!(final_allowance, 0, "Allowance wasn't consumed");
+
+    // Verify ERC20 tokens balance of ERC721 contract
+    let nft_contract_erc20_balance = erc20.balance_of(context.erc721.contract_address);
+    let price = erc721_mintable.get_mint_price();
+    assert_eq!(nft_contract_erc20_balance, price);
 }
 
 #[test]
-fn test_erc721_2() {
+fn test_erc721_utils_fn() {
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
 
     set_block_timestamp(1000);
 
     // Mint token for PLAYER1
-    let token_id = mint_token_for_user(
-        context.erc721.contract_address, context.erc20.contract_address, PLAYER1().into()
-    );
+    let token_id: u256 = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     assert(token_id == 1, 'Minting should succeed');
 
     // Mint token for PLAYER1
-    let token_id = mint_token_for_user(
-        context.erc721.contract_address, context.erc20.contract_address, PLAYER1().into()
-    );
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     assert(token_id == 2, 'Minting should succeed');
 
-    let tokens: Array<u256> = get_user_tokens(context.erc721.contract_address, PLAYER1().into());
+    let tokens: Array<u256> = get_user_tokens(erc721_addr, PLAYER1().into());
     assert(tokens.len() == 2, 'Player should have 2 tokens');
 
-    let token_id_1 = get_user_token_by_index(context.erc721.contract_address, PLAYER1().into(), 0);
+    let token_id_1 = get_user_token_by_index(erc721_addr, PLAYER1().into(), 0);
     assert_eq!(token_id_1, 1);
-    let token_id_2 = get_user_token_by_index(context.erc721.contract_address, PLAYER1().into(), 1);
+    let token_id_2 = get_user_token_by_index(erc721_addr, PLAYER1().into(), 1);
     assert_eq!(token_id_2, 2);
 }
 
@@ -135,5 +138,10 @@ fn test_erc721_minter_mint_for_user() {
     // Verify mint was successful
     let final_nft_balance = erc721.balance_of(PLAYER1().into());
     assert_eq!(final_nft_balance, 1, "Minting failed");
+
+    // Verify ERC20 tokens balance of ERC721 contract
+    // should be 0 since minter minted the token for free
+    let nft_contract_erc20_balance = erc20.balance_of(context.erc721.contract_address);
+    assert_eq!(nft_contract_erc20_balance, 0);
 }
 

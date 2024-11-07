@@ -131,19 +131,23 @@ mod play {
 
             let caller_felt: felt252 = caller.into();
 
-            // [Effect] Sponsor the tournament
-            let (contract_address, _) = world.dns(@"zkube-tournament").unwrap();
+            // [Effect] Sponsor the tournament from the erc721 contract funds
+            let (contract_address, _) = world.dns(@"tournament").unwrap();
             let tournament_system_dispatcher = ITournamentSystemDispatcher { contract_address };
             tournament_system_dispatcher
                 .sponsor_from(tournament_id, mode, tournament_amount, erc721_address);
 
             // Chest pool
-            let (contract_address, _) = world.dns(@"zkube-chest").unwrap();
+            let (contract_address, _) = world.dns(@"chest").unwrap();
+            let contract_address_felt: felt252 = contract_address.into();
+            println!("chest contract_address_felt: {}", contract_address_felt);
             let chest_system_dispatcher = IChestDispatcher { contract_address };
             chest_system_dispatcher.sponsor_from(chest_amount, erc721_address);
 
             // zKorp
-            let (contract_address, _) = world.dns(@"zkube-zkorp").unwrap();
+            let (contract_address, _) = world.dns(@"zkorp").unwrap();
+            let contract_address_felt: felt252 = contract_address.into();
+            println!("zkorp contract_address_felt: {}", contract_address_felt);
             let zkorp_system_dispatcher = IZKorpDispatcher { contract_address };
             zkorp_system_dispatcher.sponsor_from(zkorp_amount + referrer_amount, erc721_address);
 

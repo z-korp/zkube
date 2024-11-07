@@ -351,7 +351,7 @@ mod setup {
         (world, systems, context)
     }
 
-    fn mint_token_for_user(
+    fn user_mint_token(
         erc721_contract: ContractAddress,
         erc20_contract: ContractAddress,
         recipient: ContractAddress,
@@ -395,6 +395,50 @@ mod setup {
         token_id
     }
 
+    /// Mints a new ERC721 token for free as admin
+    /// Returns the token ID of the minted NFT
+    fn admin_mint_token(
+        erc721_contract: ContractAddress,
+        erc20_contract: ContractAddress,
+        recipient: ContractAddress,
+    ) -> u256 {
+        // Set up dispatchers
+        let erc721_mintable = IERC721MintableDispatcher { contract_address: erc721_contract };
+        let erc721 = IERC721Dispatcher { contract_address: erc721_contract };
+        let erc721_enumerable = IERC721EnumerableDispatcher { contract_address: erc721_contract };
+        let erc20 = IERC20Dispatcher { contract_address: erc20_contract };
+
+        // Get initial balances
+        let initial_nft_balance = erc721.balance_of(recipient);
+        let initial_contract_balance = erc20.balance_of(erc721_contract);
+
+        // Set admin as caller
+        set_contract_address(ADMIN());
+
+        // Mint token
+        erc721_mintable.minter_mint(recipient);
+
+        // Verify mint
+        let final_nft_balance = erc721.balance_of(recipient);
+        assert(final_nft_balance == initial_nft_balance + 1, 'Admin mint failed');
+
+        // Verify no ERC20 tokens were spent
+        let final_contract_balance = erc20.balance_of(erc721_contract);
+        assert(final_contract_balance == initial_contract_balance, 'Contract balance changed');
+
+        // Get the token ID using enumerable functions
+        let token_id = erc721_enumerable.token_of_owner_by_index(recipient, initial_nft_balance);
+
+        // Verify token exists and belongs to recipient
+        assert(erc721.owner_of(token_id) == recipient, 'Wrong token owner');
+
+        // Verify purchase price is 0 for admin mint
+        let purchase_price = erc721_mintable.get_purchase_price(token_id);
+        assert(purchase_price == 0, 'Purchase price should be 0');
+
+        token_id
+    }
+
     /// Get all tokens owned by a user
     fn get_user_tokens(erc721_contract: ContractAddress, owner: ContractAddress,) -> Array<u256> {
         let erc721_enumerable = IERC721EnumerableDispatcher { contract_address: erc721_contract };
@@ -424,5 +468,17 @@ mod setup {
     ) -> u256 {
         let erc721_enumerable = IERC721EnumerableDispatcher { contract_address: erc721_contract };
         erc721_enumerable.token_of_owner_by_index(owner, index)
+    }
+
+    fn verify_system_allowance(
+        erc20_contract: ContractAddress,
+        erc721_contract: ContractAddress,
+        system_address: ContractAddress,
+        expected_amount: u256,
+    ) {
+        let erc20 = IERC20Dispatcher { contract_address: erc20_contract };
+        let allowance = erc20.allowance(erc721_contract, system_address);
+
+        assert(allowance >= expected_amount, 'Insufficient system allowance');
     }
 }

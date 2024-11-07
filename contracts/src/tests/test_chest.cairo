@@ -16,7 +16,8 @@ use zkube::constants::{PRECISION_FACTOR, DAILY_MODE_DURATION, CHEST_PERCENTAGE, 
 use zkube::tests::setup::{
     setup,
     setup::{
-        Systems, PLAYER1, PLAYER2, PLAYER3, PLAYER4, IERC20DispatcherTrait, IChestDispatcherTrait
+        Systems, PLAYER1, PLAYER2, PLAYER3, PLAYER4, IERC20DispatcherTrait, IChestDispatcherTrait,
+        user_mint_token, admin_mint_token
     }
 };
 
@@ -32,6 +33,8 @@ fn abs_difference(a: u256, b: u256) -> u256 {
 fn test_chest_creation_and_completion() {
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
 
     let time = DAILY_MODE_DURATION + 1;
@@ -55,9 +58,10 @@ fn test_chest_creation_and_completion() {
     set_contract_address(PLAYER1());
     // 1st game
     let player3_balance = context.erc20.balance_of(PLAYER1());
+    let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     systems.play.move(1, 6, 7);
     systems.play.move(1, 5, 6);
@@ -74,9 +78,10 @@ fn test_chest_creation_and_completion() {
     assert(chest.remaining_points() == 1, 'Chest1 remain pts should be 1');
 
     // 2nd game
+    let token_id = admin_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     systems.play.move(1, 6, 7);
     systems.play.move(1, 5, 6);
@@ -100,6 +105,8 @@ fn test_chest_creation_and_completion() {
 fn test_chest_claim() {
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
 
     let time = DAILY_MODE_DURATION + 1;
@@ -126,12 +133,10 @@ fn test_chest_claim() {
 
     // Player 1
     let player1_balance = context.erc20.balance_of(PLAYER1());
-    context.erc20.approve(context.tournament_address, 10_000_000_000_000_000_000);
-    context.erc20.approve(context.chest_address, 10_000_000_000_000_000_000);
-    context.erc20.approve(context.zkorp_address, 10_000_000_000_000_000_000);
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.move(1, 6, 7);
     systems.play.surrender(); // 3 points
     let player1_new_balance = context.erc20.balance_of(PLAYER1());
@@ -139,12 +144,10 @@ fn test_chest_claim() {
     // Player 2
     set_contract_address(PLAYER2());
     let player2_balance = context.erc20.balance_of(PLAYER2());
-    context.erc20.approve(context.tournament_address, 10_000_000_000_000_000_000);
-    context.erc20.approve(context.chest_address, 10_000_000_000_000_000_000);
-    context.erc20.approve(context.zkorp_address, 10_000_000_000_000_000_000);
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER2().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.move(1, 6, 7);
     systems.play.move(1, 5, 6);
     systems.play.surrender(); // 4 points
@@ -153,12 +156,10 @@ fn test_chest_claim() {
     // Player 3
     set_contract_address(PLAYER3());
     let player3_balance = context.erc20.balance_of(PLAYER3());
-    context.erc20.approve(context.tournament_address, 10_000_000_000_000_000_000);
-    context.erc20.approve(context.chest_address, 10_000_000_000_000_000_000);
-    context.erc20.approve(context.zkorp_address, 10_000_000_000_000_000_000);
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER3().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.move(1, 6, 7);
     systems.play.move(1, 5, 6);
     systems.play.move(1, 5, 6);
@@ -168,12 +169,10 @@ fn test_chest_claim() {
     // Player 4
     set_contract_address(PLAYER4());
     let player4_balance = context.erc20.balance_of(PLAYER4());
-    context.erc20.approve(context.tournament_address, 10_000_000_000_000_000_000);
-    context.erc20.approve(context.chest_address, 10_000_000_000_000_000_000);
-    context.erc20.approve(context.zkorp_address, 10_000_000_000_000_000_000);
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER4().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
     systems.play.move(1, 6, 7);
     systems.play.move(1, 5, 6);
     systems.play.move(1, 5, 6);

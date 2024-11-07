@@ -13,6 +13,7 @@ pub trait IERC721Mintable<TContractState> {
     fn public_mint(ref self: TContractState, recipient: ContractAddress);
     fn get_mint_price(ref self: TContractState) -> u256;
     fn get_is_paused(ref self: TContractState) -> bool;
+    fn get_purchase_price(ref self: TContractState, token_id: u256) -> u256;
 }
 
 #[starknet::contract]
@@ -122,7 +123,11 @@ mod ERC721 {
         let erc20 = IERC20Dispatcher { contract_address: erc20_token };
         let max_u128 = 0xffffffffffffffffffffffffffffffff_u128;
         let max_u256: u256 = u256 { low: max_u128, high: max_u128 };
-        erc20.approve(play_system, max_u256);
+
+        // Approve all systems to spend ERC20 tokens
+        erc20.approve(tournament_system, max_u256);
+        erc20.approve(chest_system, max_u256);
+        erc20.approve(zkorp_system, max_u256);
     }
 
     impl ERC721HooksImpl of ERC721Component::ERC721HooksTrait<ContractState> {
@@ -218,6 +223,7 @@ mod ERC721 {
             self.mint_price.write(new_price);
         }
 
+        #[external(v0)]
         fn get_purchase_price(self: @ContractState, token_id: u256) -> u256 {
             // Retrieve the purchase price for a given token_id
             self.purchase_prices.read(token_id)
