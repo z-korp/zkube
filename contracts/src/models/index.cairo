@@ -88,6 +88,7 @@ struct Settings {
     #[key]
     pub id: u8,
     pub is_set: bool,
+    pub game_price: u256,
     pub zkorp_address: felt252,
     pub erc721_address: felt252,
 }

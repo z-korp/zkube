@@ -51,10 +51,7 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
 
   const cost = useMemo(() => {
     if (!settings) return "";
-    const weiCost =
-      mode === ModeType.Daily
-        ? settings.daily_mode_price
-        : settings.normal_mode_price;
+    const weiCost = settings.game_price; // 10 per game, hardcoded for now
     const ethCost = ethers.utils.formatEther(weiCost);
     const formattedCost =
       parseFloat(ethCost) % 1 === 0 ? parseInt(ethCost).toString() : ethCost;

@@ -6,6 +6,9 @@ use openzeppelin::token::erc721::interface::{IERC721Dispatcher, IERC721Dispatche
 
 const PAUSER_ROLE: felt252 = selector!("PAUSER_ROLE");
 const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
+const PRICE_SETTER_ROLE: felt252 =
+    selector!("PRICE_SETTER_ROLE"); // to be sure only the minter_system can set the price
+// not even an admin can set the price
 
 #[starknet::interface]
 pub trait IERC721Mintable<TContractState> {
@@ -14,6 +17,12 @@ pub trait IERC721Mintable<TContractState> {
     fn get_mint_price(ref self: TContractState) -> u256;
     fn get_is_paused(ref self: TContractState) -> bool;
     fn get_purchase_price(ref self: TContractState, token_id: u256) -> u256;
+}
+
+#[starknet::interface]
+pub trait IERC721Pausable<TContractState> {
+    fn pause(ref self: TContractState);
+    fn unpause(ref self: TContractState);
 }
 
 #[starknet::contract]
@@ -29,7 +38,7 @@ mod ERC721 {
     use openzeppelin::token::erc20::interface::IERC20DispatcherTrait;
     use super::{ContractAddress};
     use starknet::{get_caller_address, get_contract_address};
-    use super::{PAUSER_ROLE, MINTER_ROLE};
+    use super::{PAUSER_ROLE, MINTER_ROLE, PRICE_SETTER_ROLE};
     use starknet::storage::{
         Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
         StoragePointerWriteAccess,
@@ -101,7 +110,6 @@ mod ERC721 {
         pauser: ContractAddress,
         minter: ContractAddress,
         erc20_token: ContractAddress,
-        mint_price: u256,
         tournament_system: ContractAddress,
         chest_system: ContractAddress,
         zkorp_system: ContractAddress,
@@ -111,13 +119,13 @@ mod ERC721 {
         self.accesscontrol.initializer();
         self.erc721_enumerable.initializer();
         self.erc20_token.write(erc20_token);
-        self.mint_price.write(mint_price);
 
         self.accesscontrol._grant_role(DEFAULT_ADMIN_ROLE, default_admin);
         self.accesscontrol._grant_role(MINTER_ROLE, default_admin);
         self.accesscontrol._grant_role(PAUSER_ROLE, default_admin);
         self.accesscontrol._grant_role(PAUSER_ROLE, pauser);
         self.accesscontrol._grant_role(MINTER_ROLE, minter);
+        self.accesscontrol._grant_role(PRICE_SETTER_ROLE, minter);
 
         // Approve play system to spend unlimited ERC20 tokens
         let erc20 = IERC20Dispatcher { contract_address: erc20_token };
@@ -128,6 +136,9 @@ mod ERC721 {
         erc20.approve(tournament_system, max_u256);
         erc20.approve(chest_system, max_u256);
         erc20.approve(zkorp_system, max_u256);
+
+        // By default the contract is paused, until we set the price and unpause it
+        self.pausable.pause();
     }
 
     impl ERC721HooksImpl of ERC721Component::ERC721HooksTrait<ContractState> {
@@ -211,7 +222,7 @@ mod ERC721 {
 
         #[external(v0)]
         fn update_mint_price(ref self: ContractState, new_price: u256) {
-            self.accesscontrol.assert_only_role(MINTER_ROLE);
+            self.accesscontrol.assert_only_role(PRICE_SETTER_ROLE);
             self.mint_price.write(new_price);
         }
 

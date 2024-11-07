@@ -9,6 +9,7 @@ trait IERC721GameCredits<TState> {
     fn public_mint_from(self: @TState, recipient: ContractAddress, caller: ContractAddress);
     fn public_mint(self: @TState, recipient: ContractAddress);
     fn get_purchase_price(self: @TState, token_id: u256) -> u256;
+    fn update_mint_price(self: @TState, new_price: u256);
 }
 
 #[inline(always)]

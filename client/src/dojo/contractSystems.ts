@@ -381,7 +381,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       throw new Error(`Contract ${contract_name} not found in manifest`);
     }
 
-    const update_daily_mode_price = async ({
+    const update_zkorp_address = async ({
       account,
       value,
     }: UpdateDailyModePrice) => {
@@ -390,19 +390,19 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
           account,
           {
             contractName: contract_name,
-            entrypoint: "update_daily_mode_price",
+            entrypoint: "update_zkorp_address",
             calldata: [value],
           },
           NAMESPACE,
           details,
         );
       } catch (error) {
-        console.error("Error executing update_daily_mode_price:", error);
+        console.error("Error executing update_zkorp_address:", error);
         throw error;
       }
     };
 
-    const update_normal_mode_price = async ({
+    const update_erc721_address = async ({
       account,
       value,
     }: UpdateNormalModePrice) => {
@@ -411,14 +411,14 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
           account,
           {
             contractName: contract_name,
-            entrypoint: "update_normal_mode_price",
+            entrypoint: "update_erc721_address",
             calldata: [value],
           },
           NAMESPACE,
           details,
         );
       } catch (error) {
-        console.error("Error executing update_normal_mode_price:", error);
+        console.error("Error executing update_erc721_address:", error);
         throw error;
       }
     };
@@ -461,8 +461,8 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
     return {
       address: contract.address,
-      update_daily_mode_price,
-      update_normal_mode_price,
+      update_zkorp_address,
+      update_erc721_address,
       set_admin,
       delete_admin,
     };

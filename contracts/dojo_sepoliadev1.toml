@@ -33,5 +33,5 @@ private_key = "0x9a2816a70849c36ce6ef74a8b5d8007e40f36f3e96d1ce72d2bced106e8b1f"
 "zkube-Mint" = ["zkube-minter"]
 "zkube-Participation" = ["zkube-chest", "zkube-play"]
 "zkube-Player" = ["zkube-account", "zkube-play"]
-"zkube-Settings" = ["zkube-settings"]
+"zkube-Settings" = ["zkube-minter", "zkube-settings"]
 "zkube-Tournament" = ["zkube-play", "zkube-tournament"]

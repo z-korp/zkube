@@ -44,7 +44,7 @@ mod setup {
     };
     use zkube::tests::mocks::erc721::{
         ERC721, IERC721Dispatcher, IERC721DispatcherTrait, IERC721MintableDispatcher,
-        IERC721MintableDispatcherTrait
+        IERC721MintableDispatcherTrait, IERC721PausableDispatcher, IERC721PausableDispatcherTrait,
     };
 
     use zkube::systems::account::{account, IAccountDispatcher, IAccountDispatcherTrait};
@@ -148,11 +148,10 @@ mod setup {
         pauser: felt252,
         minter: felt252,
         erc20_address: felt252,
-        mint_price: u256,
         tournament_system: felt252,
         chest_system: felt252,
         zkorp_system: felt252,
-        play_system: felt252
+        play_system: felt252,
     ) -> IERC721Dispatcher {
         let (address, _) = starknet::deploy_syscall(
             ERC721::TEST_CLASS_HASH.try_into().expect('Class hash conversion failed'),
@@ -162,12 +161,10 @@ mod setup {
                 pauser,
                 minter,
                 erc20_address,
-                mint_price.low.into(),
-                mint_price.high.into(),
                 tournament_system,
                 chest_system,
                 zkorp_system,
-                play_system
+                play_system,
             ]
                 .span(),
             false
@@ -230,14 +227,14 @@ mod setup {
     fn create_accounts() -> (WorldStorage, Systems, Context) {
         let owner = get_contract_address();
 
+        // [Setup] ERC20
         let erc20 = deploy_erc20();
-        // [Setup] World
-        let erc2_felt: felt252 = erc20.contract_address.into();
 
+        // [Setup] World
         let ndef = namespace_def(erc20.contract_address.into(), ADMIN().into(), ZKORP().into());
         let mut world = spawn_test_world([ndef].span());
 
-        // [Setup] SystemsDrop
+        // [Setup] Get contract addresses
         let (account_address, _) = world.dns(@"account").unwrap();
         let (play_address, _) = world.dns(@"play").unwrap();
         let (settings_address, _) = world.dns(@"settings").unwrap();
@@ -256,31 +253,43 @@ mod setup {
             minter: IMinterDispatcher { contract_address: minter_address },
         };
 
+        // [Setup] ERC721
         let default_admin: ContractAddress = ADMIN();
         let pauser: ContractAddress = ADMIN();
         let minter: ContractAddress = minter_address;
         let erc20_token: ContractAddress = erc20.contract_address;
-        let mint_price: u256 = 10_000_000_000_000_000_000;
         let tournament_system: ContractAddress = tournament_address;
         let chest_system: ContractAddress = chest_address;
         let zkorp_system: ContractAddress = zkorp_address;
         let play_system: ContractAddress = play_address;
+        let settings_system: ContractAddress = settings_address;
         let erc721 = deploy_erc721(
             default_admin.into(),
             pauser.into(),
             minter.into(),
             erc20_token.into(),
-            mint_price,
             tournament_system.into(),
             chest_system.into(),
             zkorp_system.into(),
-            play_system.into()
+            play_system.into(),
         );
 
         // Now let's setup the erc721 contract address in the settings contract
         impersonate(ADMIN());
         let settings = ISettingsDispatcher { contract_address: settings_address };
         settings.update_erc721_address(erc721.contract_address);
+
+        // Let's set the mint price in both settings and erc721 (only settings_system can set it in
+        // erc721)
+        let minter = IMinterDispatcher { contract_address: minter_address };
+        let mint_price: u256 = 10_000_000_000_000_000_000; // 10 tokens
+        minter.update_game_price(mint_price);
+
+        // Unpause the erc721 contract
+        let erc721_pausable = IERC721PausableDispatcher {
+            contract_address: erc721.contract_address
+        };
+        erc721_pausable.unpause();
 
         // [Setup] Context
         let faucet = IERC20FaucetDispatcher { contract_address: erc20.contract_address };

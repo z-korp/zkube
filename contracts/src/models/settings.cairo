@@ -15,7 +15,23 @@ mod errors {
 impl SettingsImpl of SettingsTrait {
     #[inline(always)]
     fn new(zkorp_address: ContractAddress) -> Settings {
-        Settings { id: 1, is_set: true, zkorp_address: zkorp_address.into(), erc721_address: 0, }
+        // - for now erc721_address is null because we have to deploy the systems first
+        // pass them to the erc721 constructor and then pass the erc721 address here
+        // by using the set_erc721_address function
+        // - same for mint price
+        Settings {
+            id: 1,
+            is_set: true,
+            game_price: 0,
+            zkorp_address: zkorp_address.into(),
+            erc721_address: 0,
+        }
+    }
+
+    #[inline(always)]
+    fn set_game_price(ref self: Settings, value: u256) {
+        // [Effect] Update game price
+        self.game_price = value;
     }
 
     #[inline(always)]
@@ -47,7 +63,7 @@ impl SettingsAssert of AssertTrait {
 impl ZeroableSettingsImpl of core::Zeroable<Settings> {
     #[inline(always)]
     fn zero() -> Settings {
-        Settings { id: 0, is_set: false, zkorp_address: 0, erc721_address: 0, }
+        Settings { id: 0, is_set: false, game_price: 0, zkorp_address: 0, erc721_address: 0, }
     }
 
     #[inline(always)]
