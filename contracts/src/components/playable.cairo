@@ -38,6 +38,7 @@ mod PlayableComponent {
     use zkube::types::mode::ModeTrait;
     use zkube::types::task::{Task, TaskTrait};
     use zkube::types::trophy::{Trophy, TrophyTrait};
+    use zkube::types::level::LevelTrait;
 
 
     // Storage
@@ -299,7 +300,8 @@ mod PlayableComponent {
             }
 
             // [Trophy] Update Leveling tasks progression
-            let value = LevelTrait::from_points(player.points).into();
+            let player_level: u8 = LevelTrait::from_points(player.points).into();
+            let value = player_level.into();
             if Trophy::BeginnersLuck.assess(value) {
                 let level = Trophy::BeginnersLuck.level();
                 let task_id = Task::Leveling.identifier(level);

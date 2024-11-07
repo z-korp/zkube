@@ -12,7 +12,7 @@ use alexandria_math::fast_power::fast_power;
 
 // Inernal imports
 
-use zkube::models::index::{Game, m_Game};
+use zkube::models::index::Game;
 use zkube::constants;
 use zkube::types::difficulty::Difficulty;
 use zkube::helpers::math::Math;

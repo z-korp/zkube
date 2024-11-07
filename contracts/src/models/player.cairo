@@ -12,7 +12,7 @@ use zkube::constants::{
     ACCOUNT_AGE_MULTIPLIER_START, ACCOUNT_AGE_MULTIPLIER_INCREMENT, ACCOUNT_AGE_MULTIPLIER_CAP,
     STREAK_31_PLUS_MULTIPLIER_INCREMENT
 };
-use zkube::models::index::{Player, m_Player};
+use zkube::models::index::Player;
 use zkube::helpers::math::Math;
 use zkube::helpers::timestamp::Timestamp;
 use zkube::types::level::{Level, LevelTrait};
@@ -558,8 +558,6 @@ mod tests {
         // Assume get_level_multiplier for 500 points is LEVEL_MULTIPLIER_START + (level *
         // LEVEL_MULTIPLIER_INCREMENT)
         let level = LevelTrait::from_points(player.points);
-        let level_u8: u8 = level.into();
-
         let level_u8: u8 = level.into();
         let expected_level_multiplier = LEVEL_MULTIPLIER_START
             + (level_u8.into() * LEVEL_MULTIPLIER_INCREMENT);
