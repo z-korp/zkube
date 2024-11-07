@@ -150,7 +150,7 @@ impl GameImpl of GameTrait {
         self.setup_next();
     }
 
-    fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8) {
+    fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8) -> u8 {
         // [Compute] Move direction and step counts
         let direction = final_index > start_index;
         let count = match direction {
@@ -175,7 +175,7 @@ impl GameImpl of GameTrait {
         // [Effect] Assess game over
         self.assess_over();
         if self.over {
-            return;
+            return 0;
         };
 
         // [Effect] Add a new line
@@ -198,6 +198,9 @@ impl GameImpl of GameTrait {
         if self.is_empty_grid() {
             self.insert_new_line()
         }
+
+        // [Return] Break line count
+        counter
     }
 
     fn is_empty_grid(ref self: Game) -> bool {
