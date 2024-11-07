@@ -11,6 +11,8 @@ const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 pub trait IERC721Mintable<TContractState> {
     fn minter_mint(ref self: TContractState, recipient: ContractAddress);
     fn public_mint(ref self: TContractState, recipient: ContractAddress);
+    fn get_mint_price(ref self: TContractState) -> u256;
+    fn get_is_paused(ref self: TContractState) -> bool;
 }
 
 #[starknet::contract]
@@ -111,6 +113,8 @@ mod ERC721 {
         self.mint_price.write(mint_price);
 
         self.accesscontrol._grant_role(DEFAULT_ADMIN_ROLE, default_admin);
+        self.accesscontrol._grant_role(MINTER_ROLE, default_admin);
+        self.accesscontrol._grant_role(PAUSER_ROLE, default_admin);
         self.accesscontrol._grant_role(PAUSER_ROLE, pauser);
         self.accesscontrol._grant_role(MINTER_ROLE, minter);
 
@@ -162,7 +166,8 @@ mod ERC721 {
             self.accesscontrol.assert_only_role(MINTER_ROLE);
 
             // Mint the NFT without payment
-            self.erc721.safe_mint(recipient, token_id, array![].span());
+            // mint for test, should be safe mint for production
+            self.erc721.mint(recipient, token_id);
 
             // Store purchase price as zero for minter mints
             self.purchase_prices.write(token_id, 0_u256);
@@ -185,10 +190,15 @@ mod ERC721 {
             let mint_price = self.mint_price.read();
 
             // Transfer ERC20 tokens for mint price
-            erc20_dispatcher.transfer_from(caller, erc20_token, mint_price);
+            let this_contract = get_contract_address();
+            let this_contract_address_felt: felt252 = this_contract.into();
+            let caller_felt: felt252 = caller.into();
+            erc20_dispatcher.transfer_from(caller, this_contract, mint_price);
 
             // Mint the NFT
-            self.erc721.safe_mint(recipient, token_id, array![].span());
+            let recipient_felt: felt252 = recipient.into();
+            // mint for test, should be safe mint for production
+            self.erc721.mint(recipient, token_id);
 
             // Store the purchase price for the token
             self.purchase_prices.write(token_id, mint_price);
@@ -211,6 +221,16 @@ mod ERC721 {
         fn get_purchase_price(self: @ContractState, token_id: u256) -> u256 {
             // Retrieve the purchase price for a given token_id
             self.purchase_prices.read(token_id)
+        }
+
+        #[external(v0)]
+        fn get_mint_price(self: @ContractState) -> u256 {
+            self.mint_price.read()
+        }
+
+        #[external(v0)]
+        fn get_is_paused(self: @ContractState) -> bool {
+            self.pausable.is_paused()
         }
     }
 }

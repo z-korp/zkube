@@ -87,6 +87,7 @@ mod tests {
     mod test_chest;
     mod test_bonus;
     mod test_minter;
+    mod test_erc721;
 
     mod mocks {
         mod erc20;

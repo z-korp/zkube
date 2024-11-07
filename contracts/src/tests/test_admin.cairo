@@ -8,7 +8,7 @@ use zkube::models::settings::{Settings, SettingsTrait};
 use zkube::systems::settings::{ISettingsDispatcherTrait, ISettingsDispatcher};
 use zkube::store::{Store, StoreTrait};
 
-use zkube::tests::setup::{setup, setup::{Systems, PLAYER1, PLAYER2, PLAYER3, PLAYER4}};
+use zkube::tests::setup::{setup, setup::{Systems, ADMIN, PLAYER1, PLAYER2, PLAYER3, PLAYER4}};
 
 #[test]
 fn test_admin_creation_and_deletion() {
@@ -18,7 +18,7 @@ fn test_admin_creation_and_deletion() {
 
     // [Create admin]
     // [Note] By default owner is admin
-    set_contract_address(PLAYER1());
+    set_contract_address(ADMIN());
     systems.settings.set_admin(PLAYER2().into());
 
     // [Assert] PLAYER2 is admin
@@ -40,7 +40,7 @@ fn test_admin_update_settings() {
     let store = StoreTrait::new(world);
 
     // [Create admin]
-    set_contract_address(PLAYER1());
+    set_contract_address(ADMIN());
     systems.settings.set_admin(PLAYER2().into());
 
     // [Update settings as admin]
@@ -73,7 +73,7 @@ fn test_admin_create_existing_admin() {
     let (world, systems, _) = setup::create_accounts();
 
     // [Create admin]
-    set_contract_address(PLAYER1());
+    set_contract_address(ADMIN());
     systems.settings.set_admin(PLAYER2().into());
 
     // [Try to create the same admin again]
@@ -87,7 +87,7 @@ fn test_admin_multiple_admins() {
     let store = StoreTrait::new(world);
 
     // [Create multiple admins]
-    set_contract_address(PLAYER1());
+    set_contract_address(ADMIN());
     systems.settings.set_admin(PLAYER2().into());
     systems.settings.set_admin(PLAYER3().into());
 

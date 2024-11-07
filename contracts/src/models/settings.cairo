@@ -14,13 +14,8 @@ mod errors {
 #[generate_trait]
 impl SettingsImpl of SettingsTrait {
     #[inline(always)]
-    fn new(zkorp_address: ContractAddress, erc721_address: ContractAddress) -> Settings {
-        Settings {
-            id: 1,
-            is_set: true,
-            zkorp_address: zkorp_address.into(),
-            erc721_address: erc721_address.into(),
-        }
+    fn new(zkorp_address: ContractAddress) -> Settings {
+        Settings { id: 1, is_set: true, zkorp_address: zkorp_address.into(), erc721_address: 0, }
     }
 
     #[inline(always)]
