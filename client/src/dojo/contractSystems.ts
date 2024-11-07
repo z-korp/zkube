@@ -75,9 +75,18 @@ export interface TournamentClaim extends Signer {
 }
 
 export interface AddFreeMint extends Signer {
-  to: bigint;
+  to: string;
   amount: number;
   expiration_timestamp: number;
+}
+
+export interface AddFreeMintSimple {
+  to: string;
+  amount: number;
+  expiration_timestamp: number;
+}
+export interface AddFreeMintBatch extends Signer {
+  freeMints: AddFreeMintSimple[];
 }
 
 export type IWorld = Awaited<ReturnType<typeof setupWorld>>;

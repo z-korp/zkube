@@ -13,11 +13,13 @@ import Connect from "../components/Connect";
 import { useGames } from "@/hooks/useGames";
 import { usePlayer } from "@/hooks/usePlayer";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
+import { Level } from "@/dojo/game/types/level";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/elements/tabs";
 import { motion } from "framer-motion";
 import { Rewards } from "./Rewards";
 import { useRewardsStore } from "@/stores/rewardsStore";
 import NotifCount from "../components/NotifCount";
+import Airdrop from "./Airdrop";
 
 interface ProfilePageProps {
   wfit: boolean;
@@ -59,8 +61,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
               defaultValue="rewards"
               className="flex-grow min-h-[480px] flex flex-col"
             >
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 {/*<TabsTrigger value="achievements">Achievements</TabsTrigger>*/}
+                <TabsTrigger
+                  value="airdrop"
+                  className="relative font-semibold md:font-normal"
+                >
+                  Airdrop
+                </TabsTrigger>
                 <TabsTrigger
                   value="rewards"
                   className="relative font-semibold md:font-normal"
@@ -75,6 +83,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
                   Statistics
                 </TabsTrigger>
               </TabsList>
+              <TabsContent
+                className="max-h-[480px] overflow-y-auto"
+                value="airdrop"
+                asChild
+              >
+                <Airdrop />
+              </TabsContent>
               <TabsContent
                 className="max-h-[480px] overflow-y-auto"
                 value="rewards"
