@@ -21,7 +21,7 @@ use zkube::types::mode::Mode;
 
 // Test imports
 
-use zkube::tests::setup::{setup, setup::{Systems, PLAYER1, user_mint_token}};
+use zkube::tests::setup::{setup, setup::{Systems, PLAYER1, user_mint_token, impersonate}};
 
 #[test]
 fn test_actions_create() {
@@ -32,7 +32,7 @@ fn test_actions_create() {
     let store = StoreTrait::new(world);
 
     // [Create]
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
     let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play

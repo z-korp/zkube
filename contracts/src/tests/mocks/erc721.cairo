@@ -167,17 +167,10 @@ mod ERC721 {
         fn minter_mint(ref self: ContractState, recipient: ContractAddress) {
             let token_id = self.token_id.read() + 1;
 
-            // Ensure caller has MINTER_ROLE
             self.accesscontrol.assert_only_role(MINTER_ROLE);
-
-            // Mint the NFT without payment
-            // mint for test, should be safe mint for production
             self.erc721.mint(recipient, token_id);
 
-            // Store purchase price as zero for minter mints
             self.purchase_prices.write(token_id, 0_u256);
-
-            // Increment the token_id
             self.token_id.write(token_id);
         }
 
@@ -201,7 +194,6 @@ mod ERC721 {
             erc20_dispatcher.transfer_from(caller, this_contract, mint_price);
 
             // Mint the NFT
-            let recipient_felt: felt252 = recipient.into();
             // mint for test, should be safe mint for production
             self.erc721.mint(recipient, token_id);
 

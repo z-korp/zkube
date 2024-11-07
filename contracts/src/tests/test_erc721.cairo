@@ -5,7 +5,7 @@ use core::debug::PrintTrait;
 
 // Starknet imports
 
-use starknet::testing::{set_contract_address, set_caller_address, set_block_timestamp};
+use starknet::testing::{set_contract_address, set_block_timestamp};
 use starknet::get_block_timestamp;
 
 // Dojo imports
@@ -26,7 +26,10 @@ use zkube::tests::mocks::erc721::{
 use zkube::tests::mocks::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
 use zkube::tests::setup::{
     setup,
-    setup::{Systems, ADMIN, PLAYER1, user_mint_token, get_user_tokens, get_user_token_by_index}
+    setup::{
+        Systems, ADMIN, PLAYER1, user_mint_token, get_user_tokens, get_user_token_by_index,
+        impersonate
+    }
 };
 
 #[test]
@@ -52,7 +55,7 @@ fn test_erc721_user_mint_for_himself() {
     assert(initial_erc20_balance >= price, 'Insufficient ERC20 balance');
 
     // Ensure we're using the correct caller for approval
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
 
     // Check allowance before approval
     let initial_allowance = erc20.allowance(PLAYER1().into(), erc721.contract_address);
@@ -130,7 +133,7 @@ fn test_erc721_minter_mint_for_user() {
     set_block_timestamp(1000);
 
     // Ensure we're using the correct caller for approval
-    set_contract_address(ADMIN());
+    impersonate(ADMIN());
 
     // Now attempt the mint
     erc721_mintable.minter_mint(PLAYER1().into());
