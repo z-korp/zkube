@@ -12,7 +12,6 @@ export enum ModeType {
   Normal = "Weekly Marathon",
   Daily = "Daily Challenge",
   Free = "Freeplay Arena",
-  Tutorial = "Tutorial",
 }
 
 export class Mode {
@@ -35,8 +34,6 @@ export class Mode {
     switch (this.value) {
       case ModeType.None:
         return 0;
-      case ModeType.Tutorial:
-        return 0;
       case ModeType.Normal:
         return NORMAL_MODE_DURATION;
       case ModeType.Daily:
@@ -56,12 +53,7 @@ export class Mode {
         return BigInt(DAILY_MODE_PRICE);
       case ModeType.Free:
         return BigInt(FREE_MODE_PRICE);
-      case ModeType.Tutorial:
-        return BigInt(0);
     }
   }
 
-  public isTutorial(): boolean {
-    return this.value === ModeType.Tutorial;
-  }
 }

@@ -56,7 +56,7 @@ export class Game {
     this.over = game.over ? true : false;
     this.next_row = Packer.sized_unpack(
       BigInt(game.next_row),
-      BigInt(BLOCK_BIT_COUNT),
+      BigInt(BLOCK_BIT_COUNT), 
       DEFAULT_GRID_WIDTH,
     );
     this.hammer = game.hammer_bonus;
