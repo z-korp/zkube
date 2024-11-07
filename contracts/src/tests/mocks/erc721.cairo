@@ -34,8 +34,7 @@ mod ERC721 {
     use openzeppelin::security::pausable::PausableComponent;
     use openzeppelin::token::erc721::ERC721Component;
     use openzeppelin::token::erc721::extensions::ERC721EnumerableComponent;
-    use openzeppelin::token::erc20::interface::IERC20Dispatcher;
-    use openzeppelin::token::erc20::interface::IERC20DispatcherTrait;
+    use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use super::{ContractAddress};
     use starknet::{get_caller_address, get_contract_address};
     use super::{PAUSER_ROLE, MINTER_ROLE, PRICE_SETTER_ROLE};
@@ -43,8 +42,6 @@ mod ERC721 {
         Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
         StoragePointerWriteAccess,
     };
-
-    use zkube::systems::tournament::{ITournamentSystemDispatcher, ITournamentSystemDispatcherTrait};
 
     component!(path: ERC721Component, storage: erc721, event: ERC721Event);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
