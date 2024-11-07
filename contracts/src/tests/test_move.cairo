@@ -5,8 +5,7 @@ use core::debug::PrintTrait;
 // Starknet imports
 
 use starknet::testing::{
-    set_contract_address, set_account_contract_address, set_transaction_hash, set_caller_address,
-    set_block_timestamp
+    set_contract_address, set_account_contract_address, set_transaction_hash, set_block_timestamp
 };
 
 // Dojo imports
@@ -26,19 +25,22 @@ use zkube::types::mode::Mode;
 
 // Test imports
 
-use zkube::tests::setup::{setup, setup::{Systems, PLAYER1}};
+use zkube::tests::setup::{setup, setup::{Systems, PLAYER1, user_mint_token, impersonate}};
 
 #[test]
 fn test_actions_move_01() {
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
 
     // [Set] Game
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     let mut game = store.game(game_id);
     game.blocks = 0x9240526d825221b6906d96d8924049;
@@ -52,13 +54,16 @@ fn test_actions_move_01() {
 fn test_actions_move_02() {
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
 
     // [Set] Game
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     let mut game = store.game(game_id);
     game.blocks = 0x48020924892429244829129048b6c8;
@@ -76,13 +81,16 @@ fn test_actions_move_02() {
 fn test_actions_move_03() {
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
 
     // [Set] Game
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     let mut game = store.game(game_id);
     game.blocks = 0b000_000_000_000_000_000_010_010;
@@ -143,13 +151,16 @@ fn test_actions_move_04_real_bug() {
 
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
 
     // [Set] Game
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     let mut game = store.game(game_id);
     game
@@ -184,13 +195,16 @@ fn test_actions_move_05_real_bug() {
 
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
 
     // [Set] Game
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     let mut game = store.game(game_id);
     game
@@ -221,13 +235,16 @@ fn test_actions_move_06_real_bug() {
 
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
 
     // [Set] Game
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     let mut game = store.game(game_id);
     game

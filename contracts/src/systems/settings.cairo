@@ -55,15 +55,12 @@ mod settings {
 
     // Constructor
     fn dojo_init(
-        ref self: ContractState,
-        admin_address: ContractAddress,
-        zkorp_address: ContractAddress,
-        erc721_address: ContractAddress
+        ref self: ContractState, admin_address: ContractAddress, zkorp_address: ContractAddress,
     ) {
         // [Effect] Create the settings entity
         let mut world = self.world_default();
         let store: Store = StoreTrait::new(world);
-        let settings: Settings = SettingsTrait::new(zkorp_address, erc721_address);
+        let settings: Settings = SettingsTrait::new(zkorp_address);
         store.set_settings(settings);
 
         // [Effect] Create the admin entity

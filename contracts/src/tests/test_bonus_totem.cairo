@@ -18,7 +18,7 @@ use zkube::types::bonus::Bonus;
 use zkube::types::mode::Mode;
 
 // Test imports
-use zkube::tests::setup::{setup, setup::{Systems, PLAYER1}};
+use zkube::tests::setup::{setup, setup::{Systems, PLAYER1, user_mint_token, impersonate}};
 
 // Helper function to update combo count, max combo and check totem bonus
 fn update_combo_and_check(
@@ -49,12 +49,15 @@ fn update_combo_and_check(
 fn test_game_totem_bonus_unlock() {
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
 
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Initial state
     let mut game = store.game(game_id);
@@ -81,12 +84,15 @@ fn test_game_totem_bonus_unlock() {
 fn test_game_totem_bonus_usage() {
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
 
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Initial state
     let mut game = store.game(game_id);
@@ -119,12 +125,15 @@ fn test_game_totem_bonus_usage() {
 fn test_game_totem_bonus_not_available() {
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
 
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
+    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(1, Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Assert] Initial state
     let mut game = store.game(game_id);

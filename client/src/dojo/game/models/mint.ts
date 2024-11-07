@@ -6,7 +6,7 @@ export class Mint {
   public expiration_timestamp: number;
 
   constructor(mint: ComponentValue) {
-    this.player_id = mint.player_id;
+    this.player_id = mint.id;
     this.number = mint.number;
     this.expiration_timestamp = mint.expiration_timestamp;
   }
