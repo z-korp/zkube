@@ -54,6 +54,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "bushido_trophy"
+version = "0.0.0"
+source = "git+https://github.com/cartridge-gg/bushido?rev=47eb7c1#47eb7c1a09250eb364153b15b68077ee58852ae3"
+dependencies = [
+ "dojo",
+]
+
+[[package]]
 name = "dojo"
 version = "1.0.0-rc.0"
 source = "git+https://github.com/dojoengine/dojo?tag=v1.0.0-rc.1#c789997f1a7cf5628d6b3fc01ce2851fca7a35bf"
@@ -206,6 +214,7 @@ name = "zkube"
 version = "1.0.0-rc.1"
 dependencies = [
  "alexandria_math",
+ "bushido_trophy",
  "dojo",
  "dojo_cairo_test",
  "openzeppelin",
