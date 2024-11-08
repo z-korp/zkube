@@ -45,7 +45,7 @@ export async function setup({ ...config }: Config) {
   const client = await setupWorld(dojoProvider, config);
 
   // Initialize the burner account manager
-  const burnerManager = new BurnerManager({
+  /*const burnerManager = new BurnerManager({
     masterAccount: new Account(
       {
         nodeUrl: config.rpcUrl,
@@ -68,7 +68,7 @@ export async function setup({ ...config }: Config) {
     }
   } catch (e) {
     console.error(e);
-  }
+  }*/
 
   return {
     client,
@@ -77,7 +77,7 @@ export async function setup({ ...config }: Config) {
     systemCalls: systems({ client }),
     config,
     world,
-    burnerManager,
+    //burnerManager,
     rpcProvider: dojoProvider.provider,
     sync,
     toriiClient,

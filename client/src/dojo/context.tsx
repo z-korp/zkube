@@ -8,7 +8,7 @@ interface DojoContextType extends SetupResult {
   master: Account;
 }
 
-export const DojoContext = createContext<DojoContextType | null>(null);
+export const DojoContext = createContext<SetupResult | null>(null);
 
 export const DojoProvider = ({
   children,
@@ -22,7 +22,7 @@ export const DojoProvider = ({
 
   const {
     config: { rpcUrl, masterAddress, masterPrivateKey },
-    burnerManager,
+    //burnerManager,
   } = value;
 
   const rpcProvider = useMemo(
@@ -33,22 +33,22 @@ export const DojoProvider = ({
     [rpcUrl],
   );
 
-  const masterAccount = useMemo(
+  /*const masterAccount = useMemo(
     () => new Account(rpcProvider, masterAddress, masterPrivateKey),
     [rpcProvider, masterAddress, masterPrivateKey],
-  );
+  );*/
 
-  const burnerManagerData = useBurnerManager({ burnerManager });
+  //const burnerManagerData = useBurnerManager({ burnerManager });
 
   return (
     <DojoContext.Provider
       value={{
         ...value,
-        account: {
+        /*account: {
           ...burnerManagerData,
           account: burnerManagerData.account || masterAccount,
         },
-        master: masterAccount,
+        master: masterAccount,*/
       }}
     >
       {children}
