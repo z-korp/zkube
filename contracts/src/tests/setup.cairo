@@ -146,12 +146,12 @@ mod setup {
     fn deploy_erc721(
         default_admin: felt252,
         pauser: felt252,
-        minter: felt252,
         erc20_address: felt252,
         tournament_system: felt252,
         chest_system: felt252,
         zkorp_system: felt252,
         play_system: felt252,
+        minter_system: felt252,
     ) -> IERC721Dispatcher {
         let (address, _) = starknet::deploy_syscall(
             ERC721::TEST_CLASS_HASH.try_into().expect('Class hash conversion failed'),
@@ -159,12 +159,12 @@ mod setup {
             array![
                 default_admin,
                 pauser,
-                minter,
                 erc20_address,
                 tournament_system,
                 chest_system,
                 zkorp_system,
                 play_system,
+                minter_system,
             ]
                 .span(),
             false
@@ -256,22 +256,22 @@ mod setup {
         // [Setup] ERC721
         let default_admin: ContractAddress = ADMIN();
         let pauser: ContractAddress = ADMIN();
-        let minter: ContractAddress = minter_address;
         let erc20_token: ContractAddress = erc20.contract_address;
         let tournament_system: ContractAddress = tournament_address;
         let chest_system: ContractAddress = chest_address;
         let zkorp_system: ContractAddress = zkorp_address;
         let play_system: ContractAddress = play_address;
         let settings_system: ContractAddress = settings_address;
+        let minter_system: ContractAddress = minter_address;
         let erc721 = deploy_erc721(
             default_admin.into(),
             pauser.into(),
-            minter.into(),
             erc20_token.into(),
             tournament_system.into(),
             chest_system.into(),
             zkorp_system.into(),
             play_system.into(),
+            minter_system.into(),
         );
 
         // Now let's setup the erc721 contract address in the settings contract

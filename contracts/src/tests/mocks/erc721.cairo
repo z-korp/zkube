@@ -105,12 +105,12 @@ mod ERC721 {
         ref self: ContractState,
         default_admin: ContractAddress,
         pauser: ContractAddress,
-        minter: ContractAddress,
         erc20_token: ContractAddress,
         tournament_system: ContractAddress,
         chest_system: ContractAddress,
         zkorp_system: ContractAddress,
         play_system: ContractAddress,
+        minter_system: ContractAddress,
     ) {
         self.erc721.initializer("zKube-Credits", "ZKBC", "");
         self.accesscontrol.initializer();
@@ -121,8 +121,8 @@ mod ERC721 {
         self.accesscontrol._grant_role(MINTER_ROLE, default_admin);
         self.accesscontrol._grant_role(PAUSER_ROLE, default_admin);
         self.accesscontrol._grant_role(PAUSER_ROLE, pauser);
-        self.accesscontrol._grant_role(MINTER_ROLE, minter);
-        self.accesscontrol._grant_role(PRICE_SETTER_ROLE, minter);
+        self.accesscontrol._grant_role(MINTER_ROLE, minter_system);
+        self.accesscontrol._grant_role(PRICE_SETTER_ROLE, minter_system);
 
         // Approve play system to spend unlimited ERC20 tokens
         let erc20 = IERC20Dispatcher { contract_address: erc20_token };
