@@ -142,7 +142,7 @@ fn test_chest_claim() {
 
     // Player 1
     let player1_balance = context.erc20.balance_of(PLAYER1());
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -155,7 +155,7 @@ fn test_chest_claim() {
     // Player 2
     impersonate(PLAYER2());
     let player2_balance = context.erc20.balance_of(PLAYER2());
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER2().into());
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER2().into());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -169,7 +169,7 @@ fn test_chest_claim() {
     // Player 3
     impersonate(PLAYER3());
     let player3_balance = context.erc20.balance_of(PLAYER3());
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER3().into());
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER3().into());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -184,7 +184,7 @@ fn test_chest_claim() {
     // Player 4
     impersonate(PLAYER4());
     let player4_balance = context.erc20.balance_of(PLAYER4());
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER4().into());
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER4().into());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);

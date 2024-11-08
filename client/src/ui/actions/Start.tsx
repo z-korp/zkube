@@ -13,20 +13,19 @@ import { useContract } from "@starknet-react/core";
 import { erc20ABI } from "@/utils/erc20";
 import { useMediaQuery } from "react-responsive";
 
-interface BalanceData {
-  balance: {
-    low: bigint;
-  };
-}
-
 const { VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
 
 interface StartProps {
   mode: ModeType;
   handleGameMode: () => void;
+  token_id: bigint | null;
 }
 
-export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
+export const Start: React.FC<StartProps> = ({
+  mode,
+  handleGameMode,
+  token_id,
+}) => {
   const {
     setup: {
       systemCalls: { start },
@@ -54,29 +53,19 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
   }, [account, player, game]);
 
   const handleClick = useCallback(async () => {
-    console.log(
-      "Starting game 1 ",
-      account?.address,
-      settings === null,
-      contract === undefined,
-    );
     if (settings === null) return;
     if (contract === undefined) return;
     if (!account?.address) return;
 
-    console.log("Starting game");
-
     setIsLoading(true);
 
     try {
-      const balance = (await contract.call("balanceOf", [
-        account?.address,
-      ])) as BalanceData;
-      if (balance.balance.low < settings.game_price) {
-        // 10 per game, hardcoded for now
+      const ret = await contract.call("balanceOf", [account?.address]);
+      const balance = BigInt(ret.toString());
+      if (balance < settings.game_price && contract) {
         console.log("Not enough balance, trying to claim faucet");
 
-        await createFaucetClaimHandler(account as Account, contract, () => {
+        await createFaucetClaimHandler(account as Account, () => {
           return;
         })();
       }
@@ -97,8 +86,9 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
 
       await start({
         account: account as Account,
+        token_id: token_id || BigInt(0),
         mode: new Mode(mode).into(),
-        price: settings.game_price, // 10 per game, hardcoded for now
+        price: settings.game_price,
         seed,
         x: proof_gamma_x,
         y: proof_gamma_y,
@@ -111,7 +101,7 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [account, settings, contract, start, mode, handleGameMode]);
+  }, [settings, contract, account, start, token_id, mode, handleGameMode]);
 
   return (
     <Button

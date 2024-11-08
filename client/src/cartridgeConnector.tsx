@@ -2,18 +2,20 @@ import { Connector } from "@starknet-react/core";
 import ControllerConnector from "@cartridge/connector/controller";
 import { getContractByName } from "@dojoengine/core";
 import { ColorMode, ControllerOptions } from "@cartridge/controller";
-import { shortString } from "starknet";
 import { manifest } from "./config/manifest";
 
-const { VITE_PUBLIC_GAME_TOKEN_ADDRESS, VITE_PUBLIC_NODE_URL } = import.meta
-  .env;
+const {
+  VITE_PUBLIC_GAME_TOKEN_ADDRESS,
+  VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
+  VITE_PUBLIC_NODE_URL,
+} = import.meta.env;
 
 export type Manifest = typeof manifest;
 
 const colorMode: ColorMode = "dark";
 const theme = "zkube";
 const namespace = "zkube";
-const slot: string = "zkube-bal";
+const slot = "zkube-slotdev";
 
 const account_contract_address = getContractByName(
   manifest,
@@ -45,6 +47,12 @@ console.log("chest_contract_address", chest_contract_address);
 console.log("tournament_contract_address", tournament_contract_address);
 
 const policies = [
+  // erc721
+  {
+    target: VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
+    method: "public_mint",
+  },
+  // erc20
   {
     target: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
     method: "approve",

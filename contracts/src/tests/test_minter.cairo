@@ -18,6 +18,7 @@ use zkube::constants;
 use zkube::store::{Store, StoreTrait};
 use zkube::models::mint::{Mint, MintTrait, MintAssert};
 use zkube::systems::minter::IMinterDispatcherTrait;
+use zkube::tests::mocks::erc721::{IERC721Dispatcher, IERC721DispatcherTrait};
 
 use zkube::tests::setup::{
     setup, setup::{Systems, ADMIN, PLAYER1, IERC20DispatcherTrait, impersonate}
@@ -46,3 +47,19 @@ fn test_minter() {
     assert(!mint.has_mint_not_expired(get_block_timestamp()), 'Mint should be 0');
 }
 
+#[test]
+fn test_minter_mint() {
+    // [Setup]
+    let (mut world, systems, context) = setup::create_accounts();
+    let store = StoreTrait::new(world);
+
+    set_block_timestamp(1000);
+
+    // Mint
+    impersonate(PLAYER1());
+    systems.minter.mint();
+
+    let erc721 = IERC721Dispatcher { contract_address: context.erc721.contract_address };
+    let final_nft_balance = erc721.balance_of(PLAYER1().into());
+    assert_eq!(final_nft_balance, 1, "Minting failed");
+}

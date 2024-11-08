@@ -40,6 +40,8 @@ import useViewport from "@/hooks/useViewport";
 import { TweetPreview } from "../components/TweetPreview";
 import { Schema } from "@dojoengine/recs";
 import { useGrid } from "@/hooks/useGrid";
+import { useFirstNft } from "@/hooks/useFirstNft";
+import Nfts from "../components/Nfts";
 
 export const Home = () => {
   const {
@@ -55,6 +57,8 @@ export const Home = () => {
 
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
+
+  const { tokenId } = useFirstNft(account?.address || "");
 
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
@@ -156,16 +160,19 @@ export const Home = () => {
         <GameModeCard
           mode={ModeType.Free}
           handleGameMode={() => setIsGameOn("isOn")}
+          token_id={tokenId}
         />
       </div>
       <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-start justify-center">
         <GameModeCard
           mode={ModeType.Daily}
           handleGameMode={() => setIsGameOn("isOn")}
+          token_id={tokenId}
         />
         <GameModeCard
           mode={ModeType.Normal}
           handleGameMode={() => setIsGameOn("isOn")}
+          token_id={tokenId}
         />
       </div>
     </>
@@ -187,17 +194,23 @@ export const Home = () => {
       <GameModeCard
         mode={ModeType.Daily}
         handleGameMode={() => setIsGameOn("isOn")}
+        token_id={tokenId}
       />
       <GameModeCard
         mode={ModeType.Normal}
         handleGameMode={() => setIsGameOn("isOn")}
+        token_id={tokenId}
       />
     </div>
   );
 
   const renderMobileView = () => (
     <div className="flex flex-col w-full gap-4 px-4 mt-4">
-      <Start mode={ModeType.Free} handleGameMode={handlePlay} />
+      <Start
+        mode={ModeType.Free}
+        handleGameMode={handlePlay}
+        token_id={tokenId}
+      />
 
       <Button
         onClick={handleTournaments}
@@ -219,6 +232,7 @@ export const Home = () => {
   return (
     <div className="h-screen-viewport flex flex-col w-full" id="portal-root">
       <Header />
+      <Nfts address={account?.address || ""} />
 
       {/* Content Area */}
       <div className="flex flex-col flex-1 relative">

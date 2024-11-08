@@ -100,11 +100,13 @@ fn test_erc721_utils_fn() {
     set_block_timestamp(1000);
 
     // Mint token for PLAYER1
-    let token_id: u256 = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let token_id: u256 = user_mint_token(
+        context.play_address, erc721_addr, erc20_addr, PLAYER1().into()
+    );
     assert(token_id == 1, 'Minting should succeed');
 
     // Mint token for PLAYER1
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER1().into());
     assert(token_id == 2, 'Minting should succeed');
 
     let tokens: Array<u256> = get_user_tokens(erc721_addr, PLAYER1().into());
