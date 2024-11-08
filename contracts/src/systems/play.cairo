@@ -115,6 +115,7 @@ mod play {
 
             // [Get] Entry price
             let price = erc721.get_purchase_price(token_id);
+            println!("get_purchase_price[{}]: {}", token_id, price);
 
             // [Effect] Create a game
             let (
@@ -132,6 +133,7 @@ mod play {
             // [Effect] Sponsor the tournament from the erc721 contract funds
             let (contract_address, _) = world.dns(@"tournament").unwrap();
             let tournament_system_dispatcher = ITournamentSystemDispatcher { contract_address };
+            println!("Tournament amount: {}", tournament_amount);
             tournament_system_dispatcher
                 .sponsor_from(tournament_id, mode, tournament_amount, erc721_address);
 
@@ -139,12 +141,14 @@ mod play {
             let (contract_address, _) = world.dns(@"chest").unwrap();
             let contract_address_felt: felt252 = contract_address.into();
             let chest_system_dispatcher = IChestDispatcher { contract_address };
+            println!("Chest amount: {}", chest_amount);
             chest_system_dispatcher.sponsor_from(chest_amount, erc721_address);
 
             // zKorp
             let (contract_address, _) = world.dns(@"zkorp").unwrap();
             let contract_address_felt: felt252 = contract_address.into();
             let zkorp_system_dispatcher = IZKorpDispatcher { contract_address };
+            println!("Zkorp amount: {}", zkorp_amount + referrer_amount);
             zkorp_system_dispatcher.sponsor_from(zkorp_amount + referrer_amount, erc721_address);
 
             // [Return] Game ID

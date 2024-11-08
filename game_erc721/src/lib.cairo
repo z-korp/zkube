@@ -2,13 +2,27 @@
 // Compatible with OpenZeppelin Contracts for Cairo ^0.18.0
 use starknet::ContractAddress;
 
+use openzeppelin::token::erc721::interface::{IERC721Dispatcher, IERC721DispatcherTrait};
+
 const PAUSER_ROLE: felt252 = selector!("PAUSER_ROLE");
 const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
+const PRICE_SETTER_ROLE: felt252 = selector!("PRICE_SETTER_ROLE");
+// to be sure only the minter_system can set the price
+// not even an admin can set the price
 
 #[starknet::interface]
-pub trait ZKubeCreditsMintable<TContractState> {
+pub trait IERC721Mintable<TContractState> {
     fn minter_mint(ref self: TContractState, recipient: ContractAddress);
     fn public_mint(ref self: TContractState, recipient: ContractAddress);
+    fn get_mint_price(ref self: TContractState) -> u256;
+    fn get_is_paused(ref self: TContractState) -> bool;
+    fn get_purchase_price(ref self: TContractState, token_id: u256) -> u256;
+}
+
+#[starknet::interface]
+pub trait IERC721Pausable<TContractState> {
+    fn pause(ref self: TContractState);
+    fn unpause(ref self: TContractState);
 }
 
 #[starknet::contract]
@@ -20,11 +34,10 @@ mod ZKubeCredits {
     use openzeppelin::security::pausable::PausableComponent;
     use openzeppelin::token::erc721::ERC721Component;
     use openzeppelin::token::erc721::extensions::ERC721EnumerableComponent;
-    use openzeppelin::token::erc20::interface::IERC20Dispatcher;
-    use openzeppelin::token::erc20::interface::IERC20DispatcherTrait;
+    use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use super::{ContractAddress};
     use starknet::{get_caller_address, get_contract_address};
-    use super::{PAUSER_ROLE, MINTER_ROLE};
+    use super::{PAUSER_ROLE, MINTER_ROLE, PRICE_SETTER_ROLE};
     use starknet::storage::{
         Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
         StoragePointerWriteAccess,
@@ -104,17 +117,26 @@ mod ZKubeCredits {
         self.accesscontrol.initializer();
         self.erc721_enumerable.initializer();
         self.erc20_token.write(erc20_token);
-        self.mint_price.write(mint_price);
 
         self.accesscontrol._grant_role(DEFAULT_ADMIN_ROLE, default_admin);
+        self.accesscontrol._grant_role(MINTER_ROLE, default_admin);
+        self.accesscontrol._grant_role(PAUSER_ROLE, default_admin);
         self.accesscontrol._grant_role(PAUSER_ROLE, pauser);
         self.accesscontrol._grant_role(MINTER_ROLE, minter);
+        self.accesscontrol._grant_role(PRICE_SETTER_ROLE, minter);
 
         // Approve play system to spend unlimited ERC20 tokens
         let erc20 = IERC20Dispatcher { contract_address: erc20_token };
         let max_u128 = 0xffffffffffffffffffffffffffffffff_u128;
         let max_u256: u256 = u256 { low: max_u128, high: max_u128 };
-        erc20.approve(play_system, max_u256);
+
+        // Approve all systems to spend ERC20 tokens
+        erc20.approve(tournament_system, max_u256);
+        erc20.approve(chest_system, max_u256);
+        erc20.approve(zkorp_system, max_u256);
+
+        // By default the contract is paused, until we set the price and unpause it
+        self.pausable.pause();
     }
 
     impl ERC721HooksImpl of ERC721Component::ERC721HooksTrait<ContractState> {
@@ -154,16 +176,10 @@ mod ZKubeCredits {
         fn minter_mint(ref self: ContractState, recipient: ContractAddress) {
             let token_id = self.token_id.read() + 1;
 
-            // Ensure caller has MINTER_ROLE
             self.accesscontrol.assert_only_role(MINTER_ROLE);
+            self.erc721.mint(recipient, token_id);
 
-            // Mint the NFT without payment
-            self.erc721.safe_mint(recipient, token_id, array![].span());
-
-            // Store purchase price as zero for minter mints
             self.purchase_prices.write(token_id, 0_u256);
-
-            // Increment the token_id
             self.token_id.write(token_id);
         }
 
@@ -181,10 +197,14 @@ mod ZKubeCredits {
             let mint_price = self.mint_price.read();
 
             // Transfer ERC20 tokens for mint price
-            erc20_dispatcher.transfer_from(caller, erc20_token, mint_price);
+            let this_contract = get_contract_address();
+            let this_contract_address_felt: felt252 = this_contract.into();
+            let caller_felt: felt252 = caller.into();
+            erc20_dispatcher.transfer_from(caller, this_contract, mint_price);
 
             // Mint the NFT
-            self.erc721.safe_mint(recipient, token_id, array![].span());
+            // mint for test, should be safe mint for production
+            self.erc721.mint(recipient, token_id);
 
             // Store the purchase price for the token
             self.purchase_prices.write(token_id, mint_price);
@@ -200,13 +220,24 @@ mod ZKubeCredits {
 
         #[external(v0)]
         fn update_mint_price(ref self: ContractState, new_price: u256) {
-            self.accesscontrol.assert_only_role(MINTER_ROLE);
+            self.accesscontrol.assert_only_role(PRICE_SETTER_ROLE);
             self.mint_price.write(new_price);
         }
 
+        #[external(v0)]
         fn get_purchase_price(self: @ContractState, token_id: u256) -> u256 {
             // Retrieve the purchase price for a given token_id
             self.purchase_prices.read(token_id)
+        }
+
+        #[external(v0)]
+        fn get_mint_price(self: @ContractState) -> u256 {
+            self.mint_price.read()
+        }
+
+        #[external(v0)]
+        fn get_is_paused(self: @ContractState) -> bool {
+            self.pausable.is_paused()
         }
     }
 }

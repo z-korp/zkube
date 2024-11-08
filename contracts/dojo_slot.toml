@@ -22,7 +22,7 @@ private_key = "0x22a71ec86a65c35a69d30c0680fb131576f2de4a4406bb1d10c43462e14dfc"
 
 [init_call_args]
 "zkube-chest" = ["0x0730b8077dc0db1ac0138b2474a85b70b833a3ad6318059f60671ebb09195e67"]
-"zkube-settings" = ["0x01a988f1faf473743f144dd6d7c04026d363fe72e697a35292eeb18be2ca8717"]
+"zkube-settings" = ["0x01a988f1faf473743f144dd6d7c04026d363fe72e697a35292eeb18be2ca8717", "0x01a988f1faf473743f144dd6d7c04026d363fe72e697a35292eeb18be2ca8717"]
 "zkube-tournament" = ["0x0730b8077dc0db1ac0138b2474a85b70b833a3ad6318059f60671ebb09195e67"]
 "zkube-zkorp" = ["0x0730b8077dc0db1ac0138b2474a85b70b833a3ad6318059f60671ebb09195e67"]
 
@@ -33,5 +33,5 @@ private_key = "0x22a71ec86a65c35a69d30c0680fb131576f2de4a4406bb1d10c43462e14dfc"
 "zkube-Mint" = ["zkube-minter"]
 "zkube-Participation" = ["zkube-chest", "zkube-play"]
 "zkube-Player" = ["zkube-account", "zkube-play"]
-"zkube-Settings" = ["zkube-settings"]
+"zkube-Settings" = ["zkube-minter", "zkube-settings"]
 "zkube-Tournament" = ["zkube-play", "zkube-tournament"]

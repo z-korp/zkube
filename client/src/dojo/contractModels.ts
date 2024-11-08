@@ -92,14 +92,16 @@ export function defineContractComponents(world: World) {
         world,
         {
           id: RecsType.Number,
-          daily_mode_price: RecsType.BigInt,
-          normal_mode_price: RecsType.BigInt,
+          is_set: RecsType.Boolean,
+          game_price: RecsType.BigInt,
+          zkorp_address: RecsType.BigInt,
+          erc721_address: RecsType.BigInt,
         },
         {
           metadata: {
             namespace: "zkube",
             name: "Settings",
-            types: ["u8", "u8", "felt252", "felt252"],
+            types: ["u8", "bool", "u256", "felt252", "felt252"],
             customTypes: [],
           },
         },

@@ -72,7 +72,8 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
       const balance = (await contract.call("balanceOf", [
         account?.address,
       ])) as BalanceData;
-      if (balance.balance.low < settings.normal_mode_price) {
+      if (balance.balance.low < settings.game_price) {
+        // 10 per game, hardcoded for now
         console.log("Not enough balance, trying to claim faucet");
 
         await createFaucetClaimHandler(account as Account, contract, () => {
@@ -97,10 +98,7 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
       await start({
         account: account as Account,
         mode: new Mode(mode).into(),
-        price:
-          mode === ModeType.Daily
-            ? settings.daily_mode_price
-            : settings.normal_mode_price,
+        price: settings.game_price, // 10 per game, hardcoded for now
         seed,
         x: proof_gamma_x,
         y: proof_gamma_y,

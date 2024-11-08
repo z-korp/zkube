@@ -9,6 +9,7 @@ trait IMinter<T> {
     fn mint(ref self: T);
     fn claim_free_mint(ref self: T);
     fn add_free_mint(ref self: T, to: ContractAddress, number: u32, expiration_timestamp: u64);
+    fn update_game_price(ref self: T, price: u256);
 }
 
 #[dojo::contract]
@@ -31,6 +32,7 @@ mod minter {
     };
     use zkube::models::mint::{MintTrait, MintAssert};
     use zkube::models::admin::{AdminTrait, AdminAssert};
+    use zkube::models::settings::SettingsTrait;
 
     // Implementations
 
@@ -94,6 +96,27 @@ mod minter {
             let mut mint = store.mint(to.into());
             mint.add_mint(number, expiration_timestamp, get_block_timestamp());
             store.set_mint(mint);
+        }
+
+        /// Update the game price in the ERC721 contract and settings
+        fn update_game_price(ref self: ContractState, price: u256) {
+            let mut world = self.world_default();
+            let store: Store = StoreTrait::new(world);
+
+            // [Check] Only admin can update settings
+            let caller = get_caller_address();
+            let mut admin = store.admin(caller.into());
+            admin.assert_is_admin();
+
+            // [Effect] Update game price
+            let mut settings = store.settings();
+            settings.set_game_price(price);
+            let erc721_address: ContractAddress = settings.erc721_address.try_into().unwrap();
+            let erc721 = ierc721_game_credits(erc721_address);
+            // only settings_system can update the mint price
+            erc721.update_mint_price(price);
+
+            store.set_settings(settings);
         }
     }
 
