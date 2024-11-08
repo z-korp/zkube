@@ -4,8 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "../elements/card";
 import { Button } from "../elements/button";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useFreeMint } from "@/hooks/useFreeMint";
+import { useDojo } from "@/dojo/useDojo";
+import { Account } from "starknet";
 
 const Airdrop = () => {
+  const {
+    setup: {
+      systemCalls: { claimFreeMint },
+    },
+  } = useDojo();
   const { account } = useAccountCustom();
   const [claimStatus, setClaimStatus] = useState({
     claimed: false,
@@ -18,6 +25,10 @@ const Airdrop = () => {
   const handleClaim = useCallback(async () => {
     setIsLoading(true);
     try {
+      await claimFreeMint({
+        account: account as Account,
+      });
+
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setClaimStatus((prev) => ({
         ...prev,
