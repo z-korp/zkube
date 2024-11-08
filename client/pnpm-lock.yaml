@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@cartridge/connector':
-        specifier: ^0.3.46
-        version: 0.3.46(encoding@0.1.13)(get-starknet-core@3.3.4(starknet@6.11.0(encoding@0.1.13)))(react@18.3.1)
+        specifier: 0.5.0-alpha.7
+        version: 0.5.0-alpha.7(encoding@0.1.13)(get-starknet-core@3.3.4(starknet@6.11.0(encoding@0.1.13)))(react@18.3.1)(typescript@5.6.2)
       '@cartridge/controller':
-        specifier: ^0.3.46
-        version: 0.3.46(encoding@0.1.13)
+        specifier: 0.5.0-alpha.7
+        version: 0.5.0-alpha.7(encoding@0.1.13)
       '@dojoengine/core':
         specifier: 1.0.0-alpha.24
         version: 1.0.0-alpha.24(starknet@6.11.0(encoding@0.1.13))(typescript@5.6.2)
@@ -968,14 +968,14 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@cartridge/account-wasm@0.3.46':
-    resolution: {integrity: sha512-XK/1yE0U/4v9UXelkOEmW1DNbFXikWnifm9aZQ9JfT2SrNcOM3DTMHQZXMbL217RzxM7yE8KqDVVGwN0//Ya7Q==}
+  '@cartridge/account-wasm@0.5.0-alpha.7':
+    resolution: {integrity: sha512-cOcpo8iFmmrQEu8GJejL1N11KcPPjE7wJAGBHDFy0lhnqsE7xkZYkVouOOQ0ffl1dmH3iJ/TeViMbr3jumlOvg==}
 
-  '@cartridge/connector@0.3.46':
-    resolution: {integrity: sha512-iYfYdp6gaFJ8sKSFE4DpdVQJZj1tMroaeES76nC6U5aVQM8uz8OLtFB2AdNx/VO5QoGBB+6YbHyFffRCuVeaOg==}
+  '@cartridge/connector@0.5.0-alpha.7':
+    resolution: {integrity: sha512-4ds+64A1zozk3zLr4h+VuJ2FF6aKy4RsoJzIsM0FN6PJCEb0CYHS0zZonAV5+AzGkinwV4cJt+LWumZb31AS0w==}
 
-  '@cartridge/controller@0.3.46':
-    resolution: {integrity: sha512-xTr6u0dMIf6oYBf8PeF6edVND2QWWrjrHb+qUJ3taco6OEUFR0uEc2TfEr/PS7tTA1rIlgXJIeWP3VLRHz+IBg==}
+  '@cartridge/controller@0.5.0-alpha.7':
+    resolution: {integrity: sha512-t2O7t0jTdmUB0vrygcH/jjDwXGuPH2NSeHiYgoMYrCanyjhBNRcgM5P2wV+/GvPOt+nWQeqcy0of0jtaPqq4tQ==}
 
   '@cartridge/penpal@6.2.3':
     resolution: {integrity: sha512-K8h9VqBfFPXcAFQNnvgBnejF/dp7249pS4jXu3NhNYR6JqMQxtcrDqfnPmJvbF4ECEBs+8Z2UiwlRQiKt5nNsg==}
@@ -3088,6 +3088,9 @@ packages:
   '@starknet-react/chains@0.1.7':
     resolution: {integrity: sha512-UNh97I1SvuJKaAhKOmpEk8JcWuZWMlPG/ba2HcvFYL9x/47BKndJ+Da9V+iJFtkHUjreVnajT1snsaz1XMG+UQ==}
 
+  '@starknet-react/chains@3.1.0':
+    resolution: {integrity: sha512-h+fxh+Bs8h0ZSEX651vG3mn1NtMKzFDSHqrX7Q8YRRIeTKolPCx4vmoi5Gg19SXr/9iIVSwgx6qe4rVZTNfhcQ==}
+
   '@starknet-react/core@2.3.0':
     resolution: {integrity: sha512-8g9d0Gs811gJnQJHVMxQoXYhv+y5/qug7NQ0lnJ51uytdBhr/Zz5wgeTHW4ZQ5Igljyvf+ks+yhp4P1iSvnSqA==}
     peerDependencies:
@@ -3101,6 +3104,13 @@ packages:
       get-starknet-core: ^3.2.0
       react: ^18.0
       starknet: ^5.25.0
+
+  '@starknet-react/core@3.5.0':
+    resolution: {integrity: sha512-qeE6+kcumRZszx2iA1FKu2ZFLPrxF3rYOv9Tu1cJriQtCymKblolGyaE2/nBz5ysIhZB80JtHksC9l6dpgRmuw==}
+    peerDependencies:
+      get-starknet-core: ^4.0.0
+      react: ^18.0
+      starknet: ^6.11.0
 
   '@surma/rollup-plugin-off-main-thread@2.2.3':
     resolution: {integrity: sha512-lR8q/9W7hZpMWweNiAKU7NQerBnzQQLvi8qnTDU/fxItPhtZVMbPV3lbCwjhIlNBe9Bbr5V+KHshvWmVSG9cxQ==}
@@ -3199,6 +3209,27 @@ packages:
 
   '@tanstack/virtual-core@3.10.6':
     resolution: {integrity: sha512-1giLc4dzgEKLMx5pgKjL6HlG5fjZMgCjzlKAlpr7yoUtetVPELgER1NtephAI910nMwfPTHNyWKSFmJdHkz2Cw==}
+
+  '@telegram-apps/bridge@1.3.0':
+    resolution: {integrity: sha512-9P2SEhr1SSo8JQsbfm4fIzYhZY0wwH6PEOmSZ0kNXZ4xX1iSftJ3T7kSbcaQL2zIVrKO8PJxKeH4Etmkk9Oqgg==}
+
+  '@telegram-apps/navigation@1.0.4':
+    resolution: {integrity: sha512-I+wwfhR7O29ofzJ+x4HzErDbvYGjXlJaeaTxwYLCvcS014pv4+5ijbfKSBAmNIxWZC+s97+WzTD86jeze79K3w==}
+
+  '@telegram-apps/sdk@2.5.2':
+    resolution: {integrity: sha512-LlK07tFeL4QNJt/5dO/yh7ilWuqr3ja+Nr9xnDvQsxO7NroldC7moEqAzGnTq8Fu7mu1WFf/UMkmZnOMkK8OWw==}
+
+  '@telegram-apps/signals@1.0.1':
+    resolution: {integrity: sha512-+DAltcPtLBeNPjX+BxEh9smh0cbxCXuEcsOEyDCovp6HJHusWFv1tDyJuV0/rXFmcDs+VwU7SjmINdjld2nFHw==}
+
+  '@telegram-apps/toolkit@1.0.0':
+    resolution: {integrity: sha512-fSVoveLuMzwRKWeXEufMSXxH+HvjsFKb1DeT3pG5qLpnb2rdtejnNcwAt6WEPtiZ3a4YntYaFuR3KYgVv0ZxeQ==}
+
+  '@telegram-apps/transformers@1.0.1':
+    resolution: {integrity: sha512-SsI+FhCOkkZFUPqr+ib11Fi25fRCpdMsI2Flp51NrdtKaPDnKFkBBG4GcSEaGL8sXquW9uAANjc499jSaZK5jQ==}
+
+  '@telegram-apps/types@1.0.1':
+    resolution: {integrity: sha512-8tGy1zG/1MEt0KF8nR0ffZ93whKveEJIkBI+qxHCRgatKwKVJV2dVSXrrBspFKn7FIIo1/CvmB8zP4vKPzglbg==}
 
   '@tsparticles/basic@3.5.0':
     resolution: {integrity: sha512-oty33TxM2aHWrzcwWRic1bQ04KBCdpnvzv8JXEkx5Uyp70vgVegUbtKmwGki3shqKZIt3v2qE4I8NsK6onhLrA==}
@@ -7972,22 +8003,27 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@cartridge/account-wasm@0.3.46': {}
+  '@cartridge/account-wasm@0.5.0-alpha.7': {}
 
-  '@cartridge/connector@0.3.46(encoding@0.1.13)(get-starknet-core@3.3.4(starknet@6.11.0(encoding@0.1.13)))(react@18.3.1)':
+  '@cartridge/connector@0.5.0-alpha.7(encoding@0.1.13)(get-starknet-core@3.3.4(starknet@6.11.0(encoding@0.1.13)))(react@18.3.1)(typescript@5.6.2)':
     dependencies:
-      '@cartridge/controller': 0.3.46(encoding@0.1.13)
-      '@starknet-react/core': 2.9.0(get-starknet-core@3.3.4(starknet@6.11.0(encoding@0.1.13)))(react@18.3.1)(starknet@6.11.0(encoding@0.1.13))
+      '@cartridge/controller': 0.5.0-alpha.7(encoding@0.1.13)
+      '@starknet-react/core': 3.5.0(get-starknet-core@3.3.4(starknet@6.11.0(encoding@0.1.13)))(react@18.3.1)(starknet@6.11.0(encoding@0.1.13))(typescript@5.6.2)
       starknet: 6.11.0(encoding@0.1.13)
     transitivePeerDependencies:
+      - bufferutil
       - encoding
       - get-starknet-core
       - react
+      - typescript
+      - utf-8-validate
 
-  '@cartridge/controller@0.3.46(encoding@0.1.13)':
+  '@cartridge/controller@0.5.0-alpha.7(encoding@0.1.13)':
     dependencies:
-      '@cartridge/account-wasm': 0.3.46
+      '@cartridge/account-wasm': 0.5.0-alpha.7
       '@cartridge/penpal': 6.2.3
+      '@starknet-io/types-js': 0.7.7
+      '@telegram-apps/sdk': 2.5.2
       base64url: 3.0.1
       cbor-x: 1.5.9
       fast-deep-equal: 3.1.3
@@ -10641,6 +10677,8 @@ snapshots:
 
   '@starknet-react/chains@0.1.7': {}
 
+  '@starknet-react/chains@3.1.0': {}
+
   '@starknet-react/core@2.3.0(get-starknet-core@3.3.4(starknet@6.11.0(encoding@0.1.13)))(react@18.3.1)(starknet@6.11.0(encoding@0.1.13))':
     dependencies:
       '@starknet-react/chains': 0.1.7
@@ -10662,6 +10700,22 @@ snapshots:
       react: 18.3.1
       starknet: 6.11.0(encoding@0.1.13)
       zod: 3.23.8
+
+  '@starknet-react/core@3.5.0(get-starknet-core@3.3.4(starknet@6.11.0(encoding@0.1.13)))(react@18.3.1)(starknet@6.11.0(encoding@0.1.13))(typescript@5.6.2)':
+    dependencies:
+      '@starknet-io/types-js': 0.7.7
+      '@starknet-react/chains': 3.1.0
+      '@tanstack/react-query': 5.49.2(react@18.3.1)
+      eventemitter3: 5.0.1
+      get-starknet-core: 3.3.4(starknet@6.11.0(encoding@0.1.13))
+      react: 18.3.1
+      starknet: 6.11.0(encoding@0.1.13)
+      viem: 2.21.19(typescript@5.6.2)(zod@3.23.8)
+      zod: 3.23.8
+    transitivePeerDependencies:
+      - bufferutil
+      - typescript
+      - utf-8-validate
 
   '@surma/rollup-plugin-off-main-thread@2.2.3':
     dependencies:
@@ -10741,6 +10795,37 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
 
   '@tanstack/virtual-core@3.10.6': {}
+
+  '@telegram-apps/bridge@1.3.0':
+    dependencies:
+      '@telegram-apps/signals': 1.0.1
+      '@telegram-apps/toolkit': 1.0.0
+      '@telegram-apps/transformers': 1.0.1
+      '@telegram-apps/types': 1.0.1
+
+  '@telegram-apps/navigation@1.0.4':
+    dependencies:
+      '@telegram-apps/bridge': 1.3.0
+      '@telegram-apps/signals': 1.0.1
+      '@telegram-apps/toolkit': 1.0.0
+
+  '@telegram-apps/sdk@2.5.2':
+    dependencies:
+      '@telegram-apps/bridge': 1.3.0
+      '@telegram-apps/navigation': 1.0.4
+      '@telegram-apps/signals': 1.0.1
+      '@telegram-apps/transformers': 1.0.1
+
+  '@telegram-apps/signals@1.0.1': {}
+
+  '@telegram-apps/toolkit@1.0.0': {}
+
+  '@telegram-apps/transformers@1.0.1':
+    dependencies:
+      '@telegram-apps/toolkit': 1.0.0
+      '@telegram-apps/types': 1.0.1
+
+  '@telegram-apps/types@1.0.1': {}
 
   '@tsparticles/basic@3.5.0':
     dependencies:
@@ -11806,7 +11891,7 @@ snapshots:
 
   core-js-compat@3.37.1:
     dependencies:
-      browserslist: 4.23.1
+      browserslist: 4.24.2
 
   cosmiconfig@7.1.0:
     dependencies:

@@ -1,7 +1,7 @@
 import { Connector } from "@starknet-react/core";
-import CartridgeConnector from "@cartridge/connector";
+import ControllerConnector from "@cartridge/connector/controller";
 import { getContractByName } from "@dojoengine/core";
-import { ControllerOptions, PaymasterOptions } from "@cartridge/controller";
+import { ColorMode, ControllerOptions } from "@cartridge/controller";
 import { shortString } from "starknet";
 import { manifest } from "./config/manifest";
 
@@ -10,27 +10,32 @@ const { VITE_PUBLIC_GAME_TOKEN_ADDRESS, VITE_PUBLIC_NODE_URL } = import.meta
 
 export type Manifest = typeof manifest;
 
+const colorMode: ColorMode = "dark";
+const theme = "zkube";
+const namespace = "zkube";
+const slot: string = "zkube-bal";
+
 const account_contract_address = getContractByName(
   manifest,
-  "zkube",
+  namespace,
   "account",
 )?.address;
 
 const play_contract_address = getContractByName(
   manifest,
-  "zkube",
+  namespace,
   "play",
 )?.address;
 
 const chest_contract_address = getContractByName(
   manifest,
-  "zkube",
+  namespace,
   "chest",
 )?.address;
 
 const tournament_contract_address = getContractByName(
   manifest,
-  "zkube",
+  namespace,
   "tournament",
 )?.address;
 
@@ -86,17 +91,16 @@ const policies = [
   },
 ];
 
-const paymaster: PaymasterOptions = {
-  caller: shortString.encodeShortString("ANY_CALLER"),
-};
-
 const options: ControllerOptions = {
   rpc: VITE_PUBLIC_NODE_URL,
+  namespace,
+  slot,
   policies,
-  paymaster,
+  theme,
+  colorMode,
 };
 
-const cartridgeConnector = new CartridgeConnector(
+const cartridgeConnector = new ControllerConnector(
   options,
 ) as never as Connector;
 
