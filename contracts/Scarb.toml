@@ -18,11 +18,16 @@ playground = "sozo --profile playground clean && sozo --profile playground build
 [dependencies]
 dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-rc.1" }
 alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria", rev = "78b0d51" }
+bushido_trophy = { git = "https://github.com/cartridge-gg/bushido", rev = "47eb7c1" }
 origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.0.0-alpha.19" }
 stark_vrf = { git = "https://github.com/dojoengine/stark-vrf", rev = "5a9e81e" }
 
 [[target.starknet-contract]]
-build-external-contracts = ["dojo::world::world_contract::world"]
+build-external-contracts = [
+    "dojo::world::world_contract::world",
+    "bushido_trophy::events::index::e_TrophyCreation",
+    "bushido_trophy::events::index::e_TrophyProgression",
+]
 
 [dev-dependencies]
 dojo_cairo_test = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-rc.1" }

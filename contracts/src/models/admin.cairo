@@ -4,7 +4,7 @@ use core::debug::PrintTrait;
 use core::Default;
 use core::Zeroable;
 
-use zkube::models::index::{Admin, m_Admin};
+use zkube::models::index::Admin;
 
 mod errors {
     const ADMIN_NOT_EXIST: felt252 = 'Admin: Does not exist';

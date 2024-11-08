@@ -120,7 +120,7 @@ mod chest {
 
             // Transfer the reward to the caller
             self.payable._refund(caller, rewards.into());
-        // TODO Emit event
+            // TODO Emit event
         }
 
         fn sponsor_chest(ref self: ContractState, chest_id: u32, amount: u128) {

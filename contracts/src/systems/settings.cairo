@@ -20,22 +20,38 @@ trait ISettings<T> {
 mod settings {
     // Component imports
 
-    // Local imports
-    use super::{ISettings, Settings, get_caller_address, ContractAddress, WorldStorage};
+    use bushido_trophy::components::achievable::AchievableComponent;
+
+    // Internal imports
+
     use zkube::store::{Store, StoreTrait};
     use zkube::models::settings::SettingsTrait;
     use zkube::models::admin::{AdminTrait, AdminAssert};
+    use zkube::types::trophy::{Trophy, TrophyTrait, TROPHY_COUNT};
+
+    // Local imports
+
+    use super::{ISettings, Settings, get_caller_address, ContractAddress, WorldStorage};
 
     // Components
 
+    component!(path: AchievableComponent, storage: achievable, event: AchievableEvent);
+    impl AchievableInternalImpl = AchievableComponent::InternalImpl<ContractState>;
+
     // Storage
     #[storage]
-    struct Storage {}
+    struct Storage {
+        #[substorage(v0)]
+        achievable: AchievableComponent::Storage,
+    }
 
     // Events
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {}
+    enum Event {
+        #[flat]
+        AchievableEvent: AchievableComponent::Event,
+    }
 
     // Constructor
     fn dojo_init(
@@ -57,6 +73,30 @@ mod settings {
         if admin_address_felt != 0 {
             let admin = AdminTrait::new(admin_address_felt);
             store.set_admin(admin);
+        }
+
+        // [Event] Emit all Trophy events
+        let mut trophy_id: u8 = TROPHY_COUNT;
+        while trophy_id > 0 {
+            let trophy: Trophy = trophy_id.into();
+            self
+                .achievable
+                .create(
+                    world,
+                    id: trophy.identifier(),
+                    hidden: trophy.hidden(),
+                    index: trophy.index(),
+                    points: trophy.points(),
+                    start: trophy.start(),
+                    end: trophy.end(),
+                    group: trophy.group(),
+                    icon: trophy.icon(),
+                    title: trophy.title(),
+                    description: trophy.description(),
+                    tasks: trophy.tasks(),
+                    data: trophy.data(),
+                );
+            trophy_id -= 1;
         }
     }
 

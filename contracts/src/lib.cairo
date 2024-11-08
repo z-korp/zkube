@@ -21,6 +21,8 @@ mod types {
     mod mode;
     mod difficulty;
     mod level;
+    mod task;
+    mod trophy;
 }
 
 mod elements {
@@ -40,6 +42,24 @@ mod elements {
         mod expert;
         mod master;
         mod interface;
+    }
+    mod tasks {
+        mod interface;
+        mod breaking;
+        mod mastering;
+        mod chaining;
+        mod playing;
+        mod streaking;
+        mod leveling;
+    }
+    mod trophies {
+        mod interface;
+        mod breaker;
+        mod mastery;
+        mod chainer;
+        mod player;
+        mod streaker;
+        mod leveler;
     }
 }
 

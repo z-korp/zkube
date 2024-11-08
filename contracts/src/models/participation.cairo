@@ -5,7 +5,7 @@ use core::debug::PrintTrait;
 use core::Default;
 use core::Zeroable;
 
-use zkube::models::index::{Participation, m_Participation};
+use zkube::models::index::Participation;
 use zkube::models::index::Chest;
 use zkube::constants::PRECISION_FACTOR;
 

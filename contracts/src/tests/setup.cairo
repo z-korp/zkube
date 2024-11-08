@@ -26,14 +26,7 @@ mod setup {
     // Internal imports
 
     use zkube::constants;
-    use zkube::models::game::{Game, m_Game, GameTrait, GameImpl};
-    use zkube::models::settings::{Settings, m_Settings};
-    use zkube::models::player::{Player, m_Player};
-    use zkube::models::tournament::{Tournament, m_Tournament};
-    use zkube::models::chest::{Chest, m_Chest};
-    use zkube::models::admin::{Admin, m_Admin};
-    use zkube::models::mint::{Mint, m_Mint};
-    use zkube::models::participation::{Participation, m_Participation};
+    use zkube::models::{index as models};
 
     use zkube::types::difficulty::Difficulty;
     use zkube::types::mode::Mode;
@@ -178,14 +171,24 @@ mod setup {
     ) -> NamespaceDef {
         let ndef = NamespaceDef {
             namespace: "zkube", resources: [
-                TestResource::Model(m_Admin::TEST_CLASS_HASH.try_into().unwrap()),
-                TestResource::Model(m_Chest::TEST_CLASS_HASH.try_into().unwrap()),
-                TestResource::Model(m_Game::TEST_CLASS_HASH.try_into().unwrap()),
-                TestResource::Model(m_Participation::TEST_CLASS_HASH.try_into().unwrap()),
-                TestResource::Model(m_Player::TEST_CLASS_HASH.try_into().unwrap()),
-                TestResource::Model(m_Settings::TEST_CLASS_HASH.try_into().unwrap()),
-                TestResource::Model(m_Tournament::TEST_CLASS_HASH.try_into().unwrap()),
-                TestResource::Model(m_Mint::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Model(models::m_Admin::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Model(models::m_Chest::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Model(models::m_Game::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Model(models::m_Participation::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Model(models::m_Player::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Model(models::m_Settings::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Model(models::m_Tournament::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Model(models::m_Mint::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Event(
+                    bushido_trophy::events::index::e_TrophyCreation::TEST_CLASS_HASH
+                        .try_into()
+                        .unwrap()
+                ),
+                TestResource::Event(
+                    bushido_trophy::events::index::e_TrophyProgression::TEST_CLASS_HASH
+                        .try_into()
+                        .unwrap()
+                ),
                 TestResource::Contract(
                     ContractDefTrait::new(account::TEST_CLASS_HASH, "account")
                         .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())

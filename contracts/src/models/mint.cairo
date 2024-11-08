@@ -11,7 +11,7 @@ use core::Zeroable;
 // Internal imports
 
 use zkube::constants;
-use zkube::models::index::{Mint, m_Mint};
+use zkube::models::index::Mint;
 
 // Errors
 
