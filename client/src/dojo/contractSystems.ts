@@ -181,36 +181,12 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       seed,
       beta,
     }: Start) => {
-      const contract_name_chest = "chest";
-      const contract_chest = config.manifest.contracts.find(
-        (c: Manifest["contracts"][number]) =>
-          c.tag.includes(contract_name_chest),
+      const contract_name = "play";
+      const contract = config.manifest.contracts.find(
+        (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
       );
-      if (!contract_chest) {
-        throw new Error(
-          `Contract ${contract_name_chest} not found in manifest`,
-        );
-      }
-      const contract_name_tournament = "tournament";
-      const contract_tournament = config.manifest.contracts.find(
-        (c: Manifest["contracts"][number]) =>
-          c.tag.includes(contract_name_tournament),
-      );
-      if (!contract_tournament) {
-        throw new Error(
-          `Contract ${contract_name_tournament} not found in manifest`,
-        );
-      }
-
-      const contract_name_zkorp = "zkorp";
-      const contract_zkorp = config.manifest.contracts.find(
-        (c: Manifest["contracts"][number]) =>
-          c.tag.includes(contract_name_zkorp),
-      );
-      if (!contract_zkorp) {
-        throw new Error(
-          `Contract ${contract_name_zkorp} not found in manifest`,
-        );
+      if (!contract) {
+        throw new Error(`Contract ${contract_name} not found in manifest`);
       }
 
       try {
@@ -224,6 +200,11 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
                 VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
                 cairo.uint256(price),
               ], // Set allowance
+            },
+            {
+              contractAddress: VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
+              entrypoint: "approve",
+              calldata: [contract.address, cairo.uint256(token_id)], // Set allowance
             },
             {
               contractName: contract_name,

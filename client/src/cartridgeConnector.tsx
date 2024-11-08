@@ -52,6 +52,10 @@ const policies = [
     target: VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
     method: "public_mint",
   },
+  {
+    target: VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
+    method: "approve",
+  },
   // erc20
   {
     target: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
