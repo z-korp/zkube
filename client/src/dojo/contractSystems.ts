@@ -5,7 +5,10 @@ import { Manifest } from "@/cartridgeConnector.tsx";
 
 const NAMESPACE = "zkube";
 
-const { VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
+const {
+  VITE_PUBLIC_GAME_TOKEN_ADDRESS,
+  VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
+} = import.meta.env;
 
 export interface Signer {
   account: Account;
@@ -20,6 +23,7 @@ export interface Rename extends Signer {
 }
 
 export interface Start extends Signer {
+  token_id: bigint;
   mode: number;
   price: bigint;
   x: bigint;
@@ -85,6 +89,11 @@ export interface AddFreeMintSimple {
   amount: number;
   expiration_timestamp: number;
 }
+
+export interface UpdateGamePrice extends Signer {
+  value: bigint;
+}
+
 export interface AddFreeMintBatch extends Signer {
   freeMints: AddFreeMintSimple[];
 }
@@ -161,6 +170,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
     const start = async ({
       account,
+      token_id,
       mode,
       price,
       x,
@@ -210,37 +220,33 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             {
               contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
               entrypoint: "approve",
-              calldata: [contract_zkorp.address, cairo.uint256(price)], // Set allowance
-            },
-            {
-              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-              entrypoint: "approve",
-              calldata: [contract_chest.address, cairo.uint256(price)], // Set allowance
-            },
-            {
-              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-              entrypoint: "approve",
-              calldata: [contract_tournament.address, cairo.uint256(price)], // Set allowance
+              calldata: [
+                VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
+                cairo.uint256(price),
+              ], // Set allowance
             },
             {
               contractName: contract_name,
               entrypoint: "create",
-              calldata: [mode, x, y, c, s, sqrt_ratio_hint, seed, beta],
+              calldata: [
+                cairo.uint256(token_id),
+                mode,
+                x,
+                y,
+                c,
+                s,
+                sqrt_ratio_hint,
+                seed,
+                beta,
+              ],
             },
             {
               contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
               entrypoint: "approve",
-              calldata: [contract_zkorp.address, cairo.uint256(0)], // Clear allowance
-            },
-            {
-              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-              entrypoint: "approve",
-              calldata: [contract_chest.address, cairo.uint256(0)], // Clear allowance
-            },
-            {
-              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-              entrypoint: "approve",
-              calldata: [contract_tournament.address, cairo.uint256(0)], // Clear allowance
+              calldata: [
+                VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
+                cairo.uint256(0),
+              ], // Clear allowance
             },
           ],
           NAMESPACE,
@@ -556,10 +562,49 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       }
     };
 
+    const update_game_price = async ({ account, value }: UpdateGamePrice) => {
+      // TODO to be checked, not sure about u256
+      try {
+        return await provider.execute(
+          account,
+          {
+            contractName: contract_name,
+            entrypoint: "mint",
+            calldata: [value],
+          },
+          NAMESPACE,
+          details,
+        );
+      } catch (error) {
+        console.error("Error executing claim:", error);
+        throw error;
+      }
+    };
+
+    const mint = async ({ account }: Signer) => {
+      try {
+        return await provider.execute(
+          account,
+          {
+            contractName: contract_name,
+            entrypoint: "mint",
+            calldata: [],
+          },
+          NAMESPACE,
+          details,
+        );
+      } catch (error) {
+        console.error("Error executing claim:", error);
+        throw error;
+      }
+    };
+
     return {
       address: contract.address,
       add_free_mint,
       claim_free_mint,
+      mint,
+      update_game_price,
     };
   }
 

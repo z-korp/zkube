@@ -28,11 +28,13 @@ const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 interface GameModeCardProps {
   mode: ModeType;
   handleGameMode: () => void;
+  token_id: bigint | null;
 }
 
 const GameModeCard: React.FC<GameModeCardProps> = ({
   mode,
   handleGameMode,
+  token_id,
 }) => {
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
@@ -153,7 +155,11 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
         )}
       </CardContent>
       <CardFooter className="pb-5 md:pb-6">
-        <Start mode={mode} handleGameMode={handleGameMode} />
+        <Start
+          mode={mode}
+          handleGameMode={handleGameMode}
+          token_id={token_id}
+        />
       </CardFooter>
     </Card>
   );

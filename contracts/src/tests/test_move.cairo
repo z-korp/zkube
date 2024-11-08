@@ -37,7 +37,7 @@ fn test_actions_move_01() {
 
     // [Set] Game
     impersonate(PLAYER1());
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -60,7 +60,7 @@ fn test_actions_move_02() {
 
     // [Set] Game
     impersonate(PLAYER1());
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -87,7 +87,7 @@ fn test_actions_move_03() {
 
     // [Set] Game
     impersonate(PLAYER1());
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -157,7 +157,7 @@ fn test_actions_move_04_real_bug() {
 
     // [Set] Game
     impersonate(PLAYER1());
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -201,7 +201,7 @@ fn test_actions_move_05_real_bug() {
 
     // [Set] Game
     impersonate(PLAYER1());
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -241,7 +241,7 @@ fn test_actions_move_06_real_bug() {
 
     // [Set] Game
     impersonate(PLAYER1());
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -273,7 +273,7 @@ fn test_actions_move_06_real_bug() {
 
     let game = store.game(game_id);
     println!("blocks {}", game.blocks);
-    // Grid final
+// Grid final
 // 001_010_010_010_010_000_000_000
 // 011_011_011_001_001_010_010_000
 // 001_000_000_010_010_010_011_000
@@ -368,6 +368,12 @@ fn test_actions_move_06_real_bug() {
 //
 //
 //
+//
+//
+//
+//
+//
+//    
 //    0b001_010_010_010_010_000_000_000__011_011_011_001_001_010_010_000__001_000_000_010_010_010_010_000__001_001_011_011_011_001_001_000__010_010_001_100_100_100_100_000__000_000_000_000_000_000_000_000
 //)
 // Grid 1:
@@ -382,9 +388,9 @@ fn test_actions_move_06_real_bug() {
 // 010_010_001_100_100_100_100_000
 // 010_010_010_010_001_010_010_000
 
-    // Move TX (row, start col, end col) 2 5 7
+// Move TX (row, start col, end col) 2 5 7
 
-    // Grid 2:
+// Grid 2:
 // 000_000_000_000_000_000_000_000
 // 000_000_000_000_000_000_000_000
 // 000_000_000_000_000_000_000_000

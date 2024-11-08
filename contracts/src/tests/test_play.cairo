@@ -19,7 +19,11 @@ use zkube::models::game::{Game, GameTrait, GameAssert};
 use zkube::models::tournament::{TournamentImpl};
 use zkube::systems::play::IPlayDispatcherTrait;
 use zkube::systems::tournament::ITournamentSystemDispatcherTrait;
-use zkube::tests::mocks::erc721::{IERC721MintableDispatcher, IERC721MintableDispatcherTrait};
+use zkube::tests::mocks::erc721::{
+    IERC721Dispatcher, IERC721DispatcherTrait, IERC721MintableDispatcher,
+    IERC721MintableDispatcherTrait
+};
+
 
 use zkube::tests::setup::{
     setup,
@@ -37,9 +41,12 @@ fn test_play_play_ranked_tournament_started() {
     let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
 
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let erc721 = IERC721Dispatcher { contract_address: context.erc721.contract_address };
+
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER1().into());
 
     impersonate(PLAYER1());
+    // [Action] Give allowance
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -115,7 +122,7 @@ fn test_play_play_daily_tournament_claim() {
     systems.play.surrender();
 
     // game 4, paid
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -131,7 +138,7 @@ fn test_play_play_daily_tournament_claim() {
     assert(balance + price == player1_balance, 'Balance post paid creation');
 
     // game 5, paid
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
@@ -354,7 +361,7 @@ fn test_play_play_ranked_tournament_claim_revert_not_over() {
     systems.play.surrender();
 
     // paid game 1
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER1().into());
     println!("token_id {}", token_id);
     systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
@@ -397,7 +404,7 @@ fn test_play_play_ranked_tournament_claim_revert_invalid_player() {
     systems.play.surrender();
 
     // paid game 1
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER1().into());
     systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Claim]

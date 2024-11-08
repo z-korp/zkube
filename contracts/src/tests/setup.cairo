@@ -372,6 +372,7 @@ mod setup {
     }
 
     fn user_mint_token(
+        play_address: ContractAddress,
         erc721_contract: ContractAddress,
         erc20_contract: ContractAddress,
         recipient: ContractAddress,
@@ -411,6 +412,9 @@ mod setup {
         // Verify payment
         let final_erc20_balance = erc20.balance_of(recipient);
         assert(final_erc20_balance == initial_erc20_balance - price, 'Payment failed');
+
+        // Allowance for play_system
+        erc721.approve(play_address, token_id);
 
         token_id
     }

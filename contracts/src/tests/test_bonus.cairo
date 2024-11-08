@@ -38,7 +38,7 @@ fn test_bonus_clean_board() {
 
     // [Set] Game
     impersonate(PLAYER1());
-    let token_id = user_mint_token(erc721_addr, erc20_addr, PLAYER1().into());
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
         .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);

@@ -151,6 +151,9 @@ mod play {
             println!("Zkorp amount: {}", zkorp_amount + referrer_amount);
             zkorp_system_dispatcher.sponsor_from(zkorp_amount + referrer_amount, erc721_address);
 
+            // [Effect] Burn the nft
+            erc721.burn(token_id);
+
             // [Return] Game ID
             game_id
         }
