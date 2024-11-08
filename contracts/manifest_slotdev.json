@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x139239a99d627697b19b9856beaef7896fc75375caf3d750dd76982a7afeb78",
-    "address": "0x8fad9656c7cc11d8af05f96fe89b4dcf0ffb35365d61d5e21e0135158e087e",
-    "seed": "zKube18",
+    "address": "0x4d5ae71868c5493873e61ba406522ea21494ee051872bad707eabb41c33af67",
+    "seed": "zKube21",
     "name": "zKube",
     "abi": [
       {
@@ -1121,7 +1121,7 @@
   },
   "contracts": [
     {
-      "address": "0x7f997232c98e37c0862e561150d34d3bbbf64e07f746b12b61c8a9dbd9f917c",
+      "address": "0x3f77e521eeef84ccbe0bb5dee5a68533a54e5d8c2219e86c45a61f695af63df",
       "class_hash": "0x361f7a0e0b2460bf12a76cff56477281de7de9ba5d899a4a21f07ae20d854a0",
       "abi": [
         {
@@ -1330,7 +1330,7 @@
       "systems": []
     },
     {
-      "address": "0x7bce93c8f8a35d7b3c2396547ee4a4dc300028e040b784be2bcdd7c0956b040",
+      "address": "0x49a6110ce1185ac0004c4e21b680ef4cb81c81d7fc7a4fcbbde0d42b5238c9",
       "class_hash": "0x4422279d12ef52d0e83a58ecfefc0a6fd1ab57768f2f4c2821baab634faf3dd",
       "abi": [
         {
@@ -1566,7 +1566,7 @@
       "systems": []
     },
     {
-      "address": "0x2c92dd1191ed8a7ccbb35454d327756f13aca1f35bc7ceed904fd5599a74f6e",
+      "address": "0xfd00b0c7a785407113435291456159953fa4265d5ba6ced42cce6a1aac4b5e",
       "class_hash": "0x6574118d18109a31fdec96901ccf1ee92b77ab7ab030aecaaaf20981f471cdc",
       "abi": [
         {
@@ -1800,8 +1800,8 @@
       "systems": []
     },
     {
-      "address": "0x59fe9e3dd79c68f63effee33a8088451cd3cb21e0d0104a6fd3aee5c2b5aadb",
-      "class_hash": "0x7762ea0c493d3f34b4309ea3e90607ec65cbcdcf183eb3d350ae4b1c5432438",
+      "address": "0x5b297047333d9b2d6d498459c8d1649ad13c160810a1c242ea7beafbd3efffb",
+      "class_hash": "0x9c35f7ccebec70365bec3441c83dcd4c0de09b0939262c760b90dbac47d52a",
       "abi": [
         {
           "type": "impl",
@@ -2169,8 +2169,8 @@
       "systems": []
     },
     {
-      "address": "0x1c02f7b1261859da80a16b07374b4997b69a086b2c09fe6f16ef4c75bc93d05",
-      "class_hash": "0x4310ec093d4d674f8dc39ec5244519d05d0d4238a2f341378a75bf48386895",
+      "address": "0x40a3103cab827051aa69ca8cd29224b6ba5c077ed0f71701593a6657c2d3e59",
+      "class_hash": "0x7da136ffe2a45e6ad76d719512a8ed492749874225f3ecc29d9a52f24650f99",
       "abi": [
         {
           "type": "impl",
@@ -2379,6 +2379,12 @@
         },
         {
           "type": "event",
+          "name": "bushido_trophy::components::achievable::AchievableComponent::Event",
+          "kind": "enum",
+          "variants": []
+        },
+        {
+          "type": "event",
           "name": "zkube::systems::settings::settings::Event",
           "kind": "enum",
           "variants": [
@@ -2391,6 +2397,11 @@
               "name": "WorldProviderEvent",
               "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
               "kind": "nested"
+            },
+            {
+              "name": "AchievableEvent",
+              "type": "bushido_trophy::components::achievable::AchievableComponent::Event",
+              "kind": "flat"
             }
           ]
         }
@@ -2403,7 +2414,7 @@
       "systems": []
     },
     {
-      "address": "0x5ca88085ee01ed79af429d750d8c302a75ae4173072da331f8b1365b364a9a8",
+      "address": "0x7cc373bc0489d677c904a2c173ea726ace87f586899e5b32de3b574f41c4d19",
       "class_hash": "0x12918d5f8849a629a5b15167b046c3991328554d9c74bd2b6625081e6749616",
       "abi": [
         {
@@ -2681,7 +2692,7 @@
       "systems": []
     },
     {
-      "address": "0x76bfac0cecc46da7f37ba741450f4b40bd0f1fefdeea23ba9385ff71a7d5a84",
+      "address": "0xf2307e4835425d54e1897e338917b797f057f8d7796299421b4d85a13107e3",
       "class_hash": "0x3115db3de1106adf573d86e18a58497f349504b07004fc94aa643f59680a4ff",
       "abi": [
         {
@@ -2950,5 +2961,16 @@
       "tag": "Tournament"
     }
   ],
-  "events": []
+  "events": [
+    {
+      "members": [],
+      "class_hash": "0x7d1eae19bd12943f7daaa86ee1913c8adef2503afb3f7cb10e0a71cb1aa0664",
+      "tag": "TrophyCreation"
+    },
+    {
+      "members": [],
+      "class_hash": "0x40ef1802df969e831f1b60284cf482243f6715b5eafdeb7ad37e2979fce9cee",
+      "tag": "TrophyProgression"
+    }
+  ]
 }

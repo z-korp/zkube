@@ -4,7 +4,7 @@ description = "Reversed tetris fully onchain."
 # cover_uri = "file://assets/cover.png"
 # icon_uri = "file://assets/icon.png"
 website = "https://github.com/dojoengine/dojo-starter"
-seed = "zKube18"
+seed = "zKube21"
 
 [world.socials]
 x = "https://x.com/ohayo_dojo"
@@ -35,3 +35,5 @@ private_key = "0x562b095dfdef600413f27b79a3fd908957b9449bd0c9e0fbdfb68594d6fa1f6
 "zkube-Player" = ["zkube-account", "zkube-play"]
 "zkube-Settings" = ["zkube-minter", "zkube-settings"]
 "zkube-Tournament" = ["zkube-play", "zkube-tournament"]
+"zkube-TrophyCreation" = ["zkube-settings"]
+"zkube-TrophyProgression" = ["zkube-play"]
