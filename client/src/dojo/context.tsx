@@ -20,12 +20,12 @@ export const DojoProvider = ({
   const currentValue = useContext(DojoContext);
   if (currentValue) throw new Error("DojoProvider can only be used once");
 
-  const {
+  /*const {
     config: { rpcUrl, masterAddress, masterPrivateKey },
     //burnerManager,
   } = value;
 
-  const rpcProvider = useMemo(
+  /*const rpcProvider = useMemo(
     () =>
       new RpcProvider({
         nodeUrl: rpcUrl,

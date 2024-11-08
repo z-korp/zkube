@@ -35,3 +35,5 @@ private_key = "0x1c50d6dbcb52ebd5cb02ec5128fe68b7bdf8f958763080fb310c2d5ead632a4
 "zkube-Player" = ["zkube-account", "zkube-play"]
 "zkube-Settings" = ["zkube-minter", "zkube-settings"]
 "zkube-Tournament" = ["zkube-play", "zkube-tournament"]
+"zkube-TrophyCreation" = ["zkube-settings"]
+"zkube-TrophyProgression" = ["zkube-play"]
