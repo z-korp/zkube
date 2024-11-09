@@ -10,6 +10,7 @@ mod HostableComponent {
 
     use starknet::ContractAddress;
     use starknet::info::{get_contract_address, get_caller_address, get_block_timestamp};
+    use starknet::storage::{Map};
 
     // Dojo imports
 
@@ -48,7 +49,7 @@ mod HostableComponent {
 
     #[storage]
     struct Storage {
-        seeds: LegacyMap::<felt252, bool>,
+        seeds: Map::<felt252, bool>,
     }
 
     // Events
@@ -122,9 +123,6 @@ mod HostableComponent {
             store.set_player(player);
 
             // [Effect] Compute prices
-
-            // Price shared between parties
-            let settings = store.settings();
 
             // Apply PRECISION_FACTOR to price at the beginning
             let precise_price: u256 = price * PRECISION_FACTOR.into();
