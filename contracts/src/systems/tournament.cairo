@@ -66,10 +66,6 @@ mod tournament {
 
     // Constructor
     fn dojo_init(ref self: ContractState, token_address: ContractAddress,) {
-        // [Setup] Datastore
-        let mut world = self.world_default();
-        let store = StoreTrait::new(world);
-
         // [Effect] Initialize components
         self.payable._initialize(token_address);
     }

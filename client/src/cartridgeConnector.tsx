@@ -41,6 +41,12 @@ const tournament_contract_address = getContractByName(
   "tournament",
 )?.address;
 
+const minter_contract_address = getContractByName(
+  manifest,
+  namespace,
+  "minter",
+)?.address;
+
 console.log("account_contract_address", account_contract_address);
 console.log("play_contract_address", play_contract_address);
 console.log("chest_contract_address", chest_contract_address);
@@ -51,6 +57,10 @@ const policies = [
   {
     target: VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
     method: "public_mint",
+  },
+  {
+    target: VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
+    method: "approve",
   },
   // erc20
   {
@@ -96,6 +106,11 @@ const policies = [
   {
     target: tournament_contract_address,
     method: "claim",
+  },
+  // minter
+  {
+    target: minter_contract_address,
+    method: "claim_free_mint",
   },
 ];
 

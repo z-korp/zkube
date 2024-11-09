@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,13 +13,13 @@ import Connect from "../components/Connect";
 import { useGames } from "@/hooks/useGames";
 import { usePlayer } from "@/hooks/usePlayer";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
-import { Level } from "@/dojo/game/types/level";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/elements/tabs";
 import { motion } from "framer-motion";
 import { Rewards } from "./Rewards";
 import { useRewardsStore } from "@/stores/rewardsStore";
 import NotifCount from "../components/NotifCount";
 import Airdrop from "./Airdrop";
+import { useFreeMint } from "@/hooks/useFreeMint";
 
 interface ProfilePageProps {
   wfit: boolean;
@@ -31,23 +31,49 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
   const { games } = useGames();
 
   const rewardsCount = useRewardsStore((state) => state.rewardsCount);
+  const freeMint = useFreeMint({ player_id: account?.address });
 
   const filteredGames = useMemo(() => {
     if (!account?.address || !games) return [];
     return games.filter((game) => game.player_id === account?.address);
   }, [games, account?.address]);
 
+  const portalRootRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    portalRootRef.current = document.getElementById(
+      "portal-root",
+    ) as HTMLDivElement;
+  }, []);
+
+  const totalNotifs = rewardsCount + (freeMint?.number || 0);
+  const totalFreeMint = freeMint?.number || 0;
+
   return (
     <>
       {player && (
-        <Dialog>
+        <Dialog
+          onOpenChange={(open) => {
+            if (open) {
+              document.body.style.overflow = "hidden";
+              if (portalRootRef.current) {
+                portalRootRef.current.style.pointerEvents = "none";
+              }
+            } else {
+              document.body.style.overflow = "";
+              if (portalRootRef.current) {
+                portalRootRef.current.style.pointerEvents = "";
+              }
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button
               variant="outline"
               className={`relative w-${wfit ? "fit" : "full"}`}
             >
               {player.name}
-              {rewardsCount > 0 && <NotifCount count={rewardsCount} />}
+              {totalNotifs > 0 && <NotifCount count={totalNotifs} />}
             </Button>
           </DialogTrigger>
           <DialogContent
@@ -58,7 +84,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
               <DialogTitle>Profile</DialogTitle>
             </DialogHeader>
             <Tabs
-              defaultValue="rewards"
+              defaultValue="airdrop"
               className="flex-grow min-h-[480px] flex flex-col"
             >
               <TabsList className="grid w-full grid-cols-3">
@@ -68,6 +94,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
                   className="relative font-semibold md:font-normal"
                 >
                   Airdrop
+                  {totalFreeMint > 0 && <NotifCount count={totalFreeMint} />}
                 </TabsTrigger>
                 <TabsTrigger
                   value="rewards"

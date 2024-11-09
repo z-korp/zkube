@@ -42,7 +42,10 @@ export function DialogPrizePoolContributors({ chest }: { chest: Chest }) {
           <FontAwesomeIcon icon={faUsers} className="text-sky-300" />
         </button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[650px] w-[95%] rounded-lg px-2 pl-6 font-semibold">
+      <DialogContent
+        aria-describedby={undefined}
+        className="sm:max-w-[650px] w-[95%] rounded-lg px-2 pl-6 font-semibold"
+      >
         <DialogHeader className="flex flex-row">
           <div>
             <img src={chest.getIcon()} alt="chest icon" className="w-11" />

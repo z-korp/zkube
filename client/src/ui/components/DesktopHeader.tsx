@@ -10,6 +10,7 @@ import { useCallback, useState } from "react";
 import LevelIndicator from "./LevelIndicator";
 import SettingsDropDown from "./SettingsDropDown";
 import { useNavigate } from "react-router-dom";
+import HeaderNftBalance from "./HeaderNftBalance";
 
 const DesktopHeader = () => {
   const { account } = useAccountCustom();
@@ -45,6 +46,7 @@ const DesktopHeader = () => {
         {!!player && (
           <div className="flex gap-3">
             <HeaderBalance />
+            <HeaderNftBalance />
             <ProfilePage wfit />
             <LevelIndicator currentXP={player.points} />
           </div>

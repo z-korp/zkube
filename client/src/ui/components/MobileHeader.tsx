@@ -19,6 +19,7 @@ import CollectiveTreasureChest from "./TreasureChest";
 import { useState } from "react";
 import { Surrender } from "../actions/Surrender";
 import LevelIndicator from "./LevelIndicator";
+import HeaderNftBalance from "./HeaderNftBalance";
 
 const MobileHeader = () => {
   const { account } = useAccountCustom();
@@ -83,6 +84,7 @@ const MobileHeader = () => {
           {!!player && account ? (
             <div className="flex gap-3 items-center">
               <HeaderBalance />
+              <HeaderNftBalance />
               <ProfilePage wfit />
               <LevelIndicator currentXP={player.points} />
             </div>
