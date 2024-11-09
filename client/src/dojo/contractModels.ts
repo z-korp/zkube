@@ -158,7 +158,6 @@ export function defineContractComponents(world: World) {
         world,
         {
           id: RecsType.BigInt,
-          is_set: RecsType.Boolean,
           number: RecsType.Number,
           expiration_timestamp: RecsType.Number,
         },
@@ -166,7 +165,7 @@ export function defineContractComponents(world: World) {
           metadata: {
             namespace: "zkube",
             name: "Mint",
-            types: ["felt252", "bool", "u64", "u64"],
+            types: ["felt252", "u64", "u64"],
             customTypes: [],
           },
         },

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,6 @@ import Connect from "../components/Connect";
 import { useGames } from "@/hooks/useGames";
 import { usePlayer } from "@/hooks/usePlayer";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
-import { Level } from "@/dojo/game/types/level";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/elements/tabs";
 import { motion } from "framer-motion";
 import { Rewards } from "./Rewards";
@@ -37,10 +36,32 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
     return games.filter((game) => game.player_id === account?.address);
   }, [games, account?.address]);
 
+  const portalRootRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    portalRootRef.current = document.getElementById(
+      "portal-root",
+    ) as HTMLDivElement;
+  }, []);
+
   return (
     <>
       {player && (
-        <Dialog>
+        <Dialog
+          onOpenChange={(open) => {
+            if (open) {
+              document.body.style.overflow = "hidden";
+              if (portalRootRef.current) {
+                portalRootRef.current.style.pointerEvents = "none";
+              }
+            } else {
+              document.body.style.overflow = "";
+              if (portalRootRef.current) {
+                portalRootRef.current.style.pointerEvents = "";
+              }
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button
               variant="outline"

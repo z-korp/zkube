@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, forwardRef } from "react";
 import { AlertCircle, Check, Wallet } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../elements/card";
 import { Button } from "../elements/button";
@@ -7,7 +7,11 @@ import { useFreeMint } from "@/hooks/useFreeMint";
 import { useDojo } from "@/dojo/useDojo";
 import { Account } from "starknet";
 
-const Airdrop = () => {
+interface AirdropProps {
+  className?: string;
+}
+
+const Airdrop = forwardRef<HTMLDivElement, AirdropProps>((props, ref) => {
   const {
     setup: {
       systemCalls: { claimFreeMint },
@@ -40,11 +44,14 @@ const Airdrop = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [account, claimFreeMint, freeGames?.number]);
 
   if (freeGames && freeGames.number === 0) {
     return (
-      <div className="text-center text-sm mt-6 text-gray-300 flex flex-col gap-3 font-semibold md:font-normal">
+      <div
+        ref={ref}
+        className="text-center text-sm mt-6 text-gray-300 flex flex-col gap-3 font-semibold md:font-normal"
+      >
         <AlertCircle className="mx-auto mb-4 text-gray-400" size={32} />
         <p>You are not eligible for the ZKube airdrop.</p>
         <p>Keep participating to earn rewards!</p>
@@ -53,7 +60,7 @@ const Airdrop = () => {
   }
 
   return (
-    <div className="flex flex-col gap-3 pt-4">
+    <div ref={ref} className="flex flex-col gap-3 pt-4">
       <Card className="bg-gray-800/50 p-4">
         <CardHeader className="p-0 mb-4">
           <CardTitle className="text-lg font-semibold text-white">
@@ -68,18 +75,6 @@ const Airdrop = () => {
                 {freeGames?.number} Games
               </span>
             </div>
-
-            {/* <div className="space-y-2">
-              <span className="text-sm text-gray-400">Eligible for:</span>
-              {mockUserData.collections.map((collection, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <Check size={16} className="text-green-500" />
-                  <span className="text-sm text-gray-300">
-                    {collection.name}: {collection.amount} points
-                  </span>
-                </div>
-              ))}
-            </div> */}
 
             {!claimStatus.claimed ? (
               <Button
@@ -103,6 +98,8 @@ const Airdrop = () => {
       </Card>
     </div>
   );
-};
+});
+
+Airdrop.displayName = "Airdrop";
 
 export default Airdrop;
