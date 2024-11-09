@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x139239a99d627697b19b9856beaef7896fc75375caf3d750dd76982a7afeb78",
-    "address": "0x3a9691d21683cf64a56fcb3297c3d67e5b9e687df5569565d8128d2b98b7a7d",
-    "seed": "zKube6",
+    "address": "0x6bb852733f7e3682a54b295d0b028e8eab8e85cecbe690e0abe9e5d07b97e47",
+    "seed": "zKube7",
     "name": "zKube",
     "abi": [
       {
@@ -1121,7 +1121,7 @@
   },
   "contracts": [
     {
-      "address": "0x5dd43b671d29d3ceaa3cd3dde18da34fc1d32668d6055f247a6d6ebfa94cae5",
+      "address": "0x1e70ce8076e83db639a076b0e32c610bc168a833a52592de8fdf95a4901012d",
       "class_hash": "0x361f7a0e0b2460bf12a76cff56477281de7de9ba5d899a4a21f07ae20d854a0",
       "abi": [
         {
@@ -1330,8 +1330,8 @@
       "systems": []
     },
     {
-      "address": "0x5167e8cdf6a1c21d4543f12bf10a444a65faa330cafe967e7e990c8a2c2a1d",
-      "class_hash": "0x7c2d95801952633121fa3d2d7486fc99f2a073f47333e90a8071fbd7b127a7d",
+      "address": "0x195226bcbf76726cf62acdb73fbb185a2d1ba21ad06dc682a10cc2be4987a31",
+      "class_hash": "0x4422279d12ef52d0e83a58ecfefc0a6fd1ab57768f2f4c2821baab634faf3dd",
       "abi": [
         {
           "type": "impl",
@@ -1408,7 +1408,7 @@
             },
             {
               "type": "function",
-              "name": "sponsor",
+              "name": "sponsor_chest",
               "inputs": [
                 {
                   "name": "chest_id",
@@ -1560,14 +1560,14 @@
         }
       ],
       "init_calldata": [
-        "0x021d1aa0b2c3413f0b8a1c14ddcdbaf404debfb0d4d858d0bb6ccb48ec1c0c51"
+        "0x07f599511f57049dd1e5f4f30f893d029c9413095f174f4ffcdb6f0b5ded1a57"
       ],
       "tag": "zkube-chest",
       "systems": []
     },
     {
-      "address": "0x394089ff99e624bff77be9fef8ad361b11872800132eac2d43c880bad675ea5",
-      "class_hash": "0x21e0ca62ab3154a436af04ee90b49220c739132ecc46e64dc2e6996f70411a7",
+      "address": "0x344260acea6ad178de0da0cae061fa5ec2ab2d0d29d076d1c977f2985017d28",
+      "class_hash": "0x6574118d18109a31fdec96901ccf1ee92b77ab7ab030aecaaaf20981f471cdc",
       "abi": [
         {
           "type": "impl",
@@ -1615,6 +1615,20 @@
           "interface_name": "zkube::systems::minter::IMinter"
         },
         {
+          "type": "struct",
+          "name": "core::integer::u256",
+          "members": [
+            {
+              "name": "low",
+              "type": "core::integer::u128"
+            },
+            {
+              "name": "high",
+              "type": "core::integer::u128"
+            }
+          ]
+        },
+        {
           "type": "interface",
           "name": "zkube::systems::minter::IMinter",
           "items": [
@@ -1647,6 +1661,18 @@
                 {
                   "name": "expiration_timestamp",
                   "type": "core::integer::u64"
+                }
+              ],
+              "outputs": [],
+              "state_mutability": "external"
+            },
+            {
+              "type": "function",
+              "name": "update_game_price",
+              "inputs": [
+                {
+                  "name": "price",
+                  "type": "core::integer::u256"
                 }
               ],
               "outputs": [],
@@ -1774,8 +1800,8 @@
       "systems": []
     },
     {
-      "address": "0x2846bb2caab765da70548e0b267ddd9c499792e75b04cc991bc154dec5b2bf7",
-      "class_hash": "0x1d97fe4d95e2372718f4769e5ccdf63d434d738bb7c43a50755be377bd946e3",
+      "address": "0x52791e30f0222ea77eb900d8039e52a5d0ecbb6e6809567219e9222c59af9c2",
+      "class_hash": "0x6acc8b325f305d562a89da51352c53110aeff01aec8b8169915b7f15773850a",
       "abi": [
         {
           "type": "impl",
@@ -1828,6 +1854,20 @@
           "type": "impl",
           "name": "PlayImpl",
           "interface_name": "zkube::systems::play::IPlay"
+        },
+        {
+          "type": "struct",
+          "name": "core::integer::u256",
+          "members": [
+            {
+              "name": "low",
+              "type": "core::integer::u128"
+            },
+            {
+              "name": "high",
+              "type": "core::integer::u128"
+            }
+          ]
         },
         {
           "type": "enum",
@@ -1917,6 +1957,10 @@
               "type": "function",
               "name": "create",
               "inputs": [
+                {
+                  "name": "token_id",
+                  "type": "core::integer::u256"
+                },
                 {
                   "name": "mode",
                   "type": "zkube::types::mode::Mode"
@@ -2125,8 +2169,8 @@
       "systems": []
     },
     {
-      "address": "0x6e051c93f96a0a986254c1760932bc5e07c57d8af694b2758fdb5fed07b864e",
-      "class_hash": "0x6312e7082f7886fe24bd7a6026d67c10183e7de1686fc7285a56decbe1a6e38",
+      "address": "0x660e9f73bac170d43e519c1469e417dc7b0bfea3b1e33c0ea3132b56be2b267",
+      "class_hash": "0x7da136ffe2a45e6ad76d719512a8ed492749874225f3ecc29d9a52f24650f99",
       "abi": [
         {
           "type": "impl",
@@ -2175,6 +2219,10 @@
             {
               "name": "admin_address",
               "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "zkorp_address",
+              "type": "core::starknet::contract_address::ContractAddress"
             }
           ],
           "outputs": [],
@@ -2203,23 +2251,11 @@
             },
             {
               "type": "function",
-              "name": "update_daily_mode_price",
+              "name": "update_erc721_address",
               "inputs": [
                 {
-                  "name": "value",
-                  "type": "core::integer::u128"
-                }
-              ],
-              "outputs": [],
-              "state_mutability": "external"
-            },
-            {
-              "type": "function",
-              "name": "update_normal_mode_price",
-              "inputs": [
-                {
-                  "name": "value",
-                  "type": "core::integer::u128"
+                  "name": "address",
+                  "type": "core::starknet::contract_address::ContractAddress"
                 }
               ],
               "outputs": [],
@@ -2343,6 +2379,12 @@
         },
         {
           "type": "event",
+          "name": "bushido_trophy::components::achievable::AchievableComponent::Event",
+          "kind": "enum",
+          "variants": []
+        },
+        {
+          "type": "event",
           "name": "zkube::systems::settings::settings::Event",
           "kind": "enum",
           "variants": [
@@ -2355,19 +2397,25 @@
               "name": "WorldProviderEvent",
               "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
               "kind": "nested"
+            },
+            {
+              "name": "AchievableEvent",
+              "type": "bushido_trophy::components::achievable::AchievableComponent::Event",
+              "kind": "flat"
             }
           ]
         }
       ],
       "init_calldata": [
+        "0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b",
         "0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b"
       ],
       "tag": "zkube-settings",
       "systems": []
     },
     {
-      "address": "0x57ea5620a4a7bcbf8a024b3d686c4a5f5da50ac4dded526515e3d2fafd1f479",
-      "class_hash": "0x130e26b24b9fc7d19d2cca404643d0584957acaab8ead9acd3f63b549170d65",
+      "address": "0x2b3453afcb14e8f37805f02e482348ccc6cdb6113854a0d32abfdaf8366b47d",
+      "class_hash": "0x50e50fddb84b5f48b831238fbe582116c83689bd0f538a7a72d85db08559375",
       "abi": [
         {
           "type": "impl",
@@ -2474,7 +2522,7 @@
             },
             {
               "type": "function",
-              "name": "sponsor",
+              "name": "sponsor_from",
               "inputs": [
                 {
                   "name": "tournament_id",
@@ -2491,6 +2539,26 @@
                 {
                   "name": "caller",
                   "type": "core::starknet::contract_address::ContractAddress"
+                }
+              ],
+              "outputs": [],
+              "state_mutability": "external"
+            },
+            {
+              "type": "function",
+              "name": "sponsor",
+              "inputs": [
+                {
+                  "name": "tournament_id",
+                  "type": "core::integer::u64"
+                },
+                {
+                  "name": "mode",
+                  "type": "zkube::types::mode::Mode"
+                },
+                {
+                  "name": "amount",
+                  "type": "core::integer::u128"
                 }
               ],
               "outputs": [],
@@ -2618,14 +2686,14 @@
         }
       ],
       "init_calldata": [
-        "0x021d1aa0b2c3413f0b8a1c14ddcdbaf404debfb0d4d858d0bb6ccb48ec1c0c51"
+        "0x07f599511f57049dd1e5f4f30f893d029c9413095f174f4ffcdb6f0b5ded1a57"
       ],
       "tag": "zkube-tournament",
       "systems": []
     },
     {
-      "address": "0x10de90d5331b597d11d5830c591c0c884d11e4a07c56cfa153fff9a0c72e441",
-      "class_hash": "0x124004d8f7bdedc4c36e7ad2dd5f6ba9aeb3779efca3f57e167f1352485d83b",
+      "address": "0x2c217463ea49454ecbcc488b32ff340e2568fc6870d38ffbf83f1480808a4f3",
+      "class_hash": "0x2069fa8d864e2eaa0040b2880163e9321ad3891f2fb940520183d481e01e046",
       "abi": [
         {
           "type": "impl",
@@ -2698,6 +2766,18 @@
             {
               "type": "function",
               "name": "sponsor",
+              "inputs": [
+                {
+                  "name": "amount",
+                  "type": "core::integer::u128"
+                }
+              ],
+              "outputs": [],
+              "state_mutability": "external"
+            },
+            {
+              "type": "function",
+              "name": "sponsor_from",
               "inputs": [
                 {
                   "name": "amount",
@@ -2833,7 +2913,7 @@
         }
       ],
       "init_calldata": [
-        "0x021d1aa0b2c3413f0b8a1c14ddcdbaf404debfb0d4d858d0bb6ccb48ec1c0c51"
+        "0x07f599511f57049dd1e5f4f30f893d029c9413095f174f4ffcdb6f0b5ded1a57"
       ],
       "tag": "zkube-zkorp",
       "systems": []
@@ -2872,7 +2952,7 @@
     },
     {
       "members": [],
-      "class_hash": "0x304718e009ecc57bd50a990eba59bc5a3fda04b75ad1e0a2d1d539196cf295a",
+      "class_hash": "0x6848729ed37cf3cd16c7a11508967796bfff4cb3b6688b4d8be7e1665d7e10c",
       "tag": "Settings"
     },
     {
@@ -2881,5 +2961,16 @@
       "tag": "Tournament"
     }
   ],
-  "events": []
+  "events": [
+    {
+      "members": [],
+      "class_hash": "0x7d1eae19bd12943f7daaa86ee1913c8adef2503afb3f7cb10e0a71cb1aa0664",
+      "tag": "TrophyCreation"
+    },
+    {
+      "members": [],
+      "class_hash": "0x40ef1802df969e831f1b60284cf482243f6715b5eafdeb7ad37e2979fce9cee",
+      "tag": "TrophyProgression"
+    }
+  ]
 }
