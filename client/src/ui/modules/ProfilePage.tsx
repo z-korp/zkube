@@ -19,6 +19,7 @@ import { Rewards } from "./Rewards";
 import { useRewardsStore } from "@/stores/rewardsStore";
 import NotifCount from "../components/NotifCount";
 import Airdrop from "./Airdrop";
+import { useFreeMint } from "@/hooks/useFreeMint";
 
 interface ProfilePageProps {
   wfit: boolean;
@@ -30,6 +31,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
   const { games } = useGames();
 
   const rewardsCount = useRewardsStore((state) => state.rewardsCount);
+  const freeMint = useFreeMint({ player_id: account?.address });
 
   const filteredGames = useMemo(() => {
     if (!account?.address || !games) return [];
@@ -43,6 +45,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
       "portal-root",
     ) as HTMLDivElement;
   }, []);
+
+  const totalNotifs = rewardsCount + (freeMint?.number || 0);
+  const totalFreeMint = freeMint?.number || 0;
 
   return (
     <>
@@ -68,7 +73,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
               className={`relative w-${wfit ? "fit" : "full"}`}
             >
               {player.name}
-              {rewardsCount > 0 && <NotifCount count={rewardsCount} />}
+              {totalNotifs > 0 && <NotifCount count={totalNotifs} />}
             </Button>
           </DialogTrigger>
           <DialogContent
@@ -79,7 +84,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
               <DialogTitle>Profile</DialogTitle>
             </DialogHeader>
             <Tabs
-              defaultValue="rewards"
+              defaultValue="airdrop"
               className="flex-grow min-h-[480px] flex flex-col"
             >
               <TabsList className="grid w-full grid-cols-3">
@@ -89,6 +94,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
                   className="relative font-semibold md:font-normal"
                 >
                   Airdrop
+                  {totalFreeMint > 0 && <NotifCount count={totalFreeMint} />}
                 </TabsTrigger>
                 <TabsTrigger
                   value="rewards"
