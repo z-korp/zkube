@@ -1,6 +1,6 @@
 import { useDojo } from "@/dojo/useDojo";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Account } from "starknet";
+import { useCallback, useMemo, useState, useEffect } from "react";
+import { Account, BlockTag } from "starknet";
 import { Button } from "@/ui/elements/button";
 import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
@@ -11,16 +11,14 @@ import { useSettings } from "@/hooks/useSettings";
 import { createFaucetClaimHandler } from "@/utils/faucet";
 import { useContract } from "@starknet-react/core";
 import { erc20ABI } from "@/utils/erc20";
-import { useCredits } from "@/hooks/useCredits";
 import { useMediaQuery } from "react-responsive";
+import { erc721ABI } from "@/utils/erc721";
+import { useNftMint } from "@/hooks/useNftMint";
 
-interface BalanceData {
-  balance: {
-    low: bigint;
-  };
-}
-
-const { VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
+const {
+  VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
+  VITE_PUBLIC_GAME_TOKEN_ADDRESS,
+} = import.meta.env;
 
 interface StartProps {
   mode: ModeType;
@@ -29,7 +27,6 @@ interface StartProps {
 
 export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
   const {
-    master,
     setup: {
       systemCalls: { start },
     },
@@ -37,11 +34,14 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
 
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
-  const { credits } = useCredits({ playerId: account?.address });
   const { settings } = useSettings();
-  const { contract } = useContract({
+  const { contract: erc20Contract } = useContract({
     abi: erc20ABI,
     address: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
+  });
+  const { contract: erc721Contract } = useContract({
+    abi: erc721ABI,
+    address: VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
   });
 
   const { game } = useGame({
@@ -52,49 +52,81 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
   const [isLoading, setIsLoading] = useState(false);
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
+  const { mint } = useNftMint();
+  const [isWaitingTx, setIsWaitingTx] = useState(false);
+
+  //useFirstNft(address);
+
+  const handleMint = useCallback(async () => {
+    if (account) {
+      try {
+        setIsWaitingTx(true);
+        const tx = await mint();
+
+        await account.waitForTransaction(tx.transaction_hash, {
+          retryInterval: 1000,
+        });
+      } catch (err) {
+        console.error("Mint error:", err);
+      } finally {
+        setIsWaitingTx(false);
+      }
+    }
+  }, [account, mint]);
+
   const disabled = useMemo(() => {
-    return (
-      !account ||
-      !master ||
-      account === master ||
-      !player ||
-      (!!game && !game.isOver())
-    );
-  }, [account, master, player, game]);
+    return !account || !player || (!!game && !game.isOver());
+  }, [account, player, game]);
 
   const handleClick = useCallback(async () => {
-    console.log(
-      "Starting game 1 ",
-      account?.address,
-      credits === null,
-      settings === null,
-      contract === undefined,
-    );
-    if (credits === null) return;
     if (settings === null) return;
-    if (contract === undefined) return;
+    if (erc20Contract === undefined) return;
+    if (erc721Contract === undefined) return;
     if (!account?.address) return;
-
-    console.log("Starting game");
 
     setIsLoading(true);
 
-    // Check if the user has any remaining credits
-    // If not, check if the user has enough balance to claim from the faucet
-    if (credits.remaining === 0) {
-      try {
-        const balance = (await contract.call("balanceOf", [
-          account?.address,
-        ])) as BalanceData;
-        if (balance.balance.low < settings.normal_mode_price) {
-          console.log("Not enough balance, trying to claim faucet");
+    let token_id = 0n;
+    if (mode !== ModeType.Free) {
+      // Check if the player has an NFT
+      const ret_erc721_balance = await erc721Contract.call("balance_of", [
+        account?.address,
+      ]);
+      const number_of_nft = Number(ret_erc721_balance.toString());
+      console.log("number_of_nft", number_of_nft);
 
-          await createFaucetClaimHandler(account as Account, contract, () => {
-            return;
-          })();
+      try {
+        if (number_of_nft === 0) {
+          // Mint one
+          // First check if the player has enough balance
+          const ret_erc20 = await erc20Contract.call("balanceOf", [
+            account?.address,
+          ]);
+          const balance = BigInt(ret_erc20.toString());
+          if (balance < settings.game_price && erc20Contract) {
+            console.log("Not enough balance, trying to claim faucet");
+
+            await createFaucetClaimHandler(account as Account, () => {
+              return;
+            })();
+          }
+
+          // Second mint the NFT
+          await handleMint();
         }
       } catch (error) {
-        console.error("Error claiming from faucet:", error);
+        console.error("Error minting NFT:", error);
+      }
+
+      try {
+        const ret_erc721 = await erc721Contract.call(
+          "token_of_owner_by_index",
+          [account?.address, 0],
+        );
+        token_id = BigInt(ret_erc721.toString());
+        console.log("token_id", token_id);
+      } catch (error) {
+        console.error("Error getting NFT:", error);
       }
     }
 
@@ -111,11 +143,9 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
 
       await start({
         account: account as Account,
+        token_id,
         mode: new Mode(mode).into(),
-        price:
-          mode === ModeType.Daily
-            ? settings.daily_mode_price
-            : settings.normal_mode_price,
+        price: settings.game_price,
         seed,
         x: proof_gamma_x,
         y: proof_gamma_y,
@@ -125,16 +155,28 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
         beta: beta,
       });
       handleGameMode();
+    } catch (error) {
+      console.error("Error during game start:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [account, credits, settings, contract, start, mode, handleGameMode]);
+  }, [
+    settings,
+    erc20Contract,
+    erc721Contract,
+    account,
+    mode,
+    handleMint,
+    start,
+    handleGameMode,
+  ]);
 
   return (
     <Button
       disabled={isLoading || disabled}
       isLoading={isLoading}
       onClick={handleClick}
+      variant={`${!isMdOrLarger ? "brutal" : "default"}`}
       className={`text-lg w-full transition-transform duration-300 ease-in-out hover:scale-105 ${!isMdOrLarger && "py-6 border-4 border-white rounded-none text-white bg-sky-900 shadow-lg font-sans font-bold "}`}
     >
       Play !

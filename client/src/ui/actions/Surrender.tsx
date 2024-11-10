@@ -36,7 +36,6 @@ export const Surrender: React.FC<SurrenderProps> = ({
   const { account } = useAccountCustom();
   const { setIsUnmounting } = useGeneralStore();
   const {
-    master,
     setup: {
       systemCalls: { surrender },
     },
@@ -60,10 +59,8 @@ export const Surrender: React.FC<SurrenderProps> = ({
   }, [account, setIsUnmounting, surrender]);
 
   const disabled = useMemo(() => {
-    return (
-      !account || !master || account === master || !player || !game || game.over
-    );
-  }, [account, master, player, game]);
+    return !account || !player || !game || game.over;
+  }, [account, player, game]);
 
   if (disabled) return null;
 

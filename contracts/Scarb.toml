@@ -1,28 +1,39 @@
 [package]
 name = "zkube"
-cairo-version = "=2.7.0"
-version = "0.1.0"
-edition = "2023_10"
+cairo-version = "=2.8.4"
+version = "1.0.0-rc.2"
 
 [cairo]
 sierra-replace-ids = true
 
 [scripts]
-dev = "sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate apply"
-slot = "sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate apply"
-slotdev = "sozo --profile slotdev clean && sozo --profile slotdev build && sozo --profile slotdev migrate apply"
-sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build && sozo --profile sepolia migrate apply --walnut"
-sepoliadev1 = "sozo --profile sepoliadev1 clean && sozo --profile sepoliadev1 build && sozo --profile sepoliadev1 migrate apply"
-sepoliadev2 = "sozo --profile sepoliadev2 clean && sozo --profile sepoliadev2 build && sozo --profile sepoliadev2 migrate apply"
-playground = "sozo --profile playground clean && sozo --profile playground build && sozo --profile playground migrate apply --walnut"
+dev = "sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate"
+slot = "sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate"
+slotdev = "sozo --profile slotdev clean && sozo --profile slotdev build && sozo --profile slotdev migrate"
+sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build && sozo --profile sepolia migrate --walnut"
+sepoliadev1 = "sozo --profile sepoliadev1 clean && sozo --profile sepoliadev1 build && sozo --profile sepoliadev1 migrate"
+sepoliadev2 = "sozo --profile sepoliadev2 clean && sozo --profile sepoliadev2 build && sozo --profile sepoliadev2 migrate"
+playground = "sozo --profile playground clean && sozo --profile playground build && sozo --profile playground migrate --walnut"
+mainnet = "sozo --profile mainnet clean && sozo --profile mainnet build && sozo --profile mainnet migrate --walnut --keystore /Users/matthias/.starkli-wallets/mainnet/braavos_dojo_deployer/keystore.json"
 
 [dependencies]
+dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-rc.2" }
 alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria", rev = "78b0d51" }
-origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.0.0-alpha.11" }
-dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-alpha.11" }
+bushido_trophy = { git = "https://github.com/cartridge-gg/bushido", branch = "bump_version_rc2" }
+origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.0.0-rc.2" }
 stark_vrf = { git = "https://github.com/dojoengine/stark-vrf", rev = "5a9e81e" }
 
-[[target.dojo]]
+[[target.starknet-contract]]
+build-external-contracts = [
+    "dojo::world::world_contract::world",
+    "bushido_trophy::events::index::e_TrophyCreation",
+    "bushido_trophy::events::index::e_TrophyProgression",
+]
+
+[dev-dependencies]
+dojo_cairo_test = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-rc.2" }
+openzeppelin_token = "0.18.0"
+openzeppelin = "0.18.0"
 
 # Custom profiles
 [profile.slot]
@@ -32,3 +43,4 @@ stark_vrf = { git = "https://github.com/dojoengine/stark-vrf", rev = "5a9e81e" }
 [profile.sepoliadev1]
 [profile.sepoliadev2]
 [profile.playground]
+[profile.mainnet]

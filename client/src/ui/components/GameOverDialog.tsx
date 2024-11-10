@@ -79,7 +79,10 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-4">
+      <DialogContent
+        aria-describedby={undefined}
+        className="sm:max-w-[700px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-4"
+      >
         <DialogTitle className="text-4xl text-center mb-2">
           Game Over
         </DialogTitle>

@@ -5,13 +5,13 @@ use core::debug::PrintTrait;
 // Starknet imports
 
 use starknet::testing::{
-    set_contract_address, set_account_contract_address, set_transaction_hash, set_caller_address,
-    set_block_timestamp
+    set_contract_address, set_account_contract_address, set_transaction_hash, set_block_timestamp
 };
 
 // Dojo imports
 
-use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait};
+use dojo::world::{WorldStorage, IWorldDispatcherTrait, WorldStorageTrait};
+use dojo::model::{ModelStorage, ModelValueStorage, ModelStorageTest};
 use dojo::model::Model;
 
 // Internal imports
@@ -26,27 +26,29 @@ use zkube::types::mode::Mode;
 
 // Test imports
 
-use zkube::tests::setup::{setup, setup::{Systems, PLAYER1}};
+use zkube::tests::setup::{setup, setup::{Systems, PLAYER1, user_mint_token, impersonate}};
 
 #[test]
 fn test_bonus_clean_board() {
     // [Setup]
-    let (world, systems, context) = setup::create_accounts();
+    let (mut world, systems, context) = setup::create_accounts();
+    let erc721_addr = context.erc721.contract_address;
+    let erc20_addr = context.erc20.contract_address;
     let store = StoreTrait::new(world);
 
-    world.grant_writer(Model::<Game>::selector(), PLAYER1());
-
     // [Set] Game
-    set_contract_address(PLAYER1());
+    impersonate(PLAYER1());
+    let token_id = user_mint_token(context.play_address, erc721_addr, erc20_addr, PLAYER1().into());
     let game_id = systems
         .play
-        .create(Mode::Daily, context.proof.clone(), context.seed, context.beta);
+        .create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     let mut game = store.game(game_id);
     game.blocks = 0b00100100100100011011011;
     game.wave_bonus = 1; // unlock 1 wave bonus
     game.wave_used = 0;
-    store.set_game(game);
+    //store.set_game(game);
+    world.write_model_test(@game);
 
     // [Move]
     systems.play.apply_bonus(Bonus::Wave, 0, 0);

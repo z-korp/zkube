@@ -1,11 +1,14 @@
 import { DojoProvider } from "@dojoengine/core";
 import { Config } from "../../dojo.config.ts";
 import { Account, UniversalDetails, cairo, shortString } from "starknet";
-import { Manifest } from '@/cartridgeConnector.tsx';
+import { Manifest } from "@/cartridgeConnector.tsx";
 
 const NAMESPACE = "zkube";
 
-const { VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
+const {
+  VITE_PUBLIC_GAME_TOKEN_ADDRESS,
+  VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
+} = import.meta.env;
 
 export interface Signer {
   account: Account;
@@ -20,6 +23,7 @@ export interface Rename extends Signer {
 }
 
 export interface Start extends Signer {
+  token_id: bigint;
   mode: number;
   price: bigint;
   x: bigint;
@@ -52,10 +56,6 @@ export interface ChestClaim extends Signer {
   chest_id: number;
 }
 
-export interface UpdateFreeDailyCredits extends Signer {
-  value: number;
-}
-
 export interface UpdateDailyModePrice extends Signer {
   value: bigint;
 }
@@ -78,6 +78,26 @@ export interface TournamentClaim extends Signer {
   rank: number;
 }
 
+export interface AddFreeMint extends Signer {
+  to: string;
+  amount: number;
+  expiration_timestamp: number;
+}
+
+export interface AddFreeMintSimple {
+  to: string;
+  amount: number;
+  expiration_timestamp: number;
+}
+
+export interface UpdateGamePrice extends Signer {
+  value: bigint;
+}
+
+export interface AddFreeMintBatch extends Signer {
+  freeMints: AddFreeMintSimple[];
+}
+
 export type IWorld = Awaited<ReturnType<typeof setupWorld>>;
 
 export async function setupWorld(provider: DojoProvider, config: Config) {
@@ -85,8 +105,9 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
   function account() {
     const contract_name = "account";
-    const contract = config.manifest.contracts.find((contract: Manifest['contracts'][number]) =>
-      contract.tag.includes(contract_name),
+    const contract = config.manifest.contracts.find(
+      (contract: Manifest["contracts"][number]) =>
+        contract.tag.includes(contract_name),
     );
     if (!contract) {
       throw new Error(`Contract ${contract_name} not found in manifest`);
@@ -140,8 +161,8 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
   function play() {
     const contract_name = "play";
-    const contract = config.manifest.contracts.find((c: Manifest['contracts'][number]) =>
-      c.tag.includes(contract_name),
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
     );
     if (!contract) {
       throw new Error(`Contract ${contract_name} not found in manifest`);
@@ -149,6 +170,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
     const start = async ({
       account,
+      token_id,
       mode,
       price,
       x,
@@ -159,81 +181,93 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       seed,
       beta,
     }: Start) => {
-      const contract_name_chest = "chest";
-      const contract_chest = config.manifest.contracts.find((c: Manifest['contracts'][number]) =>
-        c.tag.includes(contract_name_chest),
+      const contract_name = "play";
+      const contract = config.manifest.contracts.find(
+        (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
       );
-      if (!contract_chest) {
-        throw new Error(
-          `Contract ${contract_name_chest} not found in manifest`,
-        );
-      }
-      const contract_name_tournament = "tournament";
-      const contract_tournament = config.manifest.contracts.find((c: Manifest['contracts'][number]) =>
-        c.tag.includes(contract_name_tournament),
-      );
-      if (!contract_tournament) {
-        throw new Error(
-          `Contract ${contract_name_tournament} not found in manifest`,
-        );
+      if (!contract) {
+        throw new Error(`Contract ${contract_name} not found in manifest`);
       }
 
-      const contract_name_zkorp = "zkorp";
-      const contract_zkorp = config.manifest.contracts.find((c: Manifest['contracts'][number]) =>
-        c.tag.includes(contract_name_zkorp),
-      );
-      if (!contract_zkorp) {
-        throw new Error(
-          `Contract ${contract_name_zkorp} not found in manifest`,
-        );
-      }
-
-      try {
-        return await provider.execute(
-          account,
-          [
-            {
-              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-              entrypoint: "approve",
-              calldata: [contract_zkorp.address, cairo.uint256(price)], // Set allowance
-            },
-            {
-              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-              entrypoint: "approve",
-              calldata: [contract_chest.address, cairo.uint256(price)], // Set allowance
-            },
-            {
-              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-              entrypoint: "approve",
-              calldata: [contract_tournament.address, cairo.uint256(price)], // Set allowance
-            },
-            {
-              contractName: contract_name,
-              entrypoint: "create",
-              calldata: [mode, x, y, c, s, sqrt_ratio_hint, seed, beta],
-            },
-            {
-              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-              entrypoint: "approve",
-              calldata: [contract_zkorp.address, cairo.uint256(0)], // Clear allowance
-            },
-            {
-              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-              entrypoint: "approve",
-              calldata: [contract_chest.address, cairo.uint256(0)], // Clear allowance
-            },
-            {
-              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-              entrypoint: "approve",
-              calldata: [contract_tournament.address, cairo.uint256(0)], // Clear allowance
-            },
-          ],
-          NAMESPACE,
-          details,
-        );
-      } catch (error) {
-        console.error("Error executing start:", error);
-        throw error;
+      if (token_id === 0n) {
+        // Free game
+        try {
+          return await provider.execute(
+            account,
+            [
+              {
+                contractName: contract_name,
+                entrypoint: "create",
+                calldata: [
+                  cairo.uint256(token_id),
+                  mode,
+                  x,
+                  y,
+                  c,
+                  s,
+                  sqrt_ratio_hint,
+                  seed,
+                  beta,
+                ],
+              },
+            ],
+            NAMESPACE,
+            details,
+          );
+        } catch (error) {
+          console.error("Error executing start:", error);
+          throw error;
+        }
+      } else {
+        // Paid game
+        try {
+          return await provider.execute(
+            account,
+            [
+              /*{
+                contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
+                entrypoint: "approve",
+                calldata: [
+                  VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
+                  cairo.uint256(price),
+                ], // Set allowance
+              },*/
+              {
+                contractAddress: VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
+                entrypoint: "approve",
+                calldata: [contract.address, cairo.uint256(token_id)], // Set allowance
+              },
+              {
+                contractName: contract_name,
+                entrypoint: "create",
+                calldata: [
+                  cairo.uint256(token_id),
+                  mode,
+                  x,
+                  y,
+                  c,
+                  s,
+                  sqrt_ratio_hint,
+                  seed,
+                  beta,
+                ],
+              },
+              {
+                contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
+                entrypoint: "approve",
+                calldata: [
+                  VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
+                  cairo.uint256(0),
+                ], // Clear allowance
+              },
+            ],
+            NAMESPACE,
+            details,
+          );
+        } catch (error) {
+          console.error("Error executing start:", error);
+          throw error;
+        }
       }
     };
 
@@ -307,8 +341,8 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
   function chest() {
     const contract_name = "chest";
-    const contract = config.manifest.contracts.find((c: Manifest['contracts'][number]) =>
-      c.tag.includes(contract_name),
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
     );
     if (!contract) {
       throw new Error(`Contract ${contract_name} not found in manifest`);
@@ -359,35 +393,14 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
   function settings() {
     const contract_name = "settings";
-    const contract = config.manifest.contracts.find((c: Manifest['contracts'][number]) =>
-      c.tag.includes(contract_name),
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
     );
     if (!contract) {
       throw new Error(`Contract ${contract_name} not found in manifest`);
     }
 
-    const update_free_daily_credits = async ({
-      account,
-      value,
-    }: UpdateFreeDailyCredits) => {
-      try {
-        return await provider.execute(
-          account,
-          {
-            contractName: contract_name,
-            entrypoint: "update_free_daily_credits",
-            calldata: [value],
-          },
-          NAMESPACE,
-          details,
-        );
-      } catch (error) {
-        console.error("Error executing update_free_daily_credits:", error);
-        throw error;
-      }
-    };
-
-    const update_daily_mode_price = async ({
+    const update_zkorp_address = async ({
       account,
       value,
     }: UpdateDailyModePrice) => {
@@ -396,19 +409,19 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
           account,
           {
             contractName: contract_name,
-            entrypoint: "update_daily_mode_price",
+            entrypoint: "update_zkorp_address",
             calldata: [value],
           },
           NAMESPACE,
           details,
         );
       } catch (error) {
-        console.error("Error executing update_daily_mode_price:", error);
+        console.error("Error executing update_zkorp_address:", error);
         throw error;
       }
     };
 
-    const update_normal_mode_price = async ({
+    const update_erc721_address = async ({
       account,
       value,
     }: UpdateNormalModePrice) => {
@@ -417,14 +430,14 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
           account,
           {
             contractName: contract_name,
-            entrypoint: "update_normal_mode_price",
+            entrypoint: "update_erc721_address",
             calldata: [value],
           },
           NAMESPACE,
           details,
         );
       } catch (error) {
-        console.error("Error executing update_normal_mode_price:", error);
+        console.error("Error executing update_erc721_address:", error);
         throw error;
       }
     };
@@ -467,9 +480,8 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
     return {
       address: contract.address,
-      update_free_daily_credits,
-      update_daily_mode_price,
-      update_normal_mode_price,
+      update_zkorp_address,
+      update_erc721_address,
       set_admin,
       delete_admin,
     };
@@ -477,8 +489,8 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
   function tournament() {
     const contract_name = "tournament";
-    const contract = config.manifest.contracts.find((c: Manifest['contracts'][number]) =>
-      c.tag.includes(contract_name),
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
     );
     if (!contract) {
       throw new Error(`Contract ${contract_name} not found in manifest`);
@@ -513,11 +525,108 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
     };
   }
 
+  function minter() {
+    const contract_name = "minter";
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
+    );
+    if (!contract) {
+      throw new Error(`Contract ${contract_name} not found in manifest`);
+    }
+
+    const add_free_mint = async ({
+      account,
+      to,
+      amount,
+      expiration_timestamp,
+    }: AddFreeMint) => {
+      try {
+        return await provider.execute(
+          account,
+          {
+            contractName: contract_name,
+            entrypoint: "add_free_mint",
+            calldata: [to, amount, expiration_timestamp],
+          },
+          NAMESPACE,
+          details,
+        );
+      } catch (error) {
+        console.error("Error executing claim:", error);
+        throw error;
+      }
+    };
+
+    const claim_free_mint = async ({ account }: Signer) => {
+      try {
+        return await provider.execute(
+          account,
+          {
+            contractName: contract_name,
+            entrypoint: "claim_free_mint",
+            calldata: [],
+          },
+          NAMESPACE,
+          details,
+        );
+      } catch (error) {
+        console.error("Error executing claim:", error);
+        throw error;
+      }
+    };
+
+    const update_game_price = async ({ account, value }: UpdateGamePrice) => {
+      // TODO to be checked, not sure about u256
+      try {
+        return await provider.execute(
+          account,
+          {
+            contractName: contract_name,
+            entrypoint: "mint",
+            calldata: [value],
+          },
+          NAMESPACE,
+          details,
+        );
+      } catch (error) {
+        console.error("Error executing claim:", error);
+        throw error;
+      }
+    };
+
+    const mint = async ({ account }: Signer) => {
+      try {
+        return await provider.execute(
+          account,
+          {
+            contractName: contract_name,
+            entrypoint: "mint",
+            calldata: [],
+          },
+          NAMESPACE,
+          details,
+        );
+      } catch (error) {
+        console.error("Error executing claim:", error);
+        throw error;
+      }
+    };
+
+    return {
+      address: contract.address,
+      add_free_mint,
+      claim_free_mint,
+      mint,
+      update_game_price,
+    };
+  }
+
   return {
     account: account(),
     play: play(),
     chest: chest(),
     tournament: tournament(),
     settings: settings(),
+    minter: minter(),
   };
 }

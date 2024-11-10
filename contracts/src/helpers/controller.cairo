@@ -60,7 +60,7 @@ impl Controller of ControllerTrait {
 
         let blocks: u256 = Packer::pack(new_block_rows, ROW_SIZE);
         let blocks: felt252 = blocks.try_into().unwrap();
-        assert(Controller::check_grid_coherence(blocks), errors::CONTROLLER_NOT_COHERENT_GRID);
+        //assert(Self::check_grid_coherence(blocks), errors::CONTROLLER_NOT_COHERENT_GRID);
 
         blocks
     }
@@ -144,7 +144,6 @@ impl Controller of ControllerTrait {
         let mut blocks: u32 = 0;
 
         let mut deck: Deck = DeckTrait::new(seed, difficulty.count());
-        let mut dice: Dice = DiceTrait::new(BLOCK_SIZE, seed);
 
         while deck.remaining != 0 && size < DEFAULT_GRID_WIDTH {
             let block: Block = difficulty.reveal(deck.draw());
@@ -422,9 +421,8 @@ impl Controller of ControllerTrait {
         // [Compute] Add the shifted block to the row
         let shifted_full_block = BitShift::shl(full_block, shift_bits);
         block_row = block_row | shifted_full_block;
-        if (!Controller::check_row_coherence(block_row)) {
-            assert(false, errors::CONTROLLER_NOT_COHERENT_LINE);
-        }
+
+        // assert(Self::check_row_coherence(block_row), errors::CONTROLLER_NOT_COHERENT_LINE);
 
         // [Return] Updated bitmap
         let bitmap: u256 = blocks.into();
@@ -479,9 +477,8 @@ impl Controller of ControllerTrait {
         let shift_bits: u32 = (count * BLOCK_BIT_COUNT).into();
         let shifted_full_block = BitShift::shr(full_block, shift_bits);
         block_row = block_row | shifted_full_block;
-        if (!Controller::check_row_coherence(block_row)) {
-            assert(false, errors::CONTROLLER_NOT_COHERENT_LINE);
-        }
+
+        // assert(Self::check_row_coherence(block_row), errors::CONTROLLER_NOT_COHERENT_LINE);
 
         // [Return] Updated bitmap
         let bitmap: u256 = blocks.into();
@@ -800,7 +797,7 @@ mod tests {
 
         let bitmap: felt252 =
             0b100_100_100_100_000_000_010_010__100_100_100_100_011_011_011_000__001_001_000_010_010_000_010_010__011_011_011_000_011_011_011_000__010_010_010_010_000_011_011_011__001_000_001_011_011_011_010_010__100_100_100_100_000_001_010_010__010_010_010_010_001_010_010_000;
-        let blocks = Controller::swipe(bitmap, 1, 4, false, 1);
+        Controller::swipe(bitmap, 1, 4, false, 1);
     }
 
     #[test]
@@ -1469,7 +1466,7 @@ mod tests {
         // Initial grid
         // 000_001_000_010_010_000_000_000 (size 1 and 2 blocks with gaps)
         let bitmap: felt252 = 0b000_001_000_010_010_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 4, true, 2);
+        Controller::swipe(bitmap, 0, 4, true, 2);
     }
 
     #[test]

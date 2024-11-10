@@ -22,7 +22,6 @@ export const Create = () => {
   const [open, setOpen] = useState(true);
   const { account } = useAccountCustom();
   const {
-    master,
     setup: {
       systemCalls: { create },
     },
@@ -41,8 +40,8 @@ export const Create = () => {
   }, [account, playerName, create]);
 
   const disabled = useMemo(() => {
-    return !account || !master || account === master || !!player;
-  }, [account, master, player]);
+    return !account || !!player;
+  }, [account, player]);
 
   if (disabled) return null;
 

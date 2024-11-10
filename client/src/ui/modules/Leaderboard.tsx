@@ -62,6 +62,7 @@ interface LeaderboardProps {
     | "secondary"
     | "ghost"
     | "link"
+    | "brutal"
     | null
     | undefined;
   textSize?: "sm" | "md" | "lg";
