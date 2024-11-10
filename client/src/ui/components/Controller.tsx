@@ -5,7 +5,7 @@ import { useCallback } from "react";
 import { useAccount } from "@starknet-react/core";
 
 export const Controller = () => {
-  const { connector } = useAccount();
+  const { connector } = useAccount() as { connector: { controller?: any } };
   const handleTrophyClick = useCallback(() => {
     if (!connector?.controller) {
       console.error("Connector not initialized");
