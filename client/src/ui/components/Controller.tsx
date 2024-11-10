@@ -15,7 +15,7 @@ export const Controller = () => {
   }, [connector]);
 
   return (
-    <Button variant="outline" onClick={() => handleTrophyClick()}>
+    <Button variant="shimmer" onClick={() => handleTrophyClick()}>
       <FontAwesomeIcon icon={faWallet} />
     </Button>
   );

@@ -85,6 +85,10 @@ module.exports = {
             "animation-timing-function": "cubic-bezier(0.8, 0, 1, 1)",
           },
         },
+        shimmer: {
+          from: { backgroundPosition: "0 0" },
+          to: { backgroundPosition: "-200% 0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -92,6 +96,7 @@ module.exports = {
         "zoom-in-out": "zoom-in-out 30s ease-in-out infinite",
         "spin-slow": "spin 2s linear infinite",
         load: "load 1s infinite",
+        shimmer: "shimmer 4s ease-in-out infinite",
       },
     },
   },
