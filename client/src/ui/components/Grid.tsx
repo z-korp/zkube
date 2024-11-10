@@ -24,7 +24,6 @@ import ConfettiExplosion, { ConfettiExplosionRef } from "./ConfettiExplosion";
 import { useMusicPlayer } from "@/contexts/hooks";
 
 import "../../grid.css";
-import { set } from "date-fns";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -535,6 +534,8 @@ const Grid: React.FC<GridProps> = ({
       if (lineExplodedCount > 1) {
         setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
       }
+
+      setMoveTxAwaitDone(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState]);
