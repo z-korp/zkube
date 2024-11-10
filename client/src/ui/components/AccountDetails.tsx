@@ -9,8 +9,11 @@ import { FaucetButton } from "./FaucetButton";
 import { Copy } from "lucide-react";
 import { useState } from "react";
 
-const { VITE_PUBLIC_GAME_TOKEN_ADDRESS, VITE_PUBLIC_GAME_TOKEN_SYMBOL } =
-  import.meta.env;
+const {
+  VITE_PUBLIC_GAME_TOKEN_ADDRESS,
+  VITE_PUBLIC_GAME_TOKEN_SYMBOL,
+  VITE_PUBLIC_DEPLOY_TYPE,
+} = import.meta.env;
 
 const shortAddress = (address: string, size = 4) => {
   return `${address.slice(0, size)}...${address.slice(-size)}`;
@@ -66,7 +69,7 @@ const AccountDetails = () => {
             />
           </div>
         </div>
-        <FaucetButton />
+        {VITE_PUBLIC_DEPLOY_TYPE !== "mainnet" && <FaucetButton />}
       </div>
     );
   }

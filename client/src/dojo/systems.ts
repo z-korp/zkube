@@ -182,7 +182,7 @@ export function systems({ client }: { client: IWorld }) {
     await handleTransaction(
       account,
       () => client.play.move({ account, ...props }),
-      "Player has been moved.",
+      "Move has been done.",
     );
   };
 

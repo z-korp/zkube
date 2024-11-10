@@ -106,8 +106,6 @@ const MobileHeader = () => {
                   <DropdownMenuLabel>Assets</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <HeaderBalance />
-                  <DropdownMenuSeparator />
-                  <HeaderNftBalance />
                 </DropdownMenuContent>
               </DropdownMenu>
               <ProfilePage wfit />

@@ -25,7 +25,9 @@ const FixedWidthDigit: React.FC<{ value: string }> = ({ value }) =>
 
 const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
-  const [targetBalance, setTargetBalance] = useState<number>(0);
+  const [targetBalance, setTargetBalance] = useState<number | undefined>(
+    undefined,
+  ); // don't change this to 0, it will cause a flicker
 
   // useBalance doesn't work on Katana, don't know why
   const { data, isError, isLoading, error } = useReadContract({
@@ -69,7 +71,7 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
       <div className="text-xs font-semibold md:font-normal flex items-center bg-secondary">
         0
         {symbolImage ? (
-          <img src={symbolImage} alt={symbol} className="ml-2 h-8 w-8" />
+          <img src={symbolImage} alt={symbol} className="ml-1 h-8 w-8" />
         ) : (
           <span className="ml-1">{symbol}</span>
         )}
