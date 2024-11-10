@@ -1,6 +1,6 @@
 import { useAccount } from "@starknet-react/core";
 import { useState, useEffect } from "react";
-import CartridgeConnector from "@cartridge/connector";
+import ControllerConnector from "@cartridge/connector/controller";
 
 export const fetchUsername = async (
   address: string | undefined,
@@ -10,7 +10,7 @@ export const fetchUsername = async (
     return undefined;
   }
 
-  const cartridgeConnector = connector as CartridgeConnector;
+  const cartridgeConnector = connector as ControllerConnector;
   if (typeof cartridgeConnector.username === "function") {
     try {
       return await cartridgeConnector.username();
