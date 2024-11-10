@@ -2,6 +2,10 @@
 // Compatible with OpenZeppelin Contracts for Cairo ^0.18.0
 use starknet::ContractAddress;
 
+// External imports
+
+use openzeppelin::token::erc721::interface::{IERC721Dispatcher, IERC721DispatcherTrait};
+
 const PAUSER_ROLE: felt252 = selector!("PAUSER_ROLE");
 const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 const PRICE_SETTER_ROLE: felt252 =
@@ -292,23 +296,23 @@ mod ERC721 {
             let old_minter = self.current_minter.read();
 
             // Revoke old approvals
-            if !old_tournament.is_zero() {
-                let previous_allowance = erc20.allowance(get_contract_address(), old_tournament);
-                erc20.approve(old_tournament, 0);
-                self.emit(ERC20ApprovalRevoked { system: old_tournament, previous_allowance });
-            }
+            //if !old_tournament.is_zero() {
+            let previous_allowance = erc20.allowance(get_contract_address(), old_tournament);
+            erc20.approve(old_tournament, 0);
+            self.emit(ERC20ApprovalRevoked { system: old_tournament, previous_allowance });
+            //}
 
-            if !old_chest.is_zero() {
-                let previous_allowance = erc20.allowance(get_contract_address(), old_chest);
-                erc20.approve(old_chest, 0);
-                self.emit(ERC20ApprovalRevoked { system: old_chest, previous_allowance });
-            }
+            //if !old_chest.is_zero() {
+            let previous_allowance = erc20.allowance(get_contract_address(), old_chest);
+            erc20.approve(old_chest, 0);
+            self.emit(ERC20ApprovalRevoked { system: old_chest, previous_allowance });
+            //}
 
-            if !old_zkorp.is_zero() {
-                let previous_allowance = erc20.allowance(get_contract_address(), old_zkorp);
-                erc20.approve(old_zkorp, 0);
-                self.emit(ERC20ApprovalRevoked { system: old_zkorp, previous_allowance });
-            }
+            //if !old_zkorp.is_zero() {
+            let previous_allowance = erc20.allowance(get_contract_address(), old_zkorp);
+            erc20.approve(old_zkorp, 0);
+            self.emit(ERC20ApprovalRevoked { system: old_zkorp, previous_allowance });
+            //}
 
             // New approvals
             let max_u128 = 0xffffffffffffffffffffffffffffffff_u128;
@@ -352,15 +356,12 @@ mod ERC721 {
                 );
 
             // Update roles
-            if !old_minter.is_zero() {
-                self.accesscontrol.revoke_role(MINTER_ROLE, old_minter);
-                self.accesscontrol.revoke_role(PRICE_SETTER_ROLE, old_minter);
-                self.emit(RoleUpdated { role: MINTER_ROLE, account: old_minter, granted: false });
-                self
-                    .emit(
-                        RoleUpdated { role: PRICE_SETTER_ROLE, account: old_minter, granted: false }
-                    );
-            }
+            //if !old_minter.is_zero() {
+            self.accesscontrol.revoke_role(MINTER_ROLE, old_minter);
+            self.accesscontrol.revoke_role(PRICE_SETTER_ROLE, old_minter);
+            self.emit(RoleUpdated { role: MINTER_ROLE, account: old_minter, granted: false });
+            self.emit(RoleUpdated { role: PRICE_SETTER_ROLE, account: old_minter, granted: false });
+            //}
 
             self.accesscontrol.grant_role(MINTER_ROLE, minter_system);
             self.accesscontrol.grant_role(PRICE_SETTER_ROLE, minter_system);

@@ -13,8 +13,10 @@ mod setup {
     // Dojo imports
 
     use dojo::world::{WorldStorageTrait, WorldStorage};
-    use dojo_cairo_test::{spawn_test_world, NamespaceDef, TestResource, ContractDefTrait};
-    use dojo::model::Model;
+    use dojo_cairo_test::{
+        spawn_test_world, NamespaceDef, TestResource, ContractDefTrait, ContractDef,
+        WorldStorageTestTrait
+    };
 
     // External dependencies
 
@@ -166,66 +168,60 @@ mod setup {
         IERC721Dispatcher { contract_address: address }
     }
 
-    fn namespace_def(
-        erc20_address: felt252, admin_address: felt252, zkorp_address: felt252
-    ) -> NamespaceDef {
+    fn namespace_def() -> NamespaceDef {
         let ndef = NamespaceDef {
             namespace: "zkube", resources: [
-                TestResource::Model(models::m_Admin::TEST_CLASS_HASH.try_into().unwrap()),
-                TestResource::Model(models::m_Chest::TEST_CLASS_HASH.try_into().unwrap()),
-                TestResource::Model(models::m_Game::TEST_CLASS_HASH.try_into().unwrap()),
-                TestResource::Model(models::m_Participation::TEST_CLASS_HASH.try_into().unwrap()),
-                TestResource::Model(models::m_Player::TEST_CLASS_HASH.try_into().unwrap()),
-                TestResource::Model(models::m_Settings::TEST_CLASS_HASH.try_into().unwrap()),
-                TestResource::Model(models::m_Tournament::TEST_CLASS_HASH.try_into().unwrap()),
-                TestResource::Model(models::m_Mint::TEST_CLASS_HASH.try_into().unwrap()),
+                TestResource::Model(models::m_Admin::TEST_CLASS_HASH),
+                TestResource::Model(models::m_Chest::TEST_CLASS_HASH),
+                TestResource::Model(models::m_Game::TEST_CLASS_HASH),
+                TestResource::Model(models::m_Participation::TEST_CLASS_HASH),
+                TestResource::Model(models::m_Player::TEST_CLASS_HASH),
+                TestResource::Model(models::m_Settings::TEST_CLASS_HASH),
+                TestResource::Model(models::m_Tournament::TEST_CLASS_HASH),
+                TestResource::Model(models::m_Mint::TEST_CLASS_HASH),
                 TestResource::Event(
                     bushido_trophy::events::index::e_TrophyCreation::TEST_CLASS_HASH
-                        .try_into()
-                        .unwrap()
                 ),
                 TestResource::Event(
                     bushido_trophy::events::index::e_TrophyProgression::TEST_CLASS_HASH
-                        .try_into()
-                        .unwrap()
                 ),
-                TestResource::Contract(
-                    ContractDefTrait::new(account::TEST_CLASS_HASH, "account")
-                        .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
-                ),
-                TestResource::Contract(
-                    ContractDefTrait::new(play::TEST_CLASS_HASH, "play")
-                        .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
-                ),
-                TestResource::Contract(
-                    ContractDefTrait::new(chest::TEST_CLASS_HASH, "chest")
-                        .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
-                        .with_init_calldata([erc20_address].span())
-                ),
-                TestResource::Contract(
-                    ContractDefTrait::new(settings::TEST_CLASS_HASH, "settings")
-                        .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
-                        .with_init_calldata([admin_address, zkorp_address].span())
-                ),
-                TestResource::Contract(
-                    ContractDefTrait::new(tournament::TEST_CLASS_HASH, "tournament")
-                        .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
-                        .with_init_calldata([erc20_address].span())
-                ),
-                TestResource::Contract(
-                    ContractDefTrait::new(zkorp::TEST_CLASS_HASH, "zkorp")
-                        .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
-                        .with_init_calldata([erc20_address].span())
-                ),
-                TestResource::Contract(
-                    ContractDefTrait::new(minter::TEST_CLASS_HASH, "minter")
-                        .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
-                ),
+                TestResource::Contract(account::TEST_CLASS_HASH),
+                TestResource::Contract(play::TEST_CLASS_HASH),
+                TestResource::Contract(chest::TEST_CLASS_HASH),
+                TestResource::Contract(settings::TEST_CLASS_HASH),
+                TestResource::Contract(tournament::TEST_CLASS_HASH),
+                TestResource::Contract(zkorp::TEST_CLASS_HASH),
+                TestResource::Contract(minter::TEST_CLASS_HASH),
             ].span()
         };
 
         ndef
     }
+    fn contract_defs(
+        erc20_address: felt252, admin_address: felt252, zkorp_address: felt252
+    ) -> Span<ContractDef> {
+        [
+            ContractDefTrait::new(@"zkube", @"actions")
+                .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span()),
+            ContractDefTrait::new(@"zkube", @"play")
+                .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span()),
+            ContractDefTrait::new(@"zkube", @"chest")
+                .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
+                .with_init_calldata([erc20_address].span()),
+            ContractDefTrait::new(@"zkube", @"settings")
+                .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
+                .with_init_calldata([admin_address, zkorp_address].span()),
+            ContractDefTrait::new(@"zkube", @"tournament")
+                .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
+                .with_init_calldata([erc20_address].span()),
+            ContractDefTrait::new(@"zkube", @"zkorp")
+                .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
+                .with_init_calldata([erc20_address].span()),
+            ContractDefTrait::new(@"zkube", @"minter")
+                .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span())
+        ].span()
+    }
+
 
     fn create_accounts() -> (WorldStorage, Systems, Context) {
         let owner = get_contract_address();
@@ -234,8 +230,10 @@ mod setup {
         let erc20 = deploy_erc20();
 
         // [Setup] World
-        let ndef = namespace_def(erc20.contract_address.into(), ADMIN().into(), ZKORP().into());
+        let ndef = namespace_def();
+        let cdef = contract_defs(erc20.contract_address.into(), ADMIN().into(), ZKORP().into());
         let mut world = spawn_test_world([ndef].span());
+        world.sync_perms_and_inits(cdef);
 
         // [Setup] Get contract addresses
         let (account_address, _) = world.dns(@"account").unwrap();

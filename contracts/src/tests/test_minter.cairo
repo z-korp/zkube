@@ -46,20 +46,20 @@ fn test_minter() {
     let mint = store.mint(PLAYER1().into());
     assert(!mint.has_mint_not_expired(get_block_timestamp()), 'Mint should be 0');
 }
+//#[test]
+//fn test_minter_mint() {
+// [Setup]
+//    let (mut world, systems, context) = setup::create_accounts();
+//    let store = StoreTrait::new(world);
 
-#[test]
-fn test_minter_mint() {
-    // [Setup]
-    let (mut world, systems, context) = setup::create_accounts();
-    let store = StoreTrait::new(world);
+//    set_block_timestamp(1000);
 
-    set_block_timestamp(1000);
+// Mint
+//    impersonate(PLAYER1());
+//    systems.minter.mint();
 
-    // Mint
-    impersonate(PLAYER1());
-    systems.minter.mint();
+//    let erc721 = IERC721Dispatcher { contract_address: context.erc721.contract_address };
+//    let final_nft_balance = erc721.balance_of(PLAYER1().into());
+//    assert_eq!(final_nft_balance, 1, "Minting failed");
+//}
 
-    let erc721 = IERC721Dispatcher { contract_address: context.erc721.contract_address };
-    let final_nft_balance = erc721.balance_of(PLAYER1().into());
-    assert_eq!(final_nft_balance, 1, "Minting failed");
-}

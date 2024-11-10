@@ -13,6 +13,6 @@ trait IERC721GameCredits<TState> {
 
 #[inline(always)]
 fn ierc721_game_credits(contract_address: ContractAddress) -> IERC721GameCreditsDispatcher {
-    assert(contract_address != core::Zeroable::zero(), 'ierc20(): null address');
+    assert(contract_address != core::Zeroable::zero(), 'ierc721(): null address');
     (IERC721GameCreditsDispatcher { contract_address })
 }

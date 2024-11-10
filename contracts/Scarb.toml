@@ -1,7 +1,7 @@
 [package]
 name = "zkube"
 cairo-version = "=2.8.4"
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.2"
 
 [cairo]
 sierra-replace-ids = true
@@ -17,10 +17,10 @@ playground = "sozo --profile playground clean && sozo --profile playground build
 mainnet = "sozo --profile mainnet clean && sozo --profile mainnet build && sozo --profile mainnet migrate --walnut --keystore /Users/matthias/.starkli-wallets/mainnet/braavos_dojo_deployer/keystore.json"
 
 [dependencies]
-dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-rc.1" }
+dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-rc.2" }
 alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria", rev = "78b0d51" }
-bushido_trophy = { git = "https://github.com/cartridge-gg/bushido", rev = "47eb7c1" }
-origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.0.0-alpha.19" }
+bushido_trophy = { git = "https://github.com/cartridge-gg/bushido", branch = "bump_version_rc2" }
+origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.0.0-rc.2" }
 stark_vrf = { git = "https://github.com/dojoengine/stark-vrf", rev = "5a9e81e" }
 
 [[target.starknet-contract]]
@@ -31,7 +31,7 @@ build-external-contracts = [
 ]
 
 [dev-dependencies]
-dojo_cairo_test = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-rc.1" }
+dojo_cairo_test = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-rc.2" }
 openzeppelin_token = "0.18.0"
 openzeppelin = "0.18.0"
 
