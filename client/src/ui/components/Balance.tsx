@@ -62,10 +62,17 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
     }
   }, [isError, error]);
 
+  const symbolImage = symbolImages[symbol];
+
   if (isError || !data) {
     return (
       <div className="text-xs font-semibold md:font-normal flex items-center bg-secondary">
-        0 {symbol}
+        0
+        {symbolImage ? (
+          <img src={symbolImage} alt={symbol} className="ml-2 h-8 w-8" />
+        ) : (
+          <span className="ml-1">{symbol}</span>
+        )}
       </div>
     );
   }
@@ -90,8 +97,6 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
 
   // Split the balance string into characters
   const balanceChars = balanceString.split("");
-
-  const symbolImage = symbolImages[symbol];
 
   return (
     <div className="text-xs font-semibold md:font-normal flex items-center bg-secondary">
