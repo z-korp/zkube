@@ -6,7 +6,6 @@ use dojo::world::WorldStorage;
 
 #[starknet::interface]
 trait IMinter<T> {
-    fn mint(ref self: T);
     fn claim_free_mint(ref self: T);
     fn add_free_mint(ref self: T, to: ContractAddress, number: u32, expiration_timestamp: u64);
     fn update_game_price(ref self: T, price: u256);
@@ -38,18 +37,6 @@ mod minter {
 
     #[abi(embed_v0)]
     impl MinterSystemImpl of IMinter<ContractState> {
-        /// Mint an ERC721 token as game credits
-        fn mint(ref self: ContractState) {
-            let caller = get_caller_address();
-
-            let mut world = self.world_default();
-            let store = StoreTrait::new(world);
-
-            let settings = store.settings();
-            let erc721 = ierc721_game_credits(settings.erc721_address.try_into().unwrap());
-            erc721.public_mint_from(caller.into(), caller.into());
-        }
-
         /// Claim free mint that an admin has added to a user
         fn claim_free_mint(ref self: ContractState) {
             let caller = get_caller_address();

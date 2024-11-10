@@ -103,18 +103,22 @@ mod play {
 
             let settings = store.settings();
             let erc721_address: ContractAddress = settings.erc721_address.try_into().unwrap();
+            let erc721 = ierc721_game_credits(erc721_address);
 
             // [Interaction] Pay entry price
             // [Check] Player exists
             let caller = get_caller_address();
 
-            // [Check] Player owns the token
-            let erc721 = ierc721_game_credits(erc721_address);
-            let owner = erc721.owner_of(token_id);
-            assert(caller == owner, 'Not nft owner');
+            let price = if mode != Mode::Free {
+                // [Check] Player owns the token
+                let owner = erc721.owner_of(token_id);
+                assert(caller == owner, 'Not nft owner');
 
-            // [Get] Entry price
-            let price = erc721.get_purchase_price(token_id);
+                // [Get] Entry price
+                erc721.get_purchase_price(token_id)
+            } else {
+                0
+            };
 
             // [Effect] Create a game
             let (
@@ -129,24 +133,29 @@ mod play {
                 .hostable
                 ._create(world, proof, seed, beta, mode, price);
 
-            // [Effect] Sponsor the tournament from the erc721 contract funds
-            let (contract_address, _) = world.dns(@"tournament").unwrap();
-            let tournament_system_dispatcher = ITournamentSystemDispatcher { contract_address };
-            tournament_system_dispatcher
-                .sponsor_from(tournament_id, mode, tournament_amount, erc721_address);
+            if price != 0 {
+                // [Effect] Sponsor the tournament from the erc721 contract funds
+                let (contract_address, _) = world.dns(@"tournament").unwrap();
+                let tournament_system_dispatcher = ITournamentSystemDispatcher { contract_address };
+                tournament_system_dispatcher
+                    .sponsor_from(tournament_id, mode, tournament_amount, erc721_address);
 
-            // Chest pool
-            let (contract_address, _) = world.dns(@"chest").unwrap();
-            let chest_system_dispatcher = IChestDispatcher { contract_address };
-            chest_system_dispatcher.sponsor_from(chest_amount, erc721_address);
+                // Chest pool
+                let (contract_address, _) = world.dns(@"chest").unwrap();
+                let chest_system_dispatcher = IChestDispatcher { contract_address };
+                chest_system_dispatcher.sponsor_from(chest_amount, erc721_address);
 
-            // zKorp
-            let (contract_address, _) = world.dns(@"zkorp").unwrap();
-            let zkorp_system_dispatcher = IZKorpDispatcher { contract_address };
-            zkorp_system_dispatcher.sponsor_from(zkorp_amount + referrer_amount, erc721_address);
+                // zKorp
+                let (contract_address, _) = world.dns(@"zkorp").unwrap();
+                let zkorp_system_dispatcher = IZKorpDispatcher { contract_address };
+                zkorp_system_dispatcher
+                    .sponsor_from(zkorp_amount + referrer_amount, erc721_address);
+            }
 
-            // [Effect] Burn the nft
-            erc721.burn(token_id);
+            if (mode != Mode::Free) {
+                // [Effect] Burn the nft
+                erc721.burn(token_id);
+            }
 
             // [Return] Game ID
             game_id

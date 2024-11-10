@@ -9,10 +9,7 @@ mod token {
     use starknet::ContractAddress;
     use starknet::get_caller_address;
     use starknet::get_block_timestamp;
-    use starknet::storage::{
-        Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
-        StoragePointerWriteAccess,
-    };
+    use starknet::storage::{Map, StorageMapReadAccess, StorageMapWriteAccess};
 
     component!(path: ERC20Component, storage: erc20, event: ERC20Event);
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
@@ -30,7 +27,7 @@ mod token {
         erc20: ERC20Component::Storage,
         #[substorage(v0)]
         ownable: OwnableComponent::Storage,
-        last_faucet_claim: LegacyMap::<ContractAddress, u64>,
+        last_faucet_claim: Map::<ContractAddress, u64>,
     }
 
     #[event]
@@ -44,7 +41,7 @@ mod token {
 
     #[constructor]
     fn constructor(ref self: ContractState, owner: ContractAddress) {
-        self.erc20.initializer("Lord", "LORD");
+        self.erc20.initializer("Fake Lord", "FLORD");
         self.ownable.initializer(owner);
     }
 

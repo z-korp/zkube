@@ -6,7 +6,6 @@ trait IERC721GameCredits<TState> {
     fn owner_of(self: @TState, token_id: u256) -> ContractAddress;
     fn burn(self: @TState, token_id: u256);
     fn minter_mint(self: @TState, recipient: ContractAddress);
-    fn public_mint_from(self: @TState, recipient: ContractAddress, caller: ContractAddress);
     fn public_mint(self: @TState, recipient: ContractAddress);
     fn get_purchase_price(self: @TState, token_id: u256) -> u256;
     fn update_mint_price(self: @TState, new_price: u256);
