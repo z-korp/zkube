@@ -2,7 +2,7 @@ import type { IWorld } from "./contractSystems";
 import { toast } from "sonner";
 import * as SystemTypes from "./contractSystems";
 import { shortenHex } from "@dojoengine/utils";
-import { Account, GetTransactionReceiptResponse } from "starknet";
+import { Account } from "starknet";
 
 export type SystemCalls = ReturnType<typeof systems>;
 
@@ -46,6 +46,8 @@ export function systems({ client }: { client: IWorld }) {
       VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev2"
     ) {
       return `https://sepolia.starkscan.co/tx/${transaction_hash}`;
+    } else if (VITE_PUBLIC_DEPLOY_TYPE === "mainnet") {
+      return `https://starkscan.co/tx/${transaction_hash}`;
     } else {
       return `https://worlds.dev/networks/slot/worlds/zkube-${VITE_PUBLIC_DEPLOY_TYPE}/txs/${transaction_hash}`;
     }

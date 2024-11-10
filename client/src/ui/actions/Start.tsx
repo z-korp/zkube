@@ -52,12 +52,7 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
   const [isLoading, setIsLoading] = useState(false);
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
-  const {
-    mint,
-    isPending,
-    error: mintError,
-    isError: isMintError,
-  } = useNftMint();
+  const { mint } = useNftMint();
   const [isWaitingTx, setIsWaitingTx] = useState(false);
 
   //useFirstNft(address);
@@ -91,44 +86,51 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
 
     setIsLoading(true);
 
-    // Check if the player has an NFT
-    const ret_erc721_balance = await erc721Contract.call("balance_of", [
-      account?.address,
-    ]);
-    const number_of_nft = Number(ret_erc721_balance.toString());
-    console.log("number_of_nft", number_of_nft);
+    let token_id = 0n;
+    if (mode !== ModeType.Free) {
+      // Check if the player has an NFT
+      const ret_erc721_balance = await erc721Contract.call("balance_of", [
+        account?.address,
+      ]);
+      const number_of_nft = Number(ret_erc721_balance.toString());
+      console.log("number_of_nft", number_of_nft);
 
-    try {
-      if (number_of_nft === 0) {
-        // Mint one
-        // First check if the player has enough balance
-        const ret_erc20 = await erc20Contract.call("balanceOf", [
-          account?.address,
-        ]);
-        const balance = BigInt(ret_erc20.toString());
-        if (balance < settings.game_price && erc20Contract) {
-          console.log("Not enough balance, trying to claim faucet");
+      try {
+        if (number_of_nft === 0) {
+          // Mint one
+          // First check if the player has enough balance
+          const ret_erc20 = await erc20Contract.call("balanceOf", [
+            account?.address,
+          ]);
+          const balance = BigInt(ret_erc20.toString());
+          if (balance < settings.game_price && erc20Contract) {
+            console.log("Not enough balance, trying to claim faucet");
 
-          await createFaucetClaimHandler(account as Account, () => {
-            return;
-          })();
+            await createFaucetClaimHandler(account as Account, () => {
+              return;
+            })();
+          }
+
+          // Second mint the NFT
+          await handleMint();
         }
-
-        // Second mint the NFT
-        await handleMint();
+      } catch (error) {
+        console.error("Error minting NFT:", error);
       }
-    } catch (error) {
-      console.error("Error minting NFT:", error);
+
+      try {
+        const ret_erc721 = await erc721Contract.call(
+          "token_of_owner_by_index",
+          [account?.address, 0],
+        );
+        token_id = BigInt(ret_erc721.toString());
+        console.log("token_id", token_id);
+      } catch (error) {
+        console.error("Error getting NFT:", error);
+      }
     }
 
     try {
-      const ret_erc721 = await erc721Contract.call("token_of_owner_by_index", [
-        account?.address,
-        0,
-      ]);
-      const currentTokenId = BigInt(ret_erc721.toString());
-      console.log("currentTokenId", currentTokenId);
-
       const {
         seed,
         proof_gamma_x,
@@ -141,7 +143,7 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
 
       await start({
         account: account as Account,
-        token_id: currentTokenId || BigInt(0),
+        token_id,
         mode: new Mode(mode).into(),
         price: settings.game_price,
         seed,
@@ -163,8 +165,9 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
     erc20Contract,
     erc721Contract,
     account,
-    start,
     mode,
+    handleMint,
+    start,
     handleGameMode,
   ]);
 

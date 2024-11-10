@@ -33,6 +33,8 @@ const useAccountCustom = () => {
     }
   }, [/*burner,*/ account]);
 
+  //console.log("useAccountCustom", customAccount);
+
   return { account: customAccount };
 };
 
