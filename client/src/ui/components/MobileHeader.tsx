@@ -1,4 +1,4 @@
-import { faBars } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faWallet } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Drawer,
@@ -20,6 +20,8 @@ import { useState } from "react";
 import { Surrender } from "../actions/Surrender";
 import LevelIndicator from "./LevelIndicator";
 import HeaderNftBalance from "./HeaderNftBalance";
+import { useMediaQuery } from "react-responsive";
+import { Controller } from "./Controller";
 
 const MobileHeader = () => {
   const { account } = useAccountCustom();
@@ -30,6 +32,8 @@ const MobileHeader = () => {
   const onClose = () => {
     setIsOpen(false);
   };
+
+  const isMediumOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   return (
     <div className="px-3 py-2 flex gap-3">
@@ -79,13 +83,14 @@ const MobileHeader = () => {
         </DrawerContent>
       </Drawer>
       <div className="w-full flex justify-between items-center">
-        <p className="text-2xl font-bold">zKube</p>
-        <div className="flex gap-2">
+        {/*<p className="text-2xl font-bold">zKube</p>*/}
+        <div className="flex w-full gap-2 justify-end">
           {!!player && account ? (
             <div className="flex gap-3 items-center">
               <HeaderBalance />
               <HeaderNftBalance />
               <ProfilePage wfit />
+              <Controller />
               <LevelIndicator currentXP={player.points} />
             </div>
           ) : (

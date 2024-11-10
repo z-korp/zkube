@@ -176,6 +176,7 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
       disabled={isLoading || disabled}
       isLoading={isLoading}
       onClick={handleClick}
+      variant={`${!isMdOrLarger ? "brutal" : "default"}`}
       className={`text-lg w-full transition-transform duration-300 ease-in-out hover:scale-105 ${!isMdOrLarger && "py-6 border-4 border-white rounded-none text-white bg-sky-900 shadow-lg font-sans font-bold "}`}
     >
       Play !

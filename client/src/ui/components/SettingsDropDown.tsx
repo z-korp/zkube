@@ -11,21 +11,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../elements/dropdown-menu";
-import { useAccount } from "@starknet-react/core";
-import { BurnerAccount } from "./BurnerAccount";
-import { useCallback } from "react";
+
 import { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 
 export const SettingsDropDown = () => {
-  const { connector } = useAccount();
-  const handleTrophyClick = useCallback(() => {
-    if (!connector?.controller) {
-      console.error("Connector not initialized");
-      return;
-    }
-    connector?.controller.openProfile("trophies");
-  }, [connector]);
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -46,9 +35,6 @@ export const SettingsDropDown = () => {
         </DropdownMenuLabel>
         {ACCOUNT_CONNECTOR === "controller" && (
           <>
-            <div>
-              <Button onClick={() => handleTrophyClick()}> Controller </Button>
-            </div>
             <div className="p-1 flex flex-col gap-2">
               <AccountDetails />
             </div>
@@ -56,10 +42,10 @@ export const SettingsDropDown = () => {
         )}
         {ACCOUNT_CONNECTOR === "burner" && (
           <>
-            <DropdownMenuLabel>Burner Account</DropdownMenuLabel>
-            <DropdownMenuItem>
-              <BurnerAccount />
-            </DropdownMenuItem>
+            <Button variant={"destructive"}>
+              {" "}
+              !!!! Burner have been removed !!!!
+            </Button>
           </>
         )}
       </DropdownMenuContent>

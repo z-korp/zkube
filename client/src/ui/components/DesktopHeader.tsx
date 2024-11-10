@@ -11,6 +11,7 @@ import LevelIndicator from "./LevelIndicator";
 import SettingsDropDown from "./SettingsDropDown";
 import { useNavigate } from "react-router-dom";
 import HeaderNftBalance from "./HeaderNftBalance";
+import { Controller } from "./Controller";
 
 const DesktopHeader = () => {
   const { account } = useAccountCustom();
@@ -48,6 +49,7 @@ const DesktopHeader = () => {
             <HeaderBalance />
             <HeaderNftBalance />
             <ProfilePage wfit />
+            <Controller />
             <LevelIndicator currentXP={player.points} />
           </div>
         )}
