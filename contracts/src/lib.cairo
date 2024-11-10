@@ -108,6 +108,7 @@ mod tests {
     mod test_bonus;
     mod test_minter;
     mod test_erc721;
+    mod test_pause;
 
     mod mocks {
         mod erc20;

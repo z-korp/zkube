@@ -797,7 +797,7 @@ mod tests {
 
         let bitmap: felt252 =
             0b100_100_100_100_000_000_010_010__100_100_100_100_011_011_011_000__001_001_000_010_010_000_010_010__011_011_011_000_011_011_011_000__010_010_010_010_000_011_011_011__001_000_001_011_011_011_010_010__100_100_100_100_000_001_010_010__010_010_010_010_001_010_010_000;
-        let blocks = Controller::swipe(bitmap, 1, 4, false, 1);
+        Controller::swipe(bitmap, 1, 4, false, 1);
     }
 
     #[test]
@@ -1466,7 +1466,7 @@ mod tests {
         // Initial grid
         // 000_001_000_010_010_000_000_000 (size 1 and 2 blocks with gaps)
         let bitmap: felt252 = 0b000_001_000_010_010_000_000_000;
-        let blocks = Controller::swipe(bitmap, 0, 4, true, 2);
+        Controller::swipe(bitmap, 0, 4, true, 2);
     }
 
     #[test]

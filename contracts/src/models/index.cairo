@@ -48,7 +48,7 @@ pub struct Game {
     pub max_combo_in_tournament: u8,
     // ------------------------
     pub pending_chest_prize: u128, // prize to be added to the right chest
-    // the right chest is the one that is not complete and has the highest point_target
+// the right chest is the one that is not complete and has the highest point_target
 // only known after the game is over
 }
 
@@ -91,6 +91,9 @@ struct Settings {
     pub game_price: u256,
     pub zkorp_address: felt252,
     pub erc721_address: felt252,
+    // In case we need to pause the game
+    pub are_games_paused: bool,
+    pub are_chests_unlock: bool,
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]

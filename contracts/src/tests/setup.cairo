@@ -201,7 +201,7 @@ mod setup {
         erc20_address: felt252, admin_address: felt252, zkorp_address: felt252
     ) -> Span<ContractDef> {
         [
-            ContractDefTrait::new(@"zkube", @"actions")
+            ContractDefTrait::new(@"zkube", @"account")
                 .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span()),
             ContractDefTrait::new(@"zkube", @"play")
                 .with_writer_of([dojo::utils::bytearray_hash(@"zkube")].span()),
@@ -233,6 +233,7 @@ mod setup {
         let ndef = namespace_def();
         let cdef = contract_defs(erc20.contract_address.into(), ADMIN().into(), ZKORP().into());
         let mut world = spawn_test_world([ndef].span());
+
         world.sync_perms_and_inits(cdef);
 
         // [Setup] Get contract addresses
@@ -383,6 +384,7 @@ mod setup {
 
         // Get initial balance
         let initial_nft_balance = erc721.balance_of(recipient);
+
         let price = erc721_mintable.get_mint_price();
 
         // Check ERC20 balance

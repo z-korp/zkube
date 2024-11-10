@@ -107,9 +107,15 @@ mod chest {
         fn claim(ref self: ContractState, chest_id: u32) {
             let mut world = self.world_default();
             let store = StoreTrait::new(world);
+            let settings = store.settings();
             let chest = store.chest(chest_id);
             chest.assert_exists();
-            chest.assert_complete();
+
+            // [Check] normal case, chests are locked, so can't claim if not complete
+            // Paused case, chests are unlocked, so can claim even if not complete
+            if (!settings.are_chests_unlock) {
+                chest.assert_complete();
+            }
 
             let caller = get_caller_address();
             let mut participation = store.participation(chest_id, caller.into());
@@ -120,7 +126,6 @@ mod chest {
 
             // Transfer the reward to the caller
             self.payable._refund(caller, rewards.into());
-            // TODO Emit event
         }
 
         fn sponsor_chest(ref self: ContractState, chest_id: u32, amount: u128) {

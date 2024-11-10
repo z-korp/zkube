@@ -14,7 +14,7 @@ use stark_vrf::ecvrf::{Proof, Point, ECVRFTrait};
 
 use zkube::types::bonus::Bonus;
 use zkube::types::mode::Mode;
-use zkube::models::settings::{Settings, SettingsTrait};
+use zkube::models::settings::{Settings, SettingsTrait, SettingsAssert};
 use zkube::store::{Store, StoreTrait};
 
 #[starknet::interface]
@@ -50,8 +50,8 @@ mod play {
     // Local imports
 
     use super::{
-        IPlay, Proof, Bonus, Mode, Settings, SettingsTrait, Store, StoreTrait, WorldStorage,
-        WorldStorageTrait,
+        IPlay, Proof, Bonus, Mode, Settings, SettingsTrait, SettingsAssert, Store, StoreTrait,
+        WorldStorage, WorldStorageTrait,
     };
 
     // Components
@@ -102,6 +102,9 @@ mod play {
             let store = StoreTrait::new(world);
 
             let settings = store.settings();
+            // [Check] Games are not paused
+            settings.assert_are_games_unpaused();
+
             let erc721_address: ContractAddress = settings.erc721_address.try_into().unwrap();
             let erc721 = ierc721_game_credits(erc721_address);
 
@@ -163,16 +166,40 @@ mod play {
 
         fn surrender(ref self: ContractState) {
             let mut world = self.world_default();
+            let store = StoreTrait::new(world);
+            let settings = store.settings();
+
+            // [Check] If we unlocked the chests, we don't want users to be able
+            // to surrender otherwise it will mess up the reward distribution
+            // Worst case we refund those users
+            settings.assert_are_chests_locked();
+
             self.playable._surrender(world);
         }
 
         fn move(ref self: ContractState, row_index: u8, start_index: u8, final_index: u8,) {
             let mut world = self.world_default();
+            let store = StoreTrait::new(world);
+            let settings = store.settings();
+
+            // [Check] If we unlocked the chests, we don't want users to be able
+            // to move otherwise it will mess up the reward distribution
+            // Worst case we refund those users
+            settings.assert_are_chests_locked();
+
             self.playable._move(world, row_index, start_index, final_index);
         }
 
         fn apply_bonus(ref self: ContractState, bonus: Bonus, row_index: u8, line_index: u8) {
             let mut world = self.world_default();
+            let store = StoreTrait::new(world);
+            let settings = store.settings();
+
+            // [Check] If we unlocked the chests, we don't want users to be able
+            // to apply_bonus otherwise it will mess up the reward distribution
+            // Worst case we refund those users
+            settings.assert_are_chests_locked();
+
             self.playable._apply_bonus(world, bonus, row_index, line_index);
         }
     }

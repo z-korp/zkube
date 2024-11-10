@@ -14,6 +14,8 @@ trait ISettings<T> {
     fn update_erc721_address(ref self: T, address: ContractAddress);
     fn set_admin(ref self: T, address: ContractAddress);
     fn delete_admin(ref self: T, address: ContractAddress);
+    fn update_are_game_paused(ref self: T, value: bool);
+    fn update_are_chests_unlock(ref self: T, value: bool);
 }
 
 #[dojo::contract]
@@ -162,6 +164,36 @@ mod settings {
 
             // [Effect] Remove admin
             store.delete_admin(address);
+        }
+
+        fn update_are_game_paused(ref self: ContractState, value: bool) {
+            let mut world = self.world_default();
+            let store: Store = StoreTrait::new(world);
+
+            // [Check] Only admin can update settings
+            let caller = get_caller_address();
+            let mut admin = store.admin(caller.into());
+            admin.assert_is_admin();
+
+            // [Effect] Update zkorp address
+            let mut settings = store.settings();
+            settings.set_are_games_paused(value);
+            store.set_settings(settings);
+        }
+
+        fn update_are_chests_unlock(ref self: ContractState, value: bool) {
+            let mut world = self.world_default();
+            let store: Store = StoreTrait::new(world);
+
+            // [Check] Only admin can update settings
+            let caller = get_caller_address();
+            let mut admin = store.admin(caller.into());
+            admin.assert_is_admin();
+
+            // [Effect] Update zkorp address
+            let mut settings = store.settings();
+            settings.set_are_chests_unlock(value);
+            store.set_settings(settings);
         }
     }
 
