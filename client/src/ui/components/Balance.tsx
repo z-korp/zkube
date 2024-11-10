@@ -4,12 +4,17 @@ import { useReadContract } from "@starknet-react/core";
 import { useState, useEffect, useMemo } from "react";
 import { useMediaQuery } from "react-responsive";
 import { BlockTag } from "starknet";
+import LordsToken from "/assets/lords-token.png";
 
 interface BalanceProps {
   address: string;
   token_address: `0x${string}`;
   symbol?: string;
 }
+
+const symbolImages: { [key: string]: string } = {
+  LORDS: LordsToken,
+};
 
 const FixedWidthDigit: React.FC<{ value: string }> = ({ value }) =>
   value === "." ? (
@@ -86,12 +91,18 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
   // Split the balance string into characters
   const balanceChars = balanceString.split("");
 
+  const symbolImage = symbolImages[symbol];
+
   return (
     <div className="text-xs font-semibold md:font-normal flex items-center bg-secondary">
       {balanceChars.map((char, index) => (
         <FixedWidthDigit key={index} value={char} />
       ))}{" "}
-      <span className="ml-1">{symbol}</span>
+      {symbolImage ? (
+        <img src={symbolImage} alt={symbol} className="ml-2 h-8 w-8" />
+      ) : (
+        <span className="ml-1">{symbol}</span>
+      )}
     </div>
   );
 };
