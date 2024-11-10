@@ -96,12 +96,14 @@ export function defineContractComponents(world: World) {
           game_price: RecsType.BigInt,
           zkorp_address: RecsType.BigInt,
           erc721_address: RecsType.BigInt,
+          are_games_paused: RecsType.Boolean,
+          are_chests_unlock: RecsType.Boolean,
         },
         {
           metadata: {
             namespace: "zkube",
             name: "Settings",
-            types: ["u8", "bool", "u256", "felt252", "felt252"],
+            types: ["u8", "bool", "u256", "felt252", "felt252", "bool", "bool"],
             customTypes: [],
           },
         },
