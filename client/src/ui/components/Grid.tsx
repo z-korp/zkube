@@ -116,9 +116,6 @@ const Grid: React.FC<GridProps> = ({
         return;
       }
       if (moveTxAwaitDone) {
-        console.log("fin de l'attente =======================>");
-      }
-      if (moveTxAwaitDone) {
         setSaveGridStateblocks(initialData);
         setBlocks(initialData);
         setNextLine(nextLineData);
@@ -345,9 +342,9 @@ const Grid: React.FC<GridProps> = ({
         });
       } catch (error) {
         console.error("Erreur lors de l'envoi de la transaction", error);
+        setMoveTxAwaitDone(true);
         isProcessingRef.current = false; // Reset the ref
       } finally {
-        console.log("=========================> reset ref");
         isProcessingRef.current = false; // Reset the ref
         setMoveTxAwaitDone(true);
       }
