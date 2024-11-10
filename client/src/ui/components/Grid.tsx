@@ -24,6 +24,7 @@ import ConfettiExplosion, { ConfettiExplosionRef } from "./ConfettiExplosion";
 import { useMusicPlayer } from "@/contexts/hooks";
 
 import "../../grid.css";
+import { set } from "date-fns";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -107,13 +108,17 @@ const Grid: React.FC<GridProps> = ({
   const borderSize = 2;
   const gravitySpeed = 100;
   const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
+  const [moveTxAwaitDone, setMoveTxAwaitDone] = useState(true);
 
   useEffect(() => {
     if (applyData) {
       if (deepCompareBlocks(saveGridStateblocks, initialData)) {
         return;
       }
-      if (!isProcessingRef.current) {
+      if (moveTxAwaitDone) {
+        console.log("fin de l'attente =======================>");
+      }
+      if (moveTxAwaitDone) {
         setSaveGridStateblocks(initialData);
         setBlocks(initialData);
         setNextLine(nextLineData);
@@ -125,10 +130,11 @@ const Grid: React.FC<GridProps> = ({
 
         setApplyData(false);
         setIsTxProcessing(false);
+        setMoveTxAwaitDone(false);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applyData, initialData, isProcessingRef.current]);
+  }, [applyData, initialData, moveTxAwaitDone]);
 
   const resetAnimateText = (): void => {
     setAnimateText(ComboMessages.None);
@@ -343,6 +349,7 @@ const Grid: React.FC<GridProps> = ({
       } finally {
         console.log("=========================> reset ref");
         isProcessingRef.current = false; // Reset the ref
+        setMoveTxAwaitDone(true);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
