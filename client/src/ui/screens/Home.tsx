@@ -202,19 +202,21 @@ export const Home = () => {
       <Start mode={ModeType.Free} handleGameMode={handlePlay} />
 
       <Button
+        variant={"brutal"}
         onClick={handleTournaments}
         className="w-full bg-primary text-secondary text-lg py-6 border-4 shadow-lg  bg-sky-200 font-sans rounded-none"
       >
         <p>Tournaments</p>
       </Button>
       <Button
+        variant={"brutal"}
         onClick={() => setChestIsOpen(true)}
         className="w-full bg-primary text-secondary text-lg border-4  py-6 font-sans bg-sky-200  rounded-none"
       >
         Collective Chests
       </Button>
 
-      <Leaderboard buttonType="default" textSize="lg" />
+      <Leaderboard buttonType="brutal" textSize="lg" />
     </div>
   );
 
