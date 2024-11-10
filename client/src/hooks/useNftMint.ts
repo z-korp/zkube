@@ -1,4 +1,3 @@
-import { uint256 } from "starknet";
 import { erc721ABI } from "@/utils/erc721";
 import { erc20ABI } from "@/utils/erc20";
 import {
@@ -72,7 +71,7 @@ export const useNftMint = () => {
         ? [
             contract_erc20.populate("approve", [
               VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
-              uint256.bnToUint256(settings?.game_price || 0n),
+              settings?.game_price || 0n,
             ]),
             contract_erc721.populate("public_mint", [address]),
           ]
