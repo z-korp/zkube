@@ -20,9 +20,7 @@ const FixedWidthDigit: React.FC<{ value: string }> = ({ value }) =>
 
 const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
-  const [targetBalance, setTargetBalance] = useState<number | undefined>(
-    undefined,
-  );
+  const [targetBalance, setTargetBalance] = useState<number>(0);
 
   // useBalance doesn't work on Katana, don't know why
   const { data, isError, isLoading, error } = useReadContract({
@@ -34,7 +32,6 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
     blockIdentifier: BlockTag.PENDING,
     refetchInterval: 2000,
   });
-
   useEffect(() => {
     if (data !== undefined) {
       const formattedBalance = parseFloat(
@@ -60,9 +57,21 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
     }
   }, [isError, error]);
 
-  if (isLoading) return <div>Loading ...</div>;
-  if (isError || !data) return <div></div>;
-  if (displayBalance == undefined) return <div></div>;
+  if (isError || !data) {
+    return (
+      <div className="text-xs font-semibold md:font-normal flex items-center bg-secondary">
+        0 {symbol}
+      </div>
+    );
+  }
+
+  if (displayBalance == undefined) {
+    return (
+      <div className="min-w-[100px] min-h-[20px] bg-secondary">
+        Calculating...
+      </div>
+    );
+  }
 
   // Format the balance string
   const balanceString = displayBalance
@@ -78,7 +87,7 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
   const balanceChars = balanceString.split("");
 
   return (
-    <div className="text-xs font-semibold md:font-normal flex items-center">
+    <div className="text-xs font-semibold md:font-normal flex items-center bg-secondary">
       {balanceChars.map((char, index) => (
         <FixedWidthDigit key={index} value={char} />
       ))}{" "}
@@ -88,13 +97,6 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
 };
 
 export default Balance;
-
-/*
-MIT License
-
-[Include the license text here as needed]
-
-*/
 
 function formatUnits(
   value: bigint,

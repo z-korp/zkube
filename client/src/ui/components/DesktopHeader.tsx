@@ -45,9 +45,9 @@ const DesktopHeader = () => {
       </div>
       <div className="flex flex-col gap-4 items-center md:flex-row">
         {!!player && (
-          <div className="flex gap-3">
+          <div className="flex gap-4 flex-1 justify-end px-4 w-2/4">
+            {" "}
             <HeaderBalance />
-            <HeaderNftBalance />
             <ProfilePage wfit />
             <Controller />
             <LevelIndicator currentXP={player.points} />
