@@ -104,6 +104,10 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
           ]);
           const balance = BigInt(ret_erc20.toString());
           if (balance < settings.game_price && erc20Contract) {
+            if (import.meta.env.VITE_PUBLIC_DEPLOY_TYPE === "mainnet") {
+              console.log("No funds to sign tx");
+              return;
+            }
             console.log("Not enough balance, trying to claim faucet");
 
             await createFaucetClaimHandler(account as Account, () => {

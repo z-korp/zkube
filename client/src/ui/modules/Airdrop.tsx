@@ -94,7 +94,7 @@ const Airdrop = forwardRef<HTMLDivElement, AirdropProps>((props, ref) => {
             <div className="flex justify-between items-center">
               <span className="text-gray-300">Claimable Amount</span>
               <span className="text-white font-bold">
-                {freeGames?.number} Games
+                {freeGames?.number ?? 0} Games
               </span>
             </div>
 
