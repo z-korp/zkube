@@ -4,6 +4,7 @@ use starknet::ContractAddress;
 
 const PAUSER_ROLE: felt252 = selector!("PAUSER_ROLE");
 const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
+const UPGRADER_ROLE: felt252 = selector!("UPGRADER_ROLE");
 const PRICE_SETTER_ROLE: felt252 =
     selector!("PRICE_SETTER_ROLE"); // to be sure only the minter_system can set the price
 // not even an admin can set the price
@@ -35,9 +36,12 @@ mod ERC721 {
     use openzeppelin::token::erc721::extensions::ERC721EnumerableComponent;
     use openzeppelin::token::erc721::interface::{IERC721Metadata, IERC721MetadataCamelOnly};
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use openzeppelin::upgrades::UpgradeableComponent;
+    use openzeppelin::upgrades::interface::IUpgradeable;
     use super::{ContractAddress};
+    use starknet::ClassHash;
     use starknet::{get_caller_address, get_contract_address};
-    use super::{PAUSER_ROLE, MINTER_ROLE, PRICE_SETTER_ROLE};
+    use super::{PAUSER_ROLE, MINTER_ROLE, PRICE_SETTER_ROLE, UPGRADER_ROLE};
     use starknet::storage::{
         Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
         StoragePointerWriteAccess,
@@ -50,6 +54,7 @@ mod ERC721 {
     component!(
         path: ERC721EnumerableComponent, storage: erc721_enumerable, event: ERC721EnumerableEvent
     );
+    component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
 
     #[abi(embed_v0)]
     impl ERC721Impl = ERC721Component::ERC721Impl<ContractState>;
@@ -69,6 +74,7 @@ mod ERC721 {
     impl PausableInternalImpl = PausableComponent::InternalImpl<ContractState>;
     impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ContractState>;
     impl ERC721EnumerableInternalImpl = ERC721EnumerableComponent::InternalImpl<ContractState>;
+    impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
 
     #[storage]
     struct Storage {
@@ -82,6 +88,8 @@ mod ERC721 {
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
         erc721_enumerable: ERC721EnumerableComponent::Storage,
+        #[substorage(v0)]
+        upgradeable: UpgradeableComponent::Storage,
         erc20_token: ContractAddress,
         mint_price: u256,
         purchase_prices: Map<u256, u256>, // Mapping from token_id to purchase price
@@ -107,10 +115,13 @@ mod ERC721 {
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
         ERC721EnumerableEvent: ERC721EnumerableComponent::Event,
+        #[flat]
+        UpgradeableEvent: UpgradeableComponent::Event,
         // Custom events related to systems and roles
         SystemAddressUpdated: SystemAddressUpdated,
         ERC20ApprovalRevoked: ERC20ApprovalRevoked,
-        RoleUpdated: RoleUpdated
+        RoleUpdated: RoleUpdated,
+        ERC20Recovered: ERC20Recovered
     }
 
     #[derive(Drop, starknet::Event)]
@@ -131,6 +142,13 @@ mod ERC721 {
         role: felt252,
         account: ContractAddress,
         granted: bool // true for granted, false for revoked
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct ERC20Recovered {
+        token: ContractAddress,
+        amount: u256,
+        recipient: ContractAddress,
     }
 
     #[constructor]
@@ -157,6 +175,7 @@ mod ERC721 {
         self.accesscontrol._grant_role(DEFAULT_ADMIN_ROLE, default_admin);
         self.accesscontrol._grant_role(MINTER_ROLE, default_admin);
         self.accesscontrol._grant_role(PAUSER_ROLE, default_admin);
+        self.accesscontrol._grant_role(UPGRADER_ROLE, default_admin);
         self.accesscontrol._grant_role(PAUSER_ROLE, pauser);
         self.accesscontrol._grant_role(MINTER_ROLE, minter_system);
         self.accesscontrol._grant_role(PRICE_SETTER_ROLE, minter_system);
@@ -192,6 +211,14 @@ mod ERC721 {
             let mut contract_state = self.get_contract_mut();
             contract_state.pausable.assert_not_paused();
             contract_state.erc721_enumerable.before_update(to, token_id);
+        }
+    }
+
+    #[abi(embed_v0)]
+    impl UpgradeableImpl of IUpgradeable<ContractState> {
+        fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
+            self.accesscontrol.assert_only_role(UPGRADER_ROLE);
+            self.upgradeable.upgrade(new_class_hash);
         }
     }
 
@@ -432,6 +459,19 @@ mod ERC721 {
             }
 
             self.emit(RoleUpdated { role, account, granted: grant });
+        }
+
+        #[external(v0)]
+        fn recover_erc20(ref self: ContractState, token: ContractAddress, amount: u256) {
+            self.accesscontrol.assert_only_role(DEFAULT_ADMIN_ROLE);
+
+            let caller = get_caller_address();
+            let erc20 = IERC20Dispatcher { contract_address: token };
+            let balance = erc20.balance_of(get_contract_address());
+            assert(balance >= amount, 'Insufficient balance');
+
+            erc20.transfer(caller, amount);
+            self.emit(ERC20Recovered { token: token, amount: amount, recipient: caller, });
         }
     }
 }

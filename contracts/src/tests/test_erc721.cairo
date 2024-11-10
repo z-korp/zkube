@@ -36,7 +36,6 @@ use zkube::tests::setup::{
 fn test_erc721_user_mint_for_himself() {
     // [Setup]
     let (mut world, systems, context) = setup::create_accounts();
-    let store = StoreTrait::new(world);
 
     let erc721_mintable = IERC721MintableDispatcher {
         contract_address: context.erc721.contract_address
@@ -95,7 +94,6 @@ fn test_erc721_utils_fn() {
     let (mut world, systems, context) = setup::create_accounts();
     let erc721_addr = context.erc721.contract_address;
     let erc20_addr = context.erc20.contract_address;
-    let store = StoreTrait::new(world);
 
     set_block_timestamp(1000);
 
@@ -121,7 +119,6 @@ fn test_erc721_utils_fn() {
 #[test]
 fn test_erc721_minter_mint_for_user() {
     let (mut world, systems, context) = setup::create_accounts();
-    let store = StoreTrait::new(world);
 
     let erc721_mintable = IERC721MintableDispatcher {
         contract_address: context.erc721.contract_address
