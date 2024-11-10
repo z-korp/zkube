@@ -45,7 +45,8 @@ export function systems({ client }: { client: IWorld }) {
       VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev1" ||
       VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev2"
     ) {
-      return `https://sepolia.starkscan.co/tx/${transaction_hash}`;
+      //return `https://sepolia.starkscan.co/tx/${transaction_hash}`;
+      return `https://sepolia.voyager.online/tx/${transaction_hash}`;
     } else if (VITE_PUBLIC_DEPLOY_TYPE === "mainnet") {
       return `https://starkscan.co/tx/${transaction_hash}`;
     } else {
