@@ -1,4 +1,4 @@
-import { faBars, faWallet } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faCoins, faWallet } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Drawer,
@@ -7,6 +7,15 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "../elements/drawer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../elements/dropdown-menu";
+
 import { Leaderboard } from "../modules/Leaderboard";
 import { ProfilePage } from "../modules/ProfilePage";
 import AccountDetails from "./AccountDetails";
@@ -87,8 +96,20 @@ const MobileHeader = () => {
         <div className="flex w-full gap-2 justify-end">
           {!!player && account ? (
             <div className="flex gap-3 items-center">
-              <HeaderBalance />
-              <HeaderNftBalance />
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Button variant={"outline"}>
+                    <FontAwesomeIcon icon={faCoins} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel>Assets</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <HeaderBalance />
+                  <DropdownMenuSeparator />
+                  <HeaderNftBalance />
+                </DropdownMenuContent>
+              </DropdownMenu>
               <ProfilePage wfit />
               <Controller />
               <LevelIndicator currentXP={player.points} />
