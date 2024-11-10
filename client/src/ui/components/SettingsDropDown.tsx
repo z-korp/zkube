@@ -12,7 +12,6 @@ import {
   DropdownMenuTrigger,
 } from "../elements/dropdown-menu";
 
-import { BurnerAccount } from "./BurnerAccount";
 import { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 
 export const SettingsDropDown = () => {
@@ -43,10 +42,10 @@ export const SettingsDropDown = () => {
         )}
         {ACCOUNT_CONNECTOR === "burner" && (
           <>
-            <DropdownMenuLabel>Burner Account</DropdownMenuLabel>
-            <DropdownMenuItem>
-              <BurnerAccount />
-            </DropdownMenuItem>
+            <Button variant={"destructive"}>
+              {" "}
+              !!!! Burner have been removed !!!!
+            </Button>
           </>
         )}
       </DropdownMenuContent>
