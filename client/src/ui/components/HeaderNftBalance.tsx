@@ -9,9 +9,9 @@ const HeaderNftBalance = React.memo(() => {
 
   if (account) {
     return (
-      <div className="rounded-lg items-center flex gap-1 bg-secondary text-secondary-foreground shadow-sm md:gap-2 px-2 md:px-3 py-1 h-[36px] text-sm">
-        <p>{`${balance} Credits`}</p>
-      </div>
+      <span className="text-xs font-semibold md:font-normal flex items-center">
+        {`${balance} Game${balance > 1 ? "s" : ""}`}
+      </span>
     );
   }
 });

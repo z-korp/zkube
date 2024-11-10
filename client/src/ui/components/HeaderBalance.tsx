@@ -1,6 +1,7 @@
 import useAccountCustom from "@/hooks/useAccountCustom";
 import React from "react";
 import Balance from "./Balance";
+import HeaderNftBalance from "./HeaderNftBalance";
 
 const { VITE_PUBLIC_GAME_TOKEN_ADDRESS, VITE_PUBLIC_GAME_TOKEN_SYMBOL } =
   import.meta.env;
@@ -13,19 +14,13 @@ const HeaderBalance = React.memo(() => {
   }
 
   return (
-    <div className="rounded-lg items-center flex gap-1 bg-secondary text-secondary-foreground shadow-sm md:gap-2 px-2 md:px-3 py-1 h-[36px]">
+    <div className="rounded-lg items-center flex gap-3 bg-secondary text-secondary-foreground shadow-sm md:gap-5 px-2 md:px-3 py-1 h-[36px]">
       <Balance
         address={account?.address}
         token_address={VITE_PUBLIC_GAME_TOKEN_ADDRESS}
         symbol={VITE_PUBLIC_GAME_TOKEN_SYMBOL}
       />
-      <div className="ml-4">
-        <Balance
-          address={account?.address}
-          token_address={import.meta.env.VITE_PUBLIC_LORDS_CONTRACT}
-          symbol="Games"
-        />
-      </div>
+      <HeaderNftBalance />
     </div>
   );
 });

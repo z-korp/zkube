@@ -163,11 +163,11 @@ mod ERC721 {
         play_system: ContractAddress,
         minter_system: ContractAddress,
     ) {
-        let constant_uri = "ipfs://QmeJ4voH9HpvePQA3aRozxRPzqiEAWF6tLED1ybvoHFQoo/metadata.json";
+        let constant_uri = "ipfs://QmZf1uNuPPAcTqxXGBdcTjBnviPTftypxxUwMSgAGC1HDC/metadata.json";
         self.constant_token_uri.write(constant_uri);
 
-        //self.erc721.initializer("zKube-Credits", "ZKBC", self.constant_token_uri.read());
-        self.erc721.initializer("Test", "TEST", self.constant_token_uri.read());
+        self.erc721.initializer("zKube-Game", "ZKBG", self.constant_token_uri.read());
+        //self.erc721.initializer("Test", "TEST", self.constant_token_uri.read());
         self.accesscontrol.initializer();
         self.erc721_enumerable.initializer();
         self.erc20_token.write(erc20_token);

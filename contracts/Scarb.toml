@@ -14,7 +14,7 @@ sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build && sozo 
 sepoliadev1 = "sozo --profile sepoliadev1 clean && sozo --profile sepoliadev1 build && sozo --profile sepoliadev1 migrate"
 sepoliadev2 = "sozo --profile sepoliadev2 clean && sozo --profile sepoliadev2 build && sozo --profile sepoliadev2 migrate"
 playground = "sozo --profile playground clean && sozo --profile playground build && sozo --profile playground migrate --walnut"
-mainnet = "sozo --profile mainnet clean && sozo --profile mainnet build && sozo --profile mainnet migrate --walnut --keystore /Users/matthias/.starkli-wallets/mainnet/braavos_dojo_deployer/keystore.json"
+mainnet = "sozo --profile mainnet clean && sozo --profile mainnet build && sozo --profile mainnet migrate --walnut --keystore /Users/matthias/.starkli-wallets/mainnet/braavos_dojo_deployer/keystore.json --fee eth"
 
 [dependencies]
 dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-rc.2" }

@@ -4,7 +4,7 @@ description = "Reversed tetris fully onchain."
 # cover_uri = "file://assets/cover.png"
 # icon_uri = "file://assets/icon.png"
 website = "https://app.zkube.xyz"
-seed = "zKube3"
+seed = "zKube4"
 
 [world.socials]
 x = "https://x.com/zKube_game"
@@ -18,24 +18,25 @@ default = "zkube"
 [env]
 rpc_url = "https://api.cartridge.gg/x/starknet/mainnet"
 account_address = "0x063fd4be5b4df3068e3c4ae4062e999609b96a569e69628d6ba3331bf56e826c"
-#world_address = "0x0252760053bb9d15595d7f0b6158d28f493101b7bb1a5de6b2dafbae9f521200"
-world_block = 885450
+world_address = "0x030d5d5c610dd736faea146b20b850af64e34ca6e5c5a66462f76f32f48dd997"
+world_block = 888535
 
 [init_call_args]
 # zKube-admin  = 0x017d10658dc50fc13f0d6ba355a731d08c9199a1271b74e55ff15e5b2dd4a81a
 # zKorp-wallet = 0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7
+# LORDS = 0x0124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49
 
 # Real
-#"zkube-chest" = ["0x0124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49"]
-#"zkube-settings" = ["0x017d10658dc50fc13f0d6ba355a731d08c9199a1271b74e55ff15e5b2dd4a81a", "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7"]
-#"zkube-tournament" = ["0x0124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49"]
-#"zkube-zkorp" = ["0x0124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49"]
+"zkube-chest" = ["0x0124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49"]
+"zkube-settings" = ["0x017d10658dc50fc13f0d6ba355a731d08c9199a1271b74e55ff15e5b2dd4a81a", "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7"]
+"zkube-tournament" = ["0x0124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49"]
+"zkube-zkorp" = ["0x0124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49"]
 
 # Fake 
-"zkube-chest" = ["0x07c8d1d3945504aeab0e371113fd4f2701851ce6d8769d99c49f1d12e3b11d53"]
-"zkube-settings" = ["0x017d10658dc50fc13f0d6ba355a731d08c9199a1271b74e55ff15e5b2dd4a81a", "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7"]
-"zkube-tournament" = ["0x07c8d1d3945504aeab0e371113fd4f2701851ce6d8769d99c49f1d12e3b11d53"]
-"zkube-zkorp" = ["0x07c8d1d3945504aeab0e371113fd4f2701851ce6d8769d99c49f1d12e3b11d53"]
+#"zkube-chest" = ["0x07c8d1d3945504aeab0e371113fd4f2701851ce6d8769d99c49f1d12e3b11d53"]
+#"zkube-settings" = ["0x017d10658dc50fc13f0d6ba355a731d08c9199a1271b74e55ff15e5b2dd4a81a", "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7"]
+#"zkube-tournament" = ["0x07c8d1d3945504aeab0e371113fd4f2701851ce6d8769d99c49f1d12e3b11d53"]
+#"zkube-zkorp" = ["0x07c8d1d3945504aeab0e371113fd4f2701851ce6d8769d99c49f1d12e3b11d53"]
 
 [writers]
 "zkube-Admin" = ["zkube-settings"]
