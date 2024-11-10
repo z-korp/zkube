@@ -33,3 +33,6 @@ client/dev-dist/
 
 *.db
 output_file
+
+ipfs
+ipfs_2_types

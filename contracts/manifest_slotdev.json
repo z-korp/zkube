@@ -1560,14 +1560,14 @@
         }
       ],
       "init_calldata": [
-        "0x00020d7b2b056f5e0d8d413088460579fc5465f5dc694c08ada638344573cea2"
+        "0x0658f8ae39f604e75dd636aecbd574089fe556a08f8141b5dca1955b31f8b9c0"
       ],
       "tag": "zkube-chest",
       "systems": []
     },
     {
-      "address": "0xfd00b0c7a785407113435291456159953fa4265d5ba6ced42cce6a1aac4b5e",
-      "class_hash": "0x6574118d18109a31fdec96901ccf1ee92b77ab7ab030aecaaaf20981f471cdc",
+      "address": "0x381ee571ad251191468eac93afc3020856c65d962c0611e7cf493652b0d09d7",
+      "class_hash": "0x62eb37daac3ab227678612e790fa68306e470efb0d592489ded4154c48f6434",
       "abi": [
         {
           "type": "impl",
@@ -1632,13 +1632,6 @@
           "type": "interface",
           "name": "zkube::systems::minter::IMinter",
           "items": [
-            {
-              "type": "function",
-              "name": "mint",
-              "inputs": [],
-              "outputs": [],
-              "state_mutability": "external"
-            },
             {
               "type": "function",
               "name": "claim_free_mint",
@@ -1800,8 +1793,8 @@
       "systems": []
     },
     {
-      "address": "0x5b297047333d9b2d6d498459c8d1649ad13c160810a1c242ea7beafbd3efffb",
-      "class_hash": "0x9c35f7ccebec70365bec3441c83dcd4c0de09b0939262c760b90dbac47d52a",
+      "address": "0x2544e4f1c507c0c4665d855ef2b22a2e2370fa29df95913d679245fd4a1923b",
+      "class_hash": "0x73c57a36974614728313132add861a4a92d491428a80625c59772e0db8e0869",
       "abi": [
         {
           "type": "impl",
@@ -2414,8 +2407,8 @@
       "systems": []
     },
     {
-      "address": "0x7cc373bc0489d677c904a2c173ea726ace87f586899e5b32de3b574f41c4d19",
-      "class_hash": "0x12918d5f8849a629a5b15167b046c3991328554d9c74bd2b6625081e6749616",
+      "address": "0x1042dadac4ef61fb630102ec8a5febb4995699846d0c246b05e0edf3d55a0b2",
+      "class_hash": "0x50e50fddb84b5f48b831238fbe582116c83689bd0f538a7a72d85db08559375",
       "abi": [
         {
           "type": "impl",
@@ -2686,14 +2679,14 @@
         }
       ],
       "init_calldata": [
-        "0x00020d7b2b056f5e0d8d413088460579fc5465f5dc694c08ada638344573cea2"
+        "0x0658f8ae39f604e75dd636aecbd574089fe556a08f8141b5dca1955b31f8b9c0"
       ],
       "tag": "zkube-tournament",
       "systems": []
     },
     {
-      "address": "0xf2307e4835425d54e1897e338917b797f057f8d7796299421b4d85a13107e3",
-      "class_hash": "0x3115db3de1106adf573d86e18a58497f349504b07004fc94aa643f59680a4ff",
+      "address": "0x7d4e454d69d40f75c41fd49b0b5fa62e7e3f42e8b0621779bd6cc58a866a3e0",
+      "class_hash": "0x2069fa8d864e2eaa0040b2880163e9321ad3891f2fb940520183d481e01e046",
       "abi": [
         {
           "type": "impl",
@@ -2913,7 +2906,7 @@
         }
       ],
       "init_calldata": [
-        "0x00020d7b2b056f5e0d8d413088460579fc5465f5dc694c08ada638344573cea2"
+        "0x0658f8ae39f604e75dd636aecbd574089fe556a08f8141b5dca1955b31f8b9c0"
       ],
       "tag": "zkube-zkorp",
       "systems": []

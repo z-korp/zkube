@@ -9,10 +9,12 @@ import { MusicPlayerProvider } from "./contexts/music.tsx";
 import { SoundPlayerProvider } from "./contexts/sound.tsx";
 import { ThemeProvider } from "./ui/elements/theme-provider/index.tsx";
 import { StarknetConfig, jsonRpcProvider, voyager } from "@starknet-react/core";
-import { sepolia } from "@starknet-react/chains";
+import { sepolia, mainnet } from "@starknet-react/chains";
 import cartridgeConnector from "./cartridgeConnector.tsx";
 
 import "./index.css";
+
+const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
 function rpc() {
   return {
@@ -43,7 +45,7 @@ export function Main() {
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <StarknetConfig
           autoConnect
-          chains={[sepolia]}
+          chains={[VITE_PUBLIC_DEPLOY_TYPE === "mainnet" ? mainnet : sepolia]}
           connectors={connectors}
           explorer={voyager}
           provider={jsonRpcProvider({ rpc })}

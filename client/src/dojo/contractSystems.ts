@@ -189,53 +189,85 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
         throw new Error(`Contract ${contract_name} not found in manifest`);
       }
 
-      try {
-        return await provider.execute(
-          account,
-          [
-            {
-              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-              entrypoint: "approve",
-              calldata: [
-                VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
-                cairo.uint256(price),
-              ], // Set allowance
-            },
-            {
-              contractAddress: VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
-              entrypoint: "approve",
-              calldata: [contract.address, cairo.uint256(token_id)], // Set allowance
-            },
-            {
-              contractName: contract_name,
-              entrypoint: "create",
-              calldata: [
-                cairo.uint256(token_id),
-                mode,
-                x,
-                y,
-                c,
-                s,
-                sqrt_ratio_hint,
-                seed,
-                beta,
-              ],
-            },
-            {
-              contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-              entrypoint: "approve",
-              calldata: [
-                VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
-                cairo.uint256(0),
-              ], // Clear allowance
-            },
-          ],
-          NAMESPACE,
-          details,
-        );
-      } catch (error) {
-        console.error("Error executing start:", error);
-        throw error;
+      if (token_id === 0n) {
+        // Free game
+        try {
+          return await provider.execute(
+            account,
+            [
+              {
+                contractName: contract_name,
+                entrypoint: "create",
+                calldata: [
+                  cairo.uint256(token_id),
+                  mode,
+                  x,
+                  y,
+                  c,
+                  s,
+                  sqrt_ratio_hint,
+                  seed,
+                  beta,
+                ],
+              },
+            ],
+            NAMESPACE,
+            details,
+          );
+        } catch (error) {
+          console.error("Error executing start:", error);
+          throw error;
+        }
+      } else {
+        // Paid game
+        try {
+          return await provider.execute(
+            account,
+            [
+              /*{
+                contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
+                entrypoint: "approve",
+                calldata: [
+                  VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
+                  cairo.uint256(price),
+                ], // Set allowance
+              },*/
+              {
+                contractAddress: VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
+                entrypoint: "approve",
+                calldata: [contract.address, cairo.uint256(token_id)], // Set allowance
+              },
+              {
+                contractName: contract_name,
+                entrypoint: "create",
+                calldata: [
+                  cairo.uint256(token_id),
+                  mode,
+                  x,
+                  y,
+                  c,
+                  s,
+                  sqrt_ratio_hint,
+                  seed,
+                  beta,
+                ],
+              },
+              {
+                contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
+                entrypoint: "approve",
+                calldata: [
+                  VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
+                  cairo.uint256(0),
+                ], // Clear allowance
+              },
+            ],
+            NAMESPACE,
+            details,
+          );
+        } catch (error) {
+          console.error("Error executing start:", error);
+          throw error;
+        }
       }
     };
 
