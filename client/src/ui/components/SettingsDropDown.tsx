@@ -11,8 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../elements/dropdown-menu";
+
 import { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
-import { BurnerAccount } from "./BurnerAccount";
 
 export const SettingsDropDown = () => {
   return (
@@ -34,16 +34,18 @@ export const SettingsDropDown = () => {
           Account
         </DropdownMenuLabel>
         {ACCOUNT_CONNECTOR === "controller" && (
-          <div className="p-1 flex flex-col gap-2">
-            <AccountDetails />
-          </div>
+          <>
+            <div className="p-1 flex flex-col gap-2">
+              <AccountDetails />
+            </div>
+          </>
         )}
         {ACCOUNT_CONNECTOR === "burner" && (
           <>
-            <DropdownMenuLabel>Burner Account</DropdownMenuLabel>
-            <DropdownMenuItem>
-              <BurnerAccount />
-            </DropdownMenuItem>
+            <Button variant={"destructive"}>
+              {" "}
+              !!!! Burner have been removed !!!!
+            </Button>
           </>
         )}
       </DropdownMenuContent>

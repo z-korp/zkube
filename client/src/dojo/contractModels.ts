@@ -87,38 +87,23 @@ export function defineContractComponents(world: World) {
         },
       );
     })(),
-    Credits: (() => {
-      return defineComponent(
-        world,
-        {
-          id: RecsType.BigInt, // player_id (address)
-          day_id: RecsType.Number,
-          remaining: RecsType.Number,
-        },
-        {
-          metadata: {
-            namespace: "zkube",
-            name: "Credits",
-            types: ["felt252", "u64", "u8"],
-            customTypes: [],
-          },
-        },
-      );
-    })(),
     Settings: (() => {
       return defineComponent(
         world,
         {
           id: RecsType.Number,
-          free_daily_credits: RecsType.Number,
-          daily_mode_price: RecsType.BigInt,
-          normal_mode_price: RecsType.BigInt,
+          is_set: RecsType.Boolean,
+          game_price: RecsType.BigInt,
+          zkorp_address: RecsType.BigInt,
+          erc721_address: RecsType.BigInt,
+          are_games_paused: RecsType.Boolean,
+          are_chests_unlock: RecsType.Boolean,
         },
         {
           metadata: {
             namespace: "zkube",
             name: "Settings",
-            types: ["u8", "u8", "felt252", "felt252"],
+            types: ["u8", "bool", "u256", "felt252", "felt252", "bool", "bool"],
             customTypes: [],
           },
         },
@@ -165,6 +150,24 @@ export function defineContractComponents(world: World) {
               "u32",
               "u32",
             ],
+            customTypes: [],
+          },
+        },
+      );
+    })(),
+    Mint: (() => {
+      return defineComponent(
+        world,
+        {
+          id: RecsType.BigInt,
+          number: RecsType.Number,
+          expiration_timestamp: RecsType.Number,
+        },
+        {
+          metadata: {
+            namespace: "zkube",
+            name: "Mint",
+            types: ["felt252", "u64", "u64"],
             customTypes: [],
           },
         },

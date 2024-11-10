@@ -4,7 +4,7 @@ use starknet::ContractAddress;
 
 // Dojo imports
 
-use dojo::world::{IWorldDispatcher, Resource};
+use dojo::world::{WorldStorage, WorldStorageTrait};
 
 // External imports
 
@@ -14,24 +14,24 @@ use stark_vrf::ecvrf::{Proof, Point, ECVRFTrait};
 
 use zkube::types::bonus::Bonus;
 use zkube::types::mode::Mode;
-use zkube::models::settings::{Settings, SettingsTrait};
+use zkube::models::settings::{Settings, SettingsTrait, SettingsAssert};
 use zkube::store::{Store, StoreTrait};
 
-#[dojo::interface]
-trait IPlay<TContractState> {
+#[starknet::interface]
+trait IPlay<T> {
     fn create(
-        ref world: IWorldDispatcher, mode: Mode, proof: Proof, seed: felt252, beta: felt252
+        ref self: T, token_id: u256, mode: Mode, proof: Proof, seed: felt252, beta: felt252
     ) -> u32;
-    fn surrender(ref world: IWorldDispatcher);
-    fn move(ref world: IWorldDispatcher, row_index: u8, start_index: u8, final_index: u8,);
-    fn apply_bonus(ref world: IWorldDispatcher, bonus: Bonus, row_index: u8, line_index: u8);
+    fn surrender(ref self: T);
+    fn move(ref self: T, row_index: u8, start_index: u8, final_index: u8,);
+    fn apply_bonus(ref self: T, bonus: Bonus, row_index: u8, line_index: u8);
 }
 
 #[dojo::contract]
 mod play {
     // Starknet imports
 
-    use starknet::{ContractAddress, ClassHash};
+    use starknet::{ContractAddress, ClassHash, Felt252TryIntoContractAddress};
     use starknet::info::{
         get_block_timestamp, get_block_number, get_caller_address, get_contract_address
     };
@@ -40,14 +40,19 @@ mod play {
 
     use zkube::components::hostable::HostableComponent;
     use zkube::components::playable::PlayableComponent;
-    use zkube::components::creditable::CreditableComponent;
     use zkube::systems::chest::{IChestDispatcher, IChestDispatcherTrait};
     use zkube::systems::zkorp::{IZKorpDispatcher, IZKorpDispatcherTrait};
     use zkube::systems::tournament::{ITournamentSystemDispatcher, ITournamentSystemDispatcherTrait};
+    use zkube::interfaces::ierc721_game_credits::{
+        ierc721_game_credits, IERC721GameCreditsDispatcherTrait
+    };
 
     // Local imports
 
-    use super::{IPlay, Proof, Bonus, Mode, Settings, SettingsTrait, Store, StoreTrait, Resource};
+    use super::{
+        IPlay, Proof, Bonus, Mode, Settings, SettingsTrait, SettingsAssert, Store, StoreTrait,
+        WorldStorage, WorldStorageTrait,
+    };
 
     // Components
 
@@ -55,8 +60,6 @@ mod play {
     impl HostableInternalImpl = HostableComponent::InternalImpl<ContractState>;
     component!(path: PlayableComponent, storage: playable, event: PlayableEvent);
     impl PlayableInternalImpl = PlayableComponent::InternalImpl<ContractState>;
-    component!(path: CreditableComponent, storage: creditable, event: CreditableEvent);
-    impl CreditableInternalImpl = CreditableComponent::InternalImpl<ContractState>;
 
     // Storage
 
@@ -66,8 +69,6 @@ mod play {
         hostable: HostableComponent::Storage,
         #[substorage(v0)]
         playable: PlayableComponent::Storage,
-        #[substorage(v0)]
-        creditable: CreditableComponent::Storage,
     }
 
     // Events
@@ -79,31 +80,48 @@ mod play {
         HostableEvent: HostableComponent::Event,
         #[flat]
         PlayableEvent: PlayableComponent::Event,
-        #[flat]
-        CreditableEvent: CreditableComponent::Event,
     }
 
     // Constructor
 
-    fn dojo_init(ref world: IWorldDispatcher) {}
+    fn dojo_init(ref self: ContractState) {}
 
     // Implementations
 
     #[abi(embed_v0)]
     impl PlayImpl of IPlay<ContractState> {
         fn create(
-            ref world: IWorldDispatcher, mode: Mode, proof: Proof, seed: felt252, beta: felt252,
+            ref self: ContractState,
+            token_id: u256,
+            mode: Mode,
+            proof: Proof,
+            seed: felt252,
+            beta: felt252,
         ) -> u32 {
+            let mut world = self.world_default();
             let store = StoreTrait::new(world);
 
-            let mut was_free = false;
+            let settings = store.settings();
+            // [Check] Games are not paused
+            settings.assert_are_games_unpaused();
+
+            let erc721_address: ContractAddress = settings.erc721_address.try_into().unwrap();
+            let erc721 = ierc721_game_credits(erc721_address);
 
             // [Interaction] Pay entry price
             // [Check] Player exists
             let caller = get_caller_address();
-            if (self.creditable._has_credits(world, caller)) {
-                was_free = true;
-            }
+
+            let price = if mode != Mode::Free {
+                // [Check] Player owns the token
+                let owner = erc721.owner_of(token_id);
+                assert(caller == owner, 'Not nft owner');
+
+                // [Get] Entry price
+                erc721.get_purchase_price(token_id)
+            } else {
+                0
+            };
 
             // [Effect] Create a game
             let (
@@ -116,51 +134,81 @@ mod play {
             ) =
                 self
                 .hostable
-                ._create(world, proof, seed, beta, mode, was_free);
+                ._create(world, proof, seed, beta, mode, price);
 
-            // Get the settings
-            if (was_free) {
-                self.creditable._use_credit(world, caller);
-            } else {
-                let caller_felt: felt252 = caller.into();
-                // [Setup] Settings
-                if let Resource::Contract((class_hash, contract_address)) = world
-                    .resource(selector_from_tag!("zkube-tournament")) {
-                    let tournament_system_dispatcher = ITournamentSystemDispatcher {
-                        contract_address
-                    };
-                    tournament_system_dispatcher
-                        .sponsor(tournament_id, mode, tournament_amount, caller);
-                }
+            if price != 0 {
+                // [Effect] Sponsor the tournament from the erc721 contract funds
+                let (contract_address, _) = world.dns(@"tournament").unwrap();
+                let tournament_system_dispatcher = ITournamentSystemDispatcher { contract_address };
+                tournament_system_dispatcher
+                    .sponsor_from(tournament_id, mode, tournament_amount, erc721_address);
+
                 // Chest pool
-                if let Resource::Contract((class_hash, contract_address)) = world
-                    .resource(selector_from_tag!("zkube-chest")) {
-                    let chest_system_dispatcher = IChestDispatcher { contract_address };
-                    chest_system_dispatcher.sponsor_from(chest_amount, caller);
-                }
+                let (contract_address, _) = world.dns(@"chest").unwrap();
+                let chest_system_dispatcher = IChestDispatcher { contract_address };
+                chest_system_dispatcher.sponsor_from(chest_amount, erc721_address);
 
                 // zKorp
-                if let Resource::Contract((class_hash, contract_address)) = world
-                    .resource(selector_from_tag!("zkube-zkorp")) {
-                    let zkorp_system_dispatcher = IZKorpDispatcher { contract_address };
-                    zkorp_system_dispatcher.sponsor(zkorp_amount + referrer_amount, caller);
-                }
+                let (contract_address, _) = world.dns(@"zkorp").unwrap();
+                let zkorp_system_dispatcher = IZKorpDispatcher { contract_address };
+                zkorp_system_dispatcher
+                    .sponsor_from(zkorp_amount + referrer_amount, erc721_address);
+            }
+
+            if (mode != Mode::Free) {
+                // [Effect] Burn the nft
+                erc721.burn(token_id);
             }
 
             // [Return] Game ID
             game_id
         }
 
-        fn surrender(ref world: IWorldDispatcher) {
+        fn surrender(ref self: ContractState) {
+            let mut world = self.world_default();
+            let store = StoreTrait::new(world);
+            let settings = store.settings();
+
+            // [Check] If we unlocked the chests, we don't want users to be able
+            // to surrender otherwise it will mess up the reward distribution
+            // Worst case we refund those users
+            settings.assert_are_chests_locked();
+
             self.playable._surrender(world);
         }
 
-        fn move(ref world: IWorldDispatcher, row_index: u8, start_index: u8, final_index: u8,) {
+        fn move(ref self: ContractState, row_index: u8, start_index: u8, final_index: u8,) {
+            let mut world = self.world_default();
+            let store = StoreTrait::new(world);
+            let settings = store.settings();
+
+            // [Check] If we unlocked the chests, we don't want users to be able
+            // to move otherwise it will mess up the reward distribution
+            // Worst case we refund those users
+            settings.assert_are_chests_locked();
+
             self.playable._move(world, row_index, start_index, final_index);
         }
 
-        fn apply_bonus(ref world: IWorldDispatcher, bonus: Bonus, row_index: u8, line_index: u8) {
+        fn apply_bonus(ref self: ContractState, bonus: Bonus, row_index: u8, line_index: u8) {
+            let mut world = self.world_default();
+            let store = StoreTrait::new(world);
+            let settings = store.settings();
+
+            // [Check] If we unlocked the chests, we don't want users to be able
+            // to apply_bonus otherwise it will mess up the reward distribution
+            // Worst case we refund those users
+            settings.assert_are_chests_locked();
+
             self.playable._apply_bonus(world, bonus, row_index, line_index);
+        }
+    }
+
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        /// This function is handy since the ByteArray can't be const.
+        fn world_default(self: @ContractState) -> WorldStorage {
+            self.world(@"zkube")
         }
     }
 }

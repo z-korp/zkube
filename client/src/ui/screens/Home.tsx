@@ -56,6 +56,8 @@ export const Home = () => {
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
 
+  //const { tokenId } = useFirstNft(account?.address || "");
+
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
     shouldLog: true,
@@ -200,19 +202,21 @@ export const Home = () => {
       <Start mode={ModeType.Free} handleGameMode={handlePlay} />
 
       <Button
+        variant={"brutal"}
         onClick={handleTournaments}
         className="w-full bg-primary text-secondary text-lg py-6 border-4 shadow-lg  bg-sky-200 font-sans rounded-none"
       >
         <p>Tournaments</p>
       </Button>
       <Button
+        variant={"brutal"}
         onClick={() => setChestIsOpen(true)}
         className="w-full bg-primary text-secondary text-lg border-4  py-6 font-sans bg-sky-200  rounded-none"
       >
         Collective Chests
       </Button>
 
-      <Leaderboard buttonType="default" textSize="lg" />
+      <Leaderboard buttonType="brutal" textSize="lg" />
     </div>
   );
 
@@ -223,7 +227,10 @@ export const Home = () => {
       {/* Content Area */}
       <div className="flex flex-col flex-1 relative">
         <Dialog open={isSigning} modal>
-          <DialogContent className="flex flex-col items-center justify-center p-6 ">
+          <DialogContent
+            aria-describedby={undefined}
+            className="flex flex-col items-center justify-center p-6 "
+          >
             <p className="mt-8 mb-7">Aligning the blocks for your signup...</p>
           </DialogContent>
         </Dialog>
@@ -306,7 +313,10 @@ export const Home = () => {
                           </Button>
                         </DialogTrigger>
 
-                        <DialogContent className="sm:max-w-[700px] w-[95%] h-[580px] flex flex-col mx-auto justify-start items-center bg-opacity-50 rounded-lg shadow-lg">
+                        <DialogContent
+                          aria-describedby={undefined}
+                          className="sm:max-w-[700px] w-[95%] h-[580px] flex flex-col mx-auto justify-start items-center bg-opacity-50 rounded-lg shadow-lg"
+                        >
                           <DialogHeader className="flex items-center">
                             <DialogTitle>Feedback</DialogTitle>
                           </DialogHeader>
@@ -328,7 +338,7 @@ export const Home = () => {
                         // Check if game is over because otherwise we can display
                         // previous game data on the board while the new game is starting
                         // and torii indexing
-                        initialGrid={game.isOver() ? [] : game.blocks}
+                        initialGrid={grid}
                         nextLine={game.isOver() ? [] : game.next_row}
                         score={game.isOver() ? 0 : game.score}
                         combo={game.isOver() ? 0 : game.combo}

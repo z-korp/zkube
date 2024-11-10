@@ -9,7 +9,7 @@ use zkube::models::index::Admin;
 mod errors {
     const ADMIN_NOT_EXIST: felt252 = 'Admin: Does not exist';
     const ADMIN_ALREADY_EXIST: felt252 = 'Admin: Already exist';
-    const NOT_ADMIN: felt252 = 'Not an admin';
+    const NOT_ADMIN: felt252 = 'Admin: Not an admin';
 }
 
 #[generate_trait]

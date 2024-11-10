@@ -7,10 +7,11 @@ import HeaderBalance from "./HeaderBalance";
 import { Button } from "../elements/button";
 import CollectiveTreasureChest from "./TreasureChest";
 import { useCallback, useState } from "react";
-import DailyGameStatus from "./DailyGameStatus";
 import LevelIndicator from "./LevelIndicator";
 import SettingsDropDown from "./SettingsDropDown";
 import { useNavigate } from "react-router-dom";
+import HeaderNftBalance from "./HeaderNftBalance";
+import { Controller } from "./Controller";
 
 const DesktopHeader = () => {
   const { account } = useAccountCustom();
@@ -44,10 +45,11 @@ const DesktopHeader = () => {
       </div>
       <div className="flex flex-col gap-4 items-center md:flex-row">
         {!!player && (
-          <div className="flex gap-3">
+          <div className="flex gap-4 flex-1 justify-end px-4 w-2/4">
+            {" "}
             <HeaderBalance />
-            <DailyGameStatus />
             <ProfilePage wfit />
+            <Controller />
             <LevelIndicator currentXP={player.points} />
           </div>
         )}

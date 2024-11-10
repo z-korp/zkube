@@ -1,8 +1,0 @@
-tag = "zkube-settings"
-writes = [
-    "zkube-Settings",
-    "zkube-Admin",
-]
-init_calldata = [
-    "0x0", 
-]

@@ -1,4 +1,4 @@
-import { faBars } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faCoins, faWallet } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Drawer,
@@ -7,6 +7,15 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "../elements/drawer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../elements/dropdown-menu";
+
 import { Leaderboard } from "../modules/Leaderboard";
 import { ProfilePage } from "../modules/ProfilePage";
 import AccountDetails from "./AccountDetails";
@@ -19,6 +28,9 @@ import CollectiveTreasureChest from "./TreasureChest";
 import { useState } from "react";
 import { Surrender } from "../actions/Surrender";
 import LevelIndicator from "./LevelIndicator";
+import HeaderNftBalance from "./HeaderNftBalance";
+import { useMediaQuery } from "react-responsive";
+import { Controller } from "./Controller";
 
 const MobileHeader = () => {
   const { account } = useAccountCustom();
@@ -29,6 +41,8 @@ const MobileHeader = () => {
   const onClose = () => {
     setIsOpen(false);
   };
+
+  const isMediumOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   return (
     <div className="px-3 py-2 flex gap-3">
@@ -78,12 +92,24 @@ const MobileHeader = () => {
         </DrawerContent>
       </Drawer>
       <div className="w-full flex justify-between items-center">
-        <p className="text-2xl font-bold">zKube</p>
-        <div className="flex gap-2">
+        {/*<p className="text-2xl font-bold">zKube</p>*/}
+        <div className="flex w-full gap-2 justify-end">
           {!!player && account ? (
             <div className="flex gap-3 items-center">
-              <HeaderBalance />
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Button variant={"outline"}>
+                    <FontAwesomeIcon icon={faCoins} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel>Assets</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <HeaderBalance />
+                </DropdownMenuContent>
+              </DropdownMenu>
               <ProfilePage wfit />
+              <Controller />
               <LevelIndicator currentXP={player.points} />
             </div>
           ) : (

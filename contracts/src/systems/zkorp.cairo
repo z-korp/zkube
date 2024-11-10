@@ -2,7 +2,7 @@
 use starknet::ContractAddress;
 
 // Dojo imports
-use dojo::world::IWorldDispatcher;
+use dojo::world::WorldStorage;
 
 // External imports
 use stark_vrf::ecvrf::{Proof, Point, ECVRFTrait};
@@ -13,10 +13,11 @@ use zkube::types::mode::Mode;
 use zkube::models::settings::{Settings, SettingsTrait};
 use zkube::store::{Store, StoreTrait};
 
-#[dojo::interface]
-trait IZKorp<TContractState> {
-    fn claim(ref world: IWorldDispatcher);
-    fn sponsor(ref world: IWorldDispatcher, amount: u128, caller: ContractAddress);
+#[starknet::interface]
+trait IZKorp<T> {
+    fn claim(ref self: T);
+    fn sponsor(ref self: T, amount: u128);
+    fn sponsor_from(ref self: T, amount: u128, caller: ContractAddress);
 }
 
 #[dojo::contract]
@@ -31,8 +32,7 @@ mod zkorp {
     use zkube::components::payable::PayableComponent;
 
     // Local imports
-    use super::{IZKorp, Settings, SettingsTrait, Store, StoreTrait};
-    use zkube::constants::ZKORP_ADDRESS;
+    use super::{IZKorp, Settings, SettingsTrait, Store, StoreTrait, WorldStorage};
     use zkube::interfaces::ierc20::{ierc20, IERC20Dispatcher, IERC20DispatcherTrait};
 
     // Components
@@ -55,10 +55,7 @@ mod zkorp {
     }
 
     // Constructor
-    fn dojo_init(ref world: IWorldDispatcher, token_address: ContractAddress,) {
-        // [Setup] Datastore
-        let store = StoreTrait::new(world);
-
+    fn dojo_init(ref self: ContractState, token_address: ContractAddress,) {
         // [Effect] Initialize components
         self.payable._initialize(token_address);
     }
@@ -66,10 +63,14 @@ mod zkorp {
     // Implementations
     #[abi(embed_v0)]
     impl ZKorpImpl of IZKorp<ContractState> {
-        fn claim(ref world: IWorldDispatcher) {
+        fn claim(ref self: ContractState) {
+            let mut world = self.world_default();
+            let store = StoreTrait::new(world);
+            let settings = store.settings();
+
             // [Check] Player exists
             let caller = get_caller_address();
-            assert!(caller.into() == ZKORP_ADDRESS, "Caller is not ZKorp");
+            assert!(caller.into() == settings.zkorp_address, "Caller is not ZKorp");
 
             let token_address = self.payable.token_address.read();
             let token_dispatcher = ierc20(token_address);
@@ -79,9 +80,22 @@ mod zkorp {
             self.payable._refund(caller, claimable.into());
         }
 
-        fn sponsor(ref world: IWorldDispatcher, amount: u128, caller: ContractAddress) {
+        fn sponsor_from(ref self: ContractState, amount: u128, caller: ContractAddress) {
             // [Effect] Pay reward
             self.payable._pay(caller, amount.into());
+        }
+
+        fn sponsor(ref self: ContractState, amount: u128) {
+            // [Effect] Pay reward
+            self.sponsor_from(amount, get_caller_address());
+        }
+    }
+
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        /// This function is handy since the ByteArray can't be const.
+        fn world_default(self: @ContractState) -> WorldStorage {
+            self.world(@"zkube")
         }
     }
 }

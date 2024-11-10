@@ -29,7 +29,9 @@ impl ParticipationImpl of ParticipationTrait {
 
         // Calculate the reward using fixed-point arithmetic
         let scaled_player_points: u256 = self.points.into() * PRECISION_FACTOR.into();
-        let reward: u256 = (scaled_player_points / total_points.into()) * total_prize.into() / PRECISION_FACTOR.into();
+        let reward: u256 = (scaled_player_points / total_points.into())
+            * total_prize.into()
+            / PRECISION_FACTOR.into();
 
         // Update participation to mark as claimed
         self.claimed = true;
