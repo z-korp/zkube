@@ -8,6 +8,7 @@ const {
   VITE_PUBLIC_GAME_TOKEN_ADDRESS,
   VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
   VITE_PUBLIC_NODE_URL,
+  VITE_PUBLIC_DEPLOY_TYPE,
 } = import.meta.env;
 
 export type Manifest = typeof manifest;
@@ -15,7 +16,7 @@ export type Manifest = typeof manifest;
 const colorMode: ColorMode = "dark";
 const theme = "zkube";
 const namespace = "zkube";
-const slot = "zkube-slotdev";
+const slot = `zkube-${VITE_PUBLIC_DEPLOY_TYPE}`;
 
 const account_contract_address = getContractByName(
   manifest,

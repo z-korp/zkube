@@ -10,7 +10,6 @@ import { useCallback, useState } from "react";
 import LevelIndicator from "./LevelIndicator";
 import SettingsDropDown from "./SettingsDropDown";
 import { useNavigate } from "react-router-dom";
-import HeaderNftBalance from "./HeaderNftBalance";
 import { Controller } from "./Controller";
 
 const DesktopHeader = () => {
