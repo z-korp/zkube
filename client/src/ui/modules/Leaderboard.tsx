@@ -102,7 +102,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
 };
 
 export const LeaderboardContent: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<ModeType>(ModeType.Daily);
+  const [activeTab, setActiveTab] = useState<ModeType>(ModeType.Free);
   const isMdorLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   const {

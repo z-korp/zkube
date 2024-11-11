@@ -1,6 +1,6 @@
 import { useDojo } from "@/dojo/useDojo";
-import { useCallback, useMemo, useState, useEffect } from "react";
-import { Account, BlockTag } from "starknet";
+import { useCallback, useMemo, useState } from "react";
+import { Account } from "starknet";
 import { Button } from "@/ui/elements/button";
 import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
