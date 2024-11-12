@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useMediaQuery } from "react-responsive";
 import { BlockTag } from "starknet";
 import LordsToken from "/assets/lords-token.png";
+import NftzKube from "/assets/nft-zkube.png";
 
 interface BalanceProps {
   address: string;
@@ -14,6 +15,7 @@ interface BalanceProps {
 
 const symbolImages: { [key: string]: string } = {
   LORDS: LordsToken,
+  NFT: NftzKube,
 };
 
 const FixedWidthDigit: React.FC<{ value: string }> = ({ value }) =>
