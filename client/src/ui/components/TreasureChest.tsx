@@ -11,6 +11,7 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useMediaQuery } from "react-responsive";
 import { DialogPrizePoolContributors } from "./DialogPrizePoolContributors";
 import { formatPrize } from "@/utils/price";
+import AnimatedChest from "./AnimatedChest";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -85,9 +86,9 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
             >
               <ChevronRight className="w-6 h-6" />
             </button>
-            <img
-              className={`self-center h-[180px] ${currentChest.points === 0 && "grayscale"}`}
-              src={currentChest.getIcon()}
+            <AnimatedChest
+              imageSrc={currentChest.getIcon()}
+              isGrayscale={currentChest.points === 0}
             />
             <div className="relative flex items-center justify-center gap-2 mt-4 w-full">
               <div className="text-lg font-semibold text-center flex items-center gap-4">
