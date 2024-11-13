@@ -14,6 +14,7 @@ import {
   deepCompareBlocks,
   getBlocksSameRow,
   getBlocksSameWidth,
+  transformToGridFormat,
 } from "@/utils/gridUtils";
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
@@ -24,6 +25,7 @@ import ConfettiExplosion, { ConfettiExplosionRef } from "./ConfettiExplosion";
 import { useMusicPlayer } from "@/contexts/hooks";
 
 import "../../grid.css";
+import { consoleTSLog } from "@/utils/logger";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -112,6 +114,10 @@ const Grid: React.FC<GridProps> = ({
   useEffect(() => {
     if (applyData) {
       if (deepCompareBlocks(saveGridStateblocks, initialData)) {
+        consoleTSLog(
+          "Grid state is the same, no need to apply data",
+          transformToGridFormat(saveGridStateblocks, gridWidth, gridHeight),
+        );
         return;
       }
       if (moveTxAwaitDone) {

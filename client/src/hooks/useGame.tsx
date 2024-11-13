@@ -1,9 +1,10 @@
 import { useDojo } from "@/dojo/useDojo";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
 import { Entity } from "@dojoengine/recs";
 import useDeepMemo from "./useDeepMemo";
+import { consoleTSLog } from "@/utils/logger";
 
 export const useGame = ({
   gameId,
@@ -29,6 +30,10 @@ export const useGame = ({
   const game = useDeepMemo(() => {
     return component ? new GameClass(component) : null;
   }, [component]);
+
+  useEffect(() => {
+    consoleTSLog("danger", "Game grid changed", game?.blocks);
+  }, [game?.blocks]);
 
   return { game, gameKey };
 };
