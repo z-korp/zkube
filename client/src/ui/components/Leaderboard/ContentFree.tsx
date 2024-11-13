@@ -100,7 +100,7 @@ export const ContentFree: React.FC<ContentFreeProps> = ({
               <TableHead className="w-[3%] md:w-[8%] text-center font-semibold md:font-normal">
                 {isMdOrLarger ? "Rank" : "#"}
               </TableHead>
-              <TableHead className="w-[27%] text-start font-semibold md:font-normal">
+              <TableHead className="w-[25%] text-start font-semibold md:font-normal">
                 Name
               </TableHead>
               <TableHead className="w-[10%] text-center hidden md:table-cell">
@@ -111,12 +111,12 @@ export const ContentFree: React.FC<ContentFreeProps> = ({
                   <FontAwesomeIcon icon={faStar} className="text-yellow-500" />
                 </div>
               </TableHead>
-              <TableHead className="w-[10%] text-center">
+              <TableHead className="w-[9%] text-center">
                 <div className="flex items-center justify-center gap-1">
                   <FontAwesomeIcon icon={faFire} className="text-slate-500" />
                 </div>
               </TableHead>
-              <TableHead className="w-[10%] text-center">
+              <TableHead className="w-[9%] text-center">
                 <div className="flex items-center justify-center gap-1">
                   <MaxComboIcon
                     width={isMdOrLarger ? 17 : 15}
@@ -125,7 +125,7 @@ export const ContentFree: React.FC<ContentFreeProps> = ({
                   />
                 </div>
               </TableHead>
-              <TableHead className="w-[10%] text-center">
+              <TableHead className="w-[9%] text-center">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <FontAwesomeIcon

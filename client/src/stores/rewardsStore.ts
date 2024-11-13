@@ -3,24 +3,24 @@ import { useEffect } from "react";
 import { Participation } from "@/dojo/game/models/participation";
 import { Tournament } from "@/dojo/game/models/tournament";
 import { Mode } from "@/dojo/game/types/mode";
-import { formatPrize } from "@/utils/wei";
 import { useAllChests } from "@/hooks/useAllChests";
 import { useParticipations } from "@/hooks/useParticipations";
 import { useWonTournaments } from "@/hooks/useWonTournaments";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import { formatPrize, Prize } from "@/utils/price";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
 interface ParticipationWithPrize extends Participation {
   raw_prize: bigint;
-  formatted_prize: string;
-  formatted_user_prize: string;
+  formatted_prize: Prize;
+  formatted_user_prize: Prize;
 }
 
 export type TournamentReward = {
   player_id: string;
   rank: 1 | 2 | 3;
-  prize: string;
+  prize: Prize;
   tournament_id: number;
   mode: Mode;
   tournament: Tournament;
@@ -75,8 +75,18 @@ export const useRewardsCalculator = () => {
             return {
               ...participation,
               raw_prize: 0n,
-              formatted_prize: "",
-              formatted_user_prize: "",
+              formatted_prize: {
+                full: "",
+                formatted_prize: "",
+                display: null,
+                withImage: null,
+              },
+              formatted_user_prize: {
+                full: "",
+                formatted_prize: "",
+                display: null,
+                withImage: null,
+              },
             };
 
           const rawPrize = BigInt(chest.prize);

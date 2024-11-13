@@ -13,7 +13,7 @@ import { faHeart, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { useParticipationsFromChest } from "@/hooks/useParticipationsFromChest";
 import { usePlayerList } from "@/hooks/usePlayerList";
 import { Chest } from "@/dojo/game/models/chest";
-import { formatPrize } from "@/utils/wei";
+import { formatPrize } from "@/utils/price";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -70,10 +70,6 @@ export function DialogPrizePoolContributors({ chest }: { chest: Chest }) {
               const proportionalPrize =
                 (chestPrize * playerPoints) / totalPoints;
 
-              // Calculate percentage contribution
-              const percentage =
-                Number((playerPoints * BigInt(10000)) / totalPoints) / 100;
-
               return (
                 <div
                   key={index}
@@ -83,16 +79,18 @@ export function DialogPrizePoolContributors({ chest }: { chest: Chest }) {
                     <div>{index + 1}.</div>
                     <div>{getPlayerName(p.player_id)}</div>
                   </div>
-                  <div className="w-[50px] text-right hidden md:block">
-                    {percentage.toFixed(2)}%
+                  <div className="w-[100px] text-right flex gap-2">
+                    <span>{playerPoints.toString()}</span>
+                    <span>points</span>
                   </div>
-                  <div className="w-[120px] text-right">
-                    {formatPrize(
-                      proportionalPrize,
-                      VITE_PUBLIC_GAME_TOKEN_SYMBOL,
-                    )}
+                  <div className="w-[80px] text-right">
+                    {
+                      formatPrize(
+                        proportionalPrize,
+                        VITE_PUBLIC_GAME_TOKEN_SYMBOL,
+                      ).withImage
+                    }
                   </div>
-                  <div>{playerPoints.toString()}</div>
                 </div>
               );
             })}
