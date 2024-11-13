@@ -1,4 +1,4 @@
-import { beforeEach, afterEach } from "node:test";
+import { beforeEach, afterEach } from "vitest";
 
 import "@testing-library/jest-dom";
 import { vi } from "vitest";
