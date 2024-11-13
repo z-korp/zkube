@@ -14,6 +14,7 @@ import { erc20ABI } from "@/utils/erc20";
 import { useMediaQuery } from "react-responsive";
 import { erc721ABI } from "@/utils/erc721";
 import { useNftMint } from "@/hooks/useNftMint";
+import { showToast } from "@/utils/toast";
 
 const {
   VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
@@ -55,19 +56,39 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
   const { mint } = useNftMint();
   const [isWaitingTx, setIsWaitingTx] = useState(false);
 
-  //useFirstNft(address);
-
   const handleMint = useCallback(async () => {
     if (account) {
       try {
         setIsWaitingTx(true);
+        showToast({
+          message: "Minting your first game credit NFT...",
+          toastId: "game-start-process",
+        });
+
         const tx = await mint();
+        showToast({
+          message: "Minting your first game credit NFT...",
+          txHash: tx.transaction_hash,
+          toastId: "game-start-process",
+        });
 
         await account.waitForTransaction(tx.transaction_hash, {
-          retryInterval: 1000,
+          retryInterval: 200,
+        });
+
+        showToast({
+          message: "Transaction validated",
+          txHash: tx.transaction_hash,
+          type: "success",
+          toastId: "game-start-process",
         });
       } catch (err) {
         console.error("Mint error:", err);
+        showToast({
+          message: "Failed to mint NFT",
+          type: "error",
+          toastId: "game-start-process",
+        });
       } finally {
         setIsWaitingTx(false);
       }
@@ -79,62 +100,78 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
   }, [account, player, game]);
 
   const handleClick = useCallback(async () => {
-    if (settings === null) return;
-    if (erc20Contract === undefined) return;
-    if (erc721Contract === undefined) return;
-    if (!account?.address) return;
+    if (settings === null) {
+      console.error("Settings not loaded");
+      return;
+    }
+    if (erc20Contract === undefined) {
+      console.error("ERC20 contract not loaded");
+      return;
+    }
+    if (erc721Contract === undefined) {
+      console.error("ERC721 contract not loaded");
+      return;
+    }
+    if (!account?.address) {
+      console.error("Account not loaded");
+      return;
+    }
 
     setIsLoading(true);
+    showToast({
+      message: "Checking your game credits...",
+      toastId: "game-start-process",
+    });
 
-    let token_id = 0n;
-    if (mode !== ModeType.Free) {
-      // Check if the player has an NFT
-      const ret_erc721_balance = await erc721Contract.call("balance_of", [
-        account?.address,
-      ]);
-      const number_of_nft = Number(ret_erc721_balance.toString());
-      console.log("number_of_nft", number_of_nft);
+    try {
+      let token_id = 0n;
+      if (mode !== ModeType.Free) {
+        // Check if the player has an NFT
+        const ret_erc721_balance = await erc721Contract.call("balance_of", [
+          account?.address,
+        ]);
+        const number_of_nft = Number(ret_erc721_balance.toString());
+        console.log("number_of_nft", number_of_nft);
 
-      try {
         if (number_of_nft === 0) {
-          // Mint one
-          // First check if the player has enough balance
+          // Check balance and claim from faucet if needed
           const ret_erc20 = await erc20Contract.call("balanceOf", [
             account?.address,
           ]);
           const balance = BigInt(ret_erc20.toString());
           if (balance < settings.game_price && erc20Contract) {
             if (import.meta.env.VITE_PUBLIC_DEPLOY_TYPE === "mainnet") {
-              console.log("No funds to sign tx");
+              console.log("No LORDs to pay for game");
               return;
             }
-            console.log("Not enough balance, trying to claim faucet");
-
+            showToast({
+              message: "Claiming tokens from faucet...",
+              toastId: "game-start-process",
+            });
             await createFaucetClaimHandler(account as Account, () => {
               return;
             })();
           }
 
-          // Second mint the NFT
+          // Mint NFT
           await handleMint();
         }
-      } catch (error) {
-        console.error("Error minting NFT:", error);
-      }
 
-      try {
         const ret_erc721 = await erc721Contract.call(
           "token_of_owner_by_index",
           [account?.address, 0],
         );
         token_id = BigInt(ret_erc721.toString());
         console.log("token_id", token_id);
-      } catch (error) {
-        console.error("Error getting NFT:", error);
       }
-    }
 
-    try {
+      showToast({
+        message: "Preparing game data...",
+        txHash: "",
+        toastId: "game-start-process",
+        type: "success",
+      });
+
       const {
         seed,
         proof_gamma_x,
@@ -145,6 +182,7 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
         beta,
       } = await fetchVrfData();
 
+      // Start game
       await start({
         account: account as Account,
         token_id,
@@ -158,9 +196,15 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
         sqrt_ratio_hint: proof_verify_hint,
         beta: beta,
       });
+
       handleGameMode();
     } catch (error) {
       console.error("Error during game start:", error);
+      showToast({
+        message: "Failed to start game",
+        type: "error",
+        toastId: "game-start-process",
+      });
     } finally {
       setIsLoading(false);
     }

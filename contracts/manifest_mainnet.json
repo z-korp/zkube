@@ -1965,7 +1965,7 @@
     },
     {
       "address": "0x1bf627132630b28542228f215f92b8eee9d2db554825be20052c63687c331e4",
-      "class_hash": "0x3bd627afcf1432a0c1d3c857d06c922e3aef00708fa008294131bfd99fa5898",
+      "class_hash": "0x34cdd05042a06e8c3f3c85d38676521dd7fac7a217d75b6f86cd80139408658",
       "abi": [
         {
           "type": "impl",

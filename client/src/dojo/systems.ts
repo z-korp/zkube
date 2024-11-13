@@ -3,99 +3,19 @@ import { toast } from "sonner";
 import * as SystemTypes from "./contractSystems";
 import { shortenHex } from "@dojoengine/utils";
 import { Account } from "starknet";
+import {
+  getToastPlacement,
+  getUrl,
+  getWalnutUrl,
+  shouldShowToast,
+  getToastAction,
+  notify,
+} from "@/utils/toast";
 
 export type SystemCalls = ReturnType<typeof systems>;
 
-const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
-
 export function systems({ client }: { client: IWorld }) {
-  // Function to extract error messages from a given string
-  function extractErrorMessages(errorString: string) {
-    const regex = /Error message:(.*?)(?=\n|$)/gs;
-    const matches = errorString.match(regex);
-
-    if (matches) {
-      return matches.map((match) => match.replace("Error message:", "").trim());
-    } else {
-      return [errorString.trim()]; // Return the entire message if no specific pattern found
-    }
-  }
-
-  const extractedMessage = (message: string) => {
-    const errorMessages = extractErrorMessages(message);
-
-    return errorMessages.length > 0 ? errorMessages[0] : message;
-  };
-
-  const isMdOrLarger = (): boolean => {
-    return window.matchMedia("(min-width: 768px)").matches;
-  };
-
-  const shouldShowToast = (): boolean => {
-    return isMdOrLarger();
-  };
-
-  const isSmallHeight = (): boolean => {
-    return window.matchMedia("(max-height: 768px)").matches;
-  };
-
-  const getUrl = (transaction_hash: string) => {
-    if (
-      VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ||
-      VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev1" ||
-      VITE_PUBLIC_DEPLOY_TYPE === "sepoliadev2"
-    ) {
-      //return `https://sepolia.starkscan.co/tx/${transaction_hash}`;
-      return `https://sepolia.voyager.online/tx/${transaction_hash}`;
-    } else if (VITE_PUBLIC_DEPLOY_TYPE === "mainnet") {
-      return `https://starkscan.co/tx/${transaction_hash}`;
-    } else {
-      return `https://worlds.dev/networks/slot/worlds/zkube-${VITE_PUBLIC_DEPLOY_TYPE}/txs/${transaction_hash}`;
-    }
-  };
-
-  const getWalnutUrl = (transaction_hash: string) => {
-    return `https://app.walnut.dev/transactions?rpcUrl=https%3A%2F%2Fapi.cartridge.gg%2Fx%2Fstarknet%2Fsepolia&txHash=${transaction_hash}`;
-  };
-
-  const getToastAction = (transaction_hash: string) => {
-    return {
-      label: "View",
-      onClick: () => window.open(getUrl(transaction_hash), "_blank"),
-    };
-  };
-
-  const getToastPlacement = ():
-    | "top-center"
-    | "bottom-center"
-    | "bottom-right" => {
-    if (!isMdOrLarger()) {
-      // if mobile
-      return isSmallHeight() ? "top-center" : "bottom-right";
-    }
-    return "bottom-right";
-  };
-
   const toastPlacement = getToastPlacement();
-
-  const notify = (message: string, transaction: any) => {
-    const toastId = transaction.transaction_hash;
-
-    if (transaction.execution_status !== "REVERTED") {
-      if (!shouldShowToast()) return; // Exit if screen is smaller than medium
-      toast.success(message, {
-        id: toastId, // Use the transaction_hash as the unique toast ID
-        description: shortenHex(transaction.transaction_hash),
-        action: getToastAction(transaction.transaction_hash),
-        position: toastPlacement,
-      });
-    } else {
-      toast.error(extractedMessage(transaction.revert_reason), {
-        id: toastId, // Use the same transaction_hash ID for error
-        position: toastPlacement,
-      });
-    }
-  };
 
   const handleTransaction = async (
     account: Account,

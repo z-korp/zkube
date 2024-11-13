@@ -1,8 +1,7 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useGame } from "@/hooks/useGame";
 import { formatBigIntToBinaryArrayCustom } from "@/utils/gridUtils";
 import useDeepMemo from "./useDeepMemo";
-import { set } from "date-fns";
 
 interface DebugData {
   blocksRaw: bigint;
