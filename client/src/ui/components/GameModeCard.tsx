@@ -20,7 +20,7 @@ import {
 } from "../elements/tooltip";
 import { useMediaQuery } from "react-responsive";
 import { formatPrize } from "@/utils/price";
-import NftZKUBE from "/assets/nft-zkube-small.png";
+import NftImage from "./ImageNFTZkube";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -105,7 +105,7 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
                   {cost.withImage} <p>or</p>
                   <div className="flex items-center gap-1">
                     <p>1</p>
-                    <img src={NftZKUBE} alt="ZKUBE" className="h-7 w-7" />
+                    <NftImage />
                   </div>
                 </div>
               )}
