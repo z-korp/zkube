@@ -1,7 +1,7 @@
 import LordsToken from "/assets/lords-token.png";
-import NftzKube from "/assets/nft-zkube.png";
+import NftZKUBE from "/assets/nft-zkube-small.png";
 
 export const symbolImages: { [key: string]: string } = {
   LORDS: LordsToken,
-  NFT: NftzKube,
+  NFT: NftZKUBE,
 };
