@@ -15,8 +15,7 @@ import { ModeType } from "@/dojo/game/types/mode";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/elements/tabs";
 import { Level } from "@/dojo/game/types/level";
 import useTournament from "@/hooks/useTournament";
-
-import { formatPrize } from "@/utils/wei";
+import { formatPrize } from "@/utils/price";
 import { ContentTournament } from "../components/Leaderboard/ContentTournament";
 import { ContentFree } from "../components/Leaderboard/ContentFree";
 
@@ -185,6 +184,7 @@ export const Row: React.FC<RowProps> = memo(({ rank, game }) => {
       <TableCell className="text-center font-bold">
         {game.potentialWinnings
           ? formatPrize(game.potentialWinnings, VITE_PUBLIC_GAME_TOKEN_SYMBOL)
+              .withImage
           : "-"}
       </TableCell>
     </TableRow>

@@ -422,7 +422,7 @@ impl Controller of ControllerTrait {
         let shifted_full_block = BitShift::shl(full_block, shift_bits);
         block_row = block_row | shifted_full_block;
 
-        // assert(Self::check_row_coherence(block_row), errors::CONTROLLER_NOT_COHERENT_LINE);
+        assert(Self::check_row_coherence(block_row), errors::CONTROLLER_NOT_COHERENT_LINE);
 
         // [Return] Updated bitmap
         let bitmap: u256 = blocks.into();
@@ -478,7 +478,7 @@ impl Controller of ControllerTrait {
         let shifted_full_block = BitShift::shr(full_block, shift_bits);
         block_row = block_row | shifted_full_block;
 
-        // assert(Self::check_row_coherence(block_row), errors::CONTROLLER_NOT_COHERENT_LINE);
+        assert(Self::check_row_coherence(block_row), errors::CONTROLLER_NOT_COHERENT_LINE);
 
         // [Return] Updated bitmap
         let bitmap: u256 = blocks.into();

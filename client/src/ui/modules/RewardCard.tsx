@@ -10,14 +10,14 @@ import silver from "/assets/trophies/silver.png";
 import gold from "/assets/trophies/gold.png";
 import { format } from "date-fns";
 import { ModeType } from "@/dojo/game/types/mode";
-import { formatPrize } from "@/utils/wei";
 import { useMediaQuery } from "react-responsive";
+import { formatPrize, Prize } from "@/utils/price";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
 export const RewardCard: React.FC<{
   type: "chest" | "tournament";
-  amount: string;
+  amount: Prize;
   onClaim: () => void;
   // chest
   chest?: Chest;
@@ -91,6 +91,7 @@ export const RewardCard: React.FC<{
                   A{" "}
                   {chest?.prize
                     ? formatPrize(chest?.prize, VITE_PUBLIC_GAME_TOKEN_SYMBOL)
+                        .full
                     : ""}{" "}
                   chest opened collectively.
                 </p>
@@ -98,7 +99,9 @@ export const RewardCard: React.FC<{
                   Your contribution: {userContribution?.toLocaleString()} /{" "}
                   {chest?.point_target} points
                 </p>
-                <p className="font-semibold">Your rewards: {amount}</p>
+                <div className="font-semibold flex items-center gap-2">
+                  <p>Your rewards:</p> {amount.withImage}
+                </div>
               </>
             ) : (
               <>
@@ -109,9 +112,9 @@ export const RewardCard: React.FC<{
                 <p className="mb-2">
                   Tournament: {tournament && formatTournamentDate(tournament)}
                 </p>
-                <p className="font-semibold">
-                  Rewards: {tournament_reward?.prize}
-                </p>
+                <div className="font-semibold flex items-center gap-2">
+                  <p>Your rewards:</p> {tournament_reward?.prize.withImage}
+                </div>
               </>
             )}
           </div>

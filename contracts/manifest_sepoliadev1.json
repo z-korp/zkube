@@ -1,9 +1,32 @@
 {
   "world": {
-    "class_hash": "0x139239a99d627697b19b9856beaef7896fc75375caf3d750dd76982a7afeb78",
-    "address": "0x3bdc9d96b7ecab3f605f8ca69f4ef03b9476ab77083ac4e78abd31441f9b7b0",
+    "class_hash": "0x79d9ce84b97bcc2a631996c3100d57966fc2f5b061fb1ec4dfd0040976bcac6",
+    "address": "0x3a4c328324f42a96b1a3d400f0c6ea2d77cdd612c191ab0b770e82f3bd73183",
     "seed": "zKube8",
     "name": "zKube",
+    "entrypoints": [
+      "uuid",
+      "set_metadata",
+      "register_namespace",
+      "register_event",
+      "register_model",
+      "register_contract",
+      "init_contract",
+      "upgrade_event",
+      "upgrade_model",
+      "upgrade_contract",
+      "emit_event",
+      "emit_events",
+      "set_entity",
+      "set_entities",
+      "delete_entity",
+      "delete_entities",
+      "grant_owner",
+      "revoke_owner",
+      "grant_writer",
+      "revoke_writer",
+      "upgrade"
+    ],
     "abi": [
       {
         "type": "impl",
@@ -83,16 +106,12 @@
         ]
       },
       {
-        "type": "enum",
-        "name": "core::bool",
-        "variants": [
+        "type": "struct",
+        "name": "core::array::Span::<core::array::Span::<core::felt252>>",
+        "members": [
           {
-            "name": "False",
-            "type": "()"
-          },
-          {
-            "name": "True",
-            "type": "()"
+            "name": "snapshot",
+            "type": "@core::array::Array::<core::array::Span::<core::felt252>>"
           }
         ]
       },
@@ -185,6 +204,30 @@
           {
             "name": "Enum",
             "type": "core::array::Span::<dojo::meta::layout::FieldLayout>"
+          }
+        ]
+      },
+      {
+        "type": "struct",
+        "name": "core::array::Span::<dojo::model::definition::ModelIndex>",
+        "members": [
+          {
+            "name": "snapshot",
+            "type": "@core::array::Array::<dojo::model::definition::ModelIndex>"
+          }
+        ]
+      },
+      {
+        "type": "enum",
+        "name": "core::bool",
+        "variants": [
+          {
+            "name": "False",
+            "type": "()"
+          },
+          {
+            "name": "True",
+            "type": "()"
           }
         ]
       },
@@ -398,10 +441,26 @@
               {
                 "name": "values",
                 "type": "core::array::Span::<core::felt252>"
+              }
+            ],
+            "outputs": [],
+            "state_mutability": "external"
+          },
+          {
+            "type": "function",
+            "name": "emit_events",
+            "inputs": [
+              {
+                "name": "event_selector",
+                "type": "core::felt252"
               },
               {
-                "name": "historical",
-                "type": "core::bool"
+                "name": "keys",
+                "type": "core::array::Span::<core::array::Span::<core::felt252>>"
+              },
+              {
+                "name": "values",
+                "type": "core::array::Span::<core::array::Span::<core::felt252>>"
               }
             ],
             "outputs": [],
@@ -433,6 +492,30 @@
           },
           {
             "type": "function",
+            "name": "entities",
+            "inputs": [
+              {
+                "name": "model_selector",
+                "type": "core::felt252"
+              },
+              {
+                "name": "indexes",
+                "type": "core::array::Span::<dojo::model::definition::ModelIndex>"
+              },
+              {
+                "name": "layout",
+                "type": "dojo::meta::layout::Layout"
+              }
+            ],
+            "outputs": [
+              {
+                "type": "core::array::Span::<core::array::Span::<core::felt252>>"
+              }
+            ],
+            "state_mutability": "view"
+          },
+          {
+            "type": "function",
             "name": "set_entity",
             "inputs": [
               {
@@ -457,6 +540,30 @@
           },
           {
             "type": "function",
+            "name": "set_entities",
+            "inputs": [
+              {
+                "name": "model_selector",
+                "type": "core::felt252"
+              },
+              {
+                "name": "indexes",
+                "type": "core::array::Span::<dojo::model::definition::ModelIndex>"
+              },
+              {
+                "name": "values",
+                "type": "core::array::Span::<core::array::Span::<core::felt252>>"
+              },
+              {
+                "name": "layout",
+                "type": "dojo::meta::layout::Layout"
+              }
+            ],
+            "outputs": [],
+            "state_mutability": "external"
+          },
+          {
+            "type": "function",
             "name": "delete_entity",
             "inputs": [
               {
@@ -466,6 +573,26 @@
               {
                 "name": "index",
                 "type": "dojo::model::definition::ModelIndex"
+              },
+              {
+                "name": "layout",
+                "type": "dojo::meta::layout::Layout"
+              }
+            ],
+            "outputs": [],
+            "state_mutability": "external"
+          },
+          {
+            "type": "function",
+            "name": "delete_entities",
+            "inputs": [
+              {
+                "name": "model_selector",
+                "type": "core::felt252"
+              },
+              {
+                "name": "indexes",
+                "type": "core::array::Span::<dojo::model::definition::ModelIndex>"
               },
               {
                 "name": "layout",
@@ -850,11 +977,6 @@
             "kind": "key"
           },
           {
-            "name": "historical",
-            "type": "core::bool",
-            "kind": "key"
-          },
-          {
             "name": "keys",
             "type": "core::array::Span::<core::felt252>",
             "kind": "data"
@@ -1121,13 +1243,23 @@
   },
   "contracts": [
     {
-      "address": "0x58d7f76ad00f5bb9f060f736dfcb3fa9def7adecc09db2f853cb270ff7b6604",
-      "class_hash": "0x361f7a0e0b2460bf12a76cff56477281de7de9ba5d899a4a21f07ae20d854a0",
+      "address": "0xc0585bcb95baa954a805c86b51db043b147b0f0d5c323e7c0f011128ee1298",
+      "class_hash": "0x745684a5a7e7c58b27a0021e6755f9eb44f792f02a25e472636d89bd7140f5b",
       "abi": [
         {
           "type": "impl",
           "name": "account__ContractImpl",
           "interface_name": "dojo::contract::interface::IContract"
+        },
+        {
+          "type": "interface",
+          "name": "dojo::contract::interface::IContract",
+          "items": []
+        },
+        {
+          "type": "impl",
+          "name": "account__DeployedContractImpl",
+          "interface_name": "dojo::meta::interface::IDeployedResource"
         },
         {
           "type": "struct",
@@ -1149,7 +1281,7 @@
         },
         {
           "type": "interface",
-          "name": "dojo::contract::interface::IContract",
+          "name": "dojo::meta::interface::IDeployedResource",
           "items": [
             {
               "type": "function",
@@ -1327,16 +1459,32 @@
       ],
       "init_calldata": [],
       "tag": "zkube-account",
-      "systems": []
+      "selector": "0x6d28004d278bad46f01e5d8d1943b63b32617bdc735f34355e0c7e39310d4e7",
+      "systems": [
+        "dojo_init",
+        "create",
+        "rename",
+        "upgrade"
+      ]
     },
     {
-      "address": "0x750b8aeb38a66704a0d21fa982f94c9f37b49eba34be740e7e0118d534d0c95",
-      "class_hash": "0x4422279d12ef52d0e83a58ecfefc0a6fd1ab57768f2f4c2821baab634faf3dd",
+      "address": "0x356fa107536939c856bbcd40e1b7f4114c523831eac708a3e4a8a5b89228e50",
+      "class_hash": "0x21892f4fb1680358ada43b2baaec46820335177f7bd4547e2a66ce8068a1632",
       "abi": [
         {
           "type": "impl",
           "name": "chest__ContractImpl",
           "interface_name": "dojo::contract::interface::IContract"
+        },
+        {
+          "type": "interface",
+          "name": "dojo::contract::interface::IContract",
+          "items": []
+        },
+        {
+          "type": "impl",
+          "name": "chest__DeployedContractImpl",
+          "interface_name": "dojo::meta::interface::IDeployedResource"
         },
         {
           "type": "struct",
@@ -1358,7 +1506,7 @@
         },
         {
           "type": "interface",
-          "name": "dojo::contract::interface::IContract",
+          "name": "dojo::meta::interface::IDeployedResource",
           "items": [
             {
               "type": "function",
@@ -1563,16 +1711,33 @@
         "0x07f599511f57049dd1e5f4f30f893d029c9413095f174f4ffcdb6f0b5ded1a57"
       ],
       "tag": "zkube-chest",
-      "systems": []
+      "selector": "0x5d3b3ea38e2bb02701fbb4295f2c28aae2284c1140203fa2993ca72e8027227",
+      "systems": [
+        "dojo_init",
+        "claim",
+        "sponsor_chest",
+        "sponsor_from",
+        "upgrade"
+      ]
     },
     {
-      "address": "0x73e0757f5a896b9a915fc52f65f71cce34e39738616ccddc5712e9c48331dce",
-      "class_hash": "0x62eb37daac3ab227678612e790fa68306e470efb0d592489ded4154c48f6434",
+      "address": "0x133e31b9dd72bb64623c23d78bb01bb0a0f4162f33b4ee35344a3d8ee3507d3",
+      "class_hash": "0x1635b52cc9a48052d977b4423928714b44348abd89c7e8156255b9325a5e7d4",
       "abi": [
         {
           "type": "impl",
           "name": "minter__ContractImpl",
           "interface_name": "dojo::contract::interface::IContract"
+        },
+        {
+          "type": "interface",
+          "name": "dojo::contract::interface::IContract",
+          "items": []
+        },
+        {
+          "type": "impl",
+          "name": "minter__DeployedContractImpl",
+          "interface_name": "dojo::meta::interface::IDeployedResource"
         },
         {
           "type": "struct",
@@ -1594,7 +1759,7 @@
         },
         {
           "type": "interface",
-          "name": "dojo::contract::interface::IContract",
+          "name": "dojo::meta::interface::IDeployedResource",
           "items": [
             {
               "type": "function",
@@ -1790,16 +1955,32 @@
       ],
       "init_calldata": [],
       "tag": "zkube-minter",
-      "systems": []
+      "selector": "0x5ac6ce7d4a10724d1369372c833cfcef31ce758350f33249efd373f45485954",
+      "systems": [
+        "claim_free_mint",
+        "add_free_mint",
+        "update_game_price",
+        "upgrade"
+      ]
     },
     {
-      "address": "0x142b842ab8cf2cb7ca8de12a8e5a0898c5e6836e29e14e2e8fa04a9f435fe91",
-      "class_hash": "0x57efda429008cd32e813fdbffb29489af59fad67f29cdf463475ee98ede6f1a",
+      "address": "0x33bf9876eecb5809fd8a958b8fbab6eb39dc76ae9dc6fc169340ae275b8d6a4",
+      "class_hash": "0x34cdd05042a06e8c3f3c85d38676521dd7fac7a217d75b6f86cd80139408658",
       "abi": [
         {
           "type": "impl",
           "name": "play__ContractImpl",
           "interface_name": "dojo::contract::interface::IContract"
+        },
+        {
+          "type": "interface",
+          "name": "dojo::contract::interface::IContract",
+          "items": []
+        },
+        {
+          "type": "impl",
+          "name": "play__DeployedContractImpl",
+          "interface_name": "dojo::meta::interface::IDeployedResource"
         },
         {
           "type": "struct",
@@ -1821,7 +2002,7 @@
         },
         {
           "type": "interface",
-          "name": "dojo::contract::interface::IContract",
+          "name": "dojo::meta::interface::IDeployedResource",
           "items": [
             {
               "type": "function",
@@ -2159,16 +2340,34 @@
       ],
       "init_calldata": [],
       "tag": "zkube-play",
-      "systems": []
+      "selector": "0x19ee70b365f27840544945f84699050a468603e9e7d28774ed75367cc31f9b2",
+      "systems": [
+        "dojo_init",
+        "create",
+        "surrender",
+        "move",
+        "apply_bonus",
+        "upgrade"
+      ]
     },
     {
-      "address": "0x4342869988538cea9e549a96ae7f09a6113f1734fdd9a3e151d7f26756030cb",
-      "class_hash": "0x7da136ffe2a45e6ad76d719512a8ed492749874225f3ecc29d9a52f24650f99",
+      "address": "0x74b1bce2dedf6b73c2474d7d01a1b109c4992a1af2aae2535721ae7db02b448",
+      "class_hash": "0x349e932ba43b3059a8cf39f2b5e0e08330568b684c32556affa9bd6c9eec6d0",
       "abi": [
         {
           "type": "impl",
           "name": "settings__ContractImpl",
           "interface_name": "dojo::contract::interface::IContract"
+        },
+        {
+          "type": "interface",
+          "name": "dojo::contract::interface::IContract",
+          "items": []
+        },
+        {
+          "type": "impl",
+          "name": "settings__DeployedContractImpl",
+          "interface_name": "dojo::meta::interface::IDeployedResource"
         },
         {
           "type": "struct",
@@ -2190,7 +2389,7 @@
         },
         {
           "type": "interface",
-          "name": "dojo::contract::interface::IContract",
+          "name": "dojo::meta::interface::IDeployedResource",
           "items": [
             {
               "type": "function",
@@ -2225,6 +2424,20 @@
           "type": "impl",
           "name": "SettingsImpl",
           "interface_name": "zkube::systems::settings::ISettings"
+        },
+        {
+          "type": "enum",
+          "name": "core::bool",
+          "variants": [
+            {
+              "name": "False",
+              "type": "()"
+            },
+            {
+              "name": "True",
+              "type": "()"
+            }
+          ]
         },
         {
           "type": "interface",
@@ -2273,6 +2486,30 @@
                 {
                   "name": "address",
                   "type": "core::starknet::contract_address::ContractAddress"
+                }
+              ],
+              "outputs": [],
+              "state_mutability": "external"
+            },
+            {
+              "type": "function",
+              "name": "update_are_game_paused",
+              "inputs": [
+                {
+                  "name": "value",
+                  "type": "core::bool"
+                }
+              ],
+              "outputs": [],
+              "state_mutability": "external"
+            },
+            {
+              "type": "function",
+              "name": "update_are_chests_unlock",
+              "inputs": [
+                {
+                  "name": "value",
+                  "type": "core::bool"
                 }
               ],
               "outputs": [],
@@ -2404,16 +2641,36 @@
         "0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b"
       ],
       "tag": "zkube-settings",
-      "systems": []
+      "selector": "0x3b7c49180f985c87caf5cdf5a829c3881f26f1688524d6550742ba94c276f1e",
+      "systems": [
+        "dojo_init",
+        "update_zkorp_address",
+        "update_erc721_address",
+        "set_admin",
+        "delete_admin",
+        "update_are_game_paused",
+        "update_are_chests_unlock",
+        "upgrade"
+      ]
     },
     {
-      "address": "0x2c297007d8d12901cd200991f2af9eb71c551f694fbfb9a529d11a0a5dc03af",
-      "class_hash": "0x50e50fddb84b5f48b831238fbe582116c83689bd0f538a7a72d85db08559375",
+      "address": "0x73d36ddedcf5319378676fdddfc1a6de8cd396108f37ffd45b0bf0127effd66",
+      "class_hash": "0x19a7f4c0e8210d8dc8f99019bd14376c3d7721bb1c4fd5b23c761d7c3e43a1f",
       "abi": [
         {
           "type": "impl",
           "name": "tournament__ContractImpl",
           "interface_name": "dojo::contract::interface::IContract"
+        },
+        {
+          "type": "interface",
+          "name": "dojo::contract::interface::IContract",
+          "items": []
+        },
+        {
+          "type": "impl",
+          "name": "tournament__DeployedContractImpl",
+          "interface_name": "dojo::meta::interface::IDeployedResource"
         },
         {
           "type": "struct",
@@ -2435,7 +2692,7 @@
         },
         {
           "type": "interface",
-          "name": "dojo::contract::interface::IContract",
+          "name": "dojo::meta::interface::IDeployedResource",
           "items": [
             {
               "type": "function",
@@ -2682,16 +2939,33 @@
         "0x07f599511f57049dd1e5f4f30f893d029c9413095f174f4ffcdb6f0b5ded1a57"
       ],
       "tag": "zkube-tournament",
-      "systems": []
+      "selector": "0x2101600e00aa39f4136a59a187bd5e197b9f3c63e08d17626effe44b379f1f5",
+      "systems": [
+        "dojo_init",
+        "claim",
+        "sponsor_from",
+        "sponsor",
+        "upgrade"
+      ]
     },
     {
-      "address": "0x3c36a3ffd28d17330d98aee242fbac92b2b503fc1e9be50139e03f14d7b5670",
-      "class_hash": "0x2069fa8d864e2eaa0040b2880163e9321ad3891f2fb940520183d481e01e046",
+      "address": "0x3f4131097e9b74f2f862b755403e7bbc5eb1dea17b942254c58f72fd57d978b",
+      "class_hash": "0x3ff7162efe5a614632ecb54cc0e173a554d62231a3b30a94fea94021287dded",
       "abi": [
         {
           "type": "impl",
           "name": "zkorp__ContractImpl",
           "interface_name": "dojo::contract::interface::IContract"
+        },
+        {
+          "type": "interface",
+          "name": "dojo::contract::interface::IContract",
+          "items": []
+        },
+        {
+          "type": "impl",
+          "name": "zkorp__DeployedContractImpl",
+          "interface_name": "dojo::meta::interface::IDeployedResource"
         },
         {
           "type": "struct",
@@ -2713,7 +2987,7 @@
         },
         {
           "type": "interface",
-          "name": "dojo::contract::interface::IContract",
+          "name": "dojo::meta::interface::IDeployedResource",
           "items": [
             {
               "type": "function",
@@ -2909,61 +3183,78 @@
         "0x07f599511f57049dd1e5f4f30f893d029c9413095f174f4ffcdb6f0b5ded1a57"
       ],
       "tag": "zkube-zkorp",
-      "systems": []
+      "selector": "0x6cdc1046f821af7bd6d6c3a1326826e049bd14a3d8329ce42ed30430eb3b678",
+      "systems": [
+        "dojo_init",
+        "claim",
+        "sponsor",
+        "sponsor_from",
+        "upgrade"
+      ]
     }
   ],
   "models": [
     {
       "members": [],
-      "class_hash": "0x5ccdead4e0947dd612b5e0ae54e95185618b647d72bc865e335d1e793cb654c",
-      "tag": "Admin"
+      "class_hash": "0x6c66e911ef9c4555700176453b26ce5a69640ec5389aa7716d484f54ab2b5c9",
+      "tag": "zkube-Admin",
+      "selector": "0x3feb084fdb0a407c023f2a45361fdb9274f5a1e8948816252ceb4d9a2bc6793"
     },
     {
       "members": [],
-      "class_hash": "0x1e07f1c17f33762e09b74beb26a9303639c91fa7cc0ccde88f38742a90081d1",
-      "tag": "Chest"
+      "class_hash": "0x278d395529ad1428766045789079e769cde1be978941a215ee080d6827ef77c",
+      "tag": "zkube-Chest",
+      "selector": "0x4d11a4914e52cfc56c9f726285ab3f453e244d061399ba9d7896900bae8c87d"
     },
     {
       "members": [],
-      "class_hash": "0x7b0b298ae7e3d2cd7888b5bece77ea1b2bc9ef653a474fd31a4c20236b15921",
-      "tag": "Game"
+      "class_hash": "0x4503fdd0e06a67ea8ce661938063a2517498b9912b27e61ce42816af21474c1",
+      "tag": "zkube-Game",
+      "selector": "0x17e542e04c42a3a6554cb2b113596d0b304511e7fc609c94ba895ef94633b3a"
     },
     {
       "members": [],
-      "class_hash": "0x505b73a2895bc7d4e1664ccd307eb26a7c42b919ff69e237e87f3f0e31eca83",
-      "tag": "Mint"
+      "class_hash": "0x115174db0306657bb743d9b4d2a3649c3b261ef214e7cdfccca9b8963fcb188",
+      "tag": "zkube-Mint",
+      "selector": "0x56f569fbaec8019593b99203d1f5efcd66e3c0bd01a06933e5fea1c8c1b71f9"
     },
     {
       "members": [],
-      "class_hash": "0x62927f5ab835a5859ac6cf6fbe3c2d94762a9265d9867b5cfbba4ca46511a76",
-      "tag": "Participation"
+      "class_hash": "0x43867432afb354f9e27411ccfb1177a3a0cdf9cd2bcc73577c7d7bf304a0615",
+      "tag": "zkube-Participation",
+      "selector": "0x7b168a6429c0f07b7dfbb5a90a8cf732bd94487959c99ad55491efef1ea12ee"
     },
     {
       "members": [],
-      "class_hash": "0x45ebb72e2e0287fe3a00f467f7ee46636879891ede3659c2951724bfefd229a",
-      "tag": "Player"
+      "class_hash": "0x28559cf2925d7363bac32e221ce8a36e6e4928db75d3f0e198085c2bac91333",
+      "tag": "zkube-Player",
+      "selector": "0xa3c56d309f03e9ad6b6258bae832d3f663e8ef9996a51deadcab91ce65c2be"
     },
     {
       "members": [],
-      "class_hash": "0x6848729ed37cf3cd16c7a11508967796bfff4cb3b6688b4d8be7e1665d7e10c",
-      "tag": "Settings"
+      "class_hash": "0x228e88aa5b85ce85c4396ef212318f65b99324009caf0e26e150d5a66525aa5",
+      "tag": "zkube-Settings",
+      "selector": "0x161104df1ca36e368ef6ca312f74c41e28fee77d4d61412ad02979909d68751"
     },
     {
       "members": [],
-      "class_hash": "0x47aa3bf78366c80a0549e10f9c9637f7306fc9629d0c164e61da8e30aae7871",
-      "tag": "Tournament"
+      "class_hash": "0x462f9dd122aa16a6c74bb3e5f0890c4dc99a11cc3380abfdb583319635c4a9d",
+      "tag": "zkube-Tournament",
+      "selector": "0x120c37d1e8473ccdc330063049d5ee04a9d6acbe17b1fc6bd1a2a54f5592471"
     }
   ],
   "events": [
     {
       "members": [],
-      "class_hash": "0x7d1eae19bd12943f7daaa86ee1913c8adef2503afb3f7cb10e0a71cb1aa0664",
-      "tag": "TrophyCreation"
+      "class_hash": "0x3c90ca93f00abca2c554412ea9a21cbb46ed193f1e68b309484e4288caaf7d2",
+      "tag": "zkube-TrophyCreation",
+      "selector": "0xc0be59b90105c870702c71ad28232a4c5246c52bdbcaa00d62c68949ccdffd"
     },
     {
       "members": [],
-      "class_hash": "0x40ef1802df969e831f1b60284cf482243f6715b5eafdeb7ad37e2979fce9cee",
-      "tag": "TrophyProgression"
+      "class_hash": "0x1fac79c657849151aacf0f1d283a961b2d6d2a1ab6fedde530224a289116a85",
+      "tag": "zkube-TrophyProgression",
+      "selector": "0x17b14454c7075d73430699a7e57cfb3aaa40a094fcf81c2afac7fa95667c8ec"
     }
   ]
 }

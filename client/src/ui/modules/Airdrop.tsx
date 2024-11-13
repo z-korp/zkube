@@ -68,7 +68,10 @@ const Airdrop = forwardRef<HTMLDivElement, AirdropProps>((props, ref) => {
     }
   }, [account, claimFreeMint, freeGames?.number]);
 
-  if (freeGames && freeGames.number === 0 && !claimStatus.showSuccess) {
+  if (
+    freeGames === null ||
+    (freeGames.number === 0 && !claimStatus.showSuccess)
+  ) {
     return (
       <div
         ref={ref}

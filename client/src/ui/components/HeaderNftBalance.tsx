@@ -1,6 +1,7 @@
 import useAccountCustom from "@/hooks/useAccountCustom";
 import React from "react";
 import { useNftBalance } from "@/hooks/useNftBalance";
+import NftImage from "./ImageNFTZkube";
 
 const HeaderNftBalance = React.memo(() => {
   const { account } = useAccountCustom();
@@ -9,8 +10,8 @@ const HeaderNftBalance = React.memo(() => {
 
   if (account) {
     return (
-      <span className="text-xs font-semibold md:font-normal flex items-center">
-        {`${balance} Game${balance > 1 ? "s" : ""}`}
+      <span className="text-xs font-semibold md:font-normal flex items-center ">
+        {`${balance}`} <NftImage />
       </span>
     );
   }

@@ -25,7 +25,5 @@ export const useSettings = () => {
     return component ? new SettingsClass(component) : null;
   }, [component]);
 
-  //console.log("settings", settings);
-
   return { settings, settingsKey };
 };

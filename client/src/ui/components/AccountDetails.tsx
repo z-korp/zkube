@@ -41,7 +41,7 @@ const AccountDetails = () => {
           <div className="flex items-center gap-1 md:gap-2 rounded-lg bg-secondary text-secondary-foreground shadow-sm px-2 md:px-3 py-1 justify-between h-[36px] w-full">
             <div className="px-1">{username}</div>
             <p className="text-sm">
-              {shortAddress(account.address, isMdOrLarger ? 5 : 6)}
+              {shortAddress(account.address, isMdOrLarger ? 5 : 4)}
             </p>
           </div>
           <button

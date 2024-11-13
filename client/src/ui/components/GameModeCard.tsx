@@ -8,10 +8,8 @@ import {
   CardTitle,
 } from "../elements/card";
 import { ModeType } from "@/dojo/game/types/mode";
-import { usePlayer } from "@/hooks/usePlayer";
 import { useSettings } from "@/hooks/useSettings";
 import useTournament from "@/hooks/useTournament";
-import { ethers } from "ethers";
 import { Start } from "../actions/Start";
 import TournamentTimer from "./TournamentTimer";
 import {
@@ -20,8 +18,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../elements/tooltip";
-import useAccountCustom from "@/hooks/useAccountCustom";
 import { useMediaQuery } from "react-responsive";
+import { formatPrize } from "@/utils/price";
+import NftImage from "./ImageNFTZkube";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -34,8 +33,6 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
   mode,
   handleGameMode,
 }) => {
-  const { account } = useAccountCustom();
-  const { player } = usePlayer({ playerId: account?.address });
   const { settings } = useSettings();
 
   const { endTimestamp, tournament } = useTournament(mode);
@@ -43,20 +40,15 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   const potentialWin = useMemo(() => {
-    if (!tournament) return `0 ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`;
-    const rawEthPrize = ethers.utils.formatEther(tournament.prize);
-    const formattedPrize = parseFloat(rawEthPrize).toString();
-    return `${formattedPrize} ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`;
+    if (!tournament) return formatPrize(0n, VITE_PUBLIC_GAME_TOKEN_SYMBOL);
+    return formatPrize(tournament.prize, VITE_PUBLIC_GAME_TOKEN_SYMBOL);
   }, [tournament]);
 
   const cost = useMemo(() => {
-    if (!settings) return "";
-    const weiCost = settings.game_price; // 10 per game, hardcoded for now
-    const ethCost = ethers.utils.formatEther(weiCost);
-    const formattedCost =
-      parseFloat(ethCost) % 1 === 0 ? parseInt(ethCost).toString() : ethCost;
-    return `${formattedCost} ${VITE_PUBLIC_GAME_TOKEN_SYMBOL}`;
-  }, [player, settings, mode]);
+    if (!settings) return formatPrize(0n, VITE_PUBLIC_GAME_TOKEN_SYMBOL);
+    const weiCost = settings.game_price;
+    return formatPrize(weiCost, VITE_PUBLIC_GAME_TOKEN_SYMBOL);
+  }, [settings]);
 
   const difficultyRule = useMemo(() => {
     switch (mode) {
@@ -105,9 +97,19 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
           <Coins className="h-5 w-5 flex-shrink-0" />
           <div className="flex-grow flex justify-between items-center">
             <span className="font-semibold">Cost</span>
-            <span className="text-slate-300">
-              {mode === ModeType.Free ? "Free" : cost}
-            </span>
+            <div className="text-slate-300">
+              {mode === ModeType.Free ? (
+                "Free"
+              ) : (
+                <div className="flex items-center gap-3 -mr-1">
+                  {cost.withImage} <p>or</p>
+                  <div className="flex items-center gap-1">
+                    <p>1</p>
+                    <NftImage />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -146,7 +148,7 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
               <Trophy className="h-5 w-5 flex-shrink-0" />
               <div className="flex-grow flex justify-between items-center">
                 <span className="font-semibold">Prize Pool</span>
-                <span className="text-slate-300">{potentialWin}</span>
+                {potentialWin.withImage}
               </div>
             </div>
           </>

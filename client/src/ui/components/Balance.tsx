@@ -1,20 +1,16 @@
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import { erc20ABI } from "@/utils/erc20";
+import { symbolImages } from "@/utils/tokenImages";
 import { useReadContract } from "@starknet-react/core";
 import { useState, useEffect, useMemo } from "react";
 import { useMediaQuery } from "react-responsive";
 import { BlockTag } from "starknet";
-import LordsToken from "/assets/lords-token.png";
 
 interface BalanceProps {
   address: string;
   token_address: `0x${string}`;
   symbol?: string;
 }
-
-const symbolImages: { [key: string]: string } = {
-  LORDS: LordsToken,
-};
 
 const FixedWidthDigit: React.FC<{ value: string }> = ({ value }) =>
   value === "." ? (

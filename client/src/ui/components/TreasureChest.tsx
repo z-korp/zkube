@@ -8,9 +8,10 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { useChestContribution } from "@/hooks/useChestContribution";
 import ChestTimeline from "./ChestTimeline";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { formatPrize } from "@/utils/wei";
 import { useMediaQuery } from "react-responsive";
 import { DialogPrizePoolContributors } from "./DialogPrizePoolContributors";
+import { formatPrize } from "@/utils/price";
+import AnimatedChest from "./AnimatedChest";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -85,14 +86,18 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
             >
               <ChevronRight className="w-6 h-6" />
             </button>
-            <img
-              className={`self-center h-[180px] ${currentChest.points === 0 && "grayscale"}`}
-              src={currentChest.getIcon()}
+            <AnimatedChest
+              imageSrc={currentChest.getIcon()}
+              isGrayscale={currentChest.points === 0}
             />
             <div className="relative flex items-center justify-center gap-2 mt-4 w-full">
-              <p className="text-lg font-semibold text-center">
-                {`Total Prize: ${formatPrize(currentChest.prize, VITE_PUBLIC_GAME_TOKEN_SYMBOL)}`}
-              </p>
+              <div className="text-lg font-semibold text-center flex items-center gap-4">
+                <span className="text-2xl">Total Prize:</span>
+                {
+                  formatPrize(currentChest.prize, VITE_PUBLIC_GAME_TOKEN_SYMBOL)
+                    .withImage
+                }
+              </div>
               <div
                 className={`absolute transition-transform duration-300 hover:-translate-y-1 ${isMdOrLarger ? "right-20" : "right-0"}`}
               >
@@ -121,14 +126,20 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
 
           <div className="">
             <h3 className="text-lg font-semibold">Your Impact</h3>
-            <div className="text-sm text-center">
+            <div className="text-sm text-center flex flex-col justify-center">
               <p>
                 {`You've contributed ${userContribution.toLocaleString()} points`}
               </p>
-              <p>
+              <p className="mt-2">
                 {`That's ${userParticipationPercentage.toFixed(2)}% of the total effort!`}
               </p>
-              <p>{`Potential reward: ${formatPrize(userPrizeShare, VITE_PUBLIC_GAME_TOKEN_SYMBOL)}`}</p>
+              <div className="flex gap-2 mx-auto items-center">
+                <p>Potential reward:</p>
+                {
+                  formatPrize(userPrizeShare, VITE_PUBLIC_GAME_TOKEN_SYMBOL)
+                    .withImage
+                }
+              </div>
             </div>
           </div>
 
