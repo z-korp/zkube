@@ -65,7 +65,10 @@ export const transformDataContractIntoBlock = (grid: number[][]): Block[] => {
       if (currentValue > 0) {
         // La largeur est définie par la valeur
         blocks.push({
-          id: Math.floor(Math.random() * 1000000) + Date.now(),
+          id: Number(
+            Math.floor(Math.random() * 1000000).toString() +
+              Date.now().toString(),
+          ),
           x,
           y,
           width: currentValue,
