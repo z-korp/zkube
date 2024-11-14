@@ -1,10 +1,9 @@
 import { useDojo } from "@/dojo/useDojo";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
 import { Entity } from "@dojoengine/recs";
 import useDeepMemo from "./useDeepMemo";
-import { consoleTSLog } from "@/utils/logger";
 
 export const useGame = ({
   gameId,

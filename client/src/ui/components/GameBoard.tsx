@@ -1,11 +1,4 @@
-import React, {
-  useState,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useLayoutEffect,
-} from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
 import { GameBonus } from "../containers/GameBonus";
@@ -195,9 +188,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
   useEffect(() => {
     // Reset the isTxProcessing state and the bonus state when the grid changes
     // meaning the tx as been processed, and the client state updated
+    consoleTSLog("success", "Game board is trigger");
     setBonus(BonusType.None);
     setBonusDescription("");
   }, [initialGrid]);
+
+  consoleTSLog("info", "Rendering GameBoard component");
 
   const memoizedInitialData = useMemo(() => {
     consoleTSLog("success", "Transforming data in gameboard");
