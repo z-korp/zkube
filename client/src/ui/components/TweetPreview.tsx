@@ -35,9 +35,9 @@ export const TweetPreview: React.FC<TweetPreviewProps> = ({
 
   useEffect(() => {
     setTweetMsg(
-      `🎮 Just crushed it on ZKUBE with a score of ${score}! Ranked ${rank}${suffix} 💥
+      `🎮 Just crushed it on zKube with a score of ${score}! Ranked ${rank}${suffix} 💥
 Can you beat that? 😎
-Ready to level up! Who's joining the challenge? 🚀
+Ready to lvl up! Who's joining the challenge? 🚀
 Play now: app.zkube.xyz
 @zkorp_ @zkube_game`,
     );

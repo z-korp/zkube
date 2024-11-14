@@ -42,8 +42,6 @@ const MobileHeader = () => {
     setIsOpen(false);
   };
 
-  const isMediumOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
-
   return (
     <div className="px-3 py-2 flex gap-3">
       <Drawer direction="left">

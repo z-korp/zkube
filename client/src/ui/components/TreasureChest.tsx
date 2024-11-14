@@ -74,14 +74,14 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
           <div className="text-center flex flex-col relative">
             <button
               onClick={handlePrevious}
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 transition-transform duration-300 ease-in-out hover:scale-150 rounded-full p-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute z-50 left-2 top-1/2 transform -translate-y-1/2 transition-transform duration-300 ease-in-out hover:scale-150 rounded-full p-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={currentChestIndex === 0}
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
             <button
               onClick={handleNext}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 transition-transform duration-300 ease-in-out hover:scale-150 rounded-full p-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute z-50 right-2 top-1/2 transform -translate-y-1/2 transition-transform duration-300 ease-in-out hover:scale-150 rounded-full p-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={currentChestIndex === chests.length - 1}
             >
               <ChevronRight className="w-6 h-6" />
