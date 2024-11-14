@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { Account } from "starknet";
 import { useDojo } from "@/dojo/useDojo";
 import BlockContainer from "./Block";
@@ -26,6 +32,7 @@ import { useMusicPlayer } from "@/contexts/hooks";
 
 import "../../grid.css";
 import { consoleTSLog } from "@/utils/logger";
+import useDragHandlers from "@/hooks/useDragHandlers";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -121,6 +128,7 @@ const Grid: React.FC<GridProps> = ({
         return;
       }
       if (moveTxAwaitDone) {
+        consoleTSLog("success", "Applying data to grid");
         setSaveGridStateblocks(initialData);
         setBlocks(initialData);
         setNextLine(nextLineData);
@@ -255,14 +263,7 @@ const Grid: React.FC<GridProps> = ({
     handleDragStart(touch.clientX, block);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    handleDragMove(e.clientX, MoveType.MOUSE);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    handleDragMove(touch.clientX, MoveType.TOUCH);
-  };
+  const { handleMouseMove, handleTouchMove } = useDragHandlers(handleDragMove);
 
   const endDrag = () => {
     if (!dragging) return;

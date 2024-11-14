@@ -40,6 +40,7 @@ import useViewport from "@/hooks/useViewport";
 import { TweetPreview } from "../components/TweetPreview";
 import { Schema } from "@dojoengine/recs";
 import { useGrid } from "@/hooks/useGrid";
+import { consoleTSLog } from "@/utils/logger";
 
 export const Home = () => {
   const {
@@ -146,6 +147,10 @@ export const Home = () => {
     // Update the ref with the current value of game.over
     prevGameOverRef.current = game?.over;
   }, [game?.over]);
+
+  useEffect(() => {
+    consoleTSLog("danger", "=============== Grid is changing ===============");
+  }, [grid]);
 
   /*useEffect(() => {
     console.log("==================> Grid is changing");

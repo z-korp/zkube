@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
+  useLayoutEffect,
 } from "react";
 import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
@@ -24,6 +25,7 @@ import { Game } from "@/dojo/game/models/game";
 import useRank from "@/hooks/useRank";
 
 import "../../grid.css";
+import { consoleTSLog } from "@/utils/logger";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -79,6 +81,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     setOptimisticScore(score);
     setOptimisticCombo(combo);
     setOptimisticMaxCombo(maxCombo);
+    consoleTSLog("info", "Initial grid changed in GameBoard");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGrid]);
 
@@ -197,6 +200,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   }, [initialGrid]);
 
   const memoizedInitialData = useMemo(() => {
+    consoleTSLog("success", "Transforming data in gameboard");
     return transformDataContractIntoBlock(initialGrid);
   }, [initialGrid]);
 

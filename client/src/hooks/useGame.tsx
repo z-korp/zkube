@@ -31,9 +31,5 @@ export const useGame = ({
     return component ? new GameClass(component) : null;
   }, [component]);
 
-  useEffect(() => {
-    consoleTSLog("danger", "Game grid changed", game?.blocks);
-  }, [game?.blocks]);
-
   return { game, gameKey };
 };

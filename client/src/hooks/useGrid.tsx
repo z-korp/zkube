@@ -37,7 +37,6 @@ export const useGrid = ({
       return;
     }
     if (game && memoizedBlocks.length > 0) {
-      consoleTSLog(memoizedBlocks, "Grid updated");
       if (shouldLog) {
         const num = game.blocksRaw;
         const binaryString = num.toString(2);
@@ -52,7 +51,7 @@ export const useGrid = ({
           blocks: memoizedBlocks,
         };
 
-        //console.log("Grid updated:", debugData);
+        console.log("Grid updated:", debugData);
       }
 
       // Mettre à jour `blocks` et `blocksRef` simultanément
