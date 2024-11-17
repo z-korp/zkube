@@ -19,7 +19,7 @@ interface BlockProps {
   onTransitionBlockStart?: () => void;
   onTransitionBlockEnd?: () => void;
   isHighlighted?: boolean;
-  highlightType?: 'block' | 'row';
+  highlightType?: "block" | "row";
   isClickable?: boolean; // If the block or row is clickable
 }
 
@@ -34,7 +34,7 @@ const BlockContainer: React.FC<BlockProps> = ({
   onTransitionBlockStart = () => {},
   onTransitionBlockEnd = () => {},
   isHighlighted,
-  highlightType = 'block',
+  highlightType = "block",
   isClickable,
 }) => {
   const [transitionStatus, setTransition] = useState("End");
@@ -59,24 +59,25 @@ const BlockContainer: React.FC<BlockProps> = ({
   const handleTransitionEnd = () => {
     console.log("Transition ended for block", block);
     setTransition("End");
-    onTransitionBlockEnd(); 
+    onTransitionBlockEnd();
   };
 
   // Determine the CSS class based on highlight status
   const highlightClass = isHighlighted
-    ? highlightType === 'row'
-      ? 'ring-2 ring-yellow-400 ring-opacity-50' // Subtle row highlight
-      : 'ring-4 ring-yellow-400 animate-pulse'   // Prominent block highlight
-    : '';
+    ? highlightType === "row"
+      ? "ring-2 ring-yellow-400 ring-opacity-50" // Subtle row highlight
+      : "ring-4 ring-yellow-400 animate-pulse" // Prominent block highlight
+    : "";
 
   // Only make the block clickable if it's highlighted
   const isBlockClickable = isHighlighted && isClickable;
 
   return (
     <div
-      className={`block block-${block.width} ${isTxProcessing ? "cursor-wait" : ""} ${highlightClass} ${isBlockClickable ? 'cursor-pointer' : ''}`}
+      className={`block block-${block.width} ${isTxProcessing ? "cursor-wait" : ""} ${highlightClass} ${isBlockClickable ? "cursor-pointer" : ""}`}
       ref={ref}
       style={{
+        zIndex: isHighlighted ? 999 : "auto",
         position: "absolute",
         top: `${block.y * gridSize + 1}px`,
         left: `${block.x * gridSize + 1}px`,
