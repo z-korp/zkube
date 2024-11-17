@@ -19,3 +19,21 @@ default = "zkube"
 rpc_url = "https://api.cartridge.gg/x/zkorp-playground/katana"
 account_address = "0xb125fc0090fdc75c5b8a5145c8e7eaa99725a764e386954eafee9eff80d8f1"
 private_key = "0x1c50d6dbcb52ebd5cb02ec5128fe68b7bdf8f958763080fb310c2d5ead632a4"
+
+[init_call_args]
+"zkube-chest" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
+"zkube-settings" = ["0x0", "0x0"]
+"zkube-tournament" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
+"zkube-zkorp" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
+
+[writers]
+"zkube-Admin" = ["zkube-settings"]
+"zkube-Chest" = ["zkube-chest", "zkube-play"]
+"zkube-Game" = ["zkube-play"]
+"zkube-Mint" = ["zkube-minter"]
+"zkube-Participation" = ["zkube-chest", "zkube-play"]
+"zkube-Player" = ["zkube-account", "zkube-play"]
+"zkube-Settings" = ["zkube-minter", "zkube-settings"]
+"zkube-Tournament" = ["zkube-play", "zkube-tournament"]
+"zkube-TrophyCreation" = ["zkube-settings"]
+"zkube-TrophyProgression" = ["zkube-play"]

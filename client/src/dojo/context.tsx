@@ -8,7 +8,7 @@ interface DojoContextType extends SetupResult {
   master: Account;
 }
 
-export const DojoContext = createContext<DojoContextType | null>(null);
+export const DojoContext = createContext<SetupResult | null>(null);
 
 export const DojoProvider = ({
   children,
@@ -20,12 +20,12 @@ export const DojoProvider = ({
   const currentValue = useContext(DojoContext);
   if (currentValue) throw new Error("DojoProvider can only be used once");
 
-  const {
+  /*const {
     config: { rpcUrl, masterAddress, masterPrivateKey },
-    burnerManager,
+    //burnerManager,
   } = value;
 
-  const rpcProvider = useMemo(
+  /*const rpcProvider = useMemo(
     () =>
       new RpcProvider({
         nodeUrl: rpcUrl,
@@ -33,49 +33,22 @@ export const DojoProvider = ({
     [rpcUrl],
   );
 
-  const masterAccount = useMemo(
+  /*const masterAccount = useMemo(
     () => new Account(rpcProvider, masterAddress, masterPrivateKey),
     [rpcProvider, masterAddress, masterPrivateKey],
-  );
+  );*/
 
-  const {
-    create,
-    list,
-    get,
-    account,
-    select,
-    deselect,
-    remove,
-    isDeploying,
-    clear,
-    count,
-    copyToClipboard,
-    applyFromClipboard,
-    checkIsDeployed,
-  } = useBurnerManager({
-    burnerManager,
-  });
+  //const burnerManagerData = useBurnerManager({ burnerManager });
 
   return (
     <DojoContext.Provider
       value={{
         ...value,
-        account: {
-          create,
-          list,
-          get,
-          select,
-          deselect,
-          remove,
-          clear,
-          count,
-          account: account ? account : masterAccount,
-          isDeploying,
-          copyToClipboard,
-          applyFromClipboard,
-          checkIsDeployed,
+        /*account: {
+          ...burnerManagerData,
+          account: burnerManagerData.account || masterAccount,
         },
-        master: masterAccount,
+        master: masterAccount,*/
       }}
     >
       {children}

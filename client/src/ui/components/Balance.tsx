@@ -1,20 +1,15 @@
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import { erc20ABI } from "@/utils/erc20";
-import { useContractRead } from "@starknet-react/core";
+import { symbolImages } from "@/utils/tokenImages";
+import { useReadContract } from "@starknet-react/core";
 import { useState, useEffect, useMemo } from "react";
 import { useMediaQuery } from "react-responsive";
 import { BlockTag } from "starknet";
 
 interface BalanceProps {
   address: string;
-  token_address: string;
+  token_address: `0x${string}`;
   symbol?: string;
-}
-
-interface BalanceData {
-  balance: {
-    low: bigint;
-  };
 }
 
 const FixedWidthDigit: React.FC<{ value: string }> = ({ value }) =>
@@ -28,24 +23,22 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
   const [targetBalance, setTargetBalance] = useState<number | undefined>(
     undefined,
-  );
+  ); // don't change this to 0, it will cause a flicker
 
   // useBalance doesn't work on Katana, don't know why
-  const { data, isError, isLoading, error } = useContractRead({
+  const { data, isError, isLoading, error } = useReadContract({
     functionName: "balanceOf",
     args: [address as string],
     abi: erc20ABI,
     address: token_address,
     watch: true,
     blockIdentifier: BlockTag.PENDING,
-    refetchInterval: 500,
+    refetchInterval: 2000,
   });
-
   useEffect(() => {
     if (data !== undefined) {
-      const balanceData = data as BalanceData;
       const formattedBalance = parseFloat(
-        formatUnits(balanceData.balance.low, 18, symbol === "ETH" ? 6 : 2),
+        formatUnits(data as bigint, 18, symbol === "ETH" ? 6 : 2),
       );
 
       setTargetBalance(formattedBalance);
@@ -67,9 +60,28 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
     }
   }, [isError, error]);
 
-  if (isLoading) return <div>Loading ...</div>;
-  if (isError || !data) return <div></div>;
-  if (displayBalance == undefined) return <div></div>;
+  const symbolImage = symbolImages[symbol];
+
+  if (isError || !data) {
+    return (
+      <div className="text-xs font-semibold md:font-normal flex items-center bg-secondary">
+        0
+        {symbolImage ? (
+          <img src={symbolImage} alt={symbol} className="ml-1 h-8 w-8" />
+        ) : (
+          <span className="ml-1">{symbol}</span>
+        )}
+      </div>
+    );
+  }
+
+  if (displayBalance == undefined) {
+    return (
+      <div className="min-w-[100px] min-h-[20px] bg-secondary">
+        Calculating...
+      </div>
+    );
+  }
 
   // Format the balance string
   const balanceString = displayBalance
@@ -85,23 +97,20 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
   const balanceChars = balanceString.split("");
 
   return (
-    <div className="text-xs font-semibold md:font-normal flex items-center">
+    <div className="text-xs font-semibold md:font-normal flex items-center bg-secondary">
       {balanceChars.map((char, index) => (
         <FixedWidthDigit key={index} value={char} />
       ))}{" "}
-      <span className="ml-1">{symbol}</span>
+      {symbolImage ? (
+        <img src={symbolImage} alt={symbol} className="ml-2 h-8 w-8" />
+      ) : (
+        <span className="ml-1">{symbol}</span>
+      )}
     </div>
   );
 };
 
 export default Balance;
-
-/*
-MIT License
-
-[Include the license text here as needed]
-
-*/
 
 function formatUnits(
   value: bigint,
@@ -115,11 +124,14 @@ function formatUnits(
 
   display = display.padStart(decimals, "0");
 
-  const integer = display.slice(0, display.length - decimals)
+  const integer = display.slice(0, display.length - decimals);
 
   // Trim the fraction to the desired number of decimal places
   // And remove trailing zeros
-  const fraction = display.slice(display.length - decimals).slice(0, displayDecimals).replace(/(0+)$/, "");
+  const fraction = display
+    .slice(display.length - decimals)
+    .slice(0, displayDecimals)
+    .replace(/(0+)$/, "");
 
   return `${negative ? "-" : ""}${integer || "0"}${
     fraction ? `.${fraction}` : ""

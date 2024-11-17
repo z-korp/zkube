@@ -70,19 +70,31 @@ const Grid: React.FC<GridProps> = ({
 
   const borderSize = 2;
   const gravitySpeed = 100;
-  const transitionDuration = 200;
+  const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
+  const [moveTxAwaitDone, setMoveTxAwaitDone] = useState(true);
 
   useEffect(() => {
-    setBlocks(initialData);
+    if (applyData) {
+      if (deepCompareBlocks(saveGridStateblocks, initialData)) {
+        return;
+      }
+      if (moveTxAwaitDone) {
+        setSaveGridStateblocks(initialData);
+        setBlocks(initialData);
+        setNextLine(nextLineData);
 
-    const inDanger = initialData.some((block) => block.y < 2);
-    setIsPlayerInDanger(inDanger);
-    if (lineExplodedCount > 1) {
-      setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
+        const inDanger = initialData.some((block) => block.y < 2);
+        setIsPlayerInDanger(inDanger);
+        setLineExplodedCount(0);
+        setNextLineHasBeenConsumed(false);
+
+        setApplyData(false);
+        setIsTxProcessing(false);
+        setMoveTxAwaitDone(false);
+      }
     }
-    setLineExplodedCount(0);
-    setIsTxProcessing(false);
-  }, [initialData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [applyData, initialData, moveTxAwaitDone]);
 
   const resetAnimateText = (): void => {
     setAnimateText(ComboMessages.None);
@@ -250,6 +262,11 @@ const Grid: React.FC<GridProps> = ({
         );
       } catch (error) {
         console.error("Erreur lors de l'envoi de la transaction", error);
+        setMoveTxAwaitDone(true);
+        isProcessingRef.current = false; // Reset the ref
+      } finally {
+        isProcessingRef.current = false; // Reset the ref
+        setMoveTxAwaitDone(true);
       }
     },
     [account, isMoving, gridHeight, move],
@@ -403,8 +420,39 @@ const Grid: React.FC<GridProps> = ({
   }, [gameState, blocks]);
 
   useEffect(() => {
-    if (gameState === GameState.ADD_LINE && pendingMove) {
-      const { rowIndex, startX, finalX } = pendingMove;
+    // we calculate points and combo for optimistic rendering
+    // ans we display text
+    if (gameState === GameState.BONUS_TX || gameState === GameState.MOVE_TX) {
+      // Calculate combo
+      const current_combo = lineExplodedCount > 1 ? lineExplodedCount : 0;
+
+      // Calculate points earned for this combo
+      const pointsEarned = (lineExplodedCount * (lineExplodedCount + 1)) / 2;
+      setOptimisticScore((prevPoints) => prevPoints + pointsEarned);
+
+      setOptimisticCombo((prevCombo) => prevCombo + current_combo);
+
+      // Update max combo if necessary
+      setOptimisticMaxCombo((prevMaxCombo) =>
+        current_combo > prevMaxCombo ? current_combo : prevMaxCombo,
+      );
+
+      if (lineExplodedCount > 1) {
+        setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
+      }
+
+      setMoveTxAwaitDone(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState]);
+
+  useEffect(() => {
+    if (
+      gameState === GameState.ADD_LINE &&
+      pendingMove &&
+      transitioningBlocks.length === 0
+    ) {
+      const { startX, finalX } = pendingMove;
       if (startX !== finalX) {
         const updatedBlocks = concatenateAndShiftBlocks(
           blocks,

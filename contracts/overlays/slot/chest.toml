@@ -1,8 +1,0 @@
-tag = "zkube-chest"
-writes = [
-    "zkube-Chest",
-    "zkube-Participation",
-]
-init_calldata = [
-    "0x0730b8077dc0db1ac0138b2474a85b70b833a3ad6318059f60671ebb09195e67",
-]

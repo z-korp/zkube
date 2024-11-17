@@ -198,3 +198,12 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background-color: #555;
 }
+
+/* Prevent pointer events on the controller when the dialog is open */
+body[style*="pointer-events: none"] #controller {
+  pointer-events: auto !important;
+}
+
+body[style*="pointer-events: none"] #controller * {
+  pointer-events: auto !important;
+}

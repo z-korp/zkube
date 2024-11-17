@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { useGame } from "@/hooks/useGame"; // Assurez-vous d'utiliser le bon chemin
-import {
-  deepCompareNumberArrays,
-  formatBigIntToBinaryArrayCustom,
-} from "@/utils/gridUtils";
+import { useEffect, useState, useRef } from "react";
+import { useGame } from "@/hooks/useGame";
+import { formatBigIntToBinaryArrayCustom } from "@/utils/gridUtils";
+import useDeepMemo from "./useDeepMemo";
 
 interface DebugData {
   blocksRaw: bigint;
@@ -20,47 +18,47 @@ export const useGrid = ({
   gameId: string | undefined;
   shouldLog: boolean;
 }) => {
-  // Utiliser useGame pour récupérer game et gameKey
   const { game } = useGame({ gameId, shouldLog });
 
-  // Utiliser un ref pour garder les blocks précédents
-  const prevBlocksRef = useRef<number[][] | null>(null);
+  // État pour la grille de blocs
   const [blocks, setBlocks] = useState<number[][]>([]);
 
-  // Utiliser useEffect pour gérer le log quand la grille change
+  // Ref pour garder les blocs les plus récents
+  const blocksRef = useRef<number[][]>(blocks);
+
+  // Mémoriser en profondeur les changements dans les blocs du jeu
+  const memoizedBlocks = useDeepMemo(() => game?.blocks ?? [], [game?.blocks]);
+
   useEffect(() => {
-    console.log("[useGrid] useEffect");
-    if (game?.blocks) {
-      console.log("[useGrid] game?.blocks", game?.blocks);
-      console.log("[useGrid] prevBlocksRef.current", prevBlocksRef.current);
-      // Vérifier si la grille a changé
-      if (!deepCompareNumberArrays(game.blocks, prevBlocksRef.current)) {
-        console.log("[useGrid] deepCompareNumberArrays");
-        // Si shouldLog est true, on log les données
-        if (shouldLog) {
-          const num = game.blocksRaw;
-          const binaryString = num.toString(2);
-          const [formattedRows, formattedRowsContractOrder] =
-            formatBigIntToBinaryArrayCustom(num);
-
-          const debugData: DebugData = {
-            blocksRaw: num,
-            blocksRawBinary: binaryString,
-            blocksRawFormatted: formattedRows,
-            blocksRawFormattedContractOrder: formattedRowsContractOrder,
-            blocks: game.blocks,
-          };
-
-          console.log("Grid updated:", debugData);
-        }
-
-        // Mettre à jour la référence des blocs précédents
-        prevBlocksRef.current = game.blocks;
-        setBlocks(game.blocks);
-      }
+    if (game?.isOver()) {
+      setBlocks([]);
+      blocksRef.current = [];
+      return;
     }
-  }, [game?.blocks, game?.blocksRaw, shouldLog]);
+    if (game && memoizedBlocks.length > 0) {
+      if (shouldLog) {
+        const num = game.blocksRaw;
+        const binaryString = num.toString(2);
+        const [formattedRows, formattedRowsContractOrder] =
+          formatBigIntToBinaryArrayCustom(num);
 
-  // Retourner la grille
-  return blocks;
+        const debugData: DebugData = {
+          blocksRaw: num,
+          blocksRawBinary: binaryString,
+          blocksRawFormatted: formattedRows,
+          blocksRawFormattedContractOrder: formattedRowsContractOrder,
+          blocks: memoizedBlocks,
+        };
+
+        console.log("Grid updated:", debugData);
+      }
+
+      // Mettre à jour `blocks` et `blocksRef` simultanément
+      setBlocks(memoizedBlocks);
+      blocksRef.current = memoizedBlocks; // synchroniser la ref
+    }
+  }, [memoizedBlocks, game, shouldLog]);
+
+  // Retourner la ref actuelle pour garantir la synchronisation immédiate
+  return blocksRef.current;
 };

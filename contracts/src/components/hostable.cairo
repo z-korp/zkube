@@ -10,11 +10,15 @@ mod HostableComponent {
 
     use starknet::ContractAddress;
     use starknet::info::{get_contract_address, get_caller_address, get_block_timestamp};
+    use starknet::storage::{Map};
 
     // Dojo imports
 
-    use dojo::world;
-    use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait, IWorldProvider};
+    use dojo::world::{WorldStorage, IWorldDispatcherTrait};
+
+    // External imports
+
+    use bushido_trophy::store::{Store as BushidoStore, StoreTrait as BushidoStoreTrait};
 
     // Internal imports
 
@@ -25,6 +29,7 @@ mod HostableComponent {
     use zkube::models::game::{Game, GameImpl, GameAssert};
     use zkube::models::player::{Player, PlayerTrait, PlayerAssert};
     use zkube::types::mode::{Mode, ModeTrait};
+    use zkube::types::task::{Task, TaskTrait};
     use zkube::models::game::GameTrait;
     use zkube::models::tournament::{TournamentImpl, TournamentAssert};
 
@@ -44,7 +49,7 @@ mod HostableComponent {
 
     #[storage]
     struct Storage {
-        seeds: LegacyMap::<felt252, bool>,
+        seeds: Map::<felt252, bool>,
     }
 
     // Events
@@ -59,12 +64,12 @@ mod HostableComponent {
     > of InternalTrait<TContractState> {
         fn _create(
             self: @ComponentState<TContractState>,
-            world: IWorldDispatcher,
+            mut world: WorldStorage,
             proof: Proof,
             seed: felt252,
             beta: felt252,
             mode: Mode,
-            was_free: bool,
+            price: u256,
         ) -> (u32, u64, u128, u128, u128, u128) {
             // [Setup] Datastore
             let store: Store = StoreTrait::new(world);
@@ -94,7 +99,7 @@ mod HostableComponent {
             game.assert_is_over();
 
             // [Effect] Create game
-            let game_id: u32 = world.uuid() + 1;
+            let game_id: u32 = world.dispatcher.uuid() + 1;
             let time = get_block_timestamp();
             let mut game = GameTrait::new(game_id, player.id, beta, mode: mode.into(), time: time,);
 
@@ -117,50 +122,47 @@ mod HostableComponent {
             player.game_id = game_id;
             store.set_player(player);
 
-            if (was_free) {
-                // [Return] Game ID and amounts to pay
-                (game_id, 0, 0, 0, 0, 0)
-            } else {
-                // [Effect] Compute prices
+            // [Effect] Compute prices
 
-                // Price shared between parties
-                let settings = store.settings();
-                let price = mode.price(settings);
+            // Apply PRECISION_FACTOR to price at the beginning
+            let precise_price: u256 = price * PRECISION_FACTOR.into();
 
-                // Apply PRECISION_FACTOR to price at the beginning
-                let precise_price: u256 = price.into() * PRECISION_FACTOR.into();
+            // Tournament
+            let tournament_amount: u256 = (precise_price * TOURNAMENT_PERCENTAGE.into()) / 100;
 
-                // Tournament
-                let tournament_amount: u256 = (precise_price * TOURNAMENT_PERCENTAGE.into()) / 100;
+            // Chest
+            let chest_amount: u256 = (precise_price * CHEST_PERCENTAGE.into()) / 100;
+            let mut game = store.game(game_id);
+            game.pending_chest_prize = (chest_amount / PRECISION_FACTOR.into()).try_into().unwrap();
+            store.set_game(game);
 
-                // Chest
-                let chest_amount: u256 = (precise_price * CHEST_PERCENTAGE.into()) / 100;
-                let mut game = store.game(game_id);
-                game
-                    .pending_chest_prize = (chest_amount / PRECISION_FACTOR.into())
-                    .try_into()
-                    .unwrap();
-                store.set_game(game);
+            // Referrer
+            let referrer_amount: u256 = (precise_price * REFERRER_PERCENTAGE.into()) / 100;
 
-                // Referrer
-                let referrer_amount: u256 = (precise_price * REFERRER_PERCENTAGE.into()) / 100;
+            // zKorp
+            let zkorp_amount: u256 = precise_price
+                - tournament_amount
+                - chest_amount
+                - referrer_amount;
 
-                // zKorp
-                let zkorp_amount: u256 = precise_price
-                    - tournament_amount
-                    - chest_amount
-                    - referrer_amount;
-
-                // [Return] Game ID and amounts to pay
-                (
-                    game_id,
-                    tournament_id,
-                    (tournament_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
-                    (chest_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
-                    (referrer_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
-                    (zkorp_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
-                )
+            // [Trophy] Update progression, can manage the mode here to target specific game modes
+            if mode != Mode::None {
+                let player_id = player.id;
+                let task_id = Task::Playing.identifier(0);
+                let count = 1;
+                let store = BushidoStoreTrait::new(world);
+                store.progress(player_id, task_id, count, time);
             }
+
+            // [Return] Game ID and amounts to pay
+            (
+                game_id,
+                tournament_id,
+                (tournament_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
+                (chest_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
+                (referrer_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
+                (zkorp_amount / PRECISION_FACTOR.into()).try_into().unwrap(),
+            )
         }
     }
 }

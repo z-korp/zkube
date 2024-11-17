@@ -14,11 +14,11 @@ mod PlayableComponent {
 
     // Dojo imports
 
-    use dojo::world::IWorldDispatcher;
-    use dojo::world::IWorldDispatcherTrait;
+    use dojo::world::WorldStorage;
 
     // External imports
 
+    use bushido_trophy::store::{Store as BushidoStore, StoreTrait as BushidoStoreTrait};
     use stark_vrf::ecvrf::{Proof, Point, ECVRFTrait};
 
     // Internal imports
@@ -36,6 +36,9 @@ mod PlayableComponent {
     use zkube::models::participation::{Participation, ParticipationTrait, ZeroableParticipation};
     use zkube::helpers::math::Math;
     use zkube::types::mode::ModeTrait;
+    use zkube::types::task::{Task, TaskTrait};
+    use zkube::types::trophy::{Trophy, TrophyTrait};
+    use zkube::types::level::LevelTrait;
 
 
     // Storage
@@ -53,7 +56,7 @@ mod PlayableComponent {
     impl InternalImpl<
         TContractState, +HasComponent<TContractState>
     > of InternalTrait<TContractState> {
-        fn _surrender(self: @ComponentState<TContractState>, world: IWorldDispatcher) {
+        fn _surrender(self: @ComponentState<TContractState>, mut world: WorldStorage) {
             // [Setup] Datastore
             let store: Store = StoreTrait::new(world);
 
@@ -80,7 +83,7 @@ mod PlayableComponent {
 
         fn _move(
             self: @ComponentState<TContractState>,
-            world: IWorldDispatcher,
+            mut world: WorldStorage,
             row_index: u8,
             start_index: u8,
             final_index: u8,
@@ -100,7 +103,7 @@ mod PlayableComponent {
             let previous_score = game.score;
 
             // [Effect] Perform move
-            game.move(row_index, start_index, final_index);
+            let line_count = game.move(row_index, start_index, final_index);
 
             // [Effect] Update tournament points
             if (game.score > previous_score) {
@@ -114,11 +117,21 @@ mod PlayableComponent {
             if game.over {
                 self._handle_game_over(world, store, game, player);
             }
+
+            // [Trophy] Update Breaking task progression
+            let value = line_count.into();
+            if Trophy::BreakIn.assess(value) {
+                let level = Trophy::LineDestroyer.level();
+                let task_id = Task::Breaking.identifier(level);
+                let time = get_block_timestamp();
+                let store = BushidoStoreTrait::new(world);
+                store.progress(player.id, task_id, value, time);
+            }
         }
 
         fn _apply_bonus(
             self: @ComponentState<TContractState>,
-            world: IWorldDispatcher,
+            mut world: WorldStorage,
             bonus: Bonus,
             row_index: u8,
             index: u8,
@@ -154,7 +167,7 @@ mod PlayableComponent {
 
         fn _handle_score_for_tournament(
             self: @ComponentState<TContractState>,
-            world: IWorldDispatcher,
+            mut world: WorldStorage,
             store: Store,
             player: Player,
             ref game: Game,
@@ -175,7 +188,7 @@ mod PlayableComponent {
 
         fn _handle_game_over(
             self: @ComponentState<TContractState>,
-            world: IWorldDispatcher,
+            mut world: WorldStorage,
             store: Store,
             game: Game,
             mut player: Player,
@@ -187,8 +200,7 @@ mod PlayableComponent {
             player.update_daily_streak(current_timestamp);
 
             let mode: Mode = game.mode.into();
-            let settings = store.settings();
-            let mode_multiplier = mode.get_multiplier(settings);
+            let mode_multiplier = mode.get_multiplier();
 
             let final_points = player
                 .update_points(base_points, mode_multiplier, current_timestamp);
@@ -230,6 +242,81 @@ mod PlayableComponent {
                 }
                 i += 1;
             };
+
+            // [Trophy] Update Mastering tasks progression
+            let value = game.combo_counter.into();
+            let time = get_block_timestamp();
+            let store = BushidoStoreTrait::new(world);
+            if Trophy::ComboInitiator.assess(value) {
+                let level = Trophy::ComboInitiator.level();
+                let task_id = Task::Mastering.identifier(level);
+                store.progress(player.id, task_id, 1, time);
+            }
+            if Trophy::ComboExpert.assess(value) {
+                let level = Trophy::ComboExpert.level();
+                let task_id = Task::Mastering.identifier(level);
+                store.progress(player.id, task_id, 1, time);
+            }
+            if Trophy::ComboMaster.assess(value) {
+                let level = Trophy::ComboMaster.level();
+                let task_id = Task::Mastering.identifier(level);
+                store.progress(player.id, task_id, 1, time);
+            }
+
+            // [Trophy] Update Chaining tasks progression
+            let value = game.max_combo.into();
+            if Trophy::TripleThreat.assess(value) {
+                let level = Trophy::TripleThreat.level();
+                let task_id = Task::Chaining.identifier(level);
+                store.progress(player.id, task_id, 1, time);
+            }
+            if Trophy::SixShooter.assess(value) {
+                let level = Trophy::SixShooter.level();
+                let task_id = Task::Chaining.identifier(level);
+                store.progress(player.id, task_id, 1, time);
+            }
+            if Trophy::NineLives.assess(value) {
+                let level = Trophy::NineLives.level();
+                let task_id = Task::Chaining.identifier(level);
+                store.progress(player.id, task_id, 1, time);
+            }
+
+            // [Trophy] Update Streaking tasks progression
+            let value = player.daily_streak.into();
+            if Trophy::StreakStarter.assess(value) {
+                let level = Trophy::StreakStarter.level();
+                let task_id = Task::Streaking.identifier(level);
+                store.progress(player.id, task_id, 1, time);
+            }
+            if Trophy::StreakAchiever.assess(value) {
+                let level = Trophy::StreakAchiever.level();
+                let task_id = Task::Streaking.identifier(level);
+                store.progress(player.id, task_id, 1, time);
+            }
+            if Trophy::StreakChampion.assess(value) {
+                let level = Trophy::StreakChampion.level();
+                let task_id = Task::Streaking.identifier(level);
+                store.progress(player.id, task_id, 1, time);
+            }
+
+            // [Trophy] Update Leveling tasks progression
+            let player_level: u8 = LevelTrait::from_points(player.points).into();
+            let value = player_level.into();
+            if Trophy::BeginnersLuck.assess(value) {
+                let level = Trophy::BeginnersLuck.level();
+                let task_id = Task::Leveling.identifier(level);
+                store.progress(player.id, task_id, 1, time);
+            }
+            if Trophy::ClimbingHigh.assess(value) {
+                let level = Trophy::ClimbingHigh.level();
+                let task_id = Task::Leveling.identifier(level);
+                store.progress(player.id, task_id, 1, time);
+            }
+            if Trophy::SkyIsTheLimit.assess(value) {
+                let level = Trophy::SkyIsTheLimit.level();
+                let task_id = Task::Leveling.identifier(level);
+                store.progress(player.id, task_id, 1, time);
+            }
         }
     }
 }

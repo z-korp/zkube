@@ -57,6 +57,8 @@ export const Home = () => {
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
 
+  //const { tokenId } = useFirstNft(account?.address || "");
+
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
     shouldLog: true,
@@ -246,19 +248,21 @@ export const Home = () => {
       <Start mode={ModeType.Free} handleGameMode={handlePlay} />
 
       <Button
+        variant={"brutal"}
         onClick={handleTournaments}
         className="w-full bg-primary text-secondary text-lg py-6 border-4 shadow-lg  bg-sky-200 font-sans rounded-none"
       >
         <p>Tournaments</p>
       </Button>
       <Button
+        variant={"brutal"}
         onClick={() => setChestIsOpen(true)}
         className="w-full bg-primary text-secondary text-lg border-4  py-6 font-sans bg-sky-200  rounded-none"
       >
         Collective Chests
       </Button>
 
-      <Leaderboard buttonType="default" textSize="lg" />
+      <Leaderboard buttonType="brutal" textSize="lg" />
     </div>
   );
 
@@ -269,7 +273,10 @@ export const Home = () => {
       {/* Content Area */}
       <div className="flex flex-col flex-1 relative">
         <Dialog open={isSigning} modal>
-          <DialogContent className="flex flex-col items-center justify-center p-6 ">
+          <DialogContent
+            aria-describedby={undefined}
+            className="flex flex-col items-center justify-center p-6 "
+          >
             <p className="mt-8 mb-7">Aligning the blocks for your signup...</p>
           </DialogContent>
         </Dialog>
@@ -303,20 +310,85 @@ export const Home = () => {
                   />
                 ) : (
                   <>
-                    {!isSigning && <Create />}
-                    {(!game || (!!game && isGameOn === "isOver")) && (
-                      <>
-                        {isMdOrLarger
-                          ? renderDesktopView()
-                          : isTournamentsOpen
-                            ? renderTournamentsView()
-                            : renderMobileView()}
-                      </>
+                    <div className="flex flex-col gap-4 mt-4 md:mt-0">
+                      <div className="p-6 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
+                        <p className="text-4xl text-center mb-2">Game Over</p>
+
+                        <div className="flex gap-4 justify-center items-center">
+                          <div className="grow text-4xl flex gap-2 justify-end">
+                            {game.score}
+                            <FontAwesomeIcon
+                              icon={faStar}
+                              className="text-yellow-500"
+                            />
+                          </div>
+                          <div className="grow text-4xl flex gap-2 justify-end">
+                            {game.combo}
+                            <FontAwesomeIcon
+                              icon={faFire}
+                              className="text-slate-700"
+                            />
+                          </div>
+                          <div className="grow text-4xl flex gap-2 justify-end">
+                            {game.max_combo}
+                            <MaxComboIcon
+                              width={36}
+                              height={36}
+                              className="text-slate-700"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {!isTournamentsOpen && (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button className="text-md md:text-2xl mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg">
+                            Give feedback and get a chance to win STRK
+                          </Button>
+                        </DialogTrigger>
+
+                        <DialogContent
+                          aria-describedby={undefined}
+                          className="sm:max-w-[700px] w-[95%] h-[580px] flex flex-col mx-auto justify-start items-center bg-opacity-50 rounded-lg shadow-lg"
+                        >
+                          <DialogHeader className="flex items-center">
+                            <DialogTitle>Feedback</DialogTitle>
+                          </DialogHeader>
+                          <div className="flex-grow overflow-auto px-2 w-full h-full">
+                            <GoogleFormEmbed />
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     )}
-                    {game && (
-                      <GameOverDialog
-                        isOpen={isGameOverOpen}
-                        onClose={() => setIsGameOverOpen(false)}
+                  </>
+                )}
+                {!!game && isGameOn === "isOn" && (
+                  <div className="relative w-full">
+                    <div
+                      ref={gameGrid}
+                      className="flex flex-col items-center game-container"
+                    >
+                      <GameBoard
+                        // Check if game is over because otherwise we can display
+                        // previous game data on the board while the new game is starting
+                        // and torii indexing
+                        initialGrid={grid}
+                        nextLine={game.isOver() ? [] : game.next_row}
+                        score={game.isOver() ? 0 : game.score}
+                        combo={game.isOver() ? 0 : game.combo}
+                        maxCombo={game.isOver() ? 0 : game.max_combo}
+                        hammerCount={
+                          game.isOver() ? 0 : game.hammer - game.hammer_used
+                        }
+                        totemCount={
+                          game.isOver() ? 0 : game.totem - game.totem_used
+                        }
+                        waveCount={
+                          game.isOver() ? 0 : game.wave - game.wave_used
+                        }
+                        account={account}
                         game={game}
                       />
                     )}

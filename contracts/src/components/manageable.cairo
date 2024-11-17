@@ -9,13 +9,12 @@ mod ManageableComponent {
 
     // Dojo imports
 
-    use dojo::world::IWorldDispatcher;
+    use dojo::world::WorldStorage;
 
     // Internal imports
 
     use zkube::store::{Store, StoreTrait};
     use zkube::models::player::{Player, PlayerTrait, PlayerAssert};
-    use zkube::models::credits::{Credits, CreditsTrait};
 
     // Storage
 
@@ -32,7 +31,7 @@ mod ManageableComponent {
     impl InternalImpl<
         TContractState, +HasComponent<TContractState>
     > of InternalTrait<TContractState> {
-        fn _create(self: @ComponentState<TContractState>, world: IWorldDispatcher, name: felt252,) {
+        fn _create(self: @ComponentState<TContractState>, mut world: WorldStorage, name: felt252,) {
             // [Setup] Datastore
             let store: Store = StoreTrait::new(world);
 
@@ -45,13 +44,9 @@ mod ManageableComponent {
             // [Effect] Create a new player
             let player = PlayerTrait::new(caller.into(), name, timestamp);
             store.set_player(player);
-
-            let settings = store.settings();
-            let credits = CreditsTrait::new(caller.into(), timestamp, settings);
-            store.set_credits(credits);
         }
 
-        fn _rename(self: @ComponentState<TContractState>, world: IWorldDispatcher, name: felt252,) {
+        fn _rename(self: @ComponentState<TContractState>, mut world: WorldStorage, name: felt252,) {
             // [Setup] Datastore
             let store: Store = StoreTrait::new(world);
 

@@ -6,11 +6,12 @@ import { Mode } from "@/dojo/game/types/mode";
 import { Tournament } from "@/dojo/game/models/tournament";
 import { useDojo } from "@/dojo/useDojo";
 import { useRewardsStore } from "@/stores/rewardsStore";
+import { Prize } from "@/utils/price";
 
 export type TournamentReward = {
   player_id: string;
   rank: 1 | 2 | 3;
-  prize: string;
+  prize: Prize;
   tournament_id: number;
   mode: Mode;
   tournament: Tournament;
