@@ -227,18 +227,10 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     const endDrag = useCallback(() => {
       if (!dragging) return;
 
-      console.log("endDrag called", {
-        dragging,
-        initialX,
-        currentX: dragging.x,
-      });
-
       setBlocks((prevBlocks) => {
         const updatedBlocks = prevBlocks.map((b) => {
           if (b.id === dragging.id) {
             const finalX = Math.round(b.x);
-            console.log("Finalizing drag position", { finalX, initialX });
-
             if (Math.trunc(finalX) !== Math.trunc(initialX)) {
               setPendingMove({
                 block: b,
@@ -251,19 +243,30 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           }
           return b;
         });
-        return updatedBlocks;
+        return concatenateAndShiftBlocks(
+          updatedBlocks,
+          nextLineData,
+          gridHeight,
+        );
       });
 
       setDragging(null);
       setIsMoving(true);
       setGameState(GameState.GRAVITY);
-    }, [dragging, initialX]);
+    }, [dragging, initialX, nextLineData, gridHeight]);
 
     const handleBonusApplication = (block: Block) => {
       setActionPerformed(true);
       setBlockBonus(block);
       if (bonus === BonusType.Wave) {
-        setBlocks(removeBlocksSameRow(block, blocks));
+        setBlocks((prevBlocks) => {
+          const updatedBlocks = removeBlocksSameRow(block, prevBlocks);
+          return concatenateAndShiftBlocks(
+            updatedBlocks,
+            nextLineData,
+            gridHeight,
+          );
+        });
         getBlocksSameRow(block.y, blocks).forEach((b) => {
           if (gridPosition === null) return;
           handleTriggerLocalExplosion(
@@ -275,14 +278,17 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           if (ref) {
             (ref as (type: BonusType) => void)(BonusType.None);
           }
-          applyGravity();
-          setIsMoving(true);
-          setGameState(GameState.GRAVITY_BONUS);
           setTimeout(() => onUpdate(true), 1000);
-          return;
         }
       } else if (bonus === BonusType.Totem) {
-        setBlocks(removeBlocksSameWidth(block, blocks));
+        setBlocks((prevBlocks) => {
+          const updatedBlocks = removeBlocksSameWidth(block, prevBlocks);
+          return concatenateAndShiftBlocks(
+            updatedBlocks,
+            nextLineData,
+            gridHeight,
+          );
+        });
         getBlocksSameWidth(block, blocks).forEach((b) => {
           if (gridPosition === null) return;
           handleTriggerLocalExplosion(
@@ -294,14 +300,17 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           if (ref) {
             (ref as (type: BonusType) => void)(BonusType.None);
           }
-          applyGravity();
-          setIsMoving(true);
-          setGameState(GameState.GRAVITY_BONUS);
           setTimeout(() => onUpdate(true), 1000);
-          return;
         }
       } else if (bonus === BonusType.Hammer) {
-        setBlocks(removeBlockId(block, blocks));
+        setBlocks((prevBlocks) => {
+          const updatedBlocks = removeBlockId(block, prevBlocks);
+          return concatenateAndShiftBlocks(
+            updatedBlocks,
+            nextLineData,
+            gridHeight,
+          );
+        });
         if (gridPosition === null) return;
         handleTriggerLocalExplosion(
           gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
@@ -312,9 +321,14 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
             (ref as (type: BonusType) => void)(BonusType.None);
           }
           setTimeout(() => onUpdate(true), 1000);
-          return;
         }
       }
+
+      if (ref) {
+        (ref as (type: BonusType) => void)(BonusType.None);
+      }
+      setIsMoving(true);
+      setGameState(GameState.GRAVITY_BONUS);
     };
 
     const handleMouseDown = (e: React.MouseEvent, block: Block) => {
