@@ -11,7 +11,7 @@ import LevelIndicator from "./LevelIndicator";
 import SettingsDropDown from "./SettingsDropDown";
 import { useNavigate } from "react-router-dom";
 import { Controller } from "./Controller";
-import TutorialModal from "./TutorialModal";
+import TutorialModal from "./Tutorial/TutorialModal";
 
 interface DesktopHeaderProps {
   onStartTutorial: () => void;

@@ -40,7 +40,7 @@ import useViewport from "@/hooks/useViewport";
 import { TweetPreview } from "../components/TweetPreview";
 import { Schema } from "@dojoengine/recs";
 import { useGrid } from "@/hooks/useGrid";
-import Tutorial from "../components/Tutorial";
+import Tutorial from "../components/Tutorial/Tutorial";
 
 export const Home = () => {
   const {

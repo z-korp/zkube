@@ -29,7 +29,7 @@ import { useState } from "react";
 import { Surrender } from "../actions/Surrender";
 import LevelIndicator from "./LevelIndicator";
 import { Controller } from "./Controller";
-import TutorialModal from "./TutorialModal";
+import TutorialModal from "./Tutorial/TutorialModal";
 
 interface MobileHeaderProps {
   onStartTutorial: () => void;

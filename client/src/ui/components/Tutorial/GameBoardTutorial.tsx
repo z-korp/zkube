@@ -1,28 +1,21 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
-import { GameBonus } from "../containers/GameBonus";
+import { GameBonus } from "../../containers/GameBonus";
 import { useMediaQuery } from "react-responsive";
-import { Account } from "starknet";
-import Grid from "./Grid";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
-import NextLine from "./NextLine";
+import NextLine from "../NextLine";
 import { Block } from "@/types/types";
-import GameScores from "./GameScores";
+import GameScores from "../GameScores";
 import { Bonus, BonusType } from "@/dojo/game/types/bonus";
-import BonusAnimation from "./BonusAnimation";
-import TournamentTimer from "./TournamentTimer";
-import { ModeType } from "@/dojo/game/types/mode";
-import useTournament from "@/hooks/useTournament";
-import { Game } from "@/dojo/game/models/game";
-import useRank from "@/hooks/useRank";
+import BonusAnimation from "../BonusAnimation";
 
-import "../../grid.css";
+import "../../../grid.css";
+import TutorialGrid from "./TutorialGrid";
 
 interface GameBoardProps {
   initialGrid: number[][];
   nextLine: number[];
-  score: number;
   combo: number;
   maxCombo: number;
   hammerCount: number;
@@ -30,7 +23,7 @@ interface GameBoardProps {
   totemCount: number;
   tutorialProps?: {
     step: number;
-    targetBlock: { x: number; y: number; type: string } | null;
+    targetBlock: { x: number; y: number; type: "block" | "row" } | null;
     isIntermission: boolean;
   };
   onBlockSelect?: (block: Block) => void;
@@ -39,7 +32,6 @@ interface GameBoardProps {
 const GameBoardTutorial: React.FC<GameBoardProps> = ({
   initialGrid,
   nextLine,
-  score,
   combo,
   maxCombo,
   waveCount,
@@ -48,12 +40,6 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
   tutorialProps,
   onBlockSelect,
 }) => {
-  const {
-    setup: {
-      systemCalls: { applyBonus },
-    },
-  } = useDojo();
-
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
   const ROWS = 10;
   const COLS = 8;
@@ -63,16 +49,18 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
   // State that will allow us to hide or display the next line
   const [nextLineHasBeenConsumed, setNextLineHasBeenConsumed] = useState(false);
   // Optimistic data (score, combo, maxcombo)
-  const [optimisticScore, setOptimisticScore] = useState(score);
+  const [optimisticScore, setOptimisticScore] = useState(0);
   const [optimisticCombo, setOptimisticCombo] = useState(combo);
   const [optimisticMaxCombo, setOptimisticMaxCombo] = useState(maxCombo);
   const [bonusDescription, setBonusDescription] = useState("");
+  const [score, setScore] = useState<number | undefined>(0);
+  const [isIntermission, setIsIntermission] = useState(false);
 
   useEffect(() => {
     // Every time the initial grid changes, we erase the optimistic data
     // and set the data to the one returned by the contract
     // just in case of discrepancies
-    setOptimisticScore(score);
+    setOptimisticScore(0);
     setOptimisticCombo(combo);
     setOptimisticMaxCombo(maxCombo);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -110,6 +98,11 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
       setBonus(BonusType.Hammer);
       setBonusDescription("Select the block you want to destroy");
     }
+  };
+
+  const updateValue = (intermission: boolean) => {
+    setScore((score ?? 0) + 15);
+    setIsIntermission(intermission);
   };
 
   const handleBonusWaveTx = useCallback(async (rowIndex: number) => {
@@ -185,17 +178,17 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
     setBonusDescription("");
   }, [initialGrid]);
 
-  const memoizedInitialData = useMemo(() => {
+  const memorizedInitialData = useMemo(() => {
     return transformDataContractIntoBlock(initialGrid);
   }, [initialGrid]);
 
-  const memoizedNextLineData = useMemo(() => {
+  const memorizedNextLineData = useMemo(() => {
     return transformDataContractIntoBlock([nextLine]);
     // initialGrid on purpose
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGrid]);
 
-  if (memoizedInitialData.length === 0) return null; // otherwise sometimes
+  if (memorizedInitialData.length === 0) return null; // otherwise sometimes
   // the grid is not displayed in Grid because the data is not ready
 
   return (
@@ -205,7 +198,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
       >
         <BonusAnimation
           isMdOrLarger={isMdOrLarger}
-          optimisticScore={optimisticScore}
+          optimisticScore={optimisticScore ?? 0}
           optimisticCombo={optimisticCombo}
           optimisticMaxCombo={optimisticMaxCombo}
         />
@@ -224,7 +217,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
             />
           </div>
           <GameScores
-            score={optimisticScore}
+            score={optimisticScore ?? 0}
             combo={optimisticCombo}
             maxCombo={optimisticMaxCombo}
             isMdOrLarger={isMdOrLarger}
@@ -234,7 +227,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
         <div
           className={`flex justify-center items-center ${!isTxProcessing && "cursor-move"}`}
         >
-          <Grid
+          {/* <Grid
             initialData={memoizedInitialData}
             nextLineData={memoizedNextLineData}
             setNextLineHasBeenConsumed={setNextLineHasBeenConsumed}
@@ -251,6 +244,24 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
             setIsTxProcessing={setIsTxProcessing}
             tutorialHighlight={tutorialProps?.targetBlock}
             isIntermission={tutorialProps?.isIntermission}
+          /> */}
+          <TutorialGrid
+            initialData={memorizedInitialData}
+            nextLineData={memorizedNextLineData}
+            gridSize={GRID_SIZE}
+            gridHeight={ROWS}
+            gridWidth={COLS}
+            selectBlock={selectBlock}
+            bonus={bonus}
+            account={null}
+            tutorialStep={tutorialProps?.step ?? 0}
+            intermission={tutorialProps?.isIntermission}
+            tutorialTargetBlock={tutorialProps?.targetBlock ?? null}
+            onUpdate={(intermission: boolean) => {
+              // Ignore the intermission parameter since we only care about score updates
+              setOptimisticScore((prev) => (prev ?? 0) + 1);
+            }}
+            ref={setBonus}
           />
         </div>
 
@@ -267,7 +278,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
             )}
           </div>
           <NextLine
-            nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}
+            nextLineData={nextLineHasBeenConsumed ? [] : memorizedNextLineData}
             gridSize={GRID_SIZE}
             gridHeight={1}
             gridWidth={COLS}

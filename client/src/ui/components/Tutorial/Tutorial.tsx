@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from "react";
-import GameBoard from "./GameBoard";
+import GameBoard from "../GameBoard";
 import { BonusType } from "@/dojo/game/types/bonus";
 import { ModeType } from "@/dojo/game/types/mode";
 import GameBoardTutorial from "./GameBoardTutorial";
