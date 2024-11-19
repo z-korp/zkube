@@ -107,9 +107,9 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
   if (!showGrid) return null;
 
   return (
-    <div className="flex flex-col items-center w-[500px] relative h-full">
+    <div className="flex flex-col items-center relative h-full mx-6">
       {isIntermission && (
-        <div className="absolute z-50 flex flex-col items-center p-6 bg-blue-600 rounded-lg shadow-md top-1/3">
+        <div className="absolute z-50 flex flex-col items-center p-6 rounded-lg shadow-md top-1/3">
           <h2 className="text-2xl font-bold mb-4">Congratulations!</h2>
           <p className="mb-4">
             You have successfully completed Step {tutorialStep}.
@@ -123,7 +123,7 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
         </div>
       )}
 
-      <div className="text-center p-4 bg-blue-600 rounded-md mb-4 absolute mt-40 z-50">
+      <div className="text-center p-4 bg-blue-600 rounded-md mb-4 absolute mt-40 z-50 w-11/12 mx-auto">
         <h2>
           <TutorialMessage />
         </h2>
