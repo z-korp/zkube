@@ -17,6 +17,8 @@ import {
   removeBlocksSameWidth,
   removeBlocksSameRow,
   removeBlockId,
+  getBlocksSameRow,
+  getBlocksSameWidth,
 } from "@/utils/gridUtils";
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../../elements/animatedText";
@@ -85,6 +87,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
       startX: number;
       finalX: number;
     } | null>(null);
+    const [blockBonus, setBlockBonus] = useState<Block | null>(null);
 
     useEffect(() => {
       if (gridRef.current) {
@@ -256,6 +259,41 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     const handleMouseDown = (e: React.MouseEvent, block: Block) => {
       e.preventDefault();
       e.stopPropagation();
+
+      setBlockBonus(block);
+      if (bonus === BonusType.Wave) {
+        setBlocks(removeBlocksSameRow(block, blocks));
+        getBlocksSameRow(block.y, blocks).forEach((b) => {
+          if (gridPosition === null) return;
+          handleTriggerLocalExplosion(
+            gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
+            gridPosition.top + b.y * gridSize,
+          );
+        });
+      } else if (bonus === BonusType.Totem) {
+        setBlocks(removeBlocksSameWidth(block, blocks));
+        getBlocksSameWidth(block, blocks).forEach((b) => {
+          if (gridPosition === null) return;
+          handleTriggerLocalExplosion(
+            gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
+            gridPosition.top + b.y * gridSize,
+          );
+        });
+      } else if (bonus === BonusType.Hammer) {
+        console.log("Hammer bonus", { block });
+        setBlocks(removeBlockId(block, blocks));
+        if (gridPosition === null) return;
+        handleTriggerLocalExplosion(
+          gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
+          gridPosition.top + block.y * gridSize,
+        );
+      }
+
+      if (bonus !== BonusType.None) {
+        setIsMoving(true);
+        setGameState(GameState.GRAVITY_BONUS);
+        return;
+      }
       handleDragStart(e.clientX, block);
     };
 
@@ -269,6 +307,42 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     const handleTouchStart = (e: React.TouchEvent, block: Block) => {
       e.preventDefault();
       e.stopPropagation();
+
+      setBlockBonus(block);
+      if (bonus === BonusType.Wave) {
+        setBlocks(removeBlocksSameRow(block, blocks));
+        getBlocksSameRow(block.y, blocks).forEach((b) => {
+          if (gridPosition === null) return;
+          handleTriggerLocalExplosion(
+            gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
+            gridPosition.top + b.y * gridSize,
+          );
+        });
+      } else if (bonus === BonusType.Totem) {
+        setBlocks(removeBlocksSameWidth(block, blocks));
+        getBlocksSameWidth(block, blocks).forEach((b) => {
+          if (gridPosition === null) return;
+          handleTriggerLocalExplosion(
+            gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
+            gridPosition.top + b.y * gridSize,
+          );
+        });
+      } else if (bonus === BonusType.Hammer) {
+        setBlocks(removeBlockId(block, blocks));
+        if (gridPosition === null) return;
+        handleTriggerLocalExplosion(
+          gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
+          gridPosition.top + block.y * gridSize,
+        );
+        if (tutorialStep === 2) onUpdate(true);
+      }
+
+      if (bonus !== BonusType.None) {
+        setIsMoving(true);
+        setGameState(GameState.GRAVITY_BONUS);
+        return;
+      }
+
       const touch = e.touches[0];
       handleDragStart(touch.clientX, block);
     };
@@ -420,6 +494,14 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         setGameState(GameState.LINE_CLEAR);
       }
     }, [gameState, isMoving, transitioningBlocks]);
+
+    useEffect(() => {
+      if (gameState === GameState.BONUS_TX) {
+        selectBlock(blockBonus as Block);
+        setBlockBonus(null);
+        setGameState(GameState.WAITING);
+      }
+    }, [gameState, blockBonus, selectBlock]);
 
     return (
       <>
