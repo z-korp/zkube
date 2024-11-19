@@ -90,6 +90,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
       finalX: number;
     } | null>(null);
     const [blockBonus, setBlockBonus] = useState<Block | null>(null);
+    const [actionPerformed, setActionPerformed] = useState(false);
 
     useEffect(() => {
       if (gridRef.current) {
@@ -180,6 +181,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     }, [gameState]);
 
     const handleDragStart = (x: number, block: Block) => {
+      setActionPerformed(true);
       console.log("Drag start:", block);
       setDragging(block);
       setDragStartX(x);
@@ -258,6 +260,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     }, [dragging, initialX]);
 
     const handleBonusApplication = (block: Block) => {
+      setActionPerformed(true);
       setBlockBonus(block);
       if (bonus === BonusType.Wave) {
         setBlocks(removeBlocksSameRow(block, blocks));
@@ -397,8 +400,8 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     };
 
     const isHighlighted = (block: Block) => {
-      if (!tutorialTargetBlock) return false;
-      if (intermission) return false;
+      if (!tutorialTargetBlock || actionPerformed) return false;
+
       if (tutorialTargetBlock.type === "row") {
         return block.y === tutorialTargetBlock.y;
       } else {
@@ -507,6 +510,10 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         setGameState(GameState.WAITING);
       }
     }, [gameState, blockBonus, selectBlock]);
+
+    useEffect(() => {
+      setActionPerformed(false);
+    }, [tutorialStep]);
 
     return (
       <>
