@@ -269,6 +269,9 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           );
         });
         if (tutorialStep === 3) {
+          if (ref) {
+            (ref as (type: BonusType) => void)(BonusType.None);
+          }
           applyGravity();
           setIsMoving(true);
           setGameState(GameState.GRAVITY_BONUS);
@@ -285,6 +288,9 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           );
         });
         if (tutorialStep === 4) {
+          if (ref) {
+            (ref as (type: BonusType) => void)(BonusType.None);
+          }
           applyGravity();
           setIsMoving(true);
           setGameState(GameState.GRAVITY_BONUS);
@@ -299,6 +305,9 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           gridPosition.top + block.y * gridSize,
         );
         if (tutorialStep === 2) {
+          if (ref) {
+            (ref as (type: BonusType) => void)(BonusType.None);
+          }
           setTimeout(() => onUpdate(true), 1000);
           return;
         }
@@ -307,12 +316,12 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
 
     const handleMouseDown = (e: React.MouseEvent, block: Block) => {
       e.preventDefault();
-      e.stopPropagation();
 
       if (bonus !== BonusType.None) {
         handleBonusApplication(block);
         return;
       }
+
       handleDragStart(e.clientX, block);
     };
 
