@@ -256,58 +256,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
       setGameState(GameState.GRAVITY);
     }, [dragging, initialX]);
 
-    const handleMouseDown = (e: React.MouseEvent, block: Block) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      setBlockBonus(block);
-      if (bonus === BonusType.Wave) {
-        setBlocks(removeBlocksSameRow(block, blocks));
-        getBlocksSameRow(block.y, blocks).forEach((b) => {
-          if (gridPosition === null) return;
-          handleTriggerLocalExplosion(
-            gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
-            gridPosition.top + b.y * gridSize,
-          );
-        });
-      } else if (bonus === BonusType.Totem) {
-        setBlocks(removeBlocksSameWidth(block, blocks));
-        getBlocksSameWidth(block, blocks).forEach((b) => {
-          if (gridPosition === null) return;
-          handleTriggerLocalExplosion(
-            gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
-            gridPosition.top + b.y * gridSize,
-          );
-        });
-      } else if (bonus === BonusType.Hammer) {
-        console.log("Hammer bonus", { block });
-        setBlocks(removeBlockId(block, blocks));
-        if (gridPosition === null) return;
-        handleTriggerLocalExplosion(
-          gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
-          gridPosition.top + block.y * gridSize,
-        );
-      }
-
-      if (bonus !== BonusType.None) {
-        setIsMoving(true);
-        setGameState(GameState.GRAVITY_BONUS);
-        return;
-      }
-      handleDragStart(e.clientX, block);
-    };
-
-    const handleMouseMove = (e: React.MouseEvent) => {
-      e.preventDefault();
-      if (dragging) {
-        handleDragMove(e.clientX, MoveType.MOUSE);
-      }
-    };
-
-    const handleTouchStart = (e: React.TouchEvent, block: Block) => {
-      e.preventDefault();
-      e.stopPropagation();
-
+    const handleBonusApplication = (block: Block) => {
       setBlockBonus(block);
       if (bonus === BonusType.Wave) {
         setBlocks(removeBlocksSameRow(block, blocks));
@@ -337,12 +286,41 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         if (tutorialStep === 2) onUpdate(true);
       }
 
+      // Apply gravity immediately after bonus
+      applyGravity();
+      setIsMoving(true);
+      setGameState(GameState.GRAVITY_BONUS);
+      if (bonus === BonusType.Hammer && tutorialStep === 2) onUpdate(true);
+      if (bonus === BonusType.Wave && tutorialStep === 3) onUpdate(true);
+      if (bonus === BonusType.Totem && tutorialStep === 4) onUpdate(true);
+    };
+
+    const handleMouseDown = (e: React.MouseEvent, block: Block) => {
+      e.preventDefault();
+      e.stopPropagation();
+
       if (bonus !== BonusType.None) {
-        setIsMoving(true);
-        setGameState(GameState.GRAVITY_BONUS);
+        handleBonusApplication(block);
         return;
       }
+      handleDragStart(e.clientX, block);
+    };
 
+    const handleMouseMove = (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (dragging) {
+        handleDragMove(e.clientX, MoveType.MOUSE);
+      }
+    };
+
+    const handleTouchStart = (e: React.TouchEvent, block: Block) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (bonus !== BonusType.None) {
+        handleBonusApplication(block);
+        return;
+      }
       const touch = e.touches[0];
       handleDragStart(touch.clientX, block);
     };
