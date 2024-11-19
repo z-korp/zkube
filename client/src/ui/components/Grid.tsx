@@ -14,6 +14,7 @@ import {
   deepCompareBlocks,
   getBlocksSameRow,
   getBlocksSameWidth,
+  transformToGridFormat,
 } from "@/utils/gridUtils";
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
@@ -24,6 +25,9 @@ import ConfettiExplosion, { ConfettiExplosionRef } from "./ConfettiExplosion";
 import { useMusicPlayer } from "@/contexts/hooks";
 
 import "../../grid.css";
+import { consoleTSLog } from "@/utils/logger";
+import useDragHandlers from "@/hooks/useDragHandlers";
+import { calculateFallDistance, isBlocked } from "@/utils/gridPhysics";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -112,9 +116,14 @@ const Grid: React.FC<GridProps> = ({
   useEffect(() => {
     if (applyData) {
       if (deepCompareBlocks(saveGridStateblocks, initialData)) {
+        consoleTSLog(
+          "Grid state is the same, no need to apply data",
+          transformToGridFormat(saveGridStateblocks, gridWidth, gridHeight),
+        );
         return;
       }
       if (moveTxAwaitDone) {
+        consoleTSLog("success", "Applying data to grid");
         setSaveGridStateblocks(initialData);
         setBlocks(initialData);
         setNextLine(nextLineData);
@@ -249,14 +258,7 @@ const Grid: React.FC<GridProps> = ({
     handleDragStart(touch.clientX, block);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    handleDragMove(e.clientX, MoveType.MOUSE);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    handleDragMove(touch.clientX, MoveType.TOUCH);
-  };
+  const { handleMouseMove, handleTouchMove } = useDragHandlers(handleDragMove);
 
   const endDrag = () => {
     if (!dragging) return;
@@ -352,69 +354,14 @@ const Grid: React.FC<GridProps> = ({
     [account, isMoving, gridHeight, move],
   );
 
-  const isBlocked = (
-    initialX: number,
-    newX: number,
-    y: number,
-    width: number,
-    blocks: Block[],
-    blockId: number,
-  ) => {
-    const rowBlocks = blocks.filter(
-      (block) => block.y === y && block.id !== blockId,
-    );
-
-    if (newX > initialX) {
-      for (const block of rowBlocks) {
-        if (block.x >= initialX + width && block.x < newX + width) {
-          return true;
-        }
-      }
-    } else {
-      for (const block of rowBlocks) {
-        if (block.x + block.width > newX && block.x <= initialX) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  };
-
-  const calculateFallDistance = useCallback(
-    (block: Block, blocks: Block[]) => {
-      let maxFall = gridHeight - block.y - 1;
-      for (let y = block.y + 1; y < gridHeight; y++) {
-        if (isCollision(block.x, y, block.width, blocks, block.id)) {
-          maxFall = y - block.y - 1;
-          break;
-        }
-      }
-      return maxFall;
-    },
-    [gridHeight],
-  );
-
-  const isCollision = (
-    x: number,
-    y: number,
-    width: number,
-    blocks: Block[],
-    blockId: number,
-  ) => {
-    return blocks.some(
-      (block) =>
-        block.id !== blockId &&
-        block.y === y &&
-        x < block.x + block.width &&
-        x + width > block.x,
-    );
-  };
-
   const applyGravity = useCallback(() => {
     setBlocks((prevBlocks) => {
       const newBlocks = prevBlocks.map((block) => {
-        const fallDistance = calculateFallDistance(block, prevBlocks);
+        const fallDistance = calculateFallDistance(
+          block,
+          prevBlocks,
+          gridHeight,
+        );
         if (fallDistance > 0) {
           return { ...block, y: block.y + 1 };
         }
@@ -430,7 +377,7 @@ const Grid: React.FC<GridProps> = ({
 
       return newBlocks;
     });
-  }, [calculateFallDistance]);
+  }, [gridHeight]);
 
   useEffect(() => {
     const interval = setInterval(() => {
