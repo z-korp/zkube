@@ -61,6 +61,8 @@ impl GameImpl of GameTrait {
             combo_counter_in_tournament: 0,
             max_combo_in_tournament: 0,
             pending_chest_prize: 0,
+            combo_counter_2: 0,
+            combo_counter_in_tournament_2: 0,
         }
     }
 
@@ -118,9 +120,18 @@ impl GameImpl of GameTrait {
 
     #[inline(always)]
     fn assess_bonuses(self: Game) -> (u8, u8, u8) {
-        let hammer = Bonus::Hammer.get_count(self.score, self.combo_counter, self.max_combo);
-        let totem = Bonus::Totem.get_count(self.score, self.combo_counter, self.max_combo);
-        let wave = Bonus::Wave.get_count(self.score, self.combo_counter, self.max_combo);
+        // Put this for patching the u8 combo_counter to u16
+        // this is the case where the game has been started before the patch
+        // in this case we get the highest value from the u8 and u16
+        // the u16 will be updated later (in move and apply_bonus)
+        let combo_counter: u16 = if (self.combo_counter.into() > self.combo_counter_2) {
+            self.combo_counter.into()
+        } else {
+            self.combo_counter_2
+        };
+        let hammer = Bonus::Hammer.get_count(self.score, combo_counter, self.max_combo);
+        let totem = Bonus::Totem.get_count(self.score, combo_counter, self.max_combo);
+        let wave = Bonus::Wave.get_count(self.score, combo_counter, self.max_combo);
         (hammer, totem, wave)
     }
 
@@ -184,7 +195,13 @@ impl GameImpl of GameTrait {
         // [Effect] Assess game
         self.score += self.assess_game(ref counter);
         if (counter > 1) {
-            self.combo_counter += counter;
+            // Put this for patching the u8 combo_counter to u16
+            // this is the case where the game has been started before the patch
+            // in this case we write the value from the u8 to the u16
+            if (self.combo_counter != 0) {
+                self.combo_counter_2 = self.combo_counter.into();
+            }
+            self.combo_counter_2 += counter.into();
             self.max_combo = Math::max(self.max_combo, counter);
         }
         self.moves += 1;
@@ -237,7 +254,13 @@ impl GameImpl of GameTrait {
         let mut counter = 0;
         self.score += self.assess_game(ref counter);
         if (counter > 1) {
-            self.combo_counter += counter;
+            // Put this for patching the u8 combo_counter to u16
+            // this is the case where the game has been started before the patch
+            // in this case we write the value from the u8 to the u16
+            if (self.combo_counter != 0) {
+                self.combo_counter_2 = self.combo_counter.into();
+            }
+            self.combo_counter_2 += counter.into();
             self.max_combo = Math::max(self.max_combo, counter);
         }
 
@@ -282,6 +305,8 @@ impl ZeroableGame of core::Zeroable<Game> {
             combo_counter_in_tournament: 0,
             max_combo_in_tournament: 0,
             pending_chest_prize: 0,
+            combo_counter_2: 0,
+            combo_counter_in_tournament_2: 0,
         }
     }
 

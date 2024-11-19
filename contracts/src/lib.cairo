@@ -109,6 +109,7 @@ mod tests {
     mod test_minter;
     mod test_erc721;
     mod test_pause;
+    mod test_patch_u16;
 
     mod mocks {
         mod erc20;

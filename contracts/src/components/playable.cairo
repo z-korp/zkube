@@ -181,7 +181,16 @@ mod PlayableComponent {
                 tournament.score(player.id, game.id, game.score);
                 store.set_tournament(tournament);
                 game.score_in_tournament = game.score;
-                game.combo_counter_in_tournament = game.combo_counter;
+
+                // Put this for patching the u8 combo_counter_in_tournament to u16
+                // this is the case where the game has been started before the patch
+                // the game_counter_2 (u16 is up to date because _handle_score_for_tournament
+                // is called after move or apply_bonus)
+                // if combo_counter_in_tournament is not 0 we set the combo_counter_in_tournament_2
+                if (game.combo_counter_in_tournament != 0) {
+                    game.combo_counter_in_tournament_2 = game.combo_counter_in_tournament.into();
+                }
+                game.combo_counter_in_tournament_2 = game.combo_counter_2;
                 game.max_combo_in_tournament = game.max_combo;
             }
         }
@@ -244,7 +253,7 @@ mod PlayableComponent {
             };
 
             // [Trophy] Update Mastering tasks progression
-            let value = game.combo_counter.into();
+            let value = game.combo_counter_2.into();
             let time = get_block_timestamp();
             let store = BushidoStoreTrait::new(world);
             if Trophy::ComboInitiator.assess(value) {
