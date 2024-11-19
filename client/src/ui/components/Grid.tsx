@@ -329,7 +329,7 @@ const Grid: React.FC<GridProps> = ({
       setIsTxProcessing(true);
       playSwipe();
       try {
-        console.log(
+        consoleTSLog(
           "Move TX (row, start col, end col)",
           gridHeight - 1 - rowIndex,
           startColIndex,
