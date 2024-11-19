@@ -297,8 +297,8 @@ export const Home = () => {
               ease: "easeInOut",
             }}
           >
-            <div className="relative flex flex-col gap-4 sm:gap-8 flex-grow items-center justify-start overflow-auto">
-              <div className="flex flex-col items-center gap-4 sm:gap-8 w-full max-w-4xl mt-2 sm:mt-4 p-2 md:p-0">
+            <div className="relative flex flex-col gap-4 sm:gap-8 flex-grow items-center justify-start overflow-auto h-full">
+              <div className="flex flex-col items-center gap-4 sm:gap-8 w-full max-w-4xl mt-2 sm:mt-4 p-2 md:p-0 h-full">
                 {tutorialState.isActive ? (
                   <Tutorial
                     showGrid={tutorialState.showGrid}
