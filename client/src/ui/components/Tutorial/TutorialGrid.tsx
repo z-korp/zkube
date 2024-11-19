@@ -111,19 +111,6 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
       setBlocks(initialData);
     }, [initialData]);
 
-    useEffect(() => {
-      const interval = setInterval(() => {
-        if (
-          gameState === GameState.GRAVITY ||
-          gameState === GameState.GRAVITY2
-        ) {
-          applyGravity();
-        }
-      }, 100);
-
-      return () => clearInterval(interval);
-    }, [gameState]);
-
     const calculateFallDistance = (block: Block, blocks: Block[]) => {
       let maxFall = gridHeight - block.y - 1;
       for (let y = block.y + 1; y < gridHeight; y++) {
@@ -152,31 +139,39 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     };
 
     const applyGravity = useCallback(() => {
+      let hasBlocksMoved = false;
+
       setBlocks((prevBlocks) => {
-        const newBlocks = prevBlocks.map((block) => {
-          const fallDistance = calculateFallDistance(block, prevBlocks);
-          console.log("Calculating fall distance", {
-            blockId: block.id,
-            fallDistance,
+        let newBlocks = [...prevBlocks];
+        let blocksMoved;
+
+        do {
+          blocksMoved = false;
+          newBlocks = newBlocks.map((block) => {
+            const fallDistance = calculateFallDistance(block, newBlocks);
+            if (fallDistance > 0) {
+              blocksMoved = true;
+              hasBlocksMoved = true;
+              return { ...block, y: block.y + 1 };
+            }
+            return block;
           });
+        } while (blocksMoved);
 
-          if (fallDistance > 0) {
-            return { ...block, y: block.y + 1 };
-          }
-          return block;
-        });
-
-        const hasChanged = newBlocks.some(
-          (block, i) => block.y !== prevBlocks[i].y,
-        );
-
-        if (!hasChanged) {
-          setIsMoving(false);
-        }
-
-        return hasChanged ? newBlocks : prevBlocks;
+        setIsMoving(hasBlocksMoved);
+        return newBlocks;
       });
-    }, [gridHeight]);
+    }, [calculateFallDistance]);
+
+    useEffect(() => {
+      if (
+        gameState === GameState.GRAVITY ||
+        gameState === GameState.GRAVITY2 ||
+        gameState === GameState.GRAVITY_BONUS
+      ) {
+        applyGravity();
+      }
+    }, [gameState, applyGravity]);
 
     const handleDragStart = (x: number, block: Block) => {
       console.log("Drag start:", block);
@@ -267,6 +262,10 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
             gridPosition.top + b.y * gridSize,
           );
         });
+        if (tutorialStep === 3) {
+          setTimeout(() => onUpdate(true), 1000);
+          return;
+        }
       } else if (bonus === BonusType.Totem) {
         setBlocks(removeBlocksSameWidth(block, blocks));
         getBlocksSameWidth(block, blocks).forEach((b) => {
@@ -276,6 +275,10 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
             gridPosition.top + b.y * gridSize,
           );
         });
+        if (tutorialStep === 4) {
+          setTimeout(() => onUpdate(true), 1000);
+          return;
+        }
       } else if (bonus === BonusType.Hammer) {
         setBlocks(removeBlockId(block, blocks));
         if (gridPosition === null) return;
@@ -283,16 +286,15 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
           gridPosition.top + block.y * gridSize,
         );
-        if (tutorialStep === 2) onUpdate(true);
+        if (tutorialStep === 2) {
+          setTimeout(() => onUpdate(true), 1000);
+          return;
+        }
       }
 
-      // Apply gravity immediately after bonus
       applyGravity();
       setIsMoving(true);
       setGameState(GameState.GRAVITY_BONUS);
-      if (bonus === BonusType.Hammer && tutorialStep === 2) onUpdate(true);
-      if (bonus === BonusType.Wave && tutorialStep === 3) onUpdate(true);
-      if (bonus === BonusType.Totem && tutorialStep === 4) onUpdate(true);
     };
 
     const handleMouseDown = (e: React.MouseEvent, block: Block) => {
@@ -425,10 +427,6 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
               const explosionY =
                 gridRect.top + block.y * gridSize + gridSize / 2;
 
-              console.log("Triggering explosion at:", {
-                explosionX,
-                explosionY,
-              });
               handleTriggerLocalExplosion(explosionX, explosionY);
             });
           }
@@ -437,7 +435,9 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         setBlocks(updatedBlocks);
         setIsMoving(true);
         setGameState(newGravityState);
-        onUpdate(true);
+        if (tutorialStep === 1) {
+          setTimeout(() => onUpdate(true), 1000);
+        }
       } else {
         setGameState(newStateOnComplete);
       }
