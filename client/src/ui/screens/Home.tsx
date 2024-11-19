@@ -245,7 +245,7 @@ export const Home = () => {
 
         {/* Main Content */}
         <div
-          className="absolute top-0 left-0 w-full h-full bg-cover bg-center bg-no-repeat"
+          className="absolute top-0 left-0 w-full h-full bg-cover bg-center bg-no-repeat overflow-hidden"
           style={{ backgroundImage: `url(${imgAssets.imageBackground})` }}
         >
           <BackGroundBoard
