@@ -1,4 +1,4 @@
-use bushido_trophy::types::task::{Task as BushidoTask};
+use arcade_trophy::types::task::{Task as BushidoTask};
 use zkube::types::task::{Task, TaskTrait};
 
 trait TrophyTrait {

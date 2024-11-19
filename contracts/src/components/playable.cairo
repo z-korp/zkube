@@ -18,7 +18,7 @@ mod PlayableComponent {
 
     // External imports
 
-    use bushido_trophy::store::{Store as BushidoStore, StoreTrait as BushidoStoreTrait};
+    use arcade_trophy::store::{Store as BushidoStore, StoreTrait as BushidoStoreTrait};
     use stark_vrf::ecvrf::{Proof, Point, ECVRFTrait};
 
     // Internal imports

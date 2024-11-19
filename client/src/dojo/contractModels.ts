@@ -167,7 +167,7 @@ export function defineContractComponents(world: World) {
           metadata: {
             namespace: "zkube",
             name: "Mint",
-            types: ["felt252", "u64", "u64"],
+            types: ["felt252", "u32", "u64"],
             customTypes: [],
           },
         },
