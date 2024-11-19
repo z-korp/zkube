@@ -327,7 +327,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
 
     const isHighlighted = (block: Block) => {
       if (!tutorialTargetBlock) return false;
-
+      if (intermission) return false;
       if (tutorialTargetBlock.type === "row") {
         return block.y === tutorialTargetBlock.y;
       } else {
@@ -385,6 +385,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         setBlocks(updatedBlocks);
         setIsMoving(true);
         setGameState(newGravityState);
+        onUpdate(true);
       } else {
         setGameState(newStateOnComplete);
       }

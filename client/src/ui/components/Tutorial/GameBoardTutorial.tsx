@@ -27,6 +27,7 @@ interface GameBoardProps {
     isIntermission: boolean;
   };
   onBlockSelect?: (block: Block) => void;
+  onUpdateState: (intermission: boolean) => void;
 }
 
 const GameBoardTutorial: React.FC<GameBoardProps> = ({
@@ -39,6 +40,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
   totemCount,
   tutorialProps,
   onBlockSelect,
+  onUpdateState,
 }) => {
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
   const ROWS = 10;
@@ -55,6 +57,10 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
   const [bonusDescription, setBonusDescription] = useState("");
   const [score, setScore] = useState<number | undefined>(0);
   const [isIntermission, setIsIntermission] = useState(false);
+
+  const updateValue = () => {
+    onUpdateState(true);
+  };
 
   useEffect(() => {
     // Every time the initial grid changes, we erase the optimistic data
@@ -98,11 +104,6 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
       setBonus(BonusType.Hammer);
       setBonusDescription("Select the block you want to destroy");
     }
-  };
-
-  const updateValue = (intermission: boolean) => {
-    setScore((score ?? 0) + 15);
-    setIsIntermission(intermission);
   };
 
   const handleBonusWaveTx = useCallback(async (rowIndex: number) => {
@@ -257,10 +258,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
             tutorialStep={tutorialProps?.step ?? 0}
             intermission={tutorialProps?.isIntermission}
             tutorialTargetBlock={tutorialProps?.targetBlock ?? null}
-            onUpdate={(intermission: boolean) => {
-              // Ignore the intermission parameter since we only care about score updates
-              setOptimisticScore((prev) => (prev ?? 0) + 1);
-            }}
+            onUpdate={updateValue}
             ref={setBonus}
           />
         </div>

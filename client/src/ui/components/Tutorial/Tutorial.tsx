@@ -62,6 +62,10 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
     [tutorialStep],
   );
 
+  const handleUpdateState = (intermission: boolean) => {
+    setIsIntermission(intermission);
+  };
+
   const tutorialTargetBlock = useMemo(() => {
     switch (tutorialStep) {
       case 1:
@@ -143,6 +147,7 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
           targetBlock: tutorialTargetBlock,
           isIntermission,
         }}
+        onUpdateState={handleUpdateState}
       />
     </div>
   );
