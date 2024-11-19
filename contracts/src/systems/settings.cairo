@@ -22,7 +22,7 @@ trait ISettings<T> {
 mod settings {
     // Component imports
 
-    use bushido_trophy::components::achievable::AchievableComponent;
+    use arcade_trophy::components::achievable::AchievableComponent;
 
     // Internal imports
 

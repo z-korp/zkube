@@ -25,7 +25,6 @@ export interface Rename extends Signer {
 export interface Start extends Signer {
   token_id: bigint;
   mode: number;
-  price: bigint;
   x: bigint;
   y: bigint;
   c: bigint;
@@ -172,7 +171,6 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       account,
       token_id,
       mode,
-      price,
       x,
       y,
       c,

@@ -1,4 +1,4 @@
-import { faBars, faCoins, faWallet } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faCoins } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Drawer,
@@ -10,7 +10,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -28,8 +27,6 @@ import CollectiveTreasureChest from "./TreasureChest";
 import { useState } from "react";
 import { Surrender } from "../actions/Surrender";
 import LevelIndicator from "./LevelIndicator";
-import HeaderNftBalance from "./HeaderNftBalance";
-import { useMediaQuery } from "react-responsive";
 import { Controller } from "./Controller";
 
 const MobileHeader = () => {

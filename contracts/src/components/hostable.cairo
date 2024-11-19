@@ -18,7 +18,7 @@ mod HostableComponent {
 
     // External imports
 
-    use bushido_trophy::store::{Store as BushidoStore, StoreTrait as BushidoStoreTrait};
+    use arcade_trophy::store::{Store as BushidoStore, StoreTrait as BushidoStoreTrait};
 
     // Internal imports
 

@@ -1965,7 +1965,7 @@
     },
     {
       "address": "0x33bf9876eecb5809fd8a958b8fbab6eb39dc76ae9dc6fc169340ae275b8d6a4",
-      "class_hash": "0x34cdd05042a06e8c3f3c85d38676521dd7fac7a217d75b6f86cd80139408658",
+      "class_hash": "0x2bc06e58ffaa27a9c6ca32236265ac9886682df7edc84b01ac9f49da32f78a1",
       "abi": [
         {
           "type": "impl",
@@ -2352,7 +2352,7 @@
     },
     {
       "address": "0x74b1bce2dedf6b73c2474d7d01a1b109c4992a1af2aae2535721ae7db02b448",
-      "class_hash": "0x349e932ba43b3059a8cf39f2b5e0e08330568b684c32556affa9bd6c9eec6d0",
+      "class_hash": "0x4c1a0f460cc3936c27bddb1079f7ddc960d2e4ad41d40c3c08fece491a023b3",
       "abi": [
         {
           "type": "impl",
@@ -2609,7 +2609,7 @@
         },
         {
           "type": "event",
-          "name": "bushido_trophy::components::achievable::AchievableComponent::Event",
+          "name": "arcade_trophy::components::achievable::AchievableComponent::Event",
           "kind": "enum",
           "variants": []
         },
@@ -2630,7 +2630,7 @@
             },
             {
               "name": "AchievableEvent",
-              "type": "bushido_trophy::components::achievable::AchievableComponent::Event",
+              "type": "arcade_trophy::components::achievable::AchievableComponent::Event",
               "kind": "flat"
             }
           ]
@@ -3246,13 +3246,13 @@
   "events": [
     {
       "members": [],
-      "class_hash": "0x3c90ca93f00abca2c554412ea9a21cbb46ed193f1e68b309484e4288caaf7d2",
+      "class_hash": "0x63b7a958b4eed370f1807a66a6b8820d238d2676cc27bba35d7c60bbf2c21ef",
       "tag": "zkube-TrophyCreation",
       "selector": "0xc0be59b90105c870702c71ad28232a4c5246c52bdbcaa00d62c68949ccdffd"
     },
     {
       "members": [],
-      "class_hash": "0x1fac79c657849151aacf0f1d283a961b2d6d2a1ab6fedde530224a289116a85",
+      "class_hash": "0x1f22af6dbce1f36057f13e367b10fe18cf075d90273c26e3824ddc17f8fef37",
       "tag": "zkube-TrophyProgression",
       "selector": "0x17b14454c7075d73430699a7e57cfb3aaa40a094fcf81c2afac7fa95667c8ec"
     }

@@ -180,10 +180,10 @@ mod setup {
                 TestResource::Model(models::m_Tournament::TEST_CLASS_HASH),
                 TestResource::Model(models::m_Mint::TEST_CLASS_HASH),
                 TestResource::Event(
-                    bushido_trophy::events::index::e_TrophyCreation::TEST_CLASS_HASH
+                    arcade_trophy::events::index::e_TrophyCreation::TEST_CLASS_HASH
                 ),
                 TestResource::Event(
-                    bushido_trophy::events::index::e_TrophyProgression::TEST_CLASS_HASH
+                    arcade_trophy::events::index::e_TrophyProgression::TEST_CLASS_HASH
                 ),
                 TestResource::Contract(account::TEST_CLASS_HASH),
                 TestResource::Contract(play::TEST_CLASS_HASH),
