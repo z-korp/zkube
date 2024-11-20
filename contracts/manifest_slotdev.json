@@ -1460,12 +1460,7 @@
       "init_calldata": [],
       "tag": "zkube-account",
       "selector": "0x6d28004d278bad46f01e5d8d1943b63b32617bdc735f34355e0c7e39310d4e7",
-      "systems": [
-        "dojo_init",
-        "create",
-        "rename",
-        "upgrade"
-      ]
+      "systems": ["dojo_init", "create", "rename", "upgrade"]
     },
     {
       "address": "0xf0a56bd4517ffe572c6f9baa4237a05471b2cb30e787d7d79250b0625c8ddc",
@@ -2609,7 +2604,7 @@
         },
         {
           "type": "event",
-          "name": "bushido_trophy::components::achievable::AchievableComponent::Event",
+          "name": "arcade_trophy::components::achievable::AchievableComponent::Event",
           "kind": "enum",
           "variants": []
         },
@@ -2630,7 +2625,7 @@
             },
             {
               "name": "AchievableEvent",
-              "type": "bushido_trophy::components::achievable::AchievableComponent::Event",
+              "type": "arcade_trophy::components::achievable::AchievableComponent::Event",
               "kind": "flat"
             }
           ]
@@ -2940,13 +2935,7 @@
       ],
       "tag": "zkube-tournament",
       "selector": "0x2101600e00aa39f4136a59a187bd5e197b9f3c63e08d17626effe44b379f1f5",
-      "systems": [
-        "dojo_init",
-        "claim",
-        "sponsor_from",
-        "sponsor",
-        "upgrade"
-      ]
+      "systems": ["dojo_init", "claim", "sponsor_from", "sponsor", "upgrade"]
     },
     {
       "address": "0x50c3f84f5a048a8e75789acb14931381b258c822ed1b779d1053ae83ea13a11",
@@ -3184,13 +3173,7 @@
       ],
       "tag": "zkube-zkorp",
       "selector": "0x6cdc1046f821af7bd6d6c3a1326826e049bd14a3d8329ce42ed30430eb3b678",
-      "systems": [
-        "dojo_init",
-        "claim",
-        "sponsor",
-        "sponsor_from",
-        "upgrade"
-      ]
+      "systems": ["dojo_init", "claim", "sponsor", "sponsor_from", "upgrade"]
     }
   ],
   "models": [

@@ -192,7 +192,6 @@ export const Start: React.FC<StartProps> = ({
         account: account as Account,
         token_id,
         mode: new Mode(mode).into(),
-        price: settings.game_price,
         seed,
         x: proof_gamma_x,
         y: proof_gamma_y,

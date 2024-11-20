@@ -46,7 +46,7 @@ export function systems({ client }: { client: IWorld }) {
 
       // Wait for the transaction to complete
       const transaction = await account.waitForTransaction(transaction_hash, {
-        retryInterval: 50,
+        retryInterval: 200,
       });
 
       // Notify success or error using the same toastId
