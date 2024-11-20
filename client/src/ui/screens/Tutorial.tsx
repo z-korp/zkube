@@ -3,9 +3,11 @@ import TutorialGrid from "../components/TutorialGrid";
 import { Block } from "@/types/types";
 import { Card } from "../elements/card";
 import GameBonus from "../containers/GameBonus";
+
 import { transformDataContratIntoBlock } from "@/utils/gridUtils";
-import { useLerpNumber } from "@/hooks/useLerpNumber";
 import NextLine from "../components/NextLine";
+import { useLerpNumber } from "@/hooks/useLerpNumber";
+// import NextLine from "../components/NextLine";
 import { useMediaQuery } from "react-responsive";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import MaxComboIcon from "../components/MaxComboIcon";
@@ -41,8 +43,8 @@ const Tutorial = ({
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [3, 0, 0, 2, 0, 0, 0, 0],
-    [0, 1, 2, 3, 0],
-    [2, 0, 0, 3, 2],
+    [0, 1, 2, 3, 0, 0, 0, 0],
+    [2, 0, 0, 3, 2, 0, 0, 0],
     [1, 0, 2, 2, 0, 0, 1, 1],
     [3, 0, 0, 1, 0, 0, 2], // 9th row
   ]);
@@ -187,14 +189,38 @@ const Tutorial = ({
     return null;
   }, [tutorialStep]);
 
-  const memorizedInitialData = useMemo(
-    () => transformDataContratIntoBlock(gridData),
-    [gridData],
-  );
-  const memorizedNextLineData = useMemo(
-    () => transformDataContratIntoBlock([nextLine]),
-    [nextLine],
-  );
+  const initialGrid = [
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [3, 0, 0, 2, 0, 0, 0, 0],
+    [0, 1, 2, 3, 0, 0, 0, 0],
+    [2, 0, 0, 3, 2, 0, 0, 0],
+    [1, 0, 2, 2, 0, 0, 1, 1],
+    [3, 0, 0, 1, 0, 0, 2, 0], // 9th row
+  ];
+
+  const memoizedInitialData = useMemo(() => {
+    return transformDataContratIntoBlock(initialGrid);
+  }, [initialGrid]);
+
+  const memoizedNextLineData = useMemo(() => {
+    return transformDataContratIntoBlock([nextLine]);
+    // initialGrid on purpose
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialGrid]);
+
+  // const { endTimestamp } = useTournament(game.mode.value);
+  // const { rank, suffix } = useRank({
+  //   tournamentId: game.tournament_id,
+  //   gameId: game.id,
+  // });
+
+  if (memoizedInitialData.length === 0) return null; // otherwise sometimes
+  // the grid is not displayed in Grid because the data is not ready
+
 
   const displayScore = useLerpNumber(score, { integer: true });
   const displayCombo = useLerpNumber(combo, { integer: true });
@@ -332,8 +358,8 @@ const Tutorial = ({
             )}
             <div className="flex justify-center items-center">
               <TutorialGrid
-                initialData={memorizedInitialData}
-                nextLineData={memorizedNextLineData}
+                initialData={memoizedInitialData}
+                nextLineData={memoizedNextLineData}
                 gridSize={gridSize}
                 gridHeight={rows}
                 gridWidth={cols}

@@ -44,7 +44,6 @@ const BlockContainer: React.FC<BlockProps> = ({
     if (ref.current === null) return;
 
     const onTransitionStart = () => {
-      console.log("Transition started for block", block);
       onTransitionBlockStart();
       setTransition("Start");
     };
