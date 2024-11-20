@@ -25,13 +25,13 @@ fn update_combo_and_check(
     store: @Store,
     mut world: WorldStorage,
     game_id: u32,
-    combo_count: u8,
+    combo_count: u16,
     max_combo: u8,
     expected_available_totem: u8
 ) {
     // Update combo count and max combo
     let mut game = (*store).game(game_id);
-    game.combo_counter = combo_count;
+    game.combo_counter_2 = combo_count;
     game.max_combo = max_combo;
     // Check bonuses
     let (hammer, totem, wave) = game.assess_bonuses();

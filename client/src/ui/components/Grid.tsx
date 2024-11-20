@@ -24,6 +24,7 @@ import ConfettiExplosion, { ConfettiExplosionRef } from "./ConfettiExplosion";
 import { useMusicPlayer } from "@/contexts/hooks";
 
 import "../../grid.css";
+import { useMoveStore } from "@/stores/moveTxStore";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -108,13 +109,14 @@ const Grid: React.FC<GridProps> = ({
   const gravitySpeed = 100;
   const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
   const [moveTxAwaitDone, setMoveTxAwaitDone] = useState(true);
+  const isMoveComplete = useMoveStore((state) => state.isMoveComplete);
 
   useEffect(() => {
     if (applyData) {
       if (deepCompareBlocks(saveGridStateblocks, initialData)) {
         return;
       }
-      if (moveTxAwaitDone) {
+      if (isMoveComplete) {
         setSaveGridStateblocks(initialData);
         setBlocks(initialData);
         setNextLine(nextLineData);
@@ -130,7 +132,7 @@ const Grid: React.FC<GridProps> = ({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applyData, initialData, moveTxAwaitDone]);
+  }, [applyData, initialData, isMoveComplete]);
 
   const resetAnimateText = (): void => {
     setAnimateText(ComboMessages.None);

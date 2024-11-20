@@ -48,8 +48,13 @@ pub struct Game {
     pub max_combo_in_tournament: u8,
     // ------------------------
     pub pending_chest_prize: u128, // prize to be added to the right chest
-// the right chest is the one that is not complete and has the highest point_target
-// only known after the game is over
+    // the right chest is the one that is not complete and has the highest point_target
+    // only known after the game is over
+
+    // ------------------------
+    // added to patch the max combo u8 limit
+    pub combo_counter_2: u16,
+    pub combo_counter_in_tournament_2: u16,
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]

@@ -25,7 +25,7 @@ impl BonusImpl of BonusTrait {
     }
 
     #[inline(always)]
-    fn get_count(score: u32, combo_count: u8, max_combo: u8) -> u8 {
+    fn get_count(score: u32, combo_count: u16, max_combo: u8) -> u8 {
         if combo_count >= 64 {
             return 3;
         }

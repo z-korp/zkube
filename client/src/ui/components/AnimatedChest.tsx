@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
+import { px } from "framer-motion";
+import { useMediaQuery } from "react-responsive";
 
 interface AnimatedChestProps {
   imageSrc: string;
@@ -61,6 +63,8 @@ const AnimatedChest: React.FC<AnimatedChestProps> = ({
     };
   }, [isGrayscale]);
 
+  const isMdOrLarger = useMediaQuery({ minWidth: 768 });
+
   return (
     <div className="relative rounded-lg p-4 flex flex-col items-center">
       <div ref={particlesRef} className="absolute inset-0 z-0 overflow-hidden">
@@ -80,7 +84,7 @@ const AnimatedChest: React.FC<AnimatedChestProps> = ({
       <img
         ref={chestRef}
         src={imageSrc}
-        className={`relative z-10 self-center h-[180px] ${isGrayscale ? "grayscale" : ""}`}
+        className={`relative z-10 self-center ${isMdOrLarger ? "h-[180px]" : "h-[150px]"} ${isGrayscale ? "grayscale" : ""}`}
         alt="Treasure chest"
       />
     </div>

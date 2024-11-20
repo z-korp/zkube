@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useGame } from "@/hooks/useGame";
 import { formatBigIntToBinaryArrayCustom } from "@/utils/gridUtils";
 import useDeepMemo from "./useDeepMemo";
+import { consoleTSLog } from "@/utils/logger";
 
 interface DebugData {
   blocksRaw: bigint;

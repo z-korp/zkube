@@ -46,7 +46,7 @@ const BonusButton: React.FC<BonusButtonProps> = ({
             transition={{ duration: 0.5 }}
             className={`relative`}
           >
-            <div className="absolute top-0 right-0 bg-yellow-500 text-white text-xs sm:text-sm rounded-full h-4 w-4 sm:h-6 sm:w-6 flex items-center justify-center z-10 transform translate-x-1/2 -translate-y-1/2">
+            <div className="absolute -top-1 right-2 bg-yellow-500 text-white text-xs sm:text-sm rounded-full h-4 w-4 sm:h-6 sm:w-6 flex items-center justify-center z-10 transform translate-x-1/2 -translate-y-1/2">
               {bonusCount}
             </div>
             <Button

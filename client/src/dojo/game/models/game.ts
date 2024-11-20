@@ -65,7 +65,7 @@ export class Game {
     this.hammer_used = game.hammer_used;
     this.wave_used = game.wave_used;
     this.totem_used = game.totem_used;
-    this.combo = Math.max(game.combo_counter, game.combo_counter_2);
+    this.combo = Math.max(game.combo_counter, game.combo_counter_2); // because of the patch u8 u16 for combo_counter
     this.max_combo = game.max_combo;
     this.score = game.score;
     this.buyIn = 100; // Set default buy-in of $100
@@ -78,7 +78,7 @@ export class Game {
     this.combo_counter_in_tournament = Math.max(
       game.combo_counter_in_tournament,
       game.combo_counter_in_tournament_2,
-    );
+    ); // because of the patch u8 u16 for combo_counter_in_tournament
     this.max_combo_in_tournament = game.max_combo_in_tournament;
     this.tournament_id = game.tournament_id;
 
