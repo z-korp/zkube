@@ -14,7 +14,6 @@ import {
   deepCompareBlocks,
   getBlocksSameRow,
   getBlocksSameWidth,
-  transformToGridFormat,
 } from "@/utils/gridUtils";
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
@@ -23,7 +22,7 @@ import { motion } from "framer-motion";
 import { BonusType } from "@/dojo/game/types/bonus";
 import ConfettiExplosion, { ConfettiExplosionRef } from "./ConfettiExplosion";
 import { useMusicPlayer } from "@/contexts/hooks";
-import { consoleTSLog } from "@/utils/logger";
+import { useMoveStore } from "@/stores/moveTxStore";
 
 import "../../grid.css";
 
@@ -116,14 +115,11 @@ const Grid: React.FC<GridProps> = ({
   const gravitySpeed = 100;
   const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
   const [moveTxAwaitDone, setMoveTxAwaitDone] = useState(true);
+  const isMoveComplete = useMoveStore((state) => state.isMoveComplete);
 
   useEffect(() => {
     if (applyData) {
       if (deepCompareBlocks(saveGridStateblocks, initialData)) {
-        consoleTSLog(
-          "Grid state is the same, no need to apply data",
-          transformToGridFormat(saveGridStateblocks, gridWidth, gridHeight),
-        );
         return;
       }
 
@@ -134,7 +130,7 @@ const Grid: React.FC<GridProps> = ({
       setOptimisticCombo(combo);
       setOptimisticMaxCombo(maxCombo);
 
-      if (moveTxAwaitDone) {
+      if (isMoveComplete) {
         setSaveGridStateblocks(initialData);
         setBlocks(initialData);
         setNextLine(nextLineData);
@@ -150,7 +146,7 @@ const Grid: React.FC<GridProps> = ({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applyData, initialData, moveTxAwaitDone]);
+  }, [applyData, initialData, isMoveComplete]);
 
   const resetAnimateText = (): void => {
     setAnimateText(ComboMessages.None);
