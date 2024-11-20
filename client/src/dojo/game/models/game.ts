@@ -10,7 +10,6 @@ import {
   GAME_MODE_PAID_MULTIPLIER,
 } from "../constants";
 import { Mode } from "../types/mode";
-import { max } from "date-fns";
 
 export interface Block {
   width: number;

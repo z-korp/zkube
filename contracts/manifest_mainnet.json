@@ -1965,7 +1965,7 @@
     },
     {
       "address": "0x1bf627132630b28542228f215f92b8eee9d2db554825be20052c63687c331e4",
-      "class_hash": "0x2bc06e58ffaa27a9c6ca32236265ac9886682df7edc84b01ac9f49da32f78a1",
+      "class_hash": "0x686937c657443b5b8fad37e5410424c76f9e7525000fd8a1b1d6f0337bb2e8",
       "abi": [
         {
           "type": "impl",
@@ -3208,7 +3208,7 @@
     },
     {
       "members": [],
-      "class_hash": "0x4503fdd0e06a67ea8ce661938063a2517498b9912b27e61ce42816af21474c1",
+      "class_hash": "0x280624033e49767743501266cd53051117a4f8f6a769c31cd4bd1e83f33b9d4",
       "tag": "zkube-Game",
       "selector": "0x17e542e04c42a3a6554cb2b113596d0b304511e7fc609c94ba895ef94633b3a"
     },
