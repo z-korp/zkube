@@ -4,7 +4,7 @@ description = "Reversed tetris fully onchain."
 # cover_uri = "file://assets/cover.png"
 # icon_uri = "file://assets/icon.png"
 website = "https://github.com/dojoengine/dojo-starter"
-seed = "zKube21"
+seed = "zKube22"
 
 [world.socials]
 x = "https://x.com/ohayo_dojo"
@@ -17,14 +17,14 @@ default = "zkube"
 
 [env]
 rpc_url = "https://api.cartridge.gg/x/zkube-slotdev/katana"
-account_address = "0x7b2ad9c0a331a84015dc07f71dd3d54545bac6f09b5385aa171db29fc32fbb6"
-private_key = "0x562b095dfdef600413f27b79a3fd908957b9449bd0c9e0fbdfb68594d6fa1f6"
+account_address = "0x84ba12e8c22f8572b5836fcc0f887d4ba7e07acfcc6287e214c3e3eca21b91"
+private_key = "0x1611a78f4aeb0f4611aed25ecf879edcae7fcf4e3c4edf1272a933aa0c396f7"
 
 [init_call_args]
-"zkube-chest" = ["0x0658f8ae39f604e75dd636aecbd574089fe556a08f8141b5dca1955b31f8b9c0"]
-"zkube-settings" = ["0x7b2ad9c0a331a84015dc07f71dd3d54545bac6f09b5385aa171db29fc32fbb6", "0x7b2ad9c0a331a84015dc07f71dd3d54545bac6f09b5385aa171db29fc32fbb6"]
-"zkube-tournament" = ["0x0658f8ae39f604e75dd636aecbd574089fe556a08f8141b5dca1955b31f8b9c0"]
-"zkube-zkorp" = ["0x0658f8ae39f604e75dd636aecbd574089fe556a08f8141b5dca1955b31f8b9c0"]
+"zkube-chest" = ["0x04564080d89e5b0d90f6676408905a86fac644780a7d3ef837420181253ee866"]
+"zkube-settings" = ["0x84ba12e8c22f8572b5836fcc0f887d4ba7e07acfcc6287e214c3e3eca21b91", "0x84ba12e8c22f8572b5836fcc0f887d4ba7e07acfcc6287e214c3e3eca21b91"]
+"zkube-tournament" = ["0x04564080d89e5b0d90f6676408905a86fac644780a7d3ef837420181253ee866"]
+"zkube-zkorp" = ["0x04564080d89e5b0d90f6676408905a86fac644780a7d3ef837420181253ee866"]
 
 [writers]
 "zkube-Admin" = ["zkube-settings"]

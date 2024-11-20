@@ -29,9 +29,13 @@ const GameScores: React.FC<GameScoresProps> = ({
   return (
     <div className="flex gap-2">
       <div
-        className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
+        className={`flex items-center ${isMdOrLarger ? "text-3xl" : "text-2xl"}`}
       >
-        <span>{displayScore}</span>
+        <span
+          className={`${isMdOrLarger ? "w-[52px]" : "w-[44px]"} text-right`}
+        >
+          {displayScore}
+        </span>
         <FontAwesomeIcon
           icon={faStar}
           className="text-yellow-500 ml-1"
@@ -40,10 +44,10 @@ const GameScores: React.FC<GameScoresProps> = ({
         />
       </div>
       <div
-        className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
+        className={`flex items-center ${isMdOrLarger ? "text-3xl" : "text-2xl"}`}
       >
         <span
-          className={`${isMdOrLarger ? "w-[38px]" : "w-[26px]"} text-right`}
+          className={`${isMdOrLarger ? "w-[52px]" : "w-[44px]"} text-right`}
         >
           {displayCombo}
         </span>
@@ -55,7 +59,7 @@ const GameScores: React.FC<GameScoresProps> = ({
         />
       </div>
       <div
-        className={`flex items-center ${isMdOrLarger ? "text-4xl" : "text-2xl"}`}
+        className={`flex items-center ${isMdOrLarger ? "text-3xl" : "text-2xl"}`}
       >
         <span
           className={`${isMdOrLarger ? "w-[20px]" : "w-[13px]"} text-right`}

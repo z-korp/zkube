@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x79d9ce84b97bcc2a631996c3100d57966fc2f5b061fb1ec4dfd0040976bcac6",
-    "address": "0x3af02346a3cb19a62d799cf7aa2740f619b2adab3ce69ffa784f31905b7be1a",
-    "seed": "zKube21",
+    "address": "0x450e71e11f3fbeb53d9634531c2bf9dbda063334dbd6d7b7c84d35ada8e6804",
+    "seed": "zKube22",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -1243,7 +1243,7 @@
   },
   "contracts": [
     {
-      "address": "0x25999b11376b2428a8c5cd8fba3e08023a74fd311224329b8dba37d07eacb86",
+      "address": "0x6c7f08882369b076e4d1c1b8d0d5fb5f2c5fcc6dba5a6d04547882ad9c7c81b",
       "class_hash": "0x745684a5a7e7c58b27a0021e6755f9eb44f792f02a25e472636d89bd7140f5b",
       "abi": [
         {
@@ -1460,10 +1460,15 @@
       "init_calldata": [],
       "tag": "zkube-account",
       "selector": "0x6d28004d278bad46f01e5d8d1943b63b32617bdc735f34355e0c7e39310d4e7",
-      "systems": ["dojo_init", "create", "rename", "upgrade"]
+      "systems": [
+        "dojo_init",
+        "create",
+        "rename",
+        "upgrade"
+      ]
     },
     {
-      "address": "0xf0a56bd4517ffe572c6f9baa4237a05471b2cb30e787d7d79250b0625c8ddc",
+      "address": "0x295edcf9ff854bce6ccd39081554b0a1ae9737e01df87cded0af8f91d738f4a",
       "class_hash": "0x21892f4fb1680358ada43b2baaec46820335177f7bd4547e2a66ce8068a1632",
       "abi": [
         {
@@ -1703,7 +1708,7 @@
         }
       ],
       "init_calldata": [
-        "0x0658f8ae39f604e75dd636aecbd574089fe556a08f8141b5dca1955b31f8b9c0"
+        "0x04564080d89e5b0d90f6676408905a86fac644780a7d3ef837420181253ee866"
       ],
       "tag": "zkube-chest",
       "selector": "0x5d3b3ea38e2bb02701fbb4295f2c28aae2284c1140203fa2993ca72e8027227",
@@ -1716,7 +1721,7 @@
       ]
     },
     {
-      "address": "0x4e8b34b0bf67fd459b249fe3886f81982aa728ee3ca2837a87ddc869fc236f8",
+      "address": "0x5f31930473db10dcab59f6d60ee6ae7facbd6e80718dd0c534bb3af9c87da14",
       "class_hash": "0x1635b52cc9a48052d977b4423928714b44348abd89c7e8156255b9325a5e7d4",
       "abi": [
         {
@@ -1959,8 +1964,8 @@
       ]
     },
     {
-      "address": "0x64a31d50c6ed11a13871327557575b83fe7c532455cd70eeb99eddffcbdd061",
-      "class_hash": "0x34cdd05042a06e8c3f3c85d38676521dd7fac7a217d75b6f86cd80139408658",
+      "address": "0x17d74634a06fe6e15c96a085a88776a3eb34219e23f195d79a783a19c5b0a12",
+      "class_hash": "0x3c80a2e98a7ad70008198c591390d0e0050b9beeefa9efe6d0ef74ed19b1dd1",
       "abi": [
         {
           "type": "impl",
@@ -2346,8 +2351,8 @@
       ]
     },
     {
-      "address": "0x1af1b6c12339c99e3f4a717d58b76b7badd5ca4a62b402f2331fac754ff43cb",
-      "class_hash": "0x349e932ba43b3059a8cf39f2b5e0e08330568b684c32556affa9bd6c9eec6d0",
+      "address": "0x8e400a8cb314afc2fab3b4896f818a52e5f05575545264469ca77dda87e87f",
+      "class_hash": "0x4c1a0f460cc3936c27bddb1079f7ddc960d2e4ad41d40c3c08fece491a023b3",
       "abi": [
         {
           "type": "impl",
@@ -2632,8 +2637,8 @@
         }
       ],
       "init_calldata": [
-        "0x7b2ad9c0a331a84015dc07f71dd3d54545bac6f09b5385aa171db29fc32fbb6",
-        "0x7b2ad9c0a331a84015dc07f71dd3d54545bac6f09b5385aa171db29fc32fbb6"
+        "0x84ba12e8c22f8572b5836fcc0f887d4ba7e07acfcc6287e214c3e3eca21b91",
+        "0x84ba12e8c22f8572b5836fcc0f887d4ba7e07acfcc6287e214c3e3eca21b91"
       ],
       "tag": "zkube-settings",
       "selector": "0x3b7c49180f985c87caf5cdf5a829c3881f26f1688524d6550742ba94c276f1e",
@@ -2649,7 +2654,7 @@
       ]
     },
     {
-      "address": "0x1387aaceee445e291578804c05fdabfce62aea451ceacb12388276091bddb3b",
+      "address": "0x460eea26888df779977962c76d4c05a4d25fcf9358a05c03f354b06bdfdac29",
       "class_hash": "0x19a7f4c0e8210d8dc8f99019bd14376c3d7721bb1c4fd5b23c761d7c3e43a1f",
       "abi": [
         {
@@ -2931,14 +2936,20 @@
         }
       ],
       "init_calldata": [
-        "0x0658f8ae39f604e75dd636aecbd574089fe556a08f8141b5dca1955b31f8b9c0"
+        "0x04564080d89e5b0d90f6676408905a86fac644780a7d3ef837420181253ee866"
       ],
       "tag": "zkube-tournament",
       "selector": "0x2101600e00aa39f4136a59a187bd5e197b9f3c63e08d17626effe44b379f1f5",
-      "systems": ["dojo_init", "claim", "sponsor_from", "sponsor", "upgrade"]
+      "systems": [
+        "dojo_init",
+        "claim",
+        "sponsor_from",
+        "sponsor",
+        "upgrade"
+      ]
     },
     {
-      "address": "0x50c3f84f5a048a8e75789acb14931381b258c822ed1b779d1053ae83ea13a11",
+      "address": "0x174fb391abe1fe7307557097be02012c0d05b0cc52e8bc990f54f20b27c791e",
       "class_hash": "0x3ff7162efe5a614632ecb54cc0e173a554d62231a3b30a94fea94021287dded",
       "abi": [
         {
@@ -3169,11 +3180,17 @@
         }
       ],
       "init_calldata": [
-        "0x0658f8ae39f604e75dd636aecbd574089fe556a08f8141b5dca1955b31f8b9c0"
+        "0x04564080d89e5b0d90f6676408905a86fac644780a7d3ef837420181253ee866"
       ],
       "tag": "zkube-zkorp",
       "selector": "0x6cdc1046f821af7bd6d6c3a1326826e049bd14a3d8329ce42ed30430eb3b678",
-      "systems": ["dojo_init", "claim", "sponsor", "sponsor_from", "upgrade"]
+      "systems": [
+        "dojo_init",
+        "claim",
+        "sponsor",
+        "sponsor_from",
+        "upgrade"
+      ]
     }
   ],
   "models": [
@@ -3191,7 +3208,7 @@
     },
     {
       "members": [],
-      "class_hash": "0x4503fdd0e06a67ea8ce661938063a2517498b9912b27e61ce42816af21474c1",
+      "class_hash": "0x280624033e49767743501266cd53051117a4f8f6a769c31cd4bd1e83f33b9d4",
       "tag": "zkube-Game",
       "selector": "0x17e542e04c42a3a6554cb2b113596d0b304511e7fc609c94ba895ef94633b3a"
     },
@@ -3229,13 +3246,13 @@
   "events": [
     {
       "members": [],
-      "class_hash": "0x3c90ca93f00abca2c554412ea9a21cbb46ed193f1e68b309484e4288caaf7d2",
+      "class_hash": "0x63b7a958b4eed370f1807a66a6b8820d238d2676cc27bba35d7c60bbf2c21ef",
       "tag": "zkube-TrophyCreation",
       "selector": "0xc0be59b90105c870702c71ad28232a4c5246c52bdbcaa00d62c68949ccdffd"
     },
     {
       "members": [],
-      "class_hash": "0x1fac79c657849151aacf0f1d283a961b2d6d2a1ab6fedde530224a289116a85",
+      "class_hash": "0x1f22af6dbce1f36057f13e367b10fe18cf075d90273c26e3824ddc17f8fef37",
       "tag": "zkube-TrophyProgression",
       "selector": "0x17b14454c7075d73430699a7e57cfb3aaa40a094fcf81c2afac7fa95667c8ec"
     }
