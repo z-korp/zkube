@@ -11,6 +11,7 @@ import {
   getToastAction,
   notify,
 } from "@/utils/toast";
+import { useMoveStore } from "@/stores/moveTxStore";
 
 export type SystemCalls = ReturnType<typeof systems>;
 
@@ -99,11 +100,20 @@ export function systems({ client }: { client: IWorld }) {
 
   const move = async ({ account, ...props }: SystemTypes.Move) => {
     console.log("move", account, props);
-    await handleTransaction(
-      account,
-      () => client.play.move({ account, ...props }),
-      "Move has been done.",
-    );
+    const setMoveComplete = useMoveStore.getState().setMoveComplete; //  Zustand
+    setMoveComplete(false); // Reset before transaction
+
+    try {
+      await handleTransaction(
+        account,
+        () => client.play.move({ account, ...props }),
+        "Move has been done.",
+      );
+      setMoveComplete(true);
+    } catch (error) {
+      setMoveComplete(true);
+      throw error;
+    }
   };
 
   const applyBonus = async ({ account, ...props }: SystemTypes.Bonus) => {
