@@ -10,6 +10,7 @@ import {
   GAME_MODE_PAID_MULTIPLIER,
 } from "../constants";
 import { Mode } from "../types/mode";
+import { max } from "date-fns";
 
 export interface Block {
   width: number;
@@ -65,7 +66,7 @@ export class Game {
     this.hammer_used = game.hammer_used;
     this.wave_used = game.wave_used;
     this.totem_used = game.totem_used;
-    this.combo = game.combo_counter;
+    this.combo = Math.max(game.combo_counter, game.combo_counter_2); // because of the patch u8 u16 for combo_counter
     this.max_combo = game.max_combo;
     this.score = game.score;
     this.buyIn = 100; // Set default buy-in of $100
@@ -75,7 +76,10 @@ export class Game {
     this.seed = game.seed;
     this.start_time = new Date(game.start_time * 1000);
     this.score_in_tournament = game.score_in_tournament;
-    this.combo_counter_in_tournament = game.combo_counter_in_tournament;
+    this.combo_counter_in_tournament = Math.max(
+      game.combo_counter_in_tournament,
+      game.combo_counter_in_tournament_2,
+    ); // because of the patch u8 u16 for combo_counter_in_tournament
     this.max_combo_in_tournament = game.max_combo_in_tournament;
     this.tournament_id = game.tournament_id;
 
