@@ -26,7 +26,7 @@ export const GameBonus: React.FC<GameBonusProps> = ({
   const imgAssets = ImageAssets(themeTemplate);
 
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-3 gap-1">
       <div className="flex flex-col items-start">
         <BonusButton
           onClick={onBonusHammerClick}
