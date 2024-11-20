@@ -186,10 +186,6 @@ mod PlayableComponent {
                 // this is the case where the game has been started before the patch
                 // the game_counter_2 (u16 is up to date because _handle_score_for_tournament
                 // is called after move or apply_bonus)
-                // if combo_counter_in_tournament is not 0 we set the combo_counter_in_tournament_2
-                if (game.combo_counter_in_tournament != 0) {
-                    game.combo_counter_in_tournament_2 = game.combo_counter_in_tournament.into();
-                }
                 game.combo_counter_in_tournament_2 = game.combo_counter_2;
                 game.max_combo_in_tournament = game.max_combo;
             }
