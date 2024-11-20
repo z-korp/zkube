@@ -26,7 +26,12 @@ interface StartProps {
   handleGameMode: () => void;
 }
 
-export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
+export const Start: React.FC<StartProps> = ({
+  mode,
+  handleGameMode, 
+  potentialWinnings,
+  remainingTime,
+}) => {
   const {
     setup: {
       systemCalls: { start },

@@ -1,8 +1,7 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import "../../grid.css";
 import { Account } from "starknet";
-import { useDojo } from "@/dojo/useDojo";
-import BlockContainer from "./Block";
+import BlockContainer from "./TutorialBlock";
 import { GameState } from "@/enums/gameEnums";
 import { Block } from "@/types/types";
 import {
@@ -17,7 +16,7 @@ import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
 import { motion } from "framer-motion";
-import { BonusName } from "@/enums/bonusEnum";
+import { BonusType } from "@/dojo/game/types/bonus";
 
 interface GridProps {
   initialData: Block[];
@@ -26,26 +25,31 @@ interface GridProps {
   gridWidth: number;
   gridHeight: number;
   selectBlock: (block: Block) => void;
-  bonus: BonusName;
+  onMove?: (rowIndex: number, startIndex: number, finalIndex: number) => void;
+  bonus: BonusType;
   account: Account | null;
+  tutorialStep: number;
+  tutorialTargetBlock: { x: number; y: number; type: "block" | "row" } | null;
+  onUpdate: (intermission: boolean) => void;
+  ref: any;
+  intermission?: boolean;
 }
 
-const Grid: React.FC<GridProps> = ({
+const TutorialGrid: React.FC<GridProps> = forwardRef(({
   initialData,
   nextLineData,
   gridHeight,
   gridWidth,
   gridSize,
   selectBlock,
+  onMove,
   bonus,
   account,
-}) => {
-  const {
-    setup: {
-      systemCalls: { move },
-    },
-  } = useDojo();
-
+  tutorialStep,
+  tutorialTargetBlock,
+  onUpdate,
+  intermission,
+}, ref) => {
   const [blocks, setBlocks] = useState<Block[]>(initialData);
   const [dragging, setDragging] = useState<Block | null>(null);
   const [dragStartX, setDragStartX] = useState(0);
@@ -70,31 +74,24 @@ const Grid: React.FC<GridProps> = ({
 
   const borderSize = 2;
   const gravitySpeed = 100;
-  const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
-  const [moveTxAwaitDone, setMoveTxAwaitDone] = useState(true);
+  const transitionDuration = 200;
+
+  const updateValue = () =>{
+    const newvalue = tutorialStep + 1;
+    onUpdate(true);
+  }
 
   useEffect(() => {
-    if (applyData) {
-      if (deepCompareBlocks(saveGridStateblocks, initialData)) {
-        return;
-      }
-      if (moveTxAwaitDone) {
-        setSaveGridStateblocks(initialData);
-        setBlocks(initialData);
-        setNextLine(nextLineData);
+    setBlocks(initialData);
 
-        const inDanger = initialData.some((block) => block.y < 2);
-        setIsPlayerInDanger(inDanger);
-        setLineExplodedCount(0);
-        setNextLineHasBeenConsumed(false);
-
-        setApplyData(false);
-        setIsTxProcessing(false);
-        setMoveTxAwaitDone(false);
-      }
+    const inDanger = initialData.some((block) => block.y < 2);
+    setIsPlayerInDanger(inDanger);
+    if (lineExplodedCount > 1) {
+      setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applyData, initialData, moveTxAwaitDone]);
+    setLineExplodedCount(0);
+    setIsTxProcessing(false);
+  }, [initialData]);
 
   const resetAnimateText = (): void => {
     setAnimateText(ComboMessages.None);
@@ -157,28 +154,46 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const handleDragStart = (x: number, block: Block) => {
-    if (isTxProcessing) return;
+    // if (isTxProcessing) return;
     setDragging(block);
     setDragStartX(x);
     setInitialX(block.x);
     setGameState(GameState.DRAGGING);
   };
 
+const useBonus = (block: Block) => {
+  if (bonus === BonusType.Wave) {
+    setBlocks(removeBlocksSameRow(block, blocks));
+  } else if (bonus === BonusType.Totem) {
+    setBlocks(removeBlocksSameWidth(block, blocks));
+  } else if (bonus === BonusType.Hammer) {
+    setBlocks(removeBlockId(block, blocks));
+  }
+
+  // Return success if a bonus was applied
+  return bonus !== BonusType.None;
+};
+
+useImperativeHandle(ref, () => ({
+  useBonus,
+}));
+
   const handleMouseDown = (e: React.MouseEvent, block: Block) => {
     e.preventDefault();
 
     setBlockBonus(block);
-    if (bonus === BonusName.WAVE) {
-      setBlocks(removeBlocksSameRow(block, blocks));
-    }
-    if (bonus === BonusName.TIKI) {
-      setBlocks(removeBlocksSameWidth(block, blocks));
-    }
-    if (bonus === BonusName.HAMMER) {
-      setBlocks(removeBlockId(block, blocks));
-    }
-    if (bonus !== BonusName.NONE) {
-      setIsTxProcessing(true);
+    // if (bonus === BonusType.Wave) {
+    //   setBlocks(removeBlocksSameRow(block, blocks));
+    // }
+    // if (bonus === BonusType.Totem) {
+    //   setBlocks(removeBlocksSameWidth(block, blocks));
+    // }
+    // if (bonus === BonusType.Hammer) {
+    //   setBlocks(removeBlockId(block, blocks));
+    // }
+    if (bonus !== BonusType.None) {
+    //   setIsTxProcessing(false);
+      useBonus(block);
       setIsMoving(true);
       setGameState(GameState.GRAVITY_BONUS);
       return;
@@ -207,8 +222,8 @@ const Grid: React.FC<GridProps> = ({
       const updatedBlocks = prevBlocks.map((b) => {
         if (b.id === dragging.id) {
           const finalX = Math.round(b.x);
-          if (Math.trunc(finalX) !== Math.trunc(initialX))
-            setIsTxProcessing(true);
+          // if (Math.trunc(finalX) !== Math.trunc(initialX))
+            // setIsTxProcessing(true);
           setPendingMove({
             block: b,
             rowIndex: b.y,
@@ -245,31 +260,73 @@ const Grid: React.FC<GridProps> = ({
     };
   }, [dragging]);
 
+  const move = async ({ row_index, start_index, final_index }: any) => {
+    try {
+      onMove?.(row_index, start_index, final_index);
+
+      if (tutorialStep === 1 && start_index === 2){
+        updateValue();
+        console.log('tutorialstep', tutorialStep);
+      }
+      if (tutorialStep === 2  && start_index === 6){
+        updateValue();
+        console.log('tutorialstep', tutorialStep);
+      }
+
+      // Update score based on move
+      // const moveScore = Math.abs(final_index - start_index) * 10;
+      //  setScore(prevScore => prevScore + moveScore);
+
+      // Check if the move results in any complete lines
+      const { completeRows } = removeCompleteRows(
+        blocks,
+        gridWidth,
+        gridHeight,
+      );
+      if (completeRows.length > 0) {
+        // Add bonus points for completing lines
+        const lineScore = completeRows.length * 100;
+        //   setScore(prevScore => prevScore + lineScore);
+      }
+      setIsMoving(true);
+
+      console.log(
+        `Movement effected : Line ${row_index}, of ${start_index} has ${final_index}`,
+      );
+      return true;
+    } catch (error) {
+      console.error("Error executing move:", error);
+      throw error;
+    }
+  };
+
   const handleMoveTX = useCallback(
     async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
       if (startColIndex === finalColIndex || isMoving) return;
-      if (!account) return;
-      setIsTxProcessing(true);
       try {
-        await move({
-          account: account as Account,
+        const moveSuccess = await move({
           row_index: gridHeight - 1 - rowIndex,
           start_index: Math.trunc(startColIndex),
           final_index: Math.trunc(finalColIndex),
         });
+
+        if (moveSuccess) {
+          setBlocks((prevBlocks) =>
+            prevBlocks.map((block) =>
+              block.y === rowIndex ? { ...block, x: finalColIndex } : block,
+            ),
+          );
+
+          setIsMoving(false);
+        }
         console.log(
-          `Mouvement effectué : Ligne ${rowIndex}, de ${startColIndex} à ${finalColIndex}`,
+          `Movement effected : Line ${rowIndex}, of ${startColIndex} has ${finalColIndex}`,
         );
       } catch (error) {
         console.error("Erreur lors de l'envoi de la transaction", error);
-        setMoveTxAwaitDone(true);
-        isProcessingRef.current = false; // Reset the ref
-      } finally {
-        isProcessingRef.current = false; // Reset the ref
-        setMoveTxAwaitDone(true);
       }
     },
-    [account, isMoving, gridHeight, move],
+    [move, isMoving, gridHeight],
   );
 
   const isBlocked = (
@@ -420,39 +477,8 @@ const Grid: React.FC<GridProps> = ({
   }, [gameState, blocks]);
 
   useEffect(() => {
-    // we calculate points and combo for optimistic rendering
-    // ans we display text
-    if (gameState === GameState.BONUS_TX || gameState === GameState.MOVE_TX) {
-      // Calculate combo
-      const current_combo = lineExplodedCount > 1 ? lineExplodedCount : 0;
-
-      // Calculate points earned for this combo
-      const pointsEarned = (lineExplodedCount * (lineExplodedCount + 1)) / 2;
-      setOptimisticScore((prevPoints) => prevPoints + pointsEarned);
-
-      setOptimisticCombo((prevCombo) => prevCombo + current_combo);
-
-      // Update max combo if necessary
-      setOptimisticMaxCombo((prevMaxCombo) =>
-        current_combo > prevMaxCombo ? current_combo : prevMaxCombo,
-      );
-
-      if (lineExplodedCount > 1) {
-        setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
-      }
-
-      setMoveTxAwaitDone(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState]);
-
-  useEffect(() => {
-    if (
-      gameState === GameState.ADD_LINE &&
-      pendingMove &&
-      transitioningBlocks.length === 0
-    ) {
-      const { startX, finalX } = pendingMove;
+    if (gameState === GameState.ADD_LINE && pendingMove) {
+      const { rowIndex, startX, finalX } = pendingMove;
       if (startX !== finalX) {
         const updatedBlocks = concatenateAndShiftBlocks(
           blocks,
@@ -483,6 +509,20 @@ const Grid: React.FC<GridProps> = ({
       }
     }
   }, [gameState, pendingMove, handleMoveTX]);
+
+  const isHighlighted = (block: Block) => {
+    if (!tutorialTargetBlock) return false;
+
+    if (tutorialTargetBlock.type === "row") {
+      // Highlight any block in the target row
+      return block.y === tutorialTargetBlock.y;
+    } else {
+      // Original single block highlighting
+      return (
+        block.x === tutorialTargetBlock.x && block.y === tutorialTargetBlock.y
+      );
+    }
+};
 
   return (
     <motion.div
@@ -520,6 +560,15 @@ const Grid: React.FC<GridProps> = ({
                 handleTransitionBlockStart(block.id)
               }
               onTransitionBlockEnd={() => handleTransitionBlockEnd(block.id)}
+              isHighlighted={isHighlighted(block)}
+              isClickable={
+                !tutorialStep ||
+                (!!tutorialTargetBlock &&
+                  (tutorialTargetBlock.type === "row"
+                    ? block.y === tutorialTargetBlock.y
+                    : block.x === tutorialTargetBlock.x &&
+                      block.y === tutorialTargetBlock.y))
+              }
             />
           ))}
           <div className="flex items-center justify-center font-sans">
@@ -529,6 +578,6 @@ const Grid: React.FC<GridProps> = ({
       </div>
     </motion.div>
   );
-};
+});
 
-export default Grid;
+export default TutorialGrid;

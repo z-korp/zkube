@@ -55,4 +55,5 @@ export class Mode {
         return BigInt(FREE_MODE_PRICE);
     }
   }
+
 }

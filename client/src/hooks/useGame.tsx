@@ -31,4 +31,4 @@ export const useGame = ({
   }, [component]);
 
   return { game, gameKey };
-};
+}; 

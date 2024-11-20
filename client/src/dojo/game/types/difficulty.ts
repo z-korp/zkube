@@ -3,7 +3,7 @@ export enum DifficultyType {
   VeryEasy = "VeryEasy",
   Easy = "Easy",
   Medium = "Medium",
-  MediumHard = "MediumHard",
+  MediumHard = "MediumHard", 
   Hard = "Hard",
   VeryHard = "VeryHard",
   Expert = "Expert",

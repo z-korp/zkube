@@ -12,7 +12,7 @@ export const Loading = () => {
         <div
           className="absolute inset-0 bg-cover bg-center animate-zoom-in-out"
           style={{ backgroundImage: `url('${imgAssets.background}')` }}
-        />
+        /> 
       </div>
       {/* Logo and Enter Button */}
       <div className="flex flex-col justify-center items-center w-full h-full z-30">

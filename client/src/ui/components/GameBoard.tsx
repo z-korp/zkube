@@ -11,7 +11,7 @@ import { GameBonus } from "../containers/GameBonus";
 import { useMediaQuery } from "react-responsive";
 import { Account } from "starknet";
 import Grid from "./Grid";
-import { transformDataContractIntoBlock } from "@/utils/gridUtils";
+import { transformDataContratIntoBlock } from "@/utils/gridUtils";
 import NextLine from "./NextLine";
 import { Block } from "@/types/types";
 import GameScores from "./GameScores";
@@ -197,11 +197,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
   }, [initialGrid]);
 
   const memoizedInitialData = useMemo(() => {
-    return transformDataContractIntoBlock(initialGrid);
+    return transformDataContratIntoBlock(initialGrid);
   }, [initialGrid]);
 
   const memoizedNextLineData = useMemo(() => {
-    return transformDataContractIntoBlock([nextLine]);
+    return transformDataContratIntoBlock([nextLine]);
     // initialGrid on purpose
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGrid]);

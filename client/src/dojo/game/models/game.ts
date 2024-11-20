@@ -56,7 +56,7 @@ export class Game {
     this.over = game.over ? true : false;
     this.next_row = Packer.sized_unpack(
       BigInt(game.next_row),
-      BigInt(BLOCK_BIT_COUNT),
+      BigInt(BLOCK_BIT_COUNT), 
       DEFAULT_GRID_WIDTH,
     );
     this.hammer = game.hammer_bonus;
@@ -78,7 +78,6 @@ export class Game {
     this.combo_counter_in_tournament = game.combo_counter_in_tournament;
     this.max_combo_in_tournament = game.max_combo_in_tournament;
     this.tournament_id = game.tournament_id;
-
     // Destructure blocks and colors bitmaps in to Rows and Blocks
     this.blocksRaw = game.blocks;
     this.blocks = Packer.sized_unpack(
@@ -105,6 +104,8 @@ export class Game {
       return { blocks };
     });
   }
+
+
 
   public isOver(): boolean {
     return this.over;

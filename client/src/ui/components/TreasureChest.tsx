@@ -20,7 +20,7 @@ interface CollectiveTreasureChestProps {
   onClose: () => void;
 }
 
-const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
+const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({ 
   isOpen,
   onClose,
 }) => {
