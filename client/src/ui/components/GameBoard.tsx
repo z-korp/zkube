@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
 import { GameBonus } from "../containers/GameBonus";
@@ -18,7 +24,6 @@ import { Game } from "@/dojo/game/models/game";
 import useRank from "@/hooks/useRank";
 
 import "../../grid.css";
-import { consoleTSLog } from "@/utils/logger";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -74,7 +79,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
     setOptimisticScore(score);
     setOptimisticCombo(combo);
     setOptimisticMaxCombo(maxCombo);
-    consoleTSLog("info", "Initial grid changed in GameBoard");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGrid]);
 
@@ -188,15 +192,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
   useEffect(() => {
     // Reset the isTxProcessing state and the bonus state when the grid changes
     // meaning the tx as been processed, and the client state updated
-    consoleTSLog("success", "Game board is trigger");
     setBonus(BonusType.None);
     setBonusDescription("");
   }, [initialGrid]);
 
-  consoleTSLog("info", "Rendering GameBoard component");
-
   const memoizedInitialData = useMemo(() => {
-    consoleTSLog("success", "Transforming data in gameboard");
     return transformDataContractIntoBlock(initialGrid);
   }, [initialGrid]);
 
