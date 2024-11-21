@@ -22,11 +22,11 @@ import { motion } from "framer-motion";
 import { BonusType } from "@/dojo/game/types/bonus";
 import ConfettiExplosion, { ConfettiExplosionRef } from "./ConfettiExplosion";
 import { useMusicPlayer } from "@/contexts/hooks";
+import useGridAnimations from "@/hooks/useGridAnimations";
 
 import "../../grid.css";
 import { useMoveStore } from "@/stores/moveTxStore";
 import { calculateFallDistance } from "@/utils/gridPhysics";
-import { consoleTSLog } from "@/utils/logger";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -103,15 +103,14 @@ const Grid: React.FC<GridProps> = ({
   const [isPlayerInDanger, setIsPlayerInDanger] = useState(false);
   const [lineExplodedCount, setLineExplodedCount] = useState(0);
   const [blockBonus, setBlockBonus] = useState<Block | null>(null);
-  const [animateText, setAnimateText] = useState<ComboMessages>(
-    ComboMessages.None,
-  );
-  const [shouldBounce, setShouldBounce] = useState(false);
   const { playExplode, playSwipe } = useMusicPlayer();
   const borderSize = 2;
   const gravitySpeed = 100;
   const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
   const isMoveComplete = useMoveStore((state) => state.isMoveComplete);
+
+  const { shouldBounce, animateText, resetAnimateText, setAnimateText } =
+    useGridAnimations(lineExplodedCount);
 
   // INIT useEffect set or reset grid when grid is ready :
   useEffect(() => {
@@ -137,19 +136,6 @@ const Grid: React.FC<GridProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applyData, initialData, isMoveComplete]);
-
-  // =================== ANIMATIONS ===================
-
-  const resetAnimateText = (): void => {
-    setAnimateText(ComboMessages.None);
-  };
-
-  useEffect(() => {
-    if (lineExplodedCount > 0) {
-      setShouldBounce(true); // Trigger bounce animation
-      setTimeout(() => setShouldBounce(false), 500); // Stop bouncing after 0.5s
-    }
-  }, [lineExplodedCount]);
 
   const handleTransitionBlockStart = (id: number) => {
     setTransitioningBlocks((prev) => {
