@@ -417,14 +417,12 @@ const Grid: React.FC<GridProps> = ({
       playExplode();
       setLineExplodedCount(lineExplodedCount + completeRows.length);
 
+      // Calculate absolute position in the viewport
+      if (gridPosition === null) return;
+
       // Trigger particle explosions for each cleared row
       completeRows.forEach((rowIndex) => {
-        console.log("triggerParticles", rowIndex);
-
         const blocksSameRow = getBlocksSameRow(rowIndex, blocks);
-
-        // Calculate absolute position in the viewport
-        if (gridPosition === null) return;
 
         blocksSameRow.forEach((block) => {
           handleTriggerLocalExplosion(
@@ -434,8 +432,6 @@ const Grid: React.FC<GridProps> = ({
             gridPosition.top + block.y * gridSize,
           );
         });
-
-        // handleTriggerLineExplosion(x, y, 400);
       });
 
       setBlocks(updatedBlocks);
