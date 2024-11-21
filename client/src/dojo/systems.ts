@@ -117,11 +117,19 @@ export function systems({ client }: { client: IWorld }) {
   };
 
   const applyBonus = async ({ account, ...props }: SystemTypes.Bonus) => {
-    await handleTransaction(
-      account,
-      () => client.play.bonus({ account, ...props }),
-      "Bonus has been applied.",
-    );
+    const setMoveComplete = useMoveStore.getState().setMoveComplete; //  Zustand
+    setMoveComplete(false); // Reset before transaction
+    try {
+      await handleTransaction(
+        account,
+        () => client.play.bonus({ account, ...props }),
+        "Bonus has been applied.",
+      );
+      setMoveComplete(true);
+    } catch (error) {
+      setMoveComplete(true);
+      throw error;
+    }
   };
 
   const claimChest = async ({ account, ...props }: SystemTypes.ChestClaim) => {
