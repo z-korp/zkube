@@ -89,7 +89,7 @@ const Grid: React.FC<GridProps> = ({
   const [dragStartX, setDragStartX] = useState(0);
   const [initialX, setInitialX] = useState(0);
   const [isMoving, setIsMoving] = useState(true);
-  const [pendingMove, setPendingMove] = useState<{
+  const [currentMove, setcurrentMove] = useState<{
     block: Block;
     rowIndex: number;
     startX: number;
@@ -269,7 +269,7 @@ const Grid: React.FC<GridProps> = ({
         if (b.id === dragging.id) {
           const finalX = Math.round(b.x);
           if (Math.trunc(finalX) !== Math.trunc(initialX)) {
-            setPendingMove({
+            setcurrentMove({
               block: b,
               rowIndex: b.y,
               startX: initialX,
@@ -308,13 +308,13 @@ const Grid: React.FC<GridProps> = ({
   }, [dragging]);
 
   useEffect(() => {
-    if (pendingMove) {
-      const { rowIndex, startX, finalX } = pendingMove;
+    if (currentMove) {
+      const { rowIndex, startX, finalX } = currentMove;
       console.log("Pending move");
       handleMoveTX(rowIndex, startX, finalX);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingMove]);
+  }, [currentMove]);
 
   const handleMoveTX = useCallback(
     async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
@@ -545,10 +545,10 @@ const Grid: React.FC<GridProps> = ({
   useEffect(() => {
     if (
       gameState === GameState.ADD_LINE &&
-      pendingMove &&
+      currentMove &&
       transitioningBlocks.length === 0
     ) {
-      const { startX, finalX } = pendingMove;
+      const { startX, finalX } = currentMove;
       if (startX !== finalX) {
         const updatedBlocks = concatenateAndShiftBlocks(
           blocks,
@@ -566,7 +566,7 @@ const Grid: React.FC<GridProps> = ({
       setGameState(GameState.GRAVITY2);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState, blocks, pendingMove, transitioningBlocks]);
+  }, [gameState, blocks, currentMove, transitioningBlocks]);
 
   useEffect(() => {
     if (gameState === GameState.BONUS_TX) {
@@ -576,14 +576,12 @@ const Grid: React.FC<GridProps> = ({
       setGameState(GameState.WAITING);
     }
     if (gameState === GameState.MOVE_TX) {
-      if (pendingMove) {
-        setApplyData(true);
-        setPendingMove(null);
-        setGameState(GameState.WAITING);
-      }
+      setApplyData(true);
+      setcurrentMove(null);
+      setGameState(GameState.WAITING);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState, pendingMove, handleMoveTX]);
+  }, [gameState]);
 
   const explosionRef = useRef<ConfettiExplosionRef>(null);
 
