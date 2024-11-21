@@ -25,6 +25,7 @@ import { useMusicPlayer } from "@/contexts/hooks";
 
 import "../../grid.css";
 import { useMoveStore } from "@/stores/moveTxStore";
+import { calculateFallDistance } from "@/utils/gridPhysics";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -379,40 +380,14 @@ const Grid: React.FC<GridProps> = ({
     return false;
   };
 
-  const calculateFallDistance = useCallback(
-    (block: Block, blocks: Block[]) => {
-      let maxFall = gridHeight - block.y - 1;
-      for (let y = block.y + 1; y < gridHeight; y++) {
-        if (isCollision(block.x, y, block.width, blocks, block.id)) {
-          maxFall = y - block.y - 1;
-          break;
-        }
-      }
-      return maxFall;
-    },
-    [gridHeight],
-  );
-
-  const isCollision = (
-    x: number,
-    y: number,
-    width: number,
-    blocks: Block[],
-    blockId: number,
-  ) => {
-    return blocks.some(
-      (block) =>
-        block.id !== blockId &&
-        block.y === y &&
-        x < block.x + block.width &&
-        x + width > block.x,
-    );
-  };
-
   const applyGravity = useCallback(() => {
     setBlocks((prevBlocks) => {
       const newBlocks = prevBlocks.map((block) => {
-        const fallDistance = calculateFallDistance(block, prevBlocks);
+        const fallDistance = calculateFallDistance(
+          block,
+          prevBlocks,
+          gridHeight,
+        );
         if (fallDistance > 0) {
           return { ...block, y: block.y + 1 };
         }

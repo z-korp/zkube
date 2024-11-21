@@ -1,34 +1,5 @@
 import { Block } from "@/types/types";
 
-export const isBlocked = (
-  initialX: number,
-  newX: number,
-  y: number,
-  width: number,
-  blocks: Block[],
-  blockId: number,
-) => {
-  const rowBlocks = blocks.filter(
-    (block) => block.y === y && block.id !== blockId,
-  );
-
-  if (newX > initialX) {
-    for (const block of rowBlocks) {
-      if (block.x >= initialX + width && block.x < newX + width) {
-        return true;
-      }
-    }
-  } else {
-    for (const block of rowBlocks) {
-      if (block.x + block.width > newX && block.x <= initialX) {
-        return true;
-      }
-    }
-  }
-
-  return false;
-};
-
 export const isCollision = (
   x: number,
   y: number,
