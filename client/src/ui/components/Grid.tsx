@@ -26,6 +26,7 @@ import { useMusicPlayer } from "@/contexts/hooks";
 import "../../grid.css";
 import { useMoveStore } from "@/stores/moveTxStore";
 import { calculateFallDistance } from "@/utils/gridPhysics";
+import { consoleTSLog } from "@/utils/logger";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -68,6 +69,7 @@ const Grid: React.FC<GridProps> = ({
     },
   } = useDojo();
 
+  // Grid Position will be used to trigger particle in the right spot
   const gridRef = useRef<HTMLDivElement | null>(null);
   const [gridPosition, setGridPosition] = useState<DOMRect | null>(null);
 
@@ -79,6 +81,7 @@ const Grid: React.FC<GridProps> = ({
     }
   }, []);
 
+  // Ref to prevent multiple move tx
   const isProcessingRef = useRef(false);
 
   const [blocks, setBlocks] = useState<Block[]>(initialData);
@@ -110,9 +113,11 @@ const Grid: React.FC<GridProps> = ({
   const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
   const isMoveComplete = useMoveStore((state) => state.isMoveComplete);
 
+  // INIT useEffect set or reset grid when grid is ready :
   useEffect(() => {
     if (applyData) {
       if (deepCompareBlocks(saveGridStateblocks, initialData)) {
+        // Prevent render if the grid is the same
         return;
       }
       if (isMoveComplete) {
@@ -122,6 +127,7 @@ const Grid: React.FC<GridProps> = ({
 
         const inDanger = initialData.some((block) => block.y < 2);
         setIsPlayerInDanger(inDanger);
+
         setLineExplodedCount(0);
         setNextLineHasBeenConsumed(false);
 
@@ -131,6 +137,8 @@ const Grid: React.FC<GridProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applyData, initialData, isMoveComplete]);
+
+  // =================== ANIMATIONS ===================
 
   const resetAnimateText = (): void => {
     setAnimateText(ComboMessages.None);
@@ -155,6 +163,23 @@ const Grid: React.FC<GridProps> = ({
       const updatedBlocks = prev.filter((blockId) => blockId !== id);
       return updatedBlocks;
     });
+  };
+
+  const explosionRef = useRef<ConfettiExplosionRef>(null);
+
+  const handleTriggerLocalExplosion = (x: number, y: number) => {
+    if (explosionRef.current) {
+      explosionRef.current.triggerLocalExplosion({ x, y });
+    }
+  };
+
+  // =================== DRAG AND DROP ===================
+
+  const handleDragStart = (x: number, block: Block) => {
+    setDragging(block);
+    setDragStartX(x);
+    setInitialX(block.x);
+    setGameState(GameState.DRAGGING);
   };
 
   const handleDragMove = (x: number, moveType: MoveType) => {
@@ -193,11 +218,11 @@ const Grid: React.FC<GridProps> = ({
     }
   };
 
-  const handleDragStart = (x: number, block: Block) => {
-    setDragging(block);
-    setDragStartX(x);
-    setInitialX(block.x);
-    setGameState(GameState.DRAGGING);
+  const handleTouchStart = (e: React.TouchEvent, block: Block) => {
+    if (isProcessingRef.current || isTxProcessing || applyData) return;
+
+    const touch = e.touches[0];
+    handleDragStart(touch.clientX, block);
   };
 
   const handleMouseDown = (e: React.MouseEvent, block: Block) => {
@@ -240,13 +265,6 @@ const Grid: React.FC<GridProps> = ({
       return;
     }
     handleDragStart(e.clientX, block);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent, block: Block) => {
-    if (isProcessingRef.current || isTxProcessing || applyData) return;
-
-    const touch = e.touches[0];
-    handleDragStart(touch.clientX, block);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -293,27 +311,17 @@ const Grid: React.FC<GridProps> = ({
     const handleMouseUp = (event: MouseEvent) => {
       endDrag();
     };
-
-    // Ajoute l'écouteur d'événements pour le document une seule fois.
     document.addEventListener("mouseup", handleMouseUp);
 
     return () => {
-      // Nettoie l'écouteur d'événements lorsque le composant est démonté.
       document.removeEventListener("mouseup", handleMouseUp);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dragging]);
 
-  useEffect(() => {
-    if (currentMove) {
-      const { rowIndex, startX, finalX } = currentMove;
-      console.log("Pending move");
-      handleMoveTX(rowIndex, startX, finalX);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentMove]);
+  // =================== MOVE TX ===================
 
-  const handleMoveTX = useCallback(
+  const sendMoveTX = useCallback(
     async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
       if (isProcessingRef.current) {
         console.warn("Already processing a move");
@@ -349,6 +357,18 @@ const Grid: React.FC<GridProps> = ({
     [account, isMoving, gridHeight, move],
   );
 
+  // Send the move transaction when the currentMove state is updated
+  // Keep it in useEffect to avoid multiple trigger
+  useEffect(() => {
+    if (currentMove) {
+      const { rowIndex, startX, finalX } = currentMove;
+      sendMoveTX(rowIndex, startX, finalX);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentMove]);
+
+  // =================== GAME LOGIC ===================
+
   const isBlocked = (
     initialX: number,
     newX: number,
@@ -378,7 +398,7 @@ const Grid: React.FC<GridProps> = ({
     return false;
   };
 
-  const applyGravity = useCallback(() => {
+  const applyGravity = () => {
     setBlocks((prevBlocks) => {
       const newBlocks = prevBlocks.map((block) => {
         const fallDistance = calculateFallDistance(
@@ -401,9 +421,9 @@ const Grid: React.FC<GridProps> = ({
 
       return newBlocks;
     });
-  }, [gridHeight]);
+  };
 
-  const handleLineClear = (
+  const clearCompleteLine = (
     newGravityState: GameState,
     newStateOnComplete: GameState,
   ) => {
@@ -444,106 +464,110 @@ const Grid: React.FC<GridProps> = ({
 
   // STATE MACHINE : GAME LOGIC
   useEffect(() => {
-    // GRAVITY LOOP. When we are in gravity state, we apply gravity every gravitySpeed ms
-    if (
-      gameState === GameState.GRAVITY ||
-      gameState === GameState.GRAVITY2 ||
-      gameState === GameState.GRAVITY_BONUS
-    ) {
-      if (!isMoving && transitioningBlocks.length === 0) {
-        // We are not moving change state
-        if (gameState === GameState.GRAVITY) {
-          setGameState(GameState.LINE_CLEAR);
-        } else if (gameState === GameState.GRAVITY2) {
-          setGameState(GameState.LINE_CLEAR2);
-        } else if (gameState === GameState.GRAVITY_BONUS) {
-          setGameState(GameState.LINE_CLEAR_BONUS);
-        }
-      } else {
-        // Compute gravity until we are not moving anymore
-        const interval = setInterval(() => {
-          applyGravity();
-        }, gravitySpeed);
+    const intervalRef = { current: null as NodeJS.Timeout | null };
 
-        return () => clearInterval(interval);
-      }
-    }
+    const applyGravityWithInterval = () => {
+      intervalRef.current = setInterval(() => {
+        applyGravity();
+      }, gravitySpeed);
+    };
 
-    if (
-      gameState === GameState.ADD_LINE &&
-      currentMove &&
-      transitioningBlocks.length === 0
-    ) {
-      const { startX, finalX } = currentMove;
-      if (startX !== finalX) {
-        const updatedBlocks = concatenateNewLineWithGridAndShiftGrid(
-          blocks,
-          nextLine,
-          gridHeight,
-        );
-        setNextLineHasBeenConsumed(true);
-        if (isGridFull(updatedBlocks)) {
-          setGameState(GameState.MOVE_TX);
+    switch (gameState) {
+      case GameState.GRAVITY:
+      case GameState.GRAVITY2:
+      case GameState.GRAVITY_BONUS:
+        if (!isMoving && transitioningBlocks.length === 0) {
+          switch (gameState) {
+            case GameState.GRAVITY:
+              setGameState(GameState.LINE_CLEAR);
+              break;
+            case GameState.GRAVITY2:
+              setGameState(GameState.LINE_CLEAR2);
+              break;
+            case GameState.GRAVITY_BONUS:
+              setGameState(GameState.LINE_CLEAR_BONUS);
+              break;
+          }
         } else {
-          setBlocks(updatedBlocks);
+          applyGravityWithInterval();
         }
+        break;
+
+      case GameState.ADD_LINE:
+        if (currentMove && transitioningBlocks.length === 0) {
+          const { startX, finalX } = currentMove;
+          if (startX !== finalX) {
+            const updatedBlocks = concatenateNewLineWithGridAndShiftGrid(
+              blocks,
+              nextLine,
+              gridHeight,
+            );
+            setNextLineHasBeenConsumed(true);
+            if (isGridFull(updatedBlocks)) {
+              setGameState(GameState.MOVE_TX);
+            } else {
+              setBlocks(updatedBlocks);
+            }
+          }
+          setIsMoving(true);
+          setGameState(GameState.GRAVITY2);
+        }
+        break;
+
+      case GameState.LINE_CLEAR:
+        clearCompleteLine(GameState.GRAVITY, GameState.ADD_LINE);
+        break;
+
+      case GameState.LINE_CLEAR2:
+        clearCompleteLine(GameState.GRAVITY2, GameState.MOVE_TX);
+        break;
+
+      case GameState.LINE_CLEAR_BONUS:
+        clearCompleteLine(GameState.GRAVITY_BONUS, GameState.BONUS_TX);
+        break;
+
+      case GameState.BONUS_TX:
+      case GameState.MOVE_TX:
+        {
+          const currentCombo = lineExplodedCount > 1 ? lineExplodedCount : 0;
+          const pointsEarned =
+            (lineExplodedCount * (lineExplodedCount + 1)) / 2;
+
+          setOptimisticScore((prevPoints) => prevPoints + pointsEarned);
+          setOptimisticCombo((prevCombo) => prevCombo + currentCombo);
+          setOptimisticMaxCombo((prevMaxCombo) =>
+            currentCombo > prevMaxCombo ? currentCombo : prevMaxCombo,
+          );
+
+          if (lineExplodedCount > 1) {
+            setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
+          }
+
+          setApplyData(true);
+
+          if (gameState === GameState.BONUS_TX) {
+            selectBlock(blockBonus as Block);
+            setBlockBonus(null);
+            setGameState(GameState.WAITING);
+          } else if (gameState === GameState.MOVE_TX) {
+            setcurrentMove(null);
+            setGameState(GameState.WAITING);
+          }
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    // Nettoyage de l'intervalle
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
       }
-      setIsMoving(true);
-      setGameState(GameState.GRAVITY2);
-    }
-
-    if (gameState === GameState.LINE_CLEAR) {
-      handleLineClear(GameState.GRAVITY, GameState.ADD_LINE);
-    } else if (gameState === GameState.LINE_CLEAR2) {
-      handleLineClear(GameState.GRAVITY2, GameState.MOVE_TX);
-    } else if (gameState === GameState.LINE_CLEAR_BONUS) {
-      handleLineClear(GameState.GRAVITY_BONUS, GameState.BONUS_TX);
-    }
-
-    // we calculate points and combo for optimistic rendering
-    // and we display text
-    if (gameState === GameState.BONUS_TX || gameState === GameState.MOVE_TX) {
-      // Calculate combo
-      const current_combo = lineExplodedCount > 1 ? lineExplodedCount : 0;
-
-      // Calculate points earned for this combo
-      const pointsEarned = (lineExplodedCount * (lineExplodedCount + 1)) / 2;
-      setOptimisticScore((prevPoints) => prevPoints + pointsEarned);
-
-      setOptimisticCombo((prevCombo) => prevCombo + current_combo);
-
-      // Update max combo if necessary
-      setOptimisticMaxCombo((prevMaxCombo) =>
-        current_combo > prevMaxCombo ? current_combo : prevMaxCombo,
-      );
-
-      if (lineExplodedCount > 1) {
-        setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
-      }
-    }
-
-    if (gameState === GameState.BONUS_TX) {
-      setApplyData(true);
-      selectBlock(blockBonus as Block);
-      setBlockBonus(null);
-      setGameState(GameState.WAITING);
-    }
-    if (gameState === GameState.MOVE_TX) {
-      setApplyData(true);
-      setcurrentMove(null);
-      setGameState(GameState.WAITING);
-    }
-
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState, isMoving, transitioningBlocks]);
-
-  const explosionRef = useRef<ConfettiExplosionRef>(null);
-
-  const handleTriggerLocalExplosion = (x: number, y: number) => {
-    if (explosionRef.current) {
-      explosionRef.current.triggerLocalExplosion({ x, y });
-    }
-  };
 
   return (
     <>
