@@ -451,10 +451,12 @@ const Grid: React.FC<GridProps> = ({
   };
 
   // STATE MACHINE : GAME LOGIC
-  // Gravity -> Line Clear -> Add Line -> Gravity2 -> Move TX -> Waiting
+  // Gravity -> Line Clear -> Add Line -> Gravity2 -> Update After Move -> Waiting
+  //
   useEffect(() => {
+    // Interval ref to clear gravity interval
     const intervalRef = { current: null as NodeJS.Timeout | null };
-
+    // Apply gravity with interval
     const applyGravityWithInterval = () => {
       intervalRef.current = setInterval(() => {
         applyGravity();
@@ -478,6 +480,7 @@ const Grid: React.FC<GridProps> = ({
               break;
           }
         } else {
+          // Play gravity game loop
           applyGravityWithInterval();
         }
         break;
@@ -557,6 +560,7 @@ const Grid: React.FC<GridProps> = ({
         break;
     }
 
+    // Clear interval on unmount
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
