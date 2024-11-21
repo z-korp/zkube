@@ -108,7 +108,6 @@ const Grid: React.FC<GridProps> = ({
   const borderSize = 2;
   const gravitySpeed = 100;
   const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
-  const [moveTxAwaitDone, setMoveTxAwaitDone] = useState(true);
   const isMoveComplete = useMoveStore((state) => state.isMoveComplete);
 
   useEffect(() => {
@@ -128,7 +127,6 @@ const Grid: React.FC<GridProps> = ({
 
         setApplyData(false);
         setIsTxProcessing(false);
-        setMoveTxAwaitDone(false);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -343,11 +341,9 @@ const Grid: React.FC<GridProps> = ({
         });
       } catch (error) {
         console.error("Erreur lors de l'envoi de la transaction", error);
-        setMoveTxAwaitDone(true);
         isProcessingRef.current = false; // Reset the ref
       } finally {
         isProcessingRef.current = false; // Reset the ref
-        setMoveTxAwaitDone(true);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -536,8 +532,6 @@ const Grid: React.FC<GridProps> = ({
       if (lineExplodedCount > 1) {
         setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
       }
-
-      setMoveTxAwaitDone(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState]);
