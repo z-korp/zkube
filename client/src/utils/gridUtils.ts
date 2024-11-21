@@ -39,7 +39,7 @@ export const removeCompleteRows = (
   return { updatedBlocks, completeRows };
 };
 
-export const concatenateAndShiftBlocks = (
+export const concatenateNewLineWithGridAndShiftGrid = (
   initialData: Block[],
   nextLineData: Block[],
   gridHeight: number,

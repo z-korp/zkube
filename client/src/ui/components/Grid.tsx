@@ -6,7 +6,6 @@ import { GameState } from "@/enums/gameEnums";
 import { Block } from "@/types/types";
 import {
   removeCompleteRows,
-  concatenateAndShiftBlocks,
   isGridFull,
   removeBlocksSameWidth,
   removeBlocksSameRow,
@@ -14,6 +13,7 @@ import {
   deepCompareBlocks,
   getBlocksSameRow,
   getBlocksSameWidth,
+  concatenateNewLineWithGridAndShiftGrid,
 } from "@/utils/gridUtils";
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
@@ -91,7 +91,6 @@ const Grid: React.FC<GridProps> = ({
   const [initialX, setInitialX] = useState(0);
   const [isMoving, setIsMoving] = useState(true);
   const [currentMove, setcurrentMove] = useState<{
-    block: Block;
     rowIndex: number;
     startX: number;
     finalX: number;
@@ -269,7 +268,6 @@ const Grid: React.FC<GridProps> = ({
           const finalX = Math.round(b.x);
           if (Math.trunc(finalX) !== Math.trunc(initialX)) {
             setcurrentMove({
-              block: b,
               rowIndex: b.y,
               startX: initialX,
               finalX,
@@ -403,34 +401,7 @@ const Grid: React.FC<GridProps> = ({
 
       return newBlocks;
     });
-  }, [calculateFallDistance]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (
-        gameState === GameState.GRAVITY ||
-        gameState === GameState.GRAVITY2 ||
-        gameState === GameState.GRAVITY_BONUS
-      ) {
-        applyGravity();
-      }
-    }, gravitySpeed);
-
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState]);
-
-  useEffect(() => {
-    if (!isMoving && transitioningBlocks.length === 0) {
-      if (gameState === GameState.GRAVITY) {
-        setGameState(GameState.LINE_CLEAR);
-      } else if (gameState === GameState.GRAVITY2) {
-        setGameState(GameState.LINE_CLEAR2);
-      } else if (gameState === GameState.GRAVITY_BONUS) {
-        setGameState(GameState.LINE_CLEAR_BONUS);
-      }
-    }
-  }, [gameState, isMoving, transitioningBlocks]);
+  }, [gridHeight]);
 
   const handleLineClear = (
     newGravityState: GameState,
@@ -475,7 +446,56 @@ const Grid: React.FC<GridProps> = ({
     }
   };
 
+  // STATE MACHINE : GAME LOGIC
   useEffect(() => {
+    // GRAVITY LOOP. When we are in gravity state, we apply gravity every gravitySpeed ms
+    if (
+      gameState === GameState.GRAVITY ||
+      gameState === GameState.GRAVITY2 ||
+      gameState === GameState.GRAVITY_BONUS
+    ) {
+      if (!isMoving && transitioningBlocks.length === 0) {
+        // We are not moving change state
+        if (gameState === GameState.GRAVITY) {
+          setGameState(GameState.LINE_CLEAR);
+        } else if (gameState === GameState.GRAVITY2) {
+          setGameState(GameState.LINE_CLEAR2);
+        } else if (gameState === GameState.GRAVITY_BONUS) {
+          setGameState(GameState.LINE_CLEAR_BONUS);
+        }
+      } else {
+        // Compute gravity until we are not moving anymore
+        const interval = setInterval(() => {
+          applyGravity();
+        }, gravitySpeed);
+
+        return () => clearInterval(interval);
+      }
+    }
+
+    if (
+      gameState === GameState.ADD_LINE &&
+      currentMove &&
+      transitioningBlocks.length === 0
+    ) {
+      const { startX, finalX } = currentMove;
+      if (startX !== finalX) {
+        const updatedBlocks = concatenateNewLineWithGridAndShiftGrid(
+          blocks,
+          nextLine,
+          gridHeight,
+        );
+        setNextLineHasBeenConsumed(true);
+        if (isGridFull(updatedBlocks)) {
+          setGameState(GameState.MOVE_TX);
+        } else {
+          setBlocks(updatedBlocks);
+        }
+      }
+      setIsMoving(true);
+      setGameState(GameState.GRAVITY2);
+    }
+
     if (gameState === GameState.LINE_CLEAR) {
       handleLineClear(GameState.GRAVITY, GameState.ADD_LINE);
     } else if (gameState === GameState.LINE_CLEAR2) {
@@ -483,12 +503,9 @@ const Grid: React.FC<GridProps> = ({
     } else if (gameState === GameState.LINE_CLEAR_BONUS) {
       handleLineClear(GameState.GRAVITY_BONUS, GameState.BONUS_TX);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState, blocks]);
 
-  useEffect(() => {
     // we calculate points and combo for optimistic rendering
-    // ans we display text
+    // and we display text
     if (gameState === GameState.BONUS_TX || gameState === GameState.MOVE_TX) {
       // Calculate combo
       const current_combo = lineExplodedCount > 1 ? lineExplodedCount : 0;
@@ -508,36 +525,7 @@ const Grid: React.FC<GridProps> = ({
         setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState]);
 
-  useEffect(() => {
-    if (
-      gameState === GameState.ADD_LINE &&
-      currentMove &&
-      transitioningBlocks.length === 0
-    ) {
-      const { startX, finalX } = currentMove;
-      if (startX !== finalX) {
-        const updatedBlocks = concatenateAndShiftBlocks(
-          blocks,
-          nextLine,
-          gridHeight,
-        );
-        setNextLineHasBeenConsumed(true);
-        if (isGridFull(updatedBlocks)) {
-          setGameState(GameState.MOVE_TX);
-        } else {
-          setBlocks(updatedBlocks);
-        }
-      }
-      setIsMoving(true);
-      setGameState(GameState.GRAVITY2);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState, blocks, currentMove, transitioningBlocks]);
-
-  useEffect(() => {
     if (gameState === GameState.BONUS_TX) {
       setApplyData(true);
       selectBlock(blockBonus as Block);
@@ -549,8 +537,9 @@ const Grid: React.FC<GridProps> = ({
       setcurrentMove(null);
       setGameState(GameState.WAITING);
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState]);
+  }, [gameState, isMoving, transitioningBlocks]);
 
   const explosionRef = useRef<ConfettiExplosionRef>(null);
 
