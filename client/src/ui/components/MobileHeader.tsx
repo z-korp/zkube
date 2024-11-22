@@ -28,20 +28,41 @@ import { useState } from "react";
 import { Surrender } from "../actions/Surrender";
 import LevelIndicator from "./LevelIndicator";
 import { Controller } from "./Controller";
+import TutorialModal from "./Tutorial/TutorialModal";
 
-const MobileHeader = () => {
+interface MobileHeaderProps {
+  onStartTutorial: () => void;
+}
+
+const MobileHeader = ({ onStartTutorial }: MobileHeaderProps) => {
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const onClose = () => {
     setIsOpen(false);
   };
 
+  const changeTutorialOpen = () => {
+    setIsTutorialOpen(!isTutorialOpen);
+    setIsDrawerOpen(false); // Close drawer when opening tutorial
+  };
+
+  const handleStartTutorial = () => {
+    changeTutorialOpen();
+    onStartTutorial();
+  };
+
   return (
     <div className="px-3 py-2 flex gap-3">
-      <Drawer direction="left">
+      <Drawer
+        direction="left"
+        open={isDrawerOpen}
+        onOpenChange={setIsDrawerOpen}
+      >
         <DrawerTrigger>
           <FontAwesomeIcon icon={faBars} size="xl" />
         </DrawerTrigger>
@@ -50,19 +71,12 @@ const MobileHeader = () => {
             <DrawerTitle className="text-2xl">zKube</DrawerTitle>
           </DrawerHeader>
           <div className="flex flex-col gap-5 p-4 font-semibold md:font-normal">
-            {/* <div className="flex flex-col gap-2 items-center">
-              <p className="self-start">Theme</p> <ModeToggle />
-            </div> */}
-            {/* <div className="flex flex-col gap-2 items-center">
-              <p className="self-start">Sound</p> <MusicPlayer />
-            </div> */}
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Account</p>
               <AccountDetails />
             </div>
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Menu</p>
-
               <Surrender red variant="outline" className="w-full text-sm" />
               <Leaderboard buttonType="outline" textSize="sm" inMenu={true} />
               <Button
@@ -72,13 +86,20 @@ const MobileHeader = () => {
               >
                 Collective Chests
               </Button>
+              <Button
+                variant="outline"
+                onClick={() => setIsTutorialOpen(true)}
+                className="w-full"
+              >
+                Tutorial
+              </Button>
+              <TutorialModal
+                isOpen={isTutorialOpen}
+                onClose={changeTutorialOpen}
+                onStartTutorial={handleStartTutorial}
+              />
               <CollectiveTreasureChest isOpen={isOpen} onClose={onClose} />
             </div>
-
-            {/*<div className="flex flex-col gap-2 items-center">
-              <p className="self-start">Extras</p>
-              <ContentTabs />
-            </div>*/}
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Profile</p>
               <ProfilePage wfit={false} />
@@ -87,7 +108,6 @@ const MobileHeader = () => {
         </DrawerContent>
       </Drawer>
       <div className="w-full flex justify-between items-center">
-        {/*<p className="text-2xl font-bold">zKube</p>*/}
         <div className="flex w-full gap-2 justify-end">
           {!!player && account ? (
             <div className="flex gap-3 items-center">
