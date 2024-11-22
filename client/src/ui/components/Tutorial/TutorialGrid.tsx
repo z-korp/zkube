@@ -43,6 +43,12 @@ interface GridProps {
   onUpdate: (intermission: boolean) => void;
   ref: any;
   intermission?: boolean;
+  setHighlightedTiki?: (highlighted: boolean) => void;
+  setHighlightedWave?: (highlighted: boolean) => void;
+  setHighlightedHammer?: (highlighted: boolean) => void;
+  setDisabledTiki?: (disabled: boolean) => void;
+  setDisabledWave?: (disabled: boolean) => void;
+  setDisabledHammer?: (disabled: boolean) => void;
 }
 
 const TutorialGrid: React.FC<GridProps> = forwardRef(
@@ -61,6 +67,12 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
       tutorialTargetBlock,
       onUpdate,
       intermission,
+      setDisabledHammer,
+      setDisabledTiki,
+      setDisabledWave,
+      setHighlightedHammer,
+      setHighlightedTiki,
+      setHighlightedWave,
     },
     ref,
   ) => {
@@ -527,6 +539,41 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
 
     useEffect(() => {
       setActionPerformed(false);
+
+      switch (tutorialStep) {
+        case 2:
+          setHighlightedHammer && setHighlightedHammer(true);
+          setDisabledHammer && setDisabledHammer(false);
+          setHighlightedTiki && setHighlightedTiki(false);
+          setDisabledTiki && setDisabledTiki(true);
+          setHighlightedWave && setHighlightedWave(false);
+          setDisabledWave && setDisabledWave(true);
+          break;
+        case 3:
+          setHighlightedHammer && setHighlightedHammer(false);
+          setDisabledHammer && setDisabledHammer(true);
+          setHighlightedTiki && setHighlightedTiki(false);
+          setDisabledTiki && setDisabledTiki(true);
+          setHighlightedWave && setHighlightedWave(true);
+          setDisabledWave && setDisabledWave(false);
+          break;
+        case 4:
+          setHighlightedHammer && setHighlightedHammer(false);
+          setDisabledHammer && setDisabledHammer(true);
+          setHighlightedTiki && setHighlightedTiki(true);
+          setDisabledTiki && setDisabledTiki(false);
+          setHighlightedWave && setHighlightedWave(false);
+          setDisabledWave && setDisabledWave(true);
+          break;
+        default:
+          setHighlightedHammer && setHighlightedHammer(false);
+          setDisabledHammer && setDisabledHammer(true);
+          setHighlightedTiki && setHighlightedTiki(false);
+          setDisabledTiki && setDisabledTiki(true);
+          setHighlightedWave && setHighlightedWave(false);
+          setDisabledWave && setDisabledWave(true);
+          break;
+      }
     }, [tutorialStep]);
 
     return (

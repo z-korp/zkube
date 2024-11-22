@@ -1,8 +1,6 @@
 import React, { useState, useCallback, useMemo } from "react";
-import GameBoard from "../GameBoard";
-import { BonusType } from "@/dojo/game/types/bonus";
-import { ModeType } from "@/dojo/game/types/mode";
 import GameBoardTutorial from "./GameBoardTutorial";
+import { Button } from "@/ui/elements/button";
 
 interface TutorialProps {
   showGrid: boolean;
@@ -109,30 +107,25 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
   return (
     <div className="flex flex-col items-center relative h-full mx-6">
       {isIntermission && (
-        <div className="absolute z-50 flex flex-col items-center p-6 rounded-lg shadow-md top-1/3">
-          <h2 className="text-2xl font-bold mb-4">Congratulations!</h2>
-          <p className="mb-4">
-            You have successfully completed Step {tutorialStep}.
-          </p>
-          <button
-            onClick={handleContinue}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg"
-          >
-            Continue to Next Step
-          </button>
+        <div className="absolute bg-black/90  flex flex-col gap-12 items-center p-6 top-1/3 z-50">
+          <h1 className="text-4xl">Congratulations!</h1>
+          <p>You have successfully completed Step {tutorialStep}.</p>
+          <Button onClick={handleContinue}>Continue to Next Step</Button>
         </div>
       )}
 
-      <div className="text-center p-4 bg-blue-600 rounded-md mb-4 absolute mt-40 z-50 w-11/12 mx-auto">
-        <h2>
-          <TutorialMessage />
-        </h2>
-      </div>
+      {!isIntermission && (
+        <div className="text-center p-4 bg-teal-600 rounded-md mb-4 absolute mt-40 z-50 w-11/12 mx-auto">
+          <h2>
+            <TutorialMessage />
+          </h2>
+        </div>
+      )}
 
       {tutorialStep === 5 && (
         <button
           onClick={endTutorial}
-          className="absolute z-50 mt-4 bg-white text-black px-4 py-3 rounded-md"
+          className="absolute z-50 mt-4 bg-white text-black px-4 py-3 top-1/2 rounded-md"
         >
           Exit Tutorial
         </button>

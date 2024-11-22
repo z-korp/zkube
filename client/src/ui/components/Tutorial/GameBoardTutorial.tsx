@@ -1,17 +1,18 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Card } from "@/ui/elements/card";
-import { useDojo } from "@/dojo/useDojo";
-import { GameBonus } from "../../containers/GameBonus";
 import { useMediaQuery } from "react-responsive";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "../NextLine";
 import { Block } from "@/types/types";
 import GameScores from "../GameScores";
-import { Bonus, BonusType } from "@/dojo/game/types/bonus";
+import { BonusType } from "@/dojo/game/types/bonus";
 import BonusAnimation from "../BonusAnimation";
 
 import "../../../grid.css";
 import TutorialGrid from "./TutorialGrid";
+import BonusButton from "../BonusButton";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import ImageAssets from "@/ui/theme/ImageAssets";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -57,6 +58,15 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
   const [bonusDescription, setBonusDescription] = useState("");
   const [score, setScore] = useState<number | undefined>(0);
   const [isIntermission, setIsIntermission] = useState(false);
+  const [disableTiki, setDisableTiki] = useState(false);
+  const [highlightedTiki, setHighlightedTiki] = useState(false);
+  const [disableWave, setDisableWave] = useState(false);
+  const [highlightedWave, setHighlightedWave] = useState(false);
+  const [disableHammer, setDisableHammer] = useState(false);
+  const [highlightedHammer, setHighlightedHammer] = useState(false);
+
+  const { themeTemplate } = useTheme();
+  const imgAssets = ImageAssets(themeTemplate);
 
   const updateValue = () => {
     onUpdateState(true);
@@ -207,15 +217,44 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
           className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} mb-2 md:mb-3 flex justify-between px-1`}
         >
           <div className="w-5/12">
-            <GameBonus
-              onBonusWaveClick={handleBonusWaveClick}
-              onBonusTikiClick={handleBonusTikiClick}
-              onBonusHammerClick={handleBonusHammerClick}
-              hammerCount={hammerCount}
-              tikiCount={totemCount}
-              waveCount={waveCount}
-              bonus={bonus}
-            />
+            <div className="grid grid-cols-3 gap-3">
+              <div className="flex flex-col items-start">
+                <BonusButton
+                  onClick={handleBonusHammerClick}
+                  urlImage={imgAssets.hammer}
+                  bonusCount={hammerCount}
+                  tooltipText="Destroys a block"
+                  bonusName={BonusType.Hammer}
+                  bonus={bonus}
+                  disabled={disableHammer}
+                  highlighted={highlightedHammer}
+                />
+              </div>
+              <div className="flex flex-col items-center">
+                <BonusButton
+                  onClick={handleBonusWaveClick}
+                  urlImage={imgAssets.wave}
+                  bonusCount={waveCount}
+                  tooltipText="Destroys an entire line"
+                  bonusName={BonusType.Wave}
+                  bonus={bonus}
+                  disabled={disableWave}
+                  highlighted={highlightedWave}
+                />
+              </div>
+              <div className="flex flex-col w-full items-end">
+                <BonusButton
+                  onClick={handleBonusTikiClick}
+                  urlImage={imgAssets.tiki}
+                  bonusCount={totemCount}
+                  tooltipText="Destroys all blocks of a specific size"
+                  bonusName={BonusType.Totem}
+                  bonus={bonus}
+                  disabled={disableTiki}
+                  highlighted={highlightedTiki}
+                />
+              </div>
+            </div>
           </div>
           <GameScores
             score={optimisticScore ?? 0}
@@ -260,6 +299,12 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
             tutorialTargetBlock={tutorialProps?.targetBlock ?? null}
             onUpdate={updateValue}
             ref={setBonus}
+            setDisabledTiki={setDisableTiki}
+            setHighlightedTiki={setHighlightedTiki}
+            setDisabledWave={setDisableWave}
+            setHighlightedWave={setHighlightedWave}
+            setDisabledHammer={setDisableHammer}
+            setHighlightedHammer={setHighlightedHammer}
           />
         </div>
 
