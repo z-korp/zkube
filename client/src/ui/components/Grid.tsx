@@ -22,9 +22,9 @@ import { motion } from "framer-motion";
 import { BonusType } from "@/dojo/game/types/bonus";
 import ConfettiExplosion, { ConfettiExplosionRef } from "./ConfettiExplosion";
 import { useMusicPlayer } from "@/contexts/hooks";
+import { useMoveStore } from "@/stores/moveTxStore";
 
 import "../../grid.css";
-import { useMoveStore } from "@/stores/moveTxStore";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -40,6 +40,9 @@ interface GridProps {
   account: Account | null;
   isTxProcessing: boolean;
   setIsTxProcessing: React.Dispatch<React.SetStateAction<boolean>>;
+  score: number;
+  combo: number;
+  maxCombo: number;
   setOptimisticScore: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
@@ -55,6 +58,9 @@ const Grid: React.FC<GridProps> = ({
   selectBlock,
   bonus,
   account,
+  score,
+  combo,
+  maxCombo,
   setOptimisticScore,
   setOptimisticCombo,
   setOptimisticMaxCombo,
@@ -116,6 +122,14 @@ const Grid: React.FC<GridProps> = ({
       if (deepCompareBlocks(saveGridStateblocks, initialData)) {
         return;
       }
+
+      // Every time the initial grid changes, we erase the optimistic data
+      // and set the data to the one returned by the contract
+      // just in case of discrepancies
+      setOptimisticScore(score);
+      setOptimisticCombo(combo);
+      setOptimisticMaxCombo(maxCombo);
+
       if (isMoveComplete) {
         setSaveGridStateblocks(initialData);
         setBlocks(initialData);
@@ -275,6 +289,7 @@ const Grid: React.FC<GridProps> = ({
               startX: initialX,
               finalX,
             });
+            handleMoveTX(b.y, initialX, finalX);
           }
           return { ...b, x: finalX };
         }
@@ -307,21 +322,13 @@ const Grid: React.FC<GridProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dragging]);
 
-  useEffect(() => {
-    if (pendingMove) {
-      const { rowIndex, startX, finalX } = pendingMove;
-      console.log("Pending move");
-      handleMoveTX(rowIndex, startX, finalX);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingMove]);
-
   const handleMoveTX = useCallback(
     async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
       if (isProcessingRef.current) {
         console.warn("Already processing a move");
         return;
       }
+
       if (startColIndex === finalColIndex) return;
       if (!account) return;
 
@@ -583,7 +590,7 @@ const Grid: React.FC<GridProps> = ({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState, pendingMove, handleMoveTX]);
+  }, [gameState]);
 
   const explosionRef = useRef<ConfettiExplosionRef>(null);
 
