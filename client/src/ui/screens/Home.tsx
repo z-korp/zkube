@@ -8,13 +8,11 @@ import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
-import { useDojo } from "@/dojo/useDojo";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { Surrender } from "../actions/Surrender";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
 import GoogleFormEmbed from "../components/GoogleFormEmbed";
-import { useQuerySync } from "@dojoengine/react";
 import { ModeType } from "@/dojo/game/types/mode";
 import { Level } from "@/dojo/game/types/level";
 import { toPng } from "html-to-image";
@@ -38,25 +36,15 @@ import CollectiveTreasureChest from "../components/TreasureChest";
 import GameOverDialog from "../components/GameOverDialog";
 import useViewport from "@/hooks/useViewport";
 import { TweetPreview } from "../components/TweetPreview";
-import { Schema } from "@dojoengine/recs";
 import { useGrid } from "@/hooks/useGrid";
 
 export const Home = () => {
-  const {
-    setup: { toriiClient, contractComponents },
-  } = useDojo();
-
   useViewport();
   useRewardsCalculator();
-
-  useQuerySync<Schema>(toriiClient, contractComponents as any, []);
-
   const isSigning = false; //useAutoSignup();
 
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
-
-  //const { tokenId } = useFirstNft(account?.address || "");
 
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
