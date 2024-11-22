@@ -23,8 +23,6 @@ import { BonusType } from "@/dojo/game/types/bonus";
 import ConfettiExplosion, { ConfettiExplosionRef } from "./ConfettiExplosion";
 import { useMusicPlayer } from "@/contexts/hooks";
 import useGridAnimations from "@/hooks/useGridAnimations";
-
-import "../../grid.css";
 import { useMoveStore } from "@/stores/moveTxStore";
 import { calculateFallDistance } from "@/utils/gridPhysics";
 import useTransitionBlocks from "@/hooks/useTransitionBlocks";
@@ -292,7 +290,6 @@ const Grid: React.FC<GridProps> = ({
               startX: initialX,
               finalX,
             });
-            sendMoveTX(b.y, initialX, finalX);
           }
           return { ...b, x: finalX };
         }
