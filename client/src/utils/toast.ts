@@ -66,8 +66,7 @@ export const extractedMessage = (message: string) => {
   return errorMessages.length > 0 ? errorMessages[0] : message;
 };
 
-export const notify = (message: string, transaction: any) => {
-  const toastId = transaction.transaction_hash;
+export const notify = (message: string, transaction: any, toastId: string) => {
   const toastPlacement = getToastPlacement();
 
   if (transaction.execution_status !== "REVERTED") {

@@ -23,8 +23,19 @@ export function systems({ client }: { client: IWorld }) {
     action: () => Promise<{ transaction_hash: string }>,
     successMessage: string,
   ) => {
+    // Generate a unique ID for this transaction attempt
+    const toastId = `tx-${Date.now()}`;
+
     try {
-      // Initiate the transaction and obtain the transaction_hash
+      if (shouldShowToast()) {
+        // Show initial loading toast before transaction
+        toast.loading("Transaction in progress...", {
+          id: toastId,
+          position: toastPlacement,
+        });
+      }
+
+      // Execute the transaction
       const { transaction_hash } = await action();
       console.log(
         "transaction_hash",
@@ -33,31 +44,29 @@ export function systems({ client }: { client: IWorld }) {
         getWalnutUrl(transaction_hash),
       );
 
-      const toastId = transaction_hash; // Unique ID based on transaction_hash
-
       if (shouldShowToast()) {
-        // Display a loading toast with the unique toastId
+        // Update the same toast with transaction hash
         toast.loading("Transaction in progress...", {
           description: shortenHex(transaction_hash),
           action: getToastAction(transaction_hash),
-          id: toastId, // Assign the unique toastId
+          id: toastId,
           position: toastPlacement,
         });
       }
 
-      // Wait for the transaction to complete
+      // Wait for completion
       const transaction = await account.waitForTransaction(transaction_hash, {
         retryInterval: 200,
       });
 
-      // Notify success or error using the same toastId
-      notify(successMessage, transaction);
+      // Notify success using same toastId
+      notify(successMessage, transaction, toastId);
     } catch (error) {
       console.error("Error executing transaction:", error);
 
       if (shouldShowToast()) {
         toast.error("Transaction failed.", {
-          id: `error-${Date.now()}`, // Generic toast ID
+          id: toastId,
           position: toastPlacement,
         });
       }
