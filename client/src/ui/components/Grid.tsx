@@ -23,11 +23,11 @@ import { BonusType } from "@/dojo/game/types/bonus";
 import ConfettiExplosion, { ConfettiExplosionRef } from "./ConfettiExplosion";
 import { useMusicPlayer } from "@/contexts/hooks";
 import useGridAnimations from "@/hooks/useGridAnimations";
-
-import "../../grid.css";
 import { useMoveStore } from "@/stores/moveTxStore";
 import { calculateFallDistance } from "@/utils/gridPhysics";
 import useTransitionBlocks from "@/hooks/useTransitionBlocks";
+
+import "../../grid.css";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -43,6 +43,9 @@ interface GridProps {
   account: Account | null;
   isTxProcessing: boolean;
   setIsTxProcessing: React.Dispatch<React.SetStateAction<boolean>>;
+  score: number;
+  combo: number;
+  maxCombo: number;
   setOptimisticScore: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
@@ -58,6 +61,9 @@ const Grid: React.FC<GridProps> = ({
   selectBlock,
   bonus,
   account,
+  score,
+  combo,
+  maxCombo,
   setOptimisticScore,
   setOptimisticCombo,
   setOptimisticMaxCombo,
@@ -126,6 +132,14 @@ const Grid: React.FC<GridProps> = ({
         // Prevent render if the grid is the same
         return;
       }
+
+      // Every time the initial grid changes, we erase the optimistic data
+      // and set the data to the one returned by the contract
+      // just in case of discrepancies
+      setOptimisticScore(score);
+      setOptimisticCombo(combo);
+      setOptimisticMaxCombo(maxCombo);
+
       if (isMoveComplete) {
         // Save the grid state
         setSaveGridStateblocks(initialData);
@@ -278,6 +292,7 @@ const Grid: React.FC<GridProps> = ({
               startX: initialX,
               finalX,
             });
+            sendMoveTX(b.y, initialX, finalX);
           }
           return { ...b, x: finalX };
         }
@@ -315,6 +330,7 @@ const Grid: React.FC<GridProps> = ({
         console.warn("Already processing a move");
         return;
       }
+
       if (startColIndex === finalColIndex) return;
       if (!account) return;
 
