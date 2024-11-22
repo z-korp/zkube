@@ -292,7 +292,6 @@ const Grid: React.FC<GridProps> = ({
               startX: initialX,
               finalX,
             });
-            sendMoveTX(b.y, initialX, finalX);
           }
           return { ...b, x: finalX };
         }
