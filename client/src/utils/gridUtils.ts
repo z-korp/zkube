@@ -55,6 +55,23 @@ export const concatenateAndShiftBlocks = (
   return [...shiftedInitialData, ...shiftedNextLineData];
 };
 
+export const concatenateAndShiftBlocksTutorial = (
+  initialData: Block[],
+  nextLineData: Block[],
+  gridHeight: number,
+): Block[] => {
+  const shiftedInitialData = initialData.map((block) => ({
+    ...block,
+    y: block.y - 1,
+  }));
+  const shiftedNextLineData = nextLineData.map((block) => ({
+    ...block,
+    id: block.id + Date.now(),
+    y: gridHeight - 1,
+  }));
+  return [...shiftedInitialData, ...shiftedNextLineData];
+};
+
 export const transformDataContractIntoBlock = (grid: number[][]): Block[] => {
   return grid.flatMap((row, y) => {
     const blocks: Block[] = [];

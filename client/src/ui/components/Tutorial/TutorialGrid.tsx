@@ -12,7 +12,7 @@ import { GameState } from "@/enums/gameEnums";
 import { Block } from "@/types/types";
 import {
   removeCompleteRows,
-  concatenateAndShiftBlocks,
+  concatenateAndShiftBlocksTutorial,
   isGridFull,
   removeBlocksSameWidth,
   removeBlocksSameRow,
@@ -267,11 +267,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           }
           return b;
         });
-        return concatenateAndShiftBlocks(
-          updatedBlocks,
-          nextLineData,
-          gridHeight,
-        );
+        return updatedBlocks;
       });
 
       setDragging(null);
@@ -285,11 +281,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
       if (bonus === BonusType.Wave) {
         setBlocks((prevBlocks) => {
           const updatedBlocks = removeBlocksSameRow(block, prevBlocks);
-          return concatenateAndShiftBlocks(
-            updatedBlocks,
-            nextLineData,
-            gridHeight,
-          );
+          return updatedBlocks;
         });
         getBlocksSameRow(block.y, blocks).forEach((b) => {
           if (gridPosition === null) return;
@@ -298,20 +290,10 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
             gridPosition.top + b.y * gridSize,
           );
         });
-        if (tutorialStep === 3) {
-          if (ref) {
-            (ref as (type: BonusType) => void)(BonusType.None);
-          }
-          setTimeout(() => onUpdate(true), 1000);
-        }
       } else if (bonus === BonusType.Totem) {
         setBlocks((prevBlocks) => {
           const updatedBlocks = removeBlocksSameWidth(block, prevBlocks);
-          return concatenateAndShiftBlocks(
-            updatedBlocks,
-            nextLineData,
-            gridHeight,
-          );
+          return updatedBlocks;
         });
         getBlocksSameWidth(block, blocks).forEach((b) => {
           if (gridPosition === null) return;
@@ -320,37 +302,18 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
             gridPosition.top + b.y * gridSize,
           );
         });
-        if (tutorialStep === 4) {
-          if (ref) {
-            (ref as (type: BonusType) => void)(BonusType.None);
-          }
-          setTimeout(() => onUpdate(true), 1000);
-        }
       } else if (bonus === BonusType.Hammer) {
         setBlocks((prevBlocks) => {
           const updatedBlocks = removeBlockId(block, prevBlocks);
-          return concatenateAndShiftBlocks(
-            updatedBlocks,
-            nextLineData,
-            gridHeight,
-          );
+          return updatedBlocks;
         });
         if (gridPosition === null) return;
         handleTriggerLocalExplosion(
           gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
           gridPosition.top + block.y * gridSize,
         );
-        if (tutorialStep === 2) {
-          if (ref) {
-            (ref as (type: BonusType) => void)(BonusType.None);
-          }
-          setTimeout(() => onUpdate(true), 1000);
-        }
       }
 
-      if (ref) {
-        (ref as (type: BonusType) => void)(BonusType.None);
-      }
       setIsMoving(true);
       setGameState(GameState.GRAVITY_BONUS);
     };
@@ -531,9 +494,6 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         setBlocks(updatedBlocks);
         setIsMoving(true);
         setGameState(newGravityState);
-        if (tutorialStep === 1) {
-          setTimeout(() => onUpdate(true), 1000);
-        }
       } else {
         setGameState(newStateOnComplete);
       }
@@ -541,11 +501,40 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
 
     useEffect(() => {
       if (gameState === GameState.LINE_CLEAR) {
-        handleLineClear(GameState.GRAVITY, GameState.WAITING);
+        handleLineClear(GameState.GRAVITY, GameState.ADD_LINE);
       } else if (gameState === GameState.LINE_CLEAR2) {
-        handleLineClear(GameState.GRAVITY2, GameState.WAITING);
+        handleLineClear(GameState.GRAVITY2, GameState.MOVE_TX);
+      } else if (gameState === GameState.LINE_CLEAR_BONUS) {
+        handleLineClear(GameState.GRAVITY_BONUS, GameState.BONUS_TX);
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [gameState, blocks]);
+
+    useEffect(() => {
+      if (
+        gameState === GameState.ADD_LINE &&
+        pendingMove &&
+        transitioningBlocks.length === 0
+      ) {
+        const { startX, finalX } = pendingMove;
+        if (startX !== finalX) {
+          const updatedBlocks = concatenateAndShiftBlocksTutorial(
+            blocks,
+            nextLineData,
+            gridHeight,
+          );
+          //setNextLineHasBeenConsumed(true);
+          if (isGridFull(updatedBlocks)) {
+            setGameState(GameState.MOVE_TX);
+          } else {
+            setBlocks(updatedBlocks);
+          }
+        }
+        setIsMoving(true);
+        setGameState(GameState.GRAVITY2);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [gameState, blocks, pendingMove, transitioningBlocks]);
 
     useEffect(() => {
       if (lineExplodedCount > 0) {
@@ -555,12 +544,32 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     }, [lineExplodedCount]);
 
     useEffect(() => {
-      if (
-        (gameState === GameState.GRAVITY || gameState === GameState.GRAVITY2) &&
-        !isMoving &&
-        transitioningBlocks.length === 0
-      ) {
-        setGameState(GameState.LINE_CLEAR);
+      if (gameState === GameState.MOVE_TX || gameState === GameState.BONUS_TX) {
+        if (tutorialStep === 1) {
+          setTimeout(() => {
+            onUpdate(true);
+          }, 500);
+        }
+        if (tutorialStep === 2 || tutorialStep === 3 || tutorialStep === 4) {
+          if (ref) {
+            (ref as (type: BonusType) => void)(BonusType.None);
+          }
+          setTimeout(() => {
+            onUpdate(true);
+          }, 500);
+        }
+      }
+    }, [gameState]);
+
+    useEffect(() => {
+      if (!isMoving && transitioningBlocks.length === 0) {
+        if (gameState === GameState.GRAVITY) {
+          setGameState(GameState.LINE_CLEAR);
+        } else if (gameState === GameState.GRAVITY2) {
+          setGameState(GameState.LINE_CLEAR2);
+        } else if (gameState === GameState.GRAVITY_BONUS) {
+          setGameState(GameState.LINE_CLEAR_BONUS);
+        }
       }
     }, [gameState, isMoving, transitioningBlocks]);
 
@@ -620,12 +629,6 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           break;
       }
     }, [tutorialStep]);
-
-    useEffect(() => {
-      if (bonusSelectWarning) {
-        console.log("Bonus warning triggered!");
-      }
-    }, [bonusSelectWarning]);
 
     return (
       <>

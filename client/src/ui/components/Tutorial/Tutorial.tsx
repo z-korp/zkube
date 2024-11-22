@@ -34,13 +34,13 @@ const tutorialInitialState = {
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [3, 0, 0, 2, 0, 0, 0, 0],
-    [0, 1, 2, 3, 0],
-    [2, 0, 0, 3, 2],
-    [1, 0, 2, 2, 0, 0, 1, 1],
-    [3, 0, 0, 1, 0, 0, 2],
+    [3, 3, 3, 2, 2, 0, 0, 0],
+    [0, 1, 2, 2, 0, 0, 0, 0],
+    [2, 2, 0, 0, 4, 4, 4, 4],
+    [1, 0, 2, 2, 0, 0, 2, 2],
+    [3, 3, 3, 1, 0, 0, 2, 2],
   ],
-  nextLine: [4, 0, 0, 0, 0, 1, 0, 0],
+  nextLine: [4, 4, 4, 4, 0, 0, 0, 0],
 };
 
 const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
@@ -59,9 +59,6 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
           if (block.y === 8 && block.x === 2) {
             setState((prev) => ({ ...prev, score: prev.score + 100 }));
             setIsIntermission(true);
-            console.log("=========================> Step 1 completed");
-          } else {
-            console.log("=======================> Wrong block selected");
           }
           break;
         case 2:
@@ -84,7 +81,11 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
     setIsIntermission(intermission);
   };
 
-  const tutorialTargetBlock = useMemo(() => {
+  const tutorialTargetBlock: {
+    x: number;
+    y: number;
+    type: "block" | "row";
+  } | null = useMemo(() => {
     switch (tutorialStep) {
       case 1:
         return { x: 2, y: 8, type: "block" };
@@ -225,7 +226,6 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
 
       <GameBoardTutorial
         {...state}
-        account={null}
         onBlockSelect={handleBlockSelect}
         tutorialProps={{
           step: tutorialStep,
