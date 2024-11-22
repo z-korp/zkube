@@ -42,6 +42,9 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
           if (block.y === 8 && block.x === 2) {
             setState((prev) => ({ ...prev, score: prev.score + 100 }));
             setIsIntermission(true);
+            console.log("=========================> Step 1 completed");
+          } else {
+            console.log("=======================> Wrong block selected");
           }
           break;
         case 2:

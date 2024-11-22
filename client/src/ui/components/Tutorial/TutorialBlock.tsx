@@ -44,7 +44,6 @@ const BlockContainer: React.FC<BlockProps> = ({
 
     const element = ref.current; // Capture the current value
     const onTransitionStart = () => {
-      console.log("Transition started for block", block);
       onTransitionBlockStart && onTransitionBlockStart();
     };
 
@@ -56,7 +55,6 @@ const BlockContainer: React.FC<BlockProps> = ({
   }, [block, onTransitionBlockStart]);
 
   const handleTransitionEnd = () => {
-    console.log("Transition ended for block", block);
     onTransitionBlockEnd && onTransitionBlockEnd();
   };
 

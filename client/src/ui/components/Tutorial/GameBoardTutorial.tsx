@@ -166,10 +166,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
 
   const selectBlock = useCallback(
     async (block: Block) => {
-      if (onBlockSelect) {
-        await onBlockSelect(block);
-        return;
-      }
+      onBlockSelect && onBlockSelect(block);
 
       if (bonus === BonusType.Wave) {
         handleBonusWaveTx(block.y);
@@ -267,24 +264,6 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
         <div
           className={`flex justify-center items-center ${!isTxProcessing && "cursor-move"}`}
         >
-          {/* <Grid
-            initialData={memoizedInitialData}
-            nextLineData={memoizedNextLineData}
-            setNextLineHasBeenConsumed={setNextLineHasBeenConsumed}
-            gridSize={GRID_SIZE}
-            gridHeight={ROWS}
-            gridWidth={COLS}
-            selectBlock={selectBlock}
-            bonus={bonus}
-            account={null}
-            setOptimisticScore={setOptimisticScore}
-            setOptimisticCombo={setOptimisticCombo}
-            setOptimisticMaxCombo={setOptimisticMaxCombo}
-            isTxProcessing={isTxProcessing}
-            setIsTxProcessing={setIsTxProcessing}
-            tutorialHighlight={tutorialProps?.targetBlock}
-            isIntermission={tutorialProps?.isIntermission}
-          /> */}
           <TutorialGrid
             initialData={memorizedInitialData}
             nextLineData={memorizedNextLineData}

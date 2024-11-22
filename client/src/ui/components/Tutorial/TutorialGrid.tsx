@@ -27,6 +27,17 @@ import { motion } from "framer-motion";
 import { BonusType } from "@/dojo/game/types/bonus";
 import BlockContainer from "./TutorialBlock";
 import ConfettiExplosion, { ConfettiExplosionRef } from "../ConfettiExplosion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/ui/elements/alert-dialog";
 
 interface GridProps {
   initialData: Block[];
@@ -103,6 +114,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     } | null>(null);
     const [blockBonus, setBlockBonus] = useState<Block | null>(null);
     const [actionPerformed, setActionPerformed] = useState(false);
+    const [bonusSelectWarning, setBonusSelectWarning] = useState(false);
 
     useEffect(() => {
       if (gridRef.current) {
@@ -194,7 +206,6 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
 
     const handleDragStart = (x: number, block: Block) => {
       setActionPerformed(true);
-      console.log("Drag start:", block);
       setDragging(block);
       setDragStartX(x);
       setInitialX(block.x);
@@ -207,8 +218,6 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
       const deltaX = x - dragStartX;
       const newX = initialX + deltaX / gridSize;
       const boundedX = Math.max(0, Math.min(gridWidth - dragging.width, newX));
-
-      console.log("Drag move:", { deltaX, newX, boundedX });
 
       if (
         !isBlocked(
@@ -351,7 +360,26 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         return;
       }
 
-      handleDragStart(e.clientX, block);
+      switch (tutorialStep) {
+        case 2: {
+          setBonusSelectWarning(true);
+          console.log("Step 2");
+          break;
+        }
+        case 3: {
+          setBonusSelectWarning(true);
+          console.log("Step 3");
+          break;
+        }
+        case 4: {
+          setBonusSelectWarning(true);
+          console.log("Step 4");
+          break;
+        }
+        default:
+          handleDragStart(e.clientX, block);
+          break;
+      }
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
@@ -369,12 +397,31 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         handleBonusApplication(block);
         return;
       }
-      const touch = e.touches[0];
-      handleDragStart(touch.clientX, block);
+
+      switch (tutorialStep) {
+        case 2: {
+          setBonusSelectWarning(true);
+          break;
+        }
+        case 3: {
+          setBonusSelectWarning(true);
+          break;
+        }
+        case 4: {
+          setBonusSelectWarning(true);
+          break;
+        }
+        default:
+          {
+            const touch = e.touches[0];
+            handleDragStart(touch.clientX, block);
+          }
+          break;
+      }
     };
 
     const handleTouchMove = (e: React.TouchEvent) => {
-      e.preventDefault();
+      //e.preventDefault();
       if (dragging) {
         const touch = e.touches[0];
         handleDragMove(touch.clientX, MoveType.TOUCH);
@@ -383,7 +430,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
 
     const handleTouchEnd = useCallback(
       (e: React.TouchEvent) => {
-        e.preventDefault();
+        //e.preventDefault();
         endDrag();
       },
       [endDrag],
@@ -510,11 +557,6 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         !isMoving &&
         transitioningBlocks.length === 0
       ) {
-        console.log("Transitioning from GRAVITY to LINE_CLEAR", {
-          gameState,
-          isMoving,
-          transitioningBlocks,
-        });
         setGameState(GameState.LINE_CLEAR);
       }
     }, [gameState, isMoving, transitioningBlocks]);
@@ -576,15 +618,17 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
       }
     }, [tutorialStep]);
 
+    useEffect(() => {
+      if (bonusSelectWarning) {
+        console.log("Bonus warning triggered!");
+      }
+    }, [bonusSelectWarning]);
+
     return (
       <>
         <ConfettiExplosion
           ref={explosionRef}
           colorSet={["#47D1D9", "#8BA3BC", "#1974D1", "#44A4D9", "#01040B"]}
-          particleCount={20}
-          particleSize={6}
-          duration={2000}
-          force={0.3}
         />
         <motion.div
           animate={shouldBounce ? { scale: [1, 1.1, 1, 1.1, 1] } : {}}
@@ -633,6 +677,21 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
               </div>
             </div>
           </div>
+          <AlertDialog open={bonusSelectWarning}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Select your bonus before clicking on block
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setBonusSelectWarning(false)}>
+                  I got It !
+                </AlertDialogCancel>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </motion.div>
       </>
     );
