@@ -81,20 +81,25 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
     setIsIntermission(intermission);
   };
 
-  const tutorialTargetBlock: {
-    x: number;
-    y: number;
-    type: "block" | "row";
-  } | null = useMemo(() => {
+  const tutorialTargetBlock:
+    | {
+        x: number;
+        y: number;
+        type: "block" | "row";
+      }[]
+    | null = useMemo(() => {
     switch (tutorialStep) {
       case 1:
-        return { x: 2, y: 8, type: "block" };
+        return [{ x: 2, y: 8, type: "block" }];
       case 2:
-        return { x: 6, y: 9, type: "block" };
+        return [{ x: 6, y: 9, type: "block" }];
       case 3:
-        return { x: 0, y: 8, type: "row" };
+        return [{ x: 0, y: 8, type: "row" }];
       case 4:
-        return { x: 0, y: 9, type: "block" };
+        return [
+          { x: 0, y: 9, type: "block" },
+          { x: 0, y: 8, type: "block" },
+        ];
       default:
         return null;
     }
@@ -161,40 +166,35 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
 
   return (
     <div className="flex flex-col items-center relative h-full mx-6">
-      {isIntermission && (
-        <>
-          <AlertDialog open={isIntermission}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  <div className="flex items-center justify-center gap-2 text-2xl">
-                    <img
-                      className="w-12 h-12"
-                      src={imgAssets.logo}
-                      alt="tiki image"
-                    ></img>
-                    <h1> Congratulations !</h1>
-                  </div>
-                </AlertDialogTitle>
-                <br></br>
-                <br></br>
-                <AlertDialogDescription>
-                  <div className="flex flex-col items-center justify-center gap-6 text-xl">
-                    <FontAwesomeIcon size="2x" icon={faTrophy} color="gold" />
-                    <p>You have successfully completed Step {tutorialStep}.</p>
-                  </div>
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <br></br>
-              <AlertDialogFooter>
-                <Button onClick={handleContinue} variant="shimmer">
-                  Continue to Next Step
-                </Button>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </>
-      )}
+      <AlertDialog open={isIntermission}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <div className="flex items-center justify-center gap-2 text-2xl">
+                <img
+                  className="w-12 h-12"
+                  src={imgAssets.logo}
+                  alt="tiki image"
+                ></img>
+                <h1> Congratulations !</h1>
+              </div>
+            </AlertDialogTitle>
+            <br></br>
+            <br></br>
+            <AlertDialogDescription></AlertDialogDescription>
+            <div className="flex flex-col items-center justify-center gap-6 text-sm text-muted-foreground">
+              <FontAwesomeIcon size="2x" icon={faTrophy} color="gold" />
+              <p>You have successfully completed Step {tutorialStep}.</p>
+            </div>
+          </AlertDialogHeader>
+          <br></br>
+          <AlertDialogFooter>
+            <Button onClick={handleContinue} variant="shimmer">
+              Continue to Next Step
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {!isIntermission && (
         <div className="text-center p-4 bg-slate-700 rounded-md mb-4 absolute mt-40 z-50 w-11/12 mx-auto border border-2 border-white">

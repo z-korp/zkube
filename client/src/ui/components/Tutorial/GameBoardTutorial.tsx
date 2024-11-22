@@ -24,7 +24,7 @@ interface GameBoardProps {
   totemCount: number;
   tutorialProps?: {
     step: number;
-    targetBlock: { x: number; y: number; type: "block" | "row" } | null;
+    targetBlock: { x: number; y: number; type: "block" | "row" }[] | null;
     isIntermission: boolean;
   };
   onBlockSelect?: (block: Block) => void;

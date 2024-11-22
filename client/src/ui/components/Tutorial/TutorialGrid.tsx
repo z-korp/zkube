@@ -50,7 +50,7 @@ interface GridProps {
   bonus: BonusType;
   account: Account | null;
   tutorialStep: number;
-  tutorialTargetBlock: { x: number; y: number; type: "block" | "row" } | null;
+  tutorialTargetBlock: { x: number; y: number; type: "block" | "row" }[] | null;
   onUpdate: (intermission: boolean) => void;
   ref: any;
   intermission?: boolean;
@@ -441,13 +441,13 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     const isHighlighted = (block: Block) => {
       if (!tutorialTargetBlock || actionPerformed) return false;
 
-      if (tutorialTargetBlock.type === "row") {
-        return block.y === tutorialTargetBlock.y;
-      } else {
-        return (
-          block.x === tutorialTargetBlock.x && block.y === tutorialTargetBlock.y
-        );
-      }
+      return tutorialTargetBlock.some((targetBlock) => {
+        if (targetBlock.type === "row") {
+          return block.y === targetBlock.y;
+        } else {
+          return block.x === targetBlock.x && block.y === targetBlock.y;
+        }
+      });
     };
 
     const resetAnimateText = (): void => {
