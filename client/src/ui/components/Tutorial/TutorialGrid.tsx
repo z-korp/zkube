@@ -38,6 +38,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/ui/elements/alert-dialog";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import ImageAssets from "@/ui/theme/ImageAssets";
 
 interface GridProps {
   initialData: Block[];
@@ -115,6 +117,9 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     const [blockBonus, setBlockBonus] = useState<Block | null>(null);
     const [actionPerformed, setActionPerformed] = useState(false);
     const [bonusSelectWarning, setBonusSelectWarning] = useState(false);
+
+    const { themeTemplate } = useTheme();
+    const imgAssets = ImageAssets(themeTemplate);
 
     useEffect(() => {
       if (gridRef.current) {
@@ -680,14 +685,29 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           <AlertDialog open={bonusSelectWarning}>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogTitle>
+                  <div className="flex items-center justify-center gap-2">
+                    <img
+                      className="w-12 h-12"
+                      src={imgAssets.logo}
+                      alt="tiki image"
+                    ></img>
+                    <p>&gt;</p>
+                    <p> Genius in sleep mode?</p>
+                  </div>
+                </AlertDialogTitle>
                 <AlertDialogDescription>
-                  Select your bonus before clicking on block
+                  <div className="flex flex-col items-center justify-center gap-6">
+                    <p>Select your bonus before clicking on block</p>
+                    {tutorialStep === 2 && (
+                      <img className="w-8 h-8" src={imgAssets.hammer}></img>
+                    )}
+                  </div>
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel onClick={() => setBonusSelectWarning(false)}>
-                  I got It !
+                  I got it !
                 </AlertDialogCancel>
               </AlertDialogFooter>
             </AlertDialogContent>
