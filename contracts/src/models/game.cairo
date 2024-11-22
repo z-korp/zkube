@@ -277,15 +277,11 @@ impl GameImpl of GameTrait {
     // before updating the combo_counter_2 by the counter value
     #[inline(always)]
     fn update_combo_counter(ref self: Game, counter: u8) {
-        println!("[update_combo_counter] counter {}", counter);
-        println!("[update_combo_counter] combo_counter {}", self.combo_counter);
-        println!("[update_combo_counter] combo_counter_2 {}", self.combo_counter_2);
         let new_value = counter.into();
-        if self.combo_counter != 0 {
+        if self.combo_counter != 0 && self.combo_counter_2 == 0 {
             self.combo_counter_2 = self.combo_counter.into();
         }
         self.combo_counter_2 += new_value;
-        println!("[update_combo_counter] END combo_counter_2 {}", self.combo_counter_2);
     }
 }
 

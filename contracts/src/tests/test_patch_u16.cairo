@@ -67,14 +67,15 @@ fn test_patch_u16_game_started_before_update() {
     assert_eq!(game.combo_counter_2, 17);
     assert_eq!(game.combo_counter_in_tournament_2, 17);
 
-    println!("game.blocks {}", game.blocks);
-    // 010_010_000_000_001_001_010_010
-    systems.play.move(0, 3, 4);
+    game.blocks = 0b010010000000000000000000000001001001001001001001000001001001001001001001;
+    world.write_model_test(@game);
+
+    systems.play.move(1, 6, 7);
 
     // [Check] Game
     let mut game = store.game(game_id);
-    assert_eq!(game.combo_counter_2, 17);
-    assert_eq!(game.combo_counter_in_tournament_2, 17);
+    assert_eq!(game.combo_counter_2, 19);
+    assert_eq!(game.combo_counter_in_tournament_2, 19);
 }
 
 #[test]

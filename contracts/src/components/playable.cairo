@@ -105,8 +105,6 @@ mod PlayableComponent {
             // [Effect] Perform move
             let line_count = game.move(row_index, start_index, final_index);
 
-            println!("game 1: {} {}", game.combo_counter, game.combo_counter_2);
-
             // [Effect] Update tournament points
             if (game.score > previous_score) {
                 self._handle_score_for_tournament(world, store, player, ref game);
@@ -114,7 +112,6 @@ mod PlayableComponent {
 
             // [Effect] Update game
             store.set_game(game);
-            println!("game 2: {} {}", game.combo_counter, game.combo_counter_2);
 
             // [Effect] Update player if game is over
             if game.over {
