@@ -1,5 +1,19 @@
 import React, { useState, useCallback, useMemo } from "react";
 import GameBoardTutorial from "./GameBoardTutorial";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import ImageAssets from "@/ui/theme/ImageAssets";
+
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/ui/elements/alert-dialog";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrophy } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "@/ui/elements/button";
 
 interface TutorialProps {
@@ -33,6 +47,9 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
   const [tutorialStep, setTutorialStep] = useState(1);
   const [isIntermission, setIsIntermission] = useState(false);
   const [state, setState] = useState(tutorialInitialState);
+
+  const { themeTemplate } = useTheme();
+  const imgAssets = ImageAssets(themeTemplate);
 
   const handleBlockSelect = useCallback(
     async (block: any) => {
@@ -88,20 +105,54 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
     setTutorialStep((prev) => prev + 1);
   };
 
+  const TutorialHeader = () => {
+    switch (tutorialStep) {
+      case 1:
+        return "Step 1 : Move";
+      case 2:
+        return "Step 2 : Hammer";
+      case 3:
+        return "Step 3 : Wave";
+      case 4:
+        return "Step 4 : Tiki";
+      case 5:
+        return "Tutorial complete!";
+      default:
+        return "";
+    }
+  };
+
   const TutorialMessage = () => {
     switch (tutorialStep) {
       case 1:
-        return "Step 1: Move the highlighted block two steps to the right.";
+        return "Move the highlighted block two steps to the right.";
       case 2:
-        return "Step 2: Use the hammer bonus on the highlighted block.";
+        return "Use the hammer bonus on the highlighted block.";
       case 3:
-        return "Step 3: Use the wave bonus on the highlighted row.";
+        return "Use the wave bonus on the highlighted row.";
       case 4:
-        return "Step 4: Use the totem bonus on the highlighted block.";
+        return "Use the totem bonus on the highlighted block.";
       case 5:
-        return "Tutorial complete! Click below to start playing.";
+        return "Click below to start playing.";
       default:
         return "";
+    }
+  };
+
+  const TutorialImage = () => {
+    switch (tutorialStep) {
+      case 1:
+        return <></>;
+      case 2:
+        return <img className="w-8 h-8" src={imgAssets.hammer} />;
+      case 3:
+        return <img className="w-8 h-8" src={imgAssets.wave} />;
+      case 4:
+        return <img className="w-8 h-8" src={imgAssets.tiki} />;
+      case 5:
+        return <></>;
+      default:
+        return <></>;
     }
   };
 
@@ -110,28 +161,66 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
   return (
     <div className="flex flex-col items-center relative h-full mx-6">
       {isIntermission && (
-        <div className="absolute bg-black/90  flex flex-col gap-12 items-center p-6 top-1/3 z-50">
-          <h1 className="text-4xl">Congratulations!</h1>
-          <p>You have successfully completed Step {tutorialStep}.</p>
-          <Button onClick={handleContinue}>Continue to Next Step</Button>
-        </div>
+        <>
+          <AlertDialog open={isIntermission}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  <div className="flex items-center justify-center gap-2 text-2xl">
+                    <img
+                      className="w-12 h-12"
+                      src={imgAssets.logo}
+                      alt="tiki image"
+                    ></img>
+                    <h1> Congratulations !</h1>
+                  </div>
+                </AlertDialogTitle>
+                <br></br>
+                <br></br>
+                <AlertDialogDescription>
+                  <div className="flex flex-col items-center justify-center gap-6 text-xl">
+                    <FontAwesomeIcon size="2x" icon={faTrophy} color="gold" />
+                    <p>You have successfully completed Step {tutorialStep}.</p>
+                  </div>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <br></br>
+              <AlertDialogFooter>
+                <Button onClick={handleContinue} variant="shimmer">
+                  Continue to Next Step
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
       )}
 
       {!isIntermission && (
-        <div className="text-center p-4 bg-teal-600 rounded-md mb-4 absolute mt-40 z-50 w-11/12 mx-auto">
-          <h2>
-            <TutorialMessage />
-          </h2>
+        <div className="text-center p-4 bg-slate-700 rounded-md mb-4 absolute mt-40 z-50 w-11/12 mx-auto border border-2 border-white">
+          <div className="flex flex-col items-center justify-center gap-2">
+            <div className="flex gap-4">
+              <img className="w-8 h-8" src={imgAssets.logo} />
+              <h1 className="text-2xl">
+                <TutorialHeader />
+              </h1>
+            </div>
+            <h2>
+              <TutorialMessage />
+            </h2>
+            <TutorialImage />
+          </div>
         </div>
       )}
 
       {tutorialStep === 5 && (
-        <button
+        <Button
           onClick={endTutorial}
-          className="absolute z-50 mt-4 bg-white text-black px-4 py-3 top-1/2 rounded-md"
+          variant={"default"}
+          className="absolute z-50 top-1/2 text-xl"
+          size={"lg"}
         >
           Exit Tutorial
-        </button>
+        </Button>
       )}
 
       <GameBoardTutorial

@@ -29,14 +29,12 @@ import BlockContainer from "./TutorialBlock";
 import ConfettiExplosion, { ConfettiExplosionRef } from "../ConfettiExplosion";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/ui/elements/alert-dialog";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import ImageAssets from "@/ui/theme/ImageAssets";

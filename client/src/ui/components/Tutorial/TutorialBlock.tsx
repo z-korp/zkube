@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { GameState } from "@/enums/gameEnums";
 import { Block } from "@/types/types";
 
@@ -73,7 +73,7 @@ const BlockContainer: React.FC<BlockProps> = ({
       className={`block block-${block.width} ${isTxProcessing ? "cursor-wait" : ""} ${highlightClass} ${isBlockClickable ? "cursor-pointer" : ""}`}
       ref={ref}
       style={{
-        zIndex: isHighlighted ? 999 : "auto",
+        zIndex: isHighlighted ? 40 : "auto",
         position: "absolute",
         top: `${block.y * gridSize + 1}px`,
         left: `${block.x * gridSize + 1}px`,
