@@ -11,12 +11,27 @@ import LevelIndicator from "./LevelIndicator";
 import SettingsDropDown from "./SettingsDropDown";
 import { useNavigate } from "react-router-dom";
 import { Controller } from "./Controller";
+import TutorialModal from "./Tutorial/TutorialModal";
 
-const DesktopHeader = () => {
+interface DesktopHeaderProps {
+  onStartTutorial: () => void;
+}
+
+const DesktopHeader = ({ onStartTutorial }: DesktopHeaderProps) => {
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+
+  const changeTutorialOpen = () => {
+    setIsTutorialOpen(!isTutorialOpen);
+  };
+
+  const handleStartTutorial = () => {
+    changeTutorialOpen();
+    onStartTutorial();
+  };
 
   const onClose = () => {
     setIsOpen(false);
@@ -41,6 +56,20 @@ const DesktopHeader = () => {
           Collective Chests
         </Button>
         <CollectiveTreasureChest isOpen={isOpen} onClose={onClose} />
+        <Button
+          variant="outline"
+          onClick={(e) => {
+            e.stopPropagation();
+            changeTutorialOpen();
+          }}
+        >
+          Tutorial
+        </Button>
+        <TutorialModal
+          isOpen={isTutorialOpen}
+          onClose={changeTutorialOpen}
+          onStartTutorial={handleStartTutorial}
+        />
       </div>
       <div className="flex flex-col gap-4 items-center md:flex-row">
         {!!player && (

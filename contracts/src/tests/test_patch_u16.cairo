@@ -66,6 +66,16 @@ fn test_patch_u16_game_started_before_update() {
     // [Check] Game
     assert_eq!(game.combo_counter_2, 17);
     assert_eq!(game.combo_counter_in_tournament_2, 17);
+
+    game.blocks = 0b010010000000000000000000000001001001001001001001000001001001001001001001;
+    world.write_model_test(@game);
+
+    systems.play.move(1, 6, 7);
+
+    // [Check] Game
+    let mut game = store.game(game_id);
+    assert_eq!(game.combo_counter_2, 19);
+    assert_eq!(game.combo_counter_in_tournament_2, 19);
 }
 
 #[test]

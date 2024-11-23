@@ -35,7 +35,7 @@ export async function setup({ ...config }: Config) {
     contractComponents as any,
     undefined,
     [],
-    30000,
+    30_000,
     false,
   );
 

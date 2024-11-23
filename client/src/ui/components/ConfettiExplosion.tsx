@@ -1,9 +1,4 @@
-import {
-  ISourceOptions,
-  tsParticles,
-  Container,
-  Particle,
-} from "@tsparticles/engine";
+import { ISourceOptions, tsParticles, Container } from "@tsparticles/engine";
 import React, {
   useEffect,
   useRef,
@@ -125,9 +120,11 @@ const ConfettiExplosion = forwardRef<
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
     };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleClick = () => {
+  /*const handleClick = () => {
     if (particleContainerRef.current) {
       const x =
         mousePosition.current.x *
@@ -140,7 +137,7 @@ const ConfettiExplosion = forwardRef<
         particleContainerRef.current.particles.addParticle({ x, y });
       }
     }
-  };
+  };*/
 
   const triggerLocalExplosion = (position: { x: number; y: number }) => {
     if (particleContainerRef.current) {

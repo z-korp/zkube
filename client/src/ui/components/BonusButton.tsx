@@ -16,6 +16,8 @@ interface BonusButtonProps {
   tooltipText: string; // Ajout d'une nouvelle prop pour le texte du tooltip
   bonusName: BonusType;
   bonus: BonusType;
+  disabled?: boolean;
+  highlighted?: boolean;
 }
 
 const BonusButton: React.FC<BonusButtonProps> = ({
@@ -25,6 +27,8 @@ const BonusButton: React.FC<BonusButtonProps> = ({
   tooltipText,
   bonusName,
   bonus,
+  disabled = false,
+  highlighted = false,
 }) => {
   const [isClicked, setIsClicked] = useState(false);
 
@@ -52,9 +56,9 @@ const BonusButton: React.FC<BonusButtonProps> = ({
             <Button
               variant="outline"
               size="icon"
-              className={`md:p-2 sm:p-1 p-1 border ${bonus == bonusName ? "bg-yellow-500" : ""} cursor-pointer`}
+              className={`md:p-2 sm:p-1 p-1 border ${bonus == bonusName ? "bg-yellow-500" : ""} cursor-pointer ${highlighted ? "border-4 border-yellow-500" : ""}`}
               onClick={handleClick}
-              disabled={false}
+              disabled={disabled}
             >
               <img src={urlImage} alt="image for bonus" />
             </Button>

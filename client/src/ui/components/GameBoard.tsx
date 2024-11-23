@@ -72,16 +72,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [optimisticMaxCombo, setOptimisticMaxCombo] = useState(maxCombo);
   const [bonusDescription, setBonusDescription] = useState("");
 
-  useEffect(() => {
-    // Every time the initial grid changes, we erase the optimistic data
-    // and set the data to the one returned by the contract
-    // just in case of discrepancies
-    setOptimisticScore(score);
-    setOptimisticCombo(combo);
-    setOptimisticMaxCombo(maxCombo);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialGrid]);
-
   const [bonus, setBonus] = useState<BonusType>(BonusType.None);
 
   const handleBonusWaveClick = () => {
@@ -261,6 +251,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
             selectBlock={selectBlock}
             bonus={bonus}
             account={account}
+            score={game.score}
+            combo={game.combo}
+            maxCombo={game.max_combo}
             setOptimisticScore={setOptimisticScore}
             setOptimisticCombo={setOptimisticCombo}
             setOptimisticMaxCombo={setOptimisticMaxCombo}

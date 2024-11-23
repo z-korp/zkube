@@ -278,7 +278,7 @@ impl GameImpl of GameTrait {
     #[inline(always)]
     fn update_combo_counter(ref self: Game, counter: u8) {
         let new_value = counter.into();
-        if self.combo_counter != 0 {
+        if self.combo_counter != 0 && self.combo_counter_2 == 0 {
             self.combo_counter_2 = self.combo_counter.into();
         }
         self.combo_counter_2 += new_value;

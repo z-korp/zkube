@@ -9,6 +9,6 @@ export enum GameState {
   LINE_CLEAR2,
   LINE_CLEAR_BONUS,
   ADD_LINE,
-  MOVE_TX,
-  BONUS_TX,
+  UPDATE_AFTER_MOVE,
+  UPDATE_AFTER_BONUS,
 }
