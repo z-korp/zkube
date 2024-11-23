@@ -31,6 +31,7 @@ export function defineContractComponents(world: World) {
           combo_counter_in_tournament: RecsType.Number,
           max_combo_in_tournament: RecsType.Number,
           tournament_id: RecsType.Number,
+          // patch u8 -> u16
           combo_counter_2: RecsType.Number,
           combo_counter_in_tournament_2: RecsType.Number,
         },
