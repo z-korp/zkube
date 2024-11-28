@@ -30,7 +30,6 @@ import MaxComboIcon from "../components/MaxComboIcon";
 import GameModeCard from "../components/GameModeCard";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useMediaQuery } from "react-responsive";
-import { Start } from "../actions/Start";
 import { ChevronLeft } from "lucide-react";
 import CollectiveTreasureChest from "../components/TreasureChest";
 import GameOverDialog from "../components/GameOverDialog";
@@ -38,8 +37,6 @@ import useViewport from "@/hooks/useViewport";
 import { TweetPreview } from "../components/TweetPreview";
 import { useGrid } from "@/hooks/useGrid";
 import Tutorial from "../components/Tutorial/Tutorial";
-import DemoComponent from "../components/DemoComponent";
-import { Swiper } from "swiper/types";
 import Swipper from "../components/Swipper";
 
 export const Home = () => {
