@@ -237,7 +237,7 @@ export const Home = () => {
       <Dialog>
         <DialogTrigger asChild>
           <Button
-            className="w-full bg-primary text-secondary text-lg py-6 border-4 shadow-lg  bg-sky-200 font-sans rounded-none"
+            className="w-full bg-primary text-white text-lg py-6 border-4 shadow-lg bg-sky-900 font-sans rounded-none"
             variant="brutal"
           >
             Play !
@@ -248,15 +248,6 @@ export const Home = () => {
         </DialogContent>
       </Dialog>
 
-      <Start mode={ModeType.Free} handleGameMode={handlePlay} />
-
-      <Button
-        variant={"brutal"}
-        onClick={handleTournaments}
-        className="w-full bg-primary text-secondary text-lg py-6 border-4 shadow-lg  bg-sky-200 font-sans rounded-none"
-      >
-        <p>Tournaments</p>
-      </Button>
       <Button
         variant={"brutal"}
         onClick={() => setChestIsOpen(true)}
