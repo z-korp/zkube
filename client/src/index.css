@@ -195,3 +195,14 @@ body[style*="pointer-events: none"] #controller {
 body[style*="pointer-events: none"] #controller * {
   pointer-events: auto !important;
 }
+
+.swiper {
+  width: 280px;
+  height: 400px;
+}
+
+.swiper-slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
