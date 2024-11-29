@@ -29,15 +29,13 @@ interface GameModeCardProps {
   handleGameMode: () => void;
 }
 
-const GameModeCard: React.FC<GameModeCardProps> = ({
+const GameModeCardMobile: React.FC<GameModeCardProps> = ({
   mode,
   handleGameMode,
 }) => {
   const { settings } = useSettings();
 
   const { endTimestamp, tournament } = useTournament(mode);
-
-  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   const potentialWin = useMemo(() => {
     if (!tournament) return formatPrize(0n, VITE_PUBLIC_GAME_TOKEN_SYMBOL);
@@ -80,15 +78,9 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
   }, [mode]);
 
   return (
-    <Card className="w-full h-full max-w-sm bg-gray-900 text-white border-0 relative font-semibold md:font-normal">
-      {isMdOrLarger &&
-        (mode === ModeType.Daily || mode === ModeType.Normal) && (
-          <div className="absolute top-0 bg-white text-black text-xs px-2 py-1 rounded-br-lg rounded-tl-xl">
-            Tournament
-          </div>
-        )}
-      <CardHeader className="pt-4 pb-2 md:pb-4">
-        <CardTitle className="text-xl md:text-2xl font-bold text-center">
+    <Card className="w-full h-full bg-gray-800 text-white border-2 border-white">
+      <CardHeader className="pt-4 pb-10 md:pb-4">
+        <CardTitle className="text-2xl md:text-2xl font-bold text-center">
           {mode}
         </CardTitle>
       </CardHeader>
@@ -118,17 +110,7 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
           <div className="flex-grow flex justify-between items-center">
             <span className="font-semibold">Difficulty</span>
             <span className="flex items-center text-slate-300 relative">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger className="mr-3">
-                    {difficultyRule.name}
-                    <HelpCircle className="h-3 w-3 cursor-help absolute top-0 right-0" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-sm">{difficultyRule.description}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              {difficultyRule.name}
             </span>
           </div>
         </div>
@@ -154,11 +136,11 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
           </>
         )}
       </CardContent>
-      <CardFooter className="pb-5 md:pb-6">
+      <CardFooter className="mt-8">
         <Start mode={mode} handleGameMode={handleGameMode} />
       </CardFooter>
     </Card>
   );
 };
 
-export default GameModeCard;
+export default GameModeCardMobile;

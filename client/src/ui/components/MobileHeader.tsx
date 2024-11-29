@@ -112,7 +112,7 @@ const MobileHeader = ({ onStartTutorial }: MobileHeaderProps) => {
           {!!player && account ? (
             <div className="flex gap-3 items-center">
               <DropdownMenu>
-                <DropdownMenuTrigger>
+                <DropdownMenuTrigger asChild>
                   <Button variant={"outline"}>
                     <FontAwesomeIcon icon={faCoins} />
                   </Button>
