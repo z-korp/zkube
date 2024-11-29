@@ -38,6 +38,7 @@ import { TweetPreview } from "../components/TweetPreview";
 import { useGrid } from "@/hooks/useGrid";
 import Tutorial from "../components/Tutorial/Tutorial";
 import Swipper from "../components/Swipper";
+import HeaderBalance from "../components/HeaderBalance";
 
 export const Home = () => {
   useViewport();
@@ -240,7 +241,11 @@ export const Home = () => {
             Play !
           </Button>
         </DialogTrigger>
-        <DialogContent className="w-[95%] h-[80%] flex flex-col justify-center">
+        <DialogContent className="w-[95%]  flex flex-col justify-center p-8">
+          <DialogHeader className="flex flex-row gap-3 items-center justify-center w-full space-y-0">
+            <HeaderBalance />
+          </DialogHeader>
+
           <Swipper setIsGameOn={() => setIsGameOn("isOn")}></Swipper>
         </DialogContent>
       </Dialog>

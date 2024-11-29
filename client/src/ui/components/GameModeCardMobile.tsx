@@ -37,8 +37,6 @@ const GameModeCardMobile: React.FC<GameModeCardProps> = ({
 
   const { endTimestamp, tournament } = useTournament(mode);
 
-  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
-
   const potentialWin = useMemo(() => {
     if (!tournament) return formatPrize(0n, VITE_PUBLIC_GAME_TOKEN_SYMBOL);
     return formatPrize(tournament.prize, VITE_PUBLIC_GAME_TOKEN_SYMBOL);
@@ -112,17 +110,7 @@ const GameModeCardMobile: React.FC<GameModeCardProps> = ({
           <div className="flex-grow flex justify-between items-center">
             <span className="font-semibold">Difficulty</span>
             <span className="flex items-center text-slate-300 relative">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger className="mr-3">
-                    {difficultyRule.name}
-                    <HelpCircle className="h-3 w-3 cursor-help absolute top-0 right-0" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-sm">{difficultyRule.description}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              {difficultyRule.name}
             </span>
           </div>
         </div>
