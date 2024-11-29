@@ -10,7 +10,7 @@ const HeaderNftBalance = React.memo(() => {
 
   if (account) {
     return (
-      <span className="text-xs font-semibold md:font-normal flex items-center ">
+      <span className="text-xs font-semibold md:font-normal flex items-center">
         {`${balance}`} <NftImage />
       </span>
     );

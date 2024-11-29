@@ -30,7 +30,6 @@ import MaxComboIcon from "../components/MaxComboIcon";
 import GameModeCard from "../components/GameModeCard";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useMediaQuery } from "react-responsive";
-import { Start } from "../actions/Start";
 import { ChevronLeft } from "lucide-react";
 import CollectiveTreasureChest from "../components/TreasureChest";
 import GameOverDialog from "../components/GameOverDialog";
@@ -38,6 +37,8 @@ import useViewport from "@/hooks/useViewport";
 import { TweetPreview } from "../components/TweetPreview";
 import { useGrid } from "@/hooks/useGrid";
 import Tutorial from "../components/Tutorial/Tutorial";
+import Swipper from "../components/Swipper";
+import HeaderBalance from "../components/HeaderBalance";
 
 export const Home = () => {
   useViewport();
@@ -231,15 +232,24 @@ export const Home = () => {
 
   const renderMobileView = () => (
     <div className="flex flex-col w-full gap-4 px-4 mt-4">
-      <Start mode={ModeType.Free} handleGameMode={handlePlay} />
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button
+            className="w-full bg-primary text-white text-lg py-6 border-4 shadow-lg bg-sky-900 font-sans rounded-none"
+            variant="brutal"
+          >
+            Play !
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="w-[95%]  flex flex-col justify-center p-8">
+          <DialogHeader className="flex flex-row gap-3 items-center justify-center w-full space-y-0">
+            <HeaderBalance />
+          </DialogHeader>
 
-      <Button
-        variant={"brutal"}
-        onClick={handleTournaments}
-        className="w-full bg-primary text-secondary text-lg py-6 border-4 shadow-lg  bg-sky-200 font-sans rounded-none"
-      >
-        <p>Tournaments</p>
-      </Button>
+          <Swipper setIsGameOn={() => setIsGameOn("isOn")}></Swipper>
+        </DialogContent>
+      </Dialog>
+
       <Button
         variant={"brutal"}
         onClick={() => setChestIsOpen(true)}
@@ -261,7 +271,7 @@ export const Home = () => {
         <Dialog open={isSigning} modal>
           <DialogContent
             aria-describedby={undefined}
-            className="flex flex-col items-center justify-center p-6 "
+            className="flex flex-col items-center justify-center p-6"
           >
             <p className="mt-8 mb-7">Aligning the blocks for your signup...</p>
           </DialogContent>
