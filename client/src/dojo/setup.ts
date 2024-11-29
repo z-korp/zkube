@@ -30,10 +30,24 @@ export async function setup({ ...config }: Config) {
 
   // fetch all existing entities from torii
   // await getSyncEntities(toriiClient, contractModels as any, []);
+  const allExceptMintClause: torii.KeysClause = {
+    keys: [undefined],
+    pattern_matching: "FixedLen",
+    models: [
+      "zKube-Game",
+      "zKube-Player",
+      "zKube-Tournament",
+      "zKube-Settings",
+      "zkube-Chest",
+      "zkube-Participation",
+      "zKube-Admin",
+    ],
+  };
+
   const sync = await getSyncEntities(
     toriiClient,
     contractComponents as any,
-    undefined,
+    { Keys: allExceptMintClause },
     [],
     30_000,
     false,
