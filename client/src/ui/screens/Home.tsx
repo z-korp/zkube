@@ -96,6 +96,28 @@ export const Home = () => {
     syncEntities();
   }, [account?.address]);
 
+  // fetch here because Partictipation has double keys
+  useEffect(() => {
+    const clause: torii.KeysClause = {
+      keys: [undefined, undefined],
+      pattern_matching: "FixedLen",
+      models: ["zkube-Participation"],
+    };
+
+    const syncEntities = async () => {
+      await getSyncEntities(
+        toriiClient,
+        contractComponents as any,
+        { Keys: clause },
+        [],
+        10_000,
+        false,
+      );
+    };
+
+    syncEntities();
+  }, [account?.address]);
+
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   // State variables for modals
