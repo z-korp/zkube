@@ -72,7 +72,7 @@ export const Home = () => {
 
   useEffect(() => {
     const clause: torii.MemberClause = {
-      model: "zkube-Mint",
+      model: "zkube-Mint2",
       member: "id",
       operator: "Eq",
       value: {
