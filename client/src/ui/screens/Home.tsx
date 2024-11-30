@@ -39,12 +39,18 @@ import { useGrid } from "@/hooks/useGrid";
 import Tutorial from "../components/Tutorial/Tutorial";
 import Swipper from "../components/Swipper";
 import HeaderBalance from "../components/HeaderBalance";
+import { useDojo } from "@/dojo/useDojo";
+import { getSyncEntities } from "@dojoengine/state";
+import * as torii from "@dojoengine/torii-client";
 
 export const Home = () => {
   useViewport();
   useRewardsCalculator();
   const isSigning = false; //useAutoSignup();
 
+  const {
+    setup: { toriiClient, contractComponents },
+  } = useDojo();
   const { account } = useAccountCustom();
   const { player } = usePlayer({ playerId: account?.address });
 
@@ -63,6 +69,32 @@ export const Home = () => {
   const [level, setLevel] = useState<number | "">(0);
   const [score, setScore] = useState<number | undefined>(0);
   const [imgData, setImgData] = useState<string>("");
+
+  useEffect(() => {
+    const clause: torii.MemberClause = {
+      model: "zkube-Mint",
+      member: "id",
+      operator: "Eq",
+      value: {
+        Primitive: {
+          Felt252: account?.address,
+        },
+      },
+    };
+
+    const syncEntities = async () => {
+      await getSyncEntities(
+        toriiClient,
+        contractComponents as any,
+        { Member: clause },
+        [],
+        100,
+        false,
+      );
+    };
+
+    syncEntities();
+  }, [account?.address]);
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 

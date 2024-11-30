@@ -34,13 +34,13 @@ export async function setup({ ...config }: Config) {
     keys: [undefined],
     pattern_matching: "FixedLen",
     models: [
-      "zKube-Game",
-      "zKube-Player",
-      "zKube-Tournament",
-      "zKube-Settings",
+      "zkube-Game",
+      "zkube-Player",
+      "zkube-Tournament",
+      "zkube-Settings",
       "zkube-Chest",
       "zkube-Participation",
-      "zKube-Admin",
+      "zkube-Admin",
     ],
   };
 
