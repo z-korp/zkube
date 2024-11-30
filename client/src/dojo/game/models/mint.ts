@@ -10,4 +10,14 @@ export class Mint {
     this.number = mint.number;
     this.expiration_timestamp = mint.expiration_timestamp;
   }
+
+  // Static method to create a Mint instance from an ID string
+  // used to 0 mint before airdrop
+  public static fromId(player_id: string | undefined): Mint {
+    return new Mint({
+      player_id: player_id || "",
+      number: 0,
+      expiration_timestamp: 1735544192,
+    });
+  }
 }

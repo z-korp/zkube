@@ -29,5 +29,5 @@ export const useFreeMint = ({
     return component ? new MintClass(component) : null;
   }, [component]);
 
-  return mint;
+  return MintClass.fromId(player_id); // mint;
 };
