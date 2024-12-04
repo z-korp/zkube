@@ -132,19 +132,38 @@ impl GameImpl of GameTrait {
     fn get_difficulty(ref self: Game) -> Difficulty {
         let mut difficulty = self.difficulty();
         if (difficulty == Difficulty::None) { // Difficulty::None meaning increasing difficulty
-            difficulty = Difficulty::Master;
-            if (self.moves < 20) {
-                difficulty = Difficulty::Easy;
-            } else if (self.moves < 40) {
-                difficulty = Difficulty::Medium;
-            } else if (self.moves < 80) {
-                difficulty = Difficulty::MediumHard;
-            } else if (self.moves < 120) {
-                difficulty = Difficulty::Hard;
-            } else if (self.moves < 160) {
-                difficulty = Difficulty::VeryHard;
-            } else if (self.moves < 200) {
-                difficulty = Difficulty::Expert;
+
+            // we are in normal mode or free mode
+            if(self.mode.into() == Mode::Normal) {
+                // weekly
+                if (self.moves < 20) {
+                    difficulty = Difficulty::MediumHard;
+                } else if (self.moves < 40) {
+                    difficulty = Difficulty::Hard;
+                } else if (self.moves < 80) {
+                    difficulty = Difficulty::VeryHard;
+                } else if (self.moves < 120) {
+                    difficulty = Difficulty::Expert;
+                } else {
+                    difficulty = Difficulty::Master;
+                }
+            } else {
+                // free mode
+                if (self.moves < 20) {
+                    difficulty = Difficulty::Easy;
+                } else if (self.moves < 40) {
+                    difficulty = Difficulty::Medium;
+                } else if (self.moves < 80) {
+                    difficulty = Difficulty::MediumHard;
+                } else if (self.moves < 120) {
+                    difficulty = Difficulty::Hard;
+                } else if (self.moves < 160) {
+                    difficulty = Difficulty::VeryHard;
+                } else if (self.moves < 200) {
+                    difficulty = Difficulty::Expert;
+                } else {
+                    difficulty = Difficulty::Master;
+                }
             }
         }
         difficulty

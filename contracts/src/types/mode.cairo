@@ -38,7 +38,7 @@ impl ModeImpl of ModeTrait {
     fn difficulty(self: Mode) -> Difficulty {
         match self {
             Mode::Normal => Difficulty::None, // meaning increasing difficulty
-            Mode::Daily => Difficulty::VeryHard,
+            Mode::Daily => Difficulty::Expert,
             Mode::Free => Difficulty::None, // meaning increasing difficulty
             _ => Difficulty::None,
         }
