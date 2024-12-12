@@ -1,8 +1,12 @@
 import PasswordProtected from "../components/PasswordProtected";
 
-const DevPage = () => {
+interface DevPageProps {
+  onSkip: () => void;
+}
+
+const DevPage = ({ onSkip }: DevPageProps) => {
   return (
-    <PasswordProtected>
+    <PasswordProtected onSkip={onSkip}>
       <div className="p-8">
         <h1 className="text-2xl font-bold text-red-500">
           Page de développement

@@ -1,7 +1,12 @@
 // src/components/PasswordProtected.jsx
 import React, { useState } from "react";
 
-const PasswordProtected = ({ children }) => {
+interface PasswordProtectedProps {
+  children: React.ReactNode;
+  onSkip: () => void;
+}
+
+const PasswordProtected = ({ children, onSkip }: PasswordProtectedProps) => {
   const [password, setPassword] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const correctPassword = import.meta.env.VITE_TESTINGPAGE_PASSWORD;
@@ -38,6 +43,12 @@ const PasswordProtected = ({ children }) => {
           className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
         >
           Accéder
+        </button>
+        <button
+          onClick={onSkip}
+          className="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+        >
+          Go to normal
         </button>
       </form>
     </div>
