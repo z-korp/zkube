@@ -12,13 +12,6 @@ import { useSettings } from "@/hooks/useSettings";
 import useTournament from "@/hooks/useTournament";
 import { Start } from "../actions/Start";
 import TournamentTimer from "./TournamentTimer";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../elements/tooltip";
-import { useMediaQuery } from "react-responsive";
 import { formatPrize } from "@/utils/price";
 import NftImage from "./ImageNFTZkube";
 
