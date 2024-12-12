@@ -1,5 +1,6 @@
 // src/components/PasswordProtected.jsx
 import React, { useState } from "react";
+import { Button } from "../elements/button";
 
 interface PasswordProtectedProps {
   children: React.ReactNode;
@@ -11,7 +12,7 @@ const PasswordProtected = ({ children, onSkip }: PasswordProtectedProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const correctPassword = import.meta.env.VITE_TESTINGPAGE_PASSWORD;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: any) => {
     e.preventDefault();
     if (password === correctPassword) {
       setIsAuthenticated(true);
@@ -30,26 +31,24 @@ const PasswordProtected = ({ children, onSkip }: PasswordProtectedProps) => {
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full"
       >
-        <h2 className="text-2xl font-bold mb-4">Entrez le mot de passe</h2>
+        <h2 className="text-2xl font-bold mb-4 text-secondary">
+          Entrez Password
+        </h2>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Mot de passe"
+          placeholder="Password"
           className="w-full px-4 py-2 border rounded mb-4"
         />
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-        >
-          Accéder
-        </button>
-        <button
-          onClick={onSkip}
-          className="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-        >
-          Go to normal
-        </button>
+        <div className="flex flex-col gap-4">
+          <Button type="submit" className="w-full" variant={"outline"}>
+            Enter
+          </Button>
+          <Button onClick={onSkip} className="w-full" variant={"outline"}>
+            Back to prod mode
+          </Button>
+        </div>
       </form>
     </div>
   );
