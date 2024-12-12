@@ -1,23 +1,16 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Card } from "@/ui/elements/card";
-import { useDojo } from "@/dojo/useDojo";
 import { GameBonus } from "../containers/GameBonus";
 import { useMediaQuery } from "react-responsive";
-import { Account } from "starknet";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import { Block } from "@/types/types";
-import { Bonus, BonusType } from "@/dojo/game/types/bonus";
-import { ModeType } from "@/dojo/game/types/mode";
-import useTournament from "@/hooks/useTournament";
-import { Game } from "@/dojo/game/models/game";
-import useRank from "@/hooks/useRank";
+import { BonusType } from "@/dojo/game/types/bonus";
 
 import "../../grid.css";
 import BonusAnimation from "../components/BonusAnimation";
 import NextLine from "../components/NextLine";
 import GameScores from "../components/GameScores";
-import GridDev from "./GridDev";
-import TournamentTimer from "../components/TournamentTimer";
+import GridDev from "./DevGrid";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -28,11 +21,9 @@ interface GameBoardProps {
   hammerCount: number;
   waveCount: number;
   totemCount: number;
-  account: Account | null;
-  game: Game;
 }
 
-const GameBoardDev: React.FC<GameBoardProps> = ({
+const DevBoard: React.FC<GameBoardProps> = ({
   initialGrid,
   nextLine,
   score,
@@ -41,15 +32,7 @@ const GameBoardDev: React.FC<GameBoardProps> = ({
   waveCount,
   hammerCount,
   totemCount,
-  account,
-  game,
 }) => {
-  const {
-    setup: {
-      systemCalls: { applyBonus },
-    },
-  } = useDojo();
-
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
   const ROWS = 10;
   const COLS = 8;
@@ -101,14 +84,11 @@ const GameBoardDev: React.FC<GameBoardProps> = ({
     }
   };
 
-  const handleBonusWaveTx = useCallback(
-    async (rowIndex: number) => {
-      // TBD : should I keep it ?
-      setIsTxProcessing(true);
-      console.log("handleBonusWaveTx", rowIndex);
-    },
-    [account, applyBonus],
-  );
+  const handleBonusWaveTx = useCallback(async (rowIndex: number) => {
+    // TBD : should I keep it ?
+    setIsTxProcessing(true);
+    console.log("handleBonusWaveTx", rowIndex);
+  }, []);
 
   const handleBonusHammerTx = useCallback(
     async (rowIndex: number, colIndex: number) => {
@@ -116,7 +96,7 @@ const GameBoardDev: React.FC<GameBoardProps> = ({
       setIsTxProcessing(true);
       console.log("handleBonusHammerTx", rowIndex, colIndex);
     },
-    [account, applyBonus],
+    [],
   );
 
   const handleBonusTikiTx = useCallback(
@@ -125,7 +105,7 @@ const GameBoardDev: React.FC<GameBoardProps> = ({
       setIsTxProcessing(true);
       console.log("handleBonusTikiTx", rowIndex, colIndex);
     },
-    [account, applyBonus],
+    [],
   );
 
   const selectBlock = useCallback(
@@ -159,12 +139,6 @@ const GameBoardDev: React.FC<GameBoardProps> = ({
     // initialGrid on purpose
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGrid]);
-
-  const { endTimestamp } = useTournament(game.mode.value);
-  const { rank, suffix } = useRank({
-    tournamentId: game.tournament_id,
-    gameId: game.id,
-  });
 
   if (memoizedInitialData.length === 0) return null; // otherwise sometimes
   // the grid is not displayed in Grid because the data is not ready
@@ -214,10 +188,9 @@ const GameBoardDev: React.FC<GameBoardProps> = ({
             gridWidth={COLS}
             selectBlock={selectBlock}
             bonus={bonus}
-            account={account}
-            score={game.score}
-            combo={game.combo}
-            maxCombo={game.max_combo}
+            score={score}
+            combo={combo}
+            maxCombo={maxCombo}
             setOptimisticScore={setOptimisticScore}
             setOptimisticCombo={setOptimisticCombo}
             setOptimisticMaxCombo={setOptimisticMaxCombo}
@@ -243,28 +216,9 @@ const GameBoardDev: React.FC<GameBoardProps> = ({
             gridWidth={COLS}
           />
         </div>
-
-        {(game.mode.value === ModeType.Daily ||
-          game.mode.value === ModeType.Normal) && (
-          <div className="flex w-full items-center justify-between px-1 mt-2 md:mt-3 font-semibold md:font-normal">
-            <div>
-              Ranked {rank}
-              <sup>{suffix}</sup>
-            </div>
-            <div className="flex gap-4">
-              <h2 className="text-GRID_SIZEsm md:text-base font-semibold">
-                Tournament:
-              </h2>
-              <TournamentTimer
-                mode={game.mode.value}
-                endTimestamp={endTimestamp}
-              />
-            </div>
-          </div>
-        )}
       </Card>
     </>
   );
 };
 
-export default GameBoardDev;
+export default DevBoard;

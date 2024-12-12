@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Account } from "starknet";
 import { useDojo } from "@/dojo/useDojo";
 import { GameState } from "@/enums/gameEnums";
 import { Block } from "@/types/types";
@@ -40,7 +39,6 @@ interface GridProps {
   gridHeight: number;
   selectBlock: (block: Block) => void;
   bonus: BonusType;
-  account: Account | null;
   isTxProcessing: boolean;
   setIsTxProcessing: React.Dispatch<React.SetStateAction<boolean>>;
   score: number;
@@ -51,7 +49,7 @@ interface GridProps {
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const GridDev: React.FC<GridProps> = ({
+const DevGrid: React.FC<GridProps> = ({
   initialData,
   nextLineData,
   setNextLineHasBeenConsumed,
@@ -60,7 +58,6 @@ const GridDev: React.FC<GridProps> = ({
   gridSize,
   selectBlock,
   bonus,
-  account,
   score,
   combo,
   maxCombo,
@@ -70,12 +67,6 @@ const GridDev: React.FC<GridProps> = ({
   isTxProcessing,
   setIsTxProcessing,
 }) => {
-  const {
-    setup: {
-      systemCalls: { move },
-    },
-  } = useDojo();
-
   // ==================== Refs ====================
 
   // Grid Position will be used to trigger particle in the right spot
@@ -331,7 +322,6 @@ const GridDev: React.FC<GridProps> = ({
       }
 
       if (startColIndex === finalColIndex) return;
-      if (!account) return;
 
       isProcessingRef.current = true;
       setIsTxProcessing(true);
@@ -346,7 +336,7 @@ const GridDev: React.FC<GridProps> = ({
       isProcessingRef.current = false; // Reset the ref
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [account, isMoving, gridHeight, move],
+    [isMoving, gridHeight],
   );
 
   // Send the move transaction when the currentMove state is updated
@@ -629,4 +619,4 @@ const GridDev: React.FC<GridProps> = ({
   );
 };
 
-export default GridDev;
+export default DevGrid;
