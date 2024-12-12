@@ -336,25 +336,14 @@ const GridDev: React.FC<GridProps> = ({
       isProcessingRef.current = true;
       setIsTxProcessing(true);
       playSwipe();
-      try {
-        console.log(
-          "Move TX (row, start col, end col)",
-          gridHeight - 1 - rowIndex,
-          startColIndex,
-          finalColIndex,
-        );
-        await move({
-          account: account as Account,
-          row_index: gridHeight - 1 - rowIndex,
-          start_index: Math.trunc(startColIndex),
-          final_index: Math.trunc(finalColIndex),
-        });
-      } catch (error) {
-        console.error("Erreur lors de l'envoi de la transaction", error);
-        isProcessingRef.current = false; // Reset the ref
-      } finally {
-        isProcessingRef.current = false; // Reset the ref
-      }
+
+      console.log(
+        "Fake Call : Move TX (row, start col, end col)",
+        gridHeight - 1 - rowIndex,
+        startColIndex,
+        finalColIndex,
+      );
+      isProcessingRef.current = false; // Reset the ref
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [account, isMoving, gridHeight, move],
