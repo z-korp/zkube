@@ -13,6 +13,7 @@ import { sepolia, mainnet } from "@starknet-react/chains";
 import cartridgeConnector from "./cartridgeConnector.tsx";
 
 import "./index.css";
+import DevPage from "./ui/screens/DevPage.tsx";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -58,7 +59,10 @@ export function Main() {
                 </SoundPlayerProvider>
               </DojoProvider>
             ) : (
-              <Loading />
+              <>
+                <Loading />
+                {import.meta.env.DEV && <DevPage />}
+              </>
             )}
           </MusicPlayerProvider>
         </StarknetConfig>
