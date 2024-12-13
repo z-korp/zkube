@@ -2,7 +2,10 @@ import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Card } from "@/ui/elements/card";
 import { GameBonus } from "../containers/GameBonus";
 import { useMediaQuery } from "react-responsive";
-import { transformDataContractIntoBlock } from "@/utils/gridUtils";
+import {
+  generateRandomNextLine,
+  transformDataContractIntoBlock,
+} from "@/utils/gridUtils";
 import { Block } from "@/types/types";
 import { BonusType } from "@/dojo/game/types/bonus";
 
@@ -48,6 +51,7 @@ const DevBoard: React.FC<GameBoardProps> = ({
   const [optimisticCombo, setOptimisticCombo] = useState(combo);
   const [optimisticMaxCombo, setOptimisticMaxCombo] = useState(maxCombo);
   const [bonusDescription, setBonusDescription] = useState("");
+  const [generateNewData, setGenerateNewData] = useState(0);
 
   const [bonus, setBonus] = useState<BonusType>(BonusType.None);
 
@@ -63,6 +67,7 @@ const DevBoard: React.FC<GameBoardProps> = ({
   };
 
   const handleBonusTikiClick = () => {
+    // Exemple d'utilisation
     if (totemCount === 0) return;
     if (bonus === BonusType.Totem) {
       setBonus(BonusType.None);
@@ -135,10 +140,10 @@ const DevBoard: React.FC<GameBoardProps> = ({
   }, [initialGrid]);
 
   const memoizedNextLineData = useMemo(() => {
-    return transformDataContractIntoBlock([nextLine]);
+    return transformDataContractIntoBlock([generateRandomNextLine()]);
     // initialGrid on purpose
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialGrid]);
+  }, [generateNewData]);
 
   if (memoizedInitialData.length === 0) return null; // otherwise sometimes
   // the grid is not displayed in Grid because the data is not ready
@@ -196,6 +201,8 @@ const DevBoard: React.FC<GameBoardProps> = ({
             setOptimisticMaxCombo={setOptimisticMaxCombo}
             isTxProcessing={isTxProcessing}
             setIsTxProcessing={setIsTxProcessing}
+            generateNewData={generateNewData}
+            setGenerateNewData={setGenerateNewData}
           />
         </div>
 

@@ -254,3 +254,34 @@ export function formatBigIntToBinaryArrayCustom(
   );
   return [blockRawFormatted, blockRawFormattedReversed];
 }
+
+export function generateRandomNextLine(): number[] {
+  const totalSlots = 8;
+  const result: number[] = [];
+  let remainingSlots = totalSlots;
+
+  // On commence par insérer au moins un zéro
+  let hasZero = false;
+
+  while (remainingSlots > 0) {
+    // Si on n'a pas encore ajouté de zéro et qu'on approche de la fin, on s'assure d'avoir un zéro
+    if (!hasZero && remainingSlots <= 4) {
+      result.push(0);
+      hasZero = true;
+      remainingSlots--;
+      continue;
+    }
+
+    // Choisir un bloc aléatoire entre 1 et le nombre de slots restants (max 4)
+    const blockSize = Math.min(
+      Math.floor(Math.random() * 4) + 1,
+      remainingSlots,
+    );
+
+    // Remplir le bloc avec le nombre correspondant à sa taille
+    result.push(...Array(blockSize).fill(blockSize));
+    remainingSlots -= blockSize;
+  }
+
+  return result;
+}

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useDojo } from "@/dojo/useDojo";
 import { GameState } from "@/enums/gameEnums";
 import { Block } from "@/types/types";
 import {
@@ -12,6 +11,8 @@ import {
   getBlocksSameRow,
   getBlocksSameWidth,
   concatenateNewLineWithGridAndShiftGrid,
+  transformDataContractIntoBlock,
+  generateRandomNextLine,
 } from "@/utils/gridUtils";
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
@@ -27,6 +28,7 @@ import ConfettiExplosion, {
   ConfettiExplosionRef,
 } from "../components/ConfettiExplosion";
 import BlockContainer from "../components/Block";
+import { set } from "date-fns";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -47,6 +49,8 @@ interface GridProps {
   setOptimisticScore: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
+  generateNewData: number;
+  setGenerateNewData: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const DevGrid: React.FC<GridProps> = ({
@@ -66,6 +70,8 @@ const DevGrid: React.FC<GridProps> = ({
   setOptimisticMaxCombo,
   isTxProcessing,
   setIsTxProcessing,
+  generateNewData,
+  setGenerateNewData,
 }) => {
   // ==================== Refs ====================
 
@@ -114,14 +120,19 @@ const DevGrid: React.FC<GridProps> = ({
   const gravitySpeed = 100;
   const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
 
+  const [updateGridTest, setUpdateGridTest] = useState(true);
+
   // =================== Grid set up ===================
   useEffect(() => {
     // All animations and computing are done
     // we can apply data that we received from smart contract
     if (applyData) {
       if (deepCompareBlocks(saveGridStateblocks, initialData)) {
-        // Prevent render if the grid is the same
-        return;
+        // Prevent render if the grid is the same in normal mode but here we need to update the grid
+        //return;
+        console.log(
+          "We should have return but  we are in test mode so just continue",
+        );
       }
 
       // Every time the initial grid changes, we erase the optimistic data
@@ -131,11 +142,19 @@ const DevGrid: React.FC<GridProps> = ({
       setOptimisticCombo(combo);
       setOptimisticMaxCombo(maxCombo);
 
-      if (isMoveComplete) {
+      // Move is not coming from contract so just update state var
+      if (updateGridTest) {
+        //if (isMoveComplete) {
         // Save the grid state
-        setSaveGridStateblocks(initialData);
-        setBlocks(initialData);
+        //setSaveGridStateblocks(initialData);
+        //setBlocks(initialData);
+        // const next_line_random = transformDataContractIntoBlock([
+        //   generateRandomNextLine(),
+        // ]);
+        // setNextLine(next_line_random);
         setNextLine(nextLineData);
+
+        // Exemple d'utilisation
 
         // Check if the player is in danger
         const inDanger = initialData.some((block) => block.y < 2);
@@ -536,6 +555,7 @@ const DevGrid: React.FC<GridProps> = ({
 
           // All animations and computing are done
           // we can apply data that we received from smart contract
+          setGenerateNewData(generateNewData + 1);
           setApplyData(true);
 
           // Reset states
