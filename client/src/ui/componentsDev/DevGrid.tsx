@@ -542,6 +542,7 @@ const DevGrid: React.FC<GridProps> = ({
           const pointsEarned =
             (lineExplodedCount * (lineExplodedCount + 1)) / 2;
 
+          console.log("Fake Call : Update Score", pointsEarned, currentCombo);
           setOptimisticScore((prevPoints) => prevPoints + pointsEarned);
           setOptimisticCombo((prevCombo) => prevCombo + currentCombo);
           setOptimisticMaxCombo((prevMaxCombo) =>

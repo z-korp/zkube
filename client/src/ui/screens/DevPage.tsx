@@ -4,6 +4,7 @@ import ImageAssets from "@/ui/theme/ImageAssets";
 import { useMediaQuery } from "react-responsive";
 import BackGroundBoard from "../components/BackgroundBoard";
 import DevBoard from "../componentsDev/DevBoard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../elements/ui/tabs";
 
 interface DevPageProps {
   onSkip: () => void;
@@ -48,13 +49,26 @@ const DevPage = ({ onSkip }: DevPageProps) => {
               }}
             >
               <div className="relative w-full">
+                <Tabs defaultValue="account" className="w-[400px]">
+                  <TabsList>
+                    <TabsTrigger value="account">Account</TabsTrigger>
+                    <TabsTrigger value="password">Password</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="account">
+                    Make changes to your account here.
+                  </TabsContent>
+                  <TabsContent value="password">
+                    Change your password here.
+                  </TabsContent>
+                </Tabs>
+
                 <div className="flex flex-col items-center game-container">
                   <DevBoard
                     initialGrid={gridTest}
                     nextLine={nextRowTest}
-                    score={10}
-                    combo={4}
-                    maxCombo={5}
+                    score={0}
+                    combo={0}
+                    maxCombo={0}
                     hammerCount={1}
                     totemCount={1}
                     waveCount={1}

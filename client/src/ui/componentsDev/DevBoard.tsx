@@ -13,7 +13,7 @@ import "../../grid.css";
 import BonusAnimation from "../components/BonusAnimation";
 import NextLine from "../components/NextLine";
 import GameScores from "../components/GameScores";
-import GridDev from "./DevGrid";
+import DevGrid from "./DevGrid";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -47,13 +47,20 @@ const DevBoard: React.FC<GameBoardProps> = ({
   const [nextLineHasBeenConsumed, setNextLineHasBeenConsumed] = useState(false);
 
   // Optimistic data (score, combo, maxcombo)
-  const [optimisticScore, setOptimisticScore] = useState(score);
-  const [optimisticCombo, setOptimisticCombo] = useState(combo);
-  const [optimisticMaxCombo, setOptimisticMaxCombo] = useState(maxCombo);
+  const [optimisticScore, setOptimisticScore] = useState(0);
+  const [optimisticCombo, setOptimisticCombo] = useState(0);
+  const [optimisticMaxCombo, setOptimisticMaxCombo] = useState(0);
   const [bonusDescription, setBonusDescription] = useState("");
   const [generateNewData, setGenerateNewData] = useState(0);
 
   const [bonus, setBonus] = useState<BonusType>(BonusType.None);
+
+  useEffect(() => {
+    console.log("====================================");
+    console.log("optimisticScore", optimisticScore);
+    console.log("optimisticCombo", optimisticCombo);
+    console.log("optimisticMaxCombo", optimisticMaxCombo);
+  }, [optimisticCombo, optimisticMaxCombo, optimisticScore]);
 
   const handleBonusWaveClick = () => {
     if (waveCount === 0) return;
@@ -184,7 +191,7 @@ const DevBoard: React.FC<GameBoardProps> = ({
         <div
           className={`flex justify-center items-center ${!isTxProcessing && "cursor-move"}`}
         >
-          <GridDev
+          <DevGrid
             initialData={memoizedInitialData}
             nextLineData={memoizedNextLineData}
             setNextLineHasBeenConsumed={setNextLineHasBeenConsumed}
@@ -193,9 +200,9 @@ const DevBoard: React.FC<GameBoardProps> = ({
             gridWidth={COLS}
             selectBlock={selectBlock}
             bonus={bonus}
-            score={score}
-            combo={combo}
-            maxCombo={maxCombo}
+            score={optimisticScore}
+            combo={optimisticCombo}
+            maxCombo={optimisticMaxCombo}
             setOptimisticScore={setOptimisticScore}
             setOptimisticCombo={setOptimisticCombo}
             setOptimisticMaxCombo={setOptimisticMaxCombo}
