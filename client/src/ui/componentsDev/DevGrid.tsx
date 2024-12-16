@@ -11,8 +11,6 @@ import {
   getBlocksSameRow,
   getBlocksSameWidth,
   concatenateNewLineWithGridAndShiftGrid,
-  transformDataContractIntoBlock,
-  generateRandomNextLine,
 } from "@/utils/gridUtils";
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
@@ -28,7 +26,7 @@ import ConfettiExplosion, {
   ConfettiExplosionRef,
 } from "../components/ConfettiExplosion";
 import BlockContainer from "../components/Block";
-import { set } from "date-fns";
+import useBossStore from "@/stores/bossStore";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -51,6 +49,15 @@ interface GridProps {
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
   generateNewData: number;
   setGenerateNewData: React.Dispatch<React.SetStateAction<number>>;
+}
+
+interface BossStore {
+  bossLifePoint: number;
+  bossShield: number;
+  bossStamina: number;
+  setBossLifePoint: (lifePoint: number) => void;
+  setBossShield: (shield: number) => void;
+  setBossStamina: (stamina: number) => void;
 }
 
 const DevGrid: React.FC<GridProps> = ({
@@ -114,6 +121,15 @@ const DevGrid: React.FC<GridProps> = ({
     handleTransitionBlockStart,
     handleTransitionBlockEnd,
   } = useTransitionBlocks();
+
+  const {
+    bossLifePoint,
+    bossShield,
+    bossStamina,
+    setBossLifePoint,
+    setBossShield,
+    setBossStamina,
+  } = useBossStore() as BossStore;
 
   // ==================== Constants ====================
   const borderSize = 2;
@@ -548,6 +564,10 @@ const DevGrid: React.FC<GridProps> = ({
           setOptimisticMaxCombo((prevMaxCombo) =>
             currentCombo > prevMaxCombo ? currentCombo : prevMaxCombo,
           );
+
+          setBossLifePoint(Math.max(bossLifePoint - pointsEarned, 0));
+          setBossStamina(Math.min(bossStamina + 1, 10));
+          setBossShield(Math.max(bossShield - currentCombo, 0));
 
           // If we have a combo, we display a message
           if (lineExplodedCount > 1) {
