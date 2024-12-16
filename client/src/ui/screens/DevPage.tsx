@@ -4,7 +4,7 @@ import ImageAssets from "@/ui/theme/ImageAssets";
 import { useMediaQuery } from "react-responsive";
 import BackGroundBoard from "../components/BackgroundBoard";
 import DevBoard from "../componentsDev/DevBoard";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../elements/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "../elements/ui/avatar";
 
 interface DevPageProps {
   onSkip: () => void;
@@ -48,20 +48,23 @@ const DevPage = ({ onSkip }: DevPageProps) => {
                 ease: "easeInOut",
               }}
             >
-              <div className="relative w-full">
-                <Tabs defaultValue="account" className="w-[400px]">
-                  <TabsList>
-                    <TabsTrigger value="account">Account</TabsTrigger>
-                    <TabsTrigger value="password">Password</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="account">
-                    Make changes to your account here.
-                  </TabsContent>
-                  <TabsContent value="password">
-                    Change your password here.
-                  </TabsContent>
-                </Tabs>
-
+              <div className="relative w-full mt-2">
+                <div className="flex flex-col items-center game-container mb-2">
+                  <div className="rounded-xl border text-card-foreground shadow relative p-3 md:pt-4 bg-secondary false pb-2 md:pb-3">
+                    <div
+                      className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} mb-2 md:mb-3 flex justify-between  gap-2 bg-secondary p-3 rounded-lg`}
+                    >
+                      <div className="bg-secondary w-full"> Hello</div>
+                      <div className="bg-secondary w-full"> Cool</div>
+                      <div className="justify-self-end items-center">
+                        <Avatar>
+                          <AvatarImage src="https://github.com/shadcn.png" />
+                          <AvatarFallback>CN</AvatarFallback>
+                        </Avatar>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div className="flex flex-col items-center game-container">
                   <DevBoard
                     initialGrid={gridTest}
