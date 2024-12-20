@@ -73,7 +73,7 @@ impl Controller of ControllerTrait {
     /// # Returns
     /// The new grid.
     fn assess_lines(
-        bitmap: felt252, ref counter: u8, ref points_earned: u32, accountable: bool
+        bitmap: felt252, ref counter: u8, ref points_earned: u16, accountable: bool
     ) -> felt252 {
         let bitmap: u256 = bitmap.into();
         let mut new_rows: Array<u32> = array![];
@@ -171,6 +171,7 @@ impl Controller of ControllerTrait {
     fn shuffle_line(blocks: u32, seed: felt252) -> u32 {
         let mut shift_rng: Dice = DiceTrait::new(10, seed);
         let shift_amount = BLOCK_BIT_COUNT * shift_rng.roll();
+        //println!("shift_amount: {}", shift_amount);
 
         let blocks = Self::circular_shift_right(blocks, shift_amount, ROW_BIT_COUNT);
 
@@ -624,6 +625,11 @@ mod tests {
             Controller::circular_shift_right(0b000_000_000_001_000_000_000_001, 3, 24),
             0b001_000_000_000_001_000_000_000
         );
+    }
+
+    #[test]
+    fn test_controller_circular_shift_right_2() {
+        Controller::circular_shift_right(0b000_000_000_001_000_000_000_001, 3, 24);
     }
 
     #[test]

@@ -2,7 +2,7 @@
   "world": {
     "class_hash": "0x79d9ce84b97bcc2a631996c3100d57966fc2f5b061fb1ec4dfd0040976bcac6",
     "address": "0xfffff0d0abdc07624bef66a79a7bf8e0045e299f1ce3c97d4ee1a3ce9a86e5",
-    "seed": "zKube30",
+    "seed": "zKube31",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -1460,12 +1460,7 @@
       "init_calldata": [],
       "tag": "zkube-account",
       "selector": "0x6d28004d278bad46f01e5d8d1943b63b32617bdc735f34355e0c7e39310d4e7",
-      "systems": [
-        "dojo_init",
-        "create",
-        "rename",
-        "upgrade"
-      ]
+      "systems": ["dojo_init", "create", "rename", "upgrade"]
     },
     {
       "address": "0x462eff83c84f62015ac8031c06b397fdb5d00c5d60976bc5f3d9b0fbaf42534",
@@ -1965,7 +1960,7 @@
     },
     {
       "address": "0x6b753bcc5e398dcd04c6b36c4c144f48f23272ff72dc0a6a784ddc4343da3d",
-      "class_hash": "0x4272b90fe4cb710711eaa3164fadc4ceefe5c0b7f735e7b2c86667168acdea2",
+      "class_hash": "0x4a6e4aae213b9d314dff5bf8f2d015166816fcc9d3f5c89aa361e9ba9894c94",
       "abi": [
         {
           "type": "impl",
@@ -2940,13 +2935,7 @@
       ],
       "tag": "zkube-tournament",
       "selector": "0x2101600e00aa39f4136a59a187bd5e197b9f3c63e08d17626effe44b379f1f5",
-      "systems": [
-        "dojo_init",
-        "claim",
-        "sponsor_from",
-        "sponsor",
-        "upgrade"
-      ]
+      "systems": ["dojo_init", "claim", "sponsor_from", "sponsor", "upgrade"]
     },
     {
       "address": "0x7dec798b5a9cb25cce2517cb069d2375bf35666a06fc1f83180907c6fd09748",
@@ -3184,13 +3173,7 @@
       ],
       "tag": "zkube-zkorp",
       "selector": "0x6cdc1046f821af7bd6d6c3a1326826e049bd14a3d8329ce42ed30430eb3b678",
-      "systems": [
-        "dojo_init",
-        "claim",
-        "sponsor",
-        "sponsor_from",
-        "upgrade"
-      ]
+      "systems": ["dojo_init", "claim", "sponsor", "sponsor_from", "upgrade"]
     }
   ],
   "models": [

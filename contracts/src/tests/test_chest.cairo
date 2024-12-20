@@ -39,7 +39,7 @@ fn test_chest_creation_and_completion() {
     let store = StoreTrait::new(world);
 
     let time = DAILY_MODE_DURATION + 1;
-    set_block_timestamp(time);
+    set_block_timestamp(time.into());
 
     store.chest(1).assert_exists(); // Chest 1 should exist
     store.chest(2).assert_exists(); // Chest 2 should exist
@@ -118,7 +118,7 @@ fn test_chest_claim() {
     let price = erc721_mintable.get_mint_price();
 
     let time = DAILY_MODE_DURATION + 1;
-    set_block_timestamp(time);
+    set_block_timestamp(time.into());
 
     // [Create admin]
     impersonate(PLAYER1());

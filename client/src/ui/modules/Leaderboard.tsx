@@ -161,7 +161,7 @@ interface RowProps {
 }
 
 export const Row: React.FC<RowProps> = memo(({ rank, game }) => {
-  const { player } = usePlayer({ playerId: game.player_id });
+  const { player } = usePlayer();
 
   return (
     <TableRow className="hover:bg-slate-100 dark:hover:bg-slate-800">

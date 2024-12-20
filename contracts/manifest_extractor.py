@@ -1,18 +1,25 @@
 import json
 import sys
 
-def extract_system_addresses(json_data):
+def get_system_tag(system_name, namespace=None):
+    """
+    Generate system tag based on namespace.
+    """
+    base_name = f"{'zkube' if namespace is None else namespace}-{system_name}"
+    return base_name
+
+def extract_system_addresses(json_data, namespace=None):
     """
     Extract system addresses and generate deployment command with column format.
     """
     # Systems we want to extract
     target_systems = {
-        'minter': 'zkube-minter',
-        'tournament': 'zkube-tournament',
-        'chest': 'zkube-chest',
-        'zkorp': 'zkube-zkorp',
-        'play': 'zkube-play',
-        'settings': 'zkube-settings',
+        'minter': get_system_tag('minter', namespace),
+        'tournament': get_system_tag('tournament', namespace),
+        'chest': get_system_tag('chest', namespace),
+        'zkorp': get_system_tag('zkorp', namespace),
+        'play': get_system_tag('play', namespace),
+        'settings': get_system_tag('settings', namespace),
     }
     
     # Initialize results dictionary
@@ -43,7 +50,7 @@ def extract_system_addresses(json_data):
     
     return addresses, command
 
-def main(slot):
+def main(slot, namespace=None):
     """
     Main function to read JSON file and generate command.
     """
@@ -52,7 +59,7 @@ def main(slot):
     try:
         with open(file_path, 'r') as file:
             json_data = json.load(file)
-            addresses, command = extract_system_addresses(json_data)
+            addresses, command = extract_system_addresses(json_data, namespace)
             
             # Print system addresses for reference
             print("\nSystem Addresses:")
@@ -76,13 +83,14 @@ def main(slot):
     except Exception as e:
         print(f"Error: An unexpected error occurred: {str(e)}")
         return None
-    
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python manifest_extractor.py <deployment>")
+    if len(sys.argv) < 2 or len(sys.argv) > 3:
+        print("Usage: python manifest_extractor.py <deployment> [namespace]")
         print("Example: python manifest_extractor.py slotdev")
+        print("Example with namespace: python manifest_extractor.py slotdev myspace")
         sys.exit(1)
         
     slot = sys.argv[1]
-    main(slot)
+    namespace = sys.argv[2] if len(sys.argv) == 3 else None
+    main(slot, namespace)

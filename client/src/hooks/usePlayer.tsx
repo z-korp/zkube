@@ -1,11 +1,10 @@
 import { useDojo } from "@/dojo/useDojo";
-import { useMemo } from "react";
-import { getEntityIdFromKeys } from "@dojoengine/utils";
-import { useComponentValue } from "@dojoengine/react";
-import { Entity } from "@dojoengine/recs";
-import useDeepMemo from "./useDeepMemo";
+import { useEffect, useState } from "react";
+import { useEntityQuery } from "@dojoengine/react";
+import { getComponentValue, Has, HasValue } from "@dojoengine/recs";
+import { useGeneralStore } from "@/stores/generalStore";
 
-export const usePlayer = ({ playerId }: { playerId: string | undefined }) => {
+export const usePlayer = () => {
   const {
     setup: {
       clientModels: {
@@ -14,19 +13,29 @@ export const usePlayer = ({ playerId }: { playerId: string | undefined }) => {
       },
     },
   } = useDojo();
+  const { playerId, playerName } = useGeneralStore();
 
-  const playerKey = useMemo(
-    () => getEntityIdFromKeys([BigInt(playerId ? playerId : -1)]) as Entity,
-    [playerId],
-  );
-  //console.log("playerKey", playerKey);
-  const component = useComponentValue(Player, playerKey);
-  //console.log("component", component);
-  const player = useDeepMemo(() => {
-    return component ? new PlayerClass(component) : null;
-  }, [component]);
+  type PlayerInstance = InstanceType<typeof PlayerClass>;
+  const [player, setPlayer] = useState<PlayerInstance | null>(null);
 
-  if (!playerId) return { player: null, playerKey: null };
+  const playerKey = useEntityQuery([
+    Has(Player),
+    HasValue(Player, {
+      id: playerId ? playerId : undefined,
+    }),
+  ]);
 
-  return { player, playerKey };
+  useEffect(() => {
+    if (playerKey.length === 0) {
+      setPlayer(null);
+    } else {
+      const component = getComponentValue(Player, playerKey[0]);
+
+      if (component !== undefined && playerName) {
+        setPlayer(new PlayerClass(component, playerName));
+      }
+    }
+  }, [Player, PlayerClass, playerKey, playerName]);
+
+  return { player };
 };

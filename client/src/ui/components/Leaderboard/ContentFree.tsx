@@ -194,7 +194,7 @@ interface RowFreeProps {
 }
 
 export const RowFree: React.FC<RowFreeProps> = ({ rank, game }) => {
-  const { player } = usePlayer({ playerId: game.player_id });
+  const { player } = usePlayer();
 
   return (
     <TableRow className="hover:bg-slate-100 dark:hover:bg-slate-800">

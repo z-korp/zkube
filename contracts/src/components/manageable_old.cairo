@@ -9,13 +9,12 @@ mod ManageableComponent {
 
     // Dojo imports
 
-    use dojo::world::{WorldStorage, IWorldDispatcherTrait};
+    use dojo::world::WorldStorage;
 
     // Internal imports
 
     use zkube::store::{Store, StoreTrait};
     use zkube::models::player::{Player, PlayerTrait, PlayerAssert};
-    use zkube::models::player_info::{PlayerInfo, PlayerInfoTrait, PlayerInfoAssert};
 
     // Storage
 
@@ -38,24 +37,12 @@ mod ManageableComponent {
 
             // [Check] Player not already exists
             let caller = get_caller_address();
-            let player_info = store.player_info(caller.into());
-            player_info.assert_not_exists();
-
-            let timestamp: u32 = get_block_timestamp().try_into().unwrap();
+            let timestamp = get_block_timestamp();
+            let player = store.player(caller.into());
+            player.assert_not_exists();
 
             // [Effect] Create a new player
-            let player_id: u32 = world.dispatcher.uuid() + 1;
-            let player_info = PlayerInfoTrait::new(caller.into(), player_id, name);
-            // player_info store matching between player_id and address
-            // and the name of the player because it's a felt252
-            // and we want to avoid felt252 in other models
-            // will used the player_id key (u32) to get the player and store player date
-            // in other models such as Game or Tournament
-            store.set_player_info(player_info);
-
-            let player = PlayerTrait::new(player_id, timestamp);
-            // player store the player data such as points, streaks, etc.
-            // only light data (u32, u8, etc.)
+            let player = PlayerTrait::new(caller.into(), name, timestamp);
             store.set_player(player);
         }
 
@@ -65,12 +52,12 @@ mod ManageableComponent {
 
             // [Check] Player exists
             let caller = get_caller_address();
-            let mut player_info = store.player_info(caller.into());
-            player_info.assert_exists();
+            let mut player = store.player(caller.into());
+            player.assert_exists();
 
-            // [Effect] Rename the player
-            player_info.rename(name);
-            store.set_player_info(player_info);
+            // [Effect] Create a new player
+            player.rename(name);
+            store.set_player(player);
         }
     }
 }

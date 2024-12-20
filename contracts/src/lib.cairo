@@ -2,11 +2,17 @@ mod constants;
 mod events;
 mod store;
 
+pub fn default_namespace() -> @ByteArray {
+    @"zkube3"
+}
+
 mod models {
     mod index;
     mod game;
     mod player;
+    mod player_info;
     mod tournament;
+    mod tournament_prize;
     mod settings;
     mod chest;
     mod admin;
@@ -71,6 +77,7 @@ mod helpers {
     mod timestamp;
 }
 
+
 mod components {
     mod hostable;
     mod manageable;
@@ -109,7 +116,6 @@ mod tests {
     mod test_minter;
     mod test_erc721;
     mod test_pause;
-    mod test_patch_u16;
 
     mod mocks {
         mod erc20;

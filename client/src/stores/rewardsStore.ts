@@ -49,8 +49,8 @@ export const useRewardsStore = create<RewardsState>((set) => ({
 export const useRewardsCalculator = () => {
   const { account } = useAccountCustom();
   const chests = useAllChests();
-  const participations = useParticipations({ player_id: account?.address });
-  const tournaments = useWonTournaments({ player_id: account?.address });
+  const participations = useParticipations();
+  const tournaments = useWonTournaments();
   const { setRewardsCount, setTournamentRewards, setFilteredParticipations } =
     useRewardsStore();
 

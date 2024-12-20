@@ -2,12 +2,9 @@ import { useDojo } from "@/dojo/useDojo";
 import { useEffect, useState } from "react";
 import { useEntityQuery } from "@dojoengine/react";
 import { ComponentValue, getComponentValue, Has } from "@dojoengine/recs";
+import { useGeneralStore } from "@/stores/generalStore";
 
-export const useWonTournaments = ({
-  player_id,
-}: {
-  player_id: string | undefined;
-}) => {
+export const useWonTournaments = () => {
   const {
     setup: {
       clientModels: {
@@ -16,6 +13,7 @@ export const useWonTournaments = ({
       },
     },
   } = useDojo();
+  const { playerId: player_id } = useGeneralStore();
   type TournamentInstance = InstanceType<typeof TournamentClass>;
   const [tournaments, setTournaments] = useState<TournamentInstance[]>([]);
 
@@ -28,23 +26,25 @@ export const useWonTournaments = ({
       if (!component) {
         return undefined;
       }
-      return new TournamentClass(component);
+      return new TournamentClass(component, 0n);
     });
 
     setTournaments(
       components
-        .map((component) => new TournamentClass(component as ComponentValue))
+        .map(
+          (component) => new TournamentClass(component as ComponentValue, 0n),
+        )
         .filter((tournament) => {
           if (!player_id) return false;
-          const id = BigInt(player_id).toString(16);
+
           return (
-            tournament.top1_player_id.toString(16) === id ||
-            tournament.top2_player_id.toString(16) === id ||
-            tournament.top3_player_id.toString(16) === id
+            tournament.top1_player_id === player_id ||
+            tournament.top2_player_id === player_id ||
+            tournament.top3_player_id === player_id
           );
         }),
     );
-  }, [tournamentKeys, player_id]);
+  }, [tournamentKeys, player_id, Tournament, TournamentClass]);
 
   return tournaments;
 };

@@ -28,8 +28,9 @@ use zkube::tests::mocks::erc721::{
 use zkube::tests::setup::{
     setup,
     setup::{
-        Mode, Systems, PLAYER1, PLAYER2, PLAYER3, PLAYER4, IERC20DispatcherTrait,
-        verify_system_allowance, user_mint_token, admin_mint_token, impersonate
+        Mode, Systems, PLAYER1, PLAYER1_ID, PLAYER2, PLAYER2_ID, PLAYER3, PLAYER3_ID, PLAYER4,
+        PLAYER4_ID, IERC20DispatcherTrait, verify_system_allowance, user_mint_token,
+        admin_mint_token, impersonate
     }
 };
 
@@ -77,7 +78,7 @@ fn test_play_play_daily_tournament_claim() {
     let store = StoreTrait::new(world);
     let settings = store.settings();
     let time = constants::DAILY_MODE_DURATION + 1;
-    set_block_timestamp(time);
+    set_block_timestamp(time.into());
 
     // [Start] Player1
     impersonate(PLAYER1());
@@ -271,22 +272,24 @@ fn test_play_play_daily_tournament_claim() {
     // [Assert] Tournament
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
     let tournament = store.tournament(tournament_id);
+    let tournament_prize = store.tournament_prize(tournament_id);
 
     // Calculate the expected prize
     let total_paid_games = 2_u256;
     let prize_per_game = price * constants::TOURNAMENT_PERCENTAGE.into() / 100_u256;
     let expected_prize = prize_per_game * total_paid_games;
-    assert(tournament.prize.into() == expected_prize, 'Tournament prize mismatch');
-    assert(tournament.top1_player_id == PLAYER2().into(), 'Tournament top1_player_id');
-    assert(tournament.top2_player_id == PLAYER3().into(), 'Tournament top2_player_id');
-    assert(tournament.top3_player_id == PLAYER4().into(), 'Tournament top3_player_id');
+    assert(tournament.top1_player_id == PLAYER2_ID, 'Tournament top1_player_id');
+    assert(tournament.top2_player_id == PLAYER3_ID, 'Tournament top2_player_id');
+    assert(tournament.top3_player_id == PLAYER4_ID, 'Tournament top3_player_id');
     assert(tournament.top1_score == top1_score, 'Tournament top1_score');
     assert(tournament.top2_score == top2_score, 'Tournament top2_score');
     assert(tournament.top3_score == top3_score, 'Tournament top3_score');
 
+    assert(tournament_prize.prize.into() == expected_prize, 'Tournament prize mismatch');
+
     // [Claim]
     impersonate(PLAYER2());
-    set_block_timestamp(2 * constants::DAILY_MODE_DURATION);
+    set_block_timestamp((2 * constants::DAILY_MODE_DURATION).into());
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
     let rank = 1;
     systems.tournament.claim(Mode::Daily, tournament_id, rank);
@@ -294,7 +297,7 @@ fn test_play_play_daily_tournament_claim() {
     // [Assert] Player2 balance
     let final_player2 = context.erc20.balance_of(PLAYER2());
     let tournament = store.tournament(tournament_id);
-    let reward: u256 = tournament.reward(rank).into();
+    let reward: u256 = tournament.reward(rank, tournament_prize.prize.into()).into();
     assert(final_player2 == player2_balance + reward, 'Player2 balance post claim');
 
     // [Claim]
@@ -306,7 +309,7 @@ fn test_play_play_daily_tournament_claim() {
     // [Assert] Player3 balance
     let final_player3 = context.erc20.balance_of(PLAYER3());
     let tournament = store.tournament(tournament_id);
-    let reward: u256 = tournament.reward(rank).into();
+    let reward: u256 = tournament.reward(rank, tournament_prize.prize.into()).into();
     assert(final_player3 == player3_balance + reward, 'Player3 balance post claim');
 
     // [Claim]
@@ -318,7 +321,7 @@ fn test_play_play_daily_tournament_claim() {
     // [Assert] Player4 balance
     let final_player4 = context.erc20.balance_of(PLAYER4());
     let tournament = store.tournament(tournament_id);
-    let reward: u256 = tournament.reward(rank).into();
+    let reward: u256 = tournament.reward(rank, tournament_prize.prize.into()).into();
     assert(final_player4 == player4_balance + reward, 'Player3 balance post claim');
 
     // [Assert] Rewards
@@ -336,7 +339,7 @@ fn test_play_play_ranked_tournament_claim_revert_not_over() {
     let store = StoreTrait::new(world);
     let settings = store.settings();
     let time = constants::DAILY_MODE_DURATION + 1;
-    set_block_timestamp(time);
+    set_block_timestamp(time.into());
 
     impersonate(PLAYER1());
     // free game 1
@@ -381,7 +384,7 @@ fn test_play_play_ranked_tournament_claim_revert_invalid_player() {
     let settings = store.settings();
 
     let time = constants::DAILY_MODE_DURATION + 1;
-    set_block_timestamp(time);
+    set_block_timestamp(time.into());
 
     impersonate(PLAYER1());
 
@@ -408,7 +411,7 @@ fn test_play_play_ranked_tournament_claim_revert_invalid_player() {
     systems.play.create(token_id, Mode::Daily, context.proof.clone(), context.seed, context.beta);
 
     // [Claim]
-    set_block_timestamp(2 * constants::DAILY_MODE_DURATION);
+    set_block_timestamp((2 * constants::DAILY_MODE_DURATION).into());
     let tournament_id = TournamentImpl::compute_id(time, constants::DAILY_MODE_DURATION);
     impersonate(PLAYER2());
     systems.tournament.claim(Mode::Daily, tournament_id, 1);

@@ -34,7 +34,7 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
   } = useDojo();
 
   const { account } = useAccountCustom();
-  const { player } = usePlayer({ playerId: account?.address });
+  const { player } = usePlayer();
   const { settings } = useSettings();
   const { contract: erc20Contract } = useContract({
     abi: erc20ABI,

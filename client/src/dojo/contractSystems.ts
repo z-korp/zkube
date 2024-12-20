@@ -3,7 +3,7 @@ import { Config } from "../../dojo.config.ts";
 import { Account, UniversalDetails, cairo, shortString } from "starknet";
 import { Manifest } from "@/cartridgeConnector.tsx";
 
-const NAMESPACE = "zkube";
+const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
 
 const {
   VITE_PUBLIC_GAME_TOKEN_ADDRESS,
@@ -123,7 +123,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "create",
             calldata: [encoded_name],
           },
-          NAMESPACE,
+          VITE_PUBLIC_NAMESPACE,
           details,
         );
       } catch (error) {
@@ -142,7 +142,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "rename",
             calldata: [encoded_name],
           },
-          NAMESPACE,
+          VITE_PUBLIC_NAMESPACE,
           details,
         );
       } catch (error) {
@@ -209,7 +209,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
                 ],
               },
             ],
-            NAMESPACE,
+            VITE_PUBLIC_NAMESPACE,
             details,
           );
         } catch (error) {
@@ -259,7 +259,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
                 ], // Clear allowance
               },
             ],
-            NAMESPACE,
+            VITE_PUBLIC_NAMESPACE,
             details,
           );
         } catch (error) {
@@ -278,7 +278,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "surrender",
             calldata: [],
           },
-          NAMESPACE,
+          VITE_PUBLIC_NAMESPACE,
           details,
         );
       } catch (error) {
@@ -301,7 +301,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "move",
             calldata: [row_index, start_index, final_index],
           },
-          NAMESPACE,
+          VITE_PUBLIC_NAMESPACE,
           details,
         );
       } catch (error) {
@@ -319,7 +319,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "apply_bonus",
             calldata: [bonus, row_index, block_index],
           },
-          NAMESPACE,
+          VITE_PUBLIC_NAMESPACE,
           details,
         );
       } catch (error) {
@@ -355,7 +355,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "claim",
             calldata: [chest_id],
           },
-          NAMESPACE,
+          VITE_PUBLIC_NAMESPACE,
           details,
         );
       } catch (error) {
@@ -373,7 +373,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "sponsor",
             calldata: [chest_id, amount],
           },
-          NAMESPACE,
+          VITE_PUBLIC_NAMESPACE,
           details,
         );
       } catch (error) {
@@ -410,7 +410,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "update_zkorp_address",
             calldata: [value],
           },
-          NAMESPACE,
+          VITE_PUBLIC_NAMESPACE,
           details,
         );
       } catch (error) {
@@ -431,7 +431,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "update_erc721_address",
             calldata: [value],
           },
-          NAMESPACE,
+          VITE_PUBLIC_NAMESPACE,
           details,
         );
       } catch (error) {
@@ -449,7 +449,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "set_admin",
             calldata: [address],
           },
-          NAMESPACE,
+          VITE_PUBLIC_NAMESPACE,
           details,
         );
       } catch (error) {
@@ -467,7 +467,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "delete_admin",
             calldata: [address],
           },
-          NAMESPACE,
+          VITE_PUBLIC_NAMESPACE,
           details,
         );
       } catch (error) {
@@ -508,7 +508,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "claim",
             calldata: [mode, tournament_id, rank],
           },
-          NAMESPACE,
+          VITE_PUBLIC_NAMESPACE,
           details,
         );
       } catch (error) {
@@ -546,7 +546,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "add_free_mint",
             calldata: [to, amount, expiration_timestamp],
           },
-          NAMESPACE,
+          VITE_PUBLIC_NAMESPACE,
           details,
         );
       } catch (error) {
@@ -564,7 +564,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "claim_free_mint",
             calldata: [],
           },
-          NAMESPACE,
+          VITE_PUBLIC_NAMESPACE,
           details,
         );
       } catch (error) {
@@ -583,7 +583,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "mint",
             calldata: [value],
           },
-          NAMESPACE,
+          VITE_PUBLIC_NAMESPACE,
           details,
         );
       } catch (error) {
@@ -601,7 +601,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             entrypoint: "mint",
             calldata: [],
           },
-          NAMESPACE,
+          VITE_PUBLIC_NAMESPACE,
           details,
         );
       } catch (error) {

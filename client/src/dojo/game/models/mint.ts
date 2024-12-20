@@ -7,7 +7,11 @@ export class Mint {
 
   constructor(mint: ComponentValue) {
     this.player_id = mint.player_id;
-    this.number = mint.number;
+    if (mint.expiration_timestamp < Date.now() / 1000) {
+      this.number = 0;
+    } else {
+      this.number = mint.number;
+    }
     this.expiration_timestamp = mint.expiration_timestamp;
   }
 

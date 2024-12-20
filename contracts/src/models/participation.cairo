@@ -16,8 +16,8 @@ mod errors {
 
 #[generate_trait]
 impl ParticipationImpl of ParticipationTrait {
-    fn new(chest_id: u32, player_id: felt252) -> Participation {
-        Participation { chest_id, player_id, points: 0, claimed: false, is_set: true }
+    fn new(chest_id: u32, player_id: u32) -> Participation {
+        Participation { chest_id, player_id, points: 0, is_set: true, claimed: false, }
     }
 
     fn add_points(ref self: Participation, points: u32) {

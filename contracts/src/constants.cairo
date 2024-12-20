@@ -13,22 +13,22 @@ const MASK_1: u128 = 0x1;
 const MASK_7: u32 = 0x7;
 
 // Modes
-const DAILY_MODE_DURATION: u64 = 86400; // = 1 day = 24x60x60
-//const DAILY_MODE_DURATION: u64 = 3600; // 1h
+const DAILY_MODE_DURATION: u32 = 86400; // = 1 day = 24x60x60
+//const DAILY_MODE_DURATION: u32 = 3600; // 1h
 
-const NORMAL_MODE_DURATION: u64 = 604800; // 1 weeks
-//const NORMAL_MODE_DURATION: u64 = 43200; // 12h
+const NORMAL_MODE_DURATION: u32 = 604800; // 1 weeks
+//const NORMAL_MODE_DURATION: u32 = 43200; // 12h
 
-const FREE_MODE_DURATION: u64 = 1577880000; // 50 ans
+const FREE_MODE_DURATION: u32 = 1577880000; // 50 ans
 const FREE_MODE_PRICE: u128 = 0;
 
-const SECONDS_PER_DAY: u64 = 86400;
+const SECONDS_PER_DAY: u32 = 86400;
 
 // Paid game percentages
 const TOURNAMENT_PERCENTAGE: u8 = 30;
-const CHEST_PERCENTAGE: u8 = 35;
+const CHEST_PERCENTAGE: u8 = 35; // -> 25
 const ZKORP_PERCENTAGE: u8 = 30;
-const REFERRER_PERCENTAGE: u8 = 5;
+const REFERRER_PERCENTAGE: u8 = 5; // REFERER -> VeLORDs -> 15
 
 // Computation
 const PRECISION_FACTOR: u128 = 1_000_000_000;

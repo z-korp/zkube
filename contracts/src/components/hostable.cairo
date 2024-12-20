@@ -28,6 +28,7 @@ mod HostableComponent {
     use zkube::store::{Store, StoreTrait};
     use zkube::models::game::{Game, GameImpl, GameAssert};
     use zkube::models::player::{Player, PlayerTrait, PlayerAssert};
+    use zkube::models::player_info::{PlayerInfo, PlayerInfoTrait, PlayerInfoAssert};
     use zkube::types::mode::{Mode, ModeTrait};
     use zkube::types::task::{Task, TaskTrait};
     use zkube::models::game::GameTrait;
@@ -70,7 +71,7 @@ mod HostableComponent {
             beta: felt252,
             mode: Mode,
             price: u256,
-        ) -> (u32, u64, u128, u128, u128, u128) {
+        ) -> (u32, u32, u128, u128, u128, u128) {
             // [Setup] Datastore
             let store: Store = StoreTrait::new(world);
 
@@ -90,9 +91,12 @@ mod HostableComponent {
 
             // [Check] Player exists
             let caller = get_caller_address();
-            let mut player = store.player(caller.into());
+            let mut player_info = store.player_info(caller.into());
 
-            player.assert_exists();
+            player_info.assert_exists();
+
+            let player_id = player_info.player_id;
+            let mut player = store.player(player_id);
 
             // [Check] Game is over
             let game = store.game(player.game_id);
@@ -100,16 +104,20 @@ mod HostableComponent {
 
             // [Effect] Create game
             let game_id: u32 = world.dispatcher.uuid() + 1;
-            let time = get_block_timestamp();
-            let mut game = GameTrait::new(game_id, player.id, beta, mode: mode.into(), time: time,);
+            let time: u32 = get_block_timestamp().try_into().unwrap();
+            let mut game = GameTrait::new(game_id, player_id, beta, mode: mode.into(), time: time,);
 
             // [Effect] Create tournament if not existing
             let tournament_id = TournamentImpl::compute_id(time, mode.duration());
             let mut tournament = store.tournament(tournament_id);
             tournament.is_set = true;
-            tournament.score(player.id, game_id, 0); // by default it's added, otherwise 
-            // could have tournement without winners
+            tournament.score(player_id, game_id, 0); // by default add score = 0, otherwise 
+            // could have tournament without winners
             store.set_tournament(tournament);
+
+            let mut tournament_prize = store.tournament_prize(tournament_id);
+            tournament_prize.is_set = true;
+            store.set_tournament_prize(tournament_prize);
 
             // [Effect] Add tournament id to game
             game.tournament_id = tournament_id;
@@ -132,9 +140,13 @@ mod HostableComponent {
 
             // Chest
             let chest_amount: u256 = (precise_price * CHEST_PERCENTAGE.into()) / 100;
-            let mut game = store.game(game_id);
-            game.pending_chest_prize = (chest_amount / PRECISION_FACTOR.into()).try_into().unwrap();
-            store.set_game(game);
+
+            let mut game_prize = store.game_prize(game_id);
+            game_prize
+                .pending_chest_prize = (chest_amount / PRECISION_FACTOR.into())
+                .try_into()
+                .unwrap();
+            store.set_game_prize(game_prize);
 
             // Referrer
             let referrer_amount: u256 = (precise_price * REFERRER_PERCENTAGE.into()) / 100;
@@ -147,11 +159,10 @@ mod HostableComponent {
 
             // [Trophy] Update progression, can manage the mode here to target specific game modes
             if mode != Mode::None {
-                let player_id = player.id;
                 let task_id = Task::Playing.identifier(0);
                 let count = 1;
                 let store = BushidoStoreTrait::new(world);
-                store.progress(player_id, task_id, count, time);
+                store.progress(caller.into(), task_id, count, get_block_timestamp());
             }
 
             // [Return] Game ID and amounts to pay

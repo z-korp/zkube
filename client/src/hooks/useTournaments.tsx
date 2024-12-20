@@ -8,7 +8,7 @@ export const useTournaments = ({ mode }: { mode: ModeType }) => {
   const {
     setup: {
       clientModels: {
-        models: { Tournament },
+        models: { Tournament, TournamentPrize },
         classes: { Tournament: TournamentClass },
       },
     },
@@ -17,20 +17,24 @@ export const useTournaments = ({ mode }: { mode: ModeType }) => {
   const [tournaments, setTournaments] = useState<TournamentInstance[]>([]);
 
   const tournamentKeys = useEntityQuery([Has(Tournament)]);
+  const tournamentPrizeKeys = useEntityQuery([Has(TournamentPrize)]);
 
   useEffect(() => {
     const components = tournamentKeys.map((entity) => {
       const component = getComponentValue(Tournament, entity);
+      const prizeComponent = getComponentValue(TournamentPrize, entity);
 
       if (!component) {
         return undefined;
       }
-      return new TournamentClass(component);
+      return new TournamentClass(component, 0n);
     });
 
     setTournaments(
       components
-        .map((component) => new TournamentClass(component as ComponentValue))
+        .map(
+          (component) => new TournamentClass(component as ComponentValue, 0n),
+        )
         .filter((tournament) => tournament.mode.value === mode)
         .sort((a, b) => b.getEndDate().getTime() - a.getEndDate().getTime()),
     );

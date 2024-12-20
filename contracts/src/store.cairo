@@ -9,9 +9,12 @@ use dojo::world::WorldStorage;
 use dojo::model::ModelStorage;
 
 // Models imports
-use zkube::models::game::{Game, GameTrait};
-use zkube::models::player::{Player, PlayerTrait};
+use zkube::models::game::Game;
+use zkube::models::index::GamePrize;
+use zkube::models::player::Player;
+use zkube::models::player_info::PlayerInfo;
 use zkube::models::tournament::Tournament;
+use zkube::models::tournament_prize::TournamentPrize;
 use zkube::models::mint::Mint;
 use zkube::models::settings::Settings;
 use zkube::models::chest::Chest;
@@ -35,7 +38,11 @@ impl StoreImpl of StoreTrait {
     // GETTERS
 
     #[inline(always)]
-    fn player(self: Store, player_id: felt252) -> Player {
+    fn player_info(self: Store, address: felt252) -> PlayerInfo {
+        self.world.read_model(address)
+    }
+
+    fn player(self: Store, player_id: u32) -> Player {
         self.world.read_model(player_id)
     }
 
@@ -45,7 +52,17 @@ impl StoreImpl of StoreTrait {
     }
 
     #[inline(always)]
-    fn tournament(self: Store, tournament_id: u64) -> Tournament {
+    fn game_prize(self: Store, game_id: u32) -> GamePrize {
+        self.world.read_model(game_id)
+    }
+
+    #[inline(always)]
+    fn tournament(self: Store, tournament_id: u32) -> Tournament {
+        self.world.read_model(tournament_id)
+    }
+
+    #[inline(always)]
+    fn tournament_prize(self: Store, tournament_id: u32) -> TournamentPrize {
         self.world.read_model(tournament_id)
     }
 
@@ -65,7 +82,7 @@ impl StoreImpl of StoreTrait {
     }
 
     #[inline(always)]
-    fn participation(self: Store, chest_id: u32, player_id: felt252) -> Participation {
+    fn participation(self: Store, chest_id: u32, player_id: u32) -> Participation {
         self.world.read_model((chest_id, player_id))
     }
 
@@ -83,6 +100,16 @@ impl StoreImpl of StoreTrait {
     }
 
     #[inline(always)]
+    fn set_game_prize(mut self: Store, mut game_prize: GamePrize) {
+        self.world.write_model(@game_prize)
+    }
+
+    #[inline(always)]
+    fn set_player_info(mut self: Store, player_info: PlayerInfo) {
+        self.world.write_model(@player_info)
+    }
+
+    #[inline(always)]
     fn set_player(mut self: Store, player: Player) {
         self.world.write_model(@player)
     }
@@ -90,6 +117,11 @@ impl StoreImpl of StoreTrait {
     #[inline(always)]
     fn set_tournament(mut self: Store, tournament: Tournament) {
         self.world.write_model(@tournament)
+    }
+
+    #[inline(always)]
+    fn set_tournament_prize(mut self: Store, tournament_prize: TournamentPrize) {
+        self.world.write_model(@tournament_prize)
     }
 
     #[inline(always)]

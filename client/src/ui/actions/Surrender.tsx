@@ -40,7 +40,7 @@ export const Surrender: React.FC<SurrenderProps> = ({
       systemCalls: { surrender },
     },
   } = useDojo();
-  const { player } = usePlayer({ playerId: account?.address });
+  const { player } = usePlayer();
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
     shouldLog: false,

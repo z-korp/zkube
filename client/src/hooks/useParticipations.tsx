@@ -7,12 +7,9 @@ import {
   Has,
   HasValue,
 } from "@dojoengine/recs";
+import { useGeneralStore } from "@/stores/generalStore";
 
-export const useParticipations = ({
-  player_id,
-}: {
-  player_id: string | undefined;
-}) => {
+export const useParticipations = () => {
   const {
     setup: {
       clientModels: {
@@ -21,6 +18,8 @@ export const useParticipations = ({
       },
     },
   } = useDojo();
+  const { playerId } = useGeneralStore();
+
   type ParticipationInstance = InstanceType<typeof ParticipationClass>;
   const [participations, setParticipations] = useState<ParticipationInstance[]>(
     [],
@@ -28,7 +27,7 @@ export const useParticipations = ({
 
   const participationKeys = useEntityQuery([
     Has(Participation),
-    HasValue(Participation, { player_id: BigInt(player_id ? player_id : -1) }),
+    HasValue(Participation, { player_id: playerId ? playerId : undefined }),
   ]);
 
   useEffect(() => {
@@ -45,7 +44,7 @@ export const useParticipations = ({
         (component) => new ParticipationClass(component as ComponentValue),
       ),
     );
-  }, [participationKeys]);
+  }, [Participation, ParticipationClass, participationKeys]);
 
   return participations;
 };

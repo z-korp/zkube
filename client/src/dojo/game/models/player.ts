@@ -1,6 +1,5 @@
 import { ComponentValue } from "@dojoengine/recs";
 import { shortenHex } from "@dojoengine/utils";
-import { shortString } from "starknet";
 import { Bonus, Condition } from "../types/bonus";
 import {
   STREAK_1_7_MULTIPLIER_START,
@@ -37,7 +36,7 @@ export class Player {
   public last_active_day: number;
   public account_creation_day: number;
 
-  constructor(player: ComponentValue) {
+  constructor(player: ComponentValue, name: string) {
     // It's weird but it seems that depending on the method use to extract the data
     // the types are parsed differently
     // usePlayer use useComponentValue which seems to return a bigint
@@ -48,13 +47,15 @@ export class Player {
     } else {
       this.id = player.id;
     }
-    this.game_id = player.game_id;
 
-    if (typeof player.name === "bigint") {
+    /*if (typeof player.name === "bigint") {
       this.name = shortString.decodeShortString(player.name.toString());
     } else {
       this.name = player.name;
-    }
+    }*/
+
+    this.name = name;
+    this.game_id = player.game_id;
     this.points = player.points;
     this.daily_streak = player.daily_streak;
     this.last_active_day = player.last_active_day;

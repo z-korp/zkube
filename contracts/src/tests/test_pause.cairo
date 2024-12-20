@@ -117,7 +117,7 @@ fn test_pause_move_while_paused() {
     let store = StoreTrait::new(world);
 
     let time = DAILY_MODE_DURATION + 1;
-    set_block_timestamp(time);
+    set_block_timestamp(time.into());
 
     // Create game before pausing
     impersonate(PLAYER2());
@@ -145,7 +145,7 @@ fn test_pause_move_while_chest_unlocked() {
     let store = StoreTrait::new(world);
 
     let time = DAILY_MODE_DURATION + 1;
-    set_block_timestamp(time);
+    set_block_timestamp(time.into());
 
     // Create game before unlocking chests
     impersonate(PLAYER1());
@@ -177,7 +177,7 @@ fn test_pause_surrender_while_chest_unlocked() {
     let store = StoreTrait::new(world);
 
     let time = DAILY_MODE_DURATION + 1;
-    set_block_timestamp(time);
+    set_block_timestamp(time.into());
 
     // Create game before unlocking chests
     impersonate(PLAYER1());

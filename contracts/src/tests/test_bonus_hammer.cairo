@@ -28,7 +28,7 @@ use zkube::tests::setup::{setup, setup::{Systems, PLAYER1, user_mint_token, impe
 
 // Helper function to update score and check hammer bonus
 fn update_score_and_check(
-    store: @Store, mut world: WorldStorage, game_id: u32, score: u32, expected_available_hammer: u8
+    store: @Store, mut world: WorldStorage, game_id: u32, score: u16, expected_available_hammer: u8
 ) {
     // Update score
     let mut game = (*store).game(game_id);

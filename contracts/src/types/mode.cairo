@@ -45,7 +45,7 @@ impl ModeImpl of ModeTrait {
     }
 
     #[inline(always)]
-    fn duration(self: Mode) -> u64 {
+    fn duration(self: Mode) -> u32 {
         match self {
             Mode::Normal => NORMAL_MODE_DURATION,
             Mode::Daily => DAILY_MODE_DURATION,
@@ -55,7 +55,7 @@ impl ModeImpl of ModeTrait {
     }
 
     #[inline(always)]
-    fn seed(self: Mode, time: u64, game_id: u32, salt: felt252) -> felt252 {
+    fn seed(self: Mode, time: u32, game_id: u32, salt: felt252) -> felt252 {
         match self {
             Mode::Normal => {
                 let state: HashState = PoseidonTrait::new();
@@ -65,7 +65,7 @@ impl ModeImpl of ModeTrait {
                 state.finalize()
             },
             Mode::Daily => {
-                let id: u64 = time / self.duration(); // number of days since epoch
+                let id: u32 = time / self.duration(); // number of days since epoch
                 let state: HashState = PoseidonTrait::new();
                 let state = state.update(id.into());
                 state.finalize()

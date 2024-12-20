@@ -26,7 +26,7 @@ impl BonusImpl of BonusTrait {
     }
 
     #[inline(always)]
-    fn get_count(self: Bonus, score: u32, combo_count: u16, max_combo: u8) -> u8 {
+    fn get_count(self: Bonus, score: u16, combo_count: u16, max_combo: u8) -> u8 {
         match self {
             Bonus::None => 0,
             Bonus::Hammer => hammer::BonusImpl::get_count(score, combo_count, max_combo),

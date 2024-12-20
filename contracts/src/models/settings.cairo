@@ -21,10 +21,10 @@ impl SettingsImpl of SettingsTrait {
         // - same for mint price
         Settings {
             id: 1,
-            is_set: true,
-            game_price: 0,
             zkorp_address: zkorp_address.into(),
             erc721_address: 0,
+            is_set: true,
+            game_price: 0,
             are_games_paused: false,
             are_chests_unlock: false,
         }
@@ -32,7 +32,7 @@ impl SettingsImpl of SettingsTrait {
 
     #[inline(always)]
     fn set_game_price(ref self: Settings, value: u256) {
-        self.game_price = value;
+        self.game_price = value.try_into().unwrap();
     }
 
     #[inline(always)]
@@ -84,10 +84,10 @@ impl ZeroableSettingsImpl of core::Zeroable<Settings> {
     fn zero() -> Settings {
         Settings {
             id: 0,
-            is_set: false,
-            game_price: 0,
             zkorp_address: 0,
             erc721_address: 0,
+            is_set: false,
+            game_price: 0,
             are_games_paused: false,
             are_chests_unlock: false
         }
