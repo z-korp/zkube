@@ -27,34 +27,22 @@ mod errors {
 #[generate_trait]
 impl PlayerImpl of PlayerTrait {
     #[inline(always)]
-    fn new(id: felt252, name: felt252, current_timestamp: u64) -> Player {
-        // [Check] Name is valid
-        assert(name != 0, errors::INVALID_NAME);
-
+    fn new(id: u32, current_timestamp: u32) -> Player {
         let current_day = Timestamp::timestamp_to_day(current_timestamp);
 
         // [Return] Player
         Player {
             id,
             game_id: 0,
-            name,
             points: 0,
-            daily_streak: 0,
             last_active_day: current_day,
             account_creation_day: current_day,
+            daily_streak: 0,
         }
     }
 
     #[inline(always)]
-    fn rename(ref self: Player, name: felt252) {
-        // [Check] Name is valid
-        assert(name != 0, errors::INVALID_NAME);
-        // [Effect] Change the name
-        self.name = name;
-    }
-
-    #[inline(always)]
-    fn update_daily_streak(ref self: Player, current_timestamp: u64) {
+    fn update_daily_streak(ref self: Player, current_timestamp: u32) {
         let current_day: u32 = Timestamp::timestamp_to_day(current_timestamp);
 
         // Don't update if it's the same day
@@ -64,9 +52,9 @@ impl PlayerImpl of PlayerTrait {
 
         // Check if player was active yesterday
         if current_day == self.last_active_day + 1 {
-            self.daily_streak += 1_u8;
+            self.daily_streak += 1_u16;
         } else {
-            self.daily_streak = 0_u8;
+            self.daily_streak = 0_u16;
         }
 
         // [Effect] Update the last active day
@@ -75,7 +63,7 @@ impl PlayerImpl of PlayerTrait {
 
     #[inline(always)]
     fn update_points(
-        ref self: Player, base_points: u32, mode_multiplier: u32, current_timestamp: u64
+        ref self: Player, base_points: u16, mode_multiplier: u32, current_timestamp: u32
     ) -> u32 {
         // Get the current multiplier
         let daily_streak_multiplier = self.get_daily_streak_multiplier();
@@ -146,7 +134,7 @@ impl PlayerImpl of PlayerTrait {
 
     /// Calculates the account age multiplier based on the player's account creation day.
     #[inline(always)]
-    fn get_account_age_multiplier(self: Player, current_timestamp: u64) -> u32 {
+    fn get_account_age_multiplier(self: Player, current_timestamp: u32) -> u32 {
         let account_age = Timestamp::timestamp_to_day(current_timestamp)
             - self.account_creation_day;
 
@@ -177,17 +165,16 @@ impl ZeroablePlayerTrait of core::Zeroable<Player> {
         Player {
             id: 0,
             game_id: 0,
-            name: 0,
             points: 0,
-            daily_streak: 0,
             last_active_day: 0,
-            account_creation_day: 0
+            account_creation_day: 0,
+            daily_streak: 0,
         }
     }
 
     #[inline(always)]
     fn is_zero(self: Player) -> bool {
-        self.name == 0
+        self.account_creation_day == 0
     }
 
     #[inline(always)]
@@ -216,21 +203,19 @@ mod tests {
     use zkube::types::level::LevelTrait;
 
     // Helper function to convert day offset to timestamp
-    fn day_offset_to_timestamp(day_offset: u64) -> u64 {
+    fn day_offset_to_timestamp(day_offset: u32) -> u32 {
         day_offset * SECONDS_PER_DAY
     }
 
     #[test]
     fn test_player_initialization() {
-        let player_id: felt252 = 1;
-        let player_name: felt252 = 12345; // Mock name
+        let player_id: u32 = 1;
         let current_timestamp = day_offset_to_timestamp(10); // Day 10
 
-        let player = PlayerTrait::new(player_id, player_name, current_timestamp);
+        let player = PlayerTrait::new(player_id, current_timestamp);
 
         assert_eq!(player.id, player_id);
         assert_eq!(player.game_id, 0);
-        assert_eq!(player.name, player_name);
         assert_eq!(player.points, 0);
         assert_eq!(player.daily_streak, 0);
         assert_eq!(player.last_active_day, Timestamp::timestamp_to_day(current_timestamp));
@@ -238,40 +223,38 @@ mod tests {
 
     #[test]
     fn test_consecutive_day_logins_and_break() {
-        let player_id: felt252 = 2;
-        let player_name: felt252 = 54321; // Mock name
+        let player_id: u32 = 2;
         let initial_day_offset = 100; // Arbitrary day offset
         let initial_timestamp = day_offset_to_timestamp(initial_day_offset);
 
-        let mut player = PlayerTrait::new(player_id, player_name, initial_timestamp);
+        let mut player = PlayerTrait::new(player_id, initial_timestamp);
 
         // Simulate consecutive logins for 10 days
-        let current_timestamp = day_offset_to_timestamp(initial_day_offset + 1_u64);
+        let current_timestamp = day_offset_to_timestamp(initial_day_offset + 1_u32);
         player.update_daily_streak(current_timestamp);
-        assert_eq!(player.daily_streak, 1_u8);
+        assert_eq!(player.daily_streak, 1_u16);
 
-        let current_timestamp = day_offset_to_timestamp(initial_day_offset + 2_u64);
+        let current_timestamp = day_offset_to_timestamp(initial_day_offset + 2_u32);
         player.update_daily_streak(current_timestamp);
-        assert_eq!(player.daily_streak, 2_u8);
+        assert_eq!(player.daily_streak, 2_u16);
 
-        let current_timestamp = day_offset_to_timestamp(initial_day_offset + 3_u64);
+        let current_timestamp = day_offset_to_timestamp(initial_day_offset + 3_u32);
         player.update_daily_streak(current_timestamp);
-        assert_eq!(player.daily_streak, 3_u8);
+        assert_eq!(player.daily_streak, 3_u16);
 
         // Skip days, should reset
-        let current_timestamp = day_offset_to_timestamp(initial_day_offset + 10_u64);
+        let current_timestamp = day_offset_to_timestamp(initial_day_offset + 10_u32);
         player.update_daily_streak(current_timestamp);
-        assert_eq!(player.daily_streak, 0_u8);
+        assert_eq!(player.daily_streak, 0_u16);
     }
 
     #[test]
     fn test_daily_streak_comprehensive() {
-        let player_id: felt252 = 1;
-        let player_name: felt252 = 12345;
+        let player_id: u32 = 1;
         let initial_day = 100;
         let initial_timestamp = day_offset_to_timestamp(initial_day);
 
-        let mut player = PlayerTrait::new(player_id, player_name, initial_timestamp);
+        let mut player = PlayerTrait::new(player_id, initial_timestamp);
 
         // Initial state check
         assert_eq!(player.daily_streak, 0, "Initial streak should be 0");
@@ -332,12 +315,11 @@ mod tests {
 
     #[test]
     fn test_edge_case_timestamps() {
-        let player_id: felt252 = 2;
-        let player_name: felt252 = 54321;
+        let player_id: u32 = 2;
         let initial_day = 100;
         let initial_timestamp = day_offset_to_timestamp(initial_day);
 
-        let mut player = PlayerTrait::new(player_id, player_name, initial_timestamp);
+        let mut player = PlayerTrait::new(player_id, initial_timestamp);
 
         // Test end of day vs start of next day
         let end_of_day = day_offset_to_timestamp(initial_day) + SECONDS_PER_DAY - 1;
@@ -352,12 +334,11 @@ mod tests {
 
     #[test]
     fn test_long_streak_maintenance() {
-        let player_id: felt252 = 3;
-        let player_name: felt252 = 98765;
+        let player_id: u32 = 3;
         let initial_day = 100;
         let initial_timestamp = day_offset_to_timestamp(initial_day);
 
-        let mut player = PlayerTrait::new(player_id, player_name, initial_timestamp);
+        let mut player = PlayerTrait::new(player_id, initial_timestamp);
 
         // Build up a 30-day streak
         let mut current_day = initial_day;
@@ -384,14 +365,13 @@ mod tests {
 
     #[test]
     fn test_consecutive_day_logins() {
-        let player_id: felt252 = 2;
-        let player_name: felt252 = 54321; // Mock name
+        let player_id: u32 = 2;
         let initial_day_offset = 100; // Arbitrary day offset
         let initial_timestamp = day_offset_to_timestamp(initial_day_offset);
 
-        let mut player = PlayerTrait::new(player_id, player_name, initial_timestamp);
+        let mut player = PlayerTrait::new(player_id, initial_timestamp);
 
-        let mut i: u8 = 1;
+        let mut i: u16 = 1;
         loop {
             if (i > 10) {
                 break;
@@ -410,12 +390,11 @@ mod tests {
 
     #[test]
     fn test_get_level_multiplier_level_1() {
-        let player_id: felt252 = 1;
-        let player_name: felt252 = 12345; // Mock name
+        let player_id: u32 = 1;
         let initial_day_offset = 10;
         let initial_timestamp = day_offset_to_timestamp(initial_day_offset);
 
-        let mut player = PlayerTrait::new(player_id, player_name, initial_timestamp);
+        let mut player = PlayerTrait::new(player_id, initial_timestamp);
         player.points = 100; // Level One
 
         let level_multiplier = player.get_level_multiplier();
@@ -424,12 +403,11 @@ mod tests {
 
     #[test]
     fn test_get_level_multiplier_level_10() {
-        let player_id: felt252 = 2;
-        let player_name: felt252 = 54321; // Mock name
+        let player_id: u32 = 2;
         let initial_day_offset = 20;
         let initial_timestamp = day_offset_to_timestamp(initial_day_offset);
 
-        let mut player = PlayerTrait::new(player_id, player_name, initial_timestamp);
+        let mut player = PlayerTrait::new(player_id, initial_timestamp);
         player.points = LevelTrait::get_points(10_u8.into());
 
         assert_eq!(LevelTrait::from_points(player.points).into(), 10_u8);
@@ -441,12 +419,11 @@ mod tests {
 
     #[test]
     fn test_get_level_multiplier_level_20() {
-        let player_id: felt252 = 5;
-        let player_name: felt252 = 11223; // Mock name
+        let player_id: u32 = 5;
         let initial_day_offset = 50;
         let initial_timestamp = day_offset_to_timestamp(initial_day_offset);
 
-        let mut player = PlayerTrait::new(player_id, player_name, initial_timestamp);
+        let mut player = PlayerTrait::new(player_id, initial_timestamp);
         player.points = LevelTrait::get_points(20_u8.into());
 
         assert_eq!(LevelTrait::from_points(player.points).into(), 20_u8);
@@ -457,14 +434,13 @@ mod tests {
 
     #[test]
     fn test_get_account_age_multiplier_below_cap() {
-        let player_id: felt252 = 3;
-        let player_name: felt252 = 67890; // Mock name
+        let player_id: u32 = 3;
         let account_creation_day_offset = 50; // Day 50
         let current_day_offset = 100; // Day 100
         let account_creation_timestamp = day_offset_to_timestamp(account_creation_day_offset);
         let current_timestamp = day_offset_to_timestamp(current_day_offset);
 
-        let mut player = PlayerTrait::new(player_id, player_name, account_creation_timestamp);
+        let mut player = PlayerTrait::new(player_id, account_creation_timestamp);
 
         let multiplier = player.get_account_age_multiplier(current_timestamp);
         let expected_multiplier = ACCOUNT_AGE_MULTIPLIER_START
@@ -474,14 +450,13 @@ mod tests {
 
     #[test]
     fn test_get_account_age_multiplier_at_cap() {
-        let player_id: felt252 = 4;
-        let player_name: felt252 = 98765; // Mock name
+        let player_id: u32 = 4;
         let account_creation_day_offset = 0; // Day 0
         let current_day_offset = 150; // Day 150 (Assuming cap is at 120)
         let account_creation_timestamp = day_offset_to_timestamp(account_creation_day_offset);
         let current_timestamp = day_offset_to_timestamp(current_day_offset);
 
-        let mut player = PlayerTrait::new(player_id, player_name, account_creation_timestamp);
+        let mut player = PlayerTrait::new(player_id, account_creation_timestamp);
 
         let multiplier = player.get_account_age_multiplier(current_timestamp);
         let expected_multiplier =
@@ -491,12 +466,11 @@ mod tests {
 
     #[test]
     fn test_get_daily_streak_multiplier_edge_cases() {
-        let player_id: felt252 = 5;
-        let player_name: felt252 = 13579; // Mock name
+        let player_id: u32 = 5;
         let initial_day_offset = 200;
         let initial_timestamp = day_offset_to_timestamp(initial_day_offset);
 
-        let mut player = PlayerTrait::new(player_id, player_name, initial_timestamp);
+        let mut player = PlayerTrait::new(player_id, initial_timestamp);
 
         // Set streak to 7
         player.daily_streak = 7;
@@ -528,12 +502,11 @@ mod tests {
 
     #[test]
     fn test_get_daily_streak_multiplier_cap() {
-        let player_id: felt252 = 6;
-        let player_name: felt252 = 24680; // Mock name
+        let player_id: u32 = 6;
         let initial_day_offset = 300;
         let initial_timestamp = day_offset_to_timestamp(initial_day_offset);
 
-        let mut player = PlayerTrait::new(player_id, player_name, initial_timestamp);
+        let mut player = PlayerTrait::new(player_id, initial_timestamp);
 
         // Set streak above cap
         player.daily_streak = 61; // Assuming cap is at 60
@@ -544,12 +517,11 @@ mod tests {
 
     #[test]
     fn test_update_points_combined_multipliers() {
-        let player_id: felt252 = 7;
-        let player_name: felt252 = 112358; // Mock name
+        let player_id: u32 = 7;
         let initial_day_offset = 400;
         let initial_timestamp = day_offset_to_timestamp(initial_day_offset);
 
-        let mut player = PlayerTrait::new(player_id, player_name, initial_timestamp);
+        let mut player = PlayerTrait::new(player_id, initial_timestamp);
 
         // Set streak and level
         player.daily_streak = 5; // Within 1-7 range

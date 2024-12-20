@@ -5,7 +5,6 @@ import { Entity } from "@dojoengine/recs";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useDojo } from "@/dojo/useDojo";
 import { Tournament } from "@/dojo/game/models/tournament";
-import useDeepMemo from "./useDeepMemo";
 
 interface TournamentInfo {
   id: number;
@@ -17,7 +16,7 @@ const useTournament = (mode: ModeType): TournamentInfo => {
   const {
     setup: {
       clientModels: {
-        models: { Tournament },
+        models: { Tournament, TournamentPrize },
         classes: { Tournament: TournamentClass },
       },
     },
@@ -59,10 +58,15 @@ const useTournament = (mode: ModeType): TournamentInfo => {
   );
 
   const component = useComponentValue(Tournament, tournamentKey);
+  const componentPrize = useComponentValue(TournamentPrize, tournamentKey);
 
   const tournament = useMemo(() => {
-    return component ? new TournamentClass(component) : null;
-  }, [component]);
+    if (componentPrize !== undefined && component !== undefined) {
+      return new TournamentClass(component, componentPrize.prize);
+    } else {
+      return null;
+    }
+  }, [TournamentClass, component, componentPrize]);
 
   return { id, endTimestamp, tournament };
 };

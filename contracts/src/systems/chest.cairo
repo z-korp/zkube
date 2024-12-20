@@ -40,6 +40,7 @@ mod chest {
     };
     use zkube::models::chest::{ChestTrait, ChestAssert};
     use zkube::models::participation::{ParticipationTrait, ParticipationAssert};
+    use zkube::models::player_info::{PlayerInfo, PlayerInfoTrait, PlayerInfoAssert};
 
     // Components
     component!(path: PayableComponent, storage: payable, event: PayableEvent);
@@ -118,7 +119,11 @@ mod chest {
             }
 
             let caller = get_caller_address();
-            let mut participation = store.participation(chest_id, caller.into());
+
+            let player_info: PlayerInfo = store.player_info(caller.into());
+            player_info.assert_exists();
+
+            let mut participation = store.participation(chest_id, player_info.player_id);
             participation.assert_exists();
 
             let rewards = participation.claim(chest.points, chest.prize);
@@ -151,7 +156,7 @@ mod chest {
     impl InternalImpl of InternalTrait {
         /// This function is handy since the ByteArray can't be const.
         fn world_default(self: @ContractState) -> WorldStorage {
-            self.world(@"zkube")
+            self.world(crate::default_namespace())
         }
     }
 }

@@ -27,7 +27,7 @@ export const Create = () => {
     },
   } = useDojo();
 
-  const { player } = usePlayer({ playerId: account?.address });
+  const { player } = usePlayer();
 
   const handleClick = useCallback(async () => {
     setIsLoading(true);
@@ -38,6 +38,9 @@ export const Create = () => {
       setIsLoading(false);
     }
   }, [account, playerName, create]);
+
+  console.log(account);
+  console.log(player);
 
   const disabled = useMemo(() => {
     return !account || !!player;

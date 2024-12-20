@@ -9,9 +9,9 @@ import {
 export class Tournament {
   id: number;
   prize: bigint;
-  top1_player_id: bigint;
-  top2_player_id: bigint;
-  top3_player_id: bigint;
+  top1_player_id: number;
+  top2_player_id: number;
+  top3_player_id: number;
   top1_score: number;
   top2_score: number;
   top3_score: number;
@@ -26,9 +26,9 @@ export class Tournament {
   top3_game_id: number;
   mode: Mode;
 
-  constructor(tournament: ComponentValue) {
+  constructor(tournament: ComponentValue, prize: bigint) {
     this.id = tournament.id;
-    this.prize = tournament.prize;
+    this.prize = prize;
     this.top1_player_id = tournament.top1_player_id;
     this.top2_player_id = tournament.top2_player_id;
     this.top3_player_id = tournament.top3_player_id;
@@ -54,23 +54,25 @@ export class Tournament {
   }
 
   static createNullTournament(id: number, mode: ModeType): Tournament {
-    return new Tournament({
-      id,
-      prize: 0n,
-      top1_player_id: 0n,
-      top2_player_id: 0n,
-      top3_player_id: 0n,
-      top1_score: 0,
-      top2_score: 0,
-      top3_score: 0,
-      top1_claimed: false,
-      top2_claimed: false,
-      top3_claimed: false,
-      top1_prize: 0n,
-      top2_prize: 0n,
-      top3_prize: 0n,
-      mode: new Mode(mode),
-    });
+    return new Tournament(
+      {
+        id,
+        top1_player_id: 0,
+        top2_player_id: 0,
+        top3_player_id: 0,
+        top1_score: 0,
+        top2_score: 0,
+        top3_score: 0,
+        top1_claimed: false,
+        top2_claimed: false,
+        top3_claimed: false,
+        top1_prize: 0n,
+        top2_prize: 0n,
+        top3_prize: 0n,
+        mode: new Mode(mode),
+      },
+      0n,
+    );
   }
 
   reward(rank: number): bigint {
@@ -83,14 +85,14 @@ export class Tournament {
         return this.prize - secondPrize - thirdPrize;
       }
       case 2: {
-        if (this.top2_player_id === 0n) {
+        if (this.top2_player_id === 0) {
           return 0n;
         }
         const thirdReward = this.reward(3);
         return (this.prize - thirdReward) / 3n;
       }
       case 3: {
-        if (this.top3_player_id === 0n) {
+        if (this.top3_player_id === 0) {
           return 0n;
         }
         return this.prize / 6n;

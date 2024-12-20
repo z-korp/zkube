@@ -10,6 +10,8 @@ import { DojoProvider } from "@dojoengine/core";
 
 export type SetupResult = Awaited<ReturnType<typeof setup>>;
 
+const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
+
 export async function setup({ ...config }: Config) {
   // Initialize Torii client for interacting with the Dojo network
   const toriiClient = await torii.createClient({
@@ -34,13 +36,16 @@ export async function setup({ ...config }: Config) {
     keys: [undefined],
     pattern_matching: "FixedLen",
     models: [
-      "zkube-Game",
-      "zkube-Player",
-      "zkube-Tournament",
-      "zkube-Settings",
-      "zkube-Chest",
-      "zkube-Participation",
-      "zkube-Admin",
+      `${VITE_PUBLIC_NAMESPACE}-Game`,
+      `${VITE_PUBLIC_NAMESPACE}-GamePrize`,
+      `${VITE_PUBLIC_NAMESPACE}-Player`,
+      `${VITE_PUBLIC_NAMESPACE}-PlayerInfo`,
+      `${VITE_PUBLIC_NAMESPACE}-Tournament`,
+      `${VITE_PUBLIC_NAMESPACE}-TournamentPrize`,
+      `${VITE_PUBLIC_NAMESPACE}-Settings`,
+      `${VITE_PUBLIC_NAMESPACE}-Chest`,
+      `${VITE_PUBLIC_NAMESPACE}-Participation`,
+      `${VITE_PUBLIC_NAMESPACE}-Admin`,
     ],
   };
 

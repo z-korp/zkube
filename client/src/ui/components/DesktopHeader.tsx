@@ -18,8 +18,7 @@ interface DesktopHeaderProps {
 }
 
 const DesktopHeader = ({ onStartTutorial }: DesktopHeaderProps) => {
-  const { account } = useAccountCustom();
-  const { player } = usePlayer({ playerId: account?.address });
+  const { player } = usePlayer();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);

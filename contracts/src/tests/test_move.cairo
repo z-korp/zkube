@@ -214,8 +214,6 @@ fn test_actions_move_05_real_bug() {
 
     // [Move]
     systems.play.move(1, 1, 0);
-
-    let game = store.game(game_id);
 }
 
 #[test]
@@ -255,7 +253,7 @@ fn test_actions_move_06_real_bug() {
     // [Move]
     systems.play.move(2, 5, 7);
 
-    let game = store.game(game_id);
+    //let game = store.game(game_id);
 
     // Grid 1:
     // 000_000_000_000_000_000_000_000
@@ -282,6 +280,10 @@ fn test_actions_move_06_real_bug() {
 // 010_010_000_000_001_001_010_010
 //assert_eq!(
 //    game.blocks & 0b000_000_000_000_000_000_000_000,
+//
+//
+//
+//
 //
 //
 //

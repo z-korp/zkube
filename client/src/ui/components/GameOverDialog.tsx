@@ -17,8 +17,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
   onClose,
   game,
 }) => {
-  const { account } = useAccountCustom();
-  const { player } = usePlayer({ playerId: account?.address });
+  const { player } = usePlayer();
 
   // Retrieve multipliers as floats (e.g., 1.0 for x1.0)
   const gameModeMultiplier = game.getGameModeMultiplier();

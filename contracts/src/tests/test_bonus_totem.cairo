@@ -31,7 +31,7 @@ fn update_combo_and_check(
 ) {
     // Update combo count and max combo
     let mut game = (*store).game(game_id);
-    game.combo_counter_2 = combo_count;
+    game.combo_counter = combo_count;
     game.max_combo = max_combo;
     // Check bonuses
     let (hammer, totem, wave) = game.assess_bonuses();

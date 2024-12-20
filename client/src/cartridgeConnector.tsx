@@ -13,9 +13,11 @@ const {
 
 export type Manifest = typeof manifest;
 
+const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
+
 const colorMode: ColorMode = "dark";
 const theme = "zkube";
-const namespace = "zkube";
+const namespace = VITE_PUBLIC_NAMESPACE;
 const slot = `zkube-${VITE_PUBLIC_DEPLOY_TYPE}`;
 
 const account_contract_address = getContractByName(

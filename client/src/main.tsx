@@ -5,12 +5,12 @@ import { setup, SetupResult } from "./dojo/setup.ts";
 import { DojoProvider } from "./dojo/context.tsx";
 import { dojoConfig } from "../dojo.config.ts";
 import { Loading } from "@/ui/screens/Loading";
-import { MusicPlayerProvider } from "./contexts/music.tsx";
-import { SoundPlayerProvider } from "./contexts/sound.tsx";
-import { ThemeProvider } from "./ui/elements/theme-provider/index.tsx";
+import { MusicPlayerProvider } from "./contexts/music";
+import { SoundPlayerProvider } from "./contexts/sound";
+import { ThemeProvider } from "./ui/elements/theme-provider/index";
 import { StarknetConfig, jsonRpcProvider, voyager } from "@starknet-react/core";
 import { sepolia, mainnet } from "@starknet-react/chains";
-import cartridgeConnector from "./cartridgeConnector.tsx";
+import cartridgeConnector from "./cartridgeConnector";
 
 import "./index.css";
 

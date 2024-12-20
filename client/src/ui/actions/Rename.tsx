@@ -27,7 +27,7 @@ export const Create = () => {
     },
   } = useDojo();
 
-  const { player } = usePlayer({ playerId: account?.address });
+  const { player } = usePlayer();
 
   const handleClick = useCallback(async () => {
     setIsLoading(true);

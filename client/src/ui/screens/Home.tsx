@@ -42,6 +42,9 @@ import HeaderBalance from "../components/HeaderBalance";
 import { useDojo } from "@/dojo/useDojo";
 import { getSyncEntities } from "@dojoengine/state";
 import * as torii from "@dojoengine/torii-client";
+import { usePlayerId } from "@/hooks/usePlayerId";
+
+const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
 
 export const Home = () => {
   useViewport();
@@ -52,7 +55,8 @@ export const Home = () => {
     setup: { toriiClient, contractComponents },
   } = useDojo();
   const { account } = useAccountCustom();
-  const { player } = usePlayer({ playerId: account?.address });
+  usePlayerId({ playerAddress: account?.address });
+  const { player } = usePlayer();
 
   const { game } = useGame({
     gameId: player?.game_id || "0x0",
@@ -72,7 +76,7 @@ export const Home = () => {
 
   useEffect(() => {
     const clause: torii.MemberClause = {
-      model: "zkube-Mint",
+      model: `${VITE_PUBLIC_NAMESPACE}-Mint`,
       member: "id",
       operator: "Eq",
       value: {
@@ -96,12 +100,12 @@ export const Home = () => {
     syncEntities();
   }, [account?.address]);
 
-  // fetch here because Partictipation has double keys
+  // fetch here because Participation has double keys
   useEffect(() => {
     const clause: torii.KeysClause = {
       keys: [undefined, undefined],
       pattern_matching: "FixedLen",
-      models: ["zkube-Participation"],
+      models: [`${VITE_PUBLIC_NAMESPACE}-Participation`],
     };
 
     const syncEntities = async () => {

@@ -15,11 +15,11 @@ use zkube::store::{Store, StoreTrait};
 
 #[starknet::interface]
 trait ITournamentSystem<T> {
-    fn claim(ref self: T, mode: Mode, tournament_id: u64, rank: u8);
+    fn claim(ref self: T, mode: Mode, tournament_id: u32, rank: u8);
     fn sponsor_from(
-        ref self: T, tournament_id: u64, mode: Mode, amount: u128, caller: ContractAddress
+        ref self: T, tournament_id: u32, mode: Mode, amount: u128, caller: ContractAddress
     );
-    fn sponsor(ref self: T, tournament_id: u64, mode: Mode, amount: u128);
+    fn sponsor(ref self: T, tournament_id: u32, mode: Mode, amount: u128);
 }
 
 #[dojo::contract]
@@ -39,7 +39,8 @@ mod tournament {
         WorldStorage
     };
     use zkube::models::tournament::{TournamentTrait, TournamentAssert, TournamentImpl};
-    use zkube::models::player::{PlayerTrait, PlayerAssert};
+    use zkube::models::tournament_prize::{TournamentPrizeTrait, TournamentPrizeAssert};
+    use zkube::models::player_info::{PlayerInfoTrait, PlayerInfoAssert};
     use zkube::models::participation::{ParticipationTrait, ParticipationAssert};
     use zkube::types::mode::ModeTrait;
 
@@ -73,23 +74,31 @@ mod tournament {
     // Implementations
     #[abi(embed_v0)]
     impl TournamentSystemImpl of ITournamentSystem<ContractState> {
-        fn claim(ref self: ContractState, mode: Mode, tournament_id: u64, rank: u8) {
+        fn claim(ref self: ContractState, mode: Mode, tournament_id: u32, rank: u8) {
             // [Setup] Datastore
             let mut world = self.world_default();
             let store: Store = StoreTrait::new(world);
 
             // [Check] Player exists
             let caller = get_caller_address();
-            let mut player = store.player(caller.into());
-            player.assert_exists();
+            let player_info = store.player_info(caller.into());
+            player_info.assert_exists();
 
             // [Check] Tournament exists
             let mut tournament = store.tournament(tournament_id);
             tournament.assert_exists();
 
             // [Effect] Update claim
-            let time = get_block_timestamp();
-            let reward = tournament.claim(player.id, rank, time, mode.duration());
+            let time: u32 = get_block_timestamp().try_into().unwrap();
+            // Get the game_id of the player at the rank
+            let game_id = tournament.game_at_rank(rank);
+            // From the game_id, get the game to retrieve the player_id
+            let game = store.game(game_id);
+
+            // [Check] Caller is the owner of the game
+            assert(player_info.player_id == game.player_id, 'Player does not own the game');
+            let tournament_prize = store.tournament_prize(tournament_id);
+            let reward = tournament.claim(rank, time, mode.duration(), tournament_prize.prize);
             store.set_tournament(tournament);
 
             // [Effect] Pay reward
@@ -98,7 +107,7 @@ mod tournament {
 
         fn sponsor_from(
             ref self: ContractState,
-            tournament_id: u64,
+            tournament_id: u32,
             mode: Mode,
             amount: u128,
             caller: ContractAddress
@@ -108,20 +117,22 @@ mod tournament {
             let store: Store = StoreTrait::new(world);
 
             // [Check] Tournament exists
-            let time = get_block_timestamp();
+            let time = get_block_timestamp().try_into().unwrap();
             let tournament_id = TournamentImpl::compute_id(time, mode.duration());
-            let mut tournament = store.tournament(tournament_id);
-            tournament.assert_exists();
+
+            let mut tournament_prize = store.tournament_prize(tournament_id);
+            //let tournament = store.tournament(tournament_id);
+            tournament_prize.assert_exists(); // TBD remove?
 
             // [Effect] Add amount to the current tournament prize pool
-            tournament.pay_entry_fee(amount);
-            store.set_tournament(tournament);
+            tournament_prize.pay_entry_fee(amount);
+            store.set_tournament_prize(tournament_prize);
 
             // [Return] Amount to pay
             self.payable._pay(caller, amount.into());
         }
 
-        fn sponsor(ref self: ContractState, tournament_id: u64, mode: Mode, amount: u128) {
+        fn sponsor(ref self: ContractState, tournament_id: u32, mode: Mode, amount: u128) {
             self.sponsor_from(tournament_id, mode, amount, get_caller_address());
         }
     }
@@ -130,7 +141,7 @@ mod tournament {
     impl InternalImpl of InternalTrait {
         /// This function is handy since the ByteArray can't be const.
         fn world_default(self: @ContractState) -> WorldStorage {
-            self.world(@"zkube")
+            self.world(crate::default_namespace())
         }
     }
 }

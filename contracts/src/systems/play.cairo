@@ -153,6 +153,8 @@ mod play {
                 let zkorp_system_dispatcher = IZKorpDispatcher { contract_address };
                 zkorp_system_dispatcher
                     .sponsor_from(zkorp_amount + referrer_amount, erc721_address);
+            // veLORDs
+
             }
 
             if (mode != Mode::Free) {
@@ -208,7 +210,7 @@ mod play {
     impl InternalImpl of InternalTrait {
         /// This function is handy since the ByteArray can't be const.
         fn world_default(self: @ContractState) -> WorldStorage {
-            self.world(@"zkube")
+            self.world(crate::default_namespace())
         }
     }
 }

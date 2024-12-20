@@ -13,27 +13,27 @@ github = "https://github.com/dojoengine/dojo-starter"
 telegram = "https://t.me/dojoengine"
 
 [namespace]
-default = "zkube"
+default = "zkube2"
 
 [env]
 rpc_url = "http://localhost:5050/"
-account_address = "0x6b86e40118f29ebe393a75469b4d926c7a44c2e2681b6d319520b7c1156d114"
-private_key = "0x1c9053c053edf324aec366a34c6901b1095b07af69495bffec7d7fe21effb1b"
+account_address = "0x63a7373ece40e853d9cca9c5889527cab3b7aab669e390e2245225718794b58"
+private_key = "0x2c8edd6c146cf85ad3dba64865728a79113171782afddd5054d9e9f4c93857f"
 
 [init_call_args]
-"zkube-chest" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
-"zkube-settings" = ["0x0", "0x0"]
-"zkube-tournament" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
-"zkube-zkorp" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
+"zkube2-chest" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
+"zkube2-settings" = ["0x0", "0x0"]
+"zkube2-tournament" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
+"zkube2-zkorp" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
 
 [writers]
-"zkube-Admin" = ["zkube-settings"]
-"zkube-Chest" = ["zkube-chest", "zkube-play"]
-"zkube-Game" = ["zkube-play"]
-"zkube-Mint" = ["zkube-minter"]
-"zkube-Participation" = ["zkube-chest", "zkube-play"]
-"zkube-Player" = ["zkube-account", "zkube-play"]
-"zkube-Settings" = ["zkube-minter", "zkube-settings"]
-"zkube-Tournament" = ["zkube-play", "zkube-tournament"]
-"zkube-TrophyCreation" = ["zkube-settings"]
-"zkube-TrophyProgression" = ["zkube-play"]
+"zkube2-Admin" = ["zkube2-settings"]
+"zkube2-Chest" = ["zkube2-chest", "zkube2-play"]
+"zkube2-Game" = ["zkube2-play"]
+"zkube2-Mint" = ["zkube2-minter"]
+"zkube2-Participation" = ["zkube2-chest", "zkube2-play"]
+"zkube2-Player" = ["zkube2-account", "zkube2-play"]
+"zkube2-Settings" = ["zkube2-minter", "zkube2-settings"]
+"zkube2-Tournament" = ["zkube2-play", "zkube2-tournament"]
+"zkube2-TrophyCreation" = ["zkube2-settings"]
+"zkube2-TrophyProgression" = ["zkube2-play"]

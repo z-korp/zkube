@@ -115,7 +115,7 @@ export const ContentTournament: React.FC<ContentTournamentProps> = ({
     const [current] = tournaments;
     const pastTournaments = tournaments
       .slice(1)
-      .filter((t) => t.top1_player_id !== 0n);
+      .filter((t) => t.top1_player_id !== 0);
     return [current, ...pastTournaments];
   }, [tournaments]);
 
@@ -366,7 +366,7 @@ export const RowTournament: React.FC<RowTournamentProps> = ({
   game,
   potentialWinnings,
 }) => {
-  const { player } = usePlayer({ playerId: game.player_id });
+  const { player } = usePlayer();
 
   return (
     <TableRow className="hover:bg-slate-100 dark:hover:bg-slate-800">

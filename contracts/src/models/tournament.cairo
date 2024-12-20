@@ -29,49 +29,38 @@ mod errors {
 #[generate_trait]
 impl TournamentImpl of TournamentTrait {
     #[inline(always)]
-    fn compute_id(time: u64, duration: u64) -> u64 {
+    fn compute_id(time: u32, duration: u32) -> u32 {
         time / duration
     }
 
-    #[inline(always)]
-    fn player(self: Tournament, rank: u8) -> felt252 {
-        match rank {
-            0 => 0,
-            1 => self.top1_player_id,
-            2 => self.top2_player_id,
-            3 => self.top3_player_id,
-            _ => 0,
-        }
-    }
-
-    fn reward(self: Tournament, rank: u8) -> u128 {
+    fn reward(self: Tournament, rank: u8, prize: u128) -> u128 {
         match rank {
             0 => 0_u128,
             1 => {
                 // [Compute] Remove the other prize to avoid remaining dust due to rounding
-                let second_prize = self.reward(2);
-                let third_prize = self.reward(3);
-                self.prize - second_prize - third_prize
+                let second_prize = self.reward(2, prize);
+                let third_prize = self.reward(3, prize);
+                prize - second_prize - third_prize
             },
             2 => {
-                if self.top2_player_id == 0 {
+                if self.top2_game_id == 0 {
                     return 0_u128;
                 }
-                let third_reward = self.reward(3);
-                (self.prize - third_reward) / 3_u128
+                let third_reward = self.reward(3, prize);
+                (prize - third_reward) / 3_u128
             },
             3 => {
-                if self.top3_player_id == 0 {
+                if self.top3_game_id == 0 {
                     return 0_u128;
                 }
-                self.prize / 6_u128
+                prize / 6_u128
             },
             _ => 0_u128,
         }
     }
 
     #[inline(always)]
-    fn score(ref self: Tournament, player_id: felt252, game_id: u32, score: u32) {
+    fn score(ref self: Tournament, player_id: u32, game_id: u32, score: u16) {
         // Remove the game if it is already in the top rankings
         if self.top1_game_id == game_id {
             // Since scores can only increase, update the score directly
@@ -80,7 +69,7 @@ impl TournamentImpl of TournamentTrait {
         } else if self.top2_game_id == game_id {
             // Remove from top2
             self.top2_score = self.top3_score;
-            self.top2_player_id = self.top3_player_id;
+            self.top2_player_id = self.top2_player_id;
             self.top2_game_id = self.top3_game_id;
             self.top3_score = 0;
             self.top3_player_id = 0;
@@ -93,15 +82,15 @@ impl TournamentImpl of TournamentTrait {
         }
 
         // Insert the new score if the position is empty or the score is high enough
-        if self.top3_player_id == 0 || score > self.top3_score {
+        if self.top3_game_id == 0 || score > self.top3_score {
             // Determine where to insert the new score
-            if self.top2_player_id == 0 || score > self.top2_score {
+            if self.top2_game_id == 0 || score > self.top2_score {
                 // Shift down top2 to top3
                 self.top3_score = self.top2_score;
                 self.top3_player_id = self.top2_player_id;
                 self.top3_game_id = self.top2_game_id;
 
-                if self.top1_player_id == 0 || score > self.top1_score {
+                if self.top1_game_id == 0 || score > self.top1_score {
                     // Shift down top1 to top2
                     self.top2_score = self.top1_score;
                     self.top2_player_id = self.top1_player_id;
@@ -130,27 +119,27 @@ impl TournamentImpl of TournamentTrait {
     }
 
     #[inline(always)]
-    fn pay_entry_fee(ref self: Tournament, amount: u128) {
-        // [Check] Overflow
-        let current = self.prize;
-        let next = self.prize + amount;
-        assert(next >= current, errors::PRIZE_OVERFLOW);
-
-        // [Effect] Payout
-        self.prize += amount;
+    fn game_at_rank(self: Tournament, rank: u8) -> u32 {
+        match rank {
+            0 => 0,
+            1 => self.top1_game_id,
+            2 => self.top2_game_id,
+            3 => self.top3_game_id,
+            _ => 0,
+        }
     }
 
     #[inline(always)]
-    fn claim(ref self: Tournament, player_id: felt252, rank: u8, time: u64, duration: u64) -> u128 {
+    fn claim(ref self: Tournament, rank: u8, time: u32, duration: u32, prize: u128) -> u128 {
+        // [Check] We already checked that player owns the game_id in system
+
         // [Check] Tournament is over
         self.assert_is_over(time, duration);
         // [Check] Reward not already claimed
         self.assert_not_claimed(rank);
-        // [Check] Player is caller (player_id arg comes from the caller)
-        let player = self.player(rank);
-        assert(player == player_id, errors::INVALID_PLAYER);
+
         // [Check] Something to claim
-        let reward = self.reward(rank);
+        let reward = self.reward(rank, prize);
         assert(reward != 0, errors::NOTHING_TO_CLAIM);
         // [Effect] Claim and return the corresponding reward
         if rank == 1 {
@@ -184,7 +173,7 @@ impl TournamentAssert of AssertTrait {
     }
 
     #[inline(always)]
-    fn assert_is_over(self: Tournament, time: u64, duration: u64) {
+    fn assert_is_over(self: Tournament, time: u32, duration: u32) {
         let id = TournamentImpl::compute_id(time, duration);
         assert(id > self.id, errors::TOURNAMENT_NOT_OVER);
     }
@@ -195,20 +184,19 @@ impl ZeroableTournament of Zeroable<Tournament> {
     fn zero() -> Tournament {
         Tournament {
             id: 0,
-            is_set: false,
-            prize: 0,
-            top1_player_id: 0,
-            top2_player_id: 0,
-            top3_player_id: 0,
             top1_score: 0,
             top2_score: 0,
             top3_score: 0,
-            top1_claimed: false,
-            top2_claimed: false,
-            top3_claimed: false,
+            top1_player_id: 0,
+            top2_player_id: 0,
+            top3_player_id: 0,
             top1_game_id: 0,
             top2_game_id: 0,
             top3_game_id: 0,
+            is_set: false,
+            top1_claimed: false,
+            top2_claimed: false,
+            top3_claimed: false,
         }
     }
 
@@ -236,7 +224,7 @@ mod tests {
 
     // Constants
 
-    const TIME: u64 = 1710347593;
+    const TIME: u32 = 1710347593;
 
     // Implementations
 
@@ -245,20 +233,19 @@ mod tests {
         fn default() -> Tournament {
             Tournament {
                 id: 0,
-                is_set: false,
-                prize: 0,
-                top1_player_id: 0,
-                top2_player_id: 0,
-                top3_player_id: 0,
                 top1_score: 0,
                 top2_score: 0,
                 top3_score: 0,
-                top1_claimed: false,
-                top2_claimed: false,
-                top3_claimed: false,
+                top1_player_id: 0,
+                top2_player_id: 0,
+                top3_player_id: 0,
                 top1_game_id: 0,
                 top2_game_id: 0,
                 top3_game_id: 0,
+                is_set: false,
+                top1_claimed: false,
+                top2_claimed: false,
+                top3_claimed: false,
             }
         }
     }

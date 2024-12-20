@@ -33,16 +33,21 @@ mod errors {
 #[generate_trait]
 impl GameImpl of GameTrait {
     #[inline(always)]
-    fn new(id: u32, player_id: felt252, seed: felt252, mode: Mode, time: u64,) -> Game {
+    fn new(id: u32, player_id: u32, seed: felt252, mode: Mode, time: u32,) -> Game {
         let difficulty = mode.difficulty();
         let game_seed = mode.seed(time, id, seed);
         let row = Controller::create_line(game_seed, difficulty);
         Game {
             id,
+            seed: game_seed,
+            blocks: 0,
+            player_id,
             over: false,
-            next_row: row,
+            mode: mode.into(),
             score: 0,
             moves: 0,
+            next_row: row,
+            start_time: time,
             hammer_bonus: 0,
             wave_bonus: 0,
             totem_bonus: 0,
@@ -51,23 +56,12 @@ impl GameImpl of GameTrait {
             totem_used: 0,
             combo_counter: 0,
             max_combo: 0,
-            blocks: 0,
-            player_id,
-            seed: game_seed,
-            mode: mode.into(),
-            start_time: time,
             tournament_id: 0,
-            score_in_tournament: 0,
-            combo_counter_in_tournament: 0,
-            max_combo_in_tournament: 0,
-            pending_chest_prize: 0,
-            combo_counter_2: 0,
-            combo_counter_in_tournament_2: 0,
         }
     }
 
     #[inline(always)]
-    fn duration(self: Game) -> u64 {
+    fn duration(self: Game) -> u32 {
         let mode: Mode = self.mode.into();
         mode.duration()
     }
@@ -132,9 +126,8 @@ impl GameImpl of GameTrait {
     fn get_difficulty(ref self: Game) -> Difficulty {
         let mut difficulty = self.difficulty();
         if (difficulty == Difficulty::None) { // Difficulty::None meaning increasing difficulty
-
             // we are in normal mode or free mode
-            if(self.mode.into() == Mode::Normal) {
+            if (self.mode.into() == Mode::Normal) {
                 // weekly
                 if (self.moves < 20) {
                     difficulty = Difficulty::MediumHard;
@@ -230,7 +223,7 @@ impl GameImpl of GameTrait {
         self.blocks == 0
     }
 
-    fn assess_game(ref self: Game, ref counter: u8) -> u32 {
+    fn assess_game(ref self: Game, ref counter: u8) -> u16 {
         let mut points = 0;
         let mut upper_blocks = 0;
         loop {
@@ -283,24 +276,12 @@ impl GameImpl of GameTrait {
     // the u16 will be updated later (in move and apply_bonus)
     #[inline(always)]
     fn get_combo_counter(self: Game) -> u16 {
-        if self.combo_counter.into() > self.combo_counter_2 {
-            self.combo_counter.into()
-        } else {
-            self.combo_counter_2
-        }
+        self.combo_counter.into()
     }
 
-    // Put this for patching the u8 combo_counter to u16
-    // this is the case where the game has been started before the patch
-    // in this case we get the value of combo_counter and put it in combo_counter_2
-    // before updating the combo_counter_2 by the counter value
     #[inline(always)]
     fn update_combo_counter(ref self: Game, counter: u8) {
-        let new_value = counter.into();
-        if self.combo_counter != 0 && self.combo_counter_2 == 0 {
-            self.combo_counter_2 = self.combo_counter.into();
-        }
-        self.combo_counter_2 += new_value;
+        self.combo_counter += counter.into();
     }
 }
 
@@ -309,10 +290,15 @@ impl ZeroableGame of core::Zeroable<Game> {
     fn zero() -> Game {
         Game {
             id: 0,
+            seed: 0,
+            blocks: 0,
+            player_id: 0,
             over: false,
+            mode: 0,
             score: 0,
             moves: 0,
             next_row: 0,
+            start_time: 0,
             hammer_bonus: 0,
             wave_bonus: 0,
             totem_bonus: 0,
@@ -321,18 +307,7 @@ impl ZeroableGame of core::Zeroable<Game> {
             totem_used: 0,
             combo_counter: 0,
             max_combo: 0,
-            blocks: 0,
-            player_id: 0,
-            seed: 0,
-            mode: 0,
-            start_time: 0,
             tournament_id: 0,
-            score_in_tournament: 0,
-            combo_counter_in_tournament: 0,
-            max_combo_in_tournament: 0,
-            pending_chest_prize: 0,
-            combo_counter_2: 0,
-            combo_counter_in_tournament_2: 0,
         }
     }
 
@@ -392,8 +367,8 @@ mod tests {
 
     // Constants
 
-    const GAME_ID: u32 = 1;
-    const PLAYER_ID: felt252 = 'PLAYER';
+    const GAME_ID: u32 = 101;
+    const PLAYER_ID: u32 = 1;
     const SEED: felt252 = 'SEED';
 
     #[test]
@@ -410,5 +385,13 @@ mod tests {
         let state = state.update(0);
 
         assert_eq!(game.seed, state.finalize());
+    }
+
+    #[test]
+    fn test_shuffle_line() {
+        // [Effect] Create game
+        let mut game = GameTrait::new(GAME_ID, PLAYER_ID, SEED, Mode::Normal, 0);
+        // [Effect] Get new line
+        game.setup_next();
     }
 }

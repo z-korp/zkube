@@ -27,7 +27,7 @@ interface ProfilePageProps {
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({ wfit }) => {
   const { account } = useAccountCustom();
-  const { player } = usePlayer({ playerId: account?.address });
+  const { player } = usePlayer();
   const { games } = useGames();
 
   const rewardsCount = useRewardsStore((state) => state.rewardsCount);

@@ -7,7 +7,7 @@ use dojo::world::WorldStorage;
 #[starknet::interface]
 trait IMinter<T> {
     fn claim_free_mint(ref self: T);
-    fn add_free_mint(ref self: T, to: ContractAddress, number: u32, expiration_timestamp: u64);
+    fn add_free_mint(ref self: T, to: ContractAddress, number: u32, expiration_timestamp: u32);
     fn update_game_price(ref self: T, price: u256);
 }
 
@@ -46,7 +46,7 @@ mod minter {
             let settings = store.settings();
             let mut mint = store.mint(caller.into());
 
-            let current_timestamp = get_block_timestamp();
+            let current_timestamp: u32 = get_block_timestamp().try_into().unwrap();
             let total_mints = mint.number;
             let mut i = 0;
             loop {
@@ -70,7 +70,7 @@ mod minter {
         /// Add free mint to a user
         /// Only admin can free mint
         fn add_free_mint(
-            ref self: ContractState, to: ContractAddress, number: u32, expiration_timestamp: u64
+            ref self: ContractState, to: ContractAddress, number: u32, expiration_timestamp: u32
         ) {
             // [Check] Only admin can update settings
             let caller = get_caller_address();
@@ -81,7 +81,8 @@ mod minter {
 
             // [Update] Mint
             let mut mint = store.mint(to.into());
-            mint.add_mint(number, expiration_timestamp, get_block_timestamp());
+            let current_timestamp: u32 = get_block_timestamp().try_into().unwrap();
+            mint.add_mint(number, expiration_timestamp, current_timestamp);
             store.set_mint(mint);
         }
 
@@ -111,7 +112,7 @@ mod minter {
     impl InternalImpl of InternalTrait {
         /// This function is handy since the ByteArray can't be const.
         fn world_default(self: @ContractState) -> WorldStorage {
-            self.world(@"zkube")
+            self.world(crate::default_namespace())
         }
     }
 }

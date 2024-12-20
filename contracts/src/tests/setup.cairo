@@ -72,21 +72,25 @@ mod setup {
     fn PLAYER1() -> ContractAddress {
         starknet::contract_address_const::<'PLAYER1'>()
     }
+    const PLAYER1_ID: u32 = 1;
     const PLAYER1_NAME: felt252 = 'PLAYER1';
 
     fn PLAYER2() -> ContractAddress {
         starknet::contract_address_const::<'PLAYER2'>()
     }
+    const PLAYER2_ID: u32 = 2;
     const PLAYER2_NAME: felt252 = 'PLAYER2';
 
     fn PLAYER3() -> ContractAddress {
         starknet::contract_address_const::<'PLAYER3'>()
     }
+    const PLAYER3_ID: u32 = 3;
     const PLAYER3_NAME: felt252 = 'PLAYER3';
 
     fn PLAYER4() -> ContractAddress {
         starknet::contract_address_const::<'PLAYER4'>()
     }
+    const PLAYER4_ID: u32 = 4;
     const PLAYER4_NAME: felt252 = 'PLAYER4';
 
     #[derive(Drop)]
@@ -103,13 +107,17 @@ mod setup {
     #[derive(Drop)]
     struct Context {
         owner: ContractAddress,
-        player1_id: felt252,
+        player1_address: felt252,
+        player1_id: u32,
         player1_name: felt252,
-        player2_id: felt252,
+        player2_address: felt252,
+        player2_id: u32,
         player2_name: felt252,
-        player3_id: felt252,
+        player3_address: felt252,
+        player3_id: u32,
         player3_name: felt252,
-        player4_id: felt252,
+        player4_address: felt252,
+        player4_id: u32,
         player4_name: felt252,
         admin_id: felt252,
         admin_name: felt252,
@@ -174,10 +182,13 @@ mod setup {
                 TestResource::Model(models::m_Admin::TEST_CLASS_HASH),
                 TestResource::Model(models::m_Chest::TEST_CLASS_HASH),
                 TestResource::Model(models::m_Game::TEST_CLASS_HASH),
+                TestResource::Model(models::m_GamePrize::TEST_CLASS_HASH),
                 TestResource::Model(models::m_Participation::TEST_CLASS_HASH),
                 TestResource::Model(models::m_Player::TEST_CLASS_HASH),
+                TestResource::Model(models::m_PlayerInfo::TEST_CLASS_HASH),
                 TestResource::Model(models::m_Settings::TEST_CLASS_HASH),
                 TestResource::Model(models::m_Tournament::TEST_CLASS_HASH),
+                TestResource::Model(models::m_TournamentPrize::TEST_CLASS_HASH),
                 TestResource::Model(models::m_Mint::TEST_CLASS_HASH),
                 TestResource::Event(
                     arcade_trophy::events::index::e_TrophyCreation::TEST_CLASS_HASH
@@ -263,7 +274,7 @@ mod setup {
         let chest_system: ContractAddress = chest_address;
         let zkorp_system: ContractAddress = zkorp_address;
         let play_system: ContractAddress = play_address;
-        let settings_system: ContractAddress = settings_address;
+        let _settings_system: ContractAddress = settings_address;
         let minter_system: ContractAddress = minter_address;
         let erc721 = deploy_erc721(
             default_admin.into(),
@@ -331,13 +342,17 @@ mod setup {
 
         let context = Context {
             owner: owner,
-            player1_id: PLAYER1().into(),
+            player1_address: PLAYER1().into(),
+            player1_id: PLAYER1_ID,
             player1_name: PLAYER1_NAME,
-            player2_id: PLAYER2().into(),
+            player2_address: PLAYER2().into(),
+            player2_id: PLAYER2_ID,
             player2_name: PLAYER2_NAME,
-            player3_id: PLAYER3().into(),
+            player3_address: PLAYER3().into(),
+            player3_id: PLAYER3_ID,
             player3_name: PLAYER3_NAME,
-            player4_id: PLAYER4().into(),
+            player4_address: PLAYER4().into(),
+            player4_id: PLAYER4_ID,
             player4_name: PLAYER4_NAME,
             admin_id: ADMIN().into(),
             admin_name: ADMIN_NAME,

@@ -95,7 +95,7 @@ mod zkorp {
     impl InternalImpl of InternalTrait {
         /// This function is handy since the ByteArray can't be const.
         fn world_default(self: @ContractState) -> WorldStorage {
-            self.world(@"zkube")
+            self.world(crate::default_namespace())
         }
     }
 }

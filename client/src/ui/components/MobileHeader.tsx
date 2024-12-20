@@ -36,7 +36,7 @@ interface MobileHeaderProps {
 
 const MobileHeader = ({ onStartTutorial }: MobileHeaderProps) => {
   const { account } = useAccountCustom();
-  const { player } = usePlayer({ playerId: account?.address });
+  const { player } = usePlayer();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
