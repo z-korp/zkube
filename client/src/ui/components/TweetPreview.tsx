@@ -1,4 +1,10 @@
-import React, { ChangeEvent, useEffect, useRef, useState } from "react";
+import React, {
+  ChangeEvent,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,6 +12,7 @@ import {
   DialogTitle,
 } from "@/ui/elements/dialog";
 import useRank from "@/hooks/useRank";
+import { trackEvent } from "@/services/analytics";
 
 interface TweetPreviewProps {
   open: boolean;
@@ -48,7 +55,7 @@ Play now: app.zkube.xyz
   };
 
   // const textQuery = encodeURIComponent(
-  //   `Just had a blast on @zkorp_ 's zkube game but lost with a score of ${score} 😅. But I’m not giving up—next stop, Level ${Number(level) ? Number(level) + 1 : 1} \n\n🏆! Who’s ready to join me on this epic adventure? 🚀🚀 \n\n#GameOn #ChallengeAccepte\n\n`,
+  //   `Just had a blast on @zkorp_ 's zkube game but lost with a score of ${score} 😅. But I'm not giving up—next stop, Level ${Number(level) ? Number(level) + 1 : 1} \n\n🏆! Who's ready to join me on this epic adventure? 🚀🚀 \n\n#GameOn #ChallengeAccepte\n\n`,
   // );
   const tweetText = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetMsg)}&url=app.zkube.xyz`;
   useEffect(() => {
@@ -73,6 +80,14 @@ Play now: app.zkube.xyz
     }
   }, [imgSrc, bodyRef]);
 
+  const handleShare = useCallback(() => {
+    trackEvent("Share on X", {
+      score,
+      rank,
+      tournament_id: tournamentId,
+    });
+  }, [score, rank, tournamentId]);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
@@ -84,7 +99,7 @@ Play now: app.zkube.xyz
           <DialogTitle>Share Progress on X</DialogTitle>
         </DialogHeader>
         {/* <p className="mt-4">
-          Just had a blast on @zkorp_ 's zkube game but lost with a score of {score} at Level {level} 😅. But I’m not giving up—next stop, Level {Number(level) ? Number(level) + 1 : 1} <br />🏆! Who’s ready to join me on this epic adventure? 🚀🚀 \n\n#GameOn #ChallengeAccepte\n\n
+          Just had a blast on @zkorp_ 's zkube game but lost with a score of {score} at Level {level} 😅. But I'm not giving up—next stop, Level {Number(level) ? Number(level) + 1 : 1} <br />🏆! Who's ready to join me on this epic adventure? 🚀🚀 \n\n#GameOn #ChallengeAccepte\n\n
         </p> */}
         <textarea
           className="bg-transparent text-white border border-white outline-none p-2"
@@ -100,6 +115,7 @@ Play now: app.zkube.xyz
             href={tweetText}
             target="_blank"
             rel="noreferrer"
+            onClick={handleShare}
           >
             Share on X
           </a>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
 import { Progress } from "../elements/progress";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -12,6 +12,7 @@ import { useMediaQuery } from "react-responsive";
 import { DialogPrizePoolContributors } from "./DialogPrizePoolContributors";
 import { formatPrize } from "@/utils/price";
 import AnimatedChest from "./AnimatedChest";
+import { trackEvent } from "@/services/analytics";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -59,6 +60,23 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
   const handleNext = () => {
     setCurrentChestIndex((prev) => Math.min(chests.length - 1, prev + 1));
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      trackEvent("Collective Chests PageOpened", {
+        interface: isMdOrLarger ? "desktop" : "mobile",
+        current_chest_index: currentChestIndex,
+        collective_progress: collectiveProgress,
+        user_contribution: userContribution,
+      });
+    }
+  }, [
+    isOpen,
+    isMdOrLarger,
+    currentChestIndex,
+    collectiveProgress,
+    userContribution,
+  ]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

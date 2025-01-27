@@ -38,6 +38,7 @@ import {
 } from "@/ui/elements/alert-dialog";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import ImageAssets from "@/ui/theme/ImageAssets";
+import { trackEvent } from "@/services/analytics";
 
 interface GridProps {
   initialData: Block[];
@@ -115,6 +116,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     const [blockBonus, setBlockBonus] = useState<Block | null>(null);
     const [actionPerformed, setActionPerformed] = useState(false);
     const [bonusSelectWarning, setBonusSelectWarning] = useState(false);
+    const [startTime] = useState(Date.now());
 
     const { themeTemplate } = useTheme();
     const imgAssets = ImageAssets(themeTemplate);
@@ -621,8 +623,16 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           setDisabledTiki && setDisabledTiki(false);
           setHighlightedWave && setHighlightedWave(false);
           setDisabledWave && setDisabledWave(true);
+          trackEvent("Tutorial Completed", {
+            total_steps: tutorialStep,
+            time_spent: Date.now() - startTime,
+          });
           break;
         default:
+          trackEvent("Tutorial step", {
+            total_steps: tutorialStep,
+            time_spent: Date.now() - startTime,
+          });
           setHighlightedHammer && setHighlightedHammer(false);
           setDisabledHammer && setDisabledHammer(true);
           setHighlightedTiki && setHighlightedTiki(false);
