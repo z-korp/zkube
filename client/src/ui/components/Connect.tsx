@@ -3,19 +3,12 @@ import { motion } from "framer-motion";
 import { useMediaQuery } from "react-responsive";
 import { trackEvent } from "@/services/analytics";
 import { useCallback } from "react";
-import { Button } from "@/components/ui/button";
 
 interface connectProps {
   inMenu?: boolean;
-  buttonType: string;
-  textSize?: string;
 }
 
-const Connect: React.FC<connectProps> = ({
-  inMenu = false,
-  buttonType,
-  textSize = "lg",
-}) => {
+const Connect: React.FC<connectProps> = ({ inMenu = false }) => {
   const { connect, connectors } = useConnect();
   const { address, status } = useAccount();
   const isMediumOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
@@ -24,7 +17,7 @@ const Connect: React.FC<connectProps> = ({
     trackEvent("Connect Wallet Clicked", {
       interface: isMediumOrLarger ? "desktop" : "mobile",
     });
-    connect({ connector });
+    connect({ connector: connectors[0] });
   }, [isMediumOrLarger, connect]);
 
   if (status === "connected" && address) {

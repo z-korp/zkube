@@ -224,7 +224,7 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
         mode: mode,
         player_address: account?.address,
         player_name: player?.name,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       });
 
       showToast({
