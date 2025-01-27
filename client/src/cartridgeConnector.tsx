@@ -1,8 +1,11 @@
 import { Connector } from "@starknet-react/core";
 import ControllerConnector from "@cartridge/connector/controller";
 import { getContractByName } from "@dojoengine/core";
-import { ColorMode, ControllerOptions } from "@cartridge/controller";
-import SessionPolicies from "@cartridge/controller";
+import {
+  ColorMode,
+  ControllerOptions,
+  SessionPolicies,
+} from "@cartridge/controller";
 import { manifest } from "./config/manifest";
 import { constants } from "starknet";
 
