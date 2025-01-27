@@ -1,6 +1,14 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script src="https://cdn.amplitude.com/libs/analytics-browser-2.11.1-min.js.gz"></script>
+    <script src="https://cdn.amplitude.com/libs/plugin-session-replay-browser-1.8.0-min.js.gz"></script>
+    <script>
+      window.amplitude.add(window.sessionReplay.plugin({ sampleRate: 1 }));
+      window.amplitude.init("d1728945d6d91d929246800efb2338e4", {
+        autocapture: { elementInteractions: true },
+      });
+    </script>
     <meta charset="UTF-8" />
     <title>zKube</title>
     <meta
