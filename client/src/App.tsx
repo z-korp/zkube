@@ -4,7 +4,6 @@ import { Home } from "./ui/screens/Home";
 import { TooltipProvider } from "@/ui/elements/tooltip";
 import { useEffect } from "react";
 import { trackEvent } from "./services/analytics";
-import { Analytics } from "@vercel/analytics/next";
 
 export default function App() {
   useEffect(() => {
@@ -19,7 +18,6 @@ export default function App() {
           <Route path="/" element={<Home />} />
         </Routes>
         <Toaster position="bottom-right" />
-        <Analytics />
       </Router>
     </TooltipProvider>
   );

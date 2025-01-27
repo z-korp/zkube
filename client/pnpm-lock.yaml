@@ -9,11 +9,11 @@ dependencies:
     specifier: ^2.11.11
     version: 2.11.11
   '@cartridge/connector':
-    specifier: ^0.5.5
-    version: 0.5.5(get-starknet-core@4.0.0)(react@18.3.1)(typescript@5.6.2)
+    specifier: ^0.5.9
+    version: 0.5.9(get-starknet-core@4.0.0)(react@18.3.1)(typescript@5.6.2)
   '@cartridge/controller':
-    specifier: ^0.5.5
-    version: 0.5.5
+    specifier: ^0.5.9
+    version: 0.5.9
   '@dojoengine/core':
     specifier: 1.0.0
     version: 1.0.0(starknet@6.11.0)(typescript@5.6.2)
@@ -1761,14 +1761,14 @@ packages:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
 
-  /@cartridge/account-wasm@0.5.5:
-    resolution: {integrity: sha512-ZMfkYz+J8zrpxM+UJGf7IxKwmS0HcCFBSrdBD4Sa2h5cGxfoKiJ2RFeHFDKKgOAluMwO6X06S847pK+AI9UIpg==}
+  /@cartridge/account-wasm@0.5.9:
+    resolution: {integrity: sha512-mXHCBm981rj+LIDKb4qMnVBPqJLF6ZaEr9KttH99XH3MmuFyPPgNGupJBPUlxW0xocfxr4zoTnsSS0k7jK4bnA==}
     dev: false
 
-  /@cartridge/connector@0.5.5(get-starknet-core@4.0.0)(react@18.3.1)(typescript@5.6.2):
-    resolution: {integrity: sha512-EsnS09gdNAq7fr2CS/6IyOPxaFyzijBvqK5gQ6+tRQlVK7FwSb+dejIyaoUzxiKrK5tYWg6hrQKHad0kZyXvAQ==}
+  /@cartridge/connector@0.5.9(get-starknet-core@4.0.0)(react@18.3.1)(typescript@5.6.2):
+    resolution: {integrity: sha512-gBXMcPObxAJCWYBAczz0iJ6zM3jD1ZcUxhhH3qYPPZvR7Yqi7Yl7JqZaCp5S6+QeHvL61XiPumVGwUixWg3oBg==}
     dependencies:
-      '@cartridge/controller': 0.5.5
+      '@cartridge/controller': 0.5.9
       '@starknet-react/core': 3.6.0(get-starknet-core@4.0.0)(react@18.3.1)(starknet@6.11.0)(typescript@5.6.2)
       starknet: 6.11.0
     transitivePeerDependencies:
@@ -1780,10 +1780,10 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@cartridge/controller@0.5.5:
-    resolution: {integrity: sha512-obgYLgmBTGbx7d4WS/9NRvTDru22n0E1h8BFhlQIJbrCxoNhrVYtSeKrc1J1rrVkkVrepD2p/XzFLvJ/vp70wg==}
+  /@cartridge/controller@0.5.9:
+    resolution: {integrity: sha512-vaXV8Waep+XwMWXBJo+ajwb0RjBH9/oM//nHa+j66K1y12yelJBLLZOreYAdizuTb4OlfIp0rJx+pWVA8GfCKA==}
     dependencies:
-      '@cartridge/account-wasm': 0.5.5
+      '@cartridge/account-wasm': 0.5.9
       '@cartridge/penpal': 6.2.3
       '@starknet-io/types-js': 0.7.7
       '@telegram-apps/sdk': 2.5.2

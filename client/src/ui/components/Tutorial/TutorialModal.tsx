@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,18 +9,41 @@ import {
 import { Button } from "../../elements/button";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import { useTheme } from "../../elements/theme-provider/hooks";
+import { trackEvent } from "@/services/analytics";
+
 interface TutorialModalProps {
   isOpen: boolean;
   onClose: () => void;
   onStartTutorial: () => void;
+  buttonType?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
+  textSize?: "sm" | "md" | "lg";
+  inMenu?: boolean;
 }
-const TutorialModal = ({
+
+const TutorialModal: React.FC<TutorialModalProps> = ({
   isOpen,
   onClose,
   onStartTutorial,
-}: TutorialModalProps) => {
+  buttonType = "default",
+  textSize = "lg",
+  inMenu = false,
+}) => {
   const { themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
+
+  const handleStartTutorial = useCallback(() => {
+    trackEvent("Tutorial Started", {
+      from_menu: inMenu,
+    });
+    onStartTutorial();
+  }, [inMenu, onStartTutorial]);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[90%]">

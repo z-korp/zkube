@@ -15,6 +15,7 @@ import {
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useGeneralStore } from "@/stores/generalStore";
 import { cn } from "../utils";
+import { trackEvent } from "@/services/analytics";
 
 interface SurrenderProps {
   variant?:
@@ -48,7 +49,18 @@ export const Surrender: React.FC<SurrenderProps> = ({
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleClick = useCallback(async () => {
+  const handleSurrenderClick = useCallback(() => {
+    trackEvent("Surrender Clicked", {
+      game_mode: game?.mode,
+      game_state: "in_progress",
+    });
+  }, [game?.mode]);
+
+  const handleConfirmSurrender = useCallback(async () => {
+    trackEvent("Surrender Confirmed", {
+      game_mode: game?.mode,
+      game_state: "in_progress",
+    });
     setIsUnmounting(true);
     setIsLoading(true);
     try {
@@ -56,7 +68,14 @@ export const Surrender: React.FC<SurrenderProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [account, setIsUnmounting, surrender]);
+  }, [account, game?.mode, setIsUnmounting, surrender]);
+
+  const handleCancelSurrender = useCallback(() => {
+    trackEvent("Surrender Cancelled", {
+      game_mode: game?.mode,
+      game_state: "in_progress",
+    });
+  }, [game?.mode]);
 
   const disabled = useMemo(() => {
     return !account || !player || !game || game.over;
@@ -73,6 +92,7 @@ export const Surrender: React.FC<SurrenderProps> = ({
             isLoading={isLoading}
             variant={variant}
             className={cn("text-xl", className, red && "bg-red-600")}
+            onClick={handleSurrenderClick}
           >
             Surrender
           </Button>
@@ -87,14 +107,16 @@ export const Surrender: React.FC<SurrenderProps> = ({
 
           <div className="flex gap-4">
             <DialogClose asChild className="w-full">
-              <Button className="flex-1">No, Continue</Button>
+              <Button className="flex-1" onClick={handleCancelSurrender}>
+                No, Continue
+              </Button>
             </DialogClose>
             <DialogClose asChild className="w-full">
               <Button
                 variant="destructive"
                 disabled={isLoading}
                 isLoading={isLoading}
-                onClick={handleClick}
+                onClick={handleConfirmSurrender}
                 className="flex-1"
               >
                 Yes, Surrender

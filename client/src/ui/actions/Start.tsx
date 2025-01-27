@@ -15,6 +15,7 @@ import { useMediaQuery } from "react-responsive";
 import { erc721ABI } from "@/utils/erc721";
 import { useNftMint } from "@/hooks/useNftMint";
 import { showToast } from "@/utils/toast";
+import { trackEvent } from "@/services/analytics";
 
 const {
   VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
@@ -182,6 +183,15 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
         beta,
       } = await fetchVrfData();
 
+      // Track game start attempt
+      trackEvent("Game Start", {
+        mode: mode,
+        player_address: account?.address,
+        player_name: player?.name,
+        token_id: token_id.toString(),
+        is_free_mode: mode === ModeType.Free,
+      });
+
       // Start game
       await start({
         account: account as Account,
@@ -196,9 +206,27 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
         beta: beta,
       });
 
+      // Track successful game start
+      trackEvent("Game Started Successfully", {
+        mode: mode,
+        player_address: account?.address,
+        player_name: player?.name,
+        token_id: token_id.toString(),
+        is_free_mode: mode === ModeType.Free,
+      });
+
       handleGameMode();
     } catch (error) {
       console.error("Error during game start:", error);
+
+      // Track failed game start
+      trackEvent("Game Start Failed", {
+        mode: mode,
+        player_address: account?.address,
+        player_name: player?.name,
+        error: error.message,
+      });
+
       showToast({
         message: "Failed to start game",
         type: "error",
@@ -216,6 +244,7 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
     handleMint,
     start,
     handleGameMode,
+    player,
   ]);
 
   return (
