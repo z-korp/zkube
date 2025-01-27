@@ -1,8 +1,13 @@
 import { Connector } from "@starknet-react/core";
 import ControllerConnector from "@cartridge/connector/controller";
 import { getContractByName } from "@dojoengine/core";
-import { ColorMode, ControllerOptions } from "@cartridge/controller";
+import {
+  ColorMode,
+  ControllerOptions,
+  SessionPolicies,
+} from "@cartridge/controller";
 import { manifest } from "./config/manifest";
+import { constants } from "starknet";
 
 const {
   VITE_PUBLIC_GAME_TOKEN_ADDRESS,
@@ -48,75 +53,88 @@ const minter_contract_address = getContractByName(
   "minter",
 )?.address;
 
-console.log("account_contract_address", account_contract_address);
-console.log("play_contract_address", play_contract_address);
-console.log("chest_contract_address", chest_contract_address);
-console.log("tournament_contract_address", tournament_contract_address);
-
-const policies = [
-  // erc721
-  {
-    target: VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
-    method: "public_mint",
+const policies: SessionPolicies = {
+  contracts: {
+    [VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS]: {
+      methods: [
+        {
+          entrypoint: "public_mint",
+        },
+        {
+          entrypoint: "approve",
+        },
+      ],
+    },
+    [VITE_PUBLIC_GAME_TOKEN_ADDRESS]: {
+      methods: [
+        {
+          entrypoint: "approve",
+        },
+        {
+          entrypoint: "faucet",
+        },
+      ],
+    },
+    [account_contract_address]: {
+      methods: [
+        {
+          entrypoint: "create",
+        },
+        {
+          entrypoint: "rename",
+        },
+      ],
+    },
+    [play_contract_address]: {
+      methods: [
+        {
+          entrypoint: "create",
+        },
+        {
+          entrypoint: "surrender",
+        },
+        {
+          entrypoint: "move",
+        },
+        {
+          entrypoint: "apply_bonus",
+        },
+      ],
+    },
+    [chest_contract_address]: {
+      methods: [
+        {
+          entrypoint: "claim",
+        },
+      ],
+    },
+    [tournament_contract_address]: {
+      methods: [
+        {
+          entrypoint: "claim",
+        },
+      ],
+    },
+    [minter_contract_address]: {
+      methods: [
+        {
+          entrypoint: "claim_free_mint",
+        },
+      ],
+    },
   },
-  {
-    target: VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
-    method: "approve",
-  },
-  // erc20
-  {
-    target: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-    method: "approve",
-  },
-  {
-    target: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-    method: "faucet",
-  },
-  // account
-  {
-    target: account_contract_address,
-    method: "create",
-  },
-  {
-    target: account_contract_address,
-    method: "rename",
-  },
-  // play
-  {
-    target: play_contract_address,
-    method: "create",
-  },
-  {
-    target: play_contract_address,
-    method: "surrender",
-  },
-  {
-    target: play_contract_address,
-    method: "move",
-  },
-  {
-    target: play_contract_address,
-    method: "apply_bonus",
-  },
-  // chest
-  {
-    target: chest_contract_address,
-    method: "claim",
-  },
-  // tournament
-  {
-    target: tournament_contract_address,
-    method: "claim",
-  },
-  // minter
-  {
-    target: minter_contract_address,
-    method: "claim_free_mint",
-  },
-];
+};
 
 const options: ControllerOptions = {
-  rpc: VITE_PUBLIC_NODE_URL,
+  chains: [
+    {
+      rpcUrl: "https://api.cartridge.gg/x/starknet/sepolia",
+    },
+    {
+      rpcUrl: "https://api.cartridge.gg/x/starknet/mainnet",
+    },
+  ],
+  defaultChainId: constants.StarknetChainId.SN_MAIN,
   namespace,
   slot,
   policies,
