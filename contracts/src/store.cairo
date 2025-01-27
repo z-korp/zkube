@@ -57,12 +57,12 @@ impl StoreImpl of StoreTrait {
     }
 
     #[inline(always)]
-    fn tournament(self: Store, tournament_id: u32) -> Tournament {
+    fn tournament(self: Store, tournament_id: u64) -> Tournament {
         self.world.read_model(tournament_id)
     }
 
     #[inline(always)]
-    fn tournament_prize(self: Store, tournament_id: u32) -> TournamentPrize {
+    fn tournament_prize(self: Store, tournament_id: u64) -> TournamentPrize {
         self.world.read_model(tournament_id)
     }
 

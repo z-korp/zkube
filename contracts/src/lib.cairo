@@ -3,7 +3,7 @@ mod events;
 mod store;
 
 pub fn default_namespace() -> @ByteArray {
-    @"zkube3"
+    @"zkube4"
 }
 
 mod models {
@@ -93,6 +93,7 @@ mod systems {
     mod tournament;
     mod zkorp;
     mod minter;
+    mod test;
 }
 
 mod interfaces {

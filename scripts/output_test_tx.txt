@@ -1,0 +1,35 @@
+=== Transaction Analysis ===
+Attempting to fetch: https://sepolia.voyager.online/tx/0x02d0566680e58cbf78fdf8a542109693c4e8cfd3c396a8b4c363ffb67ddb518c
+Transaction Analysis
+Note: test_into_contract_felt_32
+Hash: 0x02d0566680e58cbf78fdf8a542109693c4e8cfd3c396a8b4c363ffb67ddb518c
+Network: sepolia
+
+Gas Consumed: 22 gas
+
+Execution Resources:
+  steps: 8,672
+  pedersen: 18
+  range_check: 219
+  ec_op: 3
+  poseidon: 3
+
+==================================================
+
+=== Transaction Analysis ===
+Attempting to fetch: https://sepolia.voyager.online/tx/0x001a413ab47585930edd940c37c43729e3a36236ca9b10759998f88f8ca40bbe
+Transaction Analysis
+Note: test_into_contract_felt_32
+Hash: 0x001a413ab47585930edd940c37c43729e3a36236ca9b10759998f88f8ca40bbe
+Network: sepolia
+
+Gas Consumed: 22 gas
+
+Execution Resources:
+  steps: 8,743
+  pedersen: 18
+  range_check: 220
+  ec_op: 3
+  poseidon: 3
+
+==================================================

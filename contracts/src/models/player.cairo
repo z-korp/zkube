@@ -27,7 +27,7 @@ mod errors {
 #[generate_trait]
 impl PlayerImpl of PlayerTrait {
     #[inline(always)]
-    fn new(id: u32, current_timestamp: u32) -> Player {
+    fn new(id: u32, current_timestamp: u64) -> Player {
         let current_day = Timestamp::timestamp_to_day(current_timestamp);
 
         // [Return] Player
@@ -42,8 +42,8 @@ impl PlayerImpl of PlayerTrait {
     }
 
     #[inline(always)]
-    fn update_daily_streak(ref self: Player, current_timestamp: u32) {
-        let current_day: u32 = Timestamp::timestamp_to_day(current_timestamp);
+    fn update_daily_streak(ref self: Player, current_timestamp: u64) {
+        let current_day: u64 = Timestamp::timestamp_to_day(current_timestamp);
 
         // Don't update if it's the same day
         if current_day == self.last_active_day {
@@ -63,7 +63,7 @@ impl PlayerImpl of PlayerTrait {
 
     #[inline(always)]
     fn update_points(
-        ref self: Player, base_points: u16, mode_multiplier: u32, current_timestamp: u32
+        ref self: Player, base_points: u16, mode_multiplier: u32, current_timestamp: u64
     ) -> u32 {
         // Get the current multiplier
         let daily_streak_multiplier = self.get_daily_streak_multiplier();
@@ -134,12 +134,13 @@ impl PlayerImpl of PlayerTrait {
 
     /// Calculates the account age multiplier based on the player's account creation day.
     #[inline(always)]
-    fn get_account_age_multiplier(self: Player, current_timestamp: u32) -> u32 {
+    fn get_account_age_multiplier(self: Player, current_timestamp: u64) -> u32 {
         let account_age = Timestamp::timestamp_to_day(current_timestamp)
             - self.account_creation_day;
 
         if account_age < 120 {
-            ACCOUNT_AGE_MULTIPLIER_START + (account_age.into() * ACCOUNT_AGE_MULTIPLIER_INCREMENT)
+            ACCOUNT_AGE_MULTIPLIER_START
+                + (account_age.try_into().unwrap() * ACCOUNT_AGE_MULTIPLIER_INCREMENT)
         } else {
             ACCOUNT_AGE_MULTIPLIER_CAP // Cap at 1.20x
         }
@@ -203,7 +204,7 @@ mod tests {
     use zkube::types::level::LevelTrait;
 
     // Helper function to convert day offset to timestamp
-    fn day_offset_to_timestamp(day_offset: u32) -> u32 {
+    fn day_offset_to_timestamp(day_offset: u64) -> u64 {
         day_offset * SECONDS_PER_DAY
     }
 
@@ -230,20 +231,20 @@ mod tests {
         let mut player = PlayerTrait::new(player_id, initial_timestamp);
 
         // Simulate consecutive logins for 10 days
-        let current_timestamp = day_offset_to_timestamp(initial_day_offset + 1_u32);
+        let current_timestamp = day_offset_to_timestamp(initial_day_offset + 1);
         player.update_daily_streak(current_timestamp);
         assert_eq!(player.daily_streak, 1_u16);
 
-        let current_timestamp = day_offset_to_timestamp(initial_day_offset + 2_u32);
+        let current_timestamp = day_offset_to_timestamp(initial_day_offset + 2);
         player.update_daily_streak(current_timestamp);
         assert_eq!(player.daily_streak, 2_u16);
 
-        let current_timestamp = day_offset_to_timestamp(initial_day_offset + 3_u32);
+        let current_timestamp = day_offset_to_timestamp(initial_day_offset + 3);
         player.update_daily_streak(current_timestamp);
         assert_eq!(player.daily_streak, 3_u16);
 
         // Skip days, should reset
-        let current_timestamp = day_offset_to_timestamp(initial_day_offset + 10_u32);
+        let current_timestamp = day_offset_to_timestamp(initial_day_offset + 10);
         player.update_daily_streak(current_timestamp);
         assert_eq!(player.daily_streak, 0_u16);
     }
@@ -259,9 +260,7 @@ mod tests {
         // Initial state check
         assert_eq!(player.daily_streak, 0, "Initial streak should be 0");
         assert_eq!(
-            player.last_active_day,
-            initial_day.try_into().unwrap(),
-            "Initial last_active_day should match creation day"
+            player.last_active_day, initial_day, "Initial last_active_day should match creation day"
         );
 
         // Same day login shouldn't affect streak
@@ -272,11 +271,7 @@ mod tests {
         let next_day_timestamp = day_offset_to_timestamp(initial_day + 1);
         player.update_daily_streak(next_day_timestamp);
         assert_eq!(player.daily_streak, 1, "Streak should increment after next day login");
-        assert_eq!(
-            player.last_active_day,
-            (initial_day + 1).try_into().unwrap(),
-            "last_active_day should update"
-        );
+        assert_eq!(player.last_active_day, (initial_day + 1), "last_active_day should update");
 
         // Another next day login should increment streak again
         let third_day_timestamp = day_offset_to_timestamp(initial_day + 2);

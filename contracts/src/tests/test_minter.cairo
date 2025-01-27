@@ -37,16 +37,14 @@ fn test_minter() {
 
     // [Assert] Initial state
     let mint = store.mint(PLAYER1().into());
-    mint.assert_has_mint_not_expired(get_block_timestamp().try_into().unwrap());
+    mint.assert_has_mint_not_expired(get_block_timestamp());
     assert_eq!(mint.number, 10);
 
     // Mint
     impersonate(PLAYER1());
     systems.minter.claim_free_mint();
     let mint = store.mint(PLAYER1().into());
-    assert(
-        !mint.has_mint_not_expired(get_block_timestamp().try_into().unwrap()), 'Mint should be 0'
-    );
+    assert(!mint.has_mint_not_expired(get_block_timestamp()), 'Mint should be 0');
 }
 //#[test]
 //fn test_minter_mint() {

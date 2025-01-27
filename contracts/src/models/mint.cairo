@@ -23,16 +23,16 @@ mod errors {
 
 #[generate_trait]
 impl MintImpl of MintTrait {
-    fn new(id: felt252, number: u32, expiration_timestamp: u32) -> Mint {
+    fn new(id: felt252, number: u32, expiration_timestamp: u64) -> Mint {
         Mint { id, number, expiration_timestamp }
     }
 
-    fn mint(ref self: Mint, current_timestamp: u32) {
+    fn mint(ref self: Mint, current_timestamp: u64) {
         self.assert_has_mint_not_expired(current_timestamp);
         self.number -= 1;
     }
 
-    fn add_mint(ref self: Mint, number: u32, expiration_timestamp: u32, current_timestamp: u32) {
+    fn add_mint(ref self: Mint, number: u32, expiration_timestamp: u64, current_timestamp: u64) {
         assert(current_timestamp < expiration_timestamp, errors::EXPIRATION_PAST);
 
         // If no mint or expired mint, set the new mint
@@ -51,7 +51,7 @@ impl MintImpl of MintTrait {
     }
 
     #[inline(always)]
-    fn has_mint_not_expired(self: Mint, current_timestamp: u32) -> bool {
+    fn has_mint_not_expired(self: Mint, current_timestamp: u64) -> bool {
         self.number > 0 && self.expiration_timestamp > current_timestamp
     }
 }
@@ -59,7 +59,7 @@ impl MintImpl of MintTrait {
 #[generate_trait]
 impl MintAssert of AssertTrait {
     #[inline(always)]
-    fn assert_has_mint_not_expired(self: Mint, current_timestamp: u32) {
+    fn assert_has_mint_not_expired(self: Mint, current_timestamp: u64) {
         assert(self.has_mint_not_expired(current_timestamp), errors::NO_MINT_REMAINING_OR_EXPIRED);
     }
 }
@@ -90,7 +90,7 @@ mod tests {
     use core::Zeroable;
 
     // Helper function to create a Mint instance
-    fn create_mint(id: felt252, number: u32, expiration_timestamp: u32) -> Mint {
+    fn create_mint(id: felt252, number: u32, expiration_timestamp: u64) -> Mint {
         Mint { id, number, expiration_timestamp }
     }
 

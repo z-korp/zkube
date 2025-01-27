@@ -7,7 +7,7 @@ use zkube::constants;
 #[generate_trait]
 impl Timestamp of TimestampTrait {
     #[inline(always)]
-    fn timestamp_to_day(timestamp: u32) -> u32 {
-        (timestamp / constants::SECONDS_PER_DAY).try_into().unwrap()
+    fn timestamp_to_day(timestamp: u64) -> u64 {
+        (timestamp / constants::SECONDS_PER_DAY)
     }
 }

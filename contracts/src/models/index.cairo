@@ -1,3 +1,5 @@
+use starknet::contract_address::ContractAddress;
+
 // Gas fees optimisation
 // u8: 2^8 - 1 = 255
 // u16: 2^16 - 1 = 65,535
@@ -21,9 +23,9 @@ pub struct Player {
     pub game_id: u32,
     pub points: u32,
     // Multipliers
-    pub last_active_day: u32, // Number of days since epoch
+    pub last_active_day: u64, // Number of days since epoch
     // Account age
-    pub account_creation_day: u32,
+    pub account_creation_day: u64,
     // Daily streak
     pub daily_streak: u16,
 // Total bits = 32 + 32 + 32 + 16 + 32 + 32 = 176 bits
@@ -77,7 +79,7 @@ struct Mint {
     #[key]
     pub id: felt252, // player_id (address)
     pub number: u32,
-    pub expiration_timestamp: u32,
+    pub expiration_timestamp: u64,
 } // 1 felt
 
 #[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]
@@ -130,20 +132,22 @@ struct Admin {
 pub struct Game {
     #[key]
     pub id: u32,
+    // ----------------------------------------
+    // Change every move
+    // ----------------------------------------
     pub seed: felt252,
     pub blocks: felt252, // 10 lines of 3x8 bits = 240 bits
-    // ------------------------
-    pub player_id: u32,
-    pub over: bool,
-    pub mode: u8,
+    pub next_row: u32, // 3x8 bits per row = 24 bits
     pub score: u16,
     pub moves: u16,
-    pub next_row: u32, // 3x8 bits per row = 24 bits
-    pub start_time: u32, // u32 -> max January 19, 2038
-    // Total = 32 + 1 + 8 + 16 + 16 + 32 + 32 = 137 bits
-    // ------------------------
-    // Bonuses
-    // 6x8 bits = 48 bits
+    // Total = 2 felts + 32+16*2 = 2 felts + 64 bits
+
+    // ----------------------------------------
+    // Can change when a move breaks lines
+    // ----------------------------------------
+    // Counters
+    pub combo_counter: u16,
+    pub max_combo: u8,
     // Bonuses usable during the game (start (0, 0, 0) and will evolve)
     pub hammer_bonus: u8,
     pub wave_bonus: u8,
@@ -152,12 +156,17 @@ pub struct Game {
     pub hammer_used: u8,
     pub wave_used: u8,
     pub totem_used: u8,
-    // Total = 137 + 8*6 = 185 bits
+    // Total = 8
     // ------------------------
-    pub combo_counter: u16,
-    pub max_combo: u8,
-    pub tournament_id: u32, // used to be u64 -> now u32 to save gas
-// Total = 185 + 16 + 8 + 32 = 241 bits
+
+    // ----------------------------------------
+    // Change once per game
+    // ----------------------------------------
+    pub start_time: u64,
+    pub tournament_id: u64,
+    pub player_id: u32,
+    pub mode: u8,
+    pub over: bool,
 } // 3 felts
 
 #[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]
@@ -168,6 +177,10 @@ pub struct GamePrize {
     pub pending_chest_prize: u128, // prize to be added to the right chest
 // the right chest is the one that is not complete and has the highest point_target
 // only known after the game is over
+
+// Total = 64 + 64 + 32 + 8 + 1 = 169 bits
+// ------------------------
+// Total = 169 + 128 = 297 bits
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]
@@ -180,4 +193,19 @@ pub struct GameAfterTournament {
     //pub combo_counter_outside_tournament: u16,
     pub max_combo_outside_tournament: u8,
 // ------------------------
+}
+
+#[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]
+#[dojo::model]
+pub struct TestModel {
+    #[key]
+    pub id: u32,
+    pub v_contract_address: ContractAddress,
+    pub v_felt: felt252,
+    pub v_u128: u128,
+    pub v_u64: u64,
+    pub v_u32: u32,
+    pub v_u16: u16,
+    pub v_u8: u8,
+    pub v_bool: bool,
 }

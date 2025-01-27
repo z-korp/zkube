@@ -29,7 +29,7 @@ mod errors {
 #[generate_trait]
 impl TournamentImpl of TournamentTrait {
     #[inline(always)]
-    fn compute_id(time: u32, duration: u32) -> u32 {
+    fn compute_id(time: u64, duration: u64) -> u64 {
         time / duration
     }
 
@@ -130,7 +130,7 @@ impl TournamentImpl of TournamentTrait {
     }
 
     #[inline(always)]
-    fn claim(ref self: Tournament, rank: u8, time: u32, duration: u32, prize: u128) -> u128 {
+    fn claim(ref self: Tournament, rank: u8, time: u64, duration: u64, prize: u128) -> u128 {
         // [Check] We already checked that player owns the game_id in system
 
         // [Check] Tournament is over
@@ -173,9 +173,9 @@ impl TournamentAssert of AssertTrait {
     }
 
     #[inline(always)]
-    fn assert_is_over(self: Tournament, time: u32, duration: u32) {
+    fn assert_is_over(self: Tournament, time: u64, duration: u64) {
         let id = TournamentImpl::compute_id(time, duration);
-        assert(id > self.id, errors::TOURNAMENT_NOT_OVER);
+        assert(id > self.id.into(), errors::TOURNAMENT_NOT_OVER);
     }
 }
 

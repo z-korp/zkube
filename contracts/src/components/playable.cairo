@@ -187,7 +187,7 @@ mod PlayableComponent {
             ref game: Game,
         ) {
             // [Effect] Update tournament
-            let time: u32 = get_block_timestamp().try_into().unwrap();
+            let time = get_block_timestamp();
             let tournament_id = TournamentImpl::compute_id(game.start_time, game.duration());
             let id_end = TournamentImpl::compute_id(time, game.duration());
             if tournament_id == id_end {
@@ -213,7 +213,7 @@ mod PlayableComponent {
             let base_points = game.score;
 
             // [Effect] Update player
-            let current_timestamp: u32 = get_block_timestamp().try_into().unwrap();
+            let current_timestamp = get_block_timestamp();
             player.update_daily_streak(current_timestamp);
 
             let mode: Mode = game.mode.into();

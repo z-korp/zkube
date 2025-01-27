@@ -41,8 +41,6 @@ mod ManageableComponent {
             let player_info = store.player_info(caller.into());
             player_info.assert_not_exists();
 
-            let timestamp: u32 = get_block_timestamp().try_into().unwrap();
-
             // [Effect] Create a new player
             let player_id: u32 = world.dispatcher.uuid() + 1;
             let player_info = PlayerInfoTrait::new(caller.into(), player_id, name);
@@ -53,7 +51,7 @@ mod ManageableComponent {
             // in other models such as Game or Tournament
             store.set_player_info(player_info);
 
-            let player = PlayerTrait::new(player_id, timestamp);
+            let player = PlayerTrait::new(player_id, get_block_timestamp());
             // player store the player data such as points, streaks, etc.
             // only light data (u32, u8, etc.)
             store.set_player(player);

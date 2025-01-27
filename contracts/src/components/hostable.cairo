@@ -71,7 +71,7 @@ mod HostableComponent {
             beta: felt252,
             mode: Mode,
             price: u256,
-        ) -> (u32, u32, u128, u128, u128, u128) {
+        ) -> (u32, u64, u128, u128, u128, u128) {
             // [Setup] Datastore
             let store: Store = StoreTrait::new(world);
 
@@ -104,7 +104,7 @@ mod HostableComponent {
 
             // [Effect] Create game
             let game_id: u32 = world.dispatcher.uuid() + 1;
-            let time: u32 = get_block_timestamp().try_into().unwrap();
+            let time = get_block_timestamp();
             let mut game = GameTrait::new(game_id, player_id, beta, mode: mode.into(), time: time,);
 
             // [Effect] Create tournament if not existing

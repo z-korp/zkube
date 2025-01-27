@@ -15,11 +15,11 @@ use zkube::store::{Store, StoreTrait};
 
 #[starknet::interface]
 trait ITournamentSystem<T> {
-    fn claim(ref self: T, mode: Mode, tournament_id: u32, rank: u8);
+    fn claim(ref self: T, mode: Mode, tournament_id: u64, rank: u8);
     fn sponsor_from(
-        ref self: T, tournament_id: u32, mode: Mode, amount: u128, caller: ContractAddress
+        ref self: T, tournament_id: u64, mode: Mode, amount: u128, caller: ContractAddress
     );
-    fn sponsor(ref self: T, tournament_id: u32, mode: Mode, amount: u128);
+    fn sponsor(ref self: T, tournament_id: u64, mode: Mode, amount: u128);
 }
 
 #[dojo::contract]
@@ -74,7 +74,7 @@ mod tournament {
     // Implementations
     #[abi(embed_v0)]
     impl TournamentSystemImpl of ITournamentSystem<ContractState> {
-        fn claim(ref self: ContractState, mode: Mode, tournament_id: u32, rank: u8) {
+        fn claim(ref self: ContractState, mode: Mode, tournament_id: u64, rank: u8) {
             // [Setup] Datastore
             let mut world = self.world_default();
             let store: Store = StoreTrait::new(world);
@@ -89,7 +89,7 @@ mod tournament {
             tournament.assert_exists();
 
             // [Effect] Update claim
-            let time: u32 = get_block_timestamp().try_into().unwrap();
+            let time = get_block_timestamp();
             // Get the game_id of the player at the rank
             let game_id = tournament.game_at_rank(rank);
             // From the game_id, get the game to retrieve the player_id
@@ -107,7 +107,7 @@ mod tournament {
 
         fn sponsor_from(
             ref self: ContractState,
-            tournament_id: u32,
+            tournament_id: u64,
             mode: Mode,
             amount: u128,
             caller: ContractAddress
@@ -117,7 +117,7 @@ mod tournament {
             let store: Store = StoreTrait::new(world);
 
             // [Check] Tournament exists
-            let time = get_block_timestamp().try_into().unwrap();
+            let time = get_block_timestamp();
             let tournament_id = TournamentImpl::compute_id(time, mode.duration());
 
             let mut tournament_prize = store.tournament_prize(tournament_id);
@@ -132,7 +132,7 @@ mod tournament {
             self.payable._pay(caller, amount.into());
         }
 
-        fn sponsor(ref self: ContractState, tournament_id: u32, mode: Mode, amount: u128) {
+        fn sponsor(ref self: ContractState, tournament_id: u64, mode: Mode, amount: u128) {
             self.sponsor_from(tournament_id, mode, amount, get_caller_address());
         }
     }

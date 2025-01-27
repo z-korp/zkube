@@ -7,7 +7,7 @@ use dojo::world::WorldStorage;
 #[starknet::interface]
 trait IMinter<T> {
     fn claim_free_mint(ref self: T);
-    fn add_free_mint(ref self: T, to: ContractAddress, number: u32, expiration_timestamp: u32);
+    fn add_free_mint(ref self: T, to: ContractAddress, number: u32, expiration_timestamp: u64);
     fn update_game_price(ref self: T, price: u256);
 }
 
@@ -46,7 +46,7 @@ mod minter {
             let settings = store.settings();
             let mut mint = store.mint(caller.into());
 
-            let current_timestamp: u32 = get_block_timestamp().try_into().unwrap();
+            let current_timestamp: u64 = get_block_timestamp();
             let total_mints = mint.number;
             let mut i = 0;
             loop {
@@ -70,7 +70,7 @@ mod minter {
         /// Add free mint to a user
         /// Only admin can free mint
         fn add_free_mint(
-            ref self: ContractState, to: ContractAddress, number: u32, expiration_timestamp: u32
+            ref self: ContractState, to: ContractAddress, number: u32, expiration_timestamp: u64
         ) {
             // [Check] Only admin can update settings
             let caller = get_caller_address();
@@ -81,7 +81,7 @@ mod minter {
 
             // [Update] Mint
             let mut mint = store.mint(to.into());
-            let current_timestamp: u32 = get_block_timestamp().try_into().unwrap();
+            let current_timestamp = get_block_timestamp();
             mint.add_mint(number, expiration_timestamp, current_timestamp);
             store.set_mint(mint);
         }

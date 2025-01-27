@@ -33,7 +33,7 @@ mod errors {
 #[generate_trait]
 impl GameImpl of GameTrait {
     #[inline(always)]
-    fn new(id: u32, player_id: u32, seed: felt252, mode: Mode, time: u32,) -> Game {
+    fn new(id: u32, player_id: u32, seed: felt252, mode: Mode, time: u64,) -> Game {
         let difficulty = mode.difficulty();
         let game_seed = mode.seed(time, id, seed);
         let row = Controller::create_line(game_seed, difficulty);
@@ -61,7 +61,7 @@ impl GameImpl of GameTrait {
     }
 
     #[inline(always)]
-    fn duration(self: Game) -> u32 {
+    fn duration(self: Game) -> u64 {
         let mode: Mode = self.mode.into();
         mode.duration()
     }

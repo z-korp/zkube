@@ -18,6 +18,7 @@ mainnet = "sozo --profile mainnet clean && sozo --profile mainnet build && sozo 
 
 inspect-slotdev = "sozo --profile slotdev clean && sozo --profile slotdev build && sozo --profile slotdev inspect"
 inspect-sepoliadev1 = "sozo --profile sepoliadev1 clean && sozo --profile sepoliadev1 build && sozo --profile sepoliadev1 inspect"
+inspect-sepoliadev2 = "sozo --profile sepoliadev2 clean && sozo --profile sepoliadev2 build && sozo --profile sepoliadev2 inspect"
 inspect-mainnet = "sozo --profile mainnet clean && sozo --profile mainnet build && sozo --profile mainnet inspect"
 
 [dependencies]

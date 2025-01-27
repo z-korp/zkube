@@ -13,29 +13,30 @@ github = "https://github.com/dojoengine/dojo-starter"
 telegram = "https://t.me/dojoengine"
 
 [namespace]
-default = "zkube3"
+default = "zkube4"
 
 [env]
 rpc_url = "https://api.cartridge.gg/x/starknet/sepolia"
 account_address = "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7"
 
 [init_call_args]
-"zkube3-chest" = ["0x021d1aa0b2c3413f0b8a1c14ddcdbaf404debfb0d4d858d0bb6ccb48ec1c0c51"]
-"zkube3-settings" = ["0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b", "0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b"]
-"zkube3-tournament" = ["0x021d1aa0b2c3413f0b8a1c14ddcdbaf404debfb0d4d858d0bb6ccb48ec1c0c51"]
-"zkube3-zkorp" = ["0x021d1aa0b2c3413f0b8a1c14ddcdbaf404debfb0d4d858d0bb6ccb48ec1c0c51"]
+"zkube4-chest" = ["0x021d1aa0b2c3413f0b8a1c14ddcdbaf404debfb0d4d858d0bb6ccb48ec1c0c51"]
+"zkube4-settings" = ["0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b", "0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b"]
+"zkube4-tournament" = ["0x021d1aa0b2c3413f0b8a1c14ddcdbaf404debfb0d4d858d0bb6ccb48ec1c0c51"]
+"zkube4-zkorp" = ["0x021d1aa0b2c3413f0b8a1c14ddcdbaf404debfb0d4d858d0bb6ccb48ec1c0c51"]
 
 [writers]
-"zkube3-Admin" = ["zkube3-settings"]
-"zkube3-Chest" = ["zkube3-chest", "zkube3-play"]
-"zkube3-Game" = ["zkube3-play"]
-"zkube3-GamePrize" = ["zkube3-play"]
-"zkube3-Mint" = ["zkube3-minter"]
-"zkube3-Participation" = ["zkube3-chest", "zkube3-play"]
-"zkube3-Player" = ["zkube3-account", "zkube3-play"]
-"zkube3-PlayerInfo" = ["zkube3-account", "zkube3-play"]
-"zkube3-Settings" = ["zkube3-minter", "zkube3-settings"]
-"zkube3-Tournament" = ["zkube3-play", "zkube3-tournament"]
-"zkube3-TournamentPrize" = ["zkube3-play", "zkube3-tournament"]
-"zkube3-TrophyCreation" = ["zkube3-settings"]
-"zkube3-TrophyProgression" = ["zkube3-play"]
+"zkube4-Admin" = ["zkube4-settings"]
+"zkube4-Chest" = ["zkube4-chest", "zkube4-play"]
+"zkube4-Game" = ["zkube4-play"]
+"zkube4-GamePrize" = ["zkube4-play"]
+"zkube4-Mint" = ["zkube4-minter"]
+"zkube4-Participation" = ["zkube4-chest", "zkube4-play"]
+"zkube4-Player" = ["zkube4-account", "zkube4-play"]
+"zkube4-PlayerInfo" = ["zkube4-account", "zkube4-play"]
+"zkube4-Settings" = ["zkube4-minter", "zkube4-settings"]
+"zkube4-Tournament" = ["zkube4-play", "zkube4-tournament"]
+"zkube4-TournamentPrize" = ["zkube4-play", "zkube4-tournament"]
+"zkube4-TrophyCreation" = ["zkube4-settings"]
+"zkube4-TrophyProgression" = ["zkube4-play"]
+"zkube4-TestModel" = ["zkube4-test"]
