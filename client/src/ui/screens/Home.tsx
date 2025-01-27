@@ -42,6 +42,7 @@ import HeaderBalance from "../components/HeaderBalance";
 import { useDojo } from "@/dojo/useDojo";
 import { getSyncEntities } from "@dojoengine/state";
 import * as torii from "@dojoengine/torii-client";
+import { trackEvent } from "@/services/analytics";
 
 export const Home = () => {
   useViewport();
@@ -209,15 +210,6 @@ export const Home = () => {
 
     return () => clearTimeout(timer);
   }, []);
-
-  // Handlers for mobile buttons
-  const handlePlay = () => {
-    setIsGameOn("isOn"); // Start the game
-  };
-
-  const handleTournaments = () => {
-    setIsTournamentsOpen(true); // Open Tournaments modal
-  };
 
   const [chestIsOpen, setChestIsOpen] = useState(false);
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
@@ -413,7 +405,15 @@ export const Home = () => {
                         {!isTournamentsOpen && (
                           <Dialog>
                             <DialogTrigger asChild>
-                              <Button className="text-md md:text-2xl mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg">
+                              <Button
+                                className="text-md md:text-2xl mt-2 md:p-4 p-2 bg-primary text-secondary rounded-lg"
+                                onClick={() =>
+                                  trackEvent("Feedback Button Clicked", {
+                                    reward: "STRK",
+                                    source: "game_over_screen",
+                                  })
+                                }
+                              >
                                 Give feedback and get a chance to win STRK
                               </Button>
                             </DialogTrigger>

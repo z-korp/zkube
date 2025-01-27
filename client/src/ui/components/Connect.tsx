@@ -1,15 +1,31 @@
 import { useConnect, useAccount } from "@starknet-react/core";
 import { motion } from "framer-motion";
 import { useMediaQuery } from "react-responsive";
+import { trackEvent } from "@/services/analytics";
+import { useCallback } from "react";
+import { Button } from "@/components/ui/button";
 
 interface connectProps {
   inMenu?: boolean;
+  buttonType: string;
+  textSize?: string;
 }
 
-const Connect = ({ inMenu = false }: connectProps) => {
+const Connect: React.FC<connectProps> = ({
+  inMenu = false,
+  buttonType,
+  textSize = "lg",
+}) => {
   const { connect, connectors } = useConnect();
   const { address, status } = useAccount();
   const isMediumOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
+
+  const handleConnect = useCallback(() => {
+    trackEvent("Connect Wallet Clicked", {
+      interface: isMediumOrLarger ? "desktop" : "mobile",
+    });
+    connect({ connector });
+  }, [isMediumOrLarger, connect]);
 
   if (status === "connected" && address) {
     return null;
@@ -39,9 +55,7 @@ const Connect = ({ inMenu = false }: connectProps) => {
               repeat: Infinity,
               repeatDelay: 1,
             }}
-            onClick={() => {
-              connect({ connector });
-            }}
+            onClick={handleConnect}
             className={`${!inMenu ? `cursor-pointer p-2 text-black bg-blue-500 font-bold ${!isMediumOrLarger ? "rounded-none border-4 border-black" : "rounded-lg"}` : "cursor-pointer p-2 border-2 rounded-lg font-bold"}`}
           >
             Connect

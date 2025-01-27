@@ -1,4 +1,4 @@
-import React, { useState, memo } from "react";
+import React, { useState, memo, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,7 @@ import useTournament from "@/hooks/useTournament";
 import { formatPrize } from "@/utils/price";
 import { ContentTournament } from "../components/Leaderboard/ContentTournament";
 import { ContentFree } from "../components/Leaderboard/ContentFree";
+import { trackEvent } from "@/services/analytics";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -75,12 +76,20 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
 }) => {
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
+  const handleOpenLeaderboard = useCallback(() => {
+    trackEvent("Leaderboard Opened", {
+      interface: isMdOrLarger ? "desktop" : "mobile",
+      from_menu: inMenu,
+    });
+  }, [isMdOrLarger, inMenu]);
+
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button
           variant={buttonType}
           className={`w-full text-${textSize} ${!isMdOrLarger && !inMenu && "py-6 border-4 rounded-none bg-sky-200 font-sans"}`}
+          onClick={handleOpenLeaderboard}
         >
           Leaderboards
         </Button>
@@ -116,10 +125,22 @@ export const LeaderboardContent: React.FC = () => {
     id: normalTournamentId,
   } = useTournament(ModeType.Normal);
 
+  const handleTabChange = useCallback(
+    (newTab: ModeType) => {
+      trackEvent("Leaderboard Tab Changed", {
+        previous_tab: activeTab,
+        new_tab: newTab,
+        interface: isMdorLarger ? "desktop" : "mobile",
+      });
+      setActiveTab(newTab);
+    },
+    [activeTab, isMdorLarger],
+  );
+
   return (
     <Tabs
       value={activeTab}
-      onValueChange={(value) => setActiveTab(value as ModeType)}
+      onValueChange={(value) => handleTabChange(value as ModeType)}
     >
       <TabList
         activeTab={activeTab}
