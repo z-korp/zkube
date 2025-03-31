@@ -68,10 +68,20 @@ struct Settings {
     pub is_set: bool,
     pub game_price: u256,
     pub zkorp_address: felt252,
-    pub erc721_address: felt252,
+    pub erc721_address: felt252, // no longer needed (same as contract address)
     // In case we need to pause the game
-    pub are_games_paused: bool,
-    pub are_chests_unlock: bool,
+    pub are_games_paused: bool, // no longer needed
+    pub are_chests_unlock: bool, // no longer needed
+}
+
+#[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]
+#[dojo::model]
+struct GameSettings {
+    #[key]
+    pub id: u8,
+    pub mode: u8,
+    pub time: u64,
+    pub difficulty: u8,
 }
 
 // no longer needed

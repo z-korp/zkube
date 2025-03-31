@@ -105,7 +105,7 @@ mod play {
         self
             .game
             .initializer(
-                creator_address,
+                ZKUBE_MULTISIG(),
                 'zKube',
                 "Dark Shuffle is a turn-based, collectible card game. Build your deck, battle monsters, and explore a procedurally generated world.",
                 'zKorp',
@@ -115,7 +115,7 @@ mod play {
                 DEFAULT_NS(),
                 'Game',
                 'score',
-                'Settings',
+                'Game Settings',
             );
     }
 
@@ -134,7 +134,7 @@ mod play {
         fn score(self: @ContractState, game_id: u64) -> u32 {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(game_id);
-            game.hero_xp.into()
+            game.score.into()
         }
     }
 
