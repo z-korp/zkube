@@ -101,13 +101,14 @@ mod play {
     // Constructor
 
     fn dojo_init(ref self: ContractState) {
+        let mut world = self.world_default();
         self.erc721.initializer("zKube Games", "ZKUBE", "zkube.games");
         self
             .game
             .initializer(
                 ZKUBE_MULTISIG(),
                 'zKube',
-                "Dark Shuffle is a turn-based, collectible card game. Build your deck, battle monsters, and explore a procedurally generated world.",
+                "zKube is an engaging puzzle game that puts players' strategic thinking to the test. Set within a dynamic grid, the objective is simple: manipulate blocks to form solid lines and earn points.",
                 'zKorp',
                 'zKorp',
                 'Strategy',
@@ -117,6 +118,7 @@ mod play {
                 'score',
                 'Game Settings',
             );
+        world.write_model(GET_DEFAULT_SETTINGS());
     }
 
     // Required Game Standard implementations

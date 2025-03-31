@@ -79,9 +79,10 @@ struct Settings {
 struct GameSettings {
     #[key]
     pub id: u8,
-    pub mode: u8,
-    pub time: u64,
     pub difficulty: u8,
+    pub hammer_bonus: u8,
+    pub wave_bonus: u8,
+    pub totem_bonus: u8,
 }
 
 // no longer needed
