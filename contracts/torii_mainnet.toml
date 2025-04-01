@@ -1,0 +1,8 @@
+explorer = false
+
+[indexing]
+transactions = true
+
+[events]
+raw = true
+historical = ["zkube-TrophyProgression"]
