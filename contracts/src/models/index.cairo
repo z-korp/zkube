@@ -1,3 +1,5 @@
+
+// no longer needed
 #[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]
 #[dojo::model]
 pub struct Player {
@@ -39,52 +41,23 @@ pub struct Game {
     pub blocks: felt252,
     pub player_id: felt252,
     pub seed: felt252,
-    pub mode: u8,
-    pub start_time: u64,
-    pub tournament_id: u64,
+    pub mode: u8, // move to settings?
+    pub start_time: u64, // no longer needed
+    pub tournament_id: u64, // no longer needed
     // ------------------------
-    pub score_in_tournament: u32,
-    pub combo_counter_in_tournament: u8,
-    pub max_combo_in_tournament: u8,
+    pub score_in_tournament: u32, // no longer needed
+    pub combo_counter_in_tournament: u8, // no longer needed
+    pub max_combo_in_tournament: u8, // no longer needed
     // ------------------------
-    pub pending_chest_prize: u128, // prize to be added to the right chest
+    pub pending_chest_prize: u128, // no longer needed
+    // prize to be added to the right chest
     // the right chest is the one that is not complete and has the highest point_target
     // only known after the game is over
 
     // ------------------------
     // added to patch the max combo u8 limit
     pub combo_counter_2: u16,
-    pub combo_counter_in_tournament_2: u16,
-}
-
-#[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]
-#[dojo::model]
-struct Tournament {
-    #[key]
-    pub id: u64,
-    pub is_set: bool,
-    pub prize: u128,
-    pub top1_player_id: felt252,
-    pub top2_player_id: felt252,
-    pub top3_player_id: felt252,
-    pub top1_score: u32,
-    pub top2_score: u32,
-    pub top3_score: u32,
-    pub top1_claimed: bool,
-    pub top2_claimed: bool,
-    pub top3_claimed: bool,
-    pub top1_game_id: u32,
-    pub top2_game_id: u32,
-    pub top3_game_id: u32,
-}
-
-#[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]
-#[dojo::model]
-struct Mint {
-    #[key]
-    pub id: felt252, // player_id (address)
-    pub number: u32,
-    pub expiration_timestamp: u64,
+    pub combo_counter_in_tournament_2: u16, // no longer needed
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]
@@ -95,22 +68,24 @@ struct Settings {
     pub is_set: bool,
     pub game_price: u256,
     pub zkorp_address: felt252,
-    pub erc721_address: felt252,
+    pub erc721_address: felt252, // no longer needed (same as contract address)
     // In case we need to pause the game
-    pub are_games_paused: bool,
-    pub are_chests_unlock: bool,
+    pub are_games_paused: bool, // no longer needed
+    pub are_chests_unlock: bool, // no longer needed
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]
 #[dojo::model]
-struct Chest {
+struct GameSettings {
     #[key]
-    pub id: u32,
-    pub point_target: u32,
-    pub points: u32,
-    pub prize: u128,
+    pub id: u8,
+    pub difficulty: u8,
+    pub hammer_bonus: u8,
+    pub wave_bonus: u8,
+    pub totem_bonus: u8,
 }
 
+// no longer needed
 #[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]
 #[dojo::model]
 struct Participation {
@@ -121,12 +96,4 @@ struct Participation {
     pub is_set: bool,
     pub points: u32,
     pub claimed: bool,
-}
-
-#[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]
-#[dojo::model]
-struct Admin {
-    #[key]
-    pub id: felt252,
-    pub is_set: bool,
 }

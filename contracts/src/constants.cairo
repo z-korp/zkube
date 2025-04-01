@@ -61,3 +61,25 @@ const ACCOUNT_AGE_MULTIPLIER_CAP: u32 = 1_200_000; // 1.20x cap for accounts old
 // Game mode
 const GAME_MODE_PAID_MULTIPLIER: u32 = 1_500_000; // 1.50x if paid game
 const GAME_MODE_FREE_MULTIPLIER: u32 = 1_000_000; // 1.00x if free game
+
+use zkube::types::difficulty::Difficulty;
+
+// SETTINGS
+pub mod DEFAULT_SETTINGS {
+    use darkshuffle::models::config::GameSettings;
+
+    const Difficulty: Difficulty = Difficulty::Easy;
+    const HammerBonus: u8 = 0;
+    const WaveBonus: u8 = 0;
+    const TotemBonus: u8 = 0;
+
+    fn GET_DEFAULT_SETTINGS() -> @GameSettings {
+        @GameSettings {
+            settings_id: 0,
+            difficulty: Difficulty.into(),
+            hammer_bonus: HammerBonus,
+            wave_bonus: WaveBonus,
+            totem_bonus: TotemBonus,
+        }
+    }
+}

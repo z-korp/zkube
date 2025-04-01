@@ -26,6 +26,7 @@ alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria",
 arcade_trophy = { git = "https://github.com/cartridge-gg/arcade", tag = "v1.0.1" }
 origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.0.1" }
 stark_vrf = { git = "https://github.com/dojoengine/stark-vrf", rev = "5a9e81e" }
+tournaments = { git = "https://github.com/Provable-Games/tournaments.git" }
 
 [[target.starknet-contract]]
 build-external-contracts = [

@@ -47,6 +47,13 @@ mod play {
         ierc721_game_credits, IERC721GameCreditsDispatcherTrait
     };
 
+    // Game standard implementations
+    use tournaments::components::game::game_component;
+    use tournaments::components::interfaces::{IGameDetails, IGameToken, ISettings};
+    use tournaments::components::libs::lifecycle::{LifecycleAssertionsImpl, LifecycleAssertionsTrait};
+    use tournaments::components::models::game::{TokenMetadata};
+    use tournaments::components::models::lifecycle::{Lifecycle};
+
     // Local imports
 
     use super::{
@@ -60,6 +67,11 @@ mod play {
     impl HostableInternalImpl = HostableComponent::InternalImpl<ContractState>;
     component!(path: PlayableComponent, storage: playable, event: PlayableEvent);
     impl PlayableInternalImpl = PlayableComponent::InternalImpl<ContractState>;
+    component!(path: game_component, storage: game, event: GameEvent);
+
+    #[abi(embed_v0)]
+    impl GameImpl = game_component::GameImpl<ContractState>;
+    impl GameInternalImpl = game_component::InternalImpl<ContractState>;
 
     // Storage
 
@@ -69,6 +81,8 @@ mod play {
         hostable: HostableComponent::Storage,
         #[substorage(v0)]
         playable: PlayableComponent::Storage,
+        #[substorage(v0)]
+        game: game_component::Storage,
     }
 
     // Events
@@ -80,11 +94,51 @@ mod play {
         HostableEvent: HostableComponent::Event,
         #[flat]
         PlayableEvent: PlayableComponent::Event,
+        #[flat]
+        GameEvent: GameComponent::Event,
     }
 
     // Constructor
 
-    fn dojo_init(ref self: ContractState) {}
+    fn dojo_init(ref self: ContractState) {
+        let mut world = self.world_default();
+        self.erc721.initializer("zKube Games", "ZKUBE", "zkube.games");
+        self
+            .game
+            .initializer(
+                ZKUBE_MULTISIG(),
+                'zKube',
+                "zKube is an engaging puzzle game that puts players' strategic thinking to the test. Set within a dynamic grid, the objective is simple: manipulate blocks to form solid lines and earn points.",
+                'zKorp',
+                'zKorp',
+                'Strategy',
+                "https://zkube.vercel.app/assets/pwa-512x512.png",
+                DEFAULT_NS(),
+                'Game',
+                'score',
+                'Game Settings',
+            );
+        world.write_model(GET_DEFAULT_SETTINGS());
+    }
+
+    // Required Game Standard implementations
+    #[abi(embed_v0)]
+    impl SettingsImpl of ISettings<ContractState> {
+        fn setting_exists(self: @ContractState, settings_id: u32) -> bool {
+            let world: WorldStorage = self.world(@DEFAULT_NS());
+            let settings: GameSettings = world.read_model(settings_id);
+            settings.exists()
+        }
+    }
+
+    #[abi(embed_v0)]
+    impl GameDetailsImpl of IGameDetails<ContractState> {
+        fn score(self: @ContractState, game_id: u64) -> u32 {
+            let world: WorldStorage = self.world(@DEFAULT_NS());
+            let game: Game = world.read_model(game_id);
+            game.score.into()
+        }
+    }
 
     // Implementations
 
@@ -93,10 +147,10 @@ mod play {
         fn create(
             ref self: ContractState,
             token_id: u256,
-            mode: Mode,
-            proof: Proof,
-            seed: felt252,
-            beta: felt252,
+            mode: Mode, // handle in settings?
+            proof: Proof, // replace with cartridge vrf?
+            seed: felt252, // replace with cartridge vrf?
+            beta: felt252, // replace with cartridge vrf?
         ) -> u32 {
             let mut world = self.world_default();
             let store = StoreTrait::new(world);
@@ -104,24 +158,6 @@ mod play {
             let settings = store.settings();
             // [Check] Games are not paused
             settings.assert_are_games_unpaused();
-
-            let erc721_address: ContractAddress = settings.erc721_address.try_into().unwrap();
-            let erc721 = ierc721_game_credits(erc721_address);
-
-            // [Interaction] Pay entry price
-            // [Check] Player exists
-            let caller = get_caller_address();
-
-            let price = if mode != Mode::Free {
-                // [Check] Player owns the token
-                let owner = erc721.owner_of(token_id);
-                assert(caller == owner, 'Not nft owner');
-
-                // [Get] Entry price
-                erc721.get_purchase_price(token_id)
-            } else {
-                0
-            };
 
             // [Effect] Create a game
             let (
@@ -135,25 +171,6 @@ mod play {
                 self
                 .hostable
                 ._create(world, proof, seed, beta, mode, price);
-
-            if price != 0 {
-                // [Effect] Sponsor the tournament from the erc721 contract funds
-                let (contract_address, _) = world.dns(@"tournament").unwrap();
-                let tournament_system_dispatcher = ITournamentSystemDispatcher { contract_address };
-                tournament_system_dispatcher
-                    .sponsor_from(tournament_id, mode, tournament_amount, erc721_address);
-
-                // Chest pool
-                let (contract_address, _) = world.dns(@"chest").unwrap();
-                let chest_system_dispatcher = IChestDispatcher { contract_address };
-                chest_system_dispatcher.sponsor_from(chest_amount, erc721_address);
-
-                // zKorp
-                let (contract_address, _) = world.dns(@"zkorp").unwrap();
-                let zkorp_system_dispatcher = IZKorpDispatcher { contract_address };
-                zkorp_system_dispatcher
-                    .sponsor_from(zkorp_amount + referrer_amount, erc721_address);
-            }
 
             if (mode != Mode::Free) {
                 // [Effect] Burn the nft
