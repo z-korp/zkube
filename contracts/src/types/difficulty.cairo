@@ -4,9 +4,10 @@ use zkube::elements::difficulties::{
 };
 use zkube::types::block::Block;
 
-#[derive(Copy, Drop, Serde, PartialEq)]
+#[derive(Introspect, Copy, Drop, Serde, PartialEq)]
 enum Difficulty {
     None,
+    Increasing,
     VeryEasy,
     Easy,
     Medium,
@@ -22,6 +23,7 @@ impl DifficultyImpl of DifficultyTrait {
     fn count(self: Difficulty) -> u32 {
         match self {
             Difficulty::None => 0,
+            Difficulty::Increasing => 0,
             Difficulty::VeryEasy => veryeasy::DifficultyImpl::count(),
             Difficulty::Easy => easy::DifficultyImpl::count(),
             Difficulty::Medium => medium::DifficultyImpl::count(),
@@ -36,6 +38,7 @@ impl DifficultyImpl of DifficultyTrait {
     fn reveal(self: Difficulty, id: u8) -> Block {
         match self {
             Difficulty::None => Block::None,
+            Difficulty::Increasing => Block::None,
             Difficulty::VeryEasy => veryeasy::DifficultyImpl::reveal(id),
             Difficulty::Easy => easy::DifficultyImpl::reveal(id),
             Difficulty::Medium => medium::DifficultyImpl::reveal(id),
@@ -53,14 +56,15 @@ impl U8IntoDifficulty of core::Into<u8, Difficulty> {
     fn into(self: u8) -> Difficulty {
         match self {
             0 => Difficulty::None,
-            1 => Difficulty::VeryEasy,
-            2 => Difficulty::Easy,
-            3 => Difficulty::Medium,
-            4 => Difficulty::MediumHard,
-            5 => Difficulty::Hard,
-            6 => Difficulty::VeryHard,
-            7 => Difficulty::Expert,
-            8 => Difficulty::Master,
+            1 => Difficulty::Increasing,
+            2 => Difficulty::VeryEasy,
+            3 => Difficulty::Easy,
+            4 => Difficulty::Medium,
+            5 => Difficulty::MediumHard,
+            6 => Difficulty::Hard,
+            7 => Difficulty::VeryHard,
+            8 => Difficulty::Expert,
+            9 => Difficulty::Master,
             _ => Difficulty::None,
         }
     }
@@ -71,14 +75,35 @@ impl DifficultyIntoU8 of core::Into<Difficulty, u8> {
     fn into(self: Difficulty) -> u8 {
         match self {
             Difficulty::None => 0,
-            Difficulty::VeryEasy => 1,
-            Difficulty::Easy => 2,
-            Difficulty::Medium => 3,
-            Difficulty::MediumHard => 4,
-            Difficulty::Hard => 5,
-            Difficulty::VeryHard => 6,
-            Difficulty::Expert => 7,
-            Difficulty::Master => 8,
+            Difficulty::Increasing => 1,
+            Difficulty::VeryEasy => 2,
+            Difficulty::Easy => 3,
+            Difficulty::Medium => 4,
+            Difficulty::MediumHard => 5,
+            Difficulty::Hard => 6,
+            Difficulty::VeryHard => 7,
+            Difficulty::Expert => 8,
+            Difficulty::Master => 9,
+        }
+    }
+}
+
+#[generate_trait]
+impl IncreasingDifficultyUtils of IIncreasingDifficultyUtilsTrait {
+    /// Returns the appropriate difficulty level based on the number of moves
+    /// This is used for the Increasing difficulty mode
+    #[inline(always)]
+    fn get_difficulty_from_moves(moves: u16) -> Difficulty {
+        if moves < 20 {
+            Difficulty::MediumHard
+        } else if moves < 40 {
+            Difficulty::Hard
+        } else if moves < 80 {
+            Difficulty::VeryHard
+        } else if moves < 120 {
+            Difficulty::Expert
+        } else {
+            Difficulty::Master
         }
     }
 }

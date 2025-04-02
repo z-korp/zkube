@@ -1,32 +1,16 @@
 mod constants;
 mod events;
-mod store;
-
-pub fn default_namespace() -> @ByteArray {
-    @"zkube4"
-}
 
 mod models {
-    mod index;
+    mod config;
     mod game;
-    mod player;
-    mod player_info;
-    mod tournament;
-    mod tournament_prize;
-    mod settings;
-    mod chest;
-    mod admin;
-    mod mint;
-    mod participation;
 }
 
 mod types {
     mod bonus;
     mod width;
     mod block;
-    mod mode;
     mod difficulty;
-    mod level;
     mod task;
     mod trophy;
 }
@@ -69,37 +53,23 @@ mod elements {
     }
 }
 
+mod interfaces {
+    mod vrf;
+}
+
 mod helpers {
     mod math;
     mod packer;
     mod controller;
     mod gravity;
-    mod timestamp;
-}
-
-
-mod components {
-    mod hostable;
-    mod manageable;
-    mod payable;
-    mod playable;
+    mod random;
+    mod config;
+    mod encoding;
+    mod renderer;
 }
 
 mod systems {
-    mod account;
-    mod play;
-    mod chest;
-    mod settings;
-    mod tournament;
-    mod zkorp;
-    mod minter;
-    mod test;
-}
-
-mod interfaces {
-    mod ierc20;
-    mod ierc721;
-    mod ierc721_game_credits;
+    mod game;
 }
 
 #[cfg(test)]

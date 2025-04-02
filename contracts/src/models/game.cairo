@@ -1,107 +1,107 @@
-use zkube::types::mode::ModeTrait;
 use core::traits::Into;
-// Core imports
-
 use core::debug::PrintTrait;
 use core::poseidon::{PoseidonTrait, HashState};
 use core::hash::HashStateTrait;
 
-// External imports
-
 use alexandria_math::fast_power::fast_power;
 
-// Inernal imports
+use dojo::world::WorldStorage;
+use dojo::world::WorldStorageTrait;
 
-use zkube::models::index::Game;
+use starknet::get_caller_address;
+
 use zkube::constants;
 use zkube::types::difficulty::Difficulty;
 use zkube::helpers::math::Math;
 use zkube::helpers::packer::Packer;
 use zkube::helpers::controller::Controller;
 use zkube::types::bonus::{Bonus, BonusTrait};
-use zkube::types::mode::Mode;
 
-// Errors
+use openzeppelin_token::erc721::interface::{IERC721Dispatcher, IERC721DispatcherTrait};
 
-mod errors {
-    const GAME_NOT_EXISTS: felt252 = 'Game: does not exist';
-    const GAME_IS_OVER: felt252 = 'Game: is over';
-    const GAME_NOT_OVER: felt252 = 'Game: not over';
-    const GAME_BONUS_NOT_AVAILABLE: felt252 = 'Game: bonus not available';
+use tournaments::components::interfaces::{IGameTokenDispatcher, IGameTokenDispatcherTrait};
+
+#[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]
+#[dojo::model]
+pub struct Game {
+    #[key]
+    pub game_id: u64,
+    // ----------------------------------------
+    // Change every move
+    // ----------------------------------------
+    pub blocks: felt252, // 10 lines of 3x8 bits = 240 bits
+    pub next_row: u32, // 3x8 bits per row = 24 bits
+    pub score: u16,
+    pub moves: u16,
+    // Total = 1 felts + 32 + 16*2 = 1 felts + 64 bits
+
+    // ----------------------------------------
+    // Can change when a move breaks lines
+    // ----------------------------------------
+    // Counters
+    pub combo_counter: u16,
+    pub max_combo: u8,
+    // Bonuses usable during the game (start (0, 0, 0) and will evolve)
+    pub hammer_bonus: u8,
+    pub wave_bonus: u8,
+    pub totem_bonus: u8,
+    // Bonuses used during the game
+    pub hammer_used: u8,
+    pub wave_used: u8,
+    pub totem_used: u8,
+    // Total = 16 + 8*7 = 80 bits
+    // ------------------------
+
+    // ----------------------------------------
+    // Change once per game
+    // ----------------------------------------
+    pub over: bool,
+} // 1 felt + 64 + 80 = 1 felt + 144 bits
+
+#[derive(Copy, Drop, Serde, Introspect)]
+#[dojo::model]
+pub struct GameSeed {
+    #[key]
+    pub game_id: u64,
+    pub seed: felt252,
 }
 
 #[generate_trait]
 impl GameImpl of GameTrait {
     #[inline(always)]
-    fn new(id: u32, player_id: u32, seed: felt252, mode: Mode, time: u64,) -> Game {
-        let difficulty = mode.difficulty();
-        let game_seed = mode.seed(time, id, seed);
-        let row = Controller::create_line(game_seed, difficulty);
-        Game {
-            id,
-            seed: game_seed,
+    fn new(game_id: u64, seed: felt252, difficulty: Difficulty) -> Game {
+        let row = Controller::create_line(seed, difficulty);
+        let mut game = Game {
+            game_id,
             blocks: 0,
-            player_id,
-            over: false,
-            mode: mode.into(),
+            next_row: row,
             score: 0,
             moves: 0,
-            next_row: row,
-            start_time: time,
+            combo_counter: 0,
+            max_combo: 0,
             hammer_bonus: 0,
             wave_bonus: 0,
             totem_bonus: 0,
             hammer_used: 0,
             wave_used: 0,
             totem_used: 0,
-            combo_counter: 0,
-            max_combo: 0,
-            tournament_id: 0,
-        }
+            over: false,
+        };
+        game.start(difficulty, seed);
+        game
     }
 
-    #[inline(always)]
-    fn duration(self: Game) -> u64 {
-        let mode: Mode = self.mode.into();
-        mode.duration()
-    }
-
-    #[inline(always)]
-    fn difficulty(self: Game) -> Difficulty {
-        let mode: Mode = self.mode.into();
-        mode.difficulty()
-    }
-
-    #[inline(always)]
-    fn reseed(ref self: Game) {
-        let state: HashState = PoseidonTrait::new();
-        let state = state.update(self.seed);
-        self.seed = state.finalize();
-    }
-
-    fn start(ref self: Game) {
-        // [Effect] Add lines until we have 5 remaining
+    fn start(ref self: Game, difficulty: Difficulty, base_seed: felt252) {
+        // Add lines until we have 5 remaining
         let mut counter = 0;
         let div: u256 = fast_power(2_u256, 4 * constants::ROW_BIT_COUNT.into()) - 1;
         loop {
             if self.blocks.into() / div > 0 {
                 break;
             };
-            // [Effect] Add line
-            self.insert_new_line();
-            // [Effect] Assess game
+            self.insert_new_line(difficulty, base_seed);
             self.assess_game(ref counter);
         };
-    }
-
-    #[inline(always)]
-    fn setup_next(ref self: Game) {
-        self.reseed();
-
-        let row = Controller::create_line(self.seed, self.get_difficulty());
-
-        self.blocks = Controller::add_line(self.blocks, self.next_row);
-        self.next_row = row;
     }
 
     #[inline(always)]
@@ -111,7 +111,6 @@ impl GameImpl of GameTrait {
         let div: u256 = fast_power(2, exp) - 1;
         self.over = self.blocks.into() / div > 0;
     }
-
 
     #[inline(always)]
     fn assess_bonuses(self: Game) -> (u8, u8, u8) {
@@ -123,81 +122,58 @@ impl GameImpl of GameTrait {
     }
 
     #[inline(always)]
-    fn get_difficulty(ref self: Game) -> Difficulty {
-        let mut difficulty = self.difficulty();
-        if (difficulty == Difficulty::None) { // Difficulty::None meaning increasing difficulty
-            // we are in normal mode or free mode
-            if (self.mode.into() == Mode::Normal) {
-                // weekly
-                if (self.moves < 20) {
-                    difficulty = Difficulty::MediumHard;
-                } else if (self.moves < 40) {
-                    difficulty = Difficulty::Hard;
-                } else if (self.moves < 80) {
-                    difficulty = Difficulty::VeryHard;
-                } else if (self.moves < 120) {
-                    difficulty = Difficulty::Expert;
-                } else {
-                    difficulty = Difficulty::Master;
-                }
-            } else {
-                // free mode
-                if (self.moves < 20) {
-                    difficulty = Difficulty::Easy;
-                } else if (self.moves < 40) {
-                    difficulty = Difficulty::Medium;
-                } else if (self.moves < 80) {
-                    difficulty = Difficulty::MediumHard;
-                } else if (self.moves < 120) {
-                    difficulty = Difficulty::Hard;
-                } else if (self.moves < 160) {
-                    difficulty = Difficulty::VeryHard;
-                } else if (self.moves < 200) {
-                    difficulty = Difficulty::Expert;
-                } else {
-                    difficulty = Difficulty::Master;
-                }
-            }
-        }
-        difficulty
+    fn insert_new_line(ref self: Game, difficulty: Difficulty, seed: felt252) -> felt252 {
+        // Generate a new seed for this operation
+        let new_seed = self.generate_seed_from_base(seed);
+
+        let row = Controller::create_line(new_seed, difficulty);
+
+        self.blocks = Controller::add_line(self.blocks, self.next_row);
+        self.next_row = row;
+
+        new_seed
     }
 
-    fn insert_new_line(ref self: Game) {
-        self.setup_next();
+    #[inline(always)]
+    fn generate_seed_from_base(self: Game, base_seed: felt252) -> felt252 {
+        let state: HashState = PoseidonTrait::new();
+        let state = state.update(base_seed);
+        let state = state.update(self.blocks.into());
+        state.finalize()
     }
 
-    fn move(ref self: Game, row_index: u8, start_index: u8, final_index: u8) -> u8 {
-        // [Compute] Move direction and step counts
+    fn move(
+        ref self: Game,
+        difficulty: Difficulty,
+        base_seed: felt252,
+        row_index: u8,
+        start_index: u8,
+        final_index: u8
+    ) -> u8 {
         let direction = final_index > start_index;
         let count = match direction {
             true => final_index - start_index,
             false => start_index - final_index,
         };
 
-        // [Effect] Swipe block
         let new_blocks = Controller::swipe(self.blocks, row_index, start_index, direction, count);
         self.blocks = new_blocks;
 
-        // [Effect] Assess game
         let mut counter: u8 = 0;
         self.score += self.assess_game(ref counter);
 
-        // [Effect] Assess bonuses
         let (hammer, totem, wave) = self.assess_bonuses();
         self.hammer_bonus = hammer;
         self.totem_bonus = totem;
         self.wave_bonus = wave;
 
-        // [Effect] Assess game over
         self.assess_over();
         if self.over {
             return 0;
         };
 
-        // [Effect] Add a new line
-        self.insert_new_line();
+        self.insert_new_line(difficulty, base_seed);
 
-        // [Effect] Assess game
         self.score += self.assess_game(ref counter);
         if (counter > 1) {
             self.update_combo_counter(counter);
@@ -210,15 +186,15 @@ impl GameImpl of GameTrait {
         self.totem_bonus = totem;
         self.wave_bonus = wave;
 
-        // [Effect] Grid empty add a new line
         if self.is_empty_grid() {
-            self.insert_new_line()
+            self.insert_new_line(difficulty, base_seed);
         }
 
-        // [Return] Break line count
+        // Return break line count
         counter
     }
 
+    #[inline(always)]
     fn is_empty_grid(ref self: Game) -> bool {
         self.blocks == 0
     }
@@ -245,7 +221,14 @@ impl GameImpl of GameTrait {
     }
 
     #[inline(always)]
-    fn apply_bonus(ref self: Game, bonus: Bonus, row_index: u8, index: u8) {
+    fn apply_bonus(
+        ref self: Game,
+        difficulty: Difficulty,
+        base_seed: felt252,
+        bonus: Bonus,
+        row_index: u8,
+        index: u8
+    ) {
         let blocks = bonus.apply(self.blocks, row_index, index);
         self.blocks = blocks;
 
@@ -266,7 +249,7 @@ impl GameImpl of GameTrait {
 
         // [Effect] Grid empty add a new line
         if self.is_empty_grid() {
-            self.insert_new_line()
+            self.insert_new_line(difficulty, base_seed);
         }
     }
 
@@ -283,37 +266,38 @@ impl GameImpl of GameTrait {
     fn update_combo_counter(ref self: Game, counter: u8) {
         self.combo_counter += counter.into();
     }
+
+    fn update_metadata(self: Game, world: WorldStorage) {
+        let (contract_address, _) = world.dns(@"game_systems").unwrap();
+        let game_token_dispatcher = IGameTokenDispatcher { contract_address };
+        game_token_dispatcher.emit_metadata_update(self.game_id.into());
+    }
 }
 
 impl ZeroableGame of core::Zeroable<Game> {
     #[inline(always)]
     fn zero() -> Game {
         Game {
-            id: 0,
-            seed: 0,
+            game_id: 0,
             blocks: 0,
-            player_id: 0,
-            over: false,
-            mode: 0,
+            next_row: 0,
             score: 0,
             moves: 0,
-            next_row: 0,
-            start_time: 0,
+            combo_counter: 0,
+            max_combo: 0,
             hammer_bonus: 0,
             wave_bonus: 0,
             totem_bonus: 0,
             hammer_used: 0,
             wave_used: 0,
             totem_used: 0,
-            combo_counter: 0,
-            max_combo: 0,
-            tournament_id: 0,
+            over: false,
         }
     }
 
     #[inline(always)]
     fn is_zero(self: Game) -> bool {
-        0 == self.seed
+        self.next_row == 0
     }
 
     #[inline(always)]
@@ -326,17 +310,17 @@ impl ZeroableGame of core::Zeroable<Game> {
 impl GameAssert of AssertTrait {
     #[inline(always)]
     fn assert_exists(self: Game) {
-        assert(self.is_non_zero(), errors::GAME_NOT_EXISTS);
+        assert!(self.is_non_zero(), "Game {} does not exist", self.game_id);
     }
 
     #[inline(always)]
     fn assert_not_over(self: Game) {
-        assert(!self.over, errors::GAME_IS_OVER);
+        assert!(!self.over, "Game {} is over", self.game_id);
     }
 
     #[inline(always)]
     fn assert_is_over(self: Game) {
-        assert(self.over || self.is_zero(), errors::GAME_NOT_OVER);
+        assert!(self.over || self.is_zero(), "Game {} is not over", self.game_id);
     }
 
     #[inline(always)]
@@ -347,26 +331,28 @@ impl GameAssert of AssertTrait {
             Bonus::Wave => self.wave_bonus - self.wave_used,
             _ => 0,
         };
-        assert(count > 0, errors::GAME_BONUS_NOT_AVAILABLE);
+        assert!(count > 0, "Game {} bonus is not available", self.game_id);
+    }
+
+    fn assert_owner(self: Game, world: WorldStorage) {
+        let (contract_address, _) = world.dns(@"game_system").unwrap();
+        let game_token = IERC721Dispatcher { contract_address };
+        assert(game_token.owner_of(self.game_id.into()) == get_caller_address(), 'Not Owner');
     }
 }
 
 #[cfg(test)]
 mod tests {
     // Core imports
-
     use core::debug::PrintTrait;
     use core::poseidon::{PoseidonTrait, HashState};
     use core::hash::HashStateTrait;
 
     // Local imports
-
     use super::{Game, GameTrait, AssertTrait};
     use zkube::types::difficulty::Difficulty;
-    use zkube::types::mode::Mode;
 
     // Constants
-
     const GAME_ID: u32 = 101;
     const PLAYER_ID: u32 = 1;
     const SEED: felt252 = 'SEED';

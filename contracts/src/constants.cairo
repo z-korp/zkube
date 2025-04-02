@@ -1,3 +1,5 @@
+use starknet::ContractAddress;
+
 // Game
 const DEFAULT_GRID_WIDTH: u8 = 8;
 const DEFAULT_GRID_HEIGHT: u8 = 10;
@@ -12,52 +14,34 @@ const TWO_POW_1: u128 = 0x2;
 const MASK_1: u128 = 0x1;
 const MASK_7: u32 = 0x7;
 
-// Modes
-const DAILY_MODE_DURATION: u64 = 86400; // = 1 day = 24x60x60
-//const DAILY_MODE_DURATION: u32 = 3600; // 1h
+// MULTISIG ADDRESS
+const ZKUBE_MULTISIG: felt252 = 0x049d365773fa62732929b7a457c106b8e7434f206994597c13d831ec7;
 
-const NORMAL_MODE_DURATION: u64 = 604800; // 1 weeks
-//const NORMAL_MODE_DURATION: u32 = 43200; // 12h
+// Tournament
+fn DEFAULT_NS() -> ByteArray {
+    "zkube_budo_v1_0_0"
+}
 
-const FREE_MODE_DURATION: u64 = 1577880000; // 50 ans
-const FREE_MODE_PRICE: u128 = 0;
+fn SCORE_MODEL() -> ByteArray {
+    "Game"
+}
 
-const SECONDS_PER_DAY: u64 = 86400;
+fn SCORE_ATTRIBUTE() -> ByteArray {
+    "score"
+}
 
-// Paid game percentages
-const TOURNAMENT_PERCENTAGE: u8 = 30;
-const CHEST_PERCENTAGE: u8 = 35; // -> 25
-const ZKORP_PERCENTAGE: u8 = 30;
-const REFERRER_PERCENTAGE: u8 = 5; // REFERER -> VeLORDs -> 15
+fn SETTINGS_MODEL() -> ByteArray {
+    "GameSettings"
+}
 
-// Computation
-const PRECISION_FACTOR: u128 = 1_000_000_000;
+// SETTINGS
+pub mod DEFAULT_SETTINGS {
+    use zkube::types::difficulty::Difficulty;
+    use zkube::models::config::GameSettings;
 
-// Multipliers
-// Daily streak
-const MULTIPLIER_SCALE: u32 = 1_000_000; // 1.0x represented as 1,000,000
+    const difficulty: Difficulty = Difficulty::Expert;
 
-// Daily Streak Multiplier
-const STREAK_1_7_MULTIPLIER_START: u32 = 1_000_000; // 1.00x
-const STREAK_1_7_MULTIPLIER_INCREMENT: u32 = 10_000; // 0.01x per day
-
-const STREAK_8_30_MULTIPLIER_START: u32 = 1_060_000; // 1.06x
-const STREAK_8_30_MULTIPLIER_INCREMENT: u32 = 6_363; // ~0.00636x per day
-
-const STREAK_31_PLUS_MULTIPLIER: u32 = 1_200_000; // 1.20x
-const STREAK_31_PLUS_MULTIPLIER_INCREMENT: u32 = 6_897; // ~0.0069x per day 
-
-const STREAK_MULTIPLIER_CAP: u32 = 1_400_000; // 1.40x cap
-
-// Level
-const LEVEL_MULTIPLIER_START: u32 = 1_000_000; // 1.00x at Level 1
-const LEVEL_MULTIPLIER_INCREMENT: u32 = 10_000; // +0.01x per level
-
-// Account age
-const ACCOUNT_AGE_MULTIPLIER_START: u32 = 1_000_000; // 1.00x at Level 1
-const ACCOUNT_AGE_MULTIPLIER_INCREMENT: u32 = 1_667; // 0.00167x per day -> 1 -> 1.2 in 4 months
-const ACCOUNT_AGE_MULTIPLIER_CAP: u32 = 1_200_000; // 1.20x cap for accounts older than 120 days 
-
-// Game mode
-const GAME_MODE_PAID_MULTIPLIER: u32 = 1_500_000; // 1.50x if paid game
-const GAME_MODE_FREE_MULTIPLIER: u32 = 1_000_000; // 1.00x if free game
+    fn GET_DEFAULT_SETTINGS() -> @GameSettings {
+        @GameSettings { settings_id: 0, difficulty: difficulty.into(), }
+    }
+}

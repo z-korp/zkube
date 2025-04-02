@@ -2,18 +2,15 @@ use core::traits::Into;
 use core::traits::TryInto;
 
 // Core imports
-
 use core::debug::PrintTrait;
 
 // External imports
-
 use alexandria_math::fast_power::fast_power;
 use alexandria_math::BitShift;
 use origami_random::deck::{Deck, DeckTrait};
 use origami_random::dice::{Dice, DiceTrait};
 
 // Internal imports
-
 use zkube::constants::{BLOCK_BIT_COUNT, ROW_BIT_COUNT, ROW_SIZE, BLOCK_SIZE, DEFAULT_GRID_WIDTH};
 use zkube::helpers::packer::Packer;
 use zkube::helpers::gravity::Gravity;
@@ -22,7 +19,6 @@ use zkube::types::block::{Block, BlockTrait};
 use zkube::types::difficulty::{Difficulty, DifficultyTrait};
 
 // Errors
-
 mod errors {
     const CONTROLLER_NOT_ENOUGH_ROOM: felt252 = 'Controller: not enough room';
     const CONTROLLER_NOT_COHERENT_LINE: felt252 = 'Controller: not coherent line';

@@ -13,30 +13,16 @@ github = "https://github.com/dojoengine/dojo-starter"
 telegram = "https://t.me/dojoengine"
 
 [namespace]
-default = "zkube2"
+default = "zkube_budo_v1_0_0"
 
 [env]
 rpc_url = "https://api.cartridge.gg/x/zkube-slot/katana"
 account_address = "0x84ba12e8c22f8572b5836fcc0f887d4ba7e07acfcc6287e214c3e3eca21b91"
 private_key = "0x1611a78f4aeb0f4611aed25ecf879edcae7fcf4e3c4edf1272a933aa0c396f7"
 
-[init_call_args]
-"zkube2-chest" = ["0x04564080d89e5b0d90f6676408905a86fac644780a7d3ef837420181253ee866"]
-"zkube2-settings" = ["0x84ba12e8c22f8572b5836fcc0f887d4ba7e07acfcc6287e214c3e3eca21b91", "0x84ba12e8c22f8572b5836fcc0f887d4ba7e07acfcc6287e214c3e3eca21b91"]
-"zkube2-tournament" = ["0x04564080d89e5b0d90f6676408905a86fac644780a7d3ef837420181253ee866"]
-"zkube2-zkorp" = ["0x04564080d89e5b0d90f6676408905a86fac644780a7d3ef837420181253ee866"]
-
 [writers]
-"zkube2-Admin" = ["zkube2-settings"]
-"zkube2-Chest" = ["zkube2-chest", "zkube2-play"]
-"zkube2-Game" = ["zkube2-play"]
-"zkube2-GamePrize" = ["zkube2-play", "zkube2-settings"]
-"zkube2-Mint" = ["zkube2-minter"]
-"zkube2-Participation" = ["zkube2-chest", "zkube2-play"]
-"zkube2-Player" = ["zkube2-account", "zkube2-play"]
-"zkube2-PlayerInfo" = ["zkube2-account", "zkube2-play"]
-"zkube2-Settings" = ["zkube2-minter", "zkube2-settings"]
-"zkube2-Tournament" = ["zkube2-play", "zkube2-tournament"]
-"zkube2-TournamentPrize" = ["zkube2-play", "zkube2-tournament"]
-"zkube2-TrophyCreation" = ["zkube2-settings"]
-"zkube2-TrophyProgression" = ["zkube2-play"]
+"zkube_budo_v1_0_0-Game" = ["zkube_budo_v1_0_0-game_system"]
+"zkube_budo_v1_0_0-GameSeed" = ["zkube_budo_v1_0_0-game_system"]
+"zkube_budo_v1_0_0-GameSettings" = ["zkube_budo_v1_0_0-game_system"]
+"zkube_budo_v1_0_0-TrophyCreation" = ["zkube_budo_v1_0_0-game_system"]
+"zkube_budo_v1_0_0-TrophyProgression" = ["zkube_budo_v1_0_0-game_system"]

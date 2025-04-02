@@ -13,7 +13,7 @@ github = "https://github.com/dojoengine/dojo-starter"
 telegram = "https://t.me/dojoengine"
 
 [namespace]
-default = "zkube2"
+default = "zkube_budokan_v1_0_0"
 
 [env]
 rpc_url = "http://localhost:5050/"
@@ -21,19 +21,19 @@ account_address = "0x63a7373ece40e853d9cca9c5889527cab3b7aab669e390e224522571879
 private_key = "0x2c8edd6c146cf85ad3dba64865728a79113171782afddd5054d9e9f4c93857f"
 
 [init_call_args]
-"zkube2-chest" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
-"zkube2-settings" = ["0x0", "0x0"]
-"zkube2-tournament" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
-"zkube2-zkorp" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
+"zkube_budo_v1_0_0-chest" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
+"zkube_budo_v1_0_0-settings" = ["0x0", "0x0"]
+"zkube_budo_v1_0_0-tournament" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
+"zkube_budo_v1_0_0-zkorp" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
 
 [writers]
-"zkube2-Admin" = ["zkube2-settings"]
-"zkube2-Chest" = ["zkube2-chest", "zkube2-play"]
-"zkube2-Game" = ["zkube2-play"]
-"zkube2-Mint" = ["zkube2-minter"]
-"zkube2-Participation" = ["zkube2-chest", "zkube2-play"]
-"zkube2-Player" = ["zkube2-account", "zkube2-play"]
-"zkube2-Settings" = ["zkube2-minter", "zkube2-settings"]
-"zkube2-Tournament" = ["zkube2-play", "zkube2-tournament"]
-"zkube2-TrophyCreation" = ["zkube2-settings"]
-"zkube2-TrophyProgression" = ["zkube2-play"]
+"zkube_budo_v1_0_0-Admin" = ["zkube_budo_v1_0_0-settings"]
+"zkube_budo_v1_0_0-Chest" = ["zkube_budo_v1_0_0-chest", "zkube_budo_v1_0_0-play"]
+"zkube_budo_v1_0_0-Game" = ["zkube_budo_v1_0_0-play"]
+"zkube_budo_v1_0_0-Mint" = ["zkube_budo_v1_0_0-minter"]
+"zkube_budo_v1_0_0-Participation" = ["zkube_budo_v1_0_0-chest", "zkube_budo_v1_0_0-play"]
+"zkube_budo_v1_0_0-Player" = ["zkube_budo_v1_0_0-account", "zkube_budo_v1_0_0-play"]
+"zkube_budo_v1_0_0-Settings" = ["zkube_budo_v1_0_0-minter", "zkube_budo_v1_0_0-settings"]
+"zkube_budo_v1_0_0-Tournament" = ["zkube_budo_v1_0_0-play", "zkube_budo_v1_0_0-tournament"]
+"zkube_budo_v1_0_0-TrophyCreation" = ["zkube_budo_v1_0_0-settings"]
+"zkube_budo_v1_0_0-TrophyProgression" = ["zkube_budo_v1_0_0-play"]
