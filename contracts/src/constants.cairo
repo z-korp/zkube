@@ -36,12 +36,41 @@ fn SETTINGS_MODEL() -> ByteArray {
 
 // SETTINGS
 pub mod DEFAULT_SETTINGS {
+    use zkube::constants::ZKUBE_MULTISIG;
     use zkube::types::difficulty::Difficulty;
-    use zkube::models::config::GameSettings;
-
+    use zkube::models::config::{GameSettings, GameSettingsMetadata};
+    use starknet::{ContractAddress, contract_address_const};
     const difficulty: Difficulty = Difficulty::Expert;
 
-    fn GET_DEFAULT_SETTINGS() -> @GameSettings {
+    fn GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY() -> @GameSettings {
         @GameSettings { settings_id: 0, difficulty: difficulty.into(), }
+    }
+
+    fn GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_METADATA(
+        current_timestamp: u64
+    ) -> @GameSettingsMetadata {
+        @GameSettingsMetadata {
+            settings_id: 0,
+            name: 'Fixed Difficulty',
+            description: "Difficulty is fixed at the start of the game",
+            created_by: contract_address_const::<ZKUBE_MULTISIG>(),
+            created_at: current_timestamp,
+        }
+    }
+
+    fn GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY() -> @GameSettings {
+        @GameSettings { settings_id: 0, difficulty: Difficulty::Increasing.into(), }
+    }
+
+    fn GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA(
+        current_timestamp: u64
+    ) -> @GameSettingsMetadata {
+        @GameSettingsMetadata {
+            settings_id: 0,
+            name: 'Increasing Difficulty',
+            description: "Difficulty increases as the game progresses",
+            created_by: contract_address_const::<ZKUBE_MULTISIG>(),
+            created_at: current_timestamp,
+        }
     }
 }

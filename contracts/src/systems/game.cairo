@@ -20,8 +20,12 @@ mod game_system {
     use zkube::constants::{
         DEFAULT_NS, ZKUBE_MULTISIG, SCORE_MODEL, SCORE_ATTRIBUTE, SETTINGS_MODEL
     };
-    use zkube::constants::DEFAULT_SETTINGS::GET_DEFAULT_SETTINGS;
-    use zkube::models::config::{GameSettings, GameSettingsTrait};
+    use zkube::constants::DEFAULT_SETTINGS::{
+        GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY, GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_METADATA,
+        GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY,
+        GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA
+    };
+    use zkube::models::config::{GameSettings, GameSettingsTrait, GameSettingsMetadata};
     use zkube::models::game::{Game, GameTrait, GameAssert};
     use zkube::models::game::GameSeed;
     use zkube::types::difficulty::{Difficulty, IIncreasingDifficultyUtilsTrait};
@@ -121,7 +125,13 @@ mod game_system {
                 SCORE_ATTRIBUTE(),
                 SETTINGS_MODEL(),
             );
-        world.write_model(GET_DEFAULT_SETTINGS());
+
+        let current_timestamp = get_block_timestamp();
+        world.write_model(GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY());
+        world.write_model(GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_METADATA(current_timestamp));
+
+        world.write_model(GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY());
+        world.write_model(GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA(current_timestamp));
 
         // [Event] Emit all Trophy events
         let mut trophy_id: u8 = TROPHY_COUNT;
@@ -230,23 +240,12 @@ mod game_system {
             };
 
             let base_seed: GameSeed = world.read_model(game_id);
-            let line_count = game
-                .move(difficulty, base_seed.seed, row_index, start_index, final_index);
+            game.move(difficulty, base_seed.seed, row_index, start_index, final_index);
 
             world.write_model(@game);
 
             if game.over {
                 self.handle_game_over(world, game);
-            }
-
-            // [Trophy] Update Breaking task progression
-            let value = line_count.into();
-            if Trophy::BreakIn.assess(value) {
-                let level = Trophy::LineDestroyer.level();
-                let task_id = Task::Breaking.identifier(level);
-                let time = get_block_timestamp();
-                let store = StoreTrait::new(world);
-                store.progress(get_caller_address().into(), task_id, value, time);
             }
         }
 
@@ -415,6 +414,24 @@ mod game_system {
             if Trophy::NineLives.assess(value) {
                 let level = Trophy::NineLives.level();
                 let task_id = Task::Chaining.identifier(level);
+                store.progress(caller.into(), task_id, 1, time);
+            }
+
+            // [Trophy] Update Playing tasks progression
+            let value = game.moves.into();
+            if Trophy::GameBeginner.assess(value) {
+                let level = Trophy::GameBeginner.level();
+                let task_id = Task::Playing.identifier(level);
+                store.progress(caller.into(), task_id, 1, time);
+            }
+            if Trophy::GameExperienced.assess(value) {
+                let level = Trophy::GameExperienced.level();
+                let task_id = Task::Playing.identifier(level);
+                store.progress(caller.into(), task_id, 1, time);
+            }
+            if Trophy::GameVeteran.assess(value) {
+                let level = Trophy::GameVeteran.level();
+                let task_id = Task::Playing.identifier(level);
                 store.progress(caller.into(), task_id, 1, time);
             }
         }

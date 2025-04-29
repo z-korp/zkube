@@ -1,6 +1,18 @@
 use zkube::types::difficulty::Difficulty;
+use starknet::ContractAddress;
 
-#[derive(Introspect, Copy, Drop, Serde)]
+#[derive(Introspect, Drop, Serde)]
+#[dojo::model]
+pub struct GameSettingsMetadata {
+    #[key]
+    settings_id: u32,
+    name: felt252,
+    description: ByteArray,
+    created_by: ContractAddress,
+    created_at: u64,
+}
+
+#[derive(Introspect, Drop, Serde)]
 #[dojo::model]
 pub struct GameSettings {
     #[key]

@@ -1,25 +1,14 @@
-// External imports
-
 use achievement::types::task::{Task as BushidoTask, TaskTrait as BushidoTaskTrait};
 
-// Internal imports
-
 use zkube::elements::tasks;
-
-// Types
 
 #[derive(Copy, Drop)]
 enum Task {
     None,
-    Breaking,
     Mastering,
     Chaining,
     Playing,
-    Streaking,
-    Leveling,
 }
-
-// Implementations
 
 #[generate_trait]
 impl TaskImpl of TaskTrait {
@@ -27,12 +16,9 @@ impl TaskImpl of TaskTrait {
     fn identifier(self: Task, level: u8) -> felt252 {
         match self {
             Task::None => 0,
-            Task::Breaking => tasks::breaking::Breaking::identifier(level),
             Task::Mastering => tasks::mastering::Mastering::identifier(level),
             Task::Chaining => tasks::chaining::Chaining::identifier(level),
             Task::Playing => tasks::playing::Playing::identifier(level),
-            Task::Streaking => tasks::streaking::Streaking::identifier(level),
-            Task::Leveling => tasks::leveling::Leveling::identifier(level),
         }
     }
 
@@ -40,12 +26,9 @@ impl TaskImpl of TaskTrait {
     fn description(self: Task, count: u32) -> ByteArray {
         match self {
             Task::None => "",
-            Task::Breaking => tasks::breaking::Breaking::description(count),
             Task::Mastering => tasks::mastering::Mastering::description(count),
             Task::Chaining => tasks::chaining::Chaining::description(count),
             Task::Playing => tasks::playing::Playing::description(count),
-            Task::Streaking => tasks::streaking::Streaking::description(count),
-            Task::Leveling => tasks::leveling::Leveling::description(count),
         }
     }
 
@@ -62,12 +45,9 @@ impl IntoTaskU8 of core::Into<Task, u8> {
     fn into(self: Task) -> u8 {
         match self {
             Task::None => 0,
-            Task::Breaking => 1,
-            Task::Mastering => 2,
-            Task::Chaining => 3,
-            Task::Playing => 4,
-            Task::Streaking => 5,
-            Task::Leveling => 6,
+            Task::Mastering => 1,
+            Task::Chaining => 2,
+            Task::Playing => 3,
         }
     }
 }
@@ -78,12 +58,9 @@ impl IntoU8Task of core::Into<u8, Task> {
         let card: felt252 = self.into();
         match card {
             0 => Task::None,
-            1 => Task::Breaking,
-            2 => Task::Mastering,
-            3 => Task::Chaining,
-            4 => Task::Playing,
-            5 => Task::Streaking,
-            6 => Task::Leveling,
+            1 => Task::Mastering,
+            2 => Task::Chaining,
+            3 => Task::Playing,
             _ => Task::None,
         }
     }

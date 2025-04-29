@@ -35,21 +35,15 @@ mod elements {
     }
     mod tasks {
         mod interface;
-        mod breaking;
         mod mastering;
         mod chaining;
         mod playing;
-        mod streaking;
-        mod leveling;
     }
     mod trophies {
         mod interface;
-        mod breaker;
         mod mastery;
         mod chainer;
         mod player;
-        mod streaker;
-        mod leveler;
     }
 }
 
