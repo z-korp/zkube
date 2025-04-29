@@ -59,14 +59,14 @@ pub mod DEFAULT_SETTINGS {
     }
 
     fn GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY() -> @GameSettings {
-        @GameSettings { settings_id: 0, difficulty: Difficulty::Increasing.into(), }
+        @GameSettings { settings_id: 1, difficulty: Difficulty::Increasing.into(), }
     }
 
     fn GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA(
         current_timestamp: u64
     ) -> @GameSettingsMetadata {
         @GameSettingsMetadata {
-            settings_id: 0,
+            settings_id: 1,
             name: 'Increasing Difficulty',
             description: "Difficulty increases as the game progresses",
             created_by: contract_address_const::<ZKUBE_MULTISIG>(),
