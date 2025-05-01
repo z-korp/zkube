@@ -109,7 +109,7 @@ mod game_system {
 
     fn dojo_init(ref self: ContractState) {
         let mut world: WorldStorage = self.world(@DEFAULT_NS());
-        self.erc721.initializer("zKube Games", "ZKUBE", "zkube.games");
+        self.erc721.initializer("zKube", "ZKUBE", "app.zkube.xyz");
         self
             .game
             .initializer(

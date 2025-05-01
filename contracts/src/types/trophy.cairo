@@ -1,7 +1,7 @@
 use achievement::types::task::{Task as BushidoTask};
 use zkube::elements::trophies;
 
-pub const TROPHY_COUNT: u8 = 18;
+pub const TROPHY_COUNT: u8 = 9;
 
 #[derive(Copy, Drop)]
 enum Trophy {

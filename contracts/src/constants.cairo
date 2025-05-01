@@ -15,11 +15,12 @@ const MASK_1: u128 = 0x1;
 const MASK_7: u32 = 0x7;
 
 // MULTISIG ADDRESS
-const ZKUBE_MULTISIG: felt252 = 0x049d365773fa62732929b7a457c106b8e7434f206994597c13d831ec7;
+const ZKUBE_MULTISIG: felt252 =
+    0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b; // zKube Admin (alta bra)
 
 // Tournament
 fn DEFAULT_NS() -> ByteArray {
-    "zkube_budo_v1_0_0"
+    "zkube_budo_v1_0_1"
 }
 
 fn SCORE_MODEL() -> ByteArray {
