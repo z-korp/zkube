@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { GameState } from "@/enums/gameEnums";
-import { Block } from "@/types/types";
+import type { Block } from "@/types/types";
 
 interface BlockProps {
   block: Block;
@@ -10,11 +10,11 @@ interface BlockProps {
   state?: GameState;
   handleMouseDown?: (
     e: React.MouseEvent<HTMLDivElement>,
-    block: BlockProps["block"],
+    block: BlockProps["block"]
   ) => void;
   handleTouchStart?: (
     e: React.TouchEvent<HTMLDivElement>,
-    block: BlockProps["block"],
+    block: BlockProps["block"]
   ) => void;
   onTransitionBlockStart?: () => void;
   onTransitionBlockEnd?: () => void;
@@ -44,7 +44,7 @@ const BlockContainer: React.FC<BlockProps> = ({
 
     const element = ref.current; // Capture the current value
     const onTransitionStart = () => {
-      onTransitionBlockStart && onTransitionBlockStart();
+      if (onTransitionBlockStart) onTransitionBlockStart();
     };
 
     element.addEventListener("transitionstart", onTransitionStart);
@@ -55,7 +55,7 @@ const BlockContainer: React.FC<BlockProps> = ({
   }, [block, onTransitionBlockStart]);
 
   const handleTransitionEnd = () => {
-    onTransitionBlockEnd && onTransitionBlockEnd();
+    if (onTransitionBlockEnd) onTransitionBlockEnd();
   };
 
   // Determine the CSS class based on highlight status
@@ -70,7 +70,9 @@ const BlockContainer: React.FC<BlockProps> = ({
 
   return (
     <div
-      className={`block block-${block.width} ${isTxProcessing ? "cursor-wait" : ""} ${highlightClass} ${isBlockClickable ? "cursor-pointer" : ""}`}
+      className={`block block-${block.width} ${
+        isTxProcessing ? "cursor-wait" : ""
+      } ${highlightClass} ${isBlockClickable ? "cursor-pointer" : ""}`}
       ref={ref}
       style={{
         zIndex: isHighlighted ? 40 : "auto",

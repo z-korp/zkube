@@ -1,14 +1,8 @@
-import React from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../../elements/dialog";
+import { Dialog, DialogContent } from "../../elements/dialog";
 import { Button } from "../../elements/button";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import { useTheme } from "../../elements/theme-provider/hooks";
+
 interface TutorialModalProps {
   isOpen: boolean;
   onClose: () => void;

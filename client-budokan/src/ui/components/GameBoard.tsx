@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-} from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
 import { GameBonus } from "../containers/GameBonus";
@@ -13,15 +7,11 @@ import { Account } from "starknet";
 import Grid from "./Grid";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "./NextLine";
-import { Block } from "@/types/types";
+import type { Block } from "@/types/types";
 import GameScores from "./GameScores";
 import { Bonus, BonusType } from "@/dojo/game/types/bonus";
 import BonusAnimation from "./BonusAnimation";
-import TournamentTimer from "./TournamentTimer";
-import { ModeType } from "@/dojo/game/types/mode";
-import useTournament from "@/hooks/useTournament";
 import { Game } from "@/dojo/game/models/game";
-import useRank from "@/hooks/useRank";
 
 import "../../grid.css";
 
@@ -123,7 +113,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         //setIsLoading(false);
       }
     },
-    [account, applyBonus],
+    [account, applyBonus]
   );
 
   const handleBonusHammerTx = useCallback(
@@ -142,7 +132,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         //setIsLoading(false);
       }
     },
-    [account, applyBonus],
+    [account, applyBonus]
   );
 
   const handleBonusTikiTx = useCallback(
@@ -161,7 +151,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         //setIsLoading(false);
       }
     },
-    [account, applyBonus],
+    [account, applyBonus]
   );
 
   const selectBlock = useCallback(
@@ -176,7 +166,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         console.log("none", block);
       }
     },
-    [bonus, handleBonusHammerTx, handleBonusTikiTx, handleBonusWaveTx],
+    [bonus, handleBonusHammerTx, handleBonusTikiTx, handleBonusWaveTx]
   );
 
   useEffect(() => {
@@ -196,19 +186,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGrid]);
 
-  const { endTimestamp } = useTournament(game.mode.value);
-  const { rank, suffix } = useRank({
-    tournamentId: game.tournament_id,
-    gameId: game.id,
-  });
-
   if (memoizedInitialData.length === 0) return null; // otherwise sometimes
   // the grid is not displayed in Grid because the data is not ready
 
   return (
     <>
       <Card
-        className={`relative p-3 md:pt-4 bg-secondary ${isTxProcessing && "cursor-wait"} pb-2 md:pb-3`}
+        className={`relative p-3 md:pt-4 bg-secondary ${
+          isTxProcessing && "cursor-wait"
+        } pb-2 md:pb-3`}
       >
         <BonusAnimation
           isMdOrLarger={isMdOrLarger}
@@ -217,7 +203,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
           optimisticMaxCombo={optimisticMaxCombo}
         />
         <div
-          className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} mb-2 md:mb-3 flex justify-between px-1`}
+          className={`${
+            isMdOrLarger ? "w-[420px]" : "w-[338px]"
+          } mb-2 md:mb-3 flex justify-between px-1`}
         >
           <div className="w-5/12">
             <GameBonus
@@ -239,7 +227,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
         </div>
 
         <div
-          className={`flex justify-center items-center ${!isTxProcessing && "cursor-move"}`}
+          className={`flex justify-center items-center ${
+            !isTxProcessing && "cursor-move"
+          }`}
         >
           <Grid
             initialData={memoizedInitialData}
@@ -266,7 +256,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
           <div className="absolute z-50 text-lg w-full flex justify-center items-center mt-2 md:mt-3 left-1/2 transform -translate-x-1/2">
             {bonus !== BonusType.None && (
               <h1
-                className={`text-yellow-500 p-2 rounded font-bold ${bonusDescription.length > 20 ? "text-sm" : "text-2xl"} md:text-lg bg-black bg-opacity-50 whitespace-nowrap overflow-hidden text-ellipsis`}
+                className={`text-yellow-500 p-2 rounded font-bold ${
+                  bonusDescription.length > 20 ? "text-sm" : "text-2xl"
+                } md:text-lg bg-black bg-opacity-50 whitespace-nowrap overflow-hidden text-ellipsis`}
               >
                 {bonusDescription}
               </h1>
@@ -279,25 +271,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
             gridWidth={COLS}
           />
         </div>
-
-        {(game.mode.value === ModeType.Daily ||
-          game.mode.value === ModeType.Normal) && (
-          <div className="flex w-full items-center justify-between px-1 mt-2 md:mt-3 font-semibold md:font-normal">
-            <div>
-              Ranked {rank}
-              <sup>{suffix}</sup>
-            </div>
-            <div className="flex gap-4">
-              <h2 className="text-GRID_SIZEsm md:text-base font-semibold">
-                Tournament:
-              </h2>
-              <TournamentTimer
-                mode={game.mode.value}
-                endTimestamp={endTimestamp}
-              />
-            </div>
-          </div>
-        )}
       </Card>
     </>
   );

@@ -1,5 +1,4 @@
 import { Header } from "@/ui/containers/Header";
-import { Create } from "../actions/Create";
 import GameBoard from "../components/GameBoard";
 import BackGroundBoard from "../components/BackgroundBoard";
 import { AnimatePresence } from "framer-motion";
@@ -7,17 +6,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useGame } from "@/hooks/useGame";
-import { usePlayer } from "@/hooks/usePlayer";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { Surrender } from "../actions/Surrender";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
 import GoogleFormEmbed from "../components/GoogleFormEmbed";
-import { ModeType } from "@/dojo/game/types/mode";
-import { Level } from "@/dojo/game/types/level";
 import { toPng } from "html-to-image";
-import { Leaderboard } from "../modules/Leaderboard";
-import { useRewardsCalculator } from "@/stores/rewardsStore";
 import {
   Dialog,
   DialogContent,
@@ -27,39 +21,24 @@ import {
 } from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
 import MaxComboIcon from "../components/MaxComboIcon";
-import GameModeCard from "../components/GameModeCard";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useMediaQuery } from "react-responsive";
 import { ChevronLeft } from "lucide-react";
-import CollectiveTreasureChest from "../components/TreasureChest";
 import GameOverDialog from "../components/GameOverDialog";
 import useViewport from "@/hooks/useViewport";
 import { TweetPreview } from "../components/TweetPreview";
 import { useGrid } from "@/hooks/useGrid";
 import Tutorial from "../components/Tutorial/Tutorial";
-import Swipper from "../components/Swipper";
 import HeaderBalance from "../components/HeaderBalance";
-import { useDojo } from "@/dojo/useDojo";
-import { getSyncEntities } from "@dojoengine/state";
-import * as torii from "@dojoengine/torii-client";
-import { usePlayerId } from "@/hooks/usePlayerId";
-
-const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
 
 export const Home = () => {
   useViewport();
-  useRewardsCalculator();
   const isSigning = false; //useAutoSignup();
 
-  const {
-    setup: { toriiClient, contractComponents },
-  } = useDojo();
   const { account } = useAccountCustom();
-  usePlayerId({ playerAddress: account?.address });
-  const { player } = usePlayer();
 
   const { game } = useGame({
-    gameId: player?.game_id || "0x0",
+    gameId: /* TBD player?.game_id ||*/ "0x0",
     shouldLog: true,
   });
   const grid = useGrid({ gameId: game?.id ?? "", shouldLog: true });
@@ -67,60 +46,11 @@ export const Home = () => {
 
   const { theme, themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
-  const gameGrid: React.RefObject<HTMLDivElement> | null = useRef(null);
+  const gameGrid = useRef<HTMLDivElement>(null);
   const [isGameOn, setIsGameOn] = useState<"idle" | "isOn" | "isOver">("idle");
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [level, setLevel] = useState<number | "">(0);
   const [score, setScore] = useState<number | undefined>(0);
   const [imgData, setImgData] = useState<string>("");
-
-  useEffect(() => {
-    const clause: torii.MemberClause = {
-      model: `${VITE_PUBLIC_NAMESPACE}-Mint`,
-      member: "id",
-      operator: "Eq",
-      value: {
-        Primitive: {
-          Felt252: account?.address,
-        },
-      },
-    };
-
-    const syncEntities = async () => {
-      await getSyncEntities(
-        toriiClient,
-        contractComponents as any,
-        { Member: clause },
-        [],
-        100,
-        false,
-      );
-    };
-
-    syncEntities();
-  }, [account?.address]);
-
-  // fetch here because Participation has double keys
-  useEffect(() => {
-    const clause: torii.KeysClause = {
-      keys: [undefined, undefined],
-      pattern_matching: "FixedLen",
-      models: [`${VITE_PUBLIC_NAMESPACE}-Participation`],
-    };
-
-    const syncEntities = async () => {
-      await getSyncEntities(
-        toriiClient,
-        contractComponents as any,
-        { Keys: clause },
-        [],
-        10_000,
-        false,
-      );
-    };
-
-    syncEntities();
-  }, [account?.address]);
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
@@ -171,14 +101,13 @@ export const Home = () => {
   }, []);
 
   const composeTweet = useCallback(() => {
-    setLevel(player?.points ? Level.fromPoints(player?.points).value : "");
     setScore(game?.score);
     setIsPreviewOpen(true);
-  }, [game?.score, player?.points]);
+  }, [game?.score]);
 
   useEffect(() => {
     if (game?.over) {
-      if (gameGrid.current !== null) {
+      if (gameGrid && gameGrid.current !== null) {
         toPng(gameGrid.current, { cacheBust: true })
           .then((dataUrl) => {
             setImgData(dataUrl);
@@ -214,16 +143,6 @@ export const Home = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Handlers for mobile buttons
-  const handlePlay = () => {
-    setIsGameOn("isOn"); // Start the game
-  };
-
-  const handleTournaments = () => {
-    setIsTournamentsOpen(true); // Open Tournaments modal
-  };
-
-  const [chestIsOpen, setChestIsOpen] = useState(false);
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
 
@@ -246,20 +165,10 @@ export const Home = () => {
   const renderDesktopView = () => (
     <>
       <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center">
-        <GameModeCard
-          mode={ModeType.Free}
-          handleGameMode={() => setIsGameOn("isOn")}
-        />
+        test
       </div>
       <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-start justify-center">
-        <GameModeCard
-          mode={ModeType.Daily}
-          handleGameMode={() => setIsGameOn("isOn")}
-        />
-        <GameModeCard
-          mode={ModeType.Normal}
-          handleGameMode={() => setIsGameOn("isOn")}
-        />
+        test
       </div>
     </>
   );
@@ -276,15 +185,6 @@ export const Home = () => {
         </Button>
         <h1 className="text-center text-2xl font-bold">Tournaments</h1>
       </div>
-
-      <GameModeCard
-        mode={ModeType.Daily}
-        handleGameMode={() => setIsGameOn("isOn")}
-      />
-      <GameModeCard
-        mode={ModeType.Normal}
-        handleGameMode={() => setIsGameOn("isOn")}
-      />
     </div>
   );
 
@@ -303,20 +203,8 @@ export const Home = () => {
           <DialogHeader className="flex flex-row gap-3 items-center justify-center w-full space-y-0">
             <HeaderBalance />
           </DialogHeader>
-
-          <Swipper setIsGameOn={() => setIsGameOn("isOn")}></Swipper>
         </DialogContent>
       </Dialog>
-
-      <Button
-        variant={"brutal"}
-        onClick={() => setChestIsOpen(true)}
-        className="w-full bg-primary text-secondary text-lg border-4  py-6 font-sans bg-sky-200  rounded-none"
-      >
-        Collective Chests
-      </Button>
-
-      <Leaderboard buttonType="brutal" textSize="lg" />
     </div>
   );
 
@@ -334,11 +222,6 @@ export const Home = () => {
             <p className="mt-8 mb-7">Aligning the blocks for your signup...</p>
           </DialogContent>
         </Dialog>
-
-        <CollectiveTreasureChest
-          isOpen={chestIsOpen}
-          onClose={() => setChestIsOpen(false)}
-        />
 
         {/* Main Content */}
         <BackGroundBoard imageBackground={imgAssets.imageBackground}>
@@ -362,14 +245,13 @@ export const Home = () => {
                   />
                 ) : (
                   <>
-                    {!isSigning && <Create />}
                     {(!game || (!!game && isGameOn === "isOver")) && (
                       <>
                         {isMdOrLarger
                           ? renderDesktopView()
                           : isTournamentsOpen
-                            ? renderTournamentsView()
-                            : renderMobileView()}
+                          ? renderTournamentsView()
+                          : renderMobileView()}
                       </>
                     )}
                     {game && (
@@ -479,11 +361,8 @@ export const Home = () => {
             <TweetPreview
               open={isPreviewOpen}
               setOpen={setIsPreviewOpen}
-              level={level}
               score={score}
               imgSrc={imgData}
-              gameId={game?.id ?? ""}
-              tournamentId={game?.tournament_id ?? 0}
             />
             <AnimatePresence>
               {!animationDone && (

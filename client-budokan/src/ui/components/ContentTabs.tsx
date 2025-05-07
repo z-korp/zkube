@@ -1,9 +1,6 @@
 import React from "react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/elements/tabs";
-import WeeklyQuests from "./WeeklyQuests";
-import News from "./News";
-import Chests from "./Chests";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +9,7 @@ import {
   DialogTrigger,
 } from "../elements/dialog";
 import { Button } from "@/ui/elements/button";
+import News from "./News";
 
 const ContentTabs = () => {
   const [selectedTab, setSelectedTab] = useState("weekly-quests");
@@ -51,24 +49,10 @@ const ContentTabs = () => {
           </TabsList>
 
           <TabsContent
-            value="weekly-quests"
-            className="py-4 mt-0 md:py-8 bg-[#1c283a] rounded"
-          >
-            <WeeklyQuests />
-          </TabsContent>
-
-          <TabsContent
             value="news"
             className="py-4 md:py-8 mt-0 bg-[#1c283a] rounded"
           >
             <News />
-          </TabsContent>
-
-          <TabsContent
-            value="chests"
-            className="py-4 md:py-8 mt-0 bg-[#1c283a] rounded"
-          >
-            <Chests />
           </TabsContent>
         </Tabs>
       </DialogContent>

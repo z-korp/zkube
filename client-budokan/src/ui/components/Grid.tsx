@@ -3,7 +3,7 @@ import { Account } from "starknet";
 import { useDojo } from "@/dojo/useDojo";
 import BlockContainer from "./Block";
 import { GameState } from "@/enums/gameEnums";
-import { Block } from "@/types/types";
+import type { Block } from "@/types/types";
 import {
   removeCompleteRows,
   isGridFull,
@@ -20,7 +20,8 @@ import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
 import { motion } from "framer-motion";
 import { BonusType } from "@/dojo/game/types/bonus";
-import ConfettiExplosion, { ConfettiExplosionRef } from "./ConfettiExplosion";
+import ConfettiExplosion from "./ConfettiExplosion";
+import type { ConfettiExplosionRef } from "./ConfettiExplosion";
 import { useMusicPlayer } from "@/contexts/hooks";
 import useGridAnimations from "@/hooks/useGridAnimations";
 import { useMoveStore } from "@/stores/moveTxStore";
@@ -197,7 +198,7 @@ const Grid: React.FC<GridProps> = ({
         dragging.y,
         dragging.width,
         blocks,
-        dragging.id,
+        dragging.id
       )
     ) {
       // Vérifie si le nouveau X est en dehors des limites de la grille
@@ -212,8 +213,8 @@ const Grid: React.FC<GridProps> = ({
       }
       setBlocks((prevBlocks) =>
         prevBlocks.map((b) =>
-          b.id === dragging.id ? { ...b, x: boundedX } : b,
-        ),
+          b.id === dragging.id ? { ...b, x: boundedX } : b
+        )
       );
     }
   };
@@ -236,7 +237,7 @@ const Grid: React.FC<GridProps> = ({
         if (gridPosition === null) return;
         handleTriggerLocalExplosion(
           gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
-          gridPosition.top + b.y * gridSize,
+          gridPosition.top + b.y * gridSize
         );
       });
     } else if (bonus === BonusType.Totem) {
@@ -245,7 +246,7 @@ const Grid: React.FC<GridProps> = ({
         if (gridPosition === null) return;
         handleTriggerLocalExplosion(
           gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
-          gridPosition.top + b.y * gridSize,
+          gridPosition.top + b.y * gridSize
         );
       });
     } else if (bonus === BonusType.Hammer) {
@@ -253,7 +254,7 @@ const Grid: React.FC<GridProps> = ({
       if (gridPosition === null) return;
       handleTriggerLocalExplosion(
         gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
-        gridPosition.top + block.y * gridSize,
+        gridPosition.top + block.y * gridSize
       );
     }
 
@@ -303,12 +304,12 @@ const Grid: React.FC<GridProps> = ({
     setGameState(GameState.GRAVITY);
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
+  const handleTouchEnd = (/*e: React.TouchEvent*/) => {
     endDrag();
   };
 
   useEffect(() => {
-    const handleMouseUp = (event: MouseEvent) => {
+    const handleMouseUp = (/*event: MouseEvent*/) => {
       endDrag();
     };
     document.addEventListener("mouseup", handleMouseUp);
@@ -339,7 +340,7 @@ const Grid: React.FC<GridProps> = ({
           "Move TX (row, start col, end col)",
           gridHeight - 1 - rowIndex,
           startColIndex,
-          finalColIndex,
+          finalColIndex
         );
         await move({
           account: account as Account,
@@ -355,7 +356,7 @@ const Grid: React.FC<GridProps> = ({
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [account, isMoving, gridHeight, move],
+    [account, isMoving, gridHeight, move]
   );
 
   // Send the move transaction when the currentMove state is updated
@@ -376,10 +377,10 @@ const Grid: React.FC<GridProps> = ({
     y: number,
     width: number,
     blocks: Block[],
-    blockId: number,
+    blockId: number
   ) => {
     const rowBlocks = blocks.filter(
-      (block) => block.y === y && block.id !== blockId,
+      (block) => block.y === y && block.id !== blockId
     );
 
     if (newX > initialX) {
@@ -405,7 +406,7 @@ const Grid: React.FC<GridProps> = ({
         const fallDistance = calculateFallDistance(
           block,
           prevBlocks,
-          gridHeight,
+          gridHeight
         );
         if (fallDistance > 0) {
           return { ...block, y: block.y + 1 };
@@ -426,12 +427,12 @@ const Grid: React.FC<GridProps> = ({
 
   const clearCompleteLine = (
     newGravityState: GameState,
-    newStateOnComplete: GameState,
+    newStateOnComplete: GameState
   ) => {
     const { updatedBlocks, completeRows } = removeCompleteRows(
       blocks,
       gridWidth,
-      gridHeight,
+      gridHeight
     );
 
     if (updatedBlocks.length < blocks.length) {
@@ -450,7 +451,7 @@ const Grid: React.FC<GridProps> = ({
             gridPosition.left +
               block.x * gridSize +
               (block.width * gridSize) / 2,
-            gridPosition.top + block.y * gridSize,
+            gridPosition.top + block.y * gridSize
           );
         });
       });
@@ -505,7 +506,7 @@ const Grid: React.FC<GridProps> = ({
             const updatedBlocks = concatenateNewLineWithGridAndShiftGrid(
               blocks,
               nextLine,
-              gridHeight,
+              gridHeight
             );
             setNextLineHasBeenConsumed(true);
             if (isGridFull(updatedBlocks)) {
@@ -530,7 +531,7 @@ const Grid: React.FC<GridProps> = ({
       case GameState.LINE_CLEAR_BONUS:
         clearCompleteLine(
           GameState.GRAVITY_BONUS,
-          GameState.UPDATE_AFTER_BONUS,
+          GameState.UPDATE_AFTER_BONUS
         );
         break;
 
@@ -545,7 +546,7 @@ const Grid: React.FC<GridProps> = ({
           setOptimisticScore((prevPoints) => prevPoints + pointsEarned);
           setOptimisticCombo((prevCombo) => prevCombo + currentCombo);
           setOptimisticMaxCombo((prevMaxCombo) =>
-            currentCombo > prevMaxCombo ? currentCombo : prevMaxCombo,
+            currentCombo > prevMaxCombo ? currentCombo : prevMaxCombo
           );
 
           // If we have a combo, we display a message
@@ -593,12 +594,16 @@ const Grid: React.FC<GridProps> = ({
         transition={{ duration: 0.2, ease: "easeInOut" }}
       >
         <div
-          className={`grid-background ${isTxProcessing ? " cursor-wait animated-border" : "static-border"}`}
+          className={`grid-background ${
+            isTxProcessing ? " cursor-wait animated-border" : "static-border"
+          }`}
           id="grid"
           ref={gridRef}
         >
           <div
-            className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${isPlayerInDanger ? " animated-box-player-danger" : ""}`}
+            className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)] ${
+              isPlayerInDanger ? " animated-box-player-danger" : ""
+            }`}
             style={{
               height: `${gridHeight * gridSize + borderSize}px`,
               width: `${gridWidth * gridSize + borderSize}px`,

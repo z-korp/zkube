@@ -1,4 +1,5 @@
-import { defineComponent, Type as RecsType, World } from "@dojoengine/recs";
+import { defineComponent, Type as RecsType } from "@dojoengine/recs";
+import type { World } from "@dojoengine/recs";
 
 export type ContractComponents = Awaited<
   ReturnType<typeof defineContractComponents>
@@ -49,7 +50,7 @@ export function defineContractComponents(world: World) {
             ],
             customTypes: [],
           },
-        },
+        }
       );
     })(),
     GameSettingsMetadata: (() => {
@@ -68,7 +69,7 @@ export function defineContractComponents(world: World) {
             name: "GameSettingsMetadata",
             types: ["u32", "felt252", "ByteArray", "ContractAddress", "u64"],
           },
-        },
+        }
       );
     })(),
     GameSettings: (() => {
@@ -84,7 +85,7 @@ export function defineContractComponents(world: World) {
             name: "GameSettings",
             types: ["u32", "Difficulty"],
           },
-        },
+        }
       );
     })(),
   };

@@ -1,7 +1,5 @@
 import { useGame } from "@/hooks/useGame";
-import { usePlayer } from "@/hooks/usePlayer";
 import React, { createContext, useState, useEffect } from "react";
-import useAccountCustom from "@/hooks/useAccountCustom";
 import { useMusicPlayer } from "./hooks";
 
 const SoundPlayerContext = createContext({});
@@ -15,8 +13,10 @@ export function SoundPlayerProvider({
   const [over, setOver] = useState(false);
   const [start, setStart] = useState(false);
 
-  const { player } = usePlayer();
-  const { game } = useGame({ gameId: player?.game_id, shouldLog: false });
+  const { game } = useGame({
+    gameId: /*TBD player?.game_id*/ "0",
+    shouldLog: false,
+  });
 
   useEffect(() => {
     setTheme(!game || game.isOver());

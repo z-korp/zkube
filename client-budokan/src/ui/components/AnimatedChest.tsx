@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
-import { px } from "framer-motion";
 import { useMediaQuery } from "react-responsive";
 
 interface AnimatedChestProps {

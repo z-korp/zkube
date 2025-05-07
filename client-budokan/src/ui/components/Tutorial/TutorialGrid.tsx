@@ -3,13 +3,12 @@ import React, {
   useEffect,
   useState,
   forwardRef,
-  useImperativeHandle,
   useRef,
 } from "react";
 import "../../../grid.css";
 import { Account } from "starknet";
 import { GameState } from "@/enums/gameEnums";
-import { Block } from "@/types/types";
+import type { Block } from "@/types/types";
 import {
   removeCompleteRows,
   concatenateAndShiftBlocksTutorial,
@@ -26,7 +25,8 @@ import { ComboMessages } from "@/enums/comboEnum";
 import { motion } from "framer-motion";
 import { BonusType } from "@/dojo/game/types/bonus";
 import BlockContainer from "./TutorialBlock";
-import ConfettiExplosion, { ConfettiExplosionRef } from "../ConfettiExplosion";
+import ConfettiExplosion from "../ConfettiExplosion";
+import type { ConfettiExplosionRef } from "../ConfettiExplosion";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -52,6 +52,7 @@ interface GridProps {
   tutorialStep: number;
   tutorialTargetBlock: { x: number; y: number; type: "block" | "row" }[] | null;
   onUpdate: (intermission: boolean) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ref: any;
   intermission?: boolean;
   setHighlightedTiki?: (highlighted: boolean) => void;
@@ -71,13 +72,10 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
       gridWidth,
       gridSize,
       selectBlock,
-      onMove,
       bonus,
-      account,
       tutorialStep,
       tutorialTargetBlock,
       onUpdate,
-      intermission,
       setDisabledHammer,
       setDisabledTiki,
       setDisabledWave,
@@ -85,7 +83,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
       setHighlightedTiki,
       setHighlightedWave,
     },
-    ref,
+    ref
   ) => {
     const gravitySpeed = 100;
 
@@ -93,12 +91,12 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     const [isMoving, setIsMoving] = useState(true);
     const [gameState, setGameState] = useState<GameState>(GameState.WAITING);
     const [transitioningBlocks, setTransitioningBlocks] = useState<number[]>(
-      [],
+      []
     );
     const [lineExplodedCount, setLineExplodedCount] = useState(0);
     const [shouldBounce, setShouldBounce] = useState(false);
     const [animateText, setAnimateText] = useState<ComboMessages>(
-      ComboMessages.None,
+      ComboMessages.None
     );
     const explosionRef = useRef<ConfettiExplosionRef>(null);
     const gridRef = useRef<HTMLDivElement>(null);
@@ -132,7 +130,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
 
     const handleTransitionBlockEnd = (id: number) => {
       setTransitioningBlocks((prev) =>
-        prev.filter((blockId) => blockId !== id),
+        prev.filter((blockId) => blockId !== id)
       );
     };
 
@@ -152,7 +150,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         }
         return maxFall;
       },
-      [gridHeight],
+      [gridHeight]
     );
 
     const isCollision = (
@@ -160,14 +158,14 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
       y: number,
       width: number,
       blocks: Block[],
-      blockId: number,
+      blockId: number
     ) => {
       return blocks.some(
         (block) =>
           block.id !== blockId &&
           block.y === y &&
           x < block.x + block.width &&
-          x + width > block.x,
+          x + width > block.x
       );
     };
 
@@ -229,7 +227,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           dragging.y,
           dragging.width,
           blocks,
-          dragging.id,
+          dragging.id
         )
       ) {
         if (boundedX <= 0 || boundedX >= gridWidth - dragging.width) {
@@ -242,8 +240,8 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         }
         setBlocks((prevBlocks) =>
           prevBlocks.map((b) =>
-            b.id === dragging.id ? { ...b, x: boundedX } : b,
-          ),
+            b.id === dragging.id ? { ...b, x: boundedX } : b
+          )
         );
       }
     };
@@ -287,7 +285,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           if (gridPosition === null) return;
           handleTriggerLocalExplosion(
             gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
-            gridPosition.top + b.y * gridSize,
+            gridPosition.top + b.y * gridSize
           );
         });
       } else if (bonus === BonusType.Totem) {
@@ -299,7 +297,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           if (gridPosition === null) return;
           handleTriggerLocalExplosion(
             gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
-            gridPosition.top + b.y * gridSize,
+            gridPosition.top + b.y * gridSize
           );
         });
       } else if (bonus === BonusType.Hammer) {
@@ -310,7 +308,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         if (gridPosition === null) return;
         handleTriggerLocalExplosion(
           gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
-          gridPosition.top + block.y * gridSize,
+          gridPosition.top + block.y * gridSize
         );
       }
 
@@ -395,11 +393,11 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     };
 
     const handleTouchEnd = useCallback(
-      (e: React.TouchEvent) => {
+      (/*e: React.TouchEvent*/) => {
         //e.preventDefault();
         endDrag();
       },
-      [endDrag],
+      [endDrag]
     );
 
     useEffect(() => {
@@ -421,19 +419,19 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
       y: number,
       width: number,
       blocks: Block[],
-      blockId: number,
+      blockId: number
     ) => {
       const rowBlocks = blocks.filter(
-        (block) => block.y === y && block.id !== blockId,
+        (block) => block.y === y && block.id !== blockId
       );
 
       if (newX > initialX) {
         return rowBlocks.some(
-          (block) => block.x >= initialX + width && block.x < newX + width,
+          (block) => block.x >= initialX + width && block.x < newX + width
         );
       } else {
         return rowBlocks.some(
-          (block) => block.x + block.width > newX && block.x <= initialX,
+          (block) => block.x + block.width > newX && block.x <= initialX
         );
       }
     };
@@ -462,12 +460,12 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
 
     const handleLineClear = (
       newGravityState: GameState,
-      newStateOnComplete: GameState,
+      newStateOnComplete: GameState
     ) => {
       const { updatedBlocks, completeRows } = removeCompleteRows(
         blocks,
         gridWidth,
-        gridHeight,
+        gridHeight
       );
 
       if (updatedBlocks.length < blocks.length) {
@@ -521,7 +519,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           const updatedBlocks = concatenateAndShiftBlocksTutorial(
             blocks,
             nextLineData,
-            gridHeight,
+            gridHeight
           );
           //setNextLineHasBeenConsumed(true);
           if (isGridFull(updatedBlocks)) {
@@ -599,36 +597,35 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
 
       switch (tutorialStep) {
         case 2:
-          setHighlightedHammer && setHighlightedHammer(true);
-          setDisabledHammer && setDisabledHammer(false);
-          setHighlightedTiki && setHighlightedTiki(false);
-          setDisabledTiki && setDisabledTiki(true);
-          setHighlightedWave && setHighlightedWave(false);
-          setDisabledWave && setDisabledWave(true);
+          if (setHighlightedHammer) setHighlightedHammer(true);
+          if (setDisabledHammer) setDisabledHammer(false);
+          if (setHighlightedTiki) setHighlightedTiki(false);
+          if (setDisabledTiki) setDisabledTiki(true);
+          if (setHighlightedWave) setHighlightedWave(false);
           break;
         case 3:
-          setHighlightedHammer && setHighlightedHammer(false);
-          setDisabledHammer && setDisabledHammer(true);
-          setHighlightedTiki && setHighlightedTiki(false);
-          setDisabledTiki && setDisabledTiki(true);
-          setHighlightedWave && setHighlightedWave(true);
-          setDisabledWave && setDisabledWave(false);
+          if (setHighlightedHammer) setHighlightedHammer(false);
+          if (setDisabledHammer) setDisabledHammer(true);
+          if (setHighlightedTiki) setHighlightedTiki(false);
+          if (setDisabledTiki) setDisabledTiki(true);
+          if (setHighlightedWave) setHighlightedWave(true);
+          if (setDisabledWave) setDisabledWave(false);
           break;
         case 4:
-          setHighlightedHammer && setHighlightedHammer(false);
-          setDisabledHammer && setDisabledHammer(true);
-          setHighlightedTiki && setHighlightedTiki(true);
-          setDisabledTiki && setDisabledTiki(false);
-          setHighlightedWave && setHighlightedWave(false);
-          setDisabledWave && setDisabledWave(true);
+          if (setHighlightedHammer) setHighlightedHammer(false);
+          if (setDisabledHammer) setDisabledHammer(true);
+          if (setHighlightedTiki) setHighlightedTiki(true);
+          if (setDisabledTiki) setDisabledTiki(false);
+          if (setHighlightedWave) setHighlightedWave(false);
+          if (setDisabledWave) setDisabledWave(true);
           break;
         default:
-          setHighlightedHammer && setHighlightedHammer(false);
-          setDisabledHammer && setDisabledHammer(true);
-          setHighlightedTiki && setHighlightedTiki(false);
-          setDisabledTiki && setDisabledTiki(true);
-          setHighlightedWave && setHighlightedWave(false);
-          setDisabledWave && setDisabledWave(true);
+          if (setHighlightedHammer) setHighlightedHammer(false);
+          if (setDisabledHammer) setDisabledHammer(true);
+          if (setHighlightedTiki) setHighlightedTiki(false);
+          if (setDisabledTiki) setDisabledTiki(true);
+          if (setHighlightedWave) setHighlightedWave(false);
+          if (setDisabledWave) setDisabledWave(true);
           break;
       }
     }, [tutorialStep]);
@@ -719,7 +716,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         </motion.div>
       </>
     );
-  },
+  }
 );
 
 export default TutorialGrid;

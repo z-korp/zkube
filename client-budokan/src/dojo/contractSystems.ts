@@ -1,29 +1,20 @@
 import { DojoProvider } from "@dojoengine/core";
-import { Config } from "../../dojo.config.ts";
-import { Account, UniversalDetails, cairo } from "starknet";
-import { Manifest } from "@/cartridgeConnector.tsx";
+import type { Config } from "../../dojo.config.ts";
+import { Account, CallData, cairo } from "starknet";
+import type { UniversalDetails } from "starknet";
+import type { Manifest } from "@/cartridgeConnector.tsx";
 
 const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
 
-const {
-  VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-  VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
-} = import.meta.env;
+export const VRF_PROVIDER_ADDRESS =
+  "0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f";
 
 export interface Signer {
   account: Account;
 }
 
-export interface Start extends Signer {
+export interface Create extends Signer {
   token_id: bigint;
-  mode: number;
-  x: bigint;
-  y: bigint;
-  c: bigint;
-  s: bigint;
-  sqrt_ratio_hint: bigint;
-  seed: bigint;
-  beta: bigint;
 }
 
 export interface Move extends Signer {
@@ -43,114 +34,41 @@ export type IWorld = Awaited<ReturnType<typeof setupWorld>>;
 export async function setupWorld(provider: DojoProvider, config: Config) {
   const details: UniversalDetails | undefined = { maxFee: 1e15 };
 
-  function play() {
-    const contract_name = "play";
+  function game() {
+    const contract_name = "game";
     const contract = config.manifest.contracts.find(
-      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name)
     );
     if (!contract) {
       throw new Error(`Contract ${contract_name} not found in manifest`);
     }
 
-    const start = async ({
-      account,
-      token_id,
-      mode,
-      x,
-      y,
-      c,
-      s,
-      sqrt_ratio_hint,
-      seed,
-      beta,
-    }: Start) => {
-      const contract_name = "play";
-      const contract = config.manifest.contracts.find(
-        (c: Manifest["contracts"][number]) => c.tag.includes(contract_name),
-      );
-      if (!contract) {
-        throw new Error(`Contract ${contract_name} not found in manifest`);
-      }
+    const create = async ({ account, token_id }: Create) => {
+      try {
+        return await provider.execute(
+          account,
+          [
+            {
+              contractAddress: VRF_PROVIDER_ADDRESS,
+              entrypoint: "request_random",
+              calldata: CallData.compile({
+                caller: contract.address,
+                source: { type: 0, address: account.address },
+              }),
+            },
 
-      if (token_id === 0n) {
-        // Free game
-        try {
-          return await provider.execute(
-            account,
-            [
-              {
-                contractName: contract_name,
-                entrypoint: "create",
-                calldata: [
-                  cairo.uint256(token_id),
-                  mode,
-                  x,
-                  y,
-                  c,
-                  s,
-                  sqrt_ratio_hint,
-                  seed,
-                  beta,
-                ],
-              },
-            ],
-            VITE_PUBLIC_NAMESPACE,
-            details,
-          );
-        } catch (error) {
-          console.error("Error executing start:", error);
-          throw error;
-        }
-      } else {
-        // Paid game
-        try {
-          return await provider.execute(
-            account,
-            [
-              /*{
-                contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-                entrypoint: "approve",
-                calldata: [
-                  VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
-                  cairo.uint256(price),
-                ], // Set allowance
-              },*/
-              {
-                contractAddress: VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
-                entrypoint: "approve",
-                calldata: [contract.address, cairo.uint256(token_id)], // Set allowance
-              },
-              {
-                contractName: contract_name,
-                entrypoint: "create",
-                calldata: [
-                  cairo.uint256(token_id),
-                  mode,
-                  x,
-                  y,
-                  c,
-                  s,
-                  sqrt_ratio_hint,
-                  seed,
-                  beta,
-                ],
-              },
-              {
-                contractAddress: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-                entrypoint: "approve",
-                calldata: [
-                  VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
-                  cairo.uint256(0),
-                ], // Clear allowance
-              },
-            ],
-            VITE_PUBLIC_NAMESPACE,
-            details,
-          );
-        } catch (error) {
-          console.error("Error executing start:", error);
-          throw error;
-        }
+            {
+              contractName: contract_name,
+              entrypoint: "create",
+              calldata: [cairo.uint256(token_id)],
+            },
+          ],
+          VITE_PUBLIC_NAMESPACE,
+          details
+        );
+      } catch (error) {
+        console.error("Error executing start:", error);
+        throw error;
       }
     };
 
@@ -164,7 +82,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             calldata: [],
           },
           VITE_PUBLIC_NAMESPACE,
-          details,
+          details
         );
       } catch (error) {
         console.error("Error executing surrender:", error);
@@ -187,7 +105,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             calldata: [row_index, start_index, final_index],
           },
           VITE_PUBLIC_NAMESPACE,
-          details,
+          details
         );
       } catch (error) {
         console.error("Error executing move:", error);
@@ -205,7 +123,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             calldata: [bonus, row_index, block_index],
           },
           VITE_PUBLIC_NAMESPACE,
-          details,
+          details
         );
       } catch (error) {
         console.error("Error executing bonus:", error);
@@ -215,7 +133,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
     return {
       address: contract.address,
-      start,
+      create,
       surrender,
       move,
       bonus,
@@ -223,6 +141,6 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
   }
 
   return {
-    play: play(),
+    game: game(),
   };
 }

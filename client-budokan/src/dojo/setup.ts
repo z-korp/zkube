@@ -4,13 +4,11 @@ import { models } from "./models.ts";
 import { systems } from "./systems.ts";
 import { defineContractComponents } from "./contractModels";
 import { world } from "./world.ts";
-import { Config } from "../../dojo.config.ts";
+import type { Config } from "../../dojo.config.ts";
 import { setupWorld } from "./contractSystems.ts";
 import { DojoProvider } from "@dojoengine/core";
 
 export type SetupResult = Awaited<ReturnType<typeof setup>>;
-
-const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
 
 export async function setup({ ...config }: Config) {
   // Initialize Torii client for interacting with the Dojo network
@@ -27,29 +25,28 @@ export async function setup({ ...config }: Config) {
   const clientModels = models({ contractComponents });
 
   // Initialize the Dojo provider with the manifest and RPC URL
-  const dojoProvider = new DojoProvider(config.manifest, config.rpcUrl);
+  console.log(config.manifest);
+  console.log(config.rpcUrl);
+  const dojoProvider = new DojoProvider(config.manifest, config.rpcUrl, "info");
 
   // fetch all existing entities from torii
   // await getSyncEntities(toriiClient, contractModels as any, []);
-  const allExceptMintClause: torii.KeysClause = {
+  const allKeysClause: torii.KeysClause = {
     keys: [undefined],
     pattern_matching: "FixedLen",
-    models: [
-      `${VITE_PUBLIC_NAMESPACE}-Game`,
-      `${VITE_PUBLIC_NAMESPACE}-GameSettingsMetadata`,
-      `${VITE_PUBLIC_NAMESPACE}-GameSettings`,
-    ],
+    models: [],
   };
 
   const sync = await getSyncEntities(
     toriiClient,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     contractComponents as any,
-    { Keys: allExceptMintClause },
+    { Keys: allKeysClause },
     [],
     [],
     [],
     1000,
-    false,
+    false
   );
 
   // Set up the world client for interacting with smart contracts

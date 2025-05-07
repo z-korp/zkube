@@ -1,4 +1,4 @@
-import { Condition } from "../../types/bonus";
+import type { Condition } from "../../types/bonus";
 
 export class Hammer {
   public static getCount(score: number): number {

@@ -75,10 +75,10 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
-  const start = async ({ account, ...props }: SystemTypes.Start) => {
+  const create = async ({ account, ...props }: SystemTypes.Create) => {
     await handleTransaction(
       account,
-      () => client.play.start({ account, ...props }),
+      () => client.game.create({ account, ...props }),
       "Game has been started.",
     );
   };
@@ -86,7 +86,7 @@ export function systems({ client }: { client: IWorld }) {
   const surrender = async ({ account, ...props }: SystemTypes.Signer) => {
     await handleTransaction(
       account,
-      () => client.play.surrender({ account, ...props }),
+      () => client.game.surrender({ account, ...props }),
       "Game has been surrendered.",
     );
   };
@@ -99,7 +99,7 @@ export function systems({ client }: { client: IWorld }) {
     try {
       await handleTransaction(
         account,
-        () => client.play.move({ account, ...props }),
+        () => client.game.move({ account, ...props }),
         "Move has been done.",
       );
       setMoveComplete(true);
@@ -115,7 +115,7 @@ export function systems({ client }: { client: IWorld }) {
     try {
       await handleTransaction(
         account,
-        () => client.play.bonus({ account, ...props }),
+        () => client.game.bonus({ account, ...props }),
         "Bonus has been applied.",
       );
       setMoveComplete(true);
@@ -127,7 +127,7 @@ export function systems({ client }: { client: IWorld }) {
 
   return {
     // play
-    start,
+    create,
     surrender,
     move,
     applyBonus,

@@ -1,4 +1,4 @@
-import { Abi } from "starknet";
+import type { Abi } from "starknet";
 
 export const erc20ABI = [
   {

@@ -1,12 +1,12 @@
-import { Block } from "@/types/types";
+import type { Block } from "@/types/types";
 
 export const transformToGridFormat = (
   blocks: Block[],
   gridWidth: number,
-  gridHeight: number,
+  gridHeight: number
 ): number[][] => {
   const grid = Array.from({ length: gridHeight }, () =>
-    Array(gridWidth).fill(0),
+    Array(gridWidth).fill(0)
   );
 
   blocks.forEach((block) => {
@@ -21,7 +21,7 @@ export const transformToGridFormat = (
 export const removeCompleteRows = (
   blocks: Block[],
   gridWidth: number,
-  gridHeight: number,
+  gridHeight: number
 ): { updatedBlocks: Block[]; completeRows: number[] } => {
   const grid = transformToGridFormat(blocks, gridWidth, gridHeight);
 
@@ -42,7 +42,7 @@ export const removeCompleteRows = (
 export const concatenateNewLineWithGridAndShiftGrid = (
   initialData: Block[],
   nextLineData: Block[],
-  gridHeight: number,
+  gridHeight: number
 ): Block[] => {
   const shiftedInitialData = initialData.map((block) => ({
     ...block,
@@ -58,7 +58,7 @@ export const concatenateNewLineWithGridAndShiftGrid = (
 export const concatenateAndShiftBlocksTutorial = (
   initialData: Block[],
   nextLineData: Block[],
-  gridHeight: number,
+  gridHeight: number
 ): Block[] => {
   const shiftedInitialData = initialData.map((block) => ({
     ...block,
@@ -84,7 +84,7 @@ export const transformDataContractIntoBlock = (grid: number[][]): Block[] => {
         blocks.push({
           id: Number(
             Math.floor(Math.random() * 1000000).toString() +
-              Date.now().toString(),
+              Date.now().toString()
           ),
           x,
           y,
@@ -106,7 +106,7 @@ export const isGridFull = (blocks: { y: number }[]): boolean => {
 
 export const removeBlocksSameWidth = (
   block: Block,
-  blocks: Block[],
+  blocks: Block[]
 ): Block[] => {
   return blocks.filter((b) => b.width !== block.width);
 };
@@ -121,7 +121,7 @@ export const removeBlocksSameRow = (block: Block, blocks: Block[]): Block[] => {
 
 export const getBlocksSameRow = (
   rowIndex: number,
-  blocks: Block[],
+  blocks: Block[]
 ): Block[] => {
   return blocks.filter((b) => b.y == rowIndex);
 };
@@ -132,7 +132,7 @@ export const removeBlockId = (block: Block, blocks: Block[]): Block[] => {
 
 export const deepCompareBlocks = (
   array1: { id: number; x: number; y: number; width: number }[],
-  array2: { id: number; x: number; y: number; width: number }[],
+  array2: { id: number; x: number; y: number; width: number }[]
 ): boolean => {
   // Vérifie si les longueurs des deux tableaux sont différentes
   if (array1.length !== array2.length) {
@@ -162,7 +162,7 @@ export const deepCompareBlocks = (
  */
 export const deepCompareNumberArrays = (
   a: number[][] | null,
-  b: number[][] | null,
+  b: number[][] | null
 ): boolean => {
   if (a === b) return true; // Both are null or same reference
   if (a === null || b === null) return false; // One is null, the other is not
@@ -195,7 +195,7 @@ export function formatBigIntToBinaryArrayCustom(
   num: bigint,
   bitsPerBlock = 3,
   blocksPerRow = 8,
-  totalRowsDesired = 10,
+  totalRowsDesired = 10
 ) {
   // Step 1: Convert BigInt to binary string
   let binaryStr = num.toString(2);
@@ -250,7 +250,7 @@ export function formatBigIntToBinaryArrayCustom(
   // Return
   const blockRawFormatted = finalRows.map((row) => row.join("_"));
   const blockRawFormattedReversed = finalRows.map((row) =>
-    row.reverse().join("_"),
+    row.reverse().join("_")
   );
   return [blockRawFormatted, blockRawFormattedReversed];
 }

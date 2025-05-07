@@ -1,7 +1,7 @@
 import { Connector } from "@starknet-react/core";
 import ControllerConnector from "@cartridge/connector/controller";
 import { getContractByName } from "@dojoengine/core";
-import { ColorMode, ControllerOptions } from "@cartridge/controller";
+import type { ControllerOptions } from "@cartridge/controller";
 import { manifest } from "./config/manifest";
 import { constants } from "starknet";
 
@@ -22,7 +22,7 @@ const slot = `zkube-${VITE_PUBLIC_DEPLOY_TYPE}`;
 const play_contract_address = getContractByName(
   manifest,
   namespace,
-  "play",
+  "play"
 )?.address;
 
 const policies = {
@@ -61,7 +61,7 @@ const options: ControllerOptions = {
 };
 
 const cartridgeConnector = new ControllerConnector(
-  options,
+  options
 ) as never as Connector;
 
 export default cartridgeConnector;

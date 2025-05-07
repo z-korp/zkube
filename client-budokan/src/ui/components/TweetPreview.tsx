@@ -5,16 +5,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/elements/dialog";
-import useRank from "@/hooks/useRank";
 
 interface TweetPreviewProps {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  level: number | "";
   score: number | undefined;
   imgSrc: string;
-  gameId: string;
-  tournamentId: number;
 }
 
 export const TweetPreview: React.FC<TweetPreviewProps> = ({
@@ -22,26 +18,19 @@ export const TweetPreview: React.FC<TweetPreviewProps> = ({
   setOpen,
   score,
   imgSrc,
-  gameId,
-  tournamentId,
 }) => {
   const bodyRef: React.RefObject<HTMLDivElement> | null = useRef(null);
   const [tweetMsg, setTweetMsg] = useState("");
 
-  const { rank, suffix } = useRank({
-    tournamentId,
-    gameId,
-  });
-
   useEffect(() => {
     setTweetMsg(
-      `🎮 Just crushed it on zKube with a score of ${score}! Ranked ${rank}${suffix} 💥
+      `🎮 Just crushed it on zKube with a score of ${score}!
 Can you beat that? 😎
 Ready to lvl up! Who's joining the challenge? 🚀
 Play now: app.zkube.xyz
 @zkorp_ @zkube_game`,
     );
-  }, [open, rank, score, suffix]);
+  }, [open, score]);
 
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setTweetMsg(event.target.value);

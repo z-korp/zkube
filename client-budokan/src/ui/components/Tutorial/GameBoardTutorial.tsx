@@ -3,7 +3,7 @@ import { Card } from "@/ui/elements/card";
 import { useMediaQuery } from "react-responsive";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "../NextLine";
-import { Block } from "@/types/types";
+import type { Block } from "@/types/types";
 import GameScores from "../GameScores";
 import { BonusType } from "@/dojo/game/types/bonus";
 import BonusAnimation from "../BonusAnimation";
@@ -50,14 +50,12 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
 
   const [isTxProcessing, setIsTxProcessing] = useState(false);
   // State that will allow us to hide or display the next line
-  const [nextLineHasBeenConsumed, setNextLineHasBeenConsumed] = useState(false);
+  const [nextLineHasBeenConsumed] = useState(false);
   // Optimistic data (score, combo, maxcombo)
   const [optimisticScore, setOptimisticScore] = useState(0);
   const [optimisticCombo, setOptimisticCombo] = useState(combo);
   const [optimisticMaxCombo, setOptimisticMaxCombo] = useState(maxCombo);
   const [bonusDescription, setBonusDescription] = useState("");
-  const [score, setScore] = useState<number | undefined>(0);
-  const [isIntermission, setIsIntermission] = useState(false);
   const [disableTiki, setDisableTiki] = useState(false);
   const [highlightedTiki, setHighlightedTiki] = useState(false);
   const [disableWave, setDisableWave] = useState(false);
@@ -116,7 +114,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
     }
   };
 
-  const handleBonusWaveTx = useCallback(async (rowIndex: number) => {
+  const handleBonusWaveTx = useCallback(async () => {
     setIsTxProcessing(true);
     try {
       // await applyBonus({
@@ -130,53 +128,47 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
     }
   }, []);
 
-  const handleBonusHammerTx = useCallback(
-    async (rowIndex: number, colIndex: number) => {
-      setIsTxProcessing(true);
-      try {
-        // await applyBonus({
-        //   account: account as Account,
-        //   bonus: new Bonus(BonusType.Hammer).into(),
-        //   row_index: ROWS - rowIndex - 1,
-        //   block_index: colIndex,
-        // });
-      } finally {
-        //setIsLoading(false);
-      }
-    },
-    [],
-  );
+  const handleBonusHammerTx = useCallback(async () => {
+    setIsTxProcessing(true);
+    try {
+      // await applyBonus({
+      //   account: account as Account,
+      //   bonus: new Bonus(BonusType.Hammer).into(),
+      //   row_index: ROWS - rowIndex - 1,
+      //   block_index: colIndex,
+      // });
+    } finally {
+      //setIsLoading(false);
+    }
+  }, []);
 
-  const handleBonusTikiTx = useCallback(
-    async (rowIndex: number, colIndex: number) => {
-      setIsTxProcessing(true);
-      try {
-        // await applyBonus({
-        //   account: account as Account,
-        //   bonus: new Bonus(BonusType.Totem).into(),
-        //   row_index: ROWS - rowIndex - 1,
-        //   block_index: colIndex,
-        // });
-      } finally {
-        //setIsLoading(false);
-      }
-    },
-    [],
-  );
+  const handleBonusTikiTx = useCallback(async () => {
+    setIsTxProcessing(true);
+    try {
+      // await applyBonus({
+      //   account: account as Account,
+      //   bonus: new Bonus(BonusType.Totem).into(),
+      //   row_index: ROWS - rowIndex - 1,
+      //   block_index: colIndex,
+      // });
+    } finally {
+      //setIsLoading(false);
+    }
+  }, []);
 
   const selectBlock = useCallback(
     async (block: Block) => {
-      onBlockSelect && onBlockSelect(block);
+      if (onBlockSelect) onBlockSelect(block);
 
       if (bonus === BonusType.Wave) {
-        handleBonusWaveTx(block.y);
+        handleBonusWaveTx();
       } else if (bonus === BonusType.Totem) {
-        handleBonusTikiTx(block.y, block.x);
+        handleBonusTikiTx();
       } else if (bonus === BonusType.Hammer) {
-        handleBonusHammerTx(block.y, block.x);
+        handleBonusHammerTx();
       }
     },
-    [bonus, handleBonusWaveTx, handleBonusTikiTx, handleBonusHammerTx],
+    [bonus, handleBonusWaveTx, handleBonusTikiTx, handleBonusHammerTx]
   );
 
   useEffect(() => {
@@ -202,7 +194,9 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
   return (
     <>
       <Card
-        className={`relative p-3 md:pt-4 bg-secondary ${isTxProcessing && "cursor-wait"} pb-2 md:pb-3`}
+        className={`relative p-3 md:pt-4 bg-secondary ${
+          isTxProcessing && "cursor-wait"
+        } pb-2 md:pb-3`}
       >
         <BonusAnimation
           isMdOrLarger={isMdOrLarger}
@@ -211,7 +205,9 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
           optimisticMaxCombo={optimisticMaxCombo}
         />
         <div
-          className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} mb-2 md:mb-3 flex justify-between px-1`}
+          className={`${
+            isMdOrLarger ? "w-[420px]" : "w-[338px]"
+          } mb-2 md:mb-3 flex justify-between px-1`}
         >
           <div className="w-5/12">
             <div className="grid grid-cols-3 gap-3">
@@ -262,7 +258,9 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
         </div>
 
         <div
-          className={`flex justify-center items-center ${!isTxProcessing && "cursor-move"}`}
+          className={`flex justify-center items-center ${
+            !isTxProcessing && "cursor-move"
+          }`}
         >
           <TutorialGrid
             initialData={memorizedInitialData}

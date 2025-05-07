@@ -1,4 +1,4 @@
-import { Condition } from "../../types/bonus";
+import type { Condition } from "../../types/bonus";
 
 export class Wave {
   public static getCount(combo: number): number {

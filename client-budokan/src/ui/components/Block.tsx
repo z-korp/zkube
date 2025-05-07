@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { GameState } from "@/enums/gameEnums";
-import { Block } from "@/types/types";
+import type { Block } from "@/types/types";
 
 interface BlockProps {
   block: Block;
@@ -11,11 +11,11 @@ interface BlockProps {
   state?: GameState;
   handleMouseDown?: (
     e: React.MouseEvent<HTMLDivElement>,
-    block: BlockProps["block"],
+    block: BlockProps["block"]
   ) => void;
   handleTouchStart?: (
     e: React.TouchEvent<HTMLDivElement>,
-    block: BlockProps["block"],
+    block: BlockProps["block"]
   ) => void;
   onTransitionBlockStart?: () => void;
   onTransitionBlockEnd?: () => void;
@@ -36,7 +36,7 @@ const BlockContainer: React.FC<BlockProps> = ({
   const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const element = ref.current
+    const element = ref.current;
     if (element === null) return;
 
     const onTransitionStart = () => {
@@ -58,7 +58,9 @@ const BlockContainer: React.FC<BlockProps> = ({
 
   return (
     <div
-      className={`block block-${block.width} ${isTxProcessing ? "cursor-wait" : ""} ${block.y != gridHeight - 1 ? "z-10" : ""}`}
+      className={`block block-${block.width} ${
+        isTxProcessing ? "cursor-wait" : ""
+      } ${block.y != gridHeight - 1 ? "z-10" : ""}`}
       ref={ref}
       style={{
         position: "absolute",

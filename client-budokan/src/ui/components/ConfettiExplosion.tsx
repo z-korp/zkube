@@ -1,10 +1,6 @@
-import { ISourceOptions, tsParticles, Container } from "@tsparticles/engine";
-import React, {
-  useEffect,
-  useRef,
-  forwardRef,
-  useImperativeHandle,
-} from "react";
+import type { ISourceOptions, Container } from "@tsparticles/engine";
+import { tsParticles } from "@tsparticles/engine";
+import { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import { loadFull } from "tsparticles";
 
 interface ConfettiExplosionProps {

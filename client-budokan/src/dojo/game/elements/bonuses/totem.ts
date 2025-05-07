@@ -1,4 +1,4 @@
-import { Condition } from "../../types/bonus";
+import type { Condition } from "../../types/bonus";
 
 export class Totem {
   public static getCount(max_combo: number): number {

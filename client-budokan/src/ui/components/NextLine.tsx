@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Block } from "@/types/types";
+import type { Block } from "@/types/types";
 import BlockContainer from "@/ui/components/Block";
 
 interface NextLineProps {

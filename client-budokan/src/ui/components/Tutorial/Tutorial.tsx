@@ -5,7 +5,6 @@ import ImageAssets from "@/ui/theme/ImageAssets";
 
 import {
   AlertDialog,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,

@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
-import { setup, SetupResult } from "./dojo/setup.ts";
+import { setup } from "./dojo/setup.ts";
+import type { SetupResult } from "./dojo/setup.ts";
 import { DojoProvider } from "./dojo/context.tsx";
 import { dojoConfig } from "../dojo.config.ts";
 import { Loading } from "@/ui/screens/Loading";
@@ -23,7 +24,7 @@ function rpc() {
 }
 
 const root = ReactDOM.createRoot(
-  document.getElementById("root") as HTMLElement,
+  document.getElementById("root") as HTMLElement
 );
 
 export function Main() {

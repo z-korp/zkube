@@ -22,11 +22,11 @@ const FixedWidthDigit: React.FC<{ value: string }> = ({ value }) =>
 const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
   const [targetBalance, setTargetBalance] = useState<number | undefined>(
-    undefined,
+    undefined
   ); // don't change this to 0, it will cause a flicker
 
   // useBalance doesn't work on Katana, don't know why
-  const { data, isError, isLoading, error } = useReadContract({
+  const { data, isError, error } = useReadContract({
     functionName: "balanceOf",
     args: [address as string],
     abi: erc20ABI,
@@ -38,7 +38,7 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
   useEffect(() => {
     if (data !== undefined) {
       const formattedBalance = parseFloat(
-        formatUnits(data as bigint, 18, symbol === "ETH" ? 6 : 2),
+        formatUnits(data as bigint, 18, symbol === "ETH" ? 6 : 2)
       );
 
       setTargetBalance(formattedBalance);
@@ -89,7 +89,7 @@ const Balance = ({ address, token_address, symbol = "ETH" }: BalanceProps) => {
     .toString()
     .split(".")
     .map((part, index) =>
-      index === 1 ? part.slice(0, isMdOrLarger ? 5 : 3) : part,
+      index === 1 ? part.slice(0, isMdOrLarger ? 5 : 3) : part
     )
     .join(".");
 
@@ -115,7 +115,7 @@ export default Balance;
 function formatUnits(
   value: bigint,
   decimals: number,
-  displayDecimals: number = decimals,
+  displayDecimals: number = decimals
 ) {
   let display = value.toString();
 

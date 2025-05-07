@@ -1,26 +1,20 @@
-import { Leaderboard } from "../modules/Leaderboard";
-import { ProfilePage } from "../modules/ProfilePage";
 import Connect from "./Connect";
-import { usePlayer } from "@/hooks/usePlayer";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 import HeaderBalance from "./HeaderBalance";
-import { Button } from "../elements/button";
-import CollectiveTreasureChest from "./TreasureChest";
 import { useCallback, useState } from "react";
-import LevelIndicator from "./LevelIndicator";
 import SettingsDropDown from "./SettingsDropDown";
 import { useNavigate } from "react-router-dom";
 import { Controller } from "./Controller";
 import TutorialModal from "./Tutorial/TutorialModal";
+import { Button } from "../elements/button";
 
 interface DesktopHeaderProps {
   onStartTutorial: () => void;
 }
 
 const DesktopHeader = ({ onStartTutorial }: DesktopHeaderProps) => {
-  const { player } = usePlayer();
+  const { account } = useAccountCustom();
 
-  const [isOpen, setIsOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
 
   const changeTutorialOpen = () => {
@@ -30,10 +24,6 @@ const DesktopHeader = ({ onStartTutorial }: DesktopHeaderProps) => {
   const handleStartTutorial = () => {
     changeTutorialOpen();
     onStartTutorial();
-  };
-
-  const onClose = () => {
-    setIsOpen(false);
   };
 
   const navigate = useNavigate();
@@ -49,12 +39,7 @@ const DesktopHeader = ({ onStartTutorial }: DesktopHeaderProps) => {
         onClick={handleClick}
       >
         <p className="text-4xl font-bold">zKube</p>
-        <Leaderboard buttonType="outline" textSize="sm" />
         {/*<ContentTabs />*/}
-        <Button variant={"outline"} onClick={() => setIsOpen(true)}>
-          Collective Chests
-        </Button>
-        <CollectiveTreasureChest isOpen={isOpen} onClose={onClose} />
         <Button
           variant="outline"
           onClick={(e) => {
@@ -71,20 +56,16 @@ const DesktopHeader = ({ onStartTutorial }: DesktopHeaderProps) => {
         />
       </div>
       <div className="flex flex-col gap-4 items-center md:flex-row">
-        {!!player && (
+        {!!account && (
           <div className="flex gap-4 flex-1 justify-end px-4 w-2/4">
-            {" "}
             <HeaderBalance />
-            <ProfilePage wfit />
             <Controller />
-            <LevelIndicator currentXP={player.points} />
           </div>
         )}
 
         {ACCOUNT_CONNECTOR === "controller" && <Connect />}
         <div className="flex gap-4">
           <SettingsDropDown />
-          {/*<ModeToggle />*/}
         </div>
       </div>
     </div>

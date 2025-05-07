@@ -3,7 +3,6 @@ import { useCallback, useMemo, useState } from "react";
 import { Account } from "starknet";
 import { Button } from "@/ui/elements/button";
 import { useGame } from "@/hooks/useGame";
-import { usePlayer } from "@/hooks/usePlayer";
 import {
   Dialog,
   DialogContent,
@@ -40,9 +39,8 @@ export const Surrender: React.FC<SurrenderProps> = ({
       systemCalls: { surrender },
     },
   } = useDojo();
-  const { player } = usePlayer();
   const { game } = useGame({
-    gameId: player?.game_id || "0x0",
+    gameId: /*TBD player?.game_id*/ "0",
     shouldLog: false,
   });
 
@@ -59,8 +57,8 @@ export const Surrender: React.FC<SurrenderProps> = ({
   }, [account, setIsUnmounting, surrender]);
 
   const disabled = useMemo(() => {
-    return !account || !player || !game || game.over;
-  }, [account, player, game]);
+    return !account || !game || game.over;
+  }, [account, game]);
 
   if (disabled) return null;
 

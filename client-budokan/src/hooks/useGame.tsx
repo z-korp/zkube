@@ -2,7 +2,7 @@ import { useDojo } from "@/dojo/useDojo";
 import { useMemo } from "react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
-import { Entity } from "@dojoengine/recs";
+import type { Entity } from "@dojoengine/recs";
 import useDeepMemo from "./useDeepMemo";
 
 export const useGame = ({
@@ -22,7 +22,7 @@ export const useGame = ({
 
   const gameKey = useMemo(
     () => getEntityIdFromKeys([BigInt(gameId || 0)]) as Entity,
-    [gameId],
+    [gameId]
   );
   const component = useComponentValue(Game, gameKey);
 

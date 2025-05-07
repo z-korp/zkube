@@ -1,5 +1,6 @@
-import { ReactNode } from "react";
-import { motion, MotionProps } from "framer-motion";
+import type { ReactNode } from "react";
+import { motion } from "framer-motion";
+import type { MotionProps } from "framer-motion";
 
 interface BackgroundImageProps {
   children: ReactNode;

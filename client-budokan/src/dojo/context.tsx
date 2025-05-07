@@ -1,5 +1,6 @@
-import { ReactNode, createContext, useContext } from "react";
-import { SetupResult } from "./setup";
+import { createContext, useContext } from "react";
+import type { ReactNode } from "react";
+import type { SetupResult } from "./setup";
 
 export const DojoContext = createContext<SetupResult | null>(null);
 
