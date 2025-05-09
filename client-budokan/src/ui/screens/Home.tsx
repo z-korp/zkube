@@ -30,15 +30,17 @@ import { TweetPreview } from "../components/TweetPreview";
 import { useGrid } from "@/hooks/useGrid";
 import Tutorial from "../components/Tutorial/Tutorial";
 import HeaderBalance from "../components/HeaderBalance";
+import { useGeneralStore } from "@/stores/generalStore";
+import { PlayFreeGame } from "../actions/PlayFreeGame";
 
 export const Home = () => {
   useViewport();
-  const isSigning = false; //useAutoSignup();
 
   const { account } = useAccountCustom();
+  const { gameId } = useGeneralStore();
 
   const { game } = useGame({
-    gameId: /* TBD player?.game_id ||*/ "0x0",
+    gameId: gameId || 0,
     shouldLog: true,
   });
   const grid = useGrid({ gameId: game?.id ?? "", shouldLog: true });
@@ -157,18 +159,27 @@ export const Home = () => {
     prevGameOverRef.current = game?.over;
   }, [game?.over]);
 
-  /*useEffect(() => {
-    console.log("==================> Grid is changing");
-  }, [grid]);*/
-
   // Define render functions
   const renderDesktopView = () => (
     <>
       <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center">
-        test
+        <Button
+          variant="default"
+          onClick={() => console.log("Play")}
+          className="w-[150px]"
+        >
+          Play
+        </Button>
+        <PlayFreeGame />
       </div>
       <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-start justify-center">
-        test
+        <Button
+          variant="default"
+          onClick={() => console.log("Play")}
+          className="w-[150px]"
+        >
+          My Games
+        </Button>
       </div>
     </>
   );
@@ -214,15 +225,6 @@ export const Home = () => {
 
       {/* Content Area */}
       <div className="flex flex-col flex-1 relative">
-        <Dialog open={isSigning} modal>
-          <DialogContent
-            aria-describedby={undefined}
-            className="flex flex-col items-center justify-center p-6"
-          >
-            <p className="mt-8 mb-7">Aligning the blocks for your signup...</p>
-          </DialogContent>
-        </Dialog>
-
         {/* Main Content */}
         <BackGroundBoard imageBackground={imgAssets.imageBackground}>
           <BackGroundBoard

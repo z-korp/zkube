@@ -4,8 +4,9 @@ import ControllerConnector from "@cartridge/connector/controller";
 
 export const fetchUsername = async (
   address: string | undefined,
-  connector: any,
+  connector: any
 ): Promise<string | undefined> => {
+  console.log("fetchUsername", address);
   if (!address || !connector) {
     return undefined;
   }
@@ -29,6 +30,7 @@ export const useControllerUsername = () => {
   useEffect(() => {
     const updateUsername = async () => {
       const name = await fetchUsername(address, connector);
+      console.log("name", name);
       setUsername(name);
     };
 

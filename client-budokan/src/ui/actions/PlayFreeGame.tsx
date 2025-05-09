@@ -4,39 +4,20 @@ import { Account } from "starknet";
 import { Button } from "@/ui/elements/button";
 import { useGame } from "@/hooks/useGame";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import { useContract } from "@starknet-react/core";
-import { erc20ABI } from "@/utils/erc20";
 import { useMediaQuery } from "react-responsive";
-import { erc721ABI } from "@/utils/erc721";
 import { showToast } from "@/utils/toast";
 import { useGeneralStore } from "@/stores/generalStore";
+import { useControllerUsername } from "@/hooks/useControllerUsername";
 
-const {
-  VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
-  VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-} = import.meta.env;
-
-interface CreateProps {
-  handleGameMode: () => void;
-}
-
-export const Create: React.FC<CreateProps> = ({ handleGameMode }) => {
+export const PlayFreeGame = () => {
   const {
     setup: {
-      systemCalls: { create },
+      systemCalls: { freeMint, create },
     },
   } = useDojo();
 
   const { account } = useAccountCustom();
-  const { contract: erc20Contract } = useContract({
-    abi: erc20ABI,
-    address: VITE_PUBLIC_GAME_TOKEN_ADDRESS,
-  });
-  const { contract: erc721Contract } = useContract({
-    abi: erc721ABI,
-    address: VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
-  });
-
+  const { username } = useControllerUsername();
   const { gameId } = useGeneralStore();
 
   const { game } = useGame({
@@ -52,16 +33,12 @@ export const Create: React.FC<CreateProps> = ({ handleGameMode }) => {
   }, [account, game]);
 
   const handleClick = useCallback(async () => {
-    if (erc20Contract === undefined) {
-      console.error("ERC20 contract not loaded");
-      return;
-    }
-    if (erc721Contract === undefined) {
-      console.error("ERC721 contract not loaded");
-      return;
-    }
     if (!account?.address) {
       console.error("Account not loaded");
+      return;
+    }
+    if (!username) {
+      console.error("Username not loaded");
       return;
     }
 
@@ -81,13 +58,22 @@ export const Create: React.FC<CreateProps> = ({ handleGameMode }) => {
         type: "success",
       });
 
-      // Start game
+      await freeMint({
+        account: account as Account,
+        name: username,
+        settingsId: 0,
+      });
+
+      // Wait for the TokenMetadata model to be created
+      /*const playerKey = getEntityIdFromKeys([
+        BigInt(newAccount.address),
+      ]) as Entity;
+      const component = getComponentValue(Player, playerKey);*/
+
       await create({
         account: account as Account,
         token_id,
       });
-
-      handleGameMode();
     } catch (error) {
       console.error("Error during game start:", error);
       showToast({
@@ -98,7 +84,7 @@ export const Create: React.FC<CreateProps> = ({ handleGameMode }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [erc20Contract, erc721Contract, account, create, handleGameMode]);
+  }, [account, freeMint, create, username]);
 
   return (
     <Button

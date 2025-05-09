@@ -1,6 +1,13 @@
 import { DojoProvider } from "@dojoengine/core";
 import type { Config } from "../../dojo.config.ts";
-import { Account, CallData, cairo } from "starknet";
+import {
+  Account,
+  CairoOption,
+  CairoOptionVariant,
+  CallData,
+  cairo,
+  shortString,
+} from "starknet";
 import type { UniversalDetails } from "starknet";
 import type { Manifest } from "@/cartridgeConnector.tsx";
 
@@ -15,6 +22,11 @@ export interface Signer {
 
 export interface Create extends Signer {
   token_id: bigint;
+}
+
+export interface FreeMint extends Signer {
+  name: string;
+  settingsId: number;
 }
 
 export interface Move extends Signer {
@@ -35,13 +47,60 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
   const details: UniversalDetails | undefined = { maxFee: 1e15 };
 
   function game() {
-    const contract_name = "game";
+    const contract_name = "game_system";
     const contract = config.manifest.contracts.find(
       (c: Manifest["contracts"][number]) => c.tag.includes(contract_name)
     );
     if (!contract) {
       throw new Error(`Contract ${contract_name} not found in manifest`);
     }
+
+    const free_mint = async ({ account, name, settingsId = 0 }: FreeMint) => {
+      console.log("contract", contract);
+      console.log("contract_name", contract_name);
+      console.log("account", account);
+      console.log("name", name);
+      console.log("settingsId", settingsId);
+      console.log("VITE_PUBLIC_NAMESPACE", VITE_PUBLIC_NAMESPACE);
+      console.log(
+        "shortString.encodeShortString(name)",
+        shortString.encodeShortString(name)
+      );
+
+      console.log(
+        CallData.compile({
+          name: shortString.encodeShortString(name),
+          settingsId: settingsId,
+          start: new CairoOption<number>(CairoOptionVariant.Some, 1),
+          end: new CairoOption<number>(CairoOptionVariant.Some, 1),
+          to: account.address,
+        })
+      );
+
+      try {
+        return await provider.execute(
+          account,
+          [
+            {
+              contractName: contract_name,
+              entrypoint: "mint",
+              calldata: [
+                shortString.encodeShortString(name),
+                settingsId,
+                new CairoOption<number>(CairoOptionVariant.None),
+                new CairoOption<number>(CairoOptionVariant.None),
+                account.address,
+              ],
+            },
+          ],
+          VITE_PUBLIC_NAMESPACE,
+          details
+        );
+      } catch (error) {
+        console.error("Error executing free_mint:", error);
+        throw error;
+      }
+    };
 
     const create = async ({ account, token_id }: Create) => {
       try {
@@ -133,6 +192,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
     return {
       address: contract.address,
+      free_mint,
       create,
       surrender,
       move,

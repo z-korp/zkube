@@ -8,7 +8,7 @@ import useDeepMemo from "./useDeepMemo";
 export const useGame = ({
   gameId,
 }: {
-  gameId: string | undefined;
+  gameId: number | undefined;
   shouldLog: boolean;
 }) => {
   const {

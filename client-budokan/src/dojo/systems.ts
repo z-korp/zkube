@@ -21,7 +21,7 @@ export function systems({ client }: { client: IWorld }) {
   const handleTransaction = async (
     account: Account,
     action: () => Promise<{ transaction_hash: string }>,
-    successMessage: string,
+    successMessage: string
   ) => {
     // Generate a unique ID for this transaction attempt
     const toastId = `tx-${Date.now()}`;
@@ -41,7 +41,7 @@ export function systems({ client }: { client: IWorld }) {
         "transaction_hash",
         transaction_hash,
         getUrl(transaction_hash),
-        getWalnutUrl(transaction_hash),
+        getWalnutUrl(transaction_hash)
       );
 
       if (shouldShowToast()) {
@@ -58,6 +58,7 @@ export function systems({ client }: { client: IWorld }) {
       const transaction = await account.waitForTransaction(transaction_hash, {
         retryInterval: 200,
       });
+      console.log("transaction", transaction);
 
       // Notify success using same toastId
       notify(successMessage, transaction, toastId);
@@ -75,11 +76,19 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
+  const freeMint = async ({ account, ...props }: SystemTypes.FreeMint) => {
+    await handleTransaction(
+      account,
+      () => client.game.free_mint({ account, ...props }),
+      "Game has been minted."
+    );
+  };
+
   const create = async ({ account, ...props }: SystemTypes.Create) => {
     await handleTransaction(
       account,
       () => client.game.create({ account, ...props }),
-      "Game has been started.",
+      "Game has been started."
     );
   };
 
@@ -87,7 +96,7 @@ export function systems({ client }: { client: IWorld }) {
     await handleTransaction(
       account,
       () => client.game.surrender({ account, ...props }),
-      "Game has been surrendered.",
+      "Game has been surrendered."
     );
   };
 
@@ -100,7 +109,7 @@ export function systems({ client }: { client: IWorld }) {
       await handleTransaction(
         account,
         () => client.game.move({ account, ...props }),
-        "Move has been done.",
+        "Move has been done."
       );
       setMoveComplete(true);
     } catch (error) {
@@ -116,7 +125,7 @@ export function systems({ client }: { client: IWorld }) {
       await handleTransaction(
         account,
         () => client.game.bonus({ account, ...props }),
-        "Bonus has been applied.",
+        "Bonus has been applied."
       );
       setMoveComplete(true);
     } catch (error) {
@@ -127,6 +136,7 @@ export function systems({ client }: { client: IWorld }) {
 
   return {
     // play
+    freeMint,
     create,
     surrender,
     move,
