@@ -6,7 +6,7 @@ pending = true
 transactions = true
 namespaces = ["zkube_budo_v1_1_0", "budokan_v_1_0_6"]
 contracts = [
-  "erc721:0x54365f7dcbec62068a56d378a96c53c86988bac243940334e1301b0c5512a34"
+  "erc721:0x1e0b80823ba036c8366c2434dad9d5bb35662a7b1d0afbdc69c5f0a7fff3513"
 ]
 
 [events]
