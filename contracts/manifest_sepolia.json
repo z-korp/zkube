@@ -1,6 +1,6 @@
 {
   "world": {
-    "class_hash": "0x7c9469d45a9cdbab775035afb48e1fa73fb35ab059fcb9dfb0a301aa973e783",
+    "class_hash": "0x4c60dc46a8ca8bb47675b7b914053cef769afbf0e340523187336b72bd71d1f",
     "address": "0x2c68192fb1951de6e7ab2634fb41ec60a38a1404b4cb58d2a5771f5b890a69e",
     "seed": "zKube13",
     "name": "zKube",
@@ -693,6 +693,22 @@
           },
           {
             "type": "function",
+            "name": "owners_count",
+            "inputs": [
+              {
+                "name": "resource",
+                "type": "core::felt252"
+              }
+            ],
+            "outputs": [
+              {
+                "type": "core::integer::u64"
+              }
+            ],
+            "state_mutability": "view"
+          },
+          {
+            "type": "function",
             "name": "is_writer",
             "inputs": [
               {
@@ -1312,8 +1328,412 @@
   },
   "contracts": [
     {
-      "address": "0x73c51a165fda55014bee32e8c84959acc2ea308caa2452d628c6a6718406a76",
-      "class_hash": "0x36c132392858a52716cb3c114bcf6f1fdfc1cc366591886b6ad8f1001690a49",
+      "address": "0x58d1ba9784102f218b48b9f8f80bf016bb7f73734268dec9292d0ae7a92e214",
+      "class_hash": "0x49cf2b093c5d6bef7dd5167dc3848af5cec18a20d4f1355aec7219d81ea5db8",
+      "abi": [
+        {
+          "type": "impl",
+          "name": "config_system__ContractImpl",
+          "interface_name": "dojo::contract::interface::IContract"
+        },
+        {
+          "type": "interface",
+          "name": "dojo::contract::interface::IContract",
+          "items": []
+        },
+        {
+          "type": "impl",
+          "name": "config_system__DeployedContractImpl",
+          "interface_name": "dojo::meta::interface::IDeployedResource"
+        },
+        {
+          "type": "struct",
+          "name": "core::byte_array::ByteArray",
+          "members": [
+            {
+              "name": "data",
+              "type": "core::array::Array::<core::bytes_31::bytes31>"
+            },
+            {
+              "name": "pending_word",
+              "type": "core::felt252"
+            },
+            {
+              "name": "pending_word_len",
+              "type": "core::integer::u32"
+            }
+          ]
+        },
+        {
+          "type": "interface",
+          "name": "dojo::meta::interface::IDeployedResource",
+          "items": [
+            {
+              "type": "function",
+              "name": "dojo_name",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "core::byte_array::ByteArray"
+                }
+              ],
+              "state_mutability": "view"
+            }
+          ]
+        },
+        {
+          "type": "function",
+          "name": "dojo_init",
+          "inputs": [],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "impl",
+          "name": "ConfigSystemImpl",
+          "interface_name": "zkube::systems::config::IConfigSystem"
+        },
+        {
+          "type": "enum",
+          "name": "zkube::types::difficulty::Difficulty",
+          "variants": [
+            {
+              "name": "None",
+              "type": "()"
+            },
+            {
+              "name": "Increasing",
+              "type": "()"
+            },
+            {
+              "name": "VeryEasy",
+              "type": "()"
+            },
+            {
+              "name": "Easy",
+              "type": "()"
+            },
+            {
+              "name": "Medium",
+              "type": "()"
+            },
+            {
+              "name": "MediumHard",
+              "type": "()"
+            },
+            {
+              "name": "Hard",
+              "type": "()"
+            },
+            {
+              "name": "VeryHard",
+              "type": "()"
+            },
+            {
+              "name": "Expert",
+              "type": "()"
+            },
+            {
+              "name": "Master",
+              "type": "()"
+            }
+          ]
+        },
+        {
+          "type": "struct",
+          "name": "zkube::models::config::GameSettings",
+          "members": [
+            {
+              "name": "settings_id",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "difficulty",
+              "type": "zkube::types::difficulty::Difficulty"
+            }
+          ]
+        },
+        {
+          "type": "struct",
+          "name": "zkube::models::config::GameSettingsMetadata",
+          "members": [
+            {
+              "name": "settings_id",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "name",
+              "type": "core::felt252"
+            },
+            {
+              "name": "description",
+              "type": "core::byte_array::ByteArray"
+            },
+            {
+              "name": "created_by",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "created_at",
+              "type": "core::integer::u64"
+            }
+          ]
+        },
+        {
+          "type": "enum",
+          "name": "core::bool",
+          "variants": [
+            {
+              "name": "False",
+              "type": "()"
+            },
+            {
+              "name": "True",
+              "type": "()"
+            }
+          ]
+        },
+        {
+          "type": "interface",
+          "name": "zkube::systems::config::IConfigSystem",
+          "items": [
+            {
+              "type": "function",
+              "name": "add_game_settings",
+              "inputs": [
+                {
+                  "name": "name",
+                  "type": "core::felt252"
+                },
+                {
+                  "name": "description",
+                  "type": "core::byte_array::ByteArray"
+                },
+                {
+                  "name": "difficulty",
+                  "type": "zkube::types::difficulty::Difficulty"
+                }
+              ],
+              "outputs": [
+                {
+                  "type": "core::integer::u32"
+                }
+              ],
+              "state_mutability": "external"
+            },
+            {
+              "type": "function",
+              "name": "get_game_settings",
+              "inputs": [
+                {
+                  "name": "settings_id",
+                  "type": "core::integer::u32"
+                }
+              ],
+              "outputs": [
+                {
+                  "type": "zkube::models::config::GameSettings"
+                }
+              ],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "get_game_settings_metadata",
+              "inputs": [
+                {
+                  "name": "settings_id",
+                  "type": "core::integer::u32"
+                }
+              ],
+              "outputs": [
+                {
+                  "type": "zkube::models::config::GameSettingsMetadata"
+                }
+              ],
+              "state_mutability": "view"
+            },
+            {
+              "type": "function",
+              "name": "settings_exists",
+              "inputs": [
+                {
+                  "name": "settings_id",
+                  "type": "core::integer::u32"
+                }
+              ],
+              "outputs": [
+                {
+                  "type": "core::bool"
+                }
+              ],
+              "state_mutability": "view"
+            }
+          ]
+        },
+        {
+          "type": "impl",
+          "name": "WorldProviderImpl",
+          "interface_name": "dojo::contract::components::world_provider::IWorldProvider"
+        },
+        {
+          "type": "struct",
+          "name": "dojo::world::iworld::IWorldDispatcher",
+          "members": [
+            {
+              "name": "contract_address",
+              "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ]
+        },
+        {
+          "type": "interface",
+          "name": "dojo::contract::components::world_provider::IWorldProvider",
+          "items": [
+            {
+              "type": "function",
+              "name": "world_dispatcher",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "dojo::world::iworld::IWorldDispatcher"
+                }
+              ],
+              "state_mutability": "view"
+            }
+          ]
+        },
+        {
+          "type": "impl",
+          "name": "UpgradeableImpl",
+          "interface_name": "dojo::contract::components::upgradeable::IUpgradeable"
+        },
+        {
+          "type": "interface",
+          "name": "dojo::contract::components::upgradeable::IUpgradeable",
+          "items": [
+            {
+              "type": "function",
+              "name": "upgrade",
+              "inputs": [
+                {
+                  "name": "new_class_hash",
+                  "type": "core::starknet::class_hash::ClassHash"
+                }
+              ],
+              "outputs": [],
+              "state_mutability": "external"
+            }
+          ]
+        },
+        {
+          "type": "constructor",
+          "name": "constructor",
+          "inputs": []
+        },
+        {
+          "type": "event",
+          "name": "dojo::contract::components::upgradeable::upgradeable_cpt::Upgraded",
+          "kind": "struct",
+          "members": [
+            {
+              "name": "class_hash",
+              "type": "core::starknet::class_hash::ClassHash",
+              "kind": "data"
+            }
+          ]
+        },
+        {
+          "type": "event",
+          "name": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "enum",
+          "variants": [
+            {
+              "name": "Upgraded",
+              "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Upgraded",
+              "kind": "nested"
+            }
+          ]
+        },
+        {
+          "type": "event",
+          "name": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "enum",
+          "variants": []
+        },
+        {
+          "type": "event",
+          "name": "zkube::systems::config::config_system::GameSettingsCreated",
+          "kind": "struct",
+          "members": [
+            {
+              "name": "settings_id",
+              "type": "core::integer::u32",
+              "kind": "data"
+            },
+            {
+              "name": "name",
+              "type": "core::felt252",
+              "kind": "data"
+            },
+            {
+              "name": "difficulty",
+              "type": "zkube::types::difficulty::Difficulty",
+              "kind": "data"
+            },
+            {
+              "name": "created_by",
+              "type": "core::starknet::contract_address::ContractAddress",
+              "kind": "data"
+            }
+          ]
+        },
+        {
+          "type": "event",
+          "name": "achievement::components::achievable::AchievableComponent::Event",
+          "kind": "enum",
+          "variants": []
+        },
+        {
+          "type": "event",
+          "name": "zkube::systems::config::config_system::Event",
+          "kind": "enum",
+          "variants": [
+            {
+              "name": "UpgradeableEvent",
+              "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+              "kind": "nested"
+            },
+            {
+              "name": "WorldProviderEvent",
+              "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+              "kind": "nested"
+            },
+            {
+              "name": "GameSettingsCreated",
+              "type": "zkube::systems::config::config_system::GameSettingsCreated",
+              "kind": "nested"
+            },
+            {
+              "name": "AchievableEvent",
+              "type": "achievement::components::achievable::AchievableComponent::Event",
+              "kind": "flat"
+            }
+          ]
+        }
+      ],
+      "init_calldata": [],
+      "tag": "zkube_budo_v1_1_0-config_system",
+      "selector": "0x2540eb82e01ce983246f90d4d0f77a4404679a8abd4f3b538be86569ef21506",
+      "systems": [
+        "dojo_init",
+        "add_game_settings",
+        "upgrade"
+      ]
+    },
+    {
+      "address": "0x54365f7dcbec62068a56d378a96c53c86988bac243940334e1301b0c5512a34",
+      "class_hash": "0x4f5422f49fb1acccc55d51ae9e1e52db981da080482977a8df3e38a9e2eeae1",
       "abi": [
         {
           "type": "impl",
@@ -2430,12 +2850,6 @@
         },
         {
           "type": "event",
-          "name": "achievement::components::achievable::AchievableComponent::Event",
-          "kind": "enum",
-          "variants": []
-        },
-        {
-          "type": "event",
           "name": "zkube::systems::game::game_system::Event",
           "kind": "enum",
           "variants": [
@@ -2463,18 +2877,13 @@
               "name": "SRC5Event",
               "type": "openzeppelin_introspection::src5::SRC5Component::Event",
               "kind": "flat"
-            },
-            {
-              "name": "AchievableEvent",
-              "type": "achievement::components::achievable::AchievableComponent::Event",
-              "kind": "flat"
             }
           ]
         }
       ],
       "init_calldata": [],
-      "tag": "zkube_budo_v1_0_1-game_system",
-      "selector": "0x61594f322eeb91c4d6477b0d7ee33340541b8ac1edcde151a8fdbe401c854be",
+      "tag": "zkube_budo_v1_1_0-game_system",
+      "selector": "0x50fd95a2d82f5e2ea65fef198fac3a07684a6e22f3de9437b66f88994abfb89",
       "systems": [
         "dojo_init",
         "create",
@@ -2498,83 +2907,83 @@
   "models": [
     {
       "members": [],
-      "class_hash": "0x14eb0c9c0c1e5dd2c1e9efc9a47d8b10ff4c405173695ea5fe90aed327dae9a",
-      "tag": "zkube_budo_v1_0_1-Game",
-      "selector": "0x539677301eb3f25fc380fa87c28633d745ea0dc5d9c0d0e09a38c926f9ebe6a"
+      "class_hash": "0xd9a2b960fb737a8346789f679db61bbed8b0cfb556a99378bfb1cbd9a54d59",
+      "tag": "zkube_budo_v1_1_0-Game",
+      "selector": "0x84acd01917db02efc131e496a2d514470770d06142ac27f5c8eeae024ea1de"
     },
     {
       "members": [],
-      "class_hash": "0x2942c6bc2a7c32e8fc6388074538f83c5cd92006b120012fbf8d4a47d6aef1",
-      "tag": "zkube_budo_v1_0_1-GameCounter",
-      "selector": "0x45414335dc782ac103a0aacb8e4120c7b5d34c5685324a3fba802c896ab9216"
+      "class_hash": "0x4c9aa5cf3f03bd208fcfc809bbefd59074e319870fd54e699df593d2df01b4d",
+      "tag": "zkube_budo_v1_1_0-GameCounter",
+      "selector": "0x722d68ff1e8aace80ad4318af3a150fac31178563f63f229c57cb9d504298ca"
     },
     {
       "members": [],
-      "class_hash": "0x7b821ba31e4a384100d02c71e21bc12f2c6b809dc28dd313d9b2fee2d7e78fb",
-      "tag": "zkube_budo_v1_0_1-GameMetadata",
-      "selector": "0x1ff8bc0aa5565dcb63249acdc95b859ebf1cacee9ac3dcb0eaa0542a1e0f08d"
+      "class_hash": "0x2184a8d33905eed66c3a80bd753a579aadd0b8dd0652f9f513dc7f1949f53c4",
+      "tag": "zkube_budo_v1_1_0-GameMetadata",
+      "selector": "0x23ce2fd4d1bf2c9541007d81d8fb7c1fd258cd59e8b27b7c32517ac46babb5b"
     },
     {
       "members": [],
-      "class_hash": "0x76530a57471f985a395356d97b8e31fc9d6783a56ebf1c24e0bb8fd9f7508",
-      "tag": "zkube_budo_v1_0_1-GameSeed",
-      "selector": "0x257db87db04db8b2a5f91d3170a946fa501d4155ad7608ef4fb5bf7089dec69"
+      "class_hash": "0x3001162dae0a68fbdaf2dd2dfc7612591eb991bfa2ee59c2a9283296402d01b",
+      "tag": "zkube_budo_v1_1_0-GameSeed",
+      "selector": "0x48c27f1c37a8177f9f577e87660b4582742864be790d0d93db616a6925de396"
     },
     {
       "members": [],
-      "class_hash": "0x20766e17cd65fcd2c3be1fa49b55facfca6c2ce0525a65aff7a488b9851af59",
-      "tag": "zkube_budo_v1_0_1-GameSettings",
-      "selector": "0x262295e5678ea77eeab295bae07d899b10025987f263b6be363ff3d8ebb6578"
+      "class_hash": "0x1eb3a359c04054db289544cc358038ef513fb0214694149ae24a22982bda8b7",
+      "tag": "zkube_budo_v1_1_0-GameSettings",
+      "selector": "0x4f50210d122147ce6983f11c1cf3e82c009dd6d0d7d8104ec2729cb7f35ca42"
     },
     {
       "members": [],
-      "class_hash": "0x4116d1109f28b0f32404a6f606eded702193c1444d9332c25b19e16dbc7cb99",
-      "tag": "zkube_budo_v1_0_1-GameSettingsMetadata",
-      "selector": "0x272b9d35d489b75bc784ef72c4691bada492dd868f456102cab3d1664d5a328"
+      "class_hash": "0x70401675a4c0484eddc002b601a977d060bdb4b09f4cea73f84b14a006a7efd",
+      "tag": "zkube_budo_v1_1_0-GameSettingsMetadata",
+      "selector": "0x74e0d9c592d26cc9986255b7442f99adca0959e15b42f764689992ce6f03ad0"
     },
     {
       "members": [],
-      "class_hash": "0xd4b859cbf8bef2d1e9f81a3e598e281ed855009341058328b10f43204f00ec",
-      "tag": "zkube_budo_v1_0_1-Score",
-      "selector": "0x797e187210f164b37c197c1c855519a70b2b16c3c5356310bd06af80a0e250c"
+      "class_hash": "0x7538cc093e191e767f1caf8ea3f1c4818e319db41d8f760e48753cb2e420156",
+      "tag": "zkube_budo_v1_1_0-Score",
+      "selector": "0x4e560d5ee44107d945aa577cb6801e20a47c96e1dae85c9713cdccf8019a84"
     },
     {
       "members": [],
-      "class_hash": "0x3f82fa61272a7c7513cf48e89ca431820f62a1560de657608aca5c8e6a58b9",
-      "tag": "zkube_budo_v1_0_1-Settings",
-      "selector": "0x1644285892943451e4cb274a87d5f606ee223b5d88a397890c7eb59ba7664e2"
+      "class_hash": "0x1209baf4f84faefa02c38ae721ddc691755ff4ea5993861fa22d822c913ab5b",
+      "tag": "zkube_budo_v1_1_0-Settings",
+      "selector": "0x23a347827261bd46b592e85bd07c1f6d30c717c47b35d2d004eee384e5c1265"
     },
     {
       "members": [],
-      "class_hash": "0x5d31167fd55c0fdc83b6d51549b117981a395a6c0d8738eae62061ee33c3df1",
-      "tag": "zkube_budo_v1_0_1-SettingsCounter",
-      "selector": "0x751ed33107ac0bb046e8e6e5c2918a2a7c17b14edeae06ce3ef439b41692e86"
+      "class_hash": "0x4e0c7a60762ca47580e47d2d2dcb27dd5ad33262075cb9b126d670e97c67837",
+      "tag": "zkube_budo_v1_1_0-SettingsCounter",
+      "selector": "0x1a33b26078f870c538d6de4306d7be3934a00111d4ceb8e7e4f10a85998f3b4"
     },
     {
       "members": [],
-      "class_hash": "0x4d2afc0312d98dc2223a44ae88223336bb0a59a1bf2bcdc50b6f3d8875fb66a",
-      "tag": "zkube_budo_v1_0_1-SettingsDetails",
-      "selector": "0x7ffccd35a3a6b51cf0aa8e40f2142b5600e97a8281bedbc07ebec25367c1856"
+      "class_hash": "0x5a1e9671225dd42b4085d3fb27a7543ee87f0cb687514002e7b4d9fa77c78a1",
+      "tag": "zkube_budo_v1_1_0-SettingsDetails",
+      "selector": "0x1d3ad0d917573bb68e6b6679cd4cfb69b7c04bfbb70eba123ec78057670ff03"
     },
     {
       "members": [],
-      "class_hash": "0x6d1a541f4d6ccf4dce9c6f60a6e40c24dbc3a60b925a80eb0c9a924c7491f9f",
-      "tag": "zkube_budo_v1_0_1-TokenMetadata",
-      "selector": "0x189bb804f7e4e41742df584ae87c741fe31b9b47e38e9307f7249ddf5f7a418"
+      "class_hash": "0x336f9d3953c032d579de6675aa25e2903ea50708399ca5ec3312ee3480e7cca",
+      "tag": "zkube_budo_v1_1_0-TokenMetadata",
+      "selector": "0x464cebec8862fa06bf06b1e48ae9999dc8ebf4dbcccd7024f03aba6cfc1818c"
     }
   ],
   "events": [
     {
       "members": [],
-      "class_hash": "0x19a5c06b3a8417ff3f9883be3acb0e33c835795bd81fb87a5a47e6ed7d2d3af",
-      "tag": "zkube_budo_v1_0_1-TrophyCreation",
-      "selector": "0x3182ea30e3fe973c5c2d3cc13bd13d7951c7e1c7e78ff44a41c358b1bafeeeb"
+      "class_hash": "0x6fede2561a93b4808a6a00e19457a94d616e7ee53fc952f75af58da9bae45f5",
+      "tag": "zkube_budo_v1_1_0-TrophyCreation",
+      "selector": "0x26cd41a9b5df64898dffbba6aff13298c21a2f8e6ae81aec346e87fa2029bda"
     },
     {
       "members": [],
-      "class_hash": "0x1922d2cd8b63eccf66321673234a52126cd9f0ab1bf6298c5abee6ee80c8990",
-      "tag": "zkube_budo_v1_0_1-TrophyProgression",
-      "selector": "0x37f6306ddbe682cc00d830250cb1344a7b198f63b49b90bb90b4017ac80348a"
+      "class_hash": "0x3d60f68ff66df399a5efc60c6aacda487ced739897ddcea54270b7c147206d",
+      "tag": "zkube_budo_v1_1_0-TrophyProgression",
+      "selector": "0x66deddfae96c058e621e0b4e76a5b6796ae7eb7b4b5372b5c7757ab6feff232"
     }
   ],
   "external_contracts": []
