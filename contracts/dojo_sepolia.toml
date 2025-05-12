@@ -13,19 +13,19 @@ github = "https://github.com/dojoengine/dojo-starter"
 telegram = "https://t.me/dojoengine"
 
 [namespace]
-default = "zkube_budo_v1_0_1"
+default = "zkube_budo_v1_1_0"
 
 [env]
 rpc_url = "https://api.cartridge.gg/x/starknet/sepolia"
 account_address = "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7"
-world_address = "0x02c68192fb1951de6e7ab2634fb41ec60a38a1404b4cb58d2a5771f5b890a69e"
+world_address = "0x5c6d0020a9927edca9ddc984b97305439c0b32a1ec8d3f0eaf6291074cc9799"
 
 [writers]
-"zkube_budo_v1_0_1-Game" = ["zkube_budo_v1_0_1-game_system"]
-"zkube_budo_v1_0_1-GameSeed" = ["zkube_budo_v1_0_1-game_system"]
-"zkube_budo_v1_0_1-GameMetadata" = ["zkube_budo_v1_0_1-game_system"]
-"zkube_budo_v1_0_1-TokenMetadata" = ["zkube_budo_v1_0_1-game_system"]
-"zkube_budo_v1_0_1-GameSettings" = ["zkube_budo_v1_0_1-game_system"]
-"zkube_budo_v1_0_1-GameSettingsMetadata" = ["zkube_budo_v1_0_1-game_system"]
-"zkube_budo_v1_0_1-TrophyCreation" = ["zkube_budo_v1_0_1-game_system"]
-"zkube_budo_v1_0_1-TrophyProgression" = ["zkube_budo_v1_0_1-game_system"]
+"zkube_budo_v1_1_0-Game" = ["zkube_budo_v1_1_0-game_system"]
+"zkube_budo_v1_1_0-GameSeed" = ["zkube_budo_v1_1_0-game_system"]
+"zkube_budo_v1_1_0-GameMetadata" = ["zkube_budo_v1_1_0-game_system"]
+"zkube_budo_v1_1_0-TokenMetadata" = ["zkube_budo_v1_1_0-game_system"]
+"zkube_budo_v1_1_0-GameSettings" = ["zkube_budo_v1_1_0-game_system"]
+"zkube_budo_v1_1_0-GameSettingsMetadata" = ["zkube_budo_v1_1_0-game_system"]
+"zkube_budo_v1_1_0-TrophyCreation" = ["zkube_budo_v1_1_0-game_system"]
+"zkube_budo_v1_1_0-TrophyProgression" = ["zkube_budo_v1_1_0-game_system"]

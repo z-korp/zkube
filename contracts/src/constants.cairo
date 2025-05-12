@@ -21,7 +21,7 @@ pub fn ZKUBE_MULTISIG() -> ContractAddress {
 
 // Tournament
 pub fn DEFAULT_NS() -> ByteArray {
-    "zkube_budo_v1_0_1"
+    "zkube_budo_v1_1_0"
 }
 
 pub fn SCORE_MODEL() -> ByteArray {

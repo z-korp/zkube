@@ -13,16 +13,8 @@ trait IGameSystem<T> {
 
 #[dojo::contract]
 mod game_system {
-    use achievement::store::StoreTrait;
-    use achievement::components::achievable::AchievableComponent;
-
     use zkube::constants::{
         DEFAULT_NS, ZKUBE_MULTISIG, SCORE_MODEL, SCORE_ATTRIBUTE, SETTINGS_MODEL
-    };
-    use zkube::constants::DEFAULT_SETTINGS::{
-        GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY, GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_METADATA,
-        GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY,
-        GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA
     };
     use zkube::models::config::{GameSettings, GameSettingsTrait};
     use zkube::models::game::{Game, GameTrait, GameAssert};
@@ -31,20 +23,21 @@ mod game_system {
     use zkube::helpers::config::ConfigUtilsImpl;
     use zkube::helpers::random::RandomImpl;
     use zkube::types::task::{Task, TaskTrait};
-    use zkube::types::trophy::{Trophy, TrophyTrait, TROPHY_COUNT};
     use zkube::types::bonus::Bonus;
     use zkube::helpers::renderer::create_metadata;
+    use zkube::types::trophy::{Trophy, TrophyTrait};
 
     use dojo::model::ModelStorage;
     use dojo::world::WorldStorage;
 
     use starknet::{get_block_timestamp, get_caller_address};
+    use starknet::storage::{StoragePointerReadAccess};
 
     use openzeppelin_introspection::src5::SRC5Component;
-
     use openzeppelin_token::erc721::interface::{IERC721Metadata};
     use openzeppelin_token::erc721::{ERC721Component, ERC721HooksEmptyImpl};
-    use starknet::storage::{StoragePointerReadAccess};
+
+    use achievement::store::StoreTrait;
 
     use tournaments::components::game::game_component;
     use tournaments::components::interfaces::{IGameDetails, ISettings};
@@ -56,9 +49,6 @@ mod game_system {
     component!(path: game_component, storage: game, event: GameEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
     component!(path: ERC721Component, storage: erc721, event: ERC721Event);
-
-    component!(path: AchievableComponent, storage: achievable, event: AchievableEvent);
-    impl AchievableInternalImpl = AchievableComponent::InternalImpl<ContractState>;
 
     #[abi(embed_v0)]
     impl GameImpl = game_component::GameImpl<ContractState>;
@@ -81,8 +71,6 @@ mod game_system {
         erc721: ERC721Component::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
-        #[substorage(v0)]
-        achievable: AchievableComponent::Storage,
     }
 
     #[event]
@@ -94,12 +82,9 @@ mod game_system {
         ERC721Event: ERC721Component::Event,
         #[flat]
         SRC5Event: SRC5Component::Event,
-        #[flat]
-        AchievableEvent: AchievableComponent::Event,
     }
 
     fn dojo_init(ref self: ContractState) {
-        let mut world: WorldStorage = self.world(@DEFAULT_NS());
         self.erc721.initializer("zKube", "ZKUBE", "app.zkube.xyz");
         self
             .game
@@ -116,37 +101,6 @@ mod game_system {
                 SCORE_ATTRIBUTE(),
                 SETTINGS_MODEL(),
             );
-
-        let current_timestamp = get_block_timestamp();
-        world.write_model(GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY());
-        world.write_model(GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_METADATA(current_timestamp));
-
-        world.write_model(GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY());
-        world.write_model(GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA(current_timestamp));
-
-        // [Event] Emit all Trophy events
-        let mut trophy_id: u8 = TROPHY_COUNT;
-        while trophy_id > 0 {
-            let trophy: Trophy = trophy_id.into();
-            self
-                .achievable
-                .create(
-                    world,
-                    id: trophy.identifier(),
-                    hidden: trophy.hidden(),
-                    index: trophy.index(),
-                    points: trophy.points(),
-                    start: trophy.start(),
-                    end: trophy.end(),
-                    group: trophy.group(),
-                    icon: trophy.icon(),
-                    title: trophy.title(),
-                    description: trophy.description(),
-                    tasks: trophy.tasks(),
-                    data: trophy.data(),
-                );
-            trophy_id -= 1;
-        }
     }
 
     #[abi(embed_v0)]

@@ -1,3 +1,17 @@
-world_address = "0x30d5d5c610dd736faea146b20b850af64e34ca6e5c5a66462f76f32f48dd997"
+world_address = "0x5c6d0020a9927edca9ddc984b97305439c0b32a1ec8d3f0eaf6291074cc9799"
 rpc = "https://api.cartridge.gg/x/starknet/sepolia"
-explorer = false
+
+[indexing]
+pending = true
+transactions = true
+
+[events]
+raw = true
+
+[sql]
+historical = [
+  "zkube_budo_v1_1_0-TrophyProgression",
+]
+
+[indexing]
+namespaces = ["zkube_budo_v1_1_0", "budokan_1_0_7"]

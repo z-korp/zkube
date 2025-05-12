@@ -2,7 +2,7 @@
 name = "zkube"
 cairo-version = "=2.10.1"
 edition = "2024_07"
-version = "1.0.1"
+version = "1.1.0"
 
 [cairo]
 sierra-replace-ids = true
@@ -11,7 +11,7 @@ sierra-replace-ids = true
 dev = "sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate"
 slot = "sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate"
 slotdev = "sozo --profile slotdev clean && sozo --profile slotdev build && sozo --profile slotdev migrate"
-sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build && sozo --profile sepolia migrate --guest --keystore /Users/matthias/.starkli-wallets/sepolia/braavos_dojo_deployer/keystore.json --fee eth"
+sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build && sozo --profile sepolia migrate -vvv --guest --keystore /Users/matthias/.starkli-wallets/sepolia/braavos_dojo_deployer/keystore.json --fee eth"
 sepoliadev1 = "sozo --profile sepoliadev1 clean && sozo --profile sepoliadev1 build && sozo --profile sepoliadev1 migrate --walnut --keystore /Users/matthias/.starkli-wallets/sepolia/braavos_dojo_deployer/keystore.json --fee eth"
 sepoliadev2 = "sozo --profile sepoliadev2 clean && sozo --profile sepoliadev2 build && sozo --profile sepoliadev2 migrate --walnut --keystore /Users/matthias/.starkli-wallets/sepolia/braavos_dojo_deployer/keystore.json --fee eth"
 playground = "sozo --profile playground clean && sozo --profile playground build && sozo --profile playground migrate --walnut"
@@ -36,6 +36,7 @@ tournaments = { git = "https://github.com/Matth26/tournaments" }
 graffiti = { git = "https://github.com/rsodre/graffiti", rev = "url" }
 
 [[target.starknet-contract]]
+casm = true
 build-external-contracts = [
     "dojo::world::world_contract::world",
     "achievement::events::index::e_TrophyCreation",

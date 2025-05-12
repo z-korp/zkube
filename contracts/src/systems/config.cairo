@@ -1,9 +1,8 @@
-use starknet::{ContractAddress, get_caller_address, get_block_timestamp};
-use zkube::models::config::{GameSettingsMetadata, GameSettings, GameSettingsTrait};
+use zkube::models::config::{GameSettingsMetadata, GameSettings};
 use zkube::types::difficulty::Difficulty;
 
 #[starknet::interface]
-trait IConfigSystems<T> {
+trait IConfigSystem<T> {
     fn add_game_settings(
         ref self: T, name: felt252, description: ByteArray, difficulty: Difficulty,
     ) -> u32;
@@ -14,22 +13,43 @@ trait IConfigSystems<T> {
 }
 
 #[dojo::contract]
-mod config_systems {
-    use super::IConfigSystems;
+mod config_system {
+    use super::IConfigSystem;
+
     use starknet::{ContractAddress, get_caller_address, get_block_timestamp};
+    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+
+    use dojo::model::ModelStorage;
+    use dojo::world::WorldStorage;
+
+    use achievement::components::achievable::AchievableComponent;
+
     use zkube::models::config::{GameSettingsMetadata, GameSettings, GameSettingsTrait};
     use zkube::types::difficulty::Difficulty;
-    use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait};
+    use zkube::types::trophy::{Trophy, TrophyTrait, TROPHY_COUNT};
+    use zkube::constants::{DEFAULT_NS};
+    use zkube::constants::DEFAULT_SETTINGS::{
+        GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY, GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_METADATA,
+        GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY,
+        GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA
+    };
+
+    component!(path: AchievableComponent, storage: achievable, event: AchievableEvent);
+    impl AchievableInternalImpl = AchievableComponent::InternalImpl<ContractState>;
 
     #[storage]
     struct Storage {
         settings_counter: u32,
+        #[substorage(v0)]
+        achievable: AchievableComponent::Storage,
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
         GameSettingsCreated: GameSettingsCreated,
+        #[flat]
+        AchievableEvent: AchievableComponent::Event,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -40,8 +60,43 @@ mod config_systems {
         created_by: ContractAddress,
     }
 
+    fn dojo_init(ref self: ContractState) {
+        let mut world: WorldStorage = self.world(@DEFAULT_NS());
+
+        let current_timestamp = get_block_timestamp();
+        world.write_model(GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY());
+        world.write_model(GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_METADATA(current_timestamp));
+
+        world.write_model(GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY());
+        world.write_model(GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA(current_timestamp));
+
+        // [Event] Emit all Trophy events
+        let mut trophy_id: u8 = TROPHY_COUNT;
+        while trophy_id > 0 {
+            let trophy: Trophy = trophy_id.into();
+            self
+                .achievable
+                .create(
+                    world,
+                    id: trophy.identifier(),
+                    hidden: trophy.hidden(),
+                    index: trophy.index(),
+                    points: trophy.points(),
+                    start: trophy.start(),
+                    end: trophy.end(),
+                    group: trophy.group(),
+                    icon: trophy.icon(),
+                    title: trophy.title(),
+                    description: trophy.description(),
+                    tasks: trophy.tasks(),
+                    data: trophy.data(),
+                );
+            trophy_id -= 1;
+        }
+    }
+
     #[abi(embed_v0)]
-    impl ConfigSystemsImpl of IConfigSystems<ContractState> {
+    impl ConfigSystemImpl of IConfigSystem<ContractState> {
         fn add_game_settings(
             ref self: ContractState, name: felt252, description: ByteArray, difficulty: Difficulty,
         ) -> u32 {
@@ -49,7 +104,7 @@ mod config_systems {
             assert(difficulty != Difficulty::None, 'Invalid difficulty');
 
             // Get the world dispatcher
-            let world = self.world();
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             // Increment settings counter
             let mut settings_id = self.settings_counter.read();
@@ -69,8 +124,8 @@ mod config_systems {
             };
 
             // Save to world
-            world.set_game_settings(game_settings);
-            world.set_game_settings_metadata(metadata);
+            world.write_model(@game_settings);
+            world.write_model(@metadata);
 
             // Emit event
             self
@@ -84,20 +139,20 @@ mod config_systems {
         }
 
         fn get_game_settings(self: @ContractState, settings_id: u32) -> GameSettings {
-            let world = self.world();
-            world.get_game_settings(settings_id)
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            world.read_model(settings_id)
         }
 
         fn get_game_settings_metadata(
             self: @ContractState, settings_id: u32
         ) -> GameSettingsMetadata {
-            let world = self.world();
-            world.get_game_settings_metadata(settings_id)
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            world.read_model(settings_id)
         }
 
         fn settings_exists(self: @ContractState, settings_id: u32) -> bool {
-            let world = self.world();
-            let settings = world.get_game_settings(settings_id);
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let settings = world.read_model(settings_id);
             settings.exists()
         }
     }
