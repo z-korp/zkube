@@ -1,7 +1,7 @@
 {
   "world": {
     "class_hash": "0x4c60dc46a8ca8bb47675b7b914053cef769afbf0e340523187336b72bd71d1f",
-    "address": "0x2c68192fb1951de6e7ab2634fb41ec60a38a1404b4cb58d2a5771f5b890a69e",
+    "address": "0x1bfa92665fb815c9ec5f37c562a5c9a06fdf23ce022c1d33d4ac07cef5ad80c",
     "seed": "zKube13",
     "name": "zKube",
     "entrypoints": [
@@ -1328,7 +1328,7 @@
   },
   "contracts": [
     {
-      "address": "0x58d1ba9784102f218b48b9f8f80bf016bb7f73734268dec9292d0ae7a92e214",
+      "address": "0x60e1c6812e9a3d8dec95e4cc9f83973eed08b0dec11308cd347bdfc05fd50e3",
       "class_hash": "0x49cf2b093c5d6bef7dd5167dc3848af5cec18a20d4f1355aec7219d81ea5db8",
       "abi": [
         {
@@ -1732,7 +1732,7 @@
       ]
     },
     {
-      "address": "0x54365f7dcbec62068a56d378a96c53c86988bac243940334e1301b0c5512a34",
+      "address": "0x1e0b80823ba036c8366c2434dad9d5bb35662a7b1d0afbdc69c5f0a7fff3513",
       "class_hash": "0x4f5422f49fb1acccc55d51ae9e1e52db981da080482977a8df3e38a9e2eeae1",
       "abi": [
         {
