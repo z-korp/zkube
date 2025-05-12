@@ -4,6 +4,7 @@ rpc = "https://api.cartridge.gg/x/starknet/sepolia"
 [indexing]
 pending = true
 transactions = true
+namespaces = ["zkube_budo_v1_1_0", "budokan_1_0_7"]
 
 [events]
 raw = true
@@ -12,6 +13,3 @@ raw = true
 historical = [
   "zkube_budo_v1_1_0-TrophyProgression",
 ]
-
-[indexing]
-namespaces = ["zkube_budo_v1_1_0", "budokan_1_0_7"]

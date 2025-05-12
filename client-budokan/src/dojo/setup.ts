@@ -1,5 +1,6 @@
 import { getSyncEntities } from "@dojoengine/state";
 import * as torii from "@dojoengine/torii-client";
+import { KeysClause } from "@dojoengine/sdk";
 import { models } from "./models.ts";
 import { systems } from "./systems.ts";
 import { defineContractComponents } from "./contractModels";
@@ -12,7 +13,7 @@ export type SetupResult = Awaited<ReturnType<typeof setup>>;
 
 export async function setup({ ...config }: Config) {
   // Initialize Torii client for interacting with the Dojo network
-  const toriiClient = await torii.createClient({
+  const toriiClient = new torii.ToriiClient({
     toriiUrl: config.toriiUrl,
     relayUrl: "",
     worldAddress: config.manifest.world.address || "",
@@ -25,24 +26,13 @@ export async function setup({ ...config }: Config) {
   const clientModels = models({ contractComponents });
 
   // Initialize the Dojo provider with the manifest and RPC URL
-  console.log(config.manifest);
-  console.log(config.rpcUrl);
   const dojoProvider = new DojoProvider(config.manifest, config.rpcUrl, "info");
-
-  // fetch all existing entities from torii
-  // await getSyncEntities(toriiClient, contractModels as any, []);
-  const allKeysClause: torii.KeysClause = {
-    keys: [undefined],
-    pattern_matching: "FixedLen",
-    models: [],
-  };
 
   const sync = await getSyncEntities(
     toriiClient,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     contractComponents as any,
-    { Keys: allKeysClause },
-    [],
+    KeysClause([], [], "VariableLen").build(),
     [],
     [],
     1000,
@@ -51,32 +41,6 @@ export async function setup({ ...config }: Config) {
 
   // Set up the world client for interacting with smart contracts
   const client = await setupWorld(dojoProvider, config);
-
-  // Initialize the burner account manager
-  /*const burnerManager = new BurnerManager({
-    masterAccount: new Account(
-      {
-        nodeUrl: config.rpcUrl,
-      },
-      config.masterAddress,
-      config.masterPrivateKey,
-    ),
-    feeTokenAddress: config.feeTokenAddress,
-    accountClassHash: config.accountClassHash,
-    rpcProvider: dojoProvider.provider,
-  });
-
-  try {
-    await burnerManager.init();
-
-    if (burnerManager.list().length === 0) {
-      await burnerManager.create();
-    } else {
-      burnerManager.select(burnerManager.list()[0].address);
-    }
-  } catch (e) {
-    console.error(e);
-  }*/
 
   return {
     client,
