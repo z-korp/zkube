@@ -1,5 +1,5 @@
 use core::traits::Into;
-use core::debug::PrintTrait;
+use core::num::traits::zero::Zero;
 use core::poseidon::{PoseidonTrait, HashState};
 use core::hash::HashStateTrait;
 
@@ -67,7 +67,7 @@ pub struct GameSeed {
 }
 
 #[generate_trait]
-impl GameImpl of GameTrait {
+pub impl GameImpl of GameTrait {
     #[inline(always)]
     fn new(game_id: u64, seed: felt252, difficulty: Difficulty) -> Game {
         let row = Controller::create_line(seed, difficulty);
@@ -274,7 +274,7 @@ impl GameImpl of GameTrait {
     }
 }
 
-impl ZeroableGame of core::Zeroable<Game> {
+impl ZeroableGame of Zero<Game> {
     #[inline(always)]
     fn zero() -> Game {
         Game {
@@ -296,18 +296,18 @@ impl ZeroableGame of core::Zeroable<Game> {
     }
 
     #[inline(always)]
-    fn is_zero(self: Game) -> bool {
-        self.next_row == 0
+    fn is_zero(self: @Game) -> bool {
+        *(self.next_row) == 0
     }
 
     #[inline(always)]
-    fn is_non_zero(self: Game) -> bool {
+    fn is_non_zero(self: @Game) -> bool {
         !self.is_zero()
     }
 }
 
 #[generate_trait]
-impl GameAssert of AssertTrait {
+pub impl GameAssert of AssertTrait {
     #[inline(always)]
     fn assert_exists(self: Game) {
         assert!(self.is_non_zero(), "Game {} does not exist", self.game_id);
@@ -344,7 +344,6 @@ impl GameAssert of AssertTrait {
 #[cfg(test)]
 mod tests {
     // Core imports
-    use core::debug::PrintTrait;
     use core::poseidon::{PoseidonTrait, HashState};
     use core::hash::HashStateTrait;
 

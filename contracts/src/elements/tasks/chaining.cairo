@@ -1,6 +1,6 @@
 use zkube::elements::tasks::interface::TaskTrait;
 
-impl Chaining of TaskTrait {
+pub impl Chaining of TaskTrait {
     #[inline]
     fn identifier(level: u8) -> felt252 {
         'CHAINING' * 256 + level.into() + 48

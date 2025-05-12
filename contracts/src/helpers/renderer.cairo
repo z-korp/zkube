@@ -65,7 +65,7 @@ fn create_svg(internals: ByteArray) -> ByteArray {
         + "</svg>"
 }
 
-fn create_metadata(
+pub fn create_metadata(
     token_id: u64,
     player_name: felt252,
     over: bool,
@@ -81,7 +81,7 @@ fn create_metadata(
     //let logo_element = logo();
     let mut _name = Default::default();
 
-    if player_name.is_non_zero() {
+    if player_name != 0 {
         _name
             .append_word(
                 player_name, U256BytesUsedTraitImpl::bytes_used(player_name.into()).into()
@@ -103,7 +103,7 @@ fn create_metadata(
         create_text("#" + _game_id.clone(), "100", "50", "24", "middle", "left"),
     ];
 
-    if score.is_non_zero() {
+    if score != 0 {
         elements.append(create_text(_name.clone(), "30", "120", "20", "middle", "left"));
         elements.append(create_text(game_state(over).clone(), "100", "72", "16", "middle", "left"));
         elements
@@ -156,7 +156,6 @@ fn create_metadata(
         .add("trait", "Max Combo")
         .add("value", _max_combo)
         .build();
-
     let attributes = array![name_str, score_str, moves_str, combo_str, max_combo_str,].span();
 
     let metadata = metadata.add_array("attributes", attributes).build();

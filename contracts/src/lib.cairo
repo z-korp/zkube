@@ -1,69 +1,69 @@
-mod constants;
-mod events;
+pub mod constants;
+pub mod events;
 
-mod models {
-    mod config;
-    mod game;
+pub mod models {
+    pub mod config;
+    pub mod game;
 }
 
-mod types {
-    mod bonus;
-    mod width;
-    mod block;
-    mod difficulty;
-    mod task;
-    mod trophy;
+pub mod types {
+    pub mod bonus;
+    pub mod width;
+    pub mod block;
+    pub mod difficulty;
+    pub mod task;
+    pub mod trophy;
 }
 
 mod elements {
-    mod bonuses {
-        mod interface;
-        mod hammer;
-        mod totem;
-        mod wave;
+    pub mod bonuses {
+        pub mod interface;
+        pub mod hammer;
+        pub mod totem;
+        pub mod wave;
     }
-    mod difficulties {
-        mod veryeasy;
-        mod easy;
-        mod medium;
-        mod mediumhard;
-        mod hard;
-        mod veryhard;
-        mod expert;
-        mod master;
-        mod interface;
+    pub mod difficulties {
+        pub mod veryeasy;
+        pub mod easy;
+        pub mod medium;
+        pub mod mediumhard;
+        pub mod hard;
+        pub mod veryhard;
+        pub mod expert;
+        pub mod master;
+        pub mod interface;
     }
-    mod tasks {
-        mod interface;
-        mod mastering;
-        mod chaining;
-        mod playing;
+    pub mod tasks {
+        pub mod interface;
+        pub mod mastering;
+        pub mod chaining;
+        pub mod playing;
     }
-    mod trophies {
-        mod interface;
-        mod mastery;
-        mod chainer;
-        mod player;
+    pub mod trophies {
+        pub mod interface;
+        pub mod mastery;
+        pub mod chainer;
+        pub mod player;
     }
 }
 
-mod interfaces {
-    mod vrf;
+pub mod interfaces {
+    pub mod vrf;
 }
 
-mod helpers {
-    mod math;
-    mod packer;
-    mod controller;
-    mod gravity;
-    mod random;
-    mod config;
-    mod encoding;
-    mod renderer;
+pub mod helpers {
+    pub mod math;
+    pub mod packer;
+    pub mod controller;
+    pub mod gravity;
+    pub mod random;
+    pub mod config;
+    pub mod encoding;
+    pub mod renderer;
 }
 
-mod systems {
-    mod game;
+pub mod systems {
+    pub mod game;
 }
 
 #[cfg(test)]

@@ -1,7 +1,6 @@
 use starknet::{ContractAddress, get_caller_address, get_block_timestamp};
 use zkube::models::config::{GameSettingsMetadata, GameSettings, GameSettingsTrait};
 use zkube::types::difficulty::Difficulty;
-use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait};
 
 #[starknet::interface]
 trait IConfigSystems<T> {

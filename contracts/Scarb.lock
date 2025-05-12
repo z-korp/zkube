@@ -4,7 +4,7 @@ version = 1
 [[package]]
 name = "achievement"
 version = "0.0.0"
-source = "git+https://github.com/cartridge-gg/arcade?tag=v1.2.1#8b8ccea5ec85ae7f903903ced9cd16e16b8e47cb"
+source = "git+https://github.com/rsodre/arcade?branch=dojo_v1.5.0#119118ce439ad9fe96f1bf066d1c819fedf777f2"
 dependencies = [
  "dojo",
 ]
@@ -58,8 +58,8 @@ dependencies = [
 
 [[package]]
 name = "dojo"
-version = "1.2.1"
-source = "git+https://github.com/dojoengine/dojo?tag=v1.2.1#3d4b1a3e662f70679813f9fb65c0b5c7fa5d6f0a"
+version = "1.5.0"
+source = "git+https://github.com/dojoengine/dojo?tag=v1.5.0#812f17c9c57fd057d0bf1e648a591ea0ca9ea718"
 dependencies = [
  "dojo_plugin",
 ]
@@ -67,33 +67,34 @@ dependencies = [
 [[package]]
 name = "dojo_cairo_test"
 version = "1.0.12"
-source = "git+https://github.com/dojoengine/dojo?tag=v1.2.1#3d4b1a3e662f70679813f9fb65c0b5c7fa5d6f0a"
+source = "git+https://github.com/dojoengine/dojo?tag=v1.5.0#812f17c9c57fd057d0bf1e648a591ea0ca9ea718"
 dependencies = [
  "dojo",
 ]
 
 [[package]]
 name = "dojo_plugin"
-version = "2.9.2"
-source = "git+https://github.com/dojoengine/dojo?tag=v1.2.1#3d4b1a3e662f70679813f9fb65c0b5c7fa5d6f0a"
+version = "2.10.1"
+source = "git+https://github.com/dojoengine/dojo?tag=v1.5.0#812f17c9c57fd057d0bf1e648a591ea0ca9ea718"
 
 [[package]]
 name = "graffiti"
 version = "0.1.0"
-source = "git+https://github.com/ponderingdemocritus/graffiti?rev=bc569531791dbc71c6cd8d9bc154c34eedad31fe#bc569531791dbc71c6cd8d9bc154c34eedad31fe"
+source = "git+https://github.com/rsodre/graffiti?rev=url#e8b0854798ebbcebde504ea299ed556900564ff2"
 
 [[package]]
 name = "openzeppelin_access"
-version = "0.20.0"
-source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v0.20.0#7756fd1de2b4ebd239fa6e372d75535cea02e5e5"
+version = "1.0.0"
+source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v1.0.0#755ce1adbf8d89ed23fbb8daa328fcbeab7c6424"
 dependencies = [
  "openzeppelin_introspection",
+ "openzeppelin_utils",
 ]
 
 [[package]]
 name = "openzeppelin_account"
-version = "0.20.0"
-source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v0.20.0#7756fd1de2b4ebd239fa6e372d75535cea02e5e5"
+version = "1.0.0"
+source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v1.0.0#755ce1adbf8d89ed23fbb8daa328fcbeab7c6424"
 dependencies = [
  "openzeppelin_introspection",
  "openzeppelin_utils",
@@ -101,13 +102,13 @@ dependencies = [
 
 [[package]]
 name = "openzeppelin_introspection"
-version = "0.20.0"
-source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v0.20.0#7756fd1de2b4ebd239fa6e372d75535cea02e5e5"
+version = "1.0.0"
+source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v1.0.0#755ce1adbf8d89ed23fbb8daa328fcbeab7c6424"
 
 [[package]]
 name = "openzeppelin_token"
-version = "0.20.0"
-source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v0.20.0#7756fd1de2b4ebd239fa6e372d75535cea02e5e5"
+version = "1.0.0"
+source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v1.0.0#755ce1adbf8d89ed23fbb8daa328fcbeab7c6424"
 dependencies = [
  "openzeppelin_access",
  "openzeppelin_account",
@@ -117,18 +118,18 @@ dependencies = [
 
 [[package]]
 name = "openzeppelin_utils"
-version = "0.20.0"
-source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v0.20.0#7756fd1de2b4ebd239fa6e372d75535cea02e5e5"
+version = "1.0.0"
+source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v1.0.0#755ce1adbf8d89ed23fbb8daa328fcbeab7c6424"
 
 [[package]]
 name = "origami_random"
 version = "1.1.2"
-source = "git+https://github.com/dojoengine/origami?tag=v1.1.2#fb5dc623e911093a8afeca576db88fc00d35e63a"
+source = "git+https://github.com/dojoengine/origami?tag=v1.5.0#1aba33f09e326d2f2645ff93fac1e9febc64ac1d"
 
 [[package]]
 name = "tournaments"
 version = "0.0.1"
-source = "git+https://github.com/Provable-Games/tournaments.git#5df2fab9515744a53030835c61025ff82e0d3e24"
+source = "git+https://github.com/Matth26/tournaments#9b867a3dbe2b68da596331c0730d7db38504f977"
 dependencies = [
  "dojo",
  "openzeppelin_introspection",

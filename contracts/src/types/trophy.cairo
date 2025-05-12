@@ -4,7 +4,7 @@ use zkube::elements::trophies;
 pub const TROPHY_COUNT: u8 = 9;
 
 #[derive(Copy, Drop)]
-enum Trophy {
+pub enum Trophy {
     None,
     ComboInitiator,
     ComboExpert,
@@ -18,7 +18,7 @@ enum Trophy {
 }
 
 #[generate_trait]
-impl TrophyImpl of TrophyTrait {
+pub impl TrophyImpl of TrophyTrait {
     #[inline]
     fn level(self: Trophy) -> u8 {
         match self {
@@ -239,7 +239,7 @@ impl TrophyImpl of TrophyTrait {
     }
 }
 
-impl IntoTrophyU8 of core::Into<Trophy, u8> {
+impl IntoTrophyU8 of Into<Trophy, u8> {
     #[inline]
     fn into(self: Trophy) -> u8 {
         match self {
@@ -257,7 +257,7 @@ impl IntoTrophyU8 of core::Into<Trophy, u8> {
     }
 }
 
-impl IntoU8Trophy of core::Into<u8, Trophy> {
+impl IntoU8Trophy of Into<u8, Trophy> {
     #[inline]
     fn into(self: u8) -> Trophy {
         let card: felt252 = self.into();
@@ -274,12 +274,5 @@ impl IntoU8Trophy of core::Into<u8, Trophy> {
             9 => Trophy::GameVeteran,
             _ => Trophy::None,
         }
-    }
-}
-
-impl TrophyPrint of core::debug::PrintTrait<Trophy> {
-    #[inline]
-    fn print(self: Trophy) {
-        self.identifier().print();
     }
 }

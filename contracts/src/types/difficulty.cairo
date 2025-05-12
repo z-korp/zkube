@@ -5,7 +5,7 @@ use zkube::elements::difficulties::{
 use zkube::types::block::Block;
 
 #[derive(Introspect, Copy, Drop, Serde, PartialEq)]
-enum Difficulty {
+pub enum Difficulty {
     None,
     Increasing,
     VeryEasy,
@@ -19,7 +19,7 @@ enum Difficulty {
 }
 
 #[generate_trait]
-impl DifficultyImpl of DifficultyTrait {
+pub impl DifficultyImpl of DifficultyTrait {
     fn count(self: Difficulty) -> u32 {
         match self {
             Difficulty::None => 0,
@@ -51,7 +51,7 @@ impl DifficultyImpl of DifficultyTrait {
     }
 }
 
-impl U8IntoDifficulty of core::Into<u8, Difficulty> {
+impl U8IntoDifficulty of Into<u8, Difficulty> {
     #[inline(always)]
     fn into(self: u8) -> Difficulty {
         match self {
@@ -70,7 +70,7 @@ impl U8IntoDifficulty of core::Into<u8, Difficulty> {
     }
 }
 
-impl DifficultyIntoU8 of core::Into<Difficulty, u8> {
+impl DifficultyIntoU8 of Into<Difficulty, u8> {
     #[inline(always)]
     fn into(self: Difficulty) -> u8 {
         match self {
@@ -89,7 +89,7 @@ impl DifficultyIntoU8 of core::Into<Difficulty, u8> {
 }
 
 #[generate_trait]
-impl IncreasingDifficultyUtils of IIncreasingDifficultyUtilsTrait {
+pub impl IncreasingDifficultyUtils of IIncreasingDifficultyUtilsTrait {
     /// Returns the appropriate difficulty level based on the number of moves
     /// This is used for the Increasing difficulty mode
     #[inline(always)]

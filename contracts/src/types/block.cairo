@@ -3,7 +3,7 @@
 use zkube::types::width::Width;
 
 #[derive(Copy, Drop, Serde)]
-enum Block {
+pub enum Block {
     None,
     Zero,
     One,
@@ -13,7 +13,7 @@ enum Block {
 }
 
 #[generate_trait]
-impl BlockImpl of BlockTrait {
+pub impl BlockImpl of BlockTrait {
     #[inline(always)]
     fn get_bits(self: Block) -> u32 {
         match self {

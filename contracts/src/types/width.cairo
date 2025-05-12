@@ -1,5 +1,5 @@
 #[derive(Copy, Drop, Serde)]
-enum Width {
+pub enum Width {
     None,
     One,
     Two,
@@ -7,7 +7,7 @@ enum Width {
     Four,
 }
 
-impl WidthPartialEq of core::PartialEq<Width> {
+impl WidthPartialEq of PartialEq<Width> {
     #[inline(always)]
     fn eq(lhs: @Width, rhs: @Width) -> bool {
         let lhs_u8: u8 = (*lhs).into();
@@ -16,7 +16,7 @@ impl WidthPartialEq of core::PartialEq<Width> {
     }
 }
 
-impl IntoWidthFelt252 of core::Into<Width, felt252> {
+impl IntoWidthFelt252 of Into<Width, felt252> {
     #[inline(always)]
     fn into(self: Width) -> felt252 {
         match self {
@@ -29,7 +29,7 @@ impl IntoWidthFelt252 of core::Into<Width, felt252> {
     }
 }
 
-impl IntoWidthU8 of core::Into<Width, u8> {
+impl IntoWidthU8 of Into<Width, u8> {
     #[inline(always)]
     fn into(self: Width) -> u8 {
         match self {
@@ -42,7 +42,7 @@ impl IntoWidthU8 of core::Into<Width, u8> {
     }
 }
 
-impl IntoU8Width of core::Into<u8, Width> {
+impl IntoU8Width of Into<u8, Width> {
     #[inline(always)]
     fn into(self: u8) -> Width {
         let action: felt252 = self.into();
@@ -56,12 +56,3 @@ impl IntoU8Width of core::Into<u8, Width> {
         }
     }
 }
-
-impl WidthPrint of core::debug::PrintTrait<Width> {
-    #[inline(always)]
-    fn print(self: Width) {
-        let felt: felt252 = self.into();
-        felt.print();
-    }
-}
-

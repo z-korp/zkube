@@ -1,23 +1,15 @@
-// External imports
-
 use alexandria_math::fast_power::fast_power;
-
-// Internal imports
 
 use zkube::constants;
 use zkube::elements::bonuses::interface::BonusTrait;
 use zkube::helpers::controller::Controller;
-use zkube::models::game::Game;
-use zkube::types::bonus::Bonus;
 use zkube::types::width::Width;
 
-// Errors
-
-mod errors {
-    const INVALID_BLOCK_VALUE: felt252 = 'Bonus: invalid block value';
+pub mod errors {
+    pub const INVALID_BLOCK_VALUE: felt252 = 'Bonus: invalid block value';
 }
 
-impl BonusImpl of BonusTrait {
+pub impl BonusImpl of BonusTrait {
     #[inline(always)]
     fn apply(blocks: felt252, row_index: u8, index: u8) -> felt252 {
         // [Check] Value of the block is valid

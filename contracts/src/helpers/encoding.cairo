@@ -1,6 +1,4 @@
 use core::num::traits::Bounded;
-use integer::{U32TryIntoNonZero, u32_as_non_zero};
-use keccak::{cairo_keccak, u128_split};
 
 #[inline(always)]
 fn get_base64_char_set() -> Span<u8> {
@@ -73,7 +71,7 @@ fn get_base64_char_set() -> Span<u8> {
     result.span()
 }
 
-fn bytes_base64_encode(_bytes: ByteArray) -> ByteArray {
+pub fn bytes_base64_encode(_bytes: ByteArray) -> ByteArray {
     encode_bytes(_bytes, get_base64_char_set())
 }
 
@@ -202,19 +200,40 @@ impl U64BytesUsedTraitImpl of BytesUsedTrait<u64> {
     }
 }
 
-
-impl U128BytesTraitUsedImpl of BytesUsedTrait<u128> {
+impl U128BytesUsedTraitImpl of BytesUsedTrait<u128> {
     fn bytes_used(self: u128) -> u8 {
-        let (u64high, u64low) = u128_split(self);
-        if u64high == 0 {
-            return BytesUsedTrait::<u64>::bytes_used(u64low.try_into().unwrap());
+        if self <= Bounded::<u64>::MAX.into() { // 256^8
+            return BytesUsedTrait::<u64>::bytes_used(self.try_into().unwrap());
         } else {
-            return BytesUsedTrait::<u64>::bytes_used(u64high.try_into().unwrap()) + 8;
+            if self < 0x10000000000000000000000000 { // 256^12
+                if self < 0x100000000000000000000 { // 256^10
+                    if self < 0x10000000000000000 { // 256^9
+                        return 9;
+                    }
+                    return 10;
+                }
+                if self < 0x1000000000000000000000 { // 256^11
+                    return 11;
+                }
+                return 12;
+            } else {
+                if self < 0x100000000000000000000000000000 { // 256^14
+                    if self < 0x1000000000000000000000000 { // 256^13
+                        return 13;
+                    }
+                    return 14;
+                } else {
+                    if self < 0x10000000000000000000000000000000 { // 256^15
+                        return 15;
+                    }
+                    return 16;
+                }
+            }
         }
     }
 }
 
-impl U256BytesUsedTraitImpl of BytesUsedTrait<u256> {
+pub impl U256BytesUsedTraitImpl of BytesUsedTrait<u256> {
     fn bytes_used(self: u256) -> u8 {
         if self.high == 0 {
             return BytesUsedTrait::<u128>::bytes_used(self.low.try_into().unwrap());

@@ -6,7 +6,7 @@ use starknet::{get_caller_address, get_contract_address, contract_address_const}
 use zkube::interfaces::vrf::{IVrfProviderDispatcher, IVrfProviderDispatcherTrait, Source};
 
 const VRF_PROVIDER_ADDRESS: felt252 =
-    0x7ed472bdde3b19a5cf2334ad0f368426272f477938270b1b04259f159bdc0e2;
+    0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f;
 
 #[derive(Copy, Drop, Serde)]
 pub struct Random {

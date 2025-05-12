@@ -1,10 +1,8 @@
-// Core imports
+use core::num::traits::zero::Zero;
+use core::integer::NumericLiteral;
 
-use core::Zeroable;
-use core::NumericLiteral;
-
-mod errors {
-    const PACKER_ELEMENT_IS_MISSING: felt252 = 'Packer: element is missing';
+pub mod errors {
+    pub const PACKER_ELEMENT_IS_MISSING: felt252 = 'Packer: element is missing';
 }
 
 trait PackerTrait<T, U, V> {
@@ -16,7 +14,7 @@ trait PackerTrait<T, U, V> {
     fn pack(unpacked: Array<U>, size: V) -> T;
 }
 
-impl Packer<
+pub impl Packer<
     T,
     U,
     V,
@@ -25,7 +23,7 @@ impl Packer<
     +TryInto<T, U>,
     +NumericLiteral<T>,
     +PartialEq<T>,
-    +Zeroable<T>,
+    +Zero<T>,
     +Rem<T>,
     +Add<T>,
     +Mul<T>,
@@ -127,7 +125,7 @@ impl Packer<
     }
 
     fn pack(mut unpacked: Array<U>, size: V) -> T {
-        let mut result: T = Zeroable::zero();
+        let mut result: T = Zero::zero();
         let mut modulo: T = size.into();
         let mut offset: T = 1_u8.into();
         loop {

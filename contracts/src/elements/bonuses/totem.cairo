@@ -1,25 +1,14 @@
-// Core imports
-use core::debug::PrintTrait;
-use core::Zeroable;
-
-// External imports
-use alexandria_math::fast_power::fast_power;
-
-// Internal imports
 use zkube::constants;
 use zkube::elements::bonuses::interface::BonusTrait;
 use zkube::helpers::controller::Controller;
-use zkube::models::game::Game;
-use zkube::types::bonus::Bonus;
-use zkube::types::block::Block;
 use zkube::types::width::Width;
 
 // Errors
-mod errors {
-    const INVALID_BLOCK_WIDTH: felt252 = 'Totem: invalid block width';
+pub mod errors {
+    pub const INVALID_BLOCK_WIDTH: felt252 = 'Totem: invalid block width';
 }
 
-impl BonusImpl of BonusTrait {
+pub impl BonusImpl of BonusTrait {
     fn apply(blocks: felt252, row_index: u8, index: u8) -> felt252 {
         // [Check] Color of the block is valid
         let block_size = Controller::get_block(blocks, row_index, index);
@@ -32,7 +21,7 @@ impl BonusImpl of BonusTrait {
         let mut shift: u256 = 1;
         let modulo: u256 = constants::BLOCK_SIZE.into();
         loop {
-            if packed.is_zero() {
+            if packed.low == 0_u128 && packed.high == 0_u128 {
                 break;
             }
             let block: u8 = (packed % modulo).try_into().unwrap();
@@ -41,7 +30,7 @@ impl BonusImpl of BonusTrait {
             }
             packed = packed / modulo;
             // [Check] Additional check to avoid overflow
-            if packed.is_zero() {
+            if packed.low == 0_u128 && packed.high == 0_u128 {
                 break;
             }
             shift *= modulo;

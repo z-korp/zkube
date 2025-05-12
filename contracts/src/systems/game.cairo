@@ -1,4 +1,3 @@
-use starknet::ContractAddress;
 use zkube::types::bonus::Bonus;
 
 #[starknet::interface]
@@ -14,7 +13,7 @@ trait IGameSystem<T> {
 
 #[dojo::contract]
 mod game_system {
-    use achievement::store::{Store, StoreTrait};
+    use achievement::store::StoreTrait;
     use achievement::components::achievable::AchievableComponent;
 
     use zkube::constants::{
@@ -25,7 +24,7 @@ mod game_system {
         GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY,
         GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA
     };
-    use zkube::models::config::{GameSettings, GameSettingsTrait, GameSettingsMetadata};
+    use zkube::models::config::{GameSettings, GameSettingsTrait};
     use zkube::models::game::{Game, GameTrait, GameAssert};
     use zkube::models::game::GameSeed;
     use zkube::types::difficulty::{Difficulty, IIncreasingDifficultyUtilsTrait};
@@ -36,31 +35,23 @@ mod game_system {
     use zkube::types::bonus::Bonus;
     use zkube::helpers::renderer::create_metadata;
 
-    use dojo::event::EventStorage;
     use dojo::model::ModelStorage;
     use dojo::world::WorldStorage;
-    use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait};
 
-    use starknet::{ContractAddress, ClassHash, Felt252TryIntoContractAddress};
-    use starknet::info::{
-        get_block_timestamp, get_block_number, get_caller_address, get_contract_address
-    };
+    use starknet::{get_block_timestamp, get_caller_address};
 
     use openzeppelin_introspection::src5::SRC5Component;
-    use openzeppelin_token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
 
-    use openzeppelin_token::erc721::interface::{
-        IERC721Dispatcher, IERC721DispatcherTrait, IERC721Metadata
-    };
+    use openzeppelin_token::erc721::interface::{IERC721Metadata};
     use openzeppelin_token::erc721::{ERC721Component, ERC721HooksEmptyImpl};
+    use starknet::storage::{StoragePointerReadAccess};
 
     use tournaments::components::game::game_component;
-    use tournaments::components::interfaces::{IGameDetails, IGameToken, ISettings};
+    use tournaments::components::interfaces::{IGameDetails, ISettings};
     use tournaments::components::libs::lifecycle::{
         LifecycleAssertionsImpl, LifecycleAssertionsTrait
     };
     use tournaments::components::models::game::{TokenMetadata};
-    use tournaments::components::models::lifecycle::{Lifecycle};
 
     component!(path: game_component, storage: game, event: GameEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
@@ -113,7 +104,7 @@ mod game_system {
         self
             .game
             .initializer(
-                ZKUBE_MULTISIG.try_into().unwrap(),
+                ZKUBE_MULTISIG(),
                 'zKube',
                 "zKube is an engaging puzzle game that puts players' strategic thinking to the test. Set within a dynamic grid, the objective is simple: manipulate blocks to form solid lines and earn points.",
                 'zKorp',

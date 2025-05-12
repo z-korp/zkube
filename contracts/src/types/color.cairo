@@ -1,13 +1,9 @@
-// Internal imports
-
 use zkube::types::width::Width;
-
-// Constants
 
 const COLOR_COUNT: u8 = 4;
 
 #[derive(Copy, Drop, Serde)]
-enum Color {
+pub enum Color {
     None,
     Blue,
     Red,
@@ -53,7 +49,7 @@ impl ColorImpl of ColorTrait {
     }
 }
 
-impl ColorPartialEq of core::PartialEq<Color> {
+impl ColorPartialEq of PartialEq<Color> {
     #[inline(always)]
     fn eq(lhs: @Color, rhs: @Color) -> bool {
         let lhs_u8: u8 = (*lhs).into();
@@ -62,7 +58,7 @@ impl ColorPartialEq of core::PartialEq<Color> {
     }
 }
 
-impl IntoColorFelt252 of core::Into<Color, felt252> {
+impl IntoColorFelt252 of Into<Color, felt252> {
     #[inline(always)]
     fn into(self: Color) -> felt252 {
         match self {
@@ -75,7 +71,7 @@ impl IntoColorFelt252 of core::Into<Color, felt252> {
     }
 }
 
-impl IntoColorU8 of core::Into<Color, u8> {
+impl IntoColorU8 of Into<Color, u8> {
     #[inline(always)]
     fn into(self: Color) -> u8 {
         match self {
@@ -88,7 +84,7 @@ impl IntoColorU8 of core::Into<Color, u8> {
     }
 }
 
-impl IntoU8Color of core::Into<u8, Color> {
+impl IntoU8Color of Into<u8, Color> {
     #[inline(always)]
     fn into(self: u8) -> Color {
         let action: felt252 = self.into();

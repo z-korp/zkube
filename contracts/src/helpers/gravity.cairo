@@ -1,18 +1,10 @@
-// Core imports
-
-use core::debug::PrintTrait;
-
-// External imports
-
 use alexandria_math::fast_power::fast_power;
-
-// Internal imports
 
 use zkube::constants;
 use zkube::helpers::packer::Packer;
 
 #[generate_trait]
-impl Gravity of GravityTrait {
+pub impl Gravity of GravityTrait {
     /// Apply gravity to the given top and bottom rows.
     /// # Arguments
     /// * `top` - The top row.

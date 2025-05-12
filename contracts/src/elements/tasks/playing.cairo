@@ -1,6 +1,6 @@
 use zkube::elements::tasks::interface::TaskTrait;
 
-impl Playing of TaskTrait {
+pub impl Playing of TaskTrait {
     #[inline]
     fn identifier(level: u8) -> felt252 {
         'PLAYING'

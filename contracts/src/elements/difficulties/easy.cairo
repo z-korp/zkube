@@ -1,8 +1,7 @@
-// Internal imports
+use zkube::elements::difficulties::interface::DifficultyTrait;
+use zkube::types::block::Block;
 
-use zkube::elements::difficulties::interface::{DifficultyTrait, Block};
-
-impl DifficultyImpl of DifficultyTrait {
+pub impl DifficultyImpl of DifficultyTrait {
     #[inline(always)]
     fn count() -> u32 {
         15

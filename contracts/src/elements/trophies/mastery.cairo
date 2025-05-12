@@ -1,6 +1,8 @@
-use zkube::elements::trophies::interface::{TrophyTrait, BushidoTask, Task, TaskTrait};
+use zkube::elements::trophies::interface::TrophyTrait;
+use zkube::types::task::{Task, TaskTrait};
+use achievement::types::task::{Task as BushidoTask};
 
-impl Mastery of TrophyTrait {
+pub impl Mastery of TrophyTrait {
     #[inline]
     fn identifier(level: u8) -> felt252 {
         match level {

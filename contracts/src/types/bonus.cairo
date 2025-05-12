@@ -1,12 +1,11 @@
-// Internal imports
+use core::traits::Into;
 
 use zkube::elements::bonuses::hammer;
 use zkube::elements::bonuses::totem;
 use zkube::elements::bonuses::wave;
-use zkube::models::game::Game;
 
 #[derive(Drop, Copy, Serde)]
-enum Bonus {
+pub enum Bonus {
     None,
     Hammer,
     Totem,
@@ -14,7 +13,7 @@ enum Bonus {
 }
 
 #[generate_trait]
-impl BonusImpl of BonusTrait {
+pub impl BonusImpl of BonusTrait {
     #[inline(always)]
     fn apply(self: Bonus, blocks: felt252, row_index: u8, index: u8) -> felt252 {
         match self {
@@ -36,7 +35,7 @@ impl BonusImpl of BonusTrait {
     }
 }
 
-impl IntoBonusFelt252 of core::Into<Bonus, felt252> {
+impl IntoBonusFelt252 of Into<Bonus, felt252> {
     #[inline(always)]
     fn into(self: Bonus) -> felt252 {
         match self {
@@ -48,7 +47,7 @@ impl IntoBonusFelt252 of core::Into<Bonus, felt252> {
     }
 }
 
-impl IntoBonusU8 of core::Into<Bonus, u8> {
+impl IntoBonusU8 of Into<Bonus, u8> {
     #[inline(always)]
     fn into(self: Bonus) -> u8 {
         match self {
@@ -60,7 +59,7 @@ impl IntoBonusU8 of core::Into<Bonus, u8> {
     }
 }
 
-impl IntoU8Bonus of core::Into<u8, Bonus> {
+impl IntoU8Bonus of Into<u8, Bonus> {
     #[inline(always)]
     fn into(self: u8) -> Bonus {
         let action: felt252 = self.into();
@@ -71,14 +70,6 @@ impl IntoU8Bonus of core::Into<u8, Bonus> {
             3 => Bonus::Wave,
             _ => Bonus::None,
         }
-    }
-}
-
-impl BonusPrint of core::debug::PrintTrait<Bonus> {
-    #[inline(always)]
-    fn print(self: Bonus) {
-        let felt: felt252 = self.into();
-        felt.print();
     }
 }
 
