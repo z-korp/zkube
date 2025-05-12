@@ -13,7 +13,7 @@ export type SetupResult = Awaited<ReturnType<typeof setup>>;
 
 export async function setup({ ...config }: Config) {
   // Initialize Torii client for interacting with the Dojo network
-  const toriiClient = new torii.ToriiClient({
+  const toriiClient = await new torii.ToriiClient({
     toriiUrl: config.toriiUrl,
     relayUrl: "",
     worldAddress: config.manifest.world.address || "",
@@ -36,7 +36,7 @@ export async function setup({ ...config }: Config) {
     [],
     [],
     1000,
-    false
+    true
   );
 
   // Set up the world client for interacting with smart contracts

@@ -13,7 +13,7 @@ const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
 
 const preset = "zkube";
 const namespace = VITE_PUBLIC_NAMESPACE;
-const slot = `zkube-${VITE_PUBLIC_DEPLOY_TYPE}`;
+const slot = `zkube-budo-${VITE_PUBLIC_DEPLOY_TYPE}`;
 const VRF_PROVIDER_ADDRESS =
   "0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f";
 
@@ -49,7 +49,7 @@ const options: ControllerOptions = {
       rpcUrl: "https://api.cartridge.gg/x/starknet/mainnet",
     },
   ],
-  defaultChainId: constants.StarknetChainId.SN_MAIN,
+  defaultChainId: constants.StarknetChainId.SN_SEPOLIA,
   namespace,
   slot,
   policies,
