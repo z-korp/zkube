@@ -26,9 +26,11 @@ mod game_system {
     use zkube::types::bonus::Bonus;
     use zkube::helpers::renderer::create_metadata;
     use zkube::types::trophy::{Trophy, TrophyTrait};
+    use zkube::events::{StartGame, UseBonus};
 
     use dojo::model::ModelStorage;
     use dojo::world::WorldStorage;
+    use dojo::event::EventStorage;
 
     use starknet::{get_block_timestamp, get_caller_address};
     use starknet::storage::{StoragePointerReadAccess};
@@ -146,13 +148,20 @@ mod game_system {
             world.write_model(@game_seed);
 
             game.update_metadata(world);
+
+            world
+                .emit_event(
+                    @StartGame {
+                        player: get_caller_address(), timestamp: get_block_timestamp(), game_id,
+                    }
+                );
         }
 
         fn surrender(ref self: ContractState, game_id: u64) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let token_metadata: TokenMetadata = world.read_model(game_id);
-            token_metadata.lifecycle.assert_is_playable(game_id, starknet::get_block_timestamp());
+            token_metadata.lifecycle.assert_is_playable(game_id, get_block_timestamp());
 
             let mut game: Game = world.read_model(game_id);
             game.assert_owner(world);
@@ -170,7 +179,7 @@ mod game_system {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let token_metadata: TokenMetadata = world.read_model(game_id);
-            token_metadata.lifecycle.assert_is_playable(game_id, starknet::get_block_timestamp());
+            token_metadata.lifecycle.assert_is_playable(game_id, get_block_timestamp());
 
             let game_settings: GameSettings = ConfigUtilsImpl::get_game_settings(world, game_id);
 
@@ -219,6 +228,16 @@ mod game_system {
             game.apply_bonus(difficulty, base_seed.seed, bonus, row_index, line_index);
 
             world.write_model(@game);
+
+            world
+                .emit_event(
+                    @UseBonus {
+                        player: starknet::get_caller_address(),
+                        timestamp: get_block_timestamp(),
+                        game_id,
+                        bonus,
+                    }
+                );
         }
 
         fn get_player_name(self: @ContractState, game_id: u64) -> felt252 {

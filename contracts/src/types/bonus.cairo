@@ -4,7 +4,7 @@ use zkube::elements::bonuses::hammer;
 use zkube::elements::bonuses::totem;
 use zkube::elements::bonuses::wave;
 
-#[derive(Drop, Copy, Serde)]
+#[derive(Drop, Copy, Serde, Introspect)]
 pub enum Bonus {
     None,
     Hammer,

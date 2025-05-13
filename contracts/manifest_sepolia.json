@@ -1733,7 +1733,7 @@
     },
     {
       "address": "0x1e0b80823ba036c8366c2434dad9d5bb35662a7b1d0afbdc69c5f0a7fff3513",
-      "class_hash": "0x6ef1d8349652989fb6ac2587747774d0273cd51f1f61e4cc59603d086f16df4",
+      "class_hash": "0x5a09a15738e4a5649921fde4ad2ee09522df85cba9cfe522459d06983f4c72c",
       "abi": [
         {
           "type": "impl",
@@ -2975,6 +2975,12 @@
   "events": [
     {
       "members": [],
+      "class_hash": "0x7adee3a9ce1f542f811ef8cfe0aef6cb9928bad599791e4e03048727ab16e02",
+      "tag": "zkube_budo_v1_1_0-StartGame",
+      "selector": "0x1152cd1a01c05b332046ddceb264a930e0145e5f52ca6cfc76434507da928b1"
+    },
+    {
+      "members": [],
       "class_hash": "0x6fede2561a93b4808a6a00e19457a94d616e7ee53fc952f75af58da9bae45f5",
       "tag": "zkube_budo_v1_1_0-TrophyCreation",
       "selector": "0x26cd41a9b5df64898dffbba6aff13298c21a2f8e6ae81aec346e87fa2029bda"
@@ -2984,6 +2990,12 @@
       "class_hash": "0x3d60f68ff66df399a5efc60c6aacda487ced739897ddcea54270b7c147206d",
       "tag": "zkube_budo_v1_1_0-TrophyProgression",
       "selector": "0x66deddfae96c058e621e0b4e76a5b6796ae7eb7b4b5372b5c7757ab6feff232"
+    },
+    {
+      "members": [],
+      "class_hash": "0x698cf3bc1543060f359287d62633747535faeacc0a54c6c0338f98401d203cd",
+      "tag": "zkube_budo_v1_1_0-UseBonus",
+      "selector": "0x17968261c7e47484a13648669fed2d04dfb60c73cc135434bb1914861b0f811"
     }
   ],
   "external_contracts": []
