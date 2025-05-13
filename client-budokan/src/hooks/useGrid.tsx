@@ -15,7 +15,7 @@ export const useGrid = ({
   gameId,
   shouldLog,
 }: {
-  gameId: string | undefined;
+  gameId: number | undefined;
   shouldLog: boolean;
 }) => {
   const { game } = useGame({ gameId, shouldLog });
@@ -30,11 +30,13 @@ export const useGrid = ({
   const memoizedBlocks = useDeepMemo(() => game?.blocks ?? [], [game?.blocks]);
 
   useEffect(() => {
+    console.log("qqqqqqqqqqqq [useGrid] game", game?.id);
     if (game?.isOver()) {
       setBlocks([]);
       blocksRef.current = [];
       return;
     }
+    console.log("qqqqqqqqqqqq [useGrid] memoizedBlocks", memoizedBlocks);
     if (game && memoizedBlocks.length > 0) {
       if (shouldLog) {
         const num = game.blocksRaw;

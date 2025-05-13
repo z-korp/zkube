@@ -125,7 +125,7 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
-  const surrender = async ({ account, ...props }: SystemTypes.Signer) => {
+  const surrender = async ({ account, ...props }: SystemTypes.Surrender) => {
     await handleTransaction(
       account,
       () => client.game.surrender({ account, ...props }),

@@ -105,6 +105,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       try {
         await applyBonus({
           account: account as Account,
+          game_id: game.id,
           bonus: new Bonus(BonusType.Wave).into(),
           row_index: ROWS - rowIndex - 1,
           block_index: 0,
@@ -124,6 +125,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       try {
         await applyBonus({
           account: account as Account,
+          game_id: game.id,
           bonus: new Bonus(BonusType.Hammer).into(),
           row_index: ROWS - rowIndex - 1,
           block_index: colIndex,
@@ -143,6 +145,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       try {
         await applyBonus({
           account: account as Account,
+          game_id: game.id,
           bonus: new Bonus(BonusType.Totem).into(),
           row_index: ROWS - rowIndex - 1,
           block_index: colIndex,
@@ -232,6 +235,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
           }`}
         >
           <Grid
+            gameId={game.id}
             initialData={memoizedInitialData}
             nextLineData={memoizedNextLineData}
             setNextLineHasBeenConsumed={setNextLineHasBeenConsumed}

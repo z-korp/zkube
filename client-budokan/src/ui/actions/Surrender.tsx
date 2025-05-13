@@ -25,12 +25,14 @@ interface SurrenderProps {
     | "ghost";
   red?: boolean;
   className?: string;
+  gameId: number;
 }
 
 export const Surrender: React.FC<SurrenderProps> = ({
   variant = "default",
   red = false,
   className,
+  gameId,
 }) => {
   const { account } = useAccountCustom();
   const { setIsUnmounting } = useGeneralStore();
@@ -40,7 +42,7 @@ export const Surrender: React.FC<SurrenderProps> = ({
     },
   } = useDojo();
   const { game } = useGame({
-    gameId: /*TBD player?.game_id*/ "0",
+    gameId,
     shouldLog: false,
   });
 

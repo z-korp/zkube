@@ -1,12 +1,10 @@
 import { useDojo } from "@/dojo/useDojo";
-import { useCallback, useMemo, useState } from "react";
-import { Account } from "starknet";
+import { useCallback, useState } from "react";
 import { Button } from "@/ui/elements/button";
-import { useGame } from "@/hooks/useGame";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useMediaQuery } from "react-responsive";
 import { showToast } from "@/utils/toast";
-import { useGeneralStore } from "@/stores/generalStore";
+import { useNavigate } from "react-router-dom";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 
 export const PlayFreeGame = () => {
@@ -16,77 +14,45 @@ export const PlayFreeGame = () => {
     },
   } = useDojo();
 
+  const navigate = useNavigate();
   const { account } = useAccountCustom();
   const { username } = useControllerUsername();
-  const { gameId } = useGeneralStore();
-
-  const { game } = useGame({
-    gameId: gameId || 0,
-    shouldLog: false,
-  });
 
   const [isLoading, setIsLoading] = useState(false);
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
-  const disabled = useMemo(() => {
-    return !account || (!!game && !game.isOver());
-  }, [account, game]);
-
   const handleClick = useCallback(async () => {
-    if (!account?.address) {
-      console.error("Account not loaded");
-      return;
-    }
-    if (!username) {
-      console.error("Username not loaded");
-      return;
-    }
+    if (!account) return;
 
     setIsLoading(true);
-    showToast({
-      message: "Checking your game credits...",
-      toastId: "game-start-process",
-    });
-
     try {
-      showToast({
-        message: "Preparing game data...",
-        txHash: "",
-        toastId: "game-start-process",
-        type: "success",
-      });
-
-      const { game_id } = await freeMint({
-        account: account as Account,
-        name: username,
+      // Start the game
+      const result = await freeMint({
+        account,
+        name: username ?? "",
         settingsId: 0,
       });
 
-      // Wait for the TokenMetadata model to be created
-      /*const playerKey = getEntityIdFromKeys([
-        BigInt(newAccount.address),
-      ]) as Entity;
-      const component = getComponentValue(Player, playerKey);*/
+      await create({ account, token_id: result.game_id });
 
-      await create({
-        account: account as Account,
-        token_id: game_id,
-      });
+      // Navigate to the game screen with the new game ID
+      if (result && result.game_id) {
+        navigate(`/play/${result.game_id}`);
+      }
     } catch (error) {
-      console.error("Error during game start:", error);
+      console.error("Error starting game:", error);
       showToast({
         message: "Failed to start game",
         type: "error",
-        toastId: "game-start-process",
       });
     } finally {
       setIsLoading(false);
     }
-  }, [account, freeMint, create, username]);
+  }, [account, create, freeMint, navigate, username]);
 
   return (
     <Button
-      disabled={isLoading || disabled}
+      disabled={isLoading}
       isLoading={isLoading}
       onClick={handleClick}
       variant={`${!isMdOrLarger ? "brutal" : "default"}`}

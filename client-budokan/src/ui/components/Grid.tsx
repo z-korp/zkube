@@ -31,6 +31,7 @@ import useTransitionBlocks from "@/hooks/useTransitionBlocks";
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
 interface GridProps {
+  gameId: number;
   initialData: Block[];
   nextLineData: Block[];
   setNextLineHasBeenConsumed: React.Dispatch<React.SetStateAction<boolean>>;
@@ -51,6 +52,7 @@ interface GridProps {
 }
 
 const Grid: React.FC<GridProps> = ({
+  gameId,
   initialData,
   nextLineData,
   setNextLineHasBeenConsumed,
@@ -344,6 +346,7 @@ const Grid: React.FC<GridProps> = ({
         );
         await move({
           account: account as Account,
+          game_id: gameId,
           row_index: gridHeight - 1 - rowIndex,
           start_index: Math.trunc(startColIndex),
           final_index: Math.trunc(finalColIndex),

@@ -17,7 +17,7 @@ export interface Row {
 }
 
 export class Game {
-  public id: string;
+  public id: number;
   public blocks: number[][];
   public blocksRaw: bigint;
   public rows: Row[];
@@ -35,7 +35,7 @@ export class Game {
   public over: boolean;
 
   constructor(game: ComponentValue) {
-    this.id = game.id;
+    this.id = game.game_id;
     this.over = game.over ? true : false;
     this.next_row = Packer.sized_unpack(
       BigInt(game.next_row),

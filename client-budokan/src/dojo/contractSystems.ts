@@ -18,6 +18,10 @@ export interface Signer {
   account: Account;
 }
 
+export interface Surrender extends Signer {
+  game_id: number;
+}
+
 export interface Create extends Signer {
   token_id: number;
 }
@@ -28,12 +32,14 @@ export interface FreeMint extends Signer {
 }
 
 export interface Move extends Signer {
+  game_id: number;
   row_index: number;
   start_index: number;
   final_index: number;
 }
 
 export interface Bonus extends Signer {
+  game_id: number;
   bonus: number;
   row_index: number;
   block_index: number;
@@ -108,14 +114,14 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       }
     };
 
-    const surrender = async ({ account }: Signer) => {
+    const surrender = async ({ account, game_id }: Surrender) => {
       try {
         return await provider.execute(
           account,
           {
             contractName: contract_name,
             entrypoint: "surrender",
-            calldata: [],
+            calldata: [game_id],
           },
           VITE_PUBLIC_NAMESPACE,
           details
@@ -128,6 +134,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
     const move = async ({
       account,
+      game_id,
       row_index,
       start_index,
       final_index,
@@ -138,7 +145,7 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
           {
             contractName: contract_name,
             entrypoint: "move",
-            calldata: [row_index, start_index, final_index],
+            calldata: [game_id, row_index, start_index, final_index],
           },
           VITE_PUBLIC_NAMESPACE,
           details
@@ -149,14 +156,20 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       }
     };
 
-    const bonus = async ({ account, bonus, row_index, block_index }: Bonus) => {
+    const bonus = async ({
+      account,
+      game_id,
+      bonus,
+      row_index,
+      block_index,
+    }: Bonus) => {
       try {
         return await provider.execute(
           account,
           {
             contractName: contract_name,
             entrypoint: "apply_bonus",
-            calldata: [bonus, row_index, block_index],
+            calldata: [game_id, bonus, row_index, block_index],
           },
           VITE_PUBLIC_NAMESPACE,
           details
