@@ -8,7 +8,7 @@ use alexandria_math::fast_power::fast_power;
 use dojo::world::WorldStorage;
 use dojo::world::WorldStorageTrait;
 
-use starknet::get_caller_address;
+use starknet::{get_caller_address};
 
 use zkube::constants;
 use zkube::types::difficulty::Difficulty;
