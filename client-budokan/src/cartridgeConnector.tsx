@@ -48,13 +48,13 @@ const bigintToHex = (v: BigNumberish): `0x${string}` =>
 const getChainId = (): string => {
   switch (VITE_PUBLIC_DEPLOY_TYPE) {
     case "sepolia":
-      return "MAINNET";
+      return "SN_SEPOLIA";
     case "mainnet":
-      return "SEPOLIA";
+      return "SN_MAINNET";
     case "slot":
       return "WP_BUDOKAN_MATTH";
     default:
-      return "MAINNET";
+      return "SN_MAINNET";
   }
 };
 

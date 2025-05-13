@@ -52,11 +52,14 @@ export const Surrender: React.FC<SurrenderProps> = ({
     setIsUnmounting(true);
     setIsLoading(true);
     try {
-      await surrender({ account: account as Account });
+      await surrender({
+        account: account as Account,
+        game_id: gameId,
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [account, setIsUnmounting, surrender]);
+  }, [account, gameId, setIsUnmounting, surrender]);
 
   const disabled = useMemo(() => {
     return !account || !game || game.over;
