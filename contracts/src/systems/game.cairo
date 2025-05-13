@@ -319,7 +319,7 @@ mod game_system {
         #[inline(always)]
         fn assert_game_not_started(self: @ContractState, game_id: u64) {
             let game: Game = self.world(@DEFAULT_NS()).read_model(game_id);
-            assert!(game.blocks != 0, "Game {} has already started", game_id);
+            assert!(game.blocks == 0, "Game {} has already started", game_id);
         }
 
         fn handle_game_over(ref self: ContractState, mut world: WorldStorage, game: Game) {

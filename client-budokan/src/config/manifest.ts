@@ -1,5 +1,5 @@
 import local from "../../../contracts/manifest_sepolia.json";
-import slot from "../../../contracts/manifest_sepolia.json";
+import slot from "../../../contracts/manifest_slot.json";
 import slotdev from "../../../contracts/manifest_sepolia.json";
 import sepolia from "../../../contracts/manifest_sepolia.json";
 import mainnet from "../../../contracts/manifest_sepolia.json";

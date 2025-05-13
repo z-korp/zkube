@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { IWorld } from "./contractSystems";
 import { toast } from "sonner";
 import * as SystemTypes from "./contractSystems";
 import { shortenHex } from "@dojoengine/utils";
-import { Account } from "starknet";
+import { Account, type TransactionReceipt } from "starknet";
 import {
   getToastPlacement,
   getUrl,
@@ -12,6 +13,7 @@ import {
   notify,
 } from "@/utils/toast";
 import { useMoveStore } from "@/stores/moveTxStore";
+import { dojoConfig } from "../../dojo.config";
 
 export type SystemCalls = ReturnType<typeof systems>;
 
@@ -22,7 +24,7 @@ export function systems({ client }: { client: IWorld }) {
     account: Account,
     action: () => Promise<{ transaction_hash: string }>,
     successMessage: string
-  ) => {
+  ): Promise<{ transaction_hash: string; events: any[] }> => {
     // Generate a unique ID for this transaction attempt
     const toastId = `tx-${Date.now()}`;
 
@@ -55,13 +57,16 @@ export function systems({ client }: { client: IWorld }) {
       }
 
       // Wait for completion
-      const transaction = await account.waitForTransaction(transaction_hash, {
+      const receipt = (await account.waitForTransaction(transaction_hash, {
         retryInterval: 200,
-      });
-      console.log("transaction", transaction);
+      })) as TransactionReceipt & { events: any[] };
+      const events = receipt.events;
+      console.log("events", receipt.events);
+      console.log("1) transaction", receipt);
 
       // Notify success using same toastId
-      notify(successMessage, transaction, toastId);
+      notify(successMessage, receipt, toastId);
+      return { transaction_hash, events };
     } catch (error) {
       console.error("Error executing transaction:", error);
 
@@ -76,12 +81,40 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
-  const freeMint = async ({ account, ...props }: SystemTypes.FreeMint) => {
-    await handleTransaction(
+  const translateName = (selector: string) => {
+    const model = dojoConfig().manifest.models.find(
+      (model: any) => model.selector === selector
+    );
+    return model?.tag?.split("-")[1];
+  };
+
+  const translateEvent = (event: any) => {
+    const name = translateName(event.keys[1]);
+    const data = event.data;
+    return { name, data };
+  };
+
+  const freeMint = async ({
+    account,
+    ...props
+  }: SystemTypes.FreeMint): Promise<{ game_id: number }> => {
+    const { events } = await handleTransaction(
       account,
       () => client.game.free_mint({ account, ...props }),
       "Game has been minted."
     );
+
+    let game_id = 0;
+    events.forEach((event) => {
+      const { name, data } = translateEvent(event);
+      if (name == "TokenMetadata") {
+        game_id = parseInt(data[1], 16);
+      }
+    });
+
+    console.log("game_id", game_id);
+
+    return { game_id };
   };
 
   const create = async ({ account, ...props }: SystemTypes.Create) => {

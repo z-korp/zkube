@@ -4,7 +4,7 @@ description = "Reversed tetris fully onchain."
 cover_uri = "file://assets/cover.png"
 icon_uri = "file://assets/icon.png"
 website = "https://app.zkube.xyz"
-seed = "zKube"
+seed = "zKube1"
 
 [world.socials]
 x = "https://x.com/ohayo_dojo"
@@ -13,27 +13,17 @@ github = "https://github.com/dojoengine/dojo-starter"
 telegram = "https://t.me/dojoengine"
 
 [namespace]
-default = "zkube_budokan_v1_0_0"
+default = "zkube_budo_v1_1_0"
 
 [env]
-rpc_url = "http://localhost:5050/"
-account_address = "0x63a7373ece40e853d9cca9c5889527cab3b7aab669e390e2245225718794b58"
-private_key = "0x2c8edd6c146cf85ad3dba64865728a79113171782afddd5054d9e9f4c93857f"
-
-[init_call_args]
-"zkube_budo_v1_0_0-chest" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
-"zkube_budo_v1_0_0-settings" = ["0x0", "0x0"]
-"zkube_budo_v1_0_0-tournament" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
-"zkube_budo_v1_0_0-zkorp" = ["0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"]
+rpc_url = "https://api.cartridge.gg/x/budokan-matth/katana"
+account_address = "0x84ba12e8c22f8572b5836fcc0f887d4ba7e07acfcc6287e214c3e3eca21b91"
+private_key = "0x1611a78f4aeb0f4611aed25ecf879edcae7fcf4e3c4edf1272a933aa0c396f7"
+world_address = "0x079a36feddf1856076a253d9f6f268ee977f52e8f18b4729a64d63bdaab93331"
 
 [writers]
-"zkube_budo_v1_0_0-Admin" = ["zkube_budo_v1_0_0-settings"]
-"zkube_budo_v1_0_0-Chest" = ["zkube_budo_v1_0_0-chest", "zkube_budo_v1_0_0-play"]
-"zkube_budo_v1_0_0-Game" = ["zkube_budo_v1_0_0-play"]
-"zkube_budo_v1_0_0-Mint" = ["zkube_budo_v1_0_0-minter"]
-"zkube_budo_v1_0_0-Participation" = ["zkube_budo_v1_0_0-chest", "zkube_budo_v1_0_0-play"]
-"zkube_budo_v1_0_0-Player" = ["zkube_budo_v1_0_0-account", "zkube_budo_v1_0_0-play"]
-"zkube_budo_v1_0_0-Settings" = ["zkube_budo_v1_0_0-minter", "zkube_budo_v1_0_0-settings"]
-"zkube_budo_v1_0_0-Tournament" = ["zkube_budo_v1_0_0-play", "zkube_budo_v1_0_0-tournament"]
-"zkube_budo_v1_0_0-TrophyCreation" = ["zkube_budo_v1_0_0-settings"]
-"zkube_budo_v1_0_0-TrophyProgression" = ["zkube_budo_v1_0_0-play"]
+"zkube_budo_v1_0_0-Game" = ["zkube_budo_v1_0_0-game_system"]
+"zkube_budo_v1_0_0-GameSeed" = ["zkube_budo_v1_0_0-game_system"]
+"zkube_budo_v1_0_0-GameSettings" = ["zkube_budo_v1_0_0-game_system"]
+"zkube_budo_v1_0_0-TrophyCreation" = ["zkube_budo_v1_0_0-game_system"]
+"zkube_budo_v1_0_0-TrophyProgression" = ["zkube_budo_v1_0_0-game_system"]

@@ -49,8 +49,6 @@ export const PlayFreeGame = () => {
     });
 
     try {
-      const token_id = 0n;
-
       showToast({
         message: "Preparing game data...",
         txHash: "",
@@ -58,7 +56,7 @@ export const PlayFreeGame = () => {
         type: "success",
       });
 
-      await freeMint({
+      const { game_id } = await freeMint({
         account: account as Account,
         name: username,
         settingsId: 0,
@@ -72,7 +70,7 @@ export const PlayFreeGame = () => {
 
       await create({
         account: account as Account,
-        token_id,
+        token_id: game_id,
       });
     } catch (error) {
       console.error("Error during game start:", error);

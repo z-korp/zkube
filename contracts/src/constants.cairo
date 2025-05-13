@@ -16,7 +16,10 @@ pub const MASK_7: u32 = 0x7;
 
 // MULTISIG ADDRESS
 pub fn ZKUBE_MULTISIG() -> ContractAddress {
-    (contract_address_const::<0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b>())
+    //
+    //
+    //(contract_address_const::<0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b>())
+    contract_address_const::<0x6daf2a924fab727ae5409f0743de4869850f988b6f8545268016ad1107fd2cd>()
 }
 
 // Tournament

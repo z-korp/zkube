@@ -8,20 +8,10 @@ version = "1.1.0"
 sierra-replace-ids = true
 
 [scripts]
-dev = "sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate"
-slot = "sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate"
-slotdev = "sozo --profile slotdev clean && sozo --profile slotdev build && sozo --profile slotdev migrate"
-sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build && sozo --profile sepolia migrate -vvv --guest --keystore /Users/matthias/.starkli-wallets/sepolia/braavos_dojo_deployer/keystore.json --fee eth"
-sepoliadev1 = "sozo --profile sepoliadev1 clean && sozo --profile sepoliadev1 build && sozo --profile sepoliadev1 migrate --walnut --keystore /Users/matthias/.starkli-wallets/sepolia/braavos_dojo_deployer/keystore.json --fee eth"
-sepoliadev2 = "sozo --profile sepoliadev2 clean && sozo --profile sepoliadev2 build && sozo --profile sepoliadev2 migrate --walnut --keystore /Users/matthias/.starkli-wallets/sepolia/braavos_dojo_deployer/keystore.json --fee eth"
-playground = "sozo --profile playground clean && sozo --profile playground build && sozo --profile playground migrate --walnut"
-mainnet = "sozo --profile mainnet clean && sozo --profile mainnet build && sozo --profile mainnet migrate --walnut --keystore /Users/matthias/.starkli-wallets/mainnet/braavos_dojo_deployer/keystore.json --fee eth"
+slot = "sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate --guest"
+sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build && sozo --profile sepolia migrate --guest --keystore /Users/matthias/.starkli-wallets/sepolia/braavos_dojo_deployer/keystore.json --fee eth"
 
-inspect-slotdev = "sozo --profile slotdev clean && sozo --profile slotdev build && sozo --profile slotdev inspect"
 inspect-sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build && sozo --profile sepolia inspect"
-inspect-sepoliadev1 = "sozo --profile sepoliadev1 clean && sozo --profile sepoliadev1 build && sozo --profile sepoliadev1 inspect"
-inspect-sepoliadev2 = "sozo --profile sepoliadev2 clean && sozo --profile sepoliadev2 build && sozo --profile sepoliadev2 inspect"
-inspect-mainnet = "sozo --profile mainnet clean && sozo --profile mainnet build && sozo --profile mainnet inspect"
 
 [dependencies]
 starknet = "2.10.1"
@@ -56,10 +46,4 @@ cairo_test = "2.10.1"
 
 # Custom profiles
 [profile.slot]
-[profile.slotdev]
-[profile.slottest]
 [profile.sepolia]
-[profile.sepoliadev1]
-[profile.sepoliadev2]
-[profile.playground]
-[profile.mainnet]

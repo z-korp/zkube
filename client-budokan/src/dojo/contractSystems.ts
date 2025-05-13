@@ -4,8 +4,6 @@ import {
   Account,
   CairoOption,
   CairoOptionVariant,
-  CallData,
-  cairo,
   shortString,
 } from "starknet";
 import type { UniversalDetails } from "starknet";
@@ -21,7 +19,7 @@ export interface Signer {
 }
 
 export interface Create extends Signer {
-  token_id: bigint;
+  token_id: number;
 }
 
 export interface FreeMint extends Signer {
@@ -56,27 +54,6 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
     }
 
     const free_mint = async ({ account, name, settingsId = 0 }: FreeMint) => {
-      console.log("contract", contract);
-      console.log("contract_name", contract_name);
-      console.log("account", account);
-      console.log("name", name);
-      console.log("settingsId", settingsId);
-      console.log("VITE_PUBLIC_NAMESPACE", VITE_PUBLIC_NAMESPACE);
-      console.log(
-        "shortString.encodeShortString(name)",
-        shortString.encodeShortString(name)
-      );
-
-      console.log(
-        CallData.compile({
-          name: shortString.encodeShortString(name),
-          settingsId: settingsId,
-          start: new CairoOption<number>(CairoOptionVariant.Some, 1),
-          end: new CairoOption<number>(CairoOptionVariant.Some, 1),
-          to: account.address,
-        })
-      );
-
       try {
         return await provider.execute(
           account,
@@ -104,22 +81,22 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
     const create = async ({ account, token_id }: Create) => {
       try {
+        console.log("token_id", token_id);
         return await provider.execute(
           account,
           [
             {
               contractAddress: VRF_PROVIDER_ADDRESS,
               entrypoint: "request_random",
-              calldata: CallData.compile({
-                caller: contract.address,
-                source: { type: 0, address: account.address },
-              }),
+              calldata: [
+                contract.address,
+                { type: 0, address: account.address },
+              ],
             },
-
             {
               contractName: contract_name,
               entrypoint: "create",
-              calldata: [cairo.uint256(token_id)],
+              calldata: [token_id],
             },
           ],
           VITE_PUBLIC_NAMESPACE,

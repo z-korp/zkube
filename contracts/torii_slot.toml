@@ -1,0 +1,18 @@
+world_address = "0x079a36feddf1856076a253d9f6f268ee977f52e8f18b4729a64d63bdaab93331"
+rpc = "https://api.cartridge.gg/x/budokan-matth/katana"
+
+[indexing]
+pending = true
+transactions = true
+namespaces = ["zkube_budo_v1_1_0", "budokan_v_1_0_6"]
+contracts = [
+  "erc721:0x47b3b592e8d8e986fbe01d75c5e1622551e1867cbc17e8a1f8fab89df5cbb05"
+]
+
+[events]
+raw = true
+
+[sql]
+historical = [
+  "zkube_budo_v1_1_0-TrophyProgression",
+]

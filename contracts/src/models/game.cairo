@@ -268,7 +268,7 @@ pub impl GameImpl of GameTrait {
     }
 
     fn update_metadata(self: Game, world: WorldStorage) {
-        let (contract_address, _) = world.dns(@"game_systems").unwrap();
+        let (contract_address, _) = world.dns(@"game_system").unwrap();
         let game_token_dispatcher = IGameTokenDispatcher { contract_address };
         game_token_dispatcher.emit_metadata_update(self.game_id.into());
     }
