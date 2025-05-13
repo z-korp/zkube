@@ -122,7 +122,7 @@ export const Home = () => {
 
   return (
     <div className="h-screen-viewport flex flex-col w-full" id="portal-root">
-      <Header onStartTutorial={startTutorial} />
+      <Header onStartTutorial={startTutorial} showTutorial={true} />
 
       {/* Content Area */}
       <div className="flex flex-col flex-1 relative">

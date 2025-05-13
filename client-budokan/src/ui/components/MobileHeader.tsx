@@ -26,9 +26,13 @@ import TutorialModal from "./Tutorial/TutorialModal";
 
 interface MobileHeaderProps {
   onStartTutorial: () => void;
+  showTutorial?: boolean;
 }
 
-const MobileHeader = ({ onStartTutorial }: MobileHeaderProps) => {
+const MobileHeader = ({
+  onStartTutorial,
+  showTutorial = false,
+}: MobileHeaderProps) => {
   const { account } = useAccountCustom();
 
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
@@ -66,13 +70,15 @@ const MobileHeader = ({ onStartTutorial }: MobileHeaderProps) => {
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Menu</p>
               <Surrender red variant="outline" className="w-full text-sm" />
-              <Button
-                variant="outline"
-                onClick={() => setIsTutorialOpen(true)}
-                className="w-full"
-              >
-                Tutorial
-              </Button>
+              {showTutorial && (
+                <Button
+                  variant="outline"
+                  onClick={() => setIsTutorialOpen(true)}
+                  className="w-full"
+                >
+                  Tutorial
+                </Button>
+              )}
               <TutorialModal
                 isOpen={isTutorialOpen}
                 onClose={changeTutorialOpen}
@@ -94,8 +100,8 @@ const MobileHeader = ({ onStartTutorial }: MobileHeaderProps) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuLabel>Assets</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <HeaderBalance />
+                  {/* <DropdownMenuSeparator />
+                  <HeaderBalance /> */}
                 </DropdownMenuContent>
               </DropdownMenu>
               <Controller />

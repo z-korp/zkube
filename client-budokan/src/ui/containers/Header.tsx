@@ -5,19 +5,29 @@ import MobileHeader from "../components/MobileHeader";
 
 interface HeaderProps {
   onStartTutorial: () => void;
+  showTutorial?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onStartTutorial }) => {
+export const Header: React.FC<HeaderProps> = ({
+  onStartTutorial,
+  showTutorial = false,
+}) => {
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   return isMdOrLarger ? (
     <div>
-      <DesktopHeader onStartTutorial={onStartTutorial} />
+      <DesktopHeader
+        onStartTutorial={onStartTutorial}
+        showTutorial={showTutorial}
+      />
       <Separator />
     </div>
   ) : (
     <div>
-      <MobileHeader onStartTutorial={onStartTutorial} />
+      <MobileHeader
+        onStartTutorial={onStartTutorial}
+        showTutorial={showTutorial}
+      />
       <Separator />
     </div>
   );

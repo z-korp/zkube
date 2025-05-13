@@ -1,6 +1,6 @@
 import Connect from "./Connect";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
-import HeaderBalance from "./HeaderBalance";
+// import HeaderBalance from "./HeaderBalance";
 import { useCallback, useState } from "react";
 import SettingsDropDown from "./SettingsDropDown";
 import { useNavigate } from "react-router-dom";
@@ -10,9 +10,13 @@ import { Button } from "../elements/button";
 
 interface DesktopHeaderProps {
   onStartTutorial: () => void;
+  showTutorial?: boolean;
 }
 
-const DesktopHeader = ({ onStartTutorial }: DesktopHeaderProps) => {
+const DesktopHeader = ({
+  onStartTutorial,
+  showTutorial = false,
+}: DesktopHeaderProps) => {
   const { account } = useAccountCustom();
 
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
@@ -39,16 +43,17 @@ const DesktopHeader = ({ onStartTutorial }: DesktopHeaderProps) => {
         onClick={handleClick}
       >
         <p className="text-4xl font-bold">zKube</p>
-        {/*<ContentTabs />*/}
-        <Button
-          variant="outline"
-          onClick={(e) => {
-            e.stopPropagation();
-            changeTutorialOpen();
-          }}
-        >
-          Tutorial
-        </Button>
+        {showTutorial && (
+          <Button
+            variant="outline"
+            onClick={(e) => {
+              e.stopPropagation();
+              changeTutorialOpen();
+            }}
+          >
+            Tutorial
+          </Button>
+        )}
         <TutorialModal
           isOpen={isTutorialOpen}
           onClose={changeTutorialOpen}
@@ -58,7 +63,7 @@ const DesktopHeader = ({ onStartTutorial }: DesktopHeaderProps) => {
       <div className="flex flex-col gap-4 items-center md:flex-row">
         {!!account && (
           <div className="flex gap-4 flex-1 justify-end px-4 w-2/4">
-            <HeaderBalance />
+            {/* <HeaderBalance /> */}
             <Controller />
           </div>
         )}

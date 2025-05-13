@@ -18,6 +18,7 @@ import useViewport from "@/hooks/useViewport";
 import { TweetPreview } from "../components/TweetPreview";
 import { useGrid } from "@/hooks/useGrid";
 import { useParams, Navigate } from "react-router-dom";
+import { Header } from "@/ui/containers/Header";
 
 export const Play = () => {
   useViewport();
@@ -110,6 +111,7 @@ export const Play = () => {
 
   return (
     <div className="h-screen-viewport flex flex-col w-full" id="portal-root">
+      <Header onStartTutorial={() => {}} showTutorial={false} />
       {/* Content Area */}
       <div className="flex flex-col flex-1 relative">
         {/* Main Content */}
