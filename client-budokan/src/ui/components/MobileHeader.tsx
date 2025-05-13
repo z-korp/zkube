@@ -11,18 +11,17 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../elements/dropdown-menu";
 import AccountDetails from "./AccountDetails";
 import Connect from "./Connect";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
-import HeaderBalance from "./HeaderBalance";
 import { Button } from "../elements/button";
 import { useState } from "react";
 import { Surrender } from "../actions/Surrender";
 import { Controller } from "./Controller";
 import TutorialModal from "./Tutorial/TutorialModal";
+import { HeaderLeaderboard } from "./HeaderLeaderboard";
 
 interface MobileHeaderProps {
   onStartTutorial: () => void;
@@ -69,7 +68,12 @@ const MobileHeader = ({
             </div>
             <div className="flex flex-col gap-2 items-center">
               <p className="self-start">Menu</p>
-              <Surrender red variant="outline" className="w-full text-sm" />
+              <Surrender
+                gameId={0}
+                red
+                variant="outline"
+                className="w-full text-sm"
+              />
               {showTutorial && (
                 <Button
                   variant="outline"
@@ -79,6 +83,7 @@ const MobileHeader = ({
                   Tutorial
                 </Button>
               )}
+              <HeaderLeaderboard buttonType="outline" textSize="md" />
               <TutorialModal
                 isOpen={isTutorialOpen}
                 onClose={changeTutorialOpen}
@@ -100,8 +105,6 @@ const MobileHeader = ({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuLabel>Assets</DropdownMenuLabel>
-                  {/* <DropdownMenuSeparator />
-                  <HeaderBalance /> */}
                 </DropdownMenuContent>
               </DropdownMenu>
               <Controller />

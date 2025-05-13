@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { Controller } from "./Controller";
 import TutorialModal from "./Tutorial/TutorialModal";
 import { Button } from "../elements/button";
+import { HeaderLeaderboard } from "./HeaderLeaderboard";
 
 interface DesktopHeaderProps {
   onStartTutorial: () => void;
@@ -54,6 +55,7 @@ const DesktopHeader = ({
             Tutorial
           </Button>
         )}
+        <HeaderLeaderboard buttonType="outline" textSize="sm" />
         <TutorialModal
           isOpen={isTutorialOpen}
           onClose={changeTutorialOpen}
