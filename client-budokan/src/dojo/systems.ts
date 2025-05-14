@@ -151,7 +151,7 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
-  const applyBonus = async ({ account, ...props }: SystemTypes.Bonus) => {
+  const applyBonus = async ({ account, ...props }: SystemTypes.BonusTx) => {
     const setMoveComplete = useMoveStore.getState().setMoveComplete; //  Zustand
     setMoveComplete(false); // Reset before transaction
     try {

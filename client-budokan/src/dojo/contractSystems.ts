@@ -2,6 +2,7 @@ import { DojoProvider } from "@dojoengine/core";
 import type { Config } from "../../dojo.config.ts";
 import {
   Account,
+  CairoCustomEnum,
   CairoOption,
   CairoOptionVariant,
   shortString,
@@ -38,7 +39,7 @@ export interface Move extends Signer {
   final_index: number;
 }
 
-export interface Bonus extends Signer {
+export interface BonusTx extends Signer {
   game_id: number;
   bonus: number;
   row_index: number;
@@ -155,6 +156,16 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
         throw error;
       }
     };
+    const getCustomEnum = (bonusIndex: number) => {
+      if (bonusIndex === 1) {
+        return new CairoCustomEnum({ Hammer: "()" });
+      } else if (bonusIndex === 2) {
+        return new CairoCustomEnum({ Totem: "()" });
+      } else if (bonusIndex === 3) {
+        return new CairoCustomEnum({ Wave: "()" });
+      }
+      return new CairoCustomEnum({ None: "()" });
+    };
 
     const bonus = async ({
       account,
@@ -162,14 +173,14 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       bonus,
       row_index,
       block_index,
-    }: Bonus) => {
+    }: BonusTx) => {
       try {
         return await provider.execute(
           account,
           {
             contractName: contract_name,
             entrypoint: "apply_bonus",
-            calldata: [game_id, bonus, row_index, block_index],
+            calldata: [game_id, getCustomEnum(bonus), row_index, block_index],
           },
           VITE_PUBLIC_NAMESPACE,
           details
