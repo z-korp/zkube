@@ -22,14 +22,15 @@ mod game_system {
     use zkube::types::difficulty::{Difficulty, IIncreasingDifficultyUtilsTrait};
     use zkube::helpers::config::ConfigUtilsImpl;
     use zkube::helpers::random::RandomImpl;
-    use zkube::types::task::{Task, TaskTrait};
     use zkube::types::bonus::Bonus;
     use zkube::helpers::renderer::create_metadata;
-    use zkube::types::trophy::{Trophy, TrophyTrait};
     use zkube::events::{StartGame, UseBonus};
+    use zkube::systems::achievement::{
+        IAchievementSystemDispatcher, IAchievementSystemDispatcherTrait
+    };
 
     use dojo::model::ModelStorage;
-    use dojo::world::WorldStorage;
+    use dojo::world::{WorldStorage, WorldStorageTrait};
     use dojo::event::EventStorage;
 
     use starknet::{get_block_timestamp, get_caller_address};
@@ -38,8 +39,6 @@ mod game_system {
     use openzeppelin_introspection::src5::SRC5Component;
     use openzeppelin_token::erc721::interface::{IERC721Metadata};
     use openzeppelin_token::erc721::{ERC721Component, ERC721HooksEmptyImpl};
-
-    use achievement::store::StoreTrait;
 
     use tournaments::components::game::game_component;
     use tournaments::components::interfaces::{IGameDetails, ISettings};
@@ -170,7 +169,9 @@ mod game_system {
             game.over = true;
             world.write_model(@game);
 
-            self.handle_game_over(world, game);
+            self.handle_game_over(game);
+
+            game.update_metadata(world);
         }
 
         fn move(
@@ -199,8 +200,10 @@ mod game_system {
             world.write_model(@game);
 
             if game.over {
-                self.handle_game_over(world, game);
+                self.handle_game_over(game);
             }
+
+            game.update_metadata(world);
         }
 
         fn apply_bonus(
@@ -228,6 +231,8 @@ mod game_system {
             game.apply_bonus(difficulty, base_seed.seed, bonus, row_index, line_index);
 
             world.write_model(@game);
+
+            game.update_metadata(world);
 
             world
                 .emit_event(
@@ -341,62 +346,18 @@ mod game_system {
             assert!(game.blocks == 0, "Game {} has already started", game_id);
         }
 
-        fn handle_game_over(ref self: ContractState, mut world: WorldStorage, game: Game) {
-            // [Trophy] Update Mastering tasks progression
-            let value = game.combo_counter.into();
-            let time = get_block_timestamp();
-            let store = StoreTrait::new(world);
+        fn handle_game_over(ref self: ContractState, game: Game) {
+            let world = self.world(@DEFAULT_NS());
             let caller = get_caller_address();
-            if Trophy::ComboInitiator.assess(value) {
-                let level = Trophy::ComboInitiator.level();
-                let task_id = Task::Mastering.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
-            }
-            if Trophy::ComboExpert.assess(value) {
-                let level = Trophy::ComboExpert.level();
-                let task_id = Task::Mastering.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
-            }
-            if Trophy::ComboMaster.assess(value) {
-                let level = Trophy::ComboMaster.level();
-                let task_id = Task::Mastering.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
-            }
 
-            // [Trophy] Update Chaining tasks progression
-            let value = game.max_combo.into();
-            if Trophy::TripleThreat.assess(value) {
-                let level = Trophy::TripleThreat.level();
-                let task_id = Task::Chaining.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
-            }
-            if Trophy::SixShooter.assess(value) {
-                let level = Trophy::SixShooter.level();
-                let task_id = Task::Chaining.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
-            }
-            if Trophy::NineLives.assess(value) {
-                let level = Trophy::NineLives.level();
-                let task_id = Task::Chaining.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
-            }
-
-            // [Trophy] Update Playing tasks progression
-            let value = game.moves.into();
-            if Trophy::GameBeginner.assess(value) {
-                let level = Trophy::GameBeginner.level();
-                let task_id = Task::Playing.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
-            }
-            if Trophy::GameExperienced.assess(value) {
-                let level = Trophy::GameExperienced.level();
-                let task_id = Task::Playing.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
-            }
-            if Trophy::GameVeteran.assess(value) {
-                let level = Trophy::GameVeteran.level();
-                let task_id = Task::Playing.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
+            match world.dns(@"achievement_system") {
+                Option::Some((
+                    contract_address, _
+                )) => {
+                    let achievement_system = IAchievementSystemDispatcher { contract_address };
+                    achievement_system.update_progress_when_game_over(game, caller);
+                },
+                Option::None => { assert(false, 'Achievement system not found'); }
             }
         }
     }

@@ -2,13 +2,13 @@ use zkube::elements::trophies::interface::TrophyTrait;
 use zkube::types::task::{Task, TaskTrait};
 use achievement::types::task::{Task as BushidoTask};
 
-pub impl Mastery of TrophyTrait {
+pub impl Scorer of TrophyTrait {
     #[inline]
     fn identifier(level: u8) -> felt252 {
         match level {
-            0 => 'MASTERY_I',
-            1 => 'MASTERY_II',
-            2 => 'MASTERY_III',
+            0 => 'SCORER_I',
+            1 => 'SCORER_II',
+            2 => 'SCORER_III',
             _ => '',
         }
     }
@@ -26,29 +26,29 @@ pub impl Mastery of TrophyTrait {
     #[inline]
     fn points(level: u8) -> u16 {
         match level {
-            0 => 40,
+            0 => 30,
             1 => 60,
-            2 => 100,
+            2 => 110,
             _ => 0,
         }
     }
 
     #[inline]
     fn group() -> felt252 {
-        'Mastery'
+        'Scorer'
     }
 
     #[inline]
     fn icon(level: u8) -> felt252 {
-        'fa-brain-circuit'
+        'fa-cubes'
     }
 
     #[inline]
     fn title(level: u8) -> felt252 {
         match level {
-            0 => 'Combo Initiate',
-            1 => 'Combo Expert',
-            2 => 'Combo Master',
+            0 => 'Score Apprentice',
+            1 => 'Score Expert',
+            2 => 'Score Master',
             _ => '',
         }
     }
@@ -56,9 +56,9 @@ pub impl Mastery of TrophyTrait {
     #[inline]
     fn description(level: u8) -> ByteArray {
         match level {
-            0 => "Start where you are. Use what you have. Do what you can", // Arthur Ashe
-            1 => "Excellence is not an act, but a habit", // Aristotle
-            2 => "You have power over your mind not outside events. Realize this, and you will find strength", // Marcus Aurelius
+            0 => "The secret of getting ahead is getting started", // Mark Twain
+            1 => "Success is the sum of small efforts, repeated day in and day out", // Robert Collier
+            2 => "Perseverance is not a long race; it is many short races one after the other", // Walter
             _ => "",
         }
     }
@@ -66,9 +66,9 @@ pub impl Mastery of TrophyTrait {
     #[inline]
     fn count(level: u8) -> u32 {
         match level {
-            0 => 50,
-            1 => 150,
-            2 => 250,
+            0 => 100,
+            1 => 300,
+            2 => 800,
             _ => 0,
         }
     }
@@ -82,6 +82,6 @@ pub impl Mastery of TrophyTrait {
     fn tasks(level: u8) -> Span<BushidoTask> {
         let count: u32 = Self::count(level);
         let total: u32 = 1;
-        Task::Mastering.tasks(level, count, total)
+        Task::Scoring.tasks(level, count, total)
     }
 }

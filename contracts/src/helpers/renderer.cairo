@@ -89,6 +89,7 @@ pub fn create_metadata(
     }
 
     let _game_id = format!("{}", token_id);
+    let _status = game_state(over);
     let _score = format!("{}", score);
     let _moves = format!("{}", moves);
     let _combo = format!("{}", combo);
@@ -149,6 +150,10 @@ pub fn create_metadata(
         .add("image", base64_image);
 
     let name_str: ByteArray = JsonImpl::new().add("trait", "Name").add("value", _name).build();
+    let status_str: ByteArray = JsonImpl::new()
+        .add("trait", "Status")
+        .add("value", _status)
+        .build();
     let score_str: ByteArray = JsonImpl::new().add("trait", "Score").add("value", _score).build();
     let moves_str: ByteArray = JsonImpl::new().add("trait", "Moves").add("value", _moves).build();
     let combo_str: ByteArray = JsonImpl::new().add("trait", "Combo").add("value", _combo).build();
@@ -156,7 +161,8 @@ pub fn create_metadata(
         .add("trait", "Max Combo")
         .add("value", _max_combo)
         .build();
-    let attributes = array![name_str, score_str, moves_str, combo_str, max_combo_str,].span();
+    let attributes = array![name_str, status_str, score_str, moves_str, combo_str, max_combo_str,]
+        .span();
 
     let metadata = metadata.add_array("attributes", attributes).build();
 

@@ -27,8 +27,8 @@ pub impl Chainer of TrophyTrait {
     fn points(level: u8) -> u16 {
         match level {
             0 => 20,
-            1 => 40,
-            2 => 80,
+            1 => 60,
+            2 => 120,
             _ => 0,
         }
     }

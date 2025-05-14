@@ -1,7 +1,7 @@
 use achievement::types::task::{Task as BushidoTask};
 use zkube::elements::trophies;
 
-pub const TROPHY_COUNT: u8 = 9;
+pub const TROPHY_COUNT: u8 = 15;
 
 #[derive(Copy, Drop)]
 pub enum Trophy {
@@ -15,6 +15,12 @@ pub enum Trophy {
     GameBeginner,
     GameExperienced,
     GameVeteran,
+    ScoreApprentice,
+    ScoreExpert,
+    ScoreMaster,
+    ScoreCollector,
+    ScoreAccumulator,
+    ScoreLegend,
 }
 
 #[generate_trait]
@@ -32,6 +38,12 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::GameBeginner => 0,
             Trophy::GameExperienced => 1,
             Trophy::GameVeteran => 2,
+            Trophy::ScoreApprentice => 0,
+            Trophy::ScoreExpert => 1,
+            Trophy::ScoreMaster => 2,
+            Trophy::ScoreCollector => 0,
+            Trophy::ScoreAccumulator => 1,
+            Trophy::ScoreLegend => 2,
         }
     }
 
@@ -49,6 +61,12 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::GameBeginner => trophies::player::Player::identifier(level),
             Trophy::GameExperienced => trophies::player::Player::identifier(level),
             Trophy::GameVeteran => trophies::player::Player::identifier(level),
+            Trophy::ScoreApprentice => trophies::scorer::Scorer::identifier(level),
+            Trophy::ScoreExpert => trophies::scorer::Scorer::identifier(level),
+            Trophy::ScoreMaster => trophies::scorer::Scorer::identifier(level),
+            Trophy::ScoreCollector => trophies::scorer::Scorer::identifier(level),
+            Trophy::ScoreAccumulator => trophies::scorer::Scorer::identifier(level),
+            Trophy::ScoreLegend => trophies::scorer::Scorer::identifier(level),
         }
     }
 
@@ -66,6 +84,12 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::GameBeginner => trophies::player::Player::hidden(level),
             Trophy::GameExperienced => trophies::player::Player::hidden(level),
             Trophy::GameVeteran => trophies::player::Player::hidden(level),
+            Trophy::ScoreApprentice => trophies::scorer::Scorer::hidden(level),
+            Trophy::ScoreExpert => trophies::scorer::Scorer::hidden(level),
+            Trophy::ScoreMaster => trophies::scorer::Scorer::hidden(level),
+            Trophy::ScoreCollector => trophies::scorer::Scorer::hidden(level),
+            Trophy::ScoreAccumulator => trophies::scorer::Scorer::hidden(level),
+            Trophy::ScoreLegend => trophies::scorer::Scorer::hidden(level),
         }
     }
 
@@ -83,6 +107,12 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::GameBeginner => trophies::player::Player::index(level),
             Trophy::GameExperienced => trophies::player::Player::index(level),
             Trophy::GameVeteran => trophies::player::Player::index(level),
+            Trophy::ScoreApprentice => trophies::scorer::Scorer::index(level),
+            Trophy::ScoreExpert => trophies::scorer::Scorer::index(level),
+            Trophy::ScoreMaster => trophies::scorer::Scorer::index(level),
+            Trophy::ScoreCollector => trophies::scorer::Scorer::index(level),
+            Trophy::ScoreAccumulator => trophies::scorer::Scorer::index(level),
+            Trophy::ScoreLegend => trophies::scorer::Scorer::index(level),
         }
     }
 
@@ -100,6 +130,12 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::GameBeginner => trophies::player::Player::points(level),
             Trophy::GameExperienced => trophies::player::Player::points(level),
             Trophy::GameVeteran => trophies::player::Player::points(level),
+            Trophy::ScoreApprentice => trophies::scorer::Scorer::points(level),
+            Trophy::ScoreExpert => trophies::scorer::Scorer::points(level),
+            Trophy::ScoreMaster => trophies::scorer::Scorer::points(level),
+            Trophy::ScoreCollector => trophies::scorer::Scorer::points(level),
+            Trophy::ScoreAccumulator => trophies::scorer::Scorer::points(level),
+            Trophy::ScoreLegend => trophies::scorer::Scorer::points(level),
         }
     }
 
@@ -129,6 +165,12 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::GameBeginner => trophies::player::Player::group(),
             Trophy::GameExperienced => trophies::player::Player::group(),
             Trophy::GameVeteran => trophies::player::Player::group(),
+            Trophy::ScoreApprentice => trophies::scorer::Scorer::group(),
+            Trophy::ScoreExpert => trophies::scorer::Scorer::group(),
+            Trophy::ScoreMaster => trophies::scorer::Scorer::group(),
+            Trophy::ScoreCollector => trophies::scorer::Scorer::group(),
+            Trophy::ScoreAccumulator => trophies::scorer::Scorer::group(),
+            Trophy::ScoreLegend => trophies::scorer::Scorer::group(),
         }
     }
 
@@ -146,6 +188,12 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::GameBeginner => trophies::player::Player::icon(level),
             Trophy::GameExperienced => trophies::player::Player::icon(level),
             Trophy::GameVeteran => trophies::player::Player::icon(level),
+            Trophy::ScoreApprentice => trophies::scorer::Scorer::icon(level),
+            Trophy::ScoreExpert => trophies::scorer::Scorer::icon(level),
+            Trophy::ScoreMaster => trophies::scorer::Scorer::icon(level),
+            Trophy::ScoreCollector => trophies::scorer::Scorer::icon(level),
+            Trophy::ScoreAccumulator => trophies::scorer::Scorer::icon(level),
+            Trophy::ScoreLegend => trophies::scorer::Scorer::icon(level),
         }
     }
 
@@ -163,6 +211,12 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::GameBeginner => trophies::player::Player::title(level),
             Trophy::GameExperienced => trophies::player::Player::title(level),
             Trophy::GameVeteran => trophies::player::Player::title(level),
+            Trophy::ScoreApprentice => trophies::scorer::Scorer::title(level),
+            Trophy::ScoreExpert => trophies::scorer::Scorer::title(level),
+            Trophy::ScoreMaster => trophies::scorer::Scorer::title(level),
+            Trophy::ScoreCollector => trophies::scorer::Scorer::title(level),
+            Trophy::ScoreAccumulator => trophies::scorer::Scorer::title(level),
+            Trophy::ScoreLegend => trophies::scorer::Scorer::title(level),
         }
     }
 
@@ -180,6 +234,12 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::GameBeginner => trophies::player::Player::description(level),
             Trophy::GameExperienced => trophies::player::Player::description(level),
             Trophy::GameVeteran => trophies::player::Player::description(level),
+            Trophy::ScoreApprentice => trophies::scorer::Scorer::description(level),
+            Trophy::ScoreExpert => trophies::scorer::Scorer::description(level),
+            Trophy::ScoreMaster => trophies::scorer::Scorer::description(level),
+            Trophy::ScoreCollector => trophies::scorer::Scorer::description(level),
+            Trophy::ScoreAccumulator => trophies::scorer::Scorer::description(level),
+            Trophy::ScoreLegend => trophies::scorer::Scorer::description(level),
         }
     }
 
@@ -196,6 +256,12 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::GameBeginner => trophies::player::Player::count(level),
             Trophy::GameExperienced => trophies::player::Player::count(level),
             Trophy::GameVeteran => trophies::player::Player::count(level),
+            Trophy::ScoreApprentice => trophies::scorer::Scorer::count(level),
+            Trophy::ScoreExpert => trophies::scorer::Scorer::count(level),
+            Trophy::ScoreMaster => trophies::scorer::Scorer::count(level),
+            Trophy::ScoreCollector => trophies::scorer::Scorer::count(level),
+            Trophy::ScoreAccumulator => trophies::scorer::Scorer::count(level),
+            Trophy::ScoreLegend => trophies::scorer::Scorer::count(level),
         }
     }
 
@@ -213,6 +279,12 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::GameBeginner => trophies::player::Player::assess(level, value),
             Trophy::GameExperienced => trophies::player::Player::assess(level, value),
             Trophy::GameVeteran => trophies::player::Player::assess(level, value),
+            Trophy::ScoreApprentice => trophies::scorer::Scorer::assess(level, value),
+            Trophy::ScoreExpert => trophies::scorer::Scorer::assess(level, value),
+            Trophy::ScoreMaster => trophies::scorer::Scorer::assess(level, value),
+            Trophy::ScoreCollector => trophies::scorer::Scorer::assess(level, value),
+            Trophy::ScoreAccumulator => trophies::scorer::Scorer::assess(level, value),
+            Trophy::ScoreLegend => trophies::scorer::Scorer::assess(level, value),
         }
     }
 
@@ -230,6 +302,12 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::GameBeginner => trophies::player::Player::tasks(level),
             Trophy::GameExperienced => trophies::player::Player::tasks(level),
             Trophy::GameVeteran => trophies::player::Player::tasks(level),
+            Trophy::ScoreApprentice => trophies::scorer::Scorer::tasks(level),
+            Trophy::ScoreExpert => trophies::scorer::Scorer::tasks(level),
+            Trophy::ScoreMaster => trophies::scorer::Scorer::tasks(level),
+            Trophy::ScoreCollector => trophies::scorer::Scorer::tasks(level),
+            Trophy::ScoreAccumulator => trophies::scorer::Scorer::tasks(level),
+            Trophy::ScoreLegend => trophies::scorer::Scorer::tasks(level),
         }
     }
 
@@ -253,6 +331,12 @@ impl IntoTrophyU8 of Into<Trophy, u8> {
             Trophy::GameBeginner => 7,
             Trophy::GameExperienced => 8,
             Trophy::GameVeteran => 9,
+            Trophy::ScoreApprentice => 10,
+            Trophy::ScoreExpert => 11,
+            Trophy::ScoreMaster => 12,
+            Trophy::ScoreCollector => 13,
+            Trophy::ScoreAccumulator => 14,
+            Trophy::ScoreLegend => 15,
         }
     }
 }
@@ -272,6 +356,12 @@ impl IntoU8Trophy of Into<u8, Trophy> {
             7 => Trophy::GameBeginner,
             8 => Trophy::GameExperienced,
             9 => Trophy::GameVeteran,
+            10 => Trophy::ScoreApprentice,
+            11 => Trophy::ScoreExpert,
+            12 => Trophy::ScoreMaster,
+            13 => Trophy::ScoreCollector,
+            14 => Trophy::ScoreAccumulator,
+            15 => Trophy::ScoreLegend,
             _ => Trophy::None,
         }
     }

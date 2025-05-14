@@ -8,6 +8,8 @@ pub enum Task {
     Mastering,
     Chaining,
     Playing,
+    Scoring,
+    CumulativeScoring,
 }
 
 #[generate_trait]
@@ -19,6 +21,10 @@ pub impl TaskImpl of TaskTrait {
             Task::Mastering => tasks::mastering::Mastering::identifier(level),
             Task::Chaining => tasks::chaining::Chaining::identifier(level),
             Task::Playing => tasks::playing::Playing::identifier(level),
+            Task::Scoring => tasks::scoring::Scoring::identifier(level),
+            Task::CumulativeScoring => tasks::cumulative_scoring::CumulativeScoring::identifier(
+                level
+            ),
         }
     }
 
@@ -29,6 +35,10 @@ pub impl TaskImpl of TaskTrait {
             Task::Mastering => tasks::mastering::Mastering::description(count),
             Task::Chaining => tasks::chaining::Chaining::description(count),
             Task::Playing => tasks::playing::Playing::description(count),
+            Task::Scoring => tasks::scoring::Scoring::description(count),
+            Task::CumulativeScoring => tasks::cumulative_scoring::CumulativeScoring::description(
+                count
+            ),
         }
     }
 
@@ -48,6 +58,8 @@ impl IntoTaskU8 of Into<Task, u8> {
             Task::Mastering => 1,
             Task::Chaining => 2,
             Task::Playing => 3,
+            Task::Scoring => 4,
+            Task::CumulativeScoring => 5,
         }
     }
 }
@@ -61,6 +73,8 @@ impl IntoU8Task of Into<u8, Task> {
             1 => Task::Mastering,
             2 => Task::Chaining,
             3 => Task::Playing,
+            4 => Task::Scoring,
+            5 => Task::CumulativeScoring,
             _ => Task::None,
         }
     }

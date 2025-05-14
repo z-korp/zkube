@@ -22,11 +22,8 @@ mod config_system {
     use dojo::model::ModelStorage;
     use dojo::world::WorldStorage;
 
-    use achievement::components::achievable::AchievableComponent;
-
     use zkube::models::config::{GameSettingsMetadata, GameSettings, GameSettingsTrait};
     use zkube::types::difficulty::Difficulty;
-    use zkube::types::trophy::{Trophy, TrophyTrait, TROPHY_COUNT};
     use zkube::constants::{DEFAULT_NS};
     use zkube::constants::DEFAULT_SETTINGS::{
         GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY, GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_METADATA,
@@ -34,22 +31,15 @@ mod config_system {
         GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA
     };
 
-    component!(path: AchievableComponent, storage: achievable, event: AchievableEvent);
-    impl AchievableInternalImpl = AchievableComponent::InternalImpl<ContractState>;
-
     #[storage]
     struct Storage {
         settings_counter: u32,
-        #[substorage(v0)]
-        achievable: AchievableComponent::Storage,
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
         GameSettingsCreated: GameSettingsCreated,
-        #[flat]
-        AchievableEvent: AchievableComponent::Event,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -69,30 +59,6 @@ mod config_system {
 
         world.write_model(GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY());
         world.write_model(GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA(current_timestamp));
-
-        // [Event] Emit all Trophy events
-        let mut trophy_id: u8 = TROPHY_COUNT;
-        while trophy_id > 0 {
-            let trophy: Trophy = trophy_id.into();
-            self
-                .achievable
-                .create(
-                    world,
-                    id: trophy.identifier(),
-                    hidden: trophy.hidden(),
-                    index: trophy.index(),
-                    points: trophy.points(),
-                    start: trophy.start(),
-                    end: trophy.end(),
-                    group: trophy.group(),
-                    icon: trophy.icon(),
-                    title: trophy.title(),
-                    description: trophy.description(),
-                    tasks: trophy.tasks(),
-                    data: trophy.data(),
-                );
-            trophy_id -= 1;
-        }
     }
 
     #[abi(embed_v0)]

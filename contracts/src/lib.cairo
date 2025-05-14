@@ -38,12 +38,16 @@ mod elements {
         pub mod mastering;
         pub mod chaining;
         pub mod playing;
+        pub mod scoring;
+        pub mod cumulative_scoring;
     }
     pub mod trophies {
         pub mod interface;
         pub mod mastery;
         pub mod chainer;
         pub mod player;
+        pub mod scorer;
+        pub mod cumulative_scorer;
     }
 }
 
@@ -63,6 +67,7 @@ pub mod helpers {
 }
 
 pub mod systems {
+    pub mod achievement;
     pub mod game;
     pub mod config;
 }
