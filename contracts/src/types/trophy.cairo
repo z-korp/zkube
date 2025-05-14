@@ -64,9 +64,13 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::ScoreApprentice => trophies::scorer::Scorer::identifier(level),
             Trophy::ScoreExpert => trophies::scorer::Scorer::identifier(level),
             Trophy::ScoreMaster => trophies::scorer::Scorer::identifier(level),
-            Trophy::ScoreCollector => trophies::scorer::Scorer::identifier(level),
-            Trophy::ScoreAccumulator => trophies::scorer::Scorer::identifier(level),
-            Trophy::ScoreLegend => trophies::scorer::Scorer::identifier(level),
+            Trophy::ScoreCollector => trophies::cumulative_scorer::CumulativeScorer::identifier(
+                level
+            ),
+            Trophy::ScoreAccumulator => trophies::cumulative_scorer::CumulativeScorer::identifier(
+                level
+            ),
+            Trophy::ScoreLegend => trophies::cumulative_scorer::CumulativeScorer::identifier(level),
         }
     }
 
@@ -87,9 +91,11 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::ScoreApprentice => trophies::scorer::Scorer::hidden(level),
             Trophy::ScoreExpert => trophies::scorer::Scorer::hidden(level),
             Trophy::ScoreMaster => trophies::scorer::Scorer::hidden(level),
-            Trophy::ScoreCollector => trophies::scorer::Scorer::hidden(level),
-            Trophy::ScoreAccumulator => trophies::scorer::Scorer::hidden(level),
-            Trophy::ScoreLegend => trophies::scorer::Scorer::hidden(level),
+            Trophy::ScoreCollector => trophies::cumulative_scorer::CumulativeScorer::hidden(level),
+            Trophy::ScoreAccumulator => trophies::cumulative_scorer::CumulativeScorer::hidden(
+                level
+            ),
+            Trophy::ScoreLegend => trophies::cumulative_scorer::CumulativeScorer::hidden(level),
         }
     }
 
@@ -110,9 +116,9 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::ScoreApprentice => trophies::scorer::Scorer::index(level),
             Trophy::ScoreExpert => trophies::scorer::Scorer::index(level),
             Trophy::ScoreMaster => trophies::scorer::Scorer::index(level),
-            Trophy::ScoreCollector => trophies::scorer::Scorer::index(level),
-            Trophy::ScoreAccumulator => trophies::scorer::Scorer::index(level),
-            Trophy::ScoreLegend => trophies::scorer::Scorer::index(level),
+            Trophy::ScoreCollector => trophies::cumulative_scorer::CumulativeScorer::index(level),
+            Trophy::ScoreAccumulator => trophies::cumulative_scorer::CumulativeScorer::index(level),
+            Trophy::ScoreLegend => trophies::cumulative_scorer::CumulativeScorer::index(level),
         }
     }
 
@@ -133,9 +139,11 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::ScoreApprentice => trophies::scorer::Scorer::points(level),
             Trophy::ScoreExpert => trophies::scorer::Scorer::points(level),
             Trophy::ScoreMaster => trophies::scorer::Scorer::points(level),
-            Trophy::ScoreCollector => trophies::scorer::Scorer::points(level),
-            Trophy::ScoreAccumulator => trophies::scorer::Scorer::points(level),
-            Trophy::ScoreLegend => trophies::scorer::Scorer::points(level),
+            Trophy::ScoreCollector => trophies::cumulative_scorer::CumulativeScorer::points(level),
+            Trophy::ScoreAccumulator => trophies::cumulative_scorer::CumulativeScorer::points(
+                level
+            ),
+            Trophy::ScoreLegend => trophies::cumulative_scorer::CumulativeScorer::points(level),
         }
     }
 
@@ -168,9 +176,9 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::ScoreApprentice => trophies::scorer::Scorer::group(),
             Trophy::ScoreExpert => trophies::scorer::Scorer::group(),
             Trophy::ScoreMaster => trophies::scorer::Scorer::group(),
-            Trophy::ScoreCollector => trophies::scorer::Scorer::group(),
-            Trophy::ScoreAccumulator => trophies::scorer::Scorer::group(),
-            Trophy::ScoreLegend => trophies::scorer::Scorer::group(),
+            Trophy::ScoreCollector => trophies::cumulative_scorer::CumulativeScorer::group(),
+            Trophy::ScoreAccumulator => trophies::cumulative_scorer::CumulativeScorer::group(),
+            Trophy::ScoreLegend => trophies::cumulative_scorer::CumulativeScorer::group(),
         }
     }
 
@@ -191,9 +199,9 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::ScoreApprentice => trophies::scorer::Scorer::icon(level),
             Trophy::ScoreExpert => trophies::scorer::Scorer::icon(level),
             Trophy::ScoreMaster => trophies::scorer::Scorer::icon(level),
-            Trophy::ScoreCollector => trophies::scorer::Scorer::icon(level),
-            Trophy::ScoreAccumulator => trophies::scorer::Scorer::icon(level),
-            Trophy::ScoreLegend => trophies::scorer::Scorer::icon(level),
+            Trophy::ScoreCollector => trophies::cumulative_scorer::CumulativeScorer::icon(level),
+            Trophy::ScoreAccumulator => trophies::cumulative_scorer::CumulativeScorer::icon(level),
+            Trophy::ScoreLegend => trophies::cumulative_scorer::CumulativeScorer::icon(level),
         }
     }
 
@@ -214,9 +222,9 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::ScoreApprentice => trophies::scorer::Scorer::title(level),
             Trophy::ScoreExpert => trophies::scorer::Scorer::title(level),
             Trophy::ScoreMaster => trophies::scorer::Scorer::title(level),
-            Trophy::ScoreCollector => trophies::scorer::Scorer::title(level),
-            Trophy::ScoreAccumulator => trophies::scorer::Scorer::title(level),
-            Trophy::ScoreLegend => trophies::scorer::Scorer::title(level),
+            Trophy::ScoreCollector => trophies::cumulative_scorer::CumulativeScorer::title(level),
+            Trophy::ScoreAccumulator => trophies::cumulative_scorer::CumulativeScorer::title(level),
+            Trophy::ScoreLegend => trophies::cumulative_scorer::CumulativeScorer::title(level),
         }
     }
 
@@ -237,9 +245,15 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::ScoreApprentice => trophies::scorer::Scorer::description(level),
             Trophy::ScoreExpert => trophies::scorer::Scorer::description(level),
             Trophy::ScoreMaster => trophies::scorer::Scorer::description(level),
-            Trophy::ScoreCollector => trophies::scorer::Scorer::description(level),
-            Trophy::ScoreAccumulator => trophies::scorer::Scorer::description(level),
-            Trophy::ScoreLegend => trophies::scorer::Scorer::description(level),
+            Trophy::ScoreCollector => trophies::cumulative_scorer::CumulativeScorer::description(
+                level
+            ),
+            Trophy::ScoreAccumulator => trophies::cumulative_scorer::CumulativeScorer::description(
+                level
+            ),
+            Trophy::ScoreLegend => trophies::cumulative_scorer::CumulativeScorer::description(
+                level
+            ),
         }
     }
 
@@ -259,9 +273,9 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::ScoreApprentice => trophies::scorer::Scorer::count(level),
             Trophy::ScoreExpert => trophies::scorer::Scorer::count(level),
             Trophy::ScoreMaster => trophies::scorer::Scorer::count(level),
-            Trophy::ScoreCollector => trophies::scorer::Scorer::count(level),
-            Trophy::ScoreAccumulator => trophies::scorer::Scorer::count(level),
-            Trophy::ScoreLegend => trophies::scorer::Scorer::count(level),
+            Trophy::ScoreCollector => trophies::cumulative_scorer::CumulativeScorer::count(level),
+            Trophy::ScoreAccumulator => trophies::cumulative_scorer::CumulativeScorer::count(level),
+            Trophy::ScoreLegend => trophies::cumulative_scorer::CumulativeScorer::count(level),
         }
     }
 
@@ -282,9 +296,15 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::ScoreApprentice => trophies::scorer::Scorer::assess(level, value),
             Trophy::ScoreExpert => trophies::scorer::Scorer::assess(level, value),
             Trophy::ScoreMaster => trophies::scorer::Scorer::assess(level, value),
-            Trophy::ScoreCollector => trophies::scorer::Scorer::assess(level, value),
-            Trophy::ScoreAccumulator => trophies::scorer::Scorer::assess(level, value),
-            Trophy::ScoreLegend => trophies::scorer::Scorer::assess(level, value),
+            Trophy::ScoreCollector => trophies::cumulative_scorer::CumulativeScorer::assess(
+                level, value
+            ),
+            Trophy::ScoreAccumulator => trophies::cumulative_scorer::CumulativeScorer::assess(
+                level, value
+            ),
+            Trophy::ScoreLegend => trophies::cumulative_scorer::CumulativeScorer::assess(
+                level, value
+            ),
         }
     }
 
@@ -305,9 +325,9 @@ pub impl TrophyImpl of TrophyTrait {
             Trophy::ScoreApprentice => trophies::scorer::Scorer::tasks(level),
             Trophy::ScoreExpert => trophies::scorer::Scorer::tasks(level),
             Trophy::ScoreMaster => trophies::scorer::Scorer::tasks(level),
-            Trophy::ScoreCollector => trophies::scorer::Scorer::tasks(level),
-            Trophy::ScoreAccumulator => trophies::scorer::Scorer::tasks(level),
-            Trophy::ScoreLegend => trophies::scorer::Scorer::tasks(level),
+            Trophy::ScoreCollector => trophies::cumulative_scorer::CumulativeScorer::tasks(level),
+            Trophy::ScoreAccumulator => trophies::cumulative_scorer::CumulativeScorer::tasks(level),
+            Trophy::ScoreLegend => trophies::cumulative_scorer::CumulativeScorer::tasks(level),
         }
     }
 
