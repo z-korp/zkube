@@ -25,6 +25,15 @@ import GameBoard from "../components/GameBoard";
 import { useGrid } from "@/hooks/useGrid";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { Surrender } from "../actions/Surrender";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/ui/elements/table";
+import { useNavigate } from "react-router-dom";
 
 export const Home = () => {
   useViewport();
@@ -52,6 +61,11 @@ export const Home = () => {
 
   // State variables for modals
   const [isTournamentsOpen, setIsTournamentsOpen] = useState(false);
+  const [isMyGamesOpen, setIsMyGamesOpen] = useState(false);
+  const [myGames, setMyGames] = useState<any[]>([]);
+  const [loadingMyGames, setLoadingMyGames] = useState(false);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -82,6 +96,50 @@ export const Home = () => {
     });
   }, []);
 
+  const fetchMyGames = async (accountAddress: string) => {
+    setLoadingMyGames(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_PUBLIC_TORII}/graphql`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            query: `
+            query TokenBalances {
+              tokenBalances(accountAddress: "${accountAddress}") {
+                edges {
+                  node {
+                    tokenMetadata {
+                      ... on ERC721__Token {
+                        tokenId
+                        metadata
+                        metadataName
+                        metadataDescription
+                        metadataAttributes
+                      }
+                    }
+                  }
+                }
+                totalCount
+              }
+            }
+          `,
+          }),
+        },
+      );
+      const data = await response.json();
+      const games =
+        data.data?.tokenBalances?.edges?.map(
+          (edge: any) => edge.node.tokenMetadata,
+        ) || [];
+      setMyGames(games);
+    } catch (e) {
+      setMyGames([]);
+    }
+    setLoadingMyGames(false);
+  };
+
   // Define render functions
   const renderDesktopView = () => (
     <>
@@ -91,12 +149,71 @@ export const Home = () => {
       <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-start justify-center">
         <Button
           variant="default"
-          onClick={() => console.log("Play")}
+          onClick={() => {
+            setIsMyGamesOpen(true);
+            if (account?.address) fetchMyGames(account.address);
+          }}
           className="w-[150px]"
         >
           My Games
         </Button>
       </div>
+      <Dialog open={isMyGamesOpen} onOpenChange={setIsMyGamesOpen}>
+        <DialogContent>
+          <DialogHeader>My Games</DialogHeader>
+          {loadingMyGames ? (
+            <div>Loading...</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Game</TableHead>
+                  <TableHead>Score</TableHead>
+                  <TableHead>Combo</TableHead>
+                  <TableHead>Max Combo</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {myGames.map((game) => {
+                  let score = "-",
+                    combo = "-",
+                    maxCombo = "-";
+                  try {
+                    const attrs = JSON.parse(game.metadataAttributes);
+                    score =
+                      attrs.find((a: any) => a.trait === "Score")?.value ?? "-";
+                    combo =
+                      attrs.find((a: any) => a.trait === "Combo")?.value ?? "-";
+                    maxCombo =
+                      attrs.find((a: any) => a.trait === "Max Combo")?.value ??
+                      "-";
+                  } catch {}
+                  return (
+                    <TableRow key={game.tokenId}>
+                      <TableCell>{game.metadataName}</TableCell>
+                      <TableCell>{score}</TableCell>
+                      <TableCell>{combo}</TableCell>
+                      <TableCell>{maxCombo}</TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            navigate(`/play/${parseInt(game.tokenId, 16)}`)
+                          }
+                        >
+                          Play
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 
