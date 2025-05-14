@@ -1,9 +1,9 @@
 import { Game } from "@/dojo/game/models/game";
 import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
-import useAccountCustom from "@/hooks/useAccountCustom";
 import { faStar, faFire } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import MaxComboIcon from "./MaxComboIcon";
+import { useNavigate } from "react-router-dom";
 
 interface GameOverDialogProps {
   isOpen: boolean;
@@ -16,8 +16,14 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
   onClose,
   game,
 }) => {
+  const navigate = useNavigate();
+  const handleClose = () => {
+    onClose();
+    navigate("/");
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent
         aria-describedby={undefined}
         className="sm:max-w-[700px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-4"
