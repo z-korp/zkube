@@ -62,6 +62,8 @@ const getSlot = (): string => {
   switch (VITE_PUBLIC_DEPLOY_TYPE) {
     case "slot":
       return "budokan-matth";
+    case "sepolia":
+      return "zkube-budo-sepolia";
     default:
       return `zkube-${VITE_PUBLIC_DEPLOY_TYPE}`;
   }
