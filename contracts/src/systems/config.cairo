@@ -26,9 +26,12 @@ mod config_system {
     use zkube::types::difficulty::Difficulty;
     use zkube::constants::{DEFAULT_NS};
     use zkube::constants::DEFAULT_SETTINGS::{
-        GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY, GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_METADATA,
+        GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_EXPERT,
+        GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_EXPERT_METADATA,
         GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY,
-        GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA
+        GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA,
+        GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_VERY_HARD,
+        GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_VERY_HARD_METADATA,
     };
 
     #[storage]
@@ -50,15 +53,33 @@ mod config_system {
         created_by: ContractAddress,
     }
 
-    fn dojo_init(ref self: ContractState) {
+    fn dojo_init(ref self: ContractState, creator_address: ContractAddress) {
         let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
         let current_timestamp = get_block_timestamp();
-        world.write_model(GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY());
-        world.write_model(GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_METADATA(current_timestamp));
+        world.write_model(GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_EXPERT());
+        world
+            .write_model(
+                GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_EXPERT_METADATA(
+                    current_timestamp, creator_address
+                )
+            );
 
         world.write_model(GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY());
-        world.write_model(GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA(current_timestamp));
+        world
+            .write_model(
+                GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA(
+                    current_timestamp, creator_address
+                )
+            );
+
+        world.write_model(GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_VERY_HARD());
+        world
+            .write_model(
+                GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_VERY_HARD_METADATA(
+                    current_timestamp, creator_address
+                )
+            );
     }
 
     #[abi(embed_v0)]

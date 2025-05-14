@@ -96,11 +96,12 @@ export function systems({ client }: { client: IWorld }) {
 
   const freeMint = async ({
     account,
+    settingsId,
     ...props
   }: SystemTypes.FreeMint): Promise<{ game_id: number }> => {
     const { events } = await handleTransaction(
       account,
-      () => client.game.free_mint({ account, ...props }),
+      () => client.game.free_mint({ account, ...props, settingsId }),
       "Game has been minted."
     );
 

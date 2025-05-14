@@ -100,7 +100,7 @@ pub impl IncreasingDifficultyUtils of IIncreasingDifficultyUtilsTrait {
             Difficulty::Hard
         } else if moves < 80 {
             Difficulty::VeryHard
-        } else if moves < 120 {
+        } else if moves < 140 {
             Difficulty::Expert
         } else {
             Difficulty::Master

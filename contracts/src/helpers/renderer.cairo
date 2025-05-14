@@ -77,7 +77,7 @@ pub fn create_metadata(
     wave_bonus: u8,
     totem_bonus: u8,
 ) -> ByteArray {
-    let rect = create_rect();
+    //let rect = create_rect();
     //let logo_element = logo();
     let mut _name = Default::default();
 
@@ -91,7 +91,6 @@ pub fn create_metadata(
     let _game_id = format!("{}", token_id);
     let _status = game_state(over);
     let _score = format!("{}", score);
-    let _moves = format!("{}", moves);
     let _combo = format!("{}", combo);
     let _max_combo = format!("{}", max_combo);
     let _hammer_bonus = format!("{}", hammer_bonus);
@@ -100,43 +99,41 @@ pub fn create_metadata(
 
     // Combine all elements
     let mut elements = array![
-        rect, //logo_element,
-        create_text("#" + _game_id.clone(), "100", "50", "24", "middle", "left"),
+        create_text("zKube #" + _game_id.clone(), "30", "40", "24", "middle", "left"),
     ];
 
+    elements.append(create_text(_name.clone(), "30", "80", "20", "middle", "left"));
+
     if score != 0 {
-        elements.append(create_text(_name.clone(), "30", "120", "20", "middle", "left"));
-        elements.append(create_text(game_state(over).clone(), "100", "72", "16", "middle", "left"));
+        elements.append(create_text(game_state(over).clone(), "300", "40", "20", "middle", "left"));
         elements
-            .append(create_text("Score: " + _score.clone(), "30", "150", "18", "middle", "left"));
+            .append(create_text("Score: " + _score.clone(), "30", "125", "18", "middle", "left"));
         elements
-            .append(create_text("Moves: " + _moves.clone(), "30", "175", "18", "middle", "left"));
-        elements
-            .append(create_text("Combo: " + _combo.clone(), "30", "200", "18", "middle", "left"));
+            .append(create_text("Combo: " + _combo.clone(), "30", "150", "18", "middle", "left"));
         elements
             .append(
-                create_text("Max Combo: " + _max_combo.clone(), "30", "225", "18", "middle", "left")
+                create_text("Max Combo: " + _max_combo.clone(), "30", "175", "18", "middle", "left")
             );
         elements
             .append(
                 create_text(
-                    "Hammer Bonus: " + _hammer_bonus.clone(), "30", "250", "18", "middle", "left"
+                    "Hammer Bonus: " + _hammer_bonus.clone(), "30", "225", "18", "middle", "left"
                 )
             );
         elements
             .append(
                 create_text(
-                    "Wave Bonus: " + _wave_bonus.clone(), "30", "275", "18", "middle", "left"
+                    "Wave Bonus: " + _wave_bonus.clone(), "30", "250", "18", "middle", "left"
                 )
             );
         elements
             .append(
                 create_text(
-                    "Totem Bonus: " + _totem_bonus.clone(), "30", "300", "18", "middle", "left"
+                    "Totem Bonus: " + _totem_bonus.clone(), "30", "275", "18", "middle", "left"
                 )
             );
     } else {
-        elements.append(create_text("Game not started", "100", "72", "16", "middle", "left"));
+        elements.append(create_text("Game not started", "280", "40", "20", "middle", "left"));
     }
 
     let mut elements = elements.span();
@@ -155,14 +152,12 @@ pub fn create_metadata(
         .add("value", _status)
         .build();
     let score_str: ByteArray = JsonImpl::new().add("trait", "Score").add("value", _score).build();
-    let moves_str: ByteArray = JsonImpl::new().add("trait", "Moves").add("value", _moves).build();
     let combo_str: ByteArray = JsonImpl::new().add("trait", "Combo").add("value", _combo).build();
     let max_combo_str: ByteArray = JsonImpl::new()
         .add("trait", "Max Combo")
         .add("value", _max_combo)
         .build();
-    let attributes = array![name_str, status_str, score_str, moves_str, combo_str, max_combo_str,]
-        .span();
+    let attributes = array![name_str, status_str, score_str, combo_str, max_combo_str,].span();
 
     let metadata = metadata.add_array("attributes", attributes).build();
 

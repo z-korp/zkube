@@ -30,7 +30,7 @@ export const PlayFreeGame = () => {
       const result = await freeMint({
         account,
         name: username ?? "",
-        settingsId: 0,
+        settingsId: 1,
       });
 
       await create({ account, token_id: result.game_id });

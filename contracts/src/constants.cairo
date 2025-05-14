@@ -1,5 +1,3 @@
-use starknet::{ContractAddress, contract_address_const};
-
 // Game
 pub const DEFAULT_GRID_WIDTH: u8 = 8;
 pub const DEFAULT_GRID_HEIGHT: u8 = 10;
@@ -13,14 +11,6 @@ pub const CARDS_IN_DECK: u32 = 14;
 pub const TWO_POW_1: u128 = 0x2;
 pub const MASK_1: u128 = 0x1;
 pub const MASK_7: u32 = 0x7;
-
-// MULTISIG ADDRESS
-pub fn ZKUBE_MULTISIG() -> ContractAddress {
-    //
-    //
-    //(contract_address_const::<0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b>())
-    contract_address_const::<0x6daf2a924fab727ae5409f0743de4869850f988b6f8545268016ad1107fd2cd>()
-}
 
 // Tournament
 pub fn DEFAULT_NS() -> ByteArray {
@@ -41,23 +31,22 @@ pub fn SETTINGS_MODEL() -> ByteArray {
 
 // SETTINGS
 pub mod DEFAULT_SETTINGS {
-    use zkube::constants::ZKUBE_MULTISIG;
+    use starknet::ContractAddress;
     use zkube::types::difficulty::Difficulty;
     use zkube::models::config::{GameSettings, GameSettingsMetadata};
-    const difficulty: Difficulty = Difficulty::Expert;
 
-    pub fn GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY() -> @GameSettings {
-        @GameSettings { settings_id: 0, difficulty: difficulty.into(), }
+    pub fn GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_EXPERT() -> @GameSettings {
+        @GameSettings { settings_id: 0, difficulty: Difficulty::Expert.into(), }
     }
 
-    pub fn GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_METADATA(
-        current_timestamp: u64
+    pub fn GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_EXPERT_METADATA(
+        current_timestamp: u64, creator_address: ContractAddress
     ) -> @GameSettingsMetadata {
         @GameSettingsMetadata {
             settings_id: 0,
-            name: 'Fixed Difficulty',
-            description: "Difficulty is fixed at the start of the game",
-            created_by: ZKUBE_MULTISIG(),
+            name: 'Fixed Difficulty - Expert',
+            description: "Difficulty is fixed at expert level throughout your gameplay session.",
+            created_by: creator_address,
             created_at: current_timestamp,
         }
     }
@@ -67,13 +56,29 @@ pub mod DEFAULT_SETTINGS {
     }
 
     pub fn GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA(
-        current_timestamp: u64
+        current_timestamp: u64, creator_address: ContractAddress
     ) -> @GameSettingsMetadata {
         @GameSettingsMetadata {
             settings_id: 1,
-            name: 'Increasing Difficulty',
-            description: "Difficulty increases as the game progresses",
-            created_by: ZKUBE_MULTISIG(),
+            name: 'Progressive Difficulty',
+            description: "Starts easy and gradually becomes more challenging as you progress through the game",
+            created_by: creator_address,
+            created_at: current_timestamp,
+        }
+    }
+
+    pub fn GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_VERY_HARD() -> @GameSettings {
+        @GameSettings { settings_id: 2, difficulty: Difficulty::VeryHard.into(), }
+    }
+
+    pub fn GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_VERY_HARD_METADATA(
+        current_timestamp: u64, creator_address: ContractAddress
+    ) -> @GameSettingsMetadata {
+        @GameSettingsMetadata {
+            settings_id: 2,
+            name: 'Fixed Difficulty - Very Hard',
+            description: "Difficulty is fixed at very hard level throughout your gameplay session",
+            created_by: creator_address,
             created_at: current_timestamp,
         }
     }

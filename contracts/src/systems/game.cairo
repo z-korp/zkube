@@ -13,9 +13,7 @@ trait IGameSystem<T> {
 
 #[dojo::contract]
 mod game_system {
-    use zkube::constants::{
-        DEFAULT_NS, ZKUBE_MULTISIG, SCORE_MODEL, SCORE_ATTRIBUTE, SETTINGS_MODEL
-    };
+    use zkube::constants::{DEFAULT_NS, SCORE_MODEL, SCORE_ATTRIBUTE, SETTINGS_MODEL};
     use zkube::models::config::{GameSettings, GameSettingsTrait};
     use zkube::models::game::{Game, GameTrait, GameAssert};
     use zkube::models::game::GameSeed;
@@ -33,7 +31,7 @@ mod game_system {
     use dojo::world::{WorldStorage, WorldStorageTrait};
     use dojo::event::EventStorage;
 
-    use starknet::{get_block_timestamp, get_caller_address};
+    use starknet::{get_block_timestamp, get_caller_address, ContractAddress};
     use starknet::storage::{StoragePointerReadAccess};
 
     use openzeppelin_introspection::src5::SRC5Component;
@@ -85,12 +83,12 @@ mod game_system {
         SRC5Event: SRC5Component::Event,
     }
 
-    fn dojo_init(ref self: ContractState) {
+    fn dojo_init(ref self: ContractState, creator_address: ContractAddress) {
         self.erc721.initializer("zKube", "ZKUBE", "app.zkube.xyz");
         self
             .game
             .initializer(
-                ZKUBE_MULTISIG(),
+                creator_address,
                 'zKube',
                 "zKube is an engaging puzzle game that puts players' strategic thinking to the test. Set within a dynamic grid, the objective is simple: manipulate blocks to form solid lines and earn points.",
                 'zKorp',
@@ -304,6 +302,7 @@ mod game_system {
             ) =
                 self
                 .get_game_data(token_id_u64);
+
             create_metadata(
                 token_id_u64,
                 player_name,
@@ -350,15 +349,9 @@ mod game_system {
             let world = self.world(@DEFAULT_NS());
             let caller = get_caller_address();
 
-            match world.dns(@"achievement_system") {
-                Option::Some((
-                    contract_address, _
-                )) => {
-                    let achievement_system = IAchievementSystemDispatcher { contract_address };
-                    achievement_system.update_progress_when_game_over(game, caller);
-                },
-                Option::None => { assert(false, 'Achievement system not found'); }
-            }
+            let (contract_address, _) = world.dns(@"achievement_system").unwrap();
+            let achievement_system = IAchievementSystemDispatcher { contract_address };
+            achievement_system.update_progress_when_game_over(game, caller);
         }
     }
 }

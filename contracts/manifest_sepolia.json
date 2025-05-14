@@ -1621,7 +1621,7 @@
     },
     {
       "address": "0x60e1c6812e9a3d8dec95e4cc9f83973eed08b0dec11308cd347bdfc05fd50e3",
-      "class_hash": "0x5eaa5302f75bfe4c0e89011b81388e928ce8f06746b27ede16205415c35a2c2",
+      "class_hash": "0x646a77399e9f6bd9c4cf6e6dbce0b54d01dd0d9d6df177b0e58f9133f549c25",
       "abi": [
         {
           "type": "impl",
@@ -1676,7 +1676,12 @@
         {
           "type": "function",
           "name": "dojo_init",
-          "inputs": [],
+          "inputs": [
+            {
+              "name": "creator_address",
+              "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ],
           "outputs": [],
           "state_mutability": "external"
         },
@@ -2014,7 +2019,7 @@
     },
     {
       "address": "0x1e0b80823ba036c8366c2434dad9d5bb35662a7b1d0afbdc69c5f0a7fff3513",
-      "class_hash": "0x499c07cf0c5ce6b48881f3a2dfc30ce00c156918c0c9564e1ea09c0545e91f9",
+      "class_hash": "0xfa8c7e8c3e25a529d43007e8b7d0f4d360e1c4447dcd55d2d275c0b91093ae",
       "abi": [
         {
           "type": "impl",
@@ -2069,7 +2074,12 @@
         {
           "type": "function",
           "name": "dojo_init",
-          "inputs": [],
+          "inputs": [
+            {
+              "name": "creator_address",
+              "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ],
           "outputs": [],
           "state_mutability": "external"
         },
@@ -3162,7 +3172,9 @@
           ]
         }
       ],
-      "init_calldata": [],
+      "init_calldata": [
+        "0x6daf2a924fab727ae5409f0743de4869850f988b6f8545268016ad1107fd2cd"
+      ],
       "tag": "zkube_budo_v1_1_0-game_system",
       "selector": "0x50fd95a2d82f5e2ea65fef198fac3a07684a6e22f3de9437b66f88994abfb89",
       "systems": [

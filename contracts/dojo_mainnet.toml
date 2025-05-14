@@ -17,8 +17,8 @@ default = "zkube_budo_v1_1_0"
 
 [env]
 rpc_url = "https://api.cartridge.gg/x/starknet/sepolia"
-account_address = "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7"
-world_address = "0x01bfa92665fb815c9ec5f37c562a5c9a06fdf23ce022c1d33d4ac07cef5ad80c"
+account_address = "0x063fd4be5b4df3068e3c4ae4062e999609b96a569e69628d6ba3331bf56e826c"
+world_address = "0x5c6d0020a9927edca9ddc984b97305439c0b32a1ec8d3f0eaf6291074cc9799"
 
 [writers]
 "zkube_budo_v1_1_0-Game" = ["zkube_budo_v1_1_0-game_system"]
@@ -34,8 +34,8 @@ world_address = "0x01bfa92665fb815c9ec5f37c562a5c9a06fdf23ce022c1d33d4ac07cef5ad
 
 [init_call_args]
 "zkube_budo_v1_1_0-game_system" = [
-    "0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b",
+    "0x0796fadc2ddba7588d93638d1cd3d32cf402cc551f29f6310d1094633c66bd3e",
 ]
 "zkube_budo_v1_1_0-config_system" = [
-    "0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b",
+    "0x0796fadc2ddba7588d93638d1cd3d32cf402cc551f29f6310d1094633c66bd3e",
 ]
