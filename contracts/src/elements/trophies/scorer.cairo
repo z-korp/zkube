@@ -26,9 +26,9 @@ pub impl Scorer of TrophyTrait {
     #[inline]
     fn points(level: u8) -> u16 {
         match level {
-            0 => 30,
-            1 => 60,
-            2 => 110,
+            0 => 35,
+            1 => 65,
+            2 => 100,
             _ => 0,
         }
     }

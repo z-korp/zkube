@@ -1328,8 +1328,300 @@
   },
   "contracts": [
     {
-      "address": "0x29004053d7f30a88734d7133802bd833925ec2ff8519d397c41c9165a73be0",
-      "class_hash": "0x254e96f3b0b0ce809baa4659b0b8b963df48e035485d458a3ee52e984306292",
+      "address": "0x3fca20a275193dd39adbe0263fd5cb318416ae158e0b45e3c40e839fd404182",
+      "class_hash": "0x3b5fb979371013eeb329a0bd2a32dee53add510a8a7d8ab35f3ec095500fca5",
+      "abi": [
+        {
+          "type": "impl",
+          "name": "achievement_system__ContractImpl",
+          "interface_name": "dojo::contract::interface::IContract"
+        },
+        {
+          "type": "interface",
+          "name": "dojo::contract::interface::IContract",
+          "items": []
+        },
+        {
+          "type": "impl",
+          "name": "achievement_system__DeployedContractImpl",
+          "interface_name": "dojo::meta::interface::IDeployedResource"
+        },
+        {
+          "type": "struct",
+          "name": "core::byte_array::ByteArray",
+          "members": [
+            {
+              "name": "data",
+              "type": "core::array::Array::<core::bytes_31::bytes31>"
+            },
+            {
+              "name": "pending_word",
+              "type": "core::felt252"
+            },
+            {
+              "name": "pending_word_len",
+              "type": "core::integer::u32"
+            }
+          ]
+        },
+        {
+          "type": "interface",
+          "name": "dojo::meta::interface::IDeployedResource",
+          "items": [
+            {
+              "type": "function",
+              "name": "dojo_name",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "core::byte_array::ByteArray"
+                }
+              ],
+              "state_mutability": "view"
+            }
+          ]
+        },
+        {
+          "type": "function",
+          "name": "dojo_init",
+          "inputs": [],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "impl",
+          "name": "AchievementSystemImpl",
+          "interface_name": "zkube::systems::achievement::IAchievementSystem"
+        },
+        {
+          "type": "enum",
+          "name": "core::bool",
+          "variants": [
+            {
+              "name": "False",
+              "type": "()"
+            },
+            {
+              "name": "True",
+              "type": "()"
+            }
+          ]
+        },
+        {
+          "type": "struct",
+          "name": "zkube::models::game::Game",
+          "members": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "blocks",
+              "type": "core::felt252"
+            },
+            {
+              "name": "next_row",
+              "type": "core::integer::u32"
+            },
+            {
+              "name": "score",
+              "type": "core::integer::u16"
+            },
+            {
+              "name": "moves",
+              "type": "core::integer::u16"
+            },
+            {
+              "name": "combo_counter",
+              "type": "core::integer::u16"
+            },
+            {
+              "name": "max_combo",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "hammer_bonus",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "wave_bonus",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "totem_bonus",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "hammer_used",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "wave_used",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "totem_used",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "over",
+              "type": "core::bool"
+            }
+          ]
+        },
+        {
+          "type": "interface",
+          "name": "zkube::systems::achievement::IAchievementSystem",
+          "items": [
+            {
+              "type": "function",
+              "name": "update_progress_when_game_over",
+              "inputs": [
+                {
+                  "name": "game",
+                  "type": "zkube::models::game::Game"
+                },
+                {
+                  "name": "caller",
+                  "type": "core::starknet::contract_address::ContractAddress"
+                }
+              ],
+              "outputs": [],
+              "state_mutability": "external"
+            }
+          ]
+        },
+        {
+          "type": "impl",
+          "name": "WorldProviderImpl",
+          "interface_name": "dojo::contract::components::world_provider::IWorldProvider"
+        },
+        {
+          "type": "struct",
+          "name": "dojo::world::iworld::IWorldDispatcher",
+          "members": [
+            {
+              "name": "contract_address",
+              "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ]
+        },
+        {
+          "type": "interface",
+          "name": "dojo::contract::components::world_provider::IWorldProvider",
+          "items": [
+            {
+              "type": "function",
+              "name": "world_dispatcher",
+              "inputs": [],
+              "outputs": [
+                {
+                  "type": "dojo::world::iworld::IWorldDispatcher"
+                }
+              ],
+              "state_mutability": "view"
+            }
+          ]
+        },
+        {
+          "type": "impl",
+          "name": "UpgradeableImpl",
+          "interface_name": "dojo::contract::components::upgradeable::IUpgradeable"
+        },
+        {
+          "type": "interface",
+          "name": "dojo::contract::components::upgradeable::IUpgradeable",
+          "items": [
+            {
+              "type": "function",
+              "name": "upgrade",
+              "inputs": [
+                {
+                  "name": "new_class_hash",
+                  "type": "core::starknet::class_hash::ClassHash"
+                }
+              ],
+              "outputs": [],
+              "state_mutability": "external"
+            }
+          ]
+        },
+        {
+          "type": "constructor",
+          "name": "constructor",
+          "inputs": []
+        },
+        {
+          "type": "event",
+          "name": "dojo::contract::components::upgradeable::upgradeable_cpt::Upgraded",
+          "kind": "struct",
+          "members": [
+            {
+              "name": "class_hash",
+              "type": "core::starknet::class_hash::ClassHash",
+              "kind": "data"
+            }
+          ]
+        },
+        {
+          "type": "event",
+          "name": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "enum",
+          "variants": [
+            {
+              "name": "Upgraded",
+              "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Upgraded",
+              "kind": "nested"
+            }
+          ]
+        },
+        {
+          "type": "event",
+          "name": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "enum",
+          "variants": []
+        },
+        {
+          "type": "event",
+          "name": "achievement::components::achievable::AchievableComponent::Event",
+          "kind": "enum",
+          "variants": []
+        },
+        {
+          "type": "event",
+          "name": "zkube::systems::achievement::achievement_system::Event",
+          "kind": "enum",
+          "variants": [
+            {
+              "name": "UpgradeableEvent",
+              "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+              "kind": "nested"
+            },
+            {
+              "name": "WorldProviderEvent",
+              "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+              "kind": "nested"
+            },
+            {
+              "name": "AchievableEvent",
+              "type": "achievement::components::achievable::AchievableComponent::Event",
+              "kind": "flat"
+            }
+          ]
+        }
+      ],
+      "init_calldata": [],
+      "tag": "zkube_budo_v1_1_0-achievement_system",
+      "selector": "0x706d93ad81f781d3fdd3d7c6d14bea132a89a74b415507f510761ad701c154a",
+      "systems": [
+        "dojo_init",
+        "update_progress_when_game_over",
+        "upgrade"
+      ]
+    },
+    {
+      "address": "0xd539e79942948ff49edfc8b71efe1014d2eeaecda223960fd383c42e96127b",
+      "class_hash": "0x5eaa5302f75bfe4c0e89011b81388e928ce8f06746b27ede16205415c35a2c2",
       "abi": [
         {
           "type": "impl",
@@ -1690,12 +1982,6 @@
         },
         {
           "type": "event",
-          "name": "achievement::components::achievable::AchievableComponent::Event",
-          "kind": "enum",
-          "variants": []
-        },
-        {
-          "type": "event",
           "name": "zkube::systems::config::config_system::Event",
           "kind": "enum",
           "variants": [
@@ -1713,11 +1999,6 @@
               "name": "GameSettingsCreated",
               "type": "zkube::systems::config::config_system::GameSettingsCreated",
               "kind": "nested"
-            },
-            {
-              "name": "AchievableEvent",
-              "type": "achievement::components::achievable::AchievableComponent::Event",
-              "kind": "flat"
             }
           ]
         }
@@ -1732,8 +2013,8 @@
       ]
     },
     {
-      "address": "0x47b3b592e8d8e986fbe01d75c5e1622551e1867cbc17e8a1f8fab89df5cbb05",
-      "class_hash": "0x2ea5a87890077a1b16f184fe3cbe52ae15b55f5f67877fd93cbd7e25fd1708d",
+      "address": "0x35b3e4accd5aed7926ec3f989c208105a8e71462c806e99923d3bbe0fa82b01",
+      "class_hash": "0x499c07cf0c5ce6b48881f3a2dfc30ce00c156918c0c9564e1ea09c0545e91f9",
       "abi": [
         {
           "type": "impl",
@@ -2975,6 +3256,12 @@
   "events": [
     {
       "members": [],
+      "class_hash": "0x7adee3a9ce1f542f811ef8cfe0aef6cb9928bad599791e4e03048727ab16e02",
+      "tag": "zkube_budo_v1_1_0-StartGame",
+      "selector": "0x1152cd1a01c05b332046ddceb264a930e0145e5f52ca6cfc76434507da928b1"
+    },
+    {
+      "members": [],
       "class_hash": "0x6fede2561a93b4808a6a00e19457a94d616e7ee53fc952f75af58da9bae45f5",
       "tag": "zkube_budo_v1_1_0-TrophyCreation",
       "selector": "0x26cd41a9b5df64898dffbba6aff13298c21a2f8e6ae81aec346e87fa2029bda"
@@ -2984,6 +3271,12 @@
       "class_hash": "0x3d60f68ff66df399a5efc60c6aacda487ced739897ddcea54270b7c147206d",
       "tag": "zkube_budo_v1_1_0-TrophyProgression",
       "selector": "0x66deddfae96c058e621e0b4e76a5b6796ae7eb7b4b5372b5c7757ab6feff232"
+    },
+    {
+      "members": [],
+      "class_hash": "0x698cf3bc1543060f359287d62633747535faeacc0a54c6c0338f98401d203cd",
+      "tag": "zkube_budo_v1_1_0-UseBonus",
+      "selector": "0x17968261c7e47484a13648669fed2d04dfb60c73cc135434bb1914861b0f811"
     }
   ],
   "external_contracts": []
