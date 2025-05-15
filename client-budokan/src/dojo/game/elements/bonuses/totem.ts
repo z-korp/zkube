@@ -22,6 +22,6 @@ export class Totem {
   }
 
   public static getDescription(): string {
-    return "Coming soon";
+    return "";
   }
 }

@@ -2,7 +2,7 @@
   "world": {
     "class_hash": "0x4c60dc46a8ca8bb47675b7b914053cef769afbf0e340523187336b72bd71d1f",
     "address": "0x1bfa92665fb815c9ec5f37c562a5c9a06fdf23ce022c1d33d4ac07cef5ad80c",
-    "seed": "zKube13",
+    "seed": "zkube0",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -2008,7 +2008,9 @@
           ]
         }
       ],
-      "init_calldata": [],
+      "init_calldata": [
+        "0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b"
+      ],
       "tag": "zkube_budo_v1_1_0-config_system",
       "selector": "0x2540eb82e01ce983246f90d4d0f77a4404679a8abd4f3b538be86569ef21506",
       "systems": [
@@ -2019,7 +2021,7 @@
     },
     {
       "address": "0x1e0b80823ba036c8366c2434dad9d5bb35662a7b1d0afbdc69c5f0a7fff3513",
-      "class_hash": "0xfa8c7e8c3e25a529d43007e8b7d0f4d360e1c4447dcd55d2d275c0b91093ae",
+      "class_hash": "0xed262147d9c3eb2e5e74976ba6a22a4b604e508d2eb9897683b0a556319909",
       "abi": [
         {
           "type": "impl",
@@ -3173,7 +3175,7 @@
         }
       ],
       "init_calldata": [
-        "0x6daf2a924fab727ae5409f0743de4869850f988b6f8545268016ad1107fd2cd"
+        "0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b"
       ],
       "tag": "zkube_budo_v1_1_0-game_system",
       "selector": "0x50fd95a2d82f5e2ea65fef198fac3a07684a6e22f3de9437b66f88994abfb89",

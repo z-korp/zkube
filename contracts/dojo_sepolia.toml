@@ -1,15 +1,13 @@
 [world]
 name = "zKube"
 description = "Reversed tetris fully onchain."
-# cover_uri = "file://assets/cover.png"
-# icon_uri = "file://assets/icon.png"
-website = "https://github.com/dojoengine/dojo-starter"
+website = "https://app.zkube.xyz"
 seed = "zkube0"
 
 [world.socials]
-x = "https://x.com/ohayo_dojo"
-discord = "https://discord.gg/FB2wR6uF"
-github = "https://github.com/dojoengine/dojo-starter"
+x = "https://x.com/zKube_game"
+discord = "https://discord.gg/pzzRSDZY"
+github = "https://github.com/z-korp/zkube"
 telegram = "https://t.me/dojoengine"
 
 [namespace]

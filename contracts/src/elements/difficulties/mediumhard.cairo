@@ -12,11 +12,11 @@ pub impl DifficultyImpl of DifficultyTrait {
         match id {
             0 => Block::None,
             1 => Block::Zero,
-            2 => Block::One,
+            2 => Block::Zero,
             3 => Block::One,
             4 => Block::One,
             5 => Block::One,
-            6 => Block::Two,
+            6 => Block::One,
             7 => Block::Two,
             8 => Block::Two,
             9 => Block::Two,
@@ -24,7 +24,7 @@ pub impl DifficultyImpl of DifficultyTrait {
             11 => Block::Two,
             12 => Block::Three,
             13 => Block::Three,
-            14 => Block::Three,
+            14 => Block::Four,
             15 => Block::Four,
             _ => Block::Zero,
         }
