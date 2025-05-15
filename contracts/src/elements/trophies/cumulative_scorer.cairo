@@ -75,7 +75,7 @@ pub impl CumulativeScorer of TrophyTrait {
 
     #[inline]
     fn assess(level: u8, value: u32) -> bool {
-        value >= Self::count(level)
+        value > 0
     }
 
     #[inline]
