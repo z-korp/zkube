@@ -32,9 +32,25 @@ export async function setup({ ...config }: Config) {
     toriiClient,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     contractComponents as any,
-    KeysClause([], [], "VariableLen").build(),
+    KeysClause(
+      [
+        "zkube_budo_v1_1_0-Game",
+        "zkube_budo_v1_1_0-GameMetadata",
+        "zkube_budo_v1_1_0-TokenMetadata",
+        "zkube_budo_v1_1_0-GameSettings",
+        "zkube_budo_v1_1_0-GameSettingsMetadata",
+      ],
+      [undefined],
+      "VariableLen"
+    ).build(),
     [],
-    [],
+    [
+      "zkube_budo_v1_1_0-Game",
+      "zkube_budo_v1_1_0-GameMetadata",
+      "zkube_budo_v1_1_0-TokenMetadata",
+      "zkube_budo_v1_1_0-GameSettings",
+      "zkube_budo_v1_1_0-GameSettingsMetadata",
+    ],
     1000,
     true
   );

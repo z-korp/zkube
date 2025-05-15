@@ -2,11 +2,18 @@ world_address = "0x5c6d0020a9927edca9ddc984b97305439c0b32a1ec8d3f0eaf6291074cc97
 rpc = "https://api.cartridge.gg/x/starknet/mainnet"
 
 [indexing]
-pending = true
+world_block = 1386668
+
+events_chunk_size = 1024 # Size of events page to fetch
+blocks_chunk_size = 10240 # Blocks to process before DB commit
+pending = true # Enable indexing pending blocks
+polling_interval = 500 # Polling interval in milliseconds
+max_concurrent_tasks = 100 # Maximum concurrent indexing tasks
+
 transactions = true
 namespaces = ["zkube_budo_v1_1_0", "budokan_v_1_0_7"]
 contracts = [
-  "erc721:0x1e0b80823ba036c8366c2434dad9d5bb35662a7b1d0afbdc69c5f0a7fff3513"
+  "erc721:0x4fd5df500e6c6615e4423258639f189455672bc841ba58f1c781ac7c5ff4bd8"
 ]
 
 [events]

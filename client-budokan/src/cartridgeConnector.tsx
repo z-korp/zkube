@@ -50,11 +50,11 @@ const getChainId = (): string => {
     case "sepolia":
       return "SN_SEPOLIA";
     case "mainnet":
-      return "SN_MAINNET";
+      return "SN_MAIN";
     case "slot":
       return "WP_BUDOKAN_MATTH";
     default:
-      return "SN_MAINNET";
+      return "SN_MAIN";
   }
 };
 
