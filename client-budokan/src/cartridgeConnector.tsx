@@ -1,6 +1,6 @@
 import { Connector } from "@starknet-react/core";
 import ControllerConnector from "@cartridge/connector/controller";
-import { getContractByName } from "@dojoengine/core";
+//import { getContractByName } from "@dojoengine/core";
 import type { ControllerOptions } from "@cartridge/controller";
 import { manifest } from "./config/manifest";
 import { shortString, type BigNumberish } from "starknet";
@@ -14,7 +14,7 @@ const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
 const preset = "zkube";
 const namespace = VITE_PUBLIC_NAMESPACE;
 
-const VRF_PROVIDER_ADDRESS =
+/*const VRF_PROVIDER_ADDRESS =
   "0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f";
 
 const game_contract_address = getContractByName(
@@ -38,7 +38,7 @@ const policies = {
       ],
     },
   },
-};
+};*/
 
 const stringToFelt = (v: string): BigNumberish =>
   v ? shortString.encodeShortString(v) : "0x0";
@@ -84,7 +84,7 @@ const options: ControllerOptions = {
   defaultChainId: bigintToHex(stringToFelt(getChainId())),
   namespace,
   slot: getSlot(),
-  policies,
+  policies: undefined,
   preset,
 };
 
