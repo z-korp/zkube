@@ -8,7 +8,7 @@ import { trackEvent } from "./services/analytics";
 export default function App() {
   useEffect(() => {
     // Track app initialization
-    trackEvent("App Initialized");
+    trackEvent("App Initialized.");
   }, []);
 
   return (
