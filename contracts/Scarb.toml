@@ -10,8 +10,10 @@ sierra-replace-ids = true
 [scripts]
 slot = "sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate --guest"
 sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build && sozo --profile sepolia migrate --guest --keystore /Users/matthias/.starkli-wallets/sepolia/braavos_dojo_deployer/keystore.json --fee eth"
+mainnet = "sozo --profile mainnet clean && sozo --profile mainnet build && sozo --profile mainnet migrate --guest --keystore /Users/matthias/.starkli-wallets/mainnet/braavos_dojo_deployer/keystore.json --fee eth"
 
 inspect-sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build && sozo --profile sepolia inspect"
+inspect-mainnet = "sozo --profile mainnet clean && sozo --profile mainnet build && sozo --profile mainnet inspect"
 
 [dependencies]
 starknet = "2.10.1"
@@ -20,7 +22,7 @@ openzeppelin_introspection = { git = "https://github.com/OpenZeppelin/cairo-cont
 dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.5.0" }
 alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.3.0" }
 alexandria_encoding = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.3.0" }
-achievement = { git = "https://github.com/rsodre/arcade", branch = "dojo_v1.5.0" }
+achievement = { git = "https://github.com/cartridge-gg/arcade" }
 origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.5.0" }
 tournaments = { git = "https://github.com/Matth26/tournaments" }
 graffiti = { git = "https://github.com/rsodre/graffiti", rev = "url" }
@@ -47,3 +49,4 @@ cairo_test = "2.10.1"
 # Custom profiles
 [profile.slot]
 [profile.sepolia]
+[profile.mainnet]

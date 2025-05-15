@@ -34,7 +34,7 @@ const DesktopHeader = ({
   const navigate = useNavigate();
 
   const handleClick = useCallback(() => {
-    navigate("", { replace: true });
+    navigate("/", { replace: true });
   }, [navigate]);
 
   return (

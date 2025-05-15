@@ -7,10 +7,7 @@ import PalmTree from "../components/PalmTree";
 import { useGame } from "@/hooks/useGame";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { Surrender } from "../actions/Surrender";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
 import { toPng } from "html-to-image";
-import MaxComboIcon from "../components/MaxComboIcon";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useMediaQuery } from "react-responsive";
 import GameOverDialog from "../components/GameOverDialog";
@@ -137,40 +134,7 @@ export const Play = () => {
                       game={game}
                     />
                   )}
-                  {!!game && isGameOn === "isOver" && (
-                    <>
-                      <div className="flex flex-col gap-4 mt-4 md:mt-0">
-                        <div className="p-6 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
-                          <p className="text-4xl text-center mb-2">Game Over</p>
 
-                          <div className="flex gap-4 justify-center items-center">
-                            <div className="grow text-4xl flex gap-2 justify-end">
-                              {game.score}
-                              <FontAwesomeIcon
-                                icon={faStar}
-                                className="text-yellow-500"
-                              />
-                            </div>
-                            <div className="grow text-4xl flex gap-2 justify-end">
-                              {game.combo}
-                              <FontAwesomeIcon
-                                icon={faFire}
-                                className="text-slate-700"
-                              />
-                            </div>
-                            <div className="grow text-4xl flex gap-2 justify-end">
-                              {game.max_combo}
-                              <MaxComboIcon
-                                width={36}
-                                height={36}
-                                className="text-slate-700"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
                   {!!game && isGameOn === "isOn" && (
                     <div className="relative w-full">
                       <div

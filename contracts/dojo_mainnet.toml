@@ -1,22 +1,20 @@
 [world]
 name = "zKube"
 description = "Reversed tetris fully onchain."
-# cover_uri = "file://assets/cover.png"
-# icon_uri = "file://assets/icon.png"
-website = "https://github.com/dojoengine/dojo-starter"
+website = "https://app.zkube.xyz"
 seed = "zkube0"
 
 [world.socials]
-x = "https://x.com/ohayo_dojo"
-discord = "https://discord.gg/FB2wR6uF"
-github = "https://github.com/dojoengine/dojo-starter"
+x = "https://x.com/zKube_game"
+discord = "https://discord.gg/pzzRSDZY"
+github = "https://github.com/z-korp/zkube"
 telegram = "https://t.me/dojoengine"
 
 [namespace]
 default = "zkube_budo_v1_1_0"
 
 [env]
-rpc_url = "https://api.cartridge.gg/x/starknet/sepolia"
+rpc_url = "https://api.cartridge.gg/x/starknet/mainnet"
 account_address = "0x063fd4be5b4df3068e3c4ae4062e999609b96a569e69628d6ba3331bf56e826c"
 world_address = "0x5c6d0020a9927edca9ddc984b97305439c0b32a1ec8d3f0eaf6291074cc9799"
 
@@ -34,8 +32,8 @@ world_address = "0x5c6d0020a9927edca9ddc984b97305439c0b32a1ec8d3f0eaf6291074cc97
 
 [init_call_args]
 "zkube_budo_v1_1_0-game_system" = [
-    "0x0796fadc2ddba7588d93638d1cd3d32cf402cc551f29f6310d1094633c66bd3e",
+    "0x04E4E4F6099F935FFC97af2f594be52a7b8f16C61b3F307707022973961d2B76",
 ]
 "zkube_budo_v1_1_0-config_system" = [
-    "0x0796fadc2ddba7588d93638d1cd3d32cf402cc551f29f6310d1094633c66bd3e",
+    "0x04E4E4F6099F935FFC97af2f594be52a7b8f16C61b3F307707022973961d2B76",
 ]

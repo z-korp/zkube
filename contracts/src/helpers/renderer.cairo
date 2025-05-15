@@ -77,7 +77,7 @@ pub fn create_metadata(
     wave_bonus: u8,
     totem_bonus: u8,
 ) -> ByteArray {
-    //let rect = create_rect();
+    let rect = create_rect();
     //let logo_element = logo();
     let mut _name = Default::default();
 
@@ -99,10 +99,10 @@ pub fn create_metadata(
 
     // Combine all elements
     let mut elements = array![
+        rect,
         create_text("zKube #" + _game_id.clone(), "30", "40", "24", "middle", "left"),
+        create_text(_name.clone(), "30", "80", "20", "middle", "left")
     ];
-
-    elements.append(create_text(_name.clone(), "30", "80", "20", "middle", "left"));
 
     if score != 0 {
         elements.append(create_text(game_state(over).clone(), "300", "40", "20", "middle", "left"));
@@ -133,7 +133,7 @@ pub fn create_metadata(
                 )
             );
     } else {
-        elements.append(create_text("Game not started", "280", "40", "20", "middle", "left"));
+        elements.append(create_text("Game not started", "240", "40", "20", "middle", "left"));
     }
 
     let mut elements = elements.span();

@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BonusType, Bonus } from "@/dojo/game/types/bonus";
+import { Totem } from "@/dojo/game/elements/bonuses/totem";
+import { Wave } from "@/dojo/game/elements/bonuses/wave";
+import { Hammer } from "@/dojo/game/elements/bonuses/hammer";
 
 interface BonusAnimationProps {
   optimisticScore: number;
@@ -44,23 +47,27 @@ const BonusAnimation: React.FC<BonusAnimationProps> = ({
   // Effect to check and set score-based bonuses
   useEffect(() => {
     if (!wonBonus) {
+      const hammerConditions = Hammer.getConditions();
+      const thirdHammerScore = hammerConditions[2].score;
+      const secondHammerScore = hammerConditions[1].score;
+      const firstHammerScore = hammerConditions[0].score;
       if (
-        optimisticScore >= 120 &&
-        prevScoreRef.current < 120 &&
+        optimisticScore >= thirdHammerScore &&
+        prevScoreRef.current < thirdHammerScore &&
         !unlockedBonuses.Hammer
       ) {
         setWonBonus(BonusType.Hammer);
         setUnlockedBonuses((prev) => ({ ...prev, Hammer: true }));
       } else if (
-        optimisticScore >= 80 &&
-        prevScoreRef.current < 80 &&
+        optimisticScore >= secondHammerScore &&
+        prevScoreRef.current < secondHammerScore &&
         !unlockedBonuses.Hammer
       ) {
         setWonBonus(BonusType.Hammer);
         setUnlockedBonuses((prev) => ({ ...prev, Hammer: true }));
       } else if (
-        optimisticScore >= 40 &&
-        prevScoreRef.current < 40 &&
+        optimisticScore >= firstHammerScore &&
+        prevScoreRef.current < firstHammerScore &&
         !unlockedBonuses.Hammer
       ) {
         setWonBonus(BonusType.Hammer);
@@ -74,23 +81,27 @@ const BonusAnimation: React.FC<BonusAnimationProps> = ({
   // Effect to check and set combo-based bonuses
   useEffect(() => {
     if (!wonBonus) {
+      const waveConditions = Wave.getConditions();
+      const thirdWaveCombo = waveConditions[2].combo;
+      const secondWaveCombo = waveConditions[1].combo;
+      const firstWaveCombo = waveConditions[0].combo;
       if (
-        optimisticCombo >= 64 &&
-        prevComboRef.current < 64 &&
+        optimisticCombo >= thirdWaveCombo &&
+        prevComboRef.current < thirdWaveCombo &&
         !unlockedBonuses.Wave
       ) {
         setWonBonus(BonusType.Wave);
         setUnlockedBonuses((prev) => ({ ...prev, Wave: true }));
       } else if (
-        optimisticCombo >= 16 &&
-        prevComboRef.current < 16 &&
+        optimisticCombo >= secondWaveCombo &&
+        prevComboRef.current < secondWaveCombo &&
         !unlockedBonuses.Wave
       ) {
         setWonBonus(BonusType.Wave);
         setUnlockedBonuses((prev) => ({ ...prev, Wave: true }));
       } else if (
-        optimisticCombo >= 8 &&
-        prevComboRef.current < 8 &&
+        optimisticCombo >= firstWaveCombo &&
+        prevComboRef.current < firstWaveCombo &&
         !unlockedBonuses.Wave
       ) {
         setWonBonus(BonusType.Wave);
@@ -104,23 +115,27 @@ const BonusAnimation: React.FC<BonusAnimationProps> = ({
   // Effect to check and set maxCombo-based bonuses
   useEffect(() => {
     if (!wonBonus) {
+      const totemConditions = Totem.getConditions();
+      const thirdTotemMaxCombo = totemConditions[2].max_combo;
+      const secondTotemMaxCombo = totemConditions[1].max_combo;
+      const firstTotemMaxCombo = totemConditions[0].max_combo;
       if (
-        optimisticMaxCombo >= 6 &&
-        prevMaxComboRef.current < 6 &&
+        optimisticMaxCombo >= thirdTotemMaxCombo &&
+        prevMaxComboRef.current < thirdTotemMaxCombo &&
         !unlockedBonuses.Totem
       ) {
         setWonBonus(BonusType.Totem);
         setUnlockedBonuses((prev) => ({ ...prev, Totem: true }));
       } else if (
-        optimisticMaxCombo >= 4 &&
-        prevMaxComboRef.current < 4 &&
+        optimisticMaxCombo >= secondTotemMaxCombo &&
+        prevMaxComboRef.current < secondTotemMaxCombo &&
         !unlockedBonuses.Totem
       ) {
         setWonBonus(BonusType.Totem);
         setUnlockedBonuses((prev) => ({ ...prev, Totem: true }));
       } else if (
-        optimisticMaxCombo >= 2 &&
-        prevMaxComboRef.current < 2 &&
+        optimisticMaxCombo >= firstTotemMaxCombo &&
+        prevMaxComboRef.current < firstTotemMaxCombo &&
         !unlockedBonuses.Totem
       ) {
         setWonBonus(BonusType.Totem);
@@ -165,8 +180,8 @@ const BonusAnimation: React.FC<BonusAnimationProps> = ({
               wonBonus === BonusType.Hammer
                 ? "9%"
                 : wonBonus === BonusType.Wave
-                  ? "23%"
-                  : "37%",
+                ? "23%"
+                : "37%",
             x: "-50%",
             y: "-50%",
             transition: {

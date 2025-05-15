@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Header } from "@/ui/containers/Header";
 import BackGroundBoard from "../components/BackgroundBoard";
 import { AnimatePresence } from "framer-motion";
@@ -57,10 +58,9 @@ export const Home = () => {
 
   const gameGrid: React.RefObject<HTMLDivElement> | null = useRef(null);
 
-  const [isGameOn, setIsGameOn] = useState<"idle" | "isOn" | "isOver">("idle");
+  const [isGameOn] = useState<"idle" | "isOn" | "isOver">("idle");
 
   // State variables for modals
-  const [isTournamentsOpen, setIsTournamentsOpen] = useState(false);
   const [isMyGamesOpen, setIsMyGamesOpen] = useState(false);
   const [myGames, setMyGames] = useState<any[]>([]);
   const [loadingMyGames, setLoadingMyGames] = useState(false);
@@ -126,14 +126,15 @@ export const Home = () => {
             }
           `,
           }),
-        },
+        }
       );
       const data = await response.json();
       const games =
         data.data?.tokenBalances?.edges?.map(
-          (edge: any) => edge.node.tokenMetadata,
+          (edge: any) => edge.node.tokenMetadata
         ) || [];
       setMyGames(games);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       setMyGames([]);
     }
@@ -143,7 +144,7 @@ export const Home = () => {
   // Define render functions
   const renderDesktopView = () => (
     <>
-      <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center">
+      <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center mt-4">
         <PlayFreeGame />
       </div>
       <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-start justify-center">
@@ -153,7 +154,7 @@ export const Home = () => {
             setIsMyGamesOpen(true);
             if (account?.address) fetchMyGames(account.address);
           }}
-          className="w-[150px]"
+          className="w-[300px] text-lg transition-transform duration-300 ease-in-out hover:scale-105"
         >
           My Games
         </Button>
@@ -188,7 +189,9 @@ export const Home = () => {
                     maxCombo =
                       attrs.find((a: any) => a.trait === "Max Combo")?.value ??
                       "-";
-                  } catch {}
+                  } catch (e) {
+                    console.error("Error parsing metadata attributes", e);
+                  }
                   return (
                     <TableRow key={game.tokenId}>
                       <TableCell>{game.metadataName}</TableCell>
@@ -273,7 +276,7 @@ export const Home = () => {
                       </>
                     )}
 
-                    {!!game && isGameOn === "isOver" && !isTournamentsOpen && (
+                    {!!game && isGameOn === "isOver" && (
                       <>
                         <div className="flex flex-col gap-4 mt-4 md:mt-0">
                           <div className="p-6 rounded-lg shadow-lg w-full h-full bg-gray-900 m-2">
