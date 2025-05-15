@@ -65,7 +65,7 @@ const getSlot = (): string => {
     case "sepolia":
       return "zkube-budo-sepolia";
     default:
-      return `budokan-mainnet`;
+      return "zkube-budo-mainnet";
   }
 };
 
