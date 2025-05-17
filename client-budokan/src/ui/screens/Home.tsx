@@ -224,15 +224,73 @@ export const Home = () => {
     <div className="flex flex-col w-full gap-4 px-4 mt-4">
       <PlayFreeGame />
       <Button
-        variant="default"
+        variant="brutal"
         onClick={() => {
           setIsMyGamesOpen(true);
           if (account?.address) fetchMyGames(account.address);
         }}
-        className="w-full text-lg transition-transform duration-300 ease-in-out hover:scale-105"
+        className="w-full bg-primary text-white text-lg py-6 border-4 shadow-lg bg-sky-900 font-sans rounded-none"
       >
         My Games
       </Button>
+      <Dialog open={isMyGamesOpen} onOpenChange={setIsMyGamesOpen}>
+        <DialogContent>
+          <DialogHeader>My Games</DialogHeader>
+          {loadingMyGames ? (
+            <div>Loading...</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Game</TableHead>
+                  <TableHead>Score</TableHead>
+                  <TableHead>Combo</TableHead>
+                  <TableHead>Max Combo</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {myGames.map((game) => {
+                  let score = "-",
+                    combo = "-",
+                    maxCombo = "-";
+                  try {
+                    const attrs = JSON.parse(game.metadataAttributes);
+                    score =
+                      attrs.find((a: any) => a.trait === "Score")?.value ?? "-";
+                    combo =
+                      attrs.find((a: any) => a.trait === "Combo")?.value ?? "-";
+                    maxCombo =
+                      attrs.find((a: any) => a.trait === "Max Combo")?.value ??
+                      "-";
+                  } catch (e) {
+                    console.error("Error parsing metadata attributes", e);
+                  }
+                  return (
+                    <TableRow key={game.tokenId}>
+                      <TableCell>{game.metadataName}</TableCell>
+                      <TableCell>{score}</TableCell>
+                      <TableCell>{combo}</TableCell>
+                      <TableCell>{maxCombo}</TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            navigate(`/play/${parseInt(game.tokenId, 16)}`)
+                          }
+                        >
+                          Play
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 
