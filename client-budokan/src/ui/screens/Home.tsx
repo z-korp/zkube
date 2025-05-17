@@ -231,7 +231,7 @@ export const Home = () => {
           setIsMyGamesOpen(true);
           if (account?.address) fetchMyGames(account.address);
         }}
-        className="w-full bg-primary text-white text-lg py-6 border-4 shadow-lg bg-sky-900 font-sans rounded-none h-[72px]"
+        className="w-[300px] bg-primary text-white text-lg py-6 border-4 shadow-lg bg-sky-900 font-sans rounded-none h-[72px]"
       >
         My Games
       </Button>
