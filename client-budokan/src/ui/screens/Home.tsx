@@ -222,21 +222,17 @@ export const Home = () => {
 
   const renderMobileView = () => (
     <div className="flex flex-col w-full gap-4 px-4 mt-4">
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button
-            className="w-full bg-primary text-white text-lg py-6 border-4 shadow-lg bg-sky-900 font-sans rounded-none"
-            variant="brutal"
-          >
-            Play !
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="w-[95%]  flex flex-col justify-center p-8">
-          <DialogHeader className="flex flex-row gap-3 items-center justify-center w-full space-y-0">
-            <HeaderBalance />
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <PlayFreeGame />
+      <Button
+        variant="default"
+        onClick={() => {
+          setIsMyGamesOpen(true);
+          if (account?.address) fetchMyGames(account.address);
+        }}
+        className="w-full text-lg transition-transform duration-300 ease-in-out hover:scale-105"
+      >
+        My Games
+      </Button>
     </div>
   );
 
