@@ -222,14 +222,16 @@ export const Home = () => {
 
   const renderMobileView = () => (
     <div className="flex flex-col w-full gap-4 px-4 mt-4">
-      <PlayFreeGame />
+      <div className="w-full">
+        <PlayFreeGame />
+      </div>
       <Button
         variant="brutal"
         onClick={() => {
           setIsMyGamesOpen(true);
           if (account?.address) fetchMyGames(account.address);
         }}
-        className="w-full bg-primary text-white text-lg py-6 border-4 shadow-lg bg-sky-900 font-sans rounded-none"
+        className="w-full bg-primary text-white text-lg py-6 border-4 shadow-lg bg-sky-900 font-sans rounded-none h-[72px]"
       >
         My Games
       </Button>
