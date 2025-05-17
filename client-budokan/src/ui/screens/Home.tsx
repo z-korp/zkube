@@ -221,8 +221,8 @@ export const Home = () => {
   );
 
   const renderMobileView = () => (
-    <div className="flex flex-col w-full gap-4 px-4 mt-4">
-      <div className="w-full">
+    <div className="flex flex-col w-full gap-4 px-4 mt-4 items-center">
+      <div className="w-[300px]">
         <PlayFreeGame />
       </div>
       <Button
