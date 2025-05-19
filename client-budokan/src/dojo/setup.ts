@@ -33,26 +33,14 @@ export async function setup({ ...config }: Config) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     contractComponents as any,
     KeysClause(
-      [
-        "zkube_budo_v1_1_0-Game",
-        "zkube_budo_v1_1_0-GameMetadata",
-        "zkube_budo_v1_1_0-TokenMetadata",
-        "zkube_budo_v1_1_0-GameSettings",
-        "zkube_budo_v1_1_0-GameSettingsMetadata",
-      ],
+      ["zkube_budo_v1_1_0-Game", "zkube_budo_v1_1_0-GameMetadata"],
       [undefined],
       "VariableLen"
     ).build(),
     [],
-    [
-      "zkube_budo_v1_1_0-Game",
-      "zkube_budo_v1_1_0-GameMetadata",
-      "zkube_budo_v1_1_0-TokenMetadata",
-      "zkube_budo_v1_1_0-GameSettings",
-      "zkube_budo_v1_1_0-GameSettingsMetadata",
-    ],
-    1000,
-    true
+    ["zkube_budo_v1_1_0-Game", "zkube_budo_v1_1_0-GameMetadata"],
+    10000,
+    false
   );
 
   // Set up the world client for interacting with smart contracts

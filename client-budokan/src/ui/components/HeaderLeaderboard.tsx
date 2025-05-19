@@ -90,16 +90,16 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
               }
             `,
             }),
-          },
+          }
         );
 
         const data = await response.json();
         console.log("GraphQL raw response:", data);
         if (data.data?.zkubeBudoV110GameModels?.edges) {
           const nodes = data.data.zkubeBudoV110GameModels.edges.map(
-            (edge: { node: GameData }) => edge.node,
+            (edge: { node: GameData }) => edge.node
           );
-          console.log("Extracted nodes:", nodes);
+          /*console.log("Extracted nodes:", nodes);
           nodes.forEach((node: GameData, idx: number) => {
             if (node.entity && node.entity.models && node.entity.models[0]) {
               console.log(
@@ -109,7 +109,7 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
             } else {
               console.log(`Node[${idx}] has no player_name`, node);
             }
-          });
+          });*/
           setGames(nodes);
         }
       } catch (error) {
@@ -149,15 +149,17 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
                   key={game.game_id}
                   className="hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
-                  <TableCell className="text-center font-semibold">{`#${startIdx + index + 1}`}</TableCell>
+                  <TableCell className="text-center font-semibold">{`#${
+                    startIdx + index + 1
+                  }`}</TableCell>
                   <TableCell className="text-left">
                     {(() => {
                       const playerModel = game.entity.models.find(
-                        (m: ModelType) => m && m.player_name,
+                        (m: ModelType) => m && m.player_name
                       );
                       if (playerModel && playerModel.player_name) {
                         return shortString.decodeShortString(
-                          playerModel.player_name.toString(),
+                          playerModel.player_name.toString()
                         );
                       }
                       return "-";
