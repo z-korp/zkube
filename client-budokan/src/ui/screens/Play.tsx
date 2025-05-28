@@ -16,10 +16,24 @@ import { TweetPreview } from "../components/TweetPreview";
 import { useGrid } from "@/hooks/useGrid";
 import { useParams, Navigate } from "react-router-dom";
 import { Header } from "@/ui/containers/Header";
+import { useDojo } from "@/dojo/useDojo";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/ui/elements/dialog";
+import Connect from "../components/Connect";
 
 export const Play = () => {
   useViewport();
 
+  const {
+    setup: {
+      systemCalls: { create },
+    },
+  } = useDojo();
   const { gameId: gameIdParam } = useParams<{ gameId: string }>();
   const { account } = useAccountCustom();
 
@@ -42,9 +56,41 @@ export const Play = () => {
   const [score, setScore] = useState<number | undefined>(0);
   const [imgData, setImgData] = useState<string>("");
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
+  const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
+  const gameCreationAttemptedRef = useRef<boolean>(false);
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
+
+  useEffect(() => {
+    if (!game && account && !gameCreationAttemptedRef.current) {
+      gameCreationAttemptedRef.current = true;
+      const createGame = async () => {
+        try {
+          await create({ account, token_id: gameId });
+        } catch (error) {
+          console.error("Failed to create game:", error);
+          // Reset the flag on error so user can retry
+          gameCreationAttemptedRef.current = false;
+        }
+      };
+      createGame();
+    }
+  }, [game, account, create, gameId]);
+
+  // Reset the creation flag when gameId changes
+  useEffect(() => {
+    gameCreationAttemptedRef.current = false;
+  }, [gameId]);
+
+  // Show connect dialog when there's no account
+  useEffect(() => {
+    if (!account) {
+      setIsConnectDialogOpen(true);
+    } else {
+      setIsConnectDialogOpen(false);
+    }
+  }, [account]);
 
   const composeTweet = useCallback(() => {
     setScore(game?.score);
@@ -109,6 +155,22 @@ export const Play = () => {
   return (
     <div className="h-screen-viewport flex flex-col w-full" id="portal-root">
       <Header onStartTutorial={() => {}} showTutorial={false} />
+
+      {/* Connect Wallet Dialog */}
+      <Dialog open={isConnectDialogOpen} onOpenChange={setIsConnectDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Connect for playing your game</DialogTitle>
+            <DialogDescription>
+              You need to connect your wallet to start playing the game.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center pt-4">
+            <Connect />
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Content Area */}
       <div className="flex flex-col flex-1 relative">
         {/* Main Content */}
