@@ -43,10 +43,13 @@ export const Play = () => {
 
   const { game } = useGame({
     gameId: gameId,
-    shouldLog: true,
+    shouldLog: false,
   });
   const grid = useGrid({ gameId: game?.id ?? 0, shouldLog: true });
   const [animationDone, setAnimationDone] = useState(false);
+
+  // Add loading state with 1000ms delay
+  const [isGameLoading, setIsGameLoading] = useState(true);
 
   const { theme, themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
@@ -62,8 +65,35 @@ export const Play = () => {
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
+  // Handle game loading with 5000ms delay
   useEffect(() => {
-    if (!game && account && !gameCreationAttemptedRef.current) {
+    setIsGameLoading(true);
+    const timer = setTimeout(() => {
+      setIsGameLoading(false);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [gameId]);
+
+  // Stop loading early if game is found
+  useEffect(() => {
+    if (game) {
+      setIsGameLoading(false);
+    }
+  }, [game]);
+
+  useEffect(() => {
+    // Only attempt to create a game if:
+    // 1. We're not loading (5000ms has passed or game was found)
+    // 2. No game exists
+    // 3. Account is connected
+    // 4. We haven't already attempted creation
+    if (
+      !isGameLoading &&
+      (game === null || game === undefined) &&
+      account &&
+      !gameCreationAttemptedRef.current
+    ) {
       gameCreationAttemptedRef.current = true;
       const createGame = async () => {
         try {
@@ -76,7 +106,7 @@ export const Play = () => {
       };
       createGame();
     }
-  }, [game, account, create, gameId]);
+  }, [isGameLoading, game, account, create, gameId]);
 
   // Reset the creation flag when gameId changes
   useEffect(() => {

@@ -2021,7 +2021,7 @@
     },
     {
       "address": "0x4fd5df500e6c6615e4423258639f189455672bc841ba58f1c781ac7c5ff4bd8",
-      "class_hash": "0xed262147d9c3eb2e5e74976ba6a22a4b604e508d2eb9897683b0a556319909",
+      "class_hash": "0x5ab171de8312f15966dc69e61515272012cc509aa029eb0637fca354b19b342",
       "abi": [
         {
           "type": "impl",
