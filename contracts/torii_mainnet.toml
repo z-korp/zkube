@@ -5,10 +5,9 @@ rpc = "https://api.cartridge.gg/x/starknet/mainnet"
 world_block = 1386668
 
 events_chunk_size = 1024 # Size of events page to fetch
-blocks_chunk_size = 10240 # Blocks to process before DB commit
+blocks_chunk_size = 2000 # Blocks to process before DB commit
 pending = true # Enable indexing pending blocks
 polling_interval = 500 # Polling interval in milliseconds
-max_concurrent_tasks = 100 # Maximum concurrent indexing tasks
 
 transactions = true
 namespaces = ["zkube_budo_v1_1_0", "budokan_v_1_0_7"]
