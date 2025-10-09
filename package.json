@@ -1,5 +1,8 @@
 {
-	"devDependencies": {
-		"vite-tsconfig-paths": "^5.1.4"
-	}
+  "scripts": {
+    "offchain": "pnpm --dir client offchain"
+  },
+  "devDependencies": {
+    "vite-tsconfig-paths": "^5.1.4"
+  }
 }

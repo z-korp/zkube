@@ -126,8 +126,6 @@ const options: ControllerOptions = {
   colorMode,
 };
 
-const cartridgeConnector = new ControllerConnector(
-  options,
-) as never as Connector;
-
-export default cartridgeConnector;
+export function buildConnector(): Connector {
+  return new ControllerConnector(options) as never as Connector;
+}

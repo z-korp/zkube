@@ -1,23 +1,21 @@
-import local from "../../../contracts/manifest_dev.json";
-import slot from "../../../contracts/manifest_slot.json";
-import slotdev from "../../../contracts/manifest_slotdev.json";
-import sepolia from "../../../contracts/manifest_sepolia.json";
-import mainnet from "../../../contracts/manifest_mainnet.json";
-import sepoliadev1 from "../../../contracts/manifest_sepoliadev1.json";
-import sepoliadev2 from "../../../contracts/manifest_sepoliadev2.json";
+const deployType = import.meta.env.VITE_PUBLIC_DEPLOY_TYPE as
+  | "sepolia"
+  | "mainnet"
+  | "slot"
+  | "slotdev"
+  | "sepoliadev1"
+  | "sepoliadev2"
+  | undefined;
 
-const deployType = import.meta.env.VITE_PUBLIC_DEPLOY_TYPE;
+const modules = import.meta.glob("../../../contracts/manifest_*.json", {
+  eager: true,
+});
 
-const manifests = {
-  sepolia,
-  mainnet,
-  sepoliadev1,
-  sepoliadev2,
-  slot,
-  slotdev,
-};
+const pick = (name: string) => modules[`../../../contracts/manifest_${name}.json`];
 
-// Fallback to `local` if deployType is not a key in `manifests`
-export const manifest = deployType in manifests ? manifests[deployType] : local;
+const selectedModule =
+  (deployType && pick(deployType)) || pick("slot") || pick("sepolia") || pick("mainnet");
+
+export const manifest = (selectedModule as any)?.default ?? {};
 
 export type Manifest = typeof manifest;

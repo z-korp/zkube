@@ -18,10 +18,14 @@ import GameScores from "./GameScores";
 import { Bonus, BonusType } from "@/dojo/game/types/bonus";
 import BonusAnimation from "./BonusAnimation";
 import TournamentTimer from "./TournamentTimer";
-import { ModeType } from "@/dojo/game/types/mode";
+import { Mode, ModeType } from "@/dojo/game/types/mode";
 import useTournament from "@/hooks/useTournament";
-import { Game } from "@/dojo/game/models/game";
+import { Game as GameModel } from "@/dojo/game/models/game";
 import useRank from "@/hooks/useRank";
+import { setComponent } from "@dojoengine/recs";
+import { getEntityIdFromKeys } from "@dojoengine/utils";
+import { Packer } from "@/dojo/game/helpers/packer";
+import { packGridToBigint, packRowToU32 } from "@/offchain/grid";
 
 import "../../grid.css";
 
@@ -35,7 +39,7 @@ interface GameBoardProps {
   waveCount: number;
   totemCount: number;
   account: Account | null;
-  game: Game;
+  game: GameModel;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -53,6 +57,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const {
     setup: {
       systemCalls: { applyBonus },
+      clientModels: { models },
     },
   } = useDojo();
 
@@ -73,6 +78,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [bonusDescription, setBonusDescription] = useState("");
 
   const [bonus, setBonus] = useState<BonusType>(BonusType.None);
+  const offchain = String(import.meta.env.VITE_PUBLIC_OFFCHAIN).toLowerCase() === "true";
+  const gameRef = useRef(game);
+  useEffect(() => {
+    gameRef.current = game;
+  }, [game]);
 
   const handleBonusWaveClick = () => {
     if (waveCount === 0) return;
@@ -166,6 +176,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const selectBlock = useCallback(
     async (block: Block) => {
+      if (offchain) {
+        // Handled locally by Grid state machine
+        return;
+      }
       if (bonus === BonusType.Wave) {
         handleBonusWaveTx(block.y);
       } else if (bonus === BonusType.Totem) {
@@ -176,7 +190,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         console.log("none", block);
       }
     },
-    [bonus, handleBonusHammerTx, handleBonusTikiTx, handleBonusWaveTx],
+    [bonus, handleBonusHammerTx, handleBonusTikiTx, handleBonusWaveTx, offchain],
   );
 
   useEffect(() => {
@@ -201,6 +215,39 @@ const GameBoard: React.FC<GameBoardProps> = ({
     tournamentId: game.tournament_id,
     gameId: game.id,
   });
+
+  const handleFinalizeStateOffchain = useCallback(
+    (grid: number[][], newNextRow: number[]) => {
+      // Sync RECS Game component so hooks pick up new state
+      const g = gameRef.current;
+      if (!g) return;
+      const gameEntity = getEntityIdFromKeys([BigInt(g.id)]);
+      const packedBlocks = packGridToBigint(grid);
+      const packedNextRow = packRowToU32(newNextRow);
+      setComponent(models.Game, gameEntity as any, {
+        id: Number(g.id),
+        seed: BigInt(0),
+        blocks: packedBlocks,
+        player_id: parseInt(g.player_id, 16) || 0,
+        over: false,
+        mode: new Mode(g.mode.value).into(),
+        score: optimisticScore,
+        moves: g.moves + 1,
+        next_row: packedNextRow,
+        start_time: Math.floor(Date.now() / 1000),
+        hammer_bonus: g.hammer,
+        wave_bonus: g.wave,
+        totem_bonus: g.totem,
+        hammer_used: g.hammer_used,
+        wave_used: g.wave_used,
+        totem_used: g.totem_used,
+        combo_counter: optimisticCombo,
+        max_combo: Math.max(optimisticMaxCombo, g.max_combo),
+        tournament_id: g.tournament_id ?? 0,
+      } as any);
+    },
+    [optimisticCombo, optimisticMaxCombo, optimisticScore, models],
+  );
 
   if (memoizedInitialData.length === 0) return null; // otherwise sometimes
   // the grid is not displayed in Grid because the data is not ready
@@ -259,6 +306,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             setOptimisticMaxCombo={setOptimisticMaxCombo}
             isTxProcessing={isTxProcessing}
             setIsTxProcessing={setIsTxProcessing}
+            onFinalizeState={offchain ? handleFinalizeStateOffchain : undefined}
           />
         </div>
 

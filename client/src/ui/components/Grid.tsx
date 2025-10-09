@@ -25,6 +25,7 @@ import { useMusicPlayer } from "@/contexts/hooks";
 import useGridAnimations from "@/hooks/useGridAnimations";
 import { useMoveStore } from "@/stores/moveTxStore";
 import { calculateFallDistance } from "@/utils/gridPhysics";
+import { blocksToWidthsGrid, generateNextRow } from "@/offchain/grid";
 import useTransitionBlocks from "@/hooks/useTransitionBlocks";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
@@ -47,6 +48,7 @@ interface GridProps {
   setOptimisticScore: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
+  onFinalizeState?: (grid: number[][], newNextRow: number[]) => void;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -67,6 +69,7 @@ const Grid: React.FC<GridProps> = ({
   setOptimisticMaxCombo,
   isTxProcessing,
   setIsTxProcessing,
+  onFinalizeState,
 }) => {
   const {
     setup: {
@@ -120,6 +123,7 @@ const Grid: React.FC<GridProps> = ({
   const borderSize = 2;
   const gravitySpeed = 100;
   const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
+  const offchain = String(import.meta.env.VITE_PUBLIC_OFFCHAIN).toLowerCase() === "true";
 
   // =================== Grid set up ===================
   useEffect(() => {
@@ -329,24 +333,30 @@ const Grid: React.FC<GridProps> = ({
       }
 
       if (startColIndex === finalColIndex) return;
-      if (!account) return;
+      if (!account && !offchain) return;
 
       isProcessingRef.current = true;
       setIsTxProcessing(true);
       playSwipe();
       try {
-        console.log(
-          "Move TX (row, start col, end col)",
-          gridHeight - 1 - rowIndex,
-          startColIndex,
-          finalColIndex,
-        );
-        await move({
-          account: account as Account,
-          row_index: gridHeight - 1 - rowIndex,
-          start_index: Math.trunc(startColIndex),
-          final_index: Math.trunc(finalColIndex),
-        });
+        if (!offchain) {
+          console.log(
+            "Move TX (row, start col, end col)",
+            gridHeight - 1 - rowIndex,
+            startColIndex,
+            finalColIndex,
+          );
+          await move({
+            account: account as Account,
+            row_index: gridHeight - 1 - rowIndex,
+            start_index: Math.trunc(startColIndex),
+            final_index: Math.trunc(finalColIndex),
+          });
+        } else {
+          // Offchain: instantly mark move complete
+          const setMoveComplete = useMoveStore.getState().setMoveComplete;
+          setMoveComplete(true);
+        }
       } catch (error) {
         console.error("Erreur lors de l'envoi de la transaction", error);
         isProcessingRef.current = false; // Reset the ref
@@ -355,7 +365,7 @@ const Grid: React.FC<GridProps> = ({
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [account, isMoving, gridHeight, move],
+    [account, isMoving, gridHeight, move, offchain],
   );
 
   // Send the move transaction when the currentMove state is updated
@@ -555,6 +565,12 @@ const Grid: React.FC<GridProps> = ({
 
           // All animations and computing are done
           // we can apply data that we received from smart contract
+          if (offchain && onFinalizeState) {
+            const localBlocks = blocks as Block[];
+            const newGrid = blocksToWidthsGrid(localBlocks, gridWidth, gridHeight);
+            const newNextRow = generateNextRow(gridWidth);
+            onFinalizeState(newGrid, newNextRow);
+          }
           setApplyData(true);
 
           // Reset states

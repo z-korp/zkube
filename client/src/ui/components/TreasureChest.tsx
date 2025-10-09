@@ -31,26 +31,25 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
   // const [selectedChest, setSelectedChest] = useState<Chest | null>(null);
   const isMdOrLarger = useMediaQuery({ minWidth: 768 });
 
+  const hasChests = chests.length > 0;
   // Find the index of the first incomplete chest
-  const initialChestIndex = chests.findIndex(
-    (chest) => chest.points < chest.point_target,
-  );
+  const initialChestIndex = hasChests
+    ? chests.findIndex((chest) => chest.points < chest.point_target)
+    : -1;
   const [currentChestIndex, setCurrentChestIndex] = useState(
     initialChestIndex !== -1 ? initialChestIndex : 0,
   );
 
-  const currentChest = chests[currentChestIndex];
+  const currentChest = hasChests ? chests[currentChestIndex] : undefined;
 
   const {
     userContribution,
     collectiveProgress,
     userParticipationPercentage,
     userPrizeShare,
-  } = useChestContribution(
-    currentChest,
-    participations,
-    account?.address || "",
-  );
+  } = currentChest
+    ? useChestContribution(currentChest, participations, account?.address || "")
+    : { userContribution: 0, collectiveProgress: 0, userParticipationPercentage: 0, userPrizeShare: 0n };
 
   const handlePrevious = () => {
     setCurrentChestIndex((prev) => Math.max(0, prev - 1));
@@ -86,22 +85,32 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
             >
               <ChevronRight className="w-6 h-6" />
             </button>
-            <AnimatedChest
-              imageSrc={currentChest.getIcon()}
-              isGrayscale={currentChest.points === 0}
-            />
+            {hasChests ? (
+              <AnimatedChest
+                imageSrc={currentChest!.getIcon()}
+                isGrayscale={currentChest!.points === 0}
+              />
+            ) : (
+              <div className="h-32 flex items-center justify-center text-sm opacity-80">
+                No chest data (offchain)
+              </div>
+            )}
             <div className="relative flex items-center justify-center gap-2 mt-4 w-full">
               <div className="text-lg font-semibold text-center flex items-center gap-4">
                 <span className="text-2xl">Total Prize:</span>
-                {
-                  formatPrize(currentChest.prize, VITE_PUBLIC_GAME_TOKEN_SYMBOL)
-                    .withImage
-                }
+                {hasChests
+                  ? formatPrize(
+                      currentChest!.prize,
+                      VITE_PUBLIC_GAME_TOKEN_SYMBOL,
+                    ).withImage
+                  : `${0} ${VITE_PUBLIC_GAME_TOKEN_SYMBOL ?? ''}`}
               </div>
               <div
                 className={`absolute transition-transform duration-300 hover:-translate-y-1 ${isMdOrLarger ? "right-20" : "right-0"}`}
               >
-                <DialogPrizePoolContributors chest={currentChest} />
+                {hasChests && currentChest && (
+                  <DialogPrizePoolContributors chest={currentChest} />
+                )}
               </div>
             </div>
           </div>
@@ -112,13 +121,12 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
               <h3 className="text-lg font-semibold mb-2">
                 Collective Progress
               </h3>
-              <Progress
-                value={collectiveProgress}
-                className="w-full h-6 mt-6"
-              />
+              <Progress value={collectiveProgress} className="w-full h-6 mt-6" />
               <div className="absolute inset-0 flex justify-center items-center">
                 <span className="text-sm font-bold text-white">
-                  {`${currentChest.points.toLocaleString()} / ${currentChest.point_target.toLocaleString()} points (${collectiveProgress.toFixed(1)}%)`}
+                  {hasChests && currentChest
+                    ? `${currentChest.points.toLocaleString()} / ${currentChest.point_target.toLocaleString()} points (${collectiveProgress.toFixed(1)}%)`
+                    : `0 / 0 points (0%)`}
                 </span>
               </div>
             </div>
@@ -135,20 +143,19 @@ const CollectiveTreasureChest: React.FC<CollectiveTreasureChestProps> = ({
               </p>
               <div className="flex gap-2 mx-auto items-center">
                 <p>Potential reward:</p>
-                {
-                  formatPrize(userPrizeShare, VITE_PUBLIC_GAME_TOKEN_SYMBOL)
-                    .withImage
-                }
+                {formatPrize(userPrizeShare, VITE_PUBLIC_GAME_TOKEN_SYMBOL).withImage}
               </div>
             </div>
           </div>
 
           {/* Bottom Section */}
-          <ChestTimeline
-            chests={chests}
-            currentChestIndex={currentChestIndex}
-            setCurrentChestIndex={setCurrentChestIndex}
-          />
+          {hasChests && (
+            <ChestTimeline
+              chests={chests}
+              currentChestIndex={currentChestIndex}
+              setCurrentChestIndex={setCurrentChestIndex}
+            />
+          )}
 
           {/* Leaderboard Toggle */}
           {/*<button

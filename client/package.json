@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --mode dev",
+    "offchain": "vite --mode offchain",
     "slot": "vite --mode slot",
     "slottest": "vite --mode slottest",
     "slotdev": "vite --mode slotdev",

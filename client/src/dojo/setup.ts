@@ -13,13 +13,16 @@ export type SetupResult = Awaited<ReturnType<typeof setup>>;
 const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
 
 export async function setup({ ...config }: Config) {
+  const offchain = String(import.meta.env.VITE_PUBLIC_OFFCHAIN).toLowerCase() === "true";
   // Initialize Torii client for interacting with the Dojo network
-  const toriiClient = await torii.createClient({
-    rpcUrl: config.rpcUrl,
-    toriiUrl: config.toriiUrl,
-    relayUrl: "",
-    worldAddress: config.manifest.world.address || "",
-  });
+  const toriiClient = offchain
+    ? (undefined as any)
+    : await torii.createClient({
+        rpcUrl: config.rpcUrl,
+        toriiUrl: config.toriiUrl,
+        relayUrl: "",
+        worldAddress: config.manifest.world.address || "",
+      });
 
   // Define contract components based on the world configuration
   const contractComponents = defineContractComponents(world);
@@ -49,14 +52,16 @@ export async function setup({ ...config }: Config) {
     ],
   };
 
-  const sync = await getSyncEntities(
-    toriiClient,
-    contractComponents as any,
-    { Keys: allExceptMintClause },
-    [],
-    30_000,
-    false,
-  );
+  const sync = offchain
+    ? undefined
+    : await getSyncEntities(
+        toriiClient,
+        contractComponents as any,
+        { Keys: allExceptMintClause },
+        [],
+        30_000,
+        false,
+      );
 
   // Set up the world client for interacting with smart contracts
   const client = await setupWorld(dojoProvider, config);

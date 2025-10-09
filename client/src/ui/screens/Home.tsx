@@ -44,7 +44,7 @@ import { getSyncEntities } from "@dojoengine/state";
 import * as torii from "@dojoengine/torii-client";
 import { usePlayerId } from "@/hooks/usePlayerId";
 
-const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
+const { VITE_PUBLIC_NAMESPACE, VITE_PUBLIC_OFFCHAIN } = import.meta.env;
 
 export const Home = () => {
   useViewport();
@@ -74,7 +74,10 @@ export const Home = () => {
   const [score, setScore] = useState<number | undefined>(0);
   const [imgData, setImgData] = useState<string>("");
 
+  const offchain = String(VITE_PUBLIC_OFFCHAIN).toLowerCase() === "true";
+
   useEffect(() => {
+    if (offchain) return;
     const clause: torii.MemberClause = {
       model: `${VITE_PUBLIC_NAMESPACE}-Mint`,
       member: "id",
@@ -102,6 +105,7 @@ export const Home = () => {
 
   // fetch here because Participation has double keys
   useEffect(() => {
+    if (offchain) return;
     const clause: torii.KeysClause = {
       keys: [undefined, undefined],
       pattern_matching: "FixedLen",

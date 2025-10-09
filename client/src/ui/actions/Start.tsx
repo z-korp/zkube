@@ -15,6 +15,11 @@ import { useMediaQuery } from "react-responsive";
 import { erc721ABI } from "@/utils/erc721";
 import { useNftMint } from "@/hooks/useNftMint";
 import { showToast } from "@/utils/toast";
+import { setComponent } from "@dojoengine/recs";
+import { useGeneralStore } from "@/stores/generalStore";
+import { getEntityIdFromKeys } from "@dojoengine/utils";
+import { packGridToBigint, packRowToU32, generateNextRow } from "@/offchain/grid";
+import { DEFAULT_GRID_HEIGHT, DEFAULT_GRID_WIDTH } from "@/dojo/game/constants";
 
 const {
   VITE_PUBLIC_GAME_CREDITS_TOKEN_ADDRESS,
@@ -30,6 +35,7 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
   const {
     setup: {
       systemCalls: { start },
+      clientModels: { models },
     },
   } = useDojo();
 
@@ -55,6 +61,8 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
 
   const { mint } = useNftMint();
   const [isWaitingTx, setIsWaitingTx] = useState(false);
+  const offchain = String(import.meta.env.VITE_PUBLIC_OFFCHAIN).toLowerCase() === "true";
+  const { setPlayerId, setPlayerName } = useGeneralStore();
 
   const handleMint = useCallback(async () => {
     if (account) {
@@ -96,23 +104,24 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
   }, [account, mint]);
 
   const disabled = useMemo(() => {
+    if (offchain) return !!game && !game.isOver();
     return !account || !player || (!!game && !game.isOver());
-  }, [account, player, game]);
+  }, [account, player, game, offchain]);
 
   const handleClick = useCallback(async () => {
-    if (settings === null) {
+    if (!offchain && settings === null) {
       console.error("Settings not loaded");
       return;
     }
-    if (erc20Contract === undefined) {
+    if (!offchain && erc20Contract === undefined) {
       console.error("ERC20 contract not loaded");
       return;
     }
-    if (erc721Contract === undefined) {
+    if (!offchain && erc721Contract === undefined) {
       console.error("ERC721 contract not loaded");
       return;
     }
-    if (!account?.address) {
+    if (!offchain && !account?.address) {
       console.error("Account not loaded");
       return;
     }
@@ -125,7 +134,7 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
 
     try {
       let token_id = 0n;
-      if (mode !== ModeType.Free) {
+      if (!offchain && mode !== ModeType.Free) {
         // Check if the player has an NFT
         const ret_erc721_balance = await erc721Contract.call("balance_of", [
           account?.address,
@@ -172,29 +181,93 @@ export const Start: React.FC<StartProps> = ({ mode, handleGameMode }) => {
         type: "success",
       });
 
-      const {
-        seed,
-        proof_gamma_x,
-        proof_gamma_y,
-        proof_c,
-        proof_s,
-        proof_verify_hint,
-        beta,
-      } = await fetchVrfData();
+      if (offchain) {
+        // Create or ensure a local player id
+        const localPlayerId = player?.id
+          ? parseInt(player.id, 16)
+          : 1;
+        if (!player) {
+          // minimal player
+          const playerEntity = getEntityIdFromKeys([BigInt(localPlayerId)]);
+          setComponent(models.Player, playerEntity as any, {
+            id: localPlayerId,
+            game_id: 0,
+            points: 0,
+            last_active_day: 0,
+            account_creation_day: Math.floor(Date.now() / 1000 / 86400),
+            daily_streak: 0,
+          } as any);
+          setPlayerId(localPlayerId);
+          setPlayerName("offchain");
+        }
 
-      // Start game
-      await start({
-        account: account as Account,
-        token_id,
-        mode: new Mode(mode).into(),
-        seed,
-        x: proof_gamma_x,
-        y: proof_gamma_y,
-        c: proof_c,
-        s: proof_s,
-        sqrt_ratio_hint: proof_verify_hint,
-        beta: beta,
-      });
+        // build initial grid and next row
+        const grid = Array.from({ length: DEFAULT_GRID_HEIGHT }, () =>
+          Array(DEFAULT_GRID_WIDTH).fill(0),
+        );
+        // optionally seed bottom two rows
+        grid[DEFAULT_GRID_HEIGHT - 1] = generateNextRow(DEFAULT_GRID_WIDTH);
+        grid[DEFAULT_GRID_HEIGHT - 2] = generateNextRow(DEFAULT_GRID_WIDTH);
+        const nextRow = generateNextRow(DEFAULT_GRID_WIDTH);
+
+        const packedBlocks = packGridToBigint(grid);
+        const packedNext = packRowToU32(nextRow);
+        const newGameId = Math.floor(Date.now() % 2 ** 31);
+        const gameEntity = getEntityIdFromKeys([BigInt(newGameId)]);
+        setComponent(models.Game, gameEntity as any, {
+          id: newGameId,
+          seed: BigInt(0),
+          blocks: packedBlocks,
+          player_id: localPlayerId,
+          over: false,
+          mode: new Mode(mode).into(),
+          score: 0,
+          moves: 0,
+          next_row: packedNext,
+          start_time: Math.floor(Date.now() / 1000),
+          hammer_bonus: 0,
+          wave_bonus: 0,
+          totem_bonus: 0,
+          hammer_used: 0,
+          wave_used: 0,
+          totem_used: 0,
+          combo_counter: 0,
+          max_combo: 0,
+          tournament_id: 0,
+        } as any);
+        // link player -> game
+        const playerEntity = getEntityIdFromKeys([BigInt(localPlayerId)]);
+        setComponent(models.Player, playerEntity as any, {
+          id: localPlayerId,
+          game_id: newGameId,
+          points: 0,
+          last_active_day: 0,
+          account_creation_day: Math.floor(Date.now() / 1000 / 86400),
+          daily_streak: 0,
+        } as any);
+      } else {
+        const {
+          seed,
+          proof_gamma_x,
+          proof_gamma_y,
+          proof_c,
+          proof_s,
+          proof_verify_hint,
+          beta,
+        } = await fetchVrfData();
+        await start({
+          account: account as Account,
+          token_id,
+          mode: new Mode(mode).into(),
+          seed,
+          x: proof_gamma_x,
+          y: proof_gamma_y,
+          c: proof_c,
+          s: proof_s,
+          sqrt_ratio_hint: proof_verify_hint,
+          beta: beta,
+        });
+      }
 
       handleGameMode();
     } catch (error) {
