@@ -48,7 +48,11 @@ interface GridProps {
   setOptimisticScore: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
-  onFinalizeState?: (grid: number[][], newNextRow: number[]) => void;
+  onFinalizeState?: (
+    grid: number[][],
+    newNextRow: number[],
+    isOver: boolean,
+  ) => void;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -124,6 +128,7 @@ const Grid: React.FC<GridProps> = ({
   const gravitySpeed = 100;
   const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
   const offchain = String(import.meta.env.VITE_PUBLIC_OFFCHAIN).toLowerCase() === "true";
+  const gameOverRef = useRef(false);
 
   // =================== Grid set up ===================
   useEffect(() => {
@@ -519,6 +524,8 @@ const Grid: React.FC<GridProps> = ({
             );
             setNextLineHasBeenConsumed(true);
             if (isGridFull(updatedBlocks)) {
+              // Mark local game over; don't apply updated blocks
+              gameOverRef.current = true;
               setGameState(GameState.UPDATE_AFTER_MOVE);
             } else {
               setBlocks(updatedBlocks);
@@ -569,7 +576,8 @@ const Grid: React.FC<GridProps> = ({
             const localBlocks = blocks as Block[];
             const newGrid = blocksToWidthsGrid(localBlocks, gridWidth, gridHeight);
             const newNextRow = generateNextRow(gridWidth);
-            onFinalizeState(newGrid, newNextRow);
+            onFinalizeState(newGrid, newNextRow, gameOverRef.current);
+            gameOverRef.current = false;
           }
           setApplyData(true);
 

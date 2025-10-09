@@ -217,7 +217,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   });
 
   const handleFinalizeStateOffchain = useCallback(
-    (grid: number[][], newNextRow: number[]) => {
+    (grid: number[][], newNextRow: number[], isOver: boolean) => {
       // Sync RECS Game component so hooks pick up new state
       const g = gameRef.current;
       if (!g) return;
@@ -229,11 +229,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
         seed: BigInt(0),
         blocks: packedBlocks,
         player_id: parseInt(g.player_id, 16) || 0,
-        over: false,
+        over: isOver,
         mode: new Mode(g.mode.value).into(),
         score: optimisticScore,
         moves: g.moves + 1,
-        next_row: packedNextRow,
+        next_row: isOver ? 0 : packedNextRow,
         start_time: Math.floor(Date.now() / 1000),
         hammer_bonus: g.hammer,
         wave_bonus: g.wave,
