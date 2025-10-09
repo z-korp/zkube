@@ -27,6 +27,7 @@ import { useMoveStore } from "@/stores/moveTxStore";
 import { calculateFallDistance } from "@/utils/gridPhysics";
 import { blocksToWidthsGrid, generateNextRow } from "@/offchain/grid";
 import useTransitionBlocks from "@/hooks/useTransitionBlocks";
+import { useRafStateMachine } from "@/hooks/useRafStateMachine";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -129,6 +130,7 @@ const Grid: React.FC<GridProps> = ({
   const transitionDuration = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" ? 400 : 300;
   const offchain = String(import.meta.env.VITE_PUBLIC_OFFCHAIN).toLowerCase() === "true";
   const gameOverRef = useRef(false);
+  // handled inside useRafStateMachine
 
   // =================== Grid set up ===================
   useEffect(() => {
@@ -416,25 +418,41 @@ const Grid: React.FC<GridProps> = ({
 
   const applyGravity = () => {
     setBlocks((prevBlocks) => {
-      const newBlocks = prevBlocks.map((block) => {
-        const fallDistance = calculateFallDistance(
-          block,
-          prevBlocks,
-          gridHeight,
-        );
-        if (fallDistance > 0) {
-          return { ...block, y: block.y + 1 };
+      // Compute simultaneous drop final positions
+      const occupancy: boolean[][] = Array.from({ length: gridHeight }, () =>
+        Array(gridWidth).fill(false),
+      );
+      const sorted = [...prevBlocks].sort((a, b) => b.y - a.y); // bottom to top
+      const updated: Block[] = [] as Block[];
+      for (const b of sorted) {
+        const startX = Math.trunc(b.x);
+        let y = b.y;
+        while (y < gridHeight - 1) {
+          const targetY = y + 1;
+          let canFall = true;
+          for (let i = 0; i < b.width; i++) {
+            const xi = startX + i;
+            if (xi < 0 || xi >= gridWidth) {
+              canFall = false;
+              break;
+            }
+            if (occupancy[targetY][xi]) {
+              canFall = false;
+              break;
+            }
+          }
+          if (!canFall) break;
+          y = targetY;
         }
-        return block;
-      });
-
-      const blocksChanged = !prevBlocks.every((block) => {
-        const newBlock = newBlocks.find((b) => b.id === block.id);
-        return newBlock && block.x === newBlock.x && block.y === newBlock.y;
-      });
-
-      setIsMoving(blocksChanged);
-
+        for (let i = 0; i < b.width; i++) occupancy[y][startX + i] = true;
+        updated.push({ ...b, y });
+      }
+      // Preserve original order
+      const newBlocks = prevBlocks.map((pb) =>
+        updated.find((u) => u.id === pb.id) || pb,
+      );
+      const changed = prevBlocks.some((pb, idx) => pb.y !== newBlocks[idx].y);
+      setIsMoving(changed);
       return newBlocks;
     });
   };
@@ -478,133 +496,83 @@ const Grid: React.FC<GridProps> = ({
     }
   };
 
-  // STATE MACHINE : GAME LOGIC
-  // Gravity -> Line Clear -> Add Line -> Gravity2 -> Update After Move -> Waiting
-  //
-  useEffect(() => {
-    // Interval ref to clear gravity interval
-    const intervalRef = { current: null as NodeJS.Timeout | null };
-    // Apply gravity with interval
-    const applyGravityWithInterval = () => {
-      intervalRef.current = setInterval(() => {
-        applyGravity();
-      }, gravitySpeed);
-    };
+  const advanceAfterGravity = () => {
+    if (gameState === GameState.GRAVITY) setGameState(GameState.LINE_CLEAR);
+    else if (gameState === GameState.GRAVITY2)
+      setGameState(GameState.LINE_CLEAR2);
+    else if (gameState === GameState.GRAVITY_BONUS)
+      setGameState(GameState.LINE_CLEAR_BONUS);
+  };
 
-    switch (gameState) {
-      case GameState.GRAVITY:
-      case GameState.GRAVITY2:
-      case GameState.GRAVITY_BONUS:
-        if (!isMoving && transitioningBlocks.length === 0) {
-          switch (gameState) {
-            case GameState.GRAVITY:
-              setGameState(GameState.LINE_CLEAR);
-              break;
-            case GameState.GRAVITY2:
-              setGameState(GameState.LINE_CLEAR2);
-              break;
-            case GameState.GRAVITY_BONUS:
-              setGameState(GameState.LINE_CLEAR_BONUS);
-              break;
-          }
-        } else {
-          // Play gravity game loop
-          applyGravityWithInterval();
-        }
-        break;
-
-      case GameState.ADD_LINE:
-        if (currentMove && transitioningBlocks.length === 0) {
-          const { startX, finalX } = currentMove;
-          if (startX !== finalX) {
-            const updatedBlocks = concatenateNewLineWithGridAndShiftGrid(
-              blocks,
-              nextLine,
-              gridHeight,
-            );
-            setNextLineHasBeenConsumed(true);
-            if (isGridFull(updatedBlocks)) {
-              // Mark local game over; don't apply updated blocks
-              gameOverRef.current = true;
-              setGameState(GameState.UPDATE_AFTER_MOVE);
-            } else {
-              setBlocks(updatedBlocks);
-            }
-          }
-          setIsMoving(true);
-          setGameState(GameState.GRAVITY2);
-        }
-        break;
-
-      case GameState.LINE_CLEAR:
-        clearCompleteLine(GameState.GRAVITY, GameState.ADD_LINE);
-        break;
-
-      case GameState.LINE_CLEAR2:
-        clearCompleteLine(GameState.GRAVITY2, GameState.UPDATE_AFTER_MOVE);
-        break;
-
-      case GameState.LINE_CLEAR_BONUS:
-        clearCompleteLine(
-          GameState.GRAVITY_BONUS,
-          GameState.UPDATE_AFTER_BONUS,
-        );
-        break;
-
-      case GameState.UPDATE_AFTER_BONUS:
-      case GameState.UPDATE_AFTER_MOVE:
-        {
-          // Update the score and combo
-          const currentCombo = lineExplodedCount > 1 ? lineExplodedCount : 0;
-          const pointsEarned =
-            (lineExplodedCount * (lineExplodedCount + 1)) / 2;
-
-          setOptimisticScore((prevPoints) => prevPoints + pointsEarned);
-          setOptimisticCombo((prevCombo) => prevCombo + currentCombo);
-          setOptimisticMaxCombo((prevMaxCombo) =>
-            currentCombo > prevMaxCombo ? currentCombo : prevMaxCombo,
-          );
-
-          // If we have a combo, we display a message
-          if (lineExplodedCount > 1) {
-            setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
-          }
-
-          // All animations and computing are done
-          // we can apply data that we received from smart contract
-          if (offchain && onFinalizeState) {
-            const localBlocks = blocks as Block[];
-            const newGrid = blocksToWidthsGrid(localBlocks, gridWidth, gridHeight);
-            const newNextRow = generateNextRow(gridWidth);
-            onFinalizeState(newGrid, newNextRow, gameOverRef.current);
-            gameOverRef.current = false;
-          }
-          setApplyData(true);
-
-          // Reset states
-          if (gameState === GameState.UPDATE_AFTER_BONUS) {
-            selectBlock(blockBonus as Block);
-            setBlockBonus(null);
-            setGameState(GameState.WAITING);
-          } else if (gameState === GameState.UPDATE_AFTER_MOVE) {
-            setcurrentMove(null);
-            setGameState(GameState.WAITING);
-          }
-        }
-        break;
-
-      default:
-        break;
-    }
-
-    // Clear interval on unmount
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+  const handleAddLine = () => {
+    if (!currentMove) return;
+    const { startX, finalX } = currentMove;
+    if (startX !== finalX) {
+      const updatedBlocks = concatenateNewLineWithGridAndShiftGrid(
+        blocks,
+        nextLine,
+        gridHeight,
+      );
+      setNextLineHasBeenConsumed(true);
+      if (isGridFull(updatedBlocks)) {
+        gameOverRef.current = true;
+        setGameState(GameState.UPDATE_AFTER_MOVE);
+      } else {
+        setBlocks(updatedBlocks);
       }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState, isMoving, transitioningBlocks]);
+    }
+    setIsMoving(true);
+    setGameState(GameState.GRAVITY2);
+  };
+
+  const handleLineClear = () => {
+    if (gameState === GameState.LINE_CLEAR)
+      clearCompleteLine(GameState.GRAVITY, GameState.ADD_LINE);
+    else if (gameState === GameState.LINE_CLEAR2)
+      clearCompleteLine(GameState.GRAVITY2, GameState.UPDATE_AFTER_MOVE);
+    else if (gameState === GameState.LINE_CLEAR_BONUS)
+      clearCompleteLine(GameState.GRAVITY_BONUS, GameState.UPDATE_AFTER_BONUS);
+  };
+
+  const handleUpdateAfter = () => {
+    const currentCombo = lineExplodedCount > 1 ? lineExplodedCount : 0;
+    const pointsEarned = (lineExplodedCount * (lineExplodedCount + 1)) / 2;
+    setOptimisticScore((prev) => prev + pointsEarned);
+    setOptimisticCombo((prev) => prev + currentCombo);
+    setOptimisticMaxCombo((prev) => (currentCombo > prev ? currentCombo : prev));
+    if (lineExplodedCount > 1) {
+      setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
+    }
+    if (offchain && onFinalizeState) {
+      const localBlocks = blocks as Block[];
+      const newGrid = blocksToWidthsGrid(localBlocks, gridWidth, gridHeight);
+      const newNextRow = generateNextRow(gridWidth);
+      onFinalizeState(newGrid, newNextRow, gameOverRef.current);
+      gameOverRef.current = false;
+    }
+    setApplyData(true);
+    if (gameState === GameState.UPDATE_AFTER_BONUS) {
+      selectBlock(blockBonus as Block);
+      setBlockBonus(null);
+      setGameState(GameState.WAITING);
+    } else {
+      setcurrentMove(null);
+      setGameState(GameState.WAITING);
+    }
+  };
+
+  useRafStateMachine({
+    gameState,
+    setGameState,
+    isMoving,
+    transitioningCount: transitioningBlocks.length,
+    gravityMs: gravitySpeed,
+    onApplyGravity: applyGravity,
+    onAdvanceAfterGravity: advanceAfterGravity,
+    onAddLine: handleAddLine,
+    onLineClear: handleLineClear,
+    onUpdateAfter: handleUpdateAfter,
+  });
 
   return (
     <>
