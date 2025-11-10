@@ -17,10 +17,6 @@ use zkube::helpers::packer::Packer;
 use zkube::helpers::controller::Controller;
 use zkube::types::bonus::{Bonus, BonusTrait};
 
-use openzeppelin_token::erc721::interface::{IERC721Dispatcher, IERC721DispatcherTrait};
-
-use tournaments::components::interfaces::{IGameTokenDispatcher, IGameTokenDispatcherTrait};
-
 #[derive(Copy, Drop, Serde, IntrospectPacked, Debug)]
 #[dojo::model]
 pub struct Game {
@@ -267,13 +263,6 @@ pub impl GameImpl of GameTrait {
         self.combo_counter += counter.into();
     }
 
-    fn update_metadata(self: Game, world: WorldStorage) {
-        let (contract_address, _) = world.dns(@"game_system").unwrap();
-        let game_token_dispatcher = IGameTokenDispatcher { contract_address };
-        game_token_dispatcher.emit_metadata_update(self.game_id.into());
-    }
-}
-
 impl ZeroableGame of Zero<Game> {
     #[inline(always)]
     fn zero() -> Game {
@@ -334,11 +323,6 @@ pub impl GameAssert of AssertTrait {
         assert!(count > 0, "Game {} bonus is not available", self.game_id);
     }
 
-    fn assert_owner(self: Game, world: WorldStorage) {
-        let (contract_address, _) = world.dns(@"game_system").unwrap();
-        let game_token = IERC721Dispatcher { contract_address };
-        assert(game_token.owner_of(self.game_id.into()) == get_caller_address(), 'Not Owner');
-    }
 }
 
 #[cfg(test)]

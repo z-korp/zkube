@@ -13,7 +13,7 @@ trait IGameSystem<T> {
 
 #[dojo::contract]
 mod game_system {
-    use zkube::constants::{DEFAULT_NS, SCORE_MODEL, SCORE_ATTRIBUTE, SETTINGS_MODEL};
+    use zkube::constants::DEFAULT_NS;
     use zkube::models::config::{GameSettings, GameSettingsTrait};
     use zkube::models::game::{Game, GameTrait, GameAssert};
     use zkube::models::game::GameSeed;
@@ -21,7 +21,6 @@ mod game_system {
     use zkube::helpers::config::ConfigUtilsImpl;
     use zkube::helpers::random::RandomImpl;
     use zkube::types::bonus::Bonus;
-    use zkube::helpers::renderer::create_metadata;
     use zkube::events::{StartGame, UseBonus};
     use zkube::systems::achievement::{
         IAchievementSystemDispatcher, IAchievementSystemDispatcherTrait
@@ -34,30 +33,24 @@ mod game_system {
     use starknet::{get_block_timestamp, get_caller_address, ContractAddress};
     use starknet::storage::{StoragePointerReadAccess};
 
-    use openzeppelin_introspection::src5::SRC5Component;
-    use openzeppelin_token::erc721::interface::{IERC721Metadata};
-    use openzeppelin_token::erc721::{ERC721Component, ERC721HooksEmptyImpl};
-
-    use tournaments::components::game::game_component;
-    use tournaments::components::interfaces::{IGameDetails, ISettings};
-    use tournaments::components::libs::lifecycle::{
-        LifecycleAssertionsImpl, LifecycleAssertionsTrait
+    use game_components_minigame::interface::{IMinigameTokenData};
+    use game_components_minigame::libs::{
+        assert_token_ownership, get_player_name as get_token_player_name, post_action, pre_action,
     };
-    use tournaments::components::models::game::{TokenMetadata};
+    use game_components_minigame::minigame::MinigameComponent;
+    use game_components_token::core::interface::{
+        IMinigameTokenDispatcher, IMinigameTokenDispatcherTrait,
+    };
+    use game_components_token::libs::LifecycleTrait;
+    use game_components_token::structs::TokenMetadata;
+    use openzeppelin_introspection::src5::SRC5Component;
 
-    component!(path: game_component, storage: game, event: GameEvent);
+    component!(path: MinigameComponent, storage: minigame, event: MinigameEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
-    component!(path: ERC721Component, storage: erc721, event: ERC721Event);
 
     #[abi(embed_v0)]
-    impl GameImpl = game_component::GameImpl<ContractState>;
-    impl GameInternalImpl = game_component::InternalImpl<ContractState>;
-
-    #[abi(embed_v0)]
-    impl ERC721Impl = ERC721Component::ERC721Impl<ContractState>;
-    #[abi(embed_v0)]
-    impl ERC721CamelOnlyImpl = ERC721Component::ERC721CamelOnlyImpl<ContractState>;
-    impl ERC721InternalImpl = ERC721Component::InternalImpl<ContractState>;
+    impl MinigameImpl = MinigameComponent::MinigameImpl<ContractState>;
+    impl MinigameInternalImpl = MinigameComponent::InternalImpl<ContractState>;
 
     #[abi(embed_v0)]
     impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
@@ -65,9 +58,7 @@ mod game_system {
     #[storage]
     struct Storage {
         #[substorage(v0)]
-        game: game_component::Storage,
-        #[substorage(v0)]
-        erc721: ERC721Component::Storage,
+        minigame: MinigameComponent::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
     }
@@ -76,47 +67,51 @@ mod game_system {
     #[derive(Drop, starknet::Event)]
     enum Event {
         #[flat]
-        GameEvent: game_component::Event,
-        #[flat]
-        ERC721Event: ERC721Component::Event,
+        MinigameEvent: MinigameComponent::Event,
         #[flat]
         SRC5Event: SRC5Component::Event,
     }
 
-    fn dojo_init(ref self: ContractState, creator_address: ContractAddress) {
-        self.erc721.initializer("zKube", "ZKUBE", "app.zkube.xyz");
+    fn dojo_init(
+        ref self: ContractState,
+        creator_address: ContractAddress,
+        denshokan_address: ContractAddress,
+        renderer_address: Option<ContractAddress>,
+    ) {
+        let mut world: WorldStorage = self.world(@DEFAULT_NS());
+        let (config_system_address, _) = world.dns(@"config_system").unwrap();
+
         self
-            .game
+            .minigame
             .initializer(
                 creator_address,
-                'zKube',
-                "zKube is an engaging puzzle game that puts players' strategic thinking to the test. Set within a dynamic grid, the objective is simple: manipulate blocks to form solid lines and earn points.",
-                'zKorp',
-                'zKorp',
-                'Strategy',
+                "zKube",
+                "zKube is an onchain puzzle game mixing block-stacking strategy with VRF-powered randomness.",
+                "zKorp",
+                "zKorp",
+                "Puzzle",
                 "https://zkube.vercel.app/assets/pwa-512x512.png",
-                DEFAULT_NS(),
-                SCORE_MODEL(),
-                SCORE_ATTRIBUTE(),
-                SETTINGS_MODEL(),
+                Option::None,
+                Option::None,
+                renderer_address,
+                Option::Some(config_system_address),
+                Option::None,
+                denshokan_address,
             );
     }
 
     #[abi(embed_v0)]
-    impl SettingsImpl of ISettings<ContractState> {
-        fn setting_exists(self: @ContractState, settings_id: u32) -> bool {
+    impl GameTokenDataImpl of IMinigameTokenData<ContractState> {
+        fn score(self: @ContractState, token_id: u64) -> u32 {
             let world: WorldStorage = self.world(@DEFAULT_NS());
-            let settings: GameSettings = world.read_model(settings_id);
-            settings.exists()
-        }
-    }
-
-    #[abi(embed_v0)]
-    impl GameDetailsImpl of IGameDetails<ContractState> {
-        fn score(self: @ContractState, game_id: u64) -> u32 {
-            let world: WorldStorage = self.world(@DEFAULT_NS());
-            let game: Game = world.read_model(game_id);
+            let game: Game = world.read_model(token_id);
             game.score.into()
+        }
+
+        fn game_over(self: @ContractState, token_id: u64) -> bool {
+            let world: WorldStorage = self.world(@DEFAULT_NS());
+            let game: Game = world.read_model(token_id);
+            game.over
         }
     }
 
@@ -125,8 +120,12 @@ mod game_system {
         fn create(ref self: ContractState, game_id: u64) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
-            let token_metadata: TokenMetadata = world.read_model(game_id);
-            self.validate_start_conditions(game_id, @token_metadata);
+            let token_address = Self::token_address(self);
+            pre_action(token_address, game_id);
+
+            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
+            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
+            self.validate_start_conditions(game_id, @token_metadata, token_address);
 
             let game_settings: GameSettings = ConfigUtilsImpl::get_game_settings(world, game_id);
 
@@ -144,7 +143,7 @@ mod game_system {
             let game_seed = GameSeed { game_id, seed: random.seed };
             world.write_model(@game_seed);
 
-            game.update_metadata(world);
+            post_action(token_address, game_id);
 
             world
                 .emit_event(
@@ -157,11 +156,19 @@ mod game_system {
         fn surrender(ref self: ContractState, game_id: u64) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
-            let token_metadata: TokenMetadata = world.read_model(game_id);
-            token_metadata.lifecycle.assert_is_playable(game_id, get_block_timestamp());
+            let token_address = Self::token_address(self);
+            pre_action(token_address, game_id);
+
+            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
+            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
+            assert!(
+                token_metadata.lifecycle.is_playable(get_block_timestamp()),
+                "Game {} lifecycle is not playable",
+                game_id
+            );
 
             let mut game: Game = world.read_model(game_id);
-            game.assert_owner(world);
+            assert_token_ownership(token_address, game_id);
             game.assert_not_over();
 
             game.over = true;
@@ -169,7 +176,7 @@ mod game_system {
 
             self.handle_game_over(game);
 
-            game.update_metadata(world);
+            post_action(token_address, game_id);
         }
 
         fn move(
@@ -177,13 +184,21 @@ mod game_system {
         ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
-            let token_metadata: TokenMetadata = world.read_model(game_id);
-            token_metadata.lifecycle.assert_is_playable(game_id, get_block_timestamp());
+            let token_address = Self::token_address(self);
+            pre_action(token_address, game_id);
+
+            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
+            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
+            assert!(
+                token_metadata.lifecycle.is_playable(get_block_timestamp()),
+                "Game {} lifecycle is not playable",
+                game_id
+            );
 
             let game_settings: GameSettings = ConfigUtilsImpl::get_game_settings(world, game_id);
 
             let mut game: Game = world.read_model(game_id);
-            game.assert_owner(world);
+            assert_token_ownership(token_address, game_id);
             game.assert_not_over();
 
             let difficulty: Difficulty = if game_settings.difficulty == Difficulty::Increasing {
@@ -201,7 +216,7 @@ mod game_system {
                 self.handle_game_over(game);
             }
 
-            game.update_metadata(world);
+            post_action(token_address, game_id);
         }
 
         fn apply_bonus(
@@ -209,13 +224,21 @@ mod game_system {
         ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
-            let token_metadata: TokenMetadata = world.read_model(game_id);
-            token_metadata.lifecycle.assert_is_playable(game_id, starknet::get_block_timestamp());
+            let token_address = Self::token_address(self);
+            pre_action(token_address, game_id);
+
+            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
+            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
+            assert!(
+                token_metadata.lifecycle.is_playable(starknet::get_block_timestamp()),
+                "Game {} lifecycle is not playable",
+                game_id
+            );
 
             let game_settings: GameSettings = ConfigUtilsImpl::get_game_settings(world, game_id);
 
             let mut game: Game = world.read_model(game_id);
-            game.assert_owner(world);
+            assert_token_ownership(token_address, game_id);
             game.assert_not_over();
             game.assert_is_available(bonus);
 
@@ -229,8 +252,7 @@ mod game_system {
             game.apply_bonus(difficulty, base_seed.seed, bonus, row_index, line_index);
 
             world.write_model(@game);
-
-            game.update_metadata(world);
+            post_action(token_address, game_id);
 
             world
                 .emit_event(
@@ -245,8 +267,8 @@ mod game_system {
 
         fn get_player_name(self: @ContractState, game_id: u64) -> felt252 {
             let world: WorldStorage = self.world(@DEFAULT_NS());
-            let token_metadata: TokenMetadata = world.read_model(game_id);
-            token_metadata.player_name
+            let token_address = Self::token_address(self);
+            get_token_player_name(token_address, game_id)
         }
 
         fn get_score(self: @ContractState, game_id: u64) -> u16 {
@@ -273,69 +295,21 @@ mod game_system {
         }
     }
 
-    #[abi(embed_v0)]
-    impl ERC721Metadata of IERC721Metadata<ContractState> {
-        /// Returns the NFT name.
-        fn name(self: @ContractState) -> ByteArray {
-            self.erc721.ERC721_name.read()
-        }
-
-        /// Returns the NFT symbol.
-        fn symbol(self: @ContractState) -> ByteArray {
-            self.erc721.ERC721_symbol.read()
-        }
-
-        /// Returns the Uniform Resource Identifier (URI) for the `token_id` token.
-        /// If the URI is not set, the return value will be an empty ByteArray.
-        ///
-        /// Requirements:
-        ///
-        /// - `token_id` exists.
-        fn token_uri(self: @ContractState, token_id: u256) -> ByteArray {
-            self.erc721._require_owned(token_id);
-
-            let token_id_u64 = token_id.try_into().unwrap();
-
-            let player_name = self.get_player_name(token_id_u64);
-            let (
-                moves, combo_counter, max_combo, hammer_bonus, wave_bonus, totem_bonus, score, over
-            ) =
-                self
-                .get_game_data(token_id_u64);
-
-            create_metadata(
-                token_id_u64,
-                player_name,
-                over,
-                score,
-                moves,
-                combo_counter,
-                max_combo,
-                hammer_bonus,
-                wave_bonus,
-                totem_bonus
-            )
-        }
-    }
-
     #[generate_trait]
     impl InternalImpl of InternalTrait {
         #[inline(always)]
         fn validate_start_conditions(
-            self: @ContractState, token_id: u64, token_metadata: @TokenMetadata
+            self: @ContractState,
+            token_id: u64,
+            token_metadata: @TokenMetadata,
+            token_address: ContractAddress,
         ) {
-            self.assert_token_ownership(token_id);
+            assert_token_ownership(token_address, token_id);
             self.assert_game_not_started(token_id);
-            token_metadata.lifecycle.assert_is_playable(token_id, starknet::get_block_timestamp());
-        }
-
-        #[inline(always)]
-        fn assert_token_ownership(self: @ContractState, token_id: u64) {
-            let token_owner = ERC721Impl::owner_of(self, token_id.into());
             assert!(
-                token_owner == starknet::get_caller_address(),
-                "Caller is not owner of token {}",
-                token_id,
+                token_metadata.lifecycle.is_playable(starknet::get_block_timestamp()),
+                "Game {} lifecycle is not playable",
+                token_id
             );
         }
 
@@ -352,6 +326,13 @@ mod game_system {
             let (contract_address, _) = world.dns(@"achievement_system").unwrap();
             let achievement_system = IAchievementSystemDispatcher { contract_address };
             achievement_system.update_progress_when_game_over(game, caller);
+        }
+    }
+
+    impl game_system::GameSystemImpl {
+        #[inline(always)]
+        fn token_address(self: @ContractState) -> ContractAddress {
+            self.minigame.token_address.read()
         }
     }
 }

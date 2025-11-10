@@ -64,6 +64,7 @@ pub mod helpers {
     pub mod config;
     pub mod encoding;
     pub mod renderer;
+    pub mod token;
 }
 
 pub mod systems {
@@ -93,4 +94,3 @@ mod tests {
         mod erc721;
     }
 }
-
