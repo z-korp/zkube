@@ -77,94 +77,97 @@ mod achievement_system {
 
             let store = StoreTrait::new(world);
             let time = get_block_timestamp();
+            let time_u64: u64 = time.into();
 
             // [Trophy] Update Mastering tasks progression
-            let value = game.combo_counter.into();
+            let value: u32 = game.combo_counter.into();
             if Trophy::ComboInitiator.assess(value) {
                 let level = Trophy::ComboInitiator.level();
                 let task_id = Task::Mastering.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
+                store.progress(caller.into(), task_id, 1_u128, time_u64);
             }
             if Trophy::ComboExpert.assess(value) {
                 let level = Trophy::ComboExpert.level();
                 let task_id = Task::Mastering.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
+                store.progress(caller.into(), task_id, 1_u128, time_u64);
             }
             if Trophy::ComboMaster.assess(value) {
                 let level = Trophy::ComboMaster.level();
                 let task_id = Task::Mastering.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
+                store.progress(caller.into(), task_id, 1_u128, time_u64);
             }
 
             // [Trophy] Update Chaining tasks progression
-            let value = game.max_combo.into();
+            let value: u32 = game.max_combo.into();
             if Trophy::TripleThreat.assess(value) {
                 let level = Trophy::TripleThreat.level();
                 let task_id = Task::Chaining.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
+                store.progress(caller.into(), task_id, 1_u128, time_u64);
             }
             if Trophy::SixShooter.assess(value) {
                 let level = Trophy::SixShooter.level();
                 let task_id = Task::Chaining.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
+                store.progress(caller.into(), task_id, 1_u128, time_u64);
             }
             if Trophy::NineLives.assess(value) {
                 let level = Trophy::NineLives.level();
                 let task_id = Task::Chaining.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
+                store.progress(caller.into(), task_id, 1_u128, time_u64);
             }
 
             // [Trophy] Update Playing tasks progression
-            let value = game.moves.into();
+            let value: u32 = game.moves.into();
             if Trophy::GameBeginner.assess(value) {
                 let level = Trophy::GameBeginner.level();
                 let task_id = Task::Playing.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
+                store.progress(caller.into(), task_id, 1_u128, time_u64);
             }
             if Trophy::GameExperienced.assess(value) {
                 let level = Trophy::GameExperienced.level();
                 let task_id = Task::Playing.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
+                store.progress(caller.into(), task_id, 1_u128, time_u64);
             }
             if Trophy::GameVeteran.assess(value) {
                 let level = Trophy::GameVeteran.level();
                 let task_id = Task::Playing.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
+                store.progress(caller.into(), task_id, 1_u128, time_u64);
             }
 
             // [Trophy] Update Scoring tasks progression
-            let value = game.score.into();
-            if Trophy::ScoreApprentice.assess(value) {
+            let value_u32: u32 = game.score.into();
+            let value_u128: u128 = game.score.into();
+
+            if Trophy::ScoreApprentice.assess(value_u32) {
                 let level = Trophy::ScoreApprentice.level();
                 let task_id = Task::Scoring.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
+                store.progress(caller.into(), task_id, 1_u128, time_u64);
             }
-            if Trophy::ScoreExpert.assess(value) {
+            if Trophy::ScoreExpert.assess(value_u32) {
                 let level = Trophy::ScoreExpert.level();
                 let task_id = Task::Scoring.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
+                store.progress(caller.into(), task_id, 1_u128, time_u64);
             }
-            if Trophy::ScoreMaster.assess(value) {
+            if Trophy::ScoreMaster.assess(value_u32) {
                 let level = Trophy::ScoreMaster.level();
                 let task_id = Task::Scoring.identifier(level);
-                store.progress(caller.into(), task_id, 1, time);
+                store.progress(caller.into(), task_id, 1_u128, time_u64);
             }
 
             // [Trophy] Update Cumulative Scoring tasks progression
-            if Trophy::ScoreCollector.assess(value) {
+            if Trophy::ScoreCollector.assess(value_u32) {
                 let level = Trophy::ScoreCollector.level();
                 let task_id = Task::CumulativeScoring.identifier(level);
-                store.progress(caller.into(), task_id, value, time);
+                store.progress(caller.into(), task_id, value_u128, time_u64);
             }
-            if Trophy::ScoreAccumulator.assess(value) {
+            if Trophy::ScoreAccumulator.assess(value_u32) {
                 let level = Trophy::ScoreAccumulator.level();
                 let task_id = Task::CumulativeScoring.identifier(level);
-                store.progress(caller.into(), task_id, value, time);
+                store.progress(caller.into(), task_id, value_u128, time_u64);
             }
-            if Trophy::ScoreLegend.assess(value) {
+            if Trophy::ScoreLegend.assess(value_u32) {
                 let level = Trophy::ScoreLegend.level();
                 let task_id = Task::CumulativeScoring.identifier(level);
-                store.progress(caller.into(), task_id, value, time);
+                store.progress(caller.into(), task_id, value_u128, time_u64);
             }
         }
     }

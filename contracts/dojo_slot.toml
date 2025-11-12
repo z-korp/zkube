@@ -16,9 +16,9 @@ telegram = "https://t.me/dojoengine"
 default = "zkube_budo_v1_1_0"
 
 [env]
-rpc_url = "https://api.cartridge.gg/x/budokan-matth/katana"
-account_address = "0x6daf2a924fab727ae5409f0743de4869850f988b6f8545268016ad1107fd2cd"
-private_key = "0x1e5c62853e3189afdfdfcfb2d8ab0a1c372907db6eb1d1e5bf8ff438420adb3"
+rpc_url = "https://api.cartridge.gg/x/zkube-cheelax/katana"
+account_address = "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819"
+private_key = "0x3e3979c1ed728490308054fe357a9f49cf67f80f9721f44cc57235129e090f4"
 world_address = "0x079a36feddf1856076a253d9f6f268ee977f52e8f18b4729a64d63bdaab93331"
 
 [writers]

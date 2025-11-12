@@ -262,38 +262,39 @@ pub impl GameImpl of GameTrait {
     fn update_combo_counter(ref self: Game, counter: u8) {
         self.combo_counter += counter.into();
     }
+}
 
-impl ZeroableGame of Zero<Game> {
-    #[inline(always)]
-    fn zero() -> Game {
-        Game {
-            game_id: 0,
-            blocks: 0,
-            next_row: 0,
-            score: 0,
-            moves: 0,
-            combo_counter: 0,
-            max_combo: 0,
-            hammer_bonus: 0,
-            wave_bonus: 0,
-            totem_bonus: 0,
-            hammer_used: 0,
-            wave_used: 0,
-            totem_used: 0,
-            over: false,
+    pub impl ZeroableGame of Zero<Game> {
+        #[inline(always)]
+        fn zero() -> Game {
+            Game {
+                game_id: 0,
+                blocks: 0,
+                next_row: 0,
+                score: 0,
+                moves: 0,
+                combo_counter: 0,
+                max_combo: 0,
+                hammer_bonus: 0,
+                wave_bonus: 0,
+                totem_bonus: 0,
+                hammer_used: 0,
+                wave_used: 0,
+                totem_used: 0,
+                over: false,
+            }
+        }
+
+        #[inline(always)]
+        fn is_zero(self: @Game) -> bool {
+            *(self.next_row) == 0
+        }
+
+        #[inline(always)]
+        fn is_non_zero(self: @Game) -> bool {
+            !self.is_zero()
         }
     }
-
-    #[inline(always)]
-    fn is_zero(self: @Game) -> bool {
-        *(self.next_row) == 0
-    }
-
-    #[inline(always)]
-    fn is_non_zero(self: @Game) -> bool {
-        !self.is_zero()
-    }
-}
 
 #[generate_trait]
 pub impl GameAssert of AssertTrait {

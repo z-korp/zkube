@@ -120,7 +120,7 @@ mod game_system {
         fn create(ref self: ContractState, game_id: u64) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
-            let token_address = Self::token_address(self);
+            let token_address = self.token_address();
             pre_action(token_address, game_id);
 
             let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
@@ -156,7 +156,7 @@ mod game_system {
         fn surrender(ref self: ContractState, game_id: u64) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
-            let token_address = Self::token_address(self);
+            let token_address = self.token_address();
             pre_action(token_address, game_id);
 
             let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
@@ -184,7 +184,7 @@ mod game_system {
         ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
-            let token_address = Self::token_address(self);
+            let token_address = self.token_address();
             pre_action(token_address, game_id);
 
             let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
@@ -224,7 +224,7 @@ mod game_system {
         ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
-            let token_address = Self::token_address(self);
+            let token_address = self.token_address();
             pre_action(token_address, game_id);
 
             let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
@@ -267,7 +267,7 @@ mod game_system {
 
         fn get_player_name(self: @ContractState, game_id: u64) -> felt252 {
             let world: WorldStorage = self.world(@DEFAULT_NS());
-            let token_address = Self::token_address(self);
+            let token_address = self.token_address();
             get_token_player_name(token_address, game_id)
         }
 
@@ -296,7 +296,9 @@ mod game_system {
     }
 
     #[generate_trait]
-    impl InternalImpl of InternalTrait {
+pub    impl InternalImpl of InternalTrait {
+    
+
         #[inline(always)]
         fn validate_start_conditions(
             self: @ContractState,
@@ -326,13 +328,6 @@ mod game_system {
             let (contract_address, _) = world.dns(@"achievement_system").unwrap();
             let achievement_system = IAchievementSystemDispatcher { contract_address };
             achievement_system.update_progress_when_game_over(game, caller);
-        }
-    }
-
-    impl game_system::GameSystemImpl {
-        #[inline(always)]
-        fn token_address(self: @ContractState) -> ContractAddress {
-            self.minigame.token_address.read()
         }
     }
 }

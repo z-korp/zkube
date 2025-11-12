@@ -9,7 +9,7 @@ use starknet::ContractAddress;
 pub fn get_token_address(world: WorldStorage) -> ContractAddress {
     let (game_system_address, _) = world
         .dns(@"game_system")
-        .expect("game_system contract not registered in world DNS");
+        .expect('game_system not in world DNS');
     let dispatcher = IMinigameDispatcher { contract_address: game_system_address };
     dispatcher.token_address()
 }

@@ -46,7 +46,8 @@ pub impl TaskImpl of TaskTrait {
     fn tasks(self: Task, level: u8, count: u32, total: u32) -> Span<BushidoTask> {
         let task_id: felt252 = self.identifier(level);
         let description: ByteArray = self.description(count);
-        array![BushidoTaskTrait::new(task_id, total, description)].span()
+        let total_u128: u128 = total.into();
+        array![BushidoTaskTrait::new(task_id, total_u128, description)].span()
     }
 }
 

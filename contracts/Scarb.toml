@@ -16,19 +16,18 @@ inspect-sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build 
 inspect-mainnet = "sozo --profile mainnet clean && sozo --profile mainnet build && sozo --profile mainnet inspect"
 
 [dependencies]
-starknet = "2.10.1"
-openzeppelin_token = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v1.0.0" }
-openzeppelin_introspection = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v1.0.0" }
-dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.5.0" }
+openzeppelin_token = "1.0.0"
+openzeppelin_introspection =  "1.0.0"
+dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.6.0" }
 alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.3.0" }
 alexandria_encoding = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.3.0" }
-achievement = { git = "https://github.com/cartridge-gg/arcade" }
-origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.5.0" }
+achievement = { git = "https://github.com/cartridge-gg/arcade", rev= "634edcebaa4999d8d2b94d4fb78cac05649c74f3" }
+origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.6.0" }
 game_components_minigame = { git = "https://github.com/Provable-Games/game-components", tag = "0.0.10" }
 game_components_token = { git = "https://github.com/Provable-Games/game-components", tag = "0.0.10" }
 game_components_metagame = { git = "https://github.com/Provable-Games/game-components", tag = "0.0.10" }
 game_components_utils = { git = "https://github.com/Provable-Games/game-components", tag = "0.0.10" }
-graffiti = { git = "https://github.com/rsodre/graffiti", rev = "url" }
+graffiti = { git = "https://github.com/ponderingdemocritus/graffiti", rev = "bc569531791dbc71c6cd8d9bc154c34eedad31fe" }
 
 [[target.starknet-contract]]
 casm = true
@@ -41,10 +40,13 @@ build-external-contracts = [
 ]
 
 [dev-dependencies]
-dojo_cairo_test = { git = "https://github.com/dojoengine/dojo.git", tag = "v1.5.0" }
+dojo_cairo_test = { git = "https://github.com/dojoengine/dojo.git", tag = "v1.6.0" }
 cairo_test = "2.10.1"
 
 # Custom profiles
 [profile.slot]
 [profile.sepolia]
 [profile.mainnet]
+
+[tool.dojo.env]
+rpc_url = "https://api.cartridge.gg/x/zkube-cheelax/katana"
