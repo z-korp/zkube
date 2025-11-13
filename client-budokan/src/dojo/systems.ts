@@ -99,10 +99,15 @@ export function systems({ client }: { client: IWorld }) {
     settingsId,
     ...props
   }: SystemTypes.FreeMint): Promise<{ game_id: number }> => {
-    const { events } = await handleTransaction(
+    const { transaction_hash, events } = await handleTransaction(
       account,
       () => client.game.free_mint({ account, ...props, settingsId }),
       "Game has been minted."
+    );
+    console.info(
+      "[freeMint] Transaction hash",
+      transaction_hash,
+      getUrl(transaction_hash)
     );
 
     let game_id = 0;
