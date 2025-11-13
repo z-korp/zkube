@@ -19,8 +19,8 @@
     "create-models": "./bin/models.cjs"
   },
   "dependencies": {
-    "@cartridge/connector": "0.7.13",
-    "@cartridge/controller": "0.7.13",
+    "@cartridge/connector": "^0.10.7",
+    "@cartridge/controller": "^0.10.7",
     "@cartridge/presets": "^0.5.2",
     "@dojoengine/core": "1.5.5",
     "@dojoengine/create-burner": "1.5.5",
