@@ -14,7 +14,7 @@ pub const MASK_7: u32 = 0x7;
 
 // Tournament
 pub fn DEFAULT_NS() -> ByteArray {
-    "zkube_budo_v1_1_0"
+    "zkube_budo_v1_1_1"
 }
 
 pub fn SCORE_MODEL() -> ByteArray {

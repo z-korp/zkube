@@ -1328,8 +1328,8 @@
   },
   "contracts": [
     {
-      "address": "0x11535c616a021e2621e48a7db9dc5e48e6a58a144a1e39a380ecba2f52235f3",
-      "class_hash": "0x51f51efbea2bb27e576743bc3600d12c30acbcd9f15a2553855e98ae945576e",
+      "address": "0x5ec022dcdd1dca89011594fbd553ac190d3e7685ee699eefa45da7a132d39d6",
+      "class_hash": "0x57d755952967c1f2c4edab1bd1344a2c570c4bcd53d6d0060438cc929488712",
       "abi": [
         {
           "type": "impl",
@@ -1611,8 +1611,8 @@
         }
       ],
       "init_calldata": [],
-      "tag": "zkube_budo_v1_1_0-achievement_system",
-      "selector": "0x706d93ad81f781d3fdd3d7c6d14bea132a89a74b415507f510761ad701c154a",
+      "tag": "zkube_budo_v1_1_1-achievement_system",
+      "selector": "0x5013cfa6c74f3768cd6e3abf348c75988e41a7feac53e80c95a5c80df40107b",
       "systems": [
         "dojo_init",
         "update_progress_when_game_over",
@@ -1620,8 +1620,8 @@
       ]
     },
     {
-      "address": "0x272249534d371c91d77e2b7cfb739e9ed8bb8424cda196e733af39d7ee5d16a",
-      "class_hash": "0x646a77399e9f6bd9c4cf6e6dbce0b54d01dd0d9d6df177b0e58f9133f549c25",
+      "address": "0x7b033d34b52842f310e9686f2ce4f3829186c85c07687e310e246a19555fa1",
+      "class_hash": "0xe5aa3072b8cf1104f5b4bc58071ccdcc6b7e8b59a4ee1cdf0470cb461934ad",
       "abi": [
         {
           "type": "impl",
@@ -2011,8 +2011,8 @@
       "init_calldata": [
         "0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b"
       ],
-      "tag": "zkube_budo_v1_1_0-config_system",
-      "selector": "0x2540eb82e01ce983246f90d4d0f77a4404679a8abd4f3b538be86569ef21506",
+      "tag": "zkube_budo_v1_1_1-config_system",
+      "selector": "0xecb3468b6c15f5e5fccb3225478f313703b5edfc8d6a961dea4be444f16fa6",
       "systems": [
         "dojo_init",
         "add_game_settings",
@@ -2020,8 +2020,8 @@
       ]
     },
     {
-      "address": "0x36e699035812d13d3b7d6780a4cd91d1d7ba85aa19c9fb1ebf00488f6fb1640",
-      "class_hash": "0x9e317c93c7b90dc09cdf2025aa8843110c5034b10d5bc3ece914a611279c10",
+      "address": "0x79ab8a6776195b6d2d5110df70af20d19e3520bab36e3aaebfaea4c1c76efe1",
+      "class_hash": "0x3feb3d37ac1e86bacc6a7865c7b54b0bed56d883988f4352fe2398f9cd41290",
       "abi": [
         {
           "type": "impl",
@@ -2716,8 +2716,8 @@
         "0x0",
         "0x0"
       ],
-      "tag": "zkube_budo_v1_1_0-game_system",
-      "selector": "0x50fd95a2d82f5e2ea65fef198fac3a07684a6e22f3de9437b66f88994abfb89",
+      "tag": "zkube_budo_v1_1_1-game_system",
+      "selector": "0x5acd233eb674a9a23ffa9ed367f05327d1793b0e97b4fc110f962708f8ac83a",
       "systems": [
         "dojo_init",
         "create",
@@ -2733,52 +2733,52 @@
     {
       "members": [],
       "class_hash": "0xd9a2b960fb737a8346789f679db61bbed8b0cfb556a99378bfb1cbd9a54d59",
-      "tag": "zkube_budo_v1_1_0-Game",
-      "selector": "0x84acd01917db02efc131e496a2d514470770d06142ac27f5c8eeae024ea1de"
+      "tag": "zkube_budo_v1_1_1-Game",
+      "selector": "0x60b02e2f52918db4ef5673cfaa0157ebf00a6e2427a4ddb74bb1067c9d24aaf"
     },
     {
       "members": [],
       "class_hash": "0x3001162dae0a68fbdaf2dd2dfc7612591eb991bfa2ee59c2a9283296402d01b",
-      "tag": "zkube_budo_v1_1_0-GameSeed",
-      "selector": "0x48c27f1c37a8177f9f577e87660b4582742864be790d0d93db616a6925de396"
+      "tag": "zkube_budo_v1_1_1-GameSeed",
+      "selector": "0x6b02c04c47a47e80d01accf1807015277cb7afb8b875c0805123302faf88ed6"
     },
     {
       "members": [],
       "class_hash": "0x1eb3a359c04054db289544cc358038ef513fb0214694149ae24a22982bda8b7",
-      "tag": "zkube_budo_v1_1_0-GameSettings",
-      "selector": "0x4f50210d122147ce6983f11c1cf3e82c009dd6d0d7d8104ec2729cb7f35ca42"
+      "tag": "zkube_budo_v1_1_1-GameSettings",
+      "selector": "0x1771ee77ba88dc1b7c89f2eab409df8501021865f145e1ea5adae185c000737"
     },
     {
       "members": [],
       "class_hash": "0x70401675a4c0484eddc002b601a977d060bdb4b09f4cea73f84b14a006a7efd",
-      "tag": "zkube_budo_v1_1_0-GameSettingsMetadata",
-      "selector": "0x74e0d9c592d26cc9986255b7442f99adca0959e15b42f764689992ce6f03ad0"
+      "tag": "zkube_budo_v1_1_1-GameSettingsMetadata",
+      "selector": "0x7ff0bf51273d829993d27e116c70e7261da1d5297d7e6eaff46463464b90bea"
     }
   ],
   "events": [
     {
       "members": [],
       "class_hash": "0x7adee3a9ce1f542f811ef8cfe0aef6cb9928bad599791e4e03048727ab16e02",
-      "tag": "zkube_budo_v1_1_0-StartGame",
-      "selector": "0x1152cd1a01c05b332046ddceb264a930e0145e5f52ca6cfc76434507da928b1"
+      "tag": "zkube_budo_v1_1_1-StartGame",
+      "selector": "0xa4348ce52ad7faf8c3b977a40222c2b1631afbcae09592bd914c5c9749ab00"
     },
     {
       "members": [],
       "class_hash": "0x702d5440a155e0704b268f8d6dbf74cb8ae09b164064fe3b4f896cf725dcac7",
-      "tag": "zkube_budo_v1_1_0-TrophyCreation",
-      "selector": "0x26cd41a9b5df64898dffbba6aff13298c21a2f8e6ae81aec346e87fa2029bda"
+      "tag": "zkube_budo_v1_1_1-TrophyCreation",
+      "selector": "0x542b31be5863339333333c39cb6f2b7311bce74aceb2d87081638168bcf1c8f"
     },
     {
       "members": [],
       "class_hash": "0x113e43bc604068a5811205b126a3e318b21e5c72746138efa6fb40277067f00",
-      "tag": "zkube_budo_v1_1_0-TrophyProgression",
-      "selector": "0x66deddfae96c058e621e0b4e76a5b6796ae7eb7b4b5372b5c7757ab6feff232"
+      "tag": "zkube_budo_v1_1_1-TrophyProgression",
+      "selector": "0x45b950536fe2e1afef7a3680cd6a3c16b43fef939497f38f0679a7c0585a892"
     },
     {
       "members": [],
       "class_hash": "0x698cf3bc1543060f359287d62633747535faeacc0a54c6c0338f98401d203cd",
-      "tag": "zkube_budo_v1_1_0-UseBonus",
-      "selector": "0x17968261c7e47484a13648669fed2d04dfb60c73cc135434bb1914861b0f811"
+      "tag": "zkube_budo_v1_1_1-UseBonus",
+      "selector": "0x7224acb6ecd57d5f434640f26b74aa4a3a684175730696ff0c1105945ca4426"
     }
   ],
   "external_contracts": []
