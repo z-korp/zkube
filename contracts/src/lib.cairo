@@ -71,6 +71,7 @@ pub mod systems {
     pub mod achievement;
     pub mod game;
     pub mod config;
+    pub mod settings;
 }
 
 #[cfg(test)]
