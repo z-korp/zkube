@@ -62,18 +62,37 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
     const free_mint = async ({ account, name, settingsId = 0 }: FreeMint) => {
       try {
+        const trimmedName = name.trim();
+        const playerNameOption =
+          trimmedName.length > 0
+            ? new CairoOption<string>(
+                CairoOptionVariant.Some,
+                shortString.encodeShortString(trimmedName)
+              )
+            : new CairoOption(CairoOptionVariant.None);
+        const settingsOption = new CairoOption<number>(
+          CairoOptionVariant.Some,
+          settingsId
+        );
+        const noneOption = () => new CairoOption(CairoOptionVariant.None);
+
         return await provider.execute(
           account,
           [
             {
-              contractName: contract_name,
-              entrypoint: "mint",
+              contractAddress: contract.address,
+              entrypoint: "mint_game",
               calldata: [
-                shortString.encodeShortString(name),
-                settingsId,
-                new CairoOption<number>(CairoOptionVariant.None),
-                new CairoOption<number>(CairoOptionVariant.None),
+                playerNameOption,
+                settingsOption,
+                noneOption(), // start
+                noneOption(), // end
+                noneOption(), // objective_ids
+                noneOption(), // context
+                noneOption(), // client_url
+                noneOption(), // renderer_address
                 account.address,
+                0, // soulbound = false
               ],
             },
           ],
