@@ -96,10 +96,10 @@ const getPolicies = (): SessionPolicies | undefined => {
 const options: ControllerOptions = {
   chains: [
     {
-      rpcUrl: "https://api.cartridge.gg/x/starknet/sepolia/rpc/v0_8",
+      rpcUrl: "https://api.cartridge.gg/x/starknet/mainnet/rpc/v0_8",
     },
     {
-      rpcUrl: "https://api.cartridge.gg/x/starknet/mainnet/rpc/v0_8",
+      rpcUrl: "https://api.cartridge.gg/x/starknet/sepolia/rpc/v0_8",
     },
     {
       rpcUrl: "https://api.cartridge.gg/x/budokan-matth/katana",

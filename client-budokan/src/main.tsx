@@ -99,6 +99,7 @@ export function Main() {
           autoConnect
           chains={chains}
           connectors={connectors}
+          defaultChainId={sepolia.id}
           explorer={voyager}
           provider={jsonRpcProvider({ rpc })}
         >
