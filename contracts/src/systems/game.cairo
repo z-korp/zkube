@@ -23,7 +23,7 @@ mod game_system {
     use zkube::types::bonus::Bonus;
     use zkube::events::{StartGame, UseBonus};
     use zkube::systems::achievement::{
-        IAchievementSystemDispatcher, IAchievementSystemDispatcherTrait
+        IAchievementSystemDispatcher, IAchievementSystemDispatcherTrait,
     };
 
     use dojo::model::ModelStorage;
@@ -149,7 +149,7 @@ mod game_system {
                 .emit_event(
                     @StartGame {
                         player: get_caller_address(), timestamp: get_block_timestamp(), game_id,
-                    }
+                    },
                 );
         }
 
@@ -164,7 +164,7 @@ mod game_system {
             assert!(
                 token_metadata.lifecycle.is_playable(get_block_timestamp()),
                 "Game {} lifecycle is not playable",
-                game_id
+                game_id,
             );
 
             let mut game: Game = world.read_model(game_id);
@@ -192,7 +192,7 @@ mod game_system {
             assert!(
                 token_metadata.lifecycle.is_playable(get_block_timestamp()),
                 "Game {} lifecycle is not playable",
-                game_id
+                game_id,
             );
 
             let game_settings: GameSettings = ConfigUtilsImpl::get_game_settings(world, game_id);
@@ -220,7 +220,7 @@ mod game_system {
         }
 
         fn apply_bonus(
-            ref self: ContractState, game_id: u64, bonus: Bonus, row_index: u8, line_index: u8
+            ref self: ContractState, game_id: u64, bonus: Bonus, row_index: u8, line_index: u8,
         ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
@@ -232,7 +232,7 @@ mod game_system {
             assert!(
                 token_metadata.lifecycle.is_playable(starknet::get_block_timestamp()),
                 "Game {} lifecycle is not playable",
-                game_id
+                game_id,
             );
 
             let game_settings: GameSettings = ConfigUtilsImpl::get_game_settings(world, game_id);
@@ -261,7 +261,7 @@ mod game_system {
                         timestamp: get_block_timestamp(),
                         game_id,
                         bonus,
-                    }
+                    },
                 );
         }
 
@@ -278,7 +278,7 @@ mod game_system {
         }
 
         fn get_game_data(
-            self: @ContractState, game_id: u64
+            self: @ContractState, game_id: u64,
         ) -> (u16, u16, u8, u8, u8, u8, u16, bool) {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(game_id);
@@ -290,15 +290,13 @@ mod game_system {
                 game.wave_bonus,
                 game.totem_bonus,
                 game.score,
-                game.over
+                game.over,
             )
         }
     }
 
     #[generate_trait]
-pub    impl InternalImpl of InternalTrait {
-    
-
+    pub impl InternalImpl of InternalTrait {
         #[inline(always)]
         fn validate_start_conditions(
             self: @ContractState,
@@ -311,7 +309,7 @@ pub    impl InternalImpl of InternalTrait {
             assert!(
                 token_metadata.lifecycle.is_playable(starknet::get_block_timestamp()),
                 "Game {} lifecycle is not playable",
-                token_id
+                token_id,
             );
         }
 

@@ -11,7 +11,7 @@ github = "https://github.com/z-korp/zkube"
 telegram = "https://t.me/dojoengine"
 
 [namespace]
-default = "zkube_budo_v1_1_2"
+default = "zkube_budo_v1_1_3"
 
 [env]
 rpc_url = "https://api.cartridge.gg/x/starknet/sepolia/rpc/v0_8"
@@ -19,29 +19,25 @@ account_address = "0x012f5cc91e93d64b476335d7e823beb321743662f33fcfcb3e4b1b104e4
 world_address = "0x785401cf74071ec444e37dbbd87281aba48afc86570b1a1537193d1ce39086f"
 
 [writers]
-"zkube_budo_v1_1_2-Game" = ["zkube_budo_v1_1_2-game_system"]
-"zkube_budo_v1_1_2-GameSeed" = ["zkube_budo_v1_1_2-game_system"]
-"zkube_budo_v1_1_2-GameCounter" = ["zkube_budo_v1_1_2-game_system"]
-"zkube_budo_v1_1_2-GameMetadata" = ["zkube_budo_v1_1_2-game_system"]
-"zkube_budo_v1_1_2-TokenMetadata" = ["zkube_budo_v1_1_2-game_system"]
-"zkube_budo_v1_1_2-GameSettings" = ["zkube_budo_v1_1_2-config_system"]
-"zkube_budo_v1_1_2-GameSettingsMetadata" = ["zkube_budo_v1_1_2-config_system"]
-"zkube_budo_v1_1_2-TrophyCreation" = ["zkube_budo_v1_1_2-achievement_system"]
-"zkube_budo_v1_1_2-TrophyProgression" = ["zkube_budo_v1_1_2-achievement_system"]
+"zkube_budo_v1_1_3" = [
+    "zkube_budo_v1_1_3-achievement_system",
+    "zkube_budo_v1_1_3-game_system",
+    "zkube_budo_v1_1_3-config_system",
+]
 
 [init_call_args]
-"zkube_budo_v1_1_2-game_system" = [
+"zkube_budo_v1_1_3-game_system" = [
     "0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b", # creator
     "0x02334dc9c950c74c3228e2a343d495ae36f0b4edf06767a679569e9f9de08776", # Denshokan
     "0x0", "0x0"                                                         # Option::None pour renderer (flag, value)
 ]
-"zkube_budo_v1_1_2-config_system" = [
+"zkube_budo_v1_1_3-config_system" = [
     "0x0589d37adc1e5cf9ef58da510ee904aa9428d6e9a1c0d5c822392664d063796b",
 ]
 
 [migration]
 order_inits = [
-    "zkube_budo_v1_1_2-achievement_system",
-    "zkube_budo_v1_1_2-game_system",
-    "zkube_budo_v1_1_2-config_system",
+    "zkube_budo_v1_1_3-achievement_system",
+    "zkube_budo_v1_1_3-game_system",
+    "zkube_budo_v1_1_3-config_system",
 ]
