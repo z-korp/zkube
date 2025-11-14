@@ -42,6 +42,6 @@ world_address = "0x785401cf74071ec444e37dbbd87281aba48afc86570b1a1537193d1ce3908
 [migration]
 order_inits = [
     "zkube_budo_v1_1_2-achievement_system",
-    "zkube_budo_v1_1_2-config_system",
     "zkube_budo_v1_1_2-game_system",
+    "zkube_budo_v1_1_2-config_system",
 ]
