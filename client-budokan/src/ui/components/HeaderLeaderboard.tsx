@@ -68,7 +68,7 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
             body: JSON.stringify({
               query: `
               query ZkubeBudoV110GameModels {
-                zkubeBudoV110GameModels(
+                zkubeBudoV112GameModels(
                   order: { direction: DESC, field: SCORE }
                   first: 100
                 ) {
@@ -79,7 +79,7 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
                       game_id
                       entity {
                         models {
-                          ... on zkube_budo_v1_1_0_TokenMetadata {
+                          ... on zkube_budo_v1_1_2_TokenMetadata {
                             player_name
                           }
                         }

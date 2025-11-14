@@ -15,7 +15,6 @@ export async function setup({ ...config }: Config) {
   // Initialize Torii client for interacting with the Dojo network
   const toriiClient = await new torii.ToriiClient({
     toriiUrl: config.toriiUrl,
-    relayUrl: "",
     worldAddress: config.manifest.world.address || "",
   });
 
@@ -33,12 +32,12 @@ export async function setup({ ...config }: Config) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     contractComponents as any,
     KeysClause(
-      ["zkube_budo_v1_1_0-Game", "zkube_budo_v1_1_0-GameMetadata"],
+      ["zkube_budo_v1_1_2-Game", "zkube_budo_v1_1_2-GameMetadata"],
       [undefined],
       "VariableLen"
     ).build(),
     [],
-    ["zkube_budo_v1_1_0-Game", "zkube_budo_v1_1_0-GameMetadata"],
+    ["zkube_budo_v1_1_2-Game", "zkube_budo_v1_1_2-GameMetadata"],
     10000,
     false
   );

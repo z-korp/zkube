@@ -6,8 +6,8 @@ import {
   CairoOption,
   CairoOptionVariant,
   shortString,
+  type UniversalDetails,
 } from "starknet";
-import type { UniversalDetails } from "starknet";
 import type { Manifest } from "@/cartridgeConnector.tsx";
 
 const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
@@ -49,7 +49,7 @@ export interface BonusTx extends Signer {
 export type IWorld = Awaited<ReturnType<typeof setupWorld>>;
 
 export async function setupWorld(provider: DojoProvider, config: Config) {
-  const details: UniversalDetails | undefined = { maxFee: 1e15 };
+  const details: UniversalDetails | undefined = undefined;
 
   function game() {
     const contract_name = "game_system";
