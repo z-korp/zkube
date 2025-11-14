@@ -6,6 +6,8 @@ interface ImportMetaEnv {
     | "sepoliadev2"
     | "slot"
     | "slotdev";
+  readonly VITE_PUBLIC_NODE_URL: string;
+  readonly VITE_PUBLIC_DENSHOKAN: string;
 }
 
 interface ImportMeta {

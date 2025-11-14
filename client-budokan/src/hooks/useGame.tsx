@@ -24,7 +24,9 @@ export const useGame = ({
     () => getEntityIdFromKeys([BigInt(gameId || 0)]) as Entity,
     [gameId]
   );
+  console.log("gameKey", gameKey)
   const component = useComponentValue(Game, gameKey);
+  console.log("component", component)
 
   const game = useDeepMemo(() => {
     return component ? new GameClass(component) : null;
