@@ -67,7 +67,7 @@ mod achievement_system {
     #[abi(embed_v0)]
     impl AchievementSystemImpl of super::IAchievementSystem<ContractState> {
         fn update_progress_when_game_over(
-            ref self: ContractState, game: Game, caller: ContractAddress
+            ref self: ContractState, game: Game, caller: ContractAddress,
         ) {
             let world = self.world(@DEFAULT_NS());
 

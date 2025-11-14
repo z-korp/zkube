@@ -19,15 +19,11 @@ account_address = "0x012f5cc91e93d64b476335d7e823beb321743662f33fcfcb3e4b1b104e4
 world_address = "0x785401cf74071ec444e37dbbd87281aba48afc86570b1a1537193d1ce39086f"
 
 [writers]
-"zkube_budo_v1_1_3-Game" = ["zkube_budo_v1_1_3-game_system"]
-"zkube_budo_v1_1_3-GameSeed" = ["zkube_budo_v1_1_3-game_system"]
-"zkube_budo_v1_1_3-GameCounter" = ["zkube_budo_v1_1_3-game_system"]
-"zkube_budo_v1_1_3-GameMetadata" = ["zkube_budo_v1_1_3-game_system"]
-"zkube_budo_v1_1_3-TokenMetadata" = ["zkube_budo_v1_1_3-game_system"]
-"zkube_budo_v1_1_3-GameSettings" = ["zkube_budo_v1_1_3-config_system"]
-"zkube_budo_v1_1_3-GameSettingsMetadata" = ["zkube_budo_v1_1_3-config_system"]
-"zkube_budo_v1_1_3-TrophyCreation" = ["zkube_budo_v1_1_3-achievement_system"]
-"zkube_budo_v1_1_3-TrophyProgression" = ["zkube_budo_v1_1_3-achievement_system"]
+"zkube_budo_v1_1_3" = [
+    "zkube_budo_v1_1_3-achievement_system",
+    "zkube_budo_v1_1_3-game_system",
+    "zkube_budo_v1_1_3-config_system",
+]
 
 [init_call_args]
 "zkube_budo_v1_1_3-game_system" = [
