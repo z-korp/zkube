@@ -32,12 +32,12 @@ export async function setup({ ...config }: Config) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     contractComponents as any,
     KeysClause(
-      ["zkube_budo_v1_1_2-Game", "zkube_budo_v1_1_2-GameMetadata"],
+      ["zkube_budo_v1_1_3-Game"],
       [undefined],
       "VariableLen"
     ).build(),
     [],
-    ["zkube_budo_v1_1_2-Game", "zkube_budo_v1_1_2-GameMetadata"],
+    ["zkube_budo_v1_1_3-Game", "zkube_budo_v1_1_3-GameSettingsMetadata"],
     10000,
     false
   );

@@ -15,19 +15,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/ui/elements/table";
-import { shortString } from "starknet";
+import { useStarknetApi } from "@/hooks/useStarknetApi";
 
 interface GameData {
   score: number;
-  game_id: string;
-  entity: {
-    models: ModelType[];
-  };
-}
-
-interface ModelType {
-  player_name?: string;
-  [key: string]: unknown;
+  game_id: string | number;
 }
 
 interface HeaderLeaderboardProps {
@@ -49,6 +41,8 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
   const [games, setGames] = React.useState<GameData[]>([]);
   const [page, setPage] = React.useState(1);
   const ITEMS_PER_PAGE = 10;
+  const { getTokenMetadata } = useStarknetApi();
+  const [names, setNames] = React.useState<Record<string, string>>({});
 
   const startIdx = (page - 1) * ITEMS_PER_PAGE;
   const endIdx = startIdx + ITEMS_PER_PAGE;
@@ -67,8 +61,8 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
             },
             body: JSON.stringify({
               query: `
-              query ZkubeBudoV110GameModels {
-                zkubeBudoV112GameModels(
+              query ZkubeBudoV113GameModels {
+                zkubeBudoV113GameModels(
                   order: { direction: DESC, field: SCORE }
                   first: 100
                 ) {
@@ -77,13 +71,6 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
                     node {
                       score
                       game_id
-                      entity {
-                        models {
-                          ... on zkube_budo_v1_1_2_TokenMetadata {
-                            player_name
-                          }
-                        }
-                      }
                     }
                   }
                 }
@@ -95,8 +82,8 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
 
         const data = await response.json();
         console.log("GraphQL raw response:", data);
-        if (data.data?.zkubeBudoV110GameModels?.edges) {
-          const nodes = data.data.zkubeBudoV110GameModels.edges.map(
+        if (data.data?.zkubeBudoV113GameModels?.edges) {
+          const nodes = data.data.zkubeBudoV113GameModels.edges.map(
             (edge: { node: GameData }) => edge.node
           );
           /*console.log("Extracted nodes:", nodes);
@@ -119,6 +106,40 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
 
     fetchLeaderboardData();
   }, []);
+
+  // Resolve player names for current page using Starknet RPC hook
+  React.useEffect(() => {
+    const fetchNames = async () => {
+      const updates: Record<string, string> = {};
+      await Promise.all(
+        paginatedGames.map(async (game) => {
+          const key = String(game.game_id);
+          if (names[key] !== undefined) return;
+          try {
+            const idValue =
+              typeof game.game_id === "string"
+                ? Number.isNaN(Number(game.game_id))
+                  ? parseInt(game.game_id as string, 10)
+                  : Number(game.game_id)
+                : game.game_id;
+            const meta = await getTokenMetadata(idValue);
+            if (meta?.playerName) {
+              updates[key] = meta.playerName;
+            } else {
+              updates[key] = "-";
+            }
+          } catch (e) {
+            updates[key] = "-";
+          }
+        })
+      );
+      if (Object.keys(updates).length > 0) {
+        setNames((prev) => ({ ...prev, ...updates }));
+      }
+    };
+    if (paginatedGames.length > 0) fetchNames();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paginatedGames.map((g) => g.game_id).join("")]);
 
   return (
     <Dialog>
@@ -143,34 +164,24 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
                 <TableHead className="text-center">Score</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {paginatedGames.map((game, index) => (
-                <TableRow
-                  key={game.game_id}
-                  className="hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  <TableCell className="text-center font-semibold">{`#${
-                    startIdx + index + 1
-                  }`}</TableCell>
-                  <TableCell className="text-left">
-                    {(() => {
-                      const playerModel = game.entity.models.find(
-                        (m: ModelType) => m && m.player_name
-                      );
-                      if (playerModel && playerModel.player_name) {
-                        return shortString.decodeShortString(
-                          playerModel.player_name.toString()
-                        );
-                      }
-                      return "-";
-                    })()}
-                  </TableCell>
-                  <TableCell className="text-center font-bold">
-                    {game.score}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
+              <TableBody>
+                {paginatedGames.map((game, index) => (
+                  <TableRow
+                    key={game.game_id}
+                    className="hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    <TableCell className="text-center font-semibold">{`#${
+                      startIdx + index + 1
+                    }`}</TableCell>
+                    <TableCell className="text-left">
+                      {names[String(game.game_id)] ?? "-"}
+                    </TableCell>
+                    <TableCell className="text-center font-bold">
+                      {game.score}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
           </Table>
         </div>
         <div className="flex justify-center gap-4 mt-4">

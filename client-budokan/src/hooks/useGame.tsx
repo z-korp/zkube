@@ -4,6 +4,7 @@ import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
 import type { Entity } from "@dojoengine/recs";
 import useDeepMemo from "./useDeepMemo";
+import { useInRouterContext, useParams } from "react-router-dom";
 
 export const useGame = ({
   gameId,
@@ -11,6 +12,9 @@ export const useGame = ({
   gameId: number | undefined;
   shouldLog: boolean;
 }) => {
+  const isInRouter = useInRouterContext();
+  const params = isInRouter ? useParams<{ gameId?: string }>() : undefined;
+  const routeGameId = params?.gameId;
   const {
     setup: {
       clientModels: {
@@ -20,11 +24,18 @@ export const useGame = ({
     },
   } = useDojo();
 
+  const gameKeySource =
+    routeGameId ?? (gameId !== undefined ? gameId.toString() : "0");
+
   const gameKey = useMemo(
-    () => getEntityIdFromKeys([BigInt(gameId || 0)]) as Entity,
-    [gameId]
+    () => getEntityIdFromKeys([BigInt(gameKeySource)]) as Entity,
+    [gameKeySource]
   );
-  const component = useComponentValue(Game, gameKey);
+  console.log("gameKey", gameKey)
+
+  
+  const component = useComponentValue(Game, "0x" +BigInt(gameKey).toString(16) as Entity);
+  console.log("component", component)
 
   const game = useDeepMemo(() => {
     return component ? new GameClass(component) : null;
