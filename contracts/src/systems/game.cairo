@@ -91,7 +91,7 @@ mod game_system {
                 "zKorp",
                 "Puzzle",
                 "https://zkube.vercel.app/assets/pwa-512x512.png",
-                Option::None,
+                Option::Some("#3c2fba"),
                 Option::None,
                 renderer_address,
                 Option::Some(config_system_address),
