@@ -4,7 +4,7 @@ from collections import Counter
 
 def count_unique_minted_by_addresses():
     # GraphQL endpoint - replace with the actual endpoint URL
-    url = "https://api.cartridge.gg/x/zkube-budo-mainnet/torii/graphql"
+    url = "https://api.cartridge.gg/x/zkube-ba-mainnet/torii/graphql"
     
    # Initialize variables for pagination
     has_next_page = True

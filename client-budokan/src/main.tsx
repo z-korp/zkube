@@ -12,12 +12,13 @@ import { ThemeProvider } from "./ui/elements/theme-provider/index";
 import { StarknetConfig, jsonRpcProvider, voyager } from "@starknet-react/core";
 import { sepolia, mainnet, type NativeCurrency } from "@starknet-react/chains";
 import cartridgeConnector from "./cartridgeConnector";
+import { MetagameProvider } from "./contexts/MetagameProvider";
 
 import "./index.css";
 import { type BigNumberish, shortString } from "starknet";
 import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
 
-//const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
+const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
 function rpc() {
   return {
@@ -99,20 +100,22 @@ export function Main() {
           autoConnect
           chains={chains}
           connectors={connectors}
-          defaultChainId={sepolia.id}
+          defaultChainId={VITE_PUBLIC_DEPLOY_TYPE === sepolia ? sepolia.id : mainnet.id}
           explorer={voyager}
           provider={jsonRpcProvider({ rpc })}
         >
           <MusicPlayerProvider>
-            {!loading && setupResult ? (
-              <DojoProvider value={setupResult}>
-                <SoundPlayerProvider>
-                  <App />
-                </SoundPlayerProvider>
-              </DojoProvider>
-            ) : (
-              <Loading />
-            )}
+            <MetagameProvider>
+              {!loading && setupResult ? (
+                <DojoProvider value={setupResult}>
+                  <SoundPlayerProvider>
+                    <App />
+                  </SoundPlayerProvider>
+                </DojoProvider>
+              ) : (
+                <Loading />
+              )}
+            </MetagameProvider>
           </MusicPlayerProvider>
         </StarknetConfig>
       </ThemeProvider>

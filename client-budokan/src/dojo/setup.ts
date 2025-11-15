@@ -39,7 +39,7 @@ export async function setup({ ...config }: Config) {
     [],
     ["zkube_budo_v1_1_3-Game", "zkube_budo_v1_1_3-GameSettingsMetadata"],
     10000,
-    false
+    true
   );
 
   // Set up the world client for interacting with smart contracts

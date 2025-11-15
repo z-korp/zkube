@@ -34,9 +34,9 @@ const getSlot = (): string => {
     case "slot":
       return "budokan-matth";
     case "sepolia":
-      return "zkube-budo-sepolia";
+      return "zkube-ba-sepolia";
     default:
-      return "zkube-budo-mainnet";
+      return "zkube-ba-mainnet";
   }
 };
 
@@ -88,6 +88,50 @@ const getPolicies = (): SessionPolicies | undefined => {
           }
         }
       }
+    case "mainnet": 
+      return {contracts:{
+          "0x051Fea4450Da9D6aeE758BDEbA88B2f665bCbf549D2C61421AA724E9AC0Ced8F": {
+              description: "Provides verifiable random functions",
+              methods: [
+                {
+                  name: "Request Random",
+                  description: "Request a random number",
+                  entrypoint: "request_random"
+                }
+              ]
+            },
+            "0x79c30d00719faea99297075e22fd84260f39960e14239f2018ba5d1dc1ab907": {
+              description: "Manages zKube game",
+              methods: [
+                {
+                  name: "Create Game",
+                  description: "Create a new zKube game",
+                  entrypoint: "create"
+                },
+                {
+                  name: "Surrender Game",
+                  description: "Forfeit the current game",
+                  entrypoint: "surrender"
+                },
+                {
+                  name: "Make a Move",
+                  description: "Make a move in the current game",
+                  entrypoint: "move"
+                },
+                {
+                  name: "Use Bonus",
+                  description: "Apply a special bonus",
+                  entrypoint: "apply_bonus"
+                },
+                {
+                  name: "Mint Game",
+                  description: "Mint a new zKube game",
+                  entrypoint: "mint_game"
+                }
+              ]
+            }
+          }
+        }
     default:
       return undefined;
   }
@@ -109,7 +153,7 @@ const options: ControllerOptions = {
   namespace,
   slot: getSlot(),
   policies: getPolicies(),
-  preset:VITE_PUBLIC_DEPLOY_TYPE === "mainnet" ? preset : undefined,
+  preset:VITE_PUBLIC_DEPLOY_TYPE === "mainnet" ? undefined : undefined,
 };
 
 const cartridgeConnector = new ControllerConnector(

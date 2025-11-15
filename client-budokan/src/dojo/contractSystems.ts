@@ -5,10 +5,10 @@ import {
   CairoCustomEnum,
   CairoOption,
   CairoOptionVariant,
-  shortString,
+  CallData,
   type UniversalDetails,
 } from "starknet";
-import type { Manifest } from "@/cartridgeConnector.tsx";
+import { stringToFelt, type Manifest } from "@/cartridgeConnector.tsx";
 
 const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
 
@@ -63,18 +63,6 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
     const free_mint = async ({ account, name, settingsId = 0 }: FreeMint) => {
       try {
         const trimmedName = name.trim();
-        const playerNameOption =
-          trimmedName.length > 0
-            ? new CairoOption<string>(
-                CairoOptionVariant.Some,
-                shortString.encodeShortString(trimmedName)
-              )
-            : new CairoOption(CairoOptionVariant.None);
-        const settingsOption = new CairoOption<number>(
-          CairoOptionVariant.Some,
-          settingsId
-        );
-        const noneOption = () => new CairoOption(CairoOptionVariant.None);
 
         return await provider.execute(
           account,
@@ -82,19 +70,19 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
             {
               contractAddress: contract.address,
               entrypoint: "mint_game",
-              calldata: [
-                playerNameOption,
-                settingsOption,
-                noneOption(), // start
-                noneOption(), // end
-                noneOption(), // objective_ids
-                noneOption(), // context
-                noneOption(), // client_url
-                noneOption(), // renderer_address
-                account.address,
-                0, // soulbound = false
-              ],
-            },
+              calldata: CallData.compile([
+                new CairoOption(CairoOptionVariant.Some, stringToFelt(trimmedName)),
+                new CairoOption(CairoOptionVariant.Some, settingsId),
+                1, // start
+                1, // end
+                1, // objective_ids
+                1, // context
+                1, // client_url
+                1, // renderer_address
+                account!.address,
+                false, // soulbound
+              ])
+            }
           ],
           VITE_PUBLIC_NAMESPACE,
           details
