@@ -1,15 +1,11 @@
 use dojo::world::{WorldStorage, WorldStorageTrait};
 use game_components_minigame::interface::{IMinigameDispatcher, IMinigameDispatcherTrait};
-use game_components_token::core::interface::{
-    IMinigameTokenDispatcher, IMinigameTokenDispatcherTrait,
-};
+use game_components_token::core::interface::{IMinigameTokenDispatcher,};
 use starknet::ContractAddress;
 
 /// Returns the configured minigame token contract address registered in the Dojo world.
 pub fn get_token_address(world: WorldStorage) -> ContractAddress {
-    let (game_system_address, _) = world
-        .dns(@"game_system")
-        .expect('game_system not in world DNS');
+    let (game_system_address, _) = world.dns(@"game_system").expect('game_system not in world DNS');
     let dispatcher = IMinigameDispatcher { contract_address: game_system_address };
     dispatcher.token_address()
 }

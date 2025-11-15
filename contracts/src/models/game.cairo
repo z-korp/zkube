@@ -5,11 +5,6 @@ use core::hash::HashStateTrait;
 
 use alexandria_math::fast_power::fast_power;
 
-use dojo::world::WorldStorage;
-use dojo::world::WorldStorageTrait;
-
-use starknet::{get_caller_address};
-
 use zkube::constants;
 use zkube::types::difficulty::Difficulty;
 use zkube::helpers::math::Math;
@@ -264,37 +259,37 @@ pub impl GameImpl of GameTrait {
     }
 }
 
-    pub impl ZeroableGame of Zero<Game> {
-        #[inline(always)]
-        fn zero() -> Game {
-            Game {
-                game_id: 0,
-                blocks: 0,
-                next_row: 0,
-                score: 0,
-                moves: 0,
-                combo_counter: 0,
-                max_combo: 0,
-                hammer_bonus: 0,
-                wave_bonus: 0,
-                totem_bonus: 0,
-                hammer_used: 0,
-                wave_used: 0,
-                totem_used: 0,
-                over: false,
-            }
-        }
-
-        #[inline(always)]
-        fn is_zero(self: @Game) -> bool {
-            *(self.next_row) == 0
-        }
-
-        #[inline(always)]
-        fn is_non_zero(self: @Game) -> bool {
-            !self.is_zero()
+pub impl ZeroableGame of Zero<Game> {
+    #[inline(always)]
+    fn zero() -> Game {
+        Game {
+            game_id: 0,
+            blocks: 0,
+            next_row: 0,
+            score: 0,
+            moves: 0,
+            combo_counter: 0,
+            max_combo: 0,
+            hammer_bonus: 0,
+            wave_bonus: 0,
+            totem_bonus: 0,
+            hammer_used: 0,
+            wave_used: 0,
+            totem_used: 0,
+            over: false,
         }
     }
+
+    #[inline(always)]
+    fn is_zero(self: @Game) -> bool {
+        *(self.next_row) == 0
+    }
+
+    #[inline(always)]
+    fn is_non_zero(self: @Game) -> bool {
+        !self.is_zero()
+    }
+}
 
 #[generate_trait]
 pub impl GameAssert of AssertTrait {
@@ -323,7 +318,6 @@ pub impl GameAssert of AssertTrait {
         };
         assert!(count > 0, "Game {} bonus is not available", self.game_id);
     }
-
 }
 
 #[cfg(test)]

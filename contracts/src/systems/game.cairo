@@ -14,7 +14,7 @@ trait IGameSystem<T> {
 #[dojo::contract]
 mod game_system {
     use zkube::constants::DEFAULT_NS;
-    use zkube::models::config::{GameSettings, GameSettingsTrait};
+    use zkube::models::config::{GameSettings};
     use zkube::models::game::{Game, GameTrait, GameAssert};
     use zkube::models::game::GameSeed;
     use zkube::types::difficulty::{Difficulty, IIncreasingDifficultyUtilsTrait};
@@ -31,7 +31,6 @@ mod game_system {
     use dojo::event::EventStorage;
 
     use starknet::{get_block_timestamp, get_caller_address, ContractAddress};
-    use starknet::storage::{StoragePointerReadAccess};
 
     use game_components_minigame::interface::{IMinigameTokenData};
     use game_components_minigame::libs::{
@@ -266,7 +265,6 @@ mod game_system {
         }
 
         fn get_player_name(self: @ContractState, game_id: u64) -> felt252 {
-            let world: WorldStorage = self.world(@DEFAULT_NS());
             let token_address = self.token_address();
             get_token_player_name(token_address, game_id)
         }

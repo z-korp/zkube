@@ -11,28 +11,32 @@ github = "https://github.com/z-korp/zkube"
 telegram = "https://t.me/dojoengine"
 
 [namespace]
-default = "zkube_budo_v1_1_0"
+default = "zkube_budo_v1_1_3"
 
 [env]
-rpc_url = "https://api.cartridge.gg/x/starknet/mainnet"
-account_address = "0x063fd4be5b4df3068e3c4ae4062e999609b96a569e69628d6ba3331bf56e826c"
-world_address = "0x5c6d0020a9927edca9ddc984b97305439c0b32a1ec8d3f0eaf6291074cc9799"
+rpc_url = "https://api.cartridge.gg/x/starknet/mainnet/rpc/v0_8"
+account_address = "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7"
 
 [writers]
-"zkube_budo_v1_1_0-Game" = ["zkube_budo_v1_1_0-game_system"]
-"zkube_budo_v1_1_0-GameSeed" = ["zkube_budo_v1_1_0-game_system"]
-"zkube_budo_v1_1_0-GameCounter" = ["zkube_budo_v1_1_0-game_system"]
-"zkube_budo_v1_1_0-GameMetadata" = ["zkube_budo_v1_1_0-game_system"]
-"zkube_budo_v1_1_0-TokenMetadata" = ["zkube_budo_v1_1_0-game_system"]
-"zkube_budo_v1_1_0-GameSettings" = ["zkube_budo_v1_1_0-config_system"]
-"zkube_budo_v1_1_0-GameSettingsMetadata" = ["zkube_budo_v1_1_0-config_system"]
-"zkube_budo_v1_1_0-TrophyCreation" = ["zkube_budo_v1_1_0-achievement_system"]
-"zkube_budo_v1_1_0-TrophyProgression" = ["zkube_budo_v1_1_0-achievement_system"]
+"zkube_budo_v1_1_3" = [
+    "zkube_budo_v1_1_3-achievement_system",
+    "zkube_budo_v1_1_3-game_system",
+    "zkube_budo_v1_1_3-config_system",
+]
 
 [init_call_args]
-"zkube_budo_v1_1_0-game_system" = [
-    "0x04E4E4F6099F935FFC97af2f594be52a7b8f16C61b3F307707022973961d2B76",
+"zkube_budo_v1_1_3-game_system" = [
+    "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7", # creator
+    "0x036017E69D21D6D8c13E266EaBB73ef1f1D02722D86BDcAbe5f168f8e549d3cD", # Denshokan
+    "0x0", "0x0"                                                          # Option::None pour renderer (flag, value)
 ]
-"zkube_budo_v1_1_0-config_system" = [
-    "0x04E4E4F6099F935FFC97af2f594be52a7b8f16C61b3F307707022973961d2B76",
+"zkube_budo_v1_1_3-config_system" = [
+    "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01fafaa7",
+]
+
+[migration]
+order_inits = [
+    "zkube_budo_v1_1_3-achievement_system",
+    "zkube_budo_v1_1_3-game_system",
+    "zkube_budo_v1_1_3-config_system",
 ]
