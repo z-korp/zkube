@@ -17,6 +17,27 @@ import {
 } from "@/ui/elements/table";
 import { useGameTokens } from "metagame-sdk/sql";
 import type { GameTokenData } from "metagame-sdk";
+import { manifest } from "@/config/manifest";
+
+const normalizeAddress = (address?: string) => {
+  if (!address) return undefined;
+  try {
+    const formatted = BigInt(address).toString(16);
+    return `0x${formatted}`.toLowerCase();
+  } catch {
+    return address.trim().toLowerCase();
+  }
+};
+
+const gameSystemContract = manifest.contracts?.find(
+  (contract: { tag?: string }) => contract.tag?.includes("game_system"),
+);
+const gameSystemAddress = normalizeAddress(gameSystemContract?.address);
+
+const excludedLeaderboardNames =
+  import.meta.env.VITE_PUBLIC_LEADERBOARD_EXCLUDED_NAMES?.split(",")
+    .map((name) => name.trim().toLowerCase())
+    .filter((name): name is string => Boolean(name)) ?? [];
 
 interface HeaderLeaderboardProps {
   buttonType?:
@@ -35,18 +56,46 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
   textSize = "lg",
 }) => {
   const [page, setPage] = React.useState(1);
+  const [copiedTokenId, setCopiedTokenId] = React.useState<string | null>(null);
   const ITEMS_PER_PAGE = 10;
   const { games, loading, error } = useGameTokens({
     sortBy: "score",
     sortOrder: "desc",
     limit: 100,
     includeMetadata: true,
+    gameAddresses: gameSystemAddress ? [gameSystemAddress] : undefined,
   });
+  const filteredGames = React.useMemo(() => {
+    if (!excludedLeaderboardNames.length) {
+      return games;
+    }
+    return games.filter((game) => {
+      if (game.game_id === 0) return true;
+      const playerName = (game as GameTokenData).player_name?.toLowerCase();
+      return !(playerName && excludedLeaderboardNames.includes(playerName));
+    });
+  }, [games, excludedLeaderboardNames]);
 
   const startIdx = (page - 1) * ITEMS_PER_PAGE;
   const endIdx = startIdx + ITEMS_PER_PAGE;
-  const paginatedGames = games.slice(startIdx, endIdx);
-  const totalPages = Math.ceil(games.length / ITEMS_PER_PAGE);
+  const paginatedGames = filteredGames.slice(startIdx, endIdx);
+  const totalPages = Math.ceil(filteredGames.length / ITEMS_PER_PAGE);
+  const handleCopyPlayerAddress = React.useCallback(
+    async (address: string | undefined, tokenId: string) => {
+      if (!address) return;
+      try {
+        await navigator.clipboard.writeText(address);
+        setCopiedTokenId(tokenId);
+        setTimeout(
+          () => setCopiedTokenId((prev) => (prev === tokenId ? null : prev)),
+          1500,
+        );
+      } catch (err) {
+        console.error("Failed to copy player address", err);
+      }
+    },
+    [],
+  );
 
   return (
     <Dialog>
@@ -71,24 +120,41 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
                 <TableHead className="text-center">Score</TableHead>
               </TableRow>
             </TableHeader>
-              <TableBody>
-                {paginatedGames.map((game, index) => (
-                  <TableRow
-                    key={game.token_id}
-                    className="hover:bg-slate-100 dark:hover:bg-slate-800"
-                  >
-                    <TableCell className="text-center font-semibold">{`#${
-                      startIdx + index + 1
-                    }`}</TableCell>
-                    <TableCell className="text-left">
+            <TableBody>
+              {paginatedGames.map((game, index) => (
+                <TableRow
+                  key={game.token_id}
+                  className="hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  <TableCell className="text-center font-semibold">{`#${
+                    startIdx + index + 1
+                  }`}</TableCell>
+                  <TableCell className="text-left">
+                    <button
+                      type="button"
+                      className="text-left hover:underline"
+                      onClick={() =>
+                        handleCopyPlayerAddress(
+                          normalizeAddress(
+                            game.minted_by_address ?? game.owner ?? undefined,
+                          ),
+                          String(game.token_id),
+                        )
+                      }
+                      title="Click to copy player address"
+                    >
                       {(game as GameTokenData).player_name ?? "-"}
-                    </TableCell>
-                    <TableCell className="text-center font-bold">
-                      {game.score}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
+                      {copiedTokenId === String(game.token_id)
+                        ? " (copied)"
+                        : ""}
+                    </button>
+                  </TableCell>
+                  <TableCell className="text-center font-bold">
+                    {game.score}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
           </Table>
         </div>
         <div className="flex justify-center gap-4 mt-4">
