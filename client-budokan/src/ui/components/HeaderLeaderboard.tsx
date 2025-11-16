@@ -17,27 +17,14 @@ import {
 } from "@/ui/elements/table";
 import { useGameTokens } from "metagame-sdk/sql";
 import type { GameTokenData } from "metagame-sdk";
-import { manifest } from "@/config/manifest";
+import {
+  getGameSystemAddress,
+  getLeaderboardExcludedNames,
+  normalizeAddress,
+} from "@/utils/metagame";
 
-const normalizeAddress = (address?: string) => {
-  if (!address) return undefined;
-  try {
-    const formatted = BigInt(address).toString(16);
-    return `0x${formatted}`.toLowerCase();
-  } catch {
-    return address.trim().toLowerCase();
-  }
-};
-
-const gameSystemContract = manifest.contracts?.find(
-  (contract: { tag?: string }) => contract.tag?.includes("game_system"),
-);
-const gameSystemAddress = normalizeAddress(gameSystemContract?.address);
-
-const excludedLeaderboardNames =
-  import.meta.env.VITE_PUBLIC_LEADERBOARD_EXCLUDED_NAMES?.split(",")
-    .map((name) => name.trim().toLowerCase())
-    .filter((name): name is string => Boolean(name)) ?? [];
+const gameSystemAddress = getGameSystemAddress();
+const excludedLeaderboardNames = getLeaderboardExcludedNames();
 
 interface HeaderLeaderboardProps {
   buttonType?:
