@@ -2,31 +2,30 @@ import { useDojo } from "@/dojo/useDojo";
 import { useCallback, useState } from "react";
 import { Button } from "@/ui/elements/button";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import { useMediaQuery } from "react-responsive";
 import { showToast } from "@/utils/toast";
-import { useNavigate } from "react-router-dom";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 
-export const PlayFreeGame = () => {
+type PlayFreeGameProps = {
+  onMintSuccess?: () => void | Promise<void>;
+};
+
+export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
   const {
     setup: {
       systemCalls: { freeMint, create },
     },
   } = useDojo();
-
-  const navigate = useNavigate();
   const { account } = useAccountCustom();
   const { username } = useControllerUsername();
 
   const [isLoading, setIsLoading] = useState(false);
-  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 
   const handleClick = useCallback(async () => {
     if (!account) return;
 
     setIsLoading(true);
     try {
-      // Start the game
+      // Mint a new free game
       const result = await freeMint({
         account,
         name: username ?? "",
@@ -35,33 +34,32 @@ export const PlayFreeGame = () => {
 
       await create({ account, token_id: result.game_id });
 
-      // Navigate to the game screen with the new game ID
-      if (result && result.game_id) {
-        navigate(`/play/${result.game_id}`);
-      }
-    } catch (error) {
-      console.error("Error starting game:", error);
       showToast({
-        message: "Failed to start game",
+        message: "Game minted! You can resume it from My Games.",
+        type: "success",
+      });
+
+      onMintSuccess?.();
+    } catch (error) {
+      console.error("Error minting game:", error);
+      showToast({
+        message: "Failed to mint game",
         type: "error",
       });
     } finally {
       setIsLoading(false);
     }
-  }, [account, create, freeMint, navigate, username]);
+  }, [account, create, freeMint, onMintSuccess, username]);
 
   return (
     <Button
       disabled={isLoading}
       isLoading={isLoading}
       onClick={handleClick}
-      variant={`${!isMdOrLarger ? "brutal" : "default"}`}
-      className={`text-lg w-[300px] transition-transform duration-300 ease-in-out hover:scale-105 ${
-        !isMdOrLarger &&
-        "py-6 border-4 border-white rounded-none text-white bg-sky-900 shadow-lg font-sans font-bold "
-      }`}
+      variant="default"
+      className="text-lg w-[300px] transition-transform duration-300 ease-in-out hover:scale-105"
     >
-      Play Game
+      Mint Game
     </Button>
   );
 };

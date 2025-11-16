@@ -6,7 +6,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
-import { Dialog, DialogContent, DialogHeader } from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
 import { useMediaQuery } from "react-responsive";
 import useViewport from "@/hooks/useViewport";
@@ -15,7 +14,7 @@ import { PlayFreeGame } from "../actions/PlayFreeGame";
 import { useGame } from "@/hooks/useGame";
 import Tutorial from "../components/Tutorial/Tutorial";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
+import { faFire, faStar, faRotateRight } from "@fortawesome/free-solid-svg-icons";
 import MaxComboIcon from "../components/MaxComboIcon";
 import GameBoard from "../components/GameBoard";
 import { useGrid } from "@/hooks/useGrid";
@@ -109,9 +108,6 @@ export const Home = () => {
 
   const [isGameOn] = useState<"idle" | "isOn" | "isOver">("idle");
 
-  // State variables for modals
-  const [isMyGamesOpen, setIsMyGamesOpen] = useState(false);
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -148,6 +144,7 @@ export const Home = () => {
     games: ownedGames,
     loading: ownedGamesLoading,
     metadataLoading: ownedMetadataLoading,
+    refetch: refetchOwnedGames,
   } = useGameTokens({
     owner: shouldFetchMyGames ? account?.address : undefined,
     sortBy: "minted_at",
@@ -191,42 +188,104 @@ export const Home = () => {
     return value.toString();
   };
 
-  const renderMyGamesTable = (games: PlayerGameRow[]) => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Game</TableHead>
-          <TableHead>Score</TableHead>
-          <TableHead>Combo</TableHead>
-          <TableHead>Max Combo</TableHead>
-          <TableHead>Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {games.map((game) => (
-          <TableRow key={game.tokenId}>
-            <TableCell>{game.name}</TableCell>
-            <TableCell>{formatStat(game.score)}</TableCell>
-            <TableCell>{formatStat(game.combo)}</TableCell>
-            <TableCell>{formatStat(game.maxCombo)}</TableCell>
-            <TableCell>
-              {!game.gameOver ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => navigate(`/play/${game.tokenId}`)}
-                >
-                  Play
-                </Button>
-              ) : (
-                <span className="text-sm text-muted-foreground">Completed</span>
-              )}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
+  const renderMyGamesTable = (games: PlayerGameRow[]) => {
+    if (!isMdOrLarger) {
+      return (
+        <div className="space-y-4 max-h-[360px] overflow-y-auto pr-1">
+          {games.map((game) => (
+            <div
+              key={game.tokenId}
+              className="rounded-xl border border-white/20 bg-black/60 p-4 shadow-lg backdrop-blur-sm"
+            >
+              <div className="flex items-center justify-between">
+                <div className="text-base font-semibold text-white">
+                  <span className="text-slate-400 mr-1">#{game.tokenId}</span>
+                  {game.name}
+                </div>
+                {!game.gameOver ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => navigate(`/play/${game.tokenId}`)}
+                  >
+                    Resume
+                  </Button>
+                ) : (
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-300">
+                    Finished
+                  </span>
+                )}
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-slate-200">
+                <div>
+                  <p className="text-xs uppercase text-slate-400">Score</p>
+                  <p className="text-base font-semibold">
+                    {formatStat(game.score)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/40">
+        <div className="overflow-x-auto">
+          <div className="max-h-[320px] overflow-y-auto pr-2">
+            <Table className="min-w-[640px] text-sm">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs uppercase tracking-wide text-slate-400">
+                    Game
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-slate-400">
+                    Score
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-slate-400">
+                    Combo
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-slate-400">
+                    Max Combo
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-slate-400">
+                    Actions
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {games.map((game) => (
+                  <TableRow key={game.tokenId} className="text-base">
+                <TableCell>
+                  <span className="text-slate-400 mr-1">#{game.tokenId}</span>
+                  {game.name}
+                </TableCell>
+                    <TableCell>{formatStat(game.score)}</TableCell>
+                    <TableCell>{formatStat(game.combo)}</TableCell>
+                    <TableCell>{formatStat(game.maxCombo)}</TableCell>
+                    <TableCell>
+                      {!game.gameOver ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => navigate(`/play/${game.tokenId}`)}
+                        >
+                          Play
+                        </Button>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">Completed</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderMyGamesContent = () => {
     if (!account?.address) {
@@ -243,7 +302,7 @@ export const Home = () => {
     const completedGames = playerGames.filter((game) => game.gameOver);
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 px-1 sm:px-0">
         <div>
           <h3 className="text-lg font-semibold mb-2">In Progress</h3>
           {activeGames.length ? (
@@ -269,47 +328,48 @@ export const Home = () => {
   };
 
   // Define render functions
+  const MyGamesSection = () => (
+    <div className="w-full max-w-4xl px-4 sm:px-0">
+      <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-black/70 via-slate-900/70 to-black/80 shadow-2xl backdrop-blur-xl p-5 sm:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-2xl font-semibold text-white">My Games</h2>
+          <div className="flex items-center gap-3 text-sm text-slate-300">
+            <div className="rounded-full border border-white/20 px-3 py-1">
+              {playerGames.length ? `${playerGames.length} saved` : "No games yet"}
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => refetchOwnedGames?.()}
+              disabled={myGamesLoading}
+              className="h-8 w-8 border-white/30 text-white hover:bg-white/10"
+            >
+              <FontAwesomeIcon icon={faRotateRight} />
+            </Button>
+          </div>
+        </div>
+        <div className="mt-6">{renderMyGamesContent()}</div>
+      </div>
+    </div>
+  );
+
   const renderDesktopView = () => (
     <>
       <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center mt-4">
-        <PlayFreeGame />
+        <PlayFreeGame onMintSuccess={refetchOwnedGames} />
       </div>
-      <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-start justify-center">
-        <Button
-          variant="default"
-          onClick={() => setIsMyGamesOpen(true)}
-          className="w-[300px] text-lg transition-transform duration-300 ease-in-out hover:scale-105"
-        >
-          My Games
-        </Button>
+      <div className="flex w-full justify-center mt-6">
+        <MyGamesSection />
       </div>
-      <Dialog open={isMyGamesOpen} onOpenChange={setIsMyGamesOpen}>
-        <DialogContent>
-          <DialogHeader>My Games</DialogHeader>
-          {renderMyGamesContent()}
-        </DialogContent>
-      </Dialog>
     </>
   );
 
   const renderMobileView = () => (
-    <div className="flex flex-col w-full gap-4 px-4 mt-4 items-center">
+    <div className="flex flex-col w-full gap-6 px-4 mt-4 items-center">
       <div className="w-[300px]">
-        <PlayFreeGame />
+        <PlayFreeGame onMintSuccess={refetchOwnedGames} />
       </div>
-      <Button
-        variant="brutal"
-        onClick={() => setIsMyGamesOpen(true)}
-        className="w-[300px] bg-primary text-white text-lg py-6 border-4 shadow-lg bg-sky-900 font-sans rounded-none h-[72px]"
-      >
-        My Games
-      </Button>
-      <Dialog open={isMyGamesOpen} onOpenChange={setIsMyGamesOpen}>
-        <DialogContent>
-          <DialogHeader>My Games</DialogHeader>
-          {renderMyGamesContent()}
-        </DialogContent>
-      </Dialog>
+      <MyGamesSection />
     </div>
   );
 
