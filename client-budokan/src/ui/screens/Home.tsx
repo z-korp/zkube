@@ -57,6 +57,7 @@ type PlayerGameRow = {
   score: string | number | undefined;
   combo: string | number | undefined;
   maxCombo: string | number | undefined;
+  gameOver: boolean;
 };
 
 const parseTokenMetadata = (metadata: unknown): TokenMetadata | undefined => {
@@ -175,6 +176,7 @@ export const Home = () => {
         score: scoreAttr ?? game.score ?? "-",
         combo: comboAttr ?? "-",
         maxCombo: maxComboAttr ?? "-",
+        gameOver: Boolean(game.game_over),
       };
     });
   }, [ownedGames]);
@@ -189,7 +191,7 @@ export const Home = () => {
     return value.toString();
   };
 
-  const renderMyGamesTable = () => (
+  const renderMyGamesTable = (games: PlayerGameRow[]) => (
     <Table>
       <TableHeader>
         <TableRow>
@@ -201,20 +203,24 @@ export const Home = () => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {playerGames.map((game) => (
+        {games.map((game) => (
           <TableRow key={game.tokenId}>
             <TableCell>{game.name}</TableCell>
             <TableCell>{formatStat(game.score)}</TableCell>
             <TableCell>{formatStat(game.combo)}</TableCell>
             <TableCell>{formatStat(game.maxCombo)}</TableCell>
             <TableCell>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => navigate(`/play/${game.tokenId}`)}
-              >
-                Play
-              </Button>
+              {!game.gameOver ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate(`/play/${game.tokenId}`)}
+                >
+                  Play
+                </Button>
+              ) : (
+                <span className="text-sm text-muted-foreground">Completed</span>
+              )}
             </TableCell>
           </TableRow>
         ))}
@@ -232,7 +238,34 @@ export const Home = () => {
     if (!playerGames.length) {
       return <div>You have no games yet.</div>;
     }
-    return renderMyGamesTable();
+
+    const activeGames = playerGames.filter((game) => !game.gameOver);
+    const completedGames = playerGames.filter((game) => game.gameOver);
+
+    return (
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold mb-2">In Progress</h3>
+          {activeGames.length ? (
+            renderMyGamesTable(activeGames)
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No active games yet.
+            </p>
+          )}
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Finished</h3>
+          {completedGames.length ? (
+            renderMyGamesTable(completedGames)
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No finished games yet.
+            </p>
+          )}
+        </div>
+      </div>
+    );
   };
 
   // Define render functions
