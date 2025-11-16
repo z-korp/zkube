@@ -157,6 +157,9 @@ export const Play = () => {
   const imageTotemTheme =
     theme === "dark" ? imgAssets.imageTotemDark : imgAssets.imageTotemLight;
 
+  const isGridLoading =
+    !!game && !game.isOver() && (!grid || grid.length === 0);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setAnimationDone(true);
@@ -227,7 +230,28 @@ export const Play = () => {
                     />
                   )}
 
-                  {!!game && isGameOn === "isOn" && (
+                  {(isGameLoading || isGridLoading) && (
+                    <div className="flex w-full flex-col items-center justify-center gap-4 py-12">
+                      <div className="flex h-24 w-24 items-center justify-center">
+                        <img
+                          src={imgAssets.loader}
+                          alt="Loading cube"
+                          className="h-16 w-16 animate-bounce drop-shadow-[0_0_12px_rgba(59,130,246,0.8)]"
+                        />
+                      </div>
+                      <p className="text-lg font-semibold uppercase tracking-[0.25em] text-slate-100">
+                        {isGameLoading ? "Preparing game" : "Loading grid"}
+                      </p>
+                      <p className="text-sm text-slate-300">
+                        Hang tight, the blocks are assembling.
+                      </p>
+                    </div>
+                  )}
+
+                  {!!game &&
+                    isGameOn === "isOn" &&
+                    !isGridLoading &&
+                    !isGameLoading && (
                     <div className="relative w-full">
                       <div
                         ref={gameGrid}
