@@ -14,7 +14,11 @@ import { PlayFreeGame } from "../actions/PlayFreeGame";
 import { useGame } from "@/hooks/useGame";
 import Tutorial from "../components/Tutorial/Tutorial";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFire, faStar, faRotateRight } from "@fortawesome/free-solid-svg-icons";
+import {
+  faFire,
+  faStar,
+  faRotateRight,
+} from "@fortawesome/free-solid-svg-icons";
 import MaxComboIcon from "../components/MaxComboIcon";
 import GameBoard from "../components/GameBoard";
 import { useGrid } from "@/hooks/useGrid";
@@ -79,7 +83,8 @@ const getAttributeValue = (
   key: string,
 ): string | number | undefined => {
   const entry = attributes.find(
-    (item) => item?.trait === key || item?.trait_type === key || item?.name === key,
+    (item) =>
+      item?.trait === key || item?.trait_type === key || item?.name === key,
   );
   return entry?.value ?? entry?.Value ?? entry?.display_type;
 };
@@ -167,9 +172,7 @@ export const Home = () => {
       return {
         tokenId: game.token_id,
         name:
-          metadata?.name ||
-          game.gameMetadata?.name ||
-          `Game #${game.token_id}`,
+          metadata?.name || game.gameMetadata?.name || `Game #${game.token_id}`,
         score: scoreAttr ?? game.score ?? "-",
         combo: comboAttr ?? "-",
         maxCombo: maxComboAttr ?? "-",
@@ -191,7 +194,7 @@ export const Home = () => {
   const renderMyGamesTable = (games: PlayerGameRow[]) => {
     if (!isMdOrLarger) {
       return (
-        <div className="space-y-4 max-h-[360px] overflow-y-auto pr-1">
+        <div className="space-y-4 max-h-[360px] overflow-y-auto pr-1 hide-scrollbar">
           {games.map((game) => (
             <div
               key={game.tokenId}
@@ -233,7 +236,7 @@ export const Home = () => {
     return (
       <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/40">
         <div className="overflow-x-auto">
-          <div className="max-h-[320px] overflow-y-auto pr-2">
+          <div className="max-h-[320px] overflow-y-auto pr-2 hide-scrollbar">
             <Table className="min-w-[640px] text-sm">
               <TableHeader>
                 <TableRow>
@@ -257,10 +260,12 @@ export const Home = () => {
               <TableBody>
                 {games.map((game) => (
                   <TableRow key={game.tokenId} className="text-base">
-                <TableCell>
-                  <span className="text-slate-400 mr-1">#{game.tokenId}</span>
-                  {game.name}
-                </TableCell>
+                    <TableCell>
+                      <span className="text-slate-400 mr-1">
+                        #{game.tokenId}
+                      </span>
+                      {game.name}
+                    </TableCell>
                     <TableCell>{formatStat(game.score)}</TableCell>
                     <TableCell>{formatStat(game.combo)}</TableCell>
                     <TableCell>{formatStat(game.maxCombo)}</TableCell>
@@ -274,7 +279,9 @@ export const Home = () => {
                           Play
                         </Button>
                       ) : (
-                        <span className="text-sm text-muted-foreground">Completed</span>
+                        <span className="text-sm text-muted-foreground">
+                          Completed
+                        </span>
                       )}
                     </TableCell>
                   </TableRow>
@@ -335,7 +342,9 @@ export const Home = () => {
           <h2 className="text-2xl font-semibold text-white">My Games</h2>
           <div className="flex items-center gap-3 text-sm text-slate-300">
             <div className="rounded-full border border-white/20 px-3 py-1">
-              {playerGames.length ? `${playerGames.length} saved` : "No games yet"}
+              {playerGames.length
+                ? `${playerGames.length} saved`
+                : "No games yet"}
             </div>
             <Button
               variant="outline"
@@ -374,7 +383,10 @@ export const Home = () => {
   );
 
   return (
-    <div className="h-screen-viewport flex flex-col w-full" id="portal-root">
+    <div
+      className="h-screen-viewport flex flex-col w-full overflow-auto hide-scrollbar"
+      id="portal-root"
+    >
       <Header onStartTutorial={startTutorial} showTutorial={true} />
 
       {/* Content Area */}
@@ -392,7 +404,7 @@ export const Home = () => {
               ease: "easeInOut",
             }}
           >
-            <div className="relative flex flex-col gap-4 sm:gap-8 flex-grow items-center justify-start overflow-auto h-full">
+            <div className="relative flex flex-col gap-4 sm:gap-8 flex-grow items-center justify-start overflow-auto hide-scrollbar h-full">
               <div className="flex flex-col items-center gap-4 sm:gap-8 w-full max-w-4xl mt-2 sm:mt-4 p-2 md:p-0 h-full">
                 {tutorialState.isActive ? (
                   <Tutorial

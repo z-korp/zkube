@@ -206,3 +206,12 @@ body[style*="pointer-events: none"] #controller * {
   align-items: center;
   justify-content: center;
 }
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
