@@ -48,7 +48,7 @@ const MobileHeader = ({
   };
 
   return (
-    <div className="px-3 py-2 flex gap-3 rounded-3xl border border-white/10 bg-gradient-to-b from-black/70 via-slate-900/70 to-black/80 shadow-2xl backdrop-blur-xl">
+    <div className="px-3 py-2 flex gap-3 bg-gradient-to-b from-black/70 via-slate-900/70 to-black/80 shadow-2xl backdrop-blur-xl">
       <Drawer
         direction="left"
         open={isDrawerOpen}

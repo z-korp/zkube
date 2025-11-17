@@ -38,7 +38,7 @@ const DesktopHeader = ({
   }, [navigate]);
 
   return (
-    <div className="flex w-full flex-wrap items-center justify-center p-4 md:justify-between rounded-3xl border border-white/10 bg-gradient-to-b from-black/70 via-slate-900/70 to-black/80 shadow-2xl backdrop-blur-xl">
+    <div className="flex w-full items-center justify-center p-4 md:justify-between rounded-3xl bg-gradient-to-b from-black/70 via-slate-900/70 to-black/80 shadow-2xl backdrop-blur-xl">
       <div
         className="cursor-pointer flex gap-8 items-center"
         onClick={handleClick}
