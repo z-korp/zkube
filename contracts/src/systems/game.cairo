@@ -14,7 +14,7 @@ trait IGameSystem<T> {
 #[dojo::contract]
 mod game_system {
     use zkube::constants::DEFAULT_NS;
-    use zkube::models::config::{GameSettings};
+    use zkube::models::config::{GameSettings, GameSettingsTrait};
     use zkube::models::game::{Game, GameTrait, GameAssert};
     use zkube::models::game::GameSeed;
     use zkube::types::difficulty::{Difficulty, IIncreasingDifficultyUtilsTrait};
@@ -128,10 +128,10 @@ mod game_system {
 
             let game_settings: GameSettings = ConfigUtilsImpl::get_game_settings(world, game_id);
 
-            let difficulty: Difficulty = if game_settings.difficulty == Difficulty::Increasing {
+            let difficulty: Difficulty = if game_settings.get_difficulty() == Difficulty::Increasing {
                 IIncreasingDifficultyUtilsTrait::get_difficulty_from_moves(0)
             } else {
-                game_settings.difficulty
+                game_settings.get_difficulty()
             };
 
             let random = RandomImpl::new_vrf();
@@ -200,10 +200,10 @@ mod game_system {
             assert_token_ownership(token_address, game_id);
             game.assert_not_over();
 
-            let difficulty: Difficulty = if game_settings.difficulty == Difficulty::Increasing {
+            let difficulty: Difficulty = if game_settings.get_difficulty() == Difficulty::Increasing {
                 IIncreasingDifficultyUtilsTrait::get_difficulty_from_moves(game.moves)
             } else {
-                game_settings.difficulty
+                game_settings.get_difficulty()
             };
 
             let base_seed: GameSeed = world.read_model(game_id);
@@ -241,10 +241,10 @@ mod game_system {
             game.assert_not_over();
             game.assert_is_available(bonus);
 
-            let difficulty: Difficulty = if game_settings.difficulty == Difficulty::Increasing {
+            let difficulty: Difficulty = if game_settings.get_difficulty() == Difficulty::Increasing {
                 IIncreasingDifficultyUtilsTrait::get_difficulty_from_moves(game.moves)
             } else {
-                game_settings.difficulty
+                game_settings.get_difficulty()
             };
 
             let base_seed: GameSeed = world.read_model(game_id);

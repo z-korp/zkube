@@ -8,12 +8,14 @@ pub trait IAchievementSystem<T> {
 
 #[dojo::contract]
 mod achievement_system {
+    use core::num::traits::Zero;
     use dojo::world::{WorldStorage, WorldStorageTrait};
 
     use starknet::{get_block_timestamp, get_caller_address, ContractAddress};
 
     use achievement::store::StoreTrait;
     use achievement::components::achievable::AchievableComponent;
+    use achievement::types::metadata::MetadataTrait;
 
     use zkube::types::trophy::{Trophy, TrophyTrait, TROPHY_COUNT};
     use zkube::types::task::{Task, TaskTrait};
@@ -43,22 +45,31 @@ mod achievement_system {
         let mut trophy_id: u8 = TROPHY_COUNT;
         while trophy_id > 0 {
             let trophy: Trophy = trophy_id.into();
+
+            // Create metadata struct for the new API
+            let metadata = MetadataTrait::new(
+                trophy.title(),
+                trophy.description(),
+                trophy.icon(),
+                trophy.points(),
+                trophy.hidden(),
+                trophy.index(),
+                trophy.group(),
+                array![].span(), // rewards
+                trophy.data(),
+            );
+
             self
                 .achievable
                 .create(
                     world,
-                    id: trophy.identifier(),
-                    hidden: trophy.hidden(),
-                    index: trophy.index(),
-                    points: trophy.points(),
-                    start: trophy.start(),
-                    end: trophy.end(),
-                    group: trophy.group(),
-                    icon: trophy.icon(),
-                    title: trophy.title(),
-                    description: trophy.description(),
-                    tasks: trophy.tasks(),
-                    data: trophy.data(),
+                    trophy.identifier(),
+                    Zero::zero(), // rewarder address (not used)
+                    trophy.start(),
+                    trophy.end(),
+                    trophy.tasks(),
+                    metadata,
+                    false, // to_store - just emit events
                 );
             trophy_id -= 1;
         }
@@ -78,23 +89,24 @@ mod achievement_system {
             let store = StoreTrait::new(world);
             let time = get_block_timestamp();
             let time_u64: u64 = time.into();
+            let player_id: felt252 = caller.into();
 
             // [Trophy] Update Mastering tasks progression
             let value: u32 = game.combo_counter.into();
             if Trophy::ComboInitiator.assess(value) {
                 let level = Trophy::ComboInitiator.level();
                 let task_id = Task::Mastering.identifier(level);
-                store.progress(caller.into(), task_id, 1_u128, time_u64);
+                store.progress(player_id, task_id, 1_u128, time_u64, false);
             }
             if Trophy::ComboExpert.assess(value) {
                 let level = Trophy::ComboExpert.level();
                 let task_id = Task::Mastering.identifier(level);
-                store.progress(caller.into(), task_id, 1_u128, time_u64);
+                store.progress(player_id, task_id, 1_u128, time_u64, false);
             }
             if Trophy::ComboMaster.assess(value) {
                 let level = Trophy::ComboMaster.level();
                 let task_id = Task::Mastering.identifier(level);
-                store.progress(caller.into(), task_id, 1_u128, time_u64);
+                store.progress(player_id, task_id, 1_u128, time_u64, false);
             }
 
             // [Trophy] Update Chaining tasks progression
@@ -102,17 +114,17 @@ mod achievement_system {
             if Trophy::TripleThreat.assess(value) {
                 let level = Trophy::TripleThreat.level();
                 let task_id = Task::Chaining.identifier(level);
-                store.progress(caller.into(), task_id, 1_u128, time_u64);
+                store.progress(player_id, task_id, 1_u128, time_u64, false);
             }
             if Trophy::SixShooter.assess(value) {
                 let level = Trophy::SixShooter.level();
                 let task_id = Task::Chaining.identifier(level);
-                store.progress(caller.into(), task_id, 1_u128, time_u64);
+                store.progress(player_id, task_id, 1_u128, time_u64, false);
             }
             if Trophy::NineLives.assess(value) {
                 let level = Trophy::NineLives.level();
                 let task_id = Task::Chaining.identifier(level);
-                store.progress(caller.into(), task_id, 1_u128, time_u64);
+                store.progress(player_id, task_id, 1_u128, time_u64, false);
             }
 
             // [Trophy] Update Playing tasks progression
@@ -120,17 +132,17 @@ mod achievement_system {
             if Trophy::GameBeginner.assess(value) {
                 let level = Trophy::GameBeginner.level();
                 let task_id = Task::Playing.identifier(level);
-                store.progress(caller.into(), task_id, 1_u128, time_u64);
+                store.progress(player_id, task_id, 1_u128, time_u64, false);
             }
             if Trophy::GameExperienced.assess(value) {
                 let level = Trophy::GameExperienced.level();
                 let task_id = Task::Playing.identifier(level);
-                store.progress(caller.into(), task_id, 1_u128, time_u64);
+                store.progress(player_id, task_id, 1_u128, time_u64, false);
             }
             if Trophy::GameVeteran.assess(value) {
                 let level = Trophy::GameVeteran.level();
                 let task_id = Task::Playing.identifier(level);
-                store.progress(caller.into(), task_id, 1_u128, time_u64);
+                store.progress(player_id, task_id, 1_u128, time_u64, false);
             }
 
             // [Trophy] Update Scoring tasks progression
@@ -140,34 +152,34 @@ mod achievement_system {
             if Trophy::ScoreApprentice.assess(value_u32) {
                 let level = Trophy::ScoreApprentice.level();
                 let task_id = Task::Scoring.identifier(level);
-                store.progress(caller.into(), task_id, 1_u128, time_u64);
+                store.progress(player_id, task_id, 1_u128, time_u64, false);
             }
             if Trophy::ScoreExpert.assess(value_u32) {
                 let level = Trophy::ScoreExpert.level();
                 let task_id = Task::Scoring.identifier(level);
-                store.progress(caller.into(), task_id, 1_u128, time_u64);
+                store.progress(player_id, task_id, 1_u128, time_u64, false);
             }
             if Trophy::ScoreMaster.assess(value_u32) {
                 let level = Trophy::ScoreMaster.level();
                 let task_id = Task::Scoring.identifier(level);
-                store.progress(caller.into(), task_id, 1_u128, time_u64);
+                store.progress(player_id, task_id, 1_u128, time_u64, false);
             }
 
             // [Trophy] Update Cumulative Scoring tasks progression
             if Trophy::ScoreCollector.assess(value_u32) {
                 let level = Trophy::ScoreCollector.level();
                 let task_id = Task::CumulativeScoring.identifier(level);
-                store.progress(caller.into(), task_id, value_u128, time_u64);
+                store.progress(player_id, task_id, value_u128, time_u64, false);
             }
             if Trophy::ScoreAccumulator.assess(value_u32) {
                 let level = Trophy::ScoreAccumulator.level();
                 let task_id = Task::CumulativeScoring.identifier(level);
-                store.progress(caller.into(), task_id, value_u128, time_u64);
+                store.progress(player_id, task_id, value_u128, time_u64, false);
             }
             if Trophy::ScoreLegend.assess(value_u32) {
                 let level = Trophy::ScoreLegend.level();
                 let task_id = Task::CumulativeScoring.identifier(level);
-                store.progress(caller.into(), task_id, value_u128, time_u64);
+                store.progress(player_id, task_id, value_u128, time_u64, false);
             }
         }
     }

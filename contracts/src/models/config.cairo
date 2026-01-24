@@ -12,17 +12,21 @@ pub struct GameSettingsMetadata {
     pub created_at: u64,
 }
 
-#[derive(Introspect, Drop, Serde)]
+#[derive(Copy, Drop, Serde, IntrospectPacked)]
 #[dojo::model]
 pub struct GameSettings {
     #[key]
     pub settings_id: u32,
-    pub difficulty: Difficulty,
+    pub difficulty: u8, // Store as u8, use get_difficulty() to convert to Difficulty enum
 }
 
 #[generate_trait]
 pub impl GameSettingsImpl of GameSettingsTrait {
     fn exists(self: GameSettings) -> bool {
-        self.difficulty != Difficulty::None
+        self.difficulty != 0
+    }
+
+    fn get_difficulty(self: GameSettings) -> Difficulty {
+        self.difficulty.into()
     }
 }

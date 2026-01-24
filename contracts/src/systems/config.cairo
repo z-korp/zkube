@@ -193,7 +193,7 @@ mod config_system {
             self.settings_counter.write(settings_id);
 
             // Create the game settings
-            let game_settings = GameSettings { settings_id, difficulty };
+            let game_settings = GameSettings { settings_id, difficulty: difficulty.into() };
 
             // Create metadata
             let metadata = GameSettingsMetadata {
@@ -265,7 +265,7 @@ mod config_system {
     }
 
     fn generate_settings_array(game_settings: GameSettings) -> Span<GameSetting> {
-        let difficulty_value = difficulty_label(game_settings.difficulty);
+        let difficulty_value = difficulty_label(game_settings.get_difficulty());
         array![GameSetting { name: "Difficulty", value: difficulty_value }].span()
     }
 
