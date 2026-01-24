@@ -1,11 +1,14 @@
 [package]
 name = "zkube"
-cairo-version = "=2.10.1"
+cairo-version = "2.13.1"
 edition = "2024_07"
-version = "1.1.3"
+version = "1.2.0"
 
 [cairo]
 sierra-replace-ids = true
+
+[tool.scarb]
+allow-prebuilt-plugins = ["dojo_cairo_macros"]
 
 [scripts]
 slot = "sozo --profile slot clean && sozo --profile slot build && sozo --profile slot migrate --guest"
@@ -16,17 +19,18 @@ inspect-sepolia = "sozo --profile sepolia clean && sozo --profile sepolia build 
 inspect-mainnet = "sozo --profile mainnet clean && sozo --profile mainnet build && sozo --profile mainnet inspect"
 
 [dependencies]
-openzeppelin_token = "1.0.0"
-openzeppelin_introspection =  "1.0.0"
-dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.6.0" }
-alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.3.0" }
-alexandria_encoding = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.3.0" }
-achievement = { git = "https://github.com/cartridge-gg/arcade", rev= "634edcebaa4999d8d2b94d4fb78cac05649c74f3" }
-origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.6.0" }
-game_components_minigame = { git = "https://github.com/Provable-Games/game-components", tag = "0.0.10" }
-game_components_token = { git = "https://github.com/Provable-Games/game-components", tag = "0.0.10" }
-game_components_metagame = { git = "https://github.com/Provable-Games/game-components", tag = "0.0.10" }
-game_components_utils = { git = "https://github.com/Provable-Games/game-components", tag = "0.0.10" }
+dojo = "1.8.0"
+starknet = "2.13.1"
+openzeppelin_token = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0-alpha.3" }
+openzeppelin_introspection = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0-alpha.3" }
+alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.7.0" }
+alexandria_encoding = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.7.0" }
+achievement = { git = "https://github.com/cartridge-gg/arcade" }
+origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.7.0" }
+game_components_minigame = { git = "https://github.com/Provable-Games/game-components", tag = "v2.13.1" }
+game_components_token = { git = "https://github.com/Provable-Games/game-components", tag = "v2.13.1" }
+game_components_metagame = { git = "https://github.com/Provable-Games/game-components", tag = "v2.13.1" }
+game_components_utils = { git = "https://github.com/Provable-Games/game-components", tag = "v2.13.1" }
 graffiti = { git = "https://github.com/ponderingdemocritus/graffiti", rev = "bc569531791dbc71c6cd8d9bc154c34eedad31fe" }
 
 [[target.starknet-contract]]
@@ -40,8 +44,12 @@ build-external-contracts = [
 ]
 
 [dev-dependencies]
-dojo_cairo_test = { git = "https://github.com/dojoengine/dojo.git", tag = "v1.6.0" }
-cairo_test = "2.10.1"
+dojo_cairo_test = "1.8.0"
+cairo_test = "2.13.1"
+
+# Patch to align graffiti sources (arcade uses bal7hazar, game-components uses ponderingdemocritus)
+[patch."https://github.com/bal7hazar/graffiti"]
+graffiti = { git = "https://github.com/ponderingdemocritus/graffiti", rev = "bc569531791dbc71c6cd8d9bc154c34eedad31fe" }
 
 # Custom profiles
 [profile.slot]
