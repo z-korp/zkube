@@ -1,0 +1,250 @@
+# zKube Smart Contracts
+
+## Overview
+
+Cairo 2.13.1 smart contracts using the Dojo 1.8.0 framework. These contracts implement the core game logic, state management, and achievement system for the zKube puzzle game.
+
+## Directory Structure
+
+```
+contracts/
+├── src/
+│   ├── lib.cairo              # Module definitions
+│   ├── constants.cairo        # Game constants
+│   ├── events.cairo           # Event definitions
+│   ├── models/                # Dojo data models
+│   │   ├── game.cairo         # Game state model
+│   │   └── config.cairo       # Game settings model
+│   ├── systems/               # Dojo systems (logic)
+│   │   ├── game.cairo         # Main game system
+│   │   ├── achievement.cairo  # Achievement tracking
+│   │   └── config.cairo       # Configuration system
+│   ├── types/                 # Type definitions
+│   │   ├── bonus.cairo        # Bonus enum (Hammer, Wave, Totem)
+│   │   ├── difficulty.cairo   # Difficulty levels
+│   │   ├── block.cairo        # Block types
+│   │   ├── trophy.cairo       # Trophy definitions
+│   │   └── task.cairo         # Task definitions
+│   ├── elements/              # Game element implementations
+│   │   ├── bonuses/           # Bonus mechanics
+│   │   ├── difficulties/      # Difficulty configurations
+│   │   ├── trophies/          # Trophy logic
+│   │   └── tasks/             # Task logic
+│   ├── helpers/               # Utility functions
+│   │   ├── controller.cairo   # Grid manipulation (77KB, main logic)
+│   │   ├── packer.cairo       # Bit packing utilities
+│   │   ├── gravity.cairo      # Block falling logic
+│   │   ├── random.cairo       # VRF random generation
+│   │   └── math.cairo         # Math utilities
+│   ├── interfaces/            # Trait definitions
+│   │   └── vrf.cairo          # VRF interface
+│   └── tests/                 # Unit tests
+├── Scarb.toml                 # Package configuration
+├── dojo_*.toml                # Network-specific Dojo configs
+└── manifest_*.json            # Deployment manifests
+```
+
+## Core Models
+
+### Game Model (`models/game.cairo`)
+
+```cairo
+#[dojo::model]
+pub struct Game {
+    #[key]
+    pub game_id: u64,
+    // Updated every move
+    pub blocks: felt252,      // 240 bits: 10 rows × 8 cols × 3 bits
+    pub next_row: u32,        // Pre-generated next row (24 bits)
+    pub score: u16,
+    pub moves: u16,
+    // Updated on line breaks
+    pub combo_counter: u16,   // Total combo count
+    pub max_combo: u8,        // Highest combo in game
+    pub hammer_bonus: u8,     // Available hammer bonuses
+    pub wave_bonus: u8,       // Available wave bonuses
+    pub totem_bonus: u8,      // Available totem bonuses
+    pub hammer_used: u8,      // Hammer uses count
+    pub wave_used: u8,        // Wave uses count
+    pub totem_used: u8,       // Totem uses count
+    // Game status
+    pub over: bool,
+}
+```
+
+### GameSeed Model
+
+```cairo
+#[dojo::model]
+pub struct GameSeed {
+    #[key]
+    pub game_id: u64,
+    pub seed: felt252,  // VRF seed for randomness
+}
+```
+
+## Systems
+
+### Game System (`systems/game.cairo`)
+
+Main game logic with the following functions:
+
+```cairo
+trait IGameSystem {
+    fn create(ref self: T, game_id: u64);
+    fn surrender(ref self: T, game_id: u64);
+    fn move(ref self: T, game_id: u64, row_index: u8, start_index: u8, final_index: u8);
+    fn apply_bonus(ref self: T, game_id: u64, bonus: Bonus, row_index: u8, line_index: u8);
+    fn get_player_name(self: @T, game_id: u64) -> felt252;
+    fn get_score(self: @T, game_id: u64) -> u16;
+    fn get_game_data(self: @T, game_id: u64) -> (u16, u16, u8, u8, u8, u8, u16, bool);
+}
+```
+
+**Key flows:**
+1. `create()` - Initializes game with VRF seed, generates initial grid
+2. `move()` - Processes block movement, gravity, line clearing, bonus calculation
+3. `apply_bonus()` - Applies Hammer/Wave/Totem bonus effects
+4. `surrender()` - Ends game, triggers achievement updates
+
+### Achievement System (`systems/achievement.cairo`)
+
+Tracks player progress across trophy categories:
+- Mastering (combo totals)
+- Chaining (max combos)
+- Playing (move counts)
+- Scoring (single game scores)
+- Cumulative Scoring (total score across games)
+
+## Grid Manipulation (`helpers/controller.cairo`)
+
+The core game logic handling:
+
+### Key Functions
+
+```cairo
+impl Controller {
+    fn apply_gravity(blocks: felt252) -> felt252;     // Drop blocks down
+    fn assess_lines(bitmap: felt252, ...) -> felt252; // Clear full lines
+    fn add_line(bitmap: felt252, line: u32) -> felt252; // Add new row
+    fn create_line(seed: felt252, difficulty: Difficulty) -> u32; // Generate row
+    fn swipe(blocks: felt252, row: u8, start: u8, dir: bool, count: u8) -> felt252;
+}
+```
+
+### Bit Packing
+
+Grid stored as felt252 (240 bits):
+```
+Row 9 (top):    [b7][b6][b5][b4][b3][b2][b1][b0]  <- 24 bits
+Row 8:          [b7][b6][b5][b4][b3][b2][b1][b0]
+...
+Row 0 (bottom): [b7][b6][b5][b4][b3][b2][b1][b0]
+```
+
+Each block = 3 bits (0-7), 0 = empty
+
+## Bonuses
+
+### Hammer (`elements/bonuses/hammer.cairo`)
+Clears the target block and connected same-color blocks.
+
+### Wave (`elements/bonuses/wave.cairo`)
+Clears an entire horizontal row.
+
+### Totem (`elements/bonuses/totem.cairo`)
+Clears blocks in a vertical column at the specified position.
+
+## Difficulty Levels
+
+Defined in `types/difficulty.cairo` and implemented in `elements/difficulties/`:
+
+| Level | Block Distribution |
+|-------|-------------------|
+| VeryEasy | Mostly simple blocks, many gaps |
+| Easy | Simple blocks |
+| Medium | Mixed blocks |
+| MediumHard | Complex blocks, fewer gaps |
+| Hard | Complex blocks |
+| VeryHard | Very complex blocks |
+| Expert | Expert-level complexity |
+| Master | Maximum difficulty |
+| Increasing | Progressive based on moves |
+
+## Dependencies
+
+```toml
+[dependencies]
+dojo = "1.8.0"
+starknet = "2.13.1"
+openzeppelin_token = { git = "OpenZeppelin/cairo-contracts", tag = "v3.0.0-alpha.3" }
+alexandria_math = { git = "keep-starknet-strange/alexandria", tag = "v0.7.0" }
+achievement = { git = "cartridge-gg/arcade" }
+origami_random = { git = "dojoengine/origami", tag = "v1.7.0" }
+game_components_minigame = { git = "Provable-Games/game-components", tag = "v2.13.1" }
+```
+
+## Build & Deploy
+
+```bash
+# Build
+scarb build
+
+# Deploy to slot (local)
+scarb slot
+
+# Deploy to sepolia
+scarb sepolia
+
+# Deploy to mainnet
+scarb mainnet
+
+# Run tests
+scarb test
+```
+
+## Namespace
+
+Current: `zkube_budo_v1_1_3`
+
+Defined in `constants.cairo`:
+```cairo
+pub fn DEFAULT_NS() -> ByteArray {
+    "zkube_budo_v1_1_3"
+}
+```
+
+## External Contract Integration
+
+### MinigameToken
+- Used for game NFT ownership verification
+- Handles lifecycle (playable state)
+- Manages player names
+
+### Achievement Contract
+- Cartridge's arcade achievement system
+- Trophies and task tracking
+- Called on game over
+
+## Testing
+
+Tests in `src/tests/`:
+- `test_create.cairo` - Game creation
+- `test_move.cairo` - Move mechanics
+- `test_play.cairo` - Full gameplay
+- `test_bonus_hammer.cairo` - Hammer bonus
+- `test_bonus_wave.cairo` - Wave bonus
+- `test_bonus_totem.cairo` - Totem bonus
+- `test_admin.cairo` - Admin functions
+- `test_pause.cairo` - Pause functionality
+
+Mock contracts in `tests/mocks/`:
+- `erc20.cairo` - Mock ERC20
+- `erc721.cairo` - Mock ERC721
+
+## Important Notes
+
+1. **Game ID = Token ID**: Each game is tied to an NFT token
+2. **VRF Randomness**: All randomness derived from VRF seed via Poseidon hashing
+3. **Gas Optimization**: Blocks packed into single felt252 to minimize storage
+4. **Deterministic**: Same seed + same moves = same game result
