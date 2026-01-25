@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Compatible with OpenZeppelin Contracts for Cairo ^0.18.0
+// Compatible with OpenZeppelin Contracts for Cairo v3.0.0-alpha.3
 use starknet::ContractAddress;
 
 const PAUSER_ROLE: felt252 = selector!("PAUSER_ROLE");
@@ -28,16 +28,16 @@ pub trait IERC721Pausable<TContractState> {
 #[starknet::contract]
 mod ERC721 {
     use core::num::traits::Zero;
-    use openzeppelin::access::accesscontrol::AccessControlComponent;
-    use openzeppelin::access::accesscontrol::DEFAULT_ADMIN_ROLE;
-    use openzeppelin::introspection::src5::SRC5Component;
-    use openzeppelin::security::pausable::PausableComponent;
-    use openzeppelin::token::erc721::ERC721Component;
-    use openzeppelin::token::erc721::extensions::ERC721EnumerableComponent;
-    use openzeppelin::token::erc721::interface::{IERC721Metadata, IERC721MetadataCamelOnly};
-    use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use openzeppelin::upgrades::UpgradeableComponent;
-    use openzeppelin::upgrades::interface::IUpgradeable;
+    use openzeppelin_access::accesscontrol::AccessControlComponent;
+    use openzeppelin_access::accesscontrol::DEFAULT_ADMIN_ROLE;
+    use openzeppelin_introspection::src5::SRC5Component;
+    use openzeppelin_security::pausable::PausableComponent;
+    use openzeppelin_token::erc721::ERC721Component;
+    use openzeppelin_token::erc721::extensions::ERC721EnumerableComponent;
+    use openzeppelin_interfaces::token::erc721::{IERC721Metadata, IERC721MetadataCamelOnly};
+    use openzeppelin_interfaces::token::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use openzeppelin_upgrades::UpgradeableComponent;
+    use openzeppelin_interfaces::upgrades::IUpgradeable;
     use super::{ContractAddress};
     use starknet::ClassHash;
     use starknet::{get_caller_address, get_contract_address};
@@ -167,7 +167,6 @@ mod ERC721 {
         self.constant_token_uri.write(constant_uri);
 
         self.erc721.initializer("zKube-Game", "ZKBG", self.constant_token_uri.read());
-        //self.erc721.initializer("Test", "TEST", self.constant_token_uri.read());
         self.accesscontrol.initializer();
         self.erc721_enumerable.initializer();
         self.erc20_token.write(erc20_token);

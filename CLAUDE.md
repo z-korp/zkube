@@ -8,14 +8,19 @@ zKube is a fully on-chain puzzle game built with the Dojo framework on Starknet.
 
 ```
 zkube/
-├── client-budokan/     # React/TypeScript frontend application
+├── Scarb.toml          # Workspace root (shared dependencies)
 ├── contracts/          # Dojo smart contracts (Cairo 2.13.1)
-├── token/              # ERC20 token contract (Fake LORD)
-├── game_erc721/        # ERC721 NFT contract for game tokens
+├── packages/
+│   ├── game_erc721/    # ERC721 NFT contract for game tokens
+│   └── token/          # ERC20 token contract (Fake LORD)
+├── client-budokan/     # React/TypeScript frontend application
 ├── assets/             # Game graphics, sounds, and media
 ├── scripts/            # Python utility scripts
-└── docs/               # Documentation
+├── docs/               # Documentation
+└── references/         # Reference implementations (death-mountain, etc.)
 ```
+
+**Workspace**: All contracts are in a unified Scarb workspace. Run `scarb build` from root to build all packages.
 
 ## Technology Stack
 
@@ -163,9 +168,9 @@ Trophies tracked via Cartridge's arcade achievement system:
 - `contracts/src/helpers/controller.cairo` - Grid manipulation logic
 - `contracts/src/constants.cairo` - Game constants
 
-### External Contracts
-- `token/` - ERC20 "Fake LORD" token with faucet
-- `game_erc721/` - Game NFT tokens (each game = 1 NFT)
+### Token Contracts (in packages/)
+- `packages/token/` - ERC20 "Fake LORD" token with faucet
+- `packages/game_erc721/` - Game NFT tokens (each game = 1 NFT)
 
 ## Development Commands
 
@@ -179,14 +184,21 @@ pnpm build       # Production build
 pnpm test        # Run tests
 ```
 
-### Contracts
+### Contracts (Workspace)
 ```bash
+# From project root
+scarb build              # Build all packages (contracts, game_erc721, token)
+
+# From contracts directory
 cd contracts
 scarb slot       # Deploy to slot
 scarb sepolia    # Deploy to sepolia
 scarb mainnet    # Deploy to mainnet
-scarb build      # Build contracts
 scarb test       # Run Cairo tests
+
+# Token contract tests
+cd packages/game_erc721
+snforge test     # Run Foundry tests
 ```
 
 ## Namespace

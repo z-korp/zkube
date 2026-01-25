@@ -190,10 +190,6 @@ mod setup {
                 TestResource::Model(models::m_Tournament::TEST_CLASS_HASH),
                 TestResource::Model(models::m_TournamentPrize::TEST_CLASS_HASH),
                 TestResource::Model(models::m_Mint::TEST_CLASS_HASH),
-                TestResource::Event(achievement::events::index::e_TrophyCreation::TEST_CLASS_HASH),
-                TestResource::Event(
-                    achievement::events::index::e_TrophyProgression::TEST_CLASS_HASH
-                ),
                 TestResource::Contract(account::TEST_CLASS_HASH),
                 TestResource::Contract(play::TEST_CLASS_HASH),
                 TestResource::Contract(chest::TEST_CLASS_HASH),

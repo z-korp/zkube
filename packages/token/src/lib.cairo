@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-// Compatible with OpenZeppelin Contracts for Cairo ^0.17.0
+// Compatible with OpenZeppelin Contracts for Cairo v3.0.0-alpha.3
 
 #[starknet::contract]
 mod token {
-    use openzeppelin::access::ownable::OwnableComponent;
-    use openzeppelin::token::erc20::ERC20Component;
-    use openzeppelin::token::erc20::ERC20HooksEmptyImpl;
+    use openzeppelin_access::ownable::OwnableComponent;
+    use openzeppelin_token::erc20::ERC20Component;
+    use openzeppelin_token::erc20::ERC20HooksEmptyImpl;
     use starknet::ContractAddress;
     use starknet::get_caller_address;
     use starknet::get_block_timestamp;
@@ -13,6 +13,11 @@ mod token {
 
     component!(path: ERC20Component, storage: erc20, event: ERC20Event);
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
+
+    // ERC20 immutable configuration
+    impl ERC20ImmutableConfig of ERC20Component::ImmutableConfig {
+        const DECIMALS: u8 = 18;
+    }
 
     #[abi(embed_v0)]
     impl ERC20MixinImpl = ERC20Component::ERC20MixinImpl<ContractState>;

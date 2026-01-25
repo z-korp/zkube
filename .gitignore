@@ -23,9 +23,21 @@ dist-ssr
 *.sln
 *.sw?
 
+# Environment and secrets
 .env*
+!.env.example
 *.log
 
+# Account files with private keys
+account_*.json
+**/account_*.json
+keystore.json
+**/keystore.json
+
+# Reference codebases (not part of this project)
+references/
+
+# Build artifacts
 target
 .vercel
 
@@ -38,3 +50,6 @@ ipfs
 ipfs_2_types
 
 addresses.csv
+
+# Zone identifier files (Windows/WSL)
+*:Zone.Identifier

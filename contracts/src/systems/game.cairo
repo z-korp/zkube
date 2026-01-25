@@ -22,9 +22,6 @@ mod game_system {
     use zkube::helpers::random::RandomImpl;
     use zkube::types::bonus::Bonus;
     use zkube::events::{StartGame, UseBonus};
-    use zkube::systems::achievement::{
-        IAchievementSystemDispatcher, IAchievementSystemDispatcherTrait,
-    };
 
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
@@ -317,13 +314,8 @@ mod game_system {
             assert!(game.blocks == 0, "Game {} has already started", game_id);
         }
 
-        fn handle_game_over(ref self: ContractState, game: Game) {
-            let world = self.world(@DEFAULT_NS());
-            let caller = get_caller_address();
-
-            let (contract_address, _) = world.dns(@"achievement_system").unwrap();
-            let achievement_system = IAchievementSystemDispatcher { contract_address };
-            achievement_system.update_progress_when_game_over(game, caller);
+        fn handle_game_over(ref self: ContractState, _game: Game) {
+            // Achievement system removed - no-op for now
         }
     }
 }

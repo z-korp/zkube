@@ -11,8 +11,6 @@ pub mod types {
     pub mod width;
     pub mod block;
     pub mod difficulty;
-    pub mod task;
-    pub mod trophy;
 }
 
 mod elements {
@@ -33,22 +31,6 @@ mod elements {
         pub mod master;
         pub mod interface;
     }
-    pub mod tasks {
-        pub mod interface;
-        pub mod mastering;
-        pub mod chaining;
-        pub mod playing;
-        pub mod scoring;
-        pub mod cumulative_scoring;
-    }
-    pub mod trophies {
-        pub mod interface;
-        pub mod mastery;
-        pub mod chainer;
-        pub mod player;
-        pub mod scorer;
-        pub mod cumulative_scorer;
-    }
 }
 
 pub mod interfaces {
@@ -68,7 +50,6 @@ pub mod helpers {
 }
 
 pub mod systems {
-    pub mod achievement;
     pub mod game;
     pub mod config;
 }
