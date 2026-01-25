@@ -13,7 +13,6 @@ import {
   notify,
 } from "@/utils/toast";
 import { useMoveStore } from "@/stores/moveTxStore";
-import { dojoConfig } from "../../dojo.config";
 
 export type SystemCalls = ReturnType<typeof systems>;
 
@@ -81,19 +80,6 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
-  const translateName = (selector: string) => {
-    const model = dojoConfig().manifest.models.find(
-      (model: any) => model.selector === selector
-    );
-    return model?.tag?.split("-")[1];
-  };
-
-  const translateEvent = (event: any) => {
-    const name = translateName(event.keys[1]);
-    const data = event.data;
-    return { name, data };
-  };
-
   const freeMint = async ({
     account,
     settingsId,
@@ -110,13 +96,47 @@ export function systems({ client }: { client: IWorld }) {
       getUrl(transaction_hash)
     );
 
-    let game_id = 0;
-    events.forEach((event) => {
-      const { name, data } = translateEvent(event);
-      if (name == "TokenMetadata") {
-        game_id = parseInt(data[1], 16);
-      }
+    // Log all events with full details for debugging
+    console.log("=== FULL EVENT DATA ===");
+    events.forEach((event: any, index: number) => {
+      console.log(`Event ${index}:`, {
+        from_address: event.from_address,
+        keys: event.keys,
+        data: event.data,
+        keys_length: event.keys?.length,
+        data_length: event.data?.length,
+      });
     });
+    console.log("=== END EVENT DATA ===");
+
+    // Try to extract token_id from Transfer event (ERC721)
+    // Transfer event has 5 keys: [selector, from, to, token_id_low, token_id_high]
+    const transferEvent = events.find(
+      (event: any) => event.keys?.length === 5 && event.data?.length === 0
+    );
+
+    let game_id = 0;
+    if (transferEvent) {
+      // token_id is in keys[3] (low) and keys[4] (high) for u256
+      const tokenIdLow = BigInt(transferEvent.keys[3] || "0");
+      const tokenIdHigh = BigInt(transferEvent.keys[4] || "0");
+      game_id = Number(tokenIdLow + (tokenIdHigh << 128n));
+      console.log("Extracted token_id from Transfer event:", game_id, {
+        low: transferEvent.keys[3],
+        high: transferEvent.keys[4],
+      });
+    } else {
+      // Fallback: try TokenMetadata event with data.length === 11
+      const tokenMetadataEvent = events.find(
+        (event: any) => event.data.length === 11
+      );
+      if (tokenMetadataEvent) {
+        game_id = parseInt(tokenMetadataEvent.data[1], 16);
+        console.log("Fallback: extracted game_id from TokenMetadata:", game_id);
+      } else {
+        console.warn("Could not find Transfer or TokenMetadata event");
+      }
+    }
 
     console.log("game_id", game_id);
 

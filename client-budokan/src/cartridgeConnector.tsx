@@ -4,7 +4,7 @@ import type { ControllerOptions, SessionPolicies } from "@cartridge/controller";
 import { manifest } from "./config/manifest";
 import { shortString } from "starknet";
 
-const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
+const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_SLOT, VITE_PUBLIC_NODE_URL } = import.meta.env;
 
 export type Manifest = typeof manifest;
 
@@ -23,7 +23,8 @@ const getChainId = (): string => {
     case "mainnet":
       return "SN_MAIN";
     case "slot":
-      return "WP_BUDOKAN_MATTH";
+      // Generate chain ID from slot name (e.g., "zkube-djizus" -> "WP_ZKUBE_DJIZUS")
+      return `WP_${(VITE_PUBLIC_SLOT || "zkube").toUpperCase().replace(/-/g, "_")}`;
     default:
       return "SN_MAIN";
   }
@@ -32,7 +33,7 @@ const getChainId = (): string => {
 const getSlot = (): string => {
   switch (VITE_PUBLIC_DEPLOY_TYPE) {
     case "slot":
-      return "budokan-matth";
+      return VITE_PUBLIC_SLOT || "zkube";
     case "sepolia":
       return "zkube-ba-sepolia";
     default:
@@ -137,23 +138,28 @@ const getPolicies = (): SessionPolicies | undefined => {
   }
 }
 
+// Build chains list dynamically based on deploy type
+const getChains = () => {
+  const chains = [
+    { rpcUrl: "https://api.cartridge.gg/x/starknet/mainnet" },
+    { rpcUrl: "https://api.cartridge.gg/x/starknet/sepolia" },
+  ];
+
+  // Add slot chain if we're in slot mode and have a node URL
+  if (VITE_PUBLIC_DEPLOY_TYPE === "slot" && VITE_PUBLIC_NODE_URL) {
+    chains.push({ rpcUrl: VITE_PUBLIC_NODE_URL });
+  }
+
+  return chains;
+};
+
 const options: ControllerOptions = {
-  chains: [
-    {
-      rpcUrl: "https://api.cartridge.gg/x/starknet/sepolia",
-    },
-    {
-      rpcUrl: "https://api.cartridge.gg/x/starknet/sepolia",
-    },
-    {
-      rpcUrl: "https://api.cartridge.gg/x/budokan-matth/katana",
-    },
-  ],
+  chains: getChains(),
   defaultChainId: stringToFelt(getChainId()).toString(),
   namespace,
   slot: getSlot(),
   policies: getPolicies(),
-  preset:VITE_PUBLIC_DEPLOY_TYPE === "mainnet" ? undefined : undefined,
+  preset: VITE_PUBLIC_DEPLOY_TYPE === "mainnet" ? undefined : undefined,
 };
 
 const cartridgeConnector = new ControllerConnector(

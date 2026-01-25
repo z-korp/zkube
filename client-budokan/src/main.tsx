@@ -9,20 +9,41 @@ import { Loading } from "@/ui/screens/Loading";
 import { MusicPlayerProvider } from "./contexts/music";
 import { SoundPlayerProvider } from "./contexts/sound";
 import { ThemeProvider } from "./ui/elements/theme-provider/index";
-import { StarknetConfig, jsonRpcProvider, voyager } from "@starknet-react/core";
+import { StarknetConfig, jsonRpcProvider, voyager, MockConnector } from "@starknet-react/core";
 import { sepolia, mainnet, type NativeCurrency } from "@starknet-react/chains";
 import cartridgeConnector from "./cartridgeConnector";
 import { MetagameProvider } from "./contexts/MetagameProvider";
+import { createBurnerAccount } from "./connectors/BurnerConnector";
 
 import "./index.css";
 import { type BigNumberish, shortString } from "starknet";
 import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
 
-const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
+const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_NODE_URL, VITE_PUBLIC_SLOT } = import.meta.env;
+
+// Create burner connector for slot development
+const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
+
+const burnerAccount = isSlotMode && VITE_PUBLIC_NODE_URL && typeof window !== "undefined"
+  ? createBurnerAccount(VITE_PUBLIC_NODE_URL)
+  : null;
+
+const burnerConnector = burnerAccount
+  ? new MockConnector({
+      accounts: {
+        sepolia: [burnerAccount],
+        mainnet: [burnerAccount],
+      },
+      options: {
+        id: "burner",
+        name: "Burner (Dev)",
+      },
+    })
+  : null;
 
 function rpc() {
   return {
-    nodeUrl: import.meta.env.VITE_PUBLIC_NODE_URL,
+    nodeUrl: VITE_PUBLIC_NODE_URL,
   };
 }
 
@@ -31,7 +52,12 @@ const root = ReactDOM.createRoot(
 );
 
 export function Main() {
-  const connectors = [cartridgeConnector];
+  // Include both Controller and Burner connectors when in slot mode
+  const connectors = [
+    cartridgeConnector,
+    ...(burnerConnector ? [burnerConnector as any] : []),
+  ];
+
   const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
 
   const loading = useMemo(() => !setupResult, [setupResult]);
@@ -47,10 +73,14 @@ export function Main() {
   //
   // supported chain ids
   //
+  // Generate slot chain ID dynamically from slot name
+  const slotChainId = VITE_PUBLIC_SLOT
+    ? `WP_${VITE_PUBLIC_SLOT.toUpperCase().replace(/-/g, "_")}`
+    : "WP_ZKUBE";
+
   enum ChainId {
     SN_MAIN = "SN_MAIN",
     SN_SEPOLIA = "SN_SEPOLIA",
-    SLOT = "WP_BUDOKAN_MATTH",
   }
 
   //
@@ -76,21 +106,24 @@ export function Main() {
   const stringToFelt = (v: string): BigNumberish =>
     v ? shortString.encodeShortString(v) : "0x0";
 
+  // Build slot chain configuration dynamically
+  const slotChain = VITE_PUBLIC_SLOT && VITE_PUBLIC_NODE_URL ? {
+    id: BigInt(stringToFelt(slotChainId)),
+    name: `zKube ${VITE_PUBLIC_SLOT}`,
+    network: "katana",
+    testnet: true,
+    nativeCurrency: ETH_KATANA,
+    rpcUrls: {
+      default: { http: [VITE_PUBLIC_NODE_URL] },
+      public: { http: [VITE_PUBLIC_NODE_URL] },
+    },
+    explorers: WORLD_EXPLORER,
+  } : null;
+
   const chains = [
     mainnet,
     sepolia,
-    {
-      id: BigInt(stringToFelt(ChainId.SLOT)),
-      name: "Budokan Matth",
-      network: "katana",
-      testnet: true,
-      nativeCurrency: ETH_KATANA,
-      rpcUrls: {
-        default: { http: ["https://api.cartridge.gg/x/budokan-matth/katana"] },
-        public: { http: ["https://api.cartridge.gg/x/budokan-matth/katana"] },
-      },
-      explorers: WORLD_EXPLORER,
-    },
+    ...(slotChain ? [slotChain] : []),
   ];
 
   return (

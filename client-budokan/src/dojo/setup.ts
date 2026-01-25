@@ -7,9 +7,11 @@ import { defineContractComponents } from "./contractModels";
 import { world } from "./world.ts";
 import type { Config } from "../../dojo.config.ts";
 import { setupWorld } from "./contractSystems.ts";
-import { DojoProvider } from "@dojoengine/core";
 
 export type SetupResult = Awaited<ReturnType<typeof setup>>;
+
+const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
+const namespace = VITE_PUBLIC_NAMESPACE || "zkube_budo_v1_1_3";
 
 export async function setup({ ...config }: Config) {
   // Initialize Torii client for interacting with the Dojo network
@@ -24,26 +26,23 @@ export async function setup({ ...config }: Config) {
   // Create client-side components that mirror the contract components
   const clientModels = models({ contractComponents });
 
-  // Initialize the Dojo provider with the manifest and RPC URL
-  const dojoProvider = new DojoProvider(config.manifest, config.rpcUrl, "info");
-
   const sync = await getSyncEntities(
     toriiClient,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     contractComponents as any,
     KeysClause(
-      ["zkube_budo_v1_1_3-Game"],
+      [`${namespace}-Game`],
       [undefined],
       "VariableLen"
     ).build(),
     [],
-    ["zkube_budo_v1_1_3-Game", "zkube_budo_v1_1_3-GameSettingsMetadata"],
+    [`${namespace}-Game`, `${namespace}-GameSettingsMetadata`],
     10000,
     true
   );
 
   // Set up the world client for interacting with smart contracts
-  const client = await setupWorld(dojoProvider, config);
+  const client = setupWorld(config);
 
   return {
     client,
@@ -52,8 +51,7 @@ export async function setup({ ...config }: Config) {
     systemCalls: systems({ client }),
     config,
     world,
-    //burnerManager,
-    rpcProvider: dojoProvider.provider,
+    rpcProvider: null, // No longer using DojoProvider
     sync,
     toriiClient,
   };

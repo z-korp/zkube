@@ -1,4 +1,3 @@
-import { DojoProvider } from "@dojoengine/core";
 import type { Config } from "../../dojo.config.ts";
 import {
   Account,
@@ -6,14 +5,16 @@ import {
   CairoOption,
   CairoOptionVariant,
   CallData,
-  type UniversalDetails,
 } from "starknet";
 import { stringToFelt, type Manifest } from "@/cartridgeConnector.tsx";
 
-const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
+const { VITE_PUBLIC_NAMESPACE, VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
+// VRF is only available on Sepolia/Mainnet, not on Slot
 export const VRF_PROVIDER_ADDRESS =
   "0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f";
+
+const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
 
 export interface Signer {
   account: Account;
@@ -46,11 +47,9 @@ export interface BonusTx extends Signer {
   block_index: number;
 }
 
-export type IWorld = Awaited<ReturnType<typeof setupWorld>>;
+export type IWorld = ReturnType<typeof setupWorld>;
 
-export async function setupWorld(provider: DojoProvider, config: Config) {
-  const details: UniversalDetails | undefined = undefined;
-
+export function setupWorld(config: Config) {
   function game() {
     const contract_name = "game_system";
     const contract = config.manifest.contracts.find(
@@ -64,29 +63,24 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       try {
         const trimmedName = name.trim();
 
-        return await provider.execute(
-          account,
-          [
-            {
-              contractAddress: contract.address,
-              entrypoint: "mint_game",
-              calldata: CallData.compile([
-                new CairoOption(CairoOptionVariant.Some, stringToFelt(trimmedName)),
-                new CairoOption(CairoOptionVariant.Some, settingsId),
-                1, // start
-                1, // end
-                1, // objective_ids
-                1, // context
-                1, // client_url
-                1, // renderer_address
-                account!.address,
-                false, // soulbound
-              ])
-            }
-          ],
-          VITE_PUBLIC_NAMESPACE,
-          details
-        );
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "mint_game",
+            calldata: CallData.compile([
+              new CairoOption(CairoOptionVariant.Some, stringToFelt(trimmedName)),
+              new CairoOption(CairoOptionVariant.Some, settingsId),
+              1, // start
+              1, // end
+              1, // objective_ids
+              1, // context
+              1, // client_url
+              1, // renderer_address
+              account.address,
+              false, // soulbound
+            ])
+          }
+        ]);
       } catch (error) {
         console.error("Error executing free_mint:", error);
         throw error;
@@ -96,26 +90,34 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
     const create = async ({ account, token_id }: Create) => {
       try {
         console.log("token_id", token_id);
-        return await provider.execute(
-          account,
-          [
+
+        // On Slot, skip VRF call since it's not deployed
+        if (isSlotMode) {
+          return await account.execute([
             {
-              contractAddress: VRF_PROVIDER_ADDRESS,
-              entrypoint: "request_random",
-              calldata: [
-                contract.address,
-                { type: 0, address: account.address },
-              ],
-            },
-            {
-              contractName: contract_name,
+              contractAddress: contract.address,
               entrypoint: "create",
               calldata: [token_id],
             },
-          ],
-          VITE_PUBLIC_NAMESPACE,
-          details
-        );
+          ]);
+        }
+
+        // On Sepolia/Mainnet, include VRF request
+        return await account.execute([
+          {
+            contractAddress: VRF_PROVIDER_ADDRESS,
+            entrypoint: "request_random",
+            calldata: CallData.compile({
+              caller: contract.address,
+              source: { type: 0, address: account.address },
+            }),
+          },
+          {
+            contractAddress: contract.address,
+            entrypoint: "create",
+            calldata: [token_id],
+          },
+        ]);
       } catch (error) {
         console.error("Error executing start:", error);
         throw error;
@@ -124,16 +126,13 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
 
     const surrender = async ({ account, game_id }: Surrender) => {
       try {
-        return await provider.execute(
-          account,
+        return await account.execute([
           {
-            contractName: contract_name,
+            contractAddress: contract.address,
             entrypoint: "surrender",
             calldata: [game_id],
           },
-          VITE_PUBLIC_NAMESPACE,
-          details
-        );
+        ]);
       } catch (error) {
         console.error("Error executing surrender:", error);
         throw error;
@@ -148,21 +147,19 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       final_index,
     }: Move) => {
       try {
-        return await provider.execute(
-          account,
+        return await account.execute([
           {
-            contractName: contract_name,
+            contractAddress: contract.address,
             entrypoint: "move",
             calldata: [game_id, row_index, start_index, final_index],
           },
-          VITE_PUBLIC_NAMESPACE,
-          details
-        );
+        ]);
       } catch (error) {
         console.error("Error executing move:", error);
         throw error;
       }
     };
+
     const getCustomEnum = (bonusIndex: number) => {
       if (bonusIndex === 1) {
         return new CairoCustomEnum({ Hammer: "()" });
@@ -182,16 +179,13 @@ export async function setupWorld(provider: DojoProvider, config: Config) {
       block_index,
     }: BonusTx) => {
       try {
-        return await provider.execute(
-          account,
+        return await account.execute([
           {
-            contractName: contract_name,
+            contractAddress: contract.address,
             entrypoint: "apply_bonus",
-            calldata: [game_id, getCustomEnum(bonus), row_index, block_index],
+            calldata: CallData.compile([game_id, getCustomEnum(bonus), row_index, block_index]),
           },
-          VITE_PUBLIC_NAMESPACE,
-          details
-        );
+        ]);
       } catch (error) {
         console.error("Error executing bonus:", error);
         throw error;

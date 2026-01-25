@@ -131,7 +131,9 @@ mod game_system {
                 game_settings.get_difficulty()
             };
 
-            let random = RandomImpl::new_vrf();
+            // Use pseudo-random for slot/katana (no VRF deployed)
+            // For mainnet/sepolia, change this to RandomImpl::new_vrf()
+            let random = RandomImpl::new_pseudo_random();
             let mut game = GameTrait::new(game_id, random.seed, difficulty);
             world.write_model(@game);
 

@@ -85,22 +85,53 @@ export const Play = () => {
   useEffect(() => {
     // Only attempt to create a game if:
     // 1. We're not loading (5000ms has passed or game was found)
-    // 2. No game exists
+    // 2. Game doesn't exist OR exists but hasn't started (blocksRaw === 0)
     // 3. Account is connected
     // 4. We haven't already attempted creation
+    const gameExists = game !== null && game !== undefined;
+    const gameHasBlocks = gameExists && game.blocksRaw !== 0n;
+    const gameNotStarted = !gameExists || game.blocksRaw === 0n;
+
+    console.log("[Play.tsx] Create effect check:", {
+      gameId,
+      isGameLoading,
+      gameExists,
+      gameHasBlocks,
+      blocksRaw: game?.blocksRaw,
+      blocksRawType: typeof game?.blocksRaw,
+      gameNotStarted,
+      hasAccount: !!account,
+      creationAttempted: gameCreationAttemptedRef.current,
+    });
+
+    // Skip if game already has blocks (already started)
+    if (gameHasBlocks) {
+      console.log("[Play.tsx] Game already has blocks, skipping create");
+      return;
+    }
+
     if (
       !isGameLoading &&
-      (game === null || game === undefined) &&
+      gameNotStarted &&
       account &&
       !gameCreationAttemptedRef.current
     ) {
+      console.log("[Play.tsx] Attempting to create game...");
       gameCreationAttemptedRef.current = true;
       const createGame = async () => {
         try {
           await create({ account, token_id: gameId });
+          console.log("[Play.tsx] Game created successfully");
         } catch (error) {
-          console.error("Failed to create game:", error);
-          // Reset the flag on error so user can retry
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          // If the game already started, it means Torii hasn't synced yet
+          // Don't reset the flag - just wait for sync
+          if (errorMessage.includes("already started")) {
+            console.log("[Play.tsx] Game already started, waiting for sync...");
+            return;
+          }
+          console.error("[Play.tsx] Failed to create game:", error);
+          // Reset the flag on other errors so user can retry
           gameCreationAttemptedRef.current = false;
         }
       };

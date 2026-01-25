@@ -36,6 +36,10 @@ import { useNavigate } from "react-router-dom";
 import { useGameTokens } from "metagame-sdk/sql";
 import type { GameTokenData } from "metagame-sdk";
 import { getGameSystemAddress } from "@/utils/metagame";
+import {
+  useGameTokensSlot,
+  isSlotMode,
+} from "@/hooks/useGameTokensSlot";
 
 const gameSystemAddress = getGameSystemAddress();
 
@@ -145,19 +149,28 @@ export const Home = () => {
   }, []);
 
   const shouldFetchMyGames = Boolean(account?.address);
+
+  // Use slot-specific hook for slot mode, metagame SDK for other environments
+  const metagameResult = useGameTokens({
+    owner: !isSlotMode && shouldFetchMyGames ? account?.address : undefined,
+    sortBy: "minted_at",
+    sortOrder: "desc",
+    limit: !isSlotMode && shouldFetchMyGames ? 100 : 0,
+    includeMetadata: true,
+    gameAddresses: gameSystemAddress ? [gameSystemAddress] : undefined,
+  });
+
+  const slotResult = useGameTokensSlot({
+    owner: isSlotMode && shouldFetchMyGames ? account?.address : undefined,
+    limit: isSlotMode && shouldFetchMyGames ? 100 : 0,
+  });
+
   const {
     games: ownedGames,
     loading: ownedGamesLoading,
     metadataLoading: ownedMetadataLoading,
     refetch: refetchOwnedGames,
-  } = useGameTokens({
-    owner: shouldFetchMyGames ? account?.address : undefined,
-    sortBy: "minted_at",
-    sortOrder: "desc",
-    limit: shouldFetchMyGames ? 100 : 0,
-    includeMetadata: true,
-    gameAddresses: gameSystemAddress ? [gameSystemAddress] : undefined,
-  });
+  } = isSlotMode ? slotResult : metagameResult;
 
   const playerGames: PlayerGameRow[] = useMemo(() => {
     if (!ownedGames?.length) return [];
