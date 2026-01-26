@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useRef, useState } from "react";
+import React, { type ChangeEvent, useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,28 +9,38 @@ import {
 interface TweetPreviewProps {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  score: number | undefined;
+  level: number;
+  totalStars: number;
+  totalScore: number;
+  isGameOver: boolean;
   imgSrc: string;
 }
 
 export const TweetPreview: React.FC<TweetPreviewProps> = ({
   open,
   setOpen,
-  score,
+  level,
+  totalStars,
+  totalScore,
+  isGameOver,
   imgSrc,
 }) => {
-  const bodyRef: React.RefObject<HTMLDivElement> | null = useRef(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const [tweetMsg, setTweetMsg] = useState("");
 
   useEffect(() => {
+    const statusText = isGameOver ? "Game Over!" : "Still climbing!";
+    const starsDisplay = "⭐".repeat(Math.min(totalStars, 10)) + (totalStars > 10 ? `+${totalStars - 10}` : "");
+    
     setTweetMsg(
-      `🎮 Just crushed it on zKube with a score of ${score}!
+      `🎮 Reached Level ${level} on zKube! ${statusText}
+${starsDisplay} ${totalStars} stars earned
+💎 ${totalScore.toLocaleString()} total points
 Can you beat that? 😎
-Ready to lvl up! Who's joining the challenge? 🚀
 Play now: app.zkube.xyz
 @zkorp_ @zkube_game`,
     );
-  }, [open, score]);
+  }, [open, level, totalStars, totalScore, isGameOver]);
 
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setTweetMsg(event.target.value);

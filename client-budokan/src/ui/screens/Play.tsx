@@ -72,7 +72,6 @@ export const Play = () => {
   const gameGrid = useRef<HTMLDivElement>(null);
   const [isGameOn, setIsGameOn] = useState<"idle" | "isOn" | "isOver">("idle");
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [score, setScore] = useState<number | undefined>(0);
   const [imgData, setImgData] = useState<string>("");
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
@@ -167,9 +166,8 @@ export const Play = () => {
   }, [account]);
 
   const composeTweet = useCallback(() => {
-    setScore(game?.score);
     setIsPreviewOpen(true);
-  }, [game?.score]);
+  }, []);
 
   useEffect(() => {
     if (game?.over) {
@@ -406,7 +404,10 @@ export const Play = () => {
             <TweetPreview
               open={isPreviewOpen}
               setOpen={setIsPreviewOpen}
-              score={score}
+              level={game?.level ?? 1}
+              totalStars={game?.totalStars ?? 0}
+              totalScore={game?.totalScore ?? 0}
+              isGameOver={game?.over ?? false}
               imgSrc={imgData}
             />
             <AnimatePresence>
