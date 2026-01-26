@@ -58,20 +58,10 @@ export const useGameTokensSlot = ({
         // Query all Game entities from RECS
         const gameEntities = runQuery([Has(Game)]);
 
-        console.log("[useGameTokensSlot] Found entities:", gameEntities.size);
-
         const gameList: GameTokenData[] = [];
 
         for (const entity of gameEntities) {
           const gameData = getComponentValue(Game, entity);
-
-          console.log("[useGameTokensSlot] Entity:", entity, "Data:", {
-            game_id: gameData?.game_id,
-            blocks: gameData?.blocks,
-            blocksType: typeof gameData?.blocks,
-            score: gameData?.score,
-            over: gameData?.over,
-          });
 
           if (!gameData || gameData.game_id === 0) continue;
 

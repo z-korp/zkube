@@ -4,6 +4,7 @@ pub mod events;
 pub mod models {
     pub mod config;
     pub mod game;
+    pub mod player;
 }
 
 pub mod types {
@@ -11,6 +12,8 @@ pub mod types {
     pub mod width;
     pub mod block;
     pub mod difficulty;
+    pub mod constraint;
+    pub mod level;
 }
 
 mod elements {
@@ -47,6 +50,8 @@ pub mod helpers {
     pub mod encoding;
     pub mod renderer;
     pub mod token;
+    pub mod packing;
+    pub mod level;
 }
 
 pub mod systems {

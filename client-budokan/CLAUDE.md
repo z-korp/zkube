@@ -299,3 +299,89 @@ Tests use Vitest + Testing Library, located in `src/test/`.
 2. **Transactions are wrapped:** All contract calls go through `systems.ts`
 3. **Memoization:** Use `useDeepMemo` for deep object comparisons
 4. **Entity keys:** Convert game IDs to entity keys via `getEntityIdFromKeys`
+
+## Critical: Entity ID Format Mismatch
+
+**Problem:** Torii stores entity IDs without leading zeros, but `getEntityIdFromKeys` returns padded IDs.
+
+```typescript
+// Torii stores:      "0x4533cf8322e4e8109cf9479dfb8d5425a5b33b2e8ea09b780760b6ebefaf1c"
+// getEntityIdFromKeys: "0x004533cf8322e4e8109cf9479dfb8d5425a5b33b2e8ea09b780760b6ebefaf1c"
+```
+
+**Solution:** Normalize entity IDs before RECS lookups:
+
+```typescript
+const normalizeEntityId = (entityId: string): Entity => {
+  if (!entityId.startsWith("0x")) return entityId as Entity;
+  const hex = entityId.slice(2).replace(/^0+/, "") || "0";
+  return `0x${hex}` as Entity;
+};
+
+const gameKey = useMemo(() => {
+  const rawKey = getEntityIdFromKeys([BigInt(gameKeySource)]);
+  return normalizeEntityId(rawKey);
+}, [gameKeySource]);
+```
+
+This normalization is already implemented in `useGame.tsx`.
+
+## Slot Mode Specifics
+
+### Detecting Slot Mode
+```typescript
+const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
+const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
+```
+
+### Game Token Queries
+- **Mainnet/Sepolia:** Use `useGameTokens` from `metagame-sdk/sql`
+- **Slot:** Use `useGameTokensSlot` hook (queries local RECS directly)
+
+The metagame-sdk queries a relayer infrastructure that doesn't exist on slot.
+
+### VRF Handling in contractSystems.ts
+On slot, skip VRF request calls since VRF provider doesn't exist:
+```typescript
+if (isSlotMode) {
+  // Skip VRF, contract uses pseudo-random
+  return await account.execute([{
+    contractAddress: contract.address,
+    entrypoint: "create",
+    calldata: [token_id],
+  }]);
+}
+```
+
+## ERC721 Event Parsing
+
+When extracting token_id from mint events, use the Transfer event:
+
+```typescript
+// Transfer event has 5 keys: [selector, from, to, token_id_low, token_id_high]
+const transferEvent = events.find(
+  (event) => event.keys?.length === 5 && event.data?.length === 0
+);
+
+if (transferEvent) {
+  const tokenIdLow = BigInt(transferEvent.keys[3] || "0");
+  const tokenIdHigh = BigInt(transferEvent.keys[4] || "0");
+  const game_id = Number(tokenIdLow + (tokenIdHigh << 128n));
+}
+```
+
+## Play.tsx Game Creation Logic
+
+The Play screen auto-creates games that haven't started. Key checks:
+
+1. **Don't create if game already has blocks:** `game.blocksRaw !== 0n`
+2. **Handle "already started" errors gracefully:** Don't reset retry flag
+3. **Wait for Torii sync:** Game may exist but not be synced yet
+
+```typescript
+const gameHasBlocks = game !== null && game !== undefined && game.blocksRaw !== 0n;
+if (gameHasBlocks) {
+  // Game already started, don't call create()
+  return;
+}
+```

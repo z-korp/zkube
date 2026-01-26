@@ -56,11 +56,11 @@ const BonusButton: React.FC<BonusButtonProps> = ({
             <Button
               variant="outline"
               size="icon"
-              className={`md:p-2 sm:p-1 p-1 border ${bonus == bonusName ? "bg-yellow-500" : ""} cursor-pointer ${highlighted ? "border-4 border-yellow-500" : ""}`}
+              className={`p-1 sm:p-1.5 md:p-2 h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 border ${bonus == bonusName ? "bg-yellow-500" : ""} cursor-pointer ${highlighted ? "border-4 border-yellow-500" : ""}`}
               onClick={handleClick}
               disabled={disabled}
             >
-              <img src={urlImage} alt="image for bonus" />
+              <img src={urlImage} alt="image for bonus" className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
             </Button>
           </motion.div>
         </TooltipTrigger>

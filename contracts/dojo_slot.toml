@@ -4,7 +4,7 @@ description = "Reversed tetris fully onchain."
 cover_uri = "file://assets/cover.png"
 icon_uri = "file://assets/icon.png"
 website = "https://app.zkube.xyz"
-seed = "zkube4"
+seed = "zkube_levels_v2_2026"
 
 [world.socials]
 x = "https://x.com/ohayo_dojo"
@@ -13,31 +13,38 @@ github = "https://github.com/dojoengine/dojo-starter"
 telegram = "https://t.me/dojoengine"
 
 [namespace]
-default = "zkube_budo_v1_1_3"
+default = "zkube_budo_v1_2_0"
 
 [env]
 rpc_url = "https://api.cartridge.gg/x/zkube-djizus/katana"
 account_address = "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819"
 private_key = "0x3e3979c1ed728490308054fe357a9f49cf67f80f9721f44cc57235129e090f4"
-world_address = "0x0404bfb2ff5e694362524e455c1167b71c8084b8f5d4cae1c484a914dbd4d96b"
+# world_address will be set after migration
 
 [writers]
-"zkube_budo_v1_1_3-Game" = ["zkube_budo_v1_1_3-game_system"]
-"zkube_budo_v1_1_3-GameSeed" = ["zkube_budo_v1_1_3-game_system"]
-"zkube_budo_v1_1_3-GameCounter" = ["zkube_budo_v1_1_3-game_system"]
-"zkube_budo_v1_1_3-GameMetadata" = ["zkube_budo_v1_1_3-game_system"]
-"zkube_budo_v1_1_3-TokenMetadata" = ["zkube_budo_v1_1_3-game_system"]
-"zkube_budo_v1_1_3-GameSettings" = ["zkube_budo_v1_1_3-config_system"]
-"zkube_budo_v1_1_3-GameSettingsMetadata" = ["zkube_budo_v1_1_3-config_system"]
-"zkube_budo_v1_1_3-StartGame" = ["zkube_budo_v1_1_3-game_system"]
-"zkube_budo_v1_1_3-UseBonus" = ["zkube_budo_v1_1_3-game_system"]
+# Models
+"zkube_budo_v1_2_0-Game" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_budo_v1_2_0-GameSeed" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_budo_v1_2_0-GameCounter" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_budo_v1_2_0-GameMetadata" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_budo_v1_2_0-TokenMetadata" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_budo_v1_2_0-PlayerMeta" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_budo_v1_2_0-GameSettings" = ["zkube_budo_v1_2_0-config_system"]
+"zkube_budo_v1_2_0-GameSettingsMetadata" = ["zkube_budo_v1_2_0-config_system"]
+# Events
+"zkube_budo_v1_2_0-StartGame" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_budo_v1_2_0-UseBonus" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_budo_v1_2_0-LevelStarted" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_budo_v1_2_0-LevelCompleted" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_budo_v1_2_0-RunEnded" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_budo_v1_2_0-ConstraintProgress" = ["zkube_budo_v1_2_0-game_system"]
 
 [init_call_args]
-"zkube_budo_v1_1_3-game_system" = [
+"zkube_budo_v1_2_0-game_system" = [
     "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",  # creator_address (account)
-    "0x055d2f4c4c7993e489de889cb83924db1fcdc8462ba6507341df2dd15cbdea5b",  # denshokan_address (FullTokenContract)
+    "0x062347854b5817b3c8101014b5813fb0b5db48e4df2a0a9dada8cbdab191b064",  # denshokan_address (FullTokenContract)
     "1",  # renderer_address: Option::None
 ]
-"zkube_budo_v1_1_3-config_system" = [
+"zkube_budo_v1_2_0-config_system" = [
     "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",  # account address
 ]

@@ -16,16 +16,10 @@ export function defineContractComponents(world: World) {
           game_id: RecsType.Number,
           blocks: RecsType.BigInt,
           next_row: RecsType.Number,
-          score: RecsType.Number,
-          moves: RecsType.Number,
           combo_counter: RecsType.Number,
           max_combo: RecsType.Number,
-          hammer_bonus: RecsType.Number,
-          wave_bonus: RecsType.Number,
-          totem_bonus: RecsType.Number,
-          hammer_used: RecsType.Number,
-          wave_used: RecsType.Number,
-          totem_used: RecsType.Number,
+          run_data: RecsType.BigInt,
+          started_at: RecsType.Number,
           over: RecsType.Boolean,
         },
         {
@@ -36,16 +30,10 @@ export function defineContractComponents(world: World) {
               "u64",
               "felt252",
               "u32",
-              "u16",
-              "u16",
-              "u16",
               "u8",
               "u8",
-              "u8",
-              "u8",
-              "u8",
-              "u8",
-              "u8",
+              "felt252",
+              "u64",
               "bool",
             ],
             customTypes: [],
@@ -84,6 +72,23 @@ export function defineContractComponents(world: World) {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "GameSettings",
             types: ["u32", "Difficulty"],
+          },
+        }
+      );
+    })(),
+    GameSeed: (() => {
+      return defineComponent(
+        world,
+        {
+          game_id: RecsType.Number,
+          seed: RecsType.BigInt,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "GameSeed",
+            types: ["u64", "felt252"],
+            customTypes: [],
           },
         }
       );

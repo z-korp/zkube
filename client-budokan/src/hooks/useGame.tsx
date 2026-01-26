@@ -1,5 +1,5 @@
 import { useDojo } from "@/dojo/useDojo";
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
 import type { Entity } from "@dojoengine/recs";
@@ -26,7 +26,7 @@ export const useGame = ({
   const {
     setup: {
       clientModels: {
-        models: { Game },
+        models: { Game, GameSeed },
         classes: { Game: GameClass },
       },
     },
@@ -41,18 +41,61 @@ export const useGame = ({
   }, [gameKeySource]);
 
   const component = useComponentValue(Game, gameKey);
-
-  console.log("[useGame] Game lookup:", {
-    gameKeySource,
-    gameKey,
-    hasComponent: !!component,
-    componentBlocks: component?.blocks,
-    componentBlocksType: typeof component?.blocks,
-  });
+  const seedComponent = useComponentValue(GameSeed, gameKey);
 
   const game = useDeepMemo(() => {
     return component ? new GameClass(component) : null;
   }, [component]);
 
-  return { game, gameKey };
+  // Track if we need to retry fetching the seed
+  const [retryCount, setRetryCount] = useState(0);
+
+  const seed = useMemo(() => {
+    const s = seedComponent?.seed ? BigInt(seedComponent.seed) : BigInt(0);
+    console.log("[useGame] GameSeed fetched:", {
+      gameKey,
+      hasSeedComponent: !!seedComponent,
+      seed: s.toString(),
+      retryCount,
+    });
+    return s;
+  }, [seedComponent, gameKey, retryCount]);
+
+  // Retry fetching seed if game exists but seed is missing
+  useEffect(() => {
+    if (game && !seedComponent && retryCount < 5) {
+      const timer = setTimeout(() => {
+        console.log("[useGame] Retrying seed fetch, attempt:", retryCount + 1);
+        setRetryCount((prev) => prev + 1);
+      }, 500); // Retry every 500ms
+      return () => clearTimeout(timer);
+    }
+  }, [game, seedComponent, retryCount]);
+
+  // Reset retry count when game changes
+  useEffect(() => {
+    setRetryCount(0);
+  }, [gameKey]);
+
+  // Log game state when it changes
+  useEffect(() => {
+    if (game) {
+      console.log("[useGame] Game state:", {
+        id: game.id,
+        level: game.level,
+        levelScore: game.levelScore,
+        levelMoves: game.levelMoves,
+        totalStars: game.totalStars,
+        totalScore: game.totalScore,
+        hammer: game.hammer,
+        wave: game.wave,
+        totem: game.totem,
+        combo: game.combo,
+        maxCombo: game.max_combo,
+        over: game.over,
+      });
+    }
+  }, [game]);
+
+  return { game, gameKey, seed };
 };

@@ -12,9 +12,12 @@ pub const TWO_POW_1: u128 = 0x2;
 pub const MASK_1: u128 = 0x1;
 pub const MASK_7: u32 = 0x7;
 
-// Tournament
+// Version
+pub const VERSION: felt252 = 'v1.2.0';
+
+// Tournament / Namespace
 pub fn DEFAULT_NS() -> ByteArray {
-    "zkube_budo_v1_1_3"
+    "zkube_budo_v1_2_0"
 }
 
 pub fn SCORE_MODEL() -> ByteArray {

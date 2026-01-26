@@ -26,17 +26,18 @@ export async function setup({ ...config }: Config) {
   // Create client-side components that mirror the contract components
   const clientModels = models({ contractComponents });
 
+  // Sync both Game and GameSeed models - they share the same key (game_id)
   const sync = await getSyncEntities(
     toriiClient,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     contractComponents as any,
     KeysClause(
-      [`${namespace}-Game`],
+      [`${namespace}-Game`, `${namespace}-GameSeed`],
       [undefined],
       "VariableLen"
     ).build(),
     [],
-    [`${namespace}-Game`, `${namespace}-GameSettingsMetadata`],
+    [`${namespace}-Game`, `${namespace}-GameSeed`, `${namespace}-GameSettingsMetadata`],
     10000,
     true
   );

@@ -265,3 +265,36 @@ Models are prefixed with this namespace in Torii queries:
 - Location: `contracts/src/tests/`
 - Tests: `test_create`, `test_move`, `test_play`, `test_bonus_*`
 - Run: `scarb test`
+
+## Slot Development (Local Testing)
+
+### Key Differences from Mainnet/Sepolia
+
+1. **VRF Not Available**: Cartridge VRF provider only exists on Sepolia/Mainnet
+   - Use `RandomImpl::new_pseudo_random()` instead of `RandomImpl::new_vrf()` in `contracts/src/systems/game.cairo`
+   - Generates pseudo-random seed from tx_hash, caller, timestamp, nonce
+
+2. **Metagame SDK Not Available**: The metagame-sdk queries infrastructure that doesn't exist on slot
+   - Use `useGameTokensSlot` hook instead of `useGameTokens` from metagame-sdk
+   - Queries games directly from local Torii/RECS
+
+3. **Entity ID Format Mismatch**: Torii stores entity IDs without leading zeros
+   - `getEntityIdFromKeys` returns: `0x004533cf...` (padded)
+   - Torii stores: `0x4533cf...` (no leading zeros)
+   - Must normalize entity IDs before RECS lookups (see `useGame.tsx`)
+
+4. **Event Permissions**: Systems need explicit WRITER grants for events
+   - Add to `dojo_slot.toml`:
+   ```toml
+   [writers]
+   "zkube_budo_v1_1_3-StartGame" = ["zkube_budo_v1_1_3-game_system"]
+   "zkube_budo_v1_1_3-UseBonus" = ["zkube_budo_v1_1_3-game_system"]
+   ```
+
+### Slot Deployment Checklist
+
+1. Update `contracts/src/systems/game.cairo` to use pseudo-random
+2. Update `dojo_slot.toml` with event writer permissions
+3. Deploy: `cd contracts && scarb slot`
+4. Grant permissions: `sozo auth grant --profile slot writer <model>,<system>`
+5. Frontend uses slot config via `VITE_PUBLIC_DEPLOY_TYPE=slot`

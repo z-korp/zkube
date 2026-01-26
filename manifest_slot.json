@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x613551abceb2b37073b1149bb862ea70cf029981ce1ca47e9dd7c7ab97cb65d",
-    "address": "0x404bfb2ff5e694362524e455c1167b71c8084b8f5d4cae1c484a914dbd4d96b",
-    "seed": "zkube4",
+    "address": "0x55e5fe566f984b6fead68ace67278ecdefdc93a48f5509bc61c66f68af6a97f",
+    "seed": "zkube_levels_v2_2026",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,13 +33,13 @@
   },
   "contracts": [
     {
-      "address": "0x545f2d5ccfc80b0df27c8ec9b51fcc1d856e2a023fff8d9c75b34bf71b108f1",
-      "class_hash": "0x69475e7ba60cffafd9fcb95fa287589a4f23554dad6c0451ebeed40f4d6d777",
+      "address": "0x18e17b1775bff05fea6b924f1b9159d417f8a6772604df0f3bdea1460aa71cf",
+      "class_hash": "0x7c4e0d3f0ac59adf21489edf8051a643c673844d41b15f596f98852b14d9621",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819"
       ],
-      "tag": "zkube_budo_v1_1_3-config_system",
-      "selector": "0x1507e007557c2239395fb3f2516a171236c47e25f08d6c7396b7986815dfb37",
+      "tag": "zkube_budo_v1_2_0-config_system",
+      "selector": "0xebe42c5440f35cc9a3742fb773019f34101eae85c5e314bcebd749b6ec84f0",
       "systems": [
         "dojo_init",
         "add_game_settings",
@@ -47,15 +47,15 @@
       ]
     },
     {
-      "address": "0x1afd9635916fd14328f2ed9f226c0f233cf817df597dc3557789e2f8627ec2f",
-      "class_hash": "0x64b0ff4075564adf92bb2da89c0d314f2e2e99d05fef06e14309f9796b0f9a0",
+      "address": "0x2402b8facad4741dda1c3fbda52cbef2551020c070bfe868296b7b0d8c85ac",
+      "class_hash": "0x3809263cac82bf1ab36dd8f17ddf9e9d1804fc5a6895249fdfbf3da1fc85f19",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
-        "0x055d2f4c4c7993e489de889cb83924db1fcdc8462ba6507341df2dd15cbdea5b",
+        "0x062347854b5817b3c8101014b5813fb0b5db48e4df2a0a9dada8cbdab191b064",
         "1"
       ],
-      "tag": "zkube_budo_v1_1_3-game_system",
-      "selector": "0x5d9ba547021d731752dbe1b6201d63722e97183f928f62d11100799c74ecde8",
+      "tag": "zkube_budo_v1_2_0-game_system",
+      "selector": "0x1756a4d7c5611311eb6d0f10d4af74095e327cf1030b89590ffb4e92d25b26c",
       "systems": [
         "dojo_init",
         "create",
@@ -86,18 +86,8 @@
           "key": false
         },
         {
-          "name": "score",
-          "type": "core::integer::u16",
-          "key": false
-        },
-        {
-          "name": "moves",
-          "type": "core::integer::u16",
-          "key": false
-        },
-        {
           "name": "combo_counter",
-          "type": "core::integer::u16",
+          "type": "core::integer::u8",
           "key": false
         },
         {
@@ -106,33 +96,13 @@
           "key": false
         },
         {
-          "name": "hammer_bonus",
-          "type": "core::integer::u8",
+          "name": "run_data",
+          "type": "core::felt252",
           "key": false
         },
         {
-          "name": "wave_bonus",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "totem_bonus",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "hammer_used",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "wave_used",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "totem_used",
-          "type": "core::integer::u8",
+          "name": "started_at",
+          "type": "core::integer::u64",
           "key": false
         },
         {
@@ -141,9 +111,9 @@
           "key": false
         }
       ],
-      "class_hash": "0x400423b185bbeac92070dab3706fbb0ca7b62583c5804f89f3b778177a8e497",
-      "tag": "zkube_budo_v1_1_3-Game",
-      "selector": "0xd055747faa457e262930e0d3d8fefe6d33697bb685281d93503564a81ae9e2"
+      "class_hash": "0x15fd12716e5410c02f08aa9ee5d7b923fa238f8891e84d9c121a4cabbe08cad",
+      "tag": "zkube_budo_v1_2_0-Game",
+      "selector": "0x32e0585e8074a4c0264a61e3f5d610e990985d9d32194c1b8bdcf9e00a619ad"
     },
     {
       "members": [
@@ -159,8 +129,8 @@
         }
       ],
       "class_hash": "0x8adf8d1fd0e24a779e9e84754ea243a8ceff9892916022ad39e14131771e76",
-      "tag": "zkube_budo_v1_1_3-GameSeed",
-      "selector": "0x7e6cb23364693c363ba1401c4c2428a6eac7a2669549cb3c6973b5841c68d73"
+      "tag": "zkube_budo_v1_2_0-GameSeed",
+      "selector": "0x5e155330954a8b2ebc46d774a5ac2d374692bafa8e2461c74d8e4aae7458a22"
     },
     {
       "members": [
@@ -176,8 +146,8 @@
         }
       ],
       "class_hash": "0x5338bb203c857c0013f8a6e6e7cd2af5c3fad82073b7980daf2c6eecc9c14a6",
-      "tag": "zkube_budo_v1_1_3-GameSettings",
-      "selector": "0x2c92a81a18ae8e990eac5a0cf27d2c3aaeac0e6fd263156ad49b5e5f496618f"
+      "tag": "zkube_budo_v1_2_0-GameSettings",
+      "selector": "0x1c245917b09d68b08ceb4972426ebba162f36b31404a63dc180496cdc6777b"
     },
     {
       "members": [
@@ -208,11 +178,191 @@
         }
       ],
       "class_hash": "0x558a959ed374bc02bfa32534ad780bb71f57850abc504dbfdd04ae98e6cb3de",
-      "tag": "zkube_budo_v1_1_3-GameSettingsMetadata",
-      "selector": "0x305f3ec00e3e5b3c6c1ca142ab5bb40adb491c8bd11fd5fe3b9261a77f63770"
+      "tag": "zkube_budo_v1_2_0-GameSettingsMetadata",
+      "selector": "0x2ee961dac07326a2ec70644bf2ad0f4e2c76a3a5b9f03b0c599c654b6fd6e32"
+    },
+    {
+      "members": [
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": true
+        },
+        {
+          "name": "data",
+          "type": "core::felt252",
+          "key": false
+        },
+        {
+          "name": "best_level",
+          "type": "core::integer::u8",
+          "key": false
+        }
+      ],
+      "class_hash": "0x77ec576f2aead481e77727f117ca65eeb1aa0ffae116bd46d19ad26f788605f",
+      "tag": "zkube_budo_v1_2_0-PlayerMeta",
+      "selector": "0x631ad5f961c9bc59af421f721602d568d38327dc491a69bc9229fa7a9bbf699"
     }
   ],
   "events": [
+    {
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "constraint_type",
+          "type": "zkube::types::constraint::ConstraintType",
+          "key": false
+        },
+        {
+          "name": "current",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "required",
+          "type": "core::integer::u8",
+          "key": false
+        }
+      ],
+      "class_hash": "0x14e0f308f5d33475364f43b0477b929481642395f306d03334f4dee9de72184",
+      "tag": "zkube_budo_v1_2_0-ConstraintProgress",
+      "selector": "0x353bf174f35f86ea87568181261d084bde41c365a7d78454eeb7015f9f58988"
+    },
+    {
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": true
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "stars",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "moves_used",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "score",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "bonuses_earned",
+          "type": "core::integer::u8",
+          "key": false
+        }
+      ],
+      "class_hash": "0x3ed9ef9e9da337a3d53ba33d493593806118d167e56568dcde1105d5b5794ff",
+      "tag": "zkube_budo_v1_2_0-LevelCompleted",
+      "selector": "0x7a28711b6febc8ff460cd133f74e6fe89c19af7615608b64eb3aaf3e290647b"
+    },
+    {
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": true
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "points_required",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "max_moves",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "constraint_type",
+          "type": "zkube::types::constraint::ConstraintType",
+          "key": false
+        },
+        {
+          "name": "constraint_value",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint_required",
+          "type": "core::integer::u8",
+          "key": false
+        }
+      ],
+      "class_hash": "0x5114250b21f87e84856525b62764196537e982b227ca5e367a614469c34f3e",
+      "tag": "zkube_budo_v1_2_0-LevelStarted",
+      "selector": "0x1253fbd361d7ea8f1af4785316aaeea4348f393df3c4e456fcc1f4114c44834"
+    },
+    {
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": true
+        },
+        {
+          "name": "final_level",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "final_score",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "total_stars",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "started_at",
+          "type": "core::integer::u64",
+          "key": false
+        },
+        {
+          "name": "ended_at",
+          "type": "core::integer::u64",
+          "key": false
+        }
+      ],
+      "class_hash": "0x509118010be7dfddb413761fe9453255cb97cc75cf15d342de6ff5cd8fee746",
+      "tag": "zkube_budo_v1_2_0-RunEnded",
+      "selector": "0x1f8ccfae938e3b2021e434fb6752e0c96aee7551c7c5443082fb9cdb24ebfdb"
+    },
     {
       "members": [
         {
@@ -232,8 +382,8 @@
         }
       ],
       "class_hash": "0x6933cee333bcece7dcf0db77afab3002e77715c5b036085c3d19f1aea03ac70",
-      "tag": "zkube_budo_v1_1_3-StartGame",
-      "selector": "0x18975a6de6886c3be4dde4c236a1481dc77d523131302e23fec29eab7c8a572"
+      "tag": "zkube_budo_v1_2_0-StartGame",
+      "selector": "0x6b4eb5c0f93990f0c55025d03b1c5a4bd40739561a4763c419ad34f05228e2"
     },
     {
       "members": [
@@ -259,8 +409,8 @@
         }
       ],
       "class_hash": "0x29d59b27c571521b248ff4bd211dffe096fee8043eda160c4e5de358b578288",
-      "tag": "zkube_budo_v1_1_3-UseBonus",
-      "selector": "0x5d0f5a9dfa57c1ff2051126662bfd820b79e38bfc47134564ac1ee0cf7609f8"
+      "tag": "zkube_budo_v1_2_0-UseBonus",
+      "selector": "0x12d7603e18f9fa369a823a5096714451ba28a0f67a4b7736a2d26e2e4777c13"
     }
   ],
   "external_contracts": [],
@@ -2521,6 +2671,234 @@
     },
     {
       "type": "struct",
+      "name": "zkube::events::ConstraintProgress",
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "constraint_type",
+          "type": "zkube::types::constraint::ConstraintType"
+        },
+        {
+          "name": "current",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "required",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::events::ConstraintProgressValue",
+      "members": [
+        {
+          "name": "constraint_type",
+          "type": "zkube::types::constraint::ConstraintType"
+        },
+        {
+          "name": "current",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "required",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::events::LevelCompleted",
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "stars",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "moves_used",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "score",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "bonuses_earned",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::events::LevelCompletedValue",
+      "members": [
+        {
+          "name": "level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "stars",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "moves_used",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "score",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "bonuses_earned",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::events::LevelStarted",
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "points_required",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "max_moves",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "constraint_type",
+          "type": "zkube::types::constraint::ConstraintType"
+        },
+        {
+          "name": "constraint_value",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint_required",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::events::LevelStartedValue",
+      "members": [
+        {
+          "name": "level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "points_required",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "max_moves",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "constraint_type",
+          "type": "zkube::types::constraint::ConstraintType"
+        },
+        {
+          "name": "constraint_value",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint_required",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::events::RunEnded",
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "final_level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "final_score",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "total_stars",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "started_at",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "ended_at",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::events::RunEndedValue",
+      "members": [
+        {
+          "name": "final_level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "final_score",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "total_stars",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "started_at",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "ended_at",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
       "name": "zkube::events::StartGame",
       "members": [
         {
@@ -2590,6 +2968,30 @@
           "type": "zkube::types::bonus::Bonus"
         }
       ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::events::e_ConstraintProgress::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "zkube::events::e_LevelCompleted::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "zkube::events::e_LevelStarted::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "zkube::events::e_RunEnded::Event",
+      "kind": "enum",
+      "variants": []
     },
     {
       "type": "event",
@@ -2704,44 +3106,20 @@
           "type": "core::integer::u32"
         },
         {
-          "name": "score",
-          "type": "core::integer::u16"
-        },
-        {
-          "name": "moves",
-          "type": "core::integer::u16"
-        },
-        {
           "name": "combo_counter",
-          "type": "core::integer::u16"
+          "type": "core::integer::u8"
         },
         {
           "name": "max_combo",
           "type": "core::integer::u8"
         },
         {
-          "name": "hammer_bonus",
-          "type": "core::integer::u8"
+          "name": "run_data",
+          "type": "core::felt252"
         },
         {
-          "name": "wave_bonus",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "totem_bonus",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "hammer_used",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "wave_used",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "totem_used",
-          "type": "core::integer::u8"
+          "name": "started_at",
+          "type": "core::integer::u64"
         },
         {
           "name": "over",
@@ -2786,44 +3164,20 @@
           "type": "core::integer::u32"
         },
         {
-          "name": "score",
-          "type": "core::integer::u16"
-        },
-        {
-          "name": "moves",
-          "type": "core::integer::u16"
-        },
-        {
           "name": "combo_counter",
-          "type": "core::integer::u16"
+          "type": "core::integer::u8"
         },
         {
           "name": "max_combo",
           "type": "core::integer::u8"
         },
         {
-          "name": "hammer_bonus",
-          "type": "core::integer::u8"
+          "name": "run_data",
+          "type": "core::felt252"
         },
         {
-          "name": "wave_bonus",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "totem_bonus",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "hammer_used",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "wave_used",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "totem_used",
-          "type": "core::integer::u8"
+          "name": "started_at",
+          "type": "core::integer::u64"
         },
         {
           "name": "over",
@@ -2840,6 +3194,44 @@
     {
       "type": "event",
       "name": "zkube::models::game::m_GameSeed::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::player::PlayerMeta",
+      "members": [
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "data",
+          "type": "core::felt252"
+        },
+        {
+          "name": "best_level",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::player::PlayerMetaValue",
+      "members": [
+        {
+          "name": "data",
+          "type": "core::felt252"
+        },
+        {
+          "name": "best_level",
+          "type": "core::integer::u8"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::models::player::m_PlayerMeta::Event",
       "kind": "enum",
       "variants": []
     },
@@ -3099,7 +3491,7 @@
           ],
           "outputs": [
             {
-              "type": "(core::integer::u16, core::integer::u16, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u16, core::bool)"
+              "type": "(core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u16, core::bool)"
             }
           ],
           "state_mutability": "view"
@@ -3151,6 +3543,24 @@
         },
         {
           "name": "Wave",
+          "type": "()"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "zkube::types::constraint::ConstraintType",
+      "variants": [
+        {
+          "name": "None",
+          "type": "()"
+        },
+        {
+          "name": "ClearLines",
+          "type": "()"
+        },
+        {
+          "name": "NoBonusUsed",
           "type": "()"
         }
       ]

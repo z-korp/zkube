@@ -248,3 +248,74 @@ Mock contracts in `tests/mocks/`:
 2. **VRF Randomness**: All randomness derived from VRF seed via Poseidon hashing
 3. **Gas Optimization**: Blocks packed into single felt252 to minimize storage
 4. **Deterministic**: Same seed + same moves = same game result
+
+## VRF vs Pseudo-Random
+
+### VRF (Mainnet/Sepolia)
+The Cartridge VRF provider is only deployed on Sepolia and Mainnet:
+- Address: `0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f`
+- Use `RandomImpl::new_vrf()` in `systems/game.cairo`
+
+### Pseudo-Random (Slot/Katana)
+For local development on slot/katana where VRF doesn't exist:
+- Use `RandomImpl::new_pseudo_random()` in `systems/game.cairo`
+- Generates seed from: `poseidon_hash([tx_hash, caller, contract, timestamp, nonce])`
+
+```cairo
+// In systems/game.cairo create() function:
+
+// For slot/katana (no VRF):
+let random = RandomImpl::new_pseudo_random();
+
+// For mainnet/sepolia (with VRF):
+let random = RandomImpl::new_vrf();
+```
+
+### Switching Between Modes
+When deploying to different networks, update `systems/game.cairo`:
+- Slot: `RandomImpl::new_pseudo_random()`
+- Sepolia/Mainnet: `RandomImpl::new_vrf()`
+
+## Event Permissions
+
+Systems that emit events need explicit WRITER grants in the dojo config:
+
+```toml
+# In dojo_slot.toml (or dojo_sepolia.toml, dojo_mainnet.toml)
+[writers]
+"zkube_budo_v1_1_3-Game" = ["zkube_budo_v1_1_3-game_system"]
+"zkube_budo_v1_1_3-GameSeed" = ["zkube_budo_v1_1_3-game_system"]
+# ... other models ...
+
+# Events also need writer permissions!
+"zkube_budo_v1_1_3-StartGame" = ["zkube_budo_v1_1_3-game_system"]
+"zkube_budo_v1_1_3-UseBonus" = ["zkube_budo_v1_1_3-game_system"]
+```
+
+If you see errors like `game_system does NOT have WRITER role on event StartGame`, add the event to the writers section.
+
+## Slot Deployment Checklist
+
+1. **Update random source** in `systems/game.cairo`:
+   ```cairo
+   let random = RandomImpl::new_pseudo_random();
+   ```
+
+2. **Add event permissions** to `dojo_slot.toml`:
+   ```toml
+   [writers]
+   "zkube_budo_v1_1_3-StartGame" = ["zkube_budo_v1_1_3-game_system"]
+   "zkube_budo_v1_1_3-UseBonus" = ["zkube_budo_v1_1_3-game_system"]
+   ```
+
+3. **Build and deploy**:
+   ```bash
+   scarb build
+   scarb slot
+   ```
+
+4. **Grant permissions manually if needed**:
+   ```bash
+   sozo auth grant --profile slot writer zkube_budo_v1_1_3-StartGame,zkube_budo_v1_1_3-game_system
+   sozo auth grant --profile slot writer zkube_budo_v1_1_3-UseBonus,zkube_budo_v1_1_3-game_system
+   ```

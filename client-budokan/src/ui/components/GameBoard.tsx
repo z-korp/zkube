@@ -8,7 +8,7 @@ import Grid from "./Grid";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "./NextLine";
 import type { Block } from "@/types/types";
-import GameScores from "./GameScores";
+import LevelHeader from "./LevelHeader";
 import { Bonus, BonusType } from "@/dojo/game/types/bonus";
 import BonusAnimation from "./BonusAnimation";
 import { Game } from "@/dojo/game/models/game";
@@ -26,6 +26,7 @@ interface GameBoardProps {
   totemCount: number;
   account: Account | null;
   game: Game;
+  seed: bigint;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -39,6 +40,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   totemCount,
   account,
   game,
+  seed,
 }) => {
   const {
     setup: {
@@ -205,27 +207,34 @@ const GameBoard: React.FC<GameBoardProps> = ({
           optimisticCombo={optimisticCombo}
           optimisticMaxCombo={optimisticMaxCombo}
         />
+        {/* Level Header with progress and combo */}
+        <div className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} px-1`}>
+          <LevelHeader
+            level={game.level}
+            levelScore={optimisticScore}
+            levelMoves={game.levelMoves}
+            totalStars={game.totalStars}
+            totalScore={game.totalScore}
+            combo={optimisticCombo}
+            seed={seed}
+            isMdOrLarger={isMdOrLarger}
+          />
+        </div>
+        
+        {/* Bonus buttons */}
         <div
           className={`${
             isMdOrLarger ? "w-[420px]" : "w-[338px]"
-          } mb-2 md:mb-3 flex justify-between px-1`}
+          } mb-2 md:mb-3 flex justify-center px-1`}
         >
-          <div className="w-5/12">
-            <GameBonus
-              onBonusWaveClick={handleBonusWaveClick}
-              onBonusTikiClick={handleBonusTikiClick}
-              onBonusHammerClick={handleBonusHammerClick}
-              hammerCount={hammerCount}
-              tikiCount={totemCount}
-              waveCount={waveCount}
-              bonus={bonus}
-            />
-          </div>
-          <GameScores
-            score={optimisticScore}
-            combo={optimisticCombo}
-            maxCombo={optimisticMaxCombo}
-            isMdOrLarger={isMdOrLarger}
+          <GameBonus
+            onBonusWaveClick={handleBonusWaveClick}
+            onBonusTikiClick={handleBonusTikiClick}
+            onBonusHammerClick={handleBonusHammerClick}
+            hammerCount={hammerCount}
+            tikiCount={totemCount}
+            waveCount={waveCount}
+            bonus={bonus}
           />
         </div>
 

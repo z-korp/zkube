@@ -11,6 +11,7 @@ import { toPng } from "html-to-image";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useMediaQuery } from "react-responsive";
 import GameOverDialog from "../components/GameOverDialog";
+import LevelCompleteDialog from "../components/LevelCompleteDialog";
 import useViewport from "@/hooks/useViewport";
 import { TweetPreview } from "../components/TweetPreview";
 import { useGrid } from "@/hooks/useGrid";
@@ -25,6 +26,21 @@ import {
   DialogTitle,
 } from "@/ui/elements/dialog";
 import Connect from "../components/Connect";
+
+// Type for storing level completion data
+interface LevelCompletionData {
+  level: number;
+  levelScore: number;
+  levelMoves: number;
+  constraintProgress: number;
+  bonusUsedThisLevel: boolean;
+  prevHammer: number;
+  prevWave: number;
+  prevTotem: number;
+  hammer: number;
+  wave: number;
+  totem: number;
+}
 
 export const Play = () => {
   useViewport();
@@ -41,7 +57,7 @@ export const Play = () => {
   // If no gameId is provided, default to 0
   const gameId = gameIdParam ? parseInt(gameIdParam, 10) : 0;
 
-  const { game } = useGame({
+  const { game, seed } = useGame({
     gameId: gameId,
     shouldLog: false,
   });
@@ -60,7 +76,20 @@ export const Play = () => {
   const [imgData, setImgData] = useState<string>("");
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
+  const [isLevelCompleteOpen, setIsLevelCompleteOpen] = useState(false);
+  const [levelCompletionData, setLevelCompletionData] = useState<LevelCompletionData | null>(null);
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
+  // Store complete previous game state for level completion detection
+  const prevGameStateRef = useRef<{
+    level: number;
+    levelScore: number;
+    levelMoves: number;
+    constraintProgress: number;
+    bonusUsedThisLevel: boolean;
+    hammer: number;
+    wave: number;
+    totem: number;
+  } | null>(null);
   const gameCreationAttemptedRef = useRef<boolean>(false);
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
@@ -75,12 +104,12 @@ export const Play = () => {
     return () => clearTimeout(timer);
   }, [gameId]);
 
-  // Stop loading early if game is found
+  // Stop loading early if game AND seed are found
   useEffect(() => {
-    if (game) {
+    if (game && seed !== 0n) {
       setIsGameLoading(false);
     }
-  }, [game]);
+  }, [game, seed]);
 
   useEffect(() => {
     // Only attempt to create a game if:
@@ -92,21 +121,8 @@ export const Play = () => {
     const gameHasBlocks = gameExists && game.blocksRaw !== 0n;
     const gameNotStarted = !gameExists || game.blocksRaw === 0n;
 
-    console.log("[Play.tsx] Create effect check:", {
-      gameId,
-      isGameLoading,
-      gameExists,
-      gameHasBlocks,
-      blocksRaw: game?.blocksRaw,
-      blocksRawType: typeof game?.blocksRaw,
-      gameNotStarted,
-      hasAccount: !!account,
-      creationAttempted: gameCreationAttemptedRef.current,
-    });
-
     // Skip if game already has blocks (already started)
     if (gameHasBlocks) {
-      console.log("[Play.tsx] Game already has blocks, skipping create");
       return;
     }
 
@@ -116,21 +132,18 @@ export const Play = () => {
       account &&
       !gameCreationAttemptedRef.current
     ) {
-      console.log("[Play.tsx] Attempting to create game...");
       gameCreationAttemptedRef.current = true;
       const createGame = async () => {
         try {
           await create({ account, token_id: gameId });
-          console.log("[Play.tsx] Game created successfully");
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
           // If the game already started, it means Torii hasn't synced yet
           // Don't reset the flag - just wait for sync
           if (errorMessage.includes("already started")) {
-            console.log("[Play.tsx] Game already started, waiting for sync...");
             return;
           }
-          console.error("[Play.tsx] Failed to create game:", error);
+          console.error("Failed to create game:", error);
           // Reset the flag on other errors so user can retry
           gameCreationAttemptedRef.current = false;
         }
@@ -210,6 +223,58 @@ export const Play = () => {
     prevGameOverRef.current = game?.over;
   }, [game?.over]);
 
+  // Detect level completion by tracking previous game state
+  // We store the ENTIRE previous state and compare when things change
+  useEffect(() => {
+    if (!game) return;
+
+    const prevState = prevGameStateRef.current;
+    const currentLevel = game.level;
+
+    // If we have a previous state and level increased, show completion dialog
+    if (prevState && currentLevel > prevState.level && !game.over) {
+      // Use the PREVIOUS state's stats (captured before the level changed)
+      setLevelCompletionData({
+        level: prevState.level,
+        levelScore: prevState.levelScore,
+        levelMoves: prevState.levelMoves,
+        constraintProgress: prevState.constraintProgress,
+        bonusUsedThisLevel: prevState.bonusUsedThisLevel,
+        prevHammer: prevState.hammer,
+        prevWave: prevState.wave,
+        prevTotem: prevState.totem,
+        hammer: game.hammer,
+        wave: game.wave,
+        totem: game.totem,
+      });
+      setIsLevelCompleteOpen(true);
+    }
+
+    // Always store current state for next comparison
+    // This captures the state BEFORE any level transition
+    prevGameStateRef.current = {
+      level: game.level,
+      levelScore: game.levelScore,
+      levelMoves: game.levelMoves,
+      constraintProgress: game.constraintProgress,
+      bonusUsedThisLevel: game.bonusUsedThisLevel,
+      hammer: game.hammer,
+      wave: game.wave,
+      totem: game.totem,
+    };
+  }, [
+    game?.level,
+    game?.levelScore,
+    game?.levelMoves,
+    game?.constraintProgress,
+    game?.bonusUsedThisLevel,
+    game?.hammer,
+    game?.wave,
+    game?.totem,
+    game?.over,
+    game,
+  ]);
+
   // Optional: Redirect to home if no gameId is provided
   // This conditional return comes AFTER all hook calls
   if (!gameIdParam) {
@@ -261,6 +326,29 @@ export const Play = () => {
                     />
                   )}
 
+                  {/* Level Complete Dialog */}
+                  {levelCompletionData && (
+                    <LevelCompleteDialog
+                      isOpen={isLevelCompleteOpen}
+                      onClose={() => {
+                        setIsLevelCompleteOpen(false);
+                        setLevelCompletionData(null);
+                      }}
+                      level={levelCompletionData.level}
+                      levelScore={levelCompletionData.levelScore}
+                      levelMoves={levelCompletionData.levelMoves}
+                      seed={seed}
+                      constraintProgress={levelCompletionData.constraintProgress}
+                      bonusUsedThisLevel={levelCompletionData.bonusUsedThisLevel}
+                      prevHammer={levelCompletionData.prevHammer}
+                      prevWave={levelCompletionData.prevWave}
+                      prevTotem={levelCompletionData.prevTotem}
+                      hammer={levelCompletionData.hammer}
+                      wave={levelCompletionData.wave}
+                      totem={levelCompletionData.totem}
+                    />
+                  )}
+
                   {(isGameLoading || isGridLoading) && (
                     <div className="flex w-full flex-col items-center justify-center gap-4 py-12">
                       <div className="flex h-24 w-24 items-center justify-center">
@@ -297,17 +385,12 @@ export const Play = () => {
                           score={game.isOver() ? 0 : game.score}
                           combo={game.isOver() ? 0 : game.combo}
                           maxCombo={game.isOver() ? 0 : game.max_combo}
-                          hammerCount={
-                            game.isOver() ? 0 : game.hammer - game.hammer_used
-                          }
-                          totemCount={
-                            game.isOver() ? 0 : game.totem - game.totem_used
-                          }
-                          waveCount={
-                            game.isOver() ? 0 : game.wave - game.wave_used
-                          }
+                          hammerCount={game.isOver() ? 0 : game.hammer}
+                          totemCount={game.isOver() ? 0 : game.totem}
+                          waveCount={game.isOver() ? 0 : game.wave}
                           account={account}
                           game={game}
+                          seed={seed}
                         />
                       </div>
                       {isMdOrLarger && (
