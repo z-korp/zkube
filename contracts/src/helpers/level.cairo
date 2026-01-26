@@ -34,8 +34,8 @@ mod LevelConstants {
     // Level cap for scaling (survival mode after this)
     pub const LEVEL_CAP: u8 = 100;
 
-    // Constraint none threshold
-    pub const CONSTRAINT_NONE_THRESHOLD: u8 = 5;
+    // Constraint none threshold (constraints start from level 5)
+    pub const CONSTRAINT_NONE_THRESHOLD: u8 = 4;
 }
 
 #[generate_trait]
@@ -173,54 +173,143 @@ pub impl LevelGenerator of LevelGeneratorTrait {
 
     /// Generate a constraint based on seed and level
     fn generate_constraint(level_seed: felt252, level: u8) -> LevelConstraint {
-        // No constraint for first few levels
+        // No constraint for first few levels (levels 1-4)
         if level <= LevelConstants::CONSTRAINT_NONE_THRESHOLD {
             return LevelConstraintTrait::none();
         }
 
         let seed_u256: u256 = level_seed.into();
+        let roll: u8 = (seed_u256 % 100).try_into().unwrap(); // 0-99 for precise percentages
 
-        // Determine constraint type and parameters based on level range
         if level <= 20 {
-            // Levels 6-20: Clear 2 lines, 1 time
-            LevelConstraintTrait::clear_lines(2, 1)
-        } else if level <= 40 {
-            // Levels 21-40: Clear 2-3 lines, 1-2 times
-            let lines_var: u8 = (seed_u256 % 2).try_into().unwrap();
-            let times_var: u8 = ((seed_u256 / 100) % 2).try_into().unwrap();
-            LevelConstraintTrait::clear_lines(2 + lines_var, 1 + times_var)
-        } else if level <= 60 {
-            // Levels 41-60: ClearLines(3-4, 2-3) or NoBonusUsed (20% chance)
-            let is_no_bonus = (seed_u256 % 5) == 0;
-            if is_no_bonus {
+            // Levels 5-20
+            if roll < 5 {
+                // 5% No Bonus Used
                 LevelConstraintTrait::no_bonus()
+            } else if roll < 15 {
+                // 10% No Constraint
+                LevelConstraintTrait::none()
+            } else if roll < 65 {
+                // 50% Clear 2+ lines, 1-4 times
+                let times: u8 = 1 + ((seed_u256 / 100) % 4).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(2, times)
+            } else if roll < 95 {
+                // 30% Clear 3+ lines, 1-2 times
+                let times: u8 = 1 + ((seed_u256 / 100) % 2).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(3, times)
             } else {
-                let lines_var: u8 = (seed_u256 % 2).try_into().unwrap();
-                let times_var: u8 = ((seed_u256 / 100) % 2).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(3 + lines_var, 2 + times_var)
+                // 5% Clear 4+ lines, 1 time
+                LevelConstraintTrait::clear_lines(4, 1)
+            }
+        } else if level <= 40 {
+            // Levels 21-40
+            if roll < 3 {
+                // 3% No Bonus Used
+                LevelConstraintTrait::no_bonus()
+            } else if roll < 5 {
+                // 2% No Constraint
+                LevelConstraintTrait::none()
+            } else if roll < 55 {
+                // 50% Clear 2+ lines, 2-6 times
+                let times: u8 = 2 + ((seed_u256 / 100) % 5).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(2, times)
+            } else if roll < 85 {
+                // 30% Clear 3+ lines, 2-4 times
+                let times: u8 = 2 + ((seed_u256 / 100) % 3).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(3, times)
+            } else if roll < 95 {
+                // 10% Clear 4+ lines, 1-2 times
+                let times: u8 = 1 + ((seed_u256 / 100) % 2).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(4, times)
+            } else {
+                // 5% Clear 5+ lines, 1 time
+                LevelConstraintTrait::clear_lines(5, 1)
+            }
+        } else if level <= 60 {
+            // Levels 41-60
+            if roll < 3 {
+                // 3% No Bonus Used
+                LevelConstraintTrait::no_bonus()
+            } else if roll < 5 {
+                // 2% No Constraint
+                LevelConstraintTrait::none()
+            } else if roll < 45 {
+                // 40% Clear 2+ lines, 3-8 times
+                let times: u8 = 3 + ((seed_u256 / 100) % 6).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(2, times)
+            } else if roll < 75 {
+                // 30% Clear 3+ lines, 3-6 times
+                let times: u8 = 3 + ((seed_u256 / 100) % 4).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(3, times)
+            } else if roll < 95 {
+                // 20% Clear 4+ lines, 2-4 times
+                let times: u8 = 2 + ((seed_u256 / 100) % 3).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(4, times)
+            } else {
+                // 5% Clear 5+ lines, 1-2 times
+                let times: u8 = 1 + ((seed_u256 / 100) % 2).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(5, times)
             }
         } else if level <= 80 {
-            // Levels 61-80: Clear 4 lines, 3-4 times
-            let times_var: u8 = (seed_u256 % 2).try_into().unwrap();
-            LevelConstraintTrait::clear_lines(4, 3 + times_var)
+            // Levels 61-80
+            if roll < 3 {
+                // 3% No Bonus Used
+                LevelConstraintTrait::no_bonus()
+            } else if roll < 5 {
+                // 2% No Constraint
+                LevelConstraintTrait::none()
+            } else if roll < 35 {
+                // 30% Clear 2+ lines, 4-10 times
+                let times: u8 = 4 + ((seed_u256 / 100) % 7).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(2, times)
+            } else if roll < 70 {
+                // 35% Clear 3+ lines, 4-8 times
+                let times: u8 = 4 + ((seed_u256 / 100) % 5).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(3, times)
+            } else if roll < 90 {
+                // 20% Clear 4+ lines, 3-6 times
+                let times: u8 = 3 + ((seed_u256 / 100) % 4).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(4, times)
+            } else if roll < 95 {
+                // 5% Clear 5+ lines, 2-4 times
+                let times: u8 = 2 + ((seed_u256 / 100) % 3).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(5, times)
+            } else {
+                // 5% Clear 6+ lines, 1 time
+                LevelConstraintTrait::clear_lines(6, 1)
+            }
         } else {
-            // Levels 81+: Clear 4-5 lines, 4-6 times
-            let lines_var: u8 = (seed_u256 % 2).try_into().unwrap();
-            let times_var: u8 = ((seed_u256 / 100) % 3).try_into().unwrap();
-            let lines = 4 + lines_var;
-            let times = 4 + times_var;
-            // Cap lines at 5 and times at 6
-            let capped_lines = if lines > 5 {
-                5
+            // Levels 81+
+            if roll < 3 {
+                // 3% No Bonus Used
+                LevelConstraintTrait::no_bonus()
+            } else if roll < 5 {
+                // 2% No Constraint
+                LevelConstraintTrait::none()
+            } else if roll < 35 {
+                // 30% Clear 2+ lines, 5-12 times
+                let times: u8 = 5 + ((seed_u256 / 100) % 8).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(2, times)
+            } else if roll < 65 {
+                // 30% Clear 3+ lines, 5-10 times
+                let times: u8 = 5 + ((seed_u256 / 100) % 6).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(3, times)
+            } else if roll < 85 {
+                // 20% Clear 4+ lines, 4-8 times
+                let times: u8 = 4 + ((seed_u256 / 100) % 5).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(4, times)
+            } else if roll < 90 {
+                // 5% Clear 5+ lines, 3-6 times
+                let times: u8 = 3 + ((seed_u256 / 100) % 4).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(5, times)
+            } else if roll < 95 {
+                // 5% Clear 6+ lines, 1-2 times
+                let times: u8 = 1 + ((seed_u256 / 100) % 2).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(6, times)
             } else {
-                lines
-            };
-            let capped_times = if times > 6 {
-                6
-            } else {
-                times
-            };
-            LevelConstraintTrait::clear_lines(capped_lines, capped_times)
+                // 5% Clear 7+ lines, 1 time
+                LevelConstraintTrait::clear_lines(7, 1)
+            }
         }
     }
 

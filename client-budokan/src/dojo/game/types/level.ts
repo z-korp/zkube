@@ -123,7 +123,7 @@ const LEVEL_CONSTANTS = {
   STAR_3_PERCENT: 40,
   STAR_2_PERCENT: 70,
   LEVEL_CAP: 100,
-  CONSTRAINT_NONE_THRESHOLD: 5,
+  CONSTRAINT_NONE_THRESHOLD: 4,
 };
 
 /**
@@ -243,40 +243,141 @@ function getDifficultyForLevel(level: number): Difficulty {
 
 /** Generate constraint for a level (matching Cairo's generate_constraint) */
 function generateConstraint(levelSeed: bigint, level: number): Constraint {
-  // No constraint for first few levels (matching Cairo)
+  // No constraint for first few levels (levels 1-4)
   if (level <= LEVEL_CONSTANTS.CONSTRAINT_NONE_THRESHOLD) {
     return Constraint.none();
   }
 
-  // Determine constraint based on level range (matching Cairo)
+  const roll = Number(levelSeed % BigInt(100)); // 0-99 for precise percentages
+
   if (level <= 20) {
-    // Levels 6-20: Clear 2 lines, 1 time
-    return Constraint.clearLines(2, 1);
-  } else if (level <= 40) {
-    // Levels 21-40: Clear 2-3 lines, 1-2 times
-    const linesVar = Number(levelSeed % BigInt(2));
-    const timesVar = Number((levelSeed / BigInt(100)) % BigInt(2));
-    return Constraint.clearLines(2 + linesVar, 1 + timesVar);
-  } else if (level <= 60) {
-    // Levels 41-60: ClearLines(3-4, 2-3) or NoBonusUsed (20% chance)
-    const isNoBonus = (levelSeed % BigInt(5)) === BigInt(0);
-    if (isNoBonus) {
+    // Levels 5-20
+    if (roll < 5) {
+      // 5% No Bonus Used
       return Constraint.noBonus();
+    } else if (roll < 15) {
+      // 10% No Constraint
+      return Constraint.none();
+    } else if (roll < 65) {
+      // 50% Clear 2+ lines, 1-4 times
+      const times = 1 + Number((levelSeed / BigInt(100)) % BigInt(4));
+      return Constraint.clearLines(2, times);
+    } else if (roll < 95) {
+      // 30% Clear 3+ lines, 1-2 times
+      const times = 1 + Number((levelSeed / BigInt(100)) % BigInt(2));
+      return Constraint.clearLines(3, times);
     } else {
-      const linesVar = Number(levelSeed % BigInt(2));
-      const timesVar = Number((levelSeed / BigInt(100)) % BigInt(2));
-      return Constraint.clearLines(3 + linesVar, 2 + timesVar);
+      // 5% Clear 4+ lines, 1 time
+      return Constraint.clearLines(4, 1);
+    }
+  } else if (level <= 40) {
+    // Levels 21-40
+    if (roll < 3) {
+      // 3% No Bonus Used
+      return Constraint.noBonus();
+    } else if (roll < 5) {
+      // 2% No Constraint
+      return Constraint.none();
+    } else if (roll < 55) {
+      // 50% Clear 2+ lines, 2-6 times
+      const times = 2 + Number((levelSeed / BigInt(100)) % BigInt(5));
+      return Constraint.clearLines(2, times);
+    } else if (roll < 85) {
+      // 30% Clear 3+ lines, 2-4 times
+      const times = 2 + Number((levelSeed / BigInt(100)) % BigInt(3));
+      return Constraint.clearLines(3, times);
+    } else if (roll < 95) {
+      // 10% Clear 4+ lines, 1-2 times
+      const times = 1 + Number((levelSeed / BigInt(100)) % BigInt(2));
+      return Constraint.clearLines(4, times);
+    } else {
+      // 5% Clear 5+ lines, 1 time
+      return Constraint.clearLines(5, 1);
+    }
+  } else if (level <= 60) {
+    // Levels 41-60
+    if (roll < 3) {
+      // 3% No Bonus Used
+      return Constraint.noBonus();
+    } else if (roll < 5) {
+      // 2% No Constraint
+      return Constraint.none();
+    } else if (roll < 45) {
+      // 40% Clear 2+ lines, 3-8 times
+      const times = 3 + Number((levelSeed / BigInt(100)) % BigInt(6));
+      return Constraint.clearLines(2, times);
+    } else if (roll < 75) {
+      // 30% Clear 3+ lines, 3-6 times
+      const times = 3 + Number((levelSeed / BigInt(100)) % BigInt(4));
+      return Constraint.clearLines(3, times);
+    } else if (roll < 95) {
+      // 20% Clear 4+ lines, 2-4 times
+      const times = 2 + Number((levelSeed / BigInt(100)) % BigInt(3));
+      return Constraint.clearLines(4, times);
+    } else {
+      // 5% Clear 5+ lines, 1-2 times
+      const times = 1 + Number((levelSeed / BigInt(100)) % BigInt(2));
+      return Constraint.clearLines(5, times);
     }
   } else if (level <= 80) {
-    // Levels 61-80: Clear 4 lines, 3-4 times
-    const timesVar = Number(levelSeed % BigInt(2));
-    return Constraint.clearLines(4, 3 + timesVar);
+    // Levels 61-80
+    if (roll < 3) {
+      // 3% No Bonus Used
+      return Constraint.noBonus();
+    } else if (roll < 5) {
+      // 2% No Constraint
+      return Constraint.none();
+    } else if (roll < 35) {
+      // 30% Clear 2+ lines, 4-10 times
+      const times = 4 + Number((levelSeed / BigInt(100)) % BigInt(7));
+      return Constraint.clearLines(2, times);
+    } else if (roll < 70) {
+      // 35% Clear 3+ lines, 4-8 times
+      const times = 4 + Number((levelSeed / BigInt(100)) % BigInt(5));
+      return Constraint.clearLines(3, times);
+    } else if (roll < 90) {
+      // 20% Clear 4+ lines, 3-6 times
+      const times = 3 + Number((levelSeed / BigInt(100)) % BigInt(4));
+      return Constraint.clearLines(4, times);
+    } else if (roll < 95) {
+      // 5% Clear 5+ lines, 2-4 times
+      const times = 2 + Number((levelSeed / BigInt(100)) % BigInt(3));
+      return Constraint.clearLines(5, times);
+    } else {
+      // 5% Clear 6+ lines, 1 time
+      return Constraint.clearLines(6, 1);
+    }
   } else {
-    // Levels 81+: Clear 4-5 lines, 4-6 times
-    const linesVar = Number(levelSeed % BigInt(2));
-    const timesVar = Number((levelSeed / BigInt(100)) % BigInt(3));
-    const lines = Math.min(5, 4 + linesVar);
-    const times = Math.min(6, 4 + timesVar);
-    return Constraint.clearLines(lines, times);
+    // Levels 81+
+    if (roll < 3) {
+      // 3% No Bonus Used
+      return Constraint.noBonus();
+    } else if (roll < 5) {
+      // 2% No Constraint
+      return Constraint.none();
+    } else if (roll < 35) {
+      // 30% Clear 2+ lines, 5-12 times
+      const times = 5 + Number((levelSeed / BigInt(100)) % BigInt(8));
+      return Constraint.clearLines(2, times);
+    } else if (roll < 65) {
+      // 30% Clear 3+ lines, 5-10 times
+      const times = 5 + Number((levelSeed / BigInt(100)) % BigInt(6));
+      return Constraint.clearLines(3, times);
+    } else if (roll < 85) {
+      // 20% Clear 4+ lines, 4-8 times
+      const times = 4 + Number((levelSeed / BigInt(100)) % BigInt(5));
+      return Constraint.clearLines(4, times);
+    } else if (roll < 90) {
+      // 5% Clear 5+ lines, 3-6 times
+      const times = 3 + Number((levelSeed / BigInt(100)) % BigInt(4));
+      return Constraint.clearLines(5, times);
+    } else if (roll < 95) {
+      // 5% Clear 6+ lines, 1-2 times
+      const times = 1 + Number((levelSeed / BigInt(100)) % BigInt(2));
+      return Constraint.clearLines(6, times);
+    } else {
+      // 5% Clear 7+ lines, 1 time
+      return Constraint.clearLines(7, 1);
+    }
   }
 }
