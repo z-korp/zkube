@@ -233,6 +233,12 @@ mod game_system {
 
             // Check for level completion
             if game.is_level_complete(base_seed.seed) {
+                // Capture stats BEFORE completing level (they get reset)
+                let pre_complete_data = game.get_run_data();
+                let completed_level = pre_complete_data.current_level;
+                let final_score = pre_complete_data.level_score;
+                let final_moves = pre_complete_data.level_moves;
+
                 let (stars, bonuses) = game.complete_level(base_seed.seed);
 
                 // Award bonuses
@@ -241,10 +247,8 @@ mod game_system {
                 }
 
                 let player = get_caller_address();
-                let run_data = game.get_run_data();
-                let completed_level = run_data.current_level - 1; // We already advanced
 
-                // Emit level completed
+                // Emit level completed with pre-reset stats
                 world
                     .emit_event(
                         @LevelCompleted {
@@ -252,22 +256,23 @@ mod game_system {
                             player,
                             level: completed_level,
                             stars,
-                            moves_used: run_data.level_moves.into(), // This is 0 since we reset
-                            score: run_data.level_score.into(), // This is 0 since we reset
+                            moves_used: final_moves.into(),
+                            score: final_score.into(),
                             bonuses_earned: bonuses,
                         },
                     );
 
-                // Emit next level started
+                // Emit next level started (get updated run_data after level completion)
+                let updated_run_data = game.get_run_data();
                 let next_level_config = LevelGeneratorTrait::generate(
-                    base_seed.seed, run_data.current_level,
+                    base_seed.seed, updated_run_data.current_level,
                 );
                 world
                     .emit_event(
                         @LevelStarted {
                             game_id,
                             player,
-                            level: run_data.current_level,
+                            level: updated_run_data.current_level,
                             points_required: next_level_config.points_required,
                             max_moves: next_level_config.max_moves,
                             constraint_type: next_level_config.constraint.constraint_type,
@@ -312,6 +317,12 @@ mod game_system {
 
             // Check for level completion after bonus
             if game.is_level_complete(base_seed.seed) {
+                // Capture stats BEFORE completing level (they get reset)
+                let pre_complete_data = game.get_run_data();
+                let completed_level = pre_complete_data.current_level;
+                let final_score = pre_complete_data.level_score;
+                let final_moves = pre_complete_data.level_moves;
+
                 let (stars, bonuses) = game.complete_level(base_seed.seed);
 
                 if bonuses > 0 {
@@ -319,8 +330,6 @@ mod game_system {
                 }
 
                 let player = get_caller_address();
-                let run_data = game.get_run_data();
-                let completed_level = run_data.current_level - 1;
 
                 world
                     .emit_event(
@@ -329,21 +338,23 @@ mod game_system {
                             player,
                             level: completed_level,
                             stars,
-                            moves_used: 0,
-                            score: 0,
+                            moves_used: final_moves.into(),
+                            score: final_score.into(),
                             bonuses_earned: bonuses,
                         },
                     );
 
+                // Get updated run_data for next level info
+                let updated_run_data = game.get_run_data();
                 let next_level_config = LevelGeneratorTrait::generate(
-                    base_seed.seed, run_data.current_level,
+                    base_seed.seed, updated_run_data.current_level,
                 );
                 world
                     .emit_event(
                         @LevelStarted {
                             game_id,
                             player,
-                            level: run_data.current_level,
+                            level: updated_run_data.current_level,
                             points_required: next_level_config.points_required,
                             max_moves: next_level_config.max_moves,
                             constraint_type: next_level_config.constraint.constraint_type,

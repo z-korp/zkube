@@ -218,6 +218,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
             combo={optimisticCombo}
             seed={seed}
             isMdOrLarger={isMdOrLarger}
+            constraintProgress={game.constraintProgress}
+            bonusUsedThisLevel={game.bonusUsedThisLevel}
           />
         </div>
         

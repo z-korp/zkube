@@ -61,9 +61,9 @@ type TokenMetadata = {
 type PlayerGameRow = {
   tokenId: number;
   name: string;
-  score: string | number | undefined;
-  combo: string | number | undefined;
-  maxCombo: string | number | undefined;
+  level: string | number | undefined;
+  totalStars: string | number | undefined;
+  totalScore: string | number | undefined;
   gameOver: boolean;
 };
 
@@ -179,16 +179,16 @@ export const Home = () => {
       const attributes = Array.isArray(metadata?.attributes)
         ? (metadata?.attributes as TokenAttribute[])
         : [];
-      const scoreAttr = getAttributeValue(attributes, "Score");
-      const comboAttr = getAttributeValue(attributes, "Combo");
-      const maxComboAttr = getAttributeValue(attributes, "Max Combo");
+      const levelAttr = getAttributeValue(attributes, "Level");
+      const totalStarsAttr = getAttributeValue(attributes, "Total Stars");
+      const totalScoreAttr = getAttributeValue(attributes, "Total Score");
       return {
         tokenId: game.token_id,
         name:
           metadata?.name || game.gameMetadata?.name || `Game #${game.token_id}`,
-        score: scoreAttr ?? game.score ?? "-",
-        combo: comboAttr ?? "-",
-        maxCombo: maxComboAttr ?? "-",
+        level: levelAttr ?? 1,
+        totalStars: totalStarsAttr ?? 0,
+        totalScore: totalScoreAttr ?? game.score ?? 0,
         gameOver: Boolean(game.game_over),
       };
     });
@@ -232,11 +232,23 @@ export const Home = () => {
                   </span>
                 )}
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-slate-200">
+              <div className="mt-3 grid grid-cols-3 gap-3 text-sm text-slate-200">
+                <div>
+                  <p className="text-xs uppercase text-slate-400">Level</p>
+                  <p className="text-base font-semibold">
+                    {formatStat(game.level)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase text-slate-400">Stars</p>
+                  <p className="text-base font-semibold text-yellow-400">
+                    {formatStat(game.totalStars)} ⭐
+                  </p>
+                </div>
                 <div>
                   <p className="text-xs uppercase text-slate-400">Score</p>
                   <p className="text-base font-semibold">
-                    {formatStat(game.score)}
+                    {formatStat(game.totalScore)}
                   </p>
                 </div>
               </div>
@@ -257,13 +269,13 @@ export const Home = () => {
                     Game
                   </TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-slate-400">
-                    Score
+                    Level
                   </TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-slate-400">
-                    Combo
+                    Stars
                   </TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-slate-400">
-                    Max Combo
+                    Total Score
                   </TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-slate-400">
                     Actions
@@ -279,9 +291,9 @@ export const Home = () => {
                       </span>
                       {game.name}
                     </TableCell>
-                    <TableCell>{formatStat(game.score)}</TableCell>
-                    <TableCell>{formatStat(game.combo)}</TableCell>
-                    <TableCell>{formatStat(game.maxCombo)}</TableCell>
+                    <TableCell>{formatStat(game.level)}</TableCell>
+                    <TableCell className="text-yellow-400">{formatStat(game.totalStars)} ⭐</TableCell>
+                    <TableCell>{formatStat(game.totalScore)}</TableCell>
                     <TableCell>
                       {!game.gameOver ? (
                         <Button

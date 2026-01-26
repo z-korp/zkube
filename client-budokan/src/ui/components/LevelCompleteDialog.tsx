@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -6,25 +6,12 @@ import {
   faCheck,
   faTimes,
   faGift,
-  faHammer,
 } from "@fortawesome/free-solid-svg-icons";
-import { faWaveSquare } from "@fortawesome/free-solid-svg-icons";
 import { generateLevelConfig } from "@/dojo/game/types/level";
 import { ConstraintType } from "@/dojo/game/types/constraint";
 import { Button } from "../elements/button";
-
-// Totem icon component (reusing existing pattern)
-const TotemIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    width="1em"
-    height="1em"
-  >
-    <path d="M12 2L8 6v4l-4 4v6h4v-4h8v4h4v-6l-4-4V6l-4-4zm0 2.83L14 7v3h2l2 2v4h-2v-2H8v2H6v-4l2-2h2V7l2-2.17z" />
-  </svg>
-);
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import ImageAssets from "@/ui/theme/ImageAssets";
 
 interface LevelCompleteDialogProps {
   isOpen: boolean;
@@ -61,6 +48,9 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   wave,
   totem,
 }) => {
+  const { themeTemplate } = useTheme();
+  const imgAssets = ImageAssets(themeTemplate);
+
   // Generate level config to get objectives
   const levelConfig = useMemo(() => {
     return generateLevelConfig(seed, level);
@@ -88,12 +78,8 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
     bonusUsedThisLevel
   );
 
-  // Play sound effect on open
-  useEffect(() => {
-    if (isOpen) {
-      // Could add a celebration sound here
-    }
-  }, [isOpen]);
+  // Display score - use levelScore if available, otherwise show required
+  const displayScore = Math.max(levelScore, levelConfig.pointsRequired);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -122,12 +108,12 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
 
         {/* Stats Summary */}
         <div className="space-y-3 mb-6">
-          {/* Score */}
+          {/* Score - show at least the required score since level was completed */}
           <div className="flex justify-between items-center bg-slate-800/50 px-4 py-2 rounded-lg">
             <span className="text-slate-300">Score</span>
-            <span className="text-white font-semibold">
-              {levelScore}{" "}
-              <span className="text-slate-400">/ {levelConfig.pointsRequired}</span>
+            <span className="text-green-400 font-semibold flex items-center gap-2">
+              <FontAwesomeIcon icon={faCheck} className="text-green-400" />
+              {displayScore} / {levelConfig.pointsRequired}
             </span>
           </div>
 
@@ -191,25 +177,25 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
             </div>
             <div className="flex justify-center gap-4">
               {bonusesEarned.hammer > 0 && (
-                <div className="flex items-center gap-1 bg-red-500/20 px-3 py-2 rounded-lg">
-                  <FontAwesomeIcon icon={faHammer} className="text-red-400" />
-                  <span className="text-white font-semibold">
+                <div className="flex items-center gap-2 bg-slate-800/50 px-4 py-3 rounded-lg border border-slate-600">
+                  <img src={imgAssets.hammer} alt="Hammer" className="w-8 h-8" />
+                  <span className="text-white font-bold text-lg">
                     +{bonusesEarned.hammer}
                   </span>
                 </div>
               )}
               {bonusesEarned.wave > 0 && (
-                <div className="flex items-center gap-1 bg-blue-500/20 px-3 py-2 rounded-lg">
-                  <FontAwesomeIcon icon={faWaveSquare} className="text-blue-400" />
-                  <span className="text-white font-semibold">
+                <div className="flex items-center gap-2 bg-slate-800/50 px-4 py-3 rounded-lg border border-slate-600">
+                  <img src={imgAssets.wave} alt="Wave" className="w-8 h-8" />
+                  <span className="text-white font-bold text-lg">
                     +{bonusesEarned.wave}
                   </span>
                 </div>
               )}
               {bonusesEarned.totem > 0 && (
-                <div className="flex items-center gap-1 bg-green-500/20 px-3 py-2 rounded-lg">
-                  <TotemIcon className="text-green-400" />
-                  <span className="text-white font-semibold">
+                <div className="flex items-center gap-2 bg-slate-800/50 px-4 py-3 rounded-lg border border-slate-600">
+                  <img src={imgAssets.tiki} alt="Totem" className="w-8 h-8" />
+                  <span className="text-white font-bold text-lg">
                     +{bonusesEarned.totem}
                   </span>
                 </div>

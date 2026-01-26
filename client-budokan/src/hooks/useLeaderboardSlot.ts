@@ -1,34 +1,32 @@
 import { useDojo } from "@/dojo/useDojo";
 import { useEffect, useState, useCallback } from "react";
 import { getComponentValue, Has, runQuery } from "@dojoengine/recs";
-import type { GameTokenData } from "metagame-sdk";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
 
-type UseGameTokensSlotResult = {
-  games: GameTokenData[];
+export interface LeaderboardEntry {
+  token_id: number;
+  game_id: number;
+  level: number;
+  totalStars: number;
+  totalScore: number;
+  gameOver: boolean;
+  score: number; // Alias for totalScore for compatibility
+  player_name?: string;
+}
+
+type UseLeaderboardSlotResult = {
+  games: LeaderboardEntry[];
   loading: boolean;
-  metadataLoading: boolean;
   refetch: () => void;
 };
 
 /**
- * Slot-compatible hook for fetching games.
- * On slot, we query our own Torii for Game entities.
- * This is a simpler approach that works without the metagame relayer.
+ * Slot-compatible hook for fetching leaderboard data.
+ * Queries all Game entities and sorts by level -> stars -> totalScore.
  */
-export const useGameTokensSlot = ({
-  owner,
-  limit = 100,
-}: {
-  owner?: string;
-  sortBy?: string;
-  sortOrder?: string;
-  limit?: number;
-  includeMetadata?: boolean;
-  gameAddresses?: string[];
-}): UseGameTokensSlotResult => {
+export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
   const {
     setup: {
       clientModels: {
@@ -38,7 +36,7 @@ export const useGameTokensSlot = ({
     },
   } = useDojo();
 
-  const [games, setGames] = useState<GameTokenData[]>([]);
+  const [games, setGames] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -47,7 +45,7 @@ export const useGameTokensSlot = ({
   }, []);
 
   useEffect(() => {
-    if (!isSlotMode || !owner) {
+    if (!isSlotMode) {
       setLoading(false);
       return;
     }
@@ -58,15 +56,14 @@ export const useGameTokensSlot = ({
         // Query all Game entities from RECS
         const gameEntities = runQuery([Has(Game)]);
 
-        const gameList: GameTokenData[] = [];
+        const gameList: LeaderboardEntry[] = [];
 
         for (const entity of gameEntities) {
           const gameData = getComponentValue(Game, entity);
 
           if (!gameData || gameData.game_id === 0) continue;
 
-          // On slot, we show all games that have started (blocks != 0)
-          // In production, ownership is verified via metagame SDK
+          // Skip games that haven't started
           if (gameData.blocks === 0n) continue;
 
           // Extract level data from run_data
@@ -78,28 +75,26 @@ export const useGameTokensSlot = ({
 
           gameList.push({
             token_id: gameData.game_id,
-            score: totalScore,
-            game_over: gameData.over,
-            metadata: JSON.stringify({
-              name: `Game #${gameData.game_id}`,
-              attributes: [
-                { trait_type: "Level", value: level },
-                { trait_type: "Total Stars", value: totalStars },
-                { trait_type: "Total Score", value: totalScore },
-              ],
-            }),
-            gameMetadata: { name: `Game #${gameData.game_id}` },
-          } as GameTokenData);
-
-          if (gameList.length >= limit) break;
+            game_id: gameData.game_id,
+            level,
+            totalStars,
+            totalScore,
+            gameOver: gameData.over || false,
+            score: totalScore, // Alias for compatibility
+            player_name: `Game #${gameData.game_id}`,
+          });
         }
 
-        // Sort by token_id descending (newest first)
-        gameList.sort((a, b) => b.token_id - a.token_id);
+        // Sort by: level (desc) -> totalStars (desc) -> totalScore (desc)
+        gameList.sort((a, b) => {
+          if (b.level !== a.level) return b.level - a.level;
+          if (b.totalStars !== a.totalStars) return b.totalStars - a.totalStars;
+          return b.totalScore - a.totalScore;
+        });
 
         setGames(gameList);
       } catch (error) {
-        console.error("Error fetching slot games:", error);
+        console.error("Error fetching leaderboard games:", error);
         setGames([]);
       } finally {
         setLoading(false);
@@ -107,12 +102,11 @@ export const useGameTokensSlot = ({
     };
 
     fetchGames();
-  }, [Game, owner, limit, world, refreshTrigger]);
+  }, [Game, world, refreshTrigger]);
 
   return {
     games,
     loading,
-    metadataLoading: false,
     refetch,
   };
 };
