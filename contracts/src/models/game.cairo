@@ -262,10 +262,11 @@ pub impl GameImpl of GameTrait {
         // Insert new line
         self.insert_new_line(level_config.difficulty, seed);
 
-        // Assess again after new line
-        let mut more_lines: u8 = 0;
-        let more_points = self.assess_game(ref more_lines);
-        lines_cleared += more_lines;
+        // Assess again after new line - CONTINUE using same counter for triangular scoring
+        // This means if 3 lines cleared before and 2 more clear now, points are:
+        // 1+2+3 (first phase) + 4+5 (second phase) = 15 total
+        // Rather than resetting: (1+2+3) + (1+2) = 9
+        let more_points = self.assess_game(ref lines_cleared);
 
         let new_score = run_data.level_score.into() + more_points;
         run_data.level_score = if new_score > 255 {
