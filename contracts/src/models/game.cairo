@@ -67,8 +67,11 @@ pub impl GameImpl of GameTrait {
         // Get level 1 config
         let level_config = LevelGeneratorTrait::generate(seed, 1);
 
+        // Generate level-specific seed so each level has a different starting grid
+        let level_seed = Self::generate_level_seed(seed, 1);
+
         // Create initial row
-        let row = Controller::create_line(seed, level_config.difficulty);
+        let row = Controller::create_line(level_seed, level_config.difficulty);
 
         // Initialize run_data with level 1
         let run_data = RunDataPackingTrait::new();
@@ -85,7 +88,7 @@ pub impl GameImpl of GameTrait {
         };
 
         // Fill initial grid
-        game.start(level_config.difficulty, seed);
+        game.start(level_config.difficulty, level_seed);
         game
     }
 
@@ -202,6 +205,16 @@ pub impl GameImpl of GameTrait {
         state.finalize()
     }
 
+    /// Generate a level-specific seed (for starting new levels with different grids)
+    #[inline(always)]
+    fn generate_level_seed(base_seed: felt252, level: u8) -> felt252 {
+        let state: HashState = PoseidonTrait::new();
+        let state = state.update(base_seed);
+        let state = state.update(level.into());
+        let state = state.update('LEVEL_SEED'); // Domain separator
+        state.finalize()
+    }
+
     /// Make a move - returns lines cleared
     fn make_move(
         ref self: Game, seed: felt252, row_index: u8, start_index: u8, final_index: u8,
@@ -239,11 +252,6 @@ pub impl GameImpl of GameTrait {
             new_total.try_into().unwrap()
         };
 
-        // Update constraint progress
-        run_data.constraint_progress = level_config
-            .constraint
-            .update_progress(run_data.constraint_progress, lines_cleared);
-
         // Check grid full
         self.assess_over();
         if self.over {
@@ -274,7 +282,7 @@ pub impl GameImpl of GameTrait {
             new_total.try_into().unwrap()
         };
 
-        // Update combos
+        // Update combos based on TOTAL lines cleared in this move
         if lines_cleared > 1 {
             self.combo_counter += lines_cleared;
             self.max_combo = Math::max(self.max_combo, lines_cleared);
@@ -285,10 +293,11 @@ pub impl GameImpl of GameTrait {
             }
         }
 
-        // Update constraint progress again
+        // Update constraint progress with TOTAL lines cleared in this move
+        // (not separately for initial and cascade clears)
         run_data.constraint_progress = level_config
             .constraint
-            .update_progress(run_data.constraint_progress, more_lines);
+            .update_progress(run_data.constraint_progress, lines_cleared);
 
         // Increment level moves
         run_data.level_moves += 1;
@@ -426,10 +435,12 @@ pub impl GameImpl of GameTrait {
         self.set_run_data(run_data);
 
         // Reset grid with new level's difficulty
+        // Use level-specific seed so each level has a different starting grid
         let new_level_config = LevelGeneratorTrait::generate(seed, run_data.current_level);
+        let level_seed = Self::generate_level_seed(seed, run_data.current_level);
         self.blocks = 0;
-        self.next_row = Controller::create_line(seed, new_level_config.difficulty);
-        self.start(new_level_config.difficulty, seed);
+        self.next_row = Controller::create_line(level_seed, new_level_config.difficulty);
+        self.start(new_level_config.difficulty, level_seed);
 
         (stars, bonuses)
     }

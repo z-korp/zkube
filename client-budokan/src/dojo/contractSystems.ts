@@ -1,7 +1,6 @@
 import type { Config } from "../../dojo.config.ts";
 import {
   Account,
-  CairoCustomEnum,
   CairoOption,
   CairoOptionVariant,
   CallData,
@@ -160,17 +159,6 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const getCustomEnum = (bonusIndex: number) => {
-      if (bonusIndex === 1) {
-        return new CairoCustomEnum({ Hammer: "()" });
-      } else if (bonusIndex === 2) {
-        return new CairoCustomEnum({ Totem: "()" });
-      } else if (bonusIndex === 3) {
-        return new CairoCustomEnum({ Wave: "()" });
-      }
-      return new CairoCustomEnum({ None: "()" });
-    };
-
     const bonus = async ({
       account,
       game_id,
@@ -179,11 +167,13 @@ export function setupWorld(config: Config) {
       block_index,
     }: BonusTx) => {
       try {
+        // Bonus enum serializes as just the variant index:
+        // 0 = None, 1 = Hammer, 2 = Totem, 3 = Wave
         return await account.execute([
           {
             contractAddress: contract.address,
             entrypoint: "apply_bonus",
-            calldata: CallData.compile([game_id, getCustomEnum(bonus), row_index, block_index]),
+            calldata: [game_id, bonus, row_index, block_index],
           },
         ]);
       } catch (error) {

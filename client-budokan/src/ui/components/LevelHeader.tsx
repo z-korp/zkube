@@ -135,54 +135,97 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
 
         {/* Constraint progress bar - ClearLines */}
         {levelConfig.constraint.constraintType === ConstraintType.ClearLines && (
-          <div className="flex items-center gap-1.5 min-w-[120px]">
-            <span className={`${isMdOrLarger ? "text-[10px]" : "text-[9px]"} text-orange-400 whitespace-nowrap`}>
-              {levelConfig.constraint.value}+
-            </span>
-            <div className="flex-1 min-w-[40px]">
-              <div className="h-2.5 bg-slate-700 rounded-full overflow-hidden">
-                <div
-                  className={`h-full transition-all duration-300 ease-out ${
-                    constraintProgress >= levelConfig.constraint.requiredCount
-                      ? "bg-gradient-to-r from-green-500 to-emerald-500"
-                      : "bg-gradient-to-r from-orange-500 to-amber-500"
-                  }`}
-                  style={{ 
-                    width: `${Math.min(100, (constraintProgress / levelConfig.constraint.requiredCount) * 100)}%` 
-                  }}
-                />
-              </div>
-            </div>
-            <div className={`${isMdOrLarger ? "text-[10px]" : "text-[9px]"} whitespace-nowrap flex items-center gap-0.5`}>
-              <span className={`font-semibold ${constraintProgress >= levelConfig.constraint.requiredCount ? "text-green-400" : "text-orange-400"}`}>
-                {constraintProgress}/{levelConfig.constraint.requiredCount}
-              </span>
-              {constraintProgress >= levelConfig.constraint.requiredCount && (
-                <FontAwesomeIcon icon={faCheck} className="text-green-400" width={8} height={8} />
-              )}
-            </div>
-          </div>
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1.5 min-w-[120px] cursor-help">
+                  <span className={`${isMdOrLarger ? "text-[10px]" : "text-[9px]"} text-orange-400 whitespace-nowrap`}>
+                    {levelConfig.constraint.value}+
+                  </span>
+                  <div className="flex-1 min-w-[40px]">
+                    <div className="h-2.5 bg-slate-700 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-300 ease-out ${
+                          constraintProgress >= levelConfig.constraint.requiredCount
+                            ? "bg-gradient-to-r from-green-500 to-emerald-500"
+                            : "bg-gradient-to-r from-orange-500 to-amber-500"
+                        }`}
+                        style={{ 
+                          width: `${Math.min(100, (constraintProgress / levelConfig.constraint.requiredCount) * 100)}%` 
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className={`${isMdOrLarger ? "text-[10px]" : "text-[9px]"} whitespace-nowrap flex items-center gap-0.5`}>
+                    <span className={`font-semibold ${constraintProgress >= levelConfig.constraint.requiredCount ? "text-green-400" : "text-orange-400"}`}>
+                      {constraintProgress}/{levelConfig.constraint.requiredCount}
+                    </span>
+                    {constraintProgress >= levelConfig.constraint.requiredCount && (
+                      <FontAwesomeIcon icon={faCheck} className="text-green-400" width={8} height={8} />
+                    )}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent 
+                side="bottom" 
+                className="bg-slate-800 border border-slate-600 p-3 max-w-[250px]"
+              >
+                <div className="space-y-1.5">
+                  <div className="text-xs font-semibold text-orange-400">Level Constraint</div>
+                  <div className="text-xs text-slate-300">
+                    {levelConfig.constraint.getDescription()}
+                  </div>
+                  <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-600">
+                    Clear {levelConfig.constraint.value} or more lines in a single move, {levelConfig.constraint.requiredCount} time{levelConfig.constraint.requiredCount > 1 ? "s" : ""} to satisfy this constraint.
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
 
         {/* Constraint indicator - No Bonus */}
         {levelConfig.constraint.constraintType === ConstraintType.NoBonusUsed && (
-          <div className={`${isMdOrLarger ? "text-[10px]" : "text-[9px]"} flex items-center gap-1 px-2 py-0.5 rounded-full whitespace-nowrap ${
-            bonusUsedThisLevel 
-              ? "bg-red-500/20 text-red-400 border border-red-500/30" 
-              : "bg-green-500/20 text-green-400 border border-green-500/30"
-          }`}>
-            {bonusUsedThisLevel ? (
-              <>
-                <FontAwesomeIcon icon={faBan} width={8} height={8} />
-                <span>Bonus used</span>
-              </>
-            ) : (
-              <>
-                <FontAwesomeIcon icon={faCheck} width={8} height={8} />
-                <span>No Bonus</span>
-              </>
-            )}
-          </div>
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className={`${isMdOrLarger ? "text-[10px]" : "text-[9px]"} flex items-center gap-1 px-2 py-0.5 rounded-full whitespace-nowrap cursor-help ${
+                  bonusUsedThisLevel 
+                    ? "bg-red-500/20 text-red-400 border border-red-500/30" 
+                    : "bg-green-500/20 text-green-400 border border-green-500/30"
+                }`}>
+                  {bonusUsedThisLevel ? (
+                    <>
+                      <FontAwesomeIcon icon={faBan} width={8} height={8} />
+                      <span>Bonus used</span>
+                    </>
+                  ) : (
+                    <>
+                      <FontAwesomeIcon icon={faCheck} width={8} height={8} />
+                      <span>No Bonus</span>
+                    </>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent 
+                side="bottom" 
+                className="bg-slate-800 border border-slate-600 p-3 max-w-[250px]"
+              >
+                <div className="space-y-1.5">
+                  <div className="text-xs font-semibold text-orange-400">Level Constraint</div>
+                  <div className="text-xs text-slate-300">
+                    {levelConfig.constraint.getDescription()}
+                  </div>
+                  <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-600">
+                    {bonusUsedThisLevel 
+                      ? "You used a bonus this level. The constraint is failed but you can still complete the level."
+                      : "Complete this level without using any bonus (Hammer, Wave, or Totem) to satisfy this constraint."
+                    }
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
 

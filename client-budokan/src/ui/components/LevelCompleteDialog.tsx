@@ -39,8 +39,8 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   levelScore,
   levelMoves,
   seed,
-  constraintProgress,
-  bonusUsedThisLevel,
+  constraintProgress: _constraintProgress, // Unused - constraint is always satisfied when level completes
+  bonusUsedThisLevel: _bonusUsedThisLevel, // Unused - constraint is always satisfied when level completes
   prevHammer,
   prevWave,
   prevTotem,
@@ -59,24 +59,43 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   // Calculate stars earned
   const starsEarned = levelConfig.calculateStars(levelMoves);
 
-  // Calculate bonuses earned
+  // Calculate expected bonuses from stars (matches contract logic)
+  // 3 stars = 2 bonuses, 2 stars = 1 bonus, 1 star = 0 bonuses
+  const expectedBonusCount = useMemo(() => {
+    if (starsEarned >= 3) return 2;
+    if (starsEarned >= 2) return 1;
+    return 0;
+  }, [starsEarned]);
+
+  // Calculate bonuses earned - only count positive gains (ignores used bonuses)
+  // When a bonus is used to complete a level, the count decreases then increases
+  // We only want to show what was gained, not what was used
   const bonusesEarned = useMemo(() => {
-    const hammerGained = hammer - prevHammer;
-    const waveGained = wave - prevWave;
-    const totemGained = totem - prevTotem;
+    // Only count increases (positive diff means we earned that type)
+    const hammerGained = Math.max(0, hammer - prevHammer);
+    const waveGained = Math.max(0, wave - prevWave);
+    const totemGained = Math.max(0, totem - prevTotem);
+    const observedTotal = hammerGained + waveGained + totemGained;
+    
+    // If we can't observe specific gains but expected bonuses from stars,
+    // it means bonuses were earned but offset by usage (e.g., used 1, earned 1 of same type)
+    // In this case, just show the expected count without specific types
+    const total = Math.max(observedTotal, expectedBonusCount);
+    
     return {
       hammer: hammerGained,
       wave: waveGained,
       totem: totemGained,
-      total: hammerGained + waveGained + totemGained,
+      total,
+      // Flag if we couldn't observe specific types (earned same type as used)
+      showGeneric: observedTotal < expectedBonusCount && expectedBonusCount > 0,
     };
-  }, [hammer, wave, totem, prevHammer, prevWave, prevTotem]);
+  }, [hammer, wave, totem, prevHammer, prevWave, prevTotem, expectedBonusCount]);
 
-  // Check if constraint was satisfied
-  const constraintSatisfied = levelConfig.constraint.isSatisfied(
-    constraintProgress,
-    bonusUsedThisLevel
-  );
+  // If the level completed, the constraint was satisfied by definition
+  // (the contract requires both score AND constraint to be satisfied for level completion)
+  // We can't rely on constraintProgress from prevState since it was captured before the final move
+  const constraintSatisfied = true;
 
   // Display score - use levelScore if available, otherwise show required
   const displayScore = Math.max(levelScore, levelConfig.pointsRequired);
@@ -172,10 +191,11 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
             <div className="flex items-center gap-2 justify-center mb-3">
               <FontAwesomeIcon icon={faGift} className="text-purple-400" />
               <span className="text-lg font-semibold text-purple-400">
-                Bonuses Earned!
+                {bonusesEarned.total} Bonus{bonusesEarned.total > 1 ? "es" : ""} Earned!
               </span>
             </div>
             <div className="flex justify-center gap-4">
+              {/* Show specific bonus types if we can observe them */}
               {bonusesEarned.hammer > 0 && (
                 <div className="flex items-center gap-2 bg-slate-800/50 px-4 py-3 rounded-lg border border-slate-600">
                   <img src={imgAssets.hammer} alt="Hammer" className="w-8 h-8" />
@@ -197,6 +217,14 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
                   <img src={imgAssets.tiki} alt="Totem" className="w-8 h-8" />
                   <span className="text-white font-bold text-lg">
                     +{bonusesEarned.totem}
+                  </span>
+                </div>
+              )}
+              {/* Show generic bonus display if earned same type as used */}
+              {bonusesEarned.showGeneric && (
+                <div className="flex items-center gap-2 bg-slate-800/50 px-4 py-3 rounded-lg border border-purple-500/50">
+                  <span className="text-purple-300 font-bold text-lg">
+                    +{expectedBonusCount} Random
                   </span>
                 </div>
               )}
