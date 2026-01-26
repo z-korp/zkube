@@ -71,9 +71,9 @@ export const useGameTokensSlot = ({
 
           // Extract level data from run_data
           const runData = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
-          // Unpack run_data: bits 0-6 = level, bits 27-35 = total_stars, bits 52-67 = total_score
+          // Unpack run_data: bits 0-6 = level, bits 27-35 = total_cubes, bits 52-67 = total_score
           const level = Number(runData & BigInt(0x7F)); // 7 bits (position 0)
-          const totalStars = Number((runData >> BigInt(27)) & BigInt(0x1FF)); // 9 bits (position 27)
+          const totalCubes = Number((runData >> BigInt(27)) & BigInt(0x1FF)); // 9 bits (position 27)
           const totalScore = Number((runData >> BigInt(52)) & BigInt(0xFFFF)); // 16 bits (position 52)
 
           gameList.push({
@@ -84,7 +84,7 @@ export const useGameTokensSlot = ({
               name: `Game #${gameData.game_id}`,
               attributes: [
                 { trait_type: "Level", value: level },
-                { trait_type: "Total Stars", value: totalStars },
+                { trait_type: "Total Cubes", value: totalCubes },
                 { trait_type: "Total Score", value: totalScore },
               ],
             }),

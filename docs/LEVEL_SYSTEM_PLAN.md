@@ -1,8 +1,10 @@
 # zKube Level System - Implementation Plan
 
-> **Status:** Planning Complete - Ready for Implementation  
+> **Status:** Partially Implemented  
 > **Last Updated:** January 2026  
 > **Estimated Duration:** 3-4 weeks
+>
+> **Related:** See [CUBE_ECONOMY.md](./CUBE_ECONOMY.md) for the cube token economy system
 
 ## Overview
 
@@ -10,18 +12,20 @@ Transform zKube into a **Puzzle Roguelike** with two game modes:
 - **Daily Challenge**: Same seed for all players, once per day, competitive leaderboard
 - **Endless Mode**: Random seed per run, practice and personal bests
 
-Both modes share the same progression system: 100 auto-generated levels, star ratings, and persistent bonus inventory within a run.
+Both modes share the same progression system: 100 auto-generated levels, cube rewards, and persistent bonus inventory within a run.
 
 ### Core Features
 
 | Feature | Description |
 |---------|-------------|
 | **100 Levels** | Auto-generated with scaling difficulty |
-| **Star System** | 1-3 stars based on move efficiency |
+| **Cube System** | 1-3 cubes based on move efficiency (ERC-1155 token) |
 | **Constraints** | Level-specific objectives (clear X lines, no bonus, etc.) |
 | **Bonus Inventory** | Earned bonuses persist across levels, lost on death |
-| **Revival System** | One-time paid revival per run |
+| **Revival System** | One-time paid revival per run (costs cubes) |
 | **Two Game Modes** | Daily Challenge (same seed) + Endless (random seed) |
+| **Permanent Shop** | Spend cubes on loadouts, upgrades |
+| **In-Game Shop** | Spend brought cubes on consumables (every 5 levels) |
 
 ### Game Modes Comparison
 
@@ -117,15 +121,25 @@ END DAILY
 | 71-90 | 100-150 | 60-80 | VeryHard → Expert | Clear 4-5 lines (4-5x) |
 | 91-100 | 120-200 | 70-100 | Expert → Master | Clear 5 lines (5x+), No bonus |
 
-### Star Thresholds
+### Cube Rewards (Performance-Based)
 
-Stars are calculated based on moves used vs max_moves:
+Cubes are calculated based on moves used vs max_moves:
 
-| Stars | Condition | Reward |
-|-------|-----------|--------|
-| ★★★ | moves < max_moves × 0.4 | Choose any bonus |
-| ★★ | moves < max_moves × 0.7 | Random bonus |
-| ★ | level completed | No bonus |
+| Performance | Condition | Cubes | Bonus Reward |
+|-------------|-----------|-------|--------------|
+| 3-Cube (★★★) | moves <= max_moves × 0.4 | 3 | 2 bonuses |
+| 2-Cube (★★) | moves <= max_moves × 0.7 | 2 | 1 bonus |
+| 1-Cube (★) | level completed | 1 | No bonus |
+
+**Additional Cube Sources:**
+- Level milestones (10, 20, 30...): level/2 cubes (+5/+10/+15... up to +50 max)
+- Clear 4 lines: +1 cube
+- Clear 5 lines: +2 cubes  
+- Clear 6+ lines: +3 cubes
+- First 5x combo: +3 cubes (one-time per run)
+- First 10x combo: +5 cubes (one-time per run)
+
+See [CUBE_ECONOMY.md](./CUBE_ECONOMY.md) for full details.
 
 ### Constraint Types
 
@@ -200,88 +214,93 @@ Sorted by:
 
 ## Core Roguelike Features
 
-### 1. Meta-Progression (Persistent Unlocks)
+> **Note:** Meta-progression is now handled via the **Cube Economy** system.
+> See [CUBE_ECONOMY.md](./CUBE_ECONOMY.md) for full details on shops and unlocks.
 
-Rewards that persist **permanently** across all runs. Stored on-chain in `PlayerMeta` model.
+### 1. Meta-Progression (Permanent Shop)
 
-#### Unlock Categories
+Rewards that persist **permanently** across all runs. Purchased with CUBE tokens in the Permanent Shop.
 
-| Category | Unlocks | How to Earn |
-|----------|---------|-------------|
-| **Starting Loadouts** | Start with 1-3 bonuses | Reach level milestones |
-| **New Bonus Types** | Unlock 4th, 5th bonus | Master specific constraints |
-| **Cosmetics** | Themes, block skins | Achievements, streaks |
-| **Mastery Badges** | Visual progression | Complete level tiers |
+#### Permanent Shop Categories
 
-#### Milestone Unlocks
+| Category | Items | Cost Range |
+|----------|-------|------------|
+| **Starting Bonuses** | Start runs with bonuses | 50-500 cubes per type |
+| **Bonus Bag Size** | Increase max capacity per bonus type | 10-160+ cubes (doubling) |
+| **Cube Bridging Ranks** | Unlock ability to bring cubes into runs | 100-3200 cubes |
+| **New Bonus Types** | Unlock 4th, 5th bonus | 500-750 cubes (future) |
 
-| Milestone | Unlock |
-|-----------|--------|
-| Reach Level 10 | Loadout: "Apprentice" (start with 1 Hammer) |
-| Reach Level 25 | Loadout: "Prepared" (start with 1 of each) |
-| Reach Level 50 | Loadout: "Veteran" (start with 2 Hammer, 1 Wave) |
-| Reach Level 75 | Loadout: "Expert" (start with 2 of each) |
-| Reach Level 100 | Loadout: "Master" (start with 3 of each) |
-| Complete 7-day streak | Cosmetic: Special theme unlock |
-| Complete 30-day streak | Cosmetic: Exclusive block skin |
-| Clear 100 total levels | Badge: "Centurion" |
-| Clear 10 levels with 3★ | Badge: "Perfectionist" |
+#### Starting Bonus Upgrades
 
-#### Loadout Selection (Pre-Run)
+| Level | Cost | Effect |
+|-------|------|--------|
+| 1 | 50 | Start with 1 of this bonus |
+| 2 | 200 | Start with 2 of this bonus |
+| 3 | 500 | Start with 3 of this bonus |
 
-```
-┌─────────────────────────────────────────┐
-│         SELECT YOUR LOADOUT             │
-├─────────────────────────────────────────┤
-│ ○ Fresh Start (default)                 │
-│   No starting bonuses                   │
-│                                         │
-│ ○ Apprentice [UNLOCKED]                 │
-│   🔨 x1                                 │
-│                                         │
-│ ○ Prepared [UNLOCKED]                   │
-│   🔨 x1  🌊 x1  🗿 x1                   │
-│                                         │
-│ ○ Veteran [LOCKED - Reach Level 50]    │
-│   🔨 x2  🌊 x1                          │
-│                                         │
-│           [ START RUN ]                 │
-└─────────────────────────────────────────┘
-```
+Each bonus type (Hammer, Wave, Totem) upgraded independently.
+
+#### Bonus Bag Size Upgrades
+
+By default, players can hold **3 of each bonus type**. Each upgrade increases capacity by 1.
+
+| Upgrade Level | Cost | New Max Capacity |
+|---------------|------|------------------|
+| 1 | 10 | 4 |
+| 2 | 20 | 5 |
+| 3 | 40 | 6 |
+| 4 | 80 | 7 |
+| 5 | 160 | 8 |
+
+**Formula:** Cost = 10 * 2^(level-1) cubes. Each bonus type upgraded independently.
+
+#### Cube Bridging Ranks
+
+| Rank | Cost | Max Cubes to Bring |
+|------|------|-------------------|
+| 0 | Free | 0 (can't bring) |
+| 1 | 100 | 5 |
+| 2 | 200 | 10 |
+| 3 | 400 | 20 |
+| 4 | 800 | 40 |
+| 5 | 1600 | 80 |
+| 6 | 3200 | 160 |
+
+**Formula:** Cost = 100 * 2^(rank-1), Max = 5 * 2^(rank-1)
 
 ---
 
-### 2. Risk/Reward Choices
+### 2. In-Game Shop (Every 5 Levels)
 
-At milestone levels (10, 20, 30, 40, 50, 60, 70, 80, 90), player chooses between rewards.
+At levels 5, 10, 15, 20, etc., players can spend **brought cubes** on consumables.
 
-#### Choice Types
+#### Available Consumables
 
-| Choice Type | Option A | Option B |
-|-------------|----------|----------|
-| **Bonus Quantity** | +2 Hammer | +1 of each bonus |
-| **Bonus vs Stars** | +1 random bonus | Next level: double stars |
-| **Heal vs Reward** | Reset move counter for next level | +2 random bonuses |
-| **Risk vs Safe** | Skip next constraint (but 1★ max) | Normal next level |
-| **Specialist vs Generalist** | +3 of chosen bonus | +1 of each + extra move limit |
-
-#### Choice Flow
+| Item | Cost | Effect |
+|------|------|--------|
+| Hammer | 5 | +1 Hammer |
+| Wave | 5 | +1 Wave |
+| Totem | 5 | +1 Totem |
+| Full Refill | bag_size * 3 | Refill one bonus type to max (default: 9 cubes) |
+| Skip Constraint | 20 | Auto-complete current constraint |
+| Revival Token | 30 | Continue after death |
 
 ```
 ┌─────────────────────────────────────────┐
-│      🎉 LEVEL 20 COMPLETE! 🎉           │
-│           ★★★ 3 STARS                   │
+│      🎉 LEVEL 10 COMPLETE! 🎉           │
+│           ███ 3 CUBES                   │
 ├─────────────────────────────────────────┤
 │                                         │
-│    Choose your reward for the next      │
-│    stage of your journey:               │
+│         IN-GAME SHOP                    │
+│    Cubes available: 15                  │
 │                                         │
 │  ┌─────────────────┐ ┌─────────────────┐│
-│  │   STOCKPILE     │ │   DIVERSITY     ││
-│  │                 │ │                 ││
-│  │   🔨 🔨         │ │   🔨 🌊 🗿      ││
-│  │   +2 Hammer     │ │   +1 of each    ││
-│  │                 │ │                 ││
+│  │   🔨 Hammer     │ │   🌊 Wave       ││
+│  │    5 cubes      │ │    5 cubes      ││
+│  └─────────────────┘ └─────────────────┘│
+│  ┌─────────────────┐ ┌─────────────────┐│
+│  │  🔨 Full Refill │ │  Skip Constraint││
+│  │    9 cubes      │ │    20 cubes     ││
 │  └─────────────────┘ └─────────────────┘│
 │                                         │
 └─────────────────────────────────────────┘
@@ -308,7 +327,7 @@ fn get_milestone_choice(seed: felt252, level: u8) -> (ChoiceType, OptionA, Optio
 
 ## Future Roguelike Enhancements
 
-> These can be added after core + meta-progression + choices are working.
+> These can be added after core + cube economy are working.
 
 ### Priority 1 - Quick Wins
 
@@ -325,43 +344,45 @@ fn get_milestone_choice(seed: felt252, level: u8) -> (ChoiceType, OptionA, Optio
 | **Weekly Seed** | Same Endless seed all week for practice |
 | **Challenge Modes** | "No Bonus Run", "Speed Run" variants |
 
-### Priority 3 - Major Features
+### Priority 3 - Major Features (Post-Cube Economy)
 
-| Element | Description |
-|---------|-------------|
-| **Shop System** | Buy items mid-run with earned coins |
-| **Modifiers/Curses** | Random run modifiers for bonus rewards |
-| **Special Blocks** | Bomb, Rainbow, Locked blocks |
-| **New Bonus Types** | Unlockable 4th/5th bonus abilities |
+| Element | Description | Status |
+|---------|-------------|--------|
+| **Modifiers/Curses** | Random run modifiers for bonus rewards | Future |
+| **Special Blocks** | Bomb, Rainbow, Locked blocks | Future |
+| **New Bonus Types** | Unlockable 4th/5th bonus abilities | Planned in CUBE_ECONOMY |
+| **Cosmetics** | Themes, block skins | Future |
 
 ---
 
 ## Open Questions
 
-> These need to be resolved before implementation begins.
+### Resolved Questions
 
-### Q1: Revival Payment
-**Question:** What token/amount for the revival?
-- Option A: Existing ERC20 (LORDS or FLORD)
-- Option B: New in-game currency
-- Option C: Credit system
+| Question | Decision |
+|----------|----------|
+| Revival Payment | CUBE tokens (15 cubes in-game shop) |
+| In-game currency | CUBE (ERC-1155, soulbound) |
+| Shop timing | Every 5 levels (5, 10, 15...) |
+| Cube bridging | Unlockable ranks (200-3200 cubes) |
+| Brought cubes on death | Lost (burned) |
 
-**Decision:** _Pending_
+### Pending Questions
 
-### Q2: Daily Reset Time
+### Q1: Daily Reset Time
 **Question:** At what UTC hour does the daily challenge reset?
 - Common options: 00:00 UTC, 12:00 UTC
 
 **Decision:** _Pending_
 
-### Q3: Seed Consistency
+### Q2: Seed Consistency
 **Question:** Same VRF seed for all players on the same daily?
 - YES: Fair competition, same puzzles
 - NO: Different puzzles, pure skill comparison
 
 **Decision:** _Pending_
 
-### Q4: Migration Strategy
+### Q3: Migration Strategy
 **Question:** How to handle existing players?
 - Reset all stats
 - Migrate relevant data

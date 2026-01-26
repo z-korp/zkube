@@ -1,6 +1,13 @@
 /**
  * Level configuration types for the level system
  * Each level has a unique configuration based on the run seed
+ *
+ * Key properties:
+ * - Same seed + same level = same config
+ * - Different seed = different config sequence
+ * - Level 100+ caps at max difficulty (survival mode)
+ * - Points derived from moves × ratio (0.8 → 2.5)
+ * - Correlated variance keeps difficulty ratio constant
  */
 
 import { hash } from "starknet";
@@ -18,10 +25,10 @@ export interface LevelConfig {
   difficulty: Difficulty;
   /** Level constraint (objective) */
   constraint: Constraint;
-  /** Moves threshold for 3 stars */
-  star3Threshold: number;
-  /** Moves threshold for 2 stars */
-  star2Threshold: number;
+  /** Moves threshold for 3 cubes */
+  cube3Threshold: number;
+  /** Moves threshold for 2 cubes */
+  cube2Threshold: number;
 }
 
 export class Level {
@@ -30,8 +37,8 @@ export class Level {
   public maxMoves: number;
   public difficulty: Difficulty;
   public constraint: Constraint;
-  public star3Threshold: number;
-  public star2Threshold: number;
+  public cube3Threshold: number;
+  public cube2Threshold: number;
 
   constructor(config: LevelConfig) {
     this.level = config.level;
@@ -39,24 +46,24 @@ export class Level {
     this.maxMoves = config.maxMoves;
     this.difficulty = config.difficulty;
     this.constraint = config.constraint;
-    this.star3Threshold = config.star3Threshold;
-    this.star2Threshold = config.star2Threshold;
+    this.cube3Threshold = config.cube3Threshold;
+    this.cube2Threshold = config.cube2Threshold;
   }
 
-  /** Calculate stars earned based on moves used */
-  calculateStars(movesUsed: number): number {
-    if (movesUsed <= this.star3Threshold) {
+  /** Calculate cubes earned based on moves used */
+  calculateCubes(movesUsed: number): number {
+    if (movesUsed <= this.cube3Threshold) {
       return 3;
-    } else if (movesUsed <= this.star2Threshold) {
+    } else if (movesUsed <= this.cube2Threshold) {
       return 2;
     } else {
       return 1;
     }
   }
 
-  /** Get bonus count earned based on stars */
-  static getBonusReward(stars: number): number {
-    switch (stars) {
+  /** Get bonus count earned based on cubes */
+  static getBonusReward(cubes: number): number {
+    switch (cubes) {
       case 3:
         return 2;
       case 2:
@@ -67,7 +74,11 @@ export class Level {
   }
 
   /** Check if level is complete */
-  isComplete(currentScore: number, constraintProgress: number, bonusUsed: boolean): boolean {
+  isComplete(
+    currentScore: number,
+    constraintProgress: number,
+    bonusUsed: boolean
+  ): boolean {
     return (
       currentScore >= this.pointsRequired &&
       this.constraint.isSatisfied(constraintProgress, bonusUsed)
@@ -100,11 +111,11 @@ export class Level {
     return Math.floor((currentScore * 100) / this.pointsRequired);
   }
 
-  /** Get current potential stars (based on current move count) */
-  potentialStars(currentMoves: number): number {
-    if (currentMoves <= this.star3Threshold) {
+  /** Get current potential cubes (based on current move count) */
+  potentialCubes(currentMoves: number): number {
+    if (currentMoves <= this.cube3Threshold) {
       return 3;
-    } else if (currentMoves <= this.star2Threshold) {
+    } else if (currentMoves <= this.cube2Threshold) {
       return 2;
     } else {
       return 1;
@@ -114,41 +125,85 @@ export class Level {
 
 // Level generator constants (matching Cairo)
 const LEVEL_CONSTANTS = {
-  BASE_POINTS: 20,
-  BASE_MOVES: 30,
-  MAX_POINTS: 200,
-  MAX_MOVES: 100,
-  POINTS_VARIANCE: 30,
-  MOVES_VARIANCE: 20,
-  STAR_3_PERCENT: 40,
-  STAR_2_PERCENT: 70,
+  // Moves scaling (linear 35 → 85)
+  BASE_MOVES: 35,
+  MAX_MOVES: 85,
+
+  // Ratio scaling ×100 for integer math (0.80 → 2.50)
+  BASE_RATIO_X100: 80, // 0.80 points per move at level 1
+  MAX_RATIO_X100: 250, // 2.50 points per move at level 100
+
+  // Correlated variance by level tier (percentage)
+  EARLY_VARIANCE_PERCENT: 5, // ±5% for levels 1-10
+  MID_VARIANCE_PERCENT: 10, // ±10% for levels 11-50
+  LATE_VARIANCE_PERCENT: 15, // ±15% for levels 51-100
+
+  // Cube thresholds (percentage of max_moves)
+  CUBE_3_PERCENT: 40,
+  CUBE_2_PERCENT: 70,
+
+  // Level cap for scaling
   LEVEL_CAP: 100,
+
+  // Constraint none threshold (constraints start from level 5)
   CONSTRAINT_NONE_THRESHOLD: 4,
 };
 
 /**
- * Apply variance to a base value (matching Cairo's apply_variance function)
+ * Calculate base moves for a level (before variance)
+ * Linear scaling: 35 at level 1, 85 at level 100
  */
-function applyVariance(
-  base: number,
-  seed: bigint,
-  varianceRange: number,
-  minVal: number,
-  maxVal: number
-): number {
-  const variance = Number(seed % BigInt(varianceRange));
-  const halfRange = Math.floor(varianceRange / 2);
-
-  let result: number;
-  if (variance >= halfRange) {
-    const add = variance - halfRange;
-    result = Math.min(maxVal, base + add);
-  } else {
-    const sub = halfRange - variance;
-    result = Math.max(minVal, base - sub);
+function calculateBaseMoves(level: number): number {
+  if (level <= 1) {
+    return LEVEL_CONSTANTS.BASE_MOVES;
   }
+  const range = LEVEL_CONSTANTS.MAX_MOVES - LEVEL_CONSTANTS.BASE_MOVES; // 50
+  const progress = Math.floor(((level - 1) * range) / 99);
+  return LEVEL_CONSTANTS.BASE_MOVES + progress;
+}
 
-  return result;
+/**
+ * Calculate ratio for this level (scaled by 100)
+ * Linear scaling: 80 (0.80) at level 1, 250 (2.50) at level 100
+ */
+function calculateRatio(level: number): number {
+  if (level <= 1) {
+    return LEVEL_CONSTANTS.BASE_RATIO_X100;
+  }
+  const range = LEVEL_CONSTANTS.MAX_RATIO_X100 - LEVEL_CONSTANTS.BASE_RATIO_X100; // 170
+  const progress = Math.floor(((level - 1) * range) / 99);
+  return LEVEL_CONSTANTS.BASE_RATIO_X100 + progress;
+}
+
+/**
+ * Get variance percentage based on level tier
+ */
+function getVariancePercent(level: number): number {
+  if (level <= 10) {
+    return LEVEL_CONSTANTS.EARLY_VARIANCE_PERCENT;
+  } else if (level <= 50) {
+    return LEVEL_CONSTANTS.MID_VARIANCE_PERCENT;
+  } else {
+    return LEVEL_CONSTANTS.LATE_VARIANCE_PERCENT;
+  }
+}
+
+/**
+ * Calculate correlated variance factor
+ * Returns a value like 95-105 for ±5%, or 85-115 for ±15%
+ */
+function calculateVarianceFactor(seed: bigint, variancePercent: number): number {
+  const varianceRange = variancePercent * 2 + 1; // e.g., 11 for ±5% (95-105)
+  const roll = Number(seed % BigInt(varianceRange));
+  // Center around 100: (100 - variance) + roll
+  return 100 - variancePercent + roll;
+}
+
+/**
+ * Apply factor to base value
+ */
+function applyFactor(base: number, factor: number): number {
+  return Math.floor((base * factor) / 100);
 }
 
 /**
@@ -159,46 +214,33 @@ export function generateLevelConfig(seed: bigint, level: number): Level {
   // Cap level for calculations
   const calcLevel = Math.min(level, LEVEL_CONSTANTS.LEVEL_CAP);
 
-  // Calculate base values with linear scaling (matching Cairo)
-  let basePoints: number;
-  let baseMoves: number;
-
-  if (calcLevel <= 1) {
-    basePoints = LEVEL_CONSTANTS.BASE_POINTS;
-    baseMoves = LEVEL_CONSTANTS.BASE_MOVES;
-  } else {
-    const pointsRange = LEVEL_CONSTANTS.MAX_POINTS - LEVEL_CONSTANTS.BASE_POINTS; // 180
-    const movesRange = LEVEL_CONSTANTS.MAX_MOVES - LEVEL_CONSTANTS.BASE_MOVES; // 70
-    basePoints = LEVEL_CONSTANTS.BASE_POINTS + Math.floor(((calcLevel - 1) * pointsRange) / 99);
-    baseMoves = LEVEL_CONSTANTS.BASE_MOVES + Math.floor(((calcLevel - 1) * movesRange) / 99);
-  }
-
   // Derive level-specific seed using Poseidon (matching Cairo)
   const levelSeed = deriveLevelSeed(seed, level);
 
-  // Calculate seeds for points and moves (matching Cairo)
-  const pointsSeed = levelSeed;
-  const movesSeed = levelSeed / BigInt(1000);
+  // 1. Calculate base moves (35 → 85)
+  const baseMoves = calculateBaseMoves(calcLevel);
 
-  // Apply variance (matching Cairo's apply_variance function)
-  const pointsRequired = applyVariance(
-    basePoints,
-    pointsSeed,
-    LEVEL_CONSTANTS.POINTS_VARIANCE,
-    15,
-    255
-  );
-  const maxMoves = applyVariance(
-    baseMoves,
-    movesSeed,
-    LEVEL_CONSTANTS.MOVES_VARIANCE,
-    20,
-    127
-  );
+  // 2. Calculate ratio for this level (0.80 → 2.50)
+  const ratioX100 = calculateRatio(calcLevel);
 
-  // Calculate star thresholds
-  const star3Threshold = Math.floor((maxMoves * LEVEL_CONSTANTS.STAR_3_PERCENT) / 100);
-  const star2Threshold = Math.floor((maxMoves * LEVEL_CONSTANTS.STAR_2_PERCENT) / 100);
+  // 3. Calculate base points from moves × ratio
+  const basePoints = Math.floor((baseMoves * ratioX100) / 100);
+
+  // 4. Get variance percent based on level tier
+  const variancePercent = getVariancePercent(calcLevel);
+
+  // 5. Apply CORRELATED variance (same factor for both)
+  const varianceFactor = calculateVarianceFactor(levelSeed, variancePercent);
+  const pointsRequired = applyFactor(basePoints, varianceFactor);
+  const maxMoves = applyFactor(baseMoves, varianceFactor);
+
+  // Calculate cube thresholds
+  const cube3Threshold = Math.floor(
+    (maxMoves * LEVEL_CONSTANTS.CUBE_3_PERCENT) / 100
+  );
+  const cube2Threshold = Math.floor(
+    (maxMoves * LEVEL_CONSTANTS.CUBE_2_PERCENT) / 100
+  );
 
   // Get difficulty
   const difficulty = getDifficultyForLevel(calcLevel);
@@ -212,8 +254,8 @@ export function generateLevelConfig(seed: bigint, level: number): Level {
     maxMoves,
     difficulty,
     constraint,
-    star3Threshold,
-    star2Threshold,
+    cube3Threshold,
+    cube2Threshold,
   });
 }
 

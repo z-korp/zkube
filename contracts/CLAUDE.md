@@ -17,7 +17,7 @@ contracts/
 │   │   └── config.cairo       # Game settings model
 │   ├── systems/               # Dojo systems (logic)
 │   │   ├── game.cairo         # Main game system
-│   │   ├── achievement.cairo  # Achievement tracking
+│   │   ├── shop.cairo         # Permanent shop (cube economy)
 │   │   └── config.cairo       # Configuration system
 │   ├── types/                 # Type definitions
 │   │   ├── bonus.cairo        # Bonus enum (Hammer, Wave, Totem)
@@ -83,6 +83,27 @@ pub struct GameSeed {
 }
 ```
 
+### PlayerMeta Model (`models/player.cairo`)
+
+Persistent player data for meta-progression and cube economy:
+
+```cairo
+#[dojo::model]
+pub struct PlayerMeta {
+    #[key]
+    pub player: ContractAddress,
+    pub data: felt252,      // Bit-packed MetaData (upgrades, stats)
+    pub best_level: u8,     // Highest level reached
+    pub cube_balance: u64,  // Spendable currency
+}
+```
+
+**MetaData bit-packing** (in `helpers/packing.cairo`):
+- `starting_hammer/wave/totem` (2 bits each, 0-3)
+- `bag_hammer/wave/totem_level` (4 bits each)
+- `bridging_rank` (4 bits)
+- `total_runs`, `total_cubes_earned` (stats)
+
 ## Systems
 
 ### Game System (`systems/game.cairo`)
@@ -107,14 +128,27 @@ trait IGameSystem {
 3. `apply_bonus()` - Applies Hammer/Wave/Totem bonus effects
 4. `surrender()` - Ends game, triggers achievement updates
 
-### Achievement System (`systems/achievement.cairo`)
+### Shop System (`systems/shop.cairo`)
 
-Tracks player progress across trophy categories:
-- Mastering (combo totals)
-- Chaining (max combos)
-- Playing (move counts)
-- Scoring (single game scores)
-- Cumulative Scoring (total score across games)
+Permanent shop for spending cubes on upgrades:
+
+```cairo
+trait IShopSystem {
+    fn upgrade_starting_bonus(ref self: T, bonus_type: u8);  // 0=Hammer, 1=Wave, 2=Totem
+    fn upgrade_bag_size(ref self: T, bonus_type: u8);
+    fn upgrade_bridging_rank(ref self: T);
+    fn get_starting_bonus_upgrade_cost(self: @T, current_level: u8) -> u64;
+    fn get_bag_upgrade_cost(self: @T, current_level: u8) -> u64;
+    fn get_bridging_upgrade_cost(self: @T, current_rank: u8) -> u64;
+}
+```
+
+**Upgrade Costs:**
+- Starting Bonus: 50 / 200 / 500 cubes for levels 1/2/3
+- Bag Size: 10 * 2^level cubes (10, 20, 40, 80...)
+- Bridging Rank: 100 * 2^rank cubes (100, 200, 400, 800...)
+
+**Note:** Shop system needs WRITER permission on `PlayerMeta` model.
 
 ## Grid Manipulation (`helpers/controller.cairo`)
 
@@ -205,12 +239,12 @@ scarb test
 
 ## Namespace
 
-Current: `zkube_budo_v1_1_3`
+Current: `zkube_budo_v1_2_0`
 
 Defined in `constants.cairo`:
 ```cairo
 pub fn DEFAULT_NS() -> ByteArray {
-    "zkube_budo_v1_1_3"
+    "zkube_budo_v1_2_0"
 }
 ```
 
@@ -248,6 +282,12 @@ Mock contracts in `tests/mocks/`:
 2. **VRF Randomness**: All randomness derived from VRF seed via Poseidon hashing
 3. **Gas Optimization**: Blocks packed into single felt252 to minimize storage
 4. **Deterministic**: Same seed + same moves = same game result
+5. **Cube Economy**: Players earn cubes through gameplay:
+   - Level completion: 1-3 cubes based on moves used
+   - Milestone bonus: Every 10 levels awards level/2 cubes (capped at 50)
+   - Combo bonuses: 4+ lines = +1, 5+ = +2, 6+ = +3 cubes
+   - Combo achievements: First 5-line combo = +3, first 10-line = +5 cubes
+6. **Starting Bonuses**: PlayerMeta upgrades apply on game creation
 
 ## VRF vs Pseudo-Random
 
@@ -283,39 +323,57 @@ Systems that emit events need explicit WRITER grants in the dojo config:
 ```toml
 # In dojo_slot.toml (or dojo_sepolia.toml, dojo_mainnet.toml)
 [writers]
-"zkube_budo_v1_1_3-Game" = ["zkube_budo_v1_1_3-game_system"]
-"zkube_budo_v1_1_3-GameSeed" = ["zkube_budo_v1_1_3-game_system"]
+"zkube_budo_v1_2_0-Game" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_budo_v1_2_0-GameSeed" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_budo_v1_2_0-PlayerMeta" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-shop_system"]
 # ... other models ...
 
 # Events also need writer permissions!
-"zkube_budo_v1_1_3-StartGame" = ["zkube_budo_v1_1_3-game_system"]
-"zkube_budo_v1_1_3-UseBonus" = ["zkube_budo_v1_1_3-game_system"]
+"zkube_budo_v1_2_0-StartGame" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_budo_v1_2_0-UseBonus" = ["zkube_budo_v1_2_0-game_system"]
 ```
 
 If you see errors like `game_system does NOT have WRITER role on event StartGame`, add the event to the writers section.
 
-## Slot Deployment Checklist
+## Slot Deployment
+
+### Using the Deploy Script (Recommended)
+
+```bash
+./scripts/deploy_slot.sh
+```
+
+This script handles the full deployment including token contracts. See `scripts/CLAUDE.md` for details.
+
+### Manual Deployment
 
 1. **Update random source** in `systems/game.cairo`:
    ```cairo
    let random = RandomImpl::new_pseudo_random();
    ```
 
-2. **Add event permissions** to `dojo_slot.toml`:
+2. **Ensure event permissions** in `dojo_slot.toml`:
    ```toml
    [writers]
-   "zkube_budo_v1_1_3-StartGame" = ["zkube_budo_v1_1_3-game_system"]
-   "zkube_budo_v1_1_3-UseBonus" = ["zkube_budo_v1_1_3-game_system"]
+   "zkube_budo_v1_2_0-StartGame" = ["zkube_budo_v1_2_0-game_system"]
+   "zkube_budo_v1_2_0-UseBonus" = ["zkube_budo_v1_2_0-game_system"]
+   "zkube_budo_v1_2_0-PlayerMeta" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-shop_system"]
    ```
 
-3. **Build and deploy**:
+3. **Deploy token contracts first** (MinigameRegistry, FullTokenContract)
+4. **Update `denshokan_address`** in BOTH config files:
+   - `./dojo_slot.toml`
+   - `./contracts/dojo_slot.toml`
+
+5. **Run migrate**:
    ```bash
-   scarb build
-   scarb slot
+   cd contracts && sozo migrate -P slot
    ```
 
-4. **Grant permissions manually if needed**:
-   ```bash
-   sozo auth grant --profile slot writer zkube_budo_v1_1_3-StartGame,zkube_budo_v1_1_3-game_system
-   sozo auth grant --profile slot writer zkube_budo_v1_1_3-UseBonus,zkube_budo_v1_1_3-game_system
-   ```
+### Common Issues
+
+**"Invalid new schema to upgrade resource"**
+- Restart katana for a fresh chain, or change the `seed` in dojo_slot.toml
+
+**"Requested contract address 0x0 is not deployed"**
+- The denshokan_address is wrong - check BOTH dojo_slot.toml files

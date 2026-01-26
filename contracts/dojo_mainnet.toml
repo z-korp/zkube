@@ -22,6 +22,7 @@ account_address = "0x0601ecb93c6e88eec432910a2c3ab4d9b5c0dd768b55ab4f8c89336e01f
     "zkube_budo_v1_1_3-achievement_system",
     "zkube_budo_v1_1_3-game_system",
     "zkube_budo_v1_1_3-config_system",
+    "zkube_budo_v1_1_3-shop_system",
 ]
 
 [init_call_args]

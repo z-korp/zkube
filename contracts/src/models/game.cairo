@@ -135,10 +135,10 @@ pub impl GameImpl of GameTrait {
         self.get_run_data().level_moves
     }
 
-    /// Get total stars
+    /// Get total cubes
     #[inline(always)]
-    fn get_total_stars(self: Game) -> u16 {
-        self.get_run_data().total_stars
+    fn get_total_cubes(self: Game) -> u16 {
+        self.get_run_data().total_cubes
     }
 
     /// Get hammer count from inventory
@@ -293,6 +293,30 @@ pub impl GameImpl of GameTrait {
             }
         }
 
+        // Combo line bonus cubes: 4+ lines = +1, 5+ = +2, 6+ = +3
+        if lines_cleared >= 4 {
+            let combo_cubes: u16 = if lines_cleared >= 6 {
+                3
+            } else if lines_cleared >= 5 {
+                2
+            } else {
+                1
+            };
+            run_data.total_cubes += combo_cubes;
+        }
+
+        // Combo achievement bonuses (one-time per run)
+        // First 5-line combo = +3 cubes
+        if run_data.max_combo_run >= 5 && !run_data.combo_5_achieved {
+            run_data.combo_5_achieved = true;
+            run_data.total_cubes += 3;
+        }
+        // First 10-line combo = +5 cubes
+        if run_data.max_combo_run >= 10 && !run_data.combo_10_achieved {
+            run_data.combo_10_achieved = true;
+            run_data.total_cubes += 5;
+        }
+
         // Update constraint progress with TOTAL lines cleared in this move
         // (not separately for initial and cascade clears)
         run_data.constraint_progress = level_config
@@ -366,6 +390,30 @@ pub impl GameImpl of GameTrait {
             }
         }
 
+        // Combo line bonus cubes: 4+ lines = +1, 5+ = +2, 6+ = +3
+        if lines_cleared >= 4 {
+            let combo_cubes: u16 = if lines_cleared >= 6 {
+                3
+            } else if lines_cleared >= 5 {
+                2
+            } else {
+                1
+            };
+            run_data.total_cubes += combo_cubes;
+        }
+
+        // Combo achievement bonuses (one-time per run)
+        // First 5-line combo = +3 cubes
+        if run_data.max_combo_run >= 5 && !run_data.combo_5_achieved {
+            run_data.combo_5_achieved = true;
+            run_data.total_cubes += 3;
+        }
+        // First 10-line combo = +5 cubes
+        if run_data.max_combo_run >= 10 && !run_data.combo_10_achieved {
+            run_data.combo_10_achieved = true;
+            run_data.total_cubes += 5;
+        }
+
         // Update constraint progress
         run_data.constraint_progress = level_config
             .constraint
@@ -407,17 +455,28 @@ pub impl GameImpl of GameTrait {
     }
 
     /// Complete the current level and advance to next
-    /// Returns (stars_earned, bonuses_to_award)
+    /// Returns (cubes_earned, bonuses_to_award)
     fn complete_level(ref self: Game, seed: felt252) -> (u8, u8) {
         let mut run_data = self.get_run_data();
         let level_config = LevelGeneratorTrait::generate(seed, run_data.current_level);
+        let completed_level = run_data.current_level;
 
-        // Calculate stars
-        let stars = level_config.calculate_stars(run_data.level_moves.into());
-        let bonuses = LevelConfigTrait::get_bonus_reward(stars);
+        // Calculate cubes from level performance (1-3 cubes based on moves used)
+        let cubes = level_config.calculate_cubes(run_data.level_moves.into());
+        let bonuses = LevelConfigTrait::get_bonus_reward(cubes);
 
-        // Add stars to total
-        run_data.total_stars += stars.into();
+        // Add cubes to total
+        run_data.total_cubes += cubes.into();
+
+        // Milestone bonus: every 10 levels, award level/2 cubes (capped at 50)
+        if completed_level % 10 == 0 {
+            let milestone_bonus: u16 = if completed_level >= 100 {
+                50 // Cap at 50 cubes
+            } else {
+                (completed_level / 2).into()
+            };
+            run_data.total_cubes += milestone_bonus;
+        }
 
         // Advance to next level
         run_data.current_level += 1;
@@ -442,7 +501,7 @@ pub impl GameImpl of GameTrait {
         self.next_row = Controller::create_line(level_seed, new_level_config.difficulty);
         self.start(new_level_config.difficulty, level_seed);
 
-        (stars, bonuses)
+        (cubes, bonuses)
     }
 
     /// Award random bonuses after level completion

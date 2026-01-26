@@ -47,8 +47,8 @@ export class Game {
   public get bonusUsedThisLevel(): boolean {
     return this.runData.bonusUsedThisLevel;
   }
-  public get totalStars(): number {
-    return this.runData.totalStars;
+  public get totalCubes(): number {
+    return this.runData.totalCubes;
   }
   public get hammer(): number {
     return this.runData.hammerCount;

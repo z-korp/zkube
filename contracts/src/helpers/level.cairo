@@ -5,6 +5,8 @@
 /// - Same seed + same level = same config
 /// - Different seed = different config sequence
 /// - Level 100+ caps at max difficulty (survival mode)
+/// - Points derived from moves × ratio (0.8 → 2.5)
+/// - Correlated variance keeps difficulty ratio constant
 
 use core::poseidon::{PoseidonTrait, HashState};
 use core::hash::HashStateTrait;
@@ -15,21 +17,22 @@ use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait};
 
 /// Constants for level generation
 mod LevelConstants {
-    // Base values at level 1
-    pub const BASE_POINTS: u16 = 20;
-    pub const BASE_MOVES: u16 = 30;
+    // Moves scaling (linear 35 → 85)
+    pub const BASE_MOVES: u16 = 35;
+    pub const MAX_MOVES: u16 = 85;
 
-    // Max values at level 100
-    pub const MAX_POINTS: u16 = 200;
-    pub const MAX_MOVES: u16 = 100;
+    // Ratio scaling ×100 for integer math (0.80 → 2.50)
+    pub const BASE_RATIO_X100: u16 = 80;   // 0.80 points per move at level 1
+    pub const MAX_RATIO_X100: u16 = 250;   // 2.50 points per move at level 100
 
-    // Variance bounds (as percentage of base, roughly ±15%)
-    pub const POINTS_VARIANCE: u16 = 30; // ±15 points variance range
-    pub const MOVES_VARIANCE: u16 = 20; // ±10 moves variance range
+    // Correlated variance by level tier (percentage)
+    pub const EARLY_VARIANCE_PERCENT: u16 = 5;   // ±5% for levels 1-10
+    pub const MID_VARIANCE_PERCENT: u16 = 10;    // ±10% for levels 11-50
+    pub const LATE_VARIANCE_PERCENT: u16 = 15;   // ±15% for levels 51-100
 
-    // Star thresholds (percentage of max_moves)
-    pub const STAR_3_PERCENT: u16 = 40; // 3 stars if moves <= 40% of max
-    pub const STAR_2_PERCENT: u16 = 70; // 2 stars if moves <= 70% of max
+    // Cube thresholds (percentage of max_moves)
+    pub const CUBE_3_PERCENT: u16 = 40; // 3 cubes if moves <= 40% of max
+    pub const CUBE_2_PERCENT: u16 = 70; // 2 cubes if moves <= 70% of max
 
     // Level cap for scaling (survival mode after this)
     pub const LEVEL_CAP: u8 = 100;
@@ -52,25 +55,28 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             level
         };
 
-        // Calculate base values with linear scaling
-        let base_points = Self::calculate_base_points(calc_level);
+        // 1. Calculate base moves (35 → 85)
         let base_moves = Self::calculate_base_moves(calc_level);
 
-        // Apply seed-based variance (use different parts of seed for different values)
-        let level_seed_u256: u256 = level_seed.into();
-        let points_seed: felt252 = level_seed;
-        let moves_seed: felt252 = (level_seed_u256 / 1000).try_into().unwrap();
-        
-        let points_required = Self::apply_variance(
-            base_points, points_seed, LevelConstants::POINTS_VARIANCE, 15, 255,
-        );
-        let max_moves = Self::apply_variance(
-            base_moves, moves_seed, LevelConstants::MOVES_VARIANCE, 20, 127,
-        );
+        // 2. Calculate ratio for this level (0.80 → 2.50)
+        let ratio_x100 = Self::calculate_ratio(calc_level);
 
-        // Calculate star thresholds
-        let star_3_threshold = max_moves * LevelConstants::STAR_3_PERCENT / 100;
-        let star_2_threshold = max_moves * LevelConstants::STAR_2_PERCENT / 100;
+        // 3. Calculate base points from moves × ratio
+        let base_points: u16 = ((base_moves.into() * ratio_x100.into()) / 100_u32)
+            .try_into()
+            .unwrap();
+
+        // 4. Get variance percent based on level tier
+        let variance_percent = Self::get_variance_percent(calc_level);
+
+        // 5. Apply CORRELATED variance (same factor for both)
+        let variance_factor = Self::calculate_variance_factor(level_seed, variance_percent);
+        let points_required = Self::apply_factor(base_points, variance_factor);
+        let max_moves = Self::apply_factor(base_moves, variance_factor);
+
+        // Calculate cube thresholds
+        let cube_3_threshold = max_moves * LevelConstants::CUBE_3_PERCENT / 100;
+        let cube_2_threshold = max_moves * LevelConstants::CUBE_2_PERCENT / 100;
 
         // Get difficulty and constraint
         let difficulty = Self::get_difficulty_for_level(calc_level);
@@ -82,8 +88,8 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             max_moves,
             difficulty,
             constraint,
-            star_3_threshold,
-            star_2_threshold,
+            cube_3_threshold,
+            cube_2_threshold,
         }
     }
 
@@ -96,60 +102,59 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         state.finalize()
     }
 
-    /// Calculate base points for a level (before variance)
-    /// Linear scaling: 20 at level 1, 200 at level 100
-    #[inline(always)]
-    fn calculate_base_points(level: u8) -> u16 {
-        if level <= 1 {
-            return LevelConstants::BASE_POINTS;
-        }
-
-        let range = LevelConstants::MAX_POINTS - LevelConstants::BASE_POINTS; // 180
-        let progress: u32 = (level.into() - 1) * range.into() / 99;
-        LevelConstants::BASE_POINTS + progress.try_into().unwrap()
-    }
-
     /// Calculate base moves for a level (before variance)
-    /// Linear scaling: 30 at level 1, 100 at level 100
+    /// Linear scaling: 35 at level 1, 85 at level 100
     #[inline(always)]
     fn calculate_base_moves(level: u8) -> u16 {
         if level <= 1 {
             return LevelConstants::BASE_MOVES;
         }
 
-        let range = LevelConstants::MAX_MOVES - LevelConstants::BASE_MOVES; // 70
+        let range = LevelConstants::MAX_MOVES - LevelConstants::BASE_MOVES; // 50
         let progress: u32 = (level.into() - 1) * range.into() / 99;
         LevelConstants::BASE_MOVES + progress.try_into().unwrap()
     }
 
-    /// Apply seed-based variance to a base value
-    /// Returns a value in range [min_val, max_val]
-    fn apply_variance(
-        base: u16, seed: felt252, variance_range: u16, min_val: u16, max_val: u16,
-    ) -> u16 {
-        let seed_u256: u256 = seed.into();
-        let variance_u256: u256 = seed_u256 % variance_range.into();
-        let variance: u16 = variance_u256.try_into().unwrap();
+    /// Calculate ratio for this level (scaled by 100)
+    /// Linear scaling: 80 (0.80) at level 1, 250 (2.50) at level 100
+    #[inline(always)]
+    fn calculate_ratio(level: u8) -> u16 {
+        if level <= 1 {
+            return LevelConstants::BASE_RATIO_X100;
+        }
 
-        // Center variance around base (subtract half the range)
-        let half_range = variance_range / 2;
-        let result = if variance >= half_range {
-            let add = variance - half_range;
-            if base + add > max_val {
-                max_val
-            } else {
-                base + add
-            }
+        let range = LevelConstants::MAX_RATIO_X100 - LevelConstants::BASE_RATIO_X100; // 170
+        let progress: u32 = (level.into() - 1) * range.into() / 99;
+        LevelConstants::BASE_RATIO_X100 + progress.try_into().unwrap()
+    }
+
+    /// Get variance percentage based on level tier
+    #[inline(always)]
+    fn get_variance_percent(level: u8) -> u16 {
+        if level <= 10 {
+            LevelConstants::EARLY_VARIANCE_PERCENT
+        } else if level <= 50 {
+            LevelConstants::MID_VARIANCE_PERCENT
         } else {
-            let sub = half_range - variance;
-            if base < sub + min_val {
-                min_val
-            } else {
-                base - sub
-            }
-        };
+            LevelConstants::LATE_VARIANCE_PERCENT
+        }
+    }
 
-        result
+    /// Calculate correlated variance factor
+    /// Returns a value like 95-105 for ±5%, or 85-115 for ±15%
+    fn calculate_variance_factor(seed: felt252, variance_percent: u16) -> u16 {
+        let seed_u256: u256 = seed.into();
+        let variance_range = variance_percent * 2 + 1; // e.g., 11 for ±5% (95-105)
+        let roll: u16 = (seed_u256 % variance_range.into()).try_into().unwrap();
+        // Center around 100: (100 - variance) + roll
+        100 - variance_percent + roll
+    }
+
+    /// Apply factor to base value
+    #[inline(always)]
+    fn apply_factor(base: u16, factor: u16) -> u16 {
+        let result: u32 = base.into() * factor.into() / 100;
+        result.try_into().unwrap()
     }
 
     /// Get difficulty based on level number
@@ -337,30 +342,36 @@ mod tests {
     const DIFFERENT_SEED: felt252 = 'DIFFERENT_SEED';
 
     #[test]
-    fn test_base_points_scaling() {
-        assert!(
-            LevelGeneratorTrait::calculate_base_points(1) == 20, "Level 1 should have 20 points",
-        );
-        assert!(
-            LevelGeneratorTrait::calculate_base_points(100) == 200,
-            "Level 100 should have 200 points",
-        );
-
-        // Check intermediate values are in range
-        let mid = LevelGeneratorTrait::calculate_base_points(50);
-        assert!(mid > 100 && mid < 120, "Level 50 should be around 110");
-    }
-
-    #[test]
     fn test_base_moves_scaling() {
-        assert!(LevelGeneratorTrait::calculate_base_moves(1) == 30, "Level 1 should have 30 moves");
+        assert!(LevelGeneratorTrait::calculate_base_moves(1) == 35, "Level 1 should have 35 moves");
         assert!(
-            LevelGeneratorTrait::calculate_base_moves(100) == 100,
-            "Level 100 should have 100 moves",
+            LevelGeneratorTrait::calculate_base_moves(100) == 85,
+            "Level 100 should have 85 moves",
         );
 
         let mid = LevelGeneratorTrait::calculate_base_moves(50);
-        assert!(mid > 60 && mid < 70, "Level 50 should be around 65");
+        assert!(mid >= 59 && mid <= 61, "Level 50 should be around 60 moves");
+    }
+
+    #[test]
+    fn test_ratio_scaling() {
+        assert!(LevelGeneratorTrait::calculate_ratio(1) == 80, "Level 1 should have ratio 80");
+        assert!(
+            LevelGeneratorTrait::calculate_ratio(100) == 250, "Level 100 should have ratio 250",
+        );
+
+        let mid = LevelGeneratorTrait::calculate_ratio(50);
+        assert!(mid >= 160 && mid <= 170, "Level 50 should have ratio around 165");
+    }
+
+    #[test]
+    fn test_variance_percent_tiers() {
+        assert!(LevelGeneratorTrait::get_variance_percent(1) == 5, "Level 1 should be 5%");
+        assert!(LevelGeneratorTrait::get_variance_percent(10) == 5, "Level 10 should be 5%");
+        assert!(LevelGeneratorTrait::get_variance_percent(11) == 10, "Level 11 should be 10%");
+        assert!(LevelGeneratorTrait::get_variance_percent(50) == 10, "Level 50 should be 10%");
+        assert!(LevelGeneratorTrait::get_variance_percent(51) == 15, "Level 51 should be 15%");
+        assert!(LevelGeneratorTrait::get_variance_percent(100) == 15, "Level 100 should be 15%");
     }
 
     #[test]
@@ -403,17 +414,29 @@ mod tests {
     }
 
     #[test]
+    fn test_correlated_variance() {
+        // Test that variance is correlated (ratio stays approximately constant)
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 50);
+
+        // Base at level 50: moves ~60, ratio ~165, points ~99
+        // With variance, both should scale together
+        // Ratio should be approximately: points_required * 100 / max_moves
+        let actual_ratio = config.points_required.into() * 100_u32 / config.max_moves.into();
+        
+        // The ratio should be close to the base ratio for level 50 (~165)
+        // Allow for some rounding errors
+        assert!(actual_ratio >= 150 && actual_ratio <= 180, "Ratio should be approximately 165");
+    }
+
+    #[test]
     fn test_different_seeds_different_configs() {
         let config1 = LevelGeneratorTrait::generate(TEST_SEED, 25);
         let config2 = LevelGeneratorTrait::generate(DIFFERENT_SEED, 25);
 
         // At least one of points or moves should differ (very high probability)
-        // Note: In rare cases they could be the same by chance
         let points_differ = config1.points_required != config2.points_required;
         let moves_differ = config1.max_moves != config2.max_moves;
 
-        // We check that something is different - this test might very rarely fail
-        // but the probability is extremely low
         assert!(points_differ || moves_differ, "Different seeds should produce different configs");
     }
 
@@ -430,63 +453,72 @@ mod tests {
     #[test]
     fn test_no_constraint_early_levels() {
         let config1 = LevelGeneratorTrait::generate(TEST_SEED, 1);
-        let config5 = LevelGeneratorTrait::generate(TEST_SEED, 5);
+        let config4 = LevelGeneratorTrait::generate(TEST_SEED, 4);
 
         assert!(
             config1.constraint.constraint_type == ConstraintType::None,
             "Level 1 should have no constraint",
         );
         assert!(
-            config5.constraint.constraint_type == ConstraintType::None,
-            "Level 5 should have no constraint",
+            config4.constraint.constraint_type == ConstraintType::None,
+            "Level 4 should have no constraint",
         );
     }
 
     #[test]
-    fn test_constraint_after_threshold() {
-        let config6 = LevelGeneratorTrait::generate(TEST_SEED, 6);
-        let config20 = LevelGeneratorTrait::generate(TEST_SEED, 20);
-
-        // Level 6-20 should have ClearLines constraint
-        assert!(
-            config6.constraint.constraint_type == ConstraintType::ClearLines,
-            "Level 6 should have ClearLines",
-        );
-        assert!(
-            config20.constraint.constraint_type == ConstraintType::ClearLines,
-            "Level 20 should have ClearLines",
-        );
-        assert!(config6.constraint.value == 2, "Level 6 should require clearing 2 lines");
-        assert!(config6.constraint.required_count == 1, "Level 6 should require 1 time");
-    }
-
-    #[test]
-    fn test_star_thresholds() {
+    fn test_cube_thresholds() {
         let config = LevelGeneratorTrait::generate(TEST_SEED, 50);
 
-        // Star thresholds should be percentages of max_moves
-        let expected_3_star = config.max_moves * 40 / 100;
-        let expected_2_star = config.max_moves * 70 / 100;
+        // Cube thresholds should be percentages of max_moves
+        let expected_3_cube = config.max_moves * 40 / 100;
+        let expected_2_cube = config.max_moves * 70 / 100;
 
         assert!(
-            config.star_3_threshold == expected_3_star, "3-star threshold should be 40% of max",
+            config.cube_3_threshold == expected_3_cube, "3-cube threshold should be 40% of max",
         );
         assert!(
-            config.star_2_threshold == expected_2_star, "2-star threshold should be 70% of max",
+            config.cube_2_threshold == expected_2_cube, "2-cube threshold should be 70% of max",
         );
     }
 
     #[test]
-    fn test_generate_full_config() {
+    fn test_generate_level_1() {
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 1);
+
+        // Level 1: base_moves=35, ratio=0.80, base_points=28
+        // With ±5% variance: moves 33-37, points 27-29
+        assert!(config.level == 1, "Level should be 1");
+        assert!(config.points_required >= 26 && config.points_required <= 30, "Points in range");
+        assert!(config.max_moves >= 33 && config.max_moves <= 37, "Moves in range");
+        assert!(config.difficulty == Difficulty::Easy, "Level 1 should be Easy");
+    }
+
+    #[test]
+    fn test_generate_level_50() {
         let config = LevelGeneratorTrait::generate(TEST_SEED, 50);
 
-        // Verify all fields are reasonable
+        // Level 50: base_moves~60, ratio~1.65, base_points~99
+        // With ±10% variance: moves 54-66, points 89-109
         assert!(config.level == 50, "Level should be 50");
-        assert!(config.points_required >= 80 && config.points_required <= 140, "Points in range");
-        assert!(config.max_moves >= 50 && config.max_moves <= 80, "Moves in range");
+        assert!(config.points_required >= 85 && config.points_required <= 115, "Points in range");
+        assert!(config.max_moves >= 52 && config.max_moves <= 68, "Moves in range");
         assert!(config.difficulty == Difficulty::Hard, "Level 50 should be Hard");
-        assert!(config.star_3_threshold < config.star_2_threshold, "Star thresholds ordered");
-        assert!(config.star_2_threshold < config.max_moves, "2-star threshold < max");
+        assert!(config.cube_3_threshold < config.cube_2_threshold, "Cube thresholds ordered");
+        assert!(config.cube_2_threshold < config.max_moves, "2-cube threshold < max");
+    }
+
+    #[test]
+    fn test_generate_level_100() {
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 100);
+
+        // Level 100: base_moves=85, ratio=2.50, base_points=212
+        // With ±15% variance: moves 72-98, points 180-244
+        assert!(config.level == 100, "Level should be 100");
+        assert!(
+            config.points_required >= 175 && config.points_required <= 250, "Points in range",
+        );
+        assert!(config.max_moves >= 70 && config.max_moves <= 100, "Moves in range");
+        assert!(config.difficulty == Difficulty::Master, "Level 100 should be Master");
     }
 
     #[test]

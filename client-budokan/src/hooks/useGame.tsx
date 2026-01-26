@@ -85,7 +85,7 @@ export const useGame = ({
         level: game.level,
         levelScore: game.levelScore,
         levelMoves: game.levelMoves,
-        totalStars: game.totalStars,
+        totalCubes: game.totalCubes,
         totalScore: game.totalScore,
         hammer: game.hammer,
         wave: game.wave,

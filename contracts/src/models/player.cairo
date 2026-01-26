@@ -2,7 +2,7 @@ use starknet::ContractAddress;
 use zkube::helpers::packing::{MetaData, MetaDataPacking, MetaDataPackingTrait};
 
 /// PlayerMeta stores persistent player data across all runs
-/// This is used for meta-progression (unlocks, stats, etc.)
+/// This is used for meta-progression (unlocks, stats, cube economy)
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
 #[dojo::model]
 pub struct PlayerMeta {
@@ -12,13 +12,20 @@ pub struct PlayerMeta {
     pub data: felt252,
     /// Highest level ever reached (any run) - used for unlocks
     pub best_level: u8,
+    /// Current cube balance (spendable currency)
+    pub cube_balance: u64,
 }
 
 #[generate_trait]
 pub impl PlayerMetaImpl of PlayerMetaTrait {
     /// Create a new PlayerMeta with default values
     fn new(player: ContractAddress) -> PlayerMeta {
-        PlayerMeta { player, data: MetaDataPackingTrait::new().pack(), best_level: 0, }
+        PlayerMeta {
+            player,
+            data: MetaDataPackingTrait::new().pack(),
+            best_level: 0,
+            cube_balance: 0,
+        }
     }
 
     /// Get unpacked meta data
@@ -47,22 +54,58 @@ pub impl PlayerMetaImpl of PlayerMetaTrait {
         self.set_meta_data(meta);
     }
 
-    /// Add stars to lifetime total
-    fn add_stars(ref self: PlayerMeta, stars: u16) {
+    /// Add cubes to lifetime total (stat tracking)
+    fn add_cubes_earned(ref self: PlayerMeta, cubes: u32) {
         let mut meta = self.get_meta_data();
-        let new_total = meta.total_stars + stars;
-        // Cap at max u16
-        meta.total_stars = if new_total > 65535 {
-            65535
+        // Cap at max u32
+        let new_total: u64 = meta.total_cubes_earned.into() + cubes.into();
+        meta.total_cubes_earned = if new_total > 0xFFFFFFFF {
+            0xFFFFFFFF
         } else {
-            new_total
+            new_total.try_into().unwrap()
         };
         self.set_meta_data(meta);
     }
 
+    /// Add cubes to spendable balance
+    fn add_cube_balance(ref self: PlayerMeta, amount: u64) {
+        self.cube_balance += amount;
+    }
+
+    /// Spend cubes from balance (returns false if insufficient)
+    fn spend_cubes(ref self: PlayerMeta, amount: u64) -> bool {
+        if self.cube_balance >= amount {
+            self.cube_balance -= amount;
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Get the bag size for a specific bonus type
+    fn get_bag_size(self: PlayerMeta, bonus_type: u8) -> u8 {
+        self.get_meta_data().get_bag_size(bonus_type)
+    }
+
+    /// Get max cubes that can be brought into a run
+    fn get_max_cubes_to_bring(self: PlayerMeta) -> u16 {
+        self.get_meta_data().get_max_cubes_to_bring()
+    }
+
+    /// Get starting bonus count for a specific type
+    fn get_starting_bonus(self: PlayerMeta, bonus_type: u8) -> u8 {
+        let meta = self.get_meta_data();
+        match bonus_type {
+            0 => meta.starting_hammer,
+            1 => meta.starting_wave,
+            2 => meta.starting_totem,
+            _ => 0,
+        }
+    }
+
     /// Check if player exists (has played at least once)
     fn exists(self: PlayerMeta) -> bool {
-        self.best_level > 0 || self.data != 0
+        self.best_level > 0 || self.data != 0 || self.cube_balance > 0
     }
 }
 
@@ -78,10 +121,12 @@ mod tests {
 
         assert!(meta.player == player, "Player should match");
         assert!(meta.best_level == 0, "Best level should be 0");
+        assert!(meta.cube_balance == 0, "Should start with 0 cubes");
 
         let data = meta.get_meta_data();
-        assert!(data.unlocked_start_level == 1, "Should start unlocked at level 1");
         assert!(data.total_runs == 0, "Should have 0 runs");
+        assert!(data.starting_hammer == 0, "Should have 0 starting hammers");
+        assert!(data.bridging_rank == 0, "Should have 0 bridging rank");
     }
 
     #[test]
@@ -115,16 +160,24 @@ mod tests {
     }
 
     #[test]
-    fn test_add_stars() {
+    fn test_cube_balance() {
         let player = contract_address_const::<'PLAYER'>();
         let mut meta = PlayerMetaTrait::new(player);
 
-        meta.add_stars(15);
-        let data = meta.get_meta_data();
-        assert!(data.total_stars == 15, "Should have 15 stars");
+        meta.add_cube_balance(15);
+        assert!(meta.cube_balance == 15, "Should have 15 cubes");
 
-        meta.add_stars(100);
-        let data = meta.get_meta_data();
-        assert!(data.total_stars == 115, "Should have 115 stars");
+        meta.add_cube_balance(100);
+        assert!(meta.cube_balance == 115, "Should have 115 cubes");
+
+        // Test spending
+        let success = meta.spend_cubes(50);
+        assert!(success, "Should succeed spending 50 cubes");
+        assert!(meta.cube_balance == 65, "Should have 65 cubes left");
+
+        // Test insufficient balance
+        let fail = meta.spend_cubes(100);
+        assert!(!fail, "Should fail spending 100 cubes (only 65)");
+        assert!(meta.cube_balance == 65, "Balance should remain 65");
     }
 }

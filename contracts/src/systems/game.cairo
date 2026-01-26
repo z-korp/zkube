@@ -15,7 +15,7 @@ trait IGameSystem<T> {
     /// Get current level score
     fn get_score(self: @T, game_id: u64) -> u16;
     /// Get game data for UI
-    /// Returns: (level, level_score, level_moves, combo, max_combo, hammer, wave, totem, total_stars, over)
+    /// Returns: (level, level_score, level_moves, combo, max_combo, hammer, wave, totem, total_cubes, over)
     fn get_game_data(
         self: @T, game_id: u64,
     ) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool);
@@ -139,8 +139,7 @@ mod game_system {
             let timestamp = get_block_timestamp();
 
             // Create game with level system
-            let game = GameTrait::new(game_id, random.seed, timestamp);
-            world.write_model(@game);
+            let mut game = GameTrait::new(game_id, random.seed, timestamp);
 
             // Store the seed separately
             let game_seed = GameSeed { game_id, seed: random.seed };
@@ -152,6 +151,21 @@ mod game_system {
             if !player_meta.exists() {
                 player_meta = PlayerMetaTrait::new(player);
             }
+
+            // Apply starting bonuses from player meta upgrades
+            let meta_data = player_meta.get_meta_data();
+            if meta_data.starting_hammer > 0
+                || meta_data.starting_wave > 0
+                || meta_data.starting_totem > 0 {
+                let mut run_data = game.get_run_data();
+                run_data.hammer_count = meta_data.starting_hammer;
+                run_data.wave_count = meta_data.starting_wave;
+                run_data.totem_count = meta_data.starting_totem;
+                game.set_run_data(run_data);
+            }
+
+            world.write_model(@game);
+
             player_meta.increment_runs();
             world.write_model(@player_meta);
 
@@ -239,7 +253,7 @@ mod game_system {
                 let final_score = pre_complete_data.level_score;
                 let final_moves = pre_complete_data.level_moves;
 
-                let (stars, bonuses) = game.complete_level(base_seed.seed);
+                let (cubes, bonuses) = game.complete_level(base_seed.seed);
 
                 // Award bonuses
                 if bonuses > 0 {
@@ -255,7 +269,7 @@ mod game_system {
                             game_id,
                             player,
                             level: completed_level,
-                            stars,
+                            cubes,
                             moves_used: final_moves.into(),
                             score: final_score.into(),
                             bonuses_earned: bonuses,
@@ -323,7 +337,7 @@ mod game_system {
                 let final_score = pre_complete_data.level_score;
                 let final_moves = pre_complete_data.level_moves;
 
-                let (stars, bonuses) = game.complete_level(base_seed.seed);
+                let (cubes, bonuses) = game.complete_level(base_seed.seed);
 
                 if bonuses > 0 {
                     game.award_bonuses(base_seed.seed, bonuses);
@@ -337,7 +351,7 @@ mod game_system {
                             game_id,
                             player,
                             level: completed_level,
-                            stars,
+                            cubes,
                             moves_used: final_moves.into(),
                             score: final_score.into(),
                             bonuses_earned: bonuses,
@@ -405,7 +419,7 @@ mod game_system {
                 run_data.hammer_count,
                 run_data.wave_count,
                 run_data.totem_count,
-                run_data.total_stars,
+                run_data.total_cubes,
                 game.over,
             )
         }
@@ -439,10 +453,13 @@ mod game_system {
             let player = get_caller_address();
             let run_data = game.get_run_data();
 
-            // Update player meta with best level
+            // Update player meta with best level and award cubes
             let mut player_meta: PlayerMeta = world.read_model(player);
             player_meta.update_best_level(run_data.current_level);
-            player_meta.add_stars(run_data.total_stars);
+            // Convert stars earned this run to cubes
+            let cubes_earned: u64 = run_data.total_cubes.into();
+            player_meta.add_cube_balance(cubes_earned);
+            player_meta.add_cubes_earned(cubes_earned.try_into().unwrap());
             world.write_model(@player_meta);
 
             // Emit run ended event
@@ -453,7 +470,7 @@ mod game_system {
                         player,
                         final_level: run_data.current_level,
                         final_score: run_data.level_score.into(),
-                        total_stars: run_data.total_stars,
+                        total_cubes: run_data.total_cubes,
                         started_at: game.started_at,
                         ended_at: get_block_timestamp(),
                     },

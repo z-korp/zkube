@@ -62,7 +62,7 @@ type PlayerGameRow = {
   tokenId: number;
   name: string;
   level: string | number | undefined;
-  totalStars: string | number | undefined;
+  totalCubes: string | number | undefined;
   totalScore: string | number | undefined;
   gameOver: boolean;
 };
@@ -180,14 +180,14 @@ export const Home = () => {
         ? (metadata?.attributes as TokenAttribute[])
         : [];
       const levelAttr = getAttributeValue(attributes, "Level");
-      const totalStarsAttr = getAttributeValue(attributes, "Total Stars");
+      const totalCubesAttr = getAttributeValue(attributes, "Total Cubes");
       const totalScoreAttr = getAttributeValue(attributes, "Total Score");
       return {
         tokenId: game.token_id,
         name:
           metadata?.name || game.gameMetadata?.name || `Game #${game.token_id}`,
         level: levelAttr ?? 1,
-        totalStars: totalStarsAttr ?? 0,
+        totalCubes: totalCubesAttr ?? 0,
         totalScore: totalScoreAttr ?? game.score ?? 0,
         gameOver: Boolean(game.game_over),
       };
@@ -240,9 +240,9 @@ export const Home = () => {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase text-slate-400">Stars</p>
+                  <p className="text-xs uppercase text-slate-400">Cubes</p>
                   <p className="text-base font-semibold text-yellow-400">
-                    {formatStat(game.totalStars)} ⭐
+                    {formatStat(game.totalCubes)} 🧊
                   </p>
                 </div>
                 <div>
@@ -272,7 +272,7 @@ export const Home = () => {
                     Level
                   </TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-slate-400">
-                    Stars
+                    Cubes
                   </TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-slate-400">
                     Total Score
@@ -292,7 +292,7 @@ export const Home = () => {
                       {game.name}
                     </TableCell>
                     <TableCell>{formatStat(game.level)}</TableCell>
-                    <TableCell className="text-yellow-400">{formatStat(game.totalStars)} ⭐</TableCell>
+                    <TableCell className="text-yellow-400">{formatStat(game.totalCubes)} 🧊</TableCell>
                     <TableCell>{formatStat(game.totalScore)}</TableCell>
                     <TableCell>
                       {!game.gameOver ? (

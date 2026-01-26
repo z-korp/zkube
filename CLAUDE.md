@@ -203,11 +203,11 @@ snforge test     # Run Foundry tests
 
 ## Namespace
 
-Current namespace: `zkube_budo_v1_1_3`
+Current namespace: `zkube_budo_v1_2_0`
 
 Models are prefixed with this namespace in Torii queries:
-- `zkube_budo_v1_1_3-Game`
-- `zkube_budo_v1_1_3-GameSettingsMetadata`
+- `zkube_budo_v1_2_0-Game`
+- `zkube_budo_v1_2_0-GameSettingsMetadata`
 
 ## Important Patterns
 
@@ -287,14 +287,88 @@ Models are prefixed with this namespace in Torii queries:
    - Add to `dojo_slot.toml`:
    ```toml
    [writers]
-   "zkube_budo_v1_1_3-StartGame" = ["zkube_budo_v1_1_3-game_system"]
-   "zkube_budo_v1_1_3-UseBonus" = ["zkube_budo_v1_1_3-game_system"]
+   "zkube_budo_v1_2_0-StartGame" = ["zkube_budo_v1_2_0-game_system"]
+   "zkube_budo_v1_2_0-UseBonus" = ["zkube_budo_v1_2_0-game_system"]
    ```
 
-### Slot Deployment Checklist
+### Slot Deployment
 
-1. Update `contracts/src/systems/game.cairo` to use pseudo-random
-2. Update `dojo_slot.toml` with event writer permissions
-3. Deploy: `cd contracts && scarb slot`
-4. Grant permissions: `sozo auth grant --profile slot writer <model>,<system>`
-5. Frontend uses slot config via `VITE_PUBLIC_DEPLOY_TYPE=slot`
+#### Full Deployment (Fresh Katana)
+
+Use the automated deploy script:
+```bash
+./scripts/deploy_slot.sh
+```
+
+This script handles:
+1. Building contracts with `sozo build -P slot`
+2. Declaring and deploying MinigameRegistryContract
+3. Declaring and deploying FullTokenContract (with registry address)
+4. Updating `dojo_slot.toml` with the denshokan_address
+5. Running `sozo migrate -P slot`
+6. Updating `torii_slot.toml` and `client-budokan/.env.slot`
+
+#### CRITICAL: Two Config Files
+
+There are TWO `dojo_slot.toml` files that MUST be kept in sync:
+- `./dojo_slot.toml` (root) - **sozo reads from here**
+- `./contracts/dojo_slot.toml` (contracts dir)
+
+If deployment fails with "contract address 0x0 not deployed", check that BOTH files have the correct `denshokan_address` in `[init_call_args]`.
+
+#### Manual Step-by-Step Deployment
+
+If the script fails, deploy manually:
+
+```bash
+# 1. Clean and build
+cd contracts && sozo clean -P slot && sozo build -P slot && cd ..
+
+# 2. Declare classes
+RPC="https://api.cartridge.gg/x/YOUR-SLOT/katana"
+ACCOUNT="0x..."
+PKEY="0x..."
+
+sozo declare -P slot --account-address "$ACCOUNT" --private-key "$PKEY" --rpc-url "$RPC" \
+    "./target/slot/zkube_MinigameRegistryContract.contract_class.json"
+# Note the class hash
+
+sozo declare -P slot --account-address "$ACCOUNT" --private-key "$PKEY" --rpc-url "$RPC" \
+    "./target/slot/zkube_FullTokenContract.contract_class.json"
+# Note the class hash
+
+# 3. Deploy MinigameRegistry
+sozo deploy -P slot --account-address "$ACCOUNT" --private-key "$PKEY" --rpc-url "$RPC" \
+    "$REGISTRY_CLASS" --constructor-calldata str:'zKube Registry' str:'ZKUBEREG' str:'' 1
+# Note the deployed address (REGISTRY_ADDR)
+
+# 4. Deploy FullTokenContract
+sozo deploy -P slot --account-address "$ACCOUNT" --private-key "$PKEY" --rpc-url "$RPC" \
+    "$TOKEN_CLASS" --constructor-calldata str:'zKube' str:'ZK' str:'' "$ACCOUNT" 500 0 "$REGISTRY_ADDR" 1
+# Note the deployed address (TOKEN_ADDR)
+
+# 5. Update BOTH dojo_slot.toml files with TOKEN_ADDR as denshokan_address
+
+# 6. Run migrate
+cd contracts && sozo migrate -P slot
+```
+
+#### After Deployment
+
+1. Copy manifest: `cp manifest_slot.json contracts/manifest_slot.json`
+2. Start Torii: `torii --config contracts/torii_slot.toml`
+3. Start client: `cd client-budokan && pnpm slot`
+
+#### Troubleshooting
+
+**"Invalid new schema to upgrade resource"**
+- The world has incompatible state from a previous deployment
+- Solution: Restart katana to get a fresh chain, or change the `seed` in `dojo_slot.toml`
+
+**"Requested contract address 0x0 is not deployed"**
+- The `denshokan_address` in init_call_args is wrong or the FullTokenContract wasn't deployed
+- Check BOTH `dojo_slot.toml` files have the correct address
+
+**"contract address 0x... is not deployed"**
+- The FullTokenContract address doesn't match what's deployed
+- Redeploy the token contract and update the config files

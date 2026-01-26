@@ -46,7 +46,7 @@ pub struct LevelCompleted {
     #[key]
     pub player: ContractAddress,
     pub level: u8,
-    pub stars: u8,
+    pub cubes: u8,
     pub moves_used: u16,
     pub score: u16,
     pub bonuses_earned: u8,
@@ -62,7 +62,7 @@ pub struct RunEnded {
     pub player: ContractAddress,
     pub final_level: u8,
     pub final_score: u16,
-    pub total_stars: u16,
+    pub total_cubes: u16,
     pub started_at: u64,
     pub ended_at: u64,
 }

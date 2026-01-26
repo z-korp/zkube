@@ -22,6 +22,7 @@ export const MusicPlayerContext = createContext<{
   playOver: () => unknown;
   playSwipe: () => unknown;
   playExplode: () => unknown;
+  playSuccess: () => unknown;
 }>({
   playTheme: noop,
   stopTheme: noop,
@@ -37,6 +38,7 @@ export const MusicPlayerContext = createContext<{
   playOver: noop,
   playSwipe: noop,
   playExplode: noop,
+  playSuccess: noop,
 });
 
 export const MusicPlayerProvider = ({
@@ -75,6 +77,9 @@ export const MusicPlayerProvider = ({
   const [playExplodeSound] = useSound(soundAssets.explode, {
     volume: effectsVolume,
   });
+  const [playSuccessSound] = useSound(soundAssets.success, {
+    volume: effectsVolume,
+  });
 
   const goToNextTrack = () => {
     setCurrentTrackIndex((prevIndex) => {
@@ -98,6 +103,10 @@ export const MusicPlayerProvider = ({
   const playExplode = useCallback(() => {
     playExplodeSound();
   }, [playExplodeSound]);
+
+  const playSuccess = useCallback(() => {
+    playSuccessSound();
+  }, [playSuccessSound]);
 
   const [playTheme, { stop: stopTheme }] = useSound(
     tracks[currentTrackIndex].url,
@@ -152,6 +161,7 @@ export const MusicPlayerProvider = ({
         playOver,
         playSwipe,
         playExplode,
+        playSuccess,
       }}
     >
       {children}

@@ -2,9 +2,41 @@
 
 ## Overview
 
-Python utility scripts for transaction analysis, player analytics, and testing.
+Utility scripts for deployment, transaction analysis, player analytics, and testing.
 
 ## Scripts
+
+### Deployment
+
+**deploy_slot.sh** - Full automated deployment to Cartridge Slot:
+```bash
+./scripts/deploy_slot.sh
+```
+
+This script performs the complete slot deployment:
+1. Builds contracts with `sozo build -P slot`
+2. Declares MinigameRegistryContract and FullTokenContract classes
+3. Deploys MinigameRegistryContract
+4. Deploys FullTokenContract with registry address
+5. Updates `dojo_slot.toml` files (both root and contracts/) with denshokan_address
+6. Runs `sozo migrate -P slot` to deploy the Dojo world
+7. Updates `contracts/torii_slot.toml` with world and token addresses
+8. Updates `client-budokan/.env.slot` with all deployed addresses
+9. Copies manifest to `contracts/manifest_slot.json`
+
+**Important Notes:**
+- Requires a fresh katana instance (restart if you get schema upgrade errors)
+- Updates TWO config files: `./dojo_slot.toml` AND `./contracts/dojo_slot.toml`
+- If deployment fails during init, check both config files have matching denshokan_address
+
+**After running the script:**
+```bash
+# Start Torii indexer
+torii --config contracts/torii_slot.toml
+
+# Start the client
+cd client-budokan && pnpm slot
+```
 
 ### Transaction Checking
 
@@ -37,17 +69,23 @@ Python utility scripts for transaction analysis, player analytics, and testing.
 ## Usage
 
 ```bash
+# Deployment script (bash)
+./scripts/deploy_slot.sh
+
+# Python scripts
 cd scripts
 python <script_name>.py
 ```
 
 ## Requirements
 
-Ensure you have Python 3.x installed with necessary dependencies for Starknet interaction.
+- **deploy_slot.sh**: Requires `sozo`, `jq`, and slot credentials in `dojo_slot.toml`
+- **Python scripts**: Python 3.x with Starknet dependencies
 
 ## Notes
 
 These scripts are primarily for:
+- Slot deployment automation
 - Development debugging
 - Deployment verification
 - Analytics and monitoring

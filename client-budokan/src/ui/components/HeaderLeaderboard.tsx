@@ -102,8 +102,8 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
     return 1;
   };
 
-  const getGameStars = (game: GameTokenData | LeaderboardEntry): number => {
-    if ('totalStars' in game) return game.totalStars;
+  const getGameCubes = (game: GameTokenData | LeaderboardEntry): number => {
+    if ('totalCubes' in game) return game.totalCubes;
     return 0;
   };
 
@@ -157,7 +157,7 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
                   <TableHead className="text-center w-16">Rank</TableHead>
                   <TableHead className="text-left">Player</TableHead>
                   <TableHead className="text-center">Level</TableHead>
-                  <TableHead className="text-center">Stars</TableHead>
+                  <TableHead className="text-center">Cubes</TableHead>
                   <TableHead className="text-center">Score</TableHead>
                   <TableHead className="text-center">Status</TableHead>
                 </TableRow>
@@ -195,7 +195,7 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
                       {getGameLevel(game)}
                     </TableCell>
                     <TableCell className="text-center text-yellow-400">
-                      {getGameStars(game)} ⭐
+                      {getGameCubes(game)} 🧊
                     </TableCell>
                     <TableCell className="text-center font-bold">
                       {getGameTotalScore(game)}

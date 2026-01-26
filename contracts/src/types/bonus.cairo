@@ -75,12 +75,7 @@ impl IntoU8Bonus of Into<u8, Bonus> {
 
 #[cfg(test)]
 mod tests {
-    // Core imports
-
-    use core::debug::PrintTrait;
-
     // Local imports
-
     use super::{Bonus, BonusTrait};
 
     #[test]

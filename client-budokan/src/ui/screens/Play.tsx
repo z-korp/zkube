@@ -1,19 +1,17 @@
 import GameBoard from "../components/GameBoard";
 import BackGroundBoard from "../components/BackgroundBoard";
 import { AnimatePresence } from "framer-motion";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useGame } from "@/hooks/useGame";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { Surrender } from "../actions/Surrender";
-import { toPng } from "html-to-image";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useMediaQuery } from "react-responsive";
 import GameOverDialog from "../components/GameOverDialog";
 import LevelCompleteDialog from "../components/LevelCompleteDialog";
 import useViewport from "@/hooks/useViewport";
-import { TweetPreview } from "../components/TweetPreview";
 import { useGrid } from "@/hooks/useGrid";
 import { useParams, Navigate } from "react-router-dom";
 import { Header } from "@/ui/containers/Header";
@@ -71,8 +69,6 @@ export const Play = () => {
   const imgAssets = ImageAssets(themeTemplate);
   const gameGrid = useRef<HTMLDivElement>(null);
   const [isGameOn, setIsGameOn] = useState<"idle" | "isOn" | "isOver">("idle");
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [imgData, setImgData] = useState<string>("");
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [isLevelCompleteOpen, setIsLevelCompleteOpen] = useState(false);
@@ -165,25 +161,11 @@ export const Play = () => {
     }
   }, [account]);
 
-  const composeTweet = useCallback(() => {
-    setIsPreviewOpen(true);
-  }, []);
-
   useEffect(() => {
     if (game?.over) {
-      if (gameGrid && gameGrid.current !== null) {
-        toPng(gameGrid.current, { cacheBust: true })
-          .then((dataUrl) => {
-            setImgData(dataUrl);
-            composeTweet();
-          })
-          .catch((err) => {
-            console.error(`Screenshot failed`, err);
-          });
-      }
       setIsGameOn("isOver");
     }
-  }, [composeTweet, game?.over]);
+  }, [game?.over]);
 
   useEffect(() => {
     // Check if game is defined and not over
@@ -401,15 +383,6 @@ export const Play = () => {
                 </>
               </div>
             </div>
-            <TweetPreview
-              open={isPreviewOpen}
-              setOpen={setIsPreviewOpen}
-              level={game?.level ?? 1}
-              totalStars={game?.totalStars ?? 0}
-              totalScore={game?.totalScore ?? 0}
-              isGameOver={game?.over ?? false}
-              imgSrc={imgData}
-            />
             <AnimatePresence>
               {!animationDone && (
                 <>

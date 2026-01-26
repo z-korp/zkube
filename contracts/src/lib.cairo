@@ -57,6 +57,7 @@ pub mod helpers {
 pub mod systems {
     pub mod game;
     pub mod config;
+    pub mod shop;
 }
 
 #[cfg(test)]

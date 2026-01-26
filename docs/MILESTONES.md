@@ -34,6 +34,22 @@
 
 - Introduce in-game bonuses that players can earn or purchase to enhance gameplay.
 
+### Level System (Completed)
+
+- Transform zKube into a puzzle roguelike with level progression
+- Implement constraint system for level objectives
+- Add star/cube performance rating per level
+- See [LEVEL_SYSTEM_PLAN.md](./LEVEL_SYSTEM_PLAN.md) for details
+
+### Cube Economy (In Progress)
+
+- Implement CUBE token (ERC-1155, soulbound)
+- Add cube earning during gameplay (level completion, combos, milestones)
+- Build Permanent Shop (loadouts, bridging ranks, unlocks)
+- Build In-Game Shop (consumables every 5 levels)
+- Implement cube bridging (bring cubes into runs)
+- See [CUBE_ECONOMY.md](./CUBE_ECONOMY.md) for details
+
 ### Tournament Feature Development
 
 - Develop a tournament mode where players pay a small fee to participate.

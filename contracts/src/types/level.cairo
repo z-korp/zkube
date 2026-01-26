@@ -17,36 +17,36 @@ pub struct LevelConfig {
     pub difficulty: Difficulty,
     /// Level constraint (objective)
     pub constraint: LevelConstraint,
-    /// Moves threshold for 3 stars (must complete in <= this many moves)
-    pub star_3_threshold: u16,
-    /// Moves threshold for 2 stars (must complete in <= this many moves)
-    pub star_2_threshold: u16,
+    /// Moves threshold for 3 cubes (must complete in <= this many moves)
+    pub cube_3_threshold: u16,
+    /// Moves threshold for 2 cubes (must complete in <= this many moves)
+    pub cube_2_threshold: u16,
 }
 
 #[generate_trait]
 pub impl LevelConfigImpl of LevelConfigTrait {
-    /// Calculate stars earned based on moves used
-    /// 3 stars: moves <= star_3_threshold
-    /// 2 stars: moves <= star_2_threshold
-    /// 1 star: completed
+    /// Calculate cubes earned based on moves used
+    /// 3 cubes: moves <= cube_3_threshold
+    /// 2 cubes: moves <= cube_2_threshold
+    /// 1 cube: completed
     #[inline(always)]
-    fn calculate_stars(self: LevelConfig, moves_used: u16) -> u8 {
-        if moves_used <= self.star_3_threshold {
+    fn calculate_cubes(self: LevelConfig, moves_used: u16) -> u8 {
+        if moves_used <= self.cube_3_threshold {
             3
-        } else if moves_used <= self.star_2_threshold {
+        } else if moves_used <= self.cube_2_threshold {
             2
         } else {
             1
         }
     }
 
-    /// Get bonus count earned based on stars
-    /// 3 stars: 2 random bonuses
-    /// 2 stars: 1 random bonus
-    /// 1 star: no bonus
+    /// Get bonus count earned based on cubes
+    /// 3 cubes: 2 random bonuses
+    /// 2 cubes: 1 random bonus
+    /// 1 cube: no bonus
     #[inline(always)]
-    fn get_bonus_reward(stars: u8) -> u8 {
-        match stars {
+    fn get_bonus_reward(cubes: u8) -> u8 {
+        match cubes {
             3 => 2,
             2 => 1,
             _ => 0,
@@ -96,12 +96,12 @@ pub impl LevelConfigImpl of LevelConfigTrait {
         }
     }
 
-    /// Get current potential stars (based on current move count)
+    /// Get current potential cubes (based on current move count)
     #[inline(always)]
-    fn potential_stars(self: LevelConfig, current_moves: u16) -> u8 {
-        if current_moves <= self.star_3_threshold {
+    fn potential_cubes(self: LevelConfig, current_moves: u16) -> u8 {
+        if current_moves <= self.cube_3_threshold {
             3
-        } else if current_moves <= self.star_2_threshold {
+        } else if current_moves <= self.cube_2_threshold {
             2
         } else {
             1
@@ -122,34 +122,34 @@ mod tests {
             max_moves: 30,
             difficulty: Difficulty::Medium,
             constraint: LevelConstraintTrait::clear_lines(2, 1),
-            star_3_threshold: 12, // 40% of 30
-            star_2_threshold: 21, // 70% of 30
+            cube_3_threshold: 12, // 40% of 30
+            cube_2_threshold: 21, // 70% of 30
         }
     }
 
     #[test]
-    fn test_calculate_stars() {
+    fn test_calculate_cubes() {
         let config = create_test_config();
 
-        // 3 stars: <= 12 moves
-        assert!(config.calculate_stars(10) == 3, "10 moves should be 3 stars");
-        assert!(config.calculate_stars(12) == 3, "12 moves should be 3 stars");
+        // 3 cubes: <= 12 moves
+        assert!(config.calculate_cubes(10) == 3, "10 moves should be 3 cubes");
+        assert!(config.calculate_cubes(12) == 3, "12 moves should be 3 cubes");
 
-        // 2 stars: 13-21 moves
-        assert!(config.calculate_stars(13) == 2, "13 moves should be 2 stars");
-        assert!(config.calculate_stars(21) == 2, "21 moves should be 2 stars");
+        // 2 cubes: 13-21 moves
+        assert!(config.calculate_cubes(13) == 2, "13 moves should be 2 cubes");
+        assert!(config.calculate_cubes(21) == 2, "21 moves should be 2 cubes");
 
-        // 1 star: > 21 moves
-        assert!(config.calculate_stars(22) == 1, "22 moves should be 1 star");
-        assert!(config.calculate_stars(30) == 1, "30 moves should be 1 star");
+        // 1 cube: > 21 moves
+        assert!(config.calculate_cubes(22) == 1, "22 moves should be 1 cube");
+        assert!(config.calculate_cubes(30) == 1, "30 moves should be 1 cube");
     }
 
     #[test]
     fn test_bonus_reward() {
-        assert!(LevelConfigTrait::get_bonus_reward(3) == 2, "3 stars should give 2 bonuses");
-        assert!(LevelConfigTrait::get_bonus_reward(2) == 1, "2 stars should give 1 bonus");
-        assert!(LevelConfigTrait::get_bonus_reward(1) == 0, "1 star should give 0 bonuses");
-        assert!(LevelConfigTrait::get_bonus_reward(0) == 0, "0 stars should give 0 bonuses");
+        assert!(LevelConfigTrait::get_bonus_reward(3) == 2, "3 cubes should give 2 bonuses");
+        assert!(LevelConfigTrait::get_bonus_reward(2) == 1, "2 cubes should give 1 bonus");
+        assert!(LevelConfigTrait::get_bonus_reward(1) == 0, "1 cube should give 0 bonuses");
+        assert!(LevelConfigTrait::get_bonus_reward(0) == 0, "0 cubes should give 0 bonuses");
     }
 
     #[test]
@@ -203,13 +203,13 @@ mod tests {
     }
 
     #[test]
-    fn test_potential_stars() {
+    fn test_potential_cubes() {
         let config = create_test_config();
 
-        assert!(config.potential_stars(5) == 3, "5 moves should allow 3 stars");
-        assert!(config.potential_stars(12) == 3, "12 moves should allow 3 stars");
-        assert!(config.potential_stars(13) == 2, "13 moves should allow 2 stars");
-        assert!(config.potential_stars(21) == 2, "21 moves should allow 2 stars");
-        assert!(config.potential_stars(22) == 1, "22 moves should allow 1 star");
+        assert!(config.potential_cubes(5) == 3, "5 moves should allow 3 cubes");
+        assert!(config.potential_cubes(12) == 3, "12 moves should allow 3 cubes");
+        assert!(config.potential_cubes(13) == 2, "13 moves should allow 2 cubes");
+        assert!(config.potential_cubes(21) == 2, "21 moves should allow 2 cubes");
+        assert!(config.potential_cubes(22) == 1, "22 moves should allow 1 cube");
     }
 }

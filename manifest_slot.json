@@ -47,8 +47,8 @@
       ]
     },
     {
-      "address": "0x2402b8facad4741dda1c3fbda52cbef2551020c070bfe868296b7b0d8c85ac",
-      "class_hash": "0x4e57fa35703e35d239d4251417daee19ee52bc6602e41da96c722f121f9a168",
+      "address": "0x1bddb505209097d82a3b9106987bbfa783b3bd93bac5f189975e4df7d53f1e8",
+      "class_hash": "0x673df162a2442a473863383a7eaebdf156906d7c0d49c308e18c2df3459a96",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
         "0x062347854b5817b3c8101014b5813fb0b5db48e4df2a0a9dada8cbdab191b064",
@@ -62,6 +62,19 @@
         "surrender",
         "move",
         "apply_bonus",
+        "upgrade"
+      ]
+    },
+    {
+      "address": "0x6891638ac4c50ebf134c3719305d6ea3713d2e5808037f75e73435ccbc536e8",
+      "class_hash": "0x5c7824d9c7bd1f98fc3721491f457d00ce20b173e9c7de956d3b8c47dfd9376",
+      "init_calldata": [],
+      "tag": "zkube_budo_v1_2_0-shop_system",
+      "selector": "0x456e9ac1689ce0bf6afd29733b144d9ef8e7db5c0df5ec0dc79ed1ea22579a0",
+      "systems": [
+        "upgrade_starting_bonus",
+        "upgrade_bag_size",
+        "upgrade_bridging_rank",
         "upgrade"
       ]
     }
@@ -197,9 +210,14 @@
           "name": "best_level",
           "type": "core::integer::u8",
           "key": false
+        },
+        {
+          "name": "cube_balance",
+          "type": "core::integer::u64",
+          "key": false
         }
       ],
-      "class_hash": "0x77ec576f2aead481e77727f117ca65eeb1aa0ffae116bd46d19ad26f788605f",
+      "class_hash": "0x64a505831738074e586a9e1e2e8477f9bf4ed2403bc200e50fc3093ff152ff",
       "tag": "zkube_budo_v1_2_0-PlayerMeta",
       "selector": "0x631ad5f961c9bc59af421f721602d568d38327dc491a69bc9229fa7a9bbf699"
     }
@@ -250,7 +268,7 @@
           "key": false
         },
         {
-          "name": "stars",
+          "name": "cubes",
           "type": "core::integer::u8",
           "key": false
         },
@@ -270,7 +288,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x3ed9ef9e9da337a3d53ba33d493593806118d167e56568dcde1105d5b5794ff",
+      "class_hash": "0x3754be503c6c368bd4258de82b45e24f6d2e3f8a40aa0130276fd98b88fb25a",
       "tag": "zkube_budo_v1_2_0-LevelCompleted",
       "selector": "0x7a28711b6febc8ff460cd133f74e6fe89c19af7615608b64eb3aaf3e290647b"
     },
@@ -344,7 +362,7 @@
           "key": false
         },
         {
-          "name": "total_stars",
+          "name": "total_cubes",
           "type": "core::integer::u16",
           "key": false
         },
@@ -359,7 +377,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x509118010be7dfddb413761fe9453255cb97cc75cf15d342de6ff5cd8fee746",
+      "class_hash": "0x427e3a905d653c51c466c44d6445909951371354869c7d5c8ff545ccf3480b7",
       "tag": "zkube_budo_v1_2_0-RunEnded",
       "selector": "0x1f8ccfae938e3b2021e434fb6752e0c96aee7551c7c5443082fb9cdb24ebfdb"
     },
@@ -2340,22 +2358,9 @@
     {
       "type": "function",
       "name": "dojo_init",
-      "inputs": [
-        {
-          "name": "creator_address",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "denshokan_address",
-          "type": "core::starknet::contract_address::ContractAddress"
-        },
-        {
-          "name": "renderer_address",
-          "type": "core::option::Option::<core::starknet::contract_address::ContractAddress>"
-        }
-      ],
+      "inputs": [],
       "outputs": [],
-      "state_mutability": "external"
+      "state_mutability": "view"
     },
     {
       "type": "function",
@@ -2726,7 +2731,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "stars",
+          "name": "cubes",
           "type": "core::integer::u8"
         },
         {
@@ -2752,7 +2757,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "stars",
+          "name": "cubes",
           "type": "core::integer::u8"
         },
         {
@@ -2858,7 +2863,7 @@
           "type": "core::integer::u16"
         },
         {
-          "name": "total_stars",
+          "name": "total_cubes",
           "type": "core::integer::u16"
         },
         {
@@ -2884,7 +2889,7 @@
           "type": "core::integer::u16"
         },
         {
-          "name": "total_stars",
+          "name": "total_cubes",
           "type": "core::integer::u16"
         },
         {
@@ -3212,6 +3217,10 @@
         {
           "name": "best_level",
           "type": "core::integer::u8"
+        },
+        {
+          "name": "cube_balance",
+          "type": "core::integer::u64"
         }
       ]
     },
@@ -3226,6 +3235,10 @@
         {
           "name": "best_level",
           "type": "core::integer::u8"
+        },
+        {
+          "name": "cube_balance",
+          "type": "core::integer::u64"
         }
       ]
     },
@@ -3522,6 +3535,108 @@
           "name": "SRC5Event",
           "type": "openzeppelin_introspection::src5::SRC5Component::Event",
           "kind": "flat"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "zkube::systems::shop::IShopSystem",
+      "items": [
+        {
+          "type": "function",
+          "name": "upgrade_starting_bonus",
+          "inputs": [
+            {
+              "name": "bonus_type",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "upgrade_bag_size",
+          "inputs": [
+            {
+              "name": "bonus_type",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "upgrade_bridging_rank",
+          "inputs": [],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "get_starting_bonus_upgrade_cost",
+          "inputs": [
+            {
+              "name": "current_level",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::integer::u64"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "get_bag_upgrade_cost",
+          "inputs": [
+            {
+              "name": "current_level",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::integer::u64"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "get_bridging_upgrade_cost",
+          "inputs": [
+            {
+              "name": "current_rank",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::integer::u64"
+            }
+          ],
+          "state_mutability": "view"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::systems::shop::shop_system::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "UpgradeableEvent",
+          "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "WorldProviderEvent",
+          "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "nested"
         }
       ]
     },

@@ -499,12 +499,7 @@ pub impl Controller of ControllerTrait {
 
 #[cfg(test)]
 mod tests {
-    // Core imports
-
-    use core::debug::PrintTrait;
-
     // Local imports
-
     use super::{Controller, Difficulty};
 
     #[test]

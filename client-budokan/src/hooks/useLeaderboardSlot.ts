@@ -9,7 +9,7 @@ export interface LeaderboardEntry {
   token_id: number;
   game_id: number;
   level: number;
-  totalStars: number;
+  totalCubes: number;
   totalScore: number;
   gameOver: boolean;
   score: number; // Alias for totalScore for compatibility
@@ -24,7 +24,7 @@ type UseLeaderboardSlotResult = {
 
 /**
  * Slot-compatible hook for fetching leaderboard data.
- * Queries all Game entities and sorts by level -> stars -> totalScore.
+ * Queries all Game entities and sorts by level -> cubes -> totalScore.
  */
 export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
   const {
@@ -68,16 +68,16 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
 
           // Extract level data from run_data
           const runData = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
-          // Unpack run_data: bits 0-6 = level, bits 27-35 = total_stars, bits 52-67 = total_score
+          // Unpack run_data: bits 0-6 = level, bits 27-35 = total_cubes, bits 52-67 = total_score
           const level = Number(runData & BigInt(0x7F)); // 7 bits (position 0)
-          const totalStars = Number((runData >> BigInt(27)) & BigInt(0x1FF)); // 9 bits (position 27)
+          const totalCubes = Number((runData >> BigInt(27)) & BigInt(0x1FF)); // 9 bits (position 27)
           const totalScore = Number((runData >> BigInt(52)) & BigInt(0xFFFF)); // 16 bits (position 52)
 
           gameList.push({
             token_id: gameData.game_id,
             game_id: gameData.game_id,
             level,
-            totalStars,
+            totalCubes,
             totalScore,
             gameOver: gameData.over || false,
             score: totalScore, // Alias for compatibility
@@ -85,10 +85,10 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
           });
         }
 
-        // Sort by: level (desc) -> totalStars (desc) -> totalScore (desc)
+        // Sort by: level (desc) -> totalCubes (desc) -> totalScore (desc)
         gameList.sort((a, b) => {
           if (b.level !== a.level) return b.level - a.level;
-          if (b.totalStars !== a.totalStars) return b.totalStars - a.totalStars;
+          if (b.totalCubes !== a.totalCubes) return b.totalCubes - a.totalCubes;
           return b.totalScore - a.totalScore;
         });
 
