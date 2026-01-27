@@ -14,6 +14,7 @@ pub mod types {
     pub mod difficulty;
     pub mod constraint;
     pub mod level;
+    pub mod consumable;
 }
 
 mod elements {
@@ -58,6 +59,7 @@ pub mod systems {
     pub mod game;
     pub mod config;
     pub mod shop;
+    pub mod cube_token;
 }
 
 #[cfg(test)]

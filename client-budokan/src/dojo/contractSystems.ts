@@ -7,7 +7,7 @@ import {
 } from "starknet";
 import { stringToFelt, type Manifest } from "@/cartridgeConnector.tsx";
 
-const { VITE_PUBLIC_NAMESPACE, VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
+const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
 // VRF is only available on Sepolia/Mainnet, not on Slot
 export const VRF_PROVIDER_ADDRESS =
@@ -44,6 +44,20 @@ export interface BonusTx extends Signer {
   bonus: number;
   row_index: number;
   block_index: number;
+}
+
+export interface ShopUpgrade extends Signer {
+  bonus_type: number; // 0=Hammer, 1=Wave, 2=Totem
+}
+
+export interface CreateWithCubes extends Signer {
+  token_id: number;
+  cubes_amount: number;
+}
+
+export interface PurchaseConsumable extends Signer {
+  game_id: number;
+  consumable_type: number; // 0=Hammer, 1=Wave, 2=Totem, 3=ExtraMoves
 }
 
 export type IWorld = ReturnType<typeof setupWorld>;
@@ -182,17 +196,136 @@ export function setupWorld(config: Config) {
       }
     };
 
+    const create_with_cubes = async ({ account, token_id, cubes_amount }: CreateWithCubes) => {
+      try {
+        console.log("create_with_cubes - token_id:", token_id, "cubes:", cubes_amount);
+
+        // On Slot, skip VRF call since it's not deployed
+        if (isSlotMode) {
+          return await account.execute([
+            {
+              contractAddress: contract.address,
+              entrypoint: "create_with_cubes",
+              calldata: [token_id, cubes_amount],
+            },
+          ]);
+        }
+
+        // On Sepolia/Mainnet, include VRF request
+        return await account.execute([
+          {
+            contractAddress: VRF_PROVIDER_ADDRESS,
+            entrypoint: "request_random",
+            calldata: CallData.compile({
+              caller: contract.address,
+              source: { type: 0, address: account.address },
+            }),
+          },
+          {
+            contractAddress: contract.address,
+            entrypoint: "create_with_cubes",
+            calldata: [token_id, cubes_amount],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing create_with_cubes:", error);
+        throw error;
+      }
+    };
+
+    const purchase_consumable = async ({ account, game_id, consumable_type }: PurchaseConsumable) => {
+      try {
+        // ConsumableType enum serializes as just the variant index:
+        // 0 = Hammer, 1 = Wave, 2 = Totem, 3 = ExtraMoves
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "purchase_consumable",
+            calldata: [game_id, consumable_type],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing purchase_consumable:", error);
+        throw error;
+      }
+    };
+
     return {
       address: contract.address,
       free_mint,
       create,
+      create_with_cubes,
       surrender,
       move,
       bonus,
+      purchase_consumable,
+    };
+  }
+
+  function shop() {
+    const contract_name = "shop_system";
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name)
+    );
+    if (!contract) {
+      throw new Error(`Contract ${contract_name} not found in manifest`);
+    }
+
+    const upgrade_starting_bonus = async ({ account, bonus_type }: ShopUpgrade) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "upgrade_starting_bonus",
+            calldata: [bonus_type],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing upgrade_starting_bonus:", error);
+        throw error;
+      }
+    };
+
+    const upgrade_bag_size = async ({ account, bonus_type }: ShopUpgrade) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "upgrade_bag_size",
+            calldata: [bonus_type],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing upgrade_bag_size:", error);
+        throw error;
+      }
+    };
+
+    const upgrade_bridging_rank = async ({ account }: Signer) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "upgrade_bridging_rank",
+            calldata: [],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing upgrade_bridging_rank:", error);
+        throw error;
+      }
+    };
+
+    return {
+      address: contract.address,
+      upgrade_starting_bonus,
+      upgrade_bag_size,
+      upgrade_bridging_rank,
     };
   }
 
   return {
     game: game(),
+    shop: shop(),
   };
 }

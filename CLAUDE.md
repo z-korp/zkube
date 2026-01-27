@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-zKube is a fully on-chain puzzle game built with the Dojo framework on Starknet. Players manipulate blocks on an 8x10 grid to form solid horizontal lines and earn points. The game features VRF-powered randomness, strategic bonuses, multiple difficulty levels, and an achievement system.
+zKube is a fully on-chain puzzle roguelike built with the Dojo framework on Starknet. Players manipulate blocks on an 8x10 grid to form solid horizontal lines, progress through levels, earn cubes (ERC1155 currency), and spend them on upgrades. The game features VRF-powered randomness, strategic bonuses, a level system with constraints, a cube economy with two shops, and an achievement system.
 
 ## Architecture
 
@@ -57,21 +57,23 @@ zkube/
                               ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    DOJO WORLD (Starknet)                            │
-│  ┌────────────────┐    ┌────────────────┐    ┌─────────────────┐   │
-│  │  Game System   │    │ Config System  │    │Achievement System│   │
-│  │  - create()    │    │ - settings     │    │ - trophies      │   │
-│  │  - move()      │    │ - difficulty   │    │ - progress      │   │
-│  │  - surrender() │    └────────────────┘    └─────────────────┘   │
-│  │  - apply_bonus │                                                 │
-│  └────────────────┘                                                 │
-│           │                                                         │
-│           ▼                                                         │
-│  ┌────────────────┐    ┌────────────────┐                          │
-│  │   Game Model   │    │  GameSeed      │                          │
-│  │  - blocks      │    │  - VRF seed    │                          │
-│  │  - score       │    └────────────────┘                          │
-│  │  - bonuses     │                                                 │
-│  └────────────────┘                                                 │
+│  ┌────────────────┐  ┌──────────────┐  ┌─────────────────┐        │
+│  │  Game System   │  │ Shop System  │  │  CubeToken      │        │
+│  │  - create()    │  │ - upgrades   │  │  (ERC1155)      │        │
+│  │  - move()      │  │ - bag size   │  │  - mint/burn    │        │
+│  │  - surrender() │  │ - bridging   │  │  - soulbound    │        │
+│  │  - apply_bonus │  └──────────────┘  └─────────────────┘        │
+│  │  - purchase_   │                                                │
+│  │    consumable  │  ┌──────────────┐  ┌─────────────────┐        │
+│  └────────────────┘  │Config System │  │Achievement System│       │
+│           │          │ - settings   │  │ - trophies      │        │
+│           ▼          └──────────────┘  └─────────────────┘        │
+│  ┌────────────────┐  ┌──────────────┐  ┌─────────────────┐        │
+│  │   Game Model   │  │  GameSeed    │  │  PlayerMeta     │        │
+│  │  - blocks      │  │  - VRF seed  │  │  - upgrades     │        │
+│  │  - run_data    │  └──────────────┘  │  - best_level   │        │
+│  │  - combo/over  │                    └─────────────────┘        │
+│  └────────────────┘                                                │
 └─────────────────────────────────────────────────────────────────────┘
                               │
                               │ Torii Indexer (GraphQL)
@@ -87,17 +89,19 @@ zkube/
 1. **Game Creation:**
    - User connects wallet via Cartridge Controller
    - Calls `free_mint()` on the token contract (gets NFT game token)
-   - Calls `create()` on game_system with the token ID
+   - Calls `create()` or `create_with_cubes()` on game_system with the token ID
    - VRF generates random seed for the game
-   - Initial grid is created and stored on-chain
+   - Initial grid is created, level 1 config generated from seed
 
-2. **Gameplay:**
+2. **Gameplay (Level System):**
    - Frontend displays grid from `Game.blocks` (packed felt252 = 240 bits)
    - User swipes blocks horizontally via drag handlers
    - `move()` transaction updates blocks, applies gravity, checks lines
-   - Completed lines are removed, score increases, combos tracked
-   - New line added after each move
-   - Bonuses earned based on score/combo thresholds
+   - Completed lines increase score, track combos and constraint progress
+   - Level completes when score threshold is met; new level starts
+   - Bonuses awarded based on star rating (3-star/2-star/1-star performance)
+   - Every 5 levels, in-game shop appears to spend cubes on consumables
+   - On game over, earned cubes are minted as ERC1155 tokens to player's wallet
 
 3. **State Synchronization:**
    - Torii indexes all Game model changes
@@ -163,14 +167,22 @@ Trophies tracked via Cartridge's arcade achievement system:
 - `client-budokan/dojo.config.ts` - Network configuration
 
 ### Smart Contract Entry Points
-- `contracts/src/systems/game.cairo` - Main game logic
-- `contracts/src/models/game.cairo` - Game state model
+- `contracts/src/systems/game.cairo` - Main game logic (create, move, apply_bonus, purchase_consumable)
+- `contracts/src/systems/shop.cairo` - Permanent shop (upgrades, bag size, bridging rank)
+- `contracts/src/systems/cube_token.cairo` - Soulbound ERC1155 CUBE token (mint/burn)
+- `contracts/src/models/game.cairo` - Game state model (blocks, run_data, combo, over)
+- `contracts/src/models/player.cairo` - PlayerMeta model (upgrades, best_level)
 - `contracts/src/helpers/controller.cairo` - Grid manipulation logic
 - `contracts/src/constants.cairo` - Game constants
 
 ### Token Contracts (in packages/)
 - `packages/token/` - ERC20 "Fake LORD" token with faucet
 - `packages/game_erc721/` - Game NFT tokens (each game = 1 NFT)
+
+### Cube Token (ERC1155)
+- `contracts/src/systems/cube_token.cairo` - Soulbound ERC1155 with CUBE_TOKEN_ID=1
+- Mint/burn controlled by MINTER_ROLE (granted to game_system and shop_system)
+- Torii indexes balances via registered external contract
 
 ## Development Commands
 
@@ -249,7 +261,7 @@ Models are prefixed with this namespace in Torii queries:
 
 | Network | RPC | Torii |
 |---------|-----|-------|
-| Slot | api.cartridge.gg/x/budokan-matth/katana | api.cartridge.gg/x/budokan-matth/torii |
+| Slot | api.cartridge.gg/x/zkube-djizus/katana | api.cartridge.gg/x/zkube-djizus/torii |
 | Sepolia | Configured via env | Configured via env |
 | Mainnet | Configured via env | Configured via env |
 
@@ -349,8 +361,8 @@ sozo deploy -P slot --account-address "$ACCOUNT" --private-key "$PKEY" --rpc-url
 
 # 5. Update BOTH dojo_slot.toml files with TOKEN_ADDR as denshokan_address
 
-# 6. Run migrate
-cd contracts && sozo migrate -P slot
+# 6. Run migrate (MUST run from workspace root, NOT from contracts/)
+sozo migrate -P slot
 ```
 
 #### After Deployment

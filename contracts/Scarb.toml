@@ -23,6 +23,7 @@ dojo.workspace = true
 starknet.workspace = true
 openzeppelin_token.workspace = true
 openzeppelin_introspection.workspace = true
+openzeppelin_access.workspace = true
 alexandria_math.workspace = true
 alexandria_encoding.workspace = true
 origami_random.workspace = true

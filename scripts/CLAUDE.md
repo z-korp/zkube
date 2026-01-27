@@ -28,6 +28,8 @@ This script performs the complete slot deployment:
 - Requires a fresh katana instance (restart if you get schema upgrade errors)
 - Updates TWO config files: `./dojo_slot.toml` AND `./contracts/dojo_slot.toml`
 - If deployment fails during init, check both config files have matching denshokan_address
+- **CRITICAL:** `sozo build` and `sozo migrate` MUST run from the workspace root (`/home/djizus/zkube/`), NOT from `contracts/`. Running from `contracts/` causes init to fail with "contract address 0x0 not deployed"
+- Extracts CubeToken (ERC1155) address from manifest and adds it to torii config and client env
 
 **After running the script:**
 ```bash

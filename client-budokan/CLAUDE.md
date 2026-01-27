@@ -114,9 +114,14 @@ export function systems({ client }: { client: IWorld }) {
   return {
     freeMint: async ({ account, settingsId }) => {...},
     create: async ({ account, gameId }) => {...},
+    createWithCubes: async ({ account, gameId, cubesAmount }) => {...},
     surrender: async ({ account, gameId }) => {...},
     move: async ({ account, gameId, rowIndex, startIndex, finalIndex }) => {...},
     applyBonus: async ({ account, gameId, bonus, rowIndex, lineIndex }) => {...},
+    purchaseConsumable: async ({ account, gameId, consumable }) => {...},
+    upgradeStartingBonus: async ({ account, bonusType }) => {...},
+    upgradeBagSize: async ({ account, bonusType }) => {...},
+    upgradeBridgingRank: async ({ account }) => {...},
   };
 }
 ```
@@ -163,6 +168,18 @@ Manages grid transition animations when blocks move/disappear.
 
 ### `useAccountCustom`
 Custom account hook for Cartridge Controller integration.
+
+### `useCubeBalance`
+Fetches CUBE ERC1155 token balance from Torii GraphQL, polls every 10s:
+```typescript
+const { cubeBalance, isLoading, error, refetch } = useCubeBalance();
+```
+
+### `usePlayerMeta`
+Gets player meta-progression data (upgrades, stats, best_level).
+
+### `useGameTokensSlot`
+Queries game tokens directly from local RECS (slot mode only, replaces metagame-sdk).
 
 ## State Management
 
@@ -211,11 +228,16 @@ const blocks: number[][] = [
 ## Environment Variables
 
 ```env
+VITE_PUBLIC_DEPLOY_TYPE=     # slot | sepolia | mainnet
+VITE_PUBLIC_SLOT=            # Slot name (e.g. zkube-djizus)
+VITE_PUBLIC_NAMESPACE=       # Dojo namespace (e.g. zkube_budo_v1_2_0)
 VITE_PUBLIC_NODE_URL=        # Starknet RPC URL
 VITE_PUBLIC_TORII=           # Torii indexer URL
 VITE_PUBLIC_MASTER_ADDRESS=  # Dev master address
 VITE_PUBLIC_MASTER_PRIVATE_KEY= # Dev private key
-VITE_PUBLIC_DEPLOY_TYPE=     # slot | sepolia | mainnet
+VITE_PUBLIC_WORLD_ADDRESS=   # Dojo world contract address
+VITE_PUBLIC_GAME_TOKEN_ADDRESS= # FullTokenContract (ERC721) address
+VITE_PUBLIC_CUBE_TOKEN_ADDRESS= # CubeToken (ERC1155) address
 ```
 
 ## Build Modes
@@ -233,9 +255,15 @@ pnpm test        # Vitest tests
 Located in `src/ui/components/`:
 - Grid rendering components
 - Block/cell components
-- Animation components (BonusAnimation, etc.)
+- Animation components (BonusAnimation, CubeEarnedAnimation, etc.)
 - Game UI (score, moves, bonuses display)
 - Dialogs and modals
+- `CubeBalance.tsx` - Displays CUBE ERC1155 balance
+- `Shop/` directory:
+  - `ShopDialog.tsx` - Permanent shop UI
+  - `ShopButton.tsx` - Button to open shop
+  - `InGameShopDialog.tsx` - In-game shop at levels 5, 10, 15...
+  - `BringCubesDialog.tsx` - Choose cubes to bring at game start
 
 **Important:** Check existing components before creating new ones.
 

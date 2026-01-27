@@ -2,7 +2,8 @@ use starknet::ContractAddress;
 use zkube::helpers::packing::{MetaData, MetaDataPacking, MetaDataPackingTrait};
 
 /// PlayerMeta stores persistent player data across all runs
-/// This is used for meta-progression (unlocks, stats, cube economy)
+/// This is used for meta-progression (unlocks, stats)
+/// Note: Cube balance is now tracked via ERC1155 CubeToken contract
 #[derive(Copy, Drop, Serde, IntrospectPacked)]
 #[dojo::model]
 pub struct PlayerMeta {
@@ -12,8 +13,6 @@ pub struct PlayerMeta {
     pub data: felt252,
     /// Highest level ever reached (any run) - used for unlocks
     pub best_level: u8,
-    /// Current cube balance (spendable currency)
-    pub cube_balance: u64,
 }
 
 #[generate_trait]
@@ -24,7 +23,6 @@ pub impl PlayerMetaImpl of PlayerMetaTrait {
             player,
             data: MetaDataPackingTrait::new().pack(),
             best_level: 0,
-            cube_balance: 0,
         }
     }
 
@@ -54,7 +52,7 @@ pub impl PlayerMetaImpl of PlayerMetaTrait {
         self.set_meta_data(meta);
     }
 
-    /// Add cubes to lifetime total (stat tracking)
+    /// Add cubes to lifetime total (stat tracking in MetaData)
     fn add_cubes_earned(ref self: PlayerMeta, cubes: u32) {
         let mut meta = self.get_meta_data();
         // Cap at max u32
@@ -65,21 +63,6 @@ pub impl PlayerMetaImpl of PlayerMetaTrait {
             new_total.try_into().unwrap()
         };
         self.set_meta_data(meta);
-    }
-
-    /// Add cubes to spendable balance
-    fn add_cube_balance(ref self: PlayerMeta, amount: u64) {
-        self.cube_balance += amount;
-    }
-
-    /// Spend cubes from balance (returns false if insufficient)
-    fn spend_cubes(ref self: PlayerMeta, amount: u64) -> bool {
-        if self.cube_balance >= amount {
-            self.cube_balance -= amount;
-            true
-        } else {
-            false
-        }
     }
 
     /// Get the bag size for a specific bonus type
@@ -105,7 +88,7 @@ pub impl PlayerMetaImpl of PlayerMetaTrait {
 
     /// Check if player exists (has played at least once)
     fn exists(self: PlayerMeta) -> bool {
-        self.best_level > 0 || self.data != 0 || self.cube_balance > 0
+        self.best_level > 0 || self.data != 0
     }
 }
 
@@ -121,7 +104,6 @@ mod tests {
 
         assert!(meta.player == player, "Player should match");
         assert!(meta.best_level == 0, "Best level should be 0");
-        assert!(meta.cube_balance == 0, "Should start with 0 cubes");
 
         let data = meta.get_meta_data();
         assert!(data.total_runs == 0, "Should have 0 runs");
@@ -159,25 +141,5 @@ mod tests {
         assert!(data.total_runs == 3, "Should have 3 runs");
     }
 
-    #[test]
-    fn test_cube_balance() {
-        let player = contract_address_const::<'PLAYER'>();
-        let mut meta = PlayerMetaTrait::new(player);
-
-        meta.add_cube_balance(15);
-        assert!(meta.cube_balance == 15, "Should have 15 cubes");
-
-        meta.add_cube_balance(100);
-        assert!(meta.cube_balance == 115, "Should have 115 cubes");
-
-        // Test spending
-        let success = meta.spend_cubes(50);
-        assert!(success, "Should succeed spending 50 cubes");
-        assert!(meta.cube_balance == 65, "Should have 65 cubes left");
-
-        // Test insufficient balance
-        let fail = meta.spend_cubes(100);
-        assert!(!fail, "Should fail spending 100 cubes (only 65)");
-        assert!(meta.cube_balance == 65, "Balance should remain 65");
-    }
+    // Note: Cube balance tests removed - cube balance is now managed by ERC1155 CubeToken contract
 }

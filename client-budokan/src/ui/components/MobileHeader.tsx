@@ -1,4 +1,4 @@
-import { faBars, faCoins } from "@fortawesome/free-solid-svg-icons";
+import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Drawer,
@@ -7,12 +7,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "../elements/drawer";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "../elements/dropdown-menu";
 import AccountDetails from "./AccountDetails";
 import Connect from "./Connect";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
@@ -22,6 +16,8 @@ import { Surrender } from "../actions/Surrender";
 import { Controller } from "./Controller";
 import TutorialModal from "./Tutorial/TutorialModal";
 import { HeaderLeaderboard } from "./HeaderLeaderboard";
+import CubeBalance from "./CubeBalance";
+import { ShopButton } from "./Shop/ShopButton";
 
 interface MobileHeaderProps {
   onStartTutorial: () => void;
@@ -97,16 +93,8 @@ const MobileHeader = ({
         <div className="flex w-full gap-2 justify-end">
           {account ? (
             <div className="flex gap-3 items-center">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant={"outline"}>
-                    <FontAwesomeIcon icon={faCoins} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuLabel>Assets</DropdownMenuLabel>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <CubeBalance showLabel={false} />
+              <ShopButton />
               <Controller />
             </div>
           ) : (

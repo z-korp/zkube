@@ -41,13 +41,17 @@
 - Add star/cube performance rating per level
 - See [LEVEL_SYSTEM_PLAN.md](./LEVEL_SYSTEM_PLAN.md) for details
 
-### Cube Economy (In Progress)
+### Cube Economy (Core Complete)
 
-- Implement CUBE token (ERC-1155, soulbound)
-- Add cube earning during gameplay (level completion, combos, milestones)
-- Build Permanent Shop (loadouts, bridging ranks, unlocks)
-- Build In-Game Shop (consumables every 5 levels)
-- Implement cube bridging (bring cubes into runs)
+- [x] CUBE token implemented as soulbound ERC1155 (`cube_token` system)
+- [x] Cube earning during gameplay (combos, achievements)
+- [x] Cube minting at game over via ERC1155
+- [x] Permanent Shop (starting bonuses, bag size, bridging rank) - burns ERC1155
+- [x] In-Game Shop (Hammer, Wave, Totem consumables every 5 levels)
+- [x] Cube bridging (`create_with_cubes()` burns from wallet)
+- [ ] Level completion cubes (1-3 based on efficiency) - not yet implemented
+- [ ] Milestone bonuses (every 10 levels) - not yet implemented
+- [ ] ExtraMoves consumable - not yet implemented
 - See [CUBE_ECONOMY.md](./CUBE_ECONOMY.md) for details
 
 ### Tournament Feature Development

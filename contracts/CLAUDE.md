@@ -18,18 +18,19 @@ contracts/
 │   ├── systems/               # Dojo systems (logic)
 │   │   ├── game.cairo         # Main game system
 │   │   ├── shop.cairo         # Permanent shop (cube economy)
+│   │   ├── cube_token.cairo   # Soulbound ERC1155 CUBE token
 │   │   └── config.cairo       # Configuration system
 │   ├── types/                 # Type definitions
 │   │   ├── bonus.cairo        # Bonus enum (Hammer, Wave, Totem)
 │   │   ├── difficulty.cairo   # Difficulty levels
 │   │   ├── block.cairo        # Block types
-│   │   ├── trophy.cairo       # Trophy definitions
-│   │   └── task.cairo         # Task definitions
+│   │   ├── width.cairo        # Width types
+│   │   ├── constraint.cairo   # ConstraintType, LevelConstraint
+│   │   ├── level.cairo        # LevelConfig
+│   │   └── consumable.cairo   # ConsumableType enum (Hammer, Wave, Totem, ExtraMoves)
 │   ├── elements/              # Game element implementations
 │   │   ├── bonuses/           # Bonus mechanics
-│   │   ├── difficulties/      # Difficulty configurations
-│   │   ├── trophies/          # Trophy logic
-│   │   └── tasks/             # Task logic
+│   │   └── difficulties/      # Difficulty configurations
 │   ├── helpers/               # Utility functions
 │   │   ├── controller.cairo   # Grid manipulation (77KB, main logic)
 │   │   ├── packer.cairo       # Bit packing utilities
@@ -53,21 +54,17 @@ contracts/
 pub struct Game {
     #[key]
     pub game_id: u64,
-    // Updated every move
+    // Grid state (changes every move)
     pub blocks: felt252,      // 240 bits: 10 rows × 8 cols × 3 bits
     pub next_row: u32,        // Pre-generated next row (24 bits)
-    pub score: u16,
-    pub moves: u16,
-    // Updated on line breaks
-    pub combo_counter: u16,   // Total combo count
-    pub max_combo: u8,        // Highest combo in game
-    pub hammer_bonus: u8,     // Available hammer bonuses
-    pub wave_bonus: u8,       // Available wave bonuses
-    pub totem_bonus: u8,      // Available totem bonuses
-    pub hammer_used: u8,      // Hammer uses count
-    pub wave_used: u8,        // Wave uses count
-    pub totem_used: u8,       // Totem uses count
-    // Game status
+    // Per-level combo tracking (resets each level)
+    pub combo_counter: u8,    // Current combo streak this level
+    pub max_combo: u8,        // Best combo this level
+    // Level system (bit-packed run progress)
+    pub run_data: felt252,    // Bit-packed: level, score, moves, bonuses, stars, cubes, etc.
+    // Timestamps
+    pub started_at: u64,      // Run start timestamp
+    // Game state
     pub over: bool,
 }
 ```
@@ -85,7 +82,7 @@ pub struct GameSeed {
 
 ### PlayerMeta Model (`models/player.cairo`)
 
-Persistent player data for meta-progression and cube economy:
+Persistent player data for meta-progression:
 
 ```cairo
 #[dojo::model]
@@ -94,9 +91,10 @@ pub struct PlayerMeta {
     pub player: ContractAddress,
     pub data: felt252,      // Bit-packed MetaData (upgrades, stats)
     pub best_level: u8,     // Highest level reached
-    pub cube_balance: u64,  // Spendable currency
 }
 ```
+
+**Note:** Cube balance is tracked via the ERC1155 CubeToken contract, not in PlayerMeta.
 
 **MetaData bit-packing** (in `helpers/packing.cairo`):
 - `starting_hammer/wave/totem` (2 bits each, 0-3)
@@ -113,14 +111,21 @@ Main game logic with the following functions:
 ```cairo
 trait IGameSystem {
     fn create(ref self: T, game_id: u64);
+    fn create_with_cubes(ref self: T, game_id: u64, cubes_amount: u16);
     fn surrender(ref self: T, game_id: u64);
     fn move(ref self: T, game_id: u64, row_index: u8, start_index: u8, final_index: u8);
     fn apply_bonus(ref self: T, game_id: u64, bonus: Bonus, row_index: u8, line_index: u8);
+    fn purchase_consumable(ref self: T, game_id: u64, consumable: ConsumableType);
     fn get_player_name(self: @T, game_id: u64) -> felt252;
     fn get_score(self: @T, game_id: u64) -> u16;
-    fn get_game_data(self: @T, game_id: u64) -> (u16, u16, u8, u8, u8, u8, u16, bool);
+    fn get_game_data(self: @T, game_id: u64) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool);
+    fn get_shop_data(self: @T, game_id: u64) -> (u16, u16, u16);
 }
 ```
+
+**`get_game_data` returns:** (level, level_score, level_moves, combo, max_combo, hammer, wave, totem, total_cubes, over)
+
+**`get_shop_data` returns:** (cubes_brought, cubes_spent, cubes_available)
 
 **Key flows:**
 1. `create()` - Initializes game with VRF seed, generates initial grid
@@ -148,7 +153,39 @@ trait IShopSystem {
 - Bag Size: 10 * 2^level cubes (10, 20, 40, 80...)
 - Bridging Rank: 100 * 2^rank cubes (100, 200, 400, 800...)
 
-**Note:** Shop system needs WRITER permission on `PlayerMeta` model.
+All upgrades burn cubes via the ERC1155 `CubeToken` contract.
+
+**Note:** Shop system needs WRITER permission on `PlayerMeta` model and MINTER_ROLE on CubeToken.
+
+### CubeToken System (`systems/cube_token.cairo`)
+
+Soulbound ERC1155 token for the CUBE currency (token ID = 1):
+
+```cairo
+trait ICubeToken {
+    fn mint(ref self: T, recipient: ContractAddress, amount: u256);
+    fn burn(ref self: T, account: ContractAddress, amount: u256);
+    fn balance_of_cubes(self: @T, account: ContractAddress) -> u256;
+}
+```
+
+- **Soulbound:** Transfers blocked (only mint from=0 and burn to=0 allowed)
+- **Access Control:** MINTER_ROLE required for mint; burn allowed by owner or MINTER_ROLE
+- **dojo_init:** Grants MINTER_ROLE to game_system and shop_system via world DNS
+- **Torii Integration:** `register_external_contract()` registers with Torii for ERC1155 balance indexing
+
+### ConsumableType (`types/consumable.cairo`)
+
+In-game shop items purchasable during a run:
+
+```cairo
+pub enum ConsumableType {
+    Hammer,      // 5 cubes
+    Wave,        // 5 cubes
+    Totem,       // 5 cubes
+    ExtraMoves,  // 10 cubes (adds 5 moves) - NOT YET IMPLEMENTED (panics)
+}
+```
 
 ## Grid Manipulation (`helpers/controller.cairo`)
 
@@ -365,9 +402,9 @@ This script handles the full deployment including token contracts. See `scripts/
    - `./dojo_slot.toml`
    - `./contracts/dojo_slot.toml`
 
-5. **Run migrate**:
+5. **Run migrate** (MUST run from workspace root, NOT from contracts/):
    ```bash
-   cd contracts && sozo migrate -P slot
+   sozo migrate -P slot
    ```
 
 ### Common Issues

@@ -151,6 +151,14 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
+  const createWithCubes = async ({ account, ...props }: SystemTypes.CreateWithCubes) => {
+    await handleTransaction(
+      account,
+      () => client.game.create_with_cubes({ account, ...props }),
+      "Game started with cubes!"
+    );
+  };
+
   const surrender = async ({ account, ...props }: SystemTypes.Surrender) => {
     await handleTransaction(
       account,
@@ -193,12 +201,59 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
+  const upgradeStartingBonus = async ({ account, ...props }: SystemTypes.ShopUpgrade) => {
+    await handleTransaction(
+      account,
+      () => client.shop.upgrade_starting_bonus({ account, ...props }),
+      "Starting bonus upgraded!"
+    );
+  };
+
+  const upgradeBagSize = async ({ account, ...props }: SystemTypes.ShopUpgrade) => {
+    await handleTransaction(
+      account,
+      () => client.shop.upgrade_bag_size({ account, ...props }),
+      "Bag size upgraded!"
+    );
+  };
+
+  const upgradeBridgingRank = async ({ account }: SystemTypes.Signer) => {
+    await handleTransaction(
+      account,
+      () => client.shop.upgrade_bridging_rank({ account }),
+      "Bridging rank upgraded!"
+    );
+  };
+
+  const purchaseConsumable = async ({ account, ...props }: SystemTypes.PurchaseConsumable) => {
+    const setMoveComplete = useMoveStore.getState().setMoveComplete;
+    setMoveComplete(false);
+    try {
+      await handleTransaction(
+        account,
+        () => client.game.purchase_consumable({ account, ...props }),
+        "Consumable purchased!"
+      );
+      setMoveComplete(true);
+    } catch (error) {
+      setMoveComplete(true);
+      throw error;
+    }
+  };
+
   return {
     // play
     freeMint,
     create,
+    createWithCubes,
     surrender,
     move,
     applyBonus,
+    // in-game shop
+    purchaseConsumable,
+    // permanent shop
+    upgradeStartingBonus,
+    upgradeBagSize,
+    upgradeBridgingRank,
   };
 }

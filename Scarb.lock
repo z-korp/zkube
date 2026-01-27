@@ -202,6 +202,7 @@ dependencies = [
  "game_components_token",
  "game_components_utils",
  "graffiti",
+ "openzeppelin_access",
  "openzeppelin_introspection",
  "openzeppelin_token",
  "origami_random",

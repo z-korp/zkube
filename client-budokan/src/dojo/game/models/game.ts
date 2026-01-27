@@ -65,6 +65,18 @@ export class Game {
   public get totalScore(): number {
     return this.runData.totalScore;
   }
+  // In-game shop data
+  public get cubesBrought(): number {
+    return this.runData.cubesBrought;
+  }
+  public get cubesSpent(): number {
+    return this.runData.cubesSpent;
+  }
+  public get cubesAvailable(): number {
+    // Available = brought + earned - spent
+    const totalBudget = this.runData.cubesBrought + this.runData.totalCubes;
+    return Math.max(0, totalBudget - this.runData.cubesSpent);
+  }
 
   // Legacy compatibility - score now means levelScore
   public get score(): number {

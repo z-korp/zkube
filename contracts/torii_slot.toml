@@ -1,4 +1,4 @@
-world_address = "0x055e5fe566f984b6fead68ace67278ecdefdc93a48f5509bc61c66f68af6a97f"
+world_address = "0x00b5d3c97c8517b84bd8786e96e5e09b1fa8205a5d63836b2220b67c3f40d397"
 rpc = "https://api.cartridge.gg/x/zkube-djizus/katana"
 
 [indexing]
@@ -6,7 +6,8 @@ pending = true
 transactions = true
 namespaces = ["zkube_budo_v1_2_0"]
 contracts = [
-  "erc721:0x062347854b5817b3c8101014b5813fb0b5db48e4df2a0a9dada8cbdab191b064"
+  "erc721:0x062347854b5817b3c8101014b5813fb0b5db48e4df2a0a9dada8cbdab191b064",
+  "ERC1155:0x39305e3c8623d9341714655337c25cc73629067e380ac1de1f830edd244e079"
 ]
 
 [events]

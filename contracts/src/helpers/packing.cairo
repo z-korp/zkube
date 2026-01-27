@@ -1,6 +1,6 @@
 /// Bit-packing helpers for efficient storage
 /// 
-/// run_data layout (70 bits used, 182 reserved):
+/// run_data layout (88 bits used, 164 reserved):
 /// ┌─────────────────────────────────────────────────────────────────────┐
 /// │ Bits    │ Field                 │ Size │ Range    │ Description     │
 /// ├─────────┼───────────────────────┼──────┼──────────┼─────────────────┤
@@ -17,7 +17,9 @@
 /// │ 52-67   │ total_score           │ 16   │ 0-65535  │ Cumulative score│
 /// │ 68      │ combo_5_achieved      │ 1    │ 0-1      │ First 5x combo  │
 /// │ 69      │ combo_10_achieved     │ 1    │ 0-1      │ First 10x combo │
-/// │ 70-251  │ reserved              │ 182  │ -        │ Future features │
+/// │ 70-78   │ cubes_brought         │ 9    │ 0-511    │ Cubes for in-run│
+/// │ 79-87   │ cubes_spent           │ 9    │ 0-511    │ Cubes spent     │
+/// │ 88-251  │ reserved              │ 164  │ -        │ Future features │
 /// └─────────────────────────────────────────────────────────────────────┘
 
 /// Unpacked run data structure
@@ -37,6 +39,9 @@ pub struct RunData {
     // Combo achievement flags (one-time per run)
     pub combo_5_achieved: bool, // First time achieving 5+ lines combo
     pub combo_10_achieved: bool, // First time achieving 10+ lines combo
+    // In-game shop: cubes brought into run (burned from wallet on start)
+    pub cubes_brought: u16, // Cubes transferred into run for spending
+    pub cubes_spent: u16, // Cubes spent during run
 }
 
 /// Bit positions and masks for run_data
@@ -55,6 +60,8 @@ mod RunDataBits {
     pub const TOTAL_SCORE_POS: u8 = 52;
     pub const COMBO_5_ACHIEVED_POS: u8 = 68;
     pub const COMBO_10_ACHIEVED_POS: u8 = 69;
+    pub const CUBES_BROUGHT_POS: u8 = 70;
+    pub const CUBES_SPENT_POS: u8 = 79;
 
     // Bit masks (after shifting to position 0)
     pub const CURRENT_LEVEL_MASK: u256 = 0x7F; // 7 bits
@@ -69,6 +76,8 @@ mod RunDataBits {
     pub const MAX_COMBO_RUN_MASK: u256 = 0xF; // 4 bits
     pub const TOTAL_SCORE_MASK: u256 = 0xFFFF; // 16 bits
     pub const COMBO_ACHIEVED_MASK: u256 = 0x1; // 1 bit
+    pub const CUBES_BROUGHT_MASK: u256 = 0x1FF; // 9 bits
+    pub const CUBES_SPENT_MASK: u256 = 0x1FF; // 9 bits
 }
 
 #[generate_trait]
@@ -89,6 +98,8 @@ pub impl RunDataPacking of RunDataPackingTrait {
             total_score: 0,
             combo_5_achieved: false,
             combo_10_achieved: false,
+            cubes_brought: 0,
+            cubes_spent: 0,
         }
     }
 
@@ -143,6 +154,12 @@ pub impl RunDataPacking of RunDataPackingTrait {
             } else {
                 0_u256
             }) * pow2(RunDataBits::COMBO_10_ACHIEVED_POS));
+        packed = packed
+            | ((self.cubes_brought.into() & RunDataBits::CUBES_BROUGHT_MASK)
+                * pow2(RunDataBits::CUBES_BROUGHT_POS));
+        packed = packed
+            | ((self.cubes_spent.into() & RunDataBits::CUBES_SPENT_MASK)
+                * pow2(RunDataBits::CUBES_SPENT_POS));
 
         packed.try_into().unwrap()
     }
@@ -197,6 +214,14 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 & RunDataBits::COMBO_ACHIEVED_MASK) == 1,
             combo_10_achieved: ((data / pow2(RunDataBits::COMBO_10_ACHIEVED_POS))
                 & RunDataBits::COMBO_ACHIEVED_MASK) == 1,
+            cubes_brought: ((data / pow2(RunDataBits::CUBES_BROUGHT_POS))
+                & RunDataBits::CUBES_BROUGHT_MASK)
+                .try_into()
+                .unwrap(),
+            cubes_spent: ((data / pow2(RunDataBits::CUBES_SPENT_POS))
+                & RunDataBits::CUBES_SPENT_MASK)
+                .try_into()
+                .unwrap(),
         }
     }
 }
@@ -435,6 +460,8 @@ mod tests {
         assert!(data.total_score == 0, "Should start with 0 total score");
         assert!(data.combo_5_achieved == false, "Should start with combo_5 not achieved");
         assert!(data.combo_10_achieved == false, "Should start with combo_10 not achieved");
+        assert!(data.cubes_brought == 0, "Should start with 0 cubes brought");
+        assert!(data.cubes_spent == 0, "Should start with 0 cubes spent");
     }
 
     #[test]
@@ -453,6 +480,8 @@ mod tests {
             total_score: 12345,
             combo_5_achieved: true,
             combo_10_achieved: false,
+            cubes_brought: 100,
+            cubes_spent: 45,
         };
 
         let packed = original.pack();
@@ -481,6 +510,8 @@ mod tests {
         assert!(
             unpacked.combo_10_achieved == original.combo_10_achieved, "combo_10_achieved mismatch",
         );
+        assert!(unpacked.cubes_brought == original.cubes_brought, "cubes_brought mismatch");
+        assert!(unpacked.cubes_spent == original.cubes_spent, "cubes_spent mismatch");
     }
 
     #[test]
@@ -500,6 +531,8 @@ mod tests {
             total_score: 65535, // 16 bits max
             combo_5_achieved: true,
             combo_10_achieved: true,
+            cubes_brought: 511, // 9 bits max
+            cubes_spent: 511, // 9 bits max
         };
 
         let packed = max_values.pack();
@@ -524,6 +557,8 @@ mod tests {
             total_score: 0,
             combo_5_achieved: false,
             combo_10_achieved: false,
+            cubes_brought: 0,
+            cubes_spent: 0,
         };
 
         let packed = zero_values.pack();

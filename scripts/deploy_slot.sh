@@ -50,10 +50,6 @@ extract_address() {
         # Fallback: look for "deployed at" pattern
         addr=$(echo "$output" | grep -i "deployed at" | grep -oE '0x[0-9a-fA-F]+' | tail -1)
     fi
-    if [ -z "$addr" ]; then
-        # Last fallback: find the last 64-char hex (usually the address)
-        addr=$(echo "$output" | grep -oE '0x[0-9a-fA-F]{64}' | tail -1)
-    fi
     echo "$addr"
 }
 
@@ -78,10 +74,8 @@ echo "============================================"
 # Step 1: Build
 #-----------------
 print_info "Step 1: Building contracts..."
-cd "$CONTRACTS_DIR"
 sozo clean -P $PROFILE
 sozo build -P $PROFILE
-cd ..
 print_info "Build complete!"
 
 #-----------------
@@ -199,10 +193,11 @@ done
 #-----------------
 # Step 7: Run sozo migrate
 #-----------------
-print_info "Step 6: Running sozo migrate..."
-cd "$CONTRACTS_DIR"
+print_info "Step 6: Running sozo migrate (from workspace root)..."
 
-# First attempt
+# CRITICAL: Must run from workspace root, NOT from contracts/
+# Running from contracts/ causes init to fail because sozo resolves
+# contract addresses differently in workspace vs package context.
 MIGRATE_OUTPUT=$(sozo migrate -P $PROFILE 2>&1) || true
 echo "$MIGRATE_OUTPUT"
 
@@ -213,8 +208,6 @@ if echo "$MIGRATE_OUTPUT" | grep -q "Migration failed"; then
     MIGRATE_OUTPUT=$(sozo migrate -P $PROFILE 2>&1) || true
     echo "$MIGRATE_OUTPUT"
 fi
-
-cd ..
 
 # Extract world address
 WORLD_ADDRESS=$(echo "$MIGRATE_OUTPUT" | grep -oE 'world at address 0x[0-9a-fA-F]+' | grep -oE '0x[0-9a-fA-F]+')
@@ -250,9 +243,37 @@ for CONFIG in "$DOJO_CONFIG" "$DOJO_CONFIG_ROOT"; do
 done
 
 #-----------------
-# Step 9: Update torii config
+# Step 9: Extract system addresses from manifest
 #-----------------
-print_info "Step 8: Updating torii configuration..."
+print_info "Step 8: Extracting system addresses..."
+
+GAME_SYSTEM=""
+CONFIG_SYSTEM=""
+CUBE_TOKEN=""
+if [ -f "$MANIFEST_FILE" ]; then
+    GAME_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-game_system\") | .address" 2>/dev/null)
+    CONFIG_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-config_system\") | .address" 2>/dev/null)
+    CUBE_TOKEN=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-cube_token\") | .address" 2>/dev/null)
+fi
+
+if [ -n "$CUBE_TOKEN" ] && [ "$CUBE_TOKEN" != "null" ]; then
+    print_info "  CubeToken deployed at: $CUBE_TOKEN"
+else
+    CUBE_TOKEN=""
+    print_warn "  CubeToken address not found in manifest"
+fi
+
+#-----------------
+# Step 10: Update torii config (after extracting CUBE_TOKEN)
+#-----------------
+print_info "Step 9: Updating torii configuration..."
+
+# Build contracts array for Torii config
+TORII_CONTRACTS="\"erc721:$TOKEN_ADDRESS\""
+if [ -n "$CUBE_TOKEN" ]; then
+    TORII_CONTRACTS="$TORII_CONTRACTS,
+  \"ERC1155:$CUBE_TOKEN\""
+fi
 
 cat > "$TORII_CONFIG" << EOF
 world_address = "$WORLD_ADDRESS"
@@ -263,7 +284,7 @@ pending = true
 transactions = true
 namespaces = ["$NAMESPACE"]
 contracts = [
-  "erc721:$TOKEN_ADDRESS"
+  $TORII_CONTRACTS
 ]
 
 [events]
@@ -276,18 +297,6 @@ historical = [
 EOF
 
 print_info "  Updated $TORII_CONFIG"
-
-#-----------------
-# Step 10: Extract system addresses from manifest
-#-----------------
-print_info "Step 9: Extracting system addresses..."
-
-GAME_SYSTEM=""
-CONFIG_SYSTEM=""
-if [ -f "$MANIFEST_FILE" ]; then
-    GAME_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-game_system\") | .address" 2>/dev/null)
-    CONFIG_SYSTEM=$(cat "$MANIFEST_FILE" | jq -r ".contracts[] | select(.tag == \"${NAMESPACE}-config_system\") | .address" 2>/dev/null)
-fi
 
 #-----------------
 # Step 11: Copy manifest to contracts root (for client import)
@@ -328,6 +337,7 @@ VITE_PUBLIC_FEE_TOKEN_ADDRESS=0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1
 # Contract addresses
 VITE_PUBLIC_WORLD_ADDRESS=$WORLD_ADDRESS
 VITE_PUBLIC_GAME_TOKEN_ADDRESS=$TOKEN_ADDRESS
+VITE_PUBLIC_CUBE_TOKEN_ADDRESS=$CUBE_TOKEN
 EOF
 
 print_info "  Updated $CLIENT_ENV"
@@ -345,6 +355,7 @@ echo "-------------------"
 echo "World:                    $WORLD_ADDRESS"
 echo "FullTokenContract:        $TOKEN_ADDRESS"
 echo "MinigameRegistryContract: $REGISTRY_ADDRESS"
+echo "CubeToken (ERC1155):      $CUBE_TOKEN"
 echo "game_system:              $GAME_SYSTEM"
 echo "config_system:            $CONFIG_SYSTEM"
 echo ""

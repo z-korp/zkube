@@ -26,6 +26,8 @@ This guide explains how to deploy zkube using `FullTokenContract` from game-comp
 │                                                             │
 │  Dojo Systems (deployed via sozo migrate):                  │
 │  ├── game_system (implements IMinigameTokenData)           │
+│  ├── shop_system (permanent upgrades)                      │
+│  ├── cube_token (soulbound ERC1155 CUBE)                   │
 │  └── config_system                                          │
 │                                                             │
 │  Connection:                                                │
@@ -149,7 +151,7 @@ Edit `dojo_slot.toml`:
 
 ```toml
 [init_call_args]
-"zkube_budo_v1_1_3-game_system" = [
+"zkube_budo_v1_2_0-game_system" = [
     "0x<your_creator_address>",
     "0x<FullTokenContract_address>",  # denshokan_address
     "1",  # renderer_address: Option::None
@@ -158,11 +160,19 @@ Edit `dojo_slot.toml`:
 
 #### Step 6: Deploy Dojo World
 
+**CRITICAL:** Must run from workspace root, NOT from `contracts/`:
 ```bash
 sozo migrate -P slot
 ```
 
-#### Step 7: Update Client
+#### Step 7: Extract CubeToken Address
+
+After migration, extract the CubeToken address from the manifest:
+```bash
+CUBE_TOKEN=$(jq -r '.contracts[] | select(.tag | contains("cube_token")) | .address' manifest_slot.json)
+```
+
+#### Step 8: Update Client
 
 Create/update `client-budokan/.env.slot`:
 
@@ -172,6 +182,16 @@ VITE_PUBLIC_NODE_URL=https://api.cartridge.gg/x/your-slot/katana
 VITE_PUBLIC_TORII=https://api.cartridge.gg/x/your-slot/torii
 VITE_PUBLIC_WORLD_ADDRESS=0x<world_address>
 VITE_PUBLIC_GAME_TOKEN_ADDRESS=0x<FullTokenContract_address>
+VITE_PUBLIC_CUBE_TOKEN_ADDRESS=0x<CubeToken_address>
+```
+
+#### Step 9: Update Torii Config
+
+Add the CubeToken as an ERC1155 contract in `torii_slot.toml`:
+```toml
+[[contracts]]
+type = "ERC1155"
+address = "0x<CubeToken_address>"
 ```
 
 ## FullTokenContract Features
@@ -213,21 +233,21 @@ impl GameTokenDataImpl of IMinigameTokenData<ContractState> {
 
 ```bash
 ./scripts/deploy_slot.sh
-# or manually:
-cd contracts && sozo migrate -P slot
+# or manually (from workspace root):
+sozo migrate -P slot
 ```
 
 ### Sepolia (Testnet)
 
 ```bash
-cd contracts
+# From workspace root:
 sozo migrate -P sepolia --keystore /path/to/keystore.json
 ```
 
 ### Mainnet
 
 ```bash
-cd contracts
+# From workspace root:
 sozo migrate -P mainnet --keystore /path/to/keystore.json
 ```
 

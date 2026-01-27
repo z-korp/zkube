@@ -1,6 +1,6 @@
 import Connect from "./Connect";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
-// import HeaderBalance from "./HeaderBalance";
+import CubeBalance from "./CubeBalance";
 import { useCallback, useState } from "react";
 import SettingsDropDown from "./SettingsDropDown";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,7 @@ import { Controller } from "./Controller";
 import TutorialModal from "./Tutorial/TutorialModal";
 import { Button } from "../elements/button";
 import { HeaderLeaderboard } from "./HeaderLeaderboard";
+import { ShopButton } from "./Shop/ShopButton";
 
 interface DesktopHeaderProps {
   onStartTutorial: () => void;
@@ -64,8 +65,9 @@ const DesktopHeader = ({
       </div>
       <div className="flex flex-col gap-4 items-center md:flex-row">
         {!!account && (
-          <div className="flex gap-4 flex-1 justify-end px-4 w-2/4">
-            {/* <HeaderBalance /> */}
+          <div className="flex gap-4 flex-1 justify-end items-center px-4">
+            <CubeBalance />
+            <ShopButton />
             <Controller />
           </div>
         )}

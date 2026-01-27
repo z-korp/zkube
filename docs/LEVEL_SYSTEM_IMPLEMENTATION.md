@@ -20,7 +20,7 @@ This document tracks the implementation of the level system for zKube, transform
 | Combo Stats | Reset per level, track `max_combo_run` |
 | Leaderboard | level → level_score → started_at |
 | Bonus Earning | 3★=2 random, 2★=1 random, 1★=none |
-| Run State | Bit-packed in `run_data` (52 bits) |
+| Run State | Bit-packed in `run_data` (88 bits) |
 | Level Transition | Animation + brief completing state |
 | Constraint Display | Visible when level loads |
 | Level 1 Start | Pre-placed rows (like current game) |
@@ -31,7 +31,7 @@ This document tracks the implementation of the level system for zKube, transform
 
 ## Bit-Packing Specifications
 
-### run_data Layout (52 bits used, 200 reserved)
+### run_data Layout (88 bits used, ~164 reserved)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -42,29 +42,40 @@ This document tracks the implementation of the level system for zKube, transform
 │ 15-21   │ level_moves           │ 7    │ 0-127    │ Moves this level│
 │ 22-25   │ constraint_progress   │ 4    │ 0-15     │ Times achieved  │
 │ 26      │ bonus_used_this_level │ 1    │ 0-1      │ For NoBonusUsed │
-│ 27-35   │ total_stars           │ 9    │ 0-511    │ Accumulated     │
+│ 27-35   │ total_cubes           │ 9    │ 0-511    │ Cubes earned    │
 │ 36-39   │ hammer_count          │ 4    │ 0-15     │ Inventory       │
 │ 40-43   │ wave_count            │ 4    │ 0-15     │ Inventory       │
 │ 44-47   │ totem_count           │ 4    │ 0-15     │ Inventory       │
 │ 48-51   │ max_combo_run         │ 4    │ 0-15     │ Best combo      │
-│ 52-251  │ reserved              │ 200  │ -        │ Future features │
+│ 52-67   │ total_score           │ 16   │ 0-65535  │ Cumulative score│
+│ 68      │ combo_5_achieved      │ 1    │ 0-1      │ First 5x combo  │
+│ 69      │ combo_10_achieved     │ 1    │ 0-1      │ First 10x combo │
+│ 70-78   │ cubes_brought         │ 9    │ 0-511    │ Cubes from wallet│
+│ 79-87   │ cubes_spent           │ 9    │ 0-511    │ Cubes spent     │
+│ 88-251  │ reserved              │ 164  │ -        │ Future features │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### PlayerMeta.data Layout (Flexible Meta-Progression)
+### PlayerMeta.data Layout (Meta-Progression)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │ Bits    │ Field                 │ Size │ Description                │
 ├─────────┼───────────────────────┼──────┼────────────────────────────┤
-│ 0-7     │ unlocked_start_level  │ 8    │ Highest unlocked start     │
-│ 8-11    │ loadout_unlocks       │ 4    │ Bit flags for loadouts     │
-│ 12-19   │ cosmetic_unlocks      │ 8    │ Bit flags for cosmetics    │
-│ 20-35   │ total_runs            │ 16   │ Lifetime run count         │
-│ 36-51   │ total_stars           │ 16   │ Lifetime stars earned      │
-│ 52-251  │ reserved              │ 200  │ Future unlocks/features    │
+│ 0-1     │ starting_hammer       │ 2    │ Starting hammer level 0-3  │
+│ 2-3     │ starting_wave         │ 2    │ Starting wave level 0-3    │
+│ 4-5     │ starting_totem        │ 2    │ Starting totem level 0-3   │
+│ 6-9     │ bag_hammer_level      │ 4    │ Hammer bag upgrade level   │
+│ 10-13   │ bag_wave_level        │ 4    │ Wave bag upgrade level     │
+│ 14-17   │ bag_totem_level       │ 4    │ Totem bag upgrade level    │
+│ 18-21   │ bridging_rank         │ 4    │ Cube bridging rank         │
+│ 22-37   │ total_runs            │ 16   │ Lifetime run count         │
+│ 38-53   │ total_cubes_earned    │ 16   │ Lifetime cubes earned      │
+│ 54-251  │ reserved              │ 198  │ Future unlocks/features    │
 └─────────────────────────────────────────────────────────────────────┘
 ```
+
+**Note:** Cube balance is NOT stored in PlayerMeta. It is tracked via the ERC1155 CubeToken contract.
 
 ---
 

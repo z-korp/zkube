@@ -1,6 +1,7 @@
 use starknet::ContractAddress;
 use crate::types::bonus::Bonus;
 use crate::types::constraint::ConstraintType;
+use crate::types::consumable::ConsumableType;
 
 #[derive(Copy, Drop, Serde)]
 #[dojo::event(historical: true)]
@@ -76,4 +77,17 @@ pub struct ConstraintProgress {
     pub constraint_type: ConstraintType,
     pub current: u8,
     pub required: u8,
+}
+
+/// Emitted when a consumable is purchased from the in-game shop
+#[derive(Copy, Drop, Serde)]
+#[dojo::event(historical: true)]
+pub struct ConsumablePurchased {
+    #[key]
+    pub game_id: u64,
+    #[key]
+    pub player: ContractAddress,
+    pub consumable: ConsumableType,
+    pub cost: u16,
+    pub cubes_remaining: u16,
 }

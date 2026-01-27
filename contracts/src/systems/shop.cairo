@@ -63,6 +63,7 @@ mod shop_system {
     use zkube::constants::DEFAULT_NS;
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::helpers::packing::{MetaData, MetaDataPackingTrait};
+    use zkube::systems::cube_token::{ICubeTokenDispatcher, ICubeTokenDispatcherTrait};
     use super::{get_starting_bonus_cost, get_bag_upgrade_cost_impl, get_bridging_upgrade_cost_impl};
 
     use dojo::model::ModelStorage;
@@ -106,9 +107,9 @@ mod shop_system {
             // Get cost for next level
             let cost = get_starting_bonus_cost(current_level);
 
-            // Spend cubes
-            let success = player_meta.spend_cubes(cost);
-            assert!(success, "Insufficient cube balance");
+            // Burn cubes from ERC1155 wallet (will revert if insufficient)
+            let cube_token = self.get_cube_token_dispatcher();
+            cube_token.burn(player, cost.into());
 
             // Upgrade the bonus
             match bonus_type {
@@ -150,9 +151,9 @@ mod shop_system {
             // Cost = 10 * 2^level
             let cost = get_bag_upgrade_cost_impl(current_level);
 
-            // Spend cubes
-            let success = player_meta.spend_cubes(cost);
-            assert!(success, "Insufficient cube balance");
+            // Burn cubes from ERC1155 wallet (will revert if insufficient)
+            let cube_token = self.get_cube_token_dispatcher();
+            cube_token.burn(player, cost.into());
 
             // Upgrade the bag
             match bonus_type {
@@ -184,9 +185,9 @@ mod shop_system {
             // Cost = 100 * 2^rank
             let cost = get_bridging_upgrade_cost_impl(current_rank);
 
-            // Spend cubes
-            let success = player_meta.spend_cubes(cost);
-            assert!(success, "Insufficient cube balance");
+            // Burn cubes from ERC1155 wallet (will revert if insufficient)
+            let cube_token = self.get_cube_token_dispatcher();
+            cube_token.burn(player, cost.into());
 
             // Upgrade the rank
             meta.bridging_rank = current_rank + 1;
@@ -205,6 +206,17 @@ mod shop_system {
 
         fn get_bridging_upgrade_cost(self: @ContractState, current_rank: u8) -> u64 {
             get_bridging_upgrade_cost_impl(current_rank)
+        }
+    }
+
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        /// Get the CubeToken contract dispatcher via world DNS
+        fn get_cube_token_dispatcher(self: @ContractState) -> ICubeTokenDispatcher {
+            let world = self.world(@DEFAULT_NS());
+            let cube_token_address = world.dns_address(@"cube_token")
+                .expect('CubeToken not found in DNS');
+            ICubeTokenDispatcher { contract_address: cube_token_address }
         }
     }
 }

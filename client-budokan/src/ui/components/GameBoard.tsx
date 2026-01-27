@@ -11,6 +11,7 @@ import type { Block } from "@/types/types";
 import LevelHeader from "./LevelHeader";
 import { Bonus, BonusType } from "@/dojo/game/types/bonus";
 import BonusAnimation from "./BonusAnimation";
+import CubeEarnedAnimation from "./CubeEarnedAnimation";
 import { Game } from "@/dojo/game/models/game";
 
 import "../../grid.css";
@@ -206,6 +207,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
           optimisticScore={optimisticScore}
           optimisticCombo={optimisticCombo}
           optimisticMaxCombo={optimisticMaxCombo}
+        />
+        <CubeEarnedAnimation
+          isMdOrLarger={isMdOrLarger}
+          comboCounter={game.combo}
+          combo5Achieved={game.runData.combo5Achieved}
+          combo10Achieved={game.runData.combo10Achieved}
         />
         {/* Level Header with progress and combo */}
         <div className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} px-1`}>

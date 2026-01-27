@@ -11,6 +11,7 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { useMediaQuery } from "react-responsive";
 import GameOverDialog from "../components/GameOverDialog";
 import LevelCompleteDialog from "../components/LevelCompleteDialog";
+import { InGameShopDialog } from "../components/Shop";
 import useViewport from "@/hooks/useViewport";
 import { useGrid } from "@/hooks/useGrid";
 import { useParams, Navigate } from "react-router-dom";
@@ -24,6 +25,7 @@ import {
   DialogTitle,
 } from "@/ui/elements/dialog";
 import Connect from "../components/Connect";
+import { isInGameShopAvailable } from "@/dojo/game/helpers/runDataPacking";
 
 // Type for storing level completion data
 interface LevelCompletionData {
@@ -72,6 +74,7 @@ export const Play = () => {
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [isLevelCompleteOpen, setIsLevelCompleteOpen] = useState(false);
+  const [isInGameShopOpen, setIsInGameShopOpen] = useState(false);
   const [levelCompletionData, setLevelCompletionData] = useState<LevelCompletionData | null>(null);
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
   // Store complete previous game state for level completion detection
@@ -312,7 +315,14 @@ export const Play = () => {
                       isOpen={isLevelCompleteOpen}
                       onClose={() => {
                         setIsLevelCompleteOpen(false);
-                        setLevelCompletionData(null);
+                        // Check if in-game shop should open (every 5 levels, has cubes to spend)
+                        const completedLevel = levelCompletionData.level;
+                        const hasCubesToSpend = game && game.cubesAvailable > 0;
+                        if (isInGameShopAvailable(completedLevel) && hasCubesToSpend) {
+                          setIsInGameShopOpen(true);
+                        } else {
+                          setLevelCompletionData(null);
+                        }
                       }}
                       level={levelCompletionData.level}
                       levelScore={levelCompletionData.levelScore}
@@ -326,6 +336,19 @@ export const Play = () => {
                       hammer={levelCompletionData.hammer}
                       wave={levelCompletionData.wave}
                       totem={levelCompletionData.totem}
+                    />
+                  )}
+
+                  {/* In-Game Shop Dialog (appears after level 5, 10, 15... if player has cubes) */}
+                  {game && levelCompletionData && (
+                    <InGameShopDialog
+                      isOpen={isInGameShopOpen}
+                      onClose={() => {
+                        setIsInGameShopOpen(false);
+                        setLevelCompletionData(null);
+                      }}
+                      gameId={game.id}
+                      runData={game.runData}
                     />
                   )}
 
