@@ -100,13 +100,12 @@ export function defineContractComponents(world: World) {
           player: RecsType.BigInt,
           data: RecsType.BigInt,
           best_level: RecsType.Number,
-          cube_balance: RecsType.BigInt,
         },
         {
           metadata: {
             namespace: VITE_PUBLIC_NAMESPACE,
             name: "PlayerMeta",
-            types: ["ContractAddress", "felt252", "u8", "u64"],
+            types: ["ContractAddress", "felt252", "u8"],
             customTypes: [],
           },
         }

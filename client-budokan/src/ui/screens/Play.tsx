@@ -376,18 +376,15 @@ export const Play = () => {
                   )}
 
                   {!!game &&
-                    isGameOn === "isOn" &&
+                    (isGameOn === "isOn" || isGameOn === "isOver") &&
                     !isGridLoading &&
                     !isGameLoading && (
-                    <div className="relative w-full">
+                    <div className={`relative w-full ${isGameOn === "isOver" ? "pointer-events-none opacity-50" : ""}`}>
                       <div
                         ref={gameGrid}
                         className="flex flex-col items-center game-container"
                       >
                         <GameBoard
-                          // Check if game is over because otherwise we can display
-                          // previous game data on the board while the new game is starting
-                          // and torii indexing
                           initialGrid={grid}
                           nextLine={game.isOver() ? [] : game.next_row}
                           score={game.isOver() ? 0 : game.score}
@@ -405,7 +402,7 @@ export const Play = () => {
                           }}
                         />
                       </div>
-                      {isMdOrLarger && (
+                      {isMdOrLarger && !game.isOver() && (
                         <div className="mt-4 sm:mt-0 sm:absolute sm:right-0 sm:bottom-0 sm:mb-4 flex justify-center sm:justify-end w-full">
                           <Surrender gameId={game.id} />
                         </div>
