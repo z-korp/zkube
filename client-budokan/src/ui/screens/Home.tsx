@@ -240,15 +240,15 @@ export const Home = () => {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase text-slate-400">Cubes</p>
-                  <p className="text-base font-semibold text-yellow-400">
-                    {formatStat(game.totalCubes)} 🧊
-                  </p>
-                </div>
-                <div>
                   <p className="text-xs uppercase text-slate-400">Score</p>
                   <p className="text-base font-semibold">
                     {formatStat(game.totalScore)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase text-slate-400">Cubes</p>
+                  <p className="text-base font-semibold text-yellow-400">
+                    {formatStat(game.totalCubes)} 🧊
                   </p>
                 </div>
               </div>
@@ -272,10 +272,10 @@ export const Home = () => {
                     Level
                   </TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-slate-400">
-                    Cubes
+                    Total Score
                   </TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-slate-400">
-                    Total Score
+                    Cubes
                   </TableHead>
                   <TableHead className="text-xs uppercase tracking-wide text-slate-400">
                     Actions
@@ -292,8 +292,8 @@ export const Home = () => {
                       {game.name}
                     </TableCell>
                     <TableCell>{formatStat(game.level)}</TableCell>
-                    <TableCell className="text-yellow-400">{formatStat(game.totalCubes)} 🧊</TableCell>
                     <TableCell>{formatStat(game.totalScore)}</TableCell>
+                    <TableCell className="text-yellow-400">{formatStat(game.totalCubes)} 🧊</TableCell>
                     <TableCell>
                       {!game.gameOver ? (
                         <Button

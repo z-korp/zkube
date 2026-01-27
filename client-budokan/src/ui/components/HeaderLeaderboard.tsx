@@ -157,8 +157,8 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
                   <TableHead className="text-center w-16">Rank</TableHead>
                   <TableHead className="text-left">Player</TableHead>
                   <TableHead className="text-center">Level</TableHead>
-                  <TableHead className="text-center">Cubes</TableHead>
                   <TableHead className="text-center">Score</TableHead>
+                  <TableHead className="text-center">Cubes</TableHead>
                   <TableHead className="text-center">Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -194,11 +194,11 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
                     <TableCell className="text-center font-semibold">
                       {getGameLevel(game)}
                     </TableCell>
-                    <TableCell className="text-center text-yellow-400">
-                      {getGameCubes(game)} 🧊
-                    </TableCell>
                     <TableCell className="text-center font-bold">
                       {getGameTotalScore(game)}
+                    </TableCell>
+                    <TableCell className="text-center text-yellow-400">
+                      {getGameCubes(game)} 🧊
                     </TableCell>
                     <TableCell className="text-center">
                       {isGameOver(game) ? (

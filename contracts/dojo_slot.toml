@@ -38,6 +38,7 @@ world_address = "0x054b04ebd35f35e18579f2a404c4ca85a89d7b9e85c98bd70e8a28b32ff5b
 "zkube_budo_v1_2_0-LevelCompleted" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-RunEnded" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-ConstraintProgress" = ["zkube_budo_v1_2_0-game_system"]
+"zkube_budo_v1_2_0-ConsumablePurchased" = ["zkube_budo_v1_2_0-game_system"]
 
 [init_call_args]
 "zkube_budo_v1_2_0-game_system" = [

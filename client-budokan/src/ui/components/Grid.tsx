@@ -111,7 +111,7 @@ const Grid: React.FC<GridProps> = ({
   // ==================== Custom Hooks ====================
 
   const isMoveComplete = useMoveStore((state) => state.isMoveComplete);
-  const { shouldBounce, animateText, resetAnimateText, setAnimateText } =
+  const { shouldBounce, animateText, resetAnimateText, setAnimateText, animatedPoints, setAnimatedPoints, animatedCubes, setAnimatedCubes } =
     useGridAnimations(lineExplodedCount);
   const {
     transitioningBlocks,
@@ -552,9 +552,13 @@ const Grid: React.FC<GridProps> = ({
             currentCombo > prevMaxCombo ? currentCombo : prevMaxCombo
           );
 
-          // If we have a combo, we display a message
+          // If we have a combo, we display a message with points and cubes
           if (lineExplodedCount > 1) {
             setAnimateText(Object.values(ComboMessages)[lineExplodedCount]);
+            setAnimatedPoints(pointsEarned);
+            // Cube bonuses: 4 lines = +1, 5 lines = +2, 6+ lines = +3
+            const cubesFromCombo = lineExplodedCount >= 6 ? 3 : lineExplodedCount >= 5 ? 2 : lineExplodedCount >= 4 ? 1 : 0;
+            setAnimatedCubes(cubesFromCombo);
           }
 
           // All animations and computing are done
@@ -637,7 +641,7 @@ const Grid: React.FC<GridProps> = ({
               />
             ))}
             <div className="flex items-center justify-center font-sans z-20 pointer-events-none">
-              <AnimatedText textEnum={animateText} reset={resetAnimateText} />
+              <AnimatedText textEnum={animateText} pointsEarned={animatedPoints} cubesEarned={animatedCubes} reset={resetAnimateText} />
             </div>
           </div>
         </div>

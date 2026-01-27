@@ -6,8 +6,6 @@ import NextLine from "../NextLine";
 import type { Block } from "@/types/types";
 import GameScores from "../GameScores";
 import { BonusType } from "@/dojo/game/types/bonus";
-import BonusAnimation from "../BonusAnimation";
-
 import "../../../grid.css";
 import TutorialGrid from "./TutorialGrid";
 import BonusButton from "../BonusButton";
@@ -198,12 +196,6 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
           isTxProcessing && "cursor-wait"
         } pb-2 md:pb-3`}
       >
-        <BonusAnimation
-          isMdOrLarger={isMdOrLarger}
-          optimisticScore={optimisticScore ?? 0}
-          optimisticCombo={optimisticCombo}
-          optimisticMaxCombo={optimisticMaxCombo}
-        />
         <div
           className={`${
             isMdOrLarger ? "w-[420px]" : "w-[338px]"

@@ -14,6 +14,7 @@ export interface LeaderboardEntry {
   gameOver: boolean;
   score: number; // Alias for totalScore for compatibility
   player_name?: string;
+  started_at?: number;
 }
 
 type UseLeaderboardSlotResult = {
@@ -82,14 +83,16 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
             gameOver: gameData.over || false,
             score: totalScore, // Alias for compatibility
             player_name: `Game #${gameData.game_id}`,
+            started_at: gameData.started_at ? Number(gameData.started_at) : 0,
           });
         }
 
-        // Sort by: level (desc) -> totalCubes (desc) -> totalScore (desc)
+        // Sort by: level (desc) -> totalScore (desc) -> totalCubes (desc) -> timestamp (asc, earlier = better)
         gameList.sort((a, b) => {
           if (b.level !== a.level) return b.level - a.level;
+          if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
           if (b.totalCubes !== a.totalCubes) return b.totalCubes - a.totalCubes;
-          return b.totalScore - a.totalScore;
+          return (a.started_at ?? 0) - (b.started_at ?? 0);
         });
 
         setGames(gameList);

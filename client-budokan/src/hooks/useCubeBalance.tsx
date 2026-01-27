@@ -44,9 +44,13 @@ export const useCubeBalance = (): CubeBalanceResult => {
       return;
     }
 
-    // Normalize addresses (remove leading zeros for comparison)
-    const normalizedAccount = address.toLowerCase();
-    const normalizedToken = cubeTokenAddress.toLowerCase();
+    // Normalize addresses (remove leading zeros after 0x for comparison)
+    const normalizeAddr = (addr: string) => {
+      const hex = addr.toLowerCase().replace(/^0x0*/, "0x");
+      return hex === "0x" ? "0x0" : hex;
+    };
+    const normalizedAccount = normalizeAddr(address);
+    const normalizedToken = normalizeAddr(cubeTokenAddress);
 
     try {
       setIsLoading(true);
@@ -103,8 +107,8 @@ export const useCubeBalance = (): CubeBalanceResult => {
         const meta = edge.node?.tokenMetadata;
         if (!meta?.contractAddress || !meta?.tokenId) continue;
         // Match by contract address and token ID
-        const contractMatch = meta.contractAddress.toLowerCase() === normalizedToken;
-        const tokenIdMatch = meta.tokenId === CUBE_TOKEN_ID || meta.tokenId === "1";
+        const contractMatch = normalizeAddr(meta.contractAddress) === normalizedToken;
+        const tokenIdMatch = normalizeAddr(meta.tokenId) === normalizeAddr(CUBE_TOKEN_ID);
         if (contractMatch && tokenIdMatch) {
           const amountStr = meta.amount || "0";
           const balance = amountStr.startsWith("0x")
