@@ -186,15 +186,18 @@ mod game_system {
                 game.set_run_data(run_data);
             }
 
-            // Apply starting bonuses from player meta upgrades
+            // Apply starting bonuses from player meta upgrades (capped at bag size)
             let meta_data = player_meta.get_meta_data();
             if meta_data.starting_hammer > 0
                 || meta_data.starting_wave > 0
                 || meta_data.starting_totem > 0 {
                 let mut run_data = game.get_run_data();
-                run_data.hammer_count = meta_data.starting_hammer;
-                run_data.wave_count = meta_data.starting_wave;
-                run_data.totem_count = meta_data.starting_totem;
+                let hammer_bag = player_meta.get_bag_size(0);
+                let wave_bag = player_meta.get_bag_size(1);
+                let totem_bag = player_meta.get_bag_size(2);
+                run_data.hammer_count = if meta_data.starting_hammer > hammer_bag { hammer_bag } else { meta_data.starting_hammer };
+                run_data.wave_count = if meta_data.starting_wave > wave_bag { wave_bag } else { meta_data.starting_wave };
+                run_data.totem_count = if meta_data.starting_totem > totem_bag { totem_bag } else { meta_data.starting_totem };
                 game.set_run_data(run_data);
             }
 
@@ -287,12 +290,7 @@ mod game_system {
                 let final_score = pre_complete_data.level_score;
                 let final_moves = pre_complete_data.level_moves;
 
-                let (cubes, bonuses) = game.complete_level(base_seed.seed);
-
-                // Award bonuses
-                if bonuses > 0 {
-                    game.award_bonuses(base_seed.seed, bonuses);
-                }
+                let (cubes, _bonuses) = game.complete_level(base_seed.seed);
 
                 let player = get_caller_address();
 
@@ -306,7 +304,7 @@ mod game_system {
                             cubes,
                             moves_used: final_moves.into(),
                             score: final_score.into(),
-                            bonuses_earned: bonuses,
+                            bonuses_earned: 0,
                         },
                     );
 
@@ -371,11 +369,7 @@ mod game_system {
                 let final_score = pre_complete_data.level_score;
                 let final_moves = pre_complete_data.level_moves;
 
-                let (cubes, bonuses) = game.complete_level(base_seed.seed);
-
-                if bonuses > 0 {
-                    game.award_bonuses(base_seed.seed, bonuses);
-                }
+                let (cubes, _bonuses) = game.complete_level(base_seed.seed);
 
                 let player = get_caller_address();
 
@@ -388,7 +382,7 @@ mod game_system {
                             cubes,
                             moves_used: final_moves.into(),
                             score: final_score.into(),
-                            bonuses_earned: bonuses,
+                            bonuses_earned: 0,
                         },
                     );
 
@@ -513,24 +507,20 @@ mod game_system {
             // Apply consumable effect
             match consumable {
                 ConsumableType::Hammer => {
-                    // Get player's bag size for hammer
                     let player_meta: PlayerMeta = world.read_model(player);
-                    let meta_data = player_meta.get_meta_data();
-                    let max_bag = 3_u8 + meta_data.bag_hammer_level;
+                    let max_bag = player_meta.get_bag_size(0);
                     assert!(run_data.hammer_count < max_bag, "Hammer bag is full");
                     run_data.hammer_count = run_data.hammer_count + 1;
                 },
                 ConsumableType::Wave => {
                     let player_meta: PlayerMeta = world.read_model(player);
-                    let meta_data = player_meta.get_meta_data();
-                    let max_bag = 3_u8 + meta_data.bag_wave_level;
+                    let max_bag = player_meta.get_bag_size(1);
                     assert!(run_data.wave_count < max_bag, "Wave bag is full");
                     run_data.wave_count = run_data.wave_count + 1;
                 },
                 ConsumableType::Totem => {
                     let player_meta: PlayerMeta = world.read_model(player);
-                    let meta_data = player_meta.get_meta_data();
-                    let max_bag = 3_u8 + meta_data.bag_totem_level;
+                    let max_bag = player_meta.get_bag_size(2);
                     assert!(run_data.totem_count < max_bag, "Totem bag is full");
                     run_data.totem_count = run_data.totem_count + 1;
                 },

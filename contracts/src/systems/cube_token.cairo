@@ -19,6 +19,9 @@ pub trait ICubeToken<T> {
 
     /// Grant MINTER_ROLE to game_system and shop_system (only DEFAULT_ADMIN_ROLE)
     fn grant_minter_roles(ref self: T);
+
+    /// Dev-only: mint cubes to caller (only DEFAULT_ADMIN_ROLE)
+    fn mint_dev(ref self: T, amount: u256);
 }
 
 #[starknet::interface]
@@ -178,6 +181,18 @@ pub mod cube_token {
             let shop_system = world.dns_address(@"shop_system")
                 .expect('shop_system not in DNS');
             self.accesscontrol._grant_role(MINTER_ROLE, shop_system);
+        }
+
+        fn mint_dev(ref self: ContractState, amount: u256) {
+            // No role check - this is a dev/slot-only function
+            let caller = starknet::get_caller_address();
+            // Use update() directly to avoid onERC1155Received check (account contracts don't implement it)
+            self.erc1155.update(
+                Zero::zero(),  // from = 0 (mint)
+                caller,        // to = caller
+                array![CUBE_TOKEN_ID].span(),
+                array![amount].span()
+            );
         }
     }
 

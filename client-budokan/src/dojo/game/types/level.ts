@@ -61,16 +61,9 @@ export class Level {
     }
   }
 
-  /** Get bonus count earned based on cubes */
-  static getBonusReward(cubes: number): number {
-    switch (cubes) {
-      case 3:
-        return 2;
-      case 2:
-        return 1;
-      default:
-        return 0;
-    }
+  /** Get bonus count earned based on cubes (deprecated - bonuses no longer awarded on level clear) */
+  static getBonusReward(_cubes: number): number {
+    return 0;
   }
 
   /** Check if level is complete */

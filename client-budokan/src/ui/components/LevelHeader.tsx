@@ -397,10 +397,7 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
                   </div>
                   <div className="border-t border-slate-600 pt-1.5 mt-1.5">
                     <div className="text-xs text-slate-400">
-                      <span className="text-yellow-400">3🧊</span> = 2 bonuses
-                    </div>
-                    <div className="text-xs text-slate-400">
-                      <span className="text-yellow-400">2🧊</span> = 1 bonus
+                      Spend cubes in the shop for bonuses
                     </div>
                   </div>
                 </div>

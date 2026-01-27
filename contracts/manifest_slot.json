@@ -47,8 +47,8 @@
       ]
     },
     {
-      "address": "0x7ecc760e457de12d143a360684bbceec88ee6bedf18162cc1a4ef2f68724d9e",
-      "class_hash": "0x5c35262030a1359fac3bf6f9c692f85bece5d3ba3c8cec4abc57b31a05e5556",
+      "address": "0x447ca0d1f00f00066286bf5f40908ceac6176ab00f0b18b691741e52eeb4d0f",
+      "class_hash": "0x422be504f4a65a49223bc7846e2988409927421cbf1f4c26da0f022b02cb5f9",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-cube_token",
       "selector": "0x58ce743cd328aa3800df3c962d39156cf1c6fcffeae123925c693902472043b",
@@ -57,6 +57,7 @@
         "mint",
         "burn",
         "grant_minter_roles",
+        "mint_dev",
         "register_external_contract",
         "upgrade",
         "safe_transfer_from",
@@ -68,8 +69,8 @@
       ]
     },
     {
-      "address": "0x2c23f95cd6de232cdd9626675279aed5957d86f6038e288ced2a6bcf3952d05",
-      "class_hash": "0x19cdfe77ce229647ff28bb646ea0c1f2c6a95648d8b558de3fb5cdd91aa1ecf",
+      "address": "0x21e49bdaf8e44e2d593a8a6b23b9795caff0bdfb300dd8029b3e431fee4d974",
+      "class_hash": "0x70c2ba19e68ea37d487ece6bca50f54d5e3819f3bf76225ab0d5629bdc823bb",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
         "0x062347854b5817b3c8101014b5813fb0b5db48e4df2a0a9dada8cbdab191b064",
@@ -4052,6 +4053,18 @@
           "type": "function",
           "name": "grant_minter_roles",
           "inputs": [],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "mint_dev",
+          "inputs": [
+            {
+              "name": "amount",
+              "type": "core::integer::u256"
+            }
+          ],
           "outputs": [],
           "state_mutability": "external"
         }

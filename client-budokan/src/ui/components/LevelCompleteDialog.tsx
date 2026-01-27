@@ -3,15 +3,12 @@ import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCheck,
-  faGift,
   faTrophy,
 } from "@fortawesome/free-solid-svg-icons";
 import { motion } from "framer-motion";
 import { generateLevelConfig } from "@/dojo/game/types/level";
 import { ConstraintType } from "@/dojo/game/types/constraint";
 import { Button } from "../elements/button";
-import { useTheme } from "@/ui/elements/theme-provider/hooks";
-import ImageAssets from "@/ui/theme/ImageAssets";
 
 interface LevelCompleteDialogProps {
   isOpen: boolean;
@@ -41,16 +38,13 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   seed,
   constraintProgress: _constraintProgress, // Unused - constraint is always satisfied when level completes
   bonusUsedThisLevel: _bonusUsedThisLevel, // Unused - constraint is always satisfied when level completes
-  prevHammer,
-  prevWave,
-  prevTotem,
-  hammer,
-  wave,
-  totem,
+  prevHammer: _prevHammer,
+  prevWave: _prevWave,
+  prevTotem: _prevTotem,
+  hammer: _hammer,
+  wave: _wave,
+  totem: _totem,
 }) => {
-  const { themeTemplate } = useTheme();
-  const imgAssets = ImageAssets(themeTemplate);
-  
   // Animation state for staggered reveals
   const [animationPhase, setAnimationPhase] = useState(0);
 
@@ -77,39 +71,6 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
 
   // Calculate cubes earned
   const cubesEarned = levelConfig.calculateCubes(levelMoves);
-
-  // Calculate expected bonuses from cubes (matches contract logic)
-  // 3 cubes = 2 bonuses, 2 cubes = 1 bonus, 1 cube = 0 bonuses
-  const expectedBonusCount = useMemo(() => {
-    if (cubesEarned >= 3) return 2;
-    if (cubesEarned >= 2) return 1;
-    return 0;
-  }, [cubesEarned]);
-
-  // Calculate bonuses earned - only count positive gains (ignores used bonuses)
-  // When a bonus is used to complete a level, the count decreases then increases
-  // We only want to show what was gained, not what was used
-  const bonusesEarned = useMemo(() => {
-    // Only count increases (positive diff means we earned that type)
-    const hammerGained = Math.max(0, hammer - prevHammer);
-    const waveGained = Math.max(0, wave - prevWave);
-    const totemGained = Math.max(0, totem - prevTotem);
-    const observedTotal = hammerGained + waveGained + totemGained;
-    
-    // If we can't observe specific gains but expected bonuses from stars,
-    // it means bonuses were earned but offset by usage (e.g., used 1, earned 1 of same type)
-    // In this case, just show the expected count without specific types
-    const total = Math.max(observedTotal, expectedBonusCount);
-    
-    return {
-      hammer: hammerGained,
-      wave: waveGained,
-      totem: totemGained,
-      total,
-      // Flag if we couldn't observe specific types (earned same type as used)
-      showGeneric: observedTotal < expectedBonusCount && expectedBonusCount > 0,
-    };
-  }, [hammer, wave, totem, prevHammer, prevWave, prevTotem, expectedBonusCount]);
 
   // If the level completed, the constraint was satisfied by definition
   // (the contract requires both score AND constraint to be satisfied for level completion)
@@ -231,100 +192,16 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
           )}
         </motion.div>
 
-        {/* Bonuses Earned with animation */}
+        {/* Cubes info */}
         <motion.div
+          className="mb-6 text-center"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={animationPhase >= 3 ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
           transition={{ duration: 0.4 }}
         >
-          {bonusesEarned.total > 0 ? (
-            <div className="mb-6">
-              <motion.div 
-                className="flex items-center gap-2 justify-center mb-3"
-                initial={{ y: -10 }}
-                animate={animationPhase >= 3 ? { y: 0 } : { y: -10 }}
-                transition={{ type: "spring", stiffness: 200, damping: 15 }}
-              >
-                <motion.div
-                  animate={animationPhase >= 3 ? { rotate: [0, -10, 10, -10, 0] } : {}}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                  <FontAwesomeIcon icon={faGift} className="text-purple-400 text-xl" />
-                </motion.div>
-                <span className="text-lg font-semibold text-purple-400">
-                  {bonusesEarned.total} Bonus{bonusesEarned.total > 1 ? "es" : ""} Earned!
-                </span>
-              </motion.div>
-              <div className="flex justify-center gap-4">
-                {/* Show specific bonus types if we can observe them */}
-                {bonusesEarned.hammer > 0 && (
-                  <motion.div 
-                    className="flex items-center gap-2 bg-slate-800/50 px-4 py-3 rounded-lg border border-purple-500/50"
-                    initial={{ scale: 0, rotate: -20 }}
-                    animate={animationPhase >= 3 ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -20 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
-                  >
-                    <img src={imgAssets.hammer} alt="Hammer" className="w-8 h-8" />
-                    <span className="text-white font-bold text-lg">
-                      +{bonusesEarned.hammer}
-                    </span>
-                  </motion.div>
-                )}
-                {bonusesEarned.wave > 0 && (
-                  <motion.div 
-                    className="flex items-center gap-2 bg-slate-800/50 px-4 py-3 rounded-lg border border-purple-500/50"
-                    initial={{ scale: 0, rotate: -20 }}
-                    animate={animationPhase >= 3 ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -20 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
-                  >
-                    <img src={imgAssets.wave} alt="Wave" className="w-8 h-8" />
-                    <span className="text-white font-bold text-lg">
-                      +{bonusesEarned.wave}
-                    </span>
-                  </motion.div>
-                )}
-                {bonusesEarned.totem > 0 && (
-                  <motion.div 
-                    className="flex items-center gap-2 bg-slate-800/50 px-4 py-3 rounded-lg border border-purple-500/50"
-                    initial={{ scale: 0, rotate: -20 }}
-                    animate={animationPhase >= 3 ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -20 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.3 }}
-                  >
-                    <img src={imgAssets.tiki} alt="Totem" className="w-8 h-8" />
-                    <span className="text-white font-bold text-lg">
-                      +{bonusesEarned.totem}
-                    </span>
-                  </motion.div>
-                )}
-                {/* Show generic bonus display if earned same type as used */}
-                {bonusesEarned.showGeneric && (
-                  <motion.div 
-                    className="flex items-center gap-2 bg-slate-800/50 px-4 py-3 rounded-lg border border-purple-500/50"
-                    initial={{ scale: 0 }}
-                    animate={animationPhase >= 3 ? { scale: 1 } : { scale: 0 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
-                  >
-                    <span className="text-purple-300 font-bold text-lg">
-                      +{expectedBonusCount} Random
-                    </span>
-                  </motion.div>
-                )}
-              </div>
-              <div className="text-center text-xs text-slate-400 mt-2">
-                {cubesEarned === 3
-                  ? "3 Cubes = 2 Bonuses"
-                  : cubesEarned === 2
-                  ? "2 Cubes = 1 Bonus"
-                  : "1 Cube = No Bonus"}
-              </div>
-            </div>
-          ) : (
-            <div className="mb-6 text-center">
-              <span className="text-slate-400 text-sm">
-                Complete with 2+ cubes to earn bonuses!
-              </span>
-            </div>
-          )}
+          <span className="text-slate-400 text-sm">
+            Spend cubes in the shop to buy bonuses!
+          </span>
         </motion.div>
 
         {/* Continue Button */}

@@ -77,6 +77,7 @@ export const useCubeBalance = (): CubeBalanceResult => {
         }
       `;
 
+      console.log("[useCubeBalance] fetching from:", graphqlUrl, "account:", normalizedAccount, "token:", normalizedToken);
       const response = await fetch(graphqlUrl, {
         method: "POST",
         headers: {
@@ -95,6 +96,7 @@ export const useCubeBalance = (): CubeBalanceResult => {
       }
 
       const result = await response.json();
+      console.log("[useCubeBalance] raw response:", JSON.stringify(result, null, 2));
       
       if (result.errors) {
         throw new Error(result.errors[0]?.message || "GraphQL error");
@@ -120,6 +122,7 @@ export const useCubeBalance = (): CubeBalanceResult => {
         }
       }
       if (!found) {
+        console.log("[useCubeBalance] no matching CUBE balance found in", edges.length, "edges");
         setCubeBalance(BigInt(0));
       }
     } catch (err) {

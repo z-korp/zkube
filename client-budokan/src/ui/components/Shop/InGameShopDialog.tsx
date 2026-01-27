@@ -40,7 +40,7 @@ const InGameShopDialog: React.FC<InGameShopDialogProps> = ({
   onClose,
   gameId,
   runData,
-  bagSizes = { hammer: 3, wave: 3, totem: 3 }, // Default bag sizes
+  bagSizes = { hammer: 1, wave: 1, totem: 1 }, // Default bag sizes
 }) => {
   const { themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);

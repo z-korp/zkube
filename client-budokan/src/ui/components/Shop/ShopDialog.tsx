@@ -147,7 +147,7 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
                 (bonus.id === 0 ? data.bagHammerLevel : bonus.id === 1 ? data.bagWaveLevel : data.bagTotemLevel) : 0;
               const cost = getBagSizeCost(currentLevel);
               const canAfford = cubeBalance >= cost;
-              const maxCapacity = 3 + currentLevel; // Base 3 + level
+              const maxCapacity = 1 + currentLevel; // Base 1 + level
 
               return (
                 <div key={bonus.id} className="flex items-center justify-between bg-slate-800/30 p-3 rounded-lg">

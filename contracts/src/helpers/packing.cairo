@@ -381,9 +381,9 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
         }
     }
 
-    /// Get the bag size for a bonus type (default 3 + upgrade level)
+    /// Get the bag size for a bonus type (default 1 + upgrade level)
     fn get_bag_size(self: MetaData, bonus_type: u8) -> u8 {
-        let base_size: u8 = 3;
+        let base_size: u8 = 1;
         match bonus_type {
             0 => base_size + self.bag_hammer_level, // Hammer
             1 => base_size + self.bag_wave_level,   // Wave
@@ -612,15 +612,15 @@ mod tests {
     #[test]
     fn test_meta_data_bag_size() {
         let mut data = MetaDataPackingTrait::new();
-        // Default bag size is 3
-        assert!(data.get_bag_size(0) == 3, "Default hammer bag should be 3");
-        assert!(data.get_bag_size(1) == 3, "Default wave bag should be 3");
-        assert!(data.get_bag_size(2) == 3, "Default totem bag should be 3");
+        // Default bag size is 1
+        assert!(data.get_bag_size(0) == 1, "Default hammer bag should be 1");
+        assert!(data.get_bag_size(1) == 1, "Default wave bag should be 1");
+        assert!(data.get_bag_size(2) == 1, "Default totem bag should be 1");
 
         // Upgrade hammer bag
         data.bag_hammer_level = 2;
-        assert!(data.get_bag_size(0) == 5, "Upgraded hammer bag should be 5");
-        assert!(data.get_bag_size(1) == 3, "Wave bag should still be 3");
+        assert!(data.get_bag_size(0) == 3, "Upgraded hammer bag should be 3");
+        assert!(data.get_bag_size(1) == 1, "Wave bag should still be 1");
     }
 
     #[test]
