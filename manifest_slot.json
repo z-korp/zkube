@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x613551abceb2b37073b1149bb862ea70cf029981ce1ca47e9dd7c7ab97cb65d",
-    "address": "0xb5d3c97c8517b84bd8786e96e5e09b1fa8205a5d63836b2220b67c3f40d397",
-    "seed": "zkube_cube_economy_v1",
+    "address": "0x54b04ebd35f35e18579f2a404c4ca85a89d7b9e85c98bd70e8a28b32ff5b964",
+    "seed": "zkube_cube_economy_v2",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,7 +33,7 @@
   },
   "contracts": [
     {
-      "address": "0x272cf156ad159652049357ec1080847e5bcbc020db154b56b69274168cab990",
+      "address": "0x5b493d503427a1253e29cc37e10d8743e0e9297c685bb0e0df1a5e1c2c09fa9",
       "class_hash": "0x7c4e0d3f0ac59adf21489edf8051a643c673844d41b15f596f98852b14d9621",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819"
@@ -47,8 +47,8 @@
       ]
     },
     {
-      "address": "0x39305e3c8623d9341714655337c25cc73629067e380ac1de1f830edd244e079",
-      "class_hash": "0x2308a4b1a2f643bc610b947245ada4de0ba3b5130e0cf9b1e76347f13a1cfc5",
+      "address": "0x7ecc760e457de12d143a360684bbceec88ee6bedf18162cc1a4ef2f68724d9e",
+      "class_hash": "0x5c35262030a1359fac3bf6f9c692f85bece5d3ba3c8cec4abc57b31a05e5556",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-cube_token",
       "selector": "0x58ce743cd328aa3800df3c962d39156cf1c6fcffeae123925c693902472043b",
@@ -56,6 +56,7 @@
         "dojo_init",
         "mint",
         "burn",
+        "grant_minter_roles",
         "register_external_contract",
         "upgrade",
         "safe_transfer_from",
@@ -67,8 +68,8 @@
       ]
     },
     {
-      "address": "0x314eff6e2f48dd5fd6417b48b7e5f8f2c6e19c3a81792293b5328890a455090",
-      "class_hash": "0x315ba08158161a19a1863748227cc847969653306862ea62ce90a510dde3913",
+      "address": "0x2c23f95cd6de232cdd9626675279aed5957d86f6038e288ced2a6bcf3952d05",
+      "class_hash": "0x19cdfe77ce229647ff28bb646ea0c1f2c6a95648d8b558de3fb5cdd91aa1ecf",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
         "0x062347854b5817b3c8101014b5813fb0b5db48e4df2a0a9dada8cbdab191b064",
@@ -88,7 +89,7 @@
       ]
     },
     {
-      "address": "0x48c78c9dc21c18ed4d7f419cd978520ae4d36569268934097cff54c885bfeaa",
+      "address": "0x192f81c0f3e5cfe8d7254496af997e36091badfb0b52c553ea21bdc7010d7e6",
       "class_hash": "0x2bea4888b99826402f5af37a370aa8ba6b869e0c7d1459465322345968b9e61",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-shop_system",
@@ -4046,6 +4047,13 @@
             }
           ],
           "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "grant_minter_roles",
+          "inputs": [],
+          "outputs": [],
+          "state_mutability": "external"
         }
       ]
     },

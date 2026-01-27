@@ -5,7 +5,7 @@
 /// - Same seed + same level = same config
 /// - Different seed = different config sequence
 /// - Level 100+ caps at max difficulty (survival mode)
-/// - Points derived from moves × ratio (0.8 → 2.5)
+/// - Points derived from moves × ratio (0.8 → 2.5), base moves 20→60
 /// - Correlated variance keeps difficulty ratio constant
 
 use core::poseidon::{PoseidonTrait, HashState};
@@ -17,9 +17,9 @@ use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait};
 
 /// Constants for level generation
 mod LevelConstants {
-    // Moves scaling (linear 35 → 85)
-    pub const BASE_MOVES: u16 = 35;
-    pub const MAX_MOVES: u16 = 85;
+    // Moves scaling (linear 20 → 60)
+    pub const BASE_MOVES: u16 = 20;
+    pub const MAX_MOVES: u16 = 60;
 
     // Ratio scaling ×100 for integer math (0.80 → 2.50)
     pub const BASE_RATIO_X100: u16 = 80;   // 0.80 points per move at level 1
@@ -103,7 +103,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     }
 
     /// Calculate base moves for a level (before variance)
-    /// Linear scaling: 35 at level 1, 85 at level 100
+    /// Linear scaling: 20 at level 1, 60 at level 100
     #[inline(always)]
     fn calculate_base_moves(level: u8) -> u16 {
         if level <= 1 {
@@ -343,14 +343,14 @@ mod tests {
 
     #[test]
     fn test_base_moves_scaling() {
-        assert!(LevelGeneratorTrait::calculate_base_moves(1) == 35, "Level 1 should have 35 moves");
+        assert!(LevelGeneratorTrait::calculate_base_moves(1) == 20, "Level 1 should have 20 moves");
         assert!(
-            LevelGeneratorTrait::calculate_base_moves(100) == 85,
-            "Level 100 should have 85 moves",
+            LevelGeneratorTrait::calculate_base_moves(100) == 60,
+            "Level 100 should have 60 moves",
         );
 
         let mid = LevelGeneratorTrait::calculate_base_moves(50);
-        assert!(mid >= 59 && mid <= 61, "Level 50 should be around 60 moves");
+        assert!(mid >= 39 && mid <= 41, "Level 50 should be around 40 moves");
     }
 
     #[test]
@@ -485,11 +485,11 @@ mod tests {
     fn test_generate_level_1() {
         let config = LevelGeneratorTrait::generate(TEST_SEED, 1);
 
-        // Level 1: base_moves=35, ratio=0.80, base_points=28
-        // With ±5% variance: moves 33-37, points 27-29
+        // Level 1: base_moves=20, ratio=0.80, base_points=16
+        // With ±5% variance: moves 19-21, points 15-17
         assert!(config.level == 1, "Level should be 1");
-        assert!(config.points_required >= 26 && config.points_required <= 30, "Points in range");
-        assert!(config.max_moves >= 33 && config.max_moves <= 37, "Moves in range");
+        assert!(config.points_required >= 14 && config.points_required <= 18, "Points in range");
+        assert!(config.max_moves >= 18 && config.max_moves <= 22, "Moves in range");
         assert!(config.difficulty == Difficulty::Easy, "Level 1 should be Easy");
     }
 
@@ -497,11 +497,11 @@ mod tests {
     fn test_generate_level_50() {
         let config = LevelGeneratorTrait::generate(TEST_SEED, 50);
 
-        // Level 50: base_moves~60, ratio~1.65, base_points~99
-        // With ±10% variance: moves 54-66, points 89-109
+        // Level 50: base_moves~40, ratio~1.65, base_points~66
+        // With ±10% variance: moves 36-44, points 59-73
         assert!(config.level == 50, "Level should be 50");
-        assert!(config.points_required >= 85 && config.points_required <= 115, "Points in range");
-        assert!(config.max_moves >= 52 && config.max_moves <= 68, "Moves in range");
+        assert!(config.points_required >= 56 && config.points_required <= 76, "Points in range");
+        assert!(config.max_moves >= 34 && config.max_moves <= 46, "Moves in range");
         assert!(config.difficulty == Difficulty::Hard, "Level 50 should be Hard");
         assert!(config.cube_3_threshold < config.cube_2_threshold, "Cube thresholds ordered");
         assert!(config.cube_2_threshold < config.max_moves, "2-cube threshold < max");
@@ -511,13 +511,13 @@ mod tests {
     fn test_generate_level_100() {
         let config = LevelGeneratorTrait::generate(TEST_SEED, 100);
 
-        // Level 100: base_moves=85, ratio=2.50, base_points=212
-        // With ±15% variance: moves 72-98, points 180-244
+        // Level 100: base_moves=60, ratio=2.50, base_points=150
+        // With ±15% variance: moves 51-69, points 127-173
         assert!(config.level == 100, "Level should be 100");
         assert!(
-            config.points_required >= 175 && config.points_required <= 250, "Points in range",
+            config.points_required >= 124 && config.points_required <= 176, "Points in range",
         );
-        assert!(config.max_moves >= 70 && config.max_moves <= 100, "Moves in range");
+        assert!(config.max_moves >= 49 && config.max_moves <= 71, "Moves in range");
         assert!(config.difficulty == Difficulty::Master, "Level 100 should be Master");
     }
 

@@ -9,6 +9,7 @@ import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "./NextLine";
 import type { Block } from "@/types/types";
 import LevelHeader from "./LevelHeader";
+import { isShopLevel } from "@/dojo/game/helpers/runDataPacking";
 import { Bonus, BonusType } from "@/dojo/game/types/bonus";
 import BonusAnimation from "./BonusAnimation";
 import CubeEarnedAnimation from "./CubeEarnedAnimation";
@@ -28,6 +29,7 @@ interface GameBoardProps {
   account: Account | null;
   game: Game;
   seed: bigint;
+  onShopClick?: () => void;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -42,6 +44,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   account,
   game,
   seed,
+  onShopClick,
 }) => {
   const {
     setup: {
@@ -227,6 +230,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
             isMdOrLarger={isMdOrLarger}
             constraintProgress={game.constraintProgress}
             bonusUsedThisLevel={game.bonusUsedThisLevel}
+            isShopLevel={isShopLevel(game.level)}
+            cubesAvailable={game.cubesAvailable}
+            onShopClick={onShopClick}
           />
         </div>
         

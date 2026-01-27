@@ -190,15 +190,15 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
             <div className="flex justify-between text-sm">
               <span className={levelMoves <= levelConfig.cube3Threshold ? "text-yellow-400" : "text-slate-500"}>
                 🧊🧊🧊
-                ≤{levelConfig.cube3Threshold}
+                ≥{levelConfig.maxMoves - levelConfig.cube3Threshold} left
               </span>
               <span className={levelMoves <= levelConfig.cube2Threshold && levelMoves > levelConfig.cube3Threshold ? "text-yellow-400" : "text-slate-500"}>
                 🧊🧊
-                ≤{levelConfig.cube2Threshold}
+                ≥{levelConfig.maxMoves - levelConfig.cube2Threshold} left
               </span>
               <span className={levelMoves > levelConfig.cube2Threshold ? "text-yellow-400" : "text-slate-500"}>
                 🧊
-                any
+                level clear
               </span>
             </div>
           </div>

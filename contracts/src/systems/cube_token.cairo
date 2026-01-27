@@ -16,6 +16,9 @@ pub trait ICubeToken<T> {
     
     /// Get cube balance for an account
     fn balance_of_cubes(self: @T, account: ContractAddress) -> u256;
+
+    /// Grant MINTER_ROLE to game_system and shop_system (only DEFAULT_ADMIN_ROLE)
+    fn grant_minter_roles(ref self: T);
 }
 
 #[starknet::interface]
@@ -110,10 +113,12 @@ pub mod cube_token {
         let deployer_account = starknet::get_tx_info().unbox().account_contract_address;
         self.accesscontrol._grant_role(DEFAULT_ADMIN_ROLE, deployer_account);
 
-        // Grant MINTER_ROLE to game_system and shop_system via world DNS
+        // Try to grant MINTER_ROLE to game_system and shop_system via world DNS.
+        // These may not be registered yet if cube_token inits first in the migration batch.
+        // Use grant_minter_roles() post-deploy to fix if needed.
         let world = self.world(@DEFAULT_NS());
         
-        // Grant to game_system
+        // Grant to game_system (if already registered)
         match world.dns_address(@"game_system") {
             Option::Some(game_system) => {
                 self.accesscontrol._grant_role(MINTER_ROLE, game_system);
@@ -121,7 +126,7 @@ pub mod cube_token {
             Option::None => {},
         };
 
-        // Grant to shop_system
+        // Grant to shop_system (if already registered)
         match world.dns_address(@"shop_system") {
             Option::Some(shop_system) => {
                 self.accesscontrol._grant_role(MINTER_ROLE, shop_system);
@@ -159,6 +164,20 @@ pub mod cube_token {
 
         fn balance_of_cubes(self: @ContractState, account: ContractAddress) -> u256 {
             self.erc1155.balance_of(account, CUBE_TOKEN_ID)
+        }
+
+        fn grant_minter_roles(ref self: ContractState) {
+            self.accesscontrol.assert_only_role(DEFAULT_ADMIN_ROLE);
+
+            let world = self.world(@DEFAULT_NS());
+
+            let game_system = world.dns_address(@"game_system")
+                .expect('game_system not in DNS');
+            self.accesscontrol._grant_role(MINTER_ROLE, game_system);
+
+            let shop_system = world.dns_address(@"shop_system")
+                .expect('shop_system not in DNS');
+            self.accesscontrol._grant_role(MINTER_ROLE, shop_system);
         }
     }
 

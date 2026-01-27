@@ -216,6 +216,7 @@ export const Play = () => {
 
     // If we have a previous state and level increased, show completion dialog
     if (prevState && currentLevel > prevState.level && !game.over) {
+      console.log("[LevelComplete] Level changed:", prevState.level, "->", currentLevel, "game.cubesAvailable:", game.cubesAvailable, "game.totalCubes:", game.totalCubes, "game.cubesBrought:", game.cubesBrought);
       // Use the PREVIOUS state's stats (captured before the level changed)
       setLevelCompletionData({
         level: prevState.level,
@@ -318,9 +319,13 @@ export const Play = () => {
                         // Check if in-game shop should open (every 5 levels, has cubes to spend)
                         const completedLevel = levelCompletionData.level;
                         const hasCubesToSpend = game && game.cubesAvailable > 0;
-                        if (isInGameShopAvailable(completedLevel) && hasCubesToSpend) {
+                        const shopAvailable = isInGameShopAvailable(completedLevel);
+                        console.log("[InGameShop] completedLevel:", completedLevel, "shopAvailable:", shopAvailable, "hasCubesToSpend:", hasCubesToSpend, "cubesAvailable:", game?.cubesAvailable, "totalCubes:", game?.totalCubes, "cubesBrought:", game?.cubesBrought, "cubesSpent:", game?.cubesSpent);
+                        if (shopAvailable && hasCubesToSpend) {
+                          console.log("[InGameShop] Opening in-game shop!");
                           setIsInGameShopOpen(true);
                         } else {
+                          console.log("[InGameShop] NOT opening shop. shopAvailable:", shopAvailable, "hasCubesToSpend:", hasCubesToSpend);
                           setLevelCompletionData(null);
                         }
                       }}
@@ -339,8 +344,8 @@ export const Play = () => {
                     />
                   )}
 
-                  {/* In-Game Shop Dialog (appears after level 5, 10, 15... if player has cubes) */}
-                  {game && levelCompletionData && (
+                  {/* In-Game Shop Dialog (appears after level 5, 10, 15... or via shop button on level 6, 11, 16...) */}
+                  {game && (
                     <InGameShopDialog
                       isOpen={isInGameShopOpen}
                       onClose={() => {
@@ -394,6 +399,10 @@ export const Play = () => {
                           account={account}
                           game={game}
                           seed={seed}
+                          onShopClick={() => {
+                            console.log("[InGameShop] Shop button clicked, cubesAvailable:", game.cubesAvailable);
+                            setIsInGameShopOpen(true);
+                          }}
                         />
                       </div>
                       {isMdOrLarger && (

@@ -134,8 +134,17 @@ export function getCubesAvailable(runData: RunData): number {
 }
 
 /**
- * Check if in-game shop is available (every 5 levels after level 5)
+ * Check if the completed level triggers the shop (levels 5, 10, 15...)
  */
 export function isInGameShopAvailable(level: number): boolean {
   return level > 0 && level % 5 === 0;
+}
+
+/**
+ * Check if the current level is a "shop level" — the level right after a shop milestone.
+ * E.g., levels 6, 11, 16, 21... (player just came from level 5, 10, 15, 20...)
+ * The shop button should be visible during these levels.
+ */
+export function isShopLevel(level: number): boolean {
+  return level > 1 && (level - 1) % 5 === 0;
 }

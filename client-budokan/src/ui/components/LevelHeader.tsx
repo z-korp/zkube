@@ -24,6 +24,9 @@ interface LevelHeaderProps {
   isMdOrLarger: boolean;
   constraintProgress: number;
   bonusUsedThisLevel: boolean;
+  isShopLevel?: boolean;
+  cubesAvailable?: number;
+  onShopClick?: () => void;
 }
 
 const LevelHeader: React.FC<LevelHeaderProps> = ({
@@ -37,6 +40,9 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
   isMdOrLarger,
   constraintProgress,
   bonusUsedThisLevel,
+  isShopLevel = false,
+  cubesAvailable = 0,
+  onShopClick,
 }) => {
   const { playSuccess } = useMusicPlayer(); // Use success sound for constraint satisfaction
   
@@ -165,6 +171,20 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
               🧊
             </span>
           </div>
+          {/* Shop Button - visible on shop levels (6, 11, 16...) with cubes to spend */}
+          {isShopLevel && cubesAvailable > 0 && onShopClick && (
+            <motion.button
+              onClick={onShopClick}
+              className="flex items-center gap-1 bg-emerald-600/80 hover:bg-emerald-500 px-2.5 py-1 rounded text-white font-semibold transition-colors"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span style={{ fontSize: isMdOrLarger ? 14 : 12 }}>🛒</span>
+              <span className={`${isMdOrLarger ? "text-sm" : "text-xs"}`}>Shop</span>
+            </motion.button>
+          )}
         </div>
       </div>
 
@@ -364,22 +384,16 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
                 <div className="space-y-1.5">
                   <div className="text-xs font-semibold text-white mb-2">Cube Thresholds</div>
                   <div className="flex items-center justify-between text-xs gap-4">
-                    <span className="text-yellow-400">
-                      🧊🧊🧊
-                    </span>
-                    <span className="text-slate-300">≤ {levelConfig.cube3Threshold} moves</span>
+                    <span className="text-yellow-400">🧊🧊🧊</span>
+                    <span className="text-slate-300">≥ {levelConfig.maxMoves - levelConfig.cube3Threshold} moves left</span>
                   </div>
                   <div className="flex items-center justify-between text-xs gap-4">
-                    <span className="text-yellow-400">
-                      🧊🧊<span className="text-slate-600">🧊</span>
-                    </span>
-                    <span className="text-slate-300">≤ {levelConfig.cube2Threshold} moves</span>
+                    <span className="text-yellow-400">🧊🧊</span>
+                    <span className="text-slate-300">≥ {levelConfig.maxMoves - levelConfig.cube2Threshold} moves left</span>
                   </div>
                   <div className="flex items-center justify-between text-xs gap-4">
-                    <span className="text-yellow-400">
-                      🧊<span className="text-slate-600">🧊🧊</span>
-                    </span>
-                    <span className="text-slate-300">any moves</span>
+                    <span className="text-yellow-400">🧊</span>
+                    <span className="text-slate-300">level clear</span>
                   </div>
                   <div className="border-t border-slate-600 pt-1.5 mt-1.5">
                     <div className="text-xs text-slate-400">

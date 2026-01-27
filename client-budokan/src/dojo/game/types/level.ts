@@ -125,9 +125,9 @@ export class Level {
 
 // Level generator constants (matching Cairo)
 const LEVEL_CONSTANTS = {
-  // Moves scaling (linear 35 → 85)
-  BASE_MOVES: 35,
-  MAX_MOVES: 85,
+  // Moves scaling (linear 20 → 60)
+  BASE_MOVES: 20,
+  MAX_MOVES: 60,
 
   // Ratio scaling ×100 for integer math (0.80 → 2.50)
   BASE_RATIO_X100: 80, // 0.80 points per move at level 1
@@ -151,7 +151,7 @@ const LEVEL_CONSTANTS = {
 
 /**
  * Calculate base moves for a level (before variance)
- * Linear scaling: 35 at level 1, 85 at level 100
+ * Linear scaling: 20 at level 1, 60 at level 100
  */
 function calculateBaseMoves(level: number): number {
   if (level <= 1) {

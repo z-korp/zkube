@@ -264,6 +264,25 @@ else
 fi
 
 #-----------------
+# Step 9b: Grant MINTER_ROLE on CubeToken to game_system and shop_system
+#-----------------
+if [ -n "$CUBE_TOKEN" ]; then
+    print_info "Step 8b: Granting MINTER_ROLE on CubeToken..."
+    GRANT_OUTPUT=$(sozo execute -P $PROFILE \
+        --account-address "$ACCOUNT_ADDRESS" \
+        --private-key "$PRIVATE_KEY" \
+        --rpc-url "$RPC_URL" \
+        "$CUBE_TOKEN" \
+        grant_minter_roles 2>&1) || true
+    if echo "$GRANT_OUTPUT" | grep -q "Transaction hash"; then
+        print_info "  MINTER_ROLE granted to game_system and shop_system"
+    else
+        print_warn "  Failed to grant MINTER_ROLE (call grant_minter_roles manually)"
+        echo "$GRANT_OUTPUT"
+    fi
+fi
+
+#-----------------
 # Step 10: Update torii config (after extracting CUBE_TOKEN)
 #-----------------
 print_info "Step 9: Updating torii configuration..."

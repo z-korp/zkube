@@ -59,11 +59,16 @@ export const useGameTokensSlot = ({
         const gameEntities = runQuery([Has(Game)]);
 
         const gameList: GameTokenData[] = [];
+        const seenIds = new Set<number>();
 
         for (const entity of gameEntities) {
           const gameData = getComponentValue(Game, entity);
 
           if (!gameData || gameData.game_id === 0) continue;
+
+          // Deduplicate by game_id (RECS may have multiple entities for same game)
+          if (seenIds.has(gameData.game_id)) continue;
+          seenIds.add(gameData.game_id);
 
           // On slot, we show all games that have started (blocks != 0)
           // In production, ownership is verified via metagame SDK

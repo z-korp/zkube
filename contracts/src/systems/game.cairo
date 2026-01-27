@@ -552,7 +552,12 @@ mod game_system {
             post_action(token_address, game_id);
 
             // Emit event
-            let cubes_remaining = run_data.cubes_brought - run_data.cubes_spent;
+            let total_budget = run_data.cubes_brought + run_data.total_cubes;
+            let cubes_remaining = if total_budget >= run_data.cubes_spent {
+                total_budget - run_data.cubes_spent
+            } else {
+                0
+            };
             world
                 .emit_event(
                     @ConsumablePurchased {
