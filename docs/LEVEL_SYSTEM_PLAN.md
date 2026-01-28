@@ -1,18 +1,27 @@
-# zKube Level System - Implementation Plan
+# zKube Level System - Design Plan
 
-> **Status:** Partially Implemented  
-> **Last Updated:** January 2026  
-> **Estimated Duration:** 3-4 weeks
+> **Status:** Endless Mode IMPLEMENTED, Daily Challenge PLANNED  
+> **Last Updated:** January 2026
 >
-> **Related:** See [CUBE_ECONOMY.md](./CUBE_ECONOMY.md) for the cube token economy system
+> **Related:** 
+> - [LEVEL_SYSTEM_IMPLEMENTATION.md](./LEVEL_SYSTEM_IMPLEMENTATION.md) - Current implementation status
+> - [CUBE_ECONOMY.md](./CUBE_ECONOMY.md) - Cube token economy
 
 ## Overview
 
-Transform zKube into a **Puzzle Roguelike** with two game modes:
-- **Daily Challenge**: Same seed for all players, once per day, competitive leaderboard
-- **Endless Mode**: Random seed per run, practice and personal bests
+This document describes the design for zKube's level system. 
 
-Both modes share the same progression system: 100 auto-generated levels, cube rewards, and persistent bonus inventory within a run.
+### Current Implementation (Endless Mode)
+- 100+ auto-generated levels with scaling difficulty
+- Seed-based level generation
+- Constraint system (ClearLines, NoBonusUsed)
+- Cube rewards (1-3 based on move efficiency)
+- Bonus inventory persistence across levels
+
+### Future (Daily Challenge - NOT IMPLEMENTED)
+- Same seed for all players, once per day
+- Competitive leaderboard
+- Revival system
 
 ### Core Features
 

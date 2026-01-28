@@ -2,6 +2,9 @@
 
 This document describes the unified Scarb workspace structure for zkube contracts.
 
+> **Version:** 1.2.0  
+> **Last Updated:** January 2026
+
 ## Overview
 
 zkube uses a Scarb workspace to bundle all contracts together for easier development and deployment.
@@ -16,30 +19,48 @@ zkube/
 │   ├── dojo_sepolia.toml         # Dojo config for sepolia
 │   ├── dojo_mainnet.toml         # Dojo config for mainnet
 │   └── src/
+│       ├── systems/              # Dojo systems
+│       │   ├── game.cairo        # Main game logic
+│       │   ├── shop.cairo        # Permanent shop
+│       │   ├── cube_token.cairo  # Soulbound ERC1155
+│       │   └── config.cairo      # Settings
+│       ├── models/               # Dojo models
+│       │   ├── game.cairo        # Game state
+│       │   ├── player.cairo      # PlayerMeta
+│       │   └── config.cairo      # GameSettings
+│       ├── helpers/              # Logic helpers
+│       │   ├── controller.cairo  # Grid manipulation
+│       │   ├── level.cairo       # Level generation
+│       │   ├── packing.cairo     # Bit packing
+│       │   └── gravity.cairo     # Block physics
+│       └── types/                # Type definitions
 ├── packages/
-│   ├── game_erc721/              # ERC721 game token contract
-│   │   ├── Scarb.toml            # Package: game_erc721
+│   ├── game_erc721/              # ERC721 game token (NOT USED - using FullTokenContract)
+│   │   ├── Scarb.toml
 │   │   └── src/
-│   └── token/                    # ERC20 test token contract
-│       ├── Scarb.toml            # Package: token
+│   └── token/                    # ERC20 test token (Fake LORD)
+│       ├── Scarb.toml
 │       └── src/
-└── client-budokan/               # React frontend (not in workspace)
+├── client-budokan/               # React frontend
+├── scripts/                      # Deployment scripts
+└── docs/                         # Documentation
 ```
 
 ## Packages
 
 ### zkube (contracts/)
 Main Dojo game system with:
-- Game logic (create, move, apply_bonus, surrender)
-- Game models (Game, GameSeed, GameSettings)
+- **Game System**: create, move, apply_bonus, surrender, purchase_consumable
+- **Shop System**: Permanent upgrades (starting bonuses, bag size, bridging)
+- **CubeToken System**: Soulbound ERC1155 currency
+- **Models**: Game, GameSeed, PlayerMeta, GameSettings
+- **Level Generator**: Seed-based level configs with constraints
 - Integration with game-components framework
 
 ### game_erc721 (packages/game_erc721/)
-ERC721 NFT contract for game tokens:
-- Each NFT = one playable game
-- Paid minting with ERC20 payment
-- Prize pool distribution (tournament, chest, zkorp)
-- Pausable, upgradeable, role-based access
+Legacy ERC721 contract (NOT CURRENTLY USED):
+- Replaced by game-components FullTokenContract
+- Kept for reference
 
 ### token (packages/token/)
 Simple ERC20 "Fake LORD" for testing:

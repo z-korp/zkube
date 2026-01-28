@@ -1,31 +1,30 @@
 # zKube Level System - Implementation Guide
 
-> **Status:** Contract Implementation Complete - Ready for Client Implementation  
-> **Phase:** 0.5 - Level Generator + Endless Mode MVP  
+> **Status:** Fully Implemented (Contract + Client)  
+> **Version:** 1.2.0  
 > **Last Updated:** January 2026  
-> **Contract Build:** Passing (v1.2.0)
+> **Namespace:** `zkube_budo_v1_2_0`
 
 ## Overview
 
-This document tracks the implementation of the level system for zKube, transforming it from single-game mode into a Puzzle Roguelike with 100+ levels.
+This document describes the level system for zKube, which transforms it from single-game mode into a Puzzle Roguelike with 100+ levels.
 
-## Design Decisions (Finalized)
+## Design Decisions (Implemented)
 
-| Decision | Choice |
-|----------|--------|
-| Mode Support | Endless only (no legacy mode) |
+| Decision | Implementation |
+|----------|----------------|
+| Mode Support | Endless mode only |
 | Seed Storage | Separate `GameSeed` model |
-| Level Generation | Seed-based configs (same seed = same sequence) |
-| Level 100+ | Caps at max difficulty, endless survival |
-| Combo Stats | Reset per level, track `max_combo_run` |
-| Leaderboard | level → level_score → started_at |
-| Bonus Earning | 3★=2 random, 2★=1 random, 1★=none |
+| Level Generation | Seed-based configs via `helpers/level.cairo` |
+| Level 100+ | Caps at Master difficulty, endless survival |
+| Combo Stats | Reset per level, track `max_combo_run` in run_data |
+| Bonus Earning | Based on score/combo/max_combo thresholds |
 | Run State | Bit-packed in `run_data` (88 bits) |
-| Level Transition | Animation + brief completing state |
-| Constraint Display | Visible when level loads |
-| Level 1 Start | Pre-placed rows (like current game) |
+| Level Transition | Auto-transition in `move()` when level complete |
+| Constraint Display | Shown in LevelHeader component |
+| Level 1 Start | Pre-placed rows from seed |
 | Game Over | All progress lost (true roguelike) |
-| Meta-progression | Flexible felt252 for future unlocks |
+| Meta-progression | PlayerMeta with bit-packed upgrades |
 
 ---
 
@@ -202,71 +201,54 @@ contracts/src/
 
 ---
 
-## Task Checklist
+## Implementation Status
 
-### Phase 1: Contract Foundation - COMPLETE
+### Contract Implementation - COMPLETE
 
-- [x] C1: Create `types/constraint.cairo`
-- [x] C2: Create `types/level.cairo`
-- [x] C3: Create `helpers/packing.cairo` (run_data)
-- [x] C4: Add meta_data packing to `helpers/packing.cairo`
-- [x] C5: Create `helpers/level.cairo` (generator)
-- [ ] C6: Create `tests/test_packing.cairo` (unit tests in files, mock issues blocking test runner)
-- [ ] C7: Create `tests/test_level.cairo` (unit tests in files, mock issues blocking test runner)
+All contract components are fully implemented:
 
-### Phase 2: Contract Integration - COMPLETE
+| Component | File | Status |
+|-----------|------|--------|
+| Constraint types | `types/constraint.cairo` | Complete |
+| Level config | `types/level.cairo` | Complete |
+| Level generator | `helpers/level.cairo` | Complete |
+| Run data packing | `helpers/packing.cairo` | Complete |
+| Meta data packing | `helpers/packing.cairo` | Complete |
+| PlayerMeta model | `models/player.cairo` | Complete |
+| Level events | `events.cairo` | Complete |
+| Game system integration | `systems/game.cairo` | Complete |
+| Unit tests | `helpers/level.cairo` (inline) | Complete |
 
-- [x] C8: Update namespace to v1_2_0
-- [x] C9: Update Game model with run_data
-- [x] C10: Create PlayerMeta model
-- [x] C11: Add LevelStarted/LevelCompleted events
-- [x] C12: Update `create()` for level system
-- [x] C13: Update `move()` with constraint tracking
-- [x] C14: Add level completion logic
-- [x] C15: Update game over + best_level tracking
-- [x] C16: Update lib.cairo exports
+### Client Implementation - COMPLETE
 
-### Phase 3: Client Foundation
-
-- [ ] F1: Create `types/constraint.ts`
-- [ ] F2: Create `types/level.ts`
-- [ ] F3: Create `types/player.ts` (PlayerMeta)
-- [ ] F4: Create `helpers/levelGenerator.ts`
-- [ ] F5: Create `helpers/packing.ts`
-- [ ] F6: Update Game model class
-- [ ] F7: Update namespace in setup
-
-### Phase 4: Client Hooks & Store
-
-- [ ] F8: Create `useLevelConfig` hook
-- [ ] F9: Create `useLevelProgress` hook
-- [ ] F10: Create/extend level store
-
-### Phase 5: Client UI
-
-- [ ] F11: Create LevelHeader component
-- [ ] F12: Create LevelProgress component
-- [ ] F13: Create StarPreview component
-- [ ] F14: Create ConstraintTracker component
-- [ ] F15: Create BonusInventory component
-- [ ] F16: Create LevelCompleteModal
-- [ ] F17: Integrate into Play screen
-- [ ] F18: Level transition animations
+| Component | Location | Status |
+|-----------|----------|--------|
+| Game model with run_data | `dojo/game/models/game.ts` | Complete |
+| Run data unpacking | `dojo/game/helpers/runDataPacking.ts` | Complete |
+| LevelHeader component | `ui/components/LevelHeader.tsx` | Complete |
+| Level progress display | `ui/components/LevelHeader.tsx` | Complete |
+| Constraint tracker | `ui/components/LevelHeader.tsx` | Complete |
+| LevelCompleteDialog | `ui/components/LevelCompleteDialog.tsx` | Complete |
+| InGameShopDialog | `ui/components/Shop/InGameShopDialog.tsx` | Complete |
+| Play screen integration | `ui/screens/Play.tsx` | Complete |
 
 ---
 
-## What's IN vs OUT (Phase 0.5)
+## What's Implemented vs Planned
 
-| IN (MVP) | OUT (Later Phases) |
-|----------|-------------------|
+| Implemented | Future/Planned |
+|-------------|----------------|
 | Level generator (seed-based) | Daily Challenge mode |
 | Endless mode | Leaderboard UI |
-| Constraints (ClearLines, NoBonusUsed) | Meta-progression unlocks |
-| Star system (3★/2★/1★ → bonuses) | Starting level selection |
-| Bonus inventory persistence | Starting loadouts |
-| Level 100+ survival mode | Revival system |
-| PlayerMeta model (structure only) | Milestone choices |
-| best_level tracking | Cosmetics |
+| Constraints (ClearLines, NoBonusUsed) | Revival system |
+| Cube rating (3/2/1 based on moves) | Milestone choices |
+| Bonus inventory persistence | Cosmetics |
+| Level 100+ survival mode (Master difficulty) | - |
+| PlayerMeta with upgrades | - |
+| best_level tracking | - |
+| Permanent Shop (starting bonuses, bag size, bridging) | - |
+| In-Game Shop (consumables every 5 levels) | - |
+| Cube bridging (`create_with_cubes`) | - |
 
 ---
 

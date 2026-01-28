@@ -1,14 +1,15 @@
 # zKube Cube Economy System
 
-> **Status:** Core Implementation Complete  
+> **Status:** Fully Implemented  
+> **Version:** 1.2.0  
 > **Last Updated:** January 2026  
 > **Token Standard:** ERC-1155 Soulbound Token (`cube_token` system, CUBE_TOKEN_ID=1)
 
 ## Overview
 
 CUBE is zKube's currency. Players earn cubes by completing levels efficiently and achieving combos. Cubes can be spent in two shops:
-- **Permanent Shop** (outside game): Loadouts, upgrades, cube bridging ranks
-- **In-Game Shop** (every 5 levels): Consumables like extra bonuses
+- **Permanent Shop** (outside game): Starting bonuses, bag size upgrades, cube bridging ranks
+- **In-Game Shop** (every 5 levels): Consumable bonuses (Hammer, Wave, Totem)
 
 ---
 
@@ -20,16 +21,17 @@ CUBE is zKube's currency. Players earn cubes by completing levels efficiently an
 | RunData cube tracking | **IMPLEMENTED** | cubes_brought, cubes_spent, combo achievements |
 | Combo bonuses (4+, 5+, 6+ lines) | **IMPLEMENTED** | Awards +1/+2/+3 cubes |
 | Achievement bonuses (5x, 10x combo) | **IMPLEMENTED** | Awards +3/+5 cubes one-time |
-| Level completion cubes (1-3) | **NOT IMPLEMENTED** | Planned based on moves efficiency |
-| Milestone bonuses | **NOT IMPLEMENTED** | Planned level/2 every 10 levels |
-| PlayerMeta model | **IMPLEMENTED** | Tracks upgrades, balance, stats |
-| Permanent Shop (backend) | **IMPLEMENTED** | Starting bonuses, bag size, bridging rank |
-| Permanent Shop (frontend) | **IMPLEMENTED** | ShopDialog component |
-| Cube Bridging | **IMPLEMENTED** | create_with_cubes(), BringCubesDialog |
-| In-Game Shop (backend) | **PARTIALLY IMPLEMENTED** | Hammer, Wave, Totem only |
-| In-Game Shop (frontend) | **IMPLEMENTED** | InGameShopDialog component |
-| Cube earning animations | **IMPLEMENTED** | CubeEarnedAnimation component |
+| Level completion cubes (1-3) | **IMPLEMENTED** | Based on moves vs cube_3_threshold/cube_2_threshold |
+| Milestone bonuses | **NOT IMPLEMENTED** | Planned level/2 every 10 levels (capped at 50) |
+| PlayerMeta model | **IMPLEMENTED** | Tracks upgrades and best_level |
+| Permanent Shop (backend) | **IMPLEMENTED** | `systems/shop.cairo` |
+| Permanent Shop (frontend) | **IMPLEMENTED** | `ShopDialog.tsx` component |
+| Cube Bridging | **IMPLEMENTED** | `create_with_cubes()`, `BringCubesDialog.tsx` |
+| In-Game Shop (backend) | **IMPLEMENTED** | Hammer, Wave, Totem consumables |
+| In-Game Shop (frontend) | **IMPLEMENTED** | `InGameShopDialog.tsx` component |
+| Cube earning animations | **IMPLEMENTED** | `CubeEarnedAnimation.tsx` component |
 | Cube minting at game over | **IMPLEMENTED** | ERC1155 mint via CubeToken contract |
+| ExtraMoves consumable | **NOT IMPLEMENTED** | Type exists but panics if purchased |
 
 ---
 
@@ -39,9 +41,9 @@ CUBE is zKube's currency. Players earn cubes by completing levels efficiently an
 
 | Trigger | Cubes Earned | Status | Notes |
 |---------|--------------|--------|-------|
-| Level complete (3-cube performance) | 3 | **NOT IMPLEMENTED** | Moves <= 40% of max |
-| Level complete (2-cube performance) | 2 | **NOT IMPLEMENTED** | Moves <= 70% of max |
-| Level complete (1-cube performance) | 1 | **NOT IMPLEMENTED** | Level completed |
+| Level complete (3-cube performance) | 3 | **IMPLEMENTED** | Moves <= 40% of max (cube_3_threshold) |
+| Level complete (2-cube performance) | 2 | **IMPLEMENTED** | Moves <= 70% of max (cube_2_threshold) |
+| Level complete (1-cube performance) | 1 | **IMPLEMENTED** | Level completed |
 | Level milestone (10, 20, 30...) | level / 2 | **NOT IMPLEMENTED** | +5 at L10, +10 at L20, etc. |
 | Clear 4 lines in one move | +1 | **IMPLEMENTED** | Combo bonus |
 | Clear 5 lines in one move | +2 | **IMPLEMENTED** | Rare combo bonus |
@@ -49,7 +51,14 @@ CUBE is zKube's currency. Players earn cubes by completing levels efficiently an
 | First 5x combo in run | +3 | **IMPLEMENTED** | One-time achievement |
 | First 10x combo in run | +5 | **IMPLEMENTED** | One-time achievement |
 
-#### Milestone Bonus Examples (NOT YET IMPLEMENTED)
+#### Cube Thresholds (from LevelConfig)
+
+The level generator calculates cube thresholds based on max_moves:
+- `cube_3_threshold = max_moves * 40 / 100` (3 cubes if moves <= this)
+- `cube_2_threshold = max_moves * 70 / 100` (2 cubes if moves <= this)
+- 1 cube for any level completion
+
+#### Milestone Bonus (NOT YET IMPLEMENTED)
 
 | Level | Milestone Bonus | Calculation |
 |-------|-----------------|-------------|
@@ -416,20 +425,18 @@ pub struct PermanentPurchase { player, item_type, item_id, cost }
 ## What Still Needs Implementation
 
 ### High Priority
-1. **Level completion cube earning** - Award 1-3 cubes based on moves efficiency
-2. **Milestone bonuses** - Award level/2 cubes every 10 levels (capped at 50)
+1. **Milestone bonuses** - Award level/2 cubes every 10 levels (capped at 50)
+2. **ExtraMoves consumable** - Add 5 moves to current level (type exists, needs implementation)
 
 ### Medium Priority
 3. **Full Refill consumable** - Refill one bonus type to max
-4. **Extra Moves consumable** - Add moves to current level
-5. **CubesEarned events** - For indexing and analytics
+4. **CubesEarned events** - For indexing and analytics
 
 ### Low Priority
-6. **Skip Constraint consumable** - Auto-complete constraint
-7. **Revival Token consumable** - Continue after death
-8. **Run Summary component** - Show breakdown at game end
-9. **Sound effects** - Audio feedback for cube earning
-10. **Separate CUBE token** - If cross-game currency is needed
+5. **Skip Constraint consumable** - Auto-complete constraint
+6. **Revival Token consumable** - Continue after death
+7. **Run Summary component** - Show detailed breakdown at game end
+8. **Sound effects** - Audio feedback for cube earning
 
 ---
 

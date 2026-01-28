@@ -1,7 +1,10 @@
 # zKube Level System - Technical Specifications
 
-> **Document Type:** Technical Reference  
-> **Last Updated:** January 2026
+> **Document Type:** Technical Reference + Future Planning  
+> **Last Updated:** January 2026  
+> **Status:** Partially Implemented
+>
+> **Note:** This document contains both implemented features (Endless mode) and future planning (Daily Challenge mode). Features marked as "FUTURE" are not yet implemented.
 
 ---
 
