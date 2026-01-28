@@ -33,8 +33,8 @@
   },
   "contracts": [
     {
-      "address": "0x517c9dd532ed8e0c27c909d75f391ffdaa929379a0de5b2b29e0757deb40455",
-      "class_hash": "0x1d7ac463b9f9a16fa3e42361a03930eca25e851275a3eb4ef8ddec69b6e4504",
+      "address": "0x5b8edb3e18b0c0ac22ee54441c9b57effa6dda55a07df0609a13b6582492ae2",
+      "class_hash": "0x59023ed27eee7c9a2f23488b7a271d0ea4767ef29a10590f95c534b62e34731",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819"
       ],
@@ -70,8 +70,8 @@
       ]
     },
     {
-      "address": "0x7e1303f059d0e21a5e0db0099d533858e6aea60a0dc2bc74d50f42ceb70d9b7",
-      "class_hash": "0x6bff5bc2e32737f1f2dde95ab61bff81708621ac5088e9c592c9a79e5a0c99f",
+      "address": "0x337566c8fc63229248cb10f774ddb971804257740db158fd88f3ecd22f96ea3",
+      "class_hash": "0x5dc1addaa8a7e6df79da6a513baf17431ba1128a08b5ad7d66de46acf65e42c",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
         "0x062347854b5817b3c8101014b5813fb0b5db48e4df2a0a9dada8cbdab191b064",
@@ -238,12 +238,37 @@
           "key": false
         },
         {
-          "name": "starting_difficulty",
+          "name": "tier_1_threshold",
           "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "difficulty_step_levels",
+          "name": "tier_2_threshold",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "tier_3_threshold",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "tier_4_threshold",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "tier_5_threshold",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "tier_6_threshold",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "tier_7_threshold",
           "type": "core::integer::u8",
           "key": false
         },
@@ -258,7 +283,7 @@
           "key": false
         },
         {
-          "name": "easy_none_chance",
+          "name": "veryeasy_none_chance",
           "type": "core::integer::u8",
           "key": false
         },
@@ -268,7 +293,7 @@
           "key": false
         },
         {
-          "name": "easy_no_bonus_chance",
+          "name": "veryeasy_no_bonus_chance",
           "type": "core::integer::u8",
           "key": false
         },
@@ -278,7 +303,7 @@
           "key": false
         },
         {
-          "name": "easy_min_lines",
+          "name": "veryeasy_min_lines",
           "type": "core::integer::u8",
           "key": false
         },
@@ -288,7 +313,7 @@
           "key": false
         },
         {
-          "name": "easy_max_lines",
+          "name": "veryeasy_max_lines",
           "type": "core::integer::u8",
           "key": false
         },
@@ -298,7 +323,7 @@
           "key": false
         },
         {
-          "name": "easy_min_times",
+          "name": "veryeasy_min_times",
           "type": "core::integer::u8",
           "key": false
         },
@@ -308,7 +333,7 @@
           "key": false
         },
         {
-          "name": "easy_max_times",
+          "name": "veryeasy_max_times",
           "type": "core::integer::u8",
           "key": false
         },
@@ -318,7 +343,7 @@
           "key": false
         },
         {
-          "name": "easy_dual_chance",
+          "name": "veryeasy_dual_chance",
           "type": "core::integer::u8",
           "key": false
         },
@@ -328,27 +353,27 @@
           "key": false
         },
         {
-          "name": "easy_size1_weight",
+          "name": "veryeasy_size1_weight",
           "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "easy_size2_weight",
+          "name": "veryeasy_size2_weight",
           "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "easy_size3_weight",
+          "name": "veryeasy_size3_weight",
           "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "easy_size4_weight",
+          "name": "veryeasy_size4_weight",
           "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "easy_size5_weight",
+          "name": "veryeasy_size5_weight",
           "type": "core::integer::u8",
           "key": false
         },
@@ -408,7 +433,7 @@
           "key": false
         }
       ],
-      "class_hash": "0xd7410424196c7354ad1394ca0b2569ef4c9d73b22f04514e459f6fb5d285fd",
+      "class_hash": "0x24833073eadb99a7cd473230b41b755abdc72d2943a985624e0853a9f3af0d3",
       "tag": "zkube_budo_v1_2_0-GameSettings",
       "selector": "0x1c245917b09d68b08ceb4972426ebba162f36b31404a63dc180496cdc6777b"
     },
@@ -3913,11 +3938,31 @@
           "type": "core::integer::u16"
         },
         {
-          "name": "starting_difficulty",
+          "name": "tier_1_threshold",
           "type": "core::integer::u8"
         },
         {
-          "name": "difficulty_step_levels",
+          "name": "tier_2_threshold",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "tier_3_threshold",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "tier_4_threshold",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "tier_5_threshold",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "tier_6_threshold",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "tier_7_threshold",
           "type": "core::integer::u8"
         },
         {
@@ -3929,7 +3974,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_none_chance",
+          "name": "veryeasy_none_chance",
           "type": "core::integer::u8"
         },
         {
@@ -3937,7 +3982,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_no_bonus_chance",
+          "name": "veryeasy_no_bonus_chance",
           "type": "core::integer::u8"
         },
         {
@@ -3945,7 +3990,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_min_lines",
+          "name": "veryeasy_min_lines",
           "type": "core::integer::u8"
         },
         {
@@ -3953,7 +3998,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_max_lines",
+          "name": "veryeasy_max_lines",
           "type": "core::integer::u8"
         },
         {
@@ -3961,7 +4006,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_min_times",
+          "name": "veryeasy_min_times",
           "type": "core::integer::u8"
         },
         {
@@ -3969,7 +4014,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_max_times",
+          "name": "veryeasy_max_times",
           "type": "core::integer::u8"
         },
         {
@@ -3977,7 +4022,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_dual_chance",
+          "name": "veryeasy_dual_chance",
           "type": "core::integer::u8"
         },
         {
@@ -3985,23 +4030,23 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_size1_weight",
+          "name": "veryeasy_size1_weight",
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_size2_weight",
+          "name": "veryeasy_size2_weight",
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_size3_weight",
+          "name": "veryeasy_size3_weight",
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_size4_weight",
+          "name": "veryeasy_size4_weight",
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_size5_weight",
+          "name": "veryeasy_size5_weight",
           "type": "core::integer::u8"
         },
         {
@@ -4151,11 +4196,31 @@
           "type": "core::integer::u16"
         },
         {
-          "name": "starting_difficulty",
+          "name": "tier_1_threshold",
           "type": "core::integer::u8"
         },
         {
-          "name": "difficulty_step_levels",
+          "name": "tier_2_threshold",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "tier_3_threshold",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "tier_4_threshold",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "tier_5_threshold",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "tier_6_threshold",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "tier_7_threshold",
           "type": "core::integer::u8"
         },
         {
@@ -4167,7 +4232,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_none_chance",
+          "name": "veryeasy_none_chance",
           "type": "core::integer::u8"
         },
         {
@@ -4175,7 +4240,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_no_bonus_chance",
+          "name": "veryeasy_no_bonus_chance",
           "type": "core::integer::u8"
         },
         {
@@ -4183,7 +4248,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_min_lines",
+          "name": "veryeasy_min_lines",
           "type": "core::integer::u8"
         },
         {
@@ -4191,7 +4256,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_max_lines",
+          "name": "veryeasy_max_lines",
           "type": "core::integer::u8"
         },
         {
@@ -4199,7 +4264,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_min_times",
+          "name": "veryeasy_min_times",
           "type": "core::integer::u8"
         },
         {
@@ -4207,7 +4272,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_max_times",
+          "name": "veryeasy_max_times",
           "type": "core::integer::u8"
         },
         {
@@ -4215,7 +4280,7 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_dual_chance",
+          "name": "veryeasy_dual_chance",
           "type": "core::integer::u8"
         },
         {
@@ -4223,23 +4288,23 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_size1_weight",
+          "name": "veryeasy_size1_weight",
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_size2_weight",
+          "name": "veryeasy_size2_weight",
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_size3_weight",
+          "name": "veryeasy_size3_weight",
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_size4_weight",
+          "name": "veryeasy_size4_weight",
           "type": "core::integer::u8"
         },
         {
-          "name": "easy_size5_weight",
+          "name": "veryeasy_size5_weight",
           "type": "core::integer::u8"
         },
         {
@@ -4535,11 +4600,31 @@
               "type": "core::integer::u16"
             },
             {
-              "name": "starting_difficulty",
+              "name": "tier_1_threshold",
               "type": "core::integer::u8"
             },
             {
-              "name": "difficulty_step_levels",
+              "name": "tier_2_threshold",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "tier_3_threshold",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "tier_4_threshold",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "tier_5_threshold",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "tier_6_threshold",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "tier_7_threshold",
               "type": "core::integer::u8"
             },
             {
@@ -4551,7 +4636,7 @@
               "type": "core::integer::u8"
             },
             {
-              "name": "easy_none_chance",
+              "name": "veryeasy_none_chance",
               "type": "core::integer::u8"
             },
             {
@@ -4559,7 +4644,7 @@
               "type": "core::integer::u8"
             },
             {
-              "name": "easy_no_bonus_chance",
+              "name": "veryeasy_no_bonus_chance",
               "type": "core::integer::u8"
             },
             {
@@ -4567,7 +4652,7 @@
               "type": "core::integer::u8"
             },
             {
-              "name": "easy_min_lines",
+              "name": "veryeasy_min_lines",
               "type": "core::integer::u8"
             },
             {
@@ -4575,7 +4660,7 @@
               "type": "core::integer::u8"
             },
             {
-              "name": "easy_max_lines",
+              "name": "veryeasy_max_lines",
               "type": "core::integer::u8"
             },
             {
@@ -4583,7 +4668,7 @@
               "type": "core::integer::u8"
             },
             {
-              "name": "easy_min_times",
+              "name": "veryeasy_min_times",
               "type": "core::integer::u8"
             },
             {
@@ -4591,7 +4676,7 @@
               "type": "core::integer::u8"
             },
             {
-              "name": "easy_max_times",
+              "name": "veryeasy_max_times",
               "type": "core::integer::u8"
             },
             {
@@ -4599,7 +4684,7 @@
               "type": "core::integer::u8"
             },
             {
-              "name": "easy_dual_chance",
+              "name": "veryeasy_dual_chance",
               "type": "core::integer::u8"
             },
             {
@@ -4607,23 +4692,23 @@
               "type": "core::integer::u8"
             },
             {
-              "name": "easy_size1_weight",
+              "name": "veryeasy_size1_weight",
               "type": "core::integer::u8"
             },
             {
-              "name": "easy_size2_weight",
+              "name": "veryeasy_size2_weight",
               "type": "core::integer::u8"
             },
             {
-              "name": "easy_size3_weight",
+              "name": "veryeasy_size3_weight",
               "type": "core::integer::u8"
             },
             {
-              "name": "easy_size4_weight",
+              "name": "veryeasy_size4_weight",
               "type": "core::integer::u8"
             },
             {
-              "name": "easy_size5_weight",
+              "name": "veryeasy_size5_weight",
               "type": "core::integer::u8"
             },
             {

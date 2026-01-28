@@ -4,6 +4,7 @@ use game_components_token::core::interface::{IMinigameTokenDispatcher, IMinigame
 
 use zkube::helpers::token;
 use zkube::models::config::{GameSettings, GameSettingsTrait};
+use zkube::types::difficulty::Difficulty;
 
 #[generate_trait]
 pub impl ConfigUtilsImpl of ConfigUtilsTrait {
@@ -19,7 +20,9 @@ pub impl ConfigUtilsImpl of ConfigUtilsTrait {
             if fallback.exists() {
                 fallback
             } else {
-                settings
+                // If no settings exist at all, use hardcoded defaults to prevent
+                // all-zero weights from breaking block generation
+                GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing)
             }
         } else {
             settings

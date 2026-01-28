@@ -159,7 +159,7 @@ mod game_system {
 
             // Get game settings (selected via token settings_id) and create a settings-aware game.
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
-            let mut game = GameTrait::new_with_settings(game_id, random.seed, timestamp, settings);
+            let mut game = GameTrait::new(game_id, random.seed, timestamp, settings);
 
             // Store the seed separately
             let game_seed = GameSeed { game_id, seed: random.seed };
@@ -218,7 +218,7 @@ mod game_system {
                 );
 
             // Emit level 1 started
-            let level_config = LevelGeneratorTrait::generate_with_settings(random.seed, 1, settings);
+            let level_config = LevelGeneratorTrait::generate(random.seed, 1, settings);
             world
                 .emit_event(
                     @LevelStarted {
@@ -300,7 +300,7 @@ mod game_system {
                 ref world, ref game, game_id, base_seed.seed, settings,
             );
 
-            if !level_completed && (game.is_level_failed_with_settings(base_seed.seed, settings) || game.over) {
+            if !level_completed && (game.is_level_failed(base_seed.seed, settings) || game.over) {
                 // Level failed (move limit exceeded) or grid full
                 game.over = true;
                 self.handle_game_over(ref world, game);
@@ -474,7 +474,7 @@ mod game_system {
                     // ExtraMoves extends the current level's move limit.
                     // We cap the effective max to 255 to avoid exceeding the u8 move counter.
                     let base_seed: GameSeed = world.read_model(game_id);
-                    let level_config = LevelGeneratorTrait::generate_with_settings(
+                    let level_config = LevelGeneratorTrait::generate(
                         base_seed.seed, run_data.current_level, settings,
                     );
 
@@ -686,7 +686,7 @@ mod game_system {
             base_seed: felt252,
             settings: GameSettings,
         ) -> bool {
-            if !game.is_level_complete_with_settings(base_seed, settings) {
+            if !game.is_level_complete(base_seed, settings) {
                 return false;
             }
 
@@ -698,7 +698,7 @@ mod game_system {
 
             let player = get_caller_address();
 
-            let (cubes, bonuses) = game.complete_level_with_settings(base_seed, settings);
+            let (cubes, bonuses) = game.complete_level(base_seed, settings);
             let bonuses_earned = self.award_level_bonuses(ref world, ref game, base_seed, player, bonuses);
 
             // Emit level completed with pre-reset stats
@@ -717,7 +717,7 @@ mod game_system {
 
             // Emit next level started
             let updated_run_data = game.get_run_data();
-            let next_level_config = LevelGeneratorTrait::generate_with_settings(
+            let next_level_config = LevelGeneratorTrait::generate(
                 base_seed, updated_run_data.current_level, settings,
             );
             world

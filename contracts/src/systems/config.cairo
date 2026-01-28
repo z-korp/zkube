@@ -29,33 +29,38 @@ trait IConfigSystem<T> {
         extra_moves_cost: u8,
         // Reward Multiplier
         cube_multiplier_x100: u16,
-        // Difficulty Progression
-        starting_difficulty: u8,
-        difficulty_step_levels: u8,
+        // Difficulty Progression (non-linear tier thresholds)
+        tier_1_threshold: u8,
+        tier_2_threshold: u8,
+        tier_3_threshold: u8,
+        tier_4_threshold: u8,
+        tier_5_threshold: u8,
+        tier_6_threshold: u8,
+        tier_7_threshold: u8,
         // Constraint Settings
         constraints_enabled: u8,
         constraint_start_level: u8,
-        // Constraint Distribution (Easy to Master scaling)
-        easy_none_chance: u8,
+        // Constraint Distribution (VeryEasy to Master scaling)
+        veryeasy_none_chance: u8,
         master_none_chance: u8,
-        easy_no_bonus_chance: u8,
+        veryeasy_no_bonus_chance: u8,
         master_no_bonus_chance: u8,
-        easy_min_lines: u8,
+        veryeasy_min_lines: u8,
         master_min_lines: u8,
-        easy_max_lines: u8,
+        veryeasy_max_lines: u8,
         master_max_lines: u8,
-        easy_min_times: u8,
+        veryeasy_min_times: u8,
         master_min_times: u8,
-        easy_max_times: u8,
+        veryeasy_max_times: u8,
         master_max_times: u8,
-        easy_dual_chance: u8,
+        veryeasy_dual_chance: u8,
         master_dual_chance: u8,
-        // Block Distribution (Easy to Master scaling)
-        easy_size1_weight: u8,
-        easy_size2_weight: u8,
-        easy_size3_weight: u8,
-        easy_size4_weight: u8,
-        easy_size5_weight: u8,
+        // Block Distribution (VeryEasy to Master scaling)
+        veryeasy_size1_weight: u8,
+        veryeasy_size2_weight: u8,
+        veryeasy_size3_weight: u8,
+        veryeasy_size4_weight: u8,
+        veryeasy_size5_weight: u8,
         master_size1_weight: u8,
         master_size2_weight: u8,
         master_size3_weight: u8,
@@ -321,33 +326,38 @@ mod config_system {
             extra_moves_cost: u8,
             // Reward Multiplier
             cube_multiplier_x100: u16,
-            // Difficulty Progression
-            starting_difficulty: u8,
-            difficulty_step_levels: u8,
+            // Difficulty Progression (non-linear tier thresholds)
+            tier_1_threshold: u8,
+            tier_2_threshold: u8,
+            tier_3_threshold: u8,
+            tier_4_threshold: u8,
+            tier_5_threshold: u8,
+            tier_6_threshold: u8,
+            tier_7_threshold: u8,
             // Constraint Settings
             constraints_enabled: u8,
             constraint_start_level: u8,
-            // Constraint Distribution
-            easy_none_chance: u8,
+            // Constraint Distribution (VeryEasy to Master)
+            veryeasy_none_chance: u8,
             master_none_chance: u8,
-            easy_no_bonus_chance: u8,
+            veryeasy_no_bonus_chance: u8,
             master_no_bonus_chance: u8,
-            easy_min_lines: u8,
+            veryeasy_min_lines: u8,
             master_min_lines: u8,
-            easy_max_lines: u8,
+            veryeasy_max_lines: u8,
             master_max_lines: u8,
-            easy_min_times: u8,
+            veryeasy_min_times: u8,
             master_min_times: u8,
-            easy_max_times: u8,
+            veryeasy_max_times: u8,
             master_max_times: u8,
-            easy_dual_chance: u8,
+            veryeasy_dual_chance: u8,
             master_dual_chance: u8,
-            // Block Distribution
-            easy_size1_weight: u8,
-            easy_size2_weight: u8,
-            easy_size3_weight: u8,
-            easy_size4_weight: u8,
-            easy_size5_weight: u8,
+            // Block Distribution (VeryEasy to Master)
+            veryeasy_size1_weight: u8,
+            veryeasy_size2_weight: u8,
+            veryeasy_size3_weight: u8,
+            veryeasy_size4_weight: u8,
+            veryeasy_size5_weight: u8,
             master_size1_weight: u8,
             master_size2_weight: u8,
             master_size3_weight: u8,
@@ -368,13 +378,14 @@ mod config_system {
             self._validate_settings(
                 base_moves, max_moves, base_ratio_x100, max_ratio_x100,
                 cube_3_percent, cube_2_percent, cube_multiplier_x100,
-                starting_difficulty, difficulty_step_levels,
+                tier_1_threshold, tier_2_threshold, tier_3_threshold, tier_4_threshold,
+                tier_5_threshold, tier_6_threshold, tier_7_threshold,
                 constraints_enabled, constraint_start_level,
-                easy_none_chance, master_none_chance, easy_no_bonus_chance, master_no_bonus_chance,
-                easy_min_lines, master_min_lines, easy_max_lines, master_max_lines,
-                easy_min_times, master_min_times, easy_max_times, master_max_times,
-                easy_dual_chance, master_dual_chance,
-                easy_size1_weight, easy_size2_weight, easy_size3_weight, easy_size4_weight, easy_size5_weight,
+                veryeasy_none_chance, master_none_chance, veryeasy_no_bonus_chance, master_no_bonus_chance,
+                veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
+                veryeasy_min_times, master_min_times, veryeasy_max_times, master_max_times,
+                veryeasy_dual_chance, master_dual_chance,
+                veryeasy_size1_weight, veryeasy_size2_weight, veryeasy_size3_weight, veryeasy_size4_weight, veryeasy_size5_weight,
                 master_size1_weight, master_size2_weight, master_size3_weight, master_size4_weight, master_size5_weight,
                 early_variance_percent, mid_variance_percent, late_variance_percent,
                 early_level_threshold, mid_level_threshold, level_cap
@@ -407,33 +418,38 @@ mod config_system {
                 extra_moves_cost,
                 // Reward Multiplier
                 cube_multiplier_x100,
-                // Difficulty Progression
-                starting_difficulty,
-                difficulty_step_levels,
+                // Difficulty Progression (non-linear tier thresholds)
+                tier_1_threshold,
+                tier_2_threshold,
+                tier_3_threshold,
+                tier_4_threshold,
+                tier_5_threshold,
+                tier_6_threshold,
+                tier_7_threshold,
                 // Constraint Settings
                 constraints_enabled,
                 constraint_start_level,
-                // Constraint Distribution
-                easy_none_chance,
+                // Constraint Distribution (VeryEasy to Master)
+                veryeasy_none_chance,
                 master_none_chance,
-                easy_no_bonus_chance,
+                veryeasy_no_bonus_chance,
                 master_no_bonus_chance,
-                easy_min_lines,
+                veryeasy_min_lines,
                 master_min_lines,
-                easy_max_lines,
+                veryeasy_max_lines,
                 master_max_lines,
-                easy_min_times,
+                veryeasy_min_times,
                 master_min_times,
-                easy_max_times,
+                veryeasy_max_times,
                 master_max_times,
-                easy_dual_chance,
+                veryeasy_dual_chance,
                 master_dual_chance,
-                // Block Distribution
-                easy_size1_weight,
-                easy_size2_weight,
-                easy_size3_weight,
-                easy_size4_weight,
-                easy_size5_weight,
+                // Block Distribution (VeryEasy to Master)
+                veryeasy_size1_weight,
+                veryeasy_size2_weight,
+                veryeasy_size3_weight,
+                veryeasy_size4_weight,
+                veryeasy_size5_weight,
                 master_size1_weight,
                 master_size2_weight,
                 master_size3_weight,
@@ -521,32 +537,37 @@ mod config_system {
             cube_3_percent: u8,
             cube_2_percent: u8,
             cube_multiplier_x100: u16,
-            // Difficulty settings
-            starting_difficulty: u8,
-            difficulty_step_levels: u8,
+            // Difficulty tier thresholds
+            tier_1_threshold: u8,
+            tier_2_threshold: u8,
+            tier_3_threshold: u8,
+            tier_4_threshold: u8,
+            tier_5_threshold: u8,
+            tier_6_threshold: u8,
+            tier_7_threshold: u8,
             constraints_enabled: u8,
             constraint_start_level: u8,
-            // Constraint distribution
-            easy_none_chance: u8,
+            // Constraint distribution (VeryEasy to Master)
+            veryeasy_none_chance: u8,
             master_none_chance: u8,
-            easy_no_bonus_chance: u8,
+            veryeasy_no_bonus_chance: u8,
             master_no_bonus_chance: u8,
-            easy_min_lines: u8,
+            veryeasy_min_lines: u8,
             master_min_lines: u8,
-            easy_max_lines: u8,
+            veryeasy_max_lines: u8,
             master_max_lines: u8,
-            easy_min_times: u8,
+            veryeasy_min_times: u8,
             master_min_times: u8,
-            easy_max_times: u8,
+            veryeasy_max_times: u8,
             master_max_times: u8,
-            easy_dual_chance: u8,
+            veryeasy_dual_chance: u8,
             master_dual_chance: u8,
-            // Block distribution
-            easy_size1_weight: u8,
-            easy_size2_weight: u8,
-            easy_size3_weight: u8,
-            easy_size4_weight: u8,
-            easy_size5_weight: u8,
+            // Block distribution (VeryEasy to Master)
+            veryeasy_size1_weight: u8,
+            veryeasy_size2_weight: u8,
+            veryeasy_size3_weight: u8,
+            veryeasy_size4_weight: u8,
+            veryeasy_size5_weight: u8,
             master_size1_weight: u8,
             master_size2_weight: u8,
             master_size3_weight: u8,
@@ -577,40 +598,45 @@ mod config_system {
             // Validate multiplier
             assert!(cube_multiplier_x100 > 0, "Cube multiplier must be positive");
             
-            // Validate difficulty progression
-            assert!(starting_difficulty <= 7, "Starting difficulty must be 0-7");
-            // difficulty_step_levels can be 0 (means stay at starting difficulty forever)
+            // Validate difficulty tier thresholds (must be in ascending order)
+            assert!(tier_1_threshold >= 2, "Tier 1 must be >= 2 (at least 1 VeryEasy level)");
+            assert!(tier_2_threshold > tier_1_threshold, "Tier 2 must be > tier 1");
+            assert!(tier_3_threshold > tier_2_threshold, "Tier 3 must be > tier 2");
+            assert!(tier_4_threshold > tier_3_threshold, "Tier 4 must be > tier 3");
+            assert!(tier_5_threshold > tier_4_threshold, "Tier 5 must be > tier 4");
+            assert!(tier_6_threshold > tier_5_threshold, "Tier 6 must be > tier 5");
+            assert!(tier_7_threshold > tier_6_threshold, "Tier 7 must be > tier 6");
             
             // Validate constraint settings
             assert!(constraints_enabled <= 1, "Constraints enabled must be 0 or 1");
             // constraint_start_level can be any value (high value = no constraints early)
             
             // Validate constraint distribution
-            assert!(easy_none_chance <= 100, "Easy none chance must be <= 100");
+            assert!(veryeasy_none_chance <= 100, "VeryEasy none chance must be <= 100");
             assert!(master_none_chance <= 100, "Master none chance must be <= 100");
-            assert!(easy_no_bonus_chance <= 100, "Easy no bonus chance must be <= 100");
+            assert!(veryeasy_no_bonus_chance <= 100, "VeryEasy no bonus chance must be <= 100");
             assert!(master_no_bonus_chance <= 100, "Master no bonus chance must be <= 100");
-            assert!(easy_none_chance + easy_no_bonus_chance <= 100, "Easy probabilities cannot exceed 100");
+            assert!(veryeasy_none_chance + veryeasy_no_bonus_chance <= 100, "VeryEasy probabilities cannot exceed 100");
             assert!(master_none_chance + master_no_bonus_chance <= 100, "Master probabilities cannot exceed 100");
-            assert!(easy_min_lines >= 2, "Easy min lines must be >= 2");
-            assert!(easy_max_lines <= 10, "Easy max lines must be <= 10");
-            assert!(easy_min_lines <= easy_max_lines, "Easy min lines must be <= max lines");
+            assert!(veryeasy_min_lines >= 2, "VeryEasy min lines must be >= 2");
+            assert!(veryeasy_max_lines <= 10, "VeryEasy max lines must be <= 10");
+            assert!(veryeasy_min_lines <= veryeasy_max_lines, "VeryEasy min lines must be <= max lines");
             assert!(master_min_lines >= 2, "Master min lines must be >= 2");
             assert!(master_max_lines <= 10, "Master max lines must be <= 10");
             assert!(master_min_lines <= master_max_lines, "Master min lines must be <= max lines");
-            assert!(easy_min_times >= 1, "Easy min times must be >= 1");
-            assert!(easy_max_times <= 15, "Easy max times must be <= 15");
-            assert!(easy_min_times <= easy_max_times, "Easy min times must be <= max times");
+            assert!(veryeasy_min_times >= 1, "VeryEasy min times must be >= 1");
+            assert!(veryeasy_max_times <= 15, "VeryEasy max times must be <= 15");
+            assert!(veryeasy_min_times <= veryeasy_max_times, "VeryEasy min times must be <= max times");
             assert!(master_min_times >= 1, "Master min times must be >= 1");
             assert!(master_max_times <= 15, "Master max times must be <= 15");
             assert!(master_min_times <= master_max_times, "Master min times must be <= max times");
-            assert!(easy_dual_chance <= 100, "Easy dual chance must be <= 100");
+            assert!(veryeasy_dual_chance <= 100, "VeryEasy dual chance must be <= 100");
             assert!(master_dual_chance <= 100, "Master dual chance must be <= 100");
             
             // Validate block weights (must have at least some weight to generate blocks)
-            let easy_total: u16 = easy_size1_weight.into() + easy_size2_weight.into() + easy_size3_weight.into() + easy_size4_weight.into() + easy_size5_weight.into();
+            let veryeasy_total: u16 = veryeasy_size1_weight.into() + veryeasy_size2_weight.into() + veryeasy_size3_weight.into() + veryeasy_size4_weight.into() + veryeasy_size5_weight.into();
             let master_total: u16 = master_size1_weight.into() + master_size2_weight.into() + master_size3_weight.into() + master_size4_weight.into() + master_size5_weight.into();
-            assert!(easy_total > 0, "Easy block weights must sum to > 0");
+            assert!(veryeasy_total > 0, "VeryEasy block weights must sum to > 0");
             assert!(master_total > 0, "Master block weights must sum to > 0");
             
             // Validate variance settings
@@ -654,24 +680,30 @@ mod config_system {
             GameSetting { name: "Extra Moves Cost", value: format!("{}", game_settings.extra_moves_cost) },
             // Reward Multiplier
             GameSetting { name: "Cube Multiplier", value: format_ratio(game_settings.cube_multiplier_x100) },
-            // Difficulty Progression
-            GameSetting { name: "Starting Difficulty", value: difficulty_label(game_settings.get_difficulty_for_level(1)) },
-            GameSetting { name: "Difficulty Step", value: format!("{} levels", game_settings.difficulty_step_levels) },
+            // Difficulty Progression (non-linear tier thresholds)
+            GameSetting { name: "VeryEasy", value: format!("Levels 1-{}", game_settings.tier_1_threshold - 1) },
+            GameSetting { name: "Easy", value: format!("Levels {}-{}", game_settings.tier_1_threshold, game_settings.tier_2_threshold - 1) },
+            GameSetting { name: "Medium", value: format!("Levels {}-{}", game_settings.tier_2_threshold, game_settings.tier_3_threshold - 1) },
+            GameSetting { name: "MediumHard", value: format!("Levels {}-{}", game_settings.tier_3_threshold, game_settings.tier_4_threshold - 1) },
+            GameSetting { name: "Hard", value: format!("Levels {}-{}", game_settings.tier_4_threshold, game_settings.tier_5_threshold - 1) },
+            GameSetting { name: "VeryHard", value: format!("Levels {}-{}", game_settings.tier_5_threshold, game_settings.tier_6_threshold - 1) },
+            GameSetting { name: "Expert", value: format!("Levels {}-{}", game_settings.tier_6_threshold, game_settings.tier_7_threshold - 1) },
+            GameSetting { name: "Master", value: format!("Levels {}+", game_settings.tier_7_threshold) },
             // Constraint Settings
             GameSetting { name: "Constraints", value: if game_settings.constraints_enabled != 0 { "Enabled" } else { "Disabled" } },
             GameSetting { name: "Constraint Start", value: format!("Level {}", game_settings.constraint_start_level) },
-            // Constraint Distribution (Easy to Master)
-            GameSetting { name: "None Chance", value: format!("{}%-{}%", game_settings.easy_none_chance, game_settings.master_none_chance) },
-            GameSetting { name: "No Bonus Chance", value: format!("{}%-{}%", game_settings.easy_no_bonus_chance, game_settings.master_no_bonus_chance) },
-            GameSetting { name: "Lines Range", value: format!("{}-{} to {}-{}", game_settings.easy_min_lines, game_settings.easy_max_lines, game_settings.master_min_lines, game_settings.master_max_lines) },
-            GameSetting { name: "Times Range", value: format!("{}-{} to {}-{}", game_settings.easy_min_times, game_settings.easy_max_times, game_settings.master_min_times, game_settings.master_max_times) },
-            GameSetting { name: "Dual Chance", value: format!("{}%-{}%", game_settings.easy_dual_chance, game_settings.master_dual_chance) },
-            // Block Distribution (Easy to Master) - size = block width
-            GameSetting { name: "Size-1 Weight", value: format!("{}-{}", game_settings.easy_size1_weight, game_settings.master_size1_weight) },
-            GameSetting { name: "Size-2 Weight", value: format!("{}-{}", game_settings.easy_size2_weight, game_settings.master_size2_weight) },
-            GameSetting { name: "Size-3 Weight", value: format!("{}-{}", game_settings.easy_size3_weight, game_settings.master_size3_weight) },
-            GameSetting { name: "Size-4 Weight", value: format!("{}-{}", game_settings.easy_size4_weight, game_settings.master_size4_weight) },
-            GameSetting { name: "Size-5 Weight", value: format!("{}-{}", game_settings.easy_size5_weight, game_settings.master_size5_weight) },
+            // Constraint Distribution (VeryEasy to Master)
+            GameSetting { name: "None Chance", value: format!("{}%-{}%", game_settings.veryeasy_none_chance, game_settings.master_none_chance) },
+            GameSetting { name: "No Bonus Chance", value: format!("{}%-{}%", game_settings.veryeasy_no_bonus_chance, game_settings.master_no_bonus_chance) },
+            GameSetting { name: "Lines Range", value: format!("{}-{} to {}-{}", game_settings.veryeasy_min_lines, game_settings.veryeasy_max_lines, game_settings.master_min_lines, game_settings.master_max_lines) },
+            GameSetting { name: "Times Range", value: format!("{}-{} to {}-{}", game_settings.veryeasy_min_times, game_settings.veryeasy_max_times, game_settings.master_min_times, game_settings.master_max_times) },
+            GameSetting { name: "Dual Chance", value: format!("{}%-{}%", game_settings.veryeasy_dual_chance, game_settings.master_dual_chance) },
+            // Block Distribution (VeryEasy to Master) - size = block width
+            GameSetting { name: "Size-1 Weight", value: format!("{}-{}", game_settings.veryeasy_size1_weight, game_settings.master_size1_weight) },
+            GameSetting { name: "Size-2 Weight", value: format!("{}-{}", game_settings.veryeasy_size2_weight, game_settings.master_size2_weight) },
+            GameSetting { name: "Size-3 Weight", value: format!("{}-{}", game_settings.veryeasy_size3_weight, game_settings.master_size3_weight) },
+            GameSetting { name: "Size-4 Weight", value: format!("{}-{}", game_settings.veryeasy_size4_weight, game_settings.master_size4_weight) },
+            GameSetting { name: "Size-5 Weight", value: format!("{}-{}", game_settings.veryeasy_size5_weight, game_settings.master_size5_weight) },
             // Variance Settings
             GameSetting { name: "Early Variance", value: format!("{}%", game_settings.early_variance_percent) },
             GameSetting { name: "Mid Variance", value: format!("{}%", game_settings.mid_variance_percent) },

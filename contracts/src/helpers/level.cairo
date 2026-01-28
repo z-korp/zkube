@@ -1,5 +1,5 @@
 /// Level generation helpers
-/// Generates deterministic level configurations based on seed
+/// Generates deterministic level configurations based on seed and GameSettings
 ///
 /// Key properties:
 /// - Same seed + same level = same config
@@ -7,10 +7,7 @@
 /// - Level 100+ caps at max difficulty (survival mode)
 /// - Points derived from moves × ratio (0.8 → 2.5), base moves 20→60
 /// - Correlated variance keeps difficulty ratio constant
-///
-/// Supports both:
-/// - generate(seed, level) - uses hardcoded defaults (backward compatible)
-/// - generate_with_settings(seed, level, settings) - uses configurable GameSettings
+/// - All generation uses GameSettings for configurable game balance
 
 use core::poseidon::{PoseidonTrait, HashState};
 use core::hash::HashStateTrait;
@@ -48,62 +45,9 @@ mod LevelConstants {
 
 #[generate_trait]
 pub impl LevelGenerator of LevelGeneratorTrait {
-    /// Generate a complete level configuration from seed and level number
-    /// Uses hardcoded defaults from LevelConstants (backward compatible)
-    fn generate(seed: felt252, level: u8) -> LevelConfig {
-        // Derive a level-specific seed for deterministic variance
-        let level_seed = Self::derive_level_seed(seed, level);
-
-        // Cap level for calculations (survival mode after 100)
-        let calc_level = if level > LevelConstants::LEVEL_CAP {
-            LevelConstants::LEVEL_CAP
-        } else {
-            level
-        };
-
-        // 1. Calculate base moves (20 → 60)
-        let base_moves = Self::calculate_base_moves(calc_level);
-
-        // 2. Calculate ratio for this level (0.80 → 2.50)
-        let ratio_x100 = Self::calculate_ratio(calc_level);
-
-        // 3. Calculate base points from moves × ratio
-        let base_points: u16 = ((base_moves.into() * ratio_x100.into()) / 100_u32)
-            .try_into()
-            .unwrap();
-
-        // 4. Get variance percent based on level tier
-        let variance_percent = Self::get_variance_percent(calc_level);
-
-        // 5. Apply CORRELATED variance (same factor for both)
-        let variance_factor = Self::calculate_variance_factor(level_seed, variance_percent);
-        let points_required = Self::apply_factor(base_points, variance_factor);
-        let max_moves = Self::apply_factor(base_moves, variance_factor);
-
-        // Calculate cube thresholds
-        let cube_3_threshold = max_moves * LevelConstants::CUBE_3_PERCENT / 100;
-        let cube_2_threshold = max_moves * LevelConstants::CUBE_2_PERCENT / 100;
-
-        // Get difficulty and constraints
-        let difficulty = Self::get_difficulty_for_level(calc_level);
-        let constraint = Self::generate_constraint(level_seed, calc_level);
-
-        LevelConfig {
-            level,
-            points_required,
-            max_moves,
-            difficulty,
-            constraint,
-            constraint_2: LevelConstraintTrait::none(), // Legacy generate() doesn't use dual constraints
-            cube_3_threshold,
-            cube_2_threshold,
-        }
-    }
-    
-    /// Generate a level configuration using custom GameSettings
-    /// This allows custom game modes with different balance parameters
-    /// Uses default constraint distributions based on difficulty
-    fn generate_with_settings(seed: felt252, level: u8, settings: GameSettings) -> LevelConfig {
+    /// Generate a complete level configuration from seed, level number, and GameSettings
+    /// Uses configurable game balance parameters from settings
+    fn generate(seed: felt252, level: u8, settings: GameSettings) -> LevelConfig {
         // Derive a level-specific seed for deterministic variance
         let level_seed = Self::derive_level_seed(seed, level);
 
@@ -614,8 +558,9 @@ mod tests {
     #[test]
     fn test_seed_determinism() {
         // Same seed + same level should produce same config
-        let config1 = LevelGeneratorTrait::generate(TEST_SEED, 25);
-        let config2 = LevelGeneratorTrait::generate(TEST_SEED, 25);
+        let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        let config1 = LevelGeneratorTrait::generate(TEST_SEED, 25, settings);
+        let config2 = LevelGeneratorTrait::generate(TEST_SEED, 25, settings);
 
         assert!(config1.points_required == config2.points_required, "Points should match");
         assert!(config1.max_moves == config2.max_moves, "Moves should match");
@@ -625,7 +570,8 @@ mod tests {
     #[test]
     fn test_correlated_variance() {
         // Test that variance is correlated (ratio stays approximately constant)
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 50);
+        let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
 
         // Base at level 50: moves ~60, ratio ~165, points ~99
         // With variance, both should scale together
@@ -639,8 +585,9 @@ mod tests {
 
     #[test]
     fn test_different_seeds_different_configs() {
-        let config1 = LevelGeneratorTrait::generate(TEST_SEED, 25);
-        let config2 = LevelGeneratorTrait::generate(DIFFERENT_SEED, 25);
+        let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        let config1 = LevelGeneratorTrait::generate(TEST_SEED, 25, settings);
+        let config2 = LevelGeneratorTrait::generate(DIFFERENT_SEED, 25, settings);
 
         // At least one of points or moves should differ (very high probability)
         let points_differ = config1.points_required != config2.points_required;
@@ -652,8 +599,9 @@ mod tests {
     #[test]
     fn test_level_100_cap() {
         // Level 100 and 150 should have same base difficulty (Master)
-        let config100 = LevelGeneratorTrait::generate(TEST_SEED, 100);
-        let config150 = LevelGeneratorTrait::generate(TEST_SEED, 150);
+        let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        let config100 = LevelGeneratorTrait::generate(TEST_SEED, 100, settings);
+        let config150 = LevelGeneratorTrait::generate(TEST_SEED, 150, settings);
 
         assert!(config100.difficulty == Difficulty::Master, "Level 100 should be Master");
         assert!(config150.difficulty == Difficulty::Master, "Level 150 should be Master");
@@ -661,8 +609,9 @@ mod tests {
 
     #[test]
     fn test_no_constraint_early_levels() {
-        let config1 = LevelGeneratorTrait::generate(TEST_SEED, 1);
-        let config4 = LevelGeneratorTrait::generate(TEST_SEED, 4);
+        let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        let config1 = LevelGeneratorTrait::generate(TEST_SEED, 1, settings);
+        let config4 = LevelGeneratorTrait::generate(TEST_SEED, 4, settings);
 
         assert!(
             config1.constraint.constraint_type == ConstraintType::None,
@@ -676,7 +625,8 @@ mod tests {
 
     #[test]
     fn test_cube_thresholds() {
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 50);
+        let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
 
         // Cube thresholds should be percentages of max_moves
         let expected_3_cube = config.max_moves * 40 / 100;
@@ -692,33 +642,38 @@ mod tests {
 
     #[test]
     fn test_generate_level_1() {
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 1);
+        let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 1, settings);
 
         // Level 1: base_moves=20, ratio=0.80, base_points=16
         // With ±5% variance: moves 19-21, points 15-17
+        // With non-linear progression: Level 1 is VeryEasy (tier 0)
         assert!(config.level == 1, "Level should be 1");
         assert!(config.points_required >= 14 && config.points_required <= 18, "Points in range");
         assert!(config.max_moves >= 18 && config.max_moves <= 22, "Moves in range");
-        assert!(config.difficulty == Difficulty::Easy, "Level 1 should be Easy");
+        assert!(config.difficulty == Difficulty::VeryEasy, "Level 1 should be VeryEasy");
     }
 
     #[test]
     fn test_generate_level_50() {
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 50);
+        let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
 
         // Level 50: base_moves~40, ratio~1.65, base_points~66
         // With ±10% variance: moves 36-44, points 59-73
+        // With non-linear progression: Level 50 is VeryHard (tier 5, starts at level 50)
         assert!(config.level == 50, "Level should be 50");
         assert!(config.points_required >= 56 && config.points_required <= 76, "Points in range");
         assert!(config.max_moves >= 34 && config.max_moves <= 46, "Moves in range");
-        assert!(config.difficulty == Difficulty::Hard, "Level 50 should be Hard");
+        assert!(config.difficulty == Difficulty::VeryHard, "Level 50 should be VeryHard");
         assert!(config.cube_3_threshold < config.cube_2_threshold, "Cube thresholds ordered");
         assert!(config.cube_2_threshold < config.max_moves, "2-cube threshold < max");
     }
 
     #[test]
     fn test_generate_level_100() {
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 100);
+        let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 100, settings);
 
         // Level 100: base_moves=60, ratio=2.50, base_points=150
         // With ±15% variance: moves 51-69, points 127-173
@@ -744,21 +699,21 @@ mod tests {
     }
     
     #[test]
-    fn test_generate_with_settings_default() {
-        // Using default settings should produce same result as generate()
+    fn test_generate_default_settings() {
+        // Test generate with default settings
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
         
-        let config_default = LevelGeneratorTrait::generate(TEST_SEED, 25);
-        let config_settings = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 25, settings);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 25, settings);
         
-        assert!(config_default.points_required == config_settings.points_required, "Points should match");
-        assert!(config_default.max_moves == config_settings.max_moves, "Moves should match");
-        assert!(config_default.cube_3_threshold == config_settings.cube_3_threshold, "Cube 3 threshold should match");
-        assert!(config_default.cube_2_threshold == config_settings.cube_2_threshold, "Cube 2 threshold should match");
+        // Verify it produces reasonable values
+        assert!(config.level == 25, "Level should be 25");
+        assert!(config.points_required > 0, "Points should be positive");
+        assert!(config.max_moves > 0, "Moves should be positive");
+        assert!(config.cube_3_threshold < config.cube_2_threshold, "Cube thresholds should be ordered");
     }
     
     #[test]
-    fn test_generate_with_settings_custom() {
+    fn test_generate_custom_moves() {
         // Create custom settings with different parameters
         let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
         settings.base_moves = 30;  // Higher than default 20
@@ -766,7 +721,7 @@ mod tests {
         settings.cube_3_percent = 30;  // Stricter than default 40
         settings.cube_2_percent = 60;  // Stricter than default 70
         
-        let config = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 1, settings);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 1, settings);
         
         // At level 1, should use base_moves (with variance)
         // With ±5% variance: 30 -> 28-32
@@ -780,13 +735,13 @@ mod tests {
     }
     
     #[test]
-    fn test_generate_with_settings_tournament_mode() {
+    fn test_generate_tournament_mode() {
         // Tournament mode: harder thresholds, same base moves
         let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
         settings.cube_3_percent = 25;  // Much stricter
         settings.cube_2_percent = 50;  // Much stricter
         
-        let config = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 50, settings);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
         
         // Cube thresholds should be much stricter
         let expected_3_cube = config.max_moves * 25 / 100;
@@ -796,19 +751,19 @@ mod tests {
     }
     
     #[test]
-    fn test_generate_with_settings_constraints_disabled() {
+    fn test_generate_constraints_disabled() {
         // Disable constraints entirely
         let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
         settings.constraints_enabled = 0;
         
         // Even at high levels, should have no constraint
-        let config = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 50, settings);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
         assert!(
             config.constraint.constraint_type == ConstraintType::None,
             "Should have no constraint when disabled"
         );
         
-        let config_100 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 100, settings);
+        let config_100 = LevelGeneratorTrait::generate(TEST_SEED, 100, settings);
         assert!(
             config_100.constraint.constraint_type == ConstraintType::None,
             "Level 100 should have no constraint when disabled"
@@ -816,45 +771,50 @@ mod tests {
     }
     
     #[test]
-    fn test_generate_with_settings_custom_constraint_start() {
+    fn test_generate_custom_constraint_start() {
         // Start constraints at level 20 instead of 5
         let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
         settings.constraint_start_level = 20;
         
         // Level 15 should have no constraint
-        let config_15 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 15, settings);
+        let config_15 = LevelGeneratorTrait::generate(TEST_SEED, 15, settings);
         assert!(
             config_15.constraint.constraint_type == ConstraintType::None,
             "Level 15 should have no constraint"
         );
         
         // Level 20 might have a constraint (depending on RNG)
-        let config_20 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 20, settings);
+        let _config_20 = LevelGeneratorTrait::generate(TEST_SEED, 20, settings);
         // We can't assert the specific type since it's random, but it should use generate_constraint
     }
     
     #[test]
-    fn test_generate_with_settings_custom_difficulty_progression() {
-        // Start at Medium, step every 10 levels
+    fn test_generate_custom_difficulty_progression() {
+        // Custom tier thresholds for faster early progression
         let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        settings.starting_difficulty = 1; // Medium
-        settings.difficulty_step_levels = 10;
+        settings.tier_1_threshold = 2;   // Easy starts at level 2
+        settings.tier_2_threshold = 5;   // Medium starts at level 5
+        settings.tier_3_threshold = 10;  // MediumHard starts at level 10
+        settings.tier_4_threshold = 15;  // Hard starts at level 15
+        settings.tier_5_threshold = 25;  // VeryHard starts at level 25
+        settings.tier_6_threshold = 40;  // Expert starts at level 40
+        settings.tier_7_threshold = 60;  // Master starts at level 60
         
-        let config_1 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 1, settings);
-        assert!(config_1.difficulty == Difficulty::Medium, "Level 1 should be Medium");
+        let config_1 = LevelGeneratorTrait::generate(TEST_SEED, 1, settings);
+        assert!(config_1.difficulty == Difficulty::VeryEasy, "Level 1 should be VeryEasy");
         
-        let config_10 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 10, settings);
-        assert!(config_10.difficulty == Difficulty::Medium, "Level 10 should be Medium");
+        let config_2 = LevelGeneratorTrait::generate(TEST_SEED, 2, settings);
+        assert!(config_2.difficulty == Difficulty::Easy, "Level 2 should be Easy");
         
-        let config_11 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 11, settings);
-        assert!(config_11.difficulty == Difficulty::MediumHard, "Level 11 should be MediumHard");
+        let config_5 = LevelGeneratorTrait::generate(TEST_SEED, 5, settings);
+        assert!(config_5.difficulty == Difficulty::Medium, "Level 5 should be Medium");
         
-        let config_21 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 21, settings);
-        assert!(config_21.difficulty == Difficulty::Hard, "Level 21 should be Hard");
+        let config_10 = LevelGeneratorTrait::generate(TEST_SEED, 10, settings);
+        assert!(config_10.difficulty == Difficulty::MediumHard, "Level 10 should be MediumHard");
     }
     
     #[test]
-    fn test_generate_with_settings_custom_variance() {
+    fn test_generate_custom_variance() {
         // Use zero variance for completely deterministic levels
         let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
         settings.early_variance_percent = 0;
@@ -862,8 +822,8 @@ mod tests {
         settings.late_variance_percent = 0;
         
         // With zero variance, multiple generations with same seed should be identical
-        let config1 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 25, settings);
-        let config2 = LevelGeneratorTrait::generate_with_settings(DIFFERENT_SEED, 25, settings);
+        let config1 = LevelGeneratorTrait::generate(TEST_SEED, 25, settings);
+        let config2 = LevelGeneratorTrait::generate(DIFFERENT_SEED, 25, settings);
         
         // Points should be exactly base calculation (no variance)
         // Level 25: base_moves ~28.5, ratio ~125, points ~35
@@ -873,14 +833,14 @@ mod tests {
     }
     
     #[test]
-    fn test_generate_with_settings_custom_level_cap() {
+    fn test_generate_custom_level_cap() {
         // Lower level cap to 50
         let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
         settings.level_cap = 50;
         
         // Level 50 and 100 should have same scaling (both at cap)
-        let config_50 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 50, settings);
-        let config_100 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 100, settings);
+        let config_50 = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
+        let config_100 = LevelGeneratorTrait::generate(TEST_SEED, 100, settings);
         
         // Both should use level 50 for calculations
         // Note: We can't directly compare due to different level seeds, but we can verify
@@ -890,7 +850,7 @@ mod tests {
     }
     
     #[test]
-    fn test_generate_with_settings_easy_mode() {
+    fn test_generate_easy_mode() {
         // "Easy mode": more moves, lower ratios, generous thresholds
         let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
         settings.base_moves = 30;       // More moves at start
@@ -900,14 +860,20 @@ mod tests {
         settings.cube_3_percent = 50;   // More generous 3-cube threshold
         settings.cube_2_percent = 80;   // More generous 2-cube threshold
         settings.constraints_enabled = 0; // No constraints
-        settings.starting_difficulty = 0; // Start at Easy
-        settings.difficulty_step_levels = 25; // Slower difficulty progression
+        // Slow difficulty progression - stay VeryEasy longer
+        settings.tier_1_threshold = 20;  // Easy starts at level 20
+        settings.tier_2_threshold = 40;  // Medium starts at level 40
+        settings.tier_3_threshold = 60;  // MediumHard starts at level 60
+        settings.tier_4_threshold = 75;  // Hard starts at level 75
+        settings.tier_5_threshold = 85;  // VeryHard starts at level 85
+        settings.tier_6_threshold = 95;  // Expert starts at level 95
+        settings.tier_7_threshold = 100; // Master starts at level 100
         
-        let config = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 1, settings);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 1, settings);
         
         // Should have easier parameters
         assert!(config.max_moves >= 27, "Should have more moves"); // ~30 with variance
-        assert!(config.difficulty == Difficulty::Easy, "Should be Easy difficulty");
+        assert!(config.difficulty == Difficulty::VeryEasy, "Should be VeryEasy difficulty");
         assert!(config.constraint.constraint_type == ConstraintType::None, "Should have no constraint");
     }
 }

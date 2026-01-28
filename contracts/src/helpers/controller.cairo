@@ -1,5 +1,7 @@
 use core::traits::Into;
 use core::traits::TryInto;
+use core::poseidon::PoseidonTrait;
+use core::hash::HashStateTrait;
 
 use alexandria_math::fast_power::fast_power;
 use alexandria_math::BitShift;
@@ -122,37 +124,6 @@ pub impl Controller of ControllerTrait {
         result.try_into().unwrap()
     }
 
-    /// Create a new line.
-    /// # Arguments
-    /// * `seed` - The seed.
-    /// * `difficulty` - The difficulty.
-    /// # Returns
-    /// The new line.
-    fn create_line(seed: felt252, difficulty: Difficulty) -> u32 {
-        let mut validated: bool = false;
-        let mut size: u8 = 0;
-        let mut blocks: u32 = 0;
-
-        let mut deck: Deck = DeckTrait::new(seed, difficulty.count());
-
-        while deck.remaining != 0 && size < DEFAULT_GRID_WIDTH {
-            let block: Block = difficulty.reveal(deck.draw());
-            let block_size: u8 = block.size().into();
-            if block_size > (DEFAULT_GRID_WIDTH - size)
-                || (block_size == (DEFAULT_GRID_WIDTH - size) && !validated) {
-                continue;
-            };
-            let power: u32 = block_size.into() * BLOCK_BIT_COUNT.into();
-            let exp: u32 = fast_power(2, power);
-            validated = validated || block.get_bits() == 0;
-            blocks = blocks * exp + block.get_bits();
-            size += block_size;
-        };
-
-        // Shuffle because often the hole is at the end of the line
-        Self::shuffle_line(blocks, seed)
-    }
-    
     /// Create a new line with configurable block weights from GameSettings.
     /// Uses the interpolated block weights based on difficulty.
     /// # Arguments
@@ -161,7 +132,7 @@ pub impl Controller of ControllerTrait {
     /// * `settings` - The game settings containing block weight configuration
     /// # Returns
     /// The new line as a packed u32.
-    fn create_line_with_settings(seed: felt252, difficulty: Difficulty, settings: GameSettings) -> u32 {
+    fn create_line(seed: felt252, difficulty: Difficulty, settings: GameSettings) -> u32 {
         let mut validated: bool = false;
         let mut size: u8 = 0;
         let mut blocks: u32 = 0;
@@ -170,22 +141,26 @@ pub impl Controller of ControllerTrait {
         let (zero_w, one_w, two_w, three_w, four_w) = settings.get_block_weights_for_difficulty(difficulty);
         let total_weight: u16 = zero_w.into() + one_w.into() + two_w.into() + three_w.into() + four_w.into();
         
-        // Use a deterministic roll for block selection
-        let seed_u256: u256 = seed.into();
-        let mut roll_counter: u256 = 0;
+        // Use a deterministic but properly randomized roll for block selection
+        let mut roll_counter: felt252 = 0;
 
         let mut attempts: u16 = 0;
         while size < DEFAULT_GRID_WIDTH {
             attempts += 1;
             if attempts > 512 {
-                // Fallback to the legacy generator if settings are pathological.
-                return Self::create_line(seed, difficulty);
+                // Fallback to deck-based generator if settings are pathological.
+                return Self::create_line_fallback(seed, difficulty);
             }
 
-            // Generate a random value for block selection
-            let roll_seed = seed_u256 + roll_counter;
+            // Generate a random value for block selection using Poseidon hash
+            // This ensures each roll is properly randomized, not sequential
+            let roll_hash: felt252 = PoseidonTrait::new()
+                .update(seed)
+                .update(roll_counter)
+                .finalize();
             roll_counter += 1;
-            let roll: u16 = (roll_seed % total_weight.into()).try_into().unwrap();
+            let roll_u256: u256 = roll_hash.into();
+            let roll: u16 = (roll_u256 % total_weight.into()).try_into().unwrap();
             
             // Select block based on cumulative weights
             let block: Block = Self::select_block_by_weight(roll, zero_w, one_w, two_w, three_w, four_w);
@@ -206,6 +181,33 @@ pub impl Controller of ControllerTrait {
             size += block_size;
         };
         
+        // Shuffle because often the hole is at the end of the line
+        Self::shuffle_line(blocks, seed)
+    }
+    
+    /// Fallback line generator using the original deck-based logic.
+    /// Used when settings-based generation fails (e.g., pathological weights).
+    fn create_line_fallback(seed: felt252, difficulty: Difficulty) -> u32 {
+        let mut validated: bool = false;
+        let mut size: u8 = 0;
+        let mut blocks: u32 = 0;
+
+        let mut deck: Deck = DeckTrait::new(seed, difficulty.count());
+
+        while deck.remaining != 0 && size < DEFAULT_GRID_WIDTH {
+            let block: Block = difficulty.reveal(deck.draw());
+            let block_size: u8 = block.size().into();
+            if block_size > (DEFAULT_GRID_WIDTH - size)
+                || (block_size == (DEFAULT_GRID_WIDTH - size) && !validated) {
+                continue;
+            };
+            let power: u32 = block_size.into() * BLOCK_BIT_COUNT.into();
+            let exp: u32 = fast_power(2, power);
+            validated = validated || block.get_bits() == 0;
+            blocks = blocks * exp + block.get_bits();
+            size += block_size;
+        };
+
         // Shuffle because often the hole is at the end of the line
         Self::shuffle_line(blocks, seed)
     }
@@ -823,18 +825,20 @@ mod tests {
     }
 
     #[test]
-    fn test_controller_create_line_01() {
+    fn test_controller_create_line_fallback_01() {
+        // Test the fallback line generator (original deck-based logic)
         let seed: felt252 = 'SEED';
         let easy: Difficulty = Difficulty::Easy;
-        let blocks = Controller::create_line(seed, easy);
+        let blocks = Controller::create_line_fallback(seed, easy);
         assert_eq!(blocks, 0b001_010_010_001_001_001_000_000);
     }
 
     #[test]
-    fn test_controller_create_line_02() {
+    fn test_controller_create_line_fallback_02() {
+        // Test the fallback line generator (original deck-based logic)
         let seed: felt252 = 'DEES';
         let easy: Difficulty = Difficulty::Easy;
-        let blocks = Controller::create_line(seed, easy);
+        let blocks = Controller::create_line_fallback(seed, easy);
         assert_eq!(blocks, 0b010_010_001_001_000_001_010_010);
     }
 
