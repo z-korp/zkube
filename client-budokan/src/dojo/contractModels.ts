@@ -83,33 +83,26 @@ export function defineContractComponents(world: World) {
           extra_moves_cost: RecsType.Number,
           // Reward Multiplier
           cube_multiplier_x100: RecsType.Number,
-          // Difficulty Progression
-          starting_difficulty: RecsType.Number,
-          difficulty_step_levels: RecsType.Number,
+          // Difficulty Tier Thresholds (non-linear)
+          tier_1_threshold: RecsType.Number,
+          tier_2_threshold: RecsType.Number,
+          tier_3_threshold: RecsType.Number,
+          tier_4_threshold: RecsType.Number,
+          tier_5_threshold: RecsType.Number,
+          tier_6_threshold: RecsType.Number,
+          tier_7_threshold: RecsType.Number,
           // Constraint Settings
           constraints_enabled: RecsType.Number,
           constraint_start_level: RecsType.Number,
-          // Constraint Distribution (Easy to Master)
-          easy_none_chance: RecsType.Number,
-          master_none_chance: RecsType.Number,
-          easy_no_bonus_chance: RecsType.Number,
-          master_no_bonus_chance: RecsType.Number,
-          easy_min_lines: RecsType.Number,
-          master_min_lines: RecsType.Number,
-          easy_max_lines: RecsType.Number,
-          master_max_lines: RecsType.Number,
-          easy_min_times: RecsType.Number,
-          master_min_times: RecsType.Number,
-          easy_max_times: RecsType.Number,
-          master_max_times: RecsType.Number,
-          easy_dual_chance: RecsType.Number,
-          master_dual_chance: RecsType.Number,
-          // Block Distribution (Easy to Master)
-          easy_size1_weight: RecsType.Number,
-          easy_size2_weight: RecsType.Number,
-          easy_size3_weight: RecsType.Number,
-          easy_size4_weight: RecsType.Number,
-          easy_size5_weight: RecsType.Number,
+          // Constraint Distribution (PACKED fields)
+          constraint_lines_budgets: RecsType.BigInt, // u64: lines + budgets + times packed
+          constraint_chances: RecsType.Number,       // u32: dual_chance + secondary_no_bonus packed
+          // Block Distribution (VeryEasy to Master)
+          veryeasy_size1_weight: RecsType.Number,
+          veryeasy_size2_weight: RecsType.Number,
+          veryeasy_size3_weight: RecsType.Number,
+          veryeasy_size4_weight: RecsType.Number,
+          veryeasy_size5_weight: RecsType.Number,
           master_size1_weight: RecsType.Number,
           master_size2_weight: RecsType.Number,
           master_size3_weight: RecsType.Number,
@@ -136,13 +129,11 @@ export function defineContractComponents(world: World) {
               "u8", "u8",  // cube thresholds
               "u8", "u8", "u8", "u8",  // consumable costs
               "u16",  // cube_multiplier_x100
-              "u8", "u8",  // difficulty progression
+              "u8", "u8", "u8", "u8", "u8", "u8", "u8",  // tier thresholds (7)
               "u8", "u8",  // constraint settings
-              "u8", "u8", "u8", "u8",  // constraint distribution probabilities
-              "u8", "u8", "u8", "u8",  // constraint lines
-              "u8", "u8", "u8", "u8",  // constraint times
-              "u8", "u8",  // dual chance
-              "u8", "u8", "u8", "u8", "u8",  // easy block weights
+              "u64",  // constraint_lines_budgets (packed)
+              "u32",  // constraint_chances (packed)
+              "u8", "u8", "u8", "u8", "u8",  // veryeasy block weights
               "u8", "u8", "u8", "u8", "u8",  // master block weights
               "u8", "u8", "u8",  // variance
               "u8", "u8",  // level thresholds

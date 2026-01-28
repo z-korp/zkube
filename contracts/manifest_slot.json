@@ -33,8 +33,8 @@
   },
   "contracts": [
     {
-      "address": "0x5b8edb3e18b0c0ac22ee54441c9b57effa6dda55a07df0609a13b6582492ae2",
-      "class_hash": "0x59023ed27eee7c9a2f23488b7a271d0ea4767ef29a10590f95c534b62e34731",
+      "address": "0x60e5800eac8ac08fa9c4e120287649ff7ed09cd04e45a651efbbaf4b16c20a4",
+      "class_hash": "0x759245e4f54c74862bb1ef9984654d9ce41409dadec490d3c767d8a2b8572b7",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819"
       ],
@@ -70,8 +70,8 @@
       ]
     },
     {
-      "address": "0x337566c8fc63229248cb10f774ddb971804257740db158fd88f3ecd22f96ea3",
-      "class_hash": "0x5dc1addaa8a7e6df79da6a513baf17431ba1128a08b5ad7d66de46acf65e42c",
+      "address": "0x11d6e18ce6f2dff5462f1c56cfc81f7953a453f4b6d4db55530422e847852fd",
+      "class_hash": "0x196effcf69c2ee31f1bc561f0e3290d4902ced807b74c42b2f57171284dcd84",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
         "0x062347854b5817b3c8101014b5813fb0b5db48e4df2a0a9dada8cbdab191b064",
@@ -283,73 +283,13 @@
           "key": false
         },
         {
-          "name": "veryeasy_none_chance",
-          "type": "core::integer::u8",
+          "name": "constraint_lines_budgets",
+          "type": "core::integer::u64",
           "key": false
         },
         {
-          "name": "master_none_chance",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "veryeasy_no_bonus_chance",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "master_no_bonus_chance",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "veryeasy_min_lines",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "master_min_lines",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "veryeasy_max_lines",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "master_max_lines",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "veryeasy_min_times",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "master_min_times",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "veryeasy_max_times",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "master_max_times",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "veryeasy_dual_chance",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "master_dual_chance",
-          "type": "core::integer::u8",
+          "name": "constraint_chances",
+          "type": "core::integer::u32",
           "key": false
         },
         {
@@ -433,7 +373,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x24833073eadb99a7cd473230b41b755abdc72d2943a985624e0853a9f3af0d3",
+      "class_hash": "0x7a21acb0ceffc597bf690ad1b38f119509abf7c3c303a72f5b3a207abcbefbd",
       "tag": "zkube_budo_v1_2_0-GameSettings",
       "selector": "0x1c245917b09d68b08ceb4972426ebba162f36b31404a63dc180496cdc6777b"
     },
@@ -3974,60 +3914,12 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "veryeasy_none_chance",
-          "type": "core::integer::u8"
+          "name": "constraint_lines_budgets",
+          "type": "core::integer::u64"
         },
         {
-          "name": "master_none_chance",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_no_bonus_chance",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_no_bonus_chance",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_min_lines",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_min_lines",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_max_lines",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_max_lines",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_min_times",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_min_times",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_max_times",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_max_times",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_dual_chance",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_dual_chance",
-          "type": "core::integer::u8"
+          "name": "constraint_chances",
+          "type": "core::integer::u32"
         },
         {
           "name": "veryeasy_size1_weight",
@@ -4232,60 +4124,12 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "veryeasy_none_chance",
-          "type": "core::integer::u8"
+          "name": "constraint_lines_budgets",
+          "type": "core::integer::u64"
         },
         {
-          "name": "master_none_chance",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_no_bonus_chance",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_no_bonus_chance",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_min_lines",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_min_lines",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_max_lines",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_max_lines",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_min_times",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_min_times",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_max_times",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_max_times",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "veryeasy_dual_chance",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "master_dual_chance",
-          "type": "core::integer::u8"
+          "name": "constraint_chances",
+          "type": "core::integer::u32"
         },
         {
           "name": "veryeasy_size1_weight",
@@ -4636,60 +4480,12 @@
               "type": "core::integer::u8"
             },
             {
-              "name": "veryeasy_none_chance",
-              "type": "core::integer::u8"
+              "name": "constraint_lines_budgets",
+              "type": "core::integer::u64"
             },
             {
-              "name": "master_none_chance",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "veryeasy_no_bonus_chance",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "master_no_bonus_chance",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "veryeasy_min_lines",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "master_min_lines",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "veryeasy_max_lines",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "master_max_lines",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "veryeasy_min_times",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "master_min_times",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "veryeasy_max_times",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "master_max_times",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "veryeasy_dual_chance",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "master_dual_chance",
-              "type": "core::integer::u8"
+              "name": "constraint_chances",
+              "type": "core::integer::u32"
             },
             {
               "name": "veryeasy_size1_weight",

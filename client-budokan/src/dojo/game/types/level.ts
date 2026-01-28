@@ -18,6 +18,12 @@ import { Constraint } from "./constraint";
 /**
  * GameSettings interface matching the Cairo contract
  * Used for configurable game modes
+ * 
+ * Constraint system uses budget-based generation:
+ * - Primary constraint is always ClearLines (from level 3+)
+ * - Secondary constraint based on dual_chance (NoBonusUsed or ClearLines)
+ * - times_cap = budget / line_cost(lines)
+ * - Line costs: 2->1, 3->2, 4->4, 5->7, 6->11, 7->16
  */
 export interface GameSettings {
   // Mode
@@ -37,33 +43,38 @@ export interface GameSettings {
   extraMovesCost: number;
   // Reward Multiplier
   cubeMultiplierX100: number;
-  // Difficulty Progression
-  startingDifficulty: number;
-  difficultyStepLevels: number;
+  // Difficulty Progression (tier thresholds)
+  tier1Threshold: number;  // Easy starts
+  tier2Threshold: number;  // Medium starts
+  tier3Threshold: number;  // MediumHard starts
+  tier4Threshold: number;  // Hard starts
+  tier5Threshold: number;  // VeryHard starts
+  tier6Threshold: number;  // Expert starts
+  tier7Threshold: number;  // Master starts
   // Constraint Settings
   constraintsEnabled: boolean;
   constraintStartLevel: number;
-  // Constraint Distribution (Easy to Master interpolation)
-  easyNoneChance: number;
-  masterNoneChance: number;
-  easyNoBonusChance: number;
-  masterNoBonusChance: number;
-  easyMinLines: number;
+  // Constraint Distribution (VeryEasy to Master, budget-based)
+  veryeasyMinLines: number;
   masterMinLines: number;
-  easyMaxLines: number;
+  veryeasyMaxLines: number;
   masterMaxLines: number;
-  easyMinTimes: number;
+  veryeasyBudgetMin: number;
+  veryeasyBudgetMax: number;
+  masterBudgetMin: number;
+  masterBudgetMax: number;
+  veryeasyMinTimes: number;
   masterMinTimes: number;
-  easyMaxTimes: number;
-  masterMaxTimes: number;
-  easyDualChance: number;
+  veryeasyDualChance: number;
   masterDualChance: number;
-  // Block Distribution (not used in level gen but included for completeness)
-  easySize1Weight: number;
-  easySize2Weight: number;
-  easySize3Weight: number;
-  easySize4Weight: number;
-  easySize5Weight: number;
+  veryeasySecondaryNoBonusChance: number;
+  masterSecondaryNoBonusChance: number;
+  // Block Distribution (VeryEasy to Master)
+  veryeasySize1Weight: number;
+  veryeasySize2Weight: number;
+  veryeasySize3Weight: number;
+  veryeasySize4Weight: number;
+  veryeasySize5Weight: number;
   masterSize1Weight: number;
   masterSize2Weight: number;
   masterSize3Weight: number;
@@ -82,6 +93,7 @@ export interface GameSettings {
 
 /**
  * Default settings matching Cairo's GameSettingsDefaults
+ * Uses budget-based constraint system with line costs
  */
 export const DEFAULT_SETTINGS: GameSettings = {
   mode: 1, // Increasing
@@ -100,33 +112,39 @@ export const DEFAULT_SETTINGS: GameSettings = {
   extraMovesCost: 10,
   // Reward Multiplier
   cubeMultiplierX100: 100, // 1.0x
-  // Difficulty Progression
-  startingDifficulty: 0, // Easy
-  difficultyStepLevels: 15, // Every 15 levels
+  // Difficulty Progression (non-linear tier thresholds)
+  tier1Threshold: 5,   // Easy starts at level 5
+  tier2Threshold: 10,  // Medium starts at level 10
+  tier3Threshold: 20,  // MediumHard starts at level 20
+  tier4Threshold: 35,  // Hard starts at level 35
+  tier5Threshold: 50,  // VeryHard starts at level 50
+  tier6Threshold: 70,  // Expert starts at level 70
+  tier7Threshold: 90,  // Master starts at level 90
   // Constraint Settings
   constraintsEnabled: true,
-  constraintStartLevel: 5,
-  // Constraint Distribution (Easy to Master)
-  easyNoneChance: 30,
-  masterNoneChance: 0,
-  easyNoBonusChance: 0,
-  masterNoBonusChance: 25,
-  easyMinLines: 2,
-  masterMinLines: 5,
-  easyMaxLines: 3,
-  masterMaxLines: 7,
-  easyMinTimes: 1,
-  masterMinTimes: 4,
-  easyMaxTimes: 2,
-  masterMaxTimes: 10,
-  easyDualChance: 0,
-  masterDualChance: 50,
-  // Block Distribution
-  easySize1Weight: 20,
-  easySize2Weight: 33,
-  easySize3Weight: 27,
-  easySize4Weight: 13,
-  easySize5Weight: 7,
+  constraintStartLevel: 3,  // Constraints start at level 3
+  // Constraint Distribution (VeryEasy to Master, budget-based)
+  // Line costs: 2->1, 3->2, 4->4, 5->7, 6->11, 7->16
+  veryeasyMinLines: 2,
+  masterMinLines: 4,
+  veryeasyMaxLines: 2,   // Only 2 lines early (trivial)
+  masterMaxLines: 6,     // Up to 6 lines at Master
+  veryeasyBudgetMin: 2,  // Min budget early
+  veryeasyBudgetMax: 5,  // ~"2 lines x 2-3 times"
+  masterBudgetMin: 26,   // Hard floor at Master
+  masterBudgetMax: 40,   // Allows 6x3, 5x5, caps 7x2
+  veryeasyMinTimes: 1,   // At least 1 time
+  masterMinTimes: 2,     // At least 2 times at Master
+  veryeasyDualChance: 0,    // No dual early
+  masterDualChance: 100,    // Always dual at Master
+  veryeasySecondaryNoBonusChance: 0,   // Never early
+  masterSecondaryNoBonusChance: 30,    // 30% at Master
+  // Block Distribution (VeryEasy to Master)
+  veryeasySize1Weight: 20,
+  veryeasySize2Weight: 33,
+  veryeasySize3Weight: 27,
+  veryeasySize4Weight: 13,
+  veryeasySize5Weight: 7,
   masterSize1Weight: 7,
   masterSize2Weight: 13,
   masterSize3Weight: 20,
@@ -426,33 +444,32 @@ function applyFactor(base: number, factor: number): number {
 }
 
 /**
- * Get difficulty for a level using settings
- * Uses startingDifficulty and difficultyStepLevels for progression
+ * Get difficulty for a level using non-linear tier thresholds
+ * VeryEasy: 1-4, Easy: 5-9, Medium: 10-19, MediumHard: 20-34
+ * Hard: 35-49, VeryHard: 50-69, Expert: 70-89, Master: 90+
  */
 function getDifficultyForLevel(
   level: number,
   settings: GameSettings
 ): Difficulty {
-  // Calculate difficulty tier based on level and step size
-  const difficultyTier = Math.min(
-    7, // Max tier is Master (7)
-    settings.startingDifficulty +
-      Math.floor((level - 1) / settings.difficultyStepLevels)
-  );
-
-  // Map tier to DifficultyType
-  const difficultyMap: DifficultyType[] = [
-    DifficultyType.VeryEasy, // 0
-    DifficultyType.Easy, // 1
-    DifficultyType.Medium, // 2
-    DifficultyType.MediumHard, // 3
-    DifficultyType.Hard, // 4
-    DifficultyType.VeryHard, // 5
-    DifficultyType.Expert, // 6
-    DifficultyType.Master, // 7
-  ];
-
-  return new Difficulty(difficultyMap[difficultyTier] ?? DifficultyType.Master);
+  // Use non-linear tier thresholds
+  if (level >= settings.tier7Threshold) {
+    return new Difficulty(DifficultyType.Master);
+  } else if (level >= settings.tier6Threshold) {
+    return new Difficulty(DifficultyType.Expert);
+  } else if (level >= settings.tier5Threshold) {
+    return new Difficulty(DifficultyType.VeryHard);
+  } else if (level >= settings.tier4Threshold) {
+    return new Difficulty(DifficultyType.Hard);
+  } else if (level >= settings.tier3Threshold) {
+    return new Difficulty(DifficultyType.MediumHard);
+  } else if (level >= settings.tier2Threshold) {
+    return new Difficulty(DifficultyType.Medium);
+  } else if (level >= settings.tier1Threshold) {
+    return new Difficulty(DifficultyType.Easy);
+  } else {
+    return new Difficulty(DifficultyType.VeryEasy);
+  }
 }
 
 /**
@@ -471,63 +488,64 @@ function interpolate(
 
 /**
  * Get interpolated constraint parameters for a difficulty tier
+ * Uses budget-based system for times calculation
  */
 function getConstraintParams(
   difficulty: Difficulty,
   settings: GameSettings
 ): {
-  noneChance: number;
-  noBonusChance: number;
   minLines: number;
   maxLines: number;
+  budgetMin: number;
+  budgetMax: number;
   minTimes: number;
-  maxTimes: number;
   dualChance: number;
+  secondaryNoBonusChance: number;
 } {
   // Get difficulty tier (0-7) using the into() method
   const tier = difficulty.into();
   const maxTier = 7;
 
   return {
-    noneChance: interpolate(
-      settings.easyNoneChance,
-      settings.masterNoneChance,
-      tier,
-      maxTier
-    ),
-    noBonusChance: interpolate(
-      settings.easyNoBonusChance,
-      settings.masterNoBonusChance,
-      tier,
-      maxTier
-    ),
     minLines: interpolate(
-      settings.easyMinLines,
+      settings.veryeasyMinLines,
       settings.masterMinLines,
       tier,
       maxTier
     ),
     maxLines: interpolate(
-      settings.easyMaxLines,
+      settings.veryeasyMaxLines,
       settings.masterMaxLines,
       tier,
       maxTier
     ),
+    budgetMin: interpolate(
+      settings.veryeasyBudgetMin,
+      settings.masterBudgetMin,
+      tier,
+      maxTier
+    ),
+    budgetMax: interpolate(
+      settings.veryeasyBudgetMax,
+      settings.masterBudgetMax,
+      tier,
+      maxTier
+    ),
     minTimes: interpolate(
-      settings.easyMinTimes,
+      settings.veryeasyMinTimes,
       settings.masterMinTimes,
       tier,
       maxTier
     ),
-    maxTimes: interpolate(
-      settings.easyMaxTimes,
-      settings.masterMaxTimes,
+    dualChance: interpolate(
+      settings.veryeasyDualChance,
+      settings.masterDualChance,
       tier,
       maxTier
     ),
-    dualChance: interpolate(
-      settings.easyDualChance,
-      settings.masterDualChance,
+    secondaryNoBonusChance: interpolate(
+      settings.veryeasySecondaryNoBonusChance,
+      settings.masterSecondaryNoBonusChance,
       tier,
       maxTier
     ),
@@ -535,40 +553,129 @@ function getConstraintParams(
 }
 
 /**
- * Generate a single constraint from parameters
+ * Returns the weighted difficulty cost for clearing N lines at once.
+ * Higher line counts are exponentially harder to achieve in practice.
+ * Line costs: 2->1, 3->2, 4->4, 5->7, 6->11, 7->16
  */
-function generateConstraintFromParams(
-  seed: bigint,
-  noneChance: number,
-  noBonusChance: number,
-  minLines: number,
-  maxLines: number,
-  minTimes: number,
-  maxTimes: number
-): Constraint {
-  const roll = Number(seed % BigInt(100));
-
-  // Determine constraint type based on probabilities
-  if (roll < noneChance) {
-    return Constraint.none();
-  } else if (roll < noneChance + noBonusChance) {
-    return Constraint.noBonus();
-  } else {
-    // ClearLines constraint - calculate lines and times from ranges
-    const linesRange = Math.max(1, maxLines - minLines + 1);
-    const timesRange = Math.max(1, maxTimes - minTimes + 1);
-
-    const lines =
-      minLines + Number((seed / BigInt(100)) % BigInt(linesRange));
-    const times =
-      minTimes + Number((seed / BigInt(1000)) % BigInt(timesRange));
-
-    return Constraint.clearLines(lines, times);
+function lineCost(lines: number): number {
+  switch (lines) {
+    case 0:
+    case 1:
+    case 2:
+      return 1;
+    case 3:
+      return 2;
+    case 4:
+      return 4;
+    case 5:
+      return 7;
+    case 6:
+      return 11;
+    case 7:
+      return 16;
+    default:
+      return 20; // 8+ (theoretical, grid max)
   }
 }
 
 /**
+ * Generate a ClearLines constraint using the weighted budget system
+ * Algorithm:
+ * 1. Roll budget within [budget_min, budget_max]
+ * 2. Roll lines within [min_lines, max_lines]
+ * 3. Compute times_cap = budget / line_cost(lines)
+ * 4. Feasibility repair: reduce lines if times_cap < min_times
+ * 5. Roll times with skew-high distribution (max of two rolls)
+ */
+function generateClearLinesConstraint(
+  seed: bigint,
+  minLines: number,
+  maxLines: number,
+  budgetMin: number,
+  budgetMax: number,
+  minTimes: number
+): Constraint {
+  // Step 1: Roll budget within [budget_min, budget_max]
+  const budgetRange = budgetMax > budgetMin ? budgetMax - budgetMin + 1 : 1;
+  const budget = budgetMin + Number(seed % BigInt(budgetRange));
+
+  // Step 2: Roll lines within [min_lines, max_lines]
+  const linesRange = maxLines > minLines ? maxLines - minLines + 1 : 1;
+  let lines = minLines + Number((seed / BigInt(100)) % BigInt(linesRange));
+
+  // Step 3: Compute times_cap = budget / line_cost(lines)
+  let cost = lineCost(lines);
+  let timesCap = cost > 0 ? Math.floor(budget / cost) : 1;
+
+  // Step 4: Feasibility repair - reduce lines until times_cap >= min_times
+  let repairCount = 0;
+  while (timesCap < minTimes && lines > 2 && repairCount < 5) {
+    lines = lines - 1;
+    cost = lineCost(lines);
+    timesCap = cost > 0 ? Math.floor(budget / cost) : 1;
+    repairCount++;
+  }
+
+  // If still infeasible, reduce min_times requirement to times_cap
+  const effectiveMinTimes =
+    timesCap < minTimes ? (timesCap >= 1 ? timesCap : 1) : minTimes;
+
+  // Step 5: Roll times with skew-high distribution (max of two rolls)
+  let times: number;
+  if (timesCap <= 1) {
+    times = 1;
+  } else {
+    const t1 = 1 + Number((seed / BigInt(1000)) % BigInt(timesCap));
+    const t2 = 1 + Number((seed / BigInt(10000)) % BigInt(timesCap));
+    const maxT = Math.max(t1, t2);
+    // Enforce minimum times floor
+    times = maxT < effectiveMinTimes ? effectiveMinTimes : maxT;
+  }
+
+  return Constraint.clearLines(lines, times);
+}
+
+/**
+ * Maybe generate a secondary constraint
+ * Secondary can be either NoBonusUsed or another ClearLines
+ */
+function maybeGenerateSecondaryConstraint(
+  seed: bigint,
+  minLines: number,
+  maxLines: number,
+  budgetMin: number,
+  budgetMax: number,
+  minTimes: number,
+  dualChance: number,
+  secondaryNoBonusChance: number
+): Constraint {
+  // Roll to see if we get a secondary constraint at all
+  const dualRoll = Number((seed / BigInt(100000)) % BigInt(100));
+  if (dualRoll >= dualChance) {
+    return Constraint.none();
+  }
+
+  // Roll to see if secondary is NoBonusUsed or ClearLines
+  const noBonusRoll = Number((seed / BigInt(1000000)) % BigInt(100));
+  if (noBonusRoll < secondaryNoBonusChance) {
+    return Constraint.noBonus();
+  }
+
+  // Generate another ClearLines constraint with shifted seed
+  const secondarySeed = seed / BigInt(10000000);
+  return generateClearLinesConstraint(
+    secondarySeed,
+    minLines,
+    maxLines,
+    budgetMin,
+    budgetMax,
+    minTimes
+  );
+}
+
+/**
  * Generate constraints using settings (supports dual constraints)
+ * Primary is always ClearLines (from level 3+), secondary depends on dual_chance
  */
 function generateConstraintsWithSettings(
   levelSeed: bigint,
@@ -581,7 +688,7 @@ function generateConstraintsWithSettings(
     return { constraint: Constraint.none(), constraint2: Constraint.none() };
   }
 
-  // No constraint before the start level
+  // No constraint before the start level (levels 1-2 have no constraints)
   if (level < settings.constraintStartLevel) {
     return { constraint: Constraint.none(), constraint2: Constraint.none() };
   }
@@ -589,73 +696,116 @@ function generateConstraintsWithSettings(
   // Get interpolated parameters for this difficulty
   const params = getConstraintParams(difficulty, settings);
 
-  // Generate primary constraint
-  const constraint = generateConstraintFromParams(
+  // Generate primary constraint (always ClearLines)
+  const constraint = generateClearLinesConstraint(
     levelSeed,
-    params.noneChance,
-    params.noBonusChance,
     params.minLines,
     params.maxLines,
-    params.minTimes,
-    params.maxTimes
+    params.budgetMin,
+    params.budgetMax,
+    params.minTimes
   );
 
   // Check if we should have a secondary constraint
-  const dualRoll = Number((levelSeed / BigInt(10000)) % BigInt(100));
-  let constraint2 = Constraint.none();
-
-  if (dualRoll < params.dualChance) {
-    // Generate secondary constraint with shifted seed
-    const secondarySeed = levelSeed / BigInt(100000);
-    constraint2 = generateConstraintFromParams(
-      secondarySeed,
-      params.noneChance,
-      params.noBonusChance,
-      params.minLines,
-      params.maxLines,
-      params.minTimes,
-      params.maxTimes
-    );
-
-    // If secondary is same type as primary, try alternate
-    if (constraint2.constraintType === constraint.constraintType) {
-      if (constraint.constraintType === 2) {
-        // Primary is NoBonusUsed, make secondary ClearLines
-        const linesRange = Math.max(1, params.maxLines - params.minLines + 1);
-        const timesRange = Math.max(1, params.maxTimes - params.minTimes + 1);
-        const lines =
-          params.minLines +
-          Number((levelSeed / BigInt(1000000)) % BigInt(linesRange));
-        const times =
-          params.minTimes +
-          Number((levelSeed / BigInt(10000000)) % BigInt(timesRange));
-        constraint2 = Constraint.clearLines(lines, times);
-      } else if (params.noBonusChance > 0) {
-        // Add NoBonusUsed as secondary
-        constraint2 = Constraint.noBonus();
-      } else {
-        // Generate different ClearLines parameters
-        const linesRange = Math.max(1, params.maxLines - params.minLines + 1);
-        const timesRange = Math.max(1, params.maxTimes - params.minTimes + 1);
-        const lines =
-          params.minLines +
-          Number((levelSeed / BigInt(1000000)) % BigInt(linesRange));
-        const times =
-          params.minTimes +
-          Number((levelSeed / BigInt(10000000)) % BigInt(timesRange));
-        constraint2 = Constraint.clearLines(lines, times);
-      }
-    }
-  }
+  const constraint2 = maybeGenerateSecondaryConstraint(
+    levelSeed,
+    params.minLines,
+    params.maxLines,
+    params.budgetMin,
+    params.budgetMax,
+    params.minTimes,
+    params.dualChance,
+    params.secondaryNoBonusChance
+  );
 
   return { constraint, constraint2 };
 }
 
 /**
+ * Unpack constraint_lines_budgets field (u64 -> individual values)
+ * Packing: lines(4x4bits) + budgets(4x8bits) + times(2x4bits) = 56 bits
+ */
+function unpackConstraintLinesBudgets(packed: bigint | number): {
+  veryeasyMinLines: number;
+  masterMinLines: number;
+  veryeasyMaxLines: number;
+  masterMaxLines: number;
+  veryeasyBudgetMin: number;
+  veryeasyBudgetMax: number;
+  masterBudgetMin: number;
+  masterBudgetMax: number;
+  veryeasyMinTimes: number;
+  masterMinTimes: number;
+} {
+  const p = BigInt(packed);
+  return {
+    veryeasyMinLines: Number(p & BigInt(0xf)), // bits 0-3
+    masterMinLines: Number((p >> BigInt(4)) & BigInt(0xf)), // bits 4-7
+    veryeasyMaxLines: Number((p >> BigInt(8)) & BigInt(0xf)), // bits 8-11
+    masterMaxLines: Number((p >> BigInt(12)) & BigInt(0xf)), // bits 12-15
+    veryeasyBudgetMin: Number((p >> BigInt(16)) & BigInt(0xff)), // bits 16-23
+    veryeasyBudgetMax: Number((p >> BigInt(24)) & BigInt(0xff)), // bits 24-31
+    masterBudgetMin: Number((p >> BigInt(32)) & BigInt(0xff)), // bits 32-39
+    masterBudgetMax: Number((p >> BigInt(40)) & BigInt(0xff)), // bits 40-47
+    veryeasyMinTimes: Number((p >> BigInt(48)) & BigInt(0xf)), // bits 48-51
+    masterMinTimes: Number((p >> BigInt(52)) & BigInt(0xf)), // bits 52-55
+  };
+}
+
+/**
+ * Unpack constraint_chances field (u32 -> individual values)
+ * Packing: dual_chance(2x8bits) + secondary_no_bonus(2x8bits) = 32 bits
+ */
+function unpackConstraintChances(packed: bigint | number): {
+  veryeasyDualChance: number;
+  masterDualChance: number;
+  veryeasySecondaryNoBonusChance: number;
+  masterSecondaryNoBonusChance: number;
+} {
+  const p = BigInt(packed);
+  return {
+    veryeasyDualChance: Number(p & BigInt(0xff)), // bits 0-7
+    masterDualChance: Number((p >> BigInt(8)) & BigInt(0xff)), // bits 8-15
+    veryeasySecondaryNoBonusChance: Number((p >> BigInt(16)) & BigInt(0xff)), // bits 16-23
+    masterSecondaryNoBonusChance: Number((p >> BigInt(24)) & BigInt(0xff)), // bits 24-31
+  };
+}
+
+/**
  * Convert raw RECS GameSettings to our interface
+ * Handles packed constraint fields from the contract
  */
 export function parseGameSettings(raw: any): GameSettings {
   if (!raw) return DEFAULT_SETTINGS;
+
+  // Unpack constraint fields if they exist
+  const constraintLinesBudgets =
+    raw.constraint_lines_budgets !== undefined
+      ? unpackConstraintLinesBudgets(raw.constraint_lines_budgets)
+      : {
+          veryeasyMinLines: DEFAULT_SETTINGS.veryeasyMinLines,
+          masterMinLines: DEFAULT_SETTINGS.masterMinLines,
+          veryeasyMaxLines: DEFAULT_SETTINGS.veryeasyMaxLines,
+          masterMaxLines: DEFAULT_SETTINGS.masterMaxLines,
+          veryeasyBudgetMin: DEFAULT_SETTINGS.veryeasyBudgetMin,
+          veryeasyBudgetMax: DEFAULT_SETTINGS.veryeasyBudgetMax,
+          masterBudgetMin: DEFAULT_SETTINGS.masterBudgetMin,
+          masterBudgetMax: DEFAULT_SETTINGS.masterBudgetMax,
+          veryeasyMinTimes: DEFAULT_SETTINGS.veryeasyMinTimes,
+          masterMinTimes: DEFAULT_SETTINGS.masterMinTimes,
+        };
+
+  const constraintChances =
+    raw.constraint_chances !== undefined
+      ? unpackConstraintChances(raw.constraint_chances)
+      : {
+          veryeasyDualChance: DEFAULT_SETTINGS.veryeasyDualChance,
+          masterDualChance: DEFAULT_SETTINGS.masterDualChance,
+          veryeasySecondaryNoBonusChance:
+            DEFAULT_SETTINGS.veryeasySecondaryNoBonusChance,
+          masterSecondaryNoBonusChance:
+            DEFAULT_SETTINGS.masterSecondaryNoBonusChance,
+        };
 
   return {
     mode: raw.mode ?? DEFAULT_SETTINGS.mode,
@@ -671,39 +821,34 @@ export function parseGameSettings(raw: any): GameSettings {
     extraMovesCost: raw.extra_moves_cost ?? DEFAULT_SETTINGS.extraMovesCost,
     cubeMultiplierX100:
       raw.cube_multiplier_x100 ?? DEFAULT_SETTINGS.cubeMultiplierX100,
-    startingDifficulty:
-      raw.starting_difficulty ?? DEFAULT_SETTINGS.startingDifficulty,
-    difficultyStepLevels:
-      raw.difficulty_step_levels ?? DEFAULT_SETTINGS.difficultyStepLevels,
+    // Difficulty tier thresholds
+    tier1Threshold: raw.tier_1_threshold ?? DEFAULT_SETTINGS.tier1Threshold,
+    tier2Threshold: raw.tier_2_threshold ?? DEFAULT_SETTINGS.tier2Threshold,
+    tier3Threshold: raw.tier_3_threshold ?? DEFAULT_SETTINGS.tier3Threshold,
+    tier4Threshold: raw.tier_4_threshold ?? DEFAULT_SETTINGS.tier4Threshold,
+    tier5Threshold: raw.tier_5_threshold ?? DEFAULT_SETTINGS.tier5Threshold,
+    tier6Threshold: raw.tier_6_threshold ?? DEFAULT_SETTINGS.tier6Threshold,
+    tier7Threshold: raw.tier_7_threshold ?? DEFAULT_SETTINGS.tier7Threshold,
     constraintsEnabled:
       raw.constraints_enabled !== undefined
         ? raw.constraints_enabled !== 0
         : DEFAULT_SETTINGS.constraintsEnabled,
     constraintStartLevel:
       raw.constraint_start_level ?? DEFAULT_SETTINGS.constraintStartLevel,
-    easyNoneChance: raw.easy_none_chance ?? DEFAULT_SETTINGS.easyNoneChance,
-    masterNoneChance:
-      raw.master_none_chance ?? DEFAULT_SETTINGS.masterNoneChance,
-    easyNoBonusChance:
-      raw.easy_no_bonus_chance ?? DEFAULT_SETTINGS.easyNoBonusChance,
-    masterNoBonusChance:
-      raw.master_no_bonus_chance ?? DEFAULT_SETTINGS.masterNoBonusChance,
-    easyMinLines: raw.easy_min_lines ?? DEFAULT_SETTINGS.easyMinLines,
-    masterMinLines: raw.master_min_lines ?? DEFAULT_SETTINGS.masterMinLines,
-    easyMaxLines: raw.easy_max_lines ?? DEFAULT_SETTINGS.easyMaxLines,
-    masterMaxLines: raw.master_max_lines ?? DEFAULT_SETTINGS.masterMaxLines,
-    easyMinTimes: raw.easy_min_times ?? DEFAULT_SETTINGS.easyMinTimes,
-    masterMinTimes: raw.master_min_times ?? DEFAULT_SETTINGS.masterMinTimes,
-    easyMaxTimes: raw.easy_max_times ?? DEFAULT_SETTINGS.easyMaxTimes,
-    masterMaxTimes: raw.master_max_times ?? DEFAULT_SETTINGS.masterMaxTimes,
-    easyDualChance: raw.easy_dual_chance ?? DEFAULT_SETTINGS.easyDualChance,
-    masterDualChance:
-      raw.master_dual_chance ?? DEFAULT_SETTINGS.masterDualChance,
-    easySize1Weight: raw.easy_size1_weight ?? DEFAULT_SETTINGS.easySize1Weight,
-    easySize2Weight: raw.easy_size2_weight ?? DEFAULT_SETTINGS.easySize2Weight,
-    easySize3Weight: raw.easy_size3_weight ?? DEFAULT_SETTINGS.easySize3Weight,
-    easySize4Weight: raw.easy_size4_weight ?? DEFAULT_SETTINGS.easySize4Weight,
-    easySize5Weight: raw.easy_size5_weight ?? DEFAULT_SETTINGS.easySize5Weight,
+    // Unpacked constraint fields
+    ...constraintLinesBudgets,
+    ...constraintChances,
+    // Block weights
+    veryeasySize1Weight:
+      raw.veryeasy_size1_weight ?? DEFAULT_SETTINGS.veryeasySize1Weight,
+    veryeasySize2Weight:
+      raw.veryeasy_size2_weight ?? DEFAULT_SETTINGS.veryeasySize2Weight,
+    veryeasySize3Weight:
+      raw.veryeasy_size3_weight ?? DEFAULT_SETTINGS.veryeasySize3Weight,
+    veryeasySize4Weight:
+      raw.veryeasy_size4_weight ?? DEFAULT_SETTINGS.veryeasySize4Weight,
+    veryeasySize5Weight:
+      raw.veryeasy_size5_weight ?? DEFAULT_SETTINGS.veryeasySize5Weight,
     masterSize1Weight:
       raw.master_size1_weight ?? DEFAULT_SETTINGS.masterSize1Weight,
     masterSize2Weight:
@@ -714,12 +859,14 @@ export function parseGameSettings(raw: any): GameSettings {
       raw.master_size4_weight ?? DEFAULT_SETTINGS.masterSize4Weight,
     masterSize5Weight:
       raw.master_size5_weight ?? DEFAULT_SETTINGS.masterSize5Weight,
+    // Variance
     earlyVariancePercent:
       raw.early_variance_percent ?? DEFAULT_SETTINGS.earlyVariancePercent,
     midVariancePercent:
       raw.mid_variance_percent ?? DEFAULT_SETTINGS.midVariancePercent,
     lateVariancePercent:
       raw.late_variance_percent ?? DEFAULT_SETTINGS.lateVariancePercent,
+    // Level thresholds
     earlyLevelThreshold:
       raw.early_level_threshold ?? DEFAULT_SETTINGS.earlyLevelThreshold,
     midLevelThreshold:

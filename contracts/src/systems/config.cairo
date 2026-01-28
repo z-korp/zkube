@@ -40,21 +40,9 @@ trait IConfigSystem<T> {
         // Constraint Settings
         constraints_enabled: u8,
         constraint_start_level: u8,
-        // Constraint Distribution (VeryEasy to Master scaling)
-        veryeasy_none_chance: u8,
-        master_none_chance: u8,
-        veryeasy_no_bonus_chance: u8,
-        master_no_bonus_chance: u8,
-        veryeasy_min_lines: u8,
-        master_min_lines: u8,
-        veryeasy_max_lines: u8,
-        master_max_lines: u8,
-        veryeasy_min_times: u8,
-        master_min_times: u8,
-        veryeasy_max_times: u8,
-        master_max_times: u8,
-        veryeasy_dual_chance: u8,
-        master_dual_chance: u8,
+        // Constraint Distribution (packed - use pack_constraint_* helpers)
+        constraint_lines_budgets: u64,  // Packed: lines(4x4bits) + budgets(4x8bits) + times(2x4bits)
+        constraint_chances: u32,        // Packed: dual_chance(2x8bits) + secondary_no_bonus(2x8bits)
         // Block Distribution (VeryEasy to Master scaling)
         veryeasy_size1_weight: u8,
         veryeasy_size2_weight: u8,
@@ -337,21 +325,9 @@ mod config_system {
             // Constraint Settings
             constraints_enabled: u8,
             constraint_start_level: u8,
-            // Constraint Distribution (VeryEasy to Master)
-            veryeasy_none_chance: u8,
-            master_none_chance: u8,
-            veryeasy_no_bonus_chance: u8,
-            master_no_bonus_chance: u8,
-            veryeasy_min_lines: u8,
-            master_min_lines: u8,
-            veryeasy_max_lines: u8,
-            master_max_lines: u8,
-            veryeasy_min_times: u8,
-            master_min_times: u8,
-            veryeasy_max_times: u8,
-            master_max_times: u8,
-            veryeasy_dual_chance: u8,
-            master_dual_chance: u8,
+            // Constraint Distribution (packed)
+            constraint_lines_budgets: u64,
+            constraint_chances: u32,
             // Block Distribution (VeryEasy to Master)
             veryeasy_size1_weight: u8,
             veryeasy_size2_weight: u8,
@@ -381,10 +357,7 @@ mod config_system {
                 tier_1_threshold, tier_2_threshold, tier_3_threshold, tier_4_threshold,
                 tier_5_threshold, tier_6_threshold, tier_7_threshold,
                 constraints_enabled, constraint_start_level,
-                veryeasy_none_chance, master_none_chance, veryeasy_no_bonus_chance, master_no_bonus_chance,
-                veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
-                veryeasy_min_times, master_min_times, veryeasy_max_times, master_max_times,
-                veryeasy_dual_chance, master_dual_chance,
+                constraint_lines_budgets, constraint_chances,
                 veryeasy_size1_weight, veryeasy_size2_weight, veryeasy_size3_weight, veryeasy_size4_weight, veryeasy_size5_weight,
                 master_size1_weight, master_size2_weight, master_size3_weight, master_size4_weight, master_size5_weight,
                 early_variance_percent, mid_variance_percent, late_variance_percent,
@@ -429,21 +402,9 @@ mod config_system {
                 // Constraint Settings
                 constraints_enabled,
                 constraint_start_level,
-                // Constraint Distribution (VeryEasy to Master)
-                veryeasy_none_chance,
-                master_none_chance,
-                veryeasy_no_bonus_chance,
-                master_no_bonus_chance,
-                veryeasy_min_lines,
-                master_min_lines,
-                veryeasy_max_lines,
-                master_max_lines,
-                veryeasy_min_times,
-                master_min_times,
-                veryeasy_max_times,
-                master_max_times,
-                veryeasy_dual_chance,
-                master_dual_chance,
+                // Constraint Distribution (packed)
+                constraint_lines_budgets,
+                constraint_chances,
                 // Block Distribution (VeryEasy to Master)
                 veryeasy_size1_weight,
                 veryeasy_size2_weight,
@@ -528,6 +489,46 @@ mod config_system {
     
     #[generate_trait]
     impl InternalImpl of InternalTrait {
+        /// Helper function to get line cost for validation
+        /// Line costs: 2->1, 3->2, 4->4, 5->7, 6->11, 7->16
+        fn _line_cost(lines: u8) -> u8 {
+            match lines {
+                0 | 1 | 2 => 1,
+                3 => 2,
+                4 => 4,
+                5 => 7,
+                6 => 11,
+                7 => 16,
+                _ => 20,
+            }
+        }
+        
+        /// Unpack constraint_lines_budgets field
+        fn _unpack_lines_budgets(packed: u64) -> (u8, u8, u8, u8, u8, u8, u8, u8, u8, u8) {
+            let veryeasy_min_lines: u8 = (packed & 0xF).try_into().unwrap();
+            let master_min_lines: u8 = ((packed / 0x10) & 0xF).try_into().unwrap();
+            let veryeasy_max_lines: u8 = ((packed / 0x100) & 0xF).try_into().unwrap();
+            let master_max_lines: u8 = ((packed / 0x1000) & 0xF).try_into().unwrap();
+            let veryeasy_budget_min: u8 = ((packed / 0x10000) & 0xFF).try_into().unwrap();
+            let veryeasy_budget_max: u8 = ((packed / 0x1000000) & 0xFF).try_into().unwrap();
+            let master_budget_min: u8 = ((packed / 0x100000000) & 0xFF).try_into().unwrap();
+            let master_budget_max: u8 = ((packed / 0x10000000000) & 0xFF).try_into().unwrap();
+            let veryeasy_min_times: u8 = ((packed / 0x1000000000000) & 0xF).try_into().unwrap();
+            let master_min_times: u8 = ((packed / 0x10000000000000) & 0xF).try_into().unwrap();
+            (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
+             veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max,
+             veryeasy_min_times, master_min_times)
+        }
+        
+        /// Unpack constraint_chances field
+        fn _unpack_chances(packed: u32) -> (u8, u8, u8, u8) {
+            let veryeasy_dual_chance: u8 = (packed & 0xFF).try_into().unwrap();
+            let master_dual_chance: u8 = ((packed / 0x100) & 0xFF).try_into().unwrap();
+            let veryeasy_secondary_no_bonus: u8 = ((packed / 0x10000) & 0xFF).try_into().unwrap();
+            let master_secondary_no_bonus: u8 = ((packed / 0x1000000) & 0xFF).try_into().unwrap();
+            (veryeasy_dual_chance, master_dual_chance, veryeasy_secondary_no_bonus, master_secondary_no_bonus)
+        }
+        
         fn _validate_settings(
             self: @ContractState,
             base_moves: u16,
@@ -547,21 +548,9 @@ mod config_system {
             tier_7_threshold: u8,
             constraints_enabled: u8,
             constraint_start_level: u8,
-            // Constraint distribution (VeryEasy to Master)
-            veryeasy_none_chance: u8,
-            master_none_chance: u8,
-            veryeasy_no_bonus_chance: u8,
-            master_no_bonus_chance: u8,
-            veryeasy_min_lines: u8,
-            master_min_lines: u8,
-            veryeasy_max_lines: u8,
-            master_max_lines: u8,
-            veryeasy_min_times: u8,
-            master_min_times: u8,
-            veryeasy_max_times: u8,
-            master_max_times: u8,
-            veryeasy_dual_chance: u8,
-            master_dual_chance: u8,
+            // Constraint distribution (packed)
+            constraint_lines_budgets: u64,
+            constraint_chances: u32,
             // Block distribution (VeryEasy to Master)
             veryeasy_size1_weight: u8,
             veryeasy_size2_weight: u8,
@@ -611,27 +600,44 @@ mod config_system {
             assert!(constraints_enabled <= 1, "Constraints enabled must be 0 or 1");
             // constraint_start_level can be any value (high value = no constraints early)
             
-            // Validate constraint distribution
-            assert!(veryeasy_none_chance <= 100, "VeryEasy none chance must be <= 100");
-            assert!(master_none_chance <= 100, "Master none chance must be <= 100");
-            assert!(veryeasy_no_bonus_chance <= 100, "VeryEasy no bonus chance must be <= 100");
-            assert!(master_no_bonus_chance <= 100, "Master no bonus chance must be <= 100");
-            assert!(veryeasy_none_chance + veryeasy_no_bonus_chance <= 100, "VeryEasy probabilities cannot exceed 100");
-            assert!(master_none_chance + master_no_bonus_chance <= 100, "Master probabilities cannot exceed 100");
+            // Unpack constraint values for validation
+            let (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
+                 veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max,
+                 veryeasy_min_times, master_min_times) = Self::_unpack_lines_budgets(constraint_lines_budgets);
+            let (veryeasy_dual_chance, master_dual_chance, 
+                 veryeasy_secondary_no_bonus, master_secondary_no_bonus) = Self::_unpack_chances(constraint_chances);
+            
+            // Validate constraint distribution - lines
             assert!(veryeasy_min_lines >= 2, "VeryEasy min lines must be >= 2");
             assert!(veryeasy_max_lines <= 10, "VeryEasy max lines must be <= 10");
             assert!(veryeasy_min_lines <= veryeasy_max_lines, "VeryEasy min lines must be <= max lines");
             assert!(master_min_lines >= 2, "Master min lines must be >= 2");
             assert!(master_max_lines <= 10, "Master max lines must be <= 10");
             assert!(master_min_lines <= master_max_lines, "Master min lines must be <= max lines");
+            
+            // Validate constraint distribution - budget
+            assert!(veryeasy_budget_min <= veryeasy_budget_max, "VeryEasy budget_min must be <= budget_max");
+            assert!(master_budget_min <= master_budget_max, "Master budget_min must be <= budget_max");
+            
+            // Feasibility: budget_min must allow at least 1 time with min_lines
+            let veryeasy_min_cost = Self::_line_cost(veryeasy_min_lines);
+            let master_min_cost = Self::_line_cost(master_min_lines);
+            assert!(veryeasy_budget_min >= veryeasy_min_cost, "VeryEasy budget_min must allow at least 1 time");
+            assert!(master_budget_min >= master_min_cost, "Master budget_min must allow at least 1 time");
+            
+            // Feasibility: budget_max must allow min_times with min_lines
+            assert!(veryeasy_budget_max >= veryeasy_min_cost * veryeasy_min_times, "VeryEasy budget_max must allow min_times");
+            assert!(master_budget_max >= master_min_cost * master_min_times, "Master budget_max must allow min_times");
+            
+            // Validate times floor
             assert!(veryeasy_min_times >= 1, "VeryEasy min times must be >= 1");
-            assert!(veryeasy_max_times <= 15, "VeryEasy max times must be <= 15");
-            assert!(veryeasy_min_times <= veryeasy_max_times, "VeryEasy min times must be <= max times");
             assert!(master_min_times >= 1, "Master min times must be >= 1");
-            assert!(master_max_times <= 15, "Master max times must be <= 15");
-            assert!(master_min_times <= master_max_times, "Master min times must be <= max times");
+            
+            // Validate dual chance and secondary no bonus chance
             assert!(veryeasy_dual_chance <= 100, "VeryEasy dual chance must be <= 100");
             assert!(master_dual_chance <= 100, "Master dual chance must be <= 100");
+            assert!(veryeasy_secondary_no_bonus <= 100, "VeryEasy secondary no bonus must be <= 100");
+            assert!(master_secondary_no_bonus <= 100, "Master secondary no bonus must be <= 100");
             
             // Validate block weights (must have at least some weight to generate blocks)
             let veryeasy_total: u16 = veryeasy_size1_weight.into() + veryeasy_size2_weight.into() + veryeasy_size3_weight.into() + veryeasy_size4_weight.into() + veryeasy_size5_weight.into();
@@ -662,6 +668,13 @@ mod config_system {
     }
 
     fn generate_settings_array(game_settings: GameSettings) -> Span<GameSetting> {
+        // Unpack constraint values for display
+        let (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
+             veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max,
+             veryeasy_min_times, master_min_times) = game_settings.unpack_lines_budgets();
+        let (veryeasy_dual_chance, master_dual_chance, 
+             veryeasy_secondary_no_bonus, master_secondary_no_bonus) = game_settings.unpack_chances();
+        
         array![
             // Basic settings
             GameSetting { name: "Mode", value: difficulty_label(game_settings.get_mode()) },
@@ -693,11 +706,11 @@ mod config_system {
             GameSetting { name: "Constraints", value: if game_settings.constraints_enabled != 0 { "Enabled" } else { "Disabled" } },
             GameSetting { name: "Constraint Start", value: format!("Level {}", game_settings.constraint_start_level) },
             // Constraint Distribution (VeryEasy to Master)
-            GameSetting { name: "None Chance", value: format!("{}%-{}%", game_settings.veryeasy_none_chance, game_settings.master_none_chance) },
-            GameSetting { name: "No Bonus Chance", value: format!("{}%-{}%", game_settings.veryeasy_no_bonus_chance, game_settings.master_no_bonus_chance) },
-            GameSetting { name: "Lines Range", value: format!("{}-{} to {}-{}", game_settings.veryeasy_min_lines, game_settings.veryeasy_max_lines, game_settings.master_min_lines, game_settings.master_max_lines) },
-            GameSetting { name: "Times Range", value: format!("{}-{} to {}-{}", game_settings.veryeasy_min_times, game_settings.veryeasy_max_times, game_settings.master_min_times, game_settings.master_max_times) },
-            GameSetting { name: "Dual Chance", value: format!("{}%-{}%", game_settings.veryeasy_dual_chance, game_settings.master_dual_chance) },
+            GameSetting { name: "Lines Range", value: format!("{}-{} to {}-{}", veryeasy_min_lines, veryeasy_max_lines, master_min_lines, master_max_lines) },
+            GameSetting { name: "Budget Range", value: format!("{}-{} to {}-{}", veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max) },
+            GameSetting { name: "Min Times", value: format!("{} to {}", veryeasy_min_times, master_min_times) },
+            GameSetting { name: "Dual Chance", value: format!("{}%-{}%", veryeasy_dual_chance, master_dual_chance) },
+            GameSetting { name: "Secondary NoBonus", value: format!("{}%-{}%", veryeasy_secondary_no_bonus, master_secondary_no_bonus) },
             // Block Distribution (VeryEasy to Master) - size = block width
             GameSetting { name: "Size-1 Weight", value: format!("{}-{}", game_settings.veryeasy_size1_weight, game_settings.master_size1_weight) },
             GameSetting { name: "Size-2 Weight", value: format!("{}-{}", game_settings.veryeasy_size2_weight, game_settings.master_size2_weight) },
