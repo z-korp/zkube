@@ -184,7 +184,8 @@ pub mod cube_token {
         }
 
         fn mint_dev(ref self: ContractState, amount: u256) {
-            // No role check - this is a dev/slot-only function
+            // Dev-only function: keep it admin-gated so it can't be abused on public deployments.
+            self.accesscontrol.assert_only_role(DEFAULT_ADMIN_ROLE);
             let caller = starknet::get_caller_address();
             // Use update() directly to avoid onERC1155Received check (account contracts don't implement it)
             self.erc1155.update(

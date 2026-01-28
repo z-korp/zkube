@@ -11,6 +11,7 @@ use zkube::helpers::packer::Packer;
 use zkube::helpers::gravity::Gravity;
 use zkube::types::block::{Block, BlockTrait};
 use zkube::types::difficulty::{Difficulty, DifficultyTrait};
+use zkube::models::config::{GameSettings, GameSettingsTrait};
 
 pub mod errors {
     pub const CONTROLLER_NOT_ENOUGH_ROOM: felt252 = 'Controller: not enough room';
@@ -150,6 +151,96 @@ pub impl Controller of ControllerTrait {
 
         // Shuffle because often the hole is at the end of the line
         Self::shuffle_line(blocks, seed)
+    }
+    
+    /// Create a new line with configurable block weights from GameSettings.
+    /// Uses the interpolated block weights based on difficulty.
+    /// # Arguments
+    /// * `seed` - The seed for randomness
+    /// * `difficulty` - The difficulty level (used for weight interpolation)
+    /// * `settings` - The game settings containing block weight configuration
+    /// # Returns
+    /// The new line as a packed u32.
+    fn create_line_with_settings(seed: felt252, difficulty: Difficulty, settings: GameSettings) -> u32 {
+        let mut validated: bool = false;
+        let mut size: u8 = 0;
+        let mut blocks: u32 = 0;
+        
+        // Get interpolated weights for this difficulty
+        let (zero_w, one_w, two_w, three_w, four_w) = settings.get_block_weights_for_difficulty(difficulty);
+        let total_weight: u16 = zero_w.into() + one_w.into() + two_w.into() + three_w.into() + four_w.into();
+        
+        // Use a deterministic roll for block selection
+        let seed_u256: u256 = seed.into();
+        let mut roll_counter: u256 = 0;
+
+        let mut attempts: u16 = 0;
+        while size < DEFAULT_GRID_WIDTH {
+            attempts += 1;
+            if attempts > 512 {
+                // Fallback to the legacy generator if settings are pathological.
+                return Self::create_line(seed, difficulty);
+            }
+
+            // Generate a random value for block selection
+            let roll_seed = seed_u256 + roll_counter;
+            roll_counter += 1;
+            let roll: u16 = (roll_seed % total_weight.into()).try_into().unwrap();
+            
+            // Select block based on cumulative weights
+            let block: Block = Self::select_block_by_weight(roll, zero_w, one_w, two_w, three_w, four_w);
+            let block_size: u8 = block.size().into();
+            
+            // Check if block fits. If this is the final segment, allow a hole (bits == 0)
+            // to satisfy the "at least one empty cell" invariant.
+            let remaining = DEFAULT_GRID_WIDTH - size;
+            if block_size > remaining
+                || (block_size == remaining && !validated && block.get_bits() != 0) {
+                continue;
+            };
+            
+            let power: u32 = block_size.into() * BLOCK_BIT_COUNT.into();
+            let exp: u32 = fast_power(2, power);
+            validated = validated || block.get_bits() == 0;
+            blocks = blocks * exp + block.get_bits();
+            size += block_size;
+        };
+        
+        // Shuffle because often the hole is at the end of the line
+        Self::shuffle_line(blocks, seed)
+    }
+    
+    /// Select a block type based on weighted random selection.
+    /// # Arguments
+    /// * `roll` - Random value (0 to total_weight-1)
+    /// * weights for each block type
+    /// # Returns
+    /// The selected Block type.
+    fn select_block_by_weight(
+        roll: u16,
+        zero_w: u8,
+        one_w: u8,
+        two_w: u8,
+        three_w: u8,
+        four_w: u8,
+    ) -> Block {
+        let zero_threshold: u16 = zero_w.into();
+        let one_threshold: u16 = zero_threshold + one_w.into();
+        let two_threshold: u16 = one_threshold + two_w.into();
+        let three_threshold: u16 = two_threshold + three_w.into();
+        // four_threshold would be total, but we use else for it
+        
+        if roll < zero_threshold {
+            Block::Zero
+        } else if roll < one_threshold {
+            Block::One
+        } else if roll < two_threshold {
+            Block::Two
+        } else if roll < three_threshold {
+            Block::Three
+        } else {
+            Block::Four
+        }
     }
 
     /// Shuffle the line

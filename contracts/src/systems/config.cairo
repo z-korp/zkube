@@ -14,17 +14,62 @@ trait IConfigSystem<T> {
         name: felt252,
         description: ByteArray,
         difficulty: Difficulty,
+        // Level Scaling
         base_moves: u16,
         max_moves: u16,
         base_ratio_x100: u16,
         max_ratio_x100: u16,
+        // Cube Thresholds
         cube_3_percent: u8,
         cube_2_percent: u8,
+        // Consumable Costs
         hammer_cost: u8,
         wave_cost: u8,
         totem_cost: u8,
         extra_moves_cost: u8,
+        // Reward Multiplier
         cube_multiplier_x100: u16,
+        // Difficulty Progression
+        starting_difficulty: u8,
+        difficulty_step_levels: u8,
+        // Constraint Settings
+        constraints_enabled: u8,
+        constraint_start_level: u8,
+        // Constraint Distribution (Easy to Master scaling)
+        easy_none_chance: u8,
+        master_none_chance: u8,
+        easy_no_bonus_chance: u8,
+        master_no_bonus_chance: u8,
+        easy_min_lines: u8,
+        master_min_lines: u8,
+        easy_max_lines: u8,
+        master_max_lines: u8,
+        easy_min_times: u8,
+        master_min_times: u8,
+        easy_max_times: u8,
+        master_max_times: u8,
+        easy_dual_chance: u8,
+        master_dual_chance: u8,
+        // Block Distribution (Easy to Master scaling)
+        easy_size1_weight: u8,
+        easy_size2_weight: u8,
+        easy_size3_weight: u8,
+        easy_size4_weight: u8,
+        easy_size5_weight: u8,
+        master_size1_weight: u8,
+        master_size2_weight: u8,
+        master_size3_weight: u8,
+        master_size4_weight: u8,
+        master_size5_weight: u8,
+        // Variance Settings
+        early_variance_percent: u8,
+        mid_variance_percent: u8,
+        late_variance_percent: u8,
+        // Level Tier Thresholds
+        early_level_threshold: u8,
+        mid_level_threshold: u8,
+        // Level Cap
+        level_cap: u8,
     ) -> u32;
 
     fn get_game_settings(self: @T, settings_id: u32) -> GameSettings;
@@ -261,23 +306,78 @@ mod config_system {
             name: felt252,
             description: ByteArray,
             difficulty: Difficulty,
+            // Level Scaling
             base_moves: u16,
             max_moves: u16,
             base_ratio_x100: u16,
             max_ratio_x100: u16,
+            // Cube Thresholds
             cube_3_percent: u8,
             cube_2_percent: u8,
+            // Consumable Costs
             hammer_cost: u8,
             wave_cost: u8,
             totem_cost: u8,
             extra_moves_cost: u8,
+            // Reward Multiplier
             cube_multiplier_x100: u16,
+            // Difficulty Progression
+            starting_difficulty: u8,
+            difficulty_step_levels: u8,
+            // Constraint Settings
+            constraints_enabled: u8,
+            constraint_start_level: u8,
+            // Constraint Distribution
+            easy_none_chance: u8,
+            master_none_chance: u8,
+            easy_no_bonus_chance: u8,
+            master_no_bonus_chance: u8,
+            easy_min_lines: u8,
+            master_min_lines: u8,
+            easy_max_lines: u8,
+            master_max_lines: u8,
+            easy_min_times: u8,
+            master_min_times: u8,
+            easy_max_times: u8,
+            master_max_times: u8,
+            easy_dual_chance: u8,
+            master_dual_chance: u8,
+            // Block Distribution
+            easy_size1_weight: u8,
+            easy_size2_weight: u8,
+            easy_size3_weight: u8,
+            easy_size4_weight: u8,
+            easy_size5_weight: u8,
+            master_size1_weight: u8,
+            master_size2_weight: u8,
+            master_size3_weight: u8,
+            master_size4_weight: u8,
+            master_size5_weight: u8,
+            // Variance Settings
+            early_variance_percent: u8,
+            mid_variance_percent: u8,
+            late_variance_percent: u8,
+            // Level Tier Thresholds
+            early_level_threshold: u8,
+            mid_level_threshold: u8,
+            // Level Cap
+            level_cap: u8,
         ) -> u32 {
             // Validate input
             assert(difficulty != Difficulty::None, 'Invalid difficulty');
             self._validate_settings(
                 base_moves, max_moves, base_ratio_x100, max_ratio_x100,
-                cube_3_percent, cube_2_percent, cube_multiplier_x100
+                cube_3_percent, cube_2_percent, cube_multiplier_x100,
+                starting_difficulty, difficulty_step_levels,
+                constraints_enabled, constraint_start_level,
+                easy_none_chance, master_none_chance, easy_no_bonus_chance, master_no_bonus_chance,
+                easy_min_lines, master_min_lines, easy_max_lines, master_max_lines,
+                easy_min_times, master_min_times, easy_max_times, master_max_times,
+                easy_dual_chance, master_dual_chance,
+                easy_size1_weight, easy_size2_weight, easy_size3_weight, easy_size4_weight, easy_size5_weight,
+                master_size1_weight, master_size2_weight, master_size3_weight, master_size4_weight, master_size5_weight,
+                early_variance_percent, mid_variance_percent, late_variance_percent,
+                early_level_threshold, mid_level_threshold, level_cap
             );
 
             // Get the world dispatcher
@@ -291,18 +391,63 @@ mod config_system {
             // Create the game settings with custom values
             let game_settings = GameSettings {
                 settings_id,
-                difficulty: difficulty.into(),
+                mode: difficulty.into(),
+                // Level Scaling
                 base_moves,
                 max_moves,
                 base_ratio_x100,
                 max_ratio_x100,
+                // Cube Thresholds
                 cube_3_percent,
                 cube_2_percent,
+                // Consumable Costs
                 hammer_cost,
                 wave_cost,
                 totem_cost,
                 extra_moves_cost,
+                // Reward Multiplier
                 cube_multiplier_x100,
+                // Difficulty Progression
+                starting_difficulty,
+                difficulty_step_levels,
+                // Constraint Settings
+                constraints_enabled,
+                constraint_start_level,
+                // Constraint Distribution
+                easy_none_chance,
+                master_none_chance,
+                easy_no_bonus_chance,
+                master_no_bonus_chance,
+                easy_min_lines,
+                master_min_lines,
+                easy_max_lines,
+                master_max_lines,
+                easy_min_times,
+                master_min_times,
+                easy_max_times,
+                master_max_times,
+                easy_dual_chance,
+                master_dual_chance,
+                // Block Distribution
+                easy_size1_weight,
+                easy_size2_weight,
+                easy_size3_weight,
+                easy_size4_weight,
+                easy_size5_weight,
+                master_size1_weight,
+                master_size2_weight,
+                master_size3_weight,
+                master_size4_weight,
+                master_size5_weight,
+                // Variance Settings
+                early_variance_percent,
+                mid_variance_percent,
+                late_variance_percent,
+                // Level Tier Thresholds
+                early_level_threshold,
+                mid_level_threshold,
+                // Level Cap
+                level_cap,
             };
 
             // Create metadata
@@ -376,6 +521,44 @@ mod config_system {
             cube_3_percent: u8,
             cube_2_percent: u8,
             cube_multiplier_x100: u16,
+            // Difficulty settings
+            starting_difficulty: u8,
+            difficulty_step_levels: u8,
+            constraints_enabled: u8,
+            constraint_start_level: u8,
+            // Constraint distribution
+            easy_none_chance: u8,
+            master_none_chance: u8,
+            easy_no_bonus_chance: u8,
+            master_no_bonus_chance: u8,
+            easy_min_lines: u8,
+            master_min_lines: u8,
+            easy_max_lines: u8,
+            master_max_lines: u8,
+            easy_min_times: u8,
+            master_min_times: u8,
+            easy_max_times: u8,
+            master_max_times: u8,
+            easy_dual_chance: u8,
+            master_dual_chance: u8,
+            // Block distribution
+            easy_size1_weight: u8,
+            easy_size2_weight: u8,
+            easy_size3_weight: u8,
+            easy_size4_weight: u8,
+            easy_size5_weight: u8,
+            master_size1_weight: u8,
+            master_size2_weight: u8,
+            master_size3_weight: u8,
+            master_size4_weight: u8,
+            master_size5_weight: u8,
+            // Variance settings
+            early_variance_percent: u8,
+            mid_variance_percent: u8,
+            late_variance_percent: u8,
+            early_level_threshold: u8,
+            mid_level_threshold: u8,
+            level_cap: u8,
         ) {
             // Validate moves
             assert!(base_moves > 0, "Base moves must be positive");
@@ -393,6 +576,54 @@ mod config_system {
             
             // Validate multiplier
             assert!(cube_multiplier_x100 > 0, "Cube multiplier must be positive");
+            
+            // Validate difficulty progression
+            assert!(starting_difficulty <= 7, "Starting difficulty must be 0-7");
+            // difficulty_step_levels can be 0 (means stay at starting difficulty forever)
+            
+            // Validate constraint settings
+            assert!(constraints_enabled <= 1, "Constraints enabled must be 0 or 1");
+            // constraint_start_level can be any value (high value = no constraints early)
+            
+            // Validate constraint distribution
+            assert!(easy_none_chance <= 100, "Easy none chance must be <= 100");
+            assert!(master_none_chance <= 100, "Master none chance must be <= 100");
+            assert!(easy_no_bonus_chance <= 100, "Easy no bonus chance must be <= 100");
+            assert!(master_no_bonus_chance <= 100, "Master no bonus chance must be <= 100");
+            assert!(easy_none_chance + easy_no_bonus_chance <= 100, "Easy probabilities cannot exceed 100");
+            assert!(master_none_chance + master_no_bonus_chance <= 100, "Master probabilities cannot exceed 100");
+            assert!(easy_min_lines >= 2, "Easy min lines must be >= 2");
+            assert!(easy_max_lines <= 10, "Easy max lines must be <= 10");
+            assert!(easy_min_lines <= easy_max_lines, "Easy min lines must be <= max lines");
+            assert!(master_min_lines >= 2, "Master min lines must be >= 2");
+            assert!(master_max_lines <= 10, "Master max lines must be <= 10");
+            assert!(master_min_lines <= master_max_lines, "Master min lines must be <= max lines");
+            assert!(easy_min_times >= 1, "Easy min times must be >= 1");
+            assert!(easy_max_times <= 15, "Easy max times must be <= 15");
+            assert!(easy_min_times <= easy_max_times, "Easy min times must be <= max times");
+            assert!(master_min_times >= 1, "Master min times must be >= 1");
+            assert!(master_max_times <= 15, "Master max times must be <= 15");
+            assert!(master_min_times <= master_max_times, "Master min times must be <= max times");
+            assert!(easy_dual_chance <= 100, "Easy dual chance must be <= 100");
+            assert!(master_dual_chance <= 100, "Master dual chance must be <= 100");
+            
+            // Validate block weights (must have at least some weight to generate blocks)
+            let easy_total: u16 = easy_size1_weight.into() + easy_size2_weight.into() + easy_size3_weight.into() + easy_size4_weight.into() + easy_size5_weight.into();
+            let master_total: u16 = master_size1_weight.into() + master_size2_weight.into() + master_size3_weight.into() + master_size4_weight.into() + master_size5_weight.into();
+            assert!(easy_total > 0, "Easy block weights must sum to > 0");
+            assert!(master_total > 0, "Master block weights must sum to > 0");
+            
+            // Validate variance settings
+            assert!(early_variance_percent <= 50, "Early variance must be <= 50%");
+            assert!(mid_variance_percent <= 50, "Mid variance must be <= 50%");
+            assert!(late_variance_percent <= 50, "Late variance must be <= 50%");
+            
+            // Validate level tier thresholds
+            assert!(early_level_threshold < mid_level_threshold, "Early threshold must be < mid threshold");
+            
+            // Validate level cap
+            assert!(level_cap > 0, "Level cap must be positive");
+            assert!(mid_level_threshold <= level_cap, "Mid threshold must be <= level cap");
         }
     }
 
@@ -406,18 +637,50 @@ mod config_system {
 
     fn generate_settings_array(game_settings: GameSettings) -> Span<GameSetting> {
         array![
-            GameSetting { name: "Difficulty", value: difficulty_label(game_settings.get_difficulty()) },
+            // Basic settings
+            GameSetting { name: "Mode", value: difficulty_label(game_settings.get_mode()) },
+            // Level Scaling
             GameSetting { name: "Base Moves", value: format!("{}", game_settings.base_moves) },
             GameSetting { name: "Max Moves", value: format!("{}", game_settings.max_moves) },
             GameSetting { name: "Base Ratio", value: format_ratio(game_settings.base_ratio_x100) },
             GameSetting { name: "Max Ratio", value: format_ratio(game_settings.max_ratio_x100) },
+            // Cube Thresholds
             GameSetting { name: "3-Cube Threshold", value: format!("{}%", game_settings.cube_3_percent) },
             GameSetting { name: "2-Cube Threshold", value: format!("{}%", game_settings.cube_2_percent) },
+            // Consumable Costs
             GameSetting { name: "Hammer Cost", value: format!("{}", game_settings.hammer_cost) },
             GameSetting { name: "Wave Cost", value: format!("{}", game_settings.wave_cost) },
             GameSetting { name: "Totem Cost", value: format!("{}", game_settings.totem_cost) },
             GameSetting { name: "Extra Moves Cost", value: format!("{}", game_settings.extra_moves_cost) },
+            // Reward Multiplier
             GameSetting { name: "Cube Multiplier", value: format_ratio(game_settings.cube_multiplier_x100) },
+            // Difficulty Progression
+            GameSetting { name: "Starting Difficulty", value: difficulty_label(game_settings.get_difficulty_for_level(1)) },
+            GameSetting { name: "Difficulty Step", value: format!("{} levels", game_settings.difficulty_step_levels) },
+            // Constraint Settings
+            GameSetting { name: "Constraints", value: if game_settings.constraints_enabled != 0 { "Enabled" } else { "Disabled" } },
+            GameSetting { name: "Constraint Start", value: format!("Level {}", game_settings.constraint_start_level) },
+            // Constraint Distribution (Easy to Master)
+            GameSetting { name: "None Chance", value: format!("{}%-{}%", game_settings.easy_none_chance, game_settings.master_none_chance) },
+            GameSetting { name: "No Bonus Chance", value: format!("{}%-{}%", game_settings.easy_no_bonus_chance, game_settings.master_no_bonus_chance) },
+            GameSetting { name: "Lines Range", value: format!("{}-{} to {}-{}", game_settings.easy_min_lines, game_settings.easy_max_lines, game_settings.master_min_lines, game_settings.master_max_lines) },
+            GameSetting { name: "Times Range", value: format!("{}-{} to {}-{}", game_settings.easy_min_times, game_settings.easy_max_times, game_settings.master_min_times, game_settings.master_max_times) },
+            GameSetting { name: "Dual Chance", value: format!("{}%-{}%", game_settings.easy_dual_chance, game_settings.master_dual_chance) },
+            // Block Distribution (Easy to Master) - size = block width
+            GameSetting { name: "Size-1 Weight", value: format!("{}-{}", game_settings.easy_size1_weight, game_settings.master_size1_weight) },
+            GameSetting { name: "Size-2 Weight", value: format!("{}-{}", game_settings.easy_size2_weight, game_settings.master_size2_weight) },
+            GameSetting { name: "Size-3 Weight", value: format!("{}-{}", game_settings.easy_size3_weight, game_settings.master_size3_weight) },
+            GameSetting { name: "Size-4 Weight", value: format!("{}-{}", game_settings.easy_size4_weight, game_settings.master_size4_weight) },
+            GameSetting { name: "Size-5 Weight", value: format!("{}-{}", game_settings.easy_size5_weight, game_settings.master_size5_weight) },
+            // Variance Settings
+            GameSetting { name: "Early Variance", value: format!("{}%", game_settings.early_variance_percent) },
+            GameSetting { name: "Mid Variance", value: format!("{}%", game_settings.mid_variance_percent) },
+            GameSetting { name: "Late Variance", value: format!("{}%", game_settings.late_variance_percent) },
+            // Level Tier Thresholds
+            GameSetting { name: "Early Levels", value: format!("1-{}", game_settings.early_level_threshold) },
+            GameSetting { name: "Mid Levels", value: format!("{}-{}", game_settings.early_level_threshold + 1, game_settings.mid_level_threshold) },
+            // Level Cap
+            GameSetting { name: "Level Cap", value: format!("{}", game_settings.level_cap) },
         ].span()
     }
     

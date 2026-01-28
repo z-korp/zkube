@@ -17,8 +17,8 @@ use core::hash::HashStateTrait;
 
 use zkube::types::difficulty::Difficulty;
 use zkube::types::level::LevelConfig;
-use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait};
-use zkube::models::config::GameSettings;
+use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait, ConstraintType};
+use zkube::models::config::{GameSettings, GameSettingsTrait};
 
 /// Constants for level generation
 mod LevelConstants {
@@ -84,7 +84,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         let cube_3_threshold = max_moves * LevelConstants::CUBE_3_PERCENT / 100;
         let cube_2_threshold = max_moves * LevelConstants::CUBE_2_PERCENT / 100;
 
-        // Get difficulty and constraint
+        // Get difficulty and constraints
         let difficulty = Self::get_difficulty_for_level(calc_level);
         let constraint = Self::generate_constraint(level_seed, calc_level);
 
@@ -94,6 +94,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             max_moves,
             difficulty,
             constraint,
+            constraint_2: LevelConstraintTrait::none(), // Legacy generate() doesn't use dual constraints
             cube_3_threshold,
             cube_2_threshold,
         }
@@ -101,13 +102,17 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     
     /// Generate a level configuration using custom GameSettings
     /// This allows custom game modes with different balance parameters
+    /// Uses default constraint distributions based on difficulty
     fn generate_with_settings(seed: felt252, level: u8, settings: GameSettings) -> LevelConfig {
         // Derive a level-specific seed for deterministic variance
         let level_seed = Self::derive_level_seed(seed, level);
 
-        // Cap level for calculations (survival mode after 100)
-        let calc_level = if level > LevelConstants::LEVEL_CAP {
-            LevelConstants::LEVEL_CAP
+        // Get level cap from settings (or use default if 0)
+        let level_cap = settings.get_level_cap();
+        
+        // Cap level for calculations (survival mode after cap)
+        let calc_level = if level > level_cap {
+            level_cap
         } else {
             level
         };
@@ -127,11 +132,11 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             .try_into()
             .unwrap();
 
-        // 4. Get variance percent based on level tier
-        let variance_percent = Self::get_variance_percent(calc_level);
+        // 4. Get variance percent based on level tier (using settings)
+        let variance_percent = settings.get_variance_percent(calc_level);
 
         // 5. Apply CORRELATED variance (same factor for both)
-        let variance_factor = Self::calculate_variance_factor(level_seed, variance_percent);
+        let variance_factor = Self::calculate_variance_factor(level_seed, variance_percent.into());
         let points_required = Self::apply_factor(base_points, variance_factor);
         let max_moves = Self::apply_factor(base_moves, variance_factor);
 
@@ -139,9 +144,13 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         let cube_3_threshold = max_moves * settings.cube_3_percent.into() / 100;
         let cube_2_threshold = max_moves * settings.cube_2_percent.into() / 100;
 
-        // Get difficulty and constraint
-        let difficulty = Self::get_difficulty_for_level(calc_level);
-        let constraint = Self::generate_constraint(level_seed, calc_level);
+        // Get difficulty from settings
+        let difficulty = settings.get_difficulty_for_level(calc_level);
+        
+        // Generate constraints based on difficulty (supports dual constraints)
+        let (constraint, constraint_2) = Self::generate_constraints_with_settings(
+            level_seed, level, difficulty, settings
+        );
 
         LevelConfig {
             level,
@@ -149,11 +158,131 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             max_moves,
             difficulty,
             constraint,
+            constraint_2,
             cube_3_threshold,
             cube_2_threshold,
         }
     }
 
+    /// Generate constraints based on seed, level, difficulty, and settings
+    /// Returns (primary_constraint, secondary_constraint)
+    /// Uses the configurable constraint distribution parameters from settings
+    fn generate_constraints_with_settings(
+        level_seed: felt252, level: u8, difficulty: Difficulty, settings: GameSettings
+    ) -> (LevelConstraint, LevelConstraint) {
+        // Check if constraints are enabled
+        if !settings.are_constraints_enabled() {
+            return (LevelConstraintTrait::none(), LevelConstraintTrait::none());
+        }
+        
+        // No constraint before the start level
+        if level < settings.constraint_start_level {
+            return (LevelConstraintTrait::none(), LevelConstraintTrait::none());
+        }
+        
+        // Get interpolated constraint parameters for this difficulty
+        let (none_chance, no_bonus_chance, min_lines, max_lines, min_times, max_times, dual_chance) = 
+            settings.get_constraint_params_for_difficulty(difficulty);
+        
+        // Generate primary constraint using interpolated parameters
+        let primary = Self::generate_constraint_from_params(
+            level_seed, none_chance, no_bonus_chance, min_lines, max_lines, min_times, max_times
+        );
+        
+        // Check if we should have a secondary constraint
+        let secondary = Self::maybe_generate_secondary_from_params(
+            level_seed, primary, none_chance, no_bonus_chance, min_lines, max_lines, min_times, max_times, dual_chance
+        );
+        
+        (primary, secondary)
+    }
+    
+    /// Generate a constraint using the provided distribution parameters
+    fn generate_constraint_from_params(
+        seed: felt252,
+        none_chance: u8,
+        no_bonus_chance: u8,
+        min_lines: u8,
+        max_lines: u8,
+        min_times: u8,
+        max_times: u8,
+    ) -> LevelConstraint {
+        let seed_u256: u256 = seed.into();
+        let roll: u8 = (seed_u256 % 100).try_into().unwrap();
+        
+        // Determine constraint type based on probabilities
+        if roll < none_chance {
+            // No constraint
+            LevelConstraintTrait::none()
+        } else if roll < none_chance + no_bonus_chance {
+            // NoBonusUsed constraint
+            LevelConstraintTrait::no_bonus()
+        } else {
+            // ClearLines constraint - calculate lines and times from ranges
+            let lines_range: u8 = if max_lines > min_lines { max_lines - min_lines + 1 } else { 1 };
+            let times_range: u8 = if max_times > min_times { max_times - min_times + 1 } else { 1 };
+            
+            let lines: u8 = min_lines + ((seed_u256 / 100) % lines_range.into()).try_into().unwrap();
+            let times: u8 = min_times + ((seed_u256 / 1000) % times_range.into()).try_into().unwrap();
+            
+            LevelConstraintTrait::clear_lines(lines, times)
+        }
+    }
+    
+    /// Maybe generate a secondary constraint using provided parameters
+    fn maybe_generate_secondary_from_params(
+        seed: felt252,
+        primary: LevelConstraint,
+        none_chance: u8,
+        no_bonus_chance: u8,
+        min_lines: u8,
+        max_lines: u8,
+        min_times: u8,
+        max_times: u8,
+        dual_chance: u8,
+    ) -> LevelConstraint {
+        // Use different bits from seed for secondary roll
+        let seed_u256: u256 = seed.into();
+        let roll: u8 = ((seed_u256 / 10000) % 100).try_into().unwrap();
+        
+        if roll >= dual_chance {
+            return LevelConstraintTrait::none();
+        }
+        
+        // Generate a different secondary constraint
+        // Use shifted seed for different randomness
+        let secondary_seed: felt252 = (seed_u256 / 100000).try_into().unwrap();
+        let secondary = Self::generate_constraint_from_params(
+            secondary_seed, none_chance, no_bonus_chance, min_lines, max_lines, min_times, max_times
+        );
+        
+        // If secondary is the same type as primary, try alternate
+        if secondary.constraint_type == primary.constraint_type {
+            // If primary is already NoBonusUsed, try a ClearLines
+            if primary.constraint_type == ConstraintType::NoBonusUsed {
+                let lines_range: u8 = if max_lines > min_lines { max_lines - min_lines + 1 } else { 1 };
+                let times_range: u8 = if max_times > min_times { max_times - min_times + 1 } else { 1 };
+                let lines: u8 = min_lines + ((seed_u256 / 1000000) % lines_range.into()).try_into().unwrap();
+                let times: u8 = min_times + ((seed_u256 / 10000000) % times_range.into()).try_into().unwrap();
+                LevelConstraintTrait::clear_lines(lines, times)
+            } else {
+                // Add NoBonusUsed as secondary if no_bonus_chance > 0, otherwise use different ClearLines
+                if no_bonus_chance > 0 {
+                    LevelConstraintTrait::no_bonus()
+                } else {
+                    // Generate different ClearLines parameters
+                    let lines_range: u8 = if max_lines > min_lines { max_lines - min_lines + 1 } else { 1 };
+                    let times_range: u8 = if max_times > min_times { max_times - min_times + 1 } else { 1 };
+                    let lines: u8 = min_lines + ((seed_u256 / 1000000) % lines_range.into()).try_into().unwrap();
+                    let times: u8 = min_times + ((seed_u256 / 10000000) % times_range.into()).try_into().unwrap();
+                    LevelConstraintTrait::clear_lines(lines, times)
+                }
+            }
+        } else {
+            secondary
+        }
+    }
+    
     /// Derive a deterministic seed for a specific level
     fn derive_level_seed(seed: felt252, level: u8) -> felt252 {
         let state: HashState = PoseidonTrait::new();
@@ -664,5 +793,121 @@ mod tests {
         let expected_2_cube = config.max_moves * 50 / 100;
         assert!(config.cube_3_threshold == expected_3_cube, "Tournament 3-cube threshold");
         assert!(config.cube_2_threshold == expected_2_cube, "Tournament 2-cube threshold");
+    }
+    
+    #[test]
+    fn test_generate_with_settings_constraints_disabled() {
+        // Disable constraints entirely
+        let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        settings.constraints_enabled = 0;
+        
+        // Even at high levels, should have no constraint
+        let config = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 50, settings);
+        assert!(
+            config.constraint.constraint_type == ConstraintType::None,
+            "Should have no constraint when disabled"
+        );
+        
+        let config_100 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 100, settings);
+        assert!(
+            config_100.constraint.constraint_type == ConstraintType::None,
+            "Level 100 should have no constraint when disabled"
+        );
+    }
+    
+    #[test]
+    fn test_generate_with_settings_custom_constraint_start() {
+        // Start constraints at level 20 instead of 5
+        let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        settings.constraint_start_level = 20;
+        
+        // Level 15 should have no constraint
+        let config_15 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 15, settings);
+        assert!(
+            config_15.constraint.constraint_type == ConstraintType::None,
+            "Level 15 should have no constraint"
+        );
+        
+        // Level 20 might have a constraint (depending on RNG)
+        let config_20 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 20, settings);
+        // We can't assert the specific type since it's random, but it should use generate_constraint
+    }
+    
+    #[test]
+    fn test_generate_with_settings_custom_difficulty_progression() {
+        // Start at Medium, step every 10 levels
+        let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        settings.starting_difficulty = 1; // Medium
+        settings.difficulty_step_levels = 10;
+        
+        let config_1 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 1, settings);
+        assert!(config_1.difficulty == Difficulty::Medium, "Level 1 should be Medium");
+        
+        let config_10 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 10, settings);
+        assert!(config_10.difficulty == Difficulty::Medium, "Level 10 should be Medium");
+        
+        let config_11 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 11, settings);
+        assert!(config_11.difficulty == Difficulty::MediumHard, "Level 11 should be MediumHard");
+        
+        let config_21 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 21, settings);
+        assert!(config_21.difficulty == Difficulty::Hard, "Level 21 should be Hard");
+    }
+    
+    #[test]
+    fn test_generate_with_settings_custom_variance() {
+        // Use zero variance for completely deterministic levels
+        let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        settings.early_variance_percent = 0;
+        settings.mid_variance_percent = 0;
+        settings.late_variance_percent = 0;
+        
+        // With zero variance, multiple generations with same seed should be identical
+        let config1 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 25, settings);
+        let config2 = LevelGeneratorTrait::generate_with_settings(DIFFERENT_SEED, 25, settings);
+        
+        // Points should be exactly base calculation (no variance)
+        // Level 25: base_moves ~28.5, ratio ~125, points ~35
+        // Without variance, both seeds should give same result
+        assert!(config1.points_required == config2.points_required, "Zero variance should give same points");
+        assert!(config1.max_moves == config2.max_moves, "Zero variance should give same moves");
+    }
+    
+    #[test]
+    fn test_generate_with_settings_custom_level_cap() {
+        // Lower level cap to 50
+        let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        settings.level_cap = 50;
+        
+        // Level 50 and 100 should have same scaling (both at cap)
+        let config_50 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 50, settings);
+        let config_100 = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 100, settings);
+        
+        // Both should use level 50 for calculations
+        // Note: We can't directly compare due to different level seeds, but we can verify
+        // the level field is different while the base calculation is capped
+        assert!(config_50.level == 50, "Level should be 50");
+        assert!(config_100.level == 100, "Level should be 100");
+    }
+    
+    #[test]
+    fn test_generate_with_settings_easy_mode() {
+        // "Easy mode": more moves, lower ratios, generous thresholds
+        let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        settings.base_moves = 30;       // More moves at start
+        settings.max_moves = 100;       // Way more moves at high levels
+        settings.base_ratio_x100 = 50;  // Lower points/move ratio (easier)
+        settings.max_ratio_x100 = 150;  // Still easier at high levels
+        settings.cube_3_percent = 50;   // More generous 3-cube threshold
+        settings.cube_2_percent = 80;   // More generous 2-cube threshold
+        settings.constraints_enabled = 0; // No constraints
+        settings.starting_difficulty = 0; // Start at Easy
+        settings.difficulty_step_levels = 25; // Slower difficulty progression
+        
+        let config = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 1, settings);
+        
+        // Should have easier parameters
+        assert!(config.max_moves >= 27, "Should have more moves"); // ~30 with variance
+        assert!(config.difficulty == Difficulty::Easy, "Should be Easy difficulty");
+        assert!(config.constraint.constraint_type == ConstraintType::None, "Should have no constraint");
     }
 }

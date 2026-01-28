@@ -33,8 +33,8 @@
   },
   "contracts": [
     {
-      "address": "0x5b493d503427a1253e29cc37e10d8743e0e9297c685bb0e0df1a5e1c2c09fa9",
-      "class_hash": "0x7c4e0d3f0ac59adf21489edf8051a643c673844d41b15f596f98852b14d9621",
+      "address": "0x517c9dd532ed8e0c27c909d75f391ffdaa929379a0de5b2b29e0757deb40455",
+      "class_hash": "0x1d7ac463b9f9a16fa3e42361a03930eca25e851275a3eb4ef8ddec69b6e4504",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819"
       ],
@@ -43,12 +43,13 @@
       "systems": [
         "dojo_init",
         "add_game_settings",
+        "add_custom_game_settings",
         "upgrade"
       ]
     },
     {
-      "address": "0x447ca0d1f00f00066286bf5f40908ceac6176ab00f0b18b691741e52eeb4d0f",
-      "class_hash": "0x422be504f4a65a49223bc7846e2988409927421cbf1f4c26da0f022b02cb5f9",
+      "address": "0x7c4cd5ae97baaccccecbead11ac744b38fcbd606e9afd6e4d3be5d48fb54fbc",
+      "class_hash": "0x6ef74be1be1104df9fa52cabe397dd836ac9c45faedf56efac2f666da06a9db",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-cube_token",
       "selector": "0x58ce743cd328aa3800df3c962d39156cf1c6fcffeae123925c693902472043b",
@@ -69,8 +70,8 @@
       ]
     },
     {
-      "address": "0x21e49bdaf8e44e2d593a8a6b23b9795caff0bdfb300dd8029b3e431fee4d974",
-      "class_hash": "0x70c2ba19e68ea37d487ece6bca50f54d5e3819f3bf76225ab0d5629bdc823bb",
+      "address": "0x7e1303f059d0e21a5e0db0099d533858e6aea60a0dc2bc74d50f42ceb70d9b7",
+      "class_hash": "0x6bff5bc2e32737f1f2dde95ab61bff81708621ac5088e9c592c9a79e5a0c99f",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
         "0x062347854b5817b3c8101014b5813fb0b5db48e4df2a0a9dada8cbdab191b064",
@@ -90,8 +91,8 @@
       ]
     },
     {
-      "address": "0x192f81c0f3e5cfe8d7254496af997e36091badfb0b52c553ea21bdc7010d7e6",
-      "class_hash": "0x2bea4888b99826402f5af37a370aa8ba6b869e0c7d1459465322345968b9e61",
+      "address": "0x371450998538496aa5577c52ced6595628cbf59e51145ce1bbdbe7cf25ecd9d",
+      "class_hash": "0x7afd58d6a6524eb910f9a5514fa29657480dbb92055b240de0d7ed2f46de06",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-shop_system",
       "selector": "0x456e9ac1689ce0bf6afd29733b144d9ef8e7db5c0df5ec0dc79ed1ea22579a0",
@@ -177,12 +178,237 @@
           "key": true
         },
         {
-          "name": "difficulty",
+          "name": "mode",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "base_moves",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "max_moves",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "base_ratio_x100",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "max_ratio_x100",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "cube_3_percent",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "cube_2_percent",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "hammer_cost",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "wave_cost",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "totem_cost",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "extra_moves_cost",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "cube_multiplier_x100",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "starting_difficulty",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "difficulty_step_levels",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraints_enabled",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint_start_level",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "easy_none_chance",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "master_none_chance",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "easy_no_bonus_chance",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "master_no_bonus_chance",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "easy_min_lines",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "master_min_lines",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "easy_max_lines",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "master_max_lines",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "easy_min_times",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "master_min_times",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "easy_max_times",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "master_max_times",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "easy_dual_chance",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "master_dual_chance",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "easy_size1_weight",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "easy_size2_weight",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "easy_size3_weight",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "easy_size4_weight",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "easy_size5_weight",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "master_size1_weight",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "master_size2_weight",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "master_size3_weight",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "master_size4_weight",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "master_size5_weight",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "early_variance_percent",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "mid_variance_percent",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "late_variance_percent",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "early_level_threshold",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "mid_level_threshold",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "level_cap",
           "type": "core::integer::u8",
           "key": false
         }
       ],
-      "class_hash": "0x5338bb203c857c0013f8a6e6e7cd2af5c3fad82073b7980daf2c6eecc9c14a6",
+      "class_hash": "0xd7410424196c7354ad1394ca0b2569ef4c9d73b22f04514e459f6fb5d285fd",
       "tag": "zkube_budo_v1_2_0-GameSettings",
       "selector": "0x1c245917b09d68b08ceb4972426ebba162f36b31404a63dc180496cdc6777b"
     },
@@ -3639,7 +3865,187 @@
           "type": "core::integer::u32"
         },
         {
-          "name": "difficulty",
+          "name": "mode",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "base_moves",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "max_moves",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "base_ratio_x100",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "max_ratio_x100",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "cube_3_percent",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "cube_2_percent",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "hammer_cost",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "wave_cost",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "totem_cost",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "extra_moves_cost",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "cube_multiplier_x100",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "starting_difficulty",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "difficulty_step_levels",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraints_enabled",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint_start_level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_none_chance",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_none_chance",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_no_bonus_chance",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_no_bonus_chance",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_min_lines",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_min_lines",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_max_lines",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_max_lines",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_min_times",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_min_times",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_max_times",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_max_times",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_dual_chance",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_dual_chance",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_size1_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_size2_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_size3_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_size4_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_size5_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_size1_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_size2_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_size3_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_size4_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_size5_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "early_variance_percent",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "mid_variance_percent",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "late_variance_percent",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "early_level_threshold",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "mid_level_threshold",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "level_cap",
           "type": "core::integer::u8"
         }
       ]
@@ -3697,7 +4103,187 @@
       "name": "zkube::models::config::GameSettingsValue",
       "members": [
         {
-          "name": "difficulty",
+          "name": "mode",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "base_moves",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "max_moves",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "base_ratio_x100",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "max_ratio_x100",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "cube_3_percent",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "cube_2_percent",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "hammer_cost",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "wave_cost",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "totem_cost",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "extra_moves_cost",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "cube_multiplier_x100",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "starting_difficulty",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "difficulty_step_levels",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraints_enabled",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint_start_level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_none_chance",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_none_chance",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_no_bonus_chance",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_no_bonus_chance",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_min_lines",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_min_lines",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_max_lines",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_max_lines",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_min_times",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_min_times",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_max_times",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_max_times",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_dual_chance",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_dual_chance",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_size1_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_size2_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_size3_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_size4_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "easy_size5_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_size1_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_size2_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_size3_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_size4_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "master_size5_weight",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "early_variance_percent",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "mid_variance_percent",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "late_variance_percent",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "early_level_threshold",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "mid_level_threshold",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "level_cap",
           "type": "core::integer::u8"
         }
       ]
@@ -3879,6 +4465,210 @@
             {
               "name": "difficulty",
               "type": "zkube::types::difficulty::Difficulty"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::integer::u32"
+            }
+          ],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "add_custom_game_settings",
+          "inputs": [
+            {
+              "name": "name",
+              "type": "core::felt252"
+            },
+            {
+              "name": "description",
+              "type": "core::byte_array::ByteArray"
+            },
+            {
+              "name": "difficulty",
+              "type": "zkube::types::difficulty::Difficulty"
+            },
+            {
+              "name": "base_moves",
+              "type": "core::integer::u16"
+            },
+            {
+              "name": "max_moves",
+              "type": "core::integer::u16"
+            },
+            {
+              "name": "base_ratio_x100",
+              "type": "core::integer::u16"
+            },
+            {
+              "name": "max_ratio_x100",
+              "type": "core::integer::u16"
+            },
+            {
+              "name": "cube_3_percent",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "cube_2_percent",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "hammer_cost",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "wave_cost",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "totem_cost",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "extra_moves_cost",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "cube_multiplier_x100",
+              "type": "core::integer::u16"
+            },
+            {
+              "name": "starting_difficulty",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "difficulty_step_levels",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "constraints_enabled",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "constraint_start_level",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "easy_none_chance",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "master_none_chance",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "easy_no_bonus_chance",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "master_no_bonus_chance",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "easy_min_lines",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "master_min_lines",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "easy_max_lines",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "master_max_lines",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "easy_min_times",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "master_min_times",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "easy_max_times",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "master_max_times",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "easy_dual_chance",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "master_dual_chance",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "easy_size1_weight",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "easy_size2_weight",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "easy_size3_weight",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "easy_size4_weight",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "easy_size5_weight",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "master_size1_weight",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "master_size2_weight",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "master_size3_weight",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "master_size4_weight",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "master_size5_weight",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "early_variance_percent",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "mid_variance_percent",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "late_variance_percent",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "early_level_threshold",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "mid_level_threshold",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "level_cap",
+              "type": "core::integer::u8"
             }
           ],
           "outputs": [

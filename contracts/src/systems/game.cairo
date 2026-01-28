@@ -157,8 +157,9 @@ mod game_system {
             let random = RandomImpl::new_pseudo_random();
             let timestamp = get_block_timestamp();
 
-            // Create game with level system
-            let mut game = GameTrait::new(game_id, random.seed, timestamp);
+            // Get game settings (selected via token settings_id) and create a settings-aware game.
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+            let mut game = GameTrait::new_with_settings(game_id, random.seed, timestamp, settings);
 
             // Store the seed separately
             let game_seed = GameSeed { game_id, seed: random.seed };
@@ -216,8 +217,7 @@ mod game_system {
                     @StartGame { player, timestamp, game_id, },
                 );
 
-            // Emit level 1 started - use settings for level generation
-            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+            // Emit level 1 started
             let level_config = LevelGeneratorTrait::generate_with_settings(random.seed, 1, settings);
             world
                 .emit_event(
@@ -280,59 +280,27 @@ mod game_system {
             assert_token_ownership(token_address, game_id);
             game.assert_not_over();
 
+            // Validate move indices (grid is 10 rows x 8 columns)
+            assert!(row_index < 10, "Invalid row_index: must be < 10");
+            assert!(start_index < 8, "Invalid start_index: must be < 8");
+            assert!(final_index < 8, "Invalid final_index: must be < 8");
+
             let base_seed: GameSeed = world.read_model(game_id);
             
             // Get game settings for level generation
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
 
-            // Make the move (uses settings internally via models/game.cairo)
-            let _lines_cleared = game.make_move(base_seed.seed, row_index, start_index, final_index);
+            // Make the move using the selected game settings
+            let _lines_cleared = game.make_move(
+                base_seed.seed, row_index, start_index, final_index, settings,
+            );
 
-            // Check for level completion (uses settings internally)
-            if game.is_level_complete_with_settings(base_seed.seed, settings) {
-                // Capture stats BEFORE completing level (they get reset)
-                let pre_complete_data = game.get_run_data();
-                let completed_level = pre_complete_data.current_level;
-                let final_score = pre_complete_data.level_score;
-                let final_moves = pre_complete_data.level_moves;
+            // Check for level completion
+            let level_completed = self.check_and_complete_level(
+                ref world, ref game, game_id, base_seed.seed, settings,
+            );
 
-                let (cubes, _bonuses) = game.complete_level_with_settings(base_seed.seed, settings);
-
-                let player = get_caller_address();
-
-                // Emit level completed with pre-reset stats
-                world
-                    .emit_event(
-                        @LevelCompleted {
-                            game_id,
-                            player,
-                            level: completed_level,
-                            cubes,
-                            moves_used: final_moves.into(),
-                            score: final_score.into(),
-                            bonuses_earned: 0,
-                        },
-                    );
-
-                // Emit next level started (get updated run_data after level completion)
-                let updated_run_data = game.get_run_data();
-                let next_level_config = LevelGeneratorTrait::generate_with_settings(
-                    base_seed.seed, updated_run_data.current_level, settings,
-                );
-                world
-                    .emit_event(
-                        @LevelStarted {
-                            game_id,
-                            player,
-                            level: updated_run_data.current_level,
-                            points_required: next_level_config.points_required,
-                            max_moves: next_level_config.max_moves,
-                            constraint_type: next_level_config.constraint.constraint_type,
-                            constraint_value: next_level_config.constraint.value,
-                            constraint_required: next_level_config.constraint.required_count,
-                        },
-                    );
-            } else if game.is_level_failed_with_settings(base_seed.seed, settings) || game.over {
+            if !level_completed && (game.is_level_failed_with_settings(base_seed.seed, settings) || game.over) {
                 // Level failed (move limit exceeded) or grid full
                 game.over = true;
                 self.handle_game_over(ref world, game);
@@ -369,52 +337,10 @@ mod game_system {
             // Get game settings
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
             
-            game.apply_bonus(base_seed.seed, bonus, row_index, line_index);
+            game.apply_bonus(base_seed.seed, bonus, row_index, line_index, settings);
 
             // Check for level completion after bonus
-            if game.is_level_complete_with_settings(base_seed.seed, settings) {
-                // Capture stats BEFORE completing level (they get reset)
-                let pre_complete_data = game.get_run_data();
-                let completed_level = pre_complete_data.current_level;
-                let final_score = pre_complete_data.level_score;
-                let final_moves = pre_complete_data.level_moves;
-
-                let (cubes, _bonuses) = game.complete_level_with_settings(base_seed.seed, settings);
-
-                let player = get_caller_address();
-
-                world
-                    .emit_event(
-                        @LevelCompleted {
-                            game_id,
-                            player,
-                            level: completed_level,
-                            cubes,
-                            moves_used: final_moves.into(),
-                            score: final_score.into(),
-                            bonuses_earned: 0,
-                        },
-                    );
-
-                // Get updated run_data for next level info
-                let updated_run_data = game.get_run_data();
-                let next_level_config = LevelGeneratorTrait::generate_with_settings(
-                    base_seed.seed, updated_run_data.current_level, settings,
-                );
-                world
-                    .emit_event(
-                        @LevelStarted {
-                            game_id,
-                            player,
-                            level: updated_run_data.current_level,
-                            points_required: next_level_config.points_required,
-                            max_moves: next_level_config.max_moves,
-                            constraint_type: next_level_config.constraint.constraint_type,
-                            constraint_value: next_level_config.constraint.value,
-                            constraint_required: next_level_config.constraint.required_count,
-                        },
-                    );
-            }
+            self.check_and_complete_level(ref world, ref game, game_id, base_seed.seed, settings);
 
             world.write_model(@game);
             post_action(token_address, game_id);
@@ -468,11 +394,13 @@ mod game_system {
             let run_data = game.get_run_data();
             
             // Available = brought + earned - spent
-            let total_budget = run_data.cubes_brought + run_data.total_cubes;
-            let cubes_available = if total_budget >= run_data.cubes_spent {
-                total_budget - run_data.cubes_spent
+            let total_budget: u32 = run_data.cubes_brought.into() + run_data.total_cubes.into();
+            let spent: u32 = run_data.cubes_spent.into();
+            let available: u32 = if total_budget >= spent { total_budget - spent } else { 0 };
+            let cubes_available: u16 = if available > 65535 {
+                65535_u16
             } else {
-                0
+                available.try_into().unwrap()
             };
 
             (run_data.cubes_brought, run_data.cubes_spent, cubes_available)
@@ -499,51 +427,71 @@ mod game_system {
             let mut run_data = game.get_run_data();
             let player = get_caller_address();
 
+            // In-game shop is only available after completing levels 5, 10, 15, ...
+            // (i.e. when current_level is 6, 11, 16, ...).
+            assert!(run_data.current_level > 1, "Shop not available");
+            assert!((run_data.current_level - 1) % 5 == 0, "Shop not available");
+
             // Get cost of consumable from settings
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
             let cost = consumable.get_cost_from_settings(settings);
 
             // Check player has enough cubes (brought + earned - spent)
-            let total_budget = run_data.cubes_brought + run_data.total_cubes;
-            let cubes_available = if total_budget >= run_data.cubes_spent {
-                total_budget - run_data.cubes_spent
-            } else {
-                0
-            };
-            assert!(cubes_available >= cost, "Insufficient cubes");
+            let total_budget: u32 = run_data.cubes_brought.into() + run_data.total_cubes.into();
+            let spent: u32 = run_data.cubes_spent.into();
+            let cubes_available: u32 = if total_budget >= spent { total_budget - spent } else { 0 };
+            assert!(cubes_available >= cost.into(), "Insufficient cubes");
 
             // Spend the cubes
-            run_data.cubes_spent = run_data.cubes_spent + cost;
+            let new_spent: u32 = spent + cost.into();
+            assert!(new_spent <= 65535, "Cubes spent overflow");
+            run_data.cubes_spent = new_spent.try_into().unwrap();
+
+            // Read player meta for bag sizes
+            let mut player_meta: PlayerMeta = world.read_model(player);
+            if !player_meta.exists() {
+                player_meta = PlayerMetaTrait::new(player);
+            }
 
             // Apply consumable effect
             match consumable {
                 ConsumableType::Hammer => {
-                    let player_meta: PlayerMeta = world.read_model(player);
                     let max_bag = player_meta.get_bag_size(0);
                     assert!(run_data.hammer_count < max_bag, "Hammer bag is full");
                     run_data.hammer_count = run_data.hammer_count + 1;
                 },
                 ConsumableType::Wave => {
-                    let player_meta: PlayerMeta = world.read_model(player);
                     let max_bag = player_meta.get_bag_size(1);
                     assert!(run_data.wave_count < max_bag, "Wave bag is full");
                     run_data.wave_count = run_data.wave_count + 1;
                 },
                 ConsumableType::Totem => {
-                    let player_meta: PlayerMeta = world.read_model(player);
                     let max_bag = player_meta.get_bag_size(2);
                     assert!(run_data.totem_count < max_bag, "Totem bag is full");
                     run_data.totem_count = run_data.totem_count + 1;
                 },
                 ConsumableType::ExtraMoves => {
-                    // ExtraMoves doesn't use bags, it grants bonus moves
-                    // This could be tracked separately or applied to a level threshold extension
-                    // For now, we'll just mark it purchased - the level system handles it
-                    // In practice, we need to extend the move limit for the current level
-                    // Since that's calculated from seed, we'd need additional tracking
-                    // For MVP, this gives back some moves by resetting level_moves partially
-                    // Actually, let's skip this for MVP - it's complex
-                    panic!("ExtraMoves not yet implemented");
+                    // ExtraMoves extends the current level's move limit.
+                    // We cap the effective max to 255 to avoid exceeding the u8 move counter.
+                    let base_seed: GameSeed = world.read_model(game_id);
+                    let level_config = LevelGeneratorTrait::generate_with_settings(
+                        base_seed.seed, run_data.current_level, settings,
+                    );
+
+                    let max_extra: u16 = if level_config.max_moves >= 255 {
+                        0
+                    } else {
+                        255 - level_config.max_moves
+                    };
+                    assert!(max_extra > 0, "Move limit already maxed");
+
+                    let current_extra: u16 = run_data.extra_moves.into();
+                    let mut new_extra: u16 = current_extra + EXTRA_MOVES_AMOUNT.into();
+                    if new_extra > max_extra {
+                        new_extra = max_extra;
+                    }
+                    assert!(new_extra > current_extra, "Move limit already maxed");
+                    run_data.extra_moves = new_extra.try_into().unwrap();
                 },
             }
 
@@ -553,11 +501,15 @@ mod game_system {
             post_action(token_address, game_id);
 
             // Emit event
-            let total_budget = run_data.cubes_brought + run_data.total_cubes;
-            let cubes_remaining = if total_budget >= run_data.cubes_spent {
-                total_budget - run_data.cubes_spent
+            let cubes_remaining_u32: u32 = if total_budget >= new_spent {
+                total_budget - new_spent
             } else {
                 0
+            };
+            let cubes_remaining: u16 = if cubes_remaining_u32 > 65535 {
+                65535_u16
+            } else {
+                cubes_remaining_u32.try_into().unwrap()
             };
             world
                 .emit_event(
@@ -594,6 +546,72 @@ mod game_system {
         fn assert_game_not_started(self: @ContractState, game_id: u64) {
             let game: Game = self.world(@DEFAULT_NS()).read_model(game_id);
             assert!(game.blocks == 0, "Game {} has already started", game_id);
+        }
+
+        /// Award random bonuses after completing a level.
+        /// Returns the number of bonuses actually added (can be < requested if bags are full).
+        fn award_level_bonuses(
+            ref self: ContractState,
+            ref world: WorldStorage,
+            ref game: Game,
+            seed: felt252,
+            player: ContractAddress,
+            bonuses_to_award: u8,
+        ) -> u8 {
+            if bonuses_to_award == 0 {
+                return 0;
+            }
+
+            // Read player meta for bag sizes
+            let mut player_meta: PlayerMeta = world.read_model(player);
+            if !player_meta.exists() {
+                player_meta = PlayerMetaTrait::new(player);
+            }
+            let hammer_bag = player_meta.get_bag_size(0);
+            let wave_bag = player_meta.get_bag_size(1);
+            let totem_bag = player_meta.get_bag_size(2);
+
+            let mut run_data = game.get_run_data();
+            let current_level = run_data.current_level;
+
+            let mut awarded: u8 = 0;
+            let mut i: u8 = 0;
+            loop {
+                if i >= bonuses_to_award {
+                    break;
+                }
+
+                // Use level+offset as deterministic index; clamp to avoid u8 overflow.
+                let idx_u16: u16 = current_level.into() + i.into();
+                let idx: u8 = if idx_u16 > 255 { 255 } else { idx_u16.try_into().unwrap() };
+                let bonus_type = LevelGeneratorTrait::get_random_bonus_type(seed, idx);
+
+                match bonus_type {
+                    0 => {
+                        if run_data.hammer_count < hammer_bag {
+                            run_data.hammer_count += 1;
+                            awarded += 1;
+                        }
+                    },
+                    1 => {
+                        if run_data.wave_count < wave_bag {
+                            run_data.wave_count += 1;
+                            awarded += 1;
+                        }
+                    },
+                    _ => {
+                        if run_data.totem_count < totem_bag {
+                            run_data.totem_count += 1;
+                            awarded += 1;
+                        }
+                    },
+                }
+
+                i += 1;
+            };
+
+            game.set_run_data(run_data);
+            awarded
         }
 
         fn handle_game_over(ref self: ContractState, ref world: WorldStorage, game: Game) {
@@ -656,6 +674,67 @@ mod game_system {
             let cube_token_address = world.dns_address(@"cube_token")
                 .expect('CubeToken not found in DNS');
             ICubeTokenDispatcher { contract_address: cube_token_address }
+        }
+
+        /// Check if level is complete and handle the completion flow.
+        /// Returns true if the level was completed.
+        fn check_and_complete_level(
+            ref self: ContractState,
+            ref world: WorldStorage,
+            ref game: Game,
+            game_id: u64,
+            base_seed: felt252,
+            settings: GameSettings,
+        ) -> bool {
+            if !game.is_level_complete_with_settings(base_seed, settings) {
+                return false;
+            }
+
+            // Capture stats BEFORE completing level (they get reset)
+            let pre_complete_data = game.get_run_data();
+            let completed_level = pre_complete_data.current_level;
+            let final_score = pre_complete_data.level_score;
+            let final_moves = pre_complete_data.level_moves;
+
+            let player = get_caller_address();
+
+            let (cubes, bonuses) = game.complete_level_with_settings(base_seed, settings);
+            let bonuses_earned = self.award_level_bonuses(ref world, ref game, base_seed, player, bonuses);
+
+            // Emit level completed with pre-reset stats
+            world
+                .emit_event(
+                    @LevelCompleted {
+                        game_id,
+                        player,
+                        level: completed_level,
+                        cubes,
+                        moves_used: final_moves.into(),
+                        score: final_score.into(),
+                        bonuses_earned,
+                    },
+                );
+
+            // Emit next level started
+            let updated_run_data = game.get_run_data();
+            let next_level_config = LevelGeneratorTrait::generate_with_settings(
+                base_seed, updated_run_data.current_level, settings,
+            );
+            world
+                .emit_event(
+                    @LevelStarted {
+                        game_id,
+                        player,
+                        level: updated_run_data.current_level,
+                        points_required: next_level_config.points_required,
+                        max_moves: next_level_config.max_moves,
+                        constraint_type: next_level_config.constraint.constraint_type,
+                        constraint_value: next_level_config.constraint.value,
+                        constraint_required: next_level_config.constraint.required_count,
+                    },
+                );
+
+            true
         }
     }
 }

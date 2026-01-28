@@ -1,25 +1,29 @@
+use alexandria_math::BitShift;
+
 /// Bit-packing helpers for efficient storage
 /// 
-/// run_data layout (88 bits used, 164 reserved):
+/// run_data layout (147 bits used, 105 reserved):
 /// ┌─────────────────────────────────────────────────────────────────────┐
 /// │ Bits    │ Field                 │ Size │ Range    │ Description     │
 /// ├─────────┼───────────────────────┼──────┼──────────┼─────────────────┤
-/// │ 0-6     │ current_level         │ 7    │ 1-127    │ Current level   │
-/// │ 7-14    │ level_score           │ 8    │ 0-255    │ Score this level│
-/// │ 15-21   │ level_moves           │ 7    │ 0-127    │ Moves this level│
-/// │ 22-25   │ constraint_progress   │ 4    │ 0-15     │ Times achieved  │
-/// │ 26      │ bonus_used_this_level │ 1    │ 0-1      │ For NoBonusUsed │
-/// │ 27-35   │ total_cubes           │ 9    │ 0-511    │ Accumulated     │
-/// │ 36-39   │ hammer_count          │ 4    │ 0-15     │ Inventory       │
-/// │ 40-43   │ wave_count            │ 4    │ 0-15     │ Inventory       │
-/// │ 44-47   │ totem_count           │ 4    │ 0-15     │ Inventory       │
-/// │ 48-51   │ max_combo_run         │ 4    │ 0-15     │ Best combo      │
-/// │ 52-67   │ total_score           │ 16   │ 0-65535  │ Cumulative score│
-/// │ 68      │ combo_5_achieved      │ 1    │ 0-1      │ First 5x combo  │
-/// │ 69      │ combo_10_achieved     │ 1    │ 0-1      │ First 10x combo │
-/// │ 70-78   │ cubes_brought         │ 9    │ 0-511    │ Cubes for in-run│
-/// │ 79-87   │ cubes_spent           │ 9    │ 0-511    │ Cubes spent     │
-/// │ 88-251  │ reserved              │ 164  │ -        │ Future features │
+/// │ 0-7     │ current_level         │ 8    │ 0-255    │ Current level   │
+/// │ 8-15    │ level_score           │ 8    │ 0-255    │ Score this level│
+/// │ 16-23   │ level_moves           │ 8    │ 0-255    │ Moves this level│
+/// │ 24-31   │ constraint_progress   │ 8    │ 0-255    │ Times achieved  │
+/// │ 32-39   │ constraint_2_progress │ 8    │ 0-255    │ 2nd constraint  │
+/// │ 40      │ bonus_used_this_level │ 1    │ 0-1      │ For NoBonusUsed │
+/// │ 41      │ combo_5_achieved      │ 1    │ 0-1      │ First 5x combo  │
+/// │ 42      │ combo_10_achieved     │ 1    │ 0-1      │ First 10x combo │
+/// │ 43-50   │ hammer_count          │ 8    │ 0-255    │ Inventory       │
+/// │ 51-58   │ wave_count            │ 8    │ 0-255    │ Inventory       │
+/// │ 59-66   │ totem_count           │ 8    │ 0-255    │ Inventory       │
+/// │ 67-74   │ max_combo_run         │ 8    │ 0-255    │ Best combo      │
+/// │ 75-82   │ extra_moves           │ 8    │ 0-255    │ Extra move cap  │
+/// │ 83-98   │ cubes_brought         │ 16   │ 0-65535  │ Cubes for in-run│
+/// │ 99-114  │ cubes_spent           │ 16   │ 0-65535  │ Cubes spent     │
+/// │ 115-130 │ total_cubes           │ 16   │ 0-65535  │ Earned cubes    │
+/// │ 131-146 │ total_score           │ 16   │ 0-65535  │ Cumulative score│
+/// │ 147-251 │ reserved              │ 105  │ -        │ Future features │
 /// └─────────────────────────────────────────────────────────────────────┘
 
 /// Unpacked run data structure
@@ -35,6 +39,8 @@ pub struct RunData {
     pub wave_count: u8,
     pub totem_count: u8,
     pub max_combo_run: u8,
+    /// Extra moves added to the current level move limit (from consumables)
+    pub extra_moves: u8,
     pub total_score: u16, // Cumulative score across all levels
     // Combo achievement flags (one-time per run)
     pub combo_5_achieved: bool, // First time achieving 5+ lines combo
@@ -42,42 +48,45 @@ pub struct RunData {
     // In-game shop: cubes brought into run (burned from wallet on start)
     pub cubes_brought: u16, // Cubes transferred into run for spending
     pub cubes_spent: u16, // Cubes spent during run
+    // Secondary constraint progress (for dual-constraint levels)
+    pub constraint_2_progress: u8,
 }
 
 /// Bit positions and masks for run_data
 mod RunDataBits {
     // Bit positions (starting bit for each field)
     pub const CURRENT_LEVEL_POS: u8 = 0;
-    pub const LEVEL_SCORE_POS: u8 = 7;
-    pub const LEVEL_MOVES_POS: u8 = 15;
-    pub const CONSTRAINT_PROGRESS_POS: u8 = 22;
-    pub const BONUS_USED_POS: u8 = 26;
-    pub const TOTAL_CUBES_POS: u8 = 27;
-    pub const HAMMER_COUNT_POS: u8 = 36;
-    pub const WAVE_COUNT_POS: u8 = 40;
-    pub const TOTEM_COUNT_POS: u8 = 44;
-    pub const MAX_COMBO_RUN_POS: u8 = 48;
-    pub const TOTAL_SCORE_POS: u8 = 52;
-    pub const COMBO_5_ACHIEVED_POS: u8 = 68;
-    pub const COMBO_10_ACHIEVED_POS: u8 = 69;
-    pub const CUBES_BROUGHT_POS: u8 = 70;
-    pub const CUBES_SPENT_POS: u8 = 79;
+    pub const LEVEL_SCORE_POS: u8 = 8;
+    pub const LEVEL_MOVES_POS: u8 = 16;
+    pub const CONSTRAINT_PROGRESS_POS: u8 = 24;
+    pub const CONSTRAINT_2_PROGRESS_POS: u8 = 32;
+    pub const BONUS_USED_POS: u8 = 40;
+    pub const COMBO_5_ACHIEVED_POS: u8 = 41;
+    pub const COMBO_10_ACHIEVED_POS: u8 = 42;
+    pub const HAMMER_COUNT_POS: u8 = 43;
+    pub const WAVE_COUNT_POS: u8 = 51;
+    pub const TOTEM_COUNT_POS: u8 = 59;
+    pub const MAX_COMBO_RUN_POS: u8 = 67;
+    pub const EXTRA_MOVES_POS: u8 = 75;
+    pub const CUBES_BROUGHT_POS: u8 = 83;
+    pub const CUBES_SPENT_POS: u8 = 99;
+    pub const TOTAL_CUBES_POS: u8 = 115;
+    pub const TOTAL_SCORE_POS: u8 = 131;
 
     // Bit masks (after shifting to position 0)
-    pub const CURRENT_LEVEL_MASK: u256 = 0x7F; // 7 bits
+    pub const CURRENT_LEVEL_MASK: u256 = 0xFF; // 8 bits
     pub const LEVEL_SCORE_MASK: u256 = 0xFF; // 8 bits
-    pub const LEVEL_MOVES_MASK: u256 = 0x7F; // 7 bits
-    pub const CONSTRAINT_PROGRESS_MASK: u256 = 0xF; // 4 bits
+    pub const LEVEL_MOVES_MASK: u256 = 0xFF; // 8 bits
+    pub const CONSTRAINT_PROGRESS_MASK: u256 = 0xFF; // 8 bits
+    pub const CONSTRAINT_2_PROGRESS_MASK: u256 = 0xFF; // 8 bits
     pub const BONUS_USED_MASK: u256 = 0x1; // 1 bit
-    pub const TOTAL_CUBES_MASK: u256 = 0x1FF; // 9 bits
-    pub const HAMMER_COUNT_MASK: u256 = 0xF; // 4 bits
-    pub const WAVE_COUNT_MASK: u256 = 0xF; // 4 bits
-    pub const TOTEM_COUNT_MASK: u256 = 0xF; // 4 bits
-    pub const MAX_COMBO_RUN_MASK: u256 = 0xF; // 4 bits
-    pub const TOTAL_SCORE_MASK: u256 = 0xFFFF; // 16 bits
     pub const COMBO_ACHIEVED_MASK: u256 = 0x1; // 1 bit
-    pub const CUBES_BROUGHT_MASK: u256 = 0x1FF; // 9 bits
-    pub const CUBES_SPENT_MASK: u256 = 0x1FF; // 9 bits
+    pub const COUNT_MASK: u256 = 0xFF; // 8 bits
+    pub const EXTRA_MOVES_MASK: u256 = 0xFF; // 8 bits
+    pub const CUBES_BROUGHT_MASK: u256 = 0xFFFF; // 16 bits
+    pub const CUBES_SPENT_MASK: u256 = 0xFFFF; // 16 bits
+    pub const TOTAL_CUBES_MASK: u256 = 0xFFFF; // 16 bits
+    pub const TOTAL_SCORE_MASK: u256 = 0xFFFF; // 16 bits
 }
 
 #[generate_trait]
@@ -95,11 +104,13 @@ pub impl RunDataPacking of RunDataPackingTrait {
             wave_count: 0,
             totem_count: 0,
             max_combo_run: 0,
+            extra_moves: 0,
             total_score: 0,
             combo_5_achieved: false,
             combo_10_achieved: false,
             cubes_brought: 0,
             cubes_spent: 0,
+            constraint_2_progress: 0,
         }
     }
 
@@ -107,59 +118,92 @@ pub impl RunDataPacking of RunDataPackingTrait {
     fn pack(self: RunData) -> felt252 {
         let mut packed: u256 = 0;
 
-        // Pack each field at its bit position
-        packed = packed | (self.current_level.into() & RunDataBits::CURRENT_LEVEL_MASK);
+        // Pack each field at its bit position using bitshift
         packed = packed
-            | ((self.level_score.into() & RunDataBits::LEVEL_SCORE_MASK)
-                * pow2(RunDataBits::LEVEL_SCORE_POS));
+            | BitShift::shl(
+                self.current_level.into() & RunDataBits::CURRENT_LEVEL_MASK,
+                RunDataBits::CURRENT_LEVEL_POS.into(),
+            );
         packed = packed
-            | ((self.level_moves.into() & RunDataBits::LEVEL_MOVES_MASK)
-                * pow2(RunDataBits::LEVEL_MOVES_POS));
+            | BitShift::shl(
+                self.level_score.into() & RunDataBits::LEVEL_SCORE_MASK,
+                RunDataBits::LEVEL_SCORE_POS.into(),
+            );
         packed = packed
-            | ((self.constraint_progress.into() & RunDataBits::CONSTRAINT_PROGRESS_MASK)
-                * pow2(RunDataBits::CONSTRAINT_PROGRESS_POS));
+            | BitShift::shl(
+                self.level_moves.into() & RunDataBits::LEVEL_MOVES_MASK,
+                RunDataBits::LEVEL_MOVES_POS.into(),
+            );
         packed = packed
-            | ((if self.bonus_used_this_level {
-                1_u256
-            } else {
-                0_u256
-            }) * pow2(RunDataBits::BONUS_USED_POS));
+            | BitShift::shl(
+                self.constraint_progress.into() & RunDataBits::CONSTRAINT_PROGRESS_MASK,
+                RunDataBits::CONSTRAINT_PROGRESS_POS.into(),
+            );
         packed = packed
-            | ((self.total_cubes.into() & RunDataBits::TOTAL_CUBES_MASK)
-                * pow2(RunDataBits::TOTAL_CUBES_POS));
+            | BitShift::shl(
+                self.constraint_2_progress.into() & RunDataBits::CONSTRAINT_2_PROGRESS_MASK,
+                RunDataBits::CONSTRAINT_2_PROGRESS_POS.into(),
+            );
         packed = packed
-            | ((self.hammer_count.into() & RunDataBits::HAMMER_COUNT_MASK)
-                * pow2(RunDataBits::HAMMER_COUNT_POS));
+            | BitShift::shl(
+                if self.bonus_used_this_level { 1_u256 } else { 0_u256 },
+                RunDataBits::BONUS_USED_POS.into(),
+            );
         packed = packed
-            | ((self.wave_count.into() & RunDataBits::WAVE_COUNT_MASK)
-                * pow2(RunDataBits::WAVE_COUNT_POS));
+            | BitShift::shl(
+                if self.combo_5_achieved { 1_u256 } else { 0_u256 },
+                RunDataBits::COMBO_5_ACHIEVED_POS.into(),
+            );
         packed = packed
-            | ((self.totem_count.into() & RunDataBits::TOTEM_COUNT_MASK)
-                * pow2(RunDataBits::TOTEM_COUNT_POS));
+            | BitShift::shl(
+                if self.combo_10_achieved { 1_u256 } else { 0_u256 },
+                RunDataBits::COMBO_10_ACHIEVED_POS.into(),
+            );
         packed = packed
-            | ((self.max_combo_run.into() & RunDataBits::MAX_COMBO_RUN_MASK)
-                * pow2(RunDataBits::MAX_COMBO_RUN_POS));
+            | BitShift::shl(
+                self.hammer_count.into() & RunDataBits::COUNT_MASK,
+                RunDataBits::HAMMER_COUNT_POS.into(),
+            );
         packed = packed
-            | ((self.total_score.into() & RunDataBits::TOTAL_SCORE_MASK)
-                * pow2(RunDataBits::TOTAL_SCORE_POS));
+            | BitShift::shl(
+                self.wave_count.into() & RunDataBits::COUNT_MASK,
+                RunDataBits::WAVE_COUNT_POS.into(),
+            );
         packed = packed
-            | ((if self.combo_5_achieved {
-                1_u256
-            } else {
-                0_u256
-            }) * pow2(RunDataBits::COMBO_5_ACHIEVED_POS));
+            | BitShift::shl(
+                self.totem_count.into() & RunDataBits::COUNT_MASK,
+                RunDataBits::TOTEM_COUNT_POS.into(),
+            );
         packed = packed
-            | ((if self.combo_10_achieved {
-                1_u256
-            } else {
-                0_u256
-            }) * pow2(RunDataBits::COMBO_10_ACHIEVED_POS));
+            | BitShift::shl(
+                self.max_combo_run.into() & RunDataBits::COUNT_MASK,
+                RunDataBits::MAX_COMBO_RUN_POS.into(),
+            );
         packed = packed
-            | ((self.cubes_brought.into() & RunDataBits::CUBES_BROUGHT_MASK)
-                * pow2(RunDataBits::CUBES_BROUGHT_POS));
+            | BitShift::shl(
+                self.extra_moves.into() & RunDataBits::EXTRA_MOVES_MASK,
+                RunDataBits::EXTRA_MOVES_POS.into(),
+            );
         packed = packed
-            | ((self.cubes_spent.into() & RunDataBits::CUBES_SPENT_MASK)
-                * pow2(RunDataBits::CUBES_SPENT_POS));
+            | BitShift::shl(
+                self.cubes_brought.into() & RunDataBits::CUBES_BROUGHT_MASK,
+                RunDataBits::CUBES_BROUGHT_POS.into(),
+            );
+        packed = packed
+            | BitShift::shl(
+                self.cubes_spent.into() & RunDataBits::CUBES_SPENT_MASK,
+                RunDataBits::CUBES_SPENT_POS.into(),
+            );
+        packed = packed
+            | BitShift::shl(
+                self.total_cubes.into() & RunDataBits::TOTAL_CUBES_MASK,
+                RunDataBits::TOTAL_CUBES_POS.into(),
+            );
+        packed = packed
+            | BitShift::shl(
+                self.total_score.into() & RunDataBits::TOTAL_SCORE_MASK,
+                RunDataBits::TOTAL_SCORE_POS.into(),
+            );
 
         packed.try_into().unwrap()
     }
@@ -169,57 +213,68 @@ pub impl RunDataPacking of RunDataPackingTrait {
         let data: u256 = packed.into();
 
         RunData {
-            current_level: ((data / pow2(RunDataBits::CURRENT_LEVEL_POS))
+            current_level: (BitShift::shr(data, RunDataBits::CURRENT_LEVEL_POS.into())
                 & RunDataBits::CURRENT_LEVEL_MASK)
                 .try_into()
                 .unwrap(),
-            level_score: ((data / pow2(RunDataBits::LEVEL_SCORE_POS))
+            level_score: (BitShift::shr(data, RunDataBits::LEVEL_SCORE_POS.into())
                 & RunDataBits::LEVEL_SCORE_MASK)
                 .try_into()
                 .unwrap(),
-            level_moves: ((data / pow2(RunDataBits::LEVEL_MOVES_POS))
+            level_moves: (BitShift::shr(data, RunDataBits::LEVEL_MOVES_POS.into())
                 & RunDataBits::LEVEL_MOVES_MASK)
                 .try_into()
                 .unwrap(),
-            constraint_progress: ((data / pow2(RunDataBits::CONSTRAINT_PROGRESS_POS))
+            constraint_progress: (BitShift::shr(data, RunDataBits::CONSTRAINT_PROGRESS_POS.into())
                 & RunDataBits::CONSTRAINT_PROGRESS_MASK)
                 .try_into()
                 .unwrap(),
-            bonus_used_this_level: ((data / pow2(RunDataBits::BONUS_USED_POS))
+            constraint_2_progress: (BitShift::shr(
+                data, RunDataBits::CONSTRAINT_2_PROGRESS_POS.into(),
+            )
+                & RunDataBits::CONSTRAINT_2_PROGRESS_MASK)
+                .try_into()
+                .unwrap(),
+            bonus_used_this_level: (BitShift::shr(data, RunDataBits::BONUS_USED_POS.into())
                 & RunDataBits::BONUS_USED_MASK) == 1,
-            total_cubes: ((data / pow2(RunDataBits::TOTAL_CUBES_POS))
-                & RunDataBits::TOTAL_CUBES_MASK)
-                .try_into()
-                .unwrap(),
-            hammer_count: ((data / pow2(RunDataBits::HAMMER_COUNT_POS))
-                & RunDataBits::HAMMER_COUNT_MASK)
-                .try_into()
-                .unwrap(),
-            wave_count: ((data / pow2(RunDataBits::WAVE_COUNT_POS)) & RunDataBits::WAVE_COUNT_MASK)
-                .try_into()
-                .unwrap(),
-            totem_count: ((data / pow2(RunDataBits::TOTEM_COUNT_POS))
-                & RunDataBits::TOTEM_COUNT_MASK)
-                .try_into()
-                .unwrap(),
-            max_combo_run: ((data / pow2(RunDataBits::MAX_COMBO_RUN_POS))
-                & RunDataBits::MAX_COMBO_RUN_MASK)
-                .try_into()
-                .unwrap(),
-            total_score: ((data / pow2(RunDataBits::TOTAL_SCORE_POS))
-                & RunDataBits::TOTAL_SCORE_MASK)
-                .try_into()
-                .unwrap(),
-            combo_5_achieved: ((data / pow2(RunDataBits::COMBO_5_ACHIEVED_POS))
+            combo_5_achieved: (BitShift::shr(data, RunDataBits::COMBO_5_ACHIEVED_POS.into())
                 & RunDataBits::COMBO_ACHIEVED_MASK) == 1,
-            combo_10_achieved: ((data / pow2(RunDataBits::COMBO_10_ACHIEVED_POS))
+            combo_10_achieved: (BitShift::shr(data, RunDataBits::COMBO_10_ACHIEVED_POS.into())
                 & RunDataBits::COMBO_ACHIEVED_MASK) == 1,
-            cubes_brought: ((data / pow2(RunDataBits::CUBES_BROUGHT_POS))
+            hammer_count: (BitShift::shr(data, RunDataBits::HAMMER_COUNT_POS.into())
+                & RunDataBits::COUNT_MASK)
+                .try_into()
+                .unwrap(),
+            wave_count: (BitShift::shr(data, RunDataBits::WAVE_COUNT_POS.into())
+                & RunDataBits::COUNT_MASK)
+                .try_into()
+                .unwrap(),
+            totem_count: (BitShift::shr(data, RunDataBits::TOTEM_COUNT_POS.into())
+                & RunDataBits::COUNT_MASK)
+                .try_into()
+                .unwrap(),
+            max_combo_run: (BitShift::shr(data, RunDataBits::MAX_COMBO_RUN_POS.into())
+                & RunDataBits::COUNT_MASK)
+                .try_into()
+                .unwrap(),
+            extra_moves: (BitShift::shr(data, RunDataBits::EXTRA_MOVES_POS.into())
+                & RunDataBits::EXTRA_MOVES_MASK)
+                .try_into()
+                .unwrap(),
+            cubes_brought: (BitShift::shr(data, RunDataBits::CUBES_BROUGHT_POS.into())
                 & RunDataBits::CUBES_BROUGHT_MASK)
                 .try_into()
                 .unwrap(),
-            cubes_spent: ((data / pow2(RunDataBits::CUBES_SPENT_POS))
+            cubes_spent: (BitShift::shr(data, RunDataBits::CUBES_SPENT_POS.into())
                 & RunDataBits::CUBES_SPENT_MASK)
+                .try_into()
+                .unwrap(),
+            total_cubes: (BitShift::shr(data, RunDataBits::TOTAL_CUBES_POS.into())
+                & RunDataBits::TOTAL_CUBES_MASK)
+                .try_into()
+                .unwrap(),
+            total_score: (BitShift::shr(data, RunDataBits::TOTAL_SCORE_POS.into())
+                & RunDataBits::TOTAL_SCORE_MASK)
                 .try_into()
                 .unwrap(),
         }
@@ -307,32 +362,48 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
     fn pack(self: MetaData) -> felt252 {
         let mut packed: u256 = 0;
 
+        // Starting hammer is at position 0, no shift needed
+        packed = packed | (self.starting_hammer.into() & MetaDataBits::STARTING_BONUS_MASK);
         packed = packed
-            | (self.starting_hammer.into() & MetaDataBits::STARTING_BONUS_MASK);
+            | BitShift::shl(
+                self.starting_wave.into() & MetaDataBits::STARTING_BONUS_MASK,
+                MetaDataBits::STARTING_WAVE_POS.into(),
+            );
         packed = packed
-            | ((self.starting_wave.into() & MetaDataBits::STARTING_BONUS_MASK)
-                * pow2(MetaDataBits::STARTING_WAVE_POS));
+            | BitShift::shl(
+                self.starting_totem.into() & MetaDataBits::STARTING_BONUS_MASK,
+                MetaDataBits::STARTING_TOTEM_POS.into(),
+            );
         packed = packed
-            | ((self.starting_totem.into() & MetaDataBits::STARTING_BONUS_MASK)
-                * pow2(MetaDataBits::STARTING_TOTEM_POS));
+            | BitShift::shl(
+                self.bag_hammer_level.into() & MetaDataBits::BAG_LEVEL_MASK,
+                MetaDataBits::BAG_HAMMER_LEVEL_POS.into(),
+            );
         packed = packed
-            | ((self.bag_hammer_level.into() & MetaDataBits::BAG_LEVEL_MASK)
-                * pow2(MetaDataBits::BAG_HAMMER_LEVEL_POS));
+            | BitShift::shl(
+                self.bag_wave_level.into() & MetaDataBits::BAG_LEVEL_MASK,
+                MetaDataBits::BAG_WAVE_LEVEL_POS.into(),
+            );
         packed = packed
-            | ((self.bag_wave_level.into() & MetaDataBits::BAG_LEVEL_MASK)
-                * pow2(MetaDataBits::BAG_WAVE_LEVEL_POS));
+            | BitShift::shl(
+                self.bag_totem_level.into() & MetaDataBits::BAG_LEVEL_MASK,
+                MetaDataBits::BAG_TOTEM_LEVEL_POS.into(),
+            );
         packed = packed
-            | ((self.bag_totem_level.into() & MetaDataBits::BAG_LEVEL_MASK)
-                * pow2(MetaDataBits::BAG_TOTEM_LEVEL_POS));
+            | BitShift::shl(
+                self.bridging_rank.into() & MetaDataBits::BRIDGING_RANK_MASK,
+                MetaDataBits::BRIDGING_RANK_POS.into(),
+            );
         packed = packed
-            | ((self.bridging_rank.into() & MetaDataBits::BRIDGING_RANK_MASK)
-                * pow2(MetaDataBits::BRIDGING_RANK_POS));
+            | BitShift::shl(
+                self.total_runs.into() & MetaDataBits::TOTAL_RUNS_MASK,
+                MetaDataBits::TOTAL_RUNS_POS.into(),
+            );
         packed = packed
-            | ((self.total_runs.into() & MetaDataBits::TOTAL_RUNS_MASK)
-                * pow2(MetaDataBits::TOTAL_RUNS_POS));
-        packed = packed
-            | ((self.total_cubes_earned.into() & MetaDataBits::TOTAL_CUBES_EARNED_MASK)
-                * pow2(MetaDataBits::TOTAL_CUBES_EARNED_POS));
+            | BitShift::shl(
+                self.total_cubes_earned.into() & MetaDataBits::TOTAL_CUBES_EARNED_MASK,
+                MetaDataBits::TOTAL_CUBES_EARNED_POS.into(),
+            );
 
         packed.try_into().unwrap()
     }
@@ -342,39 +413,37 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
         let data: u256 = packed.into();
 
         MetaData {
-            starting_hammer: ((data / pow2(MetaDataBits::STARTING_HAMMER_POS))
+            // Starting hammer is at position 0, no shift needed
+            starting_hammer: (data & MetaDataBits::STARTING_BONUS_MASK).try_into().unwrap(),
+            starting_wave: (BitShift::shr(data, MetaDataBits::STARTING_WAVE_POS.into())
                 & MetaDataBits::STARTING_BONUS_MASK)
                 .try_into()
                 .unwrap(),
-            starting_wave: ((data / pow2(MetaDataBits::STARTING_WAVE_POS))
+            starting_totem: (BitShift::shr(data, MetaDataBits::STARTING_TOTEM_POS.into())
                 & MetaDataBits::STARTING_BONUS_MASK)
                 .try_into()
                 .unwrap(),
-            starting_totem: ((data / pow2(MetaDataBits::STARTING_TOTEM_POS))
-                & MetaDataBits::STARTING_BONUS_MASK)
-                .try_into()
-                .unwrap(),
-            bag_hammer_level: ((data / pow2(MetaDataBits::BAG_HAMMER_LEVEL_POS))
+            bag_hammer_level: (BitShift::shr(data, MetaDataBits::BAG_HAMMER_LEVEL_POS.into())
                 & MetaDataBits::BAG_LEVEL_MASK)
                 .try_into()
                 .unwrap(),
-            bag_wave_level: ((data / pow2(MetaDataBits::BAG_WAVE_LEVEL_POS))
+            bag_wave_level: (BitShift::shr(data, MetaDataBits::BAG_WAVE_LEVEL_POS.into())
                 & MetaDataBits::BAG_LEVEL_MASK)
                 .try_into()
                 .unwrap(),
-            bag_totem_level: ((data / pow2(MetaDataBits::BAG_TOTEM_LEVEL_POS))
+            bag_totem_level: (BitShift::shr(data, MetaDataBits::BAG_TOTEM_LEVEL_POS.into())
                 & MetaDataBits::BAG_LEVEL_MASK)
                 .try_into()
                 .unwrap(),
-            bridging_rank: ((data / pow2(MetaDataBits::BRIDGING_RANK_POS))
+            bridging_rank: (BitShift::shr(data, MetaDataBits::BRIDGING_RANK_POS.into())
                 & MetaDataBits::BRIDGING_RANK_MASK)
                 .try_into()
                 .unwrap(),
-            total_runs: ((data / pow2(MetaDataBits::TOTAL_RUNS_POS))
+            total_runs: (BitShift::shr(data, MetaDataBits::TOTAL_RUNS_POS.into())
                 & MetaDataBits::TOTAL_RUNS_MASK)
                 .try_into()
                 .unwrap(),
-            total_cubes_earned: ((data / pow2(MetaDataBits::TOTAL_CUBES_EARNED_POS))
+            total_cubes_earned: (BitShift::shr(data, MetaDataBits::TOTAL_CUBES_EARNED_POS.into())
                 & MetaDataBits::TOTAL_CUBES_EARNED_MASK)
                 .try_into()
                 .unwrap(),
@@ -398,8 +467,14 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
         if self.bridging_rank == 0 {
             0
         } else {
-            let rank_minus_one: u16 = (self.bridging_rank - 1).into();
-            5_u16 * pow2_u16(rank_minus_one.try_into().unwrap())
+            let rank_minus_one: u8 = self.bridging_rank - 1;
+            let pow: u32 = pow2_u16(rank_minus_one).into();
+            let result: u32 = 5_u32 * pow;
+            if result > 65535 {
+                65535_u16
+            } else {
+                result.try_into().unwrap()
+            }
         }
     }
 }
@@ -417,39 +492,12 @@ fn pow2_u16(n: u8) -> u16 {
     }
 }
 
-// =============================================================================
-// Helper functions
-// =============================================================================
-
-/// Compute 2^n as u256
-#[inline(always)]
-fn pow2(n: u8) -> u256 {
-    let mut result: u256 = 1;
-    let mut i: u8 = 0;
-    loop {
-        if i >= n {
-            break result;
-        }
-        result = result * 2;
-        i += 1;
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::{
         RunData, RunDataPacking, RunDataPackingTrait, MetaData, MetaDataPacking,
-        MetaDataPackingTrait, pow2,
+        MetaDataPackingTrait,
     };
-
-    #[test]
-    fn test_pow2() {
-        assert!(pow2(0) == 1, "2^0 should be 1");
-        assert!(pow2(1) == 2, "2^1 should be 2");
-        assert!(pow2(7) == 128, "2^7 should be 128");
-        assert!(pow2(8) == 256, "2^8 should be 256");
-        assert!(pow2(16) == 65536, "2^16 should be 65536");
-    }
 
     #[test]
     fn test_run_data_new() {
@@ -457,11 +505,13 @@ mod tests {
         assert!(data.current_level == 1, "Should start at level 1");
         assert!(data.level_score == 0, "Should start with 0 score");
         assert!(data.hammer_count == 0, "Should start with 0 hammers");
+        assert!(data.extra_moves == 0, "Should start with 0 extra moves");
         assert!(data.total_score == 0, "Should start with 0 total score");
         assert!(data.combo_5_achieved == false, "Should start with combo_5 not achieved");
         assert!(data.combo_10_achieved == false, "Should start with combo_10 not achieved");
         assert!(data.cubes_brought == 0, "Should start with 0 cubes brought");
         assert!(data.cubes_spent == 0, "Should start with 0 cubes spent");
+        assert!(data.constraint_2_progress == 0, "Should start with 0 constraint_2 progress");
     }
 
     #[test]
@@ -477,11 +527,13 @@ mod tests {
             wave_count: 3,
             totem_count: 2,
             max_combo_run: 7,
+            extra_moves: 10,
             total_score: 12345,
             combo_5_achieved: true,
             combo_10_achieved: false,
             cubes_brought: 100,
             cubes_spent: 45,
+            constraint_2_progress: 7,
         };
 
         let packed = original.pack();
@@ -503,6 +555,7 @@ mod tests {
         assert!(unpacked.wave_count == original.wave_count, "wave_count mismatch");
         assert!(unpacked.totem_count == original.totem_count, "totem_count mismatch");
         assert!(unpacked.max_combo_run == original.max_combo_run, "max_combo_run mismatch");
+        assert!(unpacked.extra_moves == original.extra_moves, "extra_moves mismatch");
         assert!(unpacked.total_score == original.total_score, "total_score mismatch");
         assert!(
             unpacked.combo_5_achieved == original.combo_5_achieved, "combo_5_achieved mismatch",
@@ -512,27 +565,30 @@ mod tests {
         );
         assert!(unpacked.cubes_brought == original.cubes_brought, "cubes_brought mismatch");
         assert!(unpacked.cubes_spent == original.cubes_spent, "cubes_spent mismatch");
+        assert!(unpacked.constraint_2_progress == original.constraint_2_progress, "constraint_2_progress mismatch");
     }
 
     #[test]
     fn test_run_data_edge_values() {
         // Test maximum values for each field
         let max_values = RunData {
-            current_level: 127, // 7 bits max
+            current_level: 255, // 8 bits max
             level_score: 255, // 8 bits max
-            level_moves: 127, // 7 bits max
-            constraint_progress: 15, // 4 bits max
+            level_moves: 255, // 8 bits max
+            constraint_progress: 255, // 8 bits max
             bonus_used_this_level: true,
-            total_cubes: 511, // 9 bits max
-            hammer_count: 15, // 4 bits max
-            wave_count: 15, // 4 bits max
-            totem_count: 15, // 4 bits max
-            max_combo_run: 15, // 4 bits max
+            total_cubes: 65535, // 16 bits max
+            hammer_count: 255, // 8 bits max
+            wave_count: 255, // 8 bits max
+            totem_count: 255, // 8 bits max
+            max_combo_run: 255, // 8 bits max
+            extra_moves: 255, // 8 bits max
             total_score: 65535, // 16 bits max
             combo_5_achieved: true,
             combo_10_achieved: true,
-            cubes_brought: 511, // 9 bits max
-            cubes_spent: 511, // 9 bits max
+            cubes_brought: 65535, // 16 bits max
+            cubes_spent: 65535, // 16 bits max
+            constraint_2_progress: 255, // 8 bits max
         };
 
         let packed = max_values.pack();
@@ -554,11 +610,13 @@ mod tests {
             wave_count: 0,
             totem_count: 0,
             max_combo_run: 0,
+            extra_moves: 0,
             total_score: 0,
             combo_5_achieved: false,
             combo_10_achieved: false,
             cubes_brought: 0,
             cubes_spent: 0,
+            constraint_2_progress: 0,
         };
 
         let packed = zero_values.pack();
@@ -645,5 +703,9 @@ mod tests {
         // Rank 4 = 40 cubes
         data.bridging_rank = 4;
         assert!(data.get_max_cubes_to_bring() == 40, "Rank 4 should allow 40 cubes");
+
+        // Rank 15 would overflow u16 without clamping
+        data.bridging_rank = 15;
+        assert!(data.get_max_cubes_to_bring() == 65535, "Rank 15 should clamp to u16::MAX");
     }
 }

@@ -227,9 +227,9 @@ GameSettings {
 
 | File | Status | Changes Made |
 |------|--------|--------------|
-| `models/config.cairo` | Done | Extended GameSettings with 11 new fields, added `GameSettingsDefaults` module, added helper methods |
-| `systems/config.cairo` | Done | Added `add_custom_game_settings()`, updated `generate_settings_array()` to show all fields, added validation |
-| `helpers/level.cairo` | Done | Added `generate_with_settings()`, parameterized move/ratio calculations |
+| `models/config.cairo` | Done | Extended GameSettings with 21 total fields (10 new level settings), added `GameSettingsDefaults` module, added helper methods (`get_difficulty_for_level()`, `get_variance_percent()`, `are_constraints_enabled()`) |
+| `systems/config.cairo` | Done | Added `add_custom_game_settings()` with all 21 parameters, updated `generate_settings_array()` to show all fields, added comprehensive validation |
+| `helpers/level.cairo` | Done | Added `generate_with_settings()`, `generate_constraint_with_settings()`, uses all settings for level generation |
 | `types/consumable.cairo` | Done | Added `get_cost_from_settings()` method |
 | `systems/game.cairo` | Done | Loads settings via `ConfigUtilsTrait`, uses settings for level gen and consumable costs, applies cube multiplier |
 | `models/game.cairo` | Done | Added `is_level_complete_with_settings()`, `is_level_failed_with_settings()`, `complete_level_with_settings()` |
@@ -242,27 +242,47 @@ pub struct GameSettings {
     // Key
     pub settings_id: u32,
     
-    // Existing
-    pub difficulty: u8,
+    // === Difficulty Mode ===
+    pub difficulty: u8,            // Difficulty enum value
     
-    // NEW: Level Scaling
-    pub base_moves: u16,           // 20
-    pub max_moves: u16,            // 60
-    pub base_ratio_x100: u16,      // 80
-    pub max_ratio_x100: u16,       // 250
+    // === Level Scaling ===
+    pub base_moves: u16,           // 20 - Moves at level 1
+    pub max_moves: u16,            // 60 - Moves at level cap
+    pub base_ratio_x100: u16,      // 80 - Points/move ratio × 100 at level 1
+    pub max_ratio_x100: u16,       // 250 - Points/move ratio × 100 at level cap
     
-    // NEW: Cube Thresholds
-    pub cube_3_percent: u8,        // 40
-    pub cube_2_percent: u8,        // 70
+    // === Cube Thresholds ===
+    pub cube_3_percent: u8,        // 40 - 3 cubes if moves <= X% of max
+    pub cube_2_percent: u8,        // 70 - 2 cubes if moves <= X% of max
     
-    // NEW: Consumable Costs
+    // === Consumable Costs ===
     pub hammer_cost: u8,           // 5
     pub wave_cost: u8,             // 5
     pub totem_cost: u8,            // 5
     pub extra_moves_cost: u8,      // 10
     
-    // NEW: Reward Multiplier
-    pub cube_multiplier_x100: u16, // 100
+    // === Reward Multiplier ===
+    pub cube_multiplier_x100: u16, // 100 - Cube reward multiplier × 100
+    
+    // === Difficulty Progression (NEW) ===
+    pub starting_difficulty: u8,     // 0 (Easy) - Which difficulty to start with
+    pub difficulty_step_levels: u8,  // 15 - Levels between difficulty increases
+    
+    // === Constraint Settings (NEW) ===
+    pub constraints_enabled: u8,     // 1 - 0=disabled, 1=enabled
+    pub constraint_start_level: u8,  // 5 - Level when constraints begin
+    
+    // === Variance Settings (NEW) ===
+    pub early_variance_percent: u8,  // 5 - Random variance for early levels
+    pub mid_variance_percent: u8,    // 10 - Random variance for mid levels
+    pub late_variance_percent: u8,   // 15 - Random variance for late levels
+    
+    // === Level Tier Thresholds (NEW) ===
+    pub early_level_threshold: u8,   // 10 - End of "early" levels
+    pub mid_level_threshold: u8,     // 50 - End of "mid" levels
+    
+    // === Level Cap (NEW) ===
+    pub level_cap: u8,               // 100 - Max level for scaling calculations
 }
 ```
 
@@ -275,17 +295,36 @@ fn add_custom_game_settings(
     name: felt252,
     description: ByteArray,
     difficulty: Difficulty,
+    // Level Scaling
     base_moves: u16,
     max_moves: u16,
     base_ratio_x100: u16,
     max_ratio_x100: u16,
+    // Cube Thresholds
     cube_3_percent: u8,
     cube_2_percent: u8,
+    // Consumable Costs
     hammer_cost: u8,
     wave_cost: u8,
     totem_cost: u8,
     extra_moves_cost: u8,
+    // Reward Multiplier
     cube_multiplier_x100: u16,
+    // Difficulty Progression (NEW)
+    starting_difficulty: u8,
+    difficulty_step_levels: u8,
+    // Constraint Settings (NEW)
+    constraints_enabled: u8,
+    constraint_start_level: u8,
+    // Variance Settings (NEW)
+    early_variance_percent: u8,
+    mid_variance_percent: u8,
+    late_variance_percent: u8,
+    // Level Tier Thresholds (NEW)
+    early_level_threshold: u8,
+    mid_level_threshold: u8,
+    // Level Cap (NEW)
+    level_cap: u8,
 ) -> u32;
 ```
 
@@ -295,6 +334,74 @@ fn add_custom_game_settings(
 - Existing `generate()` functions still work with hardcoded defaults
 - New `_with_settings()` variants use custom settings
 - Games using settings ID 0, 1, or 2 will use defaults
+
+### Constraint Distribution System (NEW - January 2026)
+
+The constraint system now uses **scaling parameters** that interpolate from Easy to Master difficulty:
+
+```cairo
+pub struct GameSettings {
+    // ... existing fields ...
+    
+    // === Constraint Distribution (Easy to Master scaling) ===
+    // Probability settings (0-100, interpolated by difficulty)
+    pub easy_none_chance: u8,        // 30 - % chance of no constraint at Easy
+    pub master_none_chance: u8,      // 0 - % chance of no constraint at Master
+    pub easy_no_bonus_chance: u8,    // 0 - % chance of NoBonusUsed at Easy
+    pub master_no_bonus_chance: u8,  // 25 - % chance of NoBonusUsed at Master
+    
+    // ClearLines parameters (min/max lines and times)
+    pub easy_min_lines: u8,          // 2 - Min lines to clear at Easy
+    pub master_min_lines: u8,        // 5 - Min lines to clear at Master
+    pub easy_max_lines: u8,          // 3 - Max lines to clear at Easy
+    pub master_max_lines: u8,        // 7 - Max lines to clear at Master
+    pub easy_min_times: u8,          // 1 - Min times required at Easy
+    pub master_min_times: u8,        // 4 - Min times required at Master
+    pub easy_max_times: u8,          // 2 - Max times required at Easy
+    pub master_max_times: u8,        // 10 - Max times required at Master
+    
+    // Dual constraint chance
+    pub easy_dual_chance: u8,        // 0 - % chance of dual constraint at Easy
+    pub master_dual_chance: u8,      // 50 - % chance of dual constraint at Master
+}
+```
+
+**How Interpolation Works:**
+
+The `get_constraint_params_for_difficulty()` method interpolates each parameter linearly:
+- Easy (difficulty 0) → uses `easy_*` values
+- Master (difficulty 7) → uses `master_*` values
+- Intermediate difficulties get interpolated values
+
+For example, at Hard (difficulty 3):
+- `none_chance`: 30 → 0 at position 3/7 ≈ 17%
+- `dual_chance`: 0 → 50 at position 3/7 ≈ 21%
+
+**Example Custom Constraint Modes:**
+
+```cairo
+// No constraints mode
+GameSettings {
+    constraints_enabled: 0,  // Disable entirely
+    // OR keep enabled but:
+    easy_none_chance: 100,   // Always no constraint
+    master_none_chance: 100,
+    ...
+}
+
+// Hardcore constraints mode
+GameSettings {
+    easy_none_chance: 0,           // Always have constraint
+    master_none_chance: 0,
+    easy_no_bonus_chance: 20,      // Higher NoBonusUsed chance
+    master_no_bonus_chance: 50,
+    easy_min_lines: 3,             // Harder line requirements
+    master_min_lines: 6,
+    easy_dual_chance: 20,          // More dual constraints
+    master_dual_chance: 80,
+    ...
+}
+```
 
 ### Remaining Work
 

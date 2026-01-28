@@ -122,6 +122,9 @@ if [ -z "$TOKEN_CLASS" ]; then
 fi
 print_info "  FullTokenContract class: $TOKEN_CLASS"
 
+# Wait for nonce to sync after declares
+sleep 2
+
 #-----------------
 # Step 4: Deploy MinigameRegistryContract
 #-----------------
@@ -146,6 +149,9 @@ if [ -z "$REGISTRY_ADDRESS" ]; then
     exit 1
 fi
 print_info "  MinigameRegistryContract deployed at: $REGISTRY_ADDRESS"
+
+# Wait for nonce to sync
+sleep 1
 
 #-----------------
 # Step 5: Deploy FullTokenContract

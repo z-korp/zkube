@@ -75,11 +75,16 @@ export const useGameTokensSlot = ({
           if (gameData.blocks === 0n) continue;
 
           // Extract level data from run_data
+          // See contracts/src/helpers/packing.cairo for bit layout
           const runData = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
-          // Unpack run_data: bits 0-6 = level, bits 27-35 = total_cubes, bits 52-67 = total_score
+          // Unpack run_data fields:
+          // bits 0-6 = level, bits 27-35 = total_cubes, bits 52-67 = total_score
+          // bits 70-78 = cubes_brought, bits 79-87 = cubes_spent
           const level = Number(runData & BigInt(0x7F)); // 7 bits (position 0)
           const totalCubes = Number((runData >> BigInt(27)) & BigInt(0x1FF)); // 9 bits (position 27)
           const totalScore = Number((runData >> BigInt(52)) & BigInt(0xFFFF)); // 16 bits (position 52)
+          const cubesBrought = Number((runData >> BigInt(70)) & BigInt(0x1FF)); // 9 bits (position 70)
+          const cubesSpent = Number((runData >> BigInt(79)) & BigInt(0x1FF)); // 9 bits (position 79)
 
           gameList.push({
             token_id: gameData.game_id,
@@ -91,6 +96,8 @@ export const useGameTokensSlot = ({
                 { trait_type: "Level", value: level },
                 { trait_type: "Total Cubes", value: totalCubes },
                 { trait_type: "Total Score", value: totalScore },
+                { trait_type: "Cubes Brought", value: cubesBrought },
+                { trait_type: "Cubes Spent", value: cubesSpent },
               ],
             }),
             gameMetadata: { name: `Game #${gameData.game_id}` },

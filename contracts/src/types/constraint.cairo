@@ -65,7 +65,14 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
             ConstraintType::None => current_progress,
             ConstraintType::ClearLines => {
                 if lines_cleared >= self.value {
-                    current_progress + 1
+                    // Clamp progress to required_count to avoid overflow and keep semantics stable.
+                    let next: u16 = current_progress.into() + 1;
+                    let max_needed: u16 = self.required_count.into();
+                    if next > max_needed {
+                        self.required_count
+                    } else {
+                        next.try_into().unwrap()
+                    }
                 } else {
                     current_progress
                 }

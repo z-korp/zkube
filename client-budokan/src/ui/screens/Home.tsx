@@ -32,6 +32,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/ui/elements/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/ui/elements/tooltip";
 import { useNavigate } from "react-router-dom";
 import { useGameTokens } from "metagame-sdk/sql";
 import type { GameTokenData } from "metagame-sdk";
@@ -63,6 +69,9 @@ type PlayerGameRow = {
   name: string;
   level: string | number | undefined;
   totalCubes: string | number | undefined;
+  cubesBrought: string | number | undefined;
+  cubesSpent: string | number | undefined;
+  cubesAvailable: number;
   totalScore: string | number | undefined;
   gameOver: boolean;
 };
@@ -182,12 +191,24 @@ export const Home = () => {
       const levelAttr = getAttributeValue(attributes, "Level");
       const totalCubesAttr = getAttributeValue(attributes, "Total Cubes");
       const totalScoreAttr = getAttributeValue(attributes, "Total Score");
+      const cubesBroughtAttr = getAttributeValue(attributes, "Cubes Brought");
+      const cubesSpentAttr = getAttributeValue(attributes, "Cubes Spent");
+
+      // Calculate available cubes: totalCubes + cubesBrought - cubesSpent
+      const totalCubes = Number(totalCubesAttr) || 0;
+      const cubesBrought = Number(cubesBroughtAttr) || 0;
+      const cubesSpent = Number(cubesSpentAttr) || 0;
+      const cubesAvailable = Math.max(0, totalCubes + cubesBrought - cubesSpent);
+
       return {
         tokenId: game.token_id,
         name:
           metadata?.name || game.gameMetadata?.name || `Game #${game.token_id}`,
         level: levelAttr ?? 1,
         totalCubes: totalCubesAttr ?? 0,
+        cubesBrought: cubesBroughtAttr ?? 0,
+        cubesSpent: cubesSpentAttr ?? 0,
+        cubesAvailable,
         totalScore: totalScoreAttr ?? game.score ?? 0,
         gameOver: Boolean(game.game_over),
       };
@@ -247,9 +268,45 @@ export const Home = () => {
                 </div>
                 <div>
                   <p className="text-xs uppercase text-slate-400">Cubes</p>
-                  <p className="text-base font-semibold text-yellow-400">
-                    {formatStat(game.totalCubes)} 🧊
-                  </p>
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p className="text-base font-semibold text-yellow-400 cursor-help">
+                          {formatStat(game.cubesAvailable)} 🧊
+                        </p>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="bottom"
+                        className="bg-slate-800 border border-slate-600 p-3 max-w-[200px]"
+                      >
+                        <div className="space-y-1">
+                          <div className="text-xs font-semibold text-white mb-1.5">Cubes Breakdown</div>
+                          <div className="flex justify-between text-xs gap-4">
+                            <span className="text-slate-400">Earned</span>
+                            <span className="text-yellow-400 font-medium">{formatStat(game.totalCubes)}</span>
+                          </div>
+                          {Number(game.cubesBrought) > 0 && (
+                            <div className="flex justify-between text-xs gap-4">
+                              <span className="text-slate-400">Brought</span>
+                              <span className="text-blue-400 font-medium">{formatStat(game.cubesBrought)}</span>
+                            </div>
+                          )}
+                          {Number(game.cubesSpent) > 0 && (
+                            <div className="flex justify-between text-xs gap-4">
+                              <span className="text-slate-400">Spent</span>
+                              <span className="text-red-400 font-medium">-{formatStat(game.cubesSpent)}</span>
+                            </div>
+                          )}
+                          {(Number(game.cubesBrought) > 0 || Number(game.cubesSpent) > 0) && (
+                            <div className="flex justify-between text-xs gap-4 pt-1 border-t border-slate-600">
+                              <span className="text-slate-300 font-medium">Available</span>
+                              <span className="text-yellow-400 font-semibold">{formatStat(game.cubesAvailable)}</span>
+                            </div>
+                          )}
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
             </div>
@@ -293,7 +350,45 @@ export const Home = () => {
                     </TableCell>
                     <TableCell>{formatStat(game.level)}</TableCell>
                     <TableCell>{formatStat(game.totalScore)}</TableCell>
-                    <TableCell className="text-yellow-400">{formatStat(game.totalCubes)} 🧊</TableCell>
+                    <TableCell className="text-yellow-400">
+                        <TooltipProvider delayDuration={0}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="cursor-help">{formatStat(game.cubesAvailable)} 🧊</span>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="bottom"
+                              className="bg-slate-800 border border-slate-600 p-3 max-w-[200px]"
+                            >
+                              <div className="space-y-1">
+                                <div className="text-xs font-semibold text-white mb-1.5">Cubes Breakdown</div>
+                                <div className="flex justify-between text-xs gap-4">
+                                  <span className="text-slate-400">Earned</span>
+                                  <span className="text-yellow-400 font-medium">{formatStat(game.totalCubes)}</span>
+                                </div>
+                                {Number(game.cubesBrought) > 0 && (
+                                  <div className="flex justify-between text-xs gap-4">
+                                    <span className="text-slate-400">Brought</span>
+                                    <span className="text-blue-400 font-medium">{formatStat(game.cubesBrought)}</span>
+                                  </div>
+                                )}
+                                {Number(game.cubesSpent) > 0 && (
+                                  <div className="flex justify-between text-xs gap-4">
+                                    <span className="text-slate-400">Spent</span>
+                                    <span className="text-red-400 font-medium">-{formatStat(game.cubesSpent)}</span>
+                                  </div>
+                                )}
+                                {(Number(game.cubesBrought) > 0 || Number(game.cubesSpent) > 0) && (
+                                  <div className="flex justify-between text-xs gap-4 pt-1 border-t border-slate-600">
+                                    <span className="text-slate-300 font-medium">Available</span>
+                                    <span className="text-yellow-400 font-semibold">{formatStat(game.cubesAvailable)}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TableCell>
                     <TableCell>
                       {!game.gameOver ? (
                         <Button

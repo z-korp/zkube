@@ -2,7 +2,7 @@ use core::pedersen::pedersen;
 use core::poseidon::poseidon_hash_span;
 
 use starknet::ContractAddress;
-use starknet::{get_caller_address, get_contract_address, get_block_timestamp, get_tx_info, contract_address_const};
+use starknet::{get_caller_address, get_contract_address, get_block_timestamp, get_tx_info};
 
 use zkube::interfaces::vrf::{IVrfProviderDispatcher, IVrfProviderDispatcherTrait, Source};
 
@@ -25,8 +25,9 @@ pub impl RandomImpl of RandomTrait {
     // On networks with VRF (Sepolia/Mainnet), this consumes VRF randomness
     // On slot/katana without VRF, use new_pseudo_random() instead
     fn new_vrf() -> Random {
+        let vrf_address: ContractAddress = VRF_PROVIDER_ADDRESS.try_into().unwrap();
         let vrf_provider = IVrfProviderDispatcher {
-            contract_address: contract_address_const::<VRF_PROVIDER_ADDRESS>()
+            contract_address: vrf_address
         };
         let seed = vrf_provider.consume_random(Source::Nonce(get_caller_address()));
         Random { seed, nonce: 0 }

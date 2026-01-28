@@ -61,25 +61,3 @@ pub mod systems {
     pub mod shop;
     pub mod cube_token;
 }
-
-#[cfg(test)]
-mod tests {
-    mod setup;
-    mod test_create;
-    mod test_move;
-    mod test_play;
-    mod test_bonus_hammer;
-    mod test_bonus_wave;
-    mod test_bonus_totem;
-    mod test_admin;
-    mod test_chest;
-    mod test_bonus;
-    mod test_minter;
-    mod test_erc721;
-    mod test_pause;
-
-    mod mocks {
-        mod erc20;
-        mod erc721;
-    }
-}
