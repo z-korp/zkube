@@ -36,10 +36,10 @@ pub fn SETTINGS_MODEL() -> ByteArray {
 pub mod DEFAULT_SETTINGS {
     use starknet::ContractAddress;
     use zkube::types::difficulty::Difficulty;
-    use zkube::models::config::{GameSettings, GameSettingsMetadata};
+    use zkube::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};
 
     pub fn GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_EXPERT() -> @GameSettings {
-        @GameSettings { settings_id: 0, difficulty: Difficulty::Expert.into(), }
+        @GameSettingsTrait::new_with_defaults(0, Difficulty::Expert)
     }
 
     pub fn GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_EXPERT_METADATA(
@@ -55,7 +55,7 @@ pub mod DEFAULT_SETTINGS {
     }
 
     pub fn GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY() -> @GameSettings {
-        @GameSettings { settings_id: 1, difficulty: Difficulty::Increasing.into(), }
+        @GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing)
     }
 
     pub fn GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA(
@@ -71,7 +71,7 @@ pub mod DEFAULT_SETTINGS {
     }
 
     pub fn GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_VERY_HARD() -> @GameSettings {
-        @GameSettings { settings_id: 2, difficulty: Difficulty::VeryHard.into(), }
+        @GameSettingsTrait::new_with_defaults(2, Difficulty::VeryHard)
     }
 
     pub fn GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_VERY_HARD_METADATA(

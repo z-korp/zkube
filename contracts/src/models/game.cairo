@@ -15,6 +15,7 @@ use zkube::types::bonus::{Bonus, BonusTrait};
 use zkube::types::level::LevelConfigTrait;
 use zkube::types::constraint::LevelConstraintTrait;
 use zkube::helpers::level::{LevelGenerator, LevelGeneratorTrait};
+use zkube::models::config::GameSettings;
 
 /// Game model for the level-based system
 /// All run progress is packed into run_data for efficient storage
@@ -428,10 +429,23 @@ pub impl GameImpl of GameTrait {
         self.set_run_data(run_data);
     }
 
-    /// Check if current level is complete
+    /// Check if current level is complete (using default settings)
     fn is_level_complete(self: Game, seed: felt252) -> bool {
         let run_data = self.get_run_data();
         let level_config = LevelGeneratorTrait::generate(seed, run_data.current_level);
+
+        level_config
+            .is_complete(
+                run_data.level_score.into(),
+                run_data.constraint_progress,
+                run_data.bonus_used_this_level,
+            )
+    }
+    
+    /// Check if current level is complete (using custom settings)
+    fn is_level_complete_with_settings(self: Game, seed: felt252, settings: GameSettings) -> bool {
+        let run_data = self.get_run_data();
+        let level_config = LevelGeneratorTrait::generate_with_settings(seed, run_data.current_level, settings);
 
         level_config
             .is_complete(
@@ -454,8 +468,22 @@ pub impl GameImpl of GameTrait {
                 run_data.bonus_used_this_level,
             )
     }
+    
+    /// Check if current level failed (using custom settings)
+    fn is_level_failed_with_settings(self: Game, seed: felt252, settings: GameSettings) -> bool {
+        let run_data = self.get_run_data();
+        let level_config = LevelGeneratorTrait::generate_with_settings(seed, run_data.current_level, settings);
 
-    /// Complete the current level and advance to next
+        level_config
+            .is_failed(
+                run_data.level_score.into(),
+                run_data.level_moves.into(),
+                run_data.constraint_progress,
+                run_data.bonus_used_this_level,
+            )
+    }
+
+    /// Complete the current level and advance to next (using default settings)
     /// Returns (cubes_earned, bonuses_to_award)
     fn complete_level(ref self: Game, seed: felt252) -> (u8, u8) {
         let mut run_data = self.get_run_data();
@@ -497,6 +525,56 @@ pub impl GameImpl of GameTrait {
         // Reset grid with new level's difficulty
         // Use level-specific seed so each level has a different starting grid
         let new_level_config = LevelGeneratorTrait::generate(seed, run_data.current_level);
+        let level_seed = Self::generate_level_seed(seed, run_data.current_level);
+        self.blocks = 0;
+        self.next_row = Controller::create_line(level_seed, new_level_config.difficulty);
+        self.start(new_level_config.difficulty, level_seed);
+
+        (cubes, bonuses)
+    }
+    
+    /// Complete the current level and advance to next (using custom settings)
+    /// Returns (cubes_earned, bonuses_to_award)
+    fn complete_level_with_settings(ref self: Game, seed: felt252, settings: GameSettings) -> (u8, u8) {
+        let mut run_data = self.get_run_data();
+        let level_config = LevelGeneratorTrait::generate_with_settings(seed, run_data.current_level, settings);
+        let completed_level = run_data.current_level;
+
+        // Calculate cubes from level performance (1-3 cubes based on moves used)
+        let cubes = level_config.calculate_cubes(run_data.level_moves.into());
+        let bonuses = LevelConfigTrait::get_bonus_reward(cubes);
+
+        // Add cubes to total
+        run_data.total_cubes += cubes.into();
+
+        // Milestone bonus: every 10 levels, award level/2 cubes (capped at 50)
+        if completed_level % 10 == 0 {
+            let milestone_bonus: u16 = if completed_level >= 100 {
+                50 // Cap at 50 cubes
+            } else {
+                (completed_level / 2).into()
+            };
+            run_data.total_cubes += milestone_bonus;
+        }
+
+        // Advance to next level
+        run_data.current_level += 1;
+
+        // Reset per-level state
+        run_data.level_score = 0;
+        run_data.level_moves = 0;
+        run_data.constraint_progress = 0;
+        run_data.bonus_used_this_level = false;
+
+        // Reset per-level combos
+        self.combo_counter = 0;
+        self.max_combo = 0;
+
+        self.set_run_data(run_data);
+
+        // Reset grid with new level's difficulty (use settings)
+        // Use level-specific seed so each level has a different starting grid
+        let new_level_config = LevelGeneratorTrait::generate_with_settings(seed, run_data.current_level, settings);
         let level_seed = Self::generate_level_seed(seed, run_data.current_level);
         self.blocks = 0;
         self.next_row = Controller::create_line(level_seed, new_level_config.difficulty);

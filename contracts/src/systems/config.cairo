@@ -3,8 +3,28 @@ use zkube::types::difficulty::Difficulty;
 
 #[starknet::interface]
 trait IConfigSystem<T> {
+    /// Add new game settings with default values for a given difficulty
     fn add_game_settings(
         ref self: T, name: felt252, description: ByteArray, difficulty: Difficulty,
+    ) -> u32;
+    
+    /// Add new game settings with custom parameters
+    fn add_custom_game_settings(
+        ref self: T,
+        name: felt252,
+        description: ByteArray,
+        difficulty: Difficulty,
+        base_moves: u16,
+        max_moves: u16,
+        base_ratio_x100: u16,
+        max_ratio_x100: u16,
+        cube_3_percent: u8,
+        cube_2_percent: u8,
+        hammer_cost: u8,
+        wave_cost: u8,
+        totem_cost: u8,
+        extra_moves_cost: u8,
+        cube_multiplier_x100: u16,
     ) -> u32;
 
     fn get_game_settings(self: @T, settings_id: u32) -> GameSettings;
@@ -192,8 +212,8 @@ mod config_system {
             settings_id += 1;
             self.settings_counter.write(settings_id);
 
-            // Create the game settings
-            let game_settings = GameSettings { settings_id, difficulty: difficulty.into() };
+            // Create the game settings with defaults
+            let game_settings = GameSettingsTrait::new_with_defaults(settings_id, difficulty);
 
             // Create metadata
             let metadata = GameSettingsMetadata {
@@ -229,8 +249,97 @@ mod config_system {
                     settings_id,
                     felt_to_bytearray(name),
                     description.clone(),
-                    array![GameSetting { name: "Difficulty", value: difficulty_label(difficulty) }]
-                        .span(),
+                    generate_settings_array(game_settings),
+                    minigame_token_address,
+                );
+
+            settings_id
+        }
+        
+        fn add_custom_game_settings(
+            ref self: ContractState,
+            name: felt252,
+            description: ByteArray,
+            difficulty: Difficulty,
+            base_moves: u16,
+            max_moves: u16,
+            base_ratio_x100: u16,
+            max_ratio_x100: u16,
+            cube_3_percent: u8,
+            cube_2_percent: u8,
+            hammer_cost: u8,
+            wave_cost: u8,
+            totem_cost: u8,
+            extra_moves_cost: u8,
+            cube_multiplier_x100: u16,
+        ) -> u32 {
+            // Validate input
+            assert(difficulty != Difficulty::None, 'Invalid difficulty');
+            self._validate_settings(
+                base_moves, max_moves, base_ratio_x100, max_ratio_x100,
+                cube_3_percent, cube_2_percent, cube_multiplier_x100
+            );
+
+            // Get the world dispatcher
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+
+            // Increment settings counter
+            let mut settings_id = self.settings_counter.read();
+            settings_id += 1;
+            self.settings_counter.write(settings_id);
+
+            // Create the game settings with custom values
+            let game_settings = GameSettings {
+                settings_id,
+                difficulty: difficulty.into(),
+                base_moves,
+                max_moves,
+                base_ratio_x100,
+                max_ratio_x100,
+                cube_3_percent,
+                cube_2_percent,
+                hammer_cost,
+                wave_cost,
+                totem_cost,
+                extra_moves_cost,
+                cube_multiplier_x100,
+            };
+
+            // Create metadata
+            let metadata = GameSettingsMetadata {
+                settings_id,
+                name,
+                description: description.clone(),
+                created_by: get_caller_address(),
+                created_at: get_block_timestamp(),
+            };
+
+            // Save to world
+            world.write_model(@game_settings);
+            world.write_model(@metadata);
+
+            // Emit event
+            self
+                .emit(
+                    GameSettingsCreated {
+                        settings_id, name, difficulty, created_by: get_caller_address(),
+                    },
+                );
+
+            let (game_systems_address, _) = world.dns(@"game_system").unwrap();
+            let minigame_dispatcher = IMinigameDispatcher {
+                contract_address: game_systems_address,
+            };
+            let minigame_token_address = minigame_dispatcher.token_address();
+
+            self
+                .settings
+                .create_settings(
+                    game_systems_address,
+                    settings_id,
+                    felt_to_bytearray(name),
+                    description.clone(),
+                    generate_settings_array(game_settings),
                     minigame_token_address,
                 );
 
@@ -255,6 +364,37 @@ mod config_system {
             settings.exists()
         }
     }
+    
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        fn _validate_settings(
+            self: @ContractState,
+            base_moves: u16,
+            max_moves: u16,
+            base_ratio_x100: u16,
+            max_ratio_x100: u16,
+            cube_3_percent: u8,
+            cube_2_percent: u8,
+            cube_multiplier_x100: u16,
+        ) {
+            // Validate moves
+            assert!(base_moves > 0, "Base moves must be positive");
+            assert!(max_moves >= base_moves, "Max moves must be >= base moves");
+            assert!(max_moves <= 255, "Max moves cannot exceed 255");
+            
+            // Validate ratios
+            assert!(base_ratio_x100 > 0, "Base ratio must be positive");
+            assert!(max_ratio_x100 >= base_ratio_x100, "Max ratio must be >= base ratio");
+            
+            // Validate cube thresholds
+            assert!(cube_3_percent <= 100, "Cube 3 percent must be <= 100");
+            assert!(cube_2_percent <= 100, "Cube 2 percent must be <= 100");
+            assert!(cube_3_percent < cube_2_percent, "Cube 3 threshold must be < cube 2 threshold");
+            
+            // Validate multiplier
+            assert!(cube_multiplier_x100 > 0, "Cube multiplier must be positive");
+        }
+    }
 
     fn felt_to_bytearray(word: felt252) -> ByteArray {
         let mut bytes = Default::default();
@@ -265,8 +405,31 @@ mod config_system {
     }
 
     fn generate_settings_array(game_settings: GameSettings) -> Span<GameSetting> {
-        let difficulty_value = difficulty_label(game_settings.get_difficulty());
-        array![GameSetting { name: "Difficulty", value: difficulty_value }].span()
+        array![
+            GameSetting { name: "Difficulty", value: difficulty_label(game_settings.get_difficulty()) },
+            GameSetting { name: "Base Moves", value: format!("{}", game_settings.base_moves) },
+            GameSetting { name: "Max Moves", value: format!("{}", game_settings.max_moves) },
+            GameSetting { name: "Base Ratio", value: format_ratio(game_settings.base_ratio_x100) },
+            GameSetting { name: "Max Ratio", value: format_ratio(game_settings.max_ratio_x100) },
+            GameSetting { name: "3-Cube Threshold", value: format!("{}%", game_settings.cube_3_percent) },
+            GameSetting { name: "2-Cube Threshold", value: format!("{}%", game_settings.cube_2_percent) },
+            GameSetting { name: "Hammer Cost", value: format!("{}", game_settings.hammer_cost) },
+            GameSetting { name: "Wave Cost", value: format!("{}", game_settings.wave_cost) },
+            GameSetting { name: "Totem Cost", value: format!("{}", game_settings.totem_cost) },
+            GameSetting { name: "Extra Moves Cost", value: format!("{}", game_settings.extra_moves_cost) },
+            GameSetting { name: "Cube Multiplier", value: format_ratio(game_settings.cube_multiplier_x100) },
+        ].span()
+    }
+    
+    /// Format a ratio value (e.g., 100 -> "1.00", 250 -> "2.50")
+    fn format_ratio(value_x100: u16) -> ByteArray {
+        let whole = value_x100 / 100;
+        let frac = value_x100 % 100;
+        if frac < 10 {
+            format!("{}.0{}", whole, frac)
+        } else {
+            format!("{}.{}", whole, frac)
+        }
     }
 
     fn difficulty_label(difficulty: Difficulty) -> ByteArray {

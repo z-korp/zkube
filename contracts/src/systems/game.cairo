@@ -37,8 +37,10 @@ mod game_system {
     use zkube::models::game::{Game, GameTrait, GameAssert};
     use zkube::models::game::GameSeed;
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
+    use zkube::models::config::{GameSettings, GameSettingsTrait};
     use zkube::helpers::random::RandomImpl;
     use zkube::helpers::level::{LevelGenerator, LevelGeneratorTrait};
+    use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::types::bonus::Bonus;
     use zkube::types::consumable::{ConsumableType, ConsumableTrait, EXTRA_MOVES_AMOUNT};
     use zkube::events::{StartGame, UseBonus, LevelStarted, LevelCompleted, RunEnded, ConsumablePurchased};
@@ -214,8 +216,9 @@ mod game_system {
                     @StartGame { player, timestamp, game_id, },
                 );
 
-            // Emit level 1 started
-            let level_config = LevelGeneratorTrait::generate(random.seed, 1);
+            // Emit level 1 started - use settings for level generation
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+            let level_config = LevelGeneratorTrait::generate_with_settings(random.seed, 1, settings);
             world
                 .emit_event(
                     @LevelStarted {
@@ -278,19 +281,22 @@ mod game_system {
             game.assert_not_over();
 
             let base_seed: GameSeed = world.read_model(game_id);
+            
+            // Get game settings for level generation
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
 
-            // Make the move
+            // Make the move (uses settings internally via models/game.cairo)
             let _lines_cleared = game.make_move(base_seed.seed, row_index, start_index, final_index);
 
-            // Check for level completion
-            if game.is_level_complete(base_seed.seed) {
+            // Check for level completion (uses settings internally)
+            if game.is_level_complete_with_settings(base_seed.seed, settings) {
                 // Capture stats BEFORE completing level (they get reset)
                 let pre_complete_data = game.get_run_data();
                 let completed_level = pre_complete_data.current_level;
                 let final_score = pre_complete_data.level_score;
                 let final_moves = pre_complete_data.level_moves;
 
-                let (cubes, _bonuses) = game.complete_level(base_seed.seed);
+                let (cubes, _bonuses) = game.complete_level_with_settings(base_seed.seed, settings);
 
                 let player = get_caller_address();
 
@@ -310,8 +316,8 @@ mod game_system {
 
                 // Emit next level started (get updated run_data after level completion)
                 let updated_run_data = game.get_run_data();
-                let next_level_config = LevelGeneratorTrait::generate(
-                    base_seed.seed, updated_run_data.current_level,
+                let next_level_config = LevelGeneratorTrait::generate_with_settings(
+                    base_seed.seed, updated_run_data.current_level, settings,
                 );
                 world
                     .emit_event(
@@ -326,7 +332,7 @@ mod game_system {
                             constraint_required: next_level_config.constraint.required_count,
                         },
                     );
-            } else if game.is_level_failed(base_seed.seed) || game.over {
+            } else if game.is_level_failed_with_settings(base_seed.seed, settings) || game.over {
                 // Level failed (move limit exceeded) or grid full
                 game.over = true;
                 self.handle_game_over(ref world, game);
@@ -359,17 +365,21 @@ mod game_system {
             game.assert_bonus_available(bonus);
 
             let base_seed: GameSeed = world.read_model(game_id);
+            
+            // Get game settings
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+            
             game.apply_bonus(base_seed.seed, bonus, row_index, line_index);
 
             // Check for level completion after bonus
-            if game.is_level_complete(base_seed.seed) {
+            if game.is_level_complete_with_settings(base_seed.seed, settings) {
                 // Capture stats BEFORE completing level (they get reset)
                 let pre_complete_data = game.get_run_data();
                 let completed_level = pre_complete_data.current_level;
                 let final_score = pre_complete_data.level_score;
                 let final_moves = pre_complete_data.level_moves;
 
-                let (cubes, _bonuses) = game.complete_level(base_seed.seed);
+                let (cubes, _bonuses) = game.complete_level_with_settings(base_seed.seed, settings);
 
                 let player = get_caller_address();
 
@@ -388,8 +398,8 @@ mod game_system {
 
                 // Get updated run_data for next level info
                 let updated_run_data = game.get_run_data();
-                let next_level_config = LevelGeneratorTrait::generate(
-                    base_seed.seed, updated_run_data.current_level,
+                let next_level_config = LevelGeneratorTrait::generate_with_settings(
+                    base_seed.seed, updated_run_data.current_level, settings,
                 );
                 world
                     .emit_event(
@@ -489,8 +499,9 @@ mod game_system {
             let mut run_data = game.get_run_data();
             let player = get_caller_address();
 
-            // Get cost of consumable
-            let cost = consumable.get_cost();
+            // Get cost of consumable from settings
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+            let cost = consumable.get_cost_from_settings(settings);
 
             // Check player has enough cubes (brought + earned - spent)
             let total_budget = run_data.cubes_brought + run_data.total_cubes;
@@ -593,6 +604,9 @@ mod game_system {
             let mut player_meta: PlayerMeta = world.read_model(player);
             player_meta.update_best_level(run_data.current_level);
             
+            // Get game settings for cube multiplier
+            let settings = ConfigUtilsTrait::get_game_settings(world, game.game_id);
+            
             // Calculate cubes to mint:
             // - Spending first depletes brought cubes (already burned from wallet)
             // - Any excess spending comes from earned cubes
@@ -602,11 +616,14 @@ mod game_system {
             } else {
                 0
             };
-            let cubes_to_mint: u16 = if run_data.total_cubes > cubes_spent_from_earned {
+            let base_cubes: u16 = if run_data.total_cubes > cubes_spent_from_earned {
                 run_data.total_cubes - cubes_spent_from_earned
             } else {
                 0
             };
+            
+            // Apply cube multiplier from settings (e.g., 200 = 2x cubes)
+            let cubes_to_mint: u16 = settings.apply_cube_multiplier(base_cubes);
             
             // Mint cubes to player's ERC1155 wallet
             if cubes_to_mint > 0 {

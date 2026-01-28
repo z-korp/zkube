@@ -7,6 +7,10 @@
 /// - Level 100+ caps at max difficulty (survival mode)
 /// - Points derived from moves × ratio (0.8 → 2.5), base moves 20→60
 /// - Correlated variance keeps difficulty ratio constant
+///
+/// Supports both:
+/// - generate(seed, level) - uses hardcoded defaults (backward compatible)
+/// - generate_with_settings(seed, level, settings) - uses configurable GameSettings
 
 use core::poseidon::{PoseidonTrait, HashState};
 use core::hash::HashStateTrait;
@@ -14,6 +18,7 @@ use core::hash::HashStateTrait;
 use zkube::types::difficulty::Difficulty;
 use zkube::types::level::LevelConfig;
 use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait};
+use zkube::models::config::GameSettings;
 
 /// Constants for level generation
 mod LevelConstants {
@@ -44,6 +49,7 @@ mod LevelConstants {
 #[generate_trait]
 pub impl LevelGenerator of LevelGeneratorTrait {
     /// Generate a complete level configuration from seed and level number
+    /// Uses hardcoded defaults from LevelConstants (backward compatible)
     fn generate(seed: felt252, level: u8) -> LevelConfig {
         // Derive a level-specific seed for deterministic variance
         let level_seed = Self::derive_level_seed(seed, level);
@@ -55,7 +61,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             level
         };
 
-        // 1. Calculate base moves (35 → 85)
+        // 1. Calculate base moves (20 → 60)
         let base_moves = Self::calculate_base_moves(calc_level);
 
         // 2. Calculate ratio for this level (0.80 → 2.50)
@@ -92,6 +98,61 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             cube_2_threshold,
         }
     }
+    
+    /// Generate a level configuration using custom GameSettings
+    /// This allows custom game modes with different balance parameters
+    fn generate_with_settings(seed: felt252, level: u8, settings: GameSettings) -> LevelConfig {
+        // Derive a level-specific seed for deterministic variance
+        let level_seed = Self::derive_level_seed(seed, level);
+
+        // Cap level for calculations (survival mode after 100)
+        let calc_level = if level > LevelConstants::LEVEL_CAP {
+            LevelConstants::LEVEL_CAP
+        } else {
+            level
+        };
+
+        // 1. Calculate base moves using settings
+        let base_moves = Self::calculate_base_moves_with_settings(
+            calc_level, settings.base_moves, settings.max_moves
+        );
+
+        // 2. Calculate ratio for this level using settings
+        let ratio_x100 = Self::calculate_ratio_with_settings(
+            calc_level, settings.base_ratio_x100, settings.max_ratio_x100
+        );
+
+        // 3. Calculate base points from moves × ratio
+        let base_points: u16 = ((base_moves.into() * ratio_x100.into()) / 100_u32)
+            .try_into()
+            .unwrap();
+
+        // 4. Get variance percent based on level tier
+        let variance_percent = Self::get_variance_percent(calc_level);
+
+        // 5. Apply CORRELATED variance (same factor for both)
+        let variance_factor = Self::calculate_variance_factor(level_seed, variance_percent);
+        let points_required = Self::apply_factor(base_points, variance_factor);
+        let max_moves = Self::apply_factor(base_moves, variance_factor);
+
+        // Calculate cube thresholds using settings
+        let cube_3_threshold = max_moves * settings.cube_3_percent.into() / 100;
+        let cube_2_threshold = max_moves * settings.cube_2_percent.into() / 100;
+
+        // Get difficulty and constraint
+        let difficulty = Self::get_difficulty_for_level(calc_level);
+        let constraint = Self::generate_constraint(level_seed, calc_level);
+
+        LevelConfig {
+            level,
+            points_required,
+            max_moves,
+            difficulty,
+            constraint,
+            cube_3_threshold,
+            cube_2_threshold,
+        }
+    }
 
     /// Derive a deterministic seed for a specific level
     fn derive_level_seed(seed: felt252, level: u8) -> felt252 {
@@ -103,29 +164,47 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     }
 
     /// Calculate base moves for a level (before variance)
-    /// Linear scaling: 20 at level 1, 60 at level 100
+    /// Linear scaling: 20 at level 1, 60 at level 100 (using defaults)
     #[inline(always)]
     fn calculate_base_moves(level: u8) -> u16 {
+        Self::calculate_base_moves_with_settings(
+            level, LevelConstants::BASE_MOVES, LevelConstants::MAX_MOVES
+        )
+    }
+    
+    /// Calculate base moves with custom settings
+    /// Linear scaling from base_moves at level 1 to max_moves at level 100
+    #[inline(always)]
+    fn calculate_base_moves_with_settings(level: u8, base_moves: u16, max_moves: u16) -> u16 {
         if level <= 1 {
-            return LevelConstants::BASE_MOVES;
+            return base_moves;
         }
 
-        let range = LevelConstants::MAX_MOVES - LevelConstants::BASE_MOVES; // 50
+        let range = max_moves - base_moves;
         let progress: u32 = (level.into() - 1) * range.into() / 99;
-        LevelConstants::BASE_MOVES + progress.try_into().unwrap()
+        base_moves + progress.try_into().unwrap()
     }
 
     /// Calculate ratio for this level (scaled by 100)
-    /// Linear scaling: 80 (0.80) at level 1, 250 (2.50) at level 100
+    /// Linear scaling: 80 (0.80) at level 1, 250 (2.50) at level 100 (using defaults)
     #[inline(always)]
     fn calculate_ratio(level: u8) -> u16 {
+        Self::calculate_ratio_with_settings(
+            level, LevelConstants::BASE_RATIO_X100, LevelConstants::MAX_RATIO_X100
+        )
+    }
+    
+    /// Calculate ratio with custom settings
+    /// Linear scaling from base_ratio at level 1 to max_ratio at level 100
+    #[inline(always)]
+    fn calculate_ratio_with_settings(level: u8, base_ratio_x100: u16, max_ratio_x100: u16) -> u16 {
         if level <= 1 {
-            return LevelConstants::BASE_RATIO_X100;
+            return base_ratio_x100;
         }
 
-        let range = LevelConstants::MAX_RATIO_X100 - LevelConstants::BASE_RATIO_X100; // 170
+        let range = max_ratio_x100 - base_ratio_x100;
         let progress: u32 = (level.into() - 1) * range.into() / 99;
-        LevelConstants::BASE_RATIO_X100 + progress.try_into().unwrap()
+        base_ratio_x100 + progress.try_into().unwrap()
     }
 
     /// Get variance percentage based on level tier
@@ -337,6 +416,7 @@ mod tests {
     use super::{LevelGenerator, LevelGeneratorTrait, LevelConstants};
     use zkube::types::difficulty::Difficulty;
     use zkube::types::constraint::ConstraintType;
+    use zkube::models::config::{GameSettings, GameSettingsTrait};
 
     const TEST_SEED: felt252 = 'TEST_SEED_12345';
     const DIFFERENT_SEED: felt252 = 'DIFFERENT_SEED';
@@ -532,5 +612,57 @@ mod tests {
         assert!(bonus1 <= 2, "Bonus type should be 0-2");
         assert!(bonus2 <= 2, "Bonus type should be 0-2");
         assert!(bonus3 <= 2, "Bonus type should be 0-2");
+    }
+    
+    #[test]
+    fn test_generate_with_settings_default() {
+        // Using default settings should produce same result as generate()
+        let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        
+        let config_default = LevelGeneratorTrait::generate(TEST_SEED, 25);
+        let config_settings = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 25, settings);
+        
+        assert!(config_default.points_required == config_settings.points_required, "Points should match");
+        assert!(config_default.max_moves == config_settings.max_moves, "Moves should match");
+        assert!(config_default.cube_3_threshold == config_settings.cube_3_threshold, "Cube 3 threshold should match");
+        assert!(config_default.cube_2_threshold == config_settings.cube_2_threshold, "Cube 2 threshold should match");
+    }
+    
+    #[test]
+    fn test_generate_with_settings_custom() {
+        // Create custom settings with different parameters
+        let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        settings.base_moves = 30;  // Higher than default 20
+        settings.max_moves = 80;   // Higher than default 60
+        settings.cube_3_percent = 30;  // Stricter than default 40
+        settings.cube_2_percent = 60;  // Stricter than default 70
+        
+        let config = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 1, settings);
+        
+        // At level 1, should use base_moves (with variance)
+        // With ±5% variance: 30 -> 28-32
+        assert!(config.max_moves >= 27 && config.max_moves <= 33, "Custom moves should be around 30");
+        
+        // Cube thresholds should use custom percentages
+        let expected_3_cube = config.max_moves * 30 / 100;
+        let expected_2_cube = config.max_moves * 60 / 100;
+        assert!(config.cube_3_threshold == expected_3_cube, "Custom 3-cube threshold");
+        assert!(config.cube_2_threshold == expected_2_cube, "Custom 2-cube threshold");
+    }
+    
+    #[test]
+    fn test_generate_with_settings_tournament_mode() {
+        // Tournament mode: harder thresholds, same base moves
+        let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        settings.cube_3_percent = 25;  // Much stricter
+        settings.cube_2_percent = 50;  // Much stricter
+        
+        let config = LevelGeneratorTrait::generate_with_settings(TEST_SEED, 50, settings);
+        
+        // Cube thresholds should be much stricter
+        let expected_3_cube = config.max_moves * 25 / 100;
+        let expected_2_cube = config.max_moves * 50 / 100;
+        assert!(config.cube_3_threshold == expected_3_cube, "Tournament 3-cube threshold");
+        assert!(config.cube_2_threshold == expected_2_cube, "Tournament 2-cube threshold");
     }
 }

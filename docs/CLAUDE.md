@@ -14,6 +14,7 @@ This directory contains documentation and planning materials for the zKube proje
 | File | Description |
 |------|-------------|
 | [MILESTONES.md](./MILESTONES.md) | Project milestones and completed features |
+| [GAME_CONFIG_REFERENCE.md](./GAME_CONFIG_REFERENCE.md) | **All game balance parameters** (for tuning) |
 | [LEVEL_SYSTEM_IMPLEMENTATION.md](./LEVEL_SYSTEM_IMPLEMENTATION.md) | Level system implementation status |
 | [CUBE_ECONOMY.md](./CUBE_ECONOMY.md) | CUBE token economy and shops |
 | [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) | Network deployment instructions |
