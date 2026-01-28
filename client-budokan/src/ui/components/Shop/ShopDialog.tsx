@@ -1,12 +1,23 @@
 import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
-import { usePlayerMeta } from "@/hooks/usePlayerMeta";
+import { usePlayerMeta, type PlayerMetaData } from "@/hooks/usePlayerMeta";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { Button } from "@/ui/elements/button";
-import { useState } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import ImageAssets from "@/ui/theme/ImageAssets";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/ui/elements/tooltip";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHammer, faWater, faTree, faArrowUp } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArrowUp,
+  faCircleInfo,
+} from "@fortawesome/free-solid-svg-icons";
 
 interface ShopDialogProps {
   isOpen: boolean;
@@ -14,87 +25,218 @@ interface ShopDialogProps {
 }
 
 // Upgrade costs matching the contract
-const STARTING_BONUS_COSTS = [50, 200, 500]; // Levels 1, 2, 3
-const BAG_SIZE_BASE_COST = 10; // 10 * 2^level
-const BRIDGING_BASE_COST = 100; // 100 * 2^rank
+const STARTING_BONUS_COSTS = [50, 200, 500];
+const BAG_SIZE_BASE_COST = 10;
+const BRIDGING_BASE_COST = 100;
 
-const getBagSizeCost = (level: number) => BAG_SIZE_BASE_COST * Math.pow(2, level);
-const getBridgingCost = (rank: number) => BRIDGING_BASE_COST * Math.pow(2, rank);
-const getStartingBonusCost = (level: number) => level < 3 ? STARTING_BONUS_COSTS[level] : null;
+const getBagSizeCost = (level: number) =>
+  BAG_SIZE_BASE_COST * Math.pow(2, level);
+const getBridgingCost = (rank: number) =>
+  BRIDGING_BASE_COST * Math.pow(2, rank);
+const getStartingBonusCost = (level: number): number | null =>
+  level < 3 ? STARTING_BONUS_COSTS[level] : null;
+const getMaxCubesToBring = (rank: number): number => {
+  if (rank === 0) return 0;
+  return 5 * Math.pow(2, rank - 1);
+};
+
+interface OptimisticOverrides {
+  startingHammer?: number;
+  startingWave?: number;
+  startingTotem?: number;
+  bagHammerLevel?: number;
+  bagWaveLevel?: number;
+  bagTotemLevel?: number;
+  bridgingRank?: number;
+}
+
+const BONUS_DESCRIPTIONS: Record<number, string> = {
+  0: "Destroys a block and all connected blocks of the same color.",
+  1: "Clears an entire horizontal row.",
+  2: "Clears all blocks in a vertical column.",
+};
+
+const LevelPips = ({ current, max }: { current: number; max: number }) => (
+  <div className="flex gap-1">
+    {Array.from({ length: max }).map((_, i) => (
+      <div
+        key={i}
+        className={`w-1.5 h-1.5 rounded-full ${
+          i < current ? "bg-yellow-400" : "bg-slate-600"
+        }`}
+      />
+    ))}
+  </div>
+);
+
+const InfoTip = ({ text }: { text: string }) => (
+  <TooltipProvider delayDuration={0}>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="cursor-help ml-1 text-slate-500 hover:text-slate-300 transition-colors">
+          <FontAwesomeIcon icon={faCircleInfo} className="text-xs" />
+        </span>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-[200px] text-xs">
+        {text}
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+);
 
 export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
   const { playerMeta } = usePlayerMeta();
-  const { cubeBalance: cubeBalanceBigInt, refetch: refetchCubeBalance } = useCubeBalance();
+  const {
+    cubeBalance: cubeBalanceBigInt,
+    refetch: refetchCubeBalance,
+  } = useCubeBalance();
   const { account } = useAccountCustom();
   const {
     setup: { systemCalls },
   } = useDojo();
+  const { themeTemplate } = useTheme();
+  const imgAssets = ImageAssets(themeTemplate);
 
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const [optimisticOverrides, setOptimisticOverrides] =
+    useState<OptimisticOverrides>({});
+  const [optimisticCubeSpent, setOptimisticCubeSpent] = useState(0);
 
-  const cubeBalance = Number(cubeBalanceBigInt);
-  const data = playerMeta?.data;
+  useEffect(() => {
+    if (isOpen) {
+      setOptimisticOverrides({});
+      setOptimisticCubeSpent(0);
+    }
+  }, [isOpen]);
+
+  const data: PlayerMetaData | null = useMemo(() => {
+    const chainData = playerMeta?.data;
+    if (!chainData) return null;
+    return { ...chainData, ...optimisticOverrides };
+  }, [playerMeta?.data, optimisticOverrides]);
+
+  const cubeBalance = Number(cubeBalanceBigInt) - optimisticCubeSpent;
+
+  const applyOptimistic = useCallback(
+    (field: keyof OptimisticOverrides, newValue: number, cost: number) => {
+      setOptimisticOverrides((prev) => ({ ...prev, [field]: newValue }));
+      setOptimisticCubeSpent((prev) => prev + cost);
+    },
+    [],
+  );
 
   const handleUpgradeStartingBonus = async (bonusType: number) => {
-    if (!account) return;
+    if (!account || !data) return;
+    const fieldMap: Record<number, keyof OptimisticOverrides> = {
+      0: "startingHammer",
+      1: "startingWave",
+      2: "startingTotem",
+    };
+    const field = fieldMap[bonusType];
+    const currentLevel = data[field] as number;
+    const cost = getStartingBonusCost(currentLevel);
+    if (cost === null) return;
+
+    applyOptimistic(field, currentLevel + 1, cost);
     setIsUpgrading(true);
     try {
-      await systemCalls.upgradeStartingBonus({ account, bonus_type: bonusType });
-      // Refetch cube balance after successful upgrade
-      await refetchCubeBalance();
+      await systemCalls.upgradeStartingBonus({
+        account,
+        bonus_type: bonusType,
+      });
+      refetchCubeBalance();
     } catch (error) {
       console.error("Upgrade failed:", error);
+      setOptimisticOverrides((prev) => ({ ...prev, [field]: undefined }));
+      setOptimisticCubeSpent((prev) => prev - cost);
     } finally {
       setIsUpgrading(false);
     }
   };
 
   const handleUpgradeBagSize = async (bonusType: number) => {
-    if (!account) return;
+    if (!account || !data) return;
+    const fieldMap: Record<number, keyof OptimisticOverrides> = {
+      0: "bagHammerLevel",
+      1: "bagWaveLevel",
+      2: "bagTotemLevel",
+    };
+    const field = fieldMap[bonusType];
+    const currentLevel = data[field] as number;
+    const cost = getBagSizeCost(currentLevel);
+
+    applyOptimistic(field, currentLevel + 1, cost);
     setIsUpgrading(true);
     try {
       await systemCalls.upgradeBagSize({ account, bonus_type: bonusType });
-      // Refetch cube balance after successful upgrade
-      await refetchCubeBalance();
+      refetchCubeBalance();
     } catch (error) {
       console.error("Upgrade failed:", error);
+      setOptimisticOverrides((prev) => ({ ...prev, [field]: undefined }));
+      setOptimisticCubeSpent((prev) => prev - cost);
     } finally {
       setIsUpgrading(false);
     }
   };
 
   const handleUpgradeBridging = async () => {
-    if (!account) return;
+    if (!account || !data) return;
+    const currentRank = data.bridgingRank;
+    const cost = getBridgingCost(currentRank);
+
+    applyOptimistic("bridgingRank", currentRank + 1, cost);
     setIsUpgrading(true);
     try {
       await systemCalls.upgradeBridgingRank({ account });
-      // Refetch cube balance after successful upgrade
-      await refetchCubeBalance();
+      refetchCubeBalance();
     } catch (error) {
       console.error("Upgrade failed:", error);
+      setOptimisticOverrides((prev) => ({
+        ...prev,
+        bridgingRank: undefined,
+      }));
+      setOptimisticCubeSpent((prev) => prev - cost);
     } finally {
       setIsUpgrading(false);
     }
   };
 
   const bonusTypes = [
-    { id: 0, name: "Hammer", icon: faHammer, color: "text-red-400" },
-    { id: 1, name: "Wave", icon: faWater, color: "text-blue-400" },
-    { id: 2, name: "Totem", icon: faTree, color: "text-green-400" },
+    { id: 0, name: "Hammer", img: imgAssets.hammer },
+    { id: 1, name: "Wave", img: imgAssets.wave },
+    { id: 2, name: "Totem", img: imgAssets.tiki },
   ];
+
+  const getStartingLevel = (bonusId: number): number => {
+    if (!data) return 0;
+    return bonusId === 0
+      ? data.startingHammer
+      : bonusId === 1
+        ? data.startingWave
+        : data.startingTotem;
+  };
+
+  const getBagLevel = (bonusId: number): number => {
+    if (!data) return 0;
+    return bonusId === 0
+      ? data.bagHammerLevel
+      : bonusId === 1
+        ? data.bagWaveLevel
+        : data.bagTotemLevel;
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         aria-describedby={undefined}
-        className="sm:max-w-[500px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-6 py-8 max-h-[80vh] overflow-y-auto"
+        className="sm:max-w-[500px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-5 py-5 max-h-[85vh] overflow-y-auto gap-0"
       >
-        <DialogTitle className="text-3xl text-center mb-2">
+        <DialogTitle className="text-3xl text-center mb-3">
           Permanent Shop
         </DialogTitle>
 
         {/* Cube Balance */}
-        <div className="text-center mb-6 bg-slate-800/50 py-3 rounded-lg">
+        <div className="text-center mb-4 bg-slate-800/50 py-2 rounded-lg">
           <div className="text-2xl font-bold text-yellow-400 flex items-center justify-center gap-2">
             <span>🧊</span>
             {cubeBalance.toLocaleString()}
@@ -102,93 +244,110 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Starting Bonuses Section */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-3 text-slate-300">Starting Bonuses</h3>
-          <p className="text-xs text-slate-500 mb-3">Start each run with bonus items</p>
-          <div className="flex flex-col gap-2">
-            {bonusTypes.map((bonus) => {
-              const currentLevel = data ? 
-                (bonus.id === 0 ? data.startingHammer : bonus.id === 1 ? data.startingWave : data.startingTotem) : 0;
-              const cost = getStartingBonusCost(currentLevel);
-              const canAfford = cost !== null && cubeBalance >= cost;
-              const isMaxed = cost === null;
+        {/* Bonus tiles: 2 per row, 3rd centered */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          {bonusTypes.map((bonus) => {
+            const startLevel = getStartingLevel(bonus.id);
+            const bagLevel = getBagLevel(bonus.id);
+            const startCost = getStartingBonusCost(startLevel);
+            const bagCost = getBagSizeCost(bagLevel);
+            const startMaxed = startCost === null;
+            const canAffordStart = !startMaxed && cubeBalance >= startCost;
+            const canAffordBag = cubeBalance >= bagCost;
+            const bagCapacity = 1 + bagLevel;
 
-              return (
-                <div key={bonus.id} className="flex items-center justify-between bg-slate-800/30 p-3 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <FontAwesomeIcon icon={bonus.icon} className={`${bonus.color} text-xl`} />
-                    <div>
-                      <div className="font-medium">{bonus.name}</div>
-                      <div className="text-xs text-slate-400">Level {currentLevel}/3</div>
-                    </div>
+            // 3rd item spans full width but renders at half size centered
+            const isLast = bonus.id === bonusTypes.length - 1 && bonusTypes.length % 2 !== 0;
+
+            return (
+              <div
+                key={bonus.id}
+                className={`bg-slate-800/30 rounded-lg p-3 border border-slate-700/40 flex flex-col ${
+                  isLast ? "col-span-2 max-w-[50%] mx-auto w-full" : ""
+                }`}
+              >
+                {/* Header */}
+                <div className="flex items-center gap-2 mb-3">
+                  <img
+                    src={bonus.img}
+                    alt={bonus.name}
+                    className="w-8 h-8"
+                  />
+                  <span className="text-sm font-semibold">{bonus.name}</span>
+                  <InfoTip text={BONUS_DESCRIPTIONS[bonus.id]} />
+                </div>
+
+                {/* Starting bonus */}
+                <div className="mb-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider">
+                      Starting
+                    </span>
+                    <LevelPips current={startLevel} max={3} />
                   </div>
                   <Button
                     size="sm"
-                    disabled={isUpgrading || isMaxed || !canAfford}
+                    disabled={isUpgrading || startMaxed || !canAffordStart}
                     onClick={() => handleUpgradeStartingBonus(bonus.id)}
-                    className="min-w-[100px]"
+                    className="w-full text-xs h-7"
                   >
-                    {isMaxed ? "MAX" : `${cost} 🧊`}
+                    {startMaxed ? "MAX" : `${startCost} 🧊`}
                   </Button>
                 </div>
-              );
-            })}
-          </div>
-        </div>
 
-        {/* Bag Size Section */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-3 text-slate-300">Bag Size</h3>
-          <p className="text-xs text-slate-500 mb-3">Carry more bonuses during a run</p>
-          <div className="flex flex-col gap-2">
-            {bonusTypes.map((bonus) => {
-              const currentLevel = data ?
-                (bonus.id === 0 ? data.bagHammerLevel : bonus.id === 1 ? data.bagWaveLevel : data.bagTotemLevel) : 0;
-              const cost = getBagSizeCost(currentLevel);
-              const canAfford = cubeBalance >= cost;
-              const maxCapacity = 1 + currentLevel; // Base 1 + level
-
-              return (
-                <div key={bonus.id} className="flex items-center justify-between bg-slate-800/30 p-3 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <FontAwesomeIcon icon={bonus.icon} className={`${bonus.color} text-xl`} />
-                    <div>
-                      <div className="font-medium">{bonus.name} Bag</div>
-                      <div className="text-xs text-slate-400">Capacity: {maxCapacity}</div>
-                    </div>
+                {/* Bag size */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider">
+                      Bag
+                    </span>
+                    <span className="text-xs font-semibold text-slate-200">
+                      {bagCapacity}
+                    </span>
                   </div>
                   <Button
                     size="sm"
-                    disabled={isUpgrading || !canAfford}
+                    disabled={isUpgrading || !canAffordBag}
                     onClick={() => handleUpgradeBagSize(bonus.id)}
-                    className="min-w-[100px]"
+                    className="w-full text-xs h-7"
                   >
-                    {cost} 🧊
+                    {bagCost} 🧊
                   </Button>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Bridging Rank Section */}
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold mb-3 text-slate-300">Bridging Rank</h3>
-          <p className="text-xs text-slate-500 mb-3">Unlock special abilities</p>
-          <div className="flex items-center justify-between bg-slate-800/30 p-3 rounded-lg">
-            <div className="flex items-center gap-3">
-              <FontAwesomeIcon icon={faArrowUp} className="text-purple-400 text-xl" />
+        {/* Bridging Rank */}
+        <div className="bg-slate-800/30 rounded-lg p-3 border border-slate-700/40">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <FontAwesomeIcon
+                  icon={faArrowUp}
+                  className="text-purple-400 text-sm"
+                />
+              </div>
               <div>
-                <div className="font-medium">Bridging</div>
-                <div className="text-xs text-slate-400">Rank {data?.bridgingRank || 0}</div>
+                <div className="flex items-center">
+                  <span className="text-sm font-semibold">Bridging</span>
+                  <InfoTip text="Bring cubes from your wallet into a run to spend at the in-game shop." />
+                </div>
+                <div className="text-[10px] text-slate-400">
+                  Rank {data?.bridgingRank || 0} — max{" "}
+                  {getMaxCubesToBring(data?.bridgingRank || 0)} cubes/run
+                </div>
               </div>
             </div>
             <Button
               size="sm"
-              disabled={isUpgrading || cubeBalance < getBridgingCost(data?.bridgingRank || 0)}
+              disabled={
+                isUpgrading ||
+                cubeBalance < getBridgingCost(data?.bridgingRank || 0)
+              }
               onClick={handleUpgradeBridging}
-              className="min-w-[100px]"
+              className="min-w-[80px] text-xs h-7"
             >
               {getBridgingCost(data?.bridgingRank || 0)} 🧊
             </Button>

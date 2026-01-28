@@ -26,6 +26,7 @@ import {
 } from "@/ui/elements/dialog";
 import Connect from "../components/Connect";
 import { isInGameShopAvailable } from "@/dojo/game/helpers/runDataPacking";
+import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 
 // Type for storing level completion data
 interface LevelCompletionData {
@@ -40,6 +41,8 @@ interface LevelCompletionData {
   hammer: number;
   wave: number;
   totem: number;
+  prevTotalCubes: number;
+  totalCubes: number;
 }
 
 export const Play = () => {
@@ -75,6 +78,7 @@ export const Play = () => {
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [isLevelCompleteOpen, setIsLevelCompleteOpen] = useState(false);
   const [isInGameShopOpen, setIsInGameShopOpen] = useState(false);
+  const { playerMeta } = usePlayerMeta();
   const [levelCompletionData, setLevelCompletionData] = useState<LevelCompletionData | null>(null);
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
   // Store complete previous game state for level completion detection
@@ -87,6 +91,7 @@ export const Play = () => {
     hammer: number;
     wave: number;
     totem: number;
+    totalCubes: number;
   } | null>(null);
   const gameCreationAttemptedRef = useRef<boolean>(false);
 
@@ -230,6 +235,8 @@ export const Play = () => {
         hammer: game.hammer,
         wave: game.wave,
         totem: game.totem,
+        prevTotalCubes: prevState.totalCubes,
+        totalCubes: game.totalCubes,
       });
       setIsLevelCompleteOpen(true);
     }
@@ -245,6 +252,7 @@ export const Play = () => {
       hammer: game.hammer,
       wave: game.wave,
       totem: game.totem,
+      totalCubes: game.totalCubes,
     };
   }, [
     game?.level,
@@ -341,6 +349,8 @@ export const Play = () => {
                       hammer={levelCompletionData.hammer}
                       wave={levelCompletionData.wave}
                       totem={levelCompletionData.totem}
+                      prevTotalCubes={levelCompletionData.prevTotalCubes}
+                      totalCubes={levelCompletionData.totalCubes}
                     />
                   )}
 
@@ -354,6 +364,11 @@ export const Play = () => {
                       }}
                       gameId={game.id}
                       runData={game.runData}
+                      bagSizes={playerMeta?.data ? {
+                        hammer: 1 + playerMeta.data.bagHammerLevel,
+                        wave: 1 + playerMeta.data.bagWaveLevel,
+                        totem: 1 + playerMeta.data.bagTotemLevel,
+                      } : undefined}
                     />
                   )}
 

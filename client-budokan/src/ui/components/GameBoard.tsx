@@ -218,6 +218,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
             bonusUsedThisLevel={game.bonusUsedThisLevel}
             isShopLevel={isShopLevel(game.level)}
             cubesAvailable={game.cubesAvailable}
+            cubesBrought={game.cubesBrought}
+            cubesSpent={game.cubesSpent}
             onShopClick={onShopClick}
           />
         </div>

@@ -26,6 +26,8 @@ interface LevelHeaderProps {
   bonusUsedThisLevel: boolean;
   isShopLevel?: boolean;
   cubesAvailable?: number;
+  cubesBrought?: number;
+  cubesSpent?: number;
   onShopClick?: () => void;
 }
 
@@ -42,6 +44,8 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
   bonusUsedThisLevel,
   isShopLevel = false,
   cubesAvailable = 0,
+  cubesBrought = 0,
+  cubesSpent = 0,
   onShopClick,
 }) => {
   const { playSuccess } = useMusicPlayer(); // Use success sound for constraint satisfaction
@@ -128,7 +132,8 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
   }, [levelScore, levelMoves, totalCubes, totalScore, combo, levelConfig]);
 
   const displayScore = useLerpNumber(levelScore, { integer: true });
-  const displayTotalCubes = useLerpNumber(totalCubes, { integer: true });
+  const availableCubes = Math.max(0, totalCubes + cubesBrought - cubesSpent);
+  const displayAvailableCubes = useLerpNumber(availableCubes, { integer: true });
   const displayTotalScore = useLerpNumber(totalScore, { integer: true });
   const displayCombo = useLerpNumber(combo, { integer: true });
 
@@ -162,15 +167,53 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
               {displayTotalScore}
             </span>
           </div>
-          {/* Total Cubes */}
-          <div className="flex items-center gap-1 bg-slate-800/50 px-2 py-1 rounded">
-            <span className={`${isMdOrLarger ? "text-lg" : "text-base"} font-semibold text-yellow-400`}>
-              {displayTotalCubes}
-            </span>
-            <span className="text-yellow-400" style={{ fontSize: isMdOrLarger ? 16 : 14 }}>
-              🧊
-            </span>
-          </div>
+          {/* Total Cubes with breakdown tooltip */}
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1 bg-slate-800/50 px-2 py-1 rounded cursor-help">
+                  <span className={`${isMdOrLarger ? "text-lg" : "text-base"} font-semibold text-yellow-400`}>
+                    {displayAvailableCubes}
+                  </span>
+                  <span className="text-yellow-400" style={{ fontSize: isMdOrLarger ? 16 : 14 }}>
+                    🧊
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent
+                side="bottom"
+                className="bg-slate-800 border border-slate-600 p-3 max-w-[200px]"
+              >
+                <div className="space-y-1">
+                  <div className="text-xs font-semibold text-white mb-1.5">Cubes Breakdown</div>
+                  <div className="flex justify-between text-xs gap-4">
+                    <span className="text-slate-400">Earned</span>
+                    <span className="text-yellow-400 font-medium">{totalCubes}</span>
+                  </div>
+                  {cubesBrought > 0 && (
+                    <div className="flex justify-between text-xs gap-4">
+                      <span className="text-slate-400">Brought</span>
+                      <span className="text-blue-400 font-medium">{cubesBrought}</span>
+                    </div>
+                  )}
+                  {cubesSpent > 0 && (
+                    <div className="flex justify-between text-xs gap-4">
+                      <span className="text-slate-400">Spent</span>
+                      <span className="text-red-400 font-medium">-{cubesSpent}</span>
+                    </div>
+                  )}
+                  {(cubesBrought > 0 || cubesSpent > 0) && (
+                    <div className="flex justify-between text-xs gap-4 pt-1 border-t border-slate-600">
+                      <span className="text-slate-300 font-medium">Available</span>
+                      <span className="text-yellow-400 font-semibold">
+                        {Math.max(0, totalCubes + cubesBrought - cubesSpent)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           {/* Shop Button - visible on shop levels (6, 11, 16...) with cubes to spend */}
           {isShopLevel && cubesAvailable > 0 && onShopClick && (
             <motion.button
