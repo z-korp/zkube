@@ -155,10 +155,10 @@ pub mod GameSettingsDefaults {
     pub const MASTER_MAX_LINES: u8 = 6;            // Up to 6 lines at Master
     // Weighted budget system: times_cap = budget / line_cost(lines)
     // Line costs: 2->1, 3->2, 4->4, 5->7, 6->11, 7->16
-    pub const VERYEASY_BUDGET_MIN: u8 = 2;         // Min budget early
-    pub const VERYEASY_BUDGET_MAX: u8 = 5;         // Max ~"2 lines × 2-3 times"
-    pub const MASTER_BUDGET_MIN: u8 = 26;          // Hard floor at Master
-    pub const MASTER_BUDGET_MAX: u8 = 40;          // Allows 6×3, 5×5, caps 7×2
+    pub const VERYEASY_BUDGET_MIN: u8 = 1;         // Min budget early (1 = "2 lines x 1 time")
+    pub const VERYEASY_BUDGET_MAX: u8 = 3;         // Max ~"2 lines × 2-3 times" at VeryEasy
+    pub const MASTER_BUDGET_MIN: u8 = 25;          // Hard floor at Master
+    pub const MASTER_BUDGET_MAX: u8 = 40;          // Allows 6×3, 5×5, 4×10 at Master
     // Times floor (soft minimum)
     pub const VERYEASY_MIN_TIMES: u8 = 1;          // At least 1 time
     pub const MASTER_MIN_TIMES: u8 = 2;            // At least 2 times at Master
@@ -925,8 +925,8 @@ mod tests {
         let (min_l, max_l, budget_min, budget_max, min_t, dual, secondary_no_bonus) = settings.get_constraint_params_for_difficulty(Difficulty::VeryEasy);
         assert!(min_l == 2, "VeryEasy min_lines should be 2");
         assert!(max_l == 2, "VeryEasy max_lines should be 2");
-        assert!(budget_min == 2, "VeryEasy budget_min should be 2");
-        assert!(budget_max == 5, "VeryEasy budget_max should be 5");
+        assert!(budget_min == 1, "VeryEasy budget_min should be 1");
+        assert!(budget_max == 3, "VeryEasy budget_max should be 3");
         assert!(min_t == 1, "VeryEasy min_times should be 1");
         assert!(dual == 0, "VeryEasy dual_chance should be 0");
         assert!(secondary_no_bonus == 0, "VeryEasy secondary_no_bonus should be 0");
@@ -935,14 +935,14 @@ mod tests {
         let (min_l, max_l, budget_min, budget_max, min_t, dual, secondary_no_bonus) = settings.get_constraint_params_for_difficulty(Difficulty::Master);
         assert!(min_l == 4, "Master min_lines should be 4");
         assert!(max_l == 6, "Master max_lines should be 6");
-        assert!(budget_min == 26, "Master budget_min should be 26");
+        assert!(budget_min == 25, "Master budget_min should be 25");
         assert!(budget_max == 40, "Master budget_max should be 40");
         assert!(min_t == 2, "Master min_times should be 2");
         assert!(dual == 100, "Master dual_chance should be 100");
         assert!(secondary_no_bonus == 30, "Master secondary_no_bonus should be 30");
         
         // Test mid-difficulty (Hard = tier 4/7)
-        let (min_l, max_l, budget_min, budget_max, min_t, dual, secondary_no_bonus) = settings.get_constraint_params_for_difficulty(Difficulty::Hard);
+        let (_min_l, _max_l, _budget_min, _budget_max, _min_t, dual, _secondary_no_bonus) = settings.get_constraint_params_for_difficulty(Difficulty::Hard);
         // dual: 0 -> 100 at position 4/7 = 0 + (100*4/7) = 57
         assert!(dual >= 50 && dual <= 65, "Hard dual_chance should be around 57");
     }
@@ -962,9 +962,9 @@ mod tests {
         assert!(master_min_lines == 4, "Master min lines should be 4");
         assert!(veryeasy_max_lines == 2, "VeryEasy max lines should be 2");
         assert!(master_max_lines == 6, "Master max lines should be 6");
-        assert!(veryeasy_budget_min == 2, "VeryEasy budget_min should be 2");
-        assert!(veryeasy_budget_max == 5, "VeryEasy budget_max should be 5");
-        assert!(master_budget_min == 26, "Master budget_min should be 26");
+        assert!(veryeasy_budget_min == 1, "VeryEasy budget_min should be 1");
+        assert!(veryeasy_budget_max == 3, "VeryEasy budget_max should be 3");
+        assert!(master_budget_min == 25, "Master budget_min should be 25");
         assert!(master_budget_max == 40, "Master budget_max should be 40");
         assert!(veryeasy_min_times == 1, "VeryEasy min times should be 1");
         assert!(master_min_times == 2, "Master min times should be 2");

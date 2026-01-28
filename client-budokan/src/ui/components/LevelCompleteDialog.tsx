@@ -32,13 +32,17 @@ interface LevelCompleteDialogProps {
   prevTotalCubes: number;
   /** Total cubes after level completion */
   totalCubes: number;
+  /** Total score before level completion (cumulative from previous levels) */
+  prevTotalScore: number;
+  /** Total score after level completion (includes this level's score) */
+  totalScore: number;
 }
 
 const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   isOpen,
   onClose,
   level,
-  levelScore,
+  levelScore: _levelScore, // Unused - we calculate from totalScore instead
   levelMoves,
   seed,
   constraintProgress: _constraintProgress, // Unused - constraint is always satisfied when level completes
@@ -51,6 +55,8 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   totem: _totem,
   prevTotalCubes,
   totalCubes,
+  prevTotalScore,
+  totalScore,
 }) => {
   // Animation state for staggered reveals
   const [animationPhase, setAnimationPhase] = useState(0);
@@ -76,6 +82,13 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
     return generateLevelConfig(seed, level);
   }, [seed, level]);
 
+  // Calculate the actual score achieved on this level
+  // For level 1, totalScore IS the level score
+  // For level 2+, it's the difference from the previous total
+  const levelFinalScore = level === 1 
+    ? totalScore 
+    : totalScore - prevTotalScore;
+
   // Calculate cubes earned from move efficiency (1-3)
   const baseCubesEarned = levelConfig.calculateCubes(levelMoves);
   
@@ -91,9 +104,6 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   
   // Check if shop opens after this level
   const isShopLevel = isInGameShopAvailable(level);
-
-  // Display score - use levelScore if available, otherwise show required
-  const displayScore = Math.max(levelScore, levelConfig.pointsRequired);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -181,7 +191,7 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
             <span className="text-slate-300 text-sm">Score</span>
             <span className="text-green-400 font-semibold text-sm flex items-center gap-2">
               <FontAwesomeIcon icon={faCheck} className="text-green-400" />
-              {displayScore} / {levelConfig.pointsRequired}
+              {levelFinalScore} / {levelConfig.pointsRequired}
             </span>
           </div>
 

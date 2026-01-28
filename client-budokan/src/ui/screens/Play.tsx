@@ -43,6 +43,10 @@ interface LevelCompletionData {
   totem: number;
   prevTotalCubes: number;
   totalCubes: number;
+  /** Total score before level completion (used to calculate level's final score) */
+  prevTotalScore: number;
+  /** Total score after level completion */
+  totalScore: number;
 }
 
 export const Play = () => {
@@ -92,7 +96,10 @@ export const Play = () => {
     wave: number;
     totem: number;
     totalCubes: number;
+    totalScore: number;
   } | null>(null);
+  // Track the total score at the START of each level (updated only on level change)
+  const levelStartTotalScoreRef = useRef<number>(0);
   const gameCreationAttemptedRef = useRef<boolean>(false);
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
@@ -219,10 +226,24 @@ export const Play = () => {
     const prevState = prevGameStateRef.current;
     const currentLevel = game.level;
 
+    // Initialize levelStartTotalScoreRef on first render (level 1 starts at 0)
+    if (prevState === null && currentLevel === 1) {
+      levelStartTotalScoreRef.current = 0;
+    }
+
     // If we have a previous state and level increased, show completion dialog
     if (prevState && currentLevel > prevState.level && !game.over) {
-      console.log("[LevelComplete] Level changed:", prevState.level, "->", currentLevel, "game.cubesAvailable:", game.cubesAvailable, "game.totalCubes:", game.totalCubes, "game.cubesBrought:", game.cubesBrought);
+      // Calculate the score earned on the completed level
+      // levelStartTotalScoreRef tracks the total score at the START of the completed level
+      const levelScoreEarned = game.totalScore - levelStartTotalScoreRef.current;
+      
+      console.log("[LevelComplete] Level changed:", prevState.level, "->", currentLevel, 
+        "levelStartTotalScore:", levelStartTotalScoreRef.current, 
+        "totalScore:", game.totalScore, "levelScoreEarned:", levelScoreEarned,
+        "game.cubesAvailable:", game.cubesAvailable, "game.totalCubes:", game.totalCubes);
+      
       // Use the PREVIOUS state's stats (captured before the level changed)
+      // BUT use calculated level score from total score difference
       setLevelCompletionData({
         level: prevState.level,
         levelScore: prevState.levelScore,
@@ -237,8 +258,13 @@ export const Play = () => {
         totem: game.totem,
         prevTotalCubes: prevState.totalCubes,
         totalCubes: game.totalCubes,
+        prevTotalScore: levelStartTotalScoreRef.current, // Score at START of the completed level
+        totalScore: game.totalScore, // Score at END of the completed level
       });
       setIsLevelCompleteOpen(true);
+      
+      // Update levelStartTotalScoreRef for the new level
+      levelStartTotalScoreRef.current = game.totalScore;
     }
 
     // Always store current state for next comparison
@@ -253,6 +279,7 @@ export const Play = () => {
       wave: game.wave,
       totem: game.totem,
       totalCubes: game.totalCubes,
+      totalScore: game.totalScore,
     };
   }, [
     game?.level,
@@ -264,6 +291,7 @@ export const Play = () => {
     game?.wave,
     game?.totem,
     game?.over,
+    game?.totalScore,
     game,
   ]);
 
@@ -351,6 +379,8 @@ export const Play = () => {
                       totem={levelCompletionData.totem}
                       prevTotalCubes={levelCompletionData.prevTotalCubes}
                       totalCubes={levelCompletionData.totalCubes}
+                      prevTotalScore={levelCompletionData.prevTotalScore}
+                      totalScore={levelCompletionData.totalScore}
                     />
                   )}
 

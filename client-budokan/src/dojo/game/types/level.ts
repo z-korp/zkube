@@ -129,10 +129,10 @@ export const DEFAULT_SETTINGS: GameSettings = {
   masterMinLines: 4,
   veryeasyMaxLines: 2,   // Only 2 lines early (trivial)
   masterMaxLines: 6,     // Up to 6 lines at Master
-  veryeasyBudgetMin: 2,  // Min budget early
-  veryeasyBudgetMax: 5,  // ~"2 lines x 2-3 times"
-  masterBudgetMin: 26,   // Hard floor at Master
-  masterBudgetMax: 40,   // Allows 6x3, 5x5, caps 7x2
+  veryeasyBudgetMin: 1,  // Min budget early (1 = "2 lines x 1 time")
+  veryeasyBudgetMax: 3,  // Max ~"2 lines x 2-3 times" at VeryEasy
+  masterBudgetMin: 25,   // Hard floor at Master
+  masterBudgetMax: 40,   // Allows 6x3, 5x5, 4x10 at Master
   veryeasyMinTimes: 1,   // At least 1 time
   masterMinTimes: 2,     // At least 2 times at Master
   veryeasyDualChance: 0,    // No dual early

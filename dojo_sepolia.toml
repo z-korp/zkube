@@ -50,10 +50,3 @@ account_address = "0x012f5cc91e93d64b476335d7e823beb321743662f33fcfcb3e4b1b104e4
 "zkube_budo_v1_2_0-config_system" = [
     "0x012f5cc91e93d64b476335d7e823beb321743662f33fcfcb3e4b1b104e456739",  # account address
 ]
-
-[migration]
-order_inits = [
-    "zkube_budo_v1_2_0-achievement_system",
-    "zkube_budo_v1_2_0-game_system",
-    "zkube_budo_v1_2_0-config_system",
-]
