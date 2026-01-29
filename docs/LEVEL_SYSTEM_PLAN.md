@@ -251,15 +251,13 @@ Each bonus type (Hammer, Wave, Totem) upgraded independently.
 
 #### Bonus Bag Size Upgrades
 
-By default, players can hold **3 of each bonus type**. Each upgrade increases capacity by 1.
+By default, players can hold **1 of each bonus type**. Each upgrade increases capacity by 1, up to a maximum of 3 upgrades (max bag size = 4).
 
 | Upgrade Level | Cost | New Max Capacity |
 |---------------|------|------------------|
-| 1 | 10 | 4 |
-| 2 | 20 | 5 |
-| 3 | 40 | 6 |
-| 4 | 80 | 7 |
-| 5 | 160 | 8 |
+| 1 | 10 | 2 |
+| 2 | 20 | 3 |
+| 3 | 40 | 4 (max) |
 
 **Formula:** Cost = 10 * 2^(level-1) cubes. Each bonus type upgraded independently.
 
@@ -290,7 +288,7 @@ At levels 5, 10, 15, 20, etc., players can spend **brought cubes** on consumable
 | Hammer | 5 | +1 Hammer |
 | Wave | 5 | +1 Wave |
 | Totem | 5 | +1 Totem |
-| Full Refill | bag_size * 3 | Refill one bonus type to max (default: 9 cubes) |
+| Full Refill | bag_size * 3 | Refill one bonus type to max (default: 3 cubes) |
 | Skip Constraint | 20 | Auto-complete current constraint |
 | Revival Token | 30 | Continue after death |
 

@@ -3,6 +3,7 @@ use crate::types::bonus::Bonus;
 use crate::types::constraint::ConstraintType;
 use crate::types::consumable::ConsumableType;
 
+/// Emitted when a new game starts
 #[derive(Copy, Drop, Serde)]
 #[dojo::event(historical: true)]
 pub struct StartGame {
@@ -12,6 +13,7 @@ pub struct StartGame {
     pub game_id: u64,
 }
 
+/// Emitted when a bonus is used
 #[derive(Copy, Drop, Serde)]
 #[dojo::event(historical: true)]
 pub struct UseBonus {
@@ -50,7 +52,6 @@ pub struct LevelCompleted {
     pub cubes: u8,
     pub moves_used: u16,
     pub score: u16,
-    pub total_score: u16,
     pub bonuses_earned: u8,
 }
 
@@ -69,17 +70,6 @@ pub struct RunEnded {
     pub ended_at: u64,
 }
 
-/// Emitted when constraint progress is updated
-#[derive(Copy, Drop, Serde)]
-#[dojo::event(historical: true)]
-pub struct ConstraintProgress {
-    #[key]
-    pub game_id: u64,
-    pub constraint_type: ConstraintType,
-    pub current: u8,
-    pub required: u8,
-}
-
 /// Emitted when a consumable is purchased from the in-game shop
 #[derive(Copy, Drop, Serde)]
 #[dojo::event(historical: true)]
@@ -92,3 +82,5 @@ pub struct ConsumablePurchased {
     pub cost: u16,
     pub cubes_remaining: u16,
 }
+
+// NOTE: ConstraintProgress event was removed as it was never emitted

@@ -12,30 +12,11 @@ pub enum ConsumableType {
     ExtraMoves,     // Add extra moves to current level
 }
 
-/// Default costs for consumables in the in-game shop
-/// These are used when no GameSettings are provided (backward compatibility)
-mod ConsumableCosts {
-    pub const HAMMER_COST: u16 = 5;
-    pub const WAVE_COST: u16 = 5;
-    pub const TOTEM_COST: u16 = 5;
-    pub const EXTRA_MOVES_COST: u16 = 10; // Adds 5 extra moves
-}
-
 /// Extra moves granted when purchasing ExtraMoves consumable
 pub const EXTRA_MOVES_AMOUNT: u8 = 5;
 
 #[generate_trait]
 pub impl ConsumableImpl of ConsumableTrait {
-    /// Get the cost of a consumable in cubes (using defaults)
-    fn get_cost(self: ConsumableType) -> u16 {
-        match self {
-            ConsumableType::Hammer => ConsumableCosts::HAMMER_COST,
-            ConsumableType::Wave => ConsumableCosts::WAVE_COST,
-            ConsumableType::Totem => ConsumableCosts::TOTEM_COST,
-            ConsumableType::ExtraMoves => ConsumableCosts::EXTRA_MOVES_COST,
-        }
-    }
-    
     /// Get the cost of a consumable from GameSettings
     fn get_cost_from_settings(self: ConsumableType, settings: GameSettings) -> u16 {
         match self {
@@ -74,18 +55,10 @@ impl IntoU8Consumable of Into<u8, ConsumableType> {
 
 #[cfg(test)]
 mod tests {
-    use super::{ConsumableType, ConsumableTrait, ConsumableCosts};
+    use super::{ConsumableType, ConsumableTrait};
     use zkube::models::config::{GameSettings, GameSettingsTrait};
     use zkube::types::difficulty::Difficulty;
 
-    #[test]
-    fn test_consumable_costs() {
-        assert!(ConsumableType::Hammer.get_cost() == 5, "Hammer should cost 5");
-        assert!(ConsumableType::Wave.get_cost() == 5, "Wave should cost 5");
-        assert!(ConsumableType::Totem.get_cost() == 5, "Totem should cost 5");
-        assert!(ConsumableType::ExtraMoves.get_cost() == 10, "ExtraMoves should cost 10");
-    }
-    
     #[test]
     fn test_consumable_costs_from_settings() {
         // Test with default settings

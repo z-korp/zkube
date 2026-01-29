@@ -148,16 +148,13 @@ Unlock the ability to start each run with bonuses already in your inventory.
 
 #### Bonus Bag Size Upgrades - **IMPLEMENTED**
 
-By default, players can hold **3 of each bonus type** (Hammer, Wave, Totem). Each upgrade increases the max capacity by 1.
+By default, players can hold **1 of each bonus type** (Hammer, Wave, Totem). Each upgrade increases the max capacity by 1, up to a maximum of 3 upgrades (max bag size = 4).
 
 | Bonus Type | Upgrade | Cost | New Max Capacity |
 |------------|---------|------|------------------|
-| Hammer | Level 1 | 10 | 4 |
-| Hammer | Level 2 | 20 | 5 |
-| Hammer | Level 3 | 40 | 6 |
-| Hammer | Level 4 | 80 | 7 |
-| Hammer | Level 5 | 160 | 8 |
-| ... | ... | 2x previous | +1 |
+| Hammer | Level 1 | 10 | 2 |
+| Hammer | Level 2 | 20 | 3 |
+| Hammer | Level 3 | 40 | 4 (max) |
 
 Same progression applies to Wave and Totem independently.
 

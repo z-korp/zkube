@@ -660,7 +660,7 @@ mod game_system {
                         game_id: game.game_id,
                         player,
                         final_level: run_data.current_level,
-                        final_score: run_data.level_score.into(),
+                        final_score: run_data.total_score,
                         total_cubes: run_data.total_cubes,
                         started_at: game.started_at,
                         ended_at: get_block_timestamp(),
@@ -695,6 +695,7 @@ mod game_system {
             let completed_level = pre_complete_data.current_level;
             let final_score = pre_complete_data.level_score;
             let final_moves = pre_complete_data.level_moves;
+            let pre_total_score = pre_complete_data.total_score;
 
             let player = get_caller_address();
 
@@ -711,6 +712,7 @@ mod game_system {
                         cubes,
                         moves_used: final_moves.into(),
                         score: final_score.into(),
+                        total_score: pre_total_score,
                         bonuses_earned,
                     },
                 );

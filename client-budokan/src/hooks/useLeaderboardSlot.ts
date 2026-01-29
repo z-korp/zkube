@@ -68,11 +68,15 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
           if (gameData.blocks === 0n) continue;
 
           // Extract level data from run_data
+          // See contracts/src/helpers/packing.cairo for bit layout (RunDataBits)
           const runData = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
-          // Unpack run_data: bits 0-6 = level, bits 27-35 = total_cubes, bits 52-67 = total_score
-          const level = Number(runData & BigInt(0x7F)); // 7 bits (position 0)
-          const totalCubes = Number((runData >> BigInt(27)) & BigInt(0x1FF)); // 9 bits (position 27)
-          const totalScore = Number((runData >> BigInt(52)) & BigInt(0xFFFF)); // 16 bits (position 52)
+          // Unpack run_data fields:
+          // bits 0-7 = current_level (8 bits)
+          // bits 115-130 = total_cubes (16 bits)
+          // bits 131-146 = total_score (16 bits)
+          const level = Number(runData & BigInt(0xFF)); // 8 bits at position 0
+          const totalCubes = Number((runData >> BigInt(115)) & BigInt(0xFFFF)); // 16 bits at position 115
+          const totalScore = Number((runData >> BigInt(131)) & BigInt(0xFFFF)); // 16 bits at position 131
 
           gameList.push({
             token_id: gameData.game_id,

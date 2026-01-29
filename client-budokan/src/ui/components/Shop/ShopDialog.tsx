@@ -254,7 +254,6 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
             const startMaxed = startCost === null;
             const canAffordStart = !startMaxed && cubeBalance >= startCost;
             const canAffordBag = cubeBalance >= bagCost;
-            const bagCapacity = 1 + bagLevel;
 
             // 3rd item spans full width but renders at half size centered
             const isLast = bonus.id === bonusTypes.length - 1 && bonusTypes.length % 2 !== 0;
@@ -301,9 +300,7 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
                     <span className="text-[10px] text-slate-400 uppercase tracking-wider">
                       Bag
                     </span>
-                    <span className="text-xs font-semibold text-slate-200">
-                      {bagCapacity}
-                    </span>
+                    <LevelPips current={bagLevel} max={5} />
                   </div>
                   <Button
                     size="sm"
@@ -330,9 +327,10 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
                 />
               </div>
               <div>
-                <div className="flex items-center">
+                <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold">Bridging</span>
                   <InfoTip text="Bring cubes from your wallet into a run to spend at the in-game shop." />
+                  <LevelPips current={data?.bridgingRank || 0} max={5} />
                 </div>
                 <div className="text-[10px] text-slate-400">
                   Rank {data?.bridgingRank || 0} — max{" "}

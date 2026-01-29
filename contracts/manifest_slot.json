@@ -70,8 +70,8 @@
       ]
     },
     {
-      "address": "0x29121d5dadd4914de7b8e0014527ca46f9a29167f138295b7c5d6f9da293ed6",
-      "class_hash": "0x463aea547fa55d736b3d88d80ae0b2f092b9587c94e06399c8ec9548e36d16b",
+      "address": "0x6fe37964ccc3df01da0ff4c900bfaa6bd80f5f8c32934eca82f2309b069904",
+      "class_hash": "0x630d7590d262afe9e2474c07685716d057a9d6e3d090f545ba02269403847ec",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
         "0x062347854b5817b3c8101014b5813fb0b5db48e4df2a0a9dada8cbdab191b064",
@@ -525,12 +525,17 @@
           "key": false
         },
         {
+          "name": "total_score",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
           "name": "bonuses_earned",
           "type": "core::integer::u8",
           "key": false
         }
       ],
-      "class_hash": "0x3754be503c6c368bd4258de82b45e24f6d2e3f8a40aa0130276fd98b88fb25a",
+      "class_hash": "0x3949b945ca7d2e86ada1ab22570d1ccfc72dfa01c78c08326090b3877783c4d",
       "tag": "zkube_budo_v1_2_0-LevelCompleted",
       "selector": "0x7a28711b6febc8ff460cd133f74e6fe89c19af7615608b64eb3aaf3e290647b"
     },
@@ -3548,6 +3553,10 @@
           "type": "core::integer::u16"
         },
         {
+          "name": "total_score",
+          "type": "core::integer::u16"
+        },
+        {
           "name": "bonuses_earned",
           "type": "core::integer::u8"
         }
@@ -3571,6 +3580,10 @@
         },
         {
           "name": "score",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "total_score",
           "type": "core::integer::u16"
         },
         {

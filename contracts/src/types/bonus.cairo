@@ -23,16 +23,6 @@ pub impl BonusImpl of BonusTrait {
             Bonus::Wave => wave::BonusImpl::apply(blocks, row_index, index),
         }
     }
-
-    #[inline(always)]
-    fn get_count(self: Bonus, score: u16, combo_count: u16, max_combo: u8) -> u8 {
-        match self {
-            Bonus::None => 0,
-            Bonus::Hammer => hammer::BonusImpl::get_count(score, combo_count, max_combo),
-            Bonus::Totem => totem::BonusImpl::get_count(score, combo_count, max_combo),
-            Bonus::Wave => wave::BonusImpl::get_count(score, combo_count, max_combo),
-        }
-    }
 }
 
 impl IntoBonusFelt252 of Into<Bonus, felt252> {
