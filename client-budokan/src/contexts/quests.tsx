@@ -357,6 +357,19 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
       
       // Find tasks with advancement data
       const tasks = definition.tasks.map((task) => {
+        // Debug: log what we're looking for
+        console.log("[Quests] Looking for advancement:", {
+          quest_id: definition.id,
+          task_id: task.id,
+          intervalIdToUse,
+          availableAdvancements: advancements.map(a => ({
+            quest_id: a.quest_id,
+            task_id: a.task_id,
+            interval_id: a.interval_id,
+            count: a.count.toString(),
+          })),
+        });
+        
         // Try exact interval match first
         let advancement = advancements.find(
           (adv) =>
@@ -372,6 +385,12 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
               adv.quest_id === definition.id &&
               adv.task_id === task.id,
           );
+        }
+        
+        if (advancement) {
+          console.log("[Quests] Found advancement for", definition.id, task.id, ":", advancement.count.toString());
+        } else {
+          console.log("[Quests] No advancement found for", definition.id, task.id);
         }
         
         return {
