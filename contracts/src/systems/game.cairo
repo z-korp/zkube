@@ -45,6 +45,8 @@ mod game_system {
     use zkube::types::consumable::{ConsumableType, ConsumableTrait, EXTRA_MOVES_AMOUNT};
     use zkube::events::{StartGame, UseBonus, LevelStarted, LevelCompleted, RunEnded, ConsumablePurchased};
     use zkube::systems::cube_token::{ICubeTokenDispatcher, ICubeTokenDispatcherTrait};
+    use zkube::systems::quest::{IQuestSystemDispatcher, IQuestSystemDispatcherTrait};
+    use zkube::elements::tasks::{grinder, clearer, combo};
 
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
@@ -209,6 +211,9 @@ mod game_system {
             player_meta.increment_runs();
             world.write_model(@player_meta);
 
+            // Track quest progress: games played (Grinder task)
+            self.track_quest_progress(player, grinder::Grinder::identifier(), 1);
+
             post_action(token_address, game_id);
 
             // Emit events
@@ -291,9 +296,27 @@ mod game_system {
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
 
             // Make the move using the selected game settings
-            let _lines_cleared = game.make_move(
+            let lines_cleared = game.make_move(
                 base_seed.seed, row_index, start_index, final_index, settings,
             );
+
+            // Track quest progress for lines cleared and combos
+            let player = get_caller_address();
+            if lines_cleared > 0 {
+                // Track lines cleared (LineClearer task)
+                self.track_quest_progress(player, clearer::LineClearer::identifier(), lines_cleared.into());
+                
+                // Track combo achievements based on lines cleared in one move
+                if lines_cleared >= 3 {
+                    self.track_quest_progress(player, combo::ComboThree::identifier(), 1);
+                }
+                if lines_cleared >= 5 {
+                    self.track_quest_progress(player, combo::ComboFive::identifier(), 1);
+                }
+                if lines_cleared >= 8 {
+                    self.track_quest_progress(player, combo::ComboEight::identifier(), 1);
+                }
+            }
 
             // Check for level completion
             let level_completed = self.check_and_complete_level(
@@ -674,6 +697,27 @@ mod game_system {
             let cube_token_address = world.dns_address(@"cube_token")
                 .expect('CubeToken not found in DNS');
             ICubeTokenDispatcher { contract_address: cube_token_address }
+        }
+
+        /// Get the QuestSystem contract dispatcher via world DNS
+        /// Returns Option to gracefully handle missing quest_system (during migration)
+        fn get_quest_system_dispatcher(self: @ContractState) -> Option<IQuestSystemDispatcher> {
+            let world = self.world(@DEFAULT_NS());
+            match world.dns_address(@"quest_system") {
+                Option::Some(address) => Option::Some(
+                    IQuestSystemDispatcher { contract_address: address },
+                ),
+                Option::None => Option::None,
+            }
+        }
+
+        /// Track quest progress for a player (no-op if quest system not deployed)
+        fn track_quest_progress(
+            self: @ContractState, player: ContractAddress, task_id: felt252, count: u32,
+        ) {
+            if let Option::Some(quest_system) = self.get_quest_system_dispatcher() {
+                quest_system.progress(player, task_id, count);
+            }
         }
 
         /// Check if level is complete and handle the completion flow.

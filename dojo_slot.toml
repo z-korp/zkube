@@ -39,6 +39,17 @@ world_address = "0x054b04ebd35f35e18579f2a404c4ca85a89d7b9e85c98bd70e8a28b32ff5b
 "zkube_budo_v1_2_0-RunEnded" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-ConstraintProgress" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-ConsumablePurchased" = ["zkube_budo_v1_2_0-game_system"]
+# Quest system models and events
+"zkube_budo_v1_2_0-QuestDefinition" = ["zkube_budo_v1_2_0-quest_system"]
+"zkube_budo_v1_2_0-QuestCompletion" = ["zkube_budo_v1_2_0-quest_system"]
+"zkube_budo_v1_2_0-QuestAdvancement" = ["zkube_budo_v1_2_0-quest_system"]
+"zkube_budo_v1_2_0-QuestAssociation" = ["zkube_budo_v1_2_0-quest_system"]
+"zkube_budo_v1_2_0-QuestCondition" = ["zkube_budo_v1_2_0-quest_system"]
+"zkube_budo_v1_2_0-QuestCreation" = ["zkube_budo_v1_2_0-quest_system"]
+"zkube_budo_v1_2_0-QuestProgression" = ["zkube_budo_v1_2_0-quest_system"]
+"zkube_budo_v1_2_0-QuestUnlocked" = ["zkube_budo_v1_2_0-quest_system"]
+"zkube_budo_v1_2_0-QuestCompleted" = ["zkube_budo_v1_2_0-quest_system"]
+"zkube_budo_v1_2_0-QuestClaimed" = ["zkube_budo_v1_2_0-quest_system"]
 
 [init_call_args]
 "zkube_budo_v1_2_0-game_system" = [

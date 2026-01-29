@@ -241,6 +241,17 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
+  const claimQuest = async ({ account, ...props }: SystemTypes.ClaimQuest) => {
+    if (!client.quest) {
+      throw new Error("Quest system not available");
+    }
+    await handleTransaction(
+      account,
+      () => client.quest!.claim({ account, ...props }),
+      "Quest reward claimed!"
+    );
+  };
+
   return {
     // play
     freeMint,
@@ -255,5 +266,7 @@ export function systems({ client }: { client: IWorld }) {
     upgradeStartingBonus,
     upgradeBagSize,
     upgradeBridgingRank,
+    // quests
+    claimQuest,
   };
 }

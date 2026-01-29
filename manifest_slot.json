@@ -48,8 +48,8 @@
       ]
     },
     {
-      "address": "0x7c4cd5ae97baaccccecbead11ac744b38fcbd606e9afd6e4d3be5d48fb54fbc",
-      "class_hash": "0x6ef74be1be1104df9fa52cabe397dd836ac9c45faedf56efac2f666da06a9db",
+      "address": "0x59376db794d75d9956727e0417e71ff5b4eaf598687121b3a2943c1b4c60e39",
+      "class_hash": "0x4d0f4823a2157c4bb96b5408a635843be008a4cba5e16d916a6e328e1a25489",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-cube_token",
       "selector": "0x58ce743cd328aa3800df3c962d39156cf1c6fcffeae123925c693902472043b",
@@ -70,8 +70,8 @@
       ]
     },
     {
-      "address": "0x6fe37964ccc3df01da0ff4c900bfaa6bd80f5f8c32934eca82f2309b069904",
-      "class_hash": "0x630d7590d262afe9e2474c07685716d057a9d6e3d090f545ba02269403847ec",
+      "address": "0x64f5f9b14a333f07174c1420d6645d8eb3f0523a28f63cf7ba30e349bf606ae",
+      "class_hash": "0x21f0944aef0941c57c63c5c923ab6e3a6d65997c363c98f01ef7a16ffc48850",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
         "0x062347854b5817b3c8101014b5813fb0b5db48e4df2a0a9dada8cbdab191b064",
@@ -91,6 +91,22 @@
       ]
     },
     {
+      "address": "0x453781979b7241228afaa37ac3c453487e73c33af6171b544082665643ba3d6",
+      "class_hash": "0x1fa97da05ce36e081b549f8b29687e1e14ddc015c5272a4cbc29eb1de1450eb",
+      "init_calldata": [],
+      "tag": "zkube_budo_v1_2_0-quest_system",
+      "selector": "0x436c9e32f41800b6e41f7a2132179a85ad4fbbcd73cf2db6bcb4b65fd2071e",
+      "systems": [
+        "dojo_init",
+        "on_quest_unlock",
+        "on_quest_complete",
+        "on_quest_claim",
+        "claim",
+        "progress",
+        "upgrade"
+      ]
+    },
+    {
       "address": "0x371450998538496aa5577c52ced6595628cbf59e51145ce1bbdbe7cf25ecd9d",
       "class_hash": "0x7afd58d6a6524eb910f9a5514fa29657480dbb92055b240de0d7ed2f46de06",
       "init_calldata": [],
@@ -106,6 +122,114 @@
   ],
   "libraries": [],
   "models": [
+    {
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "achievement_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "task_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "count",
+          "type": "core::integer::u128",
+          "key": false
+        },
+        {
+          "name": "timestamp",
+          "type": "core::integer::u64",
+          "key": false
+        }
+      ],
+      "class_hash": "0x1b93d2931ce14c6c25c1b4f3d78ff88f1d9d9a867ff8e4b76f697a370425cb3",
+      "tag": "zkube_budo_v1_2_0-AchievementAdvancement",
+      "selector": "0x5f50dab4ae39dc621d1903558bd3c025f6407bc72d92914b407288febc3098f"
+    },
+    {
+      "members": [
+        {
+          "name": "task_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "achievements",
+          "type": "core::array::Array::<core::felt252>",
+          "key": false
+        }
+      ],
+      "class_hash": "0x6969588e5989757eb797b61bf2d430d4e6c935bb7023000769576fa49d8d1b1",
+      "tag": "zkube_budo_v1_2_0-AchievementAssociation",
+      "selector": "0x6569296f9c2050270727bf2e3ce3a363171e169920bbcb51f26439dde6808ff"
+    },
+    {
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "achievement_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "timestamp",
+          "type": "core::integer::u64",
+          "key": false
+        },
+        {
+          "name": "unclaimed",
+          "type": "core::bool",
+          "key": false
+        }
+      ],
+      "class_hash": "0x7b5b83ccc288a92f3ee2bd812c8fb84536a9e26d1742a8648036d19966030a5",
+      "tag": "zkube_budo_v1_2_0-AchievementCompletion",
+      "selector": "0x8f33d31427d21b03e715b395c586087de27a96884f3f0e184ed13f5c68303f"
+    },
+    {
+      "members": [
+        {
+          "name": "id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "rewarder",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": false
+        },
+        {
+          "name": "start",
+          "type": "core::integer::u64",
+          "key": false
+        },
+        {
+          "name": "end",
+          "type": "core::integer::u64",
+          "key": false
+        },
+        {
+          "name": "tasks",
+          "type": "core::array::Span::<achievement::types::task::Task>",
+          "key": false
+        }
+      ],
+      "class_hash": "0x6c6a9c45913331fa4e602135926cf9a622b60d2abb04381c37e0ba79861f11d",
+      "tag": "zkube_budo_v1_2_0-AchievementDefinition",
+      "selector": "0x4335d8a8f4bb2c48e7c547485b6f72e9f8d34437ab71a57c30f04bb604effed"
+    },
     {
       "members": [
         {
@@ -430,9 +554,208 @@
       "class_hash": "0x77ec576f2aead481e77727f117ca65eeb1aa0ffae116bd46d19ad26f788605f",
       "tag": "zkube_budo_v1_2_0-PlayerMeta",
       "selector": "0x631ad5f961c9bc59af421f721602d568d38327dc491a69bc9229fa7a9bbf699"
+    },
+    {
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "quest_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "task_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "interval_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "count",
+          "type": "core::integer::u128",
+          "key": false
+        },
+        {
+          "name": "timestamp",
+          "type": "core::integer::u64",
+          "key": false
+        }
+      ],
+      "class_hash": "0x1b7639a1fba364aafc237cbf77bca9345cf30402674290214e09d85a17803fe",
+      "tag": "zkube_budo_v1_2_0-QuestAdvancement",
+      "selector": "0x3c9f37f13afa4c786508eacdabab4e89daeea7780bfa0f9d9bbc7d5bc6a8d2f"
+    },
+    {
+      "members": [
+        {
+          "name": "task_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "quests",
+          "type": "core::array::Array::<core::felt252>",
+          "key": false
+        }
+      ],
+      "class_hash": "0x5c91fe66069e109c3e541c7d9ac41a2125396fc9093125ac4b242c52342b8d8",
+      "tag": "zkube_budo_v1_2_0-QuestAssociation",
+      "selector": "0x77b333766bb17d2f92da3b3774a23181992112439cdef9fbc9644e98274675a"
+    },
+    {
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "quest_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "interval_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "timestamp",
+          "type": "core::integer::u64",
+          "key": false
+        },
+        {
+          "name": "unclaimed",
+          "type": "core::bool",
+          "key": false
+        },
+        {
+          "name": "lock_count",
+          "type": "core::integer::u32",
+          "key": false
+        }
+      ],
+      "class_hash": "0x742c586dd683f8f55b9c6e7c1bb228b1adeb81dd78786358fc6ca4a3f553209",
+      "tag": "zkube_budo_v1_2_0-QuestCompletion",
+      "selector": "0x580be40181fb9d6f150a1be3552d43a8776f4fa5ea65d0909f3fce557faf2ea"
+    },
+    {
+      "members": [
+        {
+          "name": "quest_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "quests",
+          "type": "core::array::Array::<core::felt252>",
+          "key": false
+        }
+      ],
+      "class_hash": "0x3e13df6331114bdc190e8924d9d6329498c29971c0a347378469904c216d3be",
+      "tag": "zkube_budo_v1_2_0-QuestCondition",
+      "selector": "0x4ee45990d1add453154b3bf20d01dddd3d65c1d91030f86c82b31b5c69b4192"
+    },
+    {
+      "members": [
+        {
+          "name": "id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "rewarder",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": false
+        },
+        {
+          "name": "start",
+          "type": "core::integer::u64",
+          "key": false
+        },
+        {
+          "name": "end",
+          "type": "core::integer::u64",
+          "key": false
+        },
+        {
+          "name": "duration",
+          "type": "core::integer::u64",
+          "key": false
+        },
+        {
+          "name": "interval",
+          "type": "core::integer::u64",
+          "key": false
+        },
+        {
+          "name": "tasks",
+          "type": "core::array::Span::<quest::types::task::Task>",
+          "key": false
+        },
+        {
+          "name": "conditions",
+          "type": "core::array::Span::<core::felt252>",
+          "key": false
+        }
+      ],
+      "class_hash": "0x3edb92531c36a3a546994e1612de4dd6c43c09aeaf265c8889e61b85d92b071",
+      "tag": "zkube_budo_v1_2_0-QuestDefinition",
+      "selector": "0x51230d4889e1ab86653670897d266a874a04dbf8033b0c99b083f1a021955f"
     }
   ],
   "events": [
+    {
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "achievement_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "time",
+          "type": "core::integer::u64",
+          "key": false
+        }
+      ],
+      "class_hash": "0x3ca9aa05af8ef4c94e5213e7ba413e05fd28a7641b7060f896f06c4c6993e00",
+      "tag": "zkube_budo_v1_2_0-AchievementClaimed",
+      "selector": "0x24531cb59cbc403a9b66e9d0e74fcaabeacfdb626e986023a532e244775d5b6"
+    },
+    {
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "achievement_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "time",
+          "type": "core::integer::u64",
+          "key": false
+        }
+      ],
+      "class_hash": "0x7862bab5e54ec6aa89c4a0ef6f39ca01a6440434b08d4fdd8098ee6e920e9a6",
+      "tag": "zkube_budo_v1_2_0-AchievementCompleted",
+      "selector": "0x517446fb0dd73b610f3af6161cbe3f5f3b0a34108538d4e79e0ae5123dd6f7f"
+    },
     {
       "members": [
         {
@@ -589,6 +912,136 @@
     {
       "members": [
         {
+          "name": "player_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "quest_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "interval_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "time",
+          "type": "core::integer::u64",
+          "key": false
+        }
+      ],
+      "class_hash": "0x193f0bd07f5db75d3417b8be2e996b9bc71eb163e46fb0fd09c93b95fd93f0c",
+      "tag": "zkube_budo_v1_2_0-QuestClaimed",
+      "selector": "0x4e4ff4442098ad33c41fa97c066eb7e2aa5b95e6d9b7437df1aef55022d5bb7"
+    },
+    {
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "quest_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "interval_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "time",
+          "type": "core::integer::u64",
+          "key": false
+        }
+      ],
+      "class_hash": "0x78fb571e43ab4457b6f1b9a27378bfa20aa2b45ea858117511e39f424c3ca1b",
+      "tag": "zkube_budo_v1_2_0-QuestCompleted",
+      "selector": "0x5e9eeae36a38eed46a45b80d89d8bb08c831680a38fc39c1905bd78b3512d5d"
+    },
+    {
+      "members": [
+        {
+          "name": "id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "definition",
+          "type": "quest::models::index::QuestDefinition",
+          "key": false
+        },
+        {
+          "name": "metadata",
+          "type": "core::byte_array::ByteArray",
+          "key": false
+        }
+      ],
+      "class_hash": "0x3887943e3f8a828e25560b36cad9b496e750e5a448bc1f33d0bb938e06676ab",
+      "tag": "zkube_budo_v1_2_0-QuestCreation",
+      "selector": "0x586c85d4dc6b70c432642b2e7de2d6e42a62f0ee5a205722921d913711d4615"
+    },
+    {
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "task_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "count",
+          "type": "core::integer::u128",
+          "key": false
+        },
+        {
+          "name": "time",
+          "type": "core::integer::u64",
+          "key": false
+        }
+      ],
+      "class_hash": "0x479e00ca41dd2cc4ce832a501fd504d21f5931e2b2fd37145f87a76b093d81",
+      "tag": "zkube_budo_v1_2_0-QuestProgression",
+      "selector": "0x5831e312e637814f5743a7fc8d740a43c33149af647acd8464344c323502a7c"
+    },
+    {
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "quest_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "interval_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "time",
+          "type": "core::integer::u64",
+          "key": false
+        }
+      ],
+      "class_hash": "0x4323e58925dd9a9d34b95a5051f39876ed0ad489ec9288e326c8920a2b89f2",
+      "tag": "zkube_budo_v1_2_0-QuestUnlocked",
+      "selector": "0x61ce648751042546c61011c452c841b08d59a2a141ddbe63f02ca9a784982f2"
+    },
+    {
+      "members": [
+        {
           "name": "game_id",
           "type": "core::integer::u64",
           "key": true
@@ -653,6 +1106,100 @@
     {
       "members": [
         {
+          "name": "id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "hidden",
+          "type": "core::bool",
+          "key": false
+        },
+        {
+          "name": "index",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "points",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "start",
+          "type": "core::integer::u64",
+          "key": false
+        },
+        {
+          "name": "end",
+          "type": "core::integer::u64",
+          "key": false
+        },
+        {
+          "name": "group",
+          "type": "core::felt252",
+          "key": false
+        },
+        {
+          "name": "icon",
+          "type": "core::felt252",
+          "key": false
+        },
+        {
+          "name": "title",
+          "type": "core::felt252",
+          "key": false
+        },
+        {
+          "name": "description",
+          "type": "core::byte_array::ByteArray",
+          "key": false
+        },
+        {
+          "name": "tasks",
+          "type": "core::array::Span::<achievement::types::task::Task>",
+          "key": false
+        },
+        {
+          "name": "data",
+          "type": "core::byte_array::ByteArray",
+          "key": false
+        }
+      ],
+      "class_hash": "0x706834e9ed630a715e2727c7ed3706c2f92d46f93568c4082f7030023947cf0",
+      "tag": "zkube_budo_v1_2_0-TrophyCreation",
+      "selector": "0x4ad9912eefa6bc5b44c8471f24c961d48bbe8b16a52a3fccd59b9d70b35d426"
+    },
+    {
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "task_id",
+          "type": "core::felt252",
+          "key": true
+        },
+        {
+          "name": "count",
+          "type": "core::integer::u128",
+          "key": false
+        },
+        {
+          "name": "time",
+          "type": "core::integer::u64",
+          "key": false
+        }
+      ],
+      "class_hash": "0x313c566ceee5bdcaed4accfedc707b6b5a02feb96f9448a18bfa97bf43811e4",
+      "tag": "zkube_budo_v1_2_0-TrophyProgression",
+      "selector": "0x1b2e61a8d6969160fd083d585334f7fba04e9fd12836cea84f5d1dcac67c701"
+    },
+    {
+      "members": [
+        {
           "name": "player",
           "type": "core::starknet::contract_address::ContractAddress",
           "key": true
@@ -681,6 +1228,416 @@
   "external_contracts": [],
   "abis": [
     {
+      "type": "struct",
+      "name": "achievement::events::index::AchievementClaimed",
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "achievement_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "time",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "achievement::events::index::AchievementClaimedValue",
+      "members": [
+        {
+          "name": "time",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "achievement::events::index::AchievementCompleted",
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "achievement_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "time",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "achievement::events::index::AchievementCompletedValue",
+      "members": [
+        {
+          "name": "time",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "achievement::events::index::TrophyCreation",
+      "members": [
+        {
+          "name": "id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "hidden",
+          "type": "core::bool"
+        },
+        {
+          "name": "index",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "points",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "start",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "end",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "group",
+          "type": "core::felt252"
+        },
+        {
+          "name": "icon",
+          "type": "core::felt252"
+        },
+        {
+          "name": "title",
+          "type": "core::felt252"
+        },
+        {
+          "name": "description",
+          "type": "core::byte_array::ByteArray"
+        },
+        {
+          "name": "tasks",
+          "type": "core::array::Span::<achievement::types::task::Task>"
+        },
+        {
+          "name": "data",
+          "type": "core::byte_array::ByteArray"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "achievement::events::index::TrophyCreationValue",
+      "members": [
+        {
+          "name": "hidden",
+          "type": "core::bool"
+        },
+        {
+          "name": "index",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "points",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "start",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "end",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "group",
+          "type": "core::felt252"
+        },
+        {
+          "name": "icon",
+          "type": "core::felt252"
+        },
+        {
+          "name": "title",
+          "type": "core::felt252"
+        },
+        {
+          "name": "description",
+          "type": "core::byte_array::ByteArray"
+        },
+        {
+          "name": "tasks",
+          "type": "core::array::Span::<achievement::types::task::Task>"
+        },
+        {
+          "name": "data",
+          "type": "core::byte_array::ByteArray"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "achievement::events::index::TrophyProgression",
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "task_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "count",
+          "type": "core::integer::u128"
+        },
+        {
+          "name": "time",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "achievement::events::index::TrophyProgressionValue",
+      "members": [
+        {
+          "name": "count",
+          "type": "core::integer::u128"
+        },
+        {
+          "name": "time",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "achievement::events::index::e_AchievementClaimed::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "achievement::events::index::e_AchievementCompleted::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "achievement::events::index::e_TrophyCreation::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "achievement::events::index::e_TrophyProgression::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "struct",
+      "name": "achievement::models::index::AchievementAdvancement",
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "achievement_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "task_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "count",
+          "type": "core::integer::u128"
+        },
+        {
+          "name": "timestamp",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "achievement::models::index::AchievementAdvancementValue",
+      "members": [
+        {
+          "name": "count",
+          "type": "core::integer::u128"
+        },
+        {
+          "name": "timestamp",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "achievement::models::index::AchievementAssociation",
+      "members": [
+        {
+          "name": "task_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "achievements",
+          "type": "core::array::Array::<core::felt252>"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "achievement::models::index::AchievementAssociationValue",
+      "members": [
+        {
+          "name": "achievements",
+          "type": "core::array::Array::<core::felt252>"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "achievement::models::index::AchievementCompletion",
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "achievement_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "timestamp",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "unclaimed",
+          "type": "core::bool"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "achievement::models::index::AchievementCompletionValue",
+      "members": [
+        {
+          "name": "timestamp",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "unclaimed",
+          "type": "core::bool"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "achievement::models::index::AchievementDefinition",
+      "members": [
+        {
+          "name": "id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "rewarder",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "start",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "end",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "tasks",
+          "type": "core::array::Span::<achievement::types::task::Task>"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "achievement::models::index::AchievementDefinitionValue",
+      "members": [
+        {
+          "name": "rewarder",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "start",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "end",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "tasks",
+          "type": "core::array::Span::<achievement::types::task::Task>"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "achievement::models::index::m_AchievementAdvancement::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "achievement::models::index::m_AchievementAssociation::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "achievement::models::index::m_AchievementCompletion::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "achievement::models::index::m_AchievementDefinition::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "struct",
+      "name": "achievement::types::task::Task",
+      "members": [
+        {
+          "name": "id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "total",
+          "type": "core::integer::u128"
+        },
+        {
+          "name": "description",
+          "type": "core::byte_array::ByteArray"
+        }
+      ]
+    },
+    {
       "type": "constructor",
       "name": "constructor",
       "inputs": []
@@ -692,6 +1649,16 @@
         {
           "name": "snapshot",
           "type": "@core::array::Array::<(core::felt252, dojo::meta::introspect::Ty)>"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "core::array::Span::<achievement::types::task::Task>",
+      "members": [
+        {
+          "name": "snapshot",
+          "type": "@core::array::Array::<achievement::types::task::Task>"
         }
       ]
     },
@@ -822,6 +1789,16 @@
         {
           "name": "snapshot",
           "type": "@core::array::Array::<game_components_minigame::extensions::settings::structs::GameSetting>"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "core::array::Span::<quest::types::task::Task>",
+      "members": [
+        {
+          "name": "snapshot",
+          "type": "@core::array::Array::<quest::types::task::Task>"
         }
       ]
     },
@@ -3434,6 +4411,532 @@
       ]
     },
     {
+      "type": "event",
+      "name": "quest::components::questable::QuestableComponent::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "struct",
+      "name": "quest::events::index::QuestClaimed",
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "quest_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "interval_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "time",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::events::index::QuestClaimedValue",
+      "members": [
+        {
+          "name": "time",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::events::index::QuestCompleted",
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "quest_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "interval_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "time",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::events::index::QuestCompletedValue",
+      "members": [
+        {
+          "name": "time",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::events::index::QuestCreation",
+      "members": [
+        {
+          "name": "id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "definition",
+          "type": "quest::models::index::QuestDefinition"
+        },
+        {
+          "name": "metadata",
+          "type": "core::byte_array::ByteArray"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::events::index::QuestCreationValue",
+      "members": [
+        {
+          "name": "definition",
+          "type": "quest::models::index::QuestDefinition"
+        },
+        {
+          "name": "metadata",
+          "type": "core::byte_array::ByteArray"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::events::index::QuestProgression",
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "task_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "count",
+          "type": "core::integer::u128"
+        },
+        {
+          "name": "time",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::events::index::QuestProgressionValue",
+      "members": [
+        {
+          "name": "count",
+          "type": "core::integer::u128"
+        },
+        {
+          "name": "time",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::events::index::QuestUnlocked",
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "quest_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "interval_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "time",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::events::index::QuestUnlockedValue",
+      "members": [
+        {
+          "name": "time",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "quest::events::index::e_QuestClaimed::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "quest::events::index::e_QuestCompleted::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "quest::events::index::e_QuestCreation::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "quest::events::index::e_QuestProgression::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "quest::events::index::e_QuestUnlocked::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "interface",
+      "name": "quest::interfaces::IQuestRewarder",
+      "items": [
+        {
+          "type": "function",
+          "name": "on_quest_unlock",
+          "inputs": [
+            {
+              "name": "player",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "quest_id",
+              "type": "core::felt252"
+            },
+            {
+              "name": "interval_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "on_quest_complete",
+          "inputs": [
+            {
+              "name": "player",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "quest_id",
+              "type": "core::felt252"
+            },
+            {
+              "name": "interval_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "on_quest_claim",
+          "inputs": [
+            {
+              "name": "player",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "quest_id",
+              "type": "core::felt252"
+            },
+            {
+              "name": "interval_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::models::index::QuestAdvancement",
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "quest_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "task_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "interval_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "count",
+          "type": "core::integer::u128"
+        },
+        {
+          "name": "timestamp",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::models::index::QuestAdvancementValue",
+      "members": [
+        {
+          "name": "count",
+          "type": "core::integer::u128"
+        },
+        {
+          "name": "timestamp",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::models::index::QuestAssociation",
+      "members": [
+        {
+          "name": "task_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "quests",
+          "type": "core::array::Array::<core::felt252>"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::models::index::QuestAssociationValue",
+      "members": [
+        {
+          "name": "quests",
+          "type": "core::array::Array::<core::felt252>"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::models::index::QuestCompletion",
+      "members": [
+        {
+          "name": "player_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "quest_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "interval_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "timestamp",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "unclaimed",
+          "type": "core::bool"
+        },
+        {
+          "name": "lock_count",
+          "type": "core::integer::u32"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::models::index::QuestCompletionValue",
+      "members": [
+        {
+          "name": "timestamp",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "unclaimed",
+          "type": "core::bool"
+        },
+        {
+          "name": "lock_count",
+          "type": "core::integer::u32"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::models::index::QuestCondition",
+      "members": [
+        {
+          "name": "quest_id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "quests",
+          "type": "core::array::Array::<core::felt252>"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::models::index::QuestConditionValue",
+      "members": [
+        {
+          "name": "quests",
+          "type": "core::array::Array::<core::felt252>"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::models::index::QuestDefinition",
+      "members": [
+        {
+          "name": "id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "rewarder",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "start",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "end",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "duration",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "interval",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "tasks",
+          "type": "core::array::Span::<quest::types::task::Task>"
+        },
+        {
+          "name": "conditions",
+          "type": "core::array::Span::<core::felt252>"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "quest::models::index::QuestDefinitionValue",
+      "members": [
+        {
+          "name": "rewarder",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "start",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "end",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "duration",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "interval",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "tasks",
+          "type": "core::array::Span::<quest::types::task::Task>"
+        },
+        {
+          "name": "conditions",
+          "type": "core::array::Span::<core::felt252>"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "quest::models::index::m_QuestAdvancement::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "quest::models::index::m_QuestAssociation::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "quest::models::index::m_QuestCompletion::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "quest::models::index::m_QuestCondition::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "quest::models::index::m_QuestDefinition::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "struct",
+      "name": "quest::types::task::Task",
+      "members": [
+        {
+          "name": "id",
+          "type": "core::felt252"
+        },
+        {
+          "name": "total",
+          "type": "core::integer::u128"
+        },
+        {
+          "name": "description",
+          "type": "core::byte_array::ByteArray"
+        }
+      ]
+    },
+    {
       "type": "function",
       "name": "register_external_contract",
       "inputs": [],
@@ -5011,6 +6514,70 @@
         {
           "name": "SRC5Event",
           "type": "openzeppelin_introspection::src5::SRC5Component::Event",
+          "kind": "flat"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "zkube::systems::quest::IQuestSystem",
+      "items": [
+        {
+          "type": "function",
+          "name": "claim",
+          "inputs": [
+            {
+              "name": "quest_id",
+              "type": "core::felt252"
+            },
+            {
+              "name": "interval_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "progress",
+          "inputs": [
+            {
+              "name": "player",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "task_id",
+              "type": "core::felt252"
+            },
+            {
+              "name": "count",
+              "type": "core::integer::u32"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::systems::quest::quest_system::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "UpgradeableEvent",
+          "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "WorldProviderEvent",
+          "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "QuestableEvent",
+          "type": "quest::components::questable::QuestableComponent::Event",
           "kind": "flat"
         }
       ]

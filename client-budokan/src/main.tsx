@@ -13,6 +13,7 @@ import { StarknetConfig, jsonRpcProvider, voyager, MockConnector } from "@starkn
 import { sepolia, mainnet, type NativeCurrency } from "@starknet-react/chains";
 import cartridgeConnector from "./cartridgeConnector";
 import { MetagameProvider } from "./contexts/MetagameProvider";
+import { QuestsProvider } from "./contexts/quests";
 import { createBurnerAccount } from "./connectors/BurnerConnector";
 
 import "./index.css";
@@ -141,9 +142,11 @@ export function Main() {
             <MetagameProvider>
               {!loading && setupResult ? (
                 <DojoProvider value={setupResult}>
-                  <SoundPlayerProvider>
-                    <App />
-                  </SoundPlayerProvider>
+                  <QuestsProvider>
+                    <SoundPlayerProvider>
+                      <App />
+                    </SoundPlayerProvider>
+                  </QuestsProvider>
                 </DojoProvider>
               ) : (
                 <Loading />

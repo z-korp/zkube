@@ -32,6 +32,8 @@ game_components_token.workspace = true
 game_components_metagame.workspace = true
 game_components_utils.workspace = true
 graffiti.workspace = true
+quest.workspace = true
+achievement.workspace = true
 
 [[target.starknet-contract]]
 casm = true
@@ -39,6 +41,28 @@ build-external-contracts = [
     "dojo::world::world_contract::world",
     "game_components_token::examples::full_token_contract::FullTokenContract",
     "game_components_token::examples::minigame_registry_contract::MinigameRegistryContract",
+    # Quest models
+    "quest::models::index::m_QuestDefinition",
+    "quest::models::index::m_QuestCompletion",
+    "quest::models::index::m_QuestAdvancement",
+    "quest::models::index::m_QuestAssociation",
+    "quest::models::index::m_QuestCondition",
+    # Quest events
+    "quest::events::index::e_QuestCreation",
+    "quest::events::index::e_QuestProgression",
+    "quest::events::index::e_QuestUnlocked",
+    "quest::events::index::e_QuestCompleted",
+    "quest::events::index::e_QuestClaimed",
+    # Achievement models
+    "achievement::models::index::m_AchievementDefinition",
+    "achievement::models::index::m_AchievementCompletion",
+    "achievement::models::index::m_AchievementAdvancement",
+    "achievement::models::index::m_AchievementAssociation",
+    # Achievement events
+    "achievement::events::index::e_TrophyCreation",
+    "achievement::events::index::e_TrophyProgression",
+    "achievement::events::index::e_AchievementCompleted",
+    "achievement::events::index::e_AchievementClaimed",
 ]
 
 [dev-dependencies]

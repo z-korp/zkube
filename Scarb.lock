@@ -2,6 +2,15 @@
 version = 1
 
 [[package]]
+name = "achievement"
+version = "0.0.0"
+source = "git+https://github.com/cartridge-gg/arcade?rev=1c66ba7#1c66ba724c3e9fbec9f70a14a086c4daf460621b"
+dependencies = [
+ "dojo",
+ "graffiti",
+]
+
+[[package]]
 name = "alexandria_bytes"
 version = "0.7.0"
 source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.7.0#06e3019612cfcbbdb66cbd849840451ede7ee6aa"
@@ -190,9 +199,19 @@ version = "1.1.2"
 source = "git+https://github.com/dojoengine/origami?tag=v1.7.0#1ddafcb8c33fe9697c4a44e0557967026d4eeba8"
 
 [[package]]
+name = "quest"
+version = "0.0.0"
+source = "git+https://github.com/cartridge-gg/arcade?rev=1c66ba7#1c66ba724c3e9fbec9f70a14a086c4daf460621b"
+dependencies = [
+ "dojo",
+ "graffiti",
+]
+
+[[package]]
 name = "zkube"
 version = "1.2.0"
 dependencies = [
+ "achievement",
  "alexandria_encoding",
  "alexandria_math",
  "dojo",
@@ -206,4 +225,5 @@ dependencies = [
  "openzeppelin_introspection",
  "openzeppelin_token",
  "origami_random",
+ "quest",
 ]

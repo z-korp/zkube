@@ -136,6 +136,14 @@ pub mod cube_token {
             },
             Option::None => {},
         };
+
+        // Grant to quest_system (if already registered)
+        match world.dns_address(@"quest_system") {
+            Option::Some(quest_system) => {
+                self.accesscontrol._grant_role(MINTER_ROLE, quest_system);
+            },
+            Option::None => {},
+        };
     }
 
     #[abi(embed_v0)]
@@ -181,6 +189,10 @@ pub mod cube_token {
             let shop_system = world.dns_address(@"shop_system")
                 .expect('shop_system not in DNS');
             self.accesscontrol._grant_role(MINTER_ROLE, shop_system);
+
+            let quest_system = world.dns_address(@"quest_system")
+                .expect('quest_system not in DNS');
+            self.accesscontrol._grant_role(MINTER_ROLE, quest_system);
         }
 
         fn mint_dev(ref self: ContractState, amount: u256) {

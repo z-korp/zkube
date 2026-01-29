@@ -9,6 +9,7 @@ import TutorialModal from "./Tutorial/TutorialModal";
 import { Button } from "../elements/button";
 import { HeaderLeaderboard } from "./HeaderLeaderboard";
 import { ShopButton } from "./Shop/ShopButton";
+import { QuestsButton } from "./Quest/QuestsButton";
 
 interface DesktopHeaderProps {
   onStartTutorial: () => void;
@@ -67,6 +68,7 @@ const DesktopHeader = ({
         {!!account && (
           <div className="flex gap-4 flex-1 justify-end items-center px-4">
             <CubeBalance />
+            <QuestsButton />
             <ShopButton />
             <Controller />
           </div>

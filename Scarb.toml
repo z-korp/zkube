@@ -40,6 +40,10 @@ game_components_utils = { git = "https://github.com/Provable-Games/game-componen
 origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.7.0" }
 graffiti = { git = "https://github.com/ponderingdemocritus/graffiti", rev = "bc569531791dbc71c6cd8d9bc154c34eedad31fe" }
 
+# Cartridge Arcade (quests & achievements)
+quest = { git = "https://github.com/cartridge-gg/arcade", rev = "1c66ba7" }
+achievement = { git = "https://github.com/cartridge-gg/arcade", rev = "1c66ba7" }
+
 # Testing
 snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry", tag = "v0.32.0" }
 assert_macros = "2.13.1"

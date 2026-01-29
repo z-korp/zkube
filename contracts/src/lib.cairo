@@ -35,6 +35,22 @@ mod elements {
         pub mod master;
         pub mod interface;
     }
+    pub mod tasks {
+        pub mod interface;
+        pub mod index;
+        pub mod grinder;
+        pub mod clearer;
+        pub mod combo;
+        pub mod master;
+    }
+    pub mod quests {
+        pub mod interface;
+        pub mod index;
+        pub mod player;
+        pub mod clearer;
+        pub mod combo;
+        pub mod finisher;
+    }
 }
 
 pub mod interfaces {
@@ -60,4 +76,5 @@ pub mod systems {
     pub mod config;
     pub mod shop;
     pub mod cube_token;
+    pub mod quest;
 }

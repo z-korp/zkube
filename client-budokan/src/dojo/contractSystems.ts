@@ -60,6 +60,11 @@ export interface PurchaseConsumable extends Signer {
   consumable_type: number; // 0=Hammer, 1=Wave, 2=Totem, 3=ExtraMoves
 }
 
+export interface ClaimQuest extends Signer {
+  quest_id: string; // felt252 encoded quest ID
+  interval_id: number; // Current interval ID for the quest
+}
+
 export type IWorld = ReturnType<typeof setupWorld>;
 
 export function setupWorld(config: Config) {
@@ -324,8 +329,40 @@ export function setupWorld(config: Config) {
     };
   }
 
+  function quest() {
+    const contract_name = "quest_system";
+    const contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(contract_name)
+    );
+    if (!contract) {
+      console.warn(`Contract ${contract_name} not found in manifest - quest system disabled`);
+      return null;
+    }
+
+    const claim = async ({ account, quest_id, interval_id }: ClaimQuest) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "claim",
+            calldata: [quest_id, interval_id],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing quest claim:", error);
+        throw error;
+      }
+    };
+
+    return {
+      address: contract.address,
+      claim,
+    };
+  }
+
   return {
     game: game(),
     shop: shop(),
+    quest: quest(),
   };
 }

@@ -18,6 +18,7 @@ import TutorialModal from "./Tutorial/TutorialModal";
 import { HeaderLeaderboard } from "./HeaderLeaderboard";
 import CubeBalance from "./CubeBalance";
 import { ShopButton } from "./Shop/ShopButton";
+import { QuestsButton } from "./Quest/QuestsButton";
 
 interface MobileHeaderProps {
   onStartTutorial: () => void;
@@ -94,6 +95,7 @@ const MobileHeader = ({
           {account ? (
             <div className="flex gap-3 items-center">
               <CubeBalance showLabel={false} />
+              <QuestsButton />
               <ShopButton />
               <Controller />
             </div>
