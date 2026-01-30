@@ -1,15 +1,20 @@
-# zKube Game ERC721 Contract
+# zKube Game ERC721 Contract (Legacy)
+
+> **Status:** DEPRECATED - Replaced by game-components FullTokenContract  
+> **Kept for:** Reference only
 
 ## Overview
 
-ERC721 NFT contract for zKube game tokens. Each NFT represents a playable game instance. Built with OpenZeppelin Cairo contracts v0.18.0.
+Legacy ERC721 NFT contract for zKube game tokens. Each NFT represents a playable game instance.
+
+**Important:** This contract is NOT used in the current deployment. The project now uses `FullTokenContract` from the game-components framework, which provides integrated lifecycle management and minigame features.
 
 ## Contract Details
 
 - **Name:** zKube-Game
 - **Symbol:** ZKBG
-- **Cairo Version:** 2.8.4
-- **OpenZeppelin:** v0.18.0
+- **Cairo Version:** 2.13.1
+- **OpenZeppelin:** v3.0.0-alpha.3 (workspace)
 
 ## Features
 
@@ -73,18 +78,6 @@ fn public_mint(ref self: ContractState, recipient: ContractAddress)
 ```
 Public mint with ERC20 payment. Stores the purchase price for prize pool calculations.
 
-### Price Management
-
-```cairo
-fn update_mint_price(ref self: ContractState, new_price: u256)
-```
-Updates the mint price. Only PRICE_SETTER_ROLE can call.
-
-```cairo
-fn get_mint_price(self: @ContractState) -> u256
-fn get_purchase_price(self: @ContractState, token_id: u256) -> u256
-```
-
 ### Admin Functions
 
 ```cairo
@@ -97,95 +90,27 @@ fn update_role(ref self: ContractState, role: felt252, account: ContractAddress,
 fn recover_erc20(ref self: ContractState, token: ContractAddress, amount: u256)
 ```
 
-## Constructor
+## Why This Was Replaced
 
-```cairo
-fn constructor(
-    ref self: ContractState,
-    default_admin: ContractAddress,
-    pauser: ContractAddress,
-    erc20_token: ContractAddress,
-    tournament_system: ContractAddress,
-    chest_system: ContractAddress,
-    zkorp_system: ContractAddress,
-    play_system: ContractAddress,
-    minter_system: ContractAddress,
-)
-```
+The game-components `FullTokenContract` provides:
+1. **Lifecycle Management:** Built-in start/end times, playable state tracking
+2. **IMinigameTokenData:** Standard interface for game data queries
+3. **Registry Integration:** Works with MinigameRegistryContract
+4. **Soulbound Support:** Native support for non-transferable tokens
+5. **Renderer Support:** Custom SVG/metadata generation
 
-Sets up:
-- ERC721 with metadata
-- Access control roles
-- ERC20 approvals for game systems
-- Contract starts **paused** until price is set
+See `/docs/DEPLOYMENT_GUIDE.md` for current deployment using FullTokenContract.
 
-## System Integration
-
-### ERC20 Approvals
-The contract auto-approves max u256 for game systems:
-- Tournament system
-- Chest system
-- zKorp system
-
-This allows these systems to transfer ERC20 tokens held by the contract (for prize distribution).
-
-### System Address Updates
-`update_system_addresses()` safely:
-1. Revokes old ERC20 approvals
-2. Revokes old roles
-3. Grants new ERC20 approvals
-4. Grants new roles
-5. Emits tracking events
-
-## Events
-
-```cairo
-SystemAddressUpdated { old_address, new_address, system_type }
-ERC20ApprovalRevoked { system, previous_allowance }
-RoleUpdated { role, account, granted }
-ERC20Recovered { token, amount, recipient }
-```
-
-## Metadata
-
-Default token URI: `ipfs://QmZf1uNuPPAcTqxXGBdcTjBnviPTftypxxUwMSgAGC1HDC/metadata.json`
-
-All tokens share the same metadata (constant URI pattern).
-
-## Build & Deploy
+## Build & Test
 
 ```bash
-cd game_erc721
+cd packages/game_erc721
 scarb build
-# Deploy using sozo or starkli
-```
-
-Testing with Foundry:
-```bash
 snforge test
 ```
 
-## Dependencies
+## Notes
 
-```toml
-[dependencies]
-openzeppelin = { git = "OpenZeppelin/cairo-contracts", tag = "v0.18.0" }
-starknet = "2.8.4"
-```
-
-## Relationship to Game
-
-1. **Token = Game:** Each NFT token ID is also a game ID
-2. **Ownership = Playing Rights:** Only the token owner can play that game
-3. **Purchase Price Tracking:** Determines prize pool split for tournaments
-4. **System Permissions:** Game systems interact with this contract for:
-   - Verifying ownership before game actions
-   - Distributing prizes from collected mint fees
-
-## Security Considerations
-
-1. **Contract starts paused** - prevents premature minting
-2. **Role separation** - minter, pauser, admin are separate
-3. **ERC20 recovery** - admin can recover stuck tokens
-4. **Approval revocation** - old systems lose access when updated
-5. **Price setter role** - only minter system can set price (not even admin directly)
+- This contract remains in the codebase for reference
+- Do not deploy this contract for new games
+- Use FullTokenContract from game-components instead

@@ -2,15 +2,18 @@
 
 ## Overview
 
-A simple ERC20 token contract called "Fake LORD" (FLORD) used for testing and development. Built with OpenZeppelin Cairo contracts v0.18.0.
+A simple ERC20 token contract called "Fake LORD" (FLORD) used for testing and development. Built with OpenZeppelin Cairo contracts.
+
+> **Status:** Development/Testing only  
+> **Production:** Mainnet uses real LORD token or STRK
 
 ## Contract Details
 
 - **Name:** Fake Lord
 - **Symbol:** FLORD
 - **Decimals:** 18 (standard ERC20)
-- **Cairo Version:** 2.8.4
-- **OpenZeppelin:** v0.18.0
+- **Cairo Version:** 2.13.1
+- **OpenZeppelin:** v3.0.0-alpha.3 (workspace)
 
 ## Features
 
@@ -75,28 +78,31 @@ fn constructor(ref self: ContractState, owner: ContractAddress)
 ## Build & Deploy
 
 ```bash
-cd token
+cd packages/token
 scarb build
-# Deploy using sozo or starkli
+# Deploy using starkli
 ```
 
 ## Dependencies
 
+Uses workspace dependencies:
 ```toml
 [dependencies]
-openzeppelin = { git = "OpenZeppelin/cairo-contracts", tag = "v0.18.0" }
-starknet = "2.8.4"
+openzeppelin_token.workspace = true
+openzeppelin_access.workspace = true
+starknet.workspace = true
 ```
 
 ## Usage in zKube
 
 This token is used for:
 1. **Development/Testing:** Free tokens via faucet for testing game mechanics
-2. **Prize Pools:** (In production, replaced with real LORD token)
-3. **NFT Minting:** Payment for public minting of game NFTs
+2. **Prize Pools:** (In development - production uses real LORD token)
+3. **NFT Minting:** Payment for public minting of game NFTs (development only)
 
 ## Notes
 
 - This is a **development/test token** - not for production
 - In mainnet, the game uses the actual LORD token or STRK
 - Faucet allows easy onboarding during testing
+- 24-hour cooldown prevents faucet abuse

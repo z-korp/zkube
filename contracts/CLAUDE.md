@@ -2,7 +2,7 @@
 
 ## Overview
 
-Cairo 2.13.1 smart contracts using the Dojo 1.8.0 framework. These contracts implement the core game logic, state management, and achievement system for the zKube puzzle game.
+Cairo 2.13.1 smart contracts using the Dojo 1.8.0 framework. These contracts implement the core game logic, state management, quest system, and achievement system for the zKube puzzle game.
 
 ## Directory Structure
 
@@ -10,16 +10,20 @@ Cairo 2.13.1 smart contracts using the Dojo 1.8.0 framework. These contracts imp
 contracts/
 ├── src/
 │   ├── lib.cairo              # Module definitions
-│   ├── constants.cairo        # Game constants
+│   ├── constants.cairo        # Game constants and namespace
 │   ├── events.cairo           # Event definitions
 │   ├── models/                # Dojo data models
 │   │   ├── game.cairo         # Game state model
-│   │   └── config.cairo       # Game settings model
+│   │   ├── player.cairo       # PlayerMeta model
+│   │   └── config.cairo       # GameSettings model
 │   ├── systems/               # Dojo systems (logic)
 │   │   ├── game.cairo         # Main game system
 │   │   ├── shop.cairo         # Permanent shop (cube economy)
 │   │   ├── cube_token.cairo   # Soulbound ERC1155 CUBE token
-│   │   └── config.cairo       # Configuration system
+│   │   ├── quest.cairo        # Daily quest system
+│   │   ├── config.cairo       # Configuration system
+│   │   ├── game_token.cairo   # Token integration
+│   │   └── renderer.cairo     # SVG/metadata generation
 │   ├── types/                 # Type definitions
 │   │   ├── bonus.cairo        # Bonus enum (Hammer, Wave, Totem)
 │   │   ├── difficulty.cairo   # Difficulty levels
@@ -27,16 +31,19 @@ contracts/
 │   │   ├── width.cairo        # Width types
 │   │   ├── constraint.cairo   # ConstraintType, LevelConstraint
 │   │   ├── level.cairo        # LevelConfig
-│   │   └── consumable.cairo   # ConsumableType enum (Hammer, Wave, Totem, ExtraMoves)
+│   │   └── consumable.cairo   # ConsumableType enum
 │   ├── elements/              # Game element implementations
-│   │   ├── bonuses/           # Bonus mechanics
-│   │   └── difficulties/      # Difficulty configurations
+│   │   ├── bonuses/           # Bonus mechanics (hammer, wave, totem)
+│   │   ├── difficulties/      # Difficulty configurations
+│   │   ├── tasks/             # Quest task definitions
+│   │   └── quests/            # Quest implementations
 │   ├── helpers/               # Utility functions
-│   │   ├── controller.cairo   # Grid manipulation (77KB, main logic)
+│   │   ├── controller.cairo   # Grid manipulation (main logic)
 │   │   ├── packer.cairo       # Bit packing utilities
 │   │   ├── gravity.cairo      # Block falling logic
 │   │   ├── random.cairo       # VRF random generation
-│   │   └── math.cairo         # Math utilities
+│   │   ├── level.cairo        # Level generation
+│   │   └── config.cairo       # Settings utilities
 │   ├── interfaces/            # Trait definitions
 │   │   └── vrf.cairo          # VRF interface
 │   └── tests/                 # Unit tests
@@ -55,13 +62,13 @@ pub struct Game {
     #[key]
     pub game_id: u64,
     // Grid state (changes every move)
-    pub blocks: felt252,      // 240 bits: 10 rows × 8 cols × 3 bits
+    pub blocks: felt252,      // 240 bits: 10 rows x 8 cols x 3 bits
     pub next_row: u32,        // Pre-generated next row (24 bits)
     // Per-level combo tracking (resets each level)
     pub combo_counter: u8,    // Current combo streak this level
     pub max_combo: u8,        // Best combo this level
     // Level system (bit-packed run progress)
-    pub run_data: felt252,    // Bit-packed: level, score, moves, bonuses, stars, cubes, etc.
+    pub run_data: felt252,    // Bit-packed: level, score, moves, bonuses, cubes, etc.
     // Timestamps
     pub started_at: u64,      // Run start timestamp
     // Game state
@@ -102,6 +109,49 @@ pub struct PlayerMeta {
 - `bridging_rank` (4 bits)
 - `total_runs`, `total_cubes_earned` (stats)
 
+### GameSettings Model (`models/config.cairo`)
+
+Extended settings for custom game modes:
+
+```cairo
+pub struct GameSettings {
+    #[key]
+    pub settings_id: u32,
+    pub difficulty: u8,
+    // Level Scaling
+    pub base_moves: u16,           // Default: 20
+    pub max_moves: u16,            // Default: 60
+    pub base_ratio_x100: u16,      // Default: 80 (0.80)
+    pub max_ratio_x100: u16,       // Default: 250 (2.50)
+    // Cube Thresholds
+    pub cube_3_percent: u8,        // Default: 40%
+    pub cube_2_percent: u8,        // Default: 70%
+    // Consumable Costs
+    pub hammer_cost: u8,           // Default: 5
+    pub wave_cost: u8,             // Default: 5
+    pub totem_cost: u8,            // Default: 5
+    pub extra_moves_cost: u8,      // Default: 10
+    // Reward Multiplier
+    pub cube_multiplier_x100: u16, // Default: 100 (1.0x)
+    // Difficulty Progression
+    pub starting_difficulty: u8,
+    pub difficulty_step_levels: u8,
+    // Constraint Settings
+    pub constraints_enabled: u8,
+    pub constraint_start_level: u8,
+    // Variance Settings
+    pub early_variance_percent: u8,
+    pub mid_variance_percent: u8,
+    pub late_variance_percent: u8,
+    // Level Tier Thresholds
+    pub early_level_threshold: u8,
+    pub mid_level_threshold: u8,
+    pub level_cap: u8,
+    // Constraint Distribution (Easy to Master scaling)
+    // ... additional constraint parameters
+}
+```
+
 ## Systems
 
 ### Game System (`systems/game.cairo`)
@@ -127,11 +177,11 @@ trait IGameSystem {
 
 **`get_shop_data` returns:** (cubes_brought, cubes_spent, cubes_available)
 
-**Key flows:**
-1. `create()` - Initializes game with VRF seed, generates initial grid
-2. `move()` - Processes block movement, gravity, line clearing, bonus calculation
-3. `apply_bonus()` - Applies Hammer/Wave/Totem bonus effects
-4. `surrender()` - Ends game, triggers achievement updates
+**Quest Integration:**
+The game system tracks quest progress by calling `quest_system.progress()`:
+- On `create()`/`create_with_cubes()`: +1 to Grinder task (games played)
+- On `move()` with line clears: +N to LineClearer task
+- On `move()` with combos: +1 to ComboThree/ComboFive/ComboEight tasks
 
 ### Shop System (`systems/shop.cairo`)
 
@@ -155,8 +205,6 @@ trait IShopSystem {
 
 All upgrades burn cubes via the ERC1155 `CubeToken` contract.
 
-**Note:** Shop system needs WRITER permission on `PlayerMeta` model and MINTER_ROLE on CubeToken.
-
 ### CubeToken System (`systems/cube_token.cairo`)
 
 Soulbound ERC1155 token for the CUBE currency (token ID = 1):
@@ -166,30 +214,63 @@ trait ICubeToken {
     fn mint(ref self: T, recipient: ContractAddress, amount: u256);
     fn burn(ref self: T, account: ContractAddress, amount: u256);
     fn balance_of_cubes(self: @T, account: ContractAddress) -> u256;
+    fn grant_minter_roles(ref self: T);
+    fn mint_dev(ref self: T, amount: u256);
 }
 ```
 
 - **Soulbound:** Transfers blocked (only mint from=0 and burn to=0 allowed)
 - **Access Control:** MINTER_ROLE required for mint; burn allowed by owner or MINTER_ROLE
-- **dojo_init:** Grants MINTER_ROLE to game_system and shop_system via world DNS
+- **dojo_init:** Grants MINTER_ROLE to game_system, shop_system, and quest_system
 - **Torii Integration:** `register_external_contract()` registers with Torii for ERC1155 balance indexing
 
-### ConsumableType (`types/consumable.cairo`)
+### Quest System (`systems/quest.cairo`)
 
-In-game shop items purchasable during a run:
+Daily quest system using Cartridge's arcade quest component:
 
 ```cairo
-pub enum ConsumableType {
-    Hammer,      // 5 cubes
-    Wave,        // 5 cubes
-    Totem,       // 5 cubes
-    ExtraMoves,  // 10 cubes (adds 5 moves) - NOT YET IMPLEMENTED (panics)
+trait IQuestSystem {
+    fn claim(ref self: T, quest_id: u32, interval_id: u64);
+    fn progress(ref self: T, player: ContractAddress, task_id: u8, count: u32);
 }
 ```
 
+**Quests (10 total, 102 CUBE/day):**
+
+| Quest | Task | Threshold | Reward |
+|-------|------|-----------|--------|
+| DailyPlayerOne | Games played | 1 | 3 CUBE |
+| DailyPlayerTwo | Games played | 3 | 6 CUBE |
+| DailyPlayerThree | Games played | 5 | 12 CUBE |
+| DailyClearerOne | Lines cleared | 10 | 3 CUBE |
+| DailyClearerTwo | Lines cleared | 30 | 6 CUBE |
+| DailyClearerThree | Lines cleared | 50 | 12 CUBE |
+| DailyComboOne | 3+ combos | 1 | 5 CUBE |
+| DailyComboTwo | 5+ combos | 1 | 10 CUBE |
+| DailyComboThree | 8+ combos | 1 | 20 CUBE |
+| DailyFinisher | All 9 quests | 9 | 25 CUBE |
+
+### Config System (`systems/config.cairo`)
+
+Game settings management:
+
+```cairo
+trait IConfigSystem {
+    fn add_game_settings(ref self: T, name: felt252, description: ByteArray, difficulty: Difficulty) -> u32;
+    fn add_custom_game_settings(ref self: T, /* 21+ parameters */) -> u32;
+    fn get_game_settings(self: @T, settings_id: u32) -> GameSettings;
+    fn settings_exists(self: @T, settings_id: u32) -> bool;
+}
+```
+
+**Default Settings Created on Init:**
+- ID 0: "Fixed Difficulty - Expert"
+- ID 1: "Progressive Difficulty" (Increasing)
+- ID 2: "Fixed Difficulty - Very Hard"
+
 ## Grid Manipulation (`helpers/controller.cairo`)
 
-The core game logic handling:
+Core game logic handling grid operations:
 
 ### Key Functions
 
@@ -198,7 +279,7 @@ impl Controller {
     fn apply_gravity(blocks: felt252) -> felt252;     // Drop blocks down
     fn assess_lines(bitmap: felt252, ...) -> felt252; // Clear full lines
     fn add_line(bitmap: felt252, line: u32) -> felt252; // Add new row
-    fn create_line(seed: felt252, difficulty: Difficulty) -> u32; // Generate row
+    fn create_line(seed: felt252, difficulty: Difficulty, settings: @GameSettings) -> u32;
     fn swipe(blocks: felt252, row: u8, start: u8, dir: bool, count: u8) -> felt252;
 }
 ```
@@ -213,18 +294,53 @@ Row 8:          [b7][b6][b5][b4][b3][b2][b1][b0]
 Row 0 (bottom): [b7][b6][b5][b4][b3][b2][b1][b0]
 ```
 
-Each block = 3 bits (0-7), 0 = empty
+Each block = 3 bits (0-4), 0 = empty
+
+### run_data Bit Layout
+
+```
+Bits 0-7:     current_level (u8)
+Bits 8-15:    level_score (u8)
+Bits 16-23:   level_moves (u8)
+Bits 24-31:   constraint_progress (u8)
+Bits 32-39:   constraint_2_progress (u8)
+Bit 40:       bonus_used_this_level (bool)
+Bit 41:       combo_5_achieved (bool)
+Bit 42:       combo_10_achieved (bool)
+Bits 43-50:   hammer_count (u8)
+Bits 51-58:   wave_count (u8)
+Bits 59-66:   totem_count (u8)
+Bits 67-74:   max_combo_run (u8)
+Bits 75-82:   extra_moves (u8)
+Bits 83-98:   cubes_brought (u16)
+Bits 99-114:  cubes_spent (u16)
+Bits 115-130: total_cubes (u16)
+Bits 131-146: total_score (u16)
+```
 
 ## Bonuses
 
 ### Hammer (`elements/bonuses/hammer.cairo`)
-Clears the target block and connected same-color blocks.
+Clears the target block and connected same-size blocks.
 
 ### Wave (`elements/bonuses/wave.cairo`)
 Clears an entire horizontal row.
 
 ### Totem (`elements/bonuses/totem.cairo`)
-Clears blocks in a vertical column at the specified position.
+Clears all blocks of the same size on the grid.
+
+## ConsumableType (`types/consumable.cairo`)
+
+In-game shop items purchasable during a run:
+
+```cairo
+pub enum ConsumableType {
+    Hammer,      // 5 cubes - Implemented
+    Wave,        // 5 cubes - Implemented
+    Totem,       // 5 cubes - Implemented
+    ExtraMoves,  // 10 cubes - NOT YET IMPLEMENTED (panics)
+}
+```
 
 ## Difficulty Levels
 
@@ -232,15 +348,25 @@ Defined in `types/difficulty.cairo` and implemented in `elements/difficulties/`:
 
 | Level | Block Distribution |
 |-------|-------------------|
-| VeryEasy | Mostly simple blocks, many gaps |
+| VeryEasy | Mostly small blocks (size 1-2), many gaps |
 | Easy | Simple blocks |
 | Medium | Mixed blocks |
 | MediumHard | Complex blocks, fewer gaps |
 | Hard | Complex blocks |
 | VeryHard | Very complex blocks |
 | Expert | Expert-level complexity |
-| Master | Maximum difficulty |
-| Increasing | Progressive based on moves |
+| Master | Maximum difficulty (size 3-4 dominant) |
+| Increasing | Progressive based on level thresholds |
+
+**Difficulty Tier Thresholds (default):**
+- Levels 1-3: VeryEasy
+- Levels 4-7: Easy
+- Levels 8-11: Medium
+- Levels 12-17: MediumHard
+- Levels 18-24: Hard
+- Levels 25-34: VeryHard
+- Levels 35-44: Expert
+- Levels 45+: Master
 
 ## Dependencies
 
@@ -249,29 +375,34 @@ Defined in `types/difficulty.cairo` and implemented in `elements/difficulties/`:
 dojo = "1.8.0"
 starknet = "2.13.1"
 openzeppelin_token = { git = "OpenZeppelin/cairo-contracts", tag = "v3.0.0-alpha.3" }
+openzeppelin_access = { git = "OpenZeppelin/cairo-contracts", tag = "v3.0.0-alpha.3" }
 alexandria_math = { git = "keep-starknet-strange/alexandria", tag = "v0.7.0" }
 achievement = { git = "cartridge-gg/arcade" }
+quest = { git = "cartridge-gg/arcade" }
 origami_random = { git = "dojoengine/origami", tag = "v1.7.0" }
 game_components_minigame = { git = "Provable-Games/game-components", tag = "v2.13.1" }
+game_components_token = { git = "Provable-Games/game-components", tag = "v2.13.1" }
+graffiti = { git = "Keep-Starknet-Strange/graffiti" }
 ```
 
 ## Build & Deploy
 
 ```bash
-# Build
+# Build (from workspace root)
 scarb build
 
-# Deploy to slot (local)
-scarb slot
-
-# Deploy to sepolia
-scarb sepolia
-
-# Deploy to mainnet
-scarb mainnet
+# Build for specific network (from contracts/)
+sozo build -P slot
+sozo build -P sepolia
+sozo build -P mainnet
 
 # Run tests
 scarb test
+
+# Deploy (from workspace root)
+sozo migrate -P slot
+sozo migrate -P sepolia
+sozo migrate -P mainnet
 ```
 
 ## Namespace
@@ -287,15 +418,21 @@ pub fn DEFAULT_NS() -> ByteArray {
 
 ## External Contract Integration
 
-### MinigameToken
+### MinigameToken (FullTokenContract)
 - Used for game NFT ownership verification
 - Handles lifecycle (playable state)
 - Manages player names
+- `free_mint()` creates new game NFTs
 
 ### Achievement Contract
 - Cartridge's arcade achievement system
 - Trophies and task tracking
 - Called on game over
+
+### Quest Contract
+- Cartridge's arcade quest component
+- Daily quest tracking with intervals
+- Quest progress and claiming
 
 ## Testing
 
@@ -325,6 +462,7 @@ Mock contracts in `tests/mocks/`:
    - Combo bonuses: 4+ lines = +1, 5+ = +2, 6+ = +3 cubes
    - Combo achievements: First 5-line combo = +3, first 10-line = +5 cubes
 6. **Starting Bonuses**: PlayerMeta upgrades apply on game creation
+7. **Quest Integration**: game_system calls quest_system.progress() automatically
 
 ## VRF vs Pseudo-Random
 
@@ -337,16 +475,6 @@ The Cartridge VRF provider is only deployed on Sepolia and Mainnet:
 For local development on slot/katana where VRF doesn't exist:
 - Use `RandomImpl::new_pseudo_random()` in `systems/game.cairo`
 - Generates seed from: `poseidon_hash([tx_hash, caller, contract, timestamp, nonce])`
-
-```cairo
-// In systems/game.cairo create() function:
-
-// For slot/katana (no VRF):
-let random = RandomImpl::new_pseudo_random();
-
-// For mainnet/sepolia (with VRF):
-let random = RandomImpl::new_vrf();
-```
 
 ### Switching Between Modes
 When deploying to different networks, update `systems/game.cairo`:
@@ -363,14 +491,10 @@ Systems that emit events need explicit WRITER grants in the dojo config:
 "zkube_budo_v1_2_0-Game" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-GameSeed" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-PlayerMeta" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-shop_system"]
-# ... other models ...
-
 # Events also need writer permissions!
 "zkube_budo_v1_2_0-StartGame" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-UseBonus" = ["zkube_budo_v1_2_0-game_system"]
 ```
-
-If you see errors like `game_system does NOT have WRITER role on event StartGame`, add the event to the writers section.
 
 ## Slot Deployment
 
@@ -389,20 +513,15 @@ This script handles the full deployment including token contracts. See `scripts/
    let random = RandomImpl::new_pseudo_random();
    ```
 
-2. **Ensure event permissions** in `dojo_slot.toml`:
-   ```toml
-   [writers]
-   "zkube_budo_v1_2_0-StartGame" = ["zkube_budo_v1_2_0-game_system"]
-   "zkube_budo_v1_2_0-UseBonus" = ["zkube_budo_v1_2_0-game_system"]
-   "zkube_budo_v1_2_0-PlayerMeta" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-shop_system"]
-   ```
+2. **Ensure event permissions** in `dojo_slot.toml`
 
 3. **Deploy token contracts first** (MinigameRegistry, FullTokenContract)
+
 4. **Update `denshokan_address`** in BOTH config files:
    - `./dojo_slot.toml`
    - `./contracts/dojo_slot.toml`
 
-5. **Run migrate** (MUST run from workspace root, NOT from contracts/):
+5. **Run migrate** (MUST run from workspace root):
    ```bash
    sozo migrate -P slot
    ```

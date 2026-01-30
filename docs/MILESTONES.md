@@ -1,0 +1,248 @@
+# zKube Project Milestones
+
+> **Version:** 1.2.0  
+> **Last Updated:** January 2026
+
+This document tracks completed milestones and features for the zKube project.
+
+---
+
+## Version 1.2.0 (January 2026) - Current
+
+### Major Features Completed
+
+#### Quest System
+- **10 Daily Quests** with tiered progression (Player, Clearer, Combo, Finisher)
+- **102 CUBE/day** total rewards available
+- Quest progress tracking via `quest_system`
+- Integration with `game_system` for automatic progress updates
+- Frontend: QuestsProvider, QuestsDialog, QuestCard components
+
+#### Configurable GameSettings
+- Extended `GameSettings` model with 21+ configurable parameters
+- Level scaling (moves, points ratio, variance)
+- Cube thresholds (3-star, 2-star percentages)
+- Consumable costs (hammer, wave, totem, extra moves)
+- Constraint distribution (Easy to Master interpolation)
+- Difficulty progression (starting difficulty, step levels)
+- `add_custom_game_settings()` API for custom game modes
+
+#### Constraint System Enhancements
+- Dual constraint support (higher difficulties can have two constraints)
+- NoBonusUsed constraint type
+- Scalable parameters from Easy to Master difficulty
+- Budget-based constraint generation
+
+#### Cube Economy
+- Soulbound ERC1155 CUBE token
+- Permanent shop (starting bonuses, bag size, bridging rank)
+- In-game shop (consumables every 5 levels)
+- Cube bridging (bring cubes from wallet into runs)
+- Spending order: brought cubes first, then earned
+
+### Technical Improvements
+
+- Workspace structure with unified Scarb build
+- VRF/pseudo-random switching for slot vs mainnet
+- Entity ID normalization for Torii compatibility
+- CubeToken registered with Torii for balance indexing
+- Quest system MINTER_ROLE for reward distribution
+
+---
+
+## Version 1.1.0 (December 2025)
+
+### Level System Implementation
+
+- **50 Levels** with progressive difficulty
+- Move scaling: 20 (level 1) to 60 (level 50)
+- Points ratio scaling: 0.80 to 2.50
+- Variance by tier: ±5% early, ±10% mid, ±15% late
+- Seed-based deterministic level generation
+- Level completion with star ratings (1-3 cubes)
+
+### Bonus System
+
+- **Hammer:** Clear block + connected same-size blocks
+- **Wave:** Clear entire horizontal row
+- **Totem:** Clear all blocks of same size on grid
+- Bonus earning based on score, combos, max combo
+- Bag size upgrades (max capacity per bonus type)
+- Starting bonus upgrades (begin runs with bonuses)
+
+### Shop System
+
+- **Permanent Shop:** Meta-progression upgrades
+  - Starting bonuses (50/200/500 cubes)
+  - Bag size (10/20/40/80 cubes)
+  - Bridging rank (100/200/400/800 cubes)
+- **In-Game Shop:** Consumables every 5 levels
+  - Hammer, Wave, Totem (5 cubes each)
+  - ExtraMoves (10 cubes) - type exists but not yet implemented
+
+### PlayerMeta Model
+
+- Bit-packed upgrade data
+- Lifetime statistics (total runs, cubes earned)
+- Best level tracking
+- Starting bonus counts
+- Bag size levels
+- Bridging rank
+
+---
+
+## Version 1.0.0 (November 2025)
+
+### Core Game Mechanics
+
+- **8x10 Grid** with blocks sized 1-4
+- Block packing into felt252 (240 bits)
+- Horizontal swiping/dragging
+- Gravity system
+- Line clearing
+- Combo system (consecutive line clears)
+
+### Difficulty System
+
+- 8 difficulty levels: VeryEasy through Master
+- Increasing mode (progressive difficulty)
+- Block weight distributions per difficulty
+- Harder difficulties = larger blocks, fewer gaps
+
+### Game Flow
+
+- NFT-based game tokens (FullTokenContract)
+- Game creation with VRF seed
+- Move processing with validation
+- Game over detection (grid full)
+- Achievement tracking (Cartridge arcade)
+
+### Frontend Foundation
+
+- React 18 + TypeScript + Vite
+- Dojo SDK integration
+- RECS for reactive game state
+- Cartridge Controller wallet
+- Grid rendering with animations
+- Drag/drop block movement
+- Audio system (music + effects)
+
+### Contract Foundation
+
+- Dojo 1.8.0 framework
+- Game, GameSeed, PlayerMeta models
+- game_system, shop_system contracts
+- Controller helper (grid manipulation)
+- Packing utilities
+- Random generation (VRF + pseudo)
+
+---
+
+## Pre-1.0 Development
+
+### Prototype Phase
+
+- Initial grid concept and mechanics
+- Block movement proof of concept
+- Line clearing algorithm
+- Basic scoring system
+- First Cairo implementation
+
+### Integration Phase
+
+- Dojo framework adoption
+- game-components integration
+- Torii indexer setup
+- Frontend-contract binding
+- Wallet connection
+
+---
+
+## Completed Feature Checklist
+
+### Game Mechanics
+- [x] Grid representation (felt252 packing)
+- [x] Block movement (horizontal swipe)
+- [x] Gravity system
+- [x] Line clearing
+- [x] Combo system
+- [x] Bonus effects (Hammer, Wave, Totem)
+
+### Level System
+- [x] 50-level progression
+- [x] Difficulty scaling
+- [x] Constraint system
+- [x] Star rating (1-3 cubes)
+- [x] Seed-based generation
+
+### Economy
+- [x] CUBE ERC1155 token
+- [x] Soulbound (non-transferable)
+- [x] Earning via gameplay
+- [x] Permanent shop upgrades
+- [x] In-game shop consumables
+- [x] Cube bridging system
+
+### Meta-Progression
+- [x] PlayerMeta model
+- [x] Starting bonus upgrades
+- [x] Bag size upgrades
+- [x] Bridging rank upgrades
+- [x] Best level tracking
+- [x] Lifetime statistics
+
+### Quest System
+- [x] Daily quests (10 total)
+- [x] Quest progress tracking
+- [x] Quest claiming
+- [x] Quest rewards (CUBE)
+- [x] Frontend quest UI
+
+### Configurable Settings
+- [x] Extended GameSettings model
+- [x] Level scaling parameters
+- [x] Constraint distribution
+- [x] Custom game modes API
+- [x] Default settings presets
+
+### Infrastructure
+- [x] Dojo 1.8.0 integration
+- [x] game-components framework
+- [x] VRF randomness (sepolia/mainnet)
+- [x] Pseudo-random (slot)
+- [x] Torii indexing
+- [x] Achievement system
+
+### Frontend
+- [x] React 18 + TypeScript
+- [x] Grid rendering
+- [x] Block animations
+- [x] Drag/drop controls
+- [x] Shop dialogs
+- [x] Quest panel
+- [x] Wallet integration
+- [x] Audio system
+
+---
+
+## Pending Features
+
+See [FUTURE_FEATURES.md](./FUTURE_FEATURES.md) for the complete roadmap of unimplemented features including:
+
+- ExtraMoves consumable
+- Revival Token
+- Skip Constraint
+- Daily Challenge Mode
+- New bonus types (Freeze, Bomb)
+- Special blocks
+- Cosmetics
+
+---
+
+## Version History Summary
+
+| Version | Date | Highlights |
+|---------|------|------------|
+| 1.2.0 | Jan 2026 | Quest system, Configurable settings, Enhanced constraints |
+| 1.1.0 | Dec 2025 | Level system, Bonus system, Two-shop economy |
+| 1.0.0 | Nov 2025 | Core mechanics, Difficulty system, Foundation |

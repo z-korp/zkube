@@ -2,22 +2,30 @@
 
 ## Project Overview
 
-zKube is a fully on-chain puzzle roguelike built with the Dojo framework on Starknet. Players manipulate blocks on an 8x10 grid to form solid horizontal lines, progress through levels, earn cubes (ERC1155 currency), and spend them on upgrades. The game features VRF-powered randomness, strategic bonuses, a level system with constraints, a cube economy with two shops, and an achievement system.
+zKube is a fully on-chain puzzle roguelike built with the Dojo framework on Starknet. Players manipulate blocks on an 8x10 grid to form solid horizontal lines, progress through levels, earn cubes (ERC1155 currency), and spend them on upgrades. The game features VRF-powered randomness, strategic bonuses, a level system with constraints, a cube economy with two shops, a daily quest system, and an achievement system.
 
 ## Architecture
 
 ```
 zkube/
-├── Scarb.toml          # Workspace root (shared dependencies)
-├── contracts/          # Dojo smart contracts (Cairo 2.13.1)
+├── Scarb.toml              # Workspace root (shared dependencies)
+├── contracts/              # Dojo smart contracts (Cairo 2.13.1)
+│   ├── src/
+│   │   ├── systems/        # game, shop, cube_token, config, quest, renderer
+│   │   ├── models/         # Game, GameSeed, PlayerMeta, GameSettings
+│   │   ├── helpers/        # controller, level, packing, gravity, random
+│   │   ├── types/          # bonus, difficulty, constraint, consumable, level
+│   │   └── elements/       # bonuses/, difficulties/, tasks/, quests/
+│   ├── dojo_*.toml         # Network-specific configs
+│   └── manifest_*.json     # Deployment manifests
 ├── packages/
-│   ├── game_erc721/    # ERC721 NFT contract for game tokens
-│   └── token/          # ERC20 token contract (Fake LORD)
-├── client-budokan/     # React/TypeScript frontend application
-├── assets/             # Game graphics, sounds, and media
-├── scripts/            # Python utility scripts
-├── docs/               # Documentation
-└── references/         # Reference implementations (death-mountain, etc.)
+│   ├── game_erc721/        # Legacy ERC721 contract (replaced by FullTokenContract)
+│   └── token/              # ERC20 test token (Fake LORD)
+├── client-budokan/         # React/TypeScript frontend application
+├── assets/                 # Game graphics, sounds, and media
+├── scripts/                # Deployment and utility scripts
+├── docs/                   # Documentation
+└── references/             # Reference implementations (death-mountain, dark-shuffle)
 ```
 
 **Workspace**: All contracts are in a unified Scarb workspace. Run `scarb build` from root to build all packages.
@@ -28,17 +36,19 @@ zkube/
 - **Framework:** React 18.3.1 + TypeScript 5.8.3
 - **Build Tool:** Vite 6.3.5
 - **Styling:** TailwindCSS 3.4.4
-- **State Management:** Zustand 4.5.5, MobX 6.13.2
+- **State Management:** Zustand 4.5.5, MobX 6.13.2, RECS (Reactive ECS)
 - **Animation:** Framer Motion 11.2.10, GSAP 3.12.5
 - **Starknet:** starknet 8.5.2, @starknet-react/core 5.0.1
 - **Dojo:** @dojoengine/sdk 1.8.1, @dojoengine/core 1.8.1
 - **Wallet:** Cartridge Controller 0.10.7
+- **Audio:** use-sound (Howler.js)
 
 ### Smart Contracts (`contracts/`)
 - **Language:** Cairo 2.13.1
 - **Framework:** Dojo 1.8.0
 - **Network:** Starknet 2.13.1
 - **Standards:** OpenZeppelin Cairo v3.0.0-alpha.3
+- **External:** game-components v2.13.1, achievement, quest (Cartridge arcade)
 
 ## How Everything Works Together
 
@@ -65,15 +75,15 @@ zkube/
 │  │  - apply_bonus │  └──────────────┘  └─────────────────┘        │
 │  │  - purchase_   │                                                │
 │  │    consumable  │  ┌──────────────┐  ┌─────────────────┐        │
-│  └────────────────┘  │Config System │  │Achievement System│       │
-│           │          │ - settings   │  │ - trophies      │        │
-│           ▼          └──────────────┘  └─────────────────┘        │
-│  ┌────────────────┐  ┌──────────────┐  ┌─────────────────┐        │
-│  │   Game Model   │  │  GameSeed    │  │  PlayerMeta     │        │
-│  │  - blocks      │  │  - VRF seed  │  │  - upgrades     │        │
-│  │  - run_data    │  └──────────────┘  │  - best_level   │        │
-│  │  - combo/over  │                    └─────────────────┘        │
-│  └────────────────┘                                                │
+│  └────────────────┘  │Quest System  │  │Achievement      │        │
+│           │          │ - progress   │  │ System          │        │
+│           ▼          │ - claim      │  │ - trophies      │        │
+│  ┌────────────────┐  └──────────────┘  └─────────────────┘        │
+│  │   Game Model   │  ┌──────────────┐  ┌─────────────────┐        │
+│  │  - blocks      │  │  GameSeed    │  │  PlayerMeta     │        │
+│  │  - run_data    │  │  - VRF seed  │  │  - upgrades     │        │
+│  │  - combo/over  │  └──────────────┘  │  - best_level   │        │
+│  └────────────────┘                    └─────────────────┘        │
 └─────────────────────────────────────────────────────────────────────┘
                               │
                               │ Torii Indexer (GraphQL)
@@ -88,9 +98,9 @@ zkube/
 
 1. **Game Creation:**
    - User connects wallet via Cartridge Controller
-   - Calls `free_mint()` on the token contract (gets NFT game token)
+   - Calls `free_mint()` on the FullTokenContract (gets NFT game token)
    - Calls `create()` or `create_with_cubes()` on game_system with the token ID
-   - VRF generates random seed for the game
+   - VRF generates random seed for the game (or pseudo-random on slot)
    - Initial grid is created, level 1 config generated from seed
 
 2. **Gameplay (Level System):**
@@ -98,7 +108,8 @@ zkube/
    - User swipes blocks horizontally via drag handlers
    - `move()` transaction updates blocks, applies gravity, checks lines
    - Completed lines increase score, track combos and constraint progress
-   - Level completes when score threshold is met; new level starts
+   - Quest progress tracked (games played, lines cleared, combos)
+   - Level completes when score threshold + constraints met
    - Bonuses awarded based on star rating (3-star/2-star/1-star performance)
    - Every 5 levels, in-game shop appears to spend cubes on consumables
    - On game over, earned cubes are minted as ERC1155 tokens to player's wallet
@@ -112,13 +123,13 @@ zkube/
 ### Grid Representation
 
 The game grid is stored as a single `felt252` (240 bits):
-- 10 rows × 8 columns
-- Each block = 3 bits (values 0-7 for colors/types)
-- Row = 24 bits (8 blocks × 3 bits)
+- 10 rows x 8 columns
+- Each block = 3 bits (values 0-4 for sizes, 0 = empty)
+- Row = 24 bits (8 blocks x 3 bits)
 - Total = 240 bits packed into felt252
 
 ```cairo
-// Block packing
+// Block packing constants
 pub const BLOCK_SIZE: u8 = 8;       // 8 blocks per row
 pub const BLOCK_BIT_COUNT: u8 = 3;  // 3 bits per block
 pub const ROW_BIT_COUNT: u8 = 24;   // 24 bits per row
@@ -129,25 +140,52 @@ pub const DEFAULT_GRID_HEIGHT: u8 = 10;
 ### Bonus System
 
 Three types of bonuses earned through gameplay:
-- **Hammer:** Clears a specific block and its group
-- **Wave:** Clears an entire row
-- **Totem:** Clears a vertical column
+- **Hammer:** Clears a specific block and connected same-size blocks
+- **Wave:** Clears an entire horizontal row
+- **Totem:** Clears all blocks of the same size on the grid
 
-Bonuses are calculated based on:
-- Current score
-- Combo counter (total lines cleared in combos)
-- Max combo (highest single combo chain)
+Bonuses awarded at level completion based on:
+- Score achieved (Hammer thresholds: 40/80/120)
+- Combo count (Wave thresholds: 16/32/64)
+- Max combo (Totem thresholds: 2/4/6)
 
-### Difficulty System
+### Level System
 
-8 difficulty levels + Progressive mode:
-- VeryEasy, Easy, Medium, MediumHard, Hard, VeryHard, Expert, Master
-- **Increasing:** Starts at MediumHard, increases based on moves:
-  - 0-19 moves: MediumHard
-  - 20-39 moves: Hard
-  - 40-79 moves: VeryHard
-  - 80-139 moves: Expert
-  - 140+ moves: Master
+50 levels with progressive difficulty:
+- **Moves:** 20 at level 1, scales to 60 at level 50
+- **Points ratio:** 0.80 at level 1, scales to 2.50 at level 50
+- **Difficulty:** VeryEasy -> Easy -> Medium -> MediumHard -> Hard -> VeryHard -> Expert -> Master
+- **Constraints:** ClearLines (X lines in one move, Y times) or NoBonusUsed
+- **Variance:** +/-5% early, +/-10% mid, +/-15% late levels
+
+### Constraint System
+
+Level constraints add challenge for bonus rewards:
+- **ClearLines:** Clear X lines in a single move, Y times per level
+- **NoBonusUsed:** Complete level without using any bonus
+- **Dual constraints:** Higher difficulties can have two constraints
+
+Parameters scale from Easy to Master difficulty:
+- None chance: 30% -> 0%
+- NoBonusUsed chance: 0% -> 25%
+- Dual constraint chance: 0% -> 50%
+
+### Quest System
+
+Daily quests for earning CUBE tokens (102 CUBE/day total):
+
+| Category | Quest | Requirement | Reward |
+|----------|-------|-------------|--------|
+| Player | Warm-Up | Play 1 game | 3 CUBE |
+| Player | Getting Started | Play 3 games | 6 CUBE |
+| Player | Dedicated | Play 5 games | 12 CUBE |
+| Clearer | Line Breaker | Clear 10 lines | 3 CUBE |
+| Clearer | Line Crusher | Clear 30 lines | 6 CUBE |
+| Clearer | Line Master | Clear 50 lines | 12 CUBE |
+| Combo | Combo Starter | 3+ line combo | 5 CUBE |
+| Combo | Combo Builder | 5+ line combo | 10 CUBE |
+| Combo | Combo Expert | 8+ line combo | 20 CUBE |
+| Finisher | Daily Champion | Complete all 9 | 25 CUBE |
 
 ### Achievement System
 
@@ -170,18 +208,23 @@ Trophies tracked via Cartridge's arcade achievement system:
 - `contracts/src/systems/game.cairo` - Main game logic (create, move, apply_bonus, purchase_consumable)
 - `contracts/src/systems/shop.cairo` - Permanent shop (upgrades, bag size, bridging rank)
 - `contracts/src/systems/cube_token.cairo` - Soulbound ERC1155 CUBE token (mint/burn)
+- `contracts/src/systems/quest.cairo` - Daily quest system (progress, claim)
+- `contracts/src/systems/config.cairo` - Game settings management
 - `contracts/src/models/game.cairo` - Game state model (blocks, run_data, combo, over)
 - `contracts/src/models/player.cairo` - PlayerMeta model (upgrades, best_level)
+- `contracts/src/models/config.cairo` - GameSettings model (configurable parameters)
 - `contracts/src/helpers/controller.cairo` - Grid manipulation logic
-- `contracts/src/constants.cairo` - Game constants
+- `contracts/src/helpers/level.cairo` - Level generation with settings
+- `contracts/src/constants.cairo` - Game constants and namespace
 
-### Token Contracts (in packages/)
-- `packages/token/` - ERC20 "Fake LORD" token with faucet
-- `packages/game_erc721/` - Game NFT tokens (each game = 1 NFT)
+### Token Contracts
+- `packages/token/` - ERC20 "Fake LORD" token with faucet (development only)
+- `packages/game_erc721/` - Legacy ERC721 (replaced by FullTokenContract)
+- **FullTokenContract** - game-components ERC721 for game NFTs (deployed externally)
 
 ### Cube Token (ERC1155)
 - `contracts/src/systems/cube_token.cairo` - Soulbound ERC1155 with CUBE_TOKEN_ID=1
-- Mint/burn controlled by MINTER_ROLE (granted to game_system and shop_system)
+- Mint/burn controlled by MINTER_ROLE (granted to game_system, shop_system, quest_system)
 - Torii indexes balances via registered external contract
 
 ## Development Commands
@@ -199,18 +242,26 @@ pnpm test        # Run tests
 ### Contracts (Workspace)
 ```bash
 # From project root
-scarb build              # Build all packages (contracts, game_erc721, token)
+scarb build              # Build all packages
 
 # From contracts directory
 cd contracts
-scarb slot       # Deploy to slot
-scarb sepolia    # Deploy to sepolia
-scarb mainnet    # Deploy to mainnet
-scarb test       # Run Cairo tests
+sozo build -P slot       # Build for slot
+sozo build -P sepolia    # Build for sepolia
+sozo build -P mainnet    # Build for mainnet
+scarb test               # Run Cairo tests
+```
 
-# Token contract tests
-cd packages/game_erc721
-snforge test     # Run Foundry tests
+### Deployment
+```bash
+# Automated slot deployment (recommended)
+./scripts/deploy_slot.sh
+
+# Manual deployment
+cd contracts
+sozo migrate -P slot     # Deploy to slot (from workspace root!)
+sozo migrate -P sepolia  # Deploy to sepolia
+sozo migrate -P mainnet  # Deploy to mainnet
 ```
 
 ## Namespace
@@ -220,6 +271,7 @@ Current namespace: `zkube_budo_v1_2_0`
 Models are prefixed with this namespace in Torii queries:
 - `zkube_budo_v1_2_0-Game`
 - `zkube_budo_v1_2_0-GameSettingsMetadata`
+- `zkube_budo_v1_2_0-PlayerMeta`
 
 ## Important Patterns
 
@@ -229,14 +281,25 @@ Models are prefixed with this namespace in Torii queries:
 - Use existing hooks in `client-budokan/src/hooks/`
 
 ### State Management
-- Game state: RECS via Dojo
+- Game state: RECS via Dojo (reactive, synced from Torii)
 - UI state: Zustand stores (`generalStore.ts`, `moveTxStore.ts`)
 - Audio: React Context (`MusicPlayerProvider`, `SoundPlayerProvider`)
+- Quests: React Context (`QuestsProvider`)
 
 ### Transaction Flow
 - All game transactions go through `client-budokan/src/dojo/systems.ts`
 - Transactions are wrapped with loading toasts and error handling
 - Move transactions update `moveTxStore` for UI feedback
+
+### Entity ID Normalization
+Torii stores entity IDs without leading zeros:
+```typescript
+const normalizeEntityId = (entityId: string): Entity => {
+  if (!entityId.startsWith("0x")) return entityId as Entity;
+  const hex = entityId.slice(2).replace(/^0+/, "") || "0";
+  return `0x${hex}` as Entity;
+};
+```
 
 ## External Dependencies
 
@@ -251,10 +314,11 @@ Models are prefixed with this namespace in Torii queries:
 - `@cartridge/controller` - Wallet controller
 - `@cartridge/connector` - Starknet connector
 - `achievement` (Cairo) - Achievement system
+- `quest` (Cairo) - Quest system
 
 ### Provable Games
 - `game_components_minigame` - Minigame framework
-- `game_components_token` - Token utilities
+- `game_components_token` - Token utilities (FullTokenContract)
 - `metagame-sdk` - Metagame integration
 
 ## Network Deployments
@@ -333,8 +397,8 @@ If deployment fails with "contract address 0x0 not deployed", check that BOTH fi
 If the script fails, deploy manually:
 
 ```bash
-# 1. Clean and build
-cd contracts && sozo clean -P slot && sozo build -P slot && cd ..
+# 1. Clean and build (from workspace root)
+sozo clean -P slot && sozo build -P slot
 
 # 2. Declare classes
 RPC="https://api.cartridge.gg/x/YOUR-SLOT/katana"
@@ -384,3 +448,15 @@ sozo migrate -P slot
 **"contract address 0x... is not deployed"**
 - The FullTokenContract address doesn't match what's deployed
 - Redeploy the token contract and update the config files
+
+## Documentation
+
+See `/docs/` for detailed documentation:
+- **GAME_DESIGN.md** - Complete game design document
+- **QUEST_SYSTEM.md** - Daily quest system implementation
+- **CONFIGURABLE_SETTINGS.md** - GameSettings customization
+- **DEPLOYMENT_GUIDE.md** - Network deployment guide
+- **WORKSPACE_STRUCTURE.md** - Scarb workspace organization
+- **AGENT_QUICKSTART.md** - Quick reference for Claude agents
+- **MILESTONES.md** - Project milestones and completed features
+- **FUTURE_FEATURES.md** - Roadmap and planned features
