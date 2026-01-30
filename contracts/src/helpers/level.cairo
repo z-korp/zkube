@@ -43,6 +43,41 @@ mod LevelConstants {
     pub const CONSTRAINT_NONE_THRESHOLD: u8 = 4;
 }
 
+/// Boss level constants and helpers
+/// Boss levels occur at 10, 20, 30, 40, 50 with fixed dual constraints
+pub mod BossLevel {
+    /// Check if a level is a boss level
+    pub fn is_boss_level(level: u8) -> bool {
+        level == 10 || level == 20 || level == 30 || level == 40 || level == 50
+    }
+    
+    /// Get boss tier (1-5) for a boss level
+    /// Returns 0 if not a boss level
+    pub fn get_boss_tier(level: u8) -> u8 {
+        match level {
+            10 => 1,
+            20 => 2,
+            30 => 3,
+            40 => 4,
+            50 => 5,
+            _ => 0,
+        }
+    }
+    
+    /// Get boss cube bonus for completing a boss level
+    /// Boss I (L10) = +10, Boss II (L20) = +20, etc.
+    pub fn get_boss_cube_bonus(level: u8) -> u16 {
+        match level {
+            10 => 10,
+            20 => 20,
+            30 => 30,
+            40 => 40,
+            50 => 50,
+            _ => 0,
+        }
+    }
+}
+
 #[generate_trait]
 pub impl LevelGenerator of LevelGeneratorTrait {
     /// Generate a complete level configuration from seed, level number, and GameSettings
@@ -91,10 +126,15 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         // Get difficulty from settings
         let difficulty = settings.get_difficulty_for_level(calc_level);
         
-        // Generate constraints based on difficulty (supports dual constraints)
-        let (constraint, constraint_2) = Self::generate_constraints_with_settings(
-            level_seed, level, difficulty, settings
-        );
+        // Generate constraints: use fixed boss constraints for boss levels, otherwise normal generation
+        // Respect constraints_enabled setting for both boss and regular levels
+        let (constraint, constraint_2) = if !settings.are_constraints_enabled() {
+            (LevelConstraintTrait::none(), LevelConstraintTrait::none())
+        } else if BossLevel::is_boss_level(level) {
+            Self::generate_boss_constraints(level)
+        } else {
+            Self::generate_constraints_with_settings(level_seed, level, difficulty, settings)
+        };
 
         LevelConfig {
             level,
@@ -105,6 +145,41 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             constraint_2,
             cube_3_threshold,
             cube_2_threshold,
+        }
+    }
+    
+    /// Generate fixed boss constraints based on boss tier
+    /// Boss levels always have dual constraints (no RNG)
+    /// 
+    /// Boss I  (L10): Clear 2+ lines 3 times + Clear 3+ lines 1 time
+    /// Boss II (L20): Clear 3+ lines 2 times + NoBonusUsed
+    /// Boss III(L30): Clear 3+ lines 3 times + Clear 4+ lines 1 time
+    /// Boss IV (L40): Clear 4+ lines 2 times + NoBonusUsed
+    /// Boss V  (L50): Clear 4+ lines 3 times + NoBonusUsed
+    fn generate_boss_constraints(level: u8) -> (LevelConstraint, LevelConstraint) {
+        let tier = BossLevel::get_boss_tier(level);
+        match tier {
+            1 => (
+                LevelConstraintTrait::clear_lines(2, 3),  // Clear 2+ lines, 3 times
+                LevelConstraintTrait::clear_lines(3, 1),  // Clear 3+ lines, 1 time
+            ),
+            2 => (
+                LevelConstraintTrait::clear_lines(3, 2),  // Clear 3+ lines, 2 times
+                LevelConstraintTrait::no_bonus(),         // No bonus used
+            ),
+            3 => (
+                LevelConstraintTrait::clear_lines(3, 3),  // Clear 3+ lines, 3 times
+                LevelConstraintTrait::clear_lines(4, 1),  // Clear 4+ lines, 1 time
+            ),
+            4 => (
+                LevelConstraintTrait::clear_lines(4, 2),  // Clear 4+ lines, 2 times
+                LevelConstraintTrait::no_bonus(),         // No bonus used
+            ),
+            5 => (
+                LevelConstraintTrait::clear_lines(4, 3),  // Clear 4+ lines, 3 times
+                LevelConstraintTrait::no_bonus(),         // No bonus used
+            ),
+            _ => (LevelConstraintTrait::none(), LevelConstraintTrait::none()),
         }
     }
 
@@ -144,16 +219,24 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     
     /// Returns the weighted difficulty cost for clearing N lines at once.
     /// Higher line counts are exponentially harder to achieve in practice.
-    /// Line costs: 2->1, 3->2, 4->4, 5->7, 6->11, 7->16
+    /// Line costs: 2->2, 3->4, 4->6, 5->10, 6->15, 7+->20
+    /// 
+    /// Used by constraint generation to determine how many "times" a constraint requires.
+    /// Formula: times = budget / line_cost(lines)
+    /// 
+    /// Examples at Master (budget 25-40):
+    /// - 4 lines (cost 6): times = 4-6
+    /// - 5 lines (cost 10): times = 2-4
+    /// - 6 lines (cost 15): times = 1-2
     fn line_cost(lines: u8) -> u8 {
         match lines {
-            0 | 1 | 2 => 1,
-            3 => 2,
-            4 => 4,
-            5 => 7,
-            6 => 11,
-            7 => 16,
-            _ => 20,  // 8+ (theoretical, grid max)
+            0 | 1 => 1,
+            2 => 2,
+            3 => 4,
+            4 => 6,
+            5 => 10,
+            6 => 15,
+            _ => 20,  // 7+ (exceptional)
         }
     }
     

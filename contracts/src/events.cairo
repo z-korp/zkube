@@ -54,7 +54,7 @@ pub struct LevelCompleted {
     pub bonuses_earned: u8,
 }
 
-/// Emitted when a game run ends (game over)
+/// Emitted when a game run ends (game over - failed)
 #[derive(Copy, Drop, Serde)]
 #[dojo::event(historical: true)]
 pub struct RunEnded {
@@ -67,6 +67,20 @@ pub struct RunEnded {
     pub total_cubes: u16,
     pub started_at: u64,
     pub ended_at: u64,
+}
+
+/// Emitted when a game run is completed (victory - cleared level 50)
+#[derive(Copy, Drop, Serde)]
+#[dojo::event(historical: true)]
+pub struct RunCompleted {
+    #[key]
+    pub game_id: u64,
+    #[key]
+    pub player: ContractAddress,
+    pub final_score: u16,
+    pub total_cubes: u16,
+    pub started_at: u64,
+    pub completed_at: u64,
 }
 
 /// Emitted when constraint progress is updated

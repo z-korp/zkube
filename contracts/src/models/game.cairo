@@ -14,7 +14,7 @@ use zkube::helpers::packing::{RunData, RunDataPackingTrait};
 use zkube::types::bonus::{Bonus, BonusTrait};
 use zkube::types::level::LevelConfigTrait;
 use zkube::types::constraint::LevelConstraintTrait;
-use zkube::helpers::level::{LevelGenerator, LevelGeneratorTrait};
+use zkube::helpers::level::{LevelGenerator, LevelGeneratorTrait, BossLevel};
 use zkube::models::config::GameSettings;
 
 /// Game model for the level-based system
@@ -325,12 +325,19 @@ pub impl GameImpl of GameTrait {
             }
         }
 
-        // Combo line bonus cubes: 4+ lines = +1, 5+ = +2, 6+ = +3
+        // Combo line bonus cubes (scaled for high combos):
+        // 4 lines = +1, 5 lines = +3, 6 lines = +5, 7 lines = +10, 8 lines = +25, 9+ lines = +50
         if lines_cleared >= 4 {
-            let combo_cubes: u16 = if lines_cleared >= 6 {
-                3
+            let combo_cubes: u16 = if lines_cleared >= 9 {
+                50
+            } else if lines_cleared >= 8 {
+                25
+            } else if lines_cleared >= 7 {
+                10
+            } else if lines_cleared >= 6 {
+                5
             } else if lines_cleared >= 5 {
-                2
+                3
             } else {
                 1
             };
@@ -431,12 +438,19 @@ pub impl GameImpl of GameTrait {
             }
         }
 
-        // Combo line bonus cubes: 4+ lines = +1, 5+ = +2, 6+ = +3
+        // Combo line bonus cubes (scaled for high combos):
+        // 4 lines = +1, 5 lines = +3, 6 lines = +5, 7 lines = +10, 8 lines = +25, 9+ lines = +50
         if lines_cleared >= 4 {
-            let combo_cubes: u16 = if lines_cleared >= 6 {
-                3
+            let combo_cubes: u16 = if lines_cleared >= 9 {
+                50
+            } else if lines_cleared >= 8 {
+                25
+            } else if lines_cleared >= 7 {
+                10
+            } else if lines_cleared >= 6 {
+                5
             } else if lines_cleared >= 5 {
-                2
+                3
             } else {
                 1
             };
@@ -502,8 +516,9 @@ pub impl GameImpl of GameTrait {
     }
 
     /// Complete the current level and advance to next
-    /// Returns (cubes_earned, bonuses_to_award)
-    fn complete_level(ref self: Game, seed: felt252, settings: GameSettings) -> (u8, u8) {
+    /// Returns (cubes_earned, bonuses_to_award, is_victory)
+    /// is_victory is true if level 50 was completed (run is complete)
+    fn complete_level(ref self: Game, seed: felt252, settings: GameSettings) -> (u8, u8, bool) {
         let mut run_data = self.get_run_data();
         let level_config = LevelGeneratorTrait::generate(seed, run_data.current_level, settings);
         let completed_level = run_data.current_level;
@@ -515,14 +530,21 @@ pub impl GameImpl of GameTrait {
         // Add cubes to total
         run_data.total_cubes = saturating_add_u16(run_data.total_cubes, cubes.into());
 
-        // Milestone bonus: every 10 levels, award level/2 cubes (capped at 50)
-        if completed_level % 10 == 0 {
-            let milestone_bonus: u16 = if completed_level >= 50 {
-                50 // Cap at 50 cubes (at level 50+)
-            } else {
-                (completed_level / 2).into()
-            };
-            run_data.total_cubes = saturating_add_u16(run_data.total_cubes, milestone_bonus);
+        // Boss cube bonus: boss levels (10, 20, 30, 40, 50) give flat bonus cubes
+        // Replaces old milestone bonus (level/2 every 10 levels)
+        let boss_bonus = BossLevel::get_boss_cube_bonus(completed_level);
+        if boss_bonus > 0 {
+            run_data.total_cubes = saturating_add_u16(run_data.total_cubes, boss_bonus);
+        }
+
+        // Check for victory: completing level 50 ends the run
+        let is_victory = completed_level >= 50;
+        if is_victory {
+            // Mark run as completed (victory!)
+            run_data.run_completed = true;
+            self.set_run_data(run_data);
+            // Don't advance to next level or reset grid - game will end
+            return (cubes, bonuses, true);
         }
 
         // Advance to next level
@@ -550,7 +572,7 @@ pub impl GameImpl of GameTrait {
         self.next_row = Controller::create_line(level_seed, new_level_config.difficulty, settings);
         self.start(new_level_config.difficulty, level_seed, settings);
 
-        (cubes, bonuses)
+        (cubes, bonuses, false)
     }
 
     /// Assess the game state (gravity, line clearing)

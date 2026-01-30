@@ -2,7 +2,7 @@ use alexandria_math::BitShift;
 
 /// Bit-packing helpers for efficient storage
 /// 
-/// run_data layout (147 bits used, 105 reserved):
+/// run_data layout (148 bits used, 104 reserved):
 /// ┌─────────────────────────────────────────────────────────────────────┐
 /// │ Bits    │ Field                 │ Size │ Range    │ Description     │
 /// ├─────────┼───────────────────────┼──────┼──────────┼─────────────────┤
@@ -23,7 +23,8 @@ use alexandria_math::BitShift;
 /// │ 99-114  │ cubes_spent           │ 16   │ 0-65535  │ Cubes spent     │
 /// │ 115-130 │ total_cubes           │ 16   │ 0-65535  │ Earned cubes    │
 /// │ 131-146 │ total_score           │ 16   │ 0-65535  │ Cumulative score│
-/// │ 147-251 │ reserved              │ 105  │ -        │ Future features │
+/// │ 147     │ run_completed         │ 1    │ 0-1      │ Victory flag    │
+/// │ 148-251 │ reserved              │ 104  │ -        │ Future features │
 /// └─────────────────────────────────────────────────────────────────────┘
 
 /// Unpacked run data structure
@@ -50,6 +51,8 @@ pub struct RunData {
     pub cubes_spent: u16, // Cubes spent during run
     // Secondary constraint progress (for dual-constraint levels)
     pub constraint_2_progress: u8,
+    // Victory flag: true if player completed level 50
+    pub run_completed: bool,
 }
 
 /// Bit positions and masks for run_data
@@ -72,6 +75,7 @@ mod RunDataBits {
     pub const CUBES_SPENT_POS: u8 = 99;
     pub const TOTAL_CUBES_POS: u8 = 115;
     pub const TOTAL_SCORE_POS: u8 = 131;
+    pub const RUN_COMPLETED_POS: u8 = 147;
 
     // Bit masks (after shifting to position 0)
     pub const CURRENT_LEVEL_MASK: u256 = 0xFF; // 8 bits
@@ -87,6 +91,7 @@ mod RunDataBits {
     pub const CUBES_SPENT_MASK: u256 = 0xFFFF; // 16 bits
     pub const TOTAL_CUBES_MASK: u256 = 0xFFFF; // 16 bits
     pub const TOTAL_SCORE_MASK: u256 = 0xFFFF; // 16 bits
+    pub const RUN_COMPLETED_MASK: u256 = 0x1; // 1 bit
 }
 
 #[generate_trait]
@@ -111,6 +116,7 @@ pub impl RunDataPacking of RunDataPackingTrait {
             cubes_brought: 0,
             cubes_spent: 0,
             constraint_2_progress: 0,
+            run_completed: false,
         }
     }
 
@@ -204,6 +210,11 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 self.total_score.into() & RunDataBits::TOTAL_SCORE_MASK,
                 RunDataBits::TOTAL_SCORE_POS.into(),
             );
+        packed = packed
+            | BitShift::shl(
+                if self.run_completed { 1_u256 } else { 0_u256 },
+                RunDataBits::RUN_COMPLETED_POS.into(),
+            );
 
         packed.try_into().unwrap()
     }
@@ -277,6 +288,8 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 & RunDataBits::TOTAL_SCORE_MASK)
                 .try_into()
                 .unwrap(),
+            run_completed: (BitShift::shr(data, RunDataBits::RUN_COMPLETED_POS.into())
+                & RunDataBits::RUN_COMPLETED_MASK) == 1,
         }
     }
 }
@@ -534,6 +547,7 @@ mod tests {
             cubes_brought: 100,
             cubes_spent: 45,
             constraint_2_progress: 7,
+            run_completed: false,
         };
 
         let packed = original.pack();
@@ -589,6 +603,7 @@ mod tests {
             cubes_brought: 65535, // 16 bits max
             cubes_spent: 65535, // 16 bits max
             constraint_2_progress: 255, // 8 bits max
+            run_completed: true, // 1 bit max
         };
 
         let packed = max_values.pack();
@@ -617,6 +632,7 @@ mod tests {
             cubes_brought: 0,
             cubes_spent: 0,
             constraint_2_progress: 0,
+            run_completed: false,
         };
 
         let packed = zero_values.pack();

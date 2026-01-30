@@ -43,7 +43,7 @@ mod game_system {
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::types::bonus::Bonus;
     use zkube::types::consumable::{ConsumableType, ConsumableTrait, EXTRA_MOVES_AMOUNT};
-    use zkube::events::{StartGame, UseBonus, LevelStarted, LevelCompleted, RunEnded, ConsumablePurchased};
+    use zkube::events::{StartGame, UseBonus, LevelStarted, LevelCompleted, RunEnded, RunCompleted, ConsumablePurchased};
     use zkube::systems::cube_token::{ICubeTokenDispatcher, ICubeTokenDispatcherTrait};
     use zkube::systems::quest::{IQuestSystemDispatcher, IQuestSystemDispatcherTrait};
     use zkube::elements::tasks::{grinder, clearer, combo};
@@ -771,7 +771,7 @@ mod game_system {
 
             let player = get_caller_address();
 
-            let (cubes, bonuses) = game.complete_level(base_seed, settings);
+            let (cubes, bonuses, is_victory) = game.complete_level(base_seed, settings);
             let bonuses_earned = self.award_level_bonuses(ref world, ref game, base_seed, player, bonuses);
 
             // Emit level completed with pre-reset stats
@@ -789,7 +789,37 @@ mod game_system {
                     },
                 );
 
-            // Emit next level started
+            // Check if this is a victory (level 50 completed)
+            if is_victory {
+                // End the game with victory state
+                game.over = true;
+                
+                let final_run_data = game.get_run_data();
+                
+                // Emit RunCompleted event (victory!)
+                world
+                    .emit_event(
+                        @RunCompleted {
+                            game_id,
+                            player,
+                            final_score: final_run_data.total_score,
+                            total_cubes: final_run_data.total_cubes,
+                            started_at: game.started_at,
+                            completed_at: get_block_timestamp(),
+                        },
+                    );
+                
+                // Mint earned cubes to player (same as game over flow)
+                let cubes_to_mint: u256 = final_run_data.total_cubes.into();
+                if cubes_to_mint > 0 {
+                    let cube_token = self.get_cube_token_dispatcher();
+                    cube_token.mint(player, cubes_to_mint);
+                }
+                
+                return true;
+            }
+
+            // Normal flow: emit next level started
             let updated_run_data = game.get_run_data();
             let next_level_config = LevelGeneratorTrait::generate(
                 base_seed, updated_run_data.current_level, settings,
