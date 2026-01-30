@@ -1,6 +1,6 @@
 # Difficulty Rebalance v1.3
 
-> **Status:** Complete (Contracts)  
+> **Status:** Complete  
 > **Started:** January 2026  
 > **Branch:** djizus-bump-version
 
@@ -170,17 +170,37 @@ Bit 147:      run_completed (bool)  <-- NEW
 
 ## Phase 5: Client Updates
 
-**Status:** Pending
+**Status:** Complete
 
-### Required Changes
+### Changes Made
+
+**File:** `client-budokan/src/dojo/game/types/level.ts`
+- Updated `lineCost()` function to match contract (2->2, 3->4, 4->6, 5->10, 6->15, 7+->20)
+
+**File:** `client-budokan/src/ui/components/CubeEarnedAnimation.tsx`
+- Updated combo cube rewards: 4->+1, 5->+3, 6->+5, 7->+10, 8->+25, 9+->+50
+- Added new reward types: combo_7, combo_8, combo_9
+
+**File:** `client-budokan/src/ui/components/LevelCompleteDialog.tsx`
+- Changed from milestone bonuses to boss level bonuses (10/20/30/40/50 cubes)
+
+**File:** `client-budokan/src/dojo/game/helpers/runDataPacking.ts`
+- Added `runCompleted` field at bit 147
+- Updated `RunData` interface and `unpackRunData()` function
+
+**File:** `client-budokan/src/dojo/game/models/game.ts`
+- Added `runCompleted` getter to Game class
 
 **File:** `client-budokan/src/ui/components/VictoryDialog.tsx` (new)
-- Celebration visuals
-- "RUN COMPLETE!" messaging
-- Show total cubes earned
+- Celebration visuals with animated trophy
+- "VICTORY!" messaging with sparkle effects
+- Show total cubes, score, and max combo
+- Share on X button with victory message
 
 **File:** `client-budokan/src/ui/screens/Play.tsx`
-- Check for `run_completed` flag from `run_data` and show VictoryDialog
+- Added `isVictoryOpen` state
+- Check for `runCompleted` flag when game ends
+- Show VictoryDialog instead of GameOverDialog for victories
 
 ---
 
@@ -194,6 +214,7 @@ Bit 147:      run_completed (bool)  <-- NEW
 | 2026-01-30 | Phase 3 | Complete | Implemented boss level system |
 | 2026-01-30 | Phase 4 | Complete | Implemented victory state (contracts) |
 | 2026-01-31 | Testing | Complete | All 173 tests passing |
+| 2026-01-31 | Phase 5 | Complete | Client updates for victory state |
 
 ---
 
@@ -207,12 +228,14 @@ Bit 147:      run_completed (bool)  <-- NEW
 - [x] RunCompleted event emitted
 - [x] run_completed tracked in RunData
 - [x] All 173 tests pass
-- [ ] Client shows VictoryDialog correctly (Phase 5)
+- [x] Client shows VictoryDialog correctly (Phase 5)
+- [x] Client build succeeds
 
 ---
 
 ## Files Modified
 
+### Contracts
 | File | Changes |
 |------|---------|
 | `contracts/src/helpers/level.cairo` | Fixed `line_cost()`, added `BossLevel` module |
@@ -220,4 +243,19 @@ Bit 147:      run_completed (bool)  <-- NEW
 | `contracts/src/models/game.cairo` | Updated combo rewards, `complete_level()` returns victory flag |
 | `contracts/src/systems/game.cairo` | Victory handling with `RunCompleted` event |
 | `contracts/src/events.cairo` | Added `RunCompleted` event |
+
+### Client
+| File | Changes |
+|------|---------|
+| `client-budokan/src/dojo/game/types/level.ts` | Updated `lineCost()` to match contract |
+| `client-budokan/src/dojo/game/helpers/runDataPacking.ts` | Added `runCompleted` field at bit 147 |
+| `client-budokan/src/dojo/game/models/game.ts` | Added `runCompleted` getter |
+| `client-budokan/src/ui/components/CubeEarnedAnimation.tsx` | Updated combo rewards (5->+3, 6->+5, 7->+10, 8->+25, 9+->+50) |
+| `client-budokan/src/ui/components/LevelCompleteDialog.tsx` | Changed milestone to boss level bonuses |
+| `client-budokan/src/ui/components/VictoryDialog.tsx` | New victory dialog component |
+| `client-budokan/src/ui/screens/Play.tsx` | Victory state handling |
+
+### Docs
+| File | Changes |
+|------|---------|
 | `docs/DIFFICULTY_REBALANCE_V1_3.md` | This tracking document |
