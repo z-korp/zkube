@@ -34,7 +34,7 @@
   "contracts": [
     {
       "address": "0x1e99eedaea7a996b25191210c8dc433dc095fe4dc3c925d49d9406eaf1a5485",
-      "class_hash": "0x590cb574c811def564e59538e7b0ac68ae58339d36e5be3a751b8fb497c602d",
+      "class_hash": "0x140145933af696c950fab34371f803d349a6eabfa3e29045f50fb61f5c2b8fa",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819"
       ],
@@ -71,7 +71,7 @@
     },
     {
       "address": "0x64f5f9b14a333f07174c1420d6645d8eb3f0523a28f63cf7ba30e349bf606ae",
-      "class_hash": "0x21f0944aef0941c57c63c5c923ab6e3a6d65997c363c98f01ef7a16ffc48850",
+      "class_hash": "0x5e89109de5395689731876b46a7bad49a5a83e1ff934abd59152cc56b664c76",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
         "0x062347854b5817b3c8101014b5813fb0b5db48e4df2a0a9dada8cbdab191b064",
@@ -103,6 +103,16 @@
         "on_quest_claim",
         "claim",
         "progress",
+        "upgrade"
+      ]
+    },
+    {
+      "address": "0x1134d2828d81a302803aa2d9b49f2b71ee94ccdcf299b2c095211adb838b84c",
+      "class_hash": "0x5441e3548e65c105c6c58ef4dff5b37a7f982b1f08c1d214c0487bb86ed23f3",
+      "init_calldata": [],
+      "tag": "zkube_budo_v1_2_0-renderer_systems",
+      "selector": "0x35d5ac8794cc2cf3e12c42d4ac579e7a5dc26a70c26e32c599915d2d39586cf",
+      "systems": [
         "upgrade"
       ]
     },
@@ -1789,6 +1799,16 @@
         {
           "name": "snapshot",
           "type": "@core::array::Array::<game_components_minigame::extensions::settings::structs::GameSetting>"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "core::array::Span::<game_components_minigame::structs::GameDetail>",
+      "members": [
+        {
+          "name": "snapshot",
+          "type": "@core::array::Array::<game_components_minigame::structs::GameDetail>"
         }
       ]
     },
@@ -3862,6 +3882,82 @@
     },
     {
       "type": "interface",
+      "name": "game_components_minigame::interface::IMinigameDetails",
+      "items": [
+        {
+          "type": "function",
+          "name": "token_name",
+          "inputs": [
+            {
+              "name": "token_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::byte_array::ByteArray"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "token_description",
+          "inputs": [
+            {
+              "name": "token_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::byte_array::ByteArray"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "game_details",
+          "inputs": [
+            {
+              "name": "token_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::array::Span::<game_components_minigame::structs::GameDetail>"
+            }
+          ],
+          "state_mutability": "view"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "game_components_minigame::interface::IMinigameDetailsSVG",
+      "items": [
+        {
+          "type": "function",
+          "name": "game_details_svg",
+          "inputs": [
+            {
+              "name": "token_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::byte_array::ByteArray"
+            }
+          ],
+          "state_mutability": "view"
+        }
+      ]
+    },
+    {
+      "type": "interface",
       "name": "game_components_minigame::interface::IMinigameTokenData",
       "items": [
         {
@@ -3903,6 +3999,20 @@
       "name": "game_components_minigame::minigame::MinigameComponent::Event",
       "kind": "enum",
       "variants": []
+    },
+    {
+      "type": "struct",
+      "name": "game_components_minigame::structs::GameDetail",
+      "members": [
+        {
+          "name": "name",
+          "type": "core::byte_array::ByteArray"
+        },
+        {
+          "name": "value",
+          "type": "core::byte_array::ByteArray"
+        }
+      ]
     },
     {
       "type": "event",
@@ -6579,6 +6689,77 @@
           "name": "QuestableEvent",
           "type": "quest::components::questable::QuestableComponent::Event",
           "kind": "flat"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "zkube::systems::renderer::IRendererSystems",
+      "items": [
+        {
+          "type": "function",
+          "name": "create_metadata",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::byte_array::ByteArray"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "generate_svg",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::byte_array::ByteArray"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "generate_details",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::array::Span::<game_components_minigame::structs::GameDetail>"
+            }
+          ],
+          "state_mutability": "view"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::systems::renderer::renderer_systems::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "UpgradeableEvent",
+          "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "WorldProviderEvent",
+          "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "nested"
         }
       ]
     },
