@@ -5,7 +5,7 @@
  * Key properties:
  * - Same seed + same level + same settings = same config
  * - Different seed = different config sequence
- * - Level 100+ caps at max difficulty (survival mode)
+ * - Level 50+ caps at max difficulty (survival mode)
  * - Points derived from moves x ratio (configurable, default 0.8 -> 2.5)
  * - Correlated variance keeps difficulty ratio constant
  * - Supports dual constraints from settings
@@ -113,13 +113,13 @@ export const DEFAULT_SETTINGS: GameSettings = {
   // Reward Multiplier
   cubeMultiplierX100: 100, // 1.0x
   // Difficulty Progression (non-linear tier thresholds)
-  tier1Threshold: 5,   // Easy starts at level 5
-  tier2Threshold: 10,  // Medium starts at level 10
-  tier3Threshold: 20,  // MediumHard starts at level 20
-  tier4Threshold: 35,  // Hard starts at level 35
-  tier5Threshold: 50,  // VeryHard starts at level 50
-  tier6Threshold: 70,  // Expert starts at level 70
-  tier7Threshold: 90,  // Master starts at level 90
+  tier1Threshold: 4,   // Easy starts at level 4
+  tier2Threshold: 8,   // Medium starts at level 8
+  tier3Threshold: 12,  // MediumHard starts at level 12
+  tier4Threshold: 18,  // Hard starts at level 18
+  tier5Threshold: 25,  // VeryHard starts at level 25
+  tier6Threshold: 35,  // Expert starts at level 35
+  tier7Threshold: 45,  // Master starts at level 45
   // Constraint Settings
   constraintsEnabled: true,
   constraintStartLevel: 3,  // Constraints start at level 3
@@ -155,10 +155,10 @@ export const DEFAULT_SETTINGS: GameSettings = {
   midVariancePercent: 10,
   lateVariancePercent: 15,
   // Level Tier Thresholds
-  earlyLevelThreshold: 10,
-  midLevelThreshold: 50,
+  earlyLevelThreshold: 5,
+  midLevelThreshold: 25,
   // Level Cap
-  levelCap: 100,
+  levelCap: 50,
 };
 
 export interface LevelConfig {
@@ -299,7 +299,7 @@ export function generateLevelConfig(
   settings: GameSettings = DEFAULT_SETTINGS
 ): Level {
   // Get level cap from settings
-  const levelCap = settings.levelCap || 100;
+  const levelCap = settings.levelCap || 50;
 
   // Cap level for calculations (survival mode after cap)
   const calcLevel = Math.min(level, levelCap);
@@ -377,7 +377,7 @@ function deriveLevelSeed(seed: bigint, level: number): bigint {
 
 /**
  * Calculate base moves for a level (before variance)
- * Linear scaling from baseMoves at level 1 to maxMoves at level 100
+ * Linear scaling from baseMoves at level 1 to maxMoves at level 50
  */
 function calculateBaseMoves(
   level: number,
@@ -388,13 +388,13 @@ function calculateBaseMoves(
     return baseMoves;
   }
   const range = maxMoves - baseMoves;
-  const progress = Math.floor(((level - 1) * range) / 99);
+  const progress = Math.floor(((level - 1) * range) / 49);
   return baseMoves + progress;
 }
 
 /**
  * Calculate ratio for this level (scaled by 100)
- * Linear scaling from baseRatio at level 1 to maxRatio at level 100
+ * Linear scaling from baseRatio at level 1 to maxRatio at level 50
  */
 function calculateRatio(
   level: number,
@@ -405,7 +405,7 @@ function calculateRatio(
     return baseRatioX100;
   }
   const range = maxRatioX100 - baseRatioX100;
-  const progress = Math.floor(((level - 1) * range) / 99);
+  const progress = Math.floor(((level - 1) * range) / 49);
   return baseRatioX100 + progress;
 }
 

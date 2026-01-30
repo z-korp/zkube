@@ -517,8 +517,8 @@ pub impl GameImpl of GameTrait {
 
         // Milestone bonus: every 10 levels, award level/2 cubes (capped at 50)
         if completed_level % 10 == 0 {
-            let milestone_bonus: u16 = if completed_level >= 100 {
-                50 // Cap at 50 cubes
+            let milestone_bonus: u16 = if completed_level >= 50 {
+                50 // Cap at 50 cubes (at level 50+)
             } else {
                 (completed_level / 2).into()
             };

@@ -90,7 +90,7 @@ mod game_token_systems {
             .initializer(
                 creator_address,
                 "zKube",
-                "zKube is an onchain puzzle roguelike with 100+ levels, constraints, and star ratings.",
+                "zKube is an onchain puzzle roguelike with 50 levels, constraints, and star ratings.",
                 "zKorp",
                 "zKorp",
                 "Puzzle",
