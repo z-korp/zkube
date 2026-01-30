@@ -71,7 +71,7 @@
     },
     {
       "address": "0x64f5f9b14a333f07174c1420d6645d8eb3f0523a28f63cf7ba30e349bf606ae",
-      "class_hash": "0x5e89109de5395689731876b46a7bad49a5a83e1ff934abd59152cc56b664c76",
+      "class_hash": "0x128a319411be5e67fac4e1e38fadf6f2c2f3d83c3deeab39b3007998e3748e7",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
         "0x062347854b5817b3c8101014b5813fb0b5db48e4df2a0a9dada8cbdab191b064",
@@ -108,7 +108,7 @@
     },
     {
       "address": "0x1134d2828d81a302803aa2d9b49f2b71ee94ccdcf299b2c095211adb838b84c",
-      "class_hash": "0x5441e3548e65c105c6c58ef4dff5b37a7f982b1f08c1d214c0487bb86ed23f3",
+      "class_hash": "0x7bbf9d5ff80826b9478d12817309da48e73829947f92b307ec7a53b8941631a",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-renderer_systems",
       "selector": "0x35d5ac8794cc2cf3e12c42d4ac579e7a5dc26a70c26e32c599915d2d39586cf",
@@ -1048,6 +1048,43 @@
       "class_hash": "0x4323e58925dd9a9d34b95a5051f39876ed0ad489ec9288e326c8920a2b89f2",
       "tag": "zkube_budo_v1_2_0-QuestUnlocked",
       "selector": "0x61ce648751042546c61011c452c841b08d59a2a141ddbe63f02ca9a784982f2"
+    },
+    {
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress",
+          "key": true
+        },
+        {
+          "name": "final_score",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "total_cubes",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "started_at",
+          "type": "core::integer::u64",
+          "key": false
+        },
+        {
+          "name": "completed_at",
+          "type": "core::integer::u64",
+          "key": false
+        }
+      ],
+      "class_hash": "0x435106ef4a4da972de83a4449d416c2bc84d17cbedec46eab98820e00193809",
+      "tag": "zkube_budo_v1_2_0-RunCompleted",
+      "selector": "0x4375f21330a54aeb3a57d49847814855a7e393ee30850a569c3a2c7364c68a2"
     },
     {
       "members": [
@@ -5275,6 +5312,58 @@
     },
     {
       "type": "struct",
+      "name": "zkube::events::RunCompleted",
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "player",
+          "type": "core::starknet::contract_address::ContractAddress"
+        },
+        {
+          "name": "final_score",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "total_cubes",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "started_at",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "completed_at",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::events::RunCompletedValue",
+      "members": [
+        {
+          "name": "final_score",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "total_cubes",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "started_at",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "completed_at",
+          "type": "core::integer::u64"
+        }
+      ]
+    },
+    {
+      "type": "struct",
       "name": "zkube::events::RunEnded",
       "members": [
         {
@@ -5426,6 +5515,12 @@
     {
       "type": "event",
       "name": "zkube::events::e_LevelStarted::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "zkube::events::e_RunCompleted::Event",
       "kind": "enum",
       "variants": []
     },

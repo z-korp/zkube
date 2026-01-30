@@ -10,6 +10,7 @@ import { Surrender } from "../actions/Surrender";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useMediaQuery } from "react-responsive";
 import GameOverDialog from "../components/GameOverDialog";
+import VictoryDialog from "../components/VictoryDialog";
 import LevelCompleteDialog from "../components/LevelCompleteDialog";
 import { InGameShopDialog } from "../components/Shop";
 import useViewport from "@/hooks/useViewport";
@@ -79,6 +80,7 @@ export const Play = () => {
   const gameGrid = useRef<HTMLDivElement>(null);
   const [isGameOn, setIsGameOn] = useState<"idle" | "isOn" | "isOver">("idle");
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
+  const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [isLevelCompleteOpen, setIsLevelCompleteOpen] = useState(false);
   const [isInGameShopOpen, setIsInGameShopOpen] = useState(false);
@@ -211,12 +213,17 @@ export const Play = () => {
     if (prevGameOverRef.current !== undefined) {
       // Check if game.over transitioned from false to true
       if (!prevGameOverRef.current && game?.over) {
-        setIsGameOverOpen(true);
+        // Check if this is a victory (level 50 completed) or regular game over
+        if (game.runCompleted) {
+          setIsVictoryOpen(true);
+        } else {
+          setIsGameOverOpen(true);
+        }
       }
     }
     // Update the ref with the current value of game.over
     prevGameOverRef.current = game?.over;
-  }, [game?.over]);
+  }, [game?.over, game?.runCompleted]);
 
   // Detect level completion by tracking previous game state
   // We store the ENTIRE previous state and compare when things change
@@ -342,6 +349,15 @@ export const Play = () => {
                     <GameOverDialog
                       isOpen={isGameOverOpen}
                       onClose={() => setIsGameOverOpen(false)}
+                      game={game}
+                    />
+                  )}
+
+                  {/* Victory Dialog (shown when all 50 levels completed) */}
+                  {game && (
+                    <VictoryDialog
+                      isOpen={isVictoryOpen}
+                      onClose={() => setIsVictoryOpen(false)}
                       game={game}
                     />
                   )}

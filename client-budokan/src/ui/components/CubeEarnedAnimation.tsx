@@ -3,8 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export type CubeEarnReason = 
   | "combo_4" // 4 lines cleared = +1 cube
-  | "combo_5" // 5 lines cleared = +2 cubes
-  | "combo_6" // 6+ lines cleared = +3 cubes
+  | "combo_5" // 5 lines cleared = +3 cubes
+  | "combo_6" // 6 lines cleared = +5 cubes
+  | "combo_7" // 7 lines cleared = +10 cubes
+  | "combo_8" // 8 lines cleared = +25 cubes
+  | "combo_9" // 9+ lines cleared = +50 cubes
   | "achievement_5x" // First 5-line combo = +3 cubes
   | "achievement_10x"; // First 10-line combo = +5 cubes
 
@@ -31,7 +34,13 @@ const getReasonText = (reason: CubeEarnReason): string => {
     case "combo_5":
       return "5-Line Combo!";
     case "combo_6":
-      return "6+ Line Combo!";
+      return "6-Line Combo!";
+    case "combo_7":
+      return "7-Line Combo!";
+    case "combo_8":
+      return "8-Line Combo!";
+    case "combo_9":
+      return "MEGA COMBO!";
     case "achievement_5x":
       return "First 5x Combo!";
     case "achievement_10x":
@@ -49,6 +58,12 @@ const getReasonColor = (reason: CubeEarnReason): string => {
       return "text-orange-400";
     case "combo_6":
       return "text-red-400";
+    case "combo_7":
+      return "text-pink-400";
+    case "combo_8":
+      return "text-purple-400";
+    case "combo_9":
+      return "text-cyan-400";
     case "achievement_5x":
       return "text-purple-400";
     case "achievement_10x":
@@ -107,11 +122,18 @@ const CubeEarnedAnimation: React.FC<CubeEarnedAnimationProps> = ({
     const linesCleared = newCombo - prevCombo;
 
     // Only award cube bonuses for 4+ lines cleared
+    // Rewards: 4->+1, 5->+3, 6->+5, 7->+10, 8->+25, 9+->+50
     if (linesCleared >= 4) {
-      if (linesCleared >= 6) {
-        addNotification(3, "combo_6");
+      if (linesCleared >= 9) {
+        addNotification(50, "combo_9");
+      } else if (linesCleared >= 8) {
+        addNotification(25, "combo_8");
+      } else if (linesCleared >= 7) {
+        addNotification(10, "combo_7");
+      } else if (linesCleared >= 6) {
+        addNotification(5, "combo_6");
       } else if (linesCleared >= 5) {
-        addNotification(2, "combo_5");
+        addNotification(3, "combo_5");
       } else {
         addNotification(1, "combo_4");
       }

@@ -92,15 +92,15 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   // Calculate cubes earned from move efficiency (1-3)
   const baseCubesEarned = levelConfig.calculateCubes(levelMoves);
   
-  // Total cubes earned this level (includes combo bonuses, milestones from contract)
+  // Total cubes earned this level (includes combo bonuses, boss bonuses from contract)
   const totalLevelCubes = totalCubes - prevTotalCubes;
   
-  // Milestone bonus (levels 10, 20, 30...)
-  const isMilestoneLevel = level % 10 === 0;
-  const milestoneBonus = isMilestoneLevel ? Math.min(50, Math.floor(level / 2)) : 0;
+  // Boss level bonus (levels 10, 20, 30, 40, 50)
+  const isBossLevel = [10, 20, 30, 40, 50].includes(level);
+  const bossBonus = isBossLevel ? level : 0; // Boss bonus = level number (10, 20, 30, 40, 50)
   
-  // Extra cubes from combos (total minus base minus milestone)
-  const comboCubes = Math.max(0, totalLevelCubes - baseCubesEarned - milestoneBonus);
+  // Extra cubes from combos (total minus base minus boss bonus)
+  const comboCubes = Math.max(0, totalLevelCubes - baseCubesEarned - bossBonus);
   
   // Check if shop opens after this level
   const isShopLevel = isInGameShopAvailable(level);
@@ -164,10 +164,10 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
                 <span className="text-yellow-400 font-semibold">+{comboCubes}</span>
               </div>
             )}
-            {isMilestoneLevel && milestoneBonus > 0 && (
+            {isBossLevel && bossBonus > 0 && (
               <div className="flex justify-between">
-                <span className="text-slate-300">Level {level} milestone</span>
-                <span className="text-yellow-400 font-semibold">+{milestoneBonus}</span>
+                <span className="text-slate-300">Boss Level {level} bonus</span>
+                <span className="text-yellow-400 font-semibold">+{bossBonus}</span>
               </div>
             )}
             {totalLevelCubes > baseCubesEarned && (

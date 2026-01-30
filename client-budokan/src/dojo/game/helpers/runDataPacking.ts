@@ -2,7 +2,7 @@
  * Bit-packing helpers for efficient storage
  * Mirrors the Cairo packing.cairo implementation
  *
- * run_data layout (147 bits used, 105 reserved):
+ * run_data layout (148 bits used, 104 reserved):
  * ┌─────────────────────────────────────────────────────────────────────┐
  * │ Bits    │ Field                 │ Size │ Range    │ Description     │
  * ├─────────┼───────────────────────┼──────┼──────────┼─────────────────┤
@@ -23,7 +23,8 @@
  * │ 99-114  │ cubes_spent           │ 16   │ 0-65535  │ Cubes spent     │
  * │ 115-130 │ total_cubes           │ 16   │ 0-65535  │ Earned cubes    │
  * │ 131-146 │ total_score           │ 16   │ 0-65535  │ Cumulative score│
- * │ 147-251 │ reserved              │ 105  │ -        │ Future features │
+ * │ 147     │ run_completed         │ 1    │ 0-1      │ Victory flag    │
+ * │ 148-251 │ reserved              │ 104  │ -        │ Future features │
  * └─────────────────────────────────────────────────────────────────────┘
  */
 
@@ -45,6 +46,7 @@ export interface RunData {
   cubesSpent: number;
   totalCubes: number;
   totalScore: number;
+  runCompleted: boolean; // Victory flag - true when level 50 is completed
 }
 
 // Bit positions (matching Cairo's RunDataBits)
@@ -65,6 +67,7 @@ const CUBES_BROUGHT_POS = 83;
 const CUBES_SPENT_POS = 99;
 const TOTAL_CUBES_POS = 115;
 const TOTAL_SCORE_POS = 131;
+const RUN_COMPLETED_POS = 147;
 
 // Bit masks (after shifting to position 0)
 const MASK_8BIT = BigInt(0xff);
@@ -100,6 +103,8 @@ export function unpackRunData(packed: bigint): RunData {
     cubesSpent: Number((packed >> BigInt(CUBES_SPENT_POS)) & MASK_16BIT),
     totalCubes: Number((packed >> BigInt(TOTAL_CUBES_POS)) & MASK_16BIT),
     totalScore: Number((packed >> BigInt(TOTAL_SCORE_POS)) & MASK_16BIT),
+    runCompleted:
+      ((packed >> BigInt(RUN_COMPLETED_POS)) & MASK_1BIT) === BigInt(1),
   };
 }
 
@@ -125,6 +130,7 @@ export function createInitialRunData(): RunData {
     cubesSpent: 0,
     totalCubes: 0,
     totalScore: 0,
+    runCompleted: false,
   };
 }
 

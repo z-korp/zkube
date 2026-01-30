@@ -65,6 +65,10 @@ export class Game {
   public get totalScore(): number {
     return this.runData.totalScore;
   }
+  // Victory state
+  public get runCompleted(): boolean {
+    return this.runData.runCompleted;
+  }
   // In-game shop data
   public get cubesBrought(): number {
     return this.runData.cubesBrought;

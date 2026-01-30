@@ -23,7 +23,7 @@ import { Constraint } from "./constraint";
  * - Primary constraint is always ClearLines (from level 3+)
  * - Secondary constraint based on dual_chance (NoBonusUsed or ClearLines)
  * - times_cap = budget / line_cost(lines)
- * - Line costs: 2->1, 3->2, 4->4, 5->7, 6->11, 7->16
+ * - Line costs: 2->2, 3->4, 4->6, 5->10, 6->15, 7+->20
  */
 export interface GameSettings {
   // Mode
@@ -555,26 +555,25 @@ function getConstraintParams(
 /**
  * Returns the weighted difficulty cost for clearing N lines at once.
  * Higher line counts are exponentially harder to achieve in practice.
- * Line costs: 2->1, 3->2, 4->4, 5->7, 6->11, 7->16
+ * Line costs: 2->2, 3->4, 4->6, 5->10, 6->15, 7+->20
  */
 function lineCost(lines: number): number {
   switch (lines) {
     case 0:
     case 1:
-    case 2:
       return 1;
-    case 3:
+    case 2:
       return 2;
-    case 4:
+    case 3:
       return 4;
+    case 4:
+      return 6;
     case 5:
-      return 7;
+      return 10;
     case 6:
-      return 11;
-    case 7:
-      return 16;
+      return 15;
     default:
-      return 20; // 8+ (theoretical, grid max)
+      return 20; // 7+ (theoretical, grid max)
   }
 }
 
