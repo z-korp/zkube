@@ -91,7 +91,6 @@ const getPlayerEntityQuery = (namespace: string, playerId: string) => {
   // Normalize address to match Torii's storage format
   const normalizedAddress = normalizeAddress(playerId);
   const key = normalizedAddress.toLowerCase();
-  console.log("[Quests] Player entity query key:", key);
   const clauses = new ClauseBuilder().keys(
     [completion, advancement],
     [key],
@@ -132,17 +131,9 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
       const entities = response.data || (Array.isArray(response) ? response : [response]);
       if (!entities || entities.length === 0) return;
       
-      console.log("[Quests] onEntityUpdate received entities:", entities.length);
-      
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       entities.forEach((entity: any) => {
-        if (!entity?.models) {
-          console.log("[Quests] Entity has no models:", entity);
-          return;
-        }
-        
-        // Log all model keys to see what's available
-        console.log("[Quests] Entity model keys:", Object.keys(entity.models));
+        if (!entity?.models) return;
         
         if (entity.models[`${NAMESPACE}-${QuestDefinition.getModelName()}`]) {
           const model = entity.models[
@@ -204,8 +195,6 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
   const fetchQuestData = useCallback(async () => {
     if (!NAMESPACE || !toriiClient || !address) return;
 
-    console.log("[Quests] Fetching quest data for:", { NAMESPACE, address });
-
     const questEntityQuery = getQuestEntityQuery(NAMESPACE);
     const questEventQuery = getQuestEventQuery(NAMESPACE);
     const playerEntityQuery = getPlayerEntityQuery(NAMESPACE, address);
@@ -217,19 +206,6 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
         toriiClient.getEventMessages(questEventQuery.build()),
         toriiClient.getEntities(playerEntityQuery.build()),
       ]);
-
-      console.log("[Quests] Fetched data:", {
-        questEntities: questEntities?.items?.length || 0,
-        questEvents: questEvents?.items?.length || 0,
-        playerEntities: playerEntities?.items?.length || 0,
-      });
-
-      // Debug: log player entities to see what's being returned
-      if (playerEntities?.items && playerEntities.items.length > 0) {
-        console.log("[Quests] Player entities sample:", playerEntities.items[0]);
-      } else {
-        console.log("[Quests] No player entities found");
-      }
 
       // Process results
       if (questEntities?.items) {
@@ -321,18 +297,6 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
 
   // Compute quests from the raw data
   const quests: QuestProps[] = useMemo(() => {
-    // Debug logging
-    console.log("[Quests] Computing quests from:", {
-      definitions: definitions.length,
-      completions: completions.length,
-      advancements: advancements.length,
-      creations: creations.length,
-    });
-    
-    if (advancements.length > 0) {
-      console.log("[Quests] Sample advancement:", advancements[0]);
-    }
-
     const questList = definitions.map((definition) => {
       const intervalId = definition.getIntervalId();
       const intervalIdToUse = intervalId ?? 0; // Use 0 as fallback
@@ -341,57 +305,22 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
         (creation) => creation.definition.id === definition.id,
       );
       
-      // Find completion - try exact interval match first, then any completion for this quest
-      let completion = completions.find(
+      // Find completion for the CURRENT interval only (daily reset)
+      const completion = completions.find(
         (completion) =>
           completion.quest_id === definition.id &&
           completion.interval_id === intervalIdToUse,
       );
       
-      // Fallback: if no exact match, try to find any completion for this quest
-      if (!completion) {
-        completion = completions.find(
-          (c) => c.quest_id === definition.id
-        );
-      }
-      
-      // Find tasks with advancement data
+      // Find tasks with advancement data for the CURRENT interval only
       const tasks = definition.tasks.map((task) => {
-        // Debug: log what we're looking for
-        console.log("[Quests] Looking for advancement:", {
-          quest_id: definition.id,
-          task_id: task.id,
-          intervalIdToUse,
-          availableAdvancements: advancements.map(a => ({
-            quest_id: a.quest_id,
-            task_id: a.task_id,
-            interval_id: a.interval_id,
-            count: a.count.toString(),
-          })),
-        });
-        
-        // Try exact interval match first
-        let advancement = advancements.find(
+        // Only match advancements for the current interval (daily reset)
+        const advancement = advancements.find(
           (adv) =>
             adv.quest_id === definition.id &&
             adv.task_id === task.id &&
             adv.interval_id === intervalIdToUse,
         );
-        
-        // Fallback: try any advancement for this quest/task
-        if (!advancement) {
-          advancement = advancements.find(
-            (adv) =>
-              adv.quest_id === definition.id &&
-              adv.task_id === task.id,
-          );
-        }
-        
-        if (advancement) {
-          console.log("[Quests] Found advancement for", definition.id, task.id, ":", advancement.count.toString());
-        } else {
-          console.log("[Quests] No advancement found for", definition.id, task.id);
-        }
         
         return {
           description: task.description,

@@ -511,12 +511,6 @@ export class QuestCompletion {
       unclaimed = data.unclaimed.value;
     }
     
-    // Debug log
-    console.log("[QuestCompletion.parse] Raw data:", data);
-    console.log("[QuestCompletion.parse] Extracted values:", {
-      playerIdVal, questIdVal, intervalIdVal, timestampVal, unclaimed, lockCountVal
-    });
-    
     return new QuestCompletion(
       getChecksumAddress(`0x${parseHexToBigInt(playerIdVal).toString(16)}`),
       shortString.decodeShortString(`0x${parseHexToBigInt(questIdVal).toString(16)}`),
@@ -577,12 +571,6 @@ export class QuestAdvancement {
     const intervalIdVal = extractValue(data.interval_id);
     const timestampVal = extractValue(data.timestamp);
     const countVal = extractValue(data.count);
-    
-    // Debug log
-    console.log("[QuestAdvancement.parse] Raw data:", data);
-    console.log("[QuestAdvancement.parse] Extracted values:", {
-      playerIdVal, questIdVal, taskIdVal, intervalIdVal, timestampVal, countVal
-    });
     
     return new QuestAdvancement(
       getChecksumAddress(`0x${parseHexToBigInt(playerIdVal).toString(16)}`),
