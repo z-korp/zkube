@@ -483,15 +483,16 @@ fn generate_level_config(level: u8) -> LevelConfig {
 }
 
 fn calculate_points_required(level: u8) -> u16 {
-    // Base: 20 points, increases by ~1.8 per level
-    // Level 1: 20, Level 50: 110, Level 100: 200
-    20 + ((level.into() - 1) * 180 / 99)
+    // Base points derived from moves × ratio (0.80 → 2.50)
+    // Level 1: ~16 (20×0.80), Level 50: ~150 (60×2.50)
+    // Actual formula: base_moves × ratio_x100 / 100
+    // With variance applied for variety
 }
 
 fn calculate_max_moves(level: u8) -> u16 {
-    // Base: 30 moves, increases to 100 at level 100
-    // Level 1: 30, Level 50: 65, Level 100: 100
-    30 + ((level.into() - 1) * 70 / 99)
+    // Base: 20 moves, increases to 60 at level 50 (level cap)
+    // Level 1: 20, Level 25: 40, Level 50: 60
+    20 + ((level.into() - 1) * 40 / 49)
 }
 
 fn calculate_difficulty(level: u8) -> Difficulty {

@@ -56,16 +56,16 @@
 | Parameter | Value | Description |
 |-----------|-------|-------------|
 | `BASE_MOVES` | 20 | Moves at level 1 |
-| `MAX_MOVES` | 60 | Moves at level 100 |
+| `MAX_MOVES` | 60 | Moves at level 50 |
 
-**Formula:** `base_moves = 20 + (level - 1) * 40 / 99`
+**Formula:** `base_moves = 20 + (level - 1) * 40 / 49`
 
 ### Points Ratio Scaling
 
 | Parameter | Value | Description |
 |-----------|-------|-------------|
 | `BASE_RATIO_X100` | 80 | 0.80 points/move at level 1 |
-| `MAX_RATIO_X100` | 250 | 2.50 points/move at level 100 |
+| `MAX_RATIO_X100` | 250 | 2.50 points/move at level 50 |
 
 **Formula:** `points_required = base_moves * ratio / 100`
 
@@ -93,7 +93,7 @@
 
 | Parameter | Value | Description |
 |-----------|-------|-------------|
-| `LEVEL_CAP` | 100 | Difficulty stops scaling after this |
+| `LEVEL_CAP` | 50 | Difficulty stops scaling after this (survival mode after) |
 | `CONSTRAINT_NONE_THRESHOLD` | 4 | Constraints start from level 5 |
 
 ### Sample Level Configs

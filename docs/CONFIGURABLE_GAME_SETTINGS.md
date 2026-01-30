@@ -52,9 +52,9 @@ pub struct GameSettings {
     
     // === Level Scaling ===
     pub base_moves: u16,                // Moves at level 1 (default: 20)
-    pub max_moves: u16,                 // Moves at level 100 (default: 60)
+    pub max_moves: u16,                 // Moves at level cap (default: 60)
     pub base_ratio_x100: u16,           // Points/move ratio at level 1 × 100 (default: 80 = 0.80)
-    pub max_ratio_x100: u16,            // Points/move ratio at level 100 × 100 (default: 250 = 2.50)
+    pub max_ratio_x100: u16,            // Points/move ratio at level cap × 100 (default: 250 = 2.50)
     
     // === Cube Thresholds ===
     pub cube_3_percent: u8,             // 3 cubes if moves <= X% of max (default: 40)
@@ -95,9 +95,9 @@ Total bits needed for new fields:
 |-----------|---------------|-------------|
 | `difficulty` | 1 (Increasing) | Progressive difficulty |
 | `base_moves` | 20 | Starting moves at level 1 |
-| `max_moves` | 60 | Max moves at level 100 |
+| `max_moves` | 60 | Max moves at level cap (50) |
 | `base_ratio_x100` | 80 | 0.80 points/move at level 1 |
-| `max_ratio_x100` | 250 | 2.50 points/move at level 100 |
+| `max_ratio_x100` | 250 | 2.50 points/move at level cap (50) |
 | `cube_3_percent` | 40 | 3 cubes if <= 40% moves used |
 | `cube_2_percent` | 70 | 2 cubes if <= 70% moves used |
 | `hammer_cost` | 5 | Hammer consumable cost |

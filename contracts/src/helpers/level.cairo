@@ -4,7 +4,7 @@
 /// Key properties:
 /// - Same seed + same level = same config
 /// - Different seed = different config sequence
-/// - Level 100+ caps at max difficulty (survival mode)
+/// - Level 50+ caps at max difficulty (survival mode)
 /// - Points derived from moves × ratio (0.8 → 2.5), base moves 20→60
 /// - Correlated variance keeps difficulty ratio constant
 /// - All generation uses GameSettings for configurable game balance
@@ -25,19 +25,19 @@ mod LevelConstants {
 
     // Ratio scaling ×100 for integer math (0.80 → 2.50)
     pub const BASE_RATIO_X100: u16 = 80;   // 0.80 points per move at level 1
-    pub const MAX_RATIO_X100: u16 = 250;   // 2.50 points per move at level 100
+    pub const MAX_RATIO_X100: u16 = 250;   // 2.50 points per move at level 50
 
     // Correlated variance by level tier (percentage)
-    pub const EARLY_VARIANCE_PERCENT: u16 = 5;   // ±5% for levels 1-10
-    pub const MID_VARIANCE_PERCENT: u16 = 10;    // ±10% for levels 11-50
-    pub const LATE_VARIANCE_PERCENT: u16 = 15;   // ±15% for levels 51-100
+    pub const EARLY_VARIANCE_PERCENT: u16 = 5;   // ±5% for levels 1-5
+    pub const MID_VARIANCE_PERCENT: u16 = 10;    // ±10% for levels 6-25
+    pub const LATE_VARIANCE_PERCENT: u16 = 15;   // ±15% for levels 26-50
 
     // Cube thresholds (percentage of max_moves)
     pub const CUBE_3_PERCENT: u16 = 40; // 3 cubes if moves <= 40% of max
     pub const CUBE_2_PERCENT: u16 = 70; // 2 cubes if moves <= 70% of max
 
     // Level cap for scaling (survival mode after this)
-    pub const LEVEL_CAP: u8 = 100;
+    pub const LEVEL_CAP: u8 = 50;
 
     // Constraint none threshold (constraints start from level 5)
     pub const CONSTRAINT_NONE_THRESHOLD: u8 = 4;
@@ -261,7 +261,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     }
 
     /// Calculate base moves for a level (before variance)
-    /// Linear scaling: 20 at level 1, 60 at level 100 (using defaults)
+    /// Linear scaling: 20 at level 1, 60 at level 50 (using defaults)
     #[inline(always)]
     fn calculate_base_moves(level: u8) -> u16 {
         Self::calculate_base_moves_with_settings(
@@ -270,7 +270,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     }
     
     /// Calculate base moves with custom settings
-    /// Linear scaling from base_moves at level 1 to max_moves at level 100
+    /// Linear scaling from base_moves at level 1 to max_moves at level 50
     #[inline(always)]
     fn calculate_base_moves_with_settings(level: u8, base_moves: u16, max_moves: u16) -> u16 {
         if level <= 1 {
@@ -278,12 +278,12 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         }
 
         let range = max_moves - base_moves;
-        let progress: u32 = (level.into() - 1) * range.into() / 99;
+        let progress: u32 = (level.into() - 1) * range.into() / 49;
         base_moves + progress.try_into().unwrap()
     }
 
     /// Calculate ratio for this level (scaled by 100)
-    /// Linear scaling: 80 (0.80) at level 1, 250 (2.50) at level 100 (using defaults)
+    /// Linear scaling: 80 (0.80) at level 1, 250 (2.50) at level 50 (using defaults)
     #[inline(always)]
     fn calculate_ratio(level: u8) -> u16 {
         Self::calculate_ratio_with_settings(
@@ -292,7 +292,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     }
     
     /// Calculate ratio with custom settings
-    /// Linear scaling from base_ratio at level 1 to max_ratio at level 100
+    /// Linear scaling from base_ratio at level 1 to max_ratio at level 50
     #[inline(always)]
     fn calculate_ratio_with_settings(level: u8, base_ratio_x100: u16, max_ratio_x100: u16) -> u16 {
         if level <= 1 {
@@ -300,16 +300,16 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         }
 
         let range = max_ratio_x100 - base_ratio_x100;
-        let progress: u32 = (level.into() - 1) * range.into() / 99;
+        let progress: u32 = (level.into() - 1) * range.into() / 49;
         base_ratio_x100 + progress.try_into().unwrap()
     }
 
     /// Get variance percentage based on level tier
     #[inline(always)]
     fn get_variance_percent(level: u8) -> u16 {
-        if level <= 10 {
+        if level <= 5 {
             LevelConstants::EARLY_VARIANCE_PERCENT
-        } else if level <= 50 {
+        } else if level <= 25 {
             LevelConstants::MID_VARIANCE_PERCENT
         } else {
             LevelConstants::LATE_VARIANCE_PERCENT
@@ -331,167 +331,6 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     fn apply_factor(base: u16, factor: u16) -> u16 {
         let result: u32 = base.into() * factor.into() / 100;
         result.try_into().unwrap()
-    }
-
-    /// Get difficulty based on level number
-    fn get_difficulty_for_level(level: u8) -> Difficulty {
-        if level <= 10 {
-            Difficulty::Easy
-        } else if level <= 25 {
-            Difficulty::Medium
-        } else if level <= 45 {
-            Difficulty::MediumHard
-        } else if level <= 65 {
-            Difficulty::Hard
-        } else if level <= 85 {
-            Difficulty::VeryHard
-        } else if level <= 95 {
-            Difficulty::Expert
-        } else {
-            Difficulty::Master
-        }
-    }
-
-    /// Generate a constraint based on seed and level
-    fn generate_constraint(level_seed: felt252, level: u8) -> LevelConstraint {
-        // No constraint for first few levels (levels 1-4)
-        if level <= LevelConstants::CONSTRAINT_NONE_THRESHOLD {
-            return LevelConstraintTrait::none();
-        }
-
-        let seed_u256: u256 = level_seed.into();
-        let roll: u8 = (seed_u256 % 100).try_into().unwrap(); // 0-99 for precise percentages
-
-        if level <= 20 {
-            // Levels 5-20
-            if roll < 5 {
-                // 5% No Bonus Used
-                LevelConstraintTrait::no_bonus()
-            } else if roll < 15 {
-                // 10% No Constraint
-                LevelConstraintTrait::none()
-            } else if roll < 65 {
-                // 50% Clear 2+ lines, 1-4 times
-                let times: u8 = 1 + ((seed_u256 / 100) % 4).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(2, times)
-            } else if roll < 95 {
-                // 30% Clear 3+ lines, 1-2 times
-                let times: u8 = 1 + ((seed_u256 / 100) % 2).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(3, times)
-            } else {
-                // 5% Clear 4+ lines, 1 time
-                LevelConstraintTrait::clear_lines(4, 1)
-            }
-        } else if level <= 40 {
-            // Levels 21-40
-            if roll < 3 {
-                // 3% No Bonus Used
-                LevelConstraintTrait::no_bonus()
-            } else if roll < 5 {
-                // 2% No Constraint
-                LevelConstraintTrait::none()
-            } else if roll < 55 {
-                // 50% Clear 2+ lines, 2-6 times
-                let times: u8 = 2 + ((seed_u256 / 100) % 5).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(2, times)
-            } else if roll < 85 {
-                // 30% Clear 3+ lines, 2-4 times
-                let times: u8 = 2 + ((seed_u256 / 100) % 3).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(3, times)
-            } else if roll < 95 {
-                // 10% Clear 4+ lines, 1-2 times
-                let times: u8 = 1 + ((seed_u256 / 100) % 2).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(4, times)
-            } else {
-                // 5% Clear 5+ lines, 1 time
-                LevelConstraintTrait::clear_lines(5, 1)
-            }
-        } else if level <= 60 {
-            // Levels 41-60
-            if roll < 3 {
-                // 3% No Bonus Used
-                LevelConstraintTrait::no_bonus()
-            } else if roll < 5 {
-                // 2% No Constraint
-                LevelConstraintTrait::none()
-            } else if roll < 45 {
-                // 40% Clear 2+ lines, 3-8 times
-                let times: u8 = 3 + ((seed_u256 / 100) % 6).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(2, times)
-            } else if roll < 75 {
-                // 30% Clear 3+ lines, 3-6 times
-                let times: u8 = 3 + ((seed_u256 / 100) % 4).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(3, times)
-            } else if roll < 95 {
-                // 20% Clear 4+ lines, 2-4 times
-                let times: u8 = 2 + ((seed_u256 / 100) % 3).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(4, times)
-            } else {
-                // 5% Clear 5+ lines, 1-2 times
-                let times: u8 = 1 + ((seed_u256 / 100) % 2).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(5, times)
-            }
-        } else if level <= 80 {
-            // Levels 61-80
-            if roll < 3 {
-                // 3% No Bonus Used
-                LevelConstraintTrait::no_bonus()
-            } else if roll < 5 {
-                // 2% No Constraint
-                LevelConstraintTrait::none()
-            } else if roll < 35 {
-                // 30% Clear 2+ lines, 4-10 times
-                let times: u8 = 4 + ((seed_u256 / 100) % 7).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(2, times)
-            } else if roll < 70 {
-                // 35% Clear 3+ lines, 4-8 times
-                let times: u8 = 4 + ((seed_u256 / 100) % 5).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(3, times)
-            } else if roll < 90 {
-                // 20% Clear 4+ lines, 3-6 times
-                let times: u8 = 3 + ((seed_u256 / 100) % 4).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(4, times)
-            } else if roll < 95 {
-                // 5% Clear 5+ lines, 2-4 times
-                let times: u8 = 2 + ((seed_u256 / 100) % 3).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(5, times)
-            } else {
-                // 5% Clear 6+ lines, 1 time
-                LevelConstraintTrait::clear_lines(6, 1)
-            }
-        } else {
-            // Levels 81+
-            if roll < 3 {
-                // 3% No Bonus Used
-                LevelConstraintTrait::no_bonus()
-            } else if roll < 5 {
-                // 2% No Constraint
-                LevelConstraintTrait::none()
-            } else if roll < 35 {
-                // 30% Clear 2+ lines, 5-12 times
-                let times: u8 = 5 + ((seed_u256 / 100) % 8).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(2, times)
-            } else if roll < 65 {
-                // 30% Clear 3+ lines, 5-10 times
-                let times: u8 = 5 + ((seed_u256 / 100) % 6).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(3, times)
-            } else if roll < 85 {
-                // 20% Clear 4+ lines, 4-8 times
-                let times: u8 = 4 + ((seed_u256 / 100) % 5).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(4, times)
-            } else if roll < 90 {
-                // 5% Clear 5+ lines, 3-6 times
-                let times: u8 = 3 + ((seed_u256 / 100) % 4).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(5, times)
-            } else if roll < 95 {
-                // 5% Clear 6+ lines, 1-2 times
-                let times: u8 = 1 + ((seed_u256 / 100) % 2).try_into().unwrap();
-                LevelConstraintTrait::clear_lines(6, times)
-            } else {
-                // 5% Clear 7+ lines, 1 time
-                LevelConstraintTrait::clear_lines(7, 1)
-            }
-        }
     }
 
     /// Generate random bonus type based on seed
@@ -522,61 +361,33 @@ mod tests {
     fn test_base_moves_scaling() {
         assert!(LevelGeneratorTrait::calculate_base_moves(1) == 20, "Level 1 should have 20 moves");
         assert!(
-            LevelGeneratorTrait::calculate_base_moves(100) == 60,
-            "Level 100 should have 60 moves",
+            LevelGeneratorTrait::calculate_base_moves(50) == 60,
+            "Level 50 should have 60 moves",
         );
 
-        let mid = LevelGeneratorTrait::calculate_base_moves(50);
-        assert!(mid >= 39 && mid <= 41, "Level 50 should be around 40 moves");
+        let mid = LevelGeneratorTrait::calculate_base_moves(25);
+        assert!(mid >= 39 && mid <= 41, "Level 25 should be around 40 moves");
     }
 
     #[test]
     fn test_ratio_scaling() {
         assert!(LevelGeneratorTrait::calculate_ratio(1) == 80, "Level 1 should have ratio 80");
         assert!(
-            LevelGeneratorTrait::calculate_ratio(100) == 250, "Level 100 should have ratio 250",
+            LevelGeneratorTrait::calculate_ratio(50) == 250, "Level 50 should have ratio 250",
         );
 
-        let mid = LevelGeneratorTrait::calculate_ratio(50);
-        assert!(mid >= 160 && mid <= 170, "Level 50 should have ratio around 165");
+        let mid = LevelGeneratorTrait::calculate_ratio(25);
+        assert!(mid >= 160 && mid <= 170, "Level 25 should have ratio around 165");
     }
 
     #[test]
     fn test_variance_percent_tiers() {
         assert!(LevelGeneratorTrait::get_variance_percent(1) == 5, "Level 1 should be 5%");
-        assert!(LevelGeneratorTrait::get_variance_percent(10) == 5, "Level 10 should be 5%");
-        assert!(LevelGeneratorTrait::get_variance_percent(11) == 10, "Level 11 should be 10%");
-        assert!(LevelGeneratorTrait::get_variance_percent(50) == 10, "Level 50 should be 10%");
-        assert!(LevelGeneratorTrait::get_variance_percent(51) == 15, "Level 51 should be 15%");
-        assert!(LevelGeneratorTrait::get_variance_percent(100) == 15, "Level 100 should be 15%");
-    }
-
-    #[test]
-    fn test_difficulty_progression() {
-        assert!(
-            LevelGeneratorTrait::get_difficulty_for_level(1) == Difficulty::Easy,
-            "Level 1 should be Easy",
-        );
-        assert!(
-            LevelGeneratorTrait::get_difficulty_for_level(10) == Difficulty::Easy,
-            "Level 10 should be Easy",
-        );
-        assert!(
-            LevelGeneratorTrait::get_difficulty_for_level(11) == Difficulty::Medium,
-            "Level 11 should be Medium",
-        );
-        assert!(
-            LevelGeneratorTrait::get_difficulty_for_level(25) == Difficulty::Medium,
-            "Level 25 should be Medium",
-        );
-        assert!(
-            LevelGeneratorTrait::get_difficulty_for_level(96) == Difficulty::Master,
-            "Level 96 should be Master",
-        );
-        assert!(
-            LevelGeneratorTrait::get_difficulty_for_level(100) == Difficulty::Master,
-            "Level 100 should be Master",
-        );
+        assert!(LevelGeneratorTrait::get_variance_percent(5) == 5, "Level 5 should be 5%");
+        assert!(LevelGeneratorTrait::get_variance_percent(6) == 10, "Level 6 should be 10%");
+        assert!(LevelGeneratorTrait::get_variance_percent(25) == 10, "Level 25 should be 10%");
+        assert!(LevelGeneratorTrait::get_variance_percent(26) == 15, "Level 26 should be 15%");
+        assert!(LevelGeneratorTrait::get_variance_percent(50) == 15, "Level 50 should be 15%");
     }
 
     #[test]
@@ -597,14 +408,14 @@ mod tests {
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
         let config = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
 
-        // Base at level 50: moves ~60, ratio ~165, points ~99
-        // With variance, both should scale together
+        // Base at level 50: moves = 60, ratio_x100 = 250, points = 60 × 2.50 = 150
+        // With variance (±15%), both should scale together maintaining the ratio
         // Ratio should be approximately: points_required * 100 / max_moves
         let actual_ratio = config.points_required.into() * 100_u32 / config.max_moves.into();
         
-        // The ratio should be close to the base ratio for level 50 (~165)
-        // Allow for some rounding errors
-        assert!(actual_ratio >= 150 && actual_ratio <= 180, "Ratio should be approximately 165");
+        // The ratio should be close to the base ratio for level 50 (~250)
+        // Allow for rounding errors
+        assert!(actual_ratio >= 230 && actual_ratio <= 270, "Ratio should be approximately 250");
     }
 
     #[test]
@@ -621,14 +432,14 @@ mod tests {
     }
 
     #[test]
-    fn test_level_100_cap() {
-        // Level 100 and 150 should have same base difficulty (Master)
+    fn test_level_50_cap() {
+        // Level 50 and 100 should have same base difficulty (Master)
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
+        let config50 = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
         let config100 = LevelGeneratorTrait::generate(TEST_SEED, 100, settings);
-        let config150 = LevelGeneratorTrait::generate(TEST_SEED, 150, settings);
 
-        assert!(config100.difficulty == Difficulty::Master, "Level 100 should be Master");
-        assert!(config150.difficulty == Difficulty::Master, "Level 150 should be Master");
+        assert!(config50.difficulty == Difficulty::Master, "Level 50 should be Master");
+        assert!(config100.difficulty == Difficulty::Master, "Level 100 should be Master (capped)");
     }
 
     #[test]
@@ -680,34 +491,34 @@ mod tests {
     }
 
     #[test]
-    fn test_generate_level_50() {
+    fn test_generate_level_25() {
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 25, settings);
 
-        // Level 50: base_moves~40, ratio~1.65, base_points~66
+        // Level 25: base_moves~40, ratio~1.65, base_points~66
         // With ±10% variance: moves 36-44, points 59-73
-        // With non-linear progression: Level 50 is VeryHard (tier 5, starts at level 50)
-        assert!(config.level == 50, "Level should be 50");
+        // With non-linear progression: Level 25 is VeryHard (tier 5, starts at level 25)
+        assert!(config.level == 25, "Level should be 25");
         assert!(config.points_required >= 56 && config.points_required <= 76, "Points in range");
         assert!(config.max_moves >= 34 && config.max_moves <= 46, "Moves in range");
-        assert!(config.difficulty == Difficulty::VeryHard, "Level 50 should be VeryHard");
+        assert!(config.difficulty == Difficulty::VeryHard, "Level 25 should be VeryHard");
         assert!(config.cube_3_threshold < config.cube_2_threshold, "Cube thresholds ordered");
         assert!(config.cube_2_threshold < config.max_moves, "2-cube threshold < max");
     }
 
     #[test]
-    fn test_generate_level_100() {
+    fn test_generate_level_50() {
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 100, settings);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
 
-        // Level 100: base_moves=60, ratio=2.50, base_points=150
+        // Level 50 (max): base_moves=60, ratio=2.50, base_points=150
         // With ±15% variance: moves 51-69, points 127-173
-        assert!(config.level == 100, "Level should be 100");
+        assert!(config.level == 50, "Level should be 50");
         assert!(
             config.points_required >= 124 && config.points_required <= 176, "Points in range",
         );
         assert!(config.max_moves >= 49 && config.max_moves <= 71, "Moves in range");
-        assert!(config.difficulty == Difficulty::Master, "Level 100 should be Master");
+        assert!(config.difficulty == Difficulty::Master, "Level 50 should be Master");
     }
 
     #[test]
@@ -782,16 +593,16 @@ mod tests {
         settings.constraints_enabled = 0;
         
         // Even at high levels, should have no constraint
-        let config = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
+        let config = LevelGeneratorTrait::generate(TEST_SEED, 25, settings);
         assert!(
             config.constraint.constraint_type == ConstraintType::None,
             "Should have no constraint when disabled"
         );
         
-        let config_100 = LevelGeneratorTrait::generate(TEST_SEED, 100, settings);
+        let config_50 = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
         assert!(
-            config_100.constraint.constraint_type == ConstraintType::None,
-            "Level 100 should have no constraint when disabled"
+            config_50.constraint.constraint_type == ConstraintType::None,
+            "Level 50 should have no constraint when disabled"
         );
     }
     
@@ -859,19 +670,19 @@ mod tests {
     
     #[test]
     fn test_generate_custom_level_cap() {
-        // Lower level cap to 50
+        // Lower level cap to 30 (below default of 50)
         let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        settings.level_cap = 50;
+        settings.level_cap = 30;
         
-        // Level 50 and 100 should have same scaling (both at cap)
+        // Level 30 and 50 should have same scaling (both at cap)
+        let config_30 = LevelGeneratorTrait::generate(TEST_SEED, 30, settings);
         let config_50 = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
-        let config_100 = LevelGeneratorTrait::generate(TEST_SEED, 100, settings);
         
-        // Both should use level 50 for calculations
+        // Both should use level 30 for calculations
         // Note: We can't directly compare due to different level seeds, but we can verify
         // the level field is different while the base calculation is capped
+        assert!(config_30.level == 30, "Level should be 30");
         assert!(config_50.level == 50, "Level should be 50");
-        assert!(config_100.level == 100, "Level should be 100");
     }
     
     #[test]

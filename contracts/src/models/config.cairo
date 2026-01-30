@@ -28,9 +28,9 @@ pub struct GameSettings {
     
     // === Level Scaling ===
     pub base_moves: u16,        // Moves at level 1 (default: 20)
-    pub max_moves: u16,         // Moves at level 100 (default: 60)
+    pub max_moves: u16,         // Moves at level cap (default: 60)
     pub base_ratio_x100: u16,   // Points/move ratio at level 1 * 100 (default: 80 = 0.80)
-    pub max_ratio_x100: u16,    // Points/move ratio at level 100 * 100 (default: 250 = 2.50)
+    pub max_ratio_x100: u16,    // Points/move ratio at level cap * 100 (default: 250 = 2.50)
     
     // === Cube Thresholds ===
     pub cube_3_percent: u8,     // 3 cubes if moves <= X% of max (default: 40)
@@ -103,11 +103,11 @@ pub struct GameSettings {
     pub late_variance_percent: u8,   // Variance % for late levels (default: 15)
     
     // === Level Tier Thresholds ===
-    pub early_level_threshold: u8,   // End of "early" levels (default: 10)
-    pub mid_level_threshold: u8,     // End of "mid" levels (default: 50)
+    pub early_level_threshold: u8,   // End of "early" levels (default: 5)
+    pub mid_level_threshold: u8,     // End of "mid" levels (default: 25)
     
     // === Level Cap ===
-    pub level_cap: u8,               // Max level for scaling (default: 100)
+    pub level_cap: u8,               // Max level for scaling (default: 50)
 }
 
 /// Default values for GameSettings
@@ -132,15 +132,15 @@ pub mod GameSettingsDefaults {
     pub const CUBE_MULTIPLIER_X100: u16 = 100; // 1.0x
     
     // Difficulty Progression (non-linear tier thresholds)
-    // VeryEasy: 1-4, Easy: 5-9, Medium: 10-19, MediumHard: 20-34
-    // Hard: 35-49, VeryHard: 50-69, Expert: 70-89, Master: 90+
-    pub const TIER_1_THRESHOLD: u8 = 5;   // Easy starts at level 5
-    pub const TIER_2_THRESHOLD: u8 = 10;  // Medium starts at level 10
-    pub const TIER_3_THRESHOLD: u8 = 20;  // MediumHard starts at level 20
-    pub const TIER_4_THRESHOLD: u8 = 35;  // Hard starts at level 35
-    pub const TIER_5_THRESHOLD: u8 = 50;  // VeryHard starts at level 50
-    pub const TIER_6_THRESHOLD: u8 = 70;  // Expert starts at level 70
-    pub const TIER_7_THRESHOLD: u8 = 90;  // Master starts at level 90
+    // VeryEasy: 1-3, Easy: 4-7, Medium: 8-11, MediumHard: 12-17
+    // Hard: 18-24, VeryHard: 25-34, Expert: 35-44, Master: 45+
+    pub const TIER_1_THRESHOLD: u8 = 4;   // Easy starts at level 4
+    pub const TIER_2_THRESHOLD: u8 = 8;   // Medium starts at level 8
+    pub const TIER_3_THRESHOLD: u8 = 12;  // MediumHard starts at level 12
+    pub const TIER_4_THRESHOLD: u8 = 18;  // Hard starts at level 18
+    pub const TIER_5_THRESHOLD: u8 = 25;  // VeryHard starts at level 25
+    pub const TIER_6_THRESHOLD: u8 = 35;  // Expert starts at level 35
+    pub const TIER_7_THRESHOLD: u8 = 45;  // Master starts at level 45
     
     // Constraint Settings
     pub const CONSTRAINTS_ENABLED: u8 = 1;     // Enabled
@@ -218,11 +218,11 @@ pub mod GameSettingsDefaults {
     pub const LATE_VARIANCE_PERCENT: u8 = 15;  // ±15% for late levels
     
     // Level Tier Thresholds
-    pub const EARLY_LEVEL_THRESHOLD: u8 = 10;  // Levels 1-10 are "early"
-    pub const MID_LEVEL_THRESHOLD: u8 = 50;    // Levels 11-50 are "mid"
+    pub const EARLY_LEVEL_THRESHOLD: u8 = 5;   // Levels 1-5 are "early"
+    pub const MID_LEVEL_THRESHOLD: u8 = 25;    // Levels 6-25 are "mid"
     
     // Level Cap
-    pub const LEVEL_CAP: u8 = 100;             // Max level for scaling
+    pub const LEVEL_CAP: u8 = 50;              // Max level for scaling
 }
 
 #[generate_trait]
@@ -351,7 +351,7 @@ pub impl GameSettingsImpl of GameSettingsTrait {
     /// Get the effective level cap
     fn get_level_cap(self: GameSettings) -> u8 {
         if self.level_cap == 0 {
-            100 // Fallback to default if not set
+            50 // Fallback to default if not set
         } else {
             self.level_cap
         }
@@ -749,13 +749,13 @@ mod tests {
         // Reward Multiplier
         assert!(settings.cube_multiplier_x100 == 100, "Multiplier should be 100");
         // Difficulty Progression (non-linear tier thresholds)
-        assert!(settings.tier_1_threshold == 5, "Tier 1 (Easy) should start at level 5");
-        assert!(settings.tier_2_threshold == 10, "Tier 2 (Medium) should start at level 10");
-        assert!(settings.tier_3_threshold == 20, "Tier 3 (MediumHard) should start at level 20");
-        assert!(settings.tier_4_threshold == 35, "Tier 4 (Hard) should start at level 35");
-        assert!(settings.tier_5_threshold == 50, "Tier 5 (VeryHard) should start at level 50");
-        assert!(settings.tier_6_threshold == 70, "Tier 6 (Expert) should start at level 70");
-        assert!(settings.tier_7_threshold == 90, "Tier 7 (Master) should start at level 90");
+        assert!(settings.tier_1_threshold == 4, "Tier 1 (Easy) should start at level 4");
+        assert!(settings.tier_2_threshold == 8, "Tier 2 (Medium) should start at level 8");
+        assert!(settings.tier_3_threshold == 12, "Tier 3 (MediumHard) should start at level 12");
+        assert!(settings.tier_4_threshold == 18, "Tier 4 (Hard) should start at level 18");
+        assert!(settings.tier_5_threshold == 25, "Tier 5 (VeryHard) should start at level 25");
+        assert!(settings.tier_6_threshold == 35, "Tier 6 (Expert) should start at level 35");
+        assert!(settings.tier_7_threshold == 45, "Tier 7 (Master) should start at level 45");
         // Constraint Settings
         assert!(settings.constraints_enabled == 1, "Constraints should be enabled");
         assert!(settings.constraint_start_level == 3, "Constraints should start at level 3");
@@ -764,10 +764,10 @@ mod tests {
         assert!(settings.mid_variance_percent == 10, "Mid variance should be 10");
         assert!(settings.late_variance_percent == 15, "Late variance should be 15");
         // Level Tier Thresholds
-        assert!(settings.early_level_threshold == 10, "Early threshold should be 10");
-        assert!(settings.mid_level_threshold == 50, "Mid threshold should be 50");
+        assert!(settings.early_level_threshold == 5, "Early threshold should be 5");
+        assert!(settings.mid_level_threshold == 25, "Mid threshold should be 25");
         // Level Cap
-        assert!(settings.level_cap == 100, "Level cap should be 100");
+        assert!(settings.level_cap == 50, "Level cap should be 50");
     }
     
     #[test]
@@ -824,24 +824,24 @@ mod tests {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
         
         // Non-linear progression with default tier thresholds:
-        // VeryEasy: 1-4, Easy: 5-9, Medium: 10-19, MediumHard: 20-34
-        // Hard: 35-49, VeryHard: 50-69, Expert: 70-89, Master: 90+
+        // VeryEasy: 1-3, Easy: 4-7, Medium: 8-11, MediumHard: 12-17
+        // Hard: 18-24, VeryHard: 25-34, Expert: 35-44, Master: 45+
         assert!(settings.get_difficulty_for_level(1) == Difficulty::VeryEasy, "Level 1 should be VeryEasy");
-        assert!(settings.get_difficulty_for_level(4) == Difficulty::VeryEasy, "Level 4 should be VeryEasy");
-        assert!(settings.get_difficulty_for_level(5) == Difficulty::Easy, "Level 5 should be Easy");
-        assert!(settings.get_difficulty_for_level(9) == Difficulty::Easy, "Level 9 should be Easy");
-        assert!(settings.get_difficulty_for_level(10) == Difficulty::Medium, "Level 10 should be Medium");
-        assert!(settings.get_difficulty_for_level(19) == Difficulty::Medium, "Level 19 should be Medium");
-        assert!(settings.get_difficulty_for_level(20) == Difficulty::MediumHard, "Level 20 should be MediumHard");
-        assert!(settings.get_difficulty_for_level(34) == Difficulty::MediumHard, "Level 34 should be MediumHard");
-        assert!(settings.get_difficulty_for_level(35) == Difficulty::Hard, "Level 35 should be Hard");
-        assert!(settings.get_difficulty_for_level(49) == Difficulty::Hard, "Level 49 should be Hard");
-        assert!(settings.get_difficulty_for_level(50) == Difficulty::VeryHard, "Level 50 should be VeryHard");
-        assert!(settings.get_difficulty_for_level(69) == Difficulty::VeryHard, "Level 69 should be VeryHard");
-        assert!(settings.get_difficulty_for_level(70) == Difficulty::Expert, "Level 70 should be Expert");
-        assert!(settings.get_difficulty_for_level(89) == Difficulty::Expert, "Level 89 should be Expert");
-        assert!(settings.get_difficulty_for_level(90) == Difficulty::Master, "Level 90 should be Master");
-        assert!(settings.get_difficulty_for_level(100) == Difficulty::Master, "Level 100 should be Master");
+        assert!(settings.get_difficulty_for_level(3) == Difficulty::VeryEasy, "Level 3 should be VeryEasy");
+        assert!(settings.get_difficulty_for_level(4) == Difficulty::Easy, "Level 4 should be Easy");
+        assert!(settings.get_difficulty_for_level(7) == Difficulty::Easy, "Level 7 should be Easy");
+        assert!(settings.get_difficulty_for_level(8) == Difficulty::Medium, "Level 8 should be Medium");
+        assert!(settings.get_difficulty_for_level(11) == Difficulty::Medium, "Level 11 should be Medium");
+        assert!(settings.get_difficulty_for_level(12) == Difficulty::MediumHard, "Level 12 should be MediumHard");
+        assert!(settings.get_difficulty_for_level(17) == Difficulty::MediumHard, "Level 17 should be MediumHard");
+        assert!(settings.get_difficulty_for_level(18) == Difficulty::Hard, "Level 18 should be Hard");
+        assert!(settings.get_difficulty_for_level(24) == Difficulty::Hard, "Level 24 should be Hard");
+        assert!(settings.get_difficulty_for_level(25) == Difficulty::VeryHard, "Level 25 should be VeryHard");
+        assert!(settings.get_difficulty_for_level(34) == Difficulty::VeryHard, "Level 34 should be VeryHard");
+        assert!(settings.get_difficulty_for_level(35) == Difficulty::Expert, "Level 35 should be Expert");
+        assert!(settings.get_difficulty_for_level(44) == Difficulty::Expert, "Level 44 should be Expert");
+        assert!(settings.get_difficulty_for_level(45) == Difficulty::Master, "Level 45 should be Master");
+        assert!(settings.get_difficulty_for_level(50) == Difficulty::Master, "Level 50 should be Master");
     }
     
     #[test]
@@ -870,10 +870,10 @@ mod tests {
     fn test_get_difficulty_for_level_caps_at_master() {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
         
-        // With default thresholds, Master starts at level 90
-        // Any level >= 90 should be Master
-        assert!(settings.get_difficulty_for_level(90) == Difficulty::Master, "Level 90 should be Master");
-        assert!(settings.get_difficulty_for_level(100) == Difficulty::Master, "Level 100 should be Master");
+        // With default thresholds, Master starts at level 45
+        // Any level >= 45 should be Master
+        assert!(settings.get_difficulty_for_level(45) == Difficulty::Master, "Level 45 should be Master");
+        assert!(settings.get_difficulty_for_level(50) == Difficulty::Master, "Level 50 should be Master");
         assert!(settings.get_difficulty_for_level(255) == Difficulty::Master, "Level 255 should be Master");
     }
     
@@ -881,13 +881,13 @@ mod tests {
     fn test_get_variance_percent() {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
         
-        // Default thresholds: early=10, mid=50
+        // Default thresholds: early=5, mid=25
         assert!(settings.get_variance_percent(1) == 5, "Level 1 should use early variance");
-        assert!(settings.get_variance_percent(10) == 5, "Level 10 should use early variance");
-        assert!(settings.get_variance_percent(11) == 10, "Level 11 should use mid variance");
-        assert!(settings.get_variance_percent(50) == 10, "Level 50 should use mid variance");
-        assert!(settings.get_variance_percent(51) == 15, "Level 51 should use late variance");
-        assert!(settings.get_variance_percent(100) == 15, "Level 100 should use late variance");
+        assert!(settings.get_variance_percent(5) == 5, "Level 5 should use early variance");
+        assert!(settings.get_variance_percent(6) == 10, "Level 6 should use mid variance");
+        assert!(settings.get_variance_percent(25) == 10, "Level 25 should use mid variance");
+        assert!(settings.get_variance_percent(26) == 15, "Level 26 should use late variance");
+        assert!(settings.get_variance_percent(50) == 15, "Level 50 should use late variance");
     }
     
     #[test]
