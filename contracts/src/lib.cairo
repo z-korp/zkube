@@ -77,4 +77,5 @@ pub mod systems {
     pub mod shop;
     pub mod cube_token;
     pub mod quest;
+    pub mod renderer;
 }

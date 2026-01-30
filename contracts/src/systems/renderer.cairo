@@ -19,38 +19,31 @@ mod renderer_systems {
     use zkube::helpers::renderer as renderer_helper;
 
     use dojo::model::ModelStorage;
-    use dojo::world::{WorldStorage, WorldStorageTrait, Resource, IWorldDispatcherTrait};
+    use dojo::world::{WorldStorage, WorldStorageTrait};
 
     use game_components_minigame::interface::{IMinigameDetails, IMinigameDetailsSVG};
     use game_components_minigame::structs::GameDetail;
     use game_components_minigame::libs::get_player_name as libs_get_player_name;
-
-    use starknet::ContractAddress;
-
     use game_components_minigame::interface::{IMinigameDispatcher, IMinigameDispatcherTrait};
-
-    // ------------------------------------------ //
-    // ------------ Constants ------------------- //
-    // ------------------------------------------ //
-
-    // Selector for game_token_systems: poseidon_hash(namespace_hash, name_hash)
-    const GAME_TOKEN_SYSTEMS_SELECTOR: felt252 = 0x0169eef310aac1a258d0f26599eaa91a92c793add855ddaedf322295bd649eaf;
 
     // ------------------------------------------ //
     // ------------ Helper Functions ------------ //
     // ------------------------------------------ //
 
-    /// Get player name from game_token_systems via libs
-    /// Uses direct resource lookup with known selector to avoid DNS computation issues
+    /// Get player name from game_system via libs
+    /// Uses world.dns() to lookup the game_system contract address
     fn _get_player_name(world: WorldStorage, game_id: u64) -> felt252 {
-        let resource = world.dispatcher.resource(GAME_TOKEN_SYSTEMS_SELECTOR);
-        let game_token_systems_address = match resource {
-            Resource::Contract((contract_address, _namespace_hash)) => contract_address,
-            _ => panic!("game_token_systems not found in world"),
-        };
-        let minigame_dispatcher = IMinigameDispatcher { contract_address: game_token_systems_address };
-        let token_address = minigame_dispatcher.token_address();
-        libs_get_player_name(token_address, game_id)
+        match world.dns(@"game_system") {
+            Option::Some((game_system_address, _)) => {
+                let minigame_dispatcher = IMinigameDispatcher { contract_address: game_system_address };
+                let token_address = minigame_dispatcher.token_address();
+                libs_get_player_name(token_address, game_id)
+            },
+            Option::None => {
+                // Fallback: return 0 if game_system not found
+                0
+            },
+        }
     }
 
     // ------------------------------------------ //

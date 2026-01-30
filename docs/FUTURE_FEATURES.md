@@ -128,6 +128,33 @@ ui/
 
 ## Architecture Improvements
 
+### Budokan Compatibility (Implemented)
+
+zkube is fully compatible with the Budokan/game-components framework from Provable Games.
+
+**Implemented Components:**
+
+| Component | Status | Location |
+|-----------|--------|----------|
+| `MinigameComponent` | Implemented | `game_system` |
+| `IMinigameTokenData` | Implemented | `game_system` (score, game_over) |
+| `IMinigameSettings` | Implemented | `config_system` |
+| `IMinigameSettingsDetails` | Implemented | `config_system` |
+| `SettingsComponent` | Implemented | `config_system` |
+| `IMinigameDetails` | Implemented | `renderer_systems` |
+| `IMinigameDetailsSVG` | Implemented | `renderer_systems` |
+| Renderer fallback | Implemented | `game_system.dojo_init` resolves via world.dns |
+
+**Architecture Pattern:**
+- Follows Dark Shuffle pattern: single `game_system` with MinigameComponent + game logic
+- Renderer resolved automatically via `world.dns(@"renderer_systems")` if not provided
+- Config system provides game settings via IMinigameSettings interface
+
+**Key Files:**
+- `contracts/src/systems/game.cairo` - MinigameComponent + IMinigameTokenData
+- `contracts/src/systems/config.cairo` - SettingsComponent + IMinigameSettings
+- `contracts/src/systems/renderer.cairo` - IMinigameDetails + IMinigameDetailsSVG
+
 ### Contract Size Management
 
 **Problem:** `game_system` contract exceeds Starknet's 81,920 felt limit.

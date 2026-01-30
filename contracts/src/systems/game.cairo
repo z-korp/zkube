@@ -53,6 +53,7 @@ mod game_system {
     use dojo::event::EventStorage;
 
     use starknet::{get_block_timestamp, get_caller_address, ContractAddress};
+    use core::num::traits::Zero;
 
     use game_components_minigame::interface::{IMinigameTokenData};
     use game_components_minigame::libs::{
@@ -93,6 +94,14 @@ mod game_system {
         SRC5Event: SRC5Component::Event,
     }
 
+    /// @title Dojo Init
+    /// @notice Initializes the contract and registers with the MinigameRegistry
+    /// @dev This is the constructor for the contract. It is called once when the contract is
+    /// deployed.
+    ///
+    /// @param creator_address: the address of the creator of the game
+    /// @param denshokan_address: the address of the FullTokenContract (MinigameToken)
+    /// @param renderer_address: optional renderer address, defaults to 'renderer_systems' if None
     fn dojo_init(
         ref self: ContractState,
         creator_address: ContractAddress,
@@ -101,6 +110,21 @@ mod game_system {
     ) {
         let mut world: WorldStorage = self.world(@DEFAULT_NS());
         let (config_system_address, _) = world.dns(@"config_system").unwrap();
+
+        // Use provided renderer address or default to 'renderer_systems'
+        let final_renderer_address = match renderer_address {
+            Option::Some(addr) => addr,
+            Option::None => {
+                // Try to get renderer_systems, but don't fail if it doesn't exist yet
+                match world.dns(@"renderer_systems") {
+                    Option::Some((addr, _)) => addr,
+                    Option::None => {
+                        // Use zero address as fallback - can be updated later
+                        starknet::contract_address_const::<0>()
+                    },
+                }
+            },
+        };
 
         self
             .minigame
@@ -113,10 +137,14 @@ mod game_system {
                 "Puzzle",
                 "https://zkube.vercel.app/assets/pwa-512x512.png",
                 Option::Some("#3c2fba"),
-                Option::None,
-                renderer_address,
-                Option::Some(config_system_address),
-                Option::None,
+                Option::None, // client_url
+                if final_renderer_address.is_zero() {
+                    Option::None
+                } else {
+                    Option::Some(final_renderer_address)
+                }, // renderer address
+                Option::Some(config_system_address), // settings_address
+                Option::None, // objectives_address (using Cartridge arcade)
                 denshokan_address,
             );
     }

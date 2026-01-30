@@ -17,13 +17,12 @@ contracts/
 │   │   ├── player.cairo       # PlayerMeta model
 │   │   └── config.cairo       # GameSettings model
 │   ├── systems/               # Dojo systems (logic)
-│   │   ├── game.cairo         # Main game system
+│   │   ├── game.cairo         # Main game system + MinigameComponent
 │   │   ├── shop.cairo         # Permanent shop (cube economy)
 │   │   ├── cube_token.cairo   # Soulbound ERC1155 CUBE token
 │   │   ├── quest.cairo        # Daily quest system
-│   │   ├── config.cairo       # Configuration system
-│   │   ├── game_token.cairo   # Token integration
-│   │   └── renderer.cairo     # SVG/metadata generation
+│   │   ├── config.cairo       # Configuration + IMinigameSettings
+│   │   └── renderer.cairo     # NFT metadata & SVG (IMinigameDetails)
 │   ├── types/                 # Type definitions
 │   │   ├── bonus.cairo        # Bonus enum (Hammer, Wave, Totem)
 │   │   ├── difficulty.cairo   # Difficulty levels
@@ -267,6 +266,24 @@ trait IConfigSystem {
 - ID 0: "Fixed Difficulty - Expert"
 - ID 1: "Progressive Difficulty" (Increasing)
 - ID 2: "Fixed Difficulty - Very Hard"
+
+### Renderer System (`systems/renderer.cairo`)
+
+NFT metadata and SVG generation for game tokens:
+
+```cairo
+trait IRendererSystems {
+    fn create_metadata(self: @T, game_id: u64) -> ByteArray;   // Full JSON metadata
+    fn generate_svg(self: @T, game_id: u64) -> ByteArray;      // SVG image
+    fn generate_details(self: @T, game_id: u64) -> Span<GameDetail>;  // NFT attributes
+}
+```
+
+Implements Budokan/game-components interfaces:
+- `IMinigameDetails`: `game_details()`, `token_name()`, `token_description()`
+- `IMinigameDetailsSVG`: `game_details_svg()`
+
+The renderer is automatically resolved via `world.dns(@"renderer_systems")` if not provided during game initialization.
 
 ## Grid Manipulation (`helpers/controller.cairo`)
 
