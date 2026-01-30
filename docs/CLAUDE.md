@@ -5,38 +5,40 @@
 
 ## Overview
 
-This directory contains documentation and planning materials for the zKube project.
+This directory contains documentation for the zKube project.
 
 ## Documentation Index
 
-### Core Documentation
+### Core Game Documentation
+
+| File | Description |
+|------|-------------|
+| [GAME_DESIGN.md](./GAME_DESIGN.md) | **Complete game design** - levels, economy, bonuses, shops |
+| [QUEST_SYSTEM.md](./QUEST_SYSTEM.md) | Daily quest system implementation |
+| [CONFIGURABLE_SETTINGS.md](./CONFIGURABLE_SETTINGS.md) | GameSettings customization for game modes |
+
+### Operations & Development
+
+| File | Description |
+|------|-------------|
+| [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) | Network deployment (slot/sepolia/mainnet) |
+| [WORKSPACE_STRUCTURE.md](./WORKSPACE_STRUCTURE.md) | Scarb workspace organization |
+| [AGENT_QUICKSTART.md](./AGENT_QUICKSTART.md) | Quick reference for Claude agents |
+
+### Tracking & Planning
 
 | File | Description |
 |------|-------------|
 | [MILESTONES.md](./MILESTONES.md) | Project milestones and completed features |
-| [GAME_CONFIG_REFERENCE.md](./GAME_CONFIG_REFERENCE.md) | **All game balance parameters** (for tuning) |
-| [LEVEL_SYSTEM_IMPLEMENTATION.md](./LEVEL_SYSTEM_IMPLEMENTATION.md) | Level system implementation status |
-| [CUBE_ECONOMY.md](./CUBE_ECONOMY.md) | CUBE token economy and shops |
-| [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) | Network deployment instructions |
-| [AGENT_QUICKSTART.md](./AGENT_QUICKSTART.md) | Quick reference for Claude agents |
-| [WORKSPACE_STRUCTURE.md](./WORKSPACE_STRUCTURE.md) | Scarb workspace organization |
+| [FUTURE_FEATURES.md](./FUTURE_FEATURES.md) | Roadmap, unimplemented features, architecture plans |
 
-### Design & Planning
+### External References
 
 | File | Description |
 |------|-------------|
-| [LEVEL_SYSTEM_PLAN.md](./LEVEL_SYSTEM_PLAN.md) | Level system design (includes future Daily Challenge) |
-| [LEVEL_SYSTEM_TECHNICAL.md](./LEVEL_SYSTEM_TECHNICAL.md) | Technical specs (partially future planning) |
-| [REFACTORING_PLAN.md](./REFACTORING_PLAN.md) | Architecture improvement plans |
-
-### Reference Documentation
-
-| File | Description |
-|------|-------------|
-| [GAME_COMPONENTS_REFERENCE.md](./GAME_COMPONENTS_REFERENCE.md) | game-components framework patterns |
-| [DEATH_MOUNTAIN_PATTERNS.md](./DEATH_MOUNTAIN_PATTERNS.md) | Death Mountain architecture patterns |
-| [DARK_SHUFFLE_PATTERNS.md](./DARK_SHUFFLE_PATTERNS.md) | Dark Shuffle architecture patterns |
-| [ZKUBE_VS_DEATH_MOUNTAIN.md](./ZKUBE_VS_DEATH_MOUNTAIN.md) | Architecture comparison and gaps |
+| [references/GAME_COMPONENTS.md](./references/GAME_COMPONENTS.md) | game-components framework patterns |
+| [references/DEATH_MOUNTAIN_PATTERNS.md](./references/DEATH_MOUNTAIN_PATTERNS.md) | Death Mountain architecture patterns |
+| [references/DARK_SHUFFLE_PATTERNS.md](./references/DARK_SHUFFLE_PATTERNS.md) | Dark Shuffle architecture patterns |
 
 ## CLAUDE.md Files
 
@@ -55,6 +57,7 @@ Technical documentation in each project directory:
 ## Quick Links
 
 - **Start here**: `/CLAUDE.md` (main project overview)
+- **Game design**: [GAME_DESIGN.md](./GAME_DESIGN.md)
 - **Contracts**: `/contracts/CLAUDE.md`
 - **Frontend**: `/client-budokan/CLAUDE.md`
 - **Deployment**: [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)

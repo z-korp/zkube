@@ -35,7 +35,7 @@ keystore.json
 **/keystore.json
 
 # Reference codebases (not part of this project)
-references/
+/references/
 
 # Build artifacts
 target

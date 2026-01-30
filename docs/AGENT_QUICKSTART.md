@@ -50,7 +50,7 @@ Each game is an NFT. The game_id in contracts matches the token_id in the ERC721
 - Entire grid packed into one felt252 (240 bits)
 
 ### Level System
-- 100+ levels with scaling difficulty
+- 50 levels with scaling difficulty
 - Seed-based level generation (same seed = same levels)
 - Constraints (ClearLines, NoBonusUsed)
 - Cube rating (1-3 cubes based on move efficiency)

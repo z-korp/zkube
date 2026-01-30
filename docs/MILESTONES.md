@@ -27,7 +27,7 @@
 
 ### Level System (v1.1.0 → v1.2.0)
 - [x] Seed-based level generation (`helpers/level.cairo`)
-- [x] 100+ level progression with difficulty scaling
+- [x] 50 level progression with difficulty scaling
 - [x] Constraint system (ClearLines, NoBonusUsed)
 - [x] Cube rating (1-3 cubes based on move efficiency)
 - [x] Level transitions with events
