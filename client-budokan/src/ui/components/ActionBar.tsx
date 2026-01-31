@@ -11,7 +11,7 @@ import {
 } from "@/ui/elements/tooltip";
 
 interface ActionBarProps {
-  // Bonus handlers (5 active)
+  // Bonus handlers (3 active)
   onBonusHammerClick: () => void;
   onBonusWaveClick: () => void;
   onBonusTotemClick: () => void;
@@ -19,18 +19,6 @@ interface ActionBarProps {
   waveCount: number;
   totemCount: number;
   activeBonus: BonusType;
-  // Future bonuses (placeholders for now)
-  bonus4Count?: number;
-  bonus5Count?: number;
-  onBonus4Click?: () => void;
-  onBonus5Click?: () => void;
-  // Passive power-ups (4 display-only)
-  passives?: {
-    id: string;
-    icon: string;
-    active: boolean;
-    tooltip: string;
-  }[];
 }
 
 const ActionBar: React.FC<ActionBarProps> = ({
@@ -41,98 +29,50 @@ const ActionBar: React.FC<ActionBarProps> = ({
   waveCount,
   totemCount,
   activeBonus,
-  bonus4Count = 0,
-  bonus5Count = 0,
-  onBonus4Click,
-  onBonus5Click,
-  passives = [],
 }) => {
   const { themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
 
-  // Default passives for design (replace with real data later)
-  const defaultPassives = passives.length > 0 ? passives : [
-    { id: "p1", icon: "🛡️", active: false, tooltip: "Shield (inactive)" },
-    { id: "p2", icon: "❄️", active: false, tooltip: "Freeze (inactive)" },
-    { id: "p3", icon: "🔥", active: true, tooltip: "Fire (active)" },
-    { id: "p4", icon: "⭐", active: false, tooltip: "Star (inactive)" },
-  ];
-
   return (
-    <div className="flex items-center justify-center gap-1">
-      {/* Active Bonuses (5) */}
-      <div className="flex items-center gap-0.5">
-        <CompactBonusButton
-          onClick={onBonusHammerClick}
-          image={imgAssets.hammer}
-          count={hammerCount}
-          tooltip="Destroy a block"
-          isActive={activeBonus === BonusType.Hammer}
-        />
-        <CompactBonusButton
-          onClick={onBonusWaveClick}
-          image={imgAssets.wave}
-          count={waveCount}
-          tooltip="Destroy a line"
-          isActive={activeBonus === BonusType.Wave}
-        />
-        <CompactBonusButton
-          onClick={onBonusTotemClick}
-          image={imgAssets.tiki}
-          count={totemCount}
-          tooltip="Destroy same-size blocks"
-          isActive={activeBonus === BonusType.Totem}
-        />
-        {/* Placeholder bonus 4 */}
-        <CompactBonusButton
-          onClick={onBonus4Click || (() => {})}
-          icon="⚡"
-          count={bonus4Count}
-          tooltip="Bonus 4 (coming soon)"
-          isActive={false}
-        />
-        {/* Placeholder bonus 5 */}
-        <CompactBonusButton
-          onClick={onBonus5Click || (() => {})}
-          icon="💫"
-          count={bonus5Count}
-          tooltip="Bonus 5 (coming soon)"
-          isActive={false}
-        />
-      </div>
-
-      {/* Divider */}
-      <div className="w-px h-6 bg-slate-600 mx-1" />
-
-      {/* Passive Power-ups (4) */}
-      <div className="flex items-center gap-0.5">
-        {defaultPassives.map((passive) => (
-          <PassiveIndicator
-            key={passive.id}
-            icon={passive.icon}
-            active={passive.active}
-            tooltip={passive.tooltip}
-          />
-        ))}
-      </div>
+    <div className="flex items-center justify-center gap-2">
+      {/* Active Bonuses (3) - old design with gold circles */}
+      <BonusButton
+        onClick={onBonusHammerClick}
+        image={imgAssets.hammer}
+        count={hammerCount}
+        tooltip="Destroy a block and connected same-size blocks"
+        isActive={activeBonus === BonusType.Hammer}
+      />
+      <BonusButton
+        onClick={onBonusWaveClick}
+        image={imgAssets.wave}
+        count={waveCount}
+        tooltip="Destroy an entire horizontal line"
+        isActive={activeBonus === BonusType.Wave}
+      />
+      <BonusButton
+        onClick={onBonusTotemClick}
+        image={imgAssets.tiki}
+        count={totemCount}
+        tooltip="Destroy all blocks of the same size"
+        isActive={activeBonus === BonusType.Totem}
+      />
     </div>
   );
 };
 
-// Ultra-compact bonus button
-interface CompactBonusButtonProps {
+// Bonus button matching old design (gold circle with badge)
+interface BonusButtonProps {
   onClick: () => void;
-  image?: string;
-  icon?: string;
+  image: string;
   count: number;
   tooltip: string;
   isActive: boolean;
 }
 
-const CompactBonusButton: React.FC<CompactBonusButtonProps> = ({
+const BonusButton: React.FC<BonusButtonProps> = ({
   onClick,
   image,
-  icon,
   count,
   tooltip,
   isActive,
@@ -146,68 +86,32 @@ const CompactBonusButton: React.FC<CompactBonusButtonProps> = ({
           <motion.button
             onClick={onClick}
             disabled={isDisabled}
-            className={`relative w-8 h-8 rounded border flex items-center justify-center transition-all
+            className={`relative w-12 h-12 rounded-lg flex items-center justify-center transition-all
               ${isActive 
-                ? "bg-yellow-500/80 border-yellow-400 shadow-lg shadow-yellow-500/30" 
+                ? "bg-gradient-to-b from-yellow-400 to-yellow-600 shadow-lg shadow-yellow-500/40 ring-2 ring-yellow-300" 
                 : isDisabled 
-                  ? "bg-slate-800/50 border-slate-700 opacity-40 cursor-not-allowed" 
-                  : "bg-slate-700/50 border-slate-600 hover:bg-slate-600/50 hover:border-slate-500"
+                  ? "bg-slate-700/50 opacity-40 cursor-not-allowed" 
+                  : "bg-gradient-to-b from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 shadow-md"
               }`}
-            whileHover={isDisabled ? {} : { scale: 1.05 }}
+            whileHover={isDisabled ? {} : { scale: 1.08 }}
             whileTap={isDisabled ? {} : { scale: 0.95 }}
           >
-            {image ? (
-              <img 
-                src={image} 
-                alt="bonus" 
-                className={`w-5 h-5 ${isDisabled ? "grayscale" : ""}`}
-              />
-            ) : (
-              <span className={`text-sm ${isDisabled ? "grayscale" : ""}`}>{icon}</span>
-            )}
-            {/* Count badge */}
-            <div className={`absolute -top-1 -right-1 text-[8px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center
-              ${isDisabled ? "bg-slate-600 text-slate-400" : "bg-yellow-500 text-white"}`}
+            <img 
+              src={image} 
+              alt="bonus" 
+              className={`w-8 h-8 object-contain ${isDisabled ? "grayscale opacity-60" : ""}`}
+            />
+            {/* Count badge - gold circle in top right */}
+            <div className={`absolute -top-1.5 -right-1.5 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-sm
+              ${isDisabled 
+                ? "bg-slate-600 text-slate-400 border border-slate-500" 
+                : "bg-gradient-to-b from-yellow-400 to-yellow-500 text-white border border-yellow-300"}`}
             >
               {count}
             </div>
           </motion.button>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-1.5 text-xs">
-          {tooltip}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-};
-
-// Passive power-up indicator (display only)
-interface PassiveIndicatorProps {
-  icon: string;
-  active: boolean;
-  tooltip: string;
-}
-
-const PassiveIndicator: React.FC<PassiveIndicatorProps> = ({
-  icon,
-  active,
-  tooltip,
-}) => {
-  return (
-    <TooltipProvider delayDuration={0}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div 
-            className={`w-6 h-6 rounded flex items-center justify-center text-xs cursor-help transition-all
-              ${active 
-                ? "bg-green-500/30 border border-green-500/50" 
-                : "bg-slate-800/50 border border-slate-700 opacity-40"
-              }`}
-          >
-            <span className={active ? "" : "grayscale"}>{icon}</span>
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-1.5 text-xs">
+        <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2 text-sm">
           {tooltip}
         </TooltipContent>
       </Tooltip>

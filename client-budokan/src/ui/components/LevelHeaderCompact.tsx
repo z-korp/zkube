@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faBan } from "@fortawesome/free-solid-svg-icons";
-import { motion } from "framer-motion";
+import { faCheck, faBan, faCircleInfo } from "@fortawesome/free-solid-svg-icons";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import { generateLevelConfig } from "@/dojo/game/types/level";
 import type { LevelConfig } from "@/dojo/game/types/level";
@@ -140,7 +140,15 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
     return 1;
   }, [levelConfig, levelMoves]);
 
-  // Compact constraint badge
+  // Get efficiency message
+  const getEfficiencyMessage = () => {
+    if (potentialCubes === 3) return { text: "Perfect pace!", color: "text-green-400" };
+    if (potentialCubes === 2) return { text: "Good pace", color: "text-yellow-400" };
+    return { text: "Finish strong!", color: "text-orange-400" };
+  };
+  const efficiency = getEfficiencyMessage();
+
+  // Constraint badge with dot progress (old design style)
   const ConstraintBadge = ({ 
     constraint, 
     progress, 
@@ -159,48 +167,77 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className={`text-[9px] flex items-center gap-0.5 px-1 py-0.5 rounded cursor-help ${
+              <div className={`text-xs flex items-center gap-1 px-2 py-1 rounded-md cursor-help border ${
                 bonusUsedThisLevel 
-                  ? "bg-red-500/30 text-red-400" 
-                  : "bg-green-500/30 text-green-400"
+                  ? "bg-red-500/20 text-red-400 border-red-500/30" 
+                  : "bg-green-500/20 text-green-400 border-green-500/30"
               }`}>
                 {bonusUsedThisLevel ? (
-                  <FontAwesomeIcon icon={faBan} className="w-2 h-2" />
+                  <FontAwesomeIcon icon={faBan} className="w-3 h-3" />
                 ) : (
-                  <FontAwesomeIcon icon={faCheck} className="w-2 h-2" />
+                  <FontAwesomeIcon icon={faCheck} className="w-3 h-3" />
                 )}
+                <span className="font-medium">No Bonus</span>
               </div>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2 text-xs">
-              No bonus allowed
+              No bonus allowed this level
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       );
     }
 
-    // ClearLines constraint
-    const bgColor = satisfied ? "bg-green-500/30" : `bg-${color}-500/30`;
-    const textColor = satisfied ? "text-green-400" : `text-${color}-400`;
+    // ClearLines constraint with dots (old design)
+    const dots = [];
+    for (let i = 0; i < constraint.requiredCount; i++) {
+      const isFilled = i < progress;
+      dots.push(
+        <motion.div
+          key={i}
+          className={`w-2.5 h-2.5 rounded-full ${
+            isFilled 
+              ? (satisfied ? "bg-green-400" : (color === "purple" ? "bg-purple-400" : "bg-orange-400"))
+              : "bg-slate-600"
+          }`}
+          initial={false}
+          animate={isFilled ? { scale: [1, 1.3, 1] } : {}}
+          transition={{ duration: 0.3 }}
+        />
+      );
+    }
+
+    const textColorClass = satisfied ? "text-green-400" : (color === "purple" ? "text-purple-400" : "text-orange-400");
+    const bgColorClass = satisfied ? "bg-green-500/10 border-green-500/30" : (color === "purple" ? "bg-purple-500/10 border-purple-500/30" : "bg-orange-500/10 border-orange-500/30");
 
     return (
       <TooltipProvider delayDuration={0}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className={`text-[9px] flex items-center gap-0.5 px-1 py-0.5 rounded cursor-help ${
-              satisfied ? "bg-green-500/30" : (color === "purple" ? "bg-purple-500/30" : "bg-orange-500/30")
-            }`}>
-              <span className={satisfied ? "text-green-400" : (color === "purple" ? "text-purple-400" : "text-orange-400")}>
+            <motion.div 
+              className={`flex items-center gap-2 px-2 py-1 rounded-md cursor-help border ${bgColorClass}`}
+              animate={justSatisfied && satisfied ? {
+                scale: [1, 1.05, 1],
+                transition: { duration: 0.5 }
+              } : {}}
+            >
+              <span className={`text-sm font-bold ${textColorClass}`}>
                 {constraint.value}+
               </span>
-              <span className={`font-medium ${satisfied ? "text-green-400" : (color === "purple" ? "text-purple-400" : "text-orange-400")}`}>
+              <span className={`text-xs ${textColorClass}`}>
                 {progress}/{constraint.requiredCount}
               </span>
-              {satisfied && <FontAwesomeIcon icon={faCheck} className="w-2 h-2 text-green-400" />}
-            </div>
+              <div className="flex items-center gap-1">
+                {dots}
+              </div>
+              {satisfied && <FontAwesomeIcon icon={faCheck} className={`w-3 h-3 ${textColorClass}`} />}
+            </motion.div>
           </TooltipTrigger>
-          <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2 text-xs">
-            {constraint.getDescription()}
+          <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2 text-xs max-w-[200px]">
+            <div className="space-y-1">
+              <div className="font-semibold">{constraint.getLabel()}</div>
+              <div className="text-slate-400">{constraint.getDescription()}</div>
+            </div>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -208,47 +245,51 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   };
 
   return (
-    <div className="w-full space-y-1">
-      {/* Row 1: Level + Total Score + Cube Balance */}
+    <div className="w-full space-y-2">
+      {/* Row 1: Level + Score + Cubes */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <span className="font-bold text-sm text-white">Lv.{level}</span>
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-lg text-white">Level {level}</span>
           {isBoss && (
-            <span className="text-[7px] font-bold px-1 py-0.5 rounded bg-gradient-to-r from-red-600 to-orange-500 text-white uppercase">
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gradient-to-r from-red-600 to-orange-500 text-white uppercase tracking-wide">
               Boss
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-blue-400 font-semibold">{displayTotalScore}</span>
+        <div className="flex items-center gap-3">
+          {/* Total Score */}
+          <div className="flex items-center gap-1 bg-slate-800/50 px-2 py-1 rounded">
+            <span className="text-xs text-slate-400">Score:</span>
+            <span className="text-base font-semibold text-blue-400">{displayTotalScore}</span>
+          </div>
           
           {/* Cube balance with tooltip */}
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-0.5 cursor-help">
-                  <span className="text-xs text-yellow-400 font-semibold">{availableCubes}</span>
-                  <span className="text-[10px]">🧊</span>
+                <div className="flex items-center gap-1 bg-slate-800/50 px-2 py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors">
+                  <span className="text-base text-yellow-400 font-semibold">{availableCubes}</span>
+                  <span className="text-base">🧊</span>
                 </div>
               </TooltipTrigger>
-              <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2">
-                <div className="space-y-1 text-xs">
-                  <div className="font-semibold text-white mb-1">Cubes</div>
-                  <div className="flex justify-between gap-3">
+              <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-3">
+                <div className="space-y-1.5 text-xs">
+                  <div className="font-semibold text-white mb-2">Cubes Breakdown</div>
+                  <div className="flex justify-between gap-4">
                     <span className="text-slate-400">Earned</span>
-                    <span className="text-yellow-400">{totalCubes}</span>
+                    <span className="text-yellow-400 font-medium">{totalCubes}</span>
                   </div>
                   {cubesBrought > 0 && (
-                    <div className="flex justify-between gap-3">
+                    <div className="flex justify-between gap-4">
                       <span className="text-slate-400">Brought</span>
-                      <span className="text-blue-400">+{cubesBrought}</span>
+                      <span className="text-blue-400 font-medium">+{cubesBrought}</span>
                     </div>
                   )}
                   {cubesSpent > 0 && (
-                    <div className="flex justify-between gap-3">
+                    <div className="flex justify-between gap-4">
                       <span className="text-slate-400">Spent</span>
-                      <span className="text-red-400">-{cubesSpent}</span>
+                      <span className="text-red-400 font-medium">-{cubesSpent}</span>
                     </div>
                   )}
                 </div>
@@ -258,69 +299,130 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         </div>
       </div>
 
-      {/* Row 2: Progress | Constraints | Moves | Potential Cubes */}
-      <div className="flex items-center gap-1.5">
-        {/* Score progress bar with points */}
-        <div className="flex items-center gap-1 flex-1 min-w-0">
-          <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
-              initial={false}
-              animate={{ width: `${scoreProgress}%` }}
-              transition={{ duration: 0.3 }}
+      {/* Row 2: Score progress bar (smaller) */}
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
+            initial={false}
+            animate={{ width: `${scoreProgress}%` }}
+            transition={{ duration: 0.3 }}
+          />
+        </div>
+        <span className="text-xs text-slate-300 whitespace-nowrap min-w-[60px]">
+          <span className="text-white font-medium">{displayScore}</span>
+          <span className="text-slate-500">/{levelConfig.pointsRequired}</span>
+        </span>
+      </div>
+
+      {/* Row 3: Constraints + Moves + Cubes rating */}
+      <div className="flex items-center justify-between">
+        {/* Constraints */}
+        <div className="flex items-center gap-2">
+          {hasConstraint && (
+            <ConstraintBadge 
+              constraint={levelConfig.constraint} 
+              progress={constraintProgress} 
+              satisfied={constraintSatisfied}
+              color="orange"
             />
+          )}
+          {hasConstraint2 && (
+            <ConstraintBadge 
+              constraint={levelConfig.constraint2} 
+              progress={constraint2Progress} 
+              satisfied={constraint2Satisfied}
+              color="purple"
+            />
+          )}
+        </div>
+
+        {/* Right side: Moves + Potential cubes */}
+        <div className="flex items-center gap-3">
+          {/* Moves remaining */}
+          <div className="text-sm text-slate-300">
+            <span className="font-bold text-white">{movesRemaining}</span>
+            <span className="text-slate-400"> moves left</span>
           </div>
-          <span className="text-[9px] text-slate-300 whitespace-nowrap">
-            <span className="text-white font-medium">{displayScore}</span>
-            <span className="text-slate-500">/{levelConfig.pointsRequired}</span>
+        </div>
+      </div>
+
+      {/* Row 4: Cube rating + Efficiency */}
+      <div className="flex items-center justify-between">
+        {/* Cube rating with info tooltip */}
+        <div className="flex items-center gap-1.5">
+          {/* Info icon */}
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="p-0.5 hover:bg-slate-700/50 rounded transition-colors cursor-help"
+                >
+                  <FontAwesomeIcon
+                    icon={faCircleInfo}
+                    className="text-slate-400 hover:text-slate-300"
+                    width={12}
+                    height={12}
+                  />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent 
+                side="bottom" 
+                className="bg-slate-800 border-slate-600 p-3 max-w-[220px]"
+              >
+                <div className="space-y-1.5 text-xs">
+                  <div className="font-semibold text-white mb-2">Cube Thresholds</div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-yellow-400">🧊🧊🧊</span>
+                    <span className="text-slate-300">≤ {levelConfig.cube3Threshold} moves</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-yellow-400">🧊🧊</span>
+                    <span className="text-slate-300">≤ {levelConfig.cube2Threshold} moves</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-yellow-400">🧊</span>
+                    <span className="text-slate-300">level clear</span>
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Cubes with hover effect */}
+          {[1, 2, 3].map((cube) => (
+            <motion.span
+              key={cube}
+              className={`cursor-default transition-all ${
+                cube <= potentialCubes ? "opacity-100" : "opacity-30"
+              }`}
+              style={{ fontSize: 18 }}
+              whileHover={cube <= potentialCubes ? { scale: 1.2 } : {}}
+            >
+              🧊
+            </motion.span>
+          ))}
+
+          {/* Efficiency text */}
+          <span className={`text-sm ml-1 font-medium ${efficiency.color}`}>
+            {efficiency.text}
           </span>
         </div>
 
-        {/* Divider */}
-        <div className="w-px h-3 bg-slate-600" />
-
-        {/* Constraints */}
-        {hasConstraint && (
-          <ConstraintBadge 
-            constraint={levelConfig.constraint} 
-            progress={constraintProgress} 
-            satisfied={constraintSatisfied}
-            color="orange"
-          />
-        )}
-        {hasConstraint2 && (
-          <ConstraintBadge 
-            constraint={levelConfig.constraint2} 
-            progress={constraint2Progress} 
-            satisfied={constraint2Satisfied}
-            color="purple"
-          />
-        )}
-
-        {/* Divider */}
-        <div className="w-px h-3 bg-slate-600" />
-
-        {/* Moves remaining */}
-        <div className="text-[10px] text-slate-300 whitespace-nowrap">
-          <span className="font-bold text-white">{movesRemaining}</span>
-          <span className="text-slate-500">▶</span>
-        </div>
-
-        {/* Divider */}
-        <div className="w-px h-3 bg-slate-600" />
-
-        {/* Potential cubes */}
+        {/* Potential cubes display */}
         <div className="flex items-center">
           {[1, 2, 3].map((cube) => (
-            <span
+            <motion.span
               key={cube}
               className={`transition-opacity duration-200 ${
                 cube <= potentialCubes ? "opacity-100" : "opacity-20"
               }`}
-              style={{ fontSize: 10 }}
+              style={{ fontSize: 14 }}
+              whileHover={cube <= potentialCubes ? { scale: 1.15 } : {}}
             >
               🧊
-            </span>
+            </motion.span>
           ))}
         </div>
       </div>
