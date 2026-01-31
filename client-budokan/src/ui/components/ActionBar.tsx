@@ -55,20 +55,16 @@ const ActionBar: React.FC<ActionBarProps> = ({
     { id: "p4", icon: "⭐", active: false, tooltip: "Star (coming soon)" },
   ];
 
-  // Uniform button size for all buttons
-  const BUTTON_SIZE = "w-9 h-9";
-
   return (
-    <div className="flex items-center justify-center gap-0.5">
+    <div className="flex items-center justify-center gap-0.5 md:gap-1">
       {/* Active Bonuses (5) */}
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-0.5 md:gap-1">
         <ActionButton
           onClick={onBonusHammerClick}
           image={imgAssets.hammer}
           count={hammerCount}
           tooltip="Destroy a block and connected same-size blocks"
           isActive={activeBonus === BonusType.Hammer}
-          size={BUTTON_SIZE}
         />
         <ActionButton
           onClick={onBonusWaveClick}
@@ -76,7 +72,6 @@ const ActionBar: React.FC<ActionBarProps> = ({
           count={waveCount}
           tooltip="Destroy an entire horizontal line"
           isActive={activeBonus === BonusType.Wave}
-          size={BUTTON_SIZE}
         />
         <ActionButton
           onClick={onBonusTotemClick}
@@ -84,7 +79,6 @@ const ActionBar: React.FC<ActionBarProps> = ({
           count={totemCount}
           tooltip="Destroy all blocks of the same size"
           isActive={activeBonus === BonusType.Totem}
-          size={BUTTON_SIZE}
         />
         <ActionButton
           onClick={onBonus4Click || (() => {})}
@@ -92,7 +86,6 @@ const ActionBar: React.FC<ActionBarProps> = ({
           count={bonus4Count}
           tooltip="Bonus 4 (coming soon)"
           isActive={false}
-          size={BUTTON_SIZE}
         />
         <ActionButton
           onClick={onBonus5Click || (() => {})}
@@ -100,12 +93,11 @@ const ActionBar: React.FC<ActionBarProps> = ({
           count={bonus5Count}
           tooltip="Bonus 5 (coming soon)"
           isActive={false}
-          size={BUTTON_SIZE}
         />
       </div>
 
       {/* Passive Power-ups (4) - same size as bonuses */}
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-0.5 md:gap-1">
         {defaultPassives.map((passive) => (
           <ActionButton
             key={passive.id}
@@ -115,7 +107,6 @@ const ActionBar: React.FC<ActionBarProps> = ({
             tooltip={passive.tooltip}
             isActive={passive.active}
             isPassive={true}
-            size={BUTTON_SIZE}
           />
         ))}
       </div>
@@ -132,7 +123,6 @@ interface ActionButtonProps {
   tooltip: string;
   isActive: boolean;
   isPassive?: boolean;
-  size: string;
 }
 
 const ActionButton: React.FC<ActionButtonProps> = ({
@@ -143,7 +133,6 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   tooltip,
   isActive,
   isPassive = false,
-  size,
 }) => {
   const isDisabled = !isPassive && count === 0;
   const showBadge = count >= 0;
@@ -169,7 +158,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
           <motion.button
             onClick={onClick}
             disabled={isDisabled}
-            className={`relative ${size} rounded flex items-center justify-center transition-colors cursor-${isDisabled ? 'not-allowed' : isPassive ? 'help' : 'pointer'} ${getBgClass()}`}
+            className={`relative w-9 h-9 md:w-11 md:h-11 rounded flex items-center justify-center transition-colors cursor-${isDisabled ? 'not-allowed' : isPassive ? 'help' : 'pointer'} ${getBgClass()}`}
             whileHover={isDisabled ? {} : { scale: 1.05 }}
             whileTap={isDisabled ? {} : { scale: 0.95 }}
           >
@@ -177,14 +166,14 @@ const ActionButton: React.FC<ActionButtonProps> = ({
               <img 
                 src={image} 
                 alt="bonus" 
-                className={`w-5 h-5 object-contain ${isDisabled ? "grayscale opacity-60" : ""}`}
+                className={`w-5 h-5 md:w-7 md:h-7 object-contain ${isDisabled ? "grayscale opacity-60" : ""}`}
               />
             ) : (
-              <span className={`text-base ${isDisabled || (isPassive && !isActive) ? "grayscale opacity-60" : ""}`}>{icon}</span>
+              <span className={`text-base md:text-xl ${isDisabled || (isPassive && !isActive) ? "grayscale opacity-60" : ""}`}>{icon}</span>
             )}
             {/* Count badge */}
             {showBadge && (
-              <div className={`absolute -top-0.5 -right-0.5 text-[8px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center
+              <div className={`absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 text-[8px] md:text-[10px] font-bold rounded-full w-3.5 h-3.5 md:w-4 md:h-4 flex items-center justify-center
                 ${isDisabled 
                   ? "bg-slate-600 text-slate-400" 
                   : "bg-yellow-500 text-white"}`}
@@ -194,7 +183,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
             )}
           </motion.button>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-3">
+        <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2 md:p-3">
           <div className="text-xs">{tooltip}</div>
         </TooltipContent>
       </Tooltip>

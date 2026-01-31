@@ -160,15 +160,15 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className={`text-[10px] flex items-center gap-0.5 px-1.5 py-0.5 rounded cursor-help transition-colors ${
+              <div className={`text-[10px] md:text-xs flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help transition-colors ${
                 bonusUsedThisLevel 
                   ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" 
                   : "bg-green-500/20 text-green-400 hover:bg-green-500/30"
               }`}>
                 {bonusUsedThisLevel ? (
-                  <FontAwesomeIcon icon={faBan} className="w-2.5 h-2.5" />
+                  <FontAwesomeIcon icon={faBan} className="w-2.5 h-2.5 md:w-3 md:h-3" />
                 ) : (
-                  <FontAwesomeIcon icon={faCheck} className="w-2.5 h-2.5" />
+                  <FontAwesomeIcon icon={faCheck} className="w-2.5 h-2.5 md:w-3 md:h-3" />
                 )}
                 <span className="font-medium">No Bonus</span>
               </div>
@@ -188,7 +188,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
       dots.push(
         <motion.div
           key={i}
-          className={`w-2 h-2 rounded-full ${
+          className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${
             isFilled 
               ? (satisfied ? "bg-green-400" : (color === "purple" ? "bg-purple-400" : "bg-orange-400"))
               : "bg-slate-600"
@@ -210,22 +210,22 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <motion.div 
-              className={`flex items-center gap-1 px-1.5 py-0.5 rounded cursor-help transition-colors ${bgColorClass}`}
+              className={`flex items-center gap-1 md:gap-2 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help transition-colors ${bgColorClass}`}
               animate={justSatisfied && satisfied ? {
                 scale: [1, 1.05, 1],
                 transition: { duration: 0.5 }
               } : {}}
             >
-              <span className={`text-xs font-bold ${textColorClass}`}>
+              <span className={`text-xs md:text-sm font-bold ${textColorClass}`}>
                 {constraint.value}+
               </span>
-              <span className={`text-[10px] ${textColorClass}`}>
+              <span className={`text-[10px] md:text-xs ${textColorClass}`}>
                 {progress}/{constraint.requiredCount}
               </span>
-              <div className="flex items-center gap-0.5">
+              <div className="flex items-center gap-0.5 md:gap-1">
                 {dots}
               </div>
-              {satisfied && <FontAwesomeIcon icon={faCheck} className={`w-2.5 h-2.5 ${textColorClass}`} />}
+              {satisfied && <FontAwesomeIcon icon={faCheck} className={`w-2.5 h-2.5 md:w-3 md:h-3 ${textColorClass}`} />}
             </motion.div>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2">
@@ -240,35 +240,35 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   };
 
   return (
-    <div className="w-full space-y-1">
+    <div className="w-full space-y-1 md:space-y-2">
       {/* Row 1: Level + Score + Cubes */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <span className="font-bold text-base text-white">Level {level}</span>
+        <div className="flex items-center gap-1.5 md:gap-2">
+          <span className="font-bold text-base md:text-lg text-white">Level {level}</span>
           {isBoss && (
-            <span className="text-[8px] font-bold px-1 py-0.5 rounded bg-gradient-to-r from-red-600 to-orange-500 text-white uppercase">
+            <span className="text-[8px] md:text-[10px] font-bold px-1 md:px-1.5 py-0.5 rounded bg-gradient-to-r from-red-600 to-orange-500 text-white uppercase">
               Boss
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 md:gap-3">
           {/* Score */}
-          <div className="flex items-center gap-1 bg-slate-800/50 px-1.5 py-0.5 rounded">
-            <span className="text-[10px] text-slate-400">Score:</span>
-            <span className="text-sm font-semibold text-blue-400">{displayTotalScore}</span>
+          <div className="flex items-center gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded">
+            <span className="text-[10px] md:text-xs text-slate-400">Score:</span>
+            <span className="text-sm md:text-base font-semibold text-blue-400">{displayTotalScore}</span>
           </div>
           
           {/* Cube balance */}
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-0.5 bg-slate-800/50 px-1.5 py-0.5 rounded cursor-help hover:bg-slate-700/50 transition-colors">
-                  <span className="text-sm text-yellow-400 font-semibold">{availableCubes}</span>
-                  <span className="text-sm">🧊</span>
+                <div className="flex items-center gap-0.5 md:gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors">
+                  <span className="text-sm md:text-base text-yellow-400 font-semibold">{availableCubes}</span>
+                  <span className="text-sm md:text-base">🧊</span>
                 </div>
               </TooltipTrigger>
-              <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2">
+              <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2 md:p-3">
                 <div className="space-y-1 text-xs">
                   <div className="font-semibold text-white">Cubes</div>
                   <div className="flex justify-between gap-3">
@@ -295,8 +295,8 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
       </div>
 
       {/* Row 2: Progress bar + score/target + moves */}
-      <div className="flex items-center gap-1.5">
-        <div className="flex-1 h-1 bg-slate-700 rounded-full overflow-hidden">
+      <div className="flex items-center gap-1.5 md:gap-2">
+        <div className="flex-1 h-1 md:h-1.5 bg-slate-700 rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
             initial={false}
@@ -304,12 +304,12 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
             transition={{ duration: 0.3 }}
           />
         </div>
-        <span className="text-[10px] text-slate-300 whitespace-nowrap">
+        <span className="text-[10px] md:text-xs text-slate-300 whitespace-nowrap">
           <span className="text-white font-medium">{displayScore}</span>
           <span className="text-slate-500">/{levelConfig.pointsRequired}</span>
         </span>
-        <span className="text-slate-600 text-[10px]">|</span>
-        <span className="text-[10px] whitespace-nowrap">
+        <span className="text-slate-600 text-[10px] md:text-xs">|</span>
+        <span className="text-[10px] md:text-xs whitespace-nowrap">
           <span className="font-bold text-white">{movesRemaining}</span>
           <span className="text-slate-500"> moves</span>
         </span>
@@ -318,7 +318,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
       {/* Row 3: Constraints + Potential Cubes */}
       <div className="flex items-center justify-between">
         {/* Constraints */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 md:gap-2">
           {hasConstraint && (
             <ConstraintBadge 
               constraint={levelConfig.constraint} 
@@ -341,15 +341,15 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded cursor-help hover:bg-slate-700/50 transition-colors ${paceBgColor}`}>
+              <div className={`flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors ${paceBgColor}`}>
                 <FontAwesomeIcon
                   icon={faCircleInfo}
-                  className={`w-2.5 h-2.5 ${paceColor}`}
+                  className={`w-2.5 h-2.5 md:w-3 md:h-3 ${paceColor}`}
                 />
                 {[1, 2, 3].map((cube) => (
                   <span
                     key={cube}
-                    className={`transition-opacity duration-200 text-sm ${
+                    className={`transition-opacity duration-200 text-sm md:text-lg ${
                       cube <= potentialCubes ? "opacity-100" : "opacity-20"
                     }`}
                   >
@@ -358,7 +358,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
                 ))}
               </div>
             </TooltipTrigger>
-            <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2">
+            <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2 md:p-3">
               <div className="space-y-1 text-xs">
                 <div className="font-semibold text-white">Cube Thresholds</div>
                 <div className="flex items-center justify-between gap-3">
