@@ -450,7 +450,7 @@ export const Play = () => {
                           nextLine={game.isOver() ? [] : game.next_row}
                           score={game.isOver() ? 0 : game.score}
                           combo={game.isOver() ? 0 : game.combo}
-                          maxCombo={game.isOver() ? 0 : game.max_combo}
+                          maxCombo={game.isOver() ? 0 : game.maxComboRun}
                           hammerCount={game.isOver() ? 0 : game.hammer}
                           totemCount={game.isOver() ? 0 : game.totem}
                           waveCount={game.isOver() ? 0 : game.wave}
