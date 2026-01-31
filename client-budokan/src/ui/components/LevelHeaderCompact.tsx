@@ -294,16 +294,28 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         </div>
       </div>
 
-      {/* Row 2: Level Score Progress (compact text) */}
-      <div className="flex items-center justify-between bg-slate-800/50 px-2 py-1 rounded">
-        <span className="text-xs text-slate-400">Level Progress:</span>
-        <span className="text-sm">
-          <span className="text-white font-semibold">{displayScore}</span>
-          <span className="text-slate-500"> / {levelConfig.pointsRequired}</span>
+      {/* Row 2: Score progress bar + moves left */}
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
+            initial={false}
+            animate={{ width: `${Math.min(100, (levelScore / levelConfig.pointsRequired) * 100)}%` }}
+            transition={{ duration: 0.3 }}
+          />
+        </div>
+        <span className="text-xs text-slate-300 whitespace-nowrap">
+          <span className="text-white font-medium">{displayScore}</span>
+          <span className="text-slate-500">/{levelConfig.pointsRequired}</span>
+        </span>
+        <span className="text-slate-600">|</span>
+        <span className="text-xs text-slate-300 whitespace-nowrap">
+          <span className="font-bold text-white">{movesRemaining}</span>
+          <span className="text-slate-500"> moves</span>
         </span>
       </div>
 
-      {/* Row 3: Constraints + Moves + Potential Cubes (all on one line) */}
+      {/* Row 3: Constraints + Potential Cubes */}
       <div className="flex items-center justify-between">
         {/* Constraints */}
         <div className="flex items-center gap-2">
@@ -325,60 +337,51 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
           )}
         </div>
 
-        {/* Right side: Moves + Potential cubes with pace indicator */}
-        <div className="flex items-center gap-2">
-          {/* Moves remaining */}
-          <div className="text-sm text-slate-300 bg-slate-800/50 px-2 py-1 rounded">
-            <span className="font-bold text-white">{movesRemaining}</span>
-            <span className="text-slate-400"> moves left</span>
-          </div>
-
-          {/* Potential cubes with pace indicator */}
-          <TooltipProvider delayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className={`flex items-center gap-1 px-2 py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors ${paceBgColor}`}>
-                  <FontAwesomeIcon
-                    icon={faCircleInfo}
-                    className={`w-3 h-3 ${paceColor}`}
-                  />
-                  {[1, 2, 3].map((cube) => (
-                    <motion.span
-                      key={cube}
-                      className={`transition-opacity duration-200 ${
-                        cube <= potentialCubes ? "opacity-100" : "opacity-20"
-                      }`}
-                      style={{ fontSize: 18 }}
-                      whileHover={cube <= potentialCubes ? { scale: 1.15 } : {}}
-                    >
-                      🧊
-                    </motion.span>
-                  ))}
+        {/* Potential cubes with pace indicator */}
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className={`flex items-center gap-1 px-2 py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors ${paceBgColor}`}>
+                <FontAwesomeIcon
+                  icon={faCircleInfo}
+                  className={`w-3 h-3 ${paceColor}`}
+                />
+                {[1, 2, 3].map((cube) => (
+                  <motion.span
+                    key={cube}
+                    className={`transition-opacity duration-200 ${
+                      cube <= potentialCubes ? "opacity-100" : "opacity-20"
+                    }`}
+                    style={{ fontSize: 18 }}
+                    whileHover={cube <= potentialCubes ? { scale: 1.15 } : {}}
+                  >
+                    🧊
+                  </motion.span>
+                ))}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent 
+              side="bottom" 
+              className="bg-slate-800 border-slate-600 p-3 max-w-[220px]"
+            >
+              <div className="space-y-1.5 text-xs">
+                <div className="font-semibold text-white mb-2">Cube Thresholds</div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-yellow-400">🧊🧊🧊</span>
+                  <span className="text-slate-300">≤ {levelConfig.cube3Threshold} moves</span>
                 </div>
-              </TooltipTrigger>
-              <TooltipContent 
-                side="bottom" 
-                className="bg-slate-800 border-slate-600 p-3 max-w-[220px]"
-              >
-                <div className="space-y-1.5 text-xs">
-                  <div className="font-semibold text-white mb-2">Cube Thresholds</div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-yellow-400">🧊🧊🧊</span>
-                    <span className="text-slate-300">≤ {levelConfig.cube3Threshold} moves</span>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-yellow-400">🧊🧊</span>
-                    <span className="text-slate-300">≤ {levelConfig.cube2Threshold} moves</span>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-yellow-400">🧊</span>
-                    <span className="text-slate-300">level clear</span>
-                  </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-yellow-400">🧊🧊</span>
+                  <span className="text-slate-300">≤ {levelConfig.cube2Threshold} moves</span>
                 </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-yellow-400">🧊</span>
+                  <span className="text-slate-300">level clear</span>
+                </div>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   );

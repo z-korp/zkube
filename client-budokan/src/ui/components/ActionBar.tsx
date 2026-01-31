@@ -104,9 +104,6 @@ const ActionBar: React.FC<ActionBarProps> = ({
         />
       </div>
 
-      {/* Divider */}
-      <div className="w-px h-8 bg-slate-600" />
-
       {/* Passive Power-ups (4) - same size as bonuses */}
       <div className="flex items-center gap-1">
         {defaultPassives.map((passive) => (
