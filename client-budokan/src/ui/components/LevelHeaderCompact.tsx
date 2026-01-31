@@ -16,6 +16,13 @@ import {
 } from "@/ui/elements/tooltip";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 
+interface PassiveIndicator {
+  id: string;
+  icon: string;
+  active: boolean;
+  tooltip: string;
+}
+
 interface LevelHeaderCompactProps {
   level: number;
   levelScore: number;
@@ -29,11 +36,19 @@ interface LevelHeaderCompactProps {
   gameLevel?: GameLevelData | null;
   cubesBrought?: number;
   cubesSpent?: number;
+  passives?: PassiveIndicator[];
 }
 
 const isBossLevel = (level: number): boolean => {
   return [10, 20, 30, 40, 50].includes(level);
 };
+
+const defaultPassives: PassiveIndicator[] = [
+  { id: "p1", icon: "🛡️", active: false, tooltip: "Shield (coming soon)" },
+  { id: "p2", icon: "❄️", active: false, tooltip: "Freeze (coming soon)" },
+  { id: "p3", icon: "🔥", active: true, tooltip: "Fire (active)" },
+  { id: "p4", icon: "⭐", active: false, tooltip: "Star (coming soon)" },
+];
 
 const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   level,
@@ -48,6 +63,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   gameLevel,
   cubesBrought = 0,
   cubesSpent = 0,
+  passives = [],
 }) => {
   const isBoss = isBossLevel(level);
   const { playSuccess } = useMusicPlayer();
@@ -294,8 +310,12 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         </div>
       </div>
 
-      {/* Row 2: Progress bar + score/target + moves */}
+      {/* Row 2: Score/target + Progress bar + moves + Potential cubes */}
       <div className="flex items-center gap-1.5 md:gap-2">
+        <span className="text-[10px] md:text-xs text-slate-300 whitespace-nowrap">
+          <span className="text-white font-medium">{displayScore}</span>
+          <span className="text-slate-500">/{levelConfig.pointsRequired}</span>
+        </span>
         <div className="flex-1 h-1 md:h-1.5 bg-slate-700 rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
@@ -304,44 +324,16 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
             transition={{ duration: 0.3 }}
           />
         </div>
-        <span className="text-[10px] md:text-xs text-slate-300 whitespace-nowrap">
-          <span className="text-white font-medium">{displayScore}</span>
-          <span className="text-slate-500">/{levelConfig.pointsRequired}</span>
-        </span>
-        <span className="text-slate-600 text-[10px] md:text-xs">|</span>
         <span className="text-[10px] md:text-xs whitespace-nowrap">
           <span className="font-bold text-white">{movesRemaining}</span>
           <span className="text-slate-500"> moves</span>
         </span>
-      </div>
-
-      {/* Row 3: Constraints + Potential Cubes */}
-      <div className="flex items-center justify-between">
-        {/* Constraints */}
-        <div className="flex items-center gap-1 md:gap-2">
-          {hasConstraint && (
-            <ConstraintBadge 
-              constraint={levelConfig.constraint} 
-              progress={constraintProgress} 
-              satisfied={constraintSatisfied}
-              color="orange"
-            />
-          )}
-          {hasConstraint2 && (
-            <ConstraintBadge 
-              constraint={levelConfig.constraint2} 
-              progress={constraint2Progress} 
-              satisfied={constraint2Satisfied}
-              color="purple"
-            />
-          )}
-        </div>
-
+        
         {/* Potential cubes with pace indicator */}
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className={`flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors ${paceBgColor}`}>
+              <div className={`flex items-center gap-0.5 px-1 md:px-1.5 py-0.5 rounded cursor-help hover:bg-slate-700/50 transition-colors ${paceBgColor}`}>
                 <FontAwesomeIcon
                   icon={faCircleInfo}
                   className={`w-2.5 h-2.5 md:w-3 md:h-3 ${paceColor}`}
@@ -349,7 +341,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
                 {[1, 2, 3].map((cube) => (
                   <span
                     key={cube}
-                    className={`transition-opacity duration-200 text-sm md:text-lg ${
+                    className={`transition-opacity duration-200 text-xs md:text-sm ${
                       cube <= potentialCubes ? "opacity-100" : "opacity-20"
                     }`}
                   >
@@ -377,6 +369,53 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+      </div>
+
+      {/* Row 3: Constraints + Passive indicators */}
+      <div className="flex items-center justify-between">
+        {/* Constraints */}
+        <div className="flex items-center gap-1 md:gap-2">
+          {hasConstraint && (
+            <ConstraintBadge 
+              constraint={levelConfig.constraint} 
+              progress={constraintProgress} 
+              satisfied={constraintSatisfied}
+              color="orange"
+            />
+          )}
+          {hasConstraint2 && (
+            <ConstraintBadge 
+              constraint={levelConfig.constraint2} 
+              progress={constraint2Progress} 
+              satisfied={constraint2Satisfied}
+              color="purple"
+            />
+          )}
+        </div>
+
+        {/* Passive indicators */}
+        <div className="flex items-center gap-0.5 md:gap-1">
+          {(passives.length > 0 ? passives : defaultPassives).map((passive) => (
+            <TooltipProvider key={passive.id} delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div 
+                    className={`w-7 h-7 md:w-8 md:h-8 rounded flex items-center justify-center text-sm md:text-base cursor-help transition-colors
+                      ${passive.active 
+                        ? "bg-green-500/20 hover:bg-green-500/30" 
+                        : "bg-slate-800/50 hover:bg-slate-700/50 opacity-40"
+                      }`}
+                  >
+                    <span className={passive.active ? "" : "grayscale"}>{passive.icon}</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2">
+                  <div className="text-xs">{passive.tooltip}</div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ))}
+        </div>
       </div>
     </div>
   );
