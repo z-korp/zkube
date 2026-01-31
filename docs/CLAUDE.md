@@ -15,6 +15,7 @@ This directory contains documentation for the zKube project - a fully on-chain p
 | File | Description | Status |
 |------|-------------|--------|
 | [GAME_DESIGN.md](./GAME_DESIGN.md) | **Complete game design** - levels, economy, bonuses, shops, constraints | Implemented |
+| [BONUS_SYSTEM_V2.md](./BONUS_SYSTEM_V2.md) | **Bonus overhaul** - 5 types, 3 levels, selection mechanics | Design Phase |
 | [QUEST_SYSTEM.md](./QUEST_SYSTEM.md) | Daily quest system - 10 quests, 102 CUBE daily rewards | Implemented |
 | [CONFIGURABLE_SETTINGS.md](./CONFIGURABLE_SETTINGS.md) | GameSettings customization for custom game modes | Implemented |
 

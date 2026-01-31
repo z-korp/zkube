@@ -8,12 +8,60 @@
 
 ## Table of Contents
 
-1. [Game Features](#game-features)
-2. [In-Game Shop Expansions](#in-game-shop-expansions)
-3. [Daily Challenge Mode](#daily-challenge-mode)
-4. [Architecture Improvements](#architecture-improvements)
-5. [Quick Wins](#quick-wins)
-6. [Long-Term Vision](#long-term-vision)
+1. [Bonus System V2.0](#bonus-system-v20) **(NEW - Major Overhaul)**
+2. [Game Features](#game-features)
+3. [In-Game Shop Expansions](#in-game-shop-expansions)
+4. [Daily Challenge Mode](#daily-challenge-mode)
+5. [Architecture Improvements](#architecture-improvements)
+6. [Quick Wins](#quick-wins)
+7. [Long-Term Vision](#long-term-vision)
+
+---
+
+## Bonus System V2.0
+
+> **Status:** Design Complete  
+> **Design Document:** [BONUS_SYSTEM_V2.md](./BONUS_SYSTEM_V2.md)  
+> **Priority:** High - Major Feature Update
+
+### Overview
+
+A complete overhaul of the bonus system introducing:
+
+| Feature | Current (v1.2) | New (v2.0) |
+|---------|----------------|------------|
+| Bonus Types | 3 (Hammer, Wave, Totem) | 5 (+Shrink, +Shuffle) |
+| Levels | None | 3 levels per bonus |
+| Selection | All available | Choose 3 of 5 per run |
+| Level-up | N/A | After boss clear |
+
+### Five Bonus Types
+
+| Bonus | Unlocked | L1 Effect | L3 Effect |
+|-------|----------|-----------|-----------|
+| Hammer | Default | Clear target block | Clear + combo +2 |
+| Wave | Default | Clear one row | Clear + 2 free moves |
+| Totem | Default | Clear same-size blocks | Clear entire grid |
+| Shrink | Unlock 500 | Shrink 1 block | Shrink by 2 sizes |
+| Shuffle | Unlock 500 | Shuffle 1 row | Shuffle entire grid |
+
+### Key Mechanics
+
+1. **Selection**: Player chooses 3 of 5 bonuses at game start
+2. **Level-ups**: After boss clears (L10, L20, L30, L40, L50), upgrade one bonus
+3. **Unlock**: Shrink and Shuffle require permanent shop purchase
+4. **Strategy**: 5 bosses = 5 level-ups across 3 bonuses
+
+### Implementation Phases
+
+- [ ] Phase 1: Core Mechanics (new bonus types, effects)
+- [ ] Phase 2: Selection System (UI, validation)
+- [ ] Phase 3: Level System (boss rewards, scaling)
+- [ ] Phase 4: Shop Updates (unlock, new consumables)
+- [ ] Phase 5: Client UI (dialogs, indicators)
+- [ ] Phase 6: Testing & Polish
+
+See [BONUS_SYSTEM_V2.md](./BONUS_SYSTEM_V2.md) for complete design specifications.
 
 ---
 
@@ -38,10 +86,10 @@
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| **New Bonus: Freeze** | Freeze a row/column temporarily | Future |
-| **New Bonus: Bomb** | Clear adjacent blocks | Future |
 | **Special Blocks** | Bomb, Rainbow, Locked blocks | Future |
 | **Cosmetics** | Themes, block skins | Future |
+
+> **Note:** New bonus types (Shrink, Shuffle) are now part of [Bonus System V2.0](#bonus-system-v20)
 
 ---
 
@@ -262,22 +310,28 @@ mod AchievableComponent {
 
 ## Implementation Priority
 
-### Phase 1: Polish (Now)
+### Phase 0: Bonus System V2.0 (Next Major Update)
+1. **Core Mechanics** - Shrink/Shuffle effects, level system
+2. **Selection System** - Choose 3 of 5 at game start
+3. **Level-up System** - Boss clear rewards
+4. **Shop Updates** - Unlock, new consumables
+5. **UI Overhaul** - Selection dialog, level indicators
+
+### Phase 1: Polish
 1. Milestone bonuses
 2. ExtraMoves consumable
 3. Sound effects
 4. Run summary UI
 
-### Phase 2: Competitive (Next)
+### Phase 2: Competitive
 1. Daily Challenge mode
 2. Leaderboard system
 3. Streak rewards
 
-### Phase 3: Expansion (Future)
-1. New bonus types
-2. Special blocks
-3. Challenge modes
-4. Cosmetics
+### Phase 3: Expansion
+1. Special blocks
+2. Challenge modes
+3. Cosmetics
 
 ### Phase 4: Architecture (Ongoing)
 1. Contract size management

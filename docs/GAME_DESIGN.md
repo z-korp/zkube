@@ -149,7 +149,9 @@ The grid is packed into a single `felt252` (240 bits):
 
 **Location:** `contracts/src/elements/bonuses/`
 
-### Bonus Types
+> **Note:** A major overhaul is planned for v2.0. See [BONUS_SYSTEM_V2.md](./BONUS_SYSTEM_V2.md) for the design document featuring 5 bonus types, 3 levels each, and bonus selection mechanics.
+
+### Bonus Types (Current v1.2)
 
 | Bonus | Effect | Earning Threshold |
 |-------|--------|-------------------|
