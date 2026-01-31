@@ -121,8 +121,11 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   const { playSuccess } = useMusicPlayer();
   
   const prevConstraintProgressRef = useRef(constraintProgress);
+  const prevConstraint2ProgressRef = useRef(constraint2Progress);
   const prevLevelRef = useRef(level);
   const [justSatisfied, setJustSatisfied] = useState(false);
+  const [recentlyFilledDots, setRecentlyFilledDots] = useState<Set<string>>(new Set());
+  const [recentlyFilledDots2, setRecentlyFilledDots2] = useState<Set<string>>(new Set());
 
   const levelConfig = React.useMemo((): LevelConfig => {
     if (gameLevel && gameLevel.level === level) {
@@ -169,13 +172,28 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
     if (level !== prevLevelRef.current) {
       prevLevelRef.current = level;
       prevConstraintProgressRef.current = 0;
+      prevConstraint2ProgressRef.current = 0;
       setJustSatisfied(false);
+      setRecentlyFilledDots(new Set());
+      setRecentlyFilledDots2(new Set());
     }
   }, [level]);
 
+  // Track constraint 1 progress and animate newly filled dots
   useEffect(() => {
     const prevProgress = prevConstraintProgressRef.current;
     const prevSatisfied = prevProgress >= levelConfig.constraint.requiredCount;
+    
+    // Track newly filled dots for animation
+    if (constraintProgress > prevProgress) {
+      const newDots = new Set<string>();
+      for (let i = prevProgress; i < constraintProgress; i++) {
+        newDots.add(`c1-${i}`);
+      }
+      setRecentlyFilledDots(newDots);
+      // Clear after animation
+      setTimeout(() => setRecentlyFilledDots(new Set()), 600);
+    }
     
     if (
       levelConfig.constraint.constraintType === ConstraintType.ClearLines &&
@@ -189,6 +207,23 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
     
     prevConstraintProgressRef.current = constraintProgress;
   }, [constraintProgress, levelConfig.constraint, constraintSatisfied, playSuccess]);
+
+  // Track constraint 2 progress and animate newly filled dots
+  useEffect(() => {
+    const prevProgress = prevConstraint2ProgressRef.current;
+    
+    if (constraint2Progress > prevProgress) {
+      const newDots = new Set<string>();
+      for (let i = prevProgress; i < constraint2Progress; i++) {
+        newDots.add(`c2-${i}`);
+      }
+      setRecentlyFilledDots2(newDots);
+      // Clear after animation
+      setTimeout(() => setRecentlyFilledDots2(new Set()), 600);
+    }
+    
+    prevConstraint2ProgressRef.current = constraint2Progress;
+  }, [constraint2Progress]);
 
   const displayScore = useLerpNumber(levelScore, { integer: true });
   const displayTotalScore = useLerpNumber(totalScore, { integer: true });
@@ -206,7 +241,6 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   }, [levelConfig, levelMoves]);
 
   // Pace indicator
-  const paceBgColor = potentialCubes === 3 ? "bg-green-500/20" : potentialCubes === 2 ? "bg-yellow-500/20" : "bg-orange-500/20";
   const paceText = potentialCubes === 3 ? "Perfect pace!" : potentialCubes === 2 ? "Good pace" : "Hurry up!";
   const paceTextColor = potentialCubes === 3 ? "text-green-400" : potentialCubes === 2 ? "text-yellow-400" : "text-orange-400";
   
@@ -220,12 +254,14 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
     constraint, 
     progress, 
     satisfied,
-    color = "orange"
+    color = "orange",
+    recentlyFilled
   }: { 
     constraint: Constraint; 
     progress: number; 
     satisfied: boolean;
     color?: string;
+    recentlyFilled: Set<string>;
   }) => {
     if (constraint.constraintType === ConstraintType.None) return null;
 
@@ -256,9 +292,11 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
     }
 
     // ClearLines constraint with dots
+    const constraintId = color === "purple" ? "c2" : "c1";
     const dots = [];
     for (let i = 0; i < constraint.requiredCount; i++) {
       const isFilled = i < progress;
+      const isJustFilled = recentlyFilled.has(`${constraintId}-${i}`);
       dots.push(
         <motion.div
           key={i}
@@ -268,8 +306,16 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
               : "bg-slate-600"
           }`}
           initial={false}
-          animate={isFilled ? { scale: [1, 1.3, 1] } : {}}
-          transition={{ duration: 0.3 }}
+          animate={isJustFilled ? { 
+            scale: [1, 1.8, 1.2, 1],
+            boxShadow: [
+              "0 0 0 0 rgba(251, 146, 60, 0)",
+              "0 0 12px 4px rgba(251, 146, 60, 0.8)",
+              "0 0 8px 2px rgba(251, 146, 60, 0.4)",
+              "0 0 0 0 rgba(251, 146, 60, 0)"
+            ]
+          } : {}}
+          transition={{ duration: 0.5, ease: "easeOut" }}
         />
       );
     }
@@ -369,8 +415,9 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
       <div className="flex items-center gap-1.5 md:gap-2">
         {/* Score progress (leftmost) */}
         <div className="flex items-center gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded">
+          <span className="text-[10px] md:text-xs text-slate-400">Score</span>
           <span className="text-[10px] md:text-xs text-blue-300">{displayScore}</span>
-          <div className="w-8 md:w-12 h-1 bg-slate-700 rounded-full overflow-hidden">
+          <div className="w-6 md:w-10 h-1 bg-slate-700 rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-blue-400"
               initial={false}
@@ -388,6 +435,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
             progress={constraintProgress} 
             satisfied={constraintSatisfied}
             color="orange"
+            recentlyFilled={recentlyFilledDots}
           />
         )}
         {hasConstraint2 && (
@@ -396,6 +444,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
             progress={constraint2Progress} 
             satisfied={constraint2Satisfied}
             color="purple"
+            recentlyFilled={recentlyFilledDots2}
           />
         )}
 
@@ -439,7 +488,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className={`flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors ${paceBgColor}`}>
+                <div className="flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/30 transition-colors">
                   <FontAwesomeIcon
                     icon={faCircleInfo}
                     className={`w-3 h-3 md:w-3.5 md:h-3.5 ${paceTextColor}`}
