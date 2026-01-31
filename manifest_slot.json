@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x160743c97af64a3e7b891da3c772e2aa38047cde3f93ab8dfa604f4150b558b",
-    "seed": "zkube_cube_economy_v2",
+    "address": "0x2c87bc4133434ba3331ff75e61275434e92eaaefed2bb0fd21165ead4e80461",
+    "seed": "zkube_default_settings_v3",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,8 +33,8 @@
   },
   "contracts": [
     {
-      "address": "0x369d27186eaf3027eca72f4597d8b644819bd249980b09359d938f8057693a3",
-      "class_hash": "0x835b67c53986339ec7848a7fbd688f55898644386a8d6984405465055acc79",
+      "address": "0x2d4b2741633ba1375f21bbbec24f20fb74d5bae0350b5ff8ceb67f0766ec6ec",
+      "class_hash": "0x67e979e1fa01e3566f4321b2da51bfbbea6039c296d80d252f02ebbf9e91f9b",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819"
       ],
@@ -48,7 +48,7 @@
       ]
     },
     {
-      "address": "0x7d32552ad10d747865b32ba4abb55dbaa2710b4a72c6e1b25bf6c545f9b70a4",
+      "address": "0x374d446176c0b508575c33de79711f6ea4c89e3febba6f5cb6cf943864b8b19",
       "class_hash": "0x4abf774595afdff1b6de35572dfe3eb40be23c6188630c4b6e012e6398b6a13",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-cube_token",
@@ -70,8 +70,8 @@
       ]
     },
     {
-      "address": "0x79db54ead291a552ae109bd03fa38201e401210444fa3ed00a61e3703751188",
-      "class_hash": "0x4c7365bfd58b3d6c9348510e57916d416f2373009bab21284ae00eb67d6b762",
+      "address": "0x21cacc32ad4e1bd64aa5369e7a71dd86ecd6c55de4d4e00e7e1b2aeb284ec13",
+      "class_hash": "0x7a7be68ffca818c07af4cdec34b5544614d192d5b83be8a84f19650f04b3e50",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
         "0x02271f1bb4d75604b1c82a708c544ac851f430416cd409aa322327874fe5f918",
@@ -90,7 +90,7 @@
       ]
     },
     {
-      "address": "0x2e49e05b141b5979a9d7d45c694448b19fd58aaeb51cc069dad58acbebee4a1",
+      "address": "0x7938984081fab158022e5836503a6c503dd98b6da05e93621d38e325d804691",
       "class_hash": "0x45337036f48d56fc1b35a1539adb263515fbbd93c47dcdf187e74ee51f119e0",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-quest_system",
@@ -106,7 +106,7 @@
       ]
     },
     {
-      "address": "0x39f336c3cc2de2f69a1c27da3fb4eef67f6ef910eeb09b1acbfc9fff728f9f9",
+      "address": "0x37021859074b980760f710021bb1ee557b282e31b6cd971d87d0776691505df",
       "class_hash": "0x6453a892963f3081e27f6d93151ede540f261122df37a2e2f54daf9aa57cfa1",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-renderer_systems",
@@ -116,8 +116,8 @@
       ]
     },
     {
-      "address": "0x23a1f9d7275c4a6d23197f58040e1d30a5861184b591d4c85a5fe56965571fb",
-      "class_hash": "0x52bd7f31becf832682e0f21afef6566d0bb8a8655442253214f7cae5e0d9dc",
+      "address": "0x3ec851d3db8c2169f4e760e35131bd0c66d029acea9b5676a3bbd22438df4ca",
+      "class_hash": "0xe1ef7028f080fca17227104d666c182dd9385b1cf2b852dda3da240f25d7df",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-shop_system",
       "selector": "0x456e9ac1689ce0bf6afd29733b144d9ef8e7db5c0df5ec0dc79ed1ea22579a0",
@@ -439,11 +439,6 @@
           "key": false
         },
         {
-          "name": "cube_multiplier_x100",
-          "type": "core::integer::u16",
-          "key": false
-        },
-        {
           "name": "tier_1_threshold",
           "type": "core::integer::u8",
           "key": false
@@ -579,7 +574,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x5ad610e3563d04e513bf03aa4f5289732ce5c1bc30b538b8befe4fe7ef3177e",
+      "class_hash": "0x2450c42905517a0054314ca2261b0c5e5141c4e7aba7e75d0dd626927128dbe",
       "tag": "zkube_budo_v1_2_0-GameSettings",
       "selector": "0x1c245917b09d68b08ceb4972426ebba162f36b31404a63dc180496cdc6777b"
     },
@@ -5667,10 +5662,6 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "cube_multiplier_x100",
-          "type": "core::integer::u16"
-        },
-        {
           "name": "tier_1_threshold",
           "type": "core::integer::u8"
         },
@@ -5875,10 +5866,6 @@
         {
           "name": "extra_moves_cost",
           "type": "core::integer::u8"
-        },
-        {
-          "name": "cube_multiplier_x100",
-          "type": "core::integer::u16"
         },
         {
           "name": "tier_1_threshold",
@@ -6349,10 +6336,6 @@
             {
               "name": "extra_moves_cost",
               "type": "core::integer::u8"
-            },
-            {
-              "name": "cube_multiplier_x100",
-              "type": "core::integer::u16"
             },
             {
               "name": "tier_1_threshold",
