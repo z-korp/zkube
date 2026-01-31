@@ -673,8 +673,123 @@ function maybeGenerateSecondaryConstraint(
 }
 
 /**
+ * Check if a level is a boss level (10, 20, 30, 40, 50)
+ */
+function isBossLevel(level: number): boolean {
+  return [10, 20, 30, 40, 50].includes(level);
+}
+
+/**
+ * Generate ClearLines constraint with MAX budget (for boss levels)
+ * Uses budgetMax directly instead of rolling
+ */
+function generateClearLinesConstraintMaxBudget(
+  seed: bigint,
+  minLines: number,
+  maxLines: number,
+  budgetMax: number,
+  minTimes: number
+): Constraint {
+  // Use max budget directly (no rolling)
+  const budget = budgetMax;
+  
+  // Roll lines within [minLines, maxLines]
+  const linesRange = maxLines > minLines ? maxLines - minLines + 1 : 1;
+  let lines = minLines + Number((seed / BigInt(100)) % BigInt(linesRange));
+  
+  // Compute times_cap = budget / line_cost(lines)
+  let cost = lineCost(lines);
+  let timesCap = cost > 0 ? Math.floor(budget / cost) : 1;
+  
+  // Feasibility repair - reduce lines until timesCap >= minTimes
+  let repairCount = 0;
+  while (timesCap < minTimes && lines > 2 && repairCount < 5) {
+    lines = lines - 1;
+    cost = lineCost(lines);
+    timesCap = cost > 0 ? Math.floor(budget / cost) : 1;
+    repairCount++;
+  }
+  
+  // If still infeasible, reduce minTimes requirement
+  const effectiveMinTimes = timesCap < minTimes 
+    ? (timesCap >= 1 ? timesCap : 1)
+    : minTimes;
+  
+  // Roll times with skew-high distribution
+  let times: number;
+  if (timesCap <= 1) {
+    times = 1;
+  } else {
+    const t1 = 1 + Number((seed / BigInt(1000)) % BigInt(timesCap));
+    const t2 = 1 + Number((seed / BigInt(10000)) % BigInt(timesCap));
+    const maxT = Math.max(t1, t2);
+    times = maxT < effectiveMinTimes ? effectiveMinTimes : maxT;
+  }
+  
+  return Constraint.clearLines(lines, times);
+}
+
+/**
+ * Generate boss secondary constraint (always generated, may be NoBonusUsed)
+ */
+function generateBossSecondaryConstraint(
+  seed: bigint,
+  minLines: number,
+  maxLines: number,
+  budgetMax: number,
+  minTimes: number,
+  secondaryNoBonusChance: number
+): Constraint {
+  // Roll to see if secondary is NoBonusUsed or ClearLines
+  const noBonusRoll = Number((seed / BigInt(1000000)) % BigInt(100));
+  if (noBonusRoll < secondaryNoBonusChance) {
+    return Constraint.noBonus();
+  }
+  
+  // Generate another ClearLines constraint with shifted seed and max budget
+  const secondarySeed = seed / BigInt(10000000);
+  return generateClearLinesConstraintMaxBudget(
+    secondarySeed, minLines, maxLines, budgetMax, minTimes
+  );
+}
+
+/**
+ * Generate seeded boss constraints with max budget
+ * Boss levels always have dual constraints
+ */
+function generateBossConstraintsSeeded(
+  levelSeed: bigint,
+  difficulty: Difficulty,
+  settings: GameSettings
+): { constraint: Constraint; constraint2: Constraint } {
+  const params = getConstraintParams(difficulty, settings);
+  
+  // Primary: Always ClearLines with MAX budget
+  const constraint = generateClearLinesConstraintMaxBudget(
+    levelSeed,
+    params.minLines,
+    params.maxLines,
+    params.budgetMax,
+    params.minTimes
+  );
+  
+  // Secondary: Always generated (forced dual)
+  const constraint2 = generateBossSecondaryConstraint(
+    levelSeed,
+    params.minLines,
+    params.maxLines,
+    params.budgetMax,
+    params.minTimes,
+    params.secondaryNoBonusChance
+  );
+  
+  return { constraint, constraint2 };
+}
+
+/**
  * Generate constraints using settings (supports dual constraints)
  * Primary is always ClearLines (from level 3+), secondary depends on dual_chance
+ * Boss levels (10, 20, 30, 40, 50) always have dual constraints with max budget
  */
 function generateConstraintsWithSettings(
   levelSeed: bigint,
@@ -690,6 +805,11 @@ function generateConstraintsWithSettings(
   // No constraint before the start level (levels 1-2 have no constraints)
   if (level < settings.constraintStartLevel) {
     return { constraint: Constraint.none(), constraint2: Constraint.none() };
+  }
+
+  // Boss levels always have dual constraints with max budget
+  if (isBossLevel(level)) {
+    return generateBossConstraintsSeeded(levelSeed, difficulty, settings);
   }
 
   // Get interpolated parameters for this difficulty
