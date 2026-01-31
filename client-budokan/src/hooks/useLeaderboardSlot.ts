@@ -5,6 +5,14 @@ import { getComponentValue, Has, runQuery } from "@dojoengine/recs";
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
 
+// Truncate address to 0x1234...5678 format
+const truncateAddress = (address: string | bigint | undefined): string => {
+  if (!address) return "Unknown";
+  const addr = typeof address === "bigint" ? `0x${address.toString(16)}` : address;
+  if (addr.length <= 13) return addr;
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+};
+
 export interface LeaderboardEntry {
   token_id: number;
   game_id: number;
@@ -86,7 +94,7 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
             totalScore,
             gameOver: gameData.over || false,
             score: totalScore, // Alias for compatibility
-            player_name: `Game #${gameData.game_id}`,
+            player_name: truncateAddress(gameData.player),
             started_at: gameData.started_at ? Number(gameData.started_at) : 0,
           });
         }
