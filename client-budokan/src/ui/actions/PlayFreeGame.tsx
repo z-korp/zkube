@@ -7,6 +7,7 @@ import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { BringCubesDialog, getMaxCubesForRank } from "@/ui/components/Shop";
+import { DEFAULT_SETTINGS_ID } from "@/dojo/game/types/level";
 
 type PlayFreeGameProps = {
   onMintSuccess?: () => void | Promise<void>;
@@ -39,10 +40,11 @@ export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
     setIsLoading(true);
     try {
       // Mint a new free game
+      // Use default settings ID for official games that earn cubes/quests
       const result = await freeMint({
         account,
         name: username ?? "",
-        settingsId: 1,
+        settingsId: DEFAULT_SETTINGS_ID,
       });
 
       // If player can bring cubes, show the dialog
