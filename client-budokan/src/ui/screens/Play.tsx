@@ -457,10 +457,6 @@ export const Play = () => {
                           account={account}
                           game={game}
                           seed={seed}
-                          onShopClick={() => {
-                            console.log("[InGameShop] Shop button clicked, cubesAvailable:", game.cubesAvailable);
-                            setIsInGameShopOpen(true);
-                          }}
                         />
                       </div>
                       {isMdOrLarger && !game.isOver() && (

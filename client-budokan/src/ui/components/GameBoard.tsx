@@ -1,15 +1,14 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
-import { GameBonus } from "../containers/GameBonus";
 import { useMediaQuery } from "react-responsive";
 import { Account } from "starknet";
 import Grid from "./Grid";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "./NextLine";
 import type { Block } from "@/types/types";
-import LevelHeader from "./LevelHeader";
-import { isShopLevel } from "@/dojo/game/helpers/runDataPacking";
+import LevelHeaderCompact from "./LevelHeaderCompact";
+import ActionBar from "./ActionBar";
 import { Bonus, BonusType } from "@/dojo/game/types/bonus";
 import { Game } from "@/dojo/game/models/game";
 import { useGameLevel } from "@/hooks/useGameLevel";
@@ -28,7 +27,6 @@ interface GameBoardProps {
   account: Account | null;
   game: Game;
   seed: bigint;
-  onShopClick?: () => void;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -43,7 +41,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   account,
   game,
   seed,
-  onShopClick,
 }) => {
   const {
     setup: {
@@ -203,13 +200,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
   return (
     <>
       <Card
-        className={`relative p-3 md:pt-4 bg-secondary ${
+        className={`relative p-2 md:p-3 bg-secondary ${
           isTxProcessing && "cursor-wait"
-        } pb-2 md:pb-3`}
+        }`}
       >
-        {/* Level Header with progress and combo */}
-        <div className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} px-1`}>
-          <LevelHeader
+        {/* Compact Level Header - 2 rows */}
+        <div className={`${isMdOrLarger ? "w-[420px]" : "w-[340px]"} px-1 mb-2`}>
+          <LevelHeaderCompact
             level={game.level}
             levelScore={optimisticScore}
             levelMoves={game.levelMoves}
@@ -217,36 +214,27 @@ const GameBoard: React.FC<GameBoardProps> = ({
             totalScore={game.totalScore}
             combo={optimisticCombo}
             seed={seed}
-            isMdOrLarger={isMdOrLarger}
             constraintProgress={game.constraintProgress}
             constraint2Progress={game.constraint2Progress}
             bonusUsedThisLevel={game.bonusUsedThisLevel}
-            isShopLevel={isShopLevel(game.level)}
-            cubesAvailable={game.cubesAvailable}
-            cubesBrought={game.cubesBrought}
-            cubesSpent={game.cubesSpent}
-            onShopClick={onShopClick}
             gameLevel={gameLevel}
           />
         </div>
         
-        {/* Bonus buttons */}
-        <div
-          className={`${
-            isMdOrLarger ? "w-[420px]" : "w-[338px]"
-          } mb-2 md:mb-3 flex justify-center px-1`}
-        >
-          <GameBonus
-            onBonusWaveClick={handleBonusWaveClick}
-            onBonusTikiClick={handleBonusTikiClick}
+        {/* Swipeable Action Bar - Bonuses / Power-ups */}
+        <div className={`${isMdOrLarger ? "w-[420px]" : "w-[340px]"} mb-2`}>
+          <ActionBar
             onBonusHammerClick={handleBonusHammerClick}
+            onBonusWaveClick={handleBonusWaveClick}
+            onBonusTotemClick={handleBonusTikiClick}
             hammerCount={hammerCount}
-            tikiCount={totemCount}
             waveCount={waveCount}
-            bonus={bonus}
+            totemCount={totemCount}
+            activeBonus={bonus}
           />
         </div>
 
+        {/* Game Grid */}
         <div
           className={`flex justify-center items-center ${
             !isTxProcessing && "cursor-move"
@@ -274,18 +262,17 @@ const GameBoard: React.FC<GameBoardProps> = ({
           />
         </div>
 
-        <div className="relative">
-          <div className="absolute z-50 text-lg w-full flex justify-center items-center mt-2 md:mt-3 left-1/2 transform -translate-x-1/2">
-            {bonus !== BonusType.None && (
-              <h1
-                className={`text-yellow-500 p-2 rounded font-bold ${
-                  bonusDescription.length > 20 ? "text-sm" : "text-2xl"
-                } md:text-lg bg-black bg-opacity-50 whitespace-nowrap overflow-hidden text-ellipsis`}
-              >
-                {bonusDescription}
-              </h1>
-            )}
+        {/* Bonus description overlay */}
+        {bonus !== BonusType.None && (
+          <div className="absolute inset-x-0 top-1/2 flex justify-center pointer-events-none z-50">
+            <div className="text-yellow-500 px-3 py-1.5 rounded font-bold text-sm bg-black/70 whitespace-nowrap">
+              {bonusDescription}
+            </div>
           </div>
+        )}
+
+        {/* Next Line Preview */}
+        <div className="mt-1">
           <NextLine
             nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}
             gridSize={GRID_SIZE}
