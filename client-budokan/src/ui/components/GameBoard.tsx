@@ -215,6 +215,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             seed={seed}
             isMdOrLarger={isMdOrLarger}
             constraintProgress={game.constraintProgress}
+            constraint2Progress={game.constraint2Progress}
             bonusUsedThisLevel={game.bonusUsedThisLevel}
             isShopLevel={isShopLevel(game.level)}
             cubesAvailable={game.cubesAvailable}

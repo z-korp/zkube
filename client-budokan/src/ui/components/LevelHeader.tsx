@@ -23,6 +23,7 @@ interface LevelHeaderProps {
   seed?: bigint;
   isMdOrLarger: boolean;
   constraintProgress: number;
+  constraint2Progress: number;
   bonusUsedThisLevel: boolean;
   isShopLevel?: boolean;
   cubesAvailable?: number;
@@ -30,6 +31,11 @@ interface LevelHeaderProps {
   cubesSpent?: number;
   onShopClick?: () => void;
 }
+
+// Boss levels occur at 10, 20, 30, 40, 50
+const isBossLevel = (level: number): boolean => {
+  return [10, 20, 30, 40, 50].includes(level);
+};
 
 const LevelHeader: React.FC<LevelHeaderProps> = ({
   level,
@@ -41,6 +47,7 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
   seed = BigInt(0),
   isMdOrLarger,
   constraintProgress,
+  constraint2Progress,
   bonusUsedThisLevel,
   isShopLevel = false,
   cubesAvailable = 0,
@@ -48,6 +55,7 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
   cubesSpent = 0,
   onShopClick,
 }) => {
+  const isBoss = isBossLevel(level);
   const { playSuccess } = useMusicPlayer(); // Use success sound for constraint satisfaction
   
   // Track previous constraint progress for animations
@@ -77,6 +85,16 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
     if (levelConfig.constraint.constraintType === ConstraintType.NoBonusUsed) return !bonusUsedThisLevel;
     return constraintProgress >= levelConfig.constraint.requiredCount;
   }, [levelConfig.constraint, constraintProgress, bonusUsedThisLevel]);
+
+  // Check if constraint2 is satisfied (for boss levels with dual constraints)
+  const constraint2Satisfied = React.useMemo(() => {
+    if (levelConfig.constraint2.constraintType === ConstraintType.None) return true;
+    if (levelConfig.constraint2.constraintType === ConstraintType.NoBonusUsed) return !bonusUsedThisLevel;
+    return constraint2Progress >= levelConfig.constraint2.requiredCount;
+  }, [levelConfig.constraint2, constraint2Progress, bonusUsedThisLevel]);
+
+  // Check if we have a second constraint to display
+  const hasConstraint2 = levelConfig.constraint2.constraintType !== ConstraintType.None;
 
   // Reset states when level changes
   useEffect(() => {
@@ -156,8 +174,15 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
     <div className="w-full mb-3">
       {/* Row 1: Level title + Total score + Total stars */}
       <div className="flex items-center justify-between mb-2">
-        <div className={`font-bold ${isMdOrLarger ? "text-2xl" : "text-xl"} text-white`}>
-          Level {level}
+        <div className="flex items-center gap-2">
+          <span className={`font-bold ${isMdOrLarger ? "text-2xl" : "text-xl"} text-white`}>
+            Level {level}
+          </span>
+          {isBoss && (
+            <span className={`${isMdOrLarger ? "text-xs" : "text-[10px]"} font-bold px-1.5 py-0.5 rounded bg-gradient-to-r from-red-600 to-orange-500 text-white uppercase tracking-wide`}>
+              Boss
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-3">
           {/* Total Score */}
@@ -392,6 +417,96 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
                       ? "You used a bonus this level. The constraint is failed but you can still complete the level."
                       : "Complete this level without using any bonus (Hammer, Wave, or Totem) to satisfy this constraint."
                     }
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
+        {/* Second constraint - ClearLines (for boss levels with dual constraints) */}
+        {hasConstraint2 && levelConfig.constraint2.constraintType === ConstraintType.ClearLines && (
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1.5 min-w-[100px] cursor-help">
+                  <span className={`${isMdOrLarger ? "text-[10px]" : "text-[9px]"} text-purple-400 whitespace-nowrap`}>
+                    {levelConfig.constraint2.value}+
+                  </span>
+                  <div className="flex-1 min-w-[30px]">
+                    <div className="h-2.5 bg-slate-700 rounded-full overflow-hidden">
+                      <motion.div
+                        className={`h-full ${
+                          constraint2Satisfied
+                            ? "bg-gradient-to-r from-green-500 to-emerald-500"
+                            : "bg-gradient-to-r from-purple-500 to-pink-500"
+                        }`}
+                        initial={false}
+                        animate={{ 
+                          width: `${Math.min(100, (constraint2Progress / levelConfig.constraint2.requiredCount) * 100)}%` 
+                        }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                      />
+                    </div>
+                  </div>
+                  <div className={`${isMdOrLarger ? "text-[10px]" : "text-[9px]"} whitespace-nowrap flex items-center gap-0.5`}>
+                    <span className={`font-semibold ${constraint2Satisfied ? "text-green-400" : "text-purple-400"}`}>
+                      {constraint2Progress}/{levelConfig.constraint2.requiredCount}
+                    </span>
+                    {constraint2Satisfied && (
+                      <FontAwesomeIcon icon={faCheck} className="text-green-400" width={8} height={8} />
+                    )}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent 
+                side="bottom" 
+                className="bg-slate-800 border border-slate-600 p-3 max-w-[250px]"
+              >
+                <div className="space-y-1.5">
+                  <div className="text-xs font-semibold text-purple-400">Boss Constraint #2</div>
+                  <div className="text-xs text-slate-300">
+                    {levelConfig.constraint2.getDescription()}
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
+        {/* Second constraint - NoBonusUsed (for boss levels) */}
+        {hasConstraint2 && levelConfig.constraint2.constraintType === ConstraintType.NoBonusUsed && (
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div 
+                  className={`${isMdOrLarger ? "text-[10px]" : "text-[9px]"} flex items-center gap-1 px-2 py-0.5 rounded-full whitespace-nowrap cursor-help ${
+                    bonusUsedThisLevel 
+                      ? "bg-red-500/20 text-red-400 border border-red-500/30" 
+                      : "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                  }`}
+                >
+                  {bonusUsedThisLevel ? (
+                    <>
+                      <FontAwesomeIcon icon={faBan} width={8} height={8} />
+                      <span>Bonus #2</span>
+                    </>
+                  ) : (
+                    <>
+                      <FontAwesomeIcon icon={faCheck} width={8} height={8} />
+                      <span>No Bonus #2</span>
+                    </>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent 
+                side="bottom" 
+                className="bg-slate-800 border border-slate-600 p-3 max-w-[250px]"
+              >
+                <div className="space-y-1.5">
+                  <div className="text-xs font-semibold text-purple-400">Boss Constraint #2</div>
+                  <div className="text-xs text-slate-300">
+                    {levelConfig.constraint2.getDescription()}
                   </div>
                 </div>
               </TooltipContent>
