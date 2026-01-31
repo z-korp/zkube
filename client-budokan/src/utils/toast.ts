@@ -44,9 +44,6 @@ export const getToastPlacement = ():
   | "top-center"
   | "bottom-center"
   | "bottom-right" => {
-  if (!isMdOrLarger()) {
-    return isSmallHeight() ? "top-center" : "bottom-right";
-  }
   return "bottom-right";
 };
 

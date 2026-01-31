@@ -184,26 +184,15 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
     const prevProgress = prevConstraintProgressRef.current;
     const prevSatisfied = prevProgress >= levelConfig.constraint.requiredCount;
     
-    console.log('[Constraint1] Progress changed:', { 
-      prevProgress, 
-      constraintProgress, 
-      requiredCount: levelConfig.constraint.requiredCount,
-      constraintType: levelConfig.constraint.constraintType
-    });
-    
     // Track newly filled dots for animation
     if (constraintProgress > prevProgress) {
       const newDots = new Set<string>();
       for (let i = prevProgress; i < constraintProgress; i++) {
         newDots.add(`c1-${i}`);
       }
-      console.log('[Constraint1] Setting recentlyFilledDots:', Array.from(newDots));
       setRecentlyFilledDots(newDots);
       // Clear after animation
-      setTimeout(() => {
-        console.log('[Constraint1] Clearing recentlyFilledDots');
-        setRecentlyFilledDots(new Set());
-      }, 600);
+      setTimeout(() => setRecentlyFilledDots(new Set()), 600);
     }
     
     if (
@@ -223,25 +212,14 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   useEffect(() => {
     const prevProgress = prevConstraint2ProgressRef.current;
     
-    console.log('[Constraint2] Progress changed:', { 
-      prevProgress, 
-      constraint2Progress, 
-      requiredCount: levelConfig.constraint2.requiredCount,
-      constraintType: levelConfig.constraint2.constraintType
-    });
-    
     if (constraint2Progress > prevProgress) {
       const newDots = new Set<string>();
       for (let i = prevProgress; i < constraint2Progress; i++) {
         newDots.add(`c2-${i}`);
       }
-      console.log('[Constraint2] Setting recentlyFilledDots2:', Array.from(newDots));
       setRecentlyFilledDots2(newDots);
       // Clear after animation
-      setTimeout(() => {
-        console.log('[Constraint2] Clearing recentlyFilledDots2');
-        setRecentlyFilledDots2(new Set());
-      }, 600);
+      setTimeout(() => setRecentlyFilledDots2(new Set()), 600);
     }
     
     prevConstraint2ProgressRef.current = constraint2Progress;
@@ -315,20 +293,11 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
 
     // ClearLines constraint with dots
     const constraintId = color === "purple" ? "c2" : "c1";
-    console.log(`[ConstraintBadge ${constraintId}] Rendering:`, {
-      progress,
-      requiredCount: constraint.requiredCount,
-      recentlyFilledSize: recentlyFilled.size,
-      recentlyFilledItems: Array.from(recentlyFilled)
-    });
     const dots = [];
     for (let i = 0; i < constraint.requiredCount; i++) {
       const isFilled = i < progress;
       const dotKey = `${constraintId}-${i}`;
       const isJustFilled = recentlyFilled.has(dotKey);
-      if (isJustFilled) {
-        console.log(`[ConstraintBadge ${constraintId}] Dot ${i} is just filled! Key: ${dotKey}`);
-      }
       // Use a unique key when animating to force remount and trigger animation
       const uniqueKey = isJustFilled ? `${dotKey}-animating` : dotKey;
       dots.push(
@@ -495,7 +464,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         {/* Moves pill - dramatic when low */}
         <div className={`flex items-center gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded ${movesGlow}`}>
           <span className={`text-sm md:text-sm font-bold ${movesColor}`}>{movesRemaining}</span>
-          <span className="text-[10px] md:text-xs text-slate-400">moves left</span>
+          <span className="text-[10px] md:text-xs text-slate-400">moves</span>
         </div>
       </div>
 
@@ -532,7 +501,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/30 transition-colors">
+                <div className="flex items-center gap-0.5 md:gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors">
                   <FontAwesomeIcon
                     icon={faCircleInfo}
                     className={`w-3 h-3 md:w-3.5 md:h-3.5 ${paceTextColor}`}
