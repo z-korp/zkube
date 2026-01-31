@@ -26,6 +26,7 @@ dist-ssr
 # Environment and secrets
 .env*
 !.env.example
+!.env.slot
 *.log
 
 # Account files with private keys
