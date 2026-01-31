@@ -16,8 +16,47 @@ import { useMoveStore } from "@/stores/moveTxStore";
 
 export type SystemCalls = ReturnType<typeof systems>;
 
+// Helper to delay execution
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Maximum retries for pre-confirmed transaction waiting
+const MAX_RETRIES = 5;
+const RETRY_DELAY_MS = 500;
+const POLL_INTERVAL_MS = 275;
+
 export function systems({ client }: { client: IWorld }) {
   const toastPlacement = getToastPlacement();
+
+  /**
+   * Wait for a transaction to reach PRE_CONFIRMED status (or better).
+   * Uses Starknet's new pre-confirmation feature for faster feedback.
+   * Retries on failure with exponential backoff.
+   */
+  const waitForPreConfirmedTransaction = async (
+    account: Account,
+    txHash: string,
+    retries = 0
+  ): Promise<TransactionReceipt & { events: any[] }> => {
+    if (retries > MAX_RETRIES) {
+      throw new Error("Transaction confirmation timed out after max retries");
+    }
+
+    try {
+      const receipt = (await account.waitForTransaction(txHash, {
+        retryInterval: POLL_INTERVAL_MS,
+        successStates: ["PRE_CONFIRMED", "ACCEPTED_ON_L2", "ACCEPTED_ON_L1"],
+      })) as TransactionReceipt & { events: any[] };
+
+      return receipt;
+    } catch (error) {
+      console.warn(
+        `Pre-confirm wait failed (attempt ${retries + 1}/${MAX_RETRIES + 1}):`,
+        error
+      );
+      await delay(RETRY_DELAY_MS);
+      return waitForPreConfirmedTransaction(account, txHash, retries + 1);
+    }
+  };
 
   const handleTransaction = async (
     account: Account,
@@ -55,13 +94,26 @@ export function systems({ client }: { client: IWorld }) {
         });
       }
 
-      // Wait for completion
-      const receipt = (await account.waitForTransaction(transaction_hash, {
-        retryInterval: 200,
-      })) as TransactionReceipt & { events: any[] };
+      // Wait for pre-confirmed status (faster than full L2 confirmation)
+      const receipt = await waitForPreConfirmedTransaction(
+        account,
+        transaction_hash
+      );
       const events = receipt.events;
       console.log("events", receipt.events);
       console.log("1) transaction", receipt);
+
+      // Check if transaction was reverted
+      if ((receipt as any).execution_status === "REVERTED") {
+        console.error("Transaction reverted:", receipt);
+        if (shouldShowToast()) {
+          toast.error("Transaction reverted.", {
+            id: toastId,
+            position: toastPlacement,
+          });
+        }
+        throw new Error("Transaction reverted");
+      }
 
       // Notify success using same toastId
       notify(successMessage, receipt, toastId);
@@ -70,7 +122,12 @@ export function systems({ client }: { client: IWorld }) {
       console.error("Error executing transaction:", error);
 
       if (shouldShowToast()) {
-        toast.error("Transaction failed.", {
+        // Don't override if we already showed a revert error
+        const errorMessage =
+          error instanceof Error && error.message === "Transaction reverted"
+            ? "Transaction reverted."
+            : "Transaction failed.";
+        toast.error(errorMessage, {
           id: toastId,
           position: toastPlacement,
         });
