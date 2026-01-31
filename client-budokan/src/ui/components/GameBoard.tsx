@@ -216,6 +216,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             levelMoves={game.levelMoves}
             totalCubes={game.totalCubes}
             totalScore={game.totalScore}
+            maxCombo={optimisticMaxCombo}
             seed={seed}
             constraintProgress={game.constraintProgress}
             constraint2Progress={game.constraint2Progress}

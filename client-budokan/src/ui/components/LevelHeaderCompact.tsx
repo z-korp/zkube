@@ -22,6 +22,7 @@ interface LevelHeaderCompactProps {
   levelMoves: number;
   totalCubes: number;
   totalScore: number;
+  maxCombo: number;
   seed?: bigint;
   constraintProgress: number;
   constraint2Progress: number;
@@ -101,6 +102,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   levelMoves,
   totalCubes,
   totalScore,
+  maxCombo,
   seed = BigInt(0),
   constraintProgress,
   constraint2Progress,
@@ -367,6 +369,12 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         </div>
 
         <div className="flex items-center gap-2 md:gap-3">
+          {/* Max Combo */}
+          <div className="flex items-center gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded">
+            <span className="text-sm md:text-base">🔥</span>
+            <span className="text-sm md:text-base font-semibold text-orange-400">{maxCombo}</span>
+          </div>
+
           {/* Score */}
           <div className="flex items-center gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded">
             <span className="text-[10px] md:text-xs text-slate-400">Score:</span>
