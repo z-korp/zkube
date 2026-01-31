@@ -1,16 +1,22 @@
 import { useDojo } from "@/dojo/useDojo";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { getComponentValue, Has, runQuery } from "@dojoengine/recs";
+import { lookupAddresses } from "@cartridge/controller";
+import { addAddressPadding } from "starknet";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
 
 // Truncate address to 0x1234...5678 format
-const truncateAddress = (address: string | bigint | undefined): string => {
-  if (!address) return "Unknown";
-  const addr = typeof address === "bigint" ? `0x${address.toString(16)}` : address;
-  if (addr.length <= 13) return addr;
-  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+const truncateAddress = (address: string): string => {
+  if (!address || address.length <= 13) return address || "Unknown";
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+};
+
+// Convert bigint to padded hex address
+const toHexAddress = (address: bigint | undefined): string => {
+  if (!address) return "";
+  return addAddressPadding(`0x${address.toString(16)}`);
 };
 
 export interface LeaderboardEntry {
@@ -22,6 +28,7 @@ export interface LeaderboardEntry {
   gameOver: boolean;
   score: number; // Alias for totalScore for compatibility
   player_name?: string;
+  player_address?: string; // Raw address for username lookup
   started_at?: number;
 }
 
@@ -59,7 +66,7 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
       return;
     }
 
-    const fetchGames = () => {
+    const fetchGames = async () => {
       setLoading(true);
       try {
         // Query all Game entities from RECS
@@ -86,6 +93,7 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
           const totalCubes = Number((runData >> BigInt(115)) & BigInt(0xFFFF)); // 16 bits at position 115
           const totalScore = Number((runData >> BigInt(131)) & BigInt(0xFFFF)); // 16 bits at position 131
 
+          const playerAddress = toHexAddress(gameData.player);
           gameList.push({
             token_id: gameData.game_id,
             game_id: gameData.game_id,
@@ -94,7 +102,8 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
             totalScore,
             gameOver: gameData.over || false,
             score: totalScore, // Alias for compatibility
-            player_name: truncateAddress(gameData.player),
+            player_address: playerAddress,
+            player_name: undefined, // Will be populated by username lookup
             started_at: gameData.started_at ? Number(gameData.started_at) : 0,
           });
         }
@@ -106,6 +115,32 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
           if (b.totalCubes !== a.totalCubes) return b.totalCubes - a.totalCubes;
           return (a.started_at ?? 0) - (b.started_at ?? 0);
         });
+
+        // Batch lookup usernames for all player addresses
+        const addresses = gameList
+          .map((g) => g.player_address)
+          .filter((addr): addr is string => !!addr);
+        
+        if (addresses.length > 0) {
+          try {
+            const usernameMap = await lookupAddresses(addresses);
+            // Update games with resolved usernames
+            for (const game of gameList) {
+              if (game.player_address) {
+                const username = usernameMap.get(game.player_address);
+                game.player_name = username || truncateAddress(game.player_address);
+              }
+            }
+          } catch (error) {
+            console.error("Error looking up usernames:", error);
+            // Fallback to truncated addresses
+            for (const game of gameList) {
+              if (game.player_address) {
+                game.player_name = truncateAddress(game.player_address);
+              }
+            }
+          }
+        }
 
         setGames(gameList);
       } catch (error) {
