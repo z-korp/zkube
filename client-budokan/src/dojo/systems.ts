@@ -231,7 +231,7 @@ export function systems({ client }: { client: IWorld }) {
     try {
       await handleTransaction(
         account,
-        () => client.game.purchase_consumable({ account, ...props }),
+        () => client.shop.purchase_consumable({ account, ...props }),
         "Consumable purchased!"
       );
       setMoveComplete(true);

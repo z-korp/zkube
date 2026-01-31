@@ -1,8 +1,7 @@
 use zkube::types::bonus::Bonus;
-use zkube::types::consumable::ConsumableType;
 
 #[starknet::interface]
-trait IGameSystem<T> {
+pub trait IGameSystem<T> {
     /// Create a new game with level system
     fn create(ref self: T, game_id: u64);
     /// Create a new game and bring cubes into the run for in-game shop spending
@@ -14,9 +13,6 @@ trait IGameSystem<T> {
     fn move(ref self: T, game_id: u64, row_index: u8, start_index: u8, final_index: u8);
     /// Apply a bonus from inventory
     fn apply_bonus(ref self: T, game_id: u64, bonus: Bonus, row_index: u8, line_index: u8);
-    /// Purchase a consumable from the in-game shop using brought cubes
-    /// Only available after completing levels 5, 10, 15, 20, etc.
-    fn purchase_consumable(ref self: T, game_id: u64, consumable: ConsumableType);
     /// Get player name from token
     fn get_player_name(self: @T, game_id: u64) -> felt252;
     /// Get current level score
@@ -26,9 +22,6 @@ trait IGameSystem<T> {
     fn get_game_data(
         self: @T, game_id: u64,
     ) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool);
-    /// Get in-game shop data for UI
-    /// Returns: (cubes_brought, cubes_spent, cubes_available)
-    fn get_shop_data(self: @T, game_id: u64) -> (u16, u16, u16);
 }
 
 #[dojo::contract]
@@ -42,8 +35,7 @@ mod game_system {
     use zkube::helpers::level::{LevelGenerator, LevelGeneratorTrait};
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::types::bonus::Bonus;
-    use zkube::types::consumable::{ConsumableType, ConsumableTrait, EXTRA_MOVES_AMOUNT};
-    use zkube::events::{StartGame, UseBonus, LevelStarted, LevelCompleted, RunEnded, RunCompleted, ConsumablePurchased};
+    use zkube::events::{StartGame, UseBonus, LevelStarted, LevelCompleted, RunEnded, RunCompleted};
     use zkube::systems::cube_token::{ICubeTokenDispatcher, ICubeTokenDispatcherTrait};
     use zkube::systems::quest::{IQuestSystemDispatcher, IQuestSystemDispatcherTrait};
     use zkube::elements::tasks::{grinder, clearer, combo};
@@ -437,141 +429,6 @@ mod game_system {
                 run_data.total_cubes,
                 game.over,
             )
-        }
-
-        fn get_shop_data(self: @ContractState, game_id: u64) -> (u16, u16, u16) {
-            let world: WorldStorage = self.world(@DEFAULT_NS());
-            let game: Game = world.read_model(game_id);
-            let run_data = game.get_run_data();
-            
-            // Available = brought + earned - spent
-            let total_budget: u32 = run_data.cubes_brought.into() + run_data.total_cubes.into();
-            let spent: u32 = run_data.cubes_spent.into();
-            let available: u32 = if total_budget >= spent { total_budget - spent } else { 0 };
-            let cubes_available: u16 = if available > 65535 {
-                65535_u16
-            } else {
-                available.try_into().unwrap()
-            };
-
-            (run_data.cubes_brought, run_data.cubes_spent, cubes_available)
-        }
-
-        fn purchase_consumable(ref self: ContractState, game_id: u64, consumable: ConsumableType) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-
-            let token_address = self.token_address();
-            pre_action(token_address, game_id);
-
-            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
-            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
-            assert!(
-                token_metadata.lifecycle.is_playable(get_block_timestamp()),
-                "Game {} lifecycle is not playable",
-                game_id,
-            );
-
-            let mut game: Game = world.read_model(game_id);
-            assert_token_ownership(token_address, game_id);
-            game.assert_not_over();
-
-            let mut run_data = game.get_run_data();
-            let player = get_caller_address();
-
-            // In-game shop is only available after completing levels 5, 10, 15, ...
-            // (i.e. when current_level is 6, 11, 16, ...).
-            assert!(run_data.current_level > 1, "Shop not available");
-            assert!((run_data.current_level - 1) % 5 == 0, "Shop not available");
-
-            // Get cost of consumable from settings
-            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
-            let cost = consumable.get_cost_from_settings(settings);
-
-            // Check player has enough cubes (brought + earned - spent)
-            let total_budget: u32 = run_data.cubes_brought.into() + run_data.total_cubes.into();
-            let spent: u32 = run_data.cubes_spent.into();
-            let cubes_available: u32 = if total_budget >= spent { total_budget - spent } else { 0 };
-            assert!(cubes_available >= cost.into(), "Insufficient cubes");
-
-            // Spend the cubes
-            let new_spent: u32 = spent + cost.into();
-            assert!(new_spent <= 65535, "Cubes spent overflow");
-            run_data.cubes_spent = new_spent.try_into().unwrap();
-
-            // Read player meta for bag sizes
-            let mut player_meta: PlayerMeta = world.read_model(player);
-            if !player_meta.exists() {
-                player_meta = PlayerMetaTrait::new(player);
-            }
-
-            // Apply consumable effect
-            match consumable {
-                ConsumableType::Hammer => {
-                    let max_bag = player_meta.get_bag_size(0);
-                    assert!(run_data.hammer_count < max_bag, "Hammer bag is full");
-                    run_data.hammer_count = run_data.hammer_count + 1;
-                },
-                ConsumableType::Wave => {
-                    let max_bag = player_meta.get_bag_size(1);
-                    assert!(run_data.wave_count < max_bag, "Wave bag is full");
-                    run_data.wave_count = run_data.wave_count + 1;
-                },
-                ConsumableType::Totem => {
-                    let max_bag = player_meta.get_bag_size(2);
-                    assert!(run_data.totem_count < max_bag, "Totem bag is full");
-                    run_data.totem_count = run_data.totem_count + 1;
-                },
-                ConsumableType::ExtraMoves => {
-                    // ExtraMoves extends the current level's move limit.
-                    // We cap the effective max to 255 to avoid exceeding the u8 move counter.
-                    let base_seed: GameSeed = world.read_model(game_id);
-                    let level_config = LevelGeneratorTrait::generate(
-                        base_seed.seed, run_data.current_level, settings,
-                    );
-
-                    let max_extra: u16 = if level_config.max_moves >= 255 {
-                        0
-                    } else {
-                        255 - level_config.max_moves
-                    };
-                    assert!(max_extra > 0, "Move limit already maxed");
-
-                    let current_extra: u16 = run_data.extra_moves.into();
-                    let mut new_extra: u16 = current_extra + EXTRA_MOVES_AMOUNT.into();
-                    if new_extra > max_extra {
-                        new_extra = max_extra;
-                    }
-                    assert!(new_extra > current_extra, "Move limit already maxed");
-                    run_data.extra_moves = new_extra.try_into().unwrap();
-                },
-            }
-
-            game.set_run_data(run_data);
-            world.write_model(@game);
-
-            post_action(token_address, game_id);
-
-            // Emit event
-            let cubes_remaining_u32: u32 = if total_budget >= new_spent {
-                total_budget - new_spent
-            } else {
-                0
-            };
-            let cubes_remaining: u16 = if cubes_remaining_u32 > 65535 {
-                65535_u16
-            } else {
-                cubes_remaining_u32.try_into().unwrap()
-            };
-            world
-                .emit_event(
-                    @ConsumablePurchased {
-                        game_id,
-                        player,
-                        consumable,
-                        cost,
-                        cubes_remaining,
-                    },
-                );
         }
     }
 

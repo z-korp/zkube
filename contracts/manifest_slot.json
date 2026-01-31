@@ -1,7 +1,7 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x54b04ebd35f35e18579f2a404c4ca85a89d7b9e85c98bd70e8a28b32ff5b964",
+    "address": "0x160743c97af64a3e7b891da3c772e2aa38047cde3f93ab8dfa604f4150b558b",
     "seed": "zkube_cube_economy_v2",
     "name": "zKube",
     "entrypoints": [
@@ -33,7 +33,7 @@
   },
   "contracts": [
     {
-      "address": "0x1e99eedaea7a996b25191210c8dc433dc095fe4dc3c925d49d9406eaf1a5485",
+      "address": "0x369d27186eaf3027eca72f4597d8b644819bd249980b09359d938f8057693a3",
       "class_hash": "0x835b67c53986339ec7848a7fbd688f55898644386a8d6984405465055acc79",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819"
@@ -48,7 +48,7 @@
       ]
     },
     {
-      "address": "0x59376db794d75d9956727e0417e71ff5b4eaf598687121b3a2943c1b4c60e39",
+      "address": "0x7d32552ad10d747865b32ba4abb55dbaa2710b4a72c6e1b25bf6c545f9b70a4",
       "class_hash": "0x4abf774595afdff1b6de35572dfe3eb40be23c6188630c4b6e012e6398b6a13",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-cube_token",
@@ -70,11 +70,11 @@
       ]
     },
     {
-      "address": "0x64f5f9b14a333f07174c1420d6645d8eb3f0523a28f63cf7ba30e349bf606ae",
-      "class_hash": "0x35ad799c5883f1600812ecdff4776bac98a1f2a3fd471e27df934e2f966eefc",
+      "address": "0x79db54ead291a552ae109bd03fa38201e401210444fa3ed00a61e3703751188",
+      "class_hash": "0x4306f998c920fc72210b96292dbc35ac8a46ecccdbe011a25f04a980ec32597",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
-        "0x062347854b5817b3c8101014b5813fb0b5db48e4df2a0a9dada8cbdab191b064",
+        "0x02271f1bb4d75604b1c82a708c544ac851f430416cd409aa322327874fe5f918",
         "1"
       ],
       "tag": "zkube_budo_v1_2_0-game_system",
@@ -86,12 +86,11 @@
         "surrender",
         "move",
         "apply_bonus",
-        "purchase_consumable",
         "upgrade"
       ]
     },
     {
-      "address": "0x453781979b7241228afaa37ac3c453487e73c33af6171b544082665643ba3d6",
+      "address": "0x2e49e05b141b5979a9d7d45c694448b19fd58aaeb51cc069dad58acbebee4a1",
       "class_hash": "0x45337036f48d56fc1b35a1539adb263515fbbd93c47dcdf187e74ee51f119e0",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-quest_system",
@@ -107,7 +106,7 @@
       ]
     },
     {
-      "address": "0x1134d2828d81a302803aa2d9b49f2b71ee94ccdcf299b2c095211adb838b84c",
+      "address": "0x39f336c3cc2de2f69a1c27da3fb4eef67f6ef910eeb09b1acbfc9fff728f9f9",
       "class_hash": "0x6453a892963f3081e27f6d93151ede540f261122df37a2e2f54daf9aa57cfa1",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-renderer_systems",
@@ -117,8 +116,8 @@
       ]
     },
     {
-      "address": "0x371450998538496aa5577c52ced6595628cbf59e51145ce1bbdbe7cf25ecd9d",
-      "class_hash": "0x28e19187af7964d20e461e2393bf9e4d545f4890501667ac3091ba789364170",
+      "address": "0x23a1f9d7275c4a6d23197f58040e1d30a5861184b591d4c85a5fe56965571fb",
+      "class_hash": "0x52bd7f31becf832682e0f21afef6566d0bb8a8655442253214f7cae5e0d9dc",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-shop_system",
       "selector": "0x456e9ac1689ce0bf6afd29733b144d9ef8e7db5c0df5ec0dc79ed1ea22579a0",
@@ -126,6 +125,7 @@
         "upgrade_starting_bonus",
         "upgrade_bag_size",
         "upgrade_bridging_rank",
+        "purchase_consumable",
         "upgrade"
       ]
     }
@@ -6616,22 +6616,6 @@
         },
         {
           "type": "function",
-          "name": "purchase_consumable",
-          "inputs": [
-            {
-              "name": "game_id",
-              "type": "core::integer::u64"
-            },
-            {
-              "name": "consumable",
-              "type": "zkube::types::consumable::ConsumableType"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
           "name": "get_player_name",
           "inputs": [
             {
@@ -6674,22 +6658,6 @@
           "outputs": [
             {
               "type": "(core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u8, core::integer::u16, core::bool)"
-            }
-          ],
-          "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "get_shop_data",
-          "inputs": [
-            {
-              "name": "game_id",
-              "type": "core::integer::u64"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "(core::integer::u16, core::integer::u16, core::integer::u16)"
             }
           ],
           "state_mutability": "view"
@@ -6895,6 +6863,22 @@
         },
         {
           "type": "function",
+          "name": "purchase_consumable",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "consumable",
+              "type": "zkube::types::consumable::ConsumableType"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
           "name": "get_starting_bonus_upgrade_cost",
           "inputs": [
             {
@@ -6937,6 +6921,22 @@
           "outputs": [
             {
               "type": "core::integer::u64"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "get_shop_data",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "(core::integer::u16, core::integer::u16, core::integer::u16)"
             }
           ],
           "state_mutability": "view"

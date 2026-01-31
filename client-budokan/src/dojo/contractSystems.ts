@@ -238,23 +238,6 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const purchase_consumable = async ({ account, game_id, consumable_type }: PurchaseConsumable) => {
-      try {
-        // ConsumableType enum serializes as just the variant index:
-        // 0 = Hammer, 1 = Wave, 2 = Totem, 3 = ExtraMoves
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "purchase_consumable",
-            calldata: [game_id, consumable_type],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing purchase_consumable:", error);
-        throw error;
-      }
-    };
-
     return {
       address: contract.address,
       free_mint,
@@ -263,7 +246,6 @@ export function setupWorld(config: Config) {
       surrender,
       move,
       bonus,
-      purchase_consumable,
     };
   }
 
@@ -321,11 +303,29 @@ export function setupWorld(config: Config) {
       }
     };
 
+    const purchase_consumable = async ({ account, game_id, consumable_type }: PurchaseConsumable) => {
+      try {
+        // ConsumableType enum serializes as just the variant index:
+        // 0 = Hammer, 1 = Wave, 2 = Totem, 3 = ExtraMoves
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "purchase_consumable",
+            calldata: [game_id, consumable_type],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing purchase_consumable:", error);
+        throw error;
+      }
+    };
+
     return {
       address: contract.address,
       upgrade_starting_bonus,
       upgrade_bag_size,
       upgrade_bridging_rank,
+      purchase_consumable,
     };
   }
 
