@@ -16,13 +16,6 @@ import {
 } from "@/ui/elements/tooltip";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 
-interface PassiveIndicator {
-  id: string;
-  icon: string;
-  active: boolean;
-  tooltip: string;
-}
-
 interface LevelHeaderCompactProps {
   level: number;
   levelScore: number;
@@ -36,19 +29,71 @@ interface LevelHeaderCompactProps {
   gameLevel?: GameLevelData | null;
   cubesBrought?: number;
   cubesSpent?: number;
-  passives?: PassiveIndicator[];
+  // Bonus props for inline display
+  hammerCount: number;
+  waveCount: number;
+  totemCount: number;
+  activeBonus: number; // BonusType
+  onBonusHammerClick: () => void;
+  onBonusWaveClick: () => void;
+  onBonusTotemClick: () => void;
+  bonusImages: {
+    hammer: string;
+    wave: string;
+    tiki: string;
+  };
 }
 
 const isBossLevel = (level: number): boolean => {
   return [10, 20, 30, 40, 50].includes(level);
 };
 
-const defaultPassives: PassiveIndicator[] = [
-  { id: "p1", icon: "🛡️", active: false, tooltip: "Shield (coming soon)" },
-  { id: "p2", icon: "❄️", active: false, tooltip: "Freeze (coming soon)" },
-  { id: "p3", icon: "🔥", active: true, tooltip: "Fire (active)" },
-  { id: "p4", icon: "⭐", active: false, tooltip: "Star (coming soon)" },
-];
+// Inline bonus button component
+const BonusButton: React.FC<{
+  onClick: () => void;
+  image: string;
+  count: number;
+  tooltip: string;
+  isActive: boolean;
+}> = ({ onClick, image, count, tooltip, isActive }) => {
+  const isDisabled = count === 0;
+
+  const getBgClass = () => {
+    if (isActive) return "bg-yellow-500/80 hover:bg-yellow-500/90";
+    if (isDisabled) return "bg-slate-800/50 opacity-40";
+    return "bg-slate-800/50 hover:bg-slate-700/50";
+  };
+
+  return (
+    <TooltipProvider delayDuration={0}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <motion.button
+            onClick={onClick}
+            disabled={isDisabled}
+            className={`relative w-9 h-9 md:w-11 md:h-11 rounded flex items-center justify-center transition-colors ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'} ${getBgClass()}`}
+            whileHover={isDisabled ? {} : { scale: 1.05 }}
+            whileTap={isDisabled ? {} : { scale: 0.95 }}
+          >
+            <img 
+              src={image} 
+              alt="bonus" 
+              className={`w-5 h-5 md:w-7 md:h-7 object-contain ${isDisabled ? "grayscale opacity-60" : ""}`}
+            />
+            <div className={`absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 text-[8px] md:text-[10px] font-bold rounded-full w-3.5 h-3.5 md:w-4 md:h-4 flex items-center justify-center
+              ${isDisabled ? "bg-slate-600 text-slate-400" : "bg-yellow-500 text-white"}`}
+            >
+              {count}
+            </div>
+          </motion.button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2 md:p-3">
+          <div className="text-xs">{tooltip}</div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
 
 const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   level,
@@ -63,7 +108,14 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   gameLevel,
   cubesBrought = 0,
   cubesSpent = 0,
-  passives = [],
+  hammerCount,
+  waveCount,
+  totemCount,
+  activeBonus,
+  onBonusHammerClick,
+  onBonusWaveClick,
+  onBonusTotemClick,
+  bonusImages,
 }) => {
   const isBoss = isBossLevel(level);
   const { playSuccess } = useMusicPlayer();
@@ -310,13 +362,13 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         </div>
       </div>
 
-      {/* Row 2: Score/target + Progress bar + moves + Potential cubes */}
+      {/* Row 2: Score/target + Progress bar + moves left + Potential cubes */}
       <div className="flex items-center gap-1.5 md:gap-2">
         <span className="text-[10px] md:text-xs text-slate-300 whitespace-nowrap">
           <span className="text-white font-medium">{displayScore}</span>
           <span className="text-slate-500">/{levelConfig.pointsRequired}</span>
         </span>
-        <div className="flex-1 h-1 md:h-1.5 bg-slate-700 rounded-full overflow-hidden">
+        <div className="w-16 md:w-24 h-1 md:h-1.5 bg-slate-700 rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
             initial={false}
@@ -326,22 +378,22 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         </div>
         <span className="text-[10px] md:text-xs whitespace-nowrap">
           <span className="font-bold text-white">{movesRemaining}</span>
-          <span className="text-slate-500"> moves</span>
+          <span className="text-slate-500"> moves left</span>
         </span>
         
         {/* Potential cubes with pace indicator */}
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className={`flex items-center gap-0.5 px-1 md:px-1.5 py-0.5 rounded cursor-help hover:bg-slate-700/50 transition-colors ${paceBgColor}`}>
+              <div className={`flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors ${paceBgColor}`}>
                 <FontAwesomeIcon
                   icon={faCircleInfo}
-                  className={`w-2.5 h-2.5 md:w-3 md:h-3 ${paceColor}`}
+                  className={`w-3 h-3 md:w-3.5 md:h-3.5 ${paceColor}`}
                 />
                 {[1, 2, 3].map((cube) => (
                   <span
                     key={cube}
-                    className={`transition-opacity duration-200 text-xs md:text-sm ${
+                    className={`transition-opacity duration-200 text-sm md:text-base ${
                       cube <= potentialCubes ? "opacity-100" : "opacity-20"
                     }`}
                   >
@@ -371,7 +423,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         </TooltipProvider>
       </div>
 
-      {/* Row 3: Constraints + Passive indicators */}
+      {/* Row 3: Constraints + Bonuses */}
       <div className="flex items-center justify-between">
         {/* Constraints */}
         <div className="flex items-center gap-1 md:gap-2">
@@ -393,28 +445,29 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
           )}
         </div>
 
-        {/* Passive indicators */}
-        <div className="flex items-center gap-0.5 md:gap-1">
-          {(passives.length > 0 ? passives : defaultPassives).map((passive) => (
-            <TooltipProvider key={passive.id} delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div 
-                    className={`w-7 h-7 md:w-8 md:h-8 rounded flex items-center justify-center text-sm md:text-base cursor-help transition-colors
-                      ${passive.active 
-                        ? "bg-green-500/20 hover:bg-green-500/30" 
-                        : "bg-slate-800/50 hover:bg-slate-700/50 opacity-40"
-                      }`}
-                  >
-                    <span className={passive.active ? "" : "grayscale"}>{passive.icon}</span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2">
-                  <div className="text-xs">{passive.tooltip}</div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ))}
+        {/* Bonuses */}
+        <div className="flex items-center gap-1 md:gap-1.5">
+          <BonusButton
+            onClick={onBonusHammerClick}
+            image={bonusImages.hammer}
+            count={hammerCount}
+            tooltip="Destroy a block and connected same-size blocks"
+            isActive={activeBonus === 1} // BonusType.Hammer
+          />
+          <BonusButton
+            onClick={onBonusWaveClick}
+            image={bonusImages.wave}
+            count={waveCount}
+            tooltip="Destroy an entire horizontal line"
+            isActive={activeBonus === 2} // BonusType.Wave
+          />
+          <BonusButton
+            onClick={onBonusTotemClick}
+            image={bonusImages.tiki}
+            count={totemCount}
+            tooltip="Destroy all blocks of the same size"
+            isActive={activeBonus === 3} // BonusType.Totem
+          />
         </div>
       </div>
     </div>

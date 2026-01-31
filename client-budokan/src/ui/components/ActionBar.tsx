@@ -18,10 +18,6 @@ interface ActionBarProps {
   waveCount: number;
   totemCount: number;
   activeBonus: BonusType;
-  bonus4Count?: number;
-  bonus5Count?: number;
-  onBonus4Click?: () => void;
-  onBonus5Click?: () => void;
 }
 
 const ActionBar: React.FC<ActionBarProps> = ({
@@ -32,16 +28,12 @@ const ActionBar: React.FC<ActionBarProps> = ({
   waveCount,
   totemCount,
   activeBonus,
-  bonus4Count = 0,
-  bonus5Count = 0,
-  onBonus4Click,
-  onBonus5Click,
 }) => {
   const { themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
 
   return (
-    <div className="flex items-center justify-center gap-0.5 md:gap-1">
+    <div className="flex items-center justify-center gap-1 md:gap-1.5">
       <ActionButton
         onClick={onBonusHammerClick}
         image={imgAssets.hammer}
@@ -62,20 +54,6 @@ const ActionBar: React.FC<ActionBarProps> = ({
         count={totemCount}
         tooltip="Destroy all blocks of the same size"
         isActive={activeBonus === BonusType.Totem}
-      />
-      <ActionButton
-        onClick={onBonus4Click || (() => {})}
-        icon="⚡"
-        count={bonus4Count}
-        tooltip="Bonus 4 (coming soon)"
-        isActive={false}
-      />
-      <ActionButton
-        onClick={onBonus5Click || (() => {})}
-        icon="🔄"
-        count={bonus5Count}
-        tooltip="Bonus 5 (coming soon)"
-        isActive={false}
       />
     </div>
   );

@@ -8,10 +8,11 @@ import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "./NextLine";
 import type { Block } from "@/types/types";
 import LevelHeaderCompact from "./LevelHeaderCompact";
-import ActionBar from "./ActionBar";
 import { Bonus, BonusType } from "@/dojo/game/types/bonus";
 import { Game } from "@/dojo/game/models/game";
 import { useGameLevel } from "@/hooks/useGameLevel";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import ImageAssets from "@/ui/theme/ImageAssets";
 
 import "../../grid.css";
 
@@ -47,6 +48,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
       systemCalls: { applyBonus },
     },
   } = useDojo();
+
+  const { themeTemplate } = useTheme();
+  const imgAssets = ImageAssets(themeTemplate);
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
   const ROWS = 10;
@@ -204,7 +208,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
           isTxProcessing && "cursor-wait"
         }`}
       >
-        {/* Compact Level Header - 2 rows */}
+        {/* Compact Level Header with inline bonuses */}
         <div className={`${isMdOrLarger ? "w-[420px]" : "w-[340px]"} px-1 mb-1.5`}>
           <LevelHeaderCompact
             level={game.level}
@@ -219,19 +223,18 @@ const GameBoard: React.FC<GameBoardProps> = ({
             gameLevel={gameLevel}
             cubesBrought={game.cubesBrought}
             cubesSpent={game.cubesSpent}
-          />
-        </div>
-        
-        {/* Action Bar - 5 Bonuses + 4 Passives */}
-        <div className={`${isMdOrLarger ? "w-[420px]" : "w-[340px]"} mb-1.5`}>
-          <ActionBar
-            onBonusHammerClick={handleBonusHammerClick}
-            onBonusWaveClick={handleBonusWaveClick}
-            onBonusTotemClick={handleBonusTikiClick}
             hammerCount={hammerCount}
             waveCount={waveCount}
             totemCount={totemCount}
             activeBonus={bonus}
+            onBonusHammerClick={handleBonusHammerClick}
+            onBonusWaveClick={handleBonusWaveClick}
+            onBonusTotemClick={handleBonusTikiClick}
+            bonusImages={{
+              hammer: imgAssets.hammer,
+              wave: imgAssets.wave,
+              tiki: imgAssets.tiki,
+            }}
           />
         </div>
 
