@@ -167,10 +167,10 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className={`text-xs flex items-center gap-1 px-2 py-1 rounded-md cursor-help border ${
+              <div className={`text-xs flex items-center gap-1 px-2 py-1 rounded cursor-help transition-colors ${
                 bonusUsedThisLevel 
-                  ? "bg-red-500/20 text-red-400 border-red-500/30" 
-                  : "bg-green-500/20 text-green-400 border-green-500/30"
+                  ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" 
+                  : "bg-green-500/20 text-green-400 hover:bg-green-500/30"
               }`}>
                 {bonusUsedThisLevel ? (
                   <FontAwesomeIcon icon={faBan} className="w-3 h-3" />
@@ -180,8 +180,8 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
                 <span className="font-medium">No Bonus</span>
               </div>
             </TooltipTrigger>
-            <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2 text-xs">
-              No bonus allowed this level
+            <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-3">
+              <div className="text-xs">No bonus allowed this level</div>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -208,14 +208,16 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
     }
 
     const textColorClass = satisfied ? "text-green-400" : (color === "purple" ? "text-purple-400" : "text-orange-400");
-    const bgColorClass = satisfied ? "bg-green-500/10 border-green-500/30" : (color === "purple" ? "bg-purple-500/10 border-purple-500/30" : "bg-orange-500/10 border-orange-500/30");
+    const bgColorClass = satisfied 
+      ? "bg-green-500/20 hover:bg-green-500/30" 
+      : (color === "purple" ? "bg-purple-500/20 hover:bg-purple-500/30" : "bg-orange-500/20 hover:bg-orange-500/30");
 
     return (
       <TooltipProvider delayDuration={0}>
         <Tooltip>
           <TooltipTrigger asChild>
             <motion.div 
-              className={`flex items-center gap-2 px-2 py-1 rounded-md cursor-help border ${bgColorClass}`}
+              className={`flex items-center gap-2 px-2 py-1 rounded cursor-help transition-colors ${bgColorClass}`}
               animate={justSatisfied && satisfied ? {
                 scale: [1, 1.05, 1],
                 transition: { duration: 0.5 }
@@ -233,9 +235,9 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
               {satisfied && <FontAwesomeIcon icon={faCheck} className={`w-3 h-3 ${textColorClass}`} />}
             </motion.div>
           </TooltipTrigger>
-          <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2 text-xs max-w-[200px]">
-            <div className="space-y-1">
-              <div className="font-semibold">{constraint.getLabel()}</div>
+          <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-3 max-w-[200px]">
+            <div className="space-y-1 text-xs">
+              <div className="font-semibold text-white">{constraint.getLabel()}</div>
               <div className="text-slate-400">{constraint.getDescription()}</div>
             </div>
           </TooltipContent>
@@ -349,7 +351,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center cursor-help">
+                <div className="flex items-center bg-slate-800/50 px-2 py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors">
                   {[1, 2, 3].map((cube) => (
                     <motion.span
                       key={cube}
@@ -390,22 +392,32 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
       </div>
 
       {/* Row 4: Cube info + Efficiency */}
-      <div className="flex items-center gap-1.5">
-        {/* Info icon */}
+      <div className="flex items-center gap-2">
+        {/* Info icon with cubes */}
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button
-                type="button"
-                className="p-0.5 hover:bg-slate-700/50 rounded transition-colors cursor-help"
-              >
+              <div className="flex items-center gap-1.5 bg-slate-800/50 px-2 py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors">
                 <FontAwesomeIcon
                   icon={faCircleInfo}
-                  className="text-slate-400 hover:text-slate-300"
+                  className="text-slate-400"
                   width={12}
                   height={12}
                 />
-              </button>
+                {/* Cubes with hover effect */}
+                {[1, 2, 3].map((cube) => (
+                  <motion.span
+                    key={cube}
+                    className={`transition-all ${
+                      cube <= potentialCubes ? "opacity-100" : "opacity-30"
+                    }`}
+                    style={{ fontSize: 18 }}
+                    whileHover={cube <= potentialCubes ? { scale: 1.2 } : {}}
+                  >
+                    🧊
+                  </motion.span>
+                ))}
+              </div>
             </TooltipTrigger>
             <TooltipContent 
               side="bottom" 
@@ -430,22 +442,8 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
           </Tooltip>
         </TooltipProvider>
 
-        {/* Cubes with hover effect */}
-        {[1, 2, 3].map((cube) => (
-          <motion.span
-            key={cube}
-            className={`cursor-default transition-all ${
-              cube <= potentialCubes ? "opacity-100" : "opacity-30"
-            }`}
-            style={{ fontSize: 18 }}
-            whileHover={cube <= potentialCubes ? { scale: 1.2 } : {}}
-          >
-            🧊
-          </motion.span>
-        ))}
-
         {/* Efficiency text */}
-        <span className={`text-sm ml-1 font-medium ${efficiency.color}`}>
+        <span className={`text-sm font-medium ${efficiency.color}`}>
           {efficiency.text}
         </span>
       </div>

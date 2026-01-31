@@ -146,14 +146,14 @@ const BonusButton: React.FC<BonusButtonProps> = ({
           <motion.button
             onClick={onClick}
             disabled={isDisabled}
-            className={`relative w-12 h-12 rounded-lg flex items-center justify-center transition-all
+            className={`relative w-12 h-12 rounded flex items-center justify-center transition-colors
               ${isActive 
-                ? "bg-gradient-to-b from-yellow-400 to-yellow-600 shadow-lg shadow-yellow-500/40 ring-2 ring-yellow-300" 
+                ? "bg-yellow-500/80 hover:bg-yellow-500/90 shadow-lg shadow-yellow-500/40 ring-2 ring-yellow-300" 
                 : isDisabled 
-                  ? "bg-slate-700/50 opacity-40 cursor-not-allowed" 
-                  : "bg-gradient-to-b from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 shadow-md"
+                  ? "bg-slate-800/50 opacity-40 cursor-not-allowed" 
+                  : "bg-slate-800/50 hover:bg-slate-700/50"
               }`}
-            whileHover={isDisabled ? {} : { scale: 1.08 }}
+            whileHover={isDisabled ? {} : { scale: 1.05 }}
             whileTap={isDisabled ? {} : { scale: 0.95 }}
           >
             {image ? (
@@ -166,17 +166,17 @@ const BonusButton: React.FC<BonusButtonProps> = ({
               <span className={`text-xl ${isDisabled ? "grayscale opacity-60" : ""}`}>{icon}</span>
             )}
             {/* Count badge - gold circle in top right */}
-            <div className={`absolute -top-1.5 -right-1.5 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-sm
+            <div className={`absolute -top-1.5 -right-1.5 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center
               ${isDisabled 
-                ? "bg-slate-600 text-slate-400 border border-slate-500" 
-                : "bg-gradient-to-b from-yellow-400 to-yellow-500 text-white border border-yellow-300"}`}
+                ? "bg-slate-600 text-slate-400" 
+                : "bg-yellow-500 text-white"}`}
             >
               {count}
             </div>
           </motion.button>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2 text-sm">
-          {tooltip}
+        <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-3">
+          <div className="text-xs">{tooltip}</div>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -200,17 +200,17 @@ const PassiveIndicator: React.FC<PassiveIndicatorProps> = ({
       <Tooltip>
         <TooltipTrigger asChild>
           <div 
-            className={`w-8 h-8 rounded-md flex items-center justify-center text-base cursor-help transition-all
+            className={`w-8 h-8 rounded flex items-center justify-center text-base cursor-help transition-colors
               ${active 
-                ? "bg-green-500/30 border border-green-500/50" 
-                : "bg-slate-800/50 border border-slate-700 opacity-40"
+                ? "bg-green-500/20 hover:bg-green-500/30" 
+                : "bg-slate-800/50 hover:bg-slate-700/50 opacity-40"
               }`}
           >
             <span className={active ? "" : "grayscale"}>{icon}</span>
           </div>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2 text-sm">
-          {tooltip}
+        <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-3">
+          <div className="text-xs">{tooltip}</div>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
