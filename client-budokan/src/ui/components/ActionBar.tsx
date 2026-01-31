@@ -56,12 +56,12 @@ const ActionBar: React.FC<ActionBarProps> = ({
   ];
 
   // Uniform button size for all buttons
-  const BUTTON_SIZE = "w-10 h-10";
+  const BUTTON_SIZE = "w-9 h-9";
 
   return (
-    <div className="flex items-center justify-center gap-2">
+    <div className="flex items-center justify-center gap-0.5">
       {/* Active Bonuses (5) */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5">
         <ActionButton
           onClick={onBonusHammerClick}
           image={imgAssets.hammer}
@@ -105,7 +105,7 @@ const ActionBar: React.FC<ActionBarProps> = ({
       </div>
 
       {/* Passive Power-ups (4) - same size as bonuses */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5">
         {defaultPassives.map((passive) => (
           <ActionButton
             key={passive.id}
@@ -177,14 +177,14 @@ const ActionButton: React.FC<ActionButtonProps> = ({
               <img 
                 src={image} 
                 alt="bonus" 
-                className={`w-6 h-6 object-contain ${isDisabled ? "grayscale opacity-60" : ""}`}
+                className={`w-5 h-5 object-contain ${isDisabled ? "grayscale opacity-60" : ""}`}
               />
             ) : (
-              <span className={`text-lg ${isDisabled || (isPassive && !isActive) ? "grayscale opacity-60" : ""}`}>{icon}</span>
+              <span className={`text-base ${isDisabled || (isPassive && !isActive) ? "grayscale opacity-60" : ""}`}>{icon}</span>
             )}
             {/* Count badge */}
             {showBadge && (
-              <div className={`absolute -top-1 -right-1 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center
+              <div className={`absolute -top-0.5 -right-0.5 text-[8px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center
                 ${isDisabled 
                   ? "bg-slate-600 text-slate-400" 
                   : "bg-yellow-500 text-white"}`}
