@@ -1,18 +1,14 @@
-use zkube::types::bonus::Bonus;
-
 #[starknet::interface]
 pub trait IGameSystem<T> {
-    /// Create a new game with level system
-    fn create(ref self: T, game_id: u64);
-    /// Create a new game and bring cubes into the run for in-game shop spending
-    /// cubes_amount is burned from player's wallet and added to run budget
-    fn create_with_cubes(ref self: T, game_id: u64, cubes_amount: u16);
+    /// Create a new game with bonus selection and optional cubes
+    /// @param game_id: NFT token ID for this game
+    /// @param selected_bonuses: Array of 3 bonus types [0-5] to use this run
+    ///   - 0=None (invalid), 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
+    ///   - Pass empty array for default selection [Hammer, Wave, Totem]
+    /// @param cubes_amount: Cubes to bring into run (burned from wallet), 0 for none
+    fn create(ref self: T, game_id: u64, selected_bonuses: Span<u8>, cubes_amount: u16);
     /// Surrender the current run (game over)
     fn surrender(ref self: T, game_id: u64);
-    /// Make a move - also handles level completion automatically
-    fn move(ref self: T, game_id: u64, row_index: u8, start_index: u8, final_index: u8);
-    /// Apply a bonus from inventory
-    fn apply_bonus(ref self: T, game_id: u64, bonus: Bonus, row_index: u8, line_index: u8);
     /// Get player name from token
     fn get_player_name(self: @T, game_id: u64) -> felt252;
     /// Get current level score
@@ -28,17 +24,17 @@ pub trait IGameSystem<T> {
 mod game_system {
     use zkube::constants::{DEFAULT_NS, DEFAULT_SETTINGS::is_default_settings};
     use zkube::models::game::{Game, GameTrait, GameAssert};
-    use zkube::models::game::{GameSeed, GameLevel, GameLevelTrait};
+    use zkube::models::game::{GameSeed, GameLevelTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
-    use zkube::models::config::{GameSettings, GameSettingsTrait};
+    use zkube::models::config::GameSettings;
     use zkube::helpers::random::RandomImpl;
-    use zkube::helpers::level::{LevelGenerator, LevelGeneratorTrait};
+    use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::config::ConfigUtilsTrait;
-    use zkube::types::bonus::Bonus;
-    use zkube::events::{StartGame, UseBonus, LevelStarted, LevelCompleted, RunEnded, RunCompleted};
+    use zkube::helpers::packing::{MetaDataPackingTrait};
+    use zkube::events::{StartGame, LevelStarted, RunEnded};
     use zkube::systems::cube_token::{ICubeTokenDispatcher, ICubeTokenDispatcherTrait};
     use zkube::systems::quest::{IQuestSystemDispatcher, IQuestSystemDispatcherTrait};
-    use zkube::elements::tasks::{grinder, clearer, combo};
+    use zkube::elements::tasks::grinder;
 
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
@@ -159,12 +155,7 @@ mod game_system {
 
     #[abi(embed_v0)]
     impl GameSystemImpl of super::IGameSystem<ContractState> {
-        fn create(ref self: ContractState, game_id: u64) {
-            // Delegate to create_with_cubes with 0 cubes
-            self.create_with_cubes(game_id, 0);
-        }
-
-        fn create_with_cubes(ref self: ContractState, game_id: u64, cubes_amount: u16) {
+        fn create(ref self: ContractState, game_id: u64, selected_bonuses: Span<u8>, cubes_amount: u16) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             let token_address = self.token_address();
@@ -193,6 +184,50 @@ mod game_system {
             if !player_meta.exists() {
                 player_meta = PlayerMetaTrait::new(player);
             }
+            let meta_data = player_meta.get_meta_data();
+
+            // Process bonus selection
+            let mut run_data = game.get_run_data();
+            
+            // Determine selected bonuses (use defaults if empty)
+            let (bonus_1, bonus_2, bonus_3) = if selected_bonuses.len() == 0 {
+                // Default selection: Hammer(1), Wave(3), Totem(2)
+                (1_u8, 3_u8, 2_u8)
+            } else {
+                // Validate exactly 3 bonuses selected
+                assert!(selected_bonuses.len() == 3, "Must select exactly 3 bonuses");
+                
+                let b1 = *selected_bonuses.at(0);
+                let b2 = *selected_bonuses.at(1);
+                let b3 = *selected_bonuses.at(2);
+                
+                // Validate each bonus is valid (1-5, not 0)
+                assert!(b1 >= 1 && b1 <= 5, "Invalid bonus type");
+                assert!(b2 >= 1 && b2 <= 5, "Invalid bonus type");
+                assert!(b3 >= 1 && b3 <= 5, "Invalid bonus type");
+                
+                // Validate no duplicates
+                assert!(b1 != b2 && b1 != b3 && b2 != b3, "Duplicate bonus selection");
+                
+                // Validate Shrink(4) and Shuffle(5) are unlocked
+                if b1 == 4 || b2 == 4 || b3 == 4 {
+                    assert!(meta_data.shrink_unlocked, "Shrink bonus not unlocked");
+                }
+                if b1 == 5 || b2 == 5 || b3 == 5 {
+                    assert!(meta_data.shuffle_unlocked, "Shuffle bonus not unlocked");
+                }
+                
+                (b1, b2, b3)
+            };
+            
+            // Store selected bonuses in run_data
+            run_data.selected_bonus_1 = bonus_1;
+            run_data.selected_bonus_2 = bonus_2;
+            run_data.selected_bonus_3 = bonus_3;
+            // All bonuses start at level 0 (L1)
+            run_data.bonus_1_level = 0;
+            run_data.bonus_2_level = 0;
+            run_data.bonus_3_level = 0;
 
             // Handle cube bridging if cubes_amount > 0
             if cubes_amount > 0 {
@@ -206,26 +241,43 @@ mod game_system {
                 cube_token.burn(player, cubes_amount.into());
                 
                 // Set cubes_brought in run_data
-                let mut run_data = game.get_run_data();
                 run_data.cubes_brought = cubes_amount;
-                game.set_run_data(run_data);
             }
 
-            // Apply starting bonuses from player meta upgrades (capped at bag size)
-            let meta_data = player_meta.get_meta_data();
-            if meta_data.starting_hammer > 0
-                || meta_data.starting_wave > 0
-                || meta_data.starting_totem > 0 {
-                let mut run_data = game.get_run_data();
-                let hammer_bag = player_meta.get_bag_size(0);
-                let wave_bag = player_meta.get_bag_size(1);
-                let totem_bag = player_meta.get_bag_size(2);
-                run_data.hammer_count = if meta_data.starting_hammer > hammer_bag { hammer_bag } else { meta_data.starting_hammer };
-                run_data.wave_count = if meta_data.starting_wave > wave_bag { wave_bag } else { meta_data.starting_wave };
-                run_data.totem_count = if meta_data.starting_totem > totem_bag { totem_bag } else { meta_data.starting_totem };
-                game.set_run_data(run_data);
+            // Apply starting bonuses ONLY for selected bonus types (capped at bag size)
+            // Helper to apply starting bonus if selected
+            // Hammer = 1
+            if bonus_1 == 1 || bonus_2 == 1 || bonus_3 == 1 {
+                let bag_size = meta_data.get_bag_size(0);
+                let starting = meta_data.starting_hammer;
+                run_data.hammer_count = if starting > bag_size { bag_size } else { starting };
+            }
+            // Totem = 2
+            if bonus_1 == 2 || bonus_2 == 2 || bonus_3 == 2 {
+                let bag_size = meta_data.get_bag_size(2);
+                let starting = meta_data.starting_totem;
+                run_data.totem_count = if starting > bag_size { bag_size } else { starting };
+            }
+            // Wave = 3
+            if bonus_1 == 3 || bonus_2 == 3 || bonus_3 == 3 {
+                let bag_size = meta_data.get_bag_size(1);
+                let starting = meta_data.starting_wave;
+                run_data.wave_count = if starting > bag_size { bag_size } else { starting };
+            }
+            // Shrink = 4
+            if bonus_1 == 4 || bonus_2 == 4 || bonus_3 == 4 {
+                let bag_size = meta_data.get_bag_size(3);
+                let starting = meta_data.starting_shrink;
+                run_data.shrink_count = if starting > bag_size { bag_size } else { starting };
+            }
+            // Shuffle = 5
+            if bonus_1 == 5 || bonus_2 == 5 || bonus_3 == 5 {
+                let bag_size = meta_data.get_bag_size(4);
+                let starting = meta_data.starting_shuffle;
+                run_data.shuffle_count = if starting > bag_size { bag_size } else { starting };
             }
 
+            game.set_run_data(run_data);
             world.write_model(@game);
 
             player_meta.increment_runs();
@@ -291,121 +343,6 @@ mod game_system {
             post_action(token_address, game_id);
         }
 
-        fn move(
-            ref self: ContractState, game_id: u64, row_index: u8, start_index: u8, final_index: u8,
-        ) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-
-            let token_address = self.token_address();
-            pre_action(token_address, game_id);
-
-            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
-            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
-            assert!(
-                token_metadata.lifecycle.is_playable(get_block_timestamp()),
-                "Game {} lifecycle is not playable",
-                game_id,
-            );
-
-            let mut game: Game = world.read_model(game_id);
-            assert_token_ownership(token_address, game_id);
-            game.assert_not_over();
-
-            // Validate move indices (grid is 10 rows x 8 columns)
-            assert!(row_index < 10, "Invalid row_index: must be < 10");
-            assert!(start_index < 8, "Invalid start_index: must be < 8");
-            assert!(final_index < 8, "Invalid final_index: must be < 8");
-
-            let base_seed: GameSeed = world.read_model(game_id);
-            
-            // Get game settings for level generation
-            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
-
-            // Make the move using the selected game settings
-            let lines_cleared = game.make_move(
-                base_seed.seed, row_index, start_index, final_index, settings,
-            );
-
-            // Track quest progress for lines cleared and combos
-            // Only counts for default settings games
-            let player = get_caller_address();
-            if lines_cleared > 0 {
-                // Track lines cleared (LineClearer task)
-                self.track_quest_progress(player, clearer::LineClearer::identifier(), lines_cleared.into(), settings.settings_id);
-                
-                // Track combo achievements based on lines cleared in one move
-                if lines_cleared >= 3 {
-                    self.track_quest_progress(player, combo::ComboThree::identifier(), 1, settings.settings_id);
-                }
-                if lines_cleared >= 5 {
-                    self.track_quest_progress(player, combo::ComboFive::identifier(), 1, settings.settings_id);
-                }
-                if lines_cleared >= 8 {
-                    self.track_quest_progress(player, combo::ComboEight::identifier(), 1, settings.settings_id);
-                }
-            }
-
-            // Check for level completion
-            let level_completed = self.check_and_complete_level(
-                ref world, ref game, game_id, base_seed.seed, settings,
-            );
-
-            if !level_completed && (game.is_level_failed(base_seed.seed, settings) || game.over) {
-                // Level failed (move limit exceeded) or grid full
-                game.over = true;
-                self.handle_game_over(ref world, game);
-            }
-
-            world.write_model(@game);
-
-            post_action(token_address, game_id);
-        }
-
-        fn apply_bonus(
-            ref self: ContractState, game_id: u64, bonus: Bonus, row_index: u8, line_index: u8,
-        ) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-
-            let token_address = self.token_address();
-            pre_action(token_address, game_id);
-
-            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
-            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
-            assert!(
-                token_metadata.lifecycle.is_playable(starknet::get_block_timestamp()),
-                "Game {} lifecycle is not playable",
-                game_id,
-            );
-
-            let mut game: Game = world.read_model(game_id);
-            assert_token_ownership(token_address, game_id);
-            game.assert_not_over();
-            game.assert_bonus_available(bonus);
-
-            let base_seed: GameSeed = world.read_model(game_id);
-            
-            // Get game settings
-            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
-            
-            game.apply_bonus(base_seed.seed, bonus, row_index, line_index, settings);
-
-            // Check for level completion after bonus
-            self.check_and_complete_level(ref world, ref game, game_id, base_seed.seed, settings);
-
-            world.write_model(@game);
-            post_action(token_address, game_id);
-
-            world
-                .emit_event(
-                    @UseBonus {
-                        player: starknet::get_caller_address(),
-                        timestamp: get_block_timestamp(),
-                        game_id,
-                        bonus,
-                    },
-                );
-        }
-
         fn get_player_name(self: @ContractState, game_id: u64) -> felt252 {
             let token_address = self.token_address();
             get_token_player_name(token_address, game_id)
@@ -461,72 +398,6 @@ mod game_system {
         fn assert_game_not_started(self: @ContractState, game_id: u64) {
             let game: Game = self.world(@DEFAULT_NS()).read_model(game_id);
             assert!(game.blocks == 0, "Game {} has already started", game_id);
-        }
-
-        /// Award random bonuses after completing a level.
-        /// Returns the number of bonuses actually added (can be < requested if bags are full).
-        fn award_level_bonuses(
-            ref self: ContractState,
-            ref world: WorldStorage,
-            ref game: Game,
-            seed: felt252,
-            player: ContractAddress,
-            bonuses_to_award: u8,
-        ) -> u8 {
-            if bonuses_to_award == 0 {
-                return 0;
-            }
-
-            // Read player meta for bag sizes
-            let mut player_meta: PlayerMeta = world.read_model(player);
-            if !player_meta.exists() {
-                player_meta = PlayerMetaTrait::new(player);
-            }
-            let hammer_bag = player_meta.get_bag_size(0);
-            let wave_bag = player_meta.get_bag_size(1);
-            let totem_bag = player_meta.get_bag_size(2);
-
-            let mut run_data = game.get_run_data();
-            let current_level = run_data.current_level;
-
-            let mut awarded: u8 = 0;
-            let mut i: u8 = 0;
-            loop {
-                if i >= bonuses_to_award {
-                    break;
-                }
-
-                // Use level+offset as deterministic index; clamp to avoid u8 overflow.
-                let idx_u16: u16 = current_level.into() + i.into();
-                let idx: u8 = if idx_u16 > 255 { 255 } else { idx_u16.try_into().unwrap() };
-                let bonus_type = LevelGeneratorTrait::get_random_bonus_type(seed, idx);
-
-                match bonus_type {
-                    0 => {
-                        if run_data.hammer_count < hammer_bag {
-                            run_data.hammer_count += 1;
-                            awarded += 1;
-                        }
-                    },
-                    1 => {
-                        if run_data.wave_count < wave_bag {
-                            run_data.wave_count += 1;
-                            awarded += 1;
-                        }
-                    },
-                    _ => {
-                        if run_data.totem_count < totem_bag {
-                            run_data.totem_count += 1;
-                            awarded += 1;
-                        }
-                    },
-                }
-
-                i += 1;
-            };
-
-            game.set_run_data(run_data);
-            awarded
         }
 
         fn handle_game_over(ref self: ContractState, ref world: WorldStorage, game: Game) {
@@ -613,105 +484,6 @@ mod game_system {
             if let Option::Some(quest_system) = self.get_quest_system_dispatcher() {
                 quest_system.progress(player, task_id, count);
             }
-        }
-
-        /// Check if level is complete and handle the completion flow.
-        /// Returns true if the level was completed.
-        fn check_and_complete_level(
-            ref self: ContractState,
-            ref world: WorldStorage,
-            ref game: Game,
-            game_id: u64,
-            base_seed: felt252,
-            settings: GameSettings,
-        ) -> bool {
-            if !game.is_level_complete(base_seed, settings) {
-                return false;
-            }
-
-            // Capture stats BEFORE completing level (they get reset)
-            let pre_complete_data = game.get_run_data();
-            let completed_level = pre_complete_data.current_level;
-            let final_score = pre_complete_data.level_score;
-            let final_moves = pre_complete_data.level_moves;
-            let pre_total_score = pre_complete_data.total_score;
-
-            let player = get_caller_address();
-
-            let (cubes, bonuses, is_victory) = game.complete_level(base_seed, settings);
-            let bonuses_earned = self.award_level_bonuses(ref world, ref game, base_seed, player, bonuses);
-
-            // Emit level completed with pre-reset stats
-            world
-                .emit_event(
-                    @LevelCompleted {
-                        game_id,
-                        player,
-                        level: completed_level,
-                        cubes,
-                        moves_used: final_moves.into(),
-                        score: final_score.into(),
-                        total_score: pre_total_score,
-                        bonuses_earned,
-                    },
-                );
-
-            // Check if this is a victory (level 50 completed)
-            if is_victory {
-                // End the game with victory state
-                game.over = true;
-                
-                let final_run_data = game.get_run_data();
-                
-                // Emit RunCompleted event (victory!)
-                world
-                    .emit_event(
-                        @RunCompleted {
-                            game_id,
-                            player,
-                            final_score: final_run_data.total_score,
-                            total_cubes: final_run_data.total_cubes,
-                            started_at: game.started_at,
-                            completed_at: get_block_timestamp(),
-                        },
-                    );
-                
-                // Mint earned cubes to player (same as game over flow)
-                let cubes_to_mint: u256 = final_run_data.total_cubes.into();
-                if cubes_to_mint > 0 {
-                    let cube_token = self.get_cube_token_dispatcher();
-                    cube_token.mint(player, cubes_to_mint);
-                }
-                
-                return true;
-            }
-
-            // Normal flow: generate next level config and write to model
-            let updated_run_data = game.get_run_data();
-            let next_level_config = LevelGeneratorTrait::generate(
-                base_seed, updated_run_data.current_level, settings,
-            );
-            
-            // Write next level config to GameLevel model (single source of truth for client)
-            let game_level = GameLevelTrait::from_level_config(game_id, next_level_config);
-            world.write_model(@game_level);
-
-            // Emit level started event
-            world
-                .emit_event(
-                    @LevelStarted {
-                        game_id,
-                        player,
-                        level: updated_run_data.current_level,
-                        points_required: next_level_config.points_required,
-                        max_moves: next_level_config.max_moves,
-                        constraint_type: next_level_config.constraint.constraint_type,
-                        constraint_value: next_level_config.constraint.value,
-                        constraint_required: next_level_config.constraint.required_count,
-                    },
-                );
-
-            true
         }
     }
 }

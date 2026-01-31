@@ -23,6 +23,8 @@ mod elements {
         pub mod hammer;
         pub mod totem;
         pub mod wave;
+        pub mod shrink;
+        pub mod shuffle;
     }
     pub mod difficulties {
         pub mod veryeasy;
@@ -73,6 +75,7 @@ pub mod helpers {
 
 pub mod systems {
     pub mod game;
+    pub mod play;
     pub mod config;
     pub mod shop;
     pub mod cube_token;

@@ -6,17 +6,29 @@ pub trait IShopSystem<T> {
     // Permanent Upgrades (burn cubes from wallet)
     // ==========================================
     
-    /// Upgrade starting bonus for a specific type (0=Hammer, 1=Wave, 2=Totem)
+    /// Upgrade starting bonus for a specific type (0=Hammer, 1=Wave, 2=Totem, 3=Shrink, 4=Shuffle)
     /// Costs: Level 1 = 50, Level 2 = 200, Level 3 = 500
+    /// Note: Shrink (3) and Shuffle (4) require unlock first
     fn upgrade_starting_bonus(ref self: T, bonus_type: u8);
 
-    /// Upgrade bag size for a specific bonus type (0=Hammer, 1=Wave, 2=Totem)
+    /// Upgrade bag size for a specific bonus type (0=Hammer, 1=Wave, 2=Totem, 3=Shrink, 4=Shuffle)
     /// Costs: Level 1 = 10, Level 2 = 20, Level 3 = 40
+    /// Note: Shrink (3) and Shuffle (4) require unlock first
     fn upgrade_bag_size(ref self: T, bonus_type: u8);
 
     /// Upgrade cube bridging rank (max 3 levels)
     /// Costs: Rank 1 = 100, Rank 2 = 200, Rank 3 = 400
     fn upgrade_bridging_rank(ref self: T);
+
+    /// Unlock a new bonus type (Shrink or Shuffle)
+    /// @param bonus_type: 4 = Shrink, 5 = Shuffle (using Bonus enum values)
+    /// Cost: 500 CUBE each
+    fn unlock_bonus(ref self: T, bonus_type: u8);
+
+    /// Level up a bonus after boss clear (called after completing level 10, 20, 30, 40)
+    /// @param game_id: The game ID
+    /// @param bonus_slot: 0, 1, or 2 (which of the 3 selected bonuses to level up)
+    fn level_up_bonus(ref self: T, game_id: u64, bonus_slot: u8);
 
     // ==========================================
     // In-Game Shop (spend cubes from run budget)
@@ -88,7 +100,7 @@ mod shop_system {
     use zkube::types::consumable::{ConsumableType, ConsumableTrait, EXTRA_MOVES_AMOUNT};
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::level::{LevelGenerator, LevelGeneratorTrait};
-    use zkube::events::ConsumablePurchased;
+    use zkube::events::{ConsumablePurchased, BonusUnlocked, BonusLevelUp};
 
     use zkube::systems::cube_token::{ICubeTokenDispatcher, ICubeTokenDispatcherTrait};
     use super::{get_starting_bonus_cost, get_bag_upgrade_cost_impl, get_bridging_upgrade_cost_impl};
@@ -129,6 +141,14 @@ mod shop_system {
                 0 => meta.starting_hammer,
                 1 => meta.starting_wave,
                 2 => meta.starting_totem,
+                3 => {
+                    assert!(meta.shrink_unlocked, "Shrink not unlocked");
+                    meta.starting_shrink
+                },
+                4 => {
+                    assert!(meta.shuffle_unlocked, "Shuffle not unlocked");
+                    meta.starting_shuffle
+                },
                 _ => panic!("Invalid bonus type"),
             };
 
@@ -146,6 +166,8 @@ mod shop_system {
                 0 => meta.starting_hammer = current_level + 1,
                 1 => meta.starting_wave = current_level + 1,
                 2 => meta.starting_totem = current_level + 1,
+                3 => meta.starting_shrink = current_level + 1,
+                4 => meta.starting_shuffle = current_level + 1,
                 _ => {},
             }
 
@@ -170,6 +192,14 @@ mod shop_system {
                 0 => meta.bag_hammer_level,
                 1 => meta.bag_wave_level,
                 2 => meta.bag_totem_level,
+                3 => {
+                    assert!(meta.shrink_unlocked, "Shrink not unlocked");
+                    meta.bag_shrink_level
+                },
+                4 => {
+                    assert!(meta.shuffle_unlocked, "Shuffle not unlocked");
+                    meta.bag_shuffle_level
+                },
                 _ => panic!("Invalid bonus type"),
             };
 
@@ -187,6 +217,8 @@ mod shop_system {
                 0 => meta.bag_hammer_level = current_level + 1,
                 1 => meta.bag_wave_level = current_level + 1,
                 2 => meta.bag_totem_level = current_level + 1,
+                3 => meta.bag_shrink_level = current_level + 1,
+                4 => meta.bag_shuffle_level = current_level + 1,
                 _ => {},
             }
 
@@ -221,6 +253,118 @@ mod shop_system {
 
             player_meta.set_meta_data(meta);
             world.write_model(@player_meta);
+        }
+
+        fn unlock_bonus(ref self: ContractState, bonus_type: u8) {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let player = get_caller_address();
+
+            // Only Shrink (4) and Shuffle (5) can be unlocked
+            // Note: We use Bonus enum values (4=Shrink, 5=Shuffle)
+            assert!(bonus_type == 4 || bonus_type == 5, "Only Shrink (4) or Shuffle (5) can be unlocked");
+
+            // Read player meta
+            let mut player_meta: PlayerMeta = world.read_model(player);
+            if !player_meta.exists() {
+                player_meta = PlayerMetaTrait::new(player);
+            }
+
+            let mut meta = player_meta.get_meta_data();
+
+            // Check not already unlocked
+            let already_unlocked = if bonus_type == 4 {
+                meta.shrink_unlocked
+            } else {
+                meta.shuffle_unlocked
+            };
+            assert!(!already_unlocked, "Bonus already unlocked");
+
+            // Cost is 500 CUBE for each unlock
+            let cost: u64 = 500;
+
+            // Burn cubes from ERC1155 wallet (will revert if insufficient)
+            let cube_token = self.get_cube_token_dispatcher();
+            cube_token.burn(player, cost.into());
+
+            // Unlock the bonus
+            if bonus_type == 4 {
+                meta.shrink_unlocked = true;
+            } else {
+                meta.shuffle_unlocked = true;
+            }
+
+            player_meta.set_meta_data(meta);
+            world.write_model(@player_meta);
+
+            // Emit event
+            world.emit_event(@BonusUnlocked {
+                player,
+                bonus_type,
+                cost: cost.try_into().unwrap(),
+            });
+        }
+
+        fn level_up_bonus(ref self: ContractState, game_id: u64, bonus_slot: u8) {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+
+            let token_address = self.get_token_address();
+            pre_action(token_address, game_id);
+
+            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
+            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
+            assert!(
+                token_metadata.lifecycle.is_playable(get_block_timestamp()),
+                "Game {} lifecycle is not playable",
+                game_id,
+            );
+
+            let mut game: Game = world.read_model(game_id);
+            assert_token_ownership(token_address, game_id);
+            game.assert_not_over();
+
+            let mut run_data = game.get_run_data();
+            let player = get_caller_address();
+
+            // Validate there's a pending level-up
+            assert!(run_data.pending_level_up, "No level-up pending");
+
+            // Validate bonus_slot is 0, 1, or 2
+            assert!(bonus_slot <= 2, "Invalid bonus slot");
+
+            // Get the current level and bonus type for the selected slot
+            let (current_level, bonus_type) = if bonus_slot == 0 {
+                (run_data.bonus_1_level, run_data.selected_bonus_1)
+            } else if bonus_slot == 1 {
+                (run_data.bonus_2_level, run_data.selected_bonus_2)
+            } else {
+                (run_data.bonus_3_level, run_data.selected_bonus_3)
+            };
+
+            // Validate not already at max level (L3 = level 2 in 0-indexed)
+            assert!(current_level < 2, "Bonus already at max level");
+
+            // Level up the bonus
+            let new_level = current_level + 1;
+            if bonus_slot == 0 { run_data.bonus_1_level = new_level; }
+            else if bonus_slot == 1 { run_data.bonus_2_level = new_level; }
+            else { run_data.bonus_3_level = new_level; }
+
+            // Clear the pending flag
+            run_data.pending_level_up = false;
+
+            game.set_run_data(run_data);
+            world.write_model(@game);
+
+            post_action(token_address, game_id);
+
+            // Emit event (new_level is 1-indexed for display: 0->1, 1->2, 2->3)
+            world.emit_event(@BonusLevelUp {
+                game_id,
+                player,
+                bonus_slot,
+                bonus_type,
+                new_level: new_level + 1,
+            });
         }
 
         fn get_starting_bonus_upgrade_cost(self: @ContractState, current_level: u8) -> u64 {
