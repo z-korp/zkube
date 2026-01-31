@@ -329,25 +329,24 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
       if (isJustFilled) {
         console.log(`[ConstraintBadge ${constraintId}] Dot ${i} is just filled! Key: ${dotKey}`);
       }
+      // Use a unique key when animating to force remount and trigger animation
+      const uniqueKey = isJustFilled ? `${dotKey}-animating` : dotKey;
       dots.push(
         <motion.div
-          key={i}
+          key={uniqueKey}
           className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${
             isFilled 
               ? (satisfied ? "bg-green-400" : (color === "purple" ? "bg-purple-400" : "bg-orange-400"))
               : "bg-slate-600"
           }`}
-          initial={false}
+          initial={isJustFilled ? { scale: 1 } : false}
           animate={isJustFilled ? { 
             scale: [1, 1.8, 1.2, 1],
-            boxShadow: [
-              "0 0 0 0 rgba(251, 146, 60, 0)",
-              "0 0 12px 4px rgba(251, 146, 60, 0.8)",
-              "0 0 8px 2px rgba(251, 146, 60, 0.4)",
-              "0 0 0 0 rgba(251, 146, 60, 0)"
-            ]
           } : {}}
           transition={{ duration: 0.5, ease: "easeOut" }}
+          style={isJustFilled ? {
+            boxShadow: "0 0 12px 4px rgba(251, 146, 60, 0.8)"
+          } : {}}
         />
       );
     }
