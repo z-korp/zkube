@@ -108,6 +108,7 @@ export const STEP_1_GRID: MockGridState = {
  * Step 2: Clear Lines
  * Grid where player needs to move a block to complete a full row
  * Player slides the 2-wide block at position 0 to the right to fill the gap
+ * IMPORTANT: No row can be initially full or it will auto-clear!
  */
 export const STEP_2_GRID: MockGridState = {
   initialGrid: [
@@ -120,7 +121,7 @@ export const STEP_2_GRID: MockGridState = {
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [2, 2, 0, 0, 2, 2, 2, 2], // Move the 2-wide block right to fill gap at positions 2-3
-    [1, 1, 2, 2, 2, 2, 2, 2], // Stable bottom row (not full - only 7 cells filled)
+    [3, 3, 3, 0, 2, 2, 2, 2], // Stable bottom row - NOT full (gap at position 3)
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
   hammerCount: 3,
@@ -135,6 +136,7 @@ export const STEP_2_GRID: MockGridState = {
  * Step 3: Combos
  * Grid set up for a cascade/combo clear
  * Player moves the block to complete a row, then falling blocks complete another row
+ * IMPORTANT: No row can be initially full or it will auto-clear!
  */
 export const STEP_3_GRID: MockGridState = {
   initialGrid: [
@@ -147,7 +149,7 @@ export const STEP_3_GRID: MockGridState = {
     [0, 0, 0, 0, 2, 2, 0, 0], // This 2-wide will fall after row 8 clears
     [2, 2, 2, 2, 0, 0, 2, 2], // Row 7: will be complete after block from row 6 falls
     [2, 2, 0, 0, 2, 2, 2, 2], // Row 8: move block to complete this first
-    [1, 1, 2, 2, 2, 2, 2, 2], // Stable bottom row
+    [3, 3, 3, 0, 2, 2, 2, 2], // Stable bottom row - NOT full (gap at position 3)
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
   hammerCount: 3,
@@ -159,7 +161,9 @@ export const STEP_3_GRID: MockGridState = {
 };
 
 /**
- * Step 4: Hammer Bonus (same as original step 2)
+ * Step 4: Hammer Bonus
+ * Hammer destroys a single block. Target the 1-wide at position 6.
+ * IMPORTANT: No row can be initially full or it will auto-clear!
  */
 export const STEP_4_GRID: MockGridState = {
   initialGrid: [
@@ -171,8 +175,8 @@ export const STEP_4_GRID: MockGridState = {
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [2, 2, 2, 2, 2, 2, 0, 0],
-    [2, 2, 2, 2, 2, 2, 1, 1], // Hammer target at x:6 (the 1-wide block)
+    [2, 2, 2, 2, 2, 2, 0, 0], // Row 8: gaps at end
+    [2, 2, 2, 2, 2, 2, 1, 0], // Row 9: NOT full (gap at 7), hammer target at x:6
   ],
   nextLine: [2, 2, 0, 0, 0, 0, 2, 2],
   hammerCount: 3,
@@ -184,7 +188,9 @@ export const STEP_4_GRID: MockGridState = {
 };
 
 /**
- * Step 5: Wave Bonus (same as original step 3)
+ * Step 5: Wave Bonus
+ * Wave clears an entire row. Target row 8.
+ * IMPORTANT: No row can be initially full or it will auto-clear!
  */
 export const STEP_5_GRID: MockGridState = {
   initialGrid: [
@@ -196,8 +202,8 @@ export const STEP_5_GRID: MockGridState = {
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [3, 3, 3, 2, 2, 1, 2, 2], // Wave target row
-    [2, 2, 2, 2, 2, 2, 2, 2],
+    [3, 3, 3, 2, 2, 0, 2, 2], // Wave target row - NOT full (gap at 5)
+    [2, 2, 2, 2, 2, 2, 0, 0], // Row 9: NOT full (gaps at 6-7)
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
   hammerCount: 2, // Reduced after step 4
@@ -211,7 +217,7 @@ export const STEP_5_GRID: MockGridState = {
 /**
  * Step 6: Totem Bonus
  * Grid with multiple 3-wide blocks - Totem removes ALL blocks of same size
- * Valid grid math: 3-wide(3) + 2-wide(2) + 3-wide(3) = 8 cells per row
+ * IMPORTANT: No row can be initially full or it will auto-clear!
  */
 export const STEP_6_GRID: MockGridState = {
   initialGrid: [
@@ -220,11 +226,11 @@ export const STEP_6_GRID: MockGridState = {
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 3, 3, 3], // One 3-wide at right
     [3, 3, 3, 0, 0, 3, 3, 3], // Two 3-wide blocks with gap
-    [3, 3, 3, 2, 2, 3, 3, 3], // 3-wide + 2-wide + 3-wide = 8 ✓
-    [3, 3, 3, 2, 2, 3, 3, 3], // Same pattern
+    [3, 3, 3, 0, 0, 3, 3, 3], // Two 3-wide blocks with gap
+    [3, 3, 3, 0, 0, 3, 3, 3], // Two 3-wide blocks with gap
+    [3, 3, 3, 0, 2, 2, 0, 0], // One 3-wide, one 2-wide, gaps - NOT full
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
   hammerCount: 2,
@@ -239,6 +245,7 @@ export const STEP_6_GRID: MockGridState = {
  * Step 8: Constraints
  * Grid set up to demonstrate clearing 2+ lines at once via cascade
  * Moving the block completes row 8, then the falling block completes row 7
+ * IMPORTANT: No row can be initially full or it will auto-clear!
  */
 export const STEP_8_GRID: MockGridState = {
   initialGrid: [
@@ -251,7 +258,7 @@ export const STEP_8_GRID: MockGridState = {
     [0, 0, 2, 2, 0, 0, 0, 0], // Row 6: This 2-wide falls after row 7 clears
     [2, 2, 0, 0, 2, 2, 2, 2], // Row 7: Will be complete when block from row 6 falls
     [2, 2, 0, 0, 2, 2, 2, 2], // Row 8: Move the 2-wide right to complete this first
-    [1, 1, 2, 2, 2, 2, 2, 2], // Stable bottom row
+    [3, 3, 3, 0, 2, 2, 2, 2], // Stable bottom row - NOT full (gap at position 3)
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
   hammerCount: 2,
