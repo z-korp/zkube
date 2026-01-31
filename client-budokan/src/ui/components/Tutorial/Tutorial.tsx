@@ -1,7 +1,11 @@
 import React, { useState, useCallback, useMemo } from "react";
+import { useMediaQuery } from "react-responsive";
 import GameBoardTutorial from "./GameBoardTutorial";
+import TutorialInfoStep from "./TutorialInfoStep";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import ImageAssets from "@/ui/theme/ImageAssets";
+import { BonusType } from "@/dojo/game/types/bonus";
+import type { Block } from "@/types/types";
 
 import {
   AlertDialog,
@@ -14,55 +18,93 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrophy } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "@/ui/elements/button";
+import { motion } from "framer-motion";
+
+import {
+  TUTORIAL_STEPS,
+  TOTAL_TUTORIAL_STEPS,
+  getGridForStep,
+  getStepById,
+  isInfoStep,
+  isBonusStep,
+  type TutorialStep,
+  type MockGridState,
+  type TutorialTarget,
+} from "./tutorialSteps";
 
 interface TutorialProps {
   showGrid: boolean;
   endTutorial: () => void;
 }
 
-const tutorialInitialState = {
-  hammerCount: 3,
-  waveCount: 2,
-  totemCount: 2,
-  score: 0,
-  combo: 0,
-  maxCombo: 0,
-  initialGrid: [
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [3, 3, 3, 2, 2, 0, 0, 0],
-    [0, 1, 0, 2, 2, 0, 0, 0],
-    [2, 2, 0, 0, 4, 4, 4, 4],
-    [1, 0, 2, 2, 0, 0, 2, 2],
-    [3, 3, 3, 1, 0, 0, 2, 2],
-  ],
-  nextLine: [4, 4, 4, 4, 0, 0, 0, 0],
-};
-
 const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
   const [tutorialStep, setTutorialStep] = useState(1);
   const [isIntermission, setIsIntermission] = useState(false);
-  const [state, setState] = useState(tutorialInitialState);
+  const [gridState, setGridState] = useState<MockGridState>(getGridForStep(1));
 
+  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
   const { themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
 
+  // Get current step configuration
+  const currentStepConfig = useMemo(() => {
+    return getStepById(tutorialStep);
+  }, [tutorialStep]);
+
+  // Check if current step is an info step
+  const isCurrentStepInfo = useMemo(() => {
+    return currentStepConfig ? isInfoStep(currentStepConfig) : false;
+  }, [currentStepConfig]);
+
+  // Get target blocks for current step
+  const tutorialTargetBlock: TutorialTarget[] | null = useMemo(() => {
+    if (!currentStepConfig) return null;
+    
+    if (isInfoStep(currentStepConfig)) return null;
+    
+    if (isBonusStep(currentStepConfig)) {
+      return [currentStepConfig.targetBlock];
+    }
+    
+    // Interactive step
+    if ("targetBlock" in currentStepConfig && currentStepConfig.targetBlock) {
+      return [currentStepConfig.targetBlock];
+    }
+    
+    return null;
+  }, [currentStepConfig]);
+
+  // Handle block selection in tutorial
   const handleBlockSelect = useCallback(
-    async (block: any) => {
-      // Logique spécifique au tutoriel selon l'étape
+    async (block: Block) => {
+      if (!currentStepConfig) return;
+
+      // For bonus steps (4, 5, 6) and interactive steps (1, 2, 3, 8)
       switch (tutorialStep) {
-        case 1:
-          if (block.y === 8 && block.x === 2) {
-            setState((prev) => ({ ...prev, score: prev.score + 100 }));
+        case 1: // Move blocks
+          if (block.y === 8) {
+            setGridState((prev) => ({ ...prev, score: prev.score + 100 }));
             setIsIntermission(true);
           }
           break;
-        case 2:
-          if (block.y === 9 && block.x === 6) {
-            setState((prev) => ({
+        case 2: // Clear lines
+          // Any line clear triggers success
+          setGridState((prev) => ({ ...prev, score: prev.score + 150 }));
+          setIsIntermission(true);
+          break;
+        case 3: // Combos
+          // Combo achieved
+          setGridState((prev) => ({
+            ...prev,
+            score: prev.score + 300,
+            combo: 2,
+            maxCombo: 2,
+          }));
+          setIsIntermission(true);
+          break;
+        case 4: // Hammer
+          if (block.y === 9 && block.x >= 6) {
+            setGridState((prev) => ({
               ...prev,
               score: prev.score + 25,
               hammerCount: prev.hammerCount - 1,
@@ -70,101 +112,118 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
             setIsIntermission(true);
           }
           break;
-        // ... autres étapes
+        case 5: // Wave
+          if (block.y === 8) {
+            setGridState((prev) => ({
+              ...prev,
+              score: prev.score + 200,
+              waveCount: prev.waveCount - 1,
+            }));
+            setIsIntermission(true);
+          }
+          break;
+        case 6: // Totem
+          if (block.width === 3) {
+            setGridState((prev) => ({
+              ...prev,
+              score: prev.score + 150,
+              totemCount: prev.totemCount - 1,
+            }));
+            setIsIntermission(true);
+          }
+          break;
+        case 8: // Constraints
+          // Multi-line clear triggers constraint success
+          setGridState((prev) => ({ ...prev, score: prev.score + 250 }));
+          setIsIntermission(true);
+          break;
+        default:
+          break;
       }
     },
-    [tutorialStep],
+    [tutorialStep, currentStepConfig],
   );
 
+  // Handle state update from grid
   const handleUpdateState = (intermission: boolean) => {
     setIsIntermission(intermission);
   };
 
-  const tutorialTargetBlock:
-    | {
-        x: number;
-        y: number;
-        type: "block" | "row";
-      }[]
-    | null = useMemo(() => {
-    switch (tutorialStep) {
-      case 1:
-        return [{ x: 2, y: 8, type: "block" }];
-      case 2:
-        return [{ x: 6, y: 9, type: "block" }];
-      case 3:
-        return [{ x: 0, y: 8, type: "row" }];
-      case 4:
-        return [
-          { x: 0, y: 9, type: "block" },
-          { x: 0, y: 8, type: "block" },
-        ];
-      default:
-        return null;
+  // Handle continue to next step
+  const handleContinue = useCallback(() => {
+    const nextStep = tutorialStep + 1;
+    
+    if (nextStep > TOTAL_TUTORIAL_STEPS) {
+      endTutorial();
+      return;
     }
-  }, [tutorialStep]);
 
-  const handleContinue = () => {
-    if (tutorialStep >= 5) return;
     setIsIntermission(false);
-    setTutorialStep((prev) => prev + 1);
-  };
-
-  const TutorialHeader = () => {
-    switch (tutorialStep) {
-      case 1:
-        return "Step 1 : Move";
-      case 2:
-        return "Step 2 : Hammer";
-      case 3:
-        return "Step 3 : Wave";
-      case 4:
-        return "Step 4 : Tiki";
-      case 5:
-        return "Tutorial complete!";
-      default:
-        return "";
+    setTutorialStep(nextStep);
+    
+    // Load grid for next step if it's not an info step
+    const nextStepConfig = getStepById(nextStep);
+    if (nextStepConfig && !isInfoStep(nextStepConfig)) {
+      setGridState(getGridForStep(nextStep));
     }
+  }, [tutorialStep, endTutorial]);
+
+  // Handle skip tutorial
+  const handleSkipTutorial = useCallback(() => {
+    endTutorial();
+  }, [endTutorial]);
+
+  // Get header and message for current step
+  const TutorialHeader = () => {
+    if (!currentStepConfig) return "";
+    return `Step ${tutorialStep}: ${currentStepConfig.title}`;
   };
 
   const TutorialMessage = () => {
-    switch (tutorialStep) {
-      case 1:
-        return "Move the highlighted block two steps to the right.";
-      case 2:
-        return "Use the hammer bonus on the highlighted block.";
-      case 3:
-        return "Use the wave bonus on the highlighted row.";
-      case 4:
-        return "Use the totem bonus on the highlighted block.";
-      case 5:
-        return "Click below to start playing.";
-      default:
-        return "";
-    }
+    if (!currentStepConfig) return "";
+    return isMdOrLarger 
+      ? currentStepConfig.description 
+      : currentStepConfig.mobileDescription || currentStepConfig.description;
   };
 
   const TutorialImage = () => {
-    switch (tutorialStep) {
-      case 1:
-        return <></>;
-      case 2:
-        return <img className="w-8 h-8" src={imgAssets.hammer} />;
-      case 3:
-        return <img className="w-8 h-8" src={imgAssets.wave} />;
-      case 4:
-        return <img className="w-8 h-8" src={imgAssets.tiki} />;
-      case 5:
-        return <></>;
-      default:
-        return <></>;
+    if (!currentStepConfig) return null;
+    
+    if (isBonusStep(currentStepConfig)) {
+      switch (currentStepConfig.bonusType) {
+        case BonusType.Hammer:
+          return <img className="w-8 h-8" src={imgAssets.hammer} alt="Hammer" />;
+        case BonusType.Wave:
+          return <img className="w-8 h-8" src={imgAssets.wave} alt="Wave" />;
+        case BonusType.Totem:
+          return <img className="w-8 h-8" src={imgAssets.tiki} alt="Totem" />;
+        default:
+          return null;
+      }
     }
+    
+    return null;
   };
 
   if (!showGrid) return null;
 
+  // Render info step
+  if (isCurrentStepInfo && currentStepConfig && isInfoStep(currentStepConfig)) {
+    return (
+      <TutorialInfoStep
+        step={currentStepConfig}
+        onContinue={handleContinue}
+        onSkip={handleSkipTutorial}
+        currentStep={tutorialStep}
+        totalSteps={TOTAL_TUTORIAL_STEPS}
+      />
+    );
+  }
+
+  // Render interactive/bonus step
   return (
     <div className="flex flex-col items-center relative h-full mx-6">
+      {/* Intermission Dialog */}
       <AlertDialog open={isIntermission}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -173,20 +232,17 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
                 <img
                   className="w-12 h-12"
                   src={imgAssets.logo}
-                  alt="tiki image"
-                ></img>
-                <h1> Congratulations !</h1>
+                  alt="zKube logo"
+                />
+                <h1>Congratulations!</h1>
               </div>
             </AlertDialogTitle>
-            <br></br>
-            <br></br>
             <AlertDialogDescription></AlertDialogDescription>
             <div className="flex flex-col items-center justify-center gap-6 text-sm text-muted-foreground">
               <FontAwesomeIcon size="2x" icon={faTrophy} color="gold" />
               <p>You have successfully completed Step {tutorialStep}.</p>
             </div>
           </AlertDialogHeader>
-          <br></br>
           <AlertDialogFooter>
             <Button onClick={handleContinue} variant="shimmer">
               Continue to Next Step
@@ -195,16 +251,40 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Progress Indicator */}
+      <div className="w-full max-w-md mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className={`text-slate-400 ${isMdOrLarger ? "text-sm" : "text-xs"}`}>
+            Step {tutorialStep} of {TOTAL_TUTORIAL_STEPS}
+          </span>
+          <button
+            onClick={handleSkipTutorial}
+            className="text-slate-500 hover:text-slate-300 text-xs transition-colors"
+          >
+            Skip Tutorial
+          </button>
+        </div>
+        <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-gradient-to-r from-purple-500 to-blue-500"
+            initial={{ width: 0 }}
+            animate={{ width: `${(tutorialStep / TOTAL_TUTORIAL_STEPS) * 100}%` }}
+            transition={{ duration: 0.3 }}
+          />
+        </div>
+      </div>
+
+      {/* Tutorial Instruction Overlay */}
       {!isIntermission && (
         <div className="text-center p-4 bg-slate-700 rounded-md mb-4 absolute mt-40 z-50 w-11/12 mx-auto border border-2 border-white">
           <div className="flex flex-col items-center justify-center gap-2">
-            <div className="flex gap-4">
-              <img className="w-8 h-8" src={imgAssets.logo} />
-              <h1 className="text-2xl">
+            <div className="flex gap-4 items-center">
+              <img className="w-8 h-8" src={imgAssets.logo} alt="zKube" />
+              <h1 className={`${isMdOrLarger ? "text-2xl" : "text-xl"}`}>
                 <TutorialHeader />
               </h1>
             </div>
-            <h2>
+            <h2 className={`${isMdOrLarger ? "text-base" : "text-sm"} text-slate-300`}>
               <TutorialMessage />
             </h2>
             <TutorialImage />
@@ -212,19 +292,9 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
         </div>
       )}
 
-      {tutorialStep === 5 && (
-        <Button
-          onClick={endTutorial}
-          variant={"default"}
-          className="absolute z-50 top-1/2 text-xl"
-          size={"lg"}
-        >
-          Exit Tutorial
-        </Button>
-      )}
-
+      {/* Game Board */}
       <GameBoardTutorial
-        {...state}
+        {...gridState}
         onBlockSelect={handleBlockSelect}
         tutorialProps={{
           step: tutorialStep,

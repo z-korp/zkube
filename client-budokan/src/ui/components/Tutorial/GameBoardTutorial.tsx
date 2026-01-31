@@ -4,13 +4,14 @@ import { useMediaQuery } from "react-responsive";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "../NextLine";
 import type { Block } from "@/types/types";
-import GameScores from "../GameScores";
 import { BonusType } from "@/dojo/game/types/bonus";
 import "../../../grid.css";
 import TutorialGrid from "./TutorialGrid";
 import BonusButton from "../BonusButton";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import ImageAssets from "@/ui/theme/ImageAssets";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faFire, faCheck } from "@fortawesome/free-solid-svg-icons";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -20,6 +21,7 @@ interface GameBoardProps {
   hammerCount: number;
   waveCount: number;
   totemCount: number;
+  score: number;
   tutorialProps?: {
     step: number;
     targetBlock: { x: number; y: number; type: "block" | "row" }[] | null;
@@ -37,6 +39,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
   waveCount,
   hammerCount,
   totemCount,
+  score,
   tutorialProps,
   onBlockSelect,
   onUpdateState,
@@ -50,9 +53,12 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
   // State that will allow us to hide or display the next line
   const [nextLineHasBeenConsumed] = useState(false);
   // Optimistic data (score, combo, maxcombo)
-  const [optimisticScore, setOptimisticScore] = useState(0);
+  const [optimisticScore, setOptimisticScore] = useState(score);
   const [optimisticCombo, setOptimisticCombo] = useState(combo);
   const [optimisticMaxCombo, setOptimisticMaxCombo] = useState(maxCombo);
+  
+  // Check if current step is the constraint step
+  const isConstraintStep = tutorialProps?.step === 8;
   const [bonusDescription, setBonusDescription] = useState("");
   const [disableTiki, setDisableTiki] = useState(false);
   const [highlightedTiki, setHighlightedTiki] = useState(false);
@@ -72,11 +78,11 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
     // Every time the initial grid changes, we erase the optimistic data
     // and set the data to the one returned by the contract
     // just in case of discrepancies
-    setOptimisticScore(0);
+    setOptimisticScore(score);
     setOptimisticCombo(combo);
     setOptimisticMaxCombo(maxCombo);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialGrid]);
+  }, [initialGrid, score, combo, maxCombo]);
   const [bonus, setBonus] = useState<BonusType>(BonusType.None);
 
   const handleBonusWaveClick = () => {
@@ -241,12 +247,49 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
               </div>
             </div>
           </div>
-          <GameScores
-            score={optimisticScore ?? 0}
-            combo={optimisticCombo}
-            maxCombo={optimisticMaxCombo}
-            isMdOrLarger={isMdOrLarger}
-          />
+          
+          {/* Tutorial Score Display */}
+          <div className="flex items-center gap-4">
+            {/* Score */}
+            <div className="flex flex-col items-end">
+              <span className={`text-slate-400 ${isMdOrLarger ? "text-xs" : "text-[10px]"}`}>
+                Score
+              </span>
+              <span className={`font-bold text-blue-400 ${isMdOrLarger ? "text-xl" : "text-lg"}`}>
+                {optimisticScore}
+              </span>
+            </div>
+            
+            {/* Combo indicator */}
+            {optimisticCombo > 0 && (
+              <div className="flex items-center gap-1 bg-orange-500/20 px-2 py-1 rounded">
+                <span className={`${isMdOrLarger ? "text-lg" : "text-base"} font-bold text-orange-400`}>
+                  {optimisticCombo}
+                </span>
+                <FontAwesomeIcon
+                  icon={faFire}
+                  className="text-orange-400"
+                  width={isMdOrLarger ? 14 : 12}
+                  height={isMdOrLarger ? 14 : 12}
+                />
+              </div>
+            )}
+            
+            {/* Constraint indicator for step 8 */}
+            {isConstraintStep && (
+              <div className="flex items-center gap-1.5 px-2 py-1 bg-orange-500/20 rounded border border-orange-500/30">
+                <span className={`${isMdOrLarger ? "text-xs" : "text-[10px]"} text-orange-400 font-medium`}>
+                  2+ lines
+                </span>
+                <FontAwesomeIcon
+                  icon={faCheck}
+                  className="text-slate-500"
+                  width={10}
+                  height={10}
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         <div
