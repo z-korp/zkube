@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faBan } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faBan, faCircleInfo } from "@fortawesome/free-solid-svg-icons";
 import { motion } from "framer-motion";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import { generateLevelConfig } from "@/dojo/game/types/level";
@@ -307,8 +307,8 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   };
 
   return (
-    <div className="w-full space-y-1.5 md:space-y-2">
-      {/* Row 1: Identity & Meta - Level, Score, Currency */}
+    <div className="w-full space-y-1 md:space-y-2">
+      {/* Row 1: Level + Score + Cubes (original design) */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 md:gap-2">
           <span className="font-bold text-base md:text-lg text-white">Level {level}</span>
@@ -320,18 +320,10 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         </div>
 
         <div className="flex items-center gap-2 md:gap-3">
-          {/* Score progress */}
-          <div className="flex items-center gap-1.5 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded">
-            <span className="text-[10px] md:text-xs text-blue-400 font-medium">{displayScore}</span>
-            <div className="w-10 md:w-14 h-1 bg-slate-700 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-blue-500"
-                initial={false}
-                animate={{ width: `${Math.min(100, (levelScore / levelConfig.pointsRequired) * 100)}%` }}
-                transition={{ duration: 0.3 }}
-              />
-            </div>
-            <span className="text-[10px] md:text-xs text-slate-500">{levelConfig.pointsRequired}</span>
+          {/* Score */}
+          <div className="flex items-center gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded">
+            <span className="text-[10px] md:text-xs text-slate-400">Score:</span>
+            <span className="text-sm md:text-base font-semibold text-blue-400">{displayTotalScore}</span>
           </div>
           
           {/* Cube balance */}
@@ -369,41 +361,50 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         </div>
       </div>
 
-      {/* Row 2: Mission Status - Objectives + Moves limit */}
-      <div className="flex items-center justify-between">
-        {/* Objectives (left) */}
-        <div className="flex items-center gap-1.5 md:gap-2">
-          {hasConstraint && (
-            <ConstraintBadge 
-              constraint={levelConfig.constraint} 
-              progress={constraintProgress} 
-              satisfied={constraintSatisfied}
-              color="orange"
+      {/* Row 2: Objectives + Progress + Moves */}
+      <div className="flex items-center gap-1.5 md:gap-2">
+        {/* Constraints */}
+        {hasConstraint && (
+          <ConstraintBadge 
+            constraint={levelConfig.constraint} 
+            progress={constraintProgress} 
+            satisfied={constraintSatisfied}
+            color="orange"
+          />
+        )}
+        {hasConstraint2 && (
+          <ConstraintBadge 
+            constraint={levelConfig.constraint2} 
+            progress={constraint2Progress} 
+            satisfied={constraint2Satisfied}
+            color="purple"
+          />
+        )}
+        
+        {/* Score progress */}
+        <div className="flex items-center gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded">
+          <span className="text-[10px] md:text-xs text-blue-400 font-medium">{displayScore}</span>
+          <div className="w-8 md:w-12 h-1 bg-slate-700 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-blue-500"
+              initial={false}
+              animate={{ width: `${Math.min(100, (levelScore / levelConfig.pointsRequired) * 100)}%` }}
+              transition={{ duration: 0.3 }}
             />
-          )}
-          {hasConstraint2 && (
-            <ConstraintBadge 
-              constraint={levelConfig.constraint2} 
-              progress={constraint2Progress} 
-              satisfied={constraint2Satisfied}
-              color="purple"
-            />
-          )}
-          {!hasConstraint && !hasConstraint2 && (
-            <span className="text-[10px] md:text-xs text-slate-500 italic">No objectives</span>
-          )}
+          </div>
+          <span className="text-[10px] md:text-xs text-slate-500">{levelConfig.pointsRequired}</span>
         </div>
 
-        {/* Moves pill (right) */}
-        <div className="flex items-center gap-1 bg-slate-800/50 px-2 md:px-3 py-0.5 md:py-1 rounded-full">
+        {/* Moves pill */}
+        <div className="flex items-center gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded">
           <span className="text-sm md:text-base font-bold text-white">{movesRemaining}</span>
-          <span className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wide">moves</span>
+          <span className="text-[10px] md:text-xs text-slate-400">moves</span>
         </div>
       </div>
 
-      {/* Row 3: Tools - Power-ups + Rewards indicator */}
+      {/* Row 3: Tools + Potential Reward */}
       <div className="flex items-center justify-between">
-        {/* Tools (left) */}
+        {/* Bonus buttons */}
         <div className="flex items-center gap-1 md:gap-1.5">
           <BonusButton
             onClick={onBonusHammerClick}
@@ -428,11 +429,15 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
           />
         </div>
 
-        {/* Potential cubes reward (right) */}
+        {/* Potential cubes with info icon */}
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
               <div className={`flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors ${paceBgColor}`}>
+                <FontAwesomeIcon
+                  icon={faCircleInfo}
+                  className={`w-3 h-3 md:w-3.5 md:h-3.5 ${potentialCubes === 3 ? "text-green-400" : potentialCubes === 2 ? "text-yellow-400" : "text-orange-400"}`}
+                />
                 {[1, 2, 3].map((cube) => (
                   <span
                     key={cube}
