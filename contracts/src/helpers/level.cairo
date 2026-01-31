@@ -44,7 +44,7 @@ mod LevelConstants {
 }
 
 /// Boss level constants and helpers
-/// Boss levels occur at 10, 20, 30, 40, 50 with fixed dual constraints
+/// Boss levels occur at 10, 20, 30, 40, 50 with seeded dual constraints at max budget
 pub mod BossLevel {
     /// Check if a level is a boss level
     pub fn is_boss_level(level: u8) -> bool {
@@ -126,12 +126,12 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         // Get difficulty from settings
         let difficulty = settings.get_difficulty_for_level(calc_level);
         
-        // Generate constraints: use fixed boss constraints for boss levels, otherwise normal generation
+        // Generate constraints: use seeded boss constraints for boss levels, otherwise normal generation
         // Respect constraints_enabled setting for both boss and regular levels
         let (constraint, constraint_2) = if !settings.are_constraints_enabled() {
             (LevelConstraintTrait::none(), LevelConstraintTrait::none())
         } else if BossLevel::is_boss_level(level) {
-            Self::generate_boss_constraints(level)
+            Self::generate_boss_constraints_seeded(level_seed, difficulty, settings)
         } else {
             Self::generate_constraints_with_settings(level_seed, level, difficulty, settings)
         };
@@ -148,39 +148,107 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         }
     }
     
-    /// Generate fixed boss constraints based on boss tier
-    /// Boss levels always have dual constraints (no RNG)
+    /// Generate seeded boss constraints with max budget for the difficulty
+    /// Boss levels always have dual constraints, randomly seeded
     /// 
-    /// Boss I  (L10): Clear 2+ lines 3 times + Clear 3+ lines 1 time
-    /// Boss II (L20): Clear 3+ lines 2 times + NoBonusUsed
-    /// Boss III(L30): Clear 3+ lines 3 times + Clear 4+ lines 1 time
-    /// Boss IV (L40): Clear 4+ lines 2 times + NoBonusUsed
-    /// Boss V  (L50): Clear 4+ lines 3 times + NoBonusUsed
-    fn generate_boss_constraints(level: u8) -> (LevelConstraint, LevelConstraint) {
-        let tier = BossLevel::get_boss_tier(level);
-        match tier {
-            1 => (
-                LevelConstraintTrait::clear_lines(2, 3),  // Clear 2+ lines, 3 times
-                LevelConstraintTrait::clear_lines(3, 1),  // Clear 3+ lines, 1 time
-            ),
-            2 => (
-                LevelConstraintTrait::clear_lines(3, 2),  // Clear 3+ lines, 2 times
-                LevelConstraintTrait::no_bonus(),         // No bonus used
-            ),
-            3 => (
-                LevelConstraintTrait::clear_lines(3, 3),  // Clear 3+ lines, 3 times
-                LevelConstraintTrait::clear_lines(4, 1),  // Clear 4+ lines, 1 time
-            ),
-            4 => (
-                LevelConstraintTrait::clear_lines(4, 2),  // Clear 4+ lines, 2 times
-                LevelConstraintTrait::no_bonus(),         // No bonus used
-            ),
-            5 => (
-                LevelConstraintTrait::clear_lines(4, 3),  // Clear 4+ lines, 3 times
-                LevelConstraintTrait::no_bonus(),         // No bonus used
-            ),
-            _ => (LevelConstraintTrait::none(), LevelConstraintTrait::none()),
+    /// - Primary: ClearLines with max budget for the level's difficulty
+    /// - Secondary: Either ClearLines (max budget) or NoBonusUsed based on difficulty's chance
+    fn generate_boss_constraints_seeded(
+        level_seed: felt252,
+        difficulty: Difficulty,
+        settings: GameSettings
+    ) -> (LevelConstraint, LevelConstraint) {
+        // Get constraint params for the difficulty
+        let (min_lines, max_lines, _budget_min, budget_max, min_times, _dual_chance, secondary_no_bonus_chance) = 
+            settings.get_constraint_params_for_difficulty(difficulty);
+        
+        // Primary: Always ClearLines with MAX budget (no rolling)
+        let primary = Self::generate_clear_lines_constraint_max_budget(
+            level_seed, min_lines, max_lines, budget_max, min_times
+        );
+        
+        // Secondary: Always generated (forced dual), but may be NoBonusUsed
+        let secondary = Self::generate_boss_secondary_constraint(
+            level_seed, min_lines, max_lines, budget_max, min_times, secondary_no_bonus_chance
+        );
+        
+        (primary, secondary)
+    }
+    
+    /// Generate a ClearLines constraint using MAX budget (for bosses)
+    /// Same algorithm as generate_clear_lines_constraint but uses budget_max directly
+    fn generate_clear_lines_constraint_max_budget(
+        seed: felt252,
+        min_lines: u8,
+        max_lines: u8,
+        budget_max: u8,
+        min_times: u8,
+    ) -> LevelConstraint {
+        let seed_u256: u256 = seed.into();
+        
+        // Use max budget directly (no rolling)
+        let budget: u8 = budget_max;
+        
+        // Roll lines within [min_lines, max_lines]
+        let lines_range: u8 = if max_lines > min_lines { max_lines - min_lines + 1 } else { 1 };
+        let mut lines: u8 = min_lines + (((seed_u256 / 100) % lines_range.into()).try_into().unwrap());
+        
+        // Compute times_cap = budget / line_cost(lines)
+        let mut cost: u8 = Self::line_cost(lines);
+        let mut times_cap: u8 = if cost > 0 { budget / cost } else { 1 };
+        
+        // Feasibility repair - reduce lines until times_cap >= min_times
+        let mut repair_count: u8 = 0;
+        while times_cap < min_times && lines > 2 && repair_count < 5 {
+            lines = lines - 1;
+            cost = Self::line_cost(lines);
+            times_cap = if cost > 0 { budget / cost } else { 1 };
+            repair_count = repair_count + 1;
+        };
+        
+        // If still infeasible, reduce min_times requirement to times_cap
+        let effective_min_times: u8 = if times_cap < min_times { 
+            if times_cap >= 1 { times_cap } else { 1 }
+        } else { 
+            min_times 
+        };
+        
+        // Roll times with skew-high distribution (max of two rolls)
+        let times: u8 = if times_cap <= 1 {
+            1
+        } else {
+            let t1: u8 = 1 + (((seed_u256 / 1000) % times_cap.into()).try_into().unwrap());
+            let t2: u8 = 1 + (((seed_u256 / 10000) % times_cap.into()).try_into().unwrap());
+            let max_t = if t1 > t2 { t1 } else { t2 };
+            if max_t < effective_min_times { effective_min_times } else { max_t }
+        };
+        
+        LevelConstraintTrait::clear_lines(lines, times)
+    }
+    
+    /// Generate boss secondary constraint (always generated, but may be NoBonusUsed)
+    /// Skips the dual_chance roll since bosses always have dual constraints
+    fn generate_boss_secondary_constraint(
+        seed: felt252,
+        min_lines: u8,
+        max_lines: u8,
+        budget_max: u8,
+        min_times: u8,
+        secondary_no_bonus_chance: u8,
+    ) -> LevelConstraint {
+        let seed_u256: u256 = seed.into();
+        
+        // Roll to see if secondary is NoBonusUsed or ClearLines
+        let no_bonus_roll: u8 = ((seed_u256 / 1000000) % 100).try_into().unwrap();
+        if no_bonus_roll < secondary_no_bonus_chance {
+            return LevelConstraintTrait::no_bonus();
         }
+        
+        // Generate another ClearLines constraint with shifted seed and max budget
+        let secondary_seed: felt252 = (seed_u256 / 10000000).try_into().unwrap();
+        Self::generate_clear_lines_constraint_max_budget(
+            secondary_seed, min_lines, max_lines, budget_max, min_times
+        )
     }
 
     /// Generate constraints based on seed, level, difficulty, and settings
