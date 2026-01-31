@@ -42,9 +42,6 @@ pub struct GameSettings {
     pub totem_cost: u8,         // Cost in cubes (default: 5)
     pub extra_moves_cost: u8,   // Cost in cubes (default: 10)
     
-    // === Reward Multiplier ===
-    pub cube_multiplier_x100: u16, // Cube reward multiplier * 100 (default: 100 = 1.0x)
-    
     // === Difficulty Progression (non-linear tier thresholds) ===
     // Each threshold is the level at which that difficulty tier begins
     // Tier 0 (VeryEasy) is always level 1
@@ -127,9 +124,6 @@ pub mod GameSettingsDefaults {
     pub const WAVE_COST: u8 = 5;
     pub const TOTEM_COST: u8 = 5;
     pub const EXTRA_MOVES_COST: u8 = 10;
-    
-    // Reward Multiplier
-    pub const CUBE_MULTIPLIER_X100: u16 = 100; // 1.0x
     
     // Difficulty Progression (non-linear tier thresholds)
     // VeryEasy: 1-3, Easy: 4-7, Medium: 8-11, MediumHard: 12-17
@@ -258,8 +252,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             wave_cost: GameSettingsDefaults::WAVE_COST,
             totem_cost: GameSettingsDefaults::TOTEM_COST,
             extra_moves_cost: GameSettingsDefaults::EXTRA_MOVES_COST,
-            // Reward Multiplier
-            cube_multiplier_x100: GameSettingsDefaults::CUBE_MULTIPLIER_X100,
             // Difficulty Progression (non-linear tier thresholds)
             tier_1_threshold: GameSettingsDefaults::TIER_1_THRESHOLD,
             tier_2_threshold: GameSettingsDefaults::TIER_2_THRESHOLD,
@@ -365,18 +357,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             2 => self.totem_cost,
             3 => self.extra_moves_cost,
             _ => 0,
-        }
-    }
-    
-    /// Apply cube multiplier to a cube amount
-    /// Clamps result to u16::MAX (65535) to avoid overflow panics
-    fn apply_cube_multiplier(self: GameSettings, cubes: u16) -> u16 {
-        let result: u32 = cubes.into() * self.cube_multiplier_x100.into() / 100;
-        // Clamp to u16::MAX instead of panicking on overflow
-        if result > 65535 {
-            65535_u16
-        } else {
-            result.try_into().unwrap()
         }
     }
     
@@ -746,8 +726,6 @@ mod tests {
         assert!(settings.wave_cost == 5, "Wave cost should be 5");
         assert!(settings.totem_cost == 5, "Totem cost should be 5");
         assert!(settings.extra_moves_cost == 10, "Extra moves cost should be 10");
-        // Reward Multiplier
-        assert!(settings.cube_multiplier_x100 == 100, "Multiplier should be 100");
         // Difficulty Progression (non-linear tier thresholds)
         assert!(settings.tier_1_threshold == 4, "Tier 1 (Easy) should start at level 4");
         assert!(settings.tier_2_threshold == 8, "Tier 2 (Medium) should start at level 8");
@@ -759,10 +737,10 @@ mod tests {
         // Constraint Settings
         assert!(settings.constraints_enabled == 1, "Constraints should be enabled");
         assert!(settings.constraint_start_level == 3, "Constraints should start at level 3");
-        // Variance Settings
+        // Variance Settings (consistent ±5% across all levels)
         assert!(settings.early_variance_percent == 5, "Early variance should be 5");
-        assert!(settings.mid_variance_percent == 10, "Mid variance should be 10");
-        assert!(settings.late_variance_percent == 15, "Late variance should be 15");
+        assert!(settings.mid_variance_percent == 5, "Mid variance should be 5");
+        assert!(settings.late_variance_percent == 5, "Late variance should be 5");
         // Level Tier Thresholds
         assert!(settings.early_level_threshold == 5, "Early threshold should be 5");
         assert!(settings.mid_level_threshold == 25, "Mid threshold should be 25");
@@ -778,30 +756,6 @@ mod tests {
         assert!(settings.get_consumable_cost(1) == 5, "Wave should cost 5");
         assert!(settings.get_consumable_cost(2) == 5, "Totem should cost 5");
         assert!(settings.get_consumable_cost(3) == 10, "ExtraMoves should cost 10");
-    }
-    
-    #[test]
-    fn test_apply_cube_multiplier() {
-        let mut settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
-        // 1.0x multiplier
-        assert!(settings.apply_cube_multiplier(10) == 10, "10 * 1.0 = 10");
-        
-        // 2.0x multiplier
-        settings.cube_multiplier_x100 = 200;
-        assert!(settings.apply_cube_multiplier(10) == 20, "10 * 2.0 = 20");
-        
-        // 0.5x multiplier
-        settings.cube_multiplier_x100 = 50;
-        assert!(settings.apply_cube_multiplier(10) == 5, "10 * 0.5 = 5");
-        
-        // Test overflow clamping: 60000 * 2.0 = 120000 > 65535, should clamp
-        settings.cube_multiplier_x100 = 200;
-        assert!(settings.apply_cube_multiplier(60000) == 65535, "Should clamp to u16::MAX on overflow");
-        
-        // Test edge case: exactly at max
-        settings.cube_multiplier_x100 = 100;
-        assert!(settings.apply_cube_multiplier(65535) == 65535, "Max cubes with 1x should stay max");
     }
     
     #[test]
@@ -881,13 +835,14 @@ mod tests {
     fn test_get_variance_percent() {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
         
-        // Default thresholds: early=5, mid=25
-        assert!(settings.get_variance_percent(1) == 5, "Level 1 should use early variance");
-        assert!(settings.get_variance_percent(5) == 5, "Level 5 should use early variance");
-        assert!(settings.get_variance_percent(6) == 10, "Level 6 should use mid variance");
-        assert!(settings.get_variance_percent(25) == 10, "Level 25 should use mid variance");
-        assert!(settings.get_variance_percent(26) == 15, "Level 26 should use late variance");
-        assert!(settings.get_variance_percent(50) == 15, "Level 50 should use late variance");
+        // Default thresholds: early=5, mid=25, but all variance values are now 5% (consistent)
+        // The variance tier selection still works, but all tiers return 5%
+        assert!(settings.get_variance_percent(1) == 5, "Level 1 should use early variance (5%)");
+        assert!(settings.get_variance_percent(5) == 5, "Level 5 should use early variance (5%)");
+        assert!(settings.get_variance_percent(6) == 5, "Level 6 should use mid variance (5%)");
+        assert!(settings.get_variance_percent(25) == 5, "Level 25 should use mid variance (5%)");
+        assert!(settings.get_variance_percent(26) == 5, "Level 26 should use late variance (5%)");
+        assert!(settings.get_variance_percent(50) == 5, "Level 50 should use late variance (5%)");
     }
     
     #[test]

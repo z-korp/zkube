@@ -5,6 +5,7 @@ use game_components_token::core::interface::{IMinigameTokenDispatcher, IMinigame
 use zkube::helpers::token;
 use zkube::models::config::{GameSettings, GameSettingsTrait};
 use zkube::types::difficulty::Difficulty;
+use zkube::constants::DEFAULT_SETTINGS::DEFAULT_SETTINGS_ID;
 
 #[generate_trait]
 pub impl ConfigUtilsImpl of ConfigUtilsTrait {
@@ -14,15 +15,15 @@ pub impl ConfigUtilsImpl of ConfigUtilsTrait {
         let settings: GameSettings = world.read_model(settings_id);
 
         // Defensive fallback: if the token points at a missing settings_id, default to
-        // the Progressive Difficulty settings (id = 1).
+        // the official default settings (id = 0).
         if !settings.exists() {
-            let fallback: GameSettings = world.read_model(1_u32);
+            let fallback: GameSettings = world.read_model(DEFAULT_SETTINGS_ID);
             if fallback.exists() {
                 fallback
             } else {
                 // If no settings exist at all, use hardcoded defaults to prevent
                 // all-zero weights from breaking block generation
-                GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing)
+                GameSettingsTrait::new_with_defaults(DEFAULT_SETTINGS_ID, Difficulty::Increasing)
             }
         } else {
             settings

@@ -417,10 +417,10 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className={`flex items-center gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors ${!hasConstraint && !hasConstraint2 ? 'flex-1' : ''}`}>
+              <div className="flex-1 flex items-center gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors">
                 <span className="text-[10px] md:text-xs text-slate-400">Score</span>
                 <span className="text-[10px] md:text-xs text-blue-300">{displayScore}</span>
-                <div className={`h-1 bg-slate-700 rounded-full overflow-hidden ${!hasConstraint && !hasConstraint2 ? 'flex-1 min-w-6 md:min-w-10' : 'w-6 md:w-10'}`}>
+                <div className="flex-1 min-w-6 md:min-w-10 h-1 bg-slate-700 rounded-full overflow-hidden">
                   <motion.div
                     className="h-full bg-blue-400"
                     initial={false}
@@ -443,26 +443,30 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
 
         {/* Constraints */}
         {hasConstraint && (
-          <ConstraintBadge 
-            constraint={levelConfig.constraint} 
-            progress={constraintProgress} 
-            satisfied={constraintSatisfied}
-            color="orange"
-            recentlyFilled={recentlyFilledDots}
-          />
+          <div className="flex-1 flex justify-center">
+            <ConstraintBadge 
+              constraint={levelConfig.constraint} 
+              progress={constraintProgress} 
+              satisfied={constraintSatisfied}
+              color="orange"
+              recentlyFilled={recentlyFilledDots}
+            />
+          </div>
         )}
         {hasConstraint2 && (
-          <ConstraintBadge 
-            constraint={levelConfig.constraint2} 
-            progress={constraint2Progress} 
-            satisfied={constraint2Satisfied}
-            color="purple"
-            recentlyFilled={recentlyFilledDots2}
-          />
+          <div className="flex-1 flex justify-center">
+            <ConstraintBadge 
+              constraint={levelConfig.constraint2} 
+              progress={constraint2Progress} 
+              satisfied={constraint2Satisfied}
+              color="purple"
+              recentlyFilled={recentlyFilledDots2}
+            />
+          </div>
         )}
 
         {/* Moves pill - dramatic when low */}
-        <div className={`flex items-center gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded ${movesGlow}`}>
+        <div className={`flex-1 flex items-center justify-end gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded ${movesGlow}`}>
           <span className={`text-sm md:text-sm font-bold ${movesColor}`}>{movesRemaining}</span>
           <span className="text-[10px] md:text-xs text-slate-400">moves</span>
         </div>

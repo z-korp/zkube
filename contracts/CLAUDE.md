@@ -130,8 +130,6 @@ pub struct GameSettings {
     pub wave_cost: u8,             // Default: 5
     pub totem_cost: u8,            // Default: 5
     pub extra_moves_cost: u8,      // Default: 10
-    // Reward Multiplier
-    pub cube_multiplier_x100: u16, // Default: 100 (1.0x)
     // Difficulty Progression
     pub starting_difficulty: u8,
     pub difficulty_step_levels: u8,

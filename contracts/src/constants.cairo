@@ -38,49 +38,26 @@ pub mod DEFAULT_SETTINGS {
     use zkube::types::difficulty::Difficulty;
     use zkube::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};
 
-    pub fn GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_EXPERT() -> @GameSettings {
-        @GameSettingsTrait::new_with_defaults(0, Difficulty::Expert)
+    /// The official default settings ID used for cube minting, quests, and leaderboards
+    pub const DEFAULT_SETTINGS_ID: u32 = 0;
+
+    /// Check if a settings_id is the official default settings
+    /// Only games using default settings can mint cubes and track quest progress
+    pub fn is_default_settings(settings_id: u32) -> bool {
+        settings_id == DEFAULT_SETTINGS_ID
     }
 
-    pub fn GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_EXPERT_METADATA(
+    pub fn GET_DEFAULT_SETTINGS() -> @GameSettings {
+        @GameSettingsTrait::new_with_defaults(DEFAULT_SETTINGS_ID, Difficulty::Increasing)
+    }
+
+    pub fn GET_DEFAULT_SETTINGS_METADATA(
         current_timestamp: u64, creator_address: ContractAddress
     ) -> @GameSettingsMetadata {
         @GameSettingsMetadata {
-            settings_id: 0,
-            name: 'Fixed Difficulty - Expert',
-            description: "Difficulty is fixed at expert level throughout your gameplay session.",
-            created_by: creator_address,
-            created_at: current_timestamp,
-        }
-    }
-
-    pub fn GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY() -> @GameSettings {
-        @GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing)
-    }
-
-    pub fn GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA(
-        current_timestamp: u64, creator_address: ContractAddress
-    ) -> @GameSettingsMetadata {
-        @GameSettingsMetadata {
-            settings_id: 1,
-            name: 'Progressive Difficulty',
-            description: "Starts easy and gradually becomes more challenging as you progress through the game",
-            created_by: creator_address,
-            created_at: current_timestamp,
-        }
-    }
-
-    pub fn GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_VERY_HARD() -> @GameSettings {
-        @GameSettingsTrait::new_with_defaults(2, Difficulty::VeryHard)
-    }
-
-    pub fn GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_VERY_HARD_METADATA(
-        current_timestamp: u64, creator_address: ContractAddress
-    ) -> @GameSettingsMetadata {
-        @GameSettingsMetadata {
-            settings_id: 2,
-            name: 'Fixed Difficulty - Very Hard',
-            description: "Difficulty is fixed at very hard level throughout your gameplay session",
+            settings_id: DEFAULT_SETTINGS_ID,
+            name: 'Default',
+            description: "The official zKube settings - progressive difficulty with cube rewards and quest tracking.",
             created_by: creator_address,
             created_at: current_timestamp,
         }

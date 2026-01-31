@@ -27,8 +27,6 @@ trait IConfigSystem<T> {
         wave_cost: u8,
         totem_cost: u8,
         extra_moves_cost: u8,
-        // Reward Multiplier
-        cube_multiplier_x100: u16,
         // Difficulty Progression (non-linear tier thresholds)
         tier_1_threshold: u8,
         tier_2_threshold: u8,
@@ -84,12 +82,9 @@ mod config_system {
     use zkube::types::difficulty::Difficulty;
     use zkube::constants::{DEFAULT_NS};
     use zkube::constants::DEFAULT_SETTINGS::{
-        GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_EXPERT,
-        GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_EXPERT_METADATA,
-        GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY,
-        GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA,
-        GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_VERY_HARD,
-        GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_VERY_HARD_METADATA,
+        DEFAULT_SETTINGS_ID,
+        GET_DEFAULT_SETTINGS,
+        GET_DEFAULT_SETTINGS_METADATA,
     };
 
     use zkube::helpers::encoding::U256BytesUsedTraitImpl;
@@ -146,31 +141,14 @@ mod config_system {
         self.settings.initializer();
 
         let current_timestamp = get_block_timestamp();
-        world.write_model(GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_EXPERT());
-        world
-            .write_model(
-                GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_EXPERT_METADATA(
-                    current_timestamp, creator_address,
-                ),
-            );
+        
+        // Create only the official default settings (ID 0)
+        // Only games using these settings can mint cubes and track quest progress
+        world.write_model(GET_DEFAULT_SETTINGS());
+        world.write_model(GET_DEFAULT_SETTINGS_METADATA(current_timestamp, creator_address));
 
-        world.write_model(GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY());
-        world
-            .write_model(
-                GET_DEFAULT_SETTINGS_INCREASING_DIFFICULTY_METADATA(
-                    current_timestamp, creator_address,
-                ),
-            );
-
-        world.write_model(GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_VERY_HARD());
-        world
-            .write_model(
-                GET_DEFAULT_SETTINGS_FIXED_DIFFICULTY_VERY_HARD_METADATA(
-                    current_timestamp, creator_address,
-                ),
-            );
-
-        self.settings_counter.write(2);
+        // Custom settings will start at ID 1
+        self.settings_counter.write(DEFAULT_SETTINGS_ID);
 
         let (game_systems_address, _) = world.dns(@"game_system").unwrap();
         let minigame_dispatcher = IMinigameDispatcher { contract_address: game_systems_address };
@@ -180,32 +158,10 @@ mod config_system {
             .settings
             .create_settings(
                 game_systems_address,
-                0,
-                "Fixed Difficulty - Expert",
-                "Difficulty is fixed at expert level throughout your gameplay session.",
-                array![GameSetting { name: "Difficulty", value: "Expert" }].span(),
-                minigame_token_address,
-            );
-
-        self
-            .settings
-            .create_settings(
-                game_systems_address,
-                1,
-                "Progressive Difficulty",
-                "Starts easy and gradually becomes more challenging as you progress through the game.",
+                DEFAULT_SETTINGS_ID,
+                "Default",
+                "The official zKube settings with progressive difficulty. Games using these settings earn cubes, track quests, and appear on leaderboards.",
                 array![GameSetting { name: "Difficulty", value: "Progressive" }].span(),
-                minigame_token_address,
-            );
-
-        self
-            .settings
-            .create_settings(
-                game_systems_address,
-                2,
-                "Fixed Difficulty - Very Hard",
-                "Difficulty is fixed at very hard level throughout your gameplay session.",
-                array![GameSetting { name: "Difficulty", value: "Very Hard" }].span(),
                 minigame_token_address,
             );
     }
@@ -312,8 +268,6 @@ mod config_system {
             wave_cost: u8,
             totem_cost: u8,
             extra_moves_cost: u8,
-            // Reward Multiplier
-            cube_multiplier_x100: u16,
             // Difficulty Progression (non-linear tier thresholds)
             tier_1_threshold: u8,
             tier_2_threshold: u8,
@@ -353,7 +307,7 @@ mod config_system {
             assert(difficulty != Difficulty::None, 'Invalid difficulty');
             self._validate_settings(
                 base_moves, max_moves, base_ratio_x100, max_ratio_x100,
-                cube_3_percent, cube_2_percent, cube_multiplier_x100,
+                cube_3_percent, cube_2_percent,
                 tier_1_threshold, tier_2_threshold, tier_3_threshold, tier_4_threshold,
                 tier_5_threshold, tier_6_threshold, tier_7_threshold,
                 constraints_enabled, constraint_start_level,
@@ -389,8 +343,6 @@ mod config_system {
                 wave_cost,
                 totem_cost,
                 extra_moves_cost,
-                // Reward Multiplier
-                cube_multiplier_x100,
                 // Difficulty Progression (non-linear tier thresholds)
                 tier_1_threshold,
                 tier_2_threshold,
@@ -537,7 +489,6 @@ mod config_system {
             max_ratio_x100: u16,
             cube_3_percent: u8,
             cube_2_percent: u8,
-            cube_multiplier_x100: u16,
             // Difficulty tier thresholds
             tier_1_threshold: u8,
             tier_2_threshold: u8,
@@ -583,9 +534,6 @@ mod config_system {
             assert!(cube_3_percent <= 100, "Cube 3 percent must be <= 100");
             assert!(cube_2_percent <= 100, "Cube 2 percent must be <= 100");
             assert!(cube_3_percent < cube_2_percent, "Cube 3 threshold must be < cube 2 threshold");
-            
-            // Validate multiplier
-            assert!(cube_multiplier_x100 > 0, "Cube multiplier must be positive");
             
             // Validate difficulty tier thresholds (must be in ascending order)
             assert!(tier_1_threshold >= 2, "Tier 1 must be >= 2 (at least 1 VeryEasy level)");
@@ -691,8 +639,6 @@ mod config_system {
             GameSetting { name: "Wave Cost", value: format!("{}", game_settings.wave_cost) },
             GameSetting { name: "Totem Cost", value: format!("{}", game_settings.totem_cost) },
             GameSetting { name: "Extra Moves Cost", value: format!("{}", game_settings.extra_moves_cost) },
-            // Reward Multiplier
-            GameSetting { name: "Cube Multiplier", value: format_ratio(game_settings.cube_multiplier_x100) },
             // Difficulty Progression (non-linear tier thresholds)
             GameSetting { name: "VeryEasy", value: format!("Levels 1-{}", game_settings.tier_1_threshold - 1) },
             GameSetting { name: "Easy", value: format!("Levels {}-{}", game_settings.tier_1_threshold, game_settings.tier_2_threshold - 1) },

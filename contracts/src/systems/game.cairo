@@ -26,7 +26,7 @@ pub trait IGameSystem<T> {
 
 #[dojo::contract]
 mod game_system {
-    use zkube::constants::DEFAULT_NS;
+    use zkube::constants::{DEFAULT_NS, DEFAULT_SETTINGS::is_default_settings};
     use zkube::models::game::{Game, GameTrait, GameAssert};
     use zkube::models::game::{GameSeed, GameLevel, GameLevelTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
@@ -232,7 +232,8 @@ mod game_system {
             world.write_model(@player_meta);
 
             // Track quest progress: games played (Grinder task)
-            self.track_quest_progress(player, grinder::Grinder::identifier(), 1);
+            // Only counts for default settings games
+            self.track_quest_progress(player, grinder::Grinder::identifier(), 1, settings.settings_id);
 
             post_action(token_address, game_id);
 
@@ -326,20 +327,21 @@ mod game_system {
             );
 
             // Track quest progress for lines cleared and combos
+            // Only counts for default settings games
             let player = get_caller_address();
             if lines_cleared > 0 {
                 // Track lines cleared (LineClearer task)
-                self.track_quest_progress(player, clearer::LineClearer::identifier(), lines_cleared.into());
+                self.track_quest_progress(player, clearer::LineClearer::identifier(), lines_cleared.into(), settings.settings_id);
                 
                 // Track combo achievements based on lines cleared in one move
                 if lines_cleared >= 3 {
-                    self.track_quest_progress(player, combo::ComboThree::identifier(), 1);
+                    self.track_quest_progress(player, combo::ComboThree::identifier(), 1, settings.settings_id);
                 }
                 if lines_cleared >= 5 {
-                    self.track_quest_progress(player, combo::ComboFive::identifier(), 1);
+                    self.track_quest_progress(player, combo::ComboFive::identifier(), 1, settings.settings_id);
                 }
                 if lines_cleared >= 8 {
-                    self.track_quest_progress(player, combo::ComboEight::identifier(), 1);
+                    self.track_quest_progress(player, combo::ComboEight::identifier(), 1, settings.settings_id);
                 }
             }
 
@@ -553,17 +555,15 @@ mod game_system {
                 0
             };
             
-            // Apply cube multiplier from settings (e.g., 200 = 2x cubes)
-            let cubes_to_mint: u16 = settings.apply_cube_multiplier(base_cubes);
-            
-            // Mint cubes to player's ERC1155 wallet
-            if cubes_to_mint > 0 {
+            // Only mint cubes and update stats for games using default settings
+            // Custom settings games can still earn/spend cubes in-game, but don't mint to wallet
+            if is_default_settings(settings.settings_id) && base_cubes > 0 {
                 let cube_token = self.get_cube_token_dispatcher();
-                cube_token.mint(player, cubes_to_mint.into());
+                cube_token.mint(player, base_cubes.into());
+                
+                // Update lifetime stats only for default settings
+                player_meta.add_cubes_earned(base_cubes.into());
             }
-            
-            // Update lifetime stats
-            player_meta.add_cubes_earned(cubes_to_mint.into());
             world.write_model(@player_meta);
 
             // Emit run ended event
@@ -601,10 +601,15 @@ mod game_system {
             }
         }
 
-        /// Track quest progress for a player (no-op if quest system not deployed)
+        /// Track quest progress for a player (no-op if quest system not deployed or custom settings)
+        /// Only tracks progress for games using default settings (settings_id == 0)
         fn track_quest_progress(
-            self: @ContractState, player: ContractAddress, task_id: felt252, count: u32,
+            self: @ContractState, player: ContractAddress, task_id: felt252, count: u32, settings_id: u32,
         ) {
+            // Only track quest progress for default settings games
+            if !is_default_settings(settings_id) {
+                return;
+            }
             if let Option::Some(quest_system) = self.get_quest_system_dispatcher() {
                 quest_system.progress(player, task_id, count);
             }

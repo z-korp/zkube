@@ -25,7 +25,17 @@ import { Constraint } from "./constraint";
  * - times_cap = budget / line_cost(lines)
  * - Line costs: 2->2, 3->4, 4->6, 5->10, 6->15, 7+->20
  */
+/** Default settings ID (only games with this ID earn cubes/quests) */
+export const DEFAULT_SETTINGS_ID = 0;
+
+/** Check if a settings ID is the official default settings */
+export function isDefaultSettings(settingsId: number): boolean {
+  return settingsId === DEFAULT_SETTINGS_ID;
+}
+
 export interface GameSettings {
+  // Settings identifier
+  settingsId: number;
   // Mode
   mode: number;
   // Level Scaling
@@ -41,8 +51,6 @@ export interface GameSettings {
   waveCost: number;
   totemCost: number;
   extraMovesCost: number;
-  // Reward Multiplier
-  cubeMultiplierX100: number;
   // Difficulty Progression (tier thresholds)
   tier1Threshold: number;  // Easy starts
   tier2Threshold: number;  // Medium starts
@@ -96,6 +104,7 @@ export interface GameSettings {
  * Uses budget-based constraint system with line costs
  */
 export const DEFAULT_SETTINGS: GameSettings = {
+  settingsId: DEFAULT_SETTINGS_ID,
   mode: 1, // Increasing
   // Level Scaling
   baseMoves: 20,
@@ -110,8 +119,6 @@ export const DEFAULT_SETTINGS: GameSettings = {
   waveCost: 5,
   totemCost: 5,
   extraMovesCost: 10,
-  // Reward Multiplier
-  cubeMultiplierX100: 100, // 1.0x
   // Difficulty Progression (non-linear tier thresholds)
   tier1Threshold: 4,   // Easy starts at level 4
   tier2Threshold: 8,   // Medium starts at level 8
@@ -927,6 +934,7 @@ export function parseGameSettings(raw: any): GameSettings {
         };
 
   return {
+    settingsId: raw.settings_id ?? DEFAULT_SETTINGS.settingsId,
     mode: raw.mode ?? DEFAULT_SETTINGS.mode,
     baseMoves: raw.base_moves ?? DEFAULT_SETTINGS.baseMoves,
     maxMoves: raw.max_moves ?? DEFAULT_SETTINGS.maxMoves,
@@ -938,8 +946,6 @@ export function parseGameSettings(raw: any): GameSettings {
     waveCost: raw.wave_cost ?? DEFAULT_SETTINGS.waveCost,
     totemCost: raw.totem_cost ?? DEFAULT_SETTINGS.totemCost,
     extraMovesCost: raw.extra_moves_cost ?? DEFAULT_SETTINGS.extraMovesCost,
-    cubeMultiplierX100:
-      raw.cube_multiplier_x100 ?? DEFAULT_SETTINGS.cubeMultiplierX100,
     // Difficulty tier thresholds
     tier1Threshold: raw.tier_1_threshold ?? DEFAULT_SETTINGS.tier1Threshold,
     tier2Threshold: raw.tier_2_threshold ?? DEFAULT_SETTINGS.tier2Threshold,
