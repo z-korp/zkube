@@ -5,7 +5,7 @@
 /// - Same seed + same level = same config
 /// - Different seed = different config sequence
 /// - Level 50+ caps at max difficulty (survival mode)
-/// - Points derived from moves × ratio (0.8 → 2.5), base moves 20→60
+/// - Points derived from moves × ratio (0.8 → 1.8), base moves 20→60
 /// - Correlated variance keeps difficulty ratio constant
 /// - All generation uses GameSettings for configurable game balance
 
@@ -23,14 +23,14 @@ mod LevelConstants {
     pub const BASE_MOVES: u16 = 20;
     pub const MAX_MOVES: u16 = 60;
 
-    // Ratio scaling ×100 for integer math (0.80 → 2.50)
+    // Ratio scaling ×100 for integer math (0.80 → 1.80)
     pub const BASE_RATIO_X100: u16 = 80;   // 0.80 points per move at level 1
-    pub const MAX_RATIO_X100: u16 = 250;   // 2.50 points per move at level 50
+    pub const MAX_RATIO_X100: u16 = 180;   // 1.80 points per move at level 50
 
-    // Correlated variance by level tier (percentage)
+    // Correlated variance (consistent ±5% across all levels)
     pub const EARLY_VARIANCE_PERCENT: u16 = 5;   // ±5% for levels 1-5
-    pub const MID_VARIANCE_PERCENT: u16 = 10;    // ±10% for levels 6-25
-    pub const LATE_VARIANCE_PERCENT: u16 = 15;   // ±15% for levels 26-50
+    pub const MID_VARIANCE_PERCENT: u16 = 5;     // ±5% for levels 6-25
+    pub const LATE_VARIANCE_PERCENT: u16 = 5;    // ±5% for levels 26-50
 
     // Cube thresholds (percentage of max_moves)
     pub const CUBE_3_PERCENT: u16 = 40; // 3 cubes if moves <= 40% of max
@@ -434,7 +434,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     }
 
     /// Calculate ratio for this level (scaled by 100)
-    /// Linear scaling: 80 (0.80) at level 1, 250 (2.50) at level 50 (using defaults)
+    /// Linear scaling: 80 (0.80) at level 1, 180 (1.80) at level 50 (using defaults)
     #[inline(always)]
     fn calculate_ratio(level: u8) -> u16 {
         Self::calculate_ratio_with_settings(
@@ -524,21 +524,22 @@ mod tests {
     fn test_ratio_scaling() {
         assert!(LevelGeneratorTrait::calculate_ratio(1) == 80, "Level 1 should have ratio 80");
         assert!(
-            LevelGeneratorTrait::calculate_ratio(50) == 250, "Level 50 should have ratio 250",
+            LevelGeneratorTrait::calculate_ratio(50) == 180, "Level 50 should have ratio 180",
         );
 
         let mid = LevelGeneratorTrait::calculate_ratio(25);
-        assert!(mid >= 160 && mid <= 170, "Level 25 should have ratio around 165");
+        assert!(mid >= 125 && mid <= 135, "Level 25 should have ratio around 130");
     }
 
     #[test]
     fn test_variance_percent_tiers() {
+        // All levels now use consistent ±5% variance
         assert!(LevelGeneratorTrait::get_variance_percent(1) == 5, "Level 1 should be 5%");
         assert!(LevelGeneratorTrait::get_variance_percent(5) == 5, "Level 5 should be 5%");
-        assert!(LevelGeneratorTrait::get_variance_percent(6) == 10, "Level 6 should be 10%");
-        assert!(LevelGeneratorTrait::get_variance_percent(25) == 10, "Level 25 should be 10%");
-        assert!(LevelGeneratorTrait::get_variance_percent(26) == 15, "Level 26 should be 15%");
-        assert!(LevelGeneratorTrait::get_variance_percent(50) == 15, "Level 50 should be 15%");
+        assert!(LevelGeneratorTrait::get_variance_percent(6) == 5, "Level 6 should be 5%");
+        assert!(LevelGeneratorTrait::get_variance_percent(25) == 5, "Level 25 should be 5%");
+        assert!(LevelGeneratorTrait::get_variance_percent(26) == 5, "Level 26 should be 5%");
+        assert!(LevelGeneratorTrait::get_variance_percent(50) == 5, "Level 50 should be 5%");
     }
 
     #[test]
@@ -559,14 +560,14 @@ mod tests {
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
         let config = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
 
-        // Base at level 50: moves = 60, ratio_x100 = 250, points = 60 × 2.50 = 150
-        // With variance (±15%), both should scale together maintaining the ratio
+        // Base at level 50: moves = 60, ratio_x100 = 180, points = 60 × 1.80 = 108
+        // With variance (±5%), both should scale together maintaining the ratio
         // Ratio should be approximately: points_required * 100 / max_moves
         let actual_ratio = config.points_required.into() * 100_u32 / config.max_moves.into();
         
-        // The ratio should be close to the base ratio for level 50 (~250)
+        // The ratio should be close to the base ratio for level 50 (~180)
         // Allow for rounding errors
-        assert!(actual_ratio >= 230 && actual_ratio <= 270, "Ratio should be approximately 250");
+        assert!(actual_ratio >= 165 && actual_ratio <= 195, "Ratio should be approximately 180");
     }
 
     #[test]
@@ -646,12 +647,12 @@ mod tests {
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
         let config = LevelGeneratorTrait::generate(TEST_SEED, 25, settings);
 
-        // Level 25: base_moves~40, ratio~1.65, base_points~66
-        // With ±10% variance: moves 36-44, points 59-73
+        // Level 25: base_moves~40, ratio~1.30, base_points~52
+        // With ±5% variance: moves ~38-42, points ~49-55
         // With non-linear progression: Level 25 is VeryHard (tier 5, starts at level 25)
         assert!(config.level == 25, "Level should be 25");
-        assert!(config.points_required >= 56 && config.points_required <= 76, "Points in range");
-        assert!(config.max_moves >= 34 && config.max_moves <= 46, "Moves in range");
+        assert!(config.points_required >= 47 && config.points_required <= 57, "Points in range");
+        assert!(config.max_moves >= 36 && config.max_moves <= 44, "Moves in range");
         assert!(config.difficulty == Difficulty::VeryHard, "Level 25 should be VeryHard");
         assert!(config.cube_3_threshold < config.cube_2_threshold, "Cube thresholds ordered");
         assert!(config.cube_2_threshold < config.max_moves, "2-cube threshold < max");
@@ -662,13 +663,13 @@ mod tests {
         let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
         let config = LevelGeneratorTrait::generate(TEST_SEED, 50, settings);
 
-        // Level 50 (max): base_moves=60, ratio=2.50, base_points=150
-        // With ±15% variance: moves 51-69, points 127-173
+        // Level 50 (max): base_moves=60, ratio=1.80, base_points=108
+        // With ±5% variance: moves ~57-63, points ~103-113
         assert!(config.level == 50, "Level should be 50");
         assert!(
-            config.points_required >= 124 && config.points_required <= 176, "Points in range",
+            config.points_required >= 100 && config.points_required <= 116, "Points in range",
         );
-        assert!(config.max_moves >= 49 && config.max_moves <= 71, "Moves in range");
+        assert!(config.max_moves >= 55 && config.max_moves <= 65, "Moves in range");
         assert!(config.difficulty == Difficulty::Master, "Level 50 should be Master");
     }
 

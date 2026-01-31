@@ -6,7 +6,7 @@
  * - Same seed + same level + same settings = same config
  * - Different seed = different config sequence
  * - Level 50+ caps at max difficulty (survival mode)
- * - Points derived from moves x ratio (configurable, default 0.8 -> 2.5)
+ * - Points derived from moves x ratio (configurable, default 0.8 -> 1.8)
  * - Correlated variance keeps difficulty ratio constant
  * - Supports dual constraints from settings
  */
@@ -101,7 +101,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   baseMoves: 20,
   maxMoves: 60,
   baseRatioX100: 80, // 0.80
-  maxRatioX100: 250, // 2.50
+  maxRatioX100: 180, // 1.80
   // Cube Thresholds
   cube3Percent: 40,
   cube2Percent: 70,
@@ -150,10 +150,10 @@ export const DEFAULT_SETTINGS: GameSettings = {
   masterSize3Weight: 20,
   masterSize4Weight: 27,
   masterSize5Weight: 33,
-  // Variance Settings
+  // Variance Settings (consistent ±5% across all levels)
   earlyVariancePercent: 5,
-  midVariancePercent: 10,
-  lateVariancePercent: 15,
+  midVariancePercent: 5,
+  lateVariancePercent: 5,
   // Level Tier Thresholds
   earlyLevelThreshold: 5,
   midLevelThreshold: 25,

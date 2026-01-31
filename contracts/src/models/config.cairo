@@ -30,7 +30,7 @@ pub struct GameSettings {
     pub base_moves: u16,        // Moves at level 1 (default: 20)
     pub max_moves: u16,         // Moves at level cap (default: 60)
     pub base_ratio_x100: u16,   // Points/move ratio at level 1 * 100 (default: 80 = 0.80)
-    pub max_ratio_x100: u16,    // Points/move ratio at level cap * 100 (default: 250 = 2.50)
+    pub max_ratio_x100: u16,    // Points/move ratio at level cap * 100 (default: 180 = 1.80)
     
     // === Cube Thresholds ===
     pub cube_3_percent: u8,     // 3 cubes if moves <= X% of max (default: 40)
@@ -116,7 +116,7 @@ pub mod GameSettingsDefaults {
     pub const BASE_MOVES: u16 = 20;
     pub const MAX_MOVES: u16 = 60;
     pub const BASE_RATIO_X100: u16 = 80;   // 0.80
-    pub const MAX_RATIO_X100: u16 = 250;   // 2.50
+    pub const MAX_RATIO_X100: u16 = 180;   // 1.80
     
     // Cube Thresholds
     pub const CUBE_3_PERCENT: u8 = 40;
@@ -212,10 +212,10 @@ pub mod GameSettingsDefaults {
     pub const MASTER_SIZE4_WEIGHT: u8 = 27;      // 4-wide blocks at Master
     pub const MASTER_SIZE5_WEIGHT: u8 = 33;      // 5-wide blocks at Master
     
-    // Variance Settings
+    // Variance Settings (consistent ±5% across all levels)
     pub const EARLY_VARIANCE_PERCENT: u8 = 5;  // ±5% for early levels
-    pub const MID_VARIANCE_PERCENT: u8 = 10;   // ±10% for mid levels
-    pub const LATE_VARIANCE_PERCENT: u8 = 15;  // ±15% for late levels
+    pub const MID_VARIANCE_PERCENT: u8 = 5;    // ±5% for mid levels
+    pub const LATE_VARIANCE_PERCENT: u8 = 5;   // ±5% for late levels
     
     // Level Tier Thresholds
     pub const EARLY_LEVEL_THRESHOLD: u8 = 5;   // Levels 1-5 are "early"
@@ -737,7 +737,7 @@ mod tests {
         assert!(settings.base_moves == 20, "Base moves should be 20");
         assert!(settings.max_moves == 60, "Max moves should be 60");
         assert!(settings.base_ratio_x100 == 80, "Base ratio should be 80");
-        assert!(settings.max_ratio_x100 == 250, "Max ratio should be 250");
+        assert!(settings.max_ratio_x100 == 180, "Max ratio should be 180");
         // Cube Thresholds
         assert!(settings.cube_3_percent == 40, "Cube 3 percent should be 40");
         assert!(settings.cube_2_percent == 70, "Cube 2 percent should be 70");
