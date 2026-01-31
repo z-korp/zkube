@@ -12,6 +12,7 @@ import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFire, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { motion } from "framer-motion";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -24,8 +25,10 @@ interface GameBoardProps {
   score: number;
   tutorialProps?: {
     step: number;
+    totalSteps: number;
     targetBlock: { x: number; y: number; type: "block" | "row" }[] | null;
     isIntermission: boolean;
+    onSkip?: () => void;
   };
   onBlockSelect?: (block: Block) => void;
   onUpdateState: (intermission: boolean) => void;
@@ -195,6 +198,11 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
   if (memorizedInitialData.length === 0) return null; // otherwise sometimes
   // the grid is not displayed in Grid because the data is not ready
 
+  // Extract tutorial progress info
+  const currentStep = tutorialProps?.step ?? 1;
+  const totalSteps = tutorialProps?.totalSteps ?? 11;
+  const onSkip = tutorialProps?.onSkip;
+
   return (
     <>
       <Card
@@ -202,6 +210,31 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
           isTxProcessing && "cursor-wait"
         } pb-2 md:pb-3`}
       >
+        {/* Tutorial Progress Header */}
+        <div className={`${isMdOrLarger ? "w-[420px]" : "w-[338px]"} mb-3 px-1`}>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className={`text-slate-400 ${isMdOrLarger ? "text-sm" : "text-xs"} font-medium`}>
+              Step {currentStep} of {totalSteps}
+            </span>
+            {onSkip && (
+              <button
+                onClick={onSkip}
+                className="text-slate-500 hover:text-slate-300 text-xs transition-colors"
+              >
+                Skip Tutorial
+              </button>
+            )}
+          </div>
+          <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-to-r from-purple-500 to-blue-500"
+              initial={{ width: 0 }}
+              animate={{ width: `${(currentStep / totalSteps) * 100}%` }}
+              transition={{ duration: 0.3 }}
+            />
+          </div>
+        </div>
+
         <div
           className={`${
             isMdOrLarger ? "w-[420px]" : "w-[338px]"

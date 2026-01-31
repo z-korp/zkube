@@ -251,32 +251,9 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Progress Indicator */}
-      <div className="w-full max-w-md mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className={`text-slate-400 ${isMdOrLarger ? "text-sm" : "text-xs"}`}>
-            Step {tutorialStep} of {TOTAL_TUTORIAL_STEPS}
-          </span>
-          <button
-            onClick={handleSkipTutorial}
-            className="text-slate-500 hover:text-slate-300 text-xs transition-colors"
-          >
-            Skip Tutorial
-          </button>
-        </div>
-        <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-          <motion.div
-            className="h-full bg-gradient-to-r from-purple-500 to-blue-500"
-            initial={{ width: 0 }}
-            animate={{ width: `${(tutorialStep / TOTAL_TUTORIAL_STEPS) * 100}%` }}
-            transition={{ duration: 0.3 }}
-          />
-        </div>
-      </div>
-
       {/* Tutorial Instruction Overlay */}
       {!isIntermission && (
-        <div className="text-center p-4 bg-slate-700 rounded-md mb-4 absolute mt-40 z-50 w-11/12 mx-auto border border-2 border-white">
+        <div className="text-center p-4 bg-slate-700 rounded-md mb-4 absolute mt-52 z-50 w-11/12 mx-auto border border-2 border-white">
           <div className="flex flex-col items-center justify-center gap-2">
             <div className="flex gap-4 items-center">
               <img className="w-8 h-8" src={imgAssets.logo} alt="zKube" />
@@ -298,8 +275,10 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
         onBlockSelect={handleBlockSelect}
         tutorialProps={{
           step: tutorialStep,
+          totalSteps: TOTAL_TUTORIAL_STEPS,
           targetBlock: tutorialTargetBlock,
           isIntermission,
+          onSkip: handleSkipTutorial,
         }}
         onUpdateState={handleUpdateState}
       />

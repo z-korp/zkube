@@ -107,6 +107,7 @@ export const STEP_1_GRID: MockGridState = {
 /**
  * Step 2: Clear Lines
  * Grid where player needs to move a block to complete a full row
+ * Player slides the 2-wide block at position 0 to the right to fill the gap
  */
 export const STEP_2_GRID: MockGridState = {
   initialGrid: [
@@ -118,8 +119,8 @@ export const STEP_2_GRID: MockGridState = {
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [2, 2, 0, 2, 2, 2, 2, 0], // Almost complete - move block to fill
-    [2, 2, 2, 2, 2, 2, 2, 2], // Full row (will clear after above)
+    [2, 2, 0, 0, 2, 2, 2, 2], // Move the 2-wide block right to fill gap at positions 2-3
+    [1, 1, 2, 2, 2, 2, 2, 2], // Stable bottom row (not full - only 7 cells filled)
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
   hammerCount: 3,
@@ -133,6 +134,7 @@ export const STEP_2_GRID: MockGridState = {
 /**
  * Step 3: Combos
  * Grid set up for a cascade/combo clear
+ * Player moves the block to complete a row, then falling blocks complete another row
  */
 export const STEP_3_GRID: MockGridState = {
   initialGrid: [
@@ -142,10 +144,10 @@ export const STEP_3_GRID: MockGridState = {
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 2, 2, 0, 0, 0, 0], // Will fall to complete row below after first clear
-    [2, 2, 0, 0, 2, 2, 2, 2], // Complete row 7 to trigger combo
-    [2, 2, 2, 2, 2, 2, 2, 2], // Full row - clears immediately
-    [2, 2, 2, 2, 2, 2, 2, 2], // Full row - clears immediately
+    [0, 0, 0, 0, 2, 2, 0, 0], // This 2-wide will fall after row 8 clears
+    [2, 2, 2, 2, 0, 0, 2, 2], // Row 7: will be complete after block from row 6 falls
+    [2, 2, 0, 0, 2, 2, 2, 2], // Row 8: move block to complete this first
+    [1, 1, 2, 2, 2, 2, 2, 2], // Stable bottom row
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
   hammerCount: 3,
@@ -233,7 +235,8 @@ export const STEP_6_GRID: MockGridState = {
 
 /**
  * Step 8: Constraints
- * Grid set up to demonstrate clearing 2+ lines
+ * Grid set up to demonstrate clearing 2+ lines at once via cascade
+ * Moving the block completes row 8, then the falling block completes row 7
  */
 export const STEP_8_GRID: MockGridState = {
   initialGrid: [
@@ -243,10 +246,10 @@ export const STEP_8_GRID: MockGridState = {
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [2, 2, 0, 2, 2, 2, 2, 0], // Move block to complete 2 rows at once
-    [2, 2, 2, 2, 2, 2, 2, 2],
-    [2, 2, 2, 2, 2, 2, 2, 2],
+    [0, 0, 2, 2, 0, 0, 0, 0], // Row 6: This 2-wide falls after row 7 clears
+    [2, 2, 0, 0, 2, 2, 2, 2], // Row 7: Will be complete when block from row 6 falls
+    [2, 2, 0, 0, 2, 2, 2, 2], // Row 8: Move the 2-wide right to complete this first
+    [1, 1, 2, 2, 2, 2, 2, 2], // Stable bottom row
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
   hammerCount: 2,
