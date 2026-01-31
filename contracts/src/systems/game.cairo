@@ -28,7 +28,7 @@ pub trait IGameSystem<T> {
 mod game_system {
     use zkube::constants::DEFAULT_NS;
     use zkube::models::game::{Game, GameTrait, GameAssert};
-    use zkube::models::game::GameSeed;
+    use zkube::models::game::{GameSeed, GameLevel, GameLevelTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::models::config::{GameSettings, GameSettingsTrait};
     use zkube::helpers::random::RandomImpl;
@@ -242,8 +242,13 @@ mod game_system {
                     @StartGame { player, timestamp, game_id, },
                 );
 
-            // Emit level 1 started
+            // Generate level 1 config and write to GameLevel model
+            // This is the single source of truth for level config (replaces client-side generation)
             let level_config = LevelGeneratorTrait::generate(random.seed, 1, settings);
+            let game_level = GameLevelTrait::from_level_config(game_id, level_config);
+            world.write_model(@game_level);
+
+            // Emit level 1 started
             world
                 .emit_event(
                     @LevelStarted {
@@ -676,11 +681,17 @@ mod game_system {
                 return true;
             }
 
-            // Normal flow: emit next level started
+            // Normal flow: generate next level config and write to model
             let updated_run_data = game.get_run_data();
             let next_level_config = LevelGeneratorTrait::generate(
                 base_seed, updated_run_data.current_level, settings,
             );
+            
+            // Write next level config to GameLevel model (single source of truth for client)
+            let game_level = GameLevelTrait::from_level_config(game_id, next_level_config);
+            world.write_model(@game_level);
+
+            // Emit level started event
             world
                 .emit_event(
                     @LevelStarted {

@@ -160,6 +160,51 @@ export function defineContractComponents(world: World) {
         }
       );
     })(),
+    GameLevel: (() => {
+      return defineComponent(
+        world,
+        {
+          game_id: RecsType.Number,
+          level: RecsType.Number,
+          points_required: RecsType.Number,
+          max_moves: RecsType.Number,
+          difficulty: RecsType.Number,
+          // Primary constraint
+          constraint_type: RecsType.Number,
+          constraint_value: RecsType.Number,
+          constraint_count: RecsType.Number,
+          // Secondary constraint (for boss levels)
+          constraint2_type: RecsType.Number,
+          constraint2_value: RecsType.Number,
+          constraint2_count: RecsType.Number,
+          // Cube thresholds
+          cube_3_threshold: RecsType.Number,
+          cube_2_threshold: RecsType.Number,
+        },
+        {
+          metadata: {
+            namespace: VITE_PUBLIC_NAMESPACE,
+            name: "GameLevel",
+            types: [
+              "u64",  // game_id
+              "u8",   // level
+              "u16",  // points_required
+              "u16",  // max_moves
+              "u8",   // difficulty
+              "u8",   // constraint_type
+              "u8",   // constraint_value
+              "u8",   // constraint_count
+              "u8",   // constraint2_type
+              "u8",   // constraint2_value
+              "u8",   // constraint2_count
+              "u16",  // cube_3_threshold
+              "u16",  // cube_2_threshold
+            ],
+            customTypes: [],
+          },
+        }
+      );
+    })(),
     PlayerMeta: (() => {
       return defineComponent(
         world,

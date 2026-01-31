@@ -13,7 +13,7 @@ use zkube::helpers::controller::Controller;
 use zkube::helpers::packing::{RunData, RunDataPackingTrait};
 use zkube::types::bonus::{Bonus, BonusTrait};
 use zkube::types::level::LevelConfigTrait;
-use zkube::types::constraint::LevelConstraintTrait;
+use zkube::types::constraint::{LevelConstraintTrait, ConstraintType};
 use zkube::helpers::level::{LevelGenerator, LevelGeneratorTrait, BossLevel};
 use zkube::models::config::GameSettings;
 
@@ -59,6 +59,55 @@ pub struct GameSeed {
     #[key]
     pub game_id: u64,
     pub seed: felt252,
+}
+
+/// Current level configuration - synced to client via Torii
+/// This is the single source of truth for level config, eliminating
+/// the need for client-side level generation (which can't work with VRF)
+#[derive(Copy, Drop, Serde, Introspect)]
+#[dojo::model]
+pub struct GameLevel {
+    #[key]
+    pub game_id: u64,
+    pub level: u8,
+    pub points_required: u16,
+    pub max_moves: u16,
+    pub difficulty: u8,           // Difficulty enum as u8
+    // Primary constraint
+    pub constraint_type: u8,      // ConstraintType enum as u8 (0=None, 1=ClearLines, 2=NoBonusUsed)
+    pub constraint_value: u8,     // For ClearLines: minimum lines to clear
+    pub constraint_count: u8,     // For ClearLines: number of times required
+    // Secondary constraint (for boss levels)
+    pub constraint2_type: u8,
+    pub constraint2_value: u8,
+    pub constraint2_count: u8,
+    // Cube thresholds
+    pub cube_3_threshold: u16,    // Moves threshold for 3 cubes
+    pub cube_2_threshold: u16,    // Moves threshold for 2 cubes
+}
+
+use zkube::types::level::LevelConfig;
+
+#[generate_trait]
+pub impl GameLevelImpl of GameLevelTrait {
+    /// Create a GameLevel model from a LevelConfig and game_id
+    fn from_level_config(game_id: u64, config: LevelConfig) -> GameLevel {
+        GameLevel {
+            game_id,
+            level: config.level,
+            points_required: config.points_required,
+            max_moves: config.max_moves,
+            difficulty: config.difficulty.into(),
+            constraint_type: config.constraint.constraint_type.into(),
+            constraint_value: config.constraint.value,
+            constraint_count: config.constraint.required_count,
+            constraint2_type: config.constraint_2.constraint_type.into(),
+            constraint2_value: config.constraint_2.value,
+            constraint2_count: config.constraint_2.required_count,
+            cube_3_threshold: config.cube_3_threshold,
+            cube_2_threshold: config.cube_2_threshold,
+        }
+    }
 }
 
 #[inline(always)]

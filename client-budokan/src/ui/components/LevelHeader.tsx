@@ -3,8 +3,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFire, faCircleInfo, faCheck, faBan } from "@fortawesome/free-solid-svg-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
-import { generateLevelConfig } from "@/dojo/game/types/level";
-import { ConstraintType } from "@/dojo/game/types/constraint";
+import { generateLevelConfig, LevelConfig } from "@/dojo/game/types/level";
+import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
+import { Difficulty } from "@/dojo/game/types/difficulty";
 import { useMusicPlayer } from "@/contexts/hooks";
 import {
   Tooltip,
@@ -12,6 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/ui/elements/tooltip";
+import type { GameLevelData } from "@/hooks/useGameLevel";
 
 interface LevelHeaderProps {
   level: number;
@@ -30,6 +32,8 @@ interface LevelHeaderProps {
   cubesBrought?: number;
   cubesSpent?: number;
   onShopClick?: () => void;
+  // New: GameLevel data from contract (single source of truth)
+  gameLevel?: GameLevelData | null;
 }
 
 // Boss levels occur at 10, 20, 30, 40, 50
@@ -54,6 +58,7 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
   cubesBrought = 0,
   cubesSpent = 0,
   onShopClick,
+  gameLevel,
 }) => {
   const isBoss = isBossLevel(level);
   const { playSuccess } = useMusicPlayer(); // Use success sound for constraint satisfaction
@@ -64,10 +69,48 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
   const [progressIncrement, setProgressIncrement] = useState<number | null>(null);
   const [justSatisfied, setJustSatisfied] = useState(false);
 
-  // Generate level config for display
-  const levelConfig = React.useMemo(() => {
+  // Build level config from GameLevel model (contract source of truth) or fallback to client-side generation
+  // Can be either a Level class instance (from generateLevelConfig) or a plain LevelConfig object (from GameLevel)
+  const levelConfig = React.useMemo((): LevelConfig => {
+    if (gameLevel && gameLevel.level === level) {
+      // Use GameLevel from contract - this is the authoritative source
+      console.log("[LevelHeader] Using GameLevel from contract:", {
+        level: gameLevel.level,
+        pointsRequired: gameLevel.pointsRequired,
+        maxMoves: gameLevel.maxMoves,
+        constraintType: ConstraintType[gameLevel.constraintType],
+        constraintValue: gameLevel.constraintValue,
+        constraintCount: gameLevel.constraintCount,
+        constraint2Type: ConstraintType[gameLevel.constraint2Type],
+      });
+
+      // Create Constraint objects from GameLevel data
+      const constraint = new Constraint(
+        gameLevel.constraintType,
+        gameLevel.constraintValue,
+        gameLevel.constraintCount
+      );
+      const constraint2 = new Constraint(
+        gameLevel.constraint2Type,
+        gameLevel.constraint2Value,
+        gameLevel.constraint2Count
+      );
+
+      return {
+        level: gameLevel.level,
+        pointsRequired: gameLevel.pointsRequired,
+        maxMoves: gameLevel.maxMoves,
+        difficulty: Difficulty.from(gameLevel.difficulty),
+        constraint,
+        constraint2,
+        cube3Threshold: gameLevel.cube3Threshold,
+        cube2Threshold: gameLevel.cube2Threshold,
+      };
+    }
+
+    // Fallback to client-side generation (for backwards compatibility or if model not synced yet)
     const config = generateLevelConfig(seed, level);
-    console.log("[LevelHeader] Generated config:", {
+    console.log("[LevelHeader] Fallback to client-side config:", {
       seed: seed.toString(),
       level,
       pointsRequired: config.pointsRequired,
@@ -77,7 +120,7 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
       constraint: config.constraint.getLabel(),
     });
     return config;
-  }, [seed, level]);
+  }, [gameLevel, level, seed]);
 
   // Check if constraint is satisfied
   const constraintSatisfied = React.useMemo(() => {
@@ -160,7 +203,16 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
   const movesRemaining = Math.max(0, levelConfig.maxMoves - levelMoves);
   
   // Calculate potential cubes based on current moves
-  const potentialCubes = levelConfig.potentialCubes(levelMoves);
+  // Use method if available (Level class), otherwise compute inline
+  const potentialCubes = React.useMemo(() => {
+    if ('potentialCubes' in levelConfig && typeof levelConfig.potentialCubes === 'function') {
+      return levelConfig.potentialCubes(levelMoves);
+    }
+    // Fallback inline calculation
+    if (levelMoves <= levelConfig.cube3Threshold) return 3;
+    if (levelMoves <= levelConfig.cube2Threshold) return 2;
+    return 1;
+  }, [levelConfig, levelMoves]);
 
   // Get efficiency message
   const getEfficiencyMessage = () => {

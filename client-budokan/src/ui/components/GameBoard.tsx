@@ -12,6 +12,7 @@ import LevelHeader from "./LevelHeader";
 import { isShopLevel } from "@/dojo/game/helpers/runDataPacking";
 import { Bonus, BonusType } from "@/dojo/game/types/bonus";
 import { Game } from "@/dojo/game/models/game";
+import { useGameLevel } from "@/hooks/useGameLevel";
 
 import "../../grid.css";
 
@@ -54,6 +55,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const ROWS = 10;
   const COLS = 8;
   const GRID_SIZE = isMdOrLarger ? 50 : 40;
+
+  // Fetch GameLevel model from contract (single source of truth for level config)
+  const gameLevel = useGameLevel({ gameId: game.id });
 
   const [isTxProcessing, setIsTxProcessing] = useState(false);
 
@@ -222,6 +226,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             cubesBrought={game.cubesBrought}
             cubesSpent={game.cubesSpent}
             onShopClick={onShopClick}
+            gameLevel={gameLevel}
           />
         </div>
         

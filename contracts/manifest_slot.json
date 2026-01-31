@@ -71,7 +71,7 @@
     },
     {
       "address": "0x79db54ead291a552ae109bd03fa38201e401210444fa3ed00a61e3703751188",
-      "class_hash": "0x4306f998c920fc72210b96292dbc35ac8a46ecccdbe011a25f04a980ec32597",
+      "class_hash": "0x4c7365bfd58b3d6c9348510e57916d416f2373009bab21284ae00eb67d6b762",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
         "0x02271f1bb4d75604b1c82a708c544ac851f430416cd409aa322327874fe5f918",
@@ -286,6 +286,78 @@
       "class_hash": "0x1eb503cf1b0cd4e65e6df68a1a51f4cedf364fc59859e02e070cbbcc18522ae",
       "tag": "zkube_budo_v1_2_0-Game",
       "selector": "0x32e0585e8074a4c0264a61e3f5d610e990985d9d32194c1b8bdcf9e00a619ad"
+    },
+    {
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64",
+          "key": true
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "points_required",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "max_moves",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "difficulty",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint_type",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint_value",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint_count",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint2_type",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint2_value",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint2_count",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "cube_3_threshold",
+          "type": "core::integer::u16",
+          "key": false
+        },
+        {
+          "name": "cube_2_threshold",
+          "type": "core::integer::u16",
+          "key": false
+        }
+      ],
+      "class_hash": "0x1197f6a1f9822e3da9b8a46987f32473bf92e8d67b4205922c87771b9c43934",
+      "tag": "zkube_budo_v1_2_0-GameLevel",
+      "selector": "0xb0da199349d3f33e2645d79b9d60f0eea7fce0e961eb51cbe254065fcdb36a"
     },
     {
       "members": [
@@ -5970,6 +6042,118 @@
     },
     {
       "type": "struct",
+      "name": "zkube::models::game::GameLevel",
+      "members": [
+        {
+          "name": "game_id",
+          "type": "core::integer::u64"
+        },
+        {
+          "name": "level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "points_required",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "max_moves",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "difficulty",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint_value",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint_count",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint2_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint2_value",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint2_count",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "cube_3_threshold",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "cube_2_threshold",
+          "type": "core::integer::u16"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "zkube::models::game::GameLevelValue",
+      "members": [
+        {
+          "name": "level",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "points_required",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "max_moves",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "difficulty",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint_value",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint_count",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint2_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint2_value",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint2_count",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "cube_3_threshold",
+          "type": "core::integer::u16"
+        },
+        {
+          "name": "cube_2_threshold",
+          "type": "core::integer::u16"
+        }
+      ]
+    },
+    {
+      "type": "struct",
       "name": "zkube::models::game::GameSeed",
       "members": [
         {
@@ -6029,6 +6213,12 @@
     {
       "type": "event",
       "name": "zkube::models::game::m_Game::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "event",
+      "name": "zkube::models::game::m_GameLevel::Event",
       "kind": "enum",
       "variants": []
     },

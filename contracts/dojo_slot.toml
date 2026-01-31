@@ -25,6 +25,7 @@ world_address = "0x0160743c97af64a3e7b891da3c772e2aa38047cde3f93ab8dfa604f4150b5
 # Models
 "zkube_budo_v1_2_0-Game" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-shop_system"]
 "zkube_budo_v1_2_0-GameSeed" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-shop_system"]
+"zkube_budo_v1_2_0-GameLevel" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-GameCounter" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-GameMetadata" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-TokenMetadata" = ["zkube_budo_v1_2_0-game_system"]
