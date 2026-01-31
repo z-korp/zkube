@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faBan, faCircleInfo } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faBan } from "@fortawesome/free-solid-svg-icons";
 import { motion } from "framer-motion";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import { generateLevelConfig } from "@/dojo/game/types/level";
@@ -205,8 +205,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
     return 1;
   }, [levelConfig, levelMoves]);
 
-  // Pace indicator color
-  const paceColor = potentialCubes === 3 ? "text-green-400" : potentialCubes === 2 ? "text-yellow-400" : "text-orange-400";
+  // Pace indicator background color (green = good pace, yellow = ok, orange = slow)
   const paceBgColor = potentialCubes === 3 ? "bg-green-500/20" : potentialCubes === 2 ? "bg-yellow-500/20" : "bg-orange-500/20";
 
   // Constraint badge with dot progress
@@ -308,8 +307,8 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   };
 
   return (
-    <div className="w-full space-y-1 md:space-y-2">
-      {/* Row 1: Level + Score + Cubes */}
+    <div className="w-full space-y-1.5 md:space-y-2">
+      {/* Row 1: Identity & Meta - Level, Score, Currency */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 md:gap-2">
           <span className="font-bold text-base md:text-lg text-white">Level {level}</span>
@@ -321,10 +320,18 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         </div>
 
         <div className="flex items-center gap-2 md:gap-3">
-          {/* Score */}
-          <div className="flex items-center gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded">
-            <span className="text-[10px] md:text-xs text-slate-400">Score:</span>
-            <span className="text-sm md:text-base font-semibold text-blue-400">{displayTotalScore}</span>
+          {/* Score progress */}
+          <div className="flex items-center gap-1.5 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded">
+            <span className="text-[10px] md:text-xs text-blue-400 font-medium">{displayScore}</span>
+            <div className="w-10 md:w-14 h-1 bg-slate-700 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-blue-500"
+                initial={false}
+                animate={{ width: `${Math.min(100, (levelScore / levelConfig.pointsRequired) * 100)}%` }}
+                transition={{ duration: 0.3 }}
+              />
+            </div>
+            <span className="text-[10px] md:text-xs text-slate-500">{levelConfig.pointsRequired}</span>
           </div>
           
           {/* Cube balance */}
@@ -362,71 +369,10 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         </div>
       </div>
 
-      {/* Row 2: Score/target + Progress bar + moves left + Potential cubes */}
-      <div className="flex items-center gap-1.5 md:gap-2">
-        <span className="text-[10px] md:text-xs text-slate-300 whitespace-nowrap">
-          <span className="text-white font-medium">{displayScore}</span>
-          <span className="text-slate-500">/{levelConfig.pointsRequired}</span>
-        </span>
-        <div className="w-16 md:w-24 h-1 md:h-1.5 bg-slate-700 rounded-full overflow-hidden">
-          <motion.div
-            className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
-            initial={false}
-            animate={{ width: `${Math.min(100, (levelScore / levelConfig.pointsRequired) * 100)}%` }}
-            transition={{ duration: 0.3 }}
-          />
-        </div>
-        <span className="text-[10px] md:text-xs whitespace-nowrap">
-          <span className="font-bold text-white">{movesRemaining}</span>
-          <span className="text-slate-500"> moves left</span>
-        </span>
-        
-        {/* Potential cubes with pace indicator */}
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className={`flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors ${paceBgColor}`}>
-                <FontAwesomeIcon
-                  icon={faCircleInfo}
-                  className={`w-3 h-3 md:w-3.5 md:h-3.5 ${paceColor}`}
-                />
-                {[1, 2, 3].map((cube) => (
-                  <span
-                    key={cube}
-                    className={`transition-opacity duration-200 text-sm md:text-base ${
-                      cube <= potentialCubes ? "opacity-100" : "opacity-20"
-                    }`}
-                  >
-                    🧊
-                  </span>
-                ))}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2 md:p-3">
-              <div className="space-y-1 text-xs">
-                <div className="font-semibold text-white">Cube Thresholds</div>
-                <div className="flex items-center justify-between gap-3">
-                  <span>🧊🧊🧊</span>
-                  <span className="text-slate-300">≤ {levelConfig.cube3Threshold} moves</span>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span>🧊🧊</span>
-                  <span className="text-slate-300">≤ {levelConfig.cube2Threshold} moves</span>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span>🧊</span>
-                  <span className="text-slate-300">level clear</span>
-                </div>
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-
-      {/* Row 3: Constraints + Bonuses */}
+      {/* Row 2: Mission Status - Objectives + Moves limit */}
       <div className="flex items-center justify-between">
-        {/* Constraints */}
-        <div className="flex items-center gap-1 md:gap-2">
+        {/* Objectives (left) */}
+        <div className="flex items-center gap-1.5 md:gap-2">
           {hasConstraint && (
             <ConstraintBadge 
               constraint={levelConfig.constraint} 
@@ -443,32 +389,81 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
               color="purple"
             />
           )}
+          {!hasConstraint && !hasConstraint2 && (
+            <span className="text-[10px] md:text-xs text-slate-500 italic">No objectives</span>
+          )}
         </div>
 
-        {/* Bonuses */}
+        {/* Moves pill (right) */}
+        <div className="flex items-center gap-1 bg-slate-800/50 px-2 md:px-3 py-0.5 md:py-1 rounded-full">
+          <span className="text-sm md:text-base font-bold text-white">{movesRemaining}</span>
+          <span className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wide">moves</span>
+        </div>
+      </div>
+
+      {/* Row 3: Tools - Power-ups + Rewards indicator */}
+      <div className="flex items-center justify-between">
+        {/* Tools (left) */}
         <div className="flex items-center gap-1 md:gap-1.5">
           <BonusButton
             onClick={onBonusHammerClick}
             image={bonusImages.hammer}
             count={hammerCount}
             tooltip="Destroy a block and connected same-size blocks"
-            isActive={activeBonus === 1} // BonusType.Hammer
+            isActive={activeBonus === 1}
           />
           <BonusButton
             onClick={onBonusWaveClick}
             image={bonusImages.wave}
             count={waveCount}
             tooltip="Destroy an entire horizontal line"
-            isActive={activeBonus === 2} // BonusType.Wave
+            isActive={activeBonus === 2}
           />
           <BonusButton
             onClick={onBonusTotemClick}
             image={bonusImages.tiki}
             count={totemCount}
             tooltip="Destroy all blocks of the same size"
-            isActive={activeBonus === 3} // BonusType.Totem
+            isActive={activeBonus === 3}
           />
         </div>
+
+        {/* Potential cubes reward (right) */}
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className={`flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors ${paceBgColor}`}>
+                {[1, 2, 3].map((cube) => (
+                  <span
+                    key={cube}
+                    className={`transition-opacity duration-200 text-sm md:text-base ${
+                      cube <= potentialCubes ? "opacity-100" : "opacity-20"
+                    }`}
+                  >
+                    🧊
+                  </span>
+                ))}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2 md:p-3">
+              <div className="space-y-1 text-xs">
+                <div className="font-semibold text-white">Potential Reward</div>
+                <div className="flex items-center justify-between gap-3">
+                  <span>🧊🧊🧊</span>
+                  <span className="text-slate-300">≤ {levelConfig.cube3Threshold} moves used</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span>🧊🧊</span>
+                  <span className="text-slate-300">≤ {levelConfig.cube2Threshold} moves used</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span>🧊</span>
+                  <span className="text-slate-300">level clear</span>
+                </div>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   );
