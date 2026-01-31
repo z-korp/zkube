@@ -417,10 +417,10 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex items-center gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors">
+              <div className={`flex items-center gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors ${!hasConstraint && !hasConstraint2 ? 'flex-1' : ''}`}>
                 <span className="text-[10px] md:text-xs text-slate-400">Score</span>
                 <span className="text-[10px] md:text-xs text-blue-300">{displayScore}</span>
-                <div className="w-6 md:w-10 h-1 bg-slate-700 rounded-full overflow-hidden">
+                <div className={`h-1 bg-slate-700 rounded-full overflow-hidden ${!hasConstraint && !hasConstraint2 ? 'flex-1 min-w-6 md:min-w-10' : 'w-6 md:w-10'}`}>
                   <motion.div
                     className="h-full bg-blue-400"
                     initial={false}
