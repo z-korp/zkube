@@ -270,10 +270,10 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className={`text-[10px] md:text-xs flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help transition-colors ${
+              <div className={`text-[10px] md:text-xs flex items-center gap-0.5 md:gap-1 cursor-help transition-colors ${
                 bonusUsedThisLevel 
-                  ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" 
-                  : "bg-green-500/20 text-green-400 hover:bg-green-500/30"
+                  ? "text-red-400" 
+                  : "text-green-400"
               }`}>
                 {bonusUsedThisLevel ? (
                   <FontAwesomeIcon icon={faBan} className="w-2.5 h-2.5 md:w-3 md:h-3" />
@@ -321,16 +321,13 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
     }
 
     const textColorClass = satisfied ? "text-green-400" : (color === "purple" ? "text-purple-400" : "text-orange-400");
-    const bgColorClass = satisfied 
-      ? "bg-green-500/20 hover:bg-green-500/30" 
-      : (color === "purple" ? "bg-purple-500/20 hover:bg-purple-500/30" : "bg-orange-500/20 hover:bg-orange-500/30");
 
     return (
       <TooltipProvider delayDuration={0}>
         <Tooltip>
           <TooltipTrigger asChild>
             <motion.div 
-              className={`flex items-center gap-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help transition-colors ${bgColorClass}`}
+              className="flex items-center gap-1 cursor-help"
               animate={justSatisfied && satisfied ? {
                 scale: [1, 1.05, 1],
                 transition: { duration: 0.5 }
@@ -412,12 +409,12 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
       </div>
 
       {/* Row 2: Score + Objectives + Moves */}
-      <div className="flex items-center gap-1.5 md:gap-2">
+      <div className="flex items-center bg-slate-800/50 rounded overflow-hidden">
         {/* Score progress (leftmost) */}
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex-1 flex items-center gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors">
+              <div className="flex-1 flex items-center gap-1 px-1.5 md:px-2 py-0.5 md:py-1 cursor-help hover:bg-slate-700/50 transition-colors">
                 <span className="text-[10px] md:text-xs text-slate-400">Score</span>
                 <span className="text-[10px] md:text-xs text-blue-300">{displayScore}</span>
                 <div className="flex-1 min-w-6 md:min-w-10 h-1 bg-slate-700 rounded-full overflow-hidden">
@@ -443,7 +440,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
 
         {/* Constraints */}
         {hasConstraint && (
-          <div className="flex-1 flex justify-center">
+          <div className="flex items-center justify-center px-1.5 md:px-2 py-0.5 md:py-1 border-l border-slate-700/50">
             <ConstraintBadge 
               constraint={levelConfig.constraint} 
               progress={constraintProgress} 
@@ -454,7 +451,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
           </div>
         )}
         {hasConstraint2 && (
-          <div className="flex-1 flex justify-center">
+          <div className="flex items-center justify-center px-1.5 md:px-2 py-0.5 md:py-1 border-l border-slate-700/50">
             <ConstraintBadge 
               constraint={levelConfig.constraint2} 
               progress={constraint2Progress} 
@@ -466,7 +463,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         )}
 
         {/* Moves pill - dramatic when low */}
-        <div className={`flex-1 flex items-center justify-end gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded ${movesGlow}`}>
+        <div className={`flex items-center justify-end gap-1 px-1.5 md:px-2 py-0.5 md:py-1 border-l border-slate-700/50 ${movesGlow}`}>
           <span className={`text-sm md:text-sm font-bold ${movesColor}`}>{movesRemaining}</span>
           <span className="text-[10px] md:text-xs text-slate-400">moves</span>
         </div>
