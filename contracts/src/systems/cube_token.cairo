@@ -116,7 +116,7 @@ pub mod cube_token {
         let deployer_account = starknet::get_tx_info().unbox().account_contract_address;
         self.accesscontrol._grant_role(DEFAULT_ADMIN_ROLE, deployer_account);
 
-        // Try to grant MINTER_ROLE to game_system and shop_system via world DNS.
+        // Try to grant MINTER_ROLE to systems that mint/burn cubes via world DNS.
         // These may not be registered yet if cube_token inits first in the migration batch.
         // Use grant_minter_roles() post-deploy to fix if needed.
         let world = self.world(@DEFAULT_NS());
@@ -125,6 +125,14 @@ pub mod cube_token {
         match world.dns_address(@"game_system") {
             Option::Some(game_system) => {
                 self.accesscontrol._grant_role(MINTER_ROLE, game_system);
+            },
+            Option::None => {},
+        };
+
+        // Grant to move_system (if already registered) - handles game over cube minting
+        match world.dns_address(@"move_system") {
+            Option::Some(move_system) => {
+                self.accesscontrol._grant_role(MINTER_ROLE, move_system);
             },
             Option::None => {},
         };
@@ -185,6 +193,10 @@ pub mod cube_token {
             let game_system = world.dns_address(@"game_system")
                 .expect('game_system not in DNS');
             self.accesscontrol._grant_role(MINTER_ROLE, game_system);
+
+            let move_system = world.dns_address(@"move_system")
+                .expect('move_system not in DNS');
+            self.accesscontrol._grant_role(MINTER_ROLE, move_system);
 
             let shop_system = world.dns_address(@"shop_system")
                 .expect('shop_system not in DNS');

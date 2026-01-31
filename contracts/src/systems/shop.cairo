@@ -98,7 +98,8 @@ mod shop_system {
     use zkube::models::game::{Game, GameTrait, GameAssert};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::types::consumable::{ConsumableType, ConsumableTrait};
-    use zkube::helpers::packing::RunData;
+    use zkube::helpers::packing::{RunData, RunDataHelpersTrait};
+    use zkube::helpers::token;
     use zkube::events::{ConsumablePurchased, BonusUnlocked, BonusLevelUp};
     use zkube::systems::cube_token::ICubeTokenDispatcherTrait;
     use zkube::helpers::dispatchers;
@@ -294,7 +295,7 @@ mod shop_system {
         fn level_up_bonus(ref self: ContractState, game_id: u64, bonus_slot: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
-            let token_address = self.get_token_address();
+            let token_address = token::get_token_address(world);
             pre_action(token_address, game_id);
 
             let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
@@ -373,8 +374,8 @@ mod shop_system {
         fn purchase_consumable(ref self: ContractState, game_id: u64, consumable: ConsumableType, bonus_slot: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
-            // Get token_address from game_system via IMinigame interface
-            let token_address = self.get_token_address();
+            // Get token_address from game_system via shared helper
+            let token_address = token::get_token_address(world);
             pre_action(token_address, game_id);
 
             let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
@@ -521,17 +522,6 @@ mod shop_system {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
-        /// Get the token address from game_system via IMinigame interface
-        fn get_token_address(self: @ContractState) -> ContractAddress {
-            let world = self.world(@DEFAULT_NS());
-            let game_system_address = world.dns_address(@"game_system")
-                .expect('game_system not found in DNS');
-            
-            // Call game_system's token_address() via IMinigame interface
-            let game_system = IMinigameDispatcher { contract_address: game_system_address };
-            game_system.token_address()
-        }
-        
         /// Add a bonus to inventory based on bonus type
         /// @param bonus_type: 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
         fn add_bonus_to_inventory(
@@ -540,32 +530,22 @@ mod shop_system {
             bonus_type: u8,
             player_meta: @PlayerMeta,
         ) {
-            // Convert bonus type to bag index: 1=Hammer->0, 2=Totem->2, 3=Wave->1, 4=Shrink->3, 5=Shuffle->4
-            let bag_idx: u8 = if bonus_type == 1 { 0 }
-                else if bonus_type == 2 { 2 }
-                else if bonus_type == 3 { 1 }
-                else if bonus_type == 4 { 3 }
-                else { 4 };
-            
-            let bag_size = (*player_meta).get_bag_size(bag_idx);
-            
-            // Add to the appropriate inventory
-            if bonus_type == 1 {
-                assert!(run_data.hammer_count < bag_size, "Hammer bag is full");
-                run_data.hammer_count += 1;
-            } else if bonus_type == 2 {
-                assert!(run_data.totem_count < bag_size, "Totem bag is full");
-                run_data.totem_count += 1;
-            } else if bonus_type == 3 {
-                assert!(run_data.wave_count < bag_size, "Wave bag is full");
-                run_data.wave_count += 1;
-            } else if bonus_type == 4 {
-                assert!(run_data.shrink_count < bag_size, "Shrink bag is full");
-                run_data.shrink_count += 1;
-            } else {
-                assert!(run_data.shuffle_count < bag_size, "Shuffle bag is full");
-                run_data.shuffle_count += 1;
+            // Convert bonus type to bag index using helper
+            let bag_idx: u8 = zkube::helpers::packing::RunDataHelpersTrait::bonus_type_to_bag_idx(bonus_type);
+            let bag_size = player_meta.get_bag_size(bag_idx);
+
+            // Use RunData helper to add bonus (has bag size check built in)
+            let success = run_data.add_bonus(bonus_type, bag_size);
+            if success {
+                return;
             }
+
+            // If add_bonus returned false, bag is full - panic with appropriate message
+            if bonus_type == 1 { assert!(false, "Hammer bag is full"); }
+            else if bonus_type == 2 { assert!(false, "Totem bag is full"); }
+            else if bonus_type == 3 { assert!(false, "Wave bag is full"); }
+            else if bonus_type == 4 { assert!(false, "Shrink bag is full"); }
+            else { assert!(false, "Shuffle bag is full"); }
         }
     }
 }

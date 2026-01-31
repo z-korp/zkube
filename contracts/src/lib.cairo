@@ -65,11 +65,14 @@ pub mod helpers {
     pub mod packing;
     pub mod level;
     pub mod dispatchers;
+    pub mod game_over;
+    pub mod scoring;
 }
 
 pub mod systems {
     pub mod game;
-    pub mod play;
+    pub mod moves;
+    pub mod bonus;
     pub mod config;
     pub mod shop;
     pub mod cube_token;

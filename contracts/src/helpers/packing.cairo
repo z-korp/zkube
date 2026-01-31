@@ -507,6 +507,96 @@ pub impl RunDataPacking of RunDataPackingTrait {
 }
 
 // =============================================================================
+// RunData helper methods
+// =============================================================================
+
+/// Helper methods for RunData to consolidate common operations
+#[generate_trait]
+pub impl RunDataHelpers of RunDataHelpersTrait {
+    /// Convert bonus type code to bag index.
+    /// Bonus types: 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
+    /// Bag indices: 0=Hammer, 1=Wave, 2=Totem, 3=Shrink, 4=Shuffle
+    #[inline(always)]
+    fn bonus_type_to_bag_idx(bonus_type: u8) -> u8 {
+        match bonus_type {
+            1 => 0,  // Hammer
+            2 => 2,  // Totem
+            3 => 1,  // Wave
+            4 => 3,  // Shrink
+            5 => 4,  // Shuffle
+            _ => 0,
+        }
+    }
+
+    /// Get current bonus count for a bonus type.
+    /// bonus_type: 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
+    #[inline(always)]
+    fn get_bonus_count(self: @RunData, bonus_type: u8) -> u8 {
+        match bonus_type {
+            1 => *self.hammer_count,
+            2 => *self.totem_count,
+            3 => *self.wave_count,
+            4 => *self.shrink_count,
+            5 => *self.shuffle_count,
+            _ => 0,
+        }
+    }
+
+    /// Add a bonus to inventory if bag has space.
+    /// Returns true if added successfully, false if bag is full.
+    /// bonus_type: 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
+    fn add_bonus(ref self: RunData, bonus_type: u8, bag_size: u8) -> bool {
+        match bonus_type {
+            1 => {
+                if self.hammer_count >= bag_size { return false; }
+                self.hammer_count += 1;
+                true
+            },
+            2 => {
+                if self.totem_count >= bag_size { return false; }
+                self.totem_count += 1;
+                true
+            },
+            3 => {
+                if self.wave_count >= bag_size { return false; }
+                self.wave_count += 1;
+                true
+            },
+            4 => {
+                if self.shrink_count >= bag_size { return false; }
+                self.shrink_count += 1;
+                true
+            },
+            5 => {
+                if self.shuffle_count >= bag_size { return false; }
+                self.shuffle_count += 1;
+                true
+            },
+            _ => false,
+        }
+    }
+
+    /// Calculate available cubes (brought + earned - spent).
+    #[inline(always)]
+    fn get_available_cubes(self: @RunData) -> u16 {
+        let total_budget: u32 = (*self.cubes_brought).into() + (*self.total_cubes).into();
+        let spent: u32 = (*self.cubes_spent).into();
+        let available: u32 = if total_budget >= spent { total_budget - spent } else { 0 };
+        if available > 65535 { 65535_u16 } else { available.try_into().unwrap() }
+    }
+
+    /// Spend cubes from budget. Panics if insufficient cubes.
+    fn spend_cubes(ref self: RunData, amount: u16) {
+        let available = self.get_available_cubes();
+        assert!(available >= amount, "Insufficient cubes");
+        
+        let new_spent: u32 = self.cubes_spent.into() + amount.into();
+        assert!(new_spent <= 65535, "Cubes spent overflow");
+        self.cubes_spent = new_spent.try_into().unwrap();
+    }
+}
+
+// =============================================================================
 // PlayerMeta packing
 // =============================================================================
 

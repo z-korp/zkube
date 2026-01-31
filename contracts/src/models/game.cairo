@@ -11,6 +11,10 @@ use zkube::helpers::math::Math;
 use zkube::helpers::packer::Packer;
 use zkube::helpers::controller::Controller;
 use zkube::helpers::packing::{RunData, RunDataPackingTrait};
+use zkube::helpers::scoring::{
+    saturating_add_u8, saturating_add_u16, saturating_add_u8_capped,
+    process_lines_cleared, update_score,
+};
 use zkube::types::bonus::{Bonus, BonusTrait};
 use zkube::types::level::LevelConfigTrait;
 use zkube::types::constraint::LevelConstraintTrait;
@@ -109,37 +113,6 @@ pub impl GameLevelImpl of GameLevelTrait {
             cube_3_threshold: config.cube_3_threshold,
             cube_2_threshold: config.cube_2_threshold,
         }
-    }
-}
-
-#[inline(always)]
-fn saturating_add_u16(lhs: u16, rhs: u16) -> u16 {
-    let sum: u32 = lhs.into() + rhs.into();
-    if sum > 65535 {
-        65535_u16
-    } else {
-        sum.try_into().unwrap()
-    }
-}
-
-#[inline(always)]
-fn saturating_add_u8(lhs: u8, rhs: u8) -> u8 {
-    let sum: u16 = lhs.into() + rhs.into();
-    if sum > 255 {
-        255_u8
-    } else {
-        sum.try_into().unwrap()
-    }
-}
-
-/// Add with a maximum cap (for fields with limited bit space like free_moves)
-#[inline(always)]
-fn saturating_add_u8_capped(lhs: u8, rhs: u8, max: u8) -> u8 {
-    let sum: u16 = lhs.into() + rhs.into();
-    if sum > max.into() {
-        max
-    } else {
-        sum.try_into().unwrap()
     }
 }
 
@@ -349,22 +322,7 @@ pub impl GameImpl of GameTrait {
         // Assess and score
         let mut lines_cleared: u8 = 0;
         let points = self.assess_game(ref lines_cleared);
-
-        // Update level score (cap at 255 for u8)
-        let new_score = run_data.level_score.into() + points;
-        run_data.level_score = if new_score > 255 {
-            255
-        } else {
-            new_score.try_into().unwrap()
-        };
-
-        // Accumulate total score (cap at 65535 for u16)
-        let new_total = run_data.total_score.into() + points;
-        run_data.total_score = if new_total > 65535 {
-            65535
-        } else {
-            new_total.try_into().unwrap()
-        };
+        update_score(ref run_data, points);
 
         // Check grid full
         self.assess_over();
@@ -378,61 +336,10 @@ pub impl GameImpl of GameTrait {
 
         // Assess again after new line
         let more_points = self.assess_game(ref lines_cleared);
+        update_score(ref run_data, more_points);
 
-        let new_score = run_data.level_score.into() + more_points;
-        run_data.level_score = if new_score > 255 {
-            255
-        } else {
-            new_score.try_into().unwrap()
-        };
-
-        // Accumulate total score
-        let new_total = run_data.total_score.into() + more_points;
-        run_data.total_score = if new_total > 65535 {
-            65535
-        } else {
-            new_total.try_into().unwrap()
-        };
-
-        // Update combos based on TOTAL lines cleared in this move
-        if lines_cleared > 1 {
-            self.combo_counter = saturating_add_u8(self.combo_counter, lines_cleared);
-            self.max_combo = Math::max(self.max_combo, lines_cleared);
-
-            // Track max combo for run
-            if lines_cleared > run_data.max_combo_run {
-                run_data.max_combo_run = lines_cleared;
-            }
-        }
-
-        // Combo line bonus cubes (scaled for high combos):
-        // 4 lines = +1, 5 lines = +3, 6 lines = +5, 7 lines = +10, 8 lines = +25, 9+ lines = +50
-        if lines_cleared >= 4 {
-            let combo_cubes: u16 = if lines_cleared >= 9 {
-                50
-            } else if lines_cleared >= 8 {
-                25
-            } else if lines_cleared >= 7 {
-                10
-            } else if lines_cleared >= 6 {
-                5
-            } else if lines_cleared >= 5 {
-                3
-            } else {
-                1
-            };
-            run_data.total_cubes = saturating_add_u16(run_data.total_cubes, combo_cubes);
-        }
-
-        // Combo achievement bonuses (one-time per run)
-        if run_data.max_combo_run >= 5 && !run_data.combo_5_achieved {
-            run_data.combo_5_achieved = true;
-            run_data.total_cubes = saturating_add_u16(run_data.total_cubes, 3_u16);
-        }
-        if run_data.max_combo_run >= 10 && !run_data.combo_10_achieved {
-            run_data.combo_10_achieved = true;
-            run_data.total_cubes = saturating_add_u16(run_data.total_cubes, 5_u16);
-        }
+        // Update combos and award cubes using shared helper
+        process_lines_cleared(ref run_data, ref self.combo_counter, ref self.max_combo, lines_cleared);
 
         // Update constraint progress with TOTAL lines cleared in this move
         run_data.constraint_progress = level_config
@@ -483,15 +390,8 @@ pub impl GameImpl of GameTrait {
         };
         assert!(available, "Bonus not available");
 
-        // Get bonus type as u8 for level lookup: 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
-        let bonus_type_u8: u8 = match bonus {
-            Bonus::Hammer => 1,
-            Bonus::Totem => 2,
-            Bonus::Wave => 3,
-            Bonus::Shrink => 4,
-            Bonus::Shuffle => 5,
-            Bonus::None => 0,
-        };
+        // Get bonus type code and level
+        let bonus_type_u8 = bonus.to_type_code();
         let bonus_level = self.get_bonus_level(bonus_type_u8);
 
         // Apply bonus effect based on type and level
@@ -583,58 +483,10 @@ pub impl GameImpl of GameTrait {
         // Assess game
         let mut lines_cleared: u8 = 0;
         let points = self.assess_game(ref lines_cleared);
+        update_score(ref run_data, points);
 
-        let new_score = run_data.level_score.into() + points;
-        run_data.level_score = if new_score > 255 {
-            255
-        } else {
-            new_score.try_into().unwrap()
-        };
-
-        // Accumulate total score
-        let new_total = run_data.total_score.into() + points;
-        run_data.total_score = if new_total > 65535 {
-            65535
-        } else {
-            new_total.try_into().unwrap()
-        };
-
-        if lines_cleared > 1 {
-            self.combo_counter = saturating_add_u8(self.combo_counter, lines_cleared);
-            self.max_combo = Math::max(self.max_combo, lines_cleared);
-            if lines_cleared > run_data.max_combo_run {
-                run_data.max_combo_run = lines_cleared;
-            }
-        }
-
-        // Combo line bonus cubes (scaled for high combos):
-        // 4 lines = +1, 5 lines = +3, 6 lines = +5, 7 lines = +10, 8 lines = +25, 9+ lines = +50
-        if lines_cleared >= 4 {
-            let combo_cubes: u16 = if lines_cleared >= 9 {
-                50
-            } else if lines_cleared >= 8 {
-                25
-            } else if lines_cleared >= 7 {
-                10
-            } else if lines_cleared >= 6 {
-                5
-            } else if lines_cleared >= 5 {
-                3
-            } else {
-                1
-            };
-            run_data.total_cubes = saturating_add_u16(run_data.total_cubes, combo_cubes);
-        }
-
-        // Combo achievement bonuses (one-time per run)
-        if run_data.max_combo_run >= 5 && !run_data.combo_5_achieved {
-            run_data.combo_5_achieved = true;
-            run_data.total_cubes = saturating_add_u16(run_data.total_cubes, 3_u16);
-        }
-        if run_data.max_combo_run >= 10 && !run_data.combo_10_achieved {
-            run_data.combo_10_achieved = true;
-            run_data.total_cubes = saturating_add_u16(run_data.total_cubes, 5_u16);
-        }
+        // Update combos and award cubes using shared helper
+        process_lines_cleared(ref run_data, ref self.combo_counter, ref self.max_combo, lines_cleared);
 
         // Update constraint progress
         run_data.constraint_progress = level_config

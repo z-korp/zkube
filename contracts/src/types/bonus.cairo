@@ -49,6 +49,48 @@ pub impl BonusImpl of BonusTrait {
             _ => true,
         }
     }
+
+    /// Get the type code for this bonus (1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle).
+    /// This matches the encoding used in RunData.selected_bonus_*.
+    #[inline(always)]
+    fn to_type_code(self: Bonus) -> u8 {
+        match self {
+            Bonus::None => 0,
+            Bonus::Hammer => 1,
+            Bonus::Totem => 2,
+            Bonus::Wave => 3,
+            Bonus::Shrink => 4,
+            Bonus::Shuffle => 5,
+        }
+    }
+
+    /// Create a Bonus from a type code.
+    #[inline(always)]
+    fn from_type_code(code: u8) -> Bonus {
+        match code {
+            1 => Bonus::Hammer,
+            2 => Bonus::Totem,
+            3 => Bonus::Wave,
+            4 => Bonus::Shrink,
+            5 => Bonus::Shuffle,
+            _ => Bonus::None,
+        }
+    }
+
+    /// Get the bag index for this bonus type.
+    /// Bag indices: 0=Hammer, 1=Wave, 2=Totem, 3=Shrink, 4=Shuffle.
+    /// This matches the order in MetaData.get_bag_size().
+    #[inline(always)]
+    fn bag_index(self: Bonus) -> u8 {
+        match self {
+            Bonus::None => 0,
+            Bonus::Hammer => 0,
+            Bonus::Wave => 1,
+            Bonus::Totem => 2,
+            Bonus::Shrink => 3,
+            Bonus::Shuffle => 4,
+        }
+    }
 }
 
 impl IntoBonusFelt252 of Into<Bonus, felt252> {

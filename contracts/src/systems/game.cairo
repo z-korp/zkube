@@ -22,15 +22,16 @@ pub trait IGameSystem<T> {
 
 #[dojo::contract]
 mod game_system {
-    use zkube::constants::{DEFAULT_NS, DEFAULT_SETTINGS::is_default_settings};
+    use zkube::constants::DEFAULT_NS;
     use zkube::models::game::{Game, GameTrait, GameAssert};
     use zkube::models::game::{GameSeed, GameLevelTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::helpers::random::RandomImpl;
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::config::ConfigUtilsTrait;
-    use zkube::helpers::packing::{MetaDataPackingTrait};
-    use zkube::events::{StartGame, LevelStarted, RunEnded};
+    use zkube::helpers::packing::MetaDataPackingTrait;
+    use zkube::helpers::game_over;
+    use zkube::events::{StartGame, LevelStarted};
     use zkube::systems::cube_token::ICubeTokenDispatcherTrait;
     use zkube::helpers::dispatchers;
     use zkube::elements::tasks::grinder;
@@ -337,7 +338,8 @@ mod game_system {
             game.over = true;
             world.write_model(@game);
 
-            self.handle_game_over(ref world, game);
+            let player = get_caller_address();
+            game_over::handle_game_over(ref world, game, player);
 
             post_action(token_address, game_id);
         }
@@ -398,58 +400,5 @@ mod game_system {
             let game: Game = self.world(@DEFAULT_NS()).read_model(game_id);
             assert!(game.blocks == 0, "Game {} has already started", game_id);
         }
-
-        fn handle_game_over(ref self: ContractState, ref world: WorldStorage, game: Game) {
-            let player = get_caller_address();
-            let run_data = game.get_run_data();
-
-            // Update player meta with best level
-            let mut player_meta: PlayerMeta = world.read_model(player);
-            player_meta.update_best_level(run_data.current_level);
-            
-            // Get game settings for cube multiplier
-            let settings = ConfigUtilsTrait::get_game_settings(world, game.game_id);
-            
-            // Calculate cubes to mint:
-            // - Spending first depletes brought cubes (already burned from wallet)
-            // - Any excess spending comes from earned cubes
-            // - Mint: total_cubes - max(0, cubes_spent - cubes_brought)
-            let cubes_spent_from_earned: u16 = if run_data.cubes_spent > run_data.cubes_brought {
-                run_data.cubes_spent - run_data.cubes_brought
-            } else {
-                0
-            };
-            let base_cubes: u16 = if run_data.total_cubes > cubes_spent_from_earned {
-                run_data.total_cubes - cubes_spent_from_earned
-            } else {
-                0
-            };
-            
-            // Only mint cubes and update stats for games using default settings
-            // Custom settings games can still earn/spend cubes in-game, but don't mint to wallet
-            if is_default_settings(settings.settings_id) && base_cubes > 0 {
-                let cube_token = dispatchers::get_cube_token_dispatcher(world);
-                cube_token.mint(player, base_cubes.into());
-                
-                // Update lifetime stats only for default settings
-                player_meta.add_cubes_earned(base_cubes.into());
-            }
-            world.write_model(@player_meta);
-
-            // Emit run ended event
-            world
-                .emit_event(
-                    @RunEnded {
-                        game_id: game.game_id,
-                        player,
-                        final_level: run_data.current_level,
-                        final_score: run_data.total_score,
-                        total_cubes: run_data.total_cubes,
-                        started_at: game.started_at,
-                        ended_at: get_block_timestamp(),
-                    },
-                );
-        }
-
     }
 }

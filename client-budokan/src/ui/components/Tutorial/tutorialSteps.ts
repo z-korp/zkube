@@ -209,7 +209,9 @@ export const STEP_5_GRID: MockGridState = {
 };
 
 /**
- * Step 6: Totem Bonus (same as original step 4)
+ * Step 6: Totem Bonus
+ * Grid with multiple 3-wide blocks - Totem removes ALL blocks of same size
+ * Valid grid math: 3-wide(3) + 2-wide(2) + 3-wide(3) = 8 cells per row
  */
 export const STEP_6_GRID: MockGridState = {
   initialGrid: [
@@ -220,9 +222,9 @@ export const STEP_6_GRID: MockGridState = {
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [3, 3, 3, 0, 0, 0, 0, 0],
-    [3, 3, 3, 2, 2, 2, 2, 2], // 3-wide blocks to target with Totem
-    [3, 3, 3, 2, 2, 2, 2, 2],
+    [3, 3, 3, 0, 0, 3, 3, 3], // Two 3-wide blocks with gap
+    [3, 3, 3, 2, 2, 3, 3, 3], // 3-wide + 2-wide + 3-wide = 8 ✓
+    [3, 3, 3, 2, 2, 3, 3, 3], // Same pattern
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
   hammerCount: 2,

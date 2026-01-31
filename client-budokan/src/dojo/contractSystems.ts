@@ -84,6 +84,24 @@ export function setupWorld(config: Config) {
       throw new Error(`Contract ${contract_name} not found in manifest`);
     }
 
+    // move_system handles move() function
+    const move_contract_name = "move_system";
+    const move_contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(move_contract_name)
+    );
+    if (!move_contract) {
+      throw new Error(`Contract ${move_contract_name} not found in manifest`);
+    }
+
+    // bonus_system handles apply_bonus() function
+    const bonus_contract_name = "bonus_system";
+    const bonus_contract = config.manifest.contracts.find(
+      (c: Manifest["contracts"][number]) => c.tag.includes(bonus_contract_name)
+    );
+    if (!bonus_contract) {
+      throw new Error(`Contract ${bonus_contract_name} not found in manifest`);
+    }
+
     const free_mint = async ({ account, name, settingsId = 0 }: FreeMint) => {
       try {
         const trimmedName = name.trim();
@@ -176,7 +194,7 @@ export function setupWorld(config: Config) {
       try {
         return await account.execute([
           {
-            contractAddress: contract.address,
+            contractAddress: move_contract.address,
             entrypoint: "move",
             calldata: [game_id, row_index, start_index, final_index],
           },
@@ -199,7 +217,7 @@ export function setupWorld(config: Config) {
         // 0 = None, 1 = Hammer, 2 = Totem, 3 = Wave, 4 = Shrink, 5 = Shuffle
         return await account.execute([
           {
-            contractAddress: contract.address,
+            contractAddress: bonus_contract.address,
             entrypoint: "apply_bonus",
             calldata: [game_id, bonus, row_index, block_index],
           },

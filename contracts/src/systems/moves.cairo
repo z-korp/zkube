@@ -1,24 +1,24 @@
-use zkube::types::bonus::Bonus;
+//! Move System - handles player moves on the grid.
+//! Split from play_system to reduce contract size.
 
 #[starknet::interface]
-pub trait IPlaySystem<T> {
+pub trait IMoveSystem<T> {
     /// Make a move - also handles level completion automatically
     fn move(ref self: T, game_id: u64, row_index: u8, start_index: u8, final_index: u8);
-    /// Apply a bonus from inventory
-    fn apply_bonus(ref self: T, game_id: u64, bonus: Bonus, row_index: u8, line_index: u8);
 }
 
 #[dojo::contract]
-mod play_system {
-    use zkube::constants::{DEFAULT_NS, DEFAULT_SETTINGS::is_default_settings};
+mod move_system {
+    use zkube::constants::DEFAULT_NS;
     use zkube::models::game::{Game, GameTrait, GameAssert};
     use zkube::models::game::{GameSeed, GameLevelTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::models::config::GameSettings;
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::config::ConfigUtilsTrait;
-    use zkube::types::bonus::Bonus;
-    use zkube::events::{UseBonus, LevelStarted, LevelCompleted, RunEnded, RunCompleted};
+    use zkube::helpers::token;
+    use zkube::helpers::game_over;
+    use zkube::events::{LevelStarted, LevelCompleted, RunCompleted};
     use zkube::systems::cube_token::ICubeTokenDispatcherTrait;
     use zkube::helpers::dispatchers;
     use zkube::elements::tasks::{clearer, combo};
@@ -30,7 +30,6 @@ mod play_system {
     use starknet::{get_block_timestamp, get_caller_address, ContractAddress};
 
     use game_components_minigame::libs::{assert_token_ownership, pre_action, post_action};
-    use game_components_minigame::interface::{IMinigameDispatcher, IMinigameDispatcherTrait};
     use game_components_token::core::interface::{
         IMinigameTokenDispatcher, IMinigameTokenDispatcherTrait,
     };
@@ -41,13 +40,13 @@ mod play_system {
     struct Storage {}
 
     #[abi(embed_v0)]
-    impl PlaySystemImpl of super::IPlaySystem<ContractState> {
+    impl MoveSystemImpl of super::IMoveSystem<ContractState> {
         fn move(
             ref self: ContractState, game_id: u64, row_index: u8, start_index: u8, final_index: u8,
         ) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
-            let token_address = self.get_token_address();
+            let token_address = token::get_token_address(world);
             pre_action(token_address, game_id);
 
             let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
@@ -78,7 +77,6 @@ mod play_system {
             );
 
             // Track quest progress for lines cleared and combos
-            // Only counts for default settings games
             let player = get_caller_address();
             if lines_cleared > 0 {
                 // Track lines cleared (LineClearer task)
@@ -104,72 +102,17 @@ mod play_system {
             if !level_completed && (game.is_level_failed(base_seed.seed, settings) || game.over) {
                 // Level failed (move limit exceeded) or grid full
                 game.over = true;
-                self.handle_game_over(ref world, game);
+                game_over::handle_game_over(ref world, game, player);
             }
 
             world.write_model(@game);
 
             post_action(token_address, game_id);
         }
-
-        fn apply_bonus(
-            ref self: ContractState, game_id: u64, bonus: Bonus, row_index: u8, line_index: u8,
-        ) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-
-            let token_address = self.get_token_address();
-            pre_action(token_address, game_id);
-
-            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
-            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
-            assert!(
-                token_metadata.lifecycle.is_playable(starknet::get_block_timestamp()),
-                "Game {} lifecycle is not playable",
-                game_id,
-            );
-
-            let mut game: Game = world.read_model(game_id);
-            assert_token_ownership(token_address, game_id);
-            game.assert_not_over();
-            game.assert_bonus_available(bonus);
-
-            let base_seed: GameSeed = world.read_model(game_id);
-            
-            // Get game settings
-            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
-            
-            game.apply_bonus(base_seed.seed, bonus, row_index, line_index, settings);
-
-            // Check for level completion after bonus
-            self.check_and_complete_level(ref world, ref game, game_id, base_seed.seed, settings);
-
-            world.write_model(@game);
-            post_action(token_address, game_id);
-
-            world
-                .emit_event(
-                    @UseBonus {
-                        player: starknet::get_caller_address(),
-                        timestamp: get_block_timestamp(),
-                        game_id,
-                        bonus,
-                    },
-                );
-        }
     }
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
-        /// Get token address from game_system via DNS
-        fn get_token_address(self: @ContractState) -> ContractAddress {
-            let world = self.world(@DEFAULT_NS());
-            let (game_systems_address, _) = world.dns(@"game_system").unwrap();
-            
-            // Use the IMinigame interface to get token_address from game_system
-            let minigame_dispatcher = IMinigameDispatcher { contract_address: game_systems_address };
-            minigame_dispatcher.token_address()
-        }
-
         /// Award random bonuses after completing a level.
         fn award_level_bonuses(
             ref self: ContractState,
@@ -214,12 +157,8 @@ mod play_system {
                 // Get the actual bonus type from selected slot
                 let bonus_type = *selected.at(random_slot.into());
                 
-                // Get bag index and size: 1=Hammer->0, 2=Totem->2, 3=Wave->1, 4=Shrink->3, 5=Shuffle->4
-                let bag_idx = if bonus_type == 1 { 0_u8 } 
-                    else if bonus_type == 2 { 2_u8 }
-                    else if bonus_type == 3 { 1_u8 }
-                    else if bonus_type == 4 { 3_u8 }
-                    else { 4_u8 };
+                // Get bag index and size using helper
+                let bag_idx = zkube::helpers::packing::RunDataHelpersTrait::bonus_type_to_bag_idx(bonus_type);
                 let bag_size = player_meta.get_bag_size(bag_idx);
 
                 // Get current count and try to award
@@ -244,53 +183,6 @@ mod play_system {
 
             game.set_run_data(run_data);
             awarded
-        }
-
-        fn handle_game_over(ref self: ContractState, ref world: WorldStorage, game: Game) {
-            let player = get_caller_address();
-            let run_data = game.get_run_data();
-
-            // Update player meta with best level
-            let mut player_meta: PlayerMeta = world.read_model(player);
-            player_meta.update_best_level(run_data.current_level);
-            
-            // Get game settings for cube multiplier
-            let settings = ConfigUtilsTrait::get_game_settings(world, game.game_id);
-            
-            // Calculate cubes to mint
-            let cubes_spent_from_earned: u16 = if run_data.cubes_spent > run_data.cubes_brought {
-                run_data.cubes_spent - run_data.cubes_brought
-            } else {
-                0
-            };
-            let base_cubes: u16 = if run_data.total_cubes > cubes_spent_from_earned {
-                run_data.total_cubes - cubes_spent_from_earned
-            } else {
-                0
-            };
-            
-            // Only mint cubes and update stats for games using default settings
-            if is_default_settings(settings.settings_id) && base_cubes > 0 {
-                let cube_token = dispatchers::get_cube_token_dispatcher(world);
-                cube_token.mint(player, base_cubes.into());
-                
-                player_meta.add_cubes_earned(base_cubes.into());
-            }
-            world.write_model(@player_meta);
-
-            // Emit run ended event
-            world
-                .emit_event(
-                    @RunEnded {
-                        game_id: game.game_id,
-                        player,
-                        final_level: run_data.current_level,
-                        final_score: run_data.total_score,
-                        total_cubes: run_data.total_cubes,
-                        started_at: game.started_at,
-                        ended_at: get_block_timestamp(),
-                    },
-                );
         }
 
         fn check_and_complete_level(
