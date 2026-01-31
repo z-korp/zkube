@@ -414,19 +414,32 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
       {/* Row 2: Score + Objectives + Moves */}
       <div className="flex items-center gap-1.5 md:gap-2">
         {/* Score progress (leftmost) */}
-        <div className="flex items-center gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded">
-          <span className="text-[10px] md:text-xs text-slate-400">Score</span>
-          <span className="text-[10px] md:text-xs text-blue-300">{displayScore}</span>
-          <div className="w-6 md:w-10 h-1 bg-slate-700 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-blue-400"
-              initial={false}
-              animate={{ width: `${Math.min(100, (levelScore / levelConfig.pointsRequired) * 100)}%` }}
-              transition={{ duration: 0.3 }}
-            />
-          </div>
-          <span className="text-[10px] md:text-xs text-blue-300">{levelConfig.pointsRequired}</span>
-        </div>
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors">
+                <span className="text-[10px] md:text-xs text-slate-400">Score</span>
+                <span className="text-[10px] md:text-xs text-blue-300">{displayScore}</span>
+                <div className="w-6 md:w-10 h-1 bg-slate-700 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-blue-400"
+                    initial={false}
+                    animate={{ width: `${Math.min(100, (levelScore / levelConfig.pointsRequired) * 100)}%` }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </div>
+                <span className="text-[10px] md:text-xs text-blue-300">{levelConfig.pointsRequired}</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2">
+              <div className="space-y-1 text-xs">
+                <div className="font-semibold text-white">Level Score</div>
+                <div className="text-slate-300">Reach {levelConfig.pointsRequired} points to complete the level</div>
+                <div className="text-slate-400 text-[10px]">Clear lines to earn points</div>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
         {/* Constraints */}
         {hasConstraint && (
