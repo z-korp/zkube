@@ -184,15 +184,26 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
     const prevProgress = prevConstraintProgressRef.current;
     const prevSatisfied = prevProgress >= levelConfig.constraint.requiredCount;
     
+    console.log('[Constraint1] Progress changed:', { 
+      prevProgress, 
+      constraintProgress, 
+      requiredCount: levelConfig.constraint.requiredCount,
+      constraintType: levelConfig.constraint.constraintType
+    });
+    
     // Track newly filled dots for animation
     if (constraintProgress > prevProgress) {
       const newDots = new Set<string>();
       for (let i = prevProgress; i < constraintProgress; i++) {
         newDots.add(`c1-${i}`);
       }
+      console.log('[Constraint1] Setting recentlyFilledDots:', Array.from(newDots));
       setRecentlyFilledDots(newDots);
       // Clear after animation
-      setTimeout(() => setRecentlyFilledDots(new Set()), 600);
+      setTimeout(() => {
+        console.log('[Constraint1] Clearing recentlyFilledDots');
+        setRecentlyFilledDots(new Set());
+      }, 600);
     }
     
     if (
@@ -212,14 +223,25 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   useEffect(() => {
     const prevProgress = prevConstraint2ProgressRef.current;
     
+    console.log('[Constraint2] Progress changed:', { 
+      prevProgress, 
+      constraint2Progress, 
+      requiredCount: levelConfig.constraint2.requiredCount,
+      constraintType: levelConfig.constraint2.constraintType
+    });
+    
     if (constraint2Progress > prevProgress) {
       const newDots = new Set<string>();
       for (let i = prevProgress; i < constraint2Progress; i++) {
         newDots.add(`c2-${i}`);
       }
+      console.log('[Constraint2] Setting recentlyFilledDots2:', Array.from(newDots));
       setRecentlyFilledDots2(newDots);
       // Clear after animation
-      setTimeout(() => setRecentlyFilledDots2(new Set()), 600);
+      setTimeout(() => {
+        console.log('[Constraint2] Clearing recentlyFilledDots2');
+        setRecentlyFilledDots2(new Set());
+      }, 600);
     }
     
     prevConstraint2ProgressRef.current = constraint2Progress;
@@ -293,10 +315,20 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
 
     // ClearLines constraint with dots
     const constraintId = color === "purple" ? "c2" : "c1";
+    console.log(`[ConstraintBadge ${constraintId}] Rendering:`, {
+      progress,
+      requiredCount: constraint.requiredCount,
+      recentlyFilledSize: recentlyFilled.size,
+      recentlyFilledItems: Array.from(recentlyFilled)
+    });
     const dots = [];
     for (let i = 0; i < constraint.requiredCount; i++) {
       const isFilled = i < progress;
-      const isJustFilled = recentlyFilled.has(`${constraintId}-${i}`);
+      const dotKey = `${constraintId}-${i}`;
+      const isJustFilled = recentlyFilled.has(dotKey);
+      if (isJustFilled) {
+        console.log(`[ConstraintBadge ${constraintId}] Dot ${i} is just filled! Key: ${dotKey}`);
+      }
       dots.push(
         <motion.div
           key={i}
