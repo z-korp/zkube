@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faBan } from "@fortawesome/free-solid-svg-icons";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import { generateLevelConfig } from "@/dojo/game/types/level";
 import type { LevelConfig } from "@/dojo/game/types/level";
@@ -22,12 +22,14 @@ interface LevelHeaderCompactProps {
   levelMoves: number;
   totalCubes: number;
   totalScore: number;
-  combo: number;
   seed?: bigint;
   constraintProgress: number;
   constraint2Progress: number;
   bonusUsedThisLevel: boolean;
   gameLevel?: GameLevelData | null;
+  // Cube breakdown for tooltip
+  cubesBrought?: number;
+  cubesSpent?: number;
 }
 
 const isBossLevel = (level: number): boolean => {
@@ -40,12 +42,13 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   levelMoves,
   totalCubes,
   totalScore,
-  combo,
   seed = BigInt(0),
   constraintProgress,
   constraint2Progress,
   bonusUsedThisLevel,
   gameLevel,
+  cubesBrought = 0,
+  cubesSpent = 0,
 }) => {
   const isBoss = isBossLevel(level);
   const { playSuccess } = useMusicPlayer();
@@ -54,7 +57,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   const prevLevelRef = useRef(level);
   const [justSatisfied, setJustSatisfied] = useState(false);
 
-  // Build level config from GameLevel model or fallback
+  // Build level config
   const levelConfig = React.useMemo((): LevelConfig => {
     if (gameLevel && gameLevel.level === level) {
       const constraint = new Constraint(
@@ -93,6 +96,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
     return constraint2Progress >= levelConfig.constraint2.requiredCount;
   }, [levelConfig.constraint2, constraint2Progress, bonusUsedThisLevel]);
 
+  const hasConstraint = levelConfig.constraint.constraintType !== ConstraintType.None;
   const hasConstraint2 = levelConfig.constraint2.constraintType !== ConstraintType.None;
 
   useEffect(() => {
@@ -122,10 +126,10 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
 
   const displayScore = useLerpNumber(levelScore, { integer: true });
   const displayTotalScore = useLerpNumber(totalScore, { integer: true });
-  const displayCombo = useLerpNumber(combo, { integer: true });
 
   const scoreProgress = Math.min(100, (levelScore / levelConfig.pointsRequired) * 100);
   const movesRemaining = Math.max(0, levelConfig.maxMoves - levelMoves);
+  const availableCubes = Math.max(0, totalCubes + cubesBrought - cubesSpent);
 
   const potentialCubes = React.useMemo(() => {
     if ('potentialCubes' in levelConfig && typeof levelConfig.potentialCubes === 'function') {
@@ -136,50 +140,67 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
     return 1;
   }, [levelConfig, levelMoves]);
 
-  // Compact constraint display
-  const renderConstraint = (
-    constraint: Constraint,
-    progress: number,
-    satisfied: boolean,
-    colorClass: string = "orange"
-  ) => {
+  // Compact constraint badge
+  const ConstraintBadge = ({ 
+    constraint, 
+    progress, 
+    satisfied,
+    color = "orange"
+  }: { 
+    constraint: Constraint; 
+    progress: number; 
+    satisfied: boolean;
+    color?: string;
+  }) => {
     if (constraint.constraintType === ConstraintType.None) return null;
 
     if (constraint.constraintType === ConstraintType.NoBonusUsed) {
       return (
-        <div className={`text-[9px] flex items-center gap-0.5 px-1.5 py-0.5 rounded-full whitespace-nowrap ${
-          bonusUsedThisLevel 
-            ? "bg-red-500/20 text-red-400" 
-            : `bg-${colorClass}-500/20 text-${colorClass}-400`
-        }`}>
-          {bonusUsedThisLevel ? (
-            <FontAwesomeIcon icon={faBan} width={8} height={8} />
-          ) : (
-            <FontAwesomeIcon icon={faCheck} width={8} height={8} />
-          )}
-        </div>
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className={`text-[9px] flex items-center gap-0.5 px-1 py-0.5 rounded cursor-help ${
+                bonusUsedThisLevel 
+                  ? "bg-red-500/30 text-red-400" 
+                  : "bg-green-500/30 text-green-400"
+              }`}>
+                {bonusUsedThisLevel ? (
+                  <FontAwesomeIcon icon={faBan} className="w-2 h-2" />
+                ) : (
+                  <FontAwesomeIcon icon={faCheck} className="w-2 h-2" />
+                )}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2 text-xs">
+              No bonus allowed
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       );
     }
 
-    // ClearLines constraint - show as compact badge
+    // ClearLines constraint
+    const bgColor = satisfied ? "bg-green-500/30" : `bg-${color}-500/30`;
+    const textColor = satisfied ? "text-green-400" : `text-${color}-400`;
+
     return (
       <TooltipProvider delayDuration={0}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className={`text-[9px] flex items-center gap-1 px-1.5 py-0.5 rounded cursor-help ${
-              satisfied ? "bg-green-500/20" : `bg-${colorClass}-500/20`
+            <div className={`text-[9px] flex items-center gap-0.5 px-1 py-0.5 rounded cursor-help ${
+              satisfied ? "bg-green-500/30" : (color === "purple" ? "bg-purple-500/30" : "bg-orange-500/30")
             }`}>
-              <span className={satisfied ? "text-green-400" : `text-${colorClass}-400`}>
+              <span className={satisfied ? "text-green-400" : (color === "purple" ? "text-purple-400" : "text-orange-400")}>
                 {constraint.value}+
               </span>
-              <span className={`font-semibold ${satisfied ? "text-green-400" : `text-${colorClass}-400`}`}>
+              <span className={`font-medium ${satisfied ? "text-green-400" : (color === "purple" ? "text-purple-400" : "text-orange-400")}`}>
                 {progress}/{constraint.requiredCount}
               </span>
-              {satisfied && <FontAwesomeIcon icon={faCheck} className="text-green-400" width={7} height={7} />}
+              {satisfied && <FontAwesomeIcon icon={faCheck} className="w-2 h-2 text-green-400" />}
             </div>
           </TooltipTrigger>
-          <TooltipContent side="bottom" className="bg-slate-800 border border-slate-600 p-2 max-w-[200px]">
-            <div className="text-xs text-slate-300">{constraint.getDescription()}</div>
+          <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2 text-xs">
+            {constraint.getDescription()}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -187,22 +208,61 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   };
 
   return (
-    <div className="w-full space-y-1.5">
-      {/* Row 1: Level + Progress bar + Moves */}
-      <div className="flex items-center gap-2">
-        {/* Level + Boss badge */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className="font-bold text-base text-white">Lv.{level}</span>
+    <div className="w-full space-y-1">
+      {/* Row 1: Level + Total Score + Cube Balance */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <span className="font-bold text-sm text-white">Lv.{level}</span>
           {isBoss && (
-            <span className="text-[8px] font-bold px-1 py-0.5 rounded bg-gradient-to-r from-red-600 to-orange-500 text-white uppercase">
+            <span className="text-[7px] font-bold px-1 py-0.5 rounded bg-gradient-to-r from-red-600 to-orange-500 text-white uppercase">
               Boss
             </span>
           )}
         </div>
 
-        {/* Progress bar */}
-        <div className="flex-1 flex items-center gap-1.5">
-          <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-blue-400 font-semibold">{displayTotalScore}</span>
+          
+          {/* Cube balance with tooltip */}
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-0.5 cursor-help">
+                  <span className="text-xs text-yellow-400 font-semibold">{availableCubes}</span>
+                  <span className="text-[10px]">🧊</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2">
+                <div className="space-y-1 text-xs">
+                  <div className="font-semibold text-white mb-1">Cubes</div>
+                  <div className="flex justify-between gap-3">
+                    <span className="text-slate-400">Earned</span>
+                    <span className="text-yellow-400">{totalCubes}</span>
+                  </div>
+                  {cubesBrought > 0 && (
+                    <div className="flex justify-between gap-3">
+                      <span className="text-slate-400">Brought</span>
+                      <span className="text-blue-400">+{cubesBrought}</span>
+                    </div>
+                  )}
+                  {cubesSpent > 0 && (
+                    <div className="flex justify-between gap-3">
+                      <span className="text-slate-400">Spent</span>
+                      <span className="text-red-400">-{cubesSpent}</span>
+                    </div>
+                  )}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </div>
+
+      {/* Row 2: Progress | Constraints | Moves | Potential Cubes */}
+      <div className="flex items-center gap-1.5">
+        {/* Score progress bar with points */}
+        <div className="flex items-center gap-1 flex-1 min-w-0">
+          <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
               initial={false}
@@ -210,55 +270,59 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
               transition={{ duration: 0.3 }}
             />
           </div>
-          <span className="text-[10px] text-slate-300 whitespace-nowrap">
-            <span className="font-semibold text-white">{displayScore}</span>
+          <span className="text-[9px] text-slate-300 whitespace-nowrap">
+            <span className="text-white font-medium">{displayScore}</span>
             <span className="text-slate-500">/{levelConfig.pointsRequired}</span>
           </span>
         </div>
 
+        {/* Divider */}
+        <div className="w-px h-3 bg-slate-600" />
+
+        {/* Constraints */}
+        {hasConstraint && (
+          <ConstraintBadge 
+            constraint={levelConfig.constraint} 
+            progress={constraintProgress} 
+            satisfied={constraintSatisfied}
+            color="orange"
+          />
+        )}
+        {hasConstraint2 && (
+          <ConstraintBadge 
+            constraint={levelConfig.constraint2} 
+            progress={constraint2Progress} 
+            satisfied={constraint2Satisfied}
+            color="purple"
+          />
+        )}
+
+        {/* Divider */}
+        <div className="w-px h-3 bg-slate-600" />
+
         {/* Moves remaining */}
-        <div className="text-xs text-slate-300 shrink-0">
+        <div className="text-[10px] text-slate-300 whitespace-nowrap">
           <span className="font-bold text-white">{movesRemaining}</span>
           <span className="text-slate-500">▶</span>
         </div>
-      </div>
 
-      {/* Row 2: Constraints + Cubes + Score + Combo */}
-      <div className="flex items-center justify-between gap-2">
-        {/* Constraints */}
-        <div className="flex items-center gap-1">
-          {renderConstraint(levelConfig.constraint, constraintProgress, constraintSatisfied, "orange")}
-          {hasConstraint2 && renderConstraint(levelConfig.constraint2, constraint2Progress, constraint2Satisfied, "purple")}
-        </div>
+        {/* Divider */}
+        <div className="w-px h-3 bg-slate-600" />
 
-        {/* Cube pace indicators */}
-        <div className="flex items-center gap-0.5">
+        {/* Potential cubes */}
+        <div className="flex items-center">
           {[1, 2, 3].map((cube) => (
             <span
               key={cube}
               className={`transition-opacity duration-200 ${
-                cube <= potentialCubes ? "opacity-100" : "opacity-30"
+                cube <= potentialCubes ? "opacity-100" : "opacity-20"
               }`}
-              style={{ fontSize: 14 }}
+              style={{ fontSize: 10 }}
             >
               🧊
             </span>
           ))}
         </div>
-
-        {/* Score + Cubes */}
-        <div className="flex items-center gap-2 text-xs">
-          <span className="text-blue-400 font-semibold">{displayTotalScore}</span>
-          <span className="text-yellow-400 font-semibold">{totalCubes}🧊</span>
-        </div>
-
-        {/* Combo */}
-        {combo > 0 && (
-          <div className="flex items-center gap-0.5 bg-orange-500/20 px-1.5 py-0.5 rounded text-xs">
-            <span className="font-bold text-orange-400">{displayCombo}</span>
-            <span className="text-orange-400">🔥</span>
-          </div>
-        )}
       </div>
     </div>
   );

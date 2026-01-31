@@ -205,24 +205,25 @@ const GameBoard: React.FC<GameBoardProps> = ({
         }`}
       >
         {/* Compact Level Header - 2 rows */}
-        <div className={`${isMdOrLarger ? "w-[420px]" : "w-[340px]"} px-1 mb-2`}>
+        <div className={`${isMdOrLarger ? "w-[420px]" : "w-[340px]"} px-1 mb-1.5`}>
           <LevelHeaderCompact
             level={game.level}
             levelScore={optimisticScore}
             levelMoves={game.levelMoves}
             totalCubes={game.totalCubes}
             totalScore={game.totalScore}
-            combo={optimisticCombo}
             seed={seed}
             constraintProgress={game.constraintProgress}
             constraint2Progress={game.constraint2Progress}
             bonusUsedThisLevel={game.bonusUsedThisLevel}
             gameLevel={gameLevel}
+            cubesBrought={game.cubesBrought}
+            cubesSpent={game.cubesSpent}
           />
         </div>
         
-        {/* Swipeable Action Bar - Bonuses / Power-ups */}
-        <div className={`${isMdOrLarger ? "w-[420px]" : "w-[340px]"} mb-2`}>
+        {/* Action Bar - 5 Bonuses + 4 Passives */}
+        <div className={`${isMdOrLarger ? "w-[420px]" : "w-[340px]"} mb-1.5`}>
           <ActionBar
             onBonusHammerClick={handleBonusHammerClick}
             onBonusWaveClick={handleBonusWaveClick}
