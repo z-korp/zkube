@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faBan, faCircleInfo } from "@fortawesome/free-solid-svg-icons";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import { generateLevelConfig } from "@/dojo/game/types/level";
 import type { LevelConfig } from "@/dojo/game/types/level";
@@ -27,7 +27,6 @@ interface LevelHeaderCompactProps {
   constraint2Progress: number;
   bonusUsedThisLevel: boolean;
   gameLevel?: GameLevelData | null;
-  // Cube breakdown for tooltip
   cubesBrought?: number;
   cubesSpent?: number;
 }
@@ -57,7 +56,6 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   const prevLevelRef = useRef(level);
   const [justSatisfied, setJustSatisfied] = useState(false);
 
-  // Build level config
   const levelConfig = React.useMemo((): LevelConfig => {
     if (gameLevel && gameLevel.level === level) {
       const constraint = new Constraint(
@@ -127,7 +125,6 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   const displayScore = useLerpNumber(levelScore, { integer: true });
   const displayTotalScore = useLerpNumber(totalScore, { integer: true });
 
-  const scoreProgress = Math.min(100, (levelScore / levelConfig.pointsRequired) * 100);
   const movesRemaining = Math.max(0, levelConfig.maxMoves - levelMoves);
   const availableCubes = Math.max(0, totalCubes + cubesBrought - cubesSpent);
 
@@ -140,15 +137,11 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
     return 1;
   }, [levelConfig, levelMoves]);
 
-  // Get efficiency message
-  const getEfficiencyMessage = () => {
-    if (potentialCubes === 3) return { text: "Perfect pace!", color: "text-green-400" };
-    if (potentialCubes === 2) return { text: "Good pace", color: "text-yellow-400" };
-    return { text: "Finish strong!", color: "text-orange-400" };
-  };
-  const efficiency = getEfficiencyMessage();
+  // Pace indicator color
+  const paceColor = potentialCubes === 3 ? "text-green-400" : potentialCubes === 2 ? "text-yellow-400" : "text-orange-400";
+  const paceBgColor = potentialCubes === 3 ? "bg-green-500/20" : potentialCubes === 2 ? "bg-yellow-500/20" : "bg-orange-500/20";
 
-  // Constraint badge with dot progress (old design style)
+  // Constraint badge with dot progress
   const ConstraintBadge = ({ 
     constraint, 
     progress, 
@@ -188,7 +181,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
       );
     }
 
-    // ClearLines constraint with dots (old design)
+    // ClearLines constraint with dots
     const dots = [];
     for (let i = 0; i < constraint.requiredCount; i++) {
       const isFilled = i < progress;
@@ -260,8 +253,8 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Total Score */}
-          <div className="flex items-center gap-1 bg-slate-800/50 px-2 py-1 rounded">
+          {/* Score display - simple text instead of progress bar */}
+          <div className="flex items-center gap-1 bg-slate-800/50 px-2 py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors">
             <span className="text-xs text-slate-400">Score:</span>
             <span className="text-base font-semibold text-blue-400">{displayTotalScore}</span>
           </div>
@@ -301,19 +294,12 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         </div>
       </div>
 
-      {/* Row 2: Score progress bar (smaller) */}
-      <div className="flex items-center gap-2">
-        <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
-          <motion.div
-            className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
-            initial={false}
-            animate={{ width: `${scoreProgress}%` }}
-            transition={{ duration: 0.3 }}
-          />
-        </div>
-        <span className="text-xs text-slate-300 whitespace-nowrap min-w-[60px]">
-          <span className="text-white font-medium">{displayScore}</span>
-          <span className="text-slate-500">/{levelConfig.pointsRequired}</span>
+      {/* Row 2: Level Score Progress (compact text) */}
+      <div className="flex items-center justify-between bg-slate-800/50 px-2 py-1 rounded">
+        <span className="text-xs text-slate-400">Level Progress:</span>
+        <span className="text-sm">
+          <span className="text-white font-semibold">{displayScore}</span>
+          <span className="text-slate-500"> / {levelConfig.pointsRequired}</span>
         </span>
       </div>
 
@@ -339,19 +325,23 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
           )}
         </div>
 
-        {/* Right side: Moves + Potential cubes */}
-        <div className="flex items-center gap-3">
+        {/* Right side: Moves + Potential cubes with pace indicator */}
+        <div className="flex items-center gap-2">
           {/* Moves remaining */}
-          <div className="text-sm text-slate-300">
+          <div className="text-sm text-slate-300 bg-slate-800/50 px-2 py-1 rounded">
             <span className="font-bold text-white">{movesRemaining}</span>
             <span className="text-slate-400"> moves left</span>
           </div>
 
-          {/* Potential cubes with hover effect */}
+          {/* Potential cubes with pace indicator */}
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center bg-slate-800/50 px-2 py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors">
+                <div className={`flex items-center gap-1 px-2 py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors ${paceBgColor}`}>
+                  <FontAwesomeIcon
+                    icon={faCircleInfo}
+                    className={`w-3 h-3 ${paceColor}`}
+                  />
                   {[1, 2, 3].map((cube) => (
                     <motion.span
                       key={cube}
@@ -389,63 +379,6 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
             </Tooltip>
           </TooltipProvider>
         </div>
-      </div>
-
-      {/* Row 4: Cube info + Efficiency */}
-      <div className="flex items-center gap-2">
-        {/* Info icon with cubes */}
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex items-center gap-1.5 bg-slate-800/50 px-2 py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors">
-                <FontAwesomeIcon
-                  icon={faCircleInfo}
-                  className="text-slate-400"
-                  width={12}
-                  height={12}
-                />
-                {/* Cubes with hover effect */}
-                {[1, 2, 3].map((cube) => (
-                  <motion.span
-                    key={cube}
-                    className={`transition-all ${
-                      cube <= potentialCubes ? "opacity-100" : "opacity-30"
-                    }`}
-                    style={{ fontSize: 18 }}
-                    whileHover={cube <= potentialCubes ? { scale: 1.2 } : {}}
-                  >
-                    🧊
-                  </motion.span>
-                ))}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent 
-              side="bottom" 
-              className="bg-slate-800 border-slate-600 p-3 max-w-[220px]"
-            >
-              <div className="space-y-1.5 text-xs">
-                <div className="font-semibold text-white mb-2">Cube Thresholds</div>
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-yellow-400">🧊🧊🧊</span>
-                  <span className="text-slate-300">≤ {levelConfig.cube3Threshold} moves</span>
-                </div>
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-yellow-400">🧊🧊</span>
-                  <span className="text-slate-300">≤ {levelConfig.cube2Threshold} moves</span>
-                </div>
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-yellow-400">🧊</span>
-                  <span className="text-slate-300">level clear</span>
-                </div>
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        {/* Efficiency text */}
-        <span className={`text-sm font-medium ${efficiency.color}`}>
-          {efficiency.text}
-        </span>
       </div>
     </div>
   );
