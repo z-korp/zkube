@@ -315,7 +315,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
         </span>
       </div>
 
-      {/* Row 3: Constraints + Moves + Cubes rating */}
+      {/* Row 3: Constraints + Moves + Potential Cubes (all on one line) */}
       <div className="flex items-center justify-between">
         {/* Constraints */}
         <div className="flex items-center gap-2">
@@ -344,28 +344,25 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
             <span className="font-bold text-white">{movesRemaining}</span>
             <span className="text-slate-400"> moves left</span>
           </div>
-        </div>
-      </div>
 
-      {/* Row 4: Cube rating + Efficiency */}
-      <div className="flex items-center justify-between">
-        {/* Cube rating with info tooltip */}
-        <div className="flex items-center gap-1.5">
-          {/* Info icon */}
+          {/* Potential cubes with hover effect */}
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  className="p-0.5 hover:bg-slate-700/50 rounded transition-colors cursor-help"
-                >
-                  <FontAwesomeIcon
-                    icon={faCircleInfo}
-                    className="text-slate-400 hover:text-slate-300"
-                    width={12}
-                    height={12}
-                  />
-                </button>
+                <div className="flex items-center cursor-help">
+                  {[1, 2, 3].map((cube) => (
+                    <motion.span
+                      key={cube}
+                      className={`transition-opacity duration-200 ${
+                        cube <= potentialCubes ? "opacity-100" : "opacity-20"
+                      }`}
+                      style={{ fontSize: 18 }}
+                      whileHover={cube <= potentialCubes ? { scale: 1.15 } : {}}
+                    >
+                      🧊
+                    </motion.span>
+                  ))}
+                </div>
               </TooltipTrigger>
               <TooltipContent 
                 side="bottom" 
@@ -389,42 +386,68 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-
-          {/* Cubes with hover effect */}
-          {[1, 2, 3].map((cube) => (
-            <motion.span
-              key={cube}
-              className={`cursor-default transition-all ${
-                cube <= potentialCubes ? "opacity-100" : "opacity-30"
-              }`}
-              style={{ fontSize: 18 }}
-              whileHover={cube <= potentialCubes ? { scale: 1.2 } : {}}
-            >
-              🧊
-            </motion.span>
-          ))}
-
-          {/* Efficiency text */}
-          <span className={`text-sm ml-1 font-medium ${efficiency.color}`}>
-            {efficiency.text}
-          </span>
         </div>
+      </div>
 
-        {/* Potential cubes display */}
-        <div className="flex items-center">
-          {[1, 2, 3].map((cube) => (
-            <motion.span
-              key={cube}
-              className={`transition-opacity duration-200 ${
-                cube <= potentialCubes ? "opacity-100" : "opacity-20"
-              }`}
-              style={{ fontSize: 14 }}
-              whileHover={cube <= potentialCubes ? { scale: 1.15 } : {}}
+      {/* Row 4: Cube info + Efficiency */}
+      <div className="flex items-center gap-1.5">
+        {/* Info icon */}
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                className="p-0.5 hover:bg-slate-700/50 rounded transition-colors cursor-help"
+              >
+                <FontAwesomeIcon
+                  icon={faCircleInfo}
+                  className="text-slate-400 hover:text-slate-300"
+                  width={12}
+                  height={12}
+                />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent 
+              side="bottom" 
+              className="bg-slate-800 border-slate-600 p-3 max-w-[220px]"
             >
-              🧊
-            </motion.span>
-          ))}
-        </div>
+              <div className="space-y-1.5 text-xs">
+                <div className="font-semibold text-white mb-2">Cube Thresholds</div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-yellow-400">🧊🧊🧊</span>
+                  <span className="text-slate-300">≤ {levelConfig.cube3Threshold} moves</span>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-yellow-400">🧊🧊</span>
+                  <span className="text-slate-300">≤ {levelConfig.cube2Threshold} moves</span>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-yellow-400">🧊</span>
+                  <span className="text-slate-300">level clear</span>
+                </div>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        {/* Cubes with hover effect */}
+        {[1, 2, 3].map((cube) => (
+          <motion.span
+            key={cube}
+            className={`cursor-default transition-all ${
+              cube <= potentialCubes ? "opacity-100" : "opacity-30"
+            }`}
+            style={{ fontSize: 18 }}
+            whileHover={cube <= potentialCubes ? { scale: 1.2 } : {}}
+          >
+            🧊
+          </motion.span>
+        ))}
+
+        {/* Efficiency text */}
+        <span className={`text-sm ml-1 font-medium ${efficiency.color}`}>
+          {efficiency.text}
+        </span>
       </div>
     </div>
   );
