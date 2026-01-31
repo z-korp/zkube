@@ -101,7 +101,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
     } else if (level >= 15) {
       challenge = "Can you beat my score?";
     } else {
-      challenge = "Come try this puzzle roguelike!";
+      challenge = "Your turn!";
     }
 
     const tweetMsg = `${opener}
