@@ -303,9 +303,9 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 2,
     title: "Clear Lines",
     type: "interactive",
-    description: "Complete a full horizontal row to clear it and earn points.",
-    mobileDescription: "Fill a row to clear it",
-    targetBlock: { x: 2, y: 8, type: "block" },
+    description: "Slide the highlighted block right to complete the row.",
+    mobileDescription: "Slide block right to fill row",
+    targetBlock: { x: 0, y: 8, type: "block" }, // 2-wide block at left of row 8
     successCondition: "line_cleared",
   },
   // Step 3: Combos
@@ -313,9 +313,9 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 3,
     title: "Combos",
     type: "interactive",
-    description: "Clear multiple lines from one move for bonus points and cubes!",
-    mobileDescription: "Chain clears for combos",
-    targetBlock: { x: 2, y: 6, type: "block" },
+    description: "Slide the block to clear a row - watch for the cascade!",
+    mobileDescription: "Slide block for combo",
+    targetBlock: { x: 0, y: 8, type: "block" }, // 2-wide block at left of row 8
     successCondition: "combo_achieved",
   },
   // Step 4: Hammer Bonus
@@ -367,9 +367,9 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 8,
     title: "Constraints",
     type: "interactive",
-    description: "Some levels have constraints - special challenges for bonus rewards. Clear 2+ lines to satisfy this one!",
-    mobileDescription: "Complete challenges",
-    targetBlock: null, // Any valid multi-line clear works
+    description: "Slide the block to clear 2+ lines at once - that's a constraint challenge!",
+    mobileDescription: "Clear 2+ lines at once",
+    targetBlock: { x: 0, y: 8, type: "block" }, // 2-wide block at left of row 8
     successCondition: "constraint_satisfied",
     constraint: { type: "ClearLines", value: 2, count: 1 },
   },
