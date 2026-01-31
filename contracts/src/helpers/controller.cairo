@@ -8,7 +8,7 @@ use alexandria_math::BitShift;
 use origami_random::deck::{Deck, DeckTrait};
 use origami_random::dice::{Dice, DiceTrait};
 
-use zkube::constants::{BLOCK_BIT_COUNT, ROW_BIT_COUNT, ROW_SIZE, BLOCK_SIZE, DEFAULT_GRID_WIDTH};
+use zkube::constants::{BLOCK_BIT_COUNT, ROW_BIT_COUNT, ROW_SIZE, BLOCK_SIZE, DEFAULT_GRID_WIDTH, LINE_FULL_BOUND};
 use zkube::helpers::packer::Packer;
 use zkube::helpers::gravity::Gravity;
 use zkube::types::block::{Block, BlockTrait};
@@ -52,7 +52,6 @@ pub impl Controller of ControllerTrait {
 
         let blocks: u256 = Packer::pack(new_block_rows, ROW_SIZE);
         let blocks: felt252 = blocks.try_into().unwrap();
-        //assert(Self::check_grid_coherence(blocks), errors::CONTROLLER_NOT_COHERENT_GRID);
 
         blocks
     }
@@ -98,10 +97,8 @@ pub impl Controller of ControllerTrait {
     /// The updated row.
     #[inline(always)]
     fn assess_line(row: u32) -> u32 {
-        // [Check] Left block is not empty
-        let exp: u32 = ROW_BIT_COUNT.into() - BLOCK_BIT_COUNT.into();
-        let bound: u32 = fast_power(2, exp);
-        if row < bound {
+        // [Check] Left block is not empty (row must be >= 2^21 for leftmost block to be non-zero)
+        if row < LINE_FULL_BOUND {
             return row;
         }
         // [Check] Each block must be not 0
@@ -253,7 +250,6 @@ pub impl Controller of ControllerTrait {
     fn shuffle_line(blocks: u32, seed: felt252) -> u32 {
         let mut shift_rng: Dice = DiceTrait::new(10, seed);
         let shift_amount = BLOCK_BIT_COUNT * shift_rng.roll();
-        //println!("shift_amount: {}", shift_amount);
 
         let blocks = Self::circular_shift_right(blocks, shift_amount, ROW_BIT_COUNT);
 
@@ -428,7 +424,6 @@ pub impl Controller of ControllerTrait {
             }
         };
 
-        //println!("check row coherence valid {}", valid);
         valid
     }
 

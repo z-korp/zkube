@@ -592,15 +592,6 @@ export const Home = () => {
                             score={game.isOver() ? 0 : game.score}
                             combo={game.isOver() ? 0 : game.combo}
                             maxCombo={game.isOver() ? 0 : game.maxComboRun}
-                            hammerCount={
-                              game.isOver() ? 0 : game.hammer - game.hammer_used
-                            }
-                            totemCount={
-                              game.isOver() ? 0 : game.totem - game.totem_used
-                            }
-                            waveCount={
-                              game.isOver() ? 0 : game.wave - game.wave_used
-                            }
                             account={account}
                             game={game}
                           />

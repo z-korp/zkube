@@ -6,8 +6,6 @@ pub trait IPlaySystem<T> {
     fn move(ref self: T, game_id: u64, row_index: u8, start_index: u8, final_index: u8);
     /// Apply a bonus from inventory
     fn apply_bonus(ref self: T, game_id: u64, bonus: Bonus, row_index: u8, line_index: u8);
-    /// Purchase a consumable from the in-game shop (every 5 levels)
-    fn purchase_consumable(ref self: T, game_id: u64, consumable: u8);
 }
 
 #[dojo::contract]
@@ -20,10 +18,9 @@ mod play_system {
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::types::bonus::Bonus;
-    use zkube::types::consumable::{ConsumableType, ConsumableTrait};
     use zkube::events::{UseBonus, LevelStarted, LevelCompleted, RunEnded, RunCompleted};
-    use zkube::systems::cube_token::{ICubeTokenDispatcher, ICubeTokenDispatcherTrait};
-    use zkube::systems::quest::{IQuestSystemDispatcher, IQuestSystemDispatcherTrait};
+    use zkube::systems::cube_token::ICubeTokenDispatcherTrait;
+    use zkube::helpers::dispatchers;
     use zkube::elements::tasks::{clearer, combo};
 
     use dojo::model::ModelStorage;
@@ -85,17 +82,17 @@ mod play_system {
             let player = get_caller_address();
             if lines_cleared > 0 {
                 // Track lines cleared (LineClearer task)
-                self.track_quest_progress(player, clearer::LineClearer::identifier(), lines_cleared.into(), settings.settings_id);
+                dispatchers::track_quest_progress(world, player, clearer::LineClearer::identifier(), lines_cleared.into(), settings.settings_id);
                 
                 // Track combo achievements based on lines cleared in one move
                 if lines_cleared >= 3 {
-                    self.track_quest_progress(player, combo::ComboThree::identifier(), 1, settings.settings_id);
+                    dispatchers::track_quest_progress(world, player, combo::ComboThree::identifier(), 1, settings.settings_id);
                 }
                 if lines_cleared >= 5 {
-                    self.track_quest_progress(player, combo::ComboFive::identifier(), 1, settings.settings_id);
+                    dispatchers::track_quest_progress(world, player, combo::ComboFive::identifier(), 1, settings.settings_id);
                 }
                 if lines_cleared >= 8 {
-                    self.track_quest_progress(player, combo::ComboEight::identifier(), 1, settings.settings_id);
+                    dispatchers::track_quest_progress(world, player, combo::ComboEight::identifier(), 1, settings.settings_id);
                 }
             }
 
@@ -158,106 +155,6 @@ mod play_system {
                         bonus,
                     },
                 );
-        }
-
-        fn purchase_consumable(ref self: ContractState, game_id: u64, consumable: u8) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-
-            let token_address = self.get_token_address();
-            pre_action(token_address, game_id);
-
-            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
-            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
-            assert!(
-                token_metadata.lifecycle.is_playable(get_block_timestamp()),
-                "Game {} lifecycle is not playable",
-                game_id,
-            );
-
-            let mut game: Game = world.read_model(game_id);
-            assert_token_ownership(token_address, game_id);
-            game.assert_not_over();
-
-            let mut run_data = game.get_run_data();
-            let player = get_caller_address();
-
-            // In-game shop is only available after completing levels 5, 10, 15, ...
-            // (i.e. when current_level is 6, 11, 16, ...).
-            assert!(run_data.current_level > 1, "Shop not available");
-            assert!((run_data.current_level - 1) % 5 == 0, "Shop not available");
-
-            // Get game settings for consumable costs
-            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
-
-            // Convert u8 to ConsumableType
-            let consumable_type: ConsumableType = consumable.into();
-            let cost = consumable_type.get_cost_from_settings(settings);
-
-            // Check player has enough cubes (brought + earned - spent)
-            let total_budget: u32 = run_data.cubes_brought.into() + run_data.total_cubes.into();
-            let spent: u32 = run_data.cubes_spent.into();
-            let cubes_available: u32 = if total_budget >= spent { total_budget - spent } else { 0 };
-            assert!(cubes_available >= cost.into(), "Insufficient cubes");
-
-            // Spend the cubes
-            let new_spent: u32 = spent + cost.into();
-            assert!(new_spent <= 65535, "Cubes spent overflow");
-            run_data.cubes_spent = new_spent.try_into().unwrap();
-
-            // Read player meta for bag sizes
-            let mut player_meta: PlayerMeta = world.read_model(player);
-            if !player_meta.exists() {
-                player_meta = PlayerMetaTrait::new(player);
-            }
-
-            // Apply consumable effect
-            match consumable_type {
-                ConsumableType::Hammer => {
-                    let max_bag = player_meta.get_bag_size(0);
-                    assert!(run_data.hammer_count < max_bag, "Hammer bag is full");
-                    run_data.hammer_count = run_data.hammer_count + 1;
-                },
-                ConsumableType::Wave => {
-                    let max_bag = player_meta.get_bag_size(1);
-                    assert!(run_data.wave_count < max_bag, "Wave bag is full");
-                    run_data.wave_count = run_data.wave_count + 1;
-                },
-                ConsumableType::Totem => {
-                    let max_bag = player_meta.get_bag_size(2);
-                    assert!(run_data.totem_count < max_bag, "Totem bag is full");
-                    run_data.totem_count = run_data.totem_count + 1;
-                },
-                ConsumableType::ExtraMoves => {
-                    // ExtraMoves extends the current level's move limit.
-                    let base_seed: GameSeed = world.read_model(game_id);
-                    let level_config = LevelGeneratorTrait::generate(
-                        base_seed.seed, run_data.current_level, settings,
-                    );
-
-                    let max_extra: u16 = if level_config.max_moves >= 255 {
-                        0
-                    } else {
-                        255 - level_config.max_moves
-                    };
-                    assert!(max_extra > 0, "Move limit already maxed");
-                    
-                    let current_extra: u16 = run_data.extra_moves.into();
-                    assert!(current_extra < max_extra, "Extra moves maxed");
-                    
-                    // Add 5 extra moves (or whatever fits)
-                    let add_moves: u8 = 5;
-                    let new_extra: u16 = current_extra + add_moves.into();
-                    run_data.extra_moves = if new_extra > max_extra {
-                        max_extra.try_into().unwrap()
-                    } else {
-                        new_extra.try_into().unwrap()
-                    };
-                },
-            }
-
-            game.set_run_data(run_data);
-            world.write_model(@game);
-            post_action(token_address, game_id);
         }
     }
 
@@ -374,7 +271,7 @@ mod play_system {
             
             // Only mint cubes and update stats for games using default settings
             if is_default_settings(settings.settings_id) && base_cubes > 0 {
-                let cube_token = self.get_cube_token_dispatcher();
+                let cube_token = dispatchers::get_cube_token_dispatcher(world);
                 cube_token.mint(player, base_cubes.into());
                 
                 player_meta.add_cubes_earned(base_cubes.into());
@@ -394,34 +291,6 @@ mod play_system {
                         ended_at: get_block_timestamp(),
                     },
                 );
-        }
-
-        fn get_cube_token_dispatcher(self: @ContractState) -> ICubeTokenDispatcher {
-            let world = self.world(@DEFAULT_NS());
-            let cube_token_address = world.dns_address(@"cube_token")
-                .expect('CubeToken not found in DNS');
-            ICubeTokenDispatcher { contract_address: cube_token_address }
-        }
-
-        fn get_quest_system_dispatcher(self: @ContractState) -> Option<IQuestSystemDispatcher> {
-            let world = self.world(@DEFAULT_NS());
-            match world.dns_address(@"quest_system") {
-                Option::Some(address) => Option::Some(
-                    IQuestSystemDispatcher { contract_address: address },
-                ),
-                Option::None => Option::None,
-            }
-        }
-
-        fn track_quest_progress(
-            self: @ContractState, player: ContractAddress, task_id: felt252, count: u32, settings_id: u32,
-        ) {
-            if !is_default_settings(settings_id) {
-                return;
-            }
-            if let Option::Some(quest_system) = self.get_quest_system_dispatcher() {
-                quest_system.progress(player, task_id, count);
-            }
         }
 
         fn check_and_complete_level(
@@ -490,7 +359,7 @@ mod play_system {
                 
                 let cubes_to_mint: u256 = final_run_data.total_cubes.into();
                 if cubes_to_mint > 0 {
-                    let cube_token = self.get_cube_token_dispatcher();
+                    let cube_token = dispatchers::get_cube_token_dispatcher(world);
                     cube_token.mint(player, cubes_to_mint);
                 }
                 

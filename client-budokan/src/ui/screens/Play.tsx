@@ -12,7 +12,7 @@ import { useMediaQuery } from "react-responsive";
 import GameOverDialog from "../components/GameOverDialog";
 import VictoryDialog from "../components/VictoryDialog";
 import LevelCompleteDialog from "../components/LevelCompleteDialog";
-import { InGameShopDialog } from "../components/Shop";
+import { BonusSelectionDialog, InGameShopDialog, PendingLevelUpDialog } from "../components/Shop";
 import useViewport from "@/hooks/useViewport";
 import { useGrid } from "@/hooks/useGrid";
 import { useParams, Navigate } from "react-router-dom";
@@ -39,9 +39,13 @@ interface LevelCompletionData {
   prevHammer: number;
   prevWave: number;
   prevTotem: number;
+  prevShrink: number;
+  prevShuffle: number;
   hammer: number;
   wave: number;
   totem: number;
+  shrink: number;
+  shuffle: number;
   prevTotalCubes: number;
   totalCubes: number;
   /** Total score before level completion (used to calculate level's final score) */
@@ -49,6 +53,8 @@ interface LevelCompletionData {
   /** Total score after level completion */
   totalScore: number;
 }
+
+const DEFAULT_SELECTED_BONUSES = [1, 3, 2]; // Hammer, Wave, Totem
 
 export const Play = () => {
   useViewport();
@@ -84,6 +90,9 @@ export const Play = () => {
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [isLevelCompleteOpen, setIsLevelCompleteOpen] = useState(false);
   const [isInGameShopOpen, setIsInGameShopOpen] = useState(false);
+  const [isBonusSelectionOpen, setIsBonusSelectionOpen] = useState(false);
+  const [isPendingLevelUpOpen, setIsPendingLevelUpOpen] = useState(false);
+  const [openShopAfterLevelUp, setOpenShopAfterLevelUp] = useState(false);
   const { playerMeta } = usePlayerMeta();
   const [levelCompletionData, setLevelCompletionData] = useState<LevelCompletionData | null>(null);
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
@@ -97,6 +106,8 @@ export const Play = () => {
     hammer: number;
     wave: number;
     totem: number;
+    shrink: number;
+    shuffle: number;
     totalCubes: number;
     totalScore: number;
   } | null>(null);
@@ -144,30 +155,49 @@ export const Play = () => {
       account &&
       !gameCreationAttemptedRef.current
     ) {
-      gameCreationAttemptedRef.current = true;
-      const createGame = async () => {
-        try {
-          await create({ account, token_id: gameId });
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          // If the game already started, it means Torii hasn't synced yet
-          // Don't reset the flag - just wait for sync
-          if (errorMessage.includes("already started")) {
-            return;
-          }
-          console.error("Failed to create game:", error);
-          // Reset the flag on other errors so user can retry
-          gameCreationAttemptedRef.current = false;
-        }
-      };
-      createGame();
+      if (!isBonusSelectionOpen) {
+        setIsBonusSelectionOpen(true);
+      }
     }
-  }, [isGameLoading, game, account, create, gameId]);
+  }, [isGameLoading, game, account, gameId, isBonusSelectionOpen]);
 
   // Reset the creation flag when gameId changes
   useEffect(() => {
     gameCreationAttemptedRef.current = false;
   }, [gameId]);
+
+  const handleBonusSelectionConfirm = async (selectedBonuses: number[]) => {
+    if (!account) return;
+    gameCreationAttemptedRef.current = true;
+    try {
+      await create({
+        account,
+        token_id: gameId,
+        selected_bonuses: selectedBonuses,
+        cubes_amount: 0,
+      });
+      setIsBonusSelectionOpen(false);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes("already started")) {
+        return;
+      }
+      console.error("Failed to create game:", error);
+      gameCreationAttemptedRef.current = false;
+    }
+  };
+
+  const handleBonusSelectionClose = () => {
+    handleBonusSelectionConfirm(DEFAULT_SELECTED_BONUSES);
+  };
+
+  const handlePendingLevelUpClose = () => {
+    setIsPendingLevelUpOpen(false);
+    if (openShopAfterLevelUp && game && game.cubesAvailable > 0) {
+      setIsInGameShopOpen(true);
+    }
+    setOpenShopAfterLevelUp(false);
+  };
 
   // Show connect dialog when there's no account
   useEffect(() => {
@@ -177,6 +207,17 @@ export const Play = () => {
       setIsConnectDialogOpen(false);
     }
   }, [account]);
+
+  useEffect(() => {
+    if (
+      game?.pendingLevelUp &&
+      !isPendingLevelUpOpen &&
+      !isLevelCompleteOpen &&
+      !isInGameShopOpen
+    ) {
+      setIsPendingLevelUpOpen(true);
+    }
+  }, [game?.pendingLevelUp, isPendingLevelUpOpen, isLevelCompleteOpen, isInGameShopOpen]);
 
   useEffect(() => {
     if (game?.over) {
@@ -260,9 +301,13 @@ export const Play = () => {
         prevHammer: prevState.hammer,
         prevWave: prevState.wave,
         prevTotem: prevState.totem,
+        prevShrink: prevState.shrink,
+        prevShuffle: prevState.shuffle,
         hammer: game.hammer,
         wave: game.wave,
         totem: game.totem,
+        shrink: game.shrink,
+        shuffle: game.shuffle,
         prevTotalCubes: prevState.totalCubes,
         totalCubes: game.totalCubes,
         prevTotalScore: levelStartTotalScoreRef.current, // Score at START of the completed level
@@ -285,6 +330,8 @@ export const Play = () => {
       hammer: game.hammer,
       wave: game.wave,
       totem: game.totem,
+      shrink: game.shrink,
+      shuffle: game.shuffle,
       totalCubes: game.totalCubes,
       totalScore: game.totalScore,
     };
@@ -297,7 +344,10 @@ export const Play = () => {
     game?.hammer,
     game?.wave,
     game?.totem,
+    game?.shrink,
+    game?.shuffle,
     game?.over,
+    game?.totalCubes,
     game?.totalScore,
     game,
   ]);
@@ -362,6 +412,14 @@ export const Play = () => {
                     />
                   )}
 
+                  <BonusSelectionDialog
+                    isOpen={isBonusSelectionOpen}
+                    onClose={handleBonusSelectionClose}
+                    onConfirm={handleBonusSelectionConfirm}
+                    shrinkUnlocked={playerMeta?.data?.shrinkUnlocked ?? false}
+                    shuffleUnlocked={playerMeta?.data?.shuffleUnlocked ?? false}
+                  />
+
                   {/* Level Complete Dialog */}
                   {levelCompletionData && (
                     <LevelCompleteDialog
@@ -372,12 +430,18 @@ export const Play = () => {
                         const completedLevel = levelCompletionData.level;
                         const hasCubesToSpend = game && game.cubesAvailable > 0;
                         const shopAvailable = isInGameShopAvailable(completedLevel);
-                        console.log("[InGameShop] completedLevel:", completedLevel, "shopAvailable:", shopAvailable, "hasCubesToSpend:", hasCubesToSpend, "cubesAvailable:", game?.cubesAvailable, "totalCubes:", game?.totalCubes, "cubesBrought:", game?.cubesBrought, "cubesSpent:", game?.cubesSpent);
-                        if (shopAvailable && hasCubesToSpend) {
-                          console.log("[InGameShop] Opening in-game shop!");
+                        const shouldOpenShop = !!shopAvailable && !!hasCubesToSpend;
+
+                        if (game?.pendingLevelUp) {
+                          setOpenShopAfterLevelUp(shouldOpenShop);
+                          setIsPendingLevelUpOpen(true);
+                          setLevelCompletionData(null);
+                          return;
+                        }
+
+                        if (shouldOpenShop) {
                           setIsInGameShopOpen(true);
                         } else {
-                          console.log("[InGameShop] NOT opening shop. shopAvailable:", shopAvailable, "hasCubesToSpend:", hasCubesToSpend);
                           setLevelCompletionData(null);
                         }
                       }}
@@ -390,9 +454,13 @@ export const Play = () => {
                       prevHammer={levelCompletionData.prevHammer}
                       prevWave={levelCompletionData.prevWave}
                       prevTotem={levelCompletionData.prevTotem}
+                      prevShrink={levelCompletionData.prevShrink}
+                      prevShuffle={levelCompletionData.prevShuffle}
                       hammer={levelCompletionData.hammer}
                       wave={levelCompletionData.wave}
                       totem={levelCompletionData.totem}
+                      shrink={levelCompletionData.shrink}
+                      shuffle={levelCompletionData.shuffle}
                       prevTotalCubes={levelCompletionData.prevTotalCubes}
                       totalCubes={levelCompletionData.totalCubes}
                       prevTotalScore={levelCompletionData.prevTotalScore}
@@ -414,7 +482,19 @@ export const Play = () => {
                         hammer: 1 + playerMeta.data.bagHammerLevel,
                         wave: 1 + playerMeta.data.bagWaveLevel,
                         totem: 1 + playerMeta.data.bagTotemLevel,
+                        shrink: 1 + playerMeta.data.bagShrinkLevel,
+                        shuffle: 1 + playerMeta.data.bagShuffleLevel,
                       } : undefined}
+                    />
+                  )}
+
+                  {/* Pending Level Up Dialog (after boss levels) */}
+                  {game && (
+                    <PendingLevelUpDialog
+                      isOpen={isPendingLevelUpOpen}
+                      onClose={handlePendingLevelUpClose}
+                      gameId={game.id}
+                      runData={game.runData}
                     />
                   )}
 
@@ -445,19 +525,16 @@ export const Play = () => {
                         ref={gameGrid}
                         className="flex flex-col items-center game-container"
                       >
-                        <GameBoard
-                          initialGrid={grid}
-                          nextLine={game.isOver() ? [] : game.next_row}
-                          score={game.isOver() ? 0 : game.score}
-                          combo={game.isOver() ? 0 : game.combo}
-                          maxCombo={game.isOver() ? 0 : game.maxComboRun}
-                          hammerCount={game.isOver() ? 0 : game.hammer}
-                          totemCount={game.isOver() ? 0 : game.totem}
-                          waveCount={game.isOver() ? 0 : game.wave}
-                          account={account}
-                          game={game}
-                          seed={seed}
-                        />
+                          <GameBoard
+                            initialGrid={grid}
+                            nextLine={game.isOver() ? [] : game.next_row}
+                            score={game.isOver() ? 0 : game.score}
+                            combo={game.isOver() ? 0 : game.combo}
+                            maxCombo={game.isOver() ? 0 : game.maxComboRun}
+                            account={account}
+                            game={game}
+                            seed={seed}
+                          />
                       </div>
                       {isMdOrLarger && !game.isOver() && (
                         <div className="mt-4 sm:mt-0 sm:absolute sm:right-0 sm:bottom-0 sm:mb-4 flex justify-center sm:justify-end w-full">

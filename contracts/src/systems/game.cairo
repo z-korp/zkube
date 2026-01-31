@@ -26,14 +26,13 @@ mod game_system {
     use zkube::models::game::{Game, GameTrait, GameAssert};
     use zkube::models::game::{GameSeed, GameLevelTrait};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
-    use zkube::models::config::GameSettings;
     use zkube::helpers::random::RandomImpl;
     use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::packing::{MetaDataPackingTrait};
     use zkube::events::{StartGame, LevelStarted, RunEnded};
-    use zkube::systems::cube_token::{ICubeTokenDispatcher, ICubeTokenDispatcherTrait};
-    use zkube::systems::quest::{IQuestSystemDispatcher, IQuestSystemDispatcherTrait};
+    use zkube::systems::cube_token::ICubeTokenDispatcherTrait;
+    use zkube::helpers::dispatchers;
     use zkube::elements::tasks::grinder;
 
     use dojo::model::ModelStorage;
@@ -237,7 +236,7 @@ mod game_system {
                 assert!(cubes_amount <= max_allowed, "Exceeds max cubes for your bridging rank");
                 
                 // Burn cubes from ERC1155 wallet (will revert if insufficient)
-                let cube_token = self.get_cube_token_dispatcher();
+                let cube_token = dispatchers::get_cube_token_dispatcher(world);
                 cube_token.burn(player, cubes_amount.into());
                 
                 // Set cubes_brought in run_data
@@ -285,7 +284,7 @@ mod game_system {
 
             // Track quest progress: games played (Grinder task)
             // Only counts for default settings games
-            self.track_quest_progress(player, grinder::Grinder::identifier(), 1, settings.settings_id);
+            dispatchers::track_quest_progress(world, player, grinder::Grinder::identifier(), 1, settings.settings_id);
 
             post_action(token_address, game_id);
 
@@ -429,7 +428,7 @@ mod game_system {
             // Only mint cubes and update stats for games using default settings
             // Custom settings games can still earn/spend cubes in-game, but don't mint to wallet
             if is_default_settings(settings.settings_id) && base_cubes > 0 {
-                let cube_token = self.get_cube_token_dispatcher();
+                let cube_token = dispatchers::get_cube_token_dispatcher(world);
                 cube_token.mint(player, base_cubes.into());
                 
                 // Update lifetime stats only for default settings
@@ -452,38 +451,5 @@ mod game_system {
                 );
         }
 
-        /// Get the CubeToken contract dispatcher via world DNS
-        fn get_cube_token_dispatcher(self: @ContractState) -> ICubeTokenDispatcher {
-            let world = self.world(@DEFAULT_NS());
-            let cube_token_address = world.dns_address(@"cube_token")
-                .expect('CubeToken not found in DNS');
-            ICubeTokenDispatcher { contract_address: cube_token_address }
-        }
-
-        /// Get the QuestSystem contract dispatcher via world DNS
-        /// Returns Option to gracefully handle missing quest_system (during migration)
-        fn get_quest_system_dispatcher(self: @ContractState) -> Option<IQuestSystemDispatcher> {
-            let world = self.world(@DEFAULT_NS());
-            match world.dns_address(@"quest_system") {
-                Option::Some(address) => Option::Some(
-                    IQuestSystemDispatcher { contract_address: address },
-                ),
-                Option::None => Option::None,
-            }
-        }
-
-        /// Track quest progress for a player (no-op if quest system not deployed or custom settings)
-        /// Only tracks progress for games using default settings (settings_id == 0)
-        fn track_quest_progress(
-            self: @ContractState, player: ContractAddress, task_id: felt252, count: u32, settings_id: u32,
-        ) {
-            // Only track quest progress for default settings games
-            if !is_default_settings(settings_id) {
-                return;
-            }
-            if let Option::Some(quest_system) = self.get_quest_system_dispatcher() {
-                quest_system.progress(player, task_id, count);
-            }
-        }
     }
 }

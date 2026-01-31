@@ -38,20 +38,45 @@ pub impl BonusImpl of BonusTrait {
     }
 }
 
-/// Apply shrink by 2 sizes (for Level 3)
-pub fn apply_shrink_by_2(blocks: felt252, row_index: u8, index: u8) -> felt252 {
-    let block_value = Controller::get_block(blocks, row_index, index);
-    let width: Width = block_value.into();
-    assert(width != Width::None, errors::INVALID_BLOCK_VALUE);
+/// Apply shrink to ALL blocks on the grid (for Level 3)
+/// Shrinks every block by 1 size (except size 1 which cannot be shrunk)
+pub fn apply_shrink_all(blocks: felt252) -> felt252 {
+    // Iterate through all blocks and shrink those > 1
+    let mut packed: u256 = blocks.into();
+    let modulo: u256 = constants::BLOCK_SIZE.into();
     
-    // Shrink by 2 sizes
-    // Size 1 -> 0 (empty)
-    // Size 2 -> 0 (empty)
-    // Size 3 -> 1
-    // Size 4 -> 2
-    let new_value: u8 = if block_value > 2 { block_value - 2 } else { 0 };
+    let mut result: u256 = 0;
+    let mut shift: u256 = 1;
     
-    replace_block(blocks, row_index, index, block_value, new_value)
+    loop {
+        if packed.low == 0_u128 && packed.high == 0_u128 {
+            break;
+        }
+        
+        let block: u8 = (packed % modulo).try_into().unwrap();
+        
+        // Shrink blocks > 1 by 1 size
+        // Size 1 stays as 1 (cannot shrink)
+        // Size 2 -> 1
+        // Size 3 -> 2
+        // Size 4 -> 3
+        // Size 0 (empty) stays 0
+        let output_value: u256 = if block > 1 {
+            (block - 1).into()
+        } else {
+            block.into()
+        };
+        
+        result = result + (output_value * shift);
+        packed = packed / modulo;
+        
+        if packed.low == 0_u128 && packed.high == 0_u128 {
+            break;
+        }
+        shift *= modulo;
+    };
+    
+    result.try_into().unwrap()
 }
 
 /// Apply shrink to all blocks of the same size (for Level 2)
@@ -116,7 +141,7 @@ fn replace_block(blocks: felt252, row_index: u8, index: u8, old_value: u8, new_v
 
 #[cfg(test)]
 mod tests {
-    use super::{BonusImpl, apply_shrink_by_2, apply_shrink_same_size};
+    use super::{BonusImpl, apply_shrink_all, apply_shrink_same_size};
     use zkube::helpers::controller::Controller;
 
     #[test]
@@ -145,14 +170,16 @@ mod tests {
     }
 
     #[test]
-    fn test_shrink_by_2() {
-        // Grid with a size-4 block at position (row=0, index=0)
-        let blocks: felt252 = 0b000_000_000_000_000_000_000_100;
+    fn test_shrink_all() {
+        // Grid with mixed blocks: size-4, size-3, size-2, size-1
+        // Row 0: 100_011_010_001_000_000_000_000
+        let blocks: felt252 = 0b100_011_010_001_000_000_000_000;
         
-        let result = apply_shrink_by_2(blocks, 0, 0);
+        let result = apply_shrink_all(blocks);
         
-        // Should become size 2
-        assert_eq!(result, 0b000_000_000_000_000_000_000_010);
+        // Size 4 -> 3, Size 3 -> 2, Size 2 -> 1, Size 1 stays 1
+        // Row 0: 011_010_001_001_000_000_000_000
+        assert_eq!(result, 0b011_010_001_001_000_000_000_000);
     }
 
     #[test]

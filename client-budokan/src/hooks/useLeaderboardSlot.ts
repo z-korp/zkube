@@ -87,11 +87,11 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
           const runData = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
           // Unpack run_data fields:
           // bits 0-7 = current_level (8 bits)
-          // bits 115-130 = total_cubes (16 bits)
-          // bits 131-146 = total_score (16 bits)
+          // bits 131-146 = total_cubes (16 bits)
+          // bits 147-162 = total_score (16 bits)
           const level = Number(runData & BigInt(0xFF)); // 8 bits at position 0
-          const totalCubes = Number((runData >> BigInt(115)) & BigInt(0xFFFF)); // 16 bits at position 115
-          const totalScore = Number((runData >> BigInt(131)) & BigInt(0xFFFF)); // 16 bits at position 131
+          const totalCubes = Number((runData >> BigInt(131)) & BigInt(0xFFFF)); // 16 bits at position 131
+          const totalScore = Number((runData >> BigInt(147)) & BigInt(0xFFFF)); // 16 bits at position 147
 
           const playerAddress = toHexAddress(gameData.player);
           gameList.push({

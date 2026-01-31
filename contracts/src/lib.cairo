@@ -27,14 +27,7 @@ mod elements {
         pub mod shuffle;
     }
     pub mod difficulties {
-        pub mod veryeasy;
-        pub mod easy;
-        pub mod medium;
-        pub mod mediumhard;
-        pub mod hard;
-        pub mod veryhard;
-        pub mod expert;
-        pub mod master;
+        pub mod data;
         pub mod interface;
     }
     pub mod tasks {
@@ -71,6 +64,7 @@ pub mod helpers {
     pub mod token;
     pub mod packing;
     pub mod level;
+    pub mod dispatchers;
 }
 
 pub mod systems {

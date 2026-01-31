@@ -208,14 +208,6 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
-  const createWithCubes = async ({ account, ...props }: SystemTypes.CreateWithCubes) => {
-    await handleTransaction(
-      account,
-      () => client.game.create_with_cubes({ account, ...props }),
-      "Game started with cubes!"
-    );
-  };
-
   const surrender = async ({ account, ...props }: SystemTypes.Surrender) => {
     await handleTransaction(
       account,
@@ -282,6 +274,14 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
+  const unlockBonus = async ({ account, ...props }: SystemTypes.UnlockBonus) => {
+    await handleTransaction(
+      account,
+      () => client.shop.unlock_bonus({ account, ...props }),
+      "Bonus unlocked!"
+    );
+  };
+
   const purchaseConsumable = async ({ account, ...props }: SystemTypes.PurchaseConsumable) => {
     const setMoveComplete = useMoveStore.getState().setMoveComplete;
     setMoveComplete(false);
@@ -296,6 +296,14 @@ export function systems({ client }: { client: IWorld }) {
       setMoveComplete(true);
       throw error;
     }
+  };
+
+  const levelUpBonus = async ({ account, ...props }: SystemTypes.LevelUpBonus) => {
+    await handleTransaction(
+      account,
+      () => client.shop.level_up_bonus({ account, ...props }),
+      "Bonus leveled up!"
+    );
   };
 
   const claimQuest = async ({ account, ...props }: SystemTypes.ClaimQuest) => {
@@ -313,16 +321,17 @@ export function systems({ client }: { client: IWorld }) {
     // play
     freeMint,
     create,
-    createWithCubes,
     surrender,
     move,
     applyBonus,
     // in-game shop
     purchaseConsumable,
+    levelUpBonus,
     // permanent shop
     upgradeStartingBonus,
     upgradeBagSize,
     upgradeBridgingRank,
+    unlockBonus,
     // quests
     claimQuest,
   };

@@ -15,6 +15,7 @@ import {
   TooltipTrigger,
 } from "@/ui/elements/tooltip";
 import type { GameLevelData } from "@/hooks/useGameLevel";
+import { BonusType } from "@/dojo/game/types/bonus";
 
 interface LevelHeaderCompactProps {
   level: number;
@@ -31,18 +32,14 @@ interface LevelHeaderCompactProps {
   cubesBrought?: number;
   cubesSpent?: number;
   // Bonus props for inline display
-  hammerCount: number;
-  waveCount: number;
-  totemCount: number;
-  activeBonus: number; // BonusType
-  onBonusHammerClick: () => void;
-  onBonusWaveClick: () => void;
-  onBonusTotemClick: () => void;
-  bonusImages: {
-    hammer: string;
-    wave: string;
-    tiki: string;
-  };
+  bonusSlots: {
+    type: BonusType;
+    count: number;
+    icon: string;
+    tooltip: string;
+    onClick: () => void;
+  }[];
+  activeBonus: BonusType;
 }
 
 const isBossLevel = (level: number): boolean => {
@@ -110,14 +107,8 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   gameLevel,
   cubesBrought = 0,
   cubesSpent = 0,
-  hammerCount,
-  waveCount,
-  totemCount,
+  bonusSlots,
   activeBonus,
-  onBonusHammerClick,
-  onBonusWaveClick,
-  onBonusTotemClick,
-  bonusImages,
 }) => {
   const isBoss = isBossLevel(level);
   const { playSuccess } = useMusicPlayer();
@@ -481,27 +472,16 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
       <div className="flex items-center justify-between">
         {/* Bonus buttons */}
         <div className="flex items-center gap-1 md:gap-1.5">
-          <BonusButton
-            onClick={onBonusHammerClick}
-            image={bonusImages.hammer}
-            count={hammerCount}
-            tooltip="Destroy a block and connected same-size blocks"
-            isActive={activeBonus === 1}
-          />
-          <BonusButton
-            onClick={onBonusWaveClick}
-            image={bonusImages.wave}
-            count={waveCount}
-            tooltip="Destroy an entire horizontal line"
-            isActive={activeBonus === 2}
-          />
-          <BonusButton
-            onClick={onBonusTotemClick}
-            image={bonusImages.tiki}
-            count={totemCount}
-            tooltip="Destroy all blocks of the same size"
-            isActive={activeBonus === 3}
-          />
+          {bonusSlots.map((slot, index) => (
+            <BonusButton
+              key={`${slot.type}-${index}`}
+              onClick={slot.onClick}
+              image={slot.icon}
+              count={slot.count}
+              tooltip={slot.tooltip}
+              isActive={activeBonus === slot.type}
+            />
+          ))}
         </div>
 
         {/* Pace text + Potential cubes with info icon */}

@@ -2,7 +2,7 @@
 
 use zkube::types::width::Width;
 
-#[derive(Copy, Drop, Serde)]
+#[derive(Copy, Drop, Serde, PartialEq, Debug)]
 pub enum Block {
     None,
     Zero,

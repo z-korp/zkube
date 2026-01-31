@@ -14,6 +14,8 @@ use zkube::helpers::packing::{RunData, RunDataPackingTrait};
 use zkube::types::bonus::{Bonus, BonusTrait};
 use zkube::types::level::LevelConfigTrait;
 use zkube::types::constraint::LevelConstraintTrait;
+use zkube::elements::bonuses::shrink::{apply_shrink_same_size, apply_shrink_all};
+use zkube::elements::bonuses::shuffle::{shuffle_next_line, shuffle_entire_grid};
 use zkube::helpers::level::{LevelGenerator, LevelGeneratorTrait, BossLevel};
 use zkube::models::config::GameSettings;
 
@@ -492,16 +494,48 @@ pub impl GameImpl of GameTrait {
         };
         let bonus_level = self.get_bonus_level(bonus_type_u8);
 
-        // For Totem L3: clear entire grid instead of normal effect
-        if bonus == Bonus::Totem && bonus_level == 2 {
-            // L3 Totem: nuclear option - clear everything, no cube bonus
-            self.blocks = 0;
-        } else {
-            // Apply the normal bonus effect
-            self.blocks = bonus.apply(self.blocks, row_index, index);
+        // Apply bonus effect based on type and level
+        match bonus {
+            Bonus::Totem => {
+                if bonus_level == 2 {
+                    // L3 Totem: nuclear option - clear entire grid, no cube bonus
+                    self.blocks = 0;
+                } else {
+                    // L1/L2 Totem: clear all blocks of same size
+                    self.blocks = bonus.apply(self.blocks, row_index, index);
+                }
+            },
+            Bonus::Shrink => {
+                if bonus_level == 2 {
+                    // L3 Shrink: shrink ALL blocks on grid (except size 1)
+                    self.blocks = apply_shrink_all(self.blocks);
+                } else if bonus_level == 1 {
+                    // L2 Shrink: shrink all blocks of the same size
+                    self.blocks = apply_shrink_same_size(self.blocks, row_index, index);
+                } else {
+                    // L1 Shrink: shrink single target block
+                    self.blocks = bonus.apply(self.blocks, row_index, index);
+                }
+            },
+            Bonus::Shuffle => {
+                if bonus_level == 2 {
+                    // L3 Shuffle: shuffle the entire grid
+                    self.blocks = shuffle_entire_grid(self.blocks, seed);
+                } else if bonus_level == 1 {
+                    // L2 Shuffle: shuffle the upcoming next_row
+                    self.next_row = shuffle_next_line(self.next_row, seed);
+                } else {
+                    // L1 Shuffle: shuffle a single row
+                    self.blocks = bonus.apply(self.blocks, row_index, index);
+                }
+            },
+            _ => {
+                // Hammer, Wave, None: apply normal effect
+                self.blocks = bonus.apply(self.blocks, row_index, index);
+            },
         }
 
-        // Apply level-scaled effects
+        // Apply additional level-scaled effects (bonuses beyond the primary effect)
         match bonus {
             Bonus::Hammer => {
                 // L2: +1 combo, L3: +2 combo
@@ -522,16 +556,14 @@ pub impl GameImpl of GameTrait {
                 }
             },
             Bonus::Totem => {
-                // L2: +1 cube per block cleared (we need to count before clearing)
-                // Note: For L2, we give bonus cubes based on a flat estimate since exact count is complex
+                // L2: +3 bonus cubes (simplified flat award)
                 if bonus_level == 1 {
-                    // Award bonus cubes for L2 Totem (simplified: award 3 cubes)
                     run_data.total_cubes = saturating_add_u16(run_data.total_cubes, 3_u16);
                 }
-                // L3 handled above (clear grid, no bonus)
+                // L3 handled above (clear grid, no additional bonus)
             },
             _ => {
-                // Shrink and Shuffle don't have level effects here (their effects are baked into apply())
+                // Shrink, Shuffle, None: no additional level bonuses
             },
         }
 
@@ -784,7 +816,9 @@ pub impl GameAssert of AssertTrait {
             Bonus::Hammer => run_data.hammer_count,
             Bonus::Wave => run_data.wave_count,
             Bonus::Totem => run_data.totem_count,
-            _ => 0,
+            Bonus::Shrink => run_data.shrink_count,
+            Bonus::Shuffle => run_data.shuffle_count,
+            Bonus::None => 0,
         };
         assert!(count > 0, "Game {} bonus is not available", self.game_id);
     }

@@ -62,11 +62,56 @@ export class Game {
   public get totem(): number {
     return this.runData.totemCount;
   }
+  public get shrink(): number {
+    return this.runData.shrinkCount;
+  }
+  public get shuffle(): number {
+    return this.runData.shuffleCount;
+  }
   public get maxComboRun(): number {
     return this.runData.maxComboRun;
   }
   public get totalScore(): number {
     return this.runData.totalScore;
+  }
+  public get selectedBonus1(): number {
+    return this.runData.selectedBonus1;
+  }
+  public get selectedBonus2(): number {
+    return this.runData.selectedBonus2;
+  }
+  public get selectedBonus3(): number {
+    return this.runData.selectedBonus3;
+  }
+  public get bonus1Level(): number {
+    return this.runData.bonus1Level;
+  }
+  public get bonus2Level(): number {
+    return this.runData.bonus2Level;
+  }
+  public get bonus3Level(): number {
+    return this.runData.bonus3Level;
+  }
+  public get freeMoves(): number {
+    return this.runData.freeMoves;
+  }
+  public get pendingLevelUp(): boolean {
+    return this.runData.pendingLevelUp;
+  }
+  public get lastShopLevel(): number {
+    return this.runData.lastShopLevel;
+  }
+  public get shopBonus1Bought(): boolean {
+    return this.runData.shopBonus1Bought;
+  }
+  public get shopBonus2Bought(): boolean {
+    return this.runData.shopBonus2Bought;
+  }
+  public get shopBonus3Bought(): boolean {
+    return this.runData.shopBonus3Bought;
+  }
+  public get shopRefills(): number {
+    return this.runData.shopRefills;
   }
   // Victory state
   public get runCompleted(): boolean {
@@ -147,7 +192,7 @@ export class Game {
 
   // Helper methods for level system
   public getTotalBonuses(): number {
-    return this.hammer + this.wave + this.totem;
+    return this.hammer + this.wave + this.totem + this.shrink + this.shuffle;
   }
 
   public hasBonuses(): boolean {

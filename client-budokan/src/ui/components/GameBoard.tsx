@@ -8,7 +8,8 @@ import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "./NextLine";
 import type { Block } from "@/types/types";
 import LevelHeaderCompact from "./LevelHeaderCompact";
-import { Bonus, BonusType } from "@/dojo/game/types/bonus";
+import { Bonus, BonusType, bonusTypeFromContractValue } from "@/dojo/game/types/bonus";
+import { getBonusInventoryCount } from "@/dojo/game/helpers/runDataPacking";
 import { Game } from "@/dojo/game/models/game";
 import { useGameLevel } from "@/hooks/useGameLevel";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
@@ -22,12 +23,9 @@ interface GameBoardProps {
   score: number;
   combo: number;
   maxCombo: number;
-  hammerCount: number;
-  waveCount: number;
-  totemCount: number;
   account: Account | null;
   game: Game;
-  seed: bigint;
+  seed?: bigint;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -36,12 +34,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
   score,
   combo,
   maxCombo,
-  waveCount,
-  hammerCount,
-  totemCount,
   account,
   game,
-  seed,
+  seed = BigInt(0),
 }) => {
   const {
     setup: {
@@ -73,41 +68,99 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const [bonus, setBonus] = useState<BonusType>(BonusType.None);
 
-  const handleBonusWaveClick = () => {
-    if (waveCount === 0) return;
-    if (bonus === BonusType.Wave) {
-      setBonus(BonusType.None);
-      setBonusDescription("");
-    } else {
-      setBonus(BonusType.Wave);
-      setBonusDescription("Select the line you want to destroy");
+  const bonusCounts = useMemo(() => ({
+    [BonusType.Hammer]: game.hammer,
+    [BonusType.Wave]: game.wave,
+    [BonusType.Totem]: game.totem,
+    [BonusType.Shrink]: game.shrink,
+    [BonusType.Shuffle]: game.shuffle,
+  }), [game.hammer, game.wave, game.totem, game.shrink, game.shuffle]);
+
+  const getBonusTooltip = (type: BonusType): string => {
+    switch (type) {
+      case BonusType.Hammer:
+        return "Destroy a block and connected same-size blocks";
+      case BonusType.Wave:
+        return "Destroy an entire horizontal line";
+      case BonusType.Totem:
+        return "Destroy all blocks of the same size";
+      case BonusType.Shrink:
+        return "Shrink a block by one size";
+      case BonusType.Shuffle:
+        return "Shuffle a row of blocks";
+      default:
+        return "";
     }
   };
 
-  const handleBonusTikiClick = () => {
-    if (totemCount === 0) return;
-    if (bonus === BonusType.Totem) {
-      setBonus(BonusType.None);
-      setBonusDescription("");
-    } else {
-      setBonus(BonusType.Totem);
-      setBonusDescription("Select the block type you want to destroy");
+  const getBonusDescription = (type: BonusType): string => {
+    switch (type) {
+      case BonusType.Wave:
+        return "Select the line you want to destroy";
+      case BonusType.Totem:
+        return "Select the block type you want to destroy";
+      case BonusType.Hammer:
+        return "Select the block you want to destroy";
+      case BonusType.Shrink:
+        return "Select the block you want to shrink";
+      case BonusType.Shuffle:
+        return "Select a row to shuffle";
+      default:
+        return "";
     }
   };
 
-  const handleBonusHammerClick = () => {
-    if (hammerCount === 0) return;
-    if (bonus === BonusType.Hammer) {
-      setBonus(BonusType.None);
-      setBonusDescription("");
-    } else {
-      setBonus(BonusType.Hammer);
-      setBonusDescription("Select the block you want to destroy");
+  const getBonusIcon = (type: BonusType): string => {
+    switch (type) {
+      case BonusType.Hammer:
+        return imgAssets.hammer;
+      case BonusType.Wave:
+        return imgAssets.wave;
+      case BonusType.Totem:
+        return imgAssets.tiki;
+      case BonusType.Shrink:
+        return imgAssets.shrink;
+      case BonusType.Shuffle:
+        return imgAssets.shuffle;
+      default:
+        return "";
     }
   };
 
-  const handleBonusWaveTx = useCallback(
-    async (rowIndex: number) => {
+  const selectedBonusSlots = useMemo(() => {
+    const slots = [
+      { slot: 0, value: game.selectedBonus1, level: game.bonus1Level },
+      { slot: 1, value: game.selectedBonus2, level: game.bonus2Level },
+      { slot: 2, value: game.selectedBonus3, level: game.bonus3Level },
+    ];
+
+    return slots.map((slot) => {
+      const type = bonusTypeFromContractValue(slot.value);
+      return {
+        slot: slot.slot,
+        type,
+        level: slot.level,
+        count: getBonusInventoryCount(game.runData, slot.value),
+        icon: getBonusIcon(type),
+        tooltip: getBonusTooltip(type),
+      };
+    });
+  }, [game.runData, game.selectedBonus1, game.selectedBonus2, game.selectedBonus3, game.bonus1Level, game.bonus2Level, game.bonus3Level, imgAssets]);
+
+  const handleBonusSelect = (type: BonusType) => {
+    const count = bonusCounts[type] ?? 0;
+    if (count === 0) return;
+    if (bonus === type) {
+      setBonus(BonusType.None);
+      setBonusDescription("");
+    } else {
+      setBonus(type);
+      setBonusDescription(getBonusDescription(type));
+    }
+  };
+
+  const handleBonusTx = useCallback(
+    async (bonusType: BonusType, rowIndex: number, colIndex: number) => {
       if (!account) return;
 
       setIsTxProcessing(true);
@@ -115,27 +168,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         await applyBonus({
           account: account as Account,
           game_id: game.id,
-          bonus: new Bonus(BonusType.Wave).into(),
-          row_index: ROWS - rowIndex - 1,
-          block_index: 0,
-        });
-      } finally {
-        //setIsLoading(false);
-      }
-    },
-    [account, applyBonus]
-  );
-
-  const handleBonusHammerTx = useCallback(
-    async (rowIndex: number, colIndex: number) => {
-      if (!account) return;
-
-      setIsTxProcessing(true);
-      try {
-        await applyBonus({
-          account: account as Account,
-          game_id: game.id,
-          bonus: new Bonus(BonusType.Hammer).into(),
+          bonus: new Bonus(bonusType).into(),
           row_index: ROWS - rowIndex - 1,
           block_index: colIndex,
         });
@@ -143,42 +176,26 @@ const GameBoard: React.FC<GameBoardProps> = ({
         //setIsLoading(false);
       }
     },
-    [account, applyBonus]
-  );
-
-  const handleBonusTikiTx = useCallback(
-    async (rowIndex: number, colIndex: number) => {
-      if (!account) return;
-
-      setIsTxProcessing(true);
-      try {
-        await applyBonus({
-          account: account as Account,
-          game_id: game.id,
-          bonus: new Bonus(BonusType.Totem).into(),
-          row_index: ROWS - rowIndex - 1,
-          block_index: colIndex,
-        });
-      } finally {
-        //setIsLoading(false);
-      }
-    },
-    [account, applyBonus]
+    [account, applyBonus, game.id]
   );
 
   const selectBlock = useCallback(
     async (block: Block) => {
       if (bonus === BonusType.Wave) {
-        handleBonusWaveTx(block.y);
+        handleBonusTx(BonusType.Wave, block.y, 0);
       } else if (bonus === BonusType.Totem) {
-        handleBonusTikiTx(block.y, block.x);
+        handleBonusTx(BonusType.Totem, block.y, block.x);
       } else if (bonus === BonusType.Hammer) {
-        handleBonusHammerTx(block.y, block.x);
+        handleBonusTx(BonusType.Hammer, block.y, block.x);
+      } else if (bonus === BonusType.Shrink) {
+        handleBonusTx(BonusType.Shrink, block.y, block.x);
+      } else if (bonus === BonusType.Shuffle) {
+        handleBonusTx(BonusType.Shuffle, block.y, block.x);
       } else if (bonus === BonusType.None) {
         console.log("none", block);
       }
     },
-    [bonus, handleBonusHammerTx, handleBonusTikiTx, handleBonusWaveTx]
+    [bonus, handleBonusTx]
   );
 
   useEffect(() => {
@@ -224,18 +241,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
             gameLevel={gameLevel}
             cubesBrought={game.cubesBrought}
             cubesSpent={game.cubesSpent}
-            hammerCount={hammerCount}
-            waveCount={waveCount}
-            totemCount={totemCount}
             activeBonus={bonus}
-            onBonusHammerClick={handleBonusHammerClick}
-            onBonusWaveClick={handleBonusWaveClick}
-            onBonusTotemClick={handleBonusTikiClick}
-            bonusImages={{
-              hammer: imgAssets.hammer,
-              wave: imgAssets.wave,
-              tiki: imgAssets.tiki,
-            }}
+            bonusSlots={selectedBonusSlots.map((slot) => ({
+              ...slot,
+              onClick: () => handleBonusSelect(slot.type),
+            }))}
           />
         </div>
 

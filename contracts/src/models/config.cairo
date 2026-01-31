@@ -349,13 +349,13 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         }
     }
     
-    /// Get consumable cost by type (0=Hammer, 1=Wave, 2=Totem, 3=ExtraMoves)
+    /// Get consumable cost by type (0=Hammer, 1=Wave, 2=Totem)
+    /// Note: These legacy costs are kept for backwards compatibility but new shop uses fixed prices
     fn get_consumable_cost(self: GameSettings, consumable_type: u8) -> u8 {
         match consumable_type {
             0 => self.hammer_cost,
             1 => self.wave_cost,
             2 => self.totem_cost,
-            3 => self.extra_moves_cost,
             _ => 0,
         }
     }
@@ -755,7 +755,7 @@ mod tests {
         assert!(settings.get_consumable_cost(0) == 5, "Hammer should cost 5");
         assert!(settings.get_consumable_cost(1) == 5, "Wave should cost 5");
         assert!(settings.get_consumable_cost(2) == 5, "Totem should cost 5");
-        assert!(settings.get_consumable_cost(3) == 10, "ExtraMoves should cost 10");
+        assert!(settings.get_consumable_cost(3) == 0, "Invalid consumable type should return 0");
     }
     
     #[test]

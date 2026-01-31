@@ -258,6 +258,20 @@ const Grid: React.FC<GridProps> = ({
         gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
         gridPosition.top + block.y * gridSize
       );
+    } else if (bonus === BonusType.Shrink) {
+      if (gridPosition === null) return;
+      handleTriggerLocalExplosion(
+        gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
+        gridPosition.top + block.y * gridSize
+      );
+    } else if (bonus === BonusType.Shuffle) {
+      getBlocksSameRow(block.y, blocks).forEach((b) => {
+        if (gridPosition === null) return;
+        handleTriggerLocalExplosion(
+          gridPosition.left + b.x * gridSize + (b.width * gridSize) / 2,
+          gridPosition.top + b.y * gridSize
+        );
+      });
     }
 
     // if we have a bonus, we go in state gravity_bonus

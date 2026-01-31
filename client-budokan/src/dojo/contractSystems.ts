@@ -25,6 +25,8 @@ export interface Surrender extends Signer {
 
 export interface Create extends Signer {
   token_id: number;
+  selected_bonuses: number[]; // [] uses default Hammer/Wave/Totem
+  cubes_amount: number; // 0 if not bringing cubes
 }
 
 export interface FreeMint extends Signer {
@@ -47,17 +49,22 @@ export interface BonusTx extends Signer {
 }
 
 export interface ShopUpgrade extends Signer {
-  bonus_type: number; // 0=Hammer, 1=Wave, 2=Totem
+  bonus_type: number; // 0=Hammer, 1=Wave, 2=Totem, 3=Shrink, 4=Shuffle
 }
 
-export interface CreateWithCubes extends Signer {
-  token_id: number;
-  cubes_amount: number;
+export interface UnlockBonus extends Signer {
+  bonus_type: number; // 4=Shrink, 5=Shuffle
 }
 
 export interface PurchaseConsumable extends Signer {
   game_id: number;
-  consumable_type: number; // 0=Hammer, 1=Wave, 2=Totem, 3=ExtraMoves
+  consumable_type: number; // 0=Bonus1, 1=Bonus2, 2=Bonus3, 3=Refill, 4=LevelUp
+  bonus_slot: number; // Only used for LevelUp (0, 1, or 2), pass 0 for others
+}
+
+export interface LevelUpBonus extends Signer {
+  game_id: number;
+  bonus_slot: number; // 0, 1, or 2
 }
 
 export interface ClaimQuest extends Signer {
@@ -105,9 +112,11 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const create = async ({ account, token_id }: Create) => {
+    const create = async ({ account, token_id, selected_bonuses, cubes_amount }: Create) => {
       try {
         console.log("token_id", token_id);
+        const bonusList = selected_bonuses ?? [];
+        const calldata = [token_id, bonusList.length, ...bonusList, cubes_amount];
 
         // On Slot, skip VRF call since it's not deployed
         if (isSlotMode) {
@@ -115,7 +124,7 @@ export function setupWorld(config: Config) {
             {
               contractAddress: contract.address,
               entrypoint: "create",
-              calldata: [token_id],
+              calldata,
             },
           ]);
         }
@@ -133,7 +142,7 @@ export function setupWorld(config: Config) {
           {
             contractAddress: contract.address,
             entrypoint: "create",
-            calldata: [token_id],
+            calldata,
           },
         ]);
       } catch (error) {
@@ -187,7 +196,7 @@ export function setupWorld(config: Config) {
     }: BonusTx) => {
       try {
         // Bonus enum serializes as just the variant index:
-        // 0 = None, 1 = Hammer, 2 = Totem, 3 = Wave
+        // 0 = None, 1 = Hammer, 2 = Totem, 3 = Wave, 4 = Shrink, 5 = Shuffle
         return await account.execute([
           {
             contractAddress: contract.address,
@@ -201,48 +210,10 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const create_with_cubes = async ({ account, token_id, cubes_amount }: CreateWithCubes) => {
-      try {
-        console.log("create_with_cubes - token_id:", token_id, "cubes:", cubes_amount);
-
-        // On Slot, skip VRF call since it's not deployed
-        if (isSlotMode) {
-          return await account.execute([
-            {
-              contractAddress: contract.address,
-              entrypoint: "create_with_cubes",
-              calldata: [token_id, cubes_amount],
-            },
-          ]);
-        }
-
-        // On Sepolia/Mainnet, include VRF request
-        return await account.execute([
-          {
-            contractAddress: VRF_PROVIDER_ADDRESS,
-            entrypoint: "request_random",
-            calldata: CallData.compile({
-              caller: contract.address,
-              source: { type: 0, address: account.address },
-            }),
-          },
-          {
-            contractAddress: contract.address,
-            entrypoint: "create_with_cubes",
-            calldata: [token_id, cubes_amount],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing create_with_cubes:", error);
-        throw error;
-      }
-    };
-
     return {
       address: contract.address,
       free_mint,
       create,
-      create_with_cubes,
       surrender,
       move,
       bonus,
@@ -303,19 +274,50 @@ export function setupWorld(config: Config) {
       }
     };
 
-    const purchase_consumable = async ({ account, game_id, consumable_type }: PurchaseConsumable) => {
+    const purchase_consumable = async ({ account, game_id, consumable_type, bonus_slot }: PurchaseConsumable) => {
       try {
         // ConsumableType enum serializes as just the variant index:
-        // 0 = Hammer, 1 = Wave, 2 = Totem, 3 = ExtraMoves
+        // 0 = Bonus1, 1 = Bonus2, 2 = Bonus3, 3 = Refill, 4 = LevelUp
+        // bonus_slot is only used for LevelUp (0, 1, or 2)
         return await account.execute([
           {
             contractAddress: contract.address,
             entrypoint: "purchase_consumable",
-            calldata: [game_id, consumable_type],
+            calldata: [game_id, consumable_type, bonus_slot],
           },
         ]);
       } catch (error) {
         console.error("Error executing purchase_consumable:", error);
+        throw error;
+      }
+    };
+
+    const unlock_bonus = async ({ account, bonus_type }: UnlockBonus) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "unlock_bonus",
+            calldata: [bonus_type],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing unlock_bonus:", error);
+        throw error;
+      }
+    };
+
+    const level_up_bonus = async ({ account, game_id, bonus_slot }: LevelUpBonus) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "level_up_bonus",
+            calldata: [game_id, bonus_slot],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing level_up_bonus:", error);
         throw error;
       }
     };
@@ -326,6 +328,8 @@ export function setupWorld(config: Config) {
       upgrade_bag_size,
       upgrade_bridging_rank,
       purchase_consumable,
+      unlock_bonus,
+      level_up_bonus,
     };
   }
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -24,10 +24,14 @@ interface LevelCompleteDialogProps {
   prevHammer: number;
   prevWave: number;
   prevTotem: number;
+  prevShrink: number;
+  prevShuffle: number;
   /** Current bonus counts (after level completion) */
   hammer: number;
   wave: number;
   totem: number;
+  shrink: number;
+  shuffle: number;
   /** Total cubes before level completion */
   prevTotalCubes: number;
   /** Total cubes after level completion */
@@ -47,12 +51,16 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   seed,
   constraintProgress: _constraintProgress, // Unused - constraint is always satisfied when level completes
   bonusUsedThisLevel: _bonusUsedThisLevel, // Unused - constraint is always satisfied when level completes
-  prevHammer: _prevHammer,
-  prevWave: _prevWave,
-  prevTotem: _prevTotem,
-  hammer: _hammer,
-  wave: _wave,
-  totem: _totem,
+  prevHammer,
+  prevWave,
+  prevTotem,
+  prevShrink,
+  prevShuffle,
+  hammer,
+  wave,
+  totem,
+  shrink,
+  shuffle,
   prevTotalCubes,
   totalCubes,
   prevTotalScore,
@@ -101,6 +109,14 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   
   // Extra cubes from combos (total minus base minus boss bonus)
   const comboCubes = Math.max(0, totalLevelCubes - baseCubesEarned - bossBonus);
+
+  const bonusEarned = [
+    { name: "Hammer", count: hammer - prevHammer },
+    { name: "Wave", count: wave - prevWave },
+    { name: "Totem", count: totem - prevTotem },
+    { name: "Shrink", count: shrink - prevShrink },
+    { name: "Shuffle", count: shuffle - prevShuffle },
+  ].filter((item) => item.count > 0);
   
   // Check if shop opens after this level
   const isShopLevel = isInGameShopAvailable(level);
@@ -228,6 +244,28 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
                 <FontAwesomeIcon icon={faCheck} />
               </motion.span>
             </motion.div>
+          )}
+        </motion.div>
+
+        {/* Bonuses Earned */}
+        <motion.div
+          className="mb-5"
+          initial={{ opacity: 0, y: 10 }}
+          animate={animationPhase >= 3 ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="text-xs text-slate-400 mb-2 font-medium">Bonuses Earned</div>
+          {bonusEarned.length === 0 ? (
+            <div className="text-sm text-slate-500">No bonuses earned this level.</div>
+          ) : (
+            <div className="space-y-1">
+              {bonusEarned.map((item) => (
+                <div key={item.name} className="flex justify-between text-sm">
+                  <span className="text-slate-300">{item.name}</span>
+                  <span className="text-emerald-400 font-semibold">+{item.count}</span>
+                </div>
+              ))}
+            </div>
           )}
         </motion.div>
 

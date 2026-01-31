@@ -13,7 +13,6 @@ pub trait IQuestSystem<T> {
 
 #[dojo::contract]
 pub mod quest_system {
-    use dojo::world::WorldStorageTrait;
     use quest::components::questable::QuestableComponent;
     use quest::components::questable::QuestableComponent::InternalImpl as QuestableInternalImpl;
     use quest::interfaces::IQuestRewarder;
@@ -22,7 +21,8 @@ pub mod quest_system {
     use crate::constants::DEFAULT_NS;
     use crate::elements::quests::index::{IQuest, QUEST_COUNT, QuestProps, QuestType};
     use crate::elements::quests::finisher;
-    use crate::systems::cube_token::{ICubeTokenDispatcher, ICubeTokenDispatcherTrait};
+    use crate::systems::cube_token::ICubeTokenDispatcherTrait;
+    use crate::helpers::dispatchers;
 
     use super::IQuestSystem;
 
@@ -114,7 +114,7 @@ pub mod quest_system {
         fn on_quest_claim(
             ref self: ContractState, player: ContractAddress, quest_id: felt252, interval_id: u64,
         ) {
-            let _world = self.world(@DEFAULT_NS());
+            let world = self.world(@DEFAULT_NS());
 
             // Get reward amount for this quest
             let quest: QuestType = quest_id.into();
@@ -122,7 +122,7 @@ pub mod quest_system {
 
             // Mint CUBE tokens as reward
             if amount > 0 {
-                let cube_token = self.get_cube_token_dispatcher();
+                let cube_token = dispatchers::get_cube_token_dispatcher(world);
                 cube_token.mint(player, amount.into());
             }
 
@@ -153,14 +153,4 @@ pub mod quest_system {
 
     // Internal helpers
 
-    #[generate_trait]
-    impl InternalImpl of InternalTrait {
-        fn get_cube_token_dispatcher(self: @ContractState) -> ICubeTokenDispatcher {
-            let world = self.world(@DEFAULT_NS());
-            let cube_token_address = world
-                .dns_address(@"cube_token")
-                .expect('CubeToken not found in DNS');
-            ICubeTokenDispatcher { contract_address: cube_token_address }
-        }
-    }
 }

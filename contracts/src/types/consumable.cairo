@@ -1,30 +1,49 @@
 /// In-game shop consumable types
-/// These can be purchased during a run using cubes_brought
+/// These can be purchased during a run using cubes from brought + earned
 /// They provide immediate benefits but don't persist beyond the run
-
-use zkube::models::config::GameSettings;
+///
+/// V2.0 Shop System:
+/// - Bonus1/2/3: Buy one of your selected bonuses (5 CUBE each)
+///   Each can only be bought once per shop visit, then requires a Refill
+/// - Refill: Allows buying another bonus of any type (cost = 2 * (n+1) where n = refills bought)
+/// - LevelUp: Level up one of your bonuses (50 CUBE, only at shop levels)
 
 #[derive(Drop, Copy, Serde, Introspect, PartialEq)]
 pub enum ConsumableType {
-    Hammer,         // Add 1 Hammer bonus to inventory
-    Wave,           // Add 1 Wave bonus to inventory
-    Totem,          // Add 1 Totem bonus to inventory
-    ExtraMoves,     // Add extra moves to current level
+    Bonus1,         // Add 1 of selected_bonus_1 to inventory (5 CUBE)
+    Bonus2,         // Add 1 of selected_bonus_2 to inventory (5 CUBE)
+    Bonus3,         // Add 1 of selected_bonus_3 to inventory (5 CUBE)
+    Refill,         // Allow buying another bonus (2 * (n+1) CUBE)
+    LevelUp,        // Level up a bonus (50 CUBE) - requires bonus_slot param
 }
 
-/// Extra moves granted when purchasing ExtraMoves consumable
-pub const EXTRA_MOVES_AMOUNT: u8 = 5;
+/// Base cost for bonus consumables
+pub const BONUS_COST: u16 = 5;
+
+/// Cost for level up
+pub const LEVEL_UP_COST: u16 = 50;
 
 #[generate_trait]
 pub impl ConsumableImpl of ConsumableTrait {
-    /// Get the cost of a consumable from GameSettings
-    fn get_cost_from_settings(self: ConsumableType, settings: GameSettings) -> u16 {
+    /// Get the base cost of a consumable (fixed costs)
+    /// Note: Refill cost depends on how many refills already bought - use get_refill_cost
+    #[inline(always)]
+    fn get_cost(self: ConsumableType) -> u16 {
         match self {
-            ConsumableType::Hammer => settings.hammer_cost.into(),
-            ConsumableType::Wave => settings.wave_cost.into(),
-            ConsumableType::Totem => settings.totem_cost.into(),
-            ConsumableType::ExtraMoves => settings.extra_moves_cost.into(),
+            ConsumableType::Bonus1 => BONUS_COST,
+            ConsumableType::Bonus2 => BONUS_COST,
+            ConsumableType::Bonus3 => BONUS_COST,
+            ConsumableType::Refill => 2, // Base cost, actual is 2 * (n+1)
+            ConsumableType::LevelUp => LEVEL_UP_COST,
         }
+    }
+    
+    /// Get refill cost based on number of refills already bought
+    /// Cost formula: 2 * (refills_bought + 1)
+    #[inline(always)]
+    fn get_refill_cost(refills_bought: u8) -> u16 {
+        let multiplier: u16 = (refills_bought + 1).into();
+        2_u16 * multiplier
     }
 }
 
@@ -32,10 +51,11 @@ impl IntoConsumableU8 of Into<ConsumableType, u8> {
     #[inline(always)]
     fn into(self: ConsumableType) -> u8 {
         match self {
-            ConsumableType::Hammer => 0,
-            ConsumableType::Wave => 1,
-            ConsumableType::Totem => 2,
-            ConsumableType::ExtraMoves => 3,
+            ConsumableType::Bonus1 => 0,
+            ConsumableType::Bonus2 => 1,
+            ConsumableType::Bonus3 => 2,
+            ConsumableType::Refill => 3,
+            ConsumableType::LevelUp => 4,
         }
     }
 }
@@ -44,70 +64,65 @@ impl IntoU8Consumable of Into<u8, ConsumableType> {
     #[inline(always)]
     fn into(self: u8) -> ConsumableType {
         match self {
-            0 => ConsumableType::Hammer,
-            1 => ConsumableType::Wave,
-            2 => ConsumableType::Totem,
-            3 => ConsumableType::ExtraMoves,
-            _ => ConsumableType::Hammer, // Default fallback
+            0 => ConsumableType::Bonus1,
+            1 => ConsumableType::Bonus2,
+            2 => ConsumableType::Bonus3,
+            3 => ConsumableType::Refill,
+            4 => ConsumableType::LevelUp,
+            _ => ConsumableType::Bonus1, // Default fallback
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{ConsumableType, ConsumableTrait};
-    use zkube::models::config::{GameSettings, GameSettingsTrait};
-    use zkube::types::difficulty::Difficulty;
+    use super::{ConsumableType, ConsumableTrait, BONUS_COST, LEVEL_UP_COST};
 
     #[test]
-    fn test_consumable_costs_from_settings() {
-        // Test with default settings
-        let settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        
-        assert!(ConsumableType::Hammer.get_cost_from_settings(settings) == 5, "Hammer should cost 5");
-        assert!(ConsumableType::Wave.get_cost_from_settings(settings) == 5, "Wave should cost 5");
-        assert!(ConsumableType::Totem.get_cost_from_settings(settings) == 5, "Totem should cost 5");
-        assert!(ConsumableType::ExtraMoves.get_cost_from_settings(settings) == 10, "ExtraMoves should cost 10");
+    fn test_consumable_costs() {
+        assert!(ConsumableType::Bonus1.get_cost() == BONUS_COST, "Bonus1 should cost 5");
+        assert!(ConsumableType::Bonus2.get_cost() == BONUS_COST, "Bonus2 should cost 5");
+        assert!(ConsumableType::Bonus3.get_cost() == BONUS_COST, "Bonus3 should cost 5");
+        assert!(ConsumableType::Refill.get_cost() == 2, "Refill base should be 2");
+        assert!(ConsumableType::LevelUp.get_cost() == LEVEL_UP_COST, "LevelUp should cost 50");
     }
     
     #[test]
-    fn test_consumable_costs_custom_settings() {
-        // Test with custom settings
-        let mut settings = GameSettingsTrait::new_with_defaults(0, Difficulty::Increasing);
-        settings.hammer_cost = 3;
-        settings.wave_cost = 4;
-        settings.totem_cost = 6;
-        settings.extra_moves_cost = 15;
-        
-        assert!(ConsumableType::Hammer.get_cost_from_settings(settings) == 3, "Custom hammer cost");
-        assert!(ConsumableType::Wave.get_cost_from_settings(settings) == 4, "Custom wave cost");
-        assert!(ConsumableType::Totem.get_cost_from_settings(settings) == 6, "Custom totem cost");
-        assert!(ConsumableType::ExtraMoves.get_cost_from_settings(settings) == 15, "Custom extra moves cost");
+    fn test_refill_cost_formula() {
+        // Cost = 2 * (n + 1) where n = refills already bought
+        assert!(ConsumableTrait::get_refill_cost(0) == 2, "First refill costs 2");
+        assert!(ConsumableTrait::get_refill_cost(1) == 4, "Second refill costs 4");
+        assert!(ConsumableTrait::get_refill_cost(2) == 6, "Third refill costs 6");
+        assert!(ConsumableTrait::get_refill_cost(4) == 10, "Fifth refill costs 10");
     }
 
     #[test]
     fn test_consumable_to_u8() {
-        let hammer: u8 = ConsumableType::Hammer.into();
-        let wave: u8 = ConsumableType::Wave.into();
-        let totem: u8 = ConsumableType::Totem.into();
-        let extra_moves: u8 = ConsumableType::ExtraMoves.into();
+        let bonus1: u8 = ConsumableType::Bonus1.into();
+        let bonus2: u8 = ConsumableType::Bonus2.into();
+        let bonus3: u8 = ConsumableType::Bonus3.into();
+        let refill: u8 = ConsumableType::Refill.into();
+        let level_up: u8 = ConsumableType::LevelUp.into();
         
-        assert!(hammer == 0, "Hammer should be 0");
-        assert!(wave == 1, "Wave should be 1");
-        assert!(totem == 2, "Totem should be 2");
-        assert!(extra_moves == 3, "ExtraMoves should be 3");
+        assert!(bonus1 == 0, "Bonus1 should be 0");
+        assert!(bonus2 == 1, "Bonus2 should be 1");
+        assert!(bonus3 == 2, "Bonus3 should be 2");
+        assert!(refill == 3, "Refill should be 3");
+        assert!(level_up == 4, "LevelUp should be 4");
     }
 
     #[test]
     fn test_u8_to_consumable() {
-        let hammer: ConsumableType = 0_u8.into();
-        let wave: ConsumableType = 1_u8.into();
-        let totem: ConsumableType = 2_u8.into();
-        let extra_moves: ConsumableType = 3_u8.into();
+        let bonus1: ConsumableType = 0_u8.into();
+        let bonus2: ConsumableType = 1_u8.into();
+        let bonus3: ConsumableType = 2_u8.into();
+        let refill: ConsumableType = 3_u8.into();
+        let level_up: ConsumableType = 4_u8.into();
         
-        assert!(hammer == ConsumableType::Hammer, "0 should be Hammer");
-        assert!(wave == ConsumableType::Wave, "1 should be Wave");
-        assert!(totem == ConsumableType::Totem, "2 should be Totem");
-        assert!(extra_moves == ConsumableType::ExtraMoves, "3 should be ExtraMoves");
+        assert!(bonus1 == ConsumableType::Bonus1, "0 should be Bonus1");
+        assert!(bonus2 == ConsumableType::Bonus2, "1 should be Bonus2");
+        assert!(bonus3 == ConsumableType::Bonus3, "2 should be Bonus3");
+        assert!(refill == ConsumableType::Refill, "3 should be Refill");
+        assert!(level_up == ConsumableType::LevelUp, "4 should be LevelUp");
     }
 }

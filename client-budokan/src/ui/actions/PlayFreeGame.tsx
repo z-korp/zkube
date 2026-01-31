@@ -6,17 +6,19 @@ import { showToast } from "@/utils/toast";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
-import { BringCubesDialog, getMaxCubesForRank } from "@/ui/components/Shop";
+import { BonusSelectionDialog, BringCubesDialog, getMaxCubesForRank } from "@/ui/components/Shop";
 import { DEFAULT_SETTINGS_ID } from "@/dojo/game/types/level";
 
 type PlayFreeGameProps = {
   onMintSuccess?: () => void | Promise<void>;
 };
 
+const DEFAULT_SELECTED_BONUSES = [1, 3, 2]; // Hammer, Wave, Totem
+
 export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
   const {
     setup: {
-      systemCalls: { freeMint, create, createWithCubes },
+      systemCalls: { freeMint, create },
     },
   } = useDojo();
   const { account } = useAccountCustom();
@@ -26,7 +28,10 @@ export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [showBringCubesDialog, setShowBringCubesDialog] = useState(false);
+  const [showBonusSelectionDialog, setShowBonusSelectionDialog] = useState(false);
   const [pendingGameId, setPendingGameId] = useState<number | null>(null);
+  const [pendingSelectedBonuses, setPendingSelectedBonuses] = useState<number[] | null>(null);
+
 
   // Check if player has bridging rank unlocked
   const bridgingRank = playerMeta?.data?.bridgingRank ?? 0;
@@ -47,23 +52,10 @@ export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
         settingsId: DEFAULT_SETTINGS_ID,
       });
 
-      // If player can bring cubes, show the dialog
-      if (canBringCubes) {
-        setPendingGameId(result.game_id);
-        setShowBringCubesDialog(true);
-        setIsLoading(false);
-        return;
-      }
-
-      // Otherwise, create the game normally without cubes
-      await create({ account, token_id: result.game_id });
-
-      showToast({
-        message: "Game minted! You can resume it from My Games.",
-        type: "success",
-      });
-
-      onMintSuccess?.();
+      setPendingGameId(result.game_id);
+      setShowBonusSelectionDialog(true);
+      setIsLoading(false);
+      return;
     } catch (error) {
       console.error("Error minting game:", error);
       showToast({
@@ -73,35 +65,36 @@ export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
     } finally {
       setIsLoading(false);
     }
-  }, [account, canBringCubes, create, freeMint, onMintSuccess, username]);
+  }, [account, freeMint, username]);
 
-  const handleBringCubesConfirm = useCallback(async (cubes: number) => {
+  const handleBonusSelectionConfirm = useCallback(async (selectedBonuses: number[]) => {
     if (!account || pendingGameId === null) return;
 
+    setPendingSelectedBonuses(selectedBonuses);
     setIsLoading(true);
     try {
-      if (cubes > 0) {
-        // Create game with cubes
-        await createWithCubes({ 
-          account, 
-          token_id: pendingGameId, 
-          cubes_amount: cubes 
-        });
-        showToast({
-          message: `Game started with ${cubes} cubes! You can spend them in the shop.`,
-          type: "success",
-        });
-      } else {
-        // Create game without cubes
-        await create({ account, token_id: pendingGameId });
-        showToast({
-          message: "Game minted! You can resume it from My Games.",
-          type: "success",
-        });
+      if (canBringCubes) {
+        setShowBonusSelectionDialog(false);
+        setShowBringCubesDialog(true);
+        setIsLoading(false);
+        return;
       }
 
-      setShowBringCubesDialog(false);
+      await create({
+        account,
+        token_id: pendingGameId,
+        selected_bonuses: selectedBonuses,
+        cubes_amount: 0,
+      });
+
+      showToast({
+        message: "Game minted! You can resume it from My Games.",
+        type: "success",
+      });
+
+      setShowBonusSelectionDialog(false);
       setPendingGameId(null);
+      setPendingSelectedBonuses(null);
       onMintSuccess?.();
     } catch (error) {
       console.error("Error creating game:", error);
@@ -112,7 +105,50 @@ export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
     } finally {
       setIsLoading(false);
     }
-  }, [account, create, createWithCubes, onMintSuccess, pendingGameId]);
+  }, [account, canBringCubes, create, onMintSuccess, pendingGameId]);
+
+  const handleBonusSelectionClose = useCallback(() => {
+    if (pendingGameId !== null) {
+      handleBonusSelectionConfirm(DEFAULT_SELECTED_BONUSES);
+    }
+  }, [handleBonusSelectionConfirm, pendingGameId]);
+
+  const handleBringCubesConfirm = useCallback(async (cubes: number) => {
+    if (!account || pendingGameId === null) return;
+
+    const selectedBonuses = pendingSelectedBonuses ?? DEFAULT_SELECTED_BONUSES;
+
+    setIsLoading(true);
+    try {
+      await create({
+        account,
+        token_id: pendingGameId,
+        selected_bonuses: selectedBonuses,
+        cubes_amount: cubes,
+      });
+
+      showToast({
+        message: cubes > 0
+          ? `Game started with ${cubes} cubes! You can spend them in the shop.`
+          : "Game minted! You can resume it from My Games.",
+        type: "success",
+      });
+
+      setShowBringCubesDialog(false);
+      setShowBonusSelectionDialog(false);
+      setPendingGameId(null);
+      setPendingSelectedBonuses(null);
+      onMintSuccess?.();
+    } catch (error) {
+      console.error("Error creating game:", error);
+      showToast({
+        message: "Failed to create game",
+        type: "error",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [account, create, onMintSuccess, pendingGameId, pendingSelectedBonuses]);
 
   const handleBringCubesClose = useCallback(() => {
     // If dialog is closed without confirming, create the game without cubes
@@ -140,6 +176,14 @@ export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
         maxCubes={maxCubesAllowed}
         cubeBalance={cubeBalanceNum}
         isLoading={isLoading}
+      />
+
+      <BonusSelectionDialog
+        isOpen={showBonusSelectionDialog}
+        onClose={handleBonusSelectionClose}
+        onConfirm={handleBonusSelectionConfirm}
+        shrinkUnlocked={playerMeta?.data?.shrinkUnlocked ?? false}
+        shuffleUnlocked={playerMeta?.data?.shuffleUnlocked ?? false}
       />
     </>
   );

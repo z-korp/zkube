@@ -7,22 +7,22 @@ pub trait IShopSystem<T> {
     // ==========================================
     
     /// Upgrade starting bonus for a specific type (0=Hammer, 1=Wave, 2=Totem, 3=Shrink, 4=Shuffle)
-    /// Costs: Level 1 = 50, Level 2 = 200, Level 3 = 500
+    /// Costs: Level 1 = 100, Level 2 = 250, Level 3 = 500
     /// Note: Shrink (3) and Shuffle (4) require unlock first
     fn upgrade_starting_bonus(ref self: T, bonus_type: u8);
 
     /// Upgrade bag size for a specific bonus type (0=Hammer, 1=Wave, 2=Totem, 3=Shrink, 4=Shuffle)
-    /// Costs: Level 1 = 10, Level 2 = 20, Level 3 = 40
+    /// Costs: Level 1 = 100, Level 2 = 250, Level 3 = 500
     /// Note: Shrink (3) and Shuffle (4) require unlock first
     fn upgrade_bag_size(ref self: T, bonus_type: u8);
 
     /// Upgrade cube bridging rank (max 3 levels)
-    /// Costs: Rank 1 = 100, Rank 2 = 200, Rank 3 = 400
+    /// Costs: Rank 1 = 200, Rank 2 = 500, Rank 3 = 1000
     fn upgrade_bridging_rank(ref self: T);
 
     /// Unlock a new bonus type (Shrink or Shuffle)
     /// @param bonus_type: 4 = Shrink, 5 = Shuffle (using Bonus enum values)
-    /// Cost: 500 CUBE each
+    /// Cost: 200 CUBE each
     fn unlock_bonus(ref self: T, bonus_type: u8);
 
     /// Level up a bonus after boss clear (called after completing level 10, 20, 30, 40)
@@ -36,7 +36,10 @@ pub trait IShopSystem<T> {
     
     /// Purchase a consumable from the in-game shop using brought cubes
     /// Only available after completing levels 5, 10, 15, 20, etc.
-    fn purchase_consumable(ref self: T, game_id: u64, consumable: ConsumableType);
+    /// @param game_id: The game ID
+    /// @param consumable: The consumable type to purchase
+    /// @param bonus_slot: Required for LevelUp (0, 1, or 2), ignored for other consumables
+    fn purchase_consumable(ref self: T, game_id: u64, consumable: ConsumableType, bonus_slot: u8);
 
     // ==========================================
     // View Functions
@@ -56,53 +59,49 @@ pub trait IShopSystem<T> {
     fn get_shop_data(self: @T, game_id: u64) -> (u16, u16, u16);
 }
 
-/// Helper: compute 2^n as u64
-fn pow2_u64(n: u8) -> u64 {
-    let mut result: u64 = 1;
-    let mut i: u8 = 0;
-    loop {
-        if i >= n {
-            break result;
-        }
-        result = result * 2;
-        i += 1;
-    }
-}
-
 /// Get cost for starting bonus upgrade
-/// Level 0 -> 1 = 50, Level 1 -> 2 = 200, Level 2 -> 3 = 500
+/// Level 0 -> 1 = 100, Level 1 -> 2 = 250, Level 2 -> 3 = 500
 fn get_starting_bonus_cost(current_level: u8) -> u64 {
     match current_level {
-        0 => 50,
-        1 => 200,
+        0 => 100,
+        1 => 250,
         2 => 500,
         _ => 0, // Already maxed
     }
 }
 
-/// Get cost for bag size upgrade: 10 * 2^level
+/// Get cost for bag size upgrade
+/// Level 0 -> 1 = 100, Level 1 -> 2 = 250, Level 2 -> 3 = 500
 fn get_bag_upgrade_cost_impl(current_level: u8) -> u64 {
-    // 10 * 2^level: 10, 20, 40, 80, 160, 320...
-    10_u64 * pow2_u64(current_level)
+    match current_level {
+        0 => 100,
+        1 => 250,
+        2 => 500,
+        _ => 0, // Already maxed
+    }
 }
 
-/// Get cost for bridging rank upgrade: 100 * 2^rank
+/// Get cost for bridging rank upgrade
+/// Rank 0 -> 1 = 200, Rank 1 -> 2 = 500, Rank 2 -> 3 = 1000
 fn get_bridging_upgrade_cost_impl(current_rank: u8) -> u64 {
-    // 100 * 2^rank: 100, 200, 400, 800, 1600...
-    100_u64 * pow2_u64(current_rank)
+    match current_rank {
+        0 => 200,
+        1 => 500,
+        2 => 1000,
+        _ => 0, // Already maxed
+    }
 }
 
 #[dojo::contract]
 mod shop_system {
     use zkube::constants::DEFAULT_NS;
-    use zkube::models::game::{Game, GameTrait, GameAssert, GameSeed};
+    use zkube::models::game::{Game, GameTrait, GameAssert};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
-    use zkube::types::consumable::{ConsumableType, ConsumableTrait, EXTRA_MOVES_AMOUNT};
-    use zkube::helpers::config::ConfigUtilsTrait;
-    use zkube::helpers::level::{LevelGenerator, LevelGeneratorTrait};
+    use zkube::types::consumable::{ConsumableType, ConsumableTrait};
+    use zkube::helpers::packing::RunData;
     use zkube::events::{ConsumablePurchased, BonusUnlocked, BonusLevelUp};
-
-    use zkube::systems::cube_token::{ICubeTokenDispatcher, ICubeTokenDispatcherTrait};
+    use zkube::systems::cube_token::ICubeTokenDispatcherTrait;
+    use zkube::helpers::dispatchers;
     use super::{get_starting_bonus_cost, get_bag_upgrade_cost_impl, get_bridging_upgrade_cost_impl};
 
     use dojo::model::ModelStorage;
@@ -129,10 +128,7 @@ mod shop_system {
             let player = get_caller_address();
 
             // Read player meta
-            let mut player_meta: PlayerMeta = world.read_model(player);
-            if !player_meta.exists() {
-                player_meta = PlayerMetaTrait::new(player);
-            }
+            let mut player_meta = dispatchers::get_or_create_player_meta(world, player);
 
             let mut meta = player_meta.get_meta_data();
 
@@ -158,7 +154,7 @@ mod shop_system {
             let cost = get_starting_bonus_cost(current_level);
 
             // Burn cubes from ERC1155 wallet (will revert if insufficient)
-            let cube_token = self.get_cube_token_dispatcher();
+            let cube_token = dispatchers::get_cube_token_dispatcher(world);
             cube_token.burn(player, cost.into());
 
             // Upgrade the bonus
@@ -180,10 +176,7 @@ mod shop_system {
             let player = get_caller_address();
 
             // Read player meta
-            let mut player_meta: PlayerMeta = world.read_model(player);
-            if !player_meta.exists() {
-                player_meta = PlayerMetaTrait::new(player);
-            }
+            let mut player_meta = dispatchers::get_or_create_player_meta(world, player);
 
             let mut meta = player_meta.get_meta_data();
 
@@ -209,7 +202,7 @@ mod shop_system {
             let cost = get_bag_upgrade_cost_impl(current_level);
 
             // Burn cubes from ERC1155 wallet (will revert if insufficient)
-            let cube_token = self.get_cube_token_dispatcher();
+            let cube_token = dispatchers::get_cube_token_dispatcher(world);
             cube_token.burn(player, cost.into());
 
             // Upgrade the bag
@@ -231,10 +224,7 @@ mod shop_system {
             let player = get_caller_address();
 
             // Read player meta
-            let mut player_meta: PlayerMeta = world.read_model(player);
-            if !player_meta.exists() {
-                player_meta = PlayerMetaTrait::new(player);
-            }
+            let mut player_meta = dispatchers::get_or_create_player_meta(world, player);
 
             let mut meta = player_meta.get_meta_data();
             let current_rank = meta.bridging_rank;
@@ -245,7 +235,7 @@ mod shop_system {
             let cost = get_bridging_upgrade_cost_impl(current_rank);
 
             // Burn cubes from ERC1155 wallet (will revert if insufficient)
-            let cube_token = self.get_cube_token_dispatcher();
+            let cube_token = dispatchers::get_cube_token_dispatcher(world);
             cube_token.burn(player, cost.into());
 
             // Upgrade the rank
@@ -264,10 +254,7 @@ mod shop_system {
             assert!(bonus_type == 4 || bonus_type == 5, "Only Shrink (4) or Shuffle (5) can be unlocked");
 
             // Read player meta
-            let mut player_meta: PlayerMeta = world.read_model(player);
-            if !player_meta.exists() {
-                player_meta = PlayerMetaTrait::new(player);
-            }
+            let mut player_meta = dispatchers::get_or_create_player_meta(world, player);
 
             let mut meta = player_meta.get_meta_data();
 
@@ -279,11 +266,11 @@ mod shop_system {
             };
             assert!(!already_unlocked, "Bonus already unlocked");
 
-            // Cost is 500 CUBE for each unlock
-            let cost: u64 = 500;
+            // Cost is 200 CUBE for each unlock
+            let cost: u64 = 200;
 
             // Burn cubes from ERC1155 wallet (will revert if insufficient)
-            let cube_token = self.get_cube_token_dispatcher();
+            let cube_token = dispatchers::get_cube_token_dispatcher(world);
             cube_token.burn(player, cost.into());
 
             // Unlock the bonus
@@ -383,7 +370,7 @@ mod shop_system {
         // In-Game Shop Functions
         // ==========================================
         
-        fn purchase_consumable(ref self: ContractState, game_id: u64, consumable: ConsumableType) {
+        fn purchase_consumable(ref self: ContractState, game_id: u64, consumable: ConsumableType, bonus_slot: u8) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
             // Get token_address from game_system via IMinigame interface
@@ -410,9 +397,26 @@ mod shop_system {
             assert!(run_data.current_level > 1, "Shop not available");
             assert!((run_data.current_level - 1) % 5 == 0, "Shop not available");
 
-            // Get cost of consumable from settings
-            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
-            let cost = consumable.get_cost_from_settings(settings);
+            // Reset shop state if this is a new shop level
+            if run_data.last_shop_level != run_data.current_level {
+                run_data.last_shop_level = run_data.current_level;
+                run_data.shop_bonus_1_bought = false;
+                run_data.shop_bonus_2_bought = false;
+                run_data.shop_bonus_3_bought = false;
+                run_data.shop_refills = 0;
+            }
+
+            // Get player meta
+            let mut player_meta = dispatchers::get_or_create_player_meta(world, player);
+
+            // Calculate cost based on consumable type
+            let cost: u16 = match consumable {
+                ConsumableType::Bonus1 => consumable.get_cost(),
+                ConsumableType::Bonus2 => consumable.get_cost(),
+                ConsumableType::Bonus3 => consumable.get_cost(),
+                ConsumableType::Refill => ConsumableTrait::get_refill_cost(run_data.shop_refills),
+                ConsumableType::LevelUp => consumable.get_cost(),
+            };
 
             // Check player has enough cubes (brought + earned - spent)
             let total_budget: u32 = run_data.cubes_brought.into() + run_data.total_cubes.into();
@@ -425,51 +429,46 @@ mod shop_system {
             assert!(new_spent <= 65535, "Cubes spent overflow");
             run_data.cubes_spent = new_spent.try_into().unwrap();
 
-            // Read player meta for bag sizes
-            let mut player_meta: PlayerMeta = world.read_model(player);
-            if !player_meta.exists() {
-                player_meta = PlayerMetaTrait::new(player);
-            }
-
             // Apply consumable effect
             match consumable {
-                ConsumableType::Hammer => {
-                    let max_bag = player_meta.get_bag_size(0);
-                    assert!(run_data.hammer_count < max_bag, "Hammer bag is full");
-                    run_data.hammer_count = run_data.hammer_count + 1;
+                ConsumableType::Bonus1 => {
+                    // Check if already bought this shop (requires refill)
+                    assert!(!run_data.shop_bonus_1_bought, "Already bought, need refill");
+                    run_data.shop_bonus_1_bought = true;
+                    // Add the selected bonus type to inventory
+                    self.add_bonus_to_inventory(ref run_data, run_data.selected_bonus_1, @player_meta);
                 },
-                ConsumableType::Wave => {
-                    let max_bag = player_meta.get_bag_size(1);
-                    assert!(run_data.wave_count < max_bag, "Wave bag is full");
-                    run_data.wave_count = run_data.wave_count + 1;
+                ConsumableType::Bonus2 => {
+                    assert!(!run_data.shop_bonus_2_bought, "Already bought, need refill");
+                    run_data.shop_bonus_2_bought = true;
+                    self.add_bonus_to_inventory(ref run_data, run_data.selected_bonus_2, @player_meta);
                 },
-                ConsumableType::Totem => {
-                    let max_bag = player_meta.get_bag_size(2);
-                    assert!(run_data.totem_count < max_bag, "Totem bag is full");
-                    run_data.totem_count = run_data.totem_count + 1;
+                ConsumableType::Bonus3 => {
+                    assert!(!run_data.shop_bonus_3_bought, "Already bought, need refill");
+                    run_data.shop_bonus_3_bought = true;
+                    self.add_bonus_to_inventory(ref run_data, run_data.selected_bonus_3, @player_meta);
                 },
-                ConsumableType::ExtraMoves => {
-                    // ExtraMoves extends the current level's move limit.
-                    // We cap the effective max to 255 to avoid exceeding the u8 move counter.
-                    let base_seed: GameSeed = world.read_model(game_id);
-                    let level_config = LevelGeneratorTrait::generate(
-                        base_seed.seed, run_data.current_level, settings,
-                    );
-
-                    let max_extra: u16 = if level_config.max_moves >= 255 {
-                        0
-                    } else {
-                        255 - level_config.max_moves
-                    };
-                    assert!(max_extra > 0, "Move limit already maxed");
-
-                    let current_extra: u16 = run_data.extra_moves.into();
-                    let mut new_extra: u16 = current_extra + EXTRA_MOVES_AMOUNT.into();
-                    if new_extra > max_extra {
-                        new_extra = max_extra;
-                    }
-                    assert!(new_extra > current_extra, "Move limit already maxed");
-                    run_data.extra_moves = new_extra.try_into().unwrap();
+                ConsumableType::Refill => {
+                    // Refill allows buying again - reset bought flags
+                    run_data.shop_bonus_1_bought = false;
+                    run_data.shop_bonus_2_bought = false;
+                    run_data.shop_bonus_3_bought = false;
+                    run_data.shop_refills += 1;
+                },
+                ConsumableType::LevelUp => {
+                    // Level up a bonus (paid option, 50 CUBE)
+                    assert!(bonus_slot <= 2, "Invalid bonus slot");
+                    
+                    let current_level = if bonus_slot == 0 { run_data.bonus_1_level }
+                        else if bonus_slot == 1 { run_data.bonus_2_level }
+                        else { run_data.bonus_3_level };
+                    
+                    assert!(current_level < 2, "Bonus already at max level");
+                    
+                    let new_level = current_level + 1;
+                    if bonus_slot == 0 { run_data.bonus_1_level = new_level; }
+                    else if bonus_slot == 1 { run_data.bonus_2_level = new_level; }
+                    else { run_data.bonus_3_level = new_level; }
                 },
             }
 
@@ -522,14 +521,6 @@ mod shop_system {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
-        /// Get the CubeToken contract dispatcher via world DNS
-        fn get_cube_token_dispatcher(self: @ContractState) -> ICubeTokenDispatcher {
-            let world = self.world(@DEFAULT_NS());
-            let cube_token_address = world.dns_address(@"cube_token")
-                .expect('CubeToken not found in DNS');
-            ICubeTokenDispatcher { contract_address: cube_token_address }
-        }
-        
         /// Get the token address from game_system via IMinigame interface
         fn get_token_address(self: @ContractState) -> ContractAddress {
             let world = self.world(@DEFAULT_NS());
@@ -539,6 +530,42 @@ mod shop_system {
             // Call game_system's token_address() via IMinigame interface
             let game_system = IMinigameDispatcher { contract_address: game_system_address };
             game_system.token_address()
+        }
+        
+        /// Add a bonus to inventory based on bonus type
+        /// @param bonus_type: 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
+        fn add_bonus_to_inventory(
+            self: @ContractState,
+            ref run_data: RunData,
+            bonus_type: u8,
+            player_meta: @PlayerMeta,
+        ) {
+            // Convert bonus type to bag index: 1=Hammer->0, 2=Totem->2, 3=Wave->1, 4=Shrink->3, 5=Shuffle->4
+            let bag_idx: u8 = if bonus_type == 1 { 0 }
+                else if bonus_type == 2 { 2 }
+                else if bonus_type == 3 { 1 }
+                else if bonus_type == 4 { 3 }
+                else { 4 };
+            
+            let bag_size = (*player_meta).get_bag_size(bag_idx);
+            
+            // Add to the appropriate inventory
+            if bonus_type == 1 {
+                assert!(run_data.hammer_count < bag_size, "Hammer bag is full");
+                run_data.hammer_count += 1;
+            } else if bonus_type == 2 {
+                assert!(run_data.totem_count < bag_size, "Totem bag is full");
+                run_data.totem_count += 1;
+            } else if bonus_type == 3 {
+                assert!(run_data.wave_count < bag_size, "Wave bag is full");
+                run_data.wave_count += 1;
+            } else if bonus_type == 4 {
+                assert!(run_data.shrink_count < bag_size, "Shrink bag is full");
+                run_data.shrink_count += 1;
+            } else {
+                assert!(run_data.shuffle_count < bag_size, "Shuffle bag is full");
+                run_data.shuffle_count += 1;
+            }
         }
     }
 }

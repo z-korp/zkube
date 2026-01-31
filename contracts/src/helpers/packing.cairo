@@ -34,7 +34,12 @@ use alexandria_math::BitShift;
 /// │ 177-178 │ bonus_3_level         │ 2    │ 0-2      │ L1/L2/L3        │
 /// │ 179-181 │ free_moves            │ 3    │ 0-7      │ Free moves left │
 /// │ 182     │ pending_level_up      │ 1    │ 0-1      │ Level-up pending│
-/// │ 183-251 │ reserved              │ 69   │ -        │ Future features │
+/// │ 183-188 │ last_shop_level       │ 6    │ 0-63     │ Last shop level │
+/// │ 189     │ shop_bonus_1_bought   │ 1    │ 0-1      │ Bonus 1 bought  │
+/// │ 190     │ shop_bonus_2_bought   │ 1    │ 0-1      │ Bonus 2 bought  │
+/// │ 191     │ shop_bonus_3_bought   │ 1    │ 0-1      │ Bonus 3 bought  │
+/// │ 192-195 │ shop_refills          │ 4    │ 0-15     │ Refills bought  │
+/// │ 196-251 │ reserved              │ 56   │ -        │ Future features │
 /// └─────────────────────────────────────────────────────────────────────┘
 
 /// Unpacked run data structure
@@ -78,6 +83,12 @@ pub struct RunData {
     pub free_moves: u8,
     // Bonus V2.0: Level-up pending after boss clear
     pub pending_level_up: bool,
+    // In-game shop state (resets per shop visit)
+    pub last_shop_level: u8,      // Level of last shop interaction (0 = none)
+    pub shop_bonus_1_bought: bool, // Already bought bonus 1 this shop
+    pub shop_bonus_2_bought: bool, // Already bought bonus 2 this shop
+    pub shop_bonus_3_bought: bool, // Already bought bonus 3 this shop
+    pub shop_refills: u8,         // Number of refills bought this shop
 }
 
 /// Bit positions and masks for run_data
@@ -112,6 +123,12 @@ mod RunDataBits {
     pub const BONUS_3_LEVEL_POS: u8 = 177;
     pub const FREE_MOVES_POS: u8 = 179;
     pub const PENDING_LEVEL_UP_POS: u8 = 182;
+    // Shop state positions
+    pub const LAST_SHOP_LEVEL_POS: u8 = 183;
+    pub const SHOP_BONUS_1_BOUGHT_POS: u8 = 189;
+    pub const SHOP_BONUS_2_BOUGHT_POS: u8 = 190;
+    pub const SHOP_BONUS_3_BOUGHT_POS: u8 = 191;
+    pub const SHOP_REFILLS_POS: u8 = 192;
 
     // Bit masks (after shifting to position 0)
     pub const CURRENT_LEVEL_MASK: u256 = 0xFF; // 8 bits
@@ -133,6 +150,10 @@ mod RunDataBits {
     pub const BONUS_LEVEL_MASK: u256 = 0x3; // 2 bits (0-2 for L1/L2/L3)
     pub const FREE_MOVES_MASK: u256 = 0x7; // 3 bits (0-7)
     pub const PENDING_LEVEL_UP_MASK: u256 = 0x1; // 1 bit
+    // Shop state masks
+    pub const LAST_SHOP_LEVEL_MASK: u256 = 0x3F; // 6 bits (0-63)
+    pub const SHOP_BOUGHT_MASK: u256 = 0x1; // 1 bit
+    pub const SHOP_REFILLS_MASK: u256 = 0xF; // 4 bits (0-15)
 }
 
 #[generate_trait]
@@ -171,6 +192,12 @@ pub impl RunDataPacking of RunDataPackingTrait {
             bonus_3_level: 0,
             free_moves: 0,
             pending_level_up: false,
+            // Shop state starts fresh
+            last_shop_level: 0,
+            shop_bonus_1_bought: false,
+            shop_bonus_2_bought: false,
+            shop_bonus_3_bought: false,
+            shop_refills: 0,
         }
     }
 
@@ -320,6 +347,32 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 if self.pending_level_up { 1_u256 } else { 0_u256 },
                 RunDataBits::PENDING_LEVEL_UP_POS.into(),
             );
+        // Shop state fields
+        packed = packed
+            | BitShift::shl(
+                self.last_shop_level.into() & RunDataBits::LAST_SHOP_LEVEL_MASK,
+                RunDataBits::LAST_SHOP_LEVEL_POS.into(),
+            );
+        packed = packed
+            | BitShift::shl(
+                if self.shop_bonus_1_bought { 1_u256 } else { 0_u256 },
+                RunDataBits::SHOP_BONUS_1_BOUGHT_POS.into(),
+            );
+        packed = packed
+            | BitShift::shl(
+                if self.shop_bonus_2_bought { 1_u256 } else { 0_u256 },
+                RunDataBits::SHOP_BONUS_2_BOUGHT_POS.into(),
+            );
+        packed = packed
+            | BitShift::shl(
+                if self.shop_bonus_3_bought { 1_u256 } else { 0_u256 },
+                RunDataBits::SHOP_BONUS_3_BOUGHT_POS.into(),
+            );
+        packed = packed
+            | BitShift::shl(
+                self.shop_refills.into() & RunDataBits::SHOP_REFILLS_MASK,
+                RunDataBits::SHOP_REFILLS_POS.into(),
+            );
 
         packed.try_into().unwrap()
     }
@@ -434,6 +487,21 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 .unwrap(),
             pending_level_up: (BitShift::shr(data, RunDataBits::PENDING_LEVEL_UP_POS.into())
                 & RunDataBits::PENDING_LEVEL_UP_MASK) == 1,
+            // Shop state fields
+            last_shop_level: (BitShift::shr(data, RunDataBits::LAST_SHOP_LEVEL_POS.into())
+                & RunDataBits::LAST_SHOP_LEVEL_MASK)
+                .try_into()
+                .unwrap(),
+            shop_bonus_1_bought: (BitShift::shr(data, RunDataBits::SHOP_BONUS_1_BOUGHT_POS.into())
+                & RunDataBits::SHOP_BOUGHT_MASK) == 1,
+            shop_bonus_2_bought: (BitShift::shr(data, RunDataBits::SHOP_BONUS_2_BOUGHT_POS.into())
+                & RunDataBits::SHOP_BOUGHT_MASK) == 1,
+            shop_bonus_3_bought: (BitShift::shr(data, RunDataBits::SHOP_BONUS_3_BOUGHT_POS.into())
+                & RunDataBits::SHOP_BOUGHT_MASK) == 1,
+            shop_refills: (BitShift::shr(data, RunDataBits::SHOP_REFILLS_POS.into())
+                & RunDataBits::SHOP_REFILLS_MASK)
+                .try_into()
+                .unwrap(),
         }
     }
 }
@@ -818,6 +886,12 @@ mod tests {
             bonus_3_level: 0,    // L1
             free_moves: 3,
             pending_level_up: true,
+            // Shop state fields
+            last_shop_level: 11,
+            shop_bonus_1_bought: true,
+            shop_bonus_2_bought: false,
+            shop_bonus_3_bought: true,
+            shop_refills: 2,
         };
 
         let packed = original.pack();
@@ -861,6 +935,12 @@ mod tests {
         assert!(unpacked.bonus_3_level == original.bonus_3_level, "bonus_3_level mismatch");
         assert!(unpacked.free_moves == original.free_moves, "free_moves mismatch");
         assert!(unpacked.pending_level_up == original.pending_level_up, "pending_level_up mismatch");
+        // Shop state assertions
+        assert!(unpacked.last_shop_level == original.last_shop_level, "last_shop_level mismatch");
+        assert!(unpacked.shop_bonus_1_bought == original.shop_bonus_1_bought, "shop_bonus_1_bought mismatch");
+        assert!(unpacked.shop_bonus_2_bought == original.shop_bonus_2_bought, "shop_bonus_2_bought mismatch");
+        assert!(unpacked.shop_bonus_3_bought == original.shop_bonus_3_bought, "shop_bonus_3_bought mismatch");
+        assert!(unpacked.shop_refills == original.shop_refills, "shop_refills mismatch");
     }
 
     #[test]
@@ -896,6 +976,12 @@ mod tests {
             bonus_3_level: 2,
             free_moves: 7, // 3 bits max
             pending_level_up: true,
+            // Shop state: max values
+            last_shop_level: 63, // 6 bits max
+            shop_bonus_1_bought: true,
+            shop_bonus_2_bought: true,
+            shop_bonus_3_bought: true,
+            shop_refills: 15, // 4 bits max
         };
 
         let packed = max_values.pack();
@@ -936,6 +1022,12 @@ mod tests {
             bonus_3_level: 0,
             free_moves: 0,
             pending_level_up: false,
+            // Shop state: zero values
+            last_shop_level: 0,
+            shop_bonus_1_bought: false,
+            shop_bonus_2_bought: false,
+            shop_bonus_3_bought: false,
+            shop_refills: 0,
         };
 
         let packed = zero_values.pack();

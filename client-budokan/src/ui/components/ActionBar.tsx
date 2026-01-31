@@ -1,7 +1,5 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { useTheme } from "@/ui/elements/theme-provider/hooks";
-import ImageAssets from "@/ui/theme/ImageAssets";
 import { BonusType } from "@/dojo/game/types/bonus";
 import {
   Tooltip,
@@ -11,50 +9,32 @@ import {
 } from "@/ui/elements/tooltip";
 
 interface ActionBarProps {
-  onBonusHammerClick: () => void;
-  onBonusWaveClick: () => void;
-  onBonusTotemClick: () => void;
-  hammerCount: number;
-  waveCount: number;
-  totemCount: number;
+  bonusSlots: {
+    type: BonusType;
+    count: number;
+    icon: string;
+    tooltip: string;
+    onClick: () => void;
+  }[];
   activeBonus: BonusType;
 }
 
 const ActionBar: React.FC<ActionBarProps> = ({
-  onBonusHammerClick,
-  onBonusWaveClick,
-  onBonusTotemClick,
-  hammerCount,
-  waveCount,
-  totemCount,
+  bonusSlots,
   activeBonus,
 }) => {
-  const { themeTemplate } = useTheme();
-  const imgAssets = ImageAssets(themeTemplate);
-
   return (
     <div className="flex items-center justify-center gap-1 md:gap-1.5">
-      <ActionButton
-        onClick={onBonusHammerClick}
-        image={imgAssets.hammer}
-        count={hammerCount}
-        tooltip="Destroy a block and connected same-size blocks"
-        isActive={activeBonus === BonusType.Hammer}
-      />
-      <ActionButton
-        onClick={onBonusWaveClick}
-        image={imgAssets.wave}
-        count={waveCount}
-        tooltip="Destroy an entire horizontal line"
-        isActive={activeBonus === BonusType.Wave}
-      />
-      <ActionButton
-        onClick={onBonusTotemClick}
-        image={imgAssets.tiki}
-        count={totemCount}
-        tooltip="Destroy all blocks of the same size"
-        isActive={activeBonus === BonusType.Totem}
-      />
+      {bonusSlots.map((slot, index) => (
+        <ActionButton
+          key={`${slot.type}-${index}`}
+          onClick={slot.onClick}
+          image={slot.icon}
+          count={slot.count}
+          tooltip={slot.tooltip}
+          isActive={activeBonus === slot.type}
+        />
+      ))}
     </div>
   );
 };

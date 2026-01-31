@@ -1,7 +1,7 @@
 {
   "world": {
-    "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x2c87bc4133434ba3331ff75e61275434e92eaaefed2bb0fd21165ead4e80461",
+    "class_hash": "0x613551abceb2b37073b1149bb862ea70cf029981ce1ca47e9dd7c7ab97cb65d",
+    "address": "0x4dc2a3b29e1956b602db299fd644959c06d3a418387b113c13853aa4b9ed6a4",
     "seed": "zkube_default_settings_v3",
     "name": "zKube",
     "entrypoints": [
@@ -33,8 +33,8 @@
   },
   "contracts": [
     {
-      "address": "0x2d4b2741633ba1375f21bbbec24f20fb74d5bae0350b5ff8ceb67f0766ec6ec",
-      "class_hash": "0x67e979e1fa01e3566f4321b2da51bfbbea6039c296d80d252f02ebbf9e91f9b",
+      "address": "0xdf6e9e3a7b9d6e01f47456c4ddafdd7b2f90602a860af348943d79091a2e3d",
+      "class_hash": "0x361c374d3abd6b554c7e19bd2462dbc357893c7322621cbd5e9e0e62fdb71e5",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819"
       ],
@@ -48,8 +48,8 @@
       ]
     },
     {
-      "address": "0x374d446176c0b508575c33de79711f6ea4c89e3febba6f5cb6cf943864b8b19",
-      "class_hash": "0x4abf774595afdff1b6de35572dfe3eb40be23c6188630c4b6e012e6398b6a13",
+      "address": "0x2890756b2ef72cca5ea59988b80485f580e094c12c079bf7fbb03f5c3cd9ff0",
+      "class_hash": "0x4d0f4823a2157c4bb96b5408a635843be008a4cba5e16d916a6e328e1a25489",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-cube_token",
       "selector": "0x58ce743cd328aa3800df3c962d39156cf1c6fcffeae123925c693902472043b",
@@ -70,11 +70,11 @@
       ]
     },
     {
-      "address": "0x3fa059b3712539164b9b11c45da859f48b9b0b1b6e2ae93374ff3479a7f2fb0",
-      "class_hash": "0x1834933f58e84cf4b2f9ad651cbec754c1cd92875834ec139319a0e3fed4b4e",
+      "address": "0x3739eabc79604817abcfede09ac5c8368a7308101378481056306e85da29230",
+      "class_hash": "0x1aecce87ab6bbc33e90eec5d5a28d3b5ce7883ea0a4c4ab4a20e226e3b56f8c",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
-        "0x02271f1bb4d75604b1c82a708c544ac851f430416cd409aa322327874fe5f918",
+        "0x062347854b5817b3c8101014b5813fb0b5db48e4df2a0a9dada8cbdab191b064",
         "1"
       ],
       "tag": "zkube_budo_v1_2_0-game_system",
@@ -87,21 +87,20 @@
       ]
     },
     {
-      "address": "0x6a5b1c930ade0fb678c55417eee304eda700fb68bdf181779673a0f178e6346",
-      "class_hash": "0x29b23af2e1728ab8316decbead028a80fa82515c31b54e0cb9c5ef9062eb277",
+      "address": "0x7468527a904e32f8c6a8dfa1757900fe7ddb8538ddefcd234f31dbd5a3f51bd",
+      "class_hash": "0x137d0e36e731aa16c3d5384e072cdbe6c5a15e21b1a3c955f5ef4a5e86548a9",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-play_system",
       "selector": "0x31580a0208f024456536ac39f772025b2775569235b6f75e9d6982e2a1e1362",
       "systems": [
         "move",
         "apply_bonus",
-        "purchase_consumable",
         "upgrade"
       ]
     },
     {
-      "address": "0x7938984081fab158022e5836503a6c503dd98b6da05e93621d38e325d804691",
-      "class_hash": "0x45337036f48d56fc1b35a1539adb263515fbbd93c47dcdf187e74ee51f119e0",
+      "address": "0x20b11e116a5d2499812785049d79ad197e10f70a9cf5faaf92c012d90bdb001",
+      "class_hash": "0x6550d3b8ffc6211bdaa42bd627359afa45f2e39ae8ec7143691a426d985dd33",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-quest_system",
       "selector": "0x436c9e32f41800b6e41f7a2132179a85ad4fbbcd73cf2db6bcb4b65fd2071e",
@@ -116,8 +115,8 @@
       ]
     },
     {
-      "address": "0x56d5dc7c6b48093edbe4741741a578007cf73e39f46f0089bb4d4e365c2a0e0",
-      "class_hash": "0x49efd90fe90e19c55c72ffd3fdba8cb116afe706cce845f7e5d54c54ee208f7",
+      "address": "0x74bb2b4a1a679d49b86f42eff01914fce0be0996ba2a5ab29513be6c463a97e",
+      "class_hash": "0x47fd7cd6531c398ee9dbba9ab3ebb5bc265c310ebd1ff1cef513016a37f7ee6",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-renderer_systems",
       "selector": "0x35d5ac8794cc2cf3e12c42d4ac579e7a5dc26a70c26e32c599915d2d39586cf",
@@ -126,8 +125,8 @@
       ]
     },
     {
-      "address": "0x6095b358d9b86f08d89d28b852de47efdf4046e494780484902934f39fe6ba3",
-      "class_hash": "0x1442e0f871624a07c6ce83fb1a8ac9c07f0171cc7b32c984ba45f0cf52fd1d8",
+      "address": "0x527b2eb7af6ab85f126e7fd9640cfc1eae22f89ed00af521072f0644a5d71f6",
+      "class_hash": "0x463b6f547cde45fe31f455c356e6ec61c3b530cb120416be0b5bac2be7d1b51",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-shop_system",
       "selector": "0x456e9ac1689ce0bf6afd29733b144d9ef8e7db5c0df5ec0dc79ed1ea22579a0",
@@ -172,7 +171,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x84c35142a3dc9f93f6c9b7b654dd668d864a972d69f65c3eeda4700cba3c16",
+      "class_hash": "0x1b93d2931ce14c6c25c1b4f3d78ff88f1d9d9a867ff8e4b76f697a370425cb3",
       "tag": "zkube_budo_v1_2_0-AchievementAdvancement",
       "selector": "0x5f50dab4ae39dc621d1903558bd3c025f6407bc72d92914b407288febc3098f"
     },
@@ -189,7 +188,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x72fd35a8c00be26e41ec7f14acdf86496257f61d4d7390405296ba246cd4479",
+      "class_hash": "0x6969588e5989757eb797b61bf2d430d4e6c935bb7023000769576fa49d8d1b1",
       "tag": "zkube_budo_v1_2_0-AchievementAssociation",
       "selector": "0x6569296f9c2050270727bf2e3ce3a363171e169920bbcb51f26439dde6808ff"
     },
@@ -216,7 +215,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x7fb19877a9bd8d61f7f03d4b56452b80ebbc2e828c15604f97e2602eec2a97f",
+      "class_hash": "0x7b5b83ccc288a92f3ee2bd812c8fb84536a9e26d1742a8648036d19966030a5",
       "tag": "zkube_budo_v1_2_0-AchievementCompletion",
       "selector": "0x8f33d31427d21b03e715b395c586087de27a96884f3f0e184ed13f5c68303f"
     },
@@ -248,7 +247,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x303b6cb6458240c2bb0bd2ad2363744a5320d8bbff0cc75a6d6f5e2d8ff1874",
+      "class_hash": "0x6c6a9c45913331fa4e602135926cf9a622b60d2abb04381c37e0ba79861f11d",
       "tag": "zkube_budo_v1_2_0-AchievementDefinition",
       "selector": "0x4335d8a8f4bb2c48e7c547485b6f72e9f8d34437ab71a57c30f04bb604effed"
     },
@@ -295,7 +294,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x1eb503cf1b0cd4e65e6df68a1a51f4cedf364fc59859e02e070cbbcc18522ae",
+      "class_hash": "0x15fd12716e5410c02f08aa9ee5d7b923fa238f8891e84d9c121a4cabbe08cad",
       "tag": "zkube_budo_v1_2_0-Game",
       "selector": "0x32e0585e8074a4c0264a61e3f5d610e990985d9d32194c1b8bdcf9e00a619ad"
     },
@@ -367,7 +366,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x1197f6a1f9822e3da9b8a46987f32473bf92e8d67b4205922c87771b9c43934",
+      "class_hash": "0x769561336c0d3558e5b41beabf8cd9b536ec425bc7eb82abd32ed4d158e2c69",
       "tag": "zkube_budo_v1_2_0-GameLevel",
       "selector": "0xb0da199349d3f33e2645d79b9d60f0eea7fce0e961eb51cbe254065fcdb36a"
     },
@@ -384,7 +383,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x46cac2d8bf16970afe21dc376ba0ababb99339a89d1c294c5bd0a18374c6b53",
+      "class_hash": "0x8adf8d1fd0e24a779e9e84754ea243a8ceff9892916022ad39e14131771e76",
       "tag": "zkube_budo_v1_2_0-GameSeed",
       "selector": "0x5e155330954a8b2ebc46d774a5ac2d374692bafa8e2461c74d8e4aae7458a22"
     },
@@ -586,7 +585,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x2450c42905517a0054314ca2261b0c5e5141c4e7aba7e75d0dd626927128dbe",
+      "class_hash": "0x3dd623bb31070ef780731e4027418728d92e002a47ea00a1229c1f294859f71",
       "tag": "zkube_budo_v1_2_0-GameSettings",
       "selector": "0x1c245917b09d68b08ceb4972426ebba162f36b31404a63dc180496cdc6777b"
     },
@@ -618,7 +617,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x4932c13fe0aaddb6a590dd83913a460bd2e713acabf9dd07dcc143f652815ab",
+      "class_hash": "0x558a959ed374bc02bfa32534ad780bb71f57850abc504dbfdd04ae98e6cb3de",
       "tag": "zkube_budo_v1_2_0-GameSettingsMetadata",
       "selector": "0x2ee961dac07326a2ec70644bf2ad0f4e2c76a3a5b9f03b0c599c654b6fd6e32"
     },
@@ -640,7 +639,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x54a6929c75e54955b81f36f9d28d77fcf7c1688e4841ed453137aa8f757a168",
+      "class_hash": "0x77ec576f2aead481e77727f117ca65eeb1aa0ffae116bd46d19ad26f788605f",
       "tag": "zkube_budo_v1_2_0-PlayerMeta",
       "selector": "0x631ad5f961c9bc59af421f721602d568d38327dc491a69bc9229fa7a9bbf699"
     },
@@ -677,7 +676,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x79df0493c5022d0e85cefa85adeb6f030781c1e3e0643dbaaa2bb380c1b14c8",
+      "class_hash": "0x1b7639a1fba364aafc237cbf77bca9345cf30402674290214e09d85a17803fe",
       "tag": "zkube_budo_v1_2_0-QuestAdvancement",
       "selector": "0x3c9f37f13afa4c786508eacdabab4e89daeea7780bfa0f9d9bbc7d5bc6a8d2f"
     },
@@ -694,7 +693,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x21f771d93e80b5da7bc98c8488640ca07ee066ae633c663737466ee5c868f85",
+      "class_hash": "0x5c91fe66069e109c3e541c7d9ac41a2125396fc9093125ac4b242c52342b8d8",
       "tag": "zkube_budo_v1_2_0-QuestAssociation",
       "selector": "0x77b333766bb17d2f92da3b3774a23181992112439cdef9fbc9644e98274675a"
     },
@@ -731,7 +730,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x500750514442ea487dfd38397a6ba3636823e581a3be187e41ab278d6bf5545",
+      "class_hash": "0x742c586dd683f8f55b9c6e7c1bb228b1adeb81dd78786358fc6ca4a3f553209",
       "tag": "zkube_budo_v1_2_0-QuestCompletion",
       "selector": "0x580be40181fb9d6f150a1be3552d43a8776f4fa5ea65d0909f3fce557faf2ea"
     },
@@ -748,7 +747,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x3e1d5e0de0a7a397eea9bc41240eb8128563aae019691b888d3d69fa6868dd0",
+      "class_hash": "0x3e13df6331114bdc190e8924d9d6329498c29971c0a347378469904c216d3be",
       "tag": "zkube_budo_v1_2_0-QuestCondition",
       "selector": "0x4ee45990d1add453154b3bf20d01dddd3d65c1d91030f86c82b31b5c69b4192"
     },
@@ -795,7 +794,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x6f2fb5c1a81ea8b2ea53313caa4f4b670c2992d20de2940b6d83c165489d85f",
+      "class_hash": "0x3edb92531c36a3a546994e1612de4dd6c43c09aeaf265c8889e61b85d92b071",
       "tag": "zkube_budo_v1_2_0-QuestDefinition",
       "selector": "0x51230d4889e1ab86653670897d266a874a04dbf8033b0c99b083f1a021955f"
     }
@@ -819,7 +818,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x2021c0a4b7662bc2d97d620c7ec30ae5f3b0f65164c181ff90d32f8f3f5a1ff",
+      "class_hash": "0x3ca9aa05af8ef4c94e5213e7ba413e05fd28a7641b7060f896f06c4c6993e00",
       "tag": "zkube_budo_v1_2_0-AchievementClaimed",
       "selector": "0x24531cb59cbc403a9b66e9d0e74fcaabeacfdb626e986023a532e244775d5b6"
     },
@@ -841,7 +840,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x3e8128b802f64044ae6e20f73a5339e8b0b46eb132ee21c71875b2bcfda207d",
+      "class_hash": "0x7862bab5e54ec6aa89c4a0ef6f39ca01a6440434b08d4fdd8098ee6e920e9a6",
       "tag": "zkube_budo_v1_2_0-AchievementCompleted",
       "selector": "0x517446fb0dd73b610f3af6161cbe3f5f3b0a34108538d4e79e0ae5123dd6f7f"
     },
@@ -873,7 +872,7 @@
           "key": false
         }
       ],
-      "class_hash": "0xc087932a06c2358da94a966b829f1fa192ce59a82eacd44105ae9e664b72ca",
+      "class_hash": "0x3e49f9376dcbed9f1c6506b942cdbba112301e8403681ea2d521111cc997a1f",
       "tag": "zkube_budo_v1_2_0-BonusLevelUp",
       "selector": "0x7499b73f60e3282b2434423a03a4392c2aada91156c0ae55c02c167a450c073"
     },
@@ -895,7 +894,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x206c0318e26053b3739b29bbf07557aeb0956a9af008a42a3b82b0bde72df93",
+      "class_hash": "0x1efa69f83b09eea6849af5641a3c7947ddbb2eb05c17c9928b9a3c37c63995f",
       "tag": "zkube_budo_v1_2_0-BonusUnlocked",
       "selector": "0xb30bd925700a1622d0012bdd78e9e7e1c75a5077ff8b942e9aa5589a8540ad"
     },
@@ -922,7 +921,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x2718ba808acc3fc3d3bc9a35f6e5661a01f4cbd28183bbb7f8c3718519a32c0",
+      "class_hash": "0x14e0f308f5d33475364f43b0477b929481642395f306d03334f4dee9de72184",
       "tag": "zkube_budo_v1_2_0-ConstraintProgress",
       "selector": "0x353bf174f35f86ea87568181261d084bde41c365a7d78454eeb7015f9f58988"
     },
@@ -954,7 +953,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x31ab30357b97742a93830a36f90a86d51b33e7cd20dd494a9751244a85edff9",
+      "class_hash": "0x6e859d934edc35bef16c27ba516849965e87a9d9302029e3f7e87c26d306ed0",
       "tag": "zkube_budo_v1_2_0-ConsumablePurchased",
       "selector": "0x6735939232284480d9ef5a27efe714fbcaba2d65885f5309083dc29f0320ad1"
     },
@@ -1001,7 +1000,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x10dc3c8bdaf287bd281502fc26a2200fa9a9f40c49ab39b8a13d10f9de3c3b7",
+      "class_hash": "0x3949b945ca7d2e86ada1ab22570d1ccfc72dfa01c78c08326090b3877783c4d",
       "tag": "zkube_budo_v1_2_0-LevelCompleted",
       "selector": "0x7a28711b6febc8ff460cd133f74e6fe89c19af7615608b64eb3aaf3e290647b"
     },
@@ -1048,7 +1047,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x16b58c1184a1308c1d911f1cb1b7f03ebe84b97387378194ee7b72b67a2ebbb",
+      "class_hash": "0x5114250b21f87e84856525b62764196537e982b227ca5e367a614469c34f3e",
       "tag": "zkube_budo_v1_2_0-LevelStarted",
       "selector": "0x1253fbd361d7ea8f1af4785316aaeea4348f393df3c4e456fcc1f4114c44834"
     },
@@ -1075,7 +1074,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x27d1f7bd54e50a1b2ff2e5700aae8282ee2e1535decef7d374a2789a29ba644",
+      "class_hash": "0x193f0bd07f5db75d3417b8be2e996b9bc71eb163e46fb0fd09c93b95fd93f0c",
       "tag": "zkube_budo_v1_2_0-QuestClaimed",
       "selector": "0x4e4ff4442098ad33c41fa97c066eb7e2aa5b95e6d9b7437df1aef55022d5bb7"
     },
@@ -1102,7 +1101,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x784d071ca2f51df425805af354f1427503bf695c1f3f19ef7c0df83a791e813",
+      "class_hash": "0x78fb571e43ab4457b6f1b9a27378bfa20aa2b45ea858117511e39f424c3ca1b",
       "tag": "zkube_budo_v1_2_0-QuestCompleted",
       "selector": "0x5e9eeae36a38eed46a45b80d89d8bb08c831680a38fc39c1905bd78b3512d5d"
     },
@@ -1124,7 +1123,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x27425e3ec283e7ae9345fc0f1bcf3f049bf3df78f7430a4565d6fef3f8c752a",
+      "class_hash": "0x3887943e3f8a828e25560b36cad9b496e750e5a448bc1f33d0bb938e06676ab",
       "tag": "zkube_budo_v1_2_0-QuestCreation",
       "selector": "0x586c85d4dc6b70c432642b2e7de2d6e42a62f0ee5a205722921d913711d4615"
     },
@@ -1151,7 +1150,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x5b774cbca3f13015a55df518a2b1644704df86e9528fd14a895a8ff34d1a4b2",
+      "class_hash": "0x479e00ca41dd2cc4ce832a501fd504d21f5931e2b2fd37145f87a76b093d81",
       "tag": "zkube_budo_v1_2_0-QuestProgression",
       "selector": "0x5831e312e637814f5743a7fc8d740a43c33149af647acd8464344c323502a7c"
     },
@@ -1178,7 +1177,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x5fcd3abe70d50464efb8803319d5b72d6a2f22ea1571b9d652d1c1eaf792ad1",
+      "class_hash": "0x4323e58925dd9a9d34b95a5051f39876ed0ad489ec9288e326c8920a2b89f2",
       "tag": "zkube_budo_v1_2_0-QuestUnlocked",
       "selector": "0x61ce648751042546c61011c452c841b08d59a2a141ddbe63f02ca9a784982f2"
     },
@@ -1215,7 +1214,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x3511cd31575e6467fc6bd20f109e38547a0b2150259a964d4128b99b2c8ffd4",
+      "class_hash": "0x435106ef4a4da972de83a4449d416c2bc84d17cbedec46eab98820e00193809",
       "tag": "zkube_budo_v1_2_0-RunCompleted",
       "selector": "0x4375f21330a54aeb3a57d49847814855a7e393ee30850a569c3a2c7364c68a2"
     },
@@ -1257,7 +1256,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x61e64ae3081b8bdb8f75850b35220f354183362cc8cccc299aa8148f07d923c",
+      "class_hash": "0x427e3a905d653c51c466c44d6445909951371354869c7d5c8ff545ccf3480b7",
       "tag": "zkube_budo_v1_2_0-RunEnded",
       "selector": "0x1f8ccfae938e3b2021e434fb6752e0c96aee7551c7c5443082fb9cdb24ebfdb"
     },
@@ -1279,7 +1278,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x452bc36b4e6031acf60c68896ac99f49cdb7931ae65d1a7760aa4b90c799e8b",
+      "class_hash": "0x6933cee333bcece7dcf0db77afab3002e77715c5b036085c3d19f1aea03ac70",
       "tag": "zkube_budo_v1_2_0-StartGame",
       "selector": "0x6b4eb5c0f93990f0c55025d03b1c5a4bd40739561a4763c419ad34f05228e2"
     },
@@ -1346,7 +1345,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x29674252693d6b2c1bd4bab4cd55c709fa89af50729c6a5e20048a876120bb9",
+      "class_hash": "0x706834e9ed630a715e2727c7ed3706c2f92d46f93568c4082f7030023947cf0",
       "tag": "zkube_budo_v1_2_0-TrophyCreation",
       "selector": "0x4ad9912eefa6bc5b44c8471f24c961d48bbe8b16a52a3fccd59b9d70b35d426"
     },
@@ -1373,7 +1372,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x4ff45751962a028dcd18736077eeb9608f4c340354d8269a2627d4a72e44225",
+      "class_hash": "0x313c566ceee5bdcaed4accfedc707b6b5a02feb96f9448a18bfa97bf43811e4",
       "tag": "zkube_budo_v1_2_0-TrophyProgression",
       "selector": "0x1b2e61a8d6969160fd083d585334f7fba04e9fd12836cea84f5d1dcac67c701"
     },
@@ -1400,7 +1399,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x73331015dbc422db5d6e5f54396ebccb0f20a0c51817c0dd3394acbe2872d9b",
+      "class_hash": "0x1d690d8971d0b6082c2fb73f516d1c9a48a58970d2eda310e4246a2392de7d8",
       "tag": "zkube_budo_v1_2_0-UseBonus",
       "selector": "0x12d7603e18f9fa369a823a5096714451ba28a0f67a4b7736a2d26e2e4777c13"
     }
@@ -7013,22 +7012,6 @@
           ],
           "outputs": [],
           "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "purchase_consumable",
-          "inputs": [
-            {
-              "name": "game_id",
-              "type": "core::integer::u64"
-            },
-            {
-              "name": "consumable",
-              "type": "core::integer::u8"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
         }
       ]
     },
@@ -7258,6 +7241,10 @@
             {
               "name": "consumable",
               "type": "zkube::types::consumable::ConsumableType"
+            },
+            {
+              "name": "bonus_slot",
+              "type": "core::integer::u8"
             }
           ],
           "outputs": [],
@@ -7399,19 +7386,23 @@
       "name": "zkube::types::consumable::ConsumableType",
       "variants": [
         {
-          "name": "Hammer",
+          "name": "Bonus1",
           "type": "()"
         },
         {
-          "name": "Wave",
+          "name": "Bonus2",
           "type": "()"
         },
         {
-          "name": "Totem",
+          "name": "Bonus3",
           "type": "()"
         },
         {
-          "name": "ExtraMoves",
+          "name": "Refill",
+          "type": "()"
+        },
+        {
+          "name": "LevelUp",
           "type": "()"
         }
       ]

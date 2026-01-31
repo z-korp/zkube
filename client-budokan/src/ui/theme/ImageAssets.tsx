@@ -5,6 +5,8 @@ const ImageAssets = (theme: string) => {
     hammer: PathAssets + "bonus/hammer.png",
     tiki: PathAssets + "bonus/tiki.png",
     wave: PathAssets + "bonus/wave.png",
+    shrink: PathAssets + "bonus/shrink.svg",
+    shuffle: PathAssets + "bonus/shuffle.svg",
     stone1: PathAssets + "block-1.png",
     stone2: PathAssets + "block-2.png",
     stone3: PathAssets + "block-3.png",

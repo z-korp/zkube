@@ -25,14 +25,15 @@ interface ShopDialogProps {
 }
 
 // Upgrade costs matching the contract
-const STARTING_BONUS_COSTS = [50, 200, 500];
-const BAG_SIZE_BASE_COST = 10;
-const BRIDGING_BASE_COST = 100;
+const STARTING_BONUS_COSTS = [100, 250, 500];
+const BAG_SIZE_COSTS = [100, 250, 500];
+const BRIDGING_COSTS = [200, 500, 1000];
+const UNLOCK_BONUS_COST = 200;
 
-const getBagSizeCost = (level: number) =>
-  BAG_SIZE_BASE_COST * Math.pow(2, level);
-const getBridgingCost = (rank: number) =>
-  BRIDGING_BASE_COST * Math.pow(2, rank);
+const getBagSizeCost = (level: number): number | null =>
+  level < 3 ? BAG_SIZE_COSTS[level] : null;
+const getBridgingCost = (rank: number): number | null =>
+  rank < 3 ? BRIDGING_COSTS[rank] : null;
 const getStartingBonusCost = (level: number): number | null =>
   level < 3 ? STARTING_BONUS_COSTS[level] : null;
 const getMaxCubesToBring = (rank: number): number => {
@@ -44,16 +45,24 @@ interface OptimisticOverrides {
   startingHammer?: number;
   startingWave?: number;
   startingTotem?: number;
+  startingShrink?: number;
+  startingShuffle?: number;
   bagHammerLevel?: number;
   bagWaveLevel?: number;
   bagTotemLevel?: number;
+  bagShrinkLevel?: number;
+  bagShuffleLevel?: number;
   bridgingRank?: number;
+  shrinkUnlocked?: boolean;
+  shuffleUnlocked?: boolean;
 }
 
 const BONUS_DESCRIPTIONS: Record<number, string> = {
   0: "Destroys a block and all connected blocks of the same color.",
   1: "Clears an entire horizontal row.",
-  2: "Clears all blocks in a vertical column.",
+  2: "Clears all blocks of the same size.",
+  3: "Shrinks a block by one size (higher levels improve effect).",
+  4: "Shuffles blocks (higher levels improve effect).",
 };
 
 const LevelPips = ({ current, max }: { current: number; max: number }) => (
@@ -118,7 +127,7 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
   const cubeBalance = Number(cubeBalanceBigInt) - optimisticCubeSpent;
 
   const applyOptimistic = useCallback(
-    (field: keyof OptimisticOverrides, newValue: number, cost: number) => {
+    (field: keyof OptimisticOverrides, newValue: number | boolean, cost: number) => {
       setOptimisticOverrides((prev) => ({ ...prev, [field]: newValue }));
       setOptimisticCubeSpent((prev) => prev + cost);
     },
@@ -131,6 +140,8 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
       0: "startingHammer",
       1: "startingWave",
       2: "startingTotem",
+      3: "startingShrink",
+      4: "startingShuffle",
     };
     const field = fieldMap[bonusType];
     const currentLevel = data[field] as number;
@@ -160,10 +171,13 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
       0: "bagHammerLevel",
       1: "bagWaveLevel",
       2: "bagTotemLevel",
+      3: "bagShrinkLevel",
+      4: "bagShuffleLevel",
     };
     const field = fieldMap[bonusType];
     const currentLevel = data[field] as number;
     const cost = getBagSizeCost(currentLevel);
+    if (cost === null) return;
 
     applyOptimistic(field, currentLevel + 1, cost);
     setIsUpgrading(true);
@@ -183,6 +197,7 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
     if (!account || !data) return;
     const currentRank = data.bridgingRank;
     const cost = getBridgingCost(currentRank);
+    if (cost === null) return;
 
     applyOptimistic("bridgingRank", currentRank + 1, cost);
     setIsUpgrading(true);
@@ -201,10 +216,32 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleUnlockBonus = async (bonusType: number) => {
+    if (!account || !data) return;
+    const field: keyof OptimisticOverrides = bonusType === 4 ? "shrinkUnlocked" : "shuffleUnlocked";
+    const alreadyUnlocked = field === "shrinkUnlocked" ? data.shrinkUnlocked : data.shuffleUnlocked;
+    if (alreadyUnlocked) return;
+
+    applyOptimistic(field, true, UNLOCK_BONUS_COST);
+    setIsUpgrading(true);
+    try {
+      await systemCalls.unlockBonus({ account, bonus_type: bonusType });
+      refetchCubeBalance();
+    } catch (error) {
+      console.error("Unlock failed:", error);
+      setOptimisticOverrides((prev) => ({ ...prev, [field]: undefined }));
+      setOptimisticCubeSpent((prev) => prev - UNLOCK_BONUS_COST);
+    } finally {
+      setIsUpgrading(false);
+    }
+  };
+
   const bonusTypes = [
     { id: 0, name: "Hammer", img: imgAssets.hammer },
     { id: 1, name: "Wave", img: imgAssets.wave },
     { id: 2, name: "Totem", img: imgAssets.tiki },
+    { id: 3, name: "Shrink", img: imgAssets.shrink },
+    { id: 4, name: "Shuffle", img: imgAssets.shuffle },
   ];
 
   const getStartingLevel = (bonusId: number): number => {
@@ -213,7 +250,11 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
       ? data.startingHammer
       : bonusId === 1
         ? data.startingWave
-        : data.startingTotem;
+        : bonusId === 2
+          ? data.startingTotem
+          : bonusId === 3
+            ? data.startingShrink
+            : data.startingShuffle;
   };
 
   const getBagLevel = (bonusId: number): number => {
@@ -222,8 +263,16 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
       ? data.bagHammerLevel
       : bonusId === 1
         ? data.bagWaveLevel
-        : data.bagTotemLevel;
+        : bonusId === 2
+          ? data.bagTotemLevel
+          : bonusId === 3
+            ? data.bagShrinkLevel
+            : data.bagShuffleLevel;
   };
+
+  const bridgingCost = getBridgingCost(data?.bridgingRank || 0);
+  const bridgingMaxed = bridgingCost === null;
+  const canAffordBridging = !bridgingMaxed && cubeBalance >= (bridgingCost ?? 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -252,8 +301,14 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
             const startCost = getStartingBonusCost(startLevel);
             const bagCost = getBagSizeCost(bagLevel);
             const startMaxed = startCost === null;
-            const canAffordStart = !startMaxed && cubeBalance >= startCost;
-            const canAffordBag = cubeBalance >= bagCost;
+            const bagMaxed = bagCost === null;
+            const isUnlocked = bonus.id <= 2
+              ? true
+              : bonus.id === 3
+                ? data?.shrinkUnlocked
+                : data?.shuffleUnlocked;
+            const canAffordStart = !!isUnlocked && !startMaxed && cubeBalance >= (startCost ?? 0);
+            const canAffordBag = !!isUnlocked && !bagMaxed && cubeBalance >= (bagCost ?? 0);
 
             // 3rd item spans full width but renders at half size centered
             const isLast = bonus.id === bonusTypes.length - 1 && bonusTypes.length % 2 !== 0;
@@ -286,11 +341,11 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
                   </div>
                   <Button
                     size="sm"
-                    disabled={isUpgrading || startMaxed || !canAffordStart}
+                    disabled={isUpgrading || !isUnlocked || startMaxed || !canAffordStart}
                     onClick={() => handleUpgradeStartingBonus(bonus.id)}
                     className="w-full text-xs h-7"
                   >
-                    {startMaxed ? "MAX" : `${startCost} 🧊`}
+                    {!isUnlocked ? "Locked" : startMaxed ? "MAX" : `${startCost} 🧊`}
                   </Button>
                 </div>
 
@@ -300,17 +355,31 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
                     <span className="text-[10px] text-slate-400 uppercase tracking-wider">
                       Bag
                     </span>
-                    <LevelPips current={bagLevel} max={5} />
+                    <LevelPips current={bagLevel} max={3} />
                   </div>
                   <Button
                     size="sm"
-                    disabled={isUpgrading || !canAffordBag}
+                    disabled={isUpgrading || !isUnlocked || bagMaxed || !canAffordBag}
                     onClick={() => handleUpgradeBagSize(bonus.id)}
                     className="w-full text-xs h-7"
                   >
-                    {bagCost} 🧊
+                    {!isUnlocked ? "Locked" : bagMaxed ? "MAX" : `${bagCost} 🧊`}
                   </Button>
                 </div>
+
+                {/* Unlock shrink/shuffle */}
+                {!isUnlocked && bonus.id >= 3 && (
+                  <div className="mt-2">
+                    <Button
+                      size="sm"
+                      disabled={isUpgrading || cubeBalance < UNLOCK_BONUS_COST}
+                      onClick={() => handleUnlockBonus(bonus.id + 1)}
+                      className="w-full text-xs h-7"
+                    >
+                      {UNLOCK_BONUS_COST} 🧊 Unlock
+                    </Button>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -330,7 +399,7 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold">Bridging</span>
                   <InfoTip text="Bring cubes from your wallet into a run to spend at the in-game shop." />
-                  <LevelPips current={data?.bridgingRank || 0} max={5} />
+                  <LevelPips current={data?.bridgingRank || 0} max={3} />
                 </div>
                 <div className="text-[10px] text-slate-400">
                   Rank {data?.bridgingRank || 0} — max{" "}
@@ -342,12 +411,13 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
               size="sm"
               disabled={
                 isUpgrading ||
-                cubeBalance < getBridgingCost(data?.bridgingRank || 0)
+                bridgingMaxed ||
+                !canAffordBridging
               }
               onClick={handleUpgradeBridging}
               className="min-w-[80px] text-xs h-7"
             >
-              {getBridgingCost(data?.bridgingRank || 0)} 🧊
+              {bridgingMaxed ? "MAX" : `${bridgingCost} 🧊`}
             </Button>
           </div>
         </div>
