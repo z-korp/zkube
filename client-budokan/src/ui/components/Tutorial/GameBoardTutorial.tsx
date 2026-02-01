@@ -23,6 +23,7 @@ interface GameBoardProps {
   waveCount: number;
   totemCount: number;
   score: number;
+  constraintSatisfied?: boolean;
   tutorialProps?: {
     step: number;
     totalSteps: number;
@@ -43,6 +44,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
   hammerCount,
   totemCount,
   score,
+  constraintSatisfied,
   tutorialProps,
   onBlockSelect,
   onUpdateState,
@@ -310,13 +312,19 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
             
             {/* Constraint indicator for step 8 */}
             {isConstraintStep && (
-              <div className="flex items-center gap-1.5 px-2 py-1 bg-orange-500/20 rounded border border-orange-500/30">
-                <span className={`${isMdOrLarger ? "text-xs" : "text-[10px]"} text-orange-400 font-medium`}>
+              <div className={`flex items-center gap-1.5 px-2 py-1 rounded border ${
+                constraintSatisfied 
+                  ? "bg-green-500/20 border-green-500/30" 
+                  : "bg-orange-500/20 border-orange-500/30"
+              }`}>
+                <span className={`${isMdOrLarger ? "text-xs" : "text-[10px]"} ${
+                  constraintSatisfied ? "text-green-400" : "text-orange-400"
+                } font-medium`}>
                   2+ lines
                 </span>
                 <FontAwesomeIcon
                   icon={faCheck}
-                  className="text-slate-500"
+                  className={constraintSatisfied ? "text-green-400" : "text-slate-500"}
                   width={10}
                   height={10}
                 />

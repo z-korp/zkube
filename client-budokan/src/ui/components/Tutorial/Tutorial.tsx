@@ -179,7 +179,13 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
           break;
         case 8: // Constraints
           // Multi-line clear triggers constraint success
-          setGridState((prev) => ({ ...prev, score: prev.score + 250 }));
+          setGridState((prev) => ({ 
+            ...prev, 
+            score: prev.score + 250,
+            combo: 2,
+            maxCombo: 2,
+            constraintSatisfied: true,
+          }));
           setIsIntermission(true);
           break;
         default:

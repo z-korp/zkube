@@ -76,6 +76,7 @@ export interface MockGridState {
   score: number;
   combo: number;
   maxCombo: number;
+  constraintSatisfied?: boolean;
 }
 
 /**
