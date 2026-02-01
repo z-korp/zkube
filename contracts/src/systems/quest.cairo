@@ -9,6 +9,8 @@ pub trait IQuestSystem<T> {
     fn claim(ref self: T, quest_id: felt252, interval_id: u64);
     /// Progress a task for a player (called by game_system)
     fn progress(ref self: T, player: ContractAddress, task_id: felt252, count: u32);
+    /// Re-register all quests with updated definitions (admin only, call once after upgrade)
+    fn reinitialize_quests(ref self: T);
 }
 
 #[dojo::contract]
@@ -147,6 +149,36 @@ pub mod quest_system {
             let world = self.world(@DEFAULT_NS());
             let player_felt: felt252 = player.into();
             self.questable.progress(world, player_felt, task_id, count.into(), true);
+        }
+
+        /// Re-register all quests with updated definitions
+        /// Call this once after upgrading to apply new quest configurations (e.g., removed conditions)
+        fn reinitialize_quests(ref self: ContractState) {
+            let world = self.world(@DEFAULT_NS());
+            let registry = starknet::get_contract_address();
+
+            // Re-register all quests with updated definitions
+            let mut quest_id: u8 = QUEST_COUNT;
+            while quest_id > 0 {
+                let quest_type: QuestType = quest_id.into();
+                let props: QuestProps = quest_type.props(registry);
+                self
+                    .questable
+                    .create(
+                        world: world,
+                        id: props.id,
+                        rewarder: registry,
+                        start: props.start,
+                        end: props.end,
+                        duration: props.duration,
+                        interval: props.interval,
+                        tasks: props.tasks.span(),
+                        conditions: props.conditions.span(),
+                        metadata: props.metadata,
+                        to_store: true, // Overwrite existing definitions
+                    );
+                quest_id -= 1;
+            };
         }
     }
 

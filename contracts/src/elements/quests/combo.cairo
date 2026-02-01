@@ -60,7 +60,7 @@ pub impl DailyComboTwo of QuestTrait {
                 ComboFive::identifier(), total.into(), ComboFive::description(total),
             ),
         ];
-        let conditions: Array<felt252> = array![DailyComboOne::identifier()];
+        // No conditions - all tiers unlock immediately for cumulative progress
         QuestProps {
             id: Self::identifier(),
             start: 0,
@@ -68,7 +68,7 @@ pub impl DailyComboTwo of QuestTrait {
             duration: ONE_DAY,
             interval: ONE_DAY,
             tasks: tasks,
-            conditions: conditions,
+            conditions: array![],
             metadata: metadata,
         }
     }
@@ -95,7 +95,7 @@ pub impl DailyComboThree of QuestTrait {
                 ComboEight::identifier(), total.into(), ComboEight::description(total),
             ),
         ];
-        let conditions: Array<felt252> = array![DailyComboTwo::identifier()];
+        // No conditions - all tiers unlock immediately for cumulative progress
         QuestProps {
             id: Self::identifier(),
             start: 0,
@@ -103,7 +103,7 @@ pub impl DailyComboThree of QuestTrait {
             duration: ONE_DAY,
             interval: ONE_DAY,
             tasks: tasks,
-            conditions: conditions,
+            conditions: array![],
             metadata: metadata,
         }
     }
