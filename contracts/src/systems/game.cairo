@@ -50,6 +50,7 @@ mod game_system {
     use game_components_minigame::interface::{IMinigameTokenData};
     use game_components_minigame::libs::{
         assert_token_ownership, get_player_name as get_token_player_name, post_action, pre_action,
+        require_owned_token,
     };
     use game_components_minigame::minigame::MinigameComponent;
     use game_components_token::core::interface::{
@@ -359,10 +360,11 @@ mod game_system {
         fn refresh_metadata(ref self: ContractState, game_id: u64) {
             // Anyone can call this to trigger a MetadataUpdate event
             // Useful when wallet/marketplace has cached stale NFT image
+            // Works for both active AND completed games (unlike pre_action which checks playability)
             let token_address = self.token_address();
             
-            // Verify token exists (pre_action checks this)
-            pre_action(token_address, game_id);
+            // Only verify token exists (don't check playability - completed games should work too)
+            require_owned_token(token_address, game_id);
             
             // Trigger MetadataUpdate event by calling update_game on the token
             post_action(token_address, game_id);
