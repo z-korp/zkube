@@ -8,8 +8,8 @@ use dojo::model::ModelStorage;
 use zkube::constants::DEFAULT_SETTINGS::is_default_settings;
 use zkube::systems::cube_token::ICubeTokenDispatcher;
 use zkube::systems::quest::{IQuestSystemDispatcher, IQuestSystemDispatcherTrait};
-use zkube::systems::level::{ILevelSystemDispatcher, ILevelSystemDispatcherTrait};
-use zkube::systems::grid::{IGridSystemDispatcher, IGridSystemDispatcherTrait};
+use zkube::systems::level::ILevelSystemDispatcher;
+use zkube::systems::grid::IGridSystemDispatcher;
 use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
 
 /// Get the CubeToken contract dispatcher via world DNS

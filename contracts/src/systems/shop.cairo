@@ -106,12 +106,10 @@ mod shop_system {
     use super::{get_starting_bonus_cost, get_bag_upgrade_cost_impl, get_bridging_upgrade_cost_impl};
 
     use dojo::model::ModelStorage;
-    use dojo::world::{WorldStorage, WorldStorageTrait};
+    use dojo::world::WorldStorage;
     use dojo::event::EventStorage;
 
-    use starknet::{get_caller_address, get_block_timestamp, ContractAddress};
-
-    use game_components_minigame::interface::{IMinigameDispatcher, IMinigameDispatcherTrait};
+    use starknet::{get_caller_address, get_block_timestamp};
     use game_components_minigame::libs::{assert_token_ownership, post_action, pre_action};
     use game_components_token::core::interface::{IMinigameTokenDispatcher, IMinigameTokenDispatcherTrait};
     use game_components_token::libs::LifecycleTrait;

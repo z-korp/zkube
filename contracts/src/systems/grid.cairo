@@ -12,6 +12,14 @@ use zkube::types::bonus::Bonus;
 
 #[starknet::interface]
 pub trait IGridSystem<T> {
+    /// Initialize a new game's grid with starting blocks.
+    /// This fills the grid until it reaches 4 rows of blocks.
+    fn initialize_grid(ref self: T, game_id: u64);
+    
+    /// Reset the grid for a new level.
+    /// Called after level completion to reinitialize with the new difficulty.
+    fn reset_grid_for_level(ref self: T, game_id: u64);
+    
     /// Execute a move (swipe) on the grid.
     /// Returns (lines_cleared, is_grid_full)
     fn execute_move(
@@ -76,6 +84,77 @@ mod grid_system {
 
     #[abi(embed_v0)]
     impl GridSystemImpl of super::IGridSystem<ContractState> {
+        fn initialize_grid(ref self: ContractState, game_id: u64) {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            
+            let mut game: Game = world.read_model(game_id);
+            let base_seed: GameSeed = world.read_model(game_id);
+            let game_level: GameLevel = world.read_model(game_id);
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+            
+            let difficulty: Difficulty = game_level.difficulty.into();
+            let level_seed = GameTrait::generate_level_seed(base_seed.seed, 1);
+            
+            // Create initial next_row
+            game.next_row = Controller::create_line(level_seed, difficulty, settings);
+            
+            // Fill grid until it has at least 4 rows of blocks
+            let div: u256 = fast_power(2_u256, 4 * constants::ROW_BIT_COUNT.into()) - 1;
+            loop {
+                if game.blocks.into() / div > 0 {
+                    break;
+                };
+                // Insert the next_row and generate a new one
+                let new_seed = InternalImpl::generate_seed(game.blocks, base_seed.seed, 1);
+                let new_next_row = Controller::create_line(new_seed, difficulty, settings);
+                game.blocks = Controller::add_line(game.blocks, game.next_row);
+                game.next_row = new_next_row;
+                
+                // Apply gravity and clear any lines
+                let mut counter: u8 = 0;
+                InternalImpl::assess_game(ref game.blocks, ref counter);
+            };
+            
+            world.write_model(@game);
+        }
+        
+        fn reset_grid_for_level(ref self: ContractState, game_id: u64) {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            
+            let mut game: Game = world.read_model(game_id);
+            let base_seed: GameSeed = world.read_model(game_id);
+            let game_level: GameLevel = world.read_model(game_id);
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+            
+            let run_data = game.get_run_data();
+            let current_level = run_data.current_level;
+            let difficulty: Difficulty = game_level.difficulty.into();
+            let level_seed = GameTrait::generate_level_seed(base_seed.seed, current_level);
+            
+            // Reset grid
+            game.blocks = 0;
+            game.next_row = Controller::create_line(level_seed, difficulty, settings);
+            
+            // Fill grid until it has at least 4 rows of blocks
+            let div: u256 = fast_power(2_u256, 4 * constants::ROW_BIT_COUNT.into()) - 1;
+            loop {
+                if game.blocks.into() / div > 0 {
+                    break;
+                };
+                // Insert the next_row and generate a new one
+                let new_seed = InternalImpl::generate_seed(game.blocks, base_seed.seed, current_level);
+                let new_next_row = Controller::create_line(new_seed, difficulty, settings);
+                game.blocks = Controller::add_line(game.blocks, game.next_row);
+                game.next_row = new_next_row;
+                
+                // Apply gravity and clear any lines
+                let mut counter: u8 = 0;
+                InternalImpl::assess_game(ref game.blocks, ref counter);
+            };
+            
+            world.write_model(@game);
+        }
+        
         fn execute_move(
             ref self: ContractState,
             game_id: u64,

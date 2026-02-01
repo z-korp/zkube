@@ -70,7 +70,6 @@ pub mod helpers {
     pub mod dispatchers;
     pub mod game_over;
     pub mod scoring;
-    pub mod level_completion;
     pub mod bonus_logic;
 }
 

@@ -6,15 +6,9 @@ use core::hash::HashStateTrait;
 use alexandria_math::fast_power::fast_power;
 
 use zkube::constants;
-use zkube::types::difficulty::Difficulty;
-use zkube::helpers::packer::Packer;
-use zkube::helpers::controller::Controller;
 use zkube::helpers::packing::{RunData, RunDataPackingTrait};
 use zkube::helpers::scoring::saturating_add_u16;
 use zkube::types::bonus::Bonus;
-use zkube::types::level::LevelConfigTrait;
-use zkube::helpers::level::{LevelGeneratorTrait, BossLevel};
-use zkube::models::config::GameSettings;
 
 /// Game model for the level-based system
 /// All run progress is packed into run_data for efficient storage
@@ -111,47 +105,21 @@ pub impl GameLevelImpl of GameLevelTrait {
 
 #[generate_trait]
 pub impl GameImpl of GameTrait {
-    /// Create a new game with level system using GameSettings
-    fn new(game_id: u64, seed: felt252, started_at: u64, settings: GameSettings) -> Game {
-        // Get level 1 config using settings
-        let level_config = LevelGeneratorTrait::generate(seed, 1, settings);
-
-        // Generate level-specific seed so each level has a different starting grid
-        let level_seed = Self::generate_level_seed(seed, 1);
-
-        // Create initial row using settings-based block weights
-        let row = Controller::create_line(level_seed, level_config.difficulty, settings);
-
-        // Initialize run_data with level 1
+    /// Create an empty game shell (no grid initialization)
+    /// Grid should be initialized separately via grid_system.initialize_grid()
+    fn new_empty(game_id: u64, started_at: u64) -> Game {
         let run_data = RunDataPackingTrait::new();
-
-        let mut game = Game {
+        
+        Game {
             game_id,
             blocks: 0,
-            next_row: row,
+            next_row: 0,
             combo_counter: 0,
             max_combo: 0,
             run_data: run_data.pack(),
             started_at,
             over: false,
-        };
-
-        // Fill initial grid using settings-aware line generation
-        game.start(level_config.difficulty, level_seed, settings);
-        game
-    }
-
-    /// Initialize the grid with starting blocks using configurable block weights
-    fn start(ref self: Game, difficulty: Difficulty, base_seed: felt252, settings: GameSettings) {
-        let mut counter = 0;
-        let div: u256 = fast_power(2_u256, 4 * constants::ROW_BIT_COUNT.into()) - 1;
-        loop {
-            if self.blocks.into() / div > 0 {
-                break;
-            };
-            self.insert_new_line(difficulty, base_seed, settings);
-            self.assess_game(ref counter);
-        };
+        }
     }
 
     /// Get unpacked run data
@@ -259,28 +227,6 @@ pub impl GameImpl of GameTrait {
         self.over = self.blocks.into() / div > 0;
     }
 
-    /// Insert a new line at the bottom using configurable block weights
-    #[inline(always)]
-    fn insert_new_line(ref self: Game, difficulty: Difficulty, seed: felt252, settings: GameSettings) -> felt252 {
-        let new_seed = self.generate_seed_from_base(seed);
-        let row = Controller::create_line(new_seed, difficulty, settings);
-        self.blocks = Controller::add_line(self.blocks, self.next_row);
-        self.next_row = row;
-        new_seed
-    }
-
-    /// Generate a deterministic seed from base seed and current state
-    /// Includes level number for more diversity across levels
-    #[inline(always)]
-    fn generate_seed_from_base(self: Game, base_seed: felt252) -> felt252 {
-        let run_data = self.get_run_data();
-        let state: HashState = PoseidonTrait::new();
-        let state = state.update(base_seed);
-        let state = state.update(self.blocks.into());
-        let state = state.update(run_data.current_level.into());
-        state.finalize()
-    }
-
     /// Generate a level-specific seed (for starting new levels with different grids)
     #[inline(always)]
     fn generate_level_seed(base_seed: felt252, level: u8) -> felt252 {
@@ -291,65 +237,24 @@ pub impl GameImpl of GameTrait {
         state.finalize()
     }
 
-    /// Check if current level is complete
-    fn is_level_complete(self: Game, seed: felt252, settings: GameSettings) -> bool {
-        let run_data = self.get_run_data();
-        let level_config = LevelGeneratorTrait::generate(seed, run_data.current_level, settings);
-
-        level_config
-            .is_complete(
-                run_data.level_score.into(),
-                run_data.constraint_progress,
-                run_data.constraint_2_progress,
-                run_data.bonus_used_this_level,
-            )
-    }
-
-    /// Check if current level failed (move limit exceeded without completing)
-    fn is_level_failed(self: Game, seed: felt252, settings: GameSettings) -> bool {
-        let run_data = self.get_run_data();
-        let level_config = LevelGeneratorTrait::generate(seed, run_data.current_level, settings);
-
-        let completed = level_config.is_complete(
-            run_data.level_score.into(),
-            run_data.constraint_progress,
-            run_data.constraint_2_progress,
-            run_data.bonus_used_this_level,
-        );
-
-        let effective_max_moves: u16 = level_config.max_moves + run_data.extra_moves.into();
-        run_data.level_moves.into() >= effective_max_moves && !completed
-    }
-
-    /// Complete the current level and advance to next
+    /// Complete the current level and advance to next (run_data only, no grid changes)
+    /// Grid should be reset separately via grid_system.reset_grid_for_level()
     /// Returns (cubes_earned, bonuses_to_award, is_victory)
-    /// is_victory is true if level 50 was completed (run is complete)
-    fn complete_level(ref self: Game, seed: felt252, settings: GameSettings) -> (u8, u8, bool) {
+    fn complete_level_data(ref self: Game, cubes: u8, bonuses: u8, boss_bonus: u16, is_victory: bool) -> (u8, u8, bool) {
         let mut run_data = self.get_run_data();
-        let level_config = LevelGeneratorTrait::generate(seed, run_data.current_level, settings);
-        let completed_level = run_data.current_level;
-
-        // Calculate cubes from level performance (1-3 cubes based on moves used)
-        let cubes = level_config.calculate_cubes(run_data.level_moves.into());
-        let bonuses = LevelConfigTrait::get_bonus_reward(cubes);
 
         // Add cubes to total
         run_data.total_cubes = saturating_add_u16(run_data.total_cubes, cubes.into());
 
-        // Boss cube bonus: boss levels (10, 20, 30, 40, 50) give flat bonus cubes
-        // Replaces old milestone bonus (level/2 every 10 levels)
-        let boss_bonus = BossLevel::get_boss_cube_bonus(completed_level);
+        // Boss cube bonus
         if boss_bonus > 0 {
             run_data.total_cubes = saturating_add_u16(run_data.total_cubes, boss_bonus);
         }
 
-        // Check for victory: completing level 50 ends the run
-        let is_victory = completed_level >= 50;
         if is_victory {
             // Mark run as completed (victory!)
             run_data.run_completed = true;
             self.set_run_data(run_data);
-            // Don't advance to next level or reset grid - game will end
             return (cubes, bonuses, true);
         }
 
@@ -370,36 +275,7 @@ pub impl GameImpl of GameTrait {
 
         self.set_run_data(run_data);
 
-        // Reset grid with new level's difficulty (use settings for block weights)
-        // Use level-specific seed so each level has a different starting grid
-        let new_level_config = LevelGeneratorTrait::generate(seed, run_data.current_level, settings);
-        let level_seed = Self::generate_level_seed(seed, run_data.current_level);
-        self.blocks = 0;
-        self.next_row = Controller::create_line(level_seed, new_level_config.difficulty, settings);
-        self.start(new_level_config.difficulty, level_seed, settings);
-
         (cubes, bonuses, false)
-    }
-
-    /// Assess the game state (gravity, line clearing)
-    fn assess_game(ref self: Game, ref counter: u8) -> u16 {
-        let mut points = 0;
-        let mut upper_blocks = 0;
-        loop {
-            let mut inner_blocks = 0;
-            loop {
-                if inner_blocks == self.blocks {
-                    break;
-                };
-                inner_blocks = self.blocks;
-                self.blocks = Controller::apply_gravity(self.blocks);
-            };
-            self.blocks = Controller::assess_lines(self.blocks, ref counter, ref points, true);
-            if upper_blocks == self.blocks {
-                break points;
-            };
-            upper_blocks = self.blocks;
-        }
     }
 }
 

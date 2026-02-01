@@ -14,7 +14,7 @@ use core::hash::HashStateTrait;
 
 use zkube::types::difficulty::Difficulty;
 use zkube::types::level::LevelConfig;
-use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait, ConstraintType};
+use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait};
 use zkube::models::config::{GameSettings, GameSettingsTrait};
 
 /// Constants for level generation

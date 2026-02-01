@@ -8,7 +8,7 @@
 
 use zkube::models::game::GameLevel;
 use zkube::helpers::packing::RunData;
-use zkube::types::constraint::{ConstraintType, LevelConstraint, LevelConstraintTrait};
+use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait};
 
 /// Check if level is complete using GameLevel model data.
 /// This is a lightweight alternative to Game::is_level_complete which imports LevelGeneratorTrait.

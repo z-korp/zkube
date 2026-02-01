@@ -32,6 +32,7 @@ mod game_system {
     use zkube::events::StartGame;
     use zkube::systems::cube_token::ICubeTokenDispatcherTrait;
     use zkube::systems::level::ILevelSystemDispatcherTrait;
+    use zkube::systems::grid::IGridSystemDispatcherTrait;
     use zkube::helpers::dispatchers;
     use zkube::elements::tasks::grinder;
 
@@ -169,9 +170,11 @@ mod game_system {
             let random = RandomImpl::new_pseudo_random();
             let timestamp = get_block_timestamp();
 
-            // Get game settings (selected via token settings_id) and create a settings-aware game.
+            // Get game settings (selected via token settings_id)
             let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
-            let mut game = GameTrait::new(game_id, random.seed, timestamp, settings);
+            
+            // Create empty game shell (grid will be initialized via dispatcher)
+            let mut game = GameTrait::new_empty(game_id, timestamp);
 
             // Store the seed separately
             let game_seed = GameSeed { game_id, seed: random.seed };
@@ -295,6 +298,11 @@ mod game_system {
             // This generates level config, writes to GameLevel model, and emits LevelStarted event
             let level_system = dispatchers::get_level_system_dispatcher(world);
             let has_no_bonus = level_system.initialize_level(game_id);
+            
+            // Initialize the grid via grid_system dispatcher
+            // This fills the grid with starting blocks based on level difficulty
+            let grid_system = dispatchers::get_grid_system_dispatcher(world);
+            grid_system.initialize_grid(game_id);
             
             // Update run_data with no_bonus_constraint flag if needed
             if has_no_bonus {

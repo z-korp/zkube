@@ -31,14 +31,14 @@ pub trait ILevelSystem<T> {
 #[dojo::contract]
 mod level_system {
     use zkube::constants::DEFAULT_NS;
-    use zkube::models::game::{Game, GameTrait, GameLevel, GameLevelTrait};
+    use zkube::models::game::{Game, GameTrait, GameLevelTrait};
     use zkube::models::game::GameSeed;
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
-    use zkube::models::config::GameSettings;
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::level::{LevelGeneratorTrait, BossLevel};
-    use zkube::helpers::controller::Controller;
     use zkube::helpers::dispatchers;
+    use zkube::systems::grid::IGridSystemDispatcherTrait;
+    use zkube::types::level::LevelConfigTrait;
     use zkube::helpers::packing::RunDataHelpersTrait;
     use zkube::types::constraint::ConstraintType;
     use zkube::events::{LevelStarted, LevelCompleted, RunCompleted};
@@ -106,16 +106,23 @@ mod level_system {
             
             let player = get_caller_address();
             
-            // Complete the level (this updates run_data with next level info)
-            let (cubes, bonuses, is_victory) = game.complete_level(base_seed.seed, settings);
+            // Calculate level rewards using LevelGeneratorTrait
+            let level_config = LevelGeneratorTrait::generate(base_seed.seed, completed_level, settings);
+            let cubes = level_config.calculate_cubes(pre_complete_data.level_moves.into());
+            let bonuses = LevelConfigTrait::get_bonus_reward(cubes);
+            let boss_bonus = BossLevel::get_boss_cube_bonus(completed_level);
+            let is_victory = completed_level >= 50;
+            
+            // Update run_data (no grid changes - that's done via grid_system)
+            let (cubes_final, bonuses_final, is_victory_final) = game.complete_level_data(cubes, bonuses, boss_bonus, is_victory);
             
             // Award bonuses
             let bonuses_earned = InternalImpl::award_level_bonuses(
-                ref world, ref game, base_seed.seed, player, bonuses
+                ref world, ref game, base_seed.seed, player, bonuses_final
             );
             
             // Check if this was a boss level (10, 20, 30, 40) - set pending_level_up
-            if !is_victory && (completed_level == 10 || completed_level == 20 || completed_level == 30 || completed_level == 40) {
+            if !is_victory_final && (completed_level == 10 || completed_level == 20 || completed_level == 30 || completed_level == 40) {
                 let mut run_data = game.get_run_data();
                 run_data.pending_level_up = true;
                 game.set_run_data(run_data);
@@ -127,7 +134,7 @@ mod level_system {
                     game_id,
                     player,
                     level: completed_level,
-                    cubes,
+                    cubes: cubes_final,
                     moves_used: final_moves.into(),
                     score: final_score.into(),
                     total_score: pre_total_score,
@@ -135,7 +142,7 @@ mod level_system {
                 },
             );
             
-            if is_victory {
+            if is_victory_final {
                 game.over = true;
                 
                 let final_run_data = game.get_run_data();
@@ -159,7 +166,7 @@ mod level_system {
                 }
             } else {
                 // Generate next level config
-                let mut updated_run_data = game.get_run_data();
+                let updated_run_data = game.get_run_data();
                 let next_level_config = LevelGeneratorTrait::generate(
                     base_seed.seed, updated_run_data.current_level, settings,
                 );
@@ -167,8 +174,9 @@ mod level_system {
                 // Set no_bonus_constraint flag for the next level
                 let has_no_bonus = next_level_config.constraint.constraint_type == ConstraintType::NoBonusUsed
                     || next_level_config.constraint_2.constraint_type == ConstraintType::NoBonusUsed;
-                updated_run_data.no_bonus_constraint = has_no_bonus;
-                game.set_run_data(updated_run_data);
+                let mut run_data_updated = game.get_run_data();
+                run_data_updated.no_bonus_constraint = has_no_bonus;
+                game.set_run_data(run_data_updated);
                 
                 let game_level = GameLevelTrait::from_level_config(game_id, next_level_config);
                 world.write_model(@game_level);
@@ -185,31 +193,35 @@ mod level_system {
                         constraint_required: next_level_config.constraint.required_count,
                     },
                 );
+                
+                // Write game before resetting grid (grid_system will read the updated run_data)
+                world.write_model(@game);
+                
+                // Reset grid for the new level via grid_system dispatcher
+                let grid_system = dispatchers::get_grid_system_dispatcher(world);
+                grid_system.reset_grid_for_level(game_id);
+                
+                return (cubes_final, bonuses_earned, is_victory_final);
             }
             
             world.write_model(@game);
             
-            (cubes, bonuses_earned, is_victory)
+            (cubes_final, bonuses_earned, is_victory_final)
         }
         
         fn insert_line_if_empty(ref self: ContractState, game_id: u64) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            let world: WorldStorage = self.world(@DEFAULT_NS());
             
-            let mut game: Game = world.read_model(game_id);
+            let game: Game = world.read_model(game_id);
             
             // Only insert if grid is actually empty
             if game.blocks != 0 {
                 return;
             }
             
-            let base_seed: GameSeed = world.read_model(game_id);
-            let game_level: GameLevel = world.read_model(game_id);
-            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
-            
-            // Insert new line using Controller
-            game.insert_new_line(game_level.difficulty.into(), base_seed.seed, settings);
-            
-            world.write_model(@game);
+            // Delegate to grid_system which owns Controller
+            let grid_system = dispatchers::get_grid_system_dispatcher(world);
+            grid_system.insert_line_if_empty(game_id);
         }
     }
     
