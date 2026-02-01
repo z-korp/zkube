@@ -49,6 +49,14 @@ import {
 
 const gameSystemAddress = getGameSystemAddress();
 
+// Normalize address to remove leading zeros (matches Torii's format)
+const normalizeAddress = (address: string | undefined): string | undefined => {
+  if (!address) return undefined;
+  if (!address.startsWith("0x")) return address;
+  const hex = address.slice(2).replace(/^0+/, "") || "0";
+  return `0x${hex}`;
+};
+
 type TokenAttribute = {
   trait?: string;
   trait_type?: string;
@@ -159,9 +167,12 @@ export const Home = () => {
 
   const shouldFetchMyGames = Boolean(account?.address);
 
+  // Normalize address to match Torii's format (no leading zeros)
+  const normalizedOwner = normalizeAddress(account?.address);
+
   // Use metagame SDK for sepolia/mainnet
   const metagameResult = useGameTokens({
-    owner: !isSlotMode && shouldFetchMyGames ? account?.address : undefined,
+    owner: !isSlotMode && shouldFetchMyGames ? normalizedOwner : undefined,
     sortBy: "minted_at",
     sortOrder: "desc",
     limit: !isSlotMode && shouldFetchMyGames ? 100 : 0,
@@ -178,7 +189,7 @@ export const Home = () => {
 
   // Use RECS query for slot mode OR as fallback when metagame fails
   const slotResult = useGameTokensSlot({
-    owner: (isSlotMode || metagameFailed) && shouldFetchMyGames ? account?.address : undefined,
+    owner: (isSlotMode || metagameFailed) && shouldFetchMyGames ? normalizedOwner : undefined,
     limit: (isSlotMode || metagameFailed) && shouldFetchMyGames ? 100 : 0,
     forceRecs: metagameFailed, // Force RECS query on sepolia/mainnet when metagame fails
   });
