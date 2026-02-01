@@ -41,6 +41,7 @@ mod game_system {
     use dojo::event::EventStorage;
 
     use starknet::{get_block_timestamp, get_caller_address, ContractAddress};
+    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use core::num::traits::Zero;
 
     use game_components_minigame::interface::{IMinigameTokenData};
@@ -71,6 +72,9 @@ mod game_system {
         minigame: MinigameComponent::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
+        /// VRF provider address. If zero, use pseudo-random (for slot/katana).
+        /// If set, use Cartridge VRF (for sepolia/mainnet).
+        vrf_address: ContractAddress,
     }
 
     #[event]
@@ -90,11 +94,14 @@ mod game_system {
     /// @param creator_address: the address of the creator of the game
     /// @param denshokan_address: the address of the FullTokenContract (MinigameToken)
     /// @param renderer_address: optional renderer address, defaults to 'renderer_systems' if None
+    /// @param vrf_address: VRF provider address. Use zero for slot/katana (pseudo-random),
+    ///                     or Cartridge VRF address for sepolia/mainnet
     fn dojo_init(
         ref self: ContractState,
         creator_address: ContractAddress,
         denshokan_address: ContractAddress,
         renderer_address: Option<ContractAddress>,
+        vrf_address: ContractAddress,
     ) {
         let mut world: WorldStorage = self.world(@DEFAULT_NS());
         let (config_system_address, _) = world.dns(@"config_system").unwrap();
@@ -135,6 +142,9 @@ mod game_system {
                 Option::None, // objectives_address (using Cartridge arcade)
                 denshokan_address,
             );
+        
+        // Store VRF address for runtime random source selection
+        self.vrf_address.write(vrf_address);
     }
 
     #[abi(embed_v0)]
@@ -165,9 +175,13 @@ mod game_system {
             let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
             self.validate_start_conditions(game_id, @token_metadata, token_address);
 
-            // Generate seed using pseudo-random (for slot) or VRF (for mainnet)
-            // For mainnet/sepolia, change this to RandomImpl::new_vrf()
-            let random = RandomImpl::new_pseudo_random();
+            // Generate seed: use VRF if vrf_address is set, otherwise pseudo-random
+            let vrf_addr = self.vrf_address.read();
+            let random = if vrf_addr.is_zero() {
+                RandomImpl::new_pseudo_random()
+            } else {
+                RandomImpl::new_vrf()
+            };
             let timestamp = get_block_timestamp();
 
             // Get game settings (selected via token settings_id)

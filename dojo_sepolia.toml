@@ -24,9 +24,9 @@ account_address = "0x012f5cc91e93d64b476335d7e823beb321743662f33fcfcb3e4b1b104e4
 
 [writers]
 # Models
-"zkube_budo_v1_2_0-Game" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-shop_system"]
+"zkube_budo_v1_2_0-Game" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-shop_system", "zkube_budo_v1_2_0-level_system", "zkube_budo_v1_2_0-grid_system"]
 "zkube_budo_v1_2_0-GameSeed" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-shop_system"]
-"zkube_budo_v1_2_0-GameLevel" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system"]
+"zkube_budo_v1_2_0-GameLevel" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-level_system"]
 "zkube_budo_v1_2_0-GameCounter" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-GameMetadata" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-TokenMetadata" = ["zkube_budo_v1_2_0-game_system"]
@@ -36,10 +36,10 @@ account_address = "0x012f5cc91e93d64b476335d7e823beb321743662f33fcfcb3e4b1b104e4
 # Events
 "zkube_budo_v1_2_0-StartGame" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-UseBonus" = ["zkube_budo_v1_2_0-bonus_system"]
-"zkube_budo_v1_2_0-LevelStarted" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system"]
-"zkube_budo_v1_2_0-LevelCompleted" = ["zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system"]
+"zkube_budo_v1_2_0-LevelStarted" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-level_system"]
+"zkube_budo_v1_2_0-LevelCompleted" = ["zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-level_system"]
 "zkube_budo_v1_2_0-RunEnded" = ["zkube_budo_v1_2_0-game_system", "zkube_budo_v1_2_0-move_system"]
-"zkube_budo_v1_2_0-RunCompleted" = ["zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system"]
+"zkube_budo_v1_2_0-RunCompleted" = ["zkube_budo_v1_2_0-move_system", "zkube_budo_v1_2_0-bonus_system", "zkube_budo_v1_2_0-level_system"]
 "zkube_budo_v1_2_0-ConstraintProgress" = ["zkube_budo_v1_2_0-game_system"]
 "zkube_budo_v1_2_0-ConsumablePurchased" = ["zkube_budo_v1_2_0-shop_system"]
 "zkube_budo_v1_2_0-BonusLevelUp" = ["zkube_budo_v1_2_0-shop_system"]
@@ -61,6 +61,7 @@ account_address = "0x012f5cc91e93d64b476335d7e823beb321743662f33fcfcb3e4b1b104e4
     "0x012f5cc91e93d64b476335d7e823beb321743662f33fcfcb3e4b1b104e456739",  # creator_address (account)
     "0x0",  # denshokan_address (will be updated by deploy_sepolia.sh)
     "1",  # renderer_address: Option::None
+    "0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f",  # vrf_address: Cartridge VRF (for sepolia/mainnet)
 ]
 "zkube_budo_v1_2_0-config_system" = [
     "0x012f5cc91e93d64b476335d7e823beb321743662f33fcfcb3e4b1b104e456739",  # account address
