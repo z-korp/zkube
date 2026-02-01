@@ -466,11 +466,8 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         gridHeight
       );
 
-      console.log(`[Tutorial Step ${tutorialStep}] handleLineClear - completeRows: ${completeRows.length}, blocks before: ${blocks.length}, blocks after: ${updatedBlocks.length}`);
-
       if (updatedBlocks.length < blocks.length) {
         const newLineCount = lineExplodedCount + completeRows.length;
-        console.log(`[Tutorial Step ${tutorialStep}] Lines cleared! Total lines: ${newLineCount}`);
         setLineExplodedCount(newLineCount);
 
         completeRows.forEach((rowIndex) => {
@@ -544,8 +541,6 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     }, [lineExplodedCount]);
 
     useEffect(() => {
-      console.log(`[Tutorial Step ${tutorialStep}] GameState changed to: ${gameState}, lineExplodedCount: ${lineExplodedCount}`);
-      
       // For tutorial, also trigger success at ADD_LINE since we don't need to actually add lines
       // This handles the case where all blocks are cleared and the normal flow gets stuck
       const isSuccessState = 
@@ -554,11 +549,8 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         (gameState === GameState.ADD_LINE && lineExplodedCount > 0);
       
       if (isSuccessState) {
-        console.log(`[Tutorial Step ${tutorialStep}] Update triggered - lines cleared: ${lineExplodedCount}`);
-        
         // Interactive steps that use movement (1, 2, 3, 8)
         if (tutorialStep === 1 || tutorialStep === 2 || tutorialStep === 3 || tutorialStep === 8) {
-          console.log(`[Tutorial Step ${tutorialStep}] Calling onUpdate(true) for interactive step`);
           setTimeout(() => {
             onUpdate(true);
           }, 500);

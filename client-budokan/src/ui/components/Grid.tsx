@@ -352,12 +352,6 @@ const Grid: React.FC<GridProps> = ({
       setIsTxProcessing(true);
       playSwipe();
       try {
-        console.log(
-          "Move TX (row, start col, end col)",
-          gridHeight - 1 - rowIndex,
-          startColIndex,
-          finalColIndex
-        );
         await move({
           account: account as Account,
           game_id: gameId,

@@ -8,7 +8,9 @@ export const isMdOrLarger = (): boolean => {
 };
 
 export const shouldShowToast = (): boolean => {
-  return isMdOrLarger();
+  // Always show toasts on all screen sizes
+  // Mobile toasts are positioned at top-center via CSS in index.css
+  return true;
 };
 
 export const isSmallHeight = (): boolean => {
@@ -44,7 +46,8 @@ export const getToastPlacement = ():
   | "top-center"
   | "bottom-center"
   | "bottom-right" => {
-  return "bottom-right";
+  // Mobile: top-center, Desktop: bottom-right
+  return isMdOrLarger() ? "bottom-right" : "top-center";
 };
 
 export function extractErrorMessages(errorString: string) {

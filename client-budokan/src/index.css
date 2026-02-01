@@ -216,20 +216,3 @@ body[style*="pointer-events: none"] #controller * {
   display: none;
 }
 
-/* Mobile toast position override */
-@media (max-width: 768px) {
-  [data-sonner-toaster] {
-    --offset: 16px !important;
-    top: var(--offset) !important;
-    bottom: unset !important;
-    left: 50% !important;
-    right: unset !important;
-    transform: translateX(-50%) !important;
-  }
-  
-  [data-sonner-toaster] [data-sonner-toast] {
-    left: 50% !important;
-    right: unset !important;
-    transform: translateX(-50%) !important;
-  }
-}

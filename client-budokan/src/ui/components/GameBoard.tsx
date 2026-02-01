@@ -192,7 +192,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       } else if (bonus === BonusType.Shuffle) {
         handleBonusTx(BonusType.Shuffle, block.y, block.x);
       } else if (bonus === BonusType.None) {
-        console.log("none", block);
+        // No bonus selected
       }
     },
     [bonus, handleBonusTx]

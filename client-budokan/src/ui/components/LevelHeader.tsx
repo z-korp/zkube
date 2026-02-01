@@ -75,16 +75,6 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
   const levelConfig = React.useMemo((): LevelConfig => {
     if (gameLevel && gameLevel.level === level) {
       // Use GameLevel from contract - this is the authoritative source
-      console.log("[LevelHeader] Using GameLevel from contract:", {
-        level: gameLevel.level,
-        pointsRequired: gameLevel.pointsRequired,
-        maxMoves: gameLevel.maxMoves,
-        constraintType: ConstraintType[gameLevel.constraintType],
-        constraintValue: gameLevel.constraintValue,
-        constraintCount: gameLevel.constraintCount,
-        constraint2Type: ConstraintType[gameLevel.constraint2Type],
-      });
-
       // Create Constraint objects from GameLevel data
       const constraint = new Constraint(
         gameLevel.constraintType,
@@ -111,15 +101,6 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
 
     // Fallback to client-side generation (for backwards compatibility or if model not synced yet)
     const config = generateLevelConfig(seed, level);
-    console.log("[LevelHeader] Fallback to client-side config:", {
-      seed: seed.toString(),
-      level,
-      pointsRequired: config.pointsRequired,
-      maxMoves: config.maxMoves,
-      cube3Threshold: config.cube3Threshold,
-      cube2Threshold: config.cube2Threshold,
-      constraint: config.constraint.getLabel(),
-    });
     return config;
   }, [gameLevel, level, seed]);
 

@@ -30,6 +30,7 @@ import { useAccount } from "@starknet-react/core";
 import { NAMESPACE } from "@/constants";
 import { useDojo } from "@/dojo/useDojo";
 import { toast } from "sonner";
+import { getToastPlacement } from "@/utils/toast";
 
 export type QuestProps = {
   id: string;
@@ -163,6 +164,7 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
             if (quest) {
               toast.success(`${quest.metadata.name}`, {
                 description: "Quest completed! Claim your reward.",
+                position: getToastPlacement(),
               });
             }
           }

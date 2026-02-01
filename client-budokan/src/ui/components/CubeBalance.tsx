@@ -24,16 +24,13 @@ const CubeBalance: React.FC<CubeBalanceProps> = ({
     if (!account || !VITE_PUBLIC_CUBE_TOKEN_ADDRESS) return;
     setMinting(true);
     try {
-      console.log("[mint_dev] calling with address:", VITE_PUBLIC_CUBE_TOKEN_ADDRESS, "account:", account.address);
-      const result = await account.execute([{
+      await account.execute([{
         contractAddress: VITE_PUBLIC_CUBE_TOKEN_ADDRESS,
         entrypoint: "mint_dev",
         calldata: ["1000", "0"], // u256 (low, high)
       }]);
-      console.log("[mint_dev] tx result:", result);
       // Wait a bit for indexing then refetch
       setTimeout(() => {
-        console.log("[mint_dev] refetching balance...");
         refetch();
       }, 2000);
     } catch (err: any) {
