@@ -146,6 +146,18 @@ const options: ControllerOptions = {
   // No preset - we use custom policies
 };
 
+// Debug logging
+console.log("[cartridgeConnector] Configuration:", {
+  deployType: VITE_PUBLIC_DEPLOY_TYPE,
+  chainId: config.chainId,
+  chainIdFelt: stringToFelt(config.chainId).toString(),
+  slot: config.slot,
+  namespace: VITE_PUBLIC_NAMESPACE,
+  chains: config.chains.map(c => c.rpcUrl),
+  hasPolicies: !!config.policies,
+  policyContracts: config.policies ? Object.keys(config.policies.contracts) : [],
+});
+
 const cartridgeConnector = new ControllerConnector(options) as never as Connector;
 
 export default cartridgeConnector;
