@@ -6,6 +6,13 @@ import type { GameSettings } from "@/dojo/game/types/level";
 import { DEFAULT_SETTINGS, parseGameSettings } from "@/dojo/game/types/level";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 
+// Normalize entity ID to match Torii's format (no leading zeros)
+const normalizeEntityId = (entityId: string): Entity => {
+  if (!entityId.startsWith("0x")) return entityId as Entity;
+  const hex = entityId.slice(2).replace(/^0+/, "") || "0";
+  return `0x${hex}` as Entity;
+};
+
 /**
  * Hook to get GameSettings from RECS
  * @param settingsId - The settings ID to fetch (default: 1 for progressive difficulty)
@@ -21,9 +28,10 @@ export function useSettings(settingsId: number = 1): {
     },
   } = useDojo();
 
-  // Get entity key for the settings
+  // Get entity key for the settings (normalized for Torii)
   const settingsKey = useMemo(() => {
-    return getEntityIdFromKeys([BigInt(settingsId)]) as Entity;
+    const rawKey = getEntityIdFromKeys([BigInt(settingsId)]);
+    return normalizeEntityId(rawKey);
   }, [settingsId]);
 
   // Read settings from RECS

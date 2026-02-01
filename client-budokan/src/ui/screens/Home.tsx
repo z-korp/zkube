@@ -159,7 +159,7 @@ export const Home = () => {
 
   const shouldFetchMyGames = Boolean(account?.address);
 
-  // Use slot-specific hook for slot mode, metagame SDK for other environments
+  // Use metagame SDK for sepolia/mainnet
   const metagameResult = useGameTokens({
     owner: !isSlotMode && shouldFetchMyGames ? account?.address : undefined,
     sortBy: "minted_at",
@@ -169,17 +169,58 @@ export const Home = () => {
     gameAddresses: gameSystemAddress ? [gameSystemAddress] : undefined,
   });
 
+  // Check if metagame SDK failed to return results (use as fallback trigger)
+  const metagameFailed = !isSlotMode && 
+    shouldFetchMyGames && 
+    !metagameResult.loading && 
+    !metagameResult.metadataLoading && 
+    (!metagameResult.games || metagameResult.games.length === 0);
+
+  // Use RECS query for slot mode OR as fallback when metagame fails
   const slotResult = useGameTokensSlot({
-    owner: isSlotMode && shouldFetchMyGames ? account?.address : undefined,
-    limit: isSlotMode && shouldFetchMyGames ? 100 : 0,
+    owner: (isSlotMode || metagameFailed) && shouldFetchMyGames ? account?.address : undefined,
+    limit: (isSlotMode || metagameFailed) && shouldFetchMyGames ? 100 : 0,
+    forceRecs: metagameFailed, // Force RECS query on sepolia/mainnet when metagame fails
   });
 
+  // Use metagame results first, fall back to RECS query if metagame fails
   const {
     games: ownedGames,
     loading: ownedGamesLoading,
     metadataLoading: ownedMetadataLoading,
     refetch: refetchOwnedGames,
-  } = isSlotMode ? slotResult : metagameResult;
+  } = isSlotMode 
+    ? slotResult 
+    : metagameFailed 
+      ? slotResult 
+      : metagameResult;
+
+  // Debug logging for game token queries
+  useEffect(() => {
+    console.log("[Home.tsx] Game Token Query:", {
+      isSlotMode,
+      metagameFailed,
+      shouldFetchMyGames,
+      ownerAddress: account?.address,
+      gameSystemAddress,
+      source: isSlotMode ? "slot" : metagameFailed ? "recs-fallback" : "metagame",
+      metagameStatus: {
+        loading: metagameResult.loading,
+        metadataLoading: metagameResult.metadataLoading,
+        gamesCount: metagameResult.games?.length ?? 0,
+      },
+      slotStatus: {
+        loading: slotResult.loading,
+        gamesCount: slotResult.games?.length ?? 0,
+      },
+      finalResults: {
+        gamesCount: ownedGames?.length ?? 0,
+        loading: ownedGamesLoading,
+        metadataLoading: ownedMetadataLoading,
+        games: ownedGames?.slice(0, 3), // Log first 3 games for debugging
+      },
+    });
+  }, [isSlotMode, metagameFailed, shouldFetchMyGames, account?.address, metagameResult, slotResult, ownedGames, ownedGamesLoading, ownedMetadataLoading]);
 
   const playerGames: PlayerGameRow[] = useMemo(() => {
     if (!ownedGames?.length) return [];

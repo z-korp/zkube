@@ -4,7 +4,7 @@ import { getComponentValue, Has, runQuery } from "@dojoengine/recs";
 import type { GameTokenData } from "metagame-sdk";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
-const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
+export const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
 
 type UseGameTokensSlotResult = {
   games: GameTokenData[];
@@ -14,13 +14,14 @@ type UseGameTokensSlotResult = {
 };
 
 /**
- * Slot-compatible hook for fetching games.
- * On slot, we query our own Torii for Game entities.
- * This is a simpler approach that works without the metagame relayer.
+ * Hook for fetching games directly from RECS (Torii).
+ * Works on slot mode by default, but can be forced on other networks via `forceRecs`.
+ * This is a fallback approach that works without the metagame relayer.
  */
 export const useGameTokensSlot = ({
   owner,
   limit = 100,
+  forceRecs = false,
 }: {
   owner?: string;
   sortBy?: string;
@@ -28,6 +29,7 @@ export const useGameTokensSlot = ({
   limit?: number;
   includeMetadata?: boolean;
   gameAddresses?: string[];
+  forceRecs?: boolean; // Force RECS query even on non-slot modes
 }): UseGameTokensSlotResult => {
   const {
     setup: {
@@ -46,8 +48,10 @@ export const useGameTokensSlot = ({
     setRefreshTrigger((prev) => prev + 1);
   }, []);
 
+  const shouldFetch = (isSlotMode || forceRecs) && !!owner;
+
   useEffect(() => {
-    if (!isSlotMode || !owner) {
+    if (!shouldFetch) {
       setLoading(false);
       return;
     }
@@ -131,5 +135,3 @@ export const useGameTokensSlot = ({
     refetch,
   };
 };
-
-export { isSlotMode };
