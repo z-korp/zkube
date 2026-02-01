@@ -1,22 +1,15 @@
 import { useDojo } from "@/dojo/useDojo";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getComponentValue, Has, runQuery } from "@dojoengine/recs";
 import { lookupAddresses } from "@cartridge/controller";
-import { addAddressPadding } from "starknet";
 
-const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
+const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_TORII, VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
 export const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
 
 // Truncate address to 0x1234...5678 format
 const truncateAddress = (address: string): string => {
   if (!address || address.length <= 13) return address || "Unknown";
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
-};
-
-// Convert bigint to padded hex address
-const toHexAddress = (address: bigint | undefined): string => {
-  if (!address) return "";
-  return addAddressPadding(`0x${address.toString(16)}`);
 };
 
 export interface LeaderboardEntry {
@@ -29,6 +22,7 @@ export interface LeaderboardEntry {
   score: number; // Alias for totalScore for compatibility
   player_name?: string;
   player_address?: string; // Raw address for username lookup
+  owner?: string; // Token owner address
   started_at?: number;
 }
 
@@ -38,10 +32,74 @@ type UseLeaderboardSlotResult = {
   refetch: () => void;
 };
 
+// GraphQL query for all token transfers (mints from 0x0)
+const TOKEN_TRANSFERS_QUERY = `
+  query GetTokenTransfers($limit: Int) {
+    tokenTransfers(accountAddress: "0x0", limit: $limit) {
+      edges {
+        node {
+          from
+          to
+          tokenMetadata {
+            __typename
+            ... on ERC721__Token {
+              tokenId
+              contractAddress
+              metadata
+              metadataName
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+interface ERC721TokenMetadata {
+  __typename: "ERC721__Token";
+  tokenId: string;
+  contractAddress: string;
+  metadata: string;
+  metadataName: string;
+}
+
+interface TokenTransferNode {
+  from: string;
+  to: string;
+  tokenMetadata: ERC721TokenMetadata | { __typename: string };
+}
+
+interface TokenTransfersResponse {
+  data?: {
+    tokenTransfers?: {
+      edges: Array<{ node: TokenTransferNode }>;
+    };
+  };
+  errors?: Array<{ message: string }>;
+}
+
+// Parse player name from token metadata JSON
+const parsePlayerName = (metadata: string | undefined): string | undefined => {
+  if (!metadata) return undefined;
+  try {
+    const parsed = JSON.parse(metadata);
+    const attributes = parsed.attributes || [];
+    const playerNameAttr = attributes.find(
+      (attr: { trait?: string; trait_type?: string; value?: string }) =>
+        attr.trait === "Player Name" || attr.trait_type === "Player Name"
+    );
+    return playerNameAttr?.value;
+  } catch {
+    return undefined;
+  }
+};
+
 /**
  * Hook for fetching leaderboard data directly from RECS (Torii).
  * Works on slot mode by default, but can be forced on other networks via `forceRecs`.
- * Queries all Game entities and sorts by level -> cubes -> totalScore.
+ * Queries all Game entities and sorts by level -> totalScore -> totalCubes.
+ * 
+ * Uses Torii's tokenTransfers query to get token ownership and player names.
  */
 export const useLeaderboardSlot = ({ 
   forceRecs = false 
@@ -53,7 +111,6 @@ export const useLeaderboardSlot = ({
       clientModels: {
         models: { Game },
       },
-      world,
     },
   } = useDojo();
 
@@ -76,15 +133,67 @@ export const useLeaderboardSlot = ({
     const fetchGames = async () => {
       setLoading(true);
       try {
+        const toriiUrl = VITE_PUBLIC_TORII;
+        const gameTokenAddress = VITE_PUBLIC_GAME_TOKEN_ADDRESS?.toLowerCase();
+
+        // First, fetch token ownership data from Torii GraphQL
+        let tokenOwnerMap = new Map<number, { owner: string; playerName?: string }>();
+        
+        if (toriiUrl) {
+          try {
+            const response = await fetch(`${toriiUrl}/graphql`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                query: TOKEN_TRANSFERS_QUERY,
+                variables: { limit: 500 },
+              }),
+            });
+
+            if (response.ok) {
+              const result: TokenTransfersResponse = await response.json();
+              const edges = result.data?.tokenTransfers?.edges || [];
+
+              for (const edge of edges) {
+                const meta = edge.node.tokenMetadata;
+                if (meta.__typename !== "ERC721__Token") continue;
+
+                const erc721Meta = meta as ERC721TokenMetadata;
+                
+                // Filter by game token contract if configured
+                if (gameTokenAddress) {
+                  const tokenContract = erc721Meta.contractAddress?.toLowerCase();
+                  if (!tokenContract?.includes(gameTokenAddress.replace("0x", ""))) continue;
+                }
+
+                const tokenId = Number(BigInt(erc721Meta.tokenId));
+                const owner = edge.node.to;
+                const playerName = parsePlayerName(erc721Meta.metadata);
+
+                tokenOwnerMap.set(tokenId, { owner, playerName });
+              }
+
+              console.log("[useLeaderboardSlot] Loaded token ownership for", tokenOwnerMap.size, "tokens");
+            }
+          } catch (error) {
+            console.error("[useLeaderboardSlot] Error fetching token data:", error);
+          }
+        }
+
         // Query all Game entities from RECS
         const gameEntities = runQuery([Has(Game)]);
 
         const gameList: LeaderboardEntry[] = [];
+        const seenIds = new Set<number>();
 
         for (const entity of gameEntities) {
           const gameData = getComponentValue(Game, entity);
 
           if (!gameData || gameData.game_id === 0) continue;
+
+          // Deduplicate
+          if (seenIds.has(gameData.game_id)) continue;
+          seenIds.add(gameData.game_id);
 
           // Skip games that haven't started
           if (gameData.blocks === 0n) continue;
@@ -92,15 +201,13 @@ export const useLeaderboardSlot = ({
           // Extract level data from run_data
           // See contracts/src/helpers/packing.cairo for bit layout (RunDataBits)
           const runData = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
-          // Unpack run_data fields:
-          // bits 0-7 = current_level (8 bits)
-          // bits 131-146 = total_cubes (16 bits)
-          // bits 147-162 = total_score (16 bits)
           const level = Number(runData & BigInt(0xFF)); // 8 bits at position 0
           const totalCubes = Number((runData >> BigInt(131)) & BigInt(0xFFFF)); // 16 bits at position 131
           const totalScore = Number((runData >> BigInt(147)) & BigInt(0xFFFF)); // 16 bits at position 147
 
-          const playerAddress = toHexAddress(gameData.player);
+          // Get owner info from token data
+          const tokenInfo = tokenOwnerMap.get(gameData.game_id);
+          
           gameList.push({
             token_id: gameData.game_id,
             game_id: gameData.game_id,
@@ -109,8 +216,9 @@ export const useLeaderboardSlot = ({
             totalScore,
             gameOver: gameData.over || false,
             score: totalScore, // Alias for compatibility
-            player_address: playerAddress,
-            player_name: undefined, // Will be populated by username lookup
+            player_address: tokenInfo?.owner,
+            player_name: tokenInfo?.playerName,
+            owner: tokenInfo?.owner,
             started_at: gameData.started_at ? Number(gameData.started_at) : 0,
           });
         }
@@ -123,35 +231,44 @@ export const useLeaderboardSlot = ({
           return (a.started_at ?? 0) - (b.started_at ?? 0);
         });
 
-        // Batch lookup usernames for all player addresses
-        const addresses = gameList
-          .map((g) => g.player_address)
-          .filter((addr): addr is string => !!addr);
+        // Batch lookup usernames for addresses without player names
+        const addressesNeedingLookup = gameList
+          .filter((g) => g.player_address && !g.player_name)
+          .map((g) => g.player_address!)
+          .filter((addr, index, self) => self.indexOf(addr) === index); // Dedupe
         
-        if (addresses.length > 0) {
+        if (addressesNeedingLookup.length > 0) {
           try {
-            const usernameMap = await lookupAddresses(addresses);
+            const usernameMap = await lookupAddresses(addressesNeedingLookup);
             // Update games with resolved usernames
             for (const game of gameList) {
-              if (game.player_address) {
+              if (game.player_address && !game.player_name) {
                 const username = usernameMap.get(game.player_address);
                 game.player_name = username || truncateAddress(game.player_address);
               }
             }
           } catch (error) {
-            console.error("Error looking up usernames:", error);
+            console.error("[useLeaderboardSlot] Error looking up usernames:", error);
             // Fallback to truncated addresses
             for (const game of gameList) {
-              if (game.player_address) {
+              if (game.player_address && !game.player_name) {
                 game.player_name = truncateAddress(game.player_address);
               }
             }
           }
         }
 
+        // For games without any player info, show game ID
+        for (const game of gameList) {
+          if (!game.player_name) {
+            game.player_name = `Game #${game.token_id}`;
+          }
+        }
+
+        console.log("[useLeaderboardSlot] Final leaderboard:", gameList.length, "entries");
         setGames(gameList);
       } catch (error) {
-        console.error("Error fetching leaderboard games:", error);
+        console.error("[useLeaderboardSlot] Error fetching leaderboard:", error);
         setGames([]);
       } finally {
         setLoading(false);
@@ -159,7 +276,7 @@ export const useLeaderboardSlot = ({
     };
 
     fetchGames();
-  }, [Game, world, refreshTrigger]);
+  }, [Game, refreshTrigger, shouldFetch]);
 
   return {
     games,
