@@ -72,7 +72,6 @@ pub mod helpers {
     pub mod scoring;
     pub mod level_completion;
     pub mod bonus_logic;
-    pub mod move_logic;
 }
 
 pub mod systems {
