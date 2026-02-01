@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useMediaQuery } from "react-responsive";
 import GameBoardTutorial from "./GameBoardTutorial";
 import TutorialInfoStep from "./TutorialInfoStep";
@@ -6,6 +6,9 @@ import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import { BonusType } from "@/dojo/game/types/bonus";
 import type { Block } from "@/types/types";
+
+// localStorage key for tutorial progress
+const TUTORIAL_PROGRESS_KEY = "zkube_tutorial_step";
 
 import {
   AlertDialog,
@@ -37,14 +40,56 @@ interface TutorialProps {
   endTutorial: () => void;
 }
 
+// Load saved tutorial step from localStorage
+const loadSavedStep = (): number => {
+  try {
+    const saved = localStorage.getItem(TUTORIAL_PROGRESS_KEY);
+    if (saved) {
+      const step = parseInt(saved, 10);
+      if (step >= 1 && step <= TOTAL_TUTORIAL_STEPS) {
+        return step;
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to load tutorial progress:", e);
+  }
+  return 1;
+};
+
+// Save tutorial step to localStorage
+const saveTutorialStep = (step: number) => {
+  try {
+    localStorage.setItem(TUTORIAL_PROGRESS_KEY, step.toString());
+  } catch (e) {
+    console.warn("Failed to save tutorial progress:", e);
+  }
+};
+
+// Clear tutorial progress from localStorage
+const clearTutorialProgress = () => {
+  try {
+    localStorage.removeItem(TUTORIAL_PROGRESS_KEY);
+  } catch (e) {
+    console.warn("Failed to clear tutorial progress:", e);
+  }
+};
+
 const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
-  const [tutorialStep, setTutorialStep] = useState(1);
+  // Load initial step from localStorage
+  const initialStep = useMemo(() => loadSavedStep(), []);
+  
+  const [tutorialStep, setTutorialStep] = useState(initialStep);
   const [isIntermission, setIsIntermission] = useState(false);
-  const [gridState, setGridState] = useState<MockGridState>(getGridForStep(1));
+  const [gridState, setGridState] = useState<MockGridState>(getGridForStep(initialStep));
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
   const { themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
+
+  // Save progress whenever step changes
+  useEffect(() => {
+    saveTutorialStep(tutorialStep);
+  }, [tutorialStep]);
 
   // Get current step configuration
   const currentStepConfig = useMemo(() => {
@@ -154,6 +199,8 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
     const nextStep = tutorialStep + 1;
     
     if (nextStep > TOTAL_TUTORIAL_STEPS) {
+      // Tutorial complete - clear progress
+      clearTutorialProgress();
       endTutorial();
       return;
     }
@@ -170,6 +217,7 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
 
   // Handle skip tutorial
   const handleSkipTutorial = useCallback(() => {
+    clearTutorialProgress();
     endTutorial();
   }, [endTutorial]);
 

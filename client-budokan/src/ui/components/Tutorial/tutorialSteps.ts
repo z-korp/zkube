@@ -106,9 +106,8 @@ export const STEP_1_GRID: MockGridState = {
 
 /**
  * Step 2: Clear Lines
- * Grid where player needs to move a block to complete a full row
- * Player slides the 2-wide block at position 0 to the right to fill the gap
- * IMPORTANT: No row can be initially full or it will auto-clear!
+ * Player slides the 2-wide block RIGHT, it falls into the gap below, completing the row.
+ * IMPORTANT: Block must FALL into position to complete the row!
  */
 export const STEP_2_GRID: MockGridState = {
   initialGrid: [
@@ -120,8 +119,8 @@ export const STEP_2_GRID: MockGridState = {
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [2, 2, 0, 0, 2, 2, 2, 2], // Move the 2-wide block right to fill gap at positions 2-3
-    [3, 3, 3, 0, 2, 2, 2, 2], // Stable bottom row - NOT full (gap at position 3)
+    [0, 0, 0, 0, 2, 2, 0, 0], // 2-wide at 4-5, slide RIGHT to 6-7, then falls
+    [2, 2, 2, 2, 2, 2, 0, 0], // 6 filled, gap at 6-7 where block will fall
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
   hammerCount: 3,
@@ -133,10 +132,9 @@ export const STEP_2_GRID: MockGridState = {
 };
 
 /**
- * Step 3: Combos
- * Grid set up for a cascade/combo clear
- * Player moves the block to complete a row, then falling blocks complete another row
- * IMPORTANT: No row can be initially full or it will auto-clear!
+ * Step 3: Combos (Cascade)
+ * Player slides block, it falls to complete row 9, row 9 clears,
+ * then another block falls to complete the new row 9 = 2 lines = combo!
  */
 export const STEP_3_GRID: MockGridState = {
   initialGrid: [
@@ -146,10 +144,10 @@ export const STEP_3_GRID: MockGridState = {
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 2, 2, 0, 0], // This 2-wide will fall after row 8 clears
-    [2, 2, 2, 2, 0, 0, 2, 2], // Row 7: will be complete after block from row 6 falls
-    [2, 2, 0, 0, 2, 2, 2, 2], // Row 8: move block to complete this first
-    [3, 3, 3, 0, 2, 2, 2, 2], // Stable bottom row - NOT full (gap at position 3)
+    [0, 0, 0, 0, 0, 0, 2, 2], // 2-wide that falls after row 7 clears (cascade)
+    [2, 2, 2, 2, 2, 2, 0, 0], // Will become row 8, completed by falling block
+    [0, 0, 0, 0, 2, 2, 0, 0], // 2-wide to slide RIGHT, falls to complete row 9
+    [2, 2, 2, 2, 2, 2, 0, 0], // 6 filled, gap at 6-7
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
   hammerCount: 3,
@@ -242,10 +240,8 @@ export const STEP_6_GRID: MockGridState = {
 };
 
 /**
- * Step 8: Constraints
- * Grid set up to demonstrate clearing 2+ lines at once via cascade
- * Moving the block completes row 8, then the falling block completes row 7
- * IMPORTANT: No row can be initially full or it will auto-clear!
+ * Step 8: Constraints (Clear 2+ lines in one move)
+ * Same cascade mechanic as Step 3 - demonstrates constraint satisfaction
  */
 export const STEP_8_GRID: MockGridState = {
   initialGrid: [
@@ -255,10 +251,10 @@ export const STEP_8_GRID: MockGridState = {
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 2, 2, 0, 0, 0, 0], // Row 6: This 2-wide falls after row 7 clears
-    [2, 2, 0, 0, 2, 2, 2, 2], // Row 7: Will be complete when block from row 6 falls
-    [2, 2, 0, 0, 2, 2, 2, 2], // Row 8: Move the 2-wide right to complete this first
-    [3, 3, 3, 0, 2, 2, 2, 2], // Stable bottom row - NOT full (gap at position 3)
+    [0, 0, 0, 0, 0, 0, 2, 2], // 2-wide that falls for cascade (2nd line)
+    [2, 2, 2, 2, 2, 2, 0, 0], // Becomes complete after cascade
+    [0, 0, 0, 0, 2, 2, 0, 0], // 2-wide to slide RIGHT (1st line trigger)
+    [2, 2, 2, 2, 2, 2, 0, 0], // 6 filled, gap at 6-7
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
   hammerCount: 2,
@@ -312,9 +308,9 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 2,
     title: "Clear Lines",
     type: "interactive",
-    description: "Slide the highlighted block right to complete the row.",
-    mobileDescription: "Slide block right to fill row",
-    targetBlock: { x: 0, y: 8, type: "block" }, // 2-wide block at left of row 8
+    description: "Slide the highlighted block right - it will fall and complete the row!",
+    mobileDescription: "Slide block right",
+    targetBlock: { x: 4, y: 8, type: "block" }, // 2-wide block at positions 4-5
     successCondition: "line_cleared",
   },
   // Step 3: Combos
@@ -322,9 +318,9 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 3,
     title: "Combos",
     type: "interactive",
-    description: "Slide the block to clear a row - watch for the cascade!",
-    mobileDescription: "Slide block for combo",
-    targetBlock: { x: 0, y: 8, type: "block" }, // 2-wide block at left of row 8
+    description: "Slide the block right - watch for the cascade effect!",
+    mobileDescription: "Slide for combo",
+    targetBlock: { x: 4, y: 8, type: "block" }, // 2-wide block at positions 4-5
     successCondition: "combo_achieved",
   },
   // Step 4: Hammer Bonus
@@ -376,9 +372,9 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 8,
     title: "Constraints",
     type: "interactive",
-    description: "Slide the block to clear 2+ lines at once - that's a constraint challenge!",
-    mobileDescription: "Clear 2+ lines at once",
-    targetBlock: { x: 0, y: 8, type: "block" }, // 2-wide block at left of row 8
+    description: "Slide the block right to trigger a cascade and clear 2+ lines!",
+    mobileDescription: "Clear 2+ lines",
+    targetBlock: { x: 4, y: 8, type: "block" }, // 2-wide block at positions 4-5
     successCondition: "constraint_satisfied",
     constraint: { type: "ClearLines", value: 2, count: 1 },
   },
