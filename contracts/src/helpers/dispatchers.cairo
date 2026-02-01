@@ -8,6 +8,7 @@ use dojo::model::ModelStorage;
 use zkube::constants::DEFAULT_SETTINGS::is_default_settings;
 use zkube::systems::cube_token::ICubeTokenDispatcher;
 use zkube::systems::quest::{IQuestSystemDispatcher, IQuestSystemDispatcherTrait};
+use zkube::systems::level::{ILevelSystemDispatcher, ILevelSystemDispatcherTrait};
 use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
 
 /// Get the CubeToken contract dispatcher via world DNS
@@ -51,4 +52,11 @@ pub fn get_or_create_player_meta(world: WorldStorage, player: ContractAddress) -
     } else {
         player_meta
     }
+}
+
+/// Get the LevelSystem contract dispatcher via world DNS
+pub fn get_level_system_dispatcher(world: WorldStorage) -> ILevelSystemDispatcher {
+    let level_system_address = world.dns_address(@"level_system")
+        .expect('LevelSystem not found in DNS');
+    ILevelSystemDispatcher { contract_address: level_system_address }
 }

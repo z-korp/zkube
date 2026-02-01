@@ -31,6 +31,7 @@ mod game_system {
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::packing::MetaDataPackingTrait;
     use zkube::helpers::game_over;
+    use zkube::types::constraint::ConstraintType;
     use zkube::events::{StartGame, LevelStarted};
     use zkube::systems::cube_token::ICubeTokenDispatcherTrait;
     use zkube::helpers::dispatchers;
@@ -277,6 +278,14 @@ mod game_system {
                 run_data.shuffle_count = if starting > bag_size { bag_size } else { starting };
             }
 
+            // Generate level 1 config to check for NoBonusUsed constraint
+            let level_config = LevelGeneratorTrait::generate(random.seed, 1, settings);
+            
+            // Set no_bonus_constraint flag if level 1 has NoBonusUsed constraint
+            let has_no_bonus = level_config.constraint.constraint_type == ConstraintType::NoBonusUsed
+                || level_config.constraint_2.constraint_type == ConstraintType::NoBonusUsed;
+            run_data.no_bonus_constraint = has_no_bonus;
+            
             game.set_run_data(run_data);
             world.write_model(@game);
 
@@ -295,9 +304,8 @@ mod game_system {
                     @StartGame { player, timestamp, game_id, },
                 );
 
-            // Generate level 1 config and write to GameLevel model
+            // Write level 1 config to GameLevel model
             // This is the single source of truth for level config (replaces client-side generation)
-            let level_config = LevelGeneratorTrait::generate(random.seed, 1, settings);
             let game_level = GameLevelTrait::from_level_config(game_id, level_config);
             world.write_model(@game_level);
 

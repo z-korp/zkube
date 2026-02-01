@@ -57,6 +57,8 @@ pub mod helpers {
     pub mod packer;
     pub mod controller;
     pub mod gravity;
+    pub mod grid_utils;
+    pub mod game_helpers;
     pub mod random;
     pub mod config;
     pub mod encoding;
@@ -64,15 +66,20 @@ pub mod helpers {
     pub mod token;
     pub mod packing;
     pub mod level;
+    pub mod level_check;
     pub mod dispatchers;
     pub mod game_over;
     pub mod scoring;
+    pub mod level_completion;
+    pub mod bonus_logic;
+    pub mod move_logic;
 }
 
 pub mod systems {
     pub mod game;
     pub mod moves;
     pub mod bonus;
+    pub mod level;
     pub mod config;
     pub mod shop;
     pub mod cube_token;

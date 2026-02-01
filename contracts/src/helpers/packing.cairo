@@ -39,7 +39,8 @@ use alexandria_math::BitShift;
 /// │ 190     │ shop_bonus_2_bought   │ 1    │ 0-1      │ Bonus 2 bought  │
 /// │ 191     │ shop_bonus_3_bought   │ 1    │ 0-1      │ Bonus 3 bought  │
 /// │ 192-195 │ shop_refills          │ 4    │ 0-15     │ Refills bought  │
-/// │ 196-251 │ reserved              │ 56   │ -        │ Future features │
+/// │ 196     │ no_bonus_constraint   │ 1    │ 0-1      │ NoBonusUsed active│
+/// │ 197-251 │ reserved              │ 55   │ -        │ Future features │
 /// └─────────────────────────────────────────────────────────────────────┘
 
 /// Unpacked run data structure
@@ -89,6 +90,8 @@ pub struct RunData {
     pub shop_bonus_2_bought: bool, // Already bought bonus 2 this shop
     pub shop_bonus_3_bought: bool, // Already bought bonus 3 this shop
     pub shop_refills: u8,         // Number of refills bought this shop
+    // Constraint flags (set when level starts, reset on level transition)
+    pub no_bonus_constraint: bool, // True if current level has NoBonusUsed constraint
 }
 
 /// Bit positions and masks for run_data
@@ -129,6 +132,8 @@ mod RunDataBits {
     pub const SHOP_BONUS_2_BOUGHT_POS: u8 = 190;
     pub const SHOP_BONUS_3_BOUGHT_POS: u8 = 191;
     pub const SHOP_REFILLS_POS: u8 = 192;
+    // Constraint flags
+    pub const NO_BONUS_CONSTRAINT_POS: u8 = 196;
 
     // Bit masks (after shifting to position 0)
     pub const CURRENT_LEVEL_MASK: u256 = 0xFF; // 8 bits
@@ -154,6 +159,8 @@ mod RunDataBits {
     pub const LAST_SHOP_LEVEL_MASK: u256 = 0x3F; // 6 bits (0-63)
     pub const SHOP_BOUGHT_MASK: u256 = 0x1; // 1 bit
     pub const SHOP_REFILLS_MASK: u256 = 0xF; // 4 bits (0-15)
+    // Constraint flags masks
+    pub const NO_BONUS_CONSTRAINT_MASK: u256 = 0x1; // 1 bit
 }
 
 #[generate_trait]
@@ -198,6 +205,8 @@ pub impl RunDataPacking of RunDataPackingTrait {
             shop_bonus_2_bought: false,
             shop_bonus_3_bought: false,
             shop_refills: 0,
+            // Constraint flags (set when level actually starts)
+            no_bonus_constraint: false,
         }
     }
 
@@ -373,6 +382,12 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 self.shop_refills.into() & RunDataBits::SHOP_REFILLS_MASK,
                 RunDataBits::SHOP_REFILLS_POS.into(),
             );
+        // Constraint flags
+        packed = packed
+            | BitShift::shl(
+                if self.no_bonus_constraint { 1_u256 } else { 0_u256 },
+                RunDataBits::NO_BONUS_CONSTRAINT_POS.into(),
+            );
 
         packed.try_into().unwrap()
     }
@@ -502,6 +517,9 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 & RunDataBits::SHOP_REFILLS_MASK)
                 .try_into()
                 .unwrap(),
+            // Constraint flags
+            no_bonus_constraint: (BitShift::shr(data, RunDataBits::NO_BONUS_CONSTRAINT_POS.into())
+                & RunDataBits::NO_BONUS_CONSTRAINT_MASK) == 1,
         }
     }
 }
@@ -982,6 +1000,8 @@ mod tests {
             shop_bonus_2_bought: false,
             shop_bonus_3_bought: true,
             shop_refills: 2,
+            // Constraint flags
+            no_bonus_constraint: true,
         };
 
         let packed = original.pack();
@@ -1031,6 +1051,8 @@ mod tests {
         assert!(unpacked.shop_bonus_2_bought == original.shop_bonus_2_bought, "shop_bonus_2_bought mismatch");
         assert!(unpacked.shop_bonus_3_bought == original.shop_bonus_3_bought, "shop_bonus_3_bought mismatch");
         assert!(unpacked.shop_refills == original.shop_refills, "shop_refills mismatch");
+        // Constraint flag assertions
+        assert!(unpacked.no_bonus_constraint == original.no_bonus_constraint, "no_bonus_constraint mismatch");
     }
 
     #[test]
@@ -1072,6 +1094,8 @@ mod tests {
             shop_bonus_2_bought: true,
             shop_bonus_3_bought: true,
             shop_refills: 15, // 4 bits max
+            // Constraint flags
+            no_bonus_constraint: true,
         };
 
         let packed = max_values.pack();
@@ -1118,6 +1142,8 @@ mod tests {
             shop_bonus_2_bought: false,
             shop_bonus_3_bought: false,
             shop_refills: 0,
+            // Constraint flags
+            no_bonus_constraint: false,
         };
 
         let packed = zero_values.pack();

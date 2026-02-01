@@ -1,11 +1,5 @@
 use core::traits::Into;
 
-use zkube::elements::bonuses::hammer;
-use zkube::elements::bonuses::totem;
-use zkube::elements::bonuses::wave;
-use zkube::elements::bonuses::shrink;
-use zkube::elements::bonuses::shuffle;
-
 /// Bonus types available in the game
 /// Players select 3 of 5 at game start (Shrink and Shuffle require unlock)
 #[derive(Drop, Copy, Serde, Introspect, PartialEq)]
@@ -20,20 +14,6 @@ pub enum Bonus {
 
 #[generate_trait]
 pub impl BonusImpl of BonusTrait {
-    /// Apply bonus effect at level 1 (basic effect)
-    /// For level-scaled effects, use apply_with_level
-    #[inline(always)]
-    fn apply(self: Bonus, blocks: felt252, row_index: u8, index: u8) -> felt252 {
-        match self {
-            Bonus::None => blocks,
-            Bonus::Hammer => hammer::BonusImpl::apply(blocks, row_index, index),
-            Bonus::Totem => totem::BonusImpl::apply(blocks, row_index, index),
-            Bonus::Wave => wave::BonusImpl::apply(blocks, row_index, index),
-            Bonus::Shrink => shrink::BonusImpl::apply(blocks, row_index, index),
-            Bonus::Shuffle => shuffle::BonusImpl::apply(blocks, row_index, index),
-        }
-    }
-
     /// Check if this bonus type requires unlocking in the permanent shop
     fn requires_unlock(self: Bonus) -> bool {
         match self {
@@ -140,7 +120,8 @@ impl IntoU8Bonus of Into<u8, Bonus> {
 #[cfg(test)]
 mod tests {
     // Local imports
-    use super::{Bonus, BonusTrait};
+    use super::Bonus;
+    use zkube::helpers::bonus_logic::apply_bonus_effect;
 
     #[test]
     fn test_bonus_hammer() {
@@ -155,8 +136,7 @@ mod tests {
         // 001_010_010_000_000_000_000_000
         let bitmap: felt252 =
             0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_001_010_010_000_011_011_011_000;
-        let bonus: Bonus = Bonus::Hammer;
-        let blocks = bonus.apply(bitmap, 0, 1);
+        let blocks = apply_bonus_effect(Bonus::Hammer, bitmap, 0, 1);
         assert_eq!(
             blocks,
             0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_001_010_010_000_000_000_000_000
@@ -176,8 +156,7 @@ mod tests {
         // 000_000_000_000_000_000_000_000
         let bitmap: felt252 =
             0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_001_010_010_000_011_011_011_000;
-        let bonus: Bonus = Bonus::Wave;
-        let blocks = bonus.apply(bitmap, 0, 1);
+        let blocks = apply_bonus_effect(Bonus::Wave, bitmap, 0, 1);
         assert_eq!(
             blocks,
             0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_000_000_000_000_000_000_000_000
@@ -197,8 +176,7 @@ mod tests {
         // 001_000_000_000_011_011_011_000
         let bitmap: felt252 =
             0b000_000_000_001_000_000_000_001_000_000_010_010_000_000_000_000_010_010_000_000_100_100_100_100_001_010_010_000_011_011_011_000;
-        let bonus: Bonus = Bonus::Totem;
-        let blocks = bonus.apply(bitmap, 2, 4);
+        let blocks = apply_bonus_effect(Bonus::Totem, bitmap, 2, 4);
         assert_eq!(
             blocks,
             0b000_000_000_001_000_000_000_001_000_000_000_000_000_000_000_000_000_000_000_000_100_100_100_100_001_000_000_000_011_011_011_000

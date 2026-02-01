@@ -152,7 +152,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     /// Boss levels always have dual constraints, randomly seeded
     /// 
     /// - Primary: ClearLines with max budget for the level's difficulty
-    /// - Secondary: Either ClearLines (max budget) or NoBonusUsed based on difficulty's chance
+    /// - Secondary: Either ClearLines (max budget, different line count) or NoBonusUsed based on difficulty's chance
     fn generate_boss_constraints_seeded(
         level_seed: felt252,
         difficulty: Difficulty,
@@ -168,8 +168,9 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         );
         
         // Secondary: Always generated (forced dual), but may be NoBonusUsed
+        // Pass primary.value to avoid duplicate line counts
         let secondary = Self::generate_boss_secondary_constraint(
-            level_seed, min_lines, max_lines, budget_max, min_times, secondary_no_bonus_chance
+            level_seed, min_lines, max_lines, budget_max, min_times, secondary_no_bonus_chance, primary.value
         );
         
         (primary, secondary)
@@ -228,6 +229,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     
     /// Generate boss secondary constraint (always generated, but may be NoBonusUsed)
     /// Skips the dual_chance roll since bosses always have dual constraints
+    /// If ClearLines, ensures different line count than primary constraint
     fn generate_boss_secondary_constraint(
         seed: felt252,
         min_lines: u8,
@@ -235,6 +237,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         budget_max: u8,
         min_times: u8,
         secondary_no_bonus_chance: u8,
+        primary_lines: u8,
     ) -> LevelConstraint {
         let seed_u256: u256 = seed.into();
         
@@ -245,15 +248,17 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         }
         
         // Generate another ClearLines constraint with shifted seed and max budget
+        // Ensure different line count than primary
         let secondary_seed: felt252 = (seed_u256 / 10000000).try_into().unwrap();
-        Self::generate_clear_lines_constraint_max_budget(
-            secondary_seed, min_lines, max_lines, budget_max, min_times
+        Self::generate_clear_lines_constraint_different(
+            secondary_seed, min_lines, max_lines, budget_max, budget_max, min_times, primary_lines
         )
     }
 
     /// Generate constraints based on seed, level, difficulty, and settings
     /// Returns (primary_constraint, secondary_constraint)
     /// Primary is always ClearLines (from level 3+), secondary depends on dual_chance
+    /// If both are ClearLines, they will have different line counts
     fn generate_constraints_with_settings(
         level_seed: felt252, level: u8, difficulty: Difficulty, settings: GameSettings
     ) -> (LevelConstraint, LevelConstraint) {
@@ -277,9 +282,10 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         );
         
         // Check if we should have a secondary constraint
+        // Pass primary.value to avoid duplicate line counts
         let secondary = Self::maybe_generate_secondary_constraint(
             level_seed, min_lines, max_lines, budget_min, budget_max, min_times, 
-            dual_chance, secondary_no_bonus_chance
+            dual_chance, secondary_no_bonus_chance, primary.value
         );
         
         (primary, secondary)
@@ -369,8 +375,82 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         LevelConstraintTrait::clear_lines(lines, times)
     }
     
+    /// Generate a ClearLines constraint ensuring different line count than primary
+    /// If same line count is rolled, adjusts up or down based on range availability
+    fn generate_clear_lines_constraint_different(
+        seed: felt252,
+        min_lines: u8,
+        max_lines: u8,
+        budget_min: u8,
+        budget_max: u8,
+        min_times: u8,
+        primary_lines: u8,
+    ) -> LevelConstraint {
+        let seed_u256: u256 = seed.into();
+        
+        // Step 1: Roll budget within [budget_min, budget_max]
+        let budget_range: u8 = if budget_max > budget_min { budget_max - budget_min + 1 } else { 1 };
+        let budget: u8 = budget_min + ((seed_u256 % budget_range.into()).try_into().unwrap());
+        
+        // Step 2: Roll lines within [min_lines, max_lines]
+        let lines_range: u8 = if max_lines > min_lines { max_lines - min_lines + 1 } else { 1 };
+        let mut lines: u8 = min_lines + (((seed_u256 / 100) % lines_range.into()).try_into().unwrap());
+        
+        // Ensure different from primary - adjust if same
+        if lines == primary_lines {
+            // Try to go one higher first
+            if lines < max_lines {
+                lines = lines + 1;
+            } else if lines > min_lines {
+                // Go lower if at max
+                lines = lines - 1;
+            }
+            // If min_lines == max_lines == primary_lines, we can't avoid duplicate
+            // This is an edge case where range is too small
+        }
+        
+        // Step 3: Compute times_cap = budget / line_cost(lines)
+        let mut cost: u8 = Self::line_cost(lines);
+        let mut times_cap: u8 = if cost > 0 { budget / cost } else { 1 };
+        
+        // Step 4: Feasibility repair - reduce lines until times_cap >= min_times
+        // But don't reduce to primary_lines
+        let mut repair_count: u8 = 0;
+        while times_cap < min_times && lines > 2 && repair_count < 5 {
+            let new_lines = lines - 1;
+            // Skip if would match primary
+            if new_lines == primary_lines && new_lines > 2 {
+                lines = new_lines - 1;
+            } else {
+                lines = new_lines;
+            }
+            cost = Self::line_cost(lines);
+            times_cap = if cost > 0 { budget / cost } else { 1 };
+            repair_count = repair_count + 1;
+        };
+        
+        // If still infeasible, reduce min_times requirement to times_cap
+        let effective_min_times: u8 = if times_cap < min_times { 
+            if times_cap >= 1 { times_cap } else { 1 }
+        } else { 
+            min_times 
+        };
+        
+        // Step 5: Roll times with skew-high distribution (max of two rolls)
+        let times: u8 = if times_cap <= 1 {
+            1
+        } else {
+            let t1: u8 = 1 + (((seed_u256 / 1000) % times_cap.into()).try_into().unwrap());
+            let t2: u8 = 1 + (((seed_u256 / 10000) % times_cap.into()).try_into().unwrap());
+            let max_t = if t1 > t2 { t1 } else { t2 };
+            if max_t < effective_min_times { effective_min_times } else { max_t }
+        };
+        
+        LevelConstraintTrait::clear_lines(lines, times)
+    }
+    
     /// Maybe generate a secondary constraint
-    /// Secondary can be either NoBonusUsed or another ClearLines
+    /// Secondary can be either NoBonusUsed or another ClearLines (with different line count)
     fn maybe_generate_secondary_constraint(
         seed: felt252,
         min_lines: u8,
@@ -380,6 +460,7 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         min_times: u8,
         dual_chance: u8,
         secondary_no_bonus_chance: u8,
+        primary_lines: u8,
     ) -> LevelConstraint {
         let seed_u256: u256 = seed.into();
         
@@ -396,9 +477,10 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         }
         
         // Generate another ClearLines constraint with shifted seed
+        // Ensure different line count than primary
         let secondary_seed: felt252 = (seed_u256 / 10000000).try_into().unwrap();
-        Self::generate_clear_lines_constraint(
-            secondary_seed, min_lines, max_lines, budget_min, budget_max, min_times
+        Self::generate_clear_lines_constraint_different(
+            secondary_seed, min_lines, max_lines, budget_min, budget_max, min_times, primary_lines
         )
     }
     
