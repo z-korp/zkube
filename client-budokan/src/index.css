@@ -216,3 +216,11 @@ body[style*="pointer-events: none"] #controller * {
   display: none;
 }
 
+/* Mobile toast - center vertically */
+@media (max-width: 768px) {
+  [data-sonner-toaster] {
+    top: 50% !important;
+    bottom: unset !important;
+    transform: translateY(-50%) !important;
+  }
+}

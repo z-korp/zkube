@@ -46,8 +46,8 @@ export const getToastPlacement = ():
   | "top-center"
   | "bottom-center"
   | "bottom-right" => {
-  // Mobile: top-center, Desktop: bottom-right
-  return isMdOrLarger() ? "bottom-right" : "top-center";
+  // Mobile: bottom-center (CSS moves it to middle), Desktop: bottom-right
+  return isMdOrLarger() ? "bottom-right" : "bottom-center";
 };
 
 export function extractErrorMessages(errorString: string) {
