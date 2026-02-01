@@ -14,6 +14,7 @@ import { sepolia, mainnet, type NativeCurrency } from "@starknet-react/chains";
 import cartridgeConnector from "./cartridgeConnector";
 import { MetagameProvider } from "./contexts/MetagameProvider";
 import { QuestsProvider } from "./contexts/quests";
+import { ControllersProvider } from "./contexts/controllers";
 import { createBurnerAccount } from "./connectors/BurnerConnector";
 
 import "./index.css";
@@ -142,11 +143,13 @@ export function Main() {
             <MetagameProvider>
               {!loading && setupResult ? (
                 <DojoProvider value={setupResult}>
-                  <QuestsProvider>
-                    <SoundPlayerProvider>
-                      <App />
-                    </SoundPlayerProvider>
-                  </QuestsProvider>
+                  <ControllersProvider>
+                    <QuestsProvider>
+                      <SoundPlayerProvider>
+                        <App />
+                      </SoundPlayerProvider>
+                    </QuestsProvider>
+                  </ControllersProvider>
                 </DojoProvider>
               ) : (
                 <Loading />

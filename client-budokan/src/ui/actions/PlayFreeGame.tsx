@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { Button } from "@/ui/elements/button";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { showToast } from "@/utils/toast";
-import { useControllerUsername } from "@/hooks/useControllerUsername";
+import { useControllers } from "@/contexts/controllers";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { LoadoutDialog } from "@/ui/components/Shop";
@@ -20,8 +20,9 @@ export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
     },
   } = useDojo();
   const { account } = useAccountCustom();
-  const { username } = useControllerUsername();
+  const { find } = useControllers();
   const { playerMeta } = usePlayerMeta();
+  const username = account?.address ? find(account.address)?.username : undefined;
   const { cubeBalance } = useCubeBalance();
 
   const [isLoading, setIsLoading] = useState(false);

@@ -19,6 +19,7 @@ import { HeaderLeaderboard } from "./HeaderLeaderboard";
 import CubeBalance from "./CubeBalance";
 import { ShopButton } from "./Shop/ShopButton";
 import { QuestsButton } from "./Quest/QuestsButton";
+import { AchievementsButton } from "./AchievementsButton";
 
 const TUTORIAL_PROGRESS_KEY = "zkube_tutorial_step";
 
@@ -118,6 +119,7 @@ const MobileHeader = ({
             <div className="flex gap-3 items-center">
               <CubeBalance showLabel={false} />
               <QuestsButton />
+              <AchievementsButton iconOnly />
               <ShopButton />
               <Controller />
             </div>

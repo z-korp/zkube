@@ -18,10 +18,16 @@ import {
   QuestCompletion,
   QuestDefinition,
   QuestCreation,
+  QuestUnlocked,
+  QuestCompleted,
+  QuestClaimed,
   type RawDefinition,
   type RawCompletion,
   type RawAdvancement,
   type RawCreation,
+  type RawUnlocked,
+  type RawCompleted,
+  type RawClaimed,
   type QuestReward,
 } from "@/dojo/models/quest";
 // getChecksumAddress imported for future use if needed
@@ -102,12 +108,30 @@ const getPlayerEntityQuery = (namespace: string, playerId: string) => {
     .includeHashedKeys();
 };
 
+const getPlayerEventQuery = (namespace: string, playerId: string) => {
+  const unlocked: `${string}-${string}` = `${namespace}-${QuestUnlocked.getModelName()}`;
+  const completed: `${string}-${string}` = `${namespace}-${QuestCompleted.getModelName()}`;
+  const claimed: `${string}-${string}` = `${namespace}-${QuestClaimed.getModelName()}`;
+  // Normalize address to match Torii's storage format
+  const normalizedAddress = normalizeAddress(playerId);
+  const key = normalizedAddress.toLowerCase();
+  const clauses = new ClauseBuilder().keys(
+    [unlocked, completed, claimed],
+    [key],
+    "VariableLen",
+  );
+  return new ToriiQueryBuilder()
+    .withClause(clauses.build())
+    .includeHashedKeys();
+};
+
 export function QuestsProvider({ children }: { children: React.ReactNode }) {
   const { address } = useAccount();
   const { setup } = useDojo();
   const { toriiClient } = setup;
   
   const entitySubscriptionRef = useRef<torii.Subscription | null>(null);
+  const eventSubscriptionRef = useRef<torii.Subscription | null>(null);
   const [definitions, setDefinitions] = useState<QuestDefinition[]>([]);
   const [completions, setCompletions] = useState<QuestCompletion[]>([]);
   const [advancements, setAdvancements] = useState<QuestAdvancement[]>([]);
@@ -193,6 +217,77 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  // Handler for quest events (unlocked, completed, claimed) - triggers toasts
+  const onQuestEvent = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (response: { data?: any[]; error?: Error } | any) => {
+      if (!response) return;
+      
+      // Handle both direct data array and wrapped response
+      const entities = response.data || (Array.isArray(response) ? response : [response]);
+      if (!entities || entities.length === 0) return;
+      
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      entities.forEach((entity: any) => {
+        if (!entity?.models) return;
+        
+        if (entity.models[`${NAMESPACE}-${QuestUnlocked.getModelName()}`]) {
+          const model = entity.models[
+            `${NAMESPACE}-${QuestUnlocked.getModelName()}`
+          ] as unknown as RawUnlocked;
+          const event = QuestUnlocked.parse(model);
+          const quest = creationsRef.current.find(
+            (c) => c.definition.id === event.quest_id,
+          );
+          if (quest) {
+            toast.info(`${quest.metadata.name}`, {
+              description: "New quest unlocked!",
+              position: getToastPlacement(),
+            });
+          }
+        }
+        if (entity.models[`${NAMESPACE}-${QuestCompleted.getModelName()}`]) {
+          const model = entity.models[
+            `${NAMESPACE}-${QuestCompleted.getModelName()}`
+          ] as unknown as RawCompleted;
+          const event = QuestCompleted.parse(model);
+          const quest = creationsRef.current.find(
+            (c) => c.definition.id === event.quest_id,
+          );
+          if (quest) {
+            toast.success(`${quest.metadata.name}`, {
+              description: "Quest completed! Claim your reward.",
+              position: getToastPlacement(),
+            });
+          }
+        }
+        if (entity.models[`${NAMESPACE}-${QuestClaimed.getModelName()}`]) {
+          const model = entity.models[
+            `${NAMESPACE}-${QuestClaimed.getModelName()}`
+          ] as unknown as RawClaimed;
+          const event = QuestClaimed.parse(model);
+          const quest = creationsRef.current.find(
+            (c) => c.definition.id === event.quest_id,
+          );
+          if (quest) {
+            // Get reward amount
+            const rewardAmount = quest.metadata.rewards.reduce((sum, r) => {
+              const match = r.description.match(/(\d+)/);
+              return sum + (match ? parseInt(match[1], 10) : 0);
+            }, 0);
+            toast.success(`${quest.metadata.name}`, {
+              description: rewardAmount > 0 
+                ? `+${rewardAmount} CUBE claimed!` 
+                : "Reward claimed!",
+              position: getToastPlacement(),
+            });
+          }
+        }
+      });
+    },
+    [],
+  );
+
   // Fetch all quest data
   const fetchQuestData = useCallback(async () => {
     if (!NAMESPACE || !toriiClient || !address) return;
@@ -229,7 +324,7 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
   const setupSubscriptions = useCallback(async () => {
     if (!NAMESPACE || !toriiClient || !address) return;
 
-    // Cancel existing subscription
+    // Cancel existing subscriptions
     if (entitySubscriptionRef.current) {
       try {
         entitySubscriptionRef.current.cancel();
@@ -238,12 +333,21 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
       }
       entitySubscriptionRef.current = null;
     }
+    if (eventSubscriptionRef.current) {
+      try {
+        eventSubscriptionRef.current.cancel();
+      } catch {
+        // Ignore cancel errors
+      }
+      eventSubscriptionRef.current = null;
+    }
 
     const playerEntityQuery = getPlayerEntityQuery(NAMESPACE, address);
+    const playerEventQuery = getPlayerEventQuery(NAMESPACE, address);
 
     try {
       // Subscribe to player entity updates (completions, advancements)
-      const subscription = await toriiClient.onEntityUpdated(
+      const entitySubscription = await toriiClient.onEntityUpdated(
         playerEntityQuery.build().clause,
         [],
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -254,11 +358,25 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
           }
         }
       );
-      entitySubscriptionRef.current = subscription;
+      entitySubscriptionRef.current = entitySubscription;
+
+      // Subscribe to quest event messages (unlocked, completed, claimed)
+      const eventSubscription = await toriiClient.onEventMessageUpdated(
+        playerEventQuery.build().clause,
+        [],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (response: any) => {
+          // Handle event updates
+          if (response) {
+            onQuestEvent(response);
+          }
+        }
+      );
+      eventSubscriptionRef.current = eventSubscription;
     } catch (error) {
       console.error("Error setting up quest subscriptions:", error);
     }
-  }, [toriiClient, address, onEntityUpdate]);
+  }, [toriiClient, address, onEntityUpdate, onQuestEvent]);
 
   // Refresh function
   const refresh = useCallback(async () => {
@@ -290,6 +408,13 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
       if (entitySubscriptionRef.current) {
         try {
           entitySubscriptionRef.current.cancel();
+        } catch {
+          // Ignore cancel errors
+        }
+      }
+      if (eventSubscriptionRef.current) {
+        try {
+          eventSubscriptionRef.current.cancel();
         } catch {
           // Ignore cancel errors
         }

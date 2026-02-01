@@ -10,6 +10,7 @@ import { Button } from "../elements/button";
 import { HeaderLeaderboard } from "./HeaderLeaderboard";
 import { ShopButton } from "./Shop/ShopButton";
 import { QuestsButton } from "./Quest/QuestsButton";
+import { AchievementsButton } from "./AchievementsButton";
 
 const TUTORIAL_PROGRESS_KEY = "zkube_tutorial_step";
 
@@ -90,6 +91,7 @@ const DesktopHeader = ({
           <div className="flex gap-4 flex-1 justify-end items-center px-4">
             <CubeBalance />
             <QuestsButton />
+            <AchievementsButton />
             <ShopButton />
             <Controller />
           </div>
