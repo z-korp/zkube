@@ -82,7 +82,7 @@
     },
     {
       "address": "0x3aeb60202020a2b6a7b0ba3bbafc7f667836c2c89e07aac2a894c2b9b449d8f",
-      "class_hash": "0x1b1f3dd6c7d00db7e256d533a4f873ca5d9cd752f8f24ad3c7674455ac617d",
+      "class_hash": "0x29b852758cfbff15754faa92a2ad9d1891de0350b86d20a09d12e9ce20e04ab",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",
         "0x045a74be8647d39de23b2b73e98862f6b663164fd8f985cfd80eaa6be495f8ba",
@@ -95,6 +95,7 @@
         "dojo_init",
         "create",
         "surrender",
+        "refresh_metadata",
         "upgrade"
       ]
     },
@@ -6963,6 +6964,18 @@
         {
           "type": "function",
           "name": "surrender",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "refresh_metadata",
           "inputs": [
             {
               "name": "game_id",
