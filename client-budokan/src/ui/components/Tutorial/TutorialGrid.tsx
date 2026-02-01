@@ -546,10 +546,14 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     useEffect(() => {
       console.log(`[Tutorial Step ${tutorialStep}] GameState changed to: ${gameState}, lineExplodedCount: ${lineExplodedCount}`);
       
-      if (
+      // For tutorial, also trigger success at ADD_LINE since we don't need to actually add lines
+      // This handles the case where all blocks are cleared and the normal flow gets stuck
+      const isSuccessState = 
         gameState === GameState.UPDATE_AFTER_MOVE ||
-        gameState === GameState.UPDATE_AFTER_BONUS
-      ) {
+        gameState === GameState.UPDATE_AFTER_BONUS ||
+        (gameState === GameState.ADD_LINE && lineExplodedCount > 0);
+      
+      if (isSuccessState) {
         console.log(`[Tutorial Step ${tutorialStep}] Update triggered - lines cleared: ${lineExplodedCount}`);
         
         // Interactive steps that use movement (1, 2, 3, 8)
@@ -569,7 +573,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           }, 500);
         }
       }
-    }, [gameState]);
+    }, [gameState, lineExplodedCount]);
 
     useEffect(() => {
       if (!isMoving && transitioningBlocks.length === 0) {
