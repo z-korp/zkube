@@ -5,7 +5,7 @@ import { lookupAddresses } from "@cartridge/controller";
 import { addAddressPadding } from "starknet";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
-const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
+export const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
 
 // Truncate address to 0x1234...5678 format
 const truncateAddress = (address: string): string => {
@@ -39,10 +39,15 @@ type UseLeaderboardSlotResult = {
 };
 
 /**
- * Slot-compatible hook for fetching leaderboard data.
+ * Hook for fetching leaderboard data directly from RECS (Torii).
+ * Works on slot mode by default, but can be forced on other networks via `forceRecs`.
  * Queries all Game entities and sorts by level -> cubes -> totalScore.
  */
-export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
+export const useLeaderboardSlot = ({ 
+  forceRecs = false 
+}: { 
+  forceRecs?: boolean 
+} = {}): UseLeaderboardSlotResult => {
   const {
     setup: {
       clientModels: {
@@ -60,8 +65,10 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
     setRefreshTrigger((prev) => prev + 1);
   }, []);
 
+  const shouldFetch = isSlotMode || forceRecs;
+
   useEffect(() => {
-    if (!isSlotMode) {
+    if (!shouldFetch) {
       setLoading(false);
       return;
     }
@@ -160,5 +167,3 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
     refetch,
   };
 };
-
-export { isSlotMode };

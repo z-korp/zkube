@@ -6,6 +6,17 @@ import type { GameTokenData } from "metagame-sdk";
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 export const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
 
+// Normalize address for comparison (remove leading zeros, lowercase)
+const normalizeAddress = (address: string | bigint | undefined): string => {
+  if (!address) return "";
+  const hex = typeof address === "bigint" 
+    ? address.toString(16) 
+    : address.startsWith("0x") 
+      ? address.slice(2) 
+      : address;
+  return `0x${hex.replace(/^0+/, "").toLowerCase()}`;
+};
+
 type UseGameTokensSlotResult = {
   games: GameTokenData[];
   loading: boolean;
@@ -64,6 +75,9 @@ export const useGameTokensSlot = ({
 
         const gameList: GameTokenData[] = [];
         const seenIds = new Set<number>();
+        const normalizedOwner = normalizeAddress(owner);
+
+        console.log("[useGameTokensSlot] Fetching games for owner:", normalizedOwner);
 
         for (const entity of gameEntities) {
           const gameData = getComponentValue(Game, entity);
@@ -74,9 +88,14 @@ export const useGameTokensSlot = ({
           if (seenIds.has(gameData.game_id)) continue;
           seenIds.add(gameData.game_id);
 
-          // On slot, we show all games that have started (blocks != 0)
-          // In production, ownership is verified via metagame SDK
+          // Skip games that haven't started (blocks == 0)
           if (gameData.blocks === 0n) continue;
+
+          // Filter by owner - only show games belonging to the current player
+          const gamePlayer = normalizeAddress(gameData.player);
+          if (normalizedOwner && gamePlayer !== normalizedOwner) {
+            continue;
+          }
 
           // Extract level data from run_data
           // See contracts/src/helpers/packing.cairo for bit layout

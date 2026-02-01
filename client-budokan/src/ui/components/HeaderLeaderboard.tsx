@@ -49,7 +49,7 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
   const [copiedTokenId, setCopiedTokenId] = React.useState<string | null>(null);
   const ITEMS_PER_PAGE = 10;
 
-  // Use slot-specific hook for slot mode, metagame SDK for production
+  // Use metagame SDK for sepolia/mainnet
   const metagameResult = useGameTokens({
     sortBy: "score",
     sortOrder: "desc",
@@ -58,11 +58,32 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
     gameAddresses: gameSystemAddress ? [gameSystemAddress] : undefined,
   });
 
-  const slotResult = useLeaderboardSlot();
+  // Check if metagame SDK failed to return results
+  const metagameFailed = !isSlotMode && 
+    !metagameResult.loading && 
+    (!metagameResult.games || metagameResult.games.length === 0);
 
-  const { games, loading, refetch } = isSlotMode
+  // Use RECS query for slot mode OR as fallback when metagame fails
+  const slotResult = useLeaderboardSlot({ forceRecs: metagameFailed });
+
+  // Use metagame results first, fall back to RECS if metagame fails
+  const { games, loading, refetch } = isSlotMode 
     ? { games: slotResult.games, loading: slotResult.loading, refetch: slotResult.refetch }
-    : { games: metagameResult.games, loading: metagameResult.loading, refetch: () => {} };
+    : metagameFailed
+      ? { games: slotResult.games, loading: slotResult.loading, refetch: slotResult.refetch }
+      : { games: metagameResult.games, loading: metagameResult.loading, refetch: () => {} };
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log("[HeaderLeaderboard] Query Status:", {
+      isSlotMode,
+      metagameFailed,
+      source: isSlotMode ? "slot" : metagameFailed ? "recs-fallback" : "metagame",
+      metagameGames: metagameResult.games?.length ?? 0,
+      slotGames: slotResult.games?.length ?? 0,
+      finalGames: games?.length ?? 0,
+    });
+  }, [isSlotMode, metagameFailed, metagameResult.games, slotResult.games, games]);
 
   const filteredGames = React.useMemo(() => {
     if (!excludedLeaderboardNames.length) {
