@@ -9,6 +9,9 @@ pub trait IGameSystem<T> {
     fn create(ref self: T, game_id: u64, selected_bonuses: Span<u8>, cubes_amount: u16);
     /// Surrender the current run (game over)
     fn surrender(ref self: T, game_id: u64);
+    /// Refresh NFT metadata by triggering MetadataUpdate event
+    /// Call this if wallet/marketplace shows stale NFT image
+    fn refresh_metadata(ref self: T, game_id: u64);
     /// Get player name from token
     fn get_player_name(self: @T, game_id: u64) -> felt252;
     /// Get current level score
@@ -47,6 +50,7 @@ mod game_system {
     use game_components_minigame::interface::{IMinigameTokenData};
     use game_components_minigame::libs::{
         assert_token_ownership, get_player_name as get_token_player_name, post_action, pre_action,
+        require_owned_token,
     };
     use game_components_minigame::minigame::MinigameComponent;
     use game_components_token::core::interface::{
@@ -305,8 +309,6 @@ mod game_system {
             // Only counts for default settings games
             libs.track_quest(player, grinder::Grinder::identifier(), 1, settings.settings_id);
 
-            post_action(token_address, game_id);
-
             // Emit start game event
             world.emit_event(@StartGame { player, timestamp, game_id });
 
@@ -322,6 +324,10 @@ mod game_system {
                 game.set_run_data(run_data);
                 world.write_model(@game);
             }
+
+            // Call post_action AFTER all state modifications are complete
+            // This triggers MetadataUpdate event with the correct game state
+            post_action(token_address, game_id);
         }
 
         fn surrender(ref self: ContractState, game_id: u64) {
@@ -348,6 +354,19 @@ mod game_system {
             let player = get_caller_address();
             game_over::handle_game_over(ref world, game, player);
 
+            post_action(token_address, game_id);
+        }
+
+        fn refresh_metadata(ref self: ContractState, game_id: u64) {
+            // Anyone can call this to trigger a MetadataUpdate event
+            // Useful when wallet/marketplace has cached stale NFT image
+            // Works for both active AND completed games (unlike pre_action which checks playability)
+            let token_address = self.token_address();
+            
+            // Only verify token exists (don't check playability - completed games should work too)
+            require_owned_token(token_address, game_id);
+            
+            // Trigger MetadataUpdate event by calling update_game on the token
             post_action(token_address, game_id);
         }
 

@@ -23,6 +23,10 @@ export interface Surrender extends Signer {
   game_id: number;
 }
 
+export interface RefreshMetadata extends Signer {
+  game_id: number;
+}
+
 export interface Create extends Signer {
   token_id: number;
   selected_bonuses: number[]; // [] uses default Hammer/Wave/Totem
@@ -184,6 +188,21 @@ export function setupWorld(config: Config) {
       }
     };
 
+    const refresh_metadata = async ({ account, game_id }: RefreshMetadata) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "refresh_metadata",
+            calldata: [game_id],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing refresh_metadata:", error);
+        throw error;
+      }
+    };
+
     const move = async ({
       account,
       game_id,
@@ -233,6 +252,7 @@ export function setupWorld(config: Config) {
       free_mint,
       create,
       surrender,
+      refresh_metadata,
       move,
       bonus,
     };

@@ -18,7 +18,9 @@ import {
   faFire,
   faStar,
   faRotateRight,
+  faSync,
 } from "@fortawesome/free-solid-svg-icons";
+import { useDojo } from "@/dojo/useDojo";
 import MaxComboIcon from "../components/MaxComboIcon";
 import GameBoard from "../components/GameBoard";
 import { useGrid } from "@/hooks/useGrid";
@@ -109,7 +111,9 @@ const getAttributeValue = (
 export const Home = () => {
   useViewport();
   const { account } = useAccountCustom();
+  const { setup: { systemCalls } } = useDojo();
   const [animationDone, setAnimationDone] = useState(false);
+  const [refreshingGames, setRefreshingGames] = useState<Set<number>>(new Set());
 
   const { theme, themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
@@ -240,6 +244,20 @@ export const Home = () => {
     return value.toString();
   };
 
+  const handleRefreshMetadata = async (tokenId: number) => {
+    if (!account) return;
+    setRefreshingGames(prev => new Set(prev).add(tokenId));
+    try {
+      await systemCalls.refreshMetadata({ account, game_id: tokenId });
+    } finally {
+      setRefreshingGames(prev => {
+        const next = new Set(prev);
+        next.delete(tokenId);
+        return next;
+      });
+    }
+  };
+
   const renderMyGamesTable = (games: PlayerGameRow[]) => {
     if (!isMdOrLarger) {
       return (
@@ -254,19 +272,42 @@ export const Home = () => {
                   <span className="text-slate-400 mr-1">#{game.tokenId}</span>
                   {game.name}
                 </div>
-                {!game.gameOver ? (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => navigate(`/play/${game.tokenId}`)}
-                  >
-                    Resume
-                  </Button>
-                ) : (
-                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-300">
-                    Finished
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleRefreshMetadata(game.tokenId)}
+                          disabled={refreshingGames.has(game.tokenId)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <FontAwesomeIcon 
+                            icon={faSync} 
+                            className={refreshingGames.has(game.tokenId) ? "animate-spin" : ""}
+                          />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        <p>Refresh NFT Image</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  {!game.gameOver ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => navigate(`/play/${game.tokenId}`)}
+                    >
+                      Resume
+                    </Button>
+                  ) : (
+                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-300">
+                      Finished
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-3 text-sm text-slate-200">
                 <div>
@@ -405,19 +446,42 @@ export const Home = () => {
                         </TooltipProvider>
                       </TableCell>
                     <TableCell>
-                      {!game.gameOver ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => navigate(`/play/${game.tokenId}`)}
-                        >
-                          Play
-                        </Button>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">
-                          Completed
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <TooltipProvider delayDuration={0}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleRefreshMetadata(game.tokenId)}
+                                disabled={refreshingGames.has(game.tokenId)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <FontAwesomeIcon 
+                                  icon={faSync} 
+                                  className={refreshingGames.has(game.tokenId) ? "animate-spin" : ""}
+                                />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom">
+                              <p>Refresh NFT Image</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        {!game.gameOver ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => navigate(`/play/${game.tokenId}`)}
+                          >
+                            Play
+                          </Button>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">
+                            Completed
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

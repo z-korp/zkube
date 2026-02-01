@@ -216,6 +216,14 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
+  const refreshMetadata = async ({ account, ...props }: SystemTypes.RefreshMetadata) => {
+    await handleTransaction(
+      account,
+      () => client.game.refresh_metadata({ account, ...props }),
+      "NFT metadata refreshed."
+    );
+  };
+
   const move = async ({ account, ...props }: SystemTypes.Move) => {
     console.log("move", account, props);
     const setMoveComplete = useMoveStore.getState().setMoveComplete; //  Zustand
@@ -322,6 +330,7 @@ export function systems({ client }: { client: IWorld }) {
     freeMint,
     create,
     surrender,
+    refreshMetadata,
     move,
     applyBonus,
     // in-game shop
