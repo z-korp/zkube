@@ -2,11 +2,12 @@ import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
 import { useQuests } from "@/contexts/quests";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import { QuestCard } from "./QuestCard";
-import { useMemo, useCallback } from "react";
+import { QuestFamilyCard } from "./QuestFamilyCard";
+import { useMemo, useCallback, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faScroll, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faScroll, faSpinner, faTrophy } from "@fortawesome/free-solid-svg-icons";
 import { shortString } from "starknet";
+import { motion } from "framer-motion";
 
 interface QuestsDialogProps {
   isOpen: boolean;
@@ -17,31 +18,28 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { quests, status } = useQuests();
+  const { questFamilies, status } = useQuests();
   const { account } = useAccountCustom();
   const {
     setup: { systemCalls },
   } = useDojo();
 
-  // Separate quests by status
-  const { activeQuests, completedQuests } = useMemo(() => {
-    const active = quests.filter((q) => !q.claimed);
-    const completed = quests.filter((q) => q.claimed);
-    return { activeQuests: active, completedQuests: completed };
-  }, [quests]);
+  // Separate main families from finisher
+  const { mainFamilies, finisherFamily } = useMemo(() => {
+    const main = questFamilies.filter((f) => f.id !== 'finisher');
+    const finisher = questFamilies.find((f) => f.id === 'finisher');
+    return { mainFamilies: main, finisherFamily: finisher };
+  }, [questFamilies]);
 
   // Calculate total claimable rewards
   const claimableRewards = useMemo(() => {
-    return activeQuests
-      .filter((q) => q.completed && !q.claimed)
-      .reduce((sum, quest) => {
-        const rewardAmount = quest.rewards.reduce((r, reward) => {
-          const match = reward.description.match(/(\d+)/);
-          return r + (match ? parseInt(match[1], 10) : 0);
-        }, 0);
-        return sum + rewardAmount;
-      }, 0);
-  }, [activeQuests]);
+    return questFamilies.reduce((sum, family) => {
+      if (family.claimableTier) {
+        return sum + family.claimableTier.reward;
+      }
+      return sum;
+    }, 0);
+  }, [questFamilies]);
 
   // Handle claiming a quest
   const handleClaim = useCallback(
@@ -58,11 +56,16 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
     [account, systemCalls]
   );
 
+  // Check if all families are fully claimed
+  const allClaimed = questFamilies.every(f => 
+    f.tiers.every(t => t.claimed)
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         aria-describedby={undefined}
-        className="sm:max-w-[480px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-5 py-5 max-h-[85vh] overflow-hidden gap-0"
+        className="sm:max-w-[520px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-5 py-5 max-h-[85vh] overflow-hidden gap-0"
       >
         <DialogTitle className="text-2xl text-center mb-3 flex items-center justify-center gap-2">
           <FontAwesomeIcon icon={faScroll} className="text-yellow-400" />
@@ -73,50 +76,49 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
         {claimableRewards > 0 && (
           <div className="text-center mb-4 bg-gradient-to-r from-yellow-900/30 to-amber-900/30 py-2 px-3 rounded-lg border border-yellow-500/30">
             <span className="text-yellow-400 font-medium">
-              {claimableRewards} cube ready to claim!
+              {claimableRewards} CUBE ready to claim!
             </span>
           </div>
         )}
 
-        {/* Quest List */}
-        <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+        {/* Quest Families List */}
+        <div className="flex-1 overflow-y-auto space-y-4 pr-1">
           {status === "loading" ? (
             <div className="flex items-center justify-center py-10 text-slate-400">
               <FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" />
               Loading quests...
             </div>
-          ) : activeQuests.length === 0 && completedQuests.length === 0 ? (
+          ) : questFamilies.length === 0 ? (
             <div className="text-center py-10 text-slate-400">
               No quests available yet.
             </div>
           ) : (
             <>
-              {/* Active Quests */}
-              {activeQuests.length > 0 && (
-                <>
-                  {activeQuests.map((quest) => (
-                    <QuestCard
-                      key={`${quest.id}-${quest.intervalId}`}
-                      quest={quest}
-                      onClaim={handleClaim}
-                    />
-                  ))}
-                </>
-              )}
+              {/* Main Quest Families */}
+              {mainFamilies.map((family) => (
+                <QuestFamilyCard
+                  key={family.id}
+                  family={family}
+                  onClaim={handleClaim}
+                />
+              ))}
 
-              {/* Completed Quests Section */}
-              {completedQuests.length > 0 && (
+              {/* Daily Champion (Finisher) - Separate Section */}
+              {finisherFamily && (
                 <>
-                  <div className="text-xs text-slate-500 uppercase tracking-wider mt-4 mb-2">
-                    Completed Today
+                  <div className="text-xs text-slate-500 uppercase tracking-wider mt-2 mb-1 flex items-center gap-2">
+                    <FontAwesomeIcon icon={faTrophy} className="text-yellow-500" />
+                    <span>Complete all quests</span>
                   </div>
-                  {completedQuests.map((quest) => (
-                    <QuestCard
-                      key={`${quest.id}-${quest.intervalId}`}
-                      quest={quest}
-                      onClaim={handleClaim}
-                    />
-                  ))}
+                  <DailyChampionCard 
+                    family={finisherFamily} 
+                    onClaim={handleClaim}
+                    totalQuestsCompleted={mainFamilies.reduce(
+                      (sum, f) => sum + f.tiers.filter(t => t.completed).length, 
+                      0
+                    )}
+                    totalQuests={mainFamilies.reduce((sum, f) => sum + f.totalTiers, 0)}
+                  />
                 </>
               )}
             </>
@@ -128,9 +130,137 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
           <p className="text-xs text-slate-500">
             Quests reset daily at midnight UTC
           </p>
+          {allClaimed && (
+            <p className="text-xs text-green-400 mt-1">
+              All quests completed! Come back tomorrow.
+            </p>
+          )}
         </div>
       </DialogContent>
     </Dialog>
+  );
+};
+
+// Special card for Daily Champion quest
+interface DailyChampionCardProps {
+  family: ReturnType<typeof useQuests>['questFamilies'][0];
+  onClaim: (questId: string, intervalId: number) => Promise<void>;
+  totalQuestsCompleted: number;
+  totalQuests: number;
+}
+
+const DailyChampionCard: React.FC<DailyChampionCardProps> = ({ 
+  family, 
+  onClaim,
+  totalQuestsCompleted,
+  totalQuests,
+}) => {
+  const [isClaiming, setIsClaiming] = useState(false);
+  
+  const tier = family.tiers[0];
+  if (!tier) return null;
+  
+  const isCompleted = tier.completed;
+  const isClaimed = tier.claimed;
+  const canClaim = isCompleted && !isClaimed;
+  
+  // Progress based on completed quests across all families
+  const progressPercent = totalQuests > 0 
+    ? (totalQuestsCompleted / totalQuests) * 100 
+    : 0;
+
+  const handleClaim = async () => {
+    setIsClaiming(true);
+    try {
+      await onClaim(tier.questId, tier.intervalId);
+    } finally {
+      setIsClaiming(false);
+    }
+  };
+
+  return (
+    <motion.div
+      className={`
+        select-none flex flex-col gap-3 rounded-lg p-4
+        ${isClaimed 
+          ? "bg-yellow-900/10 border border-yellow-500/20" 
+          : canClaim
+            ? "bg-yellow-900/20 ring-1 ring-yellow-500/50"
+            : "bg-slate-900"
+        }
+      `}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <FontAwesomeIcon 
+            icon={faTrophy} 
+            className={`text-xl ${isClaimed ? "text-yellow-600" : canClaim ? "text-yellow-400" : "text-slate-500"}`}
+          />
+          <div>
+            <h3 className="text-lg font-semibold text-white tracking-wide">
+              Daily Champion
+            </h3>
+            <p className="text-xs text-slate-400">
+              Complete all daily quests
+            </p>
+          </div>
+        </div>
+        <span className={`text-lg font-bold ${
+          isClaimed ? "text-yellow-600" : canClaim ? "text-yellow-400" : "text-slate-400"
+        }`}>
+          +{tier.reward} CUBE
+        </span>
+      </div>
+
+      {/* Progress bar */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-3 p-0.5 bg-slate-800 rounded-full overflow-hidden">
+          <motion.div
+            className={`h-full rounded-full ${
+              isClaimed ? "bg-yellow-600" : isCompleted ? "bg-yellow-400" : "bg-slate-600"
+            }`}
+            initial={{ width: 0 }}
+            animate={{ width: `${progressPercent}%` }}
+            transition={{
+              duration: 0.6,
+              ease: "easeOut",
+            }}
+          />
+        </div>
+        <span className="text-sm text-slate-400 min-w-fit tabular-nums">
+          {totalQuestsCompleted}/{totalQuests}
+        </span>
+      </div>
+
+      {/* Claim button */}
+      {canClaim && (
+        <button
+          onClick={handleClaim}
+          disabled={isClaiming}
+          className="w-full bg-yellow-600 hover:bg-yellow-500 text-white font-semibold h-10 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+        >
+          {isClaiming ? (
+            <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+          ) : (
+            <>
+              <FontAwesomeIcon icon={faTrophy} />
+              <span>Claim Daily Champion Reward!</span>
+            </>
+          )}
+        </button>
+      )}
+
+      {/* Claimed state */}
+      {isClaimed && (
+        <div className="text-center py-1 text-yellow-600 font-medium">
+          Champion reward claimed!
+        </div>
+      )}
+    </motion.div>
   );
 };
 

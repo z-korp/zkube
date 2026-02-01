@@ -33,10 +33,11 @@ import {
 // getChecksumAddress imported for future use if needed
 // import { getChecksumAddress } from "starknet";
 import { useAccount } from "@starknet-react/core";
-import { NAMESPACE } from "@/constants";
+import { NAMESPACE, QUEST_FAMILIES } from "@/constants";
 import { useDojo } from "@/dojo/useDojo";
 import { toast } from "sonner";
 import { getToastPlacement } from "@/utils/toast";
+import type { QuestFamily, QuestFamilyId, QuestTier } from "@/types/questFamily";
 
 export type QuestProps = {
   id: string;
@@ -59,6 +60,7 @@ export type QuestProps = {
 
 interface QuestsContextType {
   quests: QuestProps[];
+  questFamilies: QuestFamily[];
   status: "loading" | "error" | "success";
   refresh: () => Promise<void>;
 }
@@ -500,8 +502,93 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
       .sort((a, b) => (a.completed && !b.completed ? -1 : 1));
   }, [definitions, completions, advancements, creations]);
 
+  // Compute quest families from the raw quest data
+  const questFamilies: QuestFamily[] = useMemo(() => {
+    // Helper to get reward amount from rewards array
+    const getRewardAmount = (rewards: QuestReward[]): number => {
+      return rewards.reduce((sum, r) => {
+        const match = r.description.match(/(\d+)/);
+        return sum + (match ? parseInt(match[1], 10) : 0);
+      }, 0);
+    };
+
+    // Build families from the QUEST_FAMILIES config
+    const families: QuestFamily[] = Object.entries(QUEST_FAMILIES).map(([familyId, config]) => {
+      // Get quests for this family in tier order
+      const familyQuests = config.questIds
+        .map((questId) => quests.find((q) => q.id === questId))
+        .filter((q): q is QuestProps => q !== undefined);
+
+      // Build tiers from quests
+      const tiers: QuestTier[] = familyQuests.map((quest, index) => {
+        // Get the target from the task (first task's total)
+        const target = quest.tasks.length > 0 ? Number(quest.tasks[0].total) : 1;
+        const reward = getRewardAmount(quest.rewards);
+
+        return {
+          tier: index + 1,
+          questId: quest.id,
+          name: quest.name,
+          description: quest.description,
+          target,
+          reward,
+          completed: quest.completed,
+          claimed: quest.claimed,
+          locked: quest.locked,
+          intervalId: quest.intervalId,
+        };
+      });
+
+      // Get current progress from the first task of the first quest
+      // Since all quests in a family share the same task, they should have the same progress
+      const progress = familyQuests.length > 0 && familyQuests[0].tasks.length > 0
+        ? Number(familyQuests[0].tasks[0].count)
+        : 0;
+
+      // Find current tier index (first incomplete tier)
+      const currentTierIndex = tiers.findIndex((t) => !t.completed);
+
+      // Get next target (target of current tier, or 0 if all done)
+      const nextTarget = currentTierIndex >= 0 ? tiers[currentTierIndex].target : 0;
+
+      // Find first claimable tier (completed but not claimed)
+      const claimableTier = tiers.find((t) => t.completed && !t.claimed) ?? null;
+
+      // Calculate reward totals
+      const totalReward = tiers.reduce((sum, t) => sum + t.reward, 0);
+      const claimedReward = tiers.filter((t) => t.claimed).reduce((sum, t) => sum + t.reward, 0);
+      const earnedReward = tiers.filter((t) => t.completed).reduce((sum, t) => sum + t.reward, 0);
+
+      return {
+        id: familyId as QuestFamilyId,
+        name: config.name,
+        icon: config.icon,
+        tiers,
+        currentTierIndex,
+        totalTiers: tiers.length,
+        progress,
+        nextTarget,
+        claimableTier,
+        totalReward,
+        claimedReward,
+        earnedReward,
+      };
+    });
+
+    // Sort: finisher last, then by progress
+    return families.sort((a, b) => {
+      if (a.id === 'finisher') return 1;
+      if (b.id === 'finisher') return -1;
+      // Sort by whether there's something claimable
+      if (a.claimableTier && !b.claimableTier) return -1;
+      if (!a.claimableTier && b.claimableTier) return 1;
+      return 0;
+    });
+  }, [quests]);
+
   const value: QuestsContextType = {
     quests,
+    questFamilies,
     status,
     refresh,
   };
