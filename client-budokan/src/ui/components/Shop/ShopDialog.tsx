@@ -66,7 +66,7 @@ const BONUS_DESCRIPTIONS: Record<number, string> = {
 };
 
 const LevelPips = ({ current, max }: { current: number; max: number }) => (
-  <div className="flex gap-1">
+  <div className="flex gap-0.5">
     {Array.from({ length: max }).map((_, i) => (
       <div
         key={i}
@@ -83,7 +83,7 @@ const InfoTip = ({ text }: { text: string }) => (
     <Tooltip>
       <TooltipTrigger asChild>
         <span className="cursor-help ml-1 text-slate-500 hover:text-slate-300 transition-colors">
-          <FontAwesomeIcon icon={faCircleInfo} className="text-xs" />
+          <FontAwesomeIcon icon={faCircleInfo} className="text-[10px]" />
         </span>
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-[200px] text-xs">
@@ -270,7 +270,8 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
             : data.bagShuffleLevel;
   };
 
-  const bridgingCost = getBridgingCost(data?.bridgingRank || 0);
+  const bridgingRank = data?.bridgingRank || 0;
+  const bridgingCost = getBridgingCost(bridgingRank);
   const bridgingMaxed = bridgingCost === null;
   const canAffordBridging = !bridgingMaxed && cubeBalance >= (bridgingCost ?? 0);
 
@@ -278,23 +279,23 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         aria-describedby={undefined}
-        className="sm:max-w-[500px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-5 py-5 max-h-[85vh] overflow-y-auto gap-0"
+        className="sm:max-w-[460px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-4 py-4 max-h-[85vh] overflow-y-auto gap-0"
       >
-        <DialogTitle className="text-3xl text-center mb-3">
+        <DialogTitle className="text-2xl text-center mb-2">
           Permanent Shop
         </DialogTitle>
 
         {/* Cube Balance */}
-        <div className="text-center mb-4 bg-slate-800/50 py-2 rounded-lg">
-          <div className="text-2xl font-bold text-yellow-400 flex items-center justify-center gap-2">
+        <div className="text-center mb-3 bg-slate-800/50 py-2 rounded-lg">
+          <div className="text-xl font-bold text-yellow-400 flex items-center justify-center gap-2">
             <span>🧊</span>
             {cubeBalance.toLocaleString()}
             <span className="text-sm font-normal text-slate-400">cubes</span>
           </div>
         </div>
 
-        {/* Bonus tiles: 2 per row, 3rd centered */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        {/* Grid: 2 columns, 3 rows (5 bonuses + bridging) */}
+        <div className="grid grid-cols-2 gap-2">
           {bonusTypes.map((bonus) => {
             const startLevel = getStartingLevel(bonus.id);
             const bagLevel = getBagLevel(bonus.id);
@@ -310,31 +311,26 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
             const canAffordStart = !!isUnlocked && !startMaxed && cubeBalance >= (startCost ?? 0);
             const canAffordBag = !!isUnlocked && !bagMaxed && cubeBalance >= (bagCost ?? 0);
 
-            // 3rd item spans full width but renders at half size centered
-            const isLast = bonus.id === bonusTypes.length - 1 && bonusTypes.length % 2 !== 0;
-
             return (
               <div
                 key={bonus.id}
-                className={`bg-slate-800/30 rounded-lg p-3 border border-slate-700/40 flex flex-col ${
-                  isLast ? "col-span-2 max-w-[50%] mx-auto w-full" : ""
-                }`}
+                className="bg-slate-800/30 rounded-lg p-2.5 border border-slate-700/40 flex flex-col"
               >
                 {/* Header */}
-                <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center gap-2 mb-2">
                   <img
                     src={bonus.img}
                     alt={bonus.name}
-                    className="w-8 h-8"
+                    className="w-7 h-7"
                   />
-                  <span className="text-sm font-semibold">{bonus.name}</span>
+                  <span className="text-xs font-semibold">{bonus.name}</span>
                   <InfoTip text={BONUS_DESCRIPTIONS[bonus.id]} />
                 </div>
 
                 {/* Starting bonus */}
-                <div className="mb-2">
+                <div className="mb-1.5">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider">
+                    <span className="text-[9px] text-slate-400 uppercase tracking-wider">
                       Starting
                     </span>
                     <LevelPips current={startLevel} max={3} />
@@ -343,7 +339,7 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
                     size="sm"
                     disabled={isUpgrading || !isUnlocked || startMaxed || !canAffordStart}
                     onClick={() => handleUpgradeStartingBonus(bonus.id)}
-                    className="w-full text-xs h-7"
+                    className="w-full text-[10px] h-6"
                   >
                     {!isUnlocked ? "Locked" : startMaxed ? "MAX" : `${startCost} 🧊`}
                   </Button>
@@ -352,7 +348,7 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
                 {/* Bag size */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider">
+                    <span className="text-[9px] text-slate-400 uppercase tracking-wider">
                       Bag
                     </span>
                     <LevelPips current={bagLevel} max={3} />
@@ -361,7 +357,7 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
                     size="sm"
                     disabled={isUpgrading || !isUnlocked || bagMaxed || !canAffordBag}
                     onClick={() => handleUpgradeBagSize(bonus.id)}
-                    className="w-full text-xs h-7"
+                    className="w-full text-[10px] h-6"
                   >
                     {!isUnlocked ? "Locked" : bagMaxed ? "MAX" : `${bagCost} 🧊`}
                   </Button>
@@ -369,12 +365,12 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
 
                 {/* Unlock shrink/shuffle */}
                 {!isUnlocked && bonus.id >= 3 && (
-                  <div className="mt-2">
+                  <div className="mt-1.5">
                     <Button
                       size="sm"
                       disabled={isUpgrading || cubeBalance < UNLOCK_BONUS_COST}
                       onClick={() => handleUnlockBonus(bonus.id + 1)}
-                      className="w-full text-xs h-7"
+                      className="w-full text-[10px] h-6"
                     >
                       {UNLOCK_BONUS_COST} 🧊 Unlock
                     </Button>
@@ -383,39 +379,40 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
               </div>
             );
           })}
-        </div>
 
-        {/* Bridging Rank */}
-        <div className="bg-slate-800/30 rounded-lg p-3 border border-slate-700/40">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+          {/* Bridging Rank - inline with bonuses */}
+          <div className="bg-slate-800/30 rounded-lg p-2.5 border border-slate-700/40 flex flex-col">
+            {/* Header */}
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-full bg-purple-500/20 flex items-center justify-center">
                 <FontAwesomeIcon
                   icon={faArrowUp}
-                  className="text-purple-400 text-sm"
+                  className="text-purple-400 text-xs"
                 />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold">Bridging</span>
-                  <InfoTip text="Bring cubes from your wallet into a run to spend at the in-game shop." />
-                  <LevelPips current={data?.bridgingRank || 0} max={3} />
-                </div>
-                <div className="text-[10px] text-slate-400">
-                  Rank {data?.bridgingRank || 0} — max{" "}
-                  {getMaxCubesToBring(data?.bridgingRank || 0)} cubes/run
-                </div>
+              <span className="text-xs font-semibold">Bridging</span>
+              <InfoTip text="Bring cubes from your wallet into a run to spend at the in-game shop." />
+            </div>
+
+            {/* Rank display */}
+            <div className="mb-1.5">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[9px] text-slate-400 uppercase tracking-wider">
+                  Rank
+                </span>
+                <LevelPips current={bridgingRank} max={3} />
+              </div>
+              <div className="text-[10px] text-slate-400 mb-1">
+                Max {getMaxCubesToBring(bridgingRank)} cubes/run
               </div>
             </div>
+
+            {/* Upgrade button */}
             <Button
               size="sm"
-              disabled={
-                isUpgrading ||
-                bridgingMaxed ||
-                !canAffordBridging
-              }
+              disabled={isUpgrading || bridgingMaxed || !canAffordBridging}
               onClick={handleUpgradeBridging}
-              className="min-w-[80px] text-xs h-7"
+              className="w-full text-[10px] h-6 mt-auto"
             >
               {bridgingMaxed ? "MAX" : `${bridgingCost} 🧊`}
             </Button>
