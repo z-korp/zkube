@@ -35,7 +35,7 @@ const getSlot = (): string => {
     case "slot":
       return VITE_PUBLIC_SLOT || "zkube";
     case "sepolia":
-      return "zkube-ba-sepolia";
+      return "zkube-djizus";
     default:
       return "zkube-ba-mainnet";
   }
@@ -57,7 +57,7 @@ const getPolicies = (): SessionPolicies | undefined => {
               }
             ]
           },
-          "0x6d09ee095fd3fab025ded7802d0f8180a37ee5d7da827e3c642d1ede779abba": {
+          "0x3aeb60202020a2b6a7b0ba3bbafc7f667836c2c89e07aac2a894c2b9b449d8f": {
             description: "Manages zKube game",
             methods: [
               {
