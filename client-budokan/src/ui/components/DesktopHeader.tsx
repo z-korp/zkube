@@ -87,7 +87,7 @@ const DesktopHeader = ({
         />
       </div>
       <div className="flex flex-col gap-4 items-center md:flex-row">
-        {!!account && (
+        {account ? (
           <div className="flex gap-4 flex-1 justify-end items-center px-4">
             <CubeBalance />
             <QuestsButton />
@@ -95,9 +95,9 @@ const DesktopHeader = ({
             <ShopButton />
             <Controller />
           </div>
+        ) : (
+          ACCOUNT_CONNECTOR === "controller" && <Connect />
         )}
-
-        {ACCOUNT_CONNECTOR === "controller" && <Connect />}
         <div className="flex gap-4">
           <SettingsDropDown />
         </div>
