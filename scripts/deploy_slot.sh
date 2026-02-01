@@ -182,6 +182,10 @@ if [ -z "$TOKEN_ADDRESS" ]; then
 fi
 print_info "  FullTokenContract deployed at: $TOKEN_ADDRESS"
 
+# Wait for contracts to be properly indexed by katana before migration
+print_info "  Waiting for contracts to be indexed..."
+sleep 5
+
 #-----------------
 # Step 6: Update dojo configs with denshokan address
 #-----------------
@@ -201,16 +205,20 @@ done
 #-----------------
 print_info "Step 6: Running sozo migrate (from workspace root)..."
 
+# Wait a bit more to ensure contracts are fully available
+sleep 3
+
 # CRITICAL: Must run from workspace root, NOT from contracts/
 # Running from contracts/ causes init to fail because sozo resolves
 # contract addresses differently in workspace vs package context.
 MIGRATE_OUTPUT=$(sozo migrate -P $PROFILE 2>&1) || true
 echo "$MIGRATE_OUTPUT"
 
-# Check if we need to retry (sometimes init fails first time)
+# Check if we need to retry (sometimes init fails first time due to indexing delay)
 if echo "$MIGRATE_OUTPUT" | grep -q "Migration failed"; then
-    print_warn "First migration attempt failed, retrying..."
-    sleep 2
+    print_warn "First migration attempt failed, waiting for contracts to be indexed..."
+    sleep 5
+    print_info "Retrying migration..."
     MIGRATE_OUTPUT=$(sozo migrate -P $PROFILE 2>&1) || true
     echo "$MIGRATE_OUTPUT"
 fi

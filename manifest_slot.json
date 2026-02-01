@@ -33,8 +33,8 @@
   },
   "contracts": [
     {
-      "address": "0x137d20a84a95faea99795c8a4910540302970ad1d9895dc266d4ef8bdb73231",
-      "class_hash": "0xf7c73e51fa1b976e28e828f4cfea60f8c1c568d3593f5761d0c559e258863a",
+      "address": "0x28cf1d51b20d6492c3e734c7f5eba81672dee5b4db0cb41b94cb1ba5a909c0",
+      "class_hash": "0x1d926dbe735238af1138fb45d284991f1de2f704f3404accdb5d80ec321e580",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-bonus_system",
       "selector": "0x7ddae8715adf015ed6b5c712f7e3a5c01fe157aac2a2f1d42270deca60c5382",
@@ -81,8 +81,8 @@
       ]
     },
     {
-      "address": "0x14c8845d2ff425f7a31ced3c4e59b380cf05ca700717c684824401cb32b02bb",
-      "class_hash": "0x49254622c533e53f2c19c37937fa491e1708ca914b54ef81cac427e081fea8a",
+      "address": "0x6004a4d939d48c28dc0951174fd92a199534feb678c6213de25368aeafb1201",
+      "class_hash": "0x669f74ec78bd4d604b6d568867e4cf1b91db59d2c8a8ef98bb424f9cc632b34",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
         "0x02271f1bb4d75604b1c82a708c544ac851f430416cd409aa322327874fe5f918",
@@ -98,8 +98,37 @@
       ]
     },
     {
-      "address": "0x7d30644632ac9b3d3a3d2a6344b14758da782910f4779e9f4ea31748bc38af2",
-      "class_hash": "0x61c58af0d929b346bc735d13f5a975f8c8c2b96a64c8088324434168aea0c05",
+      "address": "0x1162d7e46ed00029cedbc541b20364d08bc11ea66b86761bcb24e7484e86e5d",
+      "class_hash": "0x75cee12836861fdd6417d9cf90f4b4078a5410dafea74f9add2ed106ebec1b8",
+      "init_calldata": [],
+      "tag": "zkube_budo_v1_2_0-grid_system",
+      "selector": "0x5ff6ef4a16262e788060768405b1310e3a5903dda6cf016268cf4453d31eec",
+      "systems": [
+        "initialize_grid",
+        "reset_grid_for_level",
+        "execute_move",
+        "apply_bonus",
+        "insert_line_if_empty",
+        "assess_grid",
+        "upgrade"
+      ]
+    },
+    {
+      "address": "0x4ace406c59e71de39772041b9f27c8e21b8f07e04a0f97e9b5f498e59d266b8",
+      "class_hash": "0x55bbe9d5b526bd90b64607bedc92834470549cb4d3a7ead8bb75c3dec2325bf",
+      "init_calldata": [],
+      "tag": "zkube_budo_v1_2_0-level_system",
+      "selector": "0xc087c6629c3c13d06cab85b37e88683bcffe82e8123eedbd704ff85463a0a5",
+      "systems": [
+        "initialize_level",
+        "complete_level",
+        "insert_line_if_empty",
+        "upgrade"
+      ]
+    },
+    {
+      "address": "0x34ab3aed5333e18ccc325609a9c972c8d947f88ae5fc034d468c8eeb5e283c7",
+      "class_hash": "0x3af8aa85f298cc97eb181d3fe5e2d3584c29b1946ce3abc7946f370e6400941",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-move_system",
       "selector": "0x3df79bdc704eceb62aa8752e4456ee57de1c2c56b4871b20171ee4ae1e235b7",
@@ -109,8 +138,8 @@
       ]
     },
     {
-      "address": "0x7970738be7f64ecf6a63d24f65a602642a1baafff9b8dc583d667a8ab889ed6",
-      "class_hash": "0x78868ef96ef2905c4950e6be557fce2cc526602cf230924d634640b09685a8c",
+      "address": "0x41f9ccfb5b66b013d1fac600a228ab78511fa4e5b30229b46efe9150683d74f",
+      "class_hash": "0x4ba9c3a568e4a1c6d75692ac56d859d35f39bc900f911add1ee4a1ac2d3fb61",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-quest_system",
       "selector": "0x436c9e32f41800b6e41f7a2132179a85ad4fbbcd73cf2db6bcb4b65fd2071e",
@@ -125,8 +154,8 @@
       ]
     },
     {
-      "address": "0x34870e7a950332fd49a203d3b85058a538446f1b22e95c9838df9d8880e9330",
-      "class_hash": "0x739d07816666108b306fd5ec3fc2a8a3ecc4d41ec87dfb0a778a1227c5928c2",
+      "address": "0x1b65117ff9aa16a2e5068a8da39934eca62b89fcfd85d2c5c460ec4cb490489",
+      "class_hash": "0x794273ece4fd58d2db65b7e0666bb2f9a31d9f7ebf598388d18323c49f0b45c",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-renderer_systems",
       "selector": "0x35d5ac8794cc2cf3e12c42d4ac579e7a5dc26a70c26e32c599915d2d39586cf",
@@ -135,8 +164,8 @@
       ]
     },
     {
-      "address": "0x633dab19e3dd6f039ee4d14311dbbcb4a311d2137a48a78a2c75916529d77db",
-      "class_hash": "0x635dcb8e0d9792882c39d2ea8e119c4ba118afa6c8fa74a7a082a97fe07e7b1",
+      "address": "0x4b8a75025349f35ebaa19e4614d031d2d0cbd051c446b451ea01de0a9ad6f24",
+      "class_hash": "0x4c4700f249bd7377b3ef945c11d08390c4f3f5c3defd1a78ebb2252ccc873cc",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-shop_system",
       "selector": "0x456e9ac1689ce0bf6afd29733b144d9ef8e7db5c0df5ec0dc79ed1ea22579a0",
@@ -7015,6 +7044,204 @@
           "name": "SRC5Event",
           "type": "openzeppelin_introspection::src5::SRC5Component::Event",
           "kind": "flat"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "zkube::systems::grid::IGridSystem",
+      "items": [
+        {
+          "type": "function",
+          "name": "initialize_grid",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "reset_grid_for_level",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "execute_move",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "row_index",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "start_index",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "final_index",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "(core::integer::u8, core::bool)"
+            }
+          ],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "apply_bonus",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "bonus",
+              "type": "zkube::types::bonus::Bonus"
+            },
+            {
+              "name": "row_index",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "col_index",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::integer::u8"
+            }
+          ],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "insert_line_if_empty",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "assess_grid",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "(core::integer::u8, core::integer::u16)"
+            }
+          ],
+          "state_mutability": "external"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::systems::grid::grid_system::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "UpgradeableEvent",
+          "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "WorldProviderEvent",
+          "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "nested"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "zkube::systems::level::ILevelSystem",
+      "items": [
+        {
+          "type": "function",
+          "name": "initialize_level",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::bool"
+            }
+          ],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "complete_level",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "(core::integer::u8, core::integer::u8, core::bool)"
+            }
+          ],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "insert_line_if_empty",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::systems::level::level_system::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "UpgradeableEvent",
+          "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "WorldProviderEvent",
+          "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "nested"
         }
       ]
     },
