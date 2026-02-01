@@ -1,15 +1,21 @@
 import { useTheme } from "next-themes";
 import { Toaster as Sonner } from "sonner";
+import { useMediaQuery } from "react-responsive";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
-const Toaster = ({ ...props }: ToasterProps) => {
+const Toaster = ({ position, ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme();
+  const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
+  
+  // On mobile, show toasts at top-center; on desktop use the provided position or default
+  const responsivePosition = isMobile ? "top-center" : (position ?? "bottom-right");
 
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      position={responsivePosition}
       toastOptions={{
         classNames: {
           toast:
