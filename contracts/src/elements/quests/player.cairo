@@ -56,7 +56,7 @@ pub impl DailyPlayerTwo of QuestTrait {
         let tasks: Array<QuestTask> = array![
             QuestTaskTrait::new(Grinder::identifier(), total.into(), Grinder::description(total)),
         ];
-        let conditions: Array<felt252> = array![DailyPlayerOne::identifier()];
+        // No conditions - all tiers unlock immediately for cumulative progress
         QuestProps {
             id: Self::identifier(),
             start: 0,
@@ -64,7 +64,7 @@ pub impl DailyPlayerTwo of QuestTrait {
             duration: ONE_DAY,
             interval: ONE_DAY,
             tasks: tasks,
-            conditions: conditions,
+            conditions: array![],
             metadata: metadata,
         }
     }
@@ -89,7 +89,7 @@ pub impl DailyPlayerThree of QuestTrait {
         let tasks: Array<QuestTask> = array![
             QuestTaskTrait::new(Grinder::identifier(), total.into(), Grinder::description(total)),
         ];
-        let conditions: Array<felt252> = array![DailyPlayerTwo::identifier()];
+        // No conditions - all tiers unlock immediately for cumulative progress
         QuestProps {
             id: Self::identifier(),
             start: 0,
@@ -97,7 +97,7 @@ pub impl DailyPlayerThree of QuestTrait {
             duration: ONE_DAY,
             interval: ONE_DAY,
             tasks: tasks,
-            conditions: conditions,
+            conditions: array![],
             metadata: metadata,
         }
     }

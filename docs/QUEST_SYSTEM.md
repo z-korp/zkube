@@ -212,3 +212,59 @@ Add to `build-external-contracts`:
 - CUBE tokens are soulbound ERC1155 (cannot be transferred)
 - Quest system needs MINTER_ROLE to award CUBE rewards
 - Frontend uses Torii subscriptions for real-time progress updates
+
+---
+
+## Known Limitations
+
+### Cartridge Controller Quest UI Claim Button Does Not Work
+
+**Issue:** The Cartridge Controller's built-in profile quest UI (opened via `controller.openProfile()`) has a claim button that does not work. When clicked, it produces an `ENTRYPOINT_NOT_FOUND` error because the Controller tries to call a different contract than our quest_system.
+
+**Error example:**
+```
+Contract address= 0x4364d8e9f994453f5d...
+Nested error: ENTRYPOINT_NOT_FOUND
+```
+
+**Root cause:** The Cartridge Controller's built-in quest UI is designed for Cartridge's internal arcade infrastructure and calls a Cartridge-hosted quest claiming contract that either:
+1. Doesn't exist on the network
+2. Isn't configured for the zKube namespace
+
+**Workaround:** Use the in-game QuestsDialog (opened via the Quests button) instead. This uses our custom claim implementation that calls the quest_system.claim() entrypoint correctly.
+
+The custom claim works via:
+1. `systemCalls.claimQuest()` in `client-budokan/src/dojo/systems.ts`
+2. Which calls the `quest_system.claim()` entrypoint
+3. Which uses the QuestableComponent from Cartridge's arcade package
+
+---
+
+## Quest Family UI (v1.2.1+)
+
+Quests are displayed as **families with cumulative progress**:
+
+### Families
+
+| Family | Quests | Total Reward |
+|--------|--------|--------------|
+| Play Games | Tier 1 (1 game), Tier 2 (3 games), Tier 3 (5 games) | 21 CUBE |
+| Clear Lines | Tier 1 (10 lines), Tier 2 (30 lines), Tier 3 (50 lines) | 21 CUBE |
+| Achieve Combos | Tier 1 (3+ combo), Tier 2 (5+ combo), Tier 3 (8+ combo) | 35 CUBE |
+| Daily Champion | Complete all 9 quests | 25 CUBE |
+
+### Cumulative Progress
+
+Progress is shared across tiers in a family. If you play 3 games:
+- Tier 1 (1 game): ✓ Completed
+- Tier 2 (3 games): ✓ Completed  
+- Tier 3 (5 games): 3/5 in progress
+
+### Frontend Components
+
+| Component | Purpose |
+|-----------|---------|
+| `QuestFamilyCard` | Shows a family with all tiers, progress bar, and claim button |
+| `QuestsDialog` | Main dialog showing all families and Daily Champion |
+| `constants.ts:QUEST_FAMILIES` | Configuration mapping families to quest IDs |
+| `contexts/quests.tsx:questFamilies` | Computed family data from raw quests |

@@ -60,7 +60,7 @@ pub impl DailyClearerTwo of QuestTrait {
                 LineClearer::identifier(), total.into(), LineClearer::description(total),
             ),
         ];
-        let conditions: Array<felt252> = array![DailyClearerOne::identifier()];
+        // No conditions - all tiers unlock immediately for cumulative progress
         QuestProps {
             id: Self::identifier(),
             start: 0,
@@ -68,7 +68,7 @@ pub impl DailyClearerTwo of QuestTrait {
             duration: ONE_DAY,
             interval: ONE_DAY,
             tasks: tasks,
-            conditions: conditions,
+            conditions: array![],
             metadata: metadata,
         }
     }
@@ -95,7 +95,7 @@ pub impl DailyClearerThree of QuestTrait {
                 LineClearer::identifier(), total.into(), LineClearer::description(total),
             ),
         ];
-        let conditions: Array<felt252> = array![DailyClearerTwo::identifier()];
+        // No conditions - all tiers unlock immediately for cumulative progress
         QuestProps {
             id: Self::identifier(),
             start: 0,
@@ -103,7 +103,7 @@ pub impl DailyClearerThree of QuestTrait {
             duration: ONE_DAY,
             interval: ONE_DAY,
             tasks: tasks,
-            conditions: conditions,
+            conditions: array![],
             metadata: metadata,
         }
     }

@@ -140,7 +140,7 @@
     },
     {
       "address": "0x51b40b705f5ed82d309b000ca6b0c31bae530ae4e0864cc9ebe78a7bb3f9a0e",
-      "class_hash": "0x4ba9c3a568e4a1c6d75692ac56d859d35f39bc900f911add1ee4a1ac2d3fb61",
+      "class_hash": "0x637d8cf37b1a154a9b063f6b9fd277e12a3d49d81f6bcc25d079708b8cbfe4e",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-quest_system",
       "selector": "0x436c9e32f41800b6e41f7a2132179a85ad4fbbcd73cf2db6bcb4b65fd2071e",
@@ -151,12 +151,13 @@
         "on_quest_claim",
         "claim",
         "progress",
+        "reinitialize_quests",
         "upgrade"
       ]
     },
     {
       "address": "0x5b02300e7fc8b04e492ce2f7406347369b868f0b1ff9f552f2e8c03e2f0450c",
-      "class_hash": "0x794273ece4fd58d2db65b7e0666bb2f9a31d9f7ebf598388d18323c49f0b45c",
+      "class_hash": "0x362e90bebd91e1081960c030807707103f9619bb30e69f9f0210f8aad783296",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-renderer_systems",
       "selector": "0x35d5ac8794cc2cf3e12c42d4ac579e7a5dc26a70c26e32c599915d2d39586cf",
@@ -7330,6 +7331,13 @@
               "type": "core::integer::u32"
             }
           ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "reinitialize_quests",
+          "inputs": [],
           "outputs": [],
           "state_mutability": "external"
         }
