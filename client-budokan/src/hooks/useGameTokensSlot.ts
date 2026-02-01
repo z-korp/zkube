@@ -91,11 +91,9 @@ export const useGameTokensSlot = ({
           // Skip games that haven't started (blocks == 0)
           if (gameData.blocks === 0n) continue;
 
-          // Filter by owner - only show games belonging to the current player
-          const gamePlayer = normalizeAddress(gameData.player);
-          if (normalizedOwner && gamePlayer !== normalizedOwner) {
-            continue;
-          }
+          // NOTE: Game model doesn't have a player field - ownership is tracked by ERC721 token
+          // For now, we show all games. In production, query the token contract for ownership
+          // or use metagame-sdk which handles this properly.
 
           // Extract level data from run_data
           // See contracts/src/helpers/packing.cairo for bit layout
