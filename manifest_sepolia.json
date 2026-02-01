@@ -156,7 +156,7 @@
     },
     {
       "address": "0x5b02300e7fc8b04e492ce2f7406347369b868f0b1ff9f552f2e8c03e2f0450c",
-      "class_hash": "0x794273ece4fd58d2db65b7e0666bb2f9a31d9f7ebf598388d18323c49f0b45c",
+      "class_hash": "0x362e90bebd91e1081960c030807707103f9619bb30e69f9f0210f8aad783296",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-renderer_systems",
       "selector": "0x35d5ac8794cc2cf3e12c42d4ac579e7a5dc26a70c26e32c599915d2d39586cf",

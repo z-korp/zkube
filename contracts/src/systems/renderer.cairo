@@ -17,6 +17,7 @@ mod renderer_systems {
     use zkube::constants::DEFAULT_NS;
     use zkube::models::game::{Game, GameTrait};
     use zkube::helpers::renderer as renderer_helper;
+    use zkube::helpers::encoding::bytes_base64_encode;
 
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
@@ -87,7 +88,7 @@ mod renderer_systems {
         }
 
         fn token_name(self: @ContractState, token_id: u64) -> ByteArray {
-            format!("zKube Game #{}", token_id)
+            "zKube Game"
         }
 
         fn token_description(self: @ContractState, token_id: u64) -> ByteArray {
@@ -118,8 +119,10 @@ mod renderer_systems {
     #[abi(embed_v0)]
     impl GameDetailsSVGImpl of IMinigameDetailsSVG<ContractState> {
         fn game_details_svg(self: @ContractState, token_id: u64) -> ByteArray {
-            // Use the existing SVG generation from the renderer helper
-            self.generate_svg(token_id)
+            // Generate the raw SVG
+            let svg = self.generate_svg(token_id);
+            // Return as base64-encoded data URI (required by FullTokenContract)
+            format!("data:image/svg+xml;base64,{}", bytes_base64_encode(svg))
         }
     }
 
