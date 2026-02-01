@@ -15,9 +15,10 @@ mod bonus_system {
     use zkube::models::game::{Game, GameTrait, GameAssert, GameLevel};
     use zkube::helpers::token;
     use zkube::helpers::level_check;
-    use zkube::helpers::dispatchers;
-    use zkube::systems::level::ILevelSystemDispatcherTrait;
-    use zkube::systems::grid::IGridSystemDispatcherTrait;
+    use zkube::helpers::game_libs::{
+        GameLibsImpl,
+        ILevelSystemDispatcherTrait, IGridSystemDispatcherTrait
+    };
     use zkube::types::bonus::Bonus;
     use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait};
     use zkube::events::UseBonus;
@@ -68,9 +69,11 @@ mod bonus_system {
                 "Cannot use bonus - NoBonusUsed constraint is active for this level"
             );
 
+            // Initialize GameLibs once for all dispatcher calls
+            let libs = GameLibsImpl::new(world);
+            
             // Apply bonus via grid_system dispatcher (contains all bonus implementations)
-            let grid_system = dispatchers::get_grid_system_dispatcher(world);
-            let lines_cleared = grid_system.apply_bonus(game_id, bonus, row_index, line_index);
+            let lines_cleared = libs.grid.apply_bonus(game_id, bonus, row_index, line_index);
             
             // Re-read game and level after grid_system modified them
             let game: Game = world.read_model(game_id);
@@ -100,12 +103,11 @@ mod bonus_system {
             let is_complete = level_check::is_level_complete(@game_level, @run_data);
             
             if is_complete {
-                // Level complete - call level_system via dispatcher
-                let level_system = dispatchers::get_level_system_dispatcher(world);
-                level_system.complete_level(game_id);
+                // Level complete - call level_system via GameLibs
+                libs.level.complete_level(game_id);
             } else if game.blocks == 0 {
                 // Grid is empty but level not complete - insert a line
-                grid_system.insert_line_if_empty(game_id);
+                libs.grid.insert_line_if_empty(game_id);
             }
             
             post_action(token_address, game_id);

@@ -101,7 +101,7 @@ mod shop_system {
     use zkube::helpers::packing::{RunData, RunDataHelpersTrait};
     use zkube::helpers::token;
     use zkube::events::{ConsumablePurchased, BonusUnlocked, BonusLevelUp};
-    use zkube::systems::cube_token::ICubeTokenDispatcherTrait;
+    use zkube::helpers::game_libs::{GameLibsImpl, ICubeTokenDispatcherTrait};
     use zkube::helpers::dispatchers;
     use super::{get_starting_bonus_cost, get_bag_upgrade_cost_impl, get_bridging_upgrade_cost_impl};
 
@@ -153,8 +153,8 @@ mod shop_system {
             let cost = get_starting_bonus_cost(current_level);
 
             // Burn cubes from ERC1155 wallet (will revert if insufficient)
-            let cube_token = dispatchers::get_cube_token_dispatcher(world);
-            cube_token.burn(player, cost.into());
+            let libs = GameLibsImpl::new(world);
+            libs.cube.burn(player, cost.into());
 
             // Upgrade the bonus
             match bonus_type {
@@ -201,8 +201,8 @@ mod shop_system {
             let cost = get_bag_upgrade_cost_impl(current_level);
 
             // Burn cubes from ERC1155 wallet (will revert if insufficient)
-            let cube_token = dispatchers::get_cube_token_dispatcher(world);
-            cube_token.burn(player, cost.into());
+            let libs = GameLibsImpl::new(world);
+            libs.cube.burn(player, cost.into());
 
             // Upgrade the bag
             match bonus_type {
@@ -234,8 +234,8 @@ mod shop_system {
             let cost = get_bridging_upgrade_cost_impl(current_rank);
 
             // Burn cubes from ERC1155 wallet (will revert if insufficient)
-            let cube_token = dispatchers::get_cube_token_dispatcher(world);
-            cube_token.burn(player, cost.into());
+            let libs = GameLibsImpl::new(world);
+            libs.cube.burn(player, cost.into());
 
             // Upgrade the rank
             meta.bridging_rank = current_rank + 1;
@@ -269,8 +269,8 @@ mod shop_system {
             let cost: u64 = 200;
 
             // Burn cubes from ERC1155 wallet (will revert if insufficient)
-            let cube_token = dispatchers::get_cube_token_dispatcher(world);
-            cube_token.burn(player, cost.into());
+            let libs = GameLibsImpl::new(world);
+            libs.cube.burn(player, cost.into());
 
             // Unlock the bonus
             if bonus_type == 4 {

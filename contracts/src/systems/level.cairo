@@ -36,13 +36,14 @@ mod level_system {
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::level::{LevelGeneratorTrait, BossLevel};
-    use zkube::helpers::dispatchers;
-    use zkube::systems::grid::IGridSystemDispatcherTrait;
+    use zkube::helpers::game_libs::{
+        GameLibsImpl,
+        IGridSystemDispatcherTrait, ICubeTokenDispatcherTrait
+    };
     use zkube::types::level::LevelConfigTrait;
     use zkube::helpers::packing::RunDataHelpersTrait;
     use zkube::types::constraint::ConstraintType;
     use zkube::events::{LevelStarted, LevelCompleted, RunCompleted};
-    use zkube::systems::cube_token::ICubeTokenDispatcherTrait;
 
     use dojo::model::ModelStorage;
     use dojo::world::WorldStorage;
@@ -158,11 +159,11 @@ mod level_system {
                     },
                 );
                 
-                // Mint cubes on victory
+                // Mint cubes on victory via GameLibs
                 let cubes_to_mint: u256 = final_run_data.total_cubes.into();
                 if cubes_to_mint > 0 {
-                    let cube_token = dispatchers::get_cube_token_dispatcher(world);
-                    cube_token.mint(player, cubes_to_mint);
+                    let libs = GameLibsImpl::new(world);
+                    libs.cube.mint(player, cubes_to_mint);
                 }
             } else {
                 // Generate next level config
@@ -197,9 +198,9 @@ mod level_system {
                 // Write game before resetting grid (grid_system will read the updated run_data)
                 world.write_model(@game);
                 
-                // Reset grid for the new level via grid_system dispatcher
-                let grid_system = dispatchers::get_grid_system_dispatcher(world);
-                grid_system.reset_grid_for_level(game_id);
+                // Reset grid for the new level via GameLibs
+                let libs = GameLibsImpl::new(world);
+                libs.grid.reset_grid_for_level(game_id);
                 
                 return (cubes_final, bonuses_earned, is_victory_final);
             }
@@ -219,9 +220,9 @@ mod level_system {
                 return;
             }
             
-            // Delegate to grid_system which owns Controller
-            let grid_system = dispatchers::get_grid_system_dispatcher(world);
-            grid_system.insert_line_if_empty(game_id);
+            // Delegate to grid_system via GameLibs
+            let libs = GameLibsImpl::new(world);
+            libs.grid.insert_line_if_empty(game_id);
         }
     }
     

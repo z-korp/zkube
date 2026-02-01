@@ -10,9 +10,8 @@ use zkube::constants::DEFAULT_SETTINGS::is_default_settings;
 use zkube::models::game::{Game, GameTrait};
 use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
 use zkube::events::RunEnded;
-use zkube::helpers::dispatchers;
+use zkube::helpers::game_libs::{GameLibsImpl, ICubeTokenDispatcherTrait};
 use zkube::helpers::config::ConfigUtilsTrait;
-use zkube::systems::cube_token::ICubeTokenDispatcherTrait;
 
 /// Handle game over: update player meta, mint cubes, emit event.
 /// Used by game_system (surrender) and move_system (level failed/game over).
@@ -50,8 +49,8 @@ pub fn handle_game_over(
 
     // Only mint cubes and update stats for games using default settings
     if is_default_settings(settings.settings_id) && base_cubes > 0 {
-        let cube_token = dispatchers::get_cube_token_dispatcher(world);
-        cube_token.mint(player, base_cubes.into());
+        let libs = GameLibsImpl::new(world);
+        libs.cube.mint(player, base_cubes.into());
 
         player_meta.add_cubes_earned(base_cubes.into());
     }

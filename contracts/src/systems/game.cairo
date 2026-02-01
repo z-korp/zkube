@@ -30,10 +30,10 @@ mod game_system {
     use zkube::helpers::packing::MetaDataPackingTrait;
     use zkube::helpers::game_over;
     use zkube::events::StartGame;
-    use zkube::systems::cube_token::ICubeTokenDispatcherTrait;
-    use zkube::systems::level::ILevelSystemDispatcherTrait;
-    use zkube::systems::grid::IGridSystemDispatcherTrait;
-    use zkube::helpers::dispatchers;
+    use zkube::helpers::game_libs::{
+        GameLibsImpl, 
+        ILevelSystemDispatcherTrait, IGridSystemDispatcherTrait, ICubeTokenDispatcherTrait
+    };
     use zkube::elements::tasks::grinder;
 
     use dojo::model::ModelStorage;
@@ -231,6 +231,9 @@ mod game_system {
             run_data.bonus_2_level = 0;
             run_data.bonus_3_level = 0;
 
+            // Initialize GameLibs once for all dispatcher calls
+            let libs = GameLibsImpl::new(world);
+            
             // Handle cube bridging if cubes_amount > 0
             if cubes_amount > 0 {
                 // Check player has unlocked bridging
@@ -239,8 +242,7 @@ mod game_system {
                 assert!(cubes_amount <= max_allowed, "Exceeds max cubes for your bridging rank");
                 
                 // Burn cubes from ERC1155 wallet (will revert if insufficient)
-                let cube_token = dispatchers::get_cube_token_dispatcher(world);
-                cube_token.burn(player, cubes_amount.into());
+                libs.cube.burn(player, cubes_amount.into());
                 
                 // Set cubes_brought in run_data
                 run_data.cubes_brought = cubes_amount;
@@ -287,22 +289,16 @@ mod game_system {
 
             // Track quest progress: games played (Grinder task)
             // Only counts for default settings games
-            dispatchers::track_quest_progress(world, player, grinder::Grinder::identifier(), 1, settings.settings_id);
+            libs.track_quest(player, grinder::Grinder::identifier(), 1, settings.settings_id);
 
             post_action(token_address, game_id);
 
             // Emit start game event
             world.emit_event(@StartGame { player, timestamp, game_id });
 
-            // Initialize level 1 via level_system dispatcher
-            // This generates level config, writes to GameLevel model, and emits LevelStarted event
-            let level_system = dispatchers::get_level_system_dispatcher(world);
-            let has_no_bonus = level_system.initialize_level(game_id);
-            
-            // Initialize the grid via grid_system dispatcher
-            // This fills the grid with starting blocks based on level difficulty
-            let grid_system = dispatchers::get_grid_system_dispatcher(world);
-            grid_system.initialize_grid(game_id);
+            // Initialize level 1 and grid via GameLibs dispatchers
+            let has_no_bonus = libs.level.initialize_level(game_id);
+            libs.grid.initialize_grid(game_id);
             
             // Update run_data with no_bonus_constraint flag if needed
             if has_no_bonus {

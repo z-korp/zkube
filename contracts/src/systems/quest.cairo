@@ -21,8 +21,7 @@ pub mod quest_system {
     use crate::constants::DEFAULT_NS;
     use crate::elements::quests::index::{IQuest, QUEST_COUNT, QuestProps, QuestType};
     use crate::elements::quests::finisher;
-    use crate::systems::cube_token::ICubeTokenDispatcherTrait;
-    use crate::helpers::dispatchers;
+    use crate::helpers::game_libs::{GameLibsImpl, ICubeTokenDispatcherTrait};
 
     use super::IQuestSystem;
 
@@ -122,8 +121,8 @@ pub mod quest_system {
 
             // Mint CUBE tokens as reward
             if amount > 0 {
-                let cube_token = dispatchers::get_cube_token_dispatcher(world);
-                cube_token.mint(player, amount.into());
+                let libs = GameLibsImpl::new(world);
+                libs.cube.mint(player, amount.into());
             }
 
             // Note: Achievement progression for DailyMaster would be handled here

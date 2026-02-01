@@ -15,9 +15,10 @@ mod move_system {
     use zkube::helpers::token;
     use zkube::helpers::game_over;
     use zkube::helpers::level_check;
-    use zkube::helpers::dispatchers;
-    use zkube::systems::level::ILevelSystemDispatcherTrait;
-    use zkube::systems::grid::IGridSystemDispatcherTrait;
+    use zkube::helpers::game_libs::{
+        GameLibsImpl,
+        ILevelSystemDispatcherTrait, IGridSystemDispatcherTrait
+    };
     use zkube::elements::tasks::{clearer, combo};
 
     use dojo::model::ModelStorage;
@@ -62,9 +63,11 @@ mod move_system {
             assert!(start_index < 8, "Invalid start_index: must be < 8");
             assert!(final_index < 8, "Invalid final_index: must be < 8");
 
+            // Initialize GameLibs once for all dispatcher calls
+            let libs = GameLibsImpl::new(world);
+            
             // Execute move via grid_system dispatcher (contains Controller logic)
-            let grid_system = dispatchers::get_grid_system_dispatcher(world);
-            let (lines_cleared, is_grid_full) = grid_system.execute_move(
+            let (lines_cleared, is_grid_full) = libs.grid.execute_move(
                 game_id, row_index, start_index, final_index
             );
             
@@ -74,16 +77,16 @@ mod move_system {
 
             // Track quest progress for lines cleared and combos
             if lines_cleared > 0 {
-                dispatchers::track_quest_progress(world, player, clearer::LineClearer::identifier(), lines_cleared.into(), settings.settings_id);
+                libs.track_quest(player, clearer::LineClearer::identifier(), lines_cleared.into(), settings.settings_id);
                 
                 if lines_cleared >= 3 {
-                    dispatchers::track_quest_progress(world, player, combo::ComboThree::identifier(), 1, settings.settings_id);
+                    libs.track_quest(player, combo::ComboThree::identifier(), 1, settings.settings_id);
                 }
                 if lines_cleared >= 5 {
-                    dispatchers::track_quest_progress(world, player, combo::ComboFive::identifier(), 1, settings.settings_id);
+                    libs.track_quest(player, combo::ComboFive::identifier(), 1, settings.settings_id);
                 }
                 if lines_cleared >= 8 {
-                    dispatchers::track_quest_progress(world, player, combo::ComboEight::identifier(), 1, settings.settings_id);
+                    libs.track_quest(player, combo::ComboEight::identifier(), 1, settings.settings_id);
                 }
             }
 
@@ -96,9 +99,8 @@ mod move_system {
             let is_complete = level_check::is_level_complete(@game_level, @run_data);
             
             if is_complete {
-                // Level complete - call level_system via dispatcher
-                let level_system = dispatchers::get_level_system_dispatcher(world);
-                level_system.complete_level(game_id);
+                // Level complete - call level_system via GameLibs
+                libs.level.complete_level(game_id);
             } else if is_grid_full {
                 // Grid full - game over
                 let mut updated_game: Game = world.read_model(game_id);
