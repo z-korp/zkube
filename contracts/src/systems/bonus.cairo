@@ -13,12 +13,11 @@ pub trait IBonusSystem<T> {
 mod bonus_system {
     use zkube::constants::DEFAULT_NS;
     use zkube::models::game::{Game, GameTrait, GameAssert, GameLevel};
-    use zkube::models::game::GameSeed;
     use zkube::helpers::token;
-    use zkube::helpers::bonus_logic;
     use zkube::helpers::level_check;
     use zkube::helpers::dispatchers;
     use zkube::systems::level::ILevelSystemDispatcherTrait;
+    use zkube::systems::grid::IGridSystemDispatcherTrait;
     use zkube::types::bonus::Bonus;
     use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait};
     use zkube::events::UseBonus;
@@ -57,36 +56,26 @@ mod bonus_system {
                 game_id,
             );
 
-            let mut game: Game = world.read_model(game_id);
+            let game: Game = world.read_model(game_id);
             assert_token_ownership(token_address, game_id);
             game.assert_not_over();
             game.assert_bonus_available(bonus);
 
             // Check if NoBonusUsed constraint is active using run_data flag
-            let mut run_data = game.get_run_data();
+            let run_data = game.get_run_data();
             assert!(
                 !run_data.no_bonus_constraint,
                 "Cannot use bonus - NoBonusUsed constraint is active for this level"
             );
 
-            let base_seed: GameSeed = world.read_model(game_id);
+            // Apply bonus via grid_system dispatcher (contains all bonus implementations)
+            let grid_system = dispatchers::get_grid_system_dispatcher(world);
+            let lines_cleared = grid_system.apply_bonus(game_id, bonus, row_index, line_index);
             
-            // Read GameLevel for constraints and difficulty (avoids importing LevelGeneratorTrait)
+            // Re-read game and level after grid_system modified them
+            let game: Game = world.read_model(game_id);
             let game_level: GameLevel = world.read_model(game_id);
-            
-            // Apply bonus using the dedicated bonus_logic helper
-            // This keeps bonus implementation code out of the Game model
-            let (new_blocks, new_next_row, lines_cleared) = bonus_logic::apply_bonus_to_game(
-                game.blocks,
-                game.next_row,
-                ref game.combo_counter,
-                ref game.max_combo,
-                ref run_data,
-                base_seed.seed,
-                bonus,
-                row_index,
-                line_index,
-            );
+            let mut run_data = game.get_run_data();
             
             // Update constraint progress using GameLevel data
             let constraint = LevelConstraint {
@@ -102,27 +91,21 @@ mod bonus_system {
             run_data.constraint_progress = constraint.update_progress(run_data.constraint_progress, lines_cleared);
             run_data.constraint_2_progress = constraint_2.update_progress(run_data.constraint_2_progress, lines_cleared);
             
-            // Update game state
-            game.blocks = new_blocks;
-            game.next_row = new_next_row;
-            game.set_run_data(run_data);
+            // Write updated constraint progress
+            let mut updated_game: Game = world.read_model(game_id);
+            updated_game.set_run_data(run_data);
+            world.write_model(@updated_game);
             
-            // Write game state before calling level_system
-            // (level_system will re-read and update if needed)
-            world.write_model(@game);
-            
-            // Check level completion using lightweight check (no LevelGeneratorTrait import)
+            // Check level completion using lightweight check
             let is_complete = level_check::is_level_complete(@game_level, @run_data);
             
             if is_complete {
-                // Level complete - call level_system via dispatcher for heavy operations
-                // (generating next level, awarding bonuses, minting cubes)
+                // Level complete - call level_system via dispatcher
                 let level_system = dispatchers::get_level_system_dispatcher(world);
                 level_system.complete_level(game_id);
-            } else if new_blocks == 0 {
-                // Grid is empty but level not complete - need to insert a line
-                let level_system = dispatchers::get_level_system_dispatcher(world);
-                level_system.insert_line_if_empty(game_id);
+            } else if game.blocks == 0 {
+                // Grid is empty but level not complete - insert a line
+                grid_system.insert_line_if_empty(game_id);
             }
             
             post_action(token_address, game_id);

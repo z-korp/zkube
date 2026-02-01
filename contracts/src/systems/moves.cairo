@@ -11,14 +11,13 @@ pub trait IMoveSystem<T> {
 mod move_system {
     use zkube::constants::DEFAULT_NS;
     use zkube::models::game::{Game, GameTrait, GameAssert, GameLevel};
-    use zkube::models::game::GameSeed;
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::token;
     use zkube::helpers::game_over;
     use zkube::helpers::level_check;
-    use zkube::helpers::move_logic;
     use zkube::helpers::dispatchers;
     use zkube::systems::level::ILevelSystemDispatcherTrait;
+    use zkube::systems::grid::IGridSystemDispatcherTrait;
     use zkube::elements::tasks::{clearer, combo};
 
     use dojo::model::ModelStorage;
@@ -54,7 +53,7 @@ mod move_system {
                 game_id,
             );
 
-            let mut game: Game = world.read_model(game_id);
+            let game: Game = world.read_model(game_id);
             assert_token_ownership(token_address, game_id);
             game.assert_not_over();
 
@@ -63,44 +62,20 @@ mod move_system {
             assert!(start_index < 8, "Invalid start_index: must be < 8");
             assert!(final_index < 8, "Invalid final_index: must be < 8");
 
-            let base_seed: GameSeed = world.read_model(game_id);
-            
-            // Get game settings for level generation
-            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
-
-            // Make the move using the dedicated move_logic helper
-            // This keeps move implementation code out of the Game model
-            let mut run_data = game.get_run_data();
-            let (new_blocks, new_next_row, lines_cleared, is_grid_full) = move_logic::make_move_on_grid(
-                game.blocks,
-                game.next_row,
-                ref game.combo_counter,
-                ref game.max_combo,
-                ref run_data,
-                base_seed.seed,
-                row_index,
-                start_index,
-                final_index,
-                settings,
+            // Execute move via grid_system dispatcher (contains Controller logic)
+            let grid_system = dispatchers::get_grid_system_dispatcher(world);
+            let (lines_cleared, is_grid_full) = grid_system.execute_move(
+                game_id, row_index, start_index, final_index
             );
             
-            // Update game state
-            game.blocks = new_blocks;
-            game.next_row = new_next_row;
-            game.set_run_data(run_data);
-            
-            // Check for grid full condition
-            if is_grid_full {
-                game.over = true;
-            }
+            // Get settings for quest tracking
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+            let player = get_caller_address();
 
             // Track quest progress for lines cleared and combos
-            let player = get_caller_address();
             if lines_cleared > 0 {
-                // Track lines cleared (LineClearer task)
                 dispatchers::track_quest_progress(world, player, clearer::LineClearer::identifier(), lines_cleared.into(), settings.settings_id);
                 
-                // Track combo achievements based on lines cleared in one move
                 if lines_cleared >= 3 {
                     dispatchers::track_quest_progress(world, player, combo::ComboThree::identifier(), 1, settings.settings_id);
                 }
@@ -112,26 +87,28 @@ mod move_system {
                 }
             }
 
-            // Write game state before checking completion
-            world.write_model(@game);
-            
-            // Read GameLevel for lightweight completion/failure check
+            // Re-read game after grid_system modified it
+            let game: Game = world.read_model(game_id);
             let game_level: GameLevel = world.read_model(game_id);
             let run_data = game.get_run_data();
             
-            // Check for level completion using lightweight check (no LevelGeneratorTrait import)
+            // Check for level completion using lightweight check
             let is_complete = level_check::is_level_complete(@game_level, @run_data);
             
             if is_complete {
-                // Level complete - call level_system via dispatcher for heavy operations
+                // Level complete - call level_system via dispatcher
                 let level_system = dispatchers::get_level_system_dispatcher(world);
                 level_system.complete_level(game_id);
+            } else if is_grid_full {
+                // Grid full - game over
+                let mut updated_game: Game = world.read_model(game_id);
+                updated_game.over = true;
+                world.write_model(@updated_game);
+                game_over::handle_game_over(ref world, updated_game, player);
             } else {
-                // Check for failure using lightweight check
+                // Check for failure (move limit exceeded)
                 let is_failed = level_check::is_level_failed(@game_level, @run_data);
-                
-                if is_failed || game.over {
-                    // Level failed (move limit exceeded) or grid full
+                if is_failed {
                     let mut updated_game: Game = world.read_model(game_id);
                     updated_game.over = true;
                     world.write_model(@updated_game);

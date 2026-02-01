@@ -9,6 +9,7 @@ use zkube::constants::DEFAULT_SETTINGS::is_default_settings;
 use zkube::systems::cube_token::ICubeTokenDispatcher;
 use zkube::systems::quest::{IQuestSystemDispatcher, IQuestSystemDispatcherTrait};
 use zkube::systems::level::{ILevelSystemDispatcher, ILevelSystemDispatcherTrait};
+use zkube::systems::grid::{IGridSystemDispatcher, IGridSystemDispatcherTrait};
 use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
 
 /// Get the CubeToken contract dispatcher via world DNS
@@ -59,4 +60,11 @@ pub fn get_level_system_dispatcher(world: WorldStorage) -> ILevelSystemDispatche
     let level_system_address = world.dns_address(@"level_system")
         .expect('LevelSystem not found in DNS');
     ILevelSystemDispatcher { contract_address: level_system_address }
+}
+
+/// Get the GridSystem contract dispatcher via world DNS
+pub fn get_grid_system_dispatcher(world: WorldStorage) -> IGridSystemDispatcher {
+    let grid_system_address = world.dns_address(@"grid_system")
+        .expect('GridSystem not found in DNS');
+    IGridSystemDispatcher { contract_address: grid_system_address }
 }

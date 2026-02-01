@@ -79,6 +79,7 @@ pub mod systems {
     pub mod game;
     pub mod moves;
     pub mod bonus;
+    pub mod grid;
     pub mod level;
     pub mod config;
     pub mod shop;
