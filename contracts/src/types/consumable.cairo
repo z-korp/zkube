@@ -5,8 +5,9 @@
 /// V2.0 Shop System:
 /// - Bonus1/2/3: Buy one of your selected bonuses (5 CUBE each)
 ///   Each can only be bought once per shop visit, then requires a Refill
-/// - Refill: Allows buying another bonus of any type (cost = 2 * (n+1) where n = refills bought)
-/// - LevelUp: Level up one of your bonuses (50 CUBE, only at shop levels)
+/// - Refill: Reset a specific bonus's bought status (cost = 2 * (n+1) where n = refills bought)
+///   Requires bonus_slot param (0, 1, or 2) to specify which bonus to refill
+/// - LevelUp: Level up one of your bonuses (50 CUBE) - requires bonus_slot param
 
 #[derive(Drop, Copy, Serde, Introspect, PartialEq)]
 pub enum ConsumableType {

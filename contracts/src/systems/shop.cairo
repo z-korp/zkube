@@ -448,10 +448,20 @@ mod shop_system {
                     self.add_bonus_to_inventory(ref run_data, run_data.selected_bonus_3, @player_meta);
                 },
                 ConsumableType::Refill => {
-                    // Refill allows buying again - reset bought flags
-                    run_data.shop_bonus_1_bought = false;
-                    run_data.shop_bonus_2_bought = false;
-                    run_data.shop_bonus_3_bought = false;
+                    // Refill allows buying a specific bonus again
+                    assert!(bonus_slot <= 2, "Invalid bonus slot for refill");
+                    
+                    // Check that the bonus was actually bought (otherwise refill is pointless)
+                    let was_bought = if bonus_slot == 0 { run_data.shop_bonus_1_bought }
+                        else if bonus_slot == 1 { run_data.shop_bonus_2_bought }
+                        else { run_data.shop_bonus_3_bought };
+                    assert!(was_bought, "Bonus not bought, no refill needed");
+                    
+                    // Reset only the specific bonus's bought flag
+                    if bonus_slot == 0 { run_data.shop_bonus_1_bought = false; }
+                    else if bonus_slot == 1 { run_data.shop_bonus_2_bought = false; }
+                    else { run_data.shop_bonus_3_bought = false; }
+                    
                     run_data.shop_refills += 1;
                 },
                 ConsumableType::LevelUp => {

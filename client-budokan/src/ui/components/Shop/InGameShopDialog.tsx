@@ -128,11 +128,16 @@ const InGameShopDialog: React.FC<InGameShopDialogProps> = ({
     [runData]
   );
 
+  // Filter out empty bonus slots
+  const activeBonuses = selectedBonuses.filter(
+    (item) => bonusTypeFromContractValue(item.value) !== BonusType.None
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         aria-describedby={undefined}
-        className="sm:max-w-[400px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-4 py-5"
+        className="sm:max-w-[360px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-4 py-5"
       >
         <DialogTitle className="text-xl text-center mb-2 text-purple-400">
           In-Game Shop
@@ -159,9 +164,9 @@ const InGameShopDialog: React.FC<InGameShopDialogProps> = ({
             </p>
           </div>
         ) : (
-          /* 2x2 Grid: 3 bonus cards + 1 refill card */
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            {selectedBonuses.map((item, index) => {
+          /* 3 bonus cards in a column */
+          <div className="flex flex-col gap-2 mb-4">
+            {activeBonuses.map((item, index) => {
               const bonusType = bonusTypeFromContractValue(item.value);
               const bonusName = getSelectedBonusName(item.value);
               const icon = getBonusIcon(bonusType);
@@ -169,84 +174,71 @@ const InGameShopDialog: React.FC<InGameShopDialogProps> = ({
               const maxCount = getBagSizeForBonus(bonusType);
               const isFull = currentCount >= maxCount;
               const canAffordBuy = cubesAvailable >= CONSUMABLE_COSTS.BONUS;
-              const canBuy = canAffordBuy && !isFull && !item.bought && bonusType !== BonusType.None;
+              const canAffordRefill = cubesAvailable >= refillCost;
+              const canBuy = canAffordBuy && !isFull && !item.bought;
               
               const currentLevel = item.level + 1;
               const isMaxLevel = item.level >= 2;
               const canAffordLevel = cubesAvailable >= CONSUMABLE_COSTS.LEVEL_UP;
-              const canLevel = canAffordLevel && !isMaxLevel && bonusType !== BonusType.None;
-
-              if (bonusType === BonusType.None) return null;
+              const canLevel = canAffordLevel && !isMaxLevel;
 
               return (
                 <motion.div
                   key={`bonus-${item.slot}`}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-slate-800/40 p-3 rounded-lg border border-slate-700/50"
+                  className="bg-slate-800/40 p-3 rounded-lg border border-slate-700/50 flex items-center gap-3"
                 >
-                  {/* Header */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <img src={icon} alt={bonusName} className="w-8 h-8" />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">{bonusName}</div>
-                      <div className="text-[10px] text-slate-400">
-                        {currentCount}/{maxCount} • Lv{currentLevel}
-                      </div>
+                  {/* Icon */}
+                  <img src={icon} alt={bonusName} className="w-10 h-10 flex-shrink-0" />
+                  
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium">{bonusName}</div>
+                    <div className="text-[10px] text-slate-400">
+                      {currentCount}/{maxCount} in bag • Lv{currentLevel}
                     </div>
                   </div>
 
-                  {/* Buy + Level buttons */}
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      disabled={isPurchasing || !canBuy}
-                      onClick={() => handlePurchase(item.consumableType)}
-                      className="flex-1 text-[10px] h-6 px-1"
-                    >
-                      {item.bought ? "Bought" : isFull ? "Full" : `+1 ${CONSUMABLE_COSTS.BONUS}🧊`}
-                    </Button>
+                  {/* Actions */}
+                  <div className="flex flex-col gap-1">
+                    {/* Buy or Refill button */}
+                    {item.bought ? (
+                      <Button
+                        size="sm"
+                        disabled={isPurchasing || !canAffordRefill}
+                        onClick={() => handlePurchase(ConsumableType.Refill, item.slot)}
+                        className="text-[10px] h-6 px-2 min-w-[70px]"
+                        variant="outline"
+                      >
+                        {isFull ? "Full" : `Refill ${refillCost}🧊`}
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        disabled={isPurchasing || !canBuy}
+                        onClick={() => handlePurchase(item.consumableType)}
+                        className="text-[10px] h-6 px-2 min-w-[70px]"
+                      >
+                        {isFull ? "Full" : `+1 ${CONSUMABLE_COSTS.BONUS}🧊`}
+                      </Button>
+                    )}
+                    
+                    {/* Level up button */}
                     <Button
                       size="sm"
                       disabled={isPurchasing || !canLevel}
                       onClick={() => handlePurchase(ConsumableType.LevelUp, item.slot)}
-                      className="flex-1 text-[10px] h-6 px-1"
+                      className="text-[10px] h-6 px-2 min-w-[70px]"
+                      variant="secondary"
                     >
-                      {isMaxLevel ? "Max" : `Lv↑ ${CONSUMABLE_COSTS.LEVEL_UP}🧊`}
+                      {isMaxLevel ? "Max Lv" : `Lv↑ ${CONSUMABLE_COSTS.LEVEL_UP}🧊`}
                     </Button>
                   </div>
                 </motion.div>
               );
             })}
-
-            {/* Refill Card */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.15 }}
-              className="bg-slate-800/40 p-3 rounded-lg border border-slate-700/50"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-lg">
-                  🔄
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium">Refill</div>
-                  <div className="text-[10px] text-slate-400">
-                    Reset purchases
-                  </div>
-                </div>
-              </div>
-              <Button
-                size="sm"
-                disabled={isPurchasing || cubesAvailable < refillCost}
-                onClick={() => handlePurchase(ConsumableType.Refill)}
-                className="w-full text-[10px] h-6"
-              >
-                {refillCost} 🧊
-              </Button>
-            </motion.div>
           </div>
         )}
 
