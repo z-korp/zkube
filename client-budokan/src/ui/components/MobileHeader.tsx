@@ -11,7 +11,7 @@ import AccountDetails from "./AccountDetails";
 import Connect from "./Connect";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 import { Button } from "../elements/button";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Surrender } from "../actions/Surrender";
 import { Controller } from "./Controller";
 import TutorialModal from "./Tutorial/TutorialModal";
@@ -19,6 +19,8 @@ import { HeaderLeaderboard } from "./HeaderLeaderboard";
 import CubeBalance from "./CubeBalance";
 import { ShopButton } from "./Shop/ShopButton";
 import { QuestsButton } from "./Quest/QuestsButton";
+
+const TUTORIAL_PROGRESS_KEY = "zkube_tutorial_step";
 
 interface MobileHeaderProps {
   onStartTutorial: () => void;
@@ -34,9 +36,29 @@ const MobileHeader = ({
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  // Check if user has existing tutorial progress
+  const hasTutorialProgress = useMemo(() => {
+    try {
+      const saved = localStorage.getItem(TUTORIAL_PROGRESS_KEY);
+      return saved !== null;
+    } catch {
+      return false;
+    }
+  }, []);
+
   const changeTutorialOpen = () => {
     setIsTutorialOpen(!isTutorialOpen);
     setIsDrawerOpen(false); // Close drawer when opening tutorial
+  };
+
+  const handleTutorialButtonClick = () => {
+    // If user has progress, skip modal and start directly
+    if (hasTutorialProgress) {
+      setIsDrawerOpen(false);
+      onStartTutorial();
+    } else {
+      setIsTutorialOpen(true);
+    }
   };
 
   const handleStartTutorial = () => {
@@ -74,7 +96,7 @@ const MobileHeader = ({
               {showTutorial && (
                 <Button
                   variant="outline"
-                  onClick={() => setIsTutorialOpen(true)}
+                  onClick={handleTutorialButtonClick}
                   className="w-full"
                 >
                   Tutorial

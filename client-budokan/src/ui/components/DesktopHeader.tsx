@@ -1,7 +1,7 @@
 import Connect from "./Connect";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 import CubeBalance from "./CubeBalance";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 import SettingsDropDown from "./SettingsDropDown";
 import { useNavigate } from "react-router-dom";
 import { Controller } from "./Controller";
@@ -10,6 +10,8 @@ import { Button } from "../elements/button";
 import { HeaderLeaderboard } from "./HeaderLeaderboard";
 import { ShopButton } from "./Shop/ShopButton";
 import { QuestsButton } from "./Quest/QuestsButton";
+
+const TUTORIAL_PROGRESS_KEY = "zkube_tutorial_step";
 
 interface DesktopHeaderProps {
   onStartTutorial: () => void;
@@ -24,8 +26,27 @@ const DesktopHeader = ({
 
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
 
+  // Check if user has existing tutorial progress
+  const hasTutorialProgress = useMemo(() => {
+    try {
+      const saved = localStorage.getItem(TUTORIAL_PROGRESS_KEY);
+      return saved !== null;
+    } catch {
+      return false;
+    }
+  }, []);
+
   const changeTutorialOpen = () => {
     setIsTutorialOpen(!isTutorialOpen);
+  };
+
+  const handleTutorialButtonClick = () => {
+    // If user has progress, skip modal and start directly
+    if (hasTutorialProgress) {
+      onStartTutorial();
+    } else {
+      changeTutorialOpen();
+    }
   };
 
   const handleStartTutorial = () => {
@@ -51,7 +72,7 @@ const DesktopHeader = ({
             variant="outline"
             onClick={(e) => {
               e.stopPropagation();
-              changeTutorialOpen();
+              handleTutorialButtonClick();
             }}
           >
             Tutorial
