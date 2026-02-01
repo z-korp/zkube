@@ -16,10 +16,9 @@ telegram = "https://t.me/dojoengine"
 default = "zkube_budo_v1_2_0"
 
 [env]
-rpc_url = "https://api.cartridge.gg/x/starknet/sepolia/rpc/v0_8"
-account_address = "0x012f5cc91e93d64b476335d7e823beb321743662f33fcfcb3e4b1b104e456739"
-# IMPORTANT: Add your private key here before running deploy_sepolia.sh
-# private_key = "0x..."
+rpc_url = "https://api.cartridge.gg/x/starknet/sepolia"
+account_address = "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859"
+private_key = "0x03adb7da6671745419299c0ed6e54025e337df5b18fb7ef4f4660a48b1fd8ca2"
 # world_address will be set by deploy_sepolia.sh after migration
 
 [writers]
@@ -58,11 +57,11 @@ account_address = "0x012f5cc91e93d64b476335d7e823beb321743662f33fcfcb3e4b1b104e4
 
 [init_call_args]
 "zkube_budo_v1_2_0-game_system" = [
-    "0x012f5cc91e93d64b476335d7e823beb321743662f33fcfcb3e4b1b104e456739",  # creator_address (account)
+    "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",  # creator_address (account)
     "0x0",  # denshokan_address (will be updated by deploy_sepolia.sh)
     "1",  # renderer_address: Option::None
     "0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f",  # vrf_address: Cartridge VRF (for sepolia/mainnet)
 ]
 "zkube_budo_v1_2_0-config_system" = [
-    "0x012f5cc91e93d64b476335d7e823beb321743662f33fcfcb3e4b1b104e456739",  # account address
+    "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",  # account address
 ]

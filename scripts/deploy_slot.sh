@@ -18,8 +18,7 @@ PROFILE="slot"
 CONTRACTS_DIR="./contracts"
 # Dojo 1.8+ stores manifest at workspace root as manifest_<profile>.json
 MANIFEST_FILE="./manifest_slot.json"
-DOJO_CONFIG="${CONTRACTS_DIR}/dojo_slot.toml"
-DOJO_CONFIG_ROOT="./dojo_slot.toml"
+DOJO_CONFIG="./dojo_slot.toml"
 TORII_CONFIG="${CONTRACTS_DIR}/torii_slot.toml"
 CLIENT_ENV="./client-budokan/.env.slot"
 TARGET_DIR="./target/slot"
@@ -192,13 +191,11 @@ sleep 5
 print_info "Step 5: Updating dojo configuration..."
 
 # Update denshokan_address in both config files using sed
-for CONFIG in "$DOJO_CONFIG" "$DOJO_CONFIG_ROOT"; do
-    if [ -f "$CONFIG" ]; then
-        # Replace the denshokan_address line (second line in game_system init_call_args)
-        sed -i "s|\"0x[0-9a-fA-F]*\",  # denshokan_address|\"$TOKEN_ADDRESS\",  # denshokan_address|" "$CONFIG"
-        print_info "  Updated $CONFIG"
-    fi
-done
+if [ -f "$DOJO_CONFIG" ]; then
+    # Replace the denshokan_address line (second line in game_system init_call_args)
+    sed -i "s|\"0x[0-9a-fA-F]*\",  # denshokan_address|\"$TOKEN_ADDRESS\",  # denshokan_address|" "$DOJO_CONFIG"
+    print_info "  Updated $DOJO_CONFIG"
+fi
 
 #-----------------
 # Step 7: Run sozo migrate
@@ -243,18 +240,16 @@ print_info "  World deployed at: $WORLD_ADDRESS"
 #-----------------
 print_info "Step 7: Updating world address in configs..."
 
-for CONFIG in "$DOJO_CONFIG" "$DOJO_CONFIG_ROOT"; do
-    if [ -f "$CONFIG" ]; then
-        # Check if world_address exists, update or add
-        if grep -q "world_address" "$CONFIG"; then
-            sed -i "s|world_address = \"0x[0-9a-fA-F]*\"|world_address = \"$WORLD_ADDRESS\"|" "$CONFIG"
-        else
-            # Add after private_key line
-            sed -i "/private_key/a world_address = \"$WORLD_ADDRESS\"" "$CONFIG"
-        fi
-        print_info "  Updated $CONFIG"
+if [ -f "$DOJO_CONFIG" ]; then
+    # Check if world_address exists, update or add
+    if grep -q "world_address" "$DOJO_CONFIG"; then
+        sed -i "s|world_address = \"0x[0-9a-fA-F]*\"|world_address = \"$WORLD_ADDRESS\"|" "$DOJO_CONFIG"
+    else
+        # Add after private_key line
+        sed -i "/private_key/a world_address = \"$WORLD_ADDRESS\"" "$DOJO_CONFIG"
     fi
-done
+    print_info "  Updated $DOJO_CONFIG"
+fi
 
 #-----------------
 # Step 9: Extract system addresses from manifest
@@ -394,7 +389,6 @@ echo "config_system:            $CONFIG_SYSTEM"
 echo ""
 echo "Configuration files updated:"
 echo "- $DOJO_CONFIG"
-echo "- $DOJO_CONFIG_ROOT"
 echo "- $TORII_CONFIG"
 echo "- $CLIENT_ENV"
 echo "- $CONTRACTS_MANIFEST"

@@ -23,8 +23,7 @@ PROFILE="sepolia"
 CONTRACTS_DIR="./contracts"
 # Dojo 1.8+ stores manifest at workspace root as manifest_<profile>.json
 MANIFEST_FILE="./manifest_sepolia.json"
-DOJO_CONFIG="${CONTRACTS_DIR}/dojo_sepolia.toml"
-DOJO_CONFIG_ROOT="./dojo_sepolia.toml"
+DOJO_CONFIG="./dojo_sepolia.toml"
 TORII_CONFIG="${CONTRACTS_DIR}/torii_sepolia.toml"
 CLIENT_ENV="./client-budokan/.env.sepolia"
 TARGET_DIR="./target/sepolia"
@@ -212,18 +211,16 @@ sleep 15
 #-----------------
 print_info "Step 5: Updating dojo configuration..."
 
-# Update denshokan_address in both config files using sed
-for CONFIG in "$DOJO_CONFIG" "$DOJO_CONFIG_ROOT"; do
-    if [ -f "$CONFIG" ]; then
-        # Replace the denshokan_address line (second line in game_system init_call_args)
-        sed -i "s|\"0x[0-9a-fA-F]*\",  # denshokan_address|\"$TOKEN_ADDRESS\",  # denshokan_address|" "$CONFIG"
-        # Also try without the comment (in case format differs)
-        sed -i "s|\"0x[0-9a-fA-F]*\", # denshokan_address|\"$TOKEN_ADDRESS\", # denshokan_address|" "$CONFIG"
-        # Try pattern with Denshokan comment
-        sed -i "s|\"0x[0-9a-fA-F]*\", # Denshokan|\"$TOKEN_ADDRESS\", # Denshokan|" "$CONFIG"
-        print_info "  Updated $CONFIG"
-    fi
-done
+# Update denshokan_address in config file using sed
+if [ -f "$DOJO_CONFIG" ]; then
+    # Replace the denshokan_address line (second line in game_system init_call_args)
+    sed -i "s|\"0x[0-9a-fA-F]*\",  # denshokan_address|\"$TOKEN_ADDRESS\",  # denshokan_address|" "$DOJO_CONFIG"
+    # Also try without the comment (in case format differs)
+    sed -i "s|\"0x[0-9a-fA-F]*\", # denshokan_address|\"$TOKEN_ADDRESS\", # denshokan_address|" "$DOJO_CONFIG"
+    # Try pattern with Denshokan comment
+    sed -i "s|\"0x[0-9a-fA-F]*\", # Denshokan|\"$TOKEN_ADDRESS\", # Denshokan|" "$DOJO_CONFIG"
+    print_info "  Updated $DOJO_CONFIG"
+fi
 
 #-----------------
 # Step 7: Run sozo migrate
@@ -268,18 +265,16 @@ print_info "  World deployed at: $WORLD_ADDRESS"
 #-----------------
 print_info "Step 7: Updating world address in configs..."
 
-for CONFIG in "$DOJO_CONFIG" "$DOJO_CONFIG_ROOT"; do
-    if [ -f "$CONFIG" ]; then
-        # Check if world_address exists, update or add
-        if grep -q "world_address" "$CONFIG"; then
-            sed -i "s|world_address = \"0x[0-9a-fA-F]*\"|world_address = \"$WORLD_ADDRESS\"|" "$CONFIG"
-        else
-            # Add after rpc_url line
-            sed -i "/rpc_url/a world_address = \"$WORLD_ADDRESS\"" "$CONFIG"
-        fi
-        print_info "  Updated $CONFIG"
+if [ -f "$DOJO_CONFIG" ]; then
+    # Check if world_address exists, update or add
+    if grep -q "world_address" "$DOJO_CONFIG"; then
+        sed -i "s|world_address = \"0x[0-9a-fA-F]*\"|world_address = \"$WORLD_ADDRESS\"|" "$DOJO_CONFIG"
+    else
+        # Add after rpc_url line
+        sed -i "/rpc_url/a world_address = \"$WORLD_ADDRESS\"" "$DOJO_CONFIG"
     fi
-done
+    print_info "  Updated $DOJO_CONFIG"
+fi
 
 #-----------------
 # Step 9: Extract system addresses from manifest
@@ -421,9 +416,6 @@ echo "config_system:            $CONFIG_SYSTEM"
 echo ""
 echo "Configuration files updated:"
 echo "- $DOJO_CONFIG"
-if [ -f "$DOJO_CONFIG_ROOT" ]; then
-    echo "- $DOJO_CONFIG_ROOT"
-fi
 echo "- $TORII_CONFIG"
 echo "- $CLIENT_ENV"
 echo "- $CONTRACTS_MANIFEST"
@@ -441,7 +433,7 @@ echo "  3. Start the client:"
 echo "     cd client-budokan && pnpm sepolia"
 echo ""
 echo "Important Notes:"
-echo "  - VRF is available on Sepolia - ensure contracts use RandomImpl::new_vrf()"
+echo "  - VRF is enabled via init_call_args (runtime detection)"
 echo "  - Transactions may take longer to confirm on Sepolia vs local Katana"
 echo "  - Make sure your account has enough ETH for gas fees"
 echo ""
