@@ -23,17 +23,15 @@ pub trait IGameSystem<T> {
 #[dojo::contract]
 mod game_system {
     use zkube::constants::DEFAULT_NS;
-    use zkube::models::game::{Game, GameTrait, GameAssert};
-    use zkube::models::game::{GameSeed, GameLevelTrait};
+    use zkube::models::game::{Game, GameTrait, GameAssert, GameSeed};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::helpers::random::RandomImpl;
-    use zkube::helpers::level::LevelGeneratorTrait;
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::packing::MetaDataPackingTrait;
     use zkube::helpers::game_over;
-    use zkube::types::constraint::ConstraintType;
-    use zkube::events::{StartGame, LevelStarted};
+    use zkube::events::StartGame;
     use zkube::systems::cube_token::ICubeTokenDispatcherTrait;
+    use zkube::systems::level::ILevelSystemDispatcherTrait;
     use zkube::helpers::dispatchers;
     use zkube::elements::tasks::grinder;
 
@@ -278,14 +276,6 @@ mod game_system {
                 run_data.shuffle_count = if starting > bag_size { bag_size } else { starting };
             }
 
-            // Generate level 1 config to check for NoBonusUsed constraint
-            let level_config = LevelGeneratorTrait::generate(random.seed, 1, settings);
-            
-            // Set no_bonus_constraint flag if level 1 has NoBonusUsed constraint
-            let has_no_bonus = level_config.constraint.constraint_type == ConstraintType::NoBonusUsed
-                || level_config.constraint_2.constraint_type == ConstraintType::NoBonusUsed;
-            run_data.no_bonus_constraint = has_no_bonus;
-            
             game.set_run_data(run_data);
             world.write_model(@game);
 
@@ -298,31 +288,22 @@ mod game_system {
 
             post_action(token_address, game_id);
 
-            // Emit events
-            world
-                .emit_event(
-                    @StartGame { player, timestamp, game_id, },
-                );
+            // Emit start game event
+            world.emit_event(@StartGame { player, timestamp, game_id });
 
-            // Write level 1 config to GameLevel model
-            // This is the single source of truth for level config (replaces client-side generation)
-            let game_level = GameLevelTrait::from_level_config(game_id, level_config);
-            world.write_model(@game_level);
-
-            // Emit level 1 started
-            world
-                .emit_event(
-                    @LevelStarted {
-                        game_id,
-                        player,
-                        level: 1,
-                        points_required: level_config.points_required,
-                        max_moves: level_config.max_moves,
-                        constraint_type: level_config.constraint.constraint_type,
-                        constraint_value: level_config.constraint.value,
-                        constraint_required: level_config.constraint.required_count,
-                    },
-                );
+            // Initialize level 1 via level_system dispatcher
+            // This generates level config, writes to GameLevel model, and emits LevelStarted event
+            let level_system = dispatchers::get_level_system_dispatcher(world);
+            let has_no_bonus = level_system.initialize_level(game_id);
+            
+            // Update run_data with no_bonus_constraint flag if needed
+            if has_no_bonus {
+                let mut game: Game = world.read_model(game_id);
+                let mut run_data = game.get_run_data();
+                run_data.no_bonus_constraint = true;
+                game.set_run_data(run_data);
+                world.write_model(@game);
+            }
         }
 
         fn surrender(ref self: ContractState, game_id: u64) {

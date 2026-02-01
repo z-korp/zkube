@@ -7,6 +7,11 @@
 
 #[starknet::interface]
 pub trait ILevelSystem<T> {
+    /// Initialize level 1 for a new game.
+    /// Generates the level config and writes to GameLevel model.
+    /// Returns true if level has NoBonusUsed constraint.
+    fn initialize_level(ref self: T, game_id: u64) -> bool;
+    
     /// Complete the current level and transition to the next.
     /// Returns (cubes_earned, bonuses_awarded, is_victory)
     /// 
@@ -50,6 +55,41 @@ mod level_system {
 
     #[abi(embed_v0)]
     impl LevelSystemImpl of super::ILevelSystem<ContractState> {
+        fn initialize_level(ref self: ContractState, game_id: u64) -> bool {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+            
+            let base_seed: GameSeed = world.read_model(game_id);
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+            let player = get_caller_address();
+            
+            // Generate level 1 config
+            let level_config = LevelGeneratorTrait::generate(base_seed.seed, 1, settings);
+            
+            // Check for NoBonusUsed constraint
+            let has_no_bonus = level_config.constraint.constraint_type == ConstraintType::NoBonusUsed
+                || level_config.constraint_2.constraint_type == ConstraintType::NoBonusUsed;
+            
+            // Write level config to GameLevel model
+            let game_level = GameLevelTrait::from_level_config(game_id, level_config);
+            world.write_model(@game_level);
+            
+            // Emit level 1 started event
+            world.emit_event(
+                @LevelStarted {
+                    game_id,
+                    player,
+                    level: 1,
+                    points_required: level_config.points_required,
+                    max_moves: level_config.max_moves,
+                    constraint_type: level_config.constraint.constraint_type,
+                    constraint_value: level_config.constraint.value,
+                    constraint_required: level_config.constraint.required_count,
+                },
+            );
+            
+            has_no_bonus
+        }
+        
         fn complete_level(ref self: ContractState, game_id: u64) -> (u8, u8, bool) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             
