@@ -122,11 +122,24 @@ export function Main() {
     explorers: WORLD_EXPLORER,
   } : null;
 
-  const chains = [
-    mainnet,
-    sepolia,
-    ...(slotChain ? [slotChain] : []),
-  ];
+  // Order chains based on deploy type (default chain first)
+  const chains = VITE_PUBLIC_DEPLOY_TYPE === "sepolia" 
+    ? [sepolia, mainnet, ...(slotChain ? [slotChain] : [])]
+    : VITE_PUBLIC_DEPLOY_TYPE === "slot" && slotChain
+      ? [slotChain, sepolia, mainnet]
+      : [mainnet, sepolia, ...(slotChain ? [slotChain] : [])];
+
+  // Get default chain ID based on deploy type
+  const getDefaultChainId = () => {
+    switch (VITE_PUBLIC_DEPLOY_TYPE) {
+      case "sepolia":
+        return sepolia.id;
+      case "slot":
+        return slotChain?.id ?? sepolia.id;
+      default:
+        return mainnet.id;
+    }
+  };
 
   return (
     <React.StrictMode>
@@ -135,7 +148,7 @@ export function Main() {
           autoConnect
           chains={chains}
           connectors={connectors}
-          defaultChainId={VITE_PUBLIC_DEPLOY_TYPE === sepolia ? sepolia.id : mainnet.id}
+          defaultChainId={getDefaultChainId()}
           explorer={voyager}
           provider={jsonRpcProvider({ rpc })}
         >
