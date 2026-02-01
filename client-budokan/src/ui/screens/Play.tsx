@@ -12,7 +12,7 @@ import { useMediaQuery } from "react-responsive";
 import GameOverDialog from "../components/GameOverDialog";
 import VictoryDialog from "../components/VictoryDialog";
 import LevelCompleteDialog from "../components/LevelCompleteDialog";
-import { BonusSelectionDialog, InGameShopDialog, PendingLevelUpDialog } from "../components/Shop";
+import { LoadoutDialog, InGameShopDialog, PendingLevelUpDialog } from "../components/Shop";
 import useViewport from "@/hooks/useViewport";
 import { useGrid } from "@/hooks/useGrid";
 import { useParams, Navigate } from "react-router-dom";
@@ -28,6 +28,7 @@ import {
 import Connect from "../components/Connect";
 import { isInGameShopAvailable } from "@/dojo/game/helpers/runDataPacking";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
+import { useCubeBalance } from "@/hooks/useCubeBalance";
 
 // Type for storing level completion data
 interface LevelCompletionData {
@@ -54,8 +55,6 @@ interface LevelCompletionData {
   totalScore: number;
 }
 
-const DEFAULT_SELECTED_BONUSES = [1, 3, 2]; // Hammer, Wave, Totem
-
 export const Play = () => {
   useViewport();
 
@@ -66,6 +65,7 @@ export const Play = () => {
   } = useDojo();
   const { gameId: gameIdParam } = useParams<{ gameId: string }>();
   const { account } = useAccountCustom();
+  const { cubeBalance } = useCubeBalance();
 
   // Move all hook calls before any conditional returns
   // If no gameId is provided, default to 0
@@ -90,7 +90,7 @@ export const Play = () => {
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [isLevelCompleteOpen, setIsLevelCompleteOpen] = useState(false);
   const [isInGameShopOpen, setIsInGameShopOpen] = useState(false);
-  const [isBonusSelectionOpen, setIsBonusSelectionOpen] = useState(false);
+  const [isLoadoutOpen, setIsLoadoutOpen] = useState(false);
   const [isPendingLevelUpOpen, setIsPendingLevelUpOpen] = useState(false);
   const [openShopAfterLevelUp, setOpenShopAfterLevelUp] = useState(false);
   const { playerMeta } = usePlayerMeta();
@@ -155,18 +155,18 @@ export const Play = () => {
       account &&
       !gameCreationAttemptedRef.current
     ) {
-      if (!isBonusSelectionOpen) {
-        setIsBonusSelectionOpen(true);
+      if (!isLoadoutOpen) {
+        setIsLoadoutOpen(true);
       }
     }
-  }, [isGameLoading, game, account, gameId, isBonusSelectionOpen]);
+  }, [isGameLoading, game, account, gameId, isLoadoutOpen]);
 
   // Reset the creation flag when gameId changes
   useEffect(() => {
     gameCreationAttemptedRef.current = false;
   }, [gameId]);
 
-  const handleBonusSelectionConfirm = async (selectedBonuses: number[]) => {
+  const handleLoadoutConfirm = async (selectedBonuses: number[], cubesToBring: number) => {
     if (!account) return;
     gameCreationAttemptedRef.current = true;
     try {
@@ -174,9 +174,9 @@ export const Play = () => {
         account,
         token_id: gameId,
         selected_bonuses: selectedBonuses,
-        cubes_amount: 0,
+        cubes_amount: cubesToBring,
       });
-      setIsBonusSelectionOpen(false);
+      setIsLoadoutOpen(false);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       if (errorMessage.includes("already started")) {
@@ -187,8 +187,8 @@ export const Play = () => {
     }
   };
 
-  const handleBonusSelectionClose = () => {
-    handleBonusSelectionConfirm(DEFAULT_SELECTED_BONUSES);
+  const handleLoadoutClose = () => {
+    handleLoadoutConfirm([1, 3, 2], 0); // Default: Hammer, Wave, Totem, 0 cubes
   };
 
   const handlePendingLevelUpClose = () => {
@@ -412,12 +412,12 @@ export const Play = () => {
                     />
                   )}
 
-                  <BonusSelectionDialog
-                    isOpen={isBonusSelectionOpen}
-                    onClose={handleBonusSelectionClose}
-                    onConfirm={handleBonusSelectionConfirm}
-                    shrinkUnlocked={playerMeta?.data?.shrinkUnlocked ?? false}
-                    shuffleUnlocked={playerMeta?.data?.shuffleUnlocked ?? false}
+                  <LoadoutDialog
+                    isOpen={isLoadoutOpen}
+                    onClose={handleLoadoutClose}
+                    onConfirm={handleLoadoutConfirm}
+                    playerMetaData={playerMeta?.data ?? null}
+                    cubeBalance={Number(cubeBalance)}
                   />
 
                   {/* Level Complete Dialog */}

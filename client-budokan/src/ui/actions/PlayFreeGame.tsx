@@ -6,14 +6,12 @@ import { showToast } from "@/utils/toast";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
-import { BonusSelectionDialog, BringCubesDialog, getMaxCubesForRank } from "@/ui/components/Shop";
+import { LoadoutDialog } from "@/ui/components/Shop";
 import { DEFAULT_SETTINGS_ID } from "@/dojo/game/types/level";
 
 type PlayFreeGameProps = {
   onMintSuccess?: () => void | Promise<void>;
 };
-
-const DEFAULT_SELECTED_BONUSES = [1, 3, 2]; // Hammer, Wave, Totem
 
 export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
   const {
@@ -27,17 +25,10 @@ export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
   const { cubeBalance } = useCubeBalance();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [showBringCubesDialog, setShowBringCubesDialog] = useState(false);
-  const [showBonusSelectionDialog, setShowBonusSelectionDialog] = useState(false);
+  const [showLoadoutDialog, setShowLoadoutDialog] = useState(false);
   const [pendingGameId, setPendingGameId] = useState<number | null>(null);
-  const [pendingSelectedBonuses, setPendingSelectedBonuses] = useState<number[] | null>(null);
 
-
-  // Check if player has bridging rank unlocked
-  const bridgingRank = playerMeta?.data?.bridgingRank ?? 0;
-  const maxCubesAllowed = getMaxCubesForRank(bridgingRank);
   const cubeBalanceNum = Number(cubeBalance);
-  const canBringCubes = bridgingRank > 0 && cubeBalanceNum > 0;
 
   const handleClick = useCallback(async () => {
     if (!account) return;
@@ -53,7 +44,7 @@ export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
       });
 
       setPendingGameId(result.game_id);
-      setShowBonusSelectionDialog(true);
+      setShowLoadoutDialog(true);
       setIsLoading(false);
       return;
     } catch (error) {
@@ -67,56 +58,8 @@ export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
     }
   }, [account, freeMint, username]);
 
-  const handleBonusSelectionConfirm = useCallback(async (selectedBonuses: number[]) => {
+  const handleLoadoutConfirm = useCallback(async (selectedBonuses: number[], cubesToBring: number) => {
     if (!account || pendingGameId === null) return;
-
-    setPendingSelectedBonuses(selectedBonuses);
-    setIsLoading(true);
-    try {
-      if (canBringCubes) {
-        setShowBonusSelectionDialog(false);
-        setShowBringCubesDialog(true);
-        setIsLoading(false);
-        return;
-      }
-
-      await create({
-        account,
-        token_id: pendingGameId,
-        selected_bonuses: selectedBonuses,
-        cubes_amount: 0,
-      });
-
-      showToast({
-        message: "Game minted! You can resume it from My Games.",
-        type: "success",
-      });
-
-      setShowBonusSelectionDialog(false);
-      setPendingGameId(null);
-      setPendingSelectedBonuses(null);
-      onMintSuccess?.();
-    } catch (error) {
-      console.error("Error creating game:", error);
-      showToast({
-        message: "Failed to create game",
-        type: "error",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [account, canBringCubes, create, onMintSuccess, pendingGameId]);
-
-  const handleBonusSelectionClose = useCallback(() => {
-    if (pendingGameId !== null) {
-      handleBonusSelectionConfirm(DEFAULT_SELECTED_BONUSES);
-    }
-  }, [handleBonusSelectionConfirm, pendingGameId]);
-
-  const handleBringCubesConfirm = useCallback(async (cubes: number) => {
-    if (!account || pendingGameId === null) return;
-
-    const selectedBonuses = pendingSelectedBonuses ?? DEFAULT_SELECTED_BONUSES;
 
     setIsLoading(true);
     try {
@@ -124,20 +67,18 @@ export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
         account,
         token_id: pendingGameId,
         selected_bonuses: selectedBonuses,
-        cubes_amount: cubes,
+        cubes_amount: cubesToBring,
       });
 
       showToast({
-        message: cubes > 0
-          ? `Game started with ${cubes} cubes! You can spend them in the shop.`
+        message: cubesToBring > 0
+          ? `Game started with ${cubesToBring} cubes! You can spend them in the shop.`
           : "Game minted! You can resume it from My Games.",
         type: "success",
       });
 
-      setShowBringCubesDialog(false);
-      setShowBonusSelectionDialog(false);
+      setShowLoadoutDialog(false);
       setPendingGameId(null);
-      setPendingSelectedBonuses(null);
       onMintSuccess?.();
     } catch (error) {
       console.error("Error creating game:", error);
@@ -148,14 +89,14 @@ export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
     } finally {
       setIsLoading(false);
     }
-  }, [account, create, onMintSuccess, pendingGameId, pendingSelectedBonuses]);
+  }, [account, create, onMintSuccess, pendingGameId]);
 
-  const handleBringCubesClose = useCallback(() => {
-    // If dialog is closed without confirming, create the game without cubes
+  const handleLoadoutClose = useCallback(() => {
+    // If dialog is closed, use defaults
     if (pendingGameId !== null) {
-      handleBringCubesConfirm(0);
+      handleLoadoutConfirm([1, 3, 2], 0); // Default: Hammer, Wave, Totem, 0 cubes
     }
-  }, [handleBringCubesConfirm, pendingGameId]);
+  }, [handleLoadoutConfirm, pendingGameId]);
 
   return (
     <>
@@ -169,21 +110,13 @@ export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
         Mint Game
       </Button>
 
-      <BringCubesDialog
-        isOpen={showBringCubesDialog}
-        onClose={handleBringCubesClose}
-        onConfirm={handleBringCubesConfirm}
-        maxCubes={maxCubesAllowed}
+      <LoadoutDialog
+        isOpen={showLoadoutDialog}
+        onClose={handleLoadoutClose}
+        onConfirm={handleLoadoutConfirm}
+        playerMetaData={playerMeta?.data ?? null}
         cubeBalance={cubeBalanceNum}
         isLoading={isLoading}
-      />
-
-      <BonusSelectionDialog
-        isOpen={showBonusSelectionDialog}
-        onClose={handleBonusSelectionClose}
-        onConfirm={handleBonusSelectionConfirm}
-        shrinkUnlocked={playerMeta?.data?.shrinkUnlocked ?? false}
-        shuffleUnlocked={playerMeta?.data?.shuffleUnlocked ?? false}
       />
     </>
   );
