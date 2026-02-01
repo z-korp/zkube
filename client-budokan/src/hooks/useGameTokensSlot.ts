@@ -193,7 +193,7 @@ export const useGameTokensSlot = ({
             (t) => Number(BigInt(t.tokenId)) === gameData.game_id
           );
 
-          // Parse metadata from token if available
+          // Parse metadata from token for name/description only
           let parsedMetadata: Record<string, unknown> | undefined;
           if (tokenMeta?.metadata) {
             try {
@@ -203,7 +203,8 @@ export const useGameTokensSlot = ({
             }
           }
 
-          // Extract level data from run_data as fallback
+          // Always extract game stats from run_data (RECS) for accuracy
+          // Token metadata may have stale values
           const runData = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
           const level = Number(runData & BigInt(0xFF));
           const cubesBrought = Number((runData >> BigInt(99)) & BigInt(0xFFFF));
@@ -211,19 +212,19 @@ export const useGameTokensSlot = ({
           const totalCubes = Number((runData >> BigInt(131)) & BigInt(0xFFFF));
           const totalScore = Number((runData >> BigInt(147)) & BigInt(0xFFFF));
 
-          // Use token metadata if available, otherwise construct from game data
-          const metadata = parsedMetadata 
-            ? JSON.stringify(parsedMetadata)
-            : JSON.stringify({
-                name: `Game #${gameData.game_id}`,
-                attributes: [
-                  { trait_type: "Level", value: level },
-                  { trait_type: "Total Cubes", value: totalCubes },
-                  { trait_type: "Total Score", value: totalScore },
-                  { trait_type: "Cubes Brought", value: cubesBrought },
-                  { trait_type: "Cubes Spent", value: cubesSpent },
-                ],
-              });
+          // Always use RECS-computed values for game stats
+          // Token metadata may have stale/incorrect values
+          const gameName = (parsedMetadata?.name as string) || tokenMeta?.metadataName || `Game #${gameData.game_id}`;
+          const metadata = JSON.stringify({
+            name: gameName,
+            attributes: [
+              { trait_type: "Level", value: level },
+              { trait_type: "Total Cubes", value: totalCubes },
+              { trait_type: "Total Score", value: totalScore },
+              { trait_type: "Cubes Brought", value: cubesBrought },
+              { trait_type: "Cubes Spent", value: cubesSpent },
+            ],
+          });
 
           gameList.push({
             token_id: gameData.game_id,

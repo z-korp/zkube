@@ -39,15 +39,11 @@ import {
   TooltipTrigger,
 } from "@/ui/elements/tooltip";
 import { useNavigate } from "react-router-dom";
-import { useGameTokens } from "metagame-sdk/sql";
 import type { GameTokenData } from "metagame-sdk";
-import { getGameSystemAddress } from "@/utils/metagame";
 import {
   useGameTokensSlot,
   isSlotMode,
 } from "@/hooks/useGameTokensSlot";
-
-const gameSystemAddress = getGameSystemAddress();
 
 // Normalize address to remove leading zeros (matches Torii's format)
 const normalizeAddress = (address: string | undefined): string | undefined => {
@@ -170,68 +166,35 @@ export const Home = () => {
   // Normalize address to match Torii's format (no leading zeros)
   const normalizedOwner = normalizeAddress(account?.address);
 
-  // Use metagame SDK for sepolia/mainnet
-  const metagameResult = useGameTokens({
-    owner: !isSlotMode && shouldFetchMyGames ? normalizedOwner : undefined,
-    sortBy: "minted_at",
-    sortOrder: "desc",
-    limit: !isSlotMode && shouldFetchMyGames ? 100 : 0,
-    includeMetadata: true,
-    gameAddresses: gameSystemAddress ? [gameSystemAddress] : undefined,
-  });
-
-  // Check if metagame SDK failed to return results (use as fallback trigger)
-  const metagameFailed = !isSlotMode && 
-    shouldFetchMyGames && 
-    !metagameResult.loading && 
-    !metagameResult.metadataLoading && 
-    (!metagameResult.games || metagameResult.games.length === 0);
-
-  // Use RECS query for slot mode OR as fallback when metagame fails
+  // Always use RECS query for My Games to get accurate cube data
+  // The metagame SDK metadata may have stale/incorrect cube values
   const slotResult = useGameTokensSlot({
-    owner: (isSlotMode || metagameFailed) && shouldFetchMyGames ? normalizedOwner : undefined,
-    limit: (isSlotMode || metagameFailed) && shouldFetchMyGames ? 100 : 0,
-    forceRecs: metagameFailed, // Force RECS query on sepolia/mainnet when metagame fails
+    owner: shouldFetchMyGames ? normalizedOwner : undefined,
+    limit: shouldFetchMyGames ? 100 : 0,
+    forceRecs: true, // Always use RECS for accurate game data
   });
 
-  // Use metagame results first, fall back to RECS query if metagame fails
+  // Always use RECS results for accurate game data (cube values, level, etc.)
+  // Metagame SDK metadata may have stale values
   const {
     games: ownedGames,
     loading: ownedGamesLoading,
     metadataLoading: ownedMetadataLoading,
     refetch: refetchOwnedGames,
-  } = isSlotMode 
-    ? slotResult 
-    : metagameFailed 
-      ? slotResult 
-      : metagameResult;
+  } = slotResult;
 
   // Debug logging for game token queries
   useEffect(() => {
     console.log("[Home.tsx] Game Token Query:", {
       isSlotMode,
-      metagameFailed,
       shouldFetchMyGames,
       ownerAddress: account?.address,
-      gameSystemAddress,
-      source: isSlotMode ? "slot" : metagameFailed ? "recs-fallback" : "metagame",
-      metagameStatus: {
-        loading: metagameResult.loading,
-        metadataLoading: metagameResult.metadataLoading,
-        gamesCount: metagameResult.games?.length ?? 0,
-      },
-      slotStatus: {
-        loading: slotResult.loading,
-        gamesCount: slotResult.games?.length ?? 0,
-      },
-      finalResults: {
-        gamesCount: ownedGames?.length ?? 0,
-        loading: ownedGamesLoading,
-        metadataLoading: ownedMetadataLoading,
-        games: ownedGames?.slice(0, 3), // Log first 3 games for debugging
-      },
+      source: "recs", // Always using RECS for accurate data
+      loading: slotResult.loading,
+      gamesCount: ownedGames?.length ?? 0,
+      games: ownedGames?.slice(0, 3), // Log first 3 games for debugging
     });
-  }, [isSlotMode, metagameFailed, shouldFetchMyGames, account?.address, metagameResult, slotResult, ownedGames, ownedGamesLoading, ownedMetadataLoading]);
+  }, [isSlotMode, shouldFetchMyGames, account?.address, slotResult, ownedGames]);
 
   const playerGames: PlayerGameRow[] = useMemo(() => {
     if (!ownedGames?.length) return [];
