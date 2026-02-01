@@ -142,8 +142,8 @@ fi
 print_info "  FullTokenContract class: $TOKEN_CLASS"
 
 # Wait for transactions to be included (Sepolia is slower than Katana)
-print_info "  Waiting for transactions to be included..."
-sleep 10
+print_info "  Waiting for declare transactions to be confirmed (30s)..."
+sleep 30
 
 #-----------------
 # Step 4: Deploy MinigameRegistryContract
