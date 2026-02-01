@@ -1,0 +1,15 @@
+[package]
+name = "token"
+version.workspace = true
+edition.workspace = true
+cairo-version.workspace = true
+
+[[target.starknet-contract]]
+sierra = true
+
+[dependencies]
+starknet.workspace = true
+openzeppelin_token.workspace = true
+openzeppelin_access.workspace = true
+
+[dev-dependencies]

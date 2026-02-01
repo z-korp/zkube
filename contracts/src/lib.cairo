@@ -4,6 +4,7 @@ pub mod events;
 pub mod models {
     pub mod config;
     pub mod game;
+    pub mod player;
 }
 
 pub mod types {
@@ -11,8 +12,9 @@ pub mod types {
     pub mod width;
     pub mod block;
     pub mod difficulty;
-    pub mod task;
-    pub mod trophy;
+    pub mod constraint;
+    pub mod level;
+    pub mod consumable;
 }
 
 mod elements {
@@ -21,33 +23,28 @@ mod elements {
         pub mod hammer;
         pub mod totem;
         pub mod wave;
+        pub mod shrink;
+        pub mod shuffle;
     }
     pub mod difficulties {
-        pub mod veryeasy;
-        pub mod easy;
-        pub mod medium;
-        pub mod mediumhard;
-        pub mod hard;
-        pub mod veryhard;
-        pub mod expert;
-        pub mod master;
+        pub mod data;
         pub mod interface;
     }
     pub mod tasks {
         pub mod interface;
-        pub mod mastering;
-        pub mod chaining;
-        pub mod playing;
-        pub mod scoring;
-        pub mod cumulative_scoring;
+        pub mod index;
+        pub mod grinder;
+        pub mod clearer;
+        pub mod combo;
+        pub mod master;
     }
-    pub mod trophies {
+    pub mod quests {
         pub mod interface;
-        pub mod mastery;
-        pub mod chainer;
+        pub mod index;
         pub mod player;
-        pub mod scorer;
-        pub mod cumulative_scorer;
+        pub mod clearer;
+        pub mod combo;
+        pub mod finisher;
     }
 }
 
@@ -60,37 +57,32 @@ pub mod helpers {
     pub mod packer;
     pub mod controller;
     pub mod gravity;
+    pub mod grid_utils;
+    pub mod game_helpers;
     pub mod random;
     pub mod config;
     pub mod encoding;
     pub mod renderer;
+    pub mod token;
+    pub mod packing;
+    pub mod level;
+    pub mod level_check;
+    pub mod dispatchers;
+    pub mod game_libs;
+    pub mod game_over;
+    pub mod scoring;
+    pub mod bonus_logic;
 }
 
 pub mod systems {
-    pub mod achievement;
     pub mod game;
+    pub mod moves;
+    pub mod bonus;
+    pub mod grid;
+    pub mod level;
     pub mod config;
+    pub mod shop;
+    pub mod cube_token;
+    pub mod quest;
+    pub mod renderer;
 }
-
-#[cfg(test)]
-mod tests {
-    mod setup;
-    mod test_create;
-    mod test_move;
-    mod test_play;
-    mod test_bonus_hammer;
-    mod test_bonus_wave;
-    mod test_bonus_totem;
-    mod test_admin;
-    mod test_chest;
-    mod test_bonus;
-    mod test_minter;
-    mod test_erc721;
-    mod test_pause;
-
-    mod mocks {
-        mod erc20;
-        mod erc721;
-    }
-}
-

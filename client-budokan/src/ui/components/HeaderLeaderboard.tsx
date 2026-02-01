@@ -15,20 +15,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/ui/elements/table";
-import { shortString } from "starknet";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faRotateRight } from "@fortawesome/free-solid-svg-icons";
+import { useGameTokens } from "metagame-sdk/sql";
+import type { GameTokenData } from "metagame-sdk";
+import {
+  getGameSystemAddress,
+  getLeaderboardExcludedNames,
+  normalizeAddress,
+} from "@/utils/metagame";
+import { useLeaderboardSlot, isSlotMode, type LeaderboardEntry } from "@/hooks/useLeaderboardSlot";
 
-interface GameData {
-  score: number;
-  game_id: string;
-  entity: {
-    models: ModelType[];
-  };
-}
-
-interface ModelType {
-  player_name?: string;
-  [key: string]: unknown;
-}
+const gameSystemAddress = getGameSystemAddress();
+const excludedLeaderboardNames = getLeaderboardExcludedNames();
 
 interface HeaderLeaderboardProps {
   buttonType?:
@@ -46,79 +45,98 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
   buttonType = "default",
   textSize = "lg",
 }) => {
-  const [games, setGames] = React.useState<GameData[]>([]);
   const [page, setPage] = React.useState(1);
+  const [copiedTokenId, setCopiedTokenId] = React.useState<string | null>(null);
   const ITEMS_PER_PAGE = 10;
+
+  // Use metagame SDK for sepolia/mainnet
+  const metagameResult = useGameTokens({
+    sortBy: "score",
+    sortOrder: "desc",
+    limit: !isSlotMode ? 100 : 0,
+    includeMetadata: true,
+    gameAddresses: gameSystemAddress ? [gameSystemAddress] : undefined,
+  });
+
+  // Check if metagame SDK failed to return results
+  const metagameFailed = !isSlotMode && 
+    !metagameResult.loading && 
+    (!metagameResult.games || metagameResult.games.length === 0);
+
+  // Use RECS query for slot mode OR as fallback when metagame fails
+  const slotResult = useLeaderboardSlot({ forceRecs: metagameFailed });
+
+  // Use metagame results first, fall back to RECS if metagame fails
+  const { games, loading, refetch } = isSlotMode 
+    ? { games: slotResult.games, loading: slotResult.loading, refetch: slotResult.refetch }
+    : metagameFailed
+      ? { games: slotResult.games, loading: slotResult.loading, refetch: slotResult.refetch }
+      : { games: metagameResult.games, loading: metagameResult.loading, refetch: () => {} };
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log("[HeaderLeaderboard] Query Status:", {
+      isSlotMode,
+      metagameFailed,
+      source: isSlotMode ? "slot" : metagameFailed ? "recs-fallback" : "metagame",
+      metagameGames: metagameResult.games?.length ?? 0,
+      slotGames: slotResult.games?.length ?? 0,
+      finalGames: games?.length ?? 0,
+    });
+  }, [isSlotMode, metagameFailed, metagameResult.games, slotResult.games, games]);
+
+  const filteredGames = React.useMemo(() => {
+    if (!excludedLeaderboardNames.length) {
+      return games;
+    }
+    return games.filter((game: GameTokenData | LeaderboardEntry) => {
+      if (game.game_id === 0) return true;
+      const playerName = game.player_name?.toLowerCase();
+      return !(playerName && excludedLeaderboardNames.includes(playerName));
+    });
+  }, [games]);
 
   const startIdx = (page - 1) * ITEMS_PER_PAGE;
   const endIdx = startIdx + ITEMS_PER_PAGE;
-  const paginatedGames = games.slice(startIdx, endIdx);
-  const totalPages = Math.ceil(games.length / ITEMS_PER_PAGE);
-
-  React.useEffect(() => {
-    const fetchLeaderboardData = async () => {
+  const paginatedGames = filteredGames.slice(startIdx, endIdx);
+  const totalPages = Math.ceil(filteredGames.length / ITEMS_PER_PAGE);
+  const handleCopyPlayerAddress = React.useCallback(
+    async (address: string | undefined, tokenId: string) => {
+      if (!address) return;
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_PUBLIC_TORII}/graphql`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              query: `
-              query ZkubeBudoV110GameModels {
-                zkubeBudoV110GameModels(
-                  order: { direction: DESC, field: SCORE }
-                  first: 100
-                ) {
-                  totalCount
-                  edges {
-                    node {
-                      score
-                      game_id
-                      entity {
-                        models {
-                          ... on zkube_budo_v1_1_0_TokenMetadata {
-                            player_name
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            `,
-            }),
-          },
+        await navigator.clipboard.writeText(address);
+        setCopiedTokenId(tokenId);
+        setTimeout(
+          () => setCopiedTokenId((prev) => (prev === tokenId ? null : prev)),
+          1500,
         );
-
-        const data = await response.json();
-        console.log("GraphQL raw response:", data);
-        if (data.data?.zkubeBudoV110GameModels?.edges) {
-          const nodes = data.data.zkubeBudoV110GameModels.edges.map(
-            (edge: { node: GameData }) => edge.node,
-          );
-          console.log("Extracted nodes:", nodes);
-          nodes.forEach((node: GameData, idx: number) => {
-            if (node.entity && node.entity.models && node.entity.models[0]) {
-              console.log(
-                `Node[${idx}] player_name:`,
-                node.entity.models[0].player_name,
-              );
-            } else {
-              console.log(`Node[${idx}] has no player_name`, node);
-            }
-          });
-          setGames(nodes);
-        }
-      } catch (error) {
-        console.error("Error fetching leaderboard data:", error);
+      } catch (err) {
+        console.error("Failed to copy player address", err);
       }
-    };
+    },
+    [],
+  );
 
-    fetchLeaderboardData();
-  }, []);
+  // Type guard for slot mode entries
+  const getGameLevel = (game: GameTokenData | LeaderboardEntry): number => {
+    if ('level' in game) return game.level;
+    return 1;
+  };
+
+  const getGameCubes = (game: GameTokenData | LeaderboardEntry): number => {
+    if ('totalCubes' in game) return game.totalCubes;
+    return 0;
+  };
+
+  const getGameTotalScore = (game: GameTokenData | LeaderboardEntry): number => {
+    if ('totalScore' in game) return game.totalScore;
+    return game.score ?? 0;
+  };
+
+  const isGameOver = (game: GameTokenData | LeaderboardEntry): boolean => {
+    if ('gameOver' in game) return game.gameOver;
+    return game.game_over ?? false;
+  };
 
   return (
     <Dialog>
@@ -128,48 +146,93 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="sm:max-w-[700px] w-[95%] rounded-lg p-4 flex flex-col"
+        className="sm:max-w-[750px] w-[95%] rounded-lg p-4 flex flex-col"
         aria-describedby={undefined}
       >
-        <DialogHeader className="flex items-center text-2xl">
+        <DialogHeader className="flex flex-row items-center justify-between text-2xl">
           <DialogTitle>Leaderboard</DialogTitle>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => refetch()}
+            disabled={loading}
+            className="h-8 w-8"
+            title="Refresh leaderboard"
+          >
+            <FontAwesomeIcon icon={faRotateRight} className={loading ? "animate-spin" : ""} />
+          </Button>
         </DialogHeader>
         <div className="flex-grow min-h-[460px] flex flex-col">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-center">Rank</TableHead>
-                <TableHead className="text-left">Player</TableHead>
-                <TableHead className="text-center">Score</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedGames.map((game, index) => (
-                <TableRow
-                  key={game.game_id}
-                  className="hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  <TableCell className="text-center font-semibold">{`#${startIdx + index + 1}`}</TableCell>
-                  <TableCell className="text-left">
-                    {(() => {
-                      const playerModel = game.entity.models.find(
-                        (m: ModelType) => m && m.player_name,
-                      );
-                      if (playerModel && playerModel.player_name) {
-                        return shortString.decodeShortString(
-                          playerModel.player_name.toString(),
-                        );
-                      }
-                      return "-";
-                    })()}
-                  </TableCell>
-                  <TableCell className="text-center font-bold">
-                    {game.score}
-                  </TableCell>
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <span className="text-slate-400">Loading...</span>
+            </div>
+          ) : filteredGames.length === 0 ? (
+            <div className="flex items-center justify-center h-full">
+              <span className="text-slate-400">No games yet. Be the first to play!</span>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-center w-16">Rank</TableHead>
+                  <TableHead className="text-left">Player</TableHead>
+                  <TableHead className="text-center">Level</TableHead>
+                  <TableHead className="text-center">Score</TableHead>
+                  <TableHead className="text-center">Cubes</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {paginatedGames.map((game: GameTokenData | LeaderboardEntry, index: number) => (
+                  <TableRow
+                    key={game.token_id}
+                    className="hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    <TableCell className="text-center font-semibold">{`#${
+                      startIdx + index + 1
+                    }`}</TableCell>
+                    <TableCell className="text-left">
+                      <button
+                        type="button"
+                        className="text-left hover:underline"
+                        onClick={() =>
+                          handleCopyPlayerAddress(
+                            normalizeAddress(
+                              (game as GameTokenData).minted_by_address ?? (game as GameTokenData).owner ?? undefined,
+                            ),
+                            String(game.token_id),
+                          )
+                        }
+                        title="Click to copy player address"
+                      >
+                        {game.player_name ?? `Game #${game.token_id}`}
+                        {copiedTokenId === String(game.token_id)
+                          ? " (copied)"
+                          : ""}
+                      </button>
+                    </TableCell>
+                    <TableCell className="text-center font-semibold">
+                      {getGameLevel(game)}
+                    </TableCell>
+                    <TableCell className="text-center font-bold">
+                      {getGameTotalScore(game)}
+                    </TableCell>
+                    <TableCell className="text-center text-yellow-400">
+                      {getGameCubes(game)} 🧊
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {isGameOver(game) ? (
+                        <span className="text-xs px-2 py-1 rounded bg-slate-600 text-slate-300">Finished</span>
+                      ) : (
+                        <span className="text-xs px-2 py-1 rounded bg-green-600 text-white">Playing</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </div>
         <div className="flex justify-center gap-4 mt-4">
           <Button
@@ -180,7 +243,7 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
             Previous
           </Button>
           <span>
-            Page {page} / {totalPages}
+            Page {page} / {totalPages || 1}
           </span>
           <Button
             variant="outline"

@@ -1,0 +1,15 @@
+world_address = "0x30d5d5c610dd736faea146b20b850af64e34ca6e5c5a66462f76f32f48dd997"
+rpc = "https://api.cartridge.gg/x/starknet/mainnet"
+
+[indexing]
+allowed_origins = ["*"]
+events_chunk_size = 1024
+blocks_chunk_size = 1024
+polling_interval = 500
+world_block = 888535
+pending = false
+transactions = true
+contracts = []
+
+[sql]
+historical = ["zkube-TrophyProgression"]

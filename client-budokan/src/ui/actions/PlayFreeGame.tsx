@@ -2,66 +2,123 @@ import { useDojo } from "@/dojo/useDojo";
 import { useCallback, useState } from "react";
 import { Button } from "@/ui/elements/button";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import { useMediaQuery } from "react-responsive";
 import { showToast } from "@/utils/toast";
-import { useNavigate } from "react-router-dom";
-import { useControllerUsername } from "@/hooks/useControllerUsername";
+import { useControllers } from "@/contexts/controllers";
+import { usePlayerMeta } from "@/hooks/usePlayerMeta";
+import { useCubeBalance } from "@/hooks/useCubeBalance";
+import { LoadoutDialog } from "@/ui/components/Shop";
+import { DEFAULT_SETTINGS_ID } from "@/dojo/game/types/level";
 
-export const PlayFreeGame = () => {
+type PlayFreeGameProps = {
+  onMintSuccess?: () => void | Promise<void>;
+};
+
+export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
   const {
     setup: {
       systemCalls: { freeMint, create },
     },
   } = useDojo();
-
-  const navigate = useNavigate();
   const { account } = useAccountCustom();
-  const { username } = useControllerUsername();
+  const { find } = useControllers();
+  const { playerMeta } = usePlayerMeta();
+  const username = account?.address ? find(account.address)?.username : undefined;
+  const { cubeBalance } = useCubeBalance();
 
   const [isLoading, setIsLoading] = useState(false);
-  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
+  const [showLoadoutDialog, setShowLoadoutDialog] = useState(false);
+  const [pendingGameId, setPendingGameId] = useState<number | null>(null);
+
+  const cubeBalanceNum = Number(cubeBalance);
 
   const handleClick = useCallback(async () => {
     if (!account) return;
 
     setIsLoading(true);
     try {
-      // Start the game
+      // Mint a new free game
+      // Use default settings ID for official games that earn cubes/quests
       const result = await freeMint({
         account,
         name: username ?? "",
-        settingsId: 1,
+        settingsId: DEFAULT_SETTINGS_ID,
       });
 
-      await create({ account, token_id: result.game_id });
-
-      // Navigate to the game screen with the new game ID
-      if (result && result.game_id) {
-        navigate(`/play/${result.game_id}`);
-      }
+      setPendingGameId(result.game_id);
+      setShowLoadoutDialog(true);
+      setIsLoading(false);
+      return;
     } catch (error) {
-      console.error("Error starting game:", error);
+      console.error("Error minting game:", error);
       showToast({
-        message: "Failed to start game",
+        message: "Failed to mint game",
         type: "error",
       });
     } finally {
       setIsLoading(false);
     }
-  }, [account, create, freeMint, navigate, username]);
+  }, [account, freeMint, username]);
+
+  const handleLoadoutConfirm = useCallback(async (selectedBonuses: number[], cubesToBring: number) => {
+    if (!account || pendingGameId === null) return;
+
+    setIsLoading(true);
+    try {
+      await create({
+        account,
+        token_id: pendingGameId,
+        selected_bonuses: selectedBonuses,
+        cubes_amount: cubesToBring,
+      });
+
+      showToast({
+        message: cubesToBring > 0
+          ? `Game started with ${cubesToBring} cubes! You can spend them in the shop.`
+          : "Game minted! You can resume it from My Games.",
+        type: "success",
+      });
+
+      setShowLoadoutDialog(false);
+      setPendingGameId(null);
+      onMintSuccess?.();
+    } catch (error) {
+      console.error("Error creating game:", error);
+      showToast({
+        message: "Failed to create game",
+        type: "error",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [account, create, onMintSuccess, pendingGameId]);
+
+  const handleLoadoutClose = useCallback(() => {
+    // If dialog is closed, use defaults
+    if (pendingGameId !== null) {
+      handleLoadoutConfirm([1, 3, 2], 0); // Default: Hammer, Wave, Totem, 0 cubes
+    }
+  }, [handleLoadoutConfirm, pendingGameId]);
 
   return (
-    <Button
-      disabled={isLoading}
-      isLoading={isLoading}
-      onClick={handleClick}
-      variant={`${!isMdOrLarger ? "brutal" : "default"}`}
-      className={`text-lg w-[300px] transition-transform duration-300 ease-in-out hover:scale-105 ${
-        !isMdOrLarger &&
-        "py-6 border-4 border-white rounded-none text-white bg-sky-900 shadow-lg font-sans font-bold "
-      }`}
-    >
-      Play Game
-    </Button>
+    <>
+      <Button
+        disabled={isLoading}
+        isLoading={isLoading}
+        onClick={handleClick}
+        variant="default"
+        className="text-lg w-[300px] transition-transform duration-300 ease-in-out hover:scale-105"
+      >
+        Mint Game
+      </Button>
+
+      <LoadoutDialog
+        isOpen={showLoadoutDialog}
+        onClose={handleLoadoutClose}
+        onConfirm={handleLoadoutConfirm}
+        playerMetaData={playerMeta?.data ?? null}
+        cubeBalance={cubeBalanceNum}
+        isLoading={isLoading}
+      />
+    </>
   );
 };

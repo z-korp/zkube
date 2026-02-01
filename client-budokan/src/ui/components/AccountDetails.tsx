@@ -4,7 +4,7 @@ import Balance from "./Balance";
 import { useMediaQuery } from "react-responsive";
 import DisconnectButton from "./DisconnectButton";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import { useControllerUsername } from "@/hooks/useControllerUsername";
+import { useControllers } from "@/contexts/controllers";
 import { Copy } from "lucide-react";
 import { useState } from "react";
 
@@ -18,7 +18,8 @@ const shortAddress = (address: string, size = 4) => {
 const AccountDetails = () => {
   const { status } = useAccount();
   const { account } = useAccountCustom();
-  const { username } = useControllerUsername();
+  const { find } = useControllers();
+  const username = account?.address ? find(account.address)?.username : undefined;
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
   const [copied, setCopied] = useState(false);
 

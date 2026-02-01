@@ -325,21 +325,17 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
       }
 
       switch (tutorialStep) {
-        case 2: {
-          setBonusSelectWarning(true);
-          console.log("Step 2");
+        case 1: // Move blocks - allow drag
+        case 2: // Clear lines - allow drag
+        case 3: // Combos - allow drag
+        case 8: // Constraints - allow drag
+          handleDragStart(e.clientX, block);
           break;
-        }
-        case 3: {
+        case 4: // Hammer bonus - need to select bonus first
+        case 5: // Wave bonus - need to select bonus first
+        case 6: // Totem bonus - need to select bonus first
           setBonusSelectWarning(true);
-          console.log("Step 3");
           break;
-        }
-        case 4: {
-          setBonusSelectWarning(true);
-          console.log("Step 4");
-          break;
-        }
         default:
           handleDragStart(e.clientX, block);
           break;
@@ -363,18 +359,20 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
       }
 
       switch (tutorialStep) {
-        case 2: {
+        case 1: // Move blocks - allow drag
+        case 2: // Clear lines - allow drag
+        case 3: // Combos - allow drag
+        case 8: // Constraints - allow drag
+          {
+            const touch = e.touches[0];
+            handleDragStart(touch.clientX, block);
+          }
+          break;
+        case 4: // Hammer bonus - need to select bonus first
+        case 5: // Wave bonus - need to select bonus first
+        case 6: // Totem bonus - need to select bonus first
           setBonusSelectWarning(true);
           break;
-        }
-        case 3: {
-          setBonusSelectWarning(true);
-          break;
-        }
-        case 4: {
-          setBonusSelectWarning(true);
-          break;
-        }
         default:
           {
             const touch = e.touches[0];
@@ -469,7 +467,8 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
       );
 
       if (updatedBlocks.length < blocks.length) {
-        setLineExplodedCount(lineExplodedCount + completeRows.length);
+        const newLineCount = lineExplodedCount + completeRows.length;
+        setLineExplodedCount(newLineCount);
 
         completeRows.forEach((rowIndex) => {
           const blocksSameRow = blocks.filter((block) => block.y === rowIndex);
@@ -542,16 +541,22 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     }, [lineExplodedCount]);
 
     useEffect(() => {
-      if (
+      // For tutorial, also trigger success at ADD_LINE since we don't need to actually add lines
+      // This handles the case where all blocks are cleared and the normal flow gets stuck
+      const isSuccessState = 
         gameState === GameState.UPDATE_AFTER_MOVE ||
-        gameState === GameState.UPDATE_AFTER_BONUS
-      ) {
-        if (tutorialStep === 1) {
+        gameState === GameState.UPDATE_AFTER_BONUS ||
+        (gameState === GameState.ADD_LINE && lineExplodedCount > 0);
+      
+      if (isSuccessState) {
+        // Interactive steps that use movement (1, 2, 3, 8)
+        if (tutorialStep === 1 || tutorialStep === 2 || tutorialStep === 3 || tutorialStep === 8) {
           setTimeout(() => {
             onUpdate(true);
           }, 500);
         }
-        if (tutorialStep === 2 || tutorialStep === 3 || tutorialStep === 4) {
+        // Bonus steps (4, 5, 6)
+        if (tutorialStep === 4 || tutorialStep === 5 || tutorialStep === 6) {
           if (ref) {
             (ref as (type: BonusType) => void)(BonusType.None);
           }
@@ -560,7 +565,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
           }, 500);
         }
       }
-    }, [gameState]);
+    }, [gameState, lineExplodedCount]);
 
     useEffect(() => {
       if (!isMoving && transitioningBlocks.length === 0) {
@@ -595,37 +600,40 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     useEffect(() => {
       setActionPerformed(false);
 
+      // Reset all bonus states first
+      const resetBonusStates = () => {
+        if (setHighlightedHammer) setHighlightedHammer(false);
+        if (setDisabledHammer) setDisabledHammer(true);
+        if (setHighlightedTiki) setHighlightedTiki(false);
+        if (setDisabledTiki) setDisabledTiki(true);
+        if (setHighlightedWave) setHighlightedWave(false);
+        if (setDisabledWave) setDisabledWave(true);
+      };
+
       switch (tutorialStep) {
-        case 2:
+        case 1: // Move blocks - no bonus needed
+        case 2: // Clear lines - no bonus needed
+        case 3: // Combos - no bonus needed
+        case 8: // Constraints - no bonus needed
+          resetBonusStates();
+          break;
+        case 4: // Hammer bonus step
+          resetBonusStates();
           if (setHighlightedHammer) setHighlightedHammer(true);
           if (setDisabledHammer) setDisabledHammer(false);
-          if (setHighlightedTiki) setHighlightedTiki(false);
-          if (setDisabledTiki) setDisabledTiki(true);
-          if (setHighlightedWave) setHighlightedWave(false);
           break;
-        case 3:
-          if (setHighlightedHammer) setHighlightedHammer(false);
-          if (setDisabledHammer) setDisabledHammer(true);
-          if (setHighlightedTiki) setHighlightedTiki(false);
-          if (setDisabledTiki) setDisabledTiki(true);
+        case 5: // Wave bonus step
+          resetBonusStates();
           if (setHighlightedWave) setHighlightedWave(true);
           if (setDisabledWave) setDisabledWave(false);
           break;
-        case 4:
-          if (setHighlightedHammer) setHighlightedHammer(false);
-          if (setDisabledHammer) setDisabledHammer(true);
+        case 6: // Totem bonus step
+          resetBonusStates();
           if (setHighlightedTiki) setHighlightedTiki(true);
           if (setDisabledTiki) setDisabledTiki(false);
-          if (setHighlightedWave) setHighlightedWave(false);
-          if (setDisabledWave) setDisabledWave(true);
           break;
         default:
-          if (setHighlightedHammer) setHighlightedHammer(false);
-          if (setDisabledHammer) setDisabledHammer(true);
-          if (setHighlightedTiki) setHighlightedTiki(false);
-          if (setDisabledTiki) setDisabledTiki(true);
-          if (setHighlightedWave) setHighlightedWave(false);
-          if (setDisabledWave) setDisabledWave(true);
+          resetBonusStates();
           break;
       }
     }, [tutorialStep]);
@@ -700,8 +708,14 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
                 <AlertDialogDescription>
                   <div className="flex flex-col items-center justify-center gap-6">
                     <p>Select your bonus before clicking on block</p>
-                    {tutorialStep === 2 && (
-                      <img className="w-8 h-8" src={imgAssets.hammer}></img>
+                    {tutorialStep === 4 && (
+                      <img className="w-8 h-8" src={imgAssets.hammer} alt="Hammer"></img>
+                    )}
+                    {tutorialStep === 5 && (
+                      <img className="w-8 h-8" src={imgAssets.wave} alt="Wave"></img>
+                    )}
+                    {tutorialStep === 6 && (
+                      <img className="w-8 h-8" src={imgAssets.tiki} alt="Totem"></img>
                     )}
                   </div>
                 </AlertDialogDescription>

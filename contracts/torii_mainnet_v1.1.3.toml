@@ -1,0 +1,23 @@
+world_address = "0x28564064ba6b335a66101884077d06b0c7cccab781604878c42ec7a22dbc89a"
+rpc = "https://api.cartridge.gg/x/starknet/mainnet"
+
+[indexing]
+world_block = 1386668
+
+events_chunk_size = 1024 # Size of events page to fetch
+blocks_chunk_size = 2000 # Blocks to process before DB commit
+pending = true # Enable indexing pending blocks
+polling_interval = 500 # Polling interval in milliseconds
+
+transactions = true
+namespaces = ["zkube_budo_v1_1_3"]
+
+[events]
+raw = true
+
+[sql]
+historical = [
+  "zkube_budo_v1_1_3-TrophyProgression",
+  "zkube_budo_v1_1_3-StartGame",
+  "zkube_budo_v1_1_3-UseBonus"
+]

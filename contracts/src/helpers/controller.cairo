@@ -1,16 +1,19 @@
 use core::traits::Into;
 use core::traits::TryInto;
+use core::poseidon::PoseidonTrait;
+use core::hash::HashStateTrait;
 
 use alexandria_math::fast_power::fast_power;
 use alexandria_math::BitShift;
 use origami_random::deck::{Deck, DeckTrait};
 use origami_random::dice::{Dice, DiceTrait};
 
-use zkube::constants::{BLOCK_BIT_COUNT, ROW_BIT_COUNT, ROW_SIZE, BLOCK_SIZE, DEFAULT_GRID_WIDTH};
+use zkube::constants::{BLOCK_BIT_COUNT, ROW_BIT_COUNT, ROW_SIZE, BLOCK_SIZE, DEFAULT_GRID_WIDTH, LINE_FULL_BOUND};
 use zkube::helpers::packer::Packer;
 use zkube::helpers::gravity::Gravity;
 use zkube::types::block::{Block, BlockTrait};
 use zkube::types::difficulty::{Difficulty, DifficultyTrait};
+use zkube::models::config::{GameSettings, GameSettingsTrait};
 
 pub mod errors {
     pub const CONTROLLER_NOT_ENOUGH_ROOM: felt252 = 'Controller: not enough room';
@@ -49,7 +52,6 @@ pub impl Controller of ControllerTrait {
 
         let blocks: u256 = Packer::pack(new_block_rows, ROW_SIZE);
         let blocks: felt252 = blocks.try_into().unwrap();
-        //assert(Self::check_grid_coherence(blocks), errors::CONTROLLER_NOT_COHERENT_GRID);
 
         blocks
     }
@@ -95,10 +97,8 @@ pub impl Controller of ControllerTrait {
     /// The updated row.
     #[inline(always)]
     fn assess_line(row: u32) -> u32 {
-        // [Check] Left block is not empty
-        let exp: u32 = ROW_BIT_COUNT.into() - BLOCK_BIT_COUNT.into();
-        let bound: u32 = fast_power(2, exp);
-        if row < bound {
+        // [Check] Left block is not empty (row must be >= 2^21 for leftmost block to be non-zero)
+        if row < LINE_FULL_BOUND {
             return row;
         }
         // [Check] Each block must be not 0
@@ -121,13 +121,70 @@ pub impl Controller of ControllerTrait {
         result.try_into().unwrap()
     }
 
-    /// Create a new line.
+    /// Create a new line with configurable block weights from GameSettings.
+    /// Uses the interpolated block weights based on difficulty.
     /// # Arguments
-    /// * `seed` - The seed.
-    /// * `difficulty` - The difficulty.
+    /// * `seed` - The seed for randomness
+    /// * `difficulty` - The difficulty level (used for weight interpolation)
+    /// * `settings` - The game settings containing block weight configuration
     /// # Returns
-    /// The new line.
-    fn create_line(seed: felt252, difficulty: Difficulty) -> u32 {
+    /// The new line as a packed u32.
+    fn create_line(seed: felt252, difficulty: Difficulty, settings: GameSettings) -> u32 {
+        let mut validated: bool = false;
+        let mut size: u8 = 0;
+        let mut blocks: u32 = 0;
+        
+        // Get interpolated weights for this difficulty
+        let (zero_w, one_w, two_w, three_w, four_w) = settings.get_block_weights_for_difficulty(difficulty);
+        let total_weight: u16 = zero_w.into() + one_w.into() + two_w.into() + three_w.into() + four_w.into();
+        
+        // Use a deterministic but properly randomized roll for block selection
+        let mut roll_counter: felt252 = 0;
+
+        let mut attempts: u16 = 0;
+        while size < DEFAULT_GRID_WIDTH {
+            attempts += 1;
+            if attempts > 512 {
+                // Fallback to deck-based generator if settings are pathological.
+                return Self::create_line_fallback(seed, difficulty);
+            }
+
+            // Generate a random value for block selection using Poseidon hash
+            // This ensures each roll is properly randomized, not sequential
+            let roll_hash: felt252 = PoseidonTrait::new()
+                .update(seed)
+                .update(roll_counter)
+                .finalize();
+            roll_counter += 1;
+            let roll_u256: u256 = roll_hash.into();
+            let roll: u16 = (roll_u256 % total_weight.into()).try_into().unwrap();
+            
+            // Select block based on cumulative weights
+            let block: Block = Self::select_block_by_weight(roll, zero_w, one_w, two_w, three_w, four_w);
+            let block_size: u8 = block.size().into();
+            
+            // Check if block fits. If this is the final segment, allow a hole (bits == 0)
+            // to satisfy the "at least one empty cell" invariant.
+            let remaining = DEFAULT_GRID_WIDTH - size;
+            if block_size > remaining
+                || (block_size == remaining && !validated && block.get_bits() != 0) {
+                continue;
+            };
+            
+            let power: u32 = block_size.into() * BLOCK_BIT_COUNT.into();
+            let exp: u32 = fast_power(2, power);
+            validated = validated || block.get_bits() == 0;
+            blocks = blocks * exp + block.get_bits();
+            size += block_size;
+        };
+        
+        // Shuffle because often the hole is at the end of the line
+        Self::shuffle_line(blocks, seed)
+    }
+    
+    /// Fallback line generator using the original deck-based logic.
+    /// Used when settings-based generation fails (e.g., pathological weights).
+    fn create_line_fallback(seed: felt252, difficulty: Difficulty) -> u32 {
         let mut validated: bool = false;
         let mut size: u8 = 0;
         let mut blocks: u32 = 0;
@@ -151,6 +208,39 @@ pub impl Controller of ControllerTrait {
         // Shuffle because often the hole is at the end of the line
         Self::shuffle_line(blocks, seed)
     }
+    
+    /// Select a block type based on weighted random selection.
+    /// # Arguments
+    /// * `roll` - Random value (0 to total_weight-1)
+    /// * weights for each block type
+    /// # Returns
+    /// The selected Block type.
+    fn select_block_by_weight(
+        roll: u16,
+        zero_w: u8,
+        one_w: u8,
+        two_w: u8,
+        three_w: u8,
+        four_w: u8,
+    ) -> Block {
+        let zero_threshold: u16 = zero_w.into();
+        let one_threshold: u16 = zero_threshold + one_w.into();
+        let two_threshold: u16 = one_threshold + two_w.into();
+        let three_threshold: u16 = two_threshold + three_w.into();
+        // four_threshold would be total, but we use else for it
+        
+        if roll < zero_threshold {
+            Block::Zero
+        } else if roll < one_threshold {
+            Block::One
+        } else if roll < two_threshold {
+            Block::Two
+        } else if roll < three_threshold {
+            Block::Three
+        } else {
+            Block::Four
+        }
+    }
 
     /// Shuffle the line
     /// # Arguments
@@ -160,7 +250,6 @@ pub impl Controller of ControllerTrait {
     fn shuffle_line(blocks: u32, seed: felt252) -> u32 {
         let mut shift_rng: Dice = DiceTrait::new(10, seed);
         let shift_amount = BLOCK_BIT_COUNT * shift_rng.roll();
-        //println!("shift_amount: {}", shift_amount);
 
         let blocks = Self::circular_shift_right(blocks, shift_amount, ROW_BIT_COUNT);
 
@@ -335,7 +424,6 @@ pub impl Controller of ControllerTrait {
             }
         };
 
-        //println!("check row coherence valid {}", valid);
         valid
     }
 
@@ -499,12 +587,7 @@ pub impl Controller of ControllerTrait {
 
 #[cfg(test)]
 mod tests {
-    // Core imports
-
-    use core::debug::PrintTrait;
-
     // Local imports
-
     use super::{Controller, Difficulty};
 
     #[test]
@@ -737,18 +820,20 @@ mod tests {
     }
 
     #[test]
-    fn test_controller_create_line_01() {
+    fn test_controller_create_line_fallback_01() {
+        // Test the fallback line generator (original deck-based logic)
         let seed: felt252 = 'SEED';
         let easy: Difficulty = Difficulty::Easy;
-        let blocks = Controller::create_line(seed, easy);
+        let blocks = Controller::create_line_fallback(seed, easy);
         assert_eq!(blocks, 0b001_010_010_001_001_001_000_000);
     }
 
     #[test]
-    fn test_controller_create_line_02() {
+    fn test_controller_create_line_fallback_02() {
+        // Test the fallback line generator (original deck-based logic)
         let seed: felt252 = 'DEES';
         let easy: Difficulty = Difficulty::Easy;
-        let blocks = Controller::create_line(seed, easy);
+        let blocks = Controller::create_line_fallback(seed, easy);
         assert_eq!(blocks, 0b010_010_001_001_000_001_010_010);
     }
 

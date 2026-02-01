@@ -1,63 +1,67 @@
-use zkube::types::bonus::Bonus;
-
 #[starknet::interface]
-trait IGameSystem<T> {
-    fn create(ref self: T, game_id: u64);
+pub trait IGameSystem<T> {
+    /// Create a new game with bonus selection and optional cubes
+    /// @param game_id: NFT token ID for this game
+    /// @param selected_bonuses: Array of 3 bonus types [0-5] to use this run
+    ///   - 0=None (invalid), 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
+    ///   - Pass empty array for default selection [Hammer, Wave, Totem]
+    /// @param cubes_amount: Cubes to bring into run (burned from wallet), 0 for none
+    fn create(ref self: T, game_id: u64, selected_bonuses: Span<u8>, cubes_amount: u16);
+    /// Surrender the current run (game over)
     fn surrender(ref self: T, game_id: u64);
-    fn move(ref self: T, game_id: u64, row_index: u8, start_index: u8, final_index: u8);
-    fn apply_bonus(ref self: T, game_id: u64, bonus: Bonus, row_index: u8, line_index: u8);
+    /// Get player name from token
     fn get_player_name(self: @T, game_id: u64) -> felt252;
+    /// Get current level score
     fn get_score(self: @T, game_id: u64) -> u16;
-    fn get_game_data(self: @T, game_id: u64) -> (u16, u16, u8, u8, u8, u8, u16, bool);
+    /// Get game data for UI
+    /// Returns: (level, level_score, level_moves, combo, max_combo, hammer, wave, totem, total_cubes, over)
+    fn get_game_data(
+        self: @T, game_id: u64,
+    ) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool);
 }
 
 #[dojo::contract]
 mod game_system {
-    use zkube::constants::{DEFAULT_NS, SCORE_MODEL, SCORE_ATTRIBUTE, SETTINGS_MODEL};
-    use zkube::models::config::{GameSettings, GameSettingsTrait};
-    use zkube::models::game::{Game, GameTrait, GameAssert};
-    use zkube::models::game::GameSeed;
-    use zkube::types::difficulty::{Difficulty, IIncreasingDifficultyUtilsTrait};
-    use zkube::helpers::config::ConfigUtilsImpl;
+    use zkube::constants::DEFAULT_NS;
+    use zkube::models::game::{Game, GameTrait, GameAssert, GameSeed};
+    use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::helpers::random::RandomImpl;
-    use zkube::types::bonus::Bonus;
-    use zkube::helpers::renderer::create_metadata;
-    use zkube::events::{StartGame, UseBonus};
-    use zkube::systems::achievement::{
-        IAchievementSystemDispatcher, IAchievementSystemDispatcherTrait
+    use zkube::helpers::config::ConfigUtilsTrait;
+    use zkube::helpers::packing::MetaDataPackingTrait;
+    use zkube::helpers::game_over;
+    use zkube::events::StartGame;
+    use zkube::helpers::game_libs::{
+        GameLibsImpl, 
+        ILevelSystemDispatcherTrait, IGridSystemDispatcherTrait, ICubeTokenDispatcherTrait
     };
+    use zkube::elements::tasks::grinder;
 
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
     use dojo::event::EventStorage;
 
     use starknet::{get_block_timestamp, get_caller_address, ContractAddress};
-    use starknet::storage::{StoragePointerReadAccess};
+    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+    use core::num::traits::Zero;
 
-    use openzeppelin_introspection::src5::SRC5Component;
-    use openzeppelin_token::erc721::interface::{IERC721Metadata};
-    use openzeppelin_token::erc721::{ERC721Component, ERC721HooksEmptyImpl};
-
-    use tournaments::components::game::game_component;
-    use tournaments::components::interfaces::{IGameDetails, ISettings};
-    use tournaments::components::libs::lifecycle::{
-        LifecycleAssertionsImpl, LifecycleAssertionsTrait
+    use game_components_minigame::interface::{IMinigameTokenData};
+    use game_components_minigame::libs::{
+        assert_token_ownership, get_player_name as get_token_player_name, post_action, pre_action,
     };
-    use tournaments::components::models::game::{TokenMetadata};
+    use game_components_minigame::minigame::MinigameComponent;
+    use game_components_token::core::interface::{
+        IMinigameTokenDispatcher, IMinigameTokenDispatcherTrait,
+    };
+    use game_components_token::libs::LifecycleTrait;
+    use game_components_token::structs::TokenMetadata;
+    use openzeppelin_introspection::src5::SRC5Component;
 
-    component!(path: game_component, storage: game, event: GameEvent);
+    component!(path: MinigameComponent, storage: minigame, event: MinigameEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
-    component!(path: ERC721Component, storage: erc721, event: ERC721Event);
 
     #[abi(embed_v0)]
-    impl GameImpl = game_component::GameImpl<ContractState>;
-    impl GameInternalImpl = game_component::InternalImpl<ContractState>;
-
-    #[abi(embed_v0)]
-    impl ERC721Impl = ERC721Component::ERC721Impl<ContractState>;
-    #[abi(embed_v0)]
-    impl ERC721CamelOnlyImpl = ERC721Component::ERC721CamelOnlyImpl<ContractState>;
-    impl ERC721InternalImpl = ERC721Component::InternalImpl<ContractState>;
+    impl MinigameImpl = MinigameComponent::MinigameImpl<ContractState>;
+    impl MinigameInternalImpl = MinigameComponent::InternalImpl<ContractState>;
 
     #[abi(embed_v0)]
     impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
@@ -65,276 +69,335 @@ mod game_system {
     #[storage]
     struct Storage {
         #[substorage(v0)]
-        game: game_component::Storage,
-        #[substorage(v0)]
-        erc721: ERC721Component::Storage,
+        minigame: MinigameComponent::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
+        /// VRF provider address. If zero, use pseudo-random (for slot/katana).
+        /// If set, use Cartridge VRF (for sepolia/mainnet).
+        vrf_address: ContractAddress,
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
         #[flat]
-        GameEvent: game_component::Event,
-        #[flat]
-        ERC721Event: ERC721Component::Event,
+        MinigameEvent: MinigameComponent::Event,
         #[flat]
         SRC5Event: SRC5Component::Event,
     }
 
-    fn dojo_init(ref self: ContractState, creator_address: ContractAddress) {
-        self.erc721.initializer("zKube", "ZKUBE", "app.zkube.xyz");
+    /// @title Dojo Init
+    /// @notice Initializes the contract and registers with the MinigameRegistry
+    /// @dev This is the constructor for the contract. It is called once when the contract is
+    /// deployed.
+    ///
+    /// @param creator_address: the address of the creator of the game
+    /// @param denshokan_address: the address of the FullTokenContract (MinigameToken)
+    /// @param renderer_address: optional renderer address, defaults to 'renderer_systems' if None
+    /// @param vrf_address: VRF provider address. Use zero for slot/katana (pseudo-random),
+    ///                     or Cartridge VRF address for sepolia/mainnet
+    fn dojo_init(
+        ref self: ContractState,
+        creator_address: ContractAddress,
+        denshokan_address: ContractAddress,
+        renderer_address: Option<ContractAddress>,
+        vrf_address: ContractAddress,
+    ) {
+        let mut world: WorldStorage = self.world(@DEFAULT_NS());
+        let (config_system_address, _) = world.dns(@"config_system").unwrap();
+
+        // Use provided renderer address or default to 'renderer_systems'
+        let final_renderer_address = match renderer_address {
+            Option::Some(addr) => addr,
+            Option::None => {
+                // Try to get renderer_systems, but don't fail if it doesn't exist yet
+                match world.dns(@"renderer_systems") {
+                    Option::Some((addr, _)) => addr,
+                    Option::None => {
+                        // Use zero address as fallback - can be updated later
+                        starknet::contract_address_const::<0>()
+                    },
+                }
+            },
+        };
+
         self
-            .game
+            .minigame
             .initializer(
                 creator_address,
-                'zKube',
-                "zKube is an engaging puzzle game that puts players' strategic thinking to the test. Set within a dynamic grid, the objective is simple: manipulate blocks to form solid lines and earn points.",
-                'zKorp',
-                'zKorp',
-                'Strategy',
+                "zKube",
+                "zKube is an onchain puzzle roguelike with 50 levels, constraints, and star ratings.",
+                "zKorp",
+                "zKorp",
+                "Puzzle",
                 "https://zkube.vercel.app/assets/pwa-512x512.png",
-                DEFAULT_NS(),
-                SCORE_MODEL(),
-                SCORE_ATTRIBUTE(),
-                SETTINGS_MODEL(),
+                Option::Some("#3c2fba"),
+                Option::None, // client_url
+                if final_renderer_address.is_zero() {
+                    Option::None
+                } else {
+                    Option::Some(final_renderer_address)
+                }, // renderer address
+                Option::Some(config_system_address), // settings_address
+                Option::None, // objectives_address (using Cartridge arcade)
+                denshokan_address,
             );
+        
+        // Store VRF address for runtime random source selection
+        self.vrf_address.write(vrf_address);
     }
 
     #[abi(embed_v0)]
-    impl SettingsImpl of ISettings<ContractState> {
-        fn setting_exists(self: @ContractState, settings_id: u32) -> bool {
+    impl GameTokenDataImpl of IMinigameTokenData<ContractState> {
+        fn score(self: @ContractState, token_id: u64) -> u32 {
             let world: WorldStorage = self.world(@DEFAULT_NS());
-            let settings: GameSettings = world.read_model(settings_id);
-            settings.exists()
+            let game: Game = world.read_model(token_id);
+            // Return level score as the "score" for token metadata
+            game.get_level_score().into()
         }
-    }
 
-    #[abi(embed_v0)]
-    impl GameDetailsImpl of IGameDetails<ContractState> {
-        fn score(self: @ContractState, game_id: u64) -> u32 {
+        fn game_over(self: @ContractState, token_id: u64) -> bool {
             let world: WorldStorage = self.world(@DEFAULT_NS());
-            let game: Game = world.read_model(game_id);
-            game.score.into()
+            let game: Game = world.read_model(token_id);
+            game.over
         }
     }
 
     #[abi(embed_v0)]
     impl GameSystemImpl of super::IGameSystem<ContractState> {
-        fn create(ref self: ContractState, game_id: u64) {
+        fn create(ref self: ContractState, game_id: u64, selected_bonuses: Span<u8>, cubes_amount: u16) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
-            let token_metadata: TokenMetadata = world.read_model(game_id);
-            self.validate_start_conditions(game_id, @token_metadata);
+            let token_address = self.token_address();
+            pre_action(token_address, game_id);
 
-            let game_settings: GameSettings = ConfigUtilsImpl::get_game_settings(world, game_id);
+            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
+            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
+            self.validate_start_conditions(game_id, @token_metadata, token_address);
 
-            let difficulty: Difficulty = if game_settings.difficulty == Difficulty::Increasing {
-                IIncreasingDifficultyUtilsTrait::get_difficulty_from_moves(0)
+            // Generate seed: use VRF if vrf_address is set, otherwise pseudo-random
+            let vrf_addr = self.vrf_address.read();
+            let random = if vrf_addr.is_zero() {
+                RandomImpl::new_pseudo_random()
             } else {
-                game_settings.difficulty
+                RandomImpl::new_vrf()
             };
+            let timestamp = get_block_timestamp();
 
-            let random = RandomImpl::new_vrf();
-            let mut game = GameTrait::new(game_id, random.seed, difficulty);
-            world.write_model(@game);
+            // Get game settings (selected via token settings_id)
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
+            
+            // Create empty game shell (grid will be initialized via dispatcher)
+            let mut game = GameTrait::new_empty(game_id, timestamp);
 
-            // Store the seed separately to save gas
+            // Store the seed separately
             let game_seed = GameSeed { game_id, seed: random.seed };
             world.write_model(@game_seed);
 
-            game.update_metadata(world);
+            // Initialize or update player meta
+            let player = get_caller_address();
+            let mut player_meta: PlayerMeta = world.read_model(player);
+            if !player_meta.exists() {
+                player_meta = PlayerMetaTrait::new(player);
+            }
+            let meta_data = player_meta.get_meta_data();
 
-            world
-                .emit_event(
-                    @StartGame {
-                        player: get_caller_address(), timestamp: get_block_timestamp(), game_id,
-                    }
-                );
+            // Process bonus selection
+            let mut run_data = game.get_run_data();
+            
+            // Determine selected bonuses (use defaults if empty)
+            let (bonus_1, bonus_2, bonus_3) = if selected_bonuses.len() == 0 {
+                // Default selection: Hammer(1), Wave(3), Totem(2)
+                (1_u8, 3_u8, 2_u8)
+            } else {
+                // Validate exactly 3 bonuses selected
+                assert!(selected_bonuses.len() == 3, "Must select exactly 3 bonuses");
+                
+                let b1 = *selected_bonuses.at(0);
+                let b2 = *selected_bonuses.at(1);
+                let b3 = *selected_bonuses.at(2);
+                
+                // Validate each bonus is valid (1-5, not 0)
+                assert!(b1 >= 1 && b1 <= 5, "Invalid bonus type");
+                assert!(b2 >= 1 && b2 <= 5, "Invalid bonus type");
+                assert!(b3 >= 1 && b3 <= 5, "Invalid bonus type");
+                
+                // Validate no duplicates
+                assert!(b1 != b2 && b1 != b3 && b2 != b3, "Duplicate bonus selection");
+                
+                // Validate Shrink(4) and Shuffle(5) are unlocked
+                if b1 == 4 || b2 == 4 || b3 == 4 {
+                    assert!(meta_data.shrink_unlocked, "Shrink bonus not unlocked");
+                }
+                if b1 == 5 || b2 == 5 || b3 == 5 {
+                    assert!(meta_data.shuffle_unlocked, "Shuffle bonus not unlocked");
+                }
+                
+                (b1, b2, b3)
+            };
+            
+            // Store selected bonuses in run_data
+            run_data.selected_bonus_1 = bonus_1;
+            run_data.selected_bonus_2 = bonus_2;
+            run_data.selected_bonus_3 = bonus_3;
+            // All bonuses start at level 0 (L1)
+            run_data.bonus_1_level = 0;
+            run_data.bonus_2_level = 0;
+            run_data.bonus_3_level = 0;
+
+            // Initialize GameLibs once for all dispatcher calls
+            let libs = GameLibsImpl::new(world);
+            
+            // Handle cube bridging if cubes_amount > 0
+            if cubes_amount > 0 {
+                // Check player has unlocked bridging
+                let max_allowed = player_meta.get_max_cubes_to_bring();
+                assert!(max_allowed > 0, "Bridging not unlocked - upgrade bridging rank first");
+                assert!(cubes_amount <= max_allowed, "Exceeds max cubes for your bridging rank");
+                
+                // Burn cubes from ERC1155 wallet (will revert if insufficient)
+                libs.cube.burn(player, cubes_amount.into());
+                
+                // Set cubes_brought in run_data
+                run_data.cubes_brought = cubes_amount;
+            }
+
+            // Apply starting bonuses ONLY for selected bonus types (capped at bag size)
+            // Helper to apply starting bonus if selected
+            // Hammer = 1
+            if bonus_1 == 1 || bonus_2 == 1 || bonus_3 == 1 {
+                let bag_size = meta_data.get_bag_size(0);
+                let starting = meta_data.starting_hammer;
+                run_data.hammer_count = if starting > bag_size { bag_size } else { starting };
+            }
+            // Totem = 2
+            if bonus_1 == 2 || bonus_2 == 2 || bonus_3 == 2 {
+                let bag_size = meta_data.get_bag_size(2);
+                let starting = meta_data.starting_totem;
+                run_data.totem_count = if starting > bag_size { bag_size } else { starting };
+            }
+            // Wave = 3
+            if bonus_1 == 3 || bonus_2 == 3 || bonus_3 == 3 {
+                let bag_size = meta_data.get_bag_size(1);
+                let starting = meta_data.starting_wave;
+                run_data.wave_count = if starting > bag_size { bag_size } else { starting };
+            }
+            // Shrink = 4
+            if bonus_1 == 4 || bonus_2 == 4 || bonus_3 == 4 {
+                let bag_size = meta_data.get_bag_size(3);
+                let starting = meta_data.starting_shrink;
+                run_data.shrink_count = if starting > bag_size { bag_size } else { starting };
+            }
+            // Shuffle = 5
+            if bonus_1 == 5 || bonus_2 == 5 || bonus_3 == 5 {
+                let bag_size = meta_data.get_bag_size(4);
+                let starting = meta_data.starting_shuffle;
+                run_data.shuffle_count = if starting > bag_size { bag_size } else { starting };
+            }
+
+            game.set_run_data(run_data);
+            world.write_model(@game);
+
+            player_meta.increment_runs();
+            world.write_model(@player_meta);
+
+            // Track quest progress: games played (Grinder task)
+            // Only counts for default settings games
+            libs.track_quest(player, grinder::Grinder::identifier(), 1, settings.settings_id);
+
+            post_action(token_address, game_id);
+
+            // Emit start game event
+            world.emit_event(@StartGame { player, timestamp, game_id });
+
+            // Initialize level 1 and grid via GameLibs dispatchers
+            let has_no_bonus = libs.level.initialize_level(game_id);
+            libs.grid.initialize_grid(game_id);
+            
+            // Update run_data with no_bonus_constraint flag if needed
+            if has_no_bonus {
+                let mut game: Game = world.read_model(game_id);
+                let mut run_data = game.get_run_data();
+                run_data.no_bonus_constraint = true;
+                game.set_run_data(run_data);
+                world.write_model(@game);
+            }
         }
 
         fn surrender(ref self: ContractState, game_id: u64) {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
 
-            let token_metadata: TokenMetadata = world.read_model(game_id);
-            token_metadata.lifecycle.assert_is_playable(game_id, get_block_timestamp());
+            let token_address = self.token_address();
+            pre_action(token_address, game_id);
+
+            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
+            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
+            assert!(
+                token_metadata.lifecycle.is_playable(get_block_timestamp()),
+                "Game {} lifecycle is not playable",
+                game_id,
+            );
 
             let mut game: Game = world.read_model(game_id);
-            game.assert_owner(world);
+            assert_token_ownership(token_address, game_id);
             game.assert_not_over();
 
             game.over = true;
             world.write_model(@game);
 
-            self.handle_game_over(game);
+            let player = get_caller_address();
+            game_over::handle_game_over(ref world, game, player);
 
-            game.update_metadata(world);
-        }
-
-        fn move(
-            ref self: ContractState, game_id: u64, row_index: u8, start_index: u8, final_index: u8,
-        ) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-
-            let token_metadata: TokenMetadata = world.read_model(game_id);
-            token_metadata.lifecycle.assert_is_playable(game_id, get_block_timestamp());
-
-            let game_settings: GameSettings = ConfigUtilsImpl::get_game_settings(world, game_id);
-
-            let mut game: Game = world.read_model(game_id);
-            game.assert_owner(world);
-            game.assert_not_over();
-
-            let difficulty: Difficulty = if game_settings.difficulty == Difficulty::Increasing {
-                IIncreasingDifficultyUtilsTrait::get_difficulty_from_moves(game.moves)
-            } else {
-                game_settings.difficulty
-            };
-
-            let base_seed: GameSeed = world.read_model(game_id);
-            game.move(difficulty, base_seed.seed, row_index, start_index, final_index);
-
-            world.write_model(@game);
-
-            if game.over {
-                self.handle_game_over(game);
-            }
-
-            game.update_metadata(world);
-        }
-
-        fn apply_bonus(
-            ref self: ContractState, game_id: u64, bonus: Bonus, row_index: u8, line_index: u8
-        ) {
-            let mut world: WorldStorage = self.world(@DEFAULT_NS());
-
-            let token_metadata: TokenMetadata = world.read_model(game_id);
-            token_metadata.lifecycle.assert_is_playable(game_id, starknet::get_block_timestamp());
-
-            let game_settings: GameSettings = ConfigUtilsImpl::get_game_settings(world, game_id);
-
-            let mut game: Game = world.read_model(game_id);
-            game.assert_owner(world);
-            game.assert_not_over();
-            game.assert_is_available(bonus);
-
-            let difficulty: Difficulty = if game_settings.difficulty == Difficulty::Increasing {
-                IIncreasingDifficultyUtilsTrait::get_difficulty_from_moves(game.moves)
-            } else {
-                game_settings.difficulty
-            };
-
-            let base_seed: GameSeed = world.read_model(game_id);
-            game.apply_bonus(difficulty, base_seed.seed, bonus, row_index, line_index);
-
-            world.write_model(@game);
-
-            game.update_metadata(world);
-
-            world
-                .emit_event(
-                    @UseBonus {
-                        player: starknet::get_caller_address(),
-                        timestamp: get_block_timestamp(),
-                        game_id,
-                        bonus,
-                    }
-                );
+            post_action(token_address, game_id);
         }
 
         fn get_player_name(self: @ContractState, game_id: u64) -> felt252 {
-            let world: WorldStorage = self.world(@DEFAULT_NS());
-            let token_metadata: TokenMetadata = world.read_model(game_id);
-            token_metadata.player_name
+            let token_address = self.token_address();
+            get_token_player_name(token_address, game_id)
         }
 
         fn get_score(self: @ContractState, game_id: u64) -> u16 {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(game_id);
-            game.score
+            game.get_level_score().into()
         }
 
         fn get_game_data(
-            self: @ContractState, game_id: u64
-        ) -> (u16, u16, u8, u8, u8, u8, u16, bool) {
+            self: @ContractState, game_id: u64,
+        ) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool) {
             let world: WorldStorage = self.world(@DEFAULT_NS());
             let game: Game = world.read_model(game_id);
+            let run_data = game.get_run_data();
+
             (
-                game.moves,
+                run_data.current_level,
+                run_data.level_score,
+                run_data.level_moves,
                 game.combo_counter,
                 game.max_combo,
-                game.hammer_bonus,
-                game.wave_bonus,
-                game.totem_bonus,
-                game.score,
-                game.over
-            )
-        }
-    }
-
-    #[abi(embed_v0)]
-    impl ERC721Metadata of IERC721Metadata<ContractState> {
-        /// Returns the NFT name.
-        fn name(self: @ContractState) -> ByteArray {
-            self.erc721.ERC721_name.read()
-        }
-
-        /// Returns the NFT symbol.
-        fn symbol(self: @ContractState) -> ByteArray {
-            self.erc721.ERC721_symbol.read()
-        }
-
-        /// Returns the Uniform Resource Identifier (URI) for the `token_id` token.
-        /// If the URI is not set, the return value will be an empty ByteArray.
-        ///
-        /// Requirements:
-        ///
-        /// - `token_id` exists.
-        fn token_uri(self: @ContractState, token_id: u256) -> ByteArray {
-            self.erc721._require_owned(token_id);
-
-            let token_id_u64 = token_id.try_into().unwrap();
-
-            let player_name = self.get_player_name(token_id_u64);
-            let (
-                moves, combo_counter, max_combo, hammer_bonus, wave_bonus, totem_bonus, score, over
-            ) =
-                self
-                .get_game_data(token_id_u64);
-
-            create_metadata(
-                token_id_u64,
-                player_name,
-                over,
-                score,
-                moves,
-                combo_counter,
-                max_combo,
-                hammer_bonus,
-                wave_bonus,
-                totem_bonus
+                run_data.hammer_count,
+                run_data.wave_count,
+                run_data.totem_count,
+                run_data.total_cubes,
+                game.over,
             )
         }
     }
 
     #[generate_trait]
-    impl InternalImpl of InternalTrait {
+    pub impl InternalImpl of InternalTrait {
         #[inline(always)]
         fn validate_start_conditions(
-            self: @ContractState, token_id: u64, token_metadata: @TokenMetadata
+            self: @ContractState,
+            token_id: u64,
+            token_metadata: @TokenMetadata,
+            token_address: ContractAddress,
         ) {
-            self.assert_token_ownership(token_id);
+            assert_token_ownership(token_address, token_id);
             self.assert_game_not_started(token_id);
-            token_metadata.lifecycle.assert_is_playable(token_id, starknet::get_block_timestamp());
-        }
-
-        #[inline(always)]
-        fn assert_token_ownership(self: @ContractState, token_id: u64) {
-            let token_owner = ERC721Impl::owner_of(self, token_id.into());
             assert!(
-                token_owner == starknet::get_caller_address(),
-                "Caller is not owner of token {}",
+                token_metadata.lifecycle.is_playable(starknet::get_block_timestamp()),
+                "Game {} lifecycle is not playable",
                 token_id,
             );
         }
@@ -343,15 +406,6 @@ mod game_system {
         fn assert_game_not_started(self: @ContractState, game_id: u64) {
             let game: Game = self.world(@DEFAULT_NS()).read_model(game_id);
             assert!(game.blocks == 0, "Game {} has already started", game_id);
-        }
-
-        fn handle_game_over(ref self: ContractState, game: Game) {
-            let world = self.world(@DEFAULT_NS());
-            let caller = get_caller_address();
-
-            let (contract_address, _) = world.dns(@"achievement_system").unwrap();
-            let achievement_system = IAchievementSystemDispatcher { contract_address };
-            achievement_system.update_progress_when_game_over(game, caller);
         }
     }
 }

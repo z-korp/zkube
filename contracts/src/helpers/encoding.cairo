@@ -136,7 +136,6 @@ fn encode_bytes(mut bytes: ByteArray, base64_chars: Span<u8>) -> ByteArray {
     result
 }
 
-
 trait BytesUsedTrait<T> {
     /// Returns the number of bytes used to represent a `T` value.
     /// # Arguments
@@ -182,8 +181,8 @@ impl U64BytesUsedTraitImpl of BytesUsedTrait<u64> {
             return BytesUsedTrait::<u32>::bytes_used(self.try_into().unwrap());
         } else {
             if self < 0x1000000000000 { // 256^6
-                if self < 0x10000000000 {
-                    if self < 0x100000000 {
+                if self < 0x10000000000 { // 256^5
+                    if self < 0x100000000 { // 256^4
                         return 4;
                     }
                     return 5;
@@ -200,30 +199,31 @@ impl U64BytesUsedTraitImpl of BytesUsedTrait<u64> {
     }
 }
 
+
 impl U128BytesUsedTraitImpl of BytesUsedTrait<u128> {
     fn bytes_used(self: u128) -> u8 {
         if self <= Bounded::<u64>::MAX.into() { // 256^8
             return BytesUsedTrait::<u64>::bytes_used(self.try_into().unwrap());
         } else {
-            if self < 0x10000000000000000000000000 { // 256^12
+            if self < 0x1000000000000000000000000 { // 256^12
                 if self < 0x100000000000000000000 { // 256^10
-                    if self < 0x10000000000000000 { // 256^9
+                    if self < 0x1000000000000000000 { // 256^9
                         return 9;
                     }
                     return 10;
                 }
-                if self < 0x1000000000000000000000 { // 256^11
+                if self < 0x10000000000000000000000 { // 256^11
                     return 11;
                 }
                 return 12;
             } else {
-                if self < 0x100000000000000000000000000000 { // 256^14
-                    if self < 0x1000000000000000000000000 { // 256^13
+                if self < 0x10000000000000000000000000000 { // 256^14
+                    if self < 0x100000000000000000000000000 { // 256^13
                         return 13;
                     }
                     return 14;
                 } else {
-                    if self < 0x10000000000000000000000000000000 { // 256^15
+                    if self < 0x1000000000000000000000000000000 { // 256^15
                         return 15;
                     }
                     return 16;

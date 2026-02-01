@@ -1,12 +1,19 @@
-world_address = "0x01bfa92665fb815c9ec5f37c562a5c9a06fdf23ce022c1d33d4ac07cef5ad80c"
+world_address = "0x047b75f483c4ff0b7cbf251c4375bb61c9cf35096bf63e77f34b614b2dabb8dc"
 rpc = "https://api.cartridge.gg/x/starknet/sepolia"
 
+[server]
+http_cors_origins = ["*"]
+
 [indexing]
-pending = true
+controllers = true
+index_pending = true
+polling_interval = 500
+max_concurrent_tasks = 50
 transactions = true
-namespaces = ["zkube_budo_v1_1_0", "budokan_v_1_0_6"]
+namespaces = ["zkube_budo_v1_2_0"]
 contracts = [
-  "erc721:0x1e0b80823ba036c8366c2434dad9d5bb35662a7b1d0afbdc69c5f0a7fff3513"
+  "erc721:0x045a74be8647d39de23b2b73e98862f6b663164fd8f985cfd80eaa6be495f8ba",
+  "ERC1155:0x118ab12ddb07f904220ef5c82ce94efdca0439027fb96694a06218296b931cb"
 ]
 
 [events]
@@ -14,7 +21,5 @@ raw = true
 
 [sql]
 historical = [
-  "zkube_budo_v1_1_0-TrophyProgression",
-  "zkube_budo_v1_1_0-StartGame",
-  "zkube_budo_v1_1_0-UseBonus"
+  "zkube_budo_v1_2_0-TrophyProgression",
 ]

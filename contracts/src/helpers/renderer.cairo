@@ -3,7 +3,7 @@ use core::{array::{ArrayTrait, SpanTrait}, clone::Clone, traits::Into};
 use zkube::helpers::encoding::{U256BytesUsedTraitImpl, bytes_base64_encode};
 use graffiti::json::JsonImpl;
 
-fn create_text(
+pub fn create_text(
     text: ByteArray,
     x: ByteArray,
     y: ByteArray,
@@ -26,7 +26,7 @@ fn create_text(
         + "</text>"
 }
 
-fn game_state(over: bool) -> ByteArray {
+pub fn game_state(over: bool) -> ByteArray {
     if over {
         "Game Over"
     } else {
@@ -34,7 +34,7 @@ fn game_state(over: bool) -> ByteArray {
     }
 }
 
-fn combine_elements(ref elements: Span<ByteArray>) -> ByteArray {
+pub fn combine_elements(ref elements: Span<ByteArray>) -> ByteArray {
     let mut count: u8 = 1;
 
     let mut combined: ByteArray = "";
@@ -52,14 +52,14 @@ fn combine_elements(ref elements: Span<ByteArray>) -> ByteArray {
     combined
 }
 
-fn create_rect() -> ByteArray {
+pub fn create_rect() -> ByteArray {
     "<rect x='0.5' y='0.5' width='469' height='599' rx='27.5' fill='black' stroke='#6bd1f2'/>"
 }
 
 // @notice Generates an SVG string for game token uri
 // @param internals The internals of the SVG
 // @return The generated SVG string
-fn create_svg(internals: ByteArray) -> ByteArray {
+pub fn create_svg(internals: ByteArray) -> ByteArray {
     "<svg xmlns='http://www.w3.org/2000/svg' width='470' height='600'><style>text{text-transform: uppercase;font-family: Courier, monospace;fill: #6bd1f2;}g{fill: #6bd1f2;}</style>"
         + internals
         + "</svg>"

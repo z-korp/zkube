@@ -2,17 +2,9 @@
 version = 1
 
 [[package]]
-name = "achievement"
-version = "0.0.0"
-source = "git+https://github.com/cartridge-gg/arcade#7fde4bbe955e4f5c4e02d3a0d48c58529e12e4bc"
-dependencies = [
- "dojo",
-]
-
-[[package]]
 name = "alexandria_bytes"
-version = "0.3.0"
-source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.3.0#e3715428c990665afc495b5428ef08ab9a2089cd"
+version = "0.7.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.7.0#06e3019612cfcbbdb66cbd849840451ede7ee6aa"
 dependencies = [
  "alexandria_data_structures",
  "alexandria_math",
@@ -20,13 +12,13 @@ dependencies = [
 
 [[package]]
 name = "alexandria_data_structures"
-version = "0.3.0"
-source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.3.0#e3715428c990665afc495b5428ef08ab9a2089cd"
+version = "0.7.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.7.0#06e3019612cfcbbdb66cbd849840451ede7ee6aa"
 
 [[package]]
 name = "alexandria_encoding"
-version = "0.3.0"
-source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.3.0#e3715428c990665afc495b5428ef08ab9a2089cd"
+version = "0.7.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.7.0#06e3019612cfcbbdb66cbd849840451ede7ee6aa"
 dependencies = [
  "alexandria_bytes",
  "alexandria_data_structures",
@@ -36,13 +28,13 @@ dependencies = [
 
 [[package]]
 name = "alexandria_math"
-version = "0.3.0"
-source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.3.0#e3715428c990665afc495b5428ef08ab9a2089cd"
+version = "0.7.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.7.0#06e3019612cfcbbdb66cbd849840451ede7ee6aa"
 
 [[package]]
 name = "alexandria_numeric"
-version = "0.3.0"
-source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.3.0#e3715428c990665afc495b5428ef08ab9a2089cd"
+version = "0.7.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.7.0#06e3019612cfcbbdb66cbd849840451ede7ee6aa"
 dependencies = [
  "alexandria_math",
  "alexandria_searching",
@@ -50,104 +42,167 @@ dependencies = [
 
 [[package]]
 name = "alexandria_searching"
-version = "0.3.0"
-source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.3.0#e3715428c990665afc495b5428ef08ab9a2089cd"
+version = "0.7.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?tag=v0.7.0#06e3019612cfcbbdb66cbd849840451ede7ee6aa"
 dependencies = [
  "alexandria_data_structures",
 ]
 
 [[package]]
 name = "dojo"
-version = "1.5.0"
-source = "git+https://github.com/dojoengine/dojo?tag=v1.5.0#812f17c9c57fd057d0bf1e648a591ea0ca9ea718"
+version = "1.8.0"
+source = "registry+https://scarbs.xyz/"
+checksum = "sha256:a9c35305a81e68a49de85b8f07c1f8a93e27492c6b16c304d1f7961dcd5d350f"
 dependencies = [
- "dojo_plugin",
+ "dojo_cairo_macros",
 ]
 
 [[package]]
+name = "dojo_cairo_macros"
+version = "1.8.0"
+source = "registry+https://scarbs.xyz/"
+checksum = "sha256:c4aa04037a0c5029b05b78229dae22bf02269b9912e8a8c12f8af34aa6b72051"
+
+[[package]]
 name = "dojo_cairo_test"
-version = "1.0.12"
-source = "git+https://github.com/dojoengine/dojo?tag=v1.5.0#812f17c9c57fd057d0bf1e648a591ea0ca9ea718"
+version = "1.8.0"
+source = "registry+https://scarbs.xyz/"
+checksum = "sha256:0cab4c86390b6ee9c3969b82d27f46ecd7f14e686b9868528506103944638465"
 dependencies = [
  "dojo",
 ]
 
 [[package]]
-name = "dojo_plugin"
-version = "2.10.1"
-source = "git+https://github.com/dojoengine/dojo?tag=v1.5.0#812f17c9c57fd057d0bf1e648a591ea0ca9ea718"
+name = "game_components_metagame"
+version = "1.5.1"
+source = "git+https://github.com/Provable-Games/game-components?tag=v2.13.1#960c84aae59239763a2a2a339e0c649b0527f07d"
+dependencies = [
+ "game_components_minigame",
+ "game_components_token",
+ "game_components_utils",
+ "openzeppelin_interfaces",
+ "openzeppelin_introspection",
+ "openzeppelin_token",
+]
+
+[[package]]
+name = "game_components_minigame"
+version = "1.5.1"
+source = "git+https://github.com/Provable-Games/game-components?tag=v2.13.1#960c84aae59239763a2a2a339e0c649b0527f07d"
+dependencies = [
+ "game_components_metagame",
+ "game_components_token",
+ "game_components_utils",
+ "openzeppelin_interfaces",
+ "openzeppelin_introspection",
+ "openzeppelin_token",
+]
+
+[[package]]
+name = "game_components_test_starknet"
+version = "1.5.1"
+source = "git+https://github.com/Provable-Games/game-components?tag=v2.13.1#960c84aae59239763a2a2a339e0c649b0527f07d"
+dependencies = [
+ "game_components_metagame",
+ "game_components_minigame",
+ "game_components_token",
+ "game_components_utils",
+ "openzeppelin_interfaces",
+ "openzeppelin_introspection",
+ "openzeppelin_token",
+]
+
+[[package]]
+name = "game_components_token"
+version = "1.5.1"
+source = "git+https://github.com/Provable-Games/game-components?tag=v2.13.1#960c84aae59239763a2a2a339e0c649b0527f07d"
+dependencies = [
+ "game_components_metagame",
+ "game_components_minigame",
+ "game_components_test_starknet",
+ "game_components_utils",
+ "openzeppelin_interfaces",
+ "openzeppelin_introspection",
+ "openzeppelin_token",
+]
+
+[[package]]
+name = "game_components_utils"
+version = "1.5.1"
+source = "git+https://github.com/Provable-Games/game-components?tag=v2.13.1#960c84aae59239763a2a2a339e0c649b0527f07d"
+dependencies = [
+ "alexandria_encoding",
+ "game_components_metagame",
+ "game_components_minigame",
+ "game_components_token",
+ "graffiti",
+]
 
 [[package]]
 name = "graffiti"
 version = "0.1.0"
-source = "git+https://github.com/rsodre/graffiti?rev=url#e8b0854798ebbcebde504ea299ed556900564ff2"
+source = "git+https://github.com/ponderingdemocritus/graffiti?rev=bc569531791dbc71c6cd8d9bc154c34eedad31fe#bc569531791dbc71c6cd8d9bc154c34eedad31fe"
 
 [[package]]
 name = "openzeppelin_access"
-version = "1.0.0"
-source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v1.0.0#755ce1adbf8d89ed23fbb8daa328fcbeab7c6424"
+version = "3.0.0-alpha.3"
+source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v3.0.0-alpha.3#ba2228ec4070c9a7ac08d2833ebcf6bcf7ff70ac"
 dependencies = [
+ "openzeppelin_interfaces",
  "openzeppelin_introspection",
- "openzeppelin_utils",
 ]
 
 [[package]]
-name = "openzeppelin_account"
-version = "1.0.0"
-source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v1.0.0#755ce1adbf8d89ed23fbb8daa328fcbeab7c6424"
-dependencies = [
- "openzeppelin_introspection",
- "openzeppelin_utils",
-]
+name = "openzeppelin_interfaces"
+version = "2.1.0-alpha.0"
+source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v3.0.0-alpha.3#ba2228ec4070c9a7ac08d2833ebcf6bcf7ff70ac"
 
 [[package]]
 name = "openzeppelin_introspection"
-version = "1.0.0"
-source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v1.0.0#755ce1adbf8d89ed23fbb8daa328fcbeab7c6424"
+version = "3.0.0-alpha.3"
+source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v3.0.0-alpha.3#ba2228ec4070c9a7ac08d2833ebcf6bcf7ff70ac"
+dependencies = [
+ "openzeppelin_interfaces",
+]
 
 [[package]]
 name = "openzeppelin_token"
-version = "1.0.0"
-source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v1.0.0#755ce1adbf8d89ed23fbb8daa328fcbeab7c6424"
+version = "3.0.0-alpha.3"
+source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v3.0.0-alpha.3#ba2228ec4070c9a7ac08d2833ebcf6bcf7ff70ac"
 dependencies = [
  "openzeppelin_access",
- "openzeppelin_account",
+ "openzeppelin_interfaces",
  "openzeppelin_introspection",
  "openzeppelin_utils",
 ]
 
 [[package]]
 name = "openzeppelin_utils"
-version = "1.0.0"
-source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v1.0.0#755ce1adbf8d89ed23fbb8daa328fcbeab7c6424"
+version = "2.1.0-alpha.0"
+source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v3.0.0-alpha.3#ba2228ec4070c9a7ac08d2833ebcf6bcf7ff70ac"
+dependencies = [
+ "openzeppelin_interfaces",
+]
 
 [[package]]
 name = "origami_random"
 version = "1.1.2"
-source = "git+https://github.com/dojoengine/origami?tag=v1.5.0#1aba33f09e326d2f2645ff93fac1e9febc64ac1d"
-
-[[package]]
-name = "tournaments"
-version = "0.0.1"
-source = "git+https://github.com/Matth26/tournaments#9b867a3dbe2b68da596331c0730d7db38504f977"
-dependencies = [
- "dojo",
- "openzeppelin_introspection",
- "openzeppelin_token",
-]
+source = "git+https://github.com/dojoengine/origami?tag=v1.7.0#1ddafcb8c33fe9697c4a44e0557967026d4eeba8"
 
 [[package]]
 name = "zkube"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
- "achievement",
  "alexandria_encoding",
  "alexandria_math",
  "dojo",
  "dojo_cairo_test",
+ "game_components_metagame",
+ "game_components_minigame",
+ "game_components_token",
+ "game_components_utils",
  "graffiti",
  "openzeppelin_introspection",
  "openzeppelin_token",
  "origami_random",
- "tournaments",
 ]

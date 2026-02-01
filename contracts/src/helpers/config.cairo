@@ -1,13 +1,32 @@
-use zkube::models::config::GameSettings;
 use dojo::model::ModelStorage;
 use dojo::world::WorldStorage;
-use tournaments::components::models::game::TokenMetadata;
+use game_components_token::core::interface::{IMinigameTokenDispatcher, IMinigameTokenDispatcherTrait};
+
+use zkube::helpers::token;
+use zkube::models::config::{GameSettings, GameSettingsTrait};
+use zkube::types::difficulty::Difficulty;
+use zkube::constants::DEFAULT_SETTINGS::DEFAULT_SETTINGS_ID;
 
 #[generate_trait]
 pub impl ConfigUtilsImpl of ConfigUtilsTrait {
     fn get_game_settings(world: WorldStorage, game_id: u64) -> GameSettings {
-        let token_metadata: TokenMetadata = world.read_model(game_id);
-        let game_settings: GameSettings = world.read_model(token_metadata.settings_id);
-        game_settings
+        let token_dispatcher: IMinigameTokenDispatcher = token::token_dispatcher(world);
+        let settings_id = token_dispatcher.settings_id(game_id);
+        let settings: GameSettings = world.read_model(settings_id);
+
+        // Defensive fallback: if the token points at a missing settings_id, default to
+        // the official default settings (id = 0).
+        if !settings.exists() {
+            let fallback: GameSettings = world.read_model(DEFAULT_SETTINGS_ID);
+            if fallback.exists() {
+                fallback
+            } else {
+                // If no settings exist at all, use hardcoded defaults to prevent
+                // all-zero weights from breaking block generation
+                GameSettingsTrait::new_with_defaults(DEFAULT_SETTINGS_ID, Difficulty::Increasing)
+            }
+        } else {
+            settings
+        }
     }
 }

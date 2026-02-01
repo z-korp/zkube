@@ -2,16 +2,10 @@
 import { Header } from "@/ui/containers/Header";
 import BackGroundBoard from "../components/BackgroundBoard";
 import { AnimatePresence } from "framer-motion";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTrigger,
-} from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
 import { useMediaQuery } from "react-responsive";
 import useViewport from "@/hooks/useViewport";
@@ -20,7 +14,11 @@ import { PlayFreeGame } from "../actions/PlayFreeGame";
 import { useGame } from "@/hooks/useGame";
 import Tutorial from "../components/Tutorial/Tutorial";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFire, faStar } from "@fortawesome/free-solid-svg-icons";
+import {
+  faFire,
+  faStar,
+  faRotateRight,
+} from "@fortawesome/free-solid-svg-icons";
 import MaxComboIcon from "../components/MaxComboIcon";
 import GameBoard from "../components/GameBoard";
 import { useGrid } from "@/hooks/useGrid";
@@ -34,7 +32,75 @@ import {
   TableHeader,
   TableRow,
 } from "@/ui/elements/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/ui/elements/tooltip";
 import { useNavigate } from "react-router-dom";
+import { useGameTokens } from "metagame-sdk/sql";
+import type { GameTokenData } from "metagame-sdk";
+import { getGameSystemAddress } from "@/utils/metagame";
+import {
+  useGameTokensSlot,
+  isSlotMode,
+} from "@/hooks/useGameTokensSlot";
+
+const gameSystemAddress = getGameSystemAddress();
+
+type TokenAttribute = {
+  trait?: string;
+  trait_type?: string;
+  name?: string;
+  value?: string | number;
+  Value?: string | number;
+  display_type?: string | number;
+};
+
+type TokenMetadata = {
+  name?: string;
+  description?: string;
+  attributes?: TokenAttribute[];
+};
+
+type PlayerGameRow = {
+  tokenId: number;
+  name: string;
+  level: string | number | undefined;
+  totalCubes: string | number | undefined;
+  cubesBrought: string | number | undefined;
+  cubesSpent: string | number | undefined;
+  cubesAvailable: number;
+  totalScore: string | number | undefined;
+  gameOver: boolean;
+};
+
+const parseTokenMetadata = (metadata: unknown): TokenMetadata | undefined => {
+  if (!metadata) return undefined;
+  if (typeof metadata === "string") {
+    try {
+      return JSON.parse(metadata);
+    } catch {
+      return undefined;
+    }
+  }
+  if (typeof metadata === "object") {
+    return metadata as TokenMetadata;
+  }
+  return undefined;
+};
+
+const getAttributeValue = (
+  attributes: TokenAttribute[],
+  key: string,
+): string | number | undefined => {
+  const entry = attributes.find(
+    (item) =>
+      item?.trait === key || item?.trait_type === key || item?.name === key,
+  );
+  return entry?.value ?? entry?.Value ?? entry?.display_type;
+};
 
 export const Home = () => {
   useViewport();
@@ -59,11 +125,6 @@ export const Home = () => {
   const gameGrid: React.RefObject<HTMLDivElement> | null = useRef(null);
 
   const [isGameOn] = useState<"idle" | "isOn" | "isOver">("idle");
-
-  // State variables for modals
-  const [isMyGamesOpen, setIsMyGamesOpen] = useState(false);
-  const [myGames, setMyGames] = useState<any[]>([]);
-  const [loadingMyGames, setLoadingMyGames] = useState(false);
 
   const navigate = useNavigate();
 
@@ -96,152 +157,397 @@ export const Home = () => {
     });
   }, []);
 
-  const fetchMyGames = async (accountAddress: string) => {
-    setLoadingMyGames(true);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_PUBLIC_TORII}/graphql`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            query: `
-            query TokenBalances {
-              tokenBalances(accountAddress: "${accountAddress}") {
-                edges {
-                  node {
-                    tokenMetadata {
-                      ... on ERC721__Token {
-                        tokenId
-                        metadata
-                        metadataName
-                        metadataDescription
-                        metadataAttributes
-                      }
-                    }
-                  }
-                }
-                totalCount
-              }
-            }
-          `,
-          }),
-        }
-      );
-      const data = await response.json();
-      const games =
-        data.data?.tokenBalances?.edges?.map(
-          (edge: any) => edge.node.tokenMetadata
-        ) || [];
-      setMyGames(games);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (e) {
-      setMyGames([]);
+  const shouldFetchMyGames = Boolean(account?.address);
+
+  // Use metagame SDK for sepolia/mainnet
+  const metagameResult = useGameTokens({
+    owner: !isSlotMode && shouldFetchMyGames ? account?.address : undefined,
+    sortBy: "minted_at",
+    sortOrder: "desc",
+    limit: !isSlotMode && shouldFetchMyGames ? 100 : 0,
+    includeMetadata: true,
+    gameAddresses: gameSystemAddress ? [gameSystemAddress] : undefined,
+  });
+
+  // Check if metagame SDK failed to return results (use as fallback trigger)
+  const metagameFailed = !isSlotMode && 
+    shouldFetchMyGames && 
+    !metagameResult.loading && 
+    !metagameResult.metadataLoading && 
+    (!metagameResult.games || metagameResult.games.length === 0);
+
+  // Use RECS query for slot mode OR as fallback when metagame fails
+  const slotResult = useGameTokensSlot({
+    owner: (isSlotMode || metagameFailed) && shouldFetchMyGames ? account?.address : undefined,
+    limit: (isSlotMode || metagameFailed) && shouldFetchMyGames ? 100 : 0,
+    forceRecs: metagameFailed, // Force RECS query on sepolia/mainnet when metagame fails
+  });
+
+  // Use metagame results first, fall back to RECS query if metagame fails
+  const {
+    games: ownedGames,
+    loading: ownedGamesLoading,
+    metadataLoading: ownedMetadataLoading,
+    refetch: refetchOwnedGames,
+  } = isSlotMode 
+    ? slotResult 
+    : metagameFailed 
+      ? slotResult 
+      : metagameResult;
+
+  // Debug logging for game token queries
+  useEffect(() => {
+    console.log("[Home.tsx] Game Token Query:", {
+      isSlotMode,
+      metagameFailed,
+      shouldFetchMyGames,
+      ownerAddress: account?.address,
+      gameSystemAddress,
+      source: isSlotMode ? "slot" : metagameFailed ? "recs-fallback" : "metagame",
+      metagameStatus: {
+        loading: metagameResult.loading,
+        metadataLoading: metagameResult.metadataLoading,
+        gamesCount: metagameResult.games?.length ?? 0,
+      },
+      slotStatus: {
+        loading: slotResult.loading,
+        gamesCount: slotResult.games?.length ?? 0,
+      },
+      finalResults: {
+        gamesCount: ownedGames?.length ?? 0,
+        loading: ownedGamesLoading,
+        metadataLoading: ownedMetadataLoading,
+        games: ownedGames?.slice(0, 3), // Log first 3 games for debugging
+      },
+    });
+  }, [isSlotMode, metagameFailed, shouldFetchMyGames, account?.address, metagameResult, slotResult, ownedGames, ownedGamesLoading, ownedMetadataLoading]);
+
+  const playerGames: PlayerGameRow[] = useMemo(() => {
+    if (!ownedGames?.length) return [];
+    return ownedGames.map((game: GameTokenData) => {
+      const metadata = parseTokenMetadata(game.metadata);
+      const attributes = Array.isArray(metadata?.attributes)
+        ? (metadata?.attributes as TokenAttribute[])
+        : [];
+      const levelAttr = getAttributeValue(attributes, "Level");
+      const totalCubesAttr = getAttributeValue(attributes, "Total Cubes");
+      const totalScoreAttr = getAttributeValue(attributes, "Total Score");
+      const cubesBroughtAttr = getAttributeValue(attributes, "Cubes Brought");
+      const cubesSpentAttr = getAttributeValue(attributes, "Cubes Spent");
+
+      // Calculate available cubes: totalCubes + cubesBrought - cubesSpent
+      const totalCubes = Number(totalCubesAttr) || 0;
+      const cubesBrought = Number(cubesBroughtAttr) || 0;
+      const cubesSpent = Number(cubesSpentAttr) || 0;
+      const cubesAvailable = Math.max(0, totalCubes + cubesBrought - cubesSpent);
+
+      return {
+        tokenId: game.token_id,
+        name:
+          metadata?.name || game.gameMetadata?.name || `Game #${game.token_id}`,
+        level: levelAttr ?? 1,
+        totalCubes: totalCubesAttr ?? 0,
+        cubesBrought: cubesBroughtAttr ?? 0,
+        cubesSpent: cubesSpentAttr ?? 0,
+        cubesAvailable,
+        totalScore: totalScoreAttr ?? game.score ?? 0,
+        gameOver: Boolean(game.game_over),
+      };
+    });
+  }, [ownedGames]);
+
+  const myGamesLoading =
+    shouldFetchMyGames && (ownedGamesLoading || ownedMetadataLoading);
+
+  const formatStat = (value: string | number | undefined) => {
+    if (value === undefined || value === null || value === "") {
+      return "-";
     }
-    setLoadingMyGames(false);
+    return value.toString();
   };
 
-  // Define render functions
-  const renderDesktopView = () => (
-    <>
-      <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center mt-4">
-        <PlayFreeGame />
-      </div>
-      <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-start justify-center">
-        <Button
-          variant="default"
-          onClick={() => {
-            setIsMyGamesOpen(true);
-            if (account?.address) fetchMyGames(account.address);
-          }}
-          className="w-[300px] text-lg transition-transform duration-300 ease-in-out hover:scale-105"
-        >
-          My Games
-        </Button>
-      </div>
-      <Dialog open={isMyGamesOpen} onOpenChange={setIsMyGamesOpen}>
-        <DialogContent>
-          <DialogHeader>My Games</DialogHeader>
-          {loadingMyGames ? (
-            <div>Loading...</div>
-          ) : (
-            <Table>
+  const renderMyGamesTable = (games: PlayerGameRow[]) => {
+    if (!isMdOrLarger) {
+      return (
+        <div className="space-y-4 max-h-[360px] overflow-y-auto pr-1 hide-scrollbar">
+          {games.map((game) => (
+            <div
+              key={game.tokenId}
+              className="rounded-xl border border-white/20 bg-black/60 p-4 shadow-lg backdrop-blur-sm"
+            >
+              <div className="flex items-center justify-between">
+                <div className="text-base font-semibold text-white">
+                  <span className="text-slate-400 mr-1">#{game.tokenId}</span>
+                  {game.name}
+                </div>
+                {!game.gameOver ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => navigate(`/play/${game.tokenId}`)}
+                  >
+                    Resume
+                  </Button>
+                ) : (
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-300">
+                    Finished
+                  </span>
+                )}
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-3 text-sm text-slate-200">
+                <div>
+                  <p className="text-xs uppercase text-slate-400">Level</p>
+                  <p className="text-base font-semibold">
+                    {formatStat(game.level)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase text-slate-400">Score</p>
+                  <p className="text-base font-semibold">
+                    {formatStat(game.totalScore)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase text-slate-400">Cubes</p>
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p className="text-base font-semibold text-yellow-400 cursor-help">
+                          {formatStat(game.cubesAvailable)} 🧊
+                        </p>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="bottom"
+                        className="bg-slate-800 border border-slate-600 p-3 max-w-[200px]"
+                      >
+                        <div className="space-y-1">
+                          <div className="text-xs font-semibold text-white mb-1.5">Cubes Breakdown</div>
+                          <div className="flex justify-between text-xs gap-4">
+                            <span className="text-slate-400">Earned</span>
+                            <span className="text-yellow-400 font-medium">{formatStat(game.totalCubes)}</span>
+                          </div>
+                          {Number(game.cubesBrought) > 0 && (
+                            <div className="flex justify-between text-xs gap-4">
+                              <span className="text-slate-400">Brought</span>
+                              <span className="text-blue-400 font-medium">{formatStat(game.cubesBrought)}</span>
+                            </div>
+                          )}
+                          {Number(game.cubesSpent) > 0 && (
+                            <div className="flex justify-between text-xs gap-4">
+                              <span className="text-slate-400">Spent</span>
+                              <span className="text-red-400 font-medium">-{formatStat(game.cubesSpent)}</span>
+                            </div>
+                          )}
+                          {(Number(game.cubesBrought) > 0 || Number(game.cubesSpent) > 0) && (
+                            <div className="flex justify-between text-xs gap-4 pt-1 border-t border-slate-600">
+                              <span className="text-slate-300 font-medium">Available</span>
+                              <span className="text-yellow-400 font-semibold">{formatStat(game.cubesAvailable)}</span>
+                            </div>
+                          )}
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/40">
+        <div className="overflow-x-auto">
+          <div className="max-h-[320px] overflow-y-auto pr-2 hide-scrollbar">
+            <Table className="min-w-[640px] text-sm">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Game</TableHead>
-                  <TableHead>Score</TableHead>
-                  <TableHead>Combo</TableHead>
-                  <TableHead>Max Combo</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-slate-400">
+                    Game
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-slate-400">
+                    Level
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-slate-400">
+                    Total Score
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-slate-400">
+                    Cubes
+                  </TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-slate-400">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {myGames.map((game) => {
-                  let score = "-",
-                    combo = "-",
-                    maxCombo = "-";
-                  try {
-                    const attrs = JSON.parse(game.metadataAttributes);
-                    score =
-                      attrs.find((a: any) => a.trait === "Score")?.value ?? "-";
-                    combo =
-                      attrs.find((a: any) => a.trait === "Combo")?.value ?? "-";
-                    maxCombo =
-                      attrs.find((a: any) => a.trait === "Max Combo")?.value ??
-                      "-";
-                  } catch (e) {
-                    console.error("Error parsing metadata attributes", e);
-                  }
-                  return (
-                    <TableRow key={game.tokenId}>
-                      <TableCell>{game.metadataName}</TableCell>
-                      <TableCell>{score}</TableCell>
-                      <TableCell>{combo}</TableCell>
-                      <TableCell>{maxCombo}</TableCell>
-                      <TableCell>
+                {games.map((game) => (
+                  <TableRow key={game.tokenId} className="text-base">
+                    <TableCell>
+                      <span className="text-slate-400 mr-1">
+                        #{game.tokenId}
+                      </span>
+                      {game.name}
+                    </TableCell>
+                    <TableCell>{formatStat(game.level)}</TableCell>
+                    <TableCell>{formatStat(game.totalScore)}</TableCell>
+                    <TableCell className="text-yellow-400">
+                        <TooltipProvider delayDuration={0}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="cursor-help">{formatStat(game.cubesAvailable)} 🧊</span>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="bottom"
+                              className="bg-slate-800 border border-slate-600 p-3 max-w-[200px]"
+                            >
+                              <div className="space-y-1">
+                                <div className="text-xs font-semibold text-white mb-1.5">Cubes Breakdown</div>
+                                <div className="flex justify-between text-xs gap-4">
+                                  <span className="text-slate-400">Earned</span>
+                                  <span className="text-yellow-400 font-medium">{formatStat(game.totalCubes)}</span>
+                                </div>
+                                {Number(game.cubesBrought) > 0 && (
+                                  <div className="flex justify-between text-xs gap-4">
+                                    <span className="text-slate-400">Brought</span>
+                                    <span className="text-blue-400 font-medium">{formatStat(game.cubesBrought)}</span>
+                                  </div>
+                                )}
+                                {Number(game.cubesSpent) > 0 && (
+                                  <div className="flex justify-between text-xs gap-4">
+                                    <span className="text-slate-400">Spent</span>
+                                    <span className="text-red-400 font-medium">-{formatStat(game.cubesSpent)}</span>
+                                  </div>
+                                )}
+                                {(Number(game.cubesBrought) > 0 || Number(game.cubesSpent) > 0) && (
+                                  <div className="flex justify-between text-xs gap-4 pt-1 border-t border-slate-600">
+                                    <span className="text-slate-300 font-medium">Available</span>
+                                    <span className="text-yellow-400 font-semibold">{formatStat(game.cubesAvailable)}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TableCell>
+                    <TableCell>
+                      {!game.gameOver ? (
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() =>
-                            navigate(`/play/${parseInt(game.tokenId, 16)}`)
-                          }
+                          onClick={() => navigate(`/play/${game.tokenId}`)}
                         >
                           Play
                         </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                      ) : (
+                        <span className="text-sm text-muted-foreground">
+                          Completed
+                        </span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderMyGamesContent = () => {
+    if (!account?.address) {
+      return <div>Connect your wallet to view your games.</div>;
+    }
+    if (myGamesLoading) {
+      return <div>Loading...</div>;
+    }
+    if (!playerGames.length) {
+      return <div>You have no games yet.</div>;
+    }
+
+    const activeGames = playerGames.filter((game) => !game.gameOver);
+    const completedGames = playerGames.filter((game) => game.gameOver);
+
+    return (
+      <div className="space-y-6 px-1 sm:px-0">
+        <div>
+          <h3 className="text-lg font-semibold mb-2">In Progress</h3>
+          {activeGames.length ? (
+            renderMyGamesTable(activeGames)
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No active games yet.
+            </p>
           )}
-        </DialogContent>
-      </Dialog>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Finished</h3>
+          {completedGames.length ? (
+            renderMyGamesTable(completedGames)
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No finished games yet.
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Define render functions
+  const MyGamesSection = () => (
+    <div className="w-full max-w-4xl px-4 sm:px-0">
+      <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-black/70 via-slate-900/70 to-black/80 shadow-2xl backdrop-blur-xl p-5 sm:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-2xl font-semibold text-white">My Games</h2>
+          <div className="flex items-center gap-3 text-sm text-slate-300">
+            <div className="rounded-full border border-white/20 px-3 py-1">
+              {playerGames.length
+                ? `${playerGames.length} saved`
+                : "No games yet"}
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => refetchOwnedGames?.()}
+              disabled={myGamesLoading}
+              className="h-8 w-8 border-white/30 text-white hover:bg-white/10"
+            >
+              <FontAwesomeIcon icon={faRotateRight} />
+            </Button>
+          </div>
+        </div>
+        <div className="mt-6">{renderMyGamesContent()}</div>
+      </div>
+    </div>
+  );
+
+  const renderDesktopView = () => (
+    <>
+      <div className="flex flex-col sm:flex-row w-full gap-4 sm:gap-8 items-center justify-center mt-4">
+        <PlayFreeGame onMintSuccess={refetchOwnedGames} />
+      </div>
+      <div className="flex w-full justify-center mt-6">
+        <MyGamesSection />
+      </div>
     </>
   );
 
   const renderMobileView = () => (
-    <div className="flex flex-col w-full gap-4 px-4 mt-4">
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button
-            className="w-full bg-primary text-white text-lg py-6 border-4 shadow-lg bg-sky-900 font-sans rounded-none"
-            variant="brutal"
-          >
-            Play !
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="w-[95%]  flex flex-col justify-center p-8">
-          <DialogHeader className="flex flex-row gap-3 items-center justify-center w-full space-y-0">
-            <HeaderBalance />
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+    <div className="flex flex-col w-full gap-6 px-4 mt-4 items-center">
+      <div className="w-[300px]">
+        <PlayFreeGame onMintSuccess={refetchOwnedGames} />
+      </div>
+      <MyGamesSection />
     </div>
   );
 
   return (
-    <div className="h-screen-viewport flex flex-col w-full" id="portal-root">
+    <div
+      className="h-screen-viewport flex flex-col w-full overflow-auto hide-scrollbar"
+      id="portal-root"
+    >
       <Header onStartTutorial={startTutorial} showTutorial={true} />
 
       {/* Content Area */}
@@ -259,7 +565,7 @@ export const Home = () => {
               ease: "easeInOut",
             }}
           >
-            <div className="relative flex flex-col gap-4 sm:gap-8 flex-grow items-center justify-start overflow-auto h-full">
+            <div className="relative flex flex-col gap-4 sm:gap-8 flex-grow items-center justify-start overflow-auto hide-scrollbar h-full">
               <div className="flex flex-col items-center gap-4 sm:gap-8 w-full max-w-4xl mt-2 sm:mt-4 p-2 md:p-0 h-full">
                 {tutorialState.isActive ? (
                   <Tutorial
@@ -326,16 +632,7 @@ export const Home = () => {
                             nextLine={game.isOver() ? [] : game.next_row}
                             score={game.isOver() ? 0 : game.score}
                             combo={game.isOver() ? 0 : game.combo}
-                            maxCombo={game.isOver() ? 0 : game.max_combo}
-                            hammerCount={
-                              game.isOver() ? 0 : game.hammer - game.hammer_used
-                            }
-                            totemCount={
-                              game.isOver() ? 0 : game.totem - game.totem_used
-                            }
-                            waveCount={
-                              game.isOver() ? 0 : game.wave - game.wave_used
-                            }
+                            maxCombo={game.isOver() ? 0 : game.maxComboRun}
                             account={account}
                             game={game}
                           />

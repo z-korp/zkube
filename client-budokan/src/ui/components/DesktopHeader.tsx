@@ -1,13 +1,18 @@
 import Connect from "./Connect";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
-// import HeaderBalance from "./HeaderBalance";
-import { useCallback, useState } from "react";
+import CubeBalance from "./CubeBalance";
+import { useCallback, useState, useMemo } from "react";
 import SettingsDropDown from "./SettingsDropDown";
 import { useNavigate } from "react-router-dom";
 import { Controller } from "./Controller";
 import TutorialModal from "./Tutorial/TutorialModal";
 import { Button } from "../elements/button";
 import { HeaderLeaderboard } from "./HeaderLeaderboard";
+import { ShopButton } from "./Shop/ShopButton";
+import { QuestsButton } from "./Quest/QuestsButton";
+import { AchievementsButton } from "./AchievementsButton";
+
+const TUTORIAL_PROGRESS_KEY = "zkube_tutorial_step";
 
 interface DesktopHeaderProps {
   onStartTutorial: () => void;
@@ -22,8 +27,27 @@ const DesktopHeader = ({
 
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
 
+  // Check if user has existing tutorial progress
+  const hasTutorialProgress = useMemo(() => {
+    try {
+      const saved = localStorage.getItem(TUTORIAL_PROGRESS_KEY);
+      return saved !== null;
+    } catch {
+      return false;
+    }
+  }, []);
+
   const changeTutorialOpen = () => {
     setIsTutorialOpen(!isTutorialOpen);
+  };
+
+  const handleTutorialButtonClick = () => {
+    // If user has progress, skip modal and start directly
+    if (hasTutorialProgress) {
+      onStartTutorial();
+    } else {
+      changeTutorialOpen();
+    }
   };
 
   const handleStartTutorial = () => {
@@ -38,7 +62,7 @@ const DesktopHeader = ({
   }, [navigate]);
 
   return (
-    <div className="flex justify-center items-center p-4 flex-wrap md:justify-between">
+    <div className="flex w-full items-center justify-center p-4 md:justify-between rounded-3xl bg-gradient-to-b from-black/70 via-slate-900/70 to-black/80 shadow-2xl backdrop-blur-xl">
       <div
         className="cursor-pointer flex gap-8 items-center"
         onClick={handleClick}
@@ -49,7 +73,7 @@ const DesktopHeader = ({
             variant="outline"
             onClick={(e) => {
               e.stopPropagation();
-              changeTutorialOpen();
+              handleTutorialButtonClick();
             }}
           >
             Tutorial
@@ -63,14 +87,17 @@ const DesktopHeader = ({
         />
       </div>
       <div className="flex flex-col gap-4 items-center md:flex-row">
-        {!!account && (
-          <div className="flex gap-4 flex-1 justify-end px-4 w-2/4">
-            {/* <HeaderBalance /> */}
+        {account ? (
+          <div className="flex gap-4 flex-1 justify-end items-center px-4">
+            <CubeBalance />
+            <QuestsButton />
+            <AchievementsButton />
+            <ShopButton />
             <Controller />
           </div>
+        ) : (
+          ACCOUNT_CONNECTOR === "controller" && <Connect />
         )}
-
-        {ACCOUNT_CONNECTOR === "controller" && <Connect />}
         <div className="flex gap-4">
           <SettingsDropDown />
         </div>

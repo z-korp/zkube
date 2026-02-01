@@ -1,0 +1,26 @@
+[
+  {
+    "contractAddress": "0x051Fea4450Da9D6aeE758BDEbA88B2f665bCbf549D2C61421AA724E9AC0Ced8F",
+    "entrypoint": "request_random"
+  },
+  {
+    "contractAddress": "0x79c30d00719faea99297075e22fd84260f39960e14239f2018ba5d1dc1ab907",
+    "entrypoint": "create"
+  },
+  {
+    "contractAddress": "0x79c30d00719faea99297075e22fd84260f39960e14239f2018ba5d1dc1ab907",
+    "entrypoint": "attack"
+  },
+  {
+    "contractAddress": "0x79c30d00719faea99297075e22fd84260f39960e14239f2018ba5d1dc1ab907",
+    "entrypoint": "surrender"
+  },
+  {
+    "contractAddress": "0x79c30d00719faea99297075e22fd84260f39960e14239f2018ba5d1dc1ab907",
+    "entrypoint": "move"
+  },
+  {
+    "contractAddress": "0x79c30d00719faea99297075e22fd84260f39960e14239f2018ba5d1dc1ab907",
+    "entrypoint": "apply_bonus"
+  }
+]

@@ -1,0 +1,60 @@
+[workspace]
+members = [
+    "contracts",
+    # packages kept for reference but not built:
+    # "packages/game_erc721",
+    # "packages/token",
+]
+
+[workspace.package]
+version = "1.2.0"
+edition = "2024_07"
+cairo-version = "2.13.1"
+
+[workspace.dependencies]
+# Starknet core
+starknet = "2.13.1"
+
+# OpenZeppelin
+openzeppelin_token = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0-alpha.3" }
+openzeppelin_access = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0-alpha.3" }
+openzeppelin_introspection = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0-alpha.3" }
+openzeppelin_security = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0-alpha.3" }
+openzeppelin_upgrades = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0-alpha.3" }
+openzeppelin_interfaces = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v3.0.0-alpha.3" }
+
+# Dojo (only for contracts)
+dojo = "1.8.0"
+
+# Alexandria
+alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.7.0" }
+alexandria_encoding = { git = "https://github.com/keep-starknet-strange/alexandria.git", tag = "v0.7.0" }
+
+# Game components
+game_components_minigame = { git = "https://github.com/Provable-Games/game-components", tag = "v2.13.1" }
+game_components_token = { git = "https://github.com/Provable-Games/game-components", tag = "v2.13.1" }
+game_components_metagame = { git = "https://github.com/Provable-Games/game-components", tag = "v2.13.1" }
+game_components_utils = { git = "https://github.com/Provable-Games/game-components", tag = "v2.13.1" }
+
+# Other
+origami_random = { git = "https://github.com/dojoengine/origami", tag = "v1.7.0" }
+graffiti = { git = "https://github.com/ponderingdemocritus/graffiti", rev = "bc569531791dbc71c6cd8d9bc154c34eedad31fe" }
+
+# Cartridge Arcade (quests & achievements)
+quest = { git = "https://github.com/cartridge-gg/arcade", rev = "1c66ba7" }
+achievement = { git = "https://github.com/cartridge-gg/arcade", rev = "1c66ba7" }
+
+# Testing
+snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry", tag = "v0.32.0" }
+assert_macros = "2.13.1"
+dojo_cairo_test = "1.8.0"
+cairo_test = "2.13.1"
+
+# Patch for graffiti
+[patch."https://github.com/bal7hazar/graffiti"]
+graffiti = { git = "https://github.com/ponderingdemocritus/graffiti", rev = "bc569531791dbc71c6cd8d9bc154c34eedad31fe" }
+
+# Profiles for deployment
+[profile.slot]
+[profile.sepolia]
+[profile.mainnet]

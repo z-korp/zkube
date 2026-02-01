@@ -8,6 +8,8 @@ const SoundAssets = (theme: string) => {
     jungle3: PathAssets + "sounds/musics/theme-jungle3.mp3",
     swipe: PathAssets + "sounds/effects/swipe.mp3",
     explode: PathAssets + "sounds/effects/explode.mp3",
+    // Use 'new' sound for constraint satisfaction (achievement-like sound)
+    success: PathAssets + "sounds/effects/new.mp3",
   };
 };
 

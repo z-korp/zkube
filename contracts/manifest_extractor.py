@@ -14,12 +14,8 @@ def extract_system_addresses(json_data, namespace=None):
     """
     # Systems we want to extract
     target_systems = {
-        'minter': get_system_tag('minter', namespace),
-        'tournament': get_system_tag('tournament', namespace),
-        'chest': get_system_tag('chest', namespace),
-        'zkorp': get_system_tag('zkorp', namespace),
-        'play': get_system_tag('play', namespace),
-        'settings': get_system_tag('settings', namespace),
+        'game_system': get_system_tag('game_system', namespace),
+        'achievement_system': get_system_tag('achievement_system', namespace),   
     }
     
     # Initialize results dictionary
@@ -41,11 +37,8 @@ def extract_system_addresses(json_data, namespace=None):
         f"    <default_admin> \\\n"
         f"    <pauser> \\\n"
         f"    <erc20_token> \\\n"
-        f"    {addresses['tournament']} \\\n"
-        f"    {addresses['chest']} \\\n"
-        f"    {addresses['zkorp']} \\\n"
-        f"    {addresses['play']} \\\n"
-        f"    {addresses['minter']}"
+        f"    {addresses['game_system']} \\\n"
+        f"    {addresses['achievement_system']} \\\n"
     )
     
     return addresses, command

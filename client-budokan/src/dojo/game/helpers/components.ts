@@ -18,15 +18,3 @@ export const translateName = (selector: any) => {
   );
   return model?.tag?.split("-")[1];
 };
-
-export const components = {
-  TokenMetadata: {
-    tokenId: Number(),
-    mintedBy: null,
-    playerName: String(),
-    settingsId: Number(),
-    mintedAt: Number(),
-    availableAt: Number(),
-    expiresAt: Number(),
-  },
-};

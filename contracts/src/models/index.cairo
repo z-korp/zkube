@@ -1,0 +1,8 @@
+// Model re-exports for cleaner imports
+// Usage: use zkube::models::{Game, GameTrait, GameSettings, PlayerMeta};
+
+pub use crate::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};
+
+pub use crate::models::game::{Game, GameSeed, GameTrait, GameAssert, AssertTrait, ZeroableGame};
+
+pub use crate::models::player::{PlayerMeta, PlayerMetaTrait};

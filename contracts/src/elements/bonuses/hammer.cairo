@@ -28,18 +28,4 @@ pub impl BonusImpl of BonusTrait {
 
         bitmap.try_into().unwrap()
     }
-
-    #[inline(always)]
-    fn get_count(score: u16, combo_count: u16, max_combo: u8) -> u8 {
-        if score >= 120 {
-            return 3;
-        }
-        if score >= 80 {
-            return 2;
-        }
-        if score >= 40 {
-            return 1;
-        }
-        return 0;
-    }
 }

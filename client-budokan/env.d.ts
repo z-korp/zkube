@@ -6,6 +6,12 @@ interface ImportMetaEnv {
     | "sepoliadev2"
     | "slot"
     | "slotdev";
+  readonly VITE_PUBLIC_NODE_URL: string;
+  readonly VITE_PUBLIC_TORII: string;
+  readonly VITE_PUBLIC_DENSHOKAN_ADDRESS: string;
+  readonly VITE_PUBLIC_METAGAME_TORII_URL: string;
+  readonly VITE_PUBLIC_METAGAME_NAMESPACE: string;
+  readonly VITE_PUBLIC_LEADERBOARD_EXCLUDED_NAMES?: string;
 }
 
 interface ImportMeta {

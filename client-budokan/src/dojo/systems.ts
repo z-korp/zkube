@@ -13,12 +13,50 @@ import {
   notify,
 } from "@/utils/toast";
 import { useMoveStore } from "@/stores/moveTxStore";
-import { dojoConfig } from "../../dojo.config";
 
 export type SystemCalls = ReturnType<typeof systems>;
 
+// Helper to delay execution
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Maximum retries for pre-confirmed transaction waiting
+const MAX_RETRIES = 5;
+const RETRY_DELAY_MS = 500;
+const POLL_INTERVAL_MS = 275;
+
 export function systems({ client }: { client: IWorld }) {
   const toastPlacement = getToastPlacement();
+
+  /**
+   * Wait for a transaction to reach PRE_CONFIRMED status (or better).
+   * Uses Starknet's new pre-confirmation feature for faster feedback.
+   * Retries on failure with exponential backoff.
+   */
+  const waitForPreConfirmedTransaction = async (
+    account: Account,
+    txHash: string,
+    retries = 0
+  ): Promise<TransactionReceipt & { events: any[] }> => {
+    if (retries > MAX_RETRIES) {
+      throw new Error("Transaction confirmation timed out after max retries");
+    }
+
+    try {
+      const receipt = (await account.waitForTransaction(txHash, {
+        retryInterval: POLL_INTERVAL_MS,
+        successStates: ["PRE_CONFIRMED", "ACCEPTED_ON_L2", "ACCEPTED_ON_L1"],
+      })) as TransactionReceipt & { events: any[] };
+
+      return receipt;
+    } catch (error) {
+      console.warn(
+        `Pre-confirm wait failed (attempt ${retries + 1}/${MAX_RETRIES + 1}):`,
+        error
+      );
+      await delay(RETRY_DELAY_MS);
+      return waitForPreConfirmedTransaction(account, txHash, retries + 1);
+    }
+  };
 
   const handleTransaction = async (
     account: Account,
@@ -56,13 +94,26 @@ export function systems({ client }: { client: IWorld }) {
         });
       }
 
-      // Wait for completion
-      const receipt = (await account.waitForTransaction(transaction_hash, {
-        retryInterval: 200,
-      })) as TransactionReceipt & { events: any[] };
+      // Wait for pre-confirmed status (faster than full L2 confirmation)
+      const receipt = await waitForPreConfirmedTransaction(
+        account,
+        transaction_hash
+      );
       const events = receipt.events;
       console.log("events", receipt.events);
       console.log("1) transaction", receipt);
+
+      // Check if transaction was reverted
+      if ((receipt as any).execution_status === "REVERTED") {
+        console.error("Transaction reverted:", receipt);
+        if (shouldShowToast()) {
+          toast.error("Transaction reverted.", {
+            id: toastId,
+            position: toastPlacement,
+          });
+        }
+        throw new Error("Transaction reverted");
+      }
 
       // Notify success using same toastId
       notify(successMessage, receipt, toastId);
@@ -71,7 +122,12 @@ export function systems({ client }: { client: IWorld }) {
       console.error("Error executing transaction:", error);
 
       if (shouldShowToast()) {
-        toast.error("Transaction failed.", {
+        // Don't override if we already showed a revert error
+        const errorMessage =
+          error instanceof Error && error.message === "Transaction reverted"
+            ? "Transaction reverted."
+            : "Transaction failed.";
+        toast.error(errorMessage, {
           id: toastId,
           position: toastPlacement,
         });
@@ -81,37 +137,63 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
-  const translateName = (selector: string) => {
-    const model = dojoConfig().manifest.models.find(
-      (model: any) => model.selector === selector
-    );
-    return model?.tag?.split("-")[1];
-  };
-
-  const translateEvent = (event: any) => {
-    const name = translateName(event.keys[1]);
-    const data = event.data;
-    return { name, data };
-  };
-
   const freeMint = async ({
     account,
     settingsId,
     ...props
   }: SystemTypes.FreeMint): Promise<{ game_id: number }> => {
-    const { events } = await handleTransaction(
+    const { transaction_hash, events } = await handleTransaction(
       account,
       () => client.game.free_mint({ account, ...props, settingsId }),
       "Game has been minted."
     );
+    console.info(
+      "[freeMint] Transaction hash",
+      transaction_hash,
+      getUrl(transaction_hash)
+    );
+
+    // Log all events with full details for debugging
+    console.log("=== FULL EVENT DATA ===");
+    events.forEach((event: any, index: number) => {
+      console.log(`Event ${index}:`, {
+        from_address: event.from_address,
+        keys: event.keys,
+        data: event.data,
+        keys_length: event.keys?.length,
+        data_length: event.data?.length,
+      });
+    });
+    console.log("=== END EVENT DATA ===");
+
+    // Try to extract token_id from Transfer event (ERC721)
+    // Transfer event has 5 keys: [selector, from, to, token_id_low, token_id_high]
+    const transferEvent = events.find(
+      (event: any) => event.keys?.length === 5 && event.data?.length === 0
+    );
 
     let game_id = 0;
-    events.forEach((event) => {
-      const { name, data } = translateEvent(event);
-      if (name == "TokenMetadata") {
-        game_id = parseInt(data[1], 16);
+    if (transferEvent) {
+      // token_id is in keys[3] (low) and keys[4] (high) for u256
+      const tokenIdLow = BigInt(transferEvent.keys[3] || "0");
+      const tokenIdHigh = BigInt(transferEvent.keys[4] || "0");
+      game_id = Number(tokenIdLow + (tokenIdHigh << 128n));
+      console.log("Extracted token_id from Transfer event:", game_id, {
+        low: transferEvent.keys[3],
+        high: transferEvent.keys[4],
+      });
+    } else {
+      // Fallback: try TokenMetadata event with data.length === 11
+      const tokenMetadataEvent = events.find(
+        (event: any) => event.data.length === 11
+      );
+      if (tokenMetadataEvent) {
+        game_id = parseInt(tokenMetadataEvent.data[1], 16);
+        console.log("Fallback: extracted game_id from TokenMetadata:", game_id);
+      } else {
+        console.warn("Could not find Transfer or TokenMetadata event");
       }
-    });
+    }
 
     console.log("game_id", game_id);
 
@@ -168,6 +250,73 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
+  const upgradeStartingBonus = async ({ account, ...props }: SystemTypes.ShopUpgrade) => {
+    await handleTransaction(
+      account,
+      () => client.shop.upgrade_starting_bonus({ account, ...props }),
+      "Starting bonus upgraded!"
+    );
+  };
+
+  const upgradeBagSize = async ({ account, ...props }: SystemTypes.ShopUpgrade) => {
+    await handleTransaction(
+      account,
+      () => client.shop.upgrade_bag_size({ account, ...props }),
+      "Bag size upgraded!"
+    );
+  };
+
+  const upgradeBridgingRank = async ({ account }: SystemTypes.Signer) => {
+    await handleTransaction(
+      account,
+      () => client.shop.upgrade_bridging_rank({ account }),
+      "Bridging rank upgraded!"
+    );
+  };
+
+  const unlockBonus = async ({ account, ...props }: SystemTypes.UnlockBonus) => {
+    await handleTransaction(
+      account,
+      () => client.shop.unlock_bonus({ account, ...props }),
+      "Bonus unlocked!"
+    );
+  };
+
+  const purchaseConsumable = async ({ account, ...props }: SystemTypes.PurchaseConsumable) => {
+    const setMoveComplete = useMoveStore.getState().setMoveComplete;
+    setMoveComplete(false);
+    try {
+      await handleTransaction(
+        account,
+        () => client.shop.purchase_consumable({ account, ...props }),
+        "Consumable purchased!"
+      );
+      setMoveComplete(true);
+    } catch (error) {
+      setMoveComplete(true);
+      throw error;
+    }
+  };
+
+  const levelUpBonus = async ({ account, ...props }: SystemTypes.LevelUpBonus) => {
+    await handleTransaction(
+      account,
+      () => client.shop.level_up_bonus({ account, ...props }),
+      "Bonus leveled up!"
+    );
+  };
+
+  const claimQuest = async ({ account, ...props }: SystemTypes.ClaimQuest) => {
+    if (!client.quest) {
+      throw new Error("Quest system not available");
+    }
+    await handleTransaction(
+      account,
+      () => client.quest!.claim({ account, ...props }),
+      "Quest reward claimed!"
+    );
+  };
+
   return {
     // play
     freeMint,
@@ -175,5 +324,15 @@ export function systems({ client }: { client: IWorld }) {
     surrender,
     move,
     applyBonus,
+    // in-game shop
+    purchaseConsumable,
+    levelUpBonus,
+    // permanent shop
+    upgradeStartingBonus,
+    upgradeBagSize,
+    upgradeBridgingRank,
+    unlockBonus,
+    // quests
+    claimQuest,
   };
 }
