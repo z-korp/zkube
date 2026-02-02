@@ -44,15 +44,14 @@ const SLOTS = {
 // VRF Provider address (same for Sepolia and Mainnet, not available on Slot)
 const VRF_ADDRESS = "0x051Fea4450Da9D6aeE758BDEbA88B2f665bCbf549D2C61421AA724E9AC0Ced8F";
 
-// Build session policies from manifest
+// Systems to exclude from policies (internal systems not called by users)
+const EXCLUDED_SYSTEMS = ["renderer_systems"];
+
+// Systems that should only include 'upgrade' entrypoint (internal)
+const INTERNAL_SYSTEMS = ["config_system", "grid_system", "level_system"];
+
+// Build session policies from manifest - includes ALL contracts
 const buildPoliciesFromManifest = (manifest: any, namespace: string, includeVrf: boolean = false): SessionPolicies => {
-  const getAddress = (name: string): string | undefined => 
-    getContractByName(manifest, namespace, name)?.address;
-
-  const gameSystem = getAddress("game_system");
-  const shopSystem = getAddress("shop_system");
-  const questSystem = getAddress("quest_system");
-
   const contracts: SessionPolicies["contracts"] = {};
 
   // VRF Provider (only for Sepolia/Mainnet)
@@ -69,104 +68,64 @@ const buildPoliciesFromManifest = (manifest: any, namespace: string, includeVrf:
     };
   }
 
-  // Game System
-  if (gameSystem) {
-    contracts[gameSystem] = {
-      description: "zKube Game System - Create and manage games",
-      methods: [
-        {
-          name: "Mint Game",
-          description: "Mint a new game NFT",
-          entrypoint: "mint_game",
-        },
-        {
-          name: "Create Game",
-          description: "Start a new game with your NFT",
-          entrypoint: "create",
-        },
-        {
-          name: "Create Game with Cubes",
-          description: "Start a game bringing cubes from your wallet",
-          entrypoint: "create_with_cubes",
-        },
-        {
-          name: "Surrender",
-          description: "Forfeit the current game",
-          entrypoint: "surrender",
-        },
-        {
-          name: "Move",
-          description: "Move blocks on the grid",
-          entrypoint: "move",
-        },
-        {
-          name: "Apply Bonus",
-          description: "Use a bonus ability (Hammer, Wave, Totem)",
-          entrypoint: "apply_bonus",
-        },
-        {
-          name: "Refresh Metadata",
-          description: "Refresh the NFT metadata",
-          entrypoint: "refresh_metadata",
-        },
-      ],
-    };
-  }
+  // Iterate through ALL contracts in the manifest
+  for (const contract of manifest.contracts) {
+    // Extract system name from tag (e.g., "zkube_budo_v1_2_0-game_system" -> "game_system")
+    const systemName = contract.tag.split("-").pop() || "";
+    
+    // Skip excluded systems
+    if (EXCLUDED_SYSTEMS.includes(systemName)) {
+      continue;
+    }
 
-  // Shop System
-  if (shopSystem) {
-    contracts[shopSystem] = {
-      description: "zKube Shop System - Upgrades and purchases",
-      methods: [
-        {
-          name: "Purchase Consumable",
-          description: "Buy a consumable from the in-game shop",
-          entrypoint: "purchase_consumable",
-        },
-        {
-          name: "Upgrade Starting Bonus",
-          description: "Upgrade your starting bonus count",
-          entrypoint: "upgrade_starting_bonus",
-        },
-        {
-          name: "Upgrade Bag Size",
-          description: "Increase your bonus bag capacity",
-          entrypoint: "upgrade_bag_size",
-        },
-        {
-          name: "Upgrade Bridging Rank",
-          description: "Increase max cubes you can bring to games",
-          entrypoint: "upgrade_bridging_rank",
-        },
-        {
-          name: "Unlock Bonus",
-          description: "Unlock a new bonus type",
-          entrypoint: "unlock_bonus",
-        },
-        {
-          name: "Level Up Bonus",
-          description: "Level up an existing bonus",
-          entrypoint: "level_up_bonus",
-        },
-      ],
-    };
-  }
+    // Filter out internal entrypoints
+    const userEntrypoints = (contract.systems as string[]).filter((entrypoint: string) => {
+      // Always exclude these internal entrypoints
+      if (["dojo_init", "upgrade"].includes(entrypoint)) {
+        return false;
+      }
+      // For internal systems, exclude all entrypoints
+      if (INTERNAL_SYSTEMS.includes(systemName)) {
+        return false;
+      }
+      return true;
+    });
 
-  // Quest System
-  if (questSystem) {
-    contracts[questSystem] = {
-      description: "zKube Quest System - Daily quests and rewards",
-      methods: [
-        {
-          name: "Claim Quest",
-          description: "Claim rewards for completed quests",
-          entrypoint: "claim",
-        },
-      ],
+    // Skip if no user-facing entrypoints
+    if (userEntrypoints.length === 0) {
+      continue;
+    }
+
+    // Build methods array for this contract
+    const methods = userEntrypoints.map((entrypoint: string) => ({
+      name: formatEntrypointName(entrypoint),
+      entrypoint,
+    }));
+
+    contracts[contract.address] = {
+      description: `zKube ${formatSystemName(systemName)}`,
+      methods,
     };
   }
 
   return { contracts };
+};
+
+// Helper to format entrypoint names for display
+const formatEntrypointName = (entrypoint: string): string => {
+  return entrypoint
+    .split("_")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+// Helper to format system names for display
+const formatSystemName = (systemName: string): string => {
+  return systemName
+    .replace(/_/g, " ")
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 };
 
 // Get configuration based on deploy type
