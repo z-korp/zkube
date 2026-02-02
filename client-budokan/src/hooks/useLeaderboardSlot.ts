@@ -1,7 +1,7 @@
 import { useDojo } from "@/dojo/useDojo";
 import { useEffect, useState, useCallback } from "react";
 import { getComponentValue, Has, runQuery } from "@dojoengine/recs";
-import { lookupAddresses } from "@cartridge/controller";
+import { useControllers } from "@/contexts/controllers";
 
 const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_TORII, VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
 export const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
@@ -113,6 +113,8 @@ export const useLeaderboardSlot = ({
       },
     },
   } = useDojo();
+
+  const { controllers, find: findController } = useControllers();
 
   const [games, setGames] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -231,30 +233,11 @@ export const useLeaderboardSlot = ({
           return (a.started_at ?? 0) - (b.started_at ?? 0);
         });
 
-        // Batch lookup usernames for addresses without player names
-        const addressesNeedingLookup = gameList
-          .filter((g) => g.player_address && !g.player_name)
-          .map((g) => g.player_address!)
-          .filter((addr, index, self) => self.indexOf(addr) === index); // Dedupe
-        
-        if (addressesNeedingLookup.length > 0) {
-          try {
-            const usernameMap = await lookupAddresses(addressesNeedingLookup);
-            // Update games with resolved usernames
-            for (const game of gameList) {
-              if (game.player_address && !game.player_name) {
-                const username = usernameMap.get(game.player_address);
-                game.player_name = username || truncateAddress(game.player_address);
-              }
-            }
-          } catch (error) {
-            console.error("[useLeaderboardSlot] Error looking up usernames:", error);
-            // Fallback to truncated addresses
-            for (const game of gameList) {
-              if (game.player_address && !game.player_name) {
-                game.player_name = truncateAddress(game.player_address);
-              }
-            }
+        // Resolve usernames for addresses without player names using controllers context
+        for (const game of gameList) {
+          if (game.player_address && !game.player_name) {
+            const controller = findController(game.player_address);
+            game.player_name = controller?.username || truncateAddress(game.player_address);
           }
         }
 
@@ -276,7 +259,7 @@ export const useLeaderboardSlot = ({
     };
 
     fetchGames();
-  }, [Game, refreshTrigger, shouldFetch]);
+  }, [Game, refreshTrigger, shouldFetch, findController, controllers]);
 
   return {
     games,
