@@ -178,7 +178,7 @@ trait IGameSystem {
 The game system tracks quest progress by calling `quest_system.progress()`:
 - On `create()`/`create_with_cubes()`: +1 to Grinder task (games played)
 - On `move()` with line clears: +N to LineClearer task
-- On `move()` with combos: +1 to ComboThree/ComboFive/ComboEight tasks
+- On `move()` with combos: +1 to ComboThree/ComboFive/ComboSeven tasks
 
 ### Shop System (`systems/shop.cairo`)
 
@@ -244,7 +244,7 @@ trait IQuestSystem {
 | DailyClearerThree | Lines cleared | 50 | 12 CUBE |
 | DailyComboOne | 3+ combos | 1 | 5 CUBE |
 | DailyComboTwo | 5+ combos | 1 | 10 CUBE |
-| DailyComboThree | 8+ combos | 1 | 20 CUBE |
+| DailyComboThree | 7+ combos | 1 | 20 CUBE |
 | DailyFinisher | All 9 quests | 9 | 25 CUBE |
 
 ### Config System (`systems/config.cairo`)

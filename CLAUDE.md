@@ -206,7 +206,7 @@ Daily quests for earning CUBE tokens (102 CUBE/day total):
 | Clearer | Line Master | Clear 50 lines | 12 CUBE |
 | Combo | Combo Starter | 3+ line combo | 5 CUBE |
 | Combo | Combo Builder | 5+ line combo | 10 CUBE |
-| Combo | Combo Expert | 8+ line combo | 20 CUBE |
+| Combo | Combo Expert | 7+ line combo | 20 CUBE |
 | Finisher | Daily Champion | Complete all 9 | 25 CUBE |
 
 ### Achievement System
