@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
 import { useQuests } from "@/contexts/quests";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { QuestFamilyCard } from "./QuestFamilyCard";
 import { useMemo, useCallback, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -23,6 +24,7 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
   const {
     setup: { systemCalls },
   } = useDojo();
+  const { addOptimistic } = useCubeBalance();
 
   // Separate main families from finisher
   const { mainFamilies, finisherFamily } = useMemo(() => {
@@ -43,8 +45,12 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
 
   // Handle claiming a quest
   const handleClaim = useCallback(
-    async (questId: string, intervalId: number) => {
+    async (questId: string, intervalId: number, reward: number) => {
       if (!account) return;
+      
+      // Optimistic update - add reward immediately
+      addOptimistic(reward);
+      
       // Convert quest ID string to felt252
       const questIdFelt = `0x${BigInt(shortString.encodeShortString(questId)).toString(16)}`;
       await systemCalls.claimQuest({
@@ -53,7 +59,7 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
         interval_id: intervalId,
       });
     },
-    [account, systemCalls]
+    [account, systemCalls, addOptimistic]
   );
 
   // Check if all families are fully claimed
@@ -144,7 +150,7 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
 // Special card for Daily Champion quest
 interface DailyChampionCardProps {
   family: ReturnType<typeof useQuests>['questFamilies'][0];
-  onClaim: (questId: string, intervalId: number) => Promise<void>;
+  onClaim: (questId: string, intervalId: number, reward: number) => Promise<void>;
   totalQuestsCompleted: number;
   totalQuests: number;
 }
@@ -172,7 +178,7 @@ const DailyChampionCard: React.FC<DailyChampionCardProps> = ({
   const handleClaim = async () => {
     setIsClaiming(true);
     try {
-      await onClaim(tier.questId, tier.intervalId);
+      await onClaim(tier.questId, tier.intervalId, tier.reward);
     } finally {
       setIsClaiming(false);
     }
