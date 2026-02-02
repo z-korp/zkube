@@ -1,11 +1,12 @@
 import type { Config } from "../../dojo.config.ts";
+import type { Manifest } from "@/config/manifest.ts";
 import {
   Account,
   CairoOption,
   CairoOptionVariant,
   CallData,
 } from "starknet";
-import { stringToFelt, type Manifest } from "@/cartridgeConnector.tsx";
+import { stringToFelt } from "@/cartridgeConnector.tsx";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 

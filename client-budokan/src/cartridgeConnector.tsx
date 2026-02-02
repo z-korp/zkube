@@ -1,7 +1,13 @@
 import { Connector } from "@starknet-react/core";
 import ControllerConnector from "@cartridge/connector/controller";
 import type { ControllerOptions, SessionPolicies } from "@cartridge/controller";
+import { getContractByName } from "@dojoengine/core";
 import { shortString } from "starknet";
+
+// Import manifests for each environment (same paths as config/manifest.ts)
+import manifestSlot from "../../contracts/manifest_slot.json";
+import manifestSepolia from "../../contracts/manifest_sepolia.json";
+import manifestMainnet from "../../contracts/manifest_mainnet.json";
 
 const { 
   VITE_PUBLIC_DEPLOY_TYPE, 
@@ -35,32 +41,23 @@ const SLOTS = {
   slot: VITE_PUBLIC_SLOT || "zkube",
 };
 
-// Contract addresses per network
-// Each system has its own contract address!
-const CONTRACT_ADDRESSES = {
-  sepolia: {
-    vrf: "0x051Fea4450Da9D6aeE758BDEbA88B2f665bCbf549D2C61421AA724E9AC0Ced8F",
-    game_system: "0x3aeb60202020a2b6a7b0ba3bbafc7f667836c2c89e07aac2a894c2b9b449d8f",
-    move_system: "0x1c58c509a7c347bfa20764926185286a1d18dbf4e5db9460c884e7bcaade7",
-    bonus_system: "0x6cbaf06ecf06b6daeccfc49bade313223d2bed87e470bde60e21f68ccade21a",
-    shop_system: "0x19ec8605f042620d5135a521866d3a8b20efd39ee24cc52753177ed6f9202ea",
-    quest_system: "0x51b40b705f5ed82d309b000ca6b0c31bae530ae4e0864cc9ebe78a7bb3f9a0e",
-  },
-  mainnet: {
-    vrf: "0x051Fea4450Da9D6aeE758BDEbA88B2f665bCbf549D2C61421AA724E9AC0Ced8F",
-    // TODO: Update these with actual mainnet addresses from manifest_mainnet.json
-    game_system: "0x79c30d00719faea99297075e22fd84260f39960e14239f2018ba5d1dc1ab907",
-    move_system: "0x0", // Need to get from mainnet manifest
-    bonus_system: "0x0",
-    shop_system: "0x0",
-    quest_system: "0x0",
-  },
-};
+// VRF Provider address (same for Sepolia and Mainnet, not available on Slot)
+const VRF_ADDRESS = "0x051Fea4450Da9D6aeE758BDEbA88B2f665bCbf549D2C61421AA724E9AC0Ced8F";
 
-// Build session policies for a given network's contracts
-const buildPolicies = (addresses: typeof CONTRACT_ADDRESSES.sepolia): SessionPolicies => ({
-  contracts: {
-    [addresses.vrf]: {
+// Build session policies from manifest
+const buildPoliciesFromManifest = (manifest: any, namespace: string, includeVrf: boolean = false): SessionPolicies => {
+  const getAddress = (name: string): string | undefined => 
+    getContractByName(manifest, namespace, name)?.address;
+
+  const gameSystem = getAddress("game_system");
+  const shopSystem = getAddress("shop_system");
+  const questSystem = getAddress("quest_system");
+
+  const contracts: SessionPolicies["contracts"] = {};
+
+  // VRF Provider (only for Sepolia/Mainnet)
+  if (includeVrf) {
+    contracts[VRF_ADDRESS] = {
       description: "Cartridge VRF - Random number generation",
       methods: [
         {
@@ -69,8 +66,12 @@ const buildPolicies = (addresses: typeof CONTRACT_ADDRESSES.sepolia): SessionPol
           entrypoint: "request_random",
         },
       ],
-    },
-    [addresses.game_system]: {
+    };
+  }
+
+  // Game System
+  if (gameSystem) {
+    contracts[gameSystem] = {
       description: "zKube Game System - Create and manage games",
       methods: [
         {
@@ -84,9 +85,24 @@ const buildPolicies = (addresses: typeof CONTRACT_ADDRESSES.sepolia): SessionPol
           entrypoint: "create",
         },
         {
+          name: "Create Game with Cubes",
+          description: "Start a game bringing cubes from your wallet",
+          entrypoint: "create_with_cubes",
+        },
+        {
           name: "Surrender",
           description: "Forfeit the current game",
           entrypoint: "surrender",
+        },
+        {
+          name: "Move",
+          description: "Move blocks on the grid",
+          entrypoint: "move",
+        },
+        {
+          name: "Apply Bonus",
+          description: "Use a bonus ability (Hammer, Wave, Totem)",
+          entrypoint: "apply_bonus",
         },
         {
           name: "Refresh Metadata",
@@ -94,28 +110,12 @@ const buildPolicies = (addresses: typeof CONTRACT_ADDRESSES.sepolia): SessionPol
           entrypoint: "refresh_metadata",
         },
       ],
-    },
-    [addresses.move_system]: {
-      description: "zKube Move System - Make moves in the game",
-      methods: [
-        {
-          name: "Move",
-          description: "Move blocks on the grid",
-          entrypoint: "move",
-        },
-      ],
-    },
-    [addresses.bonus_system]: {
-      description: "zKube Bonus System - Use special abilities",
-      methods: [
-        {
-          name: "Apply Bonus",
-          description: "Use a bonus ability (Hammer, Wave, Totem)",
-          entrypoint: "apply_bonus",
-        },
-      ],
-    },
-    [addresses.shop_system]: {
+    };
+  }
+
+  // Shop System
+  if (shopSystem) {
+    contracts[shopSystem] = {
       description: "zKube Shop System - Upgrades and purchases",
       methods: [
         {
@@ -149,8 +149,12 @@ const buildPolicies = (addresses: typeof CONTRACT_ADDRESSES.sepolia): SessionPol
           entrypoint: "level_up_bonus",
         },
       ],
-    },
-    [addresses.quest_system]: {
+    };
+  }
+
+  // Quest System
+  if (questSystem) {
+    contracts[questSystem] = {
       description: "zKube Quest System - Daily quests and rewards",
       methods: [
         {
@@ -159,20 +163,23 @@ const buildPolicies = (addresses: typeof CONTRACT_ADDRESSES.sepolia): SessionPol
           entrypoint: "claim",
         },
       ],
-    },
-  },
-});
+    };
+  }
+
+  return { contracts };
+};
 
 // Get configuration based on deploy type
 const getConfig = () => {
   const deployType = VITE_PUBLIC_DEPLOY_TYPE as "mainnet" | "sepolia" | "slot";
+  const namespace = VITE_PUBLIC_NAMESPACE || "zkube_budo_v1_2_0";
   
   switch (deployType) {
     case "sepolia":
       return {
         chainId: CHAIN_IDS.sepolia,
         slot: SLOTS.sepolia,
-        policies: buildPolicies(CONTRACT_ADDRESSES.sepolia),
+        policies: buildPoliciesFromManifest(manifestSepolia, namespace, true),
         chains: [
           { rpcUrl: RPC_URLS.sepolia },
           { rpcUrl: RPC_URLS.mainnet },
@@ -182,7 +189,8 @@ const getConfig = () => {
       return {
         chainId: CHAIN_IDS.slot,
         slot: SLOTS.slot,
-        policies: undefined, // No policies for slot (uses burner/session keys)
+        // Slot uses manifest-based policies, no VRF (uses pseudo-random)
+        policies: buildPoliciesFromManifest(manifestSlot, namespace, false),
         chains: [
           ...(VITE_PUBLIC_NODE_URL ? [{ rpcUrl: VITE_PUBLIC_NODE_URL }] : []),
           { rpcUrl: RPC_URLS.sepolia },
@@ -194,7 +202,7 @@ const getConfig = () => {
       return {
         chainId: CHAIN_IDS.mainnet,
         slot: SLOTS.mainnet,
-        policies: buildPolicies(CONTRACT_ADDRESSES.mainnet),
+        policies: buildPoliciesFromManifest(manifestMainnet, namespace, true),
         chains: [
           { rpcUrl: RPC_URLS.mainnet },
           { rpcUrl: RPC_URLS.sepolia },
@@ -211,7 +219,6 @@ const options: ControllerOptions = {
   namespace: VITE_PUBLIC_NAMESPACE,
   slot: config.slot,
   policies: config.policies,
-  // No preset - we use custom policies
 };
 
 // Debug logging
