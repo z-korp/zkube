@@ -2,7 +2,7 @@
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
     "address": "0x47b75f483c4ff0b7cbf251c4375bb61c9cf35096bf63e77f34b614b2dabb8dc",
-    "seed": "zkube_djizus",
+    "seed": "zkube_djizus_v2",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -82,7 +82,7 @@
     },
     {
       "address": "0x3aeb60202020a2b6a7b0ba3bbafc7f667836c2c89e07aac2a894c2b9b449d8f",
-      "class_hash": "0x602b7b6c76dae13a222ab78b818c8f9db76396ac5db889a1596171a3812da5e",
+      "class_hash": "0x1b1f3dd6c7d00db7e256d533a4f873ca5d9cd752f8f24ad3c7674455ac617d",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",
         "0x045a74be8647d39de23b2b73e98862f6b663164fd8f985cfd80eaa6be495f8ba",
@@ -95,7 +95,6 @@
         "dojo_init",
         "create",
         "surrender",
-        "refresh_metadata",
         "upgrade"
       ]
     },
@@ -6964,18 +6963,6 @@
         {
           "type": "function",
           "name": "surrender",
-          "inputs": [
-            {
-              "name": "game_id",
-              "type": "core::integer::u64"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "refresh_metadata",
           "inputs": [
             {
               "name": "game_id",
