@@ -5,7 +5,7 @@ use starknet::ContractAddress;
 use crate::elements::tasks::clearer::LineClearer;
 use super::index::{ICON, ONE_DAY, QuestMetadataTrait, QuestProps, QuestTrait};
 
-/// DailyClearerOne - Clear 10 lines (rewards 5 CUBE)
+/// DailyClearerOne - Clear 10 lines (rewards 3 CUBE)
 pub impl DailyClearerOne of QuestTrait {
     fn identifier() -> felt252 {
         'DAILY_CLEARER_ONE'
@@ -13,7 +13,7 @@ pub impl DailyClearerOne of QuestTrait {
 
     fn props(registry: ContractAddress) -> QuestProps {
         let total = 10;
-        let reward = RewardTrait::new("Quest Reward", "5 CUBE", ICON());
+        let reward = RewardTrait::new("Quest Reward", "3 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
             name: "Line Breaker",
             description: "Clear 10 lines to warm up.",
@@ -39,15 +39,15 @@ pub impl DailyClearerOne of QuestTrait {
     }
 }
 
-/// DailyClearerTwo - Clear 50 lines (rewards 10 CUBE)
+/// DailyClearerTwo - Clear 30 lines (rewards 6 CUBE)
 pub impl DailyClearerTwo of QuestTrait {
     fn identifier() -> felt252 {
         'DAILY_CLEARER_TWO'
     }
 
     fn props(registry: ContractAddress) -> QuestProps {
-        let total = 50;
-        let reward = RewardTrait::new("Quest Reward", "10 CUBE", ICON());
+        let total = 30;
+        let reward = RewardTrait::new("Quest Reward", "6 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
             name: "Line Crusher",
             description: "Clear 50 lines like a pro.",
@@ -73,15 +73,15 @@ pub impl DailyClearerTwo of QuestTrait {
     }
 }
 
-/// DailyClearerThree - Clear 100 lines (rewards 20 CUBE)
+/// DailyClearerThree - Clear 50 lines (rewards 12 CUBE)
 pub impl DailyClearerThree of QuestTrait {
     fn identifier() -> felt252 {
         'DAILY_CLEARER_THREE'
     }
 
     fn props(registry: ContractAddress) -> QuestProps {
-        let total = 100;
-        let reward = RewardTrait::new("Quest Reward", "20 CUBE", ICON());
+        let total = 50;
+        let reward = RewardTrait::new("Quest Reward", "12 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
             name: "Line Master",
             description: "Clear 100 lines to prove mastery.",
