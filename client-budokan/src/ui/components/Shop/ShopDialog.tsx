@@ -155,7 +155,9 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
         account,
         bonus_type: bonusType,
       });
-      refetchCubeBalance();
+      // Reset optimistic cube spent before refetch to avoid double deduction
+      setOptimisticCubeSpent(0);
+      await refetchCubeBalance();
     } catch (error) {
       console.error("Upgrade failed:", error);
       setOptimisticOverrides((prev) => ({ ...prev, [field]: undefined }));
@@ -183,7 +185,9 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
     setIsUpgrading(true);
     try {
       await systemCalls.upgradeBagSize({ account, bonus_type: bonusType });
-      refetchCubeBalance();
+      // Reset optimistic cube spent before refetch to avoid double deduction
+      setOptimisticCubeSpent(0);
+      await refetchCubeBalance();
     } catch (error) {
       console.error("Upgrade failed:", error);
       setOptimisticOverrides((prev) => ({ ...prev, [field]: undefined }));
@@ -203,7 +207,9 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
     setIsUpgrading(true);
     try {
       await systemCalls.upgradeBridgingRank({ account });
-      refetchCubeBalance();
+      // Reset optimistic cube spent before refetch to avoid double deduction
+      setOptimisticCubeSpent(0);
+      await refetchCubeBalance();
     } catch (error) {
       console.error("Upgrade failed:", error);
       setOptimisticOverrides((prev) => ({
@@ -226,7 +232,9 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
     setIsUpgrading(true);
     try {
       await systemCalls.unlockBonus({ account, bonus_type: bonusType });
-      refetchCubeBalance();
+      // Reset optimistic cube spent before refetch to avoid double deduction
+      setOptimisticCubeSpent(0);
+      await refetchCubeBalance();
     } catch (error) {
       console.error("Unlock failed:", error);
       setOptimisticOverrides((prev) => ({ ...prev, [field]: undefined }));
