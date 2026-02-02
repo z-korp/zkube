@@ -1,11 +1,12 @@
 import type { Config } from "../../dojo.config.ts";
+import type { Manifest } from "@/config/manifest.ts";
 import {
   Account,
   CairoOption,
   CairoOptionVariant,
   CallData,
 } from "starknet";
-import { stringToFelt, type Manifest } from "@/cartridgeConnector.tsx";
+import { stringToFelt } from "@/cartridgeConnector.tsx";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -20,10 +21,6 @@ export interface Signer {
 }
 
 export interface Surrender extends Signer {
-  game_id: number;
-}
-
-export interface RefreshMetadata extends Signer {
   game_id: number;
 }
 
@@ -136,9 +133,9 @@ export function setupWorld(config: Config) {
 
     const create = async ({ account, token_id, selected_bonuses, cubes_amount }: Create) => {
       try {
-        console.log("token_id", token_id);
         const bonusList = selected_bonuses ?? [];
         const calldata = [token_id, bonusList.length, ...bonusList, cubes_amount];
+        console.log("[create] calldata:", calldata);
 
         // On Slot, skip VRF call since it's not deployed
         if (isSlotMode) {
@@ -184,21 +181,6 @@ export function setupWorld(config: Config) {
         ]);
       } catch (error) {
         console.error("Error executing surrender:", error);
-        throw error;
-      }
-    };
-
-    const refresh_metadata = async ({ account, game_id }: RefreshMetadata) => {
-      try {
-        return await account.execute([
-          {
-            contractAddress: contract.address,
-            entrypoint: "refresh_metadata",
-            calldata: [game_id],
-          },
-        ]);
-      } catch (error) {
-        console.error("Error executing refresh_metadata:", error);
         throw error;
       }
     };
@@ -252,7 +234,6 @@ export function setupWorld(config: Config) {
       free_mint,
       create,
       surrender,
-      refresh_metadata,
       move,
       bonus,
     };

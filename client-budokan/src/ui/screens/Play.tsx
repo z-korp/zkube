@@ -187,8 +187,10 @@ export const Play = () => {
     }
   };
 
-  const handleLoadoutClose = () => {
-    handleLoadoutConfirm([1, 3, 2], 0); // Default: Hammer, Wave, Totem, 0 cubes
+  const handleLoadoutClose = (open: boolean) => {
+    if (!open) {
+      handleLoadoutConfirm([1, 3, 2], 0); // Default: Hammer, Wave, Totem, 0 cubes
+    }
   };
 
   const handlePendingLevelUpClose = () => {

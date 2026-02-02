@@ -9,39 +9,24 @@ import { Loading } from "@/ui/screens/Loading";
 import { MusicPlayerProvider } from "./contexts/music";
 import { SoundPlayerProvider } from "./contexts/sound";
 import { ThemeProvider } from "./ui/elements/theme-provider/index";
-import { StarknetConfig, jsonRpcProvider, voyager, MockConnector } from "@starknet-react/core";
+import { StarknetConfig, jsonRpcProvider, voyager } from "@starknet-react/core";
 import { sepolia, mainnet, type NativeCurrency } from "@starknet-react/chains";
 import cartridgeConnector from "./cartridgeConnector";
 import { MetagameProvider } from "./contexts/MetagameProvider";
 import { QuestsProvider } from "./contexts/quests";
 import { ControllersProvider } from "./contexts/controllers";
-import { createBurnerAccount } from "./connectors/BurnerConnector";
 
 import "./index.css";
-import { type BigNumberish, shortString } from "starknet";
+import { type BigNumberish, shortString, PaymasterRpc } from "starknet";
 import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
+
+// Mock paymaster for slot mode - returns a dummy PaymasterRpc that won't be used
+// Required because @starknet-react/core v5.x throws if paymasterProvider returns null
+const slotPaymasterProvider = () => new PaymasterRpc({ nodeUrl: "http://localhost" });
 
 const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_NODE_URL, VITE_PUBLIC_SLOT } = import.meta.env;
 
-// Create burner connector for slot development
 const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
-
-const burnerAccount = isSlotMode && VITE_PUBLIC_NODE_URL && typeof window !== "undefined"
-  ? createBurnerAccount(VITE_PUBLIC_NODE_URL)
-  : null;
-
-const burnerConnector = burnerAccount
-  ? new MockConnector({
-      accounts: {
-        sepolia: [burnerAccount],
-        mainnet: [burnerAccount],
-      },
-      options: {
-        id: "burner",
-        name: "Burner (Dev)",
-      },
-    })
-  : null;
 
 function rpc() {
   return {
@@ -54,11 +39,7 @@ const root = ReactDOM.createRoot(
 );
 
 export function Main() {
-  // Include both Controller and Burner connectors when in slot mode
-  const connectors = [
-    cartridgeConnector,
-    ...(burnerConnector ? [burnerConnector as any] : []),
-  ];
+  const connectors = [cartridgeConnector];
 
   const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
 
@@ -165,6 +146,7 @@ export function Main() {
           defaultChainId={getDefaultChainId()}
           explorer={voyager}
           provider={jsonRpcProvider({ rpc })}
+          paymasterProvider={isSlotMode ? slotPaymasterProvider : undefined}
         >
           <MusicPlayerProvider>
             <MetagameProvider>

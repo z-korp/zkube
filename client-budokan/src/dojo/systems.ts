@@ -100,8 +100,6 @@ export function systems({ client }: { client: IWorld }) {
         transaction_hash
       );
       const events = receipt.events;
-      console.log("events", receipt.events);
-      console.log("1) transaction", receipt);
 
       // Check if transaction was reverted
       if ((receipt as any).execution_status === "REVERTED") {
@@ -147,24 +145,7 @@ export function systems({ client }: { client: IWorld }) {
       () => client.game.free_mint({ account, ...props, settingsId }),
       "Game has been minted."
     );
-    console.info(
-      "[freeMint] Transaction hash",
-      transaction_hash,
-      getUrl(transaction_hash)
-    );
-
-    // Log all events with full details for debugging
-    console.log("=== FULL EVENT DATA ===");
-    events.forEach((event: any, index: number) => {
-      console.log(`Event ${index}:`, {
-        from_address: event.from_address,
-        keys: event.keys,
-        data: event.data,
-        keys_length: event.keys?.length,
-        data_length: event.data?.length,
-      });
-    });
-    console.log("=== END EVENT DATA ===");
+    console.info("[freeMint] tx:", transaction_hash);
 
     // Try to extract token_id from Transfer event (ERC721)
     // Transfer event has 5 keys: [selector, from, to, token_id_low, token_id_high]
@@ -178,10 +159,7 @@ export function systems({ client }: { client: IWorld }) {
       const tokenIdLow = BigInt(transferEvent.keys[3] || "0");
       const tokenIdHigh = BigInt(transferEvent.keys[4] || "0");
       game_id = Number(tokenIdLow + (tokenIdHigh << 128n));
-      console.log("Extracted token_id from Transfer event:", game_id, {
-        low: transferEvent.keys[3],
-        high: transferEvent.keys[4],
-      });
+      console.log("[freeMint] game_id:", game_id);
     } else {
       // Fallback: try TokenMetadata event with data.length === 11
       const tokenMetadataEvent = events.find(
@@ -189,23 +167,27 @@ export function systems({ client }: { client: IWorld }) {
       );
       if (tokenMetadataEvent) {
         game_id = parseInt(tokenMetadataEvent.data[1], 16);
-        console.log("Fallback: extracted game_id from TokenMetadata:", game_id);
+        console.log("[freeMint] game_id (fallback):", game_id);
       } else {
-        console.warn("Could not find Transfer or TokenMetadata event");
+        console.warn("[freeMint] Could not find Transfer or TokenMetadata event");
       }
     }
-
-    console.log("game_id", game_id);
 
     return { game_id };
   };
 
   const create = async ({ account, ...props }: SystemTypes.Create) => {
+    console.log("[create] params:", {
+      token_id: props.token_id,
+      selected_bonuses: props.selected_bonuses,
+      cubes_amount: props.cubes_amount,
+    });
     await handleTransaction(
       account,
       () => client.game.create({ account, ...props }),
       "Game has been started."
     );
+    console.log("[create] success");
   };
 
   const surrender = async ({ account, ...props }: SystemTypes.Surrender) => {
@@ -213,14 +195,6 @@ export function systems({ client }: { client: IWorld }) {
       account,
       () => client.game.surrender({ account, ...props }),
       "Game has been surrendered."
-    );
-  };
-
-  const refreshMetadata = async ({ account, ...props }: SystemTypes.RefreshMetadata) => {
-    await handleTransaction(
-      account,
-      () => client.game.refresh_metadata({ account, ...props }),
-      "NFT metadata refreshed."
     );
   };
 
@@ -330,7 +304,6 @@ export function systems({ client }: { client: IWorld }) {
     freeMint,
     create,
     surrender,
-    refreshMetadata,
     move,
     applyBonus,
     // in-game shop

@@ -1,9 +1,10 @@
 import { useDojo } from "@/dojo/useDojo";
 import { useCallback, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/ui/elements/button";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { showToast } from "@/utils/toast";
-import { useControllers } from "@/contexts/controllers";
+import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { LoadoutDialog } from "@/ui/components/Shop";
@@ -20,95 +21,103 @@ export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
     },
   } = useDojo();
   const { account } = useAccountCustom();
-  const { find } = useControllers();
+  const { username } = useControllerUsername();
   const { playerMeta } = usePlayerMeta();
-  const username = account?.address ? find(account.address)?.username : undefined;
-  const { cubeBalance } = useCubeBalance();
+  const { cubeBalance, refetch: refetchCubeBalance } = useCubeBalance();
+  const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState(false);
   const [showLoadoutDialog, setShowLoadoutDialog] = useState(false);
-  const [pendingGameId, setPendingGameId] = useState<number | null>(null);
 
   const cubeBalanceNum = Number(cubeBalance);
 
-  const handleClick = useCallback(async () => {
+  // Step 1: Show loadout dialog (no transaction yet)
+  const handleClick = useCallback(() => {
     if (!account) return;
+    setShowLoadoutDialog(true);
+  }, [account]);
+
+  // Step 2: On confirm, mint + create sequentially
+  const handleLoadoutConfirm = useCallback(async (selectedBonuses: number[], cubesToBring: number) => {
+    if (!account) return;
+
+    // Validate cube balance if bringing cubes
+    if (cubesToBring > 0) {
+      // Refetch to ensure we have latest balance
+      await refetchCubeBalance?.();
+      const currentBalance = Number(cubeBalance);
+      if (cubesToBring > currentBalance) {
+        showToast({
+          message: `Insufficient cubes. You have ${currentBalance} but tried to bring ${cubesToBring}.`,
+          type: "error",
+        });
+        return;
+      }
+    }
 
     setIsLoading(true);
     try {
-      // Mint a new free game
-      // Use default settings ID for official games that earn cubes/quests
-      const result = await freeMint({
+      // Step 2a: Mint the game token
+      const mintResult = await freeMint({
         account,
         name: username ?? "",
         settingsId: DEFAULT_SETTINGS_ID,
       });
 
-      setPendingGameId(result.game_id);
-      setShowLoadoutDialog(true);
-      setIsLoading(false);
-      return;
-    } catch (error) {
-      console.error("Error minting game:", error);
-      showToast({
-        message: "Failed to mint game",
-        type: "error",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [account, freeMint, username]);
+      const gameId = mintResult.game_id;
+      if (!gameId) {
+        throw new Error("Failed to extract game_id from mint transaction");
+      }
 
-  const handleLoadoutConfirm = useCallback(async (selectedBonuses: number[], cubesToBring: number) => {
-    if (!account || pendingGameId === null) return;
-
-    setIsLoading(true);
-    try {
+      // Step 2b: Create/start the game with loadout
       await create({
         account,
-        token_id: pendingGameId,
+        token_id: gameId,
         selected_bonuses: selectedBonuses,
         cubes_amount: cubesToBring,
       });
 
       showToast({
         message: cubesToBring > 0
-          ? `Game started with ${cubesToBring} cubes! You can spend them in the shop.`
-          : "Game minted! You can resume it from My Games.",
+          ? `Game #${gameId} started with ${cubesToBring} cubes!`
+          : `Game #${gameId} started! Good luck!`,
         type: "success",
       });
 
       setShowLoadoutDialog(false);
-      setPendingGameId(null);
       onMintSuccess?.();
+      
+      // Navigate to the play page
+      navigate(`/play/${gameId}`);
     } catch (error) {
-      console.error("Error creating game:", error);
+      console.error("Error starting game:", error);
       showToast({
-        message: "Failed to create game",
+        message: "Failed to start game. Check My Games if a token was minted.",
         type: "error",
       });
     } finally {
       setIsLoading(false);
     }
-  }, [account, create, onMintSuccess, pendingGameId]);
+  }, [account, freeMint, create, username, cubeBalance, refetchCubeBalance, onMintSuccess]);
 
-  const handleLoadoutClose = useCallback(() => {
-    // If dialog is closed, use defaults
-    if (pendingGameId !== null) {
-      handleLoadoutConfirm([1, 3, 2], 0); // Default: Hammer, Wave, Totem, 0 cubes
+  // If dialog is closed without confirming, do nothing (no orphaned games)
+  const handleLoadoutClose = useCallback((open: boolean) => {
+    // Only allow closing (open=false) when not loading
+    if (!open && !isLoading) {
+      setShowLoadoutDialog(false);
     }
-  }, [handleLoadoutConfirm, pendingGameId]);
+  }, [isLoading]);
 
   return (
     <>
       <Button
-        disabled={isLoading}
+        disabled={isLoading || !account}
         isLoading={isLoading}
         onClick={handleClick}
         variant="default"
         className="text-lg w-[300px] transition-transform duration-300 ease-in-out hover:scale-105"
       >
-        Mint Game
+        Play Game
       </Button>
 
       <LoadoutDialog

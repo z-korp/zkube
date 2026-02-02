@@ -9,8 +9,6 @@ pub trait IQuestSystem<T> {
     fn claim(ref self: T, quest_id: felt252, interval_id: u64);
     /// Progress a task for a player (called by game_system)
     fn progress(ref self: T, player: ContractAddress, task_id: felt252, count: u32);
-    /// Re-register all quests with updated definitions (admin only, call once after upgrade)
-    fn reinitialize_quests(ref self: T);
 }
 
 #[dojo::contract]
@@ -23,7 +21,8 @@ pub mod quest_system {
     use crate::constants::DEFAULT_NS;
     use crate::elements::quests::index::{IQuest, QUEST_COUNT, QuestProps, QuestType};
     use crate::elements::quests::finisher;
-    use crate::helpers::game_libs::{GameLibsImpl, ICubeTokenDispatcherTrait};
+    use crate::elements::tasks::master;
+    use crate::helpers::game_libs::{GameLibsImpl, ICubeTokenDispatcherTrait, IAchievementSystemDispatcherTrait};
 
     use super::IQuestSystem;
 
@@ -121,14 +120,19 @@ pub mod quest_system {
             let quest: QuestType = quest_id.into();
             let (amount, _task) = quest.reward();
 
+            let libs = GameLibsImpl::new(world);
+            
             // Mint CUBE tokens as reward
             if amount > 0 {
-                let libs = GameLibsImpl::new(world);
                 libs.cube.mint(player, amount.into());
             }
 
-            // Note: Achievement progression for DailyMaster would be handled here
-            // if we add the achievement system later
+            // Track DailyMaster achievement when DailyFinisher is claimed
+            if quest_id == QuestType::DailyFinisher.identifier() {
+                if let Option::Some(achievement) = libs.achievement {
+                    achievement.progress(player, master::DailyMaster::identifier(), 1);
+                }
+            }
         }
     }
 
@@ -150,38 +154,5 @@ pub mod quest_system {
             let player_felt: felt252 = player.into();
             self.questable.progress(world, player_felt, task_id, count.into(), true);
         }
-
-        /// Re-register all quests with updated definitions
-        /// Call this once after upgrading to apply new quest configurations (e.g., removed conditions)
-        fn reinitialize_quests(ref self: ContractState) {
-            let world = self.world(@DEFAULT_NS());
-            let registry = starknet::get_contract_address();
-
-            // Re-register all quests with updated definitions
-            let mut quest_id: u8 = QUEST_COUNT;
-            while quest_id > 0 {
-                let quest_type: QuestType = quest_id.into();
-                let props: QuestProps = quest_type.props(registry);
-                self
-                    .questable
-                    .create(
-                        world: world,
-                        id: props.id,
-                        rewarder: registry,
-                        start: props.start,
-                        end: props.end,
-                        duration: props.duration,
-                        interval: props.interval,
-                        tasks: props.tasks.span(),
-                        conditions: props.conditions.span(),
-                        metadata: props.metadata,
-                        to_store: true, // Overwrite existing definitions
-                    );
-                quest_id -= 1;
-            };
-        }
     }
-
-    // Internal helpers
-
 }

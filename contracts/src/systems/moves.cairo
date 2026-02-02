@@ -79,14 +79,23 @@ mod move_system {
             if lines_cleared > 0 {
                 libs.track_quest(player, clearer::LineClearer::identifier(), lines_cleared.into(), settings.settings_id);
                 
+                // Track achievement progress for lines cleared (cumulative)
+                libs.track_achievement(player, clearer::LineClearer::identifier(), lines_cleared.into(), settings.settings_id);
+                
                 if lines_cleared >= 3 {
                     libs.track_quest(player, combo::ComboThree::identifier(), 1, settings.settings_id);
+                    // Track combo achievement progress
+                    libs.track_achievement(player, combo::ComboThree::identifier(), 1, settings.settings_id);
                 }
                 if lines_cleared >= 5 {
                     libs.track_quest(player, combo::ComboFive::identifier(), 1, settings.settings_id);
+                    // Track chain achievement progress (5+ lines)
+                    libs.track_achievement(player, combo::ComboFive::identifier(), 1, settings.settings_id);
                 }
-                if lines_cleared >= 8 {
-                    libs.track_quest(player, combo::ComboEight::identifier(), 1, settings.settings_id);
+                if lines_cleared >= 7 {
+                    libs.track_quest(player, combo::ComboSeven::identifier(), 1, settings.settings_id);
+                    // Track superchain achievement progress (7+ lines)
+                    libs.track_achievement(player, combo::ComboSeven::identifier(), 1, settings.settings_id);
                 }
             }
 

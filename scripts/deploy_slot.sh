@@ -300,7 +300,7 @@ print_info "Step 9: Updating torii configuration..."
 TORII_CONTRACTS="\"erc721:$TOKEN_ADDRESS\""
 if [ -n "$CUBE_TOKEN" ]; then
     TORII_CONTRACTS="$TORII_CONTRACTS,
-  \"ERC1155:$CUBE_TOKEN\""
+  \"erc20:$CUBE_TOKEN\""
 fi
 
 cat > "$TORII_CONFIG" << EOF
@@ -383,7 +383,7 @@ echo "-------------------"
 echo "World:                    $WORLD_ADDRESS"
 echo "FullTokenContract:        $TOKEN_ADDRESS"
 echo "MinigameRegistryContract: $REGISTRY_ADDRESS"
-echo "CubeToken (ERC1155):      $CUBE_TOKEN"
+echo "CubeToken (ERC20):        $CUBE_TOKEN"
 echo "game_system:              $GAME_SYSTEM"
 echo "config_system:            $CONFIG_SYSTEM"
 echo ""

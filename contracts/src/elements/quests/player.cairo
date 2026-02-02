@@ -16,7 +16,7 @@ pub impl DailyPlayerOne of QuestTrait {
         let reward = RewardTrait::new("Quest Reward", "3 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
             name: "Warm-Up",
-            description: "Start your day with a game.",
+            description: "Play 1 game to start your day.",
             icon: "fa-play",
             registry: registry,
             rewards: array![reward].span(),
@@ -48,7 +48,7 @@ pub impl DailyPlayerTwo of QuestTrait {
         let reward = RewardTrait::new("Quest Reward", "6 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
             name: "Getting Started",
-            description: "Three games to get in the zone.",
+            description: "Play 3 games to get in the zone.",
             icon: "fa-dice-three",
             registry: registry,
             rewards: array![reward].span(),
@@ -56,7 +56,6 @@ pub impl DailyPlayerTwo of QuestTrait {
         let tasks: Array<QuestTask> = array![
             QuestTaskTrait::new(Grinder::identifier(), total.into(), Grinder::description(total)),
         ];
-        // No conditions - all tiers unlock immediately for cumulative progress
         QuestProps {
             id: Self::identifier(),
             start: 0,
@@ -81,7 +80,7 @@ pub impl DailyPlayerThree of QuestTrait {
         let reward = RewardTrait::new("Quest Reward", "12 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
             name: "Dedicated",
-            description: "Five games prove your dedication.",
+            description: "Play 5 games to prove your dedication.",
             icon: "fa-fire",
             registry: registry,
             rewards: array![reward].span(),
@@ -89,7 +88,6 @@ pub impl DailyPlayerThree of QuestTrait {
         let tasks: Array<QuestTask> = array![
             QuestTaskTrait::new(Grinder::identifier(), total.into(), Grinder::description(total)),
         ];
-        // No conditions - all tiers unlock immediately for cumulative progress
         QuestProps {
             id: Self::identifier(),
             start: 0,

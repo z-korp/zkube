@@ -12,6 +12,7 @@ use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
 use zkube::events::RunEnded;
 use zkube::helpers::game_libs::{GameLibsImpl, ICubeTokenDispatcherTrait};
 use zkube::helpers::config::ConfigUtilsTrait;
+use zkube::elements::tasks::{level, scorer};
 
 /// Handle game over: update player meta, mint cubes, emit event.
 /// Used by game_system (surrender) and move_system (level failed/game over).
@@ -48,11 +49,24 @@ pub fn handle_game_over(
     };
 
     // Only mint cubes and update stats for games using default settings
-    if is_default_settings(settings.settings_id) && base_cubes > 0 {
-        let libs = GameLibsImpl::new(world);
-        libs.cube.mint(player, base_cubes.into());
-
-        player_meta.add_cubes_earned(base_cubes.into());
+    let libs = GameLibsImpl::new(world);
+    if is_default_settings(settings.settings_id) {
+        if base_cubes > 0 {
+            libs.cube.mint(player, base_cubes.into());
+            player_meta.add_cubes_earned(base_cubes.into());
+        }
+        
+        // Track achievement progress for level reached (Leveler)
+        // Progress by the level reached (cumulative tracking per run)
+        if run_data.current_level > 0 {
+            libs.track_achievement(player, level::LevelReacher::identifier(), run_data.current_level.into(), settings.settings_id);
+        }
+        
+        // Track achievement progress for high score (Scorer)
+        // Progress by the total score achieved
+        if run_data.total_score > 0 {
+            libs.track_achievement(player, scorer::Scorer::identifier(), run_data.total_score.into(), settings.settings_id);
+        }
     }
     world.write_model(@player_meta);
 

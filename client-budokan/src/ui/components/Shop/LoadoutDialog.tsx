@@ -42,7 +42,7 @@ const saveLoadout = (loadout: LoadoutData) => {
 
 interface LoadoutDialogProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose: (open: boolean) => void;
   onConfirm: (selectedBonuses: number[], cubesToBring: number) => void;
   playerMetaData: PlayerMetaData | null;
   cubeBalance: number;
@@ -206,6 +206,13 @@ const LoadoutDialog: React.FC<LoadoutDialogProps> = ({
             Select 3 Bonuses ({selected.length}/3)
           </div>
 
+          {/* Warning message if not 3 selected */}
+          {selected.length !== 3 && (
+            <div className="text-center text-sm text-orange-400 mb-3 bg-orange-500/10 py-2 rounded-lg">
+              You must select exactly 3 bonuses to start the game
+            </div>
+          )}
+
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {ALL_BONUSES.map((bonusType, index) => {
               const isSelected = selected.includes(bonusType);
@@ -223,10 +230,10 @@ const LoadoutDialog: React.FC<LoadoutDialogProps> = ({
                   disabled={isLocked}
                   className={`relative flex flex-col items-center gap-1 p-3 rounded-lg border transition-all
                     ${isSelected ? "border-yellow-400 bg-yellow-500/10" : "border-slate-700 bg-slate-800/30"}
-                    ${isLocked ? "opacity-50 cursor-not-allowed" : "hover:border-slate-500"}`}
+                    ${isLocked ? "opacity-40 cursor-not-allowed grayscale bg-slate-900/50 border-slate-800" : "hover:border-slate-500"}`}
                 >
-                  <img src={icon} alt={bonusType} className="w-9 h-9" />
-                  <div className="text-xs font-semibold">{bonusType}</div>
+                  <img src={icon} alt={bonusType} className={`w-9 h-9 ${isLocked ? "grayscale" : ""}`} />
+                  <div className={`text-xs font-semibold ${isLocked ? "text-slate-500" : ""}`}>{bonusType}</div>
                   
                   {/* Stats badges */}
                   {!isLocked && (
@@ -245,7 +252,7 @@ const LoadoutDialog: React.FC<LoadoutDialogProps> = ({
                   )}
                   
                   {isLocked && (
-                    <div className="absolute top-1 right-1 text-[10px] bg-slate-900/80 px-1.5 py-0.5 rounded">
+                    <div className="absolute top-1 right-1 text-[10px] bg-red-900/80 text-red-300 px-1.5 py-0.5 rounded">
                       Locked
                     </div>
                   )}

@@ -5,7 +5,7 @@ use starknet::ContractAddress;
 use crate::elements::tasks::master::DailyMaster;
 use super::index::{ICON, ONE_DAY, QuestMetadataTrait, QuestProps, QuestTrait};
 
-/// DailyFinisher - Complete all 9 daily quests (rewards 25 CUBE)
+/// DailyFinisher - Complete all 9 daily quests (rewards 20 CUBE)
 pub impl DailyFinisher of QuestTrait {
     fn identifier() -> felt252 {
         'DAILY_FINISHER'
@@ -13,7 +13,7 @@ pub impl DailyFinisher of QuestTrait {
 
     fn props(registry: ContractAddress) -> QuestProps {
         let total = 9;
-        let reward = RewardTrait::new("Quest Reward", "25 CUBE + Achievement", ICON());
+        let reward = RewardTrait::new("Quest Reward", "20 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
             name: "Daily Champion",
             description: "Complete all daily quests to prove your dedication.",
@@ -26,7 +26,6 @@ pub impl DailyFinisher of QuestTrait {
                 DailyMaster::identifier(), total.into(), DailyMaster::description(total),
             ),
         ];
-        // No conditions - unlocked from start, but requires all 9 other quests to complete
         QuestProps {
             id: Self::identifier(),
             start: 0,

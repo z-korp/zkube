@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x2c87bc4133434ba3331ff75e61275434e92eaaefed2bb0fd21165ead4e80461",
-    "seed": "zkube_default_settings_v3",
+    "address": "0x39e8c3ee0016e1575fddf63d6a03f3f48a8e90d966ca8a2a6bc7a690f6a3101",
+    "seed": "zkube_slot_v2",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,8 +33,22 @@
   },
   "contracts": [
     {
-      "address": "0x28cf1d51b20d6492c3e734c7f5eba81672dee5b4db0cb41b94cb1ba5a909c0",
-      "class_hash": "0x1d926dbe735238af1138fb45d284991f1de2f704f3404accdb5d80ec321e580",
+      "address": "0x25872ff107650e405852bc18ea2ca24e30d82b88cede9d4f7384ed5b0f8a5d4",
+      "class_hash": "0x65374daad463359d2e1c7c442318579946a2e21b0d7c75960bba5deff272326",
+      "init_calldata": [],
+      "tag": "zkube_budo_v1_2_0-achievement_system",
+      "selector": "0x68ea952c82b2c82a3d76fde7f127bb10e9997ad99322c946602b07b6c06d552",
+      "systems": [
+        "dojo_init",
+        "on_achievement_claim",
+        "claim",
+        "progress",
+        "upgrade"
+      ]
+    },
+    {
+      "address": "0x7ee54bdef17d7450ffd5b37ffdefbdc56f740b0cb92363b783559014df601fe",
+      "class_hash": "0x2e28246aaabc720db063b769da61db06b5c05b1bcd29eb5e0222d779767d1ce",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-bonus_system",
       "selector": "0x7ddae8715adf015ed6b5c712f7e3a5c01fe157aac2a2f1d42270deca60c5382",
@@ -44,7 +58,7 @@
       ]
     },
     {
-      "address": "0x2d4b2741633ba1375f21bbbec24f20fb74d5bae0350b5ff8ceb67f0766ec6ec",
+      "address": "0x5631a293a1c79f66948a62bbeed98b41b497d6804c128651c60dea89c67bf77",
       "class_hash": "0x67e979e1fa01e3566f4321b2da51bfbbea6039c296d80d252f02ebbf9e91f9b",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819"
@@ -59,8 +73,8 @@
       ]
     },
     {
-      "address": "0x256f0319bbfe73857d1d57d3cb02bfc28bf571dfeae10b44d95da2c9bb706b0",
-      "class_hash": "0x43c2d2b4a6e91aedd1cee09525749a1635f47ef32d739aac940e159f36168c0",
+      "address": "0x76a29a4471179ec4e67b2358183bf2827c05662bbb7b1dbe4ceaa0b25aa2e7e",
+      "class_hash": "0x37874ac24c4bd5aed2b3aa64ce11184afead0eb378a89ac67e4ba5b76e340a9",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-cube_token",
       "selector": "0x58ce743cd328aa3800df3c962d39156cf1c6fcffeae123925c693902472043b",
@@ -72,21 +86,23 @@
         "mint_dev",
         "register_external_contract",
         "upgrade",
-        "safe_transfer_from",
-        "safe_batch_transfer_from",
-        "set_approval_for_all",
+        "transfer",
+        "transfer_from",
+        "approve",
+        "transferFrom",
         "grant_role",
         "revoke_role",
         "renounce_role"
       ]
     },
     {
-      "address": "0x6004a4d939d48c28dc0951174fd92a199534feb678c6213de25368aeafb1201",
-      "class_hash": "0x669f74ec78bd4d604b6d568867e4cf1b91db59d2c8a8ef98bb424f9cc632b34",
+      "address": "0x33969207814cdaa4b0842fd97ee582214bab4a58f923d287281356d5fc627d4",
+      "class_hash": "0x318e86ab174a5e346bc50a46ef903a2098fc2b4fe014abc5725ff1a484d6fd1",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
         "0x02271f1bb4d75604b1c82a708c544ac851f430416cd409aa322327874fe5f918",
-        "1"
+        "1",
+        "0x0"
       ],
       "tag": "zkube_budo_v1_2_0-game_system",
       "selector": "0x1756a4d7c5611311eb6d0f10d4af74095e327cf1030b89590ffb4e92d25b26c",
@@ -98,7 +114,7 @@
       ]
     },
     {
-      "address": "0x1162d7e46ed00029cedbc541b20364d08bc11ea66b86761bcb24e7484e86e5d",
+      "address": "0x5f1ddb74738b65cbd086399e9fa1bb8ab015d35a3c6660a00635057d2ca5535",
       "class_hash": "0x75cee12836861fdd6417d9cf90f4b4078a5410dafea74f9add2ed106ebec1b8",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-grid_system",
@@ -114,8 +130,8 @@
       ]
     },
     {
-      "address": "0x4ace406c59e71de39772041b9f27c8e21b8f07e04a0f97e9b5f498e59d266b8",
-      "class_hash": "0x55bbe9d5b526bd90b64607bedc92834470549cb4d3a7ead8bb75c3dec2325bf",
+      "address": "0x2236eef1adcbcf8cde44d275eef5a5d91cb06c0ecf24d5722bebaac08616251",
+      "class_hash": "0x1d8d8ff159bddbae7fe4255a4a324fb9a4ac32721c5c5c9076fd226be9dc211",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-level_system",
       "selector": "0xc087c6629c3c13d06cab85b37e88683bcffe82e8123eedbd704ff85463a0a5",
@@ -127,8 +143,8 @@
       ]
     },
     {
-      "address": "0x34ab3aed5333e18ccc325609a9c972c8d947f88ae5fc034d468c8eeb5e283c7",
-      "class_hash": "0x3af8aa85f298cc97eb181d3fe5e2d3584c29b1946ce3abc7946f370e6400941",
+      "address": "0x27c9aa5bcd53fa005f73da1d1103bbf7f796a1493776ac6779923a42fbfd5b",
+      "class_hash": "0x43ddb6d4150edfa8689f6ae6e0c695b3d62fa7e0eb2d16606600f2f64902308",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-move_system",
       "selector": "0x3df79bdc704eceb62aa8752e4456ee57de1c2c56b4871b20171ee4ae1e235b7",
@@ -138,8 +154,8 @@
       ]
     },
     {
-      "address": "0x41f9ccfb5b66b013d1fac600a228ab78511fa4e5b30229b46efe9150683d74f",
-      "class_hash": "0x4ba9c3a568e4a1c6d75692ac56d859d35f39bc900f911add1ee4a1ac2d3fb61",
+      "address": "0x4d18eb5990809be1d8caf5eb3d0043cefaa8a502bdb3dc25fafd73528bf320c",
+      "class_hash": "0x2c80e2f256d34253b7f007b4f926c818166eee1bb4a9bbb28e42f3ddb73af37",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-quest_system",
       "selector": "0x436c9e32f41800b6e41f7a2132179a85ad4fbbcd73cf2db6bcb4b65fd2071e",
@@ -154,8 +170,8 @@
       ]
     },
     {
-      "address": "0x1b65117ff9aa16a2e5068a8da39934eca62b89fcfd85d2c5c460ec4cb490489",
-      "class_hash": "0x794273ece4fd58d2db65b7e0666bb2f9a31d9f7ebf598388d18323c49f0b45c",
+      "address": "0x5eea280dc3bee8cb732ba591a7d9c54ac3c3a9a4bb6963779e78cdbaee0bda1",
+      "class_hash": "0x362e90bebd91e1081960c030807707103f9619bb30e69f9f0210f8aad783296",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-renderer_systems",
       "selector": "0x35d5ac8794cc2cf3e12c42d4ac579e7a5dc26a70c26e32c599915d2d39586cf",
@@ -164,8 +180,8 @@
       ]
     },
     {
-      "address": "0x4b8a75025349f35ebaa19e4614d031d2d0cbd051c446b451ea01de0a9ad6f24",
-      "class_hash": "0x4c4700f249bd7377b3ef945c11d08390c4f3f5c3defd1a78ebb2252ccc873cc",
+      "address": "0x334191c97e35b7d7a232a572f786e2dd59fece418bc578ba149aa70f369eda",
+      "class_hash": "0x30d4bbb4609dc112909950bfa84c83a6f44eaf6c5774d61090799c81bf53f22",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-shop_system",
       "selector": "0x456e9ac1689ce0bf6afd29733b144d9ef8e7db5c0df5ec0dc79ed1ea22579a0",
@@ -1446,6 +1462,12 @@
   "external_contracts": [],
   "abis": [
     {
+      "type": "event",
+      "name": "achievement::components::achievable::AchievableComponent::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
       "type": "struct",
       "name": "achievement::events::index::AchievementClaimed",
       "members": [
@@ -1664,6 +1686,28 @@
       "name": "achievement::events::index::e_TrophyProgression::Event",
       "kind": "enum",
       "variants": []
+    },
+    {
+      "type": "interface",
+      "name": "achievement::interfaces::IAchievementRewarder",
+      "items": [
+        {
+          "type": "function",
+          "name": "on_achievement_claim",
+          "inputs": [
+            {
+              "name": "recipient",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "achievement_id",
+              "type": "core::felt252"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        }
+      ]
     },
     {
       "type": "struct",
@@ -1902,16 +1946,6 @@
     },
     {
       "type": "struct",
-      "name": "core::array::Span::<core::integer::u256>",
-      "members": [
-        {
-          "name": "snapshot",
-          "type": "@core::array::Array::<core::integer::u256>"
-        }
-      ]
-    },
-    {
-      "type": "struct",
       "name": "core::array::Span::<core::integer::u32>",
       "members": [
         {
@@ -1927,16 +1961,6 @@
         {
           "name": "snapshot",
           "type": "@core::array::Array::<core::integer::u8>"
-        }
-      ]
-    },
-    {
-      "type": "struct",
-      "name": "core::array::Span::<core::starknet::contract_address::ContractAddress>",
-      "members": [
-        {
-          "name": "snapshot",
-          "type": "@core::array::Array::<core::starknet::contract_address::ContractAddress>"
         }
       ]
     },
@@ -4456,8 +4480,19 @@
     },
     {
       "type": "interface",
-      "name": "openzeppelin_interfaces::token::erc1155::IERC1155",
+      "name": "openzeppelin_interfaces::token::erc20::IERC20Mixin",
       "items": [
+        {
+          "type": "function",
+          "name": "total_supply",
+          "inputs": [],
+          "outputs": [
+            {
+              "type": "core::integer::u256"
+            }
+          ],
+          "state_mutability": "view"
+        },
         {
           "type": "function",
           "name": "balance_of",
@@ -4465,10 +4500,6 @@
             {
               "name": "account",
               "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "token_id",
-              "type": "core::integer::u256"
             }
           ],
           "outputs": [
@@ -4480,91 +4511,35 @@
         },
         {
           "type": "function",
-          "name": "balance_of_batch",
-          "inputs": [
-            {
-              "name": "accounts",
-              "type": "core::array::Span::<core::starknet::contract_address::ContractAddress>"
-            },
-            {
-              "name": "token_ids",
-              "type": "core::array::Span::<core::integer::u256>"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "core::array::Span::<core::integer::u256>"
-            }
-          ],
-          "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "safe_transfer_from",
-          "inputs": [
-            {
-              "name": "from",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "to",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "token_id",
-              "type": "core::integer::u256"
-            },
-            {
-              "name": "value",
-              "type": "core::integer::u256"
-            },
-            {
-              "name": "data",
-              "type": "core::array::Span::<core::felt252>"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "safe_batch_transfer_from",
-          "inputs": [
-            {
-              "name": "from",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "to",
-              "type": "core::starknet::contract_address::ContractAddress"
-            },
-            {
-              "name": "token_ids",
-              "type": "core::array::Span::<core::integer::u256>"
-            },
-            {
-              "name": "values",
-              "type": "core::array::Span::<core::integer::u256>"
-            },
-            {
-              "name": "data",
-              "type": "core::array::Span::<core::felt252>"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "is_approved_for_all",
+          "name": "allowance",
           "inputs": [
             {
               "name": "owner",
               "type": "core::starknet::contract_address::ContractAddress"
             },
             {
-              "name": "operator",
+              "name": "spender",
               "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::integer::u256"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "transfer",
+          "inputs": [
+            {
+              "name": "recipient",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "amount",
+              "type": "core::integer::u256"
             }
           ],
           "outputs": [
@@ -4572,22 +4547,134 @@
               "type": "core::bool"
             }
           ],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "transfer_from",
+          "inputs": [
+            {
+              "name": "sender",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "recipient",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "amount",
+              "type": "core::integer::u256"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::bool"
+            }
+          ],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "approve",
+          "inputs": [
+            {
+              "name": "spender",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "amount",
+              "type": "core::integer::u256"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::bool"
+            }
+          ],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "name",
+          "inputs": [],
+          "outputs": [
+            {
+              "type": "core::byte_array::ByteArray"
+            }
+          ],
           "state_mutability": "view"
         },
         {
           "type": "function",
-          "name": "set_approval_for_all",
+          "name": "symbol",
+          "inputs": [],
+          "outputs": [
+            {
+              "type": "core::byte_array::ByteArray"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "decimals",
+          "inputs": [],
+          "outputs": [
+            {
+              "type": "core::integer::u8"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "totalSupply",
+          "inputs": [],
+          "outputs": [
+            {
+              "type": "core::integer::u256"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "balanceOf",
           "inputs": [
             {
-              "name": "operator",
+              "name": "account",
+              "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::integer::u256"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "transferFrom",
+          "inputs": [
+            {
+              "name": "sender",
               "type": "core::starknet::contract_address::ContractAddress"
             },
             {
-              "name": "approved",
+              "name": "recipient",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "amount",
+              "type": "core::integer::u256"
+            }
+          ],
+          "outputs": [
+            {
               "type": "core::bool"
             }
           ],
-          "outputs": [],
           "state_mutability": "external"
         }
       ]
@@ -4600,7 +4687,7 @@
     },
     {
       "type": "event",
-      "name": "openzeppelin_token::erc1155::erc1155::ERC1155Component::ApprovalForAll",
+      "name": "openzeppelin_token::erc20::erc20::ERC20Component::Approval",
       "kind": "struct",
       "members": [
         {
@@ -4609,54 +4696,39 @@
           "kind": "key"
         },
         {
-          "name": "operator",
+          "name": "spender",
           "type": "core::starknet::contract_address::ContractAddress",
           "kind": "key"
         },
         {
-          "name": "approved",
-          "type": "core::bool",
+          "name": "value",
+          "type": "core::integer::u256",
           "kind": "data"
         }
       ]
     },
     {
       "type": "event",
-      "name": "openzeppelin_token::erc1155::erc1155::ERC1155Component::Event",
+      "name": "openzeppelin_token::erc20::erc20::ERC20Component::Event",
       "kind": "enum",
       "variants": [
         {
-          "name": "TransferSingle",
-          "type": "openzeppelin_token::erc1155::erc1155::ERC1155Component::TransferSingle",
+          "name": "Transfer",
+          "type": "openzeppelin_token::erc20::erc20::ERC20Component::Transfer",
           "kind": "nested"
         },
         {
-          "name": "TransferBatch",
-          "type": "openzeppelin_token::erc1155::erc1155::ERC1155Component::TransferBatch",
-          "kind": "nested"
-        },
-        {
-          "name": "ApprovalForAll",
-          "type": "openzeppelin_token::erc1155::erc1155::ERC1155Component::ApprovalForAll",
-          "kind": "nested"
-        },
-        {
-          "name": "URI",
-          "type": "openzeppelin_token::erc1155::erc1155::ERC1155Component::URI",
+          "name": "Approval",
+          "type": "openzeppelin_token::erc20::erc20::ERC20Component::Approval",
           "kind": "nested"
         }
       ]
     },
     {
       "type": "event",
-      "name": "openzeppelin_token::erc1155::erc1155::ERC1155Component::TransferBatch",
+      "name": "openzeppelin_token::erc20::erc20::ERC20Component::Transfer",
       "kind": "struct",
       "members": [
-        {
-          "name": "operator",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "key"
-        },
         {
           "name": "from",
           "type": "core::starknet::contract_address::ContractAddress",
@@ -4668,63 +4740,9 @@
           "kind": "key"
         },
         {
-          "name": "ids",
-          "type": "core::array::Span::<core::integer::u256>",
-          "kind": "data"
-        },
-        {
-          "name": "values",
-          "type": "core::array::Span::<core::integer::u256>",
-          "kind": "data"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "openzeppelin_token::erc1155::erc1155::ERC1155Component::TransferSingle",
-      "kind": "struct",
-      "members": [
-        {
-          "name": "operator",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "key"
-        },
-        {
-          "name": "from",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "key"
-        },
-        {
-          "name": "to",
-          "type": "core::starknet::contract_address::ContractAddress",
-          "kind": "key"
-        },
-        {
-          "name": "id",
-          "type": "core::integer::u256",
-          "kind": "data"
-        },
-        {
           "name": "value",
           "type": "core::integer::u256",
           "kind": "data"
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "name": "openzeppelin_token::erc1155::erc1155::ERC1155Component::URI",
-      "kind": "struct",
-      "members": [
-        {
-          "name": "value",
-          "type": "core::byte_array::ByteArray",
-          "kind": "data"
-        },
-        {
-          "name": "id",
-          "type": "core::integer::u256",
-          "kind": "key"
         }
       ]
     },
@@ -6447,6 +6465,66 @@
     },
     {
       "type": "interface",
+      "name": "zkube::systems::achievement::IAchievementSystem",
+      "items": [
+        {
+          "type": "function",
+          "name": "claim",
+          "inputs": [
+            {
+              "name": "achievement_id",
+              "type": "core::felt252"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "progress",
+          "inputs": [
+            {
+              "name": "player",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "task_id",
+              "type": "core::felt252"
+            },
+            {
+              "name": "count",
+              "type": "core::integer::u32"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "zkube::systems::achievement::achievement_system::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "UpgradeableEvent",
+          "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "WorldProviderEvent",
+          "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "AchievableEvent",
+          "type": "achievement::components::achievable::AchievableComponent::Event",
+          "kind": "flat"
+        }
+      ]
+    },
+    {
+      "type": "interface",
       "name": "zkube::systems::bonus::IBonusSystem",
       "items": [
         {
@@ -6839,22 +6917,6 @@
         },
         {
           "type": "function",
-          "name": "balance_of_cubes",
-          "inputs": [
-            {
-              "name": "account",
-              "type": "core::starknet::contract_address::ContractAddress"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "core::integer::u256"
-            }
-          ],
-          "state_mutability": "view"
-        },
-        {
-          "type": "function",
           "name": "grant_minter_roles",
           "inputs": [],
           "outputs": [],
@@ -6875,34 +6937,6 @@
       ]
     },
     {
-      "type": "interface",
-      "name": "zkube::systems::cube_token::IERC1155Metadata",
-      "items": [
-        {
-          "type": "function",
-          "name": "name",
-          "inputs": [],
-          "outputs": [
-            {
-              "type": "core::byte_array::ByteArray"
-            }
-          ],
-          "state_mutability": "view"
-        },
-        {
-          "type": "function",
-          "name": "symbol",
-          "inputs": [],
-          "outputs": [
-            {
-              "type": "core::byte_array::ByteArray"
-            }
-          ],
-          "state_mutability": "view"
-        }
-      ]
-    },
-    {
       "type": "event",
       "name": "zkube::systems::cube_token::cube_token::Event",
       "kind": "enum",
@@ -6918,8 +6952,8 @@
           "kind": "nested"
         },
         {
-          "name": "ERC1155Event",
-          "type": "openzeppelin_token::erc1155::erc1155::ERC1155Component::Event",
+          "name": "ERC20Event",
+          "type": "openzeppelin_token::erc20::erc20::ERC20Component::Event",
           "kind": "flat"
         },
         {

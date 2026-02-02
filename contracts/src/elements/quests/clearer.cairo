@@ -50,7 +50,7 @@ pub impl DailyClearerTwo of QuestTrait {
         let reward = RewardTrait::new("Quest Reward", "6 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
             name: "Line Crusher",
-            description: "Clear 30 lines like a pro.",
+            description: "Clear 50 lines like a pro.",
             icon: "fa-layer-group",
             registry: registry,
             rewards: array![reward].span(),
@@ -60,7 +60,6 @@ pub impl DailyClearerTwo of QuestTrait {
                 LineClearer::identifier(), total.into(), LineClearer::description(total),
             ),
         ];
-        // No conditions - all tiers unlock immediately for cumulative progress
         QuestProps {
             id: Self::identifier(),
             start: 0,
@@ -85,7 +84,7 @@ pub impl DailyClearerThree of QuestTrait {
         let reward = RewardTrait::new("Quest Reward", "12 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
             name: "Line Master",
-            description: "Clear 50 lines to prove mastery.",
+            description: "Clear 100 lines to prove mastery.",
             icon: "fa-bars-staggered",
             registry: registry,
             rewards: array![reward].span(),
@@ -95,7 +94,6 @@ pub impl DailyClearerThree of QuestTrait {
                 LineClearer::identifier(), total.into(), LineClearer::description(total),
             ),
         ];
-        // No conditions - all tiers unlock immediately for cumulative progress
         QuestProps {
             id: Self::identifier(),
             start: 0,

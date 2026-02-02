@@ -79,7 +79,9 @@ const DesktopHeader = ({
             Tutorial
           </Button>
         )}
-        <HeaderLeaderboard buttonType="outline" textSize="sm" />
+        <div onClick={(e) => e.stopPropagation()}>
+          <HeaderLeaderboard buttonType="outline" textSize="sm" />
+        </div>
         <TutorialModal
           isOpen={isTutorialOpen}
           onClose={changeTutorialOpen}

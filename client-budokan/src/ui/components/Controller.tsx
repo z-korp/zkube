@@ -3,7 +3,7 @@ import { useAccount } from "@starknet-react/core";
 import { Button } from "../elements/button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGamepad } from "@fortawesome/free-solid-svg-icons";
-import { useControllers } from "@/contexts/controllers";
+import { useControllerUsername } from "@/hooks/useControllerUsername";
 import ControllerConnector from "@cartridge/connector/controller";
 
 interface ControllerProps {
@@ -16,9 +16,7 @@ const shortAddress = (address: string, size = 4) => {
 
 export const Controller = ({ className = "" }: ControllerProps) => {
   const { address, connector } = useAccount();
-  const { find } = useControllers();
-  
-  const username = address ? find(address)?.username : undefined;
+  const { username } = useControllerUsername();
 
   const openProfile = useCallback(() => {
     const controllerConnector = connector as ControllerConnector;

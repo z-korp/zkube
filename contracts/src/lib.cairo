@@ -37,6 +37,20 @@ mod elements {
         pub mod clearer;
         pub mod combo;
         pub mod master;
+        pub mod level;
+        pub mod scorer;
+    }
+    pub mod achievements {
+        pub mod interface;
+        pub mod index;
+        pub mod grinder;
+        pub mod clearer;
+        pub mod combo;
+        pub mod chain;
+        pub mod superchain;
+        pub mod leveler;
+        pub mod scorer;
+        pub mod master;
     }
     pub mod quests {
         pub mod interface;
@@ -84,5 +98,6 @@ pub mod systems {
     pub mod shop;
     pub mod cube_token;
     pub mod quest;
+    pub mod achievement;
     pub mod renderer;
 }

@@ -33,7 +33,7 @@ import {
 // getChecksumAddress imported for future use if needed
 // import { getChecksumAddress } from "starknet";
 import { useAccount } from "@starknet-react/core";
-import { NAMESPACE, QUEST_FAMILIES } from "@/constants";
+import { NAMESPACE, QUEST_FAMILIES, QUEST_REWARDS } from "@/constants";
 import { useDojo } from "@/dojo/useDojo";
 import { toast } from "sonner";
 import { getToastPlacement } from "@/utils/toast";
@@ -272,11 +272,15 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
             (c) => c.definition.id === event.quest_id,
           );
           if (quest) {
-            // Get reward amount
-            const rewardAmount = quest.metadata.rewards.reduce((sum, r) => {
-              const match = r.description.match(/(\d+)/);
-              return sum + (match ? parseInt(match[1], 10) : 0);
-            }, 0);
+            // Get reward amount - use override if available
+            let rewardAmount = QUEST_REWARDS[event.quest_id];
+            if (rewardAmount === undefined) {
+              // Fallback: parse from metadata
+              rewardAmount = quest.metadata.rewards.reduce((sum, r) => {
+                const match = r.description.match(/(\d+)/);
+                return sum + (match ? parseInt(match[1], 10) : 0);
+              }, 0);
+            }
             toast.success(`${quest.metadata.name}`, {
               description: rewardAmount > 0 
                 ? `+${rewardAmount} CUBE claimed!` 
@@ -504,8 +508,13 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
 
   // Compute quest families from the raw quest data
   const questFamilies: QuestFamily[] = useMemo(() => {
-    // Helper to get reward amount from rewards array
-    const getRewardAmount = (rewards: QuestReward[]): number => {
+    // Helper to get reward amount - uses QUEST_REWARDS override if available, falls back to parsing metadata
+    const getRewardAmount = (questId: string, rewards: QuestReward[]): number => {
+      // Use override if available (since contract metadata may be stale)
+      if (QUEST_REWARDS[questId] !== undefined) {
+        return QUEST_REWARDS[questId];
+      }
+      // Fallback: parse from metadata description
       return rewards.reduce((sum, r) => {
         const match = r.description.match(/(\d+)/);
         return sum + (match ? parseInt(match[1], 10) : 0);
@@ -523,7 +532,7 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
       const tiers: QuestTier[] = familyQuests.map((quest, index) => {
         // Get the target from the task (first task's total)
         const target = quest.tasks.length > 0 ? Number(quest.tasks[0].total) : 1;
-        const reward = getRewardAmount(quest.rewards);
+        const reward = getRewardAmount(quest.id, quest.rewards);
 
         return {
           tier: index + 1,

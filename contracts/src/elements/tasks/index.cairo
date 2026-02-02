@@ -6,7 +6,7 @@ use achievement::types::task::{Task as AchievementTask, TaskTrait as Achievement
 // Internal imports
 use crate::elements::tasks;
 
-/// Task enum representing all trackable actions for quests
+/// Task enum representing all trackable actions for quests and achievements
 #[derive(Copy, Drop, PartialEq)]
 pub enum Task {
     None,
@@ -15,9 +15,12 @@ pub enum Task {
     LineClearer,    // Clear X lines
     ComboThree,     // Achieve 3+ line combos
     ComboFive,      // Achieve 5+ line combos
-    ComboEight,     // Achieve 8+ line combos
+    ComboSeven,     // Achieve 7+ line combos
     // Meta task
     DailyMaster,    // Complete X daily quests
+    // Achievement-only tasks
+    LevelReacher,   // Reach level X
+    Scorer,         // Score X points in a level
 }
 
 // Implementations
@@ -32,8 +35,10 @@ pub impl TaskImpl of TaskTrait {
             Task::LineClearer => tasks::clearer::LineClearer::identifier(),
             Task::ComboThree => tasks::combo::ComboThree::identifier(),
             Task::ComboFive => tasks::combo::ComboFive::identifier(),
-            Task::ComboEight => tasks::combo::ComboEight::identifier(),
+            Task::ComboSeven => tasks::combo::ComboSeven::identifier(),
             Task::DailyMaster => tasks::master::DailyMaster::identifier(),
+            Task::LevelReacher => tasks::level::LevelReacher::identifier(),
+            Task::Scorer => tasks::scorer::Scorer::identifier(),
         }
     }
 
@@ -45,8 +50,10 @@ pub impl TaskImpl of TaskTrait {
             Task::LineClearer => tasks::clearer::LineClearer::description(count),
             Task::ComboThree => tasks::combo::ComboThree::description(count),
             Task::ComboFive => tasks::combo::ComboFive::description(count),
-            Task::ComboEight => tasks::combo::ComboEight::description(count),
+            Task::ComboSeven => tasks::combo::ComboSeven::description(count),
             Task::DailyMaster => tasks::master::DailyMaster::description(count),
+            Task::LevelReacher => tasks::level::LevelReacher::description(count),
+            Task::Scorer => tasks::scorer::Scorer::description(count),
         }
     }
 
@@ -67,8 +74,10 @@ impl IntoTaskU8 of core::traits::Into<Task, u8> {
             Task::LineClearer => 2,
             Task::ComboThree => 3,
             Task::ComboFive => 4,
-            Task::ComboEight => 5,
+            Task::ComboSeven => 5,
             Task::DailyMaster => 6,
+            Task::LevelReacher => 7,
+            Task::Scorer => 8,
         }
     }
 }
@@ -82,8 +91,10 @@ impl IntoU8Task of core::traits::Into<u8, Task> {
             2 => Task::LineClearer,
             3 => Task::ComboThree,
             4 => Task::ComboFive,
-            5 => Task::ComboEight,
+            5 => Task::ComboSeven,
             6 => Task::DailyMaster,
+            7 => Task::LevelReacher,
+            8 => Task::Scorer,
             _ => Task::None,
         }
     }
