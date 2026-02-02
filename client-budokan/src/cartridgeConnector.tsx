@@ -31,7 +31,7 @@ const RPC_URLS = {
 // Slot names for Cartridge
 const SLOTS = {
   mainnet: "zkube-ba-mainnet",
-  sepolia: "zkube-djizus",
+  sepolia: "zkube-djizus-sepolia",
   slot: VITE_PUBLIC_SLOT || "zkube",
 };
 
