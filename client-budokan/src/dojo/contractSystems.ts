@@ -136,9 +136,9 @@ export function setupWorld(config: Config) {
 
     const create = async ({ account, token_id, selected_bonuses, cubes_amount }: Create) => {
       try {
-        console.log("token_id", token_id);
         const bonusList = selected_bonuses ?? [];
         const calldata = [token_id, bonusList.length, ...bonusList, cubes_amount];
+        console.log("[create] calldata:", calldata);
 
         // On Slot, skip VRF call since it's not deployed
         if (isSlotMode) {

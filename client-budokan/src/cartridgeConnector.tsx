@@ -74,6 +74,11 @@ const buildPolicies = (addresses: typeof CONTRACT_ADDRESSES.sepolia): SessionPol
       description: "zKube Game System - Create and manage games",
       methods: [
         {
+          name: "Mint Game",
+          description: "Mint a new game NFT",
+          entrypoint: "mint_game",
+        },
+        {
           name: "Create Game",
           description: "Start a new game with your NFT",
           entrypoint: "create",
@@ -82,6 +87,11 @@ const buildPolicies = (addresses: typeof CONTRACT_ADDRESSES.sepolia): SessionPol
           name: "Surrender",
           description: "Forfeit the current game",
           entrypoint: "surrender",
+        },
+        {
+          name: "Refresh Metadata",
+          description: "Refresh the NFT metadata",
+          entrypoint: "refresh_metadata",
         },
       ],
     },
