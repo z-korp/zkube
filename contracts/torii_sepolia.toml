@@ -7,7 +7,7 @@ transactions = true
 namespaces = ["zkube_budo_v1_2_0"]
 contracts = [
   "erc721:0x045a74be8647d39de23b2b73e98862f6b663164fd8f985cfd80eaa6be495f8ba",
-  "ERC1155:0x2c3e5d67e120b57883c5e2f76b56c8cc0a61fc34368b09f7239c4d52284366"
+  "erc20:0x2c3e5d67e120b57883c5e2f76b56c8cc0a61fc34368b09f7239c4d52284366"
 ]
 
 [events]
