@@ -18,9 +18,7 @@ import {
   faFire,
   faStar,
   faRotateRight,
-  faSync,
 } from "@fortawesome/free-solid-svg-icons";
-import { useDojo } from "@/dojo/useDojo";
 import MaxComboIcon from "../components/MaxComboIcon";
 import GameBoard from "../components/GameBoard";
 import { useGrid } from "@/hooks/useGrid";
@@ -111,9 +109,7 @@ const getAttributeValue = (
 export const Home = () => {
   useViewport();
   const { account } = useAccountCustom();
-  const { setup: { systemCalls } } = useDojo();
   const [animationDone, setAnimationDone] = useState(false);
-  const [refreshingGames, setRefreshingGames] = useState<Set<number>>(new Set());
 
   const { theme, themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
@@ -244,20 +240,6 @@ export const Home = () => {
     return value.toString();
   };
 
-  const handleRefreshMetadata = async (tokenId: number) => {
-    if (!account) return;
-    setRefreshingGames(prev => new Set(prev).add(tokenId));
-    try {
-      await systemCalls.refreshMetadata({ account, game_id: tokenId });
-    } finally {
-      setRefreshingGames(prev => {
-        const next = new Set(prev);
-        next.delete(tokenId);
-        return next;
-      });
-    }
-  };
-
   const renderMyGamesTable = (games: PlayerGameRow[]) => {
     if (!isMdOrLarger) {
       return (
@@ -273,27 +255,6 @@ export const Home = () => {
                   {game.name}
                 </div>
                 <div className="flex items-center gap-2">
-                  <TooltipProvider delayDuration={0}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleRefreshMetadata(game.tokenId)}
-                          disabled={refreshingGames.has(game.tokenId)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <FontAwesomeIcon 
-                            icon={faSync} 
-                            className={refreshingGames.has(game.tokenId) ? "animate-spin" : ""}
-                          />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">
-                        <p>Refresh NFT Image</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
                   {!game.gameOver ? (
                     <Button
                       size="sm"
@@ -447,27 +408,6 @@ export const Home = () => {
                       </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <TooltipProvider delayDuration={0}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleRefreshMetadata(game.tokenId)}
-                                disabled={refreshingGames.has(game.tokenId)}
-                                className="h-8 w-8 p-0"
-                              >
-                                <FontAwesomeIcon 
-                                  icon={faSync} 
-                                  className={refreshingGames.has(game.tokenId) ? "animate-spin" : ""}
-                                />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom">
-                              <p>Refresh NFT Image</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
                         {!game.gameOver ? (
                           <Button
                             size="sm"
