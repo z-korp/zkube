@@ -21,7 +21,8 @@ pub mod quest_system {
     use crate::constants::DEFAULT_NS;
     use crate::elements::quests::index::{IQuest, QUEST_COUNT, QuestProps, QuestType};
     use crate::elements::quests::finisher;
-    use crate::helpers::game_libs::{GameLibsImpl, ICubeTokenDispatcherTrait};
+    use crate::elements::tasks::master;
+    use crate::helpers::game_libs::{GameLibsImpl, ICubeTokenDispatcherTrait, IAchievementSystemDispatcherTrait};
 
     use super::IQuestSystem;
 
@@ -119,14 +120,19 @@ pub mod quest_system {
             let quest: QuestType = quest_id.into();
             let (amount, _task) = quest.reward();
 
+            let libs = GameLibsImpl::new(world);
+            
             // Mint CUBE tokens as reward
             if amount > 0 {
-                let libs = GameLibsImpl::new(world);
                 libs.cube.mint(player, amount.into());
             }
 
-            // Note: Achievement progression for DailyMaster would be handled here
-            // if we add the achievement system later
+            // Track DailyMaster achievement when DailyFinisher is claimed
+            if quest_id == QuestType::DailyFinisher.identifier() {
+                if let Option::Some(achievement) = libs.achievement {
+                    achievement.progress(player, master::DailyMaster::identifier(), 1);
+                }
+            }
         }
     }
 

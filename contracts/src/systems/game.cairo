@@ -304,6 +304,9 @@ mod game_system {
             // Track quest progress: games played (Grinder task)
             // Only counts for default settings games
             libs.track_quest(player, grinder::Grinder::identifier(), 1, settings.settings_id);
+            
+            // Track achievement progress: games played (Grinder achievement)
+            libs.track_achievement(player, grinder::Grinder::identifier(), 1, settings.settings_id);
 
             post_action(token_address, game_id);
 

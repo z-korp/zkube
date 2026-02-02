@@ -6,7 +6,7 @@ use achievement::types::task::{Task as AchievementTask, TaskTrait as Achievement
 // Internal imports
 use crate::elements::tasks;
 
-/// Task enum representing all trackable actions for quests
+/// Task enum representing all trackable actions for quests and achievements
 #[derive(Copy, Drop, PartialEq)]
 pub enum Task {
     None,
@@ -18,6 +18,9 @@ pub enum Task {
     ComboSeven,     // Achieve 7+ line combos
     // Meta task
     DailyMaster,    // Complete X daily quests
+    // Achievement-only tasks
+    LevelReacher,   // Reach level X
+    Scorer,         // Score X points in a level
 }
 
 // Implementations
@@ -34,6 +37,8 @@ pub impl TaskImpl of TaskTrait {
             Task::ComboFive => tasks::combo::ComboFive::identifier(),
             Task::ComboSeven => tasks::combo::ComboSeven::identifier(),
             Task::DailyMaster => tasks::master::DailyMaster::identifier(),
+            Task::LevelReacher => tasks::level::LevelReacher::identifier(),
+            Task::Scorer => tasks::scorer::Scorer::identifier(),
         }
     }
 
@@ -47,6 +52,8 @@ pub impl TaskImpl of TaskTrait {
             Task::ComboFive => tasks::combo::ComboFive::description(count),
             Task::ComboSeven => tasks::combo::ComboSeven::description(count),
             Task::DailyMaster => tasks::master::DailyMaster::description(count),
+            Task::LevelReacher => tasks::level::LevelReacher::description(count),
+            Task::Scorer => tasks::scorer::Scorer::description(count),
         }
     }
 
@@ -69,6 +76,8 @@ impl IntoTaskU8 of core::traits::Into<Task, u8> {
             Task::ComboFive => 4,
             Task::ComboSeven => 5,
             Task::DailyMaster => 6,
+            Task::LevelReacher => 7,
+            Task::Scorer => 8,
         }
     }
 }
@@ -84,6 +93,8 @@ impl IntoU8Task of core::traits::Into<u8, Task> {
             4 => Task::ComboFive,
             5 => Task::ComboSeven,
             6 => Task::DailyMaster,
+            7 => Task::LevelReacher,
+            8 => Task::Scorer,
             _ => Task::None,
         }
     }
