@@ -1,7 +1,7 @@
 import { useDojo } from "@/dojo/useDojo";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { getComponentValue, Has, runQuery } from "@dojoengine/recs";
-import { useControllers } from "@/contexts/controllers";
+import { useGetUsernames, normalizeAddress } from "./useGetUsernames";
 
 const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_TORII, VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
 export const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
@@ -100,6 +100,7 @@ const parsePlayerName = (metadata: string | undefined): string | undefined => {
  * Queries all Game entities and sorts by level -> totalScore -> totalCubes.
  * 
  * Uses Torii's tokenTransfers query to get token ownership and player names.
+ * Uses Cartridge's lookupAddresses for username resolution.
  */
 export const useLeaderboardSlot = ({ 
   forceRecs = false 
@@ -114,9 +115,7 @@ export const useLeaderboardSlot = ({
     },
   } = useDojo();
 
-  const { controllers, find: findController } = useControllers();
-
-  const [games, setGames] = useState<LeaderboardEntry[]>([]);
+  const [rawGames, setRawGames] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -126,6 +125,18 @@ export const useLeaderboardSlot = ({
 
   const shouldFetch = isSlotMode || forceRecs;
 
+  // Extract unique addresses that need username lookups
+  const addressesNeedingLookup = useMemo(() => {
+    return rawGames
+      .filter((g) => g.player_address && !g.player_name)
+      .map((g) => g.player_address!)
+      .filter((addr, index, self) => self.indexOf(addr) === index); // Dedupe
+  }, [rawGames]);
+
+  // Batch fetch usernames for all addresses
+  const { usernames } = useGetUsernames(addressesNeedingLookup);
+
+  // Fetch raw game data
   useEffect(() => {
     if (!shouldFetch) {
       setLoading(false);
@@ -233,33 +244,42 @@ export const useLeaderboardSlot = ({
           return (a.started_at ?? 0) - (b.started_at ?? 0);
         });
 
-        // Resolve usernames for addresses without player names using controllers context
-        for (const game of gameList) {
-          if (game.player_address && !game.player_name) {
-            const controller = findController(game.player_address);
-            game.player_name = controller?.username || truncateAddress(game.player_address);
-          }
-        }
-
-        // For games without any player info, show game ID
-        for (const game of gameList) {
-          if (!game.player_name) {
-            game.player_name = `Game #${game.token_id}`;
-          }
-        }
-
-        console.log("[useLeaderboardSlot] Final leaderboard:", gameList.length, "entries");
-        setGames(gameList);
+        console.log("[useLeaderboardSlot] Raw leaderboard:", gameList.length, "entries");
+        setRawGames(gameList);
       } catch (error) {
         console.error("[useLeaderboardSlot] Error fetching leaderboard:", error);
-        setGames([]);
+        setRawGames([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchGames();
-  }, [Game, refreshTrigger, shouldFetch, findController, controllers]);
+  }, [Game, refreshTrigger, shouldFetch]);
+
+  // Combine raw games with resolved usernames
+  const games = useMemo(() => {
+    return rawGames.map((game) => {
+      // If already has player_name from token metadata, use it
+      if (game.player_name) return game;
+
+      // Try to get username from Cartridge lookup
+      if (game.player_address && usernames) {
+        const normalized = normalizeAddress(game.player_address);
+        const username = usernames.get(normalized);
+        if (username) {
+          return { ...game, player_name: username };
+        }
+      }
+
+      // Fallback to truncated address or game ID
+      if (game.player_address) {
+        return { ...game, player_name: truncateAddress(game.player_address) };
+      }
+
+      return { ...game, player_name: `Game #${game.token_id}` };
+    });
+  }, [rawGames, usernames]);
 
   return {
     games,
