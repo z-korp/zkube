@@ -1,8 +1,11 @@
-import { useEffect, useState, useCallback } from "react";
-import { useAccount, useProvider } from "@starknet-react/core";
-import { CallData } from "starknet";
+import { useEffect, useCallback, useRef } from "react";
+import { useAccount } from "@starknet-react/core";
+import { useDojo } from "@/dojo/useDojo";
+import { useCubeBalanceStore } from "@/stores/cubeBalanceStore";
+import { addAddressPadding } from "starknet";
+import type { Subscription, TokenBalance } from "@dojoengine/torii-client";
 
-const { VITE_PUBLIC_TORII, VITE_PUBLIC_CUBE_TOKEN_ADDRESS } = import.meta.env;
+const { VITE_PUBLIC_CUBE_TOKEN_ADDRESS } = import.meta.env;
 
 interface CubeBalanceResult {
   cubeBalance: bigint;
@@ -12,170 +15,121 @@ interface CubeBalanceResult {
 }
 
 /**
- * Hook to fetch zCubes (ERC20) token balance
- * Tries Torii GraphQL first, falls back to direct RPC call
+ * Hook to subscribe to zCubes (ERC20) token balance via Torii.
+ * Uses real-time subscription for automatic updates.
  */
 export const useCubeBalance = (): CubeBalanceResult => {
   const { address } = useAccount();
-  const { provider } = useProvider();
-  const [cubeBalance, setCubeBalance] = useState<bigint>(BigInt(0));
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { setup: { toriiClient } } = useDojo();
+  
+  // Use Zustand store for shared state
+  const { 
+    balance, 
+    isLoading, 
+    error, 
+    setBalance, 
+    setLoading, 
+    setError,
+  } = useCubeBalanceStore();
 
-  // Fetch balance directly from RPC using low-level call
-  const fetchBalanceRpc = useCallback(async (): Promise<bigint | null> => {
-    if (!address || !provider || !VITE_PUBLIC_CUBE_TOKEN_ADDRESS) {
-      return null;
+  const subscriptionRef = useRef<Subscription | null>(null);
+
+  // Fetch initial balance and setup subscription
+  const setupSubscription = useCallback(async () => {
+    if (!address || !toriiClient || !VITE_PUBLIC_CUBE_TOKEN_ADDRESS) {
+      setBalance(BigInt(0));
+      return;
     }
 
     try {
-      // Use low-level provider.callContract to avoid ABI parsing issues
-      // Try balance_of (snake_case) first, then balanceOf (camelCase)
-      const entrypoints = ["balance_of", "balanceOf"];
-      
-      for (const entrypoint of entrypoints) {
-        try {
-          const result = await provider.callContract({
-            contractAddress: VITE_PUBLIC_CUBE_TOKEN_ADDRESS,
-            entrypoint,
-            calldata: CallData.compile([address]),
-          });
-          
-          // Result is an array of felt252s - for u256, it's [low, high]
-          if (result && result.length >= 1) {
-            const low = BigInt(result[0] || "0");
-            const high = result.length >= 2 ? BigInt(result[1] || "0") : 0n;
-            return low + (high << 128n);
-          }
-        } catch {
-          // Try next entrypoint
-          continue;
-        }
-      }
-      
-      return null;
-    } catch (err) {
-      console.warn("[useCubeBalance] RPC fallback failed:", err);
-      return null;
-    }
-  }, [address, provider]);
+      setLoading(true);
 
-  // Fetch balance from Torii GraphQL
-  const fetchBalanceTorii = useCallback(async (): Promise<bigint | null> => {
-    if (!address || !VITE_PUBLIC_TORII || !VITE_PUBLIC_CUBE_TOKEN_ADDRESS) {
-      return null;
-    }
+      // Normalize addresses with padding
+      const contractAddresses = [addAddressPadding(VITE_PUBLIC_CUBE_TOKEN_ADDRESS)];
+      const accountAddresses = [addAddressPadding(address)];
 
-    // Normalize addresses (remove leading zeros after 0x for comparison)
-    const normalizeAddr = (addr: string) => {
-      const hex = addr.toLowerCase().replace(/^0x0*/, "0x");
-      return hex === "0x" ? "0x0" : hex;
-    };
-    const normalizedAccount = normalizeAddr(address);
-    const normalizedToken = normalizeAddr(VITE_PUBLIC_CUBE_TOKEN_ADDRESS);
-
-    try {
-      const graphqlUrl = `${VITE_PUBLIC_TORII}/graphql`;
-      
-      const query = `
-        query GetCubeBalance($accountAddress: String!) {
-          tokenBalances(accountAddress: $accountAddress) {
-            edges {
-              node {
-                tokenMetadata {
-                  ... on ERC20__Token {
-                    contractAddress
-                    amount
-                  }
-                }
-              }
-            }
-          }
-        }
-      `;
-
-      const response = await fetch(graphqlUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query,
-          variables: { accountAddress: normalizedAccount },
-        }),
+      // Fetch initial balance
+      const balances = await toriiClient.getTokenBalances({
+        contract_addresses: contractAddresses,
+        account_addresses: accountAddresses,
+        token_ids: [], // Empty for ERC20
+        pagination: {
+          cursor: undefined,
+          direction: "Backward",
+          limit: 100,
+          order_by: [],
+        },
       });
 
-      if (!response.ok) {
-        return null;
-      }
-
-      const result = await response.json();
-      if (result.errors) {
-        return null;
-      }
-
-      // Find the zCubes token balance
-      const edges = result.data?.tokenBalances?.edges || [];
-      for (const edge of edges) {
-        const meta = edge.node?.tokenMetadata;
-        if (!meta?.contractAddress) continue;
-        
-        if (normalizeAddr(meta.contractAddress) === normalizedToken) {
-          const amountStr = meta.amount || "0";
-          return amountStr.startsWith("0x") ? BigInt(amountStr) : BigInt(amountStr);
-        }
-      }
+      // Find the CUBE token balance
+      const cubeBalance = balances.items.find((b: TokenBalance) => 
+        BigInt(b.contract_address) === BigInt(VITE_PUBLIC_CUBE_TOKEN_ADDRESS)
+      );
       
-      return null; // Not found in Torii
-    } catch {
-      return null;
-    }
-  }, [address]);
+      const initialBalance = cubeBalance ? BigInt(cubeBalance.balance) : BigInt(0);
+      setBalance(initialBalance);
+      
+      console.log("[useCubeBalance] Initial balance:", initialBalance.toString());
 
-  const fetchBalance = useCallback(async () => {
-    if (!address) {
-      setCubeBalance(BigInt(0));
-      setIsLoading(false);
-      return;
-    }
-
-    if (!VITE_PUBLIC_CUBE_TOKEN_ADDRESS) {
-      setError("CUBE token address not configured");
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      // Try Torii first, fallback to RPC
-      let balance = await fetchBalanceTorii();
-      if (balance === null) {
-        balance = await fetchBalanceRpc();
+      // Cancel existing subscription
+      if (subscriptionRef.current) {
+        try {
+          subscriptionRef.current.cancel();
+        } catch {
+          // Ignore cancel errors
+        }
+        subscriptionRef.current = null;
       }
 
-      setCubeBalance(balance ?? BigInt(0));
+      // Subscribe to balance updates
+      const subscription = await toriiClient.onTokenBalanceUpdated(
+        contractAddresses,
+        accountAddresses,
+        [], // Empty token_ids for ERC20
+        (data: TokenBalance) => {
+          // Check if this is for our token
+          if (BigInt(data.contract_address) === BigInt(VITE_PUBLIC_CUBE_TOKEN_ADDRESS)) {
+            const newBalance = BigInt(data.balance);
+            console.log("[useCubeBalance] Balance updated via subscription:", newBalance.toString());
+            setBalance(newBalance);
+          }
+        },
+      );
+
+      subscriptionRef.current = subscription;
     } catch (err) {
-      console.error("Failed to fetch cube balance:", err);
+      console.error("[useCubeBalance] Error setting up subscription:", err);
       setError(err instanceof Error ? err.message : "Unknown error");
-      setCubeBalance(BigInt(0));
-    } finally {
-      setIsLoading(false);
     }
-  }, [address, fetchBalanceTorii, fetchBalanceRpc]);
+  }, [address, toriiClient, setBalance, setLoading, setError]);
 
-  // Fetch on mount and when address changes
+  // Manual refetch (triggers re-subscription)
+  const refetch = useCallback(async () => {
+    await setupSubscription();
+  }, [setupSubscription]);
+
+  // Setup subscription on mount and when address changes
   useEffect(() => {
-    fetchBalance();
-  }, [fetchBalance]);
+    setupSubscription();
 
-  // Note: Removed automatic polling - use refetch() for manual updates
-  // Components should use optimistic updates for immediate feedback
+    // Cleanup subscription on unmount
+    return () => {
+      if (subscriptionRef.current) {
+        try {
+          subscriptionRef.current.cancel();
+        } catch {
+          // Ignore cancel errors
+        }
+        subscriptionRef.current = null;
+      }
+    };
+  }, [setupSubscription]);
 
   return {
-    cubeBalance,
+    cubeBalance: balance,
     isLoading,
     error,
-    refetch: fetchBalance,
+    refetch,
   };
 };
 

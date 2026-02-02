@@ -45,6 +45,7 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
   const handleClaim = useCallback(
     async (questId: string, intervalId: number) => {
       if (!account) return;
+      
       // Convert quest ID string to felt252
       const questIdFelt = `0x${BigInt(shortString.encodeShortString(questId)).toString(16)}`;
       await systemCalls.claimQuest({
