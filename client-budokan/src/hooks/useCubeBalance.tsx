@@ -1,26 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAccount, useProvider } from "@starknet-react/core";
-import { Contract } from "starknet";
+import { CallData, hash } from "starknet";
 
 const { VITE_PUBLIC_TORII, VITE_PUBLIC_CUBE_TOKEN_ADDRESS } = import.meta.env;
-
-// Minimal ERC20 ABI for balance_of
-const ERC20_ABI = [
-  {
-    name: "balance_of",
-    type: "function",
-    inputs: [{ name: "account", type: "core::starknet::contract_address::ContractAddress" }],
-    outputs: [{ type: "core::integer::u256" }],
-    state_mutability: "view",
-  },
-  {
-    name: "balanceOf",
-    type: "function",
-    inputs: [{ name: "account", type: "core::starknet::contract_address::ContractAddress" }],
-    outputs: [{ type: "core::integer::u256" }],
-    state_mutability: "view",
-  },
-];
 
 interface CubeBalanceResult {
   cubeBalance: bigint;
@@ -40,24 +22,41 @@ export const useCubeBalance = (): CubeBalanceResult => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch balance directly from RPC using ERC20 balanceOf
+  // Fetch balance directly from RPC using low-level call
   const fetchBalanceRpc = useCallback(async (): Promise<bigint | null> => {
     if (!address || !provider || !VITE_PUBLIC_CUBE_TOKEN_ADDRESS) {
       return null;
     }
 
     try {
-      const contract = new Contract(ERC20_ABI, VITE_PUBLIC_CUBE_TOKEN_ADDRESS, provider);
+      // Use low-level provider.callContract to avoid ABI parsing issues
+      // Try balance_of (snake_case) first, then balanceOf (camelCase)
+      const selectors = [
+        hash.getSelectorFromName("balance_of"),
+        hash.getSelectorFromName("balanceOf"),
+      ];
       
-      // Try balance_of first (snake_case), then balanceOf (camelCase)
-      try {
-        const result = await contract.balance_of(address);
-        return BigInt(result.toString());
-      } catch {
-        // Try camelCase version
-        const result = await contract.balanceOf(address);
-        return BigInt(result.toString());
+      for (const selector of selectors) {
+        try {
+          const result = await provider.callContract({
+            contractAddress: VITE_PUBLIC_CUBE_TOKEN_ADDRESS,
+            entrypoint: selector,
+            calldata: CallData.compile([address]),
+          });
+          
+          // Result is an array of felt252s - for u256, it's [low, high]
+          if (result && result.length >= 1) {
+            const low = BigInt(result[0] || "0");
+            const high = result.length >= 2 ? BigInt(result[1] || "0") : 0n;
+            return low + (high << 128n);
+          }
+        } catch {
+          // Try next selector
+          continue;
+        }
       }
+      
+      return null;
     } catch (err) {
       console.warn("[useCubeBalance] RPC fallback failed:", err);
       return null;
