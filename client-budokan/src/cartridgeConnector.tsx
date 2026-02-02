@@ -50,6 +50,12 @@ const EXCLUDED_SYSTEMS = ["renderer_systems"];
 // Systems that should only include 'upgrade' entrypoint (internal)
 const INTERNAL_SYSTEMS = ["config_system", "grid_system", "level_system"];
 
+// Additional entrypoints not in manifest.systems but needed for gameplay
+// (e.g., from MinigameComponent interface)
+const ADDITIONAL_ENTRYPOINTS: Record<string, string[]> = {
+  "game_system": ["mint_game"],
+};
+
 // Build session policies from manifest - includes ALL contracts
 const buildPoliciesFromManifest = (manifest: any, namespace: string, includeVrf: boolean = false): SessionPolicies => {
   const contracts: SessionPolicies["contracts"] = {};
@@ -91,13 +97,17 @@ const buildPoliciesFromManifest = (manifest: any, namespace: string, includeVrf:
       return true;
     });
 
+    // Add any additional entrypoints for this system (e.g., from MinigameComponent)
+    const additionalEntrypoints = ADDITIONAL_ENTRYPOINTS[systemName] || [];
+    const allEntrypoints = [...userEntrypoints, ...additionalEntrypoints];
+
     // Skip if no user-facing entrypoints
-    if (userEntrypoints.length === 0) {
+    if (allEntrypoints.length === 0) {
       continue;
     }
 
     // Build methods array for this contract
-    const methods = userEntrypoints.map((entrypoint: string) => ({
+    const methods = allEntrypoints.map((entrypoint: string) => ({
       name: formatEntrypointName(entrypoint),
       entrypoint,
     }));
