@@ -18,8 +18,12 @@ import { ControllersProvider } from "./contexts/controllers";
 import { createBurnerAccount } from "./connectors/BurnerConnector";
 
 import "./index.css";
-import { type BigNumberish, shortString } from "starknet";
+import { type BigNumberish, shortString, PaymasterRpc } from "starknet";
 import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
+
+// Mock paymaster for slot mode - returns a dummy PaymasterRpc that won't be used
+// Required because @starknet-react/core v5.x throws if paymasterProvider returns null
+const slotPaymasterProvider = () => new PaymasterRpc({ nodeUrl: "http://localhost" });
 
 const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_NODE_URL, VITE_PUBLIC_SLOT } = import.meta.env;
 
@@ -165,7 +169,7 @@ export function Main() {
           defaultChainId={getDefaultChainId()}
           explorer={voyager}
           provider={jsonRpcProvider({ rpc })}
-          paymasterProvider={isSlotMode ? () => null : undefined}
+          paymasterProvider={isSlotMode ? slotPaymasterProvider : undefined}
         >
           <MusicPlayerProvider>
             <MetagameProvider>
