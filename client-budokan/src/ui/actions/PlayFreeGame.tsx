@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/ui/elements/button";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { showToast } from "@/utils/toast";
-import { useControllers } from "@/contexts/controllers";
+import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { LoadoutDialog } from "@/ui/components/Shop";
@@ -21,9 +21,8 @@ export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
     },
   } = useDojo();
   const { account } = useAccountCustom();
-  const { find } = useControllers();
+  const { username } = useControllerUsername();
   const { playerMeta } = usePlayerMeta();
-  const username = account?.address ? find(account.address)?.username : undefined;
   const { cubeBalance, refetch: refetchCubeBalance } = useCubeBalance();
   const navigate = useNavigate();
 
