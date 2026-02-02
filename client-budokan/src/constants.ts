@@ -4,6 +4,25 @@ import type { QuestFamilyConfig, QuestFamilyId } from "./types/questFamily";
 export const NAMESPACE = import.meta.env.VITE_PUBLIC_NAMESPACE || "zkube_budo_v1_2_0";
 
 /**
+ * Quest Reward Overrides
+ * 
+ * The actual CUBE rewards for each quest (matches contract REWARD_* constants).
+ * These override the display text from contract metadata until contracts are redeployed.
+ */
+export const QUEST_REWARDS: Record<string, number> = {
+  'DAILY_PLAYER_ONE': 3,
+  'DAILY_PLAYER_TWO': 6,
+  'DAILY_PLAYER_THREE': 12,
+  'DAILY_CLEARER_ONE': 3,
+  'DAILY_CLEARER_TWO': 6,
+  'DAILY_CLEARER_THREE': 12,
+  'DAILY_COMBO_ONE': 5,
+  'DAILY_COMBO_TWO': 10,
+  'DAILY_COMBO_THREE': 20,
+  'DAILY_FINISHER': 25,
+};
+
+/**
  * Quest Family Configuration
  * 
  * Maps quest families to their tier quest IDs.
