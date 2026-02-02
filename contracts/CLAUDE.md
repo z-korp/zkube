@@ -325,37 +325,77 @@ Bit 42:       combo_10_achieved (bool)
 Bits 43-50:   hammer_count (u8)
 Bits 51-58:   wave_count (u8)
 Bits 59-66:   totem_count (u8)
-Bits 67-74:   max_combo_run (u8)
-Bits 75-82:   extra_moves (u8)
-Bits 83-98:   cubes_brought (u16)
-Bits 99-114:  cubes_spent (u16)
-Bits 115-130: total_cubes (u16)
-Bits 131-146: total_score (u16)
+Bits 67-74:   shrink_count (u8)
+Bits 75-82:   shuffle_count (u8)
+Bits 83-90:   max_combo_run (u8)
+Bits 91-98:   extra_moves (u8)
+Bits 99-114:  cubes_brought (u16)
+Bits 115-130: cubes_spent (u16)
+Bits 131-146: total_cubes (u16)
+Bits 147-162: total_score (u16)
+Bit 163:      run_completed (bool) - Victory flag (level 50 cleared)
+Bits 164-166: selected_bonus_1 (3 bits, 0-5)
+Bits 167-169: selected_bonus_2 (3 bits, 0-5)
+Bits 170-172: selected_bonus_3 (3 bits, 0-5)
+Bits 173-174: bonus_1_level (2 bits, 0-2)
+Bits 175-176: bonus_2_level (2 bits, 0-2)
+Bits 177-178: bonus_3_level (2 bits, 0-2)
+Bits 179-181: free_moves (3 bits, 0-7)
+Bit 182:      pending_level_up (bool)
+Bits 183-188: last_shop_level (6 bits)
+Bit 189:      shop_bonus_1_bought (bool)
+Bit 190:      shop_bonus_2_bought (bool)
+Bit 191:      shop_bonus_3_bought (bool)
+Bits 192-195: shop_refills (4 bits)
+Bit 196:      no_bonus_constraint (bool)
 ```
+
+**Total: 197 bits used (55 reserved in felt252)**
 
 ## Bonuses
 
+Five bonus types, each with 3 upgrade levels (L1/L2/L3):
+
 ### Hammer (`elements/bonuses/hammer.cairo`)
 Clears the target block and connected same-size blocks.
+- L2: +1 combo bonus
+- L3: +2 combo bonus
 
 ### Wave (`elements/bonuses/wave.cairo`)
 Clears an entire horizontal row.
+- L2: +1 free move
+- L3: +2 free moves
 
 ### Totem (`elements/bonuses/totem.cairo`)
 Clears all blocks of the same size on the grid.
+- L2: +3 bonus cubes
+- L3: Clears entire grid
+
+### Shrink (`elements/bonuses/shrink.cairo`)
+Reduces block size by 1 (size 1 disappears). Unlockable for 200 CUBE.
+- L2: Shrink all same-size blocks
+- L3: Shrink by 2 sizes
+
+### Shuffle (`elements/bonuses/shuffle.cairo`)
+Randomizes block positions using Fisher-Yates algorithm. Unlockable for 200 CUBE.
+- L2: Also shuffles next line
+- L3: Shuffles entire grid
 
 ## ConsumableType (`types/consumable.cairo`)
 
-In-game shop items purchasable during a run:
+In-game shop items purchasable during a run (every 5 levels):
 
 ```cairo
 pub enum ConsumableType {
-    Hammer,      // 5 cubes - Implemented
-    Wave,        // 5 cubes - Implemented
-    Totem,       // 5 cubes - Implemented
-    ExtraMoves,  // 10 cubes - NOT YET IMPLEMENTED (panics)
+    Bonus1,   // 5 CUBE - Add 1 of selected_bonus_1
+    Bonus2,   // 5 CUBE - Add 1 of selected_bonus_2
+    Bonus3,   // 5 CUBE - Add 1 of selected_bonus_3
+    Refill,   // 2*(n+1) CUBE - Reset shop availability
+    LevelUp,  // 50 CUBE - Level up a bonus
 }
 ```
+
+**Shop availability resets** when entering a new shop level (every 5 levels).
 
 ## Difficulty Levels
 
@@ -473,9 +513,9 @@ Mock contracts in `tests/mocks/`:
 4. **Deterministic**: Same seed + same moves = same game result
 5. **Cube Economy**: Players earn cubes through gameplay:
    - Level completion: 1-3 cubes based on moves used
-   - Milestone bonus: Every 10 levels awards level/2 cubes (capped at 50)
-   - Combo bonuses: 4+ lines = +1, 5+ = +2, 6+ = +3 cubes
-   - Combo achievements: First 5-line combo = +3, first 10-line = +5 cubes
+   - Boss level bonus: Levels 10/20/30/40/50 award +10/+20/+30/+40/+50 CUBE
+   - Combo bonuses: 4→+1, 5→+3, 6→+5, 7→+10, 8→+25, 9+→+50 CUBE
+   - First combo achievements: First 5-combo = +3, first 10-combo = +5 CUBE
 6. **Starting Bonuses**: PlayerMeta upgrades apply on game creation
 7. **Quest Integration**: game_system calls quest_system.progress() automatically
 

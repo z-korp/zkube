@@ -54,8 +54,10 @@ Each game is an NFT. The game_id in contracts matches the token_id in the ERC721
 ### Level System
 - 50 levels with scaling difficulty
 - Seed-based level generation (same seed = same levels)
-- Constraints (ClearLines, NoBonusUsed)
+- Constraints (ClearLines, NoBonusUsed, dual constraints)
 - Cube rating (1-3 cubes based on move efficiency)
+- **Boss levels** (L10/20/30/40/50) with cube bonuses and free level-up
+- **Victory state** on level 50 completion (`run_completed` flag)
 
 ### Quest System
 - 10 daily quests
@@ -74,8 +76,8 @@ Each game is an NFT. The game_id in contracts matches the token_id in the ERC721
 ```
 
 ### Cube Economy
-- **Earning**: Level completion (1-3), combos (+1/+2/+3), achievements, quests
-- **Spending**: Permanent Shop (upgrades), In-Game Shop (consumables)
+- **Earning**: Level completion (1-3), combos (4→+1, 5→+3, 6→+5, 7→+10, 8→+25, 9+→+50), boss bonuses, quests
+- **Spending**: Permanent Shop (upgrades, unlocks), In-Game Shop (consumables, level-up)
 - **Bridging**: Bring cubes from wallet into runs
 
 ## Important Patterns

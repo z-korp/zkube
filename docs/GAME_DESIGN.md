@@ -91,26 +91,24 @@ The grid is packed into a single `felt252` (240 bits):
 | Parameter | Value | Description |
 |-----------|-------|-------------|
 | `BASE_RATIO_X100` | 80 | 0.80 points/move at level 1 |
-| `MAX_RATIO_X100` | 250 | 2.50 points/move at level 50 |
+| `MAX_RATIO_X100` | 180 | 1.80 points/move at level 50 |
 
 **Formula:** `points_required = base_moves * ratio / 100`
 
-### Variance by Level Tier
+### Variance
 
-| Level Range | Variance | Description |
-|-------------|----------|-------------|
-| 1-5 | ±5% | Early game stability |
-| 6-25 | ±10% | Mid game variety |
-| 26-50 | ±15% | Late game challenge |
+All levels use **±5% variance** for consistent gameplay experience.
+
+The variance is applied to both moves and points calculations, ensuring levels feel slightly different on each playthrough while maintaining balanced difficulty progression.
 
 ### Sample Level Configs
 
 | Level | Moves | Ratio | Points | Difficulty |
 |-------|-------|-------|--------|------------|
 | 1 | ~20 | 0.80 | ~16 | VeryEasy |
-| 10 | ~28 | 1.15 | ~32 | Medium |
-| 25 | ~40 | 1.65 | ~66 | VeryHard |
-| 50 | ~60 | 2.50 | ~150 | Master |
+| 10 | ~28 | 1.00 | ~28 | Medium |
+| 25 | ~40 | 1.30 | ~52 | VeryHard |
+| 50 | ~60 | 1.80 | ~108 | Master |
 
 ---
 
@@ -149,38 +147,30 @@ The grid is packed into a single `felt252` (240 bits):
 
 **Location:** `contracts/src/elements/bonuses/`
 
-> **Note:** A major overhaul is planned for v2.0. See [BONUS_SYSTEM_V2.md](./BONUS_SYSTEM_V2.md) for the design document featuring 5 bonus types, 3 levels each, and bonus selection mechanics.
+### Bonus Types (5 types, 3 levels each)
 
-### Bonus Types (Current v1.2)
+Players select **3 bonuses** before each run from the 5 available types:
 
-| Bonus | Effect | Earning Threshold |
-|-------|--------|-------------------|
-| **Hammer** | Clears target block + connected same-size | Score-based |
-| **Wave** | Clears entire horizontal row | Combo count-based |
-| **Totem** | Clears all blocks of same size on grid | Max combo-based |
+| Bonus | Effect | L2 Bonus | L3 Bonus | Unlock |
+|-------|--------|----------|----------|--------|
+| **Hammer** | Clears target block + connected same-size | +1 combo | +2 combo | Default |
+| **Wave** | Clears entire horizontal row | +1 free move | +2 free moves | Default |
+| **Totem** | Clears all blocks of same size | +3 cubes | Clear entire grid | Default |
+| **Shrink** | Reduces block size by 1 | All same-size | Shrink by 2 | 200 CUBE |
+| **Shuffle** | Randomizes block positions | Also next line | Entire grid | 200 CUBE |
 
-### Earning Thresholds
+### Earning Bonuses
 
-**Hammer** (based on level score):
-| Score | Hammers |
-|-------|---------|
-| >= 120 | 3 |
-| >= 80 | 2 |
-| >= 40 | 1 |
+- **Level completion:** Random bonus from selected 3 (capped by bag size)
+- **Boss levels (L10/20/30/40):** Free bonus level-up available
+- **In-game shop:** Purchase additional bonuses with cubes
 
-**Wave** (based on combo count):
-| Combos | Waves |
-|--------|-------|
-| >= 64 | 3 |
-| >= 32 | 2 |
-| >= 16 | 1 |
+### Bonus Selection (Run Start)
 
-**Totem** (based on max combo):
-| Max Combo | Totems |
-|-----------|--------|
-| >= 6 | 3 |
-| >= 4 | 2 |
-| >= 2 | 1 |
+When creating a game, players select exactly 3 of the 5 bonus types:
+- Shrink and Shuffle require unlocking (200 CUBE each in permanent shop)
+- Default selection: Hammer, Wave, Totem
+- Selection stored in `run_data` bits 164-172
 
 ---
 
@@ -223,11 +213,28 @@ Constraints scale with difficulty using a budget system:
 | Level complete (2-star) | 2 | Moves <= 70% of max |
 | Level complete (1-star) | 1 | Level completed |
 | Clear 4 lines | +1 | Combo bonus |
-| Clear 5 lines | +2 | Combo bonus |
-| Clear 6+ lines | +3 | Combo bonus |
+| Clear 5 lines | +3 | Combo bonus |
+| Clear 6 lines | +5 | Combo bonus |
+| Clear 7 lines | +10 | Combo bonus |
+| Clear 8 lines | +25 | Combo bonus |
+| Clear 9+ lines | +50 | Combo bonus |
 | First 5-line combo | +3 | One-time per run |
 | First 10-line combo | +5 | One-time per run |
-| Milestone (L10, L20...) | level/2 | Every 10 levels (capped at 50) |
+| Boss level (L10/20/30/40/50) | +10/20/30/40/50 | Boss level bonus |
+
+### Boss Levels
+
+Special levels every 10 levels with bonus rewards:
+
+| Level | Cube Bonus | Special Rules |
+|-------|------------|---------------|
+| 10 | +10 CUBE | Dual constraints |
+| 20 | +20 CUBE | Dual constraints |
+| 30 | +30 CUBE | Dual constraints |
+| 40 | +40 CUBE | Dual constraints |
+| 50 | +50 CUBE | Victory! (`run_completed` flag set) |
+
+Completing level 50 triggers the victory state and mints all earned cubes.
 
 ### Cube Thresholds
 
@@ -266,15 +273,22 @@ WALLET (ERC-1155)
 
 **Location:** `contracts/src/systems/shop.cairo`
 
+#### Unlock Bonuses
+
+| Bonus | Cost | Effect |
+|-------|------|--------|
+| Shrink | 200 CUBE | Unlock Shrink bonus for selection |
+| Shuffle | 200 CUBE | Unlock Shuffle bonus for selection |
+
 #### Starting Bonus Upgrades
 
 | Level | Cost | Effect |
 |-------|------|--------|
-| 0 -> 1 | 50 | Start with 1 bonus |
-| 1 -> 2 | 200 | Start with 2 bonuses |
-| 2 -> 3 | 500 | Start with 3 bonuses |
+| 0 -> 1 | 100 CUBE | Start with 1 bonus |
+| 1 -> 2 | 250 CUBE | Start with 2 bonuses |
+| 2 -> 3 | 500 CUBE | Start with 3 bonuses |
 
-*Applies to each bonus type (Hammer, Wave, Totem)*
+*Applies to each of the 5 bonus types*
 
 #### Bag Size Upgrades
 
@@ -301,14 +315,23 @@ WALLET (ERC-1155)
 
 ### 2. In-Game Shop (Every 5 Levels)
 
-**Location:** `contracts/src/systems/game.cairo` (`purchase_consumable`)
+**Location:** `contracts/src/systems/shop.cairo` (`purchase_consumable`)
 
-| Item | Cost | Effect | Status |
-|------|------|--------|--------|
-| Hammer | 5 | +1 Hammer | Implemented |
-| Wave | 5 | +1 Wave | Implemented |
-| Totem | 5 | +1 Totem | Implemented |
-| Extra Moves | 10 | +5 moves | Not Implemented |
+Shop appears after levels 5, 10, 15, 20, etc. (when `(current_level - 1) % 5 == 0`).
+
+| Item | Cost | Effect |
+|------|------|--------|
+| Bonus1 | 5 CUBE | +1 of selected_bonus_1 |
+| Bonus2 | 5 CUBE | +1 of selected_bonus_2 |
+| Bonus3 | 5 CUBE | +1 of selected_bonus_3 |
+| Refill | 2*(n+1) CUBE | Reset shop availability |
+| LevelUp | 50 CUBE | Level up one bonus |
+
+**Shop State:**
+- Each bonus can only be bought once per shop visit
+- Refill resets the "bought" flags
+- State resets when entering new shop level
+- Tracked in `run_data` bits 183-195
 
 **Spending Order:** Brought cubes first, then earned cubes.
 
@@ -332,25 +355,44 @@ pub struct Game {
 }
 ```
 
-### run_data Bit Layout (88 bits used)
+### run_data Bit Layout (197 bits used)
 
-| Bits | Field | Size | Range |
-|------|-------|------|-------|
-| 0-6 | current_level | 7 | 1-127 |
-| 7-14 | level_score | 8 | 0-255 |
-| 15-21 | level_moves | 7 | 0-127 |
-| 22-25 | constraint_progress | 4 | 0-15 |
-| 26 | bonus_used_this_level | 1 | 0-1 |
-| 27-35 | total_cubes | 9 | 0-511 |
-| 36-39 | hammer_count | 4 | 0-15 |
-| 40-43 | wave_count | 4 | 0-15 |
-| 44-47 | totem_count | 4 | 0-15 |
-| 48-51 | max_combo_run | 4 | 0-15 |
-| 52-67 | total_score | 16 | 0-65535 |
-| 68 | combo_5_achieved | 1 | 0-1 |
-| 69 | combo_10_achieved | 1 | 0-1 |
-| 70-78 | cubes_brought | 9 | 0-511 |
-| 79-87 | cubes_spent | 9 | 0-511 |
+| Bits | Field | Size | Description |
+|------|-------|------|-------------|
+| 0-7 | current_level | 8 | Current level (1-255) |
+| 8-15 | level_score | 8 | Score this level |
+| 16-23 | level_moves | 8 | Moves used this level |
+| 24-31 | constraint_progress | 8 | Primary constraint progress |
+| 32-39 | constraint_2_progress | 8 | Secondary constraint progress |
+| 40 | bonus_used_this_level | 1 | For NoBonusUsed constraint |
+| 41 | combo_5_achieved | 1 | First 5+ combo flag |
+| 42 | combo_10_achieved | 1 | First 10+ combo flag |
+| 43-50 | hammer_count | 8 | Hammer inventory |
+| 51-58 | wave_count | 8 | Wave inventory |
+| 59-66 | totem_count | 8 | Totem inventory |
+| 67-74 | shrink_count | 8 | Shrink inventory |
+| 75-82 | shuffle_count | 8 | Shuffle inventory |
+| 83-90 | max_combo_run | 8 | Best combo this run |
+| 91-98 | extra_moves | 8 | Extra moves from consumables |
+| 99-114 | cubes_brought | 16 | Cubes brought into run |
+| 115-130 | cubes_spent | 16 | Cubes spent this run |
+| 131-146 | total_cubes | 16 | Cubes earned this run |
+| 147-162 | total_score | 16 | Cumulative score |
+| 163 | run_completed | 1 | Victory flag (level 50) |
+| 164-166 | selected_bonus_1 | 3 | First bonus type (0-5) |
+| 167-169 | selected_bonus_2 | 3 | Second bonus type (0-5) |
+| 170-172 | selected_bonus_3 | 3 | Third bonus type (0-5) |
+| 173-174 | bonus_1_level | 2 | L1/L2/L3 (0-2) |
+| 175-176 | bonus_2_level | 2 | L1/L2/L3 (0-2) |
+| 177-178 | bonus_3_level | 2 | L1/L2/L3 (0-2) |
+| 179-181 | free_moves | 3 | Free moves remaining |
+| 182 | pending_level_up | 1 | Level-up pending |
+| 183-188 | last_shop_level | 6 | Last shop interaction level |
+| 189 | shop_bonus_1_bought | 1 | Bonus 1 purchased |
+| 190 | shop_bonus_2_bought | 1 | Bonus 2 purchased |
+| 191 | shop_bonus_3_bought | 1 | Bonus 3 purchased |
+| 192-195 | shop_refills | 4 | Refills purchased |
+| 196 | no_bonus_constraint | 1 | NoBonusUsed active |
 
 ### PlayerMeta Model
 
@@ -363,19 +405,25 @@ pub struct PlayerMeta {
 }
 ```
 
-### PlayerMeta.data Bit Layout
+### PlayerMeta.data Bit Layout (86 bits used)
 
-| Bits | Field | Size |
-|------|-------|------|
-| 0-1 | starting_hammer | 2 |
-| 2-3 | starting_wave | 2 |
-| 4-5 | starting_totem | 2 |
-| 6-9 | bag_hammer_level | 4 |
-| 10-13 | bag_wave_level | 4 |
-| 14-17 | bag_totem_level | 4 |
-| 18-21 | bridging_rank | 4 |
-| 22-37 | total_runs | 16 |
-| 38-53 | total_cubes_earned | 16 |
+| Bits | Field | Size | Description |
+|------|-------|------|-------------|
+| 0-1 | starting_hammer | 2 | Starting hammers (0-3) |
+| 2-3 | starting_wave | 2 | Starting waves (0-3) |
+| 4-5 | starting_totem | 2 | Starting totems (0-3) |
+| 6-7 | starting_shrink | 2 | Starting shrinks (0-3) |
+| 8-9 | starting_shuffle | 2 | Starting shuffles (0-3) |
+| 10-13 | bag_hammer_level | 4 | Hammer bag capacity |
+| 14-17 | bag_wave_level | 4 | Wave bag capacity |
+| 18-21 | bag_totem_level | 4 | Totem bag capacity |
+| 22-25 | bag_shrink_level | 4 | Shrink bag capacity |
+| 26-29 | bag_shuffle_level | 4 | Shuffle bag capacity |
+| 30-33 | bridging_rank | 4 | Cube bridging rank (0-15) |
+| 34 | shrink_unlocked | 1 | Shrink bonus unlocked |
+| 35 | shuffle_unlocked | 1 | Shuffle bonus unlocked |
+| 36-51 | total_runs | 16 | Lifetime run count |
+| 52-83 | total_cubes_earned | 32 | Lifetime cubes earned |
 
 ---
 

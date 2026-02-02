@@ -33,6 +33,15 @@ This directory contains documentation for the zKube project - a fully on-chain p
 |------|-------------|--------|
 | [MILESTONES.md](./MILESTONES.md) | Project milestones and completed features | Current |
 | [FUTURE_FEATURES.md](./FUTURE_FEATURES.md) | Roadmap, unimplemented features, architecture plans | Planning |
+| [DIFFICULTY_REBALANCE_V1_3.md](./DIFFICULTY_REBALANCE_V1_3.md) | v1.2.0 rebalance details (boss levels, combo rewards) | Implemented |
+
+### Architecture & Analysis
+
+| File | Description | Status |
+|------|-------------|--------|
+| [DISPATCHER_ARCHITECTURE.md](./DISPATCHER_ARCHITECTURE.md) | Contract architecture optimization (GameLibs pattern) | Reference |
+| [CONTRACT_PATTERNS_ANALYSIS.md](./CONTRACT_PATTERNS_ANALYSIS.md) | Deep analysis comparing zkube vs nums vs death-mountain | Reference |
+| [CONTROLLER_QUESTS_REFACTOR.md](./CONTROLLER_QUESTS_REFACTOR.md) | Controllers and quests UI refactoring notes | Reference |
 
 ### External References
 
@@ -76,18 +85,22 @@ Technical documentation in each project directory:
 ### Fully Implemented (v1.2.0)
 
 - Level system (50 levels with progressive difficulty)
+- Boss levels (L10/20/30/40/50 with cube bonuses)
+- Victory state (run_completed flag on level 50)
 - Constraint system (ClearLines, NoBonusUsed, dual constraints)
-- Bonus system (Hammer, Wave, Totem)
+- 5-Bonus system (Hammer, Wave, Totem, Shrink, Shuffle)
+- Bonus selection (choose 3 of 5 per run)
+- Bonus levels (L1/L2/L3 upgrades)
+- Combo cube rewards (4→+1, 5→+3, 6→+5, 7→+10, 8→+25, 9+→+50)
 - Cube economy (earning, spending, two shops)
 - Quest system (10 daily quests, 102 CUBE/day)
-- Achievement system (Cartridge arcade integration)
+- Achievement system (28 trophies via Cartridge arcade)
 - Configurable GameSettings (custom game modes)
-- Permanent shop (starting bonuses, bag size, bridging rank)
-- In-game shop (consumables every 5 levels)
+- Permanent shop (starting bonuses, bag size, bridging rank, bonus unlocks)
+- In-game shop (bonus consumables, refill, level-up every 5 levels)
 
 ### Not Yet Implemented
 
-- ExtraMoves consumable (type exists but panics)
 - Revival Token
 - Skip Constraint
 - Daily Challenge Mode

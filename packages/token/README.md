@@ -1,8 +1,21 @@
-# token
+# Fake LORD Token
 
-This is a token contract with a faucet mechanism that is goin to be used on devnets
+ERC20 token with faucet for testing/development.
 
-- `asdf global scarb 2.7.0`
-- `scarb build``
-- `starkli declare --watch target/dev/token_token.contract_class.json --compiler-version 2.7.1``
-- `starkli deploy <class_hash> <owner_address>`
+For detailed documentation, see [CLAUDE.md](./CLAUDE.md).
+
+## Build & Deploy
+
+```bash
+cd packages/token
+scarb build
+
+# Deploy using starkli
+starkli declare --watch target/dev/token_token.contract_class.json
+starkli deploy <class_hash> <owner_address>
+```
+
+## Notes
+
+- Development/testing only - production uses real LORD token
+- Faucet: 1000 tokens per claim, 24-hour cooldown

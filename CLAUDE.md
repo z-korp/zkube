@@ -139,24 +139,46 @@ pub const DEFAULT_GRID_HEIGHT: u8 = 10;
 
 ### Bonus System
 
-Three types of bonuses earned through gameplay:
+Five types of bonuses, each with 3 upgrade levels:
 - **Hammer:** Clears a specific block and connected same-size blocks
 - **Wave:** Clears an entire horizontal row
 - **Totem:** Clears all blocks of the same size on the grid
+- **Shrink:** Reduces block size by 1 (unlockable, 200 CUBE)
+- **Shuffle:** Randomizes block positions (unlockable, 200 CUBE)
 
-Bonuses awarded at level completion based on:
-- Score achieved (Hammer thresholds: 40/80/120)
-- Combo count (Wave thresholds: 16/32/64)
-- Max combo (Totem thresholds: 2/4/6)
+Players select 3 bonuses before each run. Bonuses are earned through:
+- Level completion (random bonus from selected 3)
+- Boss level rewards (every 10 levels)
 
 ### Level System
 
 50 levels with progressive difficulty:
 - **Moves:** 20 at level 1, scales to 60 at level 50
-- **Points ratio:** 0.80 at level 1, scales to 2.50 at level 50
+- **Points ratio:** 0.80 at level 1, scales to 1.80 at level 50
 - **Difficulty:** VeryEasy -> Easy -> Medium -> MediumHard -> Hard -> VeryHard -> Expert -> Master
 - **Constraints:** ClearLines (X lines in one move, Y times) or NoBonusUsed
-- **Variance:** +/-5% early, +/-10% mid, +/-15% late levels
+- **Variance:** +/-5% consistent across all levels
+
+### Boss Levels
+
+Special levels every 10 levels with bonus rewards:
+- **Level 10:** +10 CUBE bonus, dual constraints
+- **Level 20:** +20 CUBE bonus, dual constraints
+- **Level 30:** +30 CUBE bonus, dual constraints
+- **Level 40:** +40 CUBE bonus, dual constraints
+- **Level 50:** +50 CUBE bonus, victory state (run_completed)
+
+### Combo Cube Rewards
+
+Clearing multiple lines in one move awards bonus cubes:
+| Lines Cleared | Bonus CUBE |
+|---------------|------------|
+| 4 | +1 |
+| 5 | +3 |
+| 6 | +5 |
+| 7 | +10 |
+| 8 | +25 |
+| 9+ | +50 |
 
 ### Constraint System
 
@@ -189,12 +211,15 @@ Daily quests for earning CUBE tokens (102 CUBE/day total):
 
 ### Achievement System
 
-Trophies tracked via Cartridge's arcade achievement system:
-- **Mastering:** Combo count thresholds (ComboInitiator, ComboExpert, ComboMaster)
-- **Chaining:** Max combo thresholds (TripleThreat, SixShooter, NineLives)
-- **Playing:** Move count thresholds (GameBeginner, GameExperienced, GameVeteran)
-- **Scoring:** Score thresholds (ScoreApprentice, ScoreExpert, ScoreMaster)
-- **Cumulative:** Total score across games (ScoreCollector, ScoreAccumulator, ScoreLegend)
+28 trophies tracked via Cartridge's arcade achievement system:
+- **Grinder:** Games played milestones (10/25/50/100/250 games)
+- **Clearer:** Lines cleared milestones (100/500/1K/5K/10K lines)
+- **Combo:** 3+ line combo milestones (10/50/100 combos)
+- **Chain:** 5+ line combo milestones (5/25/50 combos)
+- **SuperChain:** 7+ line combo milestones (1/10/25 combos)
+- **Leveler:** Level reached milestones (10/20/30/40/50)
+- **Scorer:** High score milestones (100/200/300 points)
+- **Master:** Complete all daily quests
 
 ## Key Files Reference
 
