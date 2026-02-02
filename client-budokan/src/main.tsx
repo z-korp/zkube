@@ -120,6 +120,10 @@ export function Main() {
       public: { http: [VITE_PUBLIC_NODE_URL] },
     },
     explorers: WORLD_EXPLORER,
+    // Required by @starknet-react/core v5.x default paymaster provider
+    paymasterRpcUrls: {
+      avnu: { http: [] }  // Empty = no paymaster for slot chain
+    },
   } : null;
 
   // Order chains based on deploy type (default chain first)
