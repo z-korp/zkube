@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: MIT
-// zKube CUBE Token - Soulbound ERC1155
+// zKube zCubes Token - ERC20
 
 use starknet::ContractAddress;
-
-/// CUBE token ID (single fungible token within ERC1155)
-pub const CUBE_TOKEN_ID: u256 = 1;
 
 #[starknet::interface]
 pub trait ICubeToken<T> {
@@ -13,9 +10,6 @@ pub trait ICubeToken<T> {
     
     /// Burn cubes from an account (caller must be account or have MINTER_ROLE)
     fn burn(ref self: T, account: ContractAddress, amount: u256);
-    
-    /// Get cube balance for an account
-    fn balance_of_cubes(self: @T, account: ContractAddress) -> u256;
 
     /// Grant MINTER_ROLE to game_system and shop_system (only DEFAULT_ADMIN_ROLE)
     fn grant_minter_roles(ref self: T);
@@ -24,43 +18,42 @@ pub trait ICubeToken<T> {
     fn mint_dev(ref self: T, amount: u256);
 }
 
-#[starknet::interface]
-pub trait IERC1155Metadata<T> {
-    fn name(self: @T) -> ByteArray;
-    fn symbol(self: @T) -> ByteArray;
-}
-
 #[dojo::contract]
 pub mod cube_token {
-    use core::num::traits::Zero;
     use dojo::world::IWorldDispatcherTrait;
     use dojo::world::WorldStorageTrait;
     use openzeppelin_access::accesscontrol::AccessControlComponent;
     use openzeppelin_access::accesscontrol::DEFAULT_ADMIN_ROLE;
     use openzeppelin_introspection::src5::SRC5Component;
-    use openzeppelin_token::erc1155::ERC1155Component;
+    use openzeppelin_token::erc20::ERC20Component;
+    use openzeppelin_token::erc20::ERC20HooksEmptyImpl;
     use starknet::{ContractAddress, get_caller_address, get_contract_address};
     use zkube::constants::DEFAULT_NS;
-    use super::{ICubeToken, IERC1155Metadata, CUBE_TOKEN_ID};
+    use super::ICubeToken;
 
-    component!(path: ERC1155Component, storage: erc1155, event: ERC1155Event);
+    component!(path: ERC20Component, storage: erc20, event: ERC20Event);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
 
-    // ERC1155 - only expose balance_of and other read functions, NOT transfers
+    // ERC20 with 0 decimals (whole cubes only)
+    impl ERC20ImmutableConfig of ERC20Component::ImmutableConfig {
+        const DECIMALS: u8 = 0;
+    }
+
+    // Expose standard ERC20 functions (including transfers)
     #[abi(embed_v0)]
-    impl ERC1155Impl = ERC1155Component::ERC1155Impl<ContractState>;
+    impl ERC20MixinImpl = ERC20Component::ERC20MixinImpl<ContractState>;
     #[abi(embed_v0)]
     impl AccessControlImpl = AccessControlComponent::AccessControlImpl<ContractState>;
 
     // Internal implementations
-    impl ERC1155InternalImpl = ERC1155Component::InternalImpl<ContractState>;
+    impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
     impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ContractState>;
 
     #[storage]
     struct Storage {
         #[substorage(v0)]
-        erc1155: ERC1155Component::Storage,
+        erc20: ERC20Component::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
         #[substorage(v0)]
@@ -71,7 +64,7 @@ pub mod cube_token {
     #[derive(Drop, starknet::Event)]
     enum Event {
         #[flat]
-        ERC1155Event: ERC1155Component::Event,
+        ERC20Event: ERC20Component::Event,
         #[flat]
         SRC5Event: SRC5Component::Event,
         #[flat]
@@ -80,36 +73,8 @@ pub mod cube_token {
 
     pub const MINTER_ROLE: felt252 = 'MINTER_ROLE';
 
-    /// Soulbound hook - blocks all transfers except mint (from=0) and burn (to=0)
-    pub impl ERC1155SoulboundHooks of ERC1155Component::ERC1155HooksTrait<ContractState> {
-        fn before_update(
-            ref self: ERC1155Component::ComponentState<ContractState>,
-            from: ContractAddress,
-            to: ContractAddress,
-            token_ids: Span<u256>,
-            values: Span<u256>,
-        ) {
-            // Allow mint (from == 0) and burn (to == 0)
-            // Block all other transfers
-            assert!(
-                from.is_zero() || to.is_zero(),
-                "CubeToken is soulbound - transfers not allowed"
-            );
-        }
-
-        fn after_update(
-            ref self: ERC1155Component::ComponentState<ContractState>,
-            from: ContractAddress,
-            to: ContractAddress,
-            token_ids: Span<u256>,
-            values: Span<u256>,
-        ) {
-            // No-op
-        }
-    }
-
     fn dojo_init(ref self: ContractState) {
-        self.erc1155.initializer("");
+        self.erc20.initializer("zCubes", "ZCUBE");
         self.accesscontrol.initializer();
 
         // Get deployer account from transaction info
@@ -158,12 +123,7 @@ pub mod cube_token {
     impl CubeTokenImpl of ICubeToken<ContractState> {
         fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) {
             self.accesscontrol.assert_only_role(MINTER_ROLE);
-            self.erc1155.update(
-                Zero::zero(),  // from = 0 (mint)
-                recipient,
-                array![CUBE_TOKEN_ID].span(),
-                array![amount].span()
-            );
+            self.erc20.mint(recipient, amount);
         }
 
         fn burn(ref self: ContractState, account: ContractAddress, amount: u256) {
@@ -173,16 +133,7 @@ pub mod cube_token {
                 // Must have MINTER_ROLE to burn on behalf of others
                 self.accesscontrol.assert_only_role(MINTER_ROLE);
             }
-            self.erc1155.update(
-                account,
-                Zero::zero(),  // to = 0 (burn)
-                array![CUBE_TOKEN_ID].span(),
-                array![amount].span()
-            );
-        }
-
-        fn balance_of_cubes(self: @ContractState, account: ContractAddress) -> u256 {
-            self.erc1155.balance_of(account, CUBE_TOKEN_ID)
+            self.erc20.burn(account, amount);
         }
 
         fn grant_minter_roles(ref self: ContractState) {
@@ -211,24 +162,7 @@ pub mod cube_token {
             // Dev-only function: keep it admin-gated so it can't be abused on public deployments.
             self.accesscontrol.assert_only_role(DEFAULT_ADMIN_ROLE);
             let caller = starknet::get_caller_address();
-            // Use update() directly to avoid onERC1155Received check (account contracts don't implement it)
-            self.erc1155.update(
-                Zero::zero(),  // from = 0 (mint)
-                caller,        // to = caller
-                array![CUBE_TOKEN_ID].span(),
-                array![amount].span()
-            );
-        }
-    }
-
-    #[abi(embed_v0)]
-    impl ERC1155MetadataImpl of IERC1155Metadata<ContractState> {
-        fn name(self: @ContractState) -> ByteArray {
-            "zKube Cubes"
-        }
-
-        fn symbol(self: @ContractState) -> ByteArray {
-            "CUBE"
+            self.erc20.mint(caller, amount);
         }
     }
 
@@ -245,7 +179,7 @@ pub mod cube_token {
                 .dispatcher
                 .register_external_contract(
                     namespace: DEFAULT_NS(),
-                    contract_name: "ERC1155",
+                    contract_name: "erc20",
                     instance_name: format!("{}", instance_name),
                     contract_address: cube_token_address,
                     block_number: 1,

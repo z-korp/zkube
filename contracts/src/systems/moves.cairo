@@ -85,8 +85,8 @@ mod move_system {
                 if lines_cleared >= 5 {
                     libs.track_quest(player, combo::ComboFive::identifier(), 1, settings.settings_id);
                 }
-                if lines_cleared >= 8 {
-                    libs.track_quest(player, combo::ComboEight::identifier(), 1, settings.settings_id);
+                if lines_cleared >= 7 {
+                    libs.track_quest(player, combo::ComboSeven::identifier(), 1, settings.settings_id);
                 }
             }
 

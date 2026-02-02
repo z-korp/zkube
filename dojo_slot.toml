@@ -4,7 +4,7 @@ description = "Reversed tetris fully onchain."
 cover_uri = "file://assets/cover.png"
 icon_uri = "file://assets/icon.png"
 website = "https://app.zkube.xyz"
-seed = "zkube_djizus"
+seed = "zkube_slot_v2"
 
 [world.socials]
 x = "https://x.com/ohayo_dojo"

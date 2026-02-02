@@ -3,9 +3,6 @@ import { useAccount } from "@starknet-react/core";
 
 const { VITE_PUBLIC_TORII, VITE_PUBLIC_CUBE_TOKEN_ADDRESS } = import.meta.env;
 
-// CUBE token ID (matches contract constant)
-const CUBE_TOKEN_ID = "0x1";
-
 interface CubeBalanceResult {
   cubeBalance: bigint;
   isLoading: boolean;
@@ -14,7 +11,7 @@ interface CubeBalanceResult {
 }
 
 /**
- * Hook to fetch CUBE token balance from Torii ERC1155 indexer
+ * Hook to fetch zCubes (ERC20) token balance from Torii indexer
  * Uses GraphQL to query the balance for the connected account
  */
 export const useCubeBalance = (): CubeBalanceResult => {
@@ -56,7 +53,7 @@ export const useCubeBalance = (): CubeBalanceResult => {
       setIsLoading(true);
       setError(null);
 
-      // Query Torii GraphQL for ERC1155 balance via tokenBalances
+      // Query Torii GraphQL for ERC20 balance via tokenBalances
       const graphqlUrl = `${toriiUrl}/graphql`;
       
       const query = `
@@ -65,9 +62,8 @@ export const useCubeBalance = (): CubeBalanceResult => {
             edges {
               node {
                 tokenMetadata {
-                  ... on ERC1155__Token {
+                  ... on ERC20__Token {
                     contractAddress
-                    tokenId
                     amount
                   }
                 }
@@ -100,16 +96,15 @@ export const useCubeBalance = (): CubeBalanceResult => {
         throw new Error(result.errors[0]?.message || "GraphQL error");
       }
 
-      // Find the CUBE token balance among all token balances
+      // Find the zCubes token balance among all token balances
       const edges = result.data?.tokenBalances?.edges || [];
       let found = false;
       for (const edge of edges) {
         const meta = edge.node?.tokenMetadata;
-        if (!meta?.contractAddress || !meta?.tokenId) continue;
-        // Match by contract address and token ID
+        if (!meta?.contractAddress) continue;
+        // Match by contract address (ERC20 has no token_id)
         const contractMatch = normalizeAddr(meta.contractAddress) === normalizedToken;
-        const tokenIdMatch = normalizeAddr(meta.tokenId) === normalizeAddr(CUBE_TOKEN_ID);
-        if (contractMatch && tokenIdMatch) {
+        if (contractMatch) {
           const amountStr = meta.amount || "0";
           const balance = amountStr.startsWith("0x")
             ? BigInt(amountStr)

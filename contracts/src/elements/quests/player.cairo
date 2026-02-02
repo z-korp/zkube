@@ -5,7 +5,7 @@ use starknet::ContractAddress;
 use crate::elements::tasks::grinder::Grinder;
 use super::index::{ICON, ONE_DAY, QuestMetadataTrait, QuestProps, QuestTrait};
 
-/// DailyPlayerOne - Play 1 game (rewards 3 CUBE)
+/// DailyPlayerOne - Play 1 game (rewards 5 CUBE)
 pub impl DailyPlayerOne of QuestTrait {
     fn identifier() -> felt252 {
         'DAILY_PLAYER_ONE'
@@ -13,10 +13,10 @@ pub impl DailyPlayerOne of QuestTrait {
 
     fn props(registry: ContractAddress) -> QuestProps {
         let total = 1;
-        let reward = RewardTrait::new("Quest Reward", "3 CUBE", ICON());
+        let reward = RewardTrait::new("Quest Reward", "5 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
             name: "Warm-Up",
-            description: "Start your day with a game.",
+            description: "Play 1 game to start your day.",
             icon: "fa-play",
             registry: registry,
             rewards: array![reward].span(),
@@ -37,7 +37,7 @@ pub impl DailyPlayerOne of QuestTrait {
     }
 }
 
-/// DailyPlayerTwo - Play 3 games (rewards 6 CUBE)
+/// DailyPlayerTwo - Play 3 games (rewards 10 CUBE)
 pub impl DailyPlayerTwo of QuestTrait {
     fn identifier() -> felt252 {
         'DAILY_PLAYER_TWO'
@@ -45,10 +45,10 @@ pub impl DailyPlayerTwo of QuestTrait {
 
     fn props(registry: ContractAddress) -> QuestProps {
         let total = 3;
-        let reward = RewardTrait::new("Quest Reward", "6 CUBE", ICON());
+        let reward = RewardTrait::new("Quest Reward", "10 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
             name: "Getting Started",
-            description: "Three games to get in the zone.",
+            description: "Play 3 games to get in the zone.",
             icon: "fa-dice-three",
             registry: registry,
             rewards: array![reward].span(),
@@ -56,7 +56,6 @@ pub impl DailyPlayerTwo of QuestTrait {
         let tasks: Array<QuestTask> = array![
             QuestTaskTrait::new(Grinder::identifier(), total.into(), Grinder::description(total)),
         ];
-        // No conditions - all tiers unlock immediately for cumulative progress
         QuestProps {
             id: Self::identifier(),
             start: 0,
@@ -70,7 +69,7 @@ pub impl DailyPlayerTwo of QuestTrait {
     }
 }
 
-/// DailyPlayerThree - Play 5 games (rewards 12 CUBE)
+/// DailyPlayerThree - Play 5 games (rewards 20 CUBE)
 pub impl DailyPlayerThree of QuestTrait {
     fn identifier() -> felt252 {
         'DAILY_PLAYER_THREE'
@@ -78,10 +77,10 @@ pub impl DailyPlayerThree of QuestTrait {
 
     fn props(registry: ContractAddress) -> QuestProps {
         let total = 5;
-        let reward = RewardTrait::new("Quest Reward", "12 CUBE", ICON());
+        let reward = RewardTrait::new("Quest Reward", "20 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
             name: "Dedicated",
-            description: "Five games prove your dedication.",
+            description: "Play 5 games to prove your dedication.",
             icon: "fa-fire",
             registry: registry,
             rewards: array![reward].span(),
@@ -89,7 +88,6 @@ pub impl DailyPlayerThree of QuestTrait {
         let tasks: Array<QuestTask> = array![
             QuestTaskTrait::new(Grinder::identifier(), total.into(), Grinder::description(total)),
         ];
-        // No conditions - all tiers unlock immediately for cumulative progress
         QuestProps {
             id: Self::identifier(),
             start: 0,

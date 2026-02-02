@@ -2,7 +2,7 @@
 use quest::types::reward::RewardTrait;
 use quest::types::task::{Task as QuestTask, TaskTrait as QuestTaskTrait};
 use starknet::ContractAddress;
-use crate::elements::tasks::combo::{ComboThree, ComboFive, ComboEight};
+use crate::elements::tasks::combo::{ComboThree, ComboFive, ComboSeven};
 use super::index::{ICON, ONE_DAY, QuestMetadataTrait, QuestProps, QuestTrait};
 
 /// DailyComboOne - Achieve a 3+ line combo (rewards 5 CUBE)
@@ -60,7 +60,6 @@ pub impl DailyComboTwo of QuestTrait {
                 ComboFive::identifier(), total.into(), ComboFive::description(total),
             ),
         ];
-        // No conditions - all tiers unlock immediately for cumulative progress
         QuestProps {
             id: Self::identifier(),
             start: 0,
@@ -74,7 +73,7 @@ pub impl DailyComboTwo of QuestTrait {
     }
 }
 
-/// DailyComboThree - Achieve an 8+ line combo (rewards 20 CUBE)
+/// DailyComboThree - Achieve a 7+ line combo (rewards 20 CUBE)
 pub impl DailyComboThree of QuestTrait {
     fn identifier() -> felt252 {
         'DAILY_COMBO_THREE'
@@ -85,17 +84,16 @@ pub impl DailyComboThree of QuestTrait {
         let reward = RewardTrait::new("Quest Reward", "20 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
             name: "Combo Expert",
-            description: "Achieve an 8+ line combo.",
+            description: "Achieve a 7+ line combo.",
             icon: "fa-fire-flame-curved",
             registry: registry,
             rewards: array![reward].span(),
         );
         let tasks: Array<QuestTask> = array![
             QuestTaskTrait::new(
-                ComboEight::identifier(), total.into(), ComboEight::description(total),
+                ComboSeven::identifier(), total.into(), ComboSeven::description(total),
             ),
         ];
-        // No conditions - all tiers unlock immediately for cumulative progress
         QuestProps {
             id: Self::identifier(),
             start: 0,

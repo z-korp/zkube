@@ -31,17 +31,17 @@ pub impl ComboFive of TaskTrait {
     }
 }
 
-/// ComboEight - achieve an 8+ line combo
-pub impl ComboEight of TaskTrait {
+/// ComboSeven - achieve a 7+ line combo
+pub impl ComboSeven of TaskTrait {
     fn identifier() -> felt252 {
-        'COMBO_EIGHT'
+        'COMBO_SEVEN'
     }
 
     fn description(count: u32) -> ByteArray {
         match count {
             0 => "",
-            1 => "Achieve an 8+ line combo",
-            _ => format!("Achieve {} combos of 8+ lines", count),
+            1 => "Achieve a 7+ line combo",
+            _ => format!("Achieve {} combos of 7+ lines", count),
         }
     }
 }
