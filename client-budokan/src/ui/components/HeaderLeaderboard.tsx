@@ -29,6 +29,10 @@ import { useLeaderboardSlot, isSlotMode, type LeaderboardEntry } from "@/hooks/u
 const gameSystemAddress = getGameSystemAddress();
 const excludedLeaderboardNames = getLeaderboardExcludedNames();
 
+// Check if we should skip metagame SDK (not available on slot/sepolia)
+const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
+const useRecsOnly = VITE_PUBLIC_DEPLOY_TYPE === "slot" || VITE_PUBLIC_DEPLOY_TYPE === "sepolia";
+
 interface HeaderLeaderboardProps {
   buttonType?:
     | "default"
@@ -49,25 +53,25 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
   const [copiedTokenId, setCopiedTokenId] = React.useState<string | null>(null);
   const ITEMS_PER_PAGE = 10;
 
-  // Use metagame SDK for sepolia/mainnet
+  // Use metagame SDK only for mainnet (relayer not available on slot/sepolia)
   const metagameResult = useGameTokens({
     sortBy: "score",
     sortOrder: "desc",
-    limit: !isSlotMode ? 100 : 0,
+    limit: !useRecsOnly ? 100 : 0, // Only query if mainnet
     includeMetadata: true,
     gameAddresses: gameSystemAddress ? [gameSystemAddress] : undefined,
   });
 
-  // Check if metagame SDK failed to return results
-  const metagameFailed = !isSlotMode && 
+  // Check if metagame SDK failed to return results (only relevant for mainnet)
+  const metagameFailed = !useRecsOnly && 
     !metagameResult.loading && 
     (!metagameResult.games || metagameResult.games.length === 0);
 
-  // Use RECS query for slot mode OR as fallback when metagame fails
-  const slotResult = useLeaderboardSlot({ forceRecs: metagameFailed });
+  // Use RECS query for slot/sepolia OR as fallback when metagame fails on mainnet
+  const slotResult = useLeaderboardSlot({ forceRecs: useRecsOnly || metagameFailed });
 
-  // Use metagame results first, fall back to RECS if metagame fails
-  const { games, loading, refetch } = isSlotMode 
+  // Use RECS for slot/sepolia, metagame for mainnet (with RECS fallback)
+  const { games, loading, refetch } = useRecsOnly 
     ? { games: slotResult.games, loading: slotResult.loading, refetch: slotResult.refetch }
     : metagameFailed
       ? { games: slotResult.games, loading: slotResult.loading, refetch: slotResult.refetch }
@@ -76,14 +80,15 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
   // Debug logging
   React.useEffect(() => {
     console.log("[HeaderLeaderboard] Query Status:", {
-      isSlotMode,
+      deployType: VITE_PUBLIC_DEPLOY_TYPE,
+      useRecsOnly,
       metagameFailed,
-      source: isSlotMode ? "slot" : metagameFailed ? "recs-fallback" : "metagame",
+      source: useRecsOnly ? "recs" : metagameFailed ? "recs-fallback" : "metagame",
       metagameGames: metagameResult.games?.length ?? 0,
       slotGames: slotResult.games?.length ?? 0,
       finalGames: games?.length ?? 0,
     });
-  }, [isSlotMode, metagameFailed, metagameResult.games, slotResult.games, games]);
+  }, [useRecsOnly, metagameFailed, metagameResult.games, slotResult.games, games]);
 
   const filteredGames = React.useMemo(() => {
     if (!excludedLeaderboardNames.length) {
