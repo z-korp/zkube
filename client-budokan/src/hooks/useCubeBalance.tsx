@@ -12,9 +12,6 @@ interface CubeBalanceResult {
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
-  // Optimistic update functions (for immediate UI feedback before subscription update)
-  addOptimistic: (amount: number | bigint) => void;
-  subtractOptimistic: (amount: number | bigint) => void;
 }
 
 /**
@@ -33,8 +30,6 @@ export const useCubeBalance = (): CubeBalanceResult => {
     setBalance, 
     setLoading, 
     setError,
-    addOptimistic,
-    subtractOptimistic,
   } = useCubeBalanceStore();
 
   const subscriptionRef = useRef<Subscription | null>(null);
@@ -135,8 +130,6 @@ export const useCubeBalance = (): CubeBalanceResult => {
     isLoading,
     error,
     refetch,
-    addOptimistic,
-    subtractOptimistic,
   };
 };
 

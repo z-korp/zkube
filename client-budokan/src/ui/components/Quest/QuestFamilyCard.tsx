@@ -16,7 +16,7 @@ import { motion } from "framer-motion";
 
 interface QuestFamilyCardProps {
   family: QuestFamily;
-  onClaim: (questId: string, intervalId: number, reward: number) => Promise<void>;
+  onClaim: (questId: string, intervalId: number) => Promise<void>;
 }
 
 // Map icon names to FontAwesome icons
@@ -70,7 +70,7 @@ export const QuestFamilyCard: React.FC<QuestFamilyCardProps> = ({ family, onClai
     if (!family.claimableTier) return;
     setIsClaiming(true);
     try {
-      await onClaim(family.claimableTier.questId, family.claimableTier.intervalId, family.claimableTier.reward);
+      await onClaim(family.claimableTier.questId, family.claimableTier.intervalId);
     } finally {
       setIsClaiming(false);
     }
