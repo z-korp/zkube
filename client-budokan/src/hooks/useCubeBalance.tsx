@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAccount, useProvider } from "@starknet-react/core";
-import { CallData, hash } from "starknet";
+import { CallData } from "starknet";
 
 const { VITE_PUBLIC_TORII, VITE_PUBLIC_CUBE_TOKEN_ADDRESS } = import.meta.env;
 
@@ -31,27 +31,30 @@ export const useCubeBalance = (): CubeBalanceResult => {
     try {
       // Use low-level provider.callContract to avoid ABI parsing issues
       // Try balance_of (snake_case) first, then balanceOf (camelCase)
-      const selectors = [
-        hash.getSelectorFromName("balance_of"),
-        hash.getSelectorFromName("balanceOf"),
-      ];
+      const entrypoints = ["balance_of", "balanceOf"];
       
-      for (const selector of selectors) {
+      for (const entrypoint of entrypoints) {
         try {
+          console.log(`[useCubeBalance] Trying RPC call: ${entrypoint} on ${VITE_PUBLIC_CUBE_TOKEN_ADDRESS}`);
           const result = await provider.callContract({
             contractAddress: VITE_PUBLIC_CUBE_TOKEN_ADDRESS,
-            entrypoint: selector,
+            entrypoint,
             calldata: CallData.compile([address]),
           });
+          
+          console.log(`[useCubeBalance] RPC result for ${entrypoint}:`, result);
           
           // Result is an array of felt252s - for u256, it's [low, high]
           if (result && result.length >= 1) {
             const low = BigInt(result[0] || "0");
             const high = result.length >= 2 ? BigInt(result[1] || "0") : 0n;
-            return low + (high << 128n);
+            const balance = low + (high << 128n);
+            console.log(`[useCubeBalance] Parsed balance: ${balance}`);
+            return balance;
           }
-        } catch {
-          // Try next selector
+        } catch (e) {
+          console.warn(`[useCubeBalance] RPC call failed for ${entrypoint}:`, e);
+          // Try next entrypoint
           continue;
         }
       }
@@ -66,6 +69,11 @@ export const useCubeBalance = (): CubeBalanceResult => {
   // Fetch balance from Torii GraphQL
   const fetchBalanceTorii = useCallback(async (): Promise<bigint | null> => {
     if (!address || !VITE_PUBLIC_TORII || !VITE_PUBLIC_CUBE_TOKEN_ADDRESS) {
+      console.log("[useCubeBalance] Torii: Missing config", { 
+        hasAddress: !!address, 
+        hasTorii: !!VITE_PUBLIC_TORII, 
+        hasCubeToken: !!VITE_PUBLIC_CUBE_TOKEN_ADDRESS 
+      });
       return null;
     }
 
@@ -76,6 +84,12 @@ export const useCubeBalance = (): CubeBalanceResult => {
     };
     const normalizedAccount = normalizeAddr(address);
     const normalizedToken = normalizeAddr(VITE_PUBLIC_CUBE_TOKEN_ADDRESS);
+
+    console.log("[useCubeBalance] Torii query for:", { 
+      account: normalizedAccount, 
+      cubeToken: normalizedToken,
+      toriiUrl: VITE_PUBLIC_TORII
+    });
 
     try {
       const graphqlUrl = `${VITE_PUBLIC_TORII}/graphql`;
@@ -107,26 +121,38 @@ export const useCubeBalance = (): CubeBalanceResult => {
       });
 
       if (!response.ok) {
+        console.warn("[useCubeBalance] Torii response not ok:", response.status);
         return null;
       }
 
       const result = await response.json();
+      console.log("[useCubeBalance] Torii response:", JSON.stringify(result, null, 2));
+      
       if (result.errors) {
+        console.warn("[useCubeBalance] Torii GraphQL errors:", result.errors);
         return null;
       }
 
       // Find the zCubes token balance
       const edges = result.data?.tokenBalances?.edges || [];
+      console.log("[useCubeBalance] Token balances found:", edges.length);
+      
       for (const edge of edges) {
         const meta = edge.node?.tokenMetadata;
         if (!meta?.contractAddress) continue;
         
-        if (normalizeAddr(meta.contractAddress) === normalizedToken) {
+        const edgeContract = normalizeAddr(meta.contractAddress);
+        console.log("[useCubeBalance] Checking token:", { edgeContract, normalizedToken, match: edgeContract === normalizedToken });
+        
+        if (edgeContract === normalizedToken) {
           const amountStr = meta.amount || "0";
-          return amountStr.startsWith("0x") ? BigInt(amountStr) : BigInt(amountStr);
+          const balance = amountStr.startsWith("0x") ? BigInt(amountStr) : BigInt(amountStr);
+          console.log("[useCubeBalance] Found cube balance:", balance.toString());
+          return balance;
         }
       }
       
+      console.log("[useCubeBalance] Cube token not found in Torii response");
       return null; // Not found in Torii
     } catch (err) {
       console.warn("[useCubeBalance] Torii query failed:", err);
@@ -151,18 +177,25 @@ export const useCubeBalance = (): CubeBalanceResult => {
       setIsLoading(true);
       setError(null);
 
+      console.log("[useCubeBalance] Fetching balance for:", address);
+
       // Try Torii first
       let balance = await fetchBalanceTorii();
+      let source = "torii";
       
       // If Torii didn't return a balance, fallback to RPC
       if (balance === null) {
+        console.log("[useCubeBalance] Torii returned null, trying RPC fallback...");
         balance = await fetchBalanceRpc();
+        source = "rpc";
       }
 
       if (balance !== null) {
+        console.log(`[useCubeBalance] Final balance from ${source}:`, balance.toString());
         setCubeBalance(balance);
       } else {
         // Both methods failed, set to 0
+        console.warn("[useCubeBalance] Both Torii and RPC failed, setting balance to 0");
         setCubeBalance(BigInt(0));
       }
     } catch (err) {
