@@ -42,7 +42,7 @@ const saveLoadout = (loadout: LoadoutData) => {
 
 interface LoadoutDialogProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose: (open: boolean) => void;
   onConfirm: (selectedBonuses: number[], cubesToBring: number) => void;
   playerMetaData: PlayerMetaData | null;
   cubeBalance: number;

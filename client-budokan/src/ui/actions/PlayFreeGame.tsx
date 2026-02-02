@@ -102,8 +102,9 @@ export const PlayFreeGame = ({ onMintSuccess }: PlayFreeGameProps) => {
   }, [account, freeMint, create, username, cubeBalance, refetchCubeBalance, onMintSuccess]);
 
   // If dialog is closed without confirming, do nothing (no orphaned games)
-  const handleLoadoutClose = useCallback(() => {
-    if (!isLoading) {
+  const handleLoadoutClose = useCallback((open: boolean) => {
+    // Only allow closing (open=false) when not loading
+    if (!open && !isLoading) {
       setShowLoadoutDialog(false);
     }
   }, [isLoading]);
