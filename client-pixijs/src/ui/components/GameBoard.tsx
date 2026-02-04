@@ -3,7 +3,7 @@ import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
 import { useMediaQuery } from "react-responsive";
 import { Account } from "starknet";
-import { GameStage, GameStageRef } from "@/pixi/components/GameStage";
+import { GameStage, type GameStageRef } from "@/pixi/components/GameStage";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "./NextLine";
 import type { Block } from "@/types/types";
