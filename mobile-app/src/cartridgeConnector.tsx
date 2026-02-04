@@ -1,8 +1,12 @@
 import { Connector } from "@starknet-react/core";
 import ControllerConnector from "@cartridge/connector/controller";
-import type { ControllerOptions, SessionPolicies } from "@cartridge/controller";
+import type { ControllerOptions, SessionPolicies, AuthOptions } from "@cartridge/controller";
 import { getContractByName } from "@dojoengine/core";
 import { shortString } from "starknet";
+
+// Platform detection for native app support
+import { isNative, isNativeAndroid, DEEP_LINK_URL } from "./utils/capacitorUtils";
+import SessionConnectorWrapper from "./dojo/connectorWrapper";
 
 // Import manifests for each environment (same paths as config/manifest.ts)
 import manifestSlot from "../../contracts/manifest_slot.json";
@@ -200,12 +204,47 @@ const getConfig = () => {
 
 const config = getConfig();
 
-const options: ControllerOptions = {
-  chains: config.chains,
-  defaultChainId: stringToFelt(config.chainId).toString(),
-  namespace: VITE_PUBLIC_NAMESPACE,
-  slot: config.slot,
-  policies: config.policies,
+// Platform-specific signup options
+// Android WebView doesn't reliably support WebAuthn/Passkeys
+const signupOptions: AuthOptions = isNativeAndroid
+  ? ["google", "discord", "password"]
+  : ["google", "discord", "webauthn", "password"];
+
+/**
+ * Create the appropriate connector based on platform:
+ * - Web: ControllerConnector (iframe-based authentication)
+ * - Native: SessionConnectorWrapper (browser-based OAuth with deep link callback)
+ */
+const createConnector = (): Connector => {
+  const defaultChainId = stringToFelt(config.chainId).toString();
+
+  if (isNative) {
+    // Native app: Use SessionConnector with wrapper for OAuth flow
+    console.log("[cartridgeConnector] Creating SessionConnectorWrapper for native app");
+    
+    return new SessionConnectorWrapper({
+      policies: config.policies,
+      rpc: config.chains[0].rpcUrl,
+      chainId: BigInt(defaultChainId),
+      redirectUrl: DEEP_LINK_URL,
+      disconnectRedirectUrl: DEEP_LINK_URL,
+      signupOptions,
+    }) as unknown as Connector;
+  } else {
+    // Web: Use standard ControllerConnector
+    console.log("[cartridgeConnector] Creating ControllerConnector for web");
+    
+    const options: ControllerOptions = {
+      chains: config.chains,
+      defaultChainId,
+      namespace: VITE_PUBLIC_NAMESPACE,
+      slot: config.slot,
+      policies: config.policies,
+      signupOptions,
+    };
+
+    return new ControllerConnector(options) as unknown as Connector;
+  }
 };
 
 // Debug logging
@@ -218,8 +257,11 @@ console.log("[cartridgeConnector] Configuration:", {
   chains: config.chains.map(c => c.rpcUrl),
   hasPolicies: !!config.policies,
   policyContracts: config.policies ? Object.keys(config.policies.contracts) : [],
+  isNative,
+  isNativeAndroid,
+  signupOptions,
 });
 
-const cartridgeConnector = new ControllerConnector(options) as never as Connector;
+const cartridgeConnector = createConnector();
 
 export default cartridgeConnector;
