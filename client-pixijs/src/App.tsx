@@ -11,8 +11,10 @@ export default function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="play/:gameId" element={<Play />} />
-          <Route path="play-fullscreen/:gameId" element={<PlayFullscreen />} />
+          {/* Fullscreen UI is now the default */}
+          <Route path="play/:gameId" element={<PlayFullscreen />} />
+          {/* Legacy UI available for debugging/comparison */}
+          <Route path="play-legacy/:gameId" element={<Play />} />
         </Routes>
         <Toaster position="bottom-right" />
       </Router>
