@@ -5,6 +5,7 @@ import { GridBackground } from './GridBackground';
 import type { Block } from '@/types/types';
 import { BonusType } from '@/dojo/game/types/bonus';
 import type { GameStageRef } from '../types';
+import { PixiThemeProvider, usePixiTheme } from '../themes/ThemeContext';
 
 interface GameStageProps {
   blocks: Block[];
@@ -19,7 +20,8 @@ interface GameStageProps {
   isPlayerInDanger: boolean;
 }
 
-export const GameStage = forwardRef<GameStageRef, GameStageProps>(({
+// Inner component that uses theme context
+const GameStageInner = forwardRef<GameStageRef, GameStageProps>(({
   blocks,
   gridSize,
   gridWidth,
@@ -30,6 +32,7 @@ export const GameStage = forwardRef<GameStageRef, GameStageProps>(({
   isTxProcessing,
   isPlayerInDanger,
 }, ref) => {
+  const { colors } = usePixiTheme();
   const explosionRef = useRef<{ trigger: (x: number, y: number) => void } | null>(null);
 
   const triggerExplosion = useCallback((x: number, y: number) => {
@@ -47,14 +50,14 @@ export const GameStage = forwardRef<GameStageRef, GameStageProps>(({
     <div 
       className={`relative ${isTxProcessing ? 'cursor-wait' : 'cursor-move'}`}
       style={{ 
-        width: stageWidth + 4, // +4 for border
+        width: stageWidth + 4,
         height: stageHeight + 4,
       }}
     >
       <Application
         width={stageWidth}
         height={stageHeight}
-        background={0x10172A}
+        background={colors.background}
         resolution={window.devicePixelRatio || 1}
         autoDensity={true}
         antialias={true}
@@ -81,7 +84,7 @@ export const GameStage = forwardRef<GameStageRef, GameStageProps>(({
         />
       </Application>
 
-      {/* Border overlay - using CSS for the animated border effect */}
+      {/* Border overlay */}
       <div 
         className={`absolute inset-0 pointer-events-none rounded ${
           isTxProcessing ? 'border-2 border-blue-400 animate-pulse' : 'border-2 border-slate-800'
@@ -93,6 +96,17 @@ export const GameStage = forwardRef<GameStageRef, GameStageProps>(({
         }}
       />
     </div>
+  );
+});
+
+GameStageInner.displayName = 'GameStageInner';
+
+// Wrapper that provides theme context
+export const GameStage = forwardRef<GameStageRef, GameStageProps>((props, ref) => {
+  return (
+    <PixiThemeProvider>
+      <GameStageInner ref={ref} {...props} />
+    </PixiThemeProvider>
   );
 });
 

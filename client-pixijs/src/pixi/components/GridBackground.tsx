@@ -1,5 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { Graphics as PixiGraphics } from 'pixi.js';
+import { usePixiTheme } from '../themes/ThemeContext';
 
 interface GridBackgroundProps {
   gridSize: number;
@@ -14,14 +15,41 @@ export const GridBackground = ({
   gridHeight,
   isPlayerInDanger,
 }: GridBackgroundProps) => {
+  const { colors, isProcedural } = usePixiTheme();
+  
   const width = gridWidth * gridSize;
   const height = gridHeight * gridSize;
+
+  // Memoize danger zone style based on theme
+  const dangerStyle = useMemo(() => ({
+    color: colors.dangerZone,
+    alpha: isPlayerInDanger ? colors.dangerZoneAlpha : 0,
+  }), [colors, isPlayerInDanger]);
 
   const drawGrid = useCallback((g: PixiGraphics) => {
     g.clear();
 
-    // Set stroke style for grid lines
-    g.setStrokeStyle({ width: 1, color: 0x1E293B, alpha: 0.8 });
+    // Background gradient (subtle)
+    if (isProcedural) {
+      // Neon theme - darker background with slight gradient feel
+      g.setFillStyle({ color: colors.background, alpha: 1 });
+      g.rect(0, 0, width, height);
+      g.fill();
+      
+      // Add subtle vignette effect
+      g.setFillStyle({ color: 0x000000, alpha: 0.3 });
+      g.rect(0, 0, width, 2);
+      g.fill();
+      g.rect(0, height - 2, width, 2);
+      g.fill();
+    }
+
+    // Grid lines
+    g.setStrokeStyle({ 
+      width: 1, 
+      color: colors.gridLines, 
+      alpha: colors.gridLinesAlpha 
+    });
 
     // Draw vertical lines
     for (let x = 0; x <= gridWidth; x++) {
@@ -39,13 +67,38 @@ export const GridBackground = ({
 
     g.stroke();
 
-    // Draw danger zone overlay for top 2 rows
-    if (isPlayerInDanger) {
-      g.setFillStyle({ color: 0xEF4444, alpha: 0.15 });
-      g.rect(0, 0, width, gridSize * 2);
+    // Neon theme: Add glow dots at intersections
+    if (isProcedural) {
+      g.setFillStyle({ color: colors.accent, alpha: 0.15 });
+      for (let x = 0; x <= gridWidth; x++) {
+        for (let y = 0; y <= gridHeight; y++) {
+          g.circle(x * gridSize, y * gridSize, 2);
+        }
+      }
       g.fill();
     }
-  }, [gridSize, gridWidth, gridHeight, width, height, isPlayerInDanger]);
+
+    // Draw danger zone overlay for top 2 rows
+    if (dangerStyle.alpha > 0) {
+      g.setFillStyle({ 
+        color: dangerStyle.color, 
+        alpha: dangerStyle.alpha 
+      });
+      g.rect(0, 0, width, gridSize * 2);
+      g.fill();
+
+      // Add danger line indicator
+      g.setStrokeStyle({ 
+        width: 2, 
+        color: dangerStyle.color, 
+        alpha: dangerStyle.alpha * 2 
+      });
+      g.moveTo(0, gridSize * 2);
+      g.lineTo(width, gridSize * 2);
+      g.stroke();
+    }
+
+  }, [gridSize, gridWidth, gridHeight, width, height, colors, isProcedural, dangerStyle]);
 
   return (
     <pixiGraphics draw={drawGrid} />

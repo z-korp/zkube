@@ -13,8 +13,16 @@ import {
 } from "../elements/dropdown-menu";
 
 import { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
+import { useTheme } from "../elements/theme-provider/hooks";
 
 export const SettingsDropDown = () => {
+  const { themeTemplate, setThemeTemplate } = useTheme();
+
+  const themes = [
+    { id: "theme-1", name: "Tiki", icon: "🗿" },
+    { id: "theme-neon", name: "Neon", icon: "⚡" },
+  ] as const;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -29,6 +37,24 @@ export const SettingsDropDown = () => {
         <DropdownMenuItem>
           <MusicPlayer />
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className="text-xl font-bold">
+          Grid Theme
+        </DropdownMenuLabel>
+        <div className="p-1 flex gap-2">
+          {themes.map((theme) => (
+            <Button
+              key={theme.id}
+              variant={themeTemplate === theme.id ? "default" : "outline"}
+              size="sm"
+              onClick={() => setThemeTemplate(theme.id)}
+              className="flex-1"
+            >
+              <span className="mr-1">{theme.icon}</span>
+              {theme.name}
+            </Button>
+          ))}
+        </div>
         <DropdownMenuSeparator />
         <DropdownMenuLabel className="text-xl font-bold">
           Account

@@ -27,6 +27,7 @@ export const GameGrid = ({
   onExplosion,
 }: GameGridProps) => {
   const [draggingBlock, setDraggingBlock] = useState<Block | null>(null);
+  const [hoveredBlock, setHoveredBlock] = useState<Block | null>(null);
   const [dragStartX, setDragStartX] = useState(0);
   const [initialBlockX, setInitialBlockX] = useState(0);
   const [localBlocks, setLocalBlocks] = useState<Block[]>(blocks);
@@ -126,6 +127,16 @@ export const GameGrid = ({
     setDraggingBlock(null);
   }, [draggingBlock, localBlocks, initialBlockX, gridHeight, onMove]);
 
+  const handleHoverStart = useCallback((block: Block) => {
+    if (!draggingBlock) {
+      setHoveredBlock(block);
+    }
+  }, [draggingBlock]);
+
+  const handleHoverEnd = useCallback(() => {
+    setHoveredBlock(null);
+  }, []);
+
   return (
     <pixiContainer>
       {localBlocks.map((block) => (
@@ -135,10 +146,13 @@ export const GameGrid = ({
           gridSize={gridSize}
           isDragging={draggingBlock?.id === block.id}
           isSelected={bonus !== BonusType.None}
+          isHovered={hoveredBlock?.id === block.id}
           isTxProcessing={isTxProcessing}
           onDragStart={handleDragStart}
           onDragMove={handleDragMove}
           onDragEnd={handleDragEnd}
+          onHoverStart={handleHoverStart}
+          onHoverEnd={handleHoverEnd}
         />
       ))}
     </pixiContainer>
