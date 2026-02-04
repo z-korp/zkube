@@ -123,9 +123,6 @@ export const PlayFullscreen = () => {
   const [isLoadoutOpen, setIsLoadoutOpen] = useState(false);
   const [isPendingLevelUpOpen, setIsPendingLevelUpOpen] = useState(false);
   const [openShopAfterLevelUp, setOpenShopAfterLevelUp] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showSurrenderConfirm, setShowSurrenderConfirm] = useState(false);
-  const [isSurrendering, setIsSurrendering] = useState(false);
   const [isQuestsOpen, setIsQuestsOpen] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
   
@@ -447,22 +444,13 @@ export const PlayFullscreen = () => {
     }
   }, [connector]);
 
-  // Handle surrender
+  // Handle surrender (called from PixiJS MenuModal)
   const handleSurrender = useCallback(async () => {
     if (!account || !game) return;
-    setIsSurrendering(true);
-    try {
-      await surrender({
-        account: account as Account,
-        game_id: game.id,
-      });
-      setIsMenuOpen(false);
-      setShowSurrenderConfirm(false);
-    } catch (error) {
-      console.error("Surrender failed:", error);
-    } finally {
-      setIsSurrendering(false);
-    }
+    await surrender({
+      account: account as Account,
+      game_id: game.id,
+    });
   }, [account, game, surrender]);
 
   const handleBonusTx = useCallback(
@@ -572,7 +560,8 @@ export const PlayFullscreen = () => {
   }, [optimisticScore, targetScore]);
 
   // Check if any dialog is open (disable shortcuts when dialogs are open)
-  const isAnyDialogOpen = isMenuOpen || isQuestsOpen || isShopOpen || 
+  // Note: Menu modal is now handled in PixiJS, so we don't track isMenuOpen here
+  const isAnyDialogOpen = isQuestsOpen || isShopOpen || 
     isGameOverOpen || isVictoryOpen || isLevelCompleteOpen || isInGameShopOpen || 
     isLoadoutOpen || isPendingLevelUpOpen || isConnectDialogOpen;
 
@@ -674,15 +663,15 @@ export const PlayFullscreen = () => {
         bonusSlots={bonusSlots}
         selectedBonus={bonus}
         cubeBalance={Number(cubeBalance)}
+        totalCubes={game.totalCubes}
         isTxProcessing={isTxProcessing}
         isPlayerInDanger={isPlayerInDanger}
         onMove={handleMove}
         onBonusApply={handleBonusApply}
-        onMenuClick={() => setIsMenuOpen(true)}
         onQuestsClick={() => setIsQuestsOpen(true)}
         onTrophyClick={handleTrophyClick}
         onShopClick={() => setIsShopOpen(true)}
-        onSurrenderClick={() => setIsMenuOpen(true)}
+        onSurrender={handleSurrender}
       />
 
       {/* Bonus description overlay */}
@@ -807,61 +796,7 @@ export const PlayFullscreen = () => {
         runData={game.runData}
       />
 
-      {/* Menu Dialog */}
-      <Dialog open={isMenuOpen} onOpenChange={(open) => {
-        setIsMenuOpen(open);
-        if (!open) setShowSurrenderConfirm(false);
-      }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{showSurrenderConfirm ? "Confirm Surrender" : "Menu"}</DialogTitle>
-            <DialogDescription>
-              {showSurrenderConfirm 
-                ? "Are you sure you want to surrender? You will keep any cubes earned so far."
-                : "Game options"
-              }
-            </DialogDescription>
-          </DialogHeader>
-          
-          {showSurrenderConfirm ? (
-            <div className="flex flex-col gap-3 pt-4">
-              <div className="text-center text-sm text-slate-400 mb-2">
-                <div>Current Level: <span className="text-white font-semibold">{game.level}</span></div>
-                <div>Cubes Earned: <span className="text-yellow-400 font-semibold">{game.totalCubes}</span></div>
-              </div>
-              <button 
-                className="w-full py-3 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={handleSurrender}
-                disabled={isSurrendering}
-              >
-                {isSurrendering ? "Surrendering..." : "Yes, Surrender"}
-              </button>
-              <button 
-                className="w-full py-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-white font-semibold"
-                onClick={() => setShowSurrenderConfirm(false)}
-                disabled={isSurrendering}
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3 pt-4">
-              <button 
-                className="w-full py-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-white font-semibold"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Resume Game
-              </button>
-              <button 
-                className="w-full py-3 bg-red-600/80 hover:bg-red-600 rounded-lg text-white font-semibold"
-                onClick={() => setShowSurrenderConfirm(true)}
-              >
-                Surrender
-              </button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Menu is now handled in PixiJS - see MenuModal in FullscreenGame */}
 
       {/* Quests Dialog */}
       <QuestsDialog 

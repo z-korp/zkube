@@ -1,5 +1,5 @@
 import { Application } from '@pixi/react';
-import { forwardRef, useImperativeHandle, useCallback, useMemo } from 'react';
+import { forwardRef, useImperativeHandle, useCallback, useMemo, useState } from 'react';
 import type { Block } from '@/types/types';
 import type { GameStageRef } from '../../types';
 import { useFullscreenLayout } from '../../hooks/useFullscreenLayout';
@@ -18,6 +18,7 @@ import { LevelDisplay } from './LevelDisplay';
 import { ScorePanel } from './ScorePanel';
 import { MovesPanel } from './MovesPanel';
 import { BonusType } from '@/dojo/game/types/bonus';
+import { MenuModal } from '../modals';
 
 export interface BonusSlotData {
   type: number;
@@ -66,12 +67,16 @@ interface FullscreenGameProps {
   onMove: (rowIndex: number, startX: number, finalX: number) => void;
   onBonusApply: (block: Block) => void;
   
-  // Navigation callbacks (trigger React dialogs)
-  onMenuClick?: () => void;
+  // Game state for menu
+  totalCubes?: number;
+  
+  // Navigation callbacks
   onQuestsClick?: () => void;
   onTrophyClick?: () => void;
   onShopClick?: () => void;
-  onSurrenderClick?: () => void;
+  
+  // Surrender callback (async)
+  onSurrender?: () => Promise<void>;
 }
 
 /**
@@ -94,19 +99,37 @@ const FullscreenGameInner = forwardRef<GameStageRef, FullscreenGameProps>(({
   bonusSlots,
   selectedBonus,
   cubeBalance = 0,
+  totalCubes = 0,
   isTxProcessing,
   isPlayerInDanger,
   onMove,
   onBonusApply,
-  onMenuClick,
   onQuestsClick,
   onTrophyClick,
   onShopClick,
-  onSurrenderClick,
+  onSurrender,
 }, ref) => {
   const { colors } = usePixiTheme();
   const layout = useFullscreenLayout();
   const { offset, shake, lineClear, combo: comboShake, bigCombo } = useScreenShake();
+  
+  // Menu modal state
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  const handleMenuClick = useCallback(() => {
+    setIsMenuOpen(true);
+  }, []);
+  
+  const handleMenuClose = useCallback(() => {
+    setIsMenuOpen(false);
+  }, []);
+  
+  const handleSurrender = useCallback(async () => {
+    if (onSurrender) {
+      await onSurrender();
+    }
+    setIsMenuOpen(false);
+  }, [onSurrender]);
 
   // Expose methods to parent for triggering effects
   const triggerExplosion = useCallback((x: number, y: number) => {
@@ -177,7 +200,7 @@ const FullscreenGameInner = forwardRef<GameStageRef, FullscreenGameProps>(({
         <TopBar
           layout={layout}
           cubeBalance={cubeBalance}
-          onMenuClick={onMenuClick}
+          onMenuClick={handleMenuClick}
           onQuestsClick={onQuestsClick}
           onTrophyClick={onTrophyClick}
           onShopClick={onShopClick}
@@ -274,9 +297,9 @@ const FullscreenGameInner = forwardRef<GameStageRef, FullscreenGameProps>(({
           width={layout.screenWidth}
           height={layout.actionBarHeight}
           y={layout.actionBarY}
-          isDisabled={isTxProcessing}
-          onSurrender={onSurrenderClick}
-          showSurrender={!!onSurrenderClick}
+          isDisabled={isTxProcessing || isMenuOpen}
+          onSurrender={handleMenuClick}
+          showSurrender={!!onSurrender}
         />
         
         {/* Particle system layer (above blocks) */}
@@ -292,6 +315,17 @@ const FullscreenGameInner = forwardRef<GameStageRef, FullscreenGameProps>(({
             gridSize={layout.cellSize}
           />
         </pixiContainer>
+        
+        {/* Menu Modal (rendered on top of everything) */}
+        <MenuModal
+          isOpen={isMenuOpen}
+          onClose={handleMenuClose}
+          onSurrender={handleSurrender}
+          screenWidth={layout.screenWidth}
+          screenHeight={layout.screenHeight}
+          currentLevel={level}
+          cubesEarned={totalCubes}
+        />
       </Application>
 
       {/* Danger border overlay */}
