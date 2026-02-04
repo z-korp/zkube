@@ -49,7 +49,9 @@ client-budokan/
 │   │   │   ├── LevelHeader.tsx # Level progress header
 │   │   │   ├── BonusButton.tsx # Bonus action buttons
 │   │   │   ├── GameOverDialog.tsx
+│   │   │   ├── VictoryDialog.tsx # Level 50 victory modal
 │   │   │   ├── LevelCompleteDialog.tsx
+│   │   │   ├── LoadoutDialog.tsx # Bonus selection at run start
 │   │   │   ├── CubeBalance.tsx # CUBE token balance
 │   │   │   ├── Connect.tsx   # Wallet connect button
 │   │   │   ├── Shop/         # Shop components

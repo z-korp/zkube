@@ -2,7 +2,7 @@ use alexandria_math::BitShift;
 
 /// Bit-packing helpers for efficient storage
 /// 
-/// run_data layout (183 bits used, 69 reserved):
+/// run_data layout (197 bits used, 55 reserved):
 /// ┌─────────────────────────────────────────────────────────────────────┐
 /// │ Bits    │ Field                 │ Size │ Range    │ Description     │
 /// ├─────────┼───────────────────────┼──────┼──────────┼─────────────────┤

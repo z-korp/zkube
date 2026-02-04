@@ -89,7 +89,7 @@ pub enum Task {
     LineClearer,    // Lines cleared (daily)
     ComboThree,     // 3+ line combos (daily)
     ComboFive,      // 5+ line combos (daily)
-    ComboEight,     // 8+ line combos (daily)
+    ComboSeven,     // 7+ line combos (daily)
     DailyMaster,    // Daily quests completed
     
     // Achievement tasks (permanent)

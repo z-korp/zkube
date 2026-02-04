@@ -11,6 +11,30 @@ This document tracks completed milestones and features for the zKube project.
 
 ### Major Features Completed
 
+#### Boss Level System
+- **Boss levels** every 10 levels (10, 20, 30, 40, 50)
+- **Cube bonuses:** +10/+20/+30/+40/+50 CUBE
+- **Dual constraints** mandatory on boss levels
+- **Victory state:** Level 50 completion sets `run_completed` flag
+- **Free level-up** available after boss clear (levels 10, 20, 30, 40)
+
+#### Combo Cube Rewards (Rebalanced)
+- Clear 4 lines: +1 CUBE
+- Clear 5 lines: +3 CUBE
+- Clear 6 lines: +5 CUBE
+- Clear 7 lines: +10 CUBE
+- Clear 8 lines: +25 CUBE
+- Clear 9+ lines: +50 CUBE
+- First 5-combo: +3 CUBE (one-time)
+- First 10-combo: +5 CUBE (one-time)
+
+#### 5-Bonus System
+- **Shrink bonus:** Reduces block size by 1 (unlockable 200 CUBE)
+- **Shuffle bonus:** Randomizes block positions (unlockable 200 CUBE)
+- **Bonus selection:** Players select 3 of 5 bonuses per run
+- **Bonus levels:** 3 upgrade levels (L1/L2/L3) per bonus type
+- Frontend: LoadoutDialog for bonus selection
+
 #### Quest System
 - **10 Daily Quests** with tiered progression (Player, Clearer, Combo, Finisher)
 - **102 CUBE/day** total rewards available
@@ -22,7 +46,7 @@ This document tracks completed milestones and features for the zKube project.
 - Extended `GameSettings` model with 21+ configurable parameters
 - Level scaling (moves, points ratio, variance)
 - Cube thresholds (3-star, 2-star percentages)
-- Consumable costs (hammer, wave, totem, extra moves)
+- Consumable costs (bonus1/2/3, refill, level-up)
 - Constraint distribution (Easy to Master interpolation)
 - Difficulty progression (starting difficulty, step levels)
 - `add_custom_game_settings()` API for custom game modes
@@ -35,8 +59,8 @@ This document tracks completed milestones and features for the zKube project.
 
 #### Cube Economy
 - Soulbound ERC1155 CUBE token
-- Permanent shop (starting bonuses, bag size, bridging rank)
-- In-game shop (consumables every 5 levels)
+- Permanent shop (starting bonuses, bag size, bridging rank, bonus unlocks)
+- In-game shop (bonus consumables, refill, level-up every 5 levels)
 - Cube bridging (bring cubes from wallet into runs)
 - Spending order: brought cubes first, then earned
 
@@ -56,8 +80,8 @@ This document tracks completed milestones and features for the zKube project.
 
 - **50 Levels** with progressive difficulty
 - Move scaling: 20 (level 1) to 60 (level 50)
-- Points ratio scaling: 0.80 to 2.50
-- Variance by tier: ±5% early, ±10% mid, ±15% late
+- Points ratio scaling: 0.80 to 1.80
+- Consistent ±5% variance across all levels
 - Seed-based deterministic level generation
 - Level completion with star ratings (1-3 cubes)
 
@@ -166,7 +190,9 @@ This document tracks completed milestones and features for the zKube project.
 - [x] Gravity system
 - [x] Line clearing
 - [x] Combo system
-- [x] Bonus effects (Hammer, Wave, Totem)
+- [x] Bonus effects (Hammer, Wave, Totem, Shrink, Shuffle)
+- [x] Boss levels (L10/20/30/40/50)
+- [x] Victory state (level 50 completion)
 
 ### Level System
 - [x] 50-level progression
@@ -243,6 +269,6 @@ See [FUTURE_FEATURES.md](./FUTURE_FEATURES.md) for the complete roadmap of unimp
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| 1.2.0 | Jan 2026 | Quest system, Configurable settings, Enhanced constraints |
+| 1.2.0 | Jan 2026 | Boss levels, 5-bonus system, Quest system, Victory state, Combo rebalance |
 | 1.1.0 | Dec 2025 | Level system, Bonus system, Two-shop economy |
 | 1.0.0 | Nov 2025 | Core mechanics, Difficulty system, Foundation |
