@@ -3,15 +3,10 @@ import { Container, Graphics, Sprite, Text, TilingSprite } from 'pixi.js';
 
 // Extend PixiJS components for use with @pixi/react
 // This must be called before using any pixi components
-export function extendPixi() {
-  extend({
-    Container,
-    Graphics,
-    Sprite,
-    Text,
-    TilingSprite,
-  });
-}
-
-// Call immediately on import
-extendPixi();
+extend({
+  Container,
+  Graphics,
+  Sprite,
+  Text,
+  TilingSprite,
+});

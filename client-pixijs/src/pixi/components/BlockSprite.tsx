@@ -114,9 +114,11 @@ export const BlockSprite = ({
         y={y}
         draw={(g) => {
           g.clear();
+          g.setFillStyle({ color: 0x1E293B });
+          g.setStrokeStyle({ width: 1, color: 0x334155 });
           g.rect(0, 0, width, height);
-          g.fill({ color: 0x1E293B });
-          g.stroke({ width: 1, color: 0x334155 });
+          g.fill();
+          g.stroke();
         }}
       />
     );

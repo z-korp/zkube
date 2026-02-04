@@ -6,9 +6,6 @@ import type { Block } from '@/types/types';
 import { BonusType } from '@/dojo/game/types/bonus';
 import type { GameStageRef } from '../types';
 
-// Import the extend setup
-import '../extend';
-
 interface GameStageProps {
   blocks: Block[];
   nextLine: Block[];

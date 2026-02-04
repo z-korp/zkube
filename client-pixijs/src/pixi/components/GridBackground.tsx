@@ -20,6 +20,9 @@ export const GridBackground = ({
   const drawGrid = useCallback((g: PixiGraphics) => {
     g.clear();
 
+    // Set stroke style for grid lines
+    g.setStrokeStyle({ width: 1, color: 0x1E293B, alpha: 0.8 });
+
     // Draw vertical lines
     for (let x = 0; x <= gridWidth; x++) {
       const xPos = x * gridSize;
@@ -34,12 +37,13 @@ export const GridBackground = ({
       g.lineTo(width, yPos);
     }
 
-    g.stroke({ width: 1, color: 0x1E293B, alpha: 0.8 });
+    g.stroke();
 
     // Draw danger zone overlay for top 2 rows
     if (isPlayerInDanger) {
+      g.setFillStyle({ color: 0xEF4444, alpha: 0.15 });
       g.rect(0, 0, width, gridSize * 2);
-      g.fill({ color: 0xEF4444, alpha: 0.15 });
+      g.fill();
     }
   }, [gridSize, gridWidth, gridHeight, width, height, isPlayerInDanger]);
 

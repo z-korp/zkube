@@ -16,6 +16,9 @@ import { MetagameProvider } from "./contexts/MetagameProvider";
 import { QuestsProvider } from "./contexts/quests";
 import { ControllersProvider } from "./contexts/controllers";
 
+// Initialize PixiJS components for @pixi/react - must be done before any pixi components render
+import "./pixi/extend";
+
 import "./index.css";
 import { type BigNumberish, shortString, PaymasterRpc } from "starknet";
 import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
