@@ -4,6 +4,8 @@ import { usePixiTheme } from '../../themes/ThemeContext';
 import { LevelBadge } from './LevelBadge';
 import { ProgressBar } from './ProgressBar';
 import { MovesCounter } from './MovesCounter';
+import { ConstraintIndicator, ConstraintData } from './ConstraintIndicator';
+import { ConstraintType } from '@/dojo/game/types/constraint';
 
 interface HUDBarProps {
   /** Current level */
@@ -16,6 +18,10 @@ interface HUDBarProps {
   moves: number;
   /** Maximum moves for the level */
   maxMoves?: number;
+  /** First constraint */
+  constraint1?: ConstraintData;
+  /** Second constraint (for dual constraint levels) */
+  constraint2?: ConstraintData;
   /** Width of the HUD bar */
   width: number;
   /** Height of the HUD bar */
@@ -27,10 +33,10 @@ interface HUDBarProps {
 }
 
 /**
- * Top HUD bar containing level badge, progress bar, and moves counter
+ * Top HUD bar containing level badge, progress bar, moves counter, and constraints
  * 
- * Layout:
- * [LVL 9]  [████████░░░░░░░░]  [26 moves]
+ * Layout (single row):
+ * [LVL 9]  [████████░░░░░░░░]  [Constraint]  [26 moves]
  */
 export const HUDBar = ({
   level,
@@ -38,6 +44,8 @@ export const HUDBar = ({
   targetScore,
   moves,
   maxMoves,
+  constraint1,
+  constraint2,
   width,
   height,
   y = 0,
@@ -45,14 +53,21 @@ export const HUDBar = ({
 }: HUDBarProps) => {
   const { colors, isProcedural } = usePixiTheme();
 
+  // Check if we have active constraints
+  const hasConstraint1 = constraint1 && constraint1.type !== ConstraintType.None;
+  const hasConstraint2 = constraint2 && constraint2.type !== ConstraintType.None;
+  const hasAnyConstraint = hasConstraint1 || hasConstraint2;
+
   // Layout calculations
   const padding = 4;
   const levelBadgeWidth = 56;
   const movesWidth = 64;
-  const gap = 8;
+  const constraintWidth = hasAnyConstraint ? 90 : 0;
+  const gap = 6;
   
   const progressBarX = levelBadgeWidth + gap;
-  const progressBarWidth = width - levelBadgeWidth - movesWidth - gap * 2;
+  const constraintX = width - movesWidth - gap - constraintWidth;
+  const progressBarWidth = constraintX - progressBarX - gap;
   const movesX = width - movesWidth;
 
   const drawBackground = useCallback((g: PixiGraphics) => {
@@ -60,12 +75,12 @@ export const HUDBar = ({
     
     // Semi-transparent background
     g.rect(0, 0, width, height);
-    g.fill({ color: isProcedural ? 0x0a0a0f : 0x1a2744, alpha: 0.85 });
+    g.fill({ color: isProcedural ? 0x0a0a0f : 0x1a2744, alpha: 0.9 });
     
     // Bottom border line
     g.moveTo(0, height - 1);
     g.lineTo(width, height - 1);
-    g.stroke({ color: isProcedural ? colors.accent : 0x334155, width: 1, alpha: 0.3 });
+    g.stroke({ color: isProcedural ? colors.accent : 0x334155, width: 1, alpha: 0.4 });
   }, [width, height, isProcedural, colors.accent]);
 
   return (
@@ -88,6 +103,26 @@ export const HUDBar = ({
         height={height}
         isDanger={isInDanger}
       />
+      
+      {/* Constraints - stacked if both present */}
+      {hasConstraint1 && constraint1 && (
+        <ConstraintIndicator
+          constraint={constraint1}
+          x={constraintX}
+          y={hasConstraint2 ? 2 : (height - 28) / 2}
+          width={constraintWidth}
+          height={hasConstraint2 ? 16 : 28}
+        />
+      )}
+      {hasConstraint2 && constraint2 && (
+        <ConstraintIndicator
+          constraint={constraint2}
+          x={constraintX}
+          y={height - 18}
+          width={constraintWidth}
+          height={16}
+        />
+      )}
       
       <MovesCounter
         moves={moves}

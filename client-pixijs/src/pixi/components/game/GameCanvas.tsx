@@ -10,6 +10,7 @@ import { ParticleSystem, useParticles } from '../effects/ParticleSystem';
 import { ScorePopup, useScorePopup } from '../effects/ScorePopup';
 import { ScreenShakeContainer, useScreenShake } from '../effects/ScreenShake';
 import { HUDBar } from '../hud';
+import type { ConstraintData } from '../hud';
 import { ActionBar } from '../actionbar';
 import { NextLinePreview } from './NextLinePreview';
 import { BonusType } from '@/dojo/game/types/bonus';
@@ -39,6 +40,10 @@ interface GameCanvasProps {
   targetScore: number;
   moves: number;
   maxMoves?: number;
+  
+  // Constraints
+  constraint1?: ConstraintData;
+  constraint2?: ConstraintData;
   
   // Combo and stars
   combo: number;
@@ -71,6 +76,8 @@ const GameCanvasInner = forwardRef<GameStageRef, GameCanvasProps>(({
   targetScore,
   moves,
   maxMoves,
+  constraint1,
+  constraint2,
   combo,
   maxCombo,
   stars,
@@ -140,7 +147,7 @@ const GameCanvasInner = forwardRef<GameStageRef, GameCanvasProps>(({
       <Application
         width={layout.canvasWidth}
         height={layout.canvasHeight}
-        background={colors.background}
+        backgroundAlpha={0}
         resolution={layout.devicePixelRatio}
         autoDensity={true}
         antialias={true}
@@ -152,6 +159,8 @@ const GameCanvasInner = forwardRef<GameStageRef, GameCanvasProps>(({
           targetScore={targetScore}
           moves={moves}
           maxMoves={maxMoves}
+          constraint1={constraint1}
+          constraint2={constraint2}
           width={layout.canvasWidth}
           height={layout.hudHeight}
           y={layout.hudY}

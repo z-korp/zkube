@@ -30,10 +30,11 @@ export const GridBackground = ({
     g.clear();
 
     // === BACKGROUND ===
+    // Semi-transparent so the theme background shows through
     if (isProcedural) {
       // Neon theme - dark with subtle radial gradient effect
       g.rect(0, 0, width, height);
-      g.fill({ color: 0x0a0a12 });
+      g.fill({ color: 0x0a0a12, alpha: 0.85 });
       
       // Center glow
       const centerX = width / 2;
@@ -43,18 +44,18 @@ export const GridBackground = ({
       
       // Top edge shadow
       g.rect(0, 0, width, gridSize * 2);
-      g.fill({ color: 0x000000, alpha: 0.2 });
+      g.fill({ color: 0x000000, alpha: 0.15 });
     } else {
-      // Tiki theme - warm dark blue with texture-like pattern
+      // Tiki theme - semi-transparent dark overlay so background shows
       g.rect(0, 0, width, height);
-      g.fill({ color: 0x0f1a2a });
+      g.fill({ color: 0x0a1525, alpha: 0.75 });
       
       // Subtle pattern overlay (checkerboard effect)
       for (let x = 0; x < gridWidth; x++) {
         for (let y = 0; y < gridHeight; y++) {
           if ((x + y) % 2 === 0) {
             g.rect(x * gridSize, y * gridSize, gridSize, gridSize);
-            g.fill({ color: 0x142136, alpha: 0.5 });
+            g.fill({ color: 0x102030, alpha: 0.3 });
           }
         }
       }

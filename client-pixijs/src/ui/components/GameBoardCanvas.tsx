@@ -3,10 +3,12 @@ import { useDojo } from "@/dojo/useDojo";
 import { Account } from "starknet";
 import { GameCanvas } from "@/pixi/components";
 import type { BonusSlotData } from "@/pixi/components";
+import type { ConstraintData } from "@/pixi/components/hud";
 import type { GameStageRef } from "@/pixi/types";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import type { Block } from "@/types/types";
 import { Bonus, BonusType, bonusTypeFromContractValue } from "@/dojo/game/types/bonus";
+import { ConstraintType } from "@/dojo/game/types/constraint";
 import { getBonusInventoryCount } from "@/dojo/game/helpers/runDataPacking";
 import { Game } from "@/dojo/game/models/game";
 import { useGameLevel } from "@/hooks/useGameLevel";
@@ -270,6 +272,33 @@ const GameBoardCanvas: React.FC<GameBoardCanvasProps> = ({
     return calculateStarRating(optimisticScore, targetScore);
   }, [optimisticScore, targetScore]);
 
+  // Build constraint data from gameLevel
+  const constraint1: ConstraintData | undefined = useMemo(() => {
+    if (!gameLevel || gameLevel.constraintType === ConstraintType.None) {
+      return undefined;
+    }
+    return {
+      type: gameLevel.constraintType,
+      value: gameLevel.constraintValue,
+      count: gameLevel.constraintCount,
+      progress: game.constraintProgress,
+      bonusUsed: game.bonusUsedThisLevel,
+    };
+  }, [gameLevel, game.constraintProgress, game.bonusUsedThisLevel]);
+
+  const constraint2: ConstraintData | undefined = useMemo(() => {
+    if (!gameLevel || gameLevel.constraint2Type === ConstraintType.None) {
+      return undefined;
+    }
+    return {
+      type: gameLevel.constraint2Type,
+      value: gameLevel.constraint2Value,
+      count: gameLevel.constraint2Count,
+      progress: game.constraint2Progress,
+      bonusUsed: game.bonusUsedThisLevel,
+    };
+  }, [gameLevel, game.constraint2Progress, game.bonusUsedThisLevel]);
+
   if (blocks.length === 0) return null;
 
   return (
@@ -285,6 +314,8 @@ const GameBoardCanvas: React.FC<GameBoardCanvasProps> = ({
         targetScore={targetScore}
         moves={movesRemaining}
         maxMoves={maxMoves}
+        constraint1={constraint1}
+        constraint2={constraint2}
         combo={optimisticCombo}
         maxCombo={optimisticMaxCombo}
         stars={stars}
