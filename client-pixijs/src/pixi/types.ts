@@ -12,6 +12,11 @@ declare module '@pixi/react' {
   }
 }
 
+// GameStage ref type for imperative handle
+export interface GameStageRef {
+  triggerExplosion: (x: number, y: number) => void;
+}
+
 // Block type for PixiJS rendering
 export interface PixiBlock {
   id: number;

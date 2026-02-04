@@ -4,13 +4,10 @@ import { GameGrid } from './GameGrid';
 import { GridBackground } from './GridBackground';
 import type { Block } from '@/types/types';
 import { BonusType } from '@/dojo/game/types/bonus';
+import type { GameStageRef } from '../types';
 
 // Import the extend setup
 import '../extend';
-
-export interface GameStageRef {
-  triggerExplosion: (x: number, y: number) => void;
-}
 
 interface GameStageProps {
   blocks: Block[];
