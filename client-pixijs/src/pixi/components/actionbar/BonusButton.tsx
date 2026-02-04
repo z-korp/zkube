@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect } from 'react';
-import { TextStyle, Graphics as PixiGraphics, Texture } from 'pixi.js';
+import { TextStyle, Graphics as PixiGraphics, Texture, Assets } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 
 export interface BonusButtonData {
@@ -48,7 +48,9 @@ export const BonusButton = ({
   // Load icon texture
   useEffect(() => {
     if (icon) {
-      Texture.from(icon).then(setTexture).catch(() => setTexture(null));
+      Assets.load(icon)
+        .then((tex) => setTexture(tex as Texture))
+        .catch(() => setTexture(null));
     }
   }, [icon]);
 
