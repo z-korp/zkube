@@ -1,6 +1,7 @@
 import { useCallback, useState, useEffect } from 'react';
 import { TextStyle, Graphics as PixiGraphics, Texture, Assets } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
+import { usePulse } from '../../hooks/useAnimatedValue';
 
 export interface BonusButtonData {
   /** Bonus type identifier */
@@ -44,6 +45,14 @@ export const BonusButton = ({
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
   const [texture, setTexture] = useState<Texture | null>(null);
+
+  // Pulse animation when bonus is available and not selected
+  const shouldPulse = count > 0 && !isDisabled && !isSelected && !isHovered;
+  const pulseScale = usePulse(shouldPulse, { 
+    minScale: 1.0, 
+    maxScale: 1.05, 
+    duration: 2000 
+  });
 
   // Load icon texture
   useEffect(() => {
@@ -156,10 +165,16 @@ export const BonusButton = ({
   const iconSize = size - 16;
   const iconOffset = 8;
 
+  // Calculate scale for animation
+  const containerScale = isPressed ? 0.95 : (isHovered ? 1.02 : pulseScale);
+  const pivotOffset = size / 2;
+
   return (
     <pixiContainer
-      x={x}
-      y={y}
+      x={x + pivotOffset}
+      y={y + pivotOffset}
+      pivot={{ x: pivotOffset, y: pivotOffset }}
+      scale={{ x: containerScale, y: containerScale }}
       eventMode={isDisabled ? 'none' : 'static'}
       cursor={isDisabled || count === 0 ? 'not-allowed' : 'pointer'}
       onPointerDown={handlePointerDown}

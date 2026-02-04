@@ -5,6 +5,7 @@ import { BonusButton } from './BonusButton';
 import type { BonusButtonData } from './BonusButton';
 import { ComboDisplay } from './ComboDisplay';
 import { StarRating } from './StarRating';
+import { SurrenderButton } from './SurrenderButton';
 import { BonusType } from '@/dojo/game/types/bonus';
 
 interface BonusSlot extends BonusButtonData {
@@ -31,6 +32,10 @@ interface ActionBarProps {
   y?: number;
   /** Whether actions are disabled (tx processing) */
   isDisabled?: boolean;
+  /** Callback for surrender button */
+  onSurrender?: () => void;
+  /** Whether to show surrender button */
+  showSurrender?: boolean;
 }
 
 /**
@@ -49,6 +54,8 @@ export const ActionBar = ({
   height,
   y = 0,
   isDisabled = false,
+  onSurrender,
+  showSurrender = true,
 }: ActionBarProps) => {
   const { colors, isProcedural } = usePixiTheme();
 
@@ -60,12 +67,20 @@ export const ActionBar = ({
   // Bonus buttons on the left
   const bonusStartX = padding;
   
+  // Surrender button dimensions
+  const surrenderWidth = 36;
+  const surrenderHeight = buttonSize * 0.7;
+  
   // Star rating on the right
   const starSize = 16;
   const starGap = 4;
   const starWidth = 3 * starSize + 2 * starGap;
-  const starsX = width - padding - starWidth;
+  const starsX = width - padding - starWidth - (showSurrender ? surrenderWidth + padding : 0);
   const starsY = (height - starSize) / 2;
+  
+  // Surrender button position
+  const surrenderX = width - padding - surrenderWidth;
+  const surrenderY = (height - surrenderHeight) / 2;
   
   // Combo display between bonuses and stars
   const comboWidth = 50;
@@ -118,6 +133,18 @@ export const ActionBar = ({
         starSize={starSize}
         gap={starGap}
       />
+      
+      {/* Surrender button */}
+      {showSurrender && (
+        <SurrenderButton
+          x={surrenderX}
+          y={surrenderY}
+          width={surrenderWidth}
+          height={surrenderHeight}
+          onClick={onSurrender}
+          isDisabled={isDisabled}
+        />
+      )}
     </pixiContainer>
   );
 };
