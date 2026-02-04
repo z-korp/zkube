@@ -1,4 +1,4 @@
-import GameBoard from "../components/GameBoard";
+import GameBoardCanvas from "../components/GameBoardCanvas";
 import BackGroundBoard from "../components/BackgroundBoard";
 import { AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
@@ -527,7 +527,7 @@ export const Play = () => {
                         ref={gameGrid}
                         className="flex flex-col items-center game-container"
                       >
-                          <GameBoard
+                          <GameBoardCanvas
                             initialGrid={grid}
                             nextLine={game.isOver() ? [] : game.next_row}
                             score={game.isOver() ? 0 : game.score}
