@@ -256,11 +256,15 @@ const GameBoardCanvas: React.FC<GameBoardCanvasProps> = ({
   // Calculate target score and stars
   const targetScore = useMemo(() => {
     if (gameLevel) {
-      return gameLevel.pointsTarget;
+      return gameLevel.pointsRequired;
     }
     // Fallback: estimate based on level (20 points base + 5 per level)
     return 20 + game.level * 5;
   }, [gameLevel, game.level]);
+
+  // Calculate moves remaining
+  const maxMoves = gameLevel?.maxMoves ?? 30;
+  const movesRemaining = Math.max(0, maxMoves - game.levelMoves);
 
   const stars = useMemo(() => {
     return calculateStarRating(optimisticScore, targetScore);
@@ -279,7 +283,8 @@ const GameBoardCanvas: React.FC<GameBoardCanvasProps> = ({
         level={game.level}
         levelScore={optimisticScore}
         targetScore={targetScore}
-        moves={game.levelMoves}
+        moves={movesRemaining}
+        maxMoves={maxMoves}
         combo={optimisticCombo}
         maxCombo={optimisticMaxCombo}
         stars={stars}

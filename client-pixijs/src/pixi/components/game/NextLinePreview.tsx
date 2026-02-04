@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react';
-import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
+import { useCallback, useMemo, useState, useEffect } from 'react';
+import { Graphics as PixiGraphics, TextStyle, Texture, Assets } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { getBlockColors, lightenColor } from '../../utils/colors';
 import type { Block } from '@/types/types';
@@ -18,7 +18,7 @@ interface NextLinePreviewProps {
 }
 
 /**
- * Simple block renderer for preview (no interactions)
+ * Block renderer for preview that matches main grid style
  */
 const PreviewBlock = ({ 
   block, 
@@ -27,14 +27,34 @@ const PreviewBlock = ({
   block: Block; 
   cellSize: number;
 }) => {
-  const { themeName, isProcedural } = usePixiTheme();
+  const { themeName, isProcedural, colors } = usePixiTheme();
+  const [texture, setTexture] = useState<Texture | null>(null);
   const blockColors = useMemo(() => getBlockColors(themeName, block.width), [themeName, block.width]);
 
   const x = block.x * cellSize;
   const width = block.width * cellSize;
   const height = cellSize;
 
-  const draw = useCallback((g: PixiGraphics) => {
+  // Load texture for tiki theme (same as BlockSprite)
+  useEffect(() => {
+    if (isProcedural) {
+      setTexture(null);
+      return;
+    }
+    
+    const texturePath = `/assets/${themeName}/block-${block.width}.png`;
+    Assets.load(texturePath)
+      .then(setTexture)
+      .catch(() => {
+        // Fallback to default assets folder
+        Assets.load(`/assets/block-${block.width}.png`)
+          .then(setTexture)
+          .catch(console.error);
+      });
+  }, [block.width, isProcedural, themeName]);
+
+  // Procedural neon drawing
+  const drawNeon = useCallback((g: PixiGraphics) => {
     g.clear();
     
     const padding = 2;
@@ -44,19 +64,47 @@ const PreviewBlock = ({
     
     // Main fill
     g.roundRect(padding, padding, innerWidth, innerHeight, radius);
-    g.fill({ color: blockColors.fill, alpha: 0.7 });
+    g.fill({ color: blockColors.fill, alpha: 0.8 });
     
     // Border
     g.roundRect(padding, padding, innerWidth, innerHeight, radius);
-    g.stroke({ color: 0xFFFFFF, width: 1.5, alpha: 0.25 });
+    g.stroke({ color: 0xFFFFFF, width: 1.5, alpha: 0.3 });
     
     // Highlight
     g.roundRect(padding + 2, padding + 2, innerWidth - 4, innerHeight * 0.35, radius - 1);
-    g.fill({ color: lightenColor(blockColors.fill, 30), alpha: 0.2 });
+    g.fill({ color: lightenColor(blockColors.fill, 30), alpha: 0.25 });
   }, [width, height, blockColors]);
 
+  // Procedural rendering (neon theme)
+  if (isProcedural) {
+    return <pixiGraphics x={x} y={0} draw={drawNeon} />;
+  }
+
+  // Texture rendering (tiki theme)
+  if (!texture) {
+    // Loading placeholder
+    return (
+      <pixiGraphics 
+        x={x} 
+        y={0} 
+        draw={(g) => {
+          g.clear();
+          g.rect(2, 2, width - 4, height - 4);
+          g.fill({ color: blockColors.fill, alpha: 0.3 });
+        }} 
+      />
+    );
+  }
+
   return (
-    <pixiGraphics x={x} y={0} draw={draw} />
+    <pixiSprite
+      texture={texture}
+      x={x}
+      y={0}
+      width={width}
+      height={height}
+      alpha={0.9}
+    />
   );
 };
 
@@ -80,21 +128,18 @@ export const NextLinePreview = ({
     
     // Subtle background to differentiate from grid
     g.rect(0, 0, width, height);
-    g.fill({ color: isProcedural ? 0x0f0f14 : 0x0f172a, alpha: 0.6 });
+    g.fill({ color: isProcedural ? 0x0a0a12 : 0x0d1520, alpha: 0.8 });
     
-    // Top border to separate from grid
+    // Top border separator
     g.moveTo(0, 0);
     g.lineTo(width, 0);
-    g.stroke({ color: isProcedural ? colors.accent : 0x334155, width: 1, alpha: 0.3 });
+    g.stroke({ color: isProcedural ? colors.accent : 0x334155, width: 1, alpha: 0.4 });
+    
+    // "NEXT" indicator line on left
+    g.moveTo(4, 4);
+    g.lineTo(4, height - 4);
+    g.stroke({ color: isProcedural ? colors.accent : 0x3b82f6, width: 2, alpha: 0.6 });
   }, [width, height, isProcedural, colors.accent]);
-
-  const labelStyle = new TextStyle({
-    fontFamily: 'Arial, sans-serif',
-    fontSize: 10,
-    fontWeight: 'normal',
-    fill: 0x64748b,
-    letterSpacing: 1,
-  });
 
   // Filter to only row 0 blocks (the next line)
   const nextLineBlocks = useMemo(() => {
@@ -102,6 +147,14 @@ export const NextLinePreview = ({
   }, [blocks]);
 
   if (isConsumed || nextLineBlocks.length === 0) {
+    const labelStyle = new TextStyle({
+      fontFamily: 'Arial, sans-serif',
+      fontSize: 10,
+      fontWeight: 'normal',
+      fill: 0x64748b,
+      letterSpacing: 1,
+    });
+
     return (
       <pixiContainer y={y}>
         <pixiGraphics draw={drawBackground} />

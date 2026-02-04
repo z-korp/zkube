@@ -29,26 +29,49 @@ export const GridBackground = ({
   const drawGrid = useCallback((g: PixiGraphics) => {
     g.clear();
 
-    // Background gradient (subtle)
+    // === BACKGROUND ===
     if (isProcedural) {
-      // Neon theme - darker background with slight gradient feel
-      g.setFillStyle({ color: colors.background, alpha: 1 });
+      // Neon theme - dark with subtle radial gradient effect
       g.rect(0, 0, width, height);
-      g.fill();
+      g.fill({ color: 0x0a0a12 });
       
-      // Add subtle vignette effect
-      g.setFillStyle({ color: 0x000000, alpha: 0.3 });
-      g.rect(0, 0, width, 2);
-      g.fill();
-      g.rect(0, height - 2, width, 2);
-      g.fill();
+      // Center glow
+      const centerX = width / 2;
+      const centerY = height / 2;
+      g.circle(centerX, centerY, Math.max(width, height) * 0.6);
+      g.fill({ color: colors.accent, alpha: 0.03 });
+      
+      // Top edge shadow
+      g.rect(0, 0, width, gridSize * 2);
+      g.fill({ color: 0x000000, alpha: 0.2 });
+    } else {
+      // Tiki theme - warm dark blue with texture-like pattern
+      g.rect(0, 0, width, height);
+      g.fill({ color: 0x0f1a2a });
+      
+      // Subtle pattern overlay (checkerboard effect)
+      for (let x = 0; x < gridWidth; x++) {
+        for (let y = 0; y < gridHeight; y++) {
+          if ((x + y) % 2 === 0) {
+            g.rect(x * gridSize, y * gridSize, gridSize, gridSize);
+            g.fill({ color: 0x142136, alpha: 0.5 });
+          }
+        }
+      }
+      
+      // Vignette effect - darker edges
+      g.rect(0, 0, width, gridSize);
+      g.fill({ color: 0x000000, alpha: 0.15 });
+      g.rect(0, height - gridSize, width, gridSize);
+      g.fill({ color: 0x000000, alpha: 0.1 });
     }
 
-    // Grid lines
+    // === GRID LINES ===
+    // Main grid lines - subtle
     g.setStrokeStyle({ 
       width: 1, 
-      color: colors.gridLines, 
-      alpha: colors.gridLinesAlpha 
+      color: isProcedural ? 0x2a2a3a : 0x1e3a5a, 
+      alpha: 0.4 
     });
 
     // Draw vertical lines
@@ -64,38 +87,98 @@ export const GridBackground = ({
       g.moveTo(0, yPos);
       g.lineTo(width, yPos);
     }
-
     g.stroke();
 
-    // Neon theme: Add glow dots at intersections
+    // === BORDER ===
+    // Outer border - more prominent
+    const borderRadius = 4;
+    g.roundRect(0, 0, width, height, borderRadius);
+    g.stroke({ 
+      color: isProcedural ? colors.accent : 0x3b82f6, 
+      width: 2, 
+      alpha: 0.5 
+    });
+
+    // Inner glow border
+    g.roundRect(2, 2, width - 4, height - 4, borderRadius - 1);
+    g.stroke({ 
+      color: isProcedural ? colors.accent : 0x60a5fa, 
+      width: 1, 
+      alpha: 0.2 
+    });
+
+    // === CORNER ACCENTS ===
+    const cornerSize = 12;
+    const cornerColor = isProcedural ? colors.accent : 0x3b82f6;
+    const cornerAlpha = 0.6;
+
+    // Top-left corner
+    g.moveTo(0, cornerSize);
+    g.lineTo(0, 0);
+    g.lineTo(cornerSize, 0);
+    g.stroke({ color: cornerColor, width: 2, alpha: cornerAlpha });
+
+    // Top-right corner
+    g.moveTo(width - cornerSize, 0);
+    g.lineTo(width, 0);
+    g.lineTo(width, cornerSize);
+    g.stroke({ color: cornerColor, width: 2, alpha: cornerAlpha });
+
+    // Bottom-left corner
+    g.moveTo(0, height - cornerSize);
+    g.lineTo(0, height);
+    g.lineTo(cornerSize, height);
+    g.stroke({ color: cornerColor, width: 2, alpha: cornerAlpha });
+
+    // Bottom-right corner
+    g.moveTo(width - cornerSize, height);
+    g.lineTo(width, height);
+    g.lineTo(width, height - cornerSize);
+    g.stroke({ color: cornerColor, width: 2, alpha: cornerAlpha });
+
+    // === NEON THEME EXTRAS ===
     if (isProcedural) {
-      g.setFillStyle({ color: colors.accent, alpha: 0.15 });
-      for (let x = 0; x <= gridWidth; x++) {
-        for (let y = 0; y <= gridHeight; y++) {
-          g.circle(x * gridSize, y * gridSize, 2);
+      // Glow dots at corners
+      g.circle(0, 0, 3);
+      g.circle(width, 0, 3);
+      g.circle(0, height, 3);
+      g.circle(width, height, 3);
+      g.fill({ color: colors.accent, alpha: 0.4 });
+      
+      // Subtle scanlines effect
+      for (let y = 0; y < gridHeight * 2; y++) {
+        if (y % 2 === 0) {
+          g.moveTo(0, y * (gridSize / 2));
+          g.lineTo(width, y * (gridSize / 2));
         }
       }
-      g.fill();
+      g.stroke({ color: 0xffffff, width: 1, alpha: 0.02 });
     }
 
-    // Draw danger zone overlay for top 2 rows
+    // === DANGER ZONE ===
     if (dangerStyle.alpha > 0) {
-      g.setFillStyle({ 
-        color: dangerStyle.color, 
-        alpha: dangerStyle.alpha 
-      });
+      // Danger overlay for top 2 rows
       g.rect(0, 0, width, gridSize * 2);
-      g.fill();
+      g.fill({ color: dangerStyle.color, alpha: dangerStyle.alpha });
 
-      // Add danger line indicator
-      g.setStrokeStyle({ 
-        width: 2, 
-        color: dangerStyle.color, 
-        alpha: dangerStyle.alpha * 2 
-      });
+      // Pulsing danger line
       g.moveTo(0, gridSize * 2);
       g.lineTo(width, gridSize * 2);
-      g.stroke();
+      g.stroke({ color: dangerStyle.color, width: 2, alpha: dangerStyle.alpha * 2 });
+      
+      // Warning triangles at edges
+      const triSize = 8;
+      g.poly([
+        width / 4 - triSize, gridSize * 2,
+        width / 4, gridSize * 2 - triSize,
+        width / 4 + triSize, gridSize * 2,
+      ]);
+      g.poly([
+        width * 3 / 4 - triSize, gridSize * 2,
+        width * 3 / 4, gridSize * 2 - triSize,
+        width * 3 / 4 + triSize, gridSize * 2,
+      ]);
+      g.fill({ color: dangerStyle.color, alpha: dangerStyle.alpha * 1.5 });
     }
 
   }, [gridSize, gridWidth, gridHeight, width, height, colors, isProcedural, dangerStyle]);
