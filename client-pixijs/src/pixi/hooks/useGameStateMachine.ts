@@ -76,10 +76,28 @@ export const useGameStateMachine = ({
   const { playExplode, playSwipe } = useMusicPlayer();
   const isMoveComplete = useMoveStore((state) => state.isMoveComplete);
 
+  // Track if we've done initial sync
+  const hasInitializedRef = useRef(false);
+
   // Constants
   const gravitySpeed = 100;
 
-  // Grid set up - sync with contract data
+  // Initial sync - when blocks first become available
+  useEffect(() => {
+    // Only run once when blocks first become available
+    if (!hasInitializedRef.current && initialBlocks.length > 0) {
+      console.log("[useGameStateMachine] Initial sync with", initialBlocks.length, "blocks");
+      setBlocks(initialBlocks);
+      setNextLine(nextLineBlocks);
+      setSaveGridStateblocks(initialBlocks);
+      hasInitializedRef.current = true;
+      
+      const inDanger = initialBlocks.some((block) => block.y < 2);
+      setIsPlayerInDanger(inDanger);
+    }
+  }, [initialBlocks, nextLineBlocks]);
+
+  // Grid set up - sync with contract data (after moves)
   useEffect(() => {
     if (applyData) {
       if (deepCompareBlocks(saveGridStateblocks, initialBlocks)) {

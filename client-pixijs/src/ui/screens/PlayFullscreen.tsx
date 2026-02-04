@@ -278,6 +278,23 @@ export const PlayFullscreen = () => {
   const isGridLoading =
     !!game && !game.isOver() && (!grid || grid.length === 0);
 
+  // Debug logging for loading state
+  useEffect(() => {
+    console.log("[PlayFullscreen] Loading state debug:", {
+      gameIdParam,
+      gameId,
+      hasGame: !!game,
+      gameOver: game?.over,
+      gameBlocksRaw: game?.blocksRaw?.toString(),
+      gridLength: grid?.length ?? 0,
+      blocksLength: blocks?.length ?? 0,
+      initialBlocksLength: initialBlocks?.length ?? 0,
+      isGameLoading,
+      isGridLoading,
+      seed: seed?.toString(),
+    });
+  }, [gameIdParam, gameId, game, grid, blocks, initialBlocks, isGameLoading, isGridLoading, seed]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setAnimationDone(true);
