@@ -1,8 +1,7 @@
 import { useApplication } from '@pixi/react';
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { Assets, Texture, FederatedPointerEvent, Graphics as PixiGraphics, Container as PixiContainer } from 'pixi.js';
-import { GlowFilter } from 'pixi-filters/glow';
-import { DropShadowFilter } from 'pixi-filters/drop-shadow';
+import { GlowFilter, DropShadowFilter } from 'pixi-filters';
 import type { Block } from '@/types/types';
 import { usePixiTheme, usePerformanceSettings } from '../themes/ThemeContext';
 import { getBlockColors, lightenColor, darkenColor } from '../utils/colors';
