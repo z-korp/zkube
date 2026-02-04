@@ -4,7 +4,8 @@ import { usePixiTheme } from '../../themes/ThemeContext';
 import { LevelBadge } from './LevelBadge';
 import { ProgressBar } from './ProgressBar';
 import { MovesCounter } from './MovesCounter';
-import { ConstraintIndicator, ConstraintData } from './ConstraintIndicator';
+import { ConstraintIndicator } from './ConstraintIndicator';
+import type { ConstraintData } from './ConstraintIndicator';
 import { ConstraintType } from '@/dojo/game/types/constraint';
 
 interface HUDBarProps {
