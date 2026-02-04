@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
-import { Graphics as PixiGraphics, FederatedPointerEvent } from 'pixi.js';
+import { Graphics as PixiGraphics } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
+import { drawMenuIcon, IconColors } from '../ui/Icons';
 
 interface MenuButtonProps {
   x: number;
@@ -10,89 +11,66 @@ interface MenuButtonProps {
 }
 
 /**
- * Hamburger menu button
- * Three horizontal lines that trigger menu dialog
+ * Hamburger menu button for the top bar
  */
-export const MenuButton = ({
-  x,
-  y,
-  size,
-  onClick,
-}: MenuButtonProps) => {
+export const MenuButton = ({ x, y, size, onClick }: MenuButtonProps) => {
   const { colors, isProcedural } = usePixiTheme();
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
-  
-  const lineColor = isProcedural ? colors.accent : 0xffffff;
-  const bgColor = isProcedural ? 0x1a1a2e : 0x1e293b;
-  const hoverBgColor = isProcedural ? 0x2a2a4e : 0x334155;
-  
-  const handlePointerDown = useCallback(() => {
-    setIsPressed(true);
-  }, []);
-  
+
+  const handlePointerDown = useCallback(() => setIsPressed(true), []);
   const handlePointerUp = useCallback(() => {
     setIsPressed(false);
     onClick?.();
   }, [onClick]);
-  
-  const handlePointerOver = useCallback(() => {
-    setIsHovered(true);
-  }, []);
-  
+  const handlePointerOver = useCallback(() => setIsHovered(true), []);
   const handlePointerOut = useCallback(() => {
     setIsHovered(false);
     setIsPressed(false);
   }, []);
 
-  const draw = useCallback((g: PixiGraphics) => {
+  const drawBackground = useCallback((g: PixiGraphics) => {
     g.clear();
     
-    const scale = isPressed ? 0.95 : isHovered ? 1.02 : 1;
-    const centerX = size / 2;
-    const centerY = size / 2;
+    const scale = isPressed ? 0.95 : 1;
+    const scaledSize = size * scale;
+    const offset = (size - scaledSize) / 2;
+    const radius = size * 0.25;
     
-    // Background circle
-    const radius = (size / 2 - 2) * scale;
-    g.circle(centerX, centerY, radius);
-    g.fill({ color: isHovered ? hoverBgColor : bgColor, alpha: 0.9 });
+    // Background
+    const bgColor = isProcedural ? 0x1a1a2e : 0x1e293b;
+    const hoverColor = isProcedural ? 0x2a2a4e : 0x334155;
+    
+    g.roundRect(offset, offset, scaledSize, scaledSize, radius);
+    g.fill({ color: isHovered ? hoverColor : bgColor, alpha: 0.9 });
     
     // Border
-    g.circle(centerX, centerY, radius);
-    g.stroke({ color: lineColor, width: 1.5, alpha: isHovered ? 0.8 : 0.4 });
-    
-    // Hamburger lines
-    const lineWidth = size * 0.4 * scale;
-    const lineHeight = 2;
-    const lineGap = 5 * scale;
-    const startX = centerX - lineWidth / 2;
-    const startY = centerY - lineGap;
-    
-    // Top line
-    g.roundRect(startX, startY, lineWidth, lineHeight, 1);
-    g.fill({ color: lineColor, alpha: isHovered ? 1 : 0.8 });
-    
-    // Middle line
-    g.roundRect(startX, centerY - lineHeight / 2, lineWidth, lineHeight, 1);
-    g.fill({ color: lineColor, alpha: isHovered ? 1 : 0.8 });
-    
-    // Bottom line
-    g.roundRect(startX, startY + lineGap * 2, lineWidth, lineHeight, 1);
-    g.fill({ color: lineColor, alpha: isHovered ? 1 : 0.8 });
-  }, [size, lineColor, bgColor, hoverBgColor, isHovered, isPressed]);
+    g.roundRect(offset, offset, scaledSize, scaledSize, radius);
+    g.stroke({ color: isProcedural ? colors.accent : 0x475569, width: 1.5, alpha: isHovered ? 0.8 : 0.4 });
+  }, [size, isHovered, isPressed, isProcedural, colors.accent]);
+
+  const drawIcon = useCallback((g: PixiGraphics) => {
+    drawMenuIcon(g, size * 0.55, isHovered ? IconColors.primary : IconColors.secondary);
+  }, [size, isHovered]);
 
   return (
-    <pixiGraphics
-      x={x}
-      y={y}
-      draw={draw}
-      eventMode="static"
-      cursor="pointer"
-      onpointerdown={handlePointerDown}
-      onpointerup={handlePointerUp}
-      onpointerover={handlePointerOver}
-      onpointerout={handlePointerOut}
-    />
+    <pixiContainer x={x} y={y}>
+      <pixiGraphics
+        draw={drawBackground}
+        eventMode="static"
+        cursor="pointer"
+        onpointerdown={handlePointerDown}
+        onpointerup={handlePointerUp}
+        onpointerupoutside={handlePointerOut}
+        onpointerover={handlePointerOver}
+        onpointerout={handlePointerOut}
+      />
+      <pixiGraphics
+        x={size / 2}
+        y={size / 2}
+        draw={drawIcon}
+      />
+    </pixiContainer>
   );
 };
 

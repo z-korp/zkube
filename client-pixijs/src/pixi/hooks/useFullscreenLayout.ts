@@ -22,6 +22,11 @@ export interface FullscreenLayout {
   levelDisplayHeight: number;
   levelDisplayY: number;
   
+  // Mobile HUD (score, moves, combo - below level display)
+  mobileHudHeight: number;
+  mobileHudY: number;
+  showMobileHud: boolean;
+  
   // Grid configuration
   gridCols: number;
   gridRows: number;
@@ -129,7 +134,10 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
     const topBarHeight = Math.round(isMobile ? 48 : 56);
     const levelDisplayHeight = Math.round(isMobile ? 36 : 44);
     const actionBarHeight = Math.round(isMobile ? 56 : 64);
-    const nextLineHeightBase = 0; // Will be calculated based on cell size
+    
+    // Mobile HUD for score/moves/combo (only on mobile, hidden on desktop where side panels show)
+    const showMobileHud = isMobile || screenWidth < 900;
+    const mobileHudHeight = showMobileHud ? Math.round(32 * uiScale) : 0;
     
     // Side panels only on desktop
     const showSidePanels = !isMobile && screenWidth >= 900;
@@ -140,7 +148,7 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
     const horizontalPadding = padding * 2 + (showSidePanels ? sidePanelWidth * 2 + padding * 2 : 0);
     
     const availableWidth = screenWidth - horizontalPadding;
-    const availableHeight = screenHeight - topBarHeight - levelDisplayHeight - actionBarHeight - verticalPadding;
+    const availableHeight = screenHeight - topBarHeight - levelDisplayHeight - mobileHudHeight - actionBarHeight - verticalPadding;
     
     // Calculate cell size (grid + next line = gridRows + 1)
     const totalRows = gridRows + 1; // +1 for next line preview
@@ -162,7 +170,8 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
     // Vertical positioning
     const topBarY = 0;
     const levelDisplayY = topBarHeight;
-    const gridY = levelDisplayY + levelDisplayHeight + padding;
+    const mobileHudY = levelDisplayY + levelDisplayHeight;
+    const gridY = mobileHudY + mobileHudHeight + padding;
     const nextLineY = gridY + gridHeight + 4;
     const actionBarY = screenHeight - actionBarHeight;
     
@@ -182,6 +191,9 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
       topBarY,
       levelDisplayHeight,
       levelDisplayY,
+      mobileHudHeight,
+      mobileHudY,
+      showMobileHud,
       gridCols,
       gridRows,
       cellSize,

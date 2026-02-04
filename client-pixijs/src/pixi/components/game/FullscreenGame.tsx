@@ -17,6 +17,7 @@ import { NextLinePreview } from './NextLinePreview';
 import { LevelDisplay } from './LevelDisplay';
 import { ScorePanel } from './ScorePanel';
 import { MovesPanel } from './MovesPanel';
+import { GameHUD } from './GameHUD';
 import { BonusType } from '@/dojo/game/types/bonus';
 import { MenuModal } from '../modals';
 
@@ -218,6 +219,22 @@ const FullscreenGameInner = forwardRef<GameStageRef, FullscreenGameProps>(({
           height={layout.levelDisplayHeight}
           uiScale={layout.uiScale}
         />
+
+        {/* Mobile HUD (score, moves, combo) - shown on mobile/tablet */}
+        {layout.showMobileHud && (
+          <GameHUD
+            score={levelScore}
+            targetScore={targetScore}
+            moves={moves}
+            maxMoves={maxMoves ?? 30}
+            combo={combo}
+            x={0}
+            y={layout.mobileHudY}
+            width={layout.screenWidth}
+            uiScale={layout.uiScale}
+            isInDanger={isPlayerInDanger}
+          />
+        )}
 
         {/* Side panels (desktop only) */}
         {layout.showSidePanels && (
