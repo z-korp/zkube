@@ -61,6 +61,7 @@
     "metagame-sdk": "0.1.22",
     "mobx": "^6.13.2",
     "next-themes": "^0.3.0",
+    "pixi-filters": "^6.1.5",
     "pixi.js": "^8.16.0",
     "proxy-deep": "^3.1.1",
     "react": "^19.2.4",

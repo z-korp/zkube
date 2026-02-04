@@ -10,3 +10,8 @@ extend({
   Text,
   TilingSprite,
 });
+
+// Re-export filters for use in components
+export { GlowFilter } from 'pixi-filters/glow';
+export { DropShadowFilter } from 'pixi-filters/drop-shadow';
+export { BloomFilter } from 'pixi-filters/bloom';

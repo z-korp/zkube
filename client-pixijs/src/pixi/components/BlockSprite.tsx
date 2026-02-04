@@ -1,6 +1,8 @@
 import { useApplication } from '@pixi/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Assets, Texture, FederatedPointerEvent, Graphics as PixiGraphics } from 'pixi.js';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { Assets, Texture, FederatedPointerEvent, Graphics as PixiGraphics, Container as PixiContainer } from 'pixi.js';
+import { GlowFilter } from 'pixi-filters/glow';
+import { DropShadowFilter } from 'pixi-filters/drop-shadow';
 import type { Block } from '@/types/types';
 import { usePixiTheme, usePerformanceSettings } from '../themes/ThemeContext';
 import { getBlockColors, lightenColor, darkenColor } from '../utils/colors';
@@ -34,7 +36,7 @@ export const BlockSprite = ({
 }: BlockSpriteProps) => {
   const { app } = useApplication();
   const { themeName, isProcedural, colors } = usePixiTheme();
-  const { glowQuality } = usePerformanceSettings();
+  const { glowQuality, isMobile } = usePerformanceSettings();
   
   const [texture, setTexture] = useState<Texture | null>(null);
   
@@ -43,6 +45,48 @@ export const BlockSprite = ({
     getBlockColors(themeName, block.width),
     [themeName, block.width]
   );
+
+  // Create filters
+  const filters = useMemo(() => {
+    if (isProcedural) {
+      // Neon theme - glow filter
+      return [new GlowFilter({
+        distance: isMobile ? 8 : 12,
+        outerStrength: 1.5,
+        innerStrength: 0.5,
+        color: blockColors.glow,
+        quality: glowQuality,
+      })];
+    } else {
+      // Tiki theme - subtle drop shadow
+      return [new DropShadowFilter({
+        offset: { x: 2, y: 2 },
+        color: 0x000000,
+        alpha: 0.3,
+        blur: 2,
+      })];
+    }
+  }, [isProcedural, blockColors.glow, glowQuality, isMobile]);
+
+  // Update filter properties based on state
+  useEffect(() => {
+    if (isProcedural && filters[0] instanceof GlowFilter) {
+      const glow = filters[0] as GlowFilter;
+      if (isDragging) {
+        glow.outerStrength = 2.5;
+        glow.innerStrength = 1;
+      } else if (isSelected) {
+        glow.outerStrength = 2;
+        glow.innerStrength = 0.8;
+      } else if (isHovered) {
+        glow.outerStrength = 2;
+        glow.innerStrength = 0.6;
+      } else {
+        glow.outerStrength = 1.5;
+        glow.innerStrength = 0.5;
+      }
+    }
+  }, [filters, isProcedural, isDragging, isSelected, isHovered]);
 
   // Load texture for tiki theme
   useEffect(() => {
@@ -73,7 +117,6 @@ export const BlockSprite = ({
     let alpha = 1;
     let scale = 1;
     let fillAlpha = 0.85;
-    let glowIntensity = 1;
     let borderAlpha = 0.4;
     let highlightAlpha = 0.3;
     
@@ -81,22 +124,19 @@ export const BlockSprite = ({
       alpha = 0.7;
     } else if (isDragging) {
       alpha = 0.95;
-      scale = 1.03;
+      scale = 1.05;
       fillAlpha = 0.95;
-      glowIntensity = 1.5;
       borderAlpha = 0.6;
     } else if (isSelected) {
       scale = 1.02;
-      glowIntensity = 1.3;
       borderAlpha = 0.5;
     } else if (isHovered) {
       scale = 1.01;
       fillAlpha = 0.9;
-      glowIntensity = 1.2;
       highlightAlpha = 0.4;
     }
     
-    return { alpha, scale, fillAlpha, glowIntensity, borderAlpha, highlightAlpha };
+    return { alpha, scale, fillAlpha, borderAlpha, highlightAlpha };
   }, [isTxProcessing, isDragging, isSelected, isHovered]);
 
   // Event handlers
@@ -234,14 +274,18 @@ export const BlockSprite = ({
 
   const cursor = isTxProcessing ? 'wait' : isDragging ? 'grabbing' : 'grab';
 
+  // Calculate position with scale adjustment
+  const scaledX = x + (width * (1 - visualState.scale)) / 2;
+  const scaledY = y + (height * (1 - visualState.scale)) / 2;
+
   // Procedural rendering (neon theme)
   if (isProcedural) {
     return (
-      <pixiGraphics
-        x={x + (width * (1 - visualState.scale)) / 2}
-        y={y + (height * (1 - visualState.scale)) / 2}
+      <pixiContainer
+        x={scaledX}
+        y={scaledY}
         scale={visualState.scale}
-        draw={drawNeonBlock}
+        filters={filters}
         eventMode="static"
         cursor={cursor}
         onPointerDown={handlePointerDown}
@@ -250,7 +294,9 @@ export const BlockSprite = ({
         onPointerUpOutside={handlePointerUp}
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
-      />
+      >
+        <pixiGraphics draw={drawNeonBlock} />
+      </pixiContainer>
     );
   }
 
@@ -266,14 +312,11 @@ export const BlockSprite = ({
   }
 
   return (
-    <pixiSprite
-      texture={texture}
+    <pixiContainer
       x={x + width / 2}
       y={y + height / 2}
-      width={width * visualState.scale}
-      height={height * visualState.scale}
-      anchor={0.5}
-      alpha={visualState.alpha}
+      scale={visualState.scale}
+      filters={filters}
       eventMode="static"
       cursor={cursor}
       onPointerDown={handlePointerDown}
@@ -282,7 +325,15 @@ export const BlockSprite = ({
       onPointerUpOutside={handlePointerUp}
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
-    />
+    >
+      <pixiSprite
+        texture={texture}
+        width={width}
+        height={height}
+        anchor={0.5}
+        alpha={visualState.alpha}
+      />
+    </pixiContainer>
   );
 };
 

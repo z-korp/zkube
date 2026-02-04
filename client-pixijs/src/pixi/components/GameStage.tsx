@@ -2,6 +2,9 @@ import { Application } from '@pixi/react';
 import { useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import { GameGrid } from './GameGrid';
 import { GridBackground } from './GridBackground';
+import { ParticleSystem, useParticles } from './effects/ParticleSystem';
+import { ScorePopup, useScorePopup } from './effects/ScorePopup';
+import { ScreenShakeContainer, useScreenShake } from './effects/ScreenShake';
 import type { Block } from '@/types/types';
 import { BonusType } from '@/dojo/game/types/bonus';
 import type { GameStageRef } from '../types';
@@ -33,15 +36,44 @@ const GameStageInner = forwardRef<GameStageRef, GameStageProps>(({
   isPlayerInDanger,
 }, ref) => {
   const { colors } = usePixiTheme();
-  const explosionRef = useRef<{ trigger: (x: number, y: number) => void } | null>(null);
+  const { offset, shake, lineClear, combo, bigCombo } = useScreenShake();
 
+  // Expose methods to parent
   const triggerExplosion = useCallback((x: number, y: number) => {
-    explosionRef.current?.trigger(x, y);
-  }, []);
+    // Get particle system and emit
+    const particles = useParticles();
+    if (particles) {
+      particles.emit(x, y, 30);
+    }
+    lineClear();
+  }, [lineClear]);
+
+  const triggerLineExplosion = useCallback((y: number, lineCount: number) => {
+    const particles = useParticles();
+    const scorePopup = useScorePopup();
+    
+    if (particles) {
+      particles.emitLine(y * gridSize, gridWidth * gridSize, 50 * lineCount);
+    }
+    
+    if (scorePopup && lineCount > 1) {
+      scorePopup.showCombo(lineCount, y);
+    }
+    
+    // Shake based on combo size
+    if (lineCount >= 4) {
+      bigCombo();
+    } else if (lineCount >= 2) {
+      combo();
+    } else {
+      lineClear();
+    }
+  }, [gridSize, gridWidth, lineClear, combo, bigCombo]);
 
   useImperativeHandle(ref, () => ({
     triggerExplosion,
-  }), [triggerExplosion]);
+    triggerLineExplosion,
+  }), [triggerExplosion, triggerLineExplosion]);
 
   const stageWidth = gridWidth * gridSize;
   const stageHeight = gridHeight * gridSize;
@@ -62,25 +94,37 @@ const GameStageInner = forwardRef<GameStageRef, GameStageProps>(({
         autoDensity={true}
         antialias={true}
       >
-        {/* Grid background with lines */}
-        <GridBackground
-          gridSize={gridSize}
-          gridWidth={gridWidth}
-          gridHeight={gridHeight}
-          isPlayerInDanger={isPlayerInDanger}
-        />
+        <ScreenShakeContainer offset={offset}>
+          {/* Grid background with lines */}
+          <GridBackground
+            gridSize={gridSize}
+            gridWidth={gridWidth}
+            gridHeight={gridHeight}
+            isPlayerInDanger={isPlayerInDanger}
+          />
 
-        {/* Game grid with blocks */}
-        <GameGrid
-          blocks={blocks}
-          gridSize={gridSize}
+          {/* Game grid with blocks */}
+          <GameGrid
+            blocks={blocks}
+            gridSize={gridSize}
+            gridWidth={gridWidth}
+            gridHeight={gridHeight}
+            onMove={onMove}
+            onBonusApply={onBonusApply}
+            bonus={bonus}
+            isTxProcessing={isTxProcessing}
+            onExplosion={triggerExplosion}
+          />
+        </ScreenShakeContainer>
+        
+        {/* Particle system layer (above blocks) */}
+        <ParticleSystem gridSize={gridSize} />
+        
+        {/* Score popups (topmost) */}
+        <ScorePopup
           gridWidth={gridWidth}
           gridHeight={gridHeight}
-          onMove={onMove}
-          onBonusApply={onBonusApply}
-          bonus={bonus}
-          isTxProcessing={isTxProcessing}
-          onExplosion={triggerExplosion}
+          gridSize={gridSize}
         />
       </Application>
 
