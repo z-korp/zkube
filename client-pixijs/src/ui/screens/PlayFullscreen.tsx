@@ -8,7 +8,10 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import GameOverDialog from "../components/GameOverDialog";
 import VictoryDialog from "../components/VictoryDialog";
 import LevelCompleteDialog from "../components/LevelCompleteDialog";
-import { LoadoutDialog, InGameShopDialog, PendingLevelUpDialog } from "../components/Shop";
+import { LoadoutDialog, InGameShopDialog, PendingLevelUpDialog, ShopDialog } from "../components/Shop";
+import { QuestsDialog } from "../components/Quest";
+import { useAccount } from "@starknet-react/core";
+import ControllerConnector from "@cartridge/connector/controller";
 import useViewport from "@/hooks/useViewport";
 import { useGrid } from "@/hooks/useGrid";
 import { useParams, Navigate } from "react-router-dom";
@@ -73,11 +76,12 @@ export const PlayFullscreen = () => {
 
   const {
     setup: {
-      systemCalls: { create, applyBonus },
+      systemCalls: { create, applyBonus, surrender },
     },
   } = useDojo();
   const { gameId: gameIdParam } = useParams<{ gameId: string }>();
   const { account } = useAccountCustom();
+  const { connector } = useAccount();
   const { cubeBalance } = useCubeBalance();
 
   const ROWS = 10;
@@ -120,8 +124,9 @@ export const PlayFullscreen = () => {
   const [isPendingLevelUpOpen, setIsPendingLevelUpOpen] = useState(false);
   const [openShopAfterLevelUp, setOpenShopAfterLevelUp] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showSurrenderConfirm, setShowSurrenderConfirm] = useState(false);
+  const [isSurrendering, setIsSurrendering] = useState(false);
   const [isQuestsOpen, setIsQuestsOpen] = useState(false);
-  const [isTrophyOpen, setIsTrophyOpen] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
   
   const { playerMeta } = usePlayerMeta();
@@ -434,6 +439,32 @@ export const PlayFullscreen = () => {
     }
   }, [bonus, getBonusDescription]);
 
+  // Open Cartridge Controller profile at trophies tab
+  const handleTrophyClick = useCallback(() => {
+    const controllerConnector = connector as ControllerConnector;
+    if (controllerConnector?.controller?.openProfile) {
+      controllerConnector.controller.openProfile("trophies");
+    }
+  }, [connector]);
+
+  // Handle surrender
+  const handleSurrender = useCallback(async () => {
+    if (!account || !game) return;
+    setIsSurrendering(true);
+    try {
+      await surrender({
+        account: account as Account,
+        game_id: game.id,
+      });
+      setIsMenuOpen(false);
+      setShowSurrenderConfirm(false);
+    } catch (error) {
+      console.error("Surrender failed:", error);
+    } finally {
+      setIsSurrendering(false);
+    }
+  }, [account, game, surrender]);
+
   const handleBonusTx = useCallback(
     async (bonusType: BonusType, rowIndex: number, colIndex: number) => {
       if (!account || !game) return;
@@ -541,7 +572,7 @@ export const PlayFullscreen = () => {
   }, [optimisticScore, targetScore]);
 
   // Check if any dialog is open (disable shortcuts when dialogs are open)
-  const isAnyDialogOpen = isMenuOpen || isQuestsOpen || isTrophyOpen || isShopOpen || 
+  const isAnyDialogOpen = isMenuOpen || isQuestsOpen || isShopOpen || 
     isGameOverOpen || isVictoryOpen || isLevelCompleteOpen || isInGameShopOpen || 
     isLoadoutOpen || isPendingLevelUpOpen || isConnectDialogOpen;
 
@@ -649,7 +680,7 @@ export const PlayFullscreen = () => {
         onBonusApply={handleBonusApply}
         onMenuClick={() => setIsMenuOpen(true)}
         onQuestsClick={() => setIsQuestsOpen(true)}
-        onTrophyClick={() => setIsTrophyOpen(true)}
+        onTrophyClick={handleTrophyClick}
         onShopClick={() => setIsShopOpen(true)}
         onSurrenderClick={() => setIsMenuOpen(true)}
       />
@@ -777,78 +808,72 @@ export const PlayFullscreen = () => {
       />
 
       {/* Menu Dialog */}
-      <Dialog open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+      <Dialog open={isMenuOpen} onOpenChange={(open) => {
+        setIsMenuOpen(open);
+        if (!open) setShowSurrenderConfirm(false);
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Menu</DialogTitle>
+            <DialogTitle>{showSurrenderConfirm ? "Confirm Surrender" : "Menu"}</DialogTitle>
             <DialogDescription>
-              Game options and settings
+              {showSurrenderConfirm 
+                ? "Are you sure you want to surrender? You will keep any cubes earned so far."
+                : "Game options"
+              }
             </DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col gap-4 pt-4">
-            <button 
-              className="w-full py-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-white font-semibold"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Resume Game
-            </button>
-            <button 
-              className="w-full py-3 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold"
-              onClick={() => {
-                setIsMenuOpen(false);
-                // TODO: Implement surrender
-              }}
-            >
-              Surrender
-            </button>
-          </div>
+          
+          {showSurrenderConfirm ? (
+            <div className="flex flex-col gap-3 pt-4">
+              <div className="text-center text-sm text-slate-400 mb-2">
+                <div>Current Level: <span className="text-white font-semibold">{game.level}</span></div>
+                <div>Cubes Earned: <span className="text-yellow-400 font-semibold">{game.totalCubes}</span></div>
+              </div>
+              <button 
+                className="w-full py-3 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleSurrender}
+                disabled={isSurrendering}
+              >
+                {isSurrendering ? "Surrendering..." : "Yes, Surrender"}
+              </button>
+              <button 
+                className="w-full py-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-white font-semibold"
+                onClick={() => setShowSurrenderConfirm(false)}
+                disabled={isSurrendering}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3 pt-4">
+              <button 
+                className="w-full py-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-white font-semibold"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Resume Game
+              </button>
+              <button 
+                className="w-full py-3 bg-red-600/80 hover:bg-red-600 rounded-lg text-white font-semibold"
+                onClick={() => setShowSurrenderConfirm(true)}
+              >
+                Surrender
+              </button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
-      {/* Quests Dialog - placeholder */}
-      <Dialog open={isQuestsOpen} onOpenChange={setIsQuestsOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Daily Quests</DialogTitle>
-            <DialogDescription>
-              Complete quests to earn CUBE tokens
-            </DialogDescription>
-          </DialogHeader>
-          <div className="pt-4 text-center text-slate-400">
-            Quest UI coming soon...
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Quests Dialog */}
+      <QuestsDialog 
+        isOpen={isQuestsOpen} 
+        onClose={() => setIsQuestsOpen(false)} 
+      />
 
-      {/* Trophy Dialog - placeholder */}
-      <Dialog open={isTrophyOpen} onOpenChange={setIsTrophyOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Achievements</DialogTitle>
-            <DialogDescription>
-              Your trophy collection
-            </DialogDescription>
-          </DialogHeader>
-          <div className="pt-4 text-center text-slate-400">
-            Achievements UI coming soon...
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Shop Dialog - placeholder */}
-      <Dialog open={isShopOpen} onOpenChange={setIsShopOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Shop</DialogTitle>
-            <DialogDescription>
-              Spend your CUBE tokens on upgrades
-            </DialogDescription>
-          </DialogHeader>
-          <div className="pt-4 text-center text-slate-400">
-            Shop UI coming soon...
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Shop Dialog (Permanent Shop) */}
+      <ShopDialog 
+        isOpen={isShopOpen} 
+        onClose={() => setIsShopOpen(false)} 
+      />
 
       {/* Palm tree animations */}
       <AnimatePresence>
