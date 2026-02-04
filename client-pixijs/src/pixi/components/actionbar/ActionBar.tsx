@@ -1,7 +1,8 @@
 import { useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
-import { BonusButton, BonusButtonData } from './BonusButton';
+import { BonusButton } from './BonusButton';
+import type { BonusButtonData } from './BonusButton';
 import { ComboDisplay } from './ComboDisplay';
 import { StarRating } from './StarRating';
 import { BonusType } from '@/dojo/game/types/bonus';

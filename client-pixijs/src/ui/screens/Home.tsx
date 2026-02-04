@@ -20,7 +20,7 @@ import {
   faRotateRight,
 } from "@fortawesome/free-solid-svg-icons";
 import MaxComboIcon from "../components/MaxComboIcon";
-import GameBoard from "../components/GameBoard";
+import GameBoardCanvas from "../components/GameBoardCanvas";
 import { useGrid } from "@/hooks/useGrid";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { Surrender } from "../actions/Surrender";
@@ -119,7 +119,7 @@ export const Home = () => {
   const imageTotemTheme =
     theme === "dark" ? imgAssets.imageTotemDark : imgAssets.imageTotemLight;
 
-  const { game } = useGame({
+  const { game, seed } = useGame({
     gameId: 0,
     shouldLog: true,
   });
@@ -602,7 +602,7 @@ export const Home = () => {
                           ref={gameGrid}
                           className="flex flex-col items-center game-container"
                         >
-                          <GameBoard
+                          <GameBoardCanvas
                             // Check if game is over because otherwise we can display
                             // previous game data on the board while the new game is starting
                             // and torii indexing
@@ -613,6 +613,7 @@ export const Home = () => {
                             maxCombo={game.isOver() ? 0 : game.maxComboRun}
                             account={account}
                             game={game}
+                            seed={seed}
                           />
                         </div>
                         {isMdOrLarger && (

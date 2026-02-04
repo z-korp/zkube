@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useDojo } from "@/dojo/useDojo";
 import { Account } from "starknet";
-import { GameCanvas, BonusSlotData } from "@/pixi/components";
+import { GameCanvas } from "@/pixi/components";
+import type { BonusSlotData } from "@/pixi/components";
 import type { GameStageRef } from "@/pixi/types";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import type { Block } from "@/types/types";
