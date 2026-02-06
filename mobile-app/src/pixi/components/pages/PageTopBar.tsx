@@ -53,11 +53,11 @@ const IconButton = ({
   const draw = useCallback(
     (g: PixiGraphics) => {
       g.clear();
-      g.setFillStyle({ color: hovered ? 0x334155 : bgColor, alpha: 0.9 });
-      g.roundRect(0, 0, size, size, 10);
+      g.setFillStyle({ color: hovered ? 0x334155 : bgColor, alpha: 0.8 });
+      g.roundRect(0, 0, size, size, 8);
       g.fill();
-      g.setStrokeStyle({ width: 1, color: 0x475569, alpha: 0.5 });
-      g.roundRect(0, 0, size, size, 10);
+      g.setStrokeStyle({ width: 1, color: 0x334155, alpha: 0.4 });
+      g.roundRect(0, 0, size, size, 8);
       g.stroke();
     },
     [size, hovered, bgColor]
@@ -177,10 +177,9 @@ export const PageTopBar = ({
       g.clear();
       // Semi-transparent dark background
       g.rect(0, 0, screenWidth, topBarHeight);
-      g.fill({ color: 0x0F172A, alpha: 0.85 });
-      // Bottom border
+      g.fill({ color: 0x000000, alpha: 1 });
       g.rect(0, topBarHeight - 1, screenWidth, 1);
-      g.fill({ color: 0x334155, alpha: 0.4 });
+      g.fill({ color: 0x1e293b, alpha: 0.5 });
     },
     [screenWidth, topBarHeight]
   );

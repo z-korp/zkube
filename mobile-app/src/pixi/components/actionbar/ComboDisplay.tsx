@@ -25,7 +25,7 @@ export const ComboDisplay = ({
   y,
   height,
 }: ComboDisplayProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
   
   const [animatedScale, setAnimatedScale] = useState(1);
   const [pulseAlpha, setPulseAlpha] = useState(0);
@@ -57,7 +57,7 @@ export const ComboDisplay = ({
     if (combo >= 7) return 0xffd700; // gold
     if (combo >= 5) return 0xff6b00; // orange
     if (combo >= 3) return 0xf97316; // light orange
-    return isProcedural ? colors.accent : 0x64748b;
+    return 0x64748b;
   };
 
   const drawBackground = useCallback((g: PixiGraphics) => {
@@ -69,7 +69,7 @@ export const ComboDisplay = ({
     const glowColor = getComboColor();
     g.roundRect(-4, -4, containerWidth + 8, containerHeight + 8, 8);
     g.fill({ color: glowColor, alpha: pulseAlpha * 0.3 });
-  }, [combo, containerWidth, containerHeight, pulseAlpha, isProcedural, colors.accent]);
+  }, [combo, containerWidth, containerHeight, pulseAlpha]);
 
   const comboStyle = new TextStyle({
     fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',

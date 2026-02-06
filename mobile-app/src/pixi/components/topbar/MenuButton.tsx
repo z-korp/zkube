@@ -14,7 +14,7 @@ interface MenuButtonProps {
  * Hamburger menu button for the top bar
  */
 export const MenuButton = ({ x, y, size, onClick }: MenuButtonProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
 
@@ -38,16 +38,12 @@ export const MenuButton = ({ x, y, size, onClick }: MenuButtonProps) => {
     const radius = size * 0.25;
     
     // Background
-    const bgColor = isProcedural ? 0x1a1a2e : 0x1e293b;
-    const hoverColor = isProcedural ? 0x2a2a4e : 0x334155;
+    g.roundRect(offset, offset, scaledSize, scaledSize, radius);
+    g.fill({ color: isHovered ? 0x334155 : 0x1e293b, alpha: 0.9 });
     
     g.roundRect(offset, offset, scaledSize, scaledSize, radius);
-    g.fill({ color: isHovered ? hoverColor : bgColor, alpha: 0.9 });
-    
-    // Border
-    g.roundRect(offset, offset, scaledSize, scaledSize, radius);
-    g.stroke({ color: isProcedural ? colors.accent : 0x475569, width: 1.5, alpha: isHovered ? 0.8 : 0.4 });
-  }, [size, isHovered, isPressed, isProcedural, colors.accent]);
+    g.stroke({ color: 0x475569, width: 1.5, alpha: isHovered ? 0.8 : 0.4 });
+  }, [size, isHovered, isPressed]);
 
   const drawIcon = useCallback((g: PixiGraphics) => {
     drawMenuIcon(g, size * 0.55, isHovered ? IconColors.primary : IconColors.secondary);

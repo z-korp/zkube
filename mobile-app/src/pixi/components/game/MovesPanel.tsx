@@ -41,7 +41,7 @@ export const MovesPanel = ({
   uiScale = 1,
   isInDanger = false,
 }: MovesPanelProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
 
   // Track combo changes for animation
   const prevComboRef = useRef(combo);
@@ -75,12 +75,11 @@ export const MovesPanel = ({
     
     // Main background
     g.roundRect(0, 0, width, height, cornerRadius);
-    g.fill({ color: isProcedural ? 0x0a0a0f : 0x0f172a, alpha: 0.85 });
+    g.fill({ color: 0x0f172a, alpha: 0.85 });
     
-    // Border (red if in danger)
     const borderColor = isInDanger 
       ? 0xef4444 
-      : (isProcedural ? colors.accent : 0x334155);
+      : 0x334155;
     g.roundRect(0, 0, width, height, cornerRadius);
     g.stroke({ color: borderColor, width: isInDanger ? 2 : 1.5, alpha: isInDanger ? 0.8 : 0.5 });
     
@@ -94,7 +93,7 @@ export const MovesPanel = ({
     g.moveTo(padding, sectionHeight);
     g.lineTo(width - padding, sectionHeight);
     g.stroke({ color: 0x334155, width: 1, alpha: 0.3 });
-  }, [width, height, cornerRadius, isProcedural, colors.accent, isInDanger, sectionHeight, padding]);
+  }, [width, height, cornerRadius, isInDanger, sectionHeight, padding]);
 
   // Draw combo flame icon with glow effect
   const drawFlame = useCallback((g: PixiGraphics, cx: number, cy: number, size: number) => {

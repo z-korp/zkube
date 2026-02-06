@@ -15,7 +15,7 @@ interface CubeBalanceProps {
  * Cube currency display with icon and balance
  */
 export const CubeBalance = ({ balance, x, y, height, uiScale }: CubeBalanceProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
 
   const fontSize = Math.round(14 * uiScale);
   const iconSize = height * 0.7;
@@ -29,12 +29,11 @@ export const CubeBalance = ({ balance, x, y, height, uiScale }: CubeBalanceProps
   const drawBackground = useCallback((g: PixiGraphics) => {
     g.clear();
     const radius = height * 0.35;
-    const bgColor = isProcedural ? 0x1a1a2e : 0x1e293b;
     g.roundRect(0, 0, totalWidth, height, radius);
-    g.fill({ color: bgColor, alpha: 0.85 });
+    g.fill({ color: 0x1e293b, alpha: 0.85 });
     g.roundRect(0, 0, totalWidth, height, radius);
-    g.stroke({ color: isProcedural ? colors.accent : 0x475569, width: 1, alpha: 0.35 });
-  }, [totalWidth, height, isProcedural, colors.accent]);
+    g.stroke({ color: 0x475569, width: 1, alpha: 0.35 });
+  }, [totalWidth, height]);
 
   const drawIcon = useCallback((g: PixiGraphics) => {
     drawCubeIcon(g, iconSize);

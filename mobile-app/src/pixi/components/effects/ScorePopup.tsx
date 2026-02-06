@@ -24,7 +24,7 @@ interface ScorePopupProps {
  * Displays floating score popups when lines are cleared
  */
 export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
   const { prefersReducedMotion } = usePerformanceSettings();
   
   const [popups, setPopups] = useState<PopupData[]>([]);
@@ -79,7 +79,7 @@ export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps)
       x,
       y,
       text,
-      color: color ?? (isProcedural ? colors.accent : 0xFFFFFF),
+      color: color ?? 0xFFFFFF,
       scale: 1,
       alpha: 1,
       vy: -3, // initial upward velocity
@@ -87,7 +87,7 @@ export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps)
     };
     
     setPopups(prev => [...prev, popup]);
-  }, [colors.accent, isProcedural, prefersReducedMotion]);
+  }, [prefersReducedMotion]);
 
   // Preset for score popup
   const showScore = useCallback((points: number, y: number) => {
@@ -136,11 +136,7 @@ export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps)
     fontWeight: 'bold',
     fill: 0xFFFFFF,
     stroke: { color: 0x000000, width: 4 },
-    dropShadow: isProcedural ? {
-      color: colors.accent,
-      blur: 10,
-      distance: 0,
-    } : undefined,
+    dropShadow: undefined,
   });
 
   if (popups.length === 0) {

@@ -52,7 +52,7 @@ export const HUDBar = ({
   y = 0,
   isInDanger = false,
 }: HUDBarProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
 
   // Check if we have active constraints
   const hasConstraint1 = constraint1 && constraint1.type !== ConstraintType.None;
@@ -76,13 +76,12 @@ export const HUDBar = ({
     
     // Semi-transparent background
     g.rect(0, 0, width, height);
-    g.fill({ color: isProcedural ? 0x0a0a0f : 0x1a2744, alpha: 0.9 });
+    g.fill({ color: 0x1a2744, alpha: 0.9 });
     
-    // Bottom border line
     g.moveTo(0, height - 1);
     g.lineTo(width, height - 1);
-    g.stroke({ color: isProcedural ? colors.accent : 0x334155, width: 1, alpha: 0.4 });
-  }, [width, height, isProcedural, colors.accent]);
+    g.stroke({ color: 0x334155, width: 1, alpha: 0.4 });
+  }, [width, height]);
 
   return (
     <pixiContainer y={y}>

@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState, useEffect } from 'react';
 import { Graphics as PixiGraphics, TextStyle, Texture, Assets } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
-import { getBlockColors, lightenColor } from '../../utils/colors';
+import { getBlockColors } from '../../utils/colors';
 import type { Block } from '@/types/types';
 
 interface NextLinePreviewProps {
@@ -27,7 +27,7 @@ const PreviewBlock = ({
   block: Block; 
   cellSize: number;
 }) => {
-  const { themeName, isProcedural, colors } = usePixiTheme();
+  const { themeName, colors } = usePixiTheme();
   const [texture, setTexture] = useState<Texture | null>(null);
   const blockColors = useMemo(() => getBlockColors(themeName, block.width), [themeName, block.width]);
 
@@ -37,11 +37,6 @@ const PreviewBlock = ({
 
   // Load texture for tiki theme (same as BlockSprite)
   useEffect(() => {
-    if (isProcedural) {
-      setTexture(null);
-      return;
-    }
-    
     const texturePath = `/assets/${themeName}/block-${block.width}.png`;
     Assets.load(texturePath)
       .then(setTexture)
@@ -51,36 +46,8 @@ const PreviewBlock = ({
           .then(setTexture)
           .catch(console.error);
       });
-  }, [block.width, isProcedural, themeName]);
+  }, [block.width, themeName]);
 
-  // Procedural neon drawing
-  const drawNeon = useCallback((g: PixiGraphics) => {
-    g.clear();
-    
-    const padding = 2;
-    const radius = 6;
-    const innerWidth = width - padding * 2;
-    const innerHeight = height - padding * 2;
-    
-    // Main fill
-    g.roundRect(padding, padding, innerWidth, innerHeight, radius);
-    g.fill({ color: blockColors.fill, alpha: 0.8 });
-    
-    // Border
-    g.roundRect(padding, padding, innerWidth, innerHeight, radius);
-    g.stroke({ color: 0xFFFFFF, width: 1.5, alpha: 0.3 });
-    
-    // Highlight
-    g.roundRect(padding + 2, padding + 2, innerWidth - 4, innerHeight * 0.35, radius - 1);
-    g.fill({ color: lightenColor(blockColors.fill, 30), alpha: 0.25 });
-  }, [width, height, blockColors]);
-
-  // Procedural rendering (neon theme)
-  if (isProcedural) {
-    return <pixiGraphics x={x} y={0} draw={drawNeon} />;
-  }
-
-  // Texture rendering (tiki theme)
   if (!texture) {
     // Loading placeholder
     return (
@@ -118,7 +85,7 @@ export const NextLinePreview = ({
   y,
   isConsumed = false,
 }: NextLinePreviewProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
 
   const width = gridCols * cellSize;
   const height = cellSize;
@@ -126,10 +93,10 @@ export const NextLinePreview = ({
   const drawBackground = useCallback((g: PixiGraphics) => {
     g.clear();
     g.roundRect(0, 0, width, height, 8);
-    g.fill({ color: isProcedural ? 0x0a0a12 : 0x0d1a2a, alpha: 0.7 });
+    g.fill({ color: 0x0d1a2a, alpha: 0.7 });
     g.roundRect(0, 0, width, height, 8);
-    g.stroke({ color: isProcedural ? colors.accent : 0x334155, width: 1, alpha: 0.3 });
-  }, [width, height, isProcedural, colors.accent]);
+    g.stroke({ color: 0x334155, width: 1, alpha: 0.3 });
+  }, [width, height]);
 
   // Filter to only row 0 blocks (the next line)
   const nextLineBlocks = useMemo(() => {

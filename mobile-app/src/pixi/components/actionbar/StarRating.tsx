@@ -28,7 +28,7 @@ export const StarRating = ({
   starSize = 16,
   gap = 4,
 }: StarRatingProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
 
   const filledColor = 0xfbbf24; // gold
   const emptyColor = 0x475569; // gray

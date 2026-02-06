@@ -34,7 +34,7 @@ export const LevelDisplay = ({
   height,
   uiScale = 1,
 }: LevelDisplayProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
 
   // Track previous stars to detect when new star is earned
   const prevStarsRef = useRef(stars);
@@ -79,16 +79,15 @@ export const LevelDisplay = ({
     
     // Gradient-like background
     g.roundRect(0, 0, levelBadgeWidth, levelBadgeHeight, 8);
-    g.fill({ color: isProcedural ? 0x1a1a2e : 0x1e293b, alpha: 0.95 });
+    g.fill({ color: 0x1e293b, alpha: 0.95 });
     
-    // Border with accent
     g.roundRect(0, 0, levelBadgeWidth, levelBadgeHeight, 8);
-    g.stroke({ color: isProcedural ? colors.accent : 0x3b82f6, width: 2, alpha: 0.8 });
+    g.stroke({ color: 0x3b82f6, width: 2, alpha: 0.8 });
     
     // Inner glow effect
     g.roundRect(2, 2, levelBadgeWidth - 4, levelBadgeHeight - 4, 6);
     g.stroke({ color: 0xffffff, width: 1, alpha: 0.1 });
-  }, [levelBadgeWidth, levelBadgeHeight, isProcedural, colors.accent]);
+  }, [levelBadgeWidth, levelBadgeHeight]);
 
   // Draw stars with glow effect
   const drawStars = useCallback((g: PixiGraphics) => {
@@ -144,15 +143,15 @@ export const LevelDisplay = ({
   const drawConstraintBadge = useCallback((g: PixiGraphics, constraint: ConstraintData, isComplete: boolean) => {
     g.clear();
     
-    const bgColor = isComplete ? 0x22c55e : (isProcedural ? 0x1a1a2e : 0x374151);
-    const borderColor = isComplete ? 0x4ade80 : (isProcedural ? colors.accent : 0x6b7280);
+    const bgColor = isComplete ? 0x22c55e : 0x374151;
+    const borderColor = isComplete ? 0x4ade80 : 0x6b7280;
     
     g.roundRect(0, 0, constraintBadgeWidth, constraintBadgeHeight, 4);
     g.fill({ color: bgColor, alpha: 0.9 });
     
     g.roundRect(0, 0, constraintBadgeWidth, constraintBadgeHeight, 4);
     g.stroke({ color: borderColor, width: 1.5, alpha: 0.8 });
-  }, [constraintBadgeWidth, constraintBadgeHeight, isProcedural, colors.accent]);
+  }, [constraintBadgeWidth, constraintBadgeHeight]);
 
   // Get constraint display text
   const getConstraintText = useCallback((constraint: ConstraintData): string => {

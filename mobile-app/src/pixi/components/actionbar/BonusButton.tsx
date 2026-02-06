@@ -40,7 +40,7 @@ export const BonusButton = ({
   isDisabled,
   onClick,
 }: BonusButtonProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
   
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
@@ -68,7 +68,7 @@ export const BonusButton = ({
 
   const getBgColor = () => {
     if (isDisabled) return 0x1e293b;
-    if (isSelected) return isProcedural ? 0x1e3a5f : 0x172554;
+    if (isSelected) return 0x172554;
     if (isPressed) return 0x374151;
     if (isHovered) return 0x334155;
     return 0x1e293b;
@@ -76,7 +76,7 @@ export const BonusButton = ({
 
   const getBorderColor = () => {
     if (isDisabled) return 0x374151;
-    if (isSelected) return isProcedural ? colors.accent : 0x60a5fa;
+    if (isSelected) return 0x60a5fa;
     if (isHovered) return 0x64748b;
     return 0x475569;
   };
@@ -97,7 +97,7 @@ export const BonusButton = ({
       g.roundRect(-3, -3, size + 6, size + 6, cornerRadius + 3);
       g.stroke({ color: borderColor, width: 2, alpha: 0.25 });
     }
-  }, [size, isSelected, isDisabled, isHovered, isPressed, isProcedural, colors.accent]);
+  }, [size, isSelected, isDisabled, isHovered, isPressed]);
 
   const drawCountBadge = useCallback((g: PixiGraphics) => {
     g.clear();
@@ -127,9 +127,9 @@ export const BonusButton = ({
     for (let i = 0; i < level; i++) {
       const dotX = startX + i * (dotSize + dotGap);
       g.circle(dotX + dotSize / 2, dotY, dotSize / 2);
-      g.fill({ color: isProcedural ? colors.accent : 0xfbbf24 });
+      g.fill({ color: 0xfbbf24 });
     }
-  }, [size, level, isProcedural, colors.accent]);
+  }, [size, level]);
 
   const countStyle = new TextStyle({
     fontFamily: 'Arial, sans-serif',

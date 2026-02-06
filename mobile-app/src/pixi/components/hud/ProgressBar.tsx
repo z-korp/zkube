@@ -34,7 +34,7 @@ export const ProgressBar = ({
   showScore = true,
   isDanger = false,
 }: ProgressBarProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
   
   // Animated fill width
   const [animatedProgress, setAnimatedProgress] = useState(0);
@@ -65,8 +65,8 @@ export const ProgressBar = ({
 
   // Colors
   const bgColor = 0x0f172a;
-  const fillColor = isDanger ? 0xef4444 : (isProcedural ? colors.accent : 0x3b82f6);
-  const glowColor = isDanger ? 0xf87171 : (isProcedural ? colors.accent : 0x60a5fa);
+  const fillColor = isDanger ? 0xef4444 : 0x3b82f6;
+  const glowColor = isDanger ? 0xf87171 : 0x60a5fa;
 
   const drawBackground = useCallback((g: PixiGraphics) => {
     g.clear();

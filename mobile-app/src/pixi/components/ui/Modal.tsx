@@ -31,7 +31,7 @@ export const Modal = ({
   children,
   showCloseButton = true,
 }: ModalProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
 
   const padding = 24;
   const titleHeight = 32;
@@ -44,8 +44,8 @@ export const Modal = ({
   const modalX = (screenWidth - width) / 2;
   const modalY = Math.max(40, (screenHeight - modalHeight) / 2);
 
-  const bgColor = isProcedural ? 0x0f0f1a : 0x0f172a;
-  const borderColor = isProcedural ? colors.accent : 0x334155;
+  const bgColor = 0x0f172a;
+  const borderColor = 0x334155;
   const titleColor = 0xffffff;
   const subtitleColor = 0x94a3b8;
 

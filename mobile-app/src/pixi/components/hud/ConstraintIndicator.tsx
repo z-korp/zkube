@@ -29,7 +29,7 @@ export const ConstraintIndicator = ({
   width,
   height,
 }: ConstraintIndicatorProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
 
   // Determine if constraint is satisfied
   const isSatisfied = (): boolean => {
@@ -102,7 +102,7 @@ export const ConstraintIndicator = ({
     ? 0xef4444
     : satisfied
       ? 0x22c55e
-      : (isProcedural ? colors.accent : 0x3b82f6);
+      : 0x3b82f6;
 
   const cornerRadius = 4;
 

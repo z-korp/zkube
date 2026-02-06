@@ -5,7 +5,7 @@
  */
 
 import { Application } from '@pixi/react';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Assets, Texture, Graphics as PixiGraphics } from 'pixi.js';
 import { PixiThemeProvider } from '../../themes/ThemeContext';
 import { useFullscreenLayout } from '../../hooks/useFullscreenLayout';
@@ -317,51 +317,98 @@ const TopBarButton = ({
 
 const HomeTopBar = ({
   sw, topBarH, isMobile, uiScale, cubeBalance,
-  onQuestsClick, onTrophyClick, onSettingsClick,
+  username, isConnected,
+  onQuestsClick, onTrophyClick, onSettingsClick, onProfileClick,
 }: {
   sw: number; topBarH: number; isMobile: boolean; uiScale: number;
   cubeBalance: number;
+  username?: string;
+  isConnected: boolean;
   onQuestsClick: () => void;
   onTrophyClick: () => void;
   onSettingsClick: () => void;
+  onProfileClick: () => void;
 }) => {
-  const btnSize = isMobile ? 36 : 42;
-  const gap = Math.round(10 * uiScale);
-  const pad = Math.round(12 * uiScale);
+  const btnSize = isMobile ? 34 : 40;
+  const gap = Math.round(8 * uiScale);
+  const pad = Math.round(10 * uiScale);
   const centerY = (topBarH - btnSize) / 2;
-
-  // Center: cube balance
-  const cubeX = sw / 2 - 50;
-
-  // Right side: quests, trophies, settings
-  const settingsX = sw - pad - btnSize;
-  const trophyX = settingsX - btnSize - gap;
-  const questsX = trophyX - btnSize - gap;
 
   const drawBg = useCallback((g: PixiGraphics) => {
     g.clear();
     g.rect(0, 0, sw, topBarH);
-    g.fill({ color: 0x0f172a, alpha: 0.85 });
+    g.fill({ color: 0x000000, alpha: 1 });
     g.rect(0, topBarH - 1, sw, 1);
-    g.fill({ color: 0x334155, alpha: 0.4 });
+    g.fill({ color: 0x1e293b, alpha: 0.5 });
   }, [sw, topBarH]);
+
+  const cubeCountStyle = useMemo(() => ({
+    fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+    fontSize: Math.round(14 * uiScale),
+    fontWeight: 'bold' as const,
+    fill: 0xfbbf24,
+  }), [uiScale]);
+
+  const cubeIconStyle = useMemo(() => ({
+    fontSize: Math.round(14 * uiScale),
+  }), [uiScale]);
+
+  const usernameStyle = useMemo(() => ({
+    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontSize: Math.round(11 * uiScale),
+    fontWeight: 'bold' as const,
+    fill: 0xffffff,
+  }), [uiScale]);
+
+  const controllerBtnW = isConnected && username
+    ? Math.max(btnSize, Math.min(120, username.length * 8 + 30))
+    : btnSize;
+
+  const [ctrlPressed, setCtrlPressed] = useState(false);
+  const [ctrlHovered, setCtrlHovered] = useState(false);
+  const ctrlScale = ctrlPressed ? 0.9 : ctrlHovered ? 1.05 : 1;
+
+  const drawControllerBtn = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.roundRect(0, 0, controllerBtnW, btnSize, 8);
+    g.fill({ color: ctrlHovered ? 0x4338ca : 0x3730a3, alpha: 0.9 });
+    g.roundRect(0, 0, controllerBtnW, btnSize, 8);
+    g.stroke({ color: 0x6366f1, width: 1, alpha: 0.5 });
+  }, [controllerBtnW, btnSize, ctrlHovered]);
+
+  const settingsX = sw - pad - controllerBtnW;
+  const settingsBtnX = settingsX - gap - btnSize;
+  const trophyX = settingsBtnX - gap - btnSize;
+  const questsX = trophyX - gap - btnSize;
 
   return (
     <pixiContainer y={0}>
       <pixiGraphics draw={drawBg} eventMode="static"
         onPointerDown={(e: any) => e.stopPropagation()} />
-      
-      {/* Cube Balance (center) */}
-      <CubeBalance balance={cubeBalance} x={cubeX} y={centerY} height={btnSize} uiScale={uiScale} />
-      
-      {/* Quests button */}
+
+      <pixiText text="🧊" x={pad} y={topBarH / 2} anchor={{ x: 0, y: 0.5 }} style={cubeIconStyle} />
+      <pixiText text={String(cubeBalance)} x={pad + Math.round(20 * uiScale)} y={topBarH / 2} anchor={{ x: 0, y: 0.5 }} style={cubeCountStyle} />
+
       <TopBarButton x={questsX} y={centerY} size={btnSize} icon="📜" onClick={onQuestsClick} />
-      
-      {/* Trophy button */}
       <TopBarButton x={trophyX} y={centerY} size={btnSize} icon="🏆" onClick={onTrophyClick} />
-      
-      {/* Settings button */}
-      <TopBarButton x={settingsX} y={centerY} size={btnSize} icon="⚙" onClick={onSettingsClick} />
+      <TopBarButton x={settingsBtnX} y={centerY} size={btnSize} icon="⚙" onClick={onSettingsClick} />
+
+      <pixiContainer x={settingsX} y={centerY} scale={ctrlScale}>
+        <pixiGraphics draw={drawControllerBtn}
+          eventMode="static" cursor="pointer"
+          onPointerDown={() => setCtrlPressed(true)}
+          onPointerUp={() => { setCtrlPressed(false); onProfileClick(); }}
+          onPointerUpOutside={() => { setCtrlPressed(false); setCtrlHovered(false); }}
+          onPointerOver={() => setCtrlHovered(true)}
+          onPointerOut={() => { setCtrlHovered(false); setCtrlPressed(false); }}
+        />
+        <pixiText
+          text={isConnected && username ? username : "👤"}
+          x={controllerBtnW / 2} y={btnSize / 2} anchor={0.5}
+          style={isConnected && username ? usernameStyle : { fontSize: btnSize * 0.45 }}
+          eventMode="none"
+        />
+      </pixiContainer>
     </pixiContainer>
   );
 };
@@ -464,9 +511,11 @@ const HomePageContent = ({
       <HomeTopBar
         sw={sw} topBarH={topBarH} isMobile={isMobile} uiScale={uiScale}
         cubeBalance={cubeBalance}
+        username={username} isConnected={isConnected}
         onQuestsClick={() => navigate('quests')}
         onTrophyClick={onTrophyClick ?? (() => {})}
         onSettingsClick={() => navigate('settings')}
+        onProfileClick={onProfileClick ?? (() => {})}
       />
     </pixiContainer>
   );

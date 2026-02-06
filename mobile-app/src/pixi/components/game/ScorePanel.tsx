@@ -34,7 +34,7 @@ export const ScorePanel = ({
   height,
   uiScale = 1,
 }: ScorePanelProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
 
   // Animated score counter
   const displayScore = useAnimatedValue(score, {
@@ -56,16 +56,15 @@ export const ScorePanel = ({
     
     // Main background
     g.roundRect(0, 0, width, height, cornerRadius);
-    g.fill({ color: isProcedural ? 0x0a0a0f : 0x0f172a, alpha: 0.85 });
+    g.fill({ color: 0x0f172a, alpha: 0.85 });
     
-    // Border
     g.roundRect(0, 0, width, height, cornerRadius);
-    g.stroke({ color: isProcedural ? colors.accent : 0x334155, width: 1.5, alpha: 0.5 });
+    g.stroke({ color: 0x334155, width: 1.5, alpha: 0.5 });
     
     // Inner highlight
     g.roundRect(1, 1, width - 2, height / 3, cornerRadius);
     g.fill({ color: 0xffffff, alpha: 0.03 });
-  }, [width, height, cornerRadius, isProcedural, colors.accent]);
+  }, [width, height, cornerRadius]);
 
   // Draw progress bar (vertical)
   const drawProgressBar = useCallback((g: PixiGraphics) => {

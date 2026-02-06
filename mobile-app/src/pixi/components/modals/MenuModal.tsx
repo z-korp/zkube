@@ -26,7 +26,7 @@ export const MenuModal = ({
   currentLevel,
   cubesEarned,
 }: MenuModalProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSurrendering, setIsSurrendering] = useState(false);
 
@@ -93,9 +93,9 @@ export const MenuModal = ({
     const radius = 8;
     
     g.roundRect(0, 0, boxWidth, boxHeight, radius);
-    g.fill({ color: isProcedural ? 0x1a1a2e : 0x1e293b, alpha: 0.8 });
-    g.stroke({ color: isProcedural ? colors.accent : 0x334155, width: 1, alpha: 0.3 });
-  }, [buttonWidth, isProcedural, colors.accent]);
+    g.fill({ color: 0x1e293b, alpha: 0.8 });
+    g.stroke({ color: 0x334155, width: 1, alpha: 0.3 });
+  }, [buttonWidth]);
 
   return (
     <Modal

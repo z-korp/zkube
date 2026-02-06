@@ -106,8 +106,8 @@ export function getBlockColors(theme: string, blockWidth: number): BlockColors {
 /**
  * Check if theme uses procedural rendering (neon) vs textures (tiki)
  */
-export function isProceduralTheme(theme: string): boolean {
-  return theme === 'theme-neon' || theme === 'neon';
+export function isProceduralTheme(_theme: string): boolean {
+  return false;
 }
 
 /**

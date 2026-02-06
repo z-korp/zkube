@@ -32,7 +32,7 @@ export const Button = ({
   onClick,
   fontSize = 14,
 }: ButtonProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
 
@@ -43,17 +43,17 @@ export const Button = ({
     switch (variant) {
       case 'primary':
         return {
-          bg: isProcedural ? 0x6366f1 : 0x3b82f6,
-          bgHover: isProcedural ? 0x818cf8 : 0x60a5fa,
-          border: isProcedural ? 0x818cf8 : 0x60a5fa,
+          bg: 0x3b82f6,
+          bgHover: 0x60a5fa,
+          border: 0x60a5fa,
           text: 0xffffff,
           alpha: baseAlpha,
         };
       case 'secondary':
         return {
-          bg: isProcedural ? 0x334155 : 0x475569,
-          bgHover: isProcedural ? 0x475569 : 0x64748b,
-          border: isProcedural ? 0x475569 : 0x64748b,
+          bg: 0x475569,
+          bgHover: 0x64748b,
+          border: 0x64748b,
           text: 0xffffff,
           alpha: baseAlpha,
         };
@@ -68,8 +68,8 @@ export const Button = ({
       case 'ghost':
         return {
           bg: 0x000000,
-          bgHover: isProcedural ? 0x1a1a2e : 0x1e293b,
-          border: isProcedural ? 0x475569 : 0x64748b,
+          bgHover: 0x1e293b,
+          border: 0x64748b,
           text: 0xffffff,
           alpha: baseAlpha * 0.1,
         };
@@ -82,7 +82,7 @@ export const Button = ({
           alpha: baseAlpha,
         };
     }
-  }, [variant, disabled, isProcedural]);
+  }, [variant, disabled]);
 
   const colorScheme = getColors();
 

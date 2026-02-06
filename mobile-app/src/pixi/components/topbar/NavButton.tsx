@@ -48,7 +48,7 @@ export const NavButton = ({
   label,
   badge,
 }: NavButtonProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
 
@@ -76,17 +76,13 @@ export const NavButton = ({
     const offsetY = (height - scaledHeight) / 2;
     const radius = height * 0.25;
     
-    const bgColor = isProcedural ? 0x1a1a2e : 0x1e293b;
-    const hoverColor = isProcedural ? 0x2a2a4e : 0x334155;
-    
     g.roundRect(offsetX, offsetY, scaledWidth, scaledHeight, radius);
-    g.fill({ color: isHovered ? hoverColor : bgColor, alpha: 0.9 });
+    g.fill({ color: isHovered ? 0x334155 : 0x1e293b, alpha: 0.9 });
     
-    // Border with icon-specific accent on hover
-    const borderColor = isHovered ? iconColors[icon] : (isProcedural ? colors.accent : 0x475569);
+    const borderColor = isHovered ? iconColors[icon] : 0x475569;
     g.roundRect(offsetX, offsetY, scaledWidth, scaledHeight, radius);
     g.stroke({ color: borderColor, width: 1.5, alpha: isHovered ? 0.8 : 0.4 });
-  }, [width, height, isHovered, isPressed, isProcedural, colors.accent, icon]);
+  }, [width, height, isHovered, isPressed, icon]);
 
   const drawIcon = useCallback((g: PixiGraphics) => {
     const drawer = iconDrawers[icon];

@@ -13,7 +13,7 @@ interface LevelBadgeProps {
  * Displays the current level in a styled badge
  */
 export const LevelBadge = ({ level, x, y, height }: LevelBadgeProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
 
   const badgeWidth = 56;
   const badgeHeight = height - 8;
@@ -24,12 +24,12 @@ export const LevelBadge = ({ level, x, y, height }: LevelBadgeProps) => {
     
     // Background
     g.roundRect(0, 0, badgeWidth, badgeHeight, cornerRadius);
-    g.fill({ color: isProcedural ? 0x1e293b : 0x334155, alpha: 0.95 });
+    g.fill({ color: 0x334155, alpha: 0.95 });
     
     // Border
     g.roundRect(0, 0, badgeWidth, badgeHeight, cornerRadius);
-    g.stroke({ color: isProcedural ? colors.accent : 0x475569, width: 1.5, alpha: 0.8 });
-  }, [isProcedural, colors.accent, badgeWidth, badgeHeight]);
+    g.stroke({ color: 0x475569, width: 1.5, alpha: 0.8 });
+  }, [badgeWidth, badgeHeight]);
 
   const textStyle = new TextStyle({
     fontFamily: 'Arial, sans-serif',

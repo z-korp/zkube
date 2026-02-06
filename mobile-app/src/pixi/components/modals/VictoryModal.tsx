@@ -47,7 +47,7 @@ export const VictoryModal = ({
   totalCubes,
   maxCombo,
 }: VictoryModalProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
   const [confetti, setConfetti] = useState<Confetti[]>([]);
   const frameRef = useRef(0);
 

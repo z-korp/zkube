@@ -23,7 +23,7 @@ export const SurrenderButton = ({
   onClick,
   isDisabled = false,
 }: SurrenderButtonProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
 
@@ -56,15 +56,15 @@ export const SurrenderButton = ({
     const radius = 6;
     
     // Background - slightly red on hover
-    const bgColor = isHovered ? 0x7f1d1d : (isProcedural ? 0x1a1a2e : 0x1e293b);
-    const borderColor = isHovered ? 0xef4444 : (isProcedural ? colors.accent : 0x475569);
+    const bgColor = isHovered ? 0x7f1d1d : 0x1e293b;
+    const borderColor = isHovered ? 0xef4444 : 0x475569;
     
     g.roundRect(offsetX, offsetY, scaledWidth, scaledHeight, radius);
     g.fill({ color: bgColor, alpha: isDisabled ? 0.5 : 0.9 });
     
     g.roundRect(offsetX, offsetY, scaledWidth, scaledHeight, radius);
     g.stroke({ color: borderColor, width: 1.5, alpha: isDisabled ? 0.3 : (isHovered ? 0.8 : 0.5) });
-  }, [width, height, isHovered, isPressed, isProcedural, colors.accent, isDisabled]);
+  }, [width, height, isHovered, isPressed, isDisabled]);
 
   const drawIcon = useCallback((g: PixiGraphics) => {
     const iconSize = Math.min(width, height) * 0.6;
@@ -89,6 +89,7 @@ export const SurrenderButton = ({
         y={height / 2}
         draw={drawIcon}
         alpha={isDisabled ? 0.5 : 1}
+        eventMode="none"
       />
     </pixiContainer>
   );

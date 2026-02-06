@@ -23,7 +23,7 @@ export const Tooltip = ({
   position = 'top',
   maxWidth = 200,
 }: TooltipProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
 
   if (!visible || !text) return null;
 
@@ -84,8 +84,8 @@ export const Tooltip = ({
       break;
   }
 
-  const bgColor = isProcedural ? 0x1a1a2e : 0x1e293b;
-  const borderColor = isProcedural ? colors.accent : 0x475569;
+  const bgColor = 0x1e293b;
+  const borderColor = 0x475569;
 
   const drawBackground = useCallback((g: PixiGraphics) => {
     g.clear();

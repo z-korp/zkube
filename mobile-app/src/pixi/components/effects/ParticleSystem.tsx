@@ -37,7 +37,7 @@ interface EmitOptions {
  * PixiJS-based particle system for visual effects
  */
 export const ParticleSystem = ({ gridSize }: ParticleSystemProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
   const { maxParticles, prefersReducedMotion } = usePerformanceSettings();
   
   const [particles, setParticles] = useState<Particle[]>([]);
@@ -149,21 +149,15 @@ export const ParticleSystem = ({ gridSize }: ParticleSystemProps) => {
       
       g.setFillStyle({ color: particle.color, alpha });
       
-      if (isProcedural) {
-        // Neon theme: glowing circles
-        g.circle(particle.x, particle.y, particle.size);
-      } else {
-        // Tiki theme: squares
-        g.rect(
-          particle.x - particle.size / 2,
-          particle.y - particle.size / 2,
-          particle.size,
-          particle.size
-        );
-      }
+      g.rect(
+        particle.x - particle.size / 2,
+        particle.y - particle.size / 2,
+        particle.size,
+        particle.size
+      );
       g.fill();
     }
-  }, [particles, isProcedural]);
+  }, [particles]);
 
   // Expose methods via ref pattern (we'll use context instead)
   useEffect(() => {

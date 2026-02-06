@@ -29,7 +29,7 @@ export const TopBar = ({
   onTrophyClick,
   onShopClick,
 }: TopBarProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
   
   const { screenWidth, topBarHeight, topBarY, padding, uiScale, isMobile } = layout;
   
@@ -54,12 +54,11 @@ export const TopBar = ({
     
     // Semi-transparent gradient background
     g.rect(0, 0, screenWidth, topBarHeight);
-    g.fill({ color: isProcedural ? 0x0a0a0f : 0x0f172a, alpha: 0.85 });
+    g.fill({ color: 0x0f172a, alpha: 0.85 });
     
-    // Bottom accent line
     g.rect(0, topBarHeight - 1, screenWidth, 1);
-    g.fill({ color: isProcedural ? colors.accent : 0x334155, alpha: 0.4 });
-  }, [screenWidth, topBarHeight, isProcedural, colors.accent]);
+    g.fill({ color: 0x334155, alpha: 0.4 });
+  }, [screenWidth, topBarHeight]);
 
   return (
     <pixiContainer y={topBarY}>

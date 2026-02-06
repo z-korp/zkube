@@ -225,10 +225,10 @@ const GameTopBar = ({
   const drawBg = useCallback((g: PixiGraphics) => {
     g.clear();
     g.rect(0, 0, sw, topBarH);
-    g.fill({ color: 0x0f172a, alpha: 0.75 });
+    g.fill({ color: 0x000000, alpha: 1 });
     g.moveTo(0, topBarH - 0.5);
     g.lineTo(sw, topBarH - 0.5);
-    g.stroke({ color: 0x334155, width: 0.5, alpha: 0.3 });
+    g.stroke({ color: 0x1e293b, width: 0.5, alpha: 0.5 });
   }, [sw, topBarH]);
 
   const levelStyle = useMemo(() => new TextStyle({

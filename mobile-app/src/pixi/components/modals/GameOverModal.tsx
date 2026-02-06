@@ -36,7 +36,7 @@ export const GameOverModal = ({
   totalCubes,
   maxCombo,
 }: GameOverModalProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
 
   const modalWidth = 340;
   const buttonWidth = modalWidth - 48;
@@ -74,9 +74,9 @@ export const GameOverModal = ({
     const radius = 12;
     
     g.roundRect(0, 0, boxWidth, boxHeight, radius);
-    g.fill({ color: isProcedural ? 0x1a1a2e : 0x1e293b, alpha: 0.9 });
-    g.stroke({ color: isProcedural ? colors.accent : 0x334155, width: 1, alpha: 0.4 });
-  }, [buttonWidth, isProcedural, colors.accent]);
+    g.fill({ color: 0x1e293b, alpha: 0.9 });
+    g.stroke({ color: 0x334155, width: 1, alpha: 0.4 });
+  }, [buttonWidth]);
 
   // Draw game over icon
   const drawGameOverIcon = useCallback((g: PixiGraphics) => {

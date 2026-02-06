@@ -35,7 +35,7 @@ export const GameHUD = ({
   uiScale = 1,
   isInDanger = false,
 }: GameHUDProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
 
   // Animated score
   const animatedScore = useAnimatedValue(score, { duration: 300, easing: easings.easeOut });
@@ -68,7 +68,7 @@ export const GameHUD = ({
     
     // Background
     g.roundRect(0, 0, scoreWidth, itemHeight, 6);
-    g.fill({ color: isProcedural ? 0x1a1a2e : 0x1e293b, alpha: 0.9 });
+    g.fill({ color: 0x1e293b, alpha: 0.9 });
     
     // Progress bar background
     const barX = iconSize + padding * 2;
@@ -85,8 +85,8 @@ export const GameHUD = ({
     
     // Border
     g.roundRect(0, 0, scoreWidth, itemHeight, 6);
-    g.stroke({ color: isProcedural ? colors.accent : 0x475569, width: 1, alpha: 0.5 });
-  }, [scoreWidth, itemHeight, iconSize, padding, isProcedural, colors.accent, scoreProgress]);
+    g.stroke({ color: 0x475569, width: 1, alpha: 0.5 });
+  }, [scoreWidth, itemHeight, iconSize, padding, scoreProgress]);
 
   const drawMovesItem = useCallback((g: PixiGraphics) => {
     g.clear();
@@ -97,15 +97,15 @@ export const GameHUD = ({
     const offsetX = (movesWidth - scaledWidth) / 2;
     const offsetY = (itemHeight - scaledHeight) / 2;
     
-    const bgColor = isInDanger ? 0x7f1d1d : (isProcedural ? 0x1a1a2e : 0x1e293b);
-    const borderColor = isInDanger ? 0xef4444 : (isProcedural ? colors.accent : 0x475569);
+    const bgColor = isInDanger ? 0x7f1d1d : 0x1e293b;
+    const borderColor = isInDanger ? 0xef4444 : 0x475569;
     
     g.roundRect(offsetX, offsetY, scaledWidth, scaledHeight, 6);
     g.fill({ color: bgColor, alpha: 0.9 });
     
     g.roundRect(offsetX, offsetY, scaledWidth, scaledHeight, 6);
     g.stroke({ color: borderColor, width: 1, alpha: isInDanger ? 0.8 : 0.5 });
-  }, [movesWidth, itemHeight, isProcedural, colors.accent, isInDanger, dangerPulse]);
+  }, [movesWidth, itemHeight, isInDanger, dangerPulse]);
 
   const drawComboItem = useCallback((g: PixiGraphics) => {
     g.clear();
@@ -113,7 +113,7 @@ export const GameHUD = ({
     if (combo === 0) {
       // Hidden/dim when no combo
       g.roundRect(0, 0, comboWidth, itemHeight, 6);
-      g.fill({ color: isProcedural ? 0x1a1a2e : 0x1e293b, alpha: 0.5 });
+      g.fill({ color: 0x1e293b, alpha: 0.5 });
       return;
     }
     
@@ -129,7 +129,7 @@ export const GameHUD = ({
     
     g.roundRect(offsetX, offsetY, scaledWidth, scaledHeight, 6);
     g.stroke({ color: 0xf97316, width: 1.5, alpha: 0.8 });
-  }, [comboWidth, itemHeight, combo, comboPulse, isProcedural]);
+  }, [comboWidth, itemHeight, combo, comboPulse]);
 
   const drawScoreIcon = useCallback((g: PixiGraphics) => {
     drawTargetIcon(g, iconSize, IconColors.primary);

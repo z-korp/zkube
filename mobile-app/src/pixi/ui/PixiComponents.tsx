@@ -53,7 +53,7 @@ export function PixiProgressBar({
   width,
   height = 20,
   progress,
-  backgroundColor = 0x1a1a2e,
+  backgroundColor = 0x1e293b,
   fillColor = 0x4ADE80,
   fillColorSecondary,
   borderColor = 0xFFFFFF,

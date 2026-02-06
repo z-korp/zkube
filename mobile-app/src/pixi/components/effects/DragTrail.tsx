@@ -17,14 +17,13 @@ interface DragTrailProps {
 
 /**
  * Renders a trail of ghost blocks following the dragged block
- * Only active in neon theme for performance
  */
 export const DragTrail = ({
   positions,
   blockWidth,
   gridSize,
 }: DragTrailProps) => {
-  const { themeName, isProcedural } = usePixiTheme();
+  const { themeName } = usePixiTheme();
   const { enableTrails } = usePerformanceSettings();
   
   const blockColors = useMemo(() => 
@@ -35,8 +34,8 @@ export const DragTrail = ({
   const width = blockWidth * gridSize;
   const height = gridSize;
 
-  // Only render trail in neon theme and when enabled
-  if (!isProcedural || !enableTrails || positions.length === 0) {
+  
+  if (!enableTrails || positions.length === 0) {
     return null;
   }
 

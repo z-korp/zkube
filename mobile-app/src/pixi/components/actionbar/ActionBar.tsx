@@ -39,7 +39,7 @@ export const ActionBar = ({
   onSurrender,
   showSurrender = true,
 }: ActionBarProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
 
   const padding = 10;
   const buttonSize = Math.min(46, height - 10);
@@ -61,11 +61,11 @@ export const ActionBar = ({
   const drawBackground = useCallback((g: PixiGraphics) => {
     g.clear();
     g.rect(0, 0, width, height);
-    g.fill({ color: isProcedural ? 0x0a0a0f : 0x0f172a, alpha: 0.85 });
+    g.fill({ color: 0x000000, alpha: 1 });
     g.moveTo(0, 0.5);
     g.lineTo(width, 0.5);
-    g.stroke({ color: isProcedural ? colors.accent : 0x334155, width: 0.5, alpha: 0.3 });
-  }, [width, height, isProcedural, colors.accent]);
+    g.stroke({ color: 0x1e293b, width: 0.5, alpha: 0.5 });
+  }, [width, height]);
 
   return (
     <pixiContainer y={y}>

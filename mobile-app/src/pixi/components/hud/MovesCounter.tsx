@@ -26,7 +26,7 @@ export const MovesCounter = ({
   warningThreshold = 5,
   criticalThreshold = 3,
 }: MovesCounterProps) => {
-  const { colors, isProcedural } = usePixiTheme();
+  const { colors } = usePixiTheme();
 
   const pillHeight = height - 8;
   const pillWidth = 64;
@@ -60,10 +60,10 @@ export const MovesCounter = ({
       ? 0xef4444 
       : isWarning 
         ? 0xf97316 
-        : (isProcedural ? colors.accent : 0x475569);
+        : 0x475569;
     g.roundRect(0, 0, pillWidth, pillHeight, cornerRadius);
     g.stroke({ color: borderColor, width: 1.5, alpha: isCritical || isWarning ? 1 : 0.5 });
-  }, [bgColor, pillWidth, pillHeight, cornerRadius, isCritical, isWarning, isProcedural, colors.accent]);
+  }, [bgColor, pillWidth, pillHeight, cornerRadius, isCritical, isWarning]);
 
   const movesStyle = new TextStyle({
     fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
