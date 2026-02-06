@@ -239,6 +239,12 @@ export const Home = () => {
     if (c?.controller?.openProfile) c.controller.openProfile("trophies");
   }, [connector]);
 
+  // Opens the controller profile window when clicking username
+  const handleProfileClick = useCallback(() => {
+    const c = connector as ControllerConnector;
+    if (c?.controller?.openProfile) c.controller.openProfile();
+  }, [connector]);
+
   const handleResumeGame = useCallback(
     (tokenId: number) => {
       navigate(`/play/${tokenId}`);
@@ -250,7 +256,9 @@ export const Home = () => {
     <LandingScreen
       onPlay={handlePlay}
       onConnect={handleConnect}
+      onProfileClick={handleProfileClick}
       isConnected={!!account}
+      username={username}
       cubeBalance={cubeBalanceNum}
       games={playerGames}
       gamesLoading={gamesLoading}

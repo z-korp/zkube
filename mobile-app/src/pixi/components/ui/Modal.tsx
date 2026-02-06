@@ -31,22 +31,6 @@ export const Modal = ({
 }: ModalProps) => {
   const { colors, isProcedural } = usePixiTheme();
 
-  // Handle escape key to close
-  useEffect(() => {
-    if (!isOpen) return;
-    
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
   const padding = 24;
   const titleHeight = 32;
   const subtitleHeight = subtitle ? 20 : 0;
@@ -62,6 +46,20 @@ export const Modal = ({
   const borderColor = isProcedural ? colors.accent : 0x334155;
   const titleColor = 0xffffff;
   const subtitleColor = 0x94a3b8;
+
+  // Handle escape key to close
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   // Draw backdrop (semi-transparent overlay)
   const drawBackdrop = useCallback((g: PixiGraphics) => {
@@ -96,17 +94,17 @@ export const Modal = ({
   const drawCloseButton = useCallback((g: PixiGraphics) => {
     g.clear();
     const size = 24;
-    const padding = 6;
+    const pad = 6;
     
     // Background circle on hover handled by container
     g.circle(size / 2, size / 2, size / 2);
     g.fill({ color: 0x000000, alpha: 0.001 }); // Nearly invisible hit area
     
     // X icon
-    g.moveTo(padding, padding);
-    g.lineTo(size - padding, size - padding);
-    g.moveTo(size - padding, padding);
-    g.lineTo(padding, size - padding);
+    g.moveTo(pad, pad);
+    g.lineTo(size - pad, size - pad);
+    g.moveTo(size - pad, pad);
+    g.lineTo(pad, size - pad);
     g.stroke({ color: 0x94a3b8, width: 2 });
   }, []);
 
@@ -122,6 +120,9 @@ export const Modal = ({
     fontSize: 13,
     fill: subtitleColor,
   }), [subtitleColor]);
+
+  // IMPORTANT: All hooks must be called before this return
+  if (!isOpen) return null;
 
   return (
     <>

@@ -2,12 +2,12 @@
  * LandingScreen - 100% PixiJS. No HTML.
  *
  * Layout:
- *   [TopBar: menu | cube balance | quests | trophy | shop]
+ *   [TopBar: tutorial | cubes | quests | trophies | settings]
  *   [Logo]
  *   [Play Game]
  *   [My Games (X)]
  *   [Shop]
- *   [Connect / Login]   (only when not connected)
+ *   [Connect / Username]  (always visible)
  */
 
 import { Application } from '@pixi/react';
@@ -16,9 +16,7 @@ import { Assets, Texture, Graphics as PixiGraphics } from 'pixi.js';
 import { PixiThemeProvider } from '../../themes/ThemeContext';
 import { useFullscreenLayout } from '../../hooks/useFullscreenLayout';
 import { Modal, Button } from '../ui';
-import { MenuButton } from '../topbar/MenuButton';
 import { CubeBalance } from '../topbar/CubeBalance';
-import { NavButton } from '../topbar/NavButton';
 import { MyGamesModal, type PlayerGame } from './MyGamesModal';
 import { LoadoutModal } from './LoadoutModal';
 import type { PlayerMetaData } from '@/hooks/usePlayerMeta';
@@ -46,15 +44,19 @@ interface CloudData {
 export interface LandingScreenProps {
   onPlay: () => void;
   onConnect?: () => void;
+  onProfileClick?: () => void;
   isConnected?: boolean;
+  username?: string;
   cubeBalance?: number;
   // Game data for My Games
   games?: PlayerGame[];
   gamesLoading?: boolean;
   onResumeGame?: (tokenId: number) => void;
   // TopBar callbacks
+  onTutorialClick?: () => void;
   onQuestsClick?: () => void;
   onTrophyClick?: () => void;
+  onSettingsClick?: () => void;
   onShopClick?: () => void;
   // LoadoutModal props
   showLoadoutModal?: boolean;
@@ -117,7 +119,7 @@ const SkyBackground = ({ w, h }: { w: number; h: number }) => {
 
 const Clouds = ({ w, h }: { w: number; h: number }) => {
   const cloudsRef = useRef<CloudData[]>([]);
-  const [tick, setTick] = useState(0);
+  const [, setTick] = useState(0);
 
   useEffect(() => {
     if (cloudsRef.current.length > 0) return;
@@ -207,7 +209,7 @@ const Logo = ({ x, y, maxW, maxH }: { x: number; y: number; maxW: number; maxH: 
 };
 
 // ============================================================================
-// STYLED BUTTON (whiter text, consistent)
+// STYLED BUTTON (for main menu buttons)
 // ============================================================================
 
 const LandingButton = ({
@@ -255,29 +257,78 @@ const LandingButton = ({
 };
 
 // ============================================================================
-// INLINE TOP BAR
+// TOP BAR ICON BUTTON
+// ============================================================================
+
+const TopBarButton = ({
+  x, y, size, icon, onClick, label,
+}: {
+  x: number; y: number; size: number; icon: string; onClick: () => void; label?: string;
+}) => {
+  const [pressed, setPressed] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const scale = pressed ? 0.9 : hovered ? 1.05 : 1;
+
+  const draw = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.setFillStyle({ color: hovered ? 0x334155 : 0x1e293b, alpha: 0.9 });
+    g.roundRect(0, 0, size, size, 8);
+    g.fill();
+    g.setStrokeStyle({ width: 1, color: 0x475569, alpha: 0.5 });
+    g.roundRect(0, 0, size, size, 8);
+    g.stroke();
+  }, [size, hovered]);
+
+  return (
+    <pixiContainer x={x} y={y} scale={scale}>
+      <pixiGraphics draw={draw}
+        eventMode="static" cursor="pointer"
+        onPointerDown={() => setPressed(true)}
+        onPointerUp={() => { setPressed(false); onClick(); }}
+        onPointerUpOutside={() => { setPressed(false); setHovered(false); }}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => { setHovered(false); setPressed(false); }}
+      />
+      <pixiText text={icon} x={size / 2} y={size / 2} anchor={0.5}
+        style={{ fontSize: size * 0.5 }}
+      />
+      {label && (
+        <pixiText text={label} x={size / 2} y={size + 4} anchor={{ x: 0.5, y: 0 }}
+          style={{ fontFamily: 'Arial, sans-serif', fontSize: 8, fill: 0x94a3b8 }}
+        />
+      )}
+    </pixiContainer>
+  );
+};
+
+// ============================================================================
+// NEW TOP BAR: tutorial | cubes | quests | trophies | settings
 // ============================================================================
 
 const LandingTopBar = ({
   sw, topBarH, isMobile, uiScale, cubeBalance,
-  onMenuClick, onQuestsClick, onTrophyClick, onShopClick,
+  onTutorialClick, onQuestsClick, onTrophyClick, onSettingsClick,
 }: {
   sw: number; topBarH: number; isMobile: boolean; uiScale: number;
   cubeBalance: number;
-  onMenuClick: () => void; onQuestsClick: () => void;
-  onTrophyClick: () => void; onShopClick: () => void;
+  onTutorialClick: () => void; onQuestsClick: () => void;
+  onTrophyClick: () => void; onSettingsClick: () => void;
 }) => {
   const btnSize = isMobile ? 36 : 42;
-  const gap = Math.round(8 * uiScale);
+  const gap = Math.round(10 * uiScale);
   const pad = Math.round(12 * uiScale);
-  const navW = isMobile ? 40 : 56;
+  const centerY = (topBarH - btnSize) / 2;
 
-  const menuX = pad;
-  const menuY = (topBarH - btnSize) / 2;
-  const cubeX = menuX + btnSize + gap;
-  const shopX = sw - pad - navW;
-  const trophyX = shopX - navW - gap;
-  const questsX = trophyX - navW - gap;
+  // Left side: tutorial
+  const tutorialX = pad;
+
+  // Center: cube balance
+  const cubeX = sw / 2 - 50;
+
+  // Right side: quests, trophies, settings
+  const settingsX = sw - pad - btnSize;
+  const trophyX = settingsX - btnSize - gap;
+  const questsX = trophyX - btnSize - gap;
 
   const drawBg = useCallback((g: PixiGraphics) => {
     g.clear();
@@ -291,20 +342,27 @@ const LandingTopBar = ({
     <pixiContainer y={0}>
       <pixiGraphics draw={drawBg} eventMode="static"
         onPointerDown={(e: any) => e.stopPropagation()} />
-      <MenuButton x={menuX} y={menuY} size={btnSize} onClick={onMenuClick} />
-      <CubeBalance balance={cubeBalance} x={cubeX} y={menuY} height={btnSize} uiScale={uiScale} />
-      <NavButton icon="quests" x={questsX} y={menuY} width={navW} height={btnSize}
-        onClick={onQuestsClick} label={isMobile ? undefined : 'Quests'} />
-      <NavButton icon="trophy" x={trophyX} y={menuY} width={navW} height={btnSize}
-        onClick={onTrophyClick} />
-      <NavButton icon="shop" x={shopX} y={menuY} width={navW} height={btnSize}
-        onClick={onShopClick} />
+      
+      {/* Tutorial button (left) */}
+      <TopBarButton x={tutorialX} y={centerY} size={btnSize} icon="📖" onClick={onTutorialClick} />
+      
+      {/* Cube Balance (center) */}
+      <CubeBalance balance={cubeBalance} x={cubeX} y={centerY} height={btnSize} uiScale={uiScale} />
+      
+      {/* Quests button */}
+      <TopBarButton x={questsX} y={centerY} size={btnSize} icon="📜" onClick={onQuestsClick} />
+      
+      {/* Trophy button */}
+      <TopBarButton x={trophyX} y={centerY} size={btnSize} icon="🏆" onClick={onTrophyClick} />
+      
+      {/* Settings button */}
+      <TopBarButton x={settingsX} y={centerY} size={btnSize} icon="⚙️" onClick={onSettingsClick} />
     </pixiContainer>
   );
 };
 
 // ============================================================================
-// PLACEHOLDER MODAL (for menu/quests/shop)
+// PLACEHOLDER MODAL (for menu/quests/shop/settings)
 // ============================================================================
 
 const PlaceholderModal = ({
@@ -330,10 +388,10 @@ const PlaceholderModal = ({
 // ============================================================================
 
 const LandingScreenInner = ({
-  onPlay, onConnect, isConnected,
+  onPlay, onConnect, onProfileClick, isConnected, username,
   cubeBalance = 0,
   games = [], gamesLoading = false, onResumeGame,
-  onQuestsClick, onTrophyClick, onShopClick,
+  onTutorialClick, onQuestsClick, onTrophyClick, onSettingsClick, onShopClick,
   // LoadoutModal props
   showLoadoutModal = false, onLoadoutClose, onLoadoutConfirm,
   playerMetaData = null, isStartingGame = false,
@@ -341,9 +399,10 @@ const LandingScreenInner = ({
   const layout = useFullscreenLayout();
   const { screenWidth: sw, screenHeight: sh, isMobile, topBarHeight, uiScale } = layout;
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [isQuestsOpen, setIsQuestsOpen] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMyGamesOpen, setIsMyGamesOpen] = useState(false);
 
   const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1;
@@ -361,12 +420,25 @@ const LandingScreenInner = ({
 
   const activeGamesCount = games.filter(g => !g.gameOver).length;
 
-  // Button positions
+  // Button positions - always show 4 buttons
   let btnIdx = 0;
   const playY = firstBtnY + (btnH + btnGap) * btnIdx++;
   const myGamesY = firstBtnY + (btnH + btnGap) * btnIdx++;
   const shopY = firstBtnY + (btnH + btnGap) * btnIdx++;
   const connectY = firstBtnY + (btnH + btnGap) * btnIdx++;
+
+  // Handle connect/profile button click
+  const handleConnectClick = useCallback(() => {
+    if (isConnected && onProfileClick) {
+      onProfileClick();
+    } else if (onConnect) {
+      onConnect();
+    }
+  }, [isConnected, onConnect, onProfileClick]);
+
+  // Connect button label: show username if connected, else "Connect"
+  const connectLabel = isConnected && username ? username : "Connect";
+  const connectColor = isConnected ? 0x6366f1 : 0x8B5CF6;
 
   return (
     <div style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', overflow: 'hidden', touchAction: 'none' }}>
@@ -399,12 +471,10 @@ const LandingScreenInner = ({
           label="Shop" onPress={onShopClick ?? (() => setIsShopOpen(true))}
           fontSize={isMobile ? 18 : 20} />
 
-        {/* Connect / Login (only when not connected) */}
-        {!isConnected && onConnect && (
-          <LandingButton x={centerX - btnW / 2} y={connectY}
-            width={btnW} height={btnH} color={0x8B5CF6}
-            label="Connect" onPress={onConnect} fontSize={isMobile ? 18 : 20} />
-        )}
+        {/* Connect / Username (always visible) */}
+        <LandingButton x={centerX - btnW / 2} y={connectY}
+          width={btnW} height={btnH} color={connectColor}
+          label={connectLabel} onPress={handleConnectClick} fontSize={isMobile ? 16 : 18} />
 
         {/* Footer */}
         <pixiText text="Built on Starknet with Dojo"
@@ -418,19 +488,21 @@ const LandingScreenInner = ({
         <LandingTopBar
           sw={sw} topBarH={topBarHeight} isMobile={isMobile} uiScale={uiScale}
           cubeBalance={cubeBalance}
-          onMenuClick={() => setIsMenuOpen(true)}
+          onTutorialClick={onTutorialClick ?? (() => setIsTutorialOpen(true))}
           onQuestsClick={onQuestsClick ?? (() => setIsQuestsOpen(true))}
           onTrophyClick={onTrophyClick ?? (() => {})}
-          onShopClick={onShopClick ?? (() => setIsShopOpen(true))}
+          onSettingsClick={onSettingsClick ?? (() => setIsSettingsOpen(true))}
         />
 
         {/* Modals */}
-        <PlaceholderModal isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)}
-          title="Menu" subtitle="Settings & options" sw={sw} sh={sh} />
+        <PlaceholderModal isOpen={isTutorialOpen} onClose={() => setIsTutorialOpen(false)}
+          title="Tutorial" subtitle="Learn how to play" sw={sw} sh={sh} />
         <PlaceholderModal isOpen={isQuestsOpen} onClose={() => setIsQuestsOpen(false)}
           title="Quests" subtitle="Daily challenges" sw={sw} sh={sh} />
         <PlaceholderModal isOpen={isShopOpen} onClose={() => setIsShopOpen(false)}
           title="Shop" subtitle="Upgrades & items" sw={sw} sh={sh} />
+        <PlaceholderModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)}
+          title="Settings" subtitle="Game options" sw={sw} sh={sh} />
 
         {/* My Games Modal */}
         <MyGamesModal
