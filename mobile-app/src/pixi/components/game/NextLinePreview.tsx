@@ -125,20 +125,10 @@ export const NextLinePreview = ({
 
   const drawBackground = useCallback((g: PixiGraphics) => {
     g.clear();
-    
-    // Subtle background to differentiate from grid
-    g.rect(0, 0, width, height);
-    g.fill({ color: isProcedural ? 0x0a0a12 : 0x0d1520, alpha: 0.8 });
-    
-    // Top border separator
-    g.moveTo(0, 0);
-    g.lineTo(width, 0);
-    g.stroke({ color: isProcedural ? colors.accent : 0x334155, width: 1, alpha: 0.4 });
-    
-    // "NEXT" indicator line on left
-    g.moveTo(4, 4);
-    g.lineTo(4, height - 4);
-    g.stroke({ color: isProcedural ? colors.accent : 0x3b82f6, width: 2, alpha: 0.6 });
+    g.roundRect(0, 0, width, height, 8);
+    g.fill({ color: isProcedural ? 0x0a0a12 : 0x0d1a2a, alpha: 0.7 });
+    g.roundRect(0, 0, width, height, 8);
+    g.stroke({ color: isProcedural ? colors.accent : 0x334155, width: 1, alpha: 0.3 });
   }, [width, height, isProcedural, colors.accent]);
 
   // Filter to only row 0 blocks (the next line)

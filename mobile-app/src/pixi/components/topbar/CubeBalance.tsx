@@ -28,16 +28,12 @@ export const CubeBalance = ({ balance, x, y, height, uiScale }: CubeBalanceProps
 
   const drawBackground = useCallback((g: PixiGraphics) => {
     g.clear();
-    
-    const radius = height * 0.3;
+    const radius = height * 0.35;
     const bgColor = isProcedural ? 0x1a1a2e : 0x1e293b;
-    
     g.roundRect(0, 0, totalWidth, height, radius);
-    g.fill({ color: bgColor, alpha: 0.9 });
-    
-    // Subtle border
+    g.fill({ color: bgColor, alpha: 0.85 });
     g.roundRect(0, 0, totalWidth, height, radius);
-    g.stroke({ color: isProcedural ? colors.accent : 0x475569, width: 1, alpha: 0.4 });
+    g.stroke({ color: isProcedural ? colors.accent : 0x475569, width: 1, alpha: 0.35 });
   }, [totalWidth, height, isProcedural, colors.accent]);
 
   const drawIcon = useCallback((g: PixiGraphics) => {

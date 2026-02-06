@@ -63,43 +63,39 @@ export const BonusButton = ({
     }
   }, [icon]);
 
-  const cornerRadius = 8;
-  const badgeSize = 16;
+  const cornerRadius = 10;
+  const badgeSize = 18;
 
-  // Determine colors based on state
   const getBgColor = () => {
     if (isDisabled) return 0x1e293b;
-    if (isSelected) return isProcedural ? 0x1e3a5f : 0x1e40af;
-    if (isPressed) return 0x334155;
-    if (isHovered) return 0x475569;
-    return 0x334155;
+    if (isSelected) return isProcedural ? 0x1e3a5f : 0x172554;
+    if (isPressed) return 0x374151;
+    if (isHovered) return 0x334155;
+    return 0x1e293b;
   };
 
   const getBorderColor = () => {
-    if (isDisabled) return 0x475569;
-    if (isSelected) return isProcedural ? colors.accent : 0x3b82f6;
-    return 0x64748b;
+    if (isDisabled) return 0x374151;
+    if (isSelected) return isProcedural ? colors.accent : 0x60a5fa;
+    if (isHovered) return 0x64748b;
+    return 0x475569;
   };
 
   const drawButton = useCallback((g: PixiGraphics) => {
     g.clear();
-    
+
     const bgColor = getBgColor();
     const borderColor = getBorderColor();
-    const borderWidth = isSelected ? 2 : 1;
-    
-    // Button background
+
     g.roundRect(0, 0, size, size, cornerRadius);
-    g.fill({ color: bgColor, alpha: isDisabled ? 0.5 : 0.95 });
-    
-    // Border
+    g.fill({ color: bgColor, alpha: isDisabled ? 0.4 : 0.95 });
+
     g.roundRect(0, 0, size, size, cornerRadius);
-    g.stroke({ color: borderColor, width: borderWidth, alpha: isDisabled ? 0.3 : 1 });
-    
-    // Selection glow effect
+    g.stroke({ color: borderColor, width: isSelected ? 2 : 1.5, alpha: isDisabled ? 0.25 : 0.8 });
+
     if (isSelected && !isDisabled) {
-      g.roundRect(-2, -2, size + 4, size + 4, cornerRadius + 2);
-      g.stroke({ color: borderColor, width: 2, alpha: 0.3 });
+      g.roundRect(-3, -3, size + 6, size + 6, cornerRadius + 3);
+      g.stroke({ color: borderColor, width: 2, alpha: 0.25 });
     }
   }, [size, isSelected, isDisabled, isHovered, isPressed, isProcedural, colors.accent]);
 

@@ -1,16 +1,6 @@
-/**
- * PlayScreen - 100% PixiJS game screen with new visual style
- * 
- * Features:
- * - Shared background with landing pages (sky + clouds)
- * - PixiJS modals for game over, victory, level complete
- * - Integrated game grid and HUD
- * - Mobile-optimized layout
- */
-
 import { Application } from '@pixi/react';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Assets, Texture, Graphics as PixiGraphics } from 'pixi.js';
+import { Assets, Texture, Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { PixiThemeProvider, usePixiTheme } from '../../themes/ThemeContext';
 import { useFullscreenLayout } from '../../hooks/useFullscreenLayout';
 import { GameGrid } from '../GameGrid';
@@ -22,25 +12,17 @@ import { ScorePopup } from '../effects/ScorePopup';
 import { ScreenShakeContainer, useScreenShake } from '../effects/ScreenShake';
 import { MenuModal, GameOverModal, VictoryModal, LevelCompleteModal } from '../modals';
 import { CubeBalance } from '../topbar/CubeBalance';
-import { LevelDisplay } from '../game/LevelDisplay';
-import { GameHUD } from '../game/GameHUD';
 import { ScorePanel } from '../game/ScorePanel';
 import { MovesPanel } from '../game/MovesPanel';
-import { Button } from '../ui';
 import { BonusType } from '@/dojo/game/types/bonus';
+import { ConstraintType } from '@/dojo/game/types/constraint';
+import { useAnimatedValue, usePulse, easings } from '../../hooks/useAnimatedValue';
+import { drawTargetIcon, drawMovesIcon, IconColors } from '../ui/Icons';
 import type { Block } from '@/types/types';
 import type { ConstraintData } from '../hud';
 
-// ============================================================================
-// CONSTANTS
-// ============================================================================
-
 const T = '/assets/theme-1';
 const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
-
-// ============================================================================
-// TYPES
-// ============================================================================
 
 export interface BonusSlotData {
   type: number;
@@ -62,69 +44,44 @@ interface CloudData {
 }
 
 export interface PlayScreenProps {
-  // Grid data
   blocks: Block[];
   nextLine: Block[];
   nextLineConsumed: boolean;
-  
-  // Level info
   level: number;
   levelScore: number;
   targetScore: number;
   moves: number;
   maxMoves?: number;
-  
-  // Constraints
   constraint1?: ConstraintData;
   constraint2?: ConstraintData;
-  
-  // Combo and stars
   combo: number;
   maxCombo: number;
   stars: number;
-  
-  // Bonus system
   bonusSlots: BonusSlotData[];
   selectedBonus: BonusType;
   bonusDescription?: string;
-  
-  // Player info
   cubeBalance?: number;
   totalCubes?: number;
   totalScore?: number;
-  
-  // State
   isTxProcessing: boolean;
   isPlayerInDanger: boolean;
   isLoading?: boolean;
-  
-  // Game state
   isGameOver: boolean;
   isVictory: boolean;
   isLevelComplete: boolean;
-  
-  // Level complete data
   levelCompleteCubes?: number;
   levelCompleteBonusAwarded?: { type: string; icon: string } | null;
   constraintMet?: boolean;
-  
-  // Callbacks
   onMove: (rowIndex: number, startX: number, finalX: number) => void;
   onBonusApply: (block: Block) => void;
   onSurrender?: () => Promise<void>;
   onGoHome: () => void;
   onPlayAgain?: () => void;
   onLevelCompleteContinue: () => void;
-  
-  // Navigation callbacks
   onQuestsClick?: () => void;
   onTrophyClick?: () => void;
   onShopClick?: () => void;
 }
-
-// ============================================================================
-// TEXTURE HOOK
-// ============================================================================
 
 function useTexture(path: string): Texture | null {
   const [tex, setTex] = useState<Texture | null>(null);
@@ -133,10 +90,6 @@ function useTexture(path: string): Texture | null {
   }, [path]);
   return tex;
 }
-
-// ============================================================================
-// SKY BACKGROUND (same as MainScreen)
-// ============================================================================
 
 const SkyBackground = ({ w, h }: { w: number; h: number }) => {
   const bgTex = useTexture(`${T}/theme-2-1.png`);
@@ -168,10 +121,6 @@ const SkyBackground = ({ w, h }: { w: number; h: number }) => {
   }
   return <pixiGraphics draw={drawGradient} />;
 };
-
-// ============================================================================
-// CLOUDS (same as MainScreen)
-// ============================================================================
 
 const Clouds = ({ w, h }: { w: number; h: number }) => {
   const cloudsRef = useRef<CloudData[]>([]);
@@ -227,10 +176,7 @@ const Clouds = ({ w, h }: { w: number; h: number }) => {
   );
 };
 
-// ============================================================================
-// TOP BAR BUTTON
-// ============================================================================
-
+// Slim icon button for the top bar
 const TopBarButton = ({
   x, y, size, icon, onClick,
 }: {
@@ -242,12 +188,10 @@ const TopBarButton = ({
 
   const draw = useCallback((g: PixiGraphics) => {
     g.clear();
-    g.setFillStyle({ color: hovered ? 0x334155 : 0x1e293b, alpha: 0.9 });
-    g.roundRect(0, 0, size, size, 8);
-    g.fill();
-    g.setStrokeStyle({ width: 1, color: 0x475569, alpha: 0.5 });
-    g.roundRect(0, 0, size, size, 8);
-    g.stroke();
+    g.roundRect(0, 0, size, size, 10);
+    g.fill({ color: hovered ? 0x334155 : 0x1e293b, alpha: 0.85 });
+    g.roundRect(0, 0, size, size, 10);
+    g.stroke({ width: 1.5, color: 0x475569, alpha: 0.4 });
   }, [size, hovered]);
 
   return (
@@ -267,61 +211,285 @@ const TopBarButton = ({
   );
 };
 
-// ============================================================================
-// GAME TOP BAR
-// ============================================================================
-
+// Slim translucent top bar: [Home]  🧊 Balance  [Menu]
 const GameTopBar = ({
-  sw, topBarH, isMobile, uiScale, cubeBalance,
+  sw, topBarH, uiScale, cubeBalance,
   onMenuClick, onHomeClick,
 }: {
-  sw: number; topBarH: number; isMobile: boolean; uiScale: number;
+  sw: number; topBarH: number; uiScale: number;
   cubeBalance: number;
   onMenuClick: () => void;
   onHomeClick: () => void;
 }) => {
-  const btnSize = isMobile ? 36 : 42;
-  const gap = Math.round(10 * uiScale);
+  const btnSize = 32;
   const pad = Math.round(12 * uiScale);
   const centerY = (topBarH - btnSize) / 2;
-
-  // Left: Home button
-  const homeX = pad;
-
-  // Center: cube balance
-  const cubeX = sw / 2 - 50;
-
-  // Right: menu button
-  const menuX = sw - pad - btnSize;
 
   const drawBg = useCallback((g: PixiGraphics) => {
     g.clear();
     g.rect(0, 0, sw, topBarH);
-    g.fill({ color: 0x0f172a, alpha: 0.85 });
-    g.rect(0, topBarH - 1, sw, 1);
-    g.fill({ color: 0x334155, alpha: 0.4 });
+    g.fill({ color: 0x0f172a, alpha: 0.7 });
   }, [sw, topBarH]);
 
   return (
     <pixiContainer y={0}>
       <pixiGraphics draw={drawBg} eventMode="static"
         onPointerDown={(e: any) => e.stopPropagation()} />
-      
-      {/* Home button */}
-      <TopBarButton x={homeX} y={centerY} size={btnSize} icon="🏠" onClick={onHomeClick} />
-      
-      {/* Cube Balance (center) */}
-      <CubeBalance balance={cubeBalance} x={cubeX} y={centerY} height={btnSize} uiScale={uiScale} />
-      
-      {/* Menu button */}
-      <TopBarButton x={menuX} y={centerY} size={btnSize} icon="☰" onClick={onMenuClick} />
+      <TopBarButton x={pad} y={centerY} size={btnSize} icon="🏠" onClick={onHomeClick} />
+      <CubeBalance balance={cubeBalance} x={sw / 2 - 50} y={centerY} height={btnSize} uiScale={uiScale} />
+      <TopBarButton x={sw - pad - btnSize} y={centerY} size={btnSize} icon="☰" onClick={onMenuClick} />
     </pixiContainer>
   );
 };
 
-// ============================================================================
-// LOADING SCREEN
-// ============================================================================
+// Unified game info section: Level badge + Score/Moves pills
+const GameInfoBar = ({
+  level, stars, levelScore, targetScore, moves, maxMoves,
+  constraint1, constraint2, combo, isInDanger,
+  layout,
+}: {
+  level: number;
+  stars: number;
+  levelScore: number;
+  targetScore: number;
+  moves: number;
+  maxMoves: number;
+  constraint1?: ConstraintData;
+  constraint2?: ConstraintData;
+  combo: number;
+  isInDanger: boolean;
+  layout: ReturnType<typeof useFullscreenLayout>;
+}) => {
+  const { uiScale } = layout;
+  const animatedScore = useAnimatedValue(levelScore, { duration: 300, easing: easings.easeOut });
+  const dangerPulse = usePulse(isInDanger, { minScale: 1.0, maxScale: 1.08, duration: 400 });
+
+  const scoreProgress = Math.min(1, levelScore / Math.max(targetScore, 1));
+
+  const hasC1 = constraint1 && constraint1.type !== ConstraintType.None;
+  const hasC2 = constraint2 && constraint2.type !== ConstraintType.None;
+
+  const getConstraintLabel = (c: ConstraintData) => {
+    if (c.type === ConstraintType.ClearLines) return `${c.progress}/${c.count}`;
+    if (c.type === ConstraintType.NoBonusUsed) return c.bonusUsed ? '✗' : '✓';
+    return '';
+  };
+
+  // Level badge
+  const drawLevelBadge = useCallback((g: PixiGraphics) => {
+    g.clear();
+    const w = layout.levelBadgeWidth;
+    const h = layout.levelBadgeHeight;
+    g.roundRect(0, 0, w, h, 10);
+    g.fill({ color: 0x1e293b, alpha: 0.95 });
+    g.roundRect(0, 0, w, h, 10);
+    g.stroke({ color: 0x3b82f6, width: 2, alpha: 0.7 });
+    g.roundRect(2, 2, w - 4, h - 4, 8);
+    g.stroke({ color: 0xffffff, width: 1, alpha: 0.08 });
+  }, [layout.levelBadgeWidth, layout.levelBadgeHeight]);
+
+  // Stars inside level badge
+  const drawStars = useCallback((g: PixiGraphics) => {
+    g.clear();
+    const starSize = Math.round(11 * uiScale);
+    const gap = Math.round(3 * uiScale);
+    for (let i = 0; i < 3; i++) {
+      const cx = i * (starSize + gap) + starSize / 2;
+      const cy = starSize / 2;
+      const filled = i < stars;
+      const outerR = starSize / 2;
+      const innerR = outerR * 0.4;
+      const path: number[] = [];
+      for (let j = 0; j < 10; j++) {
+        const r = j % 2 === 0 ? outerR : innerR;
+        const angle = (j * Math.PI) / 5 - Math.PI / 2;
+        path.push(cx + r * Math.cos(angle));
+        path.push(cy + r * Math.sin(angle));
+      }
+      g.poly(path);
+      g.fill({ color: filled ? 0xfbbf24 : 0x475569, alpha: filled ? 1 : 0.3 });
+      if (filled) {
+        g.poly(path);
+        g.stroke({ color: 0xfcd34d, width: 1, alpha: 0.4 });
+      }
+    }
+  }, [stars, uiScale]);
+
+  // Score pill background
+  const drawScorePill = useCallback((g: PixiGraphics) => {
+    g.clear();
+    const w = layout.scorePillWidth;
+    const h = layout.scorePillHeight;
+    g.roundRect(0, 0, w, h, 8);
+    g.fill({ color: 0x1e293b, alpha: 0.9 });
+    g.roundRect(0, 0, w, h, 8);
+    g.stroke({ color: 0x334155, width: 1.5, alpha: 0.5 });
+    // Progress bar
+    const barH = 3;
+    const barY = h - 6;
+    const barX = 8;
+    const barW = w - 16;
+    g.roundRect(barX, barY, barW, barH, 1.5);
+    g.fill({ color: 0x374151, alpha: 0.6 });
+    g.roundRect(barX, barY, barW * scoreProgress, barH, 1.5);
+    g.fill({ color: scoreProgress >= 1 ? 0x22c55e : 0x3b82f6 });
+  }, [layout.scorePillWidth, layout.scorePillHeight, scoreProgress]);
+
+  // Moves pill background
+  const drawMovesPill = useCallback((g: PixiGraphics) => {
+    g.clear();
+    const w = layout.movesPillWidth;
+    const h = layout.movesPillHeight;
+    const bgColor = isInDanger ? 0x3b1818 : 0x1e293b;
+    const borderColor = isInDanger ? 0xef4444 : 0x334155;
+    g.roundRect(0, 0, w, h, 8);
+    g.fill({ color: bgColor, alpha: 0.9 });
+    g.roundRect(0, 0, w, h, 8);
+    g.stroke({ color: borderColor, width: 1.5, alpha: isInDanger ? 0.7 : 0.5 });
+  }, [layout.movesPillWidth, layout.movesPillHeight, isInDanger]);
+
+  // Icon helpers
+  const drawScoreIcon = useCallback((g: PixiGraphics) => {
+    drawTargetIcon(g, Math.round(14 * uiScale), IconColors.primary);
+  }, [uiScale]);
+
+  const drawMovesIconCb = useCallback((g: PixiGraphics) => {
+    drawMovesIcon(g, Math.round(14 * uiScale), isInDanger ? 0xfca5a5 : IconColors.primary);
+  }, [uiScale, isInDanger]);
+
+  const levelLabelStyle = useMemo(() => new TextStyle({
+    fontFamily: FONT,
+    fontSize: Math.round(9 * uiScale),
+    fill: 0x94a3b8,
+    letterSpacing: 2,
+  }), [uiScale]);
+
+  const levelNumStyle = useMemo(() => new TextStyle({
+    fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+    fontSize: Math.round(20 * uiScale),
+    fontWeight: 'bold',
+    fill: 0xffffff,
+  }), [uiScale]);
+
+  const valueStyle = useMemo(() => new TextStyle({
+    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontSize: Math.round(15 * uiScale),
+    fontWeight: 'bold',
+    fill: 0xffffff,
+  }), [uiScale]);
+
+  const movesValueStyle = useMemo(() => new TextStyle({
+    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontSize: Math.round(15 * uiScale),
+    fontWeight: 'bold',
+    fill: isInDanger ? 0xfca5a5 : 0xffffff,
+  }), [uiScale, isInDanger]);
+
+  const labelStyle = useMemo(() => new TextStyle({
+    fontFamily: 'Arial, sans-serif',
+    fontSize: Math.round(9 * uiScale),
+    fill: 0x94a3b8,
+    letterSpacing: 1,
+  }), [uiScale]);
+
+  const constraintStyle = useMemo(() => new TextStyle({
+    fontFamily: 'Arial, sans-serif',
+    fontSize: Math.round(9 * uiScale),
+    fontWeight: 'bold',
+    fill: 0xd1d5db,
+  }), [uiScale]);
+
+  // Constraint section inside level badge
+  const starAreaWidth = 3 * Math.round(11 * uiScale) + 2 * Math.round(3 * uiScale);
+  const constraintText = hasC1 ? getConstraintLabel(constraint1!) : '';
+  const constraintSep = (hasC1 || hasC2) ? '  ·  ' : '';
+  const constraint2Text = hasC2 ? getConstraintLabel(constraint2!) : '';
+  const badgeCenterX = layout.levelBadgeWidth / 2;
+  const badgeBottomRow = layout.levelBadgeHeight - Math.round(10 * uiScale);
+
+  return (
+    <pixiContainer>
+      {/* Level badge */}
+      <pixiContainer x={layout.levelBadgeX} y={layout.levelBadgeY}>
+        <pixiGraphics draw={drawLevelBadge} />
+        <pixiText text="LEVEL" x={badgeCenterX} y={Math.round(6 * uiScale)} anchor={{ x: 0.5, y: 0 }} style={levelLabelStyle} />
+        <pixiText text={String(level)} x={badgeCenterX} y={Math.round(16 * uiScale)} anchor={{ x: 0.5, y: 0 }} style={levelNumStyle} />
+        {/* Stars + constraint in bottom row */}
+        <pixiContainer x={badgeCenterX - starAreaWidth / 2 - (constraintText ? 20 : 0)} y={badgeBottomRow}>
+          <pixiGraphics draw={drawStars} />
+        </pixiContainer>
+        {(hasC1 || hasC2) && (
+          <pixiText
+            text={`${constraintSep}${constraintText}${constraint2Text ? '  ' + constraint2Text : ''}`}
+            x={badgeCenterX + starAreaWidth / 2 - (constraintText ? 10 : 0)}
+            y={badgeBottomRow + Math.round(5 * uiScale)}
+            anchor={{ x: 0.5, y: 0.5 }}
+            style={constraintStyle}
+          />
+        )}
+      </pixiContainer>
+
+      {/* Score pill */}
+      <pixiContainer x={layout.scorePillX} y={layout.scorePillY}>
+        <pixiGraphics draw={drawScorePill} />
+        <pixiGraphics x={12} y={layout.scorePillHeight / 2 - 3} draw={drawScoreIcon} />
+        <pixiText
+          text={`${Math.round(animatedScore)}/${targetScore}`}
+          x={Math.round(28 * uiScale)}
+          y={layout.scorePillHeight / 2 - 3}
+          anchor={{ x: 0, y: 0.5 }}
+          style={valueStyle}
+        />
+        <pixiText
+          text="SCORE"
+          x={layout.scorePillWidth / 2}
+          y={layout.scorePillHeight - Math.round(8 * uiScale)}
+          anchor={{ x: 0.5, y: 1 }}
+          style={labelStyle}
+        />
+      </pixiContainer>
+
+      {/* Moves pill */}
+      <pixiContainer
+        x={layout.movesPillX + layout.movesPillWidth / 2}
+        y={layout.movesPillY + layout.movesPillHeight / 2}
+        scale={isInDanger ? dangerPulse : 1}
+        pivot={{ x: layout.movesPillWidth / 2, y: layout.movesPillHeight / 2 }}
+      >
+        <pixiGraphics draw={drawMovesPill} />
+        <pixiGraphics x={12} y={layout.movesPillHeight / 2 - 3} draw={drawMovesIconCb} />
+        <pixiText
+          text={String(moves)}
+          x={Math.round(28 * uiScale)}
+          y={layout.movesPillHeight / 2 - 3}
+          anchor={{ x: 0, y: 0.5 }}
+          style={movesValueStyle}
+        />
+        <pixiText
+          text="MOVES"
+          x={layout.movesPillWidth / 2}
+          y={layout.movesPillHeight - Math.round(8 * uiScale)}
+          anchor={{ x: 0.5, y: 1 }}
+          style={labelStyle}
+        />
+        {combo > 0 && (
+          <pixiText
+            text={`${combo}x`}
+            x={layout.movesPillWidth - 10}
+            y={6}
+            anchor={{ x: 1, y: 0 }}
+            style={new TextStyle({
+              fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+              fontSize: Math.round(11 * uiScale),
+              fontWeight: 'bold',
+              fill: combo >= 5 ? 0xffd700 : combo >= 3 ? 0xf97316 : 0xfbbf24,
+            })}
+          />
+        )}
+      </pixiContainer>
+    </pixiContainer>
+  );
+};
 
 const LoadingScreen = ({ sw, sh }: { sw: number; sh: number }) => {
   const [dots, setDots] = useState('');
@@ -337,44 +505,27 @@ const LoadingScreen = ({ sw, sh }: { sw: number; sh: number }) => {
     <pixiContainer>
       <SkyBackground w={sw} h={sh} />
       <Clouds w={sw} h={sh} />
-      
-      {/* Loading text */}
       <pixiText
         text={`Loading${dots}`}
-        x={sw / 2}
-        y={sh / 2 - 20}
-        anchor={0.5}
+        x={sw / 2} y={sh / 2 - 20} anchor={0.5}
         style={{
-          fontFamily: FONT,
-          fontSize: 28,
-          fill: 0xffffff,
+          fontFamily: FONT, fontSize: 28, fill: 0xffffff,
           dropShadow: { alpha: 0.4, angle: Math.PI / 4, blur: 4, distance: 2, color: 0x000000 },
         }}
       />
-      
       <pixiText
         text="Preparing the blocks..."
-        x={sw / 2}
-        y={sh / 2 + 20}
-        anchor={0.5}
-        style={{
-          fontFamily: 'Arial, sans-serif',
-          fontSize: 14,
-          fill: 0x94a3b8,
-        }}
+        x={sw / 2} y={sh / 2 + 20} anchor={0.5}
+        style={{ fontFamily: 'Arial, sans-serif', fontSize: 14, fill: 0x94a3b8 }}
       />
     </pixiContainer>
   );
 };
 
-// ============================================================================
-// PLAY SCREEN INNER
-// ============================================================================
-
 const PlayScreenInner = (props: PlayScreenProps) => {
   const layout = useFullscreenLayout();
-  const { screenWidth: sw, screenHeight: sh, isMobile, topBarHeight, uiScale } = layout;
-  const { offset, lineClear, combo: comboShake, bigCombo } = useScreenShake();
+  const { screenWidth: sw, screenHeight: sh, uiScale } = layout;
+  const { offset, lineClear } = useScreenShake();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -391,259 +542,150 @@ const PlayScreenInner = (props: PlayScreenProps) => {
     onMove, onBonusApply, onSurrender, onGoHome, onPlayAgain, onLevelCompleteContinue,
   } = props;
 
-  // Convert bonus slots to ActionBar format
-  const actionBarSlots = useMemo(() => 
-    bonusSlots.map(slot => ({
-      ...slot,
-      onClick: slot.onClick,
-    })),
+  const actionBarSlots = useMemo(() =>
+    bonusSlots.map(slot => ({ ...slot, onClick: slot.onClick })),
     [bonusSlots]
   );
 
-  const handleMenuClick = useCallback(() => {
-    setIsMenuOpen(true);
-  }, []);
-
-  const handleMenuClose = useCallback(() => {
-    setIsMenuOpen(false);
-  }, []);
-
+  const handleMenuClick = useCallback(() => setIsMenuOpen(true), []);
+  const handleMenuClose = useCallback(() => setIsMenuOpen(false), []);
   const handleSurrender = useCallback(async () => {
-    if (onSurrender) {
-      await onSurrender();
-    }
+    if (onSurrender) await onSurrender();
     setIsMenuOpen(false);
   }, [onSurrender]);
 
-  // Trigger screen shake on combos
-  const triggerExplosion = useCallback(() => {
-    lineClear();
-  }, [lineClear]);
+  const triggerExplosion = useCallback(() => lineClear(), [lineClear]);
 
-  // Show loading screen
+  const isInteractionBlocked = isTxProcessing || isMenuOpen || isGameOver || isVictory || isLevelComplete;
+
   if (isLoading || blocks.length === 0) {
     return <LoadingScreen sw={sw} sh={sh} />;
   }
 
   return (
     <pixiContainer>
-      {/* Background */}
       <SkyBackground w={sw} h={sh} />
       <Clouds w={sw} h={sh} />
 
-      {/* Top bar */}
       <GameTopBar
-        sw={sw} topBarH={topBarHeight} isMobile={isMobile} uiScale={uiScale}
+        sw={sw} topBarH={layout.topBarHeight} uiScale={uiScale}
         cubeBalance={cubeBalance}
-        onMenuClick={handleMenuClick}
-        onHomeClick={onGoHome}
+        onMenuClick={handleMenuClick} onHomeClick={onGoHome}
       />
 
-      {/* Level display */}
-      <LevelDisplay
-        level={level}
-        stars={stars}
-        constraint1={constraint1}
-        constraint2={constraint2}
-        x={0}
-        y={layout.levelDisplayY}
-        width={sw}
-        height={layout.levelDisplayHeight}
-        uiScale={uiScale}
+      <GameInfoBar
+        level={level} stars={stars}
+        levelScore={levelScore} targetScore={targetScore}
+        moves={moves} maxMoves={maxMoves}
+        constraint1={constraint1} constraint2={constraint2}
+        combo={combo} isInDanger={isPlayerInDanger}
+        layout={layout}
       />
 
-      {/* Mobile HUD */}
-      {layout.showMobileHud && (
-        <GameHUD
-          score={levelScore}
-          targetScore={targetScore}
-          moves={moves}
-          maxMoves={maxMoves}
-          combo={combo}
-          x={0}
-          y={layout.mobileHudY}
-          width={sw}
-          uiScale={uiScale}
-          isInDanger={isPlayerInDanger}
-        />
-      )}
-
-      {/* Side panels (desktop only) */}
+      {/* Desktop side panels */}
       {layout.showSidePanels && (
         <>
           <ScorePanel
-            score={levelScore}
-            targetScore={targetScore}
-            x={layout.leftPanelX}
-            y={layout.sidePanelY}
-            width={layout.sidePanelWidth}
-            height={layout.sidePanelHeight}
+            score={levelScore} targetScore={targetScore}
+            x={layout.leftPanelX} y={layout.sidePanelY}
+            width={layout.sidePanelWidth} height={layout.sidePanelHeight}
             uiScale={uiScale}
           />
           <MovesPanel
-            moves={moves}
-            maxMoves={maxMoves}
-            combo={combo}
-            maxCombo={maxCombo}
-            x={layout.rightPanelX}
-            y={layout.sidePanelY}
-            width={layout.sidePanelWidth}
-            height={layout.sidePanelHeight}
-            uiScale={uiScale}
-            isInDanger={isPlayerInDanger}
+            moves={moves} maxMoves={maxMoves}
+            combo={combo} maxCombo={maxCombo}
+            x={layout.rightPanelX} y={layout.sidePanelY}
+            width={layout.sidePanelWidth} height={layout.sidePanelHeight}
+            uiScale={uiScale} isInDanger={isPlayerInDanger}
           />
         </>
       )}
 
-      {/* Main game area with screen shake */}
       <ScreenShakeContainer offset={offset}>
         <pixiContainer x={layout.gridX} y={layout.gridY}>
           <GridBackground
             gridSize={layout.cellSize}
-            gridWidth={layout.gridCols}
-            gridHeight={layout.gridRows}
+            gridWidth={layout.gridCols} gridHeight={layout.gridRows}
             isPlayerInDanger={isPlayerInDanger}
           />
           <GameGrid
             blocks={blocks}
             gridSize={layout.cellSize}
-            gridWidth={layout.gridCols}
-            gridHeight={layout.gridRows}
-            onMove={onMove}
-            onBonusApply={onBonusApply}
+            gridWidth={layout.gridCols} gridHeight={layout.gridRows}
+            onMove={onMove} onBonusApply={onBonusApply}
             bonus={selectedBonus}
-            isTxProcessing={isTxProcessing || isMenuOpen || isGameOver || isVictory || isLevelComplete}
+            isTxProcessing={isInteractionBlocked}
             onExplosion={triggerExplosion}
           />
         </pixiContainer>
 
-        {/* Next line preview */}
         <pixiContainer x={layout.gridX}>
           <NextLinePreview
-            blocks={nextLine}
-            cellSize={layout.cellSize}
-            gridCols={layout.gridCols}
-            y={layout.nextLineY}
+            blocks={nextLine} cellSize={layout.cellSize}
+            gridCols={layout.gridCols} y={layout.nextLineY}
             isConsumed={nextLineConsumed}
           />
         </pixiContainer>
       </ScreenShakeContainer>
 
-      {/* Action bar */}
       <ActionBar
-        bonusSlots={actionBarSlots}
-        selectedBonus={selectedBonus}
-        combo={combo}
-        maxCombo={maxCombo}
-        stars={stars}
-        width={sw}
-        height={layout.actionBarHeight}
-        y={layout.actionBarY}
-        isDisabled={isTxProcessing || isMenuOpen || isGameOver || isVictory || isLevelComplete}
-        onSurrender={handleMenuClick}
-        showSurrender={!!onSurrender}
+        bonusSlots={actionBarSlots} selectedBonus={selectedBonus}
+        combo={combo} maxCombo={maxCombo} stars={stars}
+        width={sw} height={layout.actionBarHeight} y={layout.actionBarY}
+        isDisabled={isInteractionBlocked}
+        onSurrender={handleMenuClick} showSurrender={!!onSurrender}
       />
 
-      {/* Particle system */}
       <pixiContainer x={layout.gridX} y={layout.gridY}>
         <ParticleSystem gridSize={layout.cellSize} />
       </pixiContainer>
 
-      {/* Score popups */}
       <pixiContainer x={layout.gridX} y={layout.gridY}>
         <ScorePopup
-          gridWidth={layout.gridCols}
-          gridHeight={layout.gridRows}
+          gridWidth={layout.gridCols} gridHeight={layout.gridRows}
           gridSize={layout.cellSize}
         />
       </pixiContainer>
 
-      {/* Bonus description overlay */}
       {selectedBonus !== BonusType.None && bonusDescription && (
-        <pixiContainer x={sw / 2} y={sh / 3}>
-          <pixiText
-            text={bonusDescription}
-            anchor={0.5}
+        <pixiContainer x={sw / 2} y={layout.gridY + 30}>
+          <pixiText text={bonusDescription} anchor={0.5}
             style={{
-              fontFamily: FONT,
-              fontSize: 18,
-              fill: 0xfbbf24,
+              fontFamily: FONT, fontSize: 16, fill: 0xfbbf24,
               dropShadow: { alpha: 0.8, angle: Math.PI / 4, blur: 4, distance: 2, color: 0x000000 },
             }}
           />
         </pixiContainer>
       )}
 
-      {/* Menu Modal */}
-      <MenuModal
-        isOpen={isMenuOpen}
-        onClose={handleMenuClose}
-        onSurrender={handleSurrender}
-        screenWidth={sw}
-        screenHeight={sh}
-        currentLevel={level}
-        cubesEarned={totalCubes}
-      />
+      <MenuModal isOpen={isMenuOpen} onClose={handleMenuClose} onSurrender={handleSurrender}
+        screenWidth={sw} screenHeight={sh} currentLevel={level} cubesEarned={totalCubes} />
 
-      {/* Game Over Modal */}
-      <GameOverModal
-        isOpen={isGameOver && !isVictory}
-        onClose={onGoHome}
-        onPlayAgain={onPlayAgain}
-        onGoHome={onGoHome}
-        screenWidth={sw}
-        screenHeight={sh}
-        level={level}
-        totalScore={totalScore}
-        totalCubes={totalCubes}
-        maxCombo={maxCombo}
-      />
+      <GameOverModal isOpen={isGameOver && !isVictory} onClose={onGoHome}
+        onPlayAgain={onPlayAgain} onGoHome={onGoHome}
+        screenWidth={sw} screenHeight={sh}
+        level={level} totalScore={totalScore} totalCubes={totalCubes} maxCombo={maxCombo} />
 
-      {/* Victory Modal */}
-      <VictoryModal
-        isOpen={isVictory}
-        onClose={onGoHome}
-        onGoHome={onGoHome}
-        screenWidth={sw}
-        screenHeight={sh}
-        totalScore={totalScore}
-        totalCubes={totalCubes}
-        maxCombo={maxCombo}
-      />
+      <VictoryModal isOpen={isVictory} onClose={onGoHome} onGoHome={onGoHome}
+        screenWidth={sw} screenHeight={sh}
+        totalScore={totalScore} totalCubes={totalCubes} maxCombo={maxCombo} />
 
-      {/* Level Complete Modal */}
-      <LevelCompleteModal
-        isOpen={isLevelComplete}
-        onClose={onLevelCompleteContinue}
-        screenWidth={sw}
-        screenHeight={sh}
-        level={level}
-        levelScore={levelScore}
-        targetScore={targetScore}
-        stars={stars}
-        bonusAwarded={levelCompleteBonusAwarded}
-        cubesEarned={levelCompleteCubes}
-        totalCubes={totalCubes}
-        constraintMet={constraintMet}
-      />
+      <LevelCompleteModal isOpen={isLevelComplete} onClose={onLevelCompleteContinue}
+        screenWidth={sw} screenHeight={sh}
+        level={level} levelScore={levelScore} targetScore={targetScore} stars={stars}
+        bonusAwarded={levelCompleteBonusAwarded} cubesEarned={levelCompleteCubes}
+        totalCubes={totalCubes} constraintMet={constraintMet} />
 
-      {/* Danger border overlay */}
       {isPlayerInDanger && (
-        <pixiGraphics
-          draw={(g) => {
-            g.clear();
-            g.rect(0, 0, sw, sh);
-            g.stroke({ color: 0xef4444, width: 8, alpha: 0.4 });
-          }}
-        />
+        <pixiGraphics draw={(g) => {
+          g.clear();
+          g.rect(0, 0, sw, sh);
+          g.stroke({ color: 0xef4444, width: 6, alpha: 0.35 });
+        }} />
       )}
     </pixiContainer>
   );
 };
-
-// ============================================================================
-// EXPORT
-// ============================================================================
 
 export const PlayScreen = (props: PlayScreenProps) => {
   const layout = useFullscreenLayout();

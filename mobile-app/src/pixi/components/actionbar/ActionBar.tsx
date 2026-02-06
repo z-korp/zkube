@@ -1,10 +1,9 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { BonusButton } from './BonusButton';
 import type { BonusButtonData } from './BonusButton';
 import { ComboDisplay } from './ComboDisplay';
-import { StarRating } from './StarRating';
 import { SurrenderButton } from './SurrenderButton';
 import { BonusType } from '@/dojo/game/types/bonus';
 
@@ -14,36 +13,19 @@ interface BonusSlot extends BonusButtonData {
 }
 
 interface ActionBarProps {
-  /** Bonus button slots */
   bonusSlots: BonusSlot[];
-  /** Currently selected bonus type (or None) */
   selectedBonus: BonusType;
-  /** Current combo count */
   combo: number;
-  /** Max combo this run */
   maxCombo: number;
-  /** Stars earned this level (0-3) */
   stars: number;
-  /** Width of the action bar */
   width: number;
-  /** Height of the action bar */
   height: number;
-  /** Y position */
   y?: number;
-  /** Whether actions are disabled (tx processing) */
   isDisabled?: boolean;
-  /** Callback for surrender button */
   onSurrender?: () => void;
-  /** Whether to show surrender button */
   showSurrender?: boolean;
 }
 
-/**
- * Bottom action bar containing bonus buttons, combo display, and star rating
- * 
- * Layout:
- * [Hammer] [Wave] [Totem]          [5x COMBO]  [***]
- */
 export const ActionBar = ({
   bonusSlots,
   selectedBonus,
@@ -59,51 +41,36 @@ export const ActionBar = ({
 }: ActionBarProps) => {
   const { colors, isProcedural } = usePixiTheme();
 
-  // Layout calculations
-  const padding = 8;
-  const buttonSize = Math.min(48, height - 8);
-  const buttonGap = 8;
-  
-  // Bonus buttons on the left
+  const padding = 12;
+  const buttonSize = Math.min(50, height - 10);
+  const buttonGap = 10;
+  const bonusCount = bonusSlots.length;
+
+  const bonusSectionWidth = bonusCount * buttonSize + (bonusCount - 1) * buttonGap;
   const bonusStartX = padding;
-  
-  // Surrender button dimensions
-  const surrenderWidth = 36;
-  const surrenderHeight = buttonSize * 0.7;
-  
-  // Star rating on the right
-  const starSize = 16;
-  const starGap = 4;
-  const starWidth = 3 * starSize + 2 * starGap;
-  const starsX = width - padding - starWidth - (showSurrender ? surrenderWidth + padding : 0);
-  const starsY = (height - starSize) / 2;
-  
-  // Surrender button position
+
+  const surrenderWidth = 38;
+  const surrenderHeight = buttonSize * 0.75;
   const surrenderX = width - padding - surrenderWidth;
   const surrenderY = (height - surrenderHeight) / 2;
-  
-  // Combo display between bonuses and stars
+
   const comboWidth = 50;
-  const comboX = starsX - comboWidth - 16;
+  const rightEdge = showSurrender ? surrenderX - 8 : width - padding;
+  const comboX = rightEdge - comboWidth;
 
   const drawBackground = useCallback((g: PixiGraphics) => {
     g.clear();
-    
-    // Semi-transparent background
     g.rect(0, 0, width, height);
-    g.fill({ color: isProcedural ? 0x0a0a0f : 0x1a2744, alpha: 0.85 });
-    
-    // Top border line
-    g.moveTo(0, 0);
-    g.lineTo(width, 0);
-    g.stroke({ color: isProcedural ? colors.accent : 0x334155, width: 1, alpha: 0.3 });
+    g.fill({ color: isProcedural ? 0x0a0a0f : 0x0f1729, alpha: 0.88 });
+    g.moveTo(0, 0.5);
+    g.lineTo(width, 0.5);
+    g.stroke({ color: isProcedural ? colors.accent : 0x334155, width: 1, alpha: 0.25 });
   }, [width, height, isProcedural, colors.accent]);
 
   return (
     <pixiContainer y={y}>
       <pixiGraphics draw={drawBackground} />
-      
-      {/* Bonus buttons */}
+
       {bonusSlots.map((slot, index) => (
         <BonusButton
           key={slot.type}
@@ -115,34 +82,17 @@ export const ActionBar = ({
           isDisabled={isDisabled || slot.count === 0}
         />
       ))}
-      
-      {/* Combo display */}
+
       <ComboDisplay
-        combo={combo}
-        maxCombo={maxCombo}
-        x={comboX}
-        y={(height - 40) / 2}
-        height={40}
+        combo={combo} maxCombo={maxCombo}
+        x={comboX} y={(height - 40) / 2} height={40}
       />
-      
-      {/* Star rating */}
-      <StarRating
-        stars={stars}
-        x={starsX}
-        y={starsY}
-        starSize={starSize}
-        gap={starGap}
-      />
-      
-      {/* Surrender button */}
+
       {showSurrender && (
         <SurrenderButton
-          x={surrenderX}
-          y={surrenderY}
-          width={surrenderWidth}
-          height={surrenderHeight}
-          onClick={onSurrender}
-          isDisabled={isDisabled}
+          x={surrenderX} y={surrenderY}
+          width={surrenderWidth} height={surrenderHeight}
+          onClick={onSurrender} isDisabled={isDisabled}
         />
       )}
     </pixiContainer>
