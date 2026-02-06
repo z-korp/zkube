@@ -1,52 +1,28 @@
 /**
- * LandingScreen - Full PixiJS landing page
+ * LandingScreen - 100% PixiJS landing page. No HTML at all.
  *
- * Uses ONLY theme-1 assets:
- *   block-1/2/3/4.png, logo.png, palmtree-left/right.png, theme-2-1.png
- * Everything else (sky, clouds, grass, buttons, icons) is procedural.
+ * Uses ONLY theme-1 assets: logo.png, palmtree-left/right.png, theme-2-1.png
+ * Everything else is procedural.
+ * All modals (menu, quests, shop) rendered inside PixiJS via Modal component.
  */
 
 import { Application } from '@pixi/react';
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Assets, Texture, Graphics as PixiGraphics } from 'pixi.js';
 import { PixiThemeProvider } from '../../themes/ThemeContext';
 import { useFullscreenLayout } from '../../hooks/useFullscreenLayout';
 import { TopBar } from '../topbar';
+import { Modal, Button } from '../ui';
 
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 
-const T = '/assets/theme-1'; // theme base path
-const GRID_COLS = 8;
-const MAX_STACK_ROWS = 6;
-const MAX_CELL_SIZE = 52;
-
-const BLOCK_COLORS = [
-  { fill: 0x4ADE80, border: 0x22C55E, highlight: 0x86EFAC },
-  { fill: 0xFB923C, border: 0xEA580C, highlight: 0xFDBA74 },
-  { fill: 0x60A5FA, border: 0x3B82F6, highlight: 0x93C5FD },
-  { fill: 0xFBBF24, border: 0xF59E0B, highlight: 0xFDE68A },
-  { fill: 0xF87171, border: 0xEF4444, highlight: 0xFCA5A5 },
-  { fill: 0xC084FC, border: 0xA855F7, highlight: 0xD8B4FE },
-  { fill: 0x2DD4BF, border: 0x14B8A6, highlight: 0x5EEAD4 },
-];
+const T = '/assets/theme-1';
 
 // ============================================================================
 // TYPES
 // ============================================================================
-
-interface FallingBlock {
-  id: number;
-  col: number;
-  row: number;
-  width: number;
-  y: number;
-  targetY: number;
-  speed: number;
-  settled: boolean;
-  colorIdx: number;
-}
 
 interface CloudData {
   id: number;
@@ -80,7 +56,7 @@ function useTexture(path: string): Texture | null {
 }
 
 // ============================================================================
-// SKY BACKGROUND (procedural gradient, theme-2-1.png overlay)
+// SKY BACKGROUND
 // ============================================================================
 
 const SkyBackground = ({ w, h }: { w: number; h: number }) => {
@@ -116,7 +92,7 @@ const SkyBackground = ({ w, h }: { w: number; h: number }) => {
 };
 
 // ============================================================================
-// CLOUDS (procedural)
+// CLOUDS (procedural, drifting)
 // ============================================================================
 
 const Clouds = ({ w, h }: { w: number; h: number }) => {
@@ -130,7 +106,7 @@ const Clouds = ({ w, h }: { w: number; h: number }) => {
       cloudsRef.current.push({
         id: i,
         x: Math.random() * (w + 300) - 150,
-        y: 50 + Math.random() * h * 0.2,
+        y: 50 + Math.random() * h * 0.25,
         scale: 0.5 + Math.random() * 0.8,
         speed: 0.1 + Math.random() * 0.2,
         alpha: 0.5 + Math.random() * 0.35,
@@ -145,7 +121,7 @@ const Clouds = ({ w, h }: { w: number; h: number }) => {
       fc++;
       for (const c of cloudsRef.current) {
         c.x += c.speed;
-        if (c.x > w + 200) { c.x = -200 * c.scale; c.y = 50 + Math.random() * h * 0.2; }
+        if (c.x > w + 200) { c.x = -200 * c.scale; c.y = 50 + Math.random() * h * 0.25; }
       }
       if (fc % 2 === 0) setTick(n => n + 1);
       raf = requestAnimationFrame(loop);
@@ -170,182 +146,6 @@ const Clouds = ({ w, h }: { w: number; h: number }) => {
         <pixiGraphics key={c.id} x={c.x} y={c.y} alpha={c.alpha}
           draw={(g) => drawCloud(g, c.scale)} />
       ))}
-    </pixiContainer>
-  );
-};
-
-// ============================================================================
-// GRASS (procedural)
-// ============================================================================
-
-const Grass = ({ w, groundY, h }: { w: number; groundY: number; h: number }) => {
-  const draw = useCallback((g: PixiGraphics) => {
-    g.clear();
-    // Light top edge
-    g.setFillStyle({ color: 0xBBF7D0, alpha: 0.6 });
-    g.rect(0, groundY - 4, w, 8);
-    g.fill();
-    // Main green
-    g.setFillStyle({ color: 0x86EFAC, alpha: 0.7 });
-    g.rect(0, groundY, w, h - groundY + 10);
-    g.fill();
-    // Darker base
-    g.setFillStyle({ color: 0x4ADE80, alpha: 0.5 });
-    g.rect(0, groundY + 6, w, h - groundY + 4);
-    g.fill();
-  }, [w, h, groundY]);
-
-  return <pixiGraphics draw={draw} />;
-};
-
-// ============================================================================
-// PALM TREES (theme-1 assets)
-// ============================================================================
-
-const PalmTrees = ({ w, groundY }: { w: number; groundY: number }) => {
-  const left = useTexture(`${T}/palmtree-left.png`);
-  const right = useTexture(`${T}/palmtree-right.png`);
-  if (!left && !right) return null;
-  const pH = 200;
-  const pW = 130;
-  return (
-    <pixiContainer>
-      {left && <pixiSprite texture={left} x={-10} y={groundY - pH} width={pW} height={pH} alpha={0.9} />}
-      {right && <pixiSprite texture={right} x={w - pW + 10} y={groundY - pH + 20} width={pW} height={pH} alpha={0.9} />}
-    </pixiContainer>
-  );
-};
-
-// ============================================================================
-// BLOCK PILE (theme-1 block textures)
-// ============================================================================
-
-const BlockPile = ({ w, h, cellSize }: { w: number; h: number; cellSize: number }) => {
-  const blocksRef = useRef<FallingBlock[]>([]);
-  const gridRef = useRef<boolean[][]>([]);
-  const nextIdRef = useRef(0);
-  const [tick, setTick] = useState(0);
-
-  // Load block textures from theme-1
-  const [textures, setTextures] = useState<Record<number, Texture | null>>({});
-  useEffect(() => {
-    const load = async () => {
-      const result: Record<number, Texture | null> = {};
-      for (let i = 1; i <= 4; i++) {
-        try { result[i] = await Assets.load(`${T}/block-${i}.png`) as Texture; }
-        catch { result[i] = null; }
-      }
-      setTextures(result);
-    };
-    load();
-  }, []);
-
-  useEffect(() => {
-    const totalRows = Math.ceil(h / cellSize);
-    gridRef.current = Array.from({ length: totalRows }, () => new Array(GRID_COLS).fill(false));
-  }, [h, cellSize]);
-
-  const findSpot = useCallback((blockW: number): { col: number; row: number } | null => {
-    const grid = gridRef.current;
-    if (!grid.length) return null;
-    const maxRow = grid.length - 1;
-    const topLimit = Math.max(0, maxRow - MAX_STACK_ROWS);
-    const cols: number[] = [];
-    for (let c = 0; c <= GRID_COLS - blockW; c++) cols.push(c);
-    for (let i = cols.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [cols[i], cols[j]] = [cols[j], cols[i]];
-    }
-    for (const col of cols) {
-      for (let row = maxRow; row >= topLimit; row--) {
-        let canPlace = true;
-        for (let dx = 0; dx < blockW; dx++) {
-          if (grid[row]?.[col + dx]) { canPlace = false; break; }
-        }
-        if (!canPlace) continue;
-        if (row === maxRow) return { col, row };
-        let hasSupport = false;
-        for (let dx = 0; dx < blockW; dx++) {
-          if (grid[row + 1]?.[col + dx]) { hasSupport = true; break; }
-        }
-        if (hasSupport) return { col, row };
-      }
-    }
-    return null;
-  }, []);
-
-  const spawnBlock = useCallback(() => {
-    const widths = [1, 1, 2, 2, 2, 3, 3, 4];
-    const blockW = widths[Math.floor(Math.random() * widths.length)];
-    const spot = findSpot(blockW);
-    if (!spot) return;
-    const grid = gridRef.current;
-    for (let dx = 0; dx < blockW; dx++) {
-      if (grid[spot.row]) grid[spot.row][spot.col + dx] = true;
-    }
-    blocksRef.current.push({
-      id: nextIdRef.current++, col: spot.col, row: spot.row, width: blockW,
-      y: -cellSize * 2 - Math.random() * 150,
-      targetY: spot.row * cellSize,
-      speed: 2 + Math.random() * 2.5, settled: false,
-      colorIdx: Math.floor(Math.random() * BLOCK_COLORS.length),
-    });
-  }, [cellSize, findSpot]);
-
-  useEffect(() => {
-    const t = setTimeout(() => {
-      for (let i = 0; i < 24; i++) spawnBlock();
-      for (const b of blocksRef.current) { b.y = b.targetY; b.settled = true; }
-      setTick(n => n + 1);
-    }, 80);
-    const iv = setInterval(() => spawnBlock(), 1000 + Math.random() * 800);
-    return () => { clearTimeout(t); clearInterval(iv); };
-  }, [spawnBlock]);
-
-  useEffect(() => {
-    let raf: number;
-    const loop = () => {
-      let dirty = false;
-      for (const b of blocksRef.current) {
-        if (!b.settled) {
-          b.y += b.speed;
-          if (b.y >= b.targetY) { b.y = b.targetY; b.settled = true; }
-          dirty = true;
-        }
-      }
-      if (dirty) setTick(n => n + 1);
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-
-  const gridOffsetX = (w - GRID_COLS * cellSize) / 2;
-
-  return (
-    <pixiContainer>
-      {blocksRef.current.map(b => {
-        const bw = b.width * cellSize;
-        const bh = cellSize;
-        const bx = gridOffsetX + b.col * cellSize;
-        // Use closest block texture: 1->1, 2->2, 3->3, 4->4
-        const tex = textures[Math.min(b.width, 4)] ?? null;
-        if (tex) {
-          return <pixiSprite key={b.id} texture={tex} x={bx} y={b.y} width={bw} height={bh} />;
-        }
-        // Procedural fallback
-        const color = BLOCK_COLORS[b.colorIdx % BLOCK_COLORS.length];
-        return (
-          <pixiGraphics key={b.id} x={bx} y={b.y} draw={(g) => {
-            g.clear();
-            const r = Math.min(bw, bh) * 0.18;
-            g.setFillStyle({ color: color.fill });
-            g.roundRect(2, 2, bw - 4, bh - 4, r); g.fill();
-            g.setStrokeStyle({ width: 2, color: color.border, alpha: 0.7 });
-            g.roundRect(2, 2, bw - 4, bh - 4, r); g.stroke();
-          }} />
-        );
-      })}
     </pixiContainer>
   );
 };
@@ -404,16 +204,12 @@ const ProceduralButton = ({
   const draw = useCallback((g: PixiGraphics) => {
     g.clear();
     const r = 14;
-    // Shadow
     g.setFillStyle({ color: 0x000000, alpha: 0.2 });
     g.roundRect(3, 4, width, height, r); g.fill();
-    // Body
     g.setFillStyle({ color });
     g.roundRect(0, 0, width, height, r); g.fill();
-    // Top highlight
     g.setFillStyle({ color: 0xFFFFFF, alpha: 0.25 });
     g.roundRect(4, 3, width - 8, height * 0.35, r - 2); g.fill();
-    // Border
     g.setStrokeStyle({ width: 2, color: 0xFFFFFF, alpha: 0.3 });
     g.roundRect(0, 0, width, height, r); g.stroke();
   }, [width, height, color]);
@@ -442,32 +238,47 @@ const ProceduralButton = ({
 };
 
 // ============================================================================
-// FLOATING BLOCK
+// PLACEHOLDER MODAL (for Quests / Shop until full PixiJS versions are built)
 // ============================================================================
 
-const FloatingBlock = ({ x, y, size, blockNum, delay = 0 }: {
-  x: number; y: number; size: number; blockNum: number; delay?: number;
+const PlaceholderModal = ({
+  isOpen, onClose, title, subtitle, sw, sh,
+}: {
+  isOpen: boolean; onClose: () => void; title: string; subtitle: string;
+  sw: number; sh: number;
 }) => {
-  const tex = useTexture(`${T}/block-${blockNum}.png`);
-  const [offsetY, setOffsetY] = useState(0);
-  const [rotation, setRotation] = useState(0);
-  const timeRef = useRef(delay);
+  const modalW = 320;
+  const btnW = modalW - 48;
 
-  useEffect(() => {
-    let raf: number;
-    const loop = () => {
-      timeRef.current += 0.02;
-      setOffsetY(Math.sin(timeRef.current * 1.5) * 8);
-      setRotation(Math.sin(timeRef.current * 0.8) * 0.1);
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-
-  if (!tex) return null;
-  return <pixiSprite texture={tex} x={x} y={y + offsetY} anchor={0.5}
-    width={size} height={size} rotation={rotation} />;
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      subtitle={subtitle}
+      width={modalW}
+      screenWidth={sw}
+      screenHeight={sh}
+    >
+      <pixiContainer x={24} y={0}>
+        <pixiText
+          text="Coming soon..."
+          x={btnW / 2}
+          y={16}
+          anchor={{ x: 0.5, y: 0 }}
+          style={{ fontFamily: 'Arial, sans-serif', fontSize: 14, fill: 0x94a3b8 }}
+        />
+        <Button
+          text="Close"
+          y={60}
+          width={btnW}
+          height={44}
+          variant="secondary"
+          onClick={onClose}
+        />
+      </pixiContainer>
+    </Modal>
+  );
 };
 
 // ============================================================================
@@ -481,22 +292,32 @@ const LandingScreenInner = ({
   const layout = useFullscreenLayout();
   const { screenWidth: sw, screenHeight: sh, isMobile, topBarHeight } = layout;
 
-  const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1;
+  // Modal state - all inside PixiJS
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isQuestsOpen, setIsQuestsOpen] = useState(false);
+  const [isShopOpen, setIsShopOpen] = useState(false);
 
-  const cellSize = Math.min(MAX_CELL_SIZE, Math.floor(sw / GRID_COLS));
-  const pileHeight = MAX_STACK_ROWS * cellSize;
-  const groundY = sh - pileHeight;
+  const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1;
   const centerX = sw / 2;
 
   const logoMaxH = isMobile ? 80 : 120;
   const logoMaxW = isMobile ? 220 : 340;
-  const logoY = topBarHeight + (isMobile ? 30 : 50) + logoMaxH / 2;
+  const logoY = topBarHeight + (isMobile ? 40 : 70) + logoMaxH / 2;
   const subtitleY = logoY + logoMaxH / 2 + 8;
   const buttonsY = subtitleY + (isMobile ? 35 : 50);
   const btnW = isMobile ? 200 : 250;
   const btnH = isMobile ? 50 : 56;
   const btnGap = 14;
-  const floatSize = isMobile ? 45 : 60;
+
+  const handleQuestsClick = useCallback(() => {
+    if (onQuestsClick) onQuestsClick();
+    else setIsQuestsOpen(true);
+  }, [onQuestsClick]);
+
+  const handleShopClick = useCallback(() => {
+    if (onShopClick) onShopClick();
+    else setIsShopOpen(true);
+  }, [onShopClick]);
 
   return (
     <div style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', overflow: 'hidden', touchAction: 'none' }}>
@@ -511,37 +332,18 @@ const LandingScreenInner = ({
         {/* 2. Clouds */}
         <Clouds w={sw} h={sh} />
 
-        {/* 3. Palm trees */}
-        <PalmTrees w={sw} groundY={groundY} />
-
-        {/* 4. Grass */}
-        <Grass w={sw} groundY={groundY} h={sh} />
-
-        {/* 5. Block pile */}
-        <pixiContainer y={groundY}>
-          <BlockPile w={sw} h={pileHeight + cellSize} cellSize={cellSize} />
-        </pixiContainer>
-
-        {/* 6. Floating blocks */}
-        <FloatingBlock x={centerX - (isMobile ? 130 : 200)} y={logoY}
-          size={floatSize} blockNum={1} delay={0} />
-        <FloatingBlock x={centerX + (isMobile ? 110 : 175)} y={logoY - 10}
-          size={floatSize * 0.8} blockNum={2} delay={1.5} />
-        <FloatingBlock x={centerX + (isMobile ? 90 : 155)} y={buttonsY + btnH}
-          size={floatSize * 0.6} blockNum={3} delay={3} />
-        <FloatingBlock x={centerX - (isMobile ? 120 : 170)} y={buttonsY + btnH / 2}
-          size={floatSize * 0.7} blockNum={4} delay={2} />
-
-        {/* 7. Logo */}
+        {/* 3. Logo */}
         <Logo x={centerX} y={logoY} maxW={logoMaxW} maxH={logoMaxH} />
 
-        {/* 8. Subtitle */}
+        {/* 4. Subtitle */}
         <pixiText text="On-Chain Puzzle Roguelike"
           x={centerX} y={subtitleY} anchor={0.5}
-          style={{ fontFamily: 'Arial, sans-serif', fontSize: isMobile ? 14 : 18, fill: 0x6B7280, letterSpacing: 1 }}
+          style={{ fontFamily: 'Arial, sans-serif', fontSize: isMobile ? 14 : 18, fill: 0xFFFFFF, letterSpacing: 1,
+            dropShadow: { alpha: 0.5, angle: Math.PI / 4, blur: 3, distance: 1, color: 0x000000 },
+          }}
         />
 
-        {/* 9. Buttons (procedural) */}
+        {/* 5. Buttons */}
         <pixiContainer>
           <ProceduralButton x={centerX - btnW / 2} y={buttonsY}
             width={btnW} height={btnH} color={0xF97316}
@@ -559,20 +361,51 @@ const LandingScreenInner = ({
             label="Adventures" onPress={() => {}} fontSize={isMobile ? 18 : 20} />
         </pixiContainer>
 
-        {/* 10. Top bar - LAST so it's on top and clickable */}
+        {/* 6. Footer */}
+        <pixiText text="Built on Starknet with Dojo"
+          x={centerX} y={sh - 16} anchor={0.5}
+          style={{ fontFamily: 'Arial, sans-serif', fontSize: 10, fill: 0xFFFFFF, alpha: 0.6,
+            dropShadow: { alpha: 0.4, angle: Math.PI / 4, blur: 2, distance: 1, color: 0x000000 },
+          }}
+        />
+
+        {/* 7. Top bar - rendered last for z-order (clickable) */}
         <TopBar
           layout={layout}
           cubeBalance={cubeBalance}
-          onMenuClick={() => {}}
-          onQuestsClick={onQuestsClick}
+          onMenuClick={() => setIsMenuOpen(true)}
+          onQuestsClick={handleQuestsClick}
           onTrophyClick={onTrophyClick}
-          onShopClick={onShopClick}
+          onShopClick={handleShopClick}
         />
 
-        {/* 11. Footer */}
-        <pixiText text="Built on Starknet with Dojo"
-          x={centerX} y={sh - 16} anchor={0.5}
-          style={{ fontFamily: 'Arial, sans-serif', fontSize: 10, fill: 0x9CA3AF }}
+        {/* 8. PixiJS Modals (on top of everything) */}
+
+        {/* Menu modal */}
+        <PlaceholderModal
+          isOpen={isMenuOpen}
+          onClose={() => setIsMenuOpen(false)}
+          title="Menu"
+          subtitle="Settings & options"
+          sw={sw} sh={sh}
+        />
+
+        {/* Quests modal */}
+        <PlaceholderModal
+          isOpen={isQuestsOpen}
+          onClose={() => setIsQuestsOpen(false)}
+          title="Quests"
+          subtitle="Daily challenges"
+          sw={sw} sh={sh}
+        />
+
+        {/* Shop modal */}
+        <PlaceholderModal
+          isOpen={isShopOpen}
+          onClose={() => setIsShopOpen(false)}
+          title="Shop"
+          subtitle="Upgrades & items"
+          sw={sw} sh={sh}
         />
       </Application>
     </div>
