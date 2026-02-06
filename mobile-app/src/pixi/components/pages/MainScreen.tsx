@@ -16,6 +16,7 @@ import { QuestsPage } from './QuestsPage';
 import { SettingsPage } from './SettingsPage';
 import { MyGamesPage, type PlayerGame } from './MyGamesPage';
 import { LoadoutPage } from './LoadoutPage';
+import { TutorialPage } from './TutorialPage';
 import { Button } from '../ui';
 import { CubeBalance } from '../topbar/CubeBalance';
 import type { PlayerMetaData } from '@/hooks/usePlayerMeta';
@@ -319,12 +320,13 @@ const TopBarButton = ({
 const HomeTopBar = ({
   sw, topBarH, isMobile, uiScale, cubeBalance,
   username, isConnected,
-  onQuestsClick, onTrophyClick, onSettingsClick, onProfileClick, onConnect,
+  onTutorialClick, onQuestsClick, onTrophyClick, onSettingsClick, onProfileClick, onConnect,
 }: {
   sw: number; topBarH: number; isMobile: boolean; uiScale: number;
   cubeBalance: number;
   username?: string;
   isConnected: boolean;
+  onTutorialClick: () => void;
   onQuestsClick: () => void;
   onTrophyClick: () => void;
   onSettingsClick: () => void;
@@ -382,6 +384,7 @@ const HomeTopBar = ({
   const settingsBtnX = settingsX - gap - btnSize;
   const trophyX = settingsBtnX - gap - btnSize;
   const questsX = trophyX - gap - btnSize;
+  const tutorialX = questsX - gap - btnSize;
 
   return (
     <pixiContainer y={0}>
@@ -391,6 +394,7 @@ const HomeTopBar = ({
       <pixiText text="🧊" x={pad} y={topBarH / 2} anchor={{ x: 0, y: 0.5 }} style={cubeIconStyle} />
       <pixiText text={String(cubeBalance)} x={pad + Math.round(20 * uiScale)} y={topBarH / 2} anchor={{ x: 0, y: 0.5 }} style={cubeCountStyle} />
 
+      <TopBarButton x={tutorialX} y={centerY} size={btnSize} icon="📖" onClick={onTutorialClick} />
       <TopBarButton x={questsX} y={centerY} size={btnSize} icon="📜" onClick={onQuestsClick} />
       <TopBarButton x={trophyX} y={centerY} size={btnSize} icon="🏆" onClick={onTrophyClick} />
       <TopBarButton x={settingsBtnX} y={centerY} size={btnSize} icon="⚙" onClick={onSettingsClick} />
@@ -497,6 +501,7 @@ const HomePageContent = ({
         sw={sw} topBarH={topBarH} isMobile={isMobile} uiScale={uiScale}
         cubeBalance={cubeBalance}
         username={username} isConnected={isConnected}
+        onTutorialClick={() => navigate('tutorial')}
         onQuestsClick={() => navigate('quests')}
         onTrophyClick={onTrophyClick ?? (() => {})}
         onSettingsClick={() => navigate('settings')}
@@ -639,6 +644,14 @@ const PageRenderer = (props: MainScreenProps & {
             screenHeight={sh}
             topBarHeight={topBarH}
             onResumeGame={onNavigateToGame}
+          />
+        )}
+
+        {currentPage === 'tutorial' && (
+          <TutorialPage
+            screenWidth={sw}
+            screenHeight={sh}
+            topBarHeight={topBarH}
           />
         )}
 

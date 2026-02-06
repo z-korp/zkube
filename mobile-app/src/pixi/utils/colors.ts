@@ -10,6 +10,52 @@ export const FONT_TITLE = 'Fredericka the Great, Bangers, Arial Black, sans-seri
 export const FONT_BOLD = 'Arial Black, Arial Bold, Arial, sans-serif';
 export const FONT_BODY = 'Arial, Helvetica, sans-serif';
 
+export const UI = {
+  bg: {
+    primary: 0x1e293b,
+    secondary: 0x0f172a,
+    dark: 0x000000,
+    hover: 0x334155,
+    card: 0x1e293b,
+  },
+  border: {
+    primary: 0x475569,
+    secondary: 0x334155,
+    muted: 0x64748b,
+  },
+  text: {
+    primary: 0xffffff,
+    secondary: 0x94a3b8,
+    muted: 0x64748b,
+    dark: 0x475569,
+  },
+  accent: {
+    blue: 0x3b82f6,
+    blueLight: 0x60a5fa,
+    gold: 0xfbbf24,
+    orange: 0xf97316,
+    purple: 0x6366f1,
+    purpleDark: 0x3730a3,
+    purpleHover: 0x4338ca,
+  },
+  status: {
+    success: 0x22c55e,
+    successLight: 0x4ade80,
+    successDark: 0x166534,
+    danger: 0xef4444,
+    dangerDark: 0x7f1d1d,
+    dangerDarker: 0x991b1b,
+    dangerLight: 0xfca5a5,
+    warning: 0xf97316,
+  },
+  state: {
+    hover: 0x334155,
+    pressed: 0x374151,
+    disabled: 0x6b7280,
+    locked: 0x4b5563,
+  },
+} as const;
+
 export interface BlockColors {
   fill: number;
   glow: number;
@@ -63,44 +109,8 @@ export const TIKI_COLORS: ThemeColors = {
   },
 };
 
-/**
- * Neon/Cyberpunk Theme - Dark with vibrant glowing colors
- */
-export const NEON_COLORS: ThemeColors = {
-  background: 0x0A0A0F,
-  backgroundGradientStart: 0x15152a,
-  backgroundGradientEnd: 0x050508,
-  gridLines: 0x1A1A2E,
-  gridLinesAlpha: 0.6,
-  dangerZone: 0xFF0040,
-  dangerZoneAlpha: 0.2,
-  accent: 0x00FFFF,
-  blocks: {
-    1: { fill: 0x00FF88, glow: 0x00FF88, highlight: 0x80FFCC }, // Neon Green
-    2: { fill: 0x00CCFF, glow: 0x00CCFF, highlight: 0x80E5FF }, // Cyan
-    3: { fill: 0xFF00FF, glow: 0xFF00FF, highlight: 0xFF80FF }, // Magenta
-    4: { fill: 0xFFFF00, glow: 0xFFFF00, highlight: 0xFFFF80 }, // Yellow
-  },
-  particles: {
-    primary: [0x00FF88, 0x00CCFF, 0xFF00FF, 0xFFFF00],
-    explosion: [0xFFFFFF, 0x00FFFF, 0xFF00FF, 0x00FF88],
-  },
-};
-
-/**
- * Get theme colors by theme name
- */
-export function getThemeColors(theme: string): ThemeColors {
-  switch (theme) {
-    case 'theme-neon':
-    case 'neon':
-      return NEON_COLORS;
-    case 'theme-1':
-    case 'theme-2':
-    case 'tiki':
-    default:
-      return TIKI_COLORS;
-  }
+export function getThemeColors(_theme: string): ThemeColors {
+  return TIKI_COLORS;
 }
 
 /**

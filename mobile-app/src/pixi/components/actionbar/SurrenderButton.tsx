@@ -1,7 +1,10 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { drawFlagIcon, IconColors } from '../ui/Icons';
+import { FONT_BOLD } from '../../utils/colors';
+
+const CONFIRM_TIMEOUT_MS = 2000;
 
 interface SurrenderButtonProps {
   x: number;
@@ -12,9 +15,6 @@ interface SurrenderButtonProps {
   isDisabled?: boolean;
 }
 
-/**
- * Surrender/menu button in the action bar
- */
 export const SurrenderButton = ({
   x,
   y,
@@ -26,6 +26,14 @@ export const SurrenderButton = ({
   const { colors } = usePixiTheme();
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
+  const [awaitingConfirm, setAwaitingConfirm] = useState(false);
+  const confirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (confirmTimer.current) clearTimeout(confirmTimer.current);
+    };
+  }, []);
 
   const handlePointerDown = useCallback(() => {
     if (!isDisabled) setIsPressed(true);
@@ -33,8 +41,17 @@ export const SurrenderButton = ({
 
   const handlePointerUp = useCallback(() => {
     setIsPressed(false);
-    if (!isDisabled) onClick?.();
-  }, [isDisabled, onClick]);
+    if (isDisabled) return;
+
+    if (awaitingConfirm) {
+      if (confirmTimer.current) clearTimeout(confirmTimer.current);
+      setAwaitingConfirm(false);
+      onClick?.();
+    } else {
+      setAwaitingConfirm(true);
+      confirmTimer.current = setTimeout(() => setAwaitingConfirm(false), CONFIRM_TIMEOUT_MS);
+    }
+  }, [isDisabled, awaitingConfirm, onClick]);
 
   const handlePointerOver = useCallback(() => {
     if (!isDisabled) setIsHovered(true);
@@ -55,22 +72,21 @@ export const SurrenderButton = ({
     const offsetY = (height - scaledHeight) / 2;
     const radius = 6;
     
-    // Background - slightly red on hover
-    const bgColor = isHovered ? 0x7f1d1d : 0x1e293b;
-    const borderColor = isHovered ? 0xef4444 : 0x475569;
+    const bgColor = awaitingConfirm ? 0x991b1b : isHovered ? 0x7f1d1d : 0x1e293b;
+    const borderColor = awaitingConfirm ? 0xef4444 : isHovered ? 0xef4444 : 0x475569;
     
     g.roundRect(offsetX, offsetY, scaledWidth, scaledHeight, radius);
     g.fill({ color: bgColor, alpha: isDisabled ? 0.5 : 0.9 });
     
     g.roundRect(offsetX, offsetY, scaledWidth, scaledHeight, radius);
-    g.stroke({ color: borderColor, width: 1.5, alpha: isDisabled ? 0.3 : (isHovered ? 0.8 : 0.5) });
-  }, [width, height, isHovered, isPressed, isDisabled]);
+    g.stroke({ color: borderColor, width: awaitingConfirm ? 2 : 1.5, alpha: isDisabled ? 0.3 : (awaitingConfirm || isHovered ? 0.8 : 0.5) });
+  }, [width, height, isHovered, isPressed, isDisabled, awaitingConfirm]);
 
   const drawIcon = useCallback((g: PixiGraphics) => {
     const iconSize = Math.min(width, height) * 0.6;
-    const color = isHovered ? 0xfca5a5 : (isDisabled ? IconColors.secondary : IconColors.danger);
+    const color = awaitingConfirm ? 0xfca5a5 : isHovered ? 0xfca5a5 : (isDisabled ? IconColors.secondary : IconColors.danger);
     drawFlagIcon(g, iconSize, color);
-  }, [width, height, isHovered, isDisabled]);
+  }, [width, height, isHovered, isDisabled, awaitingConfirm]);
 
   return (
     <pixiContainer x={x} y={y}>
@@ -84,13 +100,28 @@ export const SurrenderButton = ({
         onpointerover={handlePointerOver}
         onpointerout={handlePointerOut}
       />
-      <pixiGraphics
-        x={width / 2}
-        y={height / 2}
-        draw={drawIcon}
-        alpha={isDisabled ? 0.5 : 1}
-        eventMode="none"
-      />
+      {awaitingConfirm ? (
+        <pixiText
+          text="Sure?"
+          x={width / 2}
+          y={height / 2}
+          anchor={0.5}
+          style={{
+            fontFamily: FONT_BOLD,
+            fontSize: Math.min(width, height) * 0.3,
+            fill: 0xfca5a5,
+          }}
+          eventMode="none"
+        />
+      ) : (
+        <pixiGraphics
+          x={width / 2}
+          y={height / 2}
+          draw={drawIcon}
+          alpha={isDisabled ? 0.5 : 1}
+          eventMode="none"
+        />
+      )}
     </pixiContainer>
   );
 };

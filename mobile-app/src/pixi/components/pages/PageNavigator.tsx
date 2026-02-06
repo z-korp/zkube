@@ -11,7 +11,7 @@ import React, { createContext, useContext, useState, useCallback, useRef, useEff
 // TYPES
 // ============================================================================
 
-export type PageId = 'home' | 'leaderboard' | 'shop' | 'quests' | 'settings' | 'mygames' | 'loadout';
+export type PageId = 'home' | 'leaderboard' | 'shop' | 'quests' | 'settings' | 'mygames' | 'loadout' | 'tutorial';
 
 interface PageNavigatorContextType {
   currentPage: PageId;

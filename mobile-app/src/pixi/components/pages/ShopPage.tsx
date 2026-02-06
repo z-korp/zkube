@@ -8,7 +8,13 @@ import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { Button } from '../ui';
 import type { PlayerMetaData } from '@/hooks/usePlayerMeta';
-import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
+import { FONT_TITLE, FONT_BOLD, FONT_BODY } from '../../utils/colors';
+
+interface PendingPurchase {
+  label: string;
+  cost: number;
+  action: () => void;
+}
 
 
 // ============================================================================
@@ -289,6 +295,97 @@ interface ShopPageProps {
   onUnlockBonus?: (bonusType: number) => Promise<void>;
 }
 
+const ConfirmOverlay = ({
+  purchase,
+  cubeBalance,
+  screenWidth,
+  screenHeight,
+  onConfirm,
+  onCancel,
+}: {
+  purchase: PendingPurchase;
+  cubeBalance: number;
+  screenWidth: number;
+  screenHeight: number;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) => {
+  const modalW = Math.min(280, screenWidth - 48);
+  const modalH = 160;
+  const modalX = (screenWidth - modalW) / 2;
+  const modalY = (screenHeight - modalH) / 2;
+
+  const drawBackdrop = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.rect(0, 0, screenWidth, screenHeight);
+    g.fill({ color: 0x000000, alpha: 0.6 });
+  }, [screenWidth, screenHeight]);
+
+  const drawModal = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.setFillStyle({ color: 0x1e293b });
+    g.roundRect(0, 0, modalW, modalH, 14);
+    g.fill();
+    g.setStrokeStyle({ width: 2, color: 0x475569, alpha: 0.8 });
+    g.roundRect(0, 0, modalW, modalH, 14);
+    g.stroke();
+  }, [modalW, modalH]);
+
+  return (
+    <pixiContainer>
+      <pixiGraphics
+        draw={drawBackdrop}
+        eventMode="static"
+        onPointerDown={(e: any) => e.stopPropagation()}
+      />
+      <pixiContainer x={modalX} y={modalY}>
+        <pixiGraphics draw={drawModal} />
+        <pixiText
+          text={purchase.label}
+          x={modalW / 2}
+          y={24}
+          anchor={0.5}
+          style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff }}
+        />
+        <pixiText
+          text={`Cost: ${purchase.cost} 🧊`}
+          x={modalW / 2}
+          y={52}
+          anchor={0.5}
+          style={{ fontFamily: FONT_BOLD, fontSize: 18, fill: 0xfbbf24 }}
+        />
+        <pixiText
+          text={`Balance: ${cubeBalance} → ${cubeBalance - purchase.cost}`}
+          x={modalW / 2}
+          y={76}
+          anchor={0.5}
+          style={{ fontFamily: FONT_BODY, fontSize: 12, fill: 0x94a3b8 }}
+        />
+        <Button
+          text="Confirm"
+          x={16}
+          y={100}
+          width={(modalW - 48) / 2}
+          height={40}
+          variant="primary"
+          fontSize={14}
+          onClick={onConfirm}
+        />
+        <Button
+          text="Cancel"
+          x={modalW / 2 + 8}
+          y={100}
+          width={(modalW - 48) / 2}
+          height={40}
+          variant="secondary"
+          fontSize={14}
+          onClick={onCancel}
+        />
+      </pixiContainer>
+    </pixiContainer>
+  );
+};
+
 export const ShopPage = ({
   playerMeta,
   cubeBalance,
@@ -303,6 +400,7 @@ export const ShopPage = ({
   const [scrollY, setScrollY] = useState(0);
   const isDragging = useRef(false);
   const lastY = useRef(0);
+  const [pending, setPending] = useState<PendingPurchase | null>(null);
 
   const contentPadding = 16;
   const contentTop = topBarHeight + contentPadding;
@@ -311,7 +409,6 @@ export const ShopPage = ({
   const cardH = 130;
   const cardGap = 12;
 
-  // Calculate total content height
   const totalRows = 3;
   const totalHeight = totalRows * (cardH + cardGap);
   const listHeight = screenHeight - contentTop - contentPadding;
@@ -336,7 +433,15 @@ export const ShopPage = ({
     isDragging.current = false;
   }, []);
 
-  // Extract player data
+  const requestPurchase = useCallback((label: string, cost: number, action: () => void) => {
+    setPending({ label, cost, action });
+  }, []);
+
+  const confirmPurchase = useCallback(() => {
+    pending?.action();
+    setPending(null);
+  }, [pending]);
+
   const startingHammer = playerMeta?.startingHammer ?? 0;
   const startingWave = playerMeta?.startingWave ?? 0;
   const startingTotem = playerMeta?.startingTotem ?? 0;
@@ -353,9 +458,12 @@ export const ShopPage = ({
   const shrinkUnlocked = playerMeta?.shrinkUnlocked ?? false;
   const shuffleUnlocked = playerMeta?.shuffleUnlocked ?? false;
 
+  const startingCosts = STARTING_BONUS_COSTS;
+  const bagCosts = BAG_SIZE_COSTS;
+  const bridgeCosts = BRIDGING_COSTS;
+
   return (
     <pixiContainer>
-      {/* Top bar */}
       <PageTopBar
         title="Shop"
         subtitle={`${cubeBalance} cubes available`}
@@ -365,8 +473,32 @@ export const ShopPage = ({
         cubeBalance={cubeBalance}
       />
 
-      {/* Scrollable content */}
       <pixiContainer x={contentPadding} y={contentTop}>
+        {!playerMeta ? (
+          <pixiContainer>
+            <pixiText
+              text="🛒"
+              x={contentWidth / 2}
+              y={60}
+              anchor={0.5}
+              style={{ fontSize: 40 }}
+            />
+            <pixiText
+              text="Connect to view shop"
+              x={contentWidth / 2}
+              y={110}
+              anchor={0.5}
+              style={{ fontFamily: FONT_TITLE, fontSize: 18, fill: 0x64748b }}
+            />
+            <pixiText
+              text="Log in to upgrade bonuses and abilities"
+              x={contentWidth / 2}
+              y={138}
+              anchor={0.5}
+              style={{ fontFamily: FONT_BODY, fontSize: 13, fill: 0x94a3b8 }}
+            />
+          </pixiContainer>
+        ) : (
         <pixiContainer
           eventMode="static"
           onPointerDown={handlePointerDown}
@@ -374,7 +506,6 @@ export const ShopPage = ({
           onPointerUp={handlePointerUp}
           onPointerUpOutside={handlePointerUp}
         >
-          {/* Invisible hit area */}
           <pixiGraphics
             draw={(g) => {
               g.clear();
@@ -384,7 +515,6 @@ export const ShopPage = ({
           />
 
           <pixiContainer y={-scrollY}>
-            {/* Row 1: Hammer, Wave */}
             <UpgradeCard
               title="Hammer"
               icon="🔨"
@@ -396,8 +526,8 @@ export const ShopPage = ({
               width={cardW}
               height={cardH}
               cubeBalance={cubeBalance}
-              onUpgradeStarting={() => onUpgradeStartingBonus?.(1)}
-              onUpgradeBag={() => onUpgradeBagSize?.(1)}
+              onUpgradeStarting={() => requestPurchase('Upgrade Hammer Starting', startingCosts[startingHammer] ?? 0, () => onUpgradeStartingBonus?.(1))}
+              onUpgradeBag={() => requestPurchase('Upgrade Hammer Bag', bagCosts[bagHammer] ?? 0, () => onUpgradeBagSize?.(1))}
             />
             <UpgradeCard
               title="Wave"
@@ -410,11 +540,10 @@ export const ShopPage = ({
               width={cardW}
               height={cardH}
               cubeBalance={cubeBalance}
-              onUpgradeStarting={() => onUpgradeStartingBonus?.(3)}
-              onUpgradeBag={() => onUpgradeBagSize?.(3)}
+              onUpgradeStarting={() => requestPurchase('Upgrade Wave Starting', startingCosts[startingWave] ?? 0, () => onUpgradeStartingBonus?.(3))}
+              onUpgradeBag={() => requestPurchase('Upgrade Wave Bag', bagCosts[bagWave] ?? 0, () => onUpgradeBagSize?.(3))}
             />
 
-            {/* Row 2: Totem, Shrink */}
             <UpgradeCard
               title="Totem"
               icon="🗿"
@@ -426,8 +555,8 @@ export const ShopPage = ({
               width={cardW}
               height={cardH}
               cubeBalance={cubeBalance}
-              onUpgradeStarting={() => onUpgradeStartingBonus?.(2)}
-              onUpgradeBag={() => onUpgradeBagSize?.(2)}
+              onUpgradeStarting={() => requestPurchase('Upgrade Totem Starting', startingCosts[startingTotem] ?? 0, () => onUpgradeStartingBonus?.(2))}
+              onUpgradeBag={() => requestPurchase('Upgrade Totem Bag', bagCosts[bagTotem] ?? 0, () => onUpgradeBagSize?.(2))}
             />
             <UpgradeCard
               title="Shrink"
@@ -440,12 +569,11 @@ export const ShopPage = ({
               width={cardW}
               height={cardH}
               cubeBalance={cubeBalance}
-              onUpgradeStarting={() => onUpgradeStartingBonus?.(4)}
-              onUpgradeBag={() => onUpgradeBagSize?.(4)}
-              onUnlock={() => onUnlockBonus?.(4)}
+              onUpgradeStarting={() => requestPurchase('Upgrade Shrink Starting', startingCosts[startingShrink] ?? 0, () => onUpgradeStartingBonus?.(4))}
+              onUpgradeBag={() => requestPurchase('Upgrade Shrink Bag', bagCosts[bagShrink] ?? 0, () => onUpgradeBagSize?.(4))}
+              onUnlock={() => requestPurchase('Unlock Shrink', UNLOCK_BONUS_COST, () => onUnlockBonus?.(4))}
             />
 
-            {/* Row 3: Shuffle, Bridging */}
             <UpgradeCard
               title="Shuffle"
               icon="🔀"
@@ -457,9 +585,9 @@ export const ShopPage = ({
               width={cardW}
               height={cardH}
               cubeBalance={cubeBalance}
-              onUpgradeStarting={() => onUpgradeStartingBonus?.(5)}
-              onUpgradeBag={() => onUpgradeBagSize?.(5)}
-              onUnlock={() => onUnlockBonus?.(5)}
+              onUpgradeStarting={() => requestPurchase('Upgrade Shuffle Starting', startingCosts[startingShuffle] ?? 0, () => onUpgradeStartingBonus?.(5))}
+              onUpgradeBag={() => requestPurchase('Upgrade Shuffle Bag', bagCosts[bagShuffle] ?? 0, () => onUpgradeBagSize?.(5))}
+              onUnlock={() => requestPurchase('Unlock Shuffle', UNLOCK_BONUS_COST, () => onUnlockBonus?.(5))}
             />
             <BridgingCard
               rank={bridgingRank}
@@ -468,11 +596,23 @@ export const ShopPage = ({
               width={cardW}
               height={cardH}
               cubeBalance={cubeBalance}
-              onUpgrade={onUpgradeBridging}
+              onUpgrade={() => requestPurchase('Upgrade Bridging', bridgeCosts[bridgingRank] ?? 0, () => onUpgradeBridging?.())}
             />
           </pixiContainer>
         </pixiContainer>
+        )}
       </pixiContainer>
+
+      {pending && (
+        <ConfirmOverlay
+          purchase={pending}
+          cubeBalance={cubeBalance}
+          screenWidth={screenWidth}
+          screenHeight={screenHeight}
+          onConfirm={confirmPurchase}
+          onCancel={() => setPending(null)}
+        />
+      )}
     </pixiContainer>
   );
 };
