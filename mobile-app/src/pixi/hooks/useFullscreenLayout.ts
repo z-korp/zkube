@@ -221,7 +221,6 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
       levelBadgeWidth,
       levelBadgeHeight,
       scorePillX,
-      scorePillX,
       scorePillY: pillY,
       scorePillWidth: pillWidth,
       scorePillHeight: pillHeight,
