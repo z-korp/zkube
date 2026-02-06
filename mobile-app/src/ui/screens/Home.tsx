@@ -10,6 +10,7 @@ import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
+import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
 import { useDojo } from "@/dojo/useDojo";
 import { LandingScreen } from "@/pixi/components/landing/LandingScreen";
 import type { PlayerGame } from "@/pixi/components/landing/MyGamesModal";
@@ -18,6 +19,9 @@ import ControllerConnector from "@cartridge/connector/controller";
 import type { GameTokenData } from "metagame-sdk";
 import { DEFAULT_SETTINGS_ID } from "@/dojo/game/types/level";
 import { toast } from "sonner";
+import { useQuests } from "@/contexts/quests";
+import { shortString } from "starknet";
+import { useMusicPlayer } from "@/contexts/hooks";
 
 // ============================================================================
 // HELPERS
@@ -89,6 +93,40 @@ export const Home = () => {
   } = useDojo();
 
   const cubeBalanceNum = Number(cubeBalance);
+
+  // Leaderboard data
+  const {
+    games: leaderboardEntries,
+    loading: leaderboardLoading,
+    refetch: refetchLeaderboard,
+  } = useLeaderboardSlot({ forceRecs: true });
+
+  // Quest data
+  const { questFamilies, status: questsStatus } = useQuests();
+  const questsLoading = questsStatus === "loading";
+
+  // Sound settings
+  const {
+    isPlaying: isMusicEnabled,
+    playTheme,
+    stopTheme,
+    effectsVolume,
+    setEffectsVolume,
+  } = useMusicPlayer();
+  
+  const isSoundEnabled = effectsVolume > 0;
+
+  const handleToggleMusic = useCallback(() => {
+    if (isMusicEnabled) {
+      stopTheme();
+    } else {
+      playTheme();
+    }
+  }, [isMusicEnabled, playTheme, stopTheme]);
+
+  const handleToggleSound = useCallback(() => {
+    setEffectsVolume(effectsVolume > 0 ? 0 : 0.2);
+  }, [effectsVolume, setEffectsVolume]);
 
   // State for LoadoutModal
   const [showLoadoutModal, setShowLoadoutModal] = useState(false);
@@ -239,6 +277,56 @@ export const Home = () => {
     if (c?.controller?.openProfile) c.controller.openProfile("trophies");
   }, [connector]);
 
+  // Quest claim handler
+  const handleClaimQuest = useCallback(
+    async (questId: string, intervalId: number) => {
+      if (!account) return;
+      // Convert quest ID string to felt252
+      const questIdFelt = `0x${BigInt(shortString.encodeShortString(questId)).toString(16)}`;
+      await systemCalls.claimQuest({
+        account,
+        quest_id: questIdFelt,
+        interval_id: intervalId,
+      });
+      refetchCubeBalance?.();
+    },
+    [account, systemCalls, refetchCubeBalance]
+  );
+
+  // Shop upgrade handlers
+  const handleUpgradeStartingBonus = useCallback(
+    async (bonusType: number) => {
+      if (!account) return;
+      await systemCalls.upgradeStartingBonus({ account, bonus_type: bonusType });
+      refetchCubeBalance?.();
+    },
+    [account, systemCalls, refetchCubeBalance]
+  );
+
+  const handleUpgradeBagSize = useCallback(
+    async (bonusType: number) => {
+      if (!account) return;
+      await systemCalls.upgradeBagSize({ account, bonus_type: bonusType });
+      refetchCubeBalance?.();
+    },
+    [account, systemCalls, refetchCubeBalance]
+  );
+
+  const handleUpgradeBridging = useCallback(async () => {
+    if (!account) return;
+    await systemCalls.upgradeBridgingRank({ account });
+    refetchCubeBalance?.();
+  }, [account, systemCalls, refetchCubeBalance]);
+
+  const handleUnlockBonus = useCallback(
+    async (bonusType: number) => {
+      if (!account) return;
+      await systemCalls.unlockBonus({ account, bonus_type: bonusType });
+      refetchCubeBalance?.();
+    },
+    [account, systemCalls, refetchCubeBalance]
+  );
+
   // Opens the controller profile window when clicking username
   const handleProfileClick = useCallback(() => {
     const c = connector as ControllerConnector;
@@ -259,6 +347,7 @@ export const Home = () => {
       onProfileClick={handleProfileClick}
       isConnected={!!account}
       username={username}
+      walletAddress={account?.address}
       cubeBalance={cubeBalanceNum}
       games={playerGames}
       gamesLoading={gamesLoading}
@@ -270,6 +359,24 @@ export const Home = () => {
       onLoadoutConfirm={handleLoadoutConfirm}
       playerMetaData={playerMeta?.data ?? null}
       isStartingGame={isStartingGame}
+      // Leaderboard
+      leaderboardEntries={leaderboardEntries}
+      leaderboardLoading={leaderboardLoading}
+      onRefreshLeaderboard={refetchLeaderboard}
+      // Quests
+      questFamilies={questFamilies}
+      questsLoading={questsLoading}
+      onClaimQuest={handleClaimQuest}
+      // Shop
+      onUpgradeStartingBonus={handleUpgradeStartingBonus}
+      onUpgradeBagSize={handleUpgradeBagSize}
+      onUpgradeBridging={handleUpgradeBridging}
+      onUnlockBonus={handleUnlockBonus}
+      // Settings
+      isSoundEnabled={isSoundEnabled}
+      isMusicEnabled={isMusicEnabled}
+      onToggleSound={handleToggleSound}
+      onToggleMusic={handleToggleMusic}
     />
   );
 };

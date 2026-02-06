@@ -19,7 +19,13 @@ import { Modal, Button } from '../ui';
 import { CubeBalance } from '../topbar/CubeBalance';
 import { MyGamesModal, type PlayerGame } from './MyGamesModal';
 import { LoadoutModal } from './LoadoutModal';
+import { LeaderboardModal } from './LeaderboardModal';
+import { ShopModal } from './ShopModal';
+import { QuestsModal } from './QuestsModal';
+import { SettingsModal } from './SettingsModal';
 import type { PlayerMetaData } from '@/hooks/usePlayerMeta';
+import type { LeaderboardEntry } from '@/hooks/useLeaderboardSlot';
+import type { QuestFamily } from '@/types/questFamily';
 
 // ============================================================================
 // CONSTANTS
@@ -47,6 +53,7 @@ export interface LandingScreenProps {
   onProfileClick?: () => void;
   isConnected?: boolean;
   username?: string;
+  walletAddress?: string;
   cubeBalance?: number;
   // Game data for My Games
   games?: PlayerGame[];
@@ -58,12 +65,31 @@ export interface LandingScreenProps {
   onTrophyClick?: () => void;
   onSettingsClick?: () => void;
   onShopClick?: () => void;
+  onLeaderboardClick?: () => void;
   // LoadoutModal props
   showLoadoutModal?: boolean;
   onLoadoutClose?: () => void;
   onLoadoutConfirm?: (selectedBonuses: number[], cubesToBring: number) => void;
   playerMetaData?: PlayerMetaData | null;
   isStartingGame?: boolean;
+  // Leaderboard data
+  leaderboardEntries?: LeaderboardEntry[];
+  leaderboardLoading?: boolean;
+  onRefreshLeaderboard?: () => void;
+  // Quest data
+  questFamilies?: QuestFamily[];
+  questsLoading?: boolean;
+  onClaimQuest?: (questId: string, intervalId: number) => Promise<void>;
+  // Shop callbacks
+  onUpgradeStartingBonus?: (bonusType: number) => Promise<void>;
+  onUpgradeBagSize?: (bonusType: number) => Promise<void>;
+  onUpgradeBridging?: () => Promise<void>;
+  onUnlockBonus?: (bonusType: number) => Promise<void>;
+  // Settings
+  isSoundEnabled?: boolean;
+  isMusicEnabled?: boolean;
+  onToggleSound?: () => void;
+  onToggleMusic?: () => void;
 }
 
 // ============================================================================
@@ -388,13 +414,21 @@ const PlaceholderModal = ({
 // ============================================================================
 
 const LandingScreenInner = ({
-  onPlay, onConnect, onProfileClick, isConnected, username,
+  onPlay, onConnect, onProfileClick, isConnected, username, walletAddress,
   cubeBalance = 0,
   games = [], gamesLoading = false, onResumeGame,
-  onTutorialClick, onQuestsClick, onTrophyClick, onSettingsClick, onShopClick,
+  onTutorialClick, onQuestsClick, onTrophyClick, onSettingsClick, onShopClick, onLeaderboardClick,
   // LoadoutModal props
   showLoadoutModal = false, onLoadoutClose, onLoadoutConfirm,
   playerMetaData = null, isStartingGame = false,
+  // Leaderboard
+  leaderboardEntries = [], leaderboardLoading = false, onRefreshLeaderboard,
+  // Quests
+  questFamilies = [], questsLoading = false, onClaimQuest,
+  // Shop
+  onUpgradeStartingBonus, onUpgradeBagSize, onUpgradeBridging, onUnlockBonus,
+  // Settings
+  isSoundEnabled = true, isMusicEnabled = true, onToggleSound, onToggleMusic,
 }: LandingScreenProps) => {
   const layout = useFullscreenLayout();
   const { screenWidth: sw, screenHeight: sh, isMobile, topBarHeight, uiScale } = layout;
@@ -404,6 +438,7 @@ const LandingScreenInner = ({
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMyGamesOpen, setIsMyGamesOpen] = useState(false);
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
 
   const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1;
   const centerX = sw / 2;
@@ -420,11 +455,12 @@ const LandingScreenInner = ({
 
   const activeGamesCount = games.filter(g => !g.gameOver).length;
 
-  // Button positions - always show 4 buttons
+  // Button positions - show 5 buttons
   let btnIdx = 0;
   const playY = firstBtnY + (btnH + btnGap) * btnIdx++;
   const myGamesY = firstBtnY + (btnH + btnGap) * btnIdx++;
   const shopY = firstBtnY + (btnH + btnGap) * btnIdx++;
+  const leaderboardY = firstBtnY + (btnH + btnGap) * btnIdx++;
   const connectY = firstBtnY + (btnH + btnGap) * btnIdx++;
 
   // Handle connect/profile button click
@@ -471,6 +507,12 @@ const LandingScreenInner = ({
           label="Shop" onPress={onShopClick ?? (() => setIsShopOpen(true))}
           fontSize={isMobile ? 18 : 20} />
 
+        {/* Leaderboard */}
+        <LandingButton x={centerX - btnW / 2} y={leaderboardY}
+          width={btnW} height={btnH} color={0xEAB308}
+          label="Leaderboard" onPress={onLeaderboardClick ?? (() => setIsLeaderboardOpen(true))}
+          fontSize={isMobile ? 18 : 20} />
+
         {/* Connect / Username (always visible) */}
         <LandingButton x={centerX - btnW / 2} y={connectY}
           width={btnW} height={btnH} color={connectColor}
@@ -497,12 +539,56 @@ const LandingScreenInner = ({
         {/* Modals */}
         <PlaceholderModal isOpen={isTutorialOpen} onClose={() => setIsTutorialOpen(false)}
           title="Tutorial" subtitle="Learn how to play" sw={sw} sh={sh} />
-        <PlaceholderModal isOpen={isQuestsOpen} onClose={() => setIsQuestsOpen(false)}
-          title="Quests" subtitle="Daily challenges" sw={sw} sh={sh} />
-        <PlaceholderModal isOpen={isShopOpen} onClose={() => setIsShopOpen(false)}
-          title="Shop" subtitle="Upgrades & items" sw={sw} sh={sh} />
-        <PlaceholderModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)}
-          title="Settings" subtitle="Game options" sw={sw} sh={sh} />
+        
+        {/* Quests Modal */}
+        <QuestsModal
+          isOpen={isQuestsOpen}
+          onClose={() => setIsQuestsOpen(false)}
+          questFamilies={questFamilies}
+          loading={questsLoading}
+          onClaim={onClaimQuest ?? (async () => {})}
+          screenWidth={sw}
+          screenHeight={sh}
+        />
+        
+        {/* Shop Modal */}
+        <ShopModal
+          isOpen={isShopOpen}
+          onClose={() => setIsShopOpen(false)}
+          playerMeta={playerMetaData}
+          cubeBalance={cubeBalance}
+          screenWidth={sw}
+          screenHeight={sh}
+          onUpgradeStartingBonus={onUpgradeStartingBonus}
+          onUpgradeBagSize={onUpgradeBagSize}
+          onUpgradeBridging={onUpgradeBridging}
+          onUnlockBonus={onUnlockBonus}
+        />
+        
+        {/* Settings Modal */}
+        <SettingsModal
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+          screenWidth={sw}
+          screenHeight={sh}
+          isSoundEnabled={isSoundEnabled}
+          isMusicEnabled={isMusicEnabled}
+          onToggleSound={onToggleSound}
+          onToggleMusic={onToggleMusic}
+          username={username}
+          walletAddress={walletAddress}
+        />
+        
+        {/* Leaderboard Modal */}
+        <LeaderboardModal
+          isOpen={isLeaderboardOpen}
+          onClose={() => setIsLeaderboardOpen(false)}
+          entries={leaderboardEntries}
+          loading={leaderboardLoading}
+          onRefresh={onRefreshLeaderboard ?? (() => {})}
+          screenWidth={sw}
+          screenHeight={sh}
+        />
 
         {/* My Games Modal */}
         <MyGamesModal
