@@ -520,122 +520,106 @@ const PageRenderer = (props: MainScreenProps & {
     return 0;
   };
 
-  // Determine which pages to render
-  const pagesToRender: PageId[] = isTransitioning && previousPage 
-    ? [previousPage, currentPage] 
-    : [currentPage];
+  // Only render the current page - fade it in during transition
+  // This prevents old page elements from showing through
+  const pageAlpha = isTransitioning ? transitionProgress : 1;
+  const pageX = isTransitioning 
+    ? (transitionDirection === 'forward' ? sw * (1 - transitionProgress) * 0.3 : -sw * (1 - transitionProgress) * 0.3)
+    : 0;
 
   return (
     <pixiContainer>
-      {/* Background (shared) */}
+      {/* Background (shared, always visible) */}
       <SkyBackground w={sw} h={sh} />
       <Clouds w={sw} h={sh} />
 
-      {/* Pages */}
-      {pagesToRender.map((page) => {
-        const isCurrent = page === currentPage;
-        const pageX = getPageX(page, isCurrent);
-        // Add fade: outgoing page fades out, incoming page fades in
-        let alpha = 1;
-        if (isTransitioning) {
-          if (isCurrent) {
-            // Incoming page fades in
-            alpha = 0.3 + transitionProgress * 0.7;
-          } else {
-            // Outgoing page fades out
-            alpha = 1 - transitionProgress * 0.7;
-          }
-        }
+      {/* Current page only - fades in during transition */}
+      <pixiContainer x={pageX} alpha={pageAlpha}>
+        {currentPage === 'home' && (
+          <HomePageContent
+            sw={sw} sh={sh} topBarH={topBarH} isMobile={isMobile} uiScale={uiScale}
+            cubeBalance={cubeBalance} games={games}
+            isConnected={isConnected ?? false} username={username}
+            onConnect={onConnect} onProfileClick={onProfileClick} onTrophyClick={onTrophyClick}
+            navigate={navigate}
+          />
+        )}
 
-        return (
-          <pixiContainer key={page} x={pageX} alpha={alpha}>
-            {page === 'home' && (
-              <HomePageContent
-                sw={sw} sh={sh} topBarH={topBarH} isMobile={isMobile} uiScale={uiScale}
-                cubeBalance={cubeBalance} games={games}
-                isConnected={isConnected ?? false} username={username}
-                onConnect={onConnect} onProfileClick={onProfileClick} onTrophyClick={onTrophyClick}
-                navigate={navigate}
-              />
-            )}
+        {currentPage === 'leaderboard' && (
+          <LeaderboardPage
+            entries={leaderboardEntries}
+            loading={leaderboardLoading}
+            onRefresh={onRefreshLeaderboard ?? (() => {})}
+            screenWidth={sw}
+            screenHeight={sh}
+            topBarHeight={topBarH}
+          />
+        )}
 
-            {page === 'leaderboard' && (
-              <LeaderboardPage
-                entries={leaderboardEntries}
-                loading={leaderboardLoading}
-                onRefresh={onRefreshLeaderboard ?? (() => {})}
-                screenWidth={sw}
-                screenHeight={sh}
-                topBarHeight={topBarH}
-              />
-            )}
+        {currentPage === 'shop' && (
+          <ShopPage
+            playerMeta={playerMetaData ?? null}
+            cubeBalance={cubeBalance}
+            screenWidth={sw}
+            screenHeight={sh}
+            topBarHeight={topBarH}
+            onUpgradeStartingBonus={onUpgradeStartingBonus}
+            onUpgradeBagSize={onUpgradeBagSize}
+            onUpgradeBridging={onUpgradeBridging}
+            onUnlockBonus={onUnlockBonus}
+          />
+        )}
 
-            {page === 'shop' && (
-              <ShopPage
-                playerMeta={playerMetaData ?? null}
-                cubeBalance={cubeBalance}
-                screenWidth={sw}
-                screenHeight={sh}
-                topBarHeight={topBarH}
-                onUpgradeStartingBonus={onUpgradeStartingBonus}
-                onUpgradeBagSize={onUpgradeBagSize}
-                onUpgradeBridging={onUpgradeBridging}
-                onUnlockBonus={onUnlockBonus}
-              />
-            )}
+        {currentPage === 'quests' && (
+          <QuestsPage
+            questFamilies={questFamilies}
+            loading={questsLoading}
+            onClaim={onClaimQuest ?? (async () => {})}
+            screenWidth={sw}
+            screenHeight={sh}
+            topBarHeight={topBarH}
+            cubeBalance={cubeBalance}
+          />
+        )}
 
-            {page === 'quests' && (
-              <QuestsPage
-                questFamilies={questFamilies}
-                loading={questsLoading}
-                onClaim={onClaimQuest ?? (async () => {})}
-                screenWidth={sw}
-                screenHeight={sh}
-                topBarHeight={topBarH}
-                cubeBalance={cubeBalance}
-              />
-            )}
+        {currentPage === 'settings' && (
+          <SettingsPage
+            screenWidth={sw}
+            screenHeight={sh}
+            topBarHeight={topBarH}
+            isSoundEnabled={isSoundEnabled}
+            isMusicEnabled={isMusicEnabled}
+            onToggleSound={onToggleSound}
+            onToggleMusic={onToggleMusic}
+            username={username}
+            walletAddress={walletAddress}
+          />
+        )}
 
-            {page === 'settings' && (
-              <SettingsPage
-                screenWidth={sw}
-                screenHeight={sh}
-                topBarHeight={topBarH}
-                isSoundEnabled={isSoundEnabled}
-                isMusicEnabled={isMusicEnabled}
-                onToggleSound={onToggleSound}
-                onToggleMusic={onToggleMusic}
-                username={username}
-                walletAddress={walletAddress}
-              />
-            )}
+        {currentPage === 'mygames' && (
+          <MyGamesPage
+            games={games}
+            loading={gamesLoading}
+            screenWidth={sw}
+            screenHeight={sh}
+            topBarHeight={topBarH}
+            onResumeGame={onNavigateToGame}
+          />
+        )}
 
-            {page === 'mygames' && (
-              <MyGamesPage
-                games={games}
-                loading={gamesLoading}
-                screenWidth={sw}
-                screenHeight={sh}
-                topBarHeight={topBarH}
-                onResumeGame={onNavigateToGame}
-              />
-            )}
-
-            {page === 'loadout' && (
-              <LoadoutPage
-                onConfirm={onStartGame}
-                onCancel={goHome}
-                playerMetaData={playerMetaData ?? null}
-                cubeBalance={cubeBalance}
-                isLoading={isStartingGame}
-                screenWidth={sw}
-                screenHeight={sh}
-                topBarHeight={topBarH}
-              />
-            )}
-          </pixiContainer>
-        );
-      })}
+        {currentPage === 'loadout' && (
+          <LoadoutPage
+            onConfirm={onStartGame}
+            onCancel={goHome}
+            playerMetaData={playerMetaData ?? null}
+            cubeBalance={cubeBalance}
+            isLoading={isStartingGame}
+            screenWidth={sw}
+            screenHeight={sh}
+            topBarHeight={topBarH}
+          />
+        )}
+      </pixiContainer>
     </pixiContainer>
   );
 };
