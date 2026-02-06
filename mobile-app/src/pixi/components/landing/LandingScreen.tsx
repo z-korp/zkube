@@ -108,25 +108,26 @@ function useTextures(paths: string[]): Record<string, Texture | null> {
 const SkyBackground = ({ w, h }: { w: number; h: number }) => {
   const tex = useTexture(`${A}/bg-sky.png`);
 
+  // Fallback gradient (always defined, hooks can't be conditional)
+  const drawFallback = useCallback((g: PixiGraphics) => {
+    g.clear();
+    const steps = 20;
+    const stepH = Math.ceil(h / steps) + 1;
+    const top = { r: 0xD0, g: 0xEA, b: 0xF8 };
+    const bot = { r: 0xF5, g: 0xF0, b: 0xE0 };
+    for (let i = 0; i < steps; i++) {
+      const t = i / (steps - 1);
+      const r = Math.round(top.r + (bot.r - top.r) * t);
+      const gC = Math.round(top.g + (bot.g - top.g) * t);
+      const b = Math.round(top.b + (bot.b - top.b) * t);
+      g.setFillStyle({ color: (r << 16) | (gC << 8) | b });
+      g.rect(0, i * stepH, w, stepH);
+      g.fill();
+    }
+  }, [w, h]);
+
   if (!tex) {
-    // Fallback gradient
-    const draw = useCallback((g: PixiGraphics) => {
-      g.clear();
-      const steps = 20;
-      const stepH = Math.ceil(h / steps) + 1;
-      const top = { r: 0xD0, g: 0xEA, b: 0xF8 };
-      const bot = { r: 0xF5, g: 0xF0, b: 0xE0 };
-      for (let i = 0; i < steps; i++) {
-        const t = i / (steps - 1);
-        const r = Math.round(top.r + (bot.r - top.r) * t);
-        const gC = Math.round(top.g + (bot.g - top.g) * t);
-        const b = Math.round(top.b + (bot.b - top.b) * t);
-        g.setFillStyle({ color: (r << 16) | (gC << 8) | b });
-        g.rect(0, i * stepH, w, stepH);
-        g.fill();
-      }
-    }, [w, h]);
-    return <pixiGraphics draw={draw} />;
+    return <pixiGraphics draw={drawFallback} />;
   }
 
   // Cover the full screen with the sky texture
