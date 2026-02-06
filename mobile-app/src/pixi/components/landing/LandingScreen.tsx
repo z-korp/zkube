@@ -524,7 +524,7 @@ const TitleText = ({ x, y, fontSize }: { x: number; y: number; fontSize: number 
         style={{
           fontFamily: 'Bangers, Arial Black, sans-serif',
           fontSize: fontSize,
-          fill: [0x7C3AED, 0x3B82F6], // Purple to blue
+          fill: 0x6D28D9, // Rich purple
           letterSpacing: 4,
           align: 'center',
           stroke: {
