@@ -13,7 +13,8 @@ import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { showToast } from "@/utils/toast";
-import { LoadoutDialog } from "@/ui/components/Shop";
+import { LoadoutDialog, ShopDialog } from "@/ui/components/Shop";
+import { QuestsDialog } from "@/ui/components/Quest";
 import { DEFAULT_SETTINGS_ID } from "@/dojo/game/types/level";
 import { LandingScreen } from "@/pixi/components/landing/LandingScreen";
 import { useAccount } from "@starknet-react/core";
@@ -34,6 +35,8 @@ export const Home = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [showLoadoutDialog, setShowLoadoutDialog] = useState(false);
+  const [isQuestsOpen, setIsQuestsOpen] = useState(false);
+  const [isShopOpen, setIsShopOpen] = useState(false);
 
   const cubeBalanceNum = Number(cubeBalance);
 
@@ -55,6 +58,14 @@ export const Home = () => {
     const controllerConnector = connector as ControllerConnector;
     if (controllerConnector?.controller) {
       controllerConnector.controller.connect();
+    }
+  }, [connector]);
+
+  // Called from PixiJS trophy button
+  const handleTrophyClick = useCallback(() => {
+    const controllerConnector = connector as ControllerConnector;
+    if (controllerConnector?.controller?.openProfile) {
+      controllerConnector.controller.openProfile("trophies");
     }
   }, [connector]);
 
@@ -135,6 +146,10 @@ export const Home = () => {
         onPlay={handlePlay}
         onConnect={handleConnect}
         isConnected={!!account}
+        cubeBalance={cubeBalanceNum}
+        onQuestsClick={() => setIsQuestsOpen(true)}
+        onTrophyClick={handleTrophyClick}
+        onShopClick={() => setIsShopOpen(true)}
       />
 
       {/* Loadout Dialog (HTML overlay for blockchain tx flow) */}
@@ -145,6 +160,18 @@ export const Home = () => {
         playerMetaData={playerMeta?.data ?? null}
         cubeBalance={cubeBalanceNum}
         isLoading={isLoading}
+      />
+
+      {/* Quests Dialog */}
+      <QuestsDialog
+        isOpen={isQuestsOpen}
+        onClose={() => setIsQuestsOpen(false)}
+      />
+
+      {/* Shop Dialog */}
+      <ShopDialog
+        isOpen={isShopOpen}
+        onClose={() => setIsShopOpen(false)}
       />
     </>
   );
