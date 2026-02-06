@@ -95,7 +95,7 @@ export const BlockSprite = ({
     }
     
     // Use new tiki block assets with cute faces
-    const texturePath = `/assets/tiki/blocks/block-${block.width}.png`;
+    const texturePath = `/assets/theme-1/block-${block.width}.png`;
     Assets.load(texturePath)
       .then(setTexture)
       .catch(() => {

@@ -1,30 +1,23 @@
 /**
- * LandingScreen - Full PixiJS landing page using real tiki assets
+ * LandingScreen - Full PixiJS landing page
  *
- * - bg-sky texture as full background
- * - Drifting procedural clouds
- * - grass-strip + bush-strip at the bottom
- * - Real tiki block textures (block-1/2/3) stacking at the bottom
- * - logo-zkube.png as title
- * - Real button textures (btn-orange-lg, btn-green-lg)
- * - TopBar with menu, cube balance, quests, trophy, shop (reuses existing PixiJS components)
- * - Palm trees on sides
- * - Floating decorative blocks
+ * Uses ONLY theme-1 assets:
+ *   block-1/2/3/4.png, logo.png, palmtree-left/right.png, theme-2-1.png
+ * Everything else (sky, clouds, grass, buttons, icons) is procedural.
  */
 
 import { Application } from '@pixi/react';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Assets, Texture, Graphics as PixiGraphics } from 'pixi.js';
-import { PixiThemeProvider, usePixiTheme } from '../../themes/ThemeContext';
+import { PixiThemeProvider } from '../../themes/ThemeContext';
 import { useFullscreenLayout } from '../../hooks/useFullscreenLayout';
 import { TopBar } from '../topbar';
-import { MenuModal } from '../modals';
 
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 
-const A = '/assets/tiki2'; // asset base path
+const T = '/assets/theme-1'; // theme base path
 const GRID_COLS = 8;
 const MAX_STACK_ROWS = 6;
 const MAX_CELL_SIZE = 52;
@@ -75,7 +68,7 @@ export interface LandingScreenProps {
 }
 
 // ============================================================================
-// TEXTURE LOADER HOOK
+// TEXTURE HOOK
 // ============================================================================
 
 function useTexture(path: string): Texture | null {
@@ -86,30 +79,14 @@ function useTexture(path: string): Texture | null {
   return tex;
 }
 
-function useTextures(paths: string[]): Record<string, Texture | null> {
-  const [textures, setTextures] = useState<Record<string, Texture | null>>({});
-  useEffect(() => {
-    const result: Record<string, Texture | null> = {};
-    Promise.all(
-      paths.map(p =>
-        Assets.load(p)
-          .then(t => { result[p] = t as Texture; })
-          .catch(() => { result[p] = null; })
-      )
-    ).then(() => setTextures({ ...result }));
-  }, [paths.join(',')]);
-  return textures;
-}
-
 // ============================================================================
-// SKY BACKGROUND (texture-based)
+// SKY BACKGROUND (procedural gradient, theme-2-1.png overlay)
 // ============================================================================
 
 const SkyBackground = ({ w, h }: { w: number; h: number }) => {
-  const tex = useTexture(`${A}/bg-sky.png`);
+  const bgTex = useTexture(`${T}/theme-2-1.png`);
 
-  // Fallback gradient (always defined, hooks can't be conditional)
-  const drawFallback = useCallback((g: PixiGraphics) => {
+  const drawGradient = useCallback((g: PixiGraphics) => {
     g.clear();
     const steps = 20;
     const stepH = Math.ceil(h / steps) + 1;
@@ -126,24 +103,20 @@ const SkyBackground = ({ w, h }: { w: number; h: number }) => {
     }
   }, [w, h]);
 
-  if (!tex) {
-    return <pixiGraphics draw={drawFallback} />;
+  if (bgTex) {
+    const scaleX = w / bgTex.width;
+    const scaleY = h / bgTex.height;
+    const scale = Math.max(scaleX, scaleY);
+    const offX = (w - bgTex.width * scale) / 2;
+    const offY = (h - bgTex.height * scale) / 2;
+    return <pixiSprite texture={bgTex} x={offX} y={offY} scale={{ x: scale, y: scale }} />;
   }
 
-  // Cover the full screen with the sky texture
-  const scaleX = w / tex.width;
-  const scaleY = h / tex.height;
-  const scale = Math.max(scaleX, scaleY);
-  const offX = (w - tex.width * scale) / 2;
-  const offY = (h - tex.height * scale) / 2;
-
-  return (
-    <pixiSprite texture={tex} x={offX} y={offY} scale={{ x: scale, y: scale }} />
-  );
+  return <pixiGraphics draw={drawGradient} />;
 };
 
 // ============================================================================
-// CLOUDS (procedural - lightweight)
+// CLOUDS (procedural)
 // ============================================================================
 
 const Clouds = ({ w, h }: { w: number; h: number }) => {
@@ -189,8 +162,6 @@ const Clouds = ({ w, h }: { w: number; h: number }) => {
     g.circle(-20 * s, -4 * s, 20 * s); g.fill();
     g.circle(10 * s, 9 * s, 24 * s); g.fill();
     g.circle(-12 * s, 10 * s, 18 * s); g.fill();
-    g.setFillStyle({ color: 0xFFFFFF, alpha: 0.35 });
-    g.circle(5 * s, -12 * s, 14 * s); g.fill();
   }, []);
 
   return (
@@ -204,82 +175,49 @@ const Clouds = ({ w, h }: { w: number; h: number }) => {
 };
 
 // ============================================================================
-// GROUND LAYERS (grass + bush textures)
+// GRASS (procedural)
 // ============================================================================
 
-const GroundLayers = ({ w, groundY }: { w: number; groundY: number }) => {
-  const grassTex = useTexture(`${A}/grass-strip.png`);
-  const bushTex = useTexture(`${A}/bush-strip.png`);
-
-  // Fallback if textures don't load
-  const drawFallback = useCallback((g: PixiGraphics) => {
-    if (grassTex) return;
+const Grass = ({ w, groundY, h }: { w: number; groundY: number; h: number }) => {
+  const draw = useCallback((g: PixiGraphics) => {
     g.clear();
-    g.setFillStyle({ color: 0x86EFAC, alpha: 0.7 });
-    g.rect(0, 0, w, 300);
+    // Light top edge
+    g.setFillStyle({ color: 0xBBF7D0, alpha: 0.6 });
+    g.rect(0, groundY - 4, w, 8);
     g.fill();
-  }, [w, grassTex]);
+    // Main green
+    g.setFillStyle({ color: 0x86EFAC, alpha: 0.7 });
+    g.rect(0, groundY, w, h - groundY + 10);
+    g.fill();
+    // Darker base
+    g.setFillStyle({ color: 0x4ADE80, alpha: 0.5 });
+    g.rect(0, groundY + 6, w, h - groundY + 4);
+    g.fill();
+  }, [w, h, groundY]);
 
-  const grassH = grassTex ? 40 : 0;
-  const bushH = bushTex ? 50 : 0;
-
-  return (
-    <pixiContainer y={groundY}>
-      {/* Fallback green */}
-      {!grassTex && <pixiGraphics draw={drawFallback} />}
-
-      {/* Bush strip (behind grass) */}
-      {bushTex && (
-        <pixiTilingSprite
-          texture={bushTex}
-          width={w}
-          height={bushH}
-          y={-bushH + 5}
-        />
-      )}
-
-      {/* Grass strip */}
-      {grassTex && (
-        <pixiTilingSprite
-          texture={grassTex}
-          width={w}
-          height={grassH}
-          y={-grassH / 2}
-        />
-      )}
-    </pixiContainer>
-  );
+  return <pixiGraphics draw={draw} />;
 };
 
 // ============================================================================
-// PALM TREES
+// PALM TREES (theme-1 assets)
 // ============================================================================
 
 const PalmTrees = ({ w, groundY }: { w: number; groundY: number }) => {
-  const palm1 = useTexture(`${A}/palm-tree-1.png`);
-  const palm2 = useTexture(`${A}/palm-tree-2.png`);
-
-  if (!palm1 && !palm2) return null;
-
-  const palmH = 180;
-  const palmW = 120;
-
+  const left = useTexture(`${T}/palmtree-left.png`);
+  const right = useTexture(`${T}/palmtree-right.png`);
+  if (!left && !right) return null;
+  const pH = 200;
+  const pW = 130;
   return (
     <pixiContainer>
-      {palm1 && (
-        <pixiSprite texture={palm1} x={-10} y={groundY - palmH}
-          width={palmW} height={palmH} alpha={0.85} />
-      )}
-      {palm2 && (
-        <pixiSprite texture={palm2} x={w - palmW + 10} y={groundY - palmH + 20}
-          width={palmW} height={palmH} alpha={0.85} />
-      )}
+      {left && <pixiSprite texture={left} x={-10} y={groundY - pH} width={pW} height={pH} alpha={0.9} />}
+      {right && <pixiSprite texture={right} x={w - pW + 10} y={groundY - pH + 20} width={pW} height={pH} alpha={0.9} />}
     </pixiContainer>
   );
 };
 
 // ============================================================================
-// BLOCK PILE (uses real tiki block textures)
+// BLOCK PILE (theme-1 block textures)
 // ============================================================================
 
 const BlockPile = ({ w, h, cellSize }: { w: number; h: number; cellSize: number }) => {
@@ -288,23 +226,23 @@ const BlockPile = ({ w, h, cellSize }: { w: number; h: number; cellSize: number 
   const nextIdRef = useRef(0);
   const [tick, setTick] = useState(0);
 
-  // Load block textures (1=green, 2=blue, 3=purple wide)
-  const blockPaths = useMemo(() => [
-    `${A}/block-1.png`, `${A}/block-2.png`, `${A}/block-3.png`,
-  ], []);
-  const textures = useTextures(blockPaths);
-
-  const getBlockTex = useCallback((width: number): Texture | null => {
-    // block-1 for 1-wide, block-2 for 2-wide, block-3 for 3+ wide
-    if (width <= 1) return textures[blockPaths[0]] ?? null;
-    if (width <= 2) return textures[blockPaths[1]] ?? null;
-    return textures[blockPaths[2]] ?? null;
-  }, [textures, blockPaths]);
+  // Load block textures from theme-1
+  const [textures, setTextures] = useState<Record<number, Texture | null>>({});
+  useEffect(() => {
+    const load = async () => {
+      const result: Record<number, Texture | null> = {};
+      for (let i = 1; i <= 4; i++) {
+        try { result[i] = await Assets.load(`${T}/block-${i}.png`) as Texture; }
+        catch { result[i] = null; }
+      }
+      setTextures(result);
+    };
+    load();
+  }, []);
 
   useEffect(() => {
     const totalRows = Math.ceil(h / cellSize);
-    gridRef.current = Array.from({ length: totalRows }, () =>
-      new Array(GRID_COLS).fill(false));
+    gridRef.current = Array.from({ length: totalRows }, () => new Array(GRID_COLS).fill(false));
   }, [h, cellSize]);
 
   const findSpot = useCallback((blockW: number): { col: number; row: number } | null => {
@@ -337,7 +275,7 @@ const BlockPile = ({ w, h, cellSize }: { w: number; h: number; cellSize: number 
   }, []);
 
   const spawnBlock = useCallback(() => {
-    const widths = [1, 1, 2, 2, 2, 3, 3];
+    const widths = [1, 1, 2, 2, 2, 3, 3, 4];
     const blockW = widths[Math.floor(Math.random() * widths.length)];
     const spot = findSpot(blockW);
     if (!spot) return;
@@ -346,12 +284,10 @@ const BlockPile = ({ w, h, cellSize }: { w: number; h: number; cellSize: number 
       if (grid[spot.row]) grid[spot.row][spot.col + dx] = true;
     }
     blocksRef.current.push({
-      id: nextIdRef.current++,
-      col: spot.col, row: spot.row, width: blockW,
+      id: nextIdRef.current++, col: spot.col, row: spot.row, width: blockW,
       y: -cellSize * 2 - Math.random() * 150,
       targetY: spot.row * cellSize,
-      speed: 2 + Math.random() * 2.5,
-      settled: false,
+      speed: 2 + Math.random() * 2.5, settled: false,
       colorIdx: Math.floor(Math.random() * BLOCK_COLORS.length),
     });
   }, [cellSize, findSpot]);
@@ -392,30 +328,22 @@ const BlockPile = ({ w, h, cellSize }: { w: number; h: number; cellSize: number 
         const bw = b.width * cellSize;
         const bh = cellSize;
         const bx = gridOffsetX + b.col * cellSize;
-        const tex = getBlockTex(b.width);
-
+        // Use closest block texture: 1->1, 2->2, 3->3, 4->4
+        const tex = textures[Math.min(b.width, 4)] ?? null;
         if (tex) {
-          return (
-            <pixiSprite key={b.id} texture={tex}
-              x={bx} y={b.y} width={bw} height={bh} />
-          );
+          return <pixiSprite key={b.id} texture={tex} x={bx} y={b.y} width={bw} height={bh} />;
         }
-
         // Procedural fallback
         const color = BLOCK_COLORS[b.colorIdx % BLOCK_COLORS.length];
         return (
-          <pixiGraphics key={b.id} x={bx} y={b.y}
-            draw={(g) => {
-              g.clear();
-              const r = Math.min(bw, bh) * 0.18;
-              g.setFillStyle({ color: color.fill });
-              g.roundRect(2, 2, bw - 4, bh - 4, r);
-              g.fill();
-              g.setStrokeStyle({ width: 2, color: color.border, alpha: 0.7 });
-              g.roundRect(2, 2, bw - 4, bh - 4, r);
-              g.stroke();
-            }}
-          />
+          <pixiGraphics key={b.id} x={bx} y={b.y} draw={(g) => {
+            g.clear();
+            const r = Math.min(bw, bh) * 0.18;
+            g.setFillStyle({ color: color.fill });
+            g.roundRect(2, 2, bw - 4, bh - 4, r); g.fill();
+            g.setStrokeStyle({ width: 2, color: color.border, alpha: 0.7 });
+            g.roundRect(2, 2, bw - 4, bh - 4, r); g.stroke();
+          }} />
         );
       })}
     </pixiContainer>
@@ -423,11 +351,11 @@ const BlockPile = ({ w, h, cellSize }: { w: number; h: number; cellSize: number 
 };
 
 // ============================================================================
-// LOGO
+// LOGO (theme-1/logo.png)
 // ============================================================================
 
 const Logo = ({ x, y, maxW, maxH }: { x: number; y: number; maxW: number; maxH: number }) => {
-  const tex = useTexture(`${A}/logo-zkube.png`);
+  const tex = useTexture(`${T}/logo.png`);
   const [bounce, setBounce] = useState(0);
   const timeRef = useRef(0);
 
@@ -443,14 +371,11 @@ const Logo = ({ x, y, maxW, maxH }: { x: number; y: number; maxW: number; maxH: 
   }, []);
 
   if (!tex) {
-    // Text fallback
     return (
       <pixiText text="zKube" x={x} y={y + bounce} anchor={0.5}
         style={{
-          fontFamily: 'Bangers, Arial Black, sans-serif',
-          fontSize: 64,
-          fill: 0x6D28D9,
-          letterSpacing: 4,
+          fontFamily: 'Bangers, Arial Black, sans-serif', fontSize: 64,
+          fill: 0x6D28D9, letterSpacing: 4,
           stroke: { color: 0xFFFFFF, width: 5 },
           dropShadow: { alpha: 0.3, angle: Math.PI / 6, blur: 6, distance: 4, color: 0x4C1D95 },
         }}
@@ -458,42 +383,45 @@ const Logo = ({ x, y, maxW, maxH }: { x: number; y: number; maxW: number; maxH: 
     );
   }
 
-  // Scale logo to fit within maxW x maxH
-  const scaleX = maxW / tex.width;
-  const scaleY = maxH / tex.height;
-  const scale = Math.min(scaleX, scaleY, 1); // don't upscale
-
-  return (
-    <pixiSprite texture={tex}
-      x={x} y={y + bounce}
-      anchor={0.5}
-      scale={scale}
-    />
-  );
+  const scale = Math.min(maxW / tex.width, maxH / tex.height, 1);
+  return <pixiSprite texture={tex} x={x} y={y + bounce} anchor={0.5} scale={scale} />;
 };
 
 // ============================================================================
-// TEXTURE BUTTON (uses real button images)
+// PROCEDURAL BUTTON
 // ============================================================================
 
-const TextureButton = ({
-  x, y, width, height, texturePath, label, onPress, fontSize = 20,
+const ProceduralButton = ({
+  x, y, width, height, label, color, onPress, fontSize = 20,
 }: {
   x: number; y: number; width: number; height: number;
-  texturePath: string; label: string;
-  onPress: () => void; fontSize?: number;
+  label: string; color: number; onPress: () => void; fontSize?: number;
 }) => {
-  const tex = useTexture(texturePath);
   const [pressed, setPressed] = useState(false);
   const [hovered, setHovered] = useState(false);
-
   const scale = pressed ? 0.95 : hovered ? 1.02 : 1;
+
+  const draw = useCallback((g: PixiGraphics) => {
+    g.clear();
+    const r = 14;
+    // Shadow
+    g.setFillStyle({ color: 0x000000, alpha: 0.2 });
+    g.roundRect(3, 4, width, height, r); g.fill();
+    // Body
+    g.setFillStyle({ color });
+    g.roundRect(0, 0, width, height, r); g.fill();
+    // Top highlight
+    g.setFillStyle({ color: 0xFFFFFF, alpha: 0.25 });
+    g.roundRect(4, 3, width - 8, height * 0.35, r - 2); g.fill();
+    // Border
+    g.setStrokeStyle({ width: 2, color: 0xFFFFFF, alpha: 0.3 });
+    g.roundRect(0, 0, width, height, r); g.stroke();
+  }, [width, height, color]);
 
   return (
     <pixiContainer
       x={x + width / 2} y={y + height / 2}
-      scale={scale}
-      pivot={{ x: width / 2, y: height / 2 }}
+      scale={scale} pivot={{ x: width / 2, y: height / 2 }}
       eventMode="static" cursor="pointer"
       onPointerDown={() => setPressed(true)}
       onPointerUp={() => { setPressed(false); onPress(); }}
@@ -501,22 +429,10 @@ const TextureButton = ({
       onPointerOver={() => setHovered(true)}
       onPointerOut={() => { setHovered(false); setPressed(false); }}
     >
-      {tex ? (
-        <pixiSprite texture={tex} width={width} height={height} />
-      ) : (
-        <pixiGraphics draw={(g) => {
-          g.clear();
-          g.setFillStyle({ color: 0xFF8C00 });
-          g.roundRect(0, 0, width, height, 12);
-          g.fill();
-        }} />
-      )}
-      <pixiText text={label}
-        x={width / 2} y={height / 2}
-        anchor={0.5}
+      <pixiGraphics draw={draw} />
+      <pixiText text={label} x={width / 2} y={height / 2} anchor={0.5}
         style={{
-          fontFamily: 'Bangers, Arial Black, sans-serif',
-          fontSize,
+          fontFamily: 'Bangers, Arial Black, sans-serif', fontSize,
           fill: 0xFFFFFF,
           dropShadow: { alpha: 0.5, angle: Math.PI / 4, blur: 2, distance: 2, color: 0x000000 },
         }}
@@ -526,15 +442,13 @@ const TextureButton = ({
 };
 
 // ============================================================================
-// FLOATING DECORATIVE BLOCK
+// FLOATING BLOCK
 // ============================================================================
 
-const FloatingBlock = ({
-  x, y, size, texturePath, delay = 0,
-}: {
-  x: number; y: number; size: number; texturePath: string; delay?: number;
+const FloatingBlock = ({ x, y, size, blockNum, delay = 0 }: {
+  x: number; y: number; size: number; blockNum: number; delay?: number;
 }) => {
-  const tex = useTexture(texturePath);
+  const tex = useTexture(`${T}/block-${blockNum}.png`);
   const [offsetY, setOffsetY] = useState(0);
   const [rotation, setRotation] = useState(0);
   const timeRef = useRef(delay);
@@ -552,15 +466,8 @@ const FloatingBlock = ({
   }, []);
 
   if (!tex) return null;
-
-  return (
-    <pixiSprite texture={tex}
-      x={x} y={y + offsetY}
-      anchor={0.5}
-      width={size} height={size}
-      rotation={rotation}
-    />
-  );
+  return <pixiSprite texture={tex} x={x} y={y + offsetY} anchor={0.5}
+    width={size} height={size} rotation={rotation} />;
 };
 
 // ============================================================================
@@ -572,30 +479,23 @@ const LandingScreenInner = ({
   cubeBalance = 0, onQuestsClick, onTrophyClick, onShopClick,
 }: LandingScreenProps) => {
   const layout = useFullscreenLayout();
-  const { screenWidth: sw, screenHeight: sh, isMobile, uiScale } = layout;
+  const { screenWidth: sw, screenHeight: sh, isMobile, topBarHeight } = layout;
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1;
 
-  const dpr = typeof window !== 'undefined'
-    ? Math.min(window.devicePixelRatio || 1, 2) : 1;
-
-  // Layout
   const cellSize = Math.min(MAX_CELL_SIZE, Math.floor(sw / GRID_COLS));
   const pileHeight = MAX_STACK_ROWS * cellSize;
   const groundY = sh - pileHeight;
-
-  const topBarH = layout.topBarHeight;
-  const logoMaxH = isMobile ? 80 : 120;
-  const logoMaxW = isMobile ? 220 : 340;
-  const logoY = topBarH + (isMobile ? 30 : 50) + logoMaxH / 2;
   const centerX = sw / 2;
 
+  const logoMaxH = isMobile ? 80 : 120;
+  const logoMaxW = isMobile ? 220 : 340;
+  const logoY = topBarHeight + (isMobile ? 30 : 50) + logoMaxH / 2;
   const subtitleY = logoY + logoMaxH / 2 + 8;
   const buttonsY = subtitleY + (isMobile ? 35 : 50);
   const btnW = isMobile ? 200 : 250;
   const btnH = isMobile ? 50 : 56;
   const btnGap = 14;
-
   const floatSize = isMobile ? 45 : 60;
 
   return (
@@ -605,7 +505,7 @@ const LandingScreenInner = ({
         backgroundAlpha={1} background={0xD0EAF8}
         resolution={dpr} autoDensity antialias
       >
-        {/* 1. Sky background */}
+        {/* 1. Sky / background */}
         <SkyBackground w={sw} h={sh} />
 
         {/* 2. Clouds */}
@@ -614,98 +514,65 @@ const LandingScreenInner = ({
         {/* 3. Palm trees */}
         <PalmTrees w={sw} groundY={groundY} />
 
-        {/* 4. Ground layers (grass + bush) */}
-        <GroundLayers w={sw} groundY={groundY} />
+        {/* 4. Grass */}
+        <Grass w={sw} groundY={groundY} h={sh} />
 
         {/* 5. Block pile */}
         <pixiContainer y={groundY}>
           <BlockPile w={sw} h={pileHeight + cellSize} cellSize={cellSize} />
         </pixiContainer>
 
-        {/* 6. Top bar (menu, cube balance, quests, trophy, shop) */}
+        {/* 6. Floating blocks */}
+        <FloatingBlock x={centerX - (isMobile ? 130 : 200)} y={logoY}
+          size={floatSize} blockNum={1} delay={0} />
+        <FloatingBlock x={centerX + (isMobile ? 110 : 175)} y={logoY - 10}
+          size={floatSize * 0.8} blockNum={2} delay={1.5} />
+        <FloatingBlock x={centerX + (isMobile ? 90 : 155)} y={buttonsY + btnH}
+          size={floatSize * 0.6} blockNum={3} delay={3} />
+        <FloatingBlock x={centerX - (isMobile ? 120 : 170)} y={buttonsY + btnH / 2}
+          size={floatSize * 0.7} blockNum={4} delay={2} />
+
+        {/* 7. Logo */}
+        <Logo x={centerX} y={logoY} maxW={logoMaxW} maxH={logoMaxH} />
+
+        {/* 8. Subtitle */}
+        <pixiText text="On-Chain Puzzle Roguelike"
+          x={centerX} y={subtitleY} anchor={0.5}
+          style={{ fontFamily: 'Arial, sans-serif', fontSize: isMobile ? 14 : 18, fill: 0x6B7280, letterSpacing: 1 }}
+        />
+
+        {/* 9. Buttons (procedural) */}
+        <pixiContainer>
+          <ProceduralButton x={centerX - btnW / 2} y={buttonsY}
+            width={btnW} height={btnH} color={0xF97316}
+            label="Play Game" onPress={onPlay} fontSize={isMobile ? 20 : 24} />
+
+          {!isConnected && onConnect && (
+            <ProceduralButton x={centerX - btnW / 2} y={buttonsY + btnH + btnGap}
+              width={btnW} height={btnH} color={0x8B5CF6}
+              label="Connect" onPress={onConnect} fontSize={isMobile ? 18 : 20} />
+          )}
+
+          <ProceduralButton x={centerX - btnW / 2}
+            y={buttonsY + (btnH + btnGap) * ((!isConnected && onConnect) ? 2 : 1)}
+            width={btnW} height={btnH} color={0x22C55E}
+            label="Adventures" onPress={() => {}} fontSize={isMobile ? 18 : 20} />
+        </pixiContainer>
+
+        {/* 10. Top bar - LAST so it's on top and clickable */}
         <TopBar
           layout={layout}
           cubeBalance={cubeBalance}
-          onMenuClick={() => setIsMenuOpen(true)}
+          onMenuClick={() => {}}
           onQuestsClick={onQuestsClick}
           onTrophyClick={onTrophyClick}
           onShopClick={onShopClick}
         />
 
-        {/* 7. Floating decorative blocks */}
-        <FloatingBlock x={centerX - (isMobile ? 130 : 200)} y={logoY}
-          size={floatSize} texturePath={`${A}/block-1.png`} delay={0} />
-        <FloatingBlock x={centerX + (isMobile ? 110 : 175)} y={logoY - 10}
-          size={floatSize * 0.8} texturePath={`${A}/block-2.png`} delay={1.5} />
-        <FloatingBlock x={centerX + (isMobile ? 90 : 155)} y={buttonsY + btnH}
-          size={floatSize * 0.6} texturePath={`${A}/block-3.png`} delay={3} />
-        <FloatingBlock x={centerX - (isMobile ? 120 : 170)} y={buttonsY + btnH / 2}
-          size={floatSize * 0.7} texturePath={`${A}/block-1.png`} delay={2} />
-
-        {/* 8. Logo */}
-        <Logo x={centerX} y={logoY} maxW={logoMaxW} maxH={logoMaxH} />
-
-        {/* 9. Subtitle */}
-        <pixiText text="On-Chain Puzzle Roguelike"
-          x={centerX} y={subtitleY} anchor={0.5}
-          style={{
-            fontFamily: 'Fredericka the Great, Bangers, Arial, sans-serif',
-            fontSize: isMobile ? 14 : 18,
-            fill: 0x6B7280, letterSpacing: 1,
-          }}
-        />
-
-        {/* 10. Buttons */}
-        <pixiContainer>
-          {/* Play Game */}
-          <TextureButton
-            x={centerX - btnW / 2} y={buttonsY}
-            width={btnW} height={btnH}
-            texturePath={`${A}/btn-orange-lg.png`}
-            label="Play Game"
-            onPress={onPlay}
-            fontSize={isMobile ? 20 : 24}
-          />
-
-          {/* Connect (only if not connected) */}
-          {!isConnected && onConnect && (
-            <TextureButton
-              x={centerX - btnW / 2} y={buttonsY + btnH + btnGap}
-              width={btnW} height={btnH}
-              texturePath={`${A}/btn-purple-lg.png`}
-              label="Connect"
-              onPress={onConnect}
-              fontSize={isMobile ? 18 : 20}
-            />
-          )}
-
-          {/* Adventures */}
-          <TextureButton
-            x={centerX - btnW / 2}
-            y={buttonsY + (btnH + btnGap) * ((!isConnected && onConnect) ? 2 : 1)}
-            width={btnW} height={btnH}
-            texturePath={`${A}/btn-green-lg.png`}
-            label="Adventures"
-            onPress={() => {}}
-            fontSize={isMobile ? 18 : 20}
-          />
-        </pixiContainer>
-
         {/* 11. Footer */}
         <pixiText text="Built on Starknet with Dojo"
           x={centerX} y={sh - 16} anchor={0.5}
           style={{ fontFamily: 'Arial, sans-serif', fontSize: 10, fill: 0x9CA3AF }}
-        />
-
-        {/* 12. Menu modal */}
-        <MenuModal
-          isOpen={isMenuOpen}
-          onClose={() => setIsMenuOpen(false)}
-          onSurrender={async () => setIsMenuOpen(false)}
-          screenWidth={sw}
-          screenHeight={sh}
-          currentLevel={0}
-          cubesEarned={0}
         />
       </Application>
     </div>

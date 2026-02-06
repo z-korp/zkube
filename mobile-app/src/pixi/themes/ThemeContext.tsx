@@ -52,7 +52,7 @@ export function PixiThemeProvider({ children }: PixiThemeProviderProps) {
         return `/assets/theme-neon/${asset}`;
       }
       // Use tiki assets for all non-procedural themes
-      return `/assets/tiki/${asset}`;
+      return `/assets/theme-1/${asset}`;
     };
     
     return {

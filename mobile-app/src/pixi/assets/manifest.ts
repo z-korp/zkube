@@ -10,8 +10,8 @@
  * - Particles
  */
 
-/** Base path for tiki assets */
-export const TIKI_ASSET_BASE = '/assets/tiki';
+/** Base path for theme assets */
+export const TIKI_ASSET_BASE = '/assets/theme-1';
 
 /** 9-slice border configuration for panels */
 export interface NineSliceBorders {
@@ -71,10 +71,10 @@ export const ICON_BUTTON_BORDERS: NineSliceBorders = {
 // ============================================================================
 
 export const BLOCK_ASSETS: Record<number, AssetDefinition> = {
-  1: { path: `${TIKI_ASSET_BASE}/blocks/block-1.png`, alias: 'block-1' },
-  2: { path: `${TIKI_ASSET_BASE}/blocks/block-2.png`, alias: 'block-2' },
-  3: { path: `${TIKI_ASSET_BASE}/blocks/block-3.png`, alias: 'block-3' },
-  4: { path: `${TIKI_ASSET_BASE}/blocks/block-4.png`, alias: 'block-4' },
+  1: { path: `${TIKI_ASSET_BASE}/block-1.png`, alias: 'block-1' },
+  2: { path: `${TIKI_ASSET_BASE}/block-2.png`, alias: 'block-2' },
+  3: { path: `${TIKI_ASSET_BASE}/block-3.png`, alias: 'block-3' },
+  4: { path: `${TIKI_ASSET_BASE}/block-4.png`, alias: 'block-4' },
 };
 
 // ============================================================================
@@ -228,12 +228,9 @@ export type IconType = keyof typeof ICON_ASSETS;
 // ============================================================================
 
 export const BACKGROUND_ASSETS = {
-  sky: { path: `${TIKI_ASSET_BASE}/backgrounds/bg-sky.png`, alias: 'bg-sky' },
-  clouds: { path: `${TIKI_ASSET_BASE}/backgrounds/bg-clouds-layer.png`, alias: 'bg-clouds' },
-  grass: { path: `${TIKI_ASSET_BASE}/backgrounds/bg-grass.png`, alias: 'bg-grass' },
-  palmtreeLeft: { path: `${TIKI_ASSET_BASE}/backgrounds/bg-palmtree-left.png`, alias: 'bg-palmtree-left' },
-  palmtreeRight: { path: `${TIKI_ASSET_BASE}/backgrounds/bg-palmtree-right.png`, alias: 'bg-palmtree-right' },
-  tikiTotem: { path: `${TIKI_ASSET_BASE}/backgrounds/bg-tiki-totem.png`, alias: 'bg-tiki-totem' },
+  background: { path: `${TIKI_ASSET_BASE}/theme-2-1.png`, alias: 'bg-main' },
+  palmtreeLeft: { path: `${TIKI_ASSET_BASE}/palmtree-left.png`, alias: 'bg-palmtree-left' },
+  palmtreeRight: { path: `${TIKI_ASSET_BASE}/palmtree-right.png`, alias: 'bg-palmtree-right' },
 } as const;
 
 export type BackgroundType = keyof typeof BACKGROUND_ASSETS;
@@ -256,8 +253,8 @@ export type ParticleType = keyof typeof PARTICLE_ASSETS;
 // ============================================================================
 
 export const LOGO_ASSET: AssetDefinition = {
-  path: `${TIKI_ASSET_BASE}/logo/logo-tiki.png`,
-  alias: 'logo-tiki',
+  path: `${TIKI_ASSET_BASE}/logo.png`,
+  alias: 'logo-main',
 };
 
 // ============================================================================
@@ -265,12 +262,11 @@ export const LOGO_ASSET: AssetDefinition = {
 // ============================================================================
 
 export const BONUS_ASSETS = {
-  shrink: { path: `${TIKI_ASSET_BASE}/bonus/bonus-shrink.png`, alias: 'bonus-shrink' },
-  shuffle: { path: `${TIKI_ASSET_BASE}/bonus/bonus-shuffle.png`, alias: 'bonus-shuffle' },
-  // Existing assets from theme folders
-  hammer: { path: '/assets/theme-1/bonus/hammer.png', alias: 'bonus-hammer' },
-  wave: { path: '/assets/theme-1/bonus/wave.png', alias: 'bonus-wave' },
-  totem: { path: '/assets/theme-1/bonus/tiki.png', alias: 'bonus-totem' },
+  shrink: { path: `${TIKI_ASSET_BASE}/bonus/shrink.svg`, alias: 'bonus-shrink' },
+  shuffle: { path: `${TIKI_ASSET_BASE}/bonus/shuffle.svg`, alias: 'bonus-shuffle' },
+  hammer: { path: `${TIKI_ASSET_BASE}/bonus/hammer.png`, alias: 'bonus-hammer' },
+  wave: { path: `${TIKI_ASSET_BASE}/bonus/wave.png`, alias: 'bonus-wave' },
+  totem: { path: `${TIKI_ASSET_BASE}/bonus/tiki.png`, alias: 'bonus-totem' },
 } as const;
 
 export type BonusType = keyof typeof BONUS_ASSETS;
