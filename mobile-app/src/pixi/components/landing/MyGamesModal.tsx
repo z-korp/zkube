@@ -1,11 +1,14 @@
 /**
  * MyGamesModal - PixiJS modal showing In Progress / Finished tabs
  * Each game card shows: #id, name, level, score, cubes, Resume button
+ * Supports scrolling for overflow
  */
 
-import { useState, useCallback, useMemo } from 'react';
-import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
+import { useState, useCallback, useMemo, useRef } from 'react';
+import { Graphics as PixiGraphics } from 'pixi.js';
 import { Modal, Button } from '../ui';
+
+const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
 
 // ============================================================================
 // TYPES
@@ -63,13 +66,16 @@ const TabButton = ({
     <pixiContainer x={x} y={y}>
       <pixiGraphics draw={draw}
         eventMode="static" cursor="pointer"
-        onPointerDown={onClick}
+        onPointerDown={(e: any) => {
+          e.stopPropagation();
+          onClick();
+        }}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       />
       <pixiText text={label} x={width / 2} y={height / 2} anchor={0.5}
         style={{
-          fontFamily: 'Arial, sans-serif',
+          fontFamily: FONT,
           fontSize: 13,
           fontWeight: active ? 'bold' : 'normal',
           fill: active ? 0xFFFFFF : 0x94A3B8,
@@ -103,24 +109,11 @@ const GameCard = ({
     g.stroke();
   }, [width, hovered]);
 
-  const labelStyle = useMemo(() => ({
-    fontFamily: 'Arial, sans-serif',
-    fontSize: 10,
-    fill: 0x64748B,
-  }), []);
-
-  const valueStyle = useMemo(() => ({
-    fontFamily: 'Arial, sans-serif',
-    fontSize: 14,
-    fontWeight: 'bold' as const,
-    fill: 0xFFFFFF,
-  }), []);
-
-  const resumeBtnW = 70;
-  const resumeBtnH = 28;
+  const resumeBtnW = 80;
+  const resumeBtnH = 32;
 
   return (
-    <pixiContainer y={y}>
+    <pixiContainer y={y} eventMode="static">
       <pixiGraphics draw={drawCard}
         eventMode="static"
         onPointerOver={() => setHovered(true)}
@@ -135,41 +128,163 @@ const GameCard = ({
       />
       <pixiText
         text={game.name}
-        x={pad + 35} y={10}
-        style={{ fontFamily: 'Arial, sans-serif', fontSize: 12, fontWeight: 'bold', fill: 0xFFFFFF }}
+        x={pad + 40} y={10}
+        style={{ fontFamily: FONT, fontSize: 14, fontWeight: 'bold', fill: 0xFFFFFF }}
       />
 
       {/* Stats row */}
-      <pixiText text="LEVEL" x={pad} y={36} style={labelStyle} />
-      <pixiText text={String(game.level)} x={pad} y={50} style={valueStyle} />
+      <pixiText text="LEVEL" x={pad} y={36}
+        style={{ fontFamily: 'Arial, sans-serif', fontSize: 10, fill: 0x64748B }} />
+      <pixiText text={String(game.level)} x={pad} y={50}
+        style={{ fontFamily: FONT, fontSize: 16, fontWeight: 'bold', fill: 0xFFFFFF }} />
 
-      <pixiText text="SCORE" x={pad + 70} y={36} style={labelStyle} />
-      <pixiText text={String(game.totalScore)} x={pad + 70} y={50} style={valueStyle} />
+      <pixiText text="SCORE" x={pad + 70} y={36}
+        style={{ fontFamily: 'Arial, sans-serif', fontSize: 10, fill: 0x64748B }} />
+      <pixiText text={String(game.totalScore)} x={pad + 70} y={50}
+        style={{ fontFamily: FONT, fontSize: 16, fontWeight: 'bold', fill: 0xFFFFFF }} />
 
-      <pixiText text="CUBES" x={pad + 145} y={36} style={labelStyle} />
+      <pixiText text="CUBES" x={pad + 145} y={36}
+        style={{ fontFamily: 'Arial, sans-serif', fontSize: 10, fill: 0x64748B }} />
       <pixiText text={String(game.cubesAvailable)} x={pad + 145} y={50}
-        style={{ fontFamily: 'Arial, sans-serif', fontSize: 14, fontWeight: 'bold', fill: 0xFBBF24 }}
-      />
+        style={{ fontFamily: FONT, fontSize: 16, fontWeight: 'bold', fill: 0xFBBF24 }} />
 
       {/* Resume / Finished button */}
       {!game.gameOver ? (
-        <pixiContainer x={width - resumeBtnW - pad} y={(cardH - resumeBtnH) / 2}>
-          <Button
-            text="Resume"
-            width={resumeBtnW}
-            height={resumeBtnH}
-            variant="primary"
-            fontSize={12}
-            onClick={() => onResume(game.tokenId)}
-          />
-        </pixiContainer>
+        <Button
+          text="Resume"
+          x={width - resumeBtnW - pad}
+          y={(cardH - resumeBtnH) / 2}
+          width={resumeBtnW}
+          height={resumeBtnH}
+          variant="primary"
+          fontSize={13}
+          onClick={() => onResume(game.tokenId)}
+        />
       ) : (
         <pixiText text="Finished"
           x={width - pad} y={cardH / 2}
           anchor={{ x: 1, y: 0.5 }}
-          style={{ fontFamily: 'Arial, sans-serif', fontSize: 11, fill: 0x64748B }}
+          style={{ fontFamily: FONT, fontSize: 12, fill: 0x64748B }}
         />
       )}
+    </pixiContainer>
+  );
+};
+
+// ============================================================================
+// SCROLLABLE CONTAINER
+// ============================================================================
+
+const ScrollableGamesList = ({
+  games,
+  width,
+  maxHeight,
+  onResumeGame,
+  loading,
+  emptyText,
+}: {
+  games: PlayerGame[];
+  width: number;
+  maxHeight: number;
+  onResumeGame: (tokenId: number) => void;
+  loading: boolean;
+  emptyText: string;
+}) => {
+  const [scrollY, setScrollY] = useState(0);
+  const isDragging = useRef(false);
+  const lastY = useRef(0);
+
+  const cardH = 80;
+  const cardGap = 10;
+  const totalHeight = games.length * (cardH + cardGap);
+  const maxScroll = Math.max(0, totalHeight - maxHeight);
+
+  const handlePointerDown = useCallback((e: any) => {
+    isDragging.current = true;
+    lastY.current = e.data.global.y;
+  }, []);
+
+  const handlePointerMove = useCallback((e: any) => {
+    if (!isDragging.current) return;
+    const dy = lastY.current - e.data.global.y;
+    lastY.current = e.data.global.y;
+    setScrollY(prev => Math.max(0, Math.min(maxScroll, prev + dy)));
+  }, [maxScroll]);
+
+  const handlePointerUp = useCallback(() => {
+    isDragging.current = false;
+  }, []);
+
+  // Draw mask for scrollable area
+  const drawMask = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.rect(0, 0, width, maxHeight);
+    g.fill({ color: 0xffffff });
+  }, [width, maxHeight]);
+
+  // Draw scroll track
+  const drawScrollTrack = useCallback((g: PixiGraphics) => {
+    if (totalHeight <= maxHeight) return;
+    g.clear();
+    const trackH = maxHeight - 20;
+    const thumbH = Math.max(30, (maxHeight / totalHeight) * trackH);
+    const thumbY = maxScroll > 0 ? (scrollY / maxScroll) * (trackH - thumbH) : 0;
+    
+    // Track
+    g.roundRect(width - 6, 10, 4, trackH, 2);
+    g.fill({ color: 0x334155, alpha: 0.3 });
+    
+    // Thumb
+    g.roundRect(width - 6, 10 + thumbY, 4, thumbH, 2);
+    g.fill({ color: 0x64748B, alpha: 0.8 });
+  }, [width, maxHeight, totalHeight, scrollY, maxScroll]);
+
+  if (loading) {
+    return (
+      <pixiText text="Loading games..."
+        x={width / 2} y={40} anchor={{ x: 0.5, y: 0.5 }}
+        style={{ fontFamily: FONT, fontSize: 14, fill: 0x94A3B8 }}
+      />
+    );
+  }
+
+  if (games.length === 0) {
+    return (
+      <pixiText text={emptyText}
+        x={width / 2} y={40} anchor={{ x: 0.5, y: 0.5 }}
+        style={{ fontFamily: FONT, fontSize: 14, fill: 0x64748B }}
+      />
+    );
+  }
+
+  return (
+    <pixiContainer>
+      {/* Scrollable area with mask */}
+      <pixiContainer
+        eventMode="static"
+        onPointerDown={handlePointerDown}
+        onGlobalPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerUpOutside={handlePointerUp}
+      >
+        <pixiGraphics draw={drawMask} alpha={0.001} />
+        
+        {/* Content container - shifted by scrollY */}
+        <pixiContainer y={-scrollY}>
+          {games.map((game, i) => (
+            <GameCard
+              key={game.tokenId}
+              game={game}
+              y={i * (cardH + cardGap)}
+              width={width - 12}
+              onResume={onResumeGame}
+            />
+          ))}
+        </pixiContainer>
+      </pixiContainer>
+
+      {/* Scroll indicator */}
+      <pixiGraphics draw={drawScrollTrack} />
     </pixiContainer>
   );
 };
@@ -184,20 +299,15 @@ export const MyGamesModal = ({
 }: MyGamesModalProps) => {
   const [activeTab, setActiveTab] = useState<'progress' | 'finished'>('progress');
 
-  const modalW = Math.min(380, screenWidth - 40);
+  const modalW = Math.min(400, screenWidth - 40);
   const contentW = modalW - 48;
   const tabW = (contentW - 8) / 2;
-  const tabH = 32;
+  const tabH = 36;
+  const listMaxH = 300; // Max height for scrollable list
 
   const activeGames = useMemo(() => games.filter(g => !g.gameOver), [games]);
   const finishedGames = useMemo(() => games.filter(g => g.gameOver), [games]);
   const displayGames = activeTab === 'progress' ? activeGames : finishedGames;
-
-  // Max visible games (scrolling not possible in PixiJS easily, so cap at ~4)
-  const maxVisible = 4;
-  const visibleGames = displayGames.slice(0, maxVisible);
-  const cardH = 80;
-  const cardGap = 8;
 
   return (
     <Modal
@@ -224,42 +334,29 @@ export const MyGamesModal = ({
           onClick={() => setActiveTab('finished')}
         />
 
-        {/* Game cards */}
-        <pixiContainer y={tabH + 12}>
-          {loading ? (
-            <pixiText text="Loading games..."
-              x={contentW / 2} y={40} anchor={{ x: 0.5, y: 0.5 }}
-              style={{ fontFamily: 'Arial, sans-serif', fontSize: 14, fill: 0x94A3B8 }}
-            />
-          ) : visibleGames.length === 0 ? (
-            <pixiText
-              text={activeTab === 'progress' ? "No active games" : "No finished games"}
-              x={contentW / 2} y={40} anchor={{ x: 0.5, y: 0.5 }}
-              style={{ fontFamily: 'Arial, sans-serif', fontSize: 14, fill: 0x64748B }}
-            />
-          ) : (
-            visibleGames.map((game, i) => (
-              <GameCard
-                key={game.tokenId}
-                game={game}
-                y={i * (cardH + cardGap)}
-                width={contentW}
-                onResume={onResumeGame}
-              />
-            ))
-          )}
-
-          {/* "More" indicator */}
-          {displayGames.length > maxVisible && (
-            <pixiText
-              text={`+${displayGames.length - maxVisible} more`}
-              x={contentW / 2}
-              y={maxVisible * (cardH + cardGap) + 4}
-              anchor={{ x: 0.5, y: 0 }}
-              style={{ fontFamily: 'Arial, sans-serif', fontSize: 11, fill: 0x64748B }}
-            />
-          )}
+        {/* Scrollable game cards */}
+        <pixiContainer y={tabH + 16}>
+          <ScrollableGamesList
+            games={displayGames}
+            width={contentW}
+            maxHeight={listMaxH}
+            onResumeGame={onResumeGame}
+            loading={loading}
+            emptyText={activeTab === 'progress' ? "No active games" : "No finished games"}
+          />
         </pixiContainer>
+
+        {/* Close button at bottom */}
+        <Button
+          text="Close"
+          x={0}
+          y={tabH + 16 + listMaxH + 20}
+          width={contentW}
+          height={44}
+          variant="secondary"
+          fontSize={16}
+          onClick={onClose}
+        />
       </pixiContainer>
     </Modal>
   );

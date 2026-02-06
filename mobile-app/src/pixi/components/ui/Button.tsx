@@ -4,6 +4,8 @@ import { usePixiTheme } from '../../themes/ThemeContext';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
 
+const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
+
 interface ButtonProps {
   text: string;
   x?: number;
@@ -84,25 +86,12 @@ export const Button = ({
 
   const colorScheme = getColors();
 
-  const handlePointerDown = useCallback(() => {
-    if (!disabled) setIsPressed(true);
-  }, [disabled]);
-
-  const handlePointerUp = useCallback(() => {
-    if (!disabled && isPressed) {
-      setIsPressed(false);
-      onClick?.();
+  const handleClick = useCallback((e: any) => {
+    if (e?.stopPropagation) e.stopPropagation();
+    if (!disabled && onClick) {
+      onClick();
     }
-  }, [disabled, isPressed, onClick]);
-
-  const handlePointerOver = useCallback(() => {
-    if (!disabled) setIsHovered(true);
-  }, [disabled]);
-
-  const handlePointerOut = useCallback(() => {
-    setIsHovered(false);
-    setIsPressed(false);
-  }, []);
+  }, [disabled, onClick]);
 
   const drawButton = useCallback((g: PixiGraphics) => {
     g.clear();
@@ -133,7 +122,7 @@ export const Button = ({
   }, [width, height, isHovered, isPressed, disabled, colorScheme, variant]);
 
   const textStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT,
     fontSize,
     fontWeight: 'bold',
     fill: colorScheme.text,
@@ -145,11 +134,28 @@ export const Button = ({
         draw={drawButton}
         eventMode={disabled ? 'none' : 'static'}
         cursor={disabled ? 'default' : 'pointer'}
-        onpointerdown={handlePointerDown}
-        onpointerup={handlePointerUp}
-        onpointerupoutside={handlePointerOut}
-        onpointerover={handlePointerOver}
-        onpointerout={handlePointerOut}
+        onPointerDown={(e: any) => {
+          e.stopPropagation();
+          if (!disabled) setIsPressed(true);
+        }}
+        onPointerUp={(e: any) => {
+          e.stopPropagation();
+          if (!disabled && isPressed) {
+            setIsPressed(false);
+            onClick?.();
+          }
+        }}
+        onPointerUpOutside={() => {
+          setIsHovered(false);
+          setIsPressed(false);
+        }}
+        onPointerOver={() => {
+          if (!disabled) setIsHovered(true);
+        }}
+        onPointerOut={() => {
+          setIsHovered(false);
+          setIsPressed(false);
+        }}
       />
       <pixiText
         text={text}

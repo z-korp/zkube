@@ -2,6 +2,8 @@ import { useCallback, useMemo, useEffect } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 
+const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
+
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -35,12 +37,12 @@ export const Modal = ({
   const titleHeight = 32;
   const subtitleHeight = subtitle ? 20 : 0;
   const headerHeight = titleHeight + subtitleHeight + padding;
-  const contentHeight = 200; // Will be overridden by children
+  const contentHeight = 400; // Increased for scrollable content
   const modalHeight = headerHeight + contentHeight + padding;
   const cornerRadius = 16;
 
   const modalX = (screenWidth - width) / 2;
-  const modalY = (screenHeight - modalHeight) / 2;
+  const modalY = Math.max(40, (screenHeight - modalHeight) / 2);
 
   const bgColor = isProcedural ? 0x0f0f1a : 0x0f172a;
   const borderColor = isProcedural ? colors.accent : 0x334155;
@@ -93,24 +95,24 @@ export const Modal = ({
   // Draw close button (X)
   const drawCloseButton = useCallback((g: PixiGraphics) => {
     g.clear();
-    const size = 24;
-    const pad = 6;
+    const size = 32;
+    const pad = 8;
     
-    // Background circle on hover handled by container
+    // Background circle
     g.circle(size / 2, size / 2, size / 2);
-    g.fill({ color: 0x000000, alpha: 0.001 }); // Nearly invisible hit area
+    g.fill({ color: 0x334155, alpha: 0.5 });
     
     // X icon
     g.moveTo(pad, pad);
     g.lineTo(size - pad, size - pad);
     g.moveTo(size - pad, pad);
     g.lineTo(pad, size - pad);
-    g.stroke({ color: 0x94a3b8, width: 2 });
+    g.stroke({ color: 0xffffff, width: 2.5 });
   }, []);
 
   const titleStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
-    fontSize: 22,
+    fontFamily: FONT,
+    fontSize: 24,
     fontWeight: 'bold',
     fill: titleColor,
   }), [titleColor]);
@@ -130,16 +132,19 @@ export const Modal = ({
       <pixiGraphics
         draw={drawBackdrop}
         eventMode="static"
-        onpointerdown={onClose}
+        onPointerDown={(e: any) => {
+          e.stopPropagation();
+          onClose();
+        }}
       />
 
       {/* Modal container */}
       <pixiContainer x={modalX} y={modalY}>
-        {/* Modal background */}
+        {/* Modal background - blocks events from passing through */}
         <pixiGraphics 
           draw={drawModalBg}
           eventMode="static"
-          onpointerdown={(e: any) => e.stopPropagation()}
+          onPointerDown={(e: any) => e.stopPropagation()}
         />
 
         {/* Title */}
@@ -165,18 +170,21 @@ export const Modal = ({
         {/* Close button */}
         {showCloseButton && (
           <pixiContainer 
-            x={width - 40} 
-            y={12}
+            x={width - 44} 
+            y={10}
             eventMode="static"
             cursor="pointer"
-            onpointerdown={onClose}
+            onPointerDown={(e: any) => {
+              e.stopPropagation();
+              onClose();
+            }}
           >
             <pixiGraphics draw={drawCloseButton} />
           </pixiContainer>
         )}
 
-        {/* Content area */}
-        <pixiContainer x={0} y={headerHeight}>
+        {/* Content area - children handle their own events */}
+        <pixiContainer x={0} y={headerHeight} eventMode="static">
           {children}
         </pixiContainer>
       </pixiContainer>
