@@ -60,6 +60,9 @@ export const PageNavigatorProvider: React.FC<{ children: React.ReactNode }> = ({
     setTransitionProgress(0);
     startTimeRef.current = performance.now();
 
+    // Set current page immediately so we render the target page during transition
+    setCurrentPage(targetPage);
+
     const animate = (now: number) => {
       const elapsed = now - startTimeRef.current;
       const progress = Math.min(elapsed / TRANSITION_DURATION, 1);
@@ -72,7 +75,6 @@ export const PageNavigatorProvider: React.FC<{ children: React.ReactNode }> = ({
         transitionRef.current = requestAnimationFrame(animate);
       } else {
         // Transition complete
-        setCurrentPage(targetPage);
         setIsTransitioning(false);
         setTransitionDirection(null);
         setTransitionProgress(0);
@@ -80,12 +82,6 @@ export const PageNavigatorProvider: React.FC<{ children: React.ReactNode }> = ({
         transitionRef.current = null;
       }
     };
-
-    // Set current page immediately for forward navigation
-    // so both pages are visible during transition
-    if (direction === 'forward') {
-      setCurrentPage(targetPage);
-    }
 
     transitionRef.current = requestAnimationFrame(animate);
   }, [currentPage, isTransitioning]);
