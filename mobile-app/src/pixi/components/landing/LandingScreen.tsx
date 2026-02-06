@@ -1,9 +1,13 @@
 /**
- * LandingScreen - 100% PixiJS landing page. No HTML at all.
+ * LandingScreen - 100% PixiJS. No HTML.
  *
- * Uses ONLY theme-1 assets: logo.png, palmtree-left/right.png, theme-2-1.png
- * Everything else is procedural.
- * All modals rendered inside PixiJS via Modal component.
+ * Layout:
+ *   [TopBar: menu | cube balance | quests | trophy | shop]
+ *   [Logo]
+ *   [Play Game]
+ *   [My Games (X)]
+ *   [Shop]
+ *   [Connect / Login]   (only when not connected)
  */
 
 import { Application } from '@pixi/react';
@@ -15,6 +19,7 @@ import { Modal, Button } from '../ui';
 import { MenuButton } from '../topbar/MenuButton';
 import { CubeBalance } from '../topbar/CubeBalance';
 import { NavButton } from '../topbar/NavButton';
+import { MyGamesModal, type PlayerGame } from './MyGamesModal';
 
 // ============================================================================
 // CONSTANTS
@@ -41,6 +46,11 @@ export interface LandingScreenProps {
   onConnect?: () => void;
   isConnected?: boolean;
   cubeBalance?: number;
+  // Game data for My Games
+  games?: PlayerGame[];
+  gamesLoading?: boolean;
+  onResumeGame?: (tokenId: number) => void;
+  // TopBar callbacks
   onQuestsClick?: () => void;
   onTrophyClick?: () => void;
   onShopClick?: () => void;
@@ -90,7 +100,6 @@ const SkyBackground = ({ w, h }: { w: number; h: number }) => {
     const offY = (h - bgTex.height * scale) / 2;
     return <pixiSprite texture={bgTex} x={offX} y={offY} scale={{ x: scale, y: scale }} />;
   }
-
   return <pixiGraphics draw={drawGradient} />;
 };
 
@@ -190,10 +199,10 @@ const Logo = ({ x, y, maxW, maxH }: { x: number; y: number; maxW: number; maxH: 
 };
 
 // ============================================================================
-// PROCEDURAL BUTTON
+// STYLED BUTTON (whiter text, consistent)
 // ============================================================================
 
-const ProceduralButton = ({
+const LandingButton = ({
   x, y, width, height, label, color, onPress, fontSize = 20,
 }: {
   x: number; y: number; width: number; height: number;
@@ -229,7 +238,8 @@ const ProceduralButton = ({
       <pixiText text={label} x={width / 2} y={height / 2} anchor={0.5}
         style={{
           fontFamily: FONT, fontSize, fill: 0xFFFFFF,
-          dropShadow: { alpha: 0.5, angle: Math.PI / 4, blur: 2, distance: 2, color: 0x000000 },
+          letterSpacing: 1,
+          dropShadow: { alpha: 0.6, angle: Math.PI / 4, blur: 2, distance: 2, color: 0x000000 },
         }}
       />
     </pixiContainer>
@@ -237,7 +247,7 @@ const ProceduralButton = ({
 };
 
 // ============================================================================
-// INLINE TOP BAR (rebuilt here to ensure event handling works)
+// INLINE TOP BAR
 // ============================================================================
 
 const LandingTopBar = ({
@@ -270,15 +280,11 @@ const LandingTopBar = ({
   }, [sw, topBarH]);
 
   return (
-    <pixiContainer y={0} zIndex={100}>
-      {/* Background - blocks events from passing to elements below */}
+    <pixiContainer y={0}>
       <pixiGraphics draw={drawBg} eventMode="static"
         onPointerDown={(e: any) => e.stopPropagation()} />
-
       <MenuButton x={menuX} y={menuY} size={btnSize} onClick={onMenuClick} />
-
       <CubeBalance balance={cubeBalance} x={cubeX} y={menuY} height={btnSize} uiScale={uiScale} />
-
       <NavButton icon="quests" x={questsX} y={menuY} width={navW} height={btnSize}
         onClick={onQuestsClick} label={isMobile ? undefined : 'Quests'} />
       <NavButton icon="trophy" x={trophyX} y={menuY} width={navW} height={btnSize}
@@ -290,7 +296,7 @@ const LandingTopBar = ({
 };
 
 // ============================================================================
-// PLACEHOLDER MODAL
+// PLACEHOLDER MODAL (for menu/quests/shop)
 // ============================================================================
 
 const PlaceholderModal = ({
@@ -299,16 +305,13 @@ const PlaceholderModal = ({
   isOpen: boolean; onClose: () => void; title: string; subtitle: string;
   sw: number; sh: number;
 }) => {
-  const modalW = 320;
-  const btnW = modalW - 48;
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} subtitle={subtitle}
-      width={modalW} screenWidth={sw} screenHeight={sh}>
+      width={320} screenWidth={sw} screenHeight={sh}>
       <pixiContainer x={24} y={0}>
-        <pixiText text="Coming soon..." x={btnW / 2} y={16} anchor={{ x: 0.5, y: 0 }}
+        <pixiText text="Coming soon..." x={136} y={16} anchor={{ x: 0.5, y: 0 }}
           style={{ fontFamily: 'Arial, sans-serif', fontSize: 14, fill: 0x94a3b8 }} />
-        <Button text="Close" y={60} width={btnW} height={44} variant="secondary" onClick={onClose} />
+        <Button text="Close" y={60} width={272} height={44} variant="secondary" onClick={onClose} />
       </pixiContainer>
     </Modal>
   );
@@ -320,7 +323,9 @@ const PlaceholderModal = ({
 
 const LandingScreenInner = ({
   onPlay, onConnect, isConnected,
-  cubeBalance = 0, onQuestsClick, onTrophyClick, onShopClick,
+  cubeBalance = 0,
+  games = [], gamesLoading = false, onResumeGame,
+  onQuestsClick, onTrophyClick, onShopClick,
 }: LandingScreenProps) => {
   const layout = useFullscreenLayout();
   const { screenWidth: sw, screenHeight: sh, isMobile, topBarHeight, uiScale } = layout;
@@ -328,18 +333,29 @@ const LandingScreenInner = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isQuestsOpen, setIsQuestsOpen] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
+  const [isMyGamesOpen, setIsMyGamesOpen] = useState(false);
 
   const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1;
   const centerX = sw / 2;
 
+  // Layout
   const logoMaxH = isMobile ? 80 : 120;
   const logoMaxW = isMobile ? 220 : 340;
   const logoY = topBarHeight + (isMobile ? 40 : 70) + logoMaxH / 2;
-  const subtitleY = logoY + logoMaxH / 2 + 8;
-  const buttonsY = subtitleY + (isMobile ? 35 : 50);
-  const btnW = isMobile ? 200 : 250;
+
+  const btnW = isMobile ? 220 : 260;
   const btnH = isMobile ? 50 : 56;
-  const btnGap = 14;
+  const btnGap = 12;
+  const firstBtnY = logoY + logoMaxH / 2 + (isMobile ? 20 : 35);
+
+  const activeGamesCount = games.filter(g => !g.gameOver).length;
+
+  // Button positions
+  let btnIdx = 0;
+  const playY = firstBtnY + (btnH + btnGap) * btnIdx++;
+  const myGamesY = firstBtnY + (btnH + btnGap) * btnIdx++;
+  const shopY = firstBtnY + (btnH + btnGap) * btnIdx++;
+  const connectY = firstBtnY + (btnH + btnGap) * btnIdx++;
 
   return (
     <div style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', overflow: 'hidden', touchAction: 'none' }}>
@@ -348,40 +364,38 @@ const LandingScreenInner = ({
         backgroundAlpha={1} background={0xD0EAF8}
         resolution={dpr} autoDensity antialias
       >
-        {/* 1. Background */}
+        {/* Background */}
         <SkyBackground w={sw} h={sh} />
-
-        {/* 2. Clouds */}
         <Clouds w={sw} h={sh} />
 
-        {/* 3. Logo */}
+        {/* Logo (no subtitle) */}
         <Logo x={centerX} y={logoY} maxW={logoMaxW} maxH={logoMaxH} />
 
-        {/* 4. Subtitle */}
-        <pixiText text="On-Chain Puzzle Roguelike"
-          x={centerX} y={subtitleY} anchor={0.5}
-          style={{ fontFamily: FONT, fontSize: isMobile ? 14 : 18, fill: 0xFFFFFF, letterSpacing: 1,
-            dropShadow: { alpha: 0.5, angle: Math.PI / 4, blur: 3, distance: 1, color: 0x000000 },
-          }}
-        />
-
-        {/* 5. Buttons */}
-        <ProceduralButton x={centerX - btnW / 2} y={buttonsY}
+        {/* Play Game */}
+        <LandingButton x={centerX - btnW / 2} y={playY}
           width={btnW} height={btnH} color={0xF97316}
           label="Play Game" onPress={onPlay} fontSize={isMobile ? 20 : 24} />
 
+        {/* My Games (X) */}
+        <LandingButton x={centerX - btnW / 2} y={myGamesY}
+          width={btnW} height={btnH} color={0x3B82F6}
+          label={`My Games${activeGamesCount > 0 ? ` (${activeGamesCount})` : ''}`}
+          onPress={() => setIsMyGamesOpen(true)} fontSize={isMobile ? 18 : 20} />
+
+        {/* Shop */}
+        <LandingButton x={centerX - btnW / 2} y={shopY}
+          width={btnW} height={btnH} color={0x22C55E}
+          label="Shop" onPress={onShopClick ?? (() => setIsShopOpen(true))}
+          fontSize={isMobile ? 18 : 20} />
+
+        {/* Connect / Login (only when not connected) */}
         {!isConnected && onConnect && (
-          <ProceduralButton x={centerX - btnW / 2} y={buttonsY + btnH + btnGap}
+          <LandingButton x={centerX - btnW / 2} y={connectY}
             width={btnW} height={btnH} color={0x8B5CF6}
             label="Connect" onPress={onConnect} fontSize={isMobile ? 18 : 20} />
         )}
 
-        <ProceduralButton x={centerX - btnW / 2}
-          y={buttonsY + (btnH + btnGap) * ((!isConnected && onConnect) ? 2 : 1)}
-          width={btnW} height={btnH} color={0x22C55E}
-          label="Adventures" onPress={() => {}} fontSize={isMobile ? 18 : 20} />
-
-        {/* 6. Footer */}
+        {/* Footer */}
         <pixiText text="Built on Starknet with Dojo"
           x={centerX} y={sh - 16} anchor={0.5}
           style={{ fontFamily: 'Arial, sans-serif', fontSize: 10, fill: 0xFFFFFF,
@@ -389,7 +403,7 @@ const LandingScreenInner = ({
           }}
         />
 
-        {/* 7. Top bar - LAST for z-order, with its own event-blocking background */}
+        {/* TopBar - last for z-order */}
         <LandingTopBar
           sw={sw} topBarH={topBarHeight} isMobile={isMobile} uiScale={uiScale}
           cubeBalance={cubeBalance}
@@ -399,13 +413,24 @@ const LandingScreenInner = ({
           onShopClick={onShopClick ?? (() => setIsShopOpen(true))}
         />
 
-        {/* 8. Modals (on top of everything) */}
+        {/* Modals */}
         <PlaceholderModal isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)}
           title="Menu" subtitle="Settings & options" sw={sw} sh={sh} />
         <PlaceholderModal isOpen={isQuestsOpen} onClose={() => setIsQuestsOpen(false)}
           title="Quests" subtitle="Daily challenges" sw={sw} sh={sh} />
         <PlaceholderModal isOpen={isShopOpen} onClose={() => setIsShopOpen(false)}
           title="Shop" subtitle="Upgrades & items" sw={sw} sh={sh} />
+
+        {/* My Games Modal */}
+        <MyGamesModal
+          isOpen={isMyGamesOpen}
+          onClose={() => setIsMyGamesOpen(false)}
+          games={games}
+          loading={gamesLoading}
+          screenWidth={sw}
+          screenHeight={sh}
+          onResumeGame={onResumeGame ?? (() => {})}
+        />
       </Application>
     </div>
   );
