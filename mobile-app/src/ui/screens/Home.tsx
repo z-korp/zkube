@@ -1,7 +1,7 @@
 /**
  * Home Screen - Pure PixiJS. Zero HTML.
- * Fetches player's games and passes data to LandingScreen.
- * Implements the full Play flow: LoadoutModal -> freeMint -> create -> navigate
+ * Fetches player's games and passes data to MainScreen.
+ * Implements the full Play flow: LoadoutPage -> freeMint -> create -> navigate
  */
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -12,8 +12,8 @@ import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
 import { useDojo } from "@/dojo/useDojo";
-import { LandingScreen } from "@/pixi/components/landing/LandingScreen";
-import type { PlayerGame } from "@/pixi/components/landing/MyGamesModal";
+import { MainScreen } from "@/pixi/components/pages/MainScreen";
+import type { PlayerGame } from "@/pixi/components/pages/MyGamesPage";
 import { useAccount } from "@starknet-react/core";
 import ControllerConnector from "@cartridge/connector/controller";
 import type { GameTokenData } from "metagame-sdk";
@@ -113,7 +113,7 @@ export const Home = () => {
     effectsVolume,
     setEffectsVolume,
   } = useMusicPlayer();
-  
+
   const isSoundEnabled = effectsVolume > 0;
 
   const handleToggleMusic = useCallback(() => {
@@ -128,8 +128,7 @@ export const Home = () => {
     setEffectsVolume(effectsVolume > 0 ? 0 : 0.2);
   }, [effectsVolume, setEffectsVolume]);
 
-  // State for LoadoutModal
-  const [showLoadoutModal, setShowLoadoutModal] = useState(false);
+  // State for game starting
   const [isStartingGame, setIsStartingGame] = useState(false);
 
   // Fetch player's games
@@ -180,27 +179,14 @@ export const Home = () => {
     });
   }, [ownedGames]);
 
-  // Handle Play button click - open LoadoutModal
-  const handlePlay = useCallback(() => {
-    if (!account) {
-      const c = connector as ControllerConnector;
-      if (c?.controller) c.controller.connect();
-      return;
-    }
-    setShowLoadoutModal(true);
-  }, [account, connector]);
-
-  // Handle loadout close
-  const handleLoadoutClose = useCallback(() => {
-    if (!isStartingGame) {
-      setShowLoadoutModal(false);
-    }
-  }, [isStartingGame]);
-
-  // Handle loadout confirm - freeMint + create -> navigate
-  const handleLoadoutConfirm = useCallback(
+  // Handle starting a new game (from LoadoutPage)
+  const handleStartGame = useCallback(
     async (selectedBonuses: number[], cubesToBring: number) => {
-      if (!account) return;
+      if (!account) {
+        const c = connector as ControllerConnector;
+        if (c?.controller) c.controller.connect();
+        return;
+      }
 
       // Validate cube balance if bringing cubes
       if (cubesToBring > 0) {
@@ -242,7 +228,6 @@ export const Home = () => {
             : `Game #${gameId} started! Good luck!`
         );
 
-        setShowLoadoutModal(false);
         refetchGames?.();
 
         // Navigate to the play page
@@ -258,6 +243,7 @@ export const Home = () => {
     },
     [
       account,
+      connector,
       username,
       cubeBalance,
       refetchCubeBalance,
@@ -265,6 +251,14 @@ export const Home = () => {
       refetchGames,
       navigate,
     ]
+  );
+
+  // Navigate to game
+  const handleNavigateToGame = useCallback(
+    (gameId: number) => {
+      navigate(`/play/${gameId}`);
+    },
+    [navigate]
   );
 
   const handleConnect = useCallback(() => {
@@ -333,32 +327,26 @@ export const Home = () => {
     if (c?.controller?.openProfile) c.controller.openProfile();
   }, [connector]);
 
-  const handleResumeGame = useCallback(
-    (tokenId: number) => {
-      navigate(`/play/${tokenId}`);
-    },
-    [navigate]
-  );
-
   return (
-    <LandingScreen
-      onPlay={handlePlay}
+    <MainScreen
+      // Navigation
+      onNavigateToGame={handleNavigateToGame}
+      // Wallet
       onConnect={handleConnect}
       onProfileClick={handleProfileClick}
       isConnected={!!account}
       username={username}
       walletAddress={account?.address}
       cubeBalance={cubeBalanceNum}
+      // Games
       games={playerGames}
       gamesLoading={gamesLoading}
-      onResumeGame={handleResumeGame}
+      // Trophies
       onTrophyClick={handleTrophyClick}
-      // LoadoutModal props
-      showLoadoutModal={showLoadoutModal}
-      onLoadoutClose={handleLoadoutClose}
-      onLoadoutConfirm={handleLoadoutConfirm}
-      playerMetaData={playerMeta?.data ?? null}
+      // Play/Loadout
+      onStartGame={handleStartGame}
       isStartingGame={isStartingGame}
+      playerMetaData={playerMeta?.data ?? null}
       // Leaderboard
       leaderboardEntries={leaderboardEntries}
       leaderboardLoading={leaderboardLoading}
