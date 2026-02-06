@@ -138,44 +138,6 @@ function useTexture(path: string): Texture | null {
 }
 
 // ============================================================================
-// SKY BACKGROUND
-// ============================================================================
-
-const SkyBackground = ({ w, h }: { w: number; h: number }) => {
-  const bgTex = useTexture(`${T}/theme-2-1.png`);
-
-  const drawGradient = useCallback(
-    (g: PixiGraphics) => {
-      g.clear();
-      const steps = 20;
-      const stepH = Math.ceil(h / steps) + 1;
-      const top = { r: 0xd0, g: 0xea, b: 0xf8 };
-      const bot = { r: 0xf5, g: 0xf0, b: 0xe0 };
-      for (let i = 0; i < steps; i++) {
-        const t = i / (steps - 1);
-        const r = Math.round(top.r + (bot.r - top.r) * t);
-        const gC = Math.round(top.g + (bot.g - top.g) * t);
-        const b = Math.round(top.b + (bot.b - top.b) * t);
-        g.setFillStyle({ color: (r << 16) | (gC << 8) | b });
-        g.rect(0, i * stepH, w, stepH);
-        g.fill();
-      }
-    },
-    [w, h]
-  );
-
-  if (bgTex) {
-    const scaleX = w / bgTex.width;
-    const scaleY = h / bgTex.height;
-    const scale = Math.max(scaleX, scaleY);
-    const offX = (w - bgTex.width * scale) / 2;
-    const offY = (h - bgTex.height * scale) / 2;
-    return <pixiSprite texture={bgTex} x={offX} y={offY} scale={{ x: scale, y: scale }} />;
-  }
-  return <pixiGraphics draw={drawGradient} />;
-};
-
-// ============================================================================
 // BONUS TILE COMPONENT
 // ============================================================================
 
@@ -496,9 +458,6 @@ export const LoadoutPage = ({
 
   return (
     <pixiContainer>
-      {/* Background */}
-      <SkyBackground w={screenWidth} h={screenHeight} />
-
       {/* Top bar */}
       <PageTopBar
         title="Select Loadout"

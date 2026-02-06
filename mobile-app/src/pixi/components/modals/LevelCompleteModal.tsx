@@ -1,0 +1,245 @@
+/**
+ * LevelCompleteModal - PixiJS modal shown after completing a level
+ * Displays: star rating, score, bonuses awarded, cubes earned
+ */
+
+import { useCallback, useMemo, useState, useEffect } from 'react';
+import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
+import { Modal, Button } from '../ui';
+import { usePixiTheme } from '../../themes/ThemeContext';
+
+const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
+
+interface LevelCompleteModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  screenWidth: number;
+  screenHeight: number;
+  // Level data
+  level: number;
+  levelScore: number;
+  targetScore: number;
+  stars: number; // 1-3
+  // Bonuses awarded
+  bonusAwarded?: {
+    type: string;
+    icon: string;
+  } | null;
+  // Cubes
+  cubesEarned: number;
+  totalCubes: number;
+  // Constraint
+  constraintMet: boolean;
+}
+
+export const LevelCompleteModal = ({
+  isOpen,
+  onClose,
+  screenWidth,
+  screenHeight,
+  level,
+  levelScore,
+  targetScore,
+  stars,
+  bonusAwarded,
+  cubesEarned,
+  totalCubes,
+  constraintMet,
+}: LevelCompleteModalProps) => {
+  const { colors, isProcedural } = usePixiTheme();
+  const [animatedStars, setAnimatedStars] = useState(0);
+
+  const modalWidth = 340;
+  const buttonWidth = modalWidth - 48;
+  const buttonHeight = 52;
+
+  // Animate stars appearing
+  useEffect(() => {
+    if (!isOpen) {
+      setAnimatedStars(0);
+      return;
+    }
+
+    const delays = [200, 500, 800];
+    const timers: NodeJS.Timeout[] = [];
+
+    for (let i = 0; i < stars; i++) {
+      timers.push(setTimeout(() => {
+        setAnimatedStars(i + 1);
+      }, delays[i]));
+    }
+
+    return () => timers.forEach(clearTimeout);
+  }, [isOpen, stars]);
+
+  // Draw star
+  const drawStar = useCallback((g: PixiGraphics, filled: boolean, size: number) => {
+    g.clear();
+    
+    const points = 5;
+    const outerRadius = size / 2;
+    const innerRadius = outerRadius * 0.4;
+    
+    g.moveTo(0, -outerRadius);
+    
+    for (let i = 0; i < points * 2; i++) {
+      const radius = i % 2 === 0 ? outerRadius : innerRadius;
+      const angle = (i * Math.PI) / points - Math.PI / 2;
+      g.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+    }
+    
+    g.closePath();
+    
+    if (filled) {
+      g.fill({ color: 0xfbbf24 });
+      g.stroke({ color: 0xf59e0b, width: 2 });
+    } else {
+      g.fill({ color: 0x374151, alpha: 0.5 });
+      g.stroke({ color: 0x4b5563, width: 2 });
+    }
+  }, []);
+
+  // Draw stats box
+  const drawStatsBox = useCallback((g: PixiGraphics) => {
+    g.clear();
+    const boxWidth = buttonWidth;
+    const boxHeight = bonusAwarded ? 140 : 100;
+    const radius = 12;
+    
+    g.roundRect(0, 0, boxWidth, boxHeight, radius);
+    g.fill({ color: isProcedural ? 0x1a1a2e : 0x1e293b, alpha: 0.9 });
+    g.stroke({ color: isProcedural ? colors.accent : 0x334155, width: 1, alpha: 0.4 });
+  }, [buttonWidth, isProcedural, colors.accent, bonusAwarded]);
+
+  // Draw bonus awarded box
+  const drawBonusBox = useCallback((g: PixiGraphics) => {
+    g.clear();
+    const boxWidth = buttonWidth;
+    const boxHeight = 50;
+    const radius = 10;
+    
+    g.roundRect(0, 0, boxWidth, boxHeight, radius);
+    g.fill({ color: 0x166534, alpha: 0.4 });
+    g.stroke({ color: 0x22c55e, width: 1.5, alpha: 0.6 });
+  }, [buttonWidth]);
+
+  const titleStyle = useMemo(() => new TextStyle({
+    fontFamily: FONT,
+    fontSize: 18,
+    fill: stars >= 3 ? 0xfbbf24 : 0xffffff,
+  }), [stars]);
+
+  const labelStyle = useMemo(() => new TextStyle({
+    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontSize: 13,
+    fill: 0x94a3b8,
+  }), []);
+
+  const valueStyle = useMemo(() => new TextStyle({
+    fontFamily: FONT,
+    fontSize: 18,
+    fontWeight: 'bold',
+    fill: 0xffffff,
+  }), []);
+
+  const cubeStyle = useMemo(() => new TextStyle({
+    fontFamily: FONT,
+    fontSize: 18,
+    fontWeight: 'bold',
+    fill: 0xfbbf24,
+  }), []);
+
+  const bonusTextStyle = useMemo(() => new TextStyle({
+    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontSize: 14,
+    fill: 0x22c55e,
+  }), []);
+
+  const starSize = 48;
+  const starGap = 16;
+  const starsWidth = starSize * 3 + starGap * 2;
+  const starsStartX = (buttonWidth - starsWidth) / 2;
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Level ${level} Complete!`}
+      subtitle={constraintMet ? "Constraint bonus achieved!" : undefined}
+      width={modalWidth}
+      screenWidth={screenWidth}
+      screenHeight={screenHeight}
+      showCloseButton={false}
+    >
+      <pixiContainer x={24} y={0}>
+        {/* Stars display */}
+        <pixiContainer y={10}>
+          {[0, 1, 2].map((i) => (
+            <pixiContainer 
+              key={i} 
+              x={starsStartX + i * (starSize + starGap) + starSize / 2}
+              y={starSize / 2}
+              scale={animatedStars > i ? 1 : 0.8}
+              alpha={animatedStars > i ? 1 : 0.4}
+            >
+              <pixiGraphics draw={(g) => drawStar(g, animatedStars > i, starSize)} />
+            </pixiContainer>
+          ))}
+        </pixiContainer>
+
+        {/* Stats box */}
+        <pixiContainer y={70}>
+          <pixiGraphics draw={drawStatsBox} />
+          
+          <pixiContainer x={16} y={12}>
+            {/* Score */}
+            <pixiText text="Level Score" x={0} y={0} style={labelStyle} />
+            <pixiText 
+              text={`${levelScore} / ${targetScore}`} 
+              x={buttonWidth - 32} 
+              y={0} 
+              anchor={{ x: 1, y: 0 }} 
+              style={valueStyle} 
+            />
+            
+            {/* Cubes earned this level */}
+            <pixiText text="Cubes Earned" x={0} y={36} style={labelStyle} />
+            <pixiText 
+              text={cubesEarned > 0 ? `+${cubesEarned}` : '0'} 
+              x={buttonWidth - 32} 
+              y={36} 
+              anchor={{ x: 1, y: 0 }} 
+              style={cubeStyle} 
+            />
+
+            {/* Bonus awarded (if any) */}
+            {bonusAwarded && (
+              <pixiContainer y={72}>
+                <pixiGraphics draw={drawBonusBox} x={-8} y={-4} />
+                <pixiText 
+                  text={`Bonus: ${bonusAwarded.icon} ${bonusAwarded.type}`}
+                  x={(buttonWidth - 32) / 2}
+                  y={12}
+                  anchor={{ x: 0.5, y: 0 }}
+                  style={bonusTextStyle}
+                />
+              </pixiContainer>
+            )}
+          </pixiContainer>
+        </pixiContainer>
+
+        {/* Continue button */}
+        <Button
+          text="Continue"
+          y={bonusAwarded ? 230 : 190}
+          width={buttonWidth}
+          height={buttonHeight}
+          variant="primary"
+          onClick={onClose}
+        />
+      </pixiContainer>
+    </Modal>
+  );
+};
+
+export default LevelCompleteModal;
