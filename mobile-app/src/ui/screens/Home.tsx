@@ -14,7 +14,7 @@ import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
 import { useDojo } from "@/dojo/useDojo";
 import { MainScreen } from "@/pixi/components/pages/MainScreen";
 import type { PlayerGame } from "@/pixi/components/pages/MyGamesPage";
-import { useAccount } from "@starknet-react/core";
+import { useAccount, useConnect } from "@starknet-react/core";
 import ControllerConnector from "@cartridge/connector/controller";
 import type { GameTokenData } from "metagame-sdk";
 import { DEFAULT_SETTINGS_ID } from "@/dojo/game/types/level";
@@ -83,6 +83,7 @@ const getAttributeValue = (
 export const Home = () => {
   const { account } = useAccountCustom();
   const { connector } = useAccount();
+  const { connect, connectors } = useConnect();
   const { cubeBalance, refetch: refetchCubeBalance } = useCubeBalance();
   const { playerMeta } = usePlayerMeta();
   const { username } = useControllerUsername();
@@ -262,16 +263,12 @@ export const Home = () => {
   );
 
   const handleConnect = useCallback(() => {
-    console.log("[Connect] clicked, connector:", connector, "account:", account?.address);
-    const c = connector as ControllerConnector;
-    console.log("[Connect] controller:", c?.controller);
-    if (c?.controller) {
-      console.log("[Connect] calling controller.connect()");
-      c.controller.connect();
-    } else {
-      console.warn("[Connect] no controller available on connector");
+    const controllerConnector = connectors.find((c) => c.id === "controller");
+    const target = controllerConnector || connectors[0];
+    if (target) {
+      connect({ connector: target });
     }
-  }, [connector, account]);
+  }, [connect, connectors]);
 
   const handleTrophyClick = useCallback(() => {
     const c = connector as ControllerConnector;
