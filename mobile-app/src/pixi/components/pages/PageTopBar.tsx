@@ -193,13 +193,13 @@ export const PageTopBar = ({
         onPointerDown={(e: any) => e.stopPropagation()}
       />
 
-      {/* Home button (left) */}
+      {/* Back button (left) - shows arrow instead of home */}
       {showHomeButton && (
         <IconButton
           x={padding}
           y={centerY}
           size={btnSize}
-          icon="🏠"
+          icon="←"
           onClick={goHome}
         />
       )}

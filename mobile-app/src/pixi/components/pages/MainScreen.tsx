@@ -535,7 +535,17 @@ const PageRenderer = (props: MainScreenProps & {
       {pagesToRender.map((page) => {
         const isCurrent = page === currentPage;
         const pageX = getPageX(page, isCurrent);
-        const alpha = isTransitioning && !isCurrent ? 1 - transitionProgress * 0.3 : 1;
+        // Add fade: outgoing page fades out, incoming page fades in
+        let alpha = 1;
+        if (isTransitioning) {
+          if (isCurrent) {
+            // Incoming page fades in
+            alpha = 0.3 + transitionProgress * 0.7;
+          } else {
+            // Outgoing page fades out
+            alpha = 1 - transitionProgress * 0.7;
+          }
+        }
 
         return (
           <pixiContainer key={page} x={pageX} alpha={alpha}>
