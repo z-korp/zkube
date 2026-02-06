@@ -129,7 +129,7 @@ const CubeBalanceDisplay = ({
     <pixiContainer x={x} y={y}>
       <pixiGraphics draw={draw} />
       <pixiText
-        text="\u{1F9CA}"
+        text="🧊"
         x={14}
         y={height / 2}
         anchor={{ x: 0, y: 0.5 }}
@@ -199,7 +199,7 @@ export const PageTopBar = ({
           x={padding}
           y={centerY}
           size={btnSize}
-          icon="\u{1F3E0}"
+          icon="🏠"
           onClick={goHome}
         />
       )}

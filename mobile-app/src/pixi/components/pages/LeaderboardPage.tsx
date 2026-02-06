@@ -25,75 +25,110 @@ const LeaderboardRow = ({
   y: number;
   width: number;
 }) => {
-  const rowH = 56;
+  const rowH = 64;
   const isTop3 = rank <= 3;
   const medalColors = [0xffd700, 0xc0c0c0, 0xcd7f32]; // Gold, Silver, Bronze
-  const medalIcons = ['\u{1F947}', '\u{1F948}', '\u{1F949}']; // 🥇🥈🥉
+  const bgColors = [0x4a3f00, 0x3a3a3a, 0x3d2a1a]; // Darker bg for top 3
 
   const drawRow = useCallback(
     (g: PixiGraphics) => {
       g.clear();
-      g.setFillStyle({ color: rank % 2 === 0 ? 0x1e293b : 0x0f172a, alpha: 0.85 });
-      g.roundRect(0, 0, width, rowH, 10);
-      g.fill();
+      
+      // Background
       if (isTop3) {
-        g.setStrokeStyle({ width: 2, color: medalColors[rank - 1], alpha: 0.8 });
-        g.roundRect(0, 0, width, rowH, 10);
+        g.setFillStyle({ color: bgColors[rank - 1], alpha: 0.9 });
+      } else {
+        g.setFillStyle({ color: 0x1e293b, alpha: 0.95 });
+      }
+      g.roundRect(0, 0, width, rowH, 12);
+      g.fill();
+      
+      // Border for top 3
+      if (isTop3) {
+        g.setStrokeStyle({ width: 3, color: medalColors[rank - 1], alpha: 1 });
+        g.roundRect(0, 0, width, rowH, 12);
+        g.stroke();
+      } else {
+        g.setStrokeStyle({ width: 1, color: 0x475569, alpha: 0.5 });
+        g.roundRect(0, 0, width, rowH, 12);
         g.stroke();
       }
+      
+      // Rank badge background
+      const badgeX = 8;
+      const badgeSize = 40;
+      g.setFillStyle({ color: isTop3 ? medalColors[rank - 1] : 0x475569, alpha: isTop3 ? 0.3 : 0.5 });
+      g.roundRect(badgeX, (rowH - badgeSize) / 2, badgeSize, badgeSize, 8);
+      g.fill();
     },
     [width, rank, isTop3]
   );
 
-  const rankDisplay = isTop3 ? medalIcons[rank - 1] : `#${rank}`;
+  // Rank display with medal emoji for top 3
+  const getMedalEmoji = (r: number) => {
+    if (r === 1) return '🥇';
+    if (r === 2) return '🥈';
+    if (r === 3) return '🥉';
+    return '';
+  };
 
   return (
     <pixiContainer y={y}>
       <pixiGraphics draw={drawRow} />
 
       {/* Rank */}
-      <pixiText
-        text={rankDisplay}
-        x={isTop3 ? 28 : 28}
-        y={rowH / 2}
-        anchor={0.5}
-        style={{ fontFamily: isTop3 ? 'Arial' : FONT, fontSize: isTop3 ? 24 : 16, fill: 0xffffff }}
-      />
+      {isTop3 ? (
+        <pixiText
+          text={getMedalEmoji(rank)}
+          x={28}
+          y={rowH / 2}
+          anchor={0.5}
+          style={{ fontSize: 22 }}
+        />
+      ) : (
+        <pixiText
+          text={String(rank)}
+          x={28}
+          y={rowH / 2}
+          anchor={0.5}
+          style={{ fontFamily: 'Arial, sans-serif', fontSize: 16, fontWeight: 'bold', fill: 0x94a3b8 }}
+        />
+      )}
 
       {/* Player Name */}
       <pixiText
         text={entry.player_name || `Game #${entry.token_id}`}
-        x={60}
-        y={rowH / 2}
+        x={58}
+        y={rowH / 2 - 8}
         anchor={{ x: 0, y: 0.5 }}
-        style={{ fontFamily: FONT, fontSize: 15, fill: 0xffffff }}
+        style={{ fontFamily: FONT, fontSize: 16, fill: 0xffffff }}
+      />
+      
+      {/* Status indicator under name */}
+      <pixiText
+        text={entry.gameOver ? '✓ Completed' : '▶ In Progress'}
+        x={58}
+        y={rowH / 2 + 12}
+        anchor={{ x: 0, y: 0.5 }}
+        style={{ fontFamily: 'Arial, sans-serif', fontSize: 11, fill: entry.gameOver ? 0x22c55e : 0xfbbf24 }}
       />
 
-      {/* Level */}
+      {/* Level badge */}
       <pixiText
         text={`Lv ${entry.level}`}
-        x={width - 100}
+        x={width - 90}
         y={rowH / 2}
         anchor={{ x: 0.5, y: 0.5 }}
-        style={{ fontFamily: 'Arial, sans-serif', fontSize: 13, fill: 0x60a5fa }}
+        style={{ fontFamily: 'Arial, sans-serif', fontSize: 14, fontWeight: 'bold', fill: 0x60a5fa }}
       />
 
       {/* Score */}
       <pixiText
         text={String(entry.totalScore)}
-        x={width - 40}
-        y={rowH / 2}
-        anchor={{ x: 0.5, y: 0.5 }}
-        style={{ fontFamily: FONT, fontSize: 16, fill: 0xffffff }}
-      />
-
-      {/* Status */}
-      <pixiText
-        text={entry.gameOver ? '\u{2705}' : '\u{25B6}'}
-        x={width - 8}
+        x={width - 28}
         y={rowH / 2}
         anchor={{ x: 1, y: 0.5 }}
-        style={{ fontSize: 14 }}
+        style={{ fontFamily: FONT, fontSize: 20, fill: isTop3 ? medalColors[rank - 1] : 0xffffff }}
       />
     </pixiContainer>
   );
@@ -125,9 +160,9 @@ export const LeaderboardPage = ({
   const lastY = useRef(0);
 
   const contentPadding = 16;
-  const headerH = 36;
-  const rowH = 56;
-  const rowGap = 8;
+  const headerH = 40;
+  const rowH = 64;
+  const rowGap = 10;
   const contentWidth = screenWidth - contentPadding * 2;
   const contentTop = topBarHeight + contentPadding;
   const listTop = contentTop + headerH + 8;
@@ -158,9 +193,12 @@ export const LeaderboardPage = ({
   const drawHeader = useCallback(
     (g: PixiGraphics) => {
       g.clear();
-      g.setFillStyle({ color: 0x334155, alpha: 0.6 });
-      g.roundRect(0, 0, contentWidth, headerH, 8);
+      g.setFillStyle({ color: 0x0f172a, alpha: 0.9 });
+      g.roundRect(0, 0, contentWidth, headerH, 10);
       g.fill();
+      g.setStrokeStyle({ width: 1, color: 0x475569, alpha: 0.5 });
+      g.roundRect(0, 0, contentWidth, headerH, 10);
+      g.stroke();
     },
     [contentWidth]
   );
@@ -191,7 +229,7 @@ export const LeaderboardPage = ({
         subtitle={loading ? 'Loading...' : `${entries.length} players`}
         screenWidth={screenWidth}
         topBarHeight={topBarHeight}
-        actionIcon="\u{1F504}"
+        actionIcon="🔄"
         onAction={onRefresh}
       />
 

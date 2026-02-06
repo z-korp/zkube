@@ -12,10 +12,10 @@ const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
 
 // Family icons
 const FAMILY_ICONS: Record<string, string> = {
-  player: '\u{1F3AE}', // Game controller
-  clearer: '\u{1F4CA}', // Bar chart
-  combo: '\u{26A1}', // Lightning
-  finisher: '\u{1F3C6}', // Trophy
+  player: '🎮', // Game controller
+  clearer: '📊', // Bar chart
+  combo: '⚡', // Lightning
+  finisher: '🏆', // Trophy
 };
 
 // ============================================================================
@@ -127,20 +127,20 @@ const TierRow = ({
   const rowH = 28;
 
   // Icon and color based on state
-  let icon = '\u{26AA}'; // White circle (pending)
+  let icon = '⚪'; // White circle (pending)
   let textColor = 0x94a3b8;
   let rewardColor = 0x64748b;
 
   if (tier.claimed) {
-    icon = '\u{2705}'; // Check mark
+    icon = '✅'; // Check mark
     textColor = 0x64748b;
     rewardColor = 0x64748b;
   } else if (tier.completed) {
-    icon = '\u{2705}'; // Check mark
+    icon = '✅'; // Check mark
     textColor = 0x22c55e;
     rewardColor = 0xfbbf24;
   } else if (tier.locked) {
-    icon = '\u{1F512}'; // Lock
+    icon = '🔒'; // Lock
     textColor = 0x475569;
     rewardColor = 0x475569;
   }
@@ -200,7 +200,7 @@ const QuestFamilyCard = ({
 }) => {
   const [isClaiming, setIsClaiming] = useState(false);
 
-  const icon = FAMILY_ICONS[family.id] || '\u{2753}';
+  const icon = FAMILY_ICONS[family.id] || '❓';
   const hasClaimable = family.claimableTier !== null;
   const allCompleted = family.tiers.every((t) => t.completed);
   const allClaimed = family.tiers.every((t) => t.claimed);

@@ -72,7 +72,7 @@ const GameCard = ({
 
   // Star rating based on level (max 3 stars per 10 levels)
   const stars = Math.min(3, Math.floor(game.level / 10) + (game.level > 0 ? 1 : 0));
-  const starDisplay = '\u{2B50}'.repeat(stars) + '\u{2606}'.repeat(3 - stars);
+  const starDisplay = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
 
   return (
     <pixiContainer x={x} y={y} scale={scale}>
@@ -142,7 +142,7 @@ const GameCard = ({
       {/* Game over indicator */}
       {game.gameOver && (
         <pixiText
-          text="\u{2705}"
+          text="✅"
           x={size - 8}
           y={8}
           anchor={{ x: 1, y: 0 }}
@@ -153,7 +153,7 @@ const GameCard = ({
       {/* Active indicator (play icon) */}
       {isActive && (
         <pixiText
-          text="\u{25B6}"
+          text="▶"
           x={size - 10}
           y={10}
           anchor={{ x: 1, y: 0 }}

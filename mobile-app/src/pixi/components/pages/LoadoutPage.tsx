@@ -234,7 +234,7 @@ const BonusTile = ({
       />
       {isLocked && (
         <pixiText
-          text="\u{1F512}"
+          text="🔒"
           x={size / 2}
           y={size / 2}
           anchor={0.5}

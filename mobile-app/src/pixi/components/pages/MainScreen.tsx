@@ -355,13 +355,13 @@ const HomeTopBar = ({
       <CubeBalance balance={cubeBalance} x={cubeX} y={centerY} height={btnSize} uiScale={uiScale} />
       
       {/* Quests button */}
-      <TopBarButton x={questsX} y={centerY} size={btnSize} icon="\u{1F4DC}" onClick={onQuestsClick} />
+      <TopBarButton x={questsX} y={centerY} size={btnSize} icon="📜" onClick={onQuestsClick} />
       
       {/* Trophy button */}
-      <TopBarButton x={trophyX} y={centerY} size={btnSize} icon="\u{1F3C6}" onClick={onTrophyClick} />
+      <TopBarButton x={trophyX} y={centerY} size={btnSize} icon="🏆" onClick={onTrophyClick} />
       
       {/* Settings button */}
-      <TopBarButton x={settingsX} y={centerY} size={btnSize} icon="\u{2699}" onClick={onSettingsClick} />
+      <TopBarButton x={settingsX} y={centerY} size={btnSize} icon="⚙" onClick={onSettingsClick} />
     </pixiContainer>
   );
 };

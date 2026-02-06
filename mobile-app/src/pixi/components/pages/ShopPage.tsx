@@ -233,7 +233,7 @@ const BridgingCard = ({
     <pixiContainer x={x} y={y}>
       <pixiGraphics draw={drawCard} />
 
-      <pixiText text="\u{1F309}" x={16} y={16} style={{ fontSize: 28 }} />
+      <pixiText text="🌉" x={16} y={16} style={{ fontSize: 28 }} />
       <pixiText
         text="Bridging"
         x={52}
@@ -387,7 +387,7 @@ export const ShopPage = ({
             {/* Row 1: Hammer, Wave */}
             <UpgradeCard
               title="Hammer"
-              icon="\u{1F528}"
+              icon="🔨"
               startingLevel={startingHammer}
               bagLevel={bagHammer}
               isUnlocked={true}
@@ -401,7 +401,7 @@ export const ShopPage = ({
             />
             <UpgradeCard
               title="Wave"
-              icon="\u{1F30A}"
+              icon="🌊"
               startingLevel={startingWave}
               bagLevel={bagWave}
               isUnlocked={true}
@@ -417,7 +417,7 @@ export const ShopPage = ({
             {/* Row 2: Totem, Shrink */}
             <UpgradeCard
               title="Totem"
-              icon="\u{1F5FF}"
+              icon="🗿"
               startingLevel={startingTotem}
               bagLevel={bagTotem}
               isUnlocked={true}
@@ -431,7 +431,7 @@ export const ShopPage = ({
             />
             <UpgradeCard
               title="Shrink"
-              icon="\u{1F53B}"
+              icon="🔻"
               startingLevel={startingShrink}
               bagLevel={bagShrink}
               isUnlocked={shrinkUnlocked}
@@ -448,7 +448,7 @@ export const ShopPage = ({
             {/* Row 3: Shuffle, Bridging */}
             <UpgradeCard
               title="Shuffle"
-              icon="\u{1F500}"
+              icon="🔀"
               startingLevel={startingShuffle}
               bagLevel={bagShuffle}
               isUnlocked={shuffleUnlocked}

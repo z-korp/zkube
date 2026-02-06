@@ -308,13 +308,13 @@ const GameTopBar = ({
         onPointerDown={(e: any) => e.stopPropagation()} />
       
       {/* Home button */}
-      <TopBarButton x={homeX} y={centerY} size={btnSize} icon="\u{1F3E0}" onClick={onHomeClick} />
+      <TopBarButton x={homeX} y={centerY} size={btnSize} icon="🏠" onClick={onHomeClick} />
       
       {/* Cube Balance (center) */}
       <CubeBalance balance={cubeBalance} x={cubeX} y={centerY} height={btnSize} uiScale={uiScale} />
       
       {/* Menu button */}
-      <TopBarButton x={menuX} y={centerY} size={btnSize} icon="\u{2630}" onClick={onMenuClick} />
+      <TopBarButton x={menuX} y={centerY} size={btnSize} icon="☰" onClick={onMenuClick} />
     </pixiContainer>
   );
 };
