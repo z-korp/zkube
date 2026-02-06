@@ -1,0 +1,558 @@
+/**
+ * LoadoutModal - Pure PixiJS modal for selecting bonuses before starting a game.
+ *
+ * Features:
+ * - Select 3 bonuses from available bonuses
+ * - Cube bridging slider (if player has bridging rank)
+ * - Remembers last loadout in localStorage
+ */
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Graphics as PixiGraphics, Assets, Texture } from "pixi.js";
+import { Modal, Button } from "../ui";
+import type { PlayerMetaData } from "@/hooks/usePlayerMeta";
+import { BonusType, bonusTypeToContractValue } from "@/dojo/game/types/bonus";
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const LOADOUT_STORAGE_KEY = "zkube_loadout";
+const FONT = "Fredericka the Great, Bangers, Arial Black, sans-serif";
+const T = "/assets/theme-1";
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface LoadoutData {
+  selectedBonuses: BonusType[];
+  cubesToBring: number;
+}
+
+export interface LoadoutModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (selectedBonuses: number[], cubesToBring: number) => void;
+  playerMetaData: PlayerMetaData | null;
+  cubeBalance: number;
+  isLoading?: boolean;
+  screenWidth: number;
+  screenHeight: number;
+}
+
+// ============================================================================
+// HELPERS
+// ============================================================================
+
+const ALL_BONUSES: BonusType[] = [
+  BonusType.Hammer,
+  BonusType.Totem,
+  BonusType.Wave,
+  BonusType.Shrink,
+  BonusType.Shuffle,
+];
+
+const DEFAULT_BONUSES: BonusType[] = [
+  BonusType.Hammer,
+  BonusType.Wave,
+  BonusType.Totem,
+];
+
+const loadSavedLoadout = (): LoadoutData | null => {
+  try {
+    const saved = localStorage.getItem(LOADOUT_STORAGE_KEY);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (e) {
+    console.warn("Failed to load loadout:", e);
+  }
+  return null;
+};
+
+const saveLoadout = (loadout: LoadoutData) => {
+  try {
+    localStorage.setItem(LOADOUT_STORAGE_KEY, JSON.stringify(loadout));
+  } catch (e) {
+    console.warn("Failed to save loadout:", e);
+  }
+};
+
+const getMaxCubesForRank = (rank: number): number => {
+  if (rank === 0) return 0;
+  return 5 * Math.pow(2, rank - 1);
+};
+
+const getBonusTexturePath = (bonus: BonusType): string => {
+  switch (bonus) {
+    case BonusType.Hammer:
+      return `${T}/bonus/hammer.png`;
+    case BonusType.Totem:
+      return `${T}/bonus/tiki.png`;
+    case BonusType.Wave:
+      return `${T}/bonus/wave.png`;
+    case BonusType.Shrink:
+      return `${T}/bonus/shrink.png`;
+    case BonusType.Shuffle:
+      return `${T}/bonus/shuffle.png`;
+    default:
+      return "";
+  }
+};
+
+const getBonusName = (bonus: BonusType): string => {
+  switch (bonus) {
+    case BonusType.Hammer:
+      return "Hammer";
+    case BonusType.Totem:
+      return "Totem";
+    case BonusType.Wave:
+      return "Wave";
+    case BonusType.Shrink:
+      return "Shrink";
+    case BonusType.Shuffle:
+      return "Shuffle";
+    default:
+      return "";
+  }
+};
+
+// ============================================================================
+// TEXTURE HOOK
+// ============================================================================
+
+function useTexture(path: string): Texture | null {
+  const [tex, setTex] = useState<Texture | null>(null);
+  useEffect(() => {
+    if (!path) {
+      setTex(null);
+      return;
+    }
+    Assets.load(path)
+      .then((t) => setTex(t as Texture))
+      .catch(() => setTex(null));
+  }, [path]);
+  return tex;
+}
+
+// ============================================================================
+// BONUS TILE COMPONENT
+// ============================================================================
+
+const BonusTile = ({
+  bonus,
+  x,
+  y,
+  size,
+  isSelected,
+  isLocked,
+  onPress,
+}: {
+  bonus: BonusType;
+  x: number;
+  y: number;
+  size: number;
+  isSelected: boolean;
+  isLocked: boolean;
+  onPress: () => void;
+}) => {
+  const [hovered, setHovered] = useState(false);
+  const [pressed, setPressed] = useState(false);
+  const tex = useTexture(getBonusTexturePath(bonus));
+
+  const bgColor = isSelected ? 0x22c55e : isLocked ? 0x4b5563 : 0x1e293b;
+  const borderColor = isSelected ? 0x4ade80 : isLocked ? 0x6b7280 : 0x475569;
+  const scale = pressed ? 0.95 : hovered && !isLocked ? 1.05 : 1;
+
+  const draw = useCallback(
+    (g: PixiGraphics) => {
+      g.clear();
+      const r = 12;
+      // Shadow
+      g.setFillStyle({ color: 0x000000, alpha: 0.3 });
+      g.roundRect(3, 4, size, size, r);
+      g.fill();
+      // Background
+      g.setFillStyle({ color: bgColor });
+      g.roundRect(0, 0, size, size, r);
+      g.fill();
+      // Border
+      g.setStrokeStyle({ width: 2, color: borderColor });
+      g.roundRect(0, 0, size, size, r);
+      g.stroke();
+      // Lock overlay
+      if (isLocked) {
+        g.setFillStyle({ color: 0x000000, alpha: 0.5 });
+        g.roundRect(0, 0, size, size, r);
+        g.fill();
+      }
+    },
+    [size, bgColor, borderColor, isLocked]
+  );
+
+  return (
+    <pixiContainer x={x} y={y} scale={scale}>
+      <pixiGraphics
+        draw={draw}
+        eventMode={isLocked ? "none" : "static"}
+        cursor={isLocked ? "not-allowed" : "pointer"}
+        onPointerDown={() => !isLocked && setPressed(true)}
+        onPointerUp={() => {
+          setPressed(false);
+          if (!isLocked) onPress();
+        }}
+        onPointerUpOutside={() => setPressed(false)}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => {
+          setHovered(false);
+          setPressed(false);
+        }}
+      />
+      {tex && (
+        <pixiSprite
+          texture={tex}
+          x={size / 2}
+          y={size / 2 - 8}
+          anchor={0.5}
+          width={size * 0.6}
+          height={size * 0.6}
+          alpha={isLocked ? 0.4 : 1}
+        />
+      )}
+      <pixiText
+        text={getBonusName(bonus)}
+        x={size / 2}
+        y={size - 10}
+        anchor={0.5}
+        style={{
+          fontFamily: "Arial, sans-serif",
+          fontSize: 10,
+          fill: isLocked ? 0x9ca3af : 0xffffff,
+        }}
+      />
+      {isLocked && (
+        <pixiText
+          text="🔒"
+          x={size / 2}
+          y={size / 2}
+          anchor={0.5}
+          style={{ fontSize: 20 }}
+        />
+      )}
+    </pixiContainer>
+  );
+};
+
+// ============================================================================
+// SLIDER COMPONENT
+// ============================================================================
+
+const CubeSlider = ({
+  x,
+  y,
+  width,
+  value,
+  max,
+  onChange,
+}: {
+  x: number;
+  y: number;
+  width: number;
+  value: number;
+  max: number;
+  onChange: (val: number) => void;
+}) => {
+  const [dragging, setDragging] = useState(false);
+  const trackHeight = 8;
+  const knobRadius = 14;
+
+  const fillWidth = max > 0 ? (value / max) * width : 0;
+  const knobX = fillWidth;
+
+  const handlePointerMove = useCallback(
+    (e: any) => {
+      if (!dragging || max === 0) return;
+      const localX = e.data.global.x - x;
+      const clampedX = Math.max(0, Math.min(localX, width));
+      const newValue = Math.round((clampedX / width) * max);
+      onChange(newValue);
+    },
+    [dragging, max, width, x, onChange]
+  );
+
+  const drawTrack = useCallback(
+    (g: PixiGraphics) => {
+      g.clear();
+      // Background track
+      g.setFillStyle({ color: 0x334155 });
+      g.roundRect(0, knobRadius - trackHeight / 2, width, trackHeight, 4);
+      g.fill();
+      // Filled portion
+      if (fillWidth > 0) {
+        g.setFillStyle({ color: 0x3b82f6 });
+        g.roundRect(0, knobRadius - trackHeight / 2, fillWidth, trackHeight, 4);
+        g.fill();
+      }
+    },
+    [width, fillWidth, knobRadius, trackHeight]
+  );
+
+  const drawKnob = useCallback(
+    (g: PixiGraphics) => {
+      g.clear();
+      g.setFillStyle({ color: 0xffffff });
+      g.circle(0, 0, knobRadius);
+      g.fill();
+      g.setStrokeStyle({ width: 2, color: 0x3b82f6 });
+      g.circle(0, 0, knobRadius);
+      g.stroke();
+    },
+    [knobRadius]
+  );
+
+  return (
+    <pixiContainer x={x} y={y}>
+      <pixiGraphics
+        draw={drawTrack}
+        eventMode="static"
+        cursor="pointer"
+        onPointerDown={(e: any) => {
+          setDragging(true);
+          handlePointerMove(e);
+        }}
+        onGlobalPointerMove={handlePointerMove}
+        onPointerUp={() => setDragging(false)}
+        onPointerUpOutside={() => setDragging(false)}
+      />
+      <pixiGraphics
+        draw={drawKnob}
+        x={knobX}
+        y={knobRadius}
+        eventMode="static"
+        cursor="grab"
+        onPointerDown={() => setDragging(true)}
+      />
+      <pixiText
+        text={`${value}`}
+        x={width + 16}
+        y={knobRadius}
+        anchor={{ x: 0, y: 0.5 }}
+        style={{
+          fontFamily: "Arial, sans-serif",
+          fontSize: 14,
+          fontWeight: "bold",
+          fill: 0xffffff,
+        }}
+      />
+    </pixiContainer>
+  );
+};
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+export const LoadoutModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  playerMetaData,
+  cubeBalance,
+  isLoading = false,
+  screenWidth,
+  screenHeight,
+}: LoadoutModalProps) => {
+  // Load saved loadout or use defaults
+  const savedLoadout = useMemo(() => loadSavedLoadout(), []);
+
+  const [selected, setSelected] = useState<BonusType[]>(
+    savedLoadout?.selectedBonuses ?? DEFAULT_BONUSES
+  );
+  const [cubesToBring, setCubesToBring] = useState(
+    savedLoadout?.cubesToBring ?? 0
+  );
+
+  // Bridging rank and max cubes
+  const bridgingRank = playerMetaData?.bridgingRank ?? 0;
+  const maxCubesAllowed = getMaxCubesForRank(bridgingRank);
+  const actualMaxCubes = Math.min(maxCubesAllowed, cubeBalance);
+  const canBringCubes = bridgingRank > 0 && cubeBalance > 0;
+
+  // Reset state when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      const saved = loadSavedLoadout();
+      if (saved) {
+        // Filter out any bonuses that are no longer unlocked
+        const validBonuses = saved.selectedBonuses.filter((b) => {
+          if (b === BonusType.Shrink) return playerMetaData?.shrinkUnlocked;
+          if (b === BonusType.Shuffle) return playerMetaData?.shuffleUnlocked;
+          return true;
+        });
+        // Ensure we have 3 bonuses
+        while (validBonuses.length < 3) {
+          const next = DEFAULT_BONUSES.find((b) => !validBonuses.includes(b));
+          if (next) validBonuses.push(next);
+          else break;
+        }
+        setSelected(validBonuses.slice(0, 3));
+        // Clamp cubes
+        setCubesToBring(Math.min(saved.cubesToBring, actualMaxCubes));
+      } else {
+        setSelected(DEFAULT_BONUSES);
+        setCubesToBring(0);
+      }
+    }
+  }, [isOpen, playerMetaData, actualMaxCubes]);
+
+  // Available bonuses
+  const availableBonuses = useMemo(() => {
+    return ALL_BONUSES.filter((b) => {
+      if (b === BonusType.Shrink) return playerMetaData?.shrinkUnlocked;
+      if (b === BonusType.Shuffle) return playerMetaData?.shuffleUnlocked;
+      return true;
+    });
+  }, [playerMetaData]);
+
+  // Toggle bonus selection
+  const toggleBonus = useCallback(
+    (bonus: BonusType) => {
+      if (!availableBonuses.includes(bonus)) return;
+
+      setSelected((prev) => {
+        if (prev.includes(bonus)) {
+          // Don't allow less than 3 if we have enough available
+          if (prev.length <= 3 && availableBonuses.length >= 3) {
+            return prev;
+          }
+          return prev.filter((b) => b !== bonus);
+        } else {
+          // Max 3 bonuses
+          if (prev.length >= 3) {
+            // Replace the last one
+            return [...prev.slice(0, 2), bonus];
+          }
+          return [...prev, bonus];
+        }
+      });
+    },
+    [availableBonuses]
+  );
+
+  // Handle confirm
+  const handleConfirm = useCallback(() => {
+    // Save loadout
+    saveLoadout({ selectedBonuses: selected, cubesToBring });
+
+    // Convert to contract values
+    const bonusValues = selected.map((b) => bonusTypeToContractValue(b));
+
+    onConfirm(bonusValues, cubesToBring);
+  }, [selected, cubesToBring, onConfirm]);
+
+  // Modal dimensions
+  const modalWidth = Math.min(360, screenWidth - 40);
+  const tileSize = 60;
+  const tileGap = 12;
+  const tilesPerRow = 5;
+  const tilesWidth = tilesPerRow * tileSize + (tilesPerRow - 1) * tileGap;
+  const tilesStartX = (modalWidth - tilesWidth) / 2 - 20;
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Select Loadout"
+      subtitle="Choose 3 bonuses for your run"
+      width={modalWidth}
+      screenWidth={screenWidth}
+      screenHeight={screenHeight}
+    >
+      <pixiContainer x={24} y={0}>
+        {/* Bonus Selection */}
+        <pixiText
+          text="Bonuses"
+          x={modalWidth / 2 - 24}
+          y={0}
+          anchor={{ x: 0.5, y: 0 }}
+          style={{
+            fontFamily: FONT,
+            fontSize: 16,
+            fill: 0xffffff,
+          }}
+        />
+
+        <pixiContainer x={tilesStartX} y={28}>
+          {ALL_BONUSES.map((bonus, idx) => {
+            const isLocked = !availableBonuses.includes(bonus);
+            const isSelected = selected.includes(bonus);
+            const col = idx % tilesPerRow;
+            const tileX = col * (tileSize + tileGap);
+            return (
+              <BonusTile
+                key={bonus}
+                bonus={bonus}
+                x={tileX}
+                y={0}
+                size={tileSize}
+                isSelected={isSelected}
+                isLocked={isLocked}
+                onPress={() => toggleBonus(bonus)}
+              />
+            );
+          })}
+        </pixiContainer>
+
+        {/* Cube Bridging Section */}
+        {canBringCubes && (
+          <pixiContainer y={110}>
+            <pixiText
+              text={`Bring Cubes (max ${actualMaxCubes})`}
+              x={modalWidth / 2 - 24}
+              y={0}
+              anchor={{ x: 0.5, y: 0 }}
+              style={{
+                fontFamily: FONT,
+                fontSize: 16,
+                fill: 0xffffff,
+              }}
+            />
+            <CubeSlider
+              x={20}
+              y={28}
+              width={modalWidth - 100}
+              value={cubesToBring}
+              max={actualMaxCubes}
+              onChange={setCubesToBring}
+            />
+          </pixiContainer>
+        )}
+
+        {/* Confirm Button */}
+        <Button
+          text={isLoading ? "Starting..." : "Start Game"}
+          y={canBringCubes ? 180 : 120}
+          width={modalWidth - 48}
+          height={48}
+          variant="primary"
+          onClick={handleConfirm}
+          disabled={isLoading || selected.length !== 3}
+        />
+
+        {/* Cancel Button */}
+        <Button
+          text="Cancel"
+          y={canBringCubes ? 236 : 176}
+          width={modalWidth - 48}
+          height={40}
+          variant="secondary"
+          onClick={onClose}
+          disabled={isLoading}
+        />
+      </pixiContainer>
+    </Modal>
+  );
+};
+
+export default LoadoutModal;

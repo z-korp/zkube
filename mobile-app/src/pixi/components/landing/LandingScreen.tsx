@@ -20,6 +20,8 @@ import { MenuButton } from '../topbar/MenuButton';
 import { CubeBalance } from '../topbar/CubeBalance';
 import { NavButton } from '../topbar/NavButton';
 import { MyGamesModal, type PlayerGame } from './MyGamesModal';
+import { LoadoutModal } from './LoadoutModal';
+import type { PlayerMetaData } from '@/hooks/usePlayerMeta';
 
 // ============================================================================
 // CONSTANTS
@@ -54,6 +56,12 @@ export interface LandingScreenProps {
   onQuestsClick?: () => void;
   onTrophyClick?: () => void;
   onShopClick?: () => void;
+  // LoadoutModal props
+  showLoadoutModal?: boolean;
+  onLoadoutClose?: () => void;
+  onLoadoutConfirm?: (selectedBonuses: number[], cubesToBring: number) => void;
+  playerMetaData?: PlayerMetaData | null;
+  isStartingGame?: boolean;
 }
 
 // ============================================================================
@@ -326,6 +334,9 @@ const LandingScreenInner = ({
   cubeBalance = 0,
   games = [], gamesLoading = false, onResumeGame,
   onQuestsClick, onTrophyClick, onShopClick,
+  // LoadoutModal props
+  showLoadoutModal = false, onLoadoutClose, onLoadoutConfirm,
+  playerMetaData = null, isStartingGame = false,
 }: LandingScreenProps) => {
   const layout = useFullscreenLayout();
   const { screenWidth: sw, screenHeight: sh, isMobile, topBarHeight, uiScale } = layout;
@@ -431,6 +442,20 @@ const LandingScreenInner = ({
           screenHeight={sh}
           onResumeGame={onResumeGame ?? (() => {})}
         />
+
+        {/* Loadout Modal */}
+        {onLoadoutConfirm && (
+          <LoadoutModal
+            isOpen={showLoadoutModal}
+            onClose={onLoadoutClose ?? (() => {})}
+            onConfirm={onLoadoutConfirm}
+            playerMetaData={playerMetaData}
+            cubeBalance={cubeBalance}
+            isLoading={isStartingGame}
+            screenWidth={sw}
+            screenHeight={sh}
+          />
+        )}
       </Application>
     </div>
   );
