@@ -48,8 +48,11 @@ export function PixiThemeProvider({ children }: PixiThemeProviderProps) {
     // Get asset path based on theme
     const getAssetPath = (asset: string) => {
       // For procedural themes, we still might need some assets
-      const basePath = isProcedural ? '/assets/theme-neon' : `/assets/${themeName}`;
-      return `${basePath}/${asset}`;
+      if (isProcedural) {
+        return `/assets/theme-neon/${asset}`;
+      }
+      // Use tiki assets for all non-procedural themes
+      return `/assets/tiki/${asset}`;
     };
     
     return {

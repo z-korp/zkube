@@ -94,14 +94,21 @@ export const BlockSprite = ({
       return;
     }
     
-    const texturePath = `/assets/${themeName}/block-${block.width}.png`;
+    // Use new tiki block assets with cute faces
+    const texturePath = `/assets/tiki/blocks/block-${block.width}.png`;
     Assets.load(texturePath)
       .then(setTexture)
       .catch(() => {
-        // Fallback to default assets folder
-        Assets.load(`/assets/block-${block.width}.png`)
+        // Fallback to legacy theme folder
+        const legacyPath = `/assets/${themeName}/block-${block.width}.png`;
+        Assets.load(legacyPath)
           .then(setTexture)
-          .catch(console.error);
+          .catch(() => {
+            // Final fallback to default assets folder
+            Assets.load(`/assets/block-${block.width}.png`)
+              .then(setTexture)
+              .catch(console.error);
+          });
       });
   }, [block.width, isProcedural, themeName]);
 
