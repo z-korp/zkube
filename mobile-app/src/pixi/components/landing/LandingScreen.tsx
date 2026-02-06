@@ -64,7 +64,8 @@ const BLOCK_COLORS = [
 ];
 
 const GRID_COLS = 8;
-const MAX_STACK_ROWS = 5; // How many rows of blocks to stack
+const MAX_STACK_ROWS = 6; // How many rows of blocks to stack
+const MAX_CELL_SIZE = 52; // Cap block size so they don't become enormous on desktop
 
 // ============================================================================
 // SKY GRADIENT BACKGROUND
@@ -251,8 +252,8 @@ function drawCuteBlock(
 // BLOCK PILE - blocks stacked at the bottom
 // ============================================================================
 
-const BlockPile = ({ w, h }: { w: number; h: number }) => {
-  const cellSize = useMemo(() => Math.floor(w / GRID_COLS), [w]);
+const BlockPile = ({ w, h, cellSize: externalCellSize }: { w: number; h: number; cellSize: number }) => {
+  const cellSize = externalCellSize;
   const blocksRef = useRef<FallingBlock[]>([]);
   const gridRef = useRef<boolean[][]>([]);
   const nextIdRef = useRef(0);
@@ -465,17 +466,18 @@ const FloatingBlock = ({
 const GrassStrip = ({ w, h, groundY }: { w: number; h: number; groundY: number }) => {
   const draw = useCallback((g: PixiGraphics) => {
     g.clear();
+    const stripH = h - groundY + 10; // extend slightly past bottom
+    // Light grass highlight
+    g.setFillStyle({ color: 0xBBF7D0, alpha: 0.6 });
+    g.rect(0, groundY - 4, w, 8);
+    g.fill();
     // Main green
     g.setFillStyle({ color: 0x86EFAC, alpha: 0.7 });
-    g.rect(0, groundY, w, h - groundY);
+    g.rect(0, groundY, w, stripH);
     g.fill();
     // Darker base
     g.setFillStyle({ color: 0x4ADE80, alpha: 0.5 });
-    g.rect(0, groundY + 6, w, h - groundY - 6);
-    g.fill();
-    // Light top edge
-    g.setFillStyle({ color: 0xBBF7D0, alpha: 0.6 });
-    g.rect(0, groundY, w, 4);
+    g.rect(0, groundY + 6, w, stripH - 6);
     g.fill();
   }, [w, h, groundY]);
 
@@ -610,10 +612,12 @@ const LandingScreenInner = ({ onPlay, onConnect, isConnected }: LandingScreenPro
   const buttonGap = 16;
   const centerX = screenW / 2;
 
-  // Ground/block area starts at ~60% of screen height
-  const groundY = screenH * 0.92;
-  const cellSize = Math.floor(screenW / GRID_COLS);
-  const blockAreaH = screenH; // Full height for block pile calculation
+  // Cell size: capped so blocks don't become huge on wide screens
+  const cellSize = Math.min(MAX_CELL_SIZE, Math.floor(screenW / GRID_COLS));
+  const pileHeight = MAX_STACK_ROWS * cellSize;
+  
+  // Ground line: blocks stack up from the very bottom of the screen
+  const groundY = screenH - pileHeight;
   
   // Floating decorative blocks around title
   const floatSize = isMobile ? 36 : 48;
@@ -648,8 +652,8 @@ const LandingScreenInner = ({ onPlay, onConnect, isConnected }: LandingScreenPro
         <GrassStrip w={screenW} h={screenH} groundY={groundY} />
 
         {/* Layer 4: Block pile at bottom */}
-        <pixiContainer y={groundY - MAX_STACK_ROWS * cellSize}>
-          <BlockPile w={screenW} h={(MAX_STACK_ROWS + 1) * cellSize} />
+        <pixiContainer y={groundY}>
+          <BlockPile w={screenW} h={pileHeight + cellSize} cellSize={cellSize} />
         </pixiContainer>
 
         {/* Layer 5: Floating decorative blocks */}
