@@ -11,6 +11,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Graphics as PixiGraphics, Assets, Texture } from "pixi.js";
 import { PageTopBar } from "./PageTopBar";
 import { Button } from "../ui";
+import { usePixiTheme } from "../../themes/ThemeContext";
 import type { PlayerMetaData } from "@/hooks/usePlayerMeta";
 import { BonusType, bonusTypeToContractValue } from "@/dojo/game/types/bonus";
 
@@ -20,7 +21,7 @@ import { BonusType, bonusTypeToContractValue } from "@/dojo/game/types/bonus";
 
 const LOADOUT_STORAGE_KEY = "zkube_loadout";
 const FONT = "Fredericka the Great, Bangers, Arial Black, sans-serif";
-const T = "/assets/theme-1";
+
 
 // ============================================================================
 // TYPES
@@ -85,18 +86,18 @@ const getMaxCubesForRank = (rank: number): number => {
   return 5 * Math.pow(2, rank - 1);
 };
 
-const getBonusTexturePath = (bonus: BonusType): string => {
+const getBonusTexturePath = (bonus: BonusType, basePath: string): string => {
   switch (bonus) {
     case BonusType.Hammer:
-      return `${T}/bonus/hammer.png`;
+      return `${basePath}/bonus/hammer.png`;
     case BonusType.Totem:
-      return `${T}/bonus/tiki.png`;
+      return `${basePath}/bonus/tiki.png`;
     case BonusType.Wave:
-      return `${T}/bonus/wave.png`;
+      return `${basePath}/bonus/wave.png`;
     case BonusType.Shrink:
-      return `${T}/bonus/shrink.png`;
+      return `${basePath}/bonus/shrink.png`;
     case BonusType.Shuffle:
-      return `${T}/bonus/shuffle.png`;
+      return `${basePath}/bonus/shuffle.png`;
     default:
       return "";
   }
@@ -158,9 +159,10 @@ const BonusTile = ({
   isLocked: boolean;
   onPress: () => void;
 }) => {
+  const { themeName } = usePixiTheme();
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
-  const tex = useTexture(getBonusTexturePath(bonus));
+  const tex = useTexture(getBonusTexturePath(bonus, `/assets/${themeName}`));
 
   const bgColor = isSelected ? 0x22c55e : isLocked ? 0x4b5563 : 0x1e293b;
   const borderColor = isSelected ? 0x4ade80 : isLocked ? 0x6b7280 : 0x475569;

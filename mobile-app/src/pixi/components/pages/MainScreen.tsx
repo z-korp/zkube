@@ -7,7 +7,7 @@
 import { Application } from '@pixi/react';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Assets, Texture, Graphics as PixiGraphics } from 'pixi.js';
-import { PixiThemeProvider } from '../../themes/ThemeContext';
+import { PixiThemeProvider, usePixiTheme } from '../../themes/ThemeContext';
 import { useFullscreenLayout } from '../../hooks/useFullscreenLayout';
 import { PageNavigatorProvider, usePageNavigator, type PageId } from './PageNavigator';
 import { LeaderboardPage } from './LeaderboardPage';
@@ -26,7 +26,6 @@ import type { QuestFamily } from '@/types/questFamily';
 // CONSTANTS
 // ============================================================================
 
-const T = '/assets/theme-1';
 const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
 
 // ============================================================================
@@ -98,7 +97,8 @@ function useTexture(path: string): Texture | null {
 // ============================================================================
 
 const SkyBackground = ({ w, h }: { w: number; h: number }) => {
-  const bgTex = useTexture(`${T}/theme-2-1.png`);
+  const { getAssetPath } = usePixiTheme();
+  const bgTex = useTexture(getAssetPath('theme-2-1.png'));
 
   const drawGradient = useCallback((g: PixiGraphics) => {
     g.clear();
@@ -192,7 +192,8 @@ const Clouds = ({ w, h }: { w: number; h: number }) => {
 // ============================================================================
 
 const Logo = ({ x, y, maxW, maxH }: { x: number; y: number; maxW: number; maxH: number }) => {
-  const tex = useTexture(`${T}/logo.png`);
+  const { getAssetPath } = usePixiTheme();
+  const tex = useTexture(getAssetPath('logo.png'));
   const [bounce, setBounce] = useState(0);
   const timeRef = useRef(0);
 

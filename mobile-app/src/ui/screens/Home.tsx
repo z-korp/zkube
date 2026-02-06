@@ -262,9 +262,16 @@ export const Home = () => {
   );
 
   const handleConnect = useCallback(() => {
+    console.log("[Connect] clicked, connector:", connector, "account:", account?.address);
     const c = connector as ControllerConnector;
-    if (c?.controller) c.controller.connect();
-  }, [connector]);
+    console.log("[Connect] controller:", c?.controller);
+    if (c?.controller) {
+      console.log("[Connect] calling controller.connect()");
+      c.controller.connect();
+    } else {
+      console.warn("[Connect] no controller available on connector");
+    }
+  }, [connector, account]);
 
   const handleTrophyClick = useCallback(() => {
     const c = connector as ControllerConnector;
