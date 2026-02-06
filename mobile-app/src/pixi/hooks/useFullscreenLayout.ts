@@ -118,8 +118,10 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
       setScreenHeight(window.innerHeight);
     };
 
+    const handleOrientationChange = () => setTimeout(handleResize, 100);
+
     window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', () => setTimeout(handleResize, 100));
+    window.addEventListener('orientationchange', handleOrientationChange);
 
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', handleResize);
@@ -127,7 +129,7 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
+      window.removeEventListener('orientationchange', handleOrientationChange);
       if (window.visualViewport) {
         window.visualViewport.removeEventListener('resize', handleResize);
       }

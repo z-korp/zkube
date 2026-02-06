@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState, useEffect } from 'react';
 import { Graphics as PixiGraphics, TextStyle, Texture, Assets } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
-import { getBlockColors } from '../../utils/colors';
+import { getBlockColors , FONT_BODY } from '../../utils/colors';
 import type { Block } from '@/types/types';
 
 interface NextLinePreviewProps {
@@ -105,7 +105,7 @@ export const NextLinePreview = ({
 
   if (isConsumed || nextLineBlocks.length === 0) {
     const labelStyle = new TextStyle({
-      fontFamily: 'Arial, sans-serif',
+      fontFamily: FONT_BODY,
       fontSize: 10,
       fontWeight: 'normal',
       fill: 0x64748b,

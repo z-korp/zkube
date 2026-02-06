@@ -8,8 +8,8 @@ import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { Button } from '../ui';
 import type { PlayerMetaData } from '@/hooks/usePlayerMeta';
+import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
-const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
 
 // ============================================================================
 // CONSTANTS
@@ -124,7 +124,7 @@ const UpgradeCard = ({
         text={title}
         x={52}
         y={20}
-        style={{ fontFamily: FONT, fontSize: 16, fill: isUnlocked ? 0xffffff : 0x64748b }}
+        style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: isUnlocked ? 0xffffff : 0x64748b }}
       />
 
       {isUnlocked ? (
@@ -134,7 +134,7 @@ const UpgradeCard = ({
             text="Starting"
             x={16}
             y={52}
-            style={{ fontFamily: 'Arial', fontSize: 11, fill: 0x94a3b8 }}
+            style={{ fontFamily: FONT_BODY, fontSize: 11, fill: 0x94a3b8 }}
           />
           <LevelPips level={startingLevel} maxLevel={3} x={16} y={68} color={0x60a5fa} />
           {nextStartingCost && onUpgradeStarting && (
@@ -156,7 +156,7 @@ const UpgradeCard = ({
             text="Bag Size"
             x={16}
             y={92}
-            style={{ fontFamily: 'Arial', fontSize: 11, fill: 0x94a3b8 }}
+            style={{ fontFamily: FONT_BODY, fontSize: 11, fill: 0x94a3b8 }}
           />
           <LevelPips level={bagLevel} maxLevel={3} x={16} y={108} color={0x22c55e} />
           {nextBagCost && onUpgradeBag && (
@@ -238,20 +238,20 @@ const BridgingCard = ({
         text="Bridging"
         x={52}
         y={20}
-        style={{ fontFamily: FONT, fontSize: 16, fill: 0xffffff }}
+        style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff }}
       />
 
       <pixiText
         text={`Rank ${rank}`}
         x={16}
         y={55}
-        style={{ fontFamily: 'Arial', fontSize: 12, fill: 0x94a3b8 }}
+        style={{ fontFamily: FONT_BODY, fontSize: 12, fill: 0x94a3b8 }}
       />
       <pixiText
         text={`Max ${maxCubes} cubes`}
         x={16}
         y={75}
-        style={{ fontFamily: FONT, fontSize: 14, fill: 0xfbbf24 }}
+        style={{ fontFamily: FONT_TITLE, fontSize: 14, fill: 0xfbbf24 }}
       />
 
       <LevelPips level={rank} maxLevel={4} x={16} y={100} color={0xfbbf24} />

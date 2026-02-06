@@ -8,8 +8,8 @@
 import { useState, useCallback } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { usePageNavigator } from './PageNavigator';
+import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
-const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
 
 // ============================================================================
 // TYPES
@@ -141,7 +141,7 @@ const CubeBalanceDisplay = ({
         y={height / 2}
         anchor={{ x: 0, y: 0.5 }}
         style={{
-          fontFamily: FONT,
+          fontFamily: FONT_TITLE,
           fontSize: 16,
           fill: 0xFFFFFF,
         }}
@@ -211,7 +211,7 @@ export const PageTopBar = ({
           y={subtitle ? -8 : 0}
           anchor={0.5}
           style={{
-            fontFamily: FONT,
+            fontFamily: FONT_TITLE,
             fontSize: 20,
             fill: 0xFFFFFF,
             dropShadow: {
@@ -230,7 +230,7 @@ export const PageTopBar = ({
             y={10}
             anchor={0.5}
             style={{
-              fontFamily: 'Arial, sans-serif',
+              fontFamily: FONT_BODY,
               fontSize: 11,
               fill: 0x94A3B8,
             }}

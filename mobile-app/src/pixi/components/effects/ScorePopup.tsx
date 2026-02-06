@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { TextStyle } from 'pixi.js';
 import { usePixiTheme, usePerformanceSettings } from '../../themes/ThemeContext';
+import { FONT_BOLD } from '../../utils/colors';
 
 interface PopupData {
   id: number;
@@ -131,7 +132,7 @@ export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps)
 
   // Text style
   const textStyle = new TextStyle({
-    fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+    fontFamily: FONT_BOLD,
     fontSize: 24,
     fontWeight: 'bold',
     fill: 0xFFFFFF,

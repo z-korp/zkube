@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useEffect } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
+import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
-const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
 
 interface ModalProps {
   isOpen: boolean;
@@ -111,14 +111,14 @@ export const Modal = ({
   }, []);
 
   const titleStyle = useMemo(() => new TextStyle({
-    fontFamily: FONT,
+    fontFamily: FONT_TITLE,
     fontSize: 24,
     fontWeight: 'bold',
     fill: titleColor,
   }), [titleColor]);
 
   const subtitleStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: 13,
     fill: subtitleColor,
   }), [subtitleColor]);

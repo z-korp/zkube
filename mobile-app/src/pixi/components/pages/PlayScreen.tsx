@@ -19,8 +19,8 @@ import { ConstraintType } from '@/dojo/game/types/constraint';
 import { useAnimatedValue, usePulse, easings } from '../../hooks/useAnimatedValue';
 import type { Block } from '@/types/types';
 import type { ConstraintData } from '../hud';
+import { FONT_TITLE, FONT_BOLD, FONT_BODY } from '../../utils/colors';
 
-const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
 
 export interface BonusSlotData {
   type: number;
@@ -232,27 +232,27 @@ const GameTopBar = ({
   }, [sw, topBarH]);
 
   const levelStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+    fontFamily: FONT_BOLD,
     fontSize: Math.round(14 * uiScale),
     fontWeight: 'bold',
     fill: 0xffffff,
   }), [uiScale]);
 
   const statLabelStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(10 * uiScale),
     fill: 0x64748b,
   }), [uiScale]);
 
   const statValueStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(12 * uiScale),
     fontWeight: 'bold',
     fill: 0xf97316,
   }), [uiScale]);
 
   const scoreValueStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(12 * uiScale),
     fontWeight: 'bold',
     fill: 0x60a5fa,
@@ -353,40 +353,40 @@ const GameInfoBar = ({
   }, [barW, barH, hasConstraints, scoreSectionW, movesSectionX, scoreProgress]);
 
   const scoreLabelStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(9 * uiScale),
     fill: 0x64748b,
   }), [uiScale]);
 
   const scoreValueStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(11 * uiScale),
     fontWeight: 'bold',
     fill: 0x93c5fd,
   }), [uiScale]);
 
   const scoreTargetStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(11 * uiScale),
     fontWeight: 'bold',
     fill: 0x93c5fd,
   }), [uiScale]);
 
   const movesValueStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+    fontFamily: FONT_BOLD,
     fontSize: Math.round(14 * uiScale),
     fontWeight: 'bold',
     fill: isInDanger ? 0xef4444 : 0xffffff,
   }), [uiScale, isInDanger]);
 
   const movesLabelStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(9 * uiScale),
     fill: isInDanger ? 0xfca5a5 : 0x64748b,
   }), [uiScale, isInDanger]);
 
   const constraintLabelStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(10 * uiScale),
     fontWeight: 'bold',
     fill: 0xe2e8f0,
@@ -483,7 +483,7 @@ const GameInfoBar = ({
               y={hasBothConstraints ? barH * 0.25 - Math.round(4 * uiScale) : sectionCenterY - Math.round(4 * uiScale)}
               anchor={0.5}
               style={new TextStyle({
-                fontFamily: 'Arial, sans-serif',
+                fontFamily: FONT_BODY,
                 fontSize: Math.round(10 * uiScale),
                 fontWeight: 'bold',
                 fill: c1Color,
@@ -497,7 +497,7 @@ const GameInfoBar = ({
               y={hasBothConstraints ? barH * 0.75 - Math.round(4 * uiScale) : sectionCenterY - Math.round(4 * uiScale)}
               anchor={0.5}
               style={new TextStyle({
-                fontFamily: 'Arial, sans-serif',
+                fontFamily: FONT_BODY,
                 fontSize: Math.round(10 * uiScale),
                 fontWeight: 'bold',
                 fill: c2Color,
@@ -523,7 +523,7 @@ const GameInfoBar = ({
           y={sectionCenterY}
           anchor={0.5}
           style={new TextStyle({
-            fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+            fontFamily: FONT_BOLD,
             fontSize: Math.round(12 * uiScale),
             fontWeight: 'bold',
             fill: combo >= 5 ? 0xffd700 : combo >= 3 ? 0xf97316 : 0xfbbf24,
@@ -552,14 +552,14 @@ const LoadingScreen = ({ sw, sh }: { sw: number; sh: number }) => {
         text={`Loading${dots}`}
         x={sw / 2} y={sh / 2 - 20} anchor={0.5}
         style={{
-          fontFamily: FONT, fontSize: 28, fill: 0xffffff,
+          fontFamily: FONT_TITLE, fontSize: 28, fill: 0xffffff,
           dropShadow: { alpha: 0.4, angle: Math.PI / 4, blur: 4, distance: 2, color: 0x000000 },
         }}
       />
       <pixiText
         text="Preparing the blocks..."
         x={sw / 2} y={sh / 2 + 20} anchor={0.5}
-        style={{ fontFamily: 'Arial, sans-serif', fontSize: 14, fill: 0x94a3b8 }}
+        style={{ fontFamily: FONT_BODY, fontSize: 14, fill: 0x94a3b8 }}
       />
     </pixiContainer>
   );
@@ -693,7 +693,7 @@ const PlayScreenInner = (props: PlayScreenProps) => {
         <pixiContainer x={sw / 2} y={layout.gridY + 30}>
           <pixiText text={bonusDescription} anchor={0.5}
             style={{
-              fontFamily: FONT, fontSize: 16, fill: 0xfbbf24,
+              fontFamily: FONT_TITLE, fontSize: 16, fill: 0xfbbf24,
               dropShadow: { alpha: 0.8, angle: Math.PI / 4, blur: 4, distance: 2, color: 0x000000 },
             }}
           />

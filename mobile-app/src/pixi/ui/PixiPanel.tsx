@@ -9,6 +9,7 @@
 import { useEffect, useMemo, useState, ReactNode } from 'react';
 import { Assets, Texture } from 'pixi.js';
 import { 
+import { FONT_BOLD } from '../utils/colors';
   PANEL_ASSETS, 
   PANEL_BORDERS,
   type PanelType,
@@ -131,7 +132,7 @@ export function PixiPanelHeader({
       y={0}
       anchor={{ x: 0.5, y: 0 }}
       style={{
-        fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+        fontFamily: FONT_BOLD,
         fontSize,
         fill: color,
         align: 'center',

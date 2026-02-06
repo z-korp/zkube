@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
+import { FONT_BODY } from '../../utils/colors';
 
 interface TooltipProps {
   text: string;
@@ -124,7 +125,7 @@ export const Tooltip = ({
   }, [boxWidth, boxHeight, cornerRadius, bgColor, borderColor, position, arrowSize]);
 
   const textStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize,
     fill: 0xffffff,
     wordWrap: true,

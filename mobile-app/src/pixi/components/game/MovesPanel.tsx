@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { usePulse, useGlow } from '../../hooks/useAnimatedValue';
+import { FONT_BOLD, FONT_BODY } from '../../utils/colors';
 
 interface MovesPanelProps {
   moves: number;
@@ -129,7 +130,7 @@ export const MovesPanel = ({
 
   // Text styles
   const labelStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(10 * uiScale),
     fontWeight: 'bold',
     fill: 0x94a3b8,
@@ -137,21 +138,21 @@ export const MovesPanel = ({
   }), [uiScale]);
 
   const movesStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+    fontFamily: FONT_BOLD,
     fontSize: Math.round(24 * uiScale),
     fontWeight: 'bold',
     fill: isInDanger ? 0xef4444 : 0xffffff,
   }), [uiScale, isInDanger]);
 
   const comboStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+    fontFamily: FONT_BOLD,
     fontSize: Math.round(18 * uiScale),
     fontWeight: 'bold',
     fill: combo > 0 ? 0xfbbf24 : 0x64748b,
   }), [uiScale, combo]);
 
   const maxComboStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(9 * uiScale),
     fill: 0x64748b,
   }), [uiScale]);

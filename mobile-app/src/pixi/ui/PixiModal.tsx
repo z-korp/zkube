@@ -14,6 +14,7 @@ import { FederatedPointerEvent, Graphics as PixiGraphics } from 'pixi.js';
 import { PixiPanel, PixiPanelHeader } from './PixiPanel';
 import { PixiButton } from './PixiButton';
 import type { PanelType } from '../assets/manifest';
+import { FONT_BODY } from '../utils/colors';
 
 export interface PixiModalProps {
   /** Screen width for centering */
@@ -205,7 +206,7 @@ export function PixiConfirmModal({
         text={message}
         y={10}
         style={{
-          fontFamily: 'Arial, sans-serif',
+          fontFamily: FONT_BODY,
           fontSize: 16,
           fill: 0xFFFFFF,
           wordWrap: true,

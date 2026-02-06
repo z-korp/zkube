@@ -4,6 +4,7 @@ import { usePixiTheme } from '../../themes/ThemeContext';
 import type { ConstraintData } from '../hud';
 import { ConstraintType } from '@/dojo/game/types/constraint';
 import { useGlow } from '../../hooks/useAnimatedValue';
+import { FONT_BOLD, FONT_BODY } from '../../utils/colors';
 
 interface LevelDisplayProps {
   level: number;
@@ -182,7 +183,7 @@ export const LevelDisplay = ({
 
   // Text styles
   const levelLabelStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(10 * uiScale),
     fontWeight: 'bold',
     fill: 0x94a3b8,
@@ -190,14 +191,14 @@ export const LevelDisplay = ({
   }), [uiScale]);
 
   const levelNumberStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+    fontFamily: FONT_BOLD,
     fontSize: Math.round(16 * uiScale),
     fontWeight: 'bold',
     fill: 0xffffff,
   }), [uiScale]);
 
   const constraintTextStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(10 * uiScale),
     fontWeight: 'bold',
     fill: 0xffffff,

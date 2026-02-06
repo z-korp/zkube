@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Assets, Texture, FederatedPointerEvent, TextStyle } from 'pixi.js';
 import { 
+import { FONT_BOLD } from '../utils/colors';
   BUTTON_ASSETS, 
   BUTTON_BORDERS,
   ICON_BUTTON_BORDERS,
@@ -52,7 +53,7 @@ export interface PixiButtonProps {
 
 // Default text style for buttons
 const DEFAULT_TEXT_STYLE: Partial<TextStyle> = {
-  fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+  fontFamily: FONT_BOLD,
   fontSize: 18,
   fill: 0xFFFFFF,
   align: 'center',

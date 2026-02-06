@@ -3,6 +3,7 @@ import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { drawTargetIcon, drawMovesIcon, drawComboIcon, IconColors } from '../ui/Icons';
 import { useAnimatedValue, usePulse, easings } from '../../hooks/useAnimatedValue';
+import { FONT_BODY } from '../../utils/colors';
 
 interface GameHUDProps {
   score: number;
@@ -147,27 +148,27 @@ export const GameHUD = ({
 
   // Text styles
   const valueStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(13 * uiScale),
     fontWeight: 'bold',
     fill: 0xffffff,
   }), [uiScale]);
 
   const labelStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(9 * uiScale),
     fill: 0x94a3b8,
   }), [uiScale]);
 
   const comboStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(14 * uiScale),
     fontWeight: 'bold',
     fill: combo > 0 ? 0xfbbf24 : 0x6b7280,
   }), [uiScale, combo]);
 
   const dangerStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(13 * uiScale),
     fontWeight: 'bold',
     fill: isInDanger ? 0xfca5a5 : 0xffffff,

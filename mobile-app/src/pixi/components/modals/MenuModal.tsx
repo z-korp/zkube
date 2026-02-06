@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { Modal, Button } from '../ui';
 import { usePixiTheme } from '../../themes/ThemeContext';
+import { FONT_BODY } from '../../utils/colors';
 
 interface MenuModalProps {
   isOpen: boolean;
@@ -66,20 +67,20 @@ export const MenuModal = ({
   const cubeColor = 0xfbbf24;
 
   const labelStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: 13,
     fill: labelColor,
   }), [labelColor]);
 
   const valueStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: 15,
     fontWeight: 'bold',
     fill: valueColor,
   }), [valueColor]);
 
   const cubeStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: 15,
     fontWeight: 'bold',
     fill: cubeColor,

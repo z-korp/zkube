@@ -1,10 +1,10 @@
 import { useCallback, useState, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
+import { FONT_TITLE } from '../../utils/colors';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
 
-const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
 
 interface ButtonProps {
   text: string;
@@ -122,7 +122,7 @@ export const Button = ({
   }, [width, height, isHovered, isPressed, disabled, colorScheme, variant]);
 
   const textStyle = useMemo(() => new TextStyle({
-    fontFamily: FONT,
+    fontFamily: FONT_TITLE,
     fontSize,
     fontWeight: 'bold',
     fill: colorScheme.text,

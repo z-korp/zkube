@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { TextStyle, Graphics as PixiGraphics } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
+import { FONT_BOLD, FONT_BODY } from '../../utils/colors';
 
 interface ComboDisplayProps {
   /** Current combo count */
@@ -72,7 +73,7 @@ export const ComboDisplay = ({
   }, [combo, containerWidth, containerHeight, pulseAlpha]);
 
   const comboStyle = new TextStyle({
-    fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+    fontFamily: FONT_BOLD,
     fontSize: 18,
     fontWeight: 'bold',
     fill: getComboColor(),
@@ -80,7 +81,7 @@ export const ComboDisplay = ({
   });
 
   const labelStyle = new TextStyle({
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: 9,
     fontWeight: 'normal',
     fill: 0x94a3b8,

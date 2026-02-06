@@ -7,8 +7,8 @@ import { useCallback, useMemo, useState, useEffect } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { Modal, Button } from '../ui';
 import { usePixiTheme } from '../../themes/ThemeContext';
+import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
-const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
 
 interface LevelCompleteModalProps {
   isOpen: boolean;
@@ -124,33 +124,33 @@ export const LevelCompleteModal = ({
   }, [buttonWidth]);
 
   const titleStyle = useMemo(() => new TextStyle({
-    fontFamily: FONT,
+    fontFamily: FONT_TITLE,
     fontSize: 18,
     fill: stars >= 3 ? 0xfbbf24 : 0xffffff,
   }), [stars]);
 
   const labelStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: 13,
     fill: 0x94a3b8,
   }), []);
 
   const valueStyle = useMemo(() => new TextStyle({
-    fontFamily: FONT,
+    fontFamily: FONT_TITLE,
     fontSize: 18,
     fontWeight: 'bold',
     fill: 0xffffff,
   }), []);
 
   const cubeStyle = useMemo(() => new TextStyle({
-    fontFamily: FONT,
+    fontFamily: FONT_TITLE,
     fontSize: 18,
     fontWeight: 'bold',
     fill: 0xfbbf24,
   }), []);
 
   const bonusTextStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: 14,
     fill: 0x22c55e,
   }), []);

@@ -7,8 +7,8 @@ import { useState, useCallback, useRef } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import type { LeaderboardEntry } from '@/hooks/useLeaderboardSlot';
+import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
-const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
 
 // ============================================================================
 // LEADERBOARD ROW
@@ -91,7 +91,7 @@ const LeaderboardRow = ({
           x={28}
           y={rowH / 2}
           anchor={0.5}
-          style={{ fontFamily: 'Arial, sans-serif', fontSize: 16, fontWeight: 'bold', fill: 0x94a3b8 }}
+          style={{ fontFamily: FONT_BODY, fontSize: 16, fontWeight: 'bold', fill: 0x94a3b8 }}
         />
       )}
 
@@ -101,7 +101,7 @@ const LeaderboardRow = ({
         x={58}
         y={rowH / 2 - 8}
         anchor={{ x: 0, y: 0.5 }}
-        style={{ fontFamily: FONT, fontSize: 16, fill: 0xffffff }}
+        style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff }}
       />
       
       {/* Status indicator under name */}
@@ -110,7 +110,7 @@ const LeaderboardRow = ({
         x={58}
         y={rowH / 2 + 12}
         anchor={{ x: 0, y: 0.5 }}
-        style={{ fontFamily: 'Arial, sans-serif', fontSize: 11, fill: entry.gameOver ? 0x22c55e : 0xfbbf24 }}
+        style={{ fontFamily: FONT_BODY, fontSize: 11, fill: entry.gameOver ? 0x22c55e : 0xfbbf24 }}
       />
 
       {/* Level badge */}
@@ -119,7 +119,7 @@ const LeaderboardRow = ({
         x={width - 90}
         y={rowH / 2}
         anchor={{ x: 0.5, y: 0.5 }}
-        style={{ fontFamily: 'Arial, sans-serif', fontSize: 14, fontWeight: 'bold', fill: 0x60a5fa }}
+        style={{ fontFamily: FONT_BODY, fontSize: 14, fontWeight: 'bold', fill: 0x60a5fa }}
       />
 
       {/* Score */}
@@ -128,7 +128,7 @@ const LeaderboardRow = ({
         x={width - 28}
         y={rowH / 2}
         anchor={{ x: 1, y: 0.5 }}
-        style={{ fontFamily: FONT, fontSize: 20, fill: isTop3 ? medalColors[rank - 1] : 0xffffff }}
+        style={{ fontFamily: FONT_TITLE, fontSize: 20, fill: isTop3 ? medalColors[rank - 1] : 0xffffff }}
       />
     </pixiContainer>
   );
@@ -242,28 +242,28 @@ export const LeaderboardPage = ({
           x={28}
           y={headerH / 2}
           anchor={0.5}
-          style={{ fontFamily: 'Arial', fontSize: 11, fill: 0x94a3b8 }}
+          style={{ fontFamily: FONT_BODY, fontSize: 11, fill: 0x94a3b8 }}
         />
         <pixiText
           text="PLAYER"
           x={60}
           y={headerH / 2}
           anchor={{ x: 0, y: 0.5 }}
-          style={{ fontFamily: 'Arial', fontSize: 11, fill: 0x94a3b8 }}
+          style={{ fontFamily: FONT_BODY, fontSize: 11, fill: 0x94a3b8 }}
         />
         <pixiText
           text="LVL"
           x={contentWidth - 100}
           y={headerH / 2}
           anchor={0.5}
-          style={{ fontFamily: 'Arial', fontSize: 11, fill: 0x94a3b8 }}
+          style={{ fontFamily: FONT_BODY, fontSize: 11, fill: 0x94a3b8 }}
         />
         <pixiText
           text="SCORE"
           x={contentWidth - 40}
           y={headerH / 2}
           anchor={0.5}
-          style={{ fontFamily: 'Arial', fontSize: 11, fill: 0x94a3b8 }}
+          style={{ fontFamily: FONT_BODY, fontSize: 11, fill: 0x94a3b8 }}
         />
       </pixiContainer>
 
@@ -275,7 +275,7 @@ export const LeaderboardPage = ({
             x={contentWidth / 2}
             y={80}
             anchor={0.5}
-            style={{ fontFamily: FONT, fontSize: 16, fill: 0x64748b }}
+            style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0x64748b }}
           />
         ) : entries.length === 0 ? (
           <pixiText
@@ -283,7 +283,7 @@ export const LeaderboardPage = ({
             x={contentWidth / 2}
             y={80}
             anchor={0.5}
-            style={{ fontFamily: FONT, fontSize: 16, fill: 0x64748b }}
+            style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0x64748b }}
           />
         ) : (
           <pixiContainer

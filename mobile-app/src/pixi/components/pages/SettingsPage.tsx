@@ -7,8 +7,8 @@ import { useState, useCallback } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { useTheme } from '@/ui/elements/theme-provider/hooks';
+import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
-const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
 
 // ============================================================================
 // TOGGLE SWITCH
@@ -71,7 +71,7 @@ const ToggleSwitch = ({
         x={16}
         y={rowH / 2}
         anchor={{ x: 0, y: 0.5 }}
-        style={{ fontFamily: FONT, fontSize: 16, fill: 0xffffff }}
+        style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff }}
       />
       {/* Switch */}
       <pixiGraphics
@@ -123,14 +123,14 @@ const SettingRow = ({
         x={16}
         y={rowH / 2}
         anchor={{ x: 0, y: 0.5 }}
-        style={{ fontFamily: 'Arial, sans-serif', fontSize: 14, fill: 0x94a3b8 }}
+        style={{ fontFamily: FONT_BODY, fontSize: 14, fill: 0x94a3b8 }}
       />
       <pixiText
         text={value}
         x={width - 16}
         y={rowH / 2}
         anchor={{ x: 1, y: 0.5 }}
-        style={{ fontFamily: 'Arial, sans-serif', fontSize: 14, fill: 0xffffff }}
+        style={{ fontFamily: FONT_BODY, fontSize: 14, fill: 0xffffff }}
       />
     </pixiContainer>
   );
@@ -188,7 +188,7 @@ const ThemeSelector = ({
         text="Theme"
         x={16}
         y={8}
-        style={{ fontFamily: FONT, fontSize: 14, fill: 0xffffff }}
+        style={{ fontFamily: FONT_TITLE, fontSize: 14, fill: 0xffffff }}
       />
       <pixiContainer y={rowH - optionH - 8}>
         <pixiGraphics
@@ -204,7 +204,7 @@ const ThemeSelector = ({
           x={16 + optionW / 2}
           y={optionH / 2}
           anchor={0.5}
-          style={{ fontFamily: FONT, fontSize: 13, fill: isTheme1 ? 0xffffff : 0x94a3b8 }}
+          style={{ fontFamily: FONT_TITLE, fontSize: 13, fill: isTheme1 ? 0xffffff : 0x94a3b8 }}
         />
 
         <pixiGraphics
@@ -220,7 +220,7 @@ const ThemeSelector = ({
           x={16 + optionW + 16 + optionW / 2}
           y={optionH / 2}
           anchor={0.5}
-          style={{ fontFamily: FONT, fontSize: 13, fill: isTheme2 ? 0xffffff : 0x94a3b8 }}
+          style={{ fontFamily: FONT_TITLE, fontSize: 13, fill: isTheme2 ? 0xffffff : 0x94a3b8 }}
         />
       </pixiContainer>
     </pixiContainer>
@@ -238,7 +238,7 @@ const SectionHeader = ({ y, title }: { y: number; title: string }) => {
       x={0}
       y={y}
       anchor={{ x: 0, y: 0 }}
-      style={{ fontFamily: 'Arial, sans-serif', fontSize: 12, fill: 0x64748b, letterSpacing: 2 }}
+      style={{ fontFamily: FONT_BODY, fontSize: 12, fill: 0x64748b, letterSpacing: 2 }}
     />
   );
 };
@@ -360,7 +360,7 @@ export const SettingsPage = ({
           x={contentWidth / 2}
           y={versionY}
           anchor={{ x: 0.5, y: 0 }}
-          style={{ fontFamily: 'Arial, sans-serif', fontSize: 12, fill: 0x475569 }}
+          style={{ fontFamily: FONT_BODY, fontSize: 12, fill: 0x475569 }}
         />
 
         <pixiText
@@ -368,7 +368,7 @@ export const SettingsPage = ({
           x={contentWidth / 2}
           y={versionY + 20}
           anchor={{ x: 0.5, y: 0 }}
-          style={{ fontFamily: 'Arial, sans-serif', fontSize: 11, fill: 0x475569 }}
+          style={{ fontFamily: FONT_BODY, fontSize: 11, fill: 0x475569 }}
         />
       </pixiContainer>
     </pixiContainer>

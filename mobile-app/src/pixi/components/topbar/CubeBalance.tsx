@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { drawCubeIcon } from '../ui/Icons';
+import { FONT_BODY } from '../../utils/colors';
 
 interface CubeBalanceProps {
   balance: number;
@@ -40,7 +41,7 @@ export const CubeBalance = ({ balance, x, y, height, uiScale }: CubeBalanceProps
   }, [iconSize]);
 
   const textStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize,
     fontWeight: 'bold',
     fill: 0xffffff,

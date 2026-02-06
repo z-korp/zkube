@@ -6,8 +6,8 @@
 import { useState, useCallback, useRef } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
+import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
-const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
 
 // ============================================================================
 // TYPES
@@ -82,7 +82,7 @@ const GameRow = ({
         x={12}
         y={centerY}
         anchor={{ x: 0, y: 0.5 }}
-        style={{ fontFamily: FONT, fontSize: 16, fill: 0xffffff }}
+        style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff }}
       />
 
       {/* XXX pts */}
@@ -91,7 +91,7 @@ const GameRow = ({
         x={width * 0.32}
         y={centerY}
         anchor={{ x: 0.5, y: 0.5 }}
-        style={{ fontFamily: 'Arial, sans-serif', fontSize: 13, fill: 0xffffff }}
+        style={{ fontFamily: FONT_BODY, fontSize: 13, fill: 0xffffff }}
       />
 
       {/* XX cubes */}
@@ -110,7 +110,7 @@ const GameRow = ({
           x={width - 12}
           y={centerY}
           anchor={{ x: 1, y: 0.5 }}
-          style={{ fontFamily: 'Arial, sans-serif', fontSize: 13, fontWeight: 'bold', fill: 0x22c55e }}
+          style={{ fontFamily: FONT_BODY, fontSize: 13, fontWeight: 'bold', fill: 0x22c55e }}
         />
       ) : (
         <pixiText
@@ -143,7 +143,7 @@ const SectionHeader = ({
       text={`${title} (${count})`}
       x={0}
       y={y}
-      style={{ fontFamily: FONT, fontSize: 14, fill: 0xffffff, alpha: 0.9 }}
+      style={{ fontFamily: FONT_TITLE, fontSize: 14, fill: 0xffffff, alpha: 0.9 }}
     />
   );
 };
@@ -264,7 +264,7 @@ export const MyGamesPage = ({
             x={contentWidth / 2}
             y={80}
             anchor={0.5}
-            style={{ fontFamily: FONT, fontSize: 16, fill: 0x64748b }}
+            style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0x64748b }}
           />
         ) : games.length === 0 ? (
           <pixiContainer>
@@ -273,14 +273,14 @@ export const MyGamesPage = ({
               x={contentWidth / 2}
               y={80}
               anchor={0.5}
-              style={{ fontFamily: FONT, fontSize: 20, fill: 0x64748b }}
+              style={{ fontFamily: FONT_TITLE, fontSize: 20, fill: 0x64748b }}
             />
             <pixiText
               text="Start a new game from the home screen"
               x={contentWidth / 2}
               y={110}
               anchor={0.5}
-              style={{ fontFamily: 'Arial, sans-serif', fontSize: 13, fill: 0x94a3b8 }}
+              style={{ fontFamily: FONT_BODY, fontSize: 13, fill: 0x94a3b8 }}
             />
           </pixiContainer>
         ) : (

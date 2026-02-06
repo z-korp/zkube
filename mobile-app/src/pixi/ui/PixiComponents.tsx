@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Assets, Texture, Graphics as PixiGraphics } from 'pixi.js';
 import { ICON_ASSETS, type IconType } from '../assets/manifest';
+import { FONT_BOLD, FONT_BODY } from '../utils/colors';
 
 // ============================================================================
 // PROGRESS BAR
@@ -117,7 +118,7 @@ export function PixiProgressBar({
           y={height / 2}
           anchor={0.5}
           style={{
-            fontFamily: 'Arial Bold, Arial, sans-serif',
+            fontFamily: FONT_BOLD,
             fontSize: Math.max(10, height - 6),
             fill: labelColor,
           }}
@@ -250,7 +251,7 @@ export function PixiBadge({
         text={displayText}
         anchor={0.5}
         style={{
-          fontFamily: 'Arial Bold, Arial, sans-serif',
+          fontFamily: FONT_BOLD,
           fontSize: size * 0.6,
           fill: textColor,
           fontWeight: 'bold',
@@ -325,7 +326,7 @@ export type LabelVariant = 'title' | 'subtitle' | 'body' | 'caption' | 'button';
 
 const LABEL_STYLES: Record<LabelVariant, object> = {
   title: {
-    fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+    fontFamily: FONT_BOLD,
     fontSize: 28,
     fill: 0xFFFFFF,
     dropShadow: {
@@ -337,7 +338,7 @@ const LABEL_STYLES: Record<LabelVariant, object> = {
     },
   },
   subtitle: {
-    fontFamily: 'Arial Bold, Arial, sans-serif',
+    fontFamily: FONT_BOLD,
     fontSize: 20,
     fill: 0xFFFFFF,
     dropShadow: {
@@ -349,17 +350,17 @@ const LABEL_STYLES: Record<LabelVariant, object> = {
     },
   },
   body: {
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: 16,
     fill: 0xFFFFFF,
   },
   caption: {
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: 12,
     fill: 0xCCCCCC,
   },
   button: {
-    fontFamily: 'Arial Bold, Arial, sans-serif',
+    fontFamily: FONT_BOLD,
     fontSize: 18,
     fill: 0xFFFFFF,
     dropShadow: {

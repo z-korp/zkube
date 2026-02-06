@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { TextStyle, Graphics as PixiGraphics } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { ConstraintType } from '@/dojo/game/types/constraint';
+import { FONT_BODY } from '../../utils/colors';
 
 export interface ConstraintData {
   type: ConstraintType;
@@ -135,7 +136,7 @@ export const ConstraintIndicator = ({
   }, [width, height, bgColor, accentColor, constraint.type, constraint.count, constraint.progress]);
 
   const labelStyle = new TextStyle({
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: 10,
     fontWeight: 'bold',
     fill: textColor,

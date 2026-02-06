@@ -7,8 +7,8 @@ import { useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { Modal, Button } from '../ui';
 import { usePixiTheme } from '../../themes/ThemeContext';
+import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
-const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
 
 interface GameOverModalProps {
   isOpen: boolean;
@@ -46,13 +46,13 @@ export const GameOverModal = ({
   // Stat row component
   const StatRow = ({ label, value, color = 0xffffff, y }: { label: string; value: string | number; color?: number; y: number }) => {
     const labelStyle = useMemo(() => new TextStyle({
-      fontFamily: 'Arial, Helvetica, sans-serif',
+      fontFamily: FONT_BODY,
       fontSize: 14,
       fill: 0x94a3b8,
     }), []);
 
     const valueStyle = useMemo(() => new TextStyle({
-      fontFamily: FONT,
+      fontFamily: FONT_TITLE,
       fontSize: 22,
       fontWeight: 'bold',
       fill: color,

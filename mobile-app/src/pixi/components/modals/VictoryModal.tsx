@@ -7,8 +7,8 @@ import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { Modal, Button } from '../ui';
 import { usePixiTheme } from '../../themes/ThemeContext';
+import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
-const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
 
 interface VictoryModalProps {
   isOpen: boolean;
@@ -152,7 +152,7 @@ export const VictoryModal = ({
   }, []);
 
   const titleStyle = useMemo(() => new TextStyle({
-    fontFamily: FONT,
+    fontFamily: FONT_TITLE,
     fontSize: 28,
     fill: 0xfbbf24,
     dropShadow: {
@@ -165,20 +165,20 @@ export const VictoryModal = ({
   }), []);
 
   const labelStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: 13,
     fill: 0x94a3b8,
   }), []);
 
   const valueStyle = useMemo(() => new TextStyle({
-    fontFamily: FONT,
+    fontFamily: FONT_TITLE,
     fontSize: 20,
     fontWeight: 'bold',
     fill: 0xffffff,
   }), []);
 
   const cubeStyle = useMemo(() => new TextStyle({
-    fontFamily: FONT,
+    fontFamily: FONT_TITLE,
     fontSize: 20,
     fontWeight: 'bold',
     fill: 0xfbbf24,

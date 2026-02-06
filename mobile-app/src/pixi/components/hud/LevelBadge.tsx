@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { TextStyle, Graphics as PixiGraphics } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
+import { FONT_BOLD, FONT_BODY } from '../../utils/colors';
 
 interface LevelBadgeProps {
   level: number;
@@ -32,7 +33,7 @@ export const LevelBadge = ({ level, x, y, height }: LevelBadgeProps) => {
   }, [badgeWidth, badgeHeight]);
 
   const textStyle = new TextStyle({
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: 11,
     fontWeight: 'bold',
     fill: 0x94a3b8,
@@ -40,7 +41,7 @@ export const LevelBadge = ({ level, x, y, height }: LevelBadgeProps) => {
   });
 
   const levelStyle = new TextStyle({
-    fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+    fontFamily: FONT_BOLD,
     fontSize: 16,
     fontWeight: 'bold',
     fill: 0xffffff,

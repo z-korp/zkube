@@ -21,12 +21,12 @@ import { CubeBalance } from '../topbar/CubeBalance';
 import type { PlayerMetaData } from '@/hooks/usePlayerMeta';
 import type { LeaderboardEntry } from '@/hooks/useLeaderboardSlot';
 import type { QuestFamily } from '@/types/questFamily';
+import { FONT_TITLE, FONT_BOLD, FONT_BODY } from '../../utils/colors';
 
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 
-const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
 
 // ============================================================================
 // TYPES
@@ -212,7 +212,7 @@ const Logo = ({ x, y, maxW, maxH }: { x: number; y: number; maxW: number; maxH: 
     return (
       <pixiText text="zKube" x={x} y={y + bounce} anchor={0.5}
         style={{
-          fontFamily: FONT, fontSize: 64, fill: 0x6D28D9, letterSpacing: 4,
+          fontFamily: FONT_TITLE, fontSize: 64, fill: 0x6D28D9, letterSpacing: 4,
           stroke: { color: 0xFFFFFF, width: 5 },
           dropShadow: { alpha: 0.3, angle: Math.PI / 6, blur: 6, distance: 4, color: 0x4C1D95 },
         }}
@@ -263,7 +263,7 @@ const LandingButton = ({
       />
       <pixiText text={label} x={width / 2} y={height / 2} anchor={0.5}
         style={{
-          fontFamily: FONT, fontSize, fill: 0xFFFFFF,
+          fontFamily: FONT_TITLE, fontSize, fill: 0xFFFFFF,
           letterSpacing: 1,
           dropShadow: { alpha: 0.6, angle: Math.PI / 4, blur: 2, distance: 2, color: 0x000000 },
         }}
@@ -345,7 +345,7 @@ const HomeTopBar = ({
   }, [sw, topBarH]);
 
   const cubeCountStyle = useMemo(() => ({
-    fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+    fontFamily: FONT_BOLD,
     fontSize: Math.round(14 * uiScale),
     fontWeight: 'bold' as const,
     fill: 0xfbbf24,
@@ -356,7 +356,7 @@ const HomeTopBar = ({
   }), [uiScale]);
 
   const usernameStyle = useMemo(() => ({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(11 * uiScale),
     fontWeight: 'bold' as const,
     fill: 0xffffff,
@@ -487,7 +487,7 @@ const HomePageContent = ({
       {/* Footer */}
       <pixiText text="Built on Starknet with Dojo"
         x={centerX} y={sh - 16} anchor={0.5}
-        style={{ fontFamily: 'Arial, sans-serif', fontSize: 10, fill: 0xFFFFFF,
+        style={{ fontFamily: FONT_BODY, fontSize: 10, fill: 0xFFFFFF,
           dropShadow: { alpha: 0.4, angle: Math.PI / 4, blur: 2, distance: 1, color: 0x000000 },
         }}
       />

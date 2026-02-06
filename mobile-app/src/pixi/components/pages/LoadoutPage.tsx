@@ -14,13 +14,13 @@ import { Button } from "../ui";
 import { usePixiTheme } from "../../themes/ThemeContext";
 import type { PlayerMetaData } from "@/hooks/usePlayerMeta";
 import { BonusType, bonusTypeToContractValue } from "@/dojo/game/types/bonus";
+import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 
 const LOADOUT_STORAGE_KEY = "zkube_loadout";
-const FONT = "Fredericka the Great, Bangers, Arial Black, sans-serif";
 
 
 // ============================================================================
@@ -229,7 +229,7 @@ const BonusTile = ({
         y={size - 14}
         anchor={0.5}
         style={{
-          fontFamily: "Arial, sans-serif",
+          fontFamily: FONT_BODY,
           fontSize: 12,
           fill: isLocked ? 0x9ca3af : 0xffffff,
         }}
@@ -342,7 +342,7 @@ const CubeSlider = ({
         y={knobRadius}
         anchor={{ x: 0, y: 0.5 }}
         style={{
-          fontFamily: FONT,
+          fontFamily: FONT_TITLE,
           fontSize: 18,
           fill: 0xffffff,
         }}
@@ -479,7 +479,7 @@ export const LoadoutPage = ({
           y={0}
           anchor={{ x: 0.5, y: 0 }}
           style={{
-            fontFamily: FONT,
+            fontFamily: FONT_TITLE,
             fontSize: 20,
             fill: 0xffffff,
             dropShadow: {
@@ -523,7 +523,7 @@ export const LoadoutPage = ({
               y={0}
               anchor={{ x: 0.5, y: 0 }}
               style={{
-                fontFamily: FONT,
+                fontFamily: FONT_TITLE,
                 fontSize: 18,
                 fill: 0xffffff,
               }}

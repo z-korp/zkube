@@ -1,6 +1,7 @@
 import { useCallback, useRef, useEffect, useState } from 'react';
 import { TextStyle, Graphics as PixiGraphics } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
+import { FONT_BODY } from '../../utils/colors';
 
 interface ProgressBarProps {
   /** Current score/progress value */
@@ -102,7 +103,7 @@ export const ProgressBar = ({
   }, [fillWidth, innerHeight, innerCornerRadius, innerPadding, fillColor]);
 
   const textStyle = new TextStyle({
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: 12,
     fontWeight: 'bold',
     fill: 0xffffff,

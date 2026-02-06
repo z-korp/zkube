@@ -2,6 +2,7 @@ import { useCallback, useState, useEffect } from 'react';
 import { TextStyle, Graphics as PixiGraphics, Texture, Assets } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { usePulse } from '../../hooks/useAnimatedValue';
+import { FONT_BODY } from '../../utils/colors';
 
 export interface BonusButtonData {
   /** Bonus type identifier */
@@ -132,7 +133,7 @@ export const BonusButton = ({
   }, [size, level]);
 
   const countStyle = new TextStyle({
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: 10,
     fontWeight: 'bold',
     fill: 0xffffff,

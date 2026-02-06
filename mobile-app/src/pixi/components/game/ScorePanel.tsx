@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { useAnimatedValue, easings } from '../../hooks/useAnimatedValue';
+import { FONT_BOLD, FONT_BODY } from '../../utils/colors';
 
 interface ScorePanelProps {
   score: number;
@@ -112,7 +113,7 @@ export const ScorePanel = ({
 
   // Text styles
   const labelStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(10 * uiScale),
     fontWeight: 'bold',
     fill: 0x94a3b8,
@@ -120,14 +121,14 @@ export const ScorePanel = ({
   }), [uiScale]);
 
   const scoreStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+    fontFamily: FONT_BOLD,
     fontSize: Math.round(20 * uiScale),
     fontWeight: 'bold',
     fill: 0xffffff,
   }), [uiScale]);
 
   const targetStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: Math.round(11 * uiScale),
     fill: 0x64748b,
   }), [uiScale]);

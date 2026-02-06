@@ -2,6 +2,7 @@ import { useCallback, useState, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { 
+import { FONT_BODY } from '../../utils/colors';
   drawQuestsIcon, 
   drawTrophyIcon, 
   drawShopIcon, 
@@ -100,14 +101,14 @@ export const NavButton = ({
   }, [badge]);
 
   const labelStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: 9,
     fill: isHovered ? 0xffffff : 0x94a3b8,
     letterSpacing: 0.3,
   }), [isHovered]);
 
   const badgeStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: 10,
     fontWeight: 'bold',
     fill: 0xffffff,

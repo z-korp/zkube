@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { TextStyle, Graphics as PixiGraphics } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
+import { FONT_BOLD, FONT_BODY } from '../../utils/colors';
 
 interface MovesCounterProps {
   moves: number;
@@ -66,14 +67,14 @@ export const MovesCounter = ({
   }, [bgColor, pillWidth, pillHeight, cornerRadius, isCritical, isWarning]);
 
   const movesStyle = new TextStyle({
-    fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+    fontFamily: FONT_BOLD,
     fontSize: 16,
     fontWeight: 'bold',
     fill: textColor,
   });
 
   const labelStyle = new TextStyle({
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_BODY,
     fontSize: 9,
     fontWeight: 'normal',
     fill: 0x94a3b8,

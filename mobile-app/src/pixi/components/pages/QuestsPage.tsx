@@ -7,8 +7,8 @@ import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { Button } from '../ui';
 import type { QuestFamily, QuestTier } from '@/types/questFamily';
+import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
-const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
 
 // Family icons
 const FAMILY_ICONS: Record<string, string> = {
@@ -51,7 +51,7 @@ const CountdownTimer = ({ x, y }: { x: number; y: number }) => {
       x={x}
       y={y}
       anchor={{ x: 0.5, y: 0.5 }}
-      style={{ fontFamily: 'Arial, sans-serif', fontSize: 12, fill: 0x64748b }}
+      style={{ fontFamily: FONT_BODY, fontSize: 12, fill: 0x64748b }}
     />
   );
 };
@@ -103,7 +103,7 @@ const ProgressBar = ({
         x={width + 10}
         y={barH / 2}
         anchor={{ x: 0, y: 0.5 }}
-        style={{ fontFamily: 'Arial, sans-serif', fontSize: 11, fill: 0x94a3b8 }}
+        style={{ fontFamily: FONT_BODY, fontSize: 11, fill: 0x94a3b8 }}
       />
     </pixiContainer>
   );
@@ -167,7 +167,7 @@ const TierRow = ({
         y={rowH / 2}
         anchor={{ x: 0, y: 0.5 }}
         style={{
-          fontFamily: 'Arial, sans-serif',
+          fontFamily: FONT_BODY,
           fontSize: 12,
           fill: textColor,
         }}
@@ -177,7 +177,7 @@ const TierRow = ({
         x={width - 6}
         y={rowH / 2}
         anchor={{ x: 1, y: 0.5 }}
-        style={{ fontFamily: FONT, fontSize: 12, fill: rewardColor }}
+        style={{ fontFamily: FONT_TITLE, fontSize: 12, fill: rewardColor }}
       />
     </pixiContainer>
   );
@@ -253,7 +253,7 @@ const QuestFamilyCard = ({
           x={32}
           y={12}
           anchor={{ x: 0, y: 0.5 }}
-          style={{ fontFamily: FONT, fontSize: 16, fill: 0xffffff }}
+          style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff }}
         />
         <pixiText
           text={`${family.currentTierIndex >= 0 ? family.currentTierIndex + 1 : family.totalTiers}/${family.totalTiers}`}
@@ -261,7 +261,7 @@ const QuestFamilyCard = ({
           y={12}
           anchor={{ x: 1, y: 0.5 }}
           style={{
-            fontFamily: 'Arial, sans-serif',
+            fontFamily: FONT_BODY,
             fontSize: 12,
             fill: allCompleted ? 0x22c55e : 0x64748b,
           }}
@@ -421,7 +421,7 @@ export const QuestsPage = ({
             x={contentWidth / 2}
             y={80}
             anchor={0.5}
-            style={{ fontFamily: FONT, fontSize: 16, fill: 0x64748b }}
+            style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0x64748b }}
           />
         ) : allFamilies.length === 0 ? (
           <pixiText
@@ -429,7 +429,7 @@ export const QuestsPage = ({
             x={contentWidth / 2}
             y={80}
             anchor={0.5}
-            style={{ fontFamily: FONT, fontSize: 16, fill: 0x64748b }}
+            style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0x64748b }}
           />
         ) : (
           <pixiContainer
