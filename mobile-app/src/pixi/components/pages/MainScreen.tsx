@@ -318,7 +318,7 @@ const TopBarButton = ({
 const HomeTopBar = ({
   sw, topBarH, isMobile, uiScale, cubeBalance,
   username, isConnected,
-  onQuestsClick, onTrophyClick, onSettingsClick, onProfileClick,
+  onQuestsClick, onTrophyClick, onSettingsClick, onProfileClick, onConnect,
 }: {
   sw: number; topBarH: number; isMobile: boolean; uiScale: number;
   cubeBalance: number;
@@ -328,6 +328,7 @@ const HomeTopBar = ({
   onTrophyClick: () => void;
   onSettingsClick: () => void;
   onProfileClick: () => void;
+  onConnect?: () => void;
 }) => {
   const btnSize = isMobile ? 34 : 40;
   const gap = Math.round(8 * uiScale);
@@ -397,7 +398,7 @@ const HomeTopBar = ({
         <pixiGraphics draw={drawControllerBtn}
           eventMode="static" cursor="pointer"
           onPointerDown={() => setCtrlPressed(true)}
-          onPointerUp={() => { setCtrlPressed(false); onProfileClick(); }}
+          onPointerUp={() => { setCtrlPressed(false); isConnected ? onProfileClick() : onConnect?.(); }}
           onPointerUpOutside={() => { setCtrlPressed(false); setCtrlHovered(false); }}
           onPointerOver={() => setCtrlHovered(true)}
           onPointerOut={() => { setCtrlHovered(false); setCtrlPressed(false); }}
@@ -419,7 +420,7 @@ const HomeTopBar = ({
 
 const HomePageContent = ({
   sw, sh, topBarH, isMobile, uiScale, cubeBalance,
-  games, isConnected, username, onProfileClick, onTrophyClick,
+  games, isConnected, username, onConnect, onProfileClick, onTrophyClick,
   navigate,
 }: {
   sw: number;
@@ -431,6 +432,7 @@ const HomePageContent = ({
   games: PlayerGame[];
   isConnected: boolean;
   username?: string;
+  onConnect?: () => void;
   onProfileClick?: () => void;
   onTrophyClick?: () => void;
   navigate: (page: PageId) => void;
@@ -498,6 +500,7 @@ const HomePageContent = ({
         onTrophyClick={onTrophyClick ?? (() => {})}
         onSettingsClick={() => navigate('settings')}
         onProfileClick={onProfileClick ?? (() => {})}
+        onConnect={onConnect}
       />
     </pixiContainer>
   );
@@ -571,7 +574,7 @@ const PageRenderer = (props: MainScreenProps & {
             sw={sw} sh={sh} topBarH={topBarH} isMobile={isMobile} uiScale={uiScale}
             cubeBalance={cubeBalance} games={games}
             isConnected={isConnected ?? false} username={username}
-            onProfileClick={onProfileClick} onTrophyClick={onTrophyClick}
+            onConnect={onConnect} onProfileClick={onProfileClick} onTrophyClick={onTrophyClick}
             navigate={navigate}
           />
         )}
