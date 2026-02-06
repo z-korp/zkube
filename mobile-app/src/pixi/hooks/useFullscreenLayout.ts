@@ -1,23 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 
 /**
- * Layout configuration for fullscreen PixiJS game
- * Polished mobile-first layout inspired by Tetris Combo
- *
- * Visual structure (top to bottom):
- * ┌───────────────────────────────┐
- * │     TOP BAR (40px)            │  Home / Cubes / Menu
- * ├───────────────────────────────┤
- * │     INFO AREA (~80px)         │  Level badge + Score/Moves pills
- * ├───────────────────────────────┤
- * │                               │
- * │     GAME GRID (maximized)     │  8×10 block grid
- * │                               │
- * ├───────────────────────────────┤
- * │     NEXT LINE (1 row)         │
- * ├───────────────────────────────┤
- * │     ACTION BAR (60px)         │  Bonus buttons + combo + surrender
- * └───────────────────────────────┘
+ * Layout for fullscreen PixiJS game:
+ * TOP BAR (36px) → INFO BAR (28px) → GRID (maximized) → NEXT LINE → ACTION BAR (56px)
  */
 export interface FullscreenLayout {
   // Viewport dimensions
@@ -33,33 +18,27 @@ export interface FullscreenLayout {
   topBarHeight: number;
   topBarY: number;
 
-  // Info area (level badge + score/moves pills)
   infoAreaY: number;
   infoAreaHeight: number;
 
-  // Level badge (centered, inside info area)
   levelBadgeX: number;
   levelBadgeY: number;
   levelBadgeWidth: number;
   levelBadgeHeight: number;
 
-  // Score pill (left, below level badge)
   scorePillX: number;
   scorePillY: number;
   scorePillWidth: number;
   scorePillHeight: number;
 
-  // Moves pill (right, below level badge)
   movesPillX: number;
   movesPillY: number;
   movesPillWidth: number;
   movesPillHeight: number;
 
-  // Legacy: Level display (for backward compat)
   levelDisplayHeight: number;
   levelDisplayY: number;
 
-  // Legacy: Mobile HUD (for backward compat)
   mobileHudHeight: number;
   mobileHudY: number;
   showMobileHud: boolean;
@@ -171,69 +150,56 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
     const padding = Math.round(10 * uiScale);
     const pillGap = Math.round(12 * uiScale);
 
-    // === FIXED HEIGHTS ===
-    const topBarHeight = 40;
-    const actionBarHeight = 60;
+    const topBarHeight = 36;
+    const actionBarHeight = 56;
 
-    // Info area: level badge row + score/moves pills row
-    const levelBadgeHeight = Math.round(42 * uiScale);
-    const pillHeight = Math.round(36 * uiScale);
-    const infoGapV = Math.round(6 * uiScale);
-    const infoAreaHeight = levelBadgeHeight + infoGapV + pillHeight + Math.round(4 * uiScale);
+    const infoAreaHeight = Math.round(30 * uiScale);
 
-    // === VERTICAL POSITIONING ===
     const topBarY = 0;
     const infoAreaY = topBarHeight;
 
-    // === CALCULATE GRID SIZE ===
-    const usedHeight = topBarHeight + infoAreaHeight + actionBarHeight + padding;
+    const nextLineGap = 4;
+    const usedHeight = topBarHeight + infoAreaHeight + actionBarHeight + padding + nextLineGap;
     const availableHeight = screenHeight - usedHeight;
 
     const horizontalPadding = padding * 2;
     const availableWidth = screenWidth - horizontalPadding;
 
-    const totalRows = gridRows + 1; // +1 for next line preview
+    const totalRows = gridRows + 1;
     const maxCellFromWidth = Math.floor(availableWidth / gridCols);
-    const maxCellFromHeight = Math.floor((availableHeight - 4) / totalRows);
+    const maxCellFromHeight = Math.floor(availableHeight / totalRows);
 
     let cellSize = Math.min(maxCellFromWidth, maxCellFromHeight);
     cellSize = Math.max(minCellSize, Math.min(maxCellSize, cellSize));
 
-    // Grid dimensions
     const gridWidth = cellSize * gridCols;
     const gridHeight = cellSize * gridRows;
     const nextLineHeight = cellSize;
 
-    // Center grid horizontally
     const gridX = Math.round((screenWidth - gridWidth) / 2);
+    const gridY = infoAreaY + infoAreaHeight + Math.round(2 * uiScale);
+    const nextLineY = gridY + gridHeight + nextLineGap;
 
-    // Grid starts after info area
-    const gridY = infoAreaY + infoAreaHeight;
-    const nextLineY = gridY + gridHeight + 4;
-
-    // Action bar at bottom
     const actionBarY = screenHeight - actionBarHeight;
 
-    // === INFO AREA POSITIONING ===
     const levelBadgeWidth = Math.round(Math.min(200, gridWidth * 0.55));
     const levelBadgeX = Math.round((screenWidth - levelBadgeWidth) / 2);
-    const levelBadgeY = infoAreaY + Math.round(2 * uiScale);
+    const levelBadgeY = infoAreaY;
+    const levelBadgeHeight = infoAreaHeight;
 
-    // Score/Moves pills: below level badge, aligned with grid edges
     const pillWidth = Math.round((gridWidth - pillGap) / 2);
-    const pillY = levelBadgeY + levelBadgeHeight + infoGapV;
+    const pillHeight = infoAreaHeight;
+    const pillY = infoAreaY;
     const scorePillX = gridX;
     const movesPillX = gridX + pillWidth + pillGap;
 
-    // === SIDE PANELS (desktop only) ===
     const showSidePanels = !isMobile && screenWidth >= 900;
     const sidePanelWidth = showSidePanels ? Math.round(100 * uiScale) : 0;
     const leftPanelX = gridX - sidePanelWidth - padding;
     const rightPanelX = gridX + gridWidth + padding;
     const sidePanelY = gridY;
-    const sidePanelHeight = gridHeight + nextLineHeight + 4;
+    const sidePanelHeight = gridHeight + nextLineHeight + nextLineGap;
 
-    // === LEGACY COMPAT ===
     const levelDisplayHeight = 0;
     const levelDisplayY = infoAreaY;
     const showMobileHud = false;
@@ -254,6 +220,7 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
       levelBadgeY,
       levelBadgeWidth,
       levelBadgeHeight,
+      scorePillX,
       scorePillX,
       scorePillY: pillY,
       scorePillWidth: pillWidth,

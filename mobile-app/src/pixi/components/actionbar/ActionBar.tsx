@@ -41,9 +41,9 @@ export const ActionBar = ({
 }: ActionBarProps) => {
   const { colors, isProcedural } = usePixiTheme();
 
-  const padding = 12;
-  const buttonSize = Math.min(50, height - 10);
-  const buttonGap = 10;
+  const padding = 10;
+  const buttonSize = Math.min(46, height - 10);
+  const buttonGap = 8;
   const bonusCount = bonusSlots.length;
 
   const bonusSectionWidth = bonusCount * buttonSize + (bonusCount - 1) * buttonGap;
@@ -61,10 +61,10 @@ export const ActionBar = ({
   const drawBackground = useCallback((g: PixiGraphics) => {
     g.clear();
     g.rect(0, 0, width, height);
-    g.fill({ color: isProcedural ? 0x0a0a0f : 0x0f1729, alpha: 0.88 });
+    g.fill({ color: isProcedural ? 0x0a0a0f : 0x0f172a, alpha: 0.85 });
     g.moveTo(0, 0.5);
     g.lineTo(width, 0.5);
-    g.stroke({ color: isProcedural ? colors.accent : 0x334155, width: 1, alpha: 0.25 });
+    g.stroke({ color: isProcedural ? colors.accent : 0x334155, width: 0.5, alpha: 0.3 });
   }, [width, height, isProcedural, colors.accent]);
 
   return (

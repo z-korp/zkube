@@ -34,20 +34,19 @@ export const GridBackground = ({
       g.fill({ color: colors.accent, alpha: 0.03 });
     } else {
       g.roundRect(0, 0, width, height, radius);
-      g.fill({ color: 0x0d1a2a, alpha: 0.82 });
+      g.fill({ color: 0x0a1628, alpha: 0.92 });
 
       for (let x = 0; x < gridWidth; x++) {
         for (let y = 0; y < gridHeight; y++) {
           if ((x + y) % 2 === 0) {
             g.rect(x * gridSize, y * gridSize, gridSize, gridSize);
-            g.fill({ color: 0x0f2035, alpha: 0.25 });
+            g.fill({ color: 0x0e1f38, alpha: 0.35 });
           }
         }
       }
     }
 
-    // Grid lines
-    g.setStrokeStyle({ width: 1, color: isProcedural ? 0x2a2a3a : 0x1c3352, alpha: 0.3 });
+    g.setStrokeStyle({ width: 0.5, color: isProcedural ? 0x2a2a3a : 0x1a2d4a, alpha: 0.2 });
     for (let x = 1; x < gridWidth; x++) {
       g.moveTo(x * gridSize, 0);
       g.lineTo(x * gridSize, height);
@@ -58,15 +57,9 @@ export const GridBackground = ({
     }
     g.stroke();
 
-    // Border
     g.roundRect(0, 0, width, height, radius);
-    g.stroke({ color: isProcedural ? colors.accent : 0x3b82f6, width: 2, alpha: 0.45 });
+    g.stroke({ color: isProcedural ? colors.accent : 0x1e3a5f, width: 1.5, alpha: 0.4 });
 
-    // Inner highlight
-    g.roundRect(1.5, 1.5, width - 3, height - 3, radius - 1);
-    g.stroke({ color: 0xffffff, width: 1, alpha: 0.06 });
-
-    // Neon extras
     if (isProcedural) {
       g.circle(0, 0, 3);
       g.circle(width, 0, 3);

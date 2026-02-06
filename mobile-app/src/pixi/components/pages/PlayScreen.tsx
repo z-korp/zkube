@@ -1,7 +1,7 @@
 import { Application } from '@pixi/react';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Assets, Texture, Graphics as PixiGraphics, TextStyle } from 'pixi.js';
-import { PixiThemeProvider, usePixiTheme } from '../../themes/ThemeContext';
+import { PixiThemeProvider } from '../../themes/ThemeContext';
 import { useFullscreenLayout } from '../../hooks/useFullscreenLayout';
 import { GameGrid } from '../GameGrid';
 import { GridBackground } from '../GridBackground';
@@ -10,14 +10,13 @@ import { ActionBar } from '../actionbar';
 import { ParticleSystem } from '../effects/ParticleSystem';
 import { ScorePopup } from '../effects/ScorePopup';
 import { ScreenShakeContainer, useScreenShake } from '../effects/ScreenShake';
-import { MenuModal, GameOverModal, VictoryModal, LevelCompleteModal } from '../modals';
+import { GameOverModal, VictoryModal, LevelCompleteModal } from '../modals';
 import { CubeBalance } from '../topbar/CubeBalance';
 import { ScorePanel } from '../game/ScorePanel';
 import { MovesPanel } from '../game/MovesPanel';
 import { BonusType } from '@/dojo/game/types/bonus';
 import { ConstraintType } from '@/dojo/game/types/constraint';
 import { useAnimatedValue, usePulse, easings } from '../../hooks/useAnimatedValue';
-import { drawTargetIcon, drawMovesIcon, IconColors } from '../ui/Icons';
 import type { Block } from '@/types/types';
 import type { ConstraintData } from '../hud';
 
@@ -188,10 +187,10 @@ const TopBarButton = ({
 
   const draw = useCallback((g: PixiGraphics) => {
     g.clear();
-    g.roundRect(0, 0, size, size, 10);
-    g.fill({ color: hovered ? 0x334155 : 0x1e293b, alpha: 0.85 });
-    g.roundRect(0, 0, size, size, 10);
-    g.stroke({ width: 1.5, color: 0x475569, alpha: 0.4 });
+    g.roundRect(0, 0, size, size, 8);
+    g.fill({ color: hovered ? 0x334155 : 0x1e293b, alpha: 0.7 });
+    g.roundRect(0, 0, size, size, 8);
+    g.stroke({ width: 1, color: 0x475569, alpha: 0.3 });
   }, [size, hovered]);
 
   return (
@@ -205,51 +204,94 @@ const TopBarButton = ({
         onPointerOut={() => { setHovered(false); setPressed(false); }}
       />
       <pixiText text={icon} x={size / 2} y={size / 2} anchor={0.5}
-        style={{ fontSize: size * 0.5 }}
+        style={{ fontSize: size * 0.45 }}
       />
     </pixiContainer>
   );
 };
 
-// Slim translucent top bar: [Home]  🧊 Balance  [Menu]
 const GameTopBar = ({
-  sw, topBarH, uiScale, cubeBalance,
-  onMenuClick, onHomeClick,
+  sw, topBarH, uiScale, cubeBalance, level, combo, maxCombo, totalScore,
+  onHomeClick,
 }: {
   sw: number; topBarH: number; uiScale: number;
-  cubeBalance: number;
-  onMenuClick: () => void;
+  cubeBalance: number; level: number; combo: number; maxCombo: number; totalScore: number;
   onHomeClick: () => void;
 }) => {
-  const btnSize = 32;
-  const pad = Math.round(12 * uiScale);
+  const btnSize = 30;
+  const pad = Math.round(10 * uiScale);
   const centerY = (topBarH - btnSize) / 2;
 
   const drawBg = useCallback((g: PixiGraphics) => {
     g.clear();
     g.rect(0, 0, sw, topBarH);
-    g.fill({ color: 0x0f172a, alpha: 0.7 });
+    g.fill({ color: 0x0f172a, alpha: 0.75 });
+    g.moveTo(0, topBarH - 0.5);
+    g.lineTo(sw, topBarH - 0.5);
+    g.stroke({ color: 0x334155, width: 0.5, alpha: 0.3 });
   }, [sw, topBarH]);
+
+  const levelStyle = useMemo(() => new TextStyle({
+    fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+    fontSize: Math.round(14 * uiScale),
+    fontWeight: 'bold',
+    fill: 0xffffff,
+  }), [uiScale]);
+
+  const statLabelStyle = useMemo(() => new TextStyle({
+    fontFamily: 'Arial, sans-serif',
+    fontSize: Math.round(10 * uiScale),
+    fill: 0x64748b,
+  }), [uiScale]);
+
+  const statValueStyle = useMemo(() => new TextStyle({
+    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontSize: Math.round(12 * uiScale),
+    fontWeight: 'bold',
+    fill: 0xf97316,
+  }), [uiScale]);
+
+  const scoreValueStyle = useMemo(() => new TextStyle({
+    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontSize: Math.round(12 * uiScale),
+    fontWeight: 'bold',
+    fill: 0x60a5fa,
+  }), [uiScale]);
+
+  const afterBackX = pad + btnSize + Math.round(8 * uiScale);
 
   return (
     <pixiContainer y={0}>
       <pixiGraphics draw={drawBg} eventMode="static"
         onPointerDown={(e: any) => e.stopPropagation()} />
-      <TopBarButton x={pad} y={centerY} size={btnSize} icon="🏠" onClick={onHomeClick} />
-      <CubeBalance balance={cubeBalance} x={sw / 2 - 50} y={centerY} height={btnSize} uiScale={uiScale} />
-      <TopBarButton x={sw - pad - btnSize} y={centerY} size={btnSize} icon="☰" onClick={onMenuClick} />
+
+      <TopBarButton x={pad} y={centerY} size={btnSize} icon="←" onClick={onHomeClick} />
+      <pixiText text={`Level ${level}`} x={afterBackX} y={topBarH / 2} anchor={{ x: 0, y: 0.5 }} style={levelStyle} />
+
+      <CubeBalance balance={cubeBalance} x={sw - pad - Math.round(90 * uiScale)} y={centerY} height={btnSize} uiScale={uiScale} />
+
+      {totalScore > 0 && (
+        <pixiContainer x={sw - pad - Math.round(90 * uiScale) - Math.round(70 * uiScale)} y={centerY}>
+          <pixiText text="Score" x={0} y={btnSize * 0.25} anchor={{ x: 0, y: 0.5 }} style={statLabelStyle} />
+          <pixiText text={String(totalScore)} x={Math.round(35 * uiScale)} y={btnSize * 0.25} anchor={{ x: 0, y: 0.5 }} style={scoreValueStyle} />
+        </pixiContainer>
+      )}
+
+      {maxCombo > 0 && (
+        <pixiContainer x={sw - pad - Math.round(90 * uiScale) - Math.round(130 * uiScale)} y={centerY}>
+          <pixiText text="🔥" x={0} y={btnSize * 0.28} anchor={{ x: 0, y: 0.5 }} style={{ fontSize: Math.round(12 * uiScale) }} />
+          <pixiText text={String(maxCombo)} x={Math.round(16 * uiScale)} y={btnSize * 0.25} anchor={{ x: 0, y: 0.5 }} style={statValueStyle} />
+        </pixiContainer>
+      )}
     </pixiContainer>
   );
 };
 
-// Unified game info section: Level badge + Score/Moves pills
 const GameInfoBar = ({
-  level, stars, levelScore, targetScore, moves, maxMoves,
+  levelScore, targetScore, moves, maxMoves,
   constraint1, constraint2, combo, isInDanger,
   layout,
 }: {
-  level: number;
-  stars: number;
   levelScore: number;
   targetScore: number;
   moves: number;
@@ -262,231 +304,232 @@ const GameInfoBar = ({
 }) => {
   const { uiScale } = layout;
   const animatedScore = useAnimatedValue(levelScore, { duration: 300, easing: easings.easeOut });
-  const dangerPulse = usePulse(isInDanger, { minScale: 1.0, maxScale: 1.08, duration: 400 });
+  const dangerPulse = usePulse(isInDanger, { minScale: 1.0, maxScale: 1.06, duration: 400 });
 
   const scoreProgress = Math.min(1, levelScore / Math.max(targetScore, 1));
-
   const hasC1 = constraint1 && constraint1.type !== ConstraintType.None;
   const hasC2 = constraint2 && constraint2.type !== ConstraintType.None;
+  const hasConstraints = hasC1 || hasC2;
 
-  const getConstraintLabel = (c: ConstraintData) => {
-    if (c.type === ConstraintType.ClearLines) return `${c.progress}/${c.count}`;
-    if (c.type === ConstraintType.NoBonusUsed) return c.bonusUsed ? '✗' : '✓';
-    return '';
-  };
+  const barX = layout.gridX;
+  const barY = layout.infoAreaY + Math.round(2 * uiScale);
+  const barW = layout.gridWidth;
+  const barH = layout.infoAreaHeight - Math.round(4 * uiScale);
 
-  // Level badge
-  const drawLevelBadge = useCallback((g: PixiGraphics) => {
+  const scoreSectionW = hasConstraints ? barW * 0.42 : barW * 0.6;
+  const movesSectionW = barW * 0.25;
+  const constraintSectionW = hasConstraints ? barW - scoreSectionW - movesSectionW : 0;
+  const constraintSectionX = scoreSectionW;
+  const movesSectionX = barW - movesSectionW;
+  const sectionCenterY = barH / 2;
+
+  const drawBar = useCallback((g: PixiGraphics) => {
     g.clear();
-    const w = layout.levelBadgeWidth;
-    const h = layout.levelBadgeHeight;
-    g.roundRect(0, 0, w, h, 10);
-    g.fill({ color: 0x1e293b, alpha: 0.95 });
-    g.roundRect(0, 0, w, h, 10);
-    g.stroke({ color: 0x3b82f6, width: 2, alpha: 0.7 });
-    g.roundRect(2, 2, w - 4, h - 4, 8);
-    g.stroke({ color: 0xffffff, width: 1, alpha: 0.08 });
-  }, [layout.levelBadgeWidth, layout.levelBadgeHeight]);
+    g.roundRect(0, 0, barW, barH, 6);
+    g.fill({ color: 0x0f172a, alpha: 0.85 });
+    g.roundRect(0, 0, barW, barH, 6);
+    g.stroke({ color: 0x1e293b, width: 1, alpha: 0.6 });
 
-  // Stars inside level badge
-  const drawStars = useCallback((g: PixiGraphics) => {
-    g.clear();
-    const starSize = Math.round(11 * uiScale);
-    const gap = Math.round(3 * uiScale);
-    for (let i = 0; i < 3; i++) {
-      const cx = i * (starSize + gap) + starSize / 2;
-      const cy = starSize / 2;
-      const filled = i < stars;
-      const outerR = starSize / 2;
-      const innerR = outerR * 0.4;
-      const path: number[] = [];
-      for (let j = 0; j < 10; j++) {
-        const r = j % 2 === 0 ? outerR : innerR;
-        const angle = (j * Math.PI) / 5 - Math.PI / 2;
-        path.push(cx + r * Math.cos(angle));
-        path.push(cy + r * Math.sin(angle));
-      }
-      g.poly(path);
-      g.fill({ color: filled ? 0xfbbf24 : 0x475569, alpha: filled ? 1 : 0.3 });
-      if (filled) {
-        g.poly(path);
-        g.stroke({ color: 0xfcd34d, width: 1, alpha: 0.4 });
-      }
+    const dividerPad = 6;
+    if (hasConstraints) {
+      g.moveTo(scoreSectionW, dividerPad);
+      g.lineTo(scoreSectionW, barH - dividerPad);
+      g.stroke({ color: 0x334155, width: 1, alpha: 0.4 });
     }
-  }, [stars, uiScale]);
+    g.moveTo(movesSectionX, dividerPad);
+    g.lineTo(movesSectionX, barH - dividerPad);
+    g.stroke({ color: 0x334155, width: 1, alpha: 0.4 });
 
-  // Score pill background
-  const drawScorePill = useCallback((g: PixiGraphics) => {
-    g.clear();
-    const w = layout.scorePillWidth;
-    const h = layout.scorePillHeight;
-    g.roundRect(0, 0, w, h, 8);
-    g.fill({ color: 0x1e293b, alpha: 0.9 });
-    g.roundRect(0, 0, w, h, 8);
-    g.stroke({ color: 0x334155, width: 1.5, alpha: 0.5 });
-    // Progress bar
-    const barH = 3;
-    const barY = h - 6;
-    const barX = 8;
-    const barW = w - 16;
-    g.roundRect(barX, barY, barW, barH, 1.5);
-    g.fill({ color: 0x374151, alpha: 0.6 });
-    g.roundRect(barX, barY, barW * scoreProgress, barH, 1.5);
-    g.fill({ color: scoreProgress >= 1 ? 0x22c55e : 0x3b82f6 });
-  }, [layout.scorePillWidth, layout.scorePillHeight, scoreProgress]);
+    const progressBarH = 3;
+    const progressBarY = barH - 7;
+    const progressBarX = 8;
+    const progressBarW = scoreSectionW - 16;
+    g.roundRect(progressBarX, progressBarY, progressBarW, progressBarH, 1.5);
+    g.fill({ color: 0x1e293b, alpha: 0.8 });
+    if (scoreProgress > 0) {
+      g.roundRect(progressBarX, progressBarY, progressBarW * scoreProgress, progressBarH, 1.5);
+      g.fill({ color: scoreProgress >= 1 ? 0x22c55e : 0x3b82f6 });
+    }
+  }, [barW, barH, hasConstraints, scoreSectionW, movesSectionX, scoreProgress]);
 
-  // Moves pill background
-  const drawMovesPill = useCallback((g: PixiGraphics) => {
-    g.clear();
-    const w = layout.movesPillWidth;
-    const h = layout.movesPillHeight;
-    const bgColor = isInDanger ? 0x3b1818 : 0x1e293b;
-    const borderColor = isInDanger ? 0xef4444 : 0x334155;
-    g.roundRect(0, 0, w, h, 8);
-    g.fill({ color: bgColor, alpha: 0.9 });
-    g.roundRect(0, 0, w, h, 8);
-    g.stroke({ color: borderColor, width: 1.5, alpha: isInDanger ? 0.7 : 0.5 });
-  }, [layout.movesPillWidth, layout.movesPillHeight, isInDanger]);
-
-  // Icon helpers
-  const drawScoreIcon = useCallback((g: PixiGraphics) => {
-    drawTargetIcon(g, Math.round(14 * uiScale), IconColors.primary);
-  }, [uiScale]);
-
-  const drawMovesIconCb = useCallback((g: PixiGraphics) => {
-    drawMovesIcon(g, Math.round(14 * uiScale), isInDanger ? 0xfca5a5 : IconColors.primary);
-  }, [uiScale, isInDanger]);
-
-  const levelLabelStyle = useMemo(() => new TextStyle({
-    fontFamily: FONT,
+  const scoreLabelStyle = useMemo(() => new TextStyle({
+    fontFamily: 'Arial, sans-serif',
     fontSize: Math.round(9 * uiScale),
-    fill: 0x94a3b8,
-    letterSpacing: 2,
+    fill: 0x64748b,
   }), [uiScale]);
 
-  const levelNumStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
-    fontSize: Math.round(20 * uiScale),
-    fontWeight: 'bold',
-    fill: 0xffffff,
-  }), [uiScale]);
-
-  const valueStyle = useMemo(() => new TextStyle({
+  const scoreValueStyle = useMemo(() => new TextStyle({
     fontFamily: 'Arial, Helvetica, sans-serif',
-    fontSize: Math.round(15 * uiScale),
+    fontSize: Math.round(11 * uiScale),
     fontWeight: 'bold',
-    fill: 0xffffff,
+    fill: 0x93c5fd,
+  }), [uiScale]);
+
+  const scoreTargetStyle = useMemo(() => new TextStyle({
+    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontSize: Math.round(11 * uiScale),
+    fontWeight: 'bold',
+    fill: 0x93c5fd,
   }), [uiScale]);
 
   const movesValueStyle = useMemo(() => new TextStyle({
-    fontFamily: 'Arial, Helvetica, sans-serif',
-    fontSize: Math.round(15 * uiScale),
+    fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+    fontSize: Math.round(14 * uiScale),
     fontWeight: 'bold',
-    fill: isInDanger ? 0xfca5a5 : 0xffffff,
+    fill: isInDanger ? 0xef4444 : 0xffffff,
   }), [uiScale, isInDanger]);
 
-  const labelStyle = useMemo(() => new TextStyle({
+  const movesLabelStyle = useMemo(() => new TextStyle({
     fontFamily: 'Arial, sans-serif',
     fontSize: Math.round(9 * uiScale),
-    fill: 0x94a3b8,
-    letterSpacing: 1,
-  }), [uiScale]);
+    fill: isInDanger ? 0xfca5a5 : 0x64748b,
+  }), [uiScale, isInDanger]);
 
-  const constraintStyle = useMemo(() => new TextStyle({
+  const constraintLabelStyle = useMemo(() => new TextStyle({
     fontFamily: 'Arial, sans-serif',
-    fontSize: Math.round(9 * uiScale),
+    fontSize: Math.round(10 * uiScale),
     fontWeight: 'bold',
-    fill: 0xd1d5db,
+    fill: 0xe2e8f0,
   }), [uiScale]);
 
-  // Constraint section inside level badge
-  const starAreaWidth = 3 * Math.round(11 * uiScale) + 2 * Math.round(3 * uiScale);
-  const constraintText = hasC1 ? getConstraintLabel(constraint1!) : '';
-  const constraintSep = (hasC1 || hasC2) ? '  ·  ' : '';
-  const constraint2Text = hasC2 ? getConstraintLabel(constraint2!) : '';
-  const badgeCenterX = layout.levelBadgeWidth / 2;
-  const badgeBottomRow = layout.levelBadgeHeight - Math.round(10 * uiScale);
+  const drawConstraintDots = useCallback((g: PixiGraphics, c: ConstraintData, offsetX: number, centerY: number) => {
+    if (c.type !== ConstraintType.ClearLines || c.count === 0) return;
+    const dotR = Math.round(3.5 * uiScale);
+    const dotGap = Math.round(4 * uiScale);
+    const totalW = c.count * dotR * 2 + (c.count - 1) * dotGap;
+    const startX = offsetX - totalW / 2;
+    const satisfied = c.progress >= c.count;
+
+    for (let i = 0; i < c.count; i++) {
+      const cx = startX + i * (dotR * 2 + dotGap) + dotR;
+      const filled = i < c.progress;
+      g.circle(cx, centerY, dotR);
+      if (filled) {
+        g.fill({ color: satisfied ? 0x22c55e : 0xf97316, alpha: 1 });
+      } else {
+        g.fill({ color: 0x475569, alpha: 0.5 });
+      }
+    }
+  }, [uiScale]);
+
+  const drawConstraints = useCallback((g: PixiGraphics) => {
+    g.clear();
+    if (!hasConstraints) return;
+
+    const midX = constraintSectionW / 2;
+    const hasBoth = hasC1 && hasC2;
+    const rowH = hasBoth ? barH / 2 : barH;
+
+    if (hasC1 && constraint1) {
+      const cy = hasBoth ? rowH / 2 : sectionCenterY;
+      if (constraint1.type === ConstraintType.ClearLines) {
+        drawConstraintDots(g, constraint1, midX, cy + Math.round(4 * uiScale));
+      } else if (constraint1.type === ConstraintType.NoBonusUsed) {
+        const ok = !constraint1.bonusUsed;
+        g.roundRect(midX - 30, cy - 7, 60, 14, 3);
+        g.fill({ color: ok ? 0x14532d : 0x7f1d1d, alpha: 0.8 });
+        g.roundRect(midX - 30, cy - 7, 60, 14, 3);
+        g.stroke({ color: ok ? 0x22c55e : 0xef4444, width: 1, alpha: 0.6 });
+      }
+    }
+
+    if (hasC2 && constraint2) {
+      const cy = hasBoth ? rowH + rowH / 2 : sectionCenterY;
+      if (constraint2.type === ConstraintType.ClearLines) {
+        drawConstraintDots(g, constraint2, midX, cy + Math.round(4 * uiScale));
+      } else if (constraint2.type === ConstraintType.NoBonusUsed) {
+        const ok = !constraint2.bonusUsed;
+        g.roundRect(midX - 30, cy - 7, 60, 14, 3);
+        g.fill({ color: ok ? 0x14532d : 0x7f1d1d, alpha: 0.8 });
+        g.roundRect(midX - 30, cy - 7, 60, 14, 3);
+        g.stroke({ color: ok ? 0x22c55e : 0xef4444, width: 1, alpha: 0.6 });
+      }
+    }
+  }, [hasConstraints, hasC1, hasC2, constraint1, constraint2, constraintSectionW, barH, sectionCenterY, uiScale, drawConstraintDots]);
+
+  const getConstraintLabel = (c: ConstraintData): string => {
+    if (c.type === ConstraintType.ClearLines) return `${c.value}+`;
+    if (c.type === ConstraintType.NoBonusUsed) return c.bonusUsed ? 'No Bonus ✗' : 'No Bonus ✓';
+    return '';
+  };
+
+  const getConstraintColor = (c: ConstraintData): number => {
+    if (c.type === ConstraintType.NoBonusUsed) return c.bonusUsed ? 0xfca5a5 : 0x86efac;
+    if (c.type === ConstraintType.ClearLines) return c.progress >= c.count ? 0x86efac : 0xfbbf24;
+    return 0x94a3b8;
+  };
+
+  const c1Label = hasC1 ? getConstraintLabel(constraint1!) : '';
+  const c2Label = hasC2 ? getConstraintLabel(constraint2!) : '';
+  const c1Color = hasC1 ? getConstraintColor(constraint1!) : 0x94a3b8;
+  const c2Color = hasC2 ? getConstraintColor(constraint2!) : 0x94a3b8;
+  const hasBothConstraints = hasC1 && hasC2;
 
   return (
-    <pixiContainer>
-      {/* Level badge */}
-      <pixiContainer x={layout.levelBadgeX} y={layout.levelBadgeY}>
-        <pixiGraphics draw={drawLevelBadge} />
-        <pixiText text="LEVEL" x={badgeCenterX} y={Math.round(6 * uiScale)} anchor={{ x: 0.5, y: 0 }} style={levelLabelStyle} />
-        <pixiText text={String(level)} x={badgeCenterX} y={Math.round(16 * uiScale)} anchor={{ x: 0.5, y: 0 }} style={levelNumStyle} />
-        {/* Stars + constraint in bottom row */}
-        <pixiContainer x={badgeCenterX - starAreaWidth / 2 - (constraintText ? 20 : 0)} y={badgeBottomRow}>
-          <pixiGraphics draw={drawStars} />
+    <pixiContainer x={barX} y={barY}>
+      <pixiGraphics draw={drawBar} />
+
+      <pixiText text="Score" x={8} y={sectionCenterY - Math.round(4 * uiScale)} anchor={{ x: 0, y: 0.5 }} style={scoreLabelStyle} />
+      <pixiText text={String(Math.round(animatedScore))} x={Math.round(42 * uiScale)} y={sectionCenterY - Math.round(4 * uiScale)} anchor={{ x: 0, y: 0.5 }} style={scoreValueStyle} />
+      <pixiText text={String(targetScore)} x={scoreSectionW - 8} y={sectionCenterY - Math.round(4 * uiScale)} anchor={{ x: 1, y: 0.5 }} style={scoreTargetStyle} />
+
+      {hasConstraints && (
+        <pixiContainer x={constraintSectionX}>
+          <pixiGraphics draw={drawConstraints} />
+          {hasC1 && (
+            <pixiText
+              text={c1Label}
+              x={constraintSectionW / 2}
+              y={hasBothConstraints ? barH * 0.25 - Math.round(4 * uiScale) : sectionCenterY - Math.round(4 * uiScale)}
+              anchor={0.5}
+              style={new TextStyle({
+                fontFamily: 'Arial, sans-serif',
+                fontSize: Math.round(10 * uiScale),
+                fontWeight: 'bold',
+                fill: c1Color,
+              })}
+            />
+          )}
+          {hasC2 && (
+            <pixiText
+              text={c2Label}
+              x={constraintSectionW / 2}
+              y={hasBothConstraints ? barH * 0.75 - Math.round(4 * uiScale) : sectionCenterY - Math.round(4 * uiScale)}
+              anchor={0.5}
+              style={new TextStyle({
+                fontFamily: 'Arial, sans-serif',
+                fontSize: Math.round(10 * uiScale),
+                fontWeight: 'bold',
+                fill: c2Color,
+              })}
+            />
+          )}
         </pixiContainer>
-        {(hasC1 || hasC2) && (
-          <pixiText
-            text={`${constraintSep}${constraintText}${constraint2Text ? '  ' + constraint2Text : ''}`}
-            x={badgeCenterX + starAreaWidth / 2 - (constraintText ? 10 : 0)}
-            y={badgeBottomRow + Math.round(5 * uiScale)}
-            anchor={{ x: 0.5, y: 0.5 }}
-            style={constraintStyle}
-          />
-        )}
-      </pixiContainer>
+      )}
 
-      {/* Score pill */}
-      <pixiContainer x={layout.scorePillX} y={layout.scorePillY}>
-        <pixiGraphics draw={drawScorePill} />
-        <pixiGraphics x={12} y={layout.scorePillHeight / 2 - 3} draw={drawScoreIcon} />
-        <pixiText
-          text={`${Math.round(animatedScore)}/${targetScore}`}
-          x={Math.round(28 * uiScale)}
-          y={layout.scorePillHeight / 2 - 3}
-          anchor={{ x: 0, y: 0.5 }}
-          style={valueStyle}
-        />
-        <pixiText
-          text="SCORE"
-          x={layout.scorePillWidth / 2}
-          y={layout.scorePillHeight - Math.round(8 * uiScale)}
-          anchor={{ x: 0.5, y: 1 }}
-          style={labelStyle}
-        />
-      </pixiContainer>
-
-      {/* Moves pill */}
       <pixiContainer
-        x={layout.movesPillX + layout.movesPillWidth / 2}
-        y={layout.movesPillY + layout.movesPillHeight / 2}
+        x={movesSectionX + movesSectionW / 2}
+        y={sectionCenterY}
         scale={isInDanger ? dangerPulse : 1}
-        pivot={{ x: layout.movesPillWidth / 2, y: layout.movesPillHeight / 2 }}
       >
-        <pixiGraphics draw={drawMovesPill} />
-        <pixiGraphics x={12} y={layout.movesPillHeight / 2 - 3} draw={drawMovesIconCb} />
-        <pixiText
-          text={String(moves)}
-          x={Math.round(28 * uiScale)}
-          y={layout.movesPillHeight / 2 - 3}
-          anchor={{ x: 0, y: 0.5 }}
-          style={movesValueStyle}
-        />
-        <pixiText
-          text="MOVES"
-          x={layout.movesPillWidth / 2}
-          y={layout.movesPillHeight - Math.round(8 * uiScale)}
-          anchor={{ x: 0.5, y: 1 }}
-          style={labelStyle}
-        />
-        {combo > 0 && (
-          <pixiText
-            text={`${combo}x`}
-            x={layout.movesPillWidth - 10}
-            y={6}
-            anchor={{ x: 1, y: 0 }}
-            style={new TextStyle({
-              fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
-              fontSize: Math.round(11 * uiScale),
-              fontWeight: 'bold',
-              fill: combo >= 5 ? 0xffd700 : combo >= 3 ? 0xf97316 : 0xfbbf24,
-            })}
-          />
-        )}
+        <pixiText text={String(moves)} x={0} y={-Math.round(2 * uiScale)} anchor={0.5} style={movesValueStyle} />
+        <pixiText text="moves" x={0} y={Math.round(10 * uiScale)} anchor={0.5} style={movesLabelStyle} />
       </pixiContainer>
+
+      {combo > 0 && (
+        <pixiText
+          text={`${combo}x`}
+          x={movesSectionX - Math.round(6 * uiScale)}
+          y={sectionCenterY}
+          anchor={0.5}
+          style={new TextStyle({
+            fontFamily: 'Arial Black, Arial Bold, Arial, sans-serif',
+            fontSize: Math.round(12 * uiScale),
+            fontWeight: 'bold',
+            fill: combo >= 5 ? 0xffd700 : combo >= 3 ? 0xf97316 : 0xfbbf24,
+          })}
+        />
+      )}
     </pixiContainer>
   );
 };
@@ -527,7 +570,7 @@ const PlayScreenInner = (props: PlayScreenProps) => {
   const { screenWidth: sw, screenHeight: sh, uiScale } = layout;
   const { offset, lineClear } = useScreenShake();
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSurrendering, setIsSurrendering] = useState(false);
 
   const {
     blocks, nextLine, nextLineConsumed,
@@ -547,16 +590,16 @@ const PlayScreenInner = (props: PlayScreenProps) => {
     [bonusSlots]
   );
 
-  const handleMenuClick = useCallback(() => setIsMenuOpen(true), []);
-  const handleMenuClose = useCallback(() => setIsMenuOpen(false), []);
   const handleSurrender = useCallback(async () => {
-    if (onSurrender) await onSurrender();
-    setIsMenuOpen(false);
-  }, [onSurrender]);
+    if (onSurrender && !isSurrendering) {
+      setIsSurrendering(true);
+      try { await onSurrender(); } finally { setIsSurrendering(false); }
+    }
+  }, [onSurrender, isSurrendering]);
 
   const triggerExplosion = useCallback(() => lineClear(), [lineClear]);
 
-  const isInteractionBlocked = isTxProcessing || isMenuOpen || isGameOver || isVictory || isLevelComplete;
+  const isInteractionBlocked = isTxProcessing || isSurrendering || isGameOver || isVictory || isLevelComplete;
 
   if (isLoading || blocks.length === 0) {
     return <LoadingScreen sw={sw} sh={sh} />;
@@ -569,12 +612,12 @@ const PlayScreenInner = (props: PlayScreenProps) => {
 
       <GameTopBar
         sw={sw} topBarH={layout.topBarHeight} uiScale={uiScale}
-        cubeBalance={cubeBalance}
-        onMenuClick={handleMenuClick} onHomeClick={onGoHome}
+        cubeBalance={cubeBalance} level={level}
+        combo={combo} maxCombo={maxCombo} totalScore={totalScore}
+        onHomeClick={onGoHome}
       />
 
       <GameInfoBar
-        level={level} stars={stars}
         levelScore={levelScore} targetScore={targetScore}
         moves={moves} maxMoves={maxMoves}
         constraint1={constraint1} constraint2={constraint2}
@@ -582,7 +625,6 @@ const PlayScreenInner = (props: PlayScreenProps) => {
         layout={layout}
       />
 
-      {/* Desktop side panels */}
       {layout.showSidePanels && (
         <>
           <ScorePanel
@@ -633,7 +675,7 @@ const PlayScreenInner = (props: PlayScreenProps) => {
         combo={combo} maxCombo={maxCombo} stars={stars}
         width={sw} height={layout.actionBarHeight} y={layout.actionBarY}
         isDisabled={isInteractionBlocked}
-        onSurrender={handleMenuClick} showSurrender={!!onSurrender}
+        onSurrender={handleSurrender} showSurrender={!!onSurrender}
       />
 
       <pixiContainer x={layout.gridX} y={layout.gridY}>
@@ -658,9 +700,6 @@ const PlayScreenInner = (props: PlayScreenProps) => {
         </pixiContainer>
       )}
 
-      <MenuModal isOpen={isMenuOpen} onClose={handleMenuClose} onSurrender={handleSurrender}
-        screenWidth={sw} screenHeight={sh} currentLevel={level} cubesEarned={totalCubes} />
-
       <GameOverModal isOpen={isGameOver && !isVictory} onClose={onGoHome}
         onPlayAgain={onPlayAgain} onGoHome={onGoHome}
         screenWidth={sw} screenHeight={sh}
@@ -680,7 +719,7 @@ const PlayScreenInner = (props: PlayScreenProps) => {
         <pixiGraphics draw={(g) => {
           g.clear();
           g.rect(0, 0, sw, sh);
-          g.stroke({ color: 0xef4444, width: 6, alpha: 0.35 });
+          g.stroke({ color: 0xef4444, width: 4, alpha: 0.25 });
         }} />
       )}
     </pixiContainer>

@@ -198,16 +198,27 @@ export const MyGamesPage = ({
   const totalHeight = ongoingHeight + (ongoingHeight > 0 && finishedHeight > 0 ? sectionGap : 0) + finishedHeight;
   const maxScroll = Math.max(0, totalHeight - listHeight + 20);
 
+  const dragStartY = useRef(0);
+  const dragThreshold = 8;
+
   const handlePointerDown = useCallback((e: any) => {
-    isDragging.current = true;
     lastY.current = e.data.global.y;
+    dragStartY.current = e.data.global.y;
+    isDragging.current = false;
   }, []);
 
   const handlePointerMove = useCallback(
     (e: any) => {
+      const currentY = e.data.global.y;
+      const totalDelta = Math.abs(currentY - dragStartY.current);
+
+      if (!isDragging.current && totalDelta > dragThreshold) {
+        isDragging.current = true;
+      }
+
       if (!isDragging.current) return;
-      const dy = lastY.current - e.data.global.y;
-      lastY.current = e.data.global.y;
+      const dy = lastY.current - currentY;
+      lastY.current = currentY;
       setScrollY((prev) => Math.max(0, Math.min(maxScroll, prev + dy)));
     },
     [maxScroll]
