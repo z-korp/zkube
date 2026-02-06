@@ -3,7 +3,7 @@
  *
  * Uses ONLY theme-1 assets: logo.png, palmtree-left/right.png, theme-2-1.png
  * Everything else is procedural.
- * All modals (menu, quests, shop) rendered inside PixiJS via Modal component.
+ * All modals rendered inside PixiJS via Modal component.
  */
 
 import { Application } from '@pixi/react';
@@ -11,14 +11,17 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Assets, Texture, Graphics as PixiGraphics } from 'pixi.js';
 import { PixiThemeProvider } from '../../themes/ThemeContext';
 import { useFullscreenLayout } from '../../hooks/useFullscreenLayout';
-import { TopBar } from '../topbar';
 import { Modal, Button } from '../ui';
+import { MenuButton } from '../topbar/MenuButton';
+import { CubeBalance } from '../topbar/CubeBalance';
+import { NavButton } from '../topbar/NavButton';
 
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 
 const T = '/assets/theme-1';
+const FONT = 'Fredericka the Great, Bangers, Arial Black, sans-serif';
 
 // ============================================================================
 // TYPES
@@ -92,7 +95,7 @@ const SkyBackground = ({ w, h }: { w: number; h: number }) => {
 };
 
 // ============================================================================
-// CLOUDS (procedural, drifting)
+// CLOUDS
 // ============================================================================
 
 const Clouds = ({ w, h }: { w: number; h: number }) => {
@@ -151,7 +154,7 @@ const Clouds = ({ w, h }: { w: number; h: number }) => {
 };
 
 // ============================================================================
-// LOGO (theme-1/logo.png)
+// LOGO
 // ============================================================================
 
 const Logo = ({ x, y, maxW, maxH }: { x: number; y: number; maxW: number; maxH: number }) => {
@@ -174,8 +177,7 @@ const Logo = ({ x, y, maxW, maxH }: { x: number; y: number; maxW: number; maxH: 
     return (
       <pixiText text="zKube" x={x} y={y + bounce} anchor={0.5}
         style={{
-          fontFamily: 'Bangers, Arial Black, sans-serif', fontSize: 64,
-          fill: 0x6D28D9, letterSpacing: 4,
+          fontFamily: FONT, fontSize: 64, fill: 0x6D28D9, letterSpacing: 4,
           stroke: { color: 0xFFFFFF, width: 5 },
           dropShadow: { alpha: 0.3, angle: Math.PI / 6, blur: 6, distance: 4, color: 0x4C1D95 },
         }}
@@ -215,21 +217,18 @@ const ProceduralButton = ({
   }, [width, height, color]);
 
   return (
-    <pixiContainer
-      x={x + width / 2} y={y + height / 2}
-      scale={scale} pivot={{ x: width / 2, y: height / 2 }}
-      eventMode="static" cursor="pointer"
-      onPointerDown={() => setPressed(true)}
-      onPointerUp={() => { setPressed(false); onPress(); }}
-      onPointerUpOutside={() => setPressed(false)}
-      onPointerOver={() => setHovered(true)}
-      onPointerOut={() => { setHovered(false); setPressed(false); }}
-    >
-      <pixiGraphics draw={draw} />
+    <pixiContainer x={x} y={y} scale={scale}>
+      <pixiGraphics draw={draw}
+        eventMode="static" cursor="pointer"
+        onPointerDown={() => setPressed(true)}
+        onPointerUp={() => { setPressed(false); onPress(); }}
+        onPointerUpOutside={() => { setPressed(false); setHovered(false); }}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => { setHovered(false); setPressed(false); }}
+      />
       <pixiText text={label} x={width / 2} y={height / 2} anchor={0.5}
         style={{
-          fontFamily: 'Bangers, Arial Black, sans-serif', fontSize,
-          fill: 0xFFFFFF,
+          fontFamily: FONT, fontSize, fill: 0xFFFFFF,
           dropShadow: { alpha: 0.5, angle: Math.PI / 4, blur: 2, distance: 2, color: 0x000000 },
         }}
       />
@@ -238,7 +237,60 @@ const ProceduralButton = ({
 };
 
 // ============================================================================
-// PLACEHOLDER MODAL (for Quests / Shop until full PixiJS versions are built)
+// INLINE TOP BAR (rebuilt here to ensure event handling works)
+// ============================================================================
+
+const LandingTopBar = ({
+  sw, topBarH, isMobile, uiScale, cubeBalance,
+  onMenuClick, onQuestsClick, onTrophyClick, onShopClick,
+}: {
+  sw: number; topBarH: number; isMobile: boolean; uiScale: number;
+  cubeBalance: number;
+  onMenuClick: () => void; onQuestsClick: () => void;
+  onTrophyClick: () => void; onShopClick: () => void;
+}) => {
+  const btnSize = isMobile ? 36 : 42;
+  const gap = Math.round(8 * uiScale);
+  const pad = Math.round(12 * uiScale);
+  const navW = isMobile ? 40 : 56;
+
+  const menuX = pad;
+  const menuY = (topBarH - btnSize) / 2;
+  const cubeX = menuX + btnSize + gap;
+  const shopX = sw - pad - navW;
+  const trophyX = shopX - navW - gap;
+  const questsX = trophyX - navW - gap;
+
+  const drawBg = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.rect(0, 0, sw, topBarH);
+    g.fill({ color: 0x0f172a, alpha: 0.85 });
+    g.rect(0, topBarH - 1, sw, 1);
+    g.fill({ color: 0x334155, alpha: 0.4 });
+  }, [sw, topBarH]);
+
+  return (
+    <pixiContainer y={0} zIndex={100}>
+      {/* Background - blocks events from passing to elements below */}
+      <pixiGraphics draw={drawBg} eventMode="static"
+        onPointerDown={(e: any) => e.stopPropagation()} />
+
+      <MenuButton x={menuX} y={menuY} size={btnSize} onClick={onMenuClick} />
+
+      <CubeBalance balance={cubeBalance} x={cubeX} y={menuY} height={btnSize} uiScale={uiScale} />
+
+      <NavButton icon="quests" x={questsX} y={menuY} width={navW} height={btnSize}
+        onClick={onQuestsClick} label={isMobile ? undefined : 'Quests'} />
+      <NavButton icon="trophy" x={trophyX} y={menuY} width={navW} height={btnSize}
+        onClick={onTrophyClick} />
+      <NavButton icon="shop" x={shopX} y={menuY} width={navW} height={btnSize}
+        onClick={onShopClick} />
+    </pixiContainer>
+  );
+};
+
+// ============================================================================
+// PLACEHOLDER MODAL
 // ============================================================================
 
 const PlaceholderModal = ({
@@ -251,31 +303,12 @@ const PlaceholderModal = ({
   const btnW = modalW - 48;
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={title}
-      subtitle={subtitle}
-      width={modalW}
-      screenWidth={sw}
-      screenHeight={sh}
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title={title} subtitle={subtitle}
+      width={modalW} screenWidth={sw} screenHeight={sh}>
       <pixiContainer x={24} y={0}>
-        <pixiText
-          text="Coming soon..."
-          x={btnW / 2}
-          y={16}
-          anchor={{ x: 0.5, y: 0 }}
-          style={{ fontFamily: 'Arial, sans-serif', fontSize: 14, fill: 0x94a3b8 }}
-        />
-        <Button
-          text="Close"
-          y={60}
-          width={btnW}
-          height={44}
-          variant="secondary"
-          onClick={onClose}
-        />
+        <pixiText text="Coming soon..." x={btnW / 2} y={16} anchor={{ x: 0.5, y: 0 }}
+          style={{ fontFamily: 'Arial, sans-serif', fontSize: 14, fill: 0x94a3b8 }} />
+        <Button text="Close" y={60} width={btnW} height={44} variant="secondary" onClick={onClose} />
       </pixiContainer>
     </Modal>
   );
@@ -290,9 +323,8 @@ const LandingScreenInner = ({
   cubeBalance = 0, onQuestsClick, onTrophyClick, onShopClick,
 }: LandingScreenProps) => {
   const layout = useFullscreenLayout();
-  const { screenWidth: sw, screenHeight: sh, isMobile, topBarHeight } = layout;
+  const { screenWidth: sw, screenHeight: sh, isMobile, topBarHeight, uiScale } = layout;
 
-  // Modal state - all inside PixiJS
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isQuestsOpen, setIsQuestsOpen] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
@@ -309,16 +341,6 @@ const LandingScreenInner = ({
   const btnH = isMobile ? 50 : 56;
   const btnGap = 14;
 
-  const handleQuestsClick = useCallback(() => {
-    if (onQuestsClick) onQuestsClick();
-    else setIsQuestsOpen(true);
-  }, [onQuestsClick]);
-
-  const handleShopClick = useCallback(() => {
-    if (onShopClick) onShopClick();
-    else setIsShopOpen(true);
-  }, [onShopClick]);
-
   return (
     <div style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', overflow: 'hidden', touchAction: 'none' }}>
       <Application
@@ -326,7 +348,7 @@ const LandingScreenInner = ({
         backgroundAlpha={1} background={0xD0EAF8}
         resolution={dpr} autoDensity antialias
       >
-        {/* 1. Sky / background */}
+        {/* 1. Background */}
         <SkyBackground w={sw} h={sh} />
 
         {/* 2. Clouds */}
@@ -338,75 +360,52 @@ const LandingScreenInner = ({
         {/* 4. Subtitle */}
         <pixiText text="On-Chain Puzzle Roguelike"
           x={centerX} y={subtitleY} anchor={0.5}
-          style={{ fontFamily: 'Arial, sans-serif', fontSize: isMobile ? 14 : 18, fill: 0xFFFFFF, letterSpacing: 1,
+          style={{ fontFamily: FONT, fontSize: isMobile ? 14 : 18, fill: 0xFFFFFF, letterSpacing: 1,
             dropShadow: { alpha: 0.5, angle: Math.PI / 4, blur: 3, distance: 1, color: 0x000000 },
           }}
         />
 
         {/* 5. Buttons */}
-        <pixiContainer>
-          <ProceduralButton x={centerX - btnW / 2} y={buttonsY}
-            width={btnW} height={btnH} color={0xF97316}
-            label="Play Game" onPress={onPlay} fontSize={isMobile ? 20 : 24} />
+        <ProceduralButton x={centerX - btnW / 2} y={buttonsY}
+          width={btnW} height={btnH} color={0xF97316}
+          label="Play Game" onPress={onPlay} fontSize={isMobile ? 20 : 24} />
 
-          {!isConnected && onConnect && (
-            <ProceduralButton x={centerX - btnW / 2} y={buttonsY + btnH + btnGap}
-              width={btnW} height={btnH} color={0x8B5CF6}
-              label="Connect" onPress={onConnect} fontSize={isMobile ? 18 : 20} />
-          )}
+        {!isConnected && onConnect && (
+          <ProceduralButton x={centerX - btnW / 2} y={buttonsY + btnH + btnGap}
+            width={btnW} height={btnH} color={0x8B5CF6}
+            label="Connect" onPress={onConnect} fontSize={isMobile ? 18 : 20} />
+        )}
 
-          <ProceduralButton x={centerX - btnW / 2}
-            y={buttonsY + (btnH + btnGap) * ((!isConnected && onConnect) ? 2 : 1)}
-            width={btnW} height={btnH} color={0x22C55E}
-            label="Adventures" onPress={() => {}} fontSize={isMobile ? 18 : 20} />
-        </pixiContainer>
+        <ProceduralButton x={centerX - btnW / 2}
+          y={buttonsY + (btnH + btnGap) * ((!isConnected && onConnect) ? 2 : 1)}
+          width={btnW} height={btnH} color={0x22C55E}
+          label="Adventures" onPress={() => {}} fontSize={isMobile ? 18 : 20} />
 
         {/* 6. Footer */}
         <pixiText text="Built on Starknet with Dojo"
           x={centerX} y={sh - 16} anchor={0.5}
-          style={{ fontFamily: 'Arial, sans-serif', fontSize: 10, fill: 0xFFFFFF, alpha: 0.6,
+          style={{ fontFamily: 'Arial, sans-serif', fontSize: 10, fill: 0xFFFFFF,
             dropShadow: { alpha: 0.4, angle: Math.PI / 4, blur: 2, distance: 1, color: 0x000000 },
           }}
         />
 
-        {/* 7. Top bar - rendered last for z-order (clickable) */}
-        <TopBar
-          layout={layout}
+        {/* 7. Top bar - LAST for z-order, with its own event-blocking background */}
+        <LandingTopBar
+          sw={sw} topBarH={topBarHeight} isMobile={isMobile} uiScale={uiScale}
           cubeBalance={cubeBalance}
           onMenuClick={() => setIsMenuOpen(true)}
-          onQuestsClick={handleQuestsClick}
-          onTrophyClick={onTrophyClick}
-          onShopClick={handleShopClick}
+          onQuestsClick={onQuestsClick ?? (() => setIsQuestsOpen(true))}
+          onTrophyClick={onTrophyClick ?? (() => {})}
+          onShopClick={onShopClick ?? (() => setIsShopOpen(true))}
         />
 
-        {/* 8. PixiJS Modals (on top of everything) */}
-
-        {/* Menu modal */}
-        <PlaceholderModal
-          isOpen={isMenuOpen}
-          onClose={() => setIsMenuOpen(false)}
-          title="Menu"
-          subtitle="Settings & options"
-          sw={sw} sh={sh}
-        />
-
-        {/* Quests modal */}
-        <PlaceholderModal
-          isOpen={isQuestsOpen}
-          onClose={() => setIsQuestsOpen(false)}
-          title="Quests"
-          subtitle="Daily challenges"
-          sw={sw} sh={sh}
-        />
-
-        {/* Shop modal */}
-        <PlaceholderModal
-          isOpen={isShopOpen}
-          onClose={() => setIsShopOpen(false)}
-          title="Shop"
-          subtitle="Upgrades & items"
-          sw={sw} sh={sh}
-        />
+        {/* 8. Modals (on top of everything) */}
+        <PlaceholderModal isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)}
+          title="Menu" subtitle="Settings & options" sw={sw} sh={sh} />
+        <PlaceholderModal isOpen={isQuestsOpen} onClose={() => setIsQuestsOpen(false)}
+          title="Quests" subtitle="Daily challenges" sw={sw} sh={sh} />
+        <PlaceholderModal isOpen={isShopOpen} onClose={() => setIsShopOpen(false)}
+          title="Shop" subtitle="Upgrades & items" sw={sw} sh={sh} />
       </Application>
     </div>
   );

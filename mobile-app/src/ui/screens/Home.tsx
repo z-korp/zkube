@@ -3,8 +3,6 @@
  * Just mounts LandingScreen and passes callbacks.
  */
 import { useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { LandingScreen } from "@/pixi/components/landing/LandingScreen";
@@ -15,7 +13,6 @@ export const Home = () => {
   const { account } = useAccountCustom();
   const { connector } = useAccount();
   const { cubeBalance } = useCubeBalance();
-  const navigate = useNavigate();
 
   const cubeBalanceNum = Number(cubeBalance);
 
@@ -25,9 +22,9 @@ export const Home = () => {
       if (c?.controller) c.controller.connect();
       return;
     }
-    // TODO: PixiJS loadout flow, then navigate
-    navigate("/play/0");
-  }, [account, connector, navigate]);
+    // TODO: PixiJS loadout flow -> freeMint -> create -> navigate
+    console.log("Play clicked - loadout flow not yet implemented in PixiJS");
+  }, [account, connector]);
 
   const handleConnect = useCallback(() => {
     const c = connector as ControllerConnector;
