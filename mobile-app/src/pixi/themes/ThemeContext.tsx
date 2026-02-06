@@ -47,8 +47,7 @@ export function PixiThemeProvider({ children }: PixiThemeProviderProps) {
     
     // Get asset path based on theme
     const getAssetPath = (asset: string) => {
-      // Use tiki assets for all themes
-      return `/assets/theme-1/${asset}`;
+      return `/assets/${themeName}/${asset}`;
     };
     
     return {

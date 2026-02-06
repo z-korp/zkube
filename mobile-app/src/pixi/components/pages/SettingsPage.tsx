@@ -216,7 +216,7 @@ const ThemeSelector = ({
           onPointerDown={() => onSelect('theme-2')}
         />
         <pixiText
-          text="Tropical"
+          text="Space"
           x={16 + optionW + 16 + optionW / 2}
           y={optionH / 2}
           anchor={0.5}

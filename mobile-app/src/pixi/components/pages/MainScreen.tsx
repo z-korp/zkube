@@ -339,7 +339,7 @@ const HomeTopBar = ({
     g.rect(0, 0, sw, topBarH);
     g.fill({ color: 0x000000, alpha: 1 });
     g.rect(0, topBarH - 1, sw, 1);
-    g.fill({ color: 0x1e293b, alpha: 0.5 });
+    g.fill({ color: 0x334155, alpha: 0.8 });
   }, [sw, topBarH]);
 
   const cubeCountStyle = useMemo(() => ({
@@ -419,7 +419,7 @@ const HomeTopBar = ({
 
 const HomePageContent = ({
   sw, sh, topBarH, isMobile, uiScale, cubeBalance,
-  games, isConnected, username, onConnect, onProfileClick, onTrophyClick,
+  games, isConnected, username, onProfileClick, onTrophyClick,
   navigate,
 }: {
   sw: number;
@@ -431,7 +431,6 @@ const HomePageContent = ({
   games: PlayerGame[];
   isConnected: boolean;
   username?: string;
-  onConnect?: () => void;
   onProfileClick?: () => void;
   onTrophyClick?: () => void;
   navigate: (page: PageId) => void;
@@ -453,18 +452,6 @@ const HomePageContent = ({
   const myGamesY = firstBtnY + (btnH + btnGap) * btnIdx++;
   const shopY = firstBtnY + (btnH + btnGap) * btnIdx++;
   const leaderboardY = firstBtnY + (btnH + btnGap) * btnIdx++;
-  const connectY = firstBtnY + (btnH + btnGap) * btnIdx++;
-
-  const handleConnectClick = useCallback(() => {
-    if (isConnected && onProfileClick) {
-      onProfileClick();
-    } else if (onConnect) {
-      onConnect();
-    }
-  }, [isConnected, onConnect, onProfileClick]);
-
-  const connectLabel = isConnected && username ? username : "Connect";
-  const connectColor = isConnected ? 0x6366f1 : 0x8B5CF6;
 
   return (
     <pixiContainer>
@@ -493,11 +480,6 @@ const HomePageContent = ({
         width={btnW} height={btnH} color={0xEAB308}
         label="Leaderboard" onPress={() => navigate('leaderboard')}
         fontSize={isMobile ? 18 : 20} />
-
-      {/* Connect / Username */}
-      <LandingButton x={centerX - btnW / 2} y={connectY}
-        width={btnW} height={btnH} color={connectColor}
-        label={connectLabel} onPress={handleConnectClick} fontSize={isMobile ? 16 : 18} />
 
       {/* Footer */}
       <pixiText text="Built on Starknet with Dojo"
@@ -589,7 +571,7 @@ const PageRenderer = (props: MainScreenProps & {
             sw={sw} sh={sh} topBarH={topBarH} isMobile={isMobile} uiScale={uiScale}
             cubeBalance={cubeBalance} games={games}
             isConnected={isConnected ?? false} username={username}
-            onConnect={onConnect} onProfileClick={onProfileClick} onTrophyClick={onTrophyClick}
+            onProfileClick={onProfileClick} onTrophyClick={onTrophyClick}
             navigate={navigate}
           />
         )}

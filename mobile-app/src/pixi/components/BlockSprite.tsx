@@ -57,13 +57,13 @@ export const BlockSprite = ({
   
 
   useEffect(() => {
-    const texturePath = `/assets/theme-1/block-${block.width}.png`;
+    const texturePath = `/assets/${themeName}/block-${block.width}.png`;
     Assets.load(texturePath)
       .then(setTexture)
       .catch(() => {
-        // Fallback to legacy theme folder
-        const legacyPath = `/assets/${themeName}/block-${block.width}.png`;
-        Assets.load(legacyPath)
+        // Fallback to theme-1
+        const fallbackPath = `/assets/theme-1/block-${block.width}.png`;
+        Assets.load(fallbackPath)
           .then(setTexture)
           .catch(() => {
             // Final fallback to default assets folder
