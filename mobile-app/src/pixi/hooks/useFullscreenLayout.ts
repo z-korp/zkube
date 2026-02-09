@@ -1,22 +1,21 @@
 import { useState, useEffect, useMemo } from 'react';
 
-/**
- * Layout for fullscreen PixiJS game:
- * TOP BAR (36px) → INFO BAR (28px) → GRID (maximized) → NEXT LINE → ACTION BAR (56px)
- */
 export interface FullscreenLayout {
-  // Viewport dimensions
   screenWidth: number;
   screenHeight: number;
 
-  // Device info
   isMobile: boolean;
   isLandscape: boolean;
   devicePixelRatio: number;
 
-  // Top bar
   topBarHeight: number;
   topBarY: number;
+
+  statsBarY: number;
+  statsBarHeight: number;
+
+  progressBarY: number;
+  progressBarHeight: number;
 
   infoAreaY: number;
   infoAreaHeight: number;
@@ -43,7 +42,6 @@ export interface FullscreenLayout {
   mobileHudY: number;
   showMobileHud: boolean;
 
-  // Grid configuration
   gridCols: number;
   gridRows: number;
   cellSize: number;
@@ -52,15 +50,14 @@ export interface FullscreenLayout {
   gridX: number;
   gridY: number;
 
-  // Next line preview
+  framePad: number;
+
   nextLineHeight: number;
   nextLineY: number;
 
-  // Action bar (bottom)
   actionBarHeight: number;
   actionBarY: number;
 
-  // Side panels (desktop only)
   showSidePanels: boolean;
   sidePanelWidth: number;
   leftPanelX: number;
@@ -68,13 +65,8 @@ export interface FullscreenLayout {
   sidePanelY: number;
   sidePanelHeight: number;
 
-  // UI scaling factor
   uiScale: number;
-
-  // Padding
   padding: number;
-
-  // Pill gap (space between score/moves pills)
   pillGap: number;
 }
 
@@ -92,10 +84,8 @@ const DEFAULT_CONFIG = {
   maxCellSize: 56,
 };
 
-/**
- * Hook for fullscreen polished game layout
- * Maximizes grid area while keeping HUD elements clean and readable
- */
+const FRAME_PAD = 12;
+
 export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout {
   const [screenWidth, setScreenWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 375
@@ -111,7 +101,6 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
     maxCellSize,
   } = { ...DEFAULT_CONFIG, ...config };
 
-  // Handle viewport resize
   useEffect(() => {
     const handleResize = () => {
       setScreenWidth(window.innerWidth);
@@ -144,27 +133,34 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
     const isMobile = screenWidth < 768;
     const isLandscape = screenWidth > screenHeight;
 
-    // UI scale based on screen width
     const baseWidth = 375;
     const uiScale = Math.min(1.5, Math.max(0.8, screenWidth / baseWidth));
 
-    // Padding
     const padding = Math.round(10 * uiScale);
-    const pillGap = Math.round(12 * uiScale);
+    const pillGap = Math.round(8 * uiScale);
+    const framePad = FRAME_PAD;
 
-    const topBarHeight = 36;
-    const actionBarHeight = 56;
-
-    const infoAreaHeight = Math.round(30 * uiScale);
+    const statsBarHeight = Math.round(32 * uiScale);
+    const progressBarHeight = Math.round(26 * uiScale);
+    const barGap = Math.round(4 * uiScale);
+    const actionBarHeight = Math.round(64 * uiScale);
+    const hudBottom = Math.round(6 * uiScale);
 
     const topBarY = 0;
-    const infoAreaY = topBarHeight;
+    const topBarHeight = 0;
+    const statsBarY = Math.round(6 * uiScale);
+    const progressBarY = statsBarY + statsBarHeight + barGap;
+
+    const hudTotalHeight = progressBarY + progressBarHeight + hudBottom;
+
+    const infoAreaY = statsBarY;
+    const infoAreaHeight = statsBarHeight + barGap + progressBarHeight;
 
     const nextLineGap = 4;
-    const usedHeight = topBarHeight + infoAreaHeight + actionBarHeight + padding + nextLineGap;
+    const usedHeight = hudTotalHeight + actionBarHeight + framePad * 2 + nextLineGap;
     const availableHeight = screenHeight - usedHeight;
 
-    const horizontalPadding = padding * 2;
+    const horizontalPadding = (padding + framePad) * 2;
     const availableWidth = screenWidth - horizontalPadding;
 
     const totalRows = gridRows + 1;
@@ -179,19 +175,19 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
     const nextLineHeight = cellSize;
 
     const gridX = Math.round((screenWidth - gridWidth) / 2);
-    const gridY = infoAreaY + infoAreaHeight + Math.round(2 * uiScale);
+    const gridY = hudTotalHeight + framePad;
     const nextLineY = gridY + gridHeight + nextLineGap;
 
     const actionBarY = screenHeight - actionBarHeight;
 
     const levelBadgeWidth = Math.round(Math.min(200, gridWidth * 0.55));
     const levelBadgeX = Math.round((screenWidth - levelBadgeWidth) / 2);
-    const levelBadgeY = infoAreaY;
-    const levelBadgeHeight = infoAreaHeight;
+    const levelBadgeY = statsBarY;
+    const levelBadgeHeight = statsBarHeight;
 
     const pillWidth = Math.round((gridWidth - pillGap) / 2);
-    const pillHeight = infoAreaHeight;
-    const pillY = infoAreaY;
+    const pillHeight = statsBarHeight;
+    const pillY = statsBarY;
     const scorePillX = gridX;
     const movesPillX = gridX + pillWidth + pillGap;
 
@@ -203,10 +199,10 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
     const sidePanelHeight = gridHeight + nextLineHeight + nextLineGap;
 
     const levelDisplayHeight = 0;
-    const levelDisplayY = infoAreaY;
+    const levelDisplayY = statsBarY;
     const showMobileHud = false;
     const mobileHudHeight = 0;
-    const mobileHudY = infoAreaY;
+    const mobileHudY = statsBarY;
 
     return {
       screenWidth,
@@ -216,6 +212,10 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
       devicePixelRatio,
       topBarHeight,
       topBarY,
+      statsBarY,
+      statsBarHeight,
+      progressBarY,
+      progressBarHeight,
       infoAreaY,
       infoAreaHeight,
       levelBadgeX,
@@ -242,6 +242,7 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
       gridHeight,
       gridX,
       gridY,
+      framePad,
       nextLineHeight,
       nextLineY,
       actionBarHeight,

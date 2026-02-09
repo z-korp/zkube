@@ -5,6 +5,7 @@
 
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
+import { useTick } from '@pixi/react';
 import { Modal, Button } from '../ui';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
@@ -82,28 +83,20 @@ export const VictoryModal = ({
     setConfetti(particles);
   }, [isOpen, modalWidth]);
 
-  // Animate confetti
-  useEffect(() => {
-    if (!isOpen || confetti.length === 0) return;
-
-    let raf: number;
-    const animate = () => {
-      frameRef.current++;
-      
-      setConfetti(prev => prev.map(p => ({
-        ...p,
-        x: p.x + p.vx,
-        y: p.y + p.vy,
-        vy: p.vy + 0.05, // Gravity
-        rotation: p.rotation + p.rotationSpeed,
-      })).filter(p => p.y < 500)); // Remove particles that fall off
-
-      raf = requestAnimationFrame(animate);
-    };
-
-    raf = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(raf);
-  }, [isOpen, confetti.length]);
+  // Animate confetti via PixiJS ticker
+  const confettiActive = isOpen && confetti.length > 0;
+  const tickConfetti = useCallback((ticker: { deltaMS: number }) => {
+    const dt = ticker.deltaMS / 16.667;
+    frameRef.current++;
+    setConfetti(prev => prev.map(p => ({
+      ...p,
+      x: p.x + p.vx * dt,
+      y: p.y + p.vy * dt,
+      vy: p.vy + 0.05 * dt, // Gravity
+      rotation: p.rotation + p.rotationSpeed * dt,
+    })).filter(p => p.y < 500)); // Remove particles that fall off
+  }, []);
+  useTick(tickConfetti, confettiActive);
 
   // Draw stats background
   const drawStatsBox = useCallback((g: PixiGraphics) => {

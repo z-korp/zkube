@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useMemo } from 'react';
 import type { Graphics as PixiGraphics } from 'pixi.js';
+import { useTick } from '@pixi/react';
 import { usePixiTheme, usePerformanceSettings } from '../../themes/ThemeContext';
+import { BloomFilter } from '../../extend';
 
 interface Particle {
   x: number;
@@ -33,73 +35,78 @@ interface EmitOptions {
   size?: number;
 }
 
-/**
- * PixiJS-based particle system for visual effects
- */
 export const ParticleSystem = ({ gridSize }: ParticleSystemProps) => {
   const { colors } = usePixiTheme();
   const { maxParticles, prefersReducedMotion } = usePerformanceSettings();
-  
-  const [particles, setParticles] = useState<Particle[]>([]);
-  const frameRef = useRef<number>();
-  
-  // Animation loop
-  useEffect(() => {
-    if (prefersReducedMotion) return;
-    
-    const animate = () => {
-      setParticles(prev => {
-        const updated = prev
-          .map(p => ({
-            ...p,
-            x: p.x + p.vx,
-            y: p.y + p.vy,
-            vy: p.vy + 0.3, // gravity
-            life: p.life - 1,
-            rotation: p.rotation + p.rotationSpeed,
-            size: p.size * 0.98, // shrink over time
-          }))
-          .filter(p => p.life > 0 && p.size > 0.5);
-        
-        return updated;
-      });
-      
-      frameRef.current = requestAnimationFrame(animate);
-    };
-    
-    frameRef.current = requestAnimationFrame(animate);
-    
-    return () => {
-      if (frameRef.current) {
-        cancelAnimationFrame(frameRef.current);
-      }
-    };
-  }, [prefersReducedMotion]);
 
-  // Emit particles at a point
+  const particlesRef = useRef<Particle[]>([]);
+  const graphicsRef = useRef<PixiGraphics | null>(null);
+  const dirtyRef = useRef(false);
+
+  // Tick-driven physics update — mutates particles in-place, redraws graphics directly
+  const tickCallback = useCallback((ticker: { deltaMS: number }) => {
+    const ps = particlesRef.current;
+    if (ps.length === 0) return;
+
+    // deltaTime normalized to 60fps frames (~16.67ms per unit)
+    const dt = ticker.deltaMS / 16.667;
+
+    let writeIdx = 0;
+    for (let i = 0; i < ps.length; i++) {
+      const p = ps[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vy += 0.3 * dt;
+      p.life -= dt;
+      p.rotation += p.rotationSpeed * dt;
+      p.size *= Math.pow(0.98, dt);
+
+      if (p.life > 0 && p.size > 0.5) {
+        ps[writeIdx++] = p;
+      }
+    }
+    ps.length = writeIdx;
+    dirtyRef.current = true;
+
+    // Immediate imperative draw — no React setState
+    const g = graphicsRef.current;
+    if (!g) return;
+
+    g.clear();
+    for (let i = 0; i < ps.length; i++) {
+      const p = ps[i];
+      const alpha = p.life / p.maxLife;
+      g.setFillStyle({ color: p.color, alpha });
+      g.rect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+      g.fill();
+    }
+  }, []);
+
+  useTick(tickCallback);
+
   const emit = useCallback((
-    x: number, 
-    y: number, 
+    x: number,
+    y: number,
     count: number,
     options: EmitOptions = {}
   ) => {
     if (prefersReducedMotion) return;
-    
+
     const {
       colors: particleColors = colors.particles.explosion,
       speed = 8,
       spread = Math.PI * 2,
       size = 6,
     } = options;
-    
-    const newParticles: Particle[] = [];
-    const actualCount = Math.min(count, maxParticles - particles.length);
-    
+
+    const ps = particlesRef.current;
+    const actualCount = Math.min(count, maxParticles - ps.length);
+
     for (let i = 0; i < actualCount; i++) {
       const angle = (Math.random() - 0.5) * spread - Math.PI / 2;
       const velocity = speed * (0.5 + Math.random() * 0.5);
-      
-      newParticles.push({
+
+      ps.push({
         x,
         y,
         vx: Math.cos(angle) * velocity,
@@ -112,76 +119,44 @@ export const ParticleSystem = ({ gridSize }: ParticleSystemProps) => {
         rotationSpeed: (Math.random() - 0.5) * 0.2,
       });
     }
-    
-    setParticles(prev => [...prev, ...newParticles].slice(0, maxParticles));
-  }, [colors.particles.explosion, maxParticles, particles.length, prefersReducedMotion]);
 
-  // Emit particles along a line (for line clears)
+    if (ps.length > maxParticles) {
+      ps.splice(0, ps.length - maxParticles);
+    }
+  }, [colors.particles.explosion, maxParticles, prefersReducedMotion]);
+
   const emitLine = useCallback((
     y: number,
     width: number,
     count: number
   ) => {
     if (prefersReducedMotion) return;
-    
+
     const particlesPerPoint = Math.ceil(count / 8);
-    
     for (let i = 0; i < 8; i++) {
       const x = (i + 0.5) * (width / 8);
-      emit(x, y, particlesPerPoint, {
-        spread: Math.PI,
-        speed: 6,
-      });
+      emit(x, y, particlesPerPoint, { spread: Math.PI, speed: 6 });
     }
   }, [emit, prefersReducedMotion]);
 
-  // Clear all particles
   const clear = useCallback(() => {
-    setParticles([]);
+    particlesRef.current.length = 0;
   }, []);
 
-  // Draw all particles
-  const draw = useCallback((g: PixiGraphics) => {
+  // Capture the Graphics ref imperatively
+  const captureRef = useCallback((g: PixiGraphics) => {
+    graphicsRef.current = g;
     g.clear();
-    
-    for (const particle of particles) {
-      const alpha = particle.life / particle.maxLife;
-      
-      g.setFillStyle({ color: particle.color, alpha });
-      
-      g.rect(
-        particle.x - particle.size / 2,
-        particle.y - particle.size / 2,
-        particle.size,
-        particle.size
-      );
-      g.fill();
-    }
-  }, [particles]);
+  }, []);
 
-  // Expose methods via ref pattern (we'll use context instead)
-  useEffect(() => {
-    // Store methods in a global-ish way for now
-    // In production, use a context or ref forwarding
-    (window as any).__particleSystem = { emit, emitLine, clear };
-    
-    return () => {
-      delete (window as any).__particleSystem;
-    };
-  }, [emit, emitLine, clear]);
+  const bloomFilter = useMemo(() => new BloomFilter({ strength: 4 }), []);
+  const filters = useMemo(() => [bloomFilter], [bloomFilter]);
 
-  if (particles.length === 0) {
-    return null;
-  }
-
-  return <pixiGraphics draw={draw} />;
+  return (
+    <pixiContainer filters={filters}>
+      <pixiGraphics draw={captureRef} />
+    </pixiContainer>
+  );
 };
-
-/**
- * Hook to access particle system methods
- */
-export function useParticles(): ParticleSystemRef | null {
-  return (window as any).__particleSystem || null;
-}
 
 export default ParticleSystem;

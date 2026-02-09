@@ -56,6 +56,32 @@ export const UI = {
   },
 } as const;
 
+// ============================================================================
+// SHARED ASSET PATHS (theme-independent)
+// ============================================================================
+
+export const SHARED_ASSETS = {
+  iconMoves: '/assets/icon-moves.png',
+  iconScore: '/assets/icon-score.png',
+  iconCube: '/assets/icon-cube.png',
+  iconLevel: '/assets/icon-level.png',
+  iconSurrender: '/assets/icon-surrender.png',
+} as const;
+
+// ============================================================================
+// THEME ASSET NAMES (resolved via getAssetPath)
+// ============================================================================
+
+export const THEME_ASSETS = {
+  gridBg: 'grid-bg.png',
+  gridFrame: 'grid-frame.png',
+  hudBar: 'hud-bar.png',
+  actionBar: 'action-bar.png',
+  bonusBtnBg: 'bonus-btn-bg.png',
+  starFilled: 'star-filled.png',
+  starEmpty: 'star-empty.png',
+} as const;
+
 export interface BlockColors {
   fill: number;
   glow: number;
@@ -68,6 +94,12 @@ export interface ThemeColors {
   backgroundGradientEnd: number;
   gridLines: number;
   gridLinesAlpha: number;
+  gridBg: number;
+  gridCellAlt: number;
+  frameBorder: number;
+  hudBar: number;
+  hudBarBorder: number;
+  actionBarBg: number;
   dangerZone: number;
   dangerZoneAlpha: number;
   accent: number;
@@ -83,27 +115,27 @@ export interface ThemeColors {
  * Sky blue backgrounds with vibrant block colors
  */
 export const TIKI_COLORS: ThemeColors = {
-  // Light, airy sky background
-  background: 0x87CEEB, // Sky blue
-  backgroundGradientStart: 0xB0E0E6, // Powder blue (top)
-  backgroundGradientEnd: 0xFFF8DC, // Cornsilk/cream (bottom, warm)
-  // Soft purple grid lines to match the grid panel
-  gridLines: 0x9370DB, // Medium purple
-  gridLinesAlpha: 0.4,
-  // Danger zone remains red but softer
+  background: 0x87CEEB,
+  backgroundGradientStart: 0xB0E0E6,
+  backgroundGradientEnd: 0xFFF8DC,
+  gridLines: 0x3E2723,
+  gridLinesAlpha: 0.35,
+  gridBg: 0x5D4037,
+  gridCellAlt: 0x6D4C41,
+  frameBorder: 0xB8860B,
+  hudBar: 0x1A0E08,
+  hudBarBorder: 0x5D4037,
+  actionBarBg: 0x1A0E08,
   dangerZone: 0xFF6B6B,
   dangerZoneAlpha: 0.2,
-  // Orange accent to match buttons
-  accent: 0xFF8C00, // Dark orange
-  // Block colors match the new tiki face blocks
+  accent: 0xFF8C00,
   blocks: {
-    1: { fill: 0x4ADE80, glow: 0x22C55E, highlight: 0x86EFAC }, // Green (matches block-1)
-    2: { fill: 0x4AA8DE, glow: 0x3B82F6, highlight: 0x93C5FD }, // Blue (matches block-2)
-    3: { fill: 0x9F7AEA, glow: 0x8B5CF6, highlight: 0xC4B5FD }, // Purple (matches block-3)
-    4: { fill: 0xFBBF24, glow: 0xF59E0B, highlight: 0xFDE047 }, // Yellow/Orange (matches block-4)
+    1: { fill: 0x4ADE80, glow: 0x22C55E, highlight: 0x86EFAC },
+    2: { fill: 0x4AA8DE, glow: 0x3B82F6, highlight: 0x93C5FD },
+    3: { fill: 0x9F7AEA, glow: 0x8B5CF6, highlight: 0xC4B5FD },
+    4: { fill: 0xFBBF24, glow: 0xF59E0B, highlight: 0xFDE047 },
   },
   particles: {
-    // Bright, tropical particle colors
     primary: [0x4ADE80, 0x4AA8DE, 0x9F7AEA, 0xFBBF24, 0xFF6B6B],
     explosion: [0xFFFFFF, 0xFBBF24, 0xFF8C00, 0xFF6B6B, 0x4ADE80],
   },

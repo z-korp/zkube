@@ -10,7 +10,7 @@
  *   [Connect / Username]  (always visible)
  */
 
-import { Application } from '@pixi/react';
+import { Application, useTick } from '@pixi/react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Assets, Texture, Graphics as PixiGraphics } from 'pixi.js';
 import { PixiThemeProvider, usePixiTheme } from '../../themes/ThemeContext';
@@ -162,21 +162,17 @@ const Clouds = ({ w, h }: { w: number; h: number }) => {
     }
   }, [w, h]);
 
-  useEffect(() => {
-    let raf: number;
-    let fc = 0;
-    const loop = () => {
-      fc++;
-      for (const c of cloudsRef.current) {
-        c.x += c.speed;
-        if (c.x > w + 200) { c.x = -200 * c.scale; c.y = 50 + Math.random() * h * 0.25; }
-      }
-      if (fc % 2 === 0) setTick(n => n + 1);
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+  const frameCountRef = useRef(0);
+  const tickClouds = useCallback((ticker: { deltaMS: number }) => {
+    const dt = ticker.deltaMS / 16.667;
+    for (const c of cloudsRef.current) {
+      c.x += c.speed * dt;
+      if (c.x > w + 200) { c.x = -200 * c.scale; c.y = 50 + Math.random() * h * 0.25; }
+    }
+    frameCountRef.current++;
+    if (frameCountRef.current % 2 === 0) setTick(n => n + 1);
   }, [w, h]);
+  useTick(tickClouds);
 
   const drawCloud = useCallback((g: PixiGraphics, s: number) => {
     g.clear();
@@ -208,16 +204,12 @@ const Logo = ({ x, y, maxW, maxH }: { x: number; y: number; maxW: number; maxH: 
   const [bounce, setBounce] = useState(0);
   const timeRef = useRef(0);
 
-  useEffect(() => {
-    let raf: number;
-    const loop = () => {
-      timeRef.current += 0.025;
-      setBounce(Math.sin(timeRef.current * 2) * 4);
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+  const tickBounce = useCallback((ticker: { deltaMS: number }) => {
+    const dt = ticker.deltaMS / 16.667;
+    timeRef.current += 0.025 * dt;
+    setBounce(Math.sin(timeRef.current * 2) * 4);
   }, []);
+  useTick(tickBounce);
 
   if (!tex) {
     return (

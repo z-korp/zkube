@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import { useTick } from '@pixi/react';
 
 interface UseAnimatedValueOptions {
   /** Duration of animation in ms */
@@ -31,8 +32,8 @@ export const easings = {
 };
 
 /**
- * Hook that animates a numeric value from its previous value to a new target
- * Great for score counters, progress bars, etc.
+ * Hook that animates a numeric value from its previous value to a new target.
+ * Uses PixiJS Ticker (useTick) instead of requestAnimationFrame.
  */
 export function useAnimatedValue(
   targetValue: number,
@@ -45,67 +46,67 @@ export function useAnimatedValue(
   } = options;
 
   const [displayValue, setDisplayValue] = useState(targetValue);
-  const animationRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number>(0);
-  const startValueRef = useRef<number>(targetValue);
-  const previousTargetRef = useRef<number>(targetValue);
 
-  useEffect(() => {
-    // If target hasn't changed, skip
-    if (targetValue === previousTargetRef.current) return;
+  // All animation state in refs to avoid re-render loops
+  const animRef = useRef({
+    active: false,
+    startValue: targetValue,
+    endValue: targetValue,
+    elapsed: 0,
+    delayRemaining: 0,
+    currentDisplay: targetValue,
+  });
 
-    // Cancel any existing animation
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
+  // Detect target changes
+  const prevTargetRef = useRef(targetValue);
+  if (targetValue !== prevTargetRef.current) {
+    prevTargetRef.current = targetValue;
+    animRef.current.active = true;
+    animRef.current.startValue = animRef.current.currentDisplay;
+    animRef.current.endValue = targetValue;
+    animRef.current.elapsed = 0;
+    animRef.current.delayRemaining = delay;
+  }
+
+  const tickCallback = useCallback((ticker: { deltaMS: number }) => {
+    const anim = animRef.current;
+    if (!anim.active) return;
+
+    const dt = ticker.deltaMS;
+
+    // Handle delay
+    if (anim.delayRemaining > 0) {
+      anim.delayRemaining -= dt;
+      return;
     }
 
-    const startValue = displayValue;
-    const endValue = targetValue;
-    previousTargetRef.current = targetValue;
-    startValueRef.current = startValue;
+    anim.elapsed += dt;
+    const progress = Math.min(anim.elapsed / duration, 1);
+    const easedProgress = easing(progress);
+    const newValue = Math.round(
+      anim.startValue + (anim.endValue - anim.startValue) * easedProgress
+    );
 
-    const animate = (timestamp: number) => {
-      if (!startTimeRef.current) {
-        startTimeRef.current = timestamp + delay;
-      }
+    if (newValue !== anim.currentDisplay) {
+      anim.currentDisplay = newValue;
+      setDisplayValue(newValue);
+    }
 
-      const elapsed = timestamp - startTimeRef.current;
-      
-      if (elapsed < 0) {
-        // Still in delay period
-        animationRef.current = requestAnimationFrame(animate);
-        return;
-      }
+    if (progress >= 1) {
+      anim.active = false;
+      anim.currentDisplay = anim.endValue;
+      setDisplayValue(anim.endValue);
+    }
+  }, [duration, easing, delay]);
 
-      const progress = Math.min(elapsed / duration, 1);
-      const easedProgress = easing(progress);
-      const currentValue = startValue + (endValue - startValue) * easedProgress;
-
-      setDisplayValue(Math.round(currentValue));
-
-      if (progress < 1) {
-        animationRef.current = requestAnimationFrame(animate);
-      } else {
-        startTimeRef.current = 0;
-        animationRef.current = null;
-      }
-    };
-
-    animationRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [targetValue, duration, easing, delay, displayValue]);
+  useTick(tickCallback);
 
   return displayValue;
 }
 
 /**
- * Hook that provides a pulsing scale value (1.0 -> 1.1 -> 1.0)
- * Great for attention-grabbing animations
+ * Hook that provides a pulsing scale value (1.0 -> 1.1 -> 1.0).
+ * Uses PixiJS Ticker instead of requestAnimationFrame.
  */
 export function usePulse(
   active: boolean,
@@ -113,50 +114,44 @@ export function usePulse(
 ): number {
   const { minScale = 1.0, maxScale = 1.1, duration = 1000 } = options;
   const [scale, setScale] = useState(minScale);
-  const animationRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number>(0);
 
-  useEffect(() => {
+  const elapsedRef = useRef(0);
+  const prevActiveRef = useRef(active);
+
+  // Reset elapsed when becoming active
+  if (active && !prevActiveRef.current) {
+    elapsedRef.current = 0;
+  }
+  prevActiveRef.current = active;
+
+  const tickCallback = useCallback((ticker: { deltaMS: number }) => {
     if (!active) {
-      setScale(minScale);
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
-      }
+      // Reset scale when inactive — only set if changed
+      elapsedRef.current = 0;
       return;
     }
 
-    const animate = (timestamp: number) => {
-      if (!startTimeRef.current) {
-        startTimeRef.current = timestamp;
-      }
+    elapsedRef.current += ticker.deltaMS;
+    const progress = (elapsedRef.current % duration) / duration;
 
-      const elapsed = timestamp - startTimeRef.current;
-      const progress = (elapsed % duration) / duration;
-      
-      // Sine wave for smooth pulsing
-      const sineValue = Math.sin(progress * Math.PI * 2);
-      const currentScale = minScale + (maxScale - minScale) * (0.5 + sineValue * 0.5);
+    // Sine wave for smooth pulsing
+    const sineValue = Math.sin(progress * Math.PI * 2);
+    const currentScale = minScale + (maxScale - minScale) * (0.5 + sineValue * 0.5);
 
-      setScale(currentScale);
-      animationRef.current = requestAnimationFrame(animate);
-    };
-
-    animationRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
+    setScale(currentScale);
   }, [active, minScale, maxScale, duration]);
+
+  useTick(tickCallback);
+
+  // Return minScale immediately when not active
+  if (!active) return minScale;
 
   return scale;
 }
 
 /**
- * Hook that provides a glow intensity (0 -> 1 -> 0)
- * Great for highlighting new achievements
+ * Hook that provides a glow intensity (0 -> 1 -> 0).
+ * Uses PixiJS Ticker instead of requestAnimationFrame.
  */
 export function useGlow(
   trigger: boolean,
@@ -164,53 +159,43 @@ export function useGlow(
 ): number {
   const { duration = 300, fadeOut = 500 } = options;
   const [intensity, setIntensity] = useState(0);
-  const animationRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number>(0);
-  const previousTriggerRef = useRef(trigger);
 
-  useEffect(() => {
-    // Only trigger on false -> true transition
-    if (trigger && !previousTriggerRef.current) {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-      startTimeRef.current = 0;
+  const animRef = useRef({
+    active: false,
+    elapsed: 0,
+  });
+  const prevTriggerRef = useRef(trigger);
 
-      const animate = (timestamp: number) => {
-        if (!startTimeRef.current) {
-          startTimeRef.current = timestamp;
-        }
+  // Only trigger on false -> true transition
+  if (trigger && !prevTriggerRef.current) {
+    animRef.current.active = true;
+    animRef.current.elapsed = 0;
+  }
+  prevTriggerRef.current = trigger;
 
-        const elapsed = timestamp - startTimeRef.current;
-        
-        let value: number;
-        if (elapsed < duration) {
-          // Fade in
-          value = elapsed / duration;
-        } else if (elapsed < duration + fadeOut) {
-          // Fade out
-          value = 1 - (elapsed - duration) / fadeOut;
-        } else {
-          setIntensity(0);
-          animationRef.current = null;
-          return;
-        }
+  const tickCallback = useCallback((ticker: { deltaMS: number }) => {
+    const anim = animRef.current;
+    if (!anim.active) return;
 
-        setIntensity(value);
-        animationRef.current = requestAnimationFrame(animate);
-      };
+    anim.elapsed += ticker.deltaMS;
 
-      animationRef.current = requestAnimationFrame(animate);
+    let value: number;
+    if (anim.elapsed < duration) {
+      // Fade in
+      value = anim.elapsed / duration;
+    } else if (anim.elapsed < duration + fadeOut) {
+      // Fade out
+      value = 1 - (anim.elapsed - duration) / fadeOut;
+    } else {
+      anim.active = false;
+      setIntensity(0);
+      return;
     }
 
-    previousTriggerRef.current = trigger;
+    setIntensity(value);
+  }, [duration, fadeOut]);
 
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [trigger, duration, fadeOut]);
+  useTick(tickCallback);
 
   return intensity;
 }

@@ -1,11 +1,12 @@
-import { useCallback } from 'react';
-import { Graphics as PixiGraphics } from 'pixi.js';
+import { useCallback, useState, useEffect } from 'react';
+import { Graphics as PixiGraphics, Texture, Assets } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { BonusButton } from './BonusButton';
 import type { BonusButtonData } from './BonusButton';
 import { ComboDisplay } from './ComboDisplay';
 import { SurrenderButton } from './SurrenderButton';
 import { BonusType } from '@/dojo/game/types/bonus';
+import { THEME_ASSETS } from '../../utils/colors';
 
 interface BonusSlot extends BonusButtonData {
   bonusType: BonusType;
@@ -39,44 +40,70 @@ export const ActionBar = ({
   onSurrender,
   showSurrender = true,
 }: ActionBarProps) => {
-  const { colors } = usePixiTheme();
+  const { colors, getAssetPath } = usePixiTheme();
 
-  const padding = 10;
-  const buttonSize = Math.min(46, height - 10);
-  const buttonGap = 8;
+  const [barTex, setBarTex] = useState<Texture | null>(null);
+
+  useEffect(() => {
+    const path = getAssetPath(THEME_ASSETS.actionBar);
+    Assets.load(path).then(t => setBarTex(t as Texture)).catch(() => setBarTex(null));
+  }, [getAssetPath]);
+
+  const buttonSize = Math.min(52, height - 12);
+  const buttonGap = Math.round(12);
   const bonusCount = bonusSlots.length;
 
-  const bonusSectionWidth = bonusCount * buttonSize + (bonusCount - 1) * buttonGap;
-  const bonusStartX = padding;
+  const pillPadX = 16;
+  const pillPadY = 6;
 
-  const surrenderWidth = 38;
-  const surrenderHeight = buttonSize * 0.75;
-  const surrenderX = width - padding - surrenderWidth;
-  const surrenderY = (height - surrenderHeight) / 2;
+  const bonusSectionWidth = bonusCount * buttonSize + (bonusCount - 1) * buttonGap;
+
+  const surrenderW = 34;
+  const surrenderH = buttonSize * 0.65;
 
   const comboWidth = 50;
-  const rightEdge = showSurrender ? surrenderX - 8 : width - padding;
-  const comboX = rightEdge - comboWidth;
+  const totalContentW = bonusSectionWidth + (combo > 0 ? comboWidth + 8 : 0) + (showSurrender ? surrenderW + 8 : 0);
+  const pillW = totalContentW + pillPadX * 2;
+  const pillH = height - pillPadY * 2;
+  const pillX = Math.round((width - pillW) / 2);
+  const pillY = pillPadY;
+  const pillRadius = pillH / 2;
+
+  const bonusStartX = pillX + pillPadX;
+  const bonusCenterY = pillY + (pillH - buttonSize) / 2;
+
+  const surrenderX = pillX + pillW - pillPadX - surrenderW;
+  const surrenderY2 = pillY + (pillH - surrenderH) / 2;
+
+  const comboRightEdge = showSurrender ? surrenderX - 8 : pillX + pillW - pillPadX;
+  const comboX = comboRightEdge - comboWidth;
 
   const drawBackground = useCallback((g: PixiGraphics) => {
     g.clear();
-    g.rect(0, 0, width, height);
-    g.fill({ color: 0x000000, alpha: 1 });
-    g.moveTo(0, 0.5);
-    g.lineTo(width, 0.5);
-    g.stroke({ color: 0x1e293b, width: 0.5, alpha: 0.5 });
-  }, [width, height]);
+
+    if (!barTex) {
+      g.roundRect(pillX, pillY, pillW, pillH, pillRadius);
+      g.fill({ color: colors.actionBarBg, alpha: 0.92 });
+
+      g.roundRect(pillX, pillY, pillW, pillH, pillRadius);
+      g.stroke({ color: colors.hudBarBorder, width: 1.5, alpha: 0.3 });
+    }
+  }, [width, height, pillX, pillY, pillW, pillH, pillRadius, colors, barTex]);
 
   return (
     <pixiContainer y={y}>
-      <pixiGraphics draw={drawBackground} />
+      {barTex ? (
+        <pixiSprite texture={barTex} x={pillX} y={pillY} width={pillW} height={pillH} />
+      ) : (
+        <pixiGraphics draw={drawBackground} />
+      )}
 
       {bonusSlots.map((slot, index) => (
         <BonusButton
           key={slot.type}
           {...slot}
           x={bonusStartX + index * (buttonSize + buttonGap)}
-          y={(height - buttonSize) / 2}
+          y={bonusCenterY}
           size={buttonSize}
           isSelected={selectedBonus === slot.bonusType}
           isDisabled={isDisabled || slot.count === 0}
@@ -85,13 +112,13 @@ export const ActionBar = ({
 
       <ComboDisplay
         combo={combo} maxCombo={maxCombo}
-        x={comboX} y={(height - 40) / 2} height={40}
+        x={comboX} y={pillY + (pillH - 40) / 2} height={40}
       />
 
       {showSurrender && (
         <SurrenderButton
-          x={surrenderX} y={surrenderY}
-          width={surrenderWidth} height={surrenderHeight}
+          x={surrenderX} y={surrenderY2}
+          width={surrenderW} height={surrenderH}
           onClick={onSurrender} isDisabled={isDisabled}
         />
       )}

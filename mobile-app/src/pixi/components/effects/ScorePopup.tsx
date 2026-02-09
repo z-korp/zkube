@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { TextStyle } from 'pixi.js';
+import { useTick } from '@pixi/react';
 import { usePixiTheme, usePerformanceSettings } from '../../themes/ThemeContext';
 import { FONT_BOLD } from '../../utils/colors';
 
@@ -21,60 +22,43 @@ interface ScorePopupProps {
   gridSize: number;
 }
 
-/**
- * Displays floating score popups when lines are cleared
- */
 export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps) => {
   const { colors } = usePixiTheme();
   const { prefersReducedMotion } = usePerformanceSettings();
-  
+
   const [popups, setPopups] = useState<PopupData[]>([]);
   const idRef = useRef(0);
-  const frameRef = useRef<number>();
 
-  // Animation loop
-  useEffect(() => {
-    if (popups.length === 0) return;
-    
-    const animate = () => {
-      setPopups(prev => {
-        const updated = prev
-          .map(p => ({
-            ...p,
-            y: p.y + p.vy,
-            vy: p.vy - 0.1, // decelerate upward
-            scale: p.scale + 0.01, // grow slightly
-            alpha: Math.max(0, p.alpha - 0.02),
-            life: p.life - 1,
-          }))
-          .filter(p => p.life > 0 && p.alpha > 0);
-        
-        return updated;
-      });
-      
-      if (popups.length > 0) {
-        frameRef.current = requestAnimationFrame(animate);
-      }
-    };
-    
-    frameRef.current = requestAnimationFrame(animate);
-    
-    return () => {
-      if (frameRef.current) {
-        cancelAnimationFrame(frameRef.current);
-      }
-    };
-  }, [popups.length]);
+  const tickCallback = useCallback((ticker: { deltaMS: number }) => {
+    setPopups(prev => {
+      if (prev.length === 0) return prev;
 
-  // Add a new popup
+      const dt = ticker.deltaMS / 16.667;
+      const updated = prev
+        .map(p => ({
+          ...p,
+          y: p.y + p.vy * dt,
+          vy: p.vy - 0.1 * dt,
+          scale: p.scale + 0.01 * dt,
+          alpha: Math.max(0, p.alpha - 0.02 * dt),
+          life: p.life - dt,
+        }))
+        .filter(p => p.life > 0 && p.alpha > 0);
+
+      return updated;
+    });
+  }, []);
+
+  useTick(tickCallback);
+
   const addPopup = useCallback((
-    x: number, 
-    y: number, 
-    text: string, 
+    x: number,
+    y: number,
+    text: string,
     color?: number
   ) => {
     if (prefersReducedMotion) return;
-    
+
     const popup: PopupData = {
       id: idRef.current++,
       x,
@@ -83,54 +67,42 @@ export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps)
       color: color ?? 0xFFFFFF,
       scale: 1,
       alpha: 1,
-      vy: -3, // initial upward velocity
-      life: 60, // ~1 second at 60fps
+      vy: -3,
+      life: 60,
     };
-    
+
     setPopups(prev => [...prev, popup]);
   }, [prefersReducedMotion]);
 
-  // Preset for score popup
   const showScore = useCallback((points: number, y: number) => {
     const x = (gridWidth * gridSize) / 2;
     const adjustedY = y * gridSize;
     addPopup(x, adjustedY, `+${points}`, colors.accent);
   }, [addPopup, colors.accent, gridSize, gridWidth]);
 
-  // Preset for combo popup
   const showCombo = useCallback((combo: number, y: number) => {
     const x = (gridWidth * gridSize) / 2;
     const adjustedY = y * gridSize;
-    
+
     let text = '';
     let color = colors.accent;
-    
+
     if (combo >= 7) {
       text = 'INCREDIBLE!';
-      color = 0xFFD700; // gold
+      color = 0xFFD700;
     } else if (combo >= 5) {
       text = 'AMAZING!';
-      color = 0xFF00FF; // magenta
+      color = 0xFF00FF;
     } else if (combo >= 3) {
       text = 'NICE!';
-      color = 0x00FF88; // green
+      color = 0x00FF88;
     } else {
       text = `${combo}x COMBO`;
     }
-    
+
     addPopup(x, adjustedY, text, color);
   }, [addPopup, colors.accent, gridSize, gridWidth]);
 
-  // Store methods globally for access
-  useEffect(() => {
-    (window as any).__scorePopup = { addPopup, showScore, showCombo };
-    
-    return () => {
-      delete (window as any).__scorePopup;
-    };
-  }, [addPopup, showScore, showCombo]);
-
-  // Text style
   const textStyle = new TextStyle({
     fontFamily: FONT_BOLD,
     fontSize: 24,
@@ -164,12 +136,5 @@ export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps)
     </>
   );
 };
-
-/**
- * Hook to access score popup methods
- */
-export function useScorePopup() {
-  return (window as any).__scorePopup || null;
-}
 
 export default ScorePopup;

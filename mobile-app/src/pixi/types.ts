@@ -1,5 +1,5 @@
 import type { PixiReactElementProps } from '@pixi/react';
-import type { Container, Graphics, Sprite, Text, TilingSprite } from 'pixi.js';
+import type { Container, Graphics, Sprite, Text, TilingSprite, NineSliceSprite } from 'pixi.js';
 
 // Extend PixiElements for TypeScript support
 declare module '@pixi/react' {
@@ -9,6 +9,7 @@ declare module '@pixi/react' {
     pixiSprite: PixiReactElementProps<typeof Sprite>;
     pixiText: PixiReactElementProps<typeof Text>;
     pixiTilingSprite: PixiReactElementProps<typeof TilingSprite>;
+    pixiNineSliceSprite: PixiReactElementProps<typeof NineSliceSprite>;
   }
 }
 

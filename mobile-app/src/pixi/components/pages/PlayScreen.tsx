@@ -1,4 +1,4 @@
-import { Application } from '@pixi/react';
+import { Application, useTick } from '@pixi/react';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Assets, Texture, Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { PixiThemeProvider, usePixiTheme } from '../../themes/ThemeContext';
@@ -11,7 +11,6 @@ import { ParticleSystem } from '../effects/ParticleSystem';
 import { ScorePopup } from '../effects/ScorePopup';
 import { ScreenShakeContainer, useScreenShake } from '../effects/ScreenShake';
 import { GameOverModal, VictoryModal, LevelCompleteModal } from '../modals';
-import { CubeBalance } from '../topbar/CubeBalance';
 import { ScorePanel } from '../game/ScorePanel';
 import { MovesPanel } from '../game/MovesPanel';
 import { BonusType } from '@/dojo/game/types/bonus';
@@ -19,8 +18,7 @@ import { ConstraintType } from '@/dojo/game/types/constraint';
 import { useAnimatedValue, usePulse, easings } from '../../hooks/useAnimatedValue';
 import type { Block } from '@/types/types';
 import type { ConstraintData } from '../hud';
-import { FONT_TITLE, FONT_BOLD, FONT_BODY } from '../../utils/colors';
-
+import { FONT_TITLE, FONT_BOLD, FONT_BODY, THEME_ASSETS } from '../../utils/colors';
 
 export interface BonusSlotData {
   type: number;
@@ -124,6 +122,7 @@ const SkyBackground = ({ w, h }: { w: number; h: number }) => {
 const Clouds = ({ w, h }: { w: number; h: number }) => {
   const cloudsRef = useRef<CloudData[]>([]);
   const [, setTick] = useState(0);
+  const frameCountRef = useRef(0);
 
   useEffect(() => {
     if (cloudsRef.current.length > 0) return;
@@ -140,21 +139,17 @@ const Clouds = ({ w, h }: { w: number; h: number }) => {
     }
   }, [w, h]);
 
-  useEffect(() => {
-    let raf: number;
-    let fc = 0;
-    const loop = () => {
-      fc++;
-      for (const c of cloudsRef.current) {
-        c.x += c.speed;
-        if (c.x > w + 150) { c.x = -150 * c.scale; c.y = 30 + Math.random() * h * 0.15; }
-      }
-      if (fc % 3 === 0) setTick(n => n + 1);
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+  const tickCallback = useCallback((ticker: { deltaMS: number }) => {
+    const dt = ticker.deltaMS / 16.667;
+    for (const c of cloudsRef.current) {
+      c.x += c.speed * dt;
+      if (c.x > w + 150) { c.x = -150 * c.scale; c.y = 30 + Math.random() * h * 0.15; }
+    }
+    frameCountRef.current++;
+    if (frameCountRef.current % 3 === 0) setTick(n => n + 1);
   }, [w, h]);
+
+  useTick(tickCallback);
 
   const drawCloud = useCallback((g: PixiGraphics, s: number) => {
     g.clear();
@@ -175,352 +170,154 @@ const Clouds = ({ w, h }: { w: number; h: number }) => {
   );
 };
 
-// Slim icon button for the top bar
-const TopBarButton = ({
-  x, y, size, icon, onClick,
+const HudPillButton = ({
+  x, y, w, h, icon, onClick,
 }: {
-  x: number; y: number; size: number; icon: string; onClick: () => void;
+  x: number; y: number; w: number; h: number; icon: string; onClick: () => void;
 }) => {
   const [pressed, setPressed] = useState(false);
-  const [hovered, setHovered] = useState(false);
-  const scale = pressed ? 0.9 : hovered ? 1.05 : 1;
 
   const draw = useCallback((g: PixiGraphics) => {
     g.clear();
-    g.roundRect(0, 0, size, size, 8);
-    g.fill({ color: hovered ? 0x334155 : 0x1e293b, alpha: 0.7 });
-    g.roundRect(0, 0, size, size, 8);
-    g.stroke({ width: 1, color: 0x475569, alpha: 0.3 });
-  }, [size, hovered]);
+    g.roundRect(0, 0, w, h, h / 2);
+    g.fill({ color: pressed ? 0x555555 : 0x333333, alpha: 0.85 });
+  }, [w, h, pressed]);
 
   return (
-    <pixiContainer x={x} y={y} scale={scale}>
+    <pixiContainer x={x} y={y} scale={pressed ? 0.92 : 1}>
       <pixiGraphics draw={draw}
         eventMode="static" cursor="pointer"
         onPointerDown={() => setPressed(true)}
         onPointerUp={() => { setPressed(false); onClick(); }}
-        onPointerUpOutside={() => { setPressed(false); setHovered(false); }}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => { setHovered(false); setPressed(false); }}
+        onPointerUpOutside={() => setPressed(false)}
       />
-      <pixiText text={icon} x={size / 2} y={size / 2} anchor={0.5}
-        style={{ fontSize: size * 0.45 }}
+      <pixiText text={icon} x={w / 2} y={h / 2} anchor={0.5}
+        style={{ fontSize: h * 0.5 }}
       />
     </pixiContainer>
   );
 };
 
-const GameTopBar = ({
-  sw, topBarH, uiScale, cubeBalance, level, combo, maxCombo, totalScore,
+const StatsBar = ({
+  sw, barY, barH, gridX, gridW, uiScale,
+  level, levelScore, targetScore, moves, maxMoves, combo, isInDanger, cubeBalance,
   onHomeClick,
 }: {
-  sw: number; topBarH: number; uiScale: number;
-  cubeBalance: number; level: number; combo: number; maxCombo: number; totalScore: number;
+  sw: number; barY: number; barH: number; gridX: number; gridW: number; uiScale: number;
+  level: number; levelScore: number; targetScore: number; moves: number; maxMoves: number;
+  combo: number; isInDanger: boolean; cubeBalance: number;
   onHomeClick: () => void;
 }) => {
-  const btnSize = 30;
-  const pad = Math.round(10 * uiScale);
-  const centerY = (topBarH - btnSize) / 2;
+  const { colors, getAssetPath } = usePixiTheme();
+  const dangerPulse = usePulse(isInDanger, { minScale: 1.0, maxScale: 1.08, duration: 400 });
 
-  const drawBg = useCallback((g: PixiGraphics) => {
+  const [hudTex, setHudTex] = useState<Texture | null>(null);
+  useEffect(() => {
+    const path = getAssetPath(THEME_ASSETS.hudBar);
+    Assets.load(path).then(t => setHudTex(t as Texture)).catch(() => setHudTex(null));
+  }, [getAssetPath]);
+
+  const pad = Math.round(8 * uiScale);
+  const barX = gridX - pad;
+  const barW = gridW + pad * 2;
+  const radius = barH / 2;
+
+  const backBtnW = Math.round(28 * uiScale);
+  const backBtnH = barH - 6;
+  const backBtnX = 3;
+  const backBtnY = 3;
+
+  const levelBadgeR = Math.round((barH - 4) / 2);
+  const levelBadgeX = backBtnW + Math.round(8 * uiScale);
+  const levelBadgeCX = levelBadgeX + levelBadgeR;
+  const levelBadgeCY = barH / 2;
+
+  const scoreX = levelBadgeX + levelBadgeR * 2 + Math.round(10 * uiScale);
+  const cubeX = barW - Math.round(14 * uiScale);
+
+  const drawBar = useCallback((g: PixiGraphics) => {
     g.clear();
-    g.rect(0, 0, sw, topBarH);
-    g.fill({ color: 0x000000, alpha: 1 });
-    g.moveTo(0, topBarH - 0.5);
-    g.lineTo(sw, topBarH - 0.5);
-    g.stroke({ color: 0x1e293b, width: 0.5, alpha: 0.5 });
-  }, [sw, topBarH]);
+    if (!hudTex) {
+      g.roundRect(0, 0, barW, barH, radius);
+      g.fill({ color: colors.hudBar, alpha: 0.92 });
+      g.roundRect(0, 0, barW, barH, radius);
+      g.stroke({ color: colors.hudBarBorder, width: 1.5, alpha: 0.3 });
+    }
+
+    g.circle(levelBadgeCX, levelBadgeCY, levelBadgeR);
+    g.fill({ color: 0xB8860B, alpha: 0.9 });
+    g.circle(levelBadgeCX, levelBadgeCY, levelBadgeR);
+    g.stroke({ color: 0xDAA520, width: 1.5, alpha: 0.6 });
+  }, [barW, barH, radius, colors, hudTex, levelBadgeCX, levelBadgeCY, levelBadgeR]);
 
   const levelStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BOLD,
-    fontSize: Math.round(14 * uiScale),
+    fontSize: Math.round(13 * uiScale),
     fontWeight: 'bold',
     fill: 0xffffff,
   }), [uiScale]);
 
-  const statLabelStyle = useMemo(() => new TextStyle({
-    fontFamily: FONT_BODY,
-    fontSize: Math.round(10 * uiScale),
-    fill: 0x64748b,
-  }), [uiScale]);
-
-  const statValueStyle = useMemo(() => new TextStyle({
-    fontFamily: FONT_BODY,
-    fontSize: Math.round(12 * uiScale),
-    fontWeight: 'bold',
-    fill: 0xf97316,
-  }), [uiScale]);
-
-  const scoreValueStyle = useMemo(() => new TextStyle({
-    fontFamily: FONT_BODY,
-    fontSize: Math.round(12 * uiScale),
-    fontWeight: 'bold',
-    fill: 0x60a5fa,
-  }), [uiScale]);
-
-  const afterBackX = pad + btnSize + Math.round(8 * uiScale);
-
-  return (
-    <pixiContainer y={0}>
-      <pixiGraphics draw={drawBg} eventMode="static"
-        onPointerDown={(e: any) => e.stopPropagation()} />
-
-      <TopBarButton x={pad} y={centerY} size={btnSize} icon="←" onClick={onHomeClick} />
-      <pixiText text={`Level ${level}`} x={afterBackX} y={topBarH / 2} anchor={{ x: 0, y: 0.5 }} style={levelStyle} />
-
-      <CubeBalance balance={cubeBalance} x={sw - pad - Math.round(90 * uiScale)} y={centerY} height={btnSize} uiScale={uiScale} />
-
-      {totalScore > 0 && (
-        <pixiContainer x={sw - pad - Math.round(90 * uiScale) - Math.round(70 * uiScale)} y={centerY}>
-          <pixiText text="Score" x={0} y={btnSize * 0.25} anchor={{ x: 0, y: 0.5 }} style={statLabelStyle} />
-          <pixiText text={String(totalScore)} x={Math.round(35 * uiScale)} y={btnSize * 0.25} anchor={{ x: 0, y: 0.5 }} style={scoreValueStyle} />
-        </pixiContainer>
-      )}
-
-      {maxCombo > 0 && (
-        <pixiContainer x={sw - pad - Math.round(90 * uiScale) - Math.round(130 * uiScale)} y={centerY}>
-          <pixiText text="🔥" x={0} y={btnSize * 0.28} anchor={{ x: 0, y: 0.5 }} style={{ fontSize: Math.round(12 * uiScale) }} />
-          <pixiText text={String(maxCombo)} x={Math.round(16 * uiScale)} y={btnSize * 0.25} anchor={{ x: 0, y: 0.5 }} style={statValueStyle} />
-        </pixiContainer>
-      )}
-    </pixiContainer>
-  );
-};
-
-const GameInfoBar = ({
-  levelScore, targetScore, moves, maxMoves,
-  constraint1, constraint2, combo, isInDanger,
-  layout,
-}: {
-  levelScore: number;
-  targetScore: number;
-  moves: number;
-  maxMoves: number;
-  constraint1?: ConstraintData;
-  constraint2?: ConstraintData;
-  combo: number;
-  isInDanger: boolean;
-  layout: ReturnType<typeof useFullscreenLayout>;
-}) => {
-  const { uiScale } = layout;
-  const animatedScore = useAnimatedValue(levelScore, { duration: 300, easing: easings.easeOut });
-  const dangerPulse = usePulse(isInDanger, { minScale: 1.0, maxScale: 1.06, duration: 400 });
-
-  const scoreProgress = Math.min(1, levelScore / Math.max(targetScore, 1));
-  const hasC1 = constraint1 && constraint1.type !== ConstraintType.None;
-  const hasC2 = constraint2 && constraint2.type !== ConstraintType.None;
-  const hasConstraints = hasC1 || hasC2;
-
-  const barX = layout.gridX;
-  const barY = layout.infoAreaY + Math.round(2 * uiScale);
-  const barW = layout.gridWidth;
-  const barH = layout.infoAreaHeight - Math.round(4 * uiScale);
-
-  const scoreSectionW = hasConstraints ? barW * 0.42 : barW * 0.6;
-  const movesSectionW = barW * 0.25;
-  const constraintSectionW = hasConstraints ? barW - scoreSectionW - movesSectionW : 0;
-  const constraintSectionX = scoreSectionW;
-  const movesSectionX = barW - movesSectionW;
-  const sectionCenterY = barH / 2;
-
-  const drawBar = useCallback((g: PixiGraphics) => {
-    g.clear();
-    g.roundRect(0, 0, barW, barH, 6);
-    g.fill({ color: 0x0f172a, alpha: 0.85 });
-    g.roundRect(0, 0, barW, barH, 6);
-    g.stroke({ color: 0x1e293b, width: 1, alpha: 0.6 });
-
-    const dividerPad = 6;
-    if (hasConstraints) {
-      g.moveTo(scoreSectionW, dividerPad);
-      g.lineTo(scoreSectionW, barH - dividerPad);
-      g.stroke({ color: 0x334155, width: 1, alpha: 0.4 });
-    }
-    g.moveTo(movesSectionX, dividerPad);
-    g.lineTo(movesSectionX, barH - dividerPad);
-    g.stroke({ color: 0x334155, width: 1, alpha: 0.4 });
-
-    const progressBarH = 3;
-    const progressBarY = barH - 7;
-    const progressBarX = 8;
-    const progressBarW = scoreSectionW - 16;
-    g.roundRect(progressBarX, progressBarY, progressBarW, progressBarH, 1.5);
-    g.fill({ color: 0x1e293b, alpha: 0.8 });
-    if (scoreProgress > 0) {
-      g.roundRect(progressBarX, progressBarY, progressBarW * scoreProgress, progressBarH, 1.5);
-      g.fill({ color: scoreProgress >= 1 ? 0x22c55e : 0x3b82f6 });
-    }
-  }, [barW, barH, hasConstraints, scoreSectionW, movesSectionX, scoreProgress]);
-
-  const scoreLabelStyle = useMemo(() => new TextStyle({
+  const labelStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BODY,
     fontSize: Math.round(9 * uiScale),
-    fill: 0x64748b,
+    fill: 0x94a3b8,
   }), [uiScale]);
 
-  const scoreValueStyle = useMemo(() => new TextStyle({
-    fontFamily: FONT_BODY,
-    fontSize: Math.round(11 * uiScale),
+  const scoreStyle = useMemo(() => new TextStyle({
+    fontFamily: FONT_BOLD,
+    fontSize: Math.round(13 * uiScale),
     fontWeight: 'bold',
-    fill: 0x93c5fd,
+    fill: 0xffffff,
   }), [uiScale]);
 
-  const scoreTargetStyle = useMemo(() => new TextStyle({
-    fontFamily: FONT_BODY,
-    fontSize: Math.round(11 * uiScale),
-    fontWeight: 'bold',
-    fill: 0x93c5fd,
-  }), [uiScale]);
-
-  const movesValueStyle = useMemo(() => new TextStyle({
+  const movesStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BOLD,
     fontSize: Math.round(14 * uiScale),
     fontWeight: 'bold',
     fill: isInDanger ? 0xef4444 : 0xffffff,
   }), [uiScale, isInDanger]);
 
-  const movesLabelStyle = useMemo(() => new TextStyle({
+  const cubeStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BODY,
-    fontSize: Math.round(9 * uiScale),
-    fill: isInDanger ? 0xfca5a5 : 0x64748b,
-  }), [uiScale, isInDanger]);
-
-  const constraintLabelStyle = useMemo(() => new TextStyle({
-    fontFamily: FONT_BODY,
-    fontSize: Math.round(10 * uiScale),
+    fontSize: Math.round(11 * uiScale),
     fontWeight: 'bold',
-    fill: 0xe2e8f0,
+    fill: 0xfbbf24,
   }), [uiScale]);
 
-  const drawConstraintDots = useCallback((g: PixiGraphics, c: ConstraintData, offsetX: number, centerY: number) => {
-    if (c.type !== ConstraintType.ClearLines || c.count === 0) return;
-    const dotR = Math.round(3.5 * uiScale);
-    const dotGap = Math.round(4 * uiScale);
-    const totalW = c.count * dotR * 2 + (c.count - 1) * dotGap;
-    const startX = offsetX - totalW / 2;
-    const satisfied = c.progress >= c.count;
-
-    for (let i = 0; i < c.count; i++) {
-      const cx = startX + i * (dotR * 2 + dotGap) + dotR;
-      const filled = i < c.progress;
-      g.circle(cx, centerY, dotR);
-      if (filled) {
-        g.fill({ color: satisfied ? 0x22c55e : 0xf97316, alpha: 1 });
-      } else {
-        g.fill({ color: 0x475569, alpha: 0.5 });
-      }
-    }
-  }, [uiScale]);
-
-  const drawConstraints = useCallback((g: PixiGraphics) => {
-    g.clear();
-    if (!hasConstraints) return;
-
-    const midX = constraintSectionW / 2;
-    const hasBoth = hasC1 && hasC2;
-    const rowH = hasBoth ? barH / 2 : barH;
-
-    if (hasC1 && constraint1) {
-      const cy = hasBoth ? rowH / 2 : sectionCenterY;
-      if (constraint1.type === ConstraintType.ClearLines) {
-        drawConstraintDots(g, constraint1, midX, cy + Math.round(4 * uiScale));
-      } else if (constraint1.type === ConstraintType.NoBonusUsed) {
-        const ok = !constraint1.bonusUsed;
-        g.roundRect(midX - 30, cy - 7, 60, 14, 3);
-        g.fill({ color: ok ? 0x14532d : 0x7f1d1d, alpha: 0.8 });
-        g.roundRect(midX - 30, cy - 7, 60, 14, 3);
-        g.stroke({ color: ok ? 0x22c55e : 0xef4444, width: 1, alpha: 0.6 });
-      }
-    }
-
-    if (hasC2 && constraint2) {
-      const cy = hasBoth ? rowH + rowH / 2 : sectionCenterY;
-      if (constraint2.type === ConstraintType.ClearLines) {
-        drawConstraintDots(g, constraint2, midX, cy + Math.round(4 * uiScale));
-      } else if (constraint2.type === ConstraintType.NoBonusUsed) {
-        const ok = !constraint2.bonusUsed;
-        g.roundRect(midX - 30, cy - 7, 60, 14, 3);
-        g.fill({ color: ok ? 0x14532d : 0x7f1d1d, alpha: 0.8 });
-        g.roundRect(midX - 30, cy - 7, 60, 14, 3);
-        g.stroke({ color: ok ? 0x22c55e : 0xef4444, width: 1, alpha: 0.6 });
-      }
-    }
-  }, [hasConstraints, hasC1, hasC2, constraint1, constraint2, constraintSectionW, barH, sectionCenterY, uiScale, drawConstraintDots]);
-
-  const getConstraintLabel = (c: ConstraintData): string => {
-    if (c.type === ConstraintType.ClearLines) return `${c.value}+`;
-    if (c.type === ConstraintType.NoBonusUsed) return c.bonusUsed ? 'No Bonus ✗' : 'No Bonus ✓';
-    return '';
-  };
-
-  const getConstraintColor = (c: ConstraintData): number => {
-    if (c.type === ConstraintType.NoBonusUsed) return c.bonusUsed ? 0xfca5a5 : 0x86efac;
-    if (c.type === ConstraintType.ClearLines) return c.progress >= c.count ? 0x86efac : 0xfbbf24;
-    return 0x94a3b8;
-  };
-
-  const c1Label = hasC1 ? getConstraintLabel(constraint1!) : '';
-  const c2Label = hasC2 ? getConstraintLabel(constraint2!) : '';
-  const c1Color = hasC1 ? getConstraintColor(constraint1!) : 0x94a3b8;
-  const c2Color = hasC2 ? getConstraintColor(constraint2!) : 0x94a3b8;
-  const hasBothConstraints = hasC1 && hasC2;
+  const movesX = barW - Math.round(14 * uiScale) - (cubeBalance > 0 ? Math.round(50 * uiScale) : 0);
 
   return (
     <pixiContainer x={barX} y={barY}>
+      {hudTex ? (
+        <pixiSprite texture={hudTex} width={barW} height={barH} />
+      ) : null}
       <pixiGraphics draw={drawBar} />
 
-      <pixiText text="Score" x={8} y={sectionCenterY - Math.round(4 * uiScale)} anchor={{ x: 0, y: 0.5 }} style={scoreLabelStyle} />
-      <pixiText text={String(Math.round(animatedScore))} x={Math.round(42 * uiScale)} y={sectionCenterY - Math.round(4 * uiScale)} anchor={{ x: 0, y: 0.5 }} style={scoreValueStyle} />
-      <pixiText text={String(targetScore)} x={scoreSectionW - 8} y={sectionCenterY - Math.round(4 * uiScale)} anchor={{ x: 1, y: 0.5 }} style={scoreTargetStyle} />
+      <HudPillButton x={backBtnX} y={backBtnY} w={backBtnW} h={backBtnH} icon="←" onClick={onHomeClick} />
 
-      {hasConstraints && (
-        <pixiContainer x={constraintSectionX}>
-          <pixiGraphics draw={drawConstraints} />
-          {hasC1 && (
-            <pixiText
-              text={c1Label}
-              x={constraintSectionW / 2}
-              y={hasBothConstraints ? barH * 0.25 - Math.round(4 * uiScale) : sectionCenterY - Math.round(4 * uiScale)}
-              anchor={0.5}
-              style={new TextStyle({
-                fontFamily: FONT_BODY,
-                fontSize: Math.round(10 * uiScale),
-                fontWeight: 'bold',
-                fill: c1Color,
-              })}
-            />
-          )}
-          {hasC2 && (
-            <pixiText
-              text={c2Label}
-              x={constraintSectionW / 2}
-              y={hasBothConstraints ? barH * 0.75 - Math.round(4 * uiScale) : sectionCenterY - Math.round(4 * uiScale)}
-              anchor={0.5}
-              style={new TextStyle({
-                fontFamily: FONT_BODY,
-                fontSize: Math.round(10 * uiScale),
-                fontWeight: 'bold',
-                fill: c2Color,
-              })}
-            />
-          )}
+      <pixiText text={String(level)} x={levelBadgeCX} y={levelBadgeCY} anchor={0.5} style={levelStyle} />
+
+      <pixiContainer x={scoreX} y={barH / 2}>
+        <pixiText text={String(levelScore)} x={0} y={-1} anchor={{ x: 0, y: 0.5 }} style={scoreStyle} />
+        <pixiText text={`/${targetScore}`} x={String(levelScore).length * Math.round(8 * uiScale) + 2} y={-1} anchor={{ x: 0, y: 0.5 }} style={labelStyle} />
+      </pixiContainer>
+
+      <pixiContainer x={movesX} y={barH / 2} scale={isInDanger ? dangerPulse : 1}>
+        <pixiText text={String(moves)} x={0} y={-1} anchor={{ x: 1, y: 0.5 }} style={movesStyle} />
+        <pixiText text={`/${maxMoves}`} x={2} y={-1} anchor={{ x: 0, y: 0.5 }} style={labelStyle} />
+      </pixiContainer>
+
+      {cubeBalance > 0 && (
+        <pixiContainer x={cubeX} y={barH / 2}>
+          <pixiText text={`🧊${cubeBalance}`} x={0} y={0} anchor={{ x: 1, y: 0.5 }} style={cubeStyle} />
         </pixiContainer>
       )}
-
-      <pixiContainer
-        x={movesSectionX + movesSectionW / 2}
-        y={sectionCenterY}
-        scale={isInDanger ? dangerPulse : 1}
-      >
-        <pixiText text={String(moves)} x={0} y={-Math.round(2 * uiScale)} anchor={0.5} style={movesValueStyle} />
-        <pixiText text="moves" x={0} y={Math.round(10 * uiScale)} anchor={0.5} style={movesLabelStyle} />
-      </pixiContainer>
 
       {combo > 0 && (
         <pixiText
           text={`${combo}x`}
-          x={movesSectionX - Math.round(6 * uiScale)}
-          y={sectionCenterY}
+          x={movesX - Math.round(32 * uiScale)}
+          y={barH / 2}
           anchor={0.5}
           style={new TextStyle({
             fontFamily: FONT_BOLD,
@@ -533,6 +330,123 @@ const GameInfoBar = ({
     </pixiContainer>
   );
 };
+
+const ProgressHudBar = ({
+  sw, barY, barH, gridX, gridW, uiScale,
+  levelScore, targetScore, stars,
+  constraint1, constraint2,
+}: {
+  sw: number; barY: number; barH: number; gridX: number; gridW: number; uiScale: number;
+  levelScore: number; targetScore: number; stars: number;
+  constraint1?: ConstraintData;
+  constraint2?: ConstraintData;
+}) => {
+  const { colors, getAssetPath } = usePixiTheme();
+  const animatedScore = useAnimatedValue(levelScore, { duration: 300, easing: easings.easeOut });
+  const scoreProgress = Math.min(1, levelScore / Math.max(targetScore, 1));
+
+  const [hudTex, setHudTex] = useState<Texture | null>(null);
+  useEffect(() => {
+    const path = getAssetPath(THEME_ASSETS.hudBar);
+    Assets.load(path).then(t => setHudTex(t as Texture)).catch(() => setHudTex(null));
+  }, [getAssetPath]);
+
+  const hasC1 = constraint1 && constraint1.type !== ConstraintType.None;
+  const hasC2 = constraint2 && constraint2.type !== ConstraintType.None;
+  const hasConstraints = hasC1 || hasC2;
+
+  const pad = Math.round(8 * uiScale);
+  const barX = gridX - pad;
+  const barW = gridW + pad * 2;
+  const radius = barH / 2;
+
+  const progressPad = Math.round(10 * uiScale);
+  const starSection = Math.round(40 * uiScale);
+  const constraintSection = hasConstraints ? Math.round(70 * uiScale) : 0;
+  const progressW = barW - progressPad * 2 - starSection - constraintSection;
+  const progressH = Math.round(8 * uiScale);
+  const progressX = progressPad;
+  const progressY = (barH - progressH) / 2;
+
+  const drawBar = useCallback((g: PixiGraphics) => {
+    g.clear();
+
+    if (!hudTex) {
+      g.roundRect(0, 0, barW, barH, radius);
+      g.fill({ color: colors.hudBar, alpha: 0.88 });
+      g.roundRect(0, 0, barW, barH, radius);
+      g.stroke({ color: colors.hudBarBorder, width: 1, alpha: 0.25 });
+    }
+
+    g.roundRect(progressX, progressY, progressW, progressH, progressH / 2);
+    g.fill({ color: 0x333333, alpha: 0.8 });
+
+    if (scoreProgress > 0) {
+      const fillW = Math.max(progressH, progressW * scoreProgress);
+      const fillColor = scoreProgress >= 1 ? 0x22c55e : scoreProgress > 0.7 ? 0x4ade80 : 0x3b82f6;
+      g.roundRect(progressX, progressY, fillW, progressH, progressH / 2);
+      g.fill({ color: fillColor });
+    }
+
+    if (hasConstraints) {
+      const cX = progressX + progressW + Math.round(6 * uiScale);
+      const cMid = barH / 2;
+
+      if (hasC1 && constraint1) {
+        drawConstraintInline(g, constraint1, cX, hasC2 ? cMid - Math.round(5 * uiScale) : cMid, uiScale);
+      }
+      if (hasC2 && constraint2) {
+        drawConstraintInline(g, constraint2, cX, hasC1 ? cMid + Math.round(5 * uiScale) : cMid, uiScale);
+      }
+    }
+  }, [barW, barH, radius, colors, hudTex, progressX, progressY, progressW, progressH, scoreProgress, hasConstraints, hasC1, hasC2, constraint1, constraint2, uiScale]);
+
+  const starX = barW - starSection;
+
+  return (
+    <pixiContainer x={barX} y={barY}>
+      {hudTex ? <pixiSprite texture={hudTex} width={barW} height={barH} /> : null}
+      <pixiGraphics draw={drawBar} />
+
+      <pixiContainer x={starX} y={barH / 2}>
+        {[0, 1, 2].map(i => (
+          <pixiText
+            key={i}
+            text={i < stars ? '⭐' : '☆'}
+            x={i * Math.round(12 * uiScale)}
+            y={0}
+            anchor={0.5}
+            style={new TextStyle({
+              fontSize: Math.round(10 * uiScale),
+              fill: i < stars ? 0xfbbf24 : 0x555555,
+            })}
+          />
+        ))}
+      </pixiContainer>
+    </pixiContainer>
+  );
+};
+
+function drawConstraintInline(g: PixiGraphics, c: ConstraintData, x: number, cy: number, uiScale: number) {
+  if (c.type === ConstraintType.ClearLines && c.count > 0) {
+    const dotR = Math.round(3 * uiScale);
+    const dotGap = Math.round(3 * uiScale);
+    const satisfied = c.progress >= c.count;
+
+    for (let i = 0; i < c.count; i++) {
+      const cx = x + i * (dotR * 2 + dotGap) + dotR;
+      const filled = i < c.progress;
+      g.circle(cx, cy, dotR);
+      g.fill({ color: filled ? (satisfied ? 0x22c55e : 0xf97316) : 0x555555, alpha: filled ? 1 : 0.5 });
+    }
+  } else if (c.type === ConstraintType.NoBonusUsed) {
+    const ok = !c.bonusUsed;
+    g.roundRect(x, cy - 6, Math.round(50 * uiScale), 12, 3);
+    g.fill({ color: ok ? 0x14532d : 0x7f1d1d, alpha: 0.8 });
+    g.roundRect(x, cy - 6, Math.round(50 * uiScale), 12, 3);
+    g.stroke({ color: ok ? 0x22c55e : 0xef4444, width: 1, alpha: 0.6 });
+  }
+}
 
 const LoadingScreen = ({ sw, sh }: { sw: number; sh: number }) => {
   const [dots, setDots] = useState('');
@@ -610,19 +524,20 @@ const PlayScreenInner = (props: PlayScreenProps) => {
       <SkyBackground w={sw} h={sh} />
       <Clouds w={sw} h={sh} />
 
-      <GameTopBar
-        sw={sw} topBarH={layout.topBarHeight} uiScale={uiScale}
-        cubeBalance={cubeBalance} level={level}
-        combo={combo} maxCombo={maxCombo} totalScore={totalScore}
+      <StatsBar
+        sw={sw} barY={layout.statsBarY} barH={layout.statsBarHeight}
+        gridX={layout.gridX} gridW={layout.gridWidth} uiScale={uiScale}
+        level={level} levelScore={levelScore} targetScore={targetScore}
+        moves={moves} maxMoves={maxMoves}
+        combo={combo} isInDanger={isPlayerInDanger} cubeBalance={cubeBalance}
         onHomeClick={onGoHome}
       />
 
-      <GameInfoBar
-        levelScore={levelScore} targetScore={targetScore}
-        moves={moves} maxMoves={maxMoves}
+      <ProgressHudBar
+        sw={sw} barY={layout.progressBarY} barH={layout.progressBarHeight}
+        gridX={layout.gridX} gridW={layout.gridWidth} uiScale={uiScale}
+        levelScore={levelScore} targetScore={targetScore} stars={stars}
         constraint1={constraint1} constraint2={constraint2}
-        combo={combo} isInDanger={isPlayerInDanger}
-        layout={layout}
       />
 
       {layout.showSidePanels && (

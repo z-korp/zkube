@@ -10,8 +10,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Assets, Texture, FederatedPointerEvent, TextStyle } from 'pixi.js';
-import { 
 import { FONT_BOLD } from '../utils/colors';
+import { 
   BUTTON_ASSETS, 
   BUTTON_BORDERS,
   ICON_BUTTON_BORDERS,

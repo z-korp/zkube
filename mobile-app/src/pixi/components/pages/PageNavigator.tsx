@@ -5,7 +5,8 @@
  * and slide out to the right when going back to home.
  */
 
-import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import { useTick } from '@pixi/react';
 
 // ============================================================================
 // TYPES
@@ -39,17 +40,29 @@ export const PageNavigatorProvider: React.FC<{ children: React.ReactNode }> = ({
   const [transitionDirection, setTransitionDirection] = useState<'forward' | 'back' | null>(null);
   const [transitionProgress, setTransitionProgress] = useState(0);
   
-  const transitionRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
+  const isAnimatingRef = useRef(false);
+  const [tickEnabled, setTickEnabled] = useState(false);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (transitionRef.current) {
-        cancelAnimationFrame(transitionRef.current);
-      }
-    };
+  const tickTransition = useCallback(() => {
+    if (!isAnimatingRef.current) return;
+    const elapsed = performance.now() - startTimeRef.current;
+    const progress = Math.min(elapsed / TRANSITION_DURATION, 1);
+
+    // Ease out cubic
+    const eased = 1 - Math.pow(1 - progress, 3);
+    setTransitionProgress(eased);
+
+    if (progress >= 1) {
+      isAnimatingRef.current = false;
+      setTickEnabled(false);
+      setIsTransitioning(false);
+      setTransitionDirection(null);
+      setTransitionProgress(0);
+      setPreviousPage(null);
+    }
   }, []);
+  useTick(tickTransition, tickEnabled);
 
   const animateTransition = useCallback((targetPage: PageId, direction: 'forward' | 'back') => {
     if (isTransitioning) return;
@@ -59,31 +72,10 @@ export const PageNavigatorProvider: React.FC<{ children: React.ReactNode }> = ({
     setTransitionDirection(direction);
     setTransitionProgress(0);
     startTimeRef.current = performance.now();
-
-    // Set current page immediately so we render the target page during transition
     setCurrentPage(targetPage);
 
-    const animate = (now: number) => {
-      const elapsed = now - startTimeRef.current;
-      const progress = Math.min(elapsed / TRANSITION_DURATION, 1);
-      
-      // Ease out cubic
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setTransitionProgress(eased);
-
-      if (progress < 1) {
-        transitionRef.current = requestAnimationFrame(animate);
-      } else {
-        // Transition complete
-        setIsTransitioning(false);
-        setTransitionDirection(null);
-        setTransitionProgress(0);
-        setPreviousPage(null);
-        transitionRef.current = null;
-      }
-    };
-
-    transitionRef.current = requestAnimationFrame(animate);
+    isAnimatingRef.current = true;
+    setTickEnabled(true);
   }, [currentPage, isTransitioning]);
 
   const navigate = useCallback((page: PageId) => {

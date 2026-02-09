@@ -1,30 +1,20 @@
-import { useCallback, useRef, useEffect, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { TextStyle, Graphics as PixiGraphics } from 'pixi.js';
+import { useTick } from '@pixi/react';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { FONT_BODY } from '../../utils/colors';
 
 interface ProgressBarProps {
-  /** Current score/progress value */
   current: number;
-  /** Target score to reach */
   target: number;
-  /** X position */
   x: number;
-  /** Y position */
   y: number;
-  /** Width of the progress bar */
   width: number;
-  /** Height of the progress bar */
   height: number;
-  /** Whether to show the score text */
   showScore?: boolean;
-  /** Whether in danger state (progress going backwards) */
   isDanger?: boolean;
 }
 
-/**
- * Animated progress bar showing level completion progress
- */
 export const ProgressBar = ({
   current,
   target,
@@ -36,26 +26,23 @@ export const ProgressBar = ({
   isDanger = false,
 }: ProgressBarProps) => {
   const { colors } = usePixiTheme();
-  
-  // Animated fill width
+
   const [animatedProgress, setAnimatedProgress] = useState(0);
   const targetProgress = Math.min(1, Math.max(0, current / target));
-  
-  // Animate progress changes
-  useEffect(() => {
-    const diff = targetProgress - animatedProgress;
-    if (Math.abs(diff) < 0.001) {
-      setAnimatedProgress(targetProgress);
-      return;
-    }
-    
-    const step = diff * 0.15; // Smooth easing
-    const frame = requestAnimationFrame(() => {
-      setAnimatedProgress(prev => prev + step);
-    });
-    
-    return () => cancelAnimationFrame(frame);
-  }, [targetProgress, animatedProgress]);
+  const progressRef = useRef(animatedProgress);
+
+  const tickCallback = useCallback((ticker: { deltaMS: number }) => {
+    const diff = targetProgress - progressRef.current;
+    if (Math.abs(diff) < 0.001) return;
+
+    // Lerp factor normalized to ~60fps
+    const lerpFactor = 1 - Math.pow(1 - 0.15, ticker.deltaMS / 16.667);
+    const step = diff * lerpFactor;
+    progressRef.current += step;
+    setAnimatedProgress(progressRef.current);
+  }, [targetProgress]);
+
+  useTick(tickCallback);
 
   const barHeight = height - 8;
   const cornerRadius = barHeight / 2;
@@ -64,40 +51,30 @@ export const ProgressBar = ({
   const innerCornerRadius = innerHeight / 2;
   const fillWidth = Math.max(0, (width - innerPadding * 2) * animatedProgress);
 
-  // Colors
   const bgColor = 0x0f172a;
   const fillColor = isDanger ? 0xef4444 : 0x3b82f6;
-  const glowColor = isDanger ? 0xf87171 : 0x60a5fa;
 
   const drawBackground = useCallback((g: PixiGraphics) => {
     g.clear();
-    
-    // Outer background
     g.roundRect(0, 0, width, barHeight, cornerRadius);
     g.fill({ color: bgColor, alpha: 0.9 });
-    
-    // Subtle border
     g.roundRect(0, 0, width, barHeight, cornerRadius);
     g.stroke({ color: 0x1e293b, width: 1, alpha: 0.5 });
   }, [width, barHeight, cornerRadius]);
 
   const drawFill = useCallback((g: PixiGraphics) => {
     g.clear();
-    
+
     if (fillWidth < innerCornerRadius * 2) {
-      // Too small for rounded rect, draw circle
       if (fillWidth > 0) {
         g.circle(innerPadding + innerHeight / 2, innerPadding + innerHeight / 2, fillWidth / 2);
         g.fill({ color: fillColor });
       }
       return;
     }
-    
-    // Main fill
+
     g.roundRect(innerPadding, innerPadding, fillWidth, innerHeight, innerCornerRadius);
     g.fill({ color: fillColor });
-    
-    // Highlight (top gradient effect)
     g.roundRect(innerPadding, innerPadding, fillWidth, innerHeight / 2, innerCornerRadius);
     g.fill({ color: 0xffffff, alpha: 0.15 });
   }, [fillWidth, innerHeight, innerCornerRadius, innerPadding, fillColor]);
@@ -113,7 +90,7 @@ export const ProgressBar = ({
     <pixiContainer x={x} y={y + 4}>
       <pixiGraphics draw={drawBackground} />
       <pixiGraphics draw={drawFill} />
-      
+
       {showScore && (
         <pixiText
           text={`${current} / ${target}`}
