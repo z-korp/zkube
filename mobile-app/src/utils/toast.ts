@@ -1,5 +1,5 @@
-import { toast } from "sonner";
 import { shortenHex } from "@dojoengine/utils";
+import { usePixiToastStore, type PixiToastType } from "@/pixi/notifications/store";
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -67,20 +67,19 @@ export const extractedMessage = (message: string) => {
 };
 
 export const notify = (message: string, transaction: any, toastId: string) => {
-  const toastPlacement = getToastPlacement();
-
   if (transaction.execution_status !== "REVERTED") {
     if (!shouldShowToast()) return;
-    toast.success(message, {
+    usePixiToastStore.getState().upsertToast({
       id: toastId,
+      message,
       description: shortenHex(transaction.transaction_hash),
-      action: getToastAction(transaction.transaction_hash),
-      position: toastPlacement,
+      type: "success",
     });
   } else {
-    toast.error(extractedMessage(transaction.revert_reason), {
+    usePixiToastStore.getState().upsertToast({
       id: toastId,
-      position: toastPlacement,
+      message: extractedMessage(transaction.revert_reason),
+      type: "error",
     });
   }
 };
@@ -88,8 +87,9 @@ export const notify = (message: string, transaction: any, toastId: string) => {
 interface ShowToastOptions {
   message: string;
   txHash?: string;
-  type?: "loading" | "success" | "error";
+  type?: PixiToastType;
   toastId?: string;
+  durationMs?: number;
 }
 
 export const showToast = ({
@@ -97,26 +97,15 @@ export const showToast = ({
   txHash,
   type = "loading",
   toastId = "transaction-toast",
+  durationMs,
 }: ShowToastOptions) => {
   if (!shouldShowToast()) return;
 
-  const toastPlacement = getToastPlacement();
-  const toastOptions = {
+  usePixiToastStore.getState().upsertToast({
     id: toastId,
+    message,
     description: txHash ? shortenHex(txHash) : undefined,
-    action: txHash ? getToastAction(txHash) : undefined,
-    position: toastPlacement,
-  };
-
-  switch (type) {
-    case "loading":
-      toast.loading(message, toastOptions);
-      break;
-    case "success":
-      toast.success(message, toastOptions);
-      break;
-    case "error":
-      toast.error(message, toastOptions);
-      break;
-  }
+    type,
+    durationMs,
+  });
 };

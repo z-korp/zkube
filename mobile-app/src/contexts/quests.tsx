@@ -35,8 +35,7 @@ import {
 import { useAccount } from "@starknet-react/core";
 import { NAMESPACE, QUEST_FAMILIES, QUEST_REWARDS } from "@/constants";
 import { useDojo } from "@/dojo/useDojo";
-import { toast } from "sonner";
-import { getToastPlacement } from "@/utils/toast";
+import { showToast } from "@/utils/toast";
 import type { QuestFamily, QuestFamilyId, QuestTier } from "@/types/questFamily";
 
 export type QuestProps = {
@@ -186,9 +185,10 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
               (c) => c.definition.id === parsed.quest_id,
             );
             if (quest) {
-              toast.success(`${quest.metadata.name}`, {
-                description: "Quest completed! Claim your reward.",
-                position: getToastPlacement(),
+              showToast({
+                message: `${quest.metadata.name}`,
+                type: "success",
+                toastId: `quest-complete-${parsed.quest_id}-${parsed.interval_id}`,
               });
             }
           }
@@ -238,9 +238,10 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
             (c) => c.definition.id === event.quest_id,
           );
           if (quest) {
-            toast.info(`${quest.metadata.name}`, {
-              description: "New quest unlocked!",
-              position: getToastPlacement(),
+            showToast({
+              message: `${quest.metadata.name}`,
+              type: "info",
+              toastId: `quest-unlocked-${event.quest_id}-${event.interval_id}`,
             });
           }
         }
@@ -253,9 +254,10 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
             (c) => c.definition.id === event.quest_id,
           );
           if (quest) {
-            toast.success(`${quest.metadata.name}`, {
-              description: "Quest completed! Claim your reward.",
-              position: getToastPlacement(),
+            showToast({
+              message: `${quest.metadata.name}`,
+              type: "success",
+              toastId: `quest-completed-event-${event.quest_id}-${event.interval_id}`,
             });
           }
         }
@@ -277,11 +279,11 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
                 return sum + (match ? parseInt(match[1], 10) : 0);
               }, 0);
             }
-            toast.success(`${quest.metadata.name}`, {
-              description: rewardAmount > 0 
-                ? `+${rewardAmount} CUBE claimed!` 
-                : "Reward claimed!",
-              position: getToastPlacement(),
+            showToast({
+              message: `${quest.metadata.name}`,
+              description: rewardAmount > 0 ? `+${rewardAmount} CUBE claimed!` : "Reward claimed!",
+              type: "success",
+              toastId: `quest-claimed-${event.quest_id}-${event.interval_id}`,
             });
           }
         }

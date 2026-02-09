@@ -1,15 +1,12 @@
 import type { IWorld } from "./contractSystems";
-import { toast } from "sonner";
 import * as SystemTypes from "./contractSystems";
-import { shortenHex } from "@dojoengine/utils";
 import { Account, type TransactionReceipt } from "starknet";
 import {
-  getToastPlacement,
   getUrl,
   getWalnutUrl,
   shouldShowToast,
-  getToastAction,
   notify,
+  showToast,
 } from "@/utils/toast";
 import { useMoveStore } from "@/stores/moveTxStore";
 import { createLogger } from "@/utils/logger";
@@ -25,7 +22,6 @@ const RETRY_DELAY_MS = 500;
 const POLL_INTERVAL_MS = 275;
 
 export function systems({ client }: { client: IWorld }) {
-  const toastPlacement = getToastPlacement();
   const log = createLogger("dojo/systems");
 
   /**
@@ -66,11 +62,7 @@ export function systems({ client }: { client: IWorld }) {
 
     try {
       if (shouldShowToast()) {
-        // Show initial loading toast before transaction
-        toast.loading("Transaction in progress...", {
-          id: toastId,
-          position: toastPlacement,
-        });
+        showToast({ message: "Transaction in progress...", type: "loading", toastId });
       }
 
       // Execute the transaction
@@ -82,12 +74,11 @@ export function systems({ client }: { client: IWorld }) {
       });
 
       if (shouldShowToast()) {
-        // Update the same toast with transaction hash
-        toast.loading("Transaction in progress...", {
-          description: shortenHex(transaction_hash),
-          action: getToastAction(transaction_hash),
-          id: toastId,
-          position: toastPlacement,
+        showToast({
+          message: "Transaction in progress...",
+          txHash: transaction_hash,
+          type: "loading",
+          toastId,
         });
       }
 
@@ -102,10 +93,7 @@ export function systems({ client }: { client: IWorld }) {
       if ((receipt as any).execution_status === "REVERTED") {
         log.error("Transaction reverted", receipt);
         if (shouldShowToast()) {
-          toast.error("Transaction reverted.", {
-            id: toastId,
-            position: toastPlacement,
-          });
+          showToast({ message: "Transaction reverted.", type: "error", toastId });
         }
         throw new Error("Transaction reverted");
       }
@@ -122,10 +110,7 @@ export function systems({ client }: { client: IWorld }) {
           error instanceof Error && error.message === "Transaction reverted"
             ? "Transaction reverted."
             : "Transaction failed.";
-        toast.error(errorMessage, {
-          id: toastId,
-          position: toastPlacement,
-        });
+        showToast({ message: errorMessage, type: "error", toastId });
       }
 
       throw error;

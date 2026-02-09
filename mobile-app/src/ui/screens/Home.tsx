@@ -18,10 +18,10 @@ import { useAccount, useConnect } from "@starknet-react/core";
 import ControllerConnector from "@cartridge/connector/controller";
 import type { GameTokenData } from "metagame-sdk";
 import { DEFAULT_SETTINGS_ID } from "@/dojo/game/types/level";
-import { toast } from "sonner";
 import { useQuests } from "@/contexts/quests";
 import { shortString } from "starknet";
 import { useMusicPlayer } from "@/contexts/hooks";
+import { showToast } from "@/utils/toast";
 
 // ============================================================================
 // HELPERS
@@ -193,10 +193,12 @@ export const Home = () => {
       if (cubesToBring > 0) {
         await refetchCubeBalance?.();
         const currentBalance = Number(cubeBalance);
-        if (cubesToBring > currentBalance) {
-          toast.error(
-            `Insufficient cubes. You have ${currentBalance} but tried to bring ${cubesToBring}.`
-          );
+          if (cubesToBring > currentBalance) {
+          showToast({
+            message: `Insufficient cubes. You have ${currentBalance} but tried to bring ${cubesToBring}.`,
+            type: "error",
+            toastId: "start-game-balance-error",
+          });
           return;
         }
       }
@@ -223,11 +225,14 @@ export const Home = () => {
           cubes_amount: cubesToBring,
         });
 
-        toast.success(
-          cubesToBring > 0
-            ? `Game #${gameId} started with ${cubesToBring} cubes!`
-            : `Game #${gameId} started! Good luck!`
-        );
+        showToast({
+          message:
+            cubesToBring > 0
+              ? `Game #${gameId} started with ${cubesToBring} cubes!`
+              : `Game #${gameId} started! Good luck!`,
+          type: "success",
+          toastId: "start-game-success",
+        });
 
         refetchGames?.();
 
@@ -235,9 +240,11 @@ export const Home = () => {
         navigate(`/play/${gameId}`);
       } catch (error) {
         console.error("Error starting game:", error);
-        toast.error(
-          "Failed to start game. Check My Games if a token was minted."
-        );
+        showToast({
+          message: "Failed to start game. Check My Games if a token was minted.",
+          type: "error",
+          toastId: "start-game-failed",
+        });
       } finally {
         setIsStartingGame(false);
       }

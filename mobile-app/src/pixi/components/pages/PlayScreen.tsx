@@ -13,6 +13,7 @@ import { ScreenShakeContainer, useScreenShake } from '../effects/ScreenShake';
 import { GameOverModal, VictoryModal, LevelCompleteModal } from '../modals';
 import { ScorePanel } from '../game/ScorePanel';
 import { MovesPanel } from '../game/MovesPanel';
+import { PixiToastLayer } from '../ui/PixiToastLayer';
 import { BonusType } from '@/dojo/game/types/bonus';
 import { ConstraintType } from '@/dojo/game/types/constraint';
 import { usePulseRef } from '../../hooks/useAnimatedValue';
@@ -487,6 +488,7 @@ const LoadingScreen = ({ sw, sh }: { sw: number; sh: number }) => {
     <pixiContainer>
       <SkyBackground w={sw} h={sh} />
       <Clouds w={sw} h={sh} />
+      <PixiToastLayer screenWidth={sw} topOffset={layout.statsBarY + 4} />
       <pixiText
         text={`Loading${dots}`}
         x={sw / 2} y={sh / 2 - 20} anchor={0.5}

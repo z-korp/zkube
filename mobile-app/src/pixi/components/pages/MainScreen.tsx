@@ -19,6 +19,7 @@ import { LoadoutPage } from './LoadoutPage';
 import { TutorialPage } from './TutorialPage';
 import { Button } from '../ui';
 import { CubeBalance } from '../topbar/CubeBalance';
+import { PixiToastLayer } from '../ui/PixiToastLayer';
 import type { PlayerMetaData } from '@/hooks/usePlayerMeta';
 import type { LeaderboardEntry } from '@/hooks/useLeaderboardSlot';
 import type { QuestFamily } from '@/types/questFamily';
@@ -582,6 +583,7 @@ const PageRenderer = (props: MainScreenProps & {
       {/* Background (shared, always visible) */}
       <SkyBackground w={sw} h={sh} />
       <Clouds w={sw} h={sh} />
+      <PixiToastLayer screenWidth={sw} topOffset={topBarH + 8} />
 
       {/* Current page only - fades in during transition */}
       <pixiContainer x={pageX} alpha={pageAlpha}>
