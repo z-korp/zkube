@@ -117,11 +117,12 @@ export function PixiProgressBar({
           x={width / 2}
           y={height / 2}
           anchor={0.5}
-          style={{
+          style={useMemo(() => ({
             fontFamily: FONT_BOLD,
             fontSize: Math.max(10, height - 6),
             fill: labelColor,
-          }}
+          }), [height, labelColor])}
+          eventMode="none"
         />
       )}
     </pixiContainer>
@@ -250,12 +251,13 @@ export function PixiBadge({
       <pixiText
         text={displayText}
         anchor={0.5}
-        style={{
+        style={useMemo(() => ({
           fontFamily: FONT_BOLD,
           fontSize: size * 0.6,
           fill: textColor,
           fontWeight: 'bold',
-        }}
+        }), [size, textColor])}
+        eventMode="none"
       />
     </pixiContainer>
   );

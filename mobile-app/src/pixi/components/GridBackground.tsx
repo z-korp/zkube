@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useMemo } from 'react';
+import { useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { Graphics as PixiGraphics, Texture, Assets } from 'pixi.js';
 import { usePixiTheme } from '../themes/ThemeContext';
 import { THEME_ASSETS } from '../utils/colors';
@@ -28,16 +28,27 @@ export const GridBackground = ({
   const dangerAlpha = isPlayerInDanger ? colors.dangerZoneAlpha : 0;
   const dangerPulse = usePulse(isPlayerInDanger, { minScale: 0.6, maxScale: 1.0, duration: 800 });
 
+  const prevGlowRef = useRef<InstanceType<typeof GlowFilter> | null>(null);
   const dangerGlowFilter = useMemo(() => {
+    if (prevGlowRef.current) {
+      prevGlowRef.current.destroy();
+      prevGlowRef.current = null;
+    }
     if (!isPlayerInDanger) return null;
-    return new GlowFilter({
+    const f = new GlowFilter({
       distance: 6,
       outerStrength: 3,
       innerStrength: 1,
       color: 0xef4444,
       quality: 0.1,
     });
+    prevGlowRef.current = f;
+    return f;
   }, [isPlayerInDanger]);
+
+  useEffect(() => {
+    return () => { prevGlowRef.current?.destroy(); };
+  }, []);
 
   const dangerFilters = useMemo(() => dangerGlowFilter ? [dangerGlowFilter] : [], [dangerGlowFilter]);
 

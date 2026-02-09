@@ -60,8 +60,8 @@ export const GameOverModal = ({
 
     return (
       <pixiContainer y={y}>
-        <pixiText text={label} x={0} y={0} style={labelStyle} />
-        <pixiText text={String(value)} x={buttonWidth} y={0} anchor={{ x: 1, y: 0 }} style={valueStyle} />
+        <pixiText text={label} x={0} y={0} style={labelStyle} eventMode="none" />
+        <pixiText text={String(value)} x={buttonWidth} y={0} anchor={{ x: 1, y: 0 }} style={valueStyle} eventMode="none" />
       </pixiContainer>
     );
   };
@@ -110,12 +110,12 @@ export const GameOverModal = ({
       <pixiContainer x={24} y={0}>
         {/* Game over icon */}
         <pixiContainer x={(buttonWidth - 64) / 2} y={0}>
-          <pixiGraphics draw={drawGameOverIcon} />
+          <pixiGraphics draw={drawGameOverIcon} eventMode="none" />
         </pixiContainer>
 
         {/* Stats box */}
         <pixiContainer y={80}>
-          <pixiGraphics draw={drawStatsBox} />
+          <pixiGraphics draw={drawStatsBox} eventMode="none" />
           
           <pixiContainer x={16} y={16}>
             <StatRow label="Final Level" value={level} y={0} />

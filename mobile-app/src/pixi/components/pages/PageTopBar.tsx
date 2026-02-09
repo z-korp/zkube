@@ -5,10 +5,17 @@
  * Uses theme-1 style with tropical/sky colors
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { usePageNavigator } from './PageNavigator';
 import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
+
+const PAGE_TITLE_STYLE = {
+  fontFamily: FONT_TITLE, fontSize: 20, fill: 0xFFFFFF,
+  dropShadow: { alpha: 0.3, angle: Math.PI / 4, blur: 2, distance: 1, color: 0x000000 },
+};
+const PAGE_SUBTITLE_STYLE = { fontFamily: FONT_BODY, fontSize: 11, fill: 0x94A3B8 };
+const BALANCE_TEXT_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xFFFFFF };
 
 
 // ============================================================================
@@ -49,6 +56,7 @@ const IconButton = ({
   const [pressed, setPressed] = useState(false);
   const [hovered, setHovered] = useState(false);
   const scale = pressed ? 0.9 : hovered ? 1.05 : 1;
+  const iconTextStyle = useMemo(() => ({ fontSize: size * 0.5 }), [size]);
 
   const draw = useCallback(
     (g: PixiGraphics) => {
@@ -89,7 +97,8 @@ const IconButton = ({
         x={size / 2}
         y={size / 2}
         anchor={0.5}
-        style={{ fontSize: size * 0.5 }}
+        style={iconTextStyle}
+        eventMode="none"
       />
     </pixiContainer>
   );
@@ -111,6 +120,7 @@ const CubeBalanceDisplay = ({
   height: number;
 }) => {
   const width = 100;
+  const cubeIconStyle = useMemo(() => ({ fontSize: height * 0.5 }), [height]);
 
   const draw = useCallback(
     (g: PixiGraphics) => {
@@ -127,25 +137,9 @@ const CubeBalanceDisplay = ({
 
   return (
     <pixiContainer x={x} y={y}>
-      <pixiGraphics draw={draw} />
-      <pixiText
-        text="🧊"
-        x={14}
-        y={height / 2}
-        anchor={{ x: 0, y: 0.5 }}
-        style={{ fontSize: height * 0.5 }}
-      />
-      <pixiText
-        text={String(balance)}
-        x={40}
-        y={height / 2}
-        anchor={{ x: 0, y: 0.5 }}
-        style={{
-          fontFamily: FONT_TITLE,
-          fontSize: 16,
-          fill: 0xFFFFFF,
-        }}
-      />
+      <pixiGraphics draw={draw} eventMode="none" />
+      <pixiText text="🧊" x={14} y={height / 2} anchor={{ x: 0, y: 0.5 }} style={cubeIconStyle} eventMode="none" />
+      <pixiText text={String(balance)} x={40} y={height / 2} anchor={{ x: 0, y: 0.5 }} style={BALANCE_TEXT_STYLE} eventMode="none" />
     </pixiContainer>
   );
 };
@@ -205,36 +199,9 @@ export const PageTopBar = ({
 
       {/* Title (center) */}
       <pixiContainer x={screenWidth / 2} y={topBarHeight / 2}>
-        <pixiText
-          text={title}
-          x={0}
-          y={subtitle ? -8 : 0}
-          anchor={0.5}
-          style={{
-            fontFamily: FONT_TITLE,
-            fontSize: 20,
-            fill: 0xFFFFFF,
-            dropShadow: {
-              alpha: 0.3,
-              angle: Math.PI / 4,
-              blur: 2,
-              distance: 1,
-              color: 0x000000,
-            },
-          }}
-        />
+        <pixiText text={title} x={0} y={subtitle ? -8 : 0} anchor={0.5} style={PAGE_TITLE_STYLE} eventMode="none" />
         {subtitle && (
-          <pixiText
-            text={subtitle}
-            x={0}
-            y={10}
-            anchor={0.5}
-            style={{
-              fontFamily: FONT_BODY,
-              fontSize: 11,
-              fill: 0x94A3B8,
-            }}
-          />
+          <pixiText text={subtitle} x={0} y={10} anchor={0.5} style={PAGE_SUBTITLE_STYLE} eventMode="none" />
         )}
       </pixiContainer>
 

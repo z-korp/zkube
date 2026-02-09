@@ -1,7 +1,6 @@
 import { useApplication } from '@pixi/react';
-import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
-import { Assets, Texture, FederatedPointerEvent, Graphics as PixiGraphics, Container as PixiContainer } from 'pixi.js';
-import { DropShadowFilter } from 'pixi-filters';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Assets, Texture, FederatedPointerEvent, Graphics as PixiGraphics } from 'pixi.js';
 import type { Block } from '@/types/types';
 import { usePixiTheme, usePerformanceSettings } from '../themes/ThemeContext';
 import { getBlockColors, darkenColor } from '../utils/colors';
@@ -35,8 +34,6 @@ export const BlockSprite = ({
 }: BlockSpriteProps) => {
   const { app } = useApplication();
   const { themeName, colors } = usePixiTheme();
-  const { glowQuality, isMobile } = usePerformanceSettings();
-  
   const [texture, setTexture] = useState<Texture | null>(null);
   
   // Get block colors based on theme and block width
@@ -44,15 +41,6 @@ export const BlockSprite = ({
     getBlockColors(themeName, block.width),
     [themeName, block.width]
   );
-
-  const filters = useMemo(() => {
-    return [new DropShadowFilter({
-      offset: { x: 2, y: 2 },
-      color: 0x000000,
-      alpha: 0.3,
-      blur: 2,
-    })];
-  }, []);
 
   
 
@@ -194,7 +182,6 @@ export const BlockSprite = ({
       x={x + width / 2}
       y={y + height / 2}
       scale={visualState.scale}
-      filters={filters}
       eventMode="static"
       cursor={cursor}
       onPointerDown={handlePointerDown}
@@ -210,6 +197,7 @@ export const BlockSprite = ({
         height={height}
         anchor={0.5}
         alpha={visualState.alpha}
+        eventMode="none"
       />
     </pixiContainer>
   );

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { TextStyle, Graphics as PixiGraphics } from 'pixi.js';
 import { useTick } from '@pixi/react';
 import { usePixiTheme } from '../../themes/ThemeContext';
@@ -79,12 +79,12 @@ export const ProgressBar = ({
     g.fill({ color: 0xffffff, alpha: 0.15 });
   }, [fillWidth, innerHeight, innerCornerRadius, innerPadding, fillColor]);
 
-  const textStyle = new TextStyle({
+  const textStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BODY,
     fontSize: 12,
     fontWeight: 'bold',
     fill: 0xffffff,
-  });
+  }), []);
 
   return (
     <pixiContainer x={x} y={y + 4}>

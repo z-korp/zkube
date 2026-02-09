@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { TextStyle, Graphics as PixiGraphics } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { FONT_BOLD, FONT_BODY } from '../../utils/colors';
@@ -32,20 +32,20 @@ export const LevelBadge = ({ level, x, y, height }: LevelBadgeProps) => {
     g.stroke({ color: 0x475569, width: 1.5, alpha: 0.8 });
   }, [badgeWidth, badgeHeight]);
 
-  const textStyle = new TextStyle({
+  const textStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BODY,
     fontSize: 11,
     fontWeight: 'bold',
     fill: 0x94a3b8,
     letterSpacing: 1,
-  });
+  }), []);
 
-  const levelStyle = new TextStyle({
+  const levelStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BOLD,
     fontSize: 16,
     fontWeight: 'bold',
     fill: 0xffffff,
-  });
+  }), []);
 
   return (
     <pixiContainer x={x} y={y + 4}>

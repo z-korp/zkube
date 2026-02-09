@@ -3,11 +3,17 @@
  * Renders step cards with icons, descriptions, and info items in a scrollable list.
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { FONT_TITLE, FONT_BOLD, FONT_BODY } from '../../utils/colors';
 import { TUTORIAL_STEPS, type TutorialStep, type InfoStep } from '@/ui/components/Tutorial/tutorialSteps';
+
+const STEP_ICON_STYLE = { fontSize: 22 };
+const STEP_TITLE_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff };
+const ITEM_LABEL_STYLE = { fontFamily: FONT_BOLD, fontSize: 11, fill: 0xfbbf24 };
+const ITEM_DESC_BASE_STYLE = { fontFamily: FONT_BODY, fontSize: 11, fill: 0x94a3b8 };
+const FOOTER_STYLE = { fontFamily: FONT_BODY, fontSize: 11, fill: 0x64748b, fontStyle: 'italic' as const };
 
 // ============================================================================
 // CONSTANTS
@@ -61,6 +67,29 @@ const StepCard = ({
   const isInfo = step.type === 'info';
   const infoStep = isInfo ? (step as InfoStep) : null;
 
+  const stepNumStyle = useMemo(() => ({
+    fontFamily: FONT_BOLD, fontSize: 11, fill: accentColor,
+  }), [accentColor]);
+
+  const typeBadgeStyle = useMemo(() => ({
+    fontFamily: FONT_BOLD, fontSize: 9, fill: accentColor,
+  }), [accentColor]);
+
+  const descStyle = useMemo(() => ({
+    fontFamily: FONT_BODY, fontSize: 12, fill: 0x94a3b8,
+    wordWrap: true, wordWrapWidth: width - padding * 2 - 12,
+  }), [width]);
+
+  const itemDescStyle = useMemo(() => ({
+    ...ITEM_DESC_BASE_STYLE,
+    wordWrap: true, wordWrapWidth: width / 2 - padding - 20,
+  }), [width]);
+
+  const footerWrapStyle = useMemo(() => ({
+    ...FOOTER_STYLE,
+    wordWrap: true, wordWrapWidth: width - padding * 2 - 12,
+  }), [width]);
+
   // Calculate card height
   const headerH = 50;
   const descH = 32;
@@ -99,11 +128,8 @@ const StepCard = ({
         text={`${index + 1}`}
         x={20}
         y={padding + 2}
-        style={{
-          fontFamily: FONT_BOLD,
-          fontSize: 11,
-          fill: accentColor,
-        }}
+        style={stepNumStyle}
+        eventMode="none"
       />
 
       {/* Icon */}
@@ -112,7 +138,8 @@ const StepCard = ({
         x={40}
         y={padding + 12}
         anchor={{ x: 0, y: 0.5 }}
-        style={{ fontSize: 22 }}
+        style={STEP_ICON_STYLE}
+        eventMode="none"
       />
 
       {/* Title */}
@@ -121,11 +148,8 @@ const StepCard = ({
         x={70}
         y={padding + 12}
         anchor={{ x: 0, y: 0.5 }}
-        style={{
-          fontFamily: FONT_TITLE,
-          fontSize: 16,
-          fill: 0xffffff,
-        }}
+        style={STEP_TITLE_STYLE}
+        eventMode="none"
       />
 
       {/* Type badge */}
@@ -134,11 +158,8 @@ const StepCard = ({
         x={width - padding}
         y={padding + 12}
         anchor={{ x: 1, y: 0.5 }}
-        style={{
-          fontFamily: FONT_BOLD,
-          fontSize: 9,
-          fill: accentColor,
-        }}
+        style={typeBadgeStyle}
+        eventMode="none"
       />
 
       {/* Description */}
@@ -146,13 +167,8 @@ const StepCard = ({
         text={step.mobileDescription || step.description}
         x={padding + 6}
         y={headerH}
-        style={{
-          fontFamily: FONT_BODY,
-          fontSize: 12,
-          fill: 0x94a3b8,
-          wordWrap: true,
-          wordWrapWidth: width - padding * 2 - 12,
-        }}
+        style={descStyle}
+        eventMode="none"
       />
 
       {/* Info items */}
@@ -176,11 +192,8 @@ const StepCard = ({
               x={padding + 10}
               y={itemH / 2}
               anchor={{ x: 0, y: 0.5 }}
-              style={{
-                fontFamily: FONT_BOLD,
-                fontSize: 11,
-                fill: 0xfbbf24,
-              }}
+              style={ITEM_LABEL_STYLE}
+              eventMode="none"
             />
             {desc && (
               <pixiText
@@ -188,13 +201,8 @@ const StepCard = ({
                 x={width / 2 + 10}
                 y={itemH / 2}
                 anchor={{ x: 0, y: 0.5 }}
-                style={{
-                  fontFamily: FONT_BODY,
-                  fontSize: 11,
-                  fill: 0x94a3b8,
-                  wordWrap: true,
-                  wordWrapWidth: width / 2 - padding - 20,
-                }}
+                style={itemDescStyle}
+                eventMode="none"
               />
             )}
           </pixiContainer>
@@ -207,14 +215,8 @@ const StepCard = ({
           text={infoStep.footer}
           x={padding + 6}
           y={headerH + descH + itemsH + 4}
-          style={{
-            fontFamily: FONT_BODY,
-            fontSize: 11,
-            fill: 0x64748b,
-            fontStyle: 'italic',
-            wordWrap: true,
-            wordWrapWidth: width - padding * 2 - 12,
-          }}
+          style={footerWrapStyle}
+          eventMode="none"
         />
       )}
     </pixiContainer>

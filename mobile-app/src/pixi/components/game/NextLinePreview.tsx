@@ -104,13 +104,13 @@ export const NextLinePreview = ({
   }, [blocks]);
 
   if (isConsumed || nextLineBlocks.length === 0) {
-    const labelStyle = new TextStyle({
+    const labelStyle = useMemo(() => new TextStyle({
       fontFamily: FONT_BODY,
       fontSize: 10,
       fontWeight: 'normal',
       fill: 0x64748b,
       letterSpacing: 1,
-    });
+    }), []);
 
     return (
       <pixiContainer y={y}>

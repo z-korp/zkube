@@ -2,7 +2,7 @@
  * QuestsPage - Full-screen daily quests with progress bars and claim buttons
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { Button } from '../ui';
@@ -21,6 +21,14 @@ const FAMILY_ICONS: Record<string, string> = {
 // ============================================================================
 // COUNTDOWN TIMER
 // ============================================================================
+
+const TIMER_STYLE = { fontFamily: FONT_BODY, fontSize: 12, fill: 0x64748b };
+const PROGRESS_TEXT_STYLE = { fontFamily: FONT_BODY, fontSize: 11, fill: 0x94a3b8 };
+const TIER_ICON_STYLE = { fontSize: 14 };
+const TIER_REWARD_STYLE_BASE = { fontFamily: FONT_TITLE, fontSize: 12 };
+const FAMILY_ICON_STYLE = { fontSize: 22 };
+const FAMILY_NAME_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff };
+const EMPTY_STATE_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0x64748b };
 
 const CountdownTimer = ({ x, y }: { x: number; y: number }) => {
   const [timeLeft, setTimeLeft] = useState('00:00:00');
@@ -51,7 +59,8 @@ const CountdownTimer = ({ x, y }: { x: number; y: number }) => {
       x={x}
       y={y}
       anchor={{ x: 0.5, y: 0.5 }}
-      style={{ fontFamily: FONT_BODY, fontSize: 12, fill: 0x64748b }}
+      style={TIMER_STYLE}
+      eventMode="none"
     />
   );
 };
@@ -97,13 +106,14 @@ const ProgressBar = ({
 
   return (
     <pixiContainer x={x} y={y}>
-      <pixiGraphics draw={draw} />
+      <pixiGraphics draw={draw} eventMode="none" />
       <pixiText
         text={`${progress}/${target}`}
         x={width + 10}
         y={barH / 2}
         anchor={{ x: 0, y: 0.5 }}
-        style={{ fontFamily: FONT_BODY, fontSize: 11, fill: 0x94a3b8 }}
+        style={PROGRESS_TEXT_STYLE}
+        eventMode="none"
       />
     </pixiContainer>
   );
@@ -157,27 +167,33 @@ const TierRow = ({
     [width, isClaimable]
   );
 
+  const tierNameStyle = useMemo(() => ({
+    fontFamily: FONT_BODY, fontSize: 12, fill: textColor,
+  }), [textColor]);
+
+  const tierRewardStyle = useMemo(() => ({
+    ...TIER_REWARD_STYLE_BASE, fill: rewardColor,
+  }), [rewardColor]);
+
   return (
     <pixiContainer y={y}>
-      <pixiGraphics draw={drawBg} />
-      <pixiText text={icon} x={6} y={rowH / 2} anchor={{ x: 0, y: 0.5 }} style={{ fontSize: 14 }} />
+      <pixiGraphics draw={drawBg} eventMode="none" />
+      <pixiText text={icon} x={6} y={rowH / 2} anchor={{ x: 0, y: 0.5 }} style={TIER_ICON_STYLE} eventMode="none" />
       <pixiText
         text={`T${tier.tier}: ${tier.name}`}
         x={28}
         y={rowH / 2}
         anchor={{ x: 0, y: 0.5 }}
-        style={{
-          fontFamily: FONT_BODY,
-          fontSize: 12,
-          fill: textColor,
-        }}
+        style={tierNameStyle}
+        eventMode="none"
       />
       <pixiText
         text={`+${tier.reward}`}
         x={width - 6}
         y={rowH / 2}
         anchor={{ x: 1, y: 0.5 }}
-        style={{ fontFamily: FONT_TITLE, fontSize: 12, fill: rewardColor }}
+        style={tierRewardStyle}
+        eventMode="none"
       />
     </pixiContainer>
   );
@@ -241,30 +257,32 @@ const QuestFamilyCard = ({
 
   const progressColor = hasClaimable ? 0x22c55e : 0x3b82f6;
 
+  const familyProgressStyle = useMemo(() => ({
+    fontFamily: FONT_BODY, fontSize: 12, fill: allCompleted ? 0x22c55e : 0x64748b,
+  }), [allCompleted]);
+
   return (
     <pixiContainer y={y}>
       <pixiGraphics draw={drawCard} />
 
       {/* Header */}
       <pixiContainer x={cardPadding} y={cardPadding}>
-        <pixiText text={icon} x={0} y={12} anchor={{ x: 0, y: 0.5 }} style={{ fontSize: 22 }} />
+        <pixiText text={icon} x={0} y={12} anchor={{ x: 0, y: 0.5 }} style={FAMILY_ICON_STYLE} eventMode="none" />
         <pixiText
           text={family.name}
           x={32}
           y={12}
           anchor={{ x: 0, y: 0.5 }}
-          style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff }}
+          style={FAMILY_NAME_STYLE}
+          eventMode="none"
         />
         <pixiText
           text={`${family.currentTierIndex >= 0 ? family.currentTierIndex + 1 : family.totalTiers}/${family.totalTiers}`}
           x={width - cardPadding * 2}
           y={12}
           anchor={{ x: 1, y: 0.5 }}
-          style={{
-            fontFamily: FONT_BODY,
-            fontSize: 12,
-            fill: allCompleted ? 0x22c55e : 0x64748b,
-          }}
+          style={familyProgressStyle}
+          eventMode="none"
         />
       </pixiContainer>
 
@@ -421,7 +439,8 @@ export const QuestsPage = ({
             x={contentWidth / 2}
             y={80}
             anchor={0.5}
-            style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0x64748b }}
+            style={EMPTY_STATE_STYLE}
+            eventMode="none"
           />
         ) : allFamilies.length === 0 ? (
           <pixiText
@@ -429,7 +448,8 @@ export const QuestsPage = ({
             x={contentWidth / 2}
             y={80}
             anchor={0.5}
-            style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0x64748b }}
+            style={EMPTY_STATE_STYLE}
+            eventMode="none"
           />
         ) : (
           <pixiContainer

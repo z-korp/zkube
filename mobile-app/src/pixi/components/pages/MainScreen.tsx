@@ -24,6 +24,11 @@ import type { LeaderboardEntry } from '@/hooks/useLeaderboardSlot';
 import type { QuestFamily } from '@/types/questFamily';
 import { FONT_TITLE, FONT_BOLD, FONT_BODY } from '../../utils/colors';
 
+const MAIN_FOOTER_STYLE = {
+  fontFamily: FONT_BODY, fontSize: 10, fill: 0xFFFFFF,
+  dropShadow: { alpha: 0.4, angle: Math.PI / 4, blur: 2, distance: 1, color: 0x000000 },
+};
+
 // ============================================================================
 // CONSTANTS
 // ============================================================================
@@ -191,30 +196,39 @@ const Clouds = ({ w, h }: { w: number; h: number }) => {
 const Logo = ({ x, y, maxW, maxH }: { x: number; y: number; maxW: number; maxH: number }) => {
   const { getAssetPath } = usePixiTheme();
   const tex = useTexture(getAssetPath('logo.png'));
-  const [bounce, setBounce] = useState(0);
+  const containerRef = useRef<import('pixi.js').Container | null>(null);
   const timeRef = useRef(0);
 
   const tickBounce = useCallback((ticker: { deltaMS: number }) => {
     const dt = ticker.deltaMS / 16.667;
     timeRef.current += 0.025 * dt;
-    setBounce(Math.sin(timeRef.current * 2) * 4);
-  }, []);
+    const container = containerRef.current;
+    if (container) {
+      container.y = y + Math.sin(timeRef.current * 2) * 4;
+    }
+  }, [y]);
   useTick(tickBounce);
+
+  const logoFallbackStyle = useMemo(() => ({
+    fontFamily: FONT_TITLE, fontSize: 64, fill: 0x6D28D9, letterSpacing: 4,
+    stroke: { color: 0xFFFFFF, width: 5 },
+    dropShadow: { alpha: 0.3, angle: Math.PI / 6, blur: 6, distance: 4, color: 0x4C1D95 },
+  }), []);
 
   if (!tex) {
     return (
-      <pixiText text="zKube" x={x} y={y + bounce} anchor={0.5}
-        style={{
-          fontFamily: FONT_TITLE, fontSize: 64, fill: 0x6D28D9, letterSpacing: 4,
-          stroke: { color: 0xFFFFFF, width: 5 },
-          dropShadow: { alpha: 0.3, angle: Math.PI / 6, blur: 6, distance: 4, color: 0x4C1D95 },
-        }}
-      />
+      <pixiContainer ref={containerRef} x={x} y={y}>
+        <pixiText text="zKube" anchor={0.5} style={logoFallbackStyle} />
+      </pixiContainer>
     );
   }
 
   const scale = Math.min(maxW / tex.width, maxH / tex.height, 1);
-  return <pixiSprite texture={tex} x={x} y={y + bounce} anchor={0.5} scale={scale} />;
+  return (
+    <pixiContainer ref={containerRef} x={x} y={y}>
+      <pixiSprite texture={tex} anchor={0.5} scale={scale} />
+    </pixiContainer>
+  );
 };
 
 // ============================================================================
@@ -230,6 +244,10 @@ const LandingButton = ({
   const [pressed, setPressed] = useState(false);
   const [hovered, setHovered] = useState(false);
   const scale = pressed ? 0.95 : hovered ? 1.02 : 1;
+  const btnTextStyle = useMemo(() => ({
+    fontFamily: FONT_TITLE, fontSize, fill: 0xFFFFFF, letterSpacing: 1,
+    dropShadow: { alpha: 0.6, angle: Math.PI / 4, blur: 2, distance: 2, color: 0x000000 },
+  }), [fontSize]);
 
   const draw = useCallback((g: PixiGraphics) => {
     g.clear();
@@ -254,13 +272,7 @@ const LandingButton = ({
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => { setHovered(false); setPressed(false); }}
       />
-      <pixiText text={label} x={width / 2} y={height / 2} anchor={0.5}
-        style={{
-          fontFamily: FONT_TITLE, fontSize, fill: 0xFFFFFF,
-          letterSpacing: 1,
-          dropShadow: { alpha: 0.6, angle: Math.PI / 4, blur: 2, distance: 2, color: 0x000000 },
-        }}
-      />
+      <pixiText text={label} x={width / 2} y={height / 2} anchor={0.5} style={btnTextStyle} eventMode="none" />
     </pixiContainer>
   );
 };
@@ -277,6 +289,7 @@ const TopBarButton = ({
   const [pressed, setPressed] = useState(false);
   const [hovered, setHovered] = useState(false);
   const scale = pressed ? 0.9 : hovered ? 1.05 : 1;
+  const topBtnIconStyle = useMemo(() => ({ fontSize: size * 0.5 }), [size]);
 
   const draw = useCallback((g: PixiGraphics) => {
     g.clear();
@@ -298,9 +311,7 @@ const TopBarButton = ({
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => { setHovered(false); setPressed(false); }}
       />
-      <pixiText text={icon} x={size / 2} y={size / 2} anchor={0.5}
-        style={{ fontSize: size * 0.5 }}
-      />
+      <pixiText text={icon} x={size / 2} y={size / 2} anchor={0.5} style={topBtnIconStyle} eventMode="none" />
     </pixiContainer>
   );
 };
@@ -483,9 +494,8 @@ const HomePageContent = ({
       {/* Footer */}
       <pixiText text="Built on Starknet with Dojo"
         x={centerX} y={sh - 16} anchor={0.5}
-        style={{ fontFamily: FONT_BODY, fontSize: 10, fill: 0xFFFFFF,
-          dropShadow: { alpha: 0.4, angle: Math.PI / 4, blur: 2, distance: 1, color: 0x000000 },
-        }}
+        style={MAIN_FOOTER_STYLE}
+        eventMode="none"
       />
 
       {/* TopBar - last for z-order */}

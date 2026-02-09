@@ -3,12 +3,24 @@
  * Shows: Starting bonuses, bag sizes, bridging rank, unlock buttons
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { Button } from '../ui';
 import type { PlayerMetaData } from '@/hooks/usePlayerMeta';
 import { FONT_TITLE, FONT_BOLD, FONT_BODY } from '../../utils/colors';
+
+const SHOP_ICON_STYLE = { fontSize: 28 };
+const SHOP_LABEL_STYLE = { fontFamily: FONT_BODY, fontSize: 11, fill: 0x94a3b8 };
+const BRIDGING_TITLE_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff };
+const BRIDGING_RANK_STYLE = { fontFamily: FONT_BODY, fontSize: 12, fill: 0x94a3b8 };
+const BRIDGING_CUBES_STYLE = { fontFamily: FONT_TITLE, fontSize: 14, fill: 0xfbbf24 };
+const CONFIRM_TITLE_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff };
+const CONFIRM_COST_STYLE = { fontFamily: FONT_BOLD, fontSize: 18, fill: 0xfbbf24 };
+const CONFIRM_BALANCE_STYLE = { fontFamily: FONT_BODY, fontSize: 12, fill: 0x94a3b8 };
+const EMPTY_ICON_STYLE = { fontSize: 40 };
+const EMPTY_TITLE_STYLE = { fontFamily: FONT_TITLE, fontSize: 18, fill: 0x64748b };
+const EMPTY_SUB_STYLE = { fontFamily: FONT_BODY, fontSize: 13, fill: 0x94a3b8 };
 
 interface PendingPurchase {
   label: string;
@@ -114,6 +126,10 @@ const UpgradeCard = ({
     [width, height, isUnlocked]
   );
 
+  const cardTitleStyle = useMemo(() => ({
+    fontFamily: FONT_TITLE, fontSize: 16, fill: isUnlocked ? 0xffffff : 0x64748b,
+  }), [isUnlocked]);
+
   const nextStartingCost = startingLevel < 3 ? STARTING_BONUS_COSTS[startingLevel] : null;
   const nextBagCost = bagLevel < 3 ? BAG_SIZE_COSTS[bagLevel] : null;
   const canUpgradeStarting = nextStartingCost !== null && cubeBalance >= nextStartingCost;
@@ -124,23 +140,23 @@ const UpgradeCard = ({
     <pixiContainer x={x} y={y}>
       <pixiGraphics draw={drawCard} />
 
-      {/* Icon & Title */}
-      <pixiText text={icon} x={16} y={16} style={{ fontSize: 28 }} />
+      <pixiText text={icon} x={16} y={16} style={SHOP_ICON_STYLE} eventMode="none" />
       <pixiText
         text={title}
         x={52}
         y={20}
-        style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: isUnlocked ? 0xffffff : 0x64748b }}
+        style={cardTitleStyle}
+        eventMode="none"
       />
 
       {isUnlocked ? (
         <>
-          {/* Starting Level */}
           <pixiText
             text="Starting"
             x={16}
             y={52}
-            style={{ fontFamily: FONT_BODY, fontSize: 11, fill: 0x94a3b8 }}
+            style={SHOP_LABEL_STYLE}
+            eventMode="none"
           />
           <LevelPips level={startingLevel} maxLevel={3} x={16} y={68} color={0x60a5fa} />
           {nextStartingCost && onUpgradeStarting && (
@@ -162,7 +178,8 @@ const UpgradeCard = ({
             text="Bag Size"
             x={16}
             y={92}
-            style={{ fontFamily: FONT_BODY, fontSize: 11, fill: 0x94a3b8 }}
+            style={SHOP_LABEL_STYLE}
+            eventMode="none"
           />
           <LevelPips level={bagLevel} maxLevel={3} x={16} y={108} color={0x22c55e} />
           {nextBagCost && onUpgradeBag && (
@@ -239,25 +256,28 @@ const BridgingCard = ({
     <pixiContainer x={x} y={y}>
       <pixiGraphics draw={drawCard} />
 
-      <pixiText text="🌉" x={16} y={16} style={{ fontSize: 28 }} />
+      <pixiText text="🌉" x={16} y={16} style={SHOP_ICON_STYLE} eventMode="none" />
       <pixiText
         text="Bridging"
         x={52}
         y={20}
-        style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff }}
+        style={BRIDGING_TITLE_STYLE}
+        eventMode="none"
       />
 
       <pixiText
         text={`Rank ${rank}`}
         x={16}
         y={55}
-        style={{ fontFamily: FONT_BODY, fontSize: 12, fill: 0x94a3b8 }}
+        style={BRIDGING_RANK_STYLE}
+        eventMode="none"
       />
       <pixiText
         text={`Max ${maxCubes} cubes`}
         x={16}
         y={75}
-        style={{ fontFamily: FONT_TITLE, fontSize: 14, fill: 0xfbbf24 }}
+        style={BRIDGING_CUBES_STYLE}
+        eventMode="none"
       />
 
       <LevelPips level={rank} maxLevel={4} x={16} y={100} color={0xfbbf24} />
@@ -345,21 +365,24 @@ const ConfirmOverlay = ({
           x={modalW / 2}
           y={24}
           anchor={0.5}
-          style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff }}
+          style={CONFIRM_TITLE_STYLE}
+          eventMode="none"
         />
         <pixiText
           text={`Cost: ${purchase.cost} 🧊`}
           x={modalW / 2}
           y={52}
           anchor={0.5}
-          style={{ fontFamily: FONT_BOLD, fontSize: 18, fill: 0xfbbf24 }}
+          style={CONFIRM_COST_STYLE}
+          eventMode="none"
         />
         <pixiText
           text={`Balance: ${cubeBalance} → ${cubeBalance - purchase.cost}`}
           x={modalW / 2}
           y={76}
           anchor={0.5}
-          style={{ fontFamily: FONT_BODY, fontSize: 12, fill: 0x94a3b8 }}
+          style={CONFIRM_BALANCE_STYLE}
+          eventMode="none"
         />
         <Button
           text="Confirm"
@@ -481,21 +504,24 @@ export const ShopPage = ({
               x={contentWidth / 2}
               y={60}
               anchor={0.5}
-              style={{ fontSize: 40 }}
+              style={EMPTY_ICON_STYLE}
+              eventMode="none"
             />
             <pixiText
               text="Connect to view shop"
               x={contentWidth / 2}
               y={110}
               anchor={0.5}
-              style={{ fontFamily: FONT_TITLE, fontSize: 18, fill: 0x64748b }}
+              style={EMPTY_TITLE_STYLE}
+              eventMode="none"
             />
             <pixiText
               text="Log in to upgrade bonuses and abilities"
               x={contentWidth / 2}
               y={138}
               anchor={0.5}
-              style={{ fontFamily: FONT_BODY, fontSize: 13, fill: 0x94a3b8 }}
+              style={EMPTY_SUB_STYLE}
+              eventMode="none"
             />
           </pixiContainer>
         ) : (

@@ -50,22 +50,22 @@ export const CubeBalance = ({ balance, x, y, height, uiScale }: CubeBalanceProps
 
   return (
     <pixiContainer x={x} y={y}>
-      <pixiGraphics draw={drawBackground} />
+      <pixiGraphics draw={drawBackground} eventMode="none" />
       
-      {/* Cube icon */}
       <pixiGraphics
         x={padding + iconSize / 2}
         y={height / 2}
         draw={drawIcon}
+        eventMode="none"
       />
       
-      {/* Balance text */}
       <pixiText
         text={balance.toLocaleString()}
         x={padding + iconSize + iconPadding}
         y={height / 2}
         anchor={{ x: 0, y: 0.5 }}
         style={textStyle}
+        eventMode="none"
       />
     </pixiContainer>
   );

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { TextStyle, Graphics as PixiGraphics } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { ConstraintType } from '@/dojo/game/types/constraint';
@@ -135,12 +135,12 @@ export const ConstraintIndicator = ({
     }
   }, [width, height, bgColor, accentColor, constraint.type, constraint.count, constraint.progress]);
 
-  const labelStyle = new TextStyle({
+  const labelStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BODY,
     fontSize: 10,
     fontWeight: 'bold',
     fill: textColor,
-  });
+  }), [textColor]);
 
   return (
     <pixiContainer x={x} y={y}>

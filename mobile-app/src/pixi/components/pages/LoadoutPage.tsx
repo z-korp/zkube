@@ -22,6 +22,14 @@ import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
 const LOADOUT_STORAGE_KEY = "zkube_loadout";
 
+const LOCK_ICON_STYLE = { fontSize: 24 };
+const SLIDER_VALUE_STYLE = { fontFamily: FONT_TITLE, fontSize: 18, fill: 0xffffff };
+const SECTION_TITLE_STYLE = {
+  fontFamily: FONT_TITLE, fontSize: 20, fill: 0xffffff,
+  dropShadow: { alpha: 0.3, angle: Math.PI / 4, blur: 2, distance: 1, color: 0x000000 },
+};
+const CUBE_SECTION_STYLE = { fontFamily: FONT_TITLE, fontSize: 18, fill: 0xffffff };
+
 
 // ============================================================================
 // TYPES
@@ -228,11 +236,11 @@ const BonusTile = ({
         x={size / 2}
         y={size - 14}
         anchor={0.5}
-        style={{
-          fontFamily: FONT_BODY,
-          fontSize: 12,
+        style={useMemo(() => ({
+          fontFamily: FONT_BODY, fontSize: 12,
           fill: isLocked ? 0x9ca3af : 0xffffff,
-        }}
+        }), [isLocked])}
+        eventMode="none"
       />
       {isLocked && (
         <pixiText
@@ -240,7 +248,8 @@ const BonusTile = ({
           x={size / 2}
           y={size / 2}
           anchor={0.5}
-          style={{ fontSize: 24 }}
+          style={LOCK_ICON_STYLE}
+          eventMode="none"
         />
       )}
     </pixiContainer>
@@ -341,11 +350,8 @@ const CubeSlider = ({
         x={width + 20}
         y={knobRadius}
         anchor={{ x: 0, y: 0.5 }}
-        style={{
-          fontFamily: FONT_TITLE,
-          fontSize: 18,
-          fill: 0xffffff,
-        }}
+        style={SLIDER_VALUE_STYLE}
+        eventMode="none"
       />
     </pixiContainer>
   );
@@ -478,18 +484,8 @@ export const LoadoutPage = ({
           x={contentWidth / 2}
           y={0}
           anchor={{ x: 0.5, y: 0 }}
-          style={{
-            fontFamily: FONT_TITLE,
-            fontSize: 20,
-            fill: 0xffffff,
-            dropShadow: {
-              alpha: 0.3,
-              angle: Math.PI / 4,
-              blur: 2,
-              distance: 1,
-              color: 0x000000,
-            },
-          }}
+          style={SECTION_TITLE_STYLE}
+          eventMode="none"
         />
 
         {/* Bonus tiles */}
@@ -522,11 +518,8 @@ export const LoadoutPage = ({
               x={contentWidth / 2}
               y={0}
               anchor={{ x: 0.5, y: 0 }}
-              style={{
-                fontFamily: FONT_TITLE,
-                fontSize: 18,
-                fill: 0xffffff,
-              }}
+              style={CUBE_SECTION_STYLE}
+              eventMode="none"
             />
             <CubeSlider
               x={20}

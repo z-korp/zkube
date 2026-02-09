@@ -1,4 +1,4 @@
-import { useCallback, useRef, useMemo } from 'react';
+import { useCallback, useRef, useMemo, useEffect } from 'react';
 import type { Graphics as PixiGraphics } from 'pixi.js';
 import { useTick } from '@pixi/react';
 import { usePixiTheme, usePerformanceSettings } from '../../themes/ThemeContext';
@@ -151,6 +151,10 @@ export const ParticleSystem = ({ gridSize }: ParticleSystemProps) => {
 
   const bloomFilter = useMemo(() => new BloomFilter({ strength: 4 }), []);
   const filters = useMemo(() => [bloomFilter], [bloomFilter]);
+
+  useEffect(() => {
+    return () => { bloomFilter.destroy(); };
+  }, [bloomFilter]);
 
   return (
     <pixiContainer filters={filters}>

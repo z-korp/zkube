@@ -164,6 +164,7 @@ export const Button = ({
         anchor={{ x: 0.5, y: 0.5 }}
         style={textStyle}
         alpha={disabled ? 0.5 : 1}
+        eventMode="none"
       />
     </pixiContainer>
   );

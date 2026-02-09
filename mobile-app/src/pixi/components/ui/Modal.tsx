@@ -154,9 +154,9 @@ export const Modal = ({
           y={padding}
           anchor={{ x: 0.5, y: 0 }}
           style={titleStyle}
+          eventMode="none"
         />
 
-        {/* Subtitle */}
         {subtitle && (
           <pixiText
             text={subtitle}
@@ -164,6 +164,7 @@ export const Modal = ({
             y={padding + titleHeight}
             anchor={{ x: 0.5, y: 0 }}
             style={subtitleStyle}
+            eventMode="none"
           />
         )}
 
@@ -179,7 +180,7 @@ export const Modal = ({
               onClose();
             }}
           >
-            <pixiGraphics draw={drawCloseButton} />
+            <pixiGraphics draw={drawCloseButton} eventMode="none" />
           </pixiContainer>
         )}
 

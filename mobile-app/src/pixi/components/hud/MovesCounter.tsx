@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { TextStyle, Graphics as PixiGraphics } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { FONT_BOLD, FONT_BODY } from '../../utils/colors';
@@ -66,19 +66,19 @@ export const MovesCounter = ({
     g.stroke({ color: borderColor, width: 1.5, alpha: isCritical || isWarning ? 1 : 0.5 });
   }, [bgColor, pillWidth, pillHeight, cornerRadius, isCritical, isWarning]);
 
-  const movesStyle = new TextStyle({
+  const movesStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BOLD,
     fontSize: 16,
     fontWeight: 'bold',
     fill: textColor,
-  });
+  }), [textColor]);
 
-  const labelStyle = new TextStyle({
+  const labelStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BODY,
     fontSize: 9,
     fontWeight: 'normal',
     fill: 0x94a3b8,
-  });
+  }), []);
 
   return (
     <pixiContainer x={x} y={y + 4}>

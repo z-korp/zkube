@@ -20,6 +20,16 @@ import type { Block } from '@/types/types';
 import type { ConstraintData } from '../hud';
 import { FONT_TITLE, FONT_BOLD, FONT_BODY, THEME_ASSETS } from '../../utils/colors';
 
+const LOADING_TITLE_STYLE = {
+  fontFamily: FONT_TITLE, fontSize: 28, fill: 0xffffff,
+  dropShadow: { alpha: 0.4, angle: Math.PI / 4, blur: 4, distance: 2, color: 0x000000 },
+};
+const LOADING_SUB_STYLE = { fontFamily: FONT_BODY, fontSize: 14, fill: 0x94a3b8 };
+const BONUS_DESC_STYLE = {
+  fontFamily: FONT_TITLE, fontSize: 16, fill: 0xfbbf24,
+  dropShadow: { alpha: 0.8, angle: Math.PI / 4, blur: 4, distance: 2, color: 0x000000 },
+};
+
 export interface BonusSlotData {
   type: number;
   bonusType: BonusType;
@@ -192,7 +202,8 @@ const HudPillButton = ({
         onPointerUpOutside={() => setPressed(false)}
       />
       <pixiText text={icon} x={w / 2} y={h / 2} anchor={0.5}
-        style={{ fontSize: h * 0.5 }}
+        style={useMemo(() => ({ fontSize: h * 0.5 }), [h])}
+        eventMode="none"
       />
     </pixiContainer>
   );
@@ -284,6 +295,14 @@ const StatsBar = ({
     fill: 0xfbbf24,
   }), [uiScale]);
 
+  const comboColor = combo >= 5 ? 0xffd700 : combo >= 3 ? 0xf97316 : 0xfbbf24;
+  const comboStyle = useMemo(() => new TextStyle({
+    fontFamily: FONT_BOLD,
+    fontSize: Math.round(12 * uiScale),
+    fontWeight: 'bold',
+    fill: comboColor,
+  }), [uiScale, comboColor]);
+
   const movesX = barW - Math.round(14 * uiScale) - (cubeBalance > 0 ? Math.round(50 * uiScale) : 0);
 
   return (
@@ -319,12 +338,7 @@ const StatsBar = ({
           x={movesX - Math.round(32 * uiScale)}
           y={barH / 2}
           anchor={0.5}
-          style={new TextStyle({
-            fontFamily: FONT_BOLD,
-            fontSize: Math.round(12 * uiScale),
-            fontWeight: 'bold',
-            fill: combo >= 5 ? 0xffd700 : combo >= 3 ? 0xf97316 : 0xfbbf24,
-          })}
+          style={comboStyle}
         />
       )}
     </pixiContainer>
@@ -403,6 +417,16 @@ const ProgressHudBar = ({
 
   const starX = barW - starSection;
 
+  const starFilledStyle = useMemo(() => new TextStyle({
+    fontSize: Math.round(10 * uiScale),
+    fill: 0xfbbf24,
+  }), [uiScale]);
+
+  const starEmptyStyle = useMemo(() => new TextStyle({
+    fontSize: Math.round(10 * uiScale),
+    fill: 0x555555,
+  }), [uiScale]);
+
   return (
     <pixiContainer x={barX} y={barY}>
       {hudTex ? <pixiSprite texture={hudTex} width={barW} height={barH} /> : null}
@@ -416,10 +440,7 @@ const ProgressHudBar = ({
             x={i * Math.round(12 * uiScale)}
             y={0}
             anchor={0.5}
-            style={new TextStyle({
-              fontSize: Math.round(10 * uiScale),
-              fill: i < stars ? 0xfbbf24 : 0x555555,
-            })}
+            style={i < stars ? starFilledStyle : starEmptyStyle}
           />
         ))}
       </pixiContainer>
@@ -465,15 +486,14 @@ const LoadingScreen = ({ sw, sh }: { sw: number; sh: number }) => {
       <pixiText
         text={`Loading${dots}`}
         x={sw / 2} y={sh / 2 - 20} anchor={0.5}
-        style={{
-          fontFamily: FONT_TITLE, fontSize: 28, fill: 0xffffff,
-          dropShadow: { alpha: 0.4, angle: Math.PI / 4, blur: 4, distance: 2, color: 0x000000 },
-        }}
+        style={LOADING_TITLE_STYLE}
+        eventMode="none"
       />
       <pixiText
         text="Preparing the blocks..."
         x={sw / 2} y={sh / 2 + 20} anchor={0.5}
-        style={{ fontFamily: FONT_BODY, fontSize: 14, fill: 0x94a3b8 }}
+        style={LOADING_SUB_STYLE}
+        eventMode="none"
       />
     </pixiContainer>
   );
@@ -482,7 +502,7 @@ const LoadingScreen = ({ sw, sh }: { sw: number; sh: number }) => {
 const PlayScreenInner = (props: PlayScreenProps) => {
   const layout = useFullscreenLayout();
   const { screenWidth: sw, screenHeight: sh, uiScale } = layout;
-  const { offset, lineClear } = useScreenShake();
+  const { containerRef: shakeContainerRef, lineClear } = useScreenShake();
 
   const [isSurrendering, setIsSurrendering] = useState(false);
 
@@ -558,7 +578,7 @@ const PlayScreenInner = (props: PlayScreenProps) => {
         </>
       )}
 
-      <ScreenShakeContainer offset={offset}>
+      <ScreenShakeContainer containerRef={shakeContainerRef}>
         <pixiContainer x={layout.gridX} y={layout.gridY}>
           <GridBackground
             gridSize={layout.cellSize}
@@ -607,10 +627,8 @@ const PlayScreenInner = (props: PlayScreenProps) => {
       {selectedBonus !== BonusType.None && bonusDescription && (
         <pixiContainer x={sw / 2} y={layout.gridY + 30}>
           <pixiText text={bonusDescription} anchor={0.5}
-            style={{
-              fontFamily: FONT_TITLE, fontSize: 16, fill: 0xfbbf24,
-              dropShadow: { alpha: 0.8, angle: Math.PI / 4, blur: 4, distance: 2, color: 0x000000 },
-            }}
+            style={BONUS_DESC_STYLE}
+            eventMode="none"
           />
         </pixiContainer>
       )}

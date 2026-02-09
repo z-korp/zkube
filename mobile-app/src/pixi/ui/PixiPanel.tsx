@@ -6,11 +6,11 @@
  * Can contain child components.
  */
 
-import { useEffect, useMemo, useState, ReactNode } from 'react';
+import { useMemo, useEffect, useState, ReactNode } from 'react';
 import { Assets, Texture } from 'pixi.js';
-import { 
 import { FONT_BOLD } from '../utils/colors';
-  PANEL_ASSETS, 
+import {
+  PANEL_ASSETS,
   PANEL_BORDERS,
   type PanelType,
 } from '../assets/manifest';
@@ -125,25 +125,28 @@ export function PixiPanelHeader({
   fontSize = 24,
   color = 0xFFFFFF,
 }: PixiPanelHeaderProps) {
+  const headerStyle = useMemo(() => ({
+    fontFamily: FONT_BOLD,
+    fontSize,
+    fill: color,
+    align: 'center' as const,
+    dropShadow: {
+      alpha: 0.6,
+      angle: Math.PI / 4,
+      blur: 3,
+      distance: 3,
+      color: 0x000000,
+    },
+  }), [fontSize, color]);
+
   return (
     <pixiText
       text={title}
       x={width / 2}
       y={0}
       anchor={{ x: 0.5, y: 0 }}
-      style={{
-        fontFamily: FONT_BOLD,
-        fontSize,
-        fill: color,
-        align: 'center',
-        dropShadow: {
-          alpha: 0.6,
-          angle: Math.PI / 4,
-          blur: 3,
-          distance: 3,
-          color: 0x000000,
-        },
-      }}
+      style={headerStyle}
+      eventMode="none"
     />
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { TextStyle } from 'pixi.js';
 import { useTick } from '@pixi/react';
 import { usePixiTheme, usePerformanceSettings } from '../../themes/ThemeContext';
@@ -14,6 +14,23 @@ interface PopupData {
   alpha: number;
   vy: number;
   life: number;
+}
+
+// Cache TextStyle instances per color to avoid recreation on every render
+const styleCache = new Map<number, TextStyle>();
+function getPopupStyle(color: number): TextStyle {
+  let style = styleCache.get(color);
+  if (!style) {
+    style = new TextStyle({
+      fontFamily: FONT_BOLD,
+      fontSize: 24,
+      fontWeight: 'bold',
+      fill: color,
+      stroke: { color: 0x000000, width: 4 },
+    });
+    styleCache.set(color, style);
+  }
+  return style;
 }
 
 interface ScorePopupProps {
@@ -103,15 +120,6 @@ export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps)
     addPopup(x, adjustedY, text, color);
   }, [addPopup, colors.accent, gridSize, gridWidth]);
 
-  const textStyle = new TextStyle({
-    fontFamily: FONT_BOLD,
-    fontSize: 24,
-    fontWeight: 'bold',
-    fill: 0xFFFFFF,
-    stroke: { color: 0x000000, width: 4 },
-    dropShadow: undefined,
-  });
-
   if (popups.length === 0) {
     return null;
   }
@@ -127,10 +135,8 @@ export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps)
           anchor={0.5}
           scale={popup.scale}
           alpha={popup.alpha}
-          style={{
-            ...textStyle,
-            fill: popup.color,
-          }}
+          style={getPopupStyle(popup.color)}
+          eventMode="none"
         />
       ))}
     </>

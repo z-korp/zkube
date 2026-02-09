@@ -1,4 +1,4 @@
-import { useCallback, useState, useRef, useEffect } from 'react';
+import { useCallback, useState, useRef, useEffect, useMemo } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { drawFlagIcon, IconColors } from '../ui/Icons';
@@ -106,11 +106,11 @@ export const SurrenderButton = ({
           x={width / 2}
           y={height / 2}
           anchor={0.5}
-          style={{
+          style={useMemo(() => ({
             fontFamily: FONT_BOLD,
             fontSize: Math.min(width, height) * 0.3,
             fill: 0xfca5a5,
-          }}
+          }), [width, height])}
           eventMode="none"
         />
       ) : (

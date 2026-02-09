@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { TextStyle, Graphics as PixiGraphics } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { FONT_BOLD, FONT_BODY } from '../../utils/colors';
@@ -72,20 +72,21 @@ export const ComboDisplay = ({
     g.fill({ color: glowColor, alpha: pulseAlpha * 0.3 });
   }, [combo, containerWidth, containerHeight, pulseAlpha]);
 
-  const comboStyle = new TextStyle({
+  const comboColor = getComboColor();
+  const comboStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BOLD,
     fontSize: 18,
     fontWeight: 'bold',
-    fill: getComboColor(),
+    fill: comboColor,
     stroke: combo >= 3 ? { color: 0x000000, width: 2 } : undefined,
-  });
+  }), [comboColor, combo]);
 
-  const labelStyle = new TextStyle({
+  const labelStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BODY,
     fontSize: 9,
     fontWeight: 'normal',
     fill: 0x94a3b8,
-  });
+  }), []);
 
   if (combo === 0) {
     return null;

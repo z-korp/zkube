@@ -3,10 +3,20 @@
  * Split into "Ongoing" and "Finished" sections
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
+
+const GAME_LEVEL_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff };
+const GAME_SCORE_STYLE = { fontFamily: FONT_BODY, fontSize: 13, fill: 0xffffff };
+const GAME_CUBES_STYLE = { fontSize: 13, fill: 0xfbbf24 };
+const GAME_PLAY_STYLE = { fontFamily: FONT_BODY, fontSize: 13, fontWeight: 'bold' as const, fill: 0x22c55e };
+const GAME_DONE_STYLE = { fontSize: 16, fill: 0x94a3b8 };
+const SECTION_STYLE = { fontFamily: FONT_TITLE, fontSize: 14, fill: 0xffffff, alpha: 0.9 };
+const LOADING_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0x64748b };
+const EMPTY_TITLE_STYLE = { fontFamily: FONT_TITLE, fontSize: 20, fill: 0x64748b };
+const EMPTY_SUB_STYLE = { fontFamily: FONT_BODY, fontSize: 13, fill: 0x94a3b8 };
 
 
 // ============================================================================
@@ -76,50 +86,14 @@ const GameRow = ({
         onPointerOut={() => { setHovered(false); setPressed(false); }}
       />
 
-      {/* Lv X */}
-      <pixiText
-        text={`Lv ${game.level}`}
-        x={12}
-        y={centerY}
-        anchor={{ x: 0, y: 0.5 }}
-        style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff }}
-      />
+      <pixiText text={`Lv ${game.level}`} x={12} y={centerY} anchor={{ x: 0, y: 0.5 }} style={GAME_LEVEL_STYLE} eventMode="none" />
+      <pixiText text={`${game.totalScore} pts`} x={width * 0.32} y={centerY} anchor={{ x: 0.5, y: 0.5 }} style={GAME_SCORE_STYLE} eventMode="none" />
+      <pixiText text={`🧊 ${game.cubesAvailable}`} x={width * 0.55} y={centerY} anchor={{ x: 0.5, y: 0.5 }} style={GAME_CUBES_STYLE} eventMode="none" />
 
-      {/* XXX pts */}
-      <pixiText
-        text={`${game.totalScore} pts`}
-        x={width * 0.32}
-        y={centerY}
-        anchor={{ x: 0.5, y: 0.5 }}
-        style={{ fontFamily: FONT_BODY, fontSize: 13, fill: 0xffffff }}
-      />
-
-      {/* XX cubes */}
-      <pixiText
-        text={`🧊 ${game.cubesAvailable}`}
-        x={width * 0.55}
-        y={centerY}
-        anchor={{ x: 0.5, y: 0.5 }}
-        style={{ fontSize: 13, fill: 0xfbbf24 }}
-      />
-
-      {/* Play button or checkmark */}
       {isActive ? (
-        <pixiText
-          text="Play ▶"
-          x={width - 12}
-          y={centerY}
-          anchor={{ x: 1, y: 0.5 }}
-          style={{ fontFamily: FONT_BODY, fontSize: 13, fontWeight: 'bold', fill: 0x22c55e }}
-        />
+        <pixiText text="Play ▶" x={width - 12} y={centerY} anchor={{ x: 1, y: 0.5 }} style={GAME_PLAY_STYLE} eventMode="none" />
       ) : (
-        <pixiText
-          text="✓"
-          x={width - 12}
-          y={centerY}
-          anchor={{ x: 1, y: 0.5 }}
-          style={{ fontSize: 16, fill: 0x94a3b8 }}
-        />
+        <pixiText text="✓" x={width - 12} y={centerY} anchor={{ x: 1, y: 0.5 }} style={GAME_DONE_STYLE} eventMode="none" />
       )}
     </pixiContainer>
   );
@@ -143,7 +117,8 @@ const SectionHeader = ({
       text={`${title} (${count})`}
       x={0}
       y={y}
-      style={{ fontFamily: FONT_TITLE, fontSize: 14, fill: 0xffffff, alpha: 0.9 }}
+      style={SECTION_STYLE}
+      eventMode="none"
     />
   );
 };
@@ -259,29 +234,11 @@ export const MyGamesPage = ({
       {/* Content */}
       <pixiContainer x={contentPadding} y={contentTop}>
         {loading ? (
-          <pixiText
-            text="Loading games..."
-            x={contentWidth / 2}
-            y={80}
-            anchor={0.5}
-            style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0x64748b }}
-          />
+          <pixiText text="Loading games..." x={contentWidth / 2} y={80} anchor={0.5} style={LOADING_STYLE} eventMode="none" />
         ) : games.length === 0 ? (
           <pixiContainer>
-            <pixiText
-              text="No games yet!"
-              x={contentWidth / 2}
-              y={80}
-              anchor={0.5}
-              style={{ fontFamily: FONT_TITLE, fontSize: 20, fill: 0x64748b }}
-            />
-            <pixiText
-              text="Start a new game from the home screen"
-              x={contentWidth / 2}
-              y={110}
-              anchor={0.5}
-              style={{ fontFamily: FONT_BODY, fontSize: 13, fill: 0x94a3b8 }}
-            />
+            <pixiText text="No games yet!" x={contentWidth / 2} y={80} anchor={0.5} style={EMPTY_TITLE_STYLE} eventMode="none" />
+            <pixiText text="Start a new game from the home screen" x={contentWidth / 2} y={110} anchor={0.5} style={EMPTY_SUB_STYLE} eventMode="none" />
           </pixiContainer>
         ) : (
           <pixiContainer

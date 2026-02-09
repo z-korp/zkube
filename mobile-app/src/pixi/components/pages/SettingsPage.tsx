@@ -3,11 +3,19 @@
  * Shows: Sound toggle, music toggle, account info
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { useTheme } from '@/ui/elements/theme-provider/hooks';
 import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
+
+const TOGGLE_LABEL_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff };
+const SETTING_LABEL_STYLE = { fontFamily: FONT_BODY, fontSize: 14, fill: 0x94a3b8 };
+const SETTING_VALUE_STYLE = { fontFamily: FONT_BODY, fontSize: 14, fill: 0xffffff };
+const THEME_HEADER_STYLE = { fontFamily: FONT_TITLE, fontSize: 14, fill: 0xffffff };
+const SECTION_HEADER_STYLE = { fontFamily: FONT_BODY, fontSize: 12, fill: 0x64748b, letterSpacing: 2 };
+const VERSION_STYLE = { fontFamily: FONT_BODY, fontSize: 12, fill: 0x475569 };
+const FOOTER_STYLE = { fontFamily: FONT_BODY, fontSize: 11, fill: 0x475569 };
 
 
 // ============================================================================
@@ -71,7 +79,8 @@ const ToggleSwitch = ({
         x={16}
         y={rowH / 2}
         anchor={{ x: 0, y: 0.5 }}
-        style={{ fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff }}
+        style={TOGGLE_LABEL_STYLE}
+        eventMode="none"
       />
       {/* Switch */}
       <pixiGraphics
@@ -123,14 +132,16 @@ const SettingRow = ({
         x={16}
         y={rowH / 2}
         anchor={{ x: 0, y: 0.5 }}
-        style={{ fontFamily: FONT_BODY, fontSize: 14, fill: 0x94a3b8 }}
+        style={SETTING_LABEL_STYLE}
+        eventMode="none"
       />
       <pixiText
         text={value}
         x={width - 16}
         y={rowH / 2}
         anchor={{ x: 1, y: 0.5 }}
-        style={{ fontFamily: FONT_BODY, fontSize: 14, fill: 0xffffff }}
+        style={SETTING_VALUE_STYLE}
+        eventMode="none"
       />
     </pixiContainer>
   );
@@ -180,48 +191,19 @@ const ThemeSelector = ({
 
   const isTheme1 = currentTheme === 'theme-1';
   const isTheme2 = currentTheme === 'theme-2';
+  const theme1LabelStyle = useMemo(() => ({ fontFamily: FONT_TITLE, fontSize: 13, fill: isTheme1 ? 0xffffff : 0x94a3b8 }), [isTheme1]);
+  const theme2LabelStyle = useMemo(() => ({ fontFamily: FONT_TITLE, fontSize: 13, fill: isTheme2 ? 0xffffff : 0x94a3b8 }), [isTheme2]);
 
   return (
     <pixiContainer y={y}>
-      <pixiGraphics draw={drawBg} />
-      <pixiText
-        text="Theme"
-        x={16}
-        y={8}
-        style={{ fontFamily: FONT_TITLE, fontSize: 14, fill: 0xffffff }}
-      />
+      <pixiGraphics draw={drawBg} eventMode="none" />
+      <pixiText text="Theme" x={16} y={8} style={THEME_HEADER_STYLE} eventMode="none" />
       <pixiContainer y={rowH - optionH - 8}>
-        <pixiGraphics
-          x={16}
-          y={0}
-          draw={(g) => drawOption(g, isTheme1)}
-          eventMode="static"
-          cursor="pointer"
-          onPointerDown={() => onSelect('theme-1')}
-        />
-        <pixiText
-          text="Tiki"
-          x={16 + optionW / 2}
-          y={optionH / 2}
-          anchor={0.5}
-          style={{ fontFamily: FONT_TITLE, fontSize: 13, fill: isTheme1 ? 0xffffff : 0x94a3b8 }}
-        />
+        <pixiGraphics x={16} y={0} draw={(g) => drawOption(g, isTheme1)} eventMode="static" cursor="pointer" onPointerDown={() => onSelect('theme-1')} />
+        <pixiText text="Tiki" x={16 + optionW / 2} y={optionH / 2} anchor={0.5} style={theme1LabelStyle} eventMode="none" />
 
-        <pixiGraphics
-          x={16 + optionW + 16}
-          y={0}
-          draw={(g) => drawOption(g, isTheme2)}
-          eventMode="static"
-          cursor="pointer"
-          onPointerDown={() => onSelect('theme-2')}
-        />
-        <pixiText
-          text="Space"
-          x={16 + optionW + 16 + optionW / 2}
-          y={optionH / 2}
-          anchor={0.5}
-          style={{ fontFamily: FONT_TITLE, fontSize: 13, fill: isTheme2 ? 0xffffff : 0x94a3b8 }}
-        />
+        <pixiGraphics x={16 + optionW + 16} y={0} draw={(g) => drawOption(g, isTheme2)} eventMode="static" cursor="pointer" onPointerDown={() => onSelect('theme-2')} />
+        <pixiText text="Space" x={16 + optionW + 16 + optionW / 2} y={optionH / 2} anchor={0.5} style={theme2LabelStyle} eventMode="none" />
       </pixiContainer>
     </pixiContainer>
   );
@@ -238,7 +220,8 @@ const SectionHeader = ({ y, title }: { y: number; title: string }) => {
       x={0}
       y={y}
       anchor={{ x: 0, y: 0 }}
-      style={{ fontFamily: FONT_BODY, fontSize: 12, fill: 0x64748b, letterSpacing: 2 }}
+      style={SECTION_HEADER_STYLE}
+      eventMode="none"
     />
   );
 };
@@ -360,7 +343,8 @@ export const SettingsPage = ({
           x={contentWidth / 2}
           y={versionY}
           anchor={{ x: 0.5, y: 0 }}
-          style={{ fontFamily: FONT_BODY, fontSize: 12, fill: 0x475569 }}
+          style={VERSION_STYLE}
+          eventMode="none"
         />
 
         <pixiText
@@ -368,7 +352,8 @@ export const SettingsPage = ({
           x={contentWidth / 2}
           y={versionY + 20}
           anchor={{ x: 0.5, y: 0 }}
-          style={{ fontFamily: FONT_BODY, fontSize: 11, fill: 0x475569 }}
+          style={FOOTER_STYLE}
+          eventMode="none"
         />
       </pixiContainer>
     </pixiContainer>

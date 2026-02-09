@@ -9,7 +9,7 @@
  * - Content area
  */
 
-import { useCallback, useMemo, ReactNode } from 'react';
+import { useCallback, useMemo, ReactNode, } from 'react';
 import { FederatedPointerEvent, Graphics as PixiGraphics } from 'pixi.js';
 import { PixiPanel, PixiPanelHeader } from './PixiPanel';
 import { PixiButton } from './PixiButton';
@@ -205,14 +205,15 @@ export function PixiConfirmModal({
       <pixiText
         text={message}
         y={10}
-        style={{
+        style={useMemo(() => ({
           fontFamily: FONT_BODY,
           fontSize: 16,
           fill: 0xFFFFFF,
           wordWrap: true,
           wordWrapWidth: width - 60,
-          align: 'center',
-        }}
+          align: 'center' as const,
+        }), [width])}
+        eventMode="none"
       />
 
       {/* Button row */}

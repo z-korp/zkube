@@ -1,12 +1,7 @@
-import { useState, useCallback, useRef } from 'react';
+import { useCallback, useRef } from 'react';
+import { Container } from 'pixi.js';
 import { useTick } from '@pixi/react';
 import { usePerformanceSettings } from '../../themes/ThemeContext';
-
-interface ShakeState {
-  x: number;
-  y: number;
-  active: boolean;
-}
 
 export interface ScreenShakeRef {
   shake: (intensity?: number, duration?: number) => void;
@@ -14,7 +9,7 @@ export interface ScreenShakeRef {
 
 export function useScreenShake() {
   const { enableScreenShake, prefersReducedMotion } = usePerformanceSettings();
-  const [offset, setOffset] = useState<ShakeState>({ x: 0, y: 0, active: false });
+  const containerRef = useRef<Container>(null);
 
   const shakeRef = useRef<{
     intensity: number;
@@ -24,12 +19,14 @@ export function useScreenShake() {
 
   const tickCallback = useCallback((ticker: { deltaMS: number }) => {
     if (!shakeRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
 
     shakeRef.current.elapsed += ticker.deltaMS;
 
     if (shakeRef.current.elapsed >= shakeRef.current.duration) {
       shakeRef.current = null;
-      setOffset({ x: 0, y: 0, active: false });
+      container.position.set(0, 0);
       return;
     }
 
@@ -39,7 +36,7 @@ export function useScreenShake() {
     const x = (Math.random() - 0.5) * 2 * currentIntensity;
     const y = (Math.random() - 0.5) * 2 * currentIntensity;
 
-    setOffset({ x, y, active: true });
+    container.position.set(x, y);
   }, []);
 
   useTick(tickCallback);
@@ -52,8 +49,6 @@ export function useScreenShake() {
       duration,
       elapsed: 0,
     };
-
-    setOffset(prev => ({ ...prev, active: true }));
   }, [enableScreenShake, prefersReducedMotion]);
 
   const shakePresets = {
@@ -64,7 +59,7 @@ export function useScreenShake() {
   };
 
   return {
-    offset,
+    containerRef,
     shake,
     ...shakePresets,
   };
@@ -72,12 +67,12 @@ export function useScreenShake() {
 
 interface ScreenShakeContainerProps {
   children: React.ReactNode;
-  offset: { x: number; y: number };
+  containerRef: React.RefObject<Container | null>;
 }
 
-export const ScreenShakeContainer = ({ children, offset }: ScreenShakeContainerProps) => {
+export const ScreenShakeContainer = ({ children, containerRef }: ScreenShakeContainerProps) => {
   return (
-    <pixiContainer x={offset.x} y={offset.y}>
+    <pixiContainer ref={containerRef}>
       {children}
     </pixiContainer>
   );

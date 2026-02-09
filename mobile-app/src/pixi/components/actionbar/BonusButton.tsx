@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useMemo } from 'react';
+import { useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { TextStyle, Graphics as PixiGraphics, Texture, Assets } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { usePulse } from '../../hooks/useAnimatedValue';
@@ -125,12 +125,12 @@ export const BonusButton = ({
     }
   }, [size, level]);
 
-  const countStyle = new TextStyle({
+  const countStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BODY,
     fontSize: 10,
     fontWeight: 'bold',
     fill: 0xffffff,
-  });
+  }), []);
 
   const handlePointerDown = useCallback(() => {
     if (!isDisabled) setIsPressed(true);
@@ -156,16 +156,27 @@ export const BonusButton = ({
   const containerScale = isPressed ? 0.92 : (isHovered ? 1.04 : pulseScale);
   const pivotOffset = radius;
 
+  const prevGlowRef = useRef<InstanceType<typeof GlowFilter> | null>(null);
   const glowFilter = useMemo(() => {
+    if (prevGlowRef.current) {
+      prevGlowRef.current.destroy();
+      prevGlowRef.current = null;
+    }
     if (!isSelected || isDisabled) return null;
-    return new GlowFilter({
+    const f = new GlowFilter({
       distance: 8,
       outerStrength: 2.5,
       innerStrength: 0.5,
       color: 0x60a5fa,
       quality: 0.15,
     });
+    prevGlowRef.current = f;
+    return f;
   }, [isSelected, isDisabled]);
+
+  useEffect(() => {
+    return () => { prevGlowRef.current?.destroy(); };
+  }, []);
 
   const filters = useMemo(() => glowFilter ? [glowFilter] : [], [glowFilter]);
 
@@ -185,9 +196,9 @@ export const BonusButton = ({
     >
       {bgTex ? (
         <pixiSprite texture={bgTex} width={size} height={size}
-          alpha={isDisabled ? 0.5 : 1} />
+          alpha={isDisabled ? 0.5 : 1} eventMode="none" />
       ) : (
-        <pixiGraphics draw={drawButton} />
+        <pixiGraphics draw={drawButton} eventMode="none" />
       )}
 
       {texture && (
@@ -198,12 +209,13 @@ export const BonusButton = ({
           width={iconSize}
           height={iconSize}
           alpha={isDisabled || count === 0 ? 0.3 : 1}
+          eventMode="none"
         />
       )}
 
-      {level > 0 && <pixiGraphics draw={drawLevelDots} />}
+      {level > 0 && <pixiGraphics draw={drawLevelDots} eventMode="none" />}
 
-      <pixiGraphics draw={drawCountBadge} />
+      <pixiGraphics draw={drawCountBadge} eventMode="none" />
       {count > 0 && (
         <pixiText
           text={String(count)}
@@ -211,6 +223,7 @@ export const BonusButton = ({
           y={badgeSize / 2 - 2}
           anchor={0.5}
           style={countStyle}
+          eventMode="none"
         />
       )}
     </pixiContainer>
