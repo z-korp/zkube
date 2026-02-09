@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useEffect } from 'react';
+import { useCallback, useMemo, useEffect, useState } from 'react';
+import { useTick } from '@pixi/react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
@@ -38,6 +39,7 @@ export const Modal = ({
   closeOnEscape = true,
 }: ModalProps) => {
   const { colors } = usePixiTheme();
+  const [enterProgress, setEnterProgress] = useState(0);
 
   const padding = 24;
   const titleHeight = 32;
@@ -67,6 +69,19 @@ export const Modal = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose, closeOnEscape]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setEnterProgress(0);
+    }
+  }, [isOpen]);
+
+  useTick(() => {
+    setEnterProgress((prev) => {
+      if (prev >= 1) return prev;
+      return Math.min(1, prev + 0.16);
+    });
+  }, isOpen && enterProgress < 1);
 
   // Draw backdrop (semi-transparent overlay)
   const drawBackdrop = useCallback((g: PixiGraphics) => {
@@ -131,23 +146,32 @@ export const Modal = ({
   // IMPORTANT: All hooks must be called before this return
   if (!isOpen) return null;
 
+  const modalScale = 0.94 + enterProgress * 0.06;
+  const modalAlpha = 0.6 + enterProgress * 0.4;
+  const backdropAlpha = 0.7 * (0.6 + enterProgress * 0.4);
+
   return (
     <>
       {/* Backdrop */}
-        <pixiGraphics
-          draw={drawBackdrop}
-          eventMode="static"
-          onPointerDown={(e: any) => {
-            e.stopPropagation();
-            if (closeOnBackdrop) onClose();
-          }}
-        />
+      <pixiGraphics
+        draw={(g: PixiGraphics) => {
+          drawBackdrop(g);
+          g.alpha = backdropAlpha;
+        }}
+        eventMode="static"
+        onPointerDown={(e: any) => {
+          e.stopPropagation();
+          if (closeOnBackdrop) onClose();
+        }}
+      />
 
       {/* Modal container */}
-      <pixiContainer x={modalX} y={modalY}>
+      <pixiContainer x={modalX + width / 2} y={modalY + modalHeight / 2} scale={modalScale} alpha={modalAlpha}>
         {/* Modal background - blocks events from passing through */}
         <pixiGraphics 
           draw={drawModalBg}
+          x={-width / 2}
+          y={-modalHeight / 2}
           eventMode="static"
           onPointerDown={(e: any) => e.stopPropagation()}
         />
@@ -155,8 +179,8 @@ export const Modal = ({
         {/* Title */}
         <pixiText
           text={title}
-          x={width / 2}
-          y={padding}
+          x={0}
+          y={-modalHeight / 2 + padding}
           anchor={{ x: 0.5, y: 0 }}
           style={titleStyle}
           eventMode="none"
@@ -165,8 +189,8 @@ export const Modal = ({
         {subtitle && (
           <pixiText
             text={subtitle}
-            x={width / 2}
-            y={padding + titleHeight}
+            x={0}
+            y={-modalHeight / 2 + padding + titleHeight}
             anchor={{ x: 0.5, y: 0 }}
             style={subtitleStyle}
             eventMode="none"
@@ -176,8 +200,8 @@ export const Modal = ({
         {/* Close button */}
         {showCloseButton && (
           <pixiContainer 
-            x={width - 44} 
-            y={10}
+            x={width / 2 - 44} 
+            y={-modalHeight / 2 + 10}
             eventMode="static"
             cursor="pointer"
             onPointerDown={(e: any) => {
@@ -190,7 +214,7 @@ export const Modal = ({
         )}
 
         {/* Content area - children handle their own events */}
-        <pixiContainer x={0} y={headerHeight} eventMode="static">
+        <pixiContainer x={-width / 2} y={-modalHeight / 2 + headerHeight} eventMode="static">
           {children}
         </pixiContainer>
       </pixiContainer>
