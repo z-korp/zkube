@@ -1,0 +1,190 @@
+import { useEffect, useMemo, useState } from "react";
+import App from "./App";
+import type { SetupResult } from "./dojo/setup";
+import { DojoProvider } from "./dojo/context";
+import { Loading } from "@/ui/screens/Loading";
+import { MusicPlayerProvider } from "./contexts/music";
+import { SoundPlayerProvider } from "./contexts/sound";
+import { ThemeProvider } from "./ui/elements/theme-provider";
+import { StarknetConfig, jsonRpcProvider, voyager, type Connector } from "@starknet-react/core";
+import { sepolia, mainnet, type NativeCurrency } from "@starknet-react/chains";
+import { MetagameProvider } from "./contexts/MetagameProvider";
+import { QuestsProvider } from "./contexts/quests";
+import { ControllersProvider } from "./contexts/controllers";
+import { type BigNumberish, shortString, PaymasterRpc } from "starknet";
+import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
+import { Assets } from "pixi.js";
+import { createLogger } from "./utils/logger";
+import { getEssentialAssetPaths } from "./pixi/assets/manifest";
+
+const slotPaymasterProvider = () => new PaymasterRpc({ nodeUrl: "http://localhost" });
+
+const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_NODE_URL, VITE_PUBLIC_SLOT } = import.meta.env;
+const log = createLogger("AppRuntime");
+let pixiAssetsBootstrapped = false;
+
+async function bootstrapPixiAssets() {
+  if (pixiAssetsBootstrapped) return;
+
+  await Assets.init({
+    texturePreference: {
+      format: ["webp", "png", "jpg"],
+    },
+    loadOptions: {
+      strategy: "retry",
+      retryCount: 2,
+      retryDelay: 200,
+    },
+  });
+
+  const essentials = getEssentialAssetPaths();
+  for (const asset of essentials) {
+    if (!Assets.cache.has(asset.alias)) {
+      Assets.add(asset);
+    }
+  }
+
+  Assets.backgroundLoad(essentials.map((a) => a.alias));
+  pixiAssetsBootstrapped = true;
+}
+
+const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
+
+function rpc() {
+  return {
+    nodeUrl: VITE_PUBLIC_NODE_URL,
+  };
+}
+
+export default function AppRuntime() {
+  const [connector, setConnector] = useState<Connector | null>(null);
+  const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
+
+  const connectors = useMemo(() => (connector ? [connector] : []), [connector]);
+  const loading = useMemo(() => !setupResult || !connector, [setupResult, connector]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function initialize() {
+      try {
+        await bootstrapPixiAssets();
+      } catch (error) {
+        log.warn("Pixi asset bootstrap failed; continuing with lazy loads", error);
+      }
+
+      const [{ default: cartridgeConnector }, { setup }, { dojoConfig }] = await Promise.all([
+        import("./cartridgeConnector"),
+        import("./dojo/setup"),
+        import("../dojo.config"),
+      ]);
+
+      const result = await setup(dojoConfig());
+      if (cancelled) return;
+      setConnector(cartridgeConnector);
+      setSetupResult(result);
+    }
+
+    initialize();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const slotChainId = VITE_PUBLIC_SLOT
+    ? `WP_${VITE_PUBLIC_SLOT.toUpperCase().replace(/-/g, "_")}`
+    : "WP_ZKUBE";
+
+  const ETH_KATANA: NativeCurrency = {
+    address: KATANA_ETH_CONTRACT_ADDRESS,
+    name: "Ether",
+    symbol: "ETH",
+    decimals: 18,
+  };
+
+  type ChainExplorers = {
+    [key: string]: string[];
+  };
+  const WORLD_EXPLORER: ChainExplorers = {
+    worlds: ["https://worlds.dev"],
+  };
+
+  const stringToFelt = (v: string): BigNumberish =>
+    v ? shortString.encodeShortString(v) : "0x0";
+
+  const slotChain = VITE_PUBLIC_SLOT && VITE_PUBLIC_NODE_URL ? {
+    id: BigInt(stringToFelt(slotChainId)),
+    name: `zKube ${VITE_PUBLIC_SLOT}`,
+    network: "katana",
+    testnet: true,
+    nativeCurrency: ETH_KATANA,
+    rpcUrls: {
+      default: { http: [VITE_PUBLIC_NODE_URL] },
+      public: { http: [VITE_PUBLIC_NODE_URL] },
+    },
+    explorers: WORLD_EXPLORER,
+  } : null;
+
+  const chains = VITE_PUBLIC_DEPLOY_TYPE === "sepolia"
+    ? [sepolia, mainnet, ...(slotChain ? [slotChain] : [])]
+    : VITE_PUBLIC_DEPLOY_TYPE === "slot" && slotChain
+      ? [slotChain, sepolia, mainnet]
+      : [mainnet, sepolia, ...(slotChain ? [slotChain] : [])];
+
+  const getDefaultChainId = () => {
+    switch (VITE_PUBLIC_DEPLOY_TYPE) {
+      case "sepolia":
+        return sepolia.id;
+      case "slot":
+        return slotChain?.id ?? sepolia.id;
+      default:
+        return mainnet.id;
+    }
+  };
+
+  log.info("Network configuration", {
+    VITE_PUBLIC_DEPLOY_TYPE,
+    VITE_PUBLIC_NODE_URL,
+    VITE_PUBLIC_SLOT,
+    defaultChainId: getDefaultChainId()?.toString(16),
+    chainIds: {
+      mainnet: mainnet.id.toString(16),
+      sepolia: sepolia.id.toString(16),
+      slot: slotChain?.id?.toString(16),
+    },
+    chainsOrder: chains.map((c) => c.network || c.name),
+  });
+
+  return (
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <StarknetConfig
+        autoConnect
+        chains={chains}
+        connectors={connectors}
+        defaultChainId={getDefaultChainId()}
+        explorer={voyager}
+        provider={jsonRpcProvider({ rpc })}
+        paymasterProvider={isSlotMode ? slotPaymasterProvider : undefined}
+      >
+        <MusicPlayerProvider>
+          <MetagameProvider>
+            {!loading && setupResult ? (
+              <DojoProvider value={setupResult}>
+                <ControllersProvider>
+                  <QuestsProvider>
+                    <SoundPlayerProvider>
+                      <App />
+                    </SoundPlayerProvider>
+                  </QuestsProvider>
+                </ControllersProvider>
+              </DojoProvider>
+            ) : (
+              <Loading />
+            )}
+          </MetagameProvider>
+        </MusicPlayerProvider>
+      </StarknetConfig>
+    </ThemeProvider>
+  );
+}
