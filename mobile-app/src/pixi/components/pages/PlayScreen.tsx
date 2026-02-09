@@ -15,7 +15,7 @@ import { ScorePanel } from '../game/ScorePanel';
 import { MovesPanel } from '../game/MovesPanel';
 import { BonusType } from '@/dojo/game/types/bonus';
 import { ConstraintType } from '@/dojo/game/types/constraint';
-import { useAnimatedValue, usePulseRef, easings } from '../../hooks/useAnimatedValue';
+import { usePulseRef } from '../../hooks/useAnimatedValue';
 import type { Block } from '@/types/types';
 import type { ConstraintData } from '../hud';
 import { FONT_TITLE, FONT_BOLD, FONT_BODY, THEME_ASSETS } from '../../utils/colors';
@@ -346,7 +346,6 @@ const ProgressHudBar = ({
   constraint2?: ConstraintData;
 }) => {
   const { colors, getAssetPath } = usePixiTheme();
-  const animatedScore = useAnimatedValue(levelScore, { duration: 300, easing: easings.easeOut });
   const scoreProgress = Math.min(1, levelScore / Math.max(targetScore, 1));
 
   const [hudTex, setHudTex] = useState<Texture | null>(null);

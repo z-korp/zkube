@@ -24,7 +24,7 @@ interface BonusButtonProps extends BonusButtonData {
 }
 
 export const BonusButton = ({
-  type,
+  type: _type,
   level,
   count,
   icon,
@@ -35,7 +35,7 @@ export const BonusButton = ({
   isDisabled,
   onClick,
 }: BonusButtonProps) => {
-  const { colors, getAssetPath } = usePixiTheme();
+  const { getAssetPath } = usePixiTheme();
 
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);

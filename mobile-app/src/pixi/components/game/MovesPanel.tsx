@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { usePulseRef, useGlow } from '../../hooks/useAnimatedValue';
 import { FONT_BOLD, FONT_BODY } from '../../utils/colors';
 
@@ -42,8 +41,6 @@ export const MovesPanel = ({
   uiScale = 1,
   isInDanger = false,
 }: MovesPanelProps) => {
-  const { colors } = usePixiTheme();
-
   // Track combo changes for animation
   const prevComboRef = useRef(combo);
   const [comboIncreased, setComboIncreased] = useState(false);
