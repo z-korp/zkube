@@ -19,5 +19,7 @@ extend({
   NineSliceSprite,
 });
 
-// Re-export filters for use in components
-export { GlowFilter, DropShadowFilter, BloomFilter } from 'pixi-filters';
+// Re-export only the filters used by the app
+export { GlowFilter } from 'pixi-filters/glow';
+export { DropShadowFilter } from 'pixi-filters/drop-shadow';
+export { BloomFilter } from 'pixi-filters/bloom';
