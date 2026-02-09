@@ -15,7 +15,6 @@ export const QUEST_COMPLETED = "QuestCompleted";
 export const QUEST_CLAIMED = "QuestClaimed";
 
 // Helper to extract value from either wrapped or simplified format
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function extractValue(field: any): string {
   if (field === null || field === undefined) return "0";
   if (typeof field === "string") return field;
@@ -278,7 +277,6 @@ export class QuestTask {
     this.total = total;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static parse(data: RawTask | any): QuestTask {
     const idVal = extractValue(data.id);
     const descVal = extractValue(data.description);
@@ -379,7 +377,6 @@ export class QuestDefinition {
     return QUEST_DEFINITION;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static parse(data: RawDefinition | any): QuestDefinition {
     const idVal = extractValue(data.id);
     const rewarderVal = extractValue(data.rewarder);
@@ -393,7 +390,6 @@ export class QuestDefinition {
     if (data.tasks) {
       const tasksArray = data.tasks.value || data.tasks;
       if (Array.isArray(tasksArray)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         tasks = tasksArray.map((task: any) => {
           const taskData = task.value || task;
           return QuestTask.parse(taskData);
@@ -495,7 +491,6 @@ export class QuestCompletion {
     return QUEST_COMPLETION;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static parse(data: RawCompletion | any): QuestCompletion {
     const playerIdVal = extractValue(data.player_id);
     const questIdVal = extractValue(data.quest_id);
@@ -563,7 +558,6 @@ export class QuestAdvancement {
     return QUEST_ADVANCEMENT;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static parse(data: RawAdvancement | any): QuestAdvancement {
     const playerIdVal = extractValue(data.player_id);
     const questIdVal = extractValue(data.quest_id);
@@ -612,7 +606,6 @@ export class QuestCreation {
     return QUEST_CREATION;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static parse(data: RawCreation | any): QuestCreation {
     const idVal = extractValue(data.id);
     const definitionData = data.definition?.value || data.definition;

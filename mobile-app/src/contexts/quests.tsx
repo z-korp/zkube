@@ -150,7 +150,6 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
 
   // Handler for entity updates (definitions, completions, advancements, creations)
   const onEntityUpdate = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (response: { data?: any[]; error?: Error } | any) => {
       if (!response) return;
       
@@ -158,7 +157,6 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
       const entities = response.data || (Array.isArray(response) ? response : [response]);
       if (!entities || entities.length === 0) return;
       
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       entities.forEach((entity: any) => {
         if (!entity?.models) return;
         
@@ -221,7 +219,6 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
 
   // Handler for quest events (unlocked, completed, claimed) - triggers toasts
   const onQuestEvent = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (response: { data?: any[]; error?: Error } | any) => {
       if (!response) return;
       
@@ -229,7 +226,6 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
       const entities = response.data || (Array.isArray(response) ? response : [response]);
       if (!entities || entities.length === 0) return;
       
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       entities.forEach((entity: any) => {
         if (!entity?.models) return;
         
@@ -353,11 +349,10 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
 
     try {
       // Subscribe to player entity updates (completions, advancements)
-      const entitySubscription = await toriiClient.onEntityUpdated(
-        playerEntityQuery.build().clause,
-        [],
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (response: any) => {
+        const entitySubscription = await toriiClient.onEntityUpdated(
+          playerEntityQuery.build().clause,
+          [],
+          (response: any) => {
           // Handle subscription updates
           if (response) {
             onEntityUpdate(response);
@@ -367,11 +362,10 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
       entitySubscriptionRef.current = entitySubscription;
 
       // Subscribe to quest event messages (unlocked, completed, claimed)
-      const eventSubscription = await toriiClient.onEventMessageUpdated(
-        playerEventQuery.build().clause,
-        [],
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (response: any) => {
+        const eventSubscription = await toriiClient.onEventMessageUpdated(
+          playerEventQuery.build().clause,
+          [],
+          (response: any) => {
           // Handle event updates
           if (response) {
             onQuestEvent(response);

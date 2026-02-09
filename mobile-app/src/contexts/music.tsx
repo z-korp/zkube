@@ -143,7 +143,6 @@ export const MusicPlayerProvider = ({
   useEffect(() => {
     setTracks(theme ? menuTracks : playTracks);
     setCurrentTrackIndex(0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme, themeTemplate]);
 
   return (

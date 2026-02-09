@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { dojoConfig } from "../../../../dojo.config";
 
 export const get_short_namespace = (namespace: any) => {

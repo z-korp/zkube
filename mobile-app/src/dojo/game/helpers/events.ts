@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { hexToAscii } from "@dojoengine/utils";
 import { components, translateName } from "./components.ts";
 

@@ -6,7 +6,6 @@ import {
 import { metagameConfig } from "@/config/metagame";
 
 export const MetagameProvider = ({ children }: { children: ReactNode }) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [metagameClient, setMetagameClient] = useState<any>(null);
 
   useEffect(() => {
@@ -60,4 +59,3 @@ export const MetagameProvider = ({ children }: { children: ReactNode }) => {
     </MetagameSDKProvider>
   );
 };
-

@@ -4,7 +4,6 @@ import { Account } from "starknet";
 
 type AccountType = "burner" | "controller";
 
-// eslint-disable-next-line prefer-const
 export let ACCOUNT_CONNECTOR: AccountType = "controller";
 
 const useAccountCustom = () => {

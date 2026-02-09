@@ -1,4 +1,7 @@
 import { manifest } from "./manifest";
+import { createLogger } from "@/utils/logger";
+
+const log = createLogger("metagame/config");
 
 // Metagame config with fallbacks to main world config
 export const metagameConfig = {
@@ -7,8 +10,7 @@ export const metagameConfig = {
   namespace: import.meta.env.VITE_PUBLIC_METAGAME_NAMESPACE || import.meta.env.VITE_PUBLIC_NAMESPACE,
 };
 
-// Debug logging
-console.log("[metagame.ts] Metagame Configuration:", {
+log.info("Metagame configuration", {
   toriiUrl: metagameConfig.toriiUrl,
   worldAddress: metagameConfig.worldAddress,
   namespace: metagameConfig.namespace,
@@ -19,4 +21,3 @@ console.log("[metagame.ts] Metagame Configuration:", {
     namespace: import.meta.env.VITE_PUBLIC_METAGAME_NAMESPACE ? "METAGAME_NAMESPACE" : "NAMESPACE",
   },
 });
-

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { TextStyle } from 'pixi.js';
 import { useTick } from '@pixi/react';
 import { usePixiTheme, usePerformanceSettings } from '../../themes/ThemeContext';
@@ -45,8 +45,11 @@ export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps)
 
   const [popups, setPopups] = useState<PopupData[]>([]);
   const idRef = useRef(0);
+  const popupsLenRef = useRef(0);
 
   const tickCallback = useCallback((ticker: { deltaMS: number }) => {
+    if (popupsLenRef.current === 0) return;
+
     setPopups(prev => {
       if (prev.length === 0) return prev;
 
@@ -61,6 +64,8 @@ export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps)
           life: p.life - dt,
         }))
         .filter(p => p.life > 0 && p.alpha > 0);
+
+      popupsLenRef.current = updated.length;
 
       return updated;
     });
@@ -88,7 +93,11 @@ export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps)
       life: 60,
     };
 
-    setPopups(prev => [...prev, popup]);
+    setPopups(prev => {
+      const next = [...prev, popup];
+      popupsLenRef.current = next.length;
+      return next;
+    });
   }, [prefersReducedMotion]);
 
   const showScore = useCallback((points: number, y: number) => {

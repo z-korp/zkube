@@ -125,5 +125,10 @@
     "vite": "^6.3.5",
     "vite-plugin-mkcert": "^1.17.5",
     "vitest": "^2.1.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "ws": "^8.17.1"
+    }
   }
 }

@@ -91,7 +91,6 @@ const LevelIndicator: React.FC<LevelIndicatorProps> = ({ currentXP }) => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentXP]);
 
   const strokeWidth = 4;

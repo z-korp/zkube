@@ -10,6 +10,41 @@ export default defineConfig({
   plugins: [react(), wasm(), topLevelAwait(), mkcert()],
   build: {
     target: "ES2022",
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+
+          if (
+            id.includes("@pixi/react") ||
+            id.includes("pixi.js") ||
+            id.includes("pixi-filters")
+          ) {
+            return "pixi";
+          }
+
+          if (
+            id.includes("@dojoengine") ||
+            id.includes("metagame-sdk") ||
+            id.includes("@dojo") ||
+            id.includes("starknet") ||
+            id.includes("@starknet-react") ||
+            id.includes("@cartridge")
+          ) {
+            return "chain";
+          }
+
+          if (
+            id.includes("@radix-ui") ||
+            id.includes("framer-motion") ||
+            id.includes("lucide-react") ||
+            id.includes("@fortawesome")
+          ) {
+            return "ui";
+          }
+        },
+      },
+    },
   },
   resolve: {
     alias: {

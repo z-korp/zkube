@@ -22,12 +22,17 @@ import "./pixi/extend";
 import "./index.css";
 import { type BigNumberish, shortString, PaymasterRpc } from "starknet";
 import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
+import { validateEnv } from "./config/env";
+import { createLogger } from "./utils/logger";
 
 // Mock paymaster for slot mode - returns a dummy PaymasterRpc that won't be used
 // Required because @starknet-react/core v5.x throws if paymasterProvider returns null
 const slotPaymasterProvider = () => new PaymasterRpc({ nodeUrl: "http://localhost" });
 
 const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_NODE_URL, VITE_PUBLIC_SLOT } = import.meta.env;
+const log = createLogger("main");
+
+validateEnv();
 
 const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
 
@@ -125,8 +130,7 @@ export function Main() {
     }
   };
 
-  // Debug logging
-  console.log("[main.tsx] Network Configuration:", {
+  log.info("Network configuration", {
     VITE_PUBLIC_DEPLOY_TYPE,
     VITE_PUBLIC_NODE_URL,
     VITE_PUBLIC_SLOT,
@@ -136,7 +140,7 @@ export function Main() {
       sepolia: sepolia.id.toString(16),
       slot: slotChain?.id?.toString(16),
     },
-    chainsOrder: chains.map(c => c.network || c.name),
+    chainsOrder: chains.map((c) => c.network || c.name),
   });
 
   return (

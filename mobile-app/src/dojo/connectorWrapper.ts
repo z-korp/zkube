@@ -20,6 +20,9 @@ import { Browser } from "@capacitor/browser";
 import SessionConnector from "@cartridge/connector/session";
 import type { WithResolvers } from "../types/promise";
 import { DEEP_LINK_URL, UNIVERSAL_LINK_URL } from "../utils/capacitorUtils";
+import { createLogger } from "@/utils/logger";
+
+const log = createLogger("dojo/connector");
 
 interface ConnectionResult {
   account?: string;
@@ -51,7 +54,7 @@ class SessionConnectorWrapper extends SessionConnector {
         const account = await super.connect();
         this.connectionPromise?.resolve(account);
       } catch (error) {
-        console.error("[SessionConnectorWrapper] Error after app resumed:", error);
+        log.error("Error after app resumed", error);
         this.connectionPromise?.reject(error);
       }
     });
@@ -65,12 +68,12 @@ class SessionConnectorWrapper extends SessionConnector {
     // Handle deep link callback (zkubegame://open or https://zkube.xyz/open)
     App.addListener("appUrlOpen", ({ url }) => {
       if (url.startsWith(DEEP_LINK_URL) || url.startsWith(UNIVERSAL_LINK_URL)) {
-        console.log("[SessionConnectorWrapper] Deep link received:", url);
+        log.info("Deep link received", url);
         try {
           Browser.close();
         } catch (error) {
           // Browser might already be closed, ignore
-          console.log("[SessionConnectorWrapper] Browser close attempted:", error);
+          log.debug("Browser close attempted", error);
         }
       }
     });
@@ -91,7 +94,7 @@ class SessionConnectorWrapper extends SessionConnector {
       if ((error as Error).message.includes("Failed to fetch")) {
         // Expected error - app stopped and the GraphQL subscription failed
         // This is normal when browser opens for OAuth
-        console.log("[SessionConnectorWrapper] Expected: App stopped during OAuth");
+        log.debug("Expected: app stopped during OAuth");
         return;
       }
       // Unexpected error, propagate it

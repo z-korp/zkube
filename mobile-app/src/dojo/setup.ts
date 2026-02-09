@@ -7,14 +7,16 @@ import { defineContractComponents } from "./contractModels";
 import { world } from "./world.ts";
 import type { Config } from "../../dojo.config.ts";
 import { setupWorld } from "./contractSystems.ts";
+import { createLogger } from "@/utils/logger";
 
 export type SetupResult = Awaited<ReturnType<typeof setup>>;
 
 const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
-const namespace = VITE_PUBLIC_NAMESPACE || "zkube_budo_v1_1_3";
+const namespace = VITE_PUBLIC_NAMESPACE || "zkube_budo_v1_2_0";
+const log = createLogger("dojo/setup");
 
 export async function setup({ ...config }: Config) {
-  console.log("[setup.ts] Initializing Dojo setup:", {
+  log.info("Initializing Dojo setup", {
     toriiUrl: config.toriiUrl,
     worldAddress: config.manifest.world.address,
     namespace,
@@ -26,7 +28,7 @@ export async function setup({ ...config }: Config) {
     worldAddress: config.manifest.world.address || "",
   });
 
-  console.log("[setup.ts] Torii client initialized");
+  log.info("Torii client initialized");
 
   // Define contract components based on the world configuration
   const contractComponents = defineContractComponents(world);
@@ -50,7 +52,7 @@ export async function setup({ ...config }: Config) {
     `${namespace}-PlayerMeta`,
   ];
 
-  console.log("[setup.ts] Starting entity sync:", {
+  log.info("Starting entity sync", {
     modelsToSync,
     modelsToWatch,
     pollingInterval: 10000,
@@ -58,7 +60,6 @@ export async function setup({ ...config }: Config) {
 
   const sync = await getSyncEntities(
     toriiClient,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     contractComponents as any,
     KeysClause(
       modelsToSync,
@@ -71,7 +72,7 @@ export async function setup({ ...config }: Config) {
     true
   );
 
-  console.log("[setup.ts] Entity sync started");
+  log.info("Entity sync started");
 
   // Set up the world client for interacting with smart contracts
   const client = setupWorld(config);
