@@ -73,13 +73,17 @@ export default function AppRuntime() {
         log.warn("Pixi asset bootstrap failed; continuing with lazy loads", error);
       }
 
-      const [{ default: cartridgeConnector }, { setup }, { dojoConfig }] = await Promise.all([
+      const [{ createCartridgeConnector }, { setup }, { dojoConfig }] = await Promise.all([
         import("./cartridgeConnector"),
         import("./dojo/setup"),
         import("../dojo.config"),
       ]);
 
-      const result = await setup(dojoConfig());
+      const [cartridgeConnector, result] = await Promise.all([
+        createCartridgeConnector(),
+        setup(dojoConfig()),
+      ]);
+
       if (cancelled) return;
       setConnector(cartridgeConnector);
       setSetupResult(result);

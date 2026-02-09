@@ -1,17 +1,11 @@
 import { Connector } from "@starknet-react/core";
 import ControllerConnector from "@cartridge/connector/controller";
 import type { ControllerOptions, SessionPolicies, AuthOptions } from "@cartridge/controller";
-import { getContractByName } from "@dojoengine/core";
 import { shortString } from "starknet";
 
 // Platform detection for native app support
 import { isNative, isNativeAndroid, DEEP_LINK_URL } from "./utils/capacitorUtils";
 import SessionConnectorWrapper from "./dojo/connectorWrapper";
-
-// Import manifests for each environment (same paths as config/manifest.ts)
-import manifestSlot from "../../contracts/manifest_slot.json";
-import manifestSepolia from "../../contracts/manifest_sepolia.json";
-import manifestMainnet from "../../contracts/manifest_mainnet.json";
 
 const { 
   VITE_PUBLIC_DEPLOY_TYPE, 
@@ -22,6 +16,16 @@ const {
 
 export const stringToFelt = (v: string) =>
   v ? shortString.encodeShortString(v) : "0x0";
+
+type DeployType = "mainnet" | "sepolia" | "slot";
+
+type DojoManifest = {
+  contracts: Array<{
+    address: string;
+    tag: string;
+    systems: string[];
+  }>;
+};
 
 // Chain IDs
 const CHAIN_IDS = {
@@ -62,7 +66,7 @@ const ADDITIONAL_ENTRYPOINTS: Record<string, string[]> = {
 
 // Build session policies from manifest - includes ALL contracts
 // CRITICAL: Policies MUST be sorted alphabetically (both contract addresses AND methods)
-const buildPoliciesFromManifest = (manifest: any, namespace: string, includeVrf: boolean = false): SessionPolicies => {
+const buildPoliciesFromManifest = (manifest: DojoManifest, namespace: string, includeVrf: boolean = false): SessionPolicies => {
   // Collect all contracts with their policies first (unsorted)
   const contractsUnsorted: Array<{ address: string; policy: { description: string; methods: Array<{ name: string; entrypoint: string }> } }> = [];
 
@@ -160,17 +164,37 @@ const formatSystemName = (systemName: string): string => {
     .join(" ");
 };
 
+const loadManifestForDeployType = async (deployType: DeployType): Promise<DojoManifest> => {
+  switch (deployType) {
+    case "sepolia":
+      return (await import("../../contracts/manifest_sepolia.json")).default as DojoManifest;
+    case "slot":
+      return (await import("../../contracts/manifest_slot.json")).default as DojoManifest;
+    case "mainnet":
+    default:
+      return (await import("../../contracts/manifest_mainnet.json")).default as DojoManifest;
+  }
+};
+
+type ConnectorConfig = {
+  chainId: string;
+  slot: string;
+  policies: SessionPolicies;
+  chains: Array<{ rpcUrl: string }>;
+};
+
 // Get configuration based on deploy type
-const getConfig = () => {
-  const deployType = VITE_PUBLIC_DEPLOY_TYPE as "mainnet" | "sepolia" | "slot";
+const getConfig = async (): Promise<ConnectorConfig> => {
+  const deployType = (VITE_PUBLIC_DEPLOY_TYPE as DeployType) || "mainnet";
   const namespace = VITE_PUBLIC_NAMESPACE || "zkube_budo_v1_2_0";
+  const manifest = await loadManifestForDeployType(deployType);
   
   switch (deployType) {
     case "sepolia":
       return {
         chainId: CHAIN_IDS.sepolia,
         slot: SLOTS.sepolia,
-        policies: buildPoliciesFromManifest(manifestSepolia, namespace, true),
+        policies: buildPoliciesFromManifest(manifest, namespace, true),
         chains: [
           { rpcUrl: RPC_URLS.sepolia },
           { rpcUrl: RPC_URLS.mainnet },
@@ -181,7 +205,7 @@ const getConfig = () => {
         chainId: CHAIN_IDS.slot,
         slot: SLOTS.slot,
         // Slot uses manifest-based policies, no VRF (uses pseudo-random)
-        policies: buildPoliciesFromManifest(manifestSlot, namespace, false),
+        policies: buildPoliciesFromManifest(manifest, namespace, false),
         chains: [
           ...(VITE_PUBLIC_NODE_URL ? [{ rpcUrl: VITE_PUBLIC_NODE_URL }] : []),
           { rpcUrl: RPC_URLS.sepolia },
@@ -193,7 +217,7 @@ const getConfig = () => {
       return {
         chainId: CHAIN_IDS.mainnet,
         slot: SLOTS.mainnet,
-        policies: buildPoliciesFromManifest(manifestMainnet, namespace, true),
+        policies: buildPoliciesFromManifest(manifest, namespace, true),
         chains: [
           { rpcUrl: RPC_URLS.mainnet },
           { rpcUrl: RPC_URLS.sepolia },
@@ -201,8 +225,6 @@ const getConfig = () => {
       };
   }
 };
-
-const config = getConfig();
 
 // Platform-specific signup options
 // Android WebView doesn't reliably support WebAuthn/Passkeys
@@ -215,7 +237,7 @@ const signupOptions: AuthOptions = isNativeAndroid
  * - Web: ControllerConnector (iframe-based authentication)
  * - Native: SessionConnectorWrapper (browser-based OAuth with deep link callback)
  */
-const createConnector = (): Connector => {
+const createConnector = (config: ConnectorConfig): Connector => {
   const defaultChainId = stringToFelt(config.chainId).toString();
 
   if (isNative) {
@@ -247,21 +269,22 @@ const createConnector = (): Connector => {
   }
 };
 
-// Debug logging
-console.log("[cartridgeConnector] Configuration:", {
-  deployType: VITE_PUBLIC_DEPLOY_TYPE,
-  chainId: config.chainId,
-  chainIdFelt: stringToFelt(config.chainId).toString(),
-  slot: config.slot,
-  namespace: VITE_PUBLIC_NAMESPACE,
-  chains: config.chains.map(c => c.rpcUrl),
-  hasPolicies: !!config.policies,
-  policyContracts: config.policies ? Object.keys(config.policies.contracts) : [],
-  isNative,
-  isNativeAndroid,
-  signupOptions,
-});
+export const createCartridgeConnector = async (): Promise<Connector> => {
+  const config = await getConfig();
 
-const cartridgeConnector = createConnector();
+  console.log("[cartridgeConnector] Configuration:", {
+    deployType: VITE_PUBLIC_DEPLOY_TYPE,
+    chainId: config.chainId,
+    chainIdFelt: stringToFelt(config.chainId).toString(),
+    slot: config.slot,
+    namespace: VITE_PUBLIC_NAMESPACE,
+    chains: config.chains.map((c) => c.rpcUrl),
+    hasPolicies: !!config.policies,
+    policyContracts: config.policies ? Object.keys(config.policies.contracts) : [],
+    isNative,
+    isNativeAndroid,
+    signupOptions,
+  });
 
-export default cartridgeConnector;
+  return createConnector(config);
+};
