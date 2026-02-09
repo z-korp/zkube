@@ -10,7 +10,7 @@ import { ActionBar } from '../actionbar';
 import { ParticleSystem } from '../effects/ParticleSystem';
 import { ScorePopup } from '../effects/ScorePopup';
 import { ScreenShakeContainer, useScreenShake } from '../effects/ScreenShake';
-import { GameOverModal, VictoryModal, LevelCompleteModal, InGameShopModal, type InGameShopBonusItem } from '../modals';
+import { GameOverModal, VictoryModal, LevelCompleteModal, MenuModal, InGameShopModal, type InGameShopBonusItem } from '../modals';
 import { ScorePanel } from '../game/ScorePanel';
 import { MovesPanel } from '../game/MovesPanel';
 import { PixiToastLayer } from '../ui/PixiToastLayer';
@@ -323,7 +323,7 @@ const StatsBar = ({
       ) : null}
       <pixiGraphics draw={drawBar} />
 
-      <HudPillButton x={backBtnX} y={backBtnY} w={backBtnW} h={backBtnH} icon="←" onClick={onHomeClick} />
+      <HudPillButton x={backBtnX} y={backBtnY} w={backBtnW} h={backBtnH} icon="☰" onClick={onHomeClick} />
 
       <pixiText text={String(level)} x={levelBadgeCX} y={levelBadgeCY} anchor={0.5} style={levelStyle} />
 
@@ -516,6 +516,7 @@ const PlayScreenInner = (props: PlayScreenProps) => {
   const { containerRef: shakeContainerRef, lineClear } = useScreenShake();
 
   const [isSurrendering, setIsSurrendering] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const {
     blocks, nextLine, nextLineConsumed,
@@ -548,7 +549,13 @@ const PlayScreenInner = (props: PlayScreenProps) => {
 
   const triggerExplosion = useCallback(() => lineClear(), [lineClear]);
 
-  const isInteractionBlocked = isTxProcessing || isSurrendering || isGameOver || isVictory || isLevelComplete || isInGameShopOpen;
+  const isInteractionBlocked = isTxProcessing || isSurrendering || isMenuOpen || isGameOver || isVictory || isLevelComplete || isInGameShopOpen;
+
+  useEffect(() => {
+    if (isGameOver || isVictory || isLevelComplete || isInGameShopOpen) {
+      setIsMenuOpen(false);
+    }
+  }, [isGameOver, isVictory, isLevelComplete, isInGameShopOpen]);
 
   if (isLoading || blocks.length === 0) {
     return <LoadingScreen sw={sw} sh={sh} topOffset={layout.statsBarY + 4} />;
@@ -566,7 +573,7 @@ const PlayScreenInner = (props: PlayScreenProps) => {
         level={level} levelScore={levelScore} targetScore={targetScore}
         moves={moves} maxMoves={maxMoves}
         combo={combo} isInDanger={isPlayerInDanger} cubeBalance={cubeBalance}
-        onHomeClick={onGoHome}
+        onHomeClick={() => setIsMenuOpen(true)}
       />
 
       <ProgressHudBar
@@ -653,6 +660,16 @@ const PlayScreenInner = (props: PlayScreenProps) => {
         onPlayAgain={onPlayAgain} onGoHome={onGoHome}
         screenWidth={sw} screenHeight={sh}
         level={level} totalScore={totalScore} totalCubes={totalCubes} maxCombo={maxCombo} />
+
+      <MenuModal
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        onSurrender={handleSurrender}
+        screenWidth={sw}
+        screenHeight={sh}
+        currentLevel={level}
+        cubesEarned={totalCubes}
+      />
 
       <VictoryModal isOpen={isVictory} onClose={onGoHome} onGoHome={onGoHome}
         screenWidth={sw} screenHeight={sh}
