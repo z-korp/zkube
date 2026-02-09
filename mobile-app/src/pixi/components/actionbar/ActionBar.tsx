@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect } from 'react';
-import { Graphics as PixiGraphics, Texture, Assets } from 'pixi.js';
+import { Graphics as PixiGraphics, Texture } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { BonusButton } from './BonusButton';
 import type { BonusButtonData } from './BonusButton';
@@ -7,6 +7,7 @@ import { ComboDisplay } from './ComboDisplay';
 import { SurrenderButton } from './SurrenderButton';
 import { BonusType } from '@/dojo/game/types/bonus';
 import { THEME_ASSETS } from '../../utils/colors';
+import { loadTextureCached } from '../../assets/textureLoader';
 
 interface BonusSlot extends BonusButtonData {
   bonusType: BonusType;
@@ -48,17 +49,9 @@ export const ActionBar = ({
     let cancelled = false;
     const path = getAssetPath(THEME_ASSETS.actionBar);
 
-    const cached = Assets.get(path) as Texture | undefined;
-    if (cached) {
-      setBarTex(cached);
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    Assets.load(path)
+    loadTextureCached(path)
       .then((t) => {
-        if (!cancelled) setBarTex(t as Texture);
+        if (!cancelled) setBarTex(t);
       })
       .catch(() => {
         if (!cancelled) setBarTex(null);

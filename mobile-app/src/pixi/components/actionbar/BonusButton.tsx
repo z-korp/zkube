@@ -1,10 +1,11 @@
 import { useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { useTick } from '@pixi/react';
-import { TextStyle, Graphics as PixiGraphics, Texture, Assets } from 'pixi.js';
+import { TextStyle, Graphics as PixiGraphics, Texture } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { usePulseRef } from '../../hooks/useAnimatedValue';
 import { FONT_BODY, THEME_ASSETS } from '../../utils/colors';
 import { GlowFilter } from '../../extend';
+import { loadTextureCached } from '../../assets/textureLoader';
 
 export interface BonusButtonData {
   type: number;
@@ -53,17 +54,9 @@ export const BonusButton = ({
   useEffect(() => {
     let cancelled = false;
     if (icon) {
-      const cached = Assets.get(icon) as Texture | undefined;
-      if (cached) {
-        setTexture(cached);
-        return () => {
-          cancelled = true;
-        };
-      }
-
-      Assets.load(icon)
+      loadTextureCached(icon)
         .then((tex) => {
-          if (!cancelled) setTexture(tex as Texture);
+          if (!cancelled) setTexture(tex);
         })
         .catch(() => {
           if (!cancelled) setTexture(null);
@@ -79,17 +72,9 @@ export const BonusButton = ({
     let cancelled = false;
     const path = getAssetPath(THEME_ASSETS.bonusBtnBg);
 
-    const cached = Assets.get(path) as Texture | undefined;
-    if (cached) {
-      setBgTex(cached);
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    Assets.load(path)
+    loadTextureCached(path)
       .then((t) => {
-        if (!cancelled) setBgTex(t as Texture);
+        if (!cancelled) setBgTex(t);
       })
       .catch(() => {
         if (!cancelled) setBgTex(null);

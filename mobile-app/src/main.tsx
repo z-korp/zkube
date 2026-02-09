@@ -1,17 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
-import { setup } from "./dojo/setup.ts";
 import type { SetupResult } from "./dojo/setup.ts";
 import { DojoProvider } from "./dojo/context.tsx";
-import { dojoConfig } from "../dojo.config.ts";
 import { Loading } from "@/ui/screens/Loading";
 import { MusicPlayerProvider } from "./contexts/music";
 import { SoundPlayerProvider } from "./contexts/sound";
 import { ThemeProvider } from "./ui/elements/theme-provider/index";
-import { StarknetConfig, jsonRpcProvider, voyager } from "@starknet-react/core";
+import { StarknetConfig, jsonRpcProvider, voyager, type Connector } from "@starknet-react/core";
 import { sepolia, mainnet, type NativeCurrency } from "@starknet-react/chains";
-import cartridgeConnector from "./cartridgeConnector";
 import { MetagameProvider } from "./contexts/MetagameProvider";
 import { QuestsProvider } from "./contexts/quests";
 import { ControllersProvider } from "./contexts/controllers";
@@ -75,13 +72,15 @@ const root = ReactDOM.createRoot(
 );
 
 export function Main() {
-  const connectors = [cartridgeConnector];
-
+  const [connector, setConnector] = useState<Connector | null>(null);
   const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
 
-  const loading = useMemo(() => !setupResult, [setupResult]);
+  const connectors = useMemo(() => (connector ? [connector] : []), [connector]);
+  const loading = useMemo(() => !setupResult || !connector, [setupResult, connector]);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function initialize() {
       try {
         await bootstrapPixiAssets();
@@ -89,10 +88,23 @@ export function Main() {
         log.warn("Pixi asset bootstrap failed; continuing with lazy loads", error);
       }
 
+      const [{ default: cartridgeConnector }, { setup }, { dojoConfig }] = await Promise.all([
+        import("./cartridgeConnector"),
+        import("./dojo/setup"),
+        import("../dojo.config"),
+      ]);
+
       const result = await setup(dojoConfig());
+      if (cancelled) return;
+      setConnector(cartridgeConnector);
       setSetupResult(result);
     }
+
     initialize();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   //

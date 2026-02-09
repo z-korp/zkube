@@ -1,6 +1,6 @@
 import { Application, useTick } from '@pixi/react';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Assets, Texture, Graphics as PixiGraphics, TextStyle } from 'pixi.js';
+import { Texture, Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { PixiThemeProvider, usePixiTheme } from '../../themes/ThemeContext';
 import { useFullscreenLayout } from '../../hooks/useFullscreenLayout';
 import { GameGrid } from '../GameGrid';
@@ -19,6 +19,7 @@ import { usePulseRef } from '../../hooks/useAnimatedValue';
 import type { Block } from '@/types/types';
 import type { ConstraintData } from '../hud';
 import { FONT_TITLE, FONT_BOLD, FONT_BODY, THEME_ASSETS } from '../../utils/colors';
+import { loadTextureCached } from '../../assets/textureLoader';
 
 const LOADING_TITLE_STYLE = {
   fontFamily: FONT_TITLE, fontSize: 28, fill: 0xffffff,
@@ -99,17 +100,9 @@ function useTexture(path: string): Texture | null {
       return;
     }
 
-    const cached = Assets.get(path) as Texture | undefined;
-    if (cached) {
-      setTex(cached);
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    Assets.load(path)
+    loadTextureCached(path)
       .then((t) => {
-        if (!cancelled) setTex(t as Texture);
+        if (!cancelled) setTex(t);
       })
       .catch(() => {
         if (!cancelled) setTex(null);

@@ -1,8 +1,9 @@
 import { useCallback, useMemo, useState, useEffect } from 'react';
-import { Graphics as PixiGraphics, TextStyle, Texture, Assets } from 'pixi.js';
+import { Graphics as PixiGraphics, TextStyle, Texture } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { getBlockColors , FONT_BODY } from '../../utils/colors';
 import type { Block } from '@/types/types';
+import { loadTextureCached } from '../../assets/textureLoader';
 
 interface NextLinePreviewProps {
   /** Blocks to display in the next line */
@@ -39,30 +40,15 @@ const PreviewBlock = ({
   useEffect(() => {
     let cancelled = false;
     const texturePath = `/assets/${themeName}/block-${block.width}.png`;
-    const cachedPrimary = Assets.get(texturePath) as Texture | undefined;
-    if (cachedPrimary) {
-      setTexture(cachedPrimary);
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    Assets.load(texturePath)
+    loadTextureCached(texturePath)
       .then((t) => {
-        if (!cancelled) setTexture(t as Texture);
+        if (!cancelled) setTexture(t);
       })
       .catch(() => {
-        // Fallback to default assets folder
         const fallbackPath = `/assets/block-${block.width}.png`;
-        const cachedFallback = Assets.get(fallbackPath) as Texture | undefined;
-        if (cachedFallback) {
-          if (!cancelled) setTexture(cachedFallback);
-          return;
-        }
-
-        Assets.load(fallbackPath)
+        loadTextureCached(fallbackPath)
           .then((t) => {
-            if (!cancelled) setTexture(t as Texture);
+            if (!cancelled) setTexture(t);
           })
           .catch(() => {
             if (!cancelled) setTexture(null);
@@ -111,8 +97,6 @@ export const NextLinePreview = ({
   y,
   isConsumed = false,
 }: NextLinePreviewProps) => {
-  const { colors } = usePixiTheme();
-
   const width = gridCols * cellSize;
   const height = cellSize;
 
@@ -129,15 +113,15 @@ export const NextLinePreview = ({
     return blocks.filter(block => block.y === 0);
   }, [blocks]);
 
-  if (isConsumed || nextLineBlocks.length === 0) {
-    const labelStyle = useMemo(() => new TextStyle({
-      fontFamily: FONT_BODY,
-      fontSize: 10,
-      fontWeight: 'normal',
-      fill: 0x64748b,
-      letterSpacing: 1,
-    }), []);
+  const labelStyle = useMemo(() => new TextStyle({
+    fontFamily: FONT_BODY,
+    fontSize: 10,
+    fontWeight: 'normal',
+    fill: 0x64748b,
+    letterSpacing: 1,
+  }), []);
 
+  if (isConsumed || nextLineBlocks.length === 0) {
     return (
       <pixiContainer y={y}>
         <pixiGraphics draw={drawBackground} />

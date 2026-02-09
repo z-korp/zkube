@@ -1,9 +1,10 @@
 import { useApplication } from '@pixi/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Assets, Texture, FederatedPointerEvent, Graphics as PixiGraphics } from 'pixi.js';
+import { Texture, FederatedPointerEvent, Graphics as PixiGraphics } from 'pixi.js';
 import type { Block } from '@/types/types';
 import { usePixiTheme, usePerformanceSettings } from '../themes/ThemeContext';
 import { getBlockColors, darkenColor } from '../utils/colors';
+import { loadTextureCached } from '../assets/textureLoader';
 
 interface BlockSpriteProps {
   block: Block;
@@ -47,43 +48,26 @@ export const BlockSprite = ({
   useEffect(() => {
     let cancelled = false;
     const texturePath = `/assets/${themeName}/block-${block.width}.png`;
-    const cachedPrimary = Assets.get(texturePath) as Texture | undefined;
-    if (cachedPrimary) {
-      setTexture(cachedPrimary);
-      return () => {
-        cancelled = true;
-      };
-    }
 
-    Assets.load(texturePath)
+    loadTextureCached(texturePath)
       .then((t) => {
-        if (!cancelled) setTexture(t as Texture);
+        if (!cancelled) setTexture(t);
       })
       .catch(() => {
         // Fallback to theme-1
         const fallbackPath = `/assets/theme-1/block-${block.width}.png`;
-        const cachedFallback = Assets.get(fallbackPath) as Texture | undefined;
-        if (cachedFallback) {
-          if (!cancelled) setTexture(cachedFallback);
-          return;
-        }
 
-        Assets.load(fallbackPath)
+        loadTextureCached(fallbackPath)
           .then((t) => {
-            if (!cancelled) setTexture(t as Texture);
+            if (!cancelled) setTexture(t);
           })
           .catch(() => {
             // Final fallback to default assets folder
             const finalPath = `/assets/block-${block.width}.png`;
-            const cachedFinal = Assets.get(finalPath) as Texture | undefined;
-            if (cachedFinal) {
-              if (!cancelled) setTexture(cachedFinal);
-              return;
-            }
 
-            Assets.load(finalPath)
+            loadTextureCached(finalPath)
               .then((t) => {
-                if (!cancelled) setTexture(t as Texture);
+                if (!cancelled) setTexture(t);
               })
               .catch(() => {
                 if (!cancelled) setTexture(null);

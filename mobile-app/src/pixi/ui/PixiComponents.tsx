@@ -9,17 +9,10 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Assets, Texture, Graphics as PixiGraphics } from 'pixi.js';
+import { Texture, Graphics as PixiGraphics } from 'pixi.js';
 import { ICON_ASSETS, type IconType } from '../assets/manifest';
 import { FONT_BOLD, FONT_BODY } from '../utils/colors';
-
-const loadTextureCached = async (path: string): Promise<Texture> => {
-  const cached = Assets.get(path) as Texture | undefined;
-  if (cached) {
-    return cached;
-  }
-  return (await Assets.load(path)) as Texture;
-};
+import { loadTextureCached } from '../assets/textureLoader';
 
 // ============================================================================
 // PROGRESS BAR

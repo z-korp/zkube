@@ -1,10 +1,11 @@
 import { useCallback, useState, useEffect, useMemo, useRef } from 'react';
-import { Graphics as PixiGraphics, Texture, Assets } from 'pixi.js';
+import { Graphics as PixiGraphics, Texture } from 'pixi.js';
 import { useTick } from '@pixi/react';
 import { usePixiTheme } from '../themes/ThemeContext';
 import { THEME_ASSETS } from '../utils/colors';
 import { GlowFilter } from '../extend';
 import { usePulseRef } from '../hooks/useAnimatedValue';
+import { loadTextureCached } from '../assets/textureLoader';
 
 interface GridBackgroundProps {
   gridSize: number;
@@ -90,32 +91,14 @@ export const GridBackground = ({
     const bgPath = getAssetPath(THEME_ASSETS.gridBg);
     const framePath = getAssetPath(THEME_ASSETS.gridFrame);
 
-    const cachedBg = Assets.get(bgPath) as Texture | undefined;
-    const cachedFrame = Assets.get(framePath) as Texture | undefined;
-
-    if (cachedBg) {
-      setGridBgTex(cachedBg);
-    } else {
-      Assets.load(bgPath)
-        .then((t) => {
-          if (!cancelled) setGridBgTex(t as Texture);
-        })
-        .catch(() => {
-          if (!cancelled) setGridBgTex(null);
-        });
-    }
-
-    if (cachedFrame) {
-      setFrameTex(cachedFrame);
-    } else {
-      Assets.load(framePath)
-        .then((t) => {
-          if (!cancelled) setFrameTex(t as Texture);
-        })
-        .catch(() => {
-          if (!cancelled) setFrameTex(null);
-        });
-    }
+    Promise.all([
+      loadTextureCached(bgPath).catch(() => null),
+      loadTextureCached(framePath).catch(() => null),
+    ]).then(([bg, frame]) => {
+      if (cancelled) return;
+      setGridBgTex(bg);
+      setFrameTex(frame);
+    });
 
     return () => {
       cancelled = true;

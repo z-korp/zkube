@@ -13,23 +13,34 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          if (id.includes("/src/cartridgeConnector")) {
+            return "wallet";
+          }
+
+          if (id.includes("/src/dojo/setup")) {
+            return "dojo-setup";
+          }
+
           if (!id.includes("node_modules")) return;
 
           if (
-            id.includes("@pixi/react") ||
             id.includes("pixi.js") ||
-            id.includes("pixi-filters")
+            id.includes("@pixi/react")
           ) {
             return "pixi";
           }
 
+          if (id.includes("pixi-filters")) {
+            return "pixi-filters";
+          }
+
           if (
             id.includes("@dojoengine") ||
-            id.includes("metagame-sdk") ||
-            id.includes("@dojo") ||
             id.includes("starknet") ||
             id.includes("@starknet-react") ||
-            id.includes("@cartridge")
+            id.includes("@cartridge") ||
+            id.includes("metagame-sdk") ||
+            id.includes("@dojo")
           ) {
             return "chain";
           }

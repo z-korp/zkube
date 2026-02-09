@@ -8,13 +8,14 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Graphics as PixiGraphics, Assets, Texture } from "pixi.js";
+import { Graphics as PixiGraphics, Texture } from "pixi.js";
 import { PageTopBar } from "./PageTopBar";
 import { Button } from "../ui";
 import { usePixiTheme } from "../../themes/ThemeContext";
 import type { PlayerMetaData } from "@/hooks/usePlayerMeta";
 import { BonusType, bonusTypeToContractValue } from "@/dojo/game/types/bonus";
 import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
+import { loadTextureCached } from '../../assets/textureLoader';
 
 // ============================================================================
 // CONSTANTS
@@ -142,17 +143,9 @@ function useTexture(path: string): Texture | null {
       return;
     }
 
-    const cached = Assets.get(path) as Texture | undefined;
-    if (cached) {
-      setTex(cached);
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    Assets.load(path)
+    loadTextureCached(path)
       .then((t) => {
-        if (!cancelled) setTex(t as Texture);
+        if (!cancelled) setTex(t);
       })
       .catch(() => {
         if (!cancelled) setTex(null);

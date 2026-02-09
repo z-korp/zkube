@@ -7,13 +7,14 @@
  */
 
 import { useMemo, useEffect, useState, ReactNode } from 'react';
-import { Assets, Texture } from 'pixi.js';
+import { Texture } from 'pixi.js';
 import { FONT_BOLD } from '../utils/colors';
 import {
   PANEL_ASSETS,
   PANEL_BORDERS,
   type PanelType,
 } from '../assets/manifest';
+import { loadTextureCached } from '../assets/textureLoader';
 
 export interface PixiPanelProps {
   /** X position */
@@ -58,17 +59,9 @@ export function PixiPanel({
     const panelAsset = PANEL_ASSETS[variant];
     if (!panelAsset) return;
 
-    const cached = Assets.get(panelAsset.path) as Texture | undefined;
-    if (cached) {
-      setTexture(cached);
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    Assets.load(panelAsset.path)
+    loadTextureCached(panelAsset.path)
       .then((t) => {
-        if (!cancelled) setTexture(t as Texture);
+        if (!cancelled) setTexture(t);
       })
       .catch(() => {
         if (!cancelled) setTexture(null);

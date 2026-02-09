@@ -4,7 +4,7 @@
  * Preloads and caches tiki theme assets using PixiJS Assets system
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { Assets, Texture } from 'pixi.js';
 import { 
   getAllAssetPaths, 
@@ -24,6 +24,7 @@ import {
   type ParticleType,
   type BonusType,
 } from './manifest';
+import { ensureAssetsRegistered, getMissingAliases } from './textureLoader';
 
 export interface AssetLoaderState {
   /** Whether essential assets are loaded */
@@ -56,23 +57,24 @@ export function useAssetLoader(loadAll: boolean = false): AssetLoaderState {
       try {
         // Load essential assets first
         const essentials = getEssentialAssetPaths();
-        
-        // Add assets to loader
-        for (const asset of essentials) {
-          if (!Assets.cache.has(asset.alias)) {
-            Assets.add(asset);
-          }
-        }
 
-        // Load with progress
-        await Assets.load(essentials.map(a => a.alias), (progress) => {
-          if (!cancelled) {
-            setState(prev => ({ 
-              ...prev, 
-              progress: loadAll ? progress * 0.5 : progress 
-            }));
-          }
-        });
+        ensureAssetsRegistered(essentials);
+
+        const essentialAliases = essentials.map((a) => a.alias);
+        const missingEssentials = getMissingAliases(essentialAliases);
+
+        if (missingEssentials.length > 0) {
+          await Assets.load(missingEssentials, (progress) => {
+            if (!cancelled) {
+              setState((prev) => ({
+                ...prev,
+                progress: loadAll ? progress * 0.5 : progress,
+              }));
+            }
+          });
+        } else if (!cancelled) {
+          setState((prev) => ({ ...prev, progress: loadAll ? 0.5 : 1 }));
+        }
 
         if (cancelled) return;
 
@@ -85,20 +87,23 @@ export function useAssetLoader(loadAll: boolean = false): AssetLoaderState {
             !essentials.some(e => e.alias === a.alias)
           );
 
-          for (const asset of remaining) {
-            if (!Assets.cache.has(asset.alias)) {
-              Assets.add(asset);
-            }
-          }
+          ensureAssetsRegistered(remaining);
 
-          await Assets.load(remaining.map(a => a.alias), (progress) => {
-            if (!cancelled) {
-              setState(prev => ({ 
-                ...prev, 
-                progress: 0.5 + progress * 0.5 
-              }));
-            }
-          });
+          const remainingAliases = remaining.map((a) => a.alias);
+          const missingRemaining = getMissingAliases(remainingAliases);
+
+          if (missingRemaining.length > 0) {
+            await Assets.load(missingRemaining, (progress) => {
+              if (!cancelled) {
+                setState((prev) => ({
+                  ...prev,
+                  progress: 0.5 + progress * 0.5,
+                }));
+              }
+            });
+          } else if (!cancelled) {
+            setState((prev) => ({ ...prev, progress: 1 }));
+          }
 
           if (cancelled) return;
 
@@ -243,11 +248,9 @@ export async function preloadAssetCategory(
       break;
   }
 
-  for (const asset of assets) {
-    if (!Assets.cache.has(asset.alias)) {
-      Assets.add(asset);
-    }
-  }
+  ensureAssetsRegistered(assets);
 
-  await Assets.load(assets.map(a => a.alias));
+  const missingAliases = getMissingAliases(assets.map((a) => a.alias));
+  if (missingAliases.length === 0) return;
+  await Assets.load(missingAliases);
 }

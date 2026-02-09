@@ -1,19 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Assets, Texture, Graphics as PixiGraphics } from 'pixi.js';
+import { Texture, Graphics as PixiGraphics } from 'pixi.js';
 import type { FullscreenLayout } from '../../hooks/useFullscreenLayout';
+import { loadTextureCached } from '../../assets/textureLoader';
 
 interface ThemeBackgroundProps {
   layout: FullscreenLayout;
   themeName?: string;
 }
-
-const loadTextureCached = async (path: string): Promise<Texture> => {
-  const cached = Assets.get(path) as Texture | undefined;
-  if (cached) {
-    return cached;
-  }
-  return (await Assets.load(path)) as Texture;
-};
 
 /**
  * Full-screen themed background that covers the entire canvas

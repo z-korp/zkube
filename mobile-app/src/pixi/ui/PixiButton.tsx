@@ -9,8 +9,9 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Assets, Texture, FederatedPointerEvent, TextStyle } from 'pixi.js';
+import { Texture, FederatedPointerEvent, TextStyle } from 'pixi.js';
 import { FONT_BOLD } from '../utils/colors';
+import { loadTextureCached } from '../assets/textureLoader';
 import { 
   BUTTON_ASSETS, 
   BUTTON_BORDERS,
@@ -64,14 +65,6 @@ const DEFAULT_TEXT_STYLE: Partial<TextStyle> = {
     distance: 2,
     color: 0x000000,
   },
-};
-
-const loadTextureCached = async (path: string): Promise<Texture> => {
-  const cached = Assets.get(path) as Texture | undefined;
-  if (cached) {
-    return cached;
-  }
-  return (await Assets.load(path)) as Texture;
 };
 
 export function PixiButton({
