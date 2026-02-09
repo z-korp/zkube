@@ -10,10 +10,13 @@ interface ModalProps {
   title: string;
   subtitle?: string;
   width?: number;
+  contentHeight?: number;
   screenWidth: number;
   screenHeight: number;
   children?: React.ReactNode;
   showCloseButton?: boolean;
+  closeOnBackdrop?: boolean;
+  closeOnEscape?: boolean;
 }
 
 /**
@@ -26,10 +29,13 @@ export const Modal = ({
   title,
   subtitle,
   width = 360,
+  contentHeight = 320,
   screenWidth,
   screenHeight,
   children,
   showCloseButton = true,
+  closeOnBackdrop = true,
+  closeOnEscape = true,
 }: ModalProps) => {
   const { colors } = usePixiTheme();
 
@@ -37,7 +43,6 @@ export const Modal = ({
   const titleHeight = 32;
   const subtitleHeight = subtitle ? 20 : 0;
   const headerHeight = titleHeight + subtitleHeight + padding;
-  const contentHeight = 400; // Increased for scrollable content
   const modalHeight = headerHeight + contentHeight + padding;
   const cornerRadius = 16;
 
@@ -51,7 +56,7 @@ export const Modal = ({
 
   // Handle escape key to close
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !closeOnEscape) return;
     
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -61,7 +66,7 @@ export const Modal = ({
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, closeOnEscape]);
 
   // Draw backdrop (semi-transparent overlay)
   const drawBackdrop = useCallback((g: PixiGraphics) => {
@@ -129,14 +134,14 @@ export const Modal = ({
   return (
     <>
       {/* Backdrop */}
-      <pixiGraphics
-        draw={drawBackdrop}
-        eventMode="static"
-        onPointerDown={(e: any) => {
-          e.stopPropagation();
-          onClose();
-        }}
-      />
+        <pixiGraphics
+          draw={drawBackdrop}
+          eventMode="static"
+          onPointerDown={(e: any) => {
+            e.stopPropagation();
+            if (closeOnBackdrop) onClose();
+          }}
+        />
 
       {/* Modal container */}
       <pixiContainer x={modalX} y={modalY}>

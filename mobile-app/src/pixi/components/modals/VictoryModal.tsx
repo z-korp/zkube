@@ -195,9 +195,12 @@ export const VictoryModal = ({
       onClose={onClose}
       title=""
       width={modalWidth}
+      contentHeight={430}
       screenWidth={screenWidth}
       screenHeight={screenHeight}
       showCloseButton={false}
+      closeOnBackdrop={false}
+      closeOnEscape={false}
     >
       <pixiContainer x={24} y={-20}>
         {/* Confetti — single imperative Graphics, drawn in tick */}

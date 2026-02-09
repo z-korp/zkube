@@ -160,13 +160,13 @@ const UpgradeCard = ({
           />
           <LevelPips level={startingLevel} maxLevel={3} x={16} y={68} color={0x60a5fa} />
           {nextStartingCost && onUpgradeStarting && (
-            <pixiContainer x={width - 70} y={55}>
+            <pixiContainer x={width - 78} y={52}>
               <Button
                 text={`${nextStartingCost}`}
-                width={54}
-                height={26}
+                width={62}
+                height={36}
                 variant={canUpgradeStarting ? 'primary' : 'secondary'}
-                fontSize={11}
+                fontSize={12}
                 onClick={onUpgradeStarting}
                 disabled={!canUpgradeStarting}
               />
@@ -183,13 +183,13 @@ const UpgradeCard = ({
           />
           <LevelPips level={bagLevel} maxLevel={3} x={16} y={108} color={0x22c55e} />
           {nextBagCost && onUpgradeBag && (
-            <pixiContainer x={width - 70} y={95}>
+            <pixiContainer x={width - 78} y={90}>
               <Button
                 text={`${nextBagCost}`}
-                width={54}
-                height={26}
+                width={62}
+                height={36}
                 variant={canUpgradeBag ? 'primary' : 'secondary'}
-                fontSize={11}
+                fontSize={12}
                 onClick={onUpgradeBag}
                 disabled={!canUpgradeBag}
               />
@@ -198,13 +198,13 @@ const UpgradeCard = ({
         </>
       ) : (
         /* Unlock Button */
-        <pixiContainer x={(width - 100) / 2} y={65}>
+        <pixiContainer x={(width - 114) / 2} y={58}>
           <Button
             text={`Unlock ${UNLOCK_BONUS_COST}`}
-            width={100}
-            height={32}
+            width={114}
+            height={40}
             variant={canUnlock ? 'primary' : 'secondary'}
-            fontSize={12}
+            fontSize={13}
             onClick={onUnlock}
             disabled={!canUnlock}
           />
@@ -283,13 +283,13 @@ const BridgingCard = ({
       <LevelPips level={rank} maxLevel={4} x={16} y={100} color={0xfbbf24} />
 
       {nextCost && onUpgrade && (
-        <pixiContainer x={width - 70} y={75}>
+        <pixiContainer x={width - 78} y={70}>
           <Button
             text={`${nextCost}`}
-            width={54}
-            height={28}
+            width={62}
+            height={40}
             variant={canUpgrade ? 'primary' : 'secondary'}
-            fontSize={11}
+            fontSize={12}
             onClick={onUpgrade}
             disabled={!canUpgrade}
           />

@@ -317,9 +317,9 @@ const QuestFamilyCard = ({
           <Button
             text={isClaiming ? 'Claiming...' : `Claim T${family.claimableTier!.tier} (+${family.claimableTier!.reward})`}
             width={width - cardPadding * 2}
-            height={36}
+            height={42}
             variant="primary"
-            fontSize={13}
+            fontSize={14}
             onClick={handleClaim}
             disabled={isClaiming}
           />

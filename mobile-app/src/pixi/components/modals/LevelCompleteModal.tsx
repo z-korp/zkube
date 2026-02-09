@@ -167,9 +167,12 @@ export const LevelCompleteModal = ({
       title={`Level ${level} Complete!`}
       subtitle={constraintMet ? "Constraint bonus achieved!" : undefined}
       width={modalWidth}
+      contentHeight={310}
       screenWidth={screenWidth}
       screenHeight={screenHeight}
       showCloseButton={false}
+      closeOnBackdrop={false}
+      closeOnEscape={false}
     >
       <pixiContainer x={24} y={0}>
         {/* Stars display */}

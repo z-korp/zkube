@@ -108,9 +108,12 @@ export const MenuModal = ({
         : "Game paused"
       }
       width={modalWidth}
+      contentHeight={showConfirm ? 220 : 150}
       screenWidth={screenWidth}
       screenHeight={screenHeight}
       showCloseButton={!isSurrendering}
+      closeOnBackdrop={!isSurrendering}
+      closeOnEscape={!isSurrendering}
     >
       <pixiContainer x={24} y={0}>
         {showConfirm ? (

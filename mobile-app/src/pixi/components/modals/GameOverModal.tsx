@@ -103,9 +103,12 @@ export const GameOverModal = ({
       title="Game Over"
       subtitle={`You reached level ${level}`}
       width={modalWidth}
+      contentHeight={380}
       screenWidth={screenWidth}
       screenHeight={screenHeight}
       showCloseButton={false}
+      closeOnBackdrop={false}
+      closeOnEscape={false}
     >
       <pixiContainer x={24} y={0}>
         {/* Game over icon */}

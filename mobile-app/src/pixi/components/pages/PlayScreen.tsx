@@ -469,7 +469,7 @@ function drawConstraintInline(g: PixiGraphics, c: ConstraintData, x: number, cy:
   }
 }
 
-const LoadingScreen = ({ sw, sh }: { sw: number; sh: number }) => {
+const LoadingScreen = ({ sw, sh, topOffset }: { sw: number; sh: number; topOffset: number }) => {
   const [dotCount, setDotCount] = useState(0);
   const elapsedRef = useRef(0);
 
@@ -485,10 +485,10 @@ const LoadingScreen = ({ sw, sh }: { sw: number; sh: number }) => {
   const dots = '.'.repeat(dotCount);
 
   return (
-    <pixiContainer>
-      <SkyBackground w={sw} h={sh} />
-      <Clouds w={sw} h={sh} />
-      <PixiToastLayer screenWidth={sw} topOffset={layout.statsBarY + 4} />
+      <pixiContainer>
+        <SkyBackground w={sw} h={sh} />
+        <Clouds w={sw} h={sh} />
+      <PixiToastLayer screenWidth={sw} topOffset={topOffset} />
       <pixiText
         text={`Loading${dots}`}
         x={sw / 2} y={sh / 2 - 20} anchor={0.5}
@@ -542,13 +542,14 @@ const PlayScreenInner = (props: PlayScreenProps) => {
   const isInteractionBlocked = isTxProcessing || isSurrendering || isGameOver || isVictory || isLevelComplete;
 
   if (isLoading || blocks.length === 0) {
-    return <LoadingScreen sw={sw} sh={sh} />;
+    return <LoadingScreen sw={sw} sh={sh} topOffset={layout.statsBarY + 4} />;
   }
 
   return (
     <pixiContainer>
       <SkyBackground w={sw} h={sh} />
       <Clouds w={sw} h={sh} />
+      <PixiToastLayer screenWidth={sw} topOffset={layout.statsBarY + 4} />
 
       <StatsBar
         sw={sw} barY={layout.statsBarY} barH={layout.statsBarHeight}
