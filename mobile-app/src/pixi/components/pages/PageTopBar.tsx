@@ -161,7 +161,7 @@ export const PageTopBar = ({
 }: PageTopBarProps) => {
   const { goHome } = usePageNavigator();
 
-  const btnSize = Math.min(42, topBarHeight - 12);
+  const btnSize = Math.max(40, Math.min(48, topBarHeight - 12));
   const padding = 12;
   const centerY = (topBarHeight - btnSize) / 2;
 

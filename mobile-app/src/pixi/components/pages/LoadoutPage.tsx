@@ -135,13 +135,32 @@ const getBonusName = (bonus: BonusType): string => {
 function useTexture(path: string): Texture | null {
   const [tex, setTex] = useState<Texture | null>(null);
   useEffect(() => {
+    let cancelled = false;
+
     if (!path) {
       setTex(null);
       return;
     }
+
+    const cached = Assets.get(path) as Texture | undefined;
+    if (cached) {
+      setTex(cached);
+      return () => {
+        cancelled = true;
+      };
+    }
+
     Assets.load(path)
-      .then((t) => setTex(t as Texture))
-      .catch(() => setTex(null));
+      .then((t) => {
+        if (!cancelled) setTex(t as Texture);
+      })
+      .catch(() => {
+        if (!cancelled) setTex(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [path]);
   return tex;
 }
@@ -175,6 +194,11 @@ const BonusTile = ({
   const bgColor = isSelected ? 0x22c55e : isLocked ? 0x4b5563 : 0x1e293b;
   const borderColor = isSelected ? 0x4ade80 : isLocked ? 0x6b7280 : 0x475569;
   const scale = pressed ? 0.95 : hovered && !isLocked ? 1.05 : 1;
+  const bonusLabelStyle = useMemo(() => ({
+    fontFamily: FONT_BODY,
+    fontSize: 12,
+    fill: isLocked ? 0x9ca3af : 0xffffff,
+  }), [isLocked]);
 
   const draw = useCallback(
     (g: PixiGraphics) => {
@@ -236,10 +260,7 @@ const BonusTile = ({
         x={size / 2}
         y={size - 14}
         anchor={0.5}
-        style={useMemo(() => ({
-          fontFamily: FONT_BODY, fontSize: 12,
-          fill: isLocked ? 0x9ca3af : 0xffffff,
-        }), [isLocked])}
+        style={bonusLabelStyle}
         eventMode="none"
       />
       {isLocked && (

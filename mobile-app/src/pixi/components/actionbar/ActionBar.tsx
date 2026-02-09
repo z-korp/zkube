@@ -45,8 +45,28 @@ export const ActionBar = ({
   const [barTex, setBarTex] = useState<Texture | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     const path = getAssetPath(THEME_ASSETS.actionBar);
-    Assets.load(path).then(t => setBarTex(t as Texture)).catch(() => setBarTex(null));
+
+    const cached = Assets.get(path) as Texture | undefined;
+    if (cached) {
+      setBarTex(cached);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    Assets.load(path)
+      .then((t) => {
+        if (!cancelled) setBarTex(t as Texture);
+      })
+      .catch(() => {
+        if (!cancelled) setBarTex(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [getAssetPath]);
 
   const buttonSize = Math.min(52, height - 12);

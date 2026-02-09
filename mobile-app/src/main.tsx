@@ -22,8 +22,10 @@ import "./pixi/extend";
 import "./index.css";
 import { type BigNumberish, shortString, PaymasterRpc } from "starknet";
 import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
+import { Assets } from "pixi.js";
 import { validateEnv } from "./config/env";
 import { createLogger } from "./utils/logger";
+import { getEssentialAssetPaths } from "./pixi/assets/manifest";
 
 // Mock paymaster for slot mode - returns a dummy PaymasterRpc that won't be used
 // Required because @starknet-react/core v5.x throws if paymasterProvider returns null
@@ -31,8 +33,34 @@ const slotPaymasterProvider = () => new PaymasterRpc({ nodeUrl: "http://localhos
 
 const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_NODE_URL, VITE_PUBLIC_SLOT } = import.meta.env;
 const log = createLogger("main");
+let pixiAssetsBootstrapped = false;
 
 validateEnv();
+
+async function bootstrapPixiAssets() {
+  if (pixiAssetsBootstrapped) return;
+
+  await Assets.init({
+    texturePreference: {
+      format: ["webp", "png", "jpg"],
+    },
+    loadOptions: {
+      strategy: "retry",
+      retryCount: 2,
+      retryDelay: 200,
+    },
+  });
+
+  const essentials = getEssentialAssetPaths();
+  for (const asset of essentials) {
+    if (!Assets.cache.has(asset.alias)) {
+      Assets.add(asset);
+    }
+  }
+
+  Assets.backgroundLoad(essentials.map((a) => a.alias));
+  pixiAssetsBootstrapped = true;
+}
 
 const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
 
@@ -55,6 +83,12 @@ export function Main() {
 
   useEffect(() => {
     async function initialize() {
+      try {
+        await bootstrapPixiAssets();
+      } catch (error) {
+        log.warn("Pixi asset bootstrap failed; continuing with lazy loads", error);
+      }
+
       const result = await setup(dojoConfig());
       setSetupResult(result);
     }

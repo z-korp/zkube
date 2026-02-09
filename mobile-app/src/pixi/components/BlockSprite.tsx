@@ -45,21 +45,55 @@ export const BlockSprite = ({
   
 
   useEffect(() => {
+    let cancelled = false;
     const texturePath = `/assets/${themeName}/block-${block.width}.png`;
+    const cachedPrimary = Assets.get(texturePath) as Texture | undefined;
+    if (cachedPrimary) {
+      setTexture(cachedPrimary);
+      return () => {
+        cancelled = true;
+      };
+    }
+
     Assets.load(texturePath)
-      .then(setTexture)
+      .then((t) => {
+        if (!cancelled) setTexture(t as Texture);
+      })
       .catch(() => {
         // Fallback to theme-1
         const fallbackPath = `/assets/theme-1/block-${block.width}.png`;
+        const cachedFallback = Assets.get(fallbackPath) as Texture | undefined;
+        if (cachedFallback) {
+          if (!cancelled) setTexture(cachedFallback);
+          return;
+        }
+
         Assets.load(fallbackPath)
-          .then(setTexture)
+          .then((t) => {
+            if (!cancelled) setTexture(t as Texture);
+          })
           .catch(() => {
             // Final fallback to default assets folder
-            Assets.load(`/assets/block-${block.width}.png`)
-              .then(setTexture)
-              .catch(console.error);
+            const finalPath = `/assets/block-${block.width}.png`;
+            const cachedFinal = Assets.get(finalPath) as Texture | undefined;
+            if (cachedFinal) {
+              if (!cancelled) setTexture(cachedFinal);
+              return;
+            }
+
+            Assets.load(finalPath)
+              .then((t) => {
+                if (!cancelled) setTexture(t as Texture);
+              })
+              .catch(() => {
+                if (!cancelled) setTexture(null);
+              });
           });
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [block.width, themeName]);
 
   // Calculate position and dimensions

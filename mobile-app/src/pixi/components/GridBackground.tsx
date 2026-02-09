@@ -86,10 +86,40 @@ export const GridBackground = ({
   const [frameTex, setFrameTex] = useState<Texture | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     const bgPath = getAssetPath(THEME_ASSETS.gridBg);
     const framePath = getAssetPath(THEME_ASSETS.gridFrame);
-    Assets.load(bgPath).then(t => setGridBgTex(t as Texture)).catch(() => setGridBgTex(null));
-    Assets.load(framePath).then(t => setFrameTex(t as Texture)).catch(() => setFrameTex(null));
+
+    const cachedBg = Assets.get(bgPath) as Texture | undefined;
+    const cachedFrame = Assets.get(framePath) as Texture | undefined;
+
+    if (cachedBg) {
+      setGridBgTex(cachedBg);
+    } else {
+      Assets.load(bgPath)
+        .then((t) => {
+          if (!cancelled) setGridBgTex(t as Texture);
+        })
+        .catch(() => {
+          if (!cancelled) setGridBgTex(null);
+        });
+    }
+
+    if (cachedFrame) {
+      setFrameTex(cachedFrame);
+    } else {
+      Assets.load(framePath)
+        .then((t) => {
+          if (!cancelled) setFrameTex(t as Texture);
+        })
+        .catch(() => {
+          if (!cancelled) setFrameTex(null);
+        });
+    }
+
+    return () => {
+      cancelled = true;
+    };
   }, [getAssetPath]);
 
   const drawGridFill = useCallback((g: PixiGraphics) => {

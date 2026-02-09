@@ -104,7 +104,32 @@ export interface LandingScreenProps {
 function useTexture(path: string): Texture | null {
   const [tex, setTex] = useState<Texture | null>(null);
   useEffect(() => {
-    Assets.load(path).then(t => setTex(t as Texture)).catch(() => setTex(null));
+    let cancelled = false;
+
+    if (!path) {
+      setTex(null);
+      return;
+    }
+
+    const cached = Assets.get(path) as Texture | undefined;
+    if (cached) {
+      setTex(cached);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    Assets.load(path)
+      .then((t) => {
+        if (!cancelled) setTex(t as Texture);
+      })
+      .catch(() => {
+        if (!cancelled) setTex(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [path]);
   return tex;
 }
@@ -335,7 +360,7 @@ const LandingTopBar = ({
   onTutorialClick: () => void; onQuestsClick: () => void;
   onTrophyClick: () => void; onSettingsClick: () => void;
 }) => {
-  const btnSize = isMobile ? 36 : 42;
+  const btnSize = isMobile ? 44 : 48;
   const gap = Math.round(10 * uiScale);
   const pad = Math.round(12 * uiScale);
   const centerY = (topBarH - btnSize) / 2;

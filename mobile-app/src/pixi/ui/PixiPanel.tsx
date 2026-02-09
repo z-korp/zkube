@@ -54,12 +54,29 @@ export function PixiPanel({
 
   // Load panel texture
   useEffect(() => {
+    let cancelled = false;
     const panelAsset = PANEL_ASSETS[variant];
     if (!panelAsset) return;
 
+    const cached = Assets.get(panelAsset.path) as Texture | undefined;
+    if (cached) {
+      setTexture(cached);
+      return () => {
+        cancelled = true;
+      };
+    }
+
     Assets.load(panelAsset.path)
-      .then(setTexture)
-      .catch(console.error);
+      .then((t) => {
+        if (!cancelled) setTexture(t as Texture);
+      })
+      .catch(() => {
+        if (!cancelled) setTexture(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [variant]);
 
   // Calculate anchor offset

@@ -1,8 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
+import { nativePaddingTop, nativePaddingBottom } from '@/utils/capacitorUtils';
 
 export interface FullscreenLayout {
   screenWidth: number;
   screenHeight: number;
+  safeAreaTop: number;
+  safeAreaBottom: number;
 
   isMobile: boolean;
   isLandscape: boolean;
@@ -86,6 +89,18 @@ const DEFAULT_CONFIG = {
 
 const FRAME_PAD = 12;
 
+const readSafeInset = (name: '--safe-area-top' | '--safe-area-bottom'): number => {
+  if (typeof window === 'undefined') return 0;
+  const value = window.getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const px = parseFloat(value);
+  return Number.isFinite(px) ? px : 0;
+};
+
+const toPxNumber = (value: string): number => {
+  const px = parseFloat(value);
+  return Number.isFinite(px) ? px : 0;
+};
+
 export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout {
   const [screenWidth, setScreenWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 375
@@ -130,6 +145,9 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
       ? Math.min(window.devicePixelRatio || 1, 2)
       : 1;
 
+    const safeAreaTop = Math.max(readSafeInset('--safe-area-top'), toPxNumber(nativePaddingTop));
+    const safeAreaBottom = Math.max(readSafeInset('--safe-area-bottom'), toPxNumber(nativePaddingBottom));
+
     const isMobile = screenWidth < 768;
     const isLandscape = screenWidth > screenHeight;
 
@@ -147,8 +165,8 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
     const hudBottom = Math.round(6 * uiScale);
 
     const topBarY = 0;
-    const topBarHeight = 0;
-    const statsBarY = Math.round(6 * uiScale);
+    const topBarHeight = Math.round((isMobile ? 56 : 60) * uiScale) + safeAreaTop;
+    const statsBarY = Math.round(6 * uiScale) + safeAreaTop;
     const progressBarY = statsBarY + statsBarHeight + barGap;
 
     const hudTotalHeight = progressBarY + progressBarHeight + hudBottom;
@@ -157,7 +175,7 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
     const infoAreaHeight = statsBarHeight + barGap + progressBarHeight;
 
     const nextLineGap = 4;
-    const usedHeight = hudTotalHeight + actionBarHeight + framePad * 2 + nextLineGap;
+    const usedHeight = hudTotalHeight + actionBarHeight + framePad * 2 + nextLineGap + safeAreaBottom;
     const availableHeight = screenHeight - usedHeight;
 
     const horizontalPadding = (padding + framePad) * 2;
@@ -178,7 +196,7 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
     const gridY = hudTotalHeight + framePad;
     const nextLineY = gridY + gridHeight + nextLineGap;
 
-    const actionBarY = screenHeight - actionBarHeight;
+    const actionBarY = screenHeight - actionBarHeight - safeAreaBottom;
 
     const levelBadgeWidth = Math.round(Math.min(200, gridWidth * 0.55));
     const levelBadgeX = Math.round((screenWidth - levelBadgeWidth) / 2);
@@ -207,6 +225,8 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
     return {
       screenWidth,
       screenHeight,
+      safeAreaTop,
+      safeAreaBottom,
       isMobile,
       isLandscape,
       devicePixelRatio,

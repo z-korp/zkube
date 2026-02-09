@@ -7,6 +7,14 @@ interface ThemeBackgroundProps {
   themeName?: string;
 }
 
+const loadTextureCached = async (path: string): Promise<Texture> => {
+  const cached = Assets.get(path) as Texture | undefined;
+  if (cached) {
+    return cached;
+  }
+  return (await Assets.load(path)) as Texture;
+};
+
 /**
  * Full-screen themed background that covers the entire canvas
  * Loads theme background image and scales to fit
@@ -20,15 +28,25 @@ export const ThemeBackground = ({
   // Load background texture
   useEffect(() => {
     const bgPath = `/assets/${themeName}/theme-2-1.png`;
-    
-    Assets.load(bgPath)
-      .then((tex) => setTexture(tex as Texture))
+    let cancelled = false;
+
+    loadTextureCached(bgPath)
+      .then((tex) => {
+        if (!cancelled) setTexture(tex);
+      })
       .catch(() => {
-        // Try fallback path
-        Assets.load('/assets/theme-2-1.png')
-          .then((tex) => setTexture(tex as Texture))
-          .catch(console.error);
+        loadTextureCached('/assets/theme-2-1.png')
+          .then((tex) => {
+            if (!cancelled) setTexture(tex);
+          })
+          .catch(() => {
+            if (!cancelled) setTexture(null);
+          });
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [themeName]);
 
   // Draw vignette overlay

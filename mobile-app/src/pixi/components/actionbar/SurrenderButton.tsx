@@ -1,6 +1,5 @@
 import { useCallback, useState, useRef, useEffect, useMemo } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { drawFlagIcon, IconColors } from '../ui/Icons';
 import { FONT_BOLD } from '../../utils/colors';
 
@@ -23,7 +22,6 @@ export const SurrenderButton = ({
   onClick,
   isDisabled = false,
 }: SurrenderButtonProps) => {
-  const { colors } = usePixiTheme();
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
   const [awaitingConfirm, setAwaitingConfirm] = useState(false);
@@ -88,6 +86,12 @@ export const SurrenderButton = ({
     drawFlagIcon(g, iconSize, color);
   }, [width, height, isHovered, isDisabled, awaitingConfirm]);
 
+  const confirmTextStyle = useMemo(() => ({
+    fontFamily: FONT_BOLD,
+    fontSize: Math.min(width, height) * 0.3,
+    fill: 0xfca5a5,
+  }), [width, height]);
+
   return (
     <pixiContainer x={x} y={y}>
       <pixiGraphics
@@ -106,11 +110,7 @@ export const SurrenderButton = ({
           x={width / 2}
           y={height / 2}
           anchor={0.5}
-          style={useMemo(() => ({
-            fontFamily: FONT_BOLD,
-            fontSize: Math.min(width, height) * 0.3,
-            fill: 0xfca5a5,
-          }), [width, height])}
+          style={confirmTextStyle}
           eventMode="none"
         />
       ) : (

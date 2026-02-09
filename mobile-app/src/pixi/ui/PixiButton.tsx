@@ -66,6 +66,14 @@ const DEFAULT_TEXT_STYLE: Partial<TextStyle> = {
   },
 };
 
+const loadTextureCached = async (path: string): Promise<Texture> => {
+  const cached = Assets.get(path) as Texture | undefined;
+  if (cached) {
+    return cached;
+  }
+  return (await Assets.load(path)) as Texture;
+};
+
 export function PixiButton({
   x = 0,
   y = 0,
@@ -97,20 +105,30 @@ export function PixiButton({
 
   // Load button textures
   useEffect(() => {
+    let cancelled = false;
     const buttonAssets = BUTTON_ASSETS[actualVariant];
     if (!buttonAssets) return;
 
     Promise.all([
-      Assets.load(buttonAssets.normal.path),
-      Assets.load(buttonAssets.pressed.path),
-      Assets.load(buttonAssets.disabled.path),
+      loadTextureCached(buttonAssets.normal.path),
+      loadTextureCached(buttonAssets.pressed.path),
+      loadTextureCached(buttonAssets.disabled.path),
     ]).then(([normal, pressed, disabledTex]) => {
-      setTextures({ normal, pressed, disabled: disabledTex });
-    }).catch(console.error);
+      if (!cancelled) {
+        setTextures({ normal, pressed, disabled: disabledTex });
+      }
+    }).catch(() => {
+      if (!cancelled) setTextures(null);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [actualVariant]);
 
   // Load icon texture
   useEffect(() => {
+    let cancelled = false;
     if (!icon) {
       setIconTexture(null);
       return;
@@ -119,9 +137,17 @@ export function PixiButton({
     const iconAsset = ICON_ASSETS[icon];
     if (!iconAsset) return;
 
-    Assets.load(iconAsset.path)
-      .then(setIconTexture)
-      .catch(console.error);
+    loadTextureCached(iconAsset.path)
+      .then((texture) => {
+        if (!cancelled) setIconTexture(texture);
+      })
+      .catch(() => {
+        if (!cancelled) setIconTexture(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [icon]);
 
   // Get current texture based on state

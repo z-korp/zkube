@@ -92,7 +92,32 @@ export interface PlayScreenProps {
 function useTexture(path: string): Texture | null {
   const [tex, setTex] = useState<Texture | null>(null);
   useEffect(() => {
-    Assets.load(path).then(t => setTex(t as Texture)).catch(() => setTex(null));
+    let cancelled = false;
+
+    if (!path) {
+      setTex(null);
+      return;
+    }
+
+    const cached = Assets.get(path) as Texture | undefined;
+    if (cached) {
+      setTex(cached);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    Assets.load(path)
+      .then((t) => {
+        if (!cancelled) setTex(t as Texture);
+      })
+      .catch(() => {
+        if (!cancelled) setTex(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [path]);
   return tex;
 }
@@ -183,6 +208,8 @@ const HudPillButton = ({
     g.fill({ color: pressed ? 0x555555 : 0x333333, alpha: 0.85 });
   }, [w, h, pressed]);
 
+  const iconStyle = useMemo(() => ({ fontSize: h * 0.5 }), [h]);
+
   return (
     <pixiContainer x={x} y={y} scale={pressed ? 0.92 : 1}>
       <pixiGraphics draw={draw}
@@ -192,7 +219,7 @@ const HudPillButton = ({
         onPointerUpOutside={() => setPressed(false)}
       />
       <pixiText text={icon} x={w / 2} y={h / 2} anchor={0.5}
-        style={useMemo(() => ({ fontSize: h * 0.5 }), [h])}
+        style={iconStyle}
         eventMode="none"
       />
     </pixiContainer>
@@ -211,12 +238,7 @@ const StatsBar = ({
 }) => {
   const { colors, getAssetPath } = usePixiTheme();
   const { containerRef: dangerContainerRef } = usePulseRef(isInDanger, { minScale: 1.0, maxScale: 1.08, duration: 400 });
-
-  const [hudTex, setHudTex] = useState<Texture | null>(null);
-  useEffect(() => {
-    const path = getAssetPath(THEME_ASSETS.hudBar);
-    Assets.load(path).then(t => setHudTex(t as Texture)).catch(() => setHudTex(null));
-  }, [getAssetPath]);
+  const hudTex = useTexture(getAssetPath(THEME_ASSETS.hudBar));
 
   const pad = Math.round(8 * uiScale);
   const barX = gridX - pad;
@@ -347,12 +369,7 @@ const ProgressHudBar = ({
 }) => {
   const { colors, getAssetPath } = usePixiTheme();
   const scoreProgress = Math.min(1, levelScore / Math.max(targetScore, 1));
-
-  const [hudTex, setHudTex] = useState<Texture | null>(null);
-  useEffect(() => {
-    const path = getAssetPath(THEME_ASSETS.hudBar);
-    Assets.load(path).then(t => setHudTex(t as Texture)).catch(() => setHudTex(null));
-  }, [getAssetPath]);
+  const hudTex = useTexture(getAssetPath(THEME_ASSETS.hudBar));
 
   const hasC1 = constraint1 && constraint1.type !== ConstraintType.None;
   const hasC2 = constraint2 && constraint2.type !== ConstraintType.None;
@@ -459,14 +476,19 @@ function drawConstraintInline(g: PixiGraphics, c: ConstraintData, x: number, cy:
 }
 
 const LoadingScreen = ({ sw, sh }: { sw: number; sh: number }) => {
-  const [dots, setDots] = useState('');
+  const [dotCount, setDotCount] = useState(0);
+  const elapsedRef = useRef(0);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDots(d => d.length >= 3 ? '' : d + '.');
-    }, 400);
-    return () => clearInterval(interval);
+  const tickDots = useCallback((ticker: { deltaMS: number }) => {
+    elapsedRef.current += ticker.deltaMS;
+    if (elapsedRef.current < 400) return;
+    elapsedRef.current = 0;
+    setDotCount((prev) => (prev + 1) % 4);
   }, []);
+
+  useTick(tickDots);
+
+  const dots = '.'.repeat(dotCount);
 
   return (
     <pixiContainer>

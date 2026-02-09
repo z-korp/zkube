@@ -13,6 +13,14 @@ import { Assets, Texture, Graphics as PixiGraphics } from 'pixi.js';
 import { ICON_ASSETS, type IconType } from '../assets/manifest';
 import { FONT_BOLD, FONT_BODY } from '../utils/colors';
 
+const loadTextureCached = async (path: string): Promise<Texture> => {
+  const cached = Assets.get(path) as Texture | undefined;
+  if (cached) {
+    return cached;
+  }
+  return (await Assets.load(path)) as Texture;
+};
+
 // ============================================================================
 // PROGRESS BAR
 // ============================================================================
@@ -107,6 +115,11 @@ export function PixiProgressBar({
   }, [width, height, clampedProgress, fillWidth, backgroundColor, fillColor, borderColor, borderWidth, radius]);
 
   const displayLabel = label ?? `${Math.round(clampedProgress * 100)}%`;
+  const labelStyle = useMemo(() => ({
+    fontFamily: FONT_BOLD,
+    fontSize: Math.max(10, height - 6),
+    fill: labelColor,
+  }), [height, labelColor]);
 
   return (
     <pixiContainer x={x} y={y}>
@@ -117,11 +130,7 @@ export function PixiProgressBar({
           x={width / 2}
           y={height / 2}
           anchor={0.5}
-          style={useMemo(() => ({
-            fontFamily: FONT_BOLD,
-            fontSize: Math.max(10, height - 6),
-            fill: labelColor,
-          }), [height, labelColor])}
+          style={labelStyle}
           eventMode="none"
         />
       )}
@@ -164,13 +173,25 @@ export function PixiStarRating({
 
   // Load star textures
   useEffect(() => {
+    let cancelled = false;
     Promise.all([
-      Assets.load(ICON_ASSETS.starFilled.path),
-      Assets.load(ICON_ASSETS.starEmpty.path),
+      loadTextureCached(ICON_ASSETS.starFilled.path),
+      loadTextureCached(ICON_ASSETS.starEmpty.path),
     ]).then(([filled, empty]) => {
-      setFilledTexture(filled);
-      setEmptyTexture(empty);
-    }).catch(console.error);
+      if (!cancelled) {
+        setFilledTexture(filled);
+        setEmptyTexture(empty);
+      }
+    }).catch(() => {
+      if (!cancelled) {
+        setFilledTexture(null);
+        setEmptyTexture(null);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const totalWidth = maxStars * size + (maxStars - 1) * gap;
@@ -245,18 +266,20 @@ export function PixiBadge({
     g.stroke();
   }, [backgroundColor, badgeWidth, size]);
 
+  const badgeTextStyle = useMemo(() => ({
+    fontFamily: FONT_BOLD,
+    fontSize: size * 0.6,
+    fill: textColor,
+    fontWeight: 'bold',
+  }), [size, textColor]);
+
   return (
     <pixiContainer x={x} y={y}>
       <pixiGraphics draw={drawBadge} />
       <pixiText
         text={displayText}
         anchor={0.5}
-        style={useMemo(() => ({
-          fontFamily: FONT_BOLD,
-          fontSize: size * 0.6,
-          fill: textColor,
-          fontWeight: 'bold',
-        }), [size, textColor])}
+        style={badgeTextStyle}
         eventMode="none"
       />
     </pixiContainer>
@@ -296,12 +319,21 @@ export function PixiIcon({
   const [texture, setTexture] = useState<Texture | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     const iconAsset = ICON_ASSETS[icon];
     if (!iconAsset) return;
 
-    Assets.load(iconAsset.path)
-      .then(setTexture)
-      .catch(console.error);
+    loadTextureCached(iconAsset.path)
+      .then((t) => {
+        if (!cancelled) setTexture(t);
+      })
+      .catch(() => {
+        if (!cancelled) setTexture(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [icon]);
 
   if (!texture) return null;

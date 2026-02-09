@@ -188,6 +188,14 @@ export function PixiConfirmModal({
 }: PixiConfirmModalProps) {
   const width = Math.min(400, screenWidth - 40);
   const height = 200;
+  const messageStyle = useMemo(() => ({
+    fontFamily: FONT_BODY,
+    fontSize: 16,
+    fill: 0xFFFFFF,
+    wordWrap: true,
+    wordWrapWidth: width - 60,
+    align: 'center' as const,
+  }), [width]);
 
   return (
     <PixiModal
@@ -205,14 +213,7 @@ export function PixiConfirmModal({
       <pixiText
         text={message}
         y={10}
-        style={useMemo(() => ({
-          fontFamily: FONT_BODY,
-          fontSize: 16,
-          fill: 0xFFFFFF,
-          wordWrap: true,
-          wordWrapWidth: width - 60,
-          align: 'center' as const,
-        }), [width])}
+        style={messageStyle}
         eventMode="none"
       />
 

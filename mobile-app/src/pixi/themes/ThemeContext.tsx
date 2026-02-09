@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useTheme } from '@/ui/elements/theme-provider/hooks';
 import { 
   getThemeColors, 
@@ -31,19 +31,49 @@ interface PixiThemeProviderProps {
 
 export function PixiThemeProvider({ children }: PixiThemeProviderProps) {
   const { themeTemplate } = useTheme();
+
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  });
+
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const updateIsMobile = () => {
+      setIsMobile(window.innerWidth < 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+    };
+
+    updateIsMobile();
+    window.addEventListener('resize', updateIsMobile);
+    window.addEventListener('orientationchange', updateIsMobile);
+
+    return () => {
+      window.removeEventListener('resize', updateIsMobile);
+      window.removeEventListener('orientationchange', updateIsMobile);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setPrefersReducedMotion(mediaQuery.matches);
+
+    update();
+    mediaQuery.addEventListener('change', update);
+    return () => mediaQuery.removeEventListener('change', update);
+  }, []);
   
   const value = useMemo<PixiThemeContextValue>(() => {
     const themeName = themeTemplate;
     const isProcedural = isProceduralTheme(themeName);
     const colors = getThemeColors(themeName);
-    
-    // Detect mobile device
-    const isMobile = typeof navigator !== 'undefined' && 
-      /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
-    // Detect reduced motion preference
-    const prefersReducedMotion = typeof window !== 'undefined' &&
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     
     // Get asset path based on theme
     const getAssetPath = (asset: string) => {
@@ -58,7 +88,7 @@ export function PixiThemeProvider({ children }: PixiThemeProviderProps) {
       prefersReducedMotion,
       getAssetPath,
     };
-  }, [themeTemplate]);
+  }, [themeTemplate, isMobile, prefersReducedMotion]);
   
   return (
     <PixiThemeContext.Provider value={value}>

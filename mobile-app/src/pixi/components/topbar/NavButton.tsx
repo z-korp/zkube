@@ -1,6 +1,5 @@
 import { useCallback, useState, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { FONT_BODY } from '../../utils/colors';
 import {
   drawQuestsIcon, 
@@ -49,7 +48,6 @@ export const NavButton = ({
   label,
   badge,
 }: NavButtonProps) => {
-  const { colors } = usePixiTheme();
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
 
@@ -132,6 +130,7 @@ export const NavButton = ({
         x={width / 2}
         y={hasLabel ? height / 2 - 5 : height / 2}
         draw={drawIcon}
+        eventMode="none"
       />
       
       {/* Optional label */}
@@ -142,17 +141,19 @@ export const NavButton = ({
           y={height - 6}
           anchor={{ x: 0.5, y: 1 }}
           style={labelStyle}
+          eventMode="none"
         />
       )}
       
       {/* Badge */}
       {badge !== undefined && badge > 0 && (
         <pixiContainer x={width - 6} y={6}>
-          <pixiGraphics draw={drawBadge} />
+          <pixiGraphics draw={drawBadge} eventMode="none" />
           <pixiText
             text={String(badge)}
             anchor={{ x: 0.5, y: 0.5 }}
             style={badgeStyle}
+            eventMode="none"
           />
         </pixiContainer>
       )}

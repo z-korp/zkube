@@ -51,16 +51,53 @@ export const BonusButton = ({
   });
 
   useEffect(() => {
+    let cancelled = false;
     if (icon) {
+      const cached = Assets.get(icon) as Texture | undefined;
+      if (cached) {
+        setTexture(cached);
+        return () => {
+          cancelled = true;
+        };
+      }
+
       Assets.load(icon)
-        .then((tex) => setTexture(tex as Texture))
-        .catch(() => setTexture(null));
+        .then((tex) => {
+          if (!cancelled) setTexture(tex as Texture);
+        })
+        .catch(() => {
+          if (!cancelled) setTexture(null);
+        });
+      return () => {
+        cancelled = true;
+      };
     }
+    setTexture(null);
   }, [icon]);
 
   useEffect(() => {
+    let cancelled = false;
     const path = getAssetPath(THEME_ASSETS.bonusBtnBg);
-    Assets.load(path).then(t => setBgTex(t as Texture)).catch(() => setBgTex(null));
+
+    const cached = Assets.get(path) as Texture | undefined;
+    if (cached) {
+      setBgTex(cached);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    Assets.load(path)
+      .then((t) => {
+        if (!cancelled) setBgTex(t as Texture);
+      })
+      .catch(() => {
+        if (!cancelled) setBgTex(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [getAssetPath]);
 
   const radius = size / 2;

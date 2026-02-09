@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { drawMenuIcon, IconColors } from '../ui/Icons';
 
 interface MenuButtonProps {
@@ -14,7 +13,6 @@ interface MenuButtonProps {
  * Hamburger menu button for the top bar
  */
 export const MenuButton = ({ x, y, size, onClick }: MenuButtonProps) => {
-  const { colors } = usePixiTheme();
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
 
@@ -65,6 +63,7 @@ export const MenuButton = ({ x, y, size, onClick }: MenuButtonProps) => {
         x={size / 2}
         y={size / 2}
         draw={drawIcon}
+        eventMode="none"
       />
     </pixiContainer>
   );

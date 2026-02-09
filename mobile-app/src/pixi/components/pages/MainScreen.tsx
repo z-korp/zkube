@@ -93,7 +93,32 @@ export interface MainScreenProps {
 function useTexture(path: string): Texture | null {
   const [tex, setTex] = useState<Texture | null>(null);
   useEffect(() => {
-    Assets.load(path).then(t => setTex(t as Texture)).catch(() => setTex(null));
+    let cancelled = false;
+
+    if (!path) {
+      setTex(null);
+      return;
+    }
+
+    const cached = Assets.get(path) as Texture | undefined;
+    if (cached) {
+      setTex(cached);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    Assets.load(path)
+      .then((t) => {
+        if (!cancelled) setTex(t as Texture);
+      })
+      .catch(() => {
+        if (!cancelled) setTex(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [path]);
   return tex;
 }
@@ -326,7 +351,7 @@ const HomeTopBar = ({
   onProfileClick: () => void;
   onConnect?: () => void;
 }) => {
-  const btnSize = isMobile ? 34 : 40;
+  const btnSize = isMobile ? 44 : 48;
   const gap = Math.round(8 * uiScale);
   const pad = Math.round(10 * uiScale);
   const centerY = (topBarH - btnSize) / 2;

@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import type { FullscreenLayout } from '../../hooks/useFullscreenLayout';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { MenuButton } from './MenuButton';
 import { CubeBalance } from './CubeBalance';
 import { NavButton } from './NavButton';
@@ -29,9 +28,7 @@ export const TopBar = ({
   onTrophyClick,
   onShopClick,
 }: TopBarProps) => {
-  const { colors } = usePixiTheme();
-  
-  const { screenWidth, topBarHeight, topBarY, padding, uiScale, isMobile } = layout;
+  const { screenWidth, topBarHeight, topBarY, uiScale, isMobile } = layout;
   
   // Button sizing
   const buttonSize = Math.round(isMobile ? 36 : 42);
