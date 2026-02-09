@@ -1,8 +1,8 @@
 import { useCallback, useState, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
-import { 
 import { FONT_BODY } from '../../utils/colors';
+import {
   drawQuestsIcon, 
   drawTrophyIcon, 
   drawShopIcon, 
@@ -120,11 +120,11 @@ export const NavButton = ({
         draw={drawBackground}
         eventMode="static"
         cursor="pointer"
-        onpointerdown={handlePointerDown}
-        onpointerup={handlePointerUp}
-        onpointerupoutside={handlePointerOut}
-        onpointerover={handlePointerOver}
-        onpointerout={handlePointerOut}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerUpOutside={handlePointerOut}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
       />
       
       {/* Icon */}

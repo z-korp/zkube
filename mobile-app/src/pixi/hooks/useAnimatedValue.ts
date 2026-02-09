@@ -1,5 +1,6 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, type RefObject } from 'react';
 import { useTick } from '@pixi/react';
+import { Container } from 'pixi.js';
 
 interface UseAnimatedValueOptions {
   /** Duration of animation in ms */
@@ -105,8 +106,62 @@ export function useAnimatedValue(
 }
 
 /**
- * Hook that provides a pulsing scale value (1.0 -> 1.1 -> 1.0).
- * Uses PixiJS Ticker instead of requestAnimationFrame.
+ * Ref-based pulse — attaches to a Container and manipulates scale directly.
+ * Zero React re-renders during animation. Preferred for Container scale animations.
+ *
+ * Usage:
+ *   const { containerRef, valueRef } = usePulseRef(active, { minScale: 1, maxScale: 1.1 });
+ *   <pixiContainer ref={containerRef}> ... </pixiContainer>
+ *   // Or read valueRef.current inside a Graphics draw/useTick callback.
+ */
+export function usePulseRef(
+  active: boolean,
+  options: { minScale?: number; maxScale?: number; duration?: number } = {}
+): { containerRef: RefObject<Container | null>; valueRef: RefObject<number> } {
+  const { minScale = 1.0, maxScale = 1.1, duration = 1000 } = options;
+  const containerRef = useRef<Container | null>(null);
+  const valueRef = useRef(minScale);
+  const elapsedRef = useRef(0);
+  const prevActiveRef = useRef(active);
+
+  if (active && !prevActiveRef.current) {
+    elapsedRef.current = 0;
+  }
+  prevActiveRef.current = active;
+
+  const tickCallback = useCallback((ticker: { deltaMS: number }) => {
+    if (!active) {
+      elapsedRef.current = 0;
+      valueRef.current = minScale;
+      const c = containerRef.current;
+      if (c && (c.scale.x !== minScale || c.scale.y !== minScale)) {
+        c.scale.set(minScale, minScale);
+      }
+      return;
+    }
+
+    elapsedRef.current += ticker.deltaMS;
+    const progress = (elapsedRef.current % duration) / duration;
+    const sineValue = Math.sin(progress * Math.PI * 2);
+    const currentScale = minScale + (maxScale - minScale) * (0.5 + sineValue * 0.5);
+    valueRef.current = currentScale;
+
+    const c = containerRef.current;
+    if (c) {
+      c.scale.set(currentScale, currentScale);
+    }
+  }, [active, minScale, maxScale, duration]);
+
+  useTick(tickCallback);
+
+  return { containerRef, valueRef };
+}
+
+/**
+ * Legacy hook — provides pulsing scale value via React state.
+ * Causes re-renders every frame when active.
+ * Prefer usePulseRef for Container scale animations.
+ * Keep for Graphics draw callbacks that need the value reactively.
  */
 export function usePulse(
   active: boolean,
@@ -128,6 +183,7 @@ export function usePulse(
     if (!active) {
       // Reset scale when inactive — only set if changed
       elapsedRef.current = 0;
+      setScale((prev) => (prev !== minScale ? minScale : prev));
       return;
     }
 
@@ -138,7 +194,7 @@ export function usePulse(
     const sineValue = Math.sin(progress * Math.PI * 2);
     const currentScale = minScale + (maxScale - minScale) * (0.5 + sineValue * 0.5);
 
-    setScale(currentScale);
+    setScale((prev) => (Math.abs(prev - currentScale) > 0.002 ? currentScale : prev));
   }, [active, minScale, maxScale, duration]);
 
   useTick(tickCallback);
@@ -188,11 +244,11 @@ export function useGlow(
       value = 1 - (anim.elapsed - duration) / fadeOut;
     } else {
       anim.active = false;
-      setIntensity(0);
+      setIntensity((prev) => (prev !== 0 ? 0 : prev));
       return;
     }
 
-    setIntensity(value);
+    setIntensity((prev) => (Math.abs(prev - value) > 0.01 ? value : prev));
   }, [duration, fadeOut]);
 
   useTick(tickCallback);

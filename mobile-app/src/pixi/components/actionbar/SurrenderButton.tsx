@@ -94,11 +94,11 @@ export const SurrenderButton = ({
         draw={drawBackground}
         eventMode={isDisabled ? 'none' : 'static'}
         cursor={isDisabled ? 'default' : 'pointer'}
-        onpointerdown={handlePointerDown}
-        onpointerup={handlePointerUp}
-        onpointerupoutside={handlePointerOut}
-        onpointerover={handlePointerOver}
-        onpointerout={handlePointerOut}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerUpOutside={handlePointerOut}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
       />
       {awaitingConfirm ? (
         <pixiText

@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
-import { usePulse, useGlow } from '../../hooks/useAnimatedValue';
+import { usePulseRef, useGlow } from '../../hooks/useAnimatedValue';
 import { FONT_BOLD, FONT_BODY } from '../../utils/colors';
 
 interface MovesPanelProps {
@@ -57,14 +57,11 @@ export const MovesPanel = ({
     prevComboRef.current = combo;
   }, [combo]);
 
-  // Pulse animation for combo when active
-  const comboPulse = usePulse(combo > 0, { minScale: 1.0, maxScale: 1.15, duration: 800 });
+  const { containerRef: comboContainerRef } = usePulseRef(combo > 0, { minScale: 1.0, maxScale: 1.15, duration: 800 });
   
-  // Glow effect when combo increases
   const comboGlow = useGlow(comboIncreased, { duration: 150, fadeOut: 350 });
 
-  // Danger pulse for low moves
-  const dangerPulse = usePulse(isInDanger, { minScale: 1.0, maxScale: 1.08, duration: 500 });
+  const { containerRef: dangerContainerRef } = usePulseRef(isInDanger, { minScale: 1.0, maxScale: 1.08, duration: 500 });
 
   const padding = Math.round(8 * uiScale);
   const cornerRadius = Math.round(8 * uiScale);
@@ -164,10 +161,10 @@ export const MovesPanel = ({
       
       {/* MOVES Section */}
       <pixiContainer
+        ref={dangerContainerRef}
         x={width / 2}
         y={sectionHeight / 2}
         pivot={{ x: 0, y: 0 }}
-        scale={{ x: isInDanger ? dangerPulse : 1, y: isInDanger ? dangerPulse : 1 }}
       >
         <pixiText
           text="MOVES"
@@ -197,11 +194,11 @@ export const MovesPanel = ({
         />
         
         {/* Flame + combo number with pulse animation */}
-        <pixiContainer 
+        <pixiContainer
+          ref={comboContainerRef}
           x={width / 2}
           y={sectionHeight / 2 - 4 * uiScale + 10 * uiScale}
           pivot={{ x: 0, y: 0 }}
-          scale={{ x: combo > 0 ? comboPulse : 1, y: combo > 0 ? comboPulse : 1 }}
         >
           {combo > 0 && (
             <pixiGraphics

@@ -1,7 +1,8 @@
 import { useCallback, useState, useEffect, useMemo, useRef } from 'react';
+import { useTick } from '@pixi/react';
 import { TextStyle, Graphics as PixiGraphics, Texture, Assets } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
-import { usePulse } from '../../hooks/useAnimatedValue';
+import { usePulseRef } from '../../hooks/useAnimatedValue';
 import { FONT_BODY, THEME_ASSETS } from '../../utils/colors';
 import { GlowFilter } from '../../extend';
 
@@ -40,9 +41,10 @@ export const BonusButton = ({
   const [isPressed, setIsPressed] = useState(false);
   const [texture, setTexture] = useState<Texture | null>(null);
   const [bgTex, setBgTex] = useState<Texture | null>(null);
+  const containerRef = useRef<import('pixi.js').Container | null>(null);
 
   const shouldPulse = count > 0 && !isDisabled && !isSelected && !isHovered;
-  const pulseScale = usePulse(shouldPulse, {
+  const { valueRef: pulseScaleRef } = usePulseRef(shouldPulse, {
     minScale: 1.0,
     maxScale: 1.05,
     duration: 2000
@@ -153,8 +155,15 @@ export const BonusButton = ({
   const iconSize = size * 0.55;
   const iconOffset = (size - iconSize) / 2;
 
-  const containerScale = isPressed ? 0.92 : (isHovered ? 1.04 : pulseScale);
   const pivotOffset = radius;
+
+  const tickScale = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const scale = isPressed ? 0.92 : (isHovered ? 1.04 : pulseScaleRef.current);
+    container.scale.set(scale, scale);
+  }, [isPressed, isHovered, pulseScaleRef]);
+  useTick(tickScale);
 
   const prevGlowRef = useRef<InstanceType<typeof GlowFilter> | null>(null);
   const glowFilter = useMemo(() => {
@@ -182,10 +191,10 @@ export const BonusButton = ({
 
   return (
     <pixiContainer
+      ref={containerRef}
       x={x + pivotOffset}
       y={y + pivotOffset}
       pivot={{ x: pivotOffset, y: pivotOffset }}
-      scale={{ x: containerScale, y: containerScale }}
       eventMode={isDisabled ? 'none' : 'static'}
       cursor={isDisabled || count === 0 ? 'not-allowed' : 'pointer'}
       onPointerDown={handlePointerDown}

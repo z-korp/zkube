@@ -151,7 +151,7 @@ const SkyBackground = ({ w, h }: { w: number; h: number }) => {
 
 const Clouds = ({ w, h }: { w: number; h: number }) => {
   const cloudsRef = useRef<CloudData[]>([]);
-  const [, setTick] = useState(0);
+  const gfxRef = useRef<PixiGraphics | null>(null);
 
   useEffect(() => {
     if (cloudsRef.current.length > 0) return;
@@ -168,36 +168,26 @@ const Clouds = ({ w, h }: { w: number; h: number }) => {
     }
   }, [w, h]);
 
-  const frameCountRef = useRef(0);
   const tickClouds = useCallback((ticker: { deltaMS: number }) => {
+    const g = gfxRef.current;
+    if (!g) return;
     const dt = ticker.deltaMS / 16.667;
+    g.clear();
     for (const c of cloudsRef.current) {
       c.x += c.speed * dt;
       if (c.x > w + 200) { c.x = -200 * c.scale; c.y = 50 + Math.random() * h * 0.25; }
+      const s = c.scale;
+      g.setFillStyle({ color: 0xFFFFFF, alpha: 0.9 * c.alpha });
+      g.circle(c.x, c.y, 28 * s); g.fill();
+      g.circle(c.x + 22 * s, c.y - 7 * s, 22 * s); g.fill();
+      g.circle(c.x - 20 * s, c.y - 4 * s, 20 * s); g.fill();
+      g.circle(c.x + 10 * s, c.y + 9 * s, 24 * s); g.fill();
+      g.circle(c.x - 12 * s, c.y + 10 * s, 18 * s); g.fill();
     }
-    frameCountRef.current++;
-    if (frameCountRef.current % 2 === 0) setTick(n => n + 1);
   }, [w, h]);
   useTick(tickClouds);
 
-  const drawCloud = useCallback((g: PixiGraphics, s: number) => {
-    g.clear();
-    g.setFillStyle({ color: 0xFFFFFF, alpha: 0.9 });
-    g.circle(0, 0, 28 * s); g.fill();
-    g.circle(22 * s, -7 * s, 22 * s); g.fill();
-    g.circle(-20 * s, -4 * s, 20 * s); g.fill();
-    g.circle(10 * s, 9 * s, 24 * s); g.fill();
-    g.circle(-12 * s, 10 * s, 18 * s); g.fill();
-  }, []);
-
-  return (
-    <pixiContainer>
-      {cloudsRef.current.map(c => (
-        <pixiGraphics key={c.id} x={c.x} y={c.y} alpha={c.alpha}
-          draw={(g) => drawCloud(g, c.scale)} />
-      ))}
-    </pixiContainer>
-  );
+  return <pixiGraphics ref={gfxRef} eventMode="none" />;
 };
 
 // ============================================================================

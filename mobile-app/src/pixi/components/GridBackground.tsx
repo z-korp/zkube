@@ -1,9 +1,10 @@
 import { useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { Graphics as PixiGraphics, Texture, Assets } from 'pixi.js';
+import { useTick } from '@pixi/react';
 import { usePixiTheme } from '../themes/ThemeContext';
 import { THEME_ASSETS } from '../utils/colors';
 import { GlowFilter } from '../extend';
-import { usePulse } from '../hooks/useAnimatedValue';
+import { usePulseRef } from '../hooks/useAnimatedValue';
 
 interface GridBackgroundProps {
   gridSize: number;
@@ -26,7 +27,8 @@ export const GridBackground = ({
   const height = gridHeight * gridSize;
 
   const dangerAlpha = isPlayerInDanger ? colors.dangerZoneAlpha : 0;
-  const dangerPulse = usePulse(isPlayerInDanger, { minScale: 0.6, maxScale: 1.0, duration: 800 });
+  const { valueRef: dangerPulseRef } = usePulseRef(isPlayerInDanger, { minScale: 0.6, maxScale: 1.0, duration: 800 });
+  const dangerZoneRef = useRef<PixiGraphics | null>(null);
 
   const prevGlowRef = useRef<InstanceType<typeof GlowFilter> | null>(null);
   const dangerGlowFilter = useMemo(() => {
@@ -52,15 +54,33 @@ export const GridBackground = ({
 
   const dangerFilters = useMemo(() => dangerGlowFilter ? [dangerGlowFilter] : [], [dangerGlowFilter]);
 
-  const drawDangerZone = useCallback((g: PixiGraphics) => {
+  const drawDangerZoneWithPulse = useCallback((g: PixiGraphics, pulse: number) => {
     g.clear();
     if (dangerAlpha <= 0) return;
     g.rect(0, 0, width, gridSize * 2);
-    g.fill({ color: colors.dangerZone, alpha: dangerAlpha * dangerPulse });
+    g.fill({ color: colors.dangerZone, alpha: dangerAlpha * pulse });
     g.moveTo(0, gridSize * 2);
     g.lineTo(width, gridSize * 2);
-    g.stroke({ color: colors.dangerZone, width: 2, alpha: dangerAlpha * 2 * dangerPulse });
-  }, [width, gridSize, colors.dangerZone, dangerAlpha, dangerPulse]);
+    g.stroke({ color: colors.dangerZone, width: 2, alpha: dangerAlpha * 2 * pulse });
+  }, [width, gridSize, colors.dangerZone, dangerAlpha]);
+
+  const drawDangerZone = useCallback((g: PixiGraphics) => {
+    drawDangerZoneWithPulse(g, dangerPulseRef.current);
+  }, [drawDangerZoneWithPulse, dangerPulseRef]);
+
+  const tickDangerZone = useCallback(() => {
+    const g = dangerZoneRef.current;
+    if (!g) return;
+    drawDangerZoneWithPulse(g, dangerPulseRef.current);
+  }, [drawDangerZoneWithPulse, dangerPulseRef]);
+
+  useTick(tickDangerZone, isPlayerInDanger);
+
+  useEffect(() => {
+    if (!isPlayerInDanger) {
+      dangerZoneRef.current?.clear();
+    }
+  }, [isPlayerInDanger]);
 
   const [gridBgTex, setGridBgTex] = useState<Texture | null>(null);
   const [frameTex, setFrameTex] = useState<Texture | null>(null);
@@ -160,7 +180,7 @@ export const GridBackground = ({
 
       {isPlayerInDanger && (
         <pixiContainer filters={dangerFilters}>
-          <pixiGraphics draw={drawDangerZone} />
+          <pixiGraphics ref={dangerZoneRef} draw={drawDangerZone} eventMode="none" />
         </pixiContainer>
       )}
     </pixiContainer>

@@ -15,7 +15,7 @@ import { ScorePanel } from '../game/ScorePanel';
 import { MovesPanel } from '../game/MovesPanel';
 import { BonusType } from '@/dojo/game/types/bonus';
 import { ConstraintType } from '@/dojo/game/types/constraint';
-import { useAnimatedValue, usePulse, easings } from '../../hooks/useAnimatedValue';
+import { useAnimatedValue, usePulseRef, easings } from '../../hooks/useAnimatedValue';
 import type { Block } from '@/types/types';
 import type { ConstraintData } from '../hud';
 import { FONT_TITLE, FONT_BOLD, FONT_BODY, THEME_ASSETS } from '../../utils/colors';
@@ -131,8 +131,7 @@ const SkyBackground = ({ w, h }: { w: number; h: number }) => {
 
 const Clouds = ({ w, h }: { w: number; h: number }) => {
   const cloudsRef = useRef<CloudData[]>([]);
-  const [, setTick] = useState(0);
-  const frameCountRef = useRef(0);
+  const gfxRef = useRef<PixiGraphics | null>(null);
 
   useEffect(() => {
     if (cloudsRef.current.length > 0) return;
@@ -150,34 +149,25 @@ const Clouds = ({ w, h }: { w: number; h: number }) => {
   }, [w, h]);
 
   const tickCallback = useCallback((ticker: { deltaMS: number }) => {
+    const g = gfxRef.current;
+    if (!g) return;
     const dt = ticker.deltaMS / 16.667;
+    g.clear();
     for (const c of cloudsRef.current) {
       c.x += c.speed * dt;
       if (c.x > w + 150) { c.x = -150 * c.scale; c.y = 30 + Math.random() * h * 0.15; }
+      const s = c.scale;
+      g.setFillStyle({ color: 0xFFFFFF, alpha: 0.85 * c.alpha });
+      g.circle(c.x, c.y, 24 * s); g.fill();
+      g.circle(c.x + 18 * s, c.y - 5 * s, 18 * s); g.fill();
+      g.circle(c.x - 16 * s, c.y - 3 * s, 16 * s); g.fill();
+      g.circle(c.x + 8 * s, c.y + 7 * s, 20 * s); g.fill();
     }
-    frameCountRef.current++;
-    if (frameCountRef.current % 3 === 0) setTick(n => n + 1);
   }, [w, h]);
 
   useTick(tickCallback);
 
-  const drawCloud = useCallback((g: PixiGraphics, s: number) => {
-    g.clear();
-    g.setFillStyle({ color: 0xFFFFFF, alpha: 0.85 });
-    g.circle(0, 0, 24 * s); g.fill();
-    g.circle(18 * s, -5 * s, 18 * s); g.fill();
-    g.circle(-16 * s, -3 * s, 16 * s); g.fill();
-    g.circle(8 * s, 7 * s, 20 * s); g.fill();
-  }, []);
-
-  return (
-    <pixiContainer>
-      {cloudsRef.current.map(c => (
-        <pixiGraphics key={c.id} x={c.x} y={c.y} alpha={c.alpha}
-          draw={(g) => drawCloud(g, c.scale)} />
-      ))}
-    </pixiContainer>
-  );
+  return <pixiGraphics ref={gfxRef} eventMode="none" />;
 };
 
 const HudPillButton = ({
@@ -220,7 +210,7 @@ const StatsBar = ({
   onHomeClick: () => void;
 }) => {
   const { colors, getAssetPath } = usePixiTheme();
-  const dangerPulse = usePulse(isInDanger, { minScale: 1.0, maxScale: 1.08, duration: 400 });
+  const { containerRef: dangerContainerRef } = usePulseRef(isInDanger, { minScale: 1.0, maxScale: 1.08, duration: 400 });
 
   const [hudTex, setHudTex] = useState<Texture | null>(null);
   useEffect(() => {
@@ -321,7 +311,7 @@ const StatsBar = ({
         <pixiText text={`/${targetScore}`} x={String(levelScore).length * Math.round(8 * uiScale) + 2} y={-1} anchor={{ x: 0, y: 0.5 }} style={labelStyle} />
       </pixiContainer>
 
-      <pixiContainer x={movesX} y={barH / 2} scale={isInDanger ? dangerPulse : 1}>
+      <pixiContainer ref={dangerContainerRef} x={movesX} y={barH / 2}>
         <pixiText text={String(moves)} x={0} y={-1} anchor={{ x: 1, y: 0.5 }} style={movesStyle} />
         <pixiText text={`/${maxMoves}`} x={2} y={-1} anchor={{ x: 0, y: 0.5 }} style={labelStyle} />
       </pixiContainer>
