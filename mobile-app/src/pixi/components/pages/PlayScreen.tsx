@@ -10,7 +10,7 @@ import { ActionBar } from '../actionbar';
 import { ParticleSystem } from '../effects/ParticleSystem';
 import { ScorePopup } from '../effects/ScorePopup';
 import { ScreenShakeContainer, useScreenShake } from '../effects/ScreenShake';
-import { GameOverModal, VictoryModal, LevelCompleteModal } from '../modals';
+import { GameOverModal, VictoryModal, LevelCompleteModal, InGameShopModal, type InGameShopBonusItem } from '../modals';
 import { ScorePanel } from '../game/ScorePanel';
 import { MovesPanel } from '../game/MovesPanel';
 import { PixiToastLayer } from '../ui/PixiToastLayer';
@@ -77,6 +77,10 @@ export interface PlayScreenProps {
   isGameOver: boolean;
   isVictory: boolean;
   isLevelComplete: boolean;
+  isInGameShopOpen?: boolean;
+  shopCubesAvailable?: number;
+  shopItems?: InGameShopBonusItem[];
+  isShopPurchasing?: boolean;
   levelCompleteCubes?: number;
   levelCompleteBonusAwarded?: { type: string; icon: string } | null;
   constraintMet?: boolean;
@@ -86,6 +90,7 @@ export interface PlayScreenProps {
   onGoHome: () => void;
   onPlayAgain?: () => void;
   onLevelCompleteContinue: () => void;
+  onInGameShopClose?: () => void;
   onQuestsClick?: () => void;
   onTrophyClick?: () => void;
   onShopClick?: () => void;
@@ -521,8 +526,12 @@ const PlayScreenInner = (props: PlayScreenProps) => {
     cubeBalance = 0, totalCubes = 0, totalScore = 0,
     isTxProcessing, isPlayerInDanger, isLoading,
     isGameOver, isVictory, isLevelComplete,
+    isInGameShopOpen = false,
+    shopCubesAvailable = 0,
+    shopItems = [],
+    isShopPurchasing = false,
     levelCompleteCubes = 0, levelCompleteBonusAwarded, constraintMet = false,
-    onMove, onBonusApply, onSurrender, onGoHome, onPlayAgain, onLevelCompleteContinue,
+    onMove, onBonusApply, onSurrender, onGoHome, onPlayAgain, onLevelCompleteContinue, onInGameShopClose,
   } = props;
 
   const actionBarSlots = useMemo(() =>
@@ -539,7 +548,7 @@ const PlayScreenInner = (props: PlayScreenProps) => {
 
   const triggerExplosion = useCallback(() => lineClear(), [lineClear]);
 
-  const isInteractionBlocked = isTxProcessing || isSurrendering || isGameOver || isVictory || isLevelComplete;
+  const isInteractionBlocked = isTxProcessing || isSurrendering || isGameOver || isVictory || isLevelComplete || isInGameShopOpen;
 
   if (isLoading || blocks.length === 0) {
     return <LoadingScreen sw={sw} sh={sh} topOffset={layout.statsBarY + 4} />;
@@ -654,6 +663,16 @@ const PlayScreenInner = (props: PlayScreenProps) => {
         level={level} levelScore={levelScore} targetScore={targetScore} stars={stars}
         bonusAwarded={levelCompleteBonusAwarded} cubesEarned={levelCompleteCubes}
         totalCubes={totalCubes} constraintMet={constraintMet} />
+
+      <InGameShopModal
+        isOpen={isInGameShopOpen}
+        onClose={onInGameShopClose ?? (() => {})}
+        screenWidth={sw}
+        screenHeight={sh}
+        cubesAvailable={shopCubesAvailable}
+        items={shopItems}
+        isPurchasing={isShopPurchasing}
+      />
 
       {isPlayerInDanger && (
         <pixiGraphics draw={(g) => {

@@ -24,10 +24,17 @@ import { useGameStateMachine } from '@/pixi/hooks/useGameStateMachine';
 import { transformDataContractIntoBlock } from '@/utils/gridUtils';
 import { Bonus, BonusType, bonusTypeFromContractValue } from '@/dojo/game/types/bonus';
 import { ConstraintType } from '@/dojo/game/types/constraint';
-import { getBonusInventoryCount, isInGameShopAvailable } from '@/dojo/game/helpers/runDataPacking';
+import {
+  getBonusInventoryCount,
+  isInGameShopAvailable,
+  getRefillCost,
+  CONSUMABLE_COSTS,
+  ConsumableType,
+} from '@/dojo/game/helpers/runDataPacking';
 import ImageAssets from '@/ui/theme/ImageAssets';
 import { useTheme } from '@/ui/elements/theme-provider/hooks';
 import type { Block } from '@/types/types';
+import type { InGameShopBonusItem } from '@/pixi/components/modals';
 
 // Type for storing level completion data
 interface LevelCompletionData {
@@ -72,7 +79,7 @@ export const PlayNew = () => {
 
   const {
     setup: {
-      systemCalls: { create, applyBonus, surrender },
+      systemCalls: { applyBonus, surrender, purchaseConsumable },
     },
   } = useDojo();
 
@@ -103,6 +110,8 @@ export const PlayNew = () => {
   const [isGameOver, setIsGameOver] = useState(false);
   const [isVictory, setIsVictory] = useState(false);
   const [isLevelComplete, setIsLevelComplete] = useState(false);
+  const [isInGameShopOpen, setIsInGameShopOpen] = useState(false);
+  const [isShopPurchasing, setIsShopPurchasing] = useState(false);
 
   // Level completion data
   const [levelCompletionData, setLevelCompletionData] = useState<LevelCompletionData | null>(null);
@@ -295,6 +304,17 @@ export const PlayNew = () => {
     }
   }, []);
 
+  const getBonusName = useCallback((type: BonusType): string => {
+    switch (type) {
+      case BonusType.Hammer: return 'Hammer';
+      case BonusType.Wave: return 'Wave';
+      case BonusType.Totem: return 'Totem';
+      case BonusType.Shrink: return 'Shrink';
+      case BonusType.Shuffle: return 'Shuffle';
+      default: return 'Bonus';
+    }
+  }, []);
+
   const handleBonusSelect = useCallback((type: BonusType, count: number) => {
     if (count === 0) return;
     if (bonus === type) {
@@ -346,11 +366,113 @@ export const PlayNew = () => {
     navigate('/');
   }, [navigate]);
 
+  const getBagSizeForBonus = useCallback((bonusType: BonusType): number => {
+    const meta = playerMeta?.data;
+    if (!meta) return 1;
+
+    switch (bonusType) {
+      case BonusType.Hammer: return Math.max(1, meta.bagHammerLevel);
+      case BonusType.Wave: return Math.max(1, meta.bagWaveLevel);
+      case BonusType.Totem: return Math.max(1, meta.bagTotemLevel);
+      case BonusType.Shrink: return Math.max(1, meta.bagShrinkLevel);
+      case BonusType.Shuffle: return Math.max(1, meta.bagShuffleLevel);
+      default: return 1;
+    }
+  }, [playerMeta]);
+
+  const handleShopPurchase = useCallback(async (consumableType: number, bonusSlot: number) => {
+    if (!account || !game) return;
+
+    setIsShopPurchasing(true);
+    try {
+      await purchaseConsumable({
+        account: account as Account,
+        game_id: game.id,
+        consumable_type: consumableType,
+        bonus_slot: bonusSlot,
+      });
+    } catch (error) {
+      console.error('In-game shop purchase failed:', error);
+    } finally {
+      setIsShopPurchasing(false);
+    }
+  }, [account, game, purchaseConsumable]);
+
+  const shopItems: InGameShopBonusItem[] = useMemo(() => {
+    if (!game) return [];
+
+    const selected = [
+      { slot: 0, value: game.selectedBonus1, level: game.bonus1Level, bought: game.shopBonus1Bought, consumableType: ConsumableType.Bonus1 },
+      { slot: 1, value: game.selectedBonus2, level: game.bonus2Level, bought: game.shopBonus2Bought, consumableType: ConsumableType.Bonus2 },
+      { slot: 2, value: game.selectedBonus3, level: game.bonus3Level, bought: game.shopBonus3Bought, consumableType: ConsumableType.Bonus3 },
+    ];
+
+    const cubesAvailable = game.cubesAvailable;
+    const refillCost = getRefillCost(game.shopRefills);
+
+    return selected
+      .map((item) => {
+        const bonusType = bonusTypeFromContractValue(item.value);
+        if (bonusType === BonusType.None) return null;
+
+        const bagSize = getBagSizeForBonus(bonusType);
+        const inventory = getBonusInventoryCount(game.runData, item.value);
+        const isFull = inventory >= bagSize;
+
+        const primaryCost = item.bought ? refillCost : CONSUMABLE_COSTS.BONUS;
+        const canPrimary = cubesAvailable >= primaryCost && !isFull;
+        const isMaxLevel = item.level >= 2;
+        const canLevelUp = cubesAvailable >= CONSUMABLE_COSTS.LEVEL_UP && !isMaxLevel;
+
+        return {
+          slot: item.slot,
+          name: getBonusName(bonusType),
+          icon: bonusType === BonusType.Hammer
+            ? '🔨'
+            : bonusType === BonusType.Wave
+              ? '🌊'
+              : bonusType === BonusType.Totem
+                ? '🗿'
+                : bonusType === BonusType.Shrink
+                  ? '🔻'
+                  : '🔀',
+          inventory,
+          bagSize,
+          level: item.level + 1,
+          bought: item.bought,
+          isFull,
+          primaryCost,
+          canPrimary,
+          canLevelUp,
+          isMaxLevel,
+          onPrimary: () => handleShopPurchase(item.bought ? ConsumableType.Refill : item.consumableType, item.slot),
+          onLevelUp: () => handleShopPurchase(ConsumableType.LevelUp, item.slot),
+        } satisfies InGameShopBonusItem;
+      })
+      .filter((item): item is InGameShopBonusItem => item !== null);
+  }, [game, getBagSizeForBonus, getBonusName, handleShopPurchase]);
+
+  const handleInGameShopClose = useCallback(() => {
+    if (!isShopPurchasing) {
+      setIsInGameShopOpen(false);
+    }
+  }, [isShopPurchasing]);
+
   const handleLevelCompleteContinue = useCallback(() => {
+    if (
+      levelCompletionData &&
+      isInGameShopAvailable(levelCompletionData.level) &&
+      !game?.over
+    ) {
+      setIsLevelComplete(false);
+      setLevelCompletionData(null);
+      setIsInGameShopOpen(true);
+      return;
+    }
+
     setIsLevelComplete(false);
     setLevelCompletionData(null);
-    // TODO: Check if in-game shop should open
-  }, []);
+  }, [levelCompletionData, game?.over]);
 
   // Build bonus slots
   const bonusSlots: PlayBonusSlotData[] = useMemo(() => {
@@ -467,6 +589,10 @@ export const PlayNew = () => {
       isGameOver={isGameOver}
       isVictory={isVictory}
       isLevelComplete={isLevelComplete}
+      isInGameShopOpen={isInGameShopOpen}
+      shopCubesAvailable={game?.cubesAvailable ?? 0}
+      shopItems={shopItems}
+      isShopPurchasing={isShopPurchasing}
       // Level complete data
       levelCompleteCubes={levelCompletionData ? levelCompletionData.totalCubes - levelCompletionData.prevTotalCubes : 0}
       levelCompleteBonusAwarded={bonusAwarded}
@@ -477,6 +603,7 @@ export const PlayNew = () => {
       onSurrender={handleSurrender}
       onGoHome={handleGoHome}
       onLevelCompleteContinue={handleLevelCompleteContinue}
+      onInGameShopClose={handleInGameShopClose}
     />
   );
 };
