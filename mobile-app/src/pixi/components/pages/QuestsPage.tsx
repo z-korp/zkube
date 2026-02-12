@@ -3,6 +3,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { useTick } from '@pixi/react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { Button } from '../ui';
@@ -227,7 +228,7 @@ const QuestFamilyCard = ({
   const tiersHeight = family.tiers.length * tierRowH;
   const headerH = 44;
   const progressH = !allCompleted ? 26 : 0;
-  const claimBtnH = hasClaimable ? 46 : 0;
+  const claimBtnH = hasClaimable ? 48 : 0;
   const cardPadding = 14;
   const cardH = headerH + tiersHeight + progressH + claimBtnH + cardPadding;
 
@@ -315,13 +316,13 @@ const QuestFamilyCard = ({
       {/* Claim button */}
       {hasClaimable && (
         <pixiContainer x={cardPadding} y={headerH + tiersHeight + progressH + 8}>
-          <Button
-            text={isClaiming ? 'Claiming...' : `Claim T${family.claimableTier!.tier} (+${family.claimableTier!.reward})`}
-            width={width - cardPadding * 2}
-            height={42}
-            variant="primary"
-            fontSize={14}
-            onClick={handleClaim}
+            <Button
+              text={isClaiming ? 'Claiming...' : `Claim T${family.claimableTier!.tier} (+${family.claimableTier!.reward})`}
+              width={width - cardPadding * 2}
+              height={44}
+              variant="primary"
+              fontSize={14}
+              onClick={handleClaim}
             disabled={isClaiming}
           />
         </pixiContainer>
@@ -361,6 +362,8 @@ export const QuestsPage = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isDragging = useRef(false);
   const lastY = useRef(0);
+  const velocityRef = useRef(0);
+  const lastMoveTimeRef = useRef(0);
 
   const isLoadingState = loading || status === 'loading';
   const isErrorState = status === 'error';
@@ -415,6 +418,8 @@ export const QuestsPage = ({
   const handlePointerDown = useCallback((e: any) => {
     isDragging.current = true;
     lastY.current = e.data.global.y;
+    velocityRef.current = 0;
+    lastMoveTimeRef.current = performance.now();
   }, []);
 
   const handlePointerMove = useCallback(
@@ -422,6 +427,12 @@ export const QuestsPage = ({
       if (!isDragging.current) return;
       const dy = lastY.current - e.data.global.y;
       lastY.current = e.data.global.y;
+      const now = performance.now();
+      const dt = Math.max(now - lastMoveTimeRef.current, 1);
+      lastMoveTimeRef.current = now;
+
+      const instantaneousVelocity = dy / (dt / 16.67);
+      velocityRef.current = velocityRef.current * 0.6 + instantaneousVelocity * 0.4;
       setScrollY((prev) => Math.max(0, Math.min(maxScroll, prev + dy)));
     },
     [maxScroll]
@@ -430,6 +441,32 @@ export const QuestsPage = ({
   const handlePointerUp = useCallback(() => {
     isDragging.current = false;
   }, []);
+
+  useEffect(() => {
+    setScrollY((prev) => Math.max(0, Math.min(maxScroll, prev)));
+  }, [maxScroll]);
+
+  useTick((ticker) => {
+    if (isDragging.current) return;
+    if (Math.abs(velocityRef.current) < 0.05) {
+      velocityRef.current = 0;
+      return;
+    }
+
+    const frameScale = ticker.deltaMS / 16.67;
+    const nextVelocity = velocityRef.current * Math.pow(0.92, frameScale);
+    const delta = velocityRef.current * frameScale;
+
+    setScrollY((prev) => {
+      const next = Math.max(0, Math.min(maxScroll, prev + delta));
+      if (next === 0 || next === maxScroll) {
+        velocityRef.current = 0;
+      }
+      return next;
+    });
+
+    velocityRef.current = nextVelocity;
+  });
 
   const handleRefresh = useCallback(async () => {
     if (!onRefresh || isRefreshing) return;
@@ -498,7 +535,7 @@ export const QuestsPage = ({
               x={(contentWidth - 140) / 2}
               y={122}
               width={140}
-              height={42}
+              height={44}
               variant="secondary"
               fontSize={14}
               onClick={handleRefresh}

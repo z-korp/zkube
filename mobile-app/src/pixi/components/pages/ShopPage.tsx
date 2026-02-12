@@ -3,7 +3,8 @@
  * Shows: Starting bonuses, bag sizes, bridging rank, unlock buttons
  */
 
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import { useTick } from '@pixi/react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { Button } from '../ui';
@@ -165,7 +166,7 @@ const UpgradeCard = ({
               <Button
                 text={`${nextStartingCost}`}
                 width={62}
-                height={36}
+                height={44}
                 variant={canUpgradeStarting ? 'primary' : 'secondary'}
                 fontSize={12}
                 onClick={onUpgradeStarting}
@@ -175,20 +176,20 @@ const UpgradeCard = ({
           )}
 
           {/* Bag Level */}
-          <pixiText
-            text="Bag Size"
-            x={16}
-            y={92}
-            style={SHOP_LABEL_STYLE}
-            eventMode="none"
-          />
-          <LevelPips level={bagLevel} maxLevel={3} x={16} y={108} color={0x22c55e} />
+            <pixiText
+              text="Bag Size"
+              x={16}
+              y={100}
+              style={SHOP_LABEL_STYLE}
+              eventMode="none"
+            />
+          <LevelPips level={bagLevel} maxLevel={3} x={16} y={116} color={0x22c55e} />
           {nextBagCost && onUpgradeBag && (
-            <pixiContainer x={width - 78} y={90}>
+            <pixiContainer x={width - 78} y={98}>
               <Button
                 text={`${nextBagCost}`}
                 width={62}
-                height={36}
+                height={44}
                 variant={canUpgradeBag ? 'primary' : 'secondary'}
                 fontSize={12}
                 onClick={onUpgradeBag}
@@ -203,7 +204,7 @@ const UpgradeCard = ({
           <Button
             text={`Unlock ${UNLOCK_BONUS_COST}`}
             width={114}
-            height={40}
+            height={44}
             variant={canUnlock ? 'primary' : 'secondary'}
             fontSize={13}
             onClick={onUnlock}
@@ -288,7 +289,7 @@ const BridgingCard = ({
           <Button
             text={`${nextCost}`}
             width={62}
-            height={40}
+            height={44}
             variant={canUpgrade ? 'primary' : 'secondary'}
             fontSize={12}
             onClick={onUpgrade}
@@ -334,7 +335,7 @@ const ConfirmOverlay = ({
   isConfirming: boolean;
 }) => {
   const modalW = Math.min(280, screenWidth - 48);
-  const modalH = 160;
+  const modalH = 172;
   const modalX = (screenWidth - modalW) / 2;
   const modalY = (screenHeight - modalH) / 2;
 
@@ -398,9 +399,9 @@ const ConfirmOverlay = ({
         <Button
           text={isConfirming ? 'Processing...' : 'Confirm'}
           x={16}
-          y={110}
+          y={116}
           width={(modalW - 48) / 2}
-          height={40}
+          height={44}
           variant="primary"
           fontSize={14}
           onClick={onConfirm}
@@ -409,9 +410,9 @@ const ConfirmOverlay = ({
         <Button
           text="Cancel"
           x={modalW / 2 + 8}
-          y={110}
+          y={116}
           width={(modalW - 48) / 2}
-          height={40}
+          height={44}
           variant="secondary"
           fontSize={14}
           onClick={onCancel}
@@ -436,6 +437,8 @@ export const ShopPage = ({
   const [scrollY, setScrollY] = useState(0);
   const isDragging = useRef(false);
   const lastY = useRef(0);
+  const velocityRef = useRef(0);
+  const lastMoveTimeRef = useRef(0);
   const [pending, setPending] = useState<PendingPurchase | null>(null);
   const [isConfirmingPurchase, setIsConfirmingPurchase] = useState(false);
 
@@ -443,7 +446,7 @@ export const ShopPage = ({
   const contentTop = topBarHeight + contentPadding;
   const contentWidth = screenWidth - contentPadding * 2;
   const cardW = (contentWidth - 12) / 2;
-  const cardH = 130;
+  const cardH = 156;
   const cardGap = 12;
 
   const totalRows = 3;
@@ -460,6 +463,8 @@ export const ShopPage = ({
   const handlePointerDown = useCallback((e: any) => {
     isDragging.current = true;
     lastY.current = e.data.global.y;
+    velocityRef.current = 0;
+    lastMoveTimeRef.current = performance.now();
   }, []);
 
   const handlePointerMove = useCallback(
@@ -467,6 +472,12 @@ export const ShopPage = ({
       if (!isDragging.current) return;
       const dy = lastY.current - e.data.global.y;
       lastY.current = e.data.global.y;
+      const now = performance.now();
+      const dt = Math.max(now - lastMoveTimeRef.current, 1);
+      lastMoveTimeRef.current = now;
+
+      const instantaneousVelocity = dy / (dt / 16.67);
+      velocityRef.current = velocityRef.current * 0.6 + instantaneousVelocity * 0.4;
       setScrollY((prev) => Math.max(0, Math.min(maxScroll, prev + dy)));
     },
     [maxScroll]
@@ -475,6 +486,32 @@ export const ShopPage = ({
   const handlePointerUp = useCallback(() => {
     isDragging.current = false;
   }, []);
+
+  useEffect(() => {
+    setScrollY((prev) => Math.max(0, Math.min(maxScroll, prev)));
+  }, [maxScroll]);
+
+  useTick((ticker) => {
+    if (isDragging.current) return;
+    if (Math.abs(velocityRef.current) < 0.05) {
+      velocityRef.current = 0;
+      return;
+    }
+
+    const frameScale = ticker.deltaMS / 16.67;
+    const nextVelocity = velocityRef.current * Math.pow(0.92, frameScale);
+    const delta = velocityRef.current * frameScale;
+
+    setScrollY((prev) => {
+      const next = Math.max(0, Math.min(maxScroll, prev + delta));
+      if (next === 0 || next === maxScroll) {
+        velocityRef.current = 0;
+      }
+      return next;
+    });
+
+    velocityRef.current = nextVelocity;
+  });
 
   const requestPurchase = useCallback((label: string, cost: number, action: () => Promise<void> | void) => {
     setPending({ label, cost, action });
