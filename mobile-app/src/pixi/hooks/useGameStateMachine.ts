@@ -163,12 +163,21 @@ export const useGameStateMachine = ({
         });
       } catch (error) {
         log.error("Error sending move transaction:", error);
+        setBlocks(saveGridStateblocks);
+        setNextLine(nextLineBlocks);
+        setLineExplodedCount(0);
+        setApplyData(false);
+        setIsMoving(false);
+        setCurrentMove(null);
+        setGameState(GameState.WAITING);
+        setNextLineHasBeenConsumed(false);
+        setIsTxProcessing(false);
         isProcessingRef.current = false;
       } finally {
         isProcessingRef.current = false;
       }
     },
-    [account, gameId, move, playSwipe]
+    [account, gameId, move, nextLineBlocks, playSwipe, saveGridStateblocks, setNextLineHasBeenConsumed]
   );
 
   // Apply gravity

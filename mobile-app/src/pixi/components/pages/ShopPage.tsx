@@ -16,6 +16,7 @@ const BRIDGING_TITLE_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xfff
 const BRIDGING_RANK_STYLE = { fontFamily: FONT_BODY, fontSize: 12, fill: 0x94a3b8 };
 const BRIDGING_CUBES_STYLE = { fontFamily: FONT_TITLE, fontSize: 14, fill: 0xfbbf24 };
 const CONFIRM_TITLE_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff };
+const CONFIRM_SUB_STYLE = { fontFamily: FONT_BODY, fontSize: 12, fill: 0x94a3b8 };
 const CONFIRM_COST_STYLE = { fontFamily: FONT_BOLD, fontSize: 18, fill: 0xfbbf24 };
 const CONFIRM_BALANCE_STYLE = { fontFamily: FONT_BODY, fontSize: 12, fill: 0x94a3b8 };
 const EMPTY_ICON_STYLE = { fontSize: 40 };
@@ -25,7 +26,7 @@ const EMPTY_SUB_STYLE = { fontFamily: FONT_BODY, fontSize: 13, fill: 0x94a3b8 };
 interface PendingPurchase {
   label: string;
   cost: number;
-  action: () => void;
+  action: () => Promise<void> | void;
 }
 
 
@@ -322,13 +323,15 @@ const ConfirmOverlay = ({
   screenHeight,
   onConfirm,
   onCancel,
+  isConfirming,
 }: {
   purchase: PendingPurchase;
   cubeBalance: number;
   screenWidth: number;
   screenHeight: number;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void>;
   onCancel: () => void;
+  isConfirming: boolean;
 }) => {
   const modalW = Math.min(280, screenWidth - 48);
   const modalH = 160;
@@ -361,7 +364,7 @@ const ConfirmOverlay = ({
       <pixiContainer x={modalX} y={modalY}>
         <pixiGraphics draw={drawModal} />
         <pixiText
-          text={purchase.label}
+          text={isConfirming ? 'Processing purchase...' : purchase.label}
           x={modalW / 2}
           y={24}
           anchor={0.5}
@@ -369,9 +372,17 @@ const ConfirmOverlay = ({
           eventMode="none"
         />
         <pixiText
+          text={isConfirming ? 'Please confirm in wallet' : 'Confirm this permanent upgrade'}
+          x={modalW / 2}
+          y={42}
+          anchor={0.5}
+          style={CONFIRM_SUB_STYLE}
+          eventMode="none"
+        />
+        <pixiText
           text={`Cost: ${purchase.cost} 🧊`}
           x={modalW / 2}
-          y={52}
+          y={64}
           anchor={0.5}
           style={CONFIRM_COST_STYLE}
           eventMode="none"
@@ -379,30 +390,32 @@ const ConfirmOverlay = ({
         <pixiText
           text={`Balance: ${cubeBalance} → ${cubeBalance - purchase.cost}`}
           x={modalW / 2}
-          y={76}
+          y={88}
           anchor={0.5}
           style={CONFIRM_BALANCE_STYLE}
           eventMode="none"
         />
         <Button
-          text="Confirm"
+          text={isConfirming ? 'Processing...' : 'Confirm'}
           x={16}
-          y={100}
+          y={110}
           width={(modalW - 48) / 2}
           height={40}
           variant="primary"
           fontSize={14}
           onClick={onConfirm}
+          disabled={isConfirming}
         />
         <Button
           text="Cancel"
           x={modalW / 2 + 8}
-          y={100}
+          y={110}
           width={(modalW - 48) / 2}
           height={40}
           variant="secondary"
           fontSize={14}
           onClick={onCancel}
+          disabled={isConfirming}
         />
       </pixiContainer>
     </pixiContainer>
@@ -424,6 +437,7 @@ export const ShopPage = ({
   const isDragging = useRef(false);
   const lastY = useRef(0);
   const [pending, setPending] = useState<PendingPurchase | null>(null);
+  const [isConfirmingPurchase, setIsConfirmingPurchase] = useState(false);
 
   const contentPadding = 16;
   const contentTop = topBarHeight + contentPadding;
@@ -462,14 +476,23 @@ export const ShopPage = ({
     isDragging.current = false;
   }, []);
 
-  const requestPurchase = useCallback((label: string, cost: number, action: () => void) => {
+  const requestPurchase = useCallback((label: string, cost: number, action: () => Promise<void> | void) => {
     setPending({ label, cost, action });
   }, []);
 
-  const confirmPurchase = useCallback(() => {
-    pending?.action();
-    setPending(null);
-  }, [pending]);
+  const confirmPurchase = useCallback(async () => {
+    if (!pending || isConfirmingPurchase) return;
+
+    setIsConfirmingPurchase(true);
+    try {
+      await pending.action();
+      setPending(null);
+    } catch {
+      // keep modal open so user can retry/cancel after on-screen error feedback
+    } finally {
+      setIsConfirmingPurchase(false);
+    }
+  }, [isConfirmingPurchase, pending]);
 
   const startingHammer = playerMeta?.startingHammer ?? 0;
   const startingWave = playerMeta?.startingWave ?? 0;
@@ -636,7 +659,12 @@ export const ShopPage = ({
           screenWidth={screenWidth}
           screenHeight={screenHeight}
           onConfirm={confirmPurchase}
-          onCancel={() => setPending(null)}
+          onCancel={() => {
+            if (!isConfirmingPurchase) {
+              setPending(null);
+            }
+          }}
+          isConfirming={isConfirmingPurchase}
         />
       )}
     </pixiContainer>

@@ -77,6 +77,8 @@ export interface MainScreenProps {
   // Quests
   questFamilies?: QuestFamily[];
   questsLoading?: boolean;
+  questsStatus?: 'loading' | 'error' | 'success';
+  onRefreshQuests?: () => Promise<void> | void;
   onClaimQuest?: (questId: string, intervalId: number) => Promise<void>;
   // Shop
   onUpgradeStartingBonus?: (bonusType: number) => Promise<void>;
@@ -542,7 +544,7 @@ const PageRenderer = (props: MainScreenProps & {
     cubeBalance = 0, games = [], gamesLoading = false, onTrophyClick,
     onStartGame, isStartingGame = false, playerMetaData,
     leaderboardEntries = [], leaderboardLoading = false, onRefreshLeaderboard,
-    questFamilies = [], questsLoading = false, onClaimQuest,
+    questFamilies = [], questsLoading = false, questsStatus = 'success', onRefreshQuests, onClaimQuest,
     onUpgradeStartingBonus, onUpgradeBagSize, onUpgradeBridging, onUnlockBonus,
     isSoundEnabled, isMusicEnabled, onToggleSound, onToggleMusic,
   } = props;
@@ -619,7 +621,9 @@ const PageRenderer = (props: MainScreenProps & {
           <QuestsPage
             questFamilies={questFamilies}
             loading={questsLoading}
+            status={questsStatus}
             onClaim={onClaimQuest ?? (async () => {})}
+            onRefresh={onRefreshQuests}
             screenWidth={sw}
             screenHeight={sh}
             topBarHeight={topBarH}

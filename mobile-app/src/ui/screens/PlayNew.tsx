@@ -209,6 +209,11 @@ export const PlayNew = () => {
       const elapsed = Date.now() - syncStartTimeRef.current;
       if (elapsed > 20_000 && !gameCreationAttemptedRef.current) {
         setIsGameLoading(false);
+        showToast({
+          message: 'Game sync is taking too long. Returning to home.',
+          type: 'error',
+          toastId: 'play-sync-timeout',
+        });
         navigate('/');
       }
     }, 1000);
@@ -365,7 +370,14 @@ export const PlayNew = () => {
   }, [bonus, getBonusDescription]);
 
   const handleBonusTx = useCallback(async (bonusType: BonusType, rowIndex: number, colIndex: number) => {
-    if (!account || !game) return;
+    if (!account || !game) {
+      showToast({
+        message: 'Game is not ready yet. Try again in a moment.',
+        type: 'info',
+        toastId: 'bonus-game-not-ready',
+      });
+      return;
+    }
     try {
       await applyBonus({
         account: account as Account,
@@ -376,7 +388,6 @@ export const PlayNew = () => {
       });
     } catch (error) {
       console.error('Bonus apply error:', error);
-      showToast({ message: 'Failed to apply bonus. Try again.', type: 'error', toastId: 'bonus-error' });
     }
   }, [account, applyBonus, game]);
 
@@ -398,12 +409,18 @@ export const PlayNew = () => {
   }, [bonus, handleBonusTx, isTxProcessing]);
 
   const handleSurrender = useCallback(async () => {
-    if (!account || !game) return;
+    if (!account || !game) {
+      showToast({
+        message: 'Game is not ready yet. Try again in a moment.',
+        type: 'info',
+        toastId: 'surrender-game-not-ready',
+      });
+      return;
+    }
     try {
       await surrender({ account: account as Account, game_id: game.id });
     } catch (error) {
       console.error('Surrender error:', error);
-      showToast({ message: 'Surrender failed. Try again.', type: 'error', toastId: 'surrender-error' });
     }
   }, [account, game, surrender]);
 
@@ -442,7 +459,14 @@ export const PlayNew = () => {
   }, [playerMeta]);
 
   const handleShopPurchase = useCallback(async (consumableType: number, bonusSlot: number) => {
-    if (!account || !game) return;
+    if (!account || !game) {
+      showToast({
+        message: 'Game is not ready yet. Try again in a moment.',
+        type: 'info',
+        toastId: 'shop-game-not-ready',
+      });
+      return;
+    }
 
     setIsShopPurchasing(true);
     try {
@@ -454,7 +478,6 @@ export const PlayNew = () => {
       });
     } catch (error) {
       console.error('In-game shop purchase failed:', error);
-      showToast({ message: 'Purchase failed. Try again.', type: 'error', toastId: 'shop-error' });
     } finally {
       setIsShopPurchasing(false);
     }

@@ -7,6 +7,7 @@ import {
   shouldShowToast,
   notify,
   showToast,
+  deriveUserFacingErrorMessage,
 } from "@/utils/toast";
 import { useMoveStore } from "@/stores/moveTxStore";
 import { createLogger } from "@/utils/logger";
@@ -105,11 +106,10 @@ export function systems({ client }: { client: IWorld }) {
       log.error("Error executing transaction", error);
 
       if (shouldShowToast()) {
-        // Don't override if we already showed a revert error
         const errorMessage =
           error instanceof Error && error.message === "Transaction reverted"
             ? "Transaction reverted."
-            : "Transaction failed.";
+            : deriveUserFacingErrorMessage(error, "Transaction failed.");
         showToast({ message: errorMessage, type: "error", toastId });
       }
 

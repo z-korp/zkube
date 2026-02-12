@@ -21,7 +21,7 @@ import { DEFAULT_SETTINGS_ID } from "@/dojo/game/types/level";
 import { useQuests } from "@/contexts/quests";
 import { shortString } from "starknet";
 import { useMusicPlayer } from "@/contexts/hooks";
-import { showToast } from "@/utils/toast";
+import { deriveUserFacingErrorMessage, showToast } from "@/utils/toast";
 import { normalizeAddress } from "@/utils/address";
 
 type TokenAttribute = {
@@ -94,7 +94,7 @@ export const Home = () => {
   } = useLeaderboardSlot({ forceRecs: true });
 
   // Quest data
-  const { questFamilies, status: questsStatus } = useQuests();
+  const { questFamilies, status: questsStatus, refresh: refreshQuests } = useQuests();
   const questsLoading = questsStatus === "loading";
 
   // Sound settings
@@ -175,6 +175,11 @@ export const Home = () => {
   const handleStartGame = useCallback(
     async (selectedBonuses: number[], cubesToBring: number) => {
       if (!account) {
+        showToast({
+          message: "Connect your wallet to start a game.",
+          type: "info",
+          toastId: "start-game-connect-required",
+        });
         const c = connector as ControllerConnector;
         if (c?.controller) c.controller.connect();
         return;
@@ -184,7 +189,7 @@ export const Home = () => {
       if (cubesToBring > 0) {
         await refetchCubeBalance?.();
         const currentBalance = Number(cubeBalance);
-          if (cubesToBring > currentBalance) {
+        if (cubesToBring > currentBalance) {
           showToast({
             message: `Insufficient cubes. You have ${currentBalance} but tried to bring ${cubesToBring}.`,
             type: "error",
@@ -196,6 +201,12 @@ export const Home = () => {
 
       setIsStartingGame(true);
       try {
+        showToast({
+          message: "Minting your game pass...",
+          type: "loading",
+          toastId: "start-game-flow",
+        });
+
         // Step 1: Mint the game token
         const mintResult = await systemCalls.freeMint({
           account,
@@ -207,6 +218,12 @@ export const Home = () => {
         if (!gameId) {
           throw new Error("Failed to extract game_id from mint transaction");
         }
+
+        showToast({
+          message: `Game #${gameId} minted. Creating run...`,
+          type: "loading",
+          toastId: "start-game-flow",
+        });
 
         // Step 2: Create/start the game with loadout
         await systemCalls.create({
@@ -222,7 +239,7 @@ export const Home = () => {
               ? `Game #${gameId} started with ${cubesToBring} cubes!`
               : `Game #${gameId} started! Good luck!`,
           type: "success",
-          toastId: "start-game-success",
+          toastId: "start-game-flow",
         });
 
         refetchGames?.();
@@ -232,9 +249,12 @@ export const Home = () => {
       } catch (error) {
         console.error("Error starting game:", error);
         showToast({
-          message: "Failed to start game. Check My Games if a token was minted.",
+          message: deriveUserFacingErrorMessage(
+            error,
+            "Failed to start game. Check My Games if a token was minted."
+          ),
           type: "error",
-          toastId: "start-game-failed",
+          toastId: "start-game-flow",
         });
       } finally {
         setIsStartingGame(false);
@@ -264,8 +284,19 @@ export const Home = () => {
     const controllerConnector = connectors.find((c) => c.id === "controller");
     const target = controllerConnector || connectors[0];
     if (target) {
+      showToast({
+        message: "Opening wallet login...",
+        type: "info",
+        toastId: "connect-wallet",
+      });
       connect({ connector: target });
+      return;
     }
+    showToast({
+      message: "No wallet connector is available.",
+      type: "error",
+      toastId: "connect-wallet-missing",
+    });
   }, [connect, connectors]);
 
   const handleTrophyClick = useCallback(() => {
@@ -276,7 +307,14 @@ export const Home = () => {
   // Quest claim handler
   const handleClaimQuest = useCallback(
     async (questId: string, intervalId: number) => {
-      if (!account) return;
+      if (!account) {
+        showToast({
+          message: "Connect wallet to claim quests.",
+          type: "info",
+          toastId: "quest-connect-required",
+        });
+        return;
+      }
       if (questId.length > 31) {
         showToast({ message: 'Invalid quest ID.', type: 'error', toastId: 'quest-id-error' });
         return;
@@ -291,7 +329,6 @@ export const Home = () => {
         refetchCubeBalance?.();
       } catch (error) {
         console.error('Quest claim failed:', error);
-        showToast({ message: 'Failed to claim quest.', type: 'error', toastId: 'quest-claim-error' });
       }
     },
     [account, systemCalls, refetchCubeBalance]
@@ -300,7 +337,14 @@ export const Home = () => {
   // Shop upgrade handlers
   const handleUpgradeStartingBonus = useCallback(
     async (bonusType: number) => {
-      if (!account) return;
+      if (!account) {
+        showToast({
+          message: "Connect wallet to use the shop.",
+          type: "info",
+          toastId: "shop-connect-required",
+        });
+        return;
+      }
       await systemCalls.upgradeStartingBonus({ account, bonus_type: bonusType });
       refetchCubeBalance?.();
     },
@@ -309,7 +353,14 @@ export const Home = () => {
 
   const handleUpgradeBagSize = useCallback(
     async (bonusType: number) => {
-      if (!account) return;
+      if (!account) {
+        showToast({
+          message: "Connect wallet to use the shop.",
+          type: "info",
+          toastId: "shop-connect-required",
+        });
+        return;
+      }
       await systemCalls.upgradeBagSize({ account, bonus_type: bonusType });
       refetchCubeBalance?.();
     },
@@ -317,14 +368,28 @@ export const Home = () => {
   );
 
   const handleUpgradeBridging = useCallback(async () => {
-    if (!account) return;
+    if (!account) {
+      showToast({
+        message: "Connect wallet to use the shop.",
+        type: "info",
+        toastId: "shop-connect-required",
+      });
+      return;
+    }
     await systemCalls.upgradeBridgingRank({ account });
     refetchCubeBalance?.();
   }, [account, systemCalls, refetchCubeBalance]);
 
   const handleUnlockBonus = useCallback(
     async (bonusType: number) => {
-      if (!account) return;
+      if (!account) {
+        showToast({
+          message: "Connect wallet to use the shop.",
+          type: "info",
+          toastId: "shop-connect-required",
+        });
+        return;
+      }
       await systemCalls.unlockBonus({ account, bonus_type: bonusType });
       refetchCubeBalance?.();
     },
@@ -365,6 +430,8 @@ export const Home = () => {
       // Quests
       questFamilies={questFamilies}
       questsLoading={questsLoading}
+      questsStatus={questsStatus}
+      onRefreshQuests={refreshQuests}
       onClaimQuest={handleClaimQuest}
       // Shop
       onUpgradeStartingBonus={handleUpgradeStartingBonus}

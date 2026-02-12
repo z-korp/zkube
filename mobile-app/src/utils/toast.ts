@@ -87,6 +87,7 @@ export const notify = (message: string, transaction: any, toastId: string) => {
 interface ShowToastOptions {
   message: string;
   txHash?: string;
+  description?: string;
   type?: PixiToastType;
   toastId?: string;
   durationMs?: number;
@@ -95,6 +96,7 @@ interface ShowToastOptions {
 export const showToast = ({
   message,
   txHash,
+  description,
   type = "loading",
   toastId = "transaction-toast",
   durationMs,
@@ -104,8 +106,59 @@ export const showToast = ({
   usePixiToastStore.getState().upsertToast({
     id: toastId,
     message,
-    description: txHash ? shortenHex(txHash) : undefined,
+    description: description ?? (txHash ? shortenHex(txHash) : undefined),
     type,
     durationMs,
   });
+};
+
+const normalizeErrorMessage = (raw: string): string => {
+  const message = extractedMessage(raw).trim();
+
+  if (!message) {
+    return "Something went wrong.";
+  }
+
+  const lower = message.toLowerCase();
+
+  if (
+    lower.includes("user aborted") ||
+    lower.includes("user rejected") ||
+    lower.includes("transaction rejected") ||
+    lower.includes("request rejected")
+  ) {
+    return "Transaction cancelled.";
+  }
+
+  if (lower.includes("timed out") || lower.includes("timeout")) {
+    return "Transaction timed out. Network may be slow.";
+  }
+
+  if (lower.includes("insufficient") && lower.includes("balance")) {
+    return "Insufficient balance for this action.";
+  }
+
+  return message;
+};
+
+export const deriveUserFacingErrorMessage = (
+  error: unknown,
+  fallback = "Transaction failed."
+): string => {
+  if (error instanceof Error) {
+    return normalizeErrorMessage(error.message || fallback);
+  }
+
+  if (typeof error === "string") {
+    return normalizeErrorMessage(error);
+  }
+
+  if (error && typeof error === "object" && "message" in error) {
+    const maybeMessage = (error as { message?: unknown }).message;
+    if (typeof maybeMessage === "string") {
+      return normalizeErrorMessage(maybeMessage);
+    }
+  }
+
+  return fallback;
 };

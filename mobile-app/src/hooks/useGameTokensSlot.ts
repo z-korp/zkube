@@ -1,10 +1,11 @@
 import { useDojo } from "@/dojo/useDojo";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { getComponentValue, Has, runQuery } from "@dojoengine/recs";
 import type { GameTokenData } from "metagame-sdk";
 import { normalizeAddress } from "@/utils/address";
 import { unpackRunData } from "@/dojo/game/helpers/runDataPacking";
 import { createLogger } from "@/utils/logger";
+import { showToast } from "@/utils/toast";
 
 const log = createLogger("useGameTokensSlot");
 
@@ -98,6 +99,7 @@ export const useGameTokensSlot = ({
   const [games, setGames] = useState<GameTokenData[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const fetchErrorShownRef = useRef(false);
 
   const refetch = useCallback(() => {
     setRefreshTrigger((prev) => prev + 1);
@@ -119,6 +121,14 @@ export const useGameTokensSlot = ({
         
         if (!toriiUrl) {
           log.warn("No TORII URL configured");
+          if (!fetchErrorShownRef.current) {
+            showToast({
+              message: "Game indexer is not configured.",
+              type: "error",
+              toastId: "games-torii-missing",
+            });
+            fetchErrorShownRef.current = true;
+          }
           setGames([]);
           return;
         }
@@ -238,9 +248,18 @@ export const useGameTokensSlot = ({
         gameList.sort((a, b) => b.token_id - a.token_id);
 
         log.info("Final game list:", gameList.length);
+        fetchErrorShownRef.current = false;
         setGames(gameList);
       } catch (error) {
         log.error("Error fetching games:", error);
+        if (!fetchErrorShownRef.current) {
+          showToast({
+            message: "Could not load your games. Please try again.",
+            type: "error",
+            toastId: "games-fetch-error",
+          });
+          fetchErrorShownRef.current = true;
+        }
         setGames([]);
       } finally {
         setLoading(false);

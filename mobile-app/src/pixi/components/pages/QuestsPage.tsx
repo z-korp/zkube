@@ -29,6 +29,7 @@ const TIER_REWARD_STYLE_BASE = { fontFamily: FONT_TITLE, fontSize: 12 };
 const FAMILY_ICON_STYLE = { fontSize: 22 };
 const FAMILY_NAME_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff };
 const EMPTY_STATE_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0x64748b };
+const EMPTY_SUB_STYLE = { fontFamily: FONT_BODY, fontSize: 12, fill: 0x94a3b8 };
 
 const CountdownTimer = ({ x, y }: { x: number; y: number }) => {
   const [timeLeft, setTimeLeft] = useState('00:00:00');
@@ -336,7 +337,9 @@ const QuestFamilyCard = ({
 interface QuestsPageProps {
   questFamilies: QuestFamily[];
   loading: boolean;
+  status?: 'loading' | 'error' | 'success';
   onClaim: (questId: string, intervalId: number) => Promise<void>;
+  onRefresh?: () => Promise<void> | void;
   screenWidth: number;
   screenHeight: number;
   topBarHeight: number;
@@ -346,15 +349,21 @@ interface QuestsPageProps {
 export const QuestsPage = ({
   questFamilies,
   loading,
+  status = 'success',
   onClaim,
+  onRefresh,
   screenWidth,
   screenHeight,
   topBarHeight,
   cubeBalance,
 }: QuestsPageProps) => {
   const [scrollY, setScrollY] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const isDragging = useRef(false);
   const lastY = useRef(0);
+
+  const isLoadingState = loading || status === 'loading';
+  const isErrorState = status === 'error';
 
   const contentPadding = 16;
   const timerH = 32;
@@ -368,6 +377,14 @@ export const QuestsPage = ({
     if (f.claimableTier) return sum + f.claimableTier.reward;
     return sum;
   }, 0);
+
+  const subtitle = isLoadingState
+    ? 'Syncing daily progress...'
+    : isErrorState
+      ? 'Quest sync unavailable'
+      : claimableRewards > 0
+        ? `${claimableRewards} CUBE ready!`
+        : undefined;
 
   // Separate main families from finisher
   const mainFamilies = questFamilies.filter((f) => f.id !== 'finisher');
@@ -414,6 +431,16 @@ export const QuestsPage = ({
     isDragging.current = false;
   }, []);
 
+  const handleRefresh = useCallback(async () => {
+    if (!onRefresh || isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, onRefresh]);
+
   // Calculate y positions for each card
   let currentY = 0;
   const cardPositions = allFamilies.map((f) => {
@@ -427,7 +454,7 @@ export const QuestsPage = ({
       {/* Top bar */}
       <PageTopBar
         title="Daily Quests"
-        subtitle={claimableRewards > 0 ? `${claimableRewards} CUBE ready!` : undefined}
+        subtitle={subtitle}
         screenWidth={screenWidth}
         topBarHeight={topBarHeight}
         showCubeBalance
@@ -439,24 +466,64 @@ export const QuestsPage = ({
 
       {/* Quest list */}
       <pixiContainer x={contentPadding} y={listTop}>
-        {loading ? (
+        {isLoadingState ? (
           <pixiText
-            text="Loading quests..."
+            text="Syncing daily quests..."
             x={contentWidth / 2}
             y={80}
             anchor={0.5}
             style={EMPTY_STATE_STYLE}
             eventMode="none"
           />
+        ) : isErrorState ? (
+          <pixiContainer>
+            <pixiText
+              text="Couldn't load quests"
+              x={contentWidth / 2}
+              y={66}
+              anchor={0.5}
+              style={EMPTY_STATE_STYLE}
+              eventMode="none"
+            />
+            <pixiText
+              text="Check your connection and retry"
+              x={contentWidth / 2}
+              y={94}
+              anchor={0.5}
+              style={EMPTY_SUB_STYLE}
+              eventMode="none"
+            />
+            <Button
+              text={isRefreshing ? 'Retrying...' : 'Retry'}
+              x={(contentWidth - 140) / 2}
+              y={122}
+              width={140}
+              height={42}
+              variant="secondary"
+              fontSize={14}
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+            />
+          </pixiContainer>
         ) : allFamilies.length === 0 ? (
-          <pixiText
-            text="No quests available"
-            x={contentWidth / 2}
-            y={80}
-            anchor={0.5}
-            style={EMPTY_STATE_STYLE}
-            eventMode="none"
-          />
+          <pixiContainer>
+            <pixiText
+              text="No quests yet"
+              x={contentWidth / 2}
+              y={72}
+              anchor={0.5}
+              style={EMPTY_STATE_STYLE}
+              eventMode="none"
+            />
+            <pixiText
+              text="Play a run to start making progress"
+              x={contentWidth / 2}
+              y={100}
+              anchor={0.5}
+              style={EMPTY_SUB_STYLE}
+              eventMode="none"
+            />
+          </pixiContainer>
         ) : (
           <pixiContainer
             eventMode="static"

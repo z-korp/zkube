@@ -32,6 +32,11 @@ const BONUS_DESC_STYLE = {
   fontFamily: FONT_TITLE, fontSize: 16, fill: 0xfbbf24,
   dropShadow: { alpha: 0.8, angle: Math.PI / 4, blur: 4, distance: 2, color: 0x000000 },
 };
+const STATUS_TEXT_STYLE = {
+  fontFamily: FONT_BOLD,
+  fontSize: 13,
+  fill: 0xffffff,
+};
 
 export interface BonusSlotData {
   type: number;
@@ -561,6 +566,21 @@ const PlayScreenInner = (props: PlayScreenProps) => {
     g.stroke({ color: 0xef4444, width: 4, alpha: 0.25 });
   }, [sw, sh]);
 
+  const transientStatusLabel = useMemo(() => {
+    if (isShopPurchasing) return 'Purchasing item...';
+    if (isSurrendering) return 'Surrendering run...';
+    if (isTxProcessing) return 'Syncing move...';
+    return null;
+  }, [isShopPurchasing, isSurrendering, isTxProcessing]);
+
+  const drawStatusBubble = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.roundRect(0, 0, 180, 30, 12);
+    g.fill({ color: 0x1f2937, alpha: 0.9 });
+    g.roundRect(0, 0, 180, 30, 12);
+    g.stroke({ color: 0x60a5fa, width: 1.5, alpha: 0.6 });
+  }, []);
+
   const isInteractionBlocked = isTxProcessing || isSurrendering || isMenuOpen || isGameOver || isVictory || isLevelComplete || isInGameShopOpen;
 
   useEffect(() => {
@@ -663,6 +683,20 @@ const PlayScreenInner = (props: PlayScreenProps) => {
         <pixiContainer x={sw / 2} y={layout.gridY + 30}>
           <pixiText text={bonusDescription} anchor={0.5}
             style={BONUS_DESC_STYLE}
+            eventMode="none"
+          />
+        </pixiContainer>
+      )}
+
+      {transientStatusLabel && (
+        <pixiContainer x={sw / 2 - 90} y={layout.progressBarY + layout.progressBarHeight + 8}>
+          <pixiGraphics draw={drawStatusBubble} eventMode="none" />
+          <pixiText
+            text={transientStatusLabel}
+            x={90}
+            y={15}
+            anchor={0.5}
+            style={STATUS_TEXT_STYLE}
             eventMode="none"
           />
         </pixiContainer>
