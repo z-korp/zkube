@@ -80,10 +80,6 @@ export const ConstraintIndicator = ({
     }
   };
 
-  if (constraint.type === ConstraintType.None) {
-    return null;
-  }
-
   const satisfied = isSatisfied();
   const failed = isFailed();
   
@@ -110,15 +106,12 @@ export const ConstraintIndicator = ({
   const draw = useCallback((g: PixiGraphics) => {
     g.clear();
     
-    // Background
     g.roundRect(0, 0, width, height, cornerRadius);
     g.fill({ color: bgColor, alpha: 0.9 });
     
-    // Border
     g.roundRect(0, 0, width, height, cornerRadius);
     g.stroke({ color: accentColor, width: 1, alpha: 0.6 });
     
-    // Progress indicator (small dots or bar)
     if (constraint.type === ConstraintType.ClearLines && constraint.count > 0) {
       const dotSize = 4;
       const dotGap = 3;
@@ -141,6 +134,10 @@ export const ConstraintIndicator = ({
     fontWeight: 'bold',
     fill: textColor,
   }), [textColor]);
+
+  if (constraint.type === ConstraintType.None) {
+    return null;
+  }
 
   return (
     <pixiContainer x={x} y={y}>

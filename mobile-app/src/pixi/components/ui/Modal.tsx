@@ -76,12 +76,14 @@ export const Modal = ({
     }
   }, [isOpen]);
 
-  useTick(() => {
+  const tickEnter = useCallback(() => {
     setEnterProgress((prev) => {
       if (prev >= 1) return prev;
       return Math.min(1, prev + 0.16);
     });
-  }, isOpen && enterProgress < 1);
+  }, []);
+
+  useTick(tickEnter, isOpen && enterProgress < 1);
 
   // Draw backdrop (semi-transparent overlay)
   const drawBackdrop = useCallback((g: PixiGraphics) => {
@@ -154,10 +156,8 @@ export const Modal = ({
     <>
       {/* Backdrop */}
       <pixiGraphics
-        draw={(g: PixiGraphics) => {
-          drawBackdrop(g);
-          g.alpha = backdropAlpha;
-        }}
+        draw={drawBackdrop}
+        alpha={backdropAlpha}
         eventMode="static"
         onPointerDown={(e: any) => {
           e.stopPropagation();

@@ -6,6 +6,9 @@ import { shortString } from "starknet";
 // Platform detection for native app support
 import { isNative, isNativeAndroid, DEEP_LINK_URL } from "./utils/capacitorUtils";
 import SessionConnectorWrapper from "./dojo/connectorWrapper";
+import { createLogger } from "@/utils/logger";
+
+const log = createLogger("cartridgeConnector");
 
 const { 
   VITE_PUBLIC_DEPLOY_TYPE, 
@@ -242,7 +245,7 @@ const createConnector = (config: ConnectorConfig): Connector => {
 
   if (isNative) {
     // Native app: Use SessionConnector with wrapper for OAuth flow
-    console.log("[cartridgeConnector] Creating SessionConnectorWrapper for native app");
+    log.info("Creating SessionConnectorWrapper for native app");
     
     return new SessionConnectorWrapper({
       policies: config.policies,
@@ -254,7 +257,7 @@ const createConnector = (config: ConnectorConfig): Connector => {
     }) as unknown as Connector;
   } else {
     // Web: Use standard ControllerConnector
-    console.log("[cartridgeConnector] Creating ControllerConnector for web");
+    log.info("Creating ControllerConnector for web");
     
     const options: ControllerOptions = {
       chains: config.chains,
@@ -272,7 +275,7 @@ const createConnector = (config: ConnectorConfig): Connector => {
 export const createCartridgeConnector = async (): Promise<Connector> => {
   const config = await getConfig();
 
-  console.log("[cartridgeConnector] Configuration:", {
+  log.info("Configuration:", {
     deployType: VITE_PUBLIC_DEPLOY_TYPE,
     chainId: config.chainId,
     chainIdFelt: stringToFelt(config.chainId).toString(),

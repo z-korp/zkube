@@ -31,10 +31,13 @@ import {
   CONSUMABLE_COSTS,
   ConsumableType,
 } from '@/dojo/game/helpers/runDataPacking';
-import ImageAssets from '@/ui/theme/ImageAssets';
 import { useTheme } from '@/ui/elements/theme-provider/hooks';
+import { resolveAssetUrl } from '@/pixi/assets/resolver';
+import { AssetId } from '@/pixi/assets/catalog';
+import type { ThemeId } from '@/pixi/utils/colors';
 import type { Block } from '@/types/types';
 import type { InGameShopBonusItem } from '@/pixi/components/modals';
+import { useMusicPlayer } from '@/contexts/hooks';
 
 // Type for storing level completion data
 interface LevelCompletionData {
@@ -75,7 +78,13 @@ export const PlayNew = () => {
   const { cubeBalance } = useCubeBalance();
   const { playerMeta } = usePlayerMeta();
   const { themeTemplate } = useTheme();
-  const imgAssets = ImageAssets(themeTemplate);
+  const themeId = themeTemplate as ThemeId;
+  const { setIsMenu, playStart, playOver } = useMusicPlayer();
+
+  useEffect(() => {
+    setIsMenu(false);
+    return () => setIsMenu(true);
+  }, [setIsMenu]);
 
   const {
     setup: {
@@ -153,7 +162,7 @@ export const PlayNew = () => {
     nextLineBlocks,
     gridWidth: COLS,
     gridHeight: ROWS,
-    game: game!,
+    gameId: game?.id ?? 0,
     account,
     score: game?.levelScore ?? 0,
     combo: game?.combo ?? 0,
@@ -264,6 +273,15 @@ export const PlayNew = () => {
     game?.over, game?.totalCubes, game?.totalScore, game,
   ]);
 
+  useEffect(() => {
+    if (game) {
+      setOptimisticScore(game.levelScore);
+      setOptimisticCombo(game.combo);
+      setOptimisticMaxCombo(game.maxComboRun);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally sync only on level transitions
+  }, [game?.level]);
+
   // Reset bonus when grid changes
   useEffect(() => {
     setBonus(BonusType.None);
@@ -272,15 +290,17 @@ export const PlayNew = () => {
 
   // Bonus helpers
   const getBonusIcon = useCallback((type: BonusType): string => {
-    switch (type) {
-      case BonusType.Hammer: return imgAssets.hammer;
-      case BonusType.Wave: return imgAssets.wave;
-      case BonusType.Totem: return imgAssets.tiki;
-      case BonusType.Shrink: return imgAssets.shrink;
-      case BonusType.Shuffle: return imgAssets.shuffle;
-      default: return '';
-    }
-  }, [imgAssets]);
+    const assetMap: Partial<Record<BonusType, AssetId>> = {
+      [BonusType.Hammer]: AssetId.BonusHammer,
+      [BonusType.Wave]: AssetId.BonusWave,
+      [BonusType.Totem]: AssetId.BonusTotem,
+      [BonusType.Shrink]: AssetId.BonusShrink,
+      [BonusType.Shuffle]: AssetId.BonusShuffle,
+    };
+    const assetId = assetMap[type];
+    if (!assetId) return '';
+    return resolveAssetUrl(themeId, assetId) ?? '';
+  }, [themeId]);
 
   const getBonusTooltip = useCallback((type: BonusType): string => {
     switch (type) {
@@ -342,6 +362,7 @@ export const PlayNew = () => {
   }, [account, applyBonus, game]);
 
   const handleBonusApply = useCallback(async (block: Block) => {
+    if (isTxProcessing) return;
     if (bonus === BonusType.Wave) {
       handleBonusTx(BonusType.Wave, block.y, 0);
     } else if (bonus === BonusType.Totem) {
@@ -355,7 +376,7 @@ export const PlayNew = () => {
     }
     setBonus(BonusType.None);
     setBonusDescription('');
-  }, [bonus, handleBonusTx]);
+  }, [bonus, handleBonusTx, isTxProcessing]);
 
   const handleSurrender = useCallback(async () => {
     if (!account || !game) return;

@@ -3,9 +3,12 @@ import { useTick } from '@pixi/react';
 import { TextStyle, Graphics as PixiGraphics, Texture } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { usePulseRef } from '../../hooks/useAnimatedValue';
-import { FONT_BODY, THEME_ASSETS } from '../../utils/colors';
+import { FONT_BODY, type ThemeId } from '../../utils/colors';
+import { AssetId } from '../../assets/catalog';
+import { resolveAsset } from '../../assets/resolver';
 import { GlowFilter } from '../../extend';
 import { loadTextureCached } from '../../assets/textureLoader';
+import { useTextureWithFallback } from '../../hooks/useTexture';
 
 export interface BonusButtonData {
   type: number;
@@ -36,12 +39,11 @@ export const BonusButton = ({
   isDisabled,
   onClick,
 }: BonusButtonProps) => {
-  const { getAssetPath } = usePixiTheme();
+  const { themeName } = usePixiTheme();
 
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
   const [texture, setTexture] = useState<Texture | null>(null);
-  const [bgTex, setBgTex] = useState<Texture | null>(null);
   const containerRef = useRef<import('pixi.js').Container | null>(null);
 
   const shouldPulse = count > 0 && !isDisabled && !isSelected && !isHovered;
@@ -68,22 +70,11 @@ export const BonusButton = ({
     setTexture(null);
   }, [icon]);
 
-  useEffect(() => {
-    let cancelled = false;
-    const path = getAssetPath(THEME_ASSETS.bonusBtnBg);
-
-    loadTextureCached(path)
-      .then((t) => {
-        if (!cancelled) setBgTex(t);
-      })
-      .catch(() => {
-        if (!cancelled) setBgTex(null);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [getAssetPath]);
+  const bgCandidates = useMemo(
+    () => resolveAsset(themeName as ThemeId, AssetId.BonusBtnBg),
+    [themeName],
+  );
+  const bgTex = useTextureWithFallback(bgCandidates);
 
   const radius = size / 2;
   const badgeSize = 16;
@@ -119,7 +110,7 @@ export const BonusButton = ({
         g.stroke({ color: 0x60a5fa, width: 2, alpha: 0.3 });
       }
     }
-  }, [size, radius, isSelected, isDisabled, isHovered, isPressed, bgTex]);
+  }, [radius, isSelected, isDisabled, isHovered, isPressed, bgTex]);
 
   const drawCountBadge = useCallback((g: PixiGraphics) => {
     g.clear();

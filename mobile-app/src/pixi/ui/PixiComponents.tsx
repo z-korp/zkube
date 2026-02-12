@@ -8,11 +8,13 @@
  * - PixiLabel: Styled text label
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Texture, Graphics as PixiGraphics } from 'pixi.js';
-import { ICON_ASSETS, type IconType } from '../assets/manifest';
-import { FONT_BOLD, FONT_BODY } from '../utils/colors';
-import { loadTextureCached } from '../assets/textureLoader';
+import { AssetId, ICON_TYPE_TO_ASSET, type IconType } from '../assets/catalog';
+import { resolveAsset } from '../assets/resolver';
+import { FONT_BOLD, FONT_BODY, type ThemeId } from '../utils/colors';
+import { useTextureWithFallback } from '../hooks/useTexture';
+import { usePixiTheme } from '../themes/ThemeContext';
 
 // ============================================================================
 // PROGRESS BAR
@@ -105,7 +107,7 @@ export function PixiProgressBar({
     g.setStrokeStyle({ width: borderWidth, color: borderColor, alpha: 0.5 });
     g.roundRect(0, 0, width, height, radius);
     g.stroke();
-  }, [width, height, clampedProgress, fillWidth, backgroundColor, fillColor, borderColor, borderWidth, radius]);
+  }, [width, height, fillWidth, backgroundColor, fillColor, borderColor, borderWidth, radius]);
 
   const displayLabel = label ?? `${Math.round(clampedProgress * 100)}%`;
   const labelStyle = useMemo(() => ({
@@ -161,31 +163,17 @@ export function PixiStarRating({
   gap = 4,
   centered = false,
 }: PixiStarRatingProps) {
-  const [filledTexture, setFilledTexture] = useState<Texture | null>(null);
-  const [emptyTexture, setEmptyTexture] = useState<Texture | null>(null);
-
-  // Load star textures
-  useEffect(() => {
-    let cancelled = false;
-    Promise.all([
-      loadTextureCached(ICON_ASSETS.starFilled.path),
-      loadTextureCached(ICON_ASSETS.starEmpty.path),
-    ]).then(([filled, empty]) => {
-      if (!cancelled) {
-        setFilledTexture(filled);
-        setEmptyTexture(empty);
-      }
-    }).catch(() => {
-      if (!cancelled) {
-        setFilledTexture(null);
-        setEmptyTexture(null);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { themeName } = usePixiTheme();
+  const filledCandidates = useMemo(
+    () => resolveAsset(themeName as ThemeId, AssetId.IconStarFilled),
+    [themeName],
+  );
+  const emptyCandidates = useMemo(
+    () => resolveAsset(themeName as ThemeId, AssetId.IconStarEmpty),
+    [themeName],
+  );
+  const filledTexture = useTextureWithFallback(filledCandidates);
+  const emptyTexture = useTextureWithFallback(emptyCandidates);
 
   const totalWidth = maxStars * size + (maxStars - 1) * gap;
   const offsetX = centered ? -totalWidth / 2 : 0;
@@ -241,8 +229,6 @@ export function PixiBadge({
   textColor = 0xFFFFFF,
   showZero = false,
 }: PixiBadgeProps) {
-  if (count === 0 && !showZero) return null;
-
   const displayText = count > maxCount ? `${maxCount}+` : String(count);
   const isWide = displayText.length > 1;
   const badgeWidth = isWide ? size * 1.5 : size;
@@ -253,7 +239,6 @@ export function PixiBadge({
     g.roundRect(-badgeWidth / 2, -size / 2, badgeWidth, size, size / 2);
     g.fill();
     
-    // Subtle border
     g.setStrokeStyle({ width: 1, color: 0xFFFFFF, alpha: 0.3 });
     g.roundRect(-badgeWidth / 2, -size / 2, badgeWidth, size, size / 2);
     g.stroke();
@@ -265,6 +250,8 @@ export function PixiBadge({
     fill: textColor,
     fontWeight: 'bold',
   }), [size, textColor]);
+
+  if (count === 0 && !showZero) return null;
 
   return (
     <pixiContainer x={x} y={y}>
@@ -309,25 +296,13 @@ export function PixiIcon({
   alpha = 1,
   anchor = 0.5,
 }: PixiIconProps) {
-  const [texture, setTexture] = useState<Texture | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    const iconAsset = ICON_ASSETS[icon];
-    if (!iconAsset) return;
-
-    loadTextureCached(iconAsset.path)
-      .then((t) => {
-        if (!cancelled) setTexture(t);
-      })
-      .catch(() => {
-        if (!cancelled) setTexture(null);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [icon]);
+  const { themeName } = usePixiTheme();
+  const candidates = useMemo(() => {
+    const assetId = ICON_TYPE_TO_ASSET[icon];
+    if (!assetId) return null;
+    return resolveAsset(themeName as ThemeId, assetId);
+  }, [icon, themeName]);
+  const texture = useTextureWithFallback(candidates);
 
   if (!texture) return null;
 

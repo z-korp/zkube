@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import type { Graphics as PixiGraphics } from 'pixi.js';
 import { usePixiTheme, usePerformanceSettings } from '../../themes/ThemeContext';
 import { getBlockColors, lightenColor } from '../../utils/colors';
@@ -93,28 +93,26 @@ const TrailGhost = ({ x, y, width, height, alpha, color }: TrailGhostProps) => {
  * Hook to manage trail positions
  */
 export function useDragTrail(maxTrailLength: number = 5) {
-  const positions: TrailPosition[] = [];
+  const positionsRef = useRef<TrailPosition[]>([]);
   
-  const addPosition = (x: number, y: number) => {
-    // Add new position
+  const addPosition = useCallback((x: number, y: number) => {
+    const positions = positionsRef.current;
     positions.unshift({ x, y, alpha: 1 });
     
-    // Update alphas and remove old positions
     for (let i = 0; i < positions.length; i++) {
       positions[i].alpha = 1 - (i / maxTrailLength);
     }
     
-    // Keep only maxTrailLength positions
     while (positions.length > maxTrailLength) {
       positions.pop();
     }
-  };
+  }, [maxTrailLength]);
   
-  const clearTrail = () => {
-    positions.length = 0;
-  };
+  const clearTrail = useCallback(() => {
+    positionsRef.current.length = 0;
+  }, []);
   
-  return { positions, addPosition, clearTrail };
+  return { positions: positionsRef.current, addPosition, clearTrail };
 }
 
 export default DragTrail;

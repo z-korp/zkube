@@ -7,7 +7,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { useTheme } from '@/ui/elements/theme-provider/hooks';
-import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
+import { FONT_TITLE, FONT_BODY, THEME_IDS, THEME_META, type ThemeId } from '../../utils/colors';
 
 const TOGGLE_LABEL_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff };
 const SETTING_LABEL_STYLE = { fontFamily: FONT_BODY, fontSize: 14, fill: 0x94a3b8 };
@@ -148,8 +148,86 @@ const SettingRow = ({
 };
 
 // ============================================================================
-// THEME SELECTOR
+// THEME OPTION (single selectable tile)
 // ============================================================================
+
+const ThemeOption = ({
+  x,
+  y,
+  width,
+  height,
+  themeId,
+  selected,
+  onSelect,
+}: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  themeId: ThemeId;
+  selected: boolean;
+  onSelect: (id: ThemeId) => void;
+}) => {
+  const meta = THEME_META[themeId];
+
+  const drawBg = useCallback(
+    (g: PixiGraphics) => {
+      g.clear();
+      g.setFillStyle({ color: selected ? 0x3b82f6 : 0x0f172a, alpha: selected ? 0.9 : 0.6 });
+      g.roundRect(0, 0, width, height, 8);
+      g.fill();
+      g.setStrokeStyle({ width: selected ? 2 : 1, color: selected ? 0x60a5fa : 0x475569, alpha: selected ? 1 : 0.5 });
+      g.roundRect(0, 0, width, height, 8);
+      g.stroke();
+    },
+    [width, height, selected]
+  );
+
+  const labelStyle = useMemo(
+    () => ({ fontFamily: FONT_TITLE, fontSize: 11, fill: selected ? 0xffffff : 0x94a3b8 }),
+    [selected]
+  );
+
+  return (
+    <pixiContainer x={x} y={y}>
+      <pixiGraphics
+        draw={drawBg}
+        eventMode="static"
+        cursor="pointer"
+        onPointerDown={() => onSelect(themeId)}
+      />
+      <pixiText
+        text={meta.icon}
+        x={width / 2}
+        y={height * 0.35}
+        anchor={0.5}
+        style={{ fontSize: 18 }}
+        eventMode="none"
+      />
+      <pixiText
+        text={meta.name}
+        x={width / 2}
+        y={height * 0.75}
+        anchor={0.5}
+        style={labelStyle}
+        eventMode="none"
+      />
+    </pixiContainer>
+  );
+};
+
+// ============================================================================
+// THEME SELECTOR (grid of 10 themes)
+// ============================================================================
+
+const THEME_GRID_COLS = 5;
+const THEME_GRID_GAP = 8;
+const THEME_OPTION_H = 56;
+
+export function getThemeSelectorHeight(width: number): number {
+  const rows = Math.ceil(THEME_IDS.length / THEME_GRID_COLS);
+  return 28 + rows * THEME_OPTION_H + (rows - 1) * THEME_GRID_GAP + 12;
+}
 
 const ThemeSelector = ({
   y,
@@ -160,50 +238,44 @@ const ThemeSelector = ({
   y: number;
   width: number;
   currentTheme: string;
-  onSelect: (theme: 'theme-1' | 'theme-2') => void;
+  onSelect: (theme: ThemeId) => void;
 }) => {
-  const rowH = 56;
-  const optionW = (width - 16 * 3) / 2;
-  const optionH = 40;
+  const innerW = width - 32;
+  const optionW = (innerW - (THEME_GRID_COLS - 1) * THEME_GRID_GAP) / THEME_GRID_COLS;
+  const rows = Math.ceil(THEME_IDS.length / THEME_GRID_COLS);
+  const panelH = 28 + rows * THEME_OPTION_H + (rows - 1) * THEME_GRID_GAP + 12;
 
   const drawBg = useCallback(
     (g: PixiGraphics) => {
       g.clear();
       g.setFillStyle({ color: 0x1e293b, alpha: 0.85 });
-      g.roundRect(0, 0, width, rowH, 12);
+      g.roundRect(0, 0, width, panelH, 12);
       g.fill();
     },
-    [width]
+    [width, panelH]
   );
-
-  const drawOption = useCallback(
-    (g: PixiGraphics, selected: boolean) => {
-      g.clear();
-      g.setFillStyle({ color: selected ? 0x3b82f6 : 0x0f172a, alpha: selected ? 0.9 : 0.6 });
-      g.roundRect(0, 0, optionW, optionH, 8);
-      g.fill();
-      g.setStrokeStyle({ width: selected ? 2 : 1, color: selected ? 0x60a5fa : 0x475569, alpha: selected ? 1 : 0.5 });
-      g.roundRect(0, 0, optionW, optionH, 8);
-      g.stroke();
-    },
-    [optionW, optionH]
-  );
-
-  const isTheme1 = currentTheme === 'theme-1';
-  const isTheme2 = currentTheme === 'theme-2';
-  const theme1LabelStyle = useMemo(() => ({ fontFamily: FONT_TITLE, fontSize: 13, fill: isTheme1 ? 0xffffff : 0x94a3b8 }), [isTheme1]);
-  const theme2LabelStyle = useMemo(() => ({ fontFamily: FONT_TITLE, fontSize: 13, fill: isTheme2 ? 0xffffff : 0x94a3b8 }), [isTheme2]);
 
   return (
     <pixiContainer y={y}>
       <pixiGraphics draw={drawBg} eventMode="none" />
-      <pixiText text="Theme" x={16} y={8} style={THEME_HEADER_STYLE} eventMode="none" />
-      <pixiContainer y={rowH - optionH - 8}>
-        <pixiGraphics x={16} y={0} draw={(g) => drawOption(g, isTheme1)} eventMode="static" cursor="pointer" onPointerDown={() => onSelect('theme-1')} />
-        <pixiText text="Tiki" x={16 + optionW / 2} y={optionH / 2} anchor={0.5} style={theme1LabelStyle} eventMode="none" />
-
-        <pixiGraphics x={16 + optionW + 16} y={0} draw={(g) => drawOption(g, isTheme2)} eventMode="static" cursor="pointer" onPointerDown={() => onSelect('theme-2')} />
-        <pixiText text="Space" x={16 + optionW + 16 + optionW / 2} y={optionH / 2} anchor={0.5} style={theme2LabelStyle} eventMode="none" />
+      <pixiText text="Theme" x={16} y={6} style={THEME_HEADER_STYLE} eventMode="none" />
+      <pixiContainer x={16} y={28}>
+        {THEME_IDS.map((id, i) => {
+          const col = i % THEME_GRID_COLS;
+          const row = Math.floor(i / THEME_GRID_COLS);
+          return (
+            <ThemeOption
+              key={id}
+              x={col * (optionW + THEME_GRID_GAP)}
+              y={row * (THEME_OPTION_H + THEME_GRID_GAP)}
+              width={optionW}
+              height={THEME_OPTION_H}
+              themeId={id}
+              selected={currentTheme === id}
+              onSelect={onSelect}
+            />
+          );
+        })}
       </pixiContainer>
     </pixiContainer>
   );
@@ -266,7 +338,7 @@ export const SettingsPage = ({
   const rowGap = 12;
   const sectionGap = 24;
   const rowH = 50;
-  const themeRowH = 56;
+  const themePanelH = getThemeSelectorHeight(contentWidth);
 
   let cy = 0;
 
@@ -275,7 +347,7 @@ export const SettingsPage = ({
   const musicY = cy; cy += rowH + sectionGap;
 
   const themeHeaderY = cy; cy += 24;
-  const themeSelectorY = cy; cy += themeRowH + sectionGap;
+  const themeSelectorY = cy; cy += themePanelH + sectionGap;
 
   const accountHeaderY = cy; cy += 24;
   const usernameY = cy; cy += rowH + rowGap;
@@ -319,7 +391,7 @@ export const SettingsPage = ({
           y={themeSelectorY}
           width={contentWidth}
           currentTheme={themeTemplate}
-          onSelect={(t) => setThemeTemplate(t)}
+          onSelect={setThemeTemplate}
         />
 
         <SectionHeader y={accountHeaderY} title="ACCOUNT" />

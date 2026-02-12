@@ -21,6 +21,7 @@ import type { Block } from '@/types/types';
 import type { ConstraintData } from '../hud';
 import { FONT_TITLE, FONT_BOLD, FONT_BODY, THEME_ASSETS } from '../../utils/colors';
 import { loadTextureCached } from '../../assets/textureLoader';
+import { TickerConfig } from '../TickerConfig';
 
 const LOADING_TITLE_STYLE = {
   fontFamily: FONT_TITLE, fontSize: 28, fill: 0xffffff,
@@ -475,19 +476,21 @@ function drawConstraintInline(g: PixiGraphics, c: ConstraintData, x: number, cy:
 }
 
 const LoadingScreen = ({ sw, sh, topOffset }: { sw: number; sh: number; topOffset: number }) => {
-  const [dotCount, setDotCount] = useState(0);
   const elapsedRef = useRef(0);
+  const dotCountRef = useRef(0);
+  const textRef = useRef<any>(null);
 
   const tickDots = useCallback((ticker: { deltaMS: number }) => {
     elapsedRef.current += ticker.deltaMS;
     if (elapsedRef.current < 400) return;
     elapsedRef.current = 0;
-    setDotCount((prev) => (prev + 1) % 4);
+    dotCountRef.current = (dotCountRef.current + 1) % 4;
+    if (textRef.current) {
+      textRef.current.text = `Loading${'.'.repeat(dotCountRef.current)}`;
+    }
   }, []);
 
   useTick(tickDots);
-
-  const dots = '.'.repeat(dotCount);
 
   return (
       <pixiContainer>
@@ -495,7 +498,8 @@ const LoadingScreen = ({ sw, sh, topOffset }: { sw: number; sh: number; topOffse
         <Clouds w={sw} h={sh} />
       <PixiToastLayer screenWidth={sw} topOffset={topOffset} />
       <pixiText
-        text={`Loading${dots}`}
+        ref={textRef}
+        text="Loading"
         x={sw / 2} y={sh / 2 - 20} anchor={0.5}
         style={LOADING_TITLE_STYLE}
         eventMode="none"
@@ -548,6 +552,12 @@ const PlayScreenInner = (props: PlayScreenProps) => {
   }, [onSurrender, isSurrendering]);
 
   const triggerExplosion = useCallback(() => lineClear(), [lineClear]);
+
+  const drawDangerBorder = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.rect(0, 0, sw, sh);
+    g.stroke({ color: 0xef4444, width: 4, alpha: 0.25 });
+  }, [sw, sh]);
 
   const isInteractionBlocked = isTxProcessing || isSurrendering || isMenuOpen || isGameOver || isVictory || isLevelComplete || isInGameShopOpen;
 
@@ -692,11 +702,7 @@ const PlayScreenInner = (props: PlayScreenProps) => {
       />
 
       {isPlayerInDanger && (
-        <pixiGraphics draw={(g) => {
-          g.clear();
-          g.rect(0, 0, sw, sh);
-          g.stroke({ color: 0xef4444, width: 4, alpha: 0.25 });
-        }} />
+        <pixiGraphics draw={drawDangerBorder} />
       )}
     </pixiContainer>
   );
@@ -714,6 +720,7 @@ export const PlayScreen = (props: PlayScreenProps) => {
         backgroundAlpha={1} background={0xD0EAF8}
         resolution={dpr} autoDensity antialias
       >
+        <TickerConfig />
         <PixiThemeProvider>
           <PlayScreenInner {...props} />
         </PixiThemeProvider>

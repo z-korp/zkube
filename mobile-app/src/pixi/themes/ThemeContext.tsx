@@ -75,7 +75,6 @@ export function PixiThemeProvider({ children }: PixiThemeProviderProps) {
     const isProcedural = isProceduralTheme(themeName);
     const colors = getThemeColors(themeName);
     
-    // Get asset path based on theme
     const getAssetPath = (asset: string) => {
       return `/assets/${themeName}/${asset}`;
     };
@@ -105,25 +104,15 @@ export function usePixiTheme(): PixiThemeContextValue {
   return context;
 }
 
-/**
- * Hook to get performance settings based on device
- */
 export function usePerformanceSettings() {
   const { isMobile, prefersReducedMotion } = usePixiTheme();
   
   return useMemo(() => ({
-    // Particle limits
     maxParticles: isMobile ? 100 : 200,
-    
-    // Filter quality (0-1)
     glowQuality: isMobile ? 0.2 : 0.4,
-    
-    // Animation settings
     enableTrails: !prefersReducedMotion && !isMobile,
     enableScreenShake: !prefersReducedMotion,
     enableAmbientParticles: !isMobile,
-    
-    // Frame rate target
     targetFPS: isMobile ? 30 : 60,
   }), [isMobile, prefersReducedMotion]);
 }

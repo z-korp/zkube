@@ -2,11 +2,15 @@ import { useDojo } from "@/dojo/useDojo";
 import { useEffect, useState, useCallback } from "react";
 import { getComponentValue, Has, runQuery } from "@dojoengine/recs";
 import type { GameTokenData } from "metagame-sdk";
+import { normalizeAddress } from "@/utils/address";
+import { unpackRunData } from "@/dojo/game/helpers/runDataPacking";
+import { createLogger } from "@/utils/logger";
+
+const log = createLogger("useGameTokensSlot");
 
 const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_TORII, VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
 export const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
 
-// Pad address to 66 characters (0x + 64 hex chars)
 const padAddress = (address: string): string => {
   if (!address) return "";
   const hex = address.startsWith("0x") ? address.slice(2) : address;
@@ -114,7 +118,7 @@ export const useGameTokensSlot = ({
         const gameTokenAddress = VITE_PUBLIC_GAME_TOKEN_ADDRESS?.toLowerCase();
         
         if (!toriiUrl) {
-          console.warn("[useGameTokensSlot] No TORII URL configured");
+          log.warn("No TORII URL configured");
           setGames([]);
           return;
         }
@@ -122,7 +126,7 @@ export const useGameTokensSlot = ({
         // Pad the owner address for Torii query
         const paddedOwner = padAddress(owner!);
         
-        console.log("[useGameTokensSlot] Fetching ERC721 tokens for owner:", paddedOwner);
+        log.debug("Fetching ERC721 tokens for owner:", paddedOwner);
 
         // Query Torii GraphQL for token balances
         const response = await fetch(`${toriiUrl}/graphql`, {
@@ -141,7 +145,7 @@ export const useGameTokensSlot = ({
         const result: TokenBalancesResponse = await response.json();
 
         if (result.errors?.length) {
-          console.error("[useGameTokensSlot] GraphQL errors:", result.errors);
+          log.error("GraphQL errors:", result.errors);
           throw new Error(result.errors[0].message);
         }
 
@@ -152,15 +156,14 @@ export const useGameTokensSlot = ({
           .map((edge) => edge.node.tokenMetadata)
           .filter((meta): meta is ERC721TokenMetadata => {
             if (meta.__typename !== "ERC721__Token") return false;
-            // Filter by game token contract if configured
             if (gameTokenAddress) {
-              const tokenContract = (meta as ERC721TokenMetadata).contractAddress?.toLowerCase();
-              return tokenContract?.includes(gameTokenAddress.replace("0x", ""));
+              const tokenContract = normalizeAddress((meta as ERC721TokenMetadata).contractAddress || "");
+              return tokenContract === normalizeAddress(gameTokenAddress);
             }
             return true;
           });
 
-        console.log("[useGameTokensSlot] Found ERC721 tokens:", erc721Tokens.length);
+        log.debug("Found ERC721 tokens:", erc721Tokens.length);
 
         // Get owned token IDs
         const ownedTokenIds = new Set(
@@ -203,17 +206,9 @@ export const useGameTokensSlot = ({
             }
           }
 
-          // Always extract game stats from run_data (RECS) for accuracy
-          // Token metadata may have stale values
-          const runData = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
-          const level = Number(runData & BigInt(0xFF));
-          const cubesBrought = Number((runData >> BigInt(99)) & BigInt(0xFFFF));
-          const cubesSpent = Number((runData >> BigInt(115)) & BigInt(0xFFFF));
-          const totalCubes = Number((runData >> BigInt(131)) & BigInt(0xFFFF));
-          const totalScore = Number((runData >> BigInt(147)) & BigInt(0xFFFF));
+          const runData = unpackRunData(gameData.run_data ? BigInt(gameData.run_data) : BigInt(0));
+          const { currentLevel: level, cubesBrought, cubesSpent, totalCubes, totalScore } = runData;
 
-          // Always use RECS-computed values for game stats
-          // Token metadata may have stale/incorrect values
           const gameName = (parsedMetadata?.name as string) || tokenMeta?.metadataName || `Game #${gameData.game_id}`;
           const metadata = JSON.stringify({
             name: gameName,
@@ -242,10 +237,10 @@ export const useGameTokensSlot = ({
         // Sort by token_id descending (newest first)
         gameList.sort((a, b) => b.token_id - a.token_id);
 
-        console.log("[useGameTokensSlot] Final game list:", gameList.length);
+        log.info("Final game list:", gameList.length);
         setGames(gameList);
       } catch (error) {
-        console.error("[useGameTokensSlot] Error fetching games:", error);
+        log.error("Error fetching games:", error);
         setGames([]);
       } finally {
         setLoading(false);

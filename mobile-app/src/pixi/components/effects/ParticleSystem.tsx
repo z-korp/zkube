@@ -149,11 +149,14 @@ export const ParticleSystem = ({ gridSize }: ParticleSystemProps) => {
     g.clear();
   }, []);
 
-  const bloomFilter = useMemo(() => new BloomFilter({ strength: 4 }), []);
-  const filters = useMemo(() => [bloomFilter], [bloomFilter]);
+  const bloomFilter = useMemo(() =>
+    prefersReducedMotion ? null : new BloomFilter({ strength: 4 }),
+    [prefersReducedMotion]
+  );
+  const filters = useMemo(() => bloomFilter ? [bloomFilter] : [], [bloomFilter]);
 
   useEffect(() => {
-    return () => { bloomFilter.destroy(); };
+    return () => { bloomFilter?.destroy(); };
   }, [bloomFilter]);
 
   return (

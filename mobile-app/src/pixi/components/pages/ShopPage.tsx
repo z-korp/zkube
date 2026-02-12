@@ -437,6 +437,12 @@ export const ShopPage = ({
   const listHeight = screenHeight - contentTop - contentPadding;
   const maxScroll = Math.max(0, totalHeight - listHeight);
 
+  const drawScrollHitArea = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.rect(0, 0, contentWidth, listHeight);
+    g.fill({ color: 0xffffff, alpha: 0.001 });
+  }, [contentWidth, listHeight]);
+
   const handlePointerDown = useCallback((e: any) => {
     isDragging.current = true;
     lastY.current = e.data.global.y;
@@ -532,13 +538,7 @@ export const ShopPage = ({
           onPointerUp={handlePointerUp}
           onPointerUpOutside={handlePointerUp}
         >
-          <pixiGraphics
-            draw={(g) => {
-              g.clear();
-              g.rect(0, 0, contentWidth, listHeight);
-              g.fill({ color: 0xffffff, alpha: 0.001 });
-            }}
-          />
+          <pixiGraphics draw={drawScrollHitArea} />
 
           <pixiContainer y={-scrollY}>
             <UpgradeCard

@@ -4,8 +4,23 @@ import { useDojo } from "@/dojo/useDojo";
 import { useCubeBalanceStore } from "@/stores/cubeBalanceStore";
 import { addAddressPadding } from "starknet";
 import type { Subscription, TokenBalance } from "@dojoengine/torii-client";
+import { createLogger } from "@/utils/logger";
 
-const { VITE_PUBLIC_CUBE_TOKEN_ADDRESS } = import.meta.env;
+const log = createLogger("useCubeBalance");
+
+const { VITE_PUBLIC_CUBE_TOKEN_ADDRESS, VITE_PUBLIC_CUBE_TOKEN_ID } = import.meta.env;
+
+type TokenBalanceWithTokenId = TokenBalance & { token_id?: string; tokenId?: string };
+
+const parseBigInt = (value: string): bigint => {
+  try {
+    return BigInt(value);
+  } catch {
+    return 0n;
+  }
+};
+
+const toHex = (value: string): string => `0x${parseBigInt(value).toString(16)}`;
 
 interface CubeBalanceResult {
   cubeBalance: bigint;
@@ -15,7 +30,7 @@ interface CubeBalanceResult {
 }
 
 /**
- * Hook to subscribe to zCubes (ERC20) token balance via Torii.
+ * Hook to subscribe to CUBE (ERC1155) token balance via Torii.
  * Uses real-time subscription for automatic updates.
  */
 export const useCubeBalance = (): CubeBalanceResult => {
@@ -41,18 +56,23 @@ export const useCubeBalance = (): CubeBalanceResult => {
       return;
     }
 
+    const cubeTokenIdHex = toHex(VITE_PUBLIC_CUBE_TOKEN_ID ?? "0x1");
+    const cubeTokenId = parseBigInt(cubeTokenIdHex);
+    const cubeTokenAddress = parseBigInt(VITE_PUBLIC_CUBE_TOKEN_ADDRESS);
+
     try {
       setLoading(true);
 
       // Normalize addresses with padding
       const contractAddresses = [addAddressPadding(VITE_PUBLIC_CUBE_TOKEN_ADDRESS)];
       const accountAddresses = [addAddressPadding(address)];
+      const tokenIds = [cubeTokenIdHex];
 
       // Fetch initial balance
       const balances = await toriiClient.getTokenBalances({
         contract_addresses: contractAddresses,
         account_addresses: accountAddresses,
-        token_ids: [], // Empty for ERC20
+        token_ids: tokenIds,
         pagination: {
           cursor: undefined,
           direction: "Backward",
@@ -62,14 +82,19 @@ export const useCubeBalance = (): CubeBalanceResult => {
       });
 
       // Find the CUBE token balance
-      const cubeBalance = balances.items.find((b: TokenBalance) => 
-        BigInt(b.contract_address) === BigInt(VITE_PUBLIC_CUBE_TOKEN_ADDRESS)
-      );
+      const cubeBalance = balances.items.find((b: TokenBalance) => {
+        const balance = b as TokenBalanceWithTokenId;
+        const tokenIdValue = balance.token_id ?? balance.tokenId ?? "0x0";
+        return (
+          parseBigInt(balance.contract_address) === cubeTokenAddress &&
+          parseBigInt(tokenIdValue) === cubeTokenId
+        );
+      });
       
       const initialBalance = cubeBalance ? BigInt(cubeBalance.balance) : BigInt(0);
       setBalance(initialBalance);
       
-      console.log("[useCubeBalance] Initial balance:", initialBalance.toString());
+      log.info("Initial balance:", initialBalance.toString());
 
       // Cancel existing subscription
       if (subscriptionRef.current) {
@@ -85,12 +110,16 @@ export const useCubeBalance = (): CubeBalanceResult => {
       const subscription = await toriiClient.onTokenBalanceUpdated(
         contractAddresses,
         accountAddresses,
-        [], // Empty token_ids for ERC20
+        tokenIds,
         (data: TokenBalance) => {
-          // Check if this is for our token
-          if (BigInt(data.contract_address) === BigInt(VITE_PUBLIC_CUBE_TOKEN_ADDRESS)) {
+          const balance = data as TokenBalanceWithTokenId;
+          const tokenIdValue = balance.token_id ?? balance.tokenId ?? "0x0";
+          if (
+            parseBigInt(balance.contract_address) === cubeTokenAddress &&
+            parseBigInt(tokenIdValue) === cubeTokenId
+          ) {
             const newBalance = BigInt(data.balance);
-            console.log("[useCubeBalance] Balance updated via subscription:", newBalance.toString());
+            log.info("Balance updated via subscription:", newBalance.toString());
             setBalance(newBalance);
           }
         },
@@ -98,7 +127,7 @@ export const useCubeBalance = (): CubeBalanceResult => {
 
       subscriptionRef.current = subscription;
     } catch (err) {
-      console.error("[useCubeBalance] Error setting up subscription:", err);
+      log.error("Error setting up subscription:", err);
       setError(err instanceof Error ? err.message : "Unknown error");
     }
   }, [address, toriiClient, setBalance, setLoading, setError]);

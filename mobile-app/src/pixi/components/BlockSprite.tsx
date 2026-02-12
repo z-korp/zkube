@@ -1,10 +1,12 @@
 import { useApplication } from '@pixi/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Texture, FederatedPointerEvent, Graphics as PixiGraphics } from 'pixi.js';
+import { useCallback, useEffect, useMemo } from 'react';
+import { FederatedPointerEvent, Graphics as PixiGraphics } from 'pixi.js';
 import type { Block } from '@/types/types';
 import { usePixiTheme, usePerformanceSettings } from '../themes/ThemeContext';
-import { getBlockColors, darkenColor } from '../utils/colors';
-import { loadTextureCached } from '../assets/textureLoader';
+import { getBlockColors, darkenColor, type ThemeId } from '../utils/colors';
+import { blockAssetId } from '../assets/catalog';
+import { resolveAsset } from '../assets/resolver';
+import { useTextureWithFallback } from '../hooks/useTexture';
 
 interface BlockSpriteProps {
   block: Block;
@@ -35,50 +37,17 @@ export const BlockSprite = ({
 }: BlockSpriteProps) => {
   const { app } = useApplication();
   const { themeName, colors } = usePixiTheme();
-  const [texture, setTexture] = useState<Texture | null>(null);
-  
-  // Get block colors based on theme and block width
+
   const blockColors = useMemo(() => 
     getBlockColors(themeName, block.width),
     [themeName, block.width]
   );
 
-  
-
-  useEffect(() => {
-    let cancelled = false;
-    const texturePath = `/assets/${themeName}/block-${block.width}.png`;
-
-    loadTextureCached(texturePath)
-      .then((t) => {
-        if (!cancelled) setTexture(t);
-      })
-      .catch(() => {
-        // Fallback to theme-1
-        const fallbackPath = `/assets/theme-1/block-${block.width}.png`;
-
-        loadTextureCached(fallbackPath)
-          .then((t) => {
-            if (!cancelled) setTexture(t);
-          })
-          .catch(() => {
-            // Final fallback to default assets folder
-            const finalPath = `/assets/block-${block.width}.png`;
-
-            loadTextureCached(finalPath)
-              .then((t) => {
-                if (!cancelled) setTexture(t);
-              })
-              .catch(() => {
-                if (!cancelled) setTexture(null);
-              });
-          });
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [block.width, themeName]);
+  const candidates = useMemo(
+    () => resolveAsset(themeName as ThemeId, blockAssetId(block.width)),
+    [block.width, themeName],
+  );
+  const texture = useTextureWithFallback(candidates);
 
   // Calculate position and dimensions
   const x = block.x * gridSize;

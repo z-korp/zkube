@@ -204,6 +204,14 @@ export const LevelDisplay = ({
     fill: 0xffffff,
   }), [uiScale]);
 
+  const drawConstraint1Badge = useCallback((g: PixiGraphics) => {
+    if (constraint1) drawConstraintBadge(g, constraint1, isConstraintComplete(constraint1));
+  }, [drawConstraintBadge, constraint1, isConstraintComplete]);
+
+  const drawConstraint2Badge = useCallback((g: PixiGraphics) => {
+    if (constraint2) drawConstraintBadge(g, constraint2, isConstraintComplete(constraint2));
+  }, [drawConstraintBadge, constraint2, isConstraintComplete]);
+
   // Positions
   const levelBadgeX = centerX - centerSectionWidth / 2;
   const starsX = levelBadgeX + levelBadgeWidth + sectionGap;
@@ -215,7 +223,7 @@ export const LevelDisplay = ({
       {/* Constraint 1 (left) */}
       {hasConstraint1 && constraint1 && (
         <pixiContainer x={constraint1X} y={(height - constraintBadgeHeight) / 2}>
-          <pixiGraphics draw={(g) => drawConstraintBadge(g, constraint1, isConstraintComplete(constraint1))} />
+          <pixiGraphics draw={drawConstraint1Badge} />
           <pixiText
             text={getConstraintText(constraint1)}
             x={constraintBadgeWidth / 2}
@@ -253,7 +261,7 @@ export const LevelDisplay = ({
       {/* Constraint 2 (right) */}
       {hasConstraint2 && constraint2 && (
         <pixiContainer x={constraint2X} y={(height - constraintBadgeHeight) / 2}>
-          <pixiGraphics draw={(g) => drawConstraintBadge(g, constraint2, isConstraintComplete(constraint2))} />
+          <pixiGraphics draw={drawConstraint2Badge} />
           <pixiText
             text={getConstraintText(constraint2)}
             x={constraintBadgeWidth / 2}

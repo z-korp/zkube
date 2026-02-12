@@ -12,7 +12,9 @@ import {
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useMoveStore } from "@/stores/moveTxStore";
 import { calculateFallDistance } from "@/utils/gridPhysics";
-import { Game } from "@/dojo/game/models/game";
+import { createLogger } from "@/utils/logger";
+
+const log = createLogger("useGameStateMachine");
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
@@ -21,7 +23,7 @@ interface UseGameStateMachineProps {
   nextLineBlocks: Block[];
   gridWidth: number;
   gridHeight: number;
-  game: Game;
+  gameId: number;
   account: Account | null;
   score: number;
   combo: number;
@@ -37,7 +39,7 @@ export const useGameStateMachine = ({
   nextLineBlocks,
   gridWidth,
   gridHeight,
-  game,
+  gameId,
   account,
   score,
   combo,
@@ -86,7 +88,7 @@ export const useGameStateMachine = ({
   useEffect(() => {
     // Only run once when blocks first become available
     if (!hasInitializedRef.current && initialBlocks.length > 0) {
-      console.log("[useGameStateMachine] Initial sync with", initialBlocks.length, "blocks");
+      log.debug("Initial sync with", initialBlocks.length, "blocks");
       setBlocks(initialBlocks);
       setNextLine(nextLineBlocks);
       setSaveGridStateblocks(initialBlocks);
@@ -128,11 +130,12 @@ export const useGameStateMachine = ({
   const handleMove = useCallback(
     async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
       if (isProcessingRef.current) {
-        console.warn("Already processing a move");
+        log.warn("Already processing a move");
         return;
       }
 
       if (startColIndex === finalColIndex) return;
+      if (!gameId) return;
       if (!account) return;
 
       isProcessingRef.current = true;
@@ -153,19 +156,19 @@ export const useGameStateMachine = ({
       try {
         await move({
           account: account as Account,
-          game_id: game.id,
+          game_id: gameId,
           row_index: rowIndex,
           start_index: Math.trunc(startColIndex),
           final_index: Math.trunc(finalColIndex),
         });
       } catch (error) {
-        console.error("Error sending move transaction", error);
+        log.error("Error sending move transaction:", error);
         isProcessingRef.current = false;
       } finally {
         isProcessingRef.current = false;
       }
     },
-    [account, game.id, move, playSwipe]
+    [account, gameId, move, playSwipe]
   );
 
   // Apply gravity

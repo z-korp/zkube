@@ -4,14 +4,10 @@ import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
 import type { Entity } from "@dojoengine/recs";
 import { ConstraintType } from "@/dojo/game/types/constraint";
+import { normalizeEntityId } from "@/utils/entityId";
+import { createLogger } from "@/utils/logger";
 
-// Normalize entity ID to match Torii's format (no leading zeros after 0x)
-const normalizeEntityId = (entityId: string): Entity => {
-  if (!entityId.startsWith("0x")) return entityId as Entity;
-  // Remove leading zeros after 0x, but keep at least one digit
-  const hex = entityId.slice(2).replace(/^0+/, "") || "0";
-  return `0x${hex}` as Entity;
-};
+const log = createLogger("useGameLevel");
 
 export interface GameLevelData {
   gameId: number;
@@ -67,7 +63,7 @@ export const useGameLevel = ({
   useEffect(() => {
     if (gameId !== undefined && !component && retryCount < 5) {
       const timer = setTimeout(() => {
-        console.log("[useGameLevel] Retrying fetch, attempt:", retryCount + 1);
+        log.debug("Retrying fetch, attempt:", retryCount + 1);
         setRetryCount((prev) => prev + 1);
       }, 500);
       return () => clearTimeout(timer);
@@ -98,7 +94,7 @@ export const useGameLevel = ({
       cube2Threshold: component.cube_2_threshold,
     };
 
-    console.log("[useGameLevel] GameLevel fetched:", {
+    log.debug("GameLevel fetched:", {
       gameId: data.gameId,
       level: data.level,
       pointsRequired: data.pointsRequired,
@@ -110,7 +106,7 @@ export const useGameLevel = ({
     });
 
     return data;
-  }, [component, retryCount]);
+  }, [component]);
 
   return gameLevel;
 };

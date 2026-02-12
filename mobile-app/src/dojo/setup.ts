@@ -36,20 +36,18 @@ export async function setup({ ...config }: Config) {
   // Create client-side components that mirror the contract components
   const clientModels = models({ contractComponents });
 
-  // Sync Game, GameSeed, GameLevel, PlayerMeta models
-  // All use a single key (game_id or player address) so [undefined] VariableLen works
+  // World-wide sync: Game entities (needed for leaderboard) + settings
+  // PlayerMeta is synced per-player in usePlayerMeta hook
   const modelsToSync = [
     `${namespace}-Game`,
     `${namespace}-GameSeed`,
     `${namespace}-GameLevel`,
-    `${namespace}-PlayerMeta`,
   ];
   const modelsToWatch = [
     `${namespace}-Game`,
     `${namespace}-GameSeed`,
     `${namespace}-GameLevel`,
     `${namespace}-GameSettingsMetadata`,
-    `${namespace}-PlayerMeta`,
   ];
 
   log.info("Starting entity sync", {

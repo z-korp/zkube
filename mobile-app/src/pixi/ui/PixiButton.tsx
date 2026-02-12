@@ -10,16 +10,20 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Texture, FederatedPointerEvent, TextStyle } from 'pixi.js';
-import { FONT_BOLD } from '../utils/colors';
+import { FONT_BOLD, type ThemeId } from '../utils/colors';
 import { loadTextureCached } from '../assets/textureLoader';
-import { 
-  BUTTON_ASSETS, 
+import {
   BUTTON_BORDERS,
   ICON_BUTTON_BORDERS,
+  BUTTON_VARIANT_TO_ASSET,
+  ICON_TYPE_TO_ASSET,
+  ASSET_CATALOG,
   type ButtonVariant,
-  ICON_ASSETS,
   type IconType,
-} from '../assets/manifest';
+} from '../assets/catalog';
+import { resolveButtonStateUrls, resolveAsset } from '../assets/resolver';
+import { useTextureWithFallback } from '../hooks/useTexture';
+import { usePixiTheme } from '../themes/ThemeContext';
 
 export interface PixiButtonProps {
   /** X position */
@@ -83,6 +87,7 @@ export function PixiButton({
   anchor = 0,
   pressScale = 0.95,
 }: PixiButtonProps) {
+  const { themeName } = usePixiTheme();
   const [isPressed, setIsPressed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [textures, setTextures] = useState<{
@@ -90,22 +95,26 @@ export function PixiButton({
     pressed: Texture;
     disabled: Texture;
   } | null>(null);
-  const [iconTexture, setIconTexture] = useState<Texture | null>(null);
 
-  // Use icon button variant if iconOnly
   const actualVariant = iconOnly ? 'icon' : variant;
   const borders = iconOnly ? ICON_BUTTON_BORDERS : BUTTON_BORDERS;
 
-  // Load button textures
   useEffect(() => {
     let cancelled = false;
-    const buttonAssets = BUTTON_ASSETS[actualVariant];
-    if (!buttonAssets) return;
+    const assetId = BUTTON_VARIANT_TO_ASSET[actualVariant];
+    if (!assetId) return;
+
+    const meta = ASSET_CATALOG[assetId];
+    const stateUrls = resolveButtonStateUrls(themeName as ThemeId, meta.filename);
+    if (!stateUrls) {
+      setTextures(null);
+      return;
+    }
 
     Promise.all([
-      loadTextureCached(buttonAssets.normal.path),
-      loadTextureCached(buttonAssets.pressed.path),
-      loadTextureCached(buttonAssets.disabled.path),
+      loadTextureCached(stateUrls.normal[0]),
+      loadTextureCached(stateUrls.pressed[0]),
+      loadTextureCached(stateUrls.disabled[0]),
     ]).then(([normal, pressed, disabledTex]) => {
       if (!cancelled) {
         setTextures({ normal, pressed, disabled: disabledTex });
@@ -117,31 +126,15 @@ export function PixiButton({
     return () => {
       cancelled = true;
     };
-  }, [actualVariant]);
+  }, [actualVariant, themeName]);
 
-  // Load icon texture
-  useEffect(() => {
-    let cancelled = false;
-    if (!icon) {
-      setIconTexture(null);
-      return;
-    }
-
-    const iconAsset = ICON_ASSETS[icon];
-    if (!iconAsset) return;
-
-    loadTextureCached(iconAsset.path)
-      .then((texture) => {
-        if (!cancelled) setIconTexture(texture);
-      })
-      .catch(() => {
-        if (!cancelled) setIconTexture(null);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [icon]);
+  const iconCandidates = useMemo(() => {
+    if (!icon) return null;
+    const iconAssetId = ICON_TYPE_TO_ASSET[icon];
+    if (!iconAssetId) return null;
+    return resolveAsset(themeName as ThemeId, iconAssetId);
+  }, [icon, themeName]);
+  const iconTexture = useTextureWithFallback(iconCandidates);
 
   // Get current texture based on state
   const currentTexture = useMemo(() => {
@@ -271,6 +264,7 @@ export function PixiButton({
         bottomHeight={borders.bottom}
         width={width}
         height={height}
+        roundPixels={true}
       />
 
       {/* Icon */}

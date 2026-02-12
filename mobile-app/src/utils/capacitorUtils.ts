@@ -51,7 +51,7 @@ export const nativePaddingBottom = isNativeIOS ? "34px" : "0px";
  * App Store URLs for directing users to download/rate the app
  */
 export const ANDROID_STORE_URL = "https://play.google.com/store/apps/details?id=com.zkube.game";
-export const IOS_STORE_URL = "https://apps.apple.com/app/zkube/idXXXXXXXXX"; // Update with real App ID
+export const IOS_STORE_URL = import.meta.env.VITE_PUBLIC_IOS_STORE_URL ?? "https://apps.apple.com/app/zkube";
 
 /**
  * Get the appropriate store URL for the current platform

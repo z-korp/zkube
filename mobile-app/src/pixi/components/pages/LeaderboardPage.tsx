@@ -21,6 +21,9 @@ const LB_EMPTY_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0x64748b };
 // LEADERBOARD ROW
 // ============================================================================
 
+const MEDAL_COLORS = [0xffd700, 0xc0c0c0, 0xcd7f32] as const;
+const ROW_BG_COLORS = [0x4a3f00, 0x3a3a3a, 0x3d2a1a] as const;
+
 const LeaderboardRow = ({
   entry,
   rank,
@@ -34,15 +37,13 @@ const LeaderboardRow = ({
 }) => {
   const rowH = 64;
   const isTop3 = rank <= 3;
-  const medalColors = [0xffd700, 0xc0c0c0, 0xcd7f32];
-  const bgColors = [0x4a3f00, 0x3a3a3a, 0x3d2a1a];
 
   const statusStyle = useMemo(() => ({
     fontFamily: FONT_BODY, fontSize: 11, fill: entry.gameOver ? 0x22c55e : 0xfbbf24,
   }), [entry.gameOver]);
 
   const scoreStyle = useMemo(() => ({
-    fontFamily: FONT_TITLE, fontSize: 20, fill: isTop3 ? medalColors[rank - 1] : 0xffffff,
+    fontFamily: FONT_TITLE, fontSize: 20, fill: isTop3 ? MEDAL_COLORS[rank - 1] : 0xffffff,
   }), [isTop3, rank]);
 
   const drawRow = useCallback(
@@ -51,7 +52,7 @@ const LeaderboardRow = ({
       
       // Background
       if (isTop3) {
-        g.setFillStyle({ color: bgColors[rank - 1], alpha: 0.9 });
+        g.setFillStyle({ color: ROW_BG_COLORS[rank - 1], alpha: 0.9 });
       } else {
         g.setFillStyle({ color: 0x1e293b, alpha: 0.95 });
       }
@@ -60,7 +61,7 @@ const LeaderboardRow = ({
       
       // Border for top 3
       if (isTop3) {
-        g.setStrokeStyle({ width: 3, color: medalColors[rank - 1], alpha: 1 });
+        g.setStrokeStyle({ width: 3, color: MEDAL_COLORS[rank - 1], alpha: 1 });
         g.roundRect(0, 0, width, rowH, 12);
         g.stroke();
       } else {
@@ -72,7 +73,7 @@ const LeaderboardRow = ({
       // Rank badge background
       const badgeX = 8;
       const badgeSize = 40;
-      g.setFillStyle({ color: isTop3 ? medalColors[rank - 1] : 0x475569, alpha: isTop3 ? 0.3 : 0.5 });
+      g.setFillStyle({ color: isTop3 ? MEDAL_COLORS[rank - 1] : 0x475569, alpha: isTop3 ? 0.3 : 0.5 });
       g.roundRect(badgeX, (rowH - badgeSize) / 2, badgeSize, badgeSize, 8);
       g.fill();
     },
@@ -143,6 +144,12 @@ export const LeaderboardPage = ({
   const listHeight = screenHeight - listTop - contentPadding;
   const totalHeight = entries.length * (rowH + rowGap);
   const maxScroll = Math.max(0, totalHeight - listHeight);
+
+  const drawScrollHitArea = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.rect(0, 0, contentWidth, listHeight);
+    g.fill({ color: 0xffffff, alpha: 0.001 });
+  }, [contentWidth, listHeight]);
 
   const handlePointerDown = useCallback((e: any) => {
     isDragging.current = true;
@@ -231,14 +238,7 @@ export const LeaderboardPage = ({
             onPointerUp={handlePointerUp}
             onPointerUpOutside={handlePointerUp}
           >
-            {/* Invisible hit area for scrolling */}
-            <pixiGraphics
-              draw={(g) => {
-                g.clear();
-                g.rect(0, 0, contentWidth, listHeight);
-                g.fill({ color: 0xffffff, alpha: 0.001 });
-              }}
-            />
+            <pixiGraphics draw={drawScrollHitArea} />
 
             {/* Scrollable content */}
             <pixiContainer y={-scrollY}>

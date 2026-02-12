@@ -6,15 +6,13 @@
  * Can contain child components.
  */
 
-import { useMemo, useEffect, useState, ReactNode } from 'react';
-import { Texture } from 'pixi.js';
-import { FONT_BOLD } from '../utils/colors';
-import {
-  PANEL_ASSETS,
-  PANEL_BORDERS,
-  type PanelType,
-} from '../assets/manifest';
-import { loadTextureCached } from '../assets/textureLoader';
+import { useMemo, useCallback, ReactNode } from 'react';
+import { Graphics as PixiGraphics } from 'pixi.js';
+import { FONT_BOLD, type ThemeId } from '../utils/colors';
+import { PANEL_BORDERS, PANEL_TYPE_TO_ASSET, ASSET_CATALOG, type PanelType } from '../assets/catalog';
+import { resolveAsset } from '../assets/resolver';
+import { useTextureWithFallback } from '../hooks/useTexture';
+import { usePixiTheme } from '../themes/ThemeContext';
 
 export interface PixiPanelProps {
   /** X position */
@@ -51,26 +49,13 @@ export function PixiPanel({
   children,
   visible = true,
 }: PixiPanelProps) {
-  const [texture, setTexture] = useState<Texture | null>(null);
-
-  // Load panel texture
-  useEffect(() => {
-    let cancelled = false;
-    const panelAsset = PANEL_ASSETS[variant];
-    if (!panelAsset) return;
-
-    loadTextureCached(panelAsset.path)
-      .then((t) => {
-        if (!cancelled) setTexture(t);
-      })
-      .catch(() => {
-        if (!cancelled) setTexture(null);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [variant]);
+  const { themeName } = usePixiTheme();
+  const candidates = useMemo(() => {
+    const assetId = PANEL_TYPE_TO_ASSET[variant];
+    if (!assetId) return null;
+    return resolveAsset(themeName as ThemeId, assetId);
+  }, [variant, themeName]);
+  const texture = useTextureWithFallback(candidates);
 
   // Calculate anchor offset
   const anchorOffset = useMemo(() => ({
@@ -104,6 +89,7 @@ export function PixiPanel({
           bottomHeight={PANEL_BORDERS.bottom}
           width={width}
           height={height}
+          roundPixels={true}
         />
       )}
 
@@ -181,17 +167,16 @@ export function PixiPanelDivider({
   color = 0xFFFFFF,
   alpha = 0.2,
 }: PixiPanelDividerProps) {
+  const drawDivider = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.setStrokeStyle({ width: 1, color, alpha });
+    g.moveTo(0, 0);
+    g.lineTo(width, 0);
+    g.stroke();
+  }, [width, color, alpha]);
+
   return (
-    <pixiGraphics
-      y={y}
-      draw={(g) => {
-        g.clear();
-        g.setStrokeStyle({ width: 1, color, alpha });
-        g.moveTo(0, 0);
-        g.lineTo(width, 0);
-        g.stroke();
-      }}
-    />
+    <pixiGraphics y={y} draw={drawDivider} />
   );
 }
 

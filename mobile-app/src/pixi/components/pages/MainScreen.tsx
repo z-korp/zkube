@@ -10,6 +10,7 @@ import { Texture, Graphics as PixiGraphics } from 'pixi.js';
 import { PixiThemeProvider, usePixiTheme } from '../../themes/ThemeContext';
 import { useFullscreenLayout } from '../../hooks/useFullscreenLayout';
 import { PageNavigatorProvider, usePageNavigator, type PageId } from './PageNavigator';
+import { TickerConfig } from '../TickerConfig';
 import { LeaderboardPage } from './LeaderboardPage';
 import { ShopPage } from './ShopPage';
 import { QuestsPage } from './QuestsPage';
@@ -545,38 +546,30 @@ const PageRenderer = (props: MainScreenProps & {
     isSoundEnabled, isMusicEnabled, onToggleSound, onToggleMusic,
   } = props;
 
-  const { currentPage, previousPage, isTransitioning, transitionDirection, transitionProgress, navigate, goHome } = usePageNavigator();
+  const { currentPage, previousPage, isTransitioning, transitionDirection, transitionProgressRef, navigate, goHome } = usePageNavigator();
 
-  // Calculate slide positions
-  const getPageX = (page: PageId, isCurrent: boolean): number => {
-    if (!isTransitioning) return 0;
+  const pageContainerRef = useRef<any>(null);
 
-    if (transitionDirection === 'forward') {
-      // Current page slides in from right
-      if (isCurrent) {
-        return sw * (1 - transitionProgress);
-      }
-      // Previous page slides out to left
-      return -sw * transitionProgress * 0.3; // Partial slide for parallax effect
-    } else {
-      // Back transition: current page slides out to right
-      if (isCurrent && page !== 'home') {
-        return sw * transitionProgress;
-      }
-      // Home slides in from left
-      if (page === 'home') {
-        return -sw * 0.3 * (1 - transitionProgress);
-      }
+  const tickPageTransition = useCallback(() => {
+    const container = pageContainerRef.current;
+    if (!container) return;
+
+    const p = transitionProgressRef.current;
+    if (!isTransitioning) {
+      container.x = 0;
+      container.alpha = 1;
+      return;
     }
-    return 0;
-  };
 
-  // Only render the current page - fade it in during transition
-  // This prevents old page elements from showing through
-  const pageAlpha = isTransitioning ? transitionProgress : 1;
-  const pageX = isTransitioning 
-    ? (transitionDirection === 'forward' ? sw * (1 - transitionProgress) * 0.3 : -sw * (1 - transitionProgress) * 0.3)
-    : 0;
+    container.alpha = p;
+    if (transitionDirection === 'forward') {
+      container.x = sw * (1 - p) * 0.3;
+    } else {
+      container.x = -sw * (1 - p) * 0.3;
+    }
+  }, [isTransitioning, transitionDirection, sw, transitionProgressRef]);
+
+  useTick(tickPageTransition);
 
   return (
     <pixiContainer>
@@ -585,8 +578,7 @@ const PageRenderer = (props: MainScreenProps & {
       <Clouds w={sw} h={sh} />
       <PixiToastLayer screenWidth={sw} topOffset={topBarH + 8} />
 
-      {/* Current page only - fades in during transition */}
-      <pixiContainer x={pageX} alpha={pageAlpha}>
+      <pixiContainer ref={pageContainerRef}>
         {currentPage === 'home' && (
           <HomePageContent
             sw={sw} sh={sh} topBarH={topBarH} isMobile={isMobile} uiScale={uiScale}
@@ -700,6 +692,7 @@ const MainScreenInner = (props: MainScreenProps) => {
         backgroundAlpha={1} background={0xD0EAF8}
         resolution={dpr} autoDensity antialias
       >
+        <TickerConfig />
         <PageNavigatorProvider>
           <PageRenderer {...props} sw={sw} sh={sh} topBarH={topBarHeight} isMobile={isMobile} uiScale={uiScale} />
         </PageNavigatorProvider>

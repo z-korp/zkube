@@ -14,6 +14,7 @@ import { Application, useTick } from '@pixi/react';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Texture, Graphics as PixiGraphics } from 'pixi.js';
 import { PixiThemeProvider, usePixiTheme } from '../../themes/ThemeContext';
+import { TickerConfig } from '../TickerConfig';
 import { useFullscreenLayout } from '../../hooks/useFullscreenLayout';
 import { Modal, Button } from '../ui';
 import { CubeBalance } from '../topbar/CubeBalance';
@@ -496,6 +497,7 @@ const LandingScreenInner = ({
         backgroundAlpha={1} background={0xD0EAF8}
         resolution={dpr} autoDensity antialias
       >
+        <TickerConfig />
         {/* Background */}
         <SkyBackground w={sw} h={sh} />
         <Clouds w={sw} h={sh} />

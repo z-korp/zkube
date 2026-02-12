@@ -1,7 +1,8 @@
 import { createContext, useEffect, useState } from "react";
+import { THEME_IDS, type ThemeId } from "@/pixi/utils/colors";
 
 type Theme = "dark" | "light" | "system";
-type ThemeTemplate = "theme-1" | "theme-2" | "theme-neon";
+type ThemeTemplate = ThemeId;
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -27,6 +28,10 @@ const initialState: ThemeProviderState = {
 
 export const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
+function isValidThemeId(value: string): value is ThemeId {
+  return (THEME_IDS as readonly string[]).includes(value);
+}
+
 export function ThemeProvider({
   children,
   defaultTheme = "system",
@@ -38,15 +43,16 @@ export function ThemeProvider({
   const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme,
   );
-  const [themeTemplate, setThemeTemplate] = useState<ThemeTemplate>(
-    () => (localStorage.getItem(storageKeyTemplate) as ThemeTemplate) || defaultThemeTemplate,
-  );
+  const [themeTemplate, setThemeTemplate] = useState<ThemeTemplate>(() => {
+    const stored = localStorage.getItem(storageKeyTemplate);
+    return stored && isValidThemeId(stored) ? stored : defaultThemeTemplate;
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;
 
     root.classList.remove("light", "dark");
-    root.classList.remove("theme-1", "theme-2", "theme-neon");
+    THEME_IDS.forEach(id => root.classList.remove(id));
 
     if (theme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")

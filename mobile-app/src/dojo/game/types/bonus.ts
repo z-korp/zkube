@@ -4,11 +4,6 @@ import { Wave } from "../elements/bonuses/wave";
 import { Shrink } from "../elements/bonuses/shrink";
 import { Shuffle } from "../elements/bonuses/shuffle";
 
-import ImageAssets from "@/ui/theme/ImageAssets";
-
-const theme = "theme-1";
-const imgAssets = ImageAssets(theme);
-
 export enum BonusType {
   None = "None",
   Hammer = "Hammer",
@@ -101,23 +96,6 @@ export class Bonus {
 
   public isNone(): boolean {
     return this.value === BonusType.None;
-  }
-
-  public getIcon(): string {
-    switch (this.value) {
-      case BonusType.Hammer:
-        return imgAssets.hammer;
-      case BonusType.Totem:
-        return imgAssets.tiki;
-      case BonusType.Wave:
-        return imgAssets.wave;
-      case BonusType.Shrink:
-        return imgAssets.shrink;
-      case BonusType.Shuffle:
-        return imgAssets.shuffle;
-      default:
-        return "";
-    }
   }
 
   public getCount(score: number, combo: number, max_combo: number): number {

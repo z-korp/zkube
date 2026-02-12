@@ -19,6 +19,7 @@ import { App } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 import SessionConnector from "@cartridge/connector/session";
 import type { WithResolvers } from "../types/promise";
+import { createWithResolvers } from "../types/promise";
 import { DEEP_LINK_URL, UNIVERSAL_LINK_URL } from "../utils/capacitorUtils";
 import { createLogger } from "@/utils/logger";
 
@@ -29,11 +30,18 @@ interface ConnectionResult {
   chainId?: bigint;
 }
 
+type ListenerHandle = { remove: () => Promise<void> };
+
 class SessionConnectorWrapper extends SessionConnector {
+  private static activeInstance: SessionConnectorWrapper | null = null;
+  private static listenersInitialized = false;
+  private static listenerHandles: ListenerHandle[] = [];
+
   private connectionPromise: WithResolvers<ConnectionResult> | undefined;
 
   constructor(options: ConstructorParameters<typeof SessionConnector>[0]) {
     super(options);
+    SessionConnectorWrapper.activeInstance = this;
     this.setupAppStateListeners();
   }
 
@@ -41,32 +49,44 @@ class SessionConnectorWrapper extends SessionConnector {
    * Set up listeners for app lifecycle and deep links
    */
   private setupAppStateListeners() {
+    if (SessionConnectorWrapper.listenersInitialized) {
+      return;
+    }
+    SessionConnectorWrapper.listenersInitialized = true;
+
     // Handle app resume (returning from browser OAuth)
-    App.addListener("resume", async () => {
+    void App.addListener("resume", async () => {
       try {
+        const instance = SessionConnectorWrapper.activeInstance;
+        if (!instance) return;
+
         // If we weren't expecting a connection, don't do anything
-        if (!this.connectionPromise) return;
+        if (!instance.connectionPromise) return;
 
         // The app just resumed from switching windows. This means the user 
         // probably came back from the browser, so we don't want to reopen it.
-        this.controller.reopenBrowser = false;
+        instance.controller.reopenBrowser = false;
         
-        const account = await super.connect();
-        this.connectionPromise?.resolve(account);
+        const account = await instance.connectWithSession();
+        instance.connectionPromise?.resolve(account);
       } catch (error) {
         log.error("Error after app resumed", error);
-        this.connectionPromise?.reject(error);
+        SessionConnectorWrapper.activeInstance?.connectionPromise?.reject(error);
       }
+    }).then((handle) => {
+      SessionConnectorWrapper.listenerHandles.push(handle);
     });
 
     // Handle app pause (going to background)
-    App.addListener("pause", () => {
+    void App.addListener("pause", () => {
       // Nothing special needed here, but keeping the listener
       // in case we need to add cleanup logic later
+    }).then((handle) => {
+      SessionConnectorWrapper.listenerHandles.push(handle);
     });
 
     // Handle deep link callback (zkubegame://open or https://zkube.xyz/open)
-    App.addListener("appUrlOpen", ({ url }) => {
+    void App.addListener("appUrlOpen", ({ url }) => {
       if (url.startsWith(DEEP_LINK_URL) || url.startsWith(UNIVERSAL_LINK_URL)) {
         log.info("Deep link received", url);
         try {
@@ -76,7 +96,30 @@ class SessionConnectorWrapper extends SessionConnector {
           log.debug("Browser close attempted", error);
         }
       }
+    }).then((handle) => {
+      SessionConnectorWrapper.listenerHandles.push(handle);
     });
+  }
+
+  static async disposeAppStateListeners() {
+    const handles = SessionConnectorWrapper.listenerHandles;
+    SessionConnectorWrapper.listenerHandles = [];
+    SessionConnectorWrapper.listenersInitialized = false;
+    SessionConnectorWrapper.activeInstance = null;
+
+    await Promise.all(
+      handles.map(async (handle) => {
+        try {
+          await handle.remove();
+        } catch (error) {
+          log.warn("Failed to remove app state listener", error);
+        }
+      })
+    );
+  }
+
+  private async connectWithSession(): Promise<ConnectionResult> {
+    return super.connect();
   }
 
   /**
@@ -88,7 +131,7 @@ class SessionConnectorWrapper extends SessionConnector {
       // subscription will be interrupted. The case where it doesn't 
       // throw an error is if the session is available in local storage.
       this.controller.reopenBrowser = true;
-      const account = await super.connect();
+      const account = await this.connectWithSession();
       this.connectionPromise?.resolve(account);
     } catch (error) {
       if ((error as Error).message.includes("Failed to fetch")) {
@@ -98,7 +141,7 @@ class SessionConnectorWrapper extends SessionConnector {
         return;
       }
       // Unexpected error, propagate it
-      throw error;
+      this.connectionPromise?.reject(error);
     }
   }
 
@@ -116,13 +159,9 @@ class SessionConnectorWrapper extends SessionConnector {
       }
 
       // Create a new connection promise if we don't have one or it's been used
-      if (
-        !this.connectionPromise ||
-        !this.connectionPromise.promise ||
-        Object.keys(this.connectionPromise.promise).length === 0
-      ) {
-        this.connectionPromise = Promise.withResolvers();
-        this.handleConnect();
+      if (!this.connectionPromise) {
+        this.connectionPromise = createWithResolvers<ConnectionResult>();
+        void this.handleConnect();
       }
 
       // Wait for the connection to complete (via resume handler or direct return)

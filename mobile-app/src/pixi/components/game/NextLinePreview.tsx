@@ -1,9 +1,11 @@
-import { useCallback, useMemo, useState, useEffect } from 'react';
-import { Graphics as PixiGraphics, TextStyle, Texture } from 'pixi.js';
+import { useCallback, useMemo } from 'react';
+import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
-import { getBlockColors , FONT_BODY } from '../../utils/colors';
+import { getBlockColors, FONT_BODY, type ThemeId } from '../../utils/colors';
 import type { Block } from '@/types/types';
-import { loadTextureCached } from '../../assets/textureLoader';
+import { blockAssetId } from '../../assets/catalog';
+import { resolveAsset } from '../../assets/resolver';
+import { useTextureWithFallback } from '../../hooks/useTexture';
 
 interface NextLinePreviewProps {
   /** Blocks to display in the next line */
@@ -29,49 +31,27 @@ const PreviewBlock = ({
   cellSize: number;
 }) => {
   const { themeName, colors } = usePixiTheme();
-  const [texture, setTexture] = useState<Texture | null>(null);
   const blockColors = useMemo(() => getBlockColors(themeName, block.width), [themeName, block.width]);
 
   const x = block.x * cellSize;
   const width = block.width * cellSize;
   const height = cellSize;
 
-  // Load texture for tiki theme (same as BlockSprite)
-  useEffect(() => {
-    let cancelled = false;
-    const texturePath = `/assets/${themeName}/block-${block.width}.png`;
-    loadTextureCached(texturePath)
-      .then((t) => {
-        if (!cancelled) setTexture(t);
-      })
-      .catch(() => {
-        const fallbackPath = `/assets/block-${block.width}.png`;
-        loadTextureCached(fallbackPath)
-          .then((t) => {
-            if (!cancelled) setTexture(t);
-          })
-          .catch(() => {
-            if (!cancelled) setTexture(null);
-          });
-      });
+  const candidates = useMemo(
+    () => resolveAsset(themeName as ThemeId, blockAssetId(block.width)),
+    [block.width, themeName],
+  );
+  const texture = useTextureWithFallback(candidates);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [block.width, themeName]);
+  const drawPlaceholder = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.rect(2, 2, width - 4, height - 4);
+    g.fill({ color: blockColors.fill, alpha: 0.3 });
+  }, [width, height, blockColors.fill]);
 
   if (!texture) {
-    // Loading placeholder
     return (
-      <pixiGraphics 
-        x={x} 
-        y={0} 
-        draw={(g) => {
-          g.clear();
-          g.rect(2, 2, width - 4, height - 4);
-          g.fill({ color: blockColors.fill, alpha: 0.3 });
-        }} 
-      />
+      <pixiGraphics x={x} y={0} draw={drawPlaceholder} />
     );
   }
 

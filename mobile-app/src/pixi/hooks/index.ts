@@ -5,3 +5,4 @@ export { useFullscreenLayout } from './useFullscreenLayout';
 export type { FullscreenLayout } from './useFullscreenLayout';
 export { useAnimatedValue, usePulse, useGlow, easings } from './useAnimatedValue';
 export { useKeyboardShortcuts } from './useKeyboardShortcuts';
+export { useTexture, useTextureWithFallback } from './useTexture';

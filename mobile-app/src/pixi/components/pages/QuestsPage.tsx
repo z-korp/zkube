@@ -389,6 +389,12 @@ export const QuestsPage = ({
   const totalHeight = allFamilies.reduce((sum, f) => sum + getCardHeight(f) + cardGap, 0);
   const maxScroll = Math.max(0, totalHeight - listHeight);
 
+  const drawScrollHitArea = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.rect(0, 0, contentWidth, listHeight);
+    g.fill({ color: 0xffffff, alpha: 0.001 });
+  }, [contentWidth, listHeight]);
+
   const handlePointerDown = useCallback((e: any) => {
     isDragging.current = true;
     lastY.current = e.data.global.y;
@@ -459,14 +465,7 @@ export const QuestsPage = ({
             onPointerUp={handlePointerUp}
             onPointerUpOutside={handlePointerUp}
           >
-            {/* Invisible hit area */}
-            <pixiGraphics
-              draw={(g) => {
-                g.clear();
-                g.rect(0, 0, contentWidth, listHeight);
-                g.fill({ color: 0xffffff, alpha: 0.001 });
-              }}
-            />
+            <pixiGraphics draw={drawScrollHitArea} />
 
             <pixiContainer y={-scrollY}>
               {allFamilies.map((family, i) => (

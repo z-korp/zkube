@@ -160,6 +160,11 @@ export const LevelCompleteModal = ({
   const starsWidth = starSize * 3 + starGap * 2;
   const starsStartX = (buttonWidth - starsWidth) / 2;
 
+  const drawStar0 = useCallback((g: PixiGraphics) => drawStar(g, animatedStars > 0, starSize), [drawStar, animatedStars, starSize]);
+  const drawStar1 = useCallback((g: PixiGraphics) => drawStar(g, animatedStars > 1, starSize), [drawStar, animatedStars, starSize]);
+  const drawStar2 = useCallback((g: PixiGraphics) => drawStar(g, animatedStars > 2, starSize), [drawStar, animatedStars, starSize]);
+  const starDraws = useMemo(() => [drawStar0, drawStar1, drawStar2], [drawStar0, drawStar1, drawStar2]);
+
   return (
     <Modal
       isOpen={isOpen}
@@ -185,7 +190,7 @@ export const LevelCompleteModal = ({
               scale={animatedStars > i ? 1 : 0.8}
               alpha={animatedStars > i ? 1 : 0.4}
             >
-              <pixiGraphics draw={(g) => drawStar(g, animatedStars > i, starSize)} />
+              <pixiGraphics draw={starDraws[i]} />
             </pixiContainer>
           ))}
         </pixiContainer>

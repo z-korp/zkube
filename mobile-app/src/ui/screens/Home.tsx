@@ -22,18 +22,7 @@ import { useQuests } from "@/contexts/quests";
 import { shortString } from "starknet";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { showToast } from "@/utils/toast";
-
-// ============================================================================
-// HELPERS
-// ============================================================================
-
-// Normalize address to remove leading zeros (matches Torii's format)
-const normalizeAddress = (address: string | undefined): string | undefined => {
-  if (!address) return undefined;
-  if (!address.startsWith("0x")) return address;
-  const hex = address.slice(2).replace(/^0+/, "") || "0";
-  return `0x${hex}`;
-};
+import { normalizeAddress } from "@/utils/address";
 
 type TokenAttribute = {
   trait?: string;
@@ -134,7 +123,7 @@ export const Home = () => {
 
   // Fetch player's games
   const shouldFetchMyGames = Boolean(account?.address);
-  const normalizedOwner = normalizeAddress(account?.address);
+  const normalizedOwner = account?.address ? normalizeAddress(account.address) : undefined;
 
   const {
     games: ownedGames,

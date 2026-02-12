@@ -98,7 +98,7 @@ export function useAnimatedValue(
       anim.currentDisplay = anim.endValue;
       setDisplayValue(anim.endValue);
     }
-  }, [duration, easing, delay]);
+  }, [duration, easing]);
 
   useTick(tickCallback);
 

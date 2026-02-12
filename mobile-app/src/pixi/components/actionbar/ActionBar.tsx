@@ -1,13 +1,15 @@
-import { useCallback, useState, useEffect } from 'react';
-import { Graphics as PixiGraphics, Texture } from 'pixi.js';
+import { useCallback, useMemo } from 'react';
+import { Graphics as PixiGraphics } from 'pixi.js';
 import { usePixiTheme } from '../../themes/ThemeContext';
 import { BonusButton } from './BonusButton';
 import type { BonusButtonData } from './BonusButton';
 import { ComboDisplay } from './ComboDisplay';
 import { SurrenderButton } from './SurrenderButton';
 import { BonusType } from '@/dojo/game/types/bonus';
-import { THEME_ASSETS } from '../../utils/colors';
-import { loadTextureCached } from '../../assets/textureLoader';
+import { type ThemeId } from '../../utils/colors';
+import { AssetId } from '../../assets/catalog';
+import { resolveAsset } from '../../assets/resolver';
+import { useTextureWithFallback } from '../../hooks/useTexture';
 
 interface BonusSlot extends BonusButtonData {
   bonusType: BonusType;
@@ -41,26 +43,13 @@ export const ActionBar = ({
   onSurrender,
   showSurrender = true,
 }: ActionBarProps) => {
-  const { colors, getAssetPath } = usePixiTheme();
+  const { colors, themeName } = usePixiTheme();
 
-  const [barTex, setBarTex] = useState<Texture | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    const path = getAssetPath(THEME_ASSETS.actionBar);
-
-    loadTextureCached(path)
-      .then((t) => {
-        if (!cancelled) setBarTex(t);
-      })
-      .catch(() => {
-        if (!cancelled) setBarTex(null);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [getAssetPath]);
+  const barCandidates = useMemo(
+    () => resolveAsset(themeName as ThemeId, AssetId.ActionBar),
+    [themeName],
+  );
+  const barTex = useTextureWithFallback(barCandidates);
 
   const buttonSize = Math.min(52, height - 12);
   const buttonGap = Math.round(12);
@@ -101,7 +90,7 @@ export const ActionBar = ({
       g.roundRect(pillX, pillY, pillW, pillH, pillRadius);
       g.stroke({ color: colors.hudBarBorder, width: 1.5, alpha: 0.3 });
     }
-  }, [width, height, pillX, pillY, pillW, pillH, pillRadius, colors, barTex]);
+  }, [pillX, pillY, pillW, pillH, pillRadius, colors, barTex]);
 
   return (
     <pixiContainer y={y}>

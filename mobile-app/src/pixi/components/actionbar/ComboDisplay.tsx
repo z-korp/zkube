@@ -53,26 +53,21 @@ export const ComboDisplay = ({
   const containerWidth = 50;
   const containerHeight = height - 8;
 
-  // Color based on combo size
-  const getComboColor = () => {
-    if (combo >= 7) return 0xffd700; // gold
-    if (combo >= 5) return 0xff6b00; // orange
-    if (combo >= 3) return 0xf97316; // light orange
+  const comboColor = useMemo(() => {
+    if (combo >= 7) return 0xffd700;
+    if (combo >= 5) return 0xff6b00;
+    if (combo >= 3) return 0xf97316;
     return 0x64748b;
-  };
+  }, [combo]);
 
   const drawBackground = useCallback((g: PixiGraphics) => {
     g.clear();
     
     if (combo === 0) return;
     
-    // Fire glow effect
-    const glowColor = getComboColor();
     g.roundRect(-4, -4, containerWidth + 8, containerHeight + 8, 8);
-    g.fill({ color: glowColor, alpha: pulseAlpha * 0.3 });
-  }, [combo, containerWidth, containerHeight, pulseAlpha]);
-
-  const comboColor = getComboColor();
+    g.fill({ color: comboColor, alpha: pulseAlpha * 0.3 });
+  }, [combo, containerWidth, containerHeight, pulseAlpha, comboColor]);
   const comboStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BOLD,
     fontSize: 18,

@@ -4,24 +4,34 @@ import type { SetupResult } from "./dojo/setup";
 import { DojoProvider } from "./dojo/context";
 import { Loading } from "@/ui/screens/Loading";
 import { MusicPlayerProvider } from "./contexts/music";
-import { SoundPlayerProvider } from "./contexts/sound";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+
 import { ThemeProvider } from "./ui/elements/theme-provider";
 import { StarknetConfig, jsonRpcProvider, voyager, type Connector } from "@starknet-react/core";
 import { sepolia, mainnet, type NativeCurrency } from "@starknet-react/chains";
 import { MetagameProvider } from "./contexts/MetagameProvider";
 import { QuestsProvider } from "./contexts/quests";
-import { ControllersProvider } from "./contexts/controllers";
 import { type BigNumberish, shortString, PaymasterRpc } from "starknet";
 import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
 import { Assets } from "pixi.js";
 import { createLogger } from "./utils/logger";
-import { getEssentialAssetPaths } from "./pixi/assets/manifest";
+import { preloadEssentials } from "./pixi/assets/preloader";
+import { soundManager } from "./pixi/audio/SoundManager";
+import type { ThemeId } from "./pixi/utils/colors";
 
 const slotPaymasterProvider = () => new PaymasterRpc({ nodeUrl: "http://localhost" });
 
 const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_NODE_URL, VITE_PUBLIC_SLOT } = import.meta.env;
 const log = createLogger("AppRuntime");
 let pixiAssetsBootstrapped = false;
+
+function getStoredTheme(): ThemeId {
+  try {
+    const stored = localStorage.getItem("vite-ui-theme-template");
+    if (stored) return stored as ThemeId;
+  } catch { /* noop */ }
+  return "theme-1";
+}
 
 async function bootstrapPixiAssets() {
   if (pixiAssetsBootstrapped) return;
@@ -37,14 +47,9 @@ async function bootstrapPixiAssets() {
     },
   });
 
-  const essentials = getEssentialAssetPaths();
-  for (const asset of essentials) {
-    if (!Assets.cache.has(asset.alias)) {
-      Assets.add(asset);
-    }
-  }
-
-  Assets.backgroundLoad(essentials.map((a) => a.alias));
+  const themeId = getStoredTheme();
+  await preloadEssentials(themeId);
+  soundManager.preloadTheme(themeId);
   pixiAssetsBootstrapped = true;
 }
 
@@ -161,34 +166,36 @@ export default function AppRuntime() {
   });
 
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <StarknetConfig
-        autoConnect
-        chains={chains}
-        connectors={connectors}
-        defaultChainId={getDefaultChainId()}
-        explorer={voyager}
-        provider={jsonRpcProvider({ rpc })}
-        paymasterProvider={isSlotMode ? slotPaymasterProvider : undefined}
-      >
-        <MusicPlayerProvider>
-          <MetagameProvider>
-            {!loading && setupResult ? (
-              <DojoProvider value={setupResult}>
-                <ControllersProvider>
-                  <QuestsProvider>
-                    <SoundPlayerProvider>
-                      <App />
-                    </SoundPlayerProvider>
-                  </QuestsProvider>
-                </ControllersProvider>
-              </DojoProvider>
-            ) : (
-              <Loading />
-            )}
-          </MetagameProvider>
-        </MusicPlayerProvider>
-      </StarknetConfig>
-    </ThemeProvider>
+    <ErrorBoundary name="root">
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <StarknetConfig
+          autoConnect
+          chains={chains}
+          connectors={connectors}
+          defaultChainId={getDefaultChainId()}
+          explorer={voyager}
+          provider={jsonRpcProvider({ rpc })}
+          paymasterProvider={isSlotMode ? slotPaymasterProvider : undefined}
+        >
+          <MusicPlayerProvider>
+            <MetagameProvider>
+              {!loading && setupResult ? (
+                <ErrorBoundary name="dojo">
+                  <DojoProvider value={setupResult}>
+                    <ErrorBoundary name="quests">
+                      <QuestsProvider>
+                        <App />
+                      </QuestsProvider>
+                    </ErrorBoundary>
+                  </DojoProvider>
+                </ErrorBoundary>
+              ) : (
+                <Loading />
+              )}
+            </MetagameProvider>
+          </MusicPlayerProvider>
+        </StarknetConfig>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }

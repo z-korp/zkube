@@ -122,6 +122,10 @@ export const MovesPanel = ({
     g.fill({ color: 0xfef3c7, alpha: 0.8 });
   }, [combo, comboGlow]);
 
+  const drawFlameIcon = useCallback((g: PixiGraphics) => {
+    drawFlame(g, 10 * uiScale, 10 * uiScale, 16 * uiScale);
+  }, [drawFlame, uiScale]);
+
   // Text styles
   const labelStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BODY,
@@ -201,7 +205,7 @@ export const MovesPanel = ({
             <pixiGraphics
               x={-20 * uiScale - (combo > 0 ? 6 * uiScale : 0)}
               y={-10 * uiScale}
-              draw={(g) => drawFlame(g, 10 * uiScale, 10 * uiScale, 16 * uiScale)}
+              draw={drawFlameIcon}
             />
           )}
           <pixiText

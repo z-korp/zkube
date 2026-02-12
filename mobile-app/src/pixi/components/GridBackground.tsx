@@ -1,11 +1,13 @@
-import { useCallback, useState, useEffect, useMemo, useRef } from 'react';
-import { Graphics as PixiGraphics, Texture } from 'pixi.js';
+import { useCallback, useMemo, useRef } from 'react';
+import { Graphics as PixiGraphics } from 'pixi.js';
 import { useTick } from '@pixi/react';
 import { usePixiTheme } from '../themes/ThemeContext';
-import { THEME_ASSETS } from '../utils/colors';
+import { type ThemeId } from '../utils/colors';
+import { AssetId } from '../assets/catalog';
+import { resolveAsset } from '../assets/resolver';
 import { GlowFilter } from '../extend';
 import { usePulseRef } from '../hooks/useAnimatedValue';
-import { loadTextureCached } from '../assets/textureLoader';
+import { useTextureWithFallback } from '../hooks/useTexture';
 
 interface GridBackgroundProps {
   gridSize: number;
@@ -22,7 +24,7 @@ export const GridBackground = ({
   gridHeight,
   isPlayerInDanger,
 }: GridBackgroundProps) => {
-  const { colors, getAssetPath } = usePixiTheme();
+  const { colors, themeName } = usePixiTheme();
 
   const width = gridWidth * gridSize;
   const height = gridHeight * gridSize;
@@ -83,27 +85,16 @@ export const GridBackground = ({
     }
   }, [isPlayerInDanger]);
 
-  const [gridBgTex, setGridBgTex] = useState<Texture | null>(null);
-  const [frameTex, setFrameTex] = useState<Texture | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    const bgPath = getAssetPath(THEME_ASSETS.gridBg);
-    const framePath = getAssetPath(THEME_ASSETS.gridFrame);
-
-    Promise.all([
-      loadTextureCached(bgPath).catch(() => null),
-      loadTextureCached(framePath).catch(() => null),
-    ]).then(([bg, frame]) => {
-      if (cancelled) return;
-      setGridBgTex(bg);
-      setFrameTex(frame);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [getAssetPath]);
+  const gridBgCandidates = useMemo(
+    () => resolveAsset(themeName as ThemeId, AssetId.GridBg),
+    [themeName],
+  );
+  const frameCandidates = useMemo(
+    () => resolveAsset(themeName as ThemeId, AssetId.GridFrame),
+    [themeName],
+  );
+  const gridBgTex = useTextureWithFallback(gridBgCandidates);
+  const frameTex = useTextureWithFallback(frameCandidates);
 
   const drawGridFill = useCallback((g: PixiGraphics) => {
     g.clear();

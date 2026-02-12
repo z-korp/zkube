@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { BlockSprite } from './BlockSprite';
 import type { Block } from '@/types/types';
 import { BonusType } from '@/dojo/game/types/bonus';
@@ -32,10 +32,11 @@ export const GameGrid = ({
   const [initialBlockX, setInitialBlockX] = useState(0);
   const [localBlocks, setLocalBlocks] = useState<Block[]>(blocks);
 
-  // Sync blocks when props change (after contract updates)
-  if (blocks !== localBlocks && !draggingBlock) {
-    setLocalBlocks(blocks);
-  }
+  useEffect(() => {
+    if (!draggingBlock) {
+      setLocalBlocks(blocks);
+    }
+  }, [blocks, draggingBlock]);
 
   const isBlocked = useCallback((
     initialX: number,

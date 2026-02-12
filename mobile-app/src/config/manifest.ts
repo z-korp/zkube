@@ -10,7 +10,12 @@ const manifests: Record<string, typeof slot> = {
   slot,
 };
 
-// Fallback to `slot` if deployType is not a key in `manifests`
-export const manifest = deployType in manifests ? manifests[deployType] : slot;
+if (!(deployType in manifests)) {
+  throw new Error(
+    `Unknown VITE_PUBLIC_DEPLOY_TYPE: "${deployType}". Expected one of: ${Object.keys(manifests).join(", ")}`,
+  );
+}
+
+export const manifest = manifests[deployType];
 
 export type Manifest = typeof manifest;

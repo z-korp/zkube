@@ -19,7 +19,7 @@ interface PageNavigatorContextType {
   previousPage: PageId | null;
   isTransitioning: boolean;
   transitionDirection: 'forward' | 'back' | null;
-  transitionProgress: number; // 0 to 1
+  transitionProgressRef: React.RefObject<number>;
   navigate: (page: PageId) => void;
   goHome: () => void;
   goBack: () => void;
@@ -38,7 +38,7 @@ export const PageNavigatorProvider: React.FC<{ children: React.ReactNode }> = ({
   const [previousPage, setPreviousPage] = useState<PageId | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [transitionDirection, setTransitionDirection] = useState<'forward' | 'back' | null>(null);
-  const [transitionProgress, setTransitionProgress] = useState(0);
+  const transitionProgressRef = useRef(0);
   
   const startTimeRef = useRef<number>(0);
   const isAnimatingRef = useRef(false);
@@ -49,16 +49,15 @@ export const PageNavigatorProvider: React.FC<{ children: React.ReactNode }> = ({
     const elapsed = performance.now() - startTimeRef.current;
     const progress = Math.min(elapsed / TRANSITION_DURATION, 1);
 
-    // Ease out cubic
     const eased = 1 - Math.pow(1 - progress, 3);
-    setTransitionProgress(eased);
+    transitionProgressRef.current = eased;
 
     if (progress >= 1) {
       isAnimatingRef.current = false;
+      transitionProgressRef.current = 0;
       setTickEnabled(false);
       setIsTransitioning(false);
       setTransitionDirection(null);
-      setTransitionProgress(0);
       setPreviousPage(null);
     }
   }, []);
@@ -70,7 +69,7 @@ export const PageNavigatorProvider: React.FC<{ children: React.ReactNode }> = ({
     setPreviousPage(currentPage);
     setIsTransitioning(true);
     setTransitionDirection(direction);
-    setTransitionProgress(0);
+    transitionProgressRef.current = 0;
     startTimeRef.current = performance.now();
     setCurrentPage(targetPage);
 
@@ -97,7 +96,7 @@ export const PageNavigatorProvider: React.FC<{ children: React.ReactNode }> = ({
     previousPage,
     isTransitioning,
     transitionDirection,
-    transitionProgress,
+    transitionProgressRef,
     navigate,
     goHome,
     goBack,

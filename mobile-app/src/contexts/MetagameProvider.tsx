@@ -4,6 +4,9 @@ import {
   MetagameProvider as MetagameSDKProvider,
 } from "metagame-sdk";
 import { metagameConfig } from "@/config/metagame";
+import { createLogger } from "@/utils/logger";
+
+const log = createLogger("MetagameProvider");
 
 export const MetagameProvider = ({ children }: { children: ReactNode }) => {
   const [metagameClient, setMetagameClient] = useState<any>(null);
@@ -12,14 +15,14 @@ export const MetagameProvider = ({ children }: { children: ReactNode }) => {
     let mounted = true;
 
     const setupMetagame = async () => {
-      console.log("[MetagameProvider] Initializing with config:", {
+      log.info("Initializing with config:", {
         toriiUrl: metagameConfig.toriiUrl,
         worldAddress: metagameConfig.worldAddress,
       });
 
       // Skip initialization if required config is missing
       if (!metagameConfig.toriiUrl || !metagameConfig.worldAddress) {
-        console.warn("[MetagameProvider] Not initialized: missing toriiUrl or worldAddress");
+        log.warn("Not initialized: missing toriiUrl or worldAddress");
         return;
       }
 
@@ -29,13 +32,13 @@ export const MetagameProvider = ({ children }: { children: ReactNode }) => {
           worldAddress: metagameConfig.worldAddress,
         });
 
-        console.log("[MetagameProvider] Successfully initialized client");
+        log.info("Successfully initialized client");
 
         if (mounted) {
           setMetagameClient(client);
         }
       } catch (error) {
-        console.error("[MetagameProvider] Failed to initialize:", error);
+        log.error("Failed to initialize:", error);
       }
     };
 

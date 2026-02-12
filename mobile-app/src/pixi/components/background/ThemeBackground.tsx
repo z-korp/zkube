@@ -1,46 +1,31 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Texture, Graphics as PixiGraphics } from 'pixi.js';
+import { useCallback, useMemo } from 'react';
+import { Graphics as PixiGraphics } from 'pixi.js';
 import type { FullscreenLayout } from '../../hooks/useFullscreenLayout';
-import { loadTextureCached } from '../../assets/textureLoader';
+import { type ThemeId } from '../../utils/colors';
+import { AssetId } from '../../assets/catalog';
+import { resolveAsset } from '../../assets/resolver';
+import { useTextureWithFallback } from '../../hooks/useTexture';
 
 interface ThemeBackgroundProps {
   layout: FullscreenLayout;
   themeName?: string;
 }
 
-/**
- * Full-screen themed background that covers the entire canvas
- * Loads theme background image and scales to fit
- */
 export const ThemeBackground = ({ 
   layout, 
   themeName = 'theme-1' 
 }: ThemeBackgroundProps) => {
-  const [texture, setTexture] = useState<Texture | null>(null);
+  const candidates = useMemo(
+    () => resolveAsset(themeName as ThemeId, AssetId.Background),
+    [themeName],
+  );
+  const texture = useTextureWithFallback(candidates);
 
-  // Load background texture
-  useEffect(() => {
-    const bgPath = `/assets/${themeName}/theme-2-1.png`;
-    let cancelled = false;
-
-    loadTextureCached(bgPath)
-      .then((tex) => {
-        if (!cancelled) setTexture(tex);
-      })
-      .catch(() => {
-        loadTextureCached('/assets/theme-2-1.png')
-          .then((tex) => {
-            if (!cancelled) setTexture(tex);
-          })
-          .catch(() => {
-            if (!cancelled) setTexture(null);
-          });
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [themeName]);
+  const drawFallback = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.rect(0, 0, layout.screenWidth, layout.screenHeight);
+    g.fill({ color: 0x1a2744 });
+  }, [layout.screenWidth, layout.screenHeight]);
 
   // Draw vignette overlay
   const drawVignette = useCallback((g: PixiGraphics) => {
@@ -108,13 +93,7 @@ export const ThemeBackground = ({
       
       {/* Fallback solid color if no texture */}
       {!texture && (
-        <pixiGraphics
-          draw={(g) => {
-            g.clear();
-            g.rect(0, 0, layout.screenWidth, layout.screenHeight);
-            g.fill({ color: 0x1a2744 });
-          }}
-        />
+        <pixiGraphics draw={drawFallback} />
       )}
       
       {/* Vignette overlay for depth */}

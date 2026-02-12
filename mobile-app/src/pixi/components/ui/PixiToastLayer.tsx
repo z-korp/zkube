@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useCallback, useRef } from "react";
 import { useTick } from "@pixi/react";
 import { Graphics as PixiGraphics } from "pixi.js";
 import { FONT_BODY, FONT_BOLD } from "../../utils/colors";
@@ -23,13 +23,52 @@ const toastBorder = (type: string) => {
   return 0x94a3b8;
 };
 
+const ToastItem = ({
+  type,
+  message,
+  description,
+  width,
+  textStyle,
+  descStyle,
+}: {
+  type: string;
+  message: string;
+  description?: string;
+  width: number;
+  textStyle: Record<string, unknown>;
+  descStyle: Record<string, unknown>;
+}) => {
+  const drawToast = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.roundRect(0, 0, width, 50, 10);
+    g.fill({ color: toastColor(type), alpha: 0.92 });
+    g.roundRect(0, 0, width, 50, 10);
+    g.stroke({ color: toastBorder(type), width: 1.5, alpha: 0.65 });
+  }, [width, type]);
+
+  return (
+    <>
+      <pixiGraphics draw={drawToast} />
+      <pixiText text={message} x={10} y={8} style={textStyle} />
+      {description ? <pixiText text={description} x={10} y={27} style={descStyle} /> : null}
+    </>
+  );
+};
+
 export const PixiToastLayer = ({ screenWidth, topOffset = 12 }: Props) => {
   const toasts = usePixiToastStore((s) => s.toasts);
   const pruneExpired = usePixiToastStore((s) => s.pruneExpired);
 
-  useTick(() => {
-    pruneExpired(Date.now());
-  });
+  const lastPruneRef = useRef(0);
+  const tickPrune = useCallback((ticker: { deltaMS: number }) => {
+    lastPruneRef.current += ticker.deltaMS;
+    if (lastPruneRef.current >= 1000) {
+      lastPruneRef.current = 0;
+      pruneExpired(Date.now());
+    }
+  }, [pruneExpired]);
+
+  useTick(tickPrune);
 
   const width = Math.min(360, Math.max(240, screenWidth - 24));
   const textStyle = useMemo(
@@ -55,24 +94,18 @@ export const PixiToastLayer = ({ screenWidth, topOffset = 12 }: Props) => {
 
   return (
     <pixiContainer x={(screenWidth - width) / 2} y={topOffset} eventMode="none">
-      {toasts.map((toast, i) => {
-        const y = i * 58;
-        return (
-          <pixiContainer key={toast.id} y={y}>
-            <pixiGraphics
-              draw={(g: PixiGraphics) => {
-                g.clear();
-                g.roundRect(0, 0, width, 50, 10);
-                g.fill({ color: toastColor(toast.type), alpha: 0.92 });
-                g.roundRect(0, 0, width, 50, 10);
-                g.stroke({ color: toastBorder(toast.type), width: 1.5, alpha: 0.65 });
-              }}
-            />
-            <pixiText text={toast.message} x={10} y={8} style={textStyle} />
-            {toast.description ? <pixiText text={toast.description} x={10} y={27} style={descStyle} /> : null}
-          </pixiContainer>
-        );
-      })}
+      {toasts.map((toast, i) => (
+        <pixiContainer key={toast.id} y={i * 58}>
+          <ToastItem
+            type={toast.type}
+            message={toast.message}
+            description={toast.description}
+            width={width}
+            textStyle={textStyle}
+            descStyle={descStyle}
+          />
+        </pixiContainer>
+      ))}
     </pixiContainer>
   );
 };

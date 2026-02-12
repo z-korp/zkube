@@ -7,11 +7,27 @@ import {
   CallData,
 } from "starknet";
 import { stringToFelt } from "@/cartridgeConnector.tsx";
+import { createLogger } from "@/utils/logger";
+
+const log = createLogger("contractSystems");
 
 const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
+const TX_TIMEOUT_MS = 30_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number = TX_TIMEOUT_MS): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`Transaction timed out after ${ms}ms`)), ms);
+    promise.then(
+      (val) => { clearTimeout(timer); resolve(val); },
+      (err) => { clearTimeout(timer); reject(err); },
+    );
+  });
+}
+
 // VRF is only available on Sepolia/Mainnet, not on Slot
 export const VRF_PROVIDER_ADDRESS =
+  import.meta.env.VITE_PUBLIC_VRF_PROVIDER_ADDRESS ??
   "0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f";
 
 const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
@@ -107,7 +123,7 @@ export function setupWorld(config: Config) {
       try {
         const trimmedName = name.trim();
 
-        return await account.execute([
+        return await withTimeout(account.execute([
           {
             contractAddress: contract.address,
             entrypoint: "mint_game",
@@ -124,9 +140,9 @@ export function setupWorld(config: Config) {
               false, // soulbound
             ])
           }
-        ]);
+        ]));
       } catch (error) {
-        console.error("Error executing free_mint:", error);
+        log.error("Error executing free_mint:", error);
         throw error;
       }
     };
@@ -135,21 +151,19 @@ export function setupWorld(config: Config) {
       try {
         const bonusList = selected_bonuses ?? [];
         const calldata = [token_id, bonusList.length, ...bonusList, cubes_amount];
-        console.log("[create] calldata:", calldata);
+        log.info("create calldata:", calldata);
 
-        // On Slot, skip VRF call since it's not deployed
         if (isSlotMode) {
-          return await account.execute([
+          return await withTimeout(account.execute([
             {
               contractAddress: contract.address,
               entrypoint: "create",
               calldata,
             },
-          ]);
+          ]));
         }
 
-        // On Sepolia/Mainnet, include VRF request
-        return await account.execute([
+        return await withTimeout(account.execute([
           {
             contractAddress: VRF_PROVIDER_ADDRESS,
             entrypoint: "request_random",
@@ -163,24 +177,24 @@ export function setupWorld(config: Config) {
             entrypoint: "create",
             calldata,
           },
-        ]);
+        ]));
       } catch (error) {
-        console.error("Error executing start:", error);
+        log.error("Error executing start:", error);
         throw error;
       }
     };
 
     const surrender = async ({ account, game_id }: Surrender) => {
       try {
-        return await account.execute([
+        return await withTimeout(account.execute([
           {
             contractAddress: contract.address,
             entrypoint: "surrender",
             calldata: [game_id],
           },
-        ]);
+        ]));
       } catch (error) {
-        console.error("Error executing surrender:", error);
+        log.error("Error executing surrender:", error);
         throw error;
       }
     };
@@ -193,15 +207,15 @@ export function setupWorld(config: Config) {
       final_index,
     }: Move) => {
       try {
-        return await account.execute([
+        return await withTimeout(account.execute([
           {
             contractAddress: move_contract.address,
             entrypoint: "move",
             calldata: [game_id, row_index, start_index, final_index],
           },
-        ]);
+        ]));
       } catch (error) {
-        console.error("Error executing move:", error);
+        log.error("Error executing move:", error);
         throw error;
       }
     };
@@ -214,17 +228,15 @@ export function setupWorld(config: Config) {
       block_index,
     }: BonusTx) => {
       try {
-        // Bonus enum serializes as just the variant index:
-        // 0 = None, 1 = Hammer, 2 = Totem, 3 = Wave, 4 = Shrink, 5 = Shuffle
-        return await account.execute([
+        return await withTimeout(account.execute([
           {
             contractAddress: bonus_contract.address,
             entrypoint: "apply_bonus",
             calldata: [game_id, bonus, row_index, block_index],
           },
-        ]);
+        ]));
       } catch (error) {
-        console.error("Error executing bonus:", error);
+        log.error("Error executing bonus:", error);
         throw error;
       }
     };
@@ -250,93 +262,90 @@ export function setupWorld(config: Config) {
 
     const upgrade_starting_bonus = async ({ account, bonus_type }: ShopUpgrade) => {
       try {
-        return await account.execute([
+        return await withTimeout(account.execute([
           {
             contractAddress: contract.address,
             entrypoint: "upgrade_starting_bonus",
             calldata: [bonus_type],
           },
-        ]);
+        ]));
       } catch (error) {
-        console.error("Error executing upgrade_starting_bonus:", error);
+        log.error("Error executing upgrade_starting_bonus:", error);
         throw error;
       }
     };
 
     const upgrade_bag_size = async ({ account, bonus_type }: ShopUpgrade) => {
       try {
-        return await account.execute([
+        return await withTimeout(account.execute([
           {
             contractAddress: contract.address,
             entrypoint: "upgrade_bag_size",
             calldata: [bonus_type],
           },
-        ]);
+        ]));
       } catch (error) {
-        console.error("Error executing upgrade_bag_size:", error);
+        log.error("Error executing upgrade_bag_size:", error);
         throw error;
       }
     };
 
     const upgrade_bridging_rank = async ({ account }: Signer) => {
       try {
-        return await account.execute([
+        return await withTimeout(account.execute([
           {
             contractAddress: contract.address,
             entrypoint: "upgrade_bridging_rank",
             calldata: [],
           },
-        ]);
+        ]));
       } catch (error) {
-        console.error("Error executing upgrade_bridging_rank:", error);
+        log.error("Error executing upgrade_bridging_rank:", error);
         throw error;
       }
     };
 
     const purchase_consumable = async ({ account, game_id, consumable_type, bonus_slot }: PurchaseConsumable) => {
       try {
-        // ConsumableType enum serializes as just the variant index:
-        // 0 = Bonus1, 1 = Bonus2, 2 = Bonus3, 3 = Refill, 4 = LevelUp
-        // bonus_slot is only used for LevelUp (0, 1, or 2)
-        return await account.execute([
+        return await withTimeout(account.execute([
           {
             contractAddress: contract.address,
             entrypoint: "purchase_consumable",
             calldata: [game_id, consumable_type, bonus_slot],
           },
-        ]);
+        ]));
       } catch (error) {
-        console.error("Error executing purchase_consumable:", error);
+        log.error("Error executing purchase_consumable:", error);
         throw error;
       }
     };
 
     const unlock_bonus = async ({ account, bonus_type }: UnlockBonus) => {
       try {
-        return await account.execute([
+        return await withTimeout(account.execute([
           {
             contractAddress: contract.address,
             entrypoint: "unlock_bonus",
             calldata: [bonus_type],
           },
-        ]);
+        ]));
       } catch (error) {
-        console.error("Error executing unlock_bonus:", error);
+        log.error("Error executing unlock_bonus:", error);
         throw error;
       }
     };
 
     const level_up_bonus = async ({ account, game_id, bonus_slot }: LevelUpBonus) => {
       try {
-        return await account.execute([
+        return await withTimeout(account.execute([
           {
             contractAddress: contract.address,
             entrypoint: "level_up_bonus",
             calldata: [game_id, bonus_slot],
           },
-        ]);
+        ]));
       } catch (error) {
-        console.error("Error executing level_up_bonus:", error);
+        log.error("Error executing level_up_bonus:", error);
         throw error;
       }
     };
@@ -364,15 +373,15 @@ export function setupWorld(config: Config) {
 
     const claim = async ({ account, quest_id, interval_id }: ClaimQuest) => {
       try {
-        return await account.execute([
+        return await withTimeout(account.execute([
           {
             contractAddress: contract.address,
             entrypoint: "claim",
             calldata: [quest_id, interval_id],
           },
-        ]);
+        ]));
       } catch (error) {
-        console.error("Error executing quest claim:", error);
+        log.error("Error executing quest claim:", error);
         throw error;
       }
     };

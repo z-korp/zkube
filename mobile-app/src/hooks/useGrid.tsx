@@ -2,6 +2,9 @@ import { useEffect, useState, useRef } from "react";
 import { useGame } from "@/hooks/useGame";
 import { formatBigIntToBinaryArrayCustom } from "@/utils/gridUtils";
 import useDeepMemo from "./useDeepMemo";
+import { createLogger } from "@/utils/logger";
+
+const log = createLogger("useGrid");
 
 interface DebugData {
   blocksRaw: bigint;
@@ -50,7 +53,7 @@ export const useGrid = ({
           blocks: memoizedBlocks,
         };
 
-        console.log("Grid updated:", debugData);
+        log.debug("Grid updated:", debugData);
       }
 
       // Mettre à jour `blocks` et `blocksRef` simultanément

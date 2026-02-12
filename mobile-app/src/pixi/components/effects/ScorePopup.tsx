@@ -1,11 +1,9 @@
-import { useState, useCallback, useRef } from 'react';
-import { TextStyle } from 'pixi.js';
+import { useCallback, useRef } from 'react';
+import type { Graphics as PixiGraphics } from 'pixi.js';
 import { useTick } from '@pixi/react';
 import { usePixiTheme, usePerformanceSettings } from '../../themes/ThemeContext';
-import { FONT_BOLD } from '../../utils/colors';
 
 interface PopupData {
-  id: number;
   x: number;
   y: number;
   text: string;
@@ -14,23 +12,6 @@ interface PopupData {
   alpha: number;
   vy: number;
   life: number;
-}
-
-// Cache TextStyle instances per color to avoid recreation on every render
-const styleCache = new Map<number, TextStyle>();
-function getPopupStyle(color: number): TextStyle {
-  let style = styleCache.get(color);
-  if (!style) {
-    style = new TextStyle({
-      fontFamily: FONT_BOLD,
-      fontSize: 24,
-      fontWeight: 'bold',
-      fill: color,
-      stroke: { color: 0x000000, width: 4 },
-    });
-    styleCache.set(color, style);
-  }
-  return style;
 }
 
 interface ScorePopupProps {
@@ -43,32 +24,48 @@ export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps)
   const { colors } = usePixiTheme();
   const { prefersReducedMotion } = usePerformanceSettings();
 
-  const [popups, setPopups] = useState<PopupData[]>([]);
-  const idRef = useRef(0);
-  const popupsLenRef = useRef(0);
+  const popupsRef = useRef<PopupData[]>([]);
+  const graphicsRef = useRef<PixiGraphics | null>(null);
 
   const tickCallback = useCallback((ticker: { deltaMS: number }) => {
-    if (popupsLenRef.current === 0) return;
+    const ps = popupsRef.current;
+    if (ps.length === 0) return;
 
-    setPopups(prev => {
-      if (prev.length === 0) return prev;
+    const dt = ticker.deltaMS / 16.667;
 
-      const dt = ticker.deltaMS / 16.667;
-      const updated = prev
-        .map(p => ({
-          ...p,
-          y: p.y + p.vy * dt,
-          vy: p.vy - 0.1 * dt,
-          scale: p.scale + 0.01 * dt,
-          alpha: Math.max(0, p.alpha - 0.02 * dt),
-          life: p.life - dt,
-        }))
-        .filter(p => p.life > 0 && p.alpha > 0);
+    let writeIdx = 0;
+    for (let i = 0; i < ps.length; i++) {
+      const p = ps[i];
+      p.y += p.vy * dt;
+      p.vy -= 0.1 * dt;
+      p.scale += 0.01 * dt;
+      p.alpha = Math.max(0, p.alpha - 0.02 * dt);
+      p.life -= dt;
 
-      popupsLenRef.current = updated.length;
+      if (p.life > 0 && p.alpha > 0) {
+        ps[writeIdx++] = p;
+      }
+    }
+    ps.length = writeIdx;
 
-      return updated;
-    });
+    const g = graphicsRef.current;
+    if (!g) return;
+
+    g.clear();
+    for (let i = 0; i < ps.length; i++) {
+      const p = ps[i];
+      const fontSize = 24 * p.scale;
+
+      const textW = p.text.length * fontSize * 0.5;
+      const textH = fontSize;
+      g.setFillStyle({ color: 0x000000, alpha: p.alpha * 0.5 });
+      g.roundRect(p.x - textW / 2 - 4, p.y - textH / 2 - 2, textW + 8, textH + 4, 4);
+      g.fill();
+
+      g.setFillStyle({ color: p.color, alpha: p.alpha * 0.8 });
+      g.roundRect(p.x - textW / 2 - 4, p.y - textH / 2 - 2, 3, textH + 4, 2);
+      g.fill();
+    }
   }, []);
 
   useTick(tickCallback);
@@ -81,8 +78,7 @@ export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps)
   ) => {
     if (prefersReducedMotion) return;
 
-    const popup: PopupData = {
-      id: idRef.current++,
+    popupsRef.current.push({
       x,
       y,
       text,
@@ -91,12 +87,6 @@ export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps)
       alpha: 1,
       vy: -3,
       life: 60,
-    };
-
-    setPopups(prev => {
-      const next = [...prev, popup];
-      popupsLenRef.current = next.length;
-      return next;
     });
   }, [prefersReducedMotion]);
 
@@ -129,26 +119,13 @@ export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps)
     addPopup(x, adjustedY, text, color);
   }, [addPopup, colors.accent, gridSize, gridWidth]);
 
-  if (popups.length === 0) {
-    return null;
-  }
+  const captureRef = useCallback((g: PixiGraphics) => {
+    graphicsRef.current = g;
+    g.clear();
+  }, []);
 
   return (
-    <>
-      {popups.map(popup => (
-        <pixiText
-          key={popup.id}
-          text={popup.text}
-          x={popup.x}
-          y={popup.y}
-          anchor={0.5}
-          scale={popup.scale}
-          alpha={popup.alpha}
-          style={getPopupStyle(popup.color)}
-          eventMode="none"
-        />
-      ))}
-    </>
+    <pixiGraphics draw={captureRef} eventMode="none" />
   );
 };
 

@@ -7,7 +7,7 @@ import { useState, useCallback, useRef, useMemo } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { FONT_TITLE, FONT_BOLD, FONT_BODY } from '../../utils/colors';
-import { TUTORIAL_STEPS, type TutorialStep, type InfoStep } from '@/ui/components/Tutorial/tutorialSteps';
+import { TUTORIAL_STEPS, type TutorialStep, type InfoStep } from '@/pixi/data/tutorialSteps';
 
 const STEP_ICON_STYLE = { fontSize: 22 };
 const STEP_TITLE_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff };
@@ -265,6 +265,12 @@ export const TutorialPage = ({
   const totalHeight = TUTORIAL_STEPS.reduce((sum, s) => sum + getCardHeight(s) + cardGap, 0);
   const maxScroll = Math.max(0, totalHeight - listHeight);
 
+  const drawScrollHitArea = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.rect(0, 0, contentWidth, listHeight);
+    g.fill({ color: 0xffffff, alpha: 0.001 });
+  }, [contentWidth, listHeight]);
+
   const handlePointerDown = useCallback((e: any) => {
     isDragging.current = true;
     lastY.current = e.data.global.y;
@@ -309,14 +315,7 @@ export const TutorialPage = ({
           onPointerUp={handlePointerUp}
           onPointerUpOutside={handlePointerUp}
         >
-          {/* Invisible hit area */}
-          <pixiGraphics
-            draw={(g) => {
-              g.clear();
-              g.rect(0, 0, contentWidth, listHeight);
-              g.fill({ color: 0xffffff, alpha: 0.001 });
-            }}
-          />
+          <pixiGraphics draw={drawScrollHitArea} />
 
           <pixiContainer y={-scrollY}>
             {TUTORIAL_STEPS.map((step, i) => (

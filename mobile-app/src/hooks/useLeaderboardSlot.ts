@@ -1,7 +1,12 @@
 import { useDojo } from "@/dojo/useDojo";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { getComponentValue, Has, runQuery } from "@dojoengine/recs";
-import { useGetUsernames, normalizeAddress } from "./useGetUsernames";
+import { useGetUsernames } from "./useGetUsernames";
+import { normalizeAddress } from "@/utils/address";
+import { unpackRunData } from "@/dojo/game/helpers/runDataPacking";
+import { createLogger } from "@/utils/logger";
+
+const log = createLogger("useLeaderboardSlot");
 
 const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_TORII, VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
 export const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
@@ -173,10 +178,9 @@ export const useLeaderboardSlot = ({
 
                 const erc721Meta = meta as ERC721TokenMetadata;
                 
-                // Filter by game token contract if configured
                 if (gameTokenAddress) {
-                  const tokenContract = erc721Meta.contractAddress?.toLowerCase();
-                  if (!tokenContract?.includes(gameTokenAddress.replace("0x", ""))) continue;
+                  const tokenContract = normalizeAddress(erc721Meta.contractAddress || "");
+                  if (tokenContract !== normalizeAddress(gameTokenAddress)) continue;
                 }
 
                 const tokenId = Number(BigInt(erc721Meta.tokenId));
@@ -186,10 +190,10 @@ export const useLeaderboardSlot = ({
                 tokenOwnerMap.set(tokenId, { owner, playerName });
               }
 
-              console.log("[useLeaderboardSlot] Loaded token ownership for", tokenOwnerMap.size, "tokens");
+              log.info("Loaded token ownership for", tokenOwnerMap.size, "tokens");
             }
           } catch (error) {
-            console.error("[useLeaderboardSlot] Error fetching token data:", error);
+            log.error("Error fetching token data:", error);
           }
         }
 
@@ -211,12 +215,8 @@ export const useLeaderboardSlot = ({
           // Skip games that haven't started
           if (gameData.blocks === 0n) continue;
 
-          // Extract level data from run_data
-          // See contracts/src/helpers/packing.cairo for bit layout (RunDataBits)
-          const runData = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
-          const level = Number(runData & BigInt(0xFF)); // 8 bits at position 0
-          const totalCubes = Number((runData >> BigInt(131)) & BigInt(0xFFFF)); // 16 bits at position 131
-          const totalScore = Number((runData >> BigInt(147)) & BigInt(0xFFFF)); // 16 bits at position 147
+          const runData = unpackRunData(gameData.run_data ? BigInt(gameData.run_data) : BigInt(0));
+          const { currentLevel: level, totalCubes, totalScore } = runData;
 
           // Get owner info from token data
           const tokenInfo = tokenOwnerMap.get(gameData.game_id);
@@ -244,10 +244,10 @@ export const useLeaderboardSlot = ({
           return (a.started_at ?? 0) - (b.started_at ?? 0);
         });
 
-        console.log("[useLeaderboardSlot] Raw leaderboard:", gameList.length, "entries");
+        log.info("Raw leaderboard:", gameList.length, "entries");
         setRawGames(gameList);
       } catch (error) {
-        console.error("[useLeaderboardSlot] Error fetching leaderboard:", error);
+        log.error("Error fetching leaderboard:", error);
         setRawGames([]);
       } finally {
         setLoading(false);

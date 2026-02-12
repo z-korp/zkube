@@ -173,6 +173,12 @@ export const MyGamesPage = ({
   const totalHeight = ongoingHeight + (ongoingHeight > 0 && finishedHeight > 0 ? sectionGap : 0) + finishedHeight;
   const maxScroll = Math.max(0, totalHeight - listHeight + 20);
 
+  const drawScrollHitArea = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.rect(0, 0, contentWidth, listHeight);
+    g.fill({ color: 0xffffff, alpha: 0.001 });
+  }, [contentWidth, listHeight]);
+
   const dragStartY = useRef(0);
   const dragThreshold = 8;
 
@@ -248,14 +254,7 @@ export const MyGamesPage = ({
             onPointerUp={handlePointerUp}
             onPointerUpOutside={handlePointerUp}
           >
-            {/* Invisible hit area */}
-            <pixiGraphics
-              draw={(g) => {
-                g.clear();
-                g.rect(0, 0, contentWidth, listHeight);
-                g.fill({ color: 0xffffff, alpha: 0.001 });
-              }}
-            />
+            <pixiGraphics draw={drawScrollHitArea} />
 
             {/* Scrollable content */}
             <pixiContainer y={-scrollY}>

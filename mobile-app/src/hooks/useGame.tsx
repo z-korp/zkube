@@ -2,17 +2,12 @@ import { useDojo } from "@/dojo/useDojo";
 import { useMemo, useEffect, useState } from "react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
-import type { Entity } from "@dojoengine/recs";
 import useDeepMemo from "./useDeepMemo";
 import { useInRouterContext, useParams } from "react-router-dom";
+import { normalizeEntityId } from "@/utils/entityId";
+import { createLogger } from "@/utils/logger";
 
-// Normalize entity ID to match Torii's format (no leading zeros after 0x)
-const normalizeEntityId = (entityId: string): Entity => {
-  if (!entityId.startsWith("0x")) return entityId as Entity;
-  // Remove leading zeros after 0x, but keep at least one digit
-  const hex = entityId.slice(2).replace(/^0+/, "") || "0";
-  return `0x${hex}` as Entity;
-};
+const log = createLogger("useGame");
 
 export const useGame = ({
   gameId,
@@ -21,8 +16,8 @@ export const useGame = ({
   shouldLog: boolean;
 }) => {
   const isInRouter = useInRouterContext();
-  const params = isInRouter ? useParams<{ gameId?: string }>() : undefined;
-  const routeGameId = params?.gameId;
+  const params = useParams<{ gameId?: string }>();
+  const routeGameId = isInRouter ? params?.gameId : undefined;
   const {
     setup: {
       clientModels: {
@@ -52,7 +47,7 @@ export const useGame = ({
 
   const seed = useMemo(() => {
     const s = seedComponent?.seed ? BigInt(seedComponent.seed) : BigInt(0);
-    console.log("[useGame] GameSeed fetched:", {
+    log.debug("GameSeed fetched:", {
       gameKey,
       hasSeedComponent: !!seedComponent,
       seed: s.toString(),
@@ -65,7 +60,7 @@ export const useGame = ({
   useEffect(() => {
     if (game && !seedComponent && retryCount < 5) {
       const timer = setTimeout(() => {
-        console.log("[useGame] Retrying seed fetch, attempt:", retryCount + 1);
+        log.debug("Retrying seed fetch, attempt:", retryCount + 1);
         setRetryCount((prev) => prev + 1);
       }, 500); // Retry every 500ms
       return () => clearTimeout(timer);
@@ -80,7 +75,7 @@ export const useGame = ({
   // Log game state when it changes
   useEffect(() => {
     if (game) {
-      console.log("[useGame] Game state:", {
+      log.debug("Game state:", {
         id: game.id,
         level: game.level,
         levelScore: game.levelScore,

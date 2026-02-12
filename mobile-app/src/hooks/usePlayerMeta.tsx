@@ -1,16 +1,12 @@
 import { useDojo } from "@/dojo/useDojo";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
-import type { Entity } from "@dojoengine/recs";
 import { useAccount } from "@starknet-react/core";
-
-// Normalize entity ID to match Torii's format (no leading zeros after 0x)
-const normalizeEntityId = (entityId: string): Entity => {
-  if (!entityId.startsWith("0x")) return entityId as Entity;
-  const hex = entityId.slice(2).replace(/^0+/, "") || "0";
-  return `0x${hex}` as Entity;
-};
+import { normalizeEntityId } from "@/utils/entityId";
+import { normalizeAddress } from "@/utils/address";
+import { getSyncEntities } from "@dojoengine/state";
+import { KeysClause } from "@dojoengine/sdk";
 
 // Bit positions for MetaData unpacking (matching Cairo)
 const META_DATA_POSITIONS = {
@@ -76,15 +72,50 @@ function unpackMetaData(packed: bigint): PlayerMetaData {
   };
 }
 
+const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
+const playerMetaNamespace = VITE_PUBLIC_NAMESPACE || "zkube_budo_v1_2_0";
+const playerMetaModel = `${playerMetaNamespace}-PlayerMeta`;
+
 export const usePlayerMeta = () => {
   const { address } = useAccount();
   const {
     setup: {
+      toriiClient,
+      contractComponents,
       clientModels: {
         models: { PlayerMeta },
       },
     },
   } = useDojo();
+
+  const syncRef = useRef<{ cancel: () => void } | null>(null);
+
+  useEffect(() => {
+    if (!address || !toriiClient) return;
+
+    const normalizedAddr = normalizeAddress(address);
+
+    getSyncEntities(
+      toriiClient,
+      contractComponents as any,
+      KeysClause(
+        [playerMetaModel],
+        [normalizedAddr],
+        "FixedLen",
+      ).build(),
+      [],
+      [playerMetaModel],
+      10000,
+      true,
+    ).then((sub) => {
+      syncRef.current = sub;
+    });
+
+    return () => {
+      syncRef.current?.cancel();
+      syncRef.current = null;
+    };
+  }, [address, toriiClient, contractComponents]);
 
   const playerKey = useMemo(() => {
     if (!address) return undefined;

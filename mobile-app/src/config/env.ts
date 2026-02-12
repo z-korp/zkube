@@ -14,6 +14,7 @@ export function validateEnv(): void {
     VITE_PUBLIC_WORLD_ADDRESS,
     VITE_PUBLIC_GAME_TOKEN_ADDRESS,
     VITE_PUBLIC_CUBE_TOKEN_ADDRESS,
+    VITE_PUBLIC_CUBE_TOKEN_ID,
   } = import.meta.env;
 
   const errors: string[] = [];
@@ -44,6 +45,10 @@ export function validateEnv(): void {
     if (value && !isHexLike(value)) {
       errors.push(`${key} must be a hex string starting with 0x`);
     }
+  }
+
+  if (VITE_PUBLIC_CUBE_TOKEN_ID && !isHexLike(VITE_PUBLIC_CUBE_TOKEN_ID)) {
+    errors.push("VITE_PUBLIC_CUBE_TOKEN_ID must be a hex string starting with 0x");
   }
 
   if (errors.length > 0) {

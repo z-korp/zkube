@@ -1,44 +1,37 @@
-import React, { createContext, useState, useEffect, useCallback } from "react";
-import useSound from "use-sound";
-import SoundAssets from "@/ui/theme/SoundAssets";
+import React, { createContext, useState, useEffect, useCallback, useRef } from "react";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
-import noop from "@/utils/noop";
-
-type Track = {
-  name: string;
-  url: string;
-};
+import { soundManager } from "@/pixi/audio/SoundManager";
+import { AssetId } from "@/pixi/assets/catalog";
+import type { ThemeId } from "@/pixi/utils/colors";
 
 export const MusicPlayerContext = createContext<{
-  playTheme: () => unknown;
-  stopTheme: () => unknown;
+  playTheme: () => void;
+  stopTheme: () => void;
   isPlaying: boolean;
   musicVolume: number;
   effectsVolume: number;
-  setMusicVolume: (volume: number) => unknown;
-  setEffectsVolume: (volume: number) => unknown;
-  setTheme: (theme: boolean) => unknown;
-  playStart: () => unknown;
-  playOver: () => unknown;
-  playSwipe: () => unknown;
-  playExplode: () => unknown;
-  playSuccess: () => unknown;
+  setMusicVolume: (volume: number) => void;
+  setEffectsVolume: (volume: number) => void;
+  setIsMenu: (isMenu: boolean) => void;
+  playStart: () => void;
+  playOver: () => void;
+  playSwipe: () => void;
+  playExplode: () => void;
+  playSuccess: () => void;
 }>({
-  playTheme: noop,
-  stopTheme: noop,
+  playTheme: () => {},
+  stopTheme: () => {},
   isPlaying: false,
   musicVolume: 0.2,
-  setMusicVolume: (volume: number) => {
-    volume;
-  },
+  setMusicVolume: () => {},
   effectsVolume: 0.2,
-  setEffectsVolume: noop,
-  setTheme: noop,
-  playStart: noop,
-  playOver: noop,
-  playSwipe: noop,
-  playExplode: noop,
-  playSuccess: noop,
+  setEffectsVolume: () => {},
+  setIsMenu: () => {},
+  playStart: () => {},
+  playOver: () => {},
+  playSwipe: () => {},
+  playExplode: () => {},
+  playSuccess: () => {},
 });
 
 export const MusicPlayerProvider = ({
@@ -47,103 +40,93 @@ export const MusicPlayerProvider = ({
   children: React.ReactNode;
 }) => {
   const { themeTemplate } = useTheme();
-  const soundAssets = SoundAssets(themeTemplate);
+  const themeId = themeTemplate as ThemeId;
 
-  const menuTracks: Track[] = [
-    { name: "Intro", url: soundAssets.jungle2 },
-    { name: "Intro", url: soundAssets.jungle2 },
-  ];
-
-  const playTracks: Track[] = [
-    { name: "Play", url: soundAssets.jungle3 },
-    { name: "Play", url: soundAssets.jungle3 },
-  ];
-
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-  const [tracks, setTracks] = useState(menuTracks);
-  const [theme, setTheme] = useState(true);
+  const [isMenu, setIsMenu] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [musicVolume, setMusicVolume] = useState(0.2);
-  const [effectsVolume, setEffectsVolume] = useState(0.2);
+  const [musicVolume, setMusicVolumeState] = useState(0.2);
+  const [effectsVolume, setEffectsVolumeState] = useState(0.2);
+  const prevThemeRef = useRef<ThemeId>(themeId);
 
-  // Hooks séparés pour chaque effet sonore avec volume indépendant
-  const [playStartSound] = useSound(soundAssets.start, {
-    volume: effectsVolume,
-  });
-  const [playOverSound] = useSound(soundAssets.over, { volume: effectsVolume });
-  const [playSwipeSound] = useSound(soundAssets.swipe, {
-    volume: effectsVolume,
-  });
-  const [playExplodeSound] = useSound(soundAssets.explode, {
-    volume: effectsVolume,
-  });
-  const [playSuccessSound] = useSound(soundAssets.success, {
-    volume: effectsVolume,
-  });
+  useEffect(() => {
+    soundManager.preloadTheme(themeId);
+    soundManager.themeId = themeId;
 
-  const goToNextTrack = () => {
-    setCurrentTrackIndex((prevIndex) => {
-      return (prevIndex + 1) % tracks.length;
-    });
-  };
+    if (prevThemeRef.current !== themeId) {
+      soundManager.unloadTheme(prevThemeRef.current);
+      prevThemeRef.current = themeId;
 
-  // Fonctions de lecture d'effets sonores simplifiées
+      if (isPlaying) {
+        const track = isMenu ? AssetId.Music2 : AssetId.Music3;
+        soundManager.bgm.play(themeId, track);
+      }
+    }
+  }, [themeId, isMenu, isPlaying]);
+
+  useEffect(() => {
+    soundManager.bgm.volume = musicVolume;
+  }, [musicVolume]);
+
+  useEffect(() => {
+    soundManager.sfx.volume = effectsVolume;
+  }, [effectsVolume]);
+
+  useEffect(() => {
+    const handler = () => {
+      if (document.hidden) {
+        soundManager.pauseAll();
+      } else {
+        soundManager.resumeAll();
+      }
+    };
+    document.addEventListener("visibilitychange", handler);
+    return () => document.removeEventListener("visibilitychange", handler);
+  }, []);
+
+  const playTheme = useCallback(() => {
+    const track = isMenu ? AssetId.Music2 : AssetId.Music3;
+    soundManager.bgm.play(themeId, track);
+    setIsPlaying(true);
+  }, [themeId, isMenu]);
+
+  const stopTheme = useCallback(() => {
+    soundManager.bgm.stop();
+    setIsPlaying(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      soundManager.bgm.stop();
+    };
+  }, []);
+
+  const setMusicVolume = useCallback((volume: number) => {
+    setMusicVolumeState(volume);
+  }, []);
+
+  const setEffectsVolume = useCallback((volume: number) => {
+    setEffectsVolumeState(volume);
+  }, []);
+
   const playStart = useCallback(() => {
-    playStartSound();
-  }, [playStartSound]);
+    soundManager.sfx.play(themeId, AssetId.SfxStart);
+  }, [themeId]);
 
   const playOver = useCallback(() => {
-    playOverSound();
-  }, [playOverSound]);
+    soundManager.sfx.play(themeId, AssetId.SfxOver);
+  }, [themeId]);
 
   const playSwipe = useCallback(() => {
-    playSwipeSound();
-  }, [playSwipeSound]);
+    soundManager.sfx.play(themeId, AssetId.SfxSwipe);
+  }, [themeId]);
 
   const playExplode = useCallback(() => {
-    playExplodeSound();
-  }, [playExplodeSound]);
+    soundManager.sfx.play(themeId, AssetId.SfxExplode);
+  }, [themeId]);
 
   const playSuccess = useCallback(() => {
-    playSuccessSound();
-  }, [playSuccessSound]);
-
-  const [playTheme, { stop: stopTheme }] = useSound(
-    tracks[currentTrackIndex].url,
-    {
-      volume: musicVolume,
-      onplay: () => setIsPlaying(true),
-      onstop: () => setIsPlaying(false),
-      onend: () => {
-        setIsPlaying(false);
-        goToNextTrack();
-      },
-    },
-  );
-
-  const handleVisibilityChange = useCallback(() => {
-    if (document.hidden) {
-      stopTheme();
-      setIsPlaying(false);
-    }
-  }, [stopTheme]);
-
-  useEffect(() => {
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [handleVisibilityChange]);
-
-  useEffect(() => {
-    playTheme();
-    return () => stopTheme();
-  }, [currentTrackIndex, playTheme, stopTheme]);
-
-  useEffect(() => {
-    setTracks(theme ? menuTracks : playTracks);
-    setCurrentTrackIndex(0);
-  }, [theme, themeTemplate]);
+    soundManager.sfx.play(themeId, AssetId.SfxNew);
+  }, [themeId]);
 
   return (
     <MusicPlayerContext.Provider
@@ -155,7 +138,7 @@ export const MusicPlayerProvider = ({
         setMusicVolume,
         effectsVolume,
         setEffectsVolume,
-        setTheme,
+        setIsMenu,
         playStart,
         playOver,
         playSwipe,

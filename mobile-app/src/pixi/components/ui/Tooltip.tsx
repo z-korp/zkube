@@ -26,64 +26,62 @@ export const Tooltip = ({
 }: TooltipProps) => {
   const { colors } = usePixiTheme();
 
-  if (!visible || !text) return null;
-
   const padding = 8;
   const cornerRadius = 6;
   const arrowSize = 6;
-  
-  // Estimate text dimensions (approximate)
   const fontSize = 11;
   const lineHeight = fontSize * 1.3;
   const charWidth = fontSize * 0.55;
-  
-  // Simple word wrap calculation
-  const words = text.split(' ');
-  let lines: string[] = [];
-  let currentLine = '';
-  
-  words.forEach(word => {
-    const testLine = currentLine ? `${currentLine} ${word}` : word;
-    if (testLine.length * charWidth > maxWidth - padding * 2) {
-      if (currentLine) lines.push(currentLine);
-      currentLine = word;
-    } else {
-      currentLine = testLine;
+
+  const { boxWidth, boxHeight, offsetX, offsetY } = useMemo(() => {
+    const words = (text || '').split(' ');
+    let lines: string[] = [];
+    let currentLine = '';
+    
+    words.forEach(word => {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      if (testLine.length * charWidth > maxWidth - padding * 2) {
+        if (currentLine) lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    });
+    if (currentLine) lines.push(currentLine);
+    
+    const textWidth = Math.min(
+      maxWidth - padding * 2,
+      Math.max(...lines.map(l => l.length * charWidth))
+    );
+    const textHeight = lines.length * lineHeight;
+    
+    const bw = textWidth + padding * 2;
+    const bh = textHeight + padding * 2;
+    
+    let ox = 0;
+    let oy = 0;
+    
+    switch (position) {
+      case 'top':
+        ox = -bw / 2;
+        oy = -bh - arrowSize - 4;
+        break;
+      case 'bottom':
+        ox = -bw / 2;
+        oy = arrowSize + 4;
+        break;
+      case 'left':
+        ox = -bw - arrowSize - 4;
+        oy = -bh / 2;
+        break;
+      case 'right':
+        ox = arrowSize + 4;
+        oy = -bh / 2;
+        break;
     }
-  });
-  if (currentLine) lines.push(currentLine);
-  
-  const textWidth = Math.min(
-    maxWidth - padding * 2,
-    Math.max(...lines.map(l => l.length * charWidth))
-  );
-  const textHeight = lines.length * lineHeight;
-  
-  const boxWidth = textWidth + padding * 2;
-  const boxHeight = textHeight + padding * 2;
-  
-  // Calculate offset based on position
-  let offsetX = 0;
-  let offsetY = 0;
-  
-  switch (position) {
-    case 'top':
-      offsetX = -boxWidth / 2;
-      offsetY = -boxHeight - arrowSize - 4;
-      break;
-    case 'bottom':
-      offsetX = -boxWidth / 2;
-      offsetY = arrowSize + 4;
-      break;
-    case 'left':
-      offsetX = -boxWidth - arrowSize - 4;
-      offsetY = -boxHeight / 2;
-      break;
-    case 'right':
-      offsetX = arrowSize + 4;
-      offsetY = -boxHeight / 2;
-      break;
-  }
+    
+    return { boxWidth: bw, boxHeight: bh, offsetX: ox, offsetY: oy };
+  }, [text, maxWidth, position, charWidth, lineHeight, arrowSize]);
 
   const bgColor = 0x1e293b;
   const borderColor = 0x475569;
@@ -91,15 +89,12 @@ export const Tooltip = ({
   const drawBackground = useCallback((g: PixiGraphics) => {
     g.clear();
     
-    // Main box
     g.roundRect(0, 0, boxWidth, boxHeight, cornerRadius);
     g.fill({ color: bgColor, alpha: 0.95 });
     
-    // Border
     g.roundRect(0, 0, boxWidth, boxHeight, cornerRadius);
     g.stroke({ color: borderColor, width: 1, alpha: 0.8 });
     
-    // Arrow
     const arrowX = boxWidth / 2;
     let arrowY = 0;
     
@@ -120,9 +115,8 @@ export const Tooltip = ({
         g.closePath();
         g.fill({ color: bgColor, alpha: 0.95 });
         break;
-      // Left/right arrows can be added if needed
     }
-  }, [boxWidth, boxHeight, cornerRadius, bgColor, borderColor, position, arrowSize]);
+  }, [boxWidth, boxHeight, position, arrowSize]);
 
   const textStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BODY,
@@ -131,7 +125,9 @@ export const Tooltip = ({
     wordWrap: true,
     wordWrapWidth: maxWidth - padding * 2,
     lineHeight,
-  }), [fontSize, maxWidth, lineHeight]);
+  }), [maxWidth, lineHeight]);
+
+  if (!visible || !text) return null;
 
   return (
     <pixiContainer x={x + offsetX} y={y + offsetY} alpha={visible ? 1 : 0}>
