@@ -38,12 +38,14 @@ import type { ThemeId } from '@/pixi/utils/colors';
 import type { Block } from '@/types/types';
 import type { InGameShopBonusItem } from '@/pixi/components/modals';
 import { useMusicPlayer } from '@/contexts/hooks';
+import { showToast } from '@/utils/toast';
 
 // Type for storing level completion data
 interface LevelCompletionData {
   level: number;
   levelScore: number;
   constraintProgress: number;
+  constraint2Progress: number;
   bonusUsedThisLevel: boolean;
   prevHammer: number;
   prevWave: number;
@@ -85,6 +87,15 @@ export const PlayNew = () => {
     setIsMenu(false);
     return () => setIsMenu(true);
   }, [setIsMenu]);
+
+  const hadAccountRef = useRef(!!account);
+  useEffect(() => {
+    if (hadAccountRef.current && !account) {
+      showToast({ message: 'Wallet disconnected. Returning to home.', type: 'error', toastId: 'wallet-disconnect' });
+      navigate('/');
+    }
+    hadAccountRef.current = !!account;
+  }, [account, navigate]);
 
   const {
     setup: {
@@ -129,6 +140,7 @@ export const PlayNew = () => {
     level: number;
     levelScore: number;
     constraintProgress: number;
+    constraint2Progress: number;
     bonusUsedThisLevel: boolean;
     hammer: number;
     wave: number;
@@ -173,32 +185,36 @@ export const PlayNew = () => {
     setNextLineHasBeenConsumed,
   });
 
-  // Handle game loading
+  // Handle game loading — wait for data from Torii, with a generous timeout
+  const syncStartTimeRef = useRef<number>(Date.now());
+
   useEffect(() => {
     setIsGameLoading(true);
-    const timer = setTimeout(() => setIsGameLoading(false), 5000);
-    return () => clearTimeout(timer);
+    syncStartTimeRef.current = Date.now();
   }, [gameId]);
 
   useEffect(() => {
-    if (game && seed !== 0n) {
+    if (game && game.blocksRaw !== 0n && seed !== 0n) {
       setIsGameLoading(false);
     }
   }, [game, seed]);
 
-  // Auto-open loadout if game not started
+  // Only redirect if game truly doesn't exist after a generous sync window (20s)
   useEffect(() => {
-    const gameExists = game !== null && game !== undefined;
-    const gameHasBlocks = gameExists && game.blocksRaw !== 0n;
-    const gameNotStarted = !gameExists || game.blocksRaw === 0n;
+    const gameReady = game && game.blocksRaw !== 0n;
+    if (gameReady) return;
 
-    if (gameHasBlocks) return;
+    // Poll every second to check if we've exceeded the sync timeout
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - syncStartTimeRef.current;
+      if (elapsed > 20_000 && !gameCreationAttemptedRef.current) {
+        setIsGameLoading(false);
+        navigate('/');
+      }
+    }, 1000);
 
-    if (!isGameLoading && gameNotStarted && account && !gameCreationAttemptedRef.current) {
-      // Navigate back to home to show loadout
-      navigate('/');
-    }
-  }, [isGameLoading, game, account, navigate]);
+    return () => clearInterval(interval);
+  }, [game, navigate]);
 
   useEffect(() => {
     gameCreationAttemptedRef.current = false;
@@ -234,6 +250,7 @@ export const PlayNew = () => {
         level: prevState.level,
         levelScore: prevState.levelScore,
         constraintProgress: prevState.constraintProgress,
+        constraint2Progress: prevState.constraint2Progress,
         bonusUsedThisLevel: prevState.bonusUsedThisLevel,
         prevHammer: prevState.hammer,
         prevWave: prevState.wave,
@@ -258,6 +275,7 @@ export const PlayNew = () => {
       level: game.level,
       levelScore: game.levelScore,
       constraintProgress: game.constraintProgress,
+      constraint2Progress: game.constraint2Progress,
       bonusUsedThisLevel: game.bonusUsedThisLevel,
       hammer: game.hammer,
       wave: game.wave,
@@ -268,7 +286,7 @@ export const PlayNew = () => {
       totalScore: game.totalScore,
     };
   }, [
-    game?.level, game?.levelScore, game?.constraintProgress, game?.bonusUsedThisLevel,
+    game?.level, game?.levelScore, game?.constraintProgress, game?.constraint2Progress, game?.bonusUsedThisLevel,
     game?.hammer, game?.wave, game?.totem, game?.shrink, game?.shuffle,
     game?.over, game?.totalCubes, game?.totalScore, game,
   ]);
@@ -358,6 +376,7 @@ export const PlayNew = () => {
       });
     } catch (error) {
       console.error('Bonus apply error:', error);
+      showToast({ message: 'Failed to apply bonus. Try again.', type: 'error', toastId: 'bonus-error' });
     }
   }, [account, applyBonus, game]);
 
@@ -380,12 +399,33 @@ export const PlayNew = () => {
 
   const handleSurrender = useCallback(async () => {
     if (!account || !game) return;
-    await surrender({ account: account as Account, game_id: game.id });
+    try {
+      await surrender({ account: account as Account, game_id: game.id });
+    } catch (error) {
+      console.error('Surrender error:', error);
+      showToast({ message: 'Surrender failed. Try again.', type: 'error', toastId: 'surrender-error' });
+    }
   }, [account, game, surrender]);
 
   const handleGoHome = useCallback(() => {
     navigate('/');
   }, [navigate]);
+
+  const handlePlayAgain = useCallback(() => {
+    navigate('/', { state: { openLoadout: true } });
+  }, [navigate]);
+
+  const handleShare = useCallback(async () => {
+    const text = `I completed all 50 levels of zKube! Score: ${game?.totalScore ?? 0}, Cubes: ${game?.totalCubes ?? 0}. Play at app.zkube.xyz`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ text });
+      } catch { /* user cancelled */ }
+    } else {
+      await navigator.clipboard?.writeText(text);
+      showToast({ message: 'Copied to clipboard!', type: 'success', toastId: 'share-copy' });
+    }
+  }, [game?.totalScore, game?.totalCubes]);
 
   const getBagSizeForBonus = useCallback((bonusType: BonusType): number => {
     const meta = playerMeta?.data;
@@ -414,6 +454,7 @@ export const PlayNew = () => {
       });
     } catch (error) {
       console.error('In-game shop purchase failed:', error);
+      showToast({ message: 'Purchase failed. Try again.', type: 'error', toastId: 'shop-error' });
     } finally {
       setIsShopPurchasing(false);
     }
@@ -617,12 +658,17 @@ export const PlayNew = () => {
       // Level complete data
       levelCompleteCubes={levelCompletionData ? levelCompletionData.totalCubes - levelCompletionData.prevTotalCubes : 0}
       levelCompleteBonusAwarded={bonusAwarded}
-      constraintMet={levelCompletionData ? levelCompletionData.constraintProgress >= (gameLevel?.constraintCount ?? 0) : false}
+      constraintMet={levelCompletionData ? (
+        levelCompletionData.constraintProgress >= (gameLevel?.constraintCount ?? 0) &&
+        (!gameLevel?.constraint2Count || levelCompletionData.constraint2Progress >= gameLevel.constraint2Count)
+      ) : false}
       // Callbacks
       onMove={handleMove}
       onBonusApply={handleBonusApply}
       onSurrender={handleSurrender}
       onGoHome={handleGoHome}
+      onPlayAgain={handlePlayAgain}
+      onShare={handleShare}
       onLevelCompleteContinue={handleLevelCompleteContinue}
       onInGameShopClose={handleInGameShopClose}
     />

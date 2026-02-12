@@ -24,7 +24,7 @@ import { PixiToastLayer } from '../ui/PixiToastLayer';
 import type { PlayerMetaData } from '@/hooks/usePlayerMeta';
 import type { LeaderboardEntry } from '@/hooks/useLeaderboardSlot';
 import type { QuestFamily } from '@/types/questFamily';
-import { FONT_TITLE, FONT_BOLD, FONT_BODY } from '../../utils/colors';
+import { FONT_TITLE, FONT_BOLD, FONT_BODY, THEME_ASSETS } from '../../utils/colors';
 import { loadTextureCached } from '../../assets/textureLoader';
 
 const MAIN_FOOTER_STYLE = {
@@ -53,6 +53,7 @@ interface CloudData {
 export interface MainScreenProps {
   // Navigation
   onNavigateToGame: (gameId: number) => void;
+  initialPage?: string;
   // Wallet
   onConnect?: () => void;
   onProfileClick?: () => void;
@@ -124,7 +125,7 @@ function useTexture(path: string): Texture | null {
 
 const SkyBackground = ({ w, h }: { w: number; h: number }) => {
   const { getAssetPath } = usePixiTheme();
-  const bgTex = useTexture(getAssetPath('theme-2-1.png'));
+  const bgTex = useTexture(getAssetPath(THEME_ASSETS.background));
 
   const drawGradient = useCallback((g: PixiGraphics) => {
     g.clear();
@@ -693,7 +694,7 @@ const MainScreenInner = (props: MainScreenProps) => {
         resolution={dpr} autoDensity antialias
       >
         <TickerConfig />
-        <PageNavigatorProvider>
+        <PageNavigatorProvider initialPage={props.initialPage as PageId | undefined}>
           <PageRenderer {...props} sw={sw} sh={sh} topBarH={topBarHeight} isMobile={isMobile} uiScale={uiScale} />
         </PageNavigatorProvider>
       </Application>

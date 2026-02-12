@@ -92,6 +92,7 @@ export interface PlayScreenProps {
   onPlayAgain?: () => void;
   onLevelCompleteContinue: () => void;
   onInGameShopClose?: () => void;
+  onShare?: () => void;
   onQuestsClick?: () => void;
   onTrophyClick?: () => void;
   onShopClick?: () => void;
@@ -124,7 +125,7 @@ function useTexture(path: string): Texture | null {
 
 const SkyBackground = ({ w, h }: { w: number; h: number }) => {
   const { getAssetPath } = usePixiTheme();
-  const bgTex = useTexture(getAssetPath('theme-2-1.png'));
+  const bgTex = useTexture(getAssetPath(THEME_ASSETS.background));
 
   const drawGradient = useCallback((g: PixiGraphics) => {
     g.clear();
@@ -315,7 +316,8 @@ const StatsBar = ({
     fill: comboColor,
   }), [uiScale, comboColor]);
 
-  const movesX = barW - Math.round(14 * uiScale) - (cubeBalance > 0 ? Math.round(50 * uiScale) : 0);
+  const cubeWidth = cubeBalance > 0 ? Math.round(50 * uiScale) : 0;
+  const movesX = Math.max(scoreX + Math.round(80 * uiScale), barW - Math.round(14 * uiScale) - cubeWidth);
 
   return (
     <pixiContainer x={barX} y={barY}>
@@ -536,7 +538,7 @@ const PlayScreenInner = (props: PlayScreenProps) => {
     shopItems = [],
     isShopPurchasing = false,
     levelCompleteCubes = 0, levelCompleteBonusAwarded, constraintMet = false,
-    onMove, onBonusApply, onSurrender, onGoHome, onPlayAgain, onLevelCompleteContinue, onInGameShopClose,
+    onMove, onBonusApply, onSurrender, onGoHome, onPlayAgain, onShare, onLevelCompleteContinue, onInGameShopClose,
   } = props;
 
   const actionBarSlots = useMemo(() =>
@@ -681,7 +683,7 @@ const PlayScreenInner = (props: PlayScreenProps) => {
         cubesEarned={totalCubes}
       />
 
-      <VictoryModal isOpen={isVictory} onClose={onGoHome} onGoHome={onGoHome}
+      <VictoryModal isOpen={isVictory} onClose={onGoHome} onGoHome={onGoHome} onShare={onShare}
         screenWidth={sw} screenHeight={sh}
         totalScore={totalScore} totalCubes={totalCubes} maxCombo={maxCombo} />
 

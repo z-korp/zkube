@@ -73,6 +73,7 @@ export const SHARED_ASSETS = {
 // ============================================================================
 
 export const THEME_ASSETS = {
+  background: 'theme-2-1.png',
   gridBg: 'grid-bg.png',
   gridFrame: 'grid-frame.png',
   hudBar: 'hud-bar.png',

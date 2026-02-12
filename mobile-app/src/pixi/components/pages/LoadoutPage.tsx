@@ -7,7 +7,7 @@
  * - Remembers last loadout in localStorage
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Graphics as PixiGraphics, Texture } from "pixi.js";
 import { PageTopBar } from "./PageTopBar";
 import { Button } from "../ui";
@@ -290,6 +290,7 @@ const CubeSlider = ({
   onChange: (val: number) => void;
 }) => {
   const [dragging, setDragging] = useState(false);
+  const trackRef = useRef<PixiGraphics | null>(null);
   const trackHeight = 10;
   const knobRadius = 16;
 
@@ -299,12 +300,14 @@ const CubeSlider = ({
   const handlePointerMove = useCallback(
     (e: any) => {
       if (!dragging || max === 0) return;
-      const localX = e.data.global.x - x;
-      const clampedX = Math.max(0, Math.min(localX, width));
+      const track = trackRef.current;
+      if (!track) return;
+      const local = track.toLocal(e.data.global);
+      const clampedX = Math.max(0, Math.min(local.x, width));
       const newValue = Math.round((clampedX / width) * max);
       onChange(newValue);
     },
-    [dragging, max, width, x, onChange]
+    [dragging, max, width, onChange]
   );
 
   const drawTrack = useCallback(
@@ -340,6 +343,7 @@ const CubeSlider = ({
   return (
     <pixiContainer x={x} y={y}>
       <pixiGraphics
+        ref={trackRef}
         draw={drawTrack}
         eventMode="static"
         cursor="pointer"

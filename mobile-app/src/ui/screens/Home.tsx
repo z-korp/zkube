@@ -4,7 +4,7 @@
  * Implements the full Play flow: LoadoutPage -> freeMint -> create -> navigate
  */
 import { useCallback, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
@@ -77,6 +77,8 @@ export const Home = () => {
   const { playerMeta } = usePlayerMeta();
   const { username } = useControllerUsername();
   const navigate = useNavigate();
+  const location = useLocation();
+  const initialPage = (location.state as { openLoadout?: boolean })?.openLoadout ? 'loadout' : undefined;
 
   const {
     setup: { systemCalls },
@@ -275,14 +277,22 @@ export const Home = () => {
   const handleClaimQuest = useCallback(
     async (questId: string, intervalId: number) => {
       if (!account) return;
-      // Convert quest ID string to felt252
-      const questIdFelt = `0x${BigInt(shortString.encodeShortString(questId)).toString(16)}`;
-      await systemCalls.claimQuest({
-        account,
-        quest_id: questIdFelt,
-        interval_id: intervalId,
-      });
-      refetchCubeBalance?.();
+      if (questId.length > 31) {
+        showToast({ message: 'Invalid quest ID.', type: 'error', toastId: 'quest-id-error' });
+        return;
+      }
+      try {
+        const questIdFelt = `0x${BigInt(shortString.encodeShortString(questId)).toString(16)}`;
+        await systemCalls.claimQuest({
+          account,
+          quest_id: questIdFelt,
+          interval_id: intervalId,
+        });
+        refetchCubeBalance?.();
+      } catch (error) {
+        console.error('Quest claim failed:', error);
+        showToast({ message: 'Failed to claim quest.', type: 'error', toastId: 'quest-claim-error' });
+      }
     },
     [account, systemCalls, refetchCubeBalance]
   );
@@ -331,6 +341,7 @@ export const Home = () => {
     <MainScreen
       // Navigation
       onNavigateToGame={handleNavigateToGame}
+      initialPage={initialPage}
       // Wallet
       onConnect={handleConnect}
       onProfileClick={handleProfileClick}

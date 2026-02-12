@@ -33,8 +33,8 @@ const PageNavigatorContext = createContext<PageNavigatorContextType | undefined>
 
 const TRANSITION_DURATION = 300; // ms
 
-export const PageNavigatorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentPage, setCurrentPage] = useState<PageId>('home');
+export const PageNavigatorProvider: React.FC<{ children: React.ReactNode; initialPage?: PageId }> = ({ children, initialPage }) => {
+  const [currentPage, setCurrentPage] = useState<PageId>(initialPage ?? 'home');
   const [previousPage, setPreviousPage] = useState<PageId | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [transitionDirection, setTransitionDirection] = useState<'forward' | 'back' | null>(null);
