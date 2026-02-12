@@ -444,7 +444,9 @@ export const ShopPage = ({
 
   const contentPadding = 16;
   const contentTop = topBarHeight + contentPadding;
-  const contentWidth = screenWidth - contentPadding * 2;
+  const contentMaxWidth = 720;
+  const contentWidth = Math.min(screenWidth - contentPadding * 2, contentMaxWidth);
+  const contentX = Math.max(contentPadding, (screenWidth - contentWidth) / 2);
   const cardW = (contentWidth - 12) / 2;
   const cardH = 156;
   const cardGap = 12;
@@ -562,7 +564,7 @@ export const ShopPage = ({
         cubeBalance={cubeBalance}
       />
 
-      <pixiContainer x={contentPadding} y={contentTop}>
+      <pixiContainer x={contentX} y={contentTop}>
         {!playerMeta ? (
           <pixiContainer>
             <pixiText

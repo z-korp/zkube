@@ -371,7 +371,9 @@ export const QuestsPage = ({
   const contentPadding = 16;
   const timerH = 32;
   const contentTop = topBarHeight + contentPadding;
-  const contentWidth = screenWidth - contentPadding * 2;
+  const contentMaxWidth = 720;
+  const contentWidth = Math.min(screenWidth - contentPadding * 2, contentMaxWidth);
+  const contentX = Math.max(contentPadding, (screenWidth - contentWidth) / 2);
   const listTop = contentTop + timerH;
   const listHeight = screenHeight - listTop - contentPadding;
 
@@ -400,7 +402,7 @@ export const QuestsPage = ({
     const tiersHeight = family.tiers.length * tierRowH;
     const headerH = 44;
     const progressH = !family.tiers.every((t) => t.completed) ? 26 : 0;
-    const claimBtnH = family.claimableTier !== null ? 46 : 0;
+    const claimBtnH = family.claimableTier !== null ? 48 : 0;
     const cardPadding = 14;
     return headerH + tiersHeight + progressH + claimBtnH + cardPadding;
   };
@@ -502,7 +504,7 @@ export const QuestsPage = ({
       <CountdownTimer x={screenWidth / 2} y={contentTop + timerH / 2} />
 
       {/* Quest list */}
-      <pixiContainer x={contentPadding} y={listTop}>
+      <pixiContainer x={contentX} y={listTop}>
         {isLoadingState ? (
           <pixiText
             text="Syncing daily quests..."
