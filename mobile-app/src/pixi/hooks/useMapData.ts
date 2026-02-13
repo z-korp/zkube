@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import {
   type MapNode,
-  type NodeType,
   getAllNodes,
   getZone,
   contractLevelToNodeIndex,

@@ -12,7 +12,7 @@ import { useTick } from '@pixi/react';
 // TYPES
 // ============================================================================
 
-export type PageId = 'home' | 'leaderboard' | 'shop' | 'quests' | 'settings' | 'mygames' | 'loadout' | 'tutorial';
+export type PageId = 'home' | 'leaderboard' | 'shop' | 'quests' | 'settings' | 'mygames' | 'loadout' | 'tutorial' | 'map';
 
 interface PageNavigatorContextType {
   currentPage: PageId;

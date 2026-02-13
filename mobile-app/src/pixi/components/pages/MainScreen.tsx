@@ -18,6 +18,7 @@ import { SettingsPage } from './SettingsPage';
 import { MyGamesPage, type PlayerGame } from './MyGamesPage';
 import { LoadoutPage } from './LoadoutPage';
 import { TutorialPage } from './TutorialPage';
+import { MapPage } from '../map/MapPage';
 import { Button } from '../ui';
 import { CubeBalance } from '../topbar/CubeBalance';
 import { PixiToastLayer } from '../ui/PixiToastLayer';
@@ -90,6 +91,10 @@ export interface MainScreenProps {
   isMusicEnabled?: boolean;
   onToggleSound?: () => void;
   onToggleMusic?: () => void;
+  // Map
+  mapSeed?: bigint;
+  mapCurrentLevel?: number;
+  onPlayLevel?: (contractLevel: number) => void;
 }
 
 // ============================================================================
@@ -547,6 +552,7 @@ const PageRenderer = (props: MainScreenProps & {
     questFamilies = [], questsLoading = false, questsStatus = 'success', onRefreshQuests, onClaimQuest,
     onUpgradeStartingBonus, onUpgradeBagSize, onUpgradeBridging, onUnlockBonus,
     isSoundEnabled, isMusicEnabled, onToggleSound, onToggleMusic,
+    mapSeed, mapCurrentLevel, onPlayLevel,
   } = props;
 
   const { currentPage, previousPage, isTransitioning, transitionDirection, transitionProgressRef, navigate, goHome } = usePageNavigator();
@@ -661,6 +667,17 @@ const PageRenderer = (props: MainScreenProps & {
             screenWidth={sw}
             screenHeight={sh}
             topBarHeight={topBarH}
+          />
+        )}
+
+        {currentPage === 'map' && mapSeed !== undefined && mapCurrentLevel !== undefined && (
+          <MapPage
+            seed={mapSeed}
+            currentLevel={mapCurrentLevel}
+            screenWidth={sw}
+            screenHeight={sh}
+            topBarHeight={topBarH}
+            onPlayLevel={onPlayLevel}
           />
         )}
 
