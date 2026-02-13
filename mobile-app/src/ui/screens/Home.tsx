@@ -14,6 +14,7 @@ import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
 import { useDojo } from "@/dojo/useDojo";
 import { MainScreen } from "@/pixi/components/pages/MainScreen";
 import type { PlayerGame } from "@/pixi/components/pages/MyGamesPage";
+import { useGame } from "@/hooks/useGame";
 import { useAccount, useConnect } from "@starknet-react/core";
 import ControllerConnector from "@cartridge/connector/controller";
 import type { GameTokenData } from "metagame-sdk";
@@ -122,6 +123,10 @@ export const Home = () => {
 
   // State for game starting
   const [isStartingGame, setIsStartingGame] = useState(false);
+
+  // State for map view (selected game from MyGames)
+  const [selectedGameId, setSelectedGameId] = useState<number | undefined>(undefined);
+  const { game: selectedGame, seed: selectedGameSeed } = useGame({ gameId: selectedGameId, shouldLog: false });
 
   // Fetch player's games
   const shouldFetchMyGames = Boolean(account?.address);
@@ -272,13 +277,32 @@ export const Home = () => {
     ]
   );
 
-  // Navigate to game
+  const [requestMapNavigation, setRequestMapNavigation] = useState(false);
+
   const handleNavigateToGame = useCallback(
     (gameId: number) => {
-      navigate(`/play/${gameId}`);
+      setSelectedGameId(gameId);
+      setRequestMapNavigation(true);
     },
-    [navigate]
+    []
   );
+
+  const handleMapNavigated = useCallback(() => {
+    setRequestMapNavigation(false);
+  }, []);
+
+  const handlePlayLevel = useCallback(
+    (_contractLevel: number) => {
+      if (selectedGameId) {
+        navigate(`/play/${selectedGameId}`);
+        setSelectedGameId(undefined);
+      }
+    },
+    [selectedGameId, navigate]
+  );
+
+  const mapSeed = selectedGame ? selectedGameSeed : undefined;
+  const mapCurrentLevel = selectedGame ? selectedGame.level : undefined;
 
   const handleConnect = useCallback(() => {
     const controllerConnector = connectors.find((c) => c.id === "controller");
@@ -443,6 +467,12 @@ export const Home = () => {
       isMusicEnabled={isMusicEnabled}
       onToggleSound={handleToggleSound}
       onToggleMusic={handleToggleMusic}
+      // Map
+      mapSeed={mapSeed}
+      mapCurrentLevel={mapCurrentLevel}
+      onPlayLevel={handlePlayLevel}
+      requestMapNavigation={requestMapNavigation}
+      onMapNavigated={handleMapNavigated}
     />
   );
 };

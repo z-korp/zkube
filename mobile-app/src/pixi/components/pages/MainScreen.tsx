@@ -95,6 +95,8 @@ export interface MainScreenProps {
   mapSeed?: bigint;
   mapCurrentLevel?: number;
   onPlayLevel?: (contractLevel: number) => void;
+  requestMapNavigation?: boolean;
+  onMapNavigated?: () => void;
 }
 
 // ============================================================================
@@ -553,9 +555,17 @@ const PageRenderer = (props: MainScreenProps & {
     onUpgradeStartingBonus, onUpgradeBagSize, onUpgradeBridging, onUnlockBonus,
     isSoundEnabled, isMusicEnabled, onToggleSound, onToggleMusic,
     mapSeed, mapCurrentLevel, onPlayLevel,
+    requestMapNavigation, onMapNavigated,
   } = props;
 
   const { currentPage, previousPage, isTransitioning, transitionDirection, transitionProgressRef, navigate, goHome } = usePageNavigator();
+
+  useEffect(() => {
+    if (requestMapNavigation && mapSeed !== undefined && mapCurrentLevel !== undefined) {
+      navigate('map');
+      onMapNavigated?.();
+    }
+  }, [requestMapNavigation, mapSeed, mapCurrentLevel, navigate, onMapNavigated]);
 
   const pageContainerRef = useRef<any>(null);
 
