@@ -248,11 +248,15 @@ mod grid_system {
                 0
             };
             
+            // Compute highest occupied row AFTER the move resolves (post-gravity, post-line-clear)
+            let highest_row_after = if new_blocks == 0 { 0 } else { InternalImpl::highest_occupied_row(new_blocks) };
+            
             // Build ConstraintContext
             let ctx = ConstraintContext {
                 lines_cleared,
                 combo_counter: game.combo_counter,
                 highest_row_before,
+                highest_row_after,
                 grid_is_empty: new_blocks == 0,
                 blocks_destroyed_of_target_size,
             };

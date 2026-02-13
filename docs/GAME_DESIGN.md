@@ -188,7 +188,7 @@ When creating a game, players select exactly 3 of the 5 bonus types:
 | 1 | **ClearLines** | Lines to clear in one move | How many times | ✅ | ✅ |
 | 2 | **BreakBlocks** | Block size to target (1-4) | Total blocks to destroy | ✅ | ✅ |
 | 3 | **AchieveCombo** | Combo target to reach | 1 (one-shot) | ✅ | ✅ |
-| 4 | **Fill** | Rows to fill | How many times | ✅ | ✅ |
+| 4 | **Fill** | Row height target (after resolve) | How many times | ✅ | ✅ |
 | 5 | **NoBonusUsed** | 0 | 0 | ❌ | ✅ |
 | 6 | **ClearGrid** | 0 | 1 (one-shot) | ❌ | ✅ |
 
@@ -197,21 +197,48 @@ When creating a game, players select exactly 3 of the 5 bonus types:
 ### When Constraints Apply
 
 - **Levels 1-2:** No constraints (warm-up)
-- **Level 3+:** Primary constraint generated from seed + difficulty (ClearLines via budget system)
+- **Level 3+:** Primary constraint generated from seed + difficulty via unified budget system
 - **Dual constraints:** Higher difficulties can have two constraints
-- **Boss levels (10/20/30/40/50):** Fixed constraint combos from boss identity system, up to triple constraints at L40/50
+- **Boss levels (10/20/30/40/50):** Fixed constraint combos from boss identity system at budget_max, up to triple constraints at L40/50
 
-### Regular Level Constraints
+### Unified Budget System
 
-Regular levels use a budget-based ClearLines generation system:
-- `min_lines` / `max_lines`: Range of lines to clear per move
-- `budget`: Determines how many times (line cost: 2→2, 3→4, 4→6, 5→10, 6→15, 7+→20)
-- `dual_chance`: Probability of secondary constraint (0% at VeryEasy, 100% at Master)
-- Secondary can be NoBonusUsed or another ClearLines
+All constraint types (regular + boss) use the same budget-based generation engine:
+
+1. **Budget** interpolates from VeryEasy (1-3) to Master (25-40)
+2. **Type selection** uses difficulty-weighted probabilities (regular levels)
+3. **Cost functions** per type convert budget → constraint values
+4. **Skew-high rolls** favor harder values within budget range
+
+**Type Selection Weights (regular levels):**
+
+| Tier | ClearLines | BreakBlocks | Fill | AchieveCombo |
+|------|:---:|:---:|:---:|:---:|
+| 0 (VeryEasy) | 80% | 15% | 5% | 0% |
+| 1 (Easy) | 65% | 20% | 10% | 5% |
+| 2 (Medium) | 55% | 22% | 13% | 10% |
+| 3 (MediumHard) | 45% | 24% | 16% | 15% |
+| 4 (Hard) | 38% | 25% | 17% | 20% |
+| 5 (VeryHard) | 32% | 25% | 18% | 25% |
+| 6 (Expert) | 28% | 25% | 20% | 27% |
+| 7 (Master) | 25% | 25% | 22% | 28% |
+
+**Cost Functions:**
+
+| Type | Cost → Values | Examples (budget=25) |
+|------|--------------|---------------------|
+| ClearLines | line_cost: 2→2, 3→4, 4→6, 5→10, 6→15, 7→20 | 5 lines x2, or 4 lines x4 |
+| BreakBlocks | break_cost(size): 1→3, 2→4, 3→5, 4→6. blocks=(budget×8)/cost | size-2: 50 blocks, size-4: 33 blocks |
+| AchieveCombo | combo_cost(c)=c×(c-1)/2: 3→3, 4→6, 5→10, 6→15, 7→21 | combo 5 (cost 10) or combo 7 (cost 21) |
+| Fill | row_cost: 5→2, 6→5, 7→10, 8→17, 9→26. times_cap: 5→4, 6→3, 7→2, 8→2, 9→1 | row 7 x2, or row 8 x1 |
+
+**Dual chance:** 0% at VeryEasy → 100% at Master. Secondary rolls a different type or NoBonusUsed.
 
 ### Boss Identity System
 
-10 themed bosses with fixed constraint combinations, selected by `derive_boss_id(level_seed) % 10 + 1`:
+10 themed bosses with fixed constraint type combinations. Boss identity determines WHICH types, the unified budget system at `budget_max` determines the VALUES.
+
+Selected by `derive_boss_id(level_seed) % 10 + 1`:
 
 | # | Boss | Core Pair (L10-30) | Third Constraint (L40/50) |
 |---|------|--------------------|---------------------------|
@@ -227,10 +254,9 @@ Regular levels use a budget-based ClearLines generation system:
 | 10 | Perfectionist | ClearLines + Fill | AchieveCombo |
 
 **Constraint progression:**
-- L10/20/30: Dual constraints (core pair), scaled by difficulty tier
-- L40/50: Triple constraints (core pair + third), scaled by difficulty tier
-- Constraint values scale with difficulty: higher tiers = harder targets
-- NoBonusUsed and ClearGrid don't scale (they're binary)
+- L10/20/30: Dual constraints (core pair), generated at budget_max
+- L40/50: Triple constraints (core pair + third), generated at budget_max
+- NoBonusUsed and ClearGrid are binary (no budget needed)
 
 ---
 

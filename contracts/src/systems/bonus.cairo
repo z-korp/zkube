@@ -98,13 +98,14 @@ mod bonus_system {
             };
             
             // Build ConstraintContext for bonus action
-            // Note: For bonus actions, highest_row_before is 0 and blocks tracking is 0
-            // since bonuses don't contribute to FillAndClear or BreakBlocks constraints
+            // Note: For bonus actions, highest_row_before/after are 0 and blocks tracking is 0
+            // since bonuses don't contribute to Fill or BreakBlocks constraints
             // (BreakBlocks via Harvest is tracked by the grid system's assess_game)
             let ctx = ConstraintContext {
                 lines_cleared,
                 combo_counter: game.combo_counter,
                 highest_row_before: 0,
+                highest_row_after: 0,
                 grid_is_empty: game.blocks == 0,
                 blocks_destroyed_of_target_size: 0,
             };

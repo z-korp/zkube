@@ -1,8 +1,8 @@
 /// Boss Identity System
 /// 
-/// 10 themed bosses, each with fixed constraint combinations that scale with difficulty.
-/// Boss identities are constants — same boss always has the same constraint types,
-/// but the values/counts scale based on the level's difficulty.
+/// 10 themed bosses, each with fixed constraint combinations.
+/// Boss identities define WHICH constraint types, and the unified budget system
+/// (from level.cairo) at max budget determines the VALUES.
 ///
 /// Boss selection is deterministic: derived from seed and theme (boss_id = seed % 10 + 1).
 ///
@@ -13,8 +13,12 @@
 /// - Levels 20-30 (Boss): Dual constraints
 /// - Level 40 (Boss): Triple constraints (core pair + third)
 /// - Level 50 (Boss): Triple constraints (core pair + third)
+///
+/// Boss constraints use budget_max from the level's difficulty settings,
+/// generating via the same budget engine as regular levels.
 
 use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait, ConstraintType};
+use zkube::helpers::level::LevelGeneratorTrait;
 
 /// Boss identity definition: which constraint types this boss uses
 #[derive(Copy, Drop)]
@@ -120,116 +124,22 @@ pub fn derive_boss_id(seed: felt252) -> u8 {
     id
 }
 
-/// Scale a constraint type into a concrete LevelConstraint based on difficulty tier.
-/// 
-/// Difficulty tiers (for scaling):
-/// - VeryEasy/Easy: tier 0-1 (easiest values)
-/// - Medium/MediumHard: tier 2-3
-/// - Hard/VeryHard: tier 4-5
-/// - Expert/Master: tier 6-7 (hardest values)
-///
-/// The seed provides randomness within the valid range for each tier.
-pub fn scale_constraint(
+/// Generate a boss constraint using the unified budget system from level.cairo.
+/// Uses budget_max for the boss's difficulty to create challenging constraints.
+/// NoBonusUsed and ClearGrid are binary — they don't use budget.
+fn generate_boss_constraint(
     constraint_type: ConstraintType,
-    difficulty_tier: u8,
+    budget_max: u8,
+    tier: u8,
     seed: felt252,
 ) -> LevelConstraint {
-    let seed_u256: u256 = seed.into();
-    
     match constraint_type {
-        ConstraintType::None => LevelConstraintTrait::none(),
-        ConstraintType::ClearLines => {
-            // Scale: lines 2-5, times 1-6 based on tier
-            let (min_lines, max_lines, min_times, max_times) = get_clear_lines_scaling(difficulty_tier);
-            let lines_range: u8 = if max_lines > min_lines { max_lines - min_lines + 1 } else { 1 };
-            let lines: u8 = min_lines + ((seed_u256 % lines_range.into()).try_into().unwrap());
-            let times_range: u8 = if max_times > min_times { max_times - min_times + 1 } else { 1 };
-            let times: u8 = min_times + (((seed_u256 / 100) % times_range.into()).try_into().unwrap());
-            LevelConstraintTrait::clear_lines(lines, times)
-        },
-        ConstraintType::BreakBlocks => {
-            // Scale: block_size 1-4, count 3-20 based on tier
-            let (min_size, max_size, min_count, max_count) = get_break_blocks_scaling(difficulty_tier);
-            let size_range: u8 = if max_size > min_size { max_size - min_size + 1 } else { 1 };
-            let block_size: u8 = min_size + ((seed_u256 % size_range.into()).try_into().unwrap());
-            let count_range: u8 = if max_count > min_count { max_count - min_count + 1 } else { 1 };
-            let count: u8 = min_count + (((seed_u256 / 100) % count_range.into()).try_into().unwrap());
-            LevelConstraintTrait::break_blocks(block_size, count)
-        },
-        ConstraintType::AchieveCombo => {
-            // Scale: combo target 3-8 based on tier
-            let (min_combo, max_combo) = get_achieve_combo_scaling(difficulty_tier);
-            let combo_range: u8 = if max_combo > min_combo { max_combo - min_combo + 1 } else { 1 };
-            let combo: u8 = min_combo + ((seed_u256 % combo_range.into()).try_into().unwrap());
-            LevelConstraintTrait::achieve_combo(combo)
-        },
-        ConstraintType::FillAndClear => {
-            // Scale: row_height 5-8, times 1-4 based on tier
-            let (min_row, max_row, min_times, max_times) = get_fill_and_clear_scaling(difficulty_tier);
-            let row_range: u8 = if max_row > min_row { max_row - min_row + 1 } else { 1 };
-            let row: u8 = min_row + ((seed_u256 % row_range.into()).try_into().unwrap());
-            let times_range: u8 = if max_times > min_times { max_times - min_times + 1 } else { 1 };
-            let times: u8 = min_times + (((seed_u256 / 100) % times_range.into()).try_into().unwrap());
-            LevelConstraintTrait::fill_and_clear(row, times)
-        },
+        // Binary constraints: no budget needed
         ConstraintType::NoBonusUsed => LevelConstraintTrait::no_bonus(),
         ConstraintType::ClearGrid => LevelConstraintTrait::clear_grid(),
-    }
-}
-
-/// Get ClearLines scaling parameters for a difficulty tier
-/// Returns (min_lines, max_lines, min_times, max_times)
-fn get_clear_lines_scaling(tier: u8) -> (u8, u8, u8, u8) {
-    if tier <= 1 {
-        (2, 3, 1, 2)  // Easy: 2-3 lines, 1-2 times
-    } else if tier <= 3 {
-        (2, 4, 1, 3)  // Medium: 2-4 lines, 1-3 times
-    } else if tier <= 5 {
-        (3, 5, 2, 4)  // Hard: 3-5 lines, 2-4 times
-    } else {
-        (3, 6, 2, 5)  // Expert+: 3-6 lines, 2-5 times
-    }
-}
-
-/// Get BreakBlocks scaling parameters for a difficulty tier
-/// Returns (min_size, max_size, min_count, max_count)
-fn get_break_blocks_scaling(tier: u8) -> (u8, u8, u8, u8) {
-    if tier <= 1 {
-        (1, 3, 3, 8)   // Easy: size 1-3, 3-8 blocks
-    } else if tier <= 3 {
-        (1, 4, 5, 12)  // Medium: size 1-4, 5-12 blocks
-    } else if tier <= 5 {
-        (2, 4, 8, 16)  // Hard: size 2-4, 8-16 blocks
-    } else {
-        (2, 4, 10, 20) // Expert+: size 2-4, 10-20 blocks
-    }
-}
-
-/// Get AchieveCombo scaling parameters for a difficulty tier
-/// Returns (min_combo, max_combo)
-fn get_achieve_combo_scaling(tier: u8) -> (u8, u8) {
-    if tier <= 1 {
-        (3, 4)  // Easy: combo 3-4
-    } else if tier <= 3 {
-        (3, 5)  // Medium: combo 3-5
-    } else if tier <= 5 {
-        (4, 6)  // Hard: combo 4-6
-    } else {
-        (5, 8)  // Expert+: combo 5-8
-    }
-}
-
-/// Get Fill scaling parameters for a difficulty tier
-/// Returns (min_row, max_row, min_times, max_times)
-fn get_fill_and_clear_scaling(tier: u8) -> (u8, u8, u8, u8) {
-    if tier <= 1 {
-        (5, 6, 1, 1)  // Easy: rows 5-6, 1 time
-    } else if tier <= 3 {
-        (5, 7, 1, 2)  // Medium: rows 5-7, 1-2 times
-    } else if tier <= 5 {
-        (6, 8, 1, 3)  // Hard: rows 6-8, 1-3 times
-    } else {
-        (7, 8, 2, 4)  // Expert+: rows 7-8, 2-4 times
+        ConstraintType::None => LevelConstraintTrait::none(),
+        // Budget-based constraints: use the same generation as regular levels
+        _ => LevelGeneratorTrait::generate_constraint_from_budget(seed, budget_max, constraint_type, tier),
     }
 }
 
@@ -248,8 +158,12 @@ pub fn difficulty_to_tier(difficulty: zkube::types::difficulty::Difficulty) -> u
     }
 }
 
-/// Generate boss constraints for a specific boss level.
+/// Generate boss constraints for a specific boss level using the unified budget system.
 /// 
+/// Boss identity determines WHICH types. Budget_max determines the VALUES.
+/// Uses the same budget-based generation engine as regular levels, but at budget_max
+/// to ensure boss constraints are challenging.
+///
 /// - Levels 10/20/30: Dual constraints (primary + secondary)
 /// - Levels 40/50: Triple constraints (primary + secondary + tertiary)
 ///
@@ -258,30 +172,31 @@ pub fn generate_boss_constraints(
     boss_id: u8,
     difficulty: zkube::types::difficulty::Difficulty,
     seed: felt252,
+    budget_max: u8,
 ) -> (LevelConstraint, LevelConstraint, LevelConstraint) {
     let identity = get_boss_identity(boss_id);
     let tier = difficulty_to_tier(difficulty);
     
     let seed_u256: u256 = seed.into();
     
-    // Generate primary constraint
+    // Generate primary constraint at budget_max
     let primary_seed: felt252 = seed;
-    let c1 = scale_constraint(identity.primary_type, tier, primary_seed);
+    let c1 = generate_boss_constraint(identity.primary_type, budget_max, tier, primary_seed);
     
     // Generate secondary constraint (different seed segment)
     let secondary_seed: felt252 = (seed_u256 / 10000000).try_into().unwrap();
-    let c2 = scale_constraint(identity.secondary_type, tier, secondary_seed);
+    let c2 = generate_boss_constraint(identity.secondary_type, budget_max, tier, secondary_seed);
     
     // Tertiary (caller decides when to include it based on level)
     let tertiary_seed: felt252 = (seed_u256 / 100000000000000).try_into().unwrap();
-    let c3 = scale_constraint(identity.tertiary_type, tier, tertiary_seed);
+    let c3 = generate_boss_constraint(identity.tertiary_type, budget_max, tier, tertiary_seed);
     
     (c1, c2, c3)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{get_boss_identity, derive_boss_id, generate_boss_constraints, scale_constraint, difficulty_to_tier};
+    use super::{get_boss_identity, derive_boss_id, generate_boss_constraints, generate_boss_constraint, difficulty_to_tier};
     use zkube::types::constraint::{ConstraintType, LevelConstraintTrait};
     use zkube::types::difficulty::Difficulty;
 
@@ -323,13 +238,14 @@ mod tests {
 
     #[test]
     fn test_generate_boss_constraints_dual() {
-        let (c1, c2, _c3) = generate_boss_constraints(1, Difficulty::Hard, 'TEST_SEED');
+        // Boss 1 (Combo Master): ClearLines + AchieveCombo + NoBonusUsed
+        // Budget_max = 24 (Hard difficulty)
+        let (c1, c2, _c3) = generate_boss_constraints(1, Difficulty::Hard, 'TEST_SEED', 24);
         
-        // Boss 1 (Combo Master): ClearLines + AchieveCombo
         assert!(c1.constraint_type == ConstraintType::ClearLines, "Boss 1 primary should be ClearLines");
         assert!(c2.constraint_type == ConstraintType::AchieveCombo, "Boss 1 secondary should be AchieveCombo");
         
-        // Values should be reasonable for Hard difficulty
+        // Values should be reasonable for Hard difficulty at budget_max
         assert!(c1.value >= 2, "Lines should be at least 2");
         assert!(c1.required_count >= 1, "Times should be at least 1");
         assert!(c2.value >= 3, "Combo target should be at least 3");
@@ -337,9 +253,10 @@ mod tests {
 
     #[test]
     fn test_generate_boss_constraints_triple() {
-        let (c1, c2, c3) = generate_boss_constraints(1, Difficulty::Expert, 'TEST_SEED');
-        
         // Boss 1 triple: ClearLines + AchieveCombo + NoBonusUsed
+        // Budget_max = 34 (Expert difficulty)
+        let (c1, c2, c3) = generate_boss_constraints(1, Difficulty::Expert, 'TEST_SEED', 34);
+        
         assert!(c1.constraint_type == ConstraintType::ClearLines, "Boss 1 primary");
         assert!(c2.constraint_type == ConstraintType::AchieveCombo, "Boss 1 secondary");
         assert!(c3.constraint_type == ConstraintType::NoBonusUsed, "Boss 1 tertiary");
@@ -354,21 +271,21 @@ mod tests {
     }
 
     #[test]
-    fn test_scale_constraint_none() {
-        let c = scale_constraint(ConstraintType::None, 5, 'SEED');
+    fn test_generate_boss_constraint_none() {
+        let c = generate_boss_constraint(ConstraintType::None, 20, 5, 'SEED');
         assert!(c.constraint_type == ConstraintType::None, "Should be None");
     }
 
     #[test]
-    fn test_scale_constraint_no_bonus() {
-        let c = scale_constraint(ConstraintType::NoBonusUsed, 5, 'SEED');
+    fn test_generate_boss_constraint_no_bonus() {
+        let c = generate_boss_constraint(ConstraintType::NoBonusUsed, 20, 5, 'SEED');
         assert!(c.constraint_type == ConstraintType::NoBonusUsed, "Should be NoBonusUsed");
         assert!(c.value == 0, "NoBonusUsed has no value");
     }
 
     #[test]
-    fn test_scale_constraint_clear_grid() {
-        let c = scale_constraint(ConstraintType::ClearGrid, 5, 'SEED');
+    fn test_generate_boss_constraint_clear_grid() {
+        let c = generate_boss_constraint(ConstraintType::ClearGrid, 20, 5, 'SEED');
         assert!(c.constraint_type == ConstraintType::ClearGrid, "Should be ClearGrid");
         assert!(c.required_count == 1, "ClearGrid requires 1");
     }
@@ -377,12 +294,31 @@ mod tests {
     fn test_all_bosses_generate_valid() {
         let mut i: u8 = 1;
         while i <= 10 {
-            let (c1, c2, c3) = generate_boss_constraints(i, Difficulty::Hard, 'SEED');
+            // Budget_max = 24 (Hard difficulty)
+            let (c1, c2, c3) = generate_boss_constraints(i, Difficulty::Hard, 'SEED', 24);
             // All constraints should be valid (non-None for bosses)
             assert!(c1.constraint_type != ConstraintType::None, "Primary should not be None");
             assert!(c2.constraint_type != ConstraintType::None, "Secondary should not be None");
             assert!(c3.constraint_type != ConstraintType::None, "Tertiary should not be None");
             i += 1;
         };
+    }
+    
+    #[test]
+    fn test_boss_budget_integration() {
+        // Verify that budget-based generation produces reasonable values
+        // Boss 2 (Demolisher): BreakBlocks + ClearLines + ClearGrid
+        let (c1, c2, c3) = generate_boss_constraints(2, Difficulty::Master, 'BUDGET_TEST', 40);
+        
+        assert!(c1.constraint_type == ConstraintType::BreakBlocks, "Boss 2 primary should be BreakBlocks");
+        assert!(c2.constraint_type == ConstraintType::ClearLines, "Boss 2 secondary should be ClearLines");
+        assert!(c3.constraint_type == ConstraintType::ClearGrid, "Boss 2 tertiary should be ClearGrid");
+        
+        // BreakBlocks at budget 40 should have substantial count
+        assert!(c1.value >= 1 && c1.value <= 4, "Block size should be 1-4");
+        assert!(c1.required_count >= 4, "Block count should be at least 4 at budget 40");
+        
+        // ClearLines at budget 40 should be challenging
+        assert!(c2.value >= 2, "Lines should be at least 2");
     }
 }

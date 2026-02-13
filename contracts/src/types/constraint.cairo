@@ -6,7 +6,7 @@
 /// - ClearLines: Clear X lines in a single move, Y times
 /// - BreakBlocks: Destroy X blocks of a specific size, accumulating count
 /// - AchieveCombo: Reach a combo of X (one-shot: progress=1 once triggered)
-/// - Fill: Fill X rows Y times (tracked via highest_row_before + lines_cleared)
+/// - Fill: Fill X rows Y times (tracked via highest_row_after — grid height after resolve)
 /// - NoBonusUsed: Complete level without using any bonus (boss-only)
 /// - ClearGrid: Clear the entire grid (boss-only, one-shot)
 
@@ -63,6 +63,8 @@ pub struct ConstraintContext {
     pub combo_counter: u8,
     /// Highest occupied row index before this action (0 = bottom, 9 = top)
     pub highest_row_before: u8,
+    /// Highest occupied row index after this action resolves (post-gravity, post-line-clear)
+    pub highest_row_after: u8,
     /// Whether the grid is completely empty after this action (blocks == 0)
     pub grid_is_empty: bool,
     /// Number of blocks of the target size destroyed this action
@@ -79,6 +81,7 @@ pub impl ConstraintContextImpl of ConstraintContextTrait {
             lines_cleared: 0,
             combo_counter: 0,
             highest_row_before: 0,
+            highest_row_after: 0,
             grid_is_empty: false,
             blocks_destroyed_of_target_size: 0,
         }
@@ -198,10 +201,12 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
                 }
             },
             ConstraintType::FillAndClear => {
-                // Fill constraint: grid was filled to target row height then lines cleared
-                // highest_row_before is 0-indexed (0 = bottom row only)
-                // value is the rows to fill target (e.g., 7 means row index 7 was occupied)
-                if ctx.highest_row_before >= self.value && ctx.lines_cleared > 0 {
+                // Fill constraint: grid reaches target row height after move resolves
+                // highest_row_after is 0-indexed (0 = bottom row only, 9 = top)
+                // value is the row height target (e.g., 7 means row index 7 occupied after resolve)
+                // Triggers when the grid height after everything resolves (gravity + line clears)
+                // meets or exceeds the target
+                if ctx.highest_row_after >= self.value {
                     let next: u16 = current_progress.into() + 1;
                     let max_needed: u16 = self.required_count.into();
                     if next > max_needed {
@@ -344,17 +349,17 @@ mod tests {
         let constraint = LevelConstraintTrait::clear_lines(3, 2);
         
         // Clearing 2 lines doesn't count (need 3)
-        let ctx = ConstraintContext { lines_cleared: 2, combo_counter: 0, highest_row_before: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
+        let ctx = ConstraintContext { lines_cleared: 2, combo_counter: 0, highest_row_before: 0, highest_row_after: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
         let progress = constraint.update_progress(0, ctx);
         assert!(progress == 0, "Clearing 2 lines shouldn't increment progress");
         
         // Clearing 3 lines counts
-        let ctx = ConstraintContext { lines_cleared: 3, combo_counter: 0, highest_row_before: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
+        let ctx = ConstraintContext { lines_cleared: 3, combo_counter: 0, highest_row_before: 0, highest_row_after: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
         let progress = constraint.update_progress(0, ctx);
         assert!(progress == 1, "Clearing 3 lines should increment progress");
         
         // Clearing 4 lines also counts
-        let ctx = ConstraintContext { lines_cleared: 4, combo_counter: 0, highest_row_before: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
+        let ctx = ConstraintContext { lines_cleared: 4, combo_counter: 0, highest_row_before: 0, highest_row_after: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
         let progress = constraint.update_progress(1, ctx);
         assert!(progress == 2, "Clearing 4 lines should increment progress");
     }
@@ -367,16 +372,16 @@ mod tests {
         assert!(!constraint.is_satisfied(0, false), "Should not be satisfied with 0");
         
         // Progress accumulates
-        let ctx = ConstraintContext { lines_cleared: 0, combo_counter: 0, highest_row_before: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 3 };
+        let ctx = ConstraintContext { lines_cleared: 0, combo_counter: 0, highest_row_before: 0, highest_row_after: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 3 };
         let progress = constraint.update_progress(0, ctx);
         assert!(progress == 3, "Should accumulate 3 blocks");
         
-        let ctx2 = ConstraintContext { lines_cleared: 0, combo_counter: 0, highest_row_before: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 5 };
+        let ctx2 = ConstraintContext { lines_cleared: 0, combo_counter: 0, highest_row_before: 0, highest_row_after: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 5 };
         let progress2 = constraint.update_progress(3, ctx2);
         assert!(progress2 == 8, "Should accumulate to 8");
         
         // Clamps at required_count
-        let ctx3 = ConstraintContext { lines_cleared: 0, combo_counter: 0, highest_row_before: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 5 };
+        let ctx3 = ConstraintContext { lines_cleared: 0, combo_counter: 0, highest_row_before: 0, highest_row_after: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 5 };
         let progress3 = constraint.update_progress(8, ctx3);
         assert!(progress3 == 10, "Should clamp at 10");
         
@@ -392,17 +397,17 @@ mod tests {
         assert!(!constraint.is_satisfied(0, false), "Should not be satisfied at 0");
         
         // Combo 4 doesn't trigger
-        let ctx = ConstraintContext { lines_cleared: 0, combo_counter: 4, highest_row_before: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
+        let ctx = ConstraintContext { lines_cleared: 0, combo_counter: 4, highest_row_before: 0, highest_row_after: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
         let progress = constraint.update_progress(0, ctx);
         assert!(progress == 0, "Combo 4 shouldn't trigger");
         
         // Combo 5 triggers (one-shot)
-        let ctx2 = ConstraintContext { lines_cleared: 0, combo_counter: 5, highest_row_before: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
+        let ctx2 = ConstraintContext { lines_cleared: 0, combo_counter: 5, highest_row_before: 0, highest_row_after: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
         let progress2 = constraint.update_progress(0, ctx2);
         assert!(progress2 == 1, "Combo 5 should trigger");
         
         // Stays at 1
-        let ctx3 = ConstraintContext { lines_cleared: 0, combo_counter: 3, highest_row_before: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
+        let ctx3 = ConstraintContext { lines_cleared: 0, combo_counter: 3, highest_row_before: 0, highest_row_after: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
         let progress3 = constraint.update_progress(1, ctx3);
         assert!(progress3 == 1, "Should stay at 1 once achieved");
         
@@ -414,20 +419,30 @@ mod tests {
         // Fill 7 rows, 2 times
         let constraint = LevelConstraintTrait::fill_and_clear(7, 2);
         
-        // Not high enough
-        let ctx = ConstraintContext { lines_cleared: 2, combo_counter: 0, highest_row_before: 5, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
+        // Grid not high enough after resolve
+        let ctx = ConstraintContext { lines_cleared: 2, combo_counter: 0, highest_row_before: 5, highest_row_after: 4, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
         let progress = constraint.update_progress(0, ctx);
-        assert!(progress == 0, "Row 5 too low for target 7");
+        assert!(progress == 0, "Row 4 after resolve too low for target 7");
         
-        // High enough and cleared lines
-        let ctx2 = ConstraintContext { lines_cleared: 3, combo_counter: 0, highest_row_before: 7, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
+        // Grid height meets target after resolve
+        let ctx2 = ConstraintContext { lines_cleared: 3, combo_counter: 0, highest_row_before: 9, highest_row_after: 7, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
         let progress2 = constraint.update_progress(0, ctx2);
-        assert!(progress2 == 1, "Row 7 meets target, lines cleared");
+        assert!(progress2 == 1, "Row 7 after resolve meets target");
         
-        // No lines cleared doesn't count
-        let ctx3 = ConstraintContext { lines_cleared: 0, combo_counter: 0, highest_row_before: 8, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
+        // Grid height below target after resolve (even if before was high)
+        let ctx3 = ConstraintContext { lines_cleared: 3, combo_counter: 0, highest_row_before: 8, highest_row_after: 5, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
         let progress3 = constraint.update_progress(1, ctx3);
-        assert!(progress3 == 1, "No lines cleared shouldn't increment");
+        assert!(progress3 == 1, "Row 5 after resolve doesn't meet target 7");
+        
+        // Grid empty (row_after=0) doesn't count
+        let ctx4 = ConstraintContext { lines_cleared: 5, combo_counter: 0, highest_row_before: 9, highest_row_after: 0, grid_is_empty: true, blocks_destroyed_of_target_size: 0 };
+        let progress4 = constraint.update_progress(1, ctx4);
+        assert!(progress4 == 1, "Empty grid shouldn't increment fill");
+        
+        // Second fill
+        let ctx5 = ConstraintContext { lines_cleared: 1, combo_counter: 0, highest_row_before: 8, highest_row_after: 8, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
+        let progress5 = constraint.update_progress(1, ctx5);
+        assert!(progress5 == 2, "Row 8 after resolve meets target 7, second time");
         
         // Satisfied at 2
         assert!(constraint.is_satisfied(2, false), "Should be satisfied at 2");
@@ -452,12 +467,12 @@ mod tests {
         assert!(!constraint.is_satisfied(0, false), "Should not be satisfied at 0");
         
         // Grid not empty
-        let ctx = ConstraintContext { lines_cleared: 5, combo_counter: 0, highest_row_before: 3, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
+        let ctx = ConstraintContext { lines_cleared: 5, combo_counter: 0, highest_row_before: 3, highest_row_after: 1, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
         let progress = constraint.update_progress(0, ctx);
         assert!(progress == 0, "Grid not empty, no progress");
         
         // Grid empty
-        let ctx2 = ConstraintContext { lines_cleared: 5, combo_counter: 0, highest_row_before: 3, grid_is_empty: true, blocks_destroyed_of_target_size: 0 };
+        let ctx2 = ConstraintContext { lines_cleared: 5, combo_counter: 0, highest_row_before: 3, highest_row_after: 0, grid_is_empty: true, blocks_destroyed_of_target_size: 0 };
         let progress2 = constraint.update_progress(0, ctx2);
         assert!(progress2 == 1, "Grid empty should trigger");
         
@@ -505,6 +520,7 @@ mod tests {
         assert!(ctx.lines_cleared == 0, "Should be 0");
         assert!(ctx.combo_counter == 0, "Should be 0");
         assert!(ctx.highest_row_before == 0, "Should be 0");
+        assert!(ctx.highest_row_after == 0, "Should be 0");
         assert!(ctx.grid_is_empty == false, "Should be false");
         assert!(ctx.blocks_destroyed_of_target_size == 0, "Should be 0");
     }

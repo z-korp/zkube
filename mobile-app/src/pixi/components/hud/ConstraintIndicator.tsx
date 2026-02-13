@@ -65,7 +65,7 @@ export const ConstraintIndicator = ({
       case ConstraintType.AchieveCombo:
         return `${constraint.value}+ combo`;
       case ConstraintType.FillAndClear:
-        return `Fill ${constraint.value} rows`;
+        return `Row ${constraint.value}`;
       case ConstraintType.NoBonusUsed:
         return "No Bonus";
       case ConstraintType.ClearGrid:

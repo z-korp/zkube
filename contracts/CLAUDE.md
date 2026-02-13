@@ -435,9 +435,9 @@ Defined in `types/difficulty.cairo` and implemented in `elements/difficulties/`:
 | 5 | NoBonusUsed | ❌ | ✅ |
 | 6 | ClearGrid | ❌ | ✅ |
 
-Boss levels (10/20/30/40/50) use `helpers/boss.cairo` which defines 10 themed bosses with fixed constraint combinations. Boss ID is derived from `level_seed % 10 + 1`. L10-30 have dual constraints, L40/50 have triple constraints. Constraint values scale with difficulty tier.
+**Unified budget system:** All 4 regular types use the same budget-based generation in `helpers/level.cairo`. Regular levels select type by difficulty-weighted probabilities; boss levels use boss identity for types and `budget_max` for values. Boss levels (10/20/30/40/50) use `helpers/boss.cairo` which defines 10 themed bosses. Boss ID is derived from `level_seed % 10 + 1`. L10-30 have dual constraints, L40/50 have triple constraints. NoBonusUsed and ClearGrid are binary (no budget).
 
-The `ConstraintContext` struct is passed to `update_progress()` for all constraint types, gating expensive computations (e.g., BreakBlocks counting) behind `any_needs_break_blocks()` checks.
+The `ConstraintContext` struct (includes `highest_row_after` for Fill constraint) is passed to `update_progress()` for all constraint types, gating expensive computations (e.g., BreakBlocks counting) behind `any_needs_break_blocks()` checks. Fill triggers when grid height after move resolves reaches the target row.
 
 ## Dependencies
 

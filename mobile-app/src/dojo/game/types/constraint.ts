@@ -7,7 +7,7 @@
  * - ClearLines: Clear X lines in a single move, Y times
  * - BreakBlocks: Destroy X blocks of a specific size, accumulating count
  * - AchieveCombo: Reach a combo of X (one-shot: progress=1 once triggered)
- * - Fill: Fill X rows Y times (tracked via highest_row_before + lines_cleared)
+ * - Fill: Fill X rows Y times (grid height reaches row X after move resolves)
  * - NoBonusUsed: Complete level without using any bonus (boss-only)
  * - ClearGrid: Clear the entire grid (boss-only, one-shot)
  */
@@ -21,7 +21,7 @@ export enum ConstraintType {
   BreakBlocks = 2,
   /** Must achieve a combo of at least X lines in a single level */
   AchieveCombo = 3,
-  /** Must fill X rows Y times (grid fills to row height, then clears lines) */
+  /** Must fill X rows Y times (grid height reaches row X after move resolves) */
   FillAndClear = 4,
   /** Must complete level without using any bonus (boss-only) */
   NoBonusUsed = 5,
@@ -36,14 +36,14 @@ export interface LevelConstraint {
    * - ClearLines: number of lines to clear in one move
    * - BreakBlocks: block size to target (1-4)
    * - AchieveCombo: combo target to reach
-   * - FillAndClear: rows to fill (row height target)
-   * - NoBonusUsed/ClearGrid/None: 0 */
+    * - FillAndClear: row height target (grid must reach this after resolve)
+    * - NoBonusUsed/ClearGrid/None: 0 */
   value: number;
   /** Meaning varies by type:
-   * - ClearLines: how many times to achieve it
-   * - BreakBlocks: total blocks to destroy
-   * - AchieveCombo: 1 (always one-shot)
-   * - FillAndClear: how many times
+    * - ClearLines: how many times to achieve it
+    * - BreakBlocks: total blocks to destroy
+    * - AchieveCombo: 1 (always one-shot)
+    * - FillAndClear: how many times to reach target height
    * - NoBonusUsed/ClearGrid/None: 0 */
   requiredCount: number;
 }
@@ -128,7 +128,7 @@ export class Constraint {
       case ConstraintType.AchieveCombo:
         return `Achieve ${this.value}+ combo`;
       case ConstraintType.FillAndClear:
-        return `Fill ${this.value} rows ${this.requiredCount} time${this.requiredCount > 1 ? "s" : ""}`;
+        return `Reach row ${this.value} ${this.requiredCount} time${this.requiredCount > 1 ? "s" : ""}`;
       case ConstraintType.NoBonusUsed:
         return "No bonus allowed";
       case ConstraintType.ClearGrid:
@@ -150,7 +150,7 @@ export class Constraint {
       case ConstraintType.AchieveCombo:
         return `${this.value}+ combo`;
       case ConstraintType.FillAndClear:
-        return `Fill ${this.value} rows x${this.requiredCount}`;
+        return `Row ${this.value} x${this.requiredCount}`;
       case ConstraintType.NoBonusUsed:
         return "No Bonus";
       case ConstraintType.ClearGrid:
