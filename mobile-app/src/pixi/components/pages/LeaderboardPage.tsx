@@ -3,8 +3,9 @@
  * Background is rendered by MainScreen (shared across all pages)
  */
 
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
+import { useTick } from '@pixi/react';
 import { PageTopBar } from './PageTopBar';
 import type { LeaderboardEntry } from '@/hooks/useLeaderboardSlot';
 import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
@@ -133,17 +134,38 @@ export const LeaderboardPage = ({
   const [scrollY, setScrollY] = useState(0);
   const isDragging = useRef(false);
   const lastY = useRef(0);
+  const velocityRef = useRef(0);
+  const lastMoveTimeRef = useRef(0);
 
   const contentPadding = 16;
   const headerH = 40;
   const rowH = 64;
   const rowGap = 10;
-  const contentWidth = screenWidth - contentPadding * 2;
+  const contentMaxWidth = 720;
+  const contentWidth = Math.min(screenWidth - contentPadding * 2, contentMaxWidth);
+  const contentX = Math.max(contentPadding, (screenWidth - contentWidth) / 2);
   const contentTop = topBarHeight + contentPadding;
   const listTop = contentTop + headerH + 8;
   const listHeight = screenHeight - listTop - contentPadding;
   const totalHeight = entries.length * (rowH + rowGap);
   const maxScroll = Math.max(0, totalHeight - listHeight);
+
+  const BUFFER = 3;
+  const visibleEntries = useMemo(() => {
+    if (entries.length === 0) return [];
+    const itemStride = rowH + rowGap;
+    const startIdx = Math.max(0, Math.floor(scrollY / itemStride) - BUFFER);
+    const endIdx = Math.min(entries.length, Math.ceil((scrollY + listHeight) / itemStride) + BUFFER);
+    return entries.slice(startIdx, endIdx).map((entry, i) => ({
+      entry,
+      rank: startIdx + i + 1,
+      y: (startIdx + i) * itemStride,
+    }));
+  }, [entries, scrollY, listHeight, rowH, rowGap]);
+
+  useEffect(() => {
+    setScrollY((prev) => Math.max(0, Math.min(maxScroll, prev)));
+  }, [maxScroll]);
 
   const drawScrollHitArea = useCallback((g: PixiGraphics) => {
     g.clear();
@@ -154,6 +176,8 @@ export const LeaderboardPage = ({
   const handlePointerDown = useCallback((e: any) => {
     isDragging.current = true;
     lastY.current = e.data.global.y;
+    velocityRef.current = 0;
+    lastMoveTimeRef.current = performance.now();
   }, []);
 
   const handlePointerMove = useCallback(
@@ -161,6 +185,12 @@ export const LeaderboardPage = ({
       if (!isDragging.current) return;
       const dy = lastY.current - e.data.global.y;
       lastY.current = e.data.global.y;
+      const now = performance.now();
+      const dt = Math.max(now - lastMoveTimeRef.current, 1);
+      lastMoveTimeRef.current = now;
+
+      const instantV = dy / (dt / 16.67);
+      velocityRef.current = velocityRef.current * 0.6 + instantV * 0.4;
       setScrollY((prev) => Math.max(0, Math.min(maxScroll, prev + dy)));
     },
     [maxScroll]
@@ -169,6 +199,23 @@ export const LeaderboardPage = ({
   const handlePointerUp = useCallback(() => {
     isDragging.current = false;
   }, []);
+
+  useTick((ticker) => {
+    if (isDragging.current) return;
+    if (Math.abs(velocityRef.current) < 0.05) {
+      velocityRef.current = 0;
+      return;
+    }
+    const frameScale = ticker.deltaMS / 16.67;
+    const nextV = velocityRef.current * Math.pow(0.92, frameScale);
+    const delta = velocityRef.current * frameScale;
+    setScrollY((prev) => {
+      const next = Math.max(0, Math.min(maxScroll, prev + delta));
+      if (next === 0 || next === maxScroll) velocityRef.current = 0;
+      return next;
+    });
+    velocityRef.current = nextV;
+  });
 
   // Draw header
   const drawHeader = useCallback(
@@ -215,7 +262,7 @@ export const LeaderboardPage = ({
       />
 
       {/* Content */}
-      <pixiContainer x={contentPadding} y={contentTop}>
+      <pixiContainer x={contentX} y={contentTop}>
         {/* Header */}
         <pixiGraphics draw={drawHeader} eventMode="none" />
         <pixiText text="#" x={28} y={headerH / 2} anchor={0.5} style={HEADER_LABEL_STYLE} eventMode="none" />
@@ -225,7 +272,7 @@ export const LeaderboardPage = ({
       </pixiContainer>
 
       {/* Scrollable list */}
-      <pixiContainer x={contentPadding} y={listTop}>
+      <pixiContainer x={contentX} y={listTop}>
         {loading ? (
           <pixiText text="Loading leaderboard..." x={contentWidth / 2} y={80} anchor={0.5} style={LB_EMPTY_STYLE} eventMode="none" />
         ) : entries.length === 0 ? (
@@ -240,20 +287,18 @@ export const LeaderboardPage = ({
           >
             <pixiGraphics draw={drawScrollHitArea} />
 
-            {/* Scrollable content */}
             <pixiContainer y={-scrollY}>
-              {entries.map((entry, i) => (
+              {visibleEntries.map(({ entry, rank, y }) => (
                 <LeaderboardRow
                   key={entry.token_id}
                   entry={entry}
-                  rank={i + 1}
-                  y={i * (rowH + rowGap)}
+                  rank={rank}
+                  y={y}
                   width={contentWidth}
                 />
               ))}
             </pixiContainer>
 
-            {/* Scroll indicator */}
             <pixiGraphics draw={drawScrollTrack} />
           </pixiContainer>
         )}

@@ -14,6 +14,7 @@ import { QuestsProvider } from "./contexts/quests";
 import { type BigNumberish, shortString, PaymasterRpc } from "starknet";
 import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
 import { Assets } from "pixi.js";
+import { Capacitor } from "@capacitor/core";
 import { createLogger } from "./utils/logger";
 import { preloadEssentials } from "./pixi/assets/preloader";
 import { soundManager } from "./pixi/audio/SoundManager";
@@ -98,6 +99,13 @@ export default function AppRuntime() {
 
     return () => {
       cancelled = true;
+
+      // Clean up native app-state listeners to prevent accumulation
+      if (Capacitor.isNativePlatform()) {
+        import("./dojo/connectorWrapper").then(({ default: Wrapper }) => {
+          Wrapper.disposeAppStateListeners();
+        }).catch(() => { /* not available */ });
+      }
     };
   }, []);
 

@@ -581,7 +581,17 @@ const PlayScreenInner = (props: PlayScreenProps) => {
     g.stroke({ color: 0x60a5fa, width: 1.5, alpha: 0.6 });
   }, []);
 
-  const isInteractionBlocked = isTxProcessing || isSurrendering || isMenuOpen || isGameOver || isVictory || isLevelComplete || isInGameShopOpen;
+  type ActiveModal = 'none' | 'menu' | 'gameOver' | 'victory' | 'levelComplete' | 'inGameShop';
+  const activeModal: ActiveModal = useMemo(() => {
+    if (isGameOver && !isVictory) return 'gameOver';
+    if (isVictory) return 'victory';
+    if (isLevelComplete) return 'levelComplete';
+    if (isInGameShopOpen) return 'inGameShop';
+    if (isMenuOpen) return 'menu';
+    return 'none';
+  }, [isGameOver, isVictory, isLevelComplete, isInGameShopOpen, isMenuOpen]);
+
+  const isInteractionBlocked = isTxProcessing || isSurrendering || activeModal !== 'none';
 
   useEffect(() => {
     if (isGameOver || isVictory || isLevelComplete || isInGameShopOpen) {
@@ -702,13 +712,13 @@ const PlayScreenInner = (props: PlayScreenProps) => {
         </pixiContainer>
       )}
 
-      <GameOverModal isOpen={isGameOver && !isVictory} onClose={onGoHome}
+      <GameOverModal isOpen={activeModal === 'gameOver'} onClose={onGoHome}
         onPlayAgain={onPlayAgain} onGoHome={onGoHome}
         screenWidth={sw} screenHeight={sh}
         level={level} totalScore={totalScore} totalCubes={totalCubes} maxCombo={maxCombo} />
 
       <MenuModal
-        isOpen={isMenuOpen}
+        isOpen={activeModal === 'menu'}
         onClose={() => setIsMenuOpen(false)}
         onSurrender={handleSurrender}
         screenWidth={sw}
@@ -717,18 +727,18 @@ const PlayScreenInner = (props: PlayScreenProps) => {
         cubesEarned={totalCubes}
       />
 
-      <VictoryModal isOpen={isVictory} onClose={onGoHome} onGoHome={onGoHome} onShare={onShare}
+      <VictoryModal isOpen={activeModal === 'victory'} onClose={onGoHome} onGoHome={onGoHome} onShare={onShare}
         screenWidth={sw} screenHeight={sh}
         totalScore={totalScore} totalCubes={totalCubes} maxCombo={maxCombo} />
 
-      <LevelCompleteModal isOpen={isLevelComplete} onClose={onLevelCompleteContinue}
+      <LevelCompleteModal isOpen={activeModal === 'levelComplete'} onClose={onLevelCompleteContinue}
         screenWidth={sw} screenHeight={sh}
         level={level} levelScore={levelScore} targetScore={targetScore} stars={stars}
         bonusAwarded={levelCompleteBonusAwarded} cubesEarned={levelCompleteCubes}
         totalCubes={totalCubes} constraintMet={constraintMet} />
 
       <InGameShopModal
-        isOpen={isInGameShopOpen}
+        isOpen={activeModal === 'inGameShop'}
         onClose={onInGameShopClose ?? (() => {})}
         screenWidth={sw}
         screenHeight={sh}
