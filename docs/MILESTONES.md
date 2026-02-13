@@ -7,9 +7,18 @@ This document tracks completed milestones and features for the zKube project.
 
 ---
 
-## Version 1.2.0 (January 2026) - Current
+## Version 1.2.0 (January-February 2026) - Current
 
 ### Major Features Completed
+
+#### Progression Map (February 2026)
+- **Super Mario World-style map** with 55 nodes (50 gameplay + 5 shops) across 5 themed zones
+- **Seeded zone themes**: 5 of 10 themes selected per run via VRF-seeded Fisher-Yates shuffle
+- **Node types**: Classic (9 per zone), Shop (1 per zone), Boss (1 per zone)
+- **Map animations**: Pulse current node, ant-trail paths, staggered reveal, boss ring rotation
+- **MyGames → Map flow**: Selecting a game shows progression map before play
+- **Shop trigger change**: In-game shop appears after levels 9/19/29/39/49 (was every 5 levels)
+- **Asset inventory**: Comprehensive asset list (`docs/ASSET_LIST.md`)
 
 #### Boss Level System
 - **Boss levels** every 10 levels (10, 20, 30, 40, 50)
@@ -239,8 +248,20 @@ This document tracks completed milestones and features for the zKube project.
 - [x] Torii indexing
 - [x] Achievement system
 
+### Progression Map
+- [x] Map layout utility (55 nodes, bidirectional mapping)
+- [x] Zone theme derivation (seeded, deterministic)
+- [x] Map screen (nodes, paths, zone backgrounds)
+- [x] Level preview panel
+- [x] Map animations (pulse, ant-trail, stagger, boss ring)
+- [x] Flow integration (level complete → map → next level)
+- [x] MyGames → Map wiring
+- [x] Shop trigger change (every 10 levels)
+- [x] Asset inventory document
+
 ### Frontend
 - [x] React 18 + TypeScript
+- [x] PixiJS mobile app (mobile-app/)
 - [x] Grid rendering
 - [x] Block animations
 - [x] Drag/drop controls

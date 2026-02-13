@@ -1,7 +1,7 @@
 # zKube Future Features & Roadmap
 
 > **Status:** Planning/Reference  
-> **Last Updated:** January 2026  
+> **Last Updated:** February 2026  
 > **Purpose:** Consolidated list of unimplemented features and architecture improvements
 
 ---
@@ -20,16 +20,15 @@
 
 ## Bonus System V2.0
 
-> **Status:** Design Complete  
+> **Status:** ✅ Implemented in v1.2.0  
 > **Design Document:** [BONUS_SYSTEM_V2.md](./BONUS_SYSTEM_V2.md)  
-> **Priority:** High - Major Feature Update
 
 ### Overview
 
-A complete overhaul of the bonus system introducing:
+The bonus system overhaul is now fully implemented in v1.2.0:
 
-| Feature | Current (v1.2) | New (v2.0) |
-|---------|----------------|------------|
+| Feature | Pre-v1.2 | v1.2.0 (Current) |
+|---------|----------|-------------------|
 | Bonus Types | 3 (Hammer, Wave, Totem) | 5 (+Shrink, +Shuffle) |
 | Levels | None | 3 levels per bonus |
 | Selection | All available | Choose 3 of 5 per run |
@@ -54,14 +53,14 @@ A complete overhaul of the bonus system introducing:
 
 ### Implementation Phases
 
-- [ ] Phase 1: Core Mechanics (new bonus types, effects)
-- [ ] Phase 2: Selection System (UI, validation)
-- [ ] Phase 3: Level System (boss rewards, scaling)
-- [ ] Phase 4: Shop Updates (unlock, new consumables)
-- [ ] Phase 5: Client UI (dialogs, indicators)
-- [ ] Phase 6: Testing & Polish
+- [x] Phase 1: Core Mechanics (new bonus types, effects)
+- [x] Phase 2: Selection System (UI, validation)
+- [x] Phase 3: Level System (boss rewards, scaling)
+- [x] Phase 4: Shop Updates (unlock, new consumables)
+- [x] Phase 5: Client UI (dialogs, indicators)
+- [x] Phase 6: Testing & Polish
 
-See [BONUS_SYSTEM_V2.md](./BONUS_SYSTEM_V2.md) for complete design specifications.
+See [BONUS_SYSTEM_V2.md](./BONUS_SYSTEM_V2.md) for design specifications.
 
 ---
 
@@ -95,7 +94,7 @@ See [BONUS_SYSTEM_V2.md](./BONUS_SYSTEM_V2.md) for complete design specification
 
 ## In-Game Shop Expansions
 
-Currently the in-game shop (every 5 levels) only sells basic consumables:
+Currently the in-game shop (every 10 levels) sells consumables:
 
 | Item | Cost | Effect | Status |
 |------|------|--------|--------|

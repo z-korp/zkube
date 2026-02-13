@@ -26,7 +26,7 @@ zKube is a **Puzzle Roguelike** where players manipulate blocks on an 8x10 grid 
 - **50 Levels** of progressive difficulty (survival mode after level 50)
 - **CUBE Currency** - ERC-1155 soulbound tokens earned through gameplay
 - **Permanent Shop** - Upgrades that persist across runs
-- **In-Game Shop** - Consumables purchasable every 5 levels
+- **In-Game Shop** - Consumables purchasable every 10 levels
 - **Constraint System** - Per-level challenges for bonus rewards
 - **Meta-Progression** - PlayerMeta tracks upgrades and stats
 
@@ -317,7 +317,7 @@ WALLET (ERC-1155)
 
 **Location:** `contracts/src/systems/shop.cairo` (`purchase_consumable`)
 
-Shop appears after levels 5, 10, 15, 20, etc. (when `(current_level - 1) % 5 == 0`).
+Shop appears after levels 9, 19, 29, 39, 49 (when `(current_level - 1) % 10 == 9`).
 
 | Item | Cost | Effect |
 |------|------|--------|

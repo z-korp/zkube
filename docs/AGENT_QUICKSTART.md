@@ -4,7 +4,8 @@ This document provides essential context for Claude agents working on zkube.
 
 > **Version:** 1.2.0  
 > **Namespace:** `zkube_budo_v1_2_0`  
-> **Last Updated:** January 2026
+> **Last Updated:** February 2026  
+> **Note:** `client-budokan/` is being dropped. The active frontend is `mobile-app/` (PixiJS-based mobile app). References to `client-budokan` below are for the legacy React app.
 
 ## Project Summary
 
@@ -23,7 +24,8 @@ zkube/
 ├── packages/
 │   ├── game_erc721/    # Legacy ERC721 (NOT USED - reference only)
 │   └── token/          # ERC20 test token (Fake LORD)
-├── client-budokan/     # React frontend
+├── mobile-app/         # PixiJS mobile frontend (active)
+├── client-budokan/     # React frontend (being dropped)
 ├── docs/               # Documentation (you are here)
 ├── scripts/            # Deployment scripts
 └── references/         # Reference implementations

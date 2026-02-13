@@ -1,9 +1,9 @@
 # Bonus System V2.0 - Design Document
 
-> **Version:** 2.0.0 (Proposed)  
-> **Status:** Design Phase  
-> **Last Updated:** January 2026  
-> **Depends On:** v1.2.0 codebase
+> **Version:** 2.0.0  
+> **Status:** ✅ Implemented in v1.2.0  
+> **Last Updated:** February 2026  
+> **Implemented In:** v1.2.0 codebase
 
 ## Table of Contents
 

@@ -286,67 +286,73 @@ New Flow:
 
 ## Implementation Phases
 
-### Phase 1: Contract + Data Layer
+### Phase 1: Contract + Data Layer ✅ COMPLETED
 **Goal**: Change shop trigger, create MapLayout utility, zone theme derivation
 **Scope**: No UI changes
 **Verification**: `scarb test`, `pnpm test`, `pnpm build`
 
-- [ ] Change shop trigger in `shop.cairo` (`(current_level - 1) % 10 == 9`)
-- [ ] Change `isInGameShopAvailable()` in `runDataPacking.ts` (mobile-app only, client-budokan being dropped)
-- [ ] Change `isShopLevel()` in `runDataPacking.ts` (mobile-app only)
-- [ ] Update tests in `runDataPacking.test.ts`
-- [ ] Create `pixi/utils/mapLayout.ts` with all mapping functions
-- [ ] Create `pixi/utils/zoneThemes.ts` with seed-based theme derivation
-- [ ] Create `pixi/hooks/useMapData.ts` that generates all 55 node configs from seed
-- [ ] Write unit tests for mapLayout (node ↔ level conversions)
-- [ ] Write unit tests for zoneThemes (determinism: same seed → same themes)
-- [ ] `scarb test` passes
-- [ ] `pnpm build` passes (mobile-app)
-- [ ] `pnpm vitest run` passes (mobile-app)
+- [x] Change shop trigger in `shop.cairo` (`(current_level - 1) % 10 == 9`)
+- [x] Change `isInGameShopAvailable()` in `runDataPacking.ts` (mobile-app only, client-budokan being dropped)
+- [x] Change `isShopLevel()` in `runDataPacking.ts` (mobile-app only)
+- [x] Update tests in `runDataPacking.test.ts`
+- [x] Create `pixi/utils/mapLayout.ts` with all mapping functions
+- [x] Create `pixi/utils/zoneThemes.ts` with seed-based theme derivation
+- [x] Create `pixi/hooks/useMapData.ts` that generates all 55 node configs from seed
+- [x] Write unit tests for mapLayout (node ↔ level conversions)
+- [x] Write unit tests for zoneThemes (determinism: same seed → same themes)
+- [x] `scarb test` passes
+- [x] `pnpm build` passes (mobile-app)
+- [x] `pnpm vitest run` passes (mobile-app)
 
-### Phase 2: Map Screen (Static)
+### Phase 2: Map Screen (Static) ✅ COMPLETED
 **Goal**: Render the map with all 55 nodes, paths, zone backgrounds
 **Scope**: New component, no flow integration yet
 
-- [ ] Create `MapScreen.tsx` — PixiJS Application wrapper
-- [ ] Create `MapNode.tsx` — render classic/shop/boss node by state
-- [ ] Create `MapPath.tsx` — dotted lines between nodes
-- [ ] Create `ZoneBackground.tsx` — themed background per zone section
-- [ ] Create `LevelPreview.tsx` — overlay panel showing level info
-- [ ] Wire `useMapData` hook to populate all nodes from seed
-- [ ] Implement node tap → preview overlay
-- [ ] Implement scroll/pan for navigating between zones
-- [ ] Add `'map'` to PageNavigator and route in App.tsx
-- [ ] Test: map renders correctly with mock game data
-- [ ] Test: all 55 nodes visible with correct types
-- [ ] Test: zone themes apply correctly
+- [x] Create `MapPage.tsx` — Full scrollable vertical map
+- [x] Create `MapNode.tsx` — render classic/shop/boss node by state
+- [x] Create `MapPath.tsx` — Bezier curves between nodes
+- [x] Create `ZoneBackground.tsx` — themed gradient background per zone
+- [x] Create `LevelPreview.tsx` — Modal overlay on node tap
+- [x] Wire `useMapData` hook to populate all nodes from seed
+- [x] Implement node tap → preview overlay
+- [x] Implement scroll/pan for navigating between zones
+- [x] Add `'map'` to PageNavigator and MainScreen
+- [x] Test: map renders correctly with mock game data
+- [x] Test: all 55 nodes visible with correct types
+- [x] Test: zone themes apply correctly
 
-### Phase 3: Flow Integration
+### Phase 3: Flow Integration ✅ COMPLETED
 **Goal**: Connect map to gameplay loop (level complete → map → next level)
-**Scope**: Modify PlayScreen, PlayNew, add navigation
+**Scope**: Modify PlayScreen, add navigation
 
-- [ ] Add `RewardsSummary.tsx` — brief overlay after level complete (2s auto-dismiss)
-- [ ] Modify `PlayScreen` post-level flow: rewards → navigate to map
-- [ ] Modify `PlayNew.tsx` / `App.tsx` to support map ↔ play navigation
-- [ ] Implement "Play" button on current/next node → navigates to PlayScreen
-- [ ] Implement shop node interaction → opens InGameShopModal on map
-- [ ] Handle game over → map shows final position
-- [ ] Handle victory → map shows all 50 levels cleared + celebration
-- [ ] Test: complete level → see rewards → land on map → play next
+- [x] Modify `usePlayGame.ts` — added `seed`, `showMapView`, `handleMapContinue`
+- [x] Modify `PlayScreen` post-level flow: level complete → MapPage overlay
+- [x] MapPage supports `standalone`/`onBack` props for overlay mode
+- [x] Implement "Play" button on current/next node → continues gameplay
+- [x] Test: complete level → see map → continue to next level
 
-### Phase 4: Polish & Animations
+### Phase 4: Polish & Animations ✅ COMPLETED
 **Goal**: Make the map feel alive and polished
 
-- [ ] Current level marker animation (bouncing character/icon)
-- [ ] Node clear animation (stars appear, path lights up)
-- [ ] Zone transition animation (smooth scroll to new zone)
-- [ ] Boss node special effects (fire particles, glow)
-- [ ] Shop node special effects (coin sparkle)
-- [ ] Parallax scrolling for zone backgrounds
-- [ ] Sound effects for node interactions
-- [ ] Zone unlock animation (fog lifts from new zone)
-- [ ] Star rating display on cleared nodes
-- [ ] Cube count running total on map HUD
+- [x] Current level marker animation (pulsing scale via `usePulseRef`)
+- [x] Boss node special effects (rotating golden dashed ring)
+- [x] Shop node special effects (floating Y-axis bob)
+- [x] Staggered node reveal (30ms per node radiating from current position)
+- [x] Active path animation (ant-trail dots moving along paths)
+- [x] Cleared path animation (alpha shimmer)
+- [x] Locked path animation (static dashed)
+- [x] LevelPreview slide-up + fade-in entrance
+- [ ] Sound effects for node interactions (deferred — needs assets)
+- [ ] Zone unlock animation (deferred)
+- [ ] Star rating display on cleared nodes (deferred)
+
+### Phase 4.5: MyGames → Map Wiring ✅ COMPLETED
+**Goal**: Wire map into the game selection flow
+
+- [x] `Home.tsx` — `selectedGameId` state + `useGame` hook for seed
+- [x] `MainScreen.tsx` — `requestMapNavigation`/`onMapNavigated` props
+- [x] Auto-navigate to `'map'` page when seed becomes available
+- [x] `handlePlayLevel` navigates to `/play/{gameId}` from map
 
 ### Phase 5: Enhanced Bosses (DEFERRED — separate iteration)
 **Goal**: Make boss levels mechanically unique

@@ -58,7 +58,14 @@ zkube/
 │   └── token/                    # ERC20 test token (Fake LORD)
 │       ├── Scarb.toml
 │       └── src/lib.cairo
-├── client-budokan/               # React frontend
+├── mobile-app/                   # PixiJS mobile frontend (ACTIVE)
+│   ├── src/
+│   │   ├── pixi/                 # PixiJS game rendering
+│   │   ├── dojo/                 # Dojo integration
+│   │   └── ui/                   # React UI screens
+│   ├── .env.slot                 # Slot environment
+│   └── package.json
+├── client-budokan/               # React frontend (BEING DROPPED)
 │   ├── src/
 │   │   ├── dojo/                 # Dojo integration
 │   │   ├── ui/                   # React components

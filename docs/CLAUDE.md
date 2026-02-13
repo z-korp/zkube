@@ -18,6 +18,8 @@ This directory contains documentation for the zKube project - a fully on-chain p
 | [BONUS_SYSTEM_V2.md](./BONUS_SYSTEM_V2.md) | **Bonus overhaul** - 5 types, 3 levels, selection mechanics | Design Phase |
 | [QUEST_SYSTEM.md](./QUEST_SYSTEM.md) | Daily quest system - 10 quests, 102 CUBE daily rewards | Implemented |
 | [CONFIGURABLE_SETTINGS.md](./CONFIGURABLE_SETTINGS.md) | GameSettings customization for custom game modes | Implemented |
+| [ASSET_LIST.md](./ASSET_LIST.md) | **Asset inventory** - comprehensive list of all needed assets | Current |
+| [PROGRESSION_MAP.md](./PROGRESSION_MAP.md) | **Progression map** - Super Mario World-style level map | Implemented |
 
 ### Operations & Development
 
@@ -59,7 +61,8 @@ Technical documentation in each project directory:
 |------|-------------|
 | `/CLAUDE.md` | **Main project overview** (start here) |
 | `/contracts/CLAUDE.md` | Smart contract documentation (systems, models, helpers) |
-| `/client-budokan/CLAUDE.md` | Frontend documentation (hooks, components, state) |
+| `/client-budokan/CLAUDE.md` | Frontend documentation - legacy React app (being dropped) |
+| `/mobile-app/PIXIJS_GUIDELINES.md` | PixiJS rendering guidelines (active frontend) |
 | `/packages/token/CLAUDE.md` | ERC20 test token (Fake LORD) |
 | `/packages/game_erc721/CLAUDE.md` | Legacy ERC721 (replaced by FullTokenContract) |
 | `/scripts/CLAUDE.md` | Deployment scripts and utilities |
@@ -73,7 +76,8 @@ Technical documentation in each project directory:
 2. **Game design**: [GAME_DESIGN.md](./GAME_DESIGN.md) - Understand the game mechanics
 3. **Code overview**: 
    - `/contracts/CLAUDE.md` for Cairo contracts
-   - `/client-budokan/CLAUDE.md` for React frontend
+   - `/mobile-app/PIXIJS_GUIDELINES.md` for PixiJS mobile frontend (active)
+   - `/client-budokan/CLAUDE.md` for legacy React frontend (being dropped)
 4. **Deployment**: [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) if you need to deploy
 
 ### For Quick Reference
@@ -97,7 +101,9 @@ Technical documentation in each project directory:
 - Achievement system (28 trophies via Cartridge arcade)
 - Configurable GameSettings (custom game modes)
 - Permanent shop (starting bonuses, bag size, bridging rank, bonus unlocks)
-- In-game shop (bonus consumables, refill, level-up every 5 levels)
+- In-game shop (bonus consumables, refill, level-up every 10 levels)
+- Progression Map (55-node Super Mario World-style level map)
+- MyGames → Map → Play flow
 
 ### Not Yet Implemented
 

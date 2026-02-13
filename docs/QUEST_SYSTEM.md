@@ -4,6 +4,8 @@
 
 Daily quest system where players can farm CUBE tokens by completing gameplay objectives.
 
+> **Note:** Frontend file paths below reference `client-budokan/` which is being dropped. The active frontend is `mobile-app/`.
+
 **Reference:** `/home/djizus/zkube/references/nums/` - Cartridge arcade quest implementation
 
 ---
