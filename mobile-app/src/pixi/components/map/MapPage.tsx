@@ -1,12 +1,13 @@
 import { useCallback, useMemo, useState } from 'react';
+import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { type MapNodeData, useMapData, type MapData } from '../../hooks/useMapData';
 import { MapNode, NODE_RADIUS } from './MapNode';
 import { MapPath } from './MapPath';
 import { ZoneBackground } from './ZoneBackground';
 import { LevelPreview } from './LevelPreview';
 import { PixiScrollContainer } from '../../ui/PixiScrollContainer';
-import { PageTopBar } from '../pages/PageTopBar';
 import { NODES_PER_ZONE, TOTAL_ZONES, TOTAL_NODES } from '../../utils/mapLayout';
+import { FONT_TITLE } from '../../utils/colors';
 
 export interface MapPageProps {
   seed: bigint;
@@ -15,6 +16,8 @@ export interface MapPageProps {
   screenHeight: number;
   topBarHeight: number;
   onPlayLevel?: (contractLevel: number) => void;
+  standalone?: boolean;
+  onBack?: () => void;
 }
 
 const NODE_VERTICAL_SPACING = 70;
@@ -47,6 +50,11 @@ function getNodePosition(
   return { x, y };
 }
 
+const MAP_TITLE_STYLE = {
+  fontFamily: FONT_TITLE, fontSize: 20, fill: 0xFFFFFF,
+  dropShadow: { alpha: 0.3, angle: Math.PI / 4, blur: 2, distance: 1, color: 0x000000 },
+};
+
 export const MapPage = ({
   seed,
   currentLevel,
@@ -54,12 +62,15 @@ export const MapPage = ({
   screenHeight,
   topBarHeight,
   onPlayLevel,
+  standalone = false,
+  onBack,
 }: MapPageProps) => {
   const mapData = useMapData(seed, currentLevel);
   const [selectedNode, setSelectedNode] = useState<MapNodeData | null>(null);
 
+  const headerH = standalone ? 0 : topBarHeight;
   const contentHeight = getTotalContentHeight();
-  const scrollAreaHeight = screenHeight - topBarHeight;
+  const scrollAreaHeight = screenHeight - headerH;
 
   const currentNodeY = useMemo(() => {
     const pos = getNodePosition(mapData.currentNodeIndex, screenWidth);
@@ -89,18 +100,38 @@ export const MapPage = ({
     return mapData.nodes.map((_, i) => getNodePosition(i, screenWidth));
   }, [mapData.nodes, screenWidth]);
 
+  const drawTitleBar = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.rect(0, 0, screenWidth, topBarHeight);
+    g.fill({ color: 0x000000, alpha: 1 });
+    g.rect(0, topBarHeight - 1, screenWidth, 1);
+    g.fill({ color: 0x1e293b, alpha: 0.5 });
+  }, [screenWidth, topBarHeight]);
+
   return (
     <pixiContainer>
-      <PageTopBar
-        title="World Map"
-        screenWidth={screenWidth}
-        topBarHeight={topBarHeight}
-        showHomeButton={true}
-      />
+      {!standalone && (
+        <pixiContainer>
+          <pixiGraphics draw={drawTitleBar} eventMode="static" onPointerDown={(e: any) => e.stopPropagation()} />
+          {onBack && (
+            <pixiText
+              text={"\u2190"}
+              x={16}
+              y={topBarHeight / 2}
+              anchor={{ x: 0, y: 0.5 }}
+              style={{ fontSize: 22, fill: 0xffffff }}
+              eventMode="static"
+              cursor="pointer"
+              onPointerUp={onBack}
+            />
+          )}
+          <pixiText text="World Map" x={screenWidth / 2} y={topBarHeight / 2} anchor={0.5} style={MAP_TITLE_STYLE} eventMode="none" />
+        </pixiContainer>
+      )}
 
       <PixiScrollContainer
         x={0}
-        y={topBarHeight}
+        y={headerH}
         width={screenWidth}
         height={scrollAreaHeight}
         contentHeight={contentHeight}

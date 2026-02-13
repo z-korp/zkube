@@ -114,6 +114,9 @@ export interface UsePlayGameResult {
   handleInGameShopClose: () => void;
   handleShare: () => Promise<void>;
   walletDisconnected: boolean;
+  seed: bigint;
+  showMapView: boolean;
+  handleMapContinue: () => void;
 }
 
 export function usePlayGame(
@@ -165,6 +168,8 @@ export function usePlayGame(
   const [isInGameShopOpen, setIsInGameShopOpen] = useState(false);
   const [isShopPurchasing, setIsShopPurchasing] = useState(false);
   const [levelCompletionData, setLevelCompletionData] = useState<LevelCompletionData | null>(null);
+  const [showMapView, setShowMapView] = useState(false);
+  const pendingShopRef = useRef(false);
 
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
   const prevGameStateRef = useRef<{
@@ -541,15 +546,20 @@ export function usePlayGame(
   }, [isShopPurchasing]);
 
   const handleLevelCompleteContinue = useCallback(() => {
-    if (levelCompletionData && isInGameShopAvailable(levelCompletionData.level) && !game?.over) {
-      setIsLevelComplete(false);
-      setLevelCompletionData(null);
-      setIsInGameShopOpen(true);
-      return;
-    }
+    const shouldShowShop = levelCompletionData && isInGameShopAvailable(levelCompletionData.level) && !game?.over;
+    pendingShopRef.current = !!shouldShowShop;
     setIsLevelComplete(false);
     setLevelCompletionData(null);
+    setShowMapView(true);
   }, [levelCompletionData, game?.over]);
+
+  const handleMapContinue = useCallback(() => {
+    setShowMapView(false);
+    if (pendingShopRef.current) {
+      pendingShopRef.current = false;
+      setIsInGameShopOpen(true);
+    }
+  }, []);
 
   const bonusSlots: BonusSlotData[] = useMemo(() => {
     if (!game) return [];
@@ -661,5 +671,8 @@ export function usePlayGame(
     handleInGameShopClose,
     handleShare,
     walletDisconnected,
+    seed,
+    showMapView,
+    handleMapContinue,
   };
 }

@@ -678,6 +678,7 @@ const PageRenderer = (props: MainScreenProps & {
             screenHeight={sh}
             topBarHeight={topBarH}
             onPlayLevel={onPlayLevel}
+            onBack={goHome}
           />
         )}
 

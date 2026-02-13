@@ -11,6 +11,7 @@ import { ParticleSystem } from '../effects/ParticleSystem';
 import { ScorePopup } from '../effects/ScorePopup';
 import { ScreenShakeContainer, useScreenShake } from '../effects/ScreenShake';
 import { GameOverModal, VictoryModal, LevelCompleteModal, MenuModal, InGameShopModal, type InGameShopBonusItem } from '../modals';
+import { MapPage } from '../map/MapPage';
 import { ScorePanel } from '../game/ScorePanel';
 import { MovesPanel } from '../game/MovesPanel';
 import { PixiToastLayer } from '../ui/PixiToastLayer';
@@ -505,6 +506,7 @@ const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => 
     handleMove: onMove, handleBonusApply: onBonusApply, handleSurrender: onSurrender,
     handleShare: onShare, handleLevelCompleteContinue: onLevelCompleteContinue,
     handleInGameShopClose: onInGameShopClose,
+    seed, showMapView, handleMapContinue: onMapContinue,
   } = gameState;
 
   const actionBarSlots = useMemo(() =>
@@ -542,23 +544,24 @@ const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => 
     g.stroke({ color: 0x60a5fa, width: 1.5, alpha: 0.6 });
   }, []);
 
-  type ActiveModal = 'none' | 'menu' | 'gameOver' | 'victory' | 'levelComplete' | 'inGameShop';
+  type ActiveModal = 'none' | 'menu' | 'gameOver' | 'victory' | 'levelComplete' | 'inGameShop' | 'map';
   const activeModal: ActiveModal = useMemo(() => {
     if (isGameOver && !isVictory) return 'gameOver';
     if (isVictory) return 'victory';
     if (isLevelComplete) return 'levelComplete';
+    if (showMapView) return 'map';
     if (isInGameShopOpen) return 'inGameShop';
     if (isMenuOpen) return 'menu';
     return 'none';
-  }, [isGameOver, isVictory, isLevelComplete, isInGameShopOpen, isMenuOpen]);
+  }, [isGameOver, isVictory, isLevelComplete, showMapView, isInGameShopOpen, isMenuOpen]);
 
   const isInteractionBlocked = isTxProcessing || isSurrendering || activeModal !== 'none';
 
   useEffect(() => {
-    if (isGameOver || isVictory || isLevelComplete || isInGameShopOpen) {
+    if (isGameOver || isVictory || isLevelComplete || isInGameShopOpen || showMapView) {
       setIsMenuOpen(false);
     }
-  }, [isGameOver, isVictory, isLevelComplete, isInGameShopOpen]);
+  }, [isGameOver, isVictory, isLevelComplete, isInGameShopOpen, showMapView]);
 
   if (isLoading || blocks.length === 0) {
     return <LoadingScreen sw={sw} sh={sh} topOffset={layout.statsBarY + 4} />;
@@ -708,7 +711,22 @@ const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => 
         isPurchasing={isShopPurchasing}
       />
 
-      {isPlayerInDanger && (
+      {activeModal === 'map' && seed > 0n && (
+        <pixiContainer>
+          <SkyBackground w={sw} h={sh} />
+          <MapPage
+            seed={seed}
+            currentLevel={level}
+            screenWidth={sw}
+            screenHeight={sh}
+            topBarHeight={0}
+            onPlayLevel={() => onMapContinue()}
+            standalone={true}
+          />
+        </pixiContainer>
+      )}
+
+      {isPlayerInDanger && activeModal === 'none' && (
         <pixiGraphics draw={drawDangerBorder} />
       )}
     </pixiContainer>
