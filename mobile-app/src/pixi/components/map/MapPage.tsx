@@ -100,6 +100,11 @@ export const MapPage = ({
     return mapData.nodes.map((_, i) => getNodePosition(i, screenWidth));
   }, [mapData.nodes, screenWidth]);
 
+  const entryDelays = useMemo(() => {
+    const currentIdx = mapData.currentNodeIndex;
+    return mapData.nodes.map((_, i) => Math.abs(i - currentIdx) * 30);
+  }, [mapData.nodes, mapData.currentNodeIndex]);
+
   const drawTitleBar = useCallback((g: PixiGraphics) => {
     g.clear();
     g.rect(0, 0, screenWidth, topBarHeight);
@@ -184,6 +189,7 @@ export const MapPage = ({
               x={pos.x}
               y={pos.y}
               onTap={handleNodeTap}
+              entryDelay={entryDelays[i]}
             />
           );
         })}

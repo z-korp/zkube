@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState } from 'react';
-import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { Graphics as PixiGraphics, TextStyle, Container } from 'pixi.js';
+import { useTick } from '@pixi/react';
 import type { MapNodeData } from '../../hooks/useMapData';
 import { getThemeColors, THEME_META, FONT_BOLD, FONT_BODY, FONT_TITLE, UI } from '../../utils/colors';
 import { ConstraintType } from '@/dojo/game/types/constraint';
@@ -29,6 +30,10 @@ const DIFFICULTY_LABELS: Record<string, { label: string; color: number }> = {
   Master:     { label: 'Master',      color: 0x7f1d1d },
 };
 
+const ENTRANCE_DURATION = 200;
+const BACKDROP_DURATION = 150;
+const PANEL_SLIDE_OFFSET = 30;
+
 export const LevelPreview = ({ node, screenWidth, screenHeight, onPlay, onClose }: LevelPreviewProps) => {
   const [playPressed, setPlayPressed] = useState(false);
   const [closePressed, setClosePressed] = useState(false);
@@ -41,6 +46,37 @@ export const LevelPreview = ({ node, screenWidth, screenHeight, onPlay, onClose 
   const panelH = node.type === 'shop' ? 160 : isCleared ? 180 : PANEL_H_BASE;
   const panelX = (screenWidth - PANEL_W) / 2;
   const panelY = (screenHeight - panelH) / 2;
+
+  const backdropRef = useRef<PixiGraphics | null>(null);
+  const panelContainerRef = useRef<Container | null>(null);
+  const entranceRef = useRef({ elapsed: 0, done: false });
+
+  const tickEntrance = useCallback(
+    (ticker: { deltaMS: number }) => {
+      if (entranceRef.current.done) return;
+      entranceRef.current.elapsed += ticker.deltaMS;
+      const t = entranceRef.current.elapsed;
+
+      const bg = backdropRef.current;
+      if (bg) {
+        bg.alpha = Math.min(t / BACKDROP_DURATION, 1);
+      }
+
+      const panel = panelContainerRef.current;
+      if (panel) {
+        const progress = Math.min(t / ENTRANCE_DURATION, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        panel.alpha = eased;
+        panel.y = panelY + PANEL_SLIDE_OFFSET * (1 - eased);
+      }
+
+      if (t >= ENTRANCE_DURATION) {
+        entranceRef.current.done = true;
+      }
+    },
+    [panelY],
+  );
+  useTick(tickEntrance, !entranceRef.current.done);
 
   const drawBackdrop = useCallback(
     (g: PixiGraphics) => {
@@ -118,12 +154,19 @@ export const LevelPreview = ({ node, screenWidth, screenHeight, onPlay, onClose 
   return (
     <pixiContainer>
       <pixiGraphics
+        ref={(ref) => { backdropRef.current = ref; }}
         draw={drawBackdrop}
+        alpha={0}
         eventMode="static"
         onPointerUp={() => onClose?.()}
       />
 
-      <pixiContainer x={panelX} y={panelY}>
+      <pixiContainer
+        ref={(ref: Container | null) => { panelContainerRef.current = ref; }}
+        x={panelX}
+        y={panelY + PANEL_SLIDE_OFFSET}
+        alpha={0}
+      >
         <pixiGraphics draw={drawPanel} eventMode="static" onPointerDown={(e: any) => e.stopPropagation()} />
 
         <pixiContainer x={PANEL_W - 40} y={8}>

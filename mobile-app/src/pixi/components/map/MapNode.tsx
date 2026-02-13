@@ -15,10 +15,11 @@
  */
 
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
+import { Graphics as PixiGraphics, TextStyle, Container } from 'pixi.js';
 import { useTick } from '@pixi/react';
 import type { MapNodeData, NodeState } from '../../hooks/useMapData';
-import { getThemeColors, type ThemeColors, FONT_BOLD, FONT_BODY, UI } from '../../utils/colors';
+import { getThemeColors, FONT_BOLD, UI } from '../../utils/colors';
+import { usePulseRef } from '../../hooks/useAnimatedValue';
 
 // ============================================================================
 // CONSTANTS
@@ -28,8 +29,6 @@ export const NODE_RADIUS = 22;
 const BOSS_RADIUS = 28;
 const SHOP_W = 48;
 const SHOP_H = 40;
-const BOSS_BADGE_SIZE = 56;
-
 // Node state colors
 const STATE_COLORS: Record<NodeState, { fill: number; border: number; alpha: number; textAlpha: number }> = {
   locked:    { fill: 0x374151, border: 0x4b5563, alpha: 0.5, textAlpha: 0.4 },
@@ -48,34 +47,61 @@ export interface MapNodeProps {
   x: number;
   y: number;
   onTap?: (node: MapNodeData) => void;
+  /** Stagger delay in ms before this node fades in on mount */
+  entryDelay?: number;
 }
 
 // ============================================================================
 // CLASSIC NODE
 // ============================================================================
 
-const ClassicNode = ({ node, x, y, onTap }: MapNodeProps) => {
+const ClassicNode = ({ node, x, y, onTap, entryDelay = 0 }: MapNodeProps) => {
   const [pressed, setPressed] = useState(false);
   const isInteractive = node.state === 'current' || node.state === 'available';
   const colors = STATE_COLORS[node.state];
   const themeColors = getThemeColors(node.zoneTheme);
-  const timeRef = useRef(0);
-  const glowRef = useRef<PixiGraphics | null>(null);
 
-  // Pulse animation for current node
-  const tickPulse = useCallback(
+  const { containerRef: pulseRef } = usePulseRef(node.state === 'current', {
+    minScale: 0.97,
+    maxScale: 1.05,
+    duration: 1200,
+  });
+
+  const glowRef = useRef<PixiGraphics | null>(null);
+  const entryRef = useRef({ elapsed: 0, done: entryDelay <= 0 });
+  const outerRef = useRef<Container | null>(null);
+
+  const tickAnimations = useCallback(
     (ticker: { deltaMS: number }) => {
-      if (node.state !== 'current') return;
-      const g = glowRef.current;
-      if (!g) return;
       const dt = ticker.deltaMS / 16.667;
-      timeRef.current += 0.04 * dt;
-      const pulse = 0.3 + Math.sin(timeRef.current) * 0.15;
-      g.alpha = pulse;
+
+      if (!entryRef.current.done) {
+        entryRef.current.elapsed += ticker.deltaMS;
+        const c = outerRef.current;
+        if (c) {
+          if (entryRef.current.elapsed < entryDelay) {
+            c.alpha = 0;
+          } else {
+            const fadeProgress = Math.min((entryRef.current.elapsed - entryDelay) / 300, 1);
+            c.alpha = fadeProgress * colors.alpha;
+            if (fadeProgress >= 1) entryRef.current.done = true;
+          }
+        }
+        return;
+      }
+
+      if (node.state === 'current') {
+        const g = glowRef.current;
+        if (g) {
+          entryRef.current.elapsed += ticker.deltaMS;
+          const t = entryRef.current.elapsed * 0.003;
+          g.alpha = 0.3 + Math.sin(t) * 0.15;
+        }
+      }
     },
-    [node.state],
+    [node.state, entryDelay, colors.alpha],
   );
-  useTick(tickPulse, node.state === 'current');
+  useTick(tickAnimations);
 
   const drawGlow = useCallback(
     (g: PixiGraphics) => {
@@ -92,15 +118,12 @@ const ClassicNode = ({ node, x, y, onTap }: MapNodeProps) => {
       const scale = pressed ? 0.92 : 1;
       const r = NODE_RADIUS * scale;
 
-      // Fill
       g.circle(0, 0, r);
       g.fill({ color: colors.fill, alpha: colors.alpha });
 
-      // Border ring
       g.circle(0, 0, r);
       g.stroke({ color: colors.border, width: 2.5, alpha: colors.alpha });
 
-      // Inner accent ring for cleared
       if (node.state === 'cleared') {
         g.circle(0, 0, r - 4);
         g.stroke({ color: themeColors.accent, width: 1.5, alpha: 0.5 });
@@ -123,37 +146,44 @@ const ClassicNode = ({ node, x, y, onTap }: MapNodeProps) => {
   const labelText = node.state === 'cleared' ? '\u2713' : String(node.contractLevel ?? '');
 
   return (
-    <pixiContainer x={x} y={y} alpha={colors.alpha}>
-      {/* Pulse glow */}
-      {node.state === 'current' && (
-        <pixiGraphics ref={(ref) => { glowRef.current = ref; }} draw={drawGlow} />
-      )}
+    <pixiContainer
+      ref={(ref: Container | null) => {
+        outerRef.current = ref;
+        if (ref && !entryRef.current.done) ref.alpha = 0;
+      }}
+      x={x}
+      y={y}
+      alpha={colors.alpha}
+    >
+      <pixiContainer ref={pulseRef}>
+        {node.state === 'current' && (
+          <pixiGraphics ref={(ref) => { glowRef.current = ref; }} draw={drawGlow} />
+        )}
 
-      {/* Node circle */}
-      <pixiGraphics
-        draw={drawNode}
-        eventMode={isInteractive ? 'static' : 'none'}
-        cursor={isInteractive ? 'pointer' : 'default'}
-        onPointerDown={() => isInteractive && setPressed(true)}
-        onPointerUp={() => {
-          if (isInteractive) {
-            setPressed(false);
-            onTap?.(node);
-          }
-        }}
-        onPointerUpOutside={() => setPressed(false)}
-      />
+        <pixiGraphics
+          draw={drawNode}
+          eventMode={isInteractive ? 'static' : 'none'}
+          cursor={isInteractive ? 'pointer' : 'default'}
+          onPointerDown={() => isInteractive && setPressed(true)}
+          onPointerUp={() => {
+            if (isInteractive) {
+              setPressed(false);
+              onTap?.(node);
+            }
+          }}
+          onPointerUpOutside={() => setPressed(false)}
+        />
 
-      {/* Label */}
-      <pixiText
-        text={labelText}
-        x={0}
-        y={0}
-        anchor={0.5}
-        style={labelStyle}
-        alpha={colors.textAlpha}
-        eventMode="none"
-      />
+        <pixiText
+          text={labelText}
+          x={0}
+          y={0}
+          anchor={0.5}
+          style={labelStyle}
+          alpha={colors.textAlpha}
+          eventMode="none"
+        />
+      </pixiContainer>
     </pixiContainer>
   );
 };
@@ -162,27 +192,70 @@ const ClassicNode = ({ node, x, y, onTap }: MapNodeProps) => {
 // BOSS NODE
 // ============================================================================
 
-const BossNode = ({ node, x, y, onTap }: MapNodeProps) => {
+const BossNode = ({ node, x, y, onTap, entryDelay = 0 }: MapNodeProps) => {
   const [pressed, setPressed] = useState(false);
   const isInteractive = node.state === 'current' || node.state === 'available';
   const colors = STATE_COLORS[node.state];
-  const themeColors = getThemeColors(node.zoneTheme);
-  const timeRef = useRef(0);
-  const glowRef = useRef<PixiGraphics | null>(null);
 
-  const tickPulse = useCallback(
+  const { containerRef: pulseRef } = usePulseRef(node.state === 'current', {
+    minScale: 0.95,
+    maxScale: 1.08,
+    duration: 1400,
+  });
+
+  const glowRef = useRef<PixiGraphics | null>(null);
+  const ringRef = useRef<PixiGraphics | null>(null);
+  const rotationRef = useRef(0);
+  const entryRef = useRef({ elapsed: 0, done: entryDelay <= 0 });
+  const outerRef = useRef<Container | null>(null);
+
+  const tickAnimations = useCallback(
     (ticker: { deltaMS: number }) => {
-      if (node.state !== 'current') return;
-      const g = glowRef.current;
-      if (!g) return;
       const dt = ticker.deltaMS / 16.667;
-      timeRef.current += 0.04 * dt;
-      const pulse = 0.35 + Math.sin(timeRef.current) * 0.2;
-      g.alpha = pulse;
+
+      if (!entryRef.current.done) {
+        entryRef.current.elapsed += ticker.deltaMS;
+        const c = outerRef.current;
+        if (c) {
+          if (entryRef.current.elapsed < entryDelay) {
+            c.alpha = 0;
+          } else {
+            const fadeProgress = Math.min((entryRef.current.elapsed - entryDelay) / 300, 1);
+            c.alpha = fadeProgress * colors.alpha;
+            if (fadeProgress >= 1) entryRef.current.done = true;
+          }
+        }
+        return;
+      }
+
+      rotationRef.current += 0.5 * dt / 60;
+      const ring = ringRef.current;
+      if (ring) {
+        ring.clear();
+        const r = BOSS_RADIUS + 6;
+        const segments = 12;
+        const arcLen = (Math.PI * 2) / segments;
+        const offset = rotationRef.current;
+        for (let i = 0; i < segments; i += 2) {
+          const startAngle = offset + i * arcLen;
+          const endAngle = startAngle + arcLen * 0.7;
+          ring.arc(0, 0, r, startAngle, endAngle);
+          ring.stroke({ color: 0xfbbf24, width: 2, alpha: colors.alpha * 0.5 });
+          ring.moveTo(0, 0);
+        }
+      }
+
+      if (node.state === 'current') {
+        const g = glowRef.current;
+        if (g) {
+          const t = rotationRef.current * 6;
+          g.alpha = 0.35 + Math.sin(t) * 0.2;
+        }
+      }
     },
-    [node.state],
+    [node.state, entryDelay, colors.alpha],
   );
-  useTick(tickPulse, node.state === 'current');
+  useTick(tickAnimations);
 
   const drawGlow = useCallback(
     (g: PixiGraphics) => {
@@ -199,15 +272,9 @@ const BossNode = ({ node, x, y, onTap }: MapNodeProps) => {
       const scale = pressed ? 0.92 : 1;
       const r = BOSS_RADIUS * scale;
 
-      // Outer ring
-      g.circle(0, 0, r + 3);
-      g.stroke({ color: 0xfbbf24, width: 2, alpha: colors.alpha * 0.6 });
-
-      // Fill
       g.circle(0, 0, r);
       g.fill({ color: colors.fill, alpha: colors.alpha });
 
-      // Border
       g.circle(0, 0, r);
       g.stroke({ color: colors.border, width: 3, alpha: colors.alpha });
 
@@ -233,34 +300,46 @@ const BossNode = ({ node, x, y, onTap }: MapNodeProps) => {
   const iconText = node.state === 'cleared' ? '\u2713' : '\u2605';
 
   return (
-    <pixiContainer x={x} y={y} alpha={colors.alpha}>
-      {node.state === 'current' && (
-        <pixiGraphics ref={(ref) => { glowRef.current = ref; }} draw={drawGlow} />
-      )}
+    <pixiContainer
+      ref={(ref: Container | null) => {
+        outerRef.current = ref;
+        if (ref && !entryRef.current.done) ref.alpha = 0;
+      }}
+      x={x}
+      y={y}
+      alpha={colors.alpha}
+    >
+      <pixiContainer ref={pulseRef}>
+        {node.state === 'current' && (
+          <pixiGraphics ref={(ref) => { glowRef.current = ref; }} draw={drawGlow} />
+        )}
 
-      <pixiGraphics
-        draw={drawNode}
-        eventMode={isInteractive ? 'static' : 'none'}
-        cursor={isInteractive ? 'pointer' : 'default'}
-        onPointerDown={() => isInteractive && setPressed(true)}
-        onPointerUp={() => {
-          if (isInteractive) {
-            setPressed(false);
-            onTap?.(node);
-          }
-        }}
-        onPointerUpOutside={() => setPressed(false)}
-      />
+        <pixiGraphics ref={(ref) => { ringRef.current = ref; }} draw={() => {}} eventMode="none" />
 
-      <pixiText
-        text={iconText}
-        x={0}
-        y={0}
-        anchor={0.5}
-        style={labelStyle}
-        alpha={colors.textAlpha}
-        eventMode="none"
-      />
+        <pixiGraphics
+          draw={drawNode}
+          eventMode={isInteractive ? 'static' : 'none'}
+          cursor={isInteractive ? 'pointer' : 'default'}
+          onPointerDown={() => isInteractive && setPressed(true)}
+          onPointerUp={() => {
+            if (isInteractive) {
+              setPressed(false);
+              onTap?.(node);
+            }
+          }}
+          onPointerUpOutside={() => setPressed(false)}
+        />
+
+        <pixiText
+          text={iconText}
+          x={0}
+          y={0}
+          anchor={0.5}
+          style={labelStyle}
+          alpha={colors.textAlpha}
+          eventMode="none"
+        />
+      </pixiContainer>
     </pixiContainer>
   );
 };
@@ -269,10 +348,41 @@ const BossNode = ({ node, x, y, onTap }: MapNodeProps) => {
 // SHOP NODE
 // ============================================================================
 
-const ShopNode = ({ node, x, y, onTap }: MapNodeProps) => {
+const ShopNode = ({ node, x, y, onTap, entryDelay = 0 }: MapNodeProps) => {
   const [pressed, setPressed] = useState(false);
   const isInteractive = node.state === 'available' || node.state === 'current';
   const colors = STATE_COLORS[node.state];
+  const outerRef = useRef<Container | null>(null);
+  const innerRef = useRef<Container | null>(null);
+  const bobRef = useRef(0);
+  const entryRef = useRef({ elapsed: 0, done: entryDelay <= 0 });
+
+  const tickAnimations = useCallback(
+    (ticker: { deltaMS: number }) => {
+      if (!entryRef.current.done) {
+        entryRef.current.elapsed += ticker.deltaMS;
+        const c = outerRef.current;
+        if (c) {
+          if (entryRef.current.elapsed < entryDelay) {
+            c.alpha = 0;
+          } else {
+            const fadeProgress = Math.min((entryRef.current.elapsed - entryDelay) / 300, 1);
+            c.alpha = fadeProgress * colors.alpha;
+            if (fadeProgress >= 1) entryRef.current.done = true;
+          }
+        }
+        return;
+      }
+
+      bobRef.current += ticker.deltaMS * 0.003;
+      const c = innerRef.current;
+      if (c) {
+        c.y = Math.sin(bobRef.current) * 3;
+      }
+    },
+    [entryDelay, colors.alpha],
+  );
+  useTick(tickAnimations);
 
   const drawNode = useCallback(
     (g: PixiGraphics) => {
@@ -295,21 +405,31 @@ const ShopNode = ({ node, x, y, onTap }: MapNodeProps) => {
   );
 
   return (
-    <pixiContainer x={x} y={y} alpha={colors.alpha}>
-      <pixiGraphics
-        draw={drawNode}
-        eventMode={isInteractive ? 'static' : 'none'}
-        cursor={isInteractive ? 'pointer' : 'default'}
-        onPointerDown={() => isInteractive && setPressed(true)}
-        onPointerUp={() => {
-          if (isInteractive) {
-            setPressed(false);
-            onTap?.(node);
-          }
-        }}
-        onPointerUpOutside={() => setPressed(false)}
-      />
-      <pixiText text={node.state === 'visited' ? '\u2713' : '\uD83D\uDED2'} x={0} y={0} anchor={0.5} style={iconStyle} eventMode="none" />
+    <pixiContainer
+      ref={(ref: Container | null) => {
+        outerRef.current = ref;
+        if (ref && !entryRef.current.done) ref.alpha = 0;
+      }}
+      x={x}
+      y={y}
+      alpha={colors.alpha}
+    >
+      <pixiContainer ref={innerRef}>
+        <pixiGraphics
+          draw={drawNode}
+          eventMode={isInteractive ? 'static' : 'none'}
+          cursor={isInteractive ? 'pointer' : 'default'}
+          onPointerDown={() => isInteractive && setPressed(true)}
+          onPointerUp={() => {
+            if (isInteractive) {
+              setPressed(false);
+              onTap?.(node);
+            }
+          }}
+          onPointerUpOutside={() => setPressed(false)}
+        />
+        <pixiText text={node.state === 'visited' ? '\u2713' : '\uD83D\uDED2'} x={0} y={0} anchor={0.5} style={iconStyle} eventMode="none" />
+      </pixiContainer>
     </pixiContainer>
   );
 };
@@ -319,8 +439,7 @@ const ShopNode = ({ node, x, y, onTap }: MapNodeProps) => {
 // ============================================================================
 
 export const MapNode = (props: MapNodeProps) => {
-  const { node } = props;
-  switch (node.type) {
+  switch (props.node.type) {
     case 'boss':
       return <BossNode {...props} />;
     case 'shop':

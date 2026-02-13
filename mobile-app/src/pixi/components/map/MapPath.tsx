@@ -1,5 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
+import { useTick } from '@pixi/react';
 import type { NodeState } from '../../hooks/useMapData';
 
 export interface MapPathProps {
@@ -15,32 +16,59 @@ const PATH_COLOR_CLEARED = 0x22c55e;
 const PATH_COLOR_ACTIVE = 0xf97316;
 const PATH_COLOR_LOCKED = 0x4b5563;
 
-function getPathStyle(fromState: NodeState, toState: NodeState) {
-  if (fromState === 'cleared' && (toState === 'cleared' || toState === 'visited')) {
-    return { color: PATH_COLOR_CLEARED, alpha: 0.8, width: 3, dashed: false };
-  }
-  if (fromState === 'cleared' && (toState === 'current' || toState === 'available')) {
-    return { color: PATH_COLOR_ACTIVE, alpha: 0.8, width: 3, dashed: false };
-  }
-  return { color: PATH_COLOR_LOCKED, alpha: 0.35, width: 2, dashed: true };
+type PathType = 'cleared' | 'active' | 'locked';
+
+function getPathType(fromState: NodeState, toState: NodeState): PathType {
+  if (fromState === 'cleared' && (toState === 'cleared' || toState === 'visited')) return 'cleared';
+  if (fromState === 'cleared' && (toState === 'current' || toState === 'available')) return 'active';
+  return 'locked';
 }
 
-export const MapPath = ({ fromX, fromY, toX, toY, fromState, toState }: MapPathProps) => {
-  const style = getPathStyle(fromState, toState);
+function getPathStyle(pathType: PathType) {
+  switch (pathType) {
+    case 'cleared': return { color: PATH_COLOR_CLEARED, alpha: 0.8, width: 3 };
+    case 'active': return { color: PATH_COLOR_ACTIVE, alpha: 0.8, width: 3 };
+    case 'locked': return { color: PATH_COLOR_LOCKED, alpha: 0.35, width: 2 };
+  }
+}
 
-  const draw = useCallback(
-    (g: PixiGraphics) => {
+function bezierPoint(
+  fx: number, fy: number, tx: number, ty: number, t: number,
+): { x: number; y: number } {
+  const midY = (fy + ty) / 2;
+  const u = 1 - t;
+  const x = u * u * u * fx + 3 * u * u * t * fx + 3 * u * t * t * tx + t * t * t * tx;
+  const y = u * u * u * fy + 3 * u * u * t * midY + 3 * u * t * t * midY + t * t * t * ty;
+  return { x, y };
+}
+
+const ANT_DOT_COUNT = 6;
+const ANT_DOT_RADIUS = 2;
+const ANT_SPEED = 0.0008;
+
+export const MapPath = ({ fromX, fromY, toX, toY, fromState, toState }: MapPathProps) => {
+  const pathType = getPathType(fromState, toState);
+  const style = getPathStyle(pathType);
+  const needsAnimation = pathType === 'active' || pathType === 'cleared';
+
+  const graphicsRef = useRef<PixiGraphics | null>(null);
+  const timeRef = useRef(0);
+
+  const tickPath = useCallback(
+    (ticker: { deltaMS: number }) => {
+      const g = graphicsRef.current;
+      if (!g) return;
+
+      timeRef.current += ticker.deltaMS;
       g.clear();
 
-      if (style.dashed) {
+      if (pathType === 'locked') {
         const dx = toX - fromX;
         const dy = toY - fromY;
         const dist = Math.sqrt(dx * dx + dy * dy);
         const dashLen = 6;
         const gapLen = 5;
         const steps = Math.floor(dist / (dashLen + gapLen));
-        const nx = dx / dist;
-        const ny = dy / dist;
 
         for (let i = 0; i < steps; i++) {
           const startT = (i * (dashLen + gapLen)) / dist;
@@ -49,17 +77,67 @@ export const MapPath = ({ fromX, fromY, toX, toY, fromState, toState }: MapPathP
           g.lineTo(fromX + dx * endT, fromY + dy * endT);
         }
         g.stroke({ color: style.color, width: style.width, alpha: style.alpha, cap: 'round' });
-      } else {
-        const midY = (fromY + toY) / 2;
+        return;
+      }
+
+      const midY = (fromY + toY) / 2;
+
+      if (pathType === 'cleared') {
+        const shimmer = 0.7 + Math.sin(timeRef.current * 0.002) * 0.1;
         g.moveTo(fromX, fromY);
         g.bezierCurveTo(fromX, midY, toX, midY, toX, toY);
-        g.stroke({ color: style.color, width: style.width, alpha: style.alpha, cap: 'round' });
+        g.stroke({ color: style.color, width: style.width, alpha: shimmer, cap: 'round' });
+        return;
       }
+
+      g.moveTo(fromX, fromY);
+      g.bezierCurveTo(fromX, midY, toX, midY, toX, toY);
+      g.stroke({ color: style.color, width: style.width, alpha: style.alpha, cap: 'round' });
+
+      const offset = (timeRef.current * ANT_SPEED) % 1;
+      for (let i = 0; i < ANT_DOT_COUNT; i++) {
+        const t = ((i / ANT_DOT_COUNT) + offset) % 1;
+        const pt = bezierPoint(fromX, fromY, toX, toY, t);
+        g.circle(pt.x, pt.y, ANT_DOT_RADIUS);
+        g.fill({ color: PATH_COLOR_ACTIVE, alpha: 0.6 });
+      }
+    },
+    [fromX, fromY, toX, toY, pathType, style],
+  );
+  useTick(tickPath, needsAnimation);
+
+  const drawStatic = useCallback(
+    (g: PixiGraphics) => {
+      g.clear();
+      const dx = toX - fromX;
+      const dy = toY - fromY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const dashLen = 6;
+      const gapLen = 5;
+      const steps = Math.floor(dist / (dashLen + gapLen));
+
+      for (let i = 0; i < steps; i++) {
+        const startT = (i * (dashLen + gapLen)) / dist;
+        const endT = Math.min((i * (dashLen + gapLen) + dashLen) / dist, 1);
+        g.moveTo(fromX + dx * startT, fromY + dy * startT);
+        g.lineTo(fromX + dx * endT, fromY + dy * endT);
+      }
+      g.stroke({ color: style.color, width: style.width, alpha: style.alpha, cap: 'round' });
     },
     [fromX, fromY, toX, toY, style],
   );
 
-  return <pixiGraphics draw={draw} eventMode="none" />;
+  if (needsAnimation) {
+    return (
+      <pixiGraphics
+        ref={(ref) => { graphicsRef.current = ref; }}
+        draw={() => {}}
+        eventMode="none"
+      />
+    );
+  }
+
+  return <pixiGraphics draw={drawStatic} eventMode="none" />;
 };
 
 export default MapPath;
