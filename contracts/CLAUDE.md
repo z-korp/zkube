@@ -28,7 +28,7 @@ contracts/
 │   │   ├── difficulty.cairo   # Difficulty levels
 │   │   ├── block.cairo        # Block types
 │   │   ├── width.cairo        # Width types
-│   │   ├── constraint.cairo   # ConstraintType, LevelConstraint
+│   │   ├── constraint.cairo   # ConstraintType (7 types), LevelConstraint, ConstraintContext
 │   │   ├── level.cairo        # LevelConfig
 │   │   └── consumable.cairo   # ConsumableType enum
 │   ├── elements/              # Game element implementations
@@ -42,6 +42,7 @@ contracts/
 │   │   ├── gravity.cairo      # Block falling logic
 │   │   ├── random.cairo       # VRF random generation
 │   │   ├── level.cairo        # Level generation
+│   │   ├── boss.cairo         # Boss identity system (10 bosses)
 │   │   └── config.cairo       # Settings utilities
 │   ├── interfaces/            # Trait definitions
 │   │   └── vrf.cairo          # VRF interface
@@ -349,9 +350,10 @@ Bit 190:      shop_bonus_2_bought (bool)
 Bit 191:      shop_bonus_3_bought (bool)
 Bits 192-195: shop_refills (4 bits)
 Bit 196:      no_bonus_constraint (bool)
+Bits 197-204: constraint_3_progress (u8)
 ```
 
-**Total: 197 bits used (55 reserved in felt252)**
+**Total: 205 bits used (47 reserved in felt252)**
 
 ## Bonuses
 
@@ -418,6 +420,24 @@ Defined in `types/difficulty.cairo` and implemented in `elements/difficulties/`:
 - Levels 25-34: VeryHard
 - Levels 35-44: Expert
 - Levels 45+: Master
+
+## Constraint System (`types/constraint.cairo`, `helpers/boss.cairo`)
+
+7 constraint types with a boss identity system for themed boss encounters:
+
+| # | Type | Regular Levels | Boss Only |
+|---|------|:-:|:-:|
+| 0 | None | ✅ | ❌ |
+| 1 | ClearLines | ✅ | ✅ |
+| 2 | BreakBlocks | ✅ | ✅ |
+| 3 | AchieveCombo | ✅ | ✅ |
+| 4 | FillAndClear (Fill) | ✅ | ✅ |
+| 5 | NoBonusUsed | ❌ | ✅ |
+| 6 | ClearGrid | ❌ | ✅ |
+
+Boss levels (10/20/30/40/50) use `helpers/boss.cairo` which defines 10 themed bosses with fixed constraint combinations. Boss ID is derived from `level_seed % 10 + 1`. L10-30 have dual constraints, L40/50 have triple constraints. Constraint values scale with difficulty tier.
+
+The `ConstraintContext` struct is passed to `update_progress()` for all constraint types, gating expensive computations (e.g., BreakBlocks counting) behind `any_needs_break_blocks()` checks.
 
 ## Dependencies
 

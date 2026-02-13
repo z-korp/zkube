@@ -63,7 +63,10 @@ mod grid_system {
     };
     use zkube::types::bonus::{Bonus, BonusTrait};
     use zkube::types::difficulty::Difficulty;
-    use zkube::types::constraint::LevelConstraintTrait;
+    use zkube::types::constraint::{
+        LevelConstraint, LevelConstraintTrait, ConstraintContext,
+        any_needs_break_blocks, get_break_blocks_target_size,
+    };
 
     // Import bonus implementations (only grid-modifying bonuses need element files)
     use zkube::elements::bonuses::harvest;
@@ -172,6 +175,35 @@ mod grid_system {
             let effective_max_moves: u16 = game_level.max_moves + run_data.extra_moves.into();
             assert!(run_data.level_moves.into() < effective_max_moves, "Move limit exceeded");
             
+            // Build constraints from GameLevel
+            let constraint = LevelConstraint {
+                constraint_type: game_level.constraint_type.into(),
+                value: game_level.constraint_value,
+                required_count: game_level.constraint_count,
+            };
+            let constraint_2 = LevelConstraint {
+                constraint_type: game_level.constraint2_type.into(),
+                value: game_level.constraint2_value,
+                required_count: game_level.constraint2_count,
+            };
+            let constraint_3 = LevelConstraint {
+                constraint_type: game_level.constraint3_type.into(),
+                value: game_level.constraint3_value,
+                required_count: game_level.constraint3_count,
+            };
+            
+            // Compute highest occupied row BEFORE the move (for FillAndClear constraint)
+            let highest_row_before = InternalImpl::highest_occupied_row(game.blocks);
+            
+            // Check if we need to track BreakBlocks (expensive — only when active)
+            let track_break_blocks = any_needs_break_blocks(constraint, constraint_2, constraint_3);
+            let break_target_size = if track_break_blocks {
+                get_break_blocks_target_size(constraint, constraint_2, constraint_3)
+            } else {
+                0
+            };
+            let blocks_before = if track_break_blocks { game.blocks } else { 0 };
+            
             // Perform the swipe
             let direction = final_index > start_index;
             let count = if direction {
@@ -209,23 +241,26 @@ mod grid_system {
             // Update combos and award cubes
             process_lines_cleared(ref run_data, ref game.combo_counter, ref game.max_combo, lines_cleared);
             
-            // Update constraint progress
-            let constraint_type: zkube::types::constraint::ConstraintType = game_level.constraint_type.into();
-            let constraint = zkube::types::constraint::LevelConstraint {
-                constraint_type,
-                value: game_level.constraint_value,
-                required_count: game_level.constraint_count,
+            // Count destroyed blocks of target size if tracking BreakBlocks
+            let blocks_destroyed_of_target_size = if track_break_blocks {
+                InternalImpl::count_blocks_of_size_diff(blocks_before, new_blocks, break_target_size)
+            } else {
+                0
             };
-            run_data.constraint_progress = constraint.update_progress(run_data.constraint_progress, lines_cleared);
             
-            // Update secondary constraint
-            let constraint2_type: zkube::types::constraint::ConstraintType = game_level.constraint2_type.into();
-            let constraint_2 = zkube::types::constraint::LevelConstraint {
-                constraint_type: constraint2_type,
-                value: game_level.constraint2_value,
-                required_count: game_level.constraint2_count,
+            // Build ConstraintContext
+            let ctx = ConstraintContext {
+                lines_cleared,
+                combo_counter: game.combo_counter,
+                highest_row_before,
+                grid_is_empty: new_blocks == 0,
+                blocks_destroyed_of_target_size,
             };
-            run_data.constraint_2_progress = constraint_2.update_progress(run_data.constraint_2_progress, lines_cleared);
+            
+            // Update all three constraint progresses
+            run_data.constraint_progress = constraint.update_progress(run_data.constraint_progress, ctx);
+            run_data.constraint_2_progress = constraint_2.update_progress(run_data.constraint_2_progress, ctx);
+            run_data.constraint_3_progress = constraint_3.update_progress(run_data.constraint_3_progress, ctx);
             
             // Increment level moves (or consume free move)
             if run_data.free_moves > 0 {
@@ -467,6 +502,55 @@ mod grid_system {
         }
         
         // apply_bonus_effect removed - dispatch logic is now inline in apply_bonus()
+        
+        /// Compute the highest occupied row index (0 = bottom, 9 = top).
+        /// Returns 0 if grid is empty.
+        fn highest_occupied_row(blocks: felt252) -> u8 {
+            let blocks_u256: u256 = blocks.into();
+            if blocks_u256 == 0 {
+                return 0;
+            }
+            let row_mask: u256 = 0xFFFFFF; // 24-bit mask for one row
+            let mut row: u8 = constants::DEFAULT_GRID_HEIGHT - 1; // Start from top (row 9)
+            loop {
+                let shift: u256 = row.into() * constants::ROW_BIT_COUNT.into();
+                let row_bits = (blocks_u256 / fast_power(2_u256, shift)) & row_mask;
+                if row_bits > 0 {
+                    break row;
+                }
+                if row == 0 {
+                    break 0;
+                }
+                row -= 1;
+            }
+        }
+        
+        /// Count blocks of a specific size that were destroyed between two grid states.
+        /// Compares blocks_before and blocks_after, counting blocks of target_size
+        /// that exist in before but not in after.
+        fn count_blocks_of_size_diff(blocks_before: felt252, blocks_after: felt252, target_size: u8) -> u8 {
+            let before_u256: u256 = blocks_before.into();
+            let after_u256: u256 = blocks_after.into();
+            let block_mask: u256 = 0x7; // 3-bit mask for one block
+            let total_blocks: u8 = constants::DEFAULT_GRID_HEIGHT * constants::DEFAULT_GRID_WIDTH; // 80
+            let mut count: u8 = 0;
+            let mut i: u8 = 0;
+            loop {
+                if i >= total_blocks {
+                    break;
+                }
+                let shift: u256 = (i.into()) * constants::BLOCK_BIT_COUNT.into();
+                let divisor = fast_power(2_u256, shift);
+                let before_val: u8 = ((before_u256 / divisor) & block_mask).try_into().unwrap();
+                let after_val: u8 = ((after_u256 / divisor) & block_mask).try_into().unwrap();
+                // Block was present before and gone after, and matches target size
+                if before_val == target_size && after_val == 0 {
+                    count += 1;
+                }
+                i += 1;
+            };
+            count
+        }
         
         /// Get bonus level (0-2) for a bonus type.
         #[inline(always)]

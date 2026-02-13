@@ -1,6 +1,15 @@
 /**
  * Constraint types for the level system
  * Constraints are level-specific objectives that must be met to complete a level
+ *
+ * 7 constraint types (0-6):
+ * - None: No constraint
+ * - ClearLines: Clear X lines in a single move, Y times
+ * - BreakBlocks: Destroy X blocks of a specific size, accumulating count
+ * - AchieveCombo: Reach a combo of X (one-shot: progress=1 once triggered)
+ * - Fill: Fill X rows Y times (tracked via highest_row_before + lines_cleared)
+ * - NoBonusUsed: Complete level without using any bonus (boss-only)
+ * - ClearGrid: Clear the entire grid (boss-only, one-shot)
  */
 
 export enum ConstraintType {
@@ -8,16 +17,34 @@ export enum ConstraintType {
   None = 0,
   /** Must clear X lines in a single move, Y times */
   ClearLines = 1,
-  /** Must complete level without using any bonus */
-  NoBonusUsed = 2,
+  /** Must destroy blocks of a specific size, accumulating count */
+  BreakBlocks = 2,
+  /** Must achieve a combo of at least X lines in a single level */
+  AchieveCombo = 3,
+  /** Must fill X rows Y times (grid fills to row height, then clears lines) */
+  FillAndClear = 4,
+  /** Must complete level without using any bonus (boss-only) */
+  NoBonusUsed = 5,
+  /** Must clear the entire grid to 0 blocks (boss-only, one-shot) */
+  ClearGrid = 6,
 }
 
 export interface LevelConstraint {
   /** The type of constraint */
   constraintType: ConstraintType;
-  /** For ClearLines: number of lines to clear in one move */
+  /** Meaning varies by type:
+   * - ClearLines: number of lines to clear in one move
+   * - BreakBlocks: block size to target (1-4)
+   * - AchieveCombo: combo target to reach
+   * - FillAndClear: rows to fill (row height target)
+   * - NoBonusUsed/ClearGrid/None: 0 */
   value: number;
-  /** For ClearLines: how many times to achieve it */
+  /** Meaning varies by type:
+   * - ClearLines: how many times to achieve it
+   * - BreakBlocks: total blocks to destroy
+   * - AchieveCombo: 1 (always one-shot)
+   * - FillAndClear: how many times
+   * - NoBonusUsed/ClearGrid/None: 0 */
   requiredCount: number;
 }
 
@@ -42,9 +69,29 @@ export class Constraint {
     return new Constraint(ConstraintType.ClearLines, lines, times);
   }
 
+  /** Create a BreakBlocks constraint */
+  static breakBlocks(blockSize: number, count: number): Constraint {
+    return new Constraint(ConstraintType.BreakBlocks, blockSize, count);
+  }
+
+  /** Create an AchieveCombo constraint */
+  static achieveCombo(comboTarget: number): Constraint {
+    return new Constraint(ConstraintType.AchieveCombo, comboTarget, 1);
+  }
+
+  /** Create a Fill constraint (fill X rows Y times) */
+  static fillAndClear(rowHeight: number, times: number): Constraint {
+    return new Constraint(ConstraintType.FillAndClear, rowHeight, times);
+  }
+
   /** Create a NoBonusUsed constraint */
   static noBonus(): Constraint {
     return new Constraint(ConstraintType.NoBonusUsed, 0, 0);
+  }
+
+  /** Create a ClearGrid constraint */
+  static clearGrid(): Constraint {
+    return new Constraint(ConstraintType.ClearGrid, 0, 1);
   }
 
   /** Check if constraint is satisfied */
@@ -54,8 +101,16 @@ export class Constraint {
         return true;
       case ConstraintType.ClearLines:
         return progress >= this.requiredCount;
+      case ConstraintType.BreakBlocks:
+        return progress >= this.requiredCount;
+      case ConstraintType.AchieveCombo:
+        return progress >= 1;
+      case ConstraintType.FillAndClear:
+        return progress >= this.requiredCount;
       case ConstraintType.NoBonusUsed:
         return !bonusUsed;
+      case ConstraintType.ClearGrid:
+        return progress >= 1;
       default:
         return true;
     }
@@ -68,8 +123,16 @@ export class Constraint {
         return "No constraint";
       case ConstraintType.ClearLines:
         return `Clear ${this.value}+ lines ${this.requiredCount} time${this.requiredCount > 1 ? "s" : ""}`;
+      case ConstraintType.BreakBlocks:
+        return `Destroy ${this.requiredCount} size-${this.value} blocks`;
+      case ConstraintType.AchieveCombo:
+        return `Achieve ${this.value}+ combo`;
+      case ConstraintType.FillAndClear:
+        return `Fill ${this.value} rows ${this.requiredCount} time${this.requiredCount > 1 ? "s" : ""}`;
       case ConstraintType.NoBonusUsed:
         return "No bonus allowed";
+      case ConstraintType.ClearGrid:
+        return "Clear the entire grid";
       default:
         return "Unknown";
     }
@@ -82,10 +145,26 @@ export class Constraint {
         return "";
       case ConstraintType.ClearLines:
         return `${this.value}+ lines x${this.requiredCount}`;
+      case ConstraintType.BreakBlocks:
+        return `Break ${this.requiredCount} size-${this.value}`;
+      case ConstraintType.AchieveCombo:
+        return `${this.value}+ combo`;
+      case ConstraintType.FillAndClear:
+        return `Fill ${this.value} rows x${this.requiredCount}`;
       case ConstraintType.NoBonusUsed:
         return "No Bonus";
+      case ConstraintType.ClearGrid:
+        return "Clear Grid";
       default:
         return "";
     }
+  }
+
+  /** Check if this constraint is boss-only */
+  isBossOnly(): boolean {
+    return (
+      this.constraintType === ConstraintType.NoBonusUsed ||
+      this.constraintType === ConstraintType.ClearGrid
+    );
   }
 }

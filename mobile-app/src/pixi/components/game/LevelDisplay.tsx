@@ -11,6 +11,7 @@ interface LevelDisplayProps {
   stars: number;
   constraint1?: ConstraintData;
   constraint2?: ConstraintData;
+  constraint3?: ConstraintData;
   x: number;
   y: number;
   width: number;
@@ -29,6 +30,7 @@ export const LevelDisplay = ({
   stars,
   constraint1,
   constraint2,
+  constraint3,
   x,
   y,
   width,
@@ -56,6 +58,7 @@ export const LevelDisplay = ({
 
   const hasConstraint1 = constraint1 && constraint1.type !== ConstraintType.None;
   const hasConstraint2 = constraint2 && constraint2.type !== ConstraintType.None;
+  const hasConstraint3 = constraint3 && constraint3.type !== ConstraintType.None;
 
   // Sizing
   const levelBadgeWidth = Math.round(80 * uiScale);
@@ -160,7 +163,12 @@ export const LevelDisplay = ({
     
     switch (constraint.type) {
       case ConstraintType.ClearLines:
+      case ConstraintType.BreakBlocks:
+      case ConstraintType.FillAndClear:
         return `${constraint.progress}/${constraint.count}`;
+      case ConstraintType.AchieveCombo:
+      case ConstraintType.ClearGrid:
+        return constraint.progress >= 1 ? 'DONE' : '0/1';
       case ConstraintType.NoBonusUsed:
         return constraint.bonusUsed ? 'FAIL' : 'OK';
       default:
@@ -173,7 +181,12 @@ export const LevelDisplay = ({
     
     switch (constraint.type) {
       case ConstraintType.ClearLines:
+      case ConstraintType.BreakBlocks:
+      case ConstraintType.FillAndClear:
         return constraint.progress >= (constraint.count ?? 0);
+      case ConstraintType.AchieveCombo:
+      case ConstraintType.ClearGrid:
+        return constraint.progress >= 1;
       case ConstraintType.NoBonusUsed:
         return !constraint.bonusUsed;
       default:
@@ -212,11 +225,16 @@ export const LevelDisplay = ({
     if (constraint2) drawConstraintBadge(g, constraint2, isConstraintComplete(constraint2));
   }, [drawConstraintBadge, constraint2, isConstraintComplete]);
 
+  const drawConstraint3Badge = useCallback((g: PixiGraphics) => {
+    if (constraint3) drawConstraintBadge(g, constraint3, isConstraintComplete(constraint3));
+  }, [drawConstraintBadge, constraint3, isConstraintComplete]);
+
   // Positions
   const levelBadgeX = centerX - centerSectionWidth / 2;
   const starsX = levelBadgeX + levelBadgeWidth + sectionGap;
   const constraint1X = hasConstraint1 ? levelBadgeX - constraintBadgeWidth - sectionGap : 0;
   const constraint2X = hasConstraint2 ? starsX + starsWidth + sectionGap : 0;
+  const constraint3X = hasConstraint3 ? starsX + starsWidth + sectionGap : 0;
 
   return (
     <pixiContainer x={x} y={y}>
@@ -260,10 +278,24 @@ export const LevelDisplay = ({
 
       {/* Constraint 2 (right) */}
       {hasConstraint2 && constraint2 && (
-        <pixiContainer x={constraint2X} y={(height - constraintBadgeHeight) / 2}>
+        <pixiContainer x={constraint2X} y={hasConstraint3 ? (height - constraintBadgeHeight) / 2 - constraintBadgeHeight / 2 - 2 : (height - constraintBadgeHeight) / 2}>
           <pixiGraphics draw={drawConstraint2Badge} />
           <pixiText
             text={getConstraintText(constraint2)}
+            x={constraintBadgeWidth / 2}
+            y={constraintBadgeHeight / 2}
+            anchor={{ x: 0.5, y: 0.5 }}
+            style={constraintTextStyle}
+          />
+        </pixiContainer>
+      )}
+
+      {/* Constraint 3 (right, below constraint 2) */}
+      {hasConstraint3 && constraint3 && (
+        <pixiContainer x={constraint3X} y={(height - constraintBadgeHeight) / 2 + constraintBadgeHeight / 2 + 2}>
+          <pixiGraphics draw={drawConstraint3Badge} />
+          <pixiText
+            text={getConstraintText(constraint3)}
             x={constraintBadgeWidth / 2}
             y={constraintBadgeHeight / 2}
             anchor={{ x: 0.5, y: 0.5 }}

@@ -200,15 +200,12 @@ Clearing multiple lines in one move awards bonus cubes:
 
 ### Constraint System
 
-Level constraints add challenge for bonus rewards:
-- **ClearLines:** Clear X lines in a single move, Y times per level
-- **NoBonusUsed:** Complete level without using any bonus
-- **Dual constraints:** Higher difficulties can have two constraints
-
-Parameters scale from Easy to Master difficulty:
-- None chance: 30% -> 0%
-- NoBonusUsed chance: 0% -> 25%
-- Dual constraint chance: 0% -> 50%
+7 constraint types (None, ClearLines, BreakBlocks, AchieveCombo, Fill, NoBonusUsed, ClearGrid):
+- **Regular levels (3+):** ClearLines via budget system, dual chance scales with difficulty
+- **Boss levels (10/20/30/40/50):** Themed boss identities with fixed constraint combos
+- **Boss progression:** Dual constraints at L10-30, triple at L40/50
+- **Boss-only types:** NoBonusUsed and ClearGrid only appear on boss levels
+- 10 boss identities defined in `contracts/src/helpers/boss.cairo`
 
 ### Quest System
 
@@ -267,6 +264,7 @@ Daily quests for earning CUBE tokens (102 CUBE/day total):
 - `contracts/src/models/config.cairo` - GameSettings model (configurable parameters)
 - `contracts/src/helpers/controller.cairo` - Grid manipulation logic
 - `contracts/src/helpers/level.cairo` - Level generation with settings
+- `contracts/src/helpers/boss.cairo` - Boss identity system (10 themed bosses)
 - `contracts/src/constants.cairo` - Game constants and namespace
 
 ### Token Contracts

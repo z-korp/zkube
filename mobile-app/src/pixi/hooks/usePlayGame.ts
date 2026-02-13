@@ -47,6 +47,7 @@ interface LevelCompletionData {
   levelScore: number;
   constraintProgress: number;
   constraint2Progress: number;
+  constraint3Progress: number;
   bonusUsedThisLevel: boolean;
   prevCombo: number;
   prevScore: number;
@@ -85,6 +86,7 @@ export interface UsePlayGameResult {
   maxMoves: number;
   constraint1?: ConstraintData;
   constraint2?: ConstraintData;
+  constraint3?: ConstraintData;
   combo: number;
   maxCombo: number;
   stars: number;
@@ -177,6 +179,7 @@ export function usePlayGame(
     levelScore: number;
     constraintProgress: number;
     constraint2Progress: number;
+    constraint3Progress: number;
     bonusUsedThisLevel: boolean;
     comboBonus: number;
     scoreBonus: number;
@@ -287,6 +290,7 @@ export function usePlayGame(
         levelScore: prevState.levelScore,
         constraintProgress: prevState.constraintProgress,
         constraint2Progress: prevState.constraint2Progress,
+        constraint3Progress: prevState.constraint3Progress,
         bonusUsedThisLevel: prevState.bonusUsedThisLevel,
         prevCombo: prevState.comboBonus,
         prevScore: prevState.scoreBonus,
@@ -312,6 +316,7 @@ export function usePlayGame(
       levelScore: game.levelScore,
       constraintProgress: game.constraintProgress,
       constraint2Progress: game.constraint2Progress,
+      constraint3Progress: game.constraint3Progress,
       bonusUsedThisLevel: game.bonusUsedThisLevel,
       comboBonus: game.comboBonus,
       scoreBonus: game.scoreBonus,
@@ -322,7 +327,7 @@ export function usePlayGame(
       totalScore: game.totalScore,
     };
   }, [
-    game?.level, game?.levelScore, game?.constraintProgress, game?.constraint2Progress, game?.bonusUsedThisLevel,
+    game?.level, game?.levelScore, game?.constraintProgress, game?.constraint2Progress, game?.constraint3Progress, game?.bonusUsedThisLevel,
     game?.comboBonus, game?.scoreBonus, game?.harvest, game?.wave, game?.supply,
     game?.over, game?.totalCubes, game?.totalScore, game,
   ]);
@@ -605,6 +610,17 @@ export function usePlayGame(
     };
   }, [gameLevel, game?.constraint2Progress, game?.bonusUsedThisLevel]);
 
+  const constraint3: ConstraintData | undefined = useMemo(() => {
+    if (!gameLevel || gameLevel.constraint3Type === ConstraintType.None) return undefined;
+    return {
+      type: gameLevel.constraint3Type,
+      value: gameLevel.constraint3Value,
+      count: gameLevel.constraint3Count,
+      progress: game?.constraint3Progress ?? 0,
+      bonusUsed: game?.bonusUsedThisLevel ?? false,
+    };
+  }, [gameLevel, game?.constraint3Progress, game?.bonusUsedThisLevel]);
+
   const targetScore = useMemo(() => {
     if (gameLevel) return gameLevel.pointsRequired;
     return 20 + (game?.level ?? 1) * 5;
@@ -639,6 +655,7 @@ export function usePlayGame(
     maxMoves,
     constraint1,
     constraint2,
+    constraint3,
     combo: optimisticCombo,
     maxCombo: optimisticMaxCombo,
     stars,
@@ -662,7 +679,8 @@ export function usePlayGame(
     levelCompleteBonusAwarded: bonusAwarded,
     constraintMet: levelCompletionData ? (
       levelCompletionData.constraintProgress >= (gameLevel?.constraintCount ?? 0) &&
-      (!gameLevel?.constraint2Count || levelCompletionData.constraint2Progress >= gameLevel.constraint2Count)
+      (!gameLevel?.constraint2Count || levelCompletionData.constraint2Progress >= gameLevel.constraint2Count) &&
+      (!gameLevel?.constraint3Count || levelCompletionData.constraint3Progress >= gameLevel.constraint3Count)
     ) : false,
     handleMove,
     handleBonusApply,

@@ -177,6 +177,10 @@ export function defineContractComponents(world: World) {
           constraint2_type: RecsType.Number,
           constraint2_value: RecsType.Number,
           constraint2_count: RecsType.Number,
+          // Tertiary constraint (boss levels 40/50)
+          constraint3_type: RecsType.Number,
+          constraint3_value: RecsType.Number,
+          constraint3_count: RecsType.Number,
           // Cube thresholds
           cube_3_threshold: RecsType.Number,
           cube_2_threshold: RecsType.Number,
@@ -197,6 +201,9 @@ export function defineContractComponents(world: World) {
               "u8",   // constraint2_type
               "u8",   // constraint2_value
               "u8",   // constraint2_count
+              "u8",   // constraint3_type
+              "u8",   // constraint3_value
+              "u8",   // constraint3_count
               "u16",  // cube_3_threshold
               "u16",  // cube_2_threshold
             ],

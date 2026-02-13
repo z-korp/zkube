@@ -78,6 +78,7 @@ pub mod helpers {
     pub mod packing;
     pub mod level;
     pub mod level_check;
+    pub mod boss;
     pub mod dispatchers;
     pub mod game_libs;
     pub mod game_over;

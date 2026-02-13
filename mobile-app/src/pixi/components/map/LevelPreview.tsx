@@ -43,7 +43,8 @@ export const LevelPreview = ({ node, screenWidth, screenHeight, onPlay, onClose 
   const isPlayable = node.state === 'current' || node.state === 'available';
   const isCleared = node.state === 'cleared';
 
-  const panelH = node.type === 'shop' ? 160 : isCleared ? 180 : PANEL_H_BASE;
+  const hasConstraint3 = levelConfig && levelConfig.constraint3.constraintType !== ConstraintType.None;
+  const panelH = node.type === 'shop' ? 160 : isCleared ? 180 : hasConstraint3 ? PANEL_H_BASE + 22 : PANEL_H_BASE;
   const panelX = (screenWidth - PANEL_W) / 2;
   const panelY = (screenHeight - panelH) / 2;
 
@@ -231,6 +232,20 @@ export const LevelPreview = ({ node, screenWidth, screenHeight, onPlay, onClose 
                       text={levelConfig.constraint2.getLabel()}
                       x={PANEL_W - 20}
                       y={lineH * 4}
+                      anchor={{ x: 1, y: 0 }}
+                      style={valueStyle}
+                      eventMode="none"
+                    />
+                  </pixiContainer>
+                )}
+
+                {levelConfig.constraint3.constraintType !== ConstraintType.None && (
+                  <pixiContainer>
+                    <pixiText text="Constraint 3" x={20} y={lineH * 5} style={labelStyle} eventMode="none" />
+                    <pixiText
+                      text={levelConfig.constraint3.getLabel()}
+                      x={PANEL_W - 20}
+                      y={lineH * 5}
                       anchor={{ x: 1, y: 0 }}
                       style={valueStyle}
                       eventMode="none"

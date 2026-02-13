@@ -23,6 +23,8 @@ interface HUDBarProps {
   constraint1?: ConstraintData;
   /** Second constraint (for dual constraint levels) */
   constraint2?: ConstraintData;
+  /** Third constraint (for triple constraint boss levels) */
+  constraint3?: ConstraintData;
   /** Width of the HUD bar */
   width: number;
   /** Height of the HUD bar */
@@ -47,6 +49,7 @@ export const HUDBar = ({
   maxMoves,
   constraint1,
   constraint2,
+  constraint3,
   width,
   height,
   y = 0,
@@ -54,10 +57,10 @@ export const HUDBar = ({
 }: HUDBarProps) => {
   const { colors } = usePixiTheme();
 
-  // Check if we have active constraints
   const hasConstraint1 = constraint1 && constraint1.type !== ConstraintType.None;
   const hasConstraint2 = constraint2 && constraint2.type !== ConstraintType.None;
-  const hasAnyConstraint = hasConstraint1 || hasConstraint2;
+  const hasConstraint3 = constraint3 && constraint3.type !== ConstraintType.None;
+  const hasAnyConstraint = hasConstraint1 || hasConstraint2 || hasConstraint3;
 
   // Layout calculations
   const padding = 4;
@@ -104,23 +107,31 @@ export const HUDBar = ({
         isDanger={isInDanger}
       />
       
-      {/* Constraints - stacked if both present */}
       {hasConstraint1 && constraint1 && (
         <ConstraintIndicator
           constraint={constraint1}
           x={constraintX}
-          y={hasConstraint2 ? 2 : (height - 28) / 2}
+          y={hasConstraint2 || hasConstraint3 ? 1 : (height - 28) / 2}
           width={constraintWidth}
-          height={hasConstraint2 ? 16 : 28}
+          height={hasConstraint2 || hasConstraint3 ? 14 : 28}
         />
       )}
       {hasConstraint2 && constraint2 && (
         <ConstraintIndicator
           constraint={constraint2}
           x={constraintX}
-          y={height - 18}
+          y={hasConstraint3 ? Math.round(height / 2) - 7 : height - 16}
           width={constraintWidth}
-          height={16}
+          height={14}
+        />
+      )}
+      {hasConstraint3 && constraint3 && (
+        <ConstraintIndicator
+          constraint={constraint3}
+          x={constraintX}
+          y={height - 15}
+          width={constraintWidth}
+          height={14}
         />
       )}
       

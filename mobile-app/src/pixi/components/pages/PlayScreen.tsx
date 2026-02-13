@@ -321,12 +321,13 @@ const StatsBar = ({
 const ProgressHudBar = ({
   sw, barY, barH, gridX, gridW, uiScale,
   levelScore, targetScore, stars,
-  constraint1, constraint2,
+  constraint1, constraint2, constraint3,
 }: {
   sw: number; barY: number; barH: number; gridX: number; gridW: number; uiScale: number;
   levelScore: number; targetScore: number; stars: number;
   constraint1?: ConstraintData;
   constraint2?: ConstraintData;
+  constraint3?: ConstraintData;
 }) => {
   const { colors, getAssetPath } = usePixiTheme();
   const scoreProgress = Math.min(1, levelScore / Math.max(targetScore, 1));
@@ -334,7 +335,8 @@ const ProgressHudBar = ({
 
   const hasC1 = constraint1 && constraint1.type !== ConstraintType.None;
   const hasC2 = constraint2 && constraint2.type !== ConstraintType.None;
-  const hasConstraints = hasC1 || hasC2;
+  const hasC3 = constraint3 && constraint3.type !== ConstraintType.None;
+  const hasConstraints = hasC1 || hasC2 || hasC3;
 
   const pad = Math.round(8 * uiScale);
   const barX = gridX - pad;
@@ -372,15 +374,25 @@ const ProgressHudBar = ({
     if (hasConstraints) {
       const cX = progressX + progressW + Math.round(6 * uiScale);
       const cMid = barH / 2;
+      const constraintCount = (hasC1 ? 1 : 0) + (hasC2 ? 1 : 0) + (hasC3 ? 1 : 0);
+      const spacing = constraintCount >= 3 ? Math.round(7 * uiScale) : Math.round(5 * uiScale);
 
-      if (hasC1 && constraint1) {
-        drawConstraintInline(g, constraint1, cX, hasC2 ? cMid - Math.round(5 * uiScale) : cMid, uiScale);
-      }
-      if (hasC2 && constraint2) {
-        drawConstraintInline(g, constraint2, cX, hasC1 ? cMid + Math.round(5 * uiScale) : cMid, uiScale);
+      if (constraintCount === 1) {
+        if (hasC1 && constraint1) drawConstraintInline(g, constraint1, cX, cMid, uiScale);
+        else if (hasC2 && constraint2) drawConstraintInline(g, constraint2, cX, cMid, uiScale);
+        else if (hasC3 && constraint3) drawConstraintInline(g, constraint3, cX, cMid, uiScale);
+      } else if (constraintCount === 2) {
+        let idx = 0;
+        if (hasC1 && constraint1) { drawConstraintInline(g, constraint1, cX, cMid - spacing, uiScale); idx++; }
+        if (hasC2 && constraint2) { drawConstraintInline(g, constraint2, cX, idx === 0 ? cMid - spacing : cMid + spacing, uiScale); idx++; }
+        if (hasC3 && constraint3) { drawConstraintInline(g, constraint3, cX, cMid + spacing, uiScale); }
+      } else {
+        if (hasC1 && constraint1) drawConstraintInline(g, constraint1, cX, cMid - spacing, uiScale);
+        if (hasC2 && constraint2) drawConstraintInline(g, constraint2, cX, cMid, uiScale);
+        if (hasC3 && constraint3) drawConstraintInline(g, constraint3, cX, cMid + spacing, uiScale);
       }
     }
-  }, [barW, barH, radius, colors, hudTex, progressX, progressY, progressW, progressH, scoreProgress, hasConstraints, hasC1, hasC2, constraint1, constraint2, uiScale]);
+  }, [barW, barH, radius, colors, hudTex, progressX, progressY, progressW, progressH, scoreProgress, hasConstraints, hasC1, hasC2, hasC3, constraint1, constraint2, constraint3, uiScale]);
 
   const starX = barW - starSection;
 
@@ -416,7 +428,15 @@ const ProgressHudBar = ({
 };
 
 function drawConstraintInline(g: PixiGraphics, c: ConstraintData, x: number, cy: number, uiScale: number) {
-  if (c.type === ConstraintType.ClearLines && c.count > 0) {
+  const hasCountProgress = (
+    c.type === ConstraintType.ClearLines ||
+    c.type === ConstraintType.BreakBlocks ||
+    c.type === ConstraintType.FillAndClear
+  ) && c.count > 0 && c.count <= 10;
+
+  const isOneShot = c.type === ConstraintType.AchieveCombo || c.type === ConstraintType.ClearGrid;
+
+  if (hasCountProgress) {
     const dotR = Math.round(3 * uiScale);
     const dotGap = Math.round(3 * uiScale);
     const satisfied = c.progress >= c.count;
@@ -427,6 +447,11 @@ function drawConstraintInline(g: PixiGraphics, c: ConstraintData, x: number, cy:
       g.circle(cx, cy, dotR);
       g.fill({ color: filled ? (satisfied ? 0x22c55e : 0xf97316) : 0x555555, alpha: filled ? 1 : 0.5 });
     }
+  } else if (isOneShot) {
+    const done = c.progress >= 1;
+    const dotR = Math.round(4 * uiScale);
+    g.circle(x + dotR, cy, dotR);
+    g.fill({ color: done ? 0x22c55e : 0x555555, alpha: done ? 1 : 0.5 });
   } else if (c.type === ConstraintType.NoBonusUsed) {
     const ok = !c.bonusUsed;
     g.roundRect(x, cy - 6, Math.round(50 * uiScale), 12, 3);
@@ -492,7 +517,7 @@ const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => 
   const {
     blocks, nextLine, nextLineConsumed: nextLineConsumed,
     level, levelScore, targetScore, moves, maxMoves,
-    constraint1, constraint2,
+    constraint1, constraint2, constraint3,
     combo, maxCombo, stars,
     bonusSlots, selectedBonus, bonusDescription,
     cubeBalance, totalCubes, totalScore,
@@ -586,7 +611,7 @@ const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => 
         sw={sw} barY={layout.progressBarY} barH={layout.progressBarHeight}
         gridX={layout.gridX} gridW={layout.gridWidth} uiScale={uiScale}
         levelScore={levelScore} targetScore={targetScore} stars={stars}
-        constraint1={constraint1} constraint2={constraint2}
+        constraint1={constraint1} constraint2={constraint2} constraint3={constraint3}
       />
 
       {layout.showSidePanels && (

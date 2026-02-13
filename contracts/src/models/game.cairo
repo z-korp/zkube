@@ -67,13 +67,17 @@ pub struct GameLevel {
     pub max_moves: u16,
     pub difficulty: u8,           // Difficulty enum as u8
     // Primary constraint
-    pub constraint_type: u8,      // ConstraintType enum as u8 (0=None, 1=ClearLines, 2=NoBonusUsed)
-    pub constraint_value: u8,     // For ClearLines: minimum lines to clear
-    pub constraint_count: u8,     // For ClearLines: number of times required
-    // Secondary constraint (for boss levels)
+    pub constraint_type: u8,      // ConstraintType enum as u8 (0-6)
+    pub constraint_value: u8,     // Constraint parameter
+    pub constraint_count: u8,     // Required count
+    // Secondary constraint
     pub constraint2_type: u8,
     pub constraint2_value: u8,
     pub constraint2_count: u8,
+    // Tertiary constraint (boss levels 40/50)
+    pub constraint3_type: u8,
+    pub constraint3_value: u8,
+    pub constraint3_count: u8,
     // Cube thresholds
     pub cube_3_threshold: u16,    // Moves threshold for 3 cubes
     pub cube_2_threshold: u16,    // Moves threshold for 2 cubes
@@ -97,6 +101,9 @@ pub impl GameLevelImpl of GameLevelTrait {
             constraint2_type: config.constraint_2.constraint_type.into(),
             constraint2_value: config.constraint_2.value,
             constraint2_count: config.constraint_2.required_count,
+            constraint3_type: config.constraint_3.constraint_type.into(),
+            constraint3_value: config.constraint_3.value,
+            constraint3_count: config.constraint_3.required_count,
             cube_3_threshold: config.cube_3_threshold,
             cube_2_threshold: config.cube_2_threshold,
         }
@@ -206,6 +213,12 @@ pub impl GameImpl of GameTrait {
         self.get_run_data().constraint_2_progress
     }
 
+    /// Get constraint_3 progress (tertiary constraint)
+    #[inline(always)]
+    fn get_constraint_3_progress(self: Game) -> u8 {
+        self.get_run_data().constraint_3_progress
+    }
+
     /// Get the level (0-2) for a given bonus type based on selected bonuses
     /// @param bonus_type: 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
     /// Returns 0 (L1), 1 (L2), or 2 (L3)
@@ -278,6 +291,7 @@ pub impl GameImpl of GameTrait {
         run_data.level_moves = 0;
         run_data.constraint_progress = 0;
         run_data.constraint_2_progress = 0;
+        run_data.constraint_3_progress = 0;
         run_data.extra_moves = 0;
         run_data.bonus_used_this_level = false;
 

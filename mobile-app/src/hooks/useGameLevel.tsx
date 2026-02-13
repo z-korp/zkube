@@ -23,6 +23,10 @@ export interface GameLevelData {
   constraint2Type: ConstraintType;
   constraint2Value: number;
   constraint2Count: number;
+  // Tertiary constraint
+  constraint3Type: ConstraintType;
+  constraint3Value: number;
+  constraint3Count: number;
   // Cube thresholds
   cube3Threshold: number;
   cube2Threshold: number;
@@ -90,6 +94,9 @@ export const useGameLevel = ({
       constraint2Type: component.constraint2_type as ConstraintType,
       constraint2Value: component.constraint2_value,
       constraint2Count: component.constraint2_count,
+      constraint3Type: component.constraint3_type as ConstraintType,
+      constraint3Value: component.constraint3_value,
+      constraint3Count: component.constraint3_count,
       cube3Threshold: component.cube_3_threshold,
       cube2Threshold: component.cube_2_threshold,
     };

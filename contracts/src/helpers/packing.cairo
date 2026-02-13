@@ -40,7 +40,8 @@ use alexandria_math::BitShift;
 /// │ 191     │ shop_bonus_3_bought   │ 1    │ 0-1      │ Bonus 3 bought  │
 /// │ 192-195 │ shop_refills          │ 4    │ 0-15     │ Refills bought  │
 /// │ 196     │ no_bonus_constraint   │ 1    │ 0-1      │ NoBonusUsed active│
-/// │ 197-251 │ reserved              │ 55   │ -        │ Future features │
+/// │ 197-204 │ constraint_3_progress │ 8    │ 0-255    │ 3rd constraint  │
+/// │ 205-251 │ reserved              │ 47   │ -        │ Future features │
 /// └─────────────────────────────────────────────────────────────────────┘
 
 /// Unpacked run data structure
@@ -92,6 +93,8 @@ pub struct RunData {
     pub shop_refills: u8,         // Number of refills bought this shop
     // Constraint flags (set when level starts, reset on level transition)
     pub no_bonus_constraint: bool, // True if current level has NoBonusUsed constraint
+    // Tertiary constraint progress (for triple-constraint boss levels 40/50)
+    pub constraint_3_progress: u8,
 }
 
 /// Bit positions and masks for run_data
@@ -134,6 +137,8 @@ mod RunDataBits {
     pub const SHOP_REFILLS_POS: u8 = 192;
     // Constraint flags
     pub const NO_BONUS_CONSTRAINT_POS: u8 = 196;
+    // Tertiary constraint progress
+    pub const CONSTRAINT_3_PROGRESS_POS: u8 = 197;
 
     // Bit masks (after shifting to position 0)
     pub const CURRENT_LEVEL_MASK: u256 = 0xFF; // 8 bits
@@ -161,6 +166,8 @@ mod RunDataBits {
     pub const SHOP_REFILLS_MASK: u256 = 0xF; // 4 bits (0-15)
     // Constraint flags masks
     pub const NO_BONUS_CONSTRAINT_MASK: u256 = 0x1; // 1 bit
+    // Tertiary constraint progress mask
+    pub const CONSTRAINT_3_PROGRESS_MASK: u256 = 0xFF; // 8 bits
 }
 
 #[generate_trait]
@@ -207,6 +214,8 @@ pub impl RunDataPacking of RunDataPackingTrait {
             shop_refills: 0,
             // Constraint flags (set when level actually starts)
             no_bonus_constraint: false,
+            // Tertiary constraint progress
+            constraint_3_progress: 0,
         }
     }
 
@@ -388,6 +397,12 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 if self.no_bonus_constraint { 1_u256 } else { 0_u256 },
                 RunDataBits::NO_BONUS_CONSTRAINT_POS.into(),
             );
+        // Tertiary constraint progress
+        packed = packed
+            | BitShift::shl(
+                self.constraint_3_progress.into() & RunDataBits::CONSTRAINT_3_PROGRESS_MASK,
+                RunDataBits::CONSTRAINT_3_PROGRESS_POS.into(),
+            );
 
         packed.try_into().unwrap()
     }
@@ -520,6 +535,13 @@ pub impl RunDataPacking of RunDataPackingTrait {
             // Constraint flags
             no_bonus_constraint: (BitShift::shr(data, RunDataBits::NO_BONUS_CONSTRAINT_POS.into())
                 & RunDataBits::NO_BONUS_CONSTRAINT_MASK) == 1,
+            // Tertiary constraint progress
+            constraint_3_progress: (BitShift::shr(
+                data, RunDataBits::CONSTRAINT_3_PROGRESS_POS.into(),
+            )
+                & RunDataBits::CONSTRAINT_3_PROGRESS_MASK)
+                .try_into()
+                .unwrap(),
         }
     }
 }
@@ -953,6 +975,7 @@ mod tests {
         assert!(data.cubes_brought == 0, "Should start with 0 cubes brought");
         assert!(data.cubes_spent == 0, "Should start with 0 cubes spent");
         assert!(data.constraint_2_progress == 0, "Should start with 0 constraint_2 progress");
+        assert!(data.constraint_3_progress == 0, "Should start with 0 constraint_3 progress");
         // Bonus V3.0: Default selection is Combo(1), Score(2), Harvest(3)
         assert!(data.selected_bonus_1 == 1, "Should start with Combo selected");
         assert!(data.selected_bonus_2 == 2, "Should start with Score selected");
@@ -1004,6 +1027,8 @@ mod tests {
             shop_refills: 2,
             // Constraint flags
             no_bonus_constraint: true,
+            // Tertiary constraint progress
+            constraint_3_progress: 12,
         };
 
         let packed = original.pack();
@@ -1055,6 +1080,7 @@ mod tests {
         assert!(unpacked.shop_refills == original.shop_refills, "shop_refills mismatch");
         // Constraint flag assertions
         assert!(unpacked.no_bonus_constraint == original.no_bonus_constraint, "no_bonus_constraint mismatch");
+        assert!(unpacked.constraint_3_progress == original.constraint_3_progress, "constraint_3_progress mismatch");
     }
 
     #[test]
@@ -1098,6 +1124,8 @@ mod tests {
             shop_refills: 15, // 4 bits max
             // Constraint flags
             no_bonus_constraint: true,
+            // Tertiary constraint progress
+            constraint_3_progress: 255, // 8 bits max
         };
 
         let packed = max_values.pack();
@@ -1146,6 +1174,8 @@ mod tests {
             shop_refills: 0,
             // Constraint flags
             no_bonus_constraint: false,
+            // Tertiary constraint progress
+            constraint_3_progress: 0,
         };
 
         let packed = zero_values.pack();

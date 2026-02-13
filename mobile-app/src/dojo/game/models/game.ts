@@ -47,6 +47,9 @@ export class Game {
   public get constraint2Progress(): number {
     return this.runData.constraint2Progress;
   }
+  public get constraint3Progress(): number {
+    return this.runData.constraint3Progress;
+  }
   public get bonusUsedThisLevel(): boolean {
     return this.runData.bonusUsedThisLevel;
   }

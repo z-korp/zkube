@@ -178,28 +178,59 @@ When creating a game, players select exactly 3 of the 5 bonus types:
 
 ## Constraint System
 
-**Location:** `contracts/src/types/constraint.cairo`
+**Location:** `contracts/src/types/constraint.cairo`, `contracts/src/helpers/boss.cairo`
 
-### Constraint Types
+### Constraint Types (7 total)
 
-| Type | Description |
-|------|-------------|
-| **None** | No constraint - just reach point goal |
-| **ClearLines** | Clear X lines in one move, Y times |
-| **NoBonusUsed** | Complete level without using any bonus |
+| # | Type | Value Meaning | Count Meaning | Regular | Boss |
+|---|------|---------------|---------------|:---:|:---:|
+| 0 | **None** | - | - | ✅ | ❌ |
+| 1 | **ClearLines** | Lines to clear in one move | How many times | ✅ | ✅ |
+| 2 | **BreakBlocks** | Block size to target (1-4) | Total blocks to destroy | ✅ | ✅ |
+| 3 | **AchieveCombo** | Combo target to reach | 1 (one-shot) | ✅ | ✅ |
+| 4 | **Fill** | Rows to fill | How many times | ✅ | ✅ |
+| 5 | **NoBonusUsed** | 0 | 0 | ❌ | ✅ |
+| 6 | **ClearGrid** | 0 | 1 (one-shot) | ❌ | ✅ |
+
+*Note: Fill is stored as `FillAndClear` in code for ABI stability.*
 
 ### When Constraints Apply
 
 - **Levels 1-2:** No constraints (warm-up)
-- **Level 3+:** Constraint generated from seed + difficulty
+- **Level 3+:** Primary constraint generated from seed + difficulty (ClearLines via budget system)
 - **Dual constraints:** Higher difficulties can have two constraints
+- **Boss levels (10/20/30/40/50):** Fixed constraint combos from boss identity system, up to triple constraints at L40/50
 
-### Constraint Parameters (Difficulty-Based)
+### Regular Level Constraints
 
-Constraints scale with difficulty using a budget system:
-- `min_lines` / `max_lines`: Range of lines to clear
-- `budget`: Determines how many times
+Regular levels use a budget-based ClearLines generation system:
+- `min_lines` / `max_lines`: Range of lines to clear per move
+- `budget`: Determines how many times (line cost: 2→2, 3→4, 4→6, 5→10, 6→15, 7+→20)
 - `dual_chance`: Probability of secondary constraint (0% at VeryEasy, 100% at Master)
+- Secondary can be NoBonusUsed or another ClearLines
+
+### Boss Identity System
+
+10 themed bosses with fixed constraint combinations, selected by `derive_boss_id(level_seed) % 10 + 1`:
+
+| # | Boss | Core Pair (L10-30) | Third Constraint (L40/50) |
+|---|------|--------------------|---------------------------|
+| 1 | Combo Master | ClearLines + AchieveCombo | NoBonusUsed |
+| 2 | Demolisher | BreakBlocks + ClearLines | ClearGrid |
+| 3 | Daredevil | Fill + AchieveCombo | ClearLines |
+| 4 | Purist | NoBonusUsed + ClearLines | AchieveCombo |
+| 5 | Harvester | BreakBlocks + AchieveCombo | Fill |
+| 6 | Tidal | ClearGrid + ClearLines | BreakBlocks |
+| 7 | Stacker | Fill + ClearLines | BreakBlocks |
+| 8 | Surgeon | BreakBlocks + Fill | NoBonusUsed |
+| 9 | Ascetic | NoBonusUsed + AchieveCombo | Fill |
+| 10 | Perfectionist | ClearLines + Fill | AchieveCombo |
+
+**Constraint progression:**
+- L10/20/30: Dual constraints (core pair), scaled by difficulty tier
+- L40/50: Triple constraints (core pair + third), scaled by difficulty tier
+- Constraint values scale with difficulty: higher tiers = harder targets
+- NoBonusUsed and ClearGrid don't scale (they're binary)
 
 ---
 
@@ -226,17 +257,17 @@ Constraints scale with difficulty using a budget system:
 
 ### Boss Levels
 
-Special levels every 10 levels with bonus rewards:
+Special levels every 10 levels with themed boss identities and bonus rewards:
 
-| Level | Cube Bonus | Special Rules |
-|-------|------------|---------------|
-| 10 | +10 CUBE | Dual constraints |
-| 20 | +20 CUBE | Dual constraints |
-| 30 | +30 CUBE | Dual constraints |
-| 40 | +40 CUBE | Dual constraints |
-| 50 | +50 CUBE | Victory! (`run_completed` flag set) |
+| Level | Cube Bonus | Constraints | Boss Identity |
+|-------|------------|-------------|---------------|
+| 10 | +10 CUBE | Dual (core pair) | Seeded from run |
+| 20 | +20 CUBE | Dual (core pair) | Seeded from run |
+| 30 | +30 CUBE | Dual (core pair) | Seeded from run |
+| 40 | +40 CUBE | Triple (core pair + third) | Seeded from run |
+| 50 | +50 CUBE | Triple (core pair + third) | Seeded from run |
 
-Completing level 50 triggers the victory state and mints all earned cubes.
+Boss identity is determined by `derive_boss_id(level_seed) % 10 + 1`, giving one of 10 themed bosses (see Constraint System for details). Completing level 50 triggers the victory state and mints all earned cubes.
 
 ### Cube Thresholds
 
@@ -357,7 +388,7 @@ pub struct Game {
 }
 ```
 
-### run_data Bit Layout (197 bits used)
+### run_data Bit Layout (205 bits used)
 
 | Bits | Field | Size | Description |
 |------|-------|------|-------------|
@@ -395,6 +426,7 @@ pub struct Game {
 | 191 | shop_bonus_3_bought | 1 | Bonus 3 purchased |
 | 192-195 | shop_refills | 4 | Refills purchased |
 | 196 | no_bonus_constraint | 1 | NoBonusUsed active |
+| 197-204 | constraint_3_progress | 8 | Tertiary constraint progress |
 
 ### PlayerMeta Model
 
@@ -452,6 +484,7 @@ contracts/src/
 │   └── consumable.cairo      # ConsumableType enum
 ├── helpers/
 │   ├── level.cairo           # Level generation
+│   ├── boss.cairo            # Boss identity system (10 bosses)
 │   ├── packing.cairo         # Bit-pack/unpack utilities
 │   ├── controller.cairo      # Grid manipulation
 │   └── gravity.cairo         # Block falling logic

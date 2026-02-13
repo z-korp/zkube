@@ -32,13 +32,17 @@ export const ConstraintIndicator = ({
 }: ConstraintIndicatorProps) => {
   const { colors } = usePixiTheme();
 
-  // Determine if constraint is satisfied
   const isSatisfied = (): boolean => {
     switch (constraint.type) {
       case ConstraintType.None:
         return true;
       case ConstraintType.ClearLines:
+      case ConstraintType.BreakBlocks:
+      case ConstraintType.FillAndClear:
         return constraint.progress >= constraint.count;
+      case ConstraintType.AchieveCombo:
+      case ConstraintType.ClearGrid:
+        return constraint.progress >= 1;
       case ConstraintType.NoBonusUsed:
         return !constraint.bonusUsed;
       default:
@@ -46,33 +50,40 @@ export const ConstraintIndicator = ({
     }
   };
 
-  // Determine if constraint is failed (for NoBonusUsed)
   const isFailed = (): boolean => {
-    if (constraint.type === ConstraintType.NoBonusUsed && constraint.bonusUsed) {
-      return true;
-    }
-    return false;
+    return constraint.type === ConstraintType.NoBonusUsed && !!constraint.bonusUsed;
   };
 
-  // Get label text
   const getLabel = (): string => {
     switch (constraint.type) {
       case ConstraintType.None:
         return "";
       case ConstraintType.ClearLines:
         return `${constraint.value}+ lines`;
+      case ConstraintType.BreakBlocks:
+        return `Break size-${constraint.value}`;
+      case ConstraintType.AchieveCombo:
+        return `${constraint.value}+ combo`;
+      case ConstraintType.FillAndClear:
+        return `Fill ${constraint.value} rows`;
       case ConstraintType.NoBonusUsed:
         return "No Bonus";
+      case ConstraintType.ClearGrid:
+        return "Clear Grid";
       default:
         return "";
     }
   };
 
-  // Get progress text
   const getProgress = (): string => {
     switch (constraint.type) {
       case ConstraintType.ClearLines:
+      case ConstraintType.BreakBlocks:
+      case ConstraintType.FillAndClear:
         return `${constraint.progress}/${constraint.count}`;
+      case ConstraintType.AchieveCombo:
+      case ConstraintType.ClearGrid:
+        return constraint.progress >= 1 ? "DONE" : "0/1";
       case ConstraintType.NoBonusUsed:
         return constraint.bonusUsed ? "FAILED" : "OK";
       default:
@@ -112,7 +123,13 @@ export const ConstraintIndicator = ({
     g.roundRect(0, 0, width, height, cornerRadius);
     g.stroke({ color: accentColor, width: 1, alpha: 0.6 });
     
-    if (constraint.type === ConstraintType.ClearLines && constraint.count > 0) {
+    const hasCountProgress = (
+      constraint.type === ConstraintType.ClearLines ||
+      constraint.type === ConstraintType.BreakBlocks ||
+      constraint.type === ConstraintType.FillAndClear
+    ) && constraint.count > 0 && constraint.count <= 10;
+    
+    if (hasCountProgress) {
       const dotSize = 4;
       const dotGap = 3;
       const totalWidth = constraint.count * dotSize + (constraint.count - 1) * dotGap;

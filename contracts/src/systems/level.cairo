@@ -64,9 +64,10 @@ mod level_system {
             // Generate level 1 config
             let level_config = LevelGeneratorTrait::generate(base_seed.seed, 1, settings);
             
-            // Check for NoBonusUsed constraint
+            // Check for NoBonusUsed constraint (any of the 3 constraints)
             let has_no_bonus = level_config.constraint.constraint_type == ConstraintType::NoBonusUsed
-                || level_config.constraint_2.constraint_type == ConstraintType::NoBonusUsed;
+                || level_config.constraint_2.constraint_type == ConstraintType::NoBonusUsed
+                || level_config.constraint_3.constraint_type == ConstraintType::NoBonusUsed;
             
             // Write level config to GameLevel model
             let game_level = GameLevelTrait::from_level_config(game_id, level_config);
@@ -166,9 +167,10 @@ mod level_system {
                     base_seed.seed, updated_run_data.current_level, settings,
                 );
                 
-                // Set no_bonus_constraint flag for the next level
+                // Set no_bonus_constraint flag for the next level (any of the 3 constraints)
                 let has_no_bonus = next_level_config.constraint.constraint_type == ConstraintType::NoBonusUsed
-                    || next_level_config.constraint_2.constraint_type == ConstraintType::NoBonusUsed;
+                    || next_level_config.constraint_2.constraint_type == ConstraintType::NoBonusUsed
+                    || next_level_config.constraint_3.constraint_type == ConstraintType::NoBonusUsed;
                 let mut run_data_updated = game.get_run_data();
                 run_data_updated.no_bonus_constraint = has_no_bonus;
                 game.set_run_data(run_data_updated);

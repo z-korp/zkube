@@ -39,7 +39,9 @@
  * │ 190     │ shop_bonus_2_bought   │ 1    │ 0-1      │ Bonus 2 bought  │
  * │ 191     │ shop_bonus_3_bought   │ 1    │ 0-1      │ Bonus 3 bought  │
  * │ 192-195 │ shop_refills          │ 4    │ 0-15     │ Refills bought  │
- * │ 196-251 │ reserved              │ 56   │ -        │ Future features │
+ * │ 196     │ no_bonus_constraint   │ 1    │ 0-1      │ NoBonusUsed flag│
+ * │ 197-204 │ constraint_3_progress │ 8    │ 0-255    │ 3rd constraint  │
+ * │ 205-251 │ reserved              │ 47   │ -        │ Future features │
  * └─────────────────────────────────────────────────────────────────────┘
  */
 
@@ -100,6 +102,10 @@ export interface RunData {
   shopBonus2Bought: boolean;
   shopBonus3Bought: boolean;
   shopRefills: number;
+  
+  // Constraint flags
+  noBonusConstraint: boolean;
+  constraint3Progress: number;
 }
 
 // Bit positions (matching Cairo's RunDataBits)
@@ -136,6 +142,8 @@ const SHOP_BONUS_1_BOUGHT_POS = 189;
 const SHOP_BONUS_2_BOUGHT_POS = 190;
 const SHOP_BONUS_3_BOUGHT_POS = 191;
 const SHOP_REFILLS_POS = 192;
+const NO_BONUS_CONSTRAINT_POS = 196;
+const CONSTRAINT_3_PROGRESS_POS = 197;
 
 // Bit masks (after shifting to position 0)
 const MASK_1BIT = BigInt(0x1);
@@ -186,6 +194,8 @@ export function unpackRunData(packed: bigint): RunData {
     shopBonus2Bought: ((packed >> BigInt(SHOP_BONUS_2_BOUGHT_POS)) & MASK_1BIT) === BigInt(1),
     shopBonus3Bought: ((packed >> BigInt(SHOP_BONUS_3_BOUGHT_POS)) & MASK_1BIT) === BigInt(1),
     shopRefills: Number((packed >> BigInt(SHOP_REFILLS_POS)) & MASK_4BIT),
+    noBonusConstraint: ((packed >> BigInt(NO_BONUS_CONSTRAINT_POS)) & MASK_1BIT) === BigInt(1),
+    constraint3Progress: Number((packed >> BigInt(CONSTRAINT_3_PROGRESS_POS)) & MASK_8BIT),
   };
 }
 
@@ -228,6 +238,8 @@ export function createInitialRunData(): RunData {
     shopBonus2Bought: false,
     shopBonus3Bought: false,
     shopRefills: 0,
+    noBonusConstraint: false,
+    constraint3Progress: 0,
   };
 }
 

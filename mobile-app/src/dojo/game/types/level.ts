@@ -169,21 +169,14 @@ export const DEFAULT_SETTINGS: GameSettings = {
 };
 
 export interface LevelConfig {
-  /** Level number (1-255) */
   level: number;
-  /** Points required to complete this level */
   pointsRequired: number;
-  /** Maximum moves allowed (base, before extra moves) */
   maxMoves: number;
-  /** Block generation difficulty */
   difficulty: Difficulty;
-  /** Primary constraint (objective) */
   constraint: Constraint;
-  /** Secondary constraint (can be None for single constraint levels) */
   constraint2: Constraint;
-  /** Moves threshold for 3 cubes */
+  constraint3: Constraint;
   cube3Threshold: number;
-  /** Moves threshold for 2 cubes */
   cube2Threshold: number;
 }
 
@@ -194,6 +187,7 @@ export class Level {
   public difficulty: Difficulty;
   public constraint: Constraint;
   public constraint2: Constraint;
+  public constraint3: Constraint;
   public cube3Threshold: number;
   public cube2Threshold: number;
 
@@ -204,6 +198,7 @@ export class Level {
     this.difficulty = config.difficulty;
     this.constraint = config.constraint;
     this.constraint2 = config.constraint2;
+    this.constraint3 = config.constraint3;
     this.cube3Threshold = config.cube3Threshold;
     this.cube2Threshold = config.cube2Threshold;
   }
@@ -219,28 +214,29 @@ export class Level {
     }
   }
 
-  /** Check if level is complete (score + both constraints) */
   isComplete(
     currentScore: number,
     constraintProgress: number,
     constraint2Progress: number,
-    bonusUsed: boolean
+    bonusUsed: boolean,
+    constraint3Progress: number = 0,
   ): boolean {
     return (
       currentScore >= this.pointsRequired &&
       this.constraint.isSatisfied(constraintProgress, bonusUsed) &&
-      this.constraint2.isSatisfied(constraint2Progress, bonusUsed)
+      this.constraint2.isSatisfied(constraint2Progress, bonusUsed) &&
+      this.constraint3.isSatisfied(constraint3Progress, bonusUsed)
     );
   }
 
-  /** Check if level failed */
   isFailed(
     currentScore: number,
     currentMoves: number,
     constraintProgress: number,
     constraint2Progress: number,
     bonusUsed: boolean,
-    extraMoves: number = 0
+    extraMoves: number = 0,
+    constraint3Progress: number = 0,
   ): boolean {
     const effectiveMaxMoves = this.maxMoves + extraMoves;
     return (
@@ -249,7 +245,8 @@ export class Level {
         currentScore,
         constraintProgress,
         constraint2Progress,
-        bonusUsed
+        bonusUsed,
+        constraint3Progress,
       )
     );
   }
@@ -338,7 +335,6 @@ export function generateLevelConfig(
   // Get difficulty from settings
   const difficulty = getDifficultyForLevel(calcLevel, settings);
 
-  // Generate constraints using settings (supports dual constraints)
   const { constraint, constraint2 } = generateConstraintsWithSettings(
     levelSeed,
     level,
@@ -353,6 +349,7 @@ export function generateLevelConfig(
     difficulty,
     constraint,
     constraint2,
+    constraint3: Constraint.none(),
     cube3Threshold,
     cube2Threshold,
   });
