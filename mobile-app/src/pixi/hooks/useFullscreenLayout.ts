@@ -78,6 +78,9 @@ interface LayoutConfig {
   gridRows?: number;
   minCellSize?: number;
   maxCellSize?: number;
+  baseStatsBarHeight?: number;
+  baseProgressBarHeight?: number;
+  baseActionBarHeight?: number;
 }
 
 const DEFAULT_CONFIG = {
@@ -85,6 +88,9 @@ const DEFAULT_CONFIG = {
   gridRows: 10,
   minCellSize: 28,
   maxCellSize: 56,
+  baseStatsBarHeight: 32,
+  baseProgressBarHeight: 26,
+  baseActionBarHeight: 64,
 };
 
 const FRAME_PAD = 12;
@@ -114,6 +120,9 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
     gridRows,
     minCellSize,
     maxCellSize,
+    baseStatsBarHeight,
+    baseProgressBarHeight,
+    baseActionBarHeight,
   } = { ...DEFAULT_CONFIG, ...config };
 
   useEffect(() => {
@@ -158,10 +167,10 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
     const pillGap = Math.round(8 * uiScale);
     const framePad = FRAME_PAD;
 
-    const statsBarHeight = Math.round(32 * uiScale);
-    const progressBarHeight = Math.round(26 * uiScale);
+    const statsBarHeight = Math.round(baseStatsBarHeight * uiScale);
+    const progressBarHeight = Math.round(baseProgressBarHeight * uiScale);
     const barGap = Math.round(4 * uiScale);
-    const actionBarHeight = Math.round(64 * uiScale);
+    const actionBarHeight = Math.round(baseActionBarHeight * uiScale);
     const hudBottom = Math.round(6 * uiScale);
 
     const topBarY = 0;
@@ -277,7 +286,7 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
       padding,
       pillGap,
     };
-  }, [screenWidth, screenHeight, gridCols, gridRows, minCellSize, maxCellSize]);
+  }, [screenWidth, screenHeight, gridCols, gridRows, minCellSize, maxCellSize, baseStatsBarHeight, baseProgressBarHeight, baseActionBarHeight]);
 
   return layout;
 }

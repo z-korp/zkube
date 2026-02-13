@@ -16,7 +16,7 @@ import { KATANA_ETH_CONTRACT_ADDRESS } from "@dojoengine/core";
 import { Assets } from "pixi.js";
 import { Capacitor } from "@capacitor/core";
 import { createLogger } from "./utils/logger";
-import { preloadEssentials } from "./pixi/assets/preloader";
+import { preloadEssentials, preloadBundle } from "./pixi/assets/preloader";
 import { soundManager } from "./pixi/audio/SoundManager";
 import type { ThemeId } from "./pixi/utils/colors";
 
@@ -52,6 +52,12 @@ async function bootstrapPixiAssets() {
   await preloadEssentials(themeId);
   soundManager.preloadTheme(themeId);
   pixiAssetsBootstrapped = true;
+
+  const scheduleIdle = typeof requestIdleCallback === 'function' ? requestIdleCallback : (cb: () => void) => setTimeout(cb, 200);
+  scheduleIdle(() => {
+    preloadBundle(themeId, 'gameplay').catch(() => {});
+    preloadBundle(themeId, 'ui').catch(() => {});
+  });
 }
 
 const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";

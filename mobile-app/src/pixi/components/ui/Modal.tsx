@@ -159,6 +159,7 @@ export const Modal = ({
         draw={drawBackdrop}
         alpha={backdropAlpha}
         eventMode="static"
+        interactiveChildren={false}
         onPointerDown={(e: any) => {
           e.stopPropagation();
           if (closeOnBackdrop) onClose();

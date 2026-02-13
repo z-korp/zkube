@@ -80,6 +80,7 @@ export function PixiScrollContainer({
   const dragStartRef = useRef({ x: 0, y: 0, scrollX: 0, scrollY: 0 });
   const maskRef = useRef<PixiGraphics | null>(null);
   const contentRef = useRef<PixiContainer | null>(null);
+  const prevMaskDims = useRef({ w: 0, h: 0 });
 
   // Calculate scroll bounds
   const maxScrollY = useMemo(() => 
@@ -115,8 +116,9 @@ export function PixiScrollContainer({
     return scrollRatio * (height - scrollbarHeight);
   }, [clampedScrollY, maxScrollY, height, scrollbarHeight]);
 
-  // Draw mask rectangle
   const drawMask = useCallback((g: PixiGraphics) => {
+    if (prevMaskDims.current.w === width && prevMaskDims.current.h === height) return;
+    prevMaskDims.current = { w: width, h: height };
     g.clear();
     g.rect(0, 0, width, height);
     g.fill({ color: 0xFFFFFF });
