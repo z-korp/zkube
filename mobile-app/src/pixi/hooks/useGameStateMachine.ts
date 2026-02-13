@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTick } from "@pixi/react";
 import { Account } from "starknet";
 import { useDojo } from "@/dojo/useDojo";
 import { GameState } from "@/enums/gameEnums";
@@ -15,8 +16,6 @@ import { calculateFallDistance } from "@/utils/gridPhysics";
 import { createLogger } from "@/utils/logger";
 
 const log = createLogger("useGameStateMachine");
-
-const { VITE_PUBLIC_DEPLOY_TYPE } = import.meta.env;
 
 interface UseGameStateMachineProps {
   initialBlocks: Block[];
@@ -78,10 +77,8 @@ export const useGameStateMachine = ({
   const { playExplode, playSwipe } = useMusicPlayer();
   const isMoveComplete = useMoveStore((state) => state.isMoveComplete);
 
-  // Track if we've done initial sync
   const hasInitializedRef = useRef(false);
-
-  // Constants
+  const gravityAccumRef = useRef(0);
   const gravitySpeed = 100;
 
   // Initial sync - when blocks first become available
@@ -223,16 +220,25 @@ export const useGameStateMachine = ({
     }
   }, [blocks, gridWidth, gridHeight, playExplode]);
 
-  // State machine effect
+  const isGravityState =
+    gameState === GameState.GRAVITY ||
+    gameState === GameState.GRAVITY2 ||
+    gameState === GameState.GRAVITY_BONUS;
+
+  useTick((ticker) => {
+    if (!isGravityState || !isMoving || transitioningBlocks.length > 0) {
+      gravityAccumRef.current = 0;
+      return;
+    }
+
+    gravityAccumRef.current += ticker.deltaMS;
+    while (gravityAccumRef.current >= gravitySpeed) {
+      gravityAccumRef.current -= gravitySpeed;
+      applyGravity();
+    }
+  });
+
   useEffect(() => {
-    const intervalRef = { current: null as NodeJS.Timeout | null };
-
-    const applyGravityWithInterval = () => {
-      intervalRef.current = setInterval(() => {
-        applyGravity();
-      }, gravitySpeed);
-    };
-
     switch (gameState) {
       case GameState.GRAVITY:
       case GameState.GRAVITY2:
@@ -249,8 +255,6 @@ export const useGameStateMachine = ({
               setGameState(GameState.LINE_CLEAR_BONUS);
               break;
           }
-        } else {
-          applyGravityWithInterval();
         }
         break;
 
@@ -313,12 +317,6 @@ export const useGameStateMachine = ({
       default:
         break;
     }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
   }, [
     gameState,
     isMoving,

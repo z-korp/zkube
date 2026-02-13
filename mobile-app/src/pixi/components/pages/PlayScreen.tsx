@@ -17,6 +17,7 @@ import { PixiToastLayer } from '../ui/PixiToastLayer';
 import { BonusType } from '@/dojo/game/types/bonus';
 import { ConstraintType } from '@/dojo/game/types/constraint';
 import { usePulseRef } from '../../hooks/useAnimatedValue';
+import { usePlayGame, type BonusSlotData as PlayBonusSlotData } from '../../hooks/usePlayGame';
 import type { Block } from '@/types/types';
 import type { ConstraintData } from '../hud';
 import { FONT_TITLE, FONT_BOLD, FONT_BODY, THEME_ASSETS } from '../../utils/colors';
@@ -38,15 +39,7 @@ const STATUS_TEXT_STYLE = {
   fill: 0xffffff,
 };
 
-export interface BonusSlotData {
-  type: number;
-  bonusType: BonusType;
-  level: number;
-  count: number;
-  icon: string;
-  tooltip?: string;
-  onClick: () => void;
-}
+export { type PlayBonusSlotData as BonusSlotData };
 
 interface CloudData {
   id: number;
@@ -58,49 +51,9 @@ interface CloudData {
 }
 
 export interface PlayScreenProps {
-  blocks: Block[];
-  nextLine: Block[];
-  nextLineConsumed: boolean;
-  level: number;
-  levelScore: number;
-  targetScore: number;
-  moves: number;
-  maxMoves?: number;
-  constraint1?: ConstraintData;
-  constraint2?: ConstraintData;
-  combo: number;
-  maxCombo: number;
-  stars: number;
-  bonusSlots: BonusSlotData[];
-  selectedBonus: BonusType;
-  bonusDescription?: string;
-  cubeBalance?: number;
-  totalCubes?: number;
-  totalScore?: number;
-  isTxProcessing: boolean;
-  isPlayerInDanger: boolean;
-  isLoading?: boolean;
-  isGameOver: boolean;
-  isVictory: boolean;
-  isLevelComplete: boolean;
-  isInGameShopOpen?: boolean;
-  shopCubesAvailable?: number;
-  shopItems?: InGameShopBonusItem[];
-  isShopPurchasing?: boolean;
-  levelCompleteCubes?: number;
-  levelCompleteBonusAwarded?: { type: string; icon: string } | null;
-  constraintMet?: boolean;
-  onMove: (rowIndex: number, startX: number, finalX: number) => void;
-  onBonusApply: (block: Block) => void;
-  onSurrender?: () => Promise<void>;
+  gameId: number;
   onGoHome: () => void;
   onPlayAgain?: () => void;
-  onLevelCompleteContinue: () => void;
-  onInGameShopClose?: () => void;
-  onShare?: () => void;
-  onQuestsClick?: () => void;
-  onTrophyClick?: () => void;
-  onShopClick?: () => void;
 }
 
 function useTexture(path: string): Texture | null {
@@ -521,30 +474,38 @@ const LoadingScreen = ({ sw, sh, topOffset }: { sw: number; sh: number; topOffse
   );
 };
 
-const PlayScreenInner = (props: PlayScreenProps) => {
+const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => {
   const layout = useFullscreenLayout();
   const { screenWidth: sw, screenHeight: sh, uiScale } = layout;
   const { containerRef: shakeContainerRef, lineClear } = useScreenShake();
+
+  const gameState = usePlayGame(gameId);
+
+  useEffect(() => {
+    if (gameState.walletDisconnected) onGoHome();
+  }, [gameState.walletDisconnected, onGoHome]);
 
   const [isSurrendering, setIsSurrendering] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const {
-    blocks, nextLine, nextLineConsumed,
-    level, levelScore, targetScore, moves, maxMoves = 30,
+    blocks, nextLine, nextLineConsumed: nextLineConsumed,
+    level, levelScore, targetScore, moves, maxMoves,
     constraint1, constraint2,
     combo, maxCombo, stars,
     bonusSlots, selectedBonus, bonusDescription,
-    cubeBalance = 0, totalCubes = 0, totalScore = 0,
+    cubeBalance, totalCubes, totalScore,
     isTxProcessing, isPlayerInDanger, isLoading,
     isGameOver, isVictory, isLevelComplete,
-    isInGameShopOpen = false,
-    shopCubesAvailable = 0,
-    shopItems = [],
-    isShopPurchasing = false,
-    levelCompleteCubes = 0, levelCompleteBonusAwarded, constraintMet = false,
-    onMove, onBonusApply, onSurrender, onGoHome, onPlayAgain, onShare, onLevelCompleteContinue, onInGameShopClose,
-  } = props;
+    isInGameShopOpen,
+    shopCubesAvailable,
+    shopItems,
+    isShopPurchasing,
+    levelCompleteCubes, levelCompleteBonusAwarded, constraintMet,
+    handleMove: onMove, handleBonusApply: onBonusApply, handleSurrender: onSurrender,
+    handleShare: onShare, handleLevelCompleteContinue: onLevelCompleteContinue,
+    handleInGameShopClose: onInGameShopClose,
+  } = gameState;
 
   const actionBarSlots = useMemo(() =>
     bonusSlots.map(slot => ({ ...slot, onClick: slot.onClick })),
@@ -754,7 +715,7 @@ const PlayScreenInner = (props: PlayScreenProps) => {
   );
 };
 
-export const PlayScreen = (props: PlayScreenProps) => {
+export const PlayScreen = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => {
   const layout = useFullscreenLayout();
   const { screenWidth: sw, screenHeight: sh } = layout;
   const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1;
@@ -768,7 +729,7 @@ export const PlayScreen = (props: PlayScreenProps) => {
       >
         <TickerConfig />
         <PixiThemeProvider>
-          <PlayScreenInner {...props} />
+          <PlayScreenInner gameId={gameId} onGoHome={onGoHome} onPlayAgain={onPlayAgain} />
         </PixiThemeProvider>
       </Application>
     </div>
