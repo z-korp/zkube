@@ -20,7 +20,7 @@ import { usePulseRef } from '../../hooks/useAnimatedValue';
 import type { Block } from '@/types/types';
 import type { ConstraintData } from '../hud';
 import { FONT_TITLE, FONT_BOLD, FONT_BODY, THEME_ASSETS } from '../../utils/colors';
-import { loadTextureCached } from '../../assets/textureLoader';
+import { loadTextureCached, getFallbackTexture } from '../../assets/textureLoader';
 import { TickerConfig } from '../TickerConfig';
 
 const LOADING_TITLE_STYLE = {
@@ -118,7 +118,7 @@ function useTexture(path: string): Texture | null {
         if (!cancelled) setTex(t);
       })
       .catch(() => {
-        if (!cancelled) setTex(null);
+        if (!cancelled) setTex(getFallbackTexture());
       });
 
     return () => {

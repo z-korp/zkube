@@ -57,6 +57,16 @@ async function bootstrapPixiAssets() {
   scheduleIdle(() => {
     preloadBundle(themeId, 'gameplay').catch(() => {});
     preloadBundle(themeId, 'ui').catch(() => {});
+
+    if (import.meta.env.DEV) {
+      import("./pixi/assets/resolver").then(({ validateCatalog }) => {
+        validateCatalog(themeId).then(({ missing }) => {
+          if (missing.length > 0) {
+            log.warn(`[AssetCatalog] ${missing.length} missing assets`, missing);
+          }
+        });
+      }).catch(() => {});
+    }
   });
 }
 

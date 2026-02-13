@@ -1,4 +1,4 @@
-import { Assets, Texture } from "pixi.js";
+import { Assets, Graphics as PixiGraphics, RenderTexture, Texture } from "pixi.js";
 
 export type AssetEntry = {
   alias: string;
@@ -26,3 +26,15 @@ export const loadTextureCached = async (id: string): Promise<Texture> => {
   }
   return (await Assets.load(id)) as Texture;
 };
+
+let _fallbackTexture: Texture | null = null;
+
+export function getFallbackTexture(): Texture {
+  if (_fallbackTexture) return _fallbackTexture;
+  const g = new PixiGraphics();
+  g.rect(0, 0, 4, 4);
+  g.fill({ color: 0xff00ff, alpha: 0.3 });
+  const rt = RenderTexture.create({ width: 4, height: 4 });
+  _fallbackTexture = rt;
+  return rt;
+}

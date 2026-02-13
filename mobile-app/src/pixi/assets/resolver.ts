@@ -86,3 +86,32 @@ export function resolveImageAssetUrl(themeId: ThemeId, assetId: AssetId): string
   const candidates = resolveAsset(themeId, assetId);
   return candidates?.[0] ?? themeUrl(FALLBACK_THEME, ASSET_CATALOG[assetId]?.filename ?? '');
 }
+
+export async function validateCatalog(themeId: ThemeId): Promise<{ missing: string[]; valid: number }> {
+  const textureIds = (Object.keys(ASSET_CATALOG) as AssetId[]).filter(
+    (id) => ASSET_CATALOG[id].kind === 'texture',
+  );
+
+  const missing: string[] = [];
+  let valid = 0;
+
+  await Promise.all(
+    textureIds.map(async (id) => {
+      const candidates = resolveAsset(themeId, id);
+      if (!candidates || candidates.length === 0) return;
+
+      try {
+        const res = await fetch(candidates[0], { method: 'HEAD' });
+        if (res.ok) {
+          valid++;
+        } else {
+          missing.push(`${id} → ${candidates[0]} (${res.status})`);
+        }
+      } catch {
+        missing.push(`${id} → ${candidates[0]} (network error)`);
+      }
+    }),
+  );
+
+  return { missing, valid };
+}
