@@ -20,11 +20,8 @@ pub mod types {
 mod elements {
     pub mod bonuses {
         pub mod interface;
-        pub mod hammer;
-        pub mod totem;
+        pub mod harvest;
         pub mod wave;
-        pub mod shrink;
-        pub mod shuffle;
     }
     pub mod difficulties {
         pub mod data;

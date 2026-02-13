@@ -116,7 +116,7 @@ pub struct BonusLevelUp {
     #[key]
     pub player: ContractAddress,
     pub bonus_slot: u8,      // 0, 1, or 2 (which of the 3 selected)
-    pub bonus_type: u8,      // The bonus type (1=Hammer, 2=Totem, etc.)
+    pub bonus_type: u8,      // The bonus type (1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply)
     pub new_level: u8,       // New level (1, 2, or 3)
 }
 
@@ -126,6 +126,6 @@ pub struct BonusLevelUp {
 pub struct BonusUnlocked {
     #[key]
     pub player: ContractAddress,
-    pub bonus_type: u8,      // 4=Shrink, 5=Shuffle
+    pub bonus_type: u8,      // 4=Wave, 5=Supply
     pub cost: u16,           // CUBE spent
 }

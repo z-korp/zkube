@@ -16,6 +16,8 @@
 7. [Cube Economy](#cube-economy)
 8. [Two-Shop System](#two-shop-system)
 9. [Data Architecture](#data-architecture)
+10. [Quest System](#quest-system)
+11. [Achievement System](#achievement-system)
 
 ---
 
@@ -151,25 +153,25 @@ The variance is applied to both moves and points calculations, ensuring levels f
 
 Players select **3 bonuses** before each run from the 5 available types:
 
-| Bonus | Effect | L2 Bonus | L3 Bonus | Unlock |
-|-------|--------|----------|----------|--------|
-| **Hammer** | Clears target block + connected same-size | +1 combo | +2 combo | Default |
-| **Wave** | Clears entire horizontal row | +1 free move | +2 free moves | Default |
-| **Totem** | Clears all blocks of same size | +3 cubes | Clear entire grid | Default |
-| **Shrink** | Reduces block size by 1 | All same-size | Shrink by 2 | 200 CUBE |
-| **Shuffle** | Randomizes block positions | Also next line | Entire grid | 200 CUBE |
+| Bonus | Effect | L1 | L2 | L3 | Unlock |
+|-------|--------|----|----|----| -------|
+| **Combo** | Adds combo to next move | +1 combo | +2 combo | +3 combo | Default |
+| **Score** | Instantly adds score | +10 score | +20 score | +30 score | Default |
+| **Harvest** | Destroys all blocks of chosen size, earns CUBEs | +1 CUBE/block | +2 CUBE/block | +3 CUBE/block | Default |
+| **Wave** | Clears entire horizontal rows | 1 row | 2 rows | 3 rows | Locked |
+| **Supply** | Adds new lines at no move cost | 1 line | 2 lines | 3 lines | Locked |
 
-### Earning Bonuses
+### Acquiring Bonus Charges
 
-- **Level completion:** Random bonus from selected 3 (capped by bag size)
-- **Boss levels (L10/20/30/40):** Free bonus level-up available
-- **In-game shop:** Purchase additional bonuses with cubes
+- **Permanent shop:** Buy starting charges, upgrade bag size (max 5)
+- **In-game shop (every 10 levels):** Buy charges during run with CUBEs
+- **Boss clear (L10/20/30/40):** Awards Level Up Item to upgrade one bonus
 
 ### Bonus Selection (Run Start)
 
 When creating a game, players select exactly 3 of the 5 bonus types:
-- Shrink and Shuffle require unlocking (200 CUBE each in permanent shop)
-- Default selection: Hammer, Wave, Totem
+- Wave and Supply require unlocking in permanent shop
+- Default selection: Combo, Score, Harvest
 - Selection stored in `run_data` bits 164-172
 
 ---
@@ -277,8 +279,8 @@ WALLET (ERC-1155)
 
 | Bonus | Cost | Effect |
 |-------|------|--------|
-| Shrink | 200 CUBE | Unlock Shrink bonus for selection |
-| Shuffle | 200 CUBE | Unlock Shuffle bonus for selection |
+| Wave | 200 CUBE | Unlock Wave bonus for selection |
+| Supply | 200 CUBE | Unlock Supply bonus for selection |
 
 #### Starting Bonus Upgrades
 
@@ -367,11 +369,11 @@ pub struct Game {
 | 40 | bonus_used_this_level | 1 | For NoBonusUsed constraint |
 | 41 | combo_5_achieved | 1 | First 5+ combo flag |
 | 42 | combo_10_achieved | 1 | First 10+ combo flag |
-| 43-50 | hammer_count | 8 | Hammer inventory |
-| 51-58 | wave_count | 8 | Wave inventory |
-| 59-66 | totem_count | 8 | Totem inventory |
-| 67-74 | shrink_count | 8 | Shrink inventory |
-| 75-82 | shuffle_count | 8 | Shuffle inventory |
+| 43-50 | combo_count | 8 | Combo inventory |
+| 51-58 | score_count | 8 | Score inventory |
+| 59-66 | harvest_count | 8 | Harvest inventory |
+| 67-74 | wave_count | 8 | Wave inventory |
+| 75-82 | supply_count | 8 | Supply inventory |
 | 83-90 | max_combo_run | 8 | Best combo this run |
 | 91-98 | extra_moves | 8 | Extra moves from consumables |
 | 99-114 | cubes_brought | 16 | Cubes brought into run |
@@ -409,19 +411,19 @@ pub struct PlayerMeta {
 
 | Bits | Field | Size | Description |
 |------|-------|------|-------------|
-| 0-1 | starting_hammer | 2 | Starting hammers (0-3) |
-| 2-3 | starting_wave | 2 | Starting waves (0-3) |
-| 4-5 | starting_totem | 2 | Starting totems (0-3) |
-| 6-7 | starting_shrink | 2 | Starting shrinks (0-3) |
-| 8-9 | starting_shuffle | 2 | Starting shuffles (0-3) |
-| 10-13 | bag_hammer_level | 4 | Hammer bag capacity |
-| 14-17 | bag_wave_level | 4 | Wave bag capacity |
-| 18-21 | bag_totem_level | 4 | Totem bag capacity |
-| 22-25 | bag_shrink_level | 4 | Shrink bag capacity |
-| 26-29 | bag_shuffle_level | 4 | Shuffle bag capacity |
+| 0-1 | starting_combo | 2 | Starting combo charges (0-3) |
+| 2-3 | starting_score | 2 | Starting score charges (0-3) |
+| 4-5 | starting_harvest | 2 | Starting harvest charges (0-3) |
+| 6-7 | starting_wave | 2 | Starting wave charges (0-3) |
+| 8-9 | starting_supply | 2 | Starting supply charges (0-3) |
+| 10-13 | bag_combo_level | 4 | Combo bag capacity |
+| 14-17 | bag_score_level | 4 | Score bag capacity |
+| 18-21 | bag_harvest_level | 4 | Harvest bag capacity |
+| 22-25 | bag_wave_level | 4 | Wave bag capacity |
+| 26-29 | bag_supply_level | 4 | Supply bag capacity |
 | 30-33 | bridging_rank | 4 | Cube bridging rank (0-15) |
-| 34 | shrink_unlocked | 1 | Shrink bonus unlocked |
-| 35 | shuffle_unlocked | 1 | Shuffle bonus unlocked |
+| 34 | wave_unlocked | 1 | Wave bonus unlocked |
+| 35 | supply_unlocked | 1 | Supply bonus unlocked |
 | 36-51 | total_runs | 16 | Lifetime run count |
 | 52-83 | total_cubes_earned | 32 | Lifetime cubes earned |
 
@@ -458,37 +460,92 @@ contracts/src/
     └── difficulties/         # Difficulty configurations
 ```
 
-### Client Files
+### Client Files (mobile-app)
 
 ```
-client-budokan/src/
+mobile-app/src/
 ├── dojo/
 │   ├── game/
-│   │   ├── models/game.ts    # Game model
-│   │   ├── types/level.ts    # LevelConfig, settings
+│   │   ├── models/game.ts         # Game model
+│   │   ├── types/bonus.ts         # Bonus enum + display names
+│   │   ├── types/level.ts         # LevelConfig, settings
 │   │   └── helpers/
-│   │       └── runDataPacking.ts
-│   └── systems.ts            # Contract calls
+│   │       └── runDataPacking.ts  # Bit-pack/unpack
+│   └── systems.ts                 # Contract calls
 ├── hooks/
-│   ├── useGame.tsx           # Game state hook
-│   ├── usePlayerMeta.tsx     # Meta progression hook
-│   └── useCubeBalance.tsx    # ERC-1155 balance
-└── ui/
-    ├── screens/Play.tsx      # Main game screen
-    └── components/
-        ├── LevelHeader.tsx   # Level progress display
-        ├── LevelCompleteDialog.tsx
-        └── Shop/
-            ├── ShopDialog.tsx        # Permanent shop
-            ├── InGameShopDialog.tsx  # In-game shop
-            └── BringCubesDialog.tsx  # Cube bridging
+│   ├── useGame.tsx                # Game state hook
+│   ├── usePlayerMeta.tsx          # Meta progression hook
+│   └── useCubeBalance.tsx         # ERC-1155 balance
+└── pixi/
+    ├── components/pages/
+    │   ├── PlayScreen.tsx         # Game play screen
+    │   └── LoadoutPage.tsx        # Bonus selection
+    └── hooks/
+        └── usePlayGame.ts         # Play logic + bonus dispatch
 ```
+
+---
+
+## Quest System
+
+**Location:** `contracts/src/systems/quest.cairo`, `contracts/src/elements/quests/`
+
+### Daily Quests (10 total, 102 CUBE/day)
+
+| Category | Quest | Requirement | Reward |
+|----------|-------|-------------|--------|
+| Player | Warm-Up | Play 1 game | 3 CUBE |
+| Player | Getting Started | Play 3 games | 6 CUBE |
+| Player | Dedicated | Play 5 games | 12 CUBE |
+| Clearer | Line Breaker | Clear 10 lines | 3 CUBE |
+| Clearer | Line Crusher | Clear 30 lines | 6 CUBE |
+| Clearer | Line Master | Clear 50 lines | 12 CUBE |
+| Combo | Combo Starter | 3+ line combo | 5 CUBE |
+| Combo | Combo Builder | 5+ line combo | 10 CUBE |
+| Combo | Combo Expert | 7+ line combo | 20 CUBE |
+| Finisher | Daily Champion | Complete all 9 | 25 CUBE |
+
+### Quest Chains
+
+Progress is cumulative within each category. Quests within a family are tiered — completing tier 1 unlocks tier 2, etc. The Finisher quest requires all 9 other quests.
+
+### Integration Points
+
+| Game Function | Quest Progress |
+|---------------|---------------|
+| `create_with_cubes()` | +1 Grinder (games played) |
+| `move()` | +N LineClearer (lines cleared) |
+| `move()` | +1 ComboThree/Five/Seven (if combo achieved) |
+
+### Dependencies
+
+Uses Cartridge's `quest` and `achievement` packages from the arcade repository. Quest system needs `MINTER_ROLE` on `cube_token` to distribute CUBE rewards.
+
+### Known Limitation
+
+The Cartridge Controller's built-in profile quest UI claim button does not work (ENTRYPOINT_NOT_FOUND). Use the in-game QuestsDialog instead, which calls `quest_system.claim()` correctly.
+
+---
+
+## Achievement System
+
+28 trophies tracked via Cartridge's arcade achievement system:
+
+| Category | Milestones |
+|----------|------------|
+| Grinder | 10/25/50/100/250 games played |
+| Clearer | 100/500/1K/5K/10K lines cleared |
+| Combo (3+) | 10/50/100 combos |
+| Chain (5+) | 5/25/50 combos |
+| SuperChain (7+) | 1/10/25 combos |
+| Leveler | Level 10/20/30/40/50 reached |
+| Scorer | 100/200/300 high score |
+| Master | Complete all daily quests |
 
 ---
 
 ## Related Documentation
 
 - [CONFIGURABLE_SETTINGS.md](./CONFIGURABLE_SETTINGS.md) - GameSettings customization
-- [QUEST_SYSTEM.md](./QUEST_SYSTEM.md) - Daily quest system
 - [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) - Network deployment
 - [FUTURE_FEATURES.md](./FUTURE_FEATURES.md) - Planned features

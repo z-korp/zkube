@@ -57,17 +57,17 @@ export interface LoadoutPageProps {
 // ============================================================================
 
 const ALL_BONUSES: BonusType[] = [
-  BonusType.Hammer,
-  BonusType.Totem,
+  BonusType.Combo,
+  BonusType.Score,
+  BonusType.Harvest,
   BonusType.Wave,
-  BonusType.Shrink,
-  BonusType.Shuffle,
+  BonusType.Supply,
 ];
 
 const DEFAULT_BONUSES: BonusType[] = [
-  BonusType.Hammer,
-  BonusType.Wave,
-  BonusType.Totem,
+  BonusType.Combo,
+  BonusType.Score,
+  BonusType.Harvest,
 ];
 
 const loadSavedLoadout = (): LoadoutData | null => {
@@ -97,15 +97,15 @@ const getMaxCubesForRank = (rank: number): number => {
 
 const getBonusTexturePath = (bonus: BonusType, basePath: string): string => {
   switch (bonus) {
-    case BonusType.Hammer:
+    case BonusType.Combo:
       return `${basePath}/bonus/hammer.png`;
-    case BonusType.Totem:
+    case BonusType.Score:
       return `${basePath}/bonus/tiki.png`;
-    case BonusType.Wave:
+    case BonusType.Harvest:
       return `${basePath}/bonus/wave.png`;
-    case BonusType.Shrink:
+    case BonusType.Wave:
       return `${basePath}/bonus/shrink.png`;
-    case BonusType.Shuffle:
+    case BonusType.Supply:
       return `${basePath}/bonus/shuffle.png`;
     default:
       return "";
@@ -114,16 +114,16 @@ const getBonusTexturePath = (bonus: BonusType, basePath: string): string => {
 
 const getBonusName = (bonus: BonusType): string => {
   switch (bonus) {
-    case BonusType.Hammer:
-      return "Hammer";
-    case BonusType.Totem:
-      return "Totem";
+    case BonusType.Combo:
+      return "Combo";
+    case BonusType.Score:
+      return "Score";
+    case BonusType.Harvest:
+      return "Harvest";
     case BonusType.Wave:
       return "Wave";
-    case BonusType.Shrink:
-      return "Shrink";
-    case BonusType.Shuffle:
-      return "Shuffle";
+    case BonusType.Supply:
+      return "Supply";
     default:
       return "";
   }
@@ -411,8 +411,8 @@ export const LoadoutPage = ({
     if (saved) {
       // Filter out any bonuses that are no longer unlocked
       const validBonuses = saved.selectedBonuses.filter((b) => {
-        if (b === BonusType.Shrink) return playerMetaData?.shrinkUnlocked;
-        if (b === BonusType.Shuffle) return playerMetaData?.shuffleUnlocked;
+        if (b === BonusType.Wave) return playerMetaData?.waveUnlocked;
+        if (b === BonusType.Supply) return playerMetaData?.supplyUnlocked;
         return true;
       });
       // Ensure we have 3 bonuses
@@ -433,8 +433,8 @@ export const LoadoutPage = ({
   // Available bonuses
   const availableBonuses = useMemo(() => {
     return ALL_BONUSES.filter((b) => {
-      if (b === BonusType.Shrink) return playerMetaData?.shrinkUnlocked;
-      if (b === BonusType.Shuffle) return playerMetaData?.shuffleUnlocked;
+      if (b === BonusType.Wave) return playerMetaData?.waveUnlocked;
+      if (b === BonusType.Supply) return playerMetaData?.supplyUnlocked;
       return true;
     });
   }, [playerMetaData]);

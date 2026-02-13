@@ -48,16 +48,16 @@ interface LevelCompletionData {
   constraintProgress: number;
   constraint2Progress: number;
   bonusUsedThisLevel: boolean;
-  prevHammer: number;
+  prevCombo: number;
+  prevScore: number;
+  prevHarvest: number;
   prevWave: number;
-  prevTotem: number;
-  prevShrink: number;
-  prevShuffle: number;
-  hammer: number;
+  prevSupply: number;
+  combo: number;
+  score: number;
+  harvest: number;
   wave: number;
-  totem: number;
-  shrink: number;
-  shuffle: number;
+  supply: number;
   prevTotalCubes: number;
   totalCubes: number;
   prevTotalScore: number;
@@ -178,11 +178,11 @@ export function usePlayGame(
     constraintProgress: number;
     constraint2Progress: number;
     bonusUsedThisLevel: boolean;
-    hammer: number;
+    comboBonus: number;
+    scoreBonus: number;
+    harvest: number;
     wave: number;
-    totem: number;
-    shrink: number;
-    shuffle: number;
+    supply: number;
     totalCubes: number;
     totalScore: number;
   } | null>(null);
@@ -288,16 +288,16 @@ export function usePlayGame(
         constraintProgress: prevState.constraintProgress,
         constraint2Progress: prevState.constraint2Progress,
         bonusUsedThisLevel: prevState.bonusUsedThisLevel,
-        prevHammer: prevState.hammer,
+        prevCombo: prevState.comboBonus,
+        prevScore: prevState.scoreBonus,
+        prevHarvest: prevState.harvest,
         prevWave: prevState.wave,
-        prevTotem: prevState.totem,
-        prevShrink: prevState.shrink,
-        prevShuffle: prevState.shuffle,
-        hammer: game.hammer,
+        prevSupply: prevState.supply,
+        combo: game.comboBonus,
+        score: game.scoreBonus,
+        harvest: game.harvest,
         wave: game.wave,
-        totem: game.totem,
-        shrink: game.shrink,
-        shuffle: game.shuffle,
+        supply: game.supply,
         prevTotalCubes: prevState.totalCubes,
         totalCubes: game.totalCubes,
         prevTotalScore: levelStartTotalScoreRef.current,
@@ -313,17 +313,17 @@ export function usePlayGame(
       constraintProgress: game.constraintProgress,
       constraint2Progress: game.constraint2Progress,
       bonusUsedThisLevel: game.bonusUsedThisLevel,
-      hammer: game.hammer,
+      comboBonus: game.comboBonus,
+      scoreBonus: game.scoreBonus,
+      harvest: game.harvest,
       wave: game.wave,
-      totem: game.totem,
-      shrink: game.shrink,
-      shuffle: game.shuffle,
+      supply: game.supply,
       totalCubes: game.totalCubes,
       totalScore: game.totalScore,
     };
   }, [
     game?.level, game?.levelScore, game?.constraintProgress, game?.constraint2Progress, game?.bonusUsedThisLevel,
-    game?.hammer, game?.wave, game?.totem, game?.shrink, game?.shuffle,
+    game?.comboBonus, game?.scoreBonus, game?.harvest, game?.wave, game?.supply,
     game?.over, game?.totalCubes, game?.totalScore, game,
   ]);
 
@@ -344,11 +344,11 @@ export function usePlayGame(
   // Bonus helpers
   const getBonusIcon = useCallback((type: BonusType): string => {
     const assetMap: Partial<Record<BonusType, AssetId>> = {
-      [BonusType.Hammer]: AssetId.BonusHammer,
+      [BonusType.Combo]: AssetId.BonusCombo,
+      [BonusType.Score]: AssetId.BonusScore,
+      [BonusType.Harvest]: AssetId.BonusHarvest,
       [BonusType.Wave]: AssetId.BonusWave,
-      [BonusType.Totem]: AssetId.BonusTotem,
-      [BonusType.Shrink]: AssetId.BonusShrink,
-      [BonusType.Shuffle]: AssetId.BonusShuffle,
+      [BonusType.Supply]: AssetId.BonusSupply,
     };
     const assetId = assetMap[type];
     if (!assetId) return '';
@@ -357,33 +357,33 @@ export function usePlayGame(
 
   const getBonusTooltip = useCallback((type: BonusType): string => {
     switch (type) {
-      case BonusType.Hammer: return 'Destroy connected same-size blocks';
-      case BonusType.Wave: return 'Destroy an entire line';
-      case BonusType.Totem: return 'Destroy all same-size blocks';
-      case BonusType.Shrink: return 'Shrink a block by one size';
-      case BonusType.Shuffle: return 'Shuffle a row';
+      case BonusType.Combo: return 'Add combo to your next move';
+      case BonusType.Score: return 'Instantly gain bonus score';
+      case BonusType.Harvest: return 'Destroy all blocks of a size, earn CUBEs';
+      case BonusType.Wave: return 'Clear entire horizontal rows';
+      case BonusType.Supply: return 'Add new lines at no move cost';
       default: return '';
     }
   }, []);
 
   const getBonusDescription = useCallback((type: BonusType): string => {
     switch (type) {
-      case BonusType.Wave: return 'Select the line to destroy';
-      case BonusType.Totem: return 'Select a block type to destroy';
-      case BonusType.Hammer: return 'Select a block to destroy';
-      case BonusType.Shrink: return 'Select a block to shrink';
-      case BonusType.Shuffle: return 'Select a row to shuffle';
+      case BonusType.Combo: return 'Adds combo to your next move';
+      case BonusType.Score: return 'Instantly adds bonus score';
+      case BonusType.Harvest: return 'Select a block size to destroy all matching blocks';
+      case BonusType.Wave: return 'Select a row to clear';
+      case BonusType.Supply: return 'Adds new lines to the grid';
       default: return '';
     }
   }, []);
 
   const getBonusName = useCallback((type: BonusType): string => {
     switch (type) {
-      case BonusType.Hammer: return 'Hammer';
+      case BonusType.Combo: return 'Combo';
+      case BonusType.Score: return 'Score';
+      case BonusType.Harvest: return 'Harvest';
       case BonusType.Wave: return 'Wave';
-      case BonusType.Totem: return 'Totem';
-      case BonusType.Shrink: return 'Shrink';
-      case BonusType.Shuffle: return 'Shuffle';
+      case BonusType.Supply: return 'Supply';
       default: return 'Bonus';
     }
   }, []);
@@ -419,16 +419,16 @@ export function usePlayGame(
 
   const handleBonusApply = useCallback(async (block: Block) => {
     if (isTxProcessing) return;
-    if (bonus === BonusType.Wave) {
+    if (bonus === BonusType.Combo) {
+      handleBonusTx(BonusType.Combo, 0, 0);
+    } else if (bonus === BonusType.Score) {
+      handleBonusTx(BonusType.Score, 0, 0);
+    } else if (bonus === BonusType.Harvest) {
+      handleBonusTx(BonusType.Harvest, block.y, block.x);
+    } else if (bonus === BonusType.Wave) {
       handleBonusTx(BonusType.Wave, block.y, 0);
-    } else if (bonus === BonusType.Totem) {
-      handleBonusTx(BonusType.Totem, block.y, block.x);
-    } else if (bonus === BonusType.Hammer) {
-      handleBonusTx(BonusType.Hammer, block.y, block.x);
-    } else if (bonus === BonusType.Shrink) {
-      handleBonusTx(BonusType.Shrink, block.y, block.x);
-    } else if (bonus === BonusType.Shuffle) {
-      handleBonusTx(BonusType.Shuffle, block.y, block.x);
+    } else if (bonus === BonusType.Supply) {
+      handleBonusTx(BonusType.Supply, 0, 0);
     }
     setBonus(BonusType.None);
     setBonusDescription('');
@@ -462,11 +462,11 @@ export function usePlayGame(
     const meta = playerMeta?.data;
     if (!meta) return 1;
     switch (bonusType) {
-      case BonusType.Hammer: return Math.max(1, meta.bagHammerLevel);
+      case BonusType.Combo: return Math.max(1, meta.bagComboLevel);
+      case BonusType.Score: return Math.max(1, meta.bagScoreLevel);
+      case BonusType.Harvest: return Math.max(1, meta.bagHarvestLevel);
       case BonusType.Wave: return Math.max(1, meta.bagWaveLevel);
-      case BonusType.Totem: return Math.max(1, meta.bagTotemLevel);
-      case BonusType.Shrink: return Math.max(1, meta.bagShrinkLevel);
-      case BonusType.Shuffle: return Math.max(1, meta.bagShuffleLevel);
+      case BonusType.Supply: return Math.max(1, meta.bagSupplyLevel);
       default: return 1;
     }
   }, [playerMeta]);
@@ -520,11 +520,11 @@ export function usePlayGame(
         return {
           slot: item.slot,
           name: getBonusName(bonusType),
-          icon: bonusType === BonusType.Hammer ? '🔨'
-            : bonusType === BonusType.Wave ? '🌊'
-            : bonusType === BonusType.Totem ? '🗿'
-            : bonusType === BonusType.Shrink ? '🔻'
-            : '🔀',
+          icon: bonusType === BonusType.Combo ? '\u26A1'
+            : bonusType === BonusType.Score ? '\uD83C\uDFAF'
+            : bonusType === BonusType.Harvest ? '\uD83C\uDF3E'
+            : bonusType === BonusType.Wave ? '\uD83C\uDF0A'
+            : '\uD83D\uDCE6',
           inventory,
           bagSize,
           level: item.level + 1,
@@ -617,12 +617,12 @@ export function usePlayGame(
 
   const bonusAwarded = useMemo(() => {
     if (!levelCompletionData) return null;
-    const { prevHammer, hammer, prevWave, wave, prevTotem, totem, prevShrink, shrink, prevShuffle, shuffle } = levelCompletionData;
-    if (hammer > prevHammer) return { type: 'Hammer', icon: '\u{1F528}' };
-    if (wave > prevWave) return { type: 'Wave', icon: '\u{1F30A}' };
-    if (totem > prevTotem) return { type: 'Totem', icon: '\u{1F5FF}' };
-    if (shrink > prevShrink) return { type: 'Shrink', icon: '\u{1F53B}' };
-    if (shuffle > prevShuffle) return { type: 'Shuffle', icon: '\u{1F500}' };
+    const { prevCombo, combo, prevScore, score, prevHarvest, harvest, prevWave, wave, prevSupply, supply } = levelCompletionData;
+    if (combo > prevCombo) return { type: 'Combo', icon: '\u26A1' };
+    if (score > prevScore) return { type: 'Score', icon: '\uD83C\uDFAF' };
+    if (harvest > prevHarvest) return { type: 'Harvest', icon: '\uD83C\uDF3E' };
+    if (wave > prevWave) return { type: 'Wave', icon: '\uD83C\uDF0A' };
+    if (supply > prevSupply) return { type: 'Supply', icon: '\uD83D\uDCE6' };
     return null;
   }, [levelCompletionData]);
 

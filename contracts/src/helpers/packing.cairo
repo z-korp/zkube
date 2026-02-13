@@ -14,11 +14,11 @@ use alexandria_math::BitShift;
 /// │ 40      │ bonus_used_this_level │ 1    │ 0-1      │ For NoBonusUsed │
 /// │ 41      │ combo_5_achieved      │ 1    │ 0-1      │ First 5x combo  │
 /// │ 42      │ combo_10_achieved     │ 1    │ 0-1      │ First 10x combo │
-/// │ 43-50   │ hammer_count          │ 8    │ 0-255    │ Inventory       │
-/// │ 51-58   │ wave_count            │ 8    │ 0-255    │ Inventory       │
-/// │ 59-66   │ totem_count           │ 8    │ 0-255    │ Inventory       │
-/// │ 67-74   │ shrink_count          │ 8    │ 0-255    │ Shrink inventory│
-/// │ 75-82   │ shuffle_count         │ 8    │ 0-255    │ Shuffle inv     │
+/// │ 43-50   │ combo_count           │ 8    │ 0-255    │ Inventory       │
+/// │ 51-58   │ score_count           │ 8    │ 0-255    │ Inventory       │
+/// │ 59-66   │ harvest_count         │ 8    │ 0-255    │ Inventory       │
+/// │ 67-74   │ wave_count            │ 8    │ 0-255    │ Wave inventory  │
+/// │ 75-82   │ supply_count          │ 8    │ 0-255    │ Supply inv      │
 /// │ 83-90   │ max_combo_run         │ 8    │ 0-255    │ Best combo      │
 /// │ 91-98   │ extra_moves           │ 8    │ 0-255    │ Extra move cap  │
 /// │ 99-114  │ cubes_brought         │ 16   │ 0-65535  │ Cubes for in-run│
@@ -52,11 +52,11 @@ pub struct RunData {
     pub constraint_progress: u8,
     pub bonus_used_this_level: bool,
     pub total_cubes: u16,
-    pub hammer_count: u8,
+    pub combo_count: u8,
+    pub score_count: u8,
+    pub harvest_count: u8,
     pub wave_count: u8,
-    pub totem_count: u8,
-    pub shrink_count: u8,
-    pub shuffle_count: u8,
+    pub supply_count: u8,
     pub max_combo_run: u8,
     /// Extra moves added to the current level move limit (from consumables)
     pub extra_moves: u8,
@@ -72,7 +72,7 @@ pub struct RunData {
     // Victory flag: true if player completed level 50
     pub run_completed: bool,
     // Bonus V2.0: Selected bonuses (3 types selected at run start)
-    // Values: 0=None, 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
+    // Values: 0=None, 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
     pub selected_bonus_1: u8,
     pub selected_bonus_2: u8,
     pub selected_bonus_3: u8,
@@ -105,11 +105,11 @@ mod RunDataBits {
     pub const BONUS_USED_POS: u8 = 40;
     pub const COMBO_5_ACHIEVED_POS: u8 = 41;
     pub const COMBO_10_ACHIEVED_POS: u8 = 42;
-    pub const HAMMER_COUNT_POS: u8 = 43;
-    pub const WAVE_COUNT_POS: u8 = 51;
-    pub const TOTEM_COUNT_POS: u8 = 59;
-    pub const SHRINK_COUNT_POS: u8 = 67;
-    pub const SHUFFLE_COUNT_POS: u8 = 75;
+    pub const COMBO_COUNT_POS: u8 = 43;
+    pub const SCORE_COUNT_POS: u8 = 51;
+    pub const HARVEST_COUNT_POS: u8 = 59;
+    pub const WAVE_COUNT_POS: u8 = 67;
+    pub const SUPPLY_COUNT_POS: u8 = 75;
     pub const MAX_COMBO_RUN_POS: u8 = 83;
     pub const EXTRA_MOVES_POS: u8 = 91;
     pub const CUBES_BROUGHT_POS: u8 = 99;
@@ -166,7 +166,7 @@ mod RunDataBits {
 #[generate_trait]
 pub impl RunDataPacking of RunDataPackingTrait {
     /// Create a new RunData with initial values for level 1
-    /// Default bonus selection: Hammer (1), Wave (3), Totem (2)
+    /// Default bonus selection: Combo (1), Score (2), Harvest (3)
     fn new() -> RunData {
         RunData {
             current_level: 1,
@@ -175,11 +175,11 @@ pub impl RunDataPacking of RunDataPackingTrait {
             constraint_progress: 0,
             bonus_used_this_level: false,
             total_cubes: 0,
-            hammer_count: 0,
+            combo_count: 0,
+            score_count: 0,
+            harvest_count: 0,
             wave_count: 0,
-            totem_count: 0,
-            shrink_count: 0,
-            shuffle_count: 0,
+            supply_count: 0,
             max_combo_run: 0,
             extra_moves: 0,
             total_score: 0,
@@ -189,10 +189,10 @@ pub impl RunDataPacking of RunDataPackingTrait {
             cubes_spent: 0,
             constraint_2_progress: 0,
             run_completed: false,
-            // Bonus V2.0: Default selection (Hammer, Wave, Totem)
-            selected_bonus_1: 1, // Hammer
-            selected_bonus_2: 3, // Wave
-            selected_bonus_3: 2, // Totem
+            // Bonus V3.0: Default selection (Combo, Score, Harvest)
+            selected_bonus_1: 1, // Combo
+            selected_bonus_2: 2, // Score
+            selected_bonus_3: 3, // Harvest
             // All bonuses start at level 0 (L1)
             bonus_1_level: 0,
             bonus_2_level: 0,
@@ -257,8 +257,18 @@ pub impl RunDataPacking of RunDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                self.hammer_count.into() & RunDataBits::COUNT_MASK,
-                RunDataBits::HAMMER_COUNT_POS.into(),
+                self.combo_count.into() & RunDataBits::COUNT_MASK,
+                RunDataBits::COMBO_COUNT_POS.into(),
+            );
+        packed = packed
+            | BitShift::shl(
+                self.score_count.into() & RunDataBits::COUNT_MASK,
+                RunDataBits::SCORE_COUNT_POS.into(),
+            );
+        packed = packed
+            | BitShift::shl(
+                self.harvest_count.into() & RunDataBits::COUNT_MASK,
+                RunDataBits::HARVEST_COUNT_POS.into(),
             );
         packed = packed
             | BitShift::shl(
@@ -267,18 +277,8 @@ pub impl RunDataPacking of RunDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                self.totem_count.into() & RunDataBits::COUNT_MASK,
-                RunDataBits::TOTEM_COUNT_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
-                self.shrink_count.into() & RunDataBits::COUNT_MASK,
-                RunDataBits::SHRINK_COUNT_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
-                self.shuffle_count.into() & RunDataBits::COUNT_MASK,
-                RunDataBits::SHUFFLE_COUNT_POS.into(),
+                self.supply_count.into() & RunDataBits::COUNT_MASK,
+                RunDataBits::SUPPLY_COUNT_POS.into(),
             );
         packed = packed
             | BitShift::shl(
@@ -425,7 +425,15 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 & RunDataBits::COMBO_ACHIEVED_MASK) == 1,
             combo_10_achieved: (BitShift::shr(data, RunDataBits::COMBO_10_ACHIEVED_POS.into())
                 & RunDataBits::COMBO_ACHIEVED_MASK) == 1,
-            hammer_count: (BitShift::shr(data, RunDataBits::HAMMER_COUNT_POS.into())
+            combo_count: (BitShift::shr(data, RunDataBits::COMBO_COUNT_POS.into())
+                & RunDataBits::COUNT_MASK)
+                .try_into()
+                .unwrap(),
+            score_count: (BitShift::shr(data, RunDataBits::SCORE_COUNT_POS.into())
+                & RunDataBits::COUNT_MASK)
+                .try_into()
+                .unwrap(),
+            harvest_count: (BitShift::shr(data, RunDataBits::HARVEST_COUNT_POS.into())
                 & RunDataBits::COUNT_MASK)
                 .try_into()
                 .unwrap(),
@@ -433,15 +441,7 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 & RunDataBits::COUNT_MASK)
                 .try_into()
                 .unwrap(),
-            totem_count: (BitShift::shr(data, RunDataBits::TOTEM_COUNT_POS.into())
-                & RunDataBits::COUNT_MASK)
-                .try_into()
-                .unwrap(),
-            shrink_count: (BitShift::shr(data, RunDataBits::SHRINK_COUNT_POS.into())
-                & RunDataBits::COUNT_MASK)
-                .try_into()
-                .unwrap(),
-            shuffle_count: (BitShift::shr(data, RunDataBits::SHUFFLE_COUNT_POS.into())
+            supply_count: (BitShift::shr(data, RunDataBits::SUPPLY_COUNT_POS.into())
                 & RunDataBits::COUNT_MASK)
                 .try_into()
                 .unwrap(),
@@ -532,62 +532,62 @@ pub impl RunDataPacking of RunDataPackingTrait {
 #[generate_trait]
 pub impl RunDataHelpers of RunDataHelpersTrait {
     /// Convert bonus type code to bag index.
-    /// Bonus types: 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
-    /// Bag indices: 0=Hammer, 1=Wave, 2=Totem, 3=Shrink, 4=Shuffle
+    /// Bonus types: 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
+    /// Bag indices: 0=Combo, 1=Score, 2=Harvest, 3=Wave, 4=Supply
     #[inline(always)]
     fn bonus_type_to_bag_idx(bonus_type: u8) -> u8 {
         match bonus_type {
-            1 => 0,  // Hammer
-            2 => 2,  // Totem
-            3 => 1,  // Wave
-            4 => 3,  // Shrink
-            5 => 4,  // Shuffle
+            1 => 0,  // Combo
+            2 => 1,  // Score
+            3 => 2,  // Harvest
+            4 => 3,  // Wave
+            5 => 4,  // Supply
             _ => 0,
         }
     }
 
     /// Get current bonus count for a bonus type.
-    /// bonus_type: 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
+    /// bonus_type: 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
     #[inline(always)]
     fn get_bonus_count(self: @RunData, bonus_type: u8) -> u8 {
         match bonus_type {
-            1 => *self.hammer_count,
-            2 => *self.totem_count,
-            3 => *self.wave_count,
-            4 => *self.shrink_count,
-            5 => *self.shuffle_count,
+            1 => *self.combo_count,
+            2 => *self.score_count,
+            3 => *self.harvest_count,
+            4 => *self.wave_count,
+            5 => *self.supply_count,
             _ => 0,
         }
     }
 
     /// Add a bonus to inventory if bag has space.
     /// Returns true if added successfully, false if bag is full.
-    /// bonus_type: 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
+    /// bonus_type: 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
     fn add_bonus(ref self: RunData, bonus_type: u8, bag_size: u8) -> bool {
         match bonus_type {
             1 => {
-                if self.hammer_count >= bag_size { return false; }
-                self.hammer_count += 1;
+                if self.combo_count >= bag_size { return false; }
+                self.combo_count += 1;
                 true
             },
             2 => {
-                if self.totem_count >= bag_size { return false; }
-                self.totem_count += 1;
+                if self.score_count >= bag_size { return false; }
+                self.score_count += 1;
                 true
             },
             3 => {
+                if self.harvest_count >= bag_size { return false; }
+                self.harvest_count += 1;
+                true
+            },
+            4 => {
                 if self.wave_count >= bag_size { return false; }
                 self.wave_count += 1;
                 true
             },
-            4 => {
-                if self.shrink_count >= bag_size { return false; }
-                self.shrink_count += 1;
-                true
-            },
             5 => {
-                if self.shuffle_count >= bag_size { return false; }
-                self.shuffle_count += 1;
+                if self.supply_count >= bag_size { return false; }
+                self.supply_count += 1;
                 true
             },
             _ => false,
@@ -622,19 +622,19 @@ pub impl RunDataHelpers of RunDataHelpersTrait {
 /// ┌─────────────────────────────────────────────────────────────────────┐
 /// │ Bits    │ Field                 │ Size │ Description                │
 /// ├─────────┼───────────────────────┼──────┼────────────────────────────┤
-/// │ 0-1     │ starting_hammer       │ 2    │ Starting hammers (0-3)     │
-/// │ 2-3     │ starting_wave         │ 2    │ Starting waves (0-3)       │
-/// │ 4-5     │ starting_totem        │ 2    │ Starting totems (0-3)      │
-/// │ 6-7     │ starting_shrink       │ 2    │ Starting shrinks (0-3)     │
-/// │ 8-9     │ starting_shuffle      │ 2    │ Starting shuffles (0-3)    │
-/// │ 10-13   │ bag_hammer_level      │ 4    │ Hammer bag upgrades (0-15) │
-/// │ 14-17   │ bag_wave_level        │ 4    │ Wave bag upgrades (0-15)   │
-/// │ 18-21   │ bag_totem_level       │ 4    │ Totem bag upgrades (0-15)  │
-/// │ 22-25   │ bag_shrink_level      │ 4    │ Shrink bag upgrades (0-15) │
-/// │ 26-29   │ bag_shuffle_level     │ 4    │ Shuffle bag upgrades (0-15)│
+/// │ 0-1     │ starting_combo        │ 2    │ Starting combos (0-3)      │
+/// │ 2-3     │ starting_score        │ 2    │ Starting scores (0-3)      │
+/// │ 4-5     │ starting_harvest      │ 2    │ Starting harvests (0-3)    │
+/// │ 6-7     │ starting_wave         │ 2    │ Starting waves (0-3)       │
+/// │ 8-9     │ starting_supply       │ 2    │ Starting supplies (0-3)    │
+/// │ 10-13   │ bag_combo_level       │ 4    │ Combo bag upgrades (0-15)  │
+/// │ 14-17   │ bag_score_level       │ 4    │ Score bag upgrades (0-15)  │
+/// │ 18-21   │ bag_harvest_level     │ 4    │ Harvest bag upgrades (0-15)│
+/// │ 22-25   │ bag_wave_level        │ 4    │ Wave bag upgrades (0-15)   │
+/// │ 26-29   │ bag_supply_level      │ 4    │ Supply bag upgrades (0-15) │
 /// │ 30-33   │ bridging_rank         │ 4    │ Cube bridging rank (0-15)  │
-/// │ 34      │ shrink_unlocked       │ 1    │ Shrink bonus unlocked      │
-/// │ 35      │ shuffle_unlocked      │ 1    │ Shuffle bonus unlocked     │
+/// │ 34      │ wave_unlocked         │ 1    │ Wave bonus unlocked        │
+/// │ 35      │ supply_unlocked       │ 1    │ Supply bonus unlocked      │
 /// │ 36-51   │ total_runs            │ 16   │ Lifetime run count         │
 /// │ 52-83   │ total_cubes_earned    │ 32   │ Lifetime cubes earned      │
 /// │ 84-85   │ reserved_flags        │ 2    │ Future unlocks/features    │
@@ -644,23 +644,23 @@ pub impl RunDataHelpers of RunDataHelpersTrait {
 /// Unpacked player meta data structure
 #[derive(Copy, Drop, Serde, Debug, PartialEq)]
 pub struct MetaData {
-    // Starting bonus upgrades (0 = none, 1 = start with 1, 2 = start with 2, 3 = start with 3)
-    pub starting_hammer: u8,
+    // Starting bonus charges (0 = none, upgradeable up to bag size via permanent shop)
+    pub starting_combo: u8,
+    pub starting_score: u8,
+    pub starting_harvest: u8,
     pub starting_wave: u8,
-    pub starting_totem: u8,
-    pub starting_shrink: u8,
-    pub starting_shuffle: u8,
-    // Bag size upgrades (0 = default size 1, each level adds +1 capacity)
-    pub bag_hammer_level: u8,
+    pub starting_supply: u8,
+    // Bag size upgrades (0 = default size 1, each level adds +1 capacity, max 4 upgrades = size 5)
+    pub bag_combo_level: u8,
+    pub bag_score_level: u8,
+    pub bag_harvest_level: u8,
     pub bag_wave_level: u8,
-    pub bag_totem_level: u8,
-    pub bag_shrink_level: u8,
-    pub bag_shuffle_level: u8,
+    pub bag_supply_level: u8,
     // Cube bridging rank (0 = can't bring, higher = more cubes allowed)
     pub bridging_rank: u8,
-    // Bonus unlock flags (Shrink and Shuffle require unlocking)
-    pub shrink_unlocked: bool,
-    pub shuffle_unlocked: bool,
+    // Bonus unlock flags (Wave and Supply require unlocking)
+    pub wave_unlocked: bool,
+    pub supply_unlocked: bool,
     // Stats
     pub total_runs: u16,
     pub total_cubes_earned: u32,
@@ -669,19 +669,19 @@ pub struct MetaData {
 /// Bit positions and masks for meta_data
 mod MetaDataBits {
     // Bit positions
-    pub const STARTING_HAMMER_POS: u8 = 0;
-    pub const STARTING_WAVE_POS: u8 = 2;
-    pub const STARTING_TOTEM_POS: u8 = 4;
-    pub const STARTING_SHRINK_POS: u8 = 6;
-    pub const STARTING_SHUFFLE_POS: u8 = 8;
-    pub const BAG_HAMMER_LEVEL_POS: u8 = 10;
-    pub const BAG_WAVE_LEVEL_POS: u8 = 14;
-    pub const BAG_TOTEM_LEVEL_POS: u8 = 18;
-    pub const BAG_SHRINK_LEVEL_POS: u8 = 22;
-    pub const BAG_SHUFFLE_LEVEL_POS: u8 = 26;
+    pub const STARTING_COMBO_POS: u8 = 0;
+    pub const STARTING_SCORE_POS: u8 = 2;
+    pub const STARTING_HARVEST_POS: u8 = 4;
+    pub const STARTING_WAVE_POS: u8 = 6;
+    pub const STARTING_SUPPLY_POS: u8 = 8;
+    pub const BAG_COMBO_LEVEL_POS: u8 = 10;
+    pub const BAG_SCORE_LEVEL_POS: u8 = 14;
+    pub const BAG_HARVEST_LEVEL_POS: u8 = 18;
+    pub const BAG_WAVE_LEVEL_POS: u8 = 22;
+    pub const BAG_SUPPLY_LEVEL_POS: u8 = 26;
     pub const BRIDGING_RANK_POS: u8 = 30;
-    pub const SHRINK_UNLOCKED_POS: u8 = 34;
-    pub const SHUFFLE_UNLOCKED_POS: u8 = 35;
+    pub const WAVE_UNLOCKED_POS: u8 = 34;
+    pub const SUPPLY_UNLOCKED_POS: u8 = 35;
     pub const TOTAL_RUNS_POS: u8 = 36;
     pub const TOTAL_CUBES_EARNED_POS: u8 = 52;
 
@@ -699,19 +699,19 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
     /// Create a new MetaData with initial values
     fn new() -> MetaData {
         MetaData {
-            starting_hammer: 0,
+            starting_combo: 0,
+            starting_score: 0,
+            starting_harvest: 0,
             starting_wave: 0,
-            starting_totem: 0,
-            starting_shrink: 0,
-            starting_shuffle: 0,
-            bag_hammer_level: 0,
+            starting_supply: 0,
+            bag_combo_level: 0,
+            bag_score_level: 0,
+            bag_harvest_level: 0,
             bag_wave_level: 0,
-            bag_totem_level: 0,
-            bag_shrink_level: 0,
-            bag_shuffle_level: 0,
+            bag_supply_level: 0,
             bridging_rank: 0,
-            shrink_unlocked: false,
-            shuffle_unlocked: false,
+            wave_unlocked: false,
+            supply_unlocked: false,
             total_runs: 0,
             total_cubes_earned: 0,
         }
@@ -721,8 +721,18 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
     fn pack(self: MetaData) -> felt252 {
         let mut packed: u256 = 0;
 
-        // Starting hammer is at position 0, no shift needed
-        packed = packed | (self.starting_hammer.into() & MetaDataBits::STARTING_BONUS_MASK);
+        // Starting combo is at position 0, no shift needed
+        packed = packed | (self.starting_combo.into() & MetaDataBits::STARTING_BONUS_MASK);
+        packed = packed
+            | BitShift::shl(
+                self.starting_score.into() & MetaDataBits::STARTING_BONUS_MASK,
+                MetaDataBits::STARTING_SCORE_POS.into(),
+            );
+        packed = packed
+            | BitShift::shl(
+                self.starting_harvest.into() & MetaDataBits::STARTING_BONUS_MASK,
+                MetaDataBits::STARTING_HARVEST_POS.into(),
+            );
         packed = packed
             | BitShift::shl(
                 self.starting_wave.into() & MetaDataBits::STARTING_BONUS_MASK,
@@ -730,23 +740,23 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                self.starting_totem.into() & MetaDataBits::STARTING_BONUS_MASK,
-                MetaDataBits::STARTING_TOTEM_POS.into(),
+                self.starting_supply.into() & MetaDataBits::STARTING_BONUS_MASK,
+                MetaDataBits::STARTING_SUPPLY_POS.into(),
             );
         packed = packed
             | BitShift::shl(
-                self.starting_shrink.into() & MetaDataBits::STARTING_BONUS_MASK,
-                MetaDataBits::STARTING_SHRINK_POS.into(),
+                self.bag_combo_level.into() & MetaDataBits::BAG_LEVEL_MASK,
+                MetaDataBits::BAG_COMBO_LEVEL_POS.into(),
             );
         packed = packed
             | BitShift::shl(
-                self.starting_shuffle.into() & MetaDataBits::STARTING_BONUS_MASK,
-                MetaDataBits::STARTING_SHUFFLE_POS.into(),
+                self.bag_score_level.into() & MetaDataBits::BAG_LEVEL_MASK,
+                MetaDataBits::BAG_SCORE_LEVEL_POS.into(),
             );
         packed = packed
             | BitShift::shl(
-                self.bag_hammer_level.into() & MetaDataBits::BAG_LEVEL_MASK,
-                MetaDataBits::BAG_HAMMER_LEVEL_POS.into(),
+                self.bag_harvest_level.into() & MetaDataBits::BAG_LEVEL_MASK,
+                MetaDataBits::BAG_HARVEST_LEVEL_POS.into(),
             );
         packed = packed
             | BitShift::shl(
@@ -755,18 +765,8 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                self.bag_totem_level.into() & MetaDataBits::BAG_LEVEL_MASK,
-                MetaDataBits::BAG_TOTEM_LEVEL_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
-                self.bag_shrink_level.into() & MetaDataBits::BAG_LEVEL_MASK,
-                MetaDataBits::BAG_SHRINK_LEVEL_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
-                self.bag_shuffle_level.into() & MetaDataBits::BAG_LEVEL_MASK,
-                MetaDataBits::BAG_SHUFFLE_LEVEL_POS.into(),
+                self.bag_supply_level.into() & MetaDataBits::BAG_LEVEL_MASK,
+                MetaDataBits::BAG_SUPPLY_LEVEL_POS.into(),
             );
         packed = packed
             | BitShift::shl(
@@ -775,13 +775,13 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                if self.shrink_unlocked { 1_u256 } else { 0_u256 },
-                MetaDataBits::SHRINK_UNLOCKED_POS.into(),
+                if self.wave_unlocked { 1_u256 } else { 0_u256 },
+                MetaDataBits::WAVE_UNLOCKED_POS.into(),
             );
         packed = packed
             | BitShift::shl(
-                if self.shuffle_unlocked { 1_u256 } else { 0_u256 },
-                MetaDataBits::SHUFFLE_UNLOCKED_POS.into(),
+                if self.supply_unlocked { 1_u256 } else { 0_u256 },
+                MetaDataBits::SUPPLY_UNLOCKED_POS.into(),
             );
         packed = packed
             | BitShift::shl(
@@ -802,25 +802,33 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
         let data: u256 = packed.into();
 
         MetaData {
-            // Starting hammer is at position 0, no shift needed
-            starting_hammer: (data & MetaDataBits::STARTING_BONUS_MASK).try_into().unwrap(),
+            // Starting combo is at position 0, no shift needed
+            starting_combo: (data & MetaDataBits::STARTING_BONUS_MASK).try_into().unwrap(),
+            starting_score: (BitShift::shr(data, MetaDataBits::STARTING_SCORE_POS.into())
+                & MetaDataBits::STARTING_BONUS_MASK)
+                .try_into()
+                .unwrap(),
+            starting_harvest: (BitShift::shr(data, MetaDataBits::STARTING_HARVEST_POS.into())
+                & MetaDataBits::STARTING_BONUS_MASK)
+                .try_into()
+                .unwrap(),
             starting_wave: (BitShift::shr(data, MetaDataBits::STARTING_WAVE_POS.into())
                 & MetaDataBits::STARTING_BONUS_MASK)
                 .try_into()
                 .unwrap(),
-            starting_totem: (BitShift::shr(data, MetaDataBits::STARTING_TOTEM_POS.into())
+            starting_supply: (BitShift::shr(data, MetaDataBits::STARTING_SUPPLY_POS.into())
                 & MetaDataBits::STARTING_BONUS_MASK)
                 .try_into()
                 .unwrap(),
-            starting_shrink: (BitShift::shr(data, MetaDataBits::STARTING_SHRINK_POS.into())
-                & MetaDataBits::STARTING_BONUS_MASK)
+            bag_combo_level: (BitShift::shr(data, MetaDataBits::BAG_COMBO_LEVEL_POS.into())
+                & MetaDataBits::BAG_LEVEL_MASK)
                 .try_into()
                 .unwrap(),
-            starting_shuffle: (BitShift::shr(data, MetaDataBits::STARTING_SHUFFLE_POS.into())
-                & MetaDataBits::STARTING_BONUS_MASK)
+            bag_score_level: (BitShift::shr(data, MetaDataBits::BAG_SCORE_LEVEL_POS.into())
+                & MetaDataBits::BAG_LEVEL_MASK)
                 .try_into()
                 .unwrap(),
-            bag_hammer_level: (BitShift::shr(data, MetaDataBits::BAG_HAMMER_LEVEL_POS.into())
+            bag_harvest_level: (BitShift::shr(data, MetaDataBits::BAG_HARVEST_LEVEL_POS.into())
                 & MetaDataBits::BAG_LEVEL_MASK)
                 .try_into()
                 .unwrap(),
@@ -828,15 +836,7 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
                 & MetaDataBits::BAG_LEVEL_MASK)
                 .try_into()
                 .unwrap(),
-            bag_totem_level: (BitShift::shr(data, MetaDataBits::BAG_TOTEM_LEVEL_POS.into())
-                & MetaDataBits::BAG_LEVEL_MASK)
-                .try_into()
-                .unwrap(),
-            bag_shrink_level: (BitShift::shr(data, MetaDataBits::BAG_SHRINK_LEVEL_POS.into())
-                & MetaDataBits::BAG_LEVEL_MASK)
-                .try_into()
-                .unwrap(),
-            bag_shuffle_level: (BitShift::shr(data, MetaDataBits::BAG_SHUFFLE_LEVEL_POS.into())
+            bag_supply_level: (BitShift::shr(data, MetaDataBits::BAG_SUPPLY_LEVEL_POS.into())
                 & MetaDataBits::BAG_LEVEL_MASK)
                 .try_into()
                 .unwrap(),
@@ -844,9 +844,9 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
                 & MetaDataBits::BRIDGING_RANK_MASK)
                 .try_into()
                 .unwrap(),
-            shrink_unlocked: (BitShift::shr(data, MetaDataBits::SHRINK_UNLOCKED_POS.into())
+            wave_unlocked: (BitShift::shr(data, MetaDataBits::WAVE_UNLOCKED_POS.into())
                 & MetaDataBits::UNLOCK_MASK) == 1,
-            shuffle_unlocked: (BitShift::shr(data, MetaDataBits::SHUFFLE_UNLOCKED_POS.into())
+            supply_unlocked: (BitShift::shr(data, MetaDataBits::SUPPLY_UNLOCKED_POS.into())
                 & MetaDataBits::UNLOCK_MASK) == 1,
             total_runs: (BitShift::shr(data, MetaDataBits::TOTAL_RUNS_POS.into())
                 & MetaDataBits::TOTAL_RUNS_MASK)
@@ -860,40 +860,40 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
     }
 
     /// Get the bag size for a bonus type (default 1 + upgrade level)
-    /// bonus_type: 0=Hammer, 1=Wave, 2=Totem, 3=Shrink, 4=Shuffle
+    /// bonus_type: 0=Combo, 1=Score, 2=Harvest, 3=Wave, 4=Supply
     fn get_bag_size(self: MetaData, bonus_type: u8) -> u8 {
         let base_size: u8 = 1;
         match bonus_type {
-            0 => base_size + self.bag_hammer_level, // Hammer
-            1 => base_size + self.bag_wave_level,   // Wave
-            2 => base_size + self.bag_totem_level,  // Totem
-            3 => base_size + self.bag_shrink_level, // Shrink
-            4 => base_size + self.bag_shuffle_level, // Shuffle
+            0 => base_size + self.bag_combo_level,    // Combo
+            1 => base_size + self.bag_score_level,    // Score
+            2 => base_size + self.bag_harvest_level,  // Harvest
+            3 => base_size + self.bag_wave_level,     // Wave
+            4 => base_size + self.bag_supply_level,   // Supply
             _ => base_size,
         }
     }
 
     /// Get the starting count for a bonus type
-    /// bonus_type: 0=Hammer, 1=Wave, 2=Totem, 3=Shrink, 4=Shuffle
+    /// bonus_type: 0=Combo, 1=Score, 2=Harvest, 3=Wave, 4=Supply
     fn get_starting_bonus(self: MetaData, bonus_type: u8) -> u8 {
         match bonus_type {
-            0 => self.starting_hammer,
-            1 => self.starting_wave,
-            2 => self.starting_totem,
-            3 => self.starting_shrink,
-            4 => self.starting_shuffle,
+            0 => self.starting_combo,
+            1 => self.starting_score,
+            2 => self.starting_harvest,
+            3 => self.starting_wave,
+            4 => self.starting_supply,
             _ => 0,
         }
     }
 
     /// Check if a bonus type is unlocked
-    /// bonus_type: 0=Hammer, 1=Wave, 2=Totem, 3=Shrink, 4=Shuffle
-    /// Hammer, Wave, and Totem are always unlocked (default bonuses)
+    /// bonus_type: 0=Combo, 1=Score, 2=Harvest, 3=Wave, 4=Supply
+    /// Combo, Score, and Harvest are always unlocked (default bonuses)
     fn is_bonus_unlocked(self: MetaData, bonus_type: u8) -> bool {
         match bonus_type {
-            0 | 1 | 2 => true, // Hammer, Wave, Totem - always unlocked
-            3 => self.shrink_unlocked,
-            4 => self.shuffle_unlocked,
+            0 | 1 | 2 => true, // Combo, Score, Harvest - always unlocked
+            3 => self.wave_unlocked,
+            4 => self.supply_unlocked,
             _ => false,
         }
     }
@@ -941,9 +941,11 @@ mod tests {
         let data = RunDataPackingTrait::new();
         assert!(data.current_level == 1, "Should start at level 1");
         assert!(data.level_score == 0, "Should start with 0 score");
-        assert!(data.hammer_count == 0, "Should start with 0 hammers");
-        assert!(data.shrink_count == 0, "Should start with 0 shrinks");
-        assert!(data.shuffle_count == 0, "Should start with 0 shuffles");
+        assert!(data.combo_count == 0, "Should start with 0 combo charges");
+        assert!(data.score_count == 0, "Should start with 0 score charges");
+        assert!(data.harvest_count == 0, "Should start with 0 harvest charges");
+        assert!(data.wave_count == 0, "Should start with 0 wave charges");
+        assert!(data.supply_count == 0, "Should start with 0 supply charges");
         assert!(data.extra_moves == 0, "Should start with 0 extra moves");
         assert!(data.total_score == 0, "Should start with 0 total score");
         assert!(data.combo_5_achieved == false, "Should start with combo_5 not achieved");
@@ -951,10 +953,10 @@ mod tests {
         assert!(data.cubes_brought == 0, "Should start with 0 cubes brought");
         assert!(data.cubes_spent == 0, "Should start with 0 cubes spent");
         assert!(data.constraint_2_progress == 0, "Should start with 0 constraint_2 progress");
-        // Bonus V2.0: Default selection is Hammer(1), Wave(3), Totem(2)
-        assert!(data.selected_bonus_1 == 1, "Should start with Hammer selected");
-        assert!(data.selected_bonus_2 == 3, "Should start with Wave selected");
-        assert!(data.selected_bonus_3 == 2, "Should start with Totem selected");
+        // Bonus V3.0: Default selection is Combo(1), Score(2), Harvest(3)
+        assert!(data.selected_bonus_1 == 1, "Should start with Combo selected");
+        assert!(data.selected_bonus_2 == 2, "Should start with Score selected");
+        assert!(data.selected_bonus_3 == 3, "Should start with Harvest selected");
         assert!(data.bonus_1_level == 0, "Bonus 1 should start at L1 (0)");
         assert!(data.bonus_2_level == 0, "Bonus 2 should start at L1 (0)");
         assert!(data.bonus_3_level == 0, "Bonus 3 should start at L1 (0)");
@@ -971,11 +973,11 @@ mod tests {
             constraint_progress: 3,
             bonus_used_this_level: true,
             total_cubes: 256,
-            hammer_count: 5,
-            wave_count: 3,
-            totem_count: 2,
-            shrink_count: 4,
-            shuffle_count: 6,
+            combo_count: 5,
+            score_count: 3,
+            harvest_count: 2,
+            wave_count: 4,
+            supply_count: 6,
             max_combo_run: 7,
             extra_moves: 10,
             total_score: 12345,
@@ -985,10 +987,10 @@ mod tests {
             cubes_spent: 45,
             constraint_2_progress: 7,
             run_completed: false,
-            // Bonus V2.0 fields
-            selected_bonus_1: 4, // Shrink
-            selected_bonus_2: 1, // Hammer
-            selected_bonus_3: 5, // Shuffle
+            // Bonus V3.0 fields
+            selected_bonus_1: 4, // Wave
+            selected_bonus_2: 1, // Combo
+            selected_bonus_3: 5, // Supply
             bonus_1_level: 2,    // L3
             bonus_2_level: 1,    // L2
             bonus_3_level: 0,    // L1
@@ -1019,11 +1021,11 @@ mod tests {
             "bonus_used_this_level mismatch",
         );
         assert!(unpacked.total_cubes == original.total_cubes, "total_cubes mismatch");
-        assert!(unpacked.hammer_count == original.hammer_count, "hammer_count mismatch");
+        assert!(unpacked.combo_count == original.combo_count, "combo_count mismatch");
+        assert!(unpacked.score_count == original.score_count, "score_count mismatch");
+        assert!(unpacked.harvest_count == original.harvest_count, "harvest_count mismatch");
         assert!(unpacked.wave_count == original.wave_count, "wave_count mismatch");
-        assert!(unpacked.totem_count == original.totem_count, "totem_count mismatch");
-        assert!(unpacked.shrink_count == original.shrink_count, "shrink_count mismatch");
-        assert!(unpacked.shuffle_count == original.shuffle_count, "shuffle_count mismatch");
+        assert!(unpacked.supply_count == original.supply_count, "supply_count mismatch");
         assert!(unpacked.max_combo_run == original.max_combo_run, "max_combo_run mismatch");
         assert!(unpacked.extra_moves == original.extra_moves, "extra_moves mismatch");
         assert!(unpacked.total_score == original.total_score, "total_score mismatch");
@@ -1065,11 +1067,11 @@ mod tests {
             constraint_progress: 255, // 8 bits max
             bonus_used_this_level: true,
             total_cubes: 65535, // 16 bits max
-            hammer_count: 255, // 8 bits max
+            combo_count: 255, // 8 bits max
+            score_count: 255, // 8 bits max
+            harvest_count: 255, // 8 bits max
             wave_count: 255, // 8 bits max
-            totem_count: 255, // 8 bits max
-            shrink_count: 255, // 8 bits max
-            shuffle_count: 255, // 8 bits max
+            supply_count: 255, // 8 bits max
             max_combo_run: 255, // 8 bits max
             extra_moves: 255, // 8 bits max
             total_score: 65535, // 16 bits max
@@ -1079,7 +1081,7 @@ mod tests {
             cubes_spent: 65535, // 16 bits max
             constraint_2_progress: 255, // 8 bits max
             run_completed: true, // 1 bit max
-            // Bonus V2.0: max values
+            // Bonus V3.0: max values
             selected_bonus_1: 5, // 3 bits max (but only 0-5 valid)
             selected_bonus_2: 5,
             selected_bonus_3: 5,
@@ -1113,11 +1115,11 @@ mod tests {
             constraint_progress: 0,
             bonus_used_this_level: false,
             total_cubes: 0,
-            hammer_count: 0,
+            combo_count: 0,
+            score_count: 0,
+            harvest_count: 0,
             wave_count: 0,
-            totem_count: 0,
-            shrink_count: 0,
-            shuffle_count: 0,
+            supply_count: 0,
             max_combo_run: 0,
             extra_moves: 0,
             total_score: 0,
@@ -1127,7 +1129,7 @@ mod tests {
             cubes_spent: 0,
             constraint_2_progress: 0,
             run_completed: false,
-            // Bonus V2.0: zero values
+            // Bonus V3.0: zero values
             selected_bonus_1: 0,
             selected_bonus_2: 0,
             selected_bonus_3: 0,
@@ -1155,19 +1157,19 @@ mod tests {
     #[test]
     fn test_meta_data_pack_unpack_roundtrip() {
         let original = MetaData {
-            starting_hammer: 2,
+            starting_combo: 2,
+            starting_score: 1,
+            starting_harvest: 3,
             starting_wave: 1,
-            starting_totem: 3,
-            starting_shrink: 1,
-            starting_shuffle: 2,
-            bag_hammer_level: 5,
-            bag_wave_level: 3,
-            bag_totem_level: 7,
-            bag_shrink_level: 2,
-            bag_shuffle_level: 4,
+            starting_supply: 2,
+            bag_combo_level: 5,
+            bag_score_level: 3,
+            bag_harvest_level: 7,
+            bag_wave_level: 2,
+            bag_supply_level: 4,
             bridging_rank: 4,
-            shrink_unlocked: true,
-            shuffle_unlocked: false,
+            wave_unlocked: true,
+            supply_unlocked: false,
             total_runs: 1000,
             total_cubes_earned: 50000,
         };
@@ -1175,21 +1177,21 @@ mod tests {
         let packed = original.pack();
         let unpacked = MetaDataPackingTrait::unpack(packed);
 
-        assert!(unpacked.starting_hammer == original.starting_hammer, "starting_hammer mismatch");
+        assert!(unpacked.starting_combo == original.starting_combo, "starting_combo mismatch");
+        assert!(unpacked.starting_score == original.starting_score, "starting_score mismatch");
+        assert!(unpacked.starting_harvest == original.starting_harvest, "starting_harvest mismatch");
         assert!(unpacked.starting_wave == original.starting_wave, "starting_wave mismatch");
-        assert!(unpacked.starting_totem == original.starting_totem, "starting_totem mismatch");
-        assert!(unpacked.starting_shrink == original.starting_shrink, "starting_shrink mismatch");
-        assert!(unpacked.starting_shuffle == original.starting_shuffle, "starting_shuffle mismatch");
+        assert!(unpacked.starting_supply == original.starting_supply, "starting_supply mismatch");
         assert!(
-            unpacked.bag_hammer_level == original.bag_hammer_level, "bag_hammer_level mismatch",
+            unpacked.bag_combo_level == original.bag_combo_level, "bag_combo_level mismatch",
         );
+        assert!(unpacked.bag_score_level == original.bag_score_level, "bag_score_level mismatch");
+        assert!(unpacked.bag_harvest_level == original.bag_harvest_level, "bag_harvest_level mismatch");
         assert!(unpacked.bag_wave_level == original.bag_wave_level, "bag_wave_level mismatch");
-        assert!(unpacked.bag_totem_level == original.bag_totem_level, "bag_totem_level mismatch");
-        assert!(unpacked.bag_shrink_level == original.bag_shrink_level, "bag_shrink_level mismatch");
-        assert!(unpacked.bag_shuffle_level == original.bag_shuffle_level, "bag_shuffle_level mismatch");
+        assert!(unpacked.bag_supply_level == original.bag_supply_level, "bag_supply_level mismatch");
         assert!(unpacked.bridging_rank == original.bridging_rank, "bridging_rank mismatch");
-        assert!(unpacked.shrink_unlocked == original.shrink_unlocked, "shrink_unlocked mismatch");
-        assert!(unpacked.shuffle_unlocked == original.shuffle_unlocked, "shuffle_unlocked mismatch");
+        assert!(unpacked.wave_unlocked == original.wave_unlocked, "wave_unlocked mismatch");
+        assert!(unpacked.supply_unlocked == original.supply_unlocked, "supply_unlocked mismatch");
         assert!(unpacked.total_runs == original.total_runs, "total_runs mismatch");
         assert!(
             unpacked.total_cubes_earned == original.total_cubes_earned,
@@ -1200,14 +1202,14 @@ mod tests {
     #[test]
     fn test_meta_data_new() {
         let data = MetaDataPackingTrait::new();
-        assert!(data.starting_hammer == 0, "Should start with 0 starting hammers");
-        assert!(data.starting_shrink == 0, "Should start with 0 starting shrinks");
-        assert!(data.starting_shuffle == 0, "Should start with 0 starting shuffles");
-        assert!(data.bag_shrink_level == 0, "Should start with 0 shrink bag level");
-        assert!(data.bag_shuffle_level == 0, "Should start with 0 shuffle bag level");
+        assert!(data.starting_combo == 0, "Should start with 0 starting combo");
+        assert!(data.starting_wave == 0, "Should start with 0 starting wave");
+        assert!(data.starting_supply == 0, "Should start with 0 starting supply");
+        assert!(data.bag_wave_level == 0, "Should start with 0 wave bag level");
+        assert!(data.bag_supply_level == 0, "Should start with 0 supply bag level");
         assert!(data.bridging_rank == 0, "Should start with 0 bridging rank");
-        assert!(data.shrink_unlocked == false, "Shrink should start locked");
-        assert!(data.shuffle_unlocked == false, "Shuffle should start locked");
+        assert!(data.wave_unlocked == false, "Wave should start locked");
+        assert!(data.supply_unlocked == false, "Supply should start locked");
         assert!(data.total_runs == 0, "Should start with 0 runs");
         assert!(data.total_cubes_earned == 0, "Should start with 0 cubes earned");
     }
@@ -1216,20 +1218,20 @@ mod tests {
     fn test_meta_data_bag_size() {
         let mut data = MetaDataPackingTrait::new();
         // Default bag size is 1
-        assert!(data.get_bag_size(0) == 1, "Default hammer bag should be 1");
-        assert!(data.get_bag_size(1) == 1, "Default wave bag should be 1");
-        assert!(data.get_bag_size(2) == 1, "Default totem bag should be 1");
-        assert!(data.get_bag_size(3) == 1, "Default shrink bag should be 1");
-        assert!(data.get_bag_size(4) == 1, "Default shuffle bag should be 1");
+        assert!(data.get_bag_size(0) == 1, "Default combo bag should be 1");
+        assert!(data.get_bag_size(1) == 1, "Default score bag should be 1");
+        assert!(data.get_bag_size(2) == 1, "Default harvest bag should be 1");
+        assert!(data.get_bag_size(3) == 1, "Default wave bag should be 1");
+        assert!(data.get_bag_size(4) == 1, "Default supply bag should be 1");
 
-        // Upgrade hammer bag
-        data.bag_hammer_level = 2;
-        assert!(data.get_bag_size(0) == 3, "Upgraded hammer bag should be 3");
-        assert!(data.get_bag_size(1) == 1, "Wave bag should still be 1");
+        // Upgrade combo bag
+        data.bag_combo_level = 2;
+        assert!(data.get_bag_size(0) == 3, "Upgraded combo bag should be 3");
+        assert!(data.get_bag_size(1) == 1, "Score bag should still be 1");
 
-        // Upgrade shrink bag
-        data.bag_shrink_level = 3;
-        assert!(data.get_bag_size(3) == 4, "Upgraded shrink bag should be 4");
+        // Upgrade wave bag
+        data.bag_wave_level = 3;
+        assert!(data.get_bag_size(3) == 4, "Upgraded wave bag should be 4");
     }
 
     #[test]
@@ -1237,22 +1239,22 @@ mod tests {
         let mut data = MetaDataPackingTrait::new();
 
         // Default bonuses are always unlocked
-        assert!(data.is_bonus_unlocked(0), "Hammer should be unlocked");
-        assert!(data.is_bonus_unlocked(1), "Wave should be unlocked");
-        assert!(data.is_bonus_unlocked(2), "Totem should be unlocked");
+        assert!(data.is_bonus_unlocked(0), "Combo should be unlocked");
+        assert!(data.is_bonus_unlocked(1), "Score should be unlocked");
+        assert!(data.is_bonus_unlocked(2), "Harvest should be unlocked");
 
-        // Shrink and Shuffle start locked
-        assert!(!data.is_bonus_unlocked(3), "Shrink should start locked");
-        assert!(!data.is_bonus_unlocked(4), "Shuffle should start locked");
+        // Wave and Supply start locked
+        assert!(!data.is_bonus_unlocked(3), "Wave should start locked");
+        assert!(!data.is_bonus_unlocked(4), "Supply should start locked");
 
-        // Unlock Shrink
-        data.shrink_unlocked = true;
-        assert!(data.is_bonus_unlocked(3), "Shrink should be unlocked after unlock");
-        assert!(!data.is_bonus_unlocked(4), "Shuffle should still be locked");
+        // Unlock Wave
+        data.wave_unlocked = true;
+        assert!(data.is_bonus_unlocked(3), "Wave should be unlocked after unlock");
+        assert!(!data.is_bonus_unlocked(4), "Supply should still be locked");
 
-        // Unlock Shuffle
-        data.shuffle_unlocked = true;
-        assert!(data.is_bonus_unlocked(4), "Shuffle should be unlocked after unlock");
+        // Unlock Supply
+        data.supply_unlocked = true;
+        assert!(data.is_bonus_unlocked(4), "Supply should be unlocked after unlock");
     }
 
     #[test]
@@ -1260,15 +1262,15 @@ mod tests {
         let mut data = MetaDataPackingTrait::new();
 
         // All starting bonuses default to 0
-        assert!(data.get_starting_bonus(0) == 0, "Default starting hammer should be 0");
-        assert!(data.get_starting_bonus(3) == 0, "Default starting shrink should be 0");
-        assert!(data.get_starting_bonus(4) == 0, "Default starting shuffle should be 0");
+        assert!(data.get_starting_bonus(0) == 0, "Default starting combo should be 0");
+        assert!(data.get_starting_bonus(3) == 0, "Default starting wave should be 0");
+        assert!(data.get_starting_bonus(4) == 0, "Default starting supply should be 0");
 
         // Set starting values
-        data.starting_shrink = 2;
-        data.starting_shuffle = 1;
-        assert!(data.get_starting_bonus(3) == 2, "Starting shrink should be 2");
-        assert!(data.get_starting_bonus(4) == 1, "Starting shuffle should be 1");
+        data.starting_wave = 2;
+        data.starting_supply = 1;
+        assert!(data.get_starting_bonus(3) == 2, "Starting wave should be 2");
+        assert!(data.get_starting_bonus(4) == 1, "Starting supply should be 1");
     }
 
     #[test]

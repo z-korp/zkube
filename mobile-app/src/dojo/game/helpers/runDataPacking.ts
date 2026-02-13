@@ -14,11 +14,11 @@
  * │ 40      │ bonus_used_this_level │ 1    │ 0-1      │ For NoBonusUsed │
  * │ 41      │ combo_5_achieved      │ 1    │ 0-1      │ First 5x combo  │
  * │ 42      │ combo_10_achieved     │ 1    │ 0-1      │ First 10x combo │
- * │ 43-50   │ hammer_count          │ 8    │ 0-255    │ Inventory       │
- * │ 51-58   │ wave_count            │ 8    │ 0-255    │ Inventory       │
- * │ 59-66   │ totem_count           │ 8    │ 0-255    │ Inventory       │
- * │ 67-74   │ shrink_count          │ 8    │ 0-255    │ Shrink inventory│
- * │ 75-82   │ shuffle_count         │ 8    │ 0-255    │ Shuffle inv     │
+ * │ 43-50   │ combo_count           │ 8    │ 0-255    │ Inventory       │
+ * │ 51-58   │ score_count           │ 8    │ 0-255    │ Inventory       │
+ * │ 59-66   │ harvest_count         │ 8    │ 0-255    │ Inventory       │
+ * │ 67-74   │ wave_count            │ 8    │ 0-255    │ Wave inventory  │
+ * │ 75-82   │ supply_count          │ 8    │ 0-255    │ Supply inv      │
  * │ 83-90   │ max_combo_run         │ 8    │ 0-255    │ Best combo      │
  * │ 91-98   │ extra_moves           │ 8    │ 0-255    │ Extra move cap  │
  * │ 99-114  │ cubes_brought         │ 16   │ 0-65535  │ Cubes for in-run│
@@ -26,7 +26,7 @@
  * │ 131-146 │ total_cubes           │ 16   │ 0-65535  │ Earned cubes    │
  * │ 147-162 │ total_score           │ 16   │ 0-65535  │ Cumulative score│
  * │ 163     │ run_completed         │ 1    │ 0-1      │ Victory flag    │
- * │ 164-166 │ selected_bonus_1      │ 3    │ 0-5      │ 1st bonus type  │
+ * │ 164-166 │ selected_bonus_1      │ 3    │ 0-5      │ 1st bonus type (V3: 1=Combo,2=Score,3=Harvest,4=Wave,5=Supply) │
  * │ 167-169 │ selected_bonus_2      │ 3    │ 0-5      │ 2nd bonus type  │
  * │ 170-172 │ selected_bonus_3      │ 3    │ 0-5      │ 3rd bonus type  │
  * │ 173-174 │ bonus_1_level         │ 2    │ 0-2      │ L1/L2/L3        │
@@ -56,12 +56,12 @@ export interface RunData {
   combo5Achieved: boolean;
   combo10Achieved: boolean;
   
-  // Bonus inventory (5 types)
-  hammerCount: number;
+  // Bonus inventory (5 types: Combo, Score, Harvest, Wave, Supply)
+  comboCount: number;
+  scoreCount: number;
+  harvestCount: number;
   waveCount: number;
-  totemCount: number;
-  shrinkCount: number;
-  shuffleCount: number;
+  supplyCount: number;
   
   // Run stats
   maxComboRun: number;
@@ -78,20 +78,20 @@ export interface RunData {
   // Victory flag
   runCompleted: boolean;
   
-  // Bonus V2.0: Selected bonuses (values: 0=None, 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle)
+  // Selected bonuses (values: 0=None, 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply)
   selectedBonus1: number;
   selectedBonus2: number;
   selectedBonus3: number;
   
-  // Bonus V2.0: Bonus levels (0=L1, 1=L2, 2=L3)
+  // Bonus levels (0=L1, 1=L2, 2=L3)
   bonus1Level: number;
   bonus2Level: number;
   bonus3Level: number;
   
-  // Bonus V2.0: Free moves from Wave L2/L3
+  // Free moves
   freeMoves: number;
   
-  // Bonus V2.0: Pending level-up after boss
+  // Pending level-up after boss
   pendingLevelUp: boolean;
   
   // In-game shop state
@@ -111,11 +111,11 @@ const CONSTRAINT_2_PROGRESS_POS = 32;
 const BONUS_USED_POS = 40;
 const COMBO_5_ACHIEVED_POS = 41;
 const COMBO_10_ACHIEVED_POS = 42;
-const HAMMER_COUNT_POS = 43;
-const WAVE_COUNT_POS = 51;
-const TOTEM_COUNT_POS = 59;
-const SHRINK_COUNT_POS = 67;
-const SHUFFLE_COUNT_POS = 75;
+const COMBO_COUNT_POS = 43;
+const SCORE_COUNT_POS = 51;
+const HARVEST_COUNT_POS = 59;
+const WAVE_COUNT_POS = 67;
+const SUPPLY_COUNT_POS = 75;
 const MAX_COMBO_RUN_POS = 83;
 const EXTRA_MOVES_POS = 91;
 const CUBES_BROUGHT_POS = 99;
@@ -159,11 +159,11 @@ export function unpackRunData(packed: bigint): RunData {
     bonusUsedThisLevel: ((packed >> BigInt(BONUS_USED_POS)) & MASK_1BIT) === BigInt(1),
     combo5Achieved: ((packed >> BigInt(COMBO_5_ACHIEVED_POS)) & MASK_1BIT) === BigInt(1),
     combo10Achieved: ((packed >> BigInt(COMBO_10_ACHIEVED_POS)) & MASK_1BIT) === BigInt(1),
-    hammerCount: Number((packed >> BigInt(HAMMER_COUNT_POS)) & MASK_8BIT),
+    comboCount: Number((packed >> BigInt(COMBO_COUNT_POS)) & MASK_8BIT),
+    scoreCount: Number((packed >> BigInt(SCORE_COUNT_POS)) & MASK_8BIT),
+    harvestCount: Number((packed >> BigInt(HARVEST_COUNT_POS)) & MASK_8BIT),
     waveCount: Number((packed >> BigInt(WAVE_COUNT_POS)) & MASK_8BIT),
-    totemCount: Number((packed >> BigInt(TOTEM_COUNT_POS)) & MASK_8BIT),
-    shrinkCount: Number((packed >> BigInt(SHRINK_COUNT_POS)) & MASK_8BIT),
-    shuffleCount: Number((packed >> BigInt(SHUFFLE_COUNT_POS)) & MASK_8BIT),
+    supplyCount: Number((packed >> BigInt(SUPPLY_COUNT_POS)) & MASK_8BIT),
     maxComboRun: Number((packed >> BigInt(MAX_COMBO_RUN_POS)) & MASK_8BIT),
     extraMoves: Number((packed >> BigInt(EXTRA_MOVES_POS)) & MASK_8BIT),
     cubesBrought: Number((packed >> BigInt(CUBES_BROUGHT_POS)) & MASK_16BIT),
@@ -171,7 +171,7 @@ export function unpackRunData(packed: bigint): RunData {
     totalCubes: Number((packed >> BigInt(TOTAL_CUBES_POS)) & MASK_16BIT),
     totalScore: Number((packed >> BigInt(TOTAL_SCORE_POS)) & MASK_16BIT),
     runCompleted: ((packed >> BigInt(RUN_COMPLETED_POS)) & MASK_1BIT) === BigInt(1),
-    // Bonus V2.0 fields
+    // Bonus V3.0 fields
     selectedBonus1: Number((packed >> BigInt(SELECTED_BONUS_1_POS)) & MASK_3BIT),
     selectedBonus2: Number((packed >> BigInt(SELECTED_BONUS_2_POS)) & MASK_3BIT),
     selectedBonus3: Number((packed >> BigInt(SELECTED_BONUS_3_POS)) & MASK_3BIT),
@@ -202,11 +202,11 @@ export function createInitialRunData(): RunData {
     bonusUsedThisLevel: false,
     combo5Achieved: false,
     combo10Achieved: false,
-    hammerCount: 0,
+    comboCount: 0,
+    scoreCount: 0,
+    harvestCount: 0,
     waveCount: 0,
-    totemCount: 0,
-    shrinkCount: 0,
-    shuffleCount: 0,
+    supplyCount: 0,
     maxComboRun: 0,
     extraMoves: 0,
     cubesBrought: 0,
@@ -215,9 +215,9 @@ export function createInitialRunData(): RunData {
     totalScore: 0,
     runCompleted: false,
     // Default selected bonuses (the 3 base unlocked ones)
-    selectedBonus1: 1, // Hammer
-    selectedBonus2: 3, // Wave
-    selectedBonus3: 2, // Totem
+    selectedBonus1: 1, // Combo
+    selectedBonus2: 2, // Score
+    selectedBonus3: 3, // Harvest
     bonus1Level: 0,
     bonus2Level: 0,
     bonus3Level: 0,
@@ -281,18 +281,14 @@ export function getRefillCost(refillsBought: number): number {
   return 2 * (refillsBought + 1);
 }
 
-/**
- * Selected bonus value to name mapping
- * Contract uses: 0=None, 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
- */
 export function getSelectedBonusName(value: number): string {
   switch (value) {
     case 0: return "None";
-    case 1: return "Hammer";
-    case 2: return "Totem";
-    case 3: return "Wave";
-    case 4: return "Shrink";
-    case 5: return "Shuffle";
+    case 1: return "Combo";
+    case 2: return "Score";
+    case 3: return "Harvest";
+    case 4: return "Wave";
+    case 5: return "Supply";
     default: return "Unknown";
   }
 }
@@ -302,11 +298,11 @@ export function getSelectedBonusName(value: number): string {
  */
 export function getBonusInventoryCount(runData: RunData, selectedBonusValue: number): number {
   switch (selectedBonusValue) {
-    case 1: return runData.hammerCount;
-    case 2: return runData.totemCount;
-    case 3: return runData.waveCount;
-    case 4: return runData.shrinkCount;
-    case 5: return runData.shuffleCount;
+    case 1: return runData.comboCount;
+    case 2: return runData.scoreCount;
+    case 3: return runData.harvestCount;
+    case 4: return runData.waveCount;
+    case 5: return runData.supplyCount;
     default: return 0;
   }
 }

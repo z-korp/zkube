@@ -133,11 +133,11 @@ Each block type has a distinct width (1-4 cells). Needs unique art per theme.
 
 | Asset ID | Filename | Type | Status |
 |----------|----------|------|--------|
-| `BonusHammer` | `bonus/hammer.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 |
-| `BonusWave` | `bonus/wave.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 |
-| `BonusTotem` | `bonus/tiki.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 |
-| `BonusShrink` | `bonus/shrink.svg` | 🎨 | ✅ themes 1-2 only |
-| `BonusShuffle` | `bonus/shuffle.svg` | 🎨 | ✅ themes 1-2 only |
+| `BonusCombo` | `bonus/hammer.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 (TODO: new art) |
+| `BonusScore` | `bonus/tiki.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 (TODO: new art) |
+| `BonusHarvest` | `bonus/wave.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 (TODO: new art) |
+| `BonusWave` | `bonus/shrink.svg` | 🎨 | ✅ themes 1-2 only (TODO: new art) |
+| `BonusSupply` | `bonus/shuffle.svg` | 🎨 | ✅ themes 1-2 only (TODO: new art) |
 
 **Specs:** ~48×48px, PNG (or SVG). Represent the 5 bonus abilities.
 

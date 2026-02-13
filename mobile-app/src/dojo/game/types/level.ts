@@ -47,9 +47,9 @@ export interface GameSettings {
   cube3Percent: number;
   cube2Percent: number;
   // Consumable Costs
-  hammerCost: number;
-  waveCost: number;
-  totemCost: number;
+  comboCost: number;
+  scoreCost: number;
+  harvestCost: number;
   extraMovesCost: number;
   // Difficulty Progression (tier thresholds)
   tier1Threshold: number;  // Easy starts
@@ -115,9 +115,9 @@ export const DEFAULT_SETTINGS: GameSettings = {
   cube3Percent: 40,
   cube2Percent: 70,
   // Consumable Costs
-  hammerCost: 5,
-  waveCost: 5,
-  totemCost: 5,
+  comboCost: 5,
+  scoreCost: 5,
+  harvestCost: 5,
   extraMovesCost: 10,
   // Difficulty Progression (non-linear tier thresholds)
   tier1Threshold: 4,   // Easy starts at level 4
@@ -216,18 +216,6 @@ export class Level {
       return 2;
     } else {
       return 1;
-    }
-  }
-
-  /** Get bonus count earned based on cubes */
-  static getBonusReward(cubes: number): number {
-    switch (cubes) {
-      case 3:
-        return 2;
-      case 2:
-        return 1;
-      default:
-        return 0;
     }
   }
 
@@ -942,9 +930,9 @@ export function parseGameSettings(raw: any): GameSettings {
     maxRatioX100: raw.max_ratio_x100 ?? DEFAULT_SETTINGS.maxRatioX100,
     cube3Percent: raw.cube_3_percent ?? DEFAULT_SETTINGS.cube3Percent,
     cube2Percent: raw.cube_2_percent ?? DEFAULT_SETTINGS.cube2Percent,
-    hammerCost: raw.hammer_cost ?? DEFAULT_SETTINGS.hammerCost,
-    waveCost: raw.wave_cost ?? DEFAULT_SETTINGS.waveCost,
-    totemCost: raw.totem_cost ?? DEFAULT_SETTINGS.totemCost,
+    comboCost: raw.combo_cost ?? DEFAULT_SETTINGS.comboCost,
+    scoreCost: raw.score_cost ?? DEFAULT_SETTINGS.scoreCost,
+    harvestCost: raw.harvest_cost ?? DEFAULT_SETTINGS.harvestCost,
     extraMovesCost: raw.extra_moves_cost ?? DEFAULT_SETTINGS.extraMovesCost,
     // Difficulty tier thresholds
     tier1Threshold: raw.tier_1_threshold ?? DEFAULT_SETTINGS.tier1Threshold,

@@ -158,22 +158,34 @@ pub impl GameImpl of GameTrait {
         self.get_run_data().total_cubes
     }
 
-    /// Get hammer count from inventory
+    /// Get combo bonus count from inventory
     #[inline(always)]
-    fn get_hammer_count(self: Game) -> u8 {
-        self.get_run_data().hammer_count
+    fn get_combo_count(self: Game) -> u8 {
+        self.get_run_data().combo_count
     }
 
-    /// Get wave count from inventory
+    /// Get score bonus count from inventory
+    #[inline(always)]
+    fn get_score_count(self: Game) -> u8 {
+        self.get_run_data().score_count
+    }
+
+    /// Get harvest bonus count from inventory
+    #[inline(always)]
+    fn get_harvest_count(self: Game) -> u8 {
+        self.get_run_data().harvest_count
+    }
+
+    /// Get wave bonus count from inventory
     #[inline(always)]
     fn get_wave_count(self: Game) -> u8 {
         self.get_run_data().wave_count
     }
 
-    /// Get totem count from inventory
+    /// Get supply bonus count from inventory
     #[inline(always)]
-    fn get_totem_count(self: Game) -> u8 {
-        self.get_run_data().totem_count
+    fn get_supply_count(self: Game) -> u8 {
+        self.get_run_data().supply_count
     }
 
     /// Check if bonus was used this level (for NoBonusUsed constraint)
@@ -195,7 +207,7 @@ pub impl GameImpl of GameTrait {
     }
 
     /// Get the level (0-2) for a given bonus type based on selected bonuses
-    /// @param bonus_type: 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
+    /// @param bonus_type: 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
     /// Returns 0 (L1), 1 (L2), or 2 (L3)
     fn get_bonus_level(self: Game, bonus_type: u8) -> u8 {
         let run_data = self.get_run_data();
@@ -326,11 +338,11 @@ pub impl GameAssert of AssertTrait {
     fn assert_bonus_available(self: Game, bonus: Bonus) {
         let run_data = self.get_run_data();
         let count = match bonus {
-            Bonus::Hammer => run_data.hammer_count,
+            Bonus::Combo => run_data.combo_count,
+            Bonus::Score => run_data.score_count,
+            Bonus::Harvest => run_data.harvest_count,
             Bonus::Wave => run_data.wave_count,
-            Bonus::Totem => run_data.totem_count,
-            Bonus::Shrink => run_data.shrink_count,
-            Bonus::Shuffle => run_data.shuffle_count,
+            Bonus::Supply => run_data.supply_count,
             Bonus::None => 0,
         };
         assert!(count > 0, "Game {} bonus is not available", self.game_id);

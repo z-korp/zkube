@@ -5,7 +5,7 @@ use zkube::types::width::Width;
 
 // Errors
 pub mod errors {
-    pub const INVALID_BLOCK_WIDTH: felt252 = 'Totem: invalid block width';
+    pub const INVALID_BLOCK_WIDTH: felt252 = 'Harvest: invalid block width';
 }
 
 pub impl BonusImpl of BonusTrait {
@@ -38,4 +38,27 @@ pub impl BonusImpl of BonusTrait {
         let new_blocks: u256 = blocks.into() & ~mask;
         new_blocks.try_into().unwrap()
     }
+}
+
+/// Count how many blocks of the target size exist on the grid.
+/// Used to calculate CUBE rewards for Harvest bonus.
+pub fn count_blocks_of_size(blocks: felt252, row_index: u8, index: u8) -> u8 {
+    let block_size = Controller::get_block(blocks, row_index, index);
+    let mut packed: u256 = blocks.into();
+    let modulo: u256 = constants::BLOCK_SIZE.into();
+    let mut count: u8 = 0;
+    loop {
+        if packed.low == 0_u128 && packed.high == 0_u128 {
+            break;
+        }
+        let block: u8 = (packed % modulo).try_into().unwrap();
+        if block == block_size {
+            count += 1;
+        }
+        packed = packed / modulo;
+        if packed.low == 0_u128 && packed.high == 0_u128 {
+            break;
+        }
+    };
+    count
 }

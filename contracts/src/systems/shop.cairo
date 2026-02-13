@@ -6,22 +6,22 @@ pub trait IShopSystem<T> {
     // Permanent Upgrades (burn cubes from wallet)
     // ==========================================
     
-    /// Upgrade starting bonus for a specific type (0=Hammer, 1=Wave, 2=Totem, 3=Shrink, 4=Shuffle)
+    /// Upgrade starting bonus for a specific type (0=Combo, 1=Score, 2=Harvest, 3=Wave, 4=Supply)
     /// Costs: Level 1 = 100, Level 2 = 250, Level 3 = 500
-    /// Note: Shrink (3) and Shuffle (4) require unlock first
+    /// Note: Wave (3) and Supply (4) require unlock first
     fn upgrade_starting_bonus(ref self: T, bonus_type: u8);
 
-    /// Upgrade bag size for a specific bonus type (0=Hammer, 1=Wave, 2=Totem, 3=Shrink, 4=Shuffle)
+    /// Upgrade bag size for a specific bonus type (0=Combo, 1=Score, 2=Harvest, 3=Wave, 4=Supply)
     /// Costs: Level 1 = 100, Level 2 = 250, Level 3 = 500
-    /// Note: Shrink (3) and Shuffle (4) require unlock first
+    /// Note: Wave (3) and Supply (4) require unlock first
     fn upgrade_bag_size(ref self: T, bonus_type: u8);
 
     /// Upgrade cube bridging rank (max 3 levels)
     /// Costs: Rank 1 = 200, Rank 2 = 500, Rank 3 = 1000
     fn upgrade_bridging_rank(ref self: T);
 
-    /// Unlock a new bonus type (Shrink or Shuffle)
-    /// @param bonus_type: 4 = Shrink, 5 = Shuffle (using Bonus enum values)
+    /// Unlock a new bonus type (Wave or Supply)
+    /// @param bonus_type: 4 = Wave, 5 = Supply (using Bonus enum values)
     /// Cost: 200 CUBE each
     fn unlock_bonus(ref self: T, bonus_type: u8);
 
@@ -133,16 +133,16 @@ mod shop_system {
 
             // Get current level for this bonus type
             let current_level = match bonus_type {
-                0 => meta.starting_hammer,
-                1 => meta.starting_wave,
-                2 => meta.starting_totem,
+                0 => meta.starting_combo,
+                1 => meta.starting_score,
+                2 => meta.starting_harvest,
                 3 => {
-                    assert!(meta.shrink_unlocked, "Shrink not unlocked");
-                    meta.starting_shrink
+                    assert!(meta.wave_unlocked, "Wave not unlocked");
+                    meta.starting_wave
                 },
                 4 => {
-                    assert!(meta.shuffle_unlocked, "Shuffle not unlocked");
-                    meta.starting_shuffle
+                    assert!(meta.supply_unlocked, "Supply not unlocked");
+                    meta.starting_supply
                 },
                 _ => panic!("Invalid bonus type"),
             };
@@ -158,11 +158,11 @@ mod shop_system {
 
             // Upgrade the bonus
             match bonus_type {
-                0 => meta.starting_hammer = current_level + 1,
-                1 => meta.starting_wave = current_level + 1,
-                2 => meta.starting_totem = current_level + 1,
-                3 => meta.starting_shrink = current_level + 1,
-                4 => meta.starting_shuffle = current_level + 1,
+                0 => meta.starting_combo = current_level + 1,
+                1 => meta.starting_score = current_level + 1,
+                2 => meta.starting_harvest = current_level + 1,
+                3 => meta.starting_wave = current_level + 1,
+                4 => meta.starting_supply = current_level + 1,
                 _ => {},
             }
 
@@ -181,16 +181,16 @@ mod shop_system {
 
             // Get current level for this bonus type
             let current_level = match bonus_type {
-                0 => meta.bag_hammer_level,
-                1 => meta.bag_wave_level,
-                2 => meta.bag_totem_level,
+                0 => meta.bag_combo_level,
+                1 => meta.bag_score_level,
+                2 => meta.bag_harvest_level,
                 3 => {
-                    assert!(meta.shrink_unlocked, "Shrink not unlocked");
-                    meta.bag_shrink_level
+                    assert!(meta.wave_unlocked, "Wave not unlocked");
+                    meta.bag_wave_level
                 },
                 4 => {
-                    assert!(meta.shuffle_unlocked, "Shuffle not unlocked");
-                    meta.bag_shuffle_level
+                    assert!(meta.supply_unlocked, "Supply not unlocked");
+                    meta.bag_supply_level
                 },
                 _ => panic!("Invalid bonus type"),
             };
@@ -206,11 +206,11 @@ mod shop_system {
 
             // Upgrade the bag
             match bonus_type {
-                0 => meta.bag_hammer_level = current_level + 1,
-                1 => meta.bag_wave_level = current_level + 1,
-                2 => meta.bag_totem_level = current_level + 1,
-                3 => meta.bag_shrink_level = current_level + 1,
-                4 => meta.bag_shuffle_level = current_level + 1,
+                0 => meta.bag_combo_level = current_level + 1,
+                1 => meta.bag_score_level = current_level + 1,
+                2 => meta.bag_harvest_level = current_level + 1,
+                3 => meta.bag_wave_level = current_level + 1,
+                4 => meta.bag_supply_level = current_level + 1,
                 _ => {},
             }
 
@@ -248,9 +248,9 @@ mod shop_system {
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
             let player = get_caller_address();
 
-            // Only Shrink (4) and Shuffle (5) can be unlocked
-            // Note: We use Bonus enum values (4=Shrink, 5=Shuffle)
-            assert!(bonus_type == 4 || bonus_type == 5, "Only Shrink (4) or Shuffle (5) can be unlocked");
+            // Only Wave (4) and Supply (5) can be unlocked
+            // Note: We use Bonus enum values (4=Wave, 5=Supply)
+            assert!(bonus_type == 4 || bonus_type == 5, "Only Wave (4) or Supply (5) can be unlocked");
 
             // Read player meta
             let mut player_meta = dispatchers::get_or_create_player_meta(world, player);
@@ -259,9 +259,9 @@ mod shop_system {
 
             // Check not already unlocked
             let already_unlocked = if bonus_type == 4 {
-                meta.shrink_unlocked
+                meta.wave_unlocked
             } else {
-                meta.shuffle_unlocked
+                meta.supply_unlocked
             };
             assert!(!already_unlocked, "Bonus already unlocked");
 
@@ -274,9 +274,9 @@ mod shop_system {
 
             // Unlock the bonus
             if bonus_type == 4 {
-                meta.shrink_unlocked = true;
+                meta.wave_unlocked = true;
             } else {
-                meta.shuffle_unlocked = true;
+                meta.supply_unlocked = true;
             }
 
             player_meta.set_meta_data(meta);
@@ -531,7 +531,7 @@ mod shop_system {
     #[generate_trait]
     impl InternalImpl of InternalTrait {
         /// Add a bonus to inventory based on bonus type
-        /// @param bonus_type: 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
+        /// @param bonus_type: 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
         fn add_bonus_to_inventory(
             self: @ContractState,
             ref run_data: RunData,
@@ -549,11 +549,11 @@ mod shop_system {
             }
 
             // If add_bonus returned false, bag is full - panic with appropriate message
-            if bonus_type == 1 { assert!(false, "Hammer bag is full"); }
-            else if bonus_type == 2 { assert!(false, "Totem bag is full"); }
-            else if bonus_type == 3 { assert!(false, "Wave bag is full"); }
-            else if bonus_type == 4 { assert!(false, "Shrink bag is full"); }
-            else { assert!(false, "Shuffle bag is full"); }
+            if bonus_type == 1 { assert!(false, "Combo bag is full"); }
+            else if bonus_type == 2 { assert!(false, "Score bag is full"); }
+            else if bonus_type == 3 { assert!(false, "Harvest bag is full"); }
+            else if bonus_type == 4 { assert!(false, "Wave bag is full"); }
+            else { assert!(false, "Supply bag is full"); }
         }
     }
 }

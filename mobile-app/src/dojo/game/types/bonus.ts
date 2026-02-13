@@ -1,30 +1,38 @@
-import { Hammer } from "../elements/bonuses/hammer";
-import { Totem } from "../elements/bonuses/totem";
-import { Wave } from "../elements/bonuses/wave";
-import { Shrink } from "../elements/bonuses/shrink";
-import { Shuffle } from "../elements/bonuses/shuffle";
+/**
+ * Bonus V3.0 — Five bonuses with distinct identities
+ *
+ * Contract values: 0=None, 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
+ *
+ * | # | Name    | Identity        | L1          | L2          | L3          | Default? |
+ * |---|---------|-----------------|-------------|-------------|-------------|----------|
+ * | 1 | Combo   | Combo helper    | +1 combo    | +2 combo    | +3 combo    | Unlocked |
+ * | 2 | Score   | Score booster   | +10 score   | +20 score   | +30 score   | Unlocked |
+ * | 3 | Harvest | Economic        | +1 CUBE/blk | +2 CUBE/blk | +3 CUBE/blk | Unlocked |
+ * | 4 | Wave    | Line clearer    | Clear 1 row | Clear 2 rows| Clear 3 rows| Locked   |
+ * | 5 | Supply  | Line adder      | Add 1 line  | Add 2 lines | Add 3 lines | Locked   |
+ */
 
 export enum BonusType {
   None = "None",
-  Hammer = "Hammer",
-  Totem = "Totem",
+  Combo = "Combo",
+  Score = "Score",
+  Harvest = "Harvest",
   Wave = "Wave",
-  Shrink = "Shrink",
-  Shuffle = "Shuffle",
+  Supply = "Supply",
 }
 
 /**
  * Contract uses these values for selected bonuses:
- * 0 = None, 1 = Hammer, 2 = Totem, 3 = Wave, 4 = Shrink, 5 = Shuffle
+ * 0 = None, 1 = Combo, 2 = Score, 3 = Harvest, 4 = Wave, 5 = Supply
  */
 export function bonusTypeFromContractValue(value: number): BonusType {
   switch (value) {
     case 0: return BonusType.None;
-    case 1: return BonusType.Hammer;
-    case 2: return BonusType.Totem;
-    case 3: return BonusType.Wave;
-    case 4: return BonusType.Shrink;
-    case 5: return BonusType.Shuffle;
+    case 1: return BonusType.Combo;
+    case 2: return BonusType.Score;
+    case 3: return BonusType.Harvest;
+    case 4: return BonusType.Wave;
+    case 5: return BonusType.Supply;
     default: return BonusType.None;
   }
 }
@@ -35,19 +43,20 @@ export function bonusTypeFromContractValue(value: number): BonusType {
 export function bonusTypeToContractValue(type: BonusType): number {
   switch (type) {
     case BonusType.None: return 0;
-    case BonusType.Hammer: return 1;
-    case BonusType.Totem: return 2;
-    case BonusType.Wave: return 3;
-    case BonusType.Shrink: return 4;
-    case BonusType.Shuffle: return 5;
+    case BonusType.Combo: return 1;
+    case BonusType.Score: return 2;
+    case BonusType.Harvest: return 3;
+    case BonusType.Wave: return 4;
+    case BonusType.Supply: return 5;
     default: return 0;
   }
 }
 
-export interface Condition {
-  score: number;
-  combo: number;
-  max_combo: number;
+/**
+ * Check if a bonus type requires unlock (purchased in permanent shop)
+ */
+export function requiresUnlock(type: BonusType): boolean {
+  return type === BonusType.Wave || type === BonusType.Supply;
 }
 
 export class Bonus {
@@ -73,24 +82,27 @@ export class Bonus {
     return new Bonus(bonusTypeFromContractValue(value));
   }
 
+  /**
+   * Get the 3 default (unlocked) bonuses
+   */
   public static getBonuses(): Bonus[] {
     return [
-      new Bonus(BonusType.Hammer),
-      new Bonus(BonusType.Totem),
-      new Bonus(BonusType.Wave),
+      new Bonus(BonusType.Combo),
+      new Bonus(BonusType.Score),
+      new Bonus(BonusType.Harvest),
     ];
   }
 
   /**
-   * Get all available bonuses including Shrink and Shuffle
+   * Get all 5 bonuses including locked ones (Wave, Supply)
    */
   public static getAllBonuses(): Bonus[] {
     return [
-      new Bonus(BonusType.Hammer),
-      new Bonus(BonusType.Totem),
+      new Bonus(BonusType.Combo),
+      new Bonus(BonusType.Score),
+      new Bonus(BonusType.Harvest),
       new Bonus(BonusType.Wave),
-      new Bonus(BonusType.Shrink),
-      new Bonus(BonusType.Shuffle),
+      new Bonus(BonusType.Supply),
     ];
   }
 
@@ -98,88 +110,36 @@ export class Bonus {
     return this.value === BonusType.None;
   }
 
-  public getCount(score: number, combo: number, max_combo: number): number {
-    switch (this.value) {
-      case BonusType.Hammer:
-        return Hammer.getCount(score);
-      case BonusType.Totem:
-        return Totem.getCount(max_combo);
-      case BonusType.Wave:
-        return Wave.getCount(combo);
-      case BonusType.Shrink:
-        return Shrink.getCount(score);
-      case BonusType.Shuffle:
-        return Shuffle.getCount(score);
-      default:
-        return 0;
-    }
-  }
-
-  public getConditions(): Condition[] {
-    switch (this.value) {
-      case BonusType.Hammer:
-        return Hammer.getConditions();
-      case BonusType.Totem:
-        return Totem.getConditions();
-      case BonusType.Wave:
-        return Wave.getConditions();
-      case BonusType.Shrink:
-        return Shrink.getConditions();
-      case BonusType.Shuffle:
-        return Shuffle.getConditions();
-      default:
-        return [];
-    }
-  }
-
-  public getDescription(): string {
-    switch (this.value) {
-      case BonusType.Hammer:
-        return Hammer.getDescription();
-      case BonusType.Totem:
-        return Totem.getDescription();
-      case BonusType.Wave:
-        return Wave.getDescription();
-      case BonusType.Shrink:
-        return Shrink.getDescription();
-      case BonusType.Shuffle:
-        return Shuffle.getDescription();
-      default:
-        return "";
-    }
-  }
-
   public getName(): string {
     switch (this.value) {
-      case BonusType.Hammer:
-        return "Hammer";
-      case BonusType.Totem:
-        return "Totem";
-      case BonusType.Wave:
-        return "Wave";
-      case BonusType.Shrink:
-        return "Shrink";
-      case BonusType.Shuffle:
-        return "Shuffle";
-      default:
-        return "";
+      case BonusType.Combo: return "Combo";
+      case BonusType.Score: return "Score";
+      case BonusType.Harvest: return "Harvest";
+      case BonusType.Wave: return "Wave";
+      case BonusType.Supply: return "Supply";
+      default: return "";
     }
   }
 
   public getEffect(): string {
     switch (this.value) {
-      case BonusType.Hammer:
-        return "Remove a single block";
-      case BonusType.Totem:
-        return "Remove all blocks of a color";
-      case BonusType.Wave:
-        return "Remove a row of blocks";
-      case BonusType.Shrink:
-        return "Shrink all blocks by 1 size";
-      case BonusType.Shuffle:
-        return "Randomly rearrange all blocks";
-      default:
-        return "";
+      case BonusType.Combo: return "Add combo to your next move";
+      case BonusType.Score: return "Instantly gain bonus score";
+      case BonusType.Harvest: return "Destroy all blocks of a size, earn CUBEs per block";
+      case BonusType.Wave: return "Clear entire horizontal rows";
+      case BonusType.Supply: return "Add new lines at no move cost";
+      default: return "";
+    }
+  }
+
+  public getDescription(): string {
+    switch (this.value) {
+      case BonusType.Combo: return "Adds combo to your next move";
+      case BonusType.Score: return "Instantly adds bonus score";
+      case BonusType.Harvest: return "Select a block size to destroy all matching blocks";
+      case BonusType.Wave: return "Select a row to clear";
+      case BonusType.Supply: return "Adds new lines to the bottom of the grid";
+      default: return "";
     }
   }
 }

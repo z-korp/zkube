@@ -566,8 +566,8 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         result.try_into().unwrap()
     }
 
-    /// Generate random bonus type based on seed
-    /// Returns: 0 = Hammer, 1 = Wave, 2 = Totem
+    /// Generate random bonus type based on seed (DEPRECATED - no longer used in V3.0)
+    /// Returns: 0 = Combo, 1 = Score, 2 = Harvest
     fn get_random_bonus_type(seed: felt252, index: u8) -> u8 {
         let state: HashState = PoseidonTrait::new();
         let state = state.update(seed);

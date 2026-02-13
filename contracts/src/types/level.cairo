@@ -42,18 +42,7 @@ pub impl LevelConfigImpl of LevelConfigTrait {
         }
     }
 
-    /// Get bonus count earned based on cubes
-    /// 3 cubes: 2 random bonuses
-    /// 2 cubes: 1 random bonus
-    /// 1 cube: no bonus
-    #[inline(always)]
-    fn get_bonus_reward(cubes: u8) -> u8 {
-        match cubes {
-            3 => 2,
-            2 => 1,
-            _ => 0,
-        }
-    }
+    // V3.0: get_bonus_reward removed - bonuses are only bought in shops
 
     /// Check if level is complete (score reached AND all constraints satisfied)
     /// constraint_progress is for the primary ClearLines constraint
@@ -155,13 +144,7 @@ mod tests {
         assert!(config.calculate_cubes(30) == 1, "30 moves should be 1 cube");
     }
 
-    #[test]
-    fn test_bonus_reward() {
-        assert!(LevelConfigTrait::get_bonus_reward(3) == 2, "3 cubes should give 2 bonuses");
-        assert!(LevelConfigTrait::get_bonus_reward(2) == 1, "2 cubes should give 1 bonus");
-        assert!(LevelConfigTrait::get_bonus_reward(1) == 0, "1 cube should give 0 bonuses");
-        assert!(LevelConfigTrait::get_bonus_reward(0) == 0, "0 cubes should give 0 bonuses");
-    }
+    // V3.0: test_bonus_reward removed - get_bonus_reward was removed
 
     #[test]
     fn test_is_complete() {

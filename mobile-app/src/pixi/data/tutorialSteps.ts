@@ -70,9 +70,9 @@ export const TOTAL_TUTORIAL_STEPS = 11;
 export interface MockGridState {
   initialGrid: number[][];
   nextLine: number[];
-  hammerCount: number;
+  comboCount: number;
   waveCount: number;
-  totemCount: number;
+  harvestCount: number;
   score: number;
   combo: number;
   maxCombo: number;
@@ -97,9 +97,9 @@ export const STEP_1_GRID: MockGridState = {
     [3, 3, 3, 1, 0, 0, 2, 2],
   ],
   nextLine: [4, 4, 4, 4, 0, 0, 0, 0],
-  hammerCount: 3,
+  comboCount: 3,
   waveCount: 2,
-  totemCount: 2,
+  harvestCount: 2,
   score: 0,
   combo: 0,
   maxCombo: 0,
@@ -124,9 +124,9 @@ export const STEP_2_GRID: MockGridState = {
     [2, 2, 2, 2, 2, 2, 0, 0], // 6 filled, gap at 6-7 where block will fall
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
-  hammerCount: 3,
+  comboCount: 3,
   waveCount: 2,
-  totemCount: 2,
+  harvestCount: 2,
   score: 0,
   combo: 0,
   maxCombo: 0,
@@ -151,17 +151,17 @@ export const STEP_3_GRID: MockGridState = {
     [2, 2, 2, 2, 2, 2, 0, 0], // 6 filled, gap at 6-7
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
-  hammerCount: 3,
+  comboCount: 3,
   waveCount: 2,
-  totemCount: 2,
+  harvestCount: 2,
   score: 0,
   combo: 0,
   maxCombo: 0,
 };
 
 /**
- * Step 4: Hammer Bonus
- * Hammer destroys a single block. Target the 1-wide at position 6.
+ * Step 4: Harvest Bonus
+ * Harvest destroys all blocks of a size. Target the 1-wide at position 6.
  * IMPORTANT: No row can be initially full or it will auto-clear!
  */
 export const STEP_4_GRID: MockGridState = {
@@ -178,9 +178,9 @@ export const STEP_4_GRID: MockGridState = {
     [2, 2, 2, 2, 2, 2, 1, 0], // Row 9: NOT full (gap at 7), hammer target at x:6
   ],
   nextLine: [2, 2, 0, 0, 0, 0, 2, 2],
-  hammerCount: 3,
+  comboCount: 3,
   waveCount: 2,
-  totemCount: 2,
+  harvestCount: 2,
   score: 0,
   combo: 0,
   maxCombo: 0,
@@ -205,17 +205,17 @@ export const STEP_5_GRID: MockGridState = {
     [2, 2, 2, 2, 2, 2, 0, 0], // Row 9: NOT full (gaps at 6-7)
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
-  hammerCount: 2, // Reduced after step 4
+  comboCount: 2, // Reduced after step 4
   waveCount: 2,
-  totemCount: 2,
+  harvestCount: 2,
   score: 0,
   combo: 0,
   maxCombo: 0,
 };
 
 /**
- * Step 6: Totem Bonus
- * Grid with multiple 3-wide blocks - Totem removes ALL blocks of same size
+ * Step 6: Harvest Bonus
+ * Grid with multiple 3-wide blocks - Harvest removes ALL blocks of same size
  * IMPORTANT: No row can be initially full or it will auto-clear!
  */
 export const STEP_6_GRID: MockGridState = {
@@ -232,9 +232,9 @@ export const STEP_6_GRID: MockGridState = {
     [3, 3, 3, 0, 2, 2, 0, 0], // One 3-wide, one 2-wide, gaps - NOT full
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
-  hammerCount: 2,
+  comboCount: 2,
   waveCount: 1, // Reduced after step 5
-  totemCount: 2,
+  harvestCount: 2,
   score: 0,
   combo: 0,
   maxCombo: 0,
@@ -258,9 +258,9 @@ export const STEP_8_GRID: MockGridState = {
     [2, 2, 2, 2, 2, 2, 0, 0], // 6 filled, gap at 6-7
   ],
   nextLine: [1, 0, 0, 0, 0, 0, 0, 1],
-  hammerCount: 2,
+  comboCount: 2,
   waveCount: 1,
-  totemCount: 1, // Reduced after step 6
+  harvestCount: 1, // Reduced after step 6
   score: 0,
   combo: 0,
   maxCombo: 0,
@@ -324,14 +324,14 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     targetBlock: { x: 4, y: 8, type: "block" }, // 2-wide block at positions 4-5
     successCondition: "combo_achieved",
   },
-  // Step 4: Hammer Bonus
+  // Step 4: Harvest Bonus
   {
     id: 4,
-    title: "Hammer",
+    title: "Harvest",
     type: "bonus",
-    bonusType: BonusType.Hammer,
-    description: "The Hammer destroys a single block. Select it, then click a block.",
-    mobileDescription: "Tap Hammer, then a block",
+    bonusType: BonusType.Harvest,
+    description: "Harvest destroys all blocks of the same size and earns you CUBEs! Select it, then click a block.",
+    mobileDescription: "Tap Harvest, then a block",
     targetBlock: { x: 6, y: 9, type: "block" },
   },
   // Step 5: Wave Bonus
@@ -340,19 +340,23 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     title: "Wave",
     type: "bonus",
     bonusType: BonusType.Wave,
-    description: "The Wave clears an entire row instantly. Select it, then click any block in the target row.",
+    description: "Wave clears entire horizontal rows. Select it, then click any block in the target row.",
     mobileDescription: "Tap Wave, then a row",
     targetBlock: { x: 0, y: 8, type: "row" },
   },
-  // Step 6: Totem Bonus
+  // Step 6: Combo & Score Bonuses (Info)
   {
     id: 6,
-    title: "Totem",
-    type: "bonus",
-    bonusType: BonusType.Totem,
-    description: "The Totem removes all blocks of the same size. Select it, then click any block of that size.",
-    mobileDescription: "Tap Totem, then a block",
-    targetBlock: { x: 0, y: 9, type: "block" },
+    title: "Combo & Score",
+    type: "info",
+    infoType: "bonuses",
+    description: "Two more bonuses help boost your performance!",
+    mobileDescription: "Boost combo & score",
+    items: [
+      { icon: "combo", name: "Combo", desc: "Adds combo to your next move. Higher levels add more combo." },
+      { icon: "score", name: "Score", desc: "Instantly adds bonus score. Higher levels add more score." },
+    ],
+    footer: "These bonuses don't need grid targeting — they apply instantly!",
   },
   // Step 7: Advanced Bonuses (Info)
   {
@@ -363,8 +367,8 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     description: "Unlock powerful new bonuses in the permanent shop!",
     mobileDescription: "Unlock new bonuses",
     items: [
-      { icon: "shrink", name: "Shrink", desc: "Reduces all blocks by 1 size. Size 1 blocks disappear!" },
-      { icon: "shuffle", name: "Shuffle", desc: "Randomly rearranges all blocks on the grid." },
+      { icon: "wave", name: "Wave", desc: "Clears entire horizontal rows. Higher levels clear more rows." },
+      { icon: "supply", name: "Supply", desc: "Adds new lines to the grid at no move cost." },
     ],
     footer: "Unlock these in the permanent shop with CUBE tokens!",
   },

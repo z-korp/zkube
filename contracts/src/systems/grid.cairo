@@ -58,19 +58,16 @@ mod grid_system {
     use zkube::helpers::controller::Controller;
     use zkube::helpers::packing::RunData;
     use zkube::helpers::scoring::{
-        saturating_add_u8, saturating_add_u16, saturating_add_u8_capped,
+        saturating_add_u8, saturating_add_u16,
         process_lines_cleared, update_score,
     };
     use zkube::types::bonus::{Bonus, BonusTrait};
     use zkube::types::difficulty::Difficulty;
     use zkube::types::constraint::LevelConstraintTrait;
 
-    // Import all bonus implementations
-    use zkube::elements::bonuses::hammer;
-    use zkube::elements::bonuses::totem;
+    // Import bonus implementations (only grid-modifying bonuses need element files)
+    use zkube::elements::bonuses::harvest;
     use zkube::elements::bonuses::wave;
-    use zkube::elements::bonuses::shrink::{self, apply_shrink_same_size, apply_shrink_all};
-    use zkube::elements::bonuses::shuffle::{self, shuffle_next_line, shuffle_entire_grid};
 
     use dojo::model::ModelStorage;
     use dojo::world::WorldStorage;
@@ -266,16 +263,18 @@ mod grid_system {
             
             let mut game: Game = world.read_model(game_id);
             let base_seed: GameSeed = world.read_model(game_id);
+            let game_level: GameLevel = world.read_model(game_id);
+            let settings = ConfigUtilsTrait::get_game_settings(world, game_id);
             
             let mut run_data = game.get_run_data();
             
             // Check bonus availability
             let available = match bonus {
-                Bonus::Hammer => run_data.hammer_count > 0,
+                Bonus::Combo => run_data.combo_count > 0,
+                Bonus::Score => run_data.score_count > 0,
+                Bonus::Harvest => run_data.harvest_count > 0,
                 Bonus::Wave => run_data.wave_count > 0,
-                Bonus::Totem => run_data.totem_count > 0,
-                Bonus::Shrink => run_data.shrink_count > 0,
-                Bonus::Shuffle => run_data.shuffle_count > 0,
+                Bonus::Supply => run_data.supply_count > 0,
                 Bonus::None => false,
             };
             assert!(available, "Bonus not available");
@@ -289,76 +288,76 @@ mod grid_system {
             let mut new_next_row = game.next_row;
             
             match bonus {
-                Bonus::Totem => {
-                    if bonus_level == 2 {
-                        new_blocks = 0; // L3: clear entire grid
-                    } else {
-                        new_blocks = InternalImpl::apply_bonus_effect(bonus, game.blocks, row_index, col_index);
-                    }
+                Bonus::Combo => {
+                    // Non-grid bonus: Add (bonus_level + 1) to combo counter
+                    let combo_add: u8 = bonus_level + 1;
+                    game.combo_counter = saturating_add_u8(game.combo_counter, combo_add);
                 },
-                Bonus::Shrink => {
-                    if bonus_level == 2 {
-                        new_blocks = apply_shrink_all(game.blocks);
-                    } else if bonus_level == 1 {
-                        new_blocks = apply_shrink_same_size(game.blocks, row_index, col_index);
-                    } else {
-                        new_blocks = InternalImpl::apply_bonus_effect(bonus, game.blocks, row_index, col_index);
-                    }
+                Bonus::Score => {
+                    // Non-grid bonus: Add (bonus_level + 1) * 10 to level score
+                    let score_add: u16 = ((bonus_level + 1).into()) * 10_u16;
+                    update_score(ref run_data, score_add);
                 },
-                Bonus::Shuffle => {
-                    if bonus_level == 2 {
-                        new_blocks = shuffle_entire_grid(game.blocks, base_seed.seed);
-                    } else if bonus_level == 1 {
-                        new_next_row = shuffle_next_line(game.next_row, base_seed.seed);
-                    } else {
-                        new_blocks = InternalImpl::apply_bonus_effect(bonus, game.blocks, row_index, col_index);
-                    }
-                },
-                _ => {
-                    new_blocks = InternalImpl::apply_bonus_effect(bonus, game.blocks, row_index, col_index);
-                },
-            }
-            
-            // Apply level-scaled effects
-            match bonus {
-                Bonus::Hammer => {
-                    if bonus_level >= 1 {
-                        game.combo_counter = saturating_add_u8(game.combo_counter, 1);
-                    }
-                    if bonus_level >= 2 {
-                        game.combo_counter = saturating_add_u8(game.combo_counter, 1);
-                    }
+                Bonus::Harvest => {
+                    // Grid bonus: Clear all blocks of target size + CUBE rewards
+                    // Count blocks before clearing for CUBE calculation
+                    let blocks_destroyed = harvest::count_blocks_of_size(game.blocks, row_index, col_index);
+                    let cube_reward: u16 = blocks_destroyed.into() * (bonus_level + 1).into();
+                    run_data.total_cubes = saturating_add_u16(run_data.total_cubes, cube_reward);
+                    // Apply the grid clear
+                    new_blocks = harvest::BonusImpl::apply(game.blocks, row_index, col_index);
                 },
                 Bonus::Wave => {
-                    if bonus_level >= 1 {
-                        run_data.free_moves = saturating_add_u8_capped(run_data.free_moves, 1, 7);
-                    }
-                    if bonus_level >= 2 {
-                        run_data.free_moves = saturating_add_u8_capped(run_data.free_moves, 1, 7);
-                    }
+                    // Grid bonus: Clear (bonus_level + 1) rows starting from row_index
+                    let rows_to_clear: u8 = bonus_level + 1;
+                    new_blocks = game.blocks;
+                    let mut i: u8 = 0;
+                    loop {
+                        if i >= rows_to_clear {
+                            break;
+                        }
+                        let target_row = if row_index + i < constants::DEFAULT_GRID_HEIGHT {
+                            row_index + i
+                        } else {
+                            break;
+                        };
+                        new_blocks = wave::BonusImpl::apply(new_blocks, target_row, 0);
+                        i += 1;
+                    };
                 },
-                Bonus::Totem => {
-                    if bonus_level == 1 {
-                        run_data.total_cubes = saturating_add_u16(run_data.total_cubes, 3_u16);
-                    }
+                Bonus::Supply => {
+                    // Non-grid technically: Add (bonus_level + 1) lines at no move cost
+                    let lines_to_add: u8 = bonus_level + 1;
+                    let difficulty: Difficulty = game_level.difficulty.into();
+                    let mut i: u8 = 0;
+                    loop {
+                        if i >= lines_to_add {
+                            break;
+                        }
+                        let new_seed = InternalImpl::generate_seed(new_blocks, base_seed.seed, run_data.current_level);
+                        let new_row = Controller::create_line(new_seed, difficulty, settings);
+                        new_blocks = Controller::add_line(new_blocks, new_next_row);
+                        new_next_row = new_row;
+                        i += 1;
+                    };
                 },
-                _ => {},
+                Bonus::None => {},
             }
             
             // Decrement bonus count
             match bonus {
-                Bonus::Hammer => run_data.hammer_count -= 1,
+                Bonus::Combo => run_data.combo_count -= 1,
+                Bonus::Score => run_data.score_count -= 1,
+                Bonus::Harvest => run_data.harvest_count -= 1,
                 Bonus::Wave => run_data.wave_count -= 1,
-                Bonus::Totem => run_data.totem_count -= 1,
-                Bonus::Shrink => run_data.shrink_count -= 1,
-                Bonus::Shuffle => run_data.shuffle_count -= 1,
+                Bonus::Supply => run_data.supply_count -= 1,
                 Bonus::None => {},
             }
             
             // Mark bonus used
             run_data.bonus_used_this_level = true;
             
-            // Assess game
+            // Assess game (gravity + line clearing)
             let mut lines_cleared: u8 = 0;
             let points = InternalImpl::assess_game(ref new_blocks, ref lines_cleared);
             update_score(ref run_data, points);
@@ -467,18 +466,7 @@ mod grid_system {
             state.finalize()
         }
         
-        /// Apply bonus effect (dispatch to implementation).
-        #[inline(always)]
-        fn apply_bonus_effect(bonus: Bonus, blocks: felt252, row: u8, col: u8) -> felt252 {
-            match bonus {
-                Bonus::None => blocks,
-                Bonus::Hammer => hammer::BonusImpl::apply(blocks, row, col),
-                Bonus::Totem => totem::BonusImpl::apply(blocks, row, col),
-                Bonus::Wave => wave::BonusImpl::apply(blocks, row, col),
-                Bonus::Shrink => shrink::BonusImpl::apply(blocks, row, col),
-                Bonus::Shuffle => shuffle::BonusImpl::apply(blocks, row, col),
-            }
-        }
+        // apply_bonus_effect removed - dispatch logic is now inline in apply_bonus()
         
         /// Get bonus level (0-2) for a bonus type.
         #[inline(always)]

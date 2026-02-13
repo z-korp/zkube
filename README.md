@@ -17,7 +17,7 @@ zKube challenges players to manipulate blocks on an 8x10 grid to form solid hori
 ## Key Features
 
 - **50-Level Campaign** - Progressive difficulty from VeryEasy to Master
-- **5 Bonus Types** - Hammer, Wave, Totem, Shrink, Shuffle (each with 3 upgrade levels)
+- **5 Bonus Types** - Combo, Score, Harvest, Wave, Supply (each with 3 upgrade levels)
 - **CUBE Economy** - Earn tokens through gameplay, spend on permanent upgrades
 - **Daily Quests** - 10 quests with 102 CUBE rewards per day
 - **28 Achievements** - Track lifetime progress across multiple categories

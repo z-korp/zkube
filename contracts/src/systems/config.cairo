@@ -23,9 +23,9 @@ trait IConfigSystem<T> {
         cube_3_percent: u8,
         cube_2_percent: u8,
         // Consumable Costs
-        hammer_cost: u8,
-        wave_cost: u8,
-        totem_cost: u8,
+        combo_cost: u8,
+        score_cost: u8,
+        harvest_cost: u8,
         extra_moves_cost: u8,
         // Difficulty Progression (non-linear tier thresholds)
         tier_1_threshold: u8,
@@ -264,9 +264,9 @@ mod config_system {
             cube_3_percent: u8,
             cube_2_percent: u8,
             // Consumable Costs
-            hammer_cost: u8,
-            wave_cost: u8,
-            totem_cost: u8,
+            combo_cost: u8,
+            score_cost: u8,
+            harvest_cost: u8,
             extra_moves_cost: u8,
             // Difficulty Progression (non-linear tier thresholds)
             tier_1_threshold: u8,
@@ -339,9 +339,9 @@ mod config_system {
                 cube_3_percent,
                 cube_2_percent,
                 // Consumable Costs
-                hammer_cost,
-                wave_cost,
-                totem_cost,
+                combo_cost,
+                score_cost,
+                harvest_cost,
                 extra_moves_cost,
                 // Difficulty Progression (non-linear tier thresholds)
                 tier_1_threshold,
@@ -635,9 +635,9 @@ mod config_system {
             GameSetting { name: "3-Cube Threshold", value: format!("{}%", game_settings.cube_3_percent) },
             GameSetting { name: "2-Cube Threshold", value: format!("{}%", game_settings.cube_2_percent) },
             // Consumable Costs
-            GameSetting { name: "Hammer Cost", value: format!("{}", game_settings.hammer_cost) },
-            GameSetting { name: "Wave Cost", value: format!("{}", game_settings.wave_cost) },
-            GameSetting { name: "Totem Cost", value: format!("{}", game_settings.totem_cost) },
+            GameSetting { name: "Combo Cost", value: format!("{}", game_settings.combo_cost) },
+            GameSetting { name: "Score Cost", value: format!("{}", game_settings.score_cost) },
+            GameSetting { name: "Harvest Cost", value: format!("{}", game_settings.harvest_cost) },
             GameSetting { name: "Extra Moves Cost", value: format!("{}", game_settings.extra_moves_cost) },
             // Difficulty Progression (non-linear tier thresholds)
             GameSetting { name: "VeryEasy", value: format!("Levels 1-{}", game_settings.tier_1_threshold - 1) },

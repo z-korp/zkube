@@ -8,59 +8,12 @@
 
 ## Table of Contents
 
-1. [Bonus System V2.0](#bonus-system-v20) **(NEW - Major Overhaul)**
-2. [Game Features](#game-features)
-3. [In-Game Shop Expansions](#in-game-shop-expansions)
-4. [Daily Challenge Mode](#daily-challenge-mode)
-5. [Architecture Improvements](#architecture-improvements)
-6. [Quick Wins](#quick-wins)
-7. [Long-Term Vision](#long-term-vision)
-
----
-
-## Bonus System V2.0
-
-> **Status:** ✅ Implemented in v1.2.0  
-> **Design Document:** [BONUS_SYSTEM_V2.md](./BONUS_SYSTEM_V2.md)  
-
-### Overview
-
-The bonus system overhaul is now fully implemented in v1.2.0:
-
-| Feature | Pre-v1.2 | v1.2.0 (Current) |
-|---------|----------|-------------------|
-| Bonus Types | 3 (Hammer, Wave, Totem) | 5 (+Shrink, +Shuffle) |
-| Levels | None | 3 levels per bonus |
-| Selection | All available | Choose 3 of 5 per run |
-| Level-up | N/A | After boss clear |
-
-### Five Bonus Types
-
-| Bonus | Unlocked | L1 Effect | L3 Effect |
-|-------|----------|-----------|-----------|
-| Hammer | Default | Clear target block | Clear + combo +2 |
-| Wave | Default | Clear one row | Clear + 2 free moves |
-| Totem | Default | Clear same-size blocks | Clear entire grid |
-| Shrink | Unlock 500 | Shrink 1 block | Shrink by 2 sizes |
-| Shuffle | Unlock 500 | Shuffle 1 row | Shuffle entire grid |
-
-### Key Mechanics
-
-1. **Selection**: Player chooses 3 of 5 bonuses at game start
-2. **Level-ups**: After boss clears (L10, L20, L30, L40, L50), upgrade one bonus
-3. **Unlock**: Shrink and Shuffle require permanent shop purchase
-4. **Strategy**: 5 bosses = 5 level-ups across 3 bonuses
-
-### Implementation Phases
-
-- [x] Phase 1: Core Mechanics (new bonus types, effects)
-- [x] Phase 2: Selection System (UI, validation)
-- [x] Phase 3: Level System (boss rewards, scaling)
-- [x] Phase 4: Shop Updates (unlock, new consumables)
-- [x] Phase 5: Client UI (dialogs, indicators)
-- [x] Phase 6: Testing & Polish
-
-See [BONUS_SYSTEM_V2.md](./BONUS_SYSTEM_V2.md) for design specifications.
+1. [Game Features](#game-features)
+2. [In-Game Shop Expansions](#in-game-shop-expansions)
+3. [Daily Challenge Mode](#daily-challenge-mode)
+4. [Architecture Improvements](#architecture-improvements)
+5. [Quick Wins](#quick-wins)
+6. [Long-Term Vision](#long-term-vision)
 
 ---
 
@@ -88,38 +41,21 @@ See [BONUS_SYSTEM_V2.md](./BONUS_SYSTEM_V2.md) for design specifications.
 | **Special Blocks** | Bomb, Rainbow, Locked blocks | Future |
 | **Cosmetics** | Themes, block skins | Future |
 
-> **Note:** New bonus types (Shrink, Shuffle) are now part of [Bonus System V2.0](#bonus-system-v20)
+> **Note:** Current bonus types (Combo, Score, Harvest, Wave, Supply) are documented in [GAME_DESIGN.md](./GAME_DESIGN.md#bonus-system)
 
 ---
 
 ## In-Game Shop Expansions
 
-Currently the in-game shop (every 10 levels) sells consumables:
+Currently the in-game shop (every 10 levels) sells selected bonus charges. Future consumables:
 
 | Item | Cost | Effect | Status |
 |------|------|--------|--------|
-| Hammer | 5 | +1 Hammer | **Implemented** |
-| Wave | 5 | +1 Wave | **Implemented** |
-| Totem | 5 | +1 Totem | **Implemented** |
+| Combo/Score/Harvest/Wave/Supply | Configurable | +1 charge of selected bonus | **Implemented** |
 | Extra Moves | 10 | +5 moves | Not Implemented |
 | Full Refill | bag*3 | Refill one type to max | Not Implemented |
 | Skip Constraint | 20 | Auto-complete constraint | Not Implemented |
 | Revival Token | 30 | Continue after death | Not Implemented |
-
-### Implementation Notes
-
-```cairo
-// ConsumableType enum expansion needed:
-pub enum ConsumableType {
-    Hammer,       // 5 cubes - IMPLEMENTED
-    Wave,         // 5 cubes - IMPLEMENTED
-    Totem,        // 5 cubes - IMPLEMENTED
-    ExtraMoves,   // 10 cubes - needs implementation
-    FullRefill,   // bag_size * 3 cubes - needs implementation
-    SkipConstraint, // 20 cubes - needs implementation
-    RevivalToken,   // 30 cubes - needs implementation
-}
-```
 
 ---
 
@@ -309,13 +245,6 @@ mod AchievableComponent {
 
 ## Implementation Priority
 
-### Phase 0: Bonus System V2.0 (Next Major Update)
-1. **Core Mechanics** - Shrink/Shuffle effects, level system
-2. **Selection System** - Choose 3 of 5 at game start
-3. **Level-up System** - Boss clear rewards
-4. **Shop Updates** - Unlock, new consumables
-5. **UI Overhaul** - Selection dialog, level indicators
-
 ### Phase 1: Polish
 1. Milestone bonuses
 2. ExtraMoves consumable
@@ -342,6 +271,7 @@ mod AchievableComponent {
 ## References
 
 For detailed technical specifications, see:
+- [GAME_DESIGN.md](./GAME_DESIGN.md) - Complete game design (bonus system, quests, economy)
 - `references/DEATH_MOUNTAIN_PATTERNS.md` - Helper systems pattern
 - `references/DARK_SHUFFLE_PATTERNS.md` - Utils pattern
 - `references/GAME_COMPONENTS.md` - game-components framework

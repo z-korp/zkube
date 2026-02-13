@@ -3,8 +3,8 @@ pub trait IGameSystem<T> {
     /// Create a new game with bonus selection and optional cubes
     /// @param game_id: NFT token ID for this game
     /// @param selected_bonuses: Array of 3 bonus types [0-5] to use this run
-    ///   - 0=None (invalid), 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
-    ///   - Pass empty array for default selection [Hammer, Wave, Totem]
+    ///   - 0=None (invalid), 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
+    ///   - Pass empty array for default selection [Combo, Score, Harvest]
     /// @param cubes_amount: Cubes to bring into run (burned from wallet), 0 for none
     fn create(ref self: T, game_id: u64, selected_bonuses: Span<u8>, cubes_amount: u16);
     /// Surrender the current run (game over)
@@ -14,7 +14,7 @@ pub trait IGameSystem<T> {
     /// Get current level score
     fn get_score(self: @T, game_id: u64) -> u16;
     /// Get game data for UI
-    /// Returns: (level, level_score, level_moves, combo, max_combo, hammer, wave, totem, total_cubes, over)
+    /// Returns: (level, level_score, level_moves, combo, max_combo, combo_bonus, score_bonus, harvest_bonus, total_cubes, over)
     fn get_game_data(
         self: @T, game_id: u64,
     ) -> (u8, u8, u8, u8, u8, u8, u8, u8, u16, bool);
@@ -207,8 +207,8 @@ mod game_system {
             
             // Determine selected bonuses (use defaults if empty)
             let (bonus_1, bonus_2, bonus_3) = if selected_bonuses.len() == 0 {
-                // Default selection: Hammer(1), Wave(3), Totem(2)
-                (1_u8, 3_u8, 2_u8)
+                // Default selection: Combo(1), Score(2), Harvest(3)
+                (1_u8, 2_u8, 3_u8)
             } else {
                 // Validate exactly 3 bonuses selected
                 assert!(selected_bonuses.len() == 3, "Must select exactly 3 bonuses");
@@ -225,12 +225,12 @@ mod game_system {
                 // Validate no duplicates
                 assert!(b1 != b2 && b1 != b3 && b2 != b3, "Duplicate bonus selection");
                 
-                // Validate Shrink(4) and Shuffle(5) are unlocked
+                // Validate Wave(4) and Supply(5) are unlocked
                 if b1 == 4 || b2 == 4 || b3 == 4 {
-                    assert!(meta_data.shrink_unlocked, "Shrink bonus not unlocked");
+                    assert!(meta_data.wave_unlocked, "Wave bonus not unlocked");
                 }
                 if b1 == 5 || b2 == 5 || b3 == 5 {
-                    assert!(meta_data.shuffle_unlocked, "Shuffle bonus not unlocked");
+                    assert!(meta_data.supply_unlocked, "Supply bonus not unlocked");
                 }
                 
                 (b1, b2, b3)
@@ -263,36 +263,35 @@ mod game_system {
             }
 
             // Apply starting bonuses ONLY for selected bonus types (capped at bag size)
-            // Helper to apply starting bonus if selected
-            // Hammer = 1
+            // Combo = 1
             if bonus_1 == 1 || bonus_2 == 1 || bonus_3 == 1 {
                 let bag_size = meta_data.get_bag_size(0);
-                let starting = meta_data.starting_hammer;
-                run_data.hammer_count = if starting > bag_size { bag_size } else { starting };
+                let starting = meta_data.starting_combo;
+                run_data.combo_count = if starting > bag_size { bag_size } else { starting };
             }
-            // Totem = 2
+            // Score = 2
             if bonus_1 == 2 || bonus_2 == 2 || bonus_3 == 2 {
-                let bag_size = meta_data.get_bag_size(2);
-                let starting = meta_data.starting_totem;
-                run_data.totem_count = if starting > bag_size { bag_size } else { starting };
-            }
-            // Wave = 3
-            if bonus_1 == 3 || bonus_2 == 3 || bonus_3 == 3 {
                 let bag_size = meta_data.get_bag_size(1);
+                let starting = meta_data.starting_score;
+                run_data.score_count = if starting > bag_size { bag_size } else { starting };
+            }
+            // Harvest = 3
+            if bonus_1 == 3 || bonus_2 == 3 || bonus_3 == 3 {
+                let bag_size = meta_data.get_bag_size(2);
+                let starting = meta_data.starting_harvest;
+                run_data.harvest_count = if starting > bag_size { bag_size } else { starting };
+            }
+            // Wave = 4
+            if bonus_1 == 4 || bonus_2 == 4 || bonus_3 == 4 {
+                let bag_size = meta_data.get_bag_size(3);
                 let starting = meta_data.starting_wave;
                 run_data.wave_count = if starting > bag_size { bag_size } else { starting };
             }
-            // Shrink = 4
-            if bonus_1 == 4 || bonus_2 == 4 || bonus_3 == 4 {
-                let bag_size = meta_data.get_bag_size(3);
-                let starting = meta_data.starting_shrink;
-                run_data.shrink_count = if starting > bag_size { bag_size } else { starting };
-            }
-            // Shuffle = 5
+            // Supply = 5
             if bonus_1 == 5 || bonus_2 == 5 || bonus_3 == 5 {
                 let bag_size = meta_data.get_bag_size(4);
-                let starting = meta_data.starting_shuffle;
-                run_data.shuffle_count = if starting > bag_size { bag_size } else { starting };
+                let starting = meta_data.starting_supply;
+                run_data.supply_count = if starting > bag_size { bag_size } else { starting };
             }
 
             game.set_run_data(run_data);
@@ -378,9 +377,9 @@ mod game_system {
                 run_data.level_moves,
                 game.combo_counter,
                 game.max_combo,
-                run_data.hammer_count,
-                run_data.wave_count,
-                run_data.totem_count,
+                run_data.combo_count,
+                run_data.score_count,
+                run_data.harvest_count,
                 run_data.total_cubes,
                 game.over,
             )

@@ -37,9 +37,9 @@ pub struct GameSettings {
     pub cube_2_percent: u8,     // 2 cubes if moves <= X% of max (default: 70)
     
     // === Consumable Costs ===
-    pub hammer_cost: u8,        // Cost in cubes (default: 5)
-    pub wave_cost: u8,          // Cost in cubes (default: 5)
-    pub totem_cost: u8,         // Cost in cubes (default: 5)
+    pub combo_cost: u8,         // Cost in cubes (default: 5)
+    pub score_cost: u8,         // Cost in cubes (default: 5)
+    pub harvest_cost: u8,       // Cost in cubes (default: 5)
     pub extra_moves_cost: u8,   // Cost in cubes (default: 10)
     
     // === Difficulty Progression (non-linear tier thresholds) ===
@@ -120,9 +120,9 @@ pub mod GameSettingsDefaults {
     pub const CUBE_2_PERCENT: u8 = 70;
     
     // Consumable Costs
-    pub const HAMMER_COST: u8 = 5;
-    pub const WAVE_COST: u8 = 5;
-    pub const TOTEM_COST: u8 = 5;
+    pub const COMBO_COST: u8 = 5;
+    pub const SCORE_COST: u8 = 5;
+    pub const HARVEST_COST: u8 = 5;
     pub const EXTRA_MOVES_COST: u8 = 10;
     
     // Difficulty Progression (non-linear tier thresholds)
@@ -248,9 +248,9 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             cube_3_percent: GameSettingsDefaults::CUBE_3_PERCENT,
             cube_2_percent: GameSettingsDefaults::CUBE_2_PERCENT,
             // Consumable Costs
-            hammer_cost: GameSettingsDefaults::HAMMER_COST,
-            wave_cost: GameSettingsDefaults::WAVE_COST,
-            totem_cost: GameSettingsDefaults::TOTEM_COST,
+            combo_cost: GameSettingsDefaults::COMBO_COST,
+            score_cost: GameSettingsDefaults::SCORE_COST,
+            harvest_cost: GameSettingsDefaults::HARVEST_COST,
             extra_moves_cost: GameSettingsDefaults::EXTRA_MOVES_COST,
             // Difficulty Progression (non-linear tier thresholds)
             tier_1_threshold: GameSettingsDefaults::TIER_1_THRESHOLD,
@@ -349,13 +349,12 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         }
     }
     
-    /// Get consumable cost by type (0=Hammer, 1=Wave, 2=Totem)
-    /// Note: These legacy costs are kept for backwards compatibility but new shop uses fixed prices
+    /// Get consumable cost by type (0=Combo, 1=Score, 2=Harvest)
     fn get_consumable_cost(self: GameSettings, consumable_type: u8) -> u8 {
         match consumable_type {
-            0 => self.hammer_cost,
-            1 => self.wave_cost,
-            2 => self.totem_cost,
+            0 => self.combo_cost,
+            1 => self.score_cost,
+            2 => self.harvest_cost,
             _ => 0,
         }
     }
@@ -722,9 +721,9 @@ mod tests {
         assert!(settings.cube_3_percent == 40, "Cube 3 percent should be 40");
         assert!(settings.cube_2_percent == 70, "Cube 2 percent should be 70");
         // Consumable Costs
-        assert!(settings.hammer_cost == 5, "Hammer cost should be 5");
-        assert!(settings.wave_cost == 5, "Wave cost should be 5");
-        assert!(settings.totem_cost == 5, "Totem cost should be 5");
+        assert!(settings.combo_cost == 5, "Combo cost should be 5");
+        assert!(settings.score_cost == 5, "Score cost should be 5");
+        assert!(settings.harvest_cost == 5, "Harvest cost should be 5");
         assert!(settings.extra_moves_cost == 10, "Extra moves cost should be 10");
         // Difficulty Progression (non-linear tier thresholds)
         assert!(settings.tier_1_threshold == 4, "Tier 1 (Easy) should start at level 4");
@@ -752,9 +751,9 @@ mod tests {
     fn test_get_consumable_cost() {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
         
-        assert!(settings.get_consumable_cost(0) == 5, "Hammer should cost 5");
-        assert!(settings.get_consumable_cost(1) == 5, "Wave should cost 5");
-        assert!(settings.get_consumable_cost(2) == 5, "Totem should cost 5");
+        assert!(settings.get_consumable_cost(0) == 5, "Combo should cost 5");
+        assert!(settings.get_consumable_cost(1) == 5, "Score should cost 5");
+        assert!(settings.get_consumable_cost(2) == 5, "Harvest should cost 5");
         assert!(settings.get_consumable_cost(3) == 0, "Invalid consumable type should return 0");
     }
     

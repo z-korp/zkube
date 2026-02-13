@@ -9,7 +9,7 @@ describe('unpackRunData', () => {
     expect(data.levelMoves).toBe(0);
     expect(data.totalCubes).toBe(0);
     expect(data.totalScore).toBe(0);
-    expect(data.hammerCount).toBe(0);
+    expect(data.comboCount).toBe(0);
     expect(data.bonusUsedThisLevel).toBe(false);
     expect(data.runCompleted).toBe(false);
     expect(data.pendingLevelUp).toBe(false);
@@ -35,9 +35,9 @@ describe('unpackRunData', () => {
     expect(unpackRunData(packed).bonusUsedThisLevel).toBe(true);
   });
 
-  it('extracts hammerCount from bits 43-50', () => {
+  it('extracts comboCount from bits 43-50', () => {
     const packed = BigInt(5) << BigInt(43);
-    expect(unpackRunData(packed).hammerCount).toBe(5);
+    expect(unpackRunData(packed).comboCount).toBe(5);
   });
 
   it('extracts totalCubes from bits 131-146', () => {
@@ -89,7 +89,7 @@ describe('unpackRunData', () => {
     expect(data.levelScore).toBe(50);
     expect(data.levelMoves).toBe(20);
     expect(data.totalCubes).toBe(100);
-    expect(data.hammerCount).toBe(0);
+    expect(data.comboCount).toBe(0);
   });
 });
 
@@ -98,8 +98,8 @@ describe('createInitialRunData', () => {
     const data = createInitialRunData();
     expect(data.currentLevel).toBe(1);
     expect(data.selectedBonus1).toBe(1);
-    expect(data.selectedBonus2).toBe(3);
-    expect(data.selectedBonus3).toBe(2);
+    expect(data.selectedBonus2).toBe(2);
+    expect(data.selectedBonus3).toBe(3);
     expect(data.totalCubes).toBe(0);
     expect(data.totalScore).toBe(0);
   });

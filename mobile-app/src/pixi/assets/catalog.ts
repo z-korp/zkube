@@ -32,11 +32,11 @@ export enum AssetId {
   DecoRight = 'deco-right',
 
   // Bonus icons
-  BonusHammer = 'bonus-hammer',
+  BonusCombo = 'bonus-combo',
+  BonusScore = 'bonus-score',
+  BonusHarvest = 'bonus-harvest',
   BonusWave = 'bonus-wave',
-  BonusTotem = 'bonus-totem',
-  BonusShrink = 'bonus-shrink',
-  BonusShuffle = 'bonus-shuffle',
+  BonusSupply = 'bonus-supply',
 
   // 9-slice panels
   PanelWood = 'panel-wood',
@@ -157,12 +157,12 @@ export const ASSET_CATALOG: Record<AssetId, AssetMeta> = {
   [AssetId.DecoLeft]: { filename: 'palmtree-left.png', kind: 'texture', bundle: 'ui' },
   [AssetId.DecoRight]: { filename: 'palmtree-right.png', kind: 'texture', bundle: 'ui' },
 
-  // Bonus icons
-  [AssetId.BonusHammer]: { filename: 'bonus/hammer.png', kind: 'texture', bundle: 'gameplay' },
-  [AssetId.BonusWave]: { filename: 'bonus/wave.png', kind: 'texture', bundle: 'gameplay' },
-  [AssetId.BonusTotem]: { filename: 'bonus/tiki.png', kind: 'texture', bundle: 'gameplay' },
-  [AssetId.BonusShrink]: { filename: 'bonus/shrink.svg', kind: 'texture', bundle: 'gameplay' },
-  [AssetId.BonusShuffle]: { filename: 'bonus/shuffle.svg', kind: 'texture', bundle: 'gameplay' },
+  // Bonus icons (TODO: replace placeholder filenames with actual V3 assets)
+  [AssetId.BonusCombo]: { filename: 'bonus/hammer.png', kind: 'texture', bundle: 'gameplay' },
+  [AssetId.BonusScore]: { filename: 'bonus/tiki.png', kind: 'texture', bundle: 'gameplay' },
+  [AssetId.BonusHarvest]: { filename: 'bonus/wave.png', kind: 'texture', bundle: 'gameplay' },
+  [AssetId.BonusWave]: { filename: 'bonus/shrink.svg', kind: 'texture', bundle: 'gameplay' },
+  [AssetId.BonusSupply]: { filename: 'bonus/shuffle.svg', kind: 'texture', bundle: 'gameplay' },
 
   // 9-slice panels
   [AssetId.PanelWood]: { filename: 'panels/panel-wood.png', kind: 'texture', borders: P, bundle: 'ui' },

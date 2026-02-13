@@ -156,16 +156,17 @@ pub const DEFAULT_GRID_HEIGHT: u8 = 10;
 
 ### Bonus System
 
-Five types of bonuses, each with 3 upgrade levels:
-- **Hammer:** Clears a specific block and connected same-size blocks
-- **Wave:** Clears an entire horizontal row
-- **Totem:** Clears all blocks of the same size on the grid
-- **Shrink:** Reduces block size by 1 (unlockable, 200 CUBE)
-- **Shuffle:** Randomizes block positions (unlockable, 200 CUBE)
+Five types of bonuses (V3.0), each with 3 upgrade levels:
+- **Combo:** Adds combo to your next move (+1/+2/+3 by level)
+- **Score:** Instantly adds bonus score (+10/+20/+30 by level)
+- **Harvest:** Destroys all blocks of a chosen size, earns CUBEs per block (+1/+2/+3 CUBE per block by level)
+- **Wave:** Clears entire horizontal rows (1/2/3 rows by level) — unlockable
+- **Supply:** Adds new lines at no move cost (1/2/3 lines by level) — unlockable
 
-Players select 3 bonuses before each run. Bonuses are earned through:
-- Level completion (random bonus from selected 3)
-- Boss level rewards (every 10 levels)
+Players select 3 bonuses before each run. Charges are purchased in shops:
+- Permanent shop: starting charges, bag size upgrades, unlock Wave/Supply
+- In-game shop (every 10 levels): buy charges during run
+- Boss clear (levels 10/20/30/40): awards Level Up Item to upgrade one bonus
 
 ### Level System
 
@@ -517,13 +518,10 @@ sozo migrate -P slot
 ## Documentation
 
 See `/docs/` for detailed documentation:
-- **GAME_DESIGN.md** - Complete game design document
-- **QUEST_SYSTEM.md** - Daily quest system implementation
+- **GAME_DESIGN.md** - Complete game design (levels, economy, bonuses, quests, achievements)
 - **CONFIGURABLE_SETTINGS.md** - GameSettings customization
 - **DEPLOYMENT_GUIDE.md** - Network deployment guide
-- **WORKSPACE_STRUCTURE.md** - Scarb workspace organization
-- **AGENT_QUICKSTART.md** - Quick reference for Claude agents
-- **MILESTONES.md** - Project milestones and completed features
 - **FUTURE_FEATURES.md** - Roadmap and planned features
 - **PROGRESSION_MAP.md** - Super Mario World-style level progression map
 - **ASSET_LIST.md** - Comprehensive asset inventory for mobile client
+- **references/** - External reference material (game-components, death-mountain, dark-shuffle, architecture analysis)

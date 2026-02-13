@@ -42,7 +42,7 @@ export interface Surrender extends Signer {
 
 export interface Create extends Signer {
   token_id: number;
-  selected_bonuses: number[]; // [] uses default Hammer/Wave/Totem
+  selected_bonuses: number[]; // [] uses default Combo/Score/Harvest
   cubes_amount: number; // 0 if not bringing cubes
 }
 
@@ -66,11 +66,11 @@ export interface BonusTx extends Signer {
 }
 
 export interface ShopUpgrade extends Signer {
-  bonus_type: number; // 0=Hammer, 1=Wave, 2=Totem, 3=Shrink, 4=Shuffle
+  bonus_type: number; // 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
 }
 
 export interface UnlockBonus extends Signer {
-  bonus_type: number; // 4=Shrink, 5=Shuffle
+  bonus_type: number; // 4=Wave, 5=Supply
 }
 
 export interface PurchaseConsumable extends Signer {
