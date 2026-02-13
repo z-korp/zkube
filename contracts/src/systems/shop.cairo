@@ -391,10 +391,10 @@ mod shop_system {
             let mut run_data = game.get_run_data();
             let player = get_caller_address();
 
-            // In-game shop is only available after completing levels 5, 10, 15, ...
-            // (i.e. when current_level is 6, 11, 16, ...).
+            // In-game shop is only available before boss levels (after completing levels 9, 19, 29, 39, 49).
+            // When current_level is 10, 20, 30, 40, 50, the player just completed the 9th zone level.
             assert!(run_data.current_level > 1, "Shop not available");
-            assert!((run_data.current_level - 1) % 5 == 0, "Shop not available");
+            assert!((run_data.current_level - 1) % 10 == 9, "Shop not available");
 
             // Reset shop state if this is a new shop level
             if run_data.last_shop_level != run_data.current_level {

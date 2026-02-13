@@ -241,19 +241,18 @@ export function getCubesAvailable(runData: RunData): number {
 }
 
 /**
- * Check if the completed level triggers the shop (levels 5, 10, 15...)
+ * Check if the completed level triggers the shop (levels 9, 19, 29, 39, 49 — before each boss).
  */
 export function isInGameShopAvailable(level: number): boolean {
-  return level > 0 && level % 5 === 0;
+  return level > 0 && level % 10 === 9;
 }
 
 /**
- * Check if the current level is a "shop level" - the level right after a shop milestone.
- * E.g., levels 6, 11, 16, 21... (player just came from level 5, 10, 15, 20...)
- * The shop button should be visible during these levels.
+ * Check if the current level is a "shop level" — the boss level right after a shop stop.
+ * E.g., levels 10, 20, 30, 40, 50 (player just came from shop after levels 9, 19, 29, 39, 49).
  */
 export function isShopLevel(level: number): boolean {
-  return level > 1 && (level - 1) % 5 === 0;
+  return level > 0 && level % 10 === 0;
 }
 
 /**

@@ -126,10 +126,15 @@ describe('level helpers', () => {
     expect(isBossLevel(0)).toBe(false);
   });
 
-  it('isInGameShopAvailable returns true for multiples of 5', () => {
-    expect(isInGameShopAvailable(5)).toBe(true);
-    expect(isInGameShopAvailable(10)).toBe(true);
-    expect(isInGameShopAvailable(3)).toBe(false);
+  it('isInGameShopAvailable returns true for levels ending in 9 (before boss)', () => {
+    expect(isInGameShopAvailable(9)).toBe(true);
+    expect(isInGameShopAvailable(19)).toBe(true);
+    expect(isInGameShopAvailable(29)).toBe(true);
+    expect(isInGameShopAvailable(39)).toBe(true);
+    expect(isInGameShopAvailable(49)).toBe(true);
+    expect(isInGameShopAvailable(5)).toBe(false);
+    expect(isInGameShopAvailable(10)).toBe(false);
+    expect(isInGameShopAvailable(15)).toBe(false);
     expect(isInGameShopAvailable(0)).toBe(false);
   });
 
