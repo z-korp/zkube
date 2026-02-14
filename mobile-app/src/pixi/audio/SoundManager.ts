@@ -199,7 +199,7 @@ class SoundManager {
     for (const assetId of allIds) {
       const alias = sfxAlias(themeId, assetId);
       if (sound.exists(alias)) {
-        sound.remove(alias);
+        try { sound.stop(alias); } catch { /* may not be playing */ }
       }
     }
   }

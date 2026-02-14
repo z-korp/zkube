@@ -20,9 +20,8 @@ export const getMissingAliases = (aliases: string[]) =>
   aliases.filter((alias) => !Assets.cache.has(alias));
 
 export const loadTextureCached = async (id: string): Promise<Texture> => {
-  const cached = Assets.get(id) as Texture | undefined;
-  if (cached) {
-    return cached;
+  if (Assets.cache.has(id)) {
+    return Assets.get(id) as Texture;
   }
   return (await Assets.load(id)) as Texture;
 };
