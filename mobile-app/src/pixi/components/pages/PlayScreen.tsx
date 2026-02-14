@@ -1,6 +1,6 @@
 import { Application, useTick } from '@pixi/react';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Texture, Graphics as PixiGraphics, TextStyle } from 'pixi.js';
+import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { PixiThemeProvider, usePixiTheme } from '../../themes/ThemeContext';
 import { useFullscreenLayout } from '../../hooks/useFullscreenLayout';
 import { GameGrid } from '../GameGrid';
@@ -23,7 +23,6 @@ import type { Block } from '@/types/types';
 import type { ConstraintData } from '../hud';
 import { FONT_TITLE, FONT_BOLD, FONT_BODY } from '../../utils/colors';
 import type { ThemeId } from '../../utils/colors';
-import { loadTextureCached, getFallbackTexture } from '../../assets/textureLoader';
 import { resolveAsset } from '../../assets/resolver';
 import { AssetId } from '../../assets/catalog';
 import { useTextureWithFallback } from '../../hooks/useTexture';
@@ -59,31 +58,6 @@ export interface PlayScreenProps {
   gameId: number;
   onGoHome: () => void;
   onPlayAgain?: () => void;
-}
-
-function useTexture(path: string): Texture | null {
-  const [tex, setTex] = useState<Texture | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-
-    if (!path) {
-      setTex(null);
-      return;
-    }
-
-    loadTextureCached(path)
-      .then((t) => {
-        if (!cancelled) setTex(t);
-      })
-      .catch(() => {
-        if (!cancelled) setTex(getFallbackTexture());
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [path]);
-  return tex;
 }
 
 const SkyBackground = ({ w, h }: { w: number; h: number }) => {

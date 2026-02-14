@@ -6,7 +6,7 @@
 
 import { Application, useTick } from '@pixi/react';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Texture, Graphics as PixiGraphics } from 'pixi.js';
+import { Graphics as PixiGraphics } from 'pixi.js';
 import { PixiThemeProvider, usePixiTheme } from '../../themes/ThemeContext';
 import { useFullscreenLayout } from '../../hooks/useFullscreenLayout';
 import { PageNavigatorProvider, usePageNavigator, type PageId } from './PageNavigator';
@@ -27,7 +27,6 @@ import type { LeaderboardEntry } from '@/hooks/useLeaderboardSlot';
 import type { QuestFamily } from '@/types/questFamily';
 import { FONT_TITLE, FONT_BOLD, FONT_BODY } from '../../utils/colors';
 import type { ThemeId } from '../../utils/colors';
-import { loadTextureCached } from '../../assets/textureLoader';
 import { resolveAsset } from '../../assets/resolver';
 import { AssetId } from '../../assets/catalog';
 import { useTextureWithFallback } from '../../hooks/useTexture';
@@ -102,35 +101,6 @@ export interface MainScreenProps {
   onPlayLevel?: (contractLevel: number) => void;
   requestMapNavigation?: boolean;
   onMapNavigated?: () => void;
-}
-
-// ============================================================================
-// TEXTURE HOOK
-// ============================================================================
-
-function useTexture(path: string): Texture | null {
-  const [tex, setTex] = useState<Texture | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-
-    if (!path) {
-      setTex(null);
-      return;
-    }
-
-    loadTextureCached(path)
-      .then((t) => {
-        if (!cancelled) setTex(t);
-      })
-      .catch(() => {
-        if (!cancelled) setTex(null);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [path]);
-  return tex;
 }
 
 // ============================================================================

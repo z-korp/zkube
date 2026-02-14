@@ -68,21 +68,6 @@ export const SHARED_ASSETS = {
   iconSurrender: '/assets/icon-surrender.png',
 } as const;
 
-// ============================================================================
-// THEME ASSET NAMES (resolved via getAssetPath)
-// ============================================================================
-
-export const THEME_ASSETS = {
-  background: 'background.png',
-  gridBg: 'grid-bg.png',
-  gridFrame: 'grid-frame.png',
-  hudBar: 'hud-bar.png',
-  actionBar: 'action-bar.png',
-  bonusBtnBg: 'bonus-btn-bg.png',
-  starFilled: 'star-filled.png',
-  starEmpty: 'star-empty.png',
-} as const;
-
 export interface BlockColors {
   fill: number;
   glow: number;
