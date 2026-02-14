@@ -69,7 +69,7 @@ Each block type has a distinct width (1-4 cells). Needs unique art per theme.
 
 | Asset ID | Filename | Type | Status |
 |----------|----------|------|--------|
-| `Background` | `theme-2-1.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 |
+| `Background` | `background.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 |
 | `LoadingBg` | `loading-bg.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 |
 
 **Specs:**
@@ -108,14 +108,14 @@ Each block type has a distinct width (1-4 cells). Needs unique art per theme.
 
 | Asset ID | Filename | Type | Status |
 |----------|----------|------|--------|
-| `DecoLeft` | `palmtree-left.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 |
-| `DecoRight` | `palmtree-right.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 |
+| `DecoLeft` | `deco-left.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 |
+| `DecoRight` | `deco-right.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 |
 
 **Specs:** Decorative elements flanking the grid (~100×300px each, PNG with transparency)
 
 **Per theme:** 2 textures × 10 themes = **20 total** (4 exist, 16 needed)
 
-**Note:** For non-Tiki themes these shouldn't be palm trees. Per-theme decoratives:
+**Note:** Per-theme decoratives:
 - Tiki: palm trees 🌴
 - Cosmic: asteroids / space debris
 - Neon: neon pillars / light bars
@@ -133,11 +133,11 @@ Each block type has a distinct width (1-4 cells). Needs unique art per theme.
 
 | Asset ID | Filename | Type | Status |
 |----------|----------|------|--------|
-| `BonusCombo` | `bonus/hammer.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 (TODO: new art) |
-| `BonusScore` | `bonus/tiki.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 (TODO: new art) |
-| `BonusHarvest` | `bonus/wave.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 (TODO: new art) |
-| `BonusWave` | `bonus/shrink.svg` | 🎨 | ✅ themes 1-2 only (TODO: new art) |
-| `BonusSupply` | `bonus/shuffle.svg` | 🎨 | ✅ themes 1-2 only (TODO: new art) |
+| `BonusCombo` | `bonus/combo.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 |
+| `BonusScore` | `bonus/score.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 |
+| `BonusHarvest` | `bonus/harvest.png` | 🎨 | ✅ themes 1-2, 🔁 themes 3-10 |
+| `BonusWave` | `bonus/wave.svg` | 🎨 | ✅ themes 1-2 only |
+| `BonusSupply` | `bonus/supply.svg` | 🎨 | ✅ themes 1-2 only |
 
 **Specs:** ~48×48px, PNG (or SVG). Represent the 5 bonus abilities.
 
@@ -312,9 +312,9 @@ All 4 tracks exist for **all 10 themes** ✅
 
 | Asset ID | Filename | When Played | Type |
 |----------|----------|-------------|------|
-| `Music1` | `sounds/musics/theme-jungle.mp3` | Gameplay track 1 | 🎨 |
-| `Music2` | `sounds/musics/theme-jungle2.mp3` | Menu / Home | 🎨 |
-| `Music3` | `sounds/musics/theme-jungle3.mp3` | Gameplay track 2 | 🎨 |
+| `Music1` | `sounds/musics/track-1.mp3` | Gameplay track 1 | 🎨 |
+| `Music2` | `sounds/musics/track-2.mp3` | Menu / Home | 🎨 |
+| `Music3` | `sounds/musics/track-3.mp3` | Gameplay track 2 | 🎨 |
 | `MusicIntro` | `sounds/musics/intro.mp3` | Loading / Title | 🎨 |
 
 **Path pattern:** `public/assets/{themeId}/sounds/musics/{name}.mp3`
@@ -357,7 +357,9 @@ The progression map currently uses procedural rendering for everything. These as
 
 | Asset | Path | Status |
 |-------|------|--------|
-| Apple icon 180 | `/assets/apple-icon-180.png` | ✅ |
+| Apple icon 157 | `/assets/apple-icon-157x157.png` | ✅ |
+| Apple icon 167 | `/assets/apple-icon-167x167.png` | ✅ |
+| Apple icon 180 | `/assets/apple-icon-180x180.png` | ✅ |
 | PWA 192 | `/assets/pwa-192x192.png` | ✅ |
 | PWA 512 | `/assets/pwa-512x512.png` | ✅ |
 | PWA maskable 192 | `/assets/pwa-maskable-192x192.png` | ✅ |
@@ -454,14 +456,14 @@ public/assets/
 │   ├── bonus-btn-bg.png
 │   ├── star-filled.png, star-empty.png
 │   ├── logo.png, loading-bg.png
-│   ├── palmtree-left.png, palmtree-right.png
-│   ├── theme-2-1.png (background)
-│   ├── bonus/{hammer,wave,tiki,shrink,shuffle}
+│   ├── deco-left.png, deco-right.png
+│   ├── background.png
+│   ├── bonus/{combo,score,harvest,wave,supply}
 │   ├── panels/                           ❌ MISSING
 │   ├── map/zone-bg.png                   ❌ MISSING (new)
 │   └── sounds/                           ✅ COMPLETE
 │       ├── effects/{break,explode,move,new,start,swipe,over}.mp3
-│       └── musics/{intro,theme-jungle,theme-jungle2,theme-jungle3}.mp3
+│       └── musics/{intro,track-1,track-2,track-3}.mp3
 │
 ├── theme-2/                              ✅ COMPLETE (same as theme-1)
 │   └── ...
