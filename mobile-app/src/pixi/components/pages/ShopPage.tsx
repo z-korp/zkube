@@ -359,6 +359,7 @@ export const ShopPage = ({
   onUpgradeBridging,
   onUnlockBonus,
 }: ShopPageProps) => {
+  console.log('[ShopPage] isConnected:', isConnected, 'playerMeta:', playerMeta, 'cubeBalance:', cubeBalance);
   const [scrollY, setScrollY] = useState(0);
   const [upgrading, setUpgrading] = useState(false);
   const upgradingRef = useRef(false);
