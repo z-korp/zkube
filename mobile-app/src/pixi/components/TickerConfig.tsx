@@ -7,6 +7,11 @@ export const TickerConfig = () => {
   const { targetFPS } = usePerformanceSettings();
 
   useEffect(() => {
+    console.log('[TickerConfig] MOUNTED, targetFPS:', targetFPS);
+    return () => console.log('[TickerConfig] UNMOUNTED');
+  }, []);
+
+  useEffect(() => {
     if (app?.ticker) {
       app.ticker.maxFPS = targetFPS;
     }

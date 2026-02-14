@@ -718,6 +718,11 @@ const MainScreenInner = (props: MainScreenProps) => {
   const { screenWidth: sw, screenHeight: sh, isMobile, topBarHeight, uiScale } = layout;
   const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1;
 
+  useEffect(() => {
+    console.log('[MainScreen] MOUNTED');
+    return () => console.log('[MainScreen] UNMOUNTED');
+  }, []);
+
   return (
     <div style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', overflow: 'hidden', touchAction: 'none' }}>
       <Application
@@ -725,10 +730,12 @@ const MainScreenInner = (props: MainScreenProps) => {
         backgroundAlpha={1} background={0xD0EAF8}
         resolution={dpr} autoDensity antialias
       >
-        <TickerConfig />
-        <PageNavigatorProvider initialPage={props.initialPage as PageId | undefined}>
-          <PageRenderer {...props} sw={sw} sh={sh} topBarH={topBarHeight} isMobile={isMobile} uiScale={uiScale} />
-        </PageNavigatorProvider>
+        <PixiThemeProvider>
+          <TickerConfig />
+          <PageNavigatorProvider initialPage={props.initialPage as PageId | undefined}>
+            <PageRenderer {...props} sw={sw} sh={sh} topBarH={topBarHeight} isMobile={isMobile} uiScale={uiScale} />
+          </PageNavigatorProvider>
+        </PixiThemeProvider>
       </Application>
     </div>
   );
@@ -739,11 +746,7 @@ const MainScreenInner = (props: MainScreenProps) => {
 // ============================================================================
 
 export const MainScreen = (props: MainScreenProps) => {
-  return (
-    <PixiThemeProvider>
-      <MainScreenInner {...props} />
-    </PixiThemeProvider>
-  );
+  return <MainScreenInner {...props} />;
 };
 
 export default MainScreen;

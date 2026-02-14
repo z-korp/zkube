@@ -763,6 +763,11 @@ export const PlayScreen = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) =
   const { screenWidth: sw, screenHeight: sh } = layout;
   const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1;
 
+  useEffect(() => {
+    console.log('[PlayScreen] MOUNTED');
+    return () => console.log('[PlayScreen] UNMOUNTED');
+  }, []);
+
   return (
     <div style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', overflow: 'hidden', touchAction: 'none' }}>
       <Application
@@ -770,8 +775,8 @@ export const PlayScreen = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) =
         backgroundAlpha={1} background={0xD0EAF8}
         resolution={dpr} autoDensity antialias
       >
-        <TickerConfig />
         <PixiThemeProvider>
+          <TickerConfig />
           <PlayScreenInner gameId={gameId} onGoHome={onGoHome} onPlayAgain={onPlayAgain} />
         </PixiThemeProvider>
       </Application>
