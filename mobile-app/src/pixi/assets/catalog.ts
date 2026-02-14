@@ -220,11 +220,11 @@ export const ASSET_CATALOG: Record<AssetId, AssetMeta> = {
 // ============================================================================
 
 export const SHARED_ICON_PATHS = {
-  moves: '/assets/icon-moves.png',
-  score: '/assets/icon-score.png',
-  cube: '/assets/icon-cube.png',
-  level: '/assets/icon-level.png',
-  surrender: '/assets/icon-surrender.png',
+  moves: '/assets/common/icon-moves.png',
+  score: '/assets/common/icon-score.png',
+  cube: '/assets/common/icon-cube.png',
+  level: '/assets/common/icon-level.png',
+  surrender: '/assets/common/icon-surrender.png',
 } as const;
 
 // ============================================================================

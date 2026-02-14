@@ -61,11 +61,11 @@ export const UI = {
 // ============================================================================
 
 export const SHARED_ASSETS = {
-  iconMoves: '/assets/icon-moves.png',
-  iconScore: '/assets/icon-score.png',
-  iconCube: '/assets/icon-cube.png',
-  iconLevel: '/assets/icon-level.png',
-  iconSurrender: '/assets/icon-surrender.png',
+  iconMoves: '/assets/common/icon-moves.png',
+  iconScore: '/assets/common/icon-score.png',
+  iconCube: '/assets/common/icon-cube.png',
+  iconLevel: '/assets/common/icon-level.png',
+  iconSurrender: '/assets/common/icon-surrender.png',
 } as const;
 
 export interface BlockColors {
