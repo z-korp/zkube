@@ -98,15 +98,15 @@ const getMaxCubesForRank = (rank: number): number => {
 const getBonusTexturePath = (bonus: BonusType, basePath: string): string => {
   switch (bonus) {
     case BonusType.Combo:
-      return `${basePath}/bonus/hammer.png`;
+      return `${basePath}/bonus/combo.png`;
     case BonusType.Score:
-      return `${basePath}/bonus/tiki.png`;
+      return `${basePath}/bonus/score.png`;
     case BonusType.Harvest:
-      return `${basePath}/bonus/wave.png`;
+      return `${basePath}/bonus/harvest.png`;
     case BonusType.Wave:
-      return `${basePath}/bonus/shrink.svg`;
+      return `${basePath}/bonus/wave.svg`;
     case BonusType.Supply:
-      return `${basePath}/bonus/shuffle.svg`;
+      return `${basePath}/bonus/supply.svg`;
     default:
       return "";
   }

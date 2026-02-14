@@ -4,7 +4,7 @@ import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { useComponentValue } from "@dojoengine/react";
 import { useAccount } from "@starknet-react/core";
 import { normalizeEntityId } from "@/utils/entityId";
-import { normalizeAddress } from "@/utils/address";
+import { padAddress } from "@/utils/address";
 import { getSyncEntities } from "@dojoengine/state";
 import { KeysClause } from "@dojoengine/sdk";
 
@@ -93,14 +93,14 @@ export const usePlayerMeta = () => {
   useEffect(() => {
     if (!address || !toriiClient) return;
 
-    const normalizedAddr = normalizeAddress(address);
+    const paddedAddr = padAddress(address);
 
     getSyncEntities(
       toriiClient,
       contractComponents as any,
       KeysClause(
         [playerMetaModel],
-        [normalizedAddr],
+        [paddedAddr],
         "FixedLen",
       ).build(),
       [],

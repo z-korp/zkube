@@ -535,21 +535,21 @@ export const ShopPage = ({
     }
   }, [isConfirmingPurchase, pending]);
 
-  const startingHammer = playerMeta?.startingHammer ?? 0;
+  const startingCombo = playerMeta?.startingCombo ?? 0;
+  const startingHarvest = playerMeta?.startingHarvest ?? 0;
+  const startingScore = playerMeta?.startingScore ?? 0;
   const startingWave = playerMeta?.startingWave ?? 0;
-  const startingTotem = playerMeta?.startingTotem ?? 0;
-  const startingShrink = playerMeta?.startingShrink ?? 0;
-  const startingShuffle = playerMeta?.startingShuffle ?? 0;
+  const startingSupply = playerMeta?.startingSupply ?? 0;
 
-  const bagHammer = playerMeta?.bagHammerLevel ?? 0;
+  const bagCombo = playerMeta?.bagComboLevel ?? 0;
+  const bagHarvest = playerMeta?.bagHarvestLevel ?? 0;
+  const bagScore = playerMeta?.bagScoreLevel ?? 0;
   const bagWave = playerMeta?.bagWaveLevel ?? 0;
-  const bagTotem = playerMeta?.bagTotemLevel ?? 0;
-  const bagShrink = playerMeta?.bagShrinkLevel ?? 0;
-  const bagShuffle = playerMeta?.bagShuffleLevel ?? 0;
+  const bagSupply = playerMeta?.bagSupplyLevel ?? 0;
 
   const bridgingRank = playerMeta?.bridgingRank ?? 0;
-  const shrinkUnlocked = playerMeta?.shrinkUnlocked ?? false;
-  const shuffleUnlocked = playerMeta?.shuffleUnlocked ?? false;
+  const waveUnlocked = playerMeta?.waveUnlocked ?? false;
+  const supplyUnlocked = playerMeta?.supplyUnlocked ?? false;
 
   const startingCosts = STARTING_BONUS_COSTS;
   const bagCosts = BAG_SIZE_COSTS;
@@ -606,78 +606,78 @@ export const ShopPage = ({
 
           <pixiContainer y={-scrollY}>
             <UpgradeCard
-              title="Hammer"
-              icon="🔨"
-              startingLevel={startingHammer}
-              bagLevel={bagHammer}
+              title="Combo"
+              icon="🔥"
+              startingLevel={startingCombo}
+              bagLevel={bagCombo}
               isUnlocked={true}
               x={0}
               y={0}
               width={cardW}
               height={cardH}
               cubeBalance={cubeBalance}
-              onUpgradeStarting={() => requestPurchase('Upgrade Hammer Starting', startingCosts[startingHammer] ?? 0, () => onUpgradeStartingBonus?.(1))}
-              onUpgradeBag={() => requestPurchase('Upgrade Hammer Bag', bagCosts[bagHammer] ?? 0, () => onUpgradeBagSize?.(1))}
+              onUpgradeStarting={() => requestPurchase('Upgrade Combo Starting', startingCosts[startingCombo] ?? 0, () => onUpgradeStartingBonus?.(1))}
+              onUpgradeBag={() => requestPurchase('Upgrade Combo Bag', bagCosts[bagCombo] ?? 0, () => onUpgradeBagSize?.(1))}
+            />
+            <UpgradeCard
+              title="Harvest"
+              icon="🌾"
+              startingLevel={startingHarvest}
+              bagLevel={bagHarvest}
+              isUnlocked={true}
+              x={cardW + cardGap}
+              y={0}
+              width={cardW}
+              height={cardH}
+              cubeBalance={cubeBalance}
+              onUpgradeStarting={() => requestPurchase('Upgrade Harvest Starting', startingCosts[startingHarvest] ?? 0, () => onUpgradeStartingBonus?.(3))}
+              onUpgradeBag={() => requestPurchase('Upgrade Harvest Bag', bagCosts[bagHarvest] ?? 0, () => onUpgradeBagSize?.(3))}
+            />
+
+            <UpgradeCard
+              title="Score"
+              icon="⭐"
+              startingLevel={startingScore}
+              bagLevel={bagScore}
+              isUnlocked={true}
+              x={0}
+              y={cardH + cardGap}
+              width={cardW}
+              height={cardH}
+              cubeBalance={cubeBalance}
+              onUpgradeStarting={() => requestPurchase('Upgrade Score Starting', startingCosts[startingScore] ?? 0, () => onUpgradeStartingBonus?.(2))}
+              onUpgradeBag={() => requestPurchase('Upgrade Score Bag', bagCosts[bagScore] ?? 0, () => onUpgradeBagSize?.(2))}
             />
             <UpgradeCard
               title="Wave"
               icon="🌊"
               startingLevel={startingWave}
               bagLevel={bagWave}
-              isUnlocked={true}
-              x={cardW + cardGap}
-              y={0}
-              width={cardW}
-              height={cardH}
-              cubeBalance={cubeBalance}
-              onUpgradeStarting={() => requestPurchase('Upgrade Wave Starting', startingCosts[startingWave] ?? 0, () => onUpgradeStartingBonus?.(3))}
-              onUpgradeBag={() => requestPurchase('Upgrade Wave Bag', bagCosts[bagWave] ?? 0, () => onUpgradeBagSize?.(3))}
-            />
-
-            <UpgradeCard
-              title="Totem"
-              icon="🗿"
-              startingLevel={startingTotem}
-              bagLevel={bagTotem}
-              isUnlocked={true}
-              x={0}
-              y={cardH + cardGap}
-              width={cardW}
-              height={cardH}
-              cubeBalance={cubeBalance}
-              onUpgradeStarting={() => requestPurchase('Upgrade Totem Starting', startingCosts[startingTotem] ?? 0, () => onUpgradeStartingBonus?.(2))}
-              onUpgradeBag={() => requestPurchase('Upgrade Totem Bag', bagCosts[bagTotem] ?? 0, () => onUpgradeBagSize?.(2))}
-            />
-            <UpgradeCard
-              title="Shrink"
-              icon="🔻"
-              startingLevel={startingShrink}
-              bagLevel={bagShrink}
-              isUnlocked={shrinkUnlocked}
+              isUnlocked={waveUnlocked}
               x={cardW + cardGap}
               y={cardH + cardGap}
               width={cardW}
               height={cardH}
               cubeBalance={cubeBalance}
-              onUpgradeStarting={() => requestPurchase('Upgrade Shrink Starting', startingCosts[startingShrink] ?? 0, () => onUpgradeStartingBonus?.(4))}
-              onUpgradeBag={() => requestPurchase('Upgrade Shrink Bag', bagCosts[bagShrink] ?? 0, () => onUpgradeBagSize?.(4))}
-              onUnlock={() => requestPurchase('Unlock Shrink', UNLOCK_BONUS_COST, () => onUnlockBonus?.(4))}
+              onUpgradeStarting={() => requestPurchase('Upgrade Wave Starting', startingCosts[startingWave] ?? 0, () => onUpgradeStartingBonus?.(4))}
+              onUpgradeBag={() => requestPurchase('Upgrade Wave Bag', bagCosts[bagWave] ?? 0, () => onUpgradeBagSize?.(4))}
+              onUnlock={() => requestPurchase('Unlock Wave', UNLOCK_BONUS_COST, () => onUnlockBonus?.(4))}
             />
 
             <UpgradeCard
-              title="Shuffle"
-              icon="🔀"
-              startingLevel={startingShuffle}
-              bagLevel={bagShuffle}
-              isUnlocked={shuffleUnlocked}
+              title="Supply"
+              icon="📦"
+              startingLevel={startingSupply}
+              bagLevel={bagSupply}
+              isUnlocked={supplyUnlocked}
               x={0}
               y={(cardH + cardGap) * 2}
               width={cardW}
               height={cardH}
               cubeBalance={cubeBalance}
-              onUpgradeStarting={() => requestPurchase('Upgrade Shuffle Starting', startingCosts[startingShuffle] ?? 0, () => onUpgradeStartingBonus?.(5))}
-              onUpgradeBag={() => requestPurchase('Upgrade Shuffle Bag', bagCosts[bagShuffle] ?? 0, () => onUpgradeBagSize?.(5))}
-              onUnlock={() => requestPurchase('Unlock Shuffle', UNLOCK_BONUS_COST, () => onUnlockBonus?.(5))}
+              onUpgradeStarting={() => requestPurchase('Upgrade Supply Starting', startingCosts[startingSupply] ?? 0, () => onUpgradeStartingBonus?.(5))}
+              onUpgradeBag={() => requestPurchase('Upgrade Supply Bag', bagCosts[bagSupply] ?? 0, () => onUpgradeBagSize?.(5))}
+              onUnlock={() => requestPurchase('Unlock Supply', UNLOCK_BONUS_COST, () => onUnlockBonus?.(5))}
             />
             <BridgingCard
               rank={bridgingRank}

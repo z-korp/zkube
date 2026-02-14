@@ -21,7 +21,7 @@ import {
   type RawClaimed,
 } from "@/dojo/models/quest";
 import { NAMESPACE, QUEST_REWARDS } from "@/constants";
-import { normalizeAddress } from "@/utils/address";
+import { padAddress } from "@/utils/address";
 import { showToast } from "@/utils/toast";
 import { createLogger } from "@/utils/logger";
 
@@ -59,7 +59,7 @@ const getQuestEventQuery = (namespace: string) => {
 const getPlayerEntityQuery = (namespace: string, playerId: string) => {
   const completion: `${string}-${string}` = `${namespace}-${QuestCompletion.getModelName()}`;
   const advancement: `${string}-${string}` = `${namespace}-${QuestAdvancement.getModelName()}`;
-  const key = normalizeAddress(playerId);
+  const key = padAddress(playerId);
   const clauses = new ClauseBuilder().keys(
     [completion, advancement],
     [key],
@@ -74,7 +74,7 @@ const getPlayerEventQuery = (namespace: string, playerId: string) => {
   const unlocked: `${string}-${string}` = `${namespace}-${QuestUnlocked.getModelName()}`;
   const completed: `${string}-${string}` = `${namespace}-${QuestCompleted.getModelName()}`;
   const claimed: `${string}-${string}` = `${namespace}-${QuestClaimed.getModelName()}`;
-  const key = normalizeAddress(playerId);
+  const key = padAddress(playerId);
   const clauses = new ClauseBuilder().keys(
     [unlocked, completed, claimed],
     [key],

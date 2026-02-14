@@ -154,15 +154,15 @@ export const ASSET_CATALOG: Record<AssetId, AssetMeta> = {
   [AssetId.Logo]: { filename: 'logo.png', kind: 'texture', bundle: 'essential' },
 
   // Decorative
-  [AssetId.DecoLeft]: { filename: 'palmtree-left.png', kind: 'texture', bundle: 'ui' },
-  [AssetId.DecoRight]: { filename: 'palmtree-right.png', kind: 'texture', bundle: 'ui' },
+  [AssetId.DecoLeft]: { filename: 'deco-left.png', kind: 'texture', bundle: 'ui' },
+  [AssetId.DecoRight]: { filename: 'deco-right.png', kind: 'texture', bundle: 'ui' },
 
-  // Bonus icons (TODO: replace placeholder filenames with actual V3 assets)
-  [AssetId.BonusCombo]: { filename: 'bonus/hammer.png', kind: 'texture', bundle: 'gameplay' },
-  [AssetId.BonusScore]: { filename: 'bonus/tiki.png', kind: 'texture', bundle: 'gameplay' },
-  [AssetId.BonusHarvest]: { filename: 'bonus/wave.png', kind: 'texture', bundle: 'gameplay' },
-  [AssetId.BonusWave]: { filename: 'bonus/shrink.svg', kind: 'texture', bundle: 'gameplay' },
-  [AssetId.BonusSupply]: { filename: 'bonus/shuffle.svg', kind: 'texture', bundle: 'gameplay' },
+  // Bonus icons
+  [AssetId.BonusCombo]: { filename: 'bonus/combo.png', kind: 'texture', bundle: 'gameplay' },
+  [AssetId.BonusScore]: { filename: 'bonus/score.png', kind: 'texture', bundle: 'gameplay' },
+  [AssetId.BonusHarvest]: { filename: 'bonus/harvest.png', kind: 'texture', bundle: 'gameplay' },
+  [AssetId.BonusWave]: { filename: 'bonus/wave.svg', kind: 'texture', bundle: 'gameplay' },
+  [AssetId.BonusSupply]: { filename: 'bonus/supply.svg', kind: 'texture', bundle: 'gameplay' },
 
   // 9-slice panels
   [AssetId.PanelWood]: { filename: 'panels/panel-wood.png', kind: 'texture', borders: P, bundle: 'ui' },
@@ -209,9 +209,9 @@ export const ASSET_CATALOG: Record<AssetId, AssetMeta> = {
   [AssetId.SfxOver]: { filename: 'sounds/effects/over.mp3', kind: 'sound', bundle: 'audio' },
 
   // Sounds — music
-  [AssetId.Music1]: { filename: 'sounds/musics/theme-jungle.mp3', kind: 'sound', bundle: 'audio' },
-  [AssetId.Music2]: { filename: 'sounds/musics/theme-jungle2.mp3', kind: 'sound', bundle: 'audio' },
-  [AssetId.Music3]: { filename: 'sounds/musics/theme-jungle3.mp3', kind: 'sound', bundle: 'audio' },
+  [AssetId.Music1]: { filename: 'sounds/musics/track-1.mp3', kind: 'sound', bundle: 'audio' },
+  [AssetId.Music2]: { filename: 'sounds/musics/track-2.mp3', kind: 'sound', bundle: 'audio' },
+  [AssetId.Music3]: { filename: 'sounds/musics/track-3.mp3', kind: 'sound', bundle: 'audio' },
   [AssetId.MusicIntro]: { filename: 'sounds/musics/intro.mp3', kind: 'sound', bundle: 'audio' },
 };
 

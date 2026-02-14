@@ -15,13 +15,8 @@ const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
 const namespace = VITE_PUBLIC_NAMESPACE || "zkube_budo_v1_2_0";
 const log = createLogger("dojo/setup");
 
-function padHex(hex: string): string {
-  if (!hex || !hex.startsWith("0x")) return hex;
-  return `0x${hex.slice(2).padStart(64, "0")}`;
-}
-
 export async function setup({ ...config }: Config) {
-  const worldAddress = padHex(config.manifest.world.address || "");
+  const worldAddress = config.manifest.world.address || "";
 
   log.info("Initializing Dojo setup", {
     toriiUrl: config.toriiUrl,
