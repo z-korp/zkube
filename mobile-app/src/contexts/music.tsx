@@ -62,7 +62,7 @@ const STORAGE_KEY = "zkube_audio_settings";
 const DEFAULT_MUSIC_VOLUME = 0.2;
 const DEFAULT_EFFECTS_VOLUME = 0.2;
 
-function loadAudioSettings(): { musicVolume: number; effectsVolume: number } {
+function loadAudioSettings(): { musicVolume: number; effectsVolume: number; musicEnabled: boolean } {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
@@ -70,15 +70,16 @@ function loadAudioSettings(): { musicVolume: number; effectsVolume: number } {
       return {
         musicVolume: typeof parsed.musicVolume === "number" ? parsed.musicVolume : DEFAULT_MUSIC_VOLUME,
         effectsVolume: typeof parsed.effectsVolume === "number" ? parsed.effectsVolume : DEFAULT_EFFECTS_VOLUME,
+        musicEnabled: typeof parsed.musicEnabled === "boolean" ? parsed.musicEnabled : false,
       };
     }
   } catch { /* ignore corrupt data */ }
-  return { musicVolume: DEFAULT_MUSIC_VOLUME, effectsVolume: DEFAULT_EFFECTS_VOLUME };
+  return { musicVolume: DEFAULT_MUSIC_VOLUME, effectsVolume: DEFAULT_EFFECTS_VOLUME, musicEnabled: false };
 }
 
-function saveAudioSettings(musicVolume: number, effectsVolume: number) {
+function saveAudioSettings(musicVolume: number, effectsVolume: number, musicEnabled: boolean) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ musicVolume, effectsVolume }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ musicVolume, effectsVolume, musicEnabled }));
   } catch { /* localStorage full or unavailable */ }
 }
 
@@ -92,15 +93,24 @@ export const MusicPlayerProvider = ({
 
   const saved = useRef(loadAudioSettings());
   const [isMenu, setIsMenu] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(saved.current.musicEnabled);
   const [musicVolume, setMusicVolumeState] = useState(saved.current.musicVolume);
   const [effectsVolume, setEffectsVolumeState] = useState(saved.current.effectsVolume);
   const prevThemeRef = useRef<ThemeId>(themeId);
   const themeIdRef = useRef(themeId);
   themeIdRef.current = themeId;
+  const isPlayingRef = useRef(isPlaying);
+  isPlayingRef.current = isPlaying;
+  const isMenuRef = useRef(isMenu);
+  isMenuRef.current = isMenu;
 
   const handleFirstGesture = useCallback(() => {
     soundManager.preloadTheme(themeIdRef.current);
+    // Auto-resume music if it was enabled before reload
+    if (isPlayingRef.current) {
+      const track = isMenuRef.current ? AssetId.Music2 : AssetId.Music3;
+      soundManager.bgm.play(themeIdRef.current, track);
+    }
   }, []);
 
   const gestureReady = useUserGesture(handleFirstGesture);
@@ -134,8 +144,8 @@ export const MusicPlayerProvider = ({
   }, [effectsVolume]);
 
   useEffect(() => {
-    saveAudioSettings(musicVolume, effectsVolume);
-  }, [musicVolume, effectsVolume]);
+    saveAudioSettings(musicVolume, effectsVolume, isPlaying);
+  }, [musicVolume, effectsVolume, isPlaying]);
 
   const playTheme = useCallback(() => {
     const track = isMenu ? AssetId.Music2 : AssetId.Music3;
