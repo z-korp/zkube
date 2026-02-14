@@ -22,6 +22,7 @@ import {
   FederatedWheelEvent,
   Graphics as PixiGraphics,
   Container as PixiContainer,
+  Rectangle,
 } from 'pixi.js';
 
 export interface PixiScrollContainerProps {
@@ -192,6 +193,8 @@ export function PixiScrollContainer({
     setIsDragging(false);
   }, []);
 
+  const hitArea = useMemo(() => new Rectangle(0, 0, width, height), [width, height]);
+
   // Apply mask to content
   useEffect(() => {
     if (contentRef.current && maskRef.current) {
@@ -216,10 +219,10 @@ export function PixiScrollContainer({
         alpha={0}
       />
 
-      {/* Scrollable content area */}
       <pixiContainer
         ref={(ref) => { contentRef.current = ref; }}
         eventMode="static"
+        hitArea={hitArea}
         onWheel={handleWheel}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}

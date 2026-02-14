@@ -47,7 +47,6 @@ export interface MapNodeProps {
   x: number;
   y: number;
   onTap?: (node: MapNodeData) => void;
-  /** Stagger delay in ms before this node fades in on mount */
   entryDelay?: number;
 }
 
@@ -57,7 +56,7 @@ export interface MapNodeProps {
 
 const ClassicNode = ({ node, x, y, onTap, entryDelay = 0 }: MapNodeProps) => {
   const [pressed, setPressed] = useState(false);
-  const isInteractive = node.state === 'current' || node.state === 'available';
+  const isInteractive = node.state === 'current' || node.state === 'available' || node.state === 'cleared';
   const colors = STATE_COLORS[node.state];
   const themeColors = getThemeColors(node.zoneTheme);
 
@@ -143,7 +142,7 @@ const ClassicNode = ({ node, x, y, onTap, entryDelay = 0 }: MapNodeProps) => {
     [node.state],
   );
 
-  const labelText = node.state === 'cleared' ? '\u2713' : String(node.contractLevel ?? '');
+  const labelText = node.state === 'cleared' ? '✓' : String(node.contractLevel ?? '');
 
   return (
     <pixiContainer
@@ -194,7 +193,7 @@ const ClassicNode = ({ node, x, y, onTap, entryDelay = 0 }: MapNodeProps) => {
 
 const BossNode = ({ node, x, y, onTap, entryDelay = 0 }: MapNodeProps) => {
   const [pressed, setPressed] = useState(false);
-  const isInteractive = node.state === 'current' || node.state === 'available';
+  const isInteractive = node.state === 'current' || node.state === 'available' || node.state === 'cleared';
   const colors = STATE_COLORS[node.state];
 
   const { containerRef: pulseRef } = usePulseRef(node.state === 'current', {
@@ -297,7 +296,7 @@ const BossNode = ({ node, x, y, onTap, entryDelay = 0 }: MapNodeProps) => {
     [node.state],
   );
 
-  const iconText = node.state === 'cleared' ? '\u2713' : '\u2605';
+  const iconText = node.state === 'cleared' ? '✓' : '★';
 
   return (
     <pixiContainer
@@ -428,7 +427,7 @@ const ShopNode = ({ node, x, y, onTap, entryDelay = 0 }: MapNodeProps) => {
           }}
           onPointerUpOutside={() => setPressed(false)}
         />
-        <pixiText text={node.state === 'visited' ? '\u2713' : '\uD83D\uDED2'} x={0} y={0} anchor={0.5} style={iconStyle} eventMode="none" />
+        <pixiText text={node.state === 'visited' ? '✓' : '🛒'} x={0} y={0} anchor={0.5} style={iconStyle} eventMode="none" />
       </pixiContainer>
     </pixiContainer>
   );

@@ -142,7 +142,7 @@ export const ASSET_CATALOG: Record<AssetId, AssetMeta> = {
   [AssetId.GridFrame]: { filename: 'grid-frame.png', kind: 'texture', bundle: 'essential' },
 
   // Backgrounds
-  [AssetId.Background]: { filename: 'theme-2-1.png', kind: 'texture', bundle: 'essential' },
+  [AssetId.Background]: { filename: 'background.png', kind: 'texture', bundle: 'essential' },
   [AssetId.LoadingBg]: { filename: 'loading-bg.png', kind: 'texture', bundle: 'essential' },
 
   // UI Chrome

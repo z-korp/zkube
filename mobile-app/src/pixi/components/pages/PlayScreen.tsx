@@ -21,8 +21,12 @@ import { usePulseRef } from '../../hooks/useAnimatedValue';
 import { usePlayGame, type BonusSlotData as PlayBonusSlotData } from '../../hooks/usePlayGame';
 import type { Block } from '@/types/types';
 import type { ConstraintData } from '../hud';
-import { FONT_TITLE, FONT_BOLD, FONT_BODY, THEME_ASSETS } from '../../utils/colors';
+import { FONT_TITLE, FONT_BOLD, FONT_BODY } from '../../utils/colors';
+import type { ThemeId } from '../../utils/colors';
 import { loadTextureCached, getFallbackTexture } from '../../assets/textureLoader';
+import { resolveAsset } from '../../assets/resolver';
+import { AssetId } from '../../assets/catalog';
+import { useTextureWithFallback } from '../../hooks/useTexture';
 import { TickerConfig } from '../TickerConfig';
 
 const LOADING_TITLE_STYLE = {
@@ -83,8 +87,9 @@ function useTexture(path: string): Texture | null {
 }
 
 const SkyBackground = ({ w, h }: { w: number; h: number }) => {
-  const { getAssetPath } = usePixiTheme();
-  const bgTex = useTexture(getAssetPath(THEME_ASSETS.background));
+  const { themeName } = usePixiTheme();
+  const bgCandidates = useMemo(() => resolveAsset(themeName as ThemeId, AssetId.Background), [themeName]);
+  const bgTex = useTextureWithFallback(bgCandidates);
 
   const drawGradient = useCallback((g: PixiGraphics) => {
     g.clear();
@@ -196,9 +201,10 @@ const StatsBar = ({
   combo: number; isInDanger: boolean; cubeBalance: number;
   onHomeClick: () => void;
 }) => {
-  const { colors, getAssetPath } = usePixiTheme();
+  const { colors, themeName } = usePixiTheme();
   const { containerRef: dangerContainerRef } = usePulseRef(isInDanger, { minScale: 1.0, maxScale: 1.08, duration: 400 });
-  const hudTex = useTexture(getAssetPath(THEME_ASSETS.hudBar));
+  const hudCandidates = useMemo(() => resolveAsset(themeName as ThemeId, AssetId.HudBar), [themeName]);
+  const hudTex = useTextureWithFallback(hudCandidates);
 
   const pad = Math.round(8 * uiScale);
   const barX = gridX - pad;
@@ -329,9 +335,10 @@ const ProgressHudBar = ({
   constraint2?: ConstraintData;
   constraint3?: ConstraintData;
 }) => {
-  const { colors, getAssetPath } = usePixiTheme();
+  const { colors, themeName } = usePixiTheme();
   const scoreProgress = Math.min(1, levelScore / Math.max(targetScore, 1));
-  const hudTex = useTexture(getAssetPath(THEME_ASSETS.hudBar));
+  const hudCandidates = useMemo(() => resolveAsset(themeName as ThemeId, AssetId.HudBar), [themeName]);
+  const hudTex = useTextureWithFallback(hudCandidates);
 
   const hasC1 = constraint1 && constraint1.type !== ConstraintType.None;
   const hasC2 = constraint2 && constraint2.type !== ConstraintType.None;

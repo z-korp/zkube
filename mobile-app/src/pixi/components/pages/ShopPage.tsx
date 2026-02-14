@@ -308,6 +308,7 @@ const BridgingCard = ({
 interface ShopPageProps {
   playerMeta: PlayerMetaData | null;
   cubeBalance: number;
+  isConnected: boolean;
   screenWidth: number;
   screenHeight: number;
   topBarHeight: number;
@@ -426,6 +427,7 @@ const ConfirmOverlay = ({
 export const ShopPage = ({
   playerMeta,
   cubeBalance,
+  isConnected,
   screenWidth,
   screenHeight,
   topBarHeight,
@@ -565,7 +567,7 @@ export const ShopPage = ({
       />
 
       <pixiContainer x={contentX} y={contentTop}>
-        {!playerMeta ? (
+        {!isConnected || !playerMeta ? (
           <pixiContainer>
             <pixiText
               text="🛒"
@@ -576,7 +578,7 @@ export const ShopPage = ({
               eventMode="none"
             />
             <pixiText
-              text="Connect to view shop"
+              text={isConnected ? "Loading shop..." : "Connect to view shop"}
               x={contentWidth / 2}
               y={110}
               anchor={0.5}
@@ -584,7 +586,7 @@ export const ShopPage = ({
               eventMode="none"
             />
             <pixiText
-              text="Log in to upgrade bonuses and abilities"
+              text={isConnected ? "Fetching your upgrades" : "Log in to upgrade bonuses and abilities"}
               x={contentWidth / 2}
               y={138}
               anchor={0.5}

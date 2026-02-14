@@ -303,6 +303,7 @@ export const Home = () => {
 
   const mapSeed = selectedGame ? selectedGameSeed : undefined;
   const mapCurrentLevel = selectedGame ? selectedGame.level : undefined;
+  const mapIsGameOver = selectedGame ? Boolean(selectedGame.over) : false;
 
   const handleConnect = useCallback(() => {
     const target = connectors.find((c) => c.id === "controller") ?? connectors[0];
@@ -464,6 +465,7 @@ export const Home = () => {
       // Map
       mapSeed={mapSeed}
       mapCurrentLevel={mapCurrentLevel}
+      mapIsGameOver={mapIsGameOver}
       onPlayLevel={handlePlayLevel}
       requestMapNavigation={requestMapNavigation}
       onMapNavigated={handleMapNavigated}

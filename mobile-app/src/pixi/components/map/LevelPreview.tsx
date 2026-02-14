@@ -9,6 +9,7 @@ export interface LevelPreviewProps {
   node: MapNodeData;
   screenWidth: number;
   screenHeight: number;
+  isGameOver?: boolean;
   onPlay?: () => void;
   onClose?: () => void;
 }
@@ -34,17 +35,28 @@ const ENTRANCE_DURATION = 200;
 const BACKDROP_DURATION = 150;
 const PANEL_SLIDE_OFFSET = 30;
 
-export const LevelPreview = ({ node, screenWidth, screenHeight, onPlay, onClose }: LevelPreviewProps) => {
+export const LevelPreview = ({ node, screenWidth, screenHeight, isGameOver = false, onPlay, onClose }: LevelPreviewProps) => {
   const [playPressed, setPlayPressed] = useState(false);
   const [closePressed, setClosePressed] = useState(false);
   const themeColors = getThemeColors(node.zoneTheme);
   const themeMeta = THEME_META[node.zoneTheme];
   const levelConfig = node.levelConfig;
-  const isPlayable = node.state === 'current' || node.state === 'available';
+  const isPlayable = !isGameOver && (node.state === 'current' || node.state === 'available');
   const isCleared = node.state === 'cleared';
+  const isDeathLevel = isGameOver && node.state === 'current';
 
   const hasConstraint3 = levelConfig && levelConfig.constraint3.constraintType !== ConstraintType.None;
-  const panelH = node.type === 'shop' ? 160 : isCleared ? 180 : hasConstraint3 ? PANEL_H_BASE + 22 : PANEL_H_BASE;
+  const showConstraints = isPlayable || isCleared || isDeathLevel;
+  const constraintRows = levelConfig ? [
+    levelConfig.constraint.constraintType !== ConstraintType.None,
+    levelConfig.constraint2.constraintType !== ConstraintType.None,
+    levelConfig.constraint3.constraintType !== ConstraintType.None,
+  ].filter(Boolean).length : 0;
+  const panelH = node.type === 'shop' ? 160
+    : isDeathLevel ? PANEL_H_BASE + constraintRows * 22 + 10
+    : isCleared ? PANEL_H_BASE + constraintRows * 22
+    : hasConstraint3 ? PANEL_H_BASE + 22
+    : PANEL_H_BASE;
   const panelX = (screenWidth - PANEL_W) / 2;
   const panelY = (screenHeight - panelH) / 2;
 
@@ -179,7 +191,7 @@ export const LevelPreview = ({ node, screenWidth, screenHeight, onPlay, onClose 
             onPointerUp={() => { setClosePressed(false); onClose?.(); }}
             onPointerUpOutside={() => setClosePressed(false)}
           />
-          <pixiText text="\u2715" x={16} y={16} anchor={0.5} style={closeBtnTextStyle} eventMode="none" />
+          <pixiText text="✕" x={16} y={16} anchor={0.5} style={closeBtnTextStyle} eventMode="none" />
         </pixiContainer>
 
         <pixiText text={title} x={PANEL_W / 2} y={20} anchor={{ x: 0.5, y: 0 }} style={titleStyle} eventMode="none" />
@@ -203,69 +215,76 @@ export const LevelPreview = ({ node, screenWidth, screenHeight, onPlay, onClose 
             <pixiText text="Difficulty" x={20} y={0} style={labelStyle} eventMode="none" />
             <pixiText text={diffInfo?.label ?? ''} x={PANEL_W - 20} y={0} anchor={{ x: 1, y: 0 }} style={diffStyle} eventMode="none" />
 
-            {isPlayable && (
-              <pixiContainer>
-                <pixiText text="Target Score" x={20} y={lineH} style={labelStyle} eventMode="none" />
-                <pixiText text={String(levelConfig.pointsRequired)} x={PANEL_W - 20} y={lineH} anchor={{ x: 1, y: 0 }} style={valueStyle} eventMode="none" />
-
-                <pixiText text="Max Moves" x={20} y={lineH * 2} style={labelStyle} eventMode="none" />
-                <pixiText text={String(levelConfig.maxMoves)} x={PANEL_W - 20} y={lineH * 2} anchor={{ x: 1, y: 0 }} style={valueStyle} eventMode="none" />
-
-                {levelConfig.constraint.constraintType !== ConstraintType.None && (
-                  <pixiContainer>
-                    <pixiText text="Constraint" x={20} y={lineH * 3} style={labelStyle} eventMode="none" />
-                    <pixiText
-                      text={levelConfig.constraint.getLabel()}
-                      x={PANEL_W - 20}
-                      y={lineH * 3}
-                      anchor={{ x: 1, y: 0 }}
-                      style={valueStyle}
-                      eventMode="none"
-                    />
-                  </pixiContainer>
-                )}
-
-                {levelConfig.constraint2.constraintType !== ConstraintType.None && (
-                  <pixiContainer>
-                    <pixiText text="Constraint 2" x={20} y={lineH * 4} style={labelStyle} eventMode="none" />
-                    <pixiText
-                      text={levelConfig.constraint2.getLabel()}
-                      x={PANEL_W - 20}
-                      y={lineH * 4}
-                      anchor={{ x: 1, y: 0 }}
-                      style={valueStyle}
-                      eventMode="none"
-                    />
-                  </pixiContainer>
-                )}
-
-                {levelConfig.constraint3.constraintType !== ConstraintType.None && (
-                  <pixiContainer>
-                    <pixiText text="Constraint 3" x={20} y={lineH * 5} style={labelStyle} eventMode="none" />
-                    <pixiText
-                      text={levelConfig.constraint3.getLabel()}
-                      x={PANEL_W - 20}
-                      y={lineH * 5}
-                      anchor={{ x: 1, y: 0 }}
-                      style={valueStyle}
-                      eventMode="none"
-                    />
-                  </pixiContainer>
-                )}
-              </pixiContainer>
-            )}
-
-            {isCleared && (
+            {(isCleared || isDeathLevel) && (
               <pixiContainer>
                 <pixiText text="Status" x={20} y={lineH} style={labelStyle} eventMode="none" />
                 <pixiText
-                  text="\u2713 Cleared"
+                  text={isDeathLevel ? "💀 Died here" : "✓ Cleared"}
                   x={PANEL_W - 20}
                   y={lineH}
                   anchor={{ x: 1, y: 0 }}
-                  style={new TextStyle({ fontFamily: FONT_BOLD, fontSize: 13, fontWeight: 'bold', fill: 0x22c55e })}
+                  style={new TextStyle({ fontFamily: FONT_BOLD, fontSize: 13, fontWeight: 'bold', fill: isDeathLevel ? 0xef4444 : 0x22c55e })}
                   eventMode="none"
                 />
+              </pixiContainer>
+            )}
+
+            {showConstraints && (
+              <pixiContainer>
+                {(() => {
+                  const startRow = (isCleared || isDeathLevel) ? 2 : 1;
+                  return (
+                    <>
+                      <pixiText text="Target Score" x={20} y={lineH * startRow} style={labelStyle} eventMode="none" />
+                      <pixiText text={String(levelConfig.pointsRequired)} x={PANEL_W - 20} y={lineH * startRow} anchor={{ x: 1, y: 0 }} style={valueStyle} eventMode="none" />
+
+                      <pixiText text="Max Moves" x={20} y={lineH * (startRow + 1)} style={labelStyle} eventMode="none" />
+                      <pixiText text={String(levelConfig.maxMoves)} x={PANEL_W - 20} y={lineH * (startRow + 1)} anchor={{ x: 1, y: 0 }} style={valueStyle} eventMode="none" />
+
+                      {levelConfig.constraint.constraintType !== ConstraintType.None && (
+                        <pixiContainer>
+                          <pixiText text="Constraint" x={20} y={lineH * (startRow + 2)} style={labelStyle} eventMode="none" />
+                          <pixiText
+                            text={levelConfig.constraint.getLabel()}
+                            x={PANEL_W - 20}
+                            y={lineH * (startRow + 2)}
+                            anchor={{ x: 1, y: 0 }}
+                            style={valueStyle}
+                            eventMode="none"
+                          />
+                        </pixiContainer>
+                      )}
+
+                      {levelConfig.constraint2.constraintType !== ConstraintType.None && (
+                        <pixiContainer>
+                          <pixiText text="Constraint 2" x={20} y={lineH * (startRow + 3)} style={labelStyle} eventMode="none" />
+                          <pixiText
+                            text={levelConfig.constraint2.getLabel()}
+                            x={PANEL_W - 20}
+                            y={lineH * (startRow + 3)}
+                            anchor={{ x: 1, y: 0 }}
+                            style={valueStyle}
+                            eventMode="none"
+                          />
+                        </pixiContainer>
+                      )}
+
+                      {levelConfig.constraint3.constraintType !== ConstraintType.None && (
+                        <pixiContainer>
+                          <pixiText text="Constraint 3" x={20} y={lineH * (startRow + 4)} style={labelStyle} eventMode="none" />
+                          <pixiText
+                            text={levelConfig.constraint3.getLabel()}
+                            x={PANEL_W - 20}
+                            y={lineH * (startRow + 4)}
+                            anchor={{ x: 1, y: 0 }}
+                            style={valueStyle}
+                            eventMode="none"
+                          />
+                        </pixiContainer>
+                      )}
+                    </>
+                  );
+                })()}
               </pixiContainer>
             )}
           </pixiContainer>

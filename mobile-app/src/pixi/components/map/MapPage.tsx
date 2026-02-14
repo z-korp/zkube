@@ -12,6 +12,7 @@ import { FONT_TITLE } from '../../utils/colors';
 export interface MapPageProps {
   seed: bigint;
   currentLevel: number;
+  isGameOver?: boolean;
   screenWidth: number;
   screenHeight: number;
   topBarHeight: number;
@@ -58,6 +59,7 @@ const MAP_TITLE_STYLE = {
 export const MapPage = ({
   seed,
   currentLevel,
+  isGameOver = false,
   screenWidth,
   screenHeight,
   topBarHeight,
@@ -82,8 +84,11 @@ export const MapPage = ({
   }, [currentNodeY, scrollAreaHeight]);
 
   const handleNodeTap = useCallback((node: MapNodeData) => {
-    setSelectedNode(node);
-  }, []);
+    // Allow tapping cleared/current nodes in game-over mode for review
+    if (isGameOver || node.state === 'current' || node.state === 'available' || node.state === 'cleared') {
+      setSelectedNode(node);
+    }
+  }, [isGameOver]);
 
   const handlePlay = useCallback(() => {
     if (selectedNode?.contractLevel) {
@@ -120,7 +125,7 @@ export const MapPage = ({
           <pixiGraphics draw={drawTitleBar} eventMode="static" onPointerDown={(e: any) => e.stopPropagation()} />
           {onBack && (
             <pixiText
-              text={"\u2190"}
+              text="←"
               x={16}
               y={topBarHeight / 2}
               anchor={{ x: 0, y: 0.5 }}
@@ -200,6 +205,7 @@ export const MapPage = ({
           node={selectedNode}
           screenWidth={screenWidth}
           screenHeight={screenHeight}
+          isGameOver={isGameOver}
           onPlay={handlePlay}
           onClose={handleClosePreview}
         />

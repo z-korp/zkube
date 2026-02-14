@@ -25,8 +25,12 @@ import { PixiToastLayer } from '../ui/PixiToastLayer';
 import type { PlayerMetaData } from '@/hooks/usePlayerMeta';
 import type { LeaderboardEntry } from '@/hooks/useLeaderboardSlot';
 import type { QuestFamily } from '@/types/questFamily';
-import { FONT_TITLE, FONT_BOLD, FONT_BODY, THEME_ASSETS } from '../../utils/colors';
+import { FONT_TITLE, FONT_BOLD, FONT_BODY } from '../../utils/colors';
+import type { ThemeId } from '../../utils/colors';
 import { loadTextureCached } from '../../assets/textureLoader';
+import { resolveAsset } from '../../assets/resolver';
+import { AssetId } from '../../assets/catalog';
+import { useTextureWithFallback } from '../../hooks/useTexture';
 
 const MAIN_FOOTER_STYLE = {
   fontFamily: FONT_BODY, fontSize: 10, fill: 0xFFFFFF,
@@ -94,6 +98,7 @@ export interface MainScreenProps {
   // Map
   mapSeed?: bigint;
   mapCurrentLevel?: number;
+  mapIsGameOver?: boolean;
   onPlayLevel?: (contractLevel: number) => void;
   requestMapNavigation?: boolean;
   onMapNavigated?: () => void;
@@ -133,8 +138,9 @@ function useTexture(path: string): Texture | null {
 // ============================================================================
 
 const SkyBackground = ({ w, h }: { w: number; h: number }) => {
-  const { getAssetPath } = usePixiTheme();
-  const bgTex = useTexture(getAssetPath(THEME_ASSETS.background));
+  const { themeName } = usePixiTheme();
+  const bgCandidates = useMemo(() => resolveAsset(themeName as ThemeId, AssetId.Background), [themeName]);
+  const bgTex = useTextureWithFallback(bgCandidates);
 
   const drawGradient = useCallback((g: PixiGraphics) => {
     g.clear();
@@ -214,8 +220,9 @@ const Clouds = ({ w, h }: { w: number; h: number }) => {
 // ============================================================================
 
 const Logo = ({ x, y, maxW, maxH }: { x: number; y: number; maxW: number; maxH: number }) => {
-  const { getAssetPath } = usePixiTheme();
-  const tex = useTexture(getAssetPath('logo.png'));
+  const { themeName } = usePixiTheme();
+  const logoCandidates = useMemo(() => resolveAsset(themeName as ThemeId, AssetId.Logo), [themeName]);
+  const tex = useTextureWithFallback(logoCandidates);
   const containerRef = useRef<import('pixi.js').Container | null>(null);
   const timeRef = useRef(0);
 
@@ -554,7 +561,7 @@ const PageRenderer = (props: MainScreenProps & {
     questFamilies = [], questsLoading = false, questsStatus = 'success', onRefreshQuests, onClaimQuest,
     onUpgradeStartingBonus, onUpgradeBagSize, onUpgradeBridging, onUnlockBonus,
     isSoundEnabled, isMusicEnabled, onToggleSound, onToggleMusic,
-    mapSeed, mapCurrentLevel, onPlayLevel,
+    mapSeed, mapCurrentLevel, mapIsGameOver, onPlayLevel,
     requestMapNavigation, onMapNavigated,
   } = props;
 
@@ -623,6 +630,7 @@ const PageRenderer = (props: MainScreenProps & {
           <ShopPage
             playerMeta={playerMetaData ?? null}
             cubeBalance={cubeBalance}
+            isConnected={isConnected ?? false}
             screenWidth={sw}
             screenHeight={sh}
             topBarHeight={topBarH}
@@ -684,6 +692,7 @@ const PageRenderer = (props: MainScreenProps & {
           <MapPage
             seed={mapSeed}
             currentLevel={mapCurrentLevel}
+            isGameOver={mapIsGameOver ?? false}
             screenWidth={sw}
             screenHeight={sh}
             topBarHeight={topBarH}

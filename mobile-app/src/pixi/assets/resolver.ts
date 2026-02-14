@@ -21,8 +21,9 @@ export function resolveAsset(themeId: ThemeId, assetId: AssetId): string[] | nul
 
   const procedural = isProceduralTheme(themeId);
 
+  // Procedural themes have no texture files of their own — fall back to theme-1
   if (procedural && meta.kind === 'texture') {
-    return null;
+    return [themeUrl(FALLBACK_THEME, meta.filename)];
   }
 
   const candidates: string[] = [];
