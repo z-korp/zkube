@@ -54,7 +54,6 @@ export const PageNavigatorProvider: React.FC<{ children: React.ReactNode; initia
 
     if (progress >= 1) {
       isAnimatingRef.current = false;
-      transitionProgressRef.current = 0;
       setTickEnabled(false);
       setIsTransitioning(false);
       setTransitionDirection(null);
