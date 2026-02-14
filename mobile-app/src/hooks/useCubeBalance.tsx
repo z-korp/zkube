@@ -5,6 +5,7 @@ import { useCubeBalanceStore } from "@/stores/cubeBalanceStore";
 import { addAddressPadding } from "starknet";
 import type { Subscription, TokenBalance } from "@dojoengine/torii-client";
 import { createLogger } from "@/utils/logger";
+import { padAddress } from "@/utils/address";
 
 const log = createLogger("useCubeBalance");
 
@@ -19,8 +20,6 @@ const parseBigInt = (value: string): bigint => {
     return 0n;
   }
 };
-
-const toHex = (value: string): string => `0x${parseBigInt(value).toString(16)}`;
 
 interface CubeBalanceResult {
   cubeBalance: bigint;
@@ -56,17 +55,15 @@ export const useCubeBalance = (): CubeBalanceResult => {
       return;
     }
 
-    const cubeTokenIdHex = toHex(VITE_PUBLIC_CUBE_TOKEN_ID ?? "0x1");
-    const cubeTokenId = parseBigInt(cubeTokenIdHex);
+    const cubeTokenId = parseBigInt(VITE_PUBLIC_CUBE_TOKEN_ID ?? "0x1");
     const cubeTokenAddress = parseBigInt(VITE_PUBLIC_CUBE_TOKEN_ADDRESS);
 
     try {
       setLoading(true);
 
-      // Normalize addresses with padding
       const contractAddresses = [addAddressPadding(VITE_PUBLIC_CUBE_TOKEN_ADDRESS)];
       const accountAddresses = [addAddressPadding(address)];
-      const tokenIds = [cubeTokenIdHex];
+      const tokenIds = [padAddress(`0x${cubeTokenId.toString(16)}`)];
 
       // Fetch initial balance
       const balances = await toriiClient.getTokenBalances({

@@ -109,6 +109,8 @@ export const usePlayerMeta = () => {
       true,
     ).then((sub) => {
       syncRef.current = sub;
+    }).catch((err) => {
+      console.warn("[usePlayerMeta] getSyncEntities failed:", err);
     });
 
     return () => {
