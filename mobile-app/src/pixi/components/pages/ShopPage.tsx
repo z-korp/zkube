@@ -359,7 +359,6 @@ export const ShopPage = ({
   onUpgradeBridging,
   onUnlockBonus,
 }: ShopPageProps) => {
-  console.log('[ShopPage] isConnected:', isConnected, 'playerMeta:', playerMeta, 'cubeBalance:', cubeBalance);
   const [scrollY, setScrollY] = useState(0);
   const [upgrading, setUpgrading] = useState(false);
   const upgradingRef = useRef(false);
@@ -449,9 +448,14 @@ export const ShopPage = ({
     }
   }, []);
 
-  // ---- PLAYER DATA ----
+  // ---- PLAYER DATA (default to zeros when meta hasn't loaded yet) ----
 
-  const meta = playerMeta;
+  const DEFAULT_META: PlayerMetaData = {
+    startingCombo: 0, startingScore: 0, startingHarvest: 0, startingWave: 0, startingSupply: 0,
+    bagComboLevel: 0, bagScoreLevel: 0, bagHarvestLevel: 0, bagWaveLevel: 0, bagSupplyLevel: 0,
+    bridgingRank: 0, waveUnlocked: false, supplyUnlocked: false, totalRuns: 0, totalCubesEarned: 0,
+  };
+  const meta = playerMeta ?? DEFAULT_META;
   const col2X = cardW + gap;
   const rowY = (r: number) => r * (cardH + gap);
 
@@ -466,8 +470,8 @@ export const ShopPage = ({
       />
 
       <pixiContainer x={contentX} y={contentTop}>
-        {!isConnected || !meta ? (
-          /* Empty / loading state */
+        {!isConnected ? (
+          /* Not connected */
           <pixiContainer>
             <pixiText
               text="🛒"
@@ -478,7 +482,7 @@ export const ShopPage = ({
               eventMode="none"
             />
             <pixiText
-              text={isConnected ? 'Loading shop...' : 'Connect to view shop'}
+              text="Connect to view shop"
               x={contentWidth / 2}
               y={110}
               anchor={0.5}
@@ -486,7 +490,7 @@ export const ShopPage = ({
               eventMode="none"
             />
             <pixiText
-              text={isConnected ? 'Fetching your upgrades' : 'Log in to upgrade bonuses'}
+              text="Log in to upgrade bonuses"
               x={contentWidth / 2}
               y={138}
               anchor={0.5}

@@ -86,7 +86,6 @@ export const Home = () => {
   } = useDojo();
 
   const cubeBalanceNum = Number(cubeBalance);
-  console.log('[Home] account:', !!account, 'playerMeta?.data:', playerMeta?.data, 'cubeBalance:', cubeBalanceNum);
 
   // Leaderboard data
   const {
