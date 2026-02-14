@@ -67,7 +67,7 @@ export async function setup({ ...config }: Config) {
     [],
     modelsToWatch,
     10000,
-    true
+    false
   );
 
   log.info("Entity sync started");
