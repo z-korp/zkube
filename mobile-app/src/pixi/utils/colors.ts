@@ -102,32 +102,31 @@ export interface ThemeColors {
 
 /** All available theme IDs */
 export const THEME_IDS = [
-  'theme-1',    // Tiki / Tropical
-  'theme-2',    // Cosmic / Space
-  'theme-3',    // Neon / Cyberpunk
-  'theme-4',    // Ocean / Deep Sea
-  'theme-5',    // Forest / Enchanted
-  'theme-6',    // Desert / Sand
-  'theme-7',    // Ice / Arctic
-  'theme-8',    // Lava / Volcano
-  'theme-9',    // Candy / Sweet
-  'theme-10',   // Steampunk / Brass
+  'theme-1',    // Tiki
+  'theme-2',    // Cosmic
+  'theme-3',    // Easter Island
+  'theme-4',    // Maya
+  'theme-5',    // Cyberpunk
+  'theme-6',    // Medieval
+  'theme-7',    // Ancient Egypt
+  'theme-8',    // Volcano
+  'theme-9',    // Tribal
+  'theme-10',   // Arctic
 ] as const;
 
 export type ThemeId = typeof THEME_IDS[number];
 
-/** Human-readable theme metadata */
 export const THEME_META: Record<ThemeId, { name: string; icon: string; description: string }> = {
-  'theme-1':  { name: 'Tiki',      icon: '🌴', description: 'Tropical paradise with wooden frames and jungle vibes' },
-  'theme-2':  { name: 'Cosmic',    icon: '🌌', description: 'Deep space with nebula gradients and star fields' },
-  'theme-3':  { name: 'Neon',      icon: '💜', description: 'Cyberpunk neon lights on dark city grid' },
-  'theme-4':  { name: 'Ocean',     icon: '🌊', description: 'Deep sea blues with coral and bioluminescence' },
-  'theme-5':  { name: 'Forest',    icon: '🌿', description: 'Enchanted woodland with moss and fireflies' },
-  'theme-6':  { name: 'Desert',    icon: '🏜️', description: 'Golden sands with terracotta and sun-baked stone' },
-  'theme-7':  { name: 'Arctic',    icon: '❄️', description: 'Frozen tundra with ice crystals and aurora borealis' },
-  'theme-8':  { name: 'Lava',      icon: '🌋', description: 'Volcanic forge with molten rock and obsidian' },
-  'theme-9':  { name: 'Candy',     icon: '🍬', description: 'Sweet pastel world with candy colors' },
-  'theme-10': { name: 'Steampunk', icon: '⚙️', description: 'Brass gears and copper pipes on dark leather' },
+  'theme-1':  { name: 'Tiki',          icon: '🌴', description: 'Tropical paradise with wooden frames and jungle vibes' },
+  'theme-2':  { name: 'Cosmic',        icon: '🌌', description: 'Deep space with nebula gradients and star fields' },
+  'theme-3':  { name: 'Easter Island', icon: '🗿', description: 'Mysterious stone moai and volcanic island landscapes' },
+  'theme-4':  { name: 'Maya',          icon: '🏛️', description: 'Ancient Mesoamerican temples and jade jungle ruins' },
+  'theme-5':  { name: 'Cyberpunk',     icon: '💜', description: 'Neon lights on dark city grid with electric glow' },
+  'theme-6':  { name: 'Medieval',      icon: '⚔️', description: 'Stone castles, iron shields and torchlit halls' },
+  'theme-7':  { name: 'Ancient Egypt', icon: '🏺', description: 'Golden pyramids, hieroglyphs and desert sands' },
+  'theme-8':  { name: 'Volcano',       icon: '🌋', description: 'Volcanic forge with molten rock and obsidian' },
+  'theme-9':  { name: 'Tribal',        icon: '🪘', description: 'Earthy tribal patterns with bold organic shapes' },
+  'theme-10': { name: 'Arctic',        icon: '❄️', description: 'Frozen tundra with ice crystals and aurora borealis' },
 };
 
 /**
@@ -192,11 +191,7 @@ const COSMIC_COLORS: ThemeColors = {
   },
 };
 
-/**
- * Theme 3 — Neon / Cyberpunk
- * Dark background, electric neon outlines, high contrast
- */
-const NEON_COLORS: ThemeColors = {
+const EASTER_ISLAND_COLORS: ThemeColors = {
   background: 0x0A0A1A,
   backgroundGradientStart: 0x0A0A1A,
   backgroundGradientEnd: 0x15152D,
@@ -223,11 +218,7 @@ const NEON_COLORS: ThemeColors = {
   },
 };
 
-/**
- * Theme 4 — Ocean / Deep Sea
- * Aquatic blues and teals, coral accents, bioluminescent glow
- */
-const OCEAN_COLORS: ThemeColors = {
+const MAYA_COLORS: ThemeColors = {
   background: 0x0A2540,
   backgroundGradientStart: 0x0A2540,
   backgroundGradientEnd: 0x053055,
@@ -254,11 +245,7 @@ const OCEAN_COLORS: ThemeColors = {
   },
 };
 
-/**
- * Theme 5 — Forest / Enchanted
- * Deep greens, earthy browns, golden firefly accents
- */
-const FOREST_COLORS: ThemeColors = {
+const CYBERPUNK_COLORS: ThemeColors = {
   background: 0x1A3A1A,
   backgroundGradientStart: 0x1A3A1A,
   backgroundGradientEnd: 0x2D5A27,
@@ -285,11 +272,7 @@ const FOREST_COLORS: ThemeColors = {
   },
 };
 
-/**
- * Theme 6 — Desert / Sand
- * Warm sandy tones, terracotta, sun-baked palette
- */
-const DESERT_COLORS: ThemeColors = {
+const MEDIEVAL_COLORS: ThemeColors = {
   background: 0xC2956B,
   backgroundGradientStart: 0xE8C99B,
   backgroundGradientEnd: 0xC2956B,
@@ -316,11 +299,7 @@ const DESERT_COLORS: ThemeColors = {
   },
 };
 
-/**
- * Theme 7 — Arctic / Ice
- * Cool whites and blues, crystalline, aurora accents
- */
-const ARCTIC_COLORS: ThemeColors = {
+const ANCIENT_EGYPT_COLORS: ThemeColors = {
   background: 0xD0E8F0,
   backgroundGradientStart: 0xE8F4F8,
   backgroundGradientEnd: 0xB0D0E0,
@@ -347,11 +326,7 @@ const ARCTIC_COLORS: ThemeColors = {
   },
 };
 
-/**
- * Theme 8 — Lava / Volcano
- * Dark obsidian, molten orange-red, volcanic cracks
- */
-const LAVA_COLORS: ThemeColors = {
+const VOLCANO_COLORS: ThemeColors = {
   background: 0x1A0A0A,
   backgroundGradientStart: 0x1A0A0A,
   backgroundGradientEnd: 0x2D1010,
@@ -378,11 +353,7 @@ const LAVA_COLORS: ThemeColors = {
   },
 };
 
-/**
- * Theme 9 — Candy / Sweet
- * Pastel pinks, mint, lavender — playful and light
- */
-const CANDY_COLORS: ThemeColors = {
+const TRIBAL_COLORS: ThemeColors = {
   background: 0xFFF0F5,
   backgroundGradientStart: 0xFFF5FA,
   backgroundGradientEnd: 0xFFE0EB,
@@ -409,11 +380,7 @@ const CANDY_COLORS: ThemeColors = {
   },
 };
 
-/**
- * Theme 10 — Steampunk / Brass
- * Dark leather, copper & brass, warm amber accents
- */
-const STEAMPUNK_COLORS: ThemeColors = {
+const ARCTIC_COLORS: ThemeColors = {
   background: 0x2A1F14,
   backgroundGradientStart: 0x2A1F14,
   backgroundGradientEnd: 0x3D2D1C,
@@ -447,14 +414,14 @@ const STEAMPUNK_COLORS: ThemeColors = {
 const THEME_COLORS_MAP: Record<ThemeId, ThemeColors> = {
   'theme-1':  TIKI_COLORS,
   'theme-2':  COSMIC_COLORS,
-  'theme-3':  NEON_COLORS,
-  'theme-4':  OCEAN_COLORS,
-  'theme-5':  FOREST_COLORS,
-  'theme-6':  DESERT_COLORS,
-  'theme-7':  ARCTIC_COLORS,
-  'theme-8':  LAVA_COLORS,
-  'theme-9':  CANDY_COLORS,
-  'theme-10': STEAMPUNK_COLORS,
+  'theme-3':  EASTER_ISLAND_COLORS,
+  'theme-4':  MAYA_COLORS,
+  'theme-5':  CYBERPUNK_COLORS,
+  'theme-6':  MEDIEVAL_COLORS,
+  'theme-7':  ANCIENT_EGYPT_COLORS,
+  'theme-8':  VOLCANO_COLORS,
+  'theme-9':  TRIBAL_COLORS,
+  'theme-10': ARCTIC_COLORS,
 };
 
 export function getThemeColors(theme: string): ThemeColors {

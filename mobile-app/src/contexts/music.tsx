@@ -58,6 +58,30 @@ export const MusicPlayerContext = createContext<{
   playSuccess: () => {},
 });
 
+const STORAGE_KEY = "zkube_audio_settings";
+const DEFAULT_MUSIC_VOLUME = 0.2;
+const DEFAULT_EFFECTS_VOLUME = 0.2;
+
+function loadAudioSettings(): { musicVolume: number; effectsVolume: number } {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        musicVolume: typeof parsed.musicVolume === "number" ? parsed.musicVolume : DEFAULT_MUSIC_VOLUME,
+        effectsVolume: typeof parsed.effectsVolume === "number" ? parsed.effectsVolume : DEFAULT_EFFECTS_VOLUME,
+      };
+    }
+  } catch { /* ignore corrupt data */ }
+  return { musicVolume: DEFAULT_MUSIC_VOLUME, effectsVolume: DEFAULT_EFFECTS_VOLUME };
+}
+
+function saveAudioSettings(musicVolume: number, effectsVolume: number) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ musicVolume, effectsVolume }));
+  } catch { /* localStorage full or unavailable */ }
+}
+
 export const MusicPlayerProvider = ({
   children,
 }: {
@@ -66,10 +90,11 @@ export const MusicPlayerProvider = ({
   const { themeTemplate } = useTheme();
   const themeId = themeTemplate as ThemeId;
 
+  const saved = useRef(loadAudioSettings());
   const [isMenu, setIsMenu] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [musicVolume, setMusicVolumeState] = useState(0.2);
-  const [effectsVolume, setEffectsVolumeState] = useState(0.2);
+  const [musicVolume, setMusicVolumeState] = useState(saved.current.musicVolume);
+  const [effectsVolume, setEffectsVolumeState] = useState(saved.current.effectsVolume);
   const prevThemeRef = useRef<ThemeId>(themeId);
   const themeIdRef = useRef(themeId);
   themeIdRef.current = themeId;
@@ -109,16 +134,8 @@ export const MusicPlayerProvider = ({
   }, [effectsVolume]);
 
   useEffect(() => {
-    const handler = () => {
-      if (document.hidden) {
-        soundManager.pauseAll();
-      } else {
-        soundManager.resumeAll();
-      }
-    };
-    document.addEventListener("visibilitychange", handler);
-    return () => document.removeEventListener("visibilitychange", handler);
-  }, []);
+    saveAudioSettings(musicVolume, effectsVolume);
+  }, [musicVolume, effectsVolume]);
 
   const playTheme = useCallback(() => {
     const track = isMenu ? AssetId.Music2 : AssetId.Music3;

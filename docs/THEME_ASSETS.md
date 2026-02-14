@@ -22,14 +22,14 @@ Sounds always fall back to `theme-1` for themes that don't have their own audio.
 |----|------|------|--------|
 | `theme-1` | Tiki | `🌴` | **Complete** |
 | `theme-2` | Cosmic | `🌌` | **Complete** |
-| `theme-3` | Neon | `💜` | Placeholder (uses theme-1) |
-| `theme-4` | Ocean | `🌊` | Placeholder (uses theme-1) |
-| `theme-5` | Forest | `🌿` | Placeholder (uses theme-1) |
-| `theme-6` | Desert | `🏜️` | Placeholder (uses theme-1) |
-| `theme-7` | Arctic | `❄️` | Placeholder (uses theme-1) |
-| `theme-8` | Lava | `🌋` | Placeholder (uses theme-1) |
-| `theme-9` | Candy | `🍬` | Placeholder (uses theme-1) |
-| `theme-10` | Steampunk | `⚙️` | Placeholder (uses theme-1) |
+| `theme-3` | Easter Island | `🗿` | Placeholder (uses theme-1) |
+| `theme-4` | Maya | `🏛️` | Placeholder (uses theme-1) |
+| `theme-5` | Cyberpunk | `💜` | Placeholder (uses theme-1) |
+| `theme-6` | Medieval | `⚔️` | Placeholder (uses theme-1) |
+| `theme-7` | Ancient Egypt | `🏺` | Placeholder (uses theme-1) |
+| `theme-8` | Volcano | `🌋` | Placeholder (uses theme-1) |
+| `theme-9` | Tribal | `🪘` | Placeholder (uses theme-1) |
+| `theme-10` | Arctic | `❄️` | Placeholder (uses theme-1) |
 
 ## Required Assets Per Theme
 
@@ -276,13 +276,13 @@ Each theme has a full color palette defined in `mobile-app/src/pixi/utils/colors
 |-------|-----------|------|--------|---------|---------|---------|---------|
 | Tiki | `#87CEEB` | `#5D4037` | `#FF8C00` | `#4ADE80` | `#4AA8DE` | `#9F7AEA` | `#FBBF24` |
 | Cosmic | `#0B0D21` | `#12102A` | `#A29BFE` | `#00D2D3` | `#6C5CE7` | `#FD79A8` | `#FDCB6E` |
-| Neon | `#0A0A1A` | `#0D0D22` | `#00FFFF` | `#00FF88` | `#00DDFF` | `#FF00FF` | `#FFFF00` |
-| Ocean | `#0A2540` | `#0C2D4A` | `#00CED1` | `#00E5A0` | `#00B4D8` | `#FF6F91` | `#FFC947` |
-| Forest | `#1A3A1A` | `#1E3E1E` | `#DAA520` | `#66BB6A` | `#42A5F5` | `#AB47BC` | `#FFCA28` |
-| Desert | `#C2956B` | `#9E7E5A` | `#E07B39` | `#E07B39` | `#D4463B` | `#3D9970` | `#E8C547` |
-| Arctic | `#D0E8F0` | `#A8C8D8` | `#40E0D0` | `#40E0D0` | `#5B9BD5` | `#B070D0` | `#F0C060` |
-| Lava | `#1A0A0A` | `#1E0E0E` | `#FF6600` | `#FF6600` | `#FF2222` | `#FFAA00` | `#FF4488` |
-| Candy | `#FFF0F5` | `#F0D0E0` | `#FF69B4` | `#7DCEA0` | `#85C1E9` | `#D7BDE2` | `#F9E154` |
-| Steampunk | `#2A1F14` | `#30241A` | `#D4A017` | `#B87333` | `#C5A050` | `#6B8E23` | `#CC5544` |
+| Easter Island | `#0A0A1A` | `#0D0D22` | `#00FFFF` | `#00FF88` | `#00DDFF` | `#FF00FF` | `#FFFF00` |
+| Maya | `#0A2540` | `#0C2D4A` | `#00CED1` | `#00E5A0` | `#00B4D8` | `#FF6F91` | `#FFC947` |
+| Cyberpunk | `#1A3A1A` | `#1E3E1E` | `#DAA520` | `#66BB6A` | `#42A5F5` | `#AB47BC` | `#FFCA28` |
+| Medieval | `#C2956B` | `#9E7E5A` | `#E07B39` | `#E07B39` | `#D4463B` | `#3D9970` | `#E8C547` |
+| Ancient Egypt | `#D0E8F0` | `#A8C8D8` | `#40E0D0` | `#40E0D0` | `#5B9BD5` | `#B070D0` | `#F0C060` |
+| Volcano | `#1A0A0A` | `#1E0E0E` | `#FF6600` | `#FF6600` | `#FF2222` | `#FFAA00` | `#FF4488` |
+| Tribal | `#FFF0F5` | `#F0D0E0` | `#FF69B4` | `#7DCEA0` | `#85C1E9` | `#D7BDE2` | `#F9E154` |
+| Arctic | `#2A1F14` | `#30241A` | `#D4A017` | `#B87333` | `#C5A050` | `#6B8E23` | `#CC5544` |
 
 Use these palettes as guidance when creating theme-specific art.
