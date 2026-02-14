@@ -1,48 +1,79 @@
 /**
- * ShopPage - Full-screen shop for permanent upgrades
- * Shows: Starting bonuses, bag sizes, bridging rank, unlock buttons
+ * ShopPage — Permanent upgrade shop
+ *
+ * 2-column card grid with momentum scroll.
+ * Bonuses have Starting Charges + Bag Size upgrades (3 levels each).
+ * Wave and Supply require unlock before upgrading.
+ * Bridging increases max cubes bridgeable per run.
+ *
+ * Contract bonus_type mapping:
+ *   Upgrades (starting/bag): 0=Combo  1=Score  2=Harvest  3=Wave  4=Supply
+ *   Unlocks:                 4=Wave   5=Supply
  */
 
-import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useTick } from '@pixi/react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { Button } from '../ui';
 import type { PlayerMetaData } from '@/hooks/usePlayerMeta';
-import { FONT_TITLE, FONT_BOLD, FONT_BODY } from '../../utils/colors';
-
-const SHOP_ICON_STYLE = { fontSize: 28 };
-const SHOP_LABEL_STYLE = { fontFamily: FONT_BODY, fontSize: 11, fill: 0x94a3b8 };
-const BRIDGING_TITLE_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff };
-const BRIDGING_RANK_STYLE = { fontFamily: FONT_BODY, fontSize: 12, fill: 0x94a3b8 };
-const BRIDGING_CUBES_STYLE = { fontFamily: FONT_TITLE, fontSize: 14, fill: 0xfbbf24 };
-const CONFIRM_TITLE_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff };
-const CONFIRM_SUB_STYLE = { fontFamily: FONT_BODY, fontSize: 12, fill: 0x94a3b8 };
-const CONFIRM_COST_STYLE = { fontFamily: FONT_BOLD, fontSize: 18, fill: 0xfbbf24 };
-const CONFIRM_BALANCE_STYLE = { fontFamily: FONT_BODY, fontSize: 12, fill: 0x94a3b8 };
-const EMPTY_ICON_STYLE = { fontSize: 40 };
-const EMPTY_TITLE_STYLE = { fontFamily: FONT_TITLE, fontSize: 18, fill: 0x64748b };
-const EMPTY_SUB_STYLE = { fontFamily: FONT_BODY, fontSize: 13, fill: 0x94a3b8 };
-
-interface PendingPurchase {
-  label: string;
-  cost: number;
-  action: () => Promise<void> | void;
-}
-
+import { FONT_TITLE, FONT_BODY, UI } from '../../utils/colors';
 
 // ============================================================================
-// CONSTANTS
+// CONTRACT CONSTANTS — must match contracts/src/types/bonus.cairo
 // ============================================================================
 
-const STARTING_BONUS_COSTS = [100, 250, 500];
-const BAG_SIZE_COSTS = [100, 250, 500];
+/** bonus_type values sent to onUpgradeStartingBonus / onUpgradeBagSize */
+const UPGRADE_TYPE = {
+  COMBO: 0,
+  SCORE: 1,
+  HARVEST: 2,
+  WAVE: 3,
+  SUPPLY: 4,
+} as const;
+
+/** bonus_type values sent to onUnlockBonus */
+const UNLOCK_TYPE = {
+  WAVE: 4,
+  SUPPLY: 5,
+} as const;
+
+/** Cost per upgrade level: index = current level, value = cost to reach next */
+const STARTING_COSTS = [100, 250, 500];
+const BAG_COSTS = [100, 250, 500];
 const BRIDGING_COSTS = [200, 500, 1000];
-const UNLOCK_BONUS_COST = 200;
+const UNLOCK_COST = 200;
+
+/** Max cubes bridgeable per run at each rank */
 const MAX_CUBES_PER_RANK = [0, 5, 10, 20, 40];
+const MAX_LEVEL = 3;
 
 // ============================================================================
-// LEVEL PIPS
+// CARD LAYOUT
+// ============================================================================
+
+const CARD_RADIUS = 10;
+const CARD_PAD = 14;
+const BTN_W = 62;
+const BTN_H = 36;
+
+// ============================================================================
+// TEXT STYLES (module-level constants)
+// ============================================================================
+
+const STYLE_HEADER = { fontFamily: FONT_TITLE, fontSize: 15, fill: UI.text.primary };
+const STYLE_HEADER_DIM = { fontFamily: FONT_TITLE, fontSize: 15, fill: UI.text.muted };
+const STYLE_LABEL = { fontFamily: FONT_BODY, fontSize: 11, fill: UI.text.secondary };
+const STYLE_ICON = { fontSize: 22 };
+const STYLE_LOCK = { fontSize: 16 };
+const STYLE_RANK = { fontFamily: FONT_BODY, fontSize: 12, fill: UI.text.secondary };
+const STYLE_CUBES = { fontFamily: FONT_TITLE, fontSize: 13, fill: UI.accent.gold };
+const STYLE_EMPTY_ICON = { fontSize: 40 };
+const STYLE_EMPTY_TITLE = { fontFamily: FONT_TITLE, fontSize: 18, fill: UI.text.muted };
+const STYLE_EMPTY_SUB = { fontFamily: FONT_BODY, fontSize: 13, fill: UI.text.secondary };
+
+// ============================================================================
+// LEVEL PIPS — filled/empty dots showing upgrade progress
 // ============================================================================
 
 const LevelPips = ({
@@ -61,29 +92,30 @@ const LevelPips = ({
   const draw = useCallback(
     (g: PixiGraphics) => {
       g.clear();
-      const pipW = 20;
-      const pipH = 8;
-      const gap = 6;
+      const pw = 18;
+      const ph = 6;
+      const gap = 5;
       for (let i = 0; i < maxLevel; i++) {
-        const filled = i < level;
-        g.setFillStyle({ color: filled ? color : 0x334155, alpha: filled ? 1 : 0.5 });
-        g.roundRect(i * (pipW + gap), 0, pipW, pipH, 3);
+        const on = i < level;
+        g.setFillStyle({ color: on ? color : UI.bg.hover, alpha: on ? 1 : 0.4 });
+        g.roundRect(i * (pw + gap), 0, pw, ph, 3);
         g.fill();
       }
     },
-    [level, maxLevel, color]
+    [level, maxLevel, color],
   );
 
   return <pixiGraphics x={x} y={y} draw={draw} />;
 };
 
 // ============================================================================
-// UPGRADE CARD
+// BONUS CARD — Starting Charges + Bag Size (or Unlock for locked bonuses)
 // ============================================================================
 
-const UpgradeCard = ({
-  title,
+const BonusCard = ({
+  name,
   icon,
+  accent,
   startingLevel,
   bagLevel,
   isUnlocked,
@@ -92,12 +124,14 @@ const UpgradeCard = ({
   width,
   height,
   cubeBalance,
+  upgrading,
   onUpgradeStarting,
   onUpgradeBag,
   onUnlock,
 }: {
-  title: string;
+  name: string;
   icon: string;
+  accent: number;
   startingLevel: number;
   bagLevel: number;
   isUnlocked: boolean;
@@ -106,6 +140,7 @@ const UpgradeCard = ({
   width: number;
   height: number;
   cubeBalance: number;
+  upgrading: boolean;
   onUpgradeStarting?: () => void;
   onUpgradeBag?: () => void;
   onUnlock?: () => void;
@@ -113,102 +148,100 @@ const UpgradeCard = ({
   const drawCard = useCallback(
     (g: PixiGraphics) => {
       g.clear();
-      g.setFillStyle({ color: 0x1e293b, alpha: 0.9 });
-      g.roundRect(0, 0, width, height, 12);
+      // Background
+      g.setFillStyle({ color: UI.bg.card, alpha: 0.95 });
+      g.roundRect(0, 0, width, height, CARD_RADIUS);
       g.fill();
-      g.setStrokeStyle({ width: 1, color: 0x475569, alpha: 0.5 });
-      g.roundRect(0, 0, width, height, 12);
+      // Left accent strip
+      g.setFillStyle({ color: accent });
+      g.roundRect(0, 4, 3, height - 8, 1.5);
+      g.fill();
+      // Border
+      g.setStrokeStyle({ width: 1, color: UI.border.primary, alpha: 0.4 });
+      g.roundRect(0, 0, width, height, CARD_RADIUS);
       g.stroke();
+      // Locked overlay
       if (!isUnlocked) {
-        g.setFillStyle({ color: 0x000000, alpha: 0.5 });
-        g.roundRect(0, 0, width, height, 12);
+        g.setFillStyle({ color: 0x000000, alpha: 0.4 });
+        g.roundRect(0, 0, width, height, CARD_RADIUS);
         g.fill();
       }
     },
-    [width, height, isUnlocked]
+    [width, height, accent, isUnlocked],
   );
 
-  const cardTitleStyle = useMemo(() => ({
-    fontFamily: FONT_TITLE, fontSize: 16, fill: isUnlocked ? 0xffffff : 0x64748b,
-  }), [isUnlocked]);
+  const startMaxed = startingLevel >= MAX_LEVEL;
+  const startCost = startMaxed ? 0 : STARTING_COSTS[startingLevel];
+  const canStart = !startMaxed && cubeBalance >= startCost && !upgrading;
 
-  const nextStartingCost = startingLevel < 3 ? STARTING_BONUS_COSTS[startingLevel] : null;
-  const nextBagCost = bagLevel < 3 ? BAG_SIZE_COSTS[bagLevel] : null;
-  const canUpgradeStarting = nextStartingCost !== null && cubeBalance >= nextStartingCost;
-  const canUpgradeBag = nextBagCost !== null && cubeBalance >= nextBagCost;
-  const canUnlock = !isUnlocked && cubeBalance >= UNLOCK_BONUS_COST;
+  const bagMaxed = bagLevel >= MAX_LEVEL;
+  const bagCost = bagMaxed ? 0 : BAG_COSTS[bagLevel];
+  const canBag = !bagMaxed && cubeBalance >= bagCost && !upgrading;
+
+  const canUnlock = !isUnlocked && cubeBalance >= UNLOCK_COST && !upgrading;
+
+  const btnX = width - CARD_PAD - BTN_W;
 
   return (
     <pixiContainer x={x} y={y}>
       <pixiGraphics draw={drawCard} />
 
-      <pixiText text={icon} x={16} y={16} style={SHOP_ICON_STYLE} eventMode="none" />
+      {/* Header */}
+      <pixiText text={icon} x={CARD_PAD} y={12} style={STYLE_ICON} eventMode="none" />
       <pixiText
-        text={title}
-        x={52}
-        y={20}
-        style={cardTitleStyle}
+        text={name}
+        x={CARD_PAD + 30}
+        y={14}
+        style={isUnlocked ? STYLE_HEADER : STYLE_HEADER_DIM}
         eventMode="none"
       />
+      {!isUnlocked && (
+        <pixiText text="🔒" x={width - 30} y={12} style={STYLE_LOCK} eventMode="none" />
+      )}
 
       {isUnlocked ? (
         <>
-          <pixiText
-            text="Starting"
-            x={16}
-            y={52}
-            style={SHOP_LABEL_STYLE}
-            eventMode="none"
-          />
-          <LevelPips level={startingLevel} maxLevel={3} x={16} y={68} color={0x60a5fa} />
-          {nextStartingCost && onUpgradeStarting && (
-            <pixiContainer x={width - 78} y={52}>
-              <Button
-                text={`${nextStartingCost}`}
-                width={62}
-                height={44}
-                variant={canUpgradeStarting ? 'primary' : 'secondary'}
-                fontSize={12}
-                onClick={onUpgradeStarting}
-                disabled={!canUpgradeStarting}
-              />
-            </pixiContainer>
-          )}
-
-          {/* Bag Level */}
-            <pixiText
-              text="Bag Size"
-              x={16}
-              y={100}
-              style={SHOP_LABEL_STYLE}
-              eventMode="none"
+          {/* Starting Charges */}
+          <pixiText text="Starting" x={CARD_PAD} y={48} style={STYLE_LABEL} eventMode="none" />
+          <LevelPips level={startingLevel} maxLevel={MAX_LEVEL} x={CARD_PAD} y={66} color={accent} />
+          <pixiContainer x={btnX} y={48}>
+            <Button
+              text={startMaxed ? 'MAX' : `${startCost}`}
+              width={BTN_W}
+              height={BTN_H}
+              variant={canStart ? 'primary' : 'secondary'}
+              disabled={!canStart}
+              onClick={onUpgradeStarting}
+              fontSize={12}
             />
-          <LevelPips level={bagLevel} maxLevel={3} x={16} y={116} color={0x22c55e} />
-          {nextBagCost && onUpgradeBag && (
-            <pixiContainer x={width - 78} y={98}>
-              <Button
-                text={`${nextBagCost}`}
-                width={62}
-                height={44}
-                variant={canUpgradeBag ? 'primary' : 'secondary'}
-                fontSize={12}
-                onClick={onUpgradeBag}
-                disabled={!canUpgradeBag}
-              />
-            </pixiContainer>
-          )}
+          </pixiContainer>
+
+          {/* Bag Size */}
+          <pixiText text="Bag" x={CARD_PAD} y={94} style={STYLE_LABEL} eventMode="none" />
+          <LevelPips level={bagLevel} maxLevel={MAX_LEVEL} x={CARD_PAD} y={112} color={accent} />
+          <pixiContainer x={btnX} y={94}>
+            <Button
+              text={bagMaxed ? 'MAX' : `${bagCost}`}
+              width={BTN_W}
+              height={BTN_H}
+              variant={canBag ? 'primary' : 'secondary'}
+              disabled={!canBag}
+              onClick={onUpgradeBag}
+              fontSize={12}
+            />
+          </pixiContainer>
         </>
       ) : (
-        /* Unlock Button */
-        <pixiContainer x={(width - 114) / 2} y={58}>
+        /* Unlock button centered in remaining space */
+        <pixiContainer x={(width - 120) / 2} y={68}>
           <Button
-            text={`Unlock ${UNLOCK_BONUS_COST}`}
-            width={114}
-            height={44}
+            text={`Unlock ${UNLOCK_COST} 🧊`}
+            width={120}
+            height={40}
             variant={canUnlock ? 'primary' : 'secondary'}
-            fontSize={13}
-            onClick={onUnlock}
             disabled={!canUnlock}
+            onClick={onUnlock}
+            fontSize={13}
           />
         </pixiContainer>
       )}
@@ -227,6 +260,7 @@ const BridgingCard = ({
   width,
   height,
   cubeBalance,
+  upgrading,
   onUpgrade,
 }: {
   rank: number;
@@ -235,68 +269,63 @@ const BridgingCard = ({
   width: number;
   height: number;
   cubeBalance: number;
+  upgrading: boolean;
   onUpgrade?: () => void;
 }) => {
   const drawCard = useCallback(
     (g: PixiGraphics) => {
       g.clear();
-      g.setFillStyle({ color: 0x1e293b, alpha: 0.9 });
-      g.roundRect(0, 0, width, height, 12);
+      g.setFillStyle({ color: UI.bg.card, alpha: 0.95 });
+      g.roundRect(0, 0, width, height, CARD_RADIUS);
       g.fill();
-      g.setStrokeStyle({ width: 1, color: 0x475569, alpha: 0.5 });
-      g.roundRect(0, 0, width, height, 12);
+      g.setFillStyle({ color: UI.accent.gold });
+      g.roundRect(0, 4, 3, height - 8, 1.5);
+      g.fill();
+      g.setStrokeStyle({ width: 1, color: UI.border.primary, alpha: 0.4 });
+      g.roundRect(0, 0, width, height, CARD_RADIUS);
       g.stroke();
     },
-    [width, height]
+    [width, height],
   );
 
-  const nextCost = rank < 4 ? BRIDGING_COSTS[rank] : null;
-  const canUpgrade = nextCost !== null && cubeBalance >= nextCost;
-  const maxCubes = MAX_CUBES_PER_RANK[rank] || 0;
+  const isMaxed = rank >= BRIDGING_COSTS.length;
+  const cost = isMaxed ? 0 : BRIDGING_COSTS[rank];
+  const canUpgrade = !isMaxed && cubeBalance >= cost && !upgrading;
+  const maxCubes = MAX_CUBES_PER_RANK[rank] ?? 0;
 
   return (
     <pixiContainer x={x} y={y}>
       <pixiGraphics draw={drawCard} />
 
-      <pixiText text="🌉" x={16} y={16} style={SHOP_ICON_STYLE} eventMode="none" />
+      {/* Header */}
+      <pixiText text="🌉" x={CARD_PAD} y={12} style={STYLE_ICON} eventMode="none" />
+      <pixiText text="Bridging" x={CARD_PAD + 30} y={14} style={STYLE_HEADER} eventMode="none" />
+
+      {/* Info */}
+      <pixiText text={`Rank ${rank}`} x={CARD_PAD} y={50} style={STYLE_RANK} eventMode="none" />
       <pixiText
-        text="Bridging"
-        x={52}
-        y={20}
-        style={BRIDGING_TITLE_STYLE}
+        text={`Max ${maxCubes} cubes/run`}
+        x={CARD_PAD}
+        y={68}
+        style={STYLE_CUBES}
         eventMode="none"
       />
 
-      <pixiText
-        text={`Rank ${rank}`}
-        x={16}
-        y={55}
-        style={BRIDGING_RANK_STYLE}
-        eventMode="none"
-      />
-      <pixiText
-        text={`Max ${maxCubes} cubes`}
-        x={16}
-        y={75}
-        style={BRIDGING_CUBES_STYLE}
-        eventMode="none"
-      />
+      {/* Pips */}
+      <LevelPips level={rank} maxLevel={MAX_LEVEL} x={CARD_PAD} y={92} color={UI.accent.gold} />
 
-      <LevelPips level={rank} maxLevel={4} x={16} y={100} color={0xfbbf24} />
-
-      {nextCost && onUpgrade && (
-        <pixiContainer x={width - 78} y={70}>
-          <Button
-            text={`${nextCost}`}
-            width={62}
-            height={44}
-            variant={canUpgrade ? 'primary' : 'secondary'}
-            fontSize={12}
-            onClick={onUpgrade}
-            disabled={!canUpgrade}
-          />
-        </pixiContainer>
-      )}
+      {/* Upgrade button */}
+      <pixiContainer x={width - CARD_PAD - BTN_W} y={86}>
+        <Button
+          text={isMaxed ? 'MAX' : `${cost}`}
+          width={BTN_W}
+          height={BTN_H}
+          variant={canUpgrade ? 'primary' : 'secondary'}
+          disabled={!canUpgrade}
+          onClick={onUpgrade}
+          fontSize={12}
+        />
+      </pixiContainer>
     </pixiContainer>
   );
 };
@@ -318,112 +347,6 @@ interface ShopPageProps {
   onUnlockBonus?: (bonusType: number) => Promise<void>;
 }
 
-const ConfirmOverlay = ({
-  purchase,
-  cubeBalance,
-  screenWidth,
-  screenHeight,
-  onConfirm,
-  onCancel,
-  isConfirming,
-}: {
-  purchase: PendingPurchase;
-  cubeBalance: number;
-  screenWidth: number;
-  screenHeight: number;
-  onConfirm: () => Promise<void>;
-  onCancel: () => void;
-  isConfirming: boolean;
-}) => {
-  const modalW = Math.min(280, screenWidth - 48);
-  const modalH = 172;
-  const modalX = (screenWidth - modalW) / 2;
-  const modalY = (screenHeight - modalH) / 2;
-
-  const drawBackdrop = useCallback((g: PixiGraphics) => {
-    g.clear();
-    g.rect(0, 0, screenWidth, screenHeight);
-    g.fill({ color: 0x000000, alpha: 0.6 });
-  }, [screenWidth, screenHeight]);
-
-  const drawModal = useCallback((g: PixiGraphics) => {
-    g.clear();
-    g.setFillStyle({ color: 0x1e293b });
-    g.roundRect(0, 0, modalW, modalH, 14);
-    g.fill();
-    g.setStrokeStyle({ width: 2, color: 0x475569, alpha: 0.8 });
-    g.roundRect(0, 0, modalW, modalH, 14);
-    g.stroke();
-  }, [modalW, modalH]);
-
-  return (
-    <pixiContainer>
-      <pixiGraphics
-        draw={drawBackdrop}
-        eventMode="static"
-        onPointerDown={(e: any) => e.stopPropagation()}
-      />
-      <pixiContainer x={modalX} y={modalY}>
-        <pixiGraphics draw={drawModal} />
-        <pixiText
-          text={isConfirming ? 'Processing purchase...' : purchase.label}
-          x={modalW / 2}
-          y={24}
-          anchor={0.5}
-          style={CONFIRM_TITLE_STYLE}
-          eventMode="none"
-        />
-        <pixiText
-          text={isConfirming ? 'Please confirm in wallet' : 'Confirm this permanent upgrade'}
-          x={modalW / 2}
-          y={42}
-          anchor={0.5}
-          style={CONFIRM_SUB_STYLE}
-          eventMode="none"
-        />
-        <pixiText
-          text={`Cost: ${purchase.cost} 🧊`}
-          x={modalW / 2}
-          y={64}
-          anchor={0.5}
-          style={CONFIRM_COST_STYLE}
-          eventMode="none"
-        />
-        <pixiText
-          text={`Balance: ${cubeBalance} → ${cubeBalance - purchase.cost}`}
-          x={modalW / 2}
-          y={88}
-          anchor={0.5}
-          style={CONFIRM_BALANCE_STYLE}
-          eventMode="none"
-        />
-        <Button
-          text={isConfirming ? 'Processing...' : 'Confirm'}
-          x={16}
-          y={116}
-          width={(modalW - 48) / 2}
-          height={44}
-          variant="primary"
-          fontSize={14}
-          onClick={onConfirm}
-          disabled={isConfirming}
-        />
-        <Button
-          text="Cancel"
-          x={modalW / 2 + 8}
-          y={116}
-          width={(modalW - 48) / 2}
-          height={44}
-          variant="secondary"
-          fontSize={14}
-          onClick={onCancel}
-          disabled={isConfirming}
-        />
-      </pixiContainer>
-    </pixiContainer>
-  );
-};
-
 export const ShopPage = ({
   playerMeta,
   cubeBalance,
@@ -437,38 +360,41 @@ export const ShopPage = ({
   onUnlockBonus,
 }: ShopPageProps) => {
   const [scrollY, setScrollY] = useState(0);
+  const [upgrading, setUpgrading] = useState(false);
+  const upgradingRef = useRef(false);
   const isDragging = useRef(false);
   const lastY = useRef(0);
-  const velocityRef = useRef(0);
-  const lastMoveTimeRef = useRef(0);
-  const [pending, setPending] = useState<PendingPurchase | null>(null);
-  const [isConfirmingPurchase, setIsConfirmingPurchase] = useState(false);
+  const velocity = useRef(0);
 
-  const contentPadding = 16;
-  const contentTop = topBarHeight + contentPadding;
-  const contentMaxWidth = 720;
-  const contentWidth = Math.min(screenWidth - contentPadding * 2, contentMaxWidth);
-  const contentX = Math.max(contentPadding, (screenWidth - contentWidth) / 2);
-  const cardW = (contentWidth - 12) / 2;
-  const cardH = 156;
-  const cardGap = 12;
+  // ---- LAYOUT ----
 
-  const totalRows = 3;
-  const totalHeight = totalRows * (cardH + cardGap);
-  const listHeight = screenHeight - contentTop - contentPadding;
+  const pad = 16;
+  const contentTop = topBarHeight + pad;
+  const contentWidth = Math.min(screenWidth - pad * 2, 720);
+  const contentX = Math.max(pad, (screenWidth - contentWidth) / 2);
+  const gap = 12;
+  const cardW = (contentWidth - gap) / 2;
+  const cardH = 148;
+  const rows = 3;
+  const totalHeight = rows * cardH + (rows - 1) * gap;
+  const listHeight = screenHeight - contentTop - pad;
   const maxScroll = Math.max(0, totalHeight - listHeight);
 
-  const drawScrollHitArea = useCallback((g: PixiGraphics) => {
-    g.clear();
-    g.rect(0, 0, contentWidth, listHeight);
-    g.fill({ color: 0xffffff, alpha: 0.001 });
-  }, [contentWidth, listHeight]);
+  // ---- SCROLL ----
+
+  const drawHitArea = useCallback(
+    (g: PixiGraphics) => {
+      g.clear();
+      g.rect(0, 0, contentWidth, listHeight);
+      g.fill({ color: 0xffffff, alpha: 0.001 });
+    },
+    [contentWidth, listHeight],
+  );
 
   const handlePointerDown = useCallback((e: any) => {
     isDragging.current = true;
     lastY.current = e.data.global.y;
-    velocityRef.current = 0;
-    lastMoveTimeRef.current = performance.now();
+    velocity.current = 0;
   }, []);
 
   const handlePointerMove = useCallback(
@@ -476,15 +402,10 @@ export const ShopPage = ({
       if (!isDragging.current) return;
       const dy = lastY.current - e.data.global.y;
       lastY.current = e.data.global.y;
-      const now = performance.now();
-      const dt = Math.max(now - lastMoveTimeRef.current, 1);
-      lastMoveTimeRef.current = now;
-
-      const instantaneousVelocity = dy / (dt / 16.67);
-      velocityRef.current = velocityRef.current * 0.6 + instantaneousVelocity * 0.4;
+      velocity.current = velocity.current * 0.6 + dy * 0.4;
       setScrollY((prev) => Math.max(0, Math.min(maxScroll, prev + dy)));
     },
-    [maxScroll]
+    [maxScroll],
   );
 
   const handlePointerUp = useCallback(() => {
@@ -497,69 +418,46 @@ export const ShopPage = ({
 
   useTick((ticker) => {
     if (isDragging.current) return;
-    if (Math.abs(velocityRef.current) < 0.05) {
-      velocityRef.current = 0;
+    if (Math.abs(velocity.current) < 0.05) {
+      velocity.current = 0;
       return;
     }
-
-    const frameScale = ticker.deltaMS / 16.67;
-    const nextVelocity = velocityRef.current * Math.pow(0.92, frameScale);
-    const delta = velocityRef.current * frameScale;
-
+    const s = ticker.deltaMS / 16.67;
+    const delta = velocity.current * s;
+    velocity.current *= Math.pow(0.92, s);
     setScrollY((prev) => {
       const next = Math.max(0, Math.min(maxScroll, prev + delta));
-      if (next === 0 || next === maxScroll) {
-        velocityRef.current = 0;
-      }
+      if (next === 0 || next === maxScroll) velocity.current = 0;
       return next;
     });
-
-    velocityRef.current = nextVelocity;
   });
 
-  const requestPurchase = useCallback((label: string, cost: number, action: () => Promise<void> | void) => {
-    setPending({ label, cost, action });
+  // ---- ACTION HANDLER (ref-guarded to prevent double-clicks) ----
+
+  const handleAction = useCallback(async (fn: () => void) => {
+    if (upgradingRef.current) return;
+    upgradingRef.current = true;
+    setUpgrading(true);
+    try {
+      await fn();
+    } catch {
+      // parent handlers display errors via toast
+    } finally {
+      upgradingRef.current = false;
+      setUpgrading(false);
+    }
   }, []);
 
-  const confirmPurchase = useCallback(async () => {
-    if (!pending || isConfirmingPurchase) return;
+  // ---- PLAYER DATA ----
 
-    setIsConfirmingPurchase(true);
-    try {
-      await pending.action();
-      setPending(null);
-    } catch {
-      // keep modal open so user can retry/cancel after on-screen error feedback
-    } finally {
-      setIsConfirmingPurchase(false);
-    }
-  }, [isConfirmingPurchase, pending]);
-
-  const startingCombo = playerMeta?.startingCombo ?? 0;
-  const startingHarvest = playerMeta?.startingHarvest ?? 0;
-  const startingScore = playerMeta?.startingScore ?? 0;
-  const startingWave = playerMeta?.startingWave ?? 0;
-  const startingSupply = playerMeta?.startingSupply ?? 0;
-
-  const bagCombo = playerMeta?.bagComboLevel ?? 0;
-  const bagHarvest = playerMeta?.bagHarvestLevel ?? 0;
-  const bagScore = playerMeta?.bagScoreLevel ?? 0;
-  const bagWave = playerMeta?.bagWaveLevel ?? 0;
-  const bagSupply = playerMeta?.bagSupplyLevel ?? 0;
-
-  const bridgingRank = playerMeta?.bridgingRank ?? 0;
-  const waveUnlocked = playerMeta?.waveUnlocked ?? false;
-  const supplyUnlocked = playerMeta?.supplyUnlocked ?? false;
-
-  const startingCosts = STARTING_BONUS_COSTS;
-  const bagCosts = BAG_SIZE_COSTS;
-  const bridgeCosts = BRIDGING_COSTS;
+  const meta = playerMeta;
+  const col2X = cardW + gap;
+  const rowY = (r: number) => r * (cardH + gap);
 
   return (
     <pixiContainer>
       <PageTopBar
         title="Shop"
-        subtitle={`${cubeBalance} cubes available`}
         screenWidth={screenWidth}
         topBarHeight={topBarHeight}
         showCubeBalance
@@ -567,147 +465,173 @@ export const ShopPage = ({
       />
 
       <pixiContainer x={contentX} y={contentTop}>
-        {!isConnected || !playerMeta ? (
+        {!isConnected || !meta ? (
+          /* Empty / loading state */
           <pixiContainer>
             <pixiText
               text="🛒"
               x={contentWidth / 2}
               y={60}
               anchor={0.5}
-              style={EMPTY_ICON_STYLE}
+              style={STYLE_EMPTY_ICON}
               eventMode="none"
             />
             <pixiText
-              text={isConnected ? "Loading shop..." : "Connect to view shop"}
+              text={isConnected ? 'Loading shop...' : 'Connect to view shop'}
               x={contentWidth / 2}
               y={110}
               anchor={0.5}
-              style={EMPTY_TITLE_STYLE}
+              style={STYLE_EMPTY_TITLE}
               eventMode="none"
             />
             <pixiText
-              text={isConnected ? "Fetching your upgrades" : "Log in to upgrade bonuses and abilities"}
+              text={isConnected ? 'Fetching your upgrades' : 'Log in to upgrade bonuses'}
               x={contentWidth / 2}
               y={138}
               anchor={0.5}
-              style={EMPTY_SUB_STYLE}
+              style={STYLE_EMPTY_SUB}
               eventMode="none"
             />
           </pixiContainer>
         ) : (
-        <pixiContainer
-          eventMode="static"
-          onPointerDown={handlePointerDown}
-          onGlobalPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerUpOutside={handlePointerUp}
-        >
-          <pixiGraphics draw={drawScrollHitArea} />
+          /* Scrollable card grid */
+          <pixiContainer
+            eventMode="static"
+            onPointerDown={handlePointerDown}
+            onGlobalPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerUpOutside={handlePointerUp}
+          >
+            <pixiGraphics draw={drawHitArea} />
 
-          <pixiContainer y={-scrollY}>
-            <UpgradeCard
-              title="Combo"
-              icon="🔥"
-              startingLevel={startingCombo}
-              bagLevel={bagCombo}
-              isUnlocked={true}
-              x={0}
-              y={0}
-              width={cardW}
-              height={cardH}
-              cubeBalance={cubeBalance}
-              onUpgradeStarting={() => requestPurchase('Upgrade Combo Starting', startingCosts[startingCombo] ?? 0, () => onUpgradeStartingBonus?.(1))}
-              onUpgradeBag={() => requestPurchase('Upgrade Combo Bag', bagCosts[bagCombo] ?? 0, () => onUpgradeBagSize?.(1))}
-            />
-            <UpgradeCard
-              title="Harvest"
-              icon="🌾"
-              startingLevel={startingHarvest}
-              bagLevel={bagHarvest}
-              isUnlocked={true}
-              x={cardW + cardGap}
-              y={0}
-              width={cardW}
-              height={cardH}
-              cubeBalance={cubeBalance}
-              onUpgradeStarting={() => requestPurchase('Upgrade Harvest Starting', startingCosts[startingHarvest] ?? 0, () => onUpgradeStartingBonus?.(3))}
-              onUpgradeBag={() => requestPurchase('Upgrade Harvest Bag', bagCosts[bagHarvest] ?? 0, () => onUpgradeBagSize?.(3))}
-            />
+            <pixiContainer y={-scrollY}>
+              {/* ── Row 0: Combo + Score ── */}
+              <BonusCard
+                name="Combo"
+                icon="🔥"
+                accent={UI.accent.orange}
+                startingLevel={meta.startingCombo}
+                bagLevel={meta.bagComboLevel}
+                isUnlocked
+                x={0}
+                y={rowY(0)}
+                width={cardW}
+                height={cardH}
+                cubeBalance={cubeBalance}
+                upgrading={upgrading}
+                onUpgradeStarting={() =>
+                  handleAction(() => onUpgradeStartingBonus?.(UPGRADE_TYPE.COMBO))
+                }
+                onUpgradeBag={() =>
+                  handleAction(() => onUpgradeBagSize?.(UPGRADE_TYPE.COMBO))
+                }
+              />
+              <BonusCard
+                name="Score"
+                icon="⭐"
+                accent={UI.accent.gold}
+                startingLevel={meta.startingScore}
+                bagLevel={meta.bagScoreLevel}
+                isUnlocked
+                x={col2X}
+                y={rowY(0)}
+                width={cardW}
+                height={cardH}
+                cubeBalance={cubeBalance}
+                upgrading={upgrading}
+                onUpgradeStarting={() =>
+                  handleAction(() => onUpgradeStartingBonus?.(UPGRADE_TYPE.SCORE))
+                }
+                onUpgradeBag={() =>
+                  handleAction(() => onUpgradeBagSize?.(UPGRADE_TYPE.SCORE))
+                }
+              />
 
-            <UpgradeCard
-              title="Score"
-              icon="⭐"
-              startingLevel={startingScore}
-              bagLevel={bagScore}
-              isUnlocked={true}
-              x={0}
-              y={cardH + cardGap}
-              width={cardW}
-              height={cardH}
-              cubeBalance={cubeBalance}
-              onUpgradeStarting={() => requestPurchase('Upgrade Score Starting', startingCosts[startingScore] ?? 0, () => onUpgradeStartingBonus?.(2))}
-              onUpgradeBag={() => requestPurchase('Upgrade Score Bag', bagCosts[bagScore] ?? 0, () => onUpgradeBagSize?.(2))}
-            />
-            <UpgradeCard
-              title="Wave"
-              icon="🌊"
-              startingLevel={startingWave}
-              bagLevel={bagWave}
-              isUnlocked={waveUnlocked}
-              x={cardW + cardGap}
-              y={cardH + cardGap}
-              width={cardW}
-              height={cardH}
-              cubeBalance={cubeBalance}
-              onUpgradeStarting={() => requestPurchase('Upgrade Wave Starting', startingCosts[startingWave] ?? 0, () => onUpgradeStartingBonus?.(4))}
-              onUpgradeBag={() => requestPurchase('Upgrade Wave Bag', bagCosts[bagWave] ?? 0, () => onUpgradeBagSize?.(4))}
-              onUnlock={() => requestPurchase('Unlock Wave', UNLOCK_BONUS_COST, () => onUnlockBonus?.(4))}
-            />
+              {/* ── Row 1: Harvest + Wave ── */}
+              <BonusCard
+                name="Harvest"
+                icon="🌾"
+                accent={UI.status.success}
+                startingLevel={meta.startingHarvest}
+                bagLevel={meta.bagHarvestLevel}
+                isUnlocked
+                x={0}
+                y={rowY(1)}
+                width={cardW}
+                height={cardH}
+                cubeBalance={cubeBalance}
+                upgrading={upgrading}
+                onUpgradeStarting={() =>
+                  handleAction(() => onUpgradeStartingBonus?.(UPGRADE_TYPE.HARVEST))
+                }
+                onUpgradeBag={() =>
+                  handleAction(() => onUpgradeBagSize?.(UPGRADE_TYPE.HARVEST))
+                }
+              />
+              <BonusCard
+                name="Wave"
+                icon="🌊"
+                accent={UI.accent.blue}
+                startingLevel={meta.startingWave}
+                bagLevel={meta.bagWaveLevel}
+                isUnlocked={meta.waveUnlocked}
+                x={col2X}
+                y={rowY(1)}
+                width={cardW}
+                height={cardH}
+                cubeBalance={cubeBalance}
+                upgrading={upgrading}
+                onUpgradeStarting={() =>
+                  handleAction(() => onUpgradeStartingBonus?.(UPGRADE_TYPE.WAVE))
+                }
+                onUpgradeBag={() =>
+                  handleAction(() => onUpgradeBagSize?.(UPGRADE_TYPE.WAVE))
+                }
+                onUnlock={() =>
+                  handleAction(() => onUnlockBonus?.(UNLOCK_TYPE.WAVE))
+                }
+              />
 
-            <UpgradeCard
-              title="Supply"
-              icon="📦"
-              startingLevel={startingSupply}
-              bagLevel={bagSupply}
-              isUnlocked={supplyUnlocked}
-              x={0}
-              y={(cardH + cardGap) * 2}
-              width={cardW}
-              height={cardH}
-              cubeBalance={cubeBalance}
-              onUpgradeStarting={() => requestPurchase('Upgrade Supply Starting', startingCosts[startingSupply] ?? 0, () => onUpgradeStartingBonus?.(5))}
-              onUpgradeBag={() => requestPurchase('Upgrade Supply Bag', bagCosts[bagSupply] ?? 0, () => onUpgradeBagSize?.(5))}
-              onUnlock={() => requestPurchase('Unlock Supply', UNLOCK_BONUS_COST, () => onUnlockBonus?.(5))}
-            />
-            <BridgingCard
-              rank={bridgingRank}
-              x={cardW + cardGap}
-              y={(cardH + cardGap) * 2}
-              width={cardW}
-              height={cardH}
-              cubeBalance={cubeBalance}
-              onUpgrade={() => requestPurchase('Upgrade Bridging', bridgeCosts[bridgingRank] ?? 0, () => onUpgradeBridging?.())}
-            />
+              {/* ── Row 2: Supply + Bridging ── */}
+              <BonusCard
+                name="Supply"
+                icon="📦"
+                accent={UI.accent.purple}
+                startingLevel={meta.startingSupply}
+                bagLevel={meta.bagSupplyLevel}
+                isUnlocked={meta.supplyUnlocked}
+                x={0}
+                y={rowY(2)}
+                width={cardW}
+                height={cardH}
+                cubeBalance={cubeBalance}
+                upgrading={upgrading}
+                onUpgradeStarting={() =>
+                  handleAction(() => onUpgradeStartingBonus?.(UPGRADE_TYPE.SUPPLY))
+                }
+                onUpgradeBag={() =>
+                  handleAction(() => onUpgradeBagSize?.(UPGRADE_TYPE.SUPPLY))
+                }
+                onUnlock={() =>
+                  handleAction(() => onUnlockBonus?.(UNLOCK_TYPE.SUPPLY))
+                }
+              />
+              <BridgingCard
+                rank={meta.bridgingRank}
+                x={col2X}
+                y={rowY(2)}
+                width={cardW}
+                height={cardH}
+                cubeBalance={cubeBalance}
+                upgrading={upgrading}
+                onUpgrade={() =>
+                  handleAction(() => onUpgradeBridging?.())
+                }
+              />
+            </pixiContainer>
           </pixiContainer>
-        </pixiContainer>
         )}
       </pixiContainer>
-
-      {pending && (
-        <ConfirmOverlay
-          purchase={pending}
-          cubeBalance={cubeBalance}
-          screenWidth={screenWidth}
-          screenHeight={screenHeight}
-          onConfirm={confirmPurchase}
-          onCancel={() => {
-            if (!isConfirmingPurchase) {
-              setPending(null);
-            }
-          }}
-          isConfirming={isConfirmingPurchase}
-        />
-      )}
     </pixiContainer>
   );
 };
