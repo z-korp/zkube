@@ -718,11 +718,6 @@ const MainScreenInner = (props: MainScreenProps) => {
   const { screenWidth: sw, screenHeight: sh, isMobile, topBarHeight, uiScale } = layout;
   const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1;
 
-  useEffect(() => {
-    console.log('[MainScreen] MOUNTED');
-    return () => console.log('[MainScreen] UNMOUNTED');
-  }, []);
-
   return (
     <div style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', overflow: 'hidden', touchAction: 'none' }}>
       <Application

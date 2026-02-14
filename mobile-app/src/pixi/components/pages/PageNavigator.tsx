@@ -79,13 +79,11 @@ export const PageNavigatorProvider: React.FC<{ children: React.ReactNode; initia
 
   const navigate = useCallback((page: PageId) => {
     if (page === currentPage || isTransitioning) return;
-    console.log('[PageNavigator]', currentPage, '→', page);
     animateTransition(page, 'forward');
   }, [currentPage, isTransitioning, animateTransition]);
 
   const goHome = useCallback(() => {
     if (currentPage === 'home' || isTransitioning) return;
-    console.log('[PageNavigator]', currentPage, '→ home (back)');
     animateTransition('home', 'back');
   }, [currentPage, isTransitioning, animateTransition]);
 

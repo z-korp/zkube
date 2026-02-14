@@ -104,9 +104,9 @@ const getBonusTexturePath = (bonus: BonusType, basePath: string): string => {
     case BonusType.Harvest:
       return `${basePath}/bonus/wave.png`;
     case BonusType.Wave:
-      return `${basePath}/bonus/shrink.png`;
+      return `${basePath}/bonus/shrink.svg`;
     case BonusType.Supply:
-      return `${basePath}/bonus/shuffle.png`;
+      return `${basePath}/bonus/shuffle.svg`;
     default:
       return "";
   }

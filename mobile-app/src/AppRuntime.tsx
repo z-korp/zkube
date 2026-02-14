@@ -17,7 +17,6 @@ import { Assets } from "pixi.js";
 import { Capacitor } from "@capacitor/core";
 import { createLogger } from "./utils/logger";
 import { preloadEssentials, preloadBundle } from "./pixi/assets/preloader";
-import { soundManager } from "./pixi/audio/SoundManager";
 import type { ThemeId } from "./pixi/utils/colors";
 import { cartridgeConnector } from "./cartridgeConnector";
 
@@ -51,7 +50,6 @@ async function bootstrapPixiAssets() {
 
   const themeId = getStoredTheme();
   await preloadEssentials(themeId);
-  soundManager.preloadTheme(themeId);
   pixiAssetsBootstrapped = true;
 
   const scheduleIdle = typeof requestIdleCallback === 'function' ? requestIdleCallback : (cb: () => void) => setTimeout(cb, 200);

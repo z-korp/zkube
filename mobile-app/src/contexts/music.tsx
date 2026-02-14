@@ -1,8 +1,32 @@
-import React, { createContext, useState, useEffect, useCallback, useRef } from "react";
+import React, { createContext, useState, useEffect, useCallback, useRef, type MutableRefObject } from "react";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { soundManager } from "@/pixi/audio/SoundManager";
 import { AssetId } from "@/pixi/assets/catalog";
 import type { ThemeId } from "@/pixi/utils/colors";
+
+function useUserGesture(onGesture: () => void) {
+  const firedRef = useRef(false);
+  useEffect(() => {
+    if (firedRef.current) return;
+    const handler = () => {
+      if (firedRef.current) return;
+      firedRef.current = true;
+      onGesture();
+      for (const evt of ["pointerdown", "keydown", "touchstart"]) {
+        document.removeEventListener(evt, handler, true);
+      }
+    };
+    for (const evt of ["pointerdown", "keydown", "touchstart"]) {
+      document.addEventListener(evt, handler, { capture: true, once: false });
+    }
+    return () => {
+      for (const evt of ["pointerdown", "keydown", "touchstart"]) {
+        document.removeEventListener(evt, handler, true);
+      }
+    };
+  }, [onGesture]);
+  return firedRef as MutableRefObject<boolean>;
+}
 
 export const MusicPlayerContext = createContext<{
   playTheme: () => void;
@@ -47,13 +71,26 @@ export const MusicPlayerProvider = ({
   const [musicVolume, setMusicVolumeState] = useState(0.2);
   const [effectsVolume, setEffectsVolumeState] = useState(0.2);
   const prevThemeRef = useRef<ThemeId>(themeId);
+  const themeIdRef = useRef(themeId);
+  themeIdRef.current = themeId;
+
+  const handleFirstGesture = useCallback(() => {
+    soundManager.preloadTheme(themeIdRef.current);
+  }, []);
+
+  const gestureReady = useUserGesture(handleFirstGesture);
 
   useEffect(() => {
-    soundManager.preloadTheme(themeId);
     soundManager.themeId = themeId;
 
+    if (gestureReady.current) {
+      soundManager.preloadTheme(themeId);
+    }
+
     if (prevThemeRef.current !== themeId) {
-      soundManager.unloadTheme(prevThemeRef.current);
+      if (gestureReady.current) {
+        soundManager.unloadTheme(prevThemeRef.current);
+      }
       prevThemeRef.current = themeId;
 
       if (isPlaying) {
@@ -61,7 +98,7 @@ export const MusicPlayerProvider = ({
         soundManager.bgm.play(themeId, track);
       }
     }
-  }, [themeId, isMenu, isPlaying]);
+  }, [themeId, isMenu, isPlaying, gestureReady]);
 
   useEffect(() => {
     soundManager.bgm.volume = musicVolume;
