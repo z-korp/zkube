@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from "react";
+import { Suspense, lazy } from "react";
 import ReactDOM from "react-dom/client";
 import { Loading } from "@/ui/screens/Loading";
 import "./pixi/extend";
@@ -13,9 +13,7 @@ const root = ReactDOM.createRoot(
 );
 
 root.render(
-  <React.StrictMode>
-    <Suspense fallback={<Loading />}>
-      <AppRuntime />
-    </Suspense>
-  </React.StrictMode>
+  <Suspense fallback={<Loading />}>
+    <AppRuntime />
+  </Suspense>
 );

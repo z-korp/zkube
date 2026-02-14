@@ -304,11 +304,8 @@ export const Home = () => {
   const mapSeed = selectedGame ? selectedGameSeed : undefined;
   const mapCurrentLevel = selectedGame ? selectedGame.level : undefined;
 
-  const handleConnect = useCallback(async () => {
-    const controllerConnector = connectors.find((c) => c.id === "controller") as
-      | ControllerConnector
-      | undefined;
-    const target = controllerConnector || connectors[0];
+  const handleConnect = useCallback(() => {
+    const target = connectors.find((c) => c.id === "controller") ?? connectors[0];
     if (!target) {
       showToast({
         message: "No wallet connector is available.",
@@ -317,40 +314,6 @@ export const Home = () => {
       });
       return;
     }
-
-    // Wait for the controller keychain iframe to finish loading.
-    // The iframe is created in the constructor but loads asynchronously;
-    // clicking connect before it's ready causes "Not ready to connect".
-    if (controllerConnector && !controllerConnector.isReady()) {
-      showToast({
-        message: "Initializing wallet...",
-        type: "info",
-        toastId: "connect-wallet",
-      });
-
-      const maxWait = 10_000;
-      const interval = 200;
-      let waited = 0;
-      while (!controllerConnector.isReady() && waited < maxWait) {
-        await new Promise((r) => setTimeout(r, interval));
-        waited += interval;
-      }
-
-      if (!controllerConnector.isReady()) {
-        showToast({
-          message: "Wallet initialization timed out. Please try again.",
-          type: "error",
-          toastId: "connect-wallet",
-        });
-        return;
-      }
-    }
-
-    showToast({
-      message: "Opening wallet login...",
-      type: "info",
-      toastId: "connect-wallet",
-    });
     connect({ connector: target });
   }, [connect, connectors]);
 

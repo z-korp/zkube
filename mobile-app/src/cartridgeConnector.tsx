@@ -167,15 +167,20 @@ const formatSystemName = (systemName: string): string => {
     .join(" ");
 };
 
-const loadManifestForDeployType = async (deployType: DeployType): Promise<DojoManifest> => {
+// Static manifest imports — loaded at module init so connector creation is synchronous
+import manifestSlot from "../../contracts/manifest_slot.json";
+import manifestSepolia from "../../contracts/manifest_sepolia.json";
+import manifestMainnet from "../../contracts/manifest_mainnet.json";
+
+const getManifest = (deployType: DeployType): DojoManifest => {
   switch (deployType) {
     case "sepolia":
-      return (await import("../../contracts/manifest_sepolia.json")).default as DojoManifest;
+      return manifestSepolia as DojoManifest;
     case "slot":
-      return (await import("../../contracts/manifest_slot.json")).default as DojoManifest;
+      return manifestSlot as DojoManifest;
     case "mainnet":
     default:
-      return (await import("../../contracts/manifest_mainnet.json")).default as DojoManifest;
+      return manifestMainnet as DojoManifest;
   }
 };
 
@@ -186,11 +191,10 @@ type ConnectorConfig = {
   chains: Array<{ rpcUrl: string }>;
 };
 
-// Get configuration based on deploy type
-const getConfig = async (): Promise<ConnectorConfig> => {
+const getConfig = (): ConnectorConfig => {
   const deployType = (VITE_PUBLIC_DEPLOY_TYPE as DeployType) || "mainnet";
   const namespace = VITE_PUBLIC_NAMESPACE || "zkube_budo_v1_2_0";
-  const manifest = await loadManifestForDeployType(deployType);
+  const manifest = getManifest(deployType);
   
   switch (deployType) {
     case "sepolia":
@@ -272,22 +276,23 @@ const createConnector = (config: ConnectorConfig): Connector => {
   }
 };
 
-export const createCartridgeConnector = async (): Promise<Connector> => {
-  const config = await getConfig();
+const connectorConfig = getConfig();
 
-  log.info("Configuration:", {
-    deployType: VITE_PUBLIC_DEPLOY_TYPE,
-    chainId: config.chainId,
-    chainIdFelt: stringToFelt(config.chainId).toString(),
-    slot: config.slot,
-    namespace: VITE_PUBLIC_NAMESPACE,
-    chains: config.chains.map((c) => c.rpcUrl),
-    hasPolicies: !!config.policies,
-    policyContracts: config.policies ? Object.keys(config.policies.contracts) : [],
-    isNative,
-    isNativeAndroid,
-    signupOptions,
-  });
+log.info("Configuration:", {
+  deployType: VITE_PUBLIC_DEPLOY_TYPE,
+  chainId: connectorConfig.chainId,
+  chainIdFelt: stringToFelt(connectorConfig.chainId).toString(),
+  slot: connectorConfig.slot,
+  namespace: VITE_PUBLIC_NAMESPACE,
+  chains: connectorConfig.chains.map((c) => c.rpcUrl),
+  hasPolicies: !!connectorConfig.policies,
+  policyContracts: connectorConfig.policies ? Object.keys(connectorConfig.policies.contracts) : [],
+  isNative,
+  isNativeAndroid,
+  signupOptions,
+});
 
-  return createConnector(config);
-};
+export const cartridgeConnector: Connector =
+  typeof window !== "undefined"
+    ? createConnector(connectorConfig)
+    : (null as unknown as Connector);

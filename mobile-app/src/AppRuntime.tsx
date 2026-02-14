@@ -7,7 +7,7 @@ import { MusicPlayerProvider } from "./contexts/music";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
 import { ThemeProvider } from "./ui/elements/theme-provider";
-import { StarknetConfig, jsonRpcProvider, voyager, type Connector } from "@starknet-react/core";
+import { StarknetConfig, jsonRpcProvider, voyager } from "@starknet-react/core";
 import { sepolia, mainnet, type NativeCurrency } from "@starknet-react/chains";
 import { MetagameProvider } from "./contexts/MetagameProvider";
 import { QuestsProvider } from "./contexts/quests";
@@ -19,6 +19,7 @@ import { createLogger } from "./utils/logger";
 import { preloadEssentials, preloadBundle } from "./pixi/assets/preloader";
 import { soundManager } from "./pixi/audio/SoundManager";
 import type { ThemeId } from "./pixi/utils/colors";
+import { cartridgeConnector } from "./cartridgeConnector";
 
 const slotPaymasterProvider = () => new PaymasterRpc({ nodeUrl: "http://localhost" });
 
@@ -79,11 +80,12 @@ function rpc() {
 }
 
 export default function AppRuntime() {
-  const [connector, setConnector] = useState<Connector | null>(null);
   const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
 
-  const connectors = useMemo(() => (connector ? [connector] : []), [connector]);
-  const loading = useMemo(() => !setupResult || !connector, [setupResult, connector]);
+  const connectors = useMemo(
+    () => (cartridgeConnector ? [cartridgeConnector] : []),
+    [],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -95,19 +97,14 @@ export default function AppRuntime() {
         log.warn("Pixi asset bootstrap failed; continuing with lazy loads", error);
       }
 
-      const [{ createCartridgeConnector }, { setup }, { dojoConfig }] = await Promise.all([
-        import("./cartridgeConnector"),
+      const [{ setup }, { dojoConfig }] = await Promise.all([
         import("./dojo/setup"),
         import("../dojo.config"),
       ]);
 
-      const [cartridgeConnector, result] = await Promise.all([
-        createCartridgeConnector(),
-        setup(dojoConfig()),
-      ]);
+      const result = await setup(dojoConfig());
 
       if (cancelled) return;
-      setConnector(cartridgeConnector);
       setSetupResult(result);
     }
 
@@ -116,7 +113,6 @@ export default function AppRuntime() {
     return () => {
       cancelled = true;
 
-      // Clean up native app-state listeners to prevent accumulation
       if (Capacitor.isNativePlatform()) {
         import("./dojo/connectorWrapper").then(({ default: Wrapper }) => {
           Wrapper.disposeAppStateListeners();
@@ -203,7 +199,7 @@ export default function AppRuntime() {
         >
           <MusicPlayerProvider>
             <MetagameProvider>
-              {!loading && setupResult ? (
+              {setupResult ? (
                 <ErrorBoundary name="dojo">
                   <DojoProvider value={setupResult}>
                     <ErrorBoundary name="quests">
