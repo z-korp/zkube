@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef } from 'react';
-import { Graphics as PixiGraphics, Rectangle } from 'pixi.js';
+import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { useTheme } from '@/ui/elements/theme-provider/hooks';
 import { FONT_TITLE, FONT_BODY, THEME_IDS, THEME_META, type ThemeId } from '../../utils/colors';
@@ -142,7 +142,7 @@ const VolumeSlider = ({
           draw={drawTrack}
           eventMode="static"
           cursor="pointer"
-          hitArea={new Rectangle(-knobR, -knobR, trackW + knobR * 2, trackH + knobR * 2)}
+          hitArea={{ x: -knobR, y: -knobR, width: trackW + knobR * 2, height: trackH + knobR * 2, type: 'rectangle' } as any}
           onPointerDown={onPointerDown}
           onGlobalPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
@@ -280,7 +280,7 @@ const THEME_GRID_COLS = 5;
 const THEME_GRID_GAP = 8;
 const THEME_OPTION_H = 56;
 
-export function getThemeSelectorHeight(width: number): number {
+export function getThemeSelectorHeight(): number {
   const rows = Math.ceil(THEME_IDS.length / THEME_GRID_COLS);
   return 28 + rows * THEME_OPTION_H + (rows - 1) * THEME_GRID_GAP + 12;
 }
@@ -372,7 +372,7 @@ interface SettingsPageProps {
 
 export const SettingsPage = ({
   screenWidth,
-  screenHeight,
+  screenHeight: _screenHeight,
   topBarHeight,
   musicVolume = 0.5,
   effectsVolume = 0.5,
@@ -394,7 +394,7 @@ export const SettingsPage = ({
   const sectionGap = 24;
   const sliderH = 60;
   const rowH = 50;
-  const themePanelH = getThemeSelectorHeight(contentWidth);
+  const themePanelH = getThemeSelectorHeight();
 
   let cy = 0;
 

@@ -1,7 +1,6 @@
 import { useCallback, useRef } from 'react';
 import type { Graphics as PixiGraphics } from 'pixi.js';
 import { useTick } from '@pixi/react';
-import { usePixiTheme, usePerformanceSettings } from '../../themes/ThemeContext';
 
 interface PopupData {
   x: number;
@@ -20,10 +19,7 @@ interface ScorePopupProps {
   gridSize: number;
 }
 
-export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps) => {
-  const { colors } = usePixiTheme();
-  const { prefersReducedMotion } = usePerformanceSettings();
-
+export const ScorePopup = ({ gridWidth: _gridWidth, gridHeight: _gridHeight, gridSize: _gridSize }: ScorePopupProps) => {
   const popupsRef = useRef<PopupData[]>([]);
   const graphicsRef = useRef<PixiGraphics | null>(null);
 
@@ -69,55 +65,6 @@ export const ScorePopup = ({ gridWidth, gridHeight, gridSize }: ScorePopupProps)
   }, []);
 
   useTick(tickCallback);
-
-  const addPopup = useCallback((
-    x: number,
-    y: number,
-    text: string,
-    color?: number
-  ) => {
-    if (prefersReducedMotion) return;
-
-    popupsRef.current.push({
-      x,
-      y,
-      text,
-      color: color ?? 0xFFFFFF,
-      scale: 1,
-      alpha: 1,
-      vy: -3,
-      life: 60,
-    });
-  }, [prefersReducedMotion]);
-
-  const showScore = useCallback((points: number, y: number) => {
-    const x = (gridWidth * gridSize) / 2;
-    const adjustedY = y * gridSize;
-    addPopup(x, adjustedY, `+${points}`, colors.accent);
-  }, [addPopup, colors.accent, gridSize, gridWidth]);
-
-  const showCombo = useCallback((combo: number, y: number) => {
-    const x = (gridWidth * gridSize) / 2;
-    const adjustedY = y * gridSize;
-
-    let text = '';
-    let color = colors.accent;
-
-    if (combo >= 7) {
-      text = 'INCREDIBLE!';
-      color = 0xFFD700;
-    } else if (combo >= 5) {
-      text = 'AMAZING!';
-      color = 0xFF00FF;
-    } else if (combo >= 3) {
-      text = 'NICE!';
-      color = 0x00FF88;
-    } else {
-      text = `${combo}x COMBO`;
-    }
-
-    addPopup(x, adjustedY, text, color);
-  }, [addPopup, colors.accent, gridSize, gridWidth]);
 
   const captureRef = useCallback((g: PixiGraphics) => {
     graphicsRef.current = g;

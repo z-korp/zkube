@@ -114,5 +114,6 @@ export function usePerformanceSettings() {
     enableScreenShake: !prefersReducedMotion,
     enableAmbientParticles: !isMobile,
     targetFPS: isMobile ? 30 : 60,
+    prefersReducedMotion,
   }), [isMobile, prefersReducedMotion]);
 }

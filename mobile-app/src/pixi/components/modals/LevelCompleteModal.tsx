@@ -44,7 +44,7 @@ export const LevelCompleteModal = ({
   stars,
   bonusAwarded,
   cubesEarned,
-  totalCubes,
+  totalCubes: _totalCubes,
 }: LevelCompleteModalProps) => {
   const [animatedStars, setAnimatedStars] = useState(0);
 

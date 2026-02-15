@@ -7,7 +7,6 @@ import { useCallback, useMemo, useEffect, useRef } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { useTick } from '@pixi/react';
 import { Modal, Button } from '../ui';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
 
@@ -48,7 +47,6 @@ export const VictoryModal = ({
   totalCubes,
   maxCombo,
 }: VictoryModalProps) => {
-  const { colors } = usePixiTheme();
   const confettiRef = useRef<Confetti[]>([]);
   const confettiGfxRef = useRef<PixiGraphics | null>(null);
 
@@ -112,7 +110,10 @@ export const VictoryModal = ({
       g.fill();
     }
   }, []);
-  useTick(tickConfetti, isOpen);
+  useTick((ticker) => {
+    if (!isOpen) return;
+    tickConfetti(ticker);
+  });
 
   const captureConfettiGfx = useCallback((g: PixiGraphics) => {
     confettiGfxRef.current = g;

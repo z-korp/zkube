@@ -91,7 +91,10 @@ export const LevelPreview = ({ node, screenWidth, screenHeight, isGameOver = fal
     },
     [panelY],
   );
-  useTick(tickEntrance, !entranceRef.current.done);
+  useTick((ticker) => {
+    if (entranceRef.current.done) return;
+    tickEntrance(ticker);
+  });
 
   const drawBackdrop = useCallback(
     (g: PixiGraphics) => {

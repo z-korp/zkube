@@ -7,7 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import { PixiButton } from './PixiButton';
-import { PixiPanel, PixiPanelHeader } from './PixiPanel';
+import { PixiPanel } from './PixiPanel';
 import { PixiModal, PixiConfirmModal } from './PixiModal';
 import { PixiScrollContainer } from './PixiScrollContainer';
 import {
@@ -27,9 +27,9 @@ export interface UIKitDemoProps {
 
 export function UIKitDemo({ screenWidth, screenHeight, onClose }: UIKitDemoProps) {
   const [showConfirm, setShowConfirm] = useState(false);
-  const [progress, setProgress] = useState(0.65);
+  const [progress] = useState(0.65);
   const [rating, setRating] = useState(2);
-  const [notifCount, setNotifCount] = useState(5);
+  const [notifCount] = useState(5);
 
   const handleButtonPress = useCallback((name: string) => {
     console.log(`Button pressed: ${name}`);

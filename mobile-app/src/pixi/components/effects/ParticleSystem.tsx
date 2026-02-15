@@ -1,7 +1,7 @@
 import { useCallback, useRef, useMemo, useEffect } from 'react';
 import type { Graphics as PixiGraphics } from 'pixi.js';
 import { useTick } from '@pixi/react';
-import { usePixiTheme, usePerformanceSettings } from '../../themes/ThemeContext';
+import { usePerformanceSettings } from '../../themes/ThemeContext';
 import { BloomFilter } from '../../extend';
 
 interface Particle {
@@ -35,9 +35,8 @@ interface EmitOptions {
   size?: number;
 }
 
-export const ParticleSystem = ({ gridSize }: ParticleSystemProps) => {
-  const { colors } = usePixiTheme();
-  const { maxParticles, prefersReducedMotion } = usePerformanceSettings();
+export const ParticleSystem = ({ gridSize: _gridSize }: ParticleSystemProps) => {
+  const { prefersReducedMotion } = usePerformanceSettings();
 
   const particlesRef = useRef<Particle[]>([]);
   const graphicsRef = useRef<PixiGraphics | null>(null);
@@ -83,65 +82,6 @@ export const ParticleSystem = ({ gridSize }: ParticleSystemProps) => {
   }, []);
 
   useTick(tickCallback);
-
-  const emit = useCallback((
-    x: number,
-    y: number,
-    count: number,
-    options: EmitOptions = {}
-  ) => {
-    if (prefersReducedMotion) return;
-
-    const {
-      colors: particleColors = colors.particles.explosion,
-      speed = 8,
-      spread = Math.PI * 2,
-      size = 6,
-    } = options;
-
-    const ps = particlesRef.current;
-    const actualCount = Math.min(count, maxParticles - ps.length);
-
-    for (let i = 0; i < actualCount; i++) {
-      const angle = (Math.random() - 0.5) * spread - Math.PI / 2;
-      const velocity = speed * (0.5 + Math.random() * 0.5);
-
-      ps.push({
-        x,
-        y,
-        vx: Math.cos(angle) * velocity,
-        vy: Math.sin(angle) * velocity,
-        life: 30 + Math.random() * 20,
-        maxLife: 50,
-        size: size * (0.5 + Math.random() * 0.5),
-        color: particleColors[Math.floor(Math.random() * particleColors.length)],
-        rotation: Math.random() * Math.PI * 2,
-        rotationSpeed: (Math.random() - 0.5) * 0.2,
-      });
-    }
-
-    if (ps.length > maxParticles) {
-      ps.splice(0, ps.length - maxParticles);
-    }
-  }, [colors.particles.explosion, maxParticles, prefersReducedMotion]);
-
-  const emitLine = useCallback((
-    y: number,
-    width: number,
-    count: number
-  ) => {
-    if (prefersReducedMotion) return;
-
-    const particlesPerPoint = Math.ceil(count / 8);
-    for (let i = 0; i < 8; i++) {
-      const x = (i + 0.5) * (width / 8);
-      emit(x, y, particlesPerPoint, { spread: Math.PI, speed: 6 });
-    }
-  }, [emit, prefersReducedMotion]);
-
-  const clear = useCallback(() => {
-    particlesRef.current.length = 0;
-  }, []);
 
   // Capture the Graphics ref imperatively
   const captureRef = useCallback((g: PixiGraphics) => {

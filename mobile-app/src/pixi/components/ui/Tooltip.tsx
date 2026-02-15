@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { FONT_BODY } from '../../utils/colors';
 
 interface TooltipProps {
@@ -24,8 +23,6 @@ export const Tooltip = ({
   position = 'top',
   maxWidth = 200,
 }: TooltipProps) => {
-  const { colors } = usePixiTheme();
-
   const padding = 8;
   const cornerRadius = 6;
   const arrowSize = 6;

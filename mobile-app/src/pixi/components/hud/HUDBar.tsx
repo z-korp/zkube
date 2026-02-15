@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { LevelBadge } from './LevelBadge';
 import { ProgressBar } from './ProgressBar';
 import { MovesCounter } from './MovesCounter';
@@ -55,8 +54,6 @@ export const HUDBar = ({
   y = 0,
   isInDanger = false,
 }: HUDBarProps) => {
-  const { colors } = usePixiTheme();
-
   const hasConstraint1 = constraint1 && constraint1.type !== ConstraintType.None;
   const hasConstraint2 = constraint2 && constraint2.type !== ConstraintType.None;
   const hasConstraint3 = constraint3 && constraint3.type !== ConstraintType.None;

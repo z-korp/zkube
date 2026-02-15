@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { TextStyle, Graphics as PixiGraphics } from 'pixi.js';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { FONT_BOLD, FONT_BODY } from '../../utils/colors';
 
 interface ComboDisplayProps {
@@ -21,13 +20,10 @@ interface ComboDisplayProps {
  */
 export const ComboDisplay = ({
   combo,
-  maxCombo,
   x,
   y,
   height,
 }: ComboDisplayProps) => {
-  const { colors } = usePixiTheme();
-  
   const [animatedScale, setAnimatedScale] = useState(1);
   const [pulseAlpha, setPulseAlpha] = useState(0);
   const prevComboRef = useRef(combo);

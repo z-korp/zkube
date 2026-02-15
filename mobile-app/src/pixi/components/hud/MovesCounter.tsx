@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from 'react';
 import { TextStyle, Graphics as PixiGraphics } from 'pixi.js';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { FONT_BOLD, FONT_BODY } from '../../utils/colors';
 
 interface MovesCounterProps {
@@ -20,15 +19,12 @@ interface MovesCounterProps {
  */
 export const MovesCounter = ({
   moves,
-  maxMoves,
   x,
   y,
   height,
   warningThreshold = 5,
   criticalThreshold = 3,
 }: MovesCounterProps) => {
-  const { colors } = usePixiTheme();
-
   const pillHeight = height - 8;
   const pillWidth = 64;
   const cornerRadius = pillHeight / 2;

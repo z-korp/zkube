@@ -6,10 +6,10 @@
  * Can contain child components.
  */
 
-import { useMemo, useCallback, ReactNode } from 'react';
+import { useMemo, useCallback, type ReactNode } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { FONT_BOLD, type ThemeId } from '../utils/colors';
-import { PANEL_BORDERS, PANEL_TYPE_TO_ASSET, ASSET_CATALOG, type PanelType } from '../assets/catalog';
+import { PANEL_BORDERS, PANEL_TYPE_TO_ASSET, type PanelType } from '../assets/catalog';
 import { resolveAsset } from '../assets/resolver';
 import { useTextureWithFallback } from '../hooks/useTexture';
 import { usePixiTheme } from '../themes/ThemeContext';

@@ -8,8 +8,8 @@
  * - PixiLabel: Styled text label
  */
 
-import { useCallback, useMemo, useState } from 'react';
-import { Texture, Graphics as PixiGraphics } from 'pixi.js';
+import { useCallback, useMemo } from 'react';
+import { Graphics as PixiGraphics } from 'pixi.js';
 import { AssetId, ICON_TYPE_TO_ASSET, type IconType } from '../assets/catalog';
 import { resolveAsset } from '../assets/resolver';
 import { FONT_BOLD, FONT_BODY, type ThemeId } from '../utils/colors';
@@ -59,7 +59,7 @@ export function PixiProgressBar({
   progress,
   backgroundColor = 0x1e293b,
   fillColor = 0x4ADE80,
-  fillColorSecondary,
+  fillColorSecondary: _fillColorSecondary,
   borderColor = 0xFFFFFF,
   borderWidth = 2,
   radius = 6,
@@ -248,7 +248,7 @@ export function PixiBadge({
     fontFamily: FONT_BOLD,
     fontSize: size * 0.6,
     fill: textColor,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as const,
   }), [size, textColor]);
 
   if (count === 0 && !showZero) return null;

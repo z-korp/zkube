@@ -6,7 +6,6 @@
 import { useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { Modal, Button } from '../ui';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
 
@@ -36,8 +35,6 @@ export const GameOverModal = ({
   totalCubes,
   maxCombo,
 }: GameOverModalProps) => {
-  const { colors } = usePixiTheme();
-
   const modalWidth = 340;
   const buttonWidth = modalWidth - 48;
   const buttonHeight = 48;

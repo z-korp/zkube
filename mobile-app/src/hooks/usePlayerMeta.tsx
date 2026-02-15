@@ -74,7 +74,7 @@ function unpackMetaData(packed: bigint): PlayerMetaData {
 
 const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
 const playerMetaNamespace = VITE_PUBLIC_NAMESPACE || "zkube_budo_v1_2_0";
-const playerMetaModel = `${playerMetaNamespace}-PlayerMeta`;
+const playerMetaModel = `${playerMetaNamespace}-PlayerMeta` as `${string}-${string}`;
 
 export const usePlayerMeta = () => {
   const { address } = useAccount();

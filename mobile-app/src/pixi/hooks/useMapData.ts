@@ -4,7 +4,6 @@ import {
   getAllNodes,
   getZone,
   contractLevelToNodeIndex,
-  TOTAL_NODES,
 } from '../utils/mapLayout';
 import { deriveZoneThemes } from '../utils/zoneThemes';
 import {

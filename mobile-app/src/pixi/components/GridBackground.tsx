@@ -77,7 +77,10 @@ export const GridBackground = ({
     drawDangerZoneWithPulse(g, dangerPulseRef.current);
   }, [drawDangerZoneWithPulse, dangerPulseRef]);
 
-  useTick(tickDangerZone, isPlayerInDanger);
+  useTick(() => {
+    if (!isPlayerInDanger) return;
+    tickDangerZone();
+  });
 
   useEffect(() => {
     if (!isPlayerInDanger) {

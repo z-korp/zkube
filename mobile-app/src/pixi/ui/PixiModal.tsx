@@ -9,11 +9,11 @@
  * - Content area
  */
 
-import { useCallback, useMemo, ReactNode, } from 'react';
+import { useCallback, useMemo, type ReactNode } from 'react';
 import { FederatedPointerEvent, Graphics as PixiGraphics } from 'pixi.js';
 import { PixiPanel, PixiPanelHeader } from './PixiPanel';
 import { PixiButton } from './PixiButton';
-import type { PanelType } from '../assets/manifest';
+import type { PanelType } from '../assets/catalog';
 import { FONT_BODY } from '../utils/colors';
 
 export interface PixiModalProps {
@@ -73,7 +73,6 @@ export function PixiModal({
   // Content area dimensions (accounting for title if present)
   const titleHeight = title ? 40 : 0;
   const contentY = titleHeight;
-  const contentHeight = height - padding * 2 - titleHeight;
   const contentWidth = width - padding * 2;
 
   // Draw backdrop

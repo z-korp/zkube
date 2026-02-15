@@ -104,7 +104,10 @@ export const MapPath = ({ fromX, fromY, toX, toY, fromState, toState }: MapPathP
     },
     [fromX, fromY, toX, toY, pathType, style],
   );
-  useTick(tickPath, needsAnimation);
+  useTick((ticker) => {
+    if (!needsAnimation) return;
+    tickPath(ticker);
+  });
 
   const drawStatic = useCallback(
     (g: PixiGraphics) => {

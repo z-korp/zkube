@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef } from 'react';
 import type { Graphics as PixiGraphics } from 'pixi.js';
 import { usePixiTheme, usePerformanceSettings } from '../../themes/ThemeContext';
-import { getBlockColors, lightenColor } from '../../utils/colors';
+import { getBlockColors } from '../../utils/colors';
 
 interface TrailPosition {
   x: number;

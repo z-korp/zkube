@@ -1,7 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { Modal, Button } from '../ui';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { FONT_BODY } from '../../utils/colors';
 
 interface MenuModalProps {
@@ -29,7 +28,6 @@ export const MenuModal = ({
   currentLevel,
   cubesEarned,
 }: MenuModalProps) => {
-  const { colors } = usePixiTheme();
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSurrendering, setIsSurrendering] = useState(false);
 

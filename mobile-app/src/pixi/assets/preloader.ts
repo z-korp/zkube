@@ -1,6 +1,6 @@
 import { Assets } from 'pixi.js';
 import type { ThemeId } from '../utils/colors';
-import { AssetId, ASSET_CATALOG, getAssetsByBundle } from './catalog';
+import { ASSET_CATALOG, getAssetsByBundle } from './catalog';
 import { resolveAsset } from './resolver';
 
 export async function preloadBundle(

@@ -35,7 +35,6 @@ export const ActionBar = ({
   selectedBonus,
   combo,
   maxCombo,
-  stars,
   width,
   height,
   y = 0,

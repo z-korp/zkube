@@ -20,8 +20,7 @@ import { LoadoutPage } from './LoadoutPage';
 import { TutorialPage } from './TutorialPage';
 import { MapPage } from '../map/MapPage';
 import { PlayScreenInner } from './PlayScreen';
-import { Button } from '../ui';
-import { CubeBalance } from '../topbar/CubeBalance';
+import { PageTopBar } from './PageTopBar';
 import { PixiToastLayer } from '../ui/PixiToastLayer';
 import { useGame } from '@/hooks/useGame';
 import type { PlayerMetaData } from '@/hooks/usePlayerMeta';
@@ -142,6 +141,7 @@ const SkyBackground = ({ w, h }: { w: number; h: number }) => {
 const Clouds = ({ w, h }: { w: number; h: number }) => {
   const cloudsRef = useRef<CloudData[]>([]);
   const gfxRef = useRef<PixiGraphics | null>(null);
+  const drawNoop = useCallback(() => {}, []);
 
   useEffect(() => {
     if (cloudsRef.current.length > 0) return;
@@ -177,7 +177,7 @@ const Clouds = ({ w, h }: { w: number; h: number }) => {
   }, [w, h]);
   useTick(tickClouds);
 
-  return <pixiGraphics ref={gfxRef} eventMode="none" />;
+  return <pixiGraphics ref={gfxRef} draw={drawNoop} eventMode="none" />;
 };
 
 // ============================================================================
@@ -528,7 +528,7 @@ const PageRenderer = (props: MainScreenProps & {
     musicVolume, effectsVolume, onMusicVolumeChange, onEffectsVolumeChange,
   } = props;
 
-  const { currentPage, previousPage, isTransitioning, transitionDirection, transitionProgressRef, navigate, goHome } = usePageNavigator();
+  const { currentPage, isTransitioning, transitionDirection, transitionProgressRef, navigate, goHome } = usePageNavigator();
   const [activeGameId, setActiveGameId] = useState<number | null>(null);
 
   // Fetch game data for map view when a game is selected
@@ -543,11 +543,6 @@ const PageRenderer = (props: MainScreenProps & {
     () => activeGame ? (level: number) => activeGame.getLevelStars(level) : undefined,
     [activeGame],
   );
-
-  const handlePlayGame = useCallback((gameId: number) => {
-    setActiveGameId(gameId);
-    navigate('play');
-  }, [navigate]);
 
   const handleGoHome = useCallback(() => {
     goHome();
@@ -685,25 +680,36 @@ const PageRenderer = (props: MainScreenProps & {
           />
         )}
 
-        {currentPage === 'map' && mapSeed !== undefined && mapCurrentLevel !== undefined && (
-          <MapPage
-            seed={mapSeed}
-            currentLevel={mapCurrentLevel}
-            isGameOver={mapIsGameOver}
-            screenWidth={sw}
-            screenHeight={sh}
-            topBarHeight={topBarH}
-            onPlayLevel={handlePlayLevel}
-            onBack={handleGoHome}
-            levelStarsFn={mapLevelStarsFn}
-          />
+        {currentPage === 'map' && (
+          mapSeed !== undefined && mapCurrentLevel !== undefined ? (
+            <MapPage
+              seed={mapSeed}
+              currentLevel={mapCurrentLevel}
+              isGameOver={mapIsGameOver}
+              screenWidth={sw}
+              screenHeight={sh}
+              topBarHeight={topBarH}
+              onPlayLevel={handlePlayLevel}
+              onBack={handleGoHome}
+              levelStarsFn={mapLevelStarsFn}
+            />
+          ) : (
+            <pixiContainer>
+              <PageTopBar
+                title="ADVENTURE MAP"
+                subtitle="SYNCING GAME DATA..."
+                screenWidth={sw}
+                topBarHeight={topBarH}
+              />
+            </pixiContainer>
+          )
         )}
 
         {currentPage === 'loadout' && (
           <LoadoutPage
             onConfirm={async (bonuses, cubes) => {
               const gameId = await onStartGame(bonuses, cubes);
-              if (gameId) handlePlayGame(gameId);
+              if (gameId) handleNavigateToGame(gameId);
             }}
             onCancel={goHome}
             playerMetaData={playerMetaData ?? null}

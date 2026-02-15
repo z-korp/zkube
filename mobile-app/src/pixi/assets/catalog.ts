@@ -1,5 +1,3 @@
-import type { ThemeId } from '../utils/colors';
-
 // ============================================================================
 // ASSET IDS — single source of truth for every asset in the game
 // ============================================================================

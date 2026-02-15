@@ -3,7 +3,7 @@
  * Split into "Ongoing" and "Finished" sections
  */
 
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { FONT_TITLE, FONT_BODY } from '../../utils/colors';

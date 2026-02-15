@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
-import { type MapNodeData, useMapData, type MapData } from '../../hooks/useMapData';
-import { MapNode, NODE_RADIUS } from './MapNode';
+import { Graphics as PixiGraphics } from 'pixi.js';
+import { type MapNodeData, useMapData } from '../../hooks/useMapData';
+import { MapNode } from './MapNode';
 import { MapPath } from './MapPath';
 import { ZoneBackground } from './ZoneBackground';
 import { LevelPreview } from './LevelPreview';

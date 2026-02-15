@@ -1,6 +1,5 @@
 import { useCallback, useState, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { FONT_TITLE } from '../../utils/colors';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
@@ -32,7 +31,6 @@ export const Button = ({
   onClick,
   fontSize = 14,
 }: ButtonProps) => {
-  const { colors } = usePixiTheme();
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
 
@@ -85,13 +83,6 @@ export const Button = ({
   }, [variant, disabled]);
 
   const colorScheme = getColors();
-
-  const handleClick = useCallback((e: any) => {
-    if (e?.stopPropagation) e.stopPropagation();
-    if (!disabled && onClick) {
-      onClick();
-    }
-  }, [disabled, onClick]);
 
   const drawButton = useCallback((g: PixiGraphics) => {
     g.clear();

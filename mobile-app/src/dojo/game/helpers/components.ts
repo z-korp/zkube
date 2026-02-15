@@ -1,5 +1,7 @@
 import { dojoConfig } from "../../../../dojo.config";
 
+export const components: Record<string, Record<string, unknown>> = {};
+
 export const get_short_namespace = (namespace: any) => {
   const parts = namespace.split("_");
   const short =

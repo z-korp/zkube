@@ -73,7 +73,6 @@ export const drawTrophyIcon = (g: PixiGraphics, size: number, color = IconColors
   g.clear();
   
   const cupWidth = size * 0.5;
-  const cupHeight = size * 0.4;
   const handleSize = size * 0.12;
   
   // Cup body
@@ -268,7 +267,6 @@ export const drawMovesIcon = (g: PixiGraphics, size: number, color = IconColors.
   // Arrow pointing right
   const arrowWidth = size * 0.5;
   const arrowHeight = size * 0.3;
-  const tailWidth = size * 0.25;
   const tailHeight = size * 0.15;
   
   g.beginPath();

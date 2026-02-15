@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { useAnimatedValue, easings } from '../../hooks/useAnimatedValue';
 import { FONT_BOLD, FONT_BODY } from '../../utils/colors';
 
@@ -35,8 +34,6 @@ export const ScorePanel = ({
   height,
   uiScale = 1,
 }: ScorePanelProps) => {
-  const { colors } = usePixiTheme();
-
   // Animated score counter
   const displayScore = useAnimatedValue(score, {
     duration: 400,

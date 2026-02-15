@@ -43,7 +43,7 @@ export async function setup({ ...config }: Config) {
     `${namespace}-Game`,
     `${namespace}-GameSeed`,
     `${namespace}-GameLevel`,
-  ];
+  ] as `${string}-${string}`[];
   const modelsToWatch = [
     `${namespace}-Game`,
     `${namespace}-GameSeed`,

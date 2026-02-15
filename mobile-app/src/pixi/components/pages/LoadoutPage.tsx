@@ -42,7 +42,7 @@ interface LoadoutData {
 }
 
 export interface LoadoutPageProps {
-  onConfirm: (selectedBonuses: number[], cubesToBring: number) => void;
+  onConfirm: (selectedBonuses: number[], cubesToBring: number) => void | Promise<void>;
   onCancel: () => void;
   playerMetaData: PlayerMetaData | null;
   cubeBalance: number;
@@ -386,7 +386,7 @@ export const LoadoutPage = ({
   cubeBalance,
   isLoading = false,
   screenWidth,
-  screenHeight,
+  screenHeight: _screenHeight,
   topBarHeight,
 }: LoadoutPageProps) => {
   // Load saved loadout or use defaults
@@ -465,14 +465,14 @@ export const LoadoutPage = ({
   );
 
   // Handle confirm
-  const handleConfirm = useCallback(() => {
+  const handleConfirm = useCallback(async () => {
     // Save loadout
     saveLoadout({ selectedBonuses: selected, cubesToBring });
 
     // Convert to contract values
     const bonusValues = selected.map((b) => bonusTypeToContractValue(b));
 
-    onConfirm(bonusValues, cubesToBring);
+    await onConfirm(bonusValues, cubesToBring);
   }, [selected, cubesToBring, onConfirm]);
 
   // Layout

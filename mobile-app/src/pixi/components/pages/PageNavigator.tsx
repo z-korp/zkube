@@ -60,7 +60,10 @@ export const PageNavigatorProvider: React.FC<{ children: React.ReactNode; initia
       setPreviousPage(null);
     }
   }, []);
-  useTick(tickTransition, tickEnabled);
+  useTick(() => {
+    if (!tickEnabled) return;
+    tickTransition();
+  });
 
   const animateTransition = useCallback((targetPage: PageId, direction: 'forward' | 'back') => {
     if (isTransitioning) return;

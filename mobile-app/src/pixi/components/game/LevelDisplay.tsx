@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import type { ConstraintData } from '../hud';
 import { ConstraintType } from '@/dojo/game/types/constraint';
 import { useGlow } from '../../hooks/useAnimatedValue';
@@ -37,8 +36,6 @@ export const LevelDisplay = ({
   height,
   uiScale = 1,
 }: LevelDisplayProps) => {
-  const { colors } = usePixiTheme();
-
   // Track previous stars to detect when new star is earned
   const prevStarsRef = useRef(stars);
   const [starJustEarned, setStarJustEarned] = useState(false);
@@ -75,7 +72,6 @@ export const LevelDisplay = ({
   
   // Center everything
   const centerX = width / 2;
-  const centerY = height / 2;
 
   // Draw level badge background
   const drawLevelBadge = useCallback((g: PixiGraphics) => {
@@ -144,7 +140,7 @@ export const LevelDisplay = ({
   }, [stars, starSize, starGap, starGlowIntensity]);
 
   // Draw constraint badge
-  const drawConstraintBadge = useCallback((g: PixiGraphics, constraint: ConstraintData, isComplete: boolean) => {
+  const drawConstraintBadge = useCallback((g: PixiGraphics, _constraint: ConstraintData, isComplete: boolean) => {
     g.clear();
     
     const bgColor = isComplete ? 0x22c55e : 0x374151;

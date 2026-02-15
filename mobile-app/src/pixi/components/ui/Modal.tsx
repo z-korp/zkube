@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useEffect, useState } from 'react';
 import { useTick } from '@pixi/react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
 
@@ -40,7 +39,6 @@ export const Modal = ({
   closeOnEscape = true,
   titleStyle: titleStyleOverride,
 }: ModalProps) => {
-  const { colors } = usePixiTheme();
   const [enterProgress, setEnterProgress] = useState(0);
 
   const padding = 24;
@@ -85,7 +83,10 @@ export const Modal = ({
     });
   }, []);
 
-  useTick(tickEnter, isOpen && enterProgress < 1);
+  useTick(() => {
+    if (!isOpen || enterProgress >= 1) return;
+    tickEnter();
+  });
 
   // Draw backdrop (semi-transparent overlay)
   const drawBackdrop = useCallback((g: PixiGraphics) => {

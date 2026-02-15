@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from 'react';
 import { TextStyle, Graphics as PixiGraphics } from 'pixi.js';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { FONT_BOLD, FONT_BODY } from '../../utils/colors';
 
 interface LevelBadgeProps {
@@ -14,8 +13,6 @@ interface LevelBadgeProps {
  * Displays the current level in a styled badge
  */
 export const LevelBadge = ({ level, x, y, height }: LevelBadgeProps) => {
-  const { colors } = usePixiTheme();
-
   const badgeWidth = 56;
   const badgeHeight = height - 8;
   const cornerRadius = 6;

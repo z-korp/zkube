@@ -74,8 +74,6 @@ const ClassicNode = ({ node, x, y, onTap, entryDelay = 0 }: MapNodeProps) => {
 
   const tickAnimations = useCallback(
     (ticker: { deltaMS: number }) => {
-      const dt = ticker.deltaMS / 16.667;
-
       if (!entryRef.current.done) {
         entryRef.current.elapsed += ticker.deltaMS;
         const c = outerRef.current;

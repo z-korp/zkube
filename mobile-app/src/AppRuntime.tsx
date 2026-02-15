@@ -150,6 +150,10 @@ export default function AppRuntime() {
       default: { http: [VITE_PUBLIC_NODE_URL] },
       public: { http: [VITE_PUBLIC_NODE_URL] },
     },
+    paymasterRpcUrls: {
+      default: { http: [VITE_PUBLIC_NODE_URL] },
+      public: { http: [VITE_PUBLIC_NODE_URL] },
+    },
     explorers: WORLD_EXPLORER,
   } : null;
 

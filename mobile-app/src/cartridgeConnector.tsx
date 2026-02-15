@@ -115,7 +115,7 @@ const ADDITIONAL_ENTRYPOINTS: Record<string, string[]> = {
 
 // Build session policies from manifest - includes ALL contracts
 // CRITICAL: Policies MUST be sorted alphabetically (both contract addresses AND methods)
-const buildPoliciesFromManifest = (manifest: DojoManifest, namespace: string, includeVrf: boolean = false): SessionPolicies => {
+const buildPoliciesFromManifest = (manifest: DojoManifest, _namespace: string, includeVrf: boolean = false): SessionPolicies => {
   // Collect all contracts with their policies first (unsorted)
   const contractsUnsorted: Array<{ address: string; policy: { description: string; methods: Array<{ name: string; entrypoint: string }> } }> = [];
 
@@ -300,7 +300,7 @@ const createConnector = (config: ConnectorConfig): Connector => {
     return new SessionConnectorWrapper({
       policies: config.policies,
       rpc: config.chains[0].rpcUrl,
-      chainId: BigInt(defaultChainId),
+      chainId: defaultChainId,
       redirectUrl: DEEP_LINK_URL,
       disconnectRedirectUrl: DEEP_LINK_URL,
       signupOptions,
@@ -332,7 +332,7 @@ log.info("Configuration:", {
   namespace: VITE_PUBLIC_NAMESPACE,
   chains: connectorConfig.chains.map((c) => c.rpcUrl),
   hasPolicies: !!connectorConfig.policies,
-  policyContracts: connectorConfig.policies ? Object.keys(connectorConfig.policies.contracts) : [],
+  policyContracts: connectorConfig.policies ? Object.keys(connectorConfig.policies.contracts ?? {}) : [],
   isNative,
   isNativeAndroid,
   signupOptions,

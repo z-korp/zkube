@@ -2,7 +2,7 @@ import { useApplication, useTick } from '@pixi/react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Container, FederatedPointerEvent, Graphics as PixiGraphics, Rectangle } from 'pixi.js';
 import type { Block } from '@/types/types';
-import { usePixiTheme, usePerformanceSettings } from '../themes/ThemeContext';
+import { usePixiTheme } from '../themes/ThemeContext';
 import { getBlockColors, darkenColor, type ThemeId } from '../utils/colors';
 import { blockAssetId } from '../assets/catalog';
 import { resolveAsset } from '../assets/resolver';
@@ -43,7 +43,7 @@ export const BlockSprite = ({
   onHoverEnd,
 }: BlockSpriteProps) => {
   const { app } = useApplication();
-  const { themeName, colors } = usePixiTheme();
+  const { themeName } = usePixiTheme();
 
   const blockColors = useMemo(() => 
     getBlockColors(themeName, block.width),
@@ -101,6 +101,7 @@ export const BlockSprite = ({
   }
 
   useTick((ticker) => {
+    if (!isExploding && animOffsetRef.current === 0) return;
     const c = animContainerRef.current;
     if (!c) return;
 
@@ -122,7 +123,7 @@ export const BlockSprite = ({
       animOffsetRef.current = 0;
       c.y = 0;
     }
-  }, isExploding || animOffsetRef.current !== 0);
+  });
 
   // Event handlers
   const handlePointerDown = useCallback((e: FederatedPointerEvent) => {

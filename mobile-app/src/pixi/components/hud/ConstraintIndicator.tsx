@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from 'react';
 import { TextStyle, Graphics as PixiGraphics } from 'pixi.js';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { ConstraintType } from '@/dojo/game/types/constraint';
 import { FONT_BODY } from '../../utils/colors';
 
@@ -30,8 +29,6 @@ export const ConstraintIndicator = ({
   width,
   height,
 }: ConstraintIndicatorProps) => {
-  const { colors } = usePixiTheme();
-
   const isSatisfied = (): boolean => {
     switch (constraint.type) {
       case ConstraintType.None:
@@ -70,22 +67,6 @@ export const ConstraintIndicator = ({
         return "No Bonus";
       case ConstraintType.ClearGrid:
         return "Clear Grid";
-      default:
-        return "";
-    }
-  };
-
-  const getProgress = (): string => {
-    switch (constraint.type) {
-      case ConstraintType.ClearLines:
-      case ConstraintType.BreakBlocks:
-      case ConstraintType.FillAndClear:
-        return `${constraint.progress}/${constraint.count}`;
-      case ConstraintType.AchieveCombo:
-      case ConstraintType.ClearGrid:
-        return constraint.progress >= 1 ? "DONE" : "0/1";
-      case ConstraintType.NoBonusUsed:
-        return constraint.bonusUsed ? "FAILED" : "OK";
       default:
         return "";
     }

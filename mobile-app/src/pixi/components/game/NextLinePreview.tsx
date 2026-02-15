@@ -30,7 +30,7 @@ const PreviewBlock = ({
   block: Block; 
   cellSize: number;
 }) => {
-  const { themeName, colors } = usePixiTheme();
+  const { themeName } = usePixiTheme();
   const blockColors = useMemo(() => getBlockColors(themeName, block.width), [themeName, block.width]);
 
   const x = block.x * cellSize;

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Account } from 'starknet';
-import { useAccount } from '@starknet-react/core';
 
 import { useGame } from '@/hooks/useGame';
 import { useGrid } from '@/hooks/useGrid';
@@ -17,7 +16,6 @@ import {
   getBonusInventoryCount,
   isInGameShopAvailable,
   getBonusChargeCost,
-  CONSUMABLE_COSTS,
   ConsumableType,
 } from '@/dojo/game/helpers/runDataPacking';
 import { useTheme } from '@/ui/elements/theme-provider/hooks';
@@ -156,12 +154,11 @@ export function usePlayGame(
   gameId: number,
 ): UsePlayGameResult {
   const { account } = useAccountCustom();
-  const { connector } = useAccount();
   const { cubeBalance } = useCubeBalance();
   const { playerMeta } = usePlayerMeta();
   const { themeTemplate } = useTheme();
   const themeId = themeTemplate as ThemeId;
-  const { setIsMenu, playStart, playOver } = useMusicPlayer();
+  const { setIsMenu } = useMusicPlayer();
 
   useEffect(() => {
     setIsMenu(false);
@@ -187,6 +184,10 @@ export function usePlayGame(
   const { game, seed } = useGame({ gameId, shouldLog: false });
   const grid = useGrid({ gameId: game?.id ?? 0, shouldLog: false });
   const gameLevel = useGameLevel({ gameId: game?.id ?? 0 });
+  const targetScore = useMemo(() => {
+    if (gameLevel) return gameLevel.pointsRequired;
+    return 20 + (game?.level ?? 1) * 5;
+  }, [gameLevel, game?.level]);
 
   const [isGameLoading, setIsGameLoading] = useState(true);
   const [bonus, setBonus] = useState<BonusType>(BonusType.None);
@@ -612,22 +613,22 @@ export function usePlayGame(
       { slot: 1, value: game.selectedBonus2, level: game.bonus2Level },
       { slot: 2, value: game.selectedBonus3, level: game.bonus3Level },
     ];
-    return slots
-      .map((item) => {
-        const bonusType = bonusTypeFromContractValue(item.value);
-        if (bonusType === BonusType.None) return null;
-        return {
-          slot: item.slot,
-          name: getBonusName(bonusType),
-          icon: getBonusEmoji(bonusType),
-          level: item.level + 1,
-          inventory: getBonusInventoryCount(game.runData, item.value),
-          bagSize: getBagSizeForBonus(bonusType),
-          bonusType,
-          contractValue: item.value,
-        };
-      })
-      .filter((item): item is SelectedBonusData => item !== null);
+    const selected: SelectedBonusData[] = [];
+    for (const item of slots) {
+      const bonusType = bonusTypeFromContractValue(item.value);
+      if (bonusType === BonusType.None) continue;
+      selected.push({
+        slot: item.slot,
+        name: getBonusName(bonusType),
+        icon: getBonusEmoji(bonusType),
+        level: item.level + 1,
+        inventory: getBonusInventoryCount(game.runData, item.value),
+        bagSize: getBagSizeForBonus(bonusType),
+        bonusType,
+        contractValue: item.value,
+      });
+    }
+    return selected;
   }, [game, getBonusName, getBonusEmoji, getBagSizeForBonus]);
 
   const shopUnselectedBonuses: UnselectedBonusData[] = useMemo(() => {
@@ -731,11 +732,6 @@ export function usePlayGame(
       bonusUsed: game?.bonusUsedThisLevel ?? false,
     };
   }, [gameLevel, game?.constraint3Progress, game?.bonusUsedThisLevel]);
-
-  const targetScore = useMemo(() => {
-    if (gameLevel) return gameLevel.pointsRequired;
-    return 20 + (game?.level ?? 1) * 5;
-  }, [gameLevel, game?.level]);
 
   const maxMoves = gameLevel?.maxMoves ?? 30;
   const movesRemaining = Math.max(0, maxMoves - (game?.levelMoves ?? 0));

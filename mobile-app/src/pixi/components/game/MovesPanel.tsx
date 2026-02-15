@@ -31,7 +31,6 @@ interface MovesPanelProps {
  */
 export const MovesPanel = ({
   moves,
-  maxMoves,
   combo,
   maxCombo,
   x,

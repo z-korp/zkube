@@ -19,7 +19,6 @@ import { BonusType } from '@/dojo/game/types/bonus';
 import { ConstraintType } from '@/dojo/game/types/constraint';
 import { usePulseRef } from '../../hooks/useAnimatedValue';
 import { usePlayGame, type BonusSlotData as PlayBonusSlotData } from '../../hooks/usePlayGame';
-import type { Block } from '@/types/types';
 import type { ConstraintData } from '../hud';
 import { FONT_TITLE, FONT_BOLD, FONT_BODY } from '../../utils/colors';
 import type { ThemeId } from '../../utils/colors';
@@ -99,6 +98,7 @@ const SkyBackground = ({ w, h }: { w: number; h: number }) => {
 const Clouds = ({ w, h }: { w: number; h: number }) => {
   const cloudsRef = useRef<CloudData[]>([]);
   const gfxRef = useRef<PixiGraphics | null>(null);
+  const drawNoop = useCallback(() => {}, []);
 
   useEffect(() => {
     if (cloudsRef.current.length > 0) return;
@@ -134,7 +134,7 @@ const Clouds = ({ w, h }: { w: number; h: number }) => {
 
   useTick(tickCallback);
 
-  return <pixiGraphics ref={gfxRef} eventMode="none" />;
+  return <pixiGraphics ref={gfxRef} draw={drawNoop} eventMode="none" />;
 };
 
 const HudPillButton = ({
@@ -169,7 +169,7 @@ const HudPillButton = ({
 };
 
 const StatsBar = ({
-  sw, barY, barH, gridX, gridW, uiScale,
+  sw: _sw, barY, barH, gridX, gridW, uiScale,
   level, levelScore, targetScore, moves, maxMoves, combo, isInDanger, cubeBalance,
   onHomeClick,
 }: {
@@ -302,7 +302,7 @@ const StatsBar = ({
 };
 
 const ProgressHudBar = ({
-  sw, barY, barH, gridX, gridW, uiScale,
+  sw: _sw, barY, barH, gridX, gridW, uiScale,
   levelScore, targetScore, stars,
   constraint1, constraint2, constraint3,
 }: {
@@ -445,7 +445,7 @@ function drawConstraintInline(g: PixiGraphics, c: ConstraintData, x: number, cy:
   }
 }
 
-const LoadingScreen = ({ sw, sh, topOffset }: { sw: number; sh: number; topOffset: number }) => {
+const LoadingScreen = ({ sw, sh, topOffset: _topOffset }: { sw: number; sh: number; topOffset: number }) => {
   const elapsedRef = useRef(0);
   const dotCountRef = useRef(0);
   const textRef = useRef<any>(null);

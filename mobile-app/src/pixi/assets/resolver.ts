@@ -1,5 +1,5 @@
 import { type ThemeId, isProceduralTheme } from '../utils/colors';
-import { AssetId, ASSET_CATALOG, type AssetMeta } from './catalog';
+import { AssetId, ASSET_CATALOG } from './catalog';
 
 const FALLBACK_THEME: ThemeId = 'theme-1';
 

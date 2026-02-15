@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { drawCubeIcon } from '../ui/Icons';
 import { FONT_BODY } from '../../utils/colors';
 
@@ -16,8 +15,6 @@ interface CubeBalanceProps {
  * Cube currency display with icon and balance
  */
 export const CubeBalance = ({ balance, x, y, height, uiScale }: CubeBalanceProps) => {
-  const { colors } = usePixiTheme();
-
   const fontSize = Math.round(14 * uiScale);
   const iconSize = height * 0.7;
   const padding = Math.round(10 * uiScale);

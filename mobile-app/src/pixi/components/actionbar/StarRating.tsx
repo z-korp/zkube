@@ -1,6 +1,5 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
-import { usePixiTheme } from '../../themes/ThemeContext';
 
 interface StarRatingProps {
   /** Number of stars earned (0-3) */
@@ -28,8 +27,6 @@ export const StarRating = ({
   starSize = 16,
   gap = 4,
 }: StarRatingProps) => {
-  const { colors } = usePixiTheme();
-
   const filledColor = 0xfbbf24; // gold
   const emptyColor = 0x475569; // gray
 
@@ -58,8 +55,6 @@ export const StarRating = ({
       g.stroke({ color: 0xfcd34d, width: 1, alpha: 0.5 });
     }
   }, [filledColor, emptyColor]);
-
-  const totalWidth = maxStars * starSize + (maxStars - 1) * gap;
 
   const draw = useCallback((g: PixiGraphics) => {
     g.clear();

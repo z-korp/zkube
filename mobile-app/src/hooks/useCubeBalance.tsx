@@ -85,7 +85,7 @@ export const useCubeBalance = (): CubeBalanceResult => {
         items: balances.items.map((b: TokenBalance) => ({
           contract_address: b.contract_address,
           balance: b.balance,
-          token_id: (b as Record<string, unknown>).token_id ?? (b as Record<string, unknown>).tokenId ?? "N/A",
+          token_id: (b as unknown as Record<string, unknown>).token_id ?? (b as unknown as Record<string, unknown>).tokenId ?? "N/A",
         })),
       });
 
