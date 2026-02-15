@@ -45,6 +45,7 @@ function calculateStarRating(score: number, target: number): number {
 interface LevelCompletionData {
   level: number;
   levelScore: number;
+  targetScore: number;
   constraintProgress: number;
   constraint2Progress: number;
   constraint3Progress: number;
@@ -107,9 +108,12 @@ export interface UsePlayGameResult {
   shopCubesAvailable: number;
   shopItems: InGameShopBonusItem[];
   isShopPurchasing: boolean;
+  levelCompleteLevel: number;
+  levelCompleteLevelScore: number;
+  levelCompleteTargetScore: number;
+  levelCompleteStars: number;
   levelCompleteCubes: number;
   levelCompleteBonusAwarded: { type: string; icon: string } | null;
-  constraintMet: boolean;
   handleMove: (rowIndex: number, startX: number, finalX: number) => void;
   handleBonusApply: (block: Block) => Promise<void>;
   handleSurrender: () => Promise<void>;
@@ -178,6 +182,7 @@ export function usePlayGame(
   const prevGameStateRef = useRef<{
     level: number;
     levelScore: number;
+    targetScore: number;
     constraintProgress: number;
     constraint2Progress: number;
     constraint3Progress: number;
@@ -290,6 +295,7 @@ export function usePlayGame(
       setLevelCompletionData({
         level: prevState.level,
         levelScore: prevState.levelScore,
+        targetScore: prevState.targetScore,
         constraintProgress: prevState.constraintProgress,
         constraint2Progress: prevState.constraint2Progress,
         constraint3Progress: prevState.constraint3Progress,
@@ -316,6 +322,7 @@ export function usePlayGame(
     prevGameStateRef.current = {
       level: game.level,
       levelScore: game.levelScore,
+      targetScore,
       constraintProgress: game.constraintProgress,
       constraint2Progress: game.constraint2Progress,
       constraint3Progress: game.constraint3Progress,
@@ -331,7 +338,7 @@ export function usePlayGame(
   }, [
     game?.level, game?.levelScore, game?.constraintProgress, game?.constraint2Progress, game?.constraint3Progress, game?.bonusUsedThisLevel,
     game?.comboBonus, game?.scoreBonus, game?.harvest, game?.wave, game?.supply,
-    game?.over, game?.totalCubes, game?.totalScore, game,
+    game?.over, game?.totalCubes, game?.totalScore, game, targetScore,
   ]);
 
   useEffect(() => {
@@ -678,13 +685,12 @@ export function usePlayGame(
     shopCubesAvailable: game?.cubesAvailable ?? 0,
     shopItems,
     isShopPurchasing,
+    levelCompleteLevel: levelCompletionData?.level ?? 1,
+    levelCompleteLevelScore: levelCompletionData?.levelScore ?? 0,
+    levelCompleteTargetScore: levelCompletionData?.targetScore ?? 0,
+    levelCompleteStars: Math.min(Math.max(levelCompletionData ? levelCompletionData.totalCubes - levelCompletionData.prevTotalCubes : 0, 0), 3),
     levelCompleteCubes: levelCompletionData ? levelCompletionData.totalCubes - levelCompletionData.prevTotalCubes : 0,
     levelCompleteBonusAwarded: bonusAwarded,
-    constraintMet: levelCompletionData ? (
-      levelCompletionData.constraintProgress >= (gameLevel?.constraintCount ?? 0) &&
-      (!gameLevel?.constraint2Count || levelCompletionData.constraint2Progress >= gameLevel.constraint2Count) &&
-      (!gameLevel?.constraint3Count || levelCompletionData.constraint3Progress >= gameLevel.constraint3Count)
-    ) : false,
     handleMove,
     handleBonusApply,
     handleSurrender,

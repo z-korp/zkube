@@ -18,6 +18,7 @@ interface ModalProps {
   showCloseButton?: boolean;
   closeOnBackdrop?: boolean;
   closeOnEscape?: boolean;
+  titleStyle?: TextStyle;
 }
 
 /**
@@ -37,6 +38,7 @@ export const Modal = ({
   showCloseButton = true,
   closeOnBackdrop = true,
   closeOnEscape = true,
+  titleStyle: titleStyleOverride,
 }: ModalProps) => {
   const { colors } = usePixiTheme();
   const [enterProgress, setEnterProgress] = useState(0);
@@ -132,12 +134,14 @@ export const Modal = ({
     g.stroke({ color: 0xffffff, width: 2.5 });
   }, []);
 
-  const titleStyle = useMemo(() => new TextStyle({
+  const titleStyleDefault = useMemo(() => new TextStyle({
     fontFamily: FONT_TITLE,
     fontSize: 24,
     fontWeight: 'bold',
     fill: titleColor,
   }), [titleColor]);
+
+  const titleStyle = titleStyleOverride ?? titleStyleDefault;
 
   const subtitleStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BODY,

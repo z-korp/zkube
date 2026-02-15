@@ -511,7 +511,8 @@ const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => 
     shopCubesAvailable,
     shopItems,
     isShopPurchasing,
-    levelCompleteCubes, levelCompleteBonusAwarded, constraintMet,
+    levelCompleteLevel, levelCompleteLevelScore, levelCompleteTargetScore, levelCompleteStars,
+    levelCompleteCubes, levelCompleteBonusAwarded,
     handleMove: onMove, handleBonusApply: onBonusApply, handleSurrender: onSurrender,
     handleShare: onShare, handleLevelCompleteContinue: onLevelCompleteContinue,
     handleInGameShopClose: onInGameShopClose,
@@ -724,9 +725,9 @@ const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => 
 
       <LevelCompleteModal isOpen={activeModal === 'levelComplete'} onClose={onLevelCompleteContinue}
         screenWidth={sw} screenHeight={sh}
-        level={level} levelScore={levelScore} targetScore={targetScore} stars={stars}
+        level={levelCompleteLevel} levelScore={levelCompleteLevelScore} targetScore={levelCompleteTargetScore} stars={levelCompleteStars}
         bonusAwarded={levelCompleteBonusAwarded} cubesEarned={levelCompleteCubes}
-        totalCubes={totalCubes} constraintMet={constraintMet} />
+        totalCubes={totalCubes} />
 
       <InGameShopModal
         isOpen={activeModal === 'inGameShop'}

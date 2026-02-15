@@ -6,8 +6,14 @@
 import { useCallback, useMemo, useState, useEffect } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { Modal, Button } from '../ui';
-import { usePixiTheme } from '../../themes/ThemeContext';
 import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
+
+const MODAL_TITLE_STYLE = new TextStyle({
+  fontFamily: FONT_BODY,
+  fontSize: 22,
+  fontWeight: 'bold',
+  fill: 0xffffff,
+});
 
 
 interface LevelCompleteModalProps {
@@ -15,21 +21,16 @@ interface LevelCompleteModalProps {
   onClose: () => void;
   screenWidth: number;
   screenHeight: number;
-  // Level data
   level: number;
   levelScore: number;
   targetScore: number;
   stars: number; // 1-3
-  // Bonuses awarded
   bonusAwarded?: {
     type: string;
     icon: string;
   } | null;
-  // Cubes
   cubesEarned: number;
   totalCubes: number;
-  // Constraint
-  constraintMet: boolean;
 }
 
 export const LevelCompleteModal = ({
@@ -44,9 +45,7 @@ export const LevelCompleteModal = ({
   bonusAwarded,
   cubesEarned,
   totalCubes,
-  constraintMet,
 }: LevelCompleteModalProps) => {
-  const { colors } = usePixiTheme();
   const [animatedStars, setAnimatedStars] = useState(0);
 
   const modalWidth = 340;
@@ -123,12 +122,6 @@ export const LevelCompleteModal = ({
     g.stroke({ color: 0x22c55e, width: 1.5, alpha: 0.6 });
   }, [buttonWidth]);
 
-  const titleStyle = useMemo(() => new TextStyle({
-    fontFamily: FONT_TITLE,
-    fontSize: 18,
-    fill: stars >= 3 ? 0xfbbf24 : 0xffffff,
-  }), [stars]);
-
   const labelStyle = useMemo(() => new TextStyle({
     fontFamily: FONT_BODY,
     fontSize: 13,
@@ -170,9 +163,9 @@ export const LevelCompleteModal = ({
       isOpen={isOpen}
       onClose={onClose}
       title={`LEVEL ${level} COMPLETE!`}
-      subtitle={constraintMet ? "CONSTRAINT BONUS ACHIEVED!" : undefined}
+      titleStyle={MODAL_TITLE_STYLE}
       width={modalWidth}
-      contentHeight={310}
+      contentHeight={290}
       screenWidth={screenWidth}
       screenHeight={screenHeight}
       showCloseButton={false}
