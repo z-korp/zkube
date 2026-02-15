@@ -1,20 +1,18 @@
-@import url("https://fonts.googleapis.com/css2?family=Bangers&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   @font-face {
-    font-family: "Fredericka the Great";
+    font-family: "Zen Tokyo Zoo";
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: url(/fonts/FrederickatheGreat-Regular.ttf) format("woff2");
+    src: url(/fonts/ZenTokyoZoo-Regular.ttf) format("truetype");
   }
 
   :root {
-    font-family: "Fredericka the Great", sans;
+    font-family: "Zen Tokyo Zoo", sans-serif;
     user-select: none;
     --safe-area-top: env(safe-area-inset-top, 0px);
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
