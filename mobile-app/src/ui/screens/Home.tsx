@@ -100,11 +100,23 @@ export const Home = () => {
 
   // Sound settings
   const {
+    isPlaying: isMusicEnabled,
+    playTheme,
+    stopTheme,
     effectsVolume,
     setEffectsVolume,
-    musicVolume,
-    setMusicVolume,
   } = useMusicPlayer();
+
+  const isSoundEnabled = effectsVolume > 0;
+
+  const handleToggleMusic = useCallback(() => {
+    if (isMusicEnabled) stopTheme();
+    else playTheme();
+  }, [isMusicEnabled, playTheme, stopTheme]);
+
+  const handleToggleSound = useCallback(() => {
+    setEffectsVolume(effectsVolume > 0 ? 0 : 0.5);
+  }, [effectsVolume, setEffectsVolume]);
 
   // State for game starting
   const [isStartingGame, setIsStartingGame] = useState(false);
@@ -443,10 +455,10 @@ export const Home = () => {
       onUpgradeBridging={handleUpgradeBridging}
       onUnlockBonus={handleUnlockBonus}
       // Settings
-      effectsVolume={effectsVolume}
-      musicVolume={musicVolume}
-      onSetEffectsVolume={setEffectsVolume}
-      onSetMusicVolume={setMusicVolume}
+      isSoundEnabled={isSoundEnabled}
+      isMusicEnabled={isMusicEnabled}
+      onToggleSound={handleToggleSound}
+      onToggleMusic={handleToggleMusic}
       // Map
       mapSeed={mapSeed}
       mapCurrentLevel={mapCurrentLevel}

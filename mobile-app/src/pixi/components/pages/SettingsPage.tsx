@@ -3,7 +3,7 @@
  * Shows: Sound toggle, music toggle, account info
  */
 
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { useTheme } from '@/ui/elements/theme-provider/hooks';
@@ -19,75 +19,29 @@ const FOOTER_STYLE = { fontFamily: FONT_BODY, fontSize: 11, fill: 0x475569 };
 
 
 // ============================================================================
-// VOLUME SLIDER
+// TOGGLE SWITCH
 // ============================================================================
 
-const SLIDER_PCT_STYLE = { fontFamily: FONT_BODY, fontSize: 13, fill: 0x94a3b8 };
-
-const VolumeSlider = ({
+const ToggleSwitch = ({
   x,
   y,
-  width = 280,
+  isOn,
+  onToggle,
   label,
-  value,
-  onChange,
+  width = 280,
 }: {
   x: number;
   y: number;
-  width?: number;
+  isOn: boolean;
+  onToggle: () => void;
   label: string;
-  value: number;
-  onChange: (val: number) => void;
+  width?: number;
 }) => {
-  const draggingRef = useRef(false);
-  const trackRef = useRef<PixiGraphics | null>(null);
-  const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
-  const trackHeight = 6;
-  const knobRadius = 10;
+  const [hovered, setHovered] = useState(false);
+  const switchW = 56;
+  const switchH = 30;
+  const knobSize = 24;
   const rowH = 50;
-  const padding = 16;
-  const labelW = 120;
-  const pctW = 44;
-  const trackPad = 24;
-  const sliderW = width - padding * 2 - labelW - pctW - trackPad;
-
-  const clamped01 = Math.max(0, Math.min(value, 1));
-  const fillWidth = clamped01 * sliderW;
-  const knobX = fillWidth;
-  const pct = Math.round(clamped01 * 100);
-
-  const computeValue = useCallback(
-    (e: any) => {
-      const track = trackRef.current;
-      if (!track) return;
-      const local = track.toLocal(e.data.global);
-      const cx = Math.max(0, Math.min(local.x, sliderW));
-      const newVal = Math.round((cx / sliderW) * 100) / 100;
-      onChangeRef.current(newVal);
-    },
-    [sliderW]
-  );
-
-  const handleGlobalMove = useCallback(
-    (e: any) => {
-      if (!draggingRef.current) return;
-      computeValue(e);
-    },
-    [computeValue]
-  );
-
-  const handlePointerDown = useCallback(
-    (e: any) => {
-      draggingRef.current = true;
-      computeValue(e);
-    },
-    [computeValue]
-  );
-
-  const handlePointerUp = useCallback(() => {
-    draggingRef.current = false;
-  }, []);
 
   const drawRow = useCallback(
     (g: PixiGraphics) => {
@@ -99,72 +53,41 @@ const VolumeSlider = ({
     [width]
   );
 
-  const drawTrack = useCallback(
+  const drawSwitch = useCallback(
     (g: PixiGraphics) => {
       g.clear();
-      g.setFillStyle({ color: 0x334155 });
-      g.roundRect(0, knobRadius - trackHeight / 2, sliderW, trackHeight, 3);
+      const trackColor = isOn ? 0x22c55e : 0x475569;
+      g.setFillStyle({ color: trackColor, alpha: hovered ? 1 : 0.9 });
+      g.roundRect(0, 0, switchW, switchH, switchH / 2);
       g.fill();
-      if (fillWidth > 0) {
-        g.setFillStyle({ color: 0x3b82f6 });
-        g.roundRect(0, knobRadius - trackHeight / 2, fillWidth, trackHeight, 3);
-        g.fill();
-      }
-    },
-    [sliderW, fillWidth]
-  );
-
-  const drawKnob = useCallback(
-    (g: PixiGraphics) => {
-      g.clear();
-      g.setFillStyle({ color: 0xffffff });
-      g.circle(0, 0, knobRadius);
+      const knobX = isOn ? switchW - knobSize - 3 : 3;
+      g.setFillStyle({ color: 0xffffff, alpha: 1 });
+      g.circle(knobX + knobSize / 2, switchH / 2, knobSize / 2);
       g.fill();
-      g.setStrokeStyle({ width: 2, color: 0x3b82f6 });
-      g.circle(0, 0, knobRadius);
-      g.stroke();
     },
-    []
+    [isOn, hovered]
   );
 
   return (
     <pixiContainer x={x} y={y}>
-      <pixiGraphics draw={drawRow} eventMode="none" />
+      <pixiGraphics draw={drawRow} />
       <pixiText
         text={label}
-        x={padding}
+        x={16}
         y={rowH / 2}
         anchor={{ x: 0, y: 0.5 }}
         style={TOGGLE_LABEL_STYLE}
         eventMode="none"
       />
-      <pixiContainer x={padding + labelW + trackPad / 2} y={(rowH - knobRadius * 2) / 2}>
-        <pixiGraphics
-          ref={trackRef}
-          draw={drawTrack}
-          eventMode="static"
-          cursor="pointer"
-          onPointerDown={handlePointerDown}
-          onGlobalPointerMove={handleGlobalMove}
-          onPointerUp={handlePointerUp}
-          onPointerUpOutside={handlePointerUp}
-        />
-        <pixiGraphics
-          draw={drawKnob}
-          x={knobX}
-          y={knobRadius}
-          eventMode="static"
-          cursor="grab"
-          onPointerDown={() => { draggingRef.current = true; }}
-        />
-      </pixiContainer>
-      <pixiText
-        text={`${pct}%`}
-        x={width - padding}
-        y={rowH / 2}
-        anchor={{ x: 1, y: 0.5 }}
-        style={SLIDER_PCT_STYLE}
-        eventMode="none"
+      <pixiGraphics
+        x={width - switchW - 12}
+        y={(rowH - switchH) / 2}
+        draw={drawSwitch}
+        eventMode="static"
+        cursor="pointer"
+        onPointerDown={onToggle}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
       />
     </pixiContainer>
   );
@@ -379,10 +302,10 @@ interface SettingsPageProps {
   screenWidth: number;
   screenHeight: number;
   topBarHeight: number;
-  effectsVolume?: number;
-  musicVolume?: number;
-  onSetEffectsVolume?: (v: number) => void;
-  onSetMusicVolume?: (v: number) => void;
+  isSoundEnabled?: boolean;
+  isMusicEnabled?: boolean;
+  onToggleSound?: () => void;
+  onToggleMusic?: () => void;
   username?: string;
   walletAddress?: string;
 }
@@ -391,10 +314,10 @@ export const SettingsPage = ({
   screenWidth,
   screenHeight,
   topBarHeight,
-  effectsVolume = 0.5,
-  musicVolume = 0.5,
-  onSetEffectsVolume,
-  onSetMusicVolume,
+  isSoundEnabled = true,
+  isMusicEnabled = true,
+  onToggleSound,
+  onToggleMusic,
   username,
   walletAddress,
 }: SettingsPageProps) => {
@@ -416,8 +339,8 @@ export const SettingsPage = ({
   let cy = 0;
 
   const audioHeaderY = cy; cy += 24;
-  const soundSliderY = cy; cy += rowH + rowGap;
-  const musicSliderY = cy; cy += rowH + sectionGap;
+  const soundY = cy; cy += rowH + rowGap;
+  const musicY = cy; cy += rowH + sectionGap;
 
   const themeHeaderY = cy; cy += 24;
   const themeSelectorY = cy; cy += themePanelH + sectionGap;
@@ -440,21 +363,21 @@ export const SettingsPage = ({
       <pixiContainer x={contentPadding} y={contentTop}>
         <SectionHeader y={audioHeaderY} title="AUDIO" />
 
-        <VolumeSlider
+        <ToggleSwitch
           x={0}
-          y={soundSliderY}
+          y={soundY}
+          isOn={isSoundEnabled}
+          onToggle={onToggleSound ?? (() => {})}
           label="SOUND EFFECTS"
           width={contentWidth}
-          value={effectsVolume}
-          onChange={onSetEffectsVolume ?? (() => {})}
         />
-        <VolumeSlider
+        <ToggleSwitch
           x={0}
-          y={musicSliderY}
+          y={musicY}
+          isOn={isMusicEnabled}
+          onToggle={onToggleMusic ?? (() => {})}
           label="MUSIC"
           width={contentWidth}
-          value={musicVolume}
-          onChange={onSetMusicVolume ?? (() => {})}
         />
 
         <SectionHeader y={themeHeaderY} title="APPEARANCE" />
