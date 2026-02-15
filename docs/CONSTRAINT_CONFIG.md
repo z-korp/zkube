@@ -10,7 +10,7 @@ Budget scales linearly from VeryEasy (tier 0) to Master (tier 7).
 
 | Parameter | VeryEasy | Master |
 |-----------|:---:|:---:|
-| budget_min | 1 | 25 |
+| budget_min | 1 | 36 |
 | budget_max | 3 | 40 |
 
 **Interpolated per tier:**
@@ -18,35 +18,33 @@ Budget scales linearly from VeryEasy (tier 0) to Master (tier 7).
 | Tier | Difficulty | Budget Min | Budget Max |
 |------|-----------|:---:|:---:|
 | 0 | VeryEasy | 1 | 3 |
-| 1 | Easy | 4 | 8 |
-| 2 | Medium | 7 | 13 |
-| 3 | MediumHard | 11 | 18 |
-| 4 | Hard | 14 | 24 |
-| 5 | VeryHard | 18 | 29 |
-| 6 | Expert | 21 | 34 |
-| 7 | Master | 25 | 40 |
+| 1 | Easy | 6 | 8 |
+| 2 | Medium | 11 | 13 |
+| 3 | MediumHard | 16 | 18 |
+| 4 | Hard | 21 | 24 |
+| 5 | VeryHard | 26 | 29 |
+| 6 | Expert | 31 | 34 |
+| 7 | Master | 36 | 40 |
 
 ---
 
-## 2. Dual Constraint Chance (GameSettings)
+## 2. Number of Constraints (GameSettings)
 
-| Parameter | VeryEasy | Master |
-|-----------|:---:|:---:|
-| dual_chance | 0% | 100% |
-| secondary_no_bonus_chance | 0% | 30% |
+Deterministic constraint count per difficulty tier. Replaces the old probability-based dual_chance system.
 
-**Interpolated per tier:**
+Roll a random count in `[constraint_min, constraint_max]`, then generate that many constraints total.
+**NoBonusUsed is boss-only** — never generated on regular levels.
 
-| Tier | Difficulty | Dual% | NoBonusSecondary% |
+| Tier | Difficulty | constraint_min | constraint_max |
 |------|-----------|:---:|:---:|
-| 0 | VeryEasy | 0% | 0% |
-| 1 | Easy | 14% | 4% |
-| 2 | Medium | 28% | 8% |
-| 3 | MediumHard | 42% | 12% |
-| 4 | Hard | 57% | 17% |
-| 5 | VeryHard | 71% | 21% |
-| 6 | Expert | 85% | 25% |
-| 7 | Master | 100% | 30% |
+| 0 | VeryEasy | 0 | 0 |
+| 1 | Easy | 1 | 1 |
+| 2 | Medium | 1 | 2 |
+| 3 | MediumHard | 1 | 2 |
+| 4 | Hard | 2 | 2 |
+| 5 | VeryHard | 2 | 3 |
+| 6 | Expert | 2 | 3 |
+| 7 | Master | 3 | 3 |
 
 ---
 
@@ -56,14 +54,14 @@ Weights per tier (must sum to 100). Controls which constraint type is rolled on 
 
 | Tier | ClearLines | BreakBlocks | Fill | AchieveCombo |
 |------|:---:|:---:|:---:|:---:|
-| 0 VeryEasy | 80 | 15 | 5 | 0 |
-| 1 Easy | 65 | 20 | 10 | 5 |
-| 2 Medium | 55 | 22 | 13 | 10 |
-| 3 MediumHard | 45 | 24 | 16 | 15 |
-| 4 Hard | 38 | 25 | 17 | 20 |
-| 5 VeryHard | 32 | 25 | 18 | 25 |
-| 6 Expert | 28 | 25 | 20 | 27 |
-| 7 Master | 25 | 25 | 22 | 28 |
+| 0 VeryEasy | 80 | 15 | 0 | 5 |
+| 1 Easy | 55 | 15 | 15 | 15 |
+| 2 Medium | 50 | 18 | 15 | 17 |
+| 3 MediumHard | 45 | 20 | 17 | 18 |
+| 4 Hard | 40 | 22 | 18 | 20 |
+| 5 VeryHard | 35 | 23 | 20 | 22 |
+| 6 Expert | 30 | 24 | 24 | 22 |
+| 7 Master | 25 | 25 | 28 | 22 |
 
 ---
 
@@ -173,29 +171,29 @@ Roll range is [3, max_combo] with skew-high.
 
 | Row | Cost | Times Cap |
 |:---:|:---:|:---:|
-| 5 | 2 | 4 |
-| 6 | 5 | 3 |
-| 7 | 10 | 2 |
-| 8 | 17 | 2 |
-| 9 | 26 | 1 |
+| 4 | 2 | 4 |
+| 5 | 5 | 3 |
+| 6 | 10 | 2 |
+| 7 | 17 | 2 |
+| 8 | 26 | 1 |
 
 **What budget produces:**
 
 | Budget | Max Row | Sample outcomes (row x times) |
 |:---:|:---:|---|
-| 1 | 5 | Row5 x1 |
-| 3 | 5 | Row5 x1 |
-| 5 | 6 | Row6 x1, Row5 x2 |
-| 8 | 6 | Row6 x1, Row5 x4 |
-| 10 | 7 | Row7 x1, Row6 x2, Row5 x4 |
-| 13 | 7 | Row7 x1, Row6 x2, Row5 x4 |
-| 17 | 8 | Row8 x1, Row7 x1, Row6 x3 |
-| 18 | 8 | Row8 x1, Row7 x1, Row6 x3 |
-| 24 | 8 | Row8 x1, Row7 x2, Row6 x3 |
-| 26 | 9 | Row9 x1, Row8 x1, Row7 x2 |
-| 29 | 9 | Row9 x1, Row8 x1, Row7 x2 |
-| 34 | 9 | Row9 x1, Row8 x2, Row7 x2 |
-| 40 | 9 | Row9 x1, Row8 x2, Row7 x2 |
+| 1 | 4 | Row4 x1 |
+| 3 | 4 | Row4 x1 |
+| 5 | 5 | Row5 x1, Row4 x2 |
+| 8 | 5 | Row5 x1, Row4 x4 |
+| 10 | 6 | Row6 x1, Row5 x2, Row4 x4 |
+| 13 | 6 | Row6 x1, Row5 x2, Row4 x4 |
+| 17 | 7 | Row7 x1, Row6 x1, Row5 x3 |
+| 18 | 7 | Row7 x1, Row6 x1, Row5 x3 |
+| 24 | 7 | Row7 x1, Row6 x2, Row5 x3 |
+| 26 | 8 | Row8 x1, Row7 x1, Row6 x2 |
+| 29 | 8 | Row8 x1, Row7 x1, Row6 x2 |
+| 34 | 8 | Row8 x1, Row7 x2, Row6 x2 |
+| 40 | 8 | Row8 x1, Row7 x2, Row6 x2 |
 
 ---
 

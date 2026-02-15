@@ -197,15 +197,16 @@ When creating a game, players select exactly 3 of the 5 bonus types:
 ### When Constraints Apply
 
 - **Levels 1-2:** No constraints (warm-up)
-- **Level 3+:** Primary constraint generated from seed + difficulty via unified budget system
-- **Dual constraints:** Higher difficulties can have two constraints
+- **Level 3+:** Constraints generated from seed + difficulty via unified budget system
+- **Constraint count:** Deterministic per tier — `constraint_min` to `constraint_max` rolled randomly (0-3 constraints depending on difficulty)
+- **NoBonusUsed:** Boss-only — never generated on regular levels
 - **Boss levels (10/20/30/40/50):** Fixed constraint combos from boss identity system at budget_max, up to triple constraints at L40/50
 
 ### Unified Budget System
 
 All constraint types (regular + boss) use the same budget-based generation engine:
 
-1. **Budget** interpolates from VeryEasy (1-3) to Master (25-40)
+1. **Budget** interpolates from VeryEasy (1-3) to Master (36-40)
 2. **Type selection** uses difficulty-weighted probabilities (regular levels)
 3. **Cost functions** per type convert budget → constraint values
 4. **Skew-high rolls** favor harder values within budget range
@@ -214,14 +215,14 @@ All constraint types (regular + boss) use the same budget-based generation engin
 
 | Tier | ClearLines | BreakBlocks | Fill | AchieveCombo |
 |------|:---:|:---:|:---:|:---:|
-| 0 (VeryEasy) | 80% | 15% | 5% | 0% |
-| 1 (Easy) | 65% | 20% | 10% | 5% |
-| 2 (Medium) | 55% | 22% | 13% | 10% |
-| 3 (MediumHard) | 45% | 24% | 16% | 15% |
-| 4 (Hard) | 38% | 25% | 17% | 20% |
-| 5 (VeryHard) | 32% | 25% | 18% | 25% |
-| 6 (Expert) | 28% | 25% | 20% | 27% |
-| 7 (Master) | 25% | 25% | 22% | 28% |
+| 0 (VeryEasy) | 80% | 15% | 0% | 5% |
+| 1 (Easy) | 55% | 15% | 15% | 15% |
+| 2 (Medium) | 50% | 18% | 15% | 17% |
+| 3 (MediumHard) | 45% | 20% | 17% | 18% |
+| 4 (Hard) | 40% | 22% | 18% | 20% |
+| 5 (VeryHard) | 35% | 23% | 20% | 22% |
+| 6 (Expert) | 30% | 24% | 24% | 22% |
+| 7 (Master) | 25% | 25% | 28% | 22% |
 
 **Cost Functions:**
 
@@ -230,9 +231,9 @@ All constraint types (regular + boss) use the same budget-based generation engin
 | ClearLines | line_cost: 2→2, 3→4, 4→6, 5→10, 6→15, 7→20 | 5 lines x2, or 4 lines x4 |
 | BreakBlocks | break_cost(size): 1→3, 2→4, 3→5, 4→6. blocks=(budget×8)/cost | size-2: 50 blocks, size-4: 33 blocks |
 | AchieveCombo | combo_cost(c)=c×(c-1)/2: 3→3, 4→6, 5→10, 6→15, 7→21 | combo 5 (cost 10) or combo 7 (cost 21) |
-| Fill | row_cost: 5→2, 6→5, 7→10, 8→17, 9→26. times_cap: 5→4, 6→3, 7→2, 8→2, 9→1 | row 7 x2, or row 8 x1 |
+| Fill | row_cost: 4→2, 5→5, 6→10, 7→17, 8→26. times_cap: 4→4, 5→3, 6→2, 7→2, 8→1 | row 6 x2, or row 7 x1 |
 
-**Dual chance:** 0% at VeryEasy → 100% at Master. Secondary rolls a different type or NoBonusUsed.
+**Constraint count:** Deterministic per tier (0 at VeryEasy → 3 at Master). Each constraint rolls a different type from the weight table above.
 
 ### Boss Identity System
 
