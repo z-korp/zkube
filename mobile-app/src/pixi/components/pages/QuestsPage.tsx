@@ -492,11 +492,13 @@ export const QuestsPage = ({
     <pixiContainer>
       {/* Top bar */}
       <PageTopBar
-         title="DAILY QUESTS"
-         subtitle={`${completedCount}/${totalCount} COMPLETED`}
-         screenWidth={screenWidth}
-         topBarHeight={topBarHeight}
-       />
+        title="DAILY QUESTS"
+        subtitle={subtitle}
+        screenWidth={screenWidth}
+        topBarHeight={topBarHeight}
+        showCubeBalance
+        cubeBalance={cubeBalance}
+      />
 
       {/* Timer */}
       <CountdownTimer x={screenWidth / 2} y={contentTop + timerH / 2} />
