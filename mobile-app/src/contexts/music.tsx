@@ -70,11 +70,11 @@ function loadAudioSettings(): { musicVolume: number; effectsVolume: number; musi
       return {
         musicVolume: typeof parsed.musicVolume === "number" ? parsed.musicVolume : DEFAULT_MUSIC_VOLUME,
         effectsVolume: typeof parsed.effectsVolume === "number" ? parsed.effectsVolume : DEFAULT_EFFECTS_VOLUME,
-        musicEnabled: typeof parsed.musicEnabled === "boolean" ? parsed.musicEnabled : false,
+        musicEnabled: typeof parsed.musicEnabled === "boolean" ? parsed.musicEnabled : true,
       };
     }
   } catch { /* ignore corrupt data */ }
-  return { musicVolume: DEFAULT_MUSIC_VOLUME, effectsVolume: DEFAULT_EFFECTS_VOLUME, musicEnabled: false };
+  return { musicVolume: DEFAULT_MUSIC_VOLUME, effectsVolume: DEFAULT_EFFECTS_VOLUME, musicEnabled: true };
 }
 
 function saveAudioSettings(musicVolume: number, effectsVolume: number, musicEnabled: boolean) {

@@ -94,6 +94,10 @@ export interface MainScreenProps {
   isMusicEnabled?: boolean;
   onToggleSound?: () => void;
   onToggleMusic?: () => void;
+  effectsVolume?: number;
+  musicVolume?: number;
+  onSetEffectsVolume?: (v: number) => void;
+  onSetMusicVolume?: (v: number) => void;
   // Map
   mapSeed?: bigint;
   mapCurrentLevel?: number;
@@ -531,6 +535,7 @@ const PageRenderer = (props: MainScreenProps & {
     questFamilies = [], questsLoading = false, questsStatus = 'success', onRefreshQuests, onClaimQuest,
     onUpgradeStartingBonus, onUpgradeBagSize, onUpgradeBridging, onUnlockBonus,
     isSoundEnabled, isMusicEnabled, onToggleSound, onToggleMusic,
+    effectsVolume, musicVolume, onSetEffectsVolume, onSetMusicVolume,
     mapSeed, mapCurrentLevel, mapIsGameOver, onPlayLevel,
     requestMapNavigation, onMapNavigated,
   } = props;
@@ -634,6 +639,10 @@ const PageRenderer = (props: MainScreenProps & {
             isMusicEnabled={isMusicEnabled}
             onToggleSound={onToggleSound}
             onToggleMusic={onToggleMusic}
+            effectsVolume={effectsVolume}
+            musicVolume={musicVolume}
+            onSetEffectsVolume={onSetEffectsVolume}
+            onSetMusicVolume={onSetMusicVolume}
             username={username}
             walletAddress={walletAddress}
           />

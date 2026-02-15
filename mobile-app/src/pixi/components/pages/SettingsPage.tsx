@@ -3,7 +3,7 @@
  * Shows: Sound toggle, music toggle, account info
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { useTheme } from '@/ui/elements/theme-provider/hooks';
@@ -92,6 +92,127 @@ const ToggleSwitch = ({
         onPointerDown={onToggle}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
+      />
+    </pixiContainer>
+  );
+};
+
+// ============================================================================
+// VOLUME SLIDER
+// ============================================================================
+
+const SLIDER_PCT_STYLE = { fontFamily: FONT_BODY, fontSize: 13, fill: 0x94a3b8 };
+
+const VolumeSlider = ({
+  x,
+  y,
+  width = 280,
+  value,
+  onChange,
+}: {
+  x: number;
+  y: number;
+  width?: number;
+  value: number;
+  onChange: (val: number) => void;
+}) => {
+  const [dragging, setDragging] = useState(false);
+  const trackRef = useRef<PixiGraphics | null>(null);
+  const trackHeight = 8;
+  const knobRadius = 12;
+  const rowH = 40;
+  const padding = 16;
+  const pctW = 40;
+  const sliderW = width - padding * 2 - pctW;
+
+  const fillWidth = Math.max(0, Math.min(value, 1)) * sliderW;
+  const knobX = fillWidth;
+  const pct = Math.round(value * 100);
+
+  const handlePointerMove = useCallback(
+    (e: any) => {
+      if (!dragging) return;
+      const track = trackRef.current;
+      if (!track) return;
+      const local = track.toLocal(e.data.global);
+      const clamped = Math.max(0, Math.min(local.x, sliderW));
+      const newVal = Math.round((clamped / sliderW) * 100) / 100;
+      onChange(newVal);
+    },
+    [dragging, sliderW, onChange]
+  );
+
+  const drawRow = useCallback(
+    (g: PixiGraphics) => {
+      g.clear();
+      g.setFillStyle({ color: 0x1e293b, alpha: 0.6 });
+      g.roundRect(0, 0, width, rowH, 10);
+      g.fill();
+    },
+    [width]
+  );
+
+  const drawTrack = useCallback(
+    (g: PixiGraphics) => {
+      g.clear();
+      g.setFillStyle({ color: 0x334155 });
+      g.roundRect(0, knobRadius - trackHeight / 2, sliderW, trackHeight, 4);
+      g.fill();
+      if (fillWidth > 0) {
+        g.setFillStyle({ color: 0x3b82f6 });
+        g.roundRect(0, knobRadius - trackHeight / 2, fillWidth, trackHeight, 4);
+        g.fill();
+      }
+    },
+    [sliderW, fillWidth]
+  );
+
+  const drawKnob = useCallback(
+    (g: PixiGraphics) => {
+      g.clear();
+      g.setFillStyle({ color: 0xffffff });
+      g.circle(0, 0, knobRadius);
+      g.fill();
+      g.setStrokeStyle({ width: 2, color: 0x3b82f6 });
+      g.circle(0, 0, knobRadius);
+      g.stroke();
+    },
+    []
+  );
+
+  return (
+    <pixiContainer x={x} y={y}>
+      <pixiGraphics draw={drawRow} eventMode="none" />
+      <pixiContainer x={padding} y={(rowH - knobRadius * 2) / 2}>
+        <pixiGraphics
+          ref={trackRef}
+          draw={drawTrack}
+          eventMode="static"
+          cursor="pointer"
+          onPointerDown={(e: any) => {
+            setDragging(true);
+            handlePointerMove(e);
+          }}
+          onGlobalPointerMove={handlePointerMove}
+          onPointerUp={() => setDragging(false)}
+          onPointerUpOutside={() => setDragging(false)}
+        />
+        <pixiGraphics
+          draw={drawKnob}
+          x={knobX}
+          y={knobRadius}
+          eventMode="static"
+          cursor="grab"
+          onPointerDown={() => setDragging(true)}
+        />
+      </pixiContainer>
+      <pixiText
+        text={`${pct}%`}
+        x={width - padding}
+        y={rowH / 2}
+        anchor={{ x: 1, y: 0.5 }}
+        style={SLIDER_PCT_STYLE}
+        eventMode="none"
       />
     </pixiContainer>
   );
@@ -310,6 +431,10 @@ interface SettingsPageProps {
   isMusicEnabled?: boolean;
   onToggleSound?: () => void;
   onToggleMusic?: () => void;
+  effectsVolume?: number;
+  musicVolume?: number;
+  onSetEffectsVolume?: (v: number) => void;
+  onSetMusicVolume?: (v: number) => void;
   username?: string;
   walletAddress?: string;
 }
@@ -322,6 +447,10 @@ export const SettingsPage = ({
   isMusicEnabled = true,
   onToggleSound,
   onToggleMusic,
+  effectsVolume = 0.2,
+  musicVolume = 0.2,
+  onSetEffectsVolume,
+  onSetMusicVolume,
   username,
   walletAddress,
 }: SettingsPageProps) => {
@@ -336,15 +465,19 @@ export const SettingsPage = ({
     : 'Not connected';
 
   const rowGap = 12;
+  const sliderGap = 4;
   const sectionGap = 24;
   const rowH = 50;
+  const sliderH = 40;
   const themePanelH = getThemeSelectorHeight(contentWidth);
 
   let cy = 0;
 
   const audioHeaderY = cy; cy += 24;
-  const soundY = cy; cy += rowH + rowGap;
-  const musicY = cy; cy += rowH + sectionGap;
+  const soundY = cy; cy += rowH + sliderGap;
+  const soundSliderY = cy; cy += sliderH + rowGap;
+  const musicY = cy; cy += rowH + sliderGap;
+  const musicSliderY = cy; cy += sliderH + sectionGap;
 
   const themeHeaderY = cy; cy += 24;
   const themeSelectorY = cy; cy += themePanelH + sectionGap;
@@ -368,22 +501,40 @@ export const SettingsPage = ({
         <SectionHeader y={audioHeaderY} title="AUDIO" />
 
         <ToggleSwitch
-           x={0}
-           y={soundY}
-           isOn={isSoundEnabled}
-           onToggle={onToggleSound ?? (() => {})}
-           label="SOUND EFFECTS"
-           width={contentWidth}
-         />
+          x={0}
+          y={soundY}
+          isOn={isSoundEnabled}
+          onToggle={onToggleSound ?? (() => {})}
+          label="SOUND EFFECTS"
+          width={contentWidth}
+        />
+        <pixiContainer alpha={isSoundEnabled ? 1 : 0.35}>
+          <VolumeSlider
+            x={0}
+            y={soundSliderY}
+            width={contentWidth}
+            value={effectsVolume}
+            onChange={isSoundEnabled && onSetEffectsVolume ? onSetEffectsVolume : () => {}}
+          />
+        </pixiContainer>
 
-         <ToggleSwitch
-           x={0}
-           y={musicY}
-           isOn={isMusicEnabled}
-           onToggle={onToggleMusic ?? (() => {})}
-           label="MUSIC"
-           width={contentWidth}
-         />
+        <ToggleSwitch
+          x={0}
+          y={musicY}
+          isOn={isMusicEnabled}
+          onToggle={onToggleMusic ?? (() => {})}
+          label="MUSIC"
+          width={contentWidth}
+        />
+        <pixiContainer alpha={isMusicEnabled ? 1 : 0.35}>
+          <VolumeSlider
+            x={0}
+            y={musicSliderY}
+            width={contentWidth}
+            value={musicVolume}
+            onChange={isMusicEnabled && onSetMusicVolume ? onSetMusicVolume : () => {}}
+          />
+        </pixiContainer>
 
         <SectionHeader y={themeHeaderY} title="APPEARANCE" />
 
