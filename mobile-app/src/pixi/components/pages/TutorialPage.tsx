@@ -75,6 +75,15 @@ const StepCard = ({
     fontFamily: FONT_BOLD, fontSize: 9, fill: accentColor,
   }), [accentColor]);
 
+  const padding = 14;
+  const headerH = 50;
+  const descH = 32;
+  const itemH = 28;
+  const itemCount = infoStep?.items?.length ?? 0;
+  const itemsH = itemCount * itemH;
+  const footerH = infoStep?.footer ? 28 : 0;
+  const cardH = headerH + descH + itemsH + footerH + padding;
+
   const descStyle = useMemo(() => ({
     fontFamily: FONT_BODY, fontSize: 12, fill: 0x94a3b8,
     wordWrap: true, wordWrapWidth: width - padding * 2 - 12,
@@ -89,16 +98,6 @@ const StepCard = ({
     ...FOOTER_STYLE,
     wordWrap: true, wordWrapWidth: width - padding * 2 - 12,
   }), [width]);
-
-  // Calculate card height
-  const headerH = 50;
-  const descH = 32;
-  const itemH = 28;
-  const itemCount = infoStep?.items?.length ?? 0;
-  const itemsH = itemCount * itemH;
-  const footerH = infoStep?.footer ? 28 : 0;
-  const padding = 14;
-  const cardH = headerH + descH + itemsH + footerH + padding;
 
   const drawCard = useCallback(
     (g: PixiGraphics) => {
