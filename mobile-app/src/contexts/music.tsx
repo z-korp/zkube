@@ -46,9 +46,9 @@ export const MusicPlayerContext = createContext<{
   playTheme: () => {},
   stopTheme: () => {},
   isPlaying: false,
-  musicVolume: 0.2,
+  musicVolume: 0.5,
   setMusicVolume: () => {},
-  effectsVolume: 0.2,
+  effectsVolume: 0.5,
   setEffectsVolume: () => {},
   setIsMenu: () => {},
   playStart: () => {},
@@ -59,8 +59,8 @@ export const MusicPlayerContext = createContext<{
 });
 
 const STORAGE_KEY = "zkube_audio_settings";
-const DEFAULT_MUSIC_VOLUME = 0.2;
-const DEFAULT_EFFECTS_VOLUME = 0.2;
+const DEFAULT_MUSIC_VOLUME = 0.5;
+const DEFAULT_EFFECTS_VOLUME = 0.5;
 
 function loadAudioSettings(): { musicVolume: number; effectsVolume: number; musicEnabled: boolean } {
   try {

@@ -39,33 +39,55 @@ const VolumeSlider = ({
   value: number;
   onChange: (val: number) => void;
 }) => {
-  const [dragging, setDragging] = useState(false);
+  const draggingRef = useRef(false);
   const trackRef = useRef<PixiGraphics | null>(null);
-  const trackHeight = 8;
-  const knobRadius = 12;
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const trackHeight = 6;
+  const knobRadius = 10;
   const rowH = 50;
   const padding = 16;
   const labelW = 120;
   const pctW = 44;
-  const sliderW = width - padding * 2 - labelW - pctW;
+  const trackPad = 24;
+  const sliderW = width - padding * 2 - labelW - pctW - trackPad;
 
   const clamped01 = Math.max(0, Math.min(value, 1));
   const fillWidth = clamped01 * sliderW;
   const knobX = fillWidth;
   const pct = Math.round(clamped01 * 100);
 
-  const handlePointerMove = useCallback(
+  const computeValue = useCallback(
     (e: any) => {
-      if (!dragging) return;
       const track = trackRef.current;
       if (!track) return;
       const local = track.toLocal(e.data.global);
       const cx = Math.max(0, Math.min(local.x, sliderW));
       const newVal = Math.round((cx / sliderW) * 100) / 100;
-      onChange(newVal);
+      onChangeRef.current(newVal);
     },
-    [dragging, sliderW, onChange]
+    [sliderW]
   );
+
+  const handleGlobalMove = useCallback(
+    (e: any) => {
+      if (!draggingRef.current) return;
+      computeValue(e);
+    },
+    [computeValue]
+  );
+
+  const handlePointerDown = useCallback(
+    (e: any) => {
+      draggingRef.current = true;
+      computeValue(e);
+    },
+    [computeValue]
+  );
+
+  const handlePointerUp = useCallback(() => {
+    draggingRef.current = false;
+  }, []);
 
   const drawRow = useCallback(
     (g: PixiGraphics) => {
@@ -81,11 +103,11 @@ const VolumeSlider = ({
     (g: PixiGraphics) => {
       g.clear();
       g.setFillStyle({ color: 0x334155 });
-      g.roundRect(0, knobRadius - trackHeight / 2, sliderW, trackHeight, 4);
+      g.roundRect(0, knobRadius - trackHeight / 2, sliderW, trackHeight, 3);
       g.fill();
       if (fillWidth > 0) {
         g.setFillStyle({ color: 0x3b82f6 });
-        g.roundRect(0, knobRadius - trackHeight / 2, fillWidth, trackHeight, 4);
+        g.roundRect(0, knobRadius - trackHeight / 2, fillWidth, trackHeight, 3);
         g.fill();
       }
     },
@@ -116,19 +138,16 @@ const VolumeSlider = ({
         style={TOGGLE_LABEL_STYLE}
         eventMode="none"
       />
-      <pixiContainer x={padding + labelW} y={(rowH - knobRadius * 2) / 2}>
+      <pixiContainer x={padding + labelW + trackPad / 2} y={(rowH - knobRadius * 2) / 2}>
         <pixiGraphics
           ref={trackRef}
           draw={drawTrack}
           eventMode="static"
           cursor="pointer"
-          onPointerDown={(e: any) => {
-            setDragging(true);
-            handlePointerMove(e);
-          }}
-          onGlobalPointerMove={handlePointerMove}
-          onPointerUp={() => setDragging(false)}
-          onPointerUpOutside={() => setDragging(false)}
+          onPointerDown={handlePointerDown}
+          onGlobalPointerMove={handleGlobalMove}
+          onPointerUp={handlePointerUp}
+          onPointerUpOutside={handlePointerUp}
         />
         <pixiGraphics
           draw={drawKnob}
@@ -136,7 +155,7 @@ const VolumeSlider = ({
           y={knobRadius}
           eventMode="static"
           cursor="grab"
-          onPointerDown={() => setDragging(true)}
+          onPointerDown={() => { draggingRef.current = true; }}
         />
       </pixiContainer>
       <pixiText
@@ -372,8 +391,8 @@ export const SettingsPage = ({
   screenWidth,
   screenHeight,
   topBarHeight,
-  effectsVolume = 0.2,
-  musicVolume = 0.2,
+  effectsVolume = 0.5,
+  musicVolume = 0.5,
   onSetEffectsVolume,
   onSetMusicVolume,
   username,
