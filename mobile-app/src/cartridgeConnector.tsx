@@ -338,7 +338,8 @@ log.info("Configuration:", {
   signupOptions,
 });
 
-export const cartridgeConnector: Connector =
-  typeof window !== "undefined"
+// On slot, skip Controller entirely — use burner account via useAccountCustom
+export const cartridgeConnector: Connector | null =
+  typeof window !== "undefined" && VITE_PUBLIC_DEPLOY_TYPE !== "slot"
     ? createConnector(connectorConfig)
-    : (null as unknown as Connector);
+    : null;
