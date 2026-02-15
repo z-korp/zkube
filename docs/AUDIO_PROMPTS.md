@@ -1,7 +1,7 @@
-# zKube Audio Generation Prompts
+# zKube Audio Prompts
 
-> **Music**: Suno (3 instrumental tracks per theme = 30 tracks)
-> **Sound Effects**: TBD (7 SFX per theme = 70 effects)
+> **Music**: Suno — 3 instrumental tracks per theme = 30 tracks
+> **SFX**: TBD — 7 effects per theme = 70 effects
 
 ## File Structure
 
@@ -23,480 +23,237 @@ mobile-app/public/assets/{themeId}/sounds/
 
 ---
 
-## How to Use These Prompts in Suno
+## How to Use in Suno
 
-1. Go to [suno.com](https://suno.com) and click **Create**
-2. Toggle **Custom** mode ON
-3. Paste the **Style** value into the "Style of Music" field
-4. Paste the **Lyrics** value into the "Lyrics" field
-5. Set the title (optional, for your reference)
-6. Generate 2-4 variations, pick the best one
-7. Download as MP3, rename to match file structure above
+1. Toggle **Custom** mode ON
+2. Paste the prompt into the "Style of Music" field
+3. Put `[Instrumental]` in the "Lyrics" field
+4. Generate 2-4 variations, pick the best
 
 ---
 
-# SUNO PROMPTS (30 tracks)
+# MUSIC PROMPTS
 
-All tracks are **instrumental only**. Every lyrics field contains `[Instrumental]`.
+All tracks: put `[Instrumental]` in the Lyrics field.
 
 ---
 
 ## Theme 1: Tiki 🌴
 
-*Tropical paradise, wooden frames, jungle vibes, Polynesian atmosphere*
-
 ### track-1 — Main Theme
 
-**Style:**
 ```
-tropical lo-fi, island pop, ukulele, steel drums, bongo, marimba, chill, warm, relaxed, 95 BPM
+A laid-back tropical lo-fi instrumental with soft ukulele fingerpicking over warm steel drum chords and gentle bongo percussion. Light marimba accents shimmer through a haze of ocean breeze ambience. The tempo sits easy around 95 BPM, evoking wooden beach huts, swaying palms, and golden hour light filtering through bamboo. Calming and inviting, like a puzzle waiting on a sunlit porch.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-2 — Regular Level
 
-**Style:**
 ```
-tropical pop, island funk, ukulele, djembe, kalimba, steel drums, shaker, upbeat, playful, groovy, 115 BPM
+An upbeat island funk instrumental driven by a playful ukulele riff and tight djembe percussion. Kalimba runs sparkle over a steel drum melody that's catchy without being distracting, while shakers keep a steady groove underneath. Around 115 BPM, the energy stays focused and rhythmic — Polynesian puzzle-solving music that makes you nod along as you think, balancing tropical warmth with forward momentum.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-3 — Boss Level
 
-**Style:**
 ```
-dark tribal drums, Polynesian war percussion, taiko, log drums, aggressive ukulele, minor key, conch horn, intense, menacing, 140 BPM
-```
-
-**Lyrics:**
-```
-[Instrumental]
+A dark Polynesian battle instrumental that opens with heavy taiko-style drums and deep log drum stomps pounding a tribal rhythm. Aggressive ukulele strumming in minor key cuts through urgent conch shell horn blasts. The percussion is relentless and layered — war drums, hand claps, ritual stomping — building a jungle atmosphere thick with tension. 140 BPM, menacing and primal, like facing down an ancient tiki guardian.
 ```
 
 ---
 
 ## Theme 2: Cosmic 🌌
 
-*Deep space, nebula gradients, star fields, ethereal purple glow*
-
 ### track-1 — Main Theme
 
-**Style:**
 ```
-ambient synthwave, space synth, cosmic chill, analog pads, arpeggiator, reverb bells, dreamy, floating, retro-futuristic, 80 BPM
+A dreamy space ambient instrumental with lush analog synth pads drifting like nebula clouds. A gentle arpeggiator twinkles like distant stars over soft sub-bass warmth, while reverb-soaked bell tones float weightlessly. Around 80 BPM, retro-futuristic and serene — the feeling of drifting through a purple-pink star field, vast and quiet, with nothing but the hum of the cosmos and a sense of infinite possibility.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-2 — Regular Level
 
-**Style:**
 ```
-synthwave, retro electronic, pulsing bassline, arpeggiated synths, electronic drums, melodic lead synth, focused, propulsive, 110 BPM
+A mid-tempo synthwave instrumental with a pulsing bassline driving forward under shimmering arpeggiated synths and crisp electronic drums. A melodic lead synth glides and soars through the mix, propulsive and luminous, like navigating through an asteroid field at speed. Sidechained pads breathe in and out around 110 BPM, keeping the energy focused and determined without ever getting heavy.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-3 — Boss Level
 
-**Style:**
 ```
-dark synthwave, darksynth, heavy distorted synth bass, aggressive sawtooth leads, pounding kicks, glitch hi-hats, cinematic strings, menacing, urgent, epic, 135 BPM
-```
-
-**Lyrics:**
-```
-[Instrumental]
+A dark, intense synthwave instrumental with heavy distorted synth bass and aggressive sawtooth leads screaming over pounding four-on-the-floor kicks. Glitching hi-hats and alarm-like synth stabs ratchet up the tension while cinematic strings layer underneath with dark, sweeping pads. Rising builds crash into drops at 135 BPM — a showdown at the edge of a black hole, urgent, menacing, and relentless.
 ```
 
 ---
 
 ## Theme 3: Easter Island 🗿
 
-*Mysterious moai, volcanic island, neon magenta/cyan retro-futuristic aesthetic*
-
 ### track-1 — Main Theme
 
-**Style:**
 ```
-dark ambient synthwave, ancient futurism, mystery electronic, haunting flute, analog synth pads, ritualistic drums, deep reverb, neon arpeggios, 85 BPM
+A mysterious retro-futuristic instrumental blending ancient atmosphere with neon synthwave. A haunting stone flute melody floats over warm analog synth pads and a slow, ritualistic drum pattern. Deep reverb creates vast open space, like standing among giant moai statues at dusk while neon arpeggios glimmer faintly in the distance. Around 85 BPM, otherworldly and contemplative — ancient mystery refracted through an 80s synth lens.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-2 — Regular Level
 
-**Style:**
 ```
-retro synthwave, neon noir, punchy bass synth, electronic drums, bright arpeggios, minor key, percussive hits, mysterious, driven, 118 BPM
+A driving retro synthwave instrumental with punchy bass synth over tight electronic drums and bright neon arpeggios in a minor key. Quick percussive hits click like volcanic rocks while a low drone rumbles underneath like distant volcanic activity. 118 BPM and relentless, the mood is neon noir — solving puzzles under the watchful gaze of stone giants, electric and mysterious, with tension built into every measure.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-3 — Boss Level
 
-**Style:**
 ```
-darksynth, ritual industrial, massive tribal war drums, distorted synth leads, volcanic bass drops, dissonant chords, apocalyptic, furious, 140 BPM
-```
-
-**Lyrics:**
-```
-[Instrumental]
+An apocalyptic darksynth instrumental combining ancient ritual intensity with aggressive electronic production. Massive tribal war drums pound underneath screaming distorted synth leads and volcanic bass drops. The rhythm accelerates like a ritual building to climax — dissonant chords, neon-drenched chaos, stone-age weight meeting digital fury. 140 BPM, furious and monumental, as if the moai have awakened and the island is tearing itself apart.
 ```
 
 ---
 
 ## Theme 4: Maya 🏛️
 
-*Ancient Mesoamerican temples, jade jungle ruins, deep teal and coral*
-
 ### track-1 — Main Theme
 
-**Style:**
 ```
-world ambient, Mesoamerican folk, pan flute, rain stick, clay drums, jungle atmosphere, warm, meditative, mysterious, 85 BPM
+An atmospheric Mesoamerican instrumental with a wooden pan flute melody floating over gentle rain stick textures and soft clay drum rhythm. Lush jungle ambience fills the space — distant bird calls, rustling canopy, warm humid air. Bass notes settle like stepping into a jade-walled temple deep in the overgrown ruins. Reverb-soaked and meditative around 85 BPM, mysterious but inviting, sacred and ancient.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-2 — Regular Level
 
-**Style:**
 ```
-Latin world music, tribal percussion, Mesoamerican fusion, wooden marimba, seed shakers, hand drums, pan flute, upbeat, energetic, 120 BPM
+An energetic Latin world music instrumental driven by quick wooden marimba patterns and rattling seed shakers over tight hand drum rhythms. A pan flute melody weaves through in a pentatonic scale, punctuated by deep, growling bass notes. The percussion is layered and propulsive — 120 BPM of focused jungle energy, ritualistic yet playful, like a temple ceremony where every move counts.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-3 — Boss Level
 
-**Style:**
 ```
-dark tribal orchestral, Mesoamerican war drums, ceremonial polyrhythm, bone whistles, war horns, heavy bass, rapid wooden percussion, dark minor key flute, ferocious, 145 BPM
-```
-
-**Lyrics:**
-```
-[Instrumental]
+A ferocious tribal orchestral instrumental with thundering ceremonial drums in aggressive polyrhythmic patterns. Screaming bone whistles and war horns pierce through heavy stone-grinding bass while rapid-fire wooden percussion builds to frenzy. A dark minor key flute melody cuts through the chaos like a blade. 145 BPM of ancient, terrifying energy — the temple guardian demands a sacrifice, and the walls are closing in.
 ```
 
 ---
 
 ## Theme 5: Cyberpunk 💜
 
-*Neon lights, dark city grid, electric glow, industrial nature hybrid*
-
 ### track-1 — Main Theme
 
-**Style:**
 ```
-lo-fi cyberpunk, synthwave noir, chill electronic, detuned analog synth, jazzy electric piano, lo-fi crackle, hip-hop drums, 808 sub-bass, moody, nocturnal, 80 BPM
+A moody cyberpunk instrumental with warm, detuned analog synth chords and slow jazzy electric piano licks drifting over a laid-back hip-hop beat. Deep 808 sub-bass hums beneath lo-fi vinyl crackle while neon signs buzz faintly in the background and rain patters on city streets. Around 80 BPM, noir and nocturnal — a late-night puzzle session in a rain-soaked cyber cafe, all purple shadows and amber streetlight.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-2 — Regular Level
 
-**Style:**
 ```
-cyberpunk electronic, future bass, digital trap, driving bassline, trap hi-hats, snappy snare, glitchy arpeggiated synths, filtered pads, slick, focused, 120 BPM
+A slick cyberpunk electronic instrumental with a driving bassline, crisp trap hi-hats, and snappy snare. Glitchy arpeggiated synths cascade like digital rain while pitch-bent lead stabs cut through filtered pads that rise and fall. 120 BPM, focused and calculated — hacking through the matrix one block at a time, every beat precise, every synth line purposeful, electric and forward-moving.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-3 — Boss Level
 
-**Style:**
 ```
-aggressive cyberpunk, industrial bass, darksynth breakbeat, distorted bass drops, industrial kicks, glitched breakbeat, screaming saw synths, chaotic, aggressive, 150 BPM
-```
-
-**Lyrics:**
-```
-[Instrumental]
+An aggressive cyberpunk instrumental with filthy distorted bass drops and pounding industrial kicks. Glitched-out breakbeat drums stutter and slam while screaming saw synths bend with heavy portamento. Alarm sirens wail through digital interference — chaotic but tight, 150 BPM of maximum digital fury. The corporate overlord's firewall is fighting back, and the system is overloading.
 ```
 
 ---
 
 ## Theme 6: Medieval ⚔️
 
-*Stone castles, iron shields, torchlit halls, sand gold and terracotta*
-
 ### track-1 — Main Theme
 
-**Style:**
 ```
-medieval folk, Celtic tavern, fantasy ambient, lute fingerpicking, hurdy-gurdy, bodhran, Celtic harp, warm, nostalgic, cozy, 90 BPM
+A warm medieval tavern instrumental with gentle lute fingerpicking and a soft hurdy-gurdy drone underneath. A quiet bodhran keeps gentle time while Celtic harp arpeggios add touches of magic. The atmosphere is all crackling fireplaces and candlelit stone walls — nostalgic and comforting around 90 BPM, like resting at a roadside inn between adventures, a mug of mead in hand.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-2 — Regular Level
 
-**Style:**
 ```
-medieval folk rock, Celtic adventure, fantasy game music, lute strumming, bodhran, tin whistle, pizzicato strings, adventurous, spirited, 125 BPM
+An upbeat medieval folk rock instrumental with lively lute strumming driving the rhythm alongside a bodhran beat and bright tin whistle melody. Quick pizzicato strings add bounce while an occasional trumpet fanfare accents the peaks. 125 BPM, spirited and adventurous — a knight's training montage in the castle armory, determined and gallant, every move building toward something greater.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-3 — Boss Level
 
-**Style:**
 ```
-epic orchestral battle, dark medieval, cinematic, full strings, thundering war drums, brass fanfares, French horn, timpani, dramatic, epic, 140 BPM
-```
-
-**Lyrics:**
-```
-[Instrumental]
+An epic orchestral battle instrumental with full strings in dramatic minor key and thundering war drums. Aggressive brass fanfares and French horn calls ring out over rapid string tremolo that builds relentless urgency. Pounding timpani and the clash of steel percussion drive forward at 140 BPM while dark choir-like pad swells create a wall of ominous power. Storming the dark lord's keep, sword drawn, no turning back.
 ```
 
 ---
 
 ## Theme 7: Ancient Egypt 🏺
 
-*Golden pyramids, hieroglyphs, desert sands, light cyan and gold*
-
 ### track-1 — Main Theme
 
-**Style:**
 ```
-Middle Eastern ambient, Egyptian, desert world music, oud, darbuka, golden harp, ney flute, Arabic maqam Hijaz, regal, serene, 85 BPM
+An elegant Egyptian instrumental with a soft oud melody and gentle darbuka hand drum pattern. Shimmering golden harp arpeggios cascade while a ney flute floats delicately over warm desert wind ambience. The scale is Arabic maqam Hijaz — regal and serene, around 85 BPM, like watching the sun set golden over the Nile from the steps of a sandstone temple, timeless and unhurried.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-2 — Regular Level
 
-**Style:**
 ```
-modern Egyptian fusion, desert groove, Middle Eastern electronic, darbuka, riq tambourine, bass oud, kanun zither, ney flute, groovy, exotic, 115 BPM
+A rhythmic Egyptian fusion instrumental with driving darbuka and riq tambourine groove over punchy bass oud. Quick kanun zither runs sparkle like desert sand in sunlight while a ney flute melody in Hijaz scale keeps the energy focused and exotic. Tight and groovy at 115 BPM — deciphering ancient hieroglyphs under the pharaoh's watchful gaze, confident and precise.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-3 — Boss Level
 
-**Style:**
 ```
-epic Middle Eastern orchestral, Egyptian battle, cinematic, thundering frame drums, taiko, urgent darbuka, aggressive oud, dramatic strings, harmonic minor, wrathful, grandiose, 140 BPM
-```
-
-**Lyrics:**
-```
-[Instrumental]
+A massive Egyptian battle instrumental with thundering frame drums and taiko hits over urgent darbuka rolls. Aggressive distorted oud power riffs clash against dark dramatic strings in harmonic minor while a ney flute screams at the peaks like a desert sandstorm. 140 BPM of wrathful, grandiose fury — the curse of the pharaoh's tomb unleashed, golden and unstoppable.
 ```
 
 ---
 
 ## Theme 8: Volcano 🌋
 
-*Volcanic forge, molten rock, obsidian, deep black and ember red*
-
 ### track-1 — Main Theme
 
-**Style:**
 ```
-dark ambient industrial, volcanic drone, cinematic, deep rumbling sub-bass, metallic percussion, anvil strikes, distorted drones, ominous, hypnotic, 75 BPM
+A dark volcanic ambient instrumental with deep rumbling sub-bass like magma flowing underground. Slow metallic percussion — anvil strikes and chain rattles — rings out over warm distorted drones with ember-like high-frequency crackle. Ominous but hypnotic around 75 BPM, like standing at the edge of a volcanic caldera at night, watching the glow pulse beneath black rock, primordial and smoldering.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-2 — Regular Level
 
-**Style:**
 ```
-industrial metal, volcanic rock, heavy bass pulse, metallic percussion, forge hammer, distorted guitar synth, ember lead melody, relentless, fiery, powerful, 125 BPM
+A driving industrial metal instrumental with heavy bass pulse and metallic percussion hammering on beat like a forge at full capacity. A distorted guitar-like synth chugs in rhythmic lockstep with quick hi-hats and snappy rimshots while an ember-bright lead melody cuts through the heat. 125 BPM of relentless forward momentum — forging blocks in the heart of the mountain, fiery and powerful.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-3 — Boss Level
 
-**Style:**
 ```
-industrial metal, extreme cinematic, double bass drums, massive distorted bass, screaming lead guitar synths, explosive orchestral hits, cataclysmic, maximum aggression, 155 BPM
-```
-
-**Lyrics:**
-```
-[Instrumental]
+A cataclysmic industrial instrumental at eruption-level intensity. Double bass drum assault pounds underneath massive distorted bass riffs and screaming lead guitar-style synths. Explosive orchestral hits land on every downbeat as lava-flow crescendos build to earth-shaking drops. 155 BPM of maximum aggression — the mountain is exploding and you're inside it, volcanic fury made into sound, apocalyptic and unstoppable.
 ```
 
 ---
 
 ## Theme 9: Tribal 🪘
 
-*Earthy tribal patterns, bold organic shapes, pastel pink and mint*
-
 ### track-1 — Main Theme
 
-**Style:**
 ```
-world music ambient, African folk, organic chill, djembe, kalimba, shaker, rain stick, acoustic bass, wooden flute, warm, gentle, earthy, 90 BPM
+A warm organic tribal instrumental with soft djembe hand drumming and a gentle kalimba melody that rings clear and bright. Shaker and rain stick textures layer underneath warm acoustic bass plucks while a breathy wooden flute adds softness. Earthy and grounding around 90 BPM — like sitting around a campfire as twilight settles, the air still warm, the rhythm of the earth steady beneath you.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-2 — Regular Level
 
-**Style:**
 ```
-Afrobeat, tribal funk, world percussion, djembe, dunun, kalimba, shaker, clapping, talking drum, groovy, joyful, energetic, 120 BPM
+A groovy Afrobeat instrumental with tight djembe and dunun in polyrhythmic lockstep. Funky kalimba riffs dance over the top while quick shaker patterns and hand clapping weave through talking drum accents. Bouncy and energetic with deep pocket at 120 BPM — a village celebration in full swing, joyful and rhythmic, every hit landing exactly where it should.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-3 — Boss Level
 
-**Style:**
 ```
-intense African percussion, primal battle drums, tribal war, massive polyrhythmic drums, djembe, dunun, talking drums, aggressive balafon, stomping bass, fierce, relentless, 145 BPM
-```
-
-**Lyrics:**
-```
-[Instrumental]
+A primal tribal battle instrumental with a massive polyrhythmic drum ensemble at full intensity — djembe, dunun, and talking drums all attacking in overlapping waves. Aggressive balafon runs cascade while stomping bass hits shake the earth. The rhythm builds in call-and-response patterns, layering to frenzy at 145 BPM. The spirit guardian has risen, fierce and relentless, and the drums will not stop until one of you falls.
 ```
 
 ---
 
 ## Theme 10: Arctic ❄️
 
-*Frozen tundra, ice crystals, aurora borealis, copper and gold tones*
-
 ### track-1 — Main Theme
 
-**Style:**
 ```
-arctic ambient, Nordic cinematic, crystalline bells, bowed strings, sparse piano, wind ambience, vast, serene, contemplative, 75 BPM
+A serene arctic ambient instrumental with crystalline bell tones shimmering like northern lights overhead. A soft bowed string drone hums underneath a gentle, sparse piano melody — contemplative and unhurried. Wind ambience whispers through with ice crystal tinkling at the edges. Around 75 BPM, vast and frozen, like standing alone on an endless tundra watching the aurora ripple in silence.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-2 — Regular Level
 
-**Style:**
 ```
-Nordic folk electronic, arctic adventure, Scandinavian, staccato strings, electronic drums, folk fiddle, pulsing bass, kantele zither, crisp, determined, 115 BPM
+A crisp Nordic folk electronic instrumental with staccato strings and a tight electronic drum beat driving forward. A bright folk fiddle melody sings over pulsing bass while quick plucked kantele accents add sparkle. Snappy and precise at 115 BPM, like cracking ice — cool-toned but warm at its core, determined and brisk, racing across frozen blocks before they shift beneath you.
 ```
-
-**Lyrics:**
-```
-[Instrumental]
-```
-
----
 
 ### track-3 — Boss Level
 
-**Style:**
 ```
-epic Nordic orchestral, Viking battle, arctic cinematic, thundering war drums, aggressive low brass, screaming fiddle, minor key, double-time, ice percussion, titanic, epic, 145 BPM
-```
-
-**Lyrics:**
-```
-[Instrumental]
+An epic Nordic orchestral instrumental with thundering war drums and aggressive low brass. A screaming fiddle tears through in minor key over a pounding double-time beat that hits like a blizzard assault. Dark choir-like synth pads swell with frozen power while ice-cracking percussion and howling wind textures fill the space. 145 BPM of titanic, unyielding fury — the frost giant has emerged from the glacier, and winter has teeth.
 ```
 
 ---
@@ -504,7 +261,6 @@ epic Nordic orchestral, Viking battle, arctic cinematic, thundering war drums, a
 # SOUND EFFECT PROMPTS (70 effects)
 
 > Tool TBD. Prompts written for text-to-audio models (ElevenLabs SFX, AudioGen, etc.)
-> Each theme has 7 effects: break, explode, move, new, start, swipe, over
 
 ---
 
@@ -632,27 +388,17 @@ epic Nordic orchestral, Viking battle, arctic cinematic, thundering war drums, a
 
 # POST-PRODUCTION
 
-## Suno Output
+## Music
 
 - Download MP3 from Suno
 - Trim silence from start/end
-- For looping: crossfade the last 2-3 seconds into the first 2-3 seconds in Audacity or similar
+- For looping: crossfade the last 2-3s into the first 2-3s in Audacity
 - Normalize to **-14 LUFS**
 - Rename to `track-1.mp3` / `track-2.mp3` / `track-3.mp3`
 
-## SFX Output
+## SFX
 
 - Trim tight — no leading/trailing silence
-- Normalize to **-12 LUFS** (slightly louder than music)
-- Format: MP3 192kbps
-- Rename to match: `break.mp3`, `explode.mp3`, `move.mp3`, `new.mp3`, `start.mp3`, `swipe.mp3`, `over.mp3`
-
-## Final Checklist
-
-- [ ] 30 music tracks (3 per theme x 10 themes)
-- [ ] 70 SFX (7 per theme x 10 themes)
-- [ ] All files in correct directory structure
-- [ ] All music normalized to -14 LUFS
-- [ ] All SFX normalized to -12 LUFS
-- [ ] Loop points tested for all music tracks
-- [ ] Tested on phone speakers (not just headphones)
+- Normalize to **-12 LUFS**
+- MP3 192kbps
+- Rename to `break.mp3`, `explode.mp3`, `move.mp3`, `new.mp3`, `start.mp3`, `swipe.mp3`, `over.mp3`
