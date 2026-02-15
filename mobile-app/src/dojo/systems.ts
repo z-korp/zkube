@@ -14,8 +14,34 @@ import { createLogger } from "@/utils/logger";
 
 export type SystemCalls = ReturnType<typeof systems>;
 
-// Helper to delay execution
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const SESSION_ERROR_PATTERNS = [
+  "session/deserialize-error",
+  "session/not-registered",
+  "73657373696f6e2f646573657269616c697a652d6572726f72",
+  "73657373696f6e2f6e6f742d726567697374657265",
+];
+
+function isSessionError(error: unknown): boolean {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+        ? error
+        : JSON.stringify(error);
+  const lower = message.toLowerCase();
+  return SESSION_ERROR_PATTERNS.some((p) => lower.includes(p));
+}
+
+function clearSessionAndReload() {
+  localStorage.removeItem("sessionSigner");
+  localStorage.removeItem("session");
+  localStorage.removeItem("sessionPolicies");
+  localStorage.removeItem("lastUsedConnector");
+  localStorage.removeItem("controllerSessionVersion");
+  window.location.reload();
+}
 
 // Maximum retries for pre-confirmed transaction waiting
 const MAX_RETRIES = 5;
@@ -90,8 +116,20 @@ export function systems({ client }: { client: IWorld }) {
       );
       const events = receipt.events;
 
-      // Check if transaction was reverted
       if ((receipt as any).execution_status === "REVERTED") {
+        const revertReason = (receipt as any).revert_reason ?? "";
+        if (isSessionError(revertReason)) {
+          log.warn("Transaction reverted with session error, clearing and reloading");
+          showToast({
+            message: "Session expired. Reconnecting…",
+            type: "loading",
+            toastId,
+            durationMs: 3000,
+          });
+          clearSessionAndReload();
+          return { transaction_hash, events: [] };
+        }
+
         log.error("Transaction reverted", receipt);
         if (shouldShowToast()) {
           showToast({ message: "Transaction reverted.", type: "error", toastId });
@@ -104,6 +142,18 @@ export function systems({ client }: { client: IWorld }) {
       return { transaction_hash, events };
     } catch (error) {
       log.error("Error executing transaction", error);
+
+      if (isSessionError(error)) {
+        log.warn("Stale session detected, clearing and reloading");
+        showToast({
+          message: "Session expired. Reconnecting…",
+          type: "loading",
+          toastId,
+          durationMs: 3000,
+        });
+        clearSessionAndReload();
+        return { transaction_hash: "", events: [] };
+      }
 
       if (shouldShowToast()) {
         const errorMessage =

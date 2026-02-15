@@ -10,6 +10,52 @@ import { createLogger } from "@/utils/logger";
 
 const log = createLogger("cartridgeConnector");
 
+// Bump when Controller SDK session format changes (v1=0.10.x, v2=0.13.5+)
+const CONTROLLER_SESSION_VERSION = "2";
+
+function migrateControllerSessions() {
+  try {
+    const storedVersion = localStorage.getItem("controllerSessionVersion");
+    if (storedVersion === CONTROLLER_SESSION_VERSION) return;
+
+    const sessionStr = localStorage.getItem("session");
+    if (sessionStr) {
+      try {
+        const session = JSON.parse(sessionStr);
+        if (!session.guardianKeyGuid || !session.metadataHash || !session.sessionKeyGuid) {
+          log.info("Clearing legacy Controller session (missing GUID fields)");
+        }
+      } catch {
+        log.info("Clearing unparseable Controller session");
+      }
+    }
+
+    localStorage.removeItem("sessionSigner");
+    localStorage.removeItem("session");
+    localStorage.removeItem("sessionPolicies");
+    localStorage.removeItem("lastUsedConnector");
+
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key?.startsWith("@cartridge/")) {
+        localStorage.removeItem(key);
+      }
+    }
+
+    localStorage.setItem("controllerSessionVersion", CONTROLLER_SESSION_VERSION);
+    log.info("Controller session migration complete", {
+      from: storedVersion ?? "none",
+      to: CONTROLLER_SESSION_VERSION,
+    });
+  } catch (e) {
+    log.warn("Session migration skipped", e);
+  }
+}
+
+if (typeof window !== "undefined") {
+  migrateControllerSessions();
+}
+
 const { 
   VITE_PUBLIC_DEPLOY_TYPE, 
   VITE_PUBLIC_SLOT, 
