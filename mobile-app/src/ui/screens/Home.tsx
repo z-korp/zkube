@@ -4,7 +4,7 @@
  * Implements the full Play flow: LoadoutPage -> freeMint -> create -> navigate
  */
 import { useCallback, useMemo, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
@@ -14,7 +14,6 @@ import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
 import { useDojo } from "@/dojo/useDojo";
 import { MainScreen } from "@/pixi/components/pages/MainScreen";
 import type { PlayerGame } from "@/pixi/components/pages/MyGamesPage";
-import { useGame } from "@/hooks/useGame";
 import { useAccount, useConnect } from "@starknet-react/core";
 import ControllerConnector from "@cartridge/connector/controller";
 import type { GameTokenData } from "metagame-sdk";
@@ -77,7 +76,6 @@ export const Home = () => {
   const { cubeBalance, refetch: refetchCubeBalance } = useCubeBalance();
   const { playerMeta } = usePlayerMeta();
   const { username } = useControllerUsername();
-  const navigate = useNavigate();
   const location = useLocation();
   const initialPage = (location.state as { openLoadout?: boolean })?.openLoadout ? 'loadout' : undefined;
 
@@ -120,10 +118,6 @@ export const Home = () => {
 
   // State for game starting
   const [isStartingGame, setIsStartingGame] = useState(false);
-
-  // State for map view (selected game from MyGames)
-  const [selectedGameId, setSelectedGameId] = useState<number | undefined>(undefined);
-  const { game: selectedGame, seed: selectedGameSeed } = useGame({ gameId: selectedGameId, shouldLog: false });
 
   // Fetch player's games
   const shouldFetchMyGames = Boolean(account?.address);
@@ -173,9 +167,9 @@ export const Home = () => {
     });
   }, [ownedGames]);
 
-  // Handle starting a new game (from LoadoutPage)
+  // Handle starting a new game (from LoadoutPage) — returns gameId on success
   const handleStartGame = useCallback(
-    async (selectedBonuses: number[], cubesToBring: number) => {
+    async (selectedBonuses: number[], cubesToBring: number): Promise<number | undefined> => {
       if (!account) {
         showToast({
           message: "Connect your wallet to start a game.",
@@ -184,10 +178,9 @@ export const Home = () => {
         });
         const c = connector as ControllerConnector;
         if (c?.controller) c.controller.connect();
-        return;
+        return undefined;
       }
 
-      // Validate cube balance if bringing cubes
       if (cubesToBring > 0) {
         await refetchCubeBalance?.();
         const currentBalance = Number(cubeBalance);
@@ -197,7 +190,7 @@ export const Home = () => {
             type: "error",
             toastId: "start-game-balance-error",
           });
-          return;
+          return undefined;
         }
       }
 
@@ -209,7 +202,6 @@ export const Home = () => {
           toastId: "start-game-flow",
         });
 
-        // Step 1: Mint the game token
         const mintResult = await systemCalls.freeMint({
           account,
           name: username ?? "",
@@ -227,7 +219,6 @@ export const Home = () => {
           toastId: "start-game-flow",
         });
 
-        // Step 2: Create/start the game with loadout
         await systemCalls.create({
           account,
           token_id: gameId,
@@ -245,9 +236,7 @@ export const Home = () => {
         });
 
         refetchGames?.();
-
-        // Navigate to the play page
-        navigate(`/play/${gameId}`);
+        return gameId;
       } catch (error) {
         console.error("Error starting game:", error);
         showToast({
@@ -258,6 +247,7 @@ export const Home = () => {
           type: "error",
           toastId: "start-game-flow",
         });
+        return undefined;
       } finally {
         setIsStartingGame(false);
       }
@@ -270,37 +260,8 @@ export const Home = () => {
       refetchCubeBalance,
       systemCalls,
       refetchGames,
-      navigate,
     ]
   );
-
-  const [requestMapNavigation, setRequestMapNavigation] = useState(false);
-
-  const handleNavigateToGame = useCallback(
-    (gameId: number) => {
-      setSelectedGameId(gameId);
-      setRequestMapNavigation(true);
-    },
-    []
-  );
-
-  const handleMapNavigated = useCallback(() => {
-    setRequestMapNavigation(false);
-  }, []);
-
-  const handlePlayLevel = useCallback(
-    (_contractLevel: number) => {
-      if (selectedGameId) {
-        navigate(`/play/${selectedGameId}`);
-        setSelectedGameId(undefined);
-      }
-    },
-    [selectedGameId, navigate]
-  );
-
-  const mapSeed = selectedGame ? selectedGameSeed : undefined;
-  const mapCurrentLevel = selectedGame ? selectedGame.level : undefined;
-  const mapIsGameOver = selectedGame ? Boolean(selectedGame.over) : false;
 
   const handleConnect = useCallback(() => {
     const target = connectors.find((c) => c.id === "controller") ?? connectors[0];
@@ -421,7 +382,6 @@ export const Home = () => {
   return (
     <MainScreen
       // Navigation
-      onNavigateToGame={handleNavigateToGame}
       initialPage={initialPage}
       // Wallet
       onConnect={handleConnect}
@@ -433,6 +393,7 @@ export const Home = () => {
       // Games
       games={playerGames}
       gamesLoading={gamesLoading}
+      onRefreshGames={refetchGames}
       // Trophies
       onTrophyClick={handleTrophyClick}
       // Play/Loadout
@@ -459,13 +420,6 @@ export const Home = () => {
       isMusicEnabled={isMusicEnabled}
       onToggleSound={handleToggleSound}
       onToggleMusic={handleToggleMusic}
-      // Map
-      mapSeed={mapSeed}
-      mapCurrentLevel={mapCurrentLevel}
-      mapIsGameOver={mapIsGameOver}
-      onPlayLevel={handlePlayLevel}
-      requestMapNavigation={requestMapNavigation}
-      onMapNavigated={handleMapNavigated}
     />
   );
 };

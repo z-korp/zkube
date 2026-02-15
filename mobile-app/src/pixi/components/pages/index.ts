@@ -7,5 +7,5 @@ export { SettingsPage } from './SettingsPage';
 export { MyGamesPage, type PlayerGame } from './MyGamesPage';
 export { LoadoutPage } from './LoadoutPage';
 export { MainScreen, type MainScreenProps } from './MainScreen';
-export { PlayScreen, type PlayScreenProps, type BonusSlotData as PlayBonusSlotData } from './PlayScreen';
+export { PlayScreen, PlayScreenInner, type PlayScreenProps, type BonusSlotData as PlayBonusSlotData } from './PlayScreen';
 export { MapPage, type MapPageProps } from '../map/MapPage';

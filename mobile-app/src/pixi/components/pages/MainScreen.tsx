@@ -19,9 +19,11 @@ import { MyGamesPage, type PlayerGame } from './MyGamesPage';
 import { LoadoutPage } from './LoadoutPage';
 import { TutorialPage } from './TutorialPage';
 import { MapPage } from '../map/MapPage';
+import { PlayScreenInner } from './PlayScreen';
 import { Button } from '../ui';
 import { CubeBalance } from '../topbar/CubeBalance';
 import { PixiToastLayer } from '../ui/PixiToastLayer';
+import { useGame } from '@/hooks/useGame';
 import type { PlayerMetaData } from '@/hooks/usePlayerMeta';
 import type { LeaderboardEntry } from '@/hooks/useLeaderboardSlot';
 import type { QuestFamily } from '@/types/questFamily';
@@ -56,7 +58,6 @@ interface CloudData {
 
 export interface MainScreenProps {
   // Navigation
-  onNavigateToGame: (gameId: number) => void;
   initialPage?: string;
   // Wallet
   onConnect?: () => void;
@@ -68,10 +69,11 @@ export interface MainScreenProps {
   // Games
   games?: PlayerGame[];
   gamesLoading?: boolean;
+  onRefreshGames?: () => void;
   // Trophies
   onTrophyClick?: () => void;
   // Loadout/Play
-  onStartGame: (selectedBonuses: number[], cubesToBring: number) => void;
+  onStartGame: (selectedBonuses: number[], cubesToBring: number) => Promise<number | undefined>;
   isStartingGame?: boolean;
   playerMetaData?: PlayerMetaData | null;
   // Leaderboard
@@ -94,13 +96,6 @@ export interface MainScreenProps {
   isMusicEnabled?: boolean;
   onToggleSound?: () => void;
   onToggleMusic?: () => void;
-  // Map
-  mapSeed?: bigint;
-  mapCurrentLevel?: number;
-  mapIsGameOver?: boolean;
-  onPlayLevel?: (contractLevel: number) => void;
-  requestMapNavigation?: boolean;
-  onMapNavigated?: () => void;
 }
 
 // ============================================================================
@@ -524,25 +519,53 @@ const PageRenderer = (props: MainScreenProps & {
 }) => {
   const {
     sw, sh, topBarH, isMobile, uiScale,
-    onNavigateToGame, onConnect, onProfileClick, isConnected, username, walletAddress,
-    cubeBalance = 0, games = [], gamesLoading = false, onTrophyClick,
+    onConnect, onProfileClick, isConnected, username, walletAddress,
+    cubeBalance = 0, games = [], gamesLoading = false, onRefreshGames, onTrophyClick,
     onStartGame, isStartingGame = false, playerMetaData,
     leaderboardEntries = [], leaderboardLoading = false, onRefreshLeaderboard,
     questFamilies = [], questsLoading = false, questsStatus = 'success', onRefreshQuests, onClaimQuest,
     onUpgradeStartingBonus, onUpgradeBagSize, onUpgradeBridging, onUnlockBonus,
     isSoundEnabled, isMusicEnabled, onToggleSound, onToggleMusic,
-    mapSeed, mapCurrentLevel, mapIsGameOver, onPlayLevel,
-    requestMapNavigation, onMapNavigated,
   } = props;
 
   const { currentPage, previousPage, isTransitioning, transitionDirection, transitionProgressRef, navigate, goHome } = usePageNavigator();
+  const [activeGameId, setActiveGameId] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (requestMapNavigation && mapSeed !== undefined && mapCurrentLevel !== undefined) {
-      navigate('map');
-      onMapNavigated?.();
+  // Fetch game data for map view when a game is selected
+  const { game: activeGame, seed: activeGameSeed } = useGame({
+    gameId: activeGameId ?? undefined,
+    shouldLog: false,
+  });
+  const mapSeed = activeGame ? activeGameSeed : undefined;
+  const mapCurrentLevel = activeGame ? activeGame.level : undefined;
+  const mapIsGameOver = activeGame ? Boolean(activeGame.over) : false;
+
+  const handlePlayGame = useCallback((gameId: number) => {
+    setActiveGameId(gameId);
+    navigate('play');
+  }, [navigate]);
+
+  const handleGoHome = useCallback(() => {
+    goHome();
+    setActiveGameId(null);
+    onRefreshGames?.();
+  }, [goHome, onRefreshGames]);
+
+  const handlePlayAgain = useCallback(() => {
+    setActiveGameId(null);
+    navigate('loadout');
+  }, [navigate]);
+
+  const handlePlayLevel = useCallback((_contractLevel: number) => {
+    if (activeGameId) {
+      navigate('play');
     }
-  }, [requestMapNavigation, mapSeed, mapCurrentLevel, navigate, onMapNavigated]);
+  }, [activeGameId, navigate]);
+
+  const handleNavigateToGame = useCallback((gameId: number) => {
+    setActiveGameId(gameId);
+    navigate('map');
+  }, [navigate]);
 
   const pageContainerRef = useRef<any>(null);
 
@@ -646,7 +669,7 @@ const PageRenderer = (props: MainScreenProps & {
             screenWidth={sw}
             screenHeight={sh}
             topBarHeight={topBarH}
-            onResumeGame={onNavigateToGame}
+            onResumeGame={handleNavigateToGame}
           />
         )}
 
@@ -662,18 +685,21 @@ const PageRenderer = (props: MainScreenProps & {
           <MapPage
             seed={mapSeed}
             currentLevel={mapCurrentLevel}
-            isGameOver={mapIsGameOver ?? false}
+            isGameOver={mapIsGameOver}
             screenWidth={sw}
             screenHeight={sh}
             topBarHeight={topBarH}
-            onPlayLevel={onPlayLevel}
-            onBack={goHome}
+            onPlayLevel={handlePlayLevel}
+            onBack={handleGoHome}
           />
         )}
 
         {currentPage === 'loadout' && (
           <LoadoutPage
-            onConfirm={onStartGame}
+            onConfirm={async (bonuses, cubes) => {
+              const gameId = await onStartGame(bonuses, cubes);
+              if (gameId) handlePlayGame(gameId);
+            }}
             onCancel={goHome}
             playerMetaData={playerMetaData ?? null}
             cubeBalance={cubeBalance}
@@ -681,6 +707,14 @@ const PageRenderer = (props: MainScreenProps & {
             screenWidth={sw}
             screenHeight={sh}
             topBarHeight={topBarH}
+          />
+        )}
+
+        {currentPage === 'play' && activeGameId != null && (
+          <PlayScreenInner
+            gameId={activeGameId}
+            onGoHome={handleGoHome}
+            onPlayAgain={handlePlayAgain}
           />
         )}
       </pixiContainer>

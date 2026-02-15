@@ -484,7 +484,7 @@ const LoadingScreen = ({ sw, sh, topOffset }: { sw: number; sh: number; topOffse
   );
 };
 
-const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => {
+export const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => {
   const layout = useFullscreenLayout();
   const { screenWidth: sw, screenHeight: sh, uiScale } = layout;
   const { containerRef: shakeContainerRef, lineClear } = useScreenShake();
