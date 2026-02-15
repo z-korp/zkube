@@ -358,32 +358,32 @@ export const SettingsPage = ({
   return (
     <pixiContainer>
       <PageTopBar
-        title="Settings"
-        subtitle="Game options"
-        screenWidth={screenWidth}
-        topBarHeight={topBarHeight}
-      />
+         title="SETTINGS"
+         subtitle="CUSTOMIZE YOUR EXPERIENCE"
+         screenWidth={screenWidth}
+         topBarHeight={topBarHeight}
+       />
 
       <pixiContainer x={contentPadding} y={contentTop}>
         <SectionHeader y={audioHeaderY} title="AUDIO" />
 
         <ToggleSwitch
-          x={0}
-          y={soundY}
-          isOn={isSoundEnabled}
-          onToggle={onToggleSound ?? (() => {})}
-          label="Sound Effects"
-          width={contentWidth}
-        />
+           x={0}
+           y={soundY}
+           isOn={isSoundEnabled}
+           onToggle={onToggleSound ?? (() => {})}
+           label="SOUND EFFECTS"
+           width={contentWidth}
+         />
 
-        <ToggleSwitch
-          x={0}
-          y={musicY}
-          isOn={isMusicEnabled}
-          onToggle={onToggleMusic ?? (() => {})}
-          label="Music"
-          width={contentWidth}
-        />
+         <ToggleSwitch
+           x={0}
+           y={musicY}
+           isOn={isMusicEnabled}
+           onToggle={onToggleMusic ?? (() => {})}
+           label="MUSIC"
+           width={contentWidth}
+         />
 
         <SectionHeader y={themeHeaderY} title="APPEARANCE" />
 
@@ -396,19 +396,19 @@ export const SettingsPage = ({
 
         <SectionHeader y={accountHeaderY} title="ACCOUNT" />
 
-        <SettingRow
-          y={usernameY}
-          label="Username"
-          value={username || 'Guest'}
-          width={contentWidth}
-        />
+         <SettingRow
+           y={usernameY}
+           label="USERNAME"
+           value={username || 'GUEST'}
+           width={contentWidth}
+         />
 
-        <SettingRow
-          y={walletY}
-          label="Wallet"
-          value={truncatedAddress}
-          width={contentWidth}
-        />
+         <SettingRow
+           y={walletY}
+           label="WALLET"
+           value={truncatedAddress}
+           width={contentWidth}
+         />
 
         <pixiText
           text="zKube v1.2.0"

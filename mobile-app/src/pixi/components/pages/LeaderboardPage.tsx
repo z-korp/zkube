@@ -252,14 +252,14 @@ export const LeaderboardPage = ({
   return (
     <pixiContainer>
       {/* Top bar */}
-      <PageTopBar
-        title="Leaderboard"
-        subtitle={loading ? 'Loading...' : `${entries.length} players`}
-        screenWidth={screenWidth}
-        topBarHeight={topBarHeight}
-        actionIcon="🔄"
-        onAction={onRefresh}
-      />
+       <PageTopBar
+         title="LEADERBOARD"
+         subtitle={loading ? 'LOADING...' : `${entries.length} PLAYERS`}
+         screenWidth={screenWidth}
+         topBarHeight={topBarHeight}
+         actionIcon="🔄"
+         onAction={onRefresh}
+       />
 
       {/* Content */}
       <pixiContainer x={contentX} y={contentTop}>
@@ -273,10 +273,10 @@ export const LeaderboardPage = ({
 
       {/* Scrollable list */}
       <pixiContainer x={contentX} y={listTop}>
-        {loading ? (
-          <pixiText text="Loading leaderboard..." x={contentWidth / 2} y={80} anchor={0.5} style={LB_EMPTY_STYLE} eventMode="none" />
-        ) : entries.length === 0 ? (
-          <pixiText text="No games yet. Be the first!" x={contentWidth / 2} y={80} anchor={0.5} style={LB_EMPTY_STYLE} eventMode="none" />
+       {loading ? (
+           <pixiText text="LOADING LEADERBOARD..." x={contentWidth / 2} y={80} anchor={0.5} style={LB_EMPTY_STYLE} eventMode="none" />
+         ) : entries.length === 0 ? (
+           <pixiText text="NO GAMES YET. BE THE FIRST!" x={contentWidth / 2} y={80} anchor={0.5} style={LB_EMPTY_STYLE} eventMode="none" />
         ) : (
           <pixiContainer
             eventMode="static"

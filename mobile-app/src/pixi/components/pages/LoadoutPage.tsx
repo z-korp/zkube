@@ -485,26 +485,26 @@ export const LoadoutPage = ({
   return (
     <pixiContainer>
       {/* Top bar */}
-      <PageTopBar
-        title="Select Loadout"
-        subtitle="Choose 3 bonuses for your run"
-        screenWidth={screenWidth}
-        topBarHeight={topBarHeight}
-        showCubeBalance
-        cubeBalance={cubeBalance}
-      />
+       <PageTopBar
+         title="SELECT LOADOUT"
+         subtitle="CHOOSE 3 BONUSES FOR YOUR RUN"
+         screenWidth={screenWidth}
+         topBarHeight={topBarHeight}
+         showCubeBalance
+         cubeBalance={cubeBalance}
+       />
 
       {/* Content */}
       <pixiContainer x={contentPadding} y={contentTop}>
-        {/* Section: Bonuses */}
-        <pixiText
-          text="Bonuses"
-          x={contentWidth / 2}
-          y={0}
-          anchor={{ x: 0.5, y: 0 }}
-          style={SECTION_TITLE_STYLE}
-          eventMode="none"
-        />
+         {/* Section: Bonuses */}
+         <pixiText
+           text="BONUSES"
+           x={contentWidth / 2}
+           y={0}
+           anchor={{ x: 0.5, y: 0 }}
+           style={SECTION_TITLE_STYLE}
+           eventMode="none"
+         />
 
         {/* Bonus tiles */}
         <pixiContainer x={(contentWidth - (5 * tileSize + 4 * tileGap)) / 2} y={36}>
@@ -531,14 +531,14 @@ export const LoadoutPage = ({
         {/* Cube Bridging Section */}
         {canBringCubes && (
           <pixiContainer y={36 + tileSize + 40}>
-            <pixiText
-              text={`Bring Cubes (max ${actualMaxCubes})`}
-              x={contentWidth / 2}
-              y={0}
-              anchor={{ x: 0.5, y: 0 }}
-              style={CUBE_SECTION_STYLE}
-              eventMode="none"
-            />
+             <pixiText
+               text={`BRING CUBES (MAX ${actualMaxCubes})`}
+               x={contentWidth / 2}
+               y={0}
+               anchor={{ x: 0.5, y: 0 }}
+               style={CUBE_SECTION_STYLE}
+               eventMode="none"
+             />
             <CubeSlider
               x={20}
               y={36}
@@ -552,21 +552,21 @@ export const LoadoutPage = ({
 
         {/* Buttons */}
         <pixiContainer y={canBringCubes ? 36 + tileSize + 40 + 90 : 36 + tileSize + 50}>
-          <Button
-            text={isLoading ? "Starting..." : "Start Game"}
-            x={0}
-            y={0}
-            width={contentWidth}
-            height={56}
-            variant="primary"
-            fontSize={18}
-            onClick={handleConfirm}
-            disabled={isLoading || selected.length !== 3}
-          />
+           <Button
+             text={isLoading ? "STARTING..." : "START GAME"}
+             x={0}
+             y={0}
+             width={contentWidth}
+             height={56}
+             variant="primary"
+             fontSize={18}
+             onClick={handleConfirm}
+             disabled={isLoading || selected.length !== 3}
+           />
 
-          <Button
-            text="Cancel"
-            x={0}
+           <Button
+             text="CANCEL"
+             x={0}
             y={68}
             width={contentWidth}
             height={48}

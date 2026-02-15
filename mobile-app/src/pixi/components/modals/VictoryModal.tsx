@@ -222,7 +222,7 @@ export const VictoryModal = ({
         />
 
         <pixiText
-          text="You completed all 50 levels!"
+          text="YOU COMPLETED ALL 50 LEVELS!"
           x={buttonWidth / 2}
           y={120}
           anchor={{ x: 0.5, y: 0 }}
@@ -252,7 +252,7 @@ export const VictoryModal = ({
         {/* Buttons */}
         {onShare && (
           <Button
-            text="Share Victory"
+            text="SHARE VICTORY"
             y={290}
             width={buttonWidth}
             height={buttonHeight}
@@ -262,7 +262,7 @@ export const VictoryModal = ({
         )}
 
         <Button
-          text="Back to Home"
+          text="BACK TO HOME"
           y={onShare ? 290 + buttonHeight + buttonSpacing : 290}
           width={buttonWidth}
           height={buttonHeight}

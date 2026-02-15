@@ -158,14 +158,14 @@ export const Button = ({
         }}
       />
       <pixiText
-        text={text}
-        x={width / 2}
-        y={height / 2}
-        anchor={{ x: 0.5, y: 0.5 }}
-        style={textStyle}
-        alpha={disabled ? 0.5 : 1}
-        eventMode="none"
-      />
+         text={text.toUpperCase()}
+         x={width / 2}
+         y={height / 2}
+         anchor={{ x: 0.5, y: 0.5 }}
+         style={textStyle}
+         alpha={disabled ? 0.5 : 1}
+         eventMode="none"
+       />
     </pixiContainer>
   );
 };

@@ -201,8 +201,8 @@ const BonusCard = ({
 
       {isUnlocked ? (
         <>
-          {/* Starting Charges */}
-          <pixiText text="Starting" x={CARD_PAD} y={48} style={STYLE_LABEL} eventMode="none" />
+           {/* Starting Charges */}
+           <pixiText text="STARTING" x={CARD_PAD} y={48} style={STYLE_LABEL} eventMode="none" />
           <LevelPips level={startingLevel} maxLevel={MAX_LEVEL} x={CARD_PAD} y={66} color={accent} />
           <pixiContainer x={btnX} y={48}>
             <Button
@@ -216,8 +216,8 @@ const BonusCard = ({
             />
           </pixiContainer>
 
-          {/* Bag Size */}
-          <pixiText text="Bag" x={CARD_PAD} y={94} style={STYLE_LABEL} eventMode="none" />
+           {/* Bag Size */}
+           <pixiText text="BAG" x={CARD_PAD} y={94} style={STYLE_LABEL} eventMode="none" />
           <LevelPips level={bagLevel} maxLevel={MAX_LEVEL} x={CARD_PAD} y={112} color={accent} />
           <pixiContainer x={btnX} y={94}>
             <Button
@@ -234,15 +234,15 @@ const BonusCard = ({
       ) : (
         /* Unlock button centered in remaining space */
         <pixiContainer x={(width - 120) / 2} y={68}>
-          <Button
-            text={`Unlock ${UNLOCK_COST} 🧊`}
-            width={120}
-            height={40}
-            variant={canUnlock ? 'primary' : 'secondary'}
-            disabled={!canUnlock}
-            onClick={onUnlock}
-            fontSize={13}
-          />
+            <Button
+             text={`UNLOCK ${UNLOCK_COST} 🧊`}
+             width={120}
+             height={40}
+             variant={canUnlock ? 'primary' : 'secondary'}
+             disabled={!canUnlock}
+             onClick={onUnlock}
+             fontSize={13}
+           />
         </pixiContainer>
       )}
     </pixiContainer>

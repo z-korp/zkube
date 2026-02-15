@@ -215,7 +215,7 @@ const Logo = ({ x, y, maxW, maxH }: { x: number; y: number; maxW: number; maxH: 
   if (!tex) {
     return (
       <pixiContainer ref={containerRef} x={x} y={y}>
-        <pixiText text="zKube" anchor={0.5} style={logoFallbackStyle} />
+        <pixiText text="ZKUBE" anchor={0.5} style={logoFallbackStyle} />
       </pixiContainer>
     );
   }
@@ -269,7 +269,7 @@ const LandingButton = ({
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => { setHovered(false); setPressed(false); }}
       />
-      <pixiText text={label} x={width / 2} y={height / 2} anchor={0.5} style={btnTextStyle} eventMode="none" />
+      <pixiText text={label.toUpperCase()} x={width / 2} y={height / 2} anchor={0.5} style={btnTextStyle} eventMode="none" />
     </pixiContainer>
   );
 };

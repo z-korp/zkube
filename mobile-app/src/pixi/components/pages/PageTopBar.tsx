@@ -198,12 +198,12 @@ export const PageTopBar = ({
       )}
 
       {/* Title (center) */}
-      <pixiContainer x={screenWidth / 2} y={topBarHeight / 2}>
-        <pixiText text={title} x={0} y={subtitle ? -8 : 0} anchor={0.5} style={PAGE_TITLE_STYLE} eventMode="none" />
-        {subtitle && (
-          <pixiText text={subtitle} x={0} y={10} anchor={0.5} style={PAGE_SUBTITLE_STYLE} eventMode="none" />
-        )}
-      </pixiContainer>
+       <pixiContainer x={screenWidth / 2} y={topBarHeight / 2}>
+         <pixiText text={title.toUpperCase()} x={0} y={subtitle ? -8 : 0} anchor={0.5} style={PAGE_TITLE_STYLE} eventMode="none" />
+         {subtitle && (
+           <pixiText text={subtitle.toUpperCase()} x={0} y={10} anchor={0.5} style={PAGE_SUBTITLE_STYLE} eventMode="none" />
+         )}
+       </pixiContainer>
 
       {/* Cube balance or action button (right) */}
       {showCubeBalance && cubeBalance !== undefined ? (

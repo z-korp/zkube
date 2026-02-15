@@ -178,25 +178,25 @@ export const Modal = ({
         />
 
         {/* Title */}
-        <pixiText
-          text={title}
-          x={0}
-          y={-modalHeight / 2 + padding}
-          anchor={{ x: 0.5, y: 0 }}
-          style={titleStyle}
-          eventMode="none"
-        />
+         <pixiText
+           text={title.toUpperCase()}
+           x={0}
+           y={-modalHeight / 2 + padding}
+           anchor={{ x: 0.5, y: 0 }}
+           style={titleStyle}
+           eventMode="none"
+         />
 
-        {subtitle && (
-          <pixiText
-            text={subtitle}
-            x={0}
-            y={-modalHeight / 2 + padding + titleHeight}
-            anchor={{ x: 0.5, y: 0 }}
-            style={subtitleStyle}
-            eventMode="none"
-          />
-        )}
+         {subtitle && (
+           <pixiText
+             text={subtitle.toUpperCase()}
+             x={0}
+             y={-modalHeight / 2 + padding + titleHeight}
+             anchor={{ x: 0.5, y: 0 }}
+             style={subtitleStyle}
+             eventMode="none"
+           />
+         )}
 
         {/* Close button */}
         {showCloseButton && (

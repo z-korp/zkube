@@ -169,8 +169,8 @@ export const LevelCompleteModal = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Level ${level} Complete!`}
-      subtitle={constraintMet ? "Constraint bonus achieved!" : undefined}
+      title={`LEVEL ${level} COMPLETE!`}
+      subtitle={constraintMet ? "CONSTRAINT BONUS ACHIEVED!" : undefined}
       width={modalWidth}
       contentHeight={310}
       screenWidth={screenWidth}
@@ -200,18 +200,18 @@ export const LevelCompleteModal = ({
           <pixiGraphics draw={drawStatsBox} />
           
           <pixiContainer x={16} y={12}>
-            {/* Score */}
-            <pixiText text="Level Score" x={0} y={0} style={labelStyle} />
-            <pixiText 
-              text={`${levelScore} / ${targetScore}`} 
-              x={buttonWidth - 32} 
-              y={0} 
-              anchor={{ x: 1, y: 0 }} 
-              style={valueStyle} 
-            />
-            
-            {/* Cubes earned this level */}
-            <pixiText text="Cubes Earned" x={0} y={36} style={labelStyle} />
+             {/* Score */}
+             <pixiText text="LEVEL SCORE" x={0} y={0} style={labelStyle} />
+             <pixiText 
+               text={`${levelScore} / ${targetScore}`} 
+               x={buttonWidth - 32} 
+               y={0} 
+               anchor={{ x: 1, y: 0 }} 
+               style={valueStyle} 
+             />
+             
+             {/* Cubes earned this level */}
+             <pixiText text="CUBES EARNED" x={0} y={36} style={labelStyle} />
             <pixiText 
               text={cubesEarned > 0 ? `+${cubesEarned}` : '0'} 
               x={buttonWidth - 32} 
@@ -237,14 +237,14 @@ export const LevelCompleteModal = ({
         </pixiContainer>
 
         {/* Continue button */}
-        <Button
-          text="Continue"
-          y={bonusAwarded ? 230 : 190}
-          width={buttonWidth}
-          height={buttonHeight}
-          variant="primary"
-          onClick={onClose}
-        />
+         <Button
+           text="CONTINUE"
+           y={bonusAwarded ? 230 : 190}
+           width={buttonWidth}
+           height={buttonHeight}
+           variant="primary"
+           onClick={onClose}
+         />
       </pixiContainer>
     </Modal>
   );

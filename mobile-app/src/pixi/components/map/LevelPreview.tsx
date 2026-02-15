@@ -194,30 +194,30 @@ export const LevelPreview = ({ node, screenWidth, screenHeight, isGameOver = fal
           <pixiText text="✕" x={16} y={16} anchor={0.5} style={closeBtnTextStyle} eventMode="none" />
         </pixiContainer>
 
-        <pixiText text={title} x={PANEL_W / 2} y={20} anchor={{ x: 0.5, y: 0 }} style={titleStyle} eventMode="none" />
+        <pixiText text={title.toUpperCase()} x={PANEL_W / 2} y={20} anchor={{ x: 0.5, y: 0 }} style={titleStyle} eventMode="none" />
 
         <pixiText
-          text={`${themeMeta.icon} ${themeMeta.name}`}
-          x={PANEL_W / 2}
-          y={42}
-          anchor={{ x: 0.5, y: 0 }}
-          style={labelStyle}
-          eventMode="none"
-        />
+           text={`${themeMeta.icon} ${themeMeta.name.toUpperCase()}`}
+           x={PANEL_W / 2}
+           y={42}
+           anchor={{ x: 0.5, y: 0 }}
+           style={labelStyle}
+           eventMode="none"
+         />
 
         {node.type === 'shop' ? (
-          <pixiContainer>
-            <pixiText text="Spend cubes on consumables" x={PANEL_W / 2} y={80} anchor={0.5} style={labelStyle} eventMode="none" />
-            <pixiText text="for the upcoming boss level" x={PANEL_W / 2} y={96} anchor={0.5} style={labelStyle} eventMode="none" />
+           <pixiContainer>
+             <pixiText text="SPEND CUBES ON CONSUMABLES" x={PANEL_W / 2} y={80} anchor={0.5} style={labelStyle} eventMode="none" />
+             <pixiText text="FOR THE UPCOMING BOSS LEVEL" x={PANEL_W / 2} y={96} anchor={0.5} style={labelStyle} eventMode="none" />
           </pixiContainer>
         ) : levelConfig ? (
           <pixiContainer y={infoY + 14}>
-            <pixiText text="Difficulty" x={20} y={0} style={labelStyle} eventMode="none" />
+             <pixiText text="DIFFICULTY" x={20} y={0} style={labelStyle} eventMode="none" />
             <pixiText text={diffInfo?.label ?? ''} x={PANEL_W - 20} y={0} anchor={{ x: 1, y: 0 }} style={diffStyle} eventMode="none" />
 
             {(isCleared || isDeathLevel) && (
               <pixiContainer>
-                <pixiText text="Status" x={20} y={lineH} style={labelStyle} eventMode="none" />
+                 <pixiText text="STATUS" x={20} y={lineH} style={labelStyle} eventMode="none" />
                 <pixiText
                   text={isDeathLevel ? "💀 Died here" : "✓ Cleared"}
                   x={PANEL_W - 20}
@@ -235,15 +235,15 @@ export const LevelPreview = ({ node, screenWidth, screenHeight, isGameOver = fal
                   const startRow = (isCleared || isDeathLevel) ? 2 : 1;
                   return (
                     <>
-                      <pixiText text="Target Score" x={20} y={lineH * startRow} style={labelStyle} eventMode="none" />
+                       <pixiText text="TARGET SCORE" x={20} y={lineH * startRow} style={labelStyle} eventMode="none" />
                       <pixiText text={String(levelConfig.pointsRequired)} x={PANEL_W - 20} y={lineH * startRow} anchor={{ x: 1, y: 0 }} style={valueStyle} eventMode="none" />
 
-                      <pixiText text="Max Moves" x={20} y={lineH * (startRow + 1)} style={labelStyle} eventMode="none" />
+                       <pixiText text="MAX MOVES" x={20} y={lineH * (startRow + 1)} style={labelStyle} eventMode="none" />
                       <pixiText text={String(levelConfig.maxMoves)} x={PANEL_W - 20} y={lineH * (startRow + 1)} anchor={{ x: 1, y: 0 }} style={valueStyle} eventMode="none" />
 
                       {levelConfig.constraint.constraintType !== ConstraintType.None && (
                         <pixiContainer>
-                          <pixiText text="Constraint" x={20} y={lineH * (startRow + 2)} style={labelStyle} eventMode="none" />
+                           <pixiText text="CONSTRAINT" x={20} y={lineH * (startRow + 2)} style={labelStyle} eventMode="none" />
                           <pixiText
                             text={levelConfig.constraint.getLabel()}
                             x={PANEL_W - 20}
@@ -257,7 +257,7 @@ export const LevelPreview = ({ node, screenWidth, screenHeight, isGameOver = fal
 
                       {levelConfig.constraint2.constraintType !== ConstraintType.None && (
                         <pixiContainer>
-                          <pixiText text="Constraint 2" x={20} y={lineH * (startRow + 3)} style={labelStyle} eventMode="none" />
+                           <pixiText text="CONSTRAINT 2" x={20} y={lineH * (startRow + 3)} style={labelStyle} eventMode="none" />
                           <pixiText
                             text={levelConfig.constraint2.getLabel()}
                             x={PANEL_W - 20}
@@ -271,7 +271,7 @@ export const LevelPreview = ({ node, screenWidth, screenHeight, isGameOver = fal
 
                       {levelConfig.constraint3.constraintType !== ConstraintType.None && (
                         <pixiContainer>
-                          <pixiText text="Constraint 3" x={20} y={lineH * (startRow + 4)} style={labelStyle} eventMode="none" />
+                           <pixiText text="CONSTRAINT 3" x={20} y={lineH * (startRow + 4)} style={labelStyle} eventMode="none" />
                           <pixiText
                             text={levelConfig.constraint3.getLabel()}
                             x={PANEL_W - 20}
@@ -300,7 +300,7 @@ export const LevelPreview = ({ node, screenWidth, screenHeight, isGameOver = fal
               onPointerUp={() => { setPlayPressed(false); onPlay?.(); }}
               onPointerUpOutside={() => setPlayPressed(false)}
             />
-            <pixiText text="Play" x={BUTTON_W / 2} y={BUTTON_H / 2} anchor={0.5} style={playBtnTextStyle} eventMode="none" />
+             <pixiText text="PLAY" x={BUTTON_W / 2} y={BUTTON_H / 2} anchor={0.5} style={playBtnTextStyle} eventMode="none" />
           </pixiContainer>
         )}
       </pixiContainer>

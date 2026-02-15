@@ -64,13 +64,13 @@ export const ZoneBackground = ({ zone, themeId, x, y, width, height }: ZoneBackg
     <pixiContainer x={x} y={y}>
       <pixiGraphics draw={draw} eventMode="none" />
       <pixiText
-        text={`${meta.icon} ZONE ${zone} - ${meta.name.toUpperCase()}`}
-        x={width / 2}
-        y={14}
-        anchor={{ x: 0.5, y: 0 }}
-        style={titleStyle}
-        eventMode="none"
-      />
+         text={`${meta.icon} ZONE ${zone} - ${meta.name.toUpperCase()}`.toUpperCase()}
+         x={width / 2}
+         y={14}
+         anchor={{ x: 0.5, y: 0 }}
+         style={titleStyle}
+         eventMode="none"
+       />
       <pixiText
         text={meta.description}
         x={width / 2}

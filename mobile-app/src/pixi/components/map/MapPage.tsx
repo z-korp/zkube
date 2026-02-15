@@ -135,7 +135,7 @@ export const MapPage = ({
               onPointerUp={onBack}
             />
           )}
-          <pixiText text="World Map" x={screenWidth / 2} y={topBarHeight / 2} anchor={0.5} style={MAP_TITLE_STYLE} eventMode="none" />
+           <pixiText text="WORLD MAP" x={screenWidth / 2} y={topBarHeight / 2} anchor={0.5} style={MAP_TITLE_STYLE} eventMode="none" />
         </pixiContainer>
       )}
 

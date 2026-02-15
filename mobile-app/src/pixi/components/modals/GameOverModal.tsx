@@ -100,8 +100,8 @@ export const GameOverModal = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Game Over"
-      subtitle={`You reached level ${level}`}
+      title="GAME OVER"
+      subtitle={`YOU REACHED LEVEL ${level}`}
       width={modalWidth}
       contentHeight={380}
       screenWidth={screenWidth}
@@ -131,7 +131,7 @@ export const GameOverModal = ({
         {/* Buttons */}
         {onPlayAgain && (
           <Button
-            text="Play Again"
+            text="PLAY AGAIN"
             y={260}
             width={buttonWidth}
             height={buttonHeight}
@@ -141,7 +141,7 @@ export const GameOverModal = ({
         )}
 
         <Button
-          text="Back to Home"
+          text="BACK TO HOME"
           y={onPlayAgain ? 260 + buttonHeight + buttonSpacing : 260}
           width={buttonWidth}
           height={buttonHeight}

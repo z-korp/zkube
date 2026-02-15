@@ -142,14 +142,14 @@ const StepCard = ({
       />
 
       {/* Title */}
-      <pixiText
-        text={step.title}
-        x={70}
-        y={padding + 12}
-        anchor={{ x: 0, y: 0.5 }}
-        style={STEP_TITLE_STYLE}
-        eventMode="none"
-      />
+       <pixiText
+         text={step.title.toUpperCase()}
+         x={70}
+         y={padding + 12}
+         anchor={{ x: 0, y: 0.5 }}
+         style={STEP_TITLE_STYLE}
+         eventMode="none"
+       />
 
       {/* Type badge */}
       <pixiText
@@ -300,11 +300,11 @@ export const TutorialPage = ({
   return (
     <pixiContainer>
       <PageTopBar
-        title="How to Play"
-        subtitle="11 steps to master zKube"
-        screenWidth={screenWidth}
-        topBarHeight={topBarHeight}
-      />
+         title="HOW TO PLAY"
+         subtitle="11 STEPS TO MASTER ZKUBE"
+         screenWidth={screenWidth}
+         topBarHeight={topBarHeight}
+       />
 
       <pixiContainer x={contentPadding} y={contentTop}>
         <pixiContainer

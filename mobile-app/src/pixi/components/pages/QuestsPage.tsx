@@ -57,13 +57,13 @@ const CountdownTimer = ({ x, y }: { x: number; y: number }) => {
 
   return (
     <pixiText
-      text={`Resets in ${timeLeft}`}
-      x={x}
-      y={y}
-      anchor={{ x: 0.5, y: 0.5 }}
-      style={TIMER_STYLE}
-      eventMode="none"
-    />
+       text={`RESETS IN ${timeLeft}`}
+       x={x}
+       y={y}
+       anchor={{ x: 0.5, y: 0.5 }}
+       style={TIMER_STYLE}
+       eventMode="none"
+     />
   );
 };
 
@@ -317,14 +317,14 @@ const QuestFamilyCard = ({
       {hasClaimable && (
         <pixiContainer x={cardPadding} y={headerH + tiersHeight + progressH + 8}>
             <Button
-              text={isClaiming ? 'Claiming...' : `Claim T${family.claimableTier!.tier} (+${family.claimableTier!.reward})`}
-              width={width - cardPadding * 2}
-              height={44}
-              variant="primary"
-              fontSize={14}
-              onClick={handleClaim}
-            disabled={isClaiming}
-          />
+               text={isClaiming ? 'CLAIMING...' : `CLAIM T${family.claimableTier!.tier} (+${family.claimableTier!.reward})`}
+               width={width - cardPadding * 2}
+               height={44}
+               variant="primary"
+               fontSize={14}
+               onClick={handleClaim}
+             disabled={isClaiming}
+           />
         </pixiContainer>
       )}
     </pixiContainer>
@@ -492,13 +492,11 @@ export const QuestsPage = ({
     <pixiContainer>
       {/* Top bar */}
       <PageTopBar
-        title="Daily Quests"
-        subtitle={subtitle}
-        screenWidth={screenWidth}
-        topBarHeight={topBarHeight}
-        showCubeBalance
-        cubeBalance={cubeBalance}
-      />
+         title="DAILY QUESTS"
+         subtitle={`${completedCount}/${totalCount} COMPLETED`}
+         screenWidth={screenWidth}
+         topBarHeight={topBarHeight}
+       />
 
       {/* Timer */}
       <CountdownTimer x={screenWidth / 2} y={contentTop + timerH / 2} />
@@ -506,62 +504,62 @@ export const QuestsPage = ({
       {/* Quest list */}
       <pixiContainer x={contentX} y={listTop}>
         {isLoadingState ? (
-          <pixiText
-            text="Syncing daily quests..."
-            x={contentWidth / 2}
-            y={80}
-            anchor={0.5}
-            style={EMPTY_STATE_STYLE}
-            eventMode="none"
-          />
-        ) : isErrorState ? (
-          <pixiContainer>
-            <pixiText
-              text="Couldn't load quests"
-              x={contentWidth / 2}
-              y={66}
-              anchor={0.5}
-              style={EMPTY_STATE_STYLE}
-              eventMode="none"
-            />
-            <pixiText
-              text="Check your connection and retry"
-              x={contentWidth / 2}
-              y={94}
-              anchor={0.5}
-              style={EMPTY_SUB_STYLE}
-              eventMode="none"
-            />
-            <Button
-              text={isRefreshing ? 'Retrying...' : 'Retry'}
-              x={(contentWidth - 140) / 2}
-              y={122}
-              width={140}
-              height={44}
-              variant="secondary"
-              fontSize={14}
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-            />
+           <pixiText
+             text="SYNCING DAILY QUESTS..."
+             x={contentWidth / 2}
+             y={80}
+             anchor={0.5}
+             style={EMPTY_STATE_STYLE}
+             eventMode="none"
+           />
+         ) : isErrorState ? (
+           <pixiContainer>
+             <pixiText
+               text="COULDN'T LOAD QUESTS"
+               x={contentWidth / 2}
+               y={66}
+               anchor={0.5}
+               style={EMPTY_STATE_STYLE}
+               eventMode="none"
+             />
+             <pixiText
+               text="CHECK YOUR CONNECTION AND RETRY"
+               x={contentWidth / 2}
+               y={94}
+               anchor={0.5}
+               style={EMPTY_SUB_STYLE}
+               eventMode="none"
+             />
+             <Button
+               text={isRefreshing ? 'RETRYING...' : 'RETRY'}
+               x={(contentWidth - 140) / 2}
+               y={122}
+               width={140}
+               height={44}
+               variant="secondary"
+               fontSize={14}
+               onClick={handleRefresh}
+               disabled={isRefreshing}
+             />
           </pixiContainer>
-        ) : allFamilies.length === 0 ? (
-          <pixiContainer>
-            <pixiText
-              text="No quests yet"
-              x={contentWidth / 2}
-              y={72}
-              anchor={0.5}
-              style={EMPTY_STATE_STYLE}
-              eventMode="none"
-            />
-            <pixiText
-              text="Play a run to start making progress"
-              x={contentWidth / 2}
-              y={100}
-              anchor={0.5}
-              style={EMPTY_SUB_STYLE}
-              eventMode="none"
-            />
+         ) : allFamilies.length === 0 ? (
+           <pixiContainer>
+             <pixiText
+               text="NO QUESTS YET"
+               x={contentWidth / 2}
+               y={72}
+               anchor={0.5}
+               style={EMPTY_STATE_STYLE}
+               eventMode="none"
+             />
+             <pixiText
+               text="PLAY A RUN TO START MAKING PROGRESS"
+               x={contentWidth / 2}
+               y={100}
+               anchor={0.5}
+               style={EMPTY_SUB_STYLE}
+               eventMode="none"
+             />
           </pixiContainer>
         ) : (
           <pixiContainer

@@ -131,8 +131,8 @@ export const InGameShopModal = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="In-Game Shop"
-      subtitle="Spend cubes and keep the run rolling"
+      title="IN-GAME SHOP"
+      subtitle="SPEND CUBES AND KEEP THE RUN ROLLING"
       width={modalWidth}
       contentHeight={contentHeight}
       screenWidth={screenWidth}
@@ -143,11 +143,11 @@ export const InGameShopModal = ({
     >
       <pixiContainer x={24} y={0}>
         <pixiGraphics draw={drawCubesCard} eventMode="none" />
-        <pixiText text="Cubes Available" x={12} y={7} style={subtitleStyle} eventMode="none" />
+        <pixiText text="CUBES AVAILABLE" x={12} y={7} style={subtitleStyle} eventMode="none" />
         <pixiText text={`🧊 ${cubesAvailable}`} x={sectionWidth - 12} y={22} anchor={{ x: 1, y: 0.5 }} style={cubesStyle} eventMode="none" />
 
         {items.length === 0 ? (
-          <pixiText text="No bonus slots active for this run." x={sectionWidth / 2} y={74} anchor={0.5} style={emptyStyle} />
+          <pixiText text="NO BONUS SLOTS ACTIVE FOR THIS RUN." x={sectionWidth / 2} y={74} anchor={0.5} style={emptyStyle} />
         ) : (
           <pixiContainer y={56}>
             {items.map((item, idx) => {
@@ -210,7 +210,7 @@ export const InGameShopModal = ({
         )}
 
         <Button
-          text={isPurchasing ? 'Purchasing...' : 'Continue Run'}
+          text={isPurchasing ? 'PURCHASING...' : 'CONTINUE RUN'}
           y={contentHeight - 58}
           width={sectionWidth}
           height={44}

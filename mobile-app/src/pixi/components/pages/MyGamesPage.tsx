@@ -230,21 +230,21 @@ export const MyGamesPage = ({
   return (
     <pixiContainer>
       {/* Top bar */}
-      <PageTopBar
-        title="My Games"
-        subtitle={`${ongoingGames.length} ongoing, ${finishedGames.length} finished`}
-        screenWidth={screenWidth}
-        topBarHeight={topBarHeight}
-      />
+       <PageTopBar
+         title="MY GAMES"
+         subtitle={`${ongoingGames.length} ONGOING, ${finishedGames.length} FINISHED`}
+         screenWidth={screenWidth}
+         topBarHeight={topBarHeight}
+       />
 
       {/* Content */}
       <pixiContainer x={contentPadding} y={contentTop}>
-        {loading ? (
-          <pixiText text="Loading games..." x={contentWidth / 2} y={80} anchor={0.5} style={LOADING_STYLE} eventMode="none" />
-        ) : games.length === 0 ? (
-          <pixiContainer>
-            <pixiText text="No games yet!" x={contentWidth / 2} y={80} anchor={0.5} style={EMPTY_TITLE_STYLE} eventMode="none" />
-            <pixiText text="Start a new game from the home screen" x={contentWidth / 2} y={110} anchor={0.5} style={EMPTY_SUB_STYLE} eventMode="none" />
+         {loading ? (
+           <pixiText text="LOADING GAMES..." x={contentWidth / 2} y={80} anchor={0.5} style={LOADING_STYLE} eventMode="none" />
+         ) : games.length === 0 ? (
+           <pixiContainer>
+             <pixiText text="NO GAMES YET!" x={contentWidth / 2} y={80} anchor={0.5} style={EMPTY_TITLE_STYLE} eventMode="none" />
+             <pixiText text="START A NEW GAME FROM THE HOME SCREEN" x={contentWidth / 2} y={110} anchor={0.5} style={EMPTY_SUB_STYLE} eventMode="none" />
           </pixiContainer>
         ) : (
           <pixiContainer
@@ -258,10 +258,10 @@ export const MyGamesPage = ({
 
             {/* Scrollable content */}
             <pixiContainer y={-scrollY}>
-              {/* Ongoing Games Section */}
-              {ongoingGames.length > 0 && (
-                <pixiContainer y={0}>
-                  <SectionHeader title="Ongoing" count={ongoingGames.length} y={0} />
+               {/* Ongoing Games Section */}
+               {ongoingGames.length > 0 && (
+                 <pixiContainer y={0}>
+                   <SectionHeader title="ONGOING" count={ongoingGames.length} y={0} />
                   {ongoingGames.map((game, index) => (
                     <GameRow
                       key={game.tokenId}
@@ -275,10 +275,10 @@ export const MyGamesPage = ({
                 </pixiContainer>
               )}
 
-              {/* Finished Games Section */}
-              {finishedGames.length > 0 && (
-                <pixiContainer y={ongoingHeight + (ongoingHeight > 0 ? sectionGap : 0)}>
-                  <SectionHeader title="Finished" count={finishedGames.length} y={0} />
+               {/* Finished Games Section */}
+               {finishedGames.length > 0 && (
+                 <pixiContainer y={ongoingHeight + (ongoingHeight > 0 ? sectionGap : 0)}>
+                   <SectionHeader title="FINISHED" count={finishedGames.length} y={0} />
                   {finishedGames.map((game, index) => (
                     <GameRow
                       key={game.tokenId}
