@@ -123,6 +123,7 @@ export const MusicPlayerProvider = ({
     }
 
     if (prevThemeRef.current !== themeId) {
+      soundManager.bgm.stop();
       if (gestureReady.current) {
         soundManager.unloadTheme(prevThemeRef.current);
       }
