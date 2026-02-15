@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x39e8c3ee0016e1575fddf63d6a03f3f48a8e90d966ca8a2a6bc7a690f6a3101",
-    "seed": "zkube_slot_v2",
+    "address": "0x4cb7931b18acee8f9143fa65490bbfed87f3b94912611b00c8d6899d9438674",
+    "seed": "zkube_slot_v3",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,7 +33,7 @@
   },
   "contracts": [
     {
-      "address": "0x25872ff107650e405852bc18ea2ca24e30d82b88cede9d4f7384ed5b0f8a5d4",
+      "address": "0x4cda603d784c19cd671cbbfff7b29bd8fb6e5b376f8307a1ef0ebd1fb285ac5",
       "class_hash": "0x65374daad463359d2e1c7c442318579946a2e21b0d7c75960bba5deff272326",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-achievement_system",
@@ -47,8 +47,8 @@
       ]
     },
     {
-      "address": "0x7ee54bdef17d7450ffd5b37ffdefbdc56f740b0cb92363b783559014df601fe",
-      "class_hash": "0x2e28246aaabc720db063b769da61db06b5c05b1bcd29eb5e0222d779767d1ce",
+      "address": "0x256e9dae536318ecf68a5acc0f49e35b72c8751e0d244b69c62e46850ffb03",
+      "class_hash": "0x62d68479bd586cb1414f60c6b8890fc49d8fcfef423748c351ded07e28392dc",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-bonus_system",
       "selector": "0x7ddae8715adf015ed6b5c712f7e3a5c01fe157aac2a2f1d42270deca60c5382",
@@ -58,8 +58,8 @@
       ]
     },
     {
-      "address": "0x5631a293a1c79f66948a62bbeed98b41b497d6804c128651c60dea89c67bf77",
-      "class_hash": "0x67e979e1fa01e3566f4321b2da51bfbbea6039c296d80d252f02ebbf9e91f9b",
+      "address": "0x6fcc6d742cdeccdaf0b1cb38ed4af3577d01cf18d33b0b6fb549b20e096e0d2",
+      "class_hash": "0x620fcb381ca4d01f4fb24f1e369687824122650c9c2e882755b94f16802310d",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819"
       ],
@@ -73,7 +73,7 @@
       ]
     },
     {
-      "address": "0x76a29a4471179ec4e67b2358183bf2827c05662bbb7b1dbe4ceaa0b25aa2e7e",
+      "address": "0x7135bfe0813b7ccbdefa36a25edbe07d714b4fe08c297cdf15c3d7655113558",
       "class_hash": "0x37874ac24c4bd5aed2b3aa64ce11184afead0eb378a89ac67e4ba5b76e340a9",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-cube_token",
@@ -96,8 +96,8 @@
       ]
     },
     {
-      "address": "0x33969207814cdaa4b0842fd97ee582214bab4a58f923d287281356d5fc627d4",
-      "class_hash": "0x318e86ab174a5e346bc50a46ef903a2098fc2b4fe014abc5725ff1a484d6fd1",
+      "address": "0x360a04db336ee91c834e2b6c4f69f163dda4901a9f085cc1ebaafe0d6fa1375",
+      "class_hash": "0x766a5053f6adbacfc9dbd7da690c1db45f88861ecf2c805489fdb714e44e62f",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
         "0x02271f1bb4d75604b1c82a708c544ac851f430416cd409aa322327874fe5f918",
@@ -114,8 +114,8 @@
       ]
     },
     {
-      "address": "0x5f1ddb74738b65cbd086399e9fa1bb8ab015d35a3c6660a00635057d2ca5535",
-      "class_hash": "0x75cee12836861fdd6417d9cf90f4b4078a5410dafea74f9add2ed106ebec1b8",
+      "address": "0x7fe014bdc86c82db5053a7487f86ace2f5ea001a93c35617599591428fa4c4b",
+      "class_hash": "0x23195e8c00e3c752eef6d6deb551ee1c34403a6c3607f169d9460a156feb9ce",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-grid_system",
       "selector": "0x5ff6ef4a16262e788060768405b1310e3a5903dda6cf016268cf4453d31eec",
@@ -130,8 +130,8 @@
       ]
     },
     {
-      "address": "0x2236eef1adcbcf8cde44d275eef5a5d91cb06c0ecf24d5722bebaac08616251",
-      "class_hash": "0x1d8d8ff159bddbae7fe4255a4a324fb9a4ac32721c5c5c9076fd226be9dc211",
+      "address": "0x392998519d721934c370ea87181b7361ac5e18e6ebaca6a598043b875cedfbc",
+      "class_hash": "0x27135f4c825c53b860e87a8b3dd8048280426c6cf84cec87aba5b12907c9c51",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-level_system",
       "selector": "0xc087c6629c3c13d06cab85b37e88683bcffe82e8123eedbd704ff85463a0a5",
@@ -143,8 +143,8 @@
       ]
     },
     {
-      "address": "0x27c9aa5bcd53fa005f73da1d1103bbf7f796a1493776ac6779923a42fbfd5b",
-      "class_hash": "0x43ddb6d4150edfa8689f6ae6e0c695b3d62fa7e0eb2d16606600f2f64902308",
+      "address": "0x5c8dae335830171077532b1f5a5a23b6d86fde042deb22d46f1bde95fa36248",
+      "class_hash": "0x59a25e1aadfa2c82248a47b392f71a7d1f10ac69afa4afb475c279cb8029fc4",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-move_system",
       "selector": "0x3df79bdc704eceb62aa8752e4456ee57de1c2c56b4871b20171ee4ae1e235b7",
@@ -154,8 +154,8 @@
       ]
     },
     {
-      "address": "0x4d18eb5990809be1d8caf5eb3d0043cefaa8a502bdb3dc25fafd73528bf320c",
-      "class_hash": "0x2c80e2f256d34253b7f007b4f926c818166eee1bb4a9bbb28e42f3ddb73af37",
+      "address": "0x6074ee7f4fff54db01a99247a942f55757981b007c8c069f37a349c267951d0",
+      "class_hash": "0x5c94748bee7dc2cd39b7bcc52517d6cfb6dfb903117cac55faf10dedb26942",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-quest_system",
       "selector": "0x436c9e32f41800b6e41f7a2132179a85ad4fbbcd73cf2db6bcb4b65fd2071e",
@@ -170,8 +170,8 @@
       ]
     },
     {
-      "address": "0x5eea280dc3bee8cb732ba591a7d9c54ac3c3a9a4bb6963779e78cdbaee0bda1",
-      "class_hash": "0x362e90bebd91e1081960c030807707103f9619bb30e69f9f0210f8aad783296",
+      "address": "0x64a1f626bfdecab9ffbfc69030fe11768f4b4d552c27d60607f7eb9831eebff",
+      "class_hash": "0x48e7880739eaa1555ddef3fcda5a93fc9daeafea306e4bad5b7eabad93e7e6c",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-renderer_systems",
       "selector": "0x35d5ac8794cc2cf3e12c42d4ac579e7a5dc26a70c26e32c599915d2d39586cf",
@@ -180,8 +180,8 @@
       ]
     },
     {
-      "address": "0x334191c97e35b7d7a232a572f786e2dd59fece418bc578ba149aa70f369eda",
-      "class_hash": "0x30d4bbb4609dc112909950bfa84c83a6f44eaf6c5774d61090799c81bf53f22",
+      "address": "0x64c23808600455aea3658582556961c39c9f9e83a90c93d7fb41e4dca90bac0",
+      "class_hash": "0x33339d6db8cf11fac0167270a149a3fa8c1d4f4eab9d4825b3c9b1cc0024dbc",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-shop_system",
       "selector": "0x456e9ac1689ce0bf6afd29733b144d9ef8e7db5c0df5ec0dc79ed1ea22579a0",
@@ -411,6 +411,21 @@
           "key": false
         },
         {
+          "name": "constraint3_type",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint3_value",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint3_count",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
           "name": "cube_3_threshold",
           "type": "core::integer::u16",
           "key": false
@@ -421,7 +436,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x1197f6a1f9822e3da9b8a46987f32473bf92e8d67b4205922c87771b9c43934",
+      "class_hash": "0x558ad2fb062104b0be67d68a2aad1c838dc799f09eac2413c5e411c49521e3b",
       "tag": "zkube_budo_v1_2_0-GameLevel",
       "selector": "0xb0da199349d3f33e2645d79b9d60f0eea7fce0e961eb51cbe254065fcdb36a"
     },
@@ -485,17 +500,17 @@
           "key": false
         },
         {
-          "name": "hammer_cost",
+          "name": "combo_cost",
           "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "wave_cost",
+          "name": "score_cost",
           "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "totem_cost",
+          "name": "harvest_cost",
           "type": "core::integer::u8",
           "key": false
         },
@@ -640,7 +655,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x2450c42905517a0054314ca2261b0c5e5141c4e7aba7e75d0dd626927128dbe",
+      "class_hash": "0x279f2ecf2dab0d2224076386fe222f7d9878291014976a89e1721ce0b3d6daf",
       "tag": "zkube_budo_v1_2_0-GameSettings",
       "selector": "0x1c245917b09d68b08ceb4972426ebba162f36b31404a63dc180496cdc6777b"
     },
@@ -976,7 +991,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x2718ba808acc3fc3d3bc9a35f6e5661a01f4cbd28183bbb7f8c3718519a32c0",
+      "class_hash": "0x3b67af41627090f0823a02d7b6f1d0da9f473bf2d7acf0622f62d52bd738769",
       "tag": "zkube_budo_v1_2_0-ConstraintProgress",
       "selector": "0x353bf174f35f86ea87568181261d084bde41c365a7d78454eeb7015f9f58988"
     },
@@ -1102,7 +1117,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x16b58c1184a1308c1d911f1cb1b7f03ebe84b97387378194ee7b72b67a2ebbb",
+      "class_hash": "0x788af3ff0ff7466b33828a0d6061204436f82b8aa2e8cf61a452ddfe21fbd53",
       "tag": "zkube_budo_v1_2_0-LevelStarted",
       "selector": "0x1253fbd361d7ea8f1af4785316aaeea4348f393df3c4e456fcc1f4114c44834"
     },
@@ -1454,7 +1469,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x73331015dbc422db5d6e5f54396ebccb0f20a0c51817c0dd3394acbe2872d9b",
+      "class_hash": "0x5969c7a2965698ea82c48015facd31b000c52fbae36824b24ccaa824c6987bc",
       "tag": "zkube_budo_v1_2_0-UseBonus",
       "selector": "0x12d7603e18f9fa369a823a5096714451ba28a0f67a4b7736a2d26e2e4777c13"
     }
@@ -5856,15 +5871,15 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "hammer_cost",
+          "name": "combo_cost",
           "type": "core::integer::u8"
         },
         {
-          "name": "wave_cost",
+          "name": "score_cost",
           "type": "core::integer::u8"
         },
         {
-          "name": "totem_cost",
+          "name": "harvest_cost",
           "type": "core::integer::u8"
         },
         {
@@ -6062,15 +6077,15 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "hammer_cost",
+          "name": "combo_cost",
           "type": "core::integer::u8"
         },
         {
-          "name": "wave_cost",
+          "name": "score_cost",
           "type": "core::integer::u8"
         },
         {
-          "name": "totem_cost",
+          "name": "harvest_cost",
           "type": "core::integer::u8"
         },
         {
@@ -6286,6 +6301,18 @@
           "type": "core::integer::u8"
         },
         {
+          "name": "constraint3_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint3_value",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint3_count",
+          "type": "core::integer::u8"
+        },
+        {
           "name": "cube_3_threshold",
           "type": "core::integer::u16"
         },
@@ -6337,6 +6364,18 @@
         },
         {
           "name": "constraint2_count",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint3_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint3_value",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint3_count",
           "type": "core::integer::u8"
         },
         {
@@ -6639,15 +6678,15 @@
               "type": "core::integer::u8"
             },
             {
-              "name": "hammer_cost",
+              "name": "combo_cost",
               "type": "core::integer::u8"
             },
             {
-              "name": "wave_cost",
+              "name": "score_cost",
               "type": "core::integer::u8"
             },
             {
-              "name": "totem_cost",
+              "name": "harvest_cost",
               "type": "core::integer::u8"
             },
             {
@@ -7636,11 +7675,15 @@
           "type": "()"
         },
         {
-          "name": "Hammer",
+          "name": "Combo",
           "type": "()"
         },
         {
-          "name": "Totem",
+          "name": "Score",
+          "type": "()"
+        },
+        {
+          "name": "Harvest",
           "type": "()"
         },
         {
@@ -7648,11 +7691,7 @@
           "type": "()"
         },
         {
-          "name": "Shrink",
-          "type": "()"
-        },
-        {
-          "name": "Shuffle",
+          "name": "Supply",
           "type": "()"
         }
       ]
@@ -7670,7 +7709,23 @@
           "type": "()"
         },
         {
+          "name": "BreakBlocks",
+          "type": "()"
+        },
+        {
+          "name": "AchieveCombo",
+          "type": "()"
+        },
+        {
+          "name": "FillAndClear",
+          "type": "()"
+        },
+        {
           "name": "NoBonusUsed",
+          "type": "()"
+        },
+        {
+          "name": "ClearGrid",
           "type": "()"
         }
       ]
