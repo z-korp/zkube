@@ -123,17 +123,33 @@ export const useGameStateMachine = ({
     }
   }, [applyData, initialBlocks, isMoveComplete, saveGridStateblocks, score, combo, maxCombo, nextLineBlocks, setOptimisticScore, setOptimisticCombo, setOptimisticMaxCombo, setNextLineHasBeenConsumed]);
 
-  // Handle move transaction
   const handleMove = useCallback(
     async (rowIndex: number, startColIndex: number, finalColIndex: number) => {
+      log.info("handleMove called", {
+        rowIndex, startColIndex, finalColIndex,
+        isProcessing: isProcessingRef.current,
+        gameId,
+        hasAccount: !!account,
+        accountAddress: account?.address ?? "null",
+      });
+
       if (isProcessingRef.current) {
         log.warn("Already processing a move");
         return;
       }
 
-      if (startColIndex === finalColIndex) return;
-      if (!gameId) return;
-      if (!account) return;
+      if (startColIndex === finalColIndex) {
+        log.debug("handleMove — same start/final, skip");
+        return;
+      }
+      if (!gameId) {
+        log.warn("handleMove — no gameId");
+        return;
+      }
+      if (!account) {
+        log.warn("handleMove — no account");
+        return;
+      }
 
       isProcessingRef.current = true;
       setIsTxProcessing(true);

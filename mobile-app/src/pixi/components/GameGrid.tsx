@@ -2,6 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { BlockSprite } from './BlockSprite';
 import type { Block } from '@/types/types';
 import { BonusType } from '@/dojo/game/types/bonus';
+import { createLogger } from '@/utils/logger';
+
+const log = createLogger("GameGrid");
 
 interface GameGridProps {
   blocks: Block[];
@@ -67,9 +70,12 @@ export const GameGrid = ({
   }, [localBlocks]);
 
   const handleDragStart = useCallback((block: Block, globalX: number) => {
-    if (isTxProcessing) return;
+    log.debug("dragStart", { blockId: block.id, isTxProcessing, bonus });
+    if (isTxProcessing) {
+      log.warn("dragStart blocked — isTxProcessing=true");
+      return;
+    }
 
-    // If bonus is selected, apply it instead of dragging
     if (bonus !== BonusType.None) {
       onBonusApply(block);
       // Trigger explosion effect at block position
@@ -103,25 +109,22 @@ export const GameGrid = ({
   const handleDragEnd = useCallback(() => {
     if (!draggingBlock) return;
 
-    // Snap to grid
     const finalBlock = localBlocks.find(b => b.id === draggingBlock.id);
     if (finalBlock) {
       const finalX = Math.round(finalBlock.x);
       
-      // Update local state with snapped position
       setLocalBlocks(prevBlocks =>
         prevBlocks.map(b =>
           b.id === draggingBlock.id ? { ...b, x: finalX } : b
         )
       );
 
-      // Send move to contract if position changed
       if (Math.trunc(finalX) !== Math.trunc(initialBlockX)) {
-        onMove(
-          gridHeight - 1 - draggingBlock.y, // Convert to contract row index
-          Math.trunc(initialBlockX),
-          Math.trunc(finalX)
-        );
+        const rowIndex = gridHeight - 1 - draggingBlock.y;
+        log.info("dragEnd → onMove", { rowIndex, startX: Math.trunc(initialBlockX), finalX: Math.trunc(finalX) });
+        onMove(rowIndex, Math.trunc(initialBlockX), Math.trunc(finalX));
+      } else {
+        log.debug("dragEnd — no position change, skip onMove");
       }
     }
 

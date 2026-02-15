@@ -7,6 +7,9 @@ import { getBlockColors, darkenColor, type ThemeId } from '../utils/colors';
 import { blockAssetId } from '../assets/catalog';
 import { resolveAsset } from '../assets/resolver';
 import { useTextureWithFallback } from '../hooks/useTexture';
+import { createLogger } from '@/utils/logger';
+
+const log = createLogger("BlockSprite");
 
 interface BlockSpriteProps {
   block: Block;
@@ -84,10 +87,14 @@ export const BlockSprite = ({
 
   // Event handlers
   const handlePointerDown = useCallback((e: FederatedPointerEvent) => {
-    if (isTxProcessing) return;
+    log.debug("pointerDown", { blockId: block.id, isTxProcessing, hasTexture: !!texture });
+    if (isTxProcessing) {
+      log.warn("pointerDown blocked — isTxProcessing=true");
+      return;
+    }
     e.stopPropagation();
     onDragStart(block, e.global.x);
-  }, [block, onDragStart, isTxProcessing]);
+  }, [block, onDragStart, isTxProcessing, texture]);
 
   const handlePointerMove = useCallback((e: FederatedPointerEvent) => {
     if (isDragging) {
@@ -156,11 +163,25 @@ export const BlockSprite = ({
 
   if (!texture) {
     return (
-      <pixiGraphics
-        x={x}
-        y={y}
-        draw={drawPlaceholder}
-      />
+      <pixiContainer
+        x={x + width / 2}
+        y={y + height / 2}
+        eventMode="static"
+        cursor={cursor}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerUpOutside={handlePointerUp}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
+      >
+        <pixiGraphics
+          x={-width / 2}
+          y={-height / 2}
+          draw={drawPlaceholder}
+          eventMode="none"
+        />
+      </pixiContainer>
     );
   }
 

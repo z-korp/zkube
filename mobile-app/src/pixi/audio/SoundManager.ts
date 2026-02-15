@@ -33,7 +33,7 @@ export class BGM {
     if (!url) return;
 
     if (!sound.exists(alias)) {
-      sound.add(alias, { url, preload: true });
+      sound.add(alias, { url });
     }
 
     try {
@@ -102,7 +102,7 @@ export class SFX {
     const alias = sfxAlias(themeId, assetId);
 
     if (!sound.exists(alias)) {
-      sound.add(alias, { url, preload: true });
+      sound.add(alias, { url });
     }
 
     const vol = this._volume * (options?.volume ?? 1);

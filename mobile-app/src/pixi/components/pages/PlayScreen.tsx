@@ -27,6 +27,9 @@ import { resolveAsset } from '../../assets/resolver';
 import { AssetId } from '../../assets/catalog';
 import { useTextureWithFallback } from '../../hooks/useTexture';
 import { TickerConfig } from '../TickerConfig';
+import { createLogger } from '@/utils/logger';
+
+const playLog = createLogger("PlayScreen");
 
 const LOADING_TITLE_STYLE = {
   fontFamily: FONT_TITLE, fontSize: 28, fill: 0xffffff,
@@ -564,12 +567,24 @@ const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => 
   const isInteractionBlocked = isTxProcessing || isSurrendering || activeModal !== 'none';
 
   useEffect(() => {
+    playLog.info("interaction state", {
+      isInteractionBlocked,
+      isTxProcessing,
+      isSurrendering,
+      activeModal,
+      blockCount: blocks.length,
+      isLoading,
+    });
+  }, [isInteractionBlocked, isTxProcessing, isSurrendering, activeModal, blocks.length, isLoading]);
+
+  useEffect(() => {
     if (isGameOver || isVictory || isLevelComplete || isInGameShopOpen || showMapView) {
       setIsMenuOpen(false);
     }
   }, [isGameOver, isVictory, isLevelComplete, isInGameShopOpen, showMapView]);
 
   if (isLoading || blocks.length === 0) {
+    playLog.info("showing LoadingScreen", { isLoading, blockCount: blocks.length });
     return <LoadingScreen sw={sw} sh={sh} topOffset={layout.statsBarY + 4} />;
   }
 
