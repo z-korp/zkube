@@ -3,7 +3,7 @@
  * Fetches player's games and passes data to MainScreen.
  * Implements the full Play flow: LoadoutPage -> freeMint -> create -> navigate
  */
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
@@ -100,34 +100,11 @@ export const Home = () => {
 
   // Sound settings
   const {
-    isPlaying: isMusicEnabled,
-    playTheme,
-    stopTheme,
     effectsVolume,
     setEffectsVolume,
     musicVolume,
     setMusicVolume,
   } = useMusicPlayer();
-
-  const isSoundEnabled = effectsVolume > 0;
-  const prevEffectsVolume = useRef(effectsVolume > 0 ? effectsVolume : 0.2);
-  const prevMusicVolume = useRef(musicVolume > 0 ? musicVolume : 0.2);
-
-  if (effectsVolume > 0) prevEffectsVolume.current = effectsVolume;
-  if (musicVolume > 0) prevMusicVolume.current = musicVolume;
-
-  const handleToggleMusic = useCallback(() => {
-    if (isMusicEnabled) {
-      stopTheme();
-    } else {
-      setMusicVolume(prevMusicVolume.current);
-      playTheme();
-    }
-  }, [isMusicEnabled, playTheme, stopTheme, setMusicVolume]);
-
-  const handleToggleSound = useCallback(() => {
-    setEffectsVolume(effectsVolume > 0 ? 0 : prevEffectsVolume.current);
-  }, [effectsVolume, setEffectsVolume]);
 
   // State for game starting
   const [isStartingGame, setIsStartingGame] = useState(false);
@@ -466,10 +443,6 @@ export const Home = () => {
       onUpgradeBridging={handleUpgradeBridging}
       onUnlockBonus={handleUnlockBonus}
       // Settings
-      isSoundEnabled={isSoundEnabled}
-      isMusicEnabled={isMusicEnabled}
-      onToggleSound={handleToggleSound}
-      onToggleMusic={handleToggleMusic}
       effectsVolume={effectsVolume}
       musicVolume={musicVolume}
       onSetEffectsVolume={setEffectsVolume}

@@ -166,6 +166,14 @@ export const MusicPlayerProvider = ({
 
   const setMusicVolume = useCallback((volume: number) => {
     setMusicVolumeState(volume);
+    if (volume > 0 && !isPlayingRef.current) {
+      const track = isMenuRef.current ? AssetId.Music2 : AssetId.Music3;
+      soundManager.bgm.play(themeIdRef.current, track);
+      setIsPlaying(true);
+    } else if (volume === 0 && isPlayingRef.current) {
+      soundManager.bgm.stop();
+      setIsPlaying(false);
+    }
   }, []);
 
   const setEffectsVolume = useCallback((volume: number) => {
