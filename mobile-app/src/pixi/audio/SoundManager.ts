@@ -159,6 +159,13 @@ class SoundManager {
 
   private _themeId: ThemeId = 'theme-1';
 
+  constructor() {
+    const ctx = sound.context as any;
+    if (ctx && 'autoPause' in ctx) {
+      ctx.autoPause = false;
+    }
+  }
+
   get themeId() {
     return this._themeId;
   }
