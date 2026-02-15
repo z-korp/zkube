@@ -83,10 +83,10 @@ export enum AssetId {
   SfxOver = 'sfx-over',
 
   // Sounds — music
-  Music1 = 'music-1',
-  Music2 = 'music-2',
-  Music3 = 'music-3',
-  MusicIntro = 'music-intro',
+  MusicMain = 'music-main',
+  MusicMap = 'music-map',
+  MusicLevel = 'music-level',
+  MusicBoss = 'music-boss',
 }
 
 // ============================================================================
@@ -209,10 +209,10 @@ export const ASSET_CATALOG: Record<AssetId, AssetMeta> = {
   [AssetId.SfxOver]: { filename: 'sounds/effects/over.mp3', kind: 'sound', bundle: 'audio' },
 
   // Sounds — music
-  [AssetId.Music1]: { filename: 'sounds/musics/track-1.mp3', kind: 'sound', bundle: 'audio' },
-  [AssetId.Music2]: { filename: 'sounds/musics/track-2.mp3', kind: 'sound', bundle: 'audio' },
-  [AssetId.Music3]: { filename: 'sounds/musics/track-3.mp3', kind: 'sound', bundle: 'audio' },
-  [AssetId.MusicIntro]: { filename: 'sounds/musics/intro.mp3', kind: 'sound', bundle: 'audio' },
+  [AssetId.MusicMain]: { filename: 'sounds/musics/main.mp3', kind: 'sound', bundle: 'audio' },
+  [AssetId.MusicMap]: { filename: 'sounds/musics/map.mp3', kind: 'sound', bundle: 'audio' },
+  [AssetId.MusicLevel]: { filename: 'sounds/musics/level.mp3', kind: 'sound', bundle: 'audio' },
+  [AssetId.MusicBoss]: { filename: 'sounds/musics/boss.mp3', kind: 'sound', bundle: 'audio' },
 };
 
 // ============================================================================

@@ -159,10 +159,10 @@ class SoundManager {
       AssetId.SfxOver,
     ];
     const musicIds = [
-      AssetId.Music1,
-      AssetId.Music2,
-      AssetId.Music3,
-      AssetId.MusicIntro,
+      AssetId.MusicMain,
+      AssetId.MusicMap,
+      AssetId.MusicLevel,
+      AssetId.MusicBoss,
     ];
 
     for (const assetId of [...sfxIds, ...musicIds]) {

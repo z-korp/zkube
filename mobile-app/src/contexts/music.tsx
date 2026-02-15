@@ -4,6 +4,17 @@ import { soundManager } from "@/pixi/audio/SoundManager";
 import { AssetId } from "@/pixi/assets/catalog";
 import type { ThemeId } from "@/pixi/utils/colors";
 
+const MENU_TRACKS = [AssetId.MusicMain, AssetId.MusicMap] as const;
+const GAMEPLAY_TRACKS = [AssetId.MusicLevel, AssetId.MusicBoss] as const;
+
+function randomMenuTrack(): AssetId {
+  return MENU_TRACKS[Math.floor(Math.random() * MENU_TRACKS.length)];
+}
+
+function randomGameplayTrack(): AssetId {
+  return GAMEPLAY_TRACKS[Math.floor(Math.random() * GAMEPLAY_TRACKS.length)];
+}
+
 function useUserGesture(onGesture: () => void) {
   const firedRef = useRef(false);
   useEffect(() => {
@@ -108,7 +119,7 @@ export const MusicPlayerProvider = ({
     soundManager.preloadTheme(themeIdRef.current);
     // Auto-resume music if it was enabled before reload
     if (isPlayingRef.current) {
-      const track = isMenuRef.current ? AssetId.Music2 : AssetId.Music3;
+      const track = isMenuRef.current ? randomMenuTrack() : randomGameplayTrack();
       soundManager.bgm.play(themeIdRef.current, track);
     }
   }, []);
@@ -130,7 +141,7 @@ export const MusicPlayerProvider = ({
       prevThemeRef.current = themeId;
 
       if (isPlaying) {
-        const track = isMenu ? AssetId.Music2 : AssetId.Music3;
+        const track = isMenu ? randomMenuTrack() : randomGameplayTrack();
         soundManager.bgm.play(themeId, track);
       }
     }
@@ -149,7 +160,7 @@ export const MusicPlayerProvider = ({
   }, [musicVolume, effectsVolume, isPlaying]);
 
   const playTheme = useCallback(() => {
-    const track = isMenu ? AssetId.Music2 : AssetId.Music3;
+    const track = isMenu ? randomMenuTrack() : randomGameplayTrack();
     soundManager.bgm.play(themeId, track);
     setIsPlaying(true);
   }, [themeId, isMenu]);
