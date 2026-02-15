@@ -4,16 +4,35 @@ import { AssetId } from '../assets/catalog';
 import { resolveSoundUrl } from '../assets/resolver';
 import type { ThemeId } from '../utils/colors';
 
-// ============================================================================
-// SOUND ALIASES — keyed by AssetId so we can swap themes without collisions
-// ============================================================================
+const SFX_THEME: ThemeId = 'theme-1';
 
-function sfxAlias(themeId: ThemeId, assetId: AssetId): string {
+const SFX_IDS: readonly AssetId[] = [
+  AssetId.SfxBreak,
+  AssetId.SfxExplode,
+  AssetId.SfxMove,
+  AssetId.SfxNew,
+  AssetId.SfxStart,
+  AssetId.SfxSwipe,
+  AssetId.SfxOver,
+];
+
+const MUSIC_IDS: readonly AssetId[] = [
+  AssetId.MusicMain,
+  AssetId.MusicMap,
+  AssetId.MusicLevel,
+  AssetId.MusicBoss,
+];
+
+function musicAlias(themeId: ThemeId, assetId: AssetId): string {
   return `${themeId}::${assetId}`;
 }
 
+function sfxAlias(assetId: AssetId): string {
+  return `sfx::${assetId}`;
+}
+
 // ============================================================================
-// BGM — one looping track at a time, with crossfade support
+// BGM — one looping track at a time
 // ============================================================================
 
 export class BGM {
@@ -23,7 +42,7 @@ export class BGM {
   private _muted = false;
 
   async play(themeId: ThemeId, assetId: AssetId) {
-    const alias = sfxAlias(themeId, assetId);
+    const alias = musicAlias(themeId, assetId);
 
     if (this.currentAlias === alias && this.currentSound?.isPlaying) return;
 
@@ -86,20 +105,20 @@ export class BGM {
 }
 
 // ============================================================================
-// SFX — one-shot sound effects with independent volume
+// SFX — one-shot sound effects, theme-independent
 // ============================================================================
 
 export class SFX {
   private _volume = 0.2;
   private _muted = false;
 
-  play(themeId: ThemeId, assetId: AssetId, options?: Partial<PlayOptions>) {
+  play(assetId: AssetId, options?: Partial<PlayOptions>) {
     if (this._muted) return;
 
-    const url = resolveSoundUrl(themeId, assetId);
+    const url = resolveSoundUrl(SFX_THEME, assetId);
     if (!url) return;
 
-    const alias = sfxAlias(themeId, assetId);
+    const alias = sfxAlias(assetId);
 
     if (!sound.exists(alias)) {
       sound.add(alias, { url });
@@ -148,27 +167,22 @@ class SoundManager {
     this._themeId = id;
   }
 
-  preloadTheme(themeId: ThemeId) {
-    const sfxIds = [
-      AssetId.SfxBreak,
-      AssetId.SfxExplode,
-      AssetId.SfxMove,
-      AssetId.SfxNew,
-      AssetId.SfxStart,
-      AssetId.SfxSwipe,
-      AssetId.SfxOver,
-    ];
-    const musicIds = [
-      AssetId.MusicMain,
-      AssetId.MusicMap,
-      AssetId.MusicLevel,
-      AssetId.MusicBoss,
-    ];
+  preloadCommonSfx() {
+    for (const assetId of SFX_IDS) {
+      const url = resolveSoundUrl(SFX_THEME, assetId);
+      if (!url) continue;
+      const alias = sfxAlias(assetId);
+      if (!sound.exists(alias)) {
+        sound.add(alias, { url, preload: true });
+      }
+    }
+  }
 
-    for (const assetId of [...sfxIds, ...musicIds]) {
+  preloadThemeMusic(themeId: ThemeId) {
+    for (const assetId of MUSIC_IDS) {
       const url = resolveSoundUrl(themeId, assetId);
       if (!url) continue;
-      const alias = sfxAlias(themeId, assetId);
+      const alias = musicAlias(themeId, assetId);
       if (!sound.exists(alias)) {
         sound.add(alias, { url, preload: true });
       }
@@ -191,13 +205,9 @@ class SoundManager {
     sound.volumeAll = v;
   }
 
-  unloadTheme(themeId: ThemeId) {
-    const allIds = Object.values(AssetId).filter(
-      (id) => typeof id === 'string',
-    ) as AssetId[];
-
-    for (const assetId of allIds) {
-      const alias = sfxAlias(themeId, assetId);
+  unloadThemeMusic(themeId: ThemeId) {
+    for (const assetId of MUSIC_IDS) {
+      const alias = musicAlias(themeId, assetId);
       if (sound.exists(alias)) {
         try { sound.remove(alias); } catch { /* may not be loaded */ }
       }

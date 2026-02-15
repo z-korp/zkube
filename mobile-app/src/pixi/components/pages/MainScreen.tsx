@@ -91,11 +91,11 @@ export interface MainScreenProps {
   onUpgradeBagSize?: (bonusType: number) => Promise<void>;
   onUpgradeBridging?: () => Promise<void>;
   onUnlockBonus?: (bonusType: number) => Promise<void>;
-  // Settings
-  isSoundEnabled?: boolean;
-  isMusicEnabled?: boolean;
-  onToggleSound?: () => void;
-  onToggleMusic?: () => void;
+  // Settings — audio volume sliders
+  musicVolume?: number;
+  effectsVolume?: number;
+  onMusicVolumeChange?: (v: number) => void;
+  onEffectsVolumeChange?: (v: number) => void;
 }
 
 // ============================================================================
@@ -525,7 +525,7 @@ const PageRenderer = (props: MainScreenProps & {
     leaderboardEntries = [], leaderboardLoading = false, onRefreshLeaderboard,
     questFamilies = [], questsLoading = false, questsStatus = 'success', onRefreshQuests, onClaimQuest,
     onUpgradeStartingBonus, onUpgradeBagSize, onUpgradeBridging, onUnlockBonus,
-    isSoundEnabled, isMusicEnabled, onToggleSound, onToggleMusic,
+    musicVolume, effectsVolume, onMusicVolumeChange, onEffectsVolumeChange,
   } = props;
 
   const { currentPage, previousPage, isTransitioning, transitionDirection, transitionProgressRef, navigate, goHome } = usePageNavigator();
@@ -657,10 +657,10 @@ const PageRenderer = (props: MainScreenProps & {
             screenWidth={sw}
             screenHeight={sh}
             topBarHeight={topBarH}
-            isSoundEnabled={isSoundEnabled}
-            isMusicEnabled={isMusicEnabled}
-            onToggleSound={onToggleSound}
-            onToggleMusic={onToggleMusic}
+            musicVolume={musicVolume}
+            effectsVolume={effectsVolume}
+            onMusicVolumeChange={onMusicVolumeChange}
+            onEffectsVolumeChange={onEffectsVolumeChange}
             username={username}
             walletAddress={walletAddress}
           />

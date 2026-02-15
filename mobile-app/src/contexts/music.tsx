@@ -40,9 +40,6 @@ function useUserGesture(onGesture: () => void) {
 }
 
 export const MusicPlayerContext = createContext<{
-  playTheme: () => void;
-  stopTheme: () => void;
-  isPlaying: boolean;
   musicVolume: number;
   effectsVolume: number;
   setMusicVolume: (volume: number) => void;
@@ -54,9 +51,6 @@ export const MusicPlayerContext = createContext<{
   playExplode: () => void;
   playSuccess: () => void;
 }>({
-  playTheme: () => {},
-  stopTheme: () => {},
-  isPlaying: false,
   musicVolume: 0.5,
   setMusicVolume: () => {},
   effectsVolume: 0.5,
@@ -73,7 +67,7 @@ const STORAGE_KEY = "zkube_audio_settings";
 const DEFAULT_MUSIC_VOLUME = 0.5;
 const DEFAULT_EFFECTS_VOLUME = 0.5;
 
-function loadAudioSettings(): { musicVolume: number; effectsVolume: number; musicEnabled: boolean } {
+function loadAudioSettings(): { musicVolume: number; effectsVolume: number } {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
@@ -81,16 +75,15 @@ function loadAudioSettings(): { musicVolume: number; effectsVolume: number; musi
       return {
         musicVolume: typeof parsed.musicVolume === "number" ? parsed.musicVolume : DEFAULT_MUSIC_VOLUME,
         effectsVolume: typeof parsed.effectsVolume === "number" ? parsed.effectsVolume : DEFAULT_EFFECTS_VOLUME,
-        musicEnabled: typeof parsed.musicEnabled === "boolean" ? parsed.musicEnabled : true,
       };
     }
   } catch { /* ignore corrupt data */ }
-  return { musicVolume: DEFAULT_MUSIC_VOLUME, effectsVolume: DEFAULT_EFFECTS_VOLUME, musicEnabled: true };
+  return { musicVolume: DEFAULT_MUSIC_VOLUME, effectsVolume: DEFAULT_EFFECTS_VOLUME };
 }
 
-function saveAudioSettings(musicVolume: number, effectsVolume: number, musicEnabled: boolean) {
+function saveAudioSettings(musicVolume: number, effectsVolume: number) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ musicVolume, effectsVolume, musicEnabled }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ musicVolume, effectsVolume }));
   } catch { /* localStorage full or unavailable */ }
 }
 
@@ -104,21 +97,20 @@ export const MusicPlayerProvider = ({
 
   const saved = useRef(loadAudioSettings());
   const [isMenu, setIsMenu] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(saved.current.musicEnabled);
   const [musicVolume, setMusicVolumeState] = useState(saved.current.musicVolume);
   const [effectsVolume, setEffectsVolumeState] = useState(saved.current.effectsVolume);
   const prevThemeRef = useRef<ThemeId>(themeId);
   const themeIdRef = useRef(themeId);
   themeIdRef.current = themeId;
-  const isPlayingRef = useRef(isPlaying);
-  isPlayingRef.current = isPlaying;
+  const musicVolumeRef = useRef(musicVolume);
+  musicVolumeRef.current = musicVolume;
   const isMenuRef = useRef(isMenu);
   isMenuRef.current = isMenu;
 
   const handleFirstGesture = useCallback(() => {
-    soundManager.preloadTheme(themeIdRef.current);
-    // Auto-resume music if it was enabled before reload
-    if (isPlayingRef.current) {
+    soundManager.preloadCommonSfx();
+    soundManager.preloadThemeMusic(themeIdRef.current);
+    if (musicVolumeRef.current > 0) {
       const track = isMenuRef.current ? randomMenuTrack() : randomGameplayTrack();
       soundManager.bgm.play(themeIdRef.current, track);
     }
@@ -128,24 +120,19 @@ export const MusicPlayerProvider = ({
 
   useEffect(() => {
     soundManager.themeId = themeId;
-
-    if (gestureReady.current) {
-      soundManager.preloadTheme(themeId);
-    }
+    soundManager.preloadThemeMusic(themeId);
 
     if (prevThemeRef.current !== themeId) {
       soundManager.bgm.stop();
-      if (gestureReady.current) {
-        soundManager.unloadTheme(prevThemeRef.current);
-      }
+      soundManager.unloadThemeMusic(prevThemeRef.current);
       prevThemeRef.current = themeId;
 
-      if (isPlaying) {
+      if (gestureReady.current && musicVolume > 0) {
         const track = isMenu ? randomMenuTrack() : randomGameplayTrack();
         soundManager.bgm.play(themeId, track);
       }
     }
-  }, [themeId, isMenu, isPlaying, gestureReady]);
+  }, [themeId, isMenu, musicVolume, gestureReady]);
 
   useEffect(() => {
     soundManager.bgm.volume = musicVolume;
@@ -156,18 +143,25 @@ export const MusicPlayerProvider = ({
   }, [effectsVolume]);
 
   useEffect(() => {
-    saveAudioSettings(musicVolume, effectsVolume, isPlaying);
-  }, [musicVolume, effectsVolume, isPlaying]);
+    saveAudioSettings(musicVolume, effectsVolume);
+  }, [musicVolume, effectsVolume]);
 
-  const playTheme = useCallback(() => {
-    const track = isMenu ? randomMenuTrack() : randomGameplayTrack();
-    soundManager.bgm.play(themeId, track);
-    setIsPlaying(true);
-  }, [themeId, isMenu]);
+  const setMusicVolume = useCallback((volume: number) => {
+    const clamped = Math.max(0, Math.min(1, volume));
+    const wasZero = musicVolumeRef.current === 0;
 
-  const stopTheme = useCallback(() => {
-    soundManager.bgm.stop();
-    setIsPlaying(false);
+    setMusicVolumeState(clamped);
+
+    if (clamped > 0 && wasZero && gestureReady.current) {
+      const track = isMenuRef.current ? randomMenuTrack() : randomGameplayTrack();
+      soundManager.bgm.play(themeIdRef.current, track);
+    } else if (clamped === 0) {
+      soundManager.bgm.stop();
+    }
+  }, [gestureReady]);
+
+  const setEffectsVolume = useCallback((volume: number) => {
+    setEffectsVolumeState(Math.max(0, Math.min(1, volume)));
   }, []);
 
   useEffect(() => {
@@ -176,40 +170,29 @@ export const MusicPlayerProvider = ({
     };
   }, []);
 
-  const setMusicVolume = useCallback((volume: number) => {
-    setMusicVolumeState(volume);
-  }, []);
-
-  const setEffectsVolume = useCallback((volume: number) => {
-    setEffectsVolumeState(volume);
-  }, []);
-
   const playStart = useCallback(() => {
-    soundManager.sfx.play(themeId, AssetId.SfxStart);
-  }, [themeId]);
+    soundManager.sfx.play(AssetId.SfxStart);
+  }, []);
 
   const playOver = useCallback(() => {
-    soundManager.sfx.play(themeId, AssetId.SfxOver);
-  }, [themeId]);
+    soundManager.sfx.play(AssetId.SfxOver);
+  }, []);
 
   const playSwipe = useCallback(() => {
-    soundManager.sfx.play(themeId, AssetId.SfxSwipe);
-  }, [themeId]);
+    soundManager.sfx.play(AssetId.SfxSwipe);
+  }, []);
 
   const playExplode = useCallback(() => {
-    soundManager.sfx.play(themeId, AssetId.SfxExplode);
-  }, [themeId]);
+    soundManager.sfx.play(AssetId.SfxExplode);
+  }, []);
 
   const playSuccess = useCallback(() => {
-    soundManager.sfx.play(themeId, AssetId.SfxNew);
-  }, [themeId]);
+    soundManager.sfx.play(AssetId.SfxNew);
+  }, []);
 
   return (
     <MusicPlayerContext.Provider
       value={{
-        playTheme,
-        stopTheme,
-        isPlaying,
         musicVolume,
         setMusicVolume,
         effectsVolume,

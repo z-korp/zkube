@@ -71,15 +71,23 @@ export function resolveButtonStateUrls(
   };
 }
 
+/**
+ * Resolve a sound asset URL.
+ *
+ * - **SFX** are shared across all themes → always served from theme-1.
+ * - **Music** is unique per theme → always served from the requested theme.
+ */
 export function resolveSoundUrl(themeId: ThemeId, assetId: AssetId): string | null {
   const meta = ASSET_CATALOG[assetId];
   if (!meta || meta.kind !== 'sound') return null;
 
-  // For procedural themes, fall back to theme-1 sounds directly
-  if (isProceduralTheme(themeId)) {
+  // SFX: common across all themes — always use fallback (theme-1)
+  const isSfx = (assetId as string).startsWith('sfx-');
+  if (isSfx) {
     return themeUrl(FALLBACK_THEME, meta.filename);
   }
 
+  // Music: each theme has unique tracks — always use the actual theme
   return themeUrl(themeId, meta.filename);
 }
 

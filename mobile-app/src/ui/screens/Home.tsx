@@ -96,25 +96,12 @@ export const Home = () => {
   const { questFamilies, status: questsStatus, refresh: refreshQuests } = useQuests();
   const questsLoading = questsStatus === "loading";
 
-  // Sound settings
   const {
-    isPlaying: isMusicEnabled,
-    playTheme,
-    stopTheme,
+    musicVolume,
     effectsVolume,
+    setMusicVolume,
     setEffectsVolume,
   } = useMusicPlayer();
-
-  const isSoundEnabled = effectsVolume > 0;
-
-  const handleToggleMusic = useCallback(() => {
-    if (isMusicEnabled) stopTheme();
-    else playTheme();
-  }, [isMusicEnabled, playTheme, stopTheme]);
-
-  const handleToggleSound = useCallback(() => {
-    setEffectsVolume(effectsVolume > 0 ? 0 : 0.5);
-  }, [effectsVolume, setEffectsVolume]);
 
   // State for game starting
   const [isStartingGame, setIsStartingGame] = useState(false);
@@ -416,10 +403,10 @@ export const Home = () => {
       onUpgradeBridging={handleUpgradeBridging}
       onUnlockBonus={handleUnlockBonus}
       // Settings
-      isSoundEnabled={isSoundEnabled}
-      isMusicEnabled={isMusicEnabled}
-      onToggleSound={handleToggleSound}
-      onToggleMusic={handleToggleMusic}
+      musicVolume={musicVolume}
+      effectsVolume={effectsVolume}
+      onMusicVolumeChange={setMusicVolume}
+      onEffectsVolumeChange={setEffectsVolume}
     />
   );
 };
