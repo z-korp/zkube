@@ -8,6 +8,7 @@ interface MenuModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSurrender: () => Promise<void>;
+  onGoHome: () => void;
   screenWidth: number;
   screenHeight: number;
   currentLevel: number;
@@ -22,6 +23,7 @@ export const MenuModal = ({
   isOpen,
   onClose,
   onSurrender,
+  onGoHome,
   screenWidth,
   screenHeight,
   currentLevel,
@@ -108,7 +110,7 @@ export const MenuModal = ({
         : "Game paused"
       }
       width={modalWidth}
-      contentHeight={showConfirm ? 220 : 150}
+      contentHeight={showConfirm ? 220 : 210}
       screenWidth={screenWidth}
       screenHeight={screenHeight}
       showCloseButton={!isSurrendering}
@@ -179,7 +181,6 @@ export const MenuModal = ({
         ) : (
           // Main menu view
           <>
-            {/* Resume button */}
             <Button
               text="Resume Game"
               y={8}
@@ -189,10 +190,18 @@ export const MenuModal = ({
               onClick={handleClose}
             />
 
-            {/* Surrender button */}
+            <Button
+              text="Go Home"
+              y={8 + buttonHeight + buttonSpacing}
+              width={buttonWidth}
+              height={buttonHeight}
+              variant="secondary"
+              onClick={onGoHome}
+            />
+
             <Button
               text="Surrender"
-              y={8 + buttonHeight + buttonSpacing}
+              y={8 + (buttonHeight + buttonSpacing) * 2}
               width={buttonWidth}
               height={buttonHeight}
               variant="danger"

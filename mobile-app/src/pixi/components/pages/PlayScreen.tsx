@@ -663,11 +663,11 @@ const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => 
         onSurrender={handleSurrender} showSurrender={!!onSurrender}
       />
 
-      <pixiContainer x={layout.gridX} y={layout.gridY}>
+      <pixiContainer x={layout.gridX} y={layout.gridY} eventMode="none">
         <ParticleSystem gridSize={layout.cellSize} />
       </pixiContainer>
 
-      <pixiContainer x={layout.gridX} y={layout.gridY}>
+      <pixiContainer x={layout.gridX} y={layout.gridY} eventMode="none">
         <ScorePopup
           gridWidth={layout.gridCols} gridHeight={layout.gridRows}
           gridSize={layout.cellSize}
@@ -675,7 +675,7 @@ const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => 
       </pixiContainer>
 
       {selectedBonus !== BonusType.None && bonusDescription && (
-        <pixiContainer x={sw / 2} y={layout.gridY + 30}>
+        <pixiContainer x={sw / 2} y={layout.gridY + 30} eventMode="none">
           <pixiText text={bonusDescription} anchor={0.5}
             style={BONUS_DESC_STYLE}
             eventMode="none"
@@ -684,7 +684,7 @@ const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => 
       )}
 
       {transientStatusLabel && (
-        <pixiContainer x={sw / 2 - 90} y={layout.progressBarY + layout.progressBarHeight + 8}>
+        <pixiContainer x={sw / 2 - 90} y={layout.progressBarY + layout.progressBarHeight + 8} eventMode="none">
           <pixiGraphics draw={drawStatusBubble} eventMode="none" />
           <pixiText
             text={transientStatusLabel}

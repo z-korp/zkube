@@ -58,11 +58,6 @@ function getNodeState(
     return 'current';
   }
 
-  const nextNodeIndex = currentNodeIndex + 1;
-  if (node.nodeIndex === nextNodeIndex && nextNodeIndex < TOTAL_NODES) {
-    return 'available';
-  }
-
   return 'locked';
 }
 

@@ -1,6 +1,6 @@
 import { useApplication } from '@pixi/react';
 import { useCallback, useEffect, useMemo } from 'react';
-import { FederatedPointerEvent, Graphics as PixiGraphics } from 'pixi.js';
+import { FederatedPointerEvent, Graphics as PixiGraphics, Rectangle } from 'pixi.js';
 import type { Block } from '@/types/types';
 import { usePixiTheme, usePerformanceSettings } from '../themes/ThemeContext';
 import { getBlockColors, darkenColor, type ThemeId } from '../utils/colors';
@@ -156,16 +156,14 @@ export const BlockSprite = ({
   }, [width, height, blockColors]);
 
   const cursor = isTxProcessing ? 'wait' : isDragging ? 'grabbing' : 'grab';
-
-  // Calculate position with scale adjustment
-  const scaledX = x + (width * (1 - visualState.scale)) / 2;
-  const scaledY = y + (height * (1 - visualState.scale)) / 2;
+  const hitArea = useMemo(() => new Rectangle(-width / 2, -height / 2, width, height), [width, height]);
 
   if (!texture) {
     return (
       <pixiContainer
         x={x + width / 2}
         y={y + height / 2}
+        hitArea={hitArea}
         eventMode="static"
         cursor={cursor}
         onPointerDown={handlePointerDown}
@@ -190,6 +188,7 @@ export const BlockSprite = ({
       x={x + width / 2}
       y={y + height / 2}
       scale={visualState.scale}
+      hitArea={hitArea}
       eventMode="static"
       cursor={cursor}
       onPointerDown={handlePointerDown}
