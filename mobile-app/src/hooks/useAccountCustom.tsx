@@ -15,9 +15,13 @@ const useAccountCustom = () => {
   const { account: controllerAccount } = useAccount();
 
   const burnerAccount = useMemo(() => {
-    if (!isSlot || !VITE_PUBLIC_MASTER_ADDRESS || !VITE_PUBLIC_MASTER_PRIVATE_KEY) return null;
+    if (!isSlot || !VITE_PUBLIC_NODE_URL || !VITE_PUBLIC_MASTER_ADDRESS || !VITE_PUBLIC_MASTER_PRIVATE_KEY) return null;
     const provider = new RpcProvider({ nodeUrl: VITE_PUBLIC_NODE_URL });
-    return new Account(provider, VITE_PUBLIC_MASTER_ADDRESS, VITE_PUBLIC_MASTER_PRIVATE_KEY);
+    return new Account({
+      provider,
+      address: VITE_PUBLIC_MASTER_ADDRESS,
+      signer: VITE_PUBLIC_MASTER_PRIVATE_KEY,
+    });
   }, []);
 
   const [customAccount, setCustomAccount] = useState<Account | null>(burnerAccount);
