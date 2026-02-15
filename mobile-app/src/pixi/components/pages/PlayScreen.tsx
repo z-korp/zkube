@@ -466,7 +466,7 @@ const LoadingScreen = ({ sw, sh, topOffset }: { sw: number; sh: number; topOffse
       <pixiContainer>
         <SkyBackground w={sw} h={sh} />
         <Clouds w={sw} h={sh} />
-      <PixiToastLayer screenWidth={sw} topOffset={topOffset} />
+      <PixiToastLayer screenWidth={sw} screenHeight={sh} />
       <pixiText
         ref={textRef}
         text="Loading"
@@ -592,7 +592,7 @@ const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => 
     <pixiContainer>
       <SkyBackground w={sw} h={sh} />
       <Clouds w={sw} h={sh} />
-      <PixiToastLayer screenWidth={sw} topOffset={layout.statsBarY + 4} />
+      <PixiToastLayer screenWidth={sw} screenHeight={sh} />
 
       <StatsBar
         sw={sw} barY={layout.statsBarY} barH={layout.statsBarHeight}
@@ -706,6 +706,7 @@ const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => 
         isOpen={activeModal === 'menu'}
         onClose={() => setIsMenuOpen(false)}
         onSurrender={handleSurrender}
+        onGoHome={onGoHome}
         screenWidth={sw}
         screenHeight={sh}
         currentLevel={level}

@@ -572,7 +572,7 @@ const PageRenderer = (props: MainScreenProps & {
       {/* Background (shared, always visible) */}
       <SkyBackground w={sw} h={sh} />
       <Clouds w={sw} h={sh} />
-      <PixiToastLayer screenWidth={sw} topOffset={topBarH + 8} />
+      <PixiToastLayer screenWidth={sw} screenHeight={sh} />
 
       <pixiContainer ref={pageContainerRef}>
         {currentPage === 'home' && (

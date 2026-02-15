@@ -6,7 +6,8 @@ import { usePixiToastStore } from "../../notifications/store";
 
 type Props = {
   screenWidth: number;
-  topOffset?: number;
+  screenHeight: number;
+  bottomOffset?: number;
 };
 
 const toastColor = (type: string) => {
@@ -55,7 +56,7 @@ const ToastItem = ({
   );
 };
 
-export const PixiToastLayer = ({ screenWidth, topOffset = 12 }: Props) => {
+export const PixiToastLayer = ({ screenWidth, screenHeight, bottomOffset = 24 }: Props) => {
   const toasts = usePixiToastStore((s) => s.toasts);
   const pruneExpired = usePixiToastStore((s) => s.pruneExpired);
 
@@ -70,6 +71,8 @@ export const PixiToastLayer = ({ screenWidth, topOffset = 12 }: Props) => {
 
   useTick(tickPrune);
 
+  const TOAST_HEIGHT = 50;
+  const TOAST_GAP = 8;
   const width = Math.min(360, Math.max(240, screenWidth - 24));
   const textStyle = useMemo(
     () => ({
@@ -92,10 +95,12 @@ export const PixiToastLayer = ({ screenWidth, topOffset = 12 }: Props) => {
     [width]
   );
 
+  const baseY = screenHeight - bottomOffset - TOAST_HEIGHT;
+
   return (
-    <pixiContainer x={(screenWidth - width) / 2} y={topOffset} eventMode="none">
+    <pixiContainer x={(screenWidth - width) / 2} y={0} eventMode="none">
       {toasts.map((toast, i) => (
-        <pixiContainer key={toast.id} y={i * 58}>
+        <pixiContainer key={toast.id} y={baseY - i * (TOAST_HEIGHT + TOAST_GAP)}>
           <ToastItem
             type={toast.type}
             message={toast.message}
