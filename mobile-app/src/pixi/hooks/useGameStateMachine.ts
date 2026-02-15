@@ -17,6 +17,8 @@ import { createLogger } from "@/utils/logger";
 
 const log = createLogger("useGameStateMachine");
 
+const GRAVITY_ANIM_MS = 300;
+
 interface UseGameStateMachineProps {
   initialBlocks: Block[];
   nextLineBlocks: Block[];
@@ -56,13 +58,15 @@ export const useGameStateMachine = ({
 
   // Refs
   const isProcessingRef = useRef(false);
+  const animStartRef = useRef(0);
 
   // State
   const [blocks, setBlocks] = useState<Block[]>(initialBlocks);
   const [nextLine, setNextLine] = useState<Block[]>(nextLineBlocks);
   const [saveGridStateblocks, setSaveGridStateblocks] = useState<Block[]>(initialBlocks);
   const [applyData, setApplyData] = useState(false);
-  const [isMoving, setIsMoving] = useState(true);
+  const [isMoving, setIsMoving] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const [currentMove, setCurrentMove] = useState<{
     rowIndex: number;
     startX: number;
@@ -72,14 +76,11 @@ export const useGameStateMachine = ({
   const [isPlayerInDanger, setIsPlayerInDanger] = useState(false);
   const [lineExplodedCount, setLineExplodedCount] = useState(0);
   const [isTxProcessing, setIsTxProcessing] = useState(false);
-  const [transitioningBlocks, setTransitioningBlocks] = useState<number[]>([]);
 
   const { playExplode, playSwipe } = useMusicPlayer();
   const isMoveComplete = useMoveStore((state) => state.isMoveComplete);
 
   const hasInitializedRef = useRef(false);
-  const gravityAccumRef = useRef(0);
-  const gravitySpeed = 100;
 
   // Initial sync - when blocks first become available
   useEffect(() => {
@@ -155,6 +156,14 @@ export const useGameStateMachine = ({
       setIsTxProcessing(true);
       playSwipe();
 
+      // Optimistic horizontal move: update block X position immediately
+      const displayRow = gridHeight - 1 - rowIndex;
+      setBlocks(prev => prev.map(b =>
+        b.y === displayRow && b.x === Math.trunc(startColIndex)
+          ? { ...b, x: Math.trunc(finalColIndex) }
+          : b
+      ));
+
       // Set current move for state machine
       setCurrentMove({
         rowIndex,
@@ -181,6 +190,7 @@ export const useGameStateMachine = ({
         setLineExplodedCount(0);
         setApplyData(false);
         setIsMoving(false);
+        setIsAnimating(false);
         setCurrentMove(null);
         setGameState(GameState.WAITING);
         setNextLineHasBeenConsumed(false);
@@ -190,27 +200,32 @@ export const useGameStateMachine = ({
         isProcessingRef.current = false;
       }
     },
-    [account, gameId, move, nextLineBlocks, playSwipe, saveGridStateblocks, setNextLineHasBeenConsumed]
+    [account, gameId, gridHeight, move, nextLineBlocks, playSwipe, saveGridStateblocks, setNextLineHasBeenConsumed]
   );
 
-  // Apply gravity
-  const applyGravity = useCallback(() => {
+  // Single-pass gravity: sort bottom-up, settle each block against already-settled blocks
+  const applyFullGravity = useCallback(() => {
     setBlocks((prevBlocks) => {
-      const newBlocks = prevBlocks.map((block) => {
-        const fallDistance = calculateFallDistance(block, prevBlocks, gridHeight);
-        if (fallDistance > 0) {
-          return { ...block, y: block.y + 1 };
-        }
-        return block;
+      const sorted = [...prevBlocks].sort((a, b) => b.y - a.y);
+      const settled: Block[] = [];
+
+      for (const block of sorted) {
+        const fallDist = calculateFallDistance(block, settled, gridHeight);
+        settled.push(fallDist > 0 ? { ...block, y: block.y + fallDist } : block);
+      }
+
+      const anyMoved = settled.some((b) => {
+        const old = prevBlocks.find((ob) => ob.id === b.id);
+        return old && old.y !== b.y;
       });
 
-      const blocksChanged = !prevBlocks.every((block) => {
-        const newBlock = newBlocks.find((b) => b.id === block.id);
-        return newBlock && block.x === newBlock.x && block.y === newBlock.y;
-      });
+      if (anyMoved) {
+        setIsAnimating(true);
+        animStartRef.current = performance.now();
+      }
 
-      setIsMoving(blocksChanged);
-      return newBlocks;
+      setIsMoving(false);
+      return settled;
     });
   }, [gridHeight]);
 
@@ -241,16 +256,17 @@ export const useGameStateMachine = ({
     gameState === GameState.GRAVITY2 ||
     gameState === GameState.GRAVITY_BONUS;
 
-  useTick((ticker) => {
-    if (!isGravityState || !isMoving || transitioningBlocks.length > 0) {
-      gravityAccumRef.current = 0;
+  useTick(() => {
+    if (isGravityState && isMoving) {
+      applyFullGravity();
       return;
     }
 
-    gravityAccumRef.current += ticker.deltaMS;
-    while (gravityAccumRef.current >= gravitySpeed) {
-      gravityAccumRef.current -= gravitySpeed;
-      applyGravity();
+    if (isGravityState && isAnimating) {
+      const elapsed = performance.now() - animStartRef.current;
+      if (elapsed >= GRAVITY_ANIM_MS) {
+        setIsAnimating(false);
+      }
     }
   });
 
@@ -259,7 +275,7 @@ export const useGameStateMachine = ({
       case GameState.GRAVITY:
       case GameState.GRAVITY2:
       case GameState.GRAVITY_BONUS:
-        if (!isMoving && transitioningBlocks.length === 0) {
+        if (!isMoving && !isAnimating) {
           switch (gameState) {
             case GameState.GRAVITY:
               setGameState(GameState.LINE_CLEAR);
@@ -275,7 +291,7 @@ export const useGameStateMachine = ({
         break;
 
       case GameState.ADD_LINE:
-        if (currentMove && transitioningBlocks.length === 0) {
+        if (currentMove) {
           const { startX, finalX } = currentMove;
           if (startX !== finalX) {
             const updatedBlocks = concatenateNewLineWithGridAndShiftGrid(
@@ -336,8 +352,8 @@ export const useGameStateMachine = ({
   }, [
     gameState,
     isMoving,
-    transitioningBlocks,
-    applyGravity,
+    isAnimating,
+    applyFullGravity,
     clearCompleteLine,
     currentMove,
     blocks,

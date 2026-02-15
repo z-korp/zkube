@@ -1,6 +1,6 @@
-import { useApplication } from '@pixi/react';
-import { useCallback, useEffect, useMemo } from 'react';
-import { FederatedPointerEvent, Graphics as PixiGraphics, Rectangle } from 'pixi.js';
+import { useApplication, useTick } from '@pixi/react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Container, FederatedPointerEvent, Graphics as PixiGraphics, Rectangle } from 'pixi.js';
 import type { Block } from '@/types/types';
 import { usePixiTheme, usePerformanceSettings } from '../themes/ThemeContext';
 import { getBlockColors, darkenColor, type ThemeId } from '../utils/colors';
@@ -10,6 +10,8 @@ import { useTextureWithFallback } from '../hooks/useTexture';
 import { createLogger } from '@/utils/logger';
 
 const log = createLogger("BlockSprite");
+
+const ANIM_DECAY = 0.82;
 
 interface BlockSpriteProps {
   block: Block;
@@ -84,6 +86,32 @@ export const BlockSprite = ({
     
     return { alpha, scale, fillAlpha, borderAlpha, highlightAlpha };
   }, [isTxProcessing, isDragging, isSelected, isHovered]);
+
+  // Smooth Y animation via inner container offset
+  const animContainerRef = useRef<Container | null>(null);
+  const prevBlockYRef = useRef(block.y);
+  const animOffsetRef = useRef(0);
+
+  // Detect y changes and set animation offset to visually keep block at old position
+  if (block.y !== prevBlockYRef.current) {
+    const delta = block.y - prevBlockYRef.current;
+    animOffsetRef.current -= delta * gridSize;
+    prevBlockYRef.current = block.y;
+  }
+
+  useTick(() => {
+    const c = animContainerRef.current;
+    if (!c) return;
+
+    if (Math.abs(animOffsetRef.current) < 0.5) {
+      animOffsetRef.current = 0;
+      c.y = 0;
+      return;
+    }
+
+    animOffsetRef.current *= ANIM_DECAY;
+    c.y = animOffsetRef.current;
+  }, animOffsetRef.current !== 0);
 
   // Event handlers
   const handlePointerDown = useCallback((e: FederatedPointerEvent) => {
@@ -173,12 +201,14 @@ export const BlockSprite = ({
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
       >
-        <pixiGraphics
-          x={-width / 2}
-          y={-height / 2}
-          draw={drawPlaceholder}
-          eventMode="none"
-        />
+        <pixiContainer ref={animContainerRef}>
+          <pixiGraphics
+            x={-width / 2}
+            y={-height / 2}
+            draw={drawPlaceholder}
+            eventMode="none"
+          />
+        </pixiContainer>
       </pixiContainer>
     );
   }
@@ -198,14 +228,16 @@ export const BlockSprite = ({
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
     >
-      <pixiSprite
-        texture={texture}
-        width={width}
-        height={height}
-        anchor={0.5}
-        alpha={visualState.alpha}
-        eventMode="none"
-      />
+      <pixiContainer ref={animContainerRef}>
+        <pixiSprite
+          texture={texture}
+          width={width}
+          height={height}
+          anchor={0.5}
+          alpha={visualState.alpha}
+          eventMode="none"
+        />
+      </pixiContainer>
     </pixiContainer>
   );
 };
