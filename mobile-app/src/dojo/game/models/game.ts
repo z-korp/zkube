@@ -27,6 +27,7 @@ export class Game {
   public max_combo: number;
   public over: boolean;
   public started_at: number;
+  public levelStars: bigint;
 
   // Level system data (unpacked from run_data)
   public runData: RunData;
@@ -98,23 +99,23 @@ export class Game {
   public get freeMoves(): number {
     return this.runData.freeMoves;
   }
-  public get pendingLevelUp(): boolean {
-    return this.runData.pendingLevelUp;
-  }
   public get lastShopLevel(): number {
     return this.runData.lastShopLevel;
   }
-  public get shopBonus1Bought(): boolean {
-    return this.runData.shopBonus1Bought;
+  public get shopPurchases(): number {
+    return this.runData.shopPurchases;
   }
-  public get shopBonus2Bought(): boolean {
-    return this.runData.shopBonus2Bought;
+  public get unallocatedCharges(): number {
+    return this.runData.unallocatedCharges;
   }
-  public get shopBonus3Bought(): boolean {
-    return this.runData.shopBonus3Bought;
+  public get shopLevelUpBought(): boolean {
+    return this.runData.shopLevelUpBought;
   }
-  public get shopRefills(): number {
-    return this.runData.shopRefills;
+  public get shopSwapBought(): boolean {
+    return this.runData.shopSwapBought;
+  }
+  public get bossLevelUpPending(): boolean {
+    return this.runData.bossLevelUpPending;
   }
   // Victory state
   public get runCompleted(): boolean {
@@ -146,6 +147,7 @@ export class Game {
     this.id = game.game_id;
     this.over = game.over ? true : false;
     this.started_at = game.started_at || 0;
+    this.levelStars = game.level_stars ? BigInt(game.level_stars) : BigInt(0);
     
     // Unpack next_row
     this.next_row = Packer.sized_unpack(
@@ -191,6 +193,16 @@ export class Game {
 
   public isOver(): boolean {
     return this.over;
+  }
+
+  /**
+   * Extract the star rating (0-3) for a given level from the bitpacked level_stars field.
+   * Each level uses 2 bits: 0 = not completed, 1-3 = star rating.
+   */
+  public getLevelStars(level: number): number {
+    if (level < 1 || level > 50) return 0;
+    const bitPos = (level - 1) * 2;
+    return Number((this.levelStars >> BigInt(bitPos)) & 0x3n);
   }
 
   // Helper methods for level system

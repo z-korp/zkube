@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x4cb7931b18acee8f9143fa65490bbfed87f3b94912611b00c8d6899d9438674",
-    "seed": "zkube_slot_v3",
+    "address": "0x4c4c60ab04df7af555178eba9797090b513b087e50be950b042b2de699ddc66",
+    "seed": "zkube_slot_v4",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,7 +33,7 @@
   },
   "contracts": [
     {
-      "address": "0x4cda603d784c19cd671cbbfff7b29bd8fb6e5b376f8307a1ef0ebd1fb285ac5",
+      "address": "0x7dd02542e377703c7d8cfee1b168b48369c26b85cc06a65768967bb2941e2dd",
       "class_hash": "0x65374daad463359d2e1c7c442318579946a2e21b0d7c75960bba5deff272326",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-achievement_system",
@@ -47,8 +47,8 @@
       ]
     },
     {
-      "address": "0x256e9dae536318ecf68a5acc0f49e35b72c8751e0d244b69c62e46850ffb03",
-      "class_hash": "0x62d68479bd586cb1414f60c6b8890fc49d8fcfef423748c351ded07e28392dc",
+      "address": "0x184feaa0d22d44c0f92cc6aed963d5bb1082299cddf863cb56d9506b581d5fc",
+      "class_hash": "0x6c154e32c8bed2759ff226c2e5cbdc4cca048f51738fdeef0ca3fccad43b589",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-bonus_system",
       "selector": "0x7ddae8715adf015ed6b5c712f7e3a5c01fe157aac2a2f1d42270deca60c5382",
@@ -58,8 +58,8 @@
       ]
     },
     {
-      "address": "0x6fcc6d742cdeccdaf0b1cb38ed4af3577d01cf18d33b0b6fb549b20e096e0d2",
-      "class_hash": "0x620fcb381ca4d01f4fb24f1e369687824122650c9c2e882755b94f16802310d",
+      "address": "0x27558ba2e2e657dffa913acfb6102bb68461d46fd0fada2de204251c73b4de5",
+      "class_hash": "0x2da4a45dee70d63d874284095a7a6851236d24c653060194f01182d9782f032",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819"
       ],
@@ -73,7 +73,7 @@
       ]
     },
     {
-      "address": "0x7135bfe0813b7ccbdefa36a25edbe07d714b4fe08c297cdf15c3d7655113558",
+      "address": "0x4a26e3f67dae6f4049f80a418b2c11cbf3b88f5e15c11fd3ecbd6608b31b8bd",
       "class_hash": "0x37874ac24c4bd5aed2b3aa64ce11184afead0eb378a89ac67e4ba5b76e340a9",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-cube_token",
@@ -96,8 +96,8 @@
       ]
     },
     {
-      "address": "0x360a04db336ee91c834e2b6c4f69f163dda4901a9f085cc1ebaafe0d6fa1375",
-      "class_hash": "0x766a5053f6adbacfc9dbd7da690c1db45f88861ecf2c805489fdb714e44e62f",
+      "address": "0x14dcbee6f5712bfa48f170d1f5067f8a1724f5d2996eac55aaafaa966c2346f",
+      "class_hash": "0x6285c53764477ef24db2ad2f8b6d7f0f6a05b354b7e6bc010aa4ae58c381410",
       "init_calldata": [
         "0x6677fe62ee39c7b07401f754138502bab7fac99d2d3c5d37df7d1c6fab10819",
         "0x02271f1bb4d75604b1c82a708c544ac851f430416cd409aa322327874fe5f918",
@@ -114,8 +114,8 @@
       ]
     },
     {
-      "address": "0x7fe014bdc86c82db5053a7487f86ace2f5ea001a93c35617599591428fa4c4b",
-      "class_hash": "0x23195e8c00e3c752eef6d6deb551ee1c34403a6c3607f169d9460a156feb9ce",
+      "address": "0x4e51105acd485d2134a9dbc62d059498a90d3e019dc1da2db090d808c3eefda",
+      "class_hash": "0x10b3f28b1ba2531c0c1f318886fb173496810f45969196621e6e7c7a2587af0",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-grid_system",
       "selector": "0x5ff6ef4a16262e788060768405b1310e3a5903dda6cf016268cf4453d31eec",
@@ -130,8 +130,8 @@
       ]
     },
     {
-      "address": "0x392998519d721934c370ea87181b7361ac5e18e6ebaca6a598043b875cedfbc",
-      "class_hash": "0x27135f4c825c53b860e87a8b3dd8048280426c6cf84cec87aba5b12907c9c51",
+      "address": "0x15adda917880b5bcac583d21d2d07e0c7324107ada9064b37772cb2ab3bafb6",
+      "class_hash": "0x7bcf5094cd37d5e1b8ca5141548a13417a33c57908dc33cc0985790b1082bd6",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-level_system",
       "selector": "0xc087c6629c3c13d06cab85b37e88683bcffe82e8123eedbd704ff85463a0a5",
@@ -143,8 +143,8 @@
       ]
     },
     {
-      "address": "0x5c8dae335830171077532b1f5a5a23b6d86fde042deb22d46f1bde95fa36248",
-      "class_hash": "0x59a25e1aadfa2c82248a47b392f71a7d1f10ac69afa4afb475c279cb8029fc4",
+      "address": "0x1b70ca85b8a2ed6bb5e15171d5a331758980926321ee99e054740d98e7a17c2",
+      "class_hash": "0x1229589889e27a88cbd7c25117f3f03ddbb7a08be0205886199fa5f5bc582e4",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-move_system",
       "selector": "0x3df79bdc704eceb62aa8752e4456ee57de1c2c56b4871b20171ee4ae1e235b7",
@@ -154,7 +154,7 @@
       ]
     },
     {
-      "address": "0x6074ee7f4fff54db01a99247a942f55757981b007c8c069f37a349c267951d0",
+      "address": "0x693c756a87b2e58f341f86d3c85b7682b58d6515f1fbe3e1c63df3546baeced",
       "class_hash": "0x5c94748bee7dc2cd39b7bcc52517d6cfb6dfb903117cac55faf10dedb26942",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-quest_system",
@@ -170,8 +170,8 @@
       ]
     },
     {
-      "address": "0x64a1f626bfdecab9ffbfc69030fe11768f4b4d552c27d60607f7eb9831eebff",
-      "class_hash": "0x48e7880739eaa1555ddef3fcda5a93fc9daeafea306e4bad5b7eabad93e7e6c",
+      "address": "0x1aeeb49698a655a41d0d4ee2b482ced5c5aff0fcb55ecddabf55dfcda903814",
+      "class_hash": "0x14faab36e753c7f399df5f24bb0aa300a040257b50a7b6a2739ab67ac922769",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-renderer_systems",
       "selector": "0x35d5ac8794cc2cf3e12c42d4ac579e7a5dc26a70c26e32c599915d2d39586cf",
@@ -180,8 +180,8 @@
       ]
     },
     {
-      "address": "0x64c23808600455aea3658582556961c39c9f9e83a90c93d7fb41e4dca90bac0",
-      "class_hash": "0x33339d6db8cf11fac0167270a149a3fa8c1d4f4eab9d4825b3c9b1cc0024dbc",
+      "address": "0x66d3690f64ce635e7bc658bf77329889211589fafeebdceaabc2e819f9f2af0",
+      "class_hash": "0x7368d91ff6d26522a2c55cf5e5bfc38ab8f3816449b7702cc3b284347e4688b",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-shop_system",
       "selector": "0x456e9ac1689ce0bf6afd29733b144d9ef8e7db5c0df5ec0dc79ed1ea22579a0",
@@ -192,6 +192,8 @@
         "unlock_bonus",
         "level_up_bonus",
         "purchase_consumable",
+        "allocate_charge",
+        "swap_bonus",
         "upgrade"
       ]
     }
@@ -339,6 +341,11 @@
           "key": false
         },
         {
+          "name": "level_stars",
+          "type": "core::felt252",
+          "key": false
+        },
+        {
           "name": "started_at",
           "type": "core::integer::u64",
           "key": false
@@ -349,7 +356,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x1eb503cf1b0cd4e65e6df68a1a51f4cedf364fc59859e02e070cbbcc18522ae",
+      "class_hash": "0x50e221717b399e0ad38f65b33179c7777bb81926d00bd7433a3f0b8726bd045",
       "tag": "zkube_budo_v1_2_0-Game",
       "selector": "0x32e0585e8074a4c0264a61e3f5d610e990985d9d32194c1b8bdcf9e00a619ad"
     },
@@ -515,11 +522,6 @@
           "key": false
         },
         {
-          "name": "extra_moves_cost",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
           "name": "tier_1_threshold",
           "type": "core::integer::u8",
           "key": false
@@ -655,7 +657,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x279f2ecf2dab0d2224076386fe222f7d9878291014976a89e1721ce0b3d6daf",
+      "class_hash": "0x688f80a840fb89ddaf28ca5aee277ce7a96dc3564679f2a7aae02aee5761343",
       "tag": "zkube_budo_v1_2_0-GameSettings",
       "selector": "0x1c245917b09d68b08ceb4972426ebba162f36b31404a63dc180496cdc6777b"
     },
@@ -1023,7 +1025,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x3e875141e6c858493cd238cbfff35351a9ac0a9cf0e7a759c11042648927e58",
+      "class_hash": "0x51b555a0bce86813ff95ac210482549d1abf4af198837225e8d2bb1c72f6570",
       "tag": "zkube_budo_v1_2_0-ConsumablePurchased",
       "selector": "0x6735939232284480d9ef5a27efe714fbcaba2d65885f5309083dc29f0320ad1"
     },
@@ -5883,10 +5885,6 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "extra_moves_cost",
-          "type": "core::integer::u8"
-        },
-        {
           "name": "tier_1_threshold",
           "type": "core::integer::u8"
         },
@@ -6089,10 +6087,6 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "extra_moves_cost",
-          "type": "core::integer::u8"
-        },
-        {
           "name": "tier_1_threshold",
           "type": "core::integer::u8"
         },
@@ -6240,6 +6234,10 @@
         },
         {
           "name": "run_data",
+          "type": "core::felt252"
+        },
+        {
+          "name": "level_stars",
           "type": "core::felt252"
         },
         {
@@ -6434,6 +6432,10 @@
         },
         {
           "name": "run_data",
+          "type": "core::felt252"
+        },
+        {
+          "name": "level_stars",
           "type": "core::felt252"
         },
         {
@@ -6687,10 +6689,6 @@
             },
             {
               "name": "harvest_cost",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "extra_moves_cost",
               "type": "core::integer::u8"
             },
             {
@@ -7585,6 +7583,42 @@
         },
         {
           "type": "function",
+          "name": "allocate_charge",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "bonus_slot",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "swap_bonus",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "bonus_slot",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "new_bonus_type",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
           "name": "get_starting_bonus_upgrade_cost",
           "inputs": [
             {
@@ -7735,23 +7769,15 @@
       "name": "zkube::types::consumable::ConsumableType",
       "variants": [
         {
-          "name": "Bonus1",
-          "type": "()"
-        },
-        {
-          "name": "Bonus2",
-          "type": "()"
-        },
-        {
-          "name": "Bonus3",
-          "type": "()"
-        },
-        {
-          "name": "Refill",
+          "name": "BonusCharge",
           "type": "()"
         },
         {
           "name": "LevelUp",
+          "type": "()"
+        },
+        {
+          "name": "SwapBonus",
           "type": "()"
         }
       ]

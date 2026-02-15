@@ -539,6 +539,10 @@ const PageRenderer = (props: MainScreenProps & {
   const mapSeed = activeGame ? activeGameSeed : undefined;
   const mapCurrentLevel = activeGame ? activeGame.level : undefined;
   const mapIsGameOver = activeGame ? Boolean(activeGame.over) : false;
+  const mapLevelStarsFn = useMemo(
+    () => activeGame ? (level: number) => activeGame.getLevelStars(level) : undefined,
+    [activeGame],
+  );
 
   const handlePlayGame = useCallback((gameId: number) => {
     setActiveGameId(gameId);
@@ -691,6 +695,7 @@ const PageRenderer = (props: MainScreenProps & {
             topBarHeight={topBarH}
             onPlayLevel={handlePlayLevel}
             onBack={handleGoHome}
+            levelStarsFn={mapLevelStarsFn}
           />
         )}
 

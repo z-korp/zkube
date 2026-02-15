@@ -19,6 +19,7 @@ export interface MapPageProps {
   onPlayLevel?: (contractLevel: number) => void;
   standalone?: boolean;
   onBack?: () => void;
+  levelStarsFn?: (level: number) => number;
 }
 
 const NODE_VERTICAL_SPACING = 70;
@@ -66,8 +67,9 @@ export const MapPage = ({
   onPlayLevel,
   standalone = false,
   onBack,
+  levelStarsFn,
 }: MapPageProps) => {
-  const mapData = useMapData(seed, currentLevel);
+  const mapData = useMapData(seed, currentLevel, undefined, levelStarsFn);
   const [selectedNode, setSelectedNode] = useState<MapNodeData | null>(null);
 
   const headerH = standalone ? 0 : topBarHeight;

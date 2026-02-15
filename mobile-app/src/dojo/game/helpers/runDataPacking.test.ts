@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { unpackRunData, createInitialRunData, getCubesAvailable, isBossLevel, isInGameShopAvailable, getRefillCost } from './runDataPacking';
+import { unpackRunData, createInitialRunData, getCubesAvailable, isBossLevel, isInGameShopAvailable, getBonusChargeCost } from './runDataPacking';
 
 describe('unpackRunData', () => {
   it('returns all zeros for 0n', () => {
@@ -12,7 +12,7 @@ describe('unpackRunData', () => {
     expect(data.comboCount).toBe(0);
     expect(data.bonusUsedThisLevel).toBe(false);
     expect(data.runCompleted).toBe(false);
-    expect(data.pendingLevelUp).toBe(false);
+    expect(data.bossLevelUpPending).toBe(false);
   });
 
   it('extracts currentLevel from bits 0-7', () => {
@@ -35,30 +35,30 @@ describe('unpackRunData', () => {
     expect(unpackRunData(packed).bonusUsedThisLevel).toBe(true);
   });
 
-  it('extracts comboCount from bits 43-50', () => {
-    const packed = BigInt(5) << BigInt(43);
+  it('extracts comboCount from bits 41-48', () => {
+    const packed = BigInt(5) << BigInt(41);
     expect(unpackRunData(packed).comboCount).toBe(5);
   });
 
-  it('extracts totalCubes from bits 131-146', () => {
-    const packed = BigInt(1000) << BigInt(131);
+  it('extracts totalCubes from bits 121-136', () => {
+    const packed = BigInt(1000) << BigInt(121);
     expect(unpackRunData(packed).totalCubes).toBe(1000);
   });
 
-  it('extracts totalScore from bits 147-162', () => {
-    const packed = BigInt(500) << BigInt(147);
+  it('extracts totalScore from bits 137-152', () => {
+    const packed = BigInt(500) << BigInt(137);
     expect(unpackRunData(packed).totalScore).toBe(500);
   });
 
-  it('extracts runCompleted from bit 163', () => {
-    const packed = BigInt(1) << BigInt(163);
+  it('extracts runCompleted from bit 153', () => {
+    const packed = BigInt(1) << BigInt(153);
     expect(unpackRunData(packed).runCompleted).toBe(true);
   });
 
-  it('extracts selectedBonus values from bits 164-172', () => {
-    const b1 = BigInt(1) << BigInt(164);
-    const b2 = BigInt(3) << BigInt(167);
-    const b3 = BigInt(5) << BigInt(170);
+  it('extracts selectedBonus values from bits 154-162', () => {
+    const b1 = BigInt(1) << BigInt(154);
+    const b2 = BigInt(3) << BigInt(157);
+    const b3 = BigInt(5) << BigInt(160);
     const packed = b1 | b2 | b3;
     const data = unpackRunData(packed);
     expect(data.selectedBonus1).toBe(1);
@@ -66,23 +66,30 @@ describe('unpackRunData', () => {
     expect(data.selectedBonus3).toBe(5);
   });
 
-  it('extracts shop state from bits 183-195', () => {
-    const lastShopLevel = BigInt(15) << BigInt(183);
-    const shopBonus1 = BigInt(1) << BigInt(189);
-    const shopRefills = BigInt(3) << BigInt(192);
-    const packed = lastShopLevel | shopBonus1 | shopRefills;
+  it('extracts shop state from new bit positions', () => {
+    const lastShopLevel = BigInt(3) << BigInt(172);
+    const shopPurchases = BigInt(5) << BigInt(184);
+    const unallocatedCharges = BigInt(2) << BigInt(188);
+    const shopLevelUpBought = BigInt(1) << BigInt(192);
+    const packed = lastShopLevel | shopPurchases | unallocatedCharges | shopLevelUpBought;
     const data = unpackRunData(packed);
-    expect(data.lastShopLevel).toBe(15);
-    expect(data.shopBonus1Bought).toBe(true);
-    expect(data.shopBonus2Bought).toBe(false);
-    expect(data.shopRefills).toBe(3);
+    expect(data.lastShopLevel).toBe(3);
+    expect(data.shopPurchases).toBe(5);
+    expect(data.unallocatedCharges).toBe(2);
+    expect(data.shopLevelUpBought).toBe(true);
+    expect(data.shopSwapBought).toBe(false);
+  });
+
+  it('extracts bossLevelUpPending from bit 194', () => {
+    const packed = BigInt(1) << BigInt(194);
+    expect(unpackRunData(packed).bossLevelUpPending).toBe(true);
   });
 
   it('handles combined fields without cross-contamination', () => {
     const level = BigInt(10);
     const score = BigInt(50) << BigInt(8);
     const moves = BigInt(20) << BigInt(16);
-    const cubes = BigInt(100) << BigInt(131);
+    const cubes = BigInt(100) << BigInt(121);
     const packed = level | score | moves | cubes;
     const data = unpackRunData(packed);
     expect(data.currentLevel).toBe(10);
@@ -102,6 +109,9 @@ describe('createInitialRunData', () => {
     expect(data.selectedBonus3).toBe(3);
     expect(data.totalCubes).toBe(0);
     expect(data.totalScore).toBe(0);
+    expect(data.shopPurchases).toBe(0);
+    expect(data.unallocatedCharges).toBe(0);
+    expect(data.bossLevelUpPending).toBe(false);
   });
 });
 
@@ -138,9 +148,12 @@ describe('level helpers', () => {
     expect(isInGameShopAvailable(0)).toBe(false);
   });
 
-  it('getRefillCost scales with purchases', () => {
-    expect(getRefillCost(0)).toBe(2);
-    expect(getRefillCost(1)).toBe(4);
-    expect(getRefillCost(2)).toBe(6);
+  it('getBonusChargeCost scales with purchases', () => {
+    expect(getBonusChargeCost(0)).toBe(5);
+    expect(getBonusChargeCost(1)).toBe(8);
+    expect(getBonusChargeCost(2)).toBe(12);
+    expect(getBonusChargeCost(3)).toBe(18);
+    expect(getBonusChargeCost(4)).toBe(27);
+    expect(getBonusChargeCost(5)).toBe(41);
   });
 });

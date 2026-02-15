@@ -50,7 +50,6 @@ export interface GameSettings {
   comboCost: number;
   scoreCost: number;
   harvestCost: number;
-  extraMovesCost: number;
   // Difficulty Progression (tier thresholds)
   tier1Threshold: number;  // Easy starts
   tier2Threshold: number;  // Medium starts
@@ -118,7 +117,6 @@ export const DEFAULT_SETTINGS: GameSettings = {
   comboCost: 5,
   scoreCost: 5,
   harvestCost: 5,
-  extraMovesCost: 10,
   // Difficulty Progression (non-linear tier thresholds)
   tier1Threshold: 4,   // Easy starts at level 4
   tier2Threshold: 8,   // Medium starts at level 8
@@ -235,12 +233,10 @@ export class Level {
     constraintProgress: number,
     constraint2Progress: number,
     bonusUsed: boolean,
-    extraMoves: number = 0,
     constraint3Progress: number = 0,
   ): boolean {
-    const effectiveMaxMoves = this.maxMoves + extraMoves;
     return (
-      currentMoves >= effectiveMaxMoves &&
+      currentMoves >= this.maxMoves &&
       !this.isComplete(
         currentScore,
         constraintProgress,
@@ -252,9 +248,8 @@ export class Level {
   }
 
   /** Get remaining moves */
-  remainingMoves(currentMoves: number, extraMoves: number = 0): number {
-    const effectiveMaxMoves = this.maxMoves + extraMoves;
-    return Math.max(0, effectiveMaxMoves - currentMoves);
+  remainingMoves(currentMoves: number): number {
+    return Math.max(0, this.maxMoves - currentMoves);
   }
 
   /** Get progress percentage (0-100) */
@@ -930,7 +925,6 @@ export function parseGameSettings(raw: any): GameSettings {
     comboCost: raw.combo_cost ?? DEFAULT_SETTINGS.comboCost,
     scoreCost: raw.score_cost ?? DEFAULT_SETTINGS.scoreCost,
     harvestCost: raw.harvest_cost ?? DEFAULT_SETTINGS.harvestCost,
-    extraMovesCost: raw.extra_moves_cost ?? DEFAULT_SETTINGS.extraMovesCost,
     // Difficulty tier thresholds
     tier1Threshold: raw.tier_1_threshold ?? DEFAULT_SETTINGS.tier1Threshold,
     tier2Threshold: raw.tier_2_threshold ?? DEFAULT_SETTINGS.tier2Threshold,

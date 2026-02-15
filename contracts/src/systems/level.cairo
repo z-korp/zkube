@@ -113,14 +113,17 @@ mod level_system {
             let boss_bonus = BossLevel::get_boss_cube_bonus(completed_level);
             let is_victory = completed_level >= 50;
             
+            // Record stars for this level (cubes = 1-3 star rating)
+            game.set_level_stars(completed_level, cubes);
+            
             // Update run_data (no grid changes - that's done via grid_system)
             let (cubes_final, _bonuses_final, is_victory_final) = game.complete_level_data(cubes, bonuses, boss_bonus, is_victory);
             let bonuses_earned: u8 = 0; // V3.0: No bonus rewards from level completion
             
-            // Check if this was a boss level (10, 20, 30, 40) - set pending_level_up
+            // Check if this was a boss level (10, 20, 30, 40) - set boss_level_up_pending
             if !is_victory_final && (completed_level == 10 || completed_level == 20 || completed_level == 30 || completed_level == 40) {
                 let mut run_data = game.get_run_data();
-                run_data.pending_level_up = true;
+                run_data.boss_level_up_pending = true;
                 game.set_run_data(run_data);
             }
             

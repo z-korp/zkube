@@ -2,7 +2,7 @@ use alexandria_math::BitShift;
 
 /// Bit-packing helpers for efficient storage
 /// 
-/// run_data layout (197 bits used, 55 reserved):
+/// run_data layout (195 bits used, 57 reserved):
 /// ┌─────────────────────────────────────────────────────────────────────┐
 /// │ Bits    │ Field                 │ Size │ Range    │ Description     │
 /// ├─────────┼───────────────────────┼──────┼──────────┼─────────────────┤
@@ -12,36 +12,33 @@ use alexandria_math::BitShift;
 /// │ 24-31   │ constraint_progress   │ 8    │ 0-255    │ Times achieved  │
 /// │ 32-39   │ constraint_2_progress │ 8    │ 0-255    │ 2nd constraint  │
 /// │ 40      │ bonus_used_this_level │ 1    │ 0-1      │ For NoBonusUsed │
-/// │ 41      │ combo_5_achieved      │ 1    │ 0-1      │ First 5x combo  │
-/// │ 42      │ combo_10_achieved     │ 1    │ 0-1      │ First 10x combo │
-/// │ 43-50   │ combo_count           │ 8    │ 0-255    │ Inventory       │
-/// │ 51-58   │ score_count           │ 8    │ 0-255    │ Inventory       │
-/// │ 59-66   │ harvest_count         │ 8    │ 0-255    │ Inventory       │
-/// │ 67-74   │ wave_count            │ 8    │ 0-255    │ Wave inventory  │
-/// │ 75-82   │ supply_count          │ 8    │ 0-255    │ Supply inv      │
-/// │ 83-90   │ max_combo_run         │ 8    │ 0-255    │ Best combo      │
-/// │ 91-98   │ extra_moves           │ 8    │ 0-255    │ Extra move cap  │
-/// │ 99-114  │ cubes_brought         │ 16   │ 0-65535  │ Cubes for in-run│
-/// │ 115-130 │ cubes_spent           │ 16   │ 0-65535  │ Cubes spent     │
-/// │ 131-146 │ total_cubes           │ 16   │ 0-65535  │ Earned cubes    │
-/// │ 147-162 │ total_score           │ 16   │ 0-65535  │ Cumulative score│
-/// │ 163     │ run_completed         │ 1    │ 0-1      │ Victory flag    │
-/// │ 164-166 │ selected_bonus_1      │ 3    │ 0-5      │ 1st bonus type  │
-/// │ 167-169 │ selected_bonus_2      │ 3    │ 0-5      │ 2nd bonus type  │
-/// │ 170-172 │ selected_bonus_3      │ 3    │ 0-5      │ 3rd bonus type  │
-/// │ 173-174 │ bonus_1_level         │ 2    │ 0-2      │ L1/L2/L3        │
-/// │ 175-176 │ bonus_2_level         │ 2    │ 0-2      │ L1/L2/L3        │
-/// │ 177-178 │ bonus_3_level         │ 2    │ 0-2      │ L1/L2/L3        │
-/// │ 179-181 │ free_moves            │ 3    │ 0-7      │ Free moves left │
-/// │ 182     │ pending_level_up      │ 1    │ 0-1      │ Level-up pending│
-/// │ 183-188 │ last_shop_level       │ 6    │ 0-63     │ Last shop level │
-/// │ 189     │ shop_bonus_1_bought   │ 1    │ 0-1      │ Bonus 1 bought  │
-/// │ 190     │ shop_bonus_2_bought   │ 1    │ 0-1      │ Bonus 2 bought  │
-/// │ 191     │ shop_bonus_3_bought   │ 1    │ 0-1      │ Bonus 3 bought  │
-/// │ 192-195 │ shop_refills          │ 4    │ 0-15     │ Refills bought  │
-/// │ 196     │ no_bonus_constraint   │ 1    │ 0-1      │ NoBonusUsed active│
-/// │ 197-204 │ constraint_3_progress │ 8    │ 0-255    │ 3rd constraint  │
-/// │ 205-251 │ reserved              │ 47   │ -        │ Future features │
+/// │ 41-48   │ combo_count           │ 8    │ 0-255    │ Inventory       │
+/// │ 49-56   │ score_count           │ 8    │ 0-255    │ Inventory       │
+/// │ 57-64   │ harvest_count         │ 8    │ 0-255    │ Inventory       │
+/// │ 65-72   │ wave_count            │ 8    │ 0-255    │ Wave inventory  │
+/// │ 73-80   │ supply_count          │ 8    │ 0-255    │ Supply inventory│
+/// │ 81-88   │ max_combo_run         │ 8    │ 0-255    │ Best combo      │
+/// │ 89-104  │ cubes_brought         │ 16   │ 0-65535  │ Cubes for in-run│
+/// │ 105-120 │ cubes_spent           │ 16   │ 0-65535  │ Cubes spent     │
+/// │ 121-136 │ total_cubes           │ 16   │ 0-65535  │ Earned cubes    │
+/// │ 137-152 │ total_score           │ 16   │ 0-65535  │ Cumulative score│
+/// │ 153     │ run_completed         │ 1    │ 0-1      │ Victory flag    │
+/// │ 154-156 │ selected_bonus_1      │ 3    │ 0-5      │ 1st bonus type  │
+/// │ 157-159 │ selected_bonus_2      │ 3    │ 0-5      │ 2nd bonus type  │
+/// │ 160-162 │ selected_bonus_3      │ 3    │ 0-5      │ 3rd bonus type  │
+/// │ 163-164 │ bonus_1_level         │ 2    │ 0-2      │ L1/L2/L3        │
+/// │ 165-166 │ bonus_2_level         │ 2    │ 0-2      │ L1/L2/L3        │
+/// │ 167-168 │ bonus_3_level         │ 2    │ 0-2      │ L1/L2/L3        │
+/// │ 169-171 │ free_moves            │ 3    │ 0-7      │ Free moves left │
+/// │ 172-174 │ last_shop_level       │ 3    │ 0-7      │ level / 10      │
+/// │ 175     │ no_bonus_constraint   │ 1    │ 0-1      │ NoBonusUsed active│
+/// │ 176-183 │ constraint_3_progress │ 8    │ 0-255    │ 3rd constraint  │
+/// │ 184-187 │ shop_purchases        │ 4    │ 0-15     │ Shop buys count │
+/// │ 188-191 │ unallocated_charges   │ 4    │ 0-15     │ Unassigned buys │
+/// │ 192     │ shop_level_up_bought  │ 1    │ 0-1      │ Level-up bought │
+/// │ 193     │ shop_swap_bought      │ 1    │ 0-1      │ Swap bought     │
+/// │ 194     │ boss_level_up_pending │ 1    │ 0-1      │ Boss level-up   │
+/// │ 195-251 │ reserved              │ 57   │ -        │ Future features │
 /// └─────────────────────────────────────────────────────────────────────┘
 
 /// Unpacked run data structure
@@ -51,25 +48,20 @@ pub struct RunData {
     pub level_score: u8,
     pub level_moves: u8,
     pub constraint_progress: u8,
+    // Secondary constraint progress (for dual-constraint levels)
+    pub constraint_2_progress: u8,
     pub bonus_used_this_level: bool,
-    pub total_cubes: u16,
     pub combo_count: u8,
     pub score_count: u8,
     pub harvest_count: u8,
     pub wave_count: u8,
     pub supply_count: u8,
     pub max_combo_run: u8,
-    /// Extra moves added to the current level move limit (from consumables)
-    pub extra_moves: u8,
-    pub total_score: u16, // Cumulative score across all levels
-    // Combo achievement flags (one-time per run)
-    pub combo_5_achieved: bool, // First time achieving 5+ lines combo
-    pub combo_10_achieved: bool, // First time achieving 10+ lines combo
     // In-game shop: cubes brought into run (burned from wallet on start)
     pub cubes_brought: u16, // Cubes transferred into run for spending
     pub cubes_spent: u16, // Cubes spent during run
-    // Secondary constraint progress (for dual-constraint levels)
-    pub constraint_2_progress: u8,
+    pub total_cubes: u16,
+    pub total_score: u16, // Cumulative score across all levels
     // Victory flag: true if player completed level 50
     pub run_completed: bool,
     // Bonus V2.0: Selected bonuses (3 types selected at run start)
@@ -83,18 +75,17 @@ pub struct RunData {
     pub bonus_3_level: u8,
     // Bonus V2.0: Free moves remaining (from Wave L2/L3 effect)
     pub free_moves: u8,
-    // Bonus V2.0: Level-up pending after boss clear
-    pub pending_level_up: bool,
     // In-game shop state (resets per shop visit)
-    pub last_shop_level: u8,      // Level of last shop interaction (0 = none)
-    pub shop_bonus_1_bought: bool, // Already bought bonus 1 this shop
-    pub shop_bonus_2_bought: bool, // Already bought bonus 2 this shop
-    pub shop_bonus_3_bought: bool, // Already bought bonus 3 this shop
-    pub shop_refills: u8,         // Number of refills bought this shop
+    pub last_shop_level: u8, // Store current_level / 10 (0-5)
     // Constraint flags (set when level starts, reset on level transition)
     pub no_bonus_constraint: bool, // True if current level has NoBonusUsed constraint
     // Tertiary constraint progress (for triple-constraint boss levels 40/50)
     pub constraint_3_progress: u8,
+    pub shop_purchases: u8, // Number of bonus charge purchases in current shop visit
+    pub unallocated_charges: u8, // Purchased charges not assigned to a selected bonus yet
+    pub shop_level_up_bought: bool, // True if level-up already bought this shop visit
+    pub shop_swap_bought: bool, // True if swap already bought this shop visit
+    pub boss_level_up_pending: bool, // True if a boss reward level-up is awaiting selection
 }
 
 /// Bit positions and masks for run_data
@@ -106,39 +97,37 @@ mod RunDataBits {
     pub const CONSTRAINT_PROGRESS_POS: u8 = 24;
     pub const CONSTRAINT_2_PROGRESS_POS: u8 = 32;
     pub const BONUS_USED_POS: u8 = 40;
-    pub const COMBO_5_ACHIEVED_POS: u8 = 41;
-    pub const COMBO_10_ACHIEVED_POS: u8 = 42;
-    pub const COMBO_COUNT_POS: u8 = 43;
-    pub const SCORE_COUNT_POS: u8 = 51;
-    pub const HARVEST_COUNT_POS: u8 = 59;
-    pub const WAVE_COUNT_POS: u8 = 67;
-    pub const SUPPLY_COUNT_POS: u8 = 75;
-    pub const MAX_COMBO_RUN_POS: u8 = 83;
-    pub const EXTRA_MOVES_POS: u8 = 91;
-    pub const CUBES_BROUGHT_POS: u8 = 99;
-    pub const CUBES_SPENT_POS: u8 = 115;
-    pub const TOTAL_CUBES_POS: u8 = 131;
-    pub const TOTAL_SCORE_POS: u8 = 147;
-    pub const RUN_COMPLETED_POS: u8 = 163;
+    pub const COMBO_COUNT_POS: u8 = 41;
+    pub const SCORE_COUNT_POS: u8 = 49;
+    pub const HARVEST_COUNT_POS: u8 = 57;
+    pub const WAVE_COUNT_POS: u8 = 65;
+    pub const SUPPLY_COUNT_POS: u8 = 73;
+    pub const MAX_COMBO_RUN_POS: u8 = 81;
+    pub const CUBES_BROUGHT_POS: u8 = 89;
+    pub const CUBES_SPENT_POS: u8 = 105;
+    pub const TOTAL_CUBES_POS: u8 = 121;
+    pub const TOTAL_SCORE_POS: u8 = 137;
+    pub const RUN_COMPLETED_POS: u8 = 153;
     // Bonus V2.0 positions
-    pub const SELECTED_BONUS_1_POS: u8 = 164;
-    pub const SELECTED_BONUS_2_POS: u8 = 167;
-    pub const SELECTED_BONUS_3_POS: u8 = 170;
-    pub const BONUS_1_LEVEL_POS: u8 = 173;
-    pub const BONUS_2_LEVEL_POS: u8 = 175;
-    pub const BONUS_3_LEVEL_POS: u8 = 177;
-    pub const FREE_MOVES_POS: u8 = 179;
-    pub const PENDING_LEVEL_UP_POS: u8 = 182;
+    pub const SELECTED_BONUS_1_POS: u8 = 154;
+    pub const SELECTED_BONUS_2_POS: u8 = 157;
+    pub const SELECTED_BONUS_3_POS: u8 = 160;
+    pub const BONUS_1_LEVEL_POS: u8 = 163;
+    pub const BONUS_2_LEVEL_POS: u8 = 165;
+    pub const BONUS_3_LEVEL_POS: u8 = 167;
+    pub const FREE_MOVES_POS: u8 = 169;
     // Shop state positions
-    pub const LAST_SHOP_LEVEL_POS: u8 = 183;
-    pub const SHOP_BONUS_1_BOUGHT_POS: u8 = 189;
-    pub const SHOP_BONUS_2_BOUGHT_POS: u8 = 190;
-    pub const SHOP_BONUS_3_BOUGHT_POS: u8 = 191;
-    pub const SHOP_REFILLS_POS: u8 = 192;
+    pub const LAST_SHOP_LEVEL_POS: u8 = 172;
     // Constraint flags
-    pub const NO_BONUS_CONSTRAINT_POS: u8 = 196;
+    pub const NO_BONUS_CONSTRAINT_POS: u8 = 175;
     // Tertiary constraint progress
-    pub const CONSTRAINT_3_PROGRESS_POS: u8 = 197;
+    pub const CONSTRAINT_3_PROGRESS_POS: u8 = 176;
+    // Shop visit purchase state
+    pub const SHOP_PURCHASES_POS: u8 = 184;
+    pub const UNALLOCATED_CHARGES_POS: u8 = 188;
+    pub const SHOP_LEVEL_UP_BOUGHT_POS: u8 = 192;
+    pub const SHOP_SWAP_BOUGHT_POS: u8 = 193;
+    pub const BOSS_LEVEL_UP_PENDING_POS: u8 = 194;
 
     // Bit masks (after shifting to position 0)
     pub const CURRENT_LEVEL_MASK: u256 = 0xFF; // 8 bits
@@ -147,9 +136,7 @@ mod RunDataBits {
     pub const CONSTRAINT_PROGRESS_MASK: u256 = 0xFF; // 8 bits
     pub const CONSTRAINT_2_PROGRESS_MASK: u256 = 0xFF; // 8 bits
     pub const BONUS_USED_MASK: u256 = 0x1; // 1 bit
-    pub const COMBO_ACHIEVED_MASK: u256 = 0x1; // 1 bit
     pub const COUNT_MASK: u256 = 0xFF; // 8 bits
-    pub const EXTRA_MOVES_MASK: u256 = 0xFF; // 8 bits
     pub const CUBES_BROUGHT_MASK: u256 = 0xFFFF; // 16 bits
     pub const CUBES_SPENT_MASK: u256 = 0xFFFF; // 16 bits
     pub const TOTAL_CUBES_MASK: u256 = 0xFFFF; // 16 bits
@@ -159,15 +146,18 @@ mod RunDataBits {
     pub const SELECTED_BONUS_MASK: u256 = 0x7; // 3 bits (0-5 for bonus types)
     pub const BONUS_LEVEL_MASK: u256 = 0x3; // 2 bits (0-2 for L1/L2/L3)
     pub const FREE_MOVES_MASK: u256 = 0x7; // 3 bits (0-7)
-    pub const PENDING_LEVEL_UP_MASK: u256 = 0x1; // 1 bit
     // Shop state masks
-    pub const LAST_SHOP_LEVEL_MASK: u256 = 0x3F; // 6 bits (0-63)
-    pub const SHOP_BOUGHT_MASK: u256 = 0x1; // 1 bit
-    pub const SHOP_REFILLS_MASK: u256 = 0xF; // 4 bits (0-15)
+    pub const LAST_SHOP_LEVEL_MASK: u256 = 0x7; // 3 bits (0-7)
     // Constraint flags masks
     pub const NO_BONUS_CONSTRAINT_MASK: u256 = 0x1; // 1 bit
     // Tertiary constraint progress mask
     pub const CONSTRAINT_3_PROGRESS_MASK: u256 = 0xFF; // 8 bits
+    // Shop visit purchase state masks
+    pub const SHOP_PURCHASES_MASK: u256 = 0xF; // 4 bits (0-15)
+    pub const UNALLOCATED_CHARGES_MASK: u256 = 0xF; // 4 bits (0-15)
+    pub const SHOP_LEVEL_UP_BOUGHT_MASK: u256 = 0x1; // 1 bit
+    pub const SHOP_SWAP_BOUGHT_MASK: u256 = 0x1; // 1 bit
+    pub const BOSS_LEVEL_UP_PENDING_MASK: u256 = 0x1; // 1 bit
 }
 
 #[generate_trait]
@@ -180,21 +170,18 @@ pub impl RunDataPacking of RunDataPackingTrait {
             level_score: 0,
             level_moves: 0,
             constraint_progress: 0,
+            constraint_2_progress: 0,
             bonus_used_this_level: false,
-            total_cubes: 0,
             combo_count: 0,
             score_count: 0,
             harvest_count: 0,
             wave_count: 0,
             supply_count: 0,
             max_combo_run: 0,
-            extra_moves: 0,
-            total_score: 0,
-            combo_5_achieved: false,
-            combo_10_achieved: false,
             cubes_brought: 0,
             cubes_spent: 0,
-            constraint_2_progress: 0,
+            total_cubes: 0,
+            total_score: 0,
             run_completed: false,
             // Bonus V3.0: Default selection (Combo, Score, Harvest)
             selected_bonus_1: 1, // Combo
@@ -205,17 +192,17 @@ pub impl RunDataPacking of RunDataPackingTrait {
             bonus_2_level: 0,
             bonus_3_level: 0,
             free_moves: 0,
-            pending_level_up: false,
             // Shop state starts fresh
             last_shop_level: 0,
-            shop_bonus_1_bought: false,
-            shop_bonus_2_bought: false,
-            shop_bonus_3_bought: false,
-            shop_refills: 0,
             // Constraint flags (set when level actually starts)
             no_bonus_constraint: false,
             // Tertiary constraint progress
             constraint_3_progress: 0,
+            shop_purchases: 0,
+            unallocated_charges: 0,
+            shop_level_up_bought: false,
+            shop_swap_bought: false,
+            boss_level_up_pending: false,
         }
     }
 
@@ -256,16 +243,6 @@ pub impl RunDataPacking of RunDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                if self.combo_5_achieved { 1_u256 } else { 0_u256 },
-                RunDataBits::COMBO_5_ACHIEVED_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
-                if self.combo_10_achieved { 1_u256 } else { 0_u256 },
-                RunDataBits::COMBO_10_ACHIEVED_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
                 self.combo_count.into() & RunDataBits::COUNT_MASK,
                 RunDataBits::COMBO_COUNT_POS.into(),
             );
@@ -293,11 +270,6 @@ pub impl RunDataPacking of RunDataPackingTrait {
             | BitShift::shl(
                 self.max_combo_run.into() & RunDataBits::COUNT_MASK,
                 RunDataBits::MAX_COMBO_RUN_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
-                self.extra_moves.into() & RunDataBits::EXTRA_MOVES_MASK,
-                RunDataBits::EXTRA_MOVES_POS.into(),
             );
         packed = packed
             | BitShift::shl(
@@ -360,36 +332,11 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 self.free_moves.into() & RunDataBits::FREE_MOVES_MASK,
                 RunDataBits::FREE_MOVES_POS.into(),
             );
-        packed = packed
-            | BitShift::shl(
-                if self.pending_level_up { 1_u256 } else { 0_u256 },
-                RunDataBits::PENDING_LEVEL_UP_POS.into(),
-            );
         // Shop state fields
         packed = packed
             | BitShift::shl(
                 self.last_shop_level.into() & RunDataBits::LAST_SHOP_LEVEL_MASK,
                 RunDataBits::LAST_SHOP_LEVEL_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
-                if self.shop_bonus_1_bought { 1_u256 } else { 0_u256 },
-                RunDataBits::SHOP_BONUS_1_BOUGHT_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
-                if self.shop_bonus_2_bought { 1_u256 } else { 0_u256 },
-                RunDataBits::SHOP_BONUS_2_BOUGHT_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
-                if self.shop_bonus_3_bought { 1_u256 } else { 0_u256 },
-                RunDataBits::SHOP_BONUS_3_BOUGHT_POS.into(),
-            );
-        packed = packed
-            | BitShift::shl(
-                self.shop_refills.into() & RunDataBits::SHOP_REFILLS_MASK,
-                RunDataBits::SHOP_REFILLS_POS.into(),
             );
         // Constraint flags
         packed = packed
@@ -402,6 +349,32 @@ pub impl RunDataPacking of RunDataPackingTrait {
             | BitShift::shl(
                 self.constraint_3_progress.into() & RunDataBits::CONSTRAINT_3_PROGRESS_MASK,
                 RunDataBits::CONSTRAINT_3_PROGRESS_POS.into(),
+            );
+        // Shop visit purchase state
+        packed = packed
+            | BitShift::shl(
+                self.shop_purchases.into() & RunDataBits::SHOP_PURCHASES_MASK,
+                RunDataBits::SHOP_PURCHASES_POS.into(),
+            );
+        packed = packed
+            | BitShift::shl(
+                self.unallocated_charges.into() & RunDataBits::UNALLOCATED_CHARGES_MASK,
+                RunDataBits::UNALLOCATED_CHARGES_POS.into(),
+            );
+        packed = packed
+            | BitShift::shl(
+                if self.shop_level_up_bought { 1_u256 } else { 0_u256 },
+                RunDataBits::SHOP_LEVEL_UP_BOUGHT_POS.into(),
+            );
+        packed = packed
+            | BitShift::shl(
+                if self.shop_swap_bought { 1_u256 } else { 0_u256 },
+                RunDataBits::SHOP_SWAP_BOUGHT_POS.into(),
+            );
+        packed = packed
+            | BitShift::shl(
+                if self.boss_level_up_pending { 1_u256 } else { 0_u256 },
+                RunDataBits::BOSS_LEVEL_UP_PENDING_POS.into(),
             );
 
         packed.try_into().unwrap()
@@ -436,10 +409,6 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 .unwrap(),
             bonus_used_this_level: (BitShift::shr(data, RunDataBits::BONUS_USED_POS.into())
                 & RunDataBits::BONUS_USED_MASK) == 1,
-            combo_5_achieved: (BitShift::shr(data, RunDataBits::COMBO_5_ACHIEVED_POS.into())
-                & RunDataBits::COMBO_ACHIEVED_MASK) == 1,
-            combo_10_achieved: (BitShift::shr(data, RunDataBits::COMBO_10_ACHIEVED_POS.into())
-                & RunDataBits::COMBO_ACHIEVED_MASK) == 1,
             combo_count: (BitShift::shr(data, RunDataBits::COMBO_COUNT_POS.into())
                 & RunDataBits::COUNT_MASK)
                 .try_into()
@@ -462,10 +431,6 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 .unwrap(),
             max_combo_run: (BitShift::shr(data, RunDataBits::MAX_COMBO_RUN_POS.into())
                 & RunDataBits::COUNT_MASK)
-                .try_into()
-                .unwrap(),
-            extra_moves: (BitShift::shr(data, RunDataBits::EXTRA_MOVES_POS.into())
-                & RunDataBits::EXTRA_MOVES_MASK)
                 .try_into()
                 .unwrap(),
             cubes_brought: (BitShift::shr(data, RunDataBits::CUBES_BROUGHT_POS.into())
@@ -515,21 +480,9 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 & RunDataBits::FREE_MOVES_MASK)
                 .try_into()
                 .unwrap(),
-            pending_level_up: (BitShift::shr(data, RunDataBits::PENDING_LEVEL_UP_POS.into())
-                & RunDataBits::PENDING_LEVEL_UP_MASK) == 1,
             // Shop state fields
             last_shop_level: (BitShift::shr(data, RunDataBits::LAST_SHOP_LEVEL_POS.into())
                 & RunDataBits::LAST_SHOP_LEVEL_MASK)
-                .try_into()
-                .unwrap(),
-            shop_bonus_1_bought: (BitShift::shr(data, RunDataBits::SHOP_BONUS_1_BOUGHT_POS.into())
-                & RunDataBits::SHOP_BOUGHT_MASK) == 1,
-            shop_bonus_2_bought: (BitShift::shr(data, RunDataBits::SHOP_BONUS_2_BOUGHT_POS.into())
-                & RunDataBits::SHOP_BOUGHT_MASK) == 1,
-            shop_bonus_3_bought: (BitShift::shr(data, RunDataBits::SHOP_BONUS_3_BOUGHT_POS.into())
-                & RunDataBits::SHOP_BOUGHT_MASK) == 1,
-            shop_refills: (BitShift::shr(data, RunDataBits::SHOP_REFILLS_POS.into())
-                & RunDataBits::SHOP_REFILLS_MASK)
                 .try_into()
                 .unwrap(),
             // Constraint flags
@@ -542,6 +495,25 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 & RunDataBits::CONSTRAINT_3_PROGRESS_MASK)
                 .try_into()
                 .unwrap(),
+            // Shop visit purchase state
+            shop_purchases: (BitShift::shr(data, RunDataBits::SHOP_PURCHASES_POS.into())
+                & RunDataBits::SHOP_PURCHASES_MASK)
+                .try_into()
+                .unwrap(),
+            unallocated_charges: (BitShift::shr(data, RunDataBits::UNALLOCATED_CHARGES_POS.into())
+                & RunDataBits::UNALLOCATED_CHARGES_MASK)
+                .try_into()
+                .unwrap(),
+            shop_level_up_bought: (BitShift::shr(
+                data, RunDataBits::SHOP_LEVEL_UP_BOUGHT_POS.into(),
+            )
+                & RunDataBits::SHOP_LEVEL_UP_BOUGHT_MASK) == 1,
+            shop_swap_bought: (BitShift::shr(data, RunDataBits::SHOP_SWAP_BOUGHT_POS.into())
+                & RunDataBits::SHOP_SWAP_BOUGHT_MASK) == 1,
+            boss_level_up_pending: (BitShift::shr(
+                data, RunDataBits::BOSS_LEVEL_UP_PENDING_POS.into(),
+            )
+                & RunDataBits::BOSS_LEVEL_UP_PENDING_MASK) == 1,
         }
     }
 }
@@ -963,19 +935,20 @@ mod tests {
         let data = RunDataPackingTrait::new();
         assert!(data.current_level == 1, "Should start at level 1");
         assert!(data.level_score == 0, "Should start with 0 score");
+        assert!(data.level_moves == 0, "Should start with 0 moves");
+        assert!(data.constraint_progress == 0, "Should start with 0 constraint progress");
+        assert!(data.constraint_2_progress == 0, "Should start with 0 constraint_2 progress");
+        assert!(data.bonus_used_this_level == false, "Should start with bonus not used");
         assert!(data.combo_count == 0, "Should start with 0 combo charges");
         assert!(data.score_count == 0, "Should start with 0 score charges");
         assert!(data.harvest_count == 0, "Should start with 0 harvest charges");
         assert!(data.wave_count == 0, "Should start with 0 wave charges");
         assert!(data.supply_count == 0, "Should start with 0 supply charges");
-        assert!(data.extra_moves == 0, "Should start with 0 extra moves");
+        assert!(data.max_combo_run == 0, "Should start with 0 max combo");
+        assert!(data.total_cubes == 0, "Should start with 0 total cubes");
         assert!(data.total_score == 0, "Should start with 0 total score");
-        assert!(data.combo_5_achieved == false, "Should start with combo_5 not achieved");
-        assert!(data.combo_10_achieved == false, "Should start with combo_10 not achieved");
         assert!(data.cubes_brought == 0, "Should start with 0 cubes brought");
         assert!(data.cubes_spent == 0, "Should start with 0 cubes spent");
-        assert!(data.constraint_2_progress == 0, "Should start with 0 constraint_2 progress");
-        assert!(data.constraint_3_progress == 0, "Should start with 0 constraint_3 progress");
         // Bonus V3.0: Default selection is Combo(1), Score(2), Harvest(3)
         assert!(data.selected_bonus_1 == 1, "Should start with Combo selected");
         assert!(data.selected_bonus_2 == 2, "Should start with Score selected");
@@ -984,7 +957,17 @@ mod tests {
         assert!(data.bonus_2_level == 0, "Bonus 2 should start at L1 (0)");
         assert!(data.bonus_3_level == 0, "Bonus 3 should start at L1 (0)");
         assert!(data.free_moves == 0, "Should start with 0 free moves");
-        assert!(data.pending_level_up == false, "Should start with no pending level up");
+        // Shop state defaults
+        assert!(data.last_shop_level == 0, "Should start with no last shop level");
+        assert!(data.shop_purchases == 0, "Should start with 0 shop purchases");
+        assert!(data.unallocated_charges == 0, "Should start with 0 unallocated charges");
+        assert!(data.shop_level_up_bought == false, "Should start with no shop level-up purchase");
+        assert!(data.shop_swap_bought == false, "Should start with no shop swap purchase");
+        assert!(data.boss_level_up_pending == false, "Should start with no boss level-up pending");
+        // Constraint defaults
+        assert!(data.no_bonus_constraint == false, "Should start with no NoBonusUsed constraint");
+        assert!(data.constraint_3_progress == 0, "Should start with 0 constraint_3 progress");
+        assert!(data.run_completed == false, "Should start with run not completed");
     }
 
     #[test]
@@ -994,21 +977,18 @@ mod tests {
             level_score: 150,
             level_moves: 25,
             constraint_progress: 3,
+            constraint_2_progress: 7,
             bonus_used_this_level: true,
-            total_cubes: 256,
             combo_count: 5,
             score_count: 3,
             harvest_count: 2,
             wave_count: 4,
             supply_count: 6,
             max_combo_run: 7,
-            extra_moves: 10,
-            total_score: 12345,
-            combo_5_achieved: true,
-            combo_10_achieved: false,
             cubes_brought: 100,
             cubes_spent: 45,
-            constraint_2_progress: 7,
+            total_cubes: 256,
+            total_score: 12345,
             run_completed: false,
             // Bonus V3.0 fields
             selected_bonus_1: 4, // Wave
@@ -1018,17 +998,18 @@ mod tests {
             bonus_2_level: 1,    // L2
             bonus_3_level: 0,    // L1
             free_moves: 3,
-            pending_level_up: true,
             // Shop state fields
-            last_shop_level: 11,
-            shop_bonus_1_bought: true,
-            shop_bonus_2_bought: false,
-            shop_bonus_3_bought: true,
-            shop_refills: 2,
+            last_shop_level: 4,
             // Constraint flags
             no_bonus_constraint: true,
             // Tertiary constraint progress
             constraint_3_progress: 12,
+            // New shop visit state fields
+            shop_purchases: 3,
+            unallocated_charges: 5,
+            shop_level_up_bought: true,
+            shop_swap_bought: false,
+            boss_level_up_pending: true,
         };
 
         let packed = original.pack();
@@ -1052,16 +1033,9 @@ mod tests {
         assert!(unpacked.wave_count == original.wave_count, "wave_count mismatch");
         assert!(unpacked.supply_count == original.supply_count, "supply_count mismatch");
         assert!(unpacked.max_combo_run == original.max_combo_run, "max_combo_run mismatch");
-        assert!(unpacked.extra_moves == original.extra_moves, "extra_moves mismatch");
-        assert!(unpacked.total_score == original.total_score, "total_score mismatch");
-        assert!(
-            unpacked.combo_5_achieved == original.combo_5_achieved, "combo_5_achieved mismatch",
-        );
-        assert!(
-            unpacked.combo_10_achieved == original.combo_10_achieved, "combo_10_achieved mismatch",
-        );
         assert!(unpacked.cubes_brought == original.cubes_brought, "cubes_brought mismatch");
         assert!(unpacked.cubes_spent == original.cubes_spent, "cubes_spent mismatch");
+        assert!(unpacked.total_score == original.total_score, "total_score mismatch");
         assert!(unpacked.constraint_2_progress == original.constraint_2_progress, "constraint_2_progress mismatch");
         // Bonus V2.0 assertions
         assert!(unpacked.selected_bonus_1 == original.selected_bonus_1, "selected_bonus_1 mismatch");
@@ -1071,13 +1045,22 @@ mod tests {
         assert!(unpacked.bonus_2_level == original.bonus_2_level, "bonus_2_level mismatch");
         assert!(unpacked.bonus_3_level == original.bonus_3_level, "bonus_3_level mismatch");
         assert!(unpacked.free_moves == original.free_moves, "free_moves mismatch");
-        assert!(unpacked.pending_level_up == original.pending_level_up, "pending_level_up mismatch");
         // Shop state assertions
         assert!(unpacked.last_shop_level == original.last_shop_level, "last_shop_level mismatch");
-        assert!(unpacked.shop_bonus_1_bought == original.shop_bonus_1_bought, "shop_bonus_1_bought mismatch");
-        assert!(unpacked.shop_bonus_2_bought == original.shop_bonus_2_bought, "shop_bonus_2_bought mismatch");
-        assert!(unpacked.shop_bonus_3_bought == original.shop_bonus_3_bought, "shop_bonus_3_bought mismatch");
-        assert!(unpacked.shop_refills == original.shop_refills, "shop_refills mismatch");
+        assert!(unpacked.shop_purchases == original.shop_purchases, "shop_purchases mismatch");
+        assert!(
+            unpacked.unallocated_charges == original.unallocated_charges,
+            "unallocated_charges mismatch",
+        );
+        assert!(
+            unpacked.shop_level_up_bought == original.shop_level_up_bought,
+            "shop_level_up_bought mismatch",
+        );
+        assert!(unpacked.shop_swap_bought == original.shop_swap_bought, "shop_swap_bought mismatch");
+        assert!(
+            unpacked.boss_level_up_pending == original.boss_level_up_pending,
+            "boss_level_up_pending mismatch",
+        );
         // Constraint flag assertions
         assert!(unpacked.no_bonus_constraint == original.no_bonus_constraint, "no_bonus_constraint mismatch");
         assert!(unpacked.constraint_3_progress == original.constraint_3_progress, "constraint_3_progress mismatch");
@@ -1091,21 +1074,18 @@ mod tests {
             level_score: 255, // 8 bits max
             level_moves: 255, // 8 bits max
             constraint_progress: 255, // 8 bits max
+            constraint_2_progress: 255, // 8 bits max
             bonus_used_this_level: true,
-            total_cubes: 65535, // 16 bits max
             combo_count: 255, // 8 bits max
             score_count: 255, // 8 bits max
             harvest_count: 255, // 8 bits max
             wave_count: 255, // 8 bits max
             supply_count: 255, // 8 bits max
             max_combo_run: 255, // 8 bits max
-            extra_moves: 255, // 8 bits max
-            total_score: 65535, // 16 bits max
-            combo_5_achieved: true,
-            combo_10_achieved: true,
             cubes_brought: 65535, // 16 bits max
             cubes_spent: 65535, // 16 bits max
-            constraint_2_progress: 255, // 8 bits max
+            total_cubes: 65535, // 16 bits max
+            total_score: 65535, // 16 bits max
             run_completed: true, // 1 bit max
             // Bonus V3.0: max values
             selected_bonus_1: 5, // 3 bits max (but only 0-5 valid)
@@ -1115,17 +1095,18 @@ mod tests {
             bonus_2_level: 2,
             bonus_3_level: 2,
             free_moves: 7, // 3 bits max
-            pending_level_up: true,
             // Shop state: max values
-            last_shop_level: 63, // 6 bits max
-            shop_bonus_1_bought: true,
-            shop_bonus_2_bought: true,
-            shop_bonus_3_bought: true,
-            shop_refills: 15, // 4 bits max
+            last_shop_level: 7, // 3 bits max
             // Constraint flags
             no_bonus_constraint: true,
             // Tertiary constraint progress
             constraint_3_progress: 255, // 8 bits max
+            // New shop visit state fields
+            shop_purchases: 15, // 4 bits max
+            unallocated_charges: 15, // 4 bits max
+            shop_level_up_bought: true,
+            shop_swap_bought: true,
+            boss_level_up_pending: true,
         };
 
         let packed = max_values.pack();
@@ -1141,21 +1122,18 @@ mod tests {
             level_score: 0,
             level_moves: 0,
             constraint_progress: 0,
+            constraint_2_progress: 0,
             bonus_used_this_level: false,
-            total_cubes: 0,
             combo_count: 0,
             score_count: 0,
             harvest_count: 0,
             wave_count: 0,
             supply_count: 0,
             max_combo_run: 0,
-            extra_moves: 0,
-            total_score: 0,
-            combo_5_achieved: false,
-            combo_10_achieved: false,
             cubes_brought: 0,
             cubes_spent: 0,
-            constraint_2_progress: 0,
+            total_cubes: 0,
+            total_score: 0,
             run_completed: false,
             // Bonus V3.0: zero values
             selected_bonus_1: 0,
@@ -1165,17 +1143,18 @@ mod tests {
             bonus_2_level: 0,
             bonus_3_level: 0,
             free_moves: 0,
-            pending_level_up: false,
             // Shop state: zero values
             last_shop_level: 0,
-            shop_bonus_1_bought: false,
-            shop_bonus_2_bought: false,
-            shop_bonus_3_bought: false,
-            shop_refills: 0,
             // Constraint flags
             no_bonus_constraint: false,
             // Tertiary constraint progress
             constraint_3_progress: 0,
+            // New shop visit state fields
+            shop_purchases: 0,
+            unallocated_charges: 0,
+            shop_level_up_bought: false,
+            shop_swap_bought: false,
+            boss_level_up_pending: false,
         };
 
         let packed = zero_values.pack();

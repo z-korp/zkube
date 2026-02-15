@@ -40,7 +40,6 @@ pub struct GameSettings {
     pub combo_cost: u8,         // Cost in cubes (default: 5)
     pub score_cost: u8,         // Cost in cubes (default: 5)
     pub harvest_cost: u8,       // Cost in cubes (default: 5)
-    pub extra_moves_cost: u8,   // Cost in cubes (default: 10)
     
     // === Difficulty Progression (non-linear tier thresholds) ===
     // Each threshold is the level at which that difficulty tier begins
@@ -123,7 +122,6 @@ pub mod GameSettingsDefaults {
     pub const COMBO_COST: u8 = 5;
     pub const SCORE_COST: u8 = 5;
     pub const HARVEST_COST: u8 = 5;
-    pub const EXTRA_MOVES_COST: u8 = 10;
     
     // Difficulty Progression (non-linear tier thresholds)
     // VeryEasy: 1-3, Easy: 4-7, Medium: 8-11, MediumHard: 12-17
@@ -251,7 +249,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             combo_cost: GameSettingsDefaults::COMBO_COST,
             score_cost: GameSettingsDefaults::SCORE_COST,
             harvest_cost: GameSettingsDefaults::HARVEST_COST,
-            extra_moves_cost: GameSettingsDefaults::EXTRA_MOVES_COST,
             // Difficulty Progression (non-linear tier thresholds)
             tier_1_threshold: GameSettingsDefaults::TIER_1_THRESHOLD,
             tier_2_threshold: GameSettingsDefaults::TIER_2_THRESHOLD,
@@ -694,7 +691,6 @@ mod tests {
         assert!(settings.combo_cost == 5, "Combo cost should be 5");
         assert!(settings.score_cost == 5, "Score cost should be 5");
         assert!(settings.harvest_cost == 5, "Harvest cost should be 5");
-        assert!(settings.extra_moves_cost == 10, "Extra moves cost should be 10");
         // Difficulty Progression (non-linear tier thresholds)
         assert!(settings.tier_1_threshold == 4, "Tier 1 (Easy) should start at level 4");
         assert!(settings.tier_2_threshold == 8, "Tier 2 (Medium) should start at level 8");

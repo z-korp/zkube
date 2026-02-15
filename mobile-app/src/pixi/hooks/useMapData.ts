@@ -21,6 +21,7 @@ export interface MapNodeData extends MapNode {
   state: NodeState;
   levelConfig: Level | null;
   zoneTheme: ThemeId;
+  stars: number;
 }
 
 export interface MapData {
@@ -65,6 +66,7 @@ export function generateMapData(
   seed: bigint,
   currentLevel: number,
   settings: GameSettings = DEFAULT_SETTINGS,
+  levelStarsFn?: (level: number) => number,
 ): MapData {
   const zoneThemes = deriveZoneThemes(seed);
   const allNodes = getAllNodes();
@@ -77,8 +79,11 @@ export function generateMapData(
 
     const state = getNodeState(node, currentLevel, currentNodeIndex);
     const zoneTheme = zoneThemes[node.zone - 1];
+    const stars = state === 'cleared' && node.contractLevel !== null
+      ? (levelStarsFn?.(node.contractLevel) ?? 0)
+      : 0;
 
-    return { ...node, state, levelConfig, zoneTheme };
+    return { ...node, state, levelConfig, zoneTheme, stars };
   });
 
   return {
@@ -93,9 +98,10 @@ export function useMapData(
   seed: bigint,
   currentLevel: number,
   settings: GameSettings = DEFAULT_SETTINGS,
+  levelStarsFn?: (level: number) => number,
 ): MapData {
   return useMemo(
-    () => generateMapData(seed, currentLevel, settings),
-    [seed, currentLevel, settings],
+    () => generateMapData(seed, currentLevel, settings, levelStarsFn),
+    [seed, currentLevel, settings, levelStarsFn],
   );
 }

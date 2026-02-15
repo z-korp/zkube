@@ -78,22 +78,11 @@ pub fn update_combo_tracking(
 }
 
 /// Award combo cubes based on lines cleared.
-/// Also checks and awards one-time combo achievements (5-line = +3, 10-line = +5).
 pub fn award_combo_cubes(ref run_data: RunData, lines_cleared: u8) {
     // Award cubes for high combos (4+ lines)
     let combo_cubes = calculate_combo_cubes(lines_cleared);
     if combo_cubes > 0 {
         run_data.total_cubes = saturating_add_u16(run_data.total_cubes, combo_cubes);
-    }
-
-    // One-time combo achievement bonuses
-    if run_data.max_combo_run >= 5 && !run_data.combo_5_achieved {
-        run_data.combo_5_achieved = true;
-        run_data.total_cubes = saturating_add_u16(run_data.total_cubes, 3_u16);
-    }
-    if run_data.max_combo_run >= 10 && !run_data.combo_10_achieved {
-        run_data.combo_10_achieved = true;
-        run_data.total_cubes = saturating_add_u16(run_data.total_cubes, 5_u16);
     }
 }
 
@@ -101,7 +90,6 @@ pub fn award_combo_cubes(ref run_data: RunData, lines_cleared: u8) {
 /// This is the main entry point that combines:
 /// - Combo tracking (combo_counter, max_combo, max_combo_run)
 /// - Combo cube rewards (4+ lines)
-/// - Combo achievement bonuses (5-line, 10-line first-time)
 pub fn process_lines_cleared(
     ref run_data: RunData,
     ref combo_counter: u8,

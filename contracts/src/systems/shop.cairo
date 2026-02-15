@@ -35,11 +35,23 @@ pub trait IShopSystem<T> {
     // ==========================================
     
     /// Purchase a consumable from the in-game shop using brought cubes
-    /// Only available after completing levels 5, 10, 15, 20, etc.
+    /// Only available after completing levels 9, 19, 29, 39, 49.
     /// @param game_id: The game ID
     /// @param consumable: The consumable type to purchase
     /// @param bonus_slot: Required for LevelUp (0, 1, or 2), ignored for other consumables
     fn purchase_consumable(ref self: T, game_id: u64, consumable: ConsumableType, bonus_slot: u8);
+
+    /// Allocate an unallocated charge to a specific bonus slot (0, 1, or 2)
+    /// No cube cost — the charge was already paid for via purchase_consumable(BonusCharge)
+    fn allocate_charge(ref self: T, game_id: u64, bonus_slot: u8);
+
+    /// Swap one of the 3 selected bonuses for an unselected one
+    /// Cost: 50 CUBE. Limit: 1 per shop visit.
+    /// Old bonus charges are LOST. New bonus starts at Level 1 (level 0).
+    /// @param game_id: The game ID
+    /// @param bonus_slot: Which slot to replace (0, 1, or 2)
+    /// @param new_bonus_type: The new bonus type (1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply)
+    fn swap_bonus(ref self: T, game_id: u64, bonus_slot: u8, new_bonus_type: u8);
 
     // ==========================================
     // View Functions
@@ -97,8 +109,10 @@ mod shop_system {
     use zkube::constants::DEFAULT_NS;
     use zkube::models::game::{Game, GameTrait, GameAssert};
     use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
-    use zkube::types::consumable::{ConsumableType, ConsumableTrait};
-    use zkube::helpers::packing::{RunData, RunDataHelpersTrait};
+    use zkube::types::consumable::{
+        ConsumableType, ConsumableTrait, LEVEL_UP_COST, SWAP_BONUS_COST,
+    };
+    use zkube::helpers::packing::{RunData, RunDataHelpersTrait, MetaDataPackingTrait};
     use zkube::helpers::token;
     use zkube::events::{ConsumablePurchased, BonusUnlocked, BonusLevelUp};
     use zkube::helpers::game_libs::{GameLibsImpl, ICubeTokenDispatcherTrait};
@@ -312,7 +326,7 @@ mod shop_system {
             let player = get_caller_address();
 
             // Validate there's a pending level-up
-            assert!(run_data.pending_level_up, "No level-up pending");
+            assert!(run_data.boss_level_up_pending, "No level-up pending");
 
             // Validate bonus_slot is 0, 1, or 2
             assert!(bonus_slot <= 2, "Invalid bonus slot");
@@ -336,7 +350,7 @@ mod shop_system {
             else { run_data.bonus_3_level = new_level; }
 
             // Clear the pending flag
-            run_data.pending_level_up = false;
+            run_data.boss_level_up_pending = false;
 
             game.set_run_data(run_data);
             world.write_model(@game);
@@ -396,90 +410,53 @@ mod shop_system {
             assert!(run_data.current_level > 1, "Shop not available");
             assert!((run_data.current_level - 1) % 10 == 9, "Shop not available");
 
-            // Reset shop state if this is a new shop level
-            if run_data.last_shop_level != run_data.current_level {
-                run_data.last_shop_level = run_data.current_level;
-                run_data.shop_bonus_1_bought = false;
-                run_data.shop_bonus_2_bought = false;
-                run_data.shop_bonus_3_bought = false;
-                run_data.shop_refills = 0;
+            // Reset shop state if this is a new shop visit.
+            // last_shop_level stores current_level / 10 (0-5).
+            let shop_index = run_data.current_level / 10;
+            if run_data.last_shop_level != shop_index {
+                run_data.last_shop_level = shop_index;
+                run_data.shop_purchases = 0;
+                run_data.shop_level_up_bought = false;
+                run_data.shop_swap_bought = false;
             }
 
-            // Get player meta
-            let mut player_meta = dispatchers::get_or_create_player_meta(world, player);
-
-            // Calculate cost based on consumable type
             let cost: u16 = match consumable {
-                ConsumableType::Bonus1 => consumable.get_cost(),
-                ConsumableType::Bonus2 => consumable.get_cost(),
-                ConsumableType::Bonus3 => consumable.get_cost(),
-                ConsumableType::Refill => ConsumableTrait::get_refill_cost(run_data.shop_refills),
-                ConsumableType::LevelUp => consumable.get_cost(),
-            };
-
-            // Check player has enough cubes (brought + earned - spent)
-            let total_budget: u32 = run_data.cubes_brought.into() + run_data.total_cubes.into();
-            let spent: u32 = run_data.cubes_spent.into();
-            let cubes_available: u32 = if total_budget >= spent { total_budget - spent } else { 0 };
-            assert!(cubes_available >= cost.into(), "Insufficient cubes");
-
-            // Spend the cubes
-            let new_spent: u32 = spent + cost.into();
-            assert!(new_spent <= 65535, "Cubes spent overflow");
-            run_data.cubes_spent = new_spent.try_into().unwrap();
-
-            // Apply consumable effect
-            match consumable {
-                ConsumableType::Bonus1 => {
-                    // Check if already bought this shop (requires refill)
-                    assert!(!run_data.shop_bonus_1_bought, "Already bought, need refill");
-                    run_data.shop_bonus_1_bought = true;
-                    // Add the selected bonus type to inventory
-                    self.add_bonus_to_inventory(ref run_data, run_data.selected_bonus_1, @player_meta);
-                },
-                ConsumableType::Bonus2 => {
-                    assert!(!run_data.shop_bonus_2_bought, "Already bought, need refill");
-                    run_data.shop_bonus_2_bought = true;
-                    self.add_bonus_to_inventory(ref run_data, run_data.selected_bonus_2, @player_meta);
-                },
-                ConsumableType::Bonus3 => {
-                    assert!(!run_data.shop_bonus_3_bought, "Already bought, need refill");
-                    run_data.shop_bonus_3_bought = true;
-                    self.add_bonus_to_inventory(ref run_data, run_data.selected_bonus_3, @player_meta);
-                },
-                ConsumableType::Refill => {
-                    // Refill allows buying a specific bonus again
-                    assert!(bonus_slot <= 2, "Invalid bonus slot for refill");
-                    
-                    // Check that the bonus was actually bought (otherwise refill is pointless)
-                    let was_bought = if bonus_slot == 0 { run_data.shop_bonus_1_bought }
-                        else if bonus_slot == 1 { run_data.shop_bonus_2_bought }
-                        else { run_data.shop_bonus_3_bought };
-                    assert!(was_bought, "Bonus not bought, no refill needed");
-                    
-                    // Reset only the specific bonus's bought flag
-                    if bonus_slot == 0 { run_data.shop_bonus_1_bought = false; }
-                    else if bonus_slot == 1 { run_data.shop_bonus_2_bought = false; }
-                    else { run_data.shop_bonus_3_bought = false; }
-                    
-                    run_data.shop_refills += 1;
+                ConsumableType::BonusCharge => {
+                    let bonus_charge_cost = ConsumableTrait::get_bonus_charge_cost(run_data.shop_purchases);
+                    run_data.spend_cubes(bonus_charge_cost);
+                    run_data.shop_purchases += 1;
+                    run_data.unallocated_charges += 1;
+                    bonus_charge_cost
                 },
                 ConsumableType::LevelUp => {
-                    // Level up a bonus (paid option, 50 CUBE)
+                    assert!(!run_data.shop_level_up_bought, "Already bought LevelUp this shop");
                     assert!(bonus_slot <= 2, "Invalid bonus slot");
-                    
-                    let current_level = if bonus_slot == 0 { run_data.bonus_1_level }
-                        else if bonus_slot == 1 { run_data.bonus_2_level }
-                        else { run_data.bonus_3_level };
-                    
-                    assert!(current_level < 2, "Bonus already at max level");
-                    
+
+                    let current_level = if bonus_slot == 0 {
+                        run_data.bonus_1_level
+                    } else if bonus_slot == 1 {
+                        run_data.bonus_2_level
+                    } else {
+                        run_data.bonus_3_level
+                    };
+                    assert!(current_level < 2, "Already at max level");
+
+                    run_data.spend_cubes(LEVEL_UP_COST);
+                    run_data.shop_level_up_bought = true;
+
                     let new_level = current_level + 1;
                     if bonus_slot == 0 { run_data.bonus_1_level = new_level; }
                     else if bonus_slot == 1 { run_data.bonus_2_level = new_level; }
                     else { run_data.bonus_3_level = new_level; }
+
+                    LEVEL_UP_COST
                 },
-            }
+                ConsumableType::SwapBonus => {
+                    panic!("Use swap_bonus() entrypoint for swaps");
+                },
+            };
+
+            let cubes_remaining = run_data.get_available_cubes();
 
             game.set_run_data(run_data);
             world.write_model(@game);
@@ -487,26 +464,159 @@ mod shop_system {
             post_action(token_address, game_id);
 
             // Emit event
-            let cubes_remaining_u32: u32 = if total_budget >= new_spent {
-                total_budget - new_spent
+            world.emit_event(
+                @ConsumablePurchased {
+                    game_id,
+                    player,
+                    consumable,
+                    cost,
+                    cubes_remaining,
+                },
+            );
+        }
+
+        fn allocate_charge(ref self: ContractState, game_id: u64, bonus_slot: u8) {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+
+            // Get token_address from game_system via shared helper
+            let token_address = token::get_token_address(world);
+            pre_action(token_address, game_id);
+
+            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
+            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
+            assert!(
+                token_metadata.lifecycle.is_playable(get_block_timestamp()),
+                "Game {} lifecycle is not playable",
+                game_id,
+            );
+
+            let mut game: Game = world.read_model(game_id);
+            assert_token_ownership(token_address, game_id);
+            game.assert_not_over();
+
+            let mut run_data = game.get_run_data();
+            let player = get_caller_address();
+
+            assert!(run_data.unallocated_charges > 0, "No unallocated charges");
+            assert!(bonus_slot <= 2, "Invalid bonus slot");
+
+            let bonus_type = if bonus_slot == 0 {
+                run_data.selected_bonus_1
+            } else if bonus_slot == 1 {
+                run_data.selected_bonus_2
             } else {
-                0
+                run_data.selected_bonus_3
             };
-            let cubes_remaining: u16 = if cubes_remaining_u32 > 65535 {
-                65535_u16
+
+            let player_meta = dispatchers::get_or_create_player_meta(world, player);
+            self.add_bonus_to_inventory(ref run_data, bonus_type, @player_meta);
+            run_data.unallocated_charges -= 1;
+
+            game.set_run_data(run_data);
+            world.write_model(@game);
+
+            post_action(token_address, game_id);
+        }
+
+        fn swap_bonus(ref self: ContractState, game_id: u64, bonus_slot: u8, new_bonus_type: u8) {
+            let mut world: WorldStorage = self.world(@DEFAULT_NS());
+
+            // Get token_address from game_system via shared helper
+            let token_address = token::get_token_address(world);
+            pre_action(token_address, game_id);
+
+            let token_dispatcher = IMinigameTokenDispatcher { contract_address: token_address };
+            let token_metadata: TokenMetadata = token_dispatcher.token_metadata(game_id);
+            assert!(
+                token_metadata.lifecycle.is_playable(get_block_timestamp()),
+                "Game {} lifecycle is not playable",
+                game_id,
+            );
+
+            let mut game: Game = world.read_model(game_id);
+            assert_token_ownership(token_address, game_id);
+            game.assert_not_over();
+
+            let mut run_data = game.get_run_data();
+            let player = get_caller_address();
+
+            assert!(bonus_slot <= 2, "Invalid bonus slot");
+            assert!(new_bonus_type >= 1 && new_bonus_type <= 5, "Invalid bonus type");
+
+            // In-game shop is only available before boss levels (after completing levels 9, 19, 29, 39, 49).
+            // When current_level is 10, 20, 30, 40, 50, the player just completed the 9th zone level.
+            assert!(run_data.current_level > 1, "Shop not available");
+            assert!((run_data.current_level - 1) % 10 == 9, "Shop not available");
+
+            // Reset shop state if this is a new shop visit.
+            // last_shop_level stores current_level / 10 (0-5).
+            let shop_index = run_data.current_level / 10;
+            if run_data.last_shop_level != shop_index {
+                run_data.last_shop_level = shop_index;
+                run_data.shop_purchases = 0;
+                run_data.shop_level_up_bought = false;
+                run_data.shop_swap_bought = false;
+            }
+
+            assert!(!run_data.shop_swap_bought, "Already bought swap this shop");
+
+            // The new bonus must not already be selected.
+            assert!(new_bonus_type != run_data.selected_bonus_1, "Already selected");
+            assert!(new_bonus_type != run_data.selected_bonus_2, "Already selected");
+            assert!(new_bonus_type != run_data.selected_bonus_3, "Already selected");
+
+            // Validate unlock status (Wave and Supply require unlocks).
+            let player_meta = dispatchers::get_or_create_player_meta(world, player);
+            let meta = player_meta.get_meta_data();
+            let bag_idx = new_bonus_type - 1;
+            assert!(meta.is_bonus_unlocked(bag_idx), "Bonus not unlocked");
+
+            run_data.spend_cubes(SWAP_BONUS_COST);
+            run_data.shop_swap_bought = true;
+
+            let old_bonus_type = if bonus_slot == 0 {
+                run_data.selected_bonus_1
+            } else if bonus_slot == 1 {
+                run_data.selected_bonus_2
             } else {
-                cubes_remaining_u32.try_into().unwrap()
+                run_data.selected_bonus_3
             };
-            world
-                .emit_event(
-                    @ConsumablePurchased {
-                        game_id,
-                        player,
-                        consumable,
-                        cost,
-                        cubes_remaining,
-                    },
-                );
+
+            // Old bonus charges are lost.
+            if old_bonus_type == 1 { run_data.combo_count = 0; }
+            else if old_bonus_type == 2 { run_data.score_count = 0; }
+            else if old_bonus_type == 3 { run_data.harvest_count = 0; }
+            else if old_bonus_type == 4 { run_data.wave_count = 0; }
+            else if old_bonus_type == 5 { run_data.supply_count = 0; }
+
+            // Replace selected bonus and reset its level to L1 (level 0).
+            if bonus_slot == 0 {
+                run_data.selected_bonus_1 = new_bonus_type;
+                run_data.bonus_1_level = 0;
+            } else if bonus_slot == 1 {
+                run_data.selected_bonus_2 = new_bonus_type;
+                run_data.bonus_2_level = 0;
+            } else {
+                run_data.selected_bonus_3 = new_bonus_type;
+                run_data.bonus_3_level = 0;
+            }
+
+            let cubes_remaining = run_data.get_available_cubes();
+
+            game.set_run_data(run_data);
+            world.write_model(@game);
+
+            post_action(token_address, game_id);
+
+            world.emit_event(
+                @ConsumablePurchased {
+                    game_id,
+                    player,
+                    consumable: ConsumableType::SwapBonus,
+                    cost: SWAP_BONUS_COST,
+                    cubes_remaining,
+                },
+            );
         }
         
         fn get_shop_data(self: @ContractState, game_id: u64) -> (u16, u16, u16) {

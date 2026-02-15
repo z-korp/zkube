@@ -320,6 +320,38 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
+  const allocateCharge = async ({ account, ...props }: SystemTypes.AllocateCharge) => {
+    const setMoveComplete = useMoveStore.getState().setMoveComplete;
+    setMoveComplete(false);
+    try {
+      await handleTransaction(
+        account,
+        () => client.shop.allocate_charge({ account, ...props }),
+        "Charge allocated!"
+      );
+      setMoveComplete(true);
+    } catch (error) {
+      setMoveComplete(true);
+      throw error;
+    }
+  };
+
+  const swapBonus = async ({ account, ...props }: SystemTypes.SwapBonus) => {
+    const setMoveComplete = useMoveStore.getState().setMoveComplete;
+    setMoveComplete(false);
+    try {
+      await handleTransaction(
+        account,
+        () => client.shop.swap_bonus({ account, ...props }),
+        "Bonus swapped!"
+      );
+      setMoveComplete(true);
+    } catch (error) {
+      setMoveComplete(true);
+      throw error;
+    }
+  };
+
   const claimQuest = async ({ account, ...props }: SystemTypes.ClaimQuest) => {
     if (!client.quest) {
       throw new Error("Quest system not available");
@@ -341,6 +373,8 @@ export function systems({ client }: { client: IWorld }) {
     // in-game shop
     purchaseConsumable,
     levelUpBonus,
+    allocateCharge,
+    swapBonus,
     // permanent shop
     upgradeStartingBonus,
     upgradeBagSize,

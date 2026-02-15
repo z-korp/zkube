@@ -4,6 +4,7 @@ use core::poseidon::{PoseidonTrait, HashState};
 use core::hash::HashStateTrait;
 
 use alexandria_math::fast_power::fast_power;
+use alexandria_math::BitShift;
 
 use zkube::constants;
 use zkube::helpers::packing::{RunData, RunDataPackingTrait};
@@ -33,6 +34,7 @@ pub struct Game {
     // Level system (bit-packed run progress)
     // ----------------------------------------
     pub run_data: felt252, // Bit-packed: level, score, moves, bonuses, stars, etc.
+    pub level_stars: felt252, // 2 bits per level × 50 levels = 100 bits
 
     // ----------------------------------------
     // Timestamps
@@ -124,6 +126,7 @@ pub impl GameImpl of GameTrait {
             combo_counter: 0,
             max_combo: 0,
             run_data: run_data.pack(),
+            level_stars: 0,
             started_at,
             over: false,
         }
@@ -292,7 +295,6 @@ pub impl GameImpl of GameTrait {
         run_data.constraint_progress = 0;
         run_data.constraint_2_progress = 0;
         run_data.constraint_3_progress = 0;
-        run_data.extra_moves = 0;
         run_data.bonus_used_this_level = false;
 
         // Reset per-level combos
@@ -302,6 +304,26 @@ pub impl GameImpl of GameTrait {
         self.set_run_data(run_data);
 
         (cubes, bonuses, false)
+    }
+
+    /// Get stars earned for a specific level (1-indexed, returns 0-3)
+    /// Each level uses 2 bits: level 1 at bits 0-1, level 2 at bits 2-3, etc.
+    fn get_level_stars(self: Game, level: u8) -> u8 {
+        assert!(level >= 1 && level <= 50, "Level must be 1-50");
+        let shift: u32 = ((level - 1) * 2).into();
+        let data: u256 = self.level_stars.into();
+        (BitShift::shr(data, shift.into()) & 0x3_u256).try_into().unwrap()
+    }
+
+    /// Set stars earned for a specific level (1-indexed, value 0-3)
+    fn set_level_stars(ref self: Game, level: u8, stars: u8) {
+        assert!(level >= 1 && level <= 50, "Level must be 1-50");
+        assert!(stars <= 3, "Stars must be 0-3");
+        let shift: u32 = ((level - 1) * 2).into();
+        let mut data: u256 = self.level_stars.into();
+        let mask: u256 = BitShift::shl(0x3_u256, shift.into());
+        data = (data & ~mask) | BitShift::shl(stars.into() & 0x3_u256, shift.into());
+        self.level_stars = data.try_into().unwrap();
     }
 }
 
@@ -315,6 +337,7 @@ pub impl ZeroableGame of Zero<Game> {
             combo_counter: 0,
             max_combo: 0,
             run_data: 0,
+            level_stars: 0,
             started_at: 0,
             over: false,
         }

@@ -29,6 +29,8 @@ export const NODE_RADIUS = 22;
 const BOSS_RADIUS = 28;
 const SHOP_W = 48;
 const SHOP_H = 40;
+const STAR_YELLOW = 0xfbbf24;
+const STAR_GRAY = 0x4b5563;
 // Node state colors
 const STATE_COLORS: Record<NodeState, { fill: number; border: number; alpha: number; textAlpha: number }> = {
   locked:    { fill: 0x374151, border: 0x4b5563, alpha: 0.5, textAlpha: 0.4 },
@@ -182,6 +184,22 @@ const ClassicNode = ({ node, x, y, onTap, entryDelay = 0 }: MapNodeProps) => {
           alpha={colors.textAlpha}
           eventMode="none"
         />
+
+        {node.state === 'cleared' && node.stars > 0 && (
+          <pixiContainer x={0} y={NODE_RADIUS + 8}>
+            {[0, 1, 2].map(i => (
+              <pixiText
+                key={i}
+                text="★"
+                x={(i - 1) * 10}
+                y={0}
+                anchor={0.5}
+                style={{ fontSize: 9, fill: i < node.stars ? STAR_YELLOW : STAR_GRAY }}
+                eventMode="none"
+              />
+            ))}
+          </pixiContainer>
+        )}
       </pixiContainer>
     </pixiContainer>
   );
@@ -338,6 +356,22 @@ const BossNode = ({ node, x, y, onTap, entryDelay = 0 }: MapNodeProps) => {
           alpha={colors.textAlpha}
           eventMode="none"
         />
+
+        {node.state === 'cleared' && node.stars > 0 && (
+          <pixiContainer x={0} y={BOSS_RADIUS + 10}>
+            {[0, 1, 2].map(i => (
+              <pixiText
+                key={i}
+                text="★"
+                x={(i - 1) * 11}
+                y={0}
+                anchor={0.5}
+                style={{ fontSize: 10, fill: i < node.stars ? STAR_YELLOW : STAR_GRAY }}
+                eventMode="none"
+              />
+            ))}
+          </pixiContainer>
+        )}
       </pixiContainer>
     </pixiContainer>
   );

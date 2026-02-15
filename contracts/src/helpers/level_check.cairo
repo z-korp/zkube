@@ -61,10 +61,9 @@ pub fn is_level_complete(game_level: @GameLevel, run_data: @RunData) -> bool {
 /// Check if level is failed (move limit exceeded without completing).
 #[inline(always)]
 pub fn is_level_failed(game_level: @GameLevel, run_data: @RunData) -> bool {
-    let effective_max_moves: u16 = *game_level.max_moves + (*run_data.extra_moves).into();
     let current_moves: u16 = (*run_data.level_moves).into();
     
-    current_moves >= effective_max_moves && !is_level_complete(game_level, run_data)
+    current_moves >= *game_level.max_moves && !is_level_complete(game_level, run_data)
 }
 
 /// Calculate cubes earned based on moves used.

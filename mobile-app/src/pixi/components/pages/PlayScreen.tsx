@@ -10,7 +10,7 @@ import { ActionBar } from '../actionbar';
 import { ParticleSystem } from '../effects/ParticleSystem';
 import { ScorePopup } from '../effects/ScorePopup';
 import { ScreenShakeContainer, useScreenShake } from '../effects/ScreenShake';
-import { GameOverModal, VictoryModal, LevelCompleteModal, MenuModal, InGameShopModal, type InGameShopBonusItem } from '../modals';
+import { GameOverModal, VictoryModal, LevelCompleteModal, MenuModal, InGameShopModal } from '../modals';
 import { MapPage } from '../map/MapPage';
 import { ScorePanel } from '../game/ScorePanel';
 import { MovesPanel } from '../game/MovesPanel';
@@ -509,14 +509,24 @@ export const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenPro
     isGameOver, isVictory, isLevelComplete,
     isInGameShopOpen,
     shopCubesAvailable,
-    shopItems,
+    shopUnallocatedCharges,
+    shopChargeCost,
+    shopSwapBought,
+    shopLevelUpBought,
+    shopSelectedBonuses,
+    shopUnselectedBonuses,
     isShopPurchasing,
+    onBuyCharge,
+    onAllocateCharge,
+    onLevelUpBonus,
+    onSwapBonus,
     levelCompleteLevel, levelCompleteLevelScore, levelCompleteTargetScore, levelCompleteStars,
     levelCompleteCubes, levelCompleteBonusAwarded,
     handleMove: onMove, handleBonusApply: onBonusApply, handleSurrender: onSurrender,
     handleShare: onShare, handleLevelCompleteContinue: onLevelCompleteContinue,
     handleInGameShopClose: onInGameShopClose,
     seed, showMapView, handleMapContinue: onMapContinue,
+    levelStarsFn,
   } = gameState;
 
   const actionBarSlots = useMemo(() =>
@@ -734,9 +744,18 @@ export const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenPro
         onClose={onInGameShopClose ?? (() => {})}
         screenWidth={sw}
         screenHeight={sh}
-        cubesAvailable={shopCubesAvailable}
-        items={shopItems}
         isPurchasing={isShopPurchasing}
+        cubesAvailable={shopCubesAvailable}
+        unallocatedCharges={shopUnallocatedCharges}
+        chargeCost={shopChargeCost}
+        swapBought={shopSwapBought}
+        levelUpBought={shopLevelUpBought}
+        selectedBonuses={shopSelectedBonuses}
+        unselectedBonuses={shopUnselectedBonuses}
+        onBuyCharge={onBuyCharge}
+        onAllocateCharge={onAllocateCharge}
+        onLevelUpBonus={onLevelUpBonus}
+        onSwapBonus={onSwapBonus}
       />
 
       {activeModal === 'map' && seed > 0n && (
@@ -750,6 +769,7 @@ export const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenPro
             topBarHeight={0}
             onPlayLevel={() => onMapContinue()}
             standalone={true}
+            levelStarsFn={levelStarsFn}
           />
         </pixiContainer>
       )}

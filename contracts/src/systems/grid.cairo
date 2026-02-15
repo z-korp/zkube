@@ -172,8 +172,7 @@ mod grid_system {
             let mut run_data = game.get_run_data();
             
             // Validate move limit
-            let effective_max_moves: u16 = game_level.max_moves + run_data.extra_moves.into();
-            assert!(run_data.level_moves.into() < effective_max_moves, "Move limit exceeded");
+            assert!(run_data.level_moves.into() < game_level.max_moves, "Move limit exceeded");
             
             // Build constraints from GameLevel
             let constraint = LevelConstraint {

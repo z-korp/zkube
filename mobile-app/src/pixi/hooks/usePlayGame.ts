@@ -16,7 +16,7 @@ import { ConstraintType } from '@/dojo/game/types/constraint';
 import {
   getBonusInventoryCount,
   isInGameShopAvailable,
-  getRefillCost,
+  getBonusChargeCost,
   CONSUMABLE_COSTS,
   ConsumableType,
 } from '@/dojo/game/helpers/runDataPacking';
@@ -25,7 +25,6 @@ import { resolveAssetUrl } from '@/pixi/assets/resolver';
 import { AssetId } from '@/pixi/assets/catalog';
 import type { ThemeId } from '@/pixi/utils/colors';
 import type { Block } from '@/types/types';
-import type { InGameShopBonusItem } from '@/pixi/components/modals';
 import type { ConstraintData } from '@/pixi/components/hud';
 import { useMusicPlayer } from '@/contexts/hooks';
 import { showToast } from '@/utils/toast';
@@ -76,6 +75,23 @@ export interface BonusSlotData {
   onClick: () => void;
 }
 
+export interface SelectedBonusData {
+  slot: number;
+  name: string;
+  icon: string;
+  level: number;
+  inventory: number;
+  bagSize: number;
+  bonusType: BonusType;
+  contractValue: number;
+}
+
+export interface UnselectedBonusData {
+  name: string;
+  icon: string;
+  contractValue: number;
+}
+
 export interface UsePlayGameResult {
   blocks: Block[];
   explodingRows: number[];
@@ -106,8 +122,17 @@ export interface UsePlayGameResult {
   isLevelComplete: boolean;
   isInGameShopOpen: boolean;
   shopCubesAvailable: number;
-  shopItems: InGameShopBonusItem[];
+  shopUnallocatedCharges: number;
+  shopChargeCost: number;
+  shopSwapBought: boolean;
+  shopLevelUpBought: boolean;
+  shopSelectedBonuses: SelectedBonusData[];
+  shopUnselectedBonuses: UnselectedBonusData[];
   isShopPurchasing: boolean;
+  onBuyCharge: () => Promise<void>;
+  onAllocateCharge: (bonusSlot: number) => Promise<void>;
+  onLevelUpBonus: (bonusSlot: number) => Promise<void>;
+  onSwapBonus: (bonusSlot: number, newBonusType: number) => Promise<void>;
   levelCompleteLevel: number;
   levelCompleteLevelScore: number;
   levelCompleteTargetScore: number;
@@ -124,6 +149,7 @@ export interface UsePlayGameResult {
   seed: bigint;
   showMapView: boolean;
   handleMapContinue: () => void;
+  levelStarsFn?: (level: number) => number;
 }
 
 export function usePlayGame(
@@ -154,7 +180,7 @@ export function usePlayGame(
 
   const {
     setup: {
-      systemCalls: { applyBonus, surrender, purchaseConsumable },
+      systemCalls: { applyBonus, surrender, purchaseConsumable, allocateCharge, swapBonus },
     },
   } = useDojo();
 
@@ -485,7 +511,9 @@ export function usePlayGame(
     }
   }, [playerMeta]);
 
-  const handleShopPurchase = useCallback(async (consumableType: number, bonusSlot: number) => {
+  // -- In-game shop handlers --
+
+  const handleBuyCharge = useCallback(async () => {
     if (!account || !game) {
       showToast({ message: 'Game is not ready yet. Try again in a moment.', type: 'info', toastId: 'shop-game-not-ready' });
       return;
@@ -495,65 +523,139 @@ export function usePlayGame(
       await purchaseConsumable({
         account: account as Account,
         game_id: game.id,
-        consumable_type: consumableType,
-        bonus_slot: bonusSlot,
+        consumable_type: ConsumableType.BonusCharge,
+        bonus_slot: 0,
       });
     } catch (error) {
-      console.error('In-game shop purchase failed:', error);
+      console.error('Buy charge failed:', error);
     } finally {
       setIsShopPurchasing(false);
     }
   }, [account, game, purchaseConsumable]);
 
-  const shopItems: InGameShopBonusItem[] = useMemo(() => {
+  const handleAllocateCharge = useCallback(async (bonusSlot: number) => {
+    if (!account || !game) {
+      showToast({ message: 'Game is not ready yet. Try again in a moment.', type: 'info', toastId: 'shop-game-not-ready' });
+      return;
+    }
+    setIsShopPurchasing(true);
+    try {
+      await allocateCharge({
+        account: account as Account,
+        game_id: game.id,
+        bonus_slot: bonusSlot,
+      });
+    } catch (error) {
+      console.error('Allocate charge failed:', error);
+    } finally {
+      setIsShopPurchasing(false);
+    }
+  }, [account, game, allocateCharge]);
+
+  const handleShopLevelUp = useCallback(async (bonusSlot: number) => {
+    if (!account || !game) {
+      showToast({ message: 'Game is not ready yet. Try again in a moment.', type: 'info', toastId: 'shop-game-not-ready' });
+      return;
+    }
+    setIsShopPurchasing(true);
+    try {
+      await purchaseConsumable({
+        account: account as Account,
+        game_id: game.id,
+        consumable_type: ConsumableType.LevelUp,
+        bonus_slot: bonusSlot,
+      });
+    } catch (error) {
+      console.error('Level up failed:', error);
+    } finally {
+      setIsShopPurchasing(false);
+    }
+  }, [account, game, purchaseConsumable]);
+
+  const handleSwapBonus = useCallback(async (bonusSlot: number, newBonusType: number) => {
+    if (!account || !game) {
+      showToast({ message: 'Game is not ready yet. Try again in a moment.', type: 'info', toastId: 'shop-game-not-ready' });
+      return;
+    }
+    setIsShopPurchasing(true);
+    try {
+      await swapBonus({
+        account: account as Account,
+        game_id: game.id,
+        bonus_slot: bonusSlot,
+        new_bonus_type: newBonusType,
+      });
+    } catch (error) {
+      console.error('Swap bonus failed:', error);
+    } finally {
+      setIsShopPurchasing(false);
+    }
+  }, [account, game, swapBonus]);
+
+  const getBonusEmoji = useCallback((bonusType: BonusType): string => {
+    switch (bonusType) {
+      case BonusType.Combo: return '\u26A1';
+      case BonusType.Score: return '\uD83C\uDFAF';
+      case BonusType.Harvest: return '\uD83C\uDF3E';
+      case BonusType.Wave: return '\uD83C\uDF0A';
+      case BonusType.Supply: return '\uD83D\uDCE6';
+      default: return '';
+    }
+  }, []);
+
+  // -- Shop computed data --
+
+  const shopSelectedBonuses: SelectedBonusData[] = useMemo(() => {
     if (!game) return [];
-
-    const selected = [
-      { slot: 0, value: game.selectedBonus1, level: game.bonus1Level, bought: game.shopBonus1Bought, consumableType: ConsumableType.Bonus1 },
-      { slot: 1, value: game.selectedBonus2, level: game.bonus2Level, bought: game.shopBonus2Bought, consumableType: ConsumableType.Bonus2 },
-      { slot: 2, value: game.selectedBonus3, level: game.bonus3Level, bought: game.shopBonus3Bought, consumableType: ConsumableType.Bonus3 },
+    const slots = [
+      { slot: 0, value: game.selectedBonus1, level: game.bonus1Level },
+      { slot: 1, value: game.selectedBonus2, level: game.bonus2Level },
+      { slot: 2, value: game.selectedBonus3, level: game.bonus3Level },
     ];
-
-    const cubesAvailable = game.cubesAvailable;
-    const refillCost = getRefillCost(game.shopRefills);
-
-    return selected
+    return slots
       .map((item) => {
         const bonusType = bonusTypeFromContractValue(item.value);
         if (bonusType === BonusType.None) return null;
-
-        const bagSize = getBagSizeForBonus(bonusType);
-        const inventory = getBonusInventoryCount(game.runData, item.value);
-        const isFull = inventory >= bagSize;
-
-        const primaryCost = item.bought ? refillCost : CONSUMABLE_COSTS.BONUS;
-        const canPrimary = cubesAvailable >= primaryCost && !isFull;
-        const isMaxLevel = item.level >= 2;
-        const canLevelUp = cubesAvailable >= CONSUMABLE_COSTS.LEVEL_UP && !isMaxLevel;
-
         return {
           slot: item.slot,
           name: getBonusName(bonusType),
-          icon: bonusType === BonusType.Combo ? '\u26A1'
-            : bonusType === BonusType.Score ? '\uD83C\uDFAF'
-            : bonusType === BonusType.Harvest ? '\uD83C\uDF3E'
-            : bonusType === BonusType.Wave ? '\uD83C\uDF0A'
-            : '\uD83D\uDCE6',
-          inventory,
-          bagSize,
+          icon: getBonusEmoji(bonusType),
           level: item.level + 1,
-          bought: item.bought,
-          isFull,
-          primaryCost,
-          canPrimary,
-          canLevelUp,
-          isMaxLevel,
-          onPrimary: () => handleShopPurchase(item.bought ? ConsumableType.Refill : item.consumableType, item.slot),
-          onLevelUp: () => handleShopPurchase(ConsumableType.LevelUp, item.slot),
-        } satisfies InGameShopBonusItem;
+          inventory: getBonusInventoryCount(game.runData, item.value),
+          bagSize: getBagSizeForBonus(bonusType),
+          bonusType,
+          contractValue: item.value,
+        };
       })
-      .filter((item): item is InGameShopBonusItem => item !== null);
-  }, [game, getBagSizeForBonus, getBonusName, handleShopPurchase]);
+      .filter((item): item is SelectedBonusData => item !== null);
+  }, [game, getBonusName, getBonusEmoji, getBagSizeForBonus]);
+
+  const shopUnselectedBonuses: UnselectedBonusData[] = useMemo(() => {
+    if (!game) return [];
+    const selectedValues = new Set([game.selectedBonus1, game.selectedBonus2, game.selectedBonus3]);
+    const meta = playerMeta?.data;
+    const allBonusValues = [1, 2, 3, 4, 5]; // Combo, Score, Harvest, Wave, Supply
+    return allBonusValues
+      .filter((v) => {
+        if (selectedValues.has(v)) return false;
+        // Wave (4) and Supply (5) require unlock
+        if (v === 4 && (!meta || !meta.waveUnlocked)) return false;
+        if (v === 5 && (!meta || !meta.supplyUnlocked)) return false;
+        return true;
+      })
+      .map((v) => {
+        const bonusType = bonusTypeFromContractValue(v);
+        return {
+          name: getBonusName(bonusType),
+          icon: getBonusEmoji(bonusType),
+          contractValue: v,
+        };
+      });
+  }, [game, playerMeta, getBonusName, getBonusEmoji]);
+
+  const shopChargeCost = useMemo(() => {
+    return game ? getBonusChargeCost(game.shopPurchases) : 5;
+  }, [game]);
 
   const handleInGameShopClose = useCallback(() => {
     if (!isShopPurchasing) setIsInGameShopOpen(false);
@@ -683,8 +785,17 @@ export function usePlayGame(
     isLevelComplete,
     isInGameShopOpen,
     shopCubesAvailable: game?.cubesAvailable ?? 0,
-    shopItems,
+    shopUnallocatedCharges: game?.unallocatedCharges ?? 0,
+    shopChargeCost,
+    shopSwapBought: game?.shopSwapBought ?? false,
+    shopLevelUpBought: game?.shopLevelUpBought ?? false,
+    shopSelectedBonuses,
+    shopUnselectedBonuses,
     isShopPurchasing,
+    onBuyCharge: handleBuyCharge,
+    onAllocateCharge: handleAllocateCharge,
+    onLevelUpBonus: handleShopLevelUp,
+    onSwapBonus: handleSwapBonus,
     levelCompleteLevel: levelCompletionData?.level ?? 1,
     levelCompleteLevelScore: levelCompletionData?.levelScore ?? 0,
     levelCompleteTargetScore: levelCompletionData?.targetScore ?? 0,
@@ -701,5 +812,6 @@ export function usePlayGame(
     seed,
     showMapView,
     handleMapContinue,
+    levelStarsFn: game ? (level: number) => game.getLevelStars(level) : undefined,
   };
 }

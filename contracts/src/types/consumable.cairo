@@ -1,50 +1,60 @@
 /// In-game shop consumable types
 /// These can be purchased during a run using cubes from brought + earned
-/// They provide immediate benefits but don't persist beyond the run
 ///
-/// V2.0 Shop System:
-/// - Bonus1/2/3: Buy one of your selected bonuses (5 CUBE each)
-///   Each can only be bought once per shop visit, then requires a Refill
-/// - Refill: Reset a specific bonus's bought status (cost = 2 * (n+1) where n = refills bought)
-///   Requires bonus_slot param (0, 1, or 2) to specify which bonus to refill
-/// - LevelUp: Level up one of your bonuses (50 CUBE) - requires bonus_slot param
+/// V3.0 Shop System:
+/// - BonusCharge: Buy a charge that goes to unallocated pool (player allocates later)
+///   Cost scales: ceil(5 * 1.5^n) where n = shop_purchases this shop visit
+///   Sequence: 5, 8, 12, 18, 27, 41, ...
+/// - LevelUp: Upgrade one selected bonus (L1→L2→L3), 50 CUBE, limit 1 per shop
+/// - SwapBonus: Replace one selected bonus with an unselected one, 50 CUBE, limit 1 per shop
+///   NOTE: SwapBonus uses a standalone swap_bonus() entrypoint, not purchase_consumable
 
 #[derive(Drop, Copy, Serde, Introspect, PartialEq)]
 pub enum ConsumableType {
-    Bonus1,         // Add 1 of selected_bonus_1 to inventory (5 CUBE)
-    Bonus2,         // Add 1 of selected_bonus_2 to inventory (5 CUBE)
-    Bonus3,         // Add 1 of selected_bonus_3 to inventory (5 CUBE)
-    Refill,         // Allow buying another bonus (2 * (n+1) CUBE)
-    LevelUp,        // Level up a bonus (50 CUBE) - requires bonus_slot param
+    BonusCharge,    // Buy a bonus charge to unallocated pool (scaling cost)
+    LevelUp,        // Level up a bonus (50 CUBE, 1 per shop)
+    SwapBonus,      // Swap a bonus for a different one (50 CUBE, 1 per shop)
 }
 
-/// Base cost for bonus consumables
-pub const BONUS_COST: u16 = 5;
+/// Base cost for bonus charge (first purchase)
+pub const BONUS_CHARGE_BASE_COST: u16 = 5;
 
 /// Cost for level up
 pub const LEVEL_UP_COST: u16 = 50;
 
+/// Cost for swap bonus
+pub const SWAP_BONUS_COST: u16 = 50;
+
 #[generate_trait]
 pub impl ConsumableImpl of ConsumableTrait {
-    /// Get the base cost of a consumable (fixed costs)
-    /// Note: Refill cost depends on how many refills already bought - use get_refill_cost
+    /// Get the cost of a BonusCharge based on how many have been purchased this shop visit.
+    /// Cost formula: ceil(5 * 1.5^n) where n = shop_purchases
+    /// Sequence: 5, 8, 12, 18, 27, 41, 62, 93, ...
+    /// Price scaling resets per shop visit.
+    #[inline(always)]
+    fn get_bonus_charge_cost(shop_purchases: u8) -> u16 {
+        // Use integer math: multiply by 3/2 each step, rounding up
+        let mut cost: u32 = BONUS_CHARGE_BASE_COST.into();
+        let mut i: u8 = 0;
+        loop {
+            if i >= shop_purchases {
+                break;
+            }
+            // cost = ceil(cost * 3 / 2) = (cost * 3 + 1) / 2
+            cost = (cost * 3 + 1) / 2;
+            i += 1;
+        };
+        if cost > 65535 { 65535_u16 } else { cost.try_into().unwrap() }
+    }
+
+    /// Get the fixed cost of a consumable (for LevelUp and SwapBonus)
     #[inline(always)]
     fn get_cost(self: ConsumableType) -> u16 {
         match self {
-            ConsumableType::Bonus1 => BONUS_COST,
-            ConsumableType::Bonus2 => BONUS_COST,
-            ConsumableType::Bonus3 => BONUS_COST,
-            ConsumableType::Refill => 2, // Base cost, actual is 2 * (n+1)
+            ConsumableType::BonusCharge => BONUS_CHARGE_BASE_COST, // Base; actual depends on shop_purchases
             ConsumableType::LevelUp => LEVEL_UP_COST,
+            ConsumableType::SwapBonus => SWAP_BONUS_COST,
         }
-    }
-    
-    /// Get refill cost based on number of refills already bought
-    /// Cost formula: 2 * (refills_bought + 1)
-    #[inline(always)]
-    fn get_refill_cost(refills_bought: u8) -> u16 {
-        let multiplier: u16 = (refills_bought + 1).into();
-        2_u16 * multiplier
     }
 }
 
@@ -52,11 +62,9 @@ impl IntoConsumableU8 of Into<ConsumableType, u8> {
     #[inline(always)]
     fn into(self: ConsumableType) -> u8 {
         match self {
-            ConsumableType::Bonus1 => 0,
-            ConsumableType::Bonus2 => 1,
-            ConsumableType::Bonus3 => 2,
-            ConsumableType::Refill => 3,
-            ConsumableType::LevelUp => 4,
+            ConsumableType::BonusCharge => 0,
+            ConsumableType::LevelUp => 1,
+            ConsumableType::SwapBonus => 2,
         }
     }
 }
@@ -65,65 +73,56 @@ impl IntoU8Consumable of Into<u8, ConsumableType> {
     #[inline(always)]
     fn into(self: u8) -> ConsumableType {
         match self {
-            0 => ConsumableType::Bonus1,
-            1 => ConsumableType::Bonus2,
-            2 => ConsumableType::Bonus3,
-            3 => ConsumableType::Refill,
-            4 => ConsumableType::LevelUp,
-            _ => ConsumableType::Bonus1, // Default fallback
+            0 => ConsumableType::BonusCharge,
+            1 => ConsumableType::LevelUp,
+            2 => ConsumableType::SwapBonus,
+            _ => ConsumableType::BonusCharge, // Default fallback
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{ConsumableType, ConsumableTrait, BONUS_COST, LEVEL_UP_COST};
+    use super::{ConsumableType, ConsumableTrait, BONUS_CHARGE_BASE_COST, LEVEL_UP_COST, SWAP_BONUS_COST};
 
     #[test]
     fn test_consumable_costs() {
-        assert!(ConsumableType::Bonus1.get_cost() == BONUS_COST, "Bonus1 should cost 5");
-        assert!(ConsumableType::Bonus2.get_cost() == BONUS_COST, "Bonus2 should cost 5");
-        assert!(ConsumableType::Bonus3.get_cost() == BONUS_COST, "Bonus3 should cost 5");
-        assert!(ConsumableType::Refill.get_cost() == 2, "Refill base should be 2");
+        assert!(ConsumableType::BonusCharge.get_cost() == BONUS_CHARGE_BASE_COST, "BonusCharge base should be 5");
         assert!(ConsumableType::LevelUp.get_cost() == LEVEL_UP_COST, "LevelUp should cost 50");
+        assert!(ConsumableType::SwapBonus.get_cost() == SWAP_BONUS_COST, "SwapBonus should cost 50");
     }
-    
+
     #[test]
-    fn test_refill_cost_formula() {
-        // Cost = 2 * (n + 1) where n = refills already bought
-        assert!(ConsumableTrait::get_refill_cost(0) == 2, "First refill costs 2");
-        assert!(ConsumableTrait::get_refill_cost(1) == 4, "Second refill costs 4");
-        assert!(ConsumableTrait::get_refill_cost(2) == 6, "Third refill costs 6");
-        assert!(ConsumableTrait::get_refill_cost(4) == 10, "Fifth refill costs 10");
+    fn test_bonus_charge_cost_scaling() {
+        // Cost = ceil(5 * 1.5^n)
+        // n=0: 5, n=1: 8, n=2: 12, n=3: 18, n=4: 27, n=5: 41
+        assert!(ConsumableTrait::get_bonus_charge_cost(0) == 5, "First charge costs 5");
+        assert!(ConsumableTrait::get_bonus_charge_cost(1) == 8, "Second charge costs 8");
+        assert!(ConsumableTrait::get_bonus_charge_cost(2) == 12, "Third charge costs 12");
+        assert!(ConsumableTrait::get_bonus_charge_cost(3) == 18, "Fourth charge costs 18");
+        assert!(ConsumableTrait::get_bonus_charge_cost(4) == 27, "Fifth charge costs 27");
+        assert!(ConsumableTrait::get_bonus_charge_cost(5) == 41, "Sixth charge costs 41");
     }
 
     #[test]
     fn test_consumable_to_u8() {
-        let bonus1: u8 = ConsumableType::Bonus1.into();
-        let bonus2: u8 = ConsumableType::Bonus2.into();
-        let bonus3: u8 = ConsumableType::Bonus3.into();
-        let refill: u8 = ConsumableType::Refill.into();
+        let bonus_charge: u8 = ConsumableType::BonusCharge.into();
         let level_up: u8 = ConsumableType::LevelUp.into();
-        
-        assert!(bonus1 == 0, "Bonus1 should be 0");
-        assert!(bonus2 == 1, "Bonus2 should be 1");
-        assert!(bonus3 == 2, "Bonus3 should be 2");
-        assert!(refill == 3, "Refill should be 3");
-        assert!(level_up == 4, "LevelUp should be 4");
+        let swap_bonus: u8 = ConsumableType::SwapBonus.into();
+
+        assert!(bonus_charge == 0, "BonusCharge should be 0");
+        assert!(level_up == 1, "LevelUp should be 1");
+        assert!(swap_bonus == 2, "SwapBonus should be 2");
     }
 
     #[test]
     fn test_u8_to_consumable() {
-        let bonus1: ConsumableType = 0_u8.into();
-        let bonus2: ConsumableType = 1_u8.into();
-        let bonus3: ConsumableType = 2_u8.into();
-        let refill: ConsumableType = 3_u8.into();
-        let level_up: ConsumableType = 4_u8.into();
-        
-        assert!(bonus1 == ConsumableType::Bonus1, "0 should be Bonus1");
-        assert!(bonus2 == ConsumableType::Bonus2, "1 should be Bonus2");
-        assert!(bonus3 == ConsumableType::Bonus3, "2 should be Bonus3");
-        assert!(refill == ConsumableType::Refill, "3 should be Refill");
-        assert!(level_up == ConsumableType::LevelUp, "4 should be LevelUp");
+        let bonus_charge: ConsumableType = 0_u8.into();
+        let level_up: ConsumableType = 1_u8.into();
+        let swap_bonus: ConsumableType = 2_u8.into();
+
+        assert!(bonus_charge == ConsumableType::BonusCharge, "0 should be BonusCharge");
+        assert!(level_up == ConsumableType::LevelUp, "1 should be LevelUp");
+        assert!(swap_bonus == ConsumableType::SwapBonus, "2 should be SwapBonus");
     }
 }

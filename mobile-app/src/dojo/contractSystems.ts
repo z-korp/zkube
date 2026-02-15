@@ -75,13 +75,24 @@ export interface UnlockBonus extends Signer {
 
 export interface PurchaseConsumable extends Signer {
   game_id: number;
-  consumable_type: number; // 0=Bonus1, 1=Bonus2, 2=Bonus3, 3=Refill, 4=LevelUp
-  bonus_slot: number; // Only used for LevelUp (0, 1, or 2), pass 0 for others
+  consumable_type: number; // 0=BonusCharge, 1=LevelUp, 2=SwapBonus
+  bonus_slot: number; // Used for LevelUp (0, 1, or 2), pass 0 for BonusCharge
 }
 
 export interface LevelUpBonus extends Signer {
   game_id: number;
   bonus_slot: number; // 0, 1, or 2
+}
+
+export interface AllocateCharge extends Signer {
+  game_id: number;
+  bonus_slot: number; // 0, 1, or 2 — which selected bonus gets the charge
+}
+
+export interface SwapBonus extends Signer {
+  game_id: number;
+  bonus_slot: number; // 0, 1, or 2 — which slot to replace
+  new_bonus_type: number; // 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
 }
 
 export interface ClaimQuest extends Signer {
@@ -350,6 +361,36 @@ export function setupWorld(config: Config) {
       }
     };
 
+    const allocate_charge = async ({ account, game_id, bonus_slot }: AllocateCharge) => {
+      try {
+        return await withTimeout(account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "allocate_charge",
+            calldata: [game_id, bonus_slot],
+          },
+        ]));
+      } catch (error) {
+        log.error("Error executing allocate_charge:", error);
+        throw error;
+      }
+    };
+
+    const swap_bonus = async ({ account, game_id, bonus_slot, new_bonus_type }: SwapBonus) => {
+      try {
+        return await withTimeout(account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "swap_bonus",
+            calldata: [game_id, bonus_slot, new_bonus_type],
+          },
+        ]));
+      } catch (error) {
+        log.error("Error executing swap_bonus:", error);
+        throw error;
+      }
+    };
+
     return {
       address: contract.address,
       upgrade_starting_bonus,
@@ -358,6 +399,8 @@ export function setupWorld(config: Config) {
       purchase_consumable,
       unlock_bonus,
       level_up_bonus,
+      allocate_charge,
+      swap_bonus,
     };
   }
 

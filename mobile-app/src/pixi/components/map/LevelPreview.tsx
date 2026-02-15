@@ -52,9 +52,11 @@ export const LevelPreview = ({ node, screenWidth, screenHeight, isGameOver = fal
     levelConfig.constraint2.constraintType !== ConstraintType.None,
     levelConfig.constraint3.constraintType !== ConstraintType.None,
   ].filter(Boolean).length : 0;
+  const hasStars = isCleared && node.stars > 0;
+  const starsExtraH = hasStars ? 22 : 0;
   const panelH = node.type === 'shop' ? 160
     : isDeathLevel ? PANEL_H_BASE + constraintRows * 22 + 10
-    : isCleared ? PANEL_H_BASE + constraintRows * 22
+    : isCleared ? PANEL_H_BASE + constraintRows * 22 + starsExtraH
     : hasConstraint3 ? PANEL_H_BASE + 22
     : PANEL_H_BASE;
   const panelX = (screenWidth - PANEL_W) / 2;
@@ -146,6 +148,8 @@ export const LevelPreview = ({ node, screenWidth, screenHeight, isGameOver = fal
   const valueStyle = useMemo(() => new TextStyle({ fontFamily: FONT_BOLD, fontSize: 13, fontWeight: 'bold', fill: UI.text.primary }), []);
   const closeBtnTextStyle = useMemo(() => new TextStyle({ fontSize: 14, fill: UI.text.secondary }), []);
   const playBtnTextStyle = useMemo(() => new TextStyle({ fontFamily: FONT_BOLD, fontSize: 16, fontWeight: 'bold', fill: 0xffffff }), []);
+  const starFilledStyle = useMemo(() => new TextStyle({ fontFamily: FONT_BOLD, fontSize: 14, fill: 0xfbbf24 }), []);
+  const starEmptyStyle = useMemo(() => new TextStyle({ fontFamily: FONT_BOLD, fontSize: 14, fill: 0x4b5563 }), []);
 
   const diffInfo = levelConfig
     ? DIFFICULTY_LABELS[levelConfig.difficulty.value] ?? { label: levelConfig.difficulty.value, color: 0xffffff }
@@ -226,13 +230,38 @@ export const LevelPreview = ({ node, screenWidth, screenHeight, isGameOver = fal
                   style={new TextStyle({ fontFamily: FONT_BOLD, fontSize: 13, fontWeight: 'bold', fill: isDeathLevel ? 0xef4444 : 0x22c55e })}
                   eventMode="none"
                 />
+                {hasStars && (
+                  <pixiContainer>
+                    <pixiText text="RATING" x={20} y={lineH * 2} style={labelStyle} eventMode="none" />
+                    <pixiContainer x={PANEL_W - 20} y={lineH * 2}>
+                      <pixiText
+                        text={'★'.repeat(node.stars)}
+                        x={0}
+                        y={0}
+                        anchor={{ x: 1, y: 0 }}
+                        style={starFilledStyle}
+                        eventMode="none"
+                      />
+                      {node.stars < 3 && (
+                        <pixiText
+                          text={'★'.repeat(3 - node.stars)}
+                          x={-(node.stars * 14)}
+                          y={0}
+                          anchor={{ x: 1, y: 0 }}
+                          style={starEmptyStyle}
+                          eventMode="none"
+                        />
+                      )}
+                    </pixiContainer>
+                  </pixiContainer>
+                )}
               </pixiContainer>
             )}
 
             {showConstraints && (
               <pixiContainer>
                 {(() => {
-                  const startRow = (isCleared || isDeathLevel) ? 2 : 1;
+                  const startRow = (isCleared || isDeathLevel) ? (hasStars ? 3 : 2) : 1;
                   return (
                     <>
                        <pixiText text="TARGET SCORE" x={20} y={lineH * startRow} style={labelStyle} eventMode="none" />

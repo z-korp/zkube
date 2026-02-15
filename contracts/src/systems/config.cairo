@@ -26,7 +26,6 @@ trait IConfigSystem<T> {
         combo_cost: u8,
         score_cost: u8,
         harvest_cost: u8,
-        extra_moves_cost: u8,
         // Difficulty Progression (non-linear tier thresholds)
         tier_1_threshold: u8,
         tier_2_threshold: u8,
@@ -267,7 +266,6 @@ mod config_system {
             combo_cost: u8,
             score_cost: u8,
             harvest_cost: u8,
-            extra_moves_cost: u8,
             // Difficulty Progression (non-linear tier thresholds)
             tier_1_threshold: u8,
             tier_2_threshold: u8,
@@ -342,7 +340,6 @@ mod config_system {
                 combo_cost,
                 score_cost,
                 harvest_cost,
-                extra_moves_cost,
                 // Difficulty Progression (non-linear tier thresholds)
                 tier_1_threshold,
                 tier_2_threshold,
@@ -638,7 +635,6 @@ mod config_system {
             GameSetting { name: "Combo Cost", value: format!("{}", game_settings.combo_cost) },
             GameSetting { name: "Score Cost", value: format!("{}", game_settings.score_cost) },
             GameSetting { name: "Harvest Cost", value: format!("{}", game_settings.harvest_cost) },
-            GameSetting { name: "Extra Moves Cost", value: format!("{}", game_settings.extra_moves_cost) },
             // Difficulty Progression (non-linear tier thresholds)
             GameSetting { name: "VeryEasy", value: format!("Levels 1-{}", game_settings.tier_1_threshold - 1) },
             GameSetting { name: "Easy", value: format!("Levels {}-{}", game_settings.tier_1_threshold, game_settings.tier_2_threshold - 1) },
