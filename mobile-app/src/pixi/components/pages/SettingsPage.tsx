@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef } from 'react';
-import { Graphics as PixiGraphics } from 'pixi.js';
+import { Graphics as PixiGraphics, Rectangle } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { useTheme } from '@/ui/elements/theme-provider/hooks';
 import { FONT_TITLE, FONT_BODY, THEME_IDS, THEME_META, type ThemeId } from '../../utils/colors';
@@ -142,7 +142,7 @@ const VolumeSlider = ({
           draw={drawTrack}
           eventMode="static"
           cursor="pointer"
-          hitArea={{ x: -knobR, y: -knobR, width: trackW + knobR * 2, height: trackH + knobR * 2, type: 'rectangle' } as any}
+          hitArea={new Rectangle(-knobR, -knobR, trackW + knobR * 2, trackH + knobR * 2)}
           onPointerDown={onPointerDown}
           onGlobalPointerMove={onPointerMove}
           onPointerUp={onPointerUp}

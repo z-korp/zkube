@@ -100,6 +100,7 @@ export const MusicPlayerProvider = ({
   const [musicVolume, setMusicVolumeState] = useState(saved.current.musicVolume);
   const [effectsVolume, setEffectsVolumeState] = useState(saved.current.effectsVolume);
   const prevThemeRef = useRef<ThemeId>(themeId);
+  const prevIsMenuRef = useRef(isMenu);
   const themeIdRef = useRef(themeId);
   themeIdRef.current = themeId;
   const musicVolumeRef = useRef(musicVolume);
@@ -121,7 +122,10 @@ export const MusicPlayerProvider = ({
   useEffect(() => {
     soundManager.themeId = themeId;
 
-    if (prevThemeRef.current !== themeId) {
+    const themeChanged = prevThemeRef.current !== themeId;
+    const contextChanged = prevIsMenuRef.current !== isMenu;
+
+    if (themeChanged) {
       soundManager.bgm.stop();
       soundManager.unloadThemeMusic(prevThemeRef.current);
       prevThemeRef.current = themeId;
@@ -131,10 +135,14 @@ export const MusicPlayerProvider = ({
       soundManager.preloadThemeMusic(themeId);
     }
 
-    if (gestureReady.current && musicVolume > 0 && !soundManager.bgm.isPlaying) {
-      const track = isMenu ? randomMenuTrack() : randomGameplayTrack();
-      soundManager.bgm.play(themeId, track);
+    if (gestureReady.current && musicVolume > 0) {
+      if (themeChanged || contextChanged || !soundManager.bgm.isPlaying) {
+        const track = isMenu ? randomMenuTrack() : randomGameplayTrack();
+        soundManager.bgm.play(themeId, track);
+      }
     }
+
+    prevIsMenuRef.current = isMenu;
   }, [themeId, isMenu, musicVolume, gestureReady]);
 
   useEffect(() => {
