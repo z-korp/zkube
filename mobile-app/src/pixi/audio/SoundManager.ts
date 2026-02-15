@@ -213,12 +213,18 @@ class SoundManager {
   }
 
   unloadThemeMusic(themeId: ThemeId) {
-    for (const assetId of MUSIC_IDS) {
-      const alias = musicAlias(themeId, assetId);
-      if (sound.exists(alias)) {
-        try { sound.remove(alias); } catch { /* may not be loaded */ }
+    const aliases = MUSIC_IDS
+      .map((id) => musicAlias(themeId, id))
+      .filter((a) => sound.exists(a));
+    if (aliases.length === 0) return;
+
+    setTimeout(() => {
+      for (const alias of aliases) {
+        try {
+          if (sound.exists(alias)) sound.remove(alias);
+        } catch { /* in-flight decode — safe to ignore */ }
       }
-    }
+    }, 2000);
   }
 }
 

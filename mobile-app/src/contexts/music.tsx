@@ -120,17 +120,20 @@ export const MusicPlayerProvider = ({
 
   useEffect(() => {
     soundManager.themeId = themeId;
-    soundManager.preloadThemeMusic(themeId);
 
     if (prevThemeRef.current !== themeId) {
       soundManager.bgm.stop();
       soundManager.unloadThemeMusic(prevThemeRef.current);
       prevThemeRef.current = themeId;
+    }
 
-      if (gestureReady.current && musicVolume > 0) {
-        const track = isMenu ? randomMenuTrack() : randomGameplayTrack();
-        soundManager.bgm.play(themeId, track);
-      }
+    if (gestureReady.current) {
+      soundManager.preloadThemeMusic(themeId);
+    }
+
+    if (gestureReady.current && musicVolume > 0 && !soundManager.bgm.isPlaying) {
+      const track = isMenu ? randomMenuTrack() : randomGameplayTrack();
+      soundManager.bgm.play(themeId, track);
     }
   }, [themeId, isMenu, musicVolume, gestureReady]);
 
