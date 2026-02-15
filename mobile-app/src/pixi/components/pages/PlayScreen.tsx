@@ -499,7 +499,7 @@ const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const {
-    blocks, nextLine, nextLineConsumed: nextLineConsumed,
+    blocks, explodingRows, nextLine, nextLineConsumed: nextLineConsumed,
     level, levelScore, targetScore, moves, maxMoves,
     constraint1, constraint2, constraint3,
     combo, maxCombo, stars,
@@ -531,6 +531,10 @@ const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => 
   }, [onSurrender, isSurrendering]);
 
   const triggerExplosion = useCallback(() => lineClear(), [lineClear]);
+
+  useEffect(() => {
+    if (explodingRows.length > 0) lineClear();
+  }, [explodingRows, lineClear]);
 
   const drawDangerBorder = useCallback((g: PixiGraphics) => {
     g.clear();
@@ -637,6 +641,7 @@ const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenProps) => 
           />
           <GameGrid
             blocks={blocks}
+            explodingRows={explodingRows}
             gridSize={layout.cellSize}
             gridWidth={layout.gridCols} gridHeight={layout.gridRows}
             onMove={onMove} onBonusApply={onBonusApply}

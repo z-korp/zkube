@@ -19,6 +19,7 @@ interface BlockSpriteProps {
   isDragging: boolean;
   isSelected: boolean;
   isHovered?: boolean;
+  isExploding?: boolean;
   isTxProcessing: boolean;
   onDragStart: (block: Block, globalX: number) => void;
   onDragMove: (globalX: number) => void;
@@ -33,6 +34,7 @@ export const BlockSprite = ({
   isDragging,
   isSelected,
   isHovered = false,
+  isExploding = false,
   isTxProcessing,
   onDragStart,
   onDragMove,
@@ -87,31 +89,40 @@ export const BlockSprite = ({
     return { alpha, scale, fillAlpha, borderAlpha, highlightAlpha };
   }, [isTxProcessing, isDragging, isSelected, isHovered]);
 
-  // Smooth Y animation via inner container offset
   const animContainerRef = useRef<Container | null>(null);
   const prevBlockYRef = useRef(block.y);
   const animOffsetRef = useRef(0);
+  const explodeProgressRef = useRef(0);
 
-  // Detect y changes and set animation offset to visually keep block at old position
   if (block.y !== prevBlockYRef.current) {
     const delta = block.y - prevBlockYRef.current;
     animOffsetRef.current -= delta * gridSize;
     prevBlockYRef.current = block.y;
   }
 
-  useTick(() => {
+  useTick((ticker) => {
     const c = animContainerRef.current;
     if (!c) return;
 
-    if (Math.abs(animOffsetRef.current) < 0.5) {
-      animOffsetRef.current = 0;
-      c.y = 0;
-      return;
+    if (isExploding) {
+      explodeProgressRef.current = Math.min(1, explodeProgressRef.current + ticker.deltaMS / 400);
+      const t = explodeProgressRef.current;
+      c.scale.set(1 + t * 0.4);
+      c.alpha = 1 - t;
+    } else if (explodeProgressRef.current > 0) {
+      explodeProgressRef.current = 0;
+      c.scale.set(1);
+      c.alpha = 1;
     }
 
-    animOffsetRef.current *= ANIM_DECAY;
-    c.y = animOffsetRef.current;
-  }, animOffsetRef.current !== 0);
+    if (Math.abs(animOffsetRef.current) >= 0.5) {
+      animOffsetRef.current *= ANIM_DECAY;
+      c.y = animOffsetRef.current;
+    } else if (animOffsetRef.current !== 0) {
+      animOffsetRef.current = 0;
+      c.y = 0;
+    }
+  }, isExploding || animOffsetRef.current !== 0);
 
   // Event handlers
   const handlePointerDown = useCallback((e: FederatedPointerEvent) => {

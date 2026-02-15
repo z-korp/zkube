@@ -8,6 +8,7 @@ const log = createLogger("GameGrid");
 
 interface GameGridProps {
   blocks: Block[];
+  explodingRows: number[];
   gridSize: number;
   gridWidth: number;
   gridHeight: number;
@@ -20,6 +21,7 @@ interface GameGridProps {
 
 export const GameGrid = ({
   blocks,
+  explodingRows,
   gridSize,
   gridWidth,
   gridHeight,
@@ -151,6 +153,7 @@ export const GameGrid = ({
           isDragging={draggingBlock?.id === block.id}
           isSelected={bonus !== BonusType.None}
           isHovered={hoveredBlock?.id === block.id}
+          isExploding={explodingRows.includes(block.y)}
           isTxProcessing={isTxProcessing}
           onDragStart={handleDragStart}
           onDragMove={handleDragMove}

@@ -77,6 +77,7 @@ export interface BonusSlotData {
 
 export interface UsePlayGameResult {
   blocks: Block[];
+  explodingRows: number[];
   nextLine: Block[];
   nextLineConsumed: boolean;
   level: number;
@@ -204,6 +205,7 @@ export function usePlayGame(
 
   const {
     blocks,
+    explodingRows,
     isTxProcessing,
     isPlayerInDanger,
     handleMove,
@@ -646,6 +648,7 @@ export function usePlayGame(
 
   return {
     blocks,
+    explodingRows,
     nextLine: nextLineBlocks,
     nextLineConsumed: nextLineHasBeenConsumed,
     level: game?.level ?? 1,

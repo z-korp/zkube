@@ -18,6 +18,7 @@ import { createLogger } from "@/utils/logger";
 const log = createLogger("useGameStateMachine");
 
 const GRAVITY_ANIM_MS = 300;
+const LINE_CLEAR_ANIM_MS = 400;
 
 interface UseGameStateMachineProps {
   initialBlocks: Block[];
@@ -59,6 +60,7 @@ export const useGameStateMachine = ({
   // Refs
   const isProcessingRef = useRef(false);
   const animStartRef = useRef(0);
+  const lineClearAnimRef = useRef(0);
 
   // State
   const [blocks, setBlocks] = useState<Block[]>(initialBlocks);
@@ -76,6 +78,7 @@ export const useGameStateMachine = ({
   const [isPlayerInDanger, setIsPlayerInDanger] = useState(false);
   const [lineExplodedCount, setLineExplodedCount] = useState(0);
   const [isTxProcessing, setIsTxProcessing] = useState(false);
+  const [explodingRows, setExplodingRows] = useState<number[]>([]);
 
   const { playExplode, playSwipe } = useMusicPlayer();
   const isMoveComplete = useMoveStore((state) => state.isMoveComplete);
@@ -191,6 +194,7 @@ export const useGameStateMachine = ({
         setApplyData(false);
         setIsMoving(false);
         setIsAnimating(false);
+        setExplodingRows([]);
         setCurrentMove(null);
         setGameState(GameState.WAITING);
         setNextLineHasBeenConsumed(false);
@@ -229,32 +233,15 @@ export const useGameStateMachine = ({
     });
   }, [gridHeight]);
 
-  // Clear complete lines
-  const clearCompleteLine = useCallback((
-    newGravityState: GameState,
-    newStateOnComplete: GameState
-  ) => {
-    const { updatedBlocks, completeRows } = removeCompleteRows(
-      blocks,
-      gridWidth,
-      gridHeight
-    );
-
-    if (updatedBlocks.length < blocks.length) {
-      playExplode();
-      setLineExplodedCount((prev) => prev + completeRows.length);
-      setBlocks(updatedBlocks);
-      setIsMoving(true);
-      setGameState(newGravityState);
-    } else {
-      setGameState(newStateOnComplete);
-    }
-  }, [blocks, gridWidth, gridHeight, playExplode]);
-
   const isGravityState =
     gameState === GameState.GRAVITY ||
     gameState === GameState.GRAVITY2 ||
     gameState === GameState.GRAVITY_BONUS;
+
+  const isLineClearState =
+    gameState === GameState.LINE_CLEAR ||
+    gameState === GameState.LINE_CLEAR2 ||
+    gameState === GameState.LINE_CLEAR_BONUS;
 
   useTick(() => {
     if (isGravityState && isMoving) {
@@ -263,9 +250,22 @@ export const useGameStateMachine = ({
     }
 
     if (isGravityState && isAnimating) {
-      const elapsed = performance.now() - animStartRef.current;
-      if (elapsed >= GRAVITY_ANIM_MS) {
+      if (performance.now() - animStartRef.current >= GRAVITY_ANIM_MS) {
         setIsAnimating(false);
+      }
+      return;
+    }
+
+    if (isLineClearState && explodingRows.length > 0) {
+      if (performance.now() - lineClearAnimRef.current >= LINE_CLEAR_ANIM_MS) {
+        setBlocks(prev => prev.filter(b => !explodingRows.includes(b.y)));
+        setExplodingRows([]);
+        setIsMoving(true);
+        switch (gameState) {
+          case GameState.LINE_CLEAR: setGameState(GameState.GRAVITY); break;
+          case GameState.LINE_CLEAR2: setGameState(GameState.GRAVITY2); break;
+          case GameState.LINE_CLEAR_BONUS: setGameState(GameState.GRAVITY_BONUS); break;
+        }
       }
     }
   });
@@ -312,15 +312,23 @@ export const useGameStateMachine = ({
         break;
 
       case GameState.LINE_CLEAR:
-        clearCompleteLine(GameState.GRAVITY, GameState.ADD_LINE);
-        break;
-
       case GameState.LINE_CLEAR2:
-        clearCompleteLine(GameState.GRAVITY2, GameState.UPDATE_AFTER_MOVE);
-        break;
-
       case GameState.LINE_CLEAR_BONUS:
-        clearCompleteLine(GameState.GRAVITY_BONUS, GameState.UPDATE_AFTER_BONUS);
+        if (explodingRows.length === 0) {
+          const { completeRows } = removeCompleteRows(blocks, gridWidth, gridHeight);
+          if (completeRows.length > 0) {
+            playExplode();
+            setLineExplodedCount(prev => prev + completeRows.length);
+            setExplodingRows(completeRows);
+            lineClearAnimRef.current = performance.now();
+          } else {
+            switch (gameState) {
+              case GameState.LINE_CLEAR: setGameState(GameState.ADD_LINE); break;
+              case GameState.LINE_CLEAR2: setGameState(GameState.UPDATE_AFTER_MOVE); break;
+              case GameState.LINE_CLEAR_BONUS: setGameState(GameState.UPDATE_AFTER_BONUS); break;
+            }
+          }
+        }
         break;
 
       case GameState.UPDATE_AFTER_BONUS:
@@ -353,12 +361,14 @@ export const useGameStateMachine = ({
     gameState,
     isMoving,
     isAnimating,
+    explodingRows,
     applyFullGravity,
-    clearCompleteLine,
     currentMove,
     blocks,
     nextLine,
+    gridWidth,
     gridHeight,
+    playExplode,
     lineExplodedCount,
     setOptimisticScore,
     setOptimisticCombo,
@@ -368,6 +378,7 @@ export const useGameStateMachine = ({
 
   return {
     blocks,
+    explodingRows,
     gameState,
     isTxProcessing,
     isPlayerInDanger,
