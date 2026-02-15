@@ -10,7 +10,7 @@ Budget scales linearly from VeryEasy (tier 0) to Master (tier 7).
 
 | Parameter | VeryEasy | Master |
 |-----------|:---:|:---:|
-| budget_min | 1 | 36 |
+| budget_min | 1 | 32 |
 | budget_max | 3 | 40 |
 
 **Interpolated per tier:**
@@ -18,13 +18,13 @@ Budget scales linearly from VeryEasy (tier 0) to Master (tier 7).
 | Tier | Difficulty | Budget Min | Budget Max |
 |------|-----------|:---:|:---:|
 | 0 | VeryEasy | 1 | 3 |
-| 1 | Easy | 6 | 8 |
-| 2 | Medium | 11 | 13 |
-| 3 | MediumHard | 16 | 18 |
-| 4 | Hard | 21 | 24 |
-| 5 | VeryHard | 26 | 29 |
-| 6 | Expert | 31 | 34 |
-| 7 | Master | 36 | 40 |
+| 1 | Easy | 5 | 8 |
+| 2 | Medium | 9 | 13 |
+| 3 | MediumHard | 14 | 18 |
+| 4 | Hard | 18 | 24 |
+| 5 | VeryHard | 23 | 29 |
+| 6 | Expert | 27 | 34 |
+| 7 | Master | 32 | 40 |
 
 ---
 
@@ -78,20 +78,33 @@ Weights per tier (must sum to 100). Controls which constraint type is rolled on 
 | 6 | 15 |
 | 7+ | 20 |
 
-**What budget produces (max lines feasible, then times = budget/cost):**
+**Minimum lines by tier** (prevents boring low-line spam at high difficulty):
 
-| Budget | Max Lines | Sample outcomes (lines x times) |
-|:---:|:---:|---|
-| 1 | 2 | 2x1 |
-| 3 | 2 | 2x1 |
-| 4 | 3 | 3x1, 2x2 |
-| 8 | 4 | 4x1, 3x2, 2x4 |
-| 13 | 5 | 5x1, 4x2, 3x3, 2x6 |
-| 18 | 6 | 6x1, 5x1, 4x3, 3x4, 2x9 |
-| 24 | 7 | 7x1, 5x2, 4x4, 3x6, 2x12 |
-| 29 | 7 | 7x1, 5x2, 4x4, 3x7, 2x14 |
-| 34 | 7 | 7x1, 6x2, 5x3, 4x5, 2x17 |
-| 40 | 7 | 7x2, 6x2, 5x4, 4x6, 2x20 |
+| Tier | Min Lines |
+|:---:|:---:|
+| 0-1 | 2 |
+| 2-3 | 3 |
+| 4-6 | 4 |
+| 7 | 5 |
+
+Lines are rolled in `[min_lines, max_feasible_lines]` with skew-high, then `times = budget / line_cost(lines)`.
+
+**What budget produces (with min_lines applied):**
+
+| Budget | Tier | Min Lines | Max Lines | Sample outcomes (lines x times) |
+|:---:|:---:|:---:|:---:|---|
+| 1 | 0 | 2 | 2 | 2x1 |
+| 3 | 0 | 2 | 2 | 2x1 |
+| 5 | 1 | 2 | 2 | 2x2 |
+| 8 | 1 | 2 | 4 | 4x1, 3x2, 2x4 |
+| 9 | 2 | 3 | 4 | 4x1, 3x2 |
+| 13 | 2 | 3 | 5 | 5x1, 4x2, 3x3 |
+| 14 | 3 | 3 | 5 | 5x1, 4x2, 3x3 |
+| 18 | 3-4 | 3-4 | 6 | 6x1, 5x1, 4x3 |
+| 24 | 4 | 4 | 7 | 7x1, 5x2, 4x4 |
+| 29 | 5 | 4 | 7 | 7x1, 6x1, 5x2, 4x4 |
+| 34 | 6 | 4 | 7 | 7x1, 6x2, 5x3, 4x5 |
+| 40 | 7 | 5 | 7 | 7x2, 6x2, 5x4 |
 
 ---
 
@@ -146,7 +159,8 @@ Roll range is always [4, blocks_max] with skew-high.
 | 6 | 15 |
 | 7 | 21 |
 | 8 | 28 |
-| 9 | 36 |
+
+**Max combo is 8** (hard cap). Roll range is [3, max_combo] with skew-high.
 
 **What budget unlocks:**
 
@@ -158,10 +172,7 @@ Roll range is always [4, blocks_max] with skew-high.
 | 10-14 | 5 |
 | 15-20 | 6 |
 | 21-27 | 7 |
-| 28-35 | 8 |
-| 36-40 | 9 |
-
-Roll range is [3, max_combo] with skew-high.
+| 28+ | 8 |
 
 ---
 

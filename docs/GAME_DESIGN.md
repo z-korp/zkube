@@ -206,7 +206,7 @@ When creating a game, players select exactly 3 of the 5 bonus types:
 
 All constraint types (regular + boss) use the same budget-based generation engine:
 
-1. **Budget** interpolates from VeryEasy (1-3) to Master (36-40)
+1. **Budget** interpolates from VeryEasy (1-3) to Master (32-40)
 2. **Type selection** uses difficulty-weighted probabilities (regular levels)
 3. **Cost functions** per type convert budget → constraint values
 4. **Skew-high rolls** favor harder values within budget range
@@ -228,9 +228,9 @@ All constraint types (regular + boss) use the same budget-based generation engin
 
 | Type | Cost → Values | Examples (budget=25) |
 |------|--------------|---------------------|
-| ClearLines | line_cost: 2→2, 3→4, 4→6, 5→10, 6→15, 7→20 | 5 lines x2, or 4 lines x4 |
+| ClearLines | line_cost: 2→2, 3→4, 4→6, 5→10, 6→15, 7→20. min_lines: tier 0-1→2, 2-3→3, 4-6→4, 7→5 | 5 lines x2, or 4 lines x4 |
 | BreakBlocks | break_cost(size): 1→3, 2→4, 3→5, 4→6. blocks=(budget×8)/cost | size-2: 50 blocks, size-4: 33 blocks |
-| AchieveCombo | combo_cost(c)=c×(c-1)/2: 3→3, 4→6, 5→10, 6→15, 7→21 | combo 5 (cost 10) or combo 7 (cost 21) |
+| AchieveCombo | combo_cost(c)=c×(c-1)/2: 3→3, 4→6, 5→10, 6→15, 7→21, 8→28. Max combo = 8 | combo 5 (cost 10) or combo 7 (cost 21) |
 | Fill | row_cost: 4→2, 5→5, 6→10, 7→17, 8→26. times_cap: 4→4, 5→3, 6→2, 7→2, 8→1 | row 6 x2, or row 7 x1 |
 
 **Constraint count:** Deterministic per tier (0 at VeryEasy → 3 at Master). Each constraint rolls a different type from the weight table above.
