@@ -22,6 +22,8 @@ import { useTheme } from '@/ui/elements/theme-provider/hooks';
 import { resolveAssetUrl } from '@/pixi/assets/resolver';
 import { AssetId } from '@/pixi/assets/catalog';
 import type { ThemeId } from '@/pixi/utils/colors';
+import { getZone } from '@/pixi/utils/mapLayout';
+import { getZoneTheme } from '@/pixi/utils/zoneThemes';
 import type { Block } from '@/types/types';
 import type { ConstraintData } from '@/pixi/components/hud';
 import { useMusicPlayer } from '@/contexts/hooks';
@@ -158,12 +160,7 @@ export function usePlayGame(
   const { playerMeta } = usePlayerMeta();
   const { themeTemplate } = useTheme();
   const themeId = themeTemplate as ThemeId;
-  const { setIsMenu } = useMusicPlayer();
-
-  useEffect(() => {
-    setIsMenu(false);
-    return () => setIsMenu(true);
-  }, [setIsMenu]);
+  const { setMusicContext } = useMusicPlayer();
 
   const hadAccountRef = useRef(!!account);
   const [walletDisconnected, setWalletDisconnected] = useState(false);
@@ -184,6 +181,16 @@ export function usePlayGame(
   const { game, seed } = useGame({ gameId, shouldLog: false });
   const grid = useGrid({ gameId: game?.id ?? 0, shouldLog: false });
   const gameLevel = useGameLevel({ gameId: game?.id ?? 0 });
+
+  useEffect(() => {
+    if (seed === 0n) return;
+    const level = game?.level ?? 1;
+    const isBoss = level % 10 === 0;
+    const zone = getZone(level);
+    const zoneTheme = getZoneTheme(seed, zone);
+    setMusicContext(isBoss ? 'boss' : 'level', zoneTheme);
+    return () => setMusicContext('main');
+  }, [game?.level, seed, setMusicContext]);
   const targetScore = useMemo(() => {
     if (gameLevel) return gameLevel.pointsRequired;
     return 20 + (game?.level ?? 1) * 5;

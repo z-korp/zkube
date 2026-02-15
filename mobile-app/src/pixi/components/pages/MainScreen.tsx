@@ -23,6 +23,10 @@ import { PlayScreenInner } from './PlayScreen';
 import { PageTopBar } from './PageTopBar';
 import { PixiToastLayer } from '../ui/PixiToastLayer';
 import { useGame } from '@/hooks/useGame';
+import { useMusicPlayer } from '@/contexts/hooks';
+import type { MusicContext } from '@/contexts/music';
+import { getZone } from '@/pixi/utils/mapLayout';
+import { getZoneTheme } from '@/pixi/utils/zoneThemes';
 import type { PlayerMetaData } from '@/hooks/usePlayerMeta';
 import type { LeaderboardEntry } from '@/hooks/useLeaderboardSlot';
 import type { QuestFamily } from '@/types/questFamily';
@@ -529,6 +533,7 @@ const PageRenderer = (props: MainScreenProps & {
   } = props;
 
   const { currentPage, isTransitioning, transitionDirection, transitionProgressRef, navigate, goHome } = usePageNavigator();
+  const { setMusicContext } = useMusicPlayer();
   const [activeGameId, setActiveGameId] = useState<number | null>(null);
 
   // Fetch game data for map view when a game is selected
@@ -538,6 +543,19 @@ const PageRenderer = (props: MainScreenProps & {
   });
   const mapSeed = activeGame ? activeGameSeed : undefined;
   const mapCurrentLevel = activeGame ? activeGame.level : undefined;
+
+  useEffect(() => {
+    if (currentPage === 'map' && mapSeed && mapCurrentLevel) {
+      const zone = getZone(mapCurrentLevel);
+      const zoneTheme = getZoneTheme(mapSeed, zone);
+      setMusicContext('map', zoneTheme);
+      return;
+    }
+
+    if (currentPage === 'play') return;
+
+    setMusicContext('main');
+  }, [currentPage, mapSeed, mapCurrentLevel, setMusicContext]);
   const mapIsGameOver = activeGame ? Boolean(activeGame.over) : false;
   const mapLevelStarsFn = useMemo(
     () => activeGame ? (level: number) => activeGame.getLevelStars(level) : undefined,

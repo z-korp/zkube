@@ -4,16 +4,15 @@ import { soundManager } from "@/pixi/audio/SoundManager";
 import { AssetId } from "@/pixi/assets/catalog";
 import type { ThemeId } from "@/pixi/utils/colors";
 
-const MENU_TRACKS = [AssetId.MusicMain, AssetId.MusicMap] as const;
-const GAMEPLAY_TRACKS = [AssetId.MusicLevel, AssetId.MusicBoss] as const;
+// Deterministic music context — each context maps to exactly one track
+export type MusicContext = 'main' | 'map' | 'level' | 'boss';
 
-function randomMenuTrack(): AssetId {
-  return MENU_TRACKS[Math.floor(Math.random() * MENU_TRACKS.length)];
-}
-
-function randomGameplayTrack(): AssetId {
-  return GAMEPLAY_TRACKS[Math.floor(Math.random() * GAMEPLAY_TRACKS.length)];
-}
+const MUSIC_CONTEXT_TRACK: Record<MusicContext, AssetId> = {
+  main: AssetId.MusicMain,
+  map: AssetId.MusicMap,
+  level: AssetId.MusicLevel,
+  boss: AssetId.MusicBoss,
+};
 
 function useUserGesture(onGesture: () => void) {
   const firedRef = useRef(false);
@@ -44,7 +43,7 @@ export const MusicPlayerContext = createContext<{
   effectsVolume: number;
   setMusicVolume: (volume: number) => void;
   setEffectsVolume: (volume: number) => void;
-  setIsMenu: (isMenu: boolean) => void;
+  setMusicContext: (ctx: MusicContext, themeOverride?: ThemeId) => void;
   playStart: () => void;
   playOver: () => void;
   playSwipe: () => void;
@@ -55,7 +54,7 @@ export const MusicPlayerContext = createContext<{
   setMusicVolume: () => {},
   effectsVolume: 0.5,
   setEffectsVolume: () => {},
-  setIsMenu: () => {},
+  setMusicContext: () => {},
   playStart: () => {},
   playOver: () => {},
   playSwipe: () => {},
@@ -96,54 +95,62 @@ export const MusicPlayerProvider = ({
   const themeId = themeTemplate as ThemeId;
 
   const saved = useRef(loadAudioSettings());
-  const [isMenu, setIsMenu] = useState(true);
+  const [musicContext, setMusicContextState] = useState<MusicContext>('main');
+  const [musicThemeOverride, setMusicThemeOverride] = useState<ThemeId | null>(null);
   const [musicVolume, setMusicVolumeState] = useState(saved.current.musicVolume);
   const [effectsVolume, setEffectsVolumeState] = useState(saved.current.effectsVolume);
-  const prevThemeRef = useRef<ThemeId>(themeId);
-  const prevIsMenuRef = useRef(isMenu);
-  const themeIdRef = useRef(themeId);
-  themeIdRef.current = themeId;
+
+  const effectiveThemeId = musicThemeOverride ?? themeId;
+  const prevThemeRef = useRef<ThemeId>(effectiveThemeId);
+  const prevContextRef = useRef<MusicContext>(musicContext);
+  const effectiveThemeRef = useRef(effectiveThemeId);
+  effectiveThemeRef.current = effectiveThemeId;
   const musicVolumeRef = useRef(musicVolume);
   musicVolumeRef.current = musicVolume;
-  const isMenuRef = useRef(isMenu);
-  isMenuRef.current = isMenu;
+  const musicContextRef = useRef<MusicContext>(musicContext);
+  musicContextRef.current = musicContext;
+
+  const setMusicContext = useCallback((ctx: MusicContext, themeOverride?: ThemeId) => {
+    setMusicContextState(ctx);
+    setMusicThemeOverride(themeOverride ?? null);
+  }, []);
 
   const handleFirstGesture = useCallback(() => {
     soundManager.preloadCommonSfx();
-    soundManager.preloadThemeMusic(themeIdRef.current);
+    soundManager.preloadThemeMusic(effectiveThemeRef.current);
     if (musicVolumeRef.current > 0) {
-      const track = isMenuRef.current ? randomMenuTrack() : randomGameplayTrack();
-      soundManager.bgm.play(themeIdRef.current, track);
+      const track = MUSIC_CONTEXT_TRACK[musicContextRef.current];
+      soundManager.bgm.play(effectiveThemeRef.current, track);
     }
   }, []);
 
   const gestureReady = useUserGesture(handleFirstGesture);
 
   useEffect(() => {
-    soundManager.themeId = themeId;
+    soundManager.themeId = effectiveThemeId;
 
-    const themeChanged = prevThemeRef.current !== themeId;
-    const contextChanged = prevIsMenuRef.current !== isMenu;
+    const themeChanged = prevThemeRef.current !== effectiveThemeId;
+    const contextChanged = prevContextRef.current !== musicContext;
 
     if (themeChanged) {
       soundManager.bgm.stop();
       soundManager.unloadThemeMusic(prevThemeRef.current);
-      prevThemeRef.current = themeId;
+      prevThemeRef.current = effectiveThemeId;
     }
 
     if (gestureReady.current) {
-      soundManager.preloadThemeMusic(themeId);
+      soundManager.preloadThemeMusic(effectiveThemeId);
     }
 
     if (gestureReady.current && musicVolume > 0) {
       if (themeChanged || contextChanged || !soundManager.bgm.isPlaying) {
-        const track = isMenu ? randomMenuTrack() : randomGameplayTrack();
-        soundManager.bgm.play(themeId, track);
+        const track = MUSIC_CONTEXT_TRACK[musicContext];
+        soundManager.bgm.play(effectiveThemeId, track);
       }
     }
 
-    prevIsMenuRef.current = isMenu;
-  }, [themeId, isMenu, musicVolume, gestureReady]);
+    prevContextRef.current = musicContext;
+  }, [effectiveThemeId, musicContext, musicVolume, gestureReady]);
 
   useEffect(() => {
     soundManager.bgm.volume = musicVolume;
@@ -164,8 +171,8 @@ export const MusicPlayerProvider = ({
     setMusicVolumeState(clamped);
 
     if (clamped > 0 && wasZero && gestureReady.current) {
-      const track = isMenuRef.current ? randomMenuTrack() : randomGameplayTrack();
-      soundManager.bgm.play(themeIdRef.current, track);
+      const track = MUSIC_CONTEXT_TRACK[musicContextRef.current];
+      soundManager.bgm.play(effectiveThemeRef.current, track);
     } else if (clamped === 0) {
       soundManager.bgm.stop();
     }
@@ -208,7 +215,7 @@ export const MusicPlayerProvider = ({
         setMusicVolume,
         effectsVolume,
         setEffectsVolume,
-        setIsMenu,
+        setMusicContext,
         playStart,
         playOver,
         playSwipe,
