@@ -4,15 +4,15 @@
 
 @layer base {
   @font-face {
-    font-family: "Zen Tokyo Zoo";
+    font-family: "Tilt Prism";
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: url(/fonts/ZenTokyoZoo-Regular.ttf) format("truetype");
+    src: url(/fonts/TiltPrism-Regular.ttf) format("truetype");
   }
 
   :root {
-    font-family: "Zen Tokyo Zoo", sans-serif;
+    font-family: "Tilt Prism", sans-serif;
     user-select: none;
     --safe-area-top: env(safe-area-inset-top, 0px);
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);

@@ -6,7 +6,7 @@
 // FONTS
 // ============================================================================
 
-export const FONT_TITLE = 'Zen Tokyo Zoo, Arial Black, sans-serif';
+export const FONT_TITLE = 'Tilt Prism, Arial Black, sans-serif';
 export const FONT_BOLD = 'Arial Black, Arial Bold, Arial, sans-serif';
 export const FONT_BODY = 'Arial, Helvetica, sans-serif';
 
