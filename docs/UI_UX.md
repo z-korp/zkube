@@ -1,49 +1,61 @@
-# zKube UI/UX Specification
+# zKube — UI/UX Redesign Specification
 
-Complete layout, responsive, and asset specification for the PixiJS mobile app.
+Full redesign of the mobile app UI/UX. Mobile-first, casual-friendly, bottom-tab navigation.
 
-**Design reference**: 375px portrait (iPhone SE). All dimensions in CSS pixels unless noted.
+**Design references**: Candy Crush (celebration, polish, simplicity) + Slay the Spire (roguelike map, loadout clarity).
+**Target**: 375px portrait (iPhone SE). All dimensions in CSS pixels unless noted.
+**Style**: Cel-shaded illustration, bold outlines — evolved from existing art direction.
 
 ---
 
 ## Table of Contents
 
 1. [Design Philosophy](#1-design-philosophy)
-2. [Responsive System](#2-responsive-system)
-3. [Global Components](#3-global-components)
-4. [Page Specifications](#4-page-specifications)
-   - [Home Page](#41-home-page)
-   - [Play Screen](#42-play-screen)
-   - [Map Page](#43-map-page)
-   - [Settings Page](#44-settings-page)
-   - [Leaderboard Page](#45-leaderboard-page)
-   - [Shop Page](#46-shop-page)
-   - [Quests Page](#47-quests-page)
-   - [My Games Page](#48-my-games-page)
-   - [Loadout Page](#49-loadout-page)
-   - [Tutorial Page](#410-tutorial-page)
-5. [Modal Specifications](#5-modal-specifications)
-6. [Asset Requirements](#6-asset-requirements)
-7. [Migration Checklist](#7-migration-checklist)
+2. [Design System](#2-design-system)
+3. [Navigation Architecture](#3-navigation-architecture)
+4. [Global Components](#4-global-components)
+5. [Tab Screens](#5-tab-screens)
+6. [Gameplay Screens](#6-gameplay-screens)
+7. [Modal Specifications](#7-modal-specifications)
+8. [Onboarding Flow](#8-onboarding-flow)
+9. [Animation & Effects](#9-animation--effects)
+10. [Accessibility](#10-accessibility)
+11. [Responsive Behavior](#11-responsive-behavior)
+12. [Asset Requirements Summary](#12-asset-requirements-summary)
+13. [Appendices](#appendices)
 
 ---
 
 ## 1. Design Philosophy
 
-**Mobile-first, portrait-primary.** The game is designed for phones held vertically.
-Desktop and landscape are supported but secondary viewports.
+### Core Principles
 
-### Principles
+| Principle | Description |
+|-----------|-------------|
+| **Casual-first** | Players see "Sign In", "Cubes", "Play" — never wallet addresses, hex strings, or transaction hashes. Blockchain is invisible. |
+| **One-thumb play** | All interactive elements within thumb reach in portrait. Bottom tab bar, bottom action bar, center grid. |
+| **Celebrate everything** | Every line cleared, combo hit, level completed, quest claimed — visual + audio + haptic feedback. Candy Crush-level juice. |
+| **One font** | `FONT_TITLE` (Tilt Prism) everywhere. No `FONT_BODY`, no `FONT_BOLD`. |
+| **Sprites over emoji** | Every icon is a PNG sprite loaded from the asset catalog. Zero emoji characters in UI. |
+| **uiScale everything** | No hardcoded pixel values. All sizes multiply by `uiScale`. |
+| **Content cap at 720px** | Scrollable list pages cap content width to prevent ultra-wide stretching on tablets/desktop. |
 
-- **One font**: `FONT_TITLE` everywhere. No `FONT_BODY`.
-- **Sprites over emoji**: Every icon is a PNG sprite, never an emoji character.
-- **uiScale everything**: No hardcoded pixel values. All sizes multiply by `uiScale`.
-- **Content cap at 720px**: Scrollable list pages cap content width to prevent ultra-wide stretching.
-- **Cover backgrounds**: Portrait backgrounds fill the viewport via CSS-like `object-fit: cover`.
+### Blockchain Abstraction
+
+| User sees | Under the hood |
+|-----------|----------------|
+| "Sign In" | Cartridge Controller connect |
+| "Play" | `create()` / `create_with_cubes()` transaction |
+| "Cubes: 45" | ERC1155 balance query |
+| Level complete animation | `move()` tx + state sync via Torii |
+| "Claim Reward" | `claimQuest()` transaction |
+| Loading spinner | Transaction confirmation |
+
+Players never see: wallet addresses, transaction hashes, gas fees, network names, hex values, or "connect wallet" language.
 
 ---
 
-## 2. Responsive System
+## 2. Design System
 
 ### 2.1 uiScale
 
@@ -53,17 +65,15 @@ The single scaling factor for all UI elements.
 uiScale = clamp(screenWidth / 375, 0.8, 1.5)
 ```
 
-| Device              | screenWidth | uiScale | Notes                  |
-|---------------------|-------------|---------|------------------------|
-| iPhone SE           | 375         | 1.0     | Design reference       |
-| iPhone 14           | 390         | 1.04    |                        |
-| iPhone 14 Pro Max   | 430         | 1.15    |                        |
-| iPad Mini           | 768         | 1.5     | Capped                 |
-| iPad Pro            | 1024        | 1.5     | Capped                 |
-| Desktop 1080p       | 1920        | 1.5     | Capped                 |
-| Desktop 1440p       | 2560        | 1.5     | Capped                 |
+| Device | screenWidth | uiScale |
+|--------|-------------|---------|
+| iPhone SE | 375 | 1.0 |
+| iPhone 14 | 390 | 1.04 |
+| iPhone 14 Pro Max | 430 | 1.15 |
+| iPad Mini | 768 | 1.5 (capped) |
+| Desktop 1080p | 1920 | 1.5 (capped) |
 
-**Usage pattern** (MANDATORY for every component):
+**Mandatory pattern** for every component:
 ```typescript
 const s = uiScale;
 const fontSize = Math.round(16 * s);
@@ -71,36 +81,96 @@ const padding = Math.round(12 * s);
 const btnSize = Math.round(44 * s);
 ```
 
-### 2.2 Breakpoints
+### 2.2 Color Tokens
 
-| Breakpoint | Value            | Effect                                      |
-|------------|------------------|----------------------------------------------|
-| isMobile   | `width < 768`   | Smaller top bar, tighter padding             |
-| isLandscape| `width > height` | Content area switches to landscape strategy  |
-| showSidePanels | `width >= 900 && !isMobile` | PlayScreen shows score/moves panels |
+Source of truth: `mobile-app/src/pixi/utils/colors.ts`
 
-### 2.3 Safe Areas
+**UI palette** (theme-independent):
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `UI.bg.primary` | `#1e293b` | Card backgrounds, modals |
+| `UI.bg.secondary` | `#0f172a` | Darker sections, headers |
+| `UI.bg.dark` | `#000000` | Top bar, overlays |
+| `UI.text.primary` | `#ffffff` | Primary text |
+| `UI.text.secondary` | `#94a3b8` | Subtitles, labels |
+| `UI.text.muted` | `#64748b` | Disabled, hints |
+| `UI.accent.gold` | `#fbbf24` | Cube balance, rewards, stars |
+| `UI.accent.blue` | `#3b82f6` | Active states, links |
+| `UI.accent.orange` | `#f97316` | Primary CTA buttons |
+| `UI.status.success` | `#22c55e` | Complete, claimed, cleared |
+| `UI.status.danger` | `#ef4444` | Low moves, surrender, danger |
+
+**Per-theme colors** (10 themes, applied during gameplay):
+- `ThemeColors.background`, `ThemeColors.grid`, `ThemeColors.accent`
+- `ThemeColors.block1` through `ThemeColors.block4`
+- Applied to: grid, blocks, backgrounds, map, particles
+
+### 2.3 Typography
+
+**Single font family**: `FONT_TITLE` = `'Tilt Prism, Arial Black, sans-serif'`
+
+| Scale | Size (at s=1.0) | Usage |
+|-------|-----------------|-------|
+| xs | `Math.round(10 * s)` | Footer text, version labels |
+| sm | `Math.round(12 * s)` | Captions, tier labels, timestamps |
+| base | `Math.round(14 * s)` | Body text, list items |
+| lg | `Math.round(16 * s)` | Section headers, card titles |
+| xl | `Math.round(20 * s)` | Page titles, modal headers |
+| 2xl | `Math.round(24 * s)` | Hero numbers (score, level) |
+| 3xl | `Math.round(32 * s)` | Celebration text, victory messages |
+
+All text uses `fontFamily: FONT_TITLE`. Drop shadow on light-on-dark text:
+```typescript
+dropShadow: { alpha: 0.4, angle: Math.PI / 4, blur: 2, distance: 1, color: 0x000000 }
+```
+
+### 2.4 Spacing
+
+Base unit: `Math.round(4 * s)`. All spacing is a multiple of this.
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `space.xs` | `4 * s` | Inline icon gap |
+| `space.sm` | `8 * s` | Tight padding, pill content |
+| `space.md` | `12 * s` | Card padding, button padding |
+| `space.lg` | `16 * s` | Section gaps, content margin |
+| `space.xl` | `24 * s` | Major section separation |
+| `space.2xl` | `32 * s` | Top-level screen padding |
+
+### 2.5 Elevation
+
+| Level | Usage | Visual |
+|-------|-------|--------|
+| 0 | Background | Flat |
+| 1 | Cards, panels | 9-slice panel texture or rounded rect with border |
+| 2 | Modals, popovers | Drop shadow + backdrop blur (0x000000, alpha 0.6) |
+| 3 | Toasts | Floating above everything, slide animation |
+
+### 2.6 Safe Areas
 
 ```
-safeAreaTop    = max(CSS --safe-area-top, Capacitor nativePaddingTop)
-safeAreaBottom = max(CSS --safe-area-bottom, Capacitor nativePaddingBottom)
+safeAreaTop    = max(CSS env(safe-area-inset-top), Capacitor nativePaddingTop)
+safeAreaBottom = max(CSS env(safe-area-inset-bottom), Capacitor nativePaddingBottom)
 ```
 
-Affects `topBarHeight` (adds safeAreaTop) and `actionBarY` (subtracts safeAreaBottom).
+- Top bar adds `safeAreaTop` to its height
+- Tab bar adds `safeAreaBottom` to its height
+- Play screen action bar respects `safeAreaBottom`
 
-### 2.4 Canvas Setup
+### 2.7 Canvas Setup
 
 ```
-Canvas: 100vw x 100vh, position: fixed, inset: 0
+Canvas: 100vw × 100vh, position: fixed, inset: 0
 Resolution: min(devicePixelRatio, 2)
 autoDensity: true
 antialias: true
-Background: 0xD0EAF8 (light sky blue)
+Background: theme-dependent (ThemeColors.background)
 ```
 
-### 2.5 Content Width Strategy
+### 2.8 Content Width Strategy
 
-All scrollable list pages share a common content width pattern:
+All scrollable tab screens share:
 
 ```typescript
 const contentPadding = Math.round(16 * s);
@@ -109,106 +179,201 @@ const contentWidth = Math.min(screenWidth - contentPadding * 2, contentMaxWidth)
 const contentX = Math.max(contentPadding, (screenWidth - contentWidth) / 2);
 ```
 
-This ensures content is:
-- Full-width on small phones (minus padding)
-- Capped at 720px on tablets/desktop
-- Horizontally centered when narrower than viewport
-
-### 2.6 Background Rendering
-
-Portrait texture (1080x1920) rendered with cover mode:
-
-```
-scale = max(screenWidth / texWidth, screenHeight / texHeight)
-offsetX = (screenWidth - texWidth * scale) / 2
-offsetY = (screenHeight - texHeight * scale) / 2
-```
-
-On landscape desktop (e.g. 1920x1080), the portrait texture is cropped heavily on top/bottom
-to fill. This is acceptable for now -- the alternative would be landscape-specific backgrounds.
-
-Fallback: 20-step vertical gradient from `#D0EAF8` to `#F5F0E0`.
+Full-width on phones, capped + centered on tablets/desktop.
 
 ---
 
-## 3. Global Components
+## 3. Navigation Architecture
 
-### 3.1 PageTopBar
+### 3.1 Bottom Tab Bar
 
-Shared top bar used by all non-home pages.
+Persistent bottom navigation. 5 tabs, always visible except during gameplay.
 
 ```
 +------------------------------------------------------------------+
-| [<Home]  TITLE                                 [CubeBalance] [?] |
-|          subtitle                                                |
+|                                                                  |
+|                      (current screen)                            |
+|                                                                  |
++------------------------------------------------------------------+
+| [🏠 Home]  [🗺 Map]  [🛒 Shop]  [📋 Quests]  [👤 Profile]      |
 +------------------------------------------------------------------+
 ```
 
-**Props**: `title`, `subtitle?`, `screenWidth`, `topBarHeight`, `showCubeBalance?`, `cubeBalance?`, `actionIcon?`, `onAction?`
-
-**Layout rules**:
+**Layout**:
 ```
-height     = topBarHeight (from useFullscreenLayout, includes safeAreaTop)
-bgColor    = 0x000000, alpha 1.0
-borderBot  = 1px 0x334155, alpha 0.8
-
-btnSize    = Math.round(clamp(topBarHeight - 12*s, 40*s, 48*s))
-padding    = Math.round(12 * s)
-centerY    = (topBarHeight - btnSize) / 2
-
-homeBtn    = PixiButton icon-only "menu", x=padding, y=centerY
-titleStyle = FONT_TITLE, Math.round(20 * s), fill 0xffffff
-subStyle   = FONT_TITLE, Math.round(11 * s), fill 0x94a3b8
+height       = Math.round(56 * s) + safeAreaBottom
+bgColor      = 0x0f172a
+borderTop    = 1px 0x334155
+tabWidth     = screenWidth / 5
+iconSize     = Math.round(24 * s)
+labelSize    = Math.round(10 * s)
+activeColor  = UI.accent.gold (0xfbbf24)
+inactiveColor= UI.text.muted (0x64748b)
 ```
 
-**TODO**: Currently `PageTopBar` does NOT receive `uiScale`. Must add it as prop and scale all internal values.
+**Tab definitions**:
 
-### 3.2 PixiButton
+| Tab | Icon | Label | Screen |
+|-----|------|-------|--------|
+| Home | `icon-home` | Home | HomeTab |
+| Map | `icon-map` | Map | MapTab |
+| Shop | `icon-shop` | Shop | ShopTab |
+| Quests | `icon-scroll` | Quests | QuestsTab |
+| Profile | `icon-profile` | Profile | ProfileTab |
 
-9-slice texture button with variants.
+**Badges**:
+- Quests tab: red dot when rewards are claimable
+- Home tab: blue dot when an active game exists
 
-| Variant | Texture        | Usage                        |
-|---------|---------------|------------------------------|
-| orange  | btn-orange.png | Primary actions (Play, Claim)|
-| green   | btn-green.png  | Confirm, Start Game          |
-| purple  | btn-purple.png | Secondary, Cancel, Disabled  |
-| red     | btn-red.png    | Surrender, Danger            |
-| icon    | btn-icon.png   | Icon-only square buttons     |
+**Tab bar hides**: When PlayScreen is active (full-screen gameplay). Also hides during LoadoutPage push.
 
-**9-slice borders**: `{ left: 16, top: 16, right: 16, bottom: 16 }` (icon: 12px)
-**Source size**: 96x96px
-**Press animation**: scale 0.95
+### 3.2 Screen Stack
 
-**TODO**: `PixiButton` has hardcoded `fontSize: 18`. Must accept scaled fontSize via `textStyle` prop or receive `uiScale`.
+Each tab maintains its own push/pop stack. Pushed screens slide in from right, back button pops.
 
-### 3.3 PixiPanel
+| Tab | Root Screen | Push Screens |
+|-----|-------------|--------------|
+| Home | HomeScreen | — |
+| Map | MapScreen | — |
+| Shop | ShopScreen | — |
+| Quests | QuestsScreen | — |
+| Profile | ProfileScreen | SettingsScreen, LeaderboardScreen, TutorialScreen |
 
-9-slice texture panel for content sections.
+**Full-screen pushes** (hide tab bar):
+- `HomeScreen → LoadoutPage → PlayScreen`
+- `MapScreen → LoadoutPage → PlayScreen` (when tapping a level node)
 
-**Variants**: panel-wood, panel-dark, panel-leaf, panel-glass (96x96px source)
-**9-slice borders**: `{ left: 24, top: 24, right: 24, bottom: 24 }`
+### 3.3 Transitions
 
-### 3.4 SpriteIcon
+| Transition | Animation | Duration |
+|-----------|-----------|----------|
+| Tab switch | Cross-fade | 200ms |
+| Screen push | Slide from right | 300ms ease-out |
+| Screen pop | Slide to right | 250ms ease-in |
+| Modal open | Scale 0.9→1.0 + fade in | 250ms |
+| Modal close | Scale 1.0→0.95 + fade out | 200ms |
+| Play enter | Slide up from bottom | 400ms ease-out |
+| Play exit | Slide down | 300ms ease-in |
 
-Renders PNG icon sprites from the catalog at a given size.
+---
 
-**Available icons** (48x48px source):
-`star-filled`, `star-empty`, `crown`, `fire`, `scroll`, `shop`, `trophy`,
-`menu`, `close`, `settings`, `lock`, `music`, `sound`, `cube`, `level`,
-`moves`, `score`, `surrender`
+## 4. Global Components
 
-**Usage**:
+### 4.1 ScreenHeader
+
+Replaces the old `PageTopBar`. Used by all tab root screens and pushed screens.
+
+```
++------------------------------------------------------------------+
+| [←]  TITLE                                    [CubeBalance]     |
+|       subtitle                                                   |
++------------------------------------------------------------------+
+```
+
+**Props**: `title`, `subtitle?`, `showBack?`, `onBack?`, `showCubeBalance?`, `cubeBalance?`, `rightAction?: { icon, onPress }`
+
+**Layout**:
+```
+height       = Math.round(56 * s) + safeAreaTop
+bgColor      = 0x000000, alpha 0.95
+borderBot    = 1px 0x334155
+
+backBtn      = SpriteIcon "icon-arrow-left", Math.round(28 * s), tapped area Math.round(44 * s)
+titleStyle   = FONT_TITLE, Math.round(20 * s), fill 0xffffff
+subStyle     = FONT_TITLE, Math.round(11 * s), fill UI.text.secondary
+```
+
+**CurrencyPill** (right side):
+```
++--[icon-cube 16×16]--[45]--+
+bgColor      = 0x1e293b, border 0x475569, rounded Math.round(16 * s)
+textStyle    = FONT_TITLE, Math.round(14 * s), fill UI.accent.gold
+padH         = Math.round(10 * s)
+padV         = Math.round(6 * s)
+```
+
+### 4.2 PixiButton
+
+9-slice texture button with variants. Existing component, kept as-is.
+
+| Variant | Texture | Usage |
+|---------|---------|-------|
+| orange | btn-orange.png | Primary CTA (Play, Claim) |
+| green | btn-green.png | Confirm, Start Game |
+| purple | btn-purple.png | Secondary, Cancel |
+| red | btn-red.png | Surrender, Danger |
+| icon | btn-icon.png | Icon-only square buttons |
+
+**9-slice borders**: `{ left: 16, top: 16, right: 16, bottom: 16 }`
+**Press animation**: scale 0.95, 100ms
+
+**Sizing**: Button dimensions always computed from `uiScale`:
 ```typescript
-<SpriteIcon icon="cube" size={Math.round(24 * s)} x={x} y={y} />
+const btnW = Math.round(220 * s);
+const btnH = Math.round(50 * s);
+const fontSize = Math.round(16 * s);
 ```
 
-### 3.5 Toast Layer
+### 4.3 Card
 
-Positioned at the top of the screen. Needs uiScale for font sizes and positioning.
+Rounded rectangle container for list items and shop items.
 
-### 3.6 Scroll Pattern
+```
+bgColor      = UI.bg.primary (0x1e293b)
+border       = UI.border.primary (0x475569), width 1
+radius       = Math.round(12 * s)
+padding      = Math.round(14 * s)
+```
 
-All scrollable pages share this momentum scroll implementation:
+**Variants**:
+- `default` — Standard card
+- `highlighted` — Border color = UI.accent.gold, glow effect
+- `locked` — Alpha 0.5, lock icon overlay
+- `claimable` — Border color = UI.status.success, pulse animation
+
+### 4.4 ProgressBar
+
+Horizontal progress indicator.
+
+```
+trackH       = Math.round(8 * s)
+trackColor   = 0x334155
+fillColor    = UI.accent.blue (or contextual color)
+radius       = trackH / 2
+```
+
+**Variants**: default (blue), score (gold), danger (red when < 20%), success (green).
+
+### 4.5 StarRating
+
+1-3 stars display using SpriteIcon.
+
+```
+starSize     = Math.round(20 * s)
+gap          = Math.round(4 * s)
+filled       = SpriteIcon "star-filled", tint UI.accent.gold
+empty        = SpriteIcon "star-empty", tint UI.text.muted
+```
+
+### 4.6 Toast Layer
+
+Top-of-screen notification. Slides in from top, auto-dismisses.
+
+```
+toastY       = safeAreaTop + Math.round(8 * s)
+toastW       = Math.min(screenWidth - Math.round(32 * s), Math.round(400 * s))
+toastH       = Math.round(48 * s)
+bgColor      = 0x1e293b
+radius       = Math.round(10 * s)
+textStyle    = FONT_TITLE, Math.round(14 * s)
+duration     = 3000ms
+```
+
+**Types**: info (blue border), success (green), error (red), reward (gold + coin sound).
+
+### 4.7 MomentumScroll
+
+Shared scroll behavior for all scrollable pages.
 
 ```
 - pointerDown: start drag, record Y
@@ -220,123 +385,620 @@ All scrollable pages share this momentum scroll implementation:
 - scrollbar: 6px track on right side, thumb proportional to content
 ```
 
+### 4.8 SpriteIcon
+
+Renders PNG icon sprites from catalog at a given size. White source, tinted in code.
+
+```typescript
+<SpriteIcon icon="icon-cube" size={Math.round(24 * s)} tint={0xfbbf24} x={x} y={y} />
+```
+
+**Available icons** (48×48px source, white on transparent):
+
+| Category | Icons |
+|----------|-------|
+| Navigation | `icon-home`, `icon-map`, `icon-profile`, `icon-arrow-left`, `icon-arrow-right` |
+| Game | `icon-star-filled`, `icon-star-empty`, `icon-cube`, `icon-crown`, `icon-fire`, `icon-level`, `icon-moves`, `icon-score` |
+| UI | `icon-menu`, `icon-close`, `icon-settings`, `icon-lock`, `icon-info`, `icon-heart` |
+| Audio | `icon-music`, `icon-sound` |
+| Actions | `icon-shop`, `icon-scroll`, `icon-trophy`, `icon-surrender`, `icon-check`, `icon-play` |
+| Quest | `icon-gamepad`, `icon-chart`, `icon-lightning` |
+| Misc | `icon-medal-gold`, `icon-medal-silver`, `icon-medal-bronze`, `icon-skull`, `icon-refresh`, `icon-gesture`, `icon-bridge`, `icon-package`, `icon-wheat` |
+
 ---
 
-## 4. Page Specifications
+## 5. Tab Screens
 
-### 4.1 Home Page
+### 5.1 Home Tab
 
-The landing page with logo, navigation buttons, and top bar.
+The landing screen. Logo, active game card (if any), and primary Play CTA.
 
 ```
 +------------------------------------------------------------------+
-| [CubeBalance]              [Tutor][Quest][Trophy][Set][Profile]  |  <- HomeTopBar
+| [CubeBalance: 45]                           [username]           |  ← ScreenHeader (no back)
 +------------------------------------------------------------------+
 |                                                                  |
+|                       +-----------+                              |
+|                       |   LOGO    |                              |  ← Bouncing anim
+|                       +-----------+                              |
 |                                                                  |
-|                          +---------+                             |
-|                          |  LOGO   |                             |  <- Bouncing animation
-|                          +---------+                             |
+|   +--[Active Game Card]--gold-border--(if game exists)--------+  |
+|   | [icon-play]  Game #42 — Level 12                          |  |
+|   |              Score: 450 / 600        [RESUME →]           |  |
+|   +-----------------------------------------------------------+  |
 |                                                                  |
-|                    +--------------------+                        |
-|                    |    PLAY GAME       |                        |  <- orange
-|                    +--------------------+                        |
-|                    +--------------------+                        |
-|                    |    MY GAMES (2)    |                        |  <- purple
-|                    +--------------------+                        |
-|                    +--------------------+                        |
-|                    |      SHOP          |                        |  <- green
-|                    +--------------------+                        |
-|                    +--------------------+                        |
-|                    |   LEADERBOARD      |                        |  <- orange
-|                    +--------------------+                        |
+|                  +------------------------+                      |
+|                  |      ▶ PLAY GAME       |                      |  ← orange, hero CTA
+|                  +------------------------+                      |
 |                                                                  |
+|                  +------------------------+                      |
+|                  |      LEADERBOARD       |                      |  ← purple
+|                  +------------------------+                      |
 |                                                                  |
-|              Built on Starknet with Dojo                         |  <- Footer
+|             Built on Starknet with Dojo                          |  ← xs footer
++------------------------------------------------------------------+
+| [🏠]  [🗺]  [🛒]  [📋]  [👤]                                     |  ← Tab Bar
 +------------------------------------------------------------------+
 ```
 
 **Layout rules**:
 ```
-background   = SkyBackground (theme texture or gradient)
-
--- HomeTopBar --
-height       = topBarHeight
-bgColor      = 0x000000
-btnSize      = isMobile ? Math.round(44 * s) : Math.round(48 * s)
-gap          = Math.round(8 * s)
-pad          = Math.round(10 * s)
-cubeIcon     = SpriteIcon "cube", Math.round(14 * s)  <-- currently emoji, must replace
-cubeText     = FONT_TITLE, Math.round(14 * s), fill 0xfbbf24
-
 -- Logo --
 logoMaxH     = isMobile ? Math.round(80 * s) : Math.round(120 * s)
 logoMaxW     = isMobile ? Math.round(220 * s) : Math.round(340 * s)
-logoY        = topBarH + (isMobile ? Math.round(40*s) : Math.round(70*s)) + logoMaxH/2
-animation    = sin(t*2) * Math.round(4*s) vertical bounce
+logoY        = headerH + Math.round(40 * s) + logoMaxH / 2
+animation    = sin(t * 2) * Math.round(4 * s) vertical bounce
+
+-- Active Game Card (replaces old MyGamesPage) --
+cardW        = Math.min(screenWidth - Math.round(32 * s), Math.round(340 * s))
+cardH        = Math.round(64 * s)
+cardY        = logoY + logoMaxH / 2 + Math.round(24 * s)
+show         = when player has an ongoing game (game.over === false)
+onTap        = navigate to PlayScreen with that game
 
 -- Buttons --
 btnW         = isMobile ? Math.round(220 * s) : Math.round(260 * s)
 btnH         = isMobile ? Math.round(50 * s) : Math.round(56 * s)
 btnGap       = Math.round(12 * s)
-firstBtnY    = logoY + logoMaxH/2 + (isMobile ? Math.round(20*s) : Math.round(35*s))
-fontSize     = isMobile ? Math.round(18 * s) : Math.round(20 * s)
-             (PLAY GAME slightly larger: isMobile ? Math.round(20*s) : Math.round(24*s))
+playBtnY     = cardY + cardH + Math.round(24 * s)  (or logoY + offset if no card)
+playFontSize = Math.round(20 * s)
+otherFontSize= Math.round(16 * s)
+
+-- PLAY GAME action --
+If no active game: navigates to LoadoutPage
+If active game exists: active game card handles resume, PLAY creates new game
 
 -- Footer --
 text         = "Built on Starknet with Dojo"
-style        = FONT_TITLE, Math.round(10 * s), fill 0xFFFFFF
-y            = sh - Math.round(16 * s)
+style        = FONT_TITLE, Math.round(10 * s), fill 0xffffff
+y            = screenHeight - tabBarH - Math.round(16 * s)
 ```
 
-**Issues to fix**:
-- `MAIN_FOOTER_STYLE` uses `FONT_BODY` -> change to `FONT_TITLE`
-- Cube icon on HomeTopBar is emoji `🧊` -> replace with SpriteIcon
+**Key changes from old design**:
+- **MyGamesPage removed** — active game surfaces as a card on Home
+- **Settings, Tutorial, Trophy buttons removed from home** — moved to Profile tab
+- **Quest button removed** — Quests is its own tab
+- **Simpler, cleaner** — Logo + Active Game + Play + Leaderboard, that's it
+
+### 5.2 Map Tab
+
+Super Mario World-style progression map with 5 zones (10 levels each).
+
+```
++------------------------------------------------------------------+
+| ADVENTURE MAP                                  [Zone 1 of 5]    |  ← ScreenHeader
++------------------------------------------------------------------+
+|                                                                  |
+|  +-zone-bg-(1080×1920)-cover-scaled--------------------------+  |
+|  |                                                           |  |
+|  |    (●)———(●)———(●)———(●)                                |  |
+|  |     L1    L2    L3    L4                                  |  |
+|  |                  \                                         |  |
+|  |                   (●)———(●)                               |  |
+|  |                    L5    L6                                |  |
+|  |                           \                                |  |
+|  |    +--LevelPreview----+    (●)———(●)———(●)               |  |
+|  |    | L3: Easy         |     L7    L8    L9                |  |
+|  |    | ★★☆  Score 45/60 |           |                       |  |
+|  |    | [PLAY]           |          (👑)  ← Boss L10         |  |
+|  |    +------------------+                                    |  |
+|  |                                                           |  |
+|  +--------< swipe left/right to change zones >---------------+  |
+|                                                                  |
+|              [○]  [○]  [●]  [○]  [○]                            |  ← Zone dots
++------------------------------------------------------------------+
+| [🏠]  [🗺]  [🛒]  [📋]  [👤]                                     |
++------------------------------------------------------------------+
+```
+
+**Layout**:
+```
+-- Zone scrolling --
+zones        = 5 (levels 1-10, 11-20, 21-30, 31-40, 41-50)
+zoneW        = screenWidth
+swipeThreshold = Math.round(50 * s)
+headerH      = ScreenHeader height
+
+-- Map Nodes --
+nodeR        = Math.round(18 * s)
+nodeStroke   = Math.round(3 * s)
+labelSize    = Math.round(12 * s)
+states:
+  locked     = gray fill, lock icon
+  available  = white fill, pulsing glow
+  cleared    = green fill, star icon
+  current    = blue fill, animated ring
+  boss       = larger radius (Math.round(24 * s)), gold border
+  shop       = shop icon, distinct shape
+
+-- Level Preview (popup on node tap) --
+previewW     = Math.round(220 * s)
+previewH     = dynamic
+bgColor      = UI.bg.primary
+border       = UI.border.primary
+radius       = Math.round(12 * s)
+content:
+  - Level number + difficulty label
+  - Star rating (1-3)
+  - Score / target
+  - Constraint summary
+  - [PLAY] button (green, if available)
+
+-- Zone indicator dots --
+dotR         = Math.round(6 * s)
+dotGap       = Math.round(12 * s)
+bottomPad    = Math.round(24 * s) above tab bar
+activeDot    = UI.accent.gold, filled
+inactiveDot  = UI.text.muted, outlined
+
+-- Paths between nodes --
+lineWidth    = Math.round(3 * s)
+lineColor    = 0xffffff, alpha 0.3 (locked), alpha 0.8 (cleared)
+```
+
+**Interaction**:
+- Tap node → shows LevelPreview popup
+- Tap PLAY in preview → pushes LoadoutPage (hides tab bar) → PlayScreen
+- Swipe left/right → change zone with snap animation
+- Zone backgrounds are per-theme (theme assigned per zone from VRF seed)
+
+### 5.3 Shop Tab
+
+2-column card grid with bonus upgrade cards and bridging card.
+
+```
++------------------------------------------------------------------+
+| SHOP                                           [45 CUBE]        |  ← ScreenHeader
++------------------------------------------------------------------+
+|                                                                  |
+|  +--[Combo]-----------+  +--[Score]-----------+                 |
+|  | [bonus-icon]       |  | [bonus-icon]       |                 |
+|  | Combo              |  | Score              |                 |
+|  | ● ● ○  Starting    |  | ● ○ ○  Starting    |                 |
+|  | ● ○ ○  Bag Size    |  | ● ○ ○  Bag Size    |                 |
+|  | [UPGRADE 20]       |  | [UPGRADE 30]       |                 |
+|  +--------------------+  +--------------------+                 |
+|                                                                  |
+|  +--[Harvest]---------+  +--[Wave]--locked-----+                |
+|  | [bonus-icon]       |  | [🔒] Wave          |                 |
+|  | Harvest            |  |                     |                 |
+|  | ● ● ● Starting     |  |  [UNLOCK 200]      |                 |
+|  | ● ○ ○ Bag Size     |  |                     |                 |
+|  | [UPGRADE 15]       |  +--------------------+                 |
+|  +--------------------+                                          |
+|                                                                  |
+|  +--[Supply]--locked---+  +--[Bridging]--------+                |
+|  | [🔒] Supply        |  | [icon-bridge]      |                 |
+|  |                     |  | Bridging Rank 2    |                 |
+|  |  [UNLOCK 200]      |  | Max 10 cubes/run   |                 |
+|  +--------------------+  | [UPGRADE 50]       |                 |
+|                          +--------------------+                 |
++------------------------------------------------------------------+
+| [🏠]  [🗺]  [🛒]  [📋]  [👤]                                     |
++------------------------------------------------------------------+
+```
+
+**Layout**:
+```
+pad          = Math.round(16 * s)
+gap          = Math.round(12 * s)
+cardW        = (contentWidth - gap) / 2
+cardH        = Math.round(160 * s)
+cardRadius   = Math.round(10 * s)
+cardPad      = Math.round(14 * s)
+
+-- Card content --
+iconSize     = Math.round(40 * s) (bonus PNG textures from catalog)
+nameStyle    = FONT_TITLE, Math.round(15 * s), fill 0xffffff
+lockIcon     = SpriteIcon "icon-lock", Math.round(24 * s)
+
+-- Level pips (●/○) --
+pipW         = Math.round(18 * s)
+pipH         = Math.round(6 * s)
+pipGap       = Math.round(5 * s)
+filledColor  = UI.accent.gold
+emptyColor   = UI.text.muted
+
+-- Upgrade button --
+btnW         = cardW - cardPad * 2
+btnH         = Math.round(36 * s)
+variant      = orange (affordable), purple (too expensive)
+fontSize     = Math.round(13 * s)
+```
+
+**Locked cards**: Alpha 0.6, single centered "UNLOCK [cost]" button.
+**Max level**: Pips all filled, "MAX" label, button hidden.
+
+### 5.4 Quests Tab
+
+Daily quest families with tiered progress and claim buttons.
+
+```
++------------------------------------------------------------------+
+| DAILY QUESTS                                   [45 CUBE]        |  ← ScreenHeader
+| 12 CUBE ready to claim!                                         |
++------------------------------------------------------------------+
+|                  RESETS IN 05:32:18                              |
++------------------------------------------------------------------+
+|                                                                  |
+|  +--[Player]------green-border-(claimable)------------------+   |
+|  | [icon-gamepad]  Player Quests                      2/3   |   |
+|  |   [✓]  Warm-Up: Play 1 game                    +3 CUBE  |   |
+|  |   [✓]  Getting Started: Play 3 games            +6 CUBE  |   |
+|  |   [ ]  Dedicated: Play 5 games                 +12 CUBE  |   |
+|  |   [========progress==========----]  3/5                  |   |
+|  |   [      CLAIM  +6 CUBE      ]                           |   |
+|  +----------------------------------------------------------+   |
+|                                                                  |
+|  +--[Clearer]-----------------------------------------------+   |
+|  | [icon-chart]  Clearer                              1/3   |   |
+|  |   [✓]  Line Breaker: Clear 10 lines             +3 CUBE  |   |
+|  |   [ ]  Line Crusher: Clear 30 lines             +6 CUBE  |   |
+|  |   [🔒] Line Master: Clear 50 lines             +12 CUBE  |   |
+|  |   [========progress======---------]  18/30               |   |
+|  +----------------------------------------------------------+   |
+|                                                                  |
+|  +--[Combo]------------------------------------------------+   |
+|  | [icon-lightning]  Combo                            0/3   |   |
+|  |   ...                                                     |   |
+|  +----------------------------------------------------------+   |
+|                                                                  |
+|  +--[Daily Champion]--gold-border--(all 9 complete)---------+   |
+|  | [icon-crown]  Daily Champion                       0/1   |   |
+|  |   Complete all 9 quests above                   +25 CUBE  |   |
+|  +----------------------------------------------------------+   |
+|                                                                  |
++------------------------------------------------------------------+
+| [🏠]  [🗺]  [🛒]  [📋]  [👤]                                     |
++------------------------------------------------------------------+
+```
+
+**Layout**:
+```
+timerH       = Math.round(32 * s)
+timerStyle   = FONT_TITLE, Math.round(12 * s), fill UI.text.muted
+cardGap      = Math.round(14 * s)
+
+-- Family Card --
+cardPad      = Math.round(14 * s)
+headerH      = Math.round(44 * s)
+familyIcon   = SpriteIcon (icon-gamepad, icon-chart, icon-lightning, icon-crown), Math.round(24 * s)
+familyName   = FONT_TITLE, Math.round(16 * s)
+progressFrac = FONT_TITLE, Math.round(12 * s), fill UI.text.secondary
+
+-- Tier Row --
+rowH         = Math.round(28 * s)
+stateIcon:
+  completed  = SpriteIcon "icon-check", tint UI.status.success
+  active     = SpriteIcon "icon-play", tint UI.accent.blue
+  locked     = SpriteIcon "icon-lock", tint UI.text.muted
+tierName     = FONT_TITLE, Math.round(12 * s)
+tierReward   = FONT_TITLE, Math.round(12 * s), fill UI.accent.gold (active) or UI.text.muted (locked)
+
+-- Progress bar --
+height       = Math.round(10 * s)
+below last tier row
+
+-- Claim button --
+variant      = green
+height       = Math.round(44 * s)
+show         = only when a tier is claimable
+text         = "CLAIM +{reward} CUBE"
+```
+
+**Claimable state**: Card border = UI.status.success, subtle pulse animation.
+**All complete**: Daily Champion card glows gold.
+
+### 5.5 Profile Tab
+
+Player identity, stats, and links to Settings/Leaderboard/Tutorial.
+
+```
++------------------------------------------------------------------+
+| MY PROFILE                                     [45 CUBE]        |  ← ScreenHeader
++------------------------------------------------------------------+
+|                                                                  |
+|  +--[Player Card]--------------------------------------------+  |
+|  |  [avatar circle]                                          |  |
+|  |  player_name_123                                          |  |
+|  |  Best Level: 32    Total Games: 87                        |  |
+|  +-----------------------------------------------------------+  |
+|                                                                  |
+|  +--[Stats Grid]---------------------------------------------+  |
+|  | Lines Cleared    Combos Hit    Best Combo    Cubes Earned  |  |
+|  |    4,820            312          8             1,245       |  |
+|  +-----------------------------------------------------------+  |
+|                                                                  |
+|  +--[Menu List]----------------------------------------------+  |
+|  | [icon-trophy]    Leaderboard                         [→]  |  |
+|  | [icon-settings]  Settings                            [→]  |  |
+|  | [icon-info]      How to Play                         [→]  |  |
+|  +-----------------------------------------------------------+  |
+|                                                                  |
+|                    zKube v1.2.0                                  |
++------------------------------------------------------------------+
+| [🏠]  [🗺]  [🛒]  [📋]  [👤]                                     |
++------------------------------------------------------------------+
+```
+
+**Layout**:
+```
+-- Player Card --
+avatarSize   = Math.round(64 * s)
+avatarBg     = UI.accent.blue
+nameStyle    = FONT_TITLE, Math.round(20 * s)
+statsStyle   = FONT_TITLE, Math.round(14 * s), fill UI.text.secondary
+cardPad      = Math.round(20 * s)
+
+-- Stats Grid --
+gridCols     = 4
+cellH        = Math.round(60 * s)
+valueStyle   = FONT_TITLE, Math.round(18 * s), fill UI.accent.gold
+labelStyle   = FONT_TITLE, Math.round(10 * s), fill UI.text.secondary
+
+-- Menu List --
+rowH         = Math.round(52 * s)
+iconSize     = Math.round(24 * s)
+labelStyle   = FONT_TITLE, Math.round(16 * s)
+arrowIcon    = SpriteIcon "icon-arrow-right", Math.round(16 * s)
+divider      = 1px 0x334155
+```
+
+**Pushed screens**:
+- Tap "Leaderboard" → pushes LeaderboardScreen (slide from right)
+- Tap "Settings" → pushes SettingsScreen
+- Tap "How to Play" → pushes TutorialScreen
+
+### 5.5.1 Leaderboard (Pushed from Profile)
+
+Scrollable ranking list with medal rows for top 3.
+
+```
++------------------------------------------------------------------+
+| [←] LEADERBOARD                                                 |  ← ScreenHeader with back
+|     42 players                                                   |
++------------------------------------------------------------------+
+| #     PLAYER               LVL        SCORE                     |  ← Header row
++------------------------------------------------------------------+
+| +--gold-border-----------------------------------------------+  |
+| | [medal-gold]  PlayerOne       Lv 32            4,820       |  |
+| +------------------------------------------------------------+  |
+| +--silver-border---------------------------------------------+  |
+| | [medal-silver] PlayerTwo      Lv 28            3,650       |  |
+| +------------------------------------------------------------+  |
+| +--bronze-border---------------------------------------------+  |
+| | [medal-bronze] PlayerThree    Lv 25            2,980       |  |
+| +------------------------------------------------------------+  |
+| +--normal----------------------------------------------------+  |
+| | #4   SomePlayer              Lv 18            1,520        |  |
+| +------------------------------------------------------------+  |
+|                         (scroll)                                 |
++------------------------------------------------------------------+
+| [🏠]  [🗺]  [🛒]  [📋]  [👤]                                     |
++------------------------------------------------------------------+
+```
+
+**Layout**:
+```
+headerRowH   = Math.round(36 * s)
+rowH         = Math.round(56 * s)
+rowGap       = Math.round(8 * s)
+contentMaxW  = Math.round(720 * s)
+
+-- Medal rows (top 3) --
+medalIcon    = SpriteIcon "icon-medal-gold/silver/bronze", Math.round(28 * s)
+borderColor  = gold/silver/bronze hex
+
+-- Normal rows --
+rankStyle    = FONT_TITLE, Math.round(14 * s), fill UI.text.secondary
+nameStyle    = FONT_TITLE, Math.round(16 * s), fill 0xffffff
+levelStyle   = FONT_TITLE, Math.round(14 * s), fill UI.accent.blue
+scoreStyle   = FONT_TITLE, Math.round(18 * s), fill UI.accent.gold
+```
+
+### 5.5.2 Settings (Pushed from Profile)
+
+Reference implementation for uiScale. Kept from old design — already correct.
+
+```
++------------------------------------------------------------------+
+| [←] SETTINGS                                                    |
++------------------------------------------------------------------+
+|  +--[AUDIO]----------------------------------------------+      |
+|  | MUSIC                                      75%        |      |
+|  | [============================--------] (●)            |      |
+|  | SOUND EFFECTS                          100%           |      |
+|  | [======================================] (●)          |      |
+|  +-------------------------------------------------------+      |
+|  +--[THEME]----------------------------------------------+      |
+|  | [T1] [T2] [T3] [T4] [T5]                             |      |
+|  | [T6] [T7] [T8] [T9] [T10]                            |      |
+|  +-------------------------------------------------------+      |
+|  +--[ACCOUNT]--------------------------------------------+      |
+|  | DISPLAY NAME                          player123       |      |
+|  | (no wallet address shown)                             |      |
+|  +-------------------------------------------------------+      |
+|                    zKube v1.2.0                                  |
++------------------------------------------------------------------+
+```
+
+**Note**: Wallet address **hidden** in redesign (casual-first). Only display name visible.
+
+### 5.5.3 Tutorial / How to Play (Pushed from Profile)
+
+Scrollable step cards explaining game mechanics. Interactive tutorial (see Section 8) replaces this for first-time players, but this static reference remains accessible.
+
+```
++------------------------------------------------------------------+
+| [←] HOW TO PLAY                                                 |
++------------------------------------------------------------------+
+|  +--[Step 1]------------------------------------------------+  |
+|  | [icon-moves] MOVE BLOCKS                                  |  |
+|  | Swipe blocks left or right to form complete lines.        |  |
+|  | Gravity pulls blocks down after each move.                |  |
+|  +-----------------------------------------------------------+  |
+|  +--[Step 2]------------------------------------------------+  |
+|  | [icon-fire] USE BONUSES                                   |  |
+|  | Tap bonus buttons during gameplay to activate powers.     |  |
+|  | Combo, Score, Harvest, Wave, Supply — each unique.        |  |
+|  +-----------------------------------------------------------+  |
+|  +--[Step 3]------------------------------------------------+  |
+|  | [icon-star-filled] EARN STARS                             |  |
+|  | Beat the score target to clear levels. Get 1-3 stars      |  |
+|  | based on performance. Stars unlock better bonuses.        |  |
+|  +-----------------------------------------------------------+  |
+|  +--[Step 4]------------------------------------------------+  |
+|  | [icon-cube] COLLECT CUBES                                 |  |
+|  | Cubes drop from combos and level completion. Spend        |  |
+|  | them in the Shop on upgrades, or bring them into runs.    |  |
+|  +-----------------------------------------------------------+  |
+|  +--[Step 5]------------------------------------------------+  |
+|  | [icon-shop] UPGRADE IN THE SHOP                           |  |
+|  | Buy starting charges, increase bag size, unlock new       |  |
+|  | bonus types, and upgrade your bridging rank.              |  |
+|  +-----------------------------------------------------------+  |
++------------------------------------------------------------------+
+```
+
+**Layout**:
+```
+cardGap      = Math.round(12 * s)
+cardPad      = Math.round(16 * s)
+iconSize     = Math.round(32 * s)
+titleStyle   = FONT_TITLE, Math.round(16 * s), fill 0xffffff
+bodyStyle    = FONT_TITLE, Math.round(13 * s), fill UI.text.secondary, wordWrap
+```
 
 ---
 
-### 4.2 Play Screen
+## 6. Gameplay Screens
 
-The core gameplay screen with HUD bars, grid, and action bar.
+### 6.1 Loadout Page
+
+Full-screen push (tab bar hidden). Select 3 bonuses + cube bridging before a run.
 
 ```
 +------------------------------------------------------------------+
-| [=] L5  120/200   8/20  x3                             12 CUBE  |  <- StatsBar
-| [===progress========] [c1][c2]                        [***]     |  <- ProgressHudBar
+| [←]  SELECT LOADOUT                           [45 CUBE]         |  ← ScreenHeader with back
+|      Choose 3 bonuses for your run                               |
 +------------------------------------------------------------------+
-|  +--optional--+  +--------------------------------+  +--optional--+
-|  | Score      |  |                                |  | Moves      |
-|  | Panel      |  |        8 x 10 GAME GRID       |  | Panel      |
-|  | (desktop)  |  |                                |  | (desktop)  |
-|  |            |  |     blocks, gravity, drag       |  |            |
-|  +------------+  +--------------------------------+  +------------+
-|                  |      NEXT LINE PREVIEW          |
-|                  +--------------------------------+
-+------------------------------------------------------------------+
-| [Bonus1] [Bonus2] [Bonus3] | x3 combo | *** |  [Surrender]     |  <- ActionBar
+|                                                                  |
+|                         BONUSES                                  |
+|                                                                  |
+|  +--------+  +--------+  +--------+  +--------+  +--------+    |
+|  | [img]  |  | [img]  |  | [img]  |  | [img]  |  | [img]  |    |
+|  | Combo  |  | Score  |  |Harvest |  | Wave   |  |Supply  |    |
+|  | [SEL]  |  | [SEL]  |  | [SEL]  |  | [🔒]  |  | [🔒]  |    |
+|  +--------+  +--------+  +--------+  +--------+  +--------+    |
+|                                                                  |
+|                   BRING CUBES (MAX 10)                           |
+|  [================(●)--------------------]  5                    |
+|                                                                  |
+|  +---------------------------------------------------+          |
+|  |              START GAME                            |          |  ← green
+|  +---------------------------------------------------+          |
+|  +---------------------------------------------------+          |
+|  |                CANCEL                              |          |  ← purple
+|  +---------------------------------------------------+          |
+|                                                                  |
 +------------------------------------------------------------------+
 ```
 
-**Layout source**: `useFullscreenLayout()` provides ALL positions.
-
-**Key dimensions**:
+**Layout**:
 ```
--- Stats Bar (top) --
+contentTop   = headerH + Math.round(40 * s)
+
+-- Bonus tiles --
+tileSize     = Math.min(Math.round(80 * s), (contentWidth - 4 * Math.round(16 * s)) / 5)
+tileGap      = Math.round(16 * s)
+tileRadius   = Math.round(14 * s)
+iconSize     = tileSize * 0.55
+
+selectedBorder = UI.accent.gold, width Math.round(3 * s)
+lockedAlpha    = 0.4
+lockIcon       = SpriteIcon "icon-lock"
+
+nameStyle    = FONT_TITLE, Math.round(12 * s)
+sectionTitle = FONT_TITLE, Math.round(20 * s)
+
+-- Cube slider --
+trackH       = Math.round(10 * s)
+knobR        = Math.round(16 * s)
+knobColor    = UI.accent.gold
+valueStyle   = FONT_TITLE, Math.round(18 * s)
+range        = [0, playerMeta.maxCubes] (from bridging rank)
+
+-- Buttons --
+startBtnH    = Math.round(56 * s)
+cancelBtnH   = Math.round(48 * s)
+startFont    = Math.round(18 * s)
+cancelFont   = Math.round(16 * s)
+
+-- START GAME action --
+Calls onStartGame(selectedBonuses, cubesToBring)
+On success → push PlayScreen
+```
+
+### 6.2 Play Screen
+
+Full-screen gameplay. No tab bar, no header. Custom HUD.
+
+```
++------------------------------------------------------------------+
+| [☰] L5  120/200   8/20  ×3                            12 CUBE  |  ← StatsBar
+| [===progress========] [c1][c2]                       [★★☆]     |  ← ProgressHudBar
++------------------------------------------------------------------+
+|                                                                  |
+|  +--optional--+  +------------------------------+  +--optional--+
+|  | Score      |  |                              |  | Moves      |
+|  | Panel      |  |      8 × 10 GAME GRID       |  | Panel      |
+|  | (desktop)  |  |                              |  | (desktop)  |
+|  |            |  |   blocks, gravity, drag       |  |            |
+|  +------------+  +------------------------------+  +------------+
+|                  |     NEXT LINE PREVIEW          |
+|                  +------------------------------+
++------------------------------------------------------------------+
+| [Bonus1] [Bonus2] [Bonus3] | ×3 combo | ★★★ | [Surrender]      |  ← ActionBar
++------------------------------------------------------------------+
+```
+
+**Layout** (from `useFullscreenLayout()`):
+
+```
+-- Stats Bar --
 barH         = Math.round(32 * s)
 barY         = Math.round(6 * s) + safeAreaTop
-barX         = gridX - Math.round(8 * s)
-barW         = gridWidth + Math.round(16 * s)
-backBtn      = Math.round(28 * s) wide  <-- currently uses emoji "☰", replace with SpriteIcon
-levelBadge   = circle, radius = (barH - 4) / 2, gold fill (0xB8860B)
+menuBtn      = SpriteIcon "icon-menu", Math.round(28 * s)
+levelBadge   = circle, radius (barH - 4) / 2, gold fill
 scoreText    = FONT_TITLE, Math.round(13 * s)
-movesText    = FONT_TITLE, Math.round(14 * s), red when danger
+movesText    = FONT_TITLE, Math.round(14 * s), red when ≤ 3 remaining
+cubeDisplay  = SpriteIcon "icon-cube" + text, right-aligned
 
 -- Progress Bar --
 barH         = Math.round(26 * s)
 progressH    = Math.round(8 * s) inner track
-starSection  = Math.round(40 * s) right-aligned
-stars        = SpriteIcon "star-filled"/"star-empty"  <-- currently emoji, must replace
-constraints  = dots/circles drawn procedurally (keep as-is, legitimate)
+stars        = SpriteIcon "icon-star-filled" / "icon-star-empty"
+constraints  = procedural dots (keep as-is)
 
 -- Game Grid --
 cellSize     = clamp(min(cellFromW, cellFromH), 28, 56)
@@ -346,864 +1008,569 @@ gridX        = centered: (screenWidth - gridW) / 2
 gridY        = hudTotalHeight + framePad
 
 -- Next Line Preview --
-height       = cellSize (one row)
-y            = gridY + gridH + 4
+height       = cellSize
+y            = gridY + gridH + Math.round(4 * s)
 
 -- Action Bar --
 barH         = Math.round(64 * s)
 barY         = screenHeight - barH - safeAreaBottom
+bonusBtns    = 3 buttons, Math.round(48 * s) each
+surrenderBtn = SpriteIcon "icon-surrender", red variant
 
--- Side Panels (desktop only, >= 900px) --
+-- Side Panels (desktop ≥ 900px only) --
 panelW       = Math.round(100 * s)
-leftX        = gridX - panelW - padding
-rightX       = gridX + gridW + padding
+leftX        = gridX - panelW - Math.round(16 * s)
+rightX       = gridX + gridW + Math.round(16 * s)
 ```
 
-**Issues to fix**:
-- `LOADING_SUB_STYLE` uses `FONT_BODY` -> FONT_TITLE
-- `LOADING_TITLE_STYLE` has hardcoded `fontSize: 28` -> `Math.round(28 * s)`
-- `BONUS_DESC_STYLE` has hardcoded `fontSize: 16` -> scale
-- `STATUS_TEXT_STYLE` uses `FONT_BOLD` -> FONT_TITLE, hardcoded `fontSize: 13` -> scale
-- StatsBar `labelStyle` uses `FONT_BODY` -> FONT_TITLE
-- StatsBar `cubeStyle` uses `FONT_BODY` -> FONT_TITLE
-- HudPillButton icon `☰` -> SpriteIcon "menu"
-- Stars `⭐`/`☆` -> SpriteIcon "star-filled"/"star-empty"
-- Cube display `🧊` -> SpriteIcon "cube"
-- Status bubble `width: 180, height: 30` -> scale by `s`
+**Interaction**:
+- Drag blocks horizontally → `move()` transaction
+- Tap bonus button → `applyBonus()` or bonus-specific modal
+- Tap menu → MenuModal
+- Tap surrender → confirmation → `surrender()` transaction
+
+**State machine** (from `useGameStateMachine`):
+```
+idle → moving → animating_clear → animating_gravity → animating_spawn → idle
+         ↓
+    (no lines) → idle
+```
 
 ---
 
-### 4.3 Map Page
+## 7. Modal Specifications
 
-Super Mario World-style progression map with horizontal zone scrolling.
+All modals share base behavior: backdrop (0x000000, alpha 0.6), centered panel, scale-in animation.
 
-```
-+------------------------------------------------------------------+
-| [<Home]  ADVENTURE MAP                                           |  <- PageTopBar
-|          Zone 1 of 5                                             |
-+------------------------------------------------------------------+
-|                                                                  |
-|  +-zone-bg-1080x1920-portrait, cover-scaled-----------------+   |
-|  |                                                           |   |
-|  |    (o)----(o)----(o)----(o)                              |   |
-|  |     L1     L2     L3     L4                              |   |
-|  |                    \                                      |   |
-|  |                     (o)----(o)                            |   |
-|  |                      L5     L6                            |   |
-|  |                              \                            |   |
-|  |    +--LevelPreview---------+  (o)----(o)----(o)          |   |
-|  |    | L3: Easy              |   L7     L8     L9          |   |
-|  |    | Score: 45/60          |          |                   |   |
-|  |    | *** (3 stars)         |         (o)----(BOSS)        |   |
-|  |    | [PLAY]               |          L10                  |   |
-|  |    +----------------------+                               |   |
-|  |                                                           |   |
-|  +-----------< swipe left/right to change zones >-----------+   |
-|                                                                  |
-|            [o]  [o]  [*]  [o]  [o]                              |  <- Zone dots
-+------------------------------------------------------------------+
-```
-
-**Layout rules**:
-```
-zones        = 5 (levels 1-10 per zone)
-zoneW        = screenWidth
-zoneH        = screenHeight - headerH
-headerH      = standalone ? 0 : topBarHeight
-swipeThreshold = Math.round(50 * s)
-
--- Map Nodes --
-nodeR        = Math.round(18 * s)
-fontSize     = Math.round(11-18 * s) depending on type (level number, status)
-cleared icon = SpriteIcon "star-filled"  <-- currently emoji "✓"
-shop icon    = SpriteIcon "shop"          <-- currently emoji "🛒"
-boss node    = larger radius, gold border
-
--- Level Preview (popup on node tap) --
-previewW     = Math.round(220 * s)
-previewH     = dynamic based on content
-fontSize     = Math.round(11-18 * s)
-stars        = SpriteIcon "star-filled"/"star-empty"  <-- currently "✓"/"✕"
-skull icon   = SpriteIcon  <-- currently "💀"
-
--- Zone indicator dots --
-dotR         = Math.round(6 * s)
-dotGap       = Math.round(12 * s)
-bottomPad    = Math.round(24 * s)
-
--- Back button text --
-"← Back"    = SpriteIcon "menu" + "Back" text  <-- currently "←" emoji
-```
-
-**Issues to fix**:
-- All fontSize values hardcoded -> multiply by `s`
-- Emoji `✓`, `🛒`, `←`, `✕`, `💀` -> SpriteIcon
-- `ZoneBackground` fontSize hardcoded -> scale
-- Needs `uiScale` prop (currently not passed)
-
----
-
-### 4.4 Settings Page (REFERENCE IMPLEMENTATION)
-
-This page correctly implements `uiScale` throughout. Use as template for all others.
+### 7.1 PixiModal (Base)
 
 ```
-+------------------------------------------------------------------+
-| [<Home]  SETTINGS                                                |
-+------------------------------------------------------------------+
-|                                                                  |
-|  +--[AUDIO]----------------------------------------------+      |
-|  | MUSIC                                       75%       |      |
-|  | [============================--------] (o)            |      |
-|  | SOUND EFFECTS                           100%          |      |
-|  | [======================================] (o)          |      |
-|  +-------------------------------------------------------+      |
-|                                                                  |
-|  +--[THEME]----------------------------------------------+      |
-|  | [T1] [T2] [T3] [T4] [T5]                             |      |
-|  | [T6] [T7] [T8] [T9] [T10]                            |      |
-|  +-------------------------------------------------------+      |
-|                                                                  |
-|  +--[ACCOUNT]--------------------------------------------+      |
-|  | USERNAME                              player123       |      |
-|  | WALLET                           0x1234...abcd        |      |
-|  +-------------------------------------------------------+      |
-|                                                                  |
-|                    zKube v1.2.0                                  |
-|              Built on Starknet with Dojo                         |
-+------------------------------------------------------------------+
-```
-
-**How it scales** (the correct pattern):
-```typescript
-const s = uiScale;
-const contentPadding = Math.round(20 * s);
-const contentTop = topBarHeight + Math.round(12 * s);
-const contentWidth = screenWidth - contentPadding * 2;
-
-// Section panel
-const radius = Math.round(12 * s);
-const padX = Math.round(16 * s);
-const titleY = Math.round(12 * s);
-const titleStyle = { fontFamily: FONT_TITLE, fontSize: Math.round(16 * s), fill: 0xffffff };
-
-// Slider
-const rowH = Math.round(60 * s);
-const trackH = Math.round(8 * s);
-const knobR = Math.round(12 * s);
-
-// Theme grid
-const gap = Math.round(8 * s);
-const optionH = Math.round(56 * s);
-```
-
-**Status**: DONE. No changes needed (except PageTopBar receiving uiScale).
-
----
-
-### 4.5 Leaderboard Page
-
-Scrollable ranking list with medal rows for top 3.
-
-```
-+------------------------------------------------------------------+
-| [<Home]  LEADERBOARD                                      [Ref] |
-|          42 PLAYERS                                              |
-+------------------------------------------------------------------+
-| #     PLAYER               LVL        SCORE                     |  <- Header
-+------------------------------------------------------------------+
-| +--[ROW]--gold-border--------------------------------------------+
-| | [medal]  PlayerOne        Lv 32              4,820             |  <- Top 1
-| +----------------------------------------------------------------+
-| +--[ROW]--silver-border------------------------------------------+
-| | [medal]  PlayerTwo        Lv 28              3,650             |  <- Top 2
-| +----------------------------------------------------------------+
-| +--[ROW]--bronze-border------------------------------------------+
-| | [medal]  PlayerThree      Lv 25              2,980             |  <- Top 3
-| +----------------------------------------------------------------+
-| +--[ROW]--normal----------------------------------------------+  |
-| | #4       SomePlayer       Lv 18              1,520           |  |
-| +--------------------------------------------------------------+  |
-| +--[ROW]--normal----------------------------------------------+  |
-| | #5       AnotherOne       Lv 15              1,200           |  |
-| +--------------------------------------------------------------+  |
-|                           (scroll)                               |
-+------------------------------------------------------------------+
-```
-
-**Layout rules**:
-```
-contentPadding = Math.round(16 * s)
-headerH      = Math.round(40 * s)
-rowH         = Math.round(64 * s)
-rowGap       = Math.round(10 * s)
-contentMaxW  = Math.round(720 * s)
-
--- Row --
-badgeSize    = Math.round(40 * s)
-badgeX       = Math.round(8 * s)
-badgeRadius  = Math.round(8 * s)
-medal top 3  = SpriteIcon "crown"/"star-filled"  <-- currently emoji 🥇🥈🥉
-rankStyle    = FONT_TITLE, Math.round(16 * s), fill 0x94a3b8
-nameStyle    = FONT_TITLE, Math.round(16 * s), fill 0xffffff
-statusStyle  = FONT_TITLE, Math.round(11 * s)
-scoreStyle   = FONT_TITLE, Math.round(20 * s)
-levelStyle   = FONT_TITLE, Math.round(14 * s), fill 0x60a5fa
-
--- Status icons --
-"✓ Completed" = SpriteIcon "star-filled" + text  <-- currently emoji
-"▶ In Progress" = procedural triangle or SpriteIcon  <-- currently emoji
-
--- Header --
-headerBg     = 0x0f172a, alpha 0.9, rounded 10
-labels       = FONT_TITLE, Math.round(11 * s), fill 0x94a3b8
-```
-
-**Issues to fix**:
-- 6 text styles use `FONT_BODY` -> FONT_TITLE
-- All fontSize values hardcoded -> multiply by `s`
-- Emoji `🥇🥈🥉`, `✓`, `▶` -> SpriteIcon or procedural
-- Row dimensions hardcoded -> scale
-- Needs `uiScale` prop
-
----
-
-### 4.6 Shop Page
-
-2-column card grid with bonus upgrade cards and bridging card.
-
-```
-+------------------------------------------------------------------+
-| [<Home]  SHOP                                      [123 CUBE]   |
-+------------------------------------------------------------------+
-|                                                                  |
-|  +--[Combo]-----------+  +--[Score]-----------+                 |
-|  | [icon] Combo       |  | [icon] Score       |                 |
-|  | STARTING  [===] UP |  | STARTING  [===] UP |                 |
-|  | BAG       [=--] UP |  | BAG       [=--] UP |                 |
-|  +--------------------+  +--------------------+                 |
-|                                                                  |
-|  +--[Harvest]---------+  +--[Wave]--locked-----+                |
-|  | [icon] Harvest     |  | [icon] Wave    [L]  |                |
-|  | STARTING  [===] UP |  |                     |                |
-|  | BAG       [=--] UP |  |    [UNLOCK 200]     |                |
-|  +--------------------+  +--------------------+                 |
-|                                                                  |
-|  +--[Supply]--locked---+  +--[Bridging]--------+                |
-|  | [icon] Supply  [L]  |  | [icon] Bridging    |                |
-|  |                     |  | Rank 2             |                |
-|  |    [UNLOCK 200]     |  | Max 10 cubes/run   |                |
-|  +--------------------+  | [===]        [UP]   |                |
-|                          +--------------------+                 |
-+------------------------------------------------------------------+
-```
-
-**Layout rules**:
-```
-pad          = Math.round(16 * s)
-gap          = Math.round(12 * s)
-cardW        = (contentWidth - gap) / 2
-cardH        = Math.round(148 * s)
-cardRadius   = Math.round(10 * s)
-cardPad      = Math.round(14 * s)
-btnW         = Math.round(62 * s)
-btnH         = Math.round(36 * s)
-
--- Card Header --
-iconSize     = Math.round(22 * s)  <-- currently emoji, replace with bonus sprites
-nameStyle    = FONT_TITLE, Math.round(15 * s)
-lockIcon     = SpriteIcon "lock"  <-- currently emoji "🔒"
-
--- Level Pips --
-pipW         = Math.round(18 * s)
-pipH         = Math.round(6 * s)
-pipGap       = Math.round(5 * s)
-
--- Labels --
-labelStyle   = FONT_TITLE, Math.round(11 * s)
-cubesStyle   = FONT_TITLE, Math.round(13 * s), fill 0xfbbf24
-rankStyle    = FONT_TITLE, Math.round(12 * s)
-```
-
-**Issues to fix**:
-- 10+ text styles use `FONT_BODY` -> FONT_TITLE
-- Card icons are emoji (`🔥⭐🌾🌊📦🌉🛒🔒`) -> SpriteIcon/bonus sprites
-- All dimensions hardcoded -> multiply by `s`
-- Needs `uiScale` prop
-- `CARD_RADIUS`, `CARD_PAD`, `BTN_W`, `BTN_H` are module-level constants -> compute from `s`
-
----
-
-### 4.7 Quests Page
-
-Daily quest families with tiered progress and claim buttons.
-
-```
-+------------------------------------------------------------------+
-| [<Home]  DAILY QUESTS                              [45 CUBE]    |
-|          12 CUBE ready!                                          |
-+------------------------------------------------------------------+
-|                    RESETS IN 05:32:18                            |
-+------------------------------------------------------------------+
-|  +--[Player]------green-border-(claimable)------------------+   |
-|  | [icon]  Player Quests                            2/3     |   |
-|  |   [v]  T1: Warm-Up (play 1 game)              +3 CUBE   |   |
-|  |   [v]  T2: Getting Started (play 3)            +6 CUBE   |   |
-|  |   [ ]  T3: Dedicated (play 5)                 +12 CUBE   |   |
-|  |   [====progress==========----]  3/5                      |   |
-|  |   [      CLAIM T2 (+6 CUBE)      ]                      |   |
-|  +----------------------------------------------------------+   |
-|                                                                  |
-|  +--[Clearer]-----------------------------------------------+   |
-|  | [icon]  Clearer                                  1/3     |   |
-|  |   [v]  T1: Line Breaker (10 lines)             +3 CUBE   |   |
-|  |   [ ]  T2: Line Crusher (30 lines)             +6 CUBE   |   |
-|  |   [L]  T3: Line Master (50 lines)             +12 CUBE   |   |
-|  |   [=======progress======---------]  18/30                |   |
-|  +----------------------------------------------------------+   |
-|                                                                  |
-|  (more families...)                                              |
-+------------------------------------------------------------------+
-```
-
-**Layout rules**:
-```
-timerH       = Math.round(32 * s)
-cardGap      = Math.round(14 * s)
-cardPad      = Math.round(14 * s)
-
--- Family Card --
-headerH      = Math.round(44 * s)
-tierRowH     = Math.round(28 * s)
-progressBarH = Math.round(10 * s)
-claimBtnH    = Math.round(48 * s)
-
--- Family Header --
-familyIcon   = SpriteIcon from bonus/catalog  <-- currently emoji 🎮📊⚡🏆
-familyName   = FONT_TITLE, Math.round(16 * s), fill 0xffffff
-progressText = FONT_TITLE, Math.round(12 * s)
-
--- Tier Row --
-tierIcon     = SpriteIcon  <-- currently emoji ⚪✅🔒
-tierName     = FONT_TITLE, Math.round(12 * s)
-tierReward   = FONT_TITLE, Math.round(12 * s), fill gold/muted
-
--- Timer --
-timerStyle   = FONT_TITLE, Math.round(12 * s), fill 0x64748b
-```
-
-**Issues to fix**:
-- 8 text styles use `FONT_BODY` -> FONT_TITLE
-- Family icons `🎮📊⚡🏆` -> need new icon sprites or use existing catalog
-- Tier state icons `⚪✅🔒` -> SpriteIcon
-- All dimensions hardcoded -> multiply by `s`
-- Needs `uiScale` prop
-
----
-
-### 4.8 My Games Page
-
-List of active and completed games with resume action.
-
-```
-+------------------------------------------------------------------+
-| [<Home]  MY GAMES                                                |
-+------------------------------------------------------------------+
-|                                                                  |
-|  ONGOING                                                        |
-|  +--[GameRow]--blue-bg--------------------------------------+   |
-|  | Game #42    Lv 12    Score: 450    Cubes: 15     [PLAY>] |   |
-|  +----------------------------------------------------------+   |
-|  +--[GameRow]--blue-bg--------------------------------------+   |
-|  | Game #38    Lv 8     Score: 280    Cubes: 8      [PLAY>] |   |
-|  +----------------------------------------------------------+   |
-|                                                                  |
-|  FINISHED                                                        |
-|  +--[GameRow]--gray-bg--------------------------------------+   |
-|  | Game #35    Lv 23    Score: 1,200  Cubes: 45     [VIEW>] |   |
-|  +----------------------------------------------------------+   |
-|  +--[GameRow]--gray-bg--------------------------------------+   |
-|  | Game #31    Lv 5     Score: 120    Cubes: 3      [VIEW>] |   |
-|  +----------------------------------------------------------+   |
-|                                                                  |
-+------------------------------------------------------------------+
-```
-
-**Layout rules**:
-```
-sectionGap   = Math.round(16 * s)
-rowH         = Math.round(44 * s)
-rowGap       = Math.round(6 * s)
-rowRadius    = Math.round(8 * s)
-
--- Section Title --
-titleStyle   = FONT_TITLE, Math.round(16 * s), fill 0xffffff
-
--- Game Row --
-bgActive     = 0x3b82f6, alpha 0.9
-bgFinished   = 0x475569, alpha 0.9
-nameStyle    = FONT_TITLE, Math.round(13 * s), fill 0xffffff
-detailStyle  = FONT_TITLE, Math.round(13 * s), fill 0x94a3b8
-cubeIcon     = SpriteIcon "cube"  <-- currently emoji "🧊"
-checkIcon    = SpriteIcon "star-filled"  <-- currently emoji "✓"
-arrowBtn     = PixiButton icon-only
-```
-
-**Issues to fix**:
-- 5 text styles use `FONT_BODY` -> FONT_TITLE
-- Emoji `🧊`, `✓` -> SpriteIcon
-- All dimensions hardcoded -> multiply by `s`
-- Needs `uiScale` prop
-
----
-
-### 4.9 Loadout Page
-
-Bonus selection grid with cube bridging slider.
-
-```
-+------------------------------------------------------------------+
-| [<Home]  SELECT LOADOUT                            [45 CUBE]    |
-|          CHOOSE 3 BONUSES FOR YOUR RUN                           |
-+------------------------------------------------------------------+
-|                                                                  |
-|                          BONUSES                                 |
-|                                                                  |
-|  +-------+  +-------+  +-------+  +-------+  +-------+         |
-|  | Combo |  | Score |  |Harvest|  | Wave  |  |Supply |         |
-|  | [img] |  | [img] |  | [img] |  | [img] |  | [img] |         |
-|  |  SEL  |  |  SEL  |  |  SEL  |  | LOCK  |  | LOCK  |         |
-|  +-------+  +-------+  +-------+  +-------+  +-------+         |
-|                                                                  |
-|                    BRING CUBES (MAX 10)                          |
-|  [==============(o)---------------------]  5                    |
-|                                                                  |
-|  +----------------------------------------------------+         |
-|  |              START GAME                             |         |  <- green
-|  +----------------------------------------------------+         |
-|  +----------------------------------------------------+         |
-|  |                CANCEL                               |         |  <- purple
-|  +----------------------------------------------------+         |
-|                                                                  |
-+------------------------------------------------------------------+
-```
-
-**Layout rules**:
-```
-contentPadding = Math.round(24 * s)
-contentTop   = topBarHeight + Math.round(40 * s)
-tileSize     = Math.min(Math.round(80 * s), (contentWidth - 4 * Math.round(16*s)) / 5)
-tileGap      = Math.round(16 * s)
-tileRadius   = Math.round(14 * s)
-
--- Bonus Tile --
-iconSize     = tileSize * 0.55  (uses bonus PNG textures)
-nameStyle    = FONT_TITLE, Math.round(12 * s)  <-- currently FONT_BODY
-lockIcon     = SpriteIcon "lock"  <-- currently emoji "🔒"
-
--- Cube Slider --
-trackH       = Math.round(10 * s)
-knobR        = Math.round(16 * s)
-valueStyle   = FONT_TITLE, Math.round(18 * s)
-
--- Section Title --
-bonusTitle   = FONT_TITLE, Math.round(20 * s)
-cubeTitle    = FONT_TITLE, Math.round(18 * s)
-
--- Buttons --
-startBtnH    = Math.round(56 * s)
-cancelBtnH   = Math.round(48 * s)
-startFont    = Math.round(18 * s)
-cancelFont   = Math.round(16 * s)
-```
-
-**Issues to fix**:
-- `LOCK_ICON_STYLE` hardcoded `fontSize: 24` -> scale
-- `bonusLabelStyle` uses `FONT_BODY` -> FONT_TITLE
-- Emoji `🔒` -> SpriteIcon "lock"
-- Still references `.svg` paths for Wave/Supply textures -> should be `.png`
-- Dimensions hardcoded -> multiply by `s`
-- Needs `uiScale` prop
-
----
-
-### 4.10 Tutorial Page
-
-Scrollable step cards explaining game mechanics.
-
-```
-+------------------------------------------------------------------+
-| [<Home]  HOW TO PLAY                                             |
-+------------------------------------------------------------------+
-|                                                                  |
-|  +--[Step 1]------------------------------------------------+  |
-|  | MOVE BLOCKS                                                |  |
-|  | Swipe blocks left/right to form lines                     |  |
-|  |                                                            |  |
-|  | [icon] Slide blocks horizontally                          |  |
-|  | [icon] Fill complete rows to clear them                   |  |
-|  | [icon] Gravity pulls blocks down                          |  |
-|  +------------------------------------------------------------+  |
-|                                                                  |
-|  +--[Step 2]------------------------------------------------+  |
-|  | USE BONUSES                                                |  |
-|  | Tap bonus buttons during gameplay                         |  |
-|  |                                                            |  |
-|  | [icon] Combo: adds to your combo counter                  |  |
-|  | [icon] Score: instant bonus points                        |  |
-|  | [icon] Harvest: destroy blocks, earn cubes                |  |
-|  +------------------------------------------------------------+  |
-|                                                                  |
-|  (more steps...)                                                 |
-+------------------------------------------------------------------+
-```
-
-**Layout rules**:
-```
-contentPadding = Math.round(16 * s)
-cardGap      = Math.round(12 * s)
-
--- Step Card --
-cardPadding  = Math.round(14 * s)
-headerH      = Math.round(50 * s)
-descH        = Math.round(32 * s)
-itemH        = Math.round(28 * s)
-headerStyle  = FONT_TITLE, Math.round(16 * s), fill 0xffffff
-descStyle    = FONT_TITLE, Math.round(11 * s), fill 0x94a3b8
-itemStyle    = FONT_TITLE, Math.round(12 * s)
-
--- Item icons (currently emoji) --
-All emoji icons -> SpriteIcon from catalog
-  👆 -> icon-moves (swipe gesture)
-  ✨⚡ -> icon-star-filled / icon-fire
-  🔨🌊 -> bonus sprites (harvest, wave)
-  🧊 -> icon-cube
-  🛒 -> icon-shop
-  👑 -> icon-crown
-  etc.
-```
-
-**Issues to fix**:
-- 16+ emoji characters -> SpriteIcon (biggest emoji consumer)
-- All fontSize values hardcoded -> multiply by `s`
-- Needs `uiScale` prop
-- May need new "gesture" icon sprite for swipe instruction
-
----
-
-## 5. Modal Specifications
-
-All modals share `PixiModal` base component. Currently all modals have hardcoded dimensions.
-
-### 5.1 PixiModal (Base)
-
-```
-+------------------------------------------------------------------+
-|                                                                  |
-|         +------semi-transparent-backdrop---------+               |
-|         |                                        |               |
-|         |  MODAL TITLE                     [X]  |               |
-|         |                                        |               |
-|         |  (modal-specific content)              |               |
-|         |                                        |               |
-|         |          [ACTION]    [CANCEL]          |               |
-|         +----------------------------------------+               |
-|                                                                  |
-+------------------------------------------------------------------+
-```
-
-**Layout rules**:
-```
-backdrop     = fullscreen 0x000000, alpha 0.6
-modalW       = Math.round(min(screenWidth * 0.85, 400) * s)
-modalH       = dynamic per modal
-modalX       = (screenWidth - modalW) / 2
-modalY       = (screenHeight - modalH) / 2
+backdrop     = fullscreen 0x000000, alpha 0.6, tap = close (optional)
+panelW       = Math.round(Math.min(screenWidth * 0.85, 400) * s)
+panelH       = dynamic per modal
+panelX       = (screenWidth - panelW) / 2
+panelY       = (screenHeight - panelH) / 2
 radius       = Math.round(16 * s)
-bgColor      = 0x1e293b
-border       = 0x475569, width 1
-
-titleStyle   = FONT_TITLE, Math.round(22 * s), fill 0xffffff
-closeBtnSize = Math.round(36 * s)
-closeBtnIcon = SpriteIcon "close"
+bgColor      = UI.bg.primary (0x1e293b)
+border       = UI.border.primary (0x475569), width 1
+titleStyle   = FONT_TITLE, Math.round(22 * s)
+closeBtn     = SpriteIcon "icon-close", Math.round(32 * s), top-right
 ```
 
-**Issues to fix (PixiModal base)**:
-- `fontSize={22}` -> `Math.round(22 * s)`
-- `width={36} height={36}` -> `Math.round(36 * s)`
-- All y offsets hardcoded -> scale
-- Must accept and propagate `uiScale`
+### 7.2 Level Complete Modal
 
-### 5.2 Modal-Specific Content
+Shown when level score target is met.
 
-| Modal            | Key Content                                 | Special Needs                     |
-|------------------|---------------------------------------------|-----------------------------------|
-| GameOverModal    | Level reached, total score, cubes, max combo| Skull icon (currently emoji)      |
-| VictoryModal     | Total score, cubes, max combo, share btn    | Trophy icon, confetti?            |
-| LevelCompleteModal| Stars, score, bonus awarded, cubes earned  | Star sprites, bonus icon          |
-| MenuModal        | Resume, Surrender, Go Home buttons          | Straightforward                   |
-| InGameShopModal  | Buy charges, allocate, level up, swap       | Complex card layout, cube icon    |
+```
++----------------------------------------+
+|              LEVEL COMPLETE!           |
+|                                        |
+|              ★ ★ ★                     |  ← 1-3 stars, animated
+|                                        |
+|   Score: 280        Cubes: +5          |
+|   Combo: ×4         Moves left: 6     |
+|                                        |
+|   Bonus Awarded: [icon] Combo +1      |  ← if earned
+|                                        |
+|   [      NEXT LEVEL      ]            |  ← green
+|   [        HOME           ]            |  ← purple
++----------------------------------------+
+```
 
-All modals need `uiScale` prop and must scale all internal dimensions.
+**Stars animation**: Each star scales from 0 → 1.2 → 1.0 with 200ms delay between each. Particle burst on each star.
 
----
+**Layout**:
+```
+starSize     = Math.round(40 * s)
+starGap      = Math.round(16 * s)
+statLabel    = FONT_TITLE, Math.round(12 * s), fill UI.text.secondary
+statValue    = FONT_TITLE, Math.round(18 * s), fill 0xffffff
+cubeValue    = FONT_TITLE, Math.round(18 * s), fill UI.accent.gold
+btnH         = Math.round(48 * s)
+btnGap       = Math.round(10 * s)
+```
 
-## 6. Asset Requirements
+### 7.3 Game Over Modal
 
-### 6.1 Current Asset Inventory
+Shown when moves run out before completing a level.
 
-| Category     | Count | Source Size    | Render Size (mobile) | Render Size (desktop) |
-|-------------|-------|---------------|----------------------|-----------------------|
-| Buttons     | 5     | 96x96         | 40-56px (9-slice)    | 48-90px (9-slice)     |
-| Icons       | 18    | 48x48         | 20-28px              | 24-48px               |
-| Panels      | 4     | 96x96         | varies (9-slice)     | varies (9-slice)      |
-| Bonus Icons | 5     | 256x256       | 44-64px              | 44-96px               |
-| UI Chrome   | 3     | 360x40-64     | stretched to bar     | stretched to bar      |
-| Particles   | 4     | 16x16         | 8-16px               | 8-16px                |
-| Blocks      | 4/theme| 256-1024 wide | 28-56px per cell     | 28-56px per cell      |
-| Grid BG     | 1/theme| 512x640      | gridW x gridH        | gridW x gridH         |
-| Grid Frame  | 1/theme| 576x720      | gridW+pad x gridH+pad| gridW+pad x gridH+pad |
-| Background  | 1/theme| 1080x1920    | cover fill           | cover fill            |
-| Logo        | 1/theme| 512x512      | 180-280px            | 340-510px             |
-| Map         | 1/theme| 1080x1920    | cover fill           | cover fill            |
-| Theme Icon  | 1/theme| 128x128      | ~40-56px             | ~56-84px              |
+```
++----------------------------------------+
+|    [icon-skull]  GAME OVER             |
+|                                        |
+|   Reached Level: 12                    |
+|   Total Score: 1,450                   |
+|   Max Combo: ×6                        |
+|   Cubes Earned: 23                     |
+|                                        |
+|   [      TRY AGAIN      ]             |  ← orange
+|   [        HOME          ]             |  ← purple
++----------------------------------------+
+```
 
-### 6.2 Asset Sizing Adequacy
+**Layout**:
+```
+skullSize    = Math.round(32 * s)
+statRows     = 4, each Math.round(32 * s) height
+labelStyle   = FONT_TITLE, Math.round(14 * s), fill UI.text.secondary
+valueStyle   = FONT_TITLE, Math.round(20 * s), fill 0xffffff
+cubeStyle    = fill UI.accent.gold
+btnH         = Math.round(48 * s)
+```
 
-**Sufficient for all screen sizes** (downscaled from large source):
-- Bonus icons (256px source, rendered at max ~96px)
-- Blocks (256px per cell, rendered at max 56px)
-- Grid BG/Frame (512-576px, rendered at max ~450px)
-- Backgrounds (1080px wide, always downscaled)
-- Logos (512px, rendered at max ~510px -- borderline, OK with bilinear)
+### 7.4 Victory Modal
 
-**Sufficient but tight**:
-- Buttons (96px source, rendered at max 90px) -- 9-slice handles this gracefully
-- Panels (96px source) -- 9-slice handles this
-- Theme icons (128px source, rendered at max ~84px)
+Shown when level 50 is completed (run_completed).
 
-**Adequate for current usage**:
-- Icons (48px source, rendered at max ~48px) -- at DPR 2, this means 96 physical pixels
-  At `resolution: min(dpr, 2)` this is exactly enough. No upscaling ever needed.
+```
++----------------------------------------+
+|         🎉 VICTORY! 🎉                 |
+|                                        |
+|   [icon-crown] CHAMPION               |
+|                                        |
+|   Total Score: 12,450                  |
+|   Cubes Earned: 145                    |
+|   Max Combo: ×8                        |
+|                                        |
+|   [      CELEBRATE      ]             |  ← gold
+|   [        HOME          ]             |  ← purple
++----------------------------------------+
+```
 
-### 6.3 Missing Assets (New Sprites Needed)
+**Particles**: Confetti particle system running behind the modal. Gold + theme accent colors.
 
-These are currently emoji and need PNG sprite equivalents:
+### 7.5 Menu Modal
 
-| Needed Icon  | Used Where                    | Suggested Name    | Size    |
-|-------------|-------------------------------|-------------------|---------|
-| Medal Gold  | Leaderboard #1                | icon-medal-gold   | 48x48   |
-| Medal Silver| Leaderboard #2                | icon-medal-silver | 48x48   |
-| Medal Bronze| Leaderboard #3                | icon-medal-bronze | 48x48   |
-| Checkmark   | Completed states              | icon-check        | 48x48   |
-| Play Arrow  | In-progress indicator         | icon-play         | 48x48   |
-| Game Pad    | Quest family: Player          | icon-gamepad      | 48x48   |
-| Chart       | Quest family: Clearer         | icon-chart        | 48x48   |
-| Lightning   | Quest family: Combo           | icon-lightning    | 48x48   |
-| Bridge      | Bridging card icon            | icon-bridge       | 48x48   |
-| Package     | Supply bonus card icon        | icon-package      | 48x48   |
-| Wheat       | Harvest bonus card icon       | icon-wheat        | 48x48   |
-| Skull       | Death/game over               | icon-skull        | 48x48   |
-| Refresh     | Reload/retry actions          | icon-refresh      | 48x48   |
-| Menu Burger | Home/back button (☰)          | icon-hamburger    | 48x48   |
-| Arrow Left  | Back navigation               | icon-arrow-left   | 48x48   |
-| Gesture     | Swipe/drag tutorial           | icon-gesture      | 48x48   |
-| Cart        | Shop related                  | icon-cart         | 48x48   |
+Pause menu during gameplay.
 
-Total: **17 new icon sprites** (48x48px, same pipeline as existing icons).
+```
++----------------------------------------+
+|              PAUSED                    |
+|                                        |
+|   [      RESUME       ]               |  ← green
+|   [      SURRENDER     ]               |  ← red
+|   [       HOME         ]               |  ← purple
++----------------------------------------+
+```
 
----
+**Layout**:
+```
+btnW         = panelW - Math.round(40 * s)
+btnH         = Math.round(52 * s)
+btnGap       = Math.round(12 * s)
+```
 
-## 7. Migration Checklist
+### 7.6 In-Game Shop Modal
 
-### 7.1 Phase 1: Generate Missing Assets
+Appears every 10 levels. Spend cubes on consumables during a run.
 
-Generate the 17 new icon sprites listed in Section 6.3 using the existing `scripts/generate-assets.ts` pipeline.
+```
++----------------------------------------+
+|    [icon-shop]  LEVEL 10 SHOP          |
+|    Budget: 15 CUBE                     |
++----------------------------------------+
+|                                        |
+|  +--[Buy Charges]---+  +--[Allocate]-+ |
+|  | [bonus-icon]     |  | [bonus-icon]| |
+|  | +3 Combo Charges |  | Move charge | |
+|  | Cost: 5 CUBE     |  | to Harvest  | |
+|  | [BUY]            |  | [ALLOCATE]  | |
+|  +------------------+  +-------------+ |
+|                                        |
+|  +--[Level Up]------+  +--[Swap]-----+ |
+|  | [bonus-icon]     |  | [bonus-icon]| |
+|  | Upgrade Combo    |  | Swap Combo  | |
+|  | Lv2 → Lv3       |  | for Score   | |
+|  | [LEVEL UP]       |  | [SWAP]      | |
+|  +------------------+  +-------------+ |
+|                                        |
+|   [       CONTINUE       ]             |  ← green
++----------------------------------------+
+```
 
-### 7.2 Phase 2: Add uiScale to All Components
-
-Every component must receive `uiScale` (either via prop or via `useFullscreenLayout()`).
-
-**PageTopBar** (used by 8 pages):
-- Add `uiScale` prop
-- Scale `btnSize`, `padding`, `fontSize` by `s`
-- Replace `actionIcon` emoji with SpriteIcon
-
-**PixiButton**:
-- Already accepts `textStyle` for fontSize override
-- Default fontSize should still scale: `Math.round(18 * s)` when no textStyle provided
-
-**PixiModal**:
-- Add `uiScale` prop, propagate to all children
-- Scale all internal dimensions
-
-**MainScreen PageRenderer**:
-- Pass `uiScale` to ALL pages (currently only Settings and PlayScreen get it)
-
-### 7.3 Phase 3: Replace Hardcoded Values (Per Page)
-
-Each page needs the same transformation. Reference: SettingsPage.tsx.
-
-| Page            | File                        | Hardcoded Count | Emoji Count | Font Fix |
-|-----------------|-----------------------------|-----------------|-------------|----------|
-| LeaderboardPage | pages/LeaderboardPage.tsx   | ~15             | 5           | 4 FONT_BODY |
-| ShopPage        | pages/ShopPage.tsx          | ~20             | 8           | 4 FONT_BODY |
-| QuestsPage      | pages/QuestsPage.tsx        | ~18             | 5           | 4 FONT_BODY |
-| MyGamesPage     | pages/MyGamesPage.tsx       | ~12             | 2           | 4 FONT_BODY |
-| LoadoutPage     | pages/LoadoutPage.tsx       | ~15             | 1           | 1 FONT_BODY |
-| TutorialPage    | pages/TutorialPage.tsx      | ~14             | 16+         | 0        |
-| MapPage         | map/MapPage.tsx             | ~10             | 1           | 0        |
-| MapNode         | map/MapNode.tsx             | ~8              | 2           | 0        |
-| LevelPreview    | map/LevelPreview.tsx        | ~12             | 3           | 0        |
-| ZoneBackground  | map/ZoneBackground.tsx      | ~3              | 0           | 0        |
-| PageTopBar      | pages/PageTopBar.tsx        | ~8              | 0           | 0        |
-| MainScreen      | pages/MainScreen.tsx        | ~6              | 1           | 1 FONT_BODY |
-| PlayScreen      | pages/PlayScreen.tsx        | ~8              | 3           | 3 FONT_BODY |
-| **Modals**      |                             |                 |             |          |
-| PixiModal       | ui/PixiModal.tsx            | ~10             | 0           | 0        |
-| GameOverModal   | modals/GameOverModal.tsx    | ~8              | 0           | 0        |
-| VictoryModal    | modals/VictoryModal.tsx     | ~12             | 0           | 0        |
-| LevelCompleteModal| modals/LevelCompleteModal.tsx| ~14           | 0           | 0        |
-| MenuModal       | modals/MenuModal.tsx        | ~10             | 0           | 0        |
-| InGameShopModal | modals/InGameShopModal.tsx  | ~12             | 2           | 4 FONT_BODY |
-| **HUD/ActionBar**|                            |                 |             |          |
-| HUDBar          | hud/HUDBar.tsx              | ~3              | 0           | 0        |
-| ConstraintIndicator| hud/ConstraintIndicator.tsx| ~2           | 0           | 0        |
-| ProgressBar     | hud/ProgressBar.tsx         | ~2              | 0           | 0        |
-| LevelBadge      | hud/LevelBadge.tsx          | ~3              | 0           | 0        |
-| MovesCounter    | hud/MovesCounter.tsx        | ~3              | 0           | 0        |
-| ActionBar       | actionbar/ActionBar.tsx     | ~2              | 0           | 0        |
-| BonusButton     | actionbar/BonusButton.tsx   | ~2              | 0           | 0        |
-| ComboDisplay    | actionbar/ComboDisplay.tsx  | ~3              | 0           | 0        |
-| NextLinePreview | game/NextLinePreview.tsx    | ~2              | 0           | 0        |
-| **UI Components**|                            |                 |             |          |
-| PixiButton      | ui/PixiButton.tsx           | ~2              | 0           | 0        |
-| PixiPanel       | ui/PixiPanel.tsx            | ~2              | 0           | 0        |
-| PixiComponents  | ui/PixiComponents.tsx       | ~6              | 0           | 0        |
-| NavButton       | topbar/NavButton.tsx        | ~2              | 0           | 0        |
-| PixiToastLayer  | ui/PixiToastLayer.tsx       | ~4              | 0           | 0        |
-
-**Total**: ~30 files, ~200+ hardcoded values, ~50 emoji, ~20 FONT_BODY
-
-### 7.4 Phase 4: Verify
-
-After all changes:
-1. `cd mobile-app && pnpm build` -- must pass
-2. Visual test at 375px (iPhone SE)
-3. Visual test at 430px (iPhone 14 Pro Max)
-4. Visual test at 768px (iPad Mini portrait)
-5. Visual test at 1920x1080 (desktop landscape)
-6. Visual test at 1080x1920 (desktop portrait)
-
-### 7.5 Execution Priority
-
-**Batch 1 — Infrastructure** (do first, unlocks everything):
-1. Generate 17 new icon sprites
-2. Add `uiScale` prop to `PageTopBar`
-3. Add `uiScale` prop to `PixiModal`
-4. Pass `uiScale` from `MainScreen` PageRenderer to ALL pages
-5. Add icons to `catalog.ts` and `resolver.ts`
-
-**Batch 2 — Pages** (parallelize, each page is independent):
-- LeaderboardPage + ShopPage + QuestsPage (most complex)
-- MyGamesPage + LoadoutPage + TutorialPage (medium)
-- MapPage + MapNode + LevelPreview + ZoneBackground (map cluster)
-
-**Batch 3 — Modals + HUD** (parallelize):
-- PixiModal base + all 5 modals
-- HUD components (ConstraintIndicator, ProgressBar, LevelBadge, MovesCounter)
-- ActionBar components (BonusButton, ComboDisplay)
-
-**Batch 4 — Remaining UI + MainScreen/PlayScreen fixes**:
-- PixiButton, PixiPanel, PixiComponents, NavButton, PixiToastLayer
-- MainScreen (footer style, emoji)
-- PlayScreen (loading styles, status bubble, star/cube emoji)
+**Layout**:
+```
+gridCols     = 2
+cardW        = (panelW - Math.round(36 * s)) / 2
+cardH        = Math.round(120 * s)
+cardGap      = Math.round(8 * s)
+iconSize     = Math.round(32 * s)
+costStyle    = FONT_TITLE, Math.round(12 * s), fill UI.accent.gold
+```
 
 ---
 
-## Appendix A: Legitimate Procedural Drawing (DO NOT Replace)
+## 8. Onboarding Flow
+
+### First-Time Player Detection
+
+```typescript
+const isFirstTime = !localStorage.getItem('zkube_onboarded');
+```
+
+If first time → interactive tutorial overlay on first game. If returning → skip to normal flow.
+
+### Interactive Tutorial (10 Steps)
+
+Guided first game with contextual highlights and tips. A hand-pointer sprite animates to show where to interact.
+
+| Step | Trigger | Highlight | Tip Text | Hand Target |
+|------|---------|-----------|----------|-------------|
+| 1 | Game loads | Full grid | "Welcome to zKube! Slide blocks to form lines." | Center of grid |
+| 2 | After 2s | A specific block | "Drag this block to the right →" | The target block |
+| 3 | After first move | Cleared line (if any) | "Nice! Cleared lines earn points." | Score counter |
+| 4 | After 2 moves | Bonus bar | "Bonuses give you special powers." | First bonus button |
+| 5 | After bonus tap | Grid effect | "Combo bonus adds to your streak!" | Combo display |
+| 6 | After 3 moves | Progress bar | "Fill the bar to complete the level." | Progress bar |
+| 7 | After 4 moves | Stars | "Score higher for more stars!" | Star display |
+| 8 | After 5 moves | Constraint | "Meet the constraint for bonus rewards." | Constraint indicator |
+| 9 | Level complete | Level modal | "Level complete! Tap to continue." | Next Level button |
+| 10 | Dismiss | None | "You're ready! Have fun." | — |
+
+### Tutorial Overlay Component
+
+```
++------------------------------------------------------------------+
+|                                                                  |
+|   [dimmed everything except highlight target]                    |
+|                                                                  |
+|   +--[Tooltip bubble]--------+                                   |
+|   | "Drag this block right →" |                                  |
+|   +--[▼]---------------------+                                   |
+|           👆                                                      |  ← hand-pointer sprite
+|       [highlight target]                                         |
+|                                                                  |
++------------------------------------------------------------------+
+```
+
+**Layout**:
+```
+overlayBg    = 0x000000, alpha 0.5 (everywhere except cutout)
+cutout       = rectangular hole around highlight target, Math.round(8 * s) padding
+tooltipBg    = UI.bg.primary
+tooltipBorder= UI.accent.gold
+tooltipW     = Math.round(240 * s)
+tooltipStyle = FONT_TITLE, Math.round(14 * s), wordWrap
+handSize     = Math.round(40 * s)
+handAnim     = bob up/down (Math.round(6 * s) amplitude, 1.5s period)
+tapToDismiss = tap anywhere outside highlight to advance
+```
+
+### Post-Tutorial
+
+```typescript
+localStorage.setItem('zkube_onboarded', 'true');
+```
+
+Tutorial can be replayed from Profile → How to Play → "Replay Tutorial" button.
+
+---
+
+## 9. Animation & Effects
+
+### 9.1 Gameplay Effects
+
+| Effect | Trigger | Description |
+|--------|---------|-------------|
+| **Line Clear** | Line completed | Flash white → particle burst along line → blocks fade out (200ms) → gravity drop (300ms) |
+| **Combo** | 2+ lines in one move | Combo counter scales up 1.0→1.3→1.0, screen shake (2px, 150ms), combo SFX |
+| **Multi-clear** | 4+ lines | Screen flash, larger particles, louder SFX, haptic heavy |
+| **Gravity** | After clear | Blocks fall with easing (ease-out-bounce), 300ms per row |
+| **Block spawn** | New line appears | Blocks scale from 0→1.0 with staggered delay (50ms per block) |
+| **Bonus activate** | Tap bonus | Icon flashes, radial wave effect from button, SFX |
+| **Harvest** | Harvest bonus | Targeted blocks glow → shrink → burst into cube particles |
+| **Wave** | Wave bonus | Horizontal energy line sweeps across cleared rows |
+| **Danger** | ≤3 moves left | Red vignette pulse at screen edges, moves counter turns red |
+| **Game Over** | Moves = 0, not cleared | Grid blocks cascade-fall off screen bottom, rumble SFX |
+| **Level Complete** | Score target met | Flash + stars fly in + confetti particles |
+
+### 9.2 UI Transitions
+
+| Element | Animation |
+|---------|-----------|
+| Tab switch | Content cross-fade, 200ms |
+| Screen push | Slide in from right, 300ms ease-out |
+| Screen pop | Slide out to right, 250ms ease-in |
+| Modal open | Backdrop fade in (200ms) + panel scale 0.9→1.0 (250ms) |
+| Modal close | Panel scale 1.0→0.95 (200ms) + backdrop fade out |
+| Toast in | Slide down from top, 250ms |
+| Toast out | Slide up + fade, 200ms |
+| Button press | Scale 1.0→0.95→1.0, 100ms |
+| Card highlight | Border pulse (opacity 0.5→1.0→0.5, 2s loop) |
+| Node pulse | Scale 1.0→1.05→1.0 + glow opacity cycle, 1.5s loop |
+
+### 9.3 Particle System
+
+Shared particle emitter with preset configurations:
+
+| Preset | Particle | Count | Lifetime | Behavior |
+|--------|----------|-------|----------|----------|
+| `line_clear` | Spark | 20 per block | 500ms | Burst from block center, radial, gravity |
+| `combo` | Star | 30 | 800ms | Burst from combo counter, spiral outward |
+| `level_complete` | Mixed | 100 | 2000ms | Rain from top, confetti drift, no gravity |
+| `harvest` | Cube sparkle | 10 per block | 600ms | Float up from block, fade |
+| `star_earn` | Star | 15 | 400ms | Burst from star position |
+| `quest_claim` | Coin | 20 | 800ms | Burst up from claim button, arc down |
+
+Particles are 16×16px white sprites, tinted per-theme via `ThemeColors.particles`.
+
+### 9.4 Sound Effects
+
+| SFX | File | Trigger |
+|-----|------|---------|
+| `break` | `break.mp3` | Line cleared |
+| `explode` | `explode.mp3` | Multi-line combo (4+) |
+| `move` | `move.mp3` | Block moved |
+| `new` | `new.mp3` | New blocks spawned |
+| `start` | `start.mp3` | Game started |
+| `swipe` | `swipe.mp3` | Block swiped (before move confirms) |
+| `over` | `over.mp3` | Game over |
+| **New SFX** | | |
+| `click` | `click.mp3` | UI button tap |
+| `coin` | `coin.mp3` | Cube earned / received |
+| `claim` | `claim.mp3` | Quest reward claimed |
+| `star` | `star.mp3` | Star earned in level complete |
+| `levelup` | `levelup.mp3` | Level completed fanfare |
+
+### 9.5 Haptic Feedback
+
+| Event | Haptic Type |
+|-------|-------------|
+| Button tap | Light (10ms) |
+| Line clear | Medium (15ms) |
+| Combo (2-3 lines) | Medium (20ms) |
+| Big combo (4+ lines) | Heavy (30ms) |
+| Level complete | Success pattern (light-medium-heavy) |
+| Game over | Error pattern (heavy-pause-heavy) |
+| Quest claim | Medium (15ms) |
+| Star earned | Light (10ms) per star |
+
+Implementation via Capacitor Haptics plugin:
+```typescript
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+Haptics.impact({ style: ImpactStyle.Medium });
+```
+
+---
+
+## 10. Accessibility
+
+### Touch Targets
+
+Minimum touch target: `Math.round(44 * s)` × `Math.round(44 * s)` (Apple HIG minimum 44pt).
+
+All interactive elements — buttons, tab bar icons, bonus buttons, map nodes, list rows — meet this minimum.
+
+### Color Contrast
+
+- Primary text on dark bg: `#ffffff` on `#1e293b` → contrast ratio 12.6:1 ✓
+- Secondary text: `#94a3b8` on `#1e293b` → contrast ratio 5.1:1 ✓
+- Gold accent: `#fbbf24` on `#1e293b` → contrast ratio 8.2:1 ✓
+- Danger red: `#ef4444` on `#1e293b` → contrast ratio 4.8:1 ✓ (large text)
+
+### Reduced Motion
+
+Respect system preference:
+
+```typescript
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+```
+
+When enabled:
+- Disable particle effects
+- Replace slide transitions with instant cuts
+- Disable logo bounce animation
+- Disable node pulse animations
+- Keep essential feedback (line clear flash, score popup)
+
+### Font Scaling
+
+`uiScale` handles device-level scaling. No additional font scaling needed since all sizes are already relative to screen width.
+
+---
+
+## 11. Responsive Behavior
+
+### 11.1 Breakpoints
+
+| Breakpoint | Condition | Layout Changes |
+|------------|-----------|----------------|
+| **Phone** | `width < 768` | Standard layout, tab bar bottom, single column |
+| **Tablet** | `768 ≤ width < 1024` | Content capped at 720px, larger touch targets |
+| **Desktop** | `width ≥ 1024` | Content capped at 720px, side panels on PlayScreen |
+| **Landscape** | `width > height` | PlayScreen uses horizontal layout, grid centered |
+
+### 11.2 Content Width
+
+```typescript
+const contentMaxWidth = Math.round(720 * s);  // s capped at 1.5
+const maxAbsolute = 1080;                      // hard cap in px
+const contentWidth = Math.min(screenWidth - contentPadding * 2, contentMaxWidth, maxAbsolute);
+```
+
+### 11.3 Grid Scaling
+
+```typescript
+const cellSize = clamp(
+  Math.min(
+    (screenWidth - 2 * framePad) / 8,
+    (availableHeight) / 10
+  ),
+  28,    // minimum cell size
+  56     // maximum cell size
+);
+```
+
+Grid is always centered horizontally. On desktop landscape, side panels fill the remaining space.
+
+### 11.4 Tab Bar on Desktop
+
+Tab bar remains at bottom on all screen sizes for consistency. On desktop (width ≥ 1024), tab bar width is capped at `Math.round(480 * s)` and centered.
+
+### 11.5 Background Rendering
+
+Portrait texture (1080×1920) rendered with cover mode:
+
+```
+scale = max(screenWidth / texWidth, screenHeight / texHeight)
+offsetX = (screenWidth - texWidth * scale) / 2
+offsetY = (screenHeight - texHeight * scale) / 2
+```
+
+On landscape desktop, the portrait texture crops heavily on top/bottom. Acceptable for now.
+
+---
+
+## 12. Asset Requirements Summary
+
+### 12.1 New Icon Assets Needed
+
+These don't exist in the current catalog and are needed for the tab bar and redesign:
+
+| Icon | Size | Usage |
+|------|------|-------|
+| `icon-home` | 48×48 | Home tab |
+| `icon-map` | 48×48 | Map tab |
+| `icon-profile` | 48×48 | Profile tab |
+| `icon-arrow-left` | 48×48 | Back button |
+| `icon-arrow-right` | 48×48 | Menu list chevron |
+| `icon-info` | 48×48 | How to Play menu item |
+| `icon-heart` | 48×48 | Favorites / lives (future) |
+| `icon-gamepad` | 48×48 | Quest family: Player |
+| `icon-chart` | 48×48 | Quest family: Clearer |
+| `icon-lightning` | 48×48 | Quest family: Combo |
+| `icon-medal-gold` | 48×48 | Leaderboard #1 |
+| `icon-medal-silver` | 48×48 | Leaderboard #2 |
+| `icon-medal-bronze` | 48×48 | Leaderboard #3 |
+| `icon-check` | 48×48 | Completed state |
+| `icon-play` | 48×48 | In-progress / resume |
+| `icon-skull` | 48×48 | Game over |
+| `icon-refresh` | 48×48 | Retry |
+| `icon-gesture` | 48×48 | Tutorial hand/swipe |
+| `icon-bridge` | 48×48 | Bridging card |
+| `icon-package` | 48×48 | Supply bonus icon |
+| `icon-wheat` | 48×48 | Harvest bonus icon |
+
+**Total**: 21 new icon sprites (48×48px, white on transparent, same pipeline as existing icons).
+
+### 12.2 New SFX Needed
+
+| SFX | Duration | Description |
+|-----|----------|-------------|
+| `click.mp3` | 0.1-0.15s | Clean UI button tap |
+| `coin.mp3` | 0.2-0.3s | Cube/coin received |
+| `claim.mp3` | 0.3-0.5s | Quest reward claimed, ascending chime |
+| `star.mp3` | 0.2-0.3s | Single star earned, bright ding |
+| `levelup.mp3` | 0.5-0.8s | Level complete fanfare, triumphant |
+
+### 12.3 New Tutorial Assets
+
+| Asset | Size | Description |
+|-------|------|-------------|
+| `tutorial-hand.png` | 64×64 | Hand/pointer sprite for tutorial overlay |
+
+### 12.4 Existing Assets (No Changes)
+
+All per-theme assets (blocks, backgrounds, logos, grids, maps, theme icons, music) remain as-is. The redesign only changes UI layout and navigation — not the game's visual theme system.
+
+---
+
+## Appendices
+
+### Appendix A: Data Mapping (What Feeds Each Screen)
+
+| Screen | Data Source | Hook / Store |
+|--------|------------|--------------|
+| HomeScreen | Player games, cube balance | `useGame`, `useCubeBalance`, `usePlayerMeta` |
+| MapScreen | Game state (current level, cleared levels) | `useGame`, Zustand `generalStore` |
+| ShopScreen | PlayerMeta (upgrades, bag size, bridging rank), cube balance | `usePlayerMeta`, `useCubeBalance` |
+| QuestsScreen | Quest families, quest progress | `useQuests` context, `questFamilies` prop |
+| ProfileScreen | PlayerMeta, leaderboard | `usePlayerMeta`, `useLeaderboard` |
+| LoadoutPage | PlayerMeta (available bonuses, bag size, max cubes) | `usePlayerMeta` |
+| PlayScreen | Game model (blocks, score, moves, combo, level) | `useGame`, `usePlayGame`, `useGameStateMachine` |
+| Modals | Game state at completion | Props from PlayScreen |
+
+### Appendix B: Page ID Migration
+
+Old `PageNavigator` page IDs → new navigation structure:
+
+| Old PageId | New Location |
+|-----------|--------------|
+| `home` | HomeTab (root) |
+| `map` | MapTab (root) |
+| `shop` | ShopTab (root) |
+| `quests` | QuestsTab (root) |
+| `settings` | ProfileTab → push SettingsScreen |
+| `leaderboard` | ProfileTab → push LeaderboardScreen |
+| `tutorial` | ProfileTab → push TutorialScreen |
+| `mygames` | **Removed** — merged into HomeTab as Active Game Card |
+| `loadout` | Full-screen push from Home/Map (hides tab bar) |
+| `play` | Full-screen push from Loadout (hides tab bar) |
+
+### Appendix C: Component Migration Checklist
+
+Every component must be updated to:
+
+1. **Receive `uiScale`** — via prop or `useFullscreenLayout()`
+2. **Scale all dimensions** — `Math.round(value * s)` for every pixel value
+3. **Use `FONT_TITLE` only** — replace all `FONT_BODY` and `FONT_BOLD` references
+4. **Use SpriteIcon** — replace all emoji characters with SpriteIcon from catalog
+5. **Respect safe areas** — top bar adds `safeAreaTop`, tab bar adds `safeAreaBottom`
+
+**Priority order**:
+
+| Phase | Components | Scope |
+|-------|-----------|-------|
+| 1 — Infrastructure | TabNavigator (new), ScreenStack (new), ScreenHeader (new), CurrencyPill (new) | New components |
+| 2 — Tab screens | HomeScreen, MapScreen, ShopScreen, QuestsScreen, ProfileScreen | 5 root screens |
+| 3 — Push screens | LeaderboardScreen, SettingsScreen, TutorialScreen | 3 pushed screens |
+| 4 — Gameplay | LoadoutPage, PlayScreen | 2 full-screen pages |
+| 5 — Modals | PixiModal base, LevelComplete, GameOver, Victory, Menu, InGameShop | 6 modals |
+| 6 — HUD/ActionBar | StatsBar, ProgressBar, LevelBadge, MovesCounter, ActionBar, BonusButton, ComboDisplay | 7 components |
+| 7 — Tutorial | TutorialOverlay (new), hand-pointer asset | New system |
+| 8 — Polish | Particle presets, haptic integration, reduced motion, toast system | Cross-cutting |
+
+### Appendix D: Legitimate Procedural Drawing (DO NOT Replace with Sprites)
 
 These use `PixiGraphics.draw()` and should remain procedural:
 
-| Component            | What It Draws                       | Why Procedural |
-|----------------------|------------------------------------|----------------|
-| ProgressBar          | Track + fill bar                    | Dynamic width  |
-| LevelPips            | Upgrade level dots                  | Dynamic count  |
-| VolumeSlider         | Track + fill + knob                 | Drag state     |
-| CubeSlider           | Track + fill + knob                 | Drag state     |
-| ParticleSystem       | Particle effects                    | Animated       |
-| ScorePopup           | Floating score text                 | Animated       |
-| ScreenShake          | Container transform                 | Animated       |
-| Modal backdrop       | Semi-transparent overlay            | Simple fill    |
-| Card backgrounds     | Rounded rect with border            | Dynamic state  |
-| Row backgrounds      | Rounded rect with conditional color | Dynamic state  |
-| Scroll hit areas     | Invisible touch targets             | Required       |
-| Scrollbar thumb      | Position tracks scroll              | Dynamic        |
-| Grid highlights      | Selection indicators                | Dynamic        |
-| Danger border        | Red screen flash                    | Dynamic        |
-| Vignette overlay     | Edge darkening gradient             | Decorative     |
-| Constraint dots      | Progress dots in HUD                | Dynamic state  |
-| Map paths/connections| Lines between map nodes             | Generated      |
-
----
-
-## Appendix B: Complete Emoji-to-Sprite Mapping
-
-| Current Emoji | Location(s)                              | Replacement               |
-|--------------|------------------------------------------|---------------------------|
-| `🧊`         | HomeTopBar, MyGames, PlayScreen, InGameShop, Shop | SpriteIcon "cube"  |
-| `🥇`         | LeaderboardPage rank 1                   | SpriteIcon "medal-gold"   |
-| `🥈`         | LeaderboardPage rank 2                   | SpriteIcon "medal-silver" |
-| `🥉`         | LeaderboardPage rank 3                   | SpriteIcon "medal-bronze" |
-| `✓`/`✅`     | Leaderboard, MyGames, MapNode, Quests    | SpriteIcon "check"        |
-| `▶`          | LeaderboardPage in-progress              | SpriteIcon "play"         |
-| `🔒`         | ShopPage, LoadoutPage, QuestsPage        | SpriteIcon "lock"         |
-| `🔥`         | ShopPage Combo card                      | Bonus sprite "combo"      |
-| `⭐`         | ShopPage Score card, PlayScreen stars    | SpriteIcon "star-filled"  |
-| `☆`          | PlayScreen empty stars                   | SpriteIcon "star-empty"   |
-| `🌾`         | ShopPage Harvest card                    | Bonus sprite "harvest"    |
-| `🌊`         | ShopPage Wave card                       | Bonus sprite "wave"       |
-| `📦`         | ShopPage Supply card                     | SpriteIcon "package"      |
-| `🌉`         | ShopPage Bridging card                   | SpriteIcon "bridge"       |
-| `🛒`         | ShopPage empty, MapNode shop             | SpriteIcon "cart"         |
-| `🎮`         | QuestsPage Player family                 | SpriteIcon "gamepad"      |
-| `📊`         | QuestsPage Clearer family                | SpriteIcon "chart"        |
-| `⚡`         | QuestsPage Combo family                  | SpriteIcon "lightning"    |
-| `🏆`         | QuestsPage Finisher family               | SpriteIcon "trophy"       |
-| `💀`         | LevelPreview death                       | SpriteIcon "skull"        |
-| `✕`          | LevelPreview close                       | SpriteIcon "close"        |
-| `←`          | MapPage back button                      | SpriteIcon "arrow-left"   |
-| `☰`          | PlayScreen menu button                   | SpriteIcon "hamburger"    |
-| `🔄`         | LeaderboardPage refresh, TutorialPage    | SpriteIcon "refresh"      |
-| `👆`         | TutorialPage swipe instruction           | SpriteIcon "gesture"      |
-| `👑`         | TutorialPage crown                       | SpriteIcon "crown"        |
-| `⚪`         | QuestsPage pending tier                  | Procedural circle (keep)  |
-
----
-
-## Appendix C: Font Migration
-
-Replace ALL `FONT_BODY` with `FONT_TITLE` in these files:
-
-| File                           | Line(s) | Context                    |
-|-------------------------------|---------|----------------------------|
-| MainScreen.tsx                | 40      | MAIN_FOOTER_STYLE          |
-| MainScreen.tsx                | 222     | usernameStyle              |
-| PlayScreen.tsx                | 37      | LOADING_SUB_STYLE          |
-| PlayScreen.tsx                | 180-183 | StatsBar labelStyle        |
-| PlayScreen.tsx                | 200-203 | StatsBar cubeStyle         |
-| LeaderboardPage.tsx           | 14      | RANK_NUM_STYLE             |
-| LeaderboardPage.tsx           | 16      | LEVEL_BADGE_STYLE          |
-| LeaderboardPage.tsx           | 17      | HEADER_LABEL_STYLE         |
-| LeaderboardPage.tsx           | 43      | statusStyle                |
-| ShopPage.tsx                  | 66      | STYLE_LABEL                |
-| ShopPage.tsx                  | 69      | STYLE_RANK                 |
-| ShopPage.tsx                  | 73      | STYLE_EMPTY_SUB            |
-| QuestsPage.tsx                | 26      | TIMER_STYLE                |
-| QuestsPage.tsx                | 27      | PROGRESS_TEXT_STYLE         |
-| QuestsPage.tsx                | 33      | EMPTY_SUB_STYLE            |
-| QuestsPage.tsx                | 173     | tierNameStyle              |
-| QuestsPage.tsx                | 263     | familyProgressStyle        |
-| MyGamesPage.tsx               | 12, 14, 19 | row text styles         |
-| LoadoutPage.tsx               | 191     | bonusLabelStyle            |
-| InGameShopModal.tsx           | 73, 81, 89, 97 | card label styles  |
+| Component | What It Draws | Why Procedural |
+|-----------|---------------|----------------|
+| ProgressBar | Track + fill bar | Dynamic width |
+| LevelPips | Upgrade level dots | Dynamic count |
+| VolumeSlider | Track + fill + knob | Drag state |
+| CubeSlider | Track + fill + knob | Drag state |
+| ParticleSystem | Particle effects | Animated |
+| ScorePopup | Floating score text | Animated |
+| ScreenShake | Container transform | Animated |
+| Modal backdrop | Semi-transparent overlay | Simple fill |
+| Card backgrounds | Rounded rect with border | Dynamic state |
+| Row backgrounds | Rounded rect with color | Dynamic state |
+| Scroll hit areas | Invisible touch targets | Required |
+| Scrollbar thumb | Position tracks scroll | Dynamic |
+| Grid highlights | Selection indicators | Dynamic |
+| Danger border | Red screen flash | Dynamic |
+| Vignette overlay | Edge darkening gradient | Decorative |
+| Constraint dots | Progress dots in HUD | Dynamic state |
+| Map paths | Lines between nodes | Generated from data |
+| Tab bar | Background + borders | Static but trivial |
