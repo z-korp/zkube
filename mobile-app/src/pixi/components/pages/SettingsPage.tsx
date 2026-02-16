@@ -2,18 +2,16 @@ import { useCallback, useMemo, useRef } from 'react';
 import { Graphics as PixiGraphics, Rectangle } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { useTheme } from '@/ui/elements/theme-provider/hooks';
-import { FONT_TITLE, FONT_BODY, THEME_IDS, THEME_META, type ThemeId } from '../../utils/colors';
+import { FONT_TITLE, THEME_IDS, type ThemeId } from '../../utils/colors';
 import { resolveAsset } from '../../assets/resolver';
 import { AssetId } from '../../assets/catalog';
 import { useTextureWithFallback } from '../../hooks/useTexture';
 
 const SLIDER_LABEL_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff };
-const SETTING_LABEL_STYLE = { fontFamily: FONT_BODY, fontSize: 14, fill: 0x94a3b8 };
-const SETTING_VALUE_STYLE = { fontFamily: FONT_BODY, fontSize: 14, fill: 0xffffff };
-const THEME_HEADER_STYLE = { fontFamily: FONT_TITLE, fontSize: 14, fill: 0xffffff };
-const SECTION_HEADER_STYLE = { fontFamily: FONT_TITLE, fontSize: 13, fill: 0xcbd5e1, letterSpacing: 2 };
-const VERSION_STYLE = { fontFamily: FONT_BODY, fontSize: 12, fill: 0x475569 };
-const FOOTER_STYLE = { fontFamily: FONT_BODY, fontSize: 11, fill: 0x475569 };
+const SETTING_LABEL_STYLE = { fontFamily: FONT_TITLE, fontSize: 14, fill: 0x94a3b8 };
+const SETTING_VALUE_STYLE = { fontFamily: FONT_TITLE, fontSize: 14, fill: 0xffffff };
+const VERSION_STYLE = { fontFamily: FONT_TITLE, fontSize: 12, fill: 0x475569 };
+const FOOTER_STYLE = { fontFamily: FONT_TITLE, fontSize: 11, fill: 0x475569 };
 
 // ============================================================================
 // VOLUME SLIDER
@@ -88,7 +86,7 @@ const VolumeSlider = ({
   );
 
   const pctStyle = useMemo(
-    () => ({ fontFamily: FONT_BODY, fontSize: 13, fill: 0x94a3b8 }),
+    () => ({ fontFamily: FONT_TITLE, fontSize: 13, fill: 0x94a3b8 }),
     [],
   );
 
@@ -213,7 +211,6 @@ const ThemeOption = ({
   selected: boolean;
   onSelect: (id: ThemeId) => void;
 }) => {
-  const meta = THEME_META[themeId];
   const iconCandidates = useMemo(() => resolveAsset(themeId, AssetId.ThemeIcon), [themeId]);
   const iconTex = useTextureWithFallback(iconCandidates);
 
@@ -232,12 +229,7 @@ const ThemeOption = ({
     [width, height, selected]
   );
 
-  const labelStyle = useMemo(
-    () => ({ fontFamily: FONT_BODY, fontSize: 9, fill: selected ? 0xffffff : 0x94a3b8 }),
-    [selected]
-  );
-
-  const iconSize = Math.min(width, height) * 0.55;
+  const iconSize = Math.min(width, height) * 0.7;
 
   return (
     <pixiContainer x={x} y={y}>
@@ -252,21 +244,13 @@ const ThemeOption = ({
         <pixiSprite
           texture={iconTex}
           x={width / 2}
-          y={height * 0.38}
+          y={height / 2}
           anchor={0.5}
           width={iconSize}
           height={iconSize}
           eventMode="none"
         />
       )}
-      <pixiText
-        text={meta.name}
-        x={width / 2}
-        y={height * 0.82}
-        anchor={0.5}
-        style={labelStyle}
-        eventMode="none"
-      />
     </pixiContainer>
   );
 };
@@ -327,13 +311,11 @@ const SectionPanel = ({
   y,
   width,
   height,
-  title,
   children,
 }: {
   y: number;
   width: number;
   height: number;
-  title: string;
   children: React.ReactNode;
 }) => {
   const drawBg = useCallback(
@@ -352,15 +334,7 @@ const SectionPanel = ({
   return (
     <pixiContainer y={y}>
       <pixiGraphics draw={drawBg} eventMode="none" />
-      <pixiText
-        text={title}
-        x={16}
-        y={12}
-        anchor={{ x: 0, y: 0 }}
-        style={SECTION_HEADER_STYLE}
-        eventMode="none"
-      />
-      <pixiContainer y={32}>
+      <pixiContainer y={12}>
         {children}
       </pixiContainer>
     </pixiContainer>
@@ -409,13 +383,12 @@ export const SettingsPage = ({
   const rowH = 44;
   const rowGap = 4;
   const panelPad = 12;
-  const titleH = 32;
 
   const themeGridH = getThemeGridContentHeight();
 
-  const audioPanelH = titleH + sliderH + sliderGap + sliderH + panelPad;
-  const themePanelH = titleH + themeGridH + panelPad;
-  const accountPanelH = titleH + rowH + rowGap + rowH + panelPad;
+  const audioPanelH = panelPad + sliderH + sliderGap + sliderH + panelPad;
+  const themePanelH = panelPad + themeGridH + panelPad;
+  const accountPanelH = panelPad + rowH + rowGap + rowH + panelPad;
 
   let cy = 0;
 
@@ -428,13 +401,12 @@ export const SettingsPage = ({
     <pixiContainer>
       <PageTopBar
          title="SETTINGS"
-         subtitle="CUSTOMIZE YOUR EXPERIENCE"
          screenWidth={screenWidth}
          topBarHeight={topBarHeight}
        />
 
       <pixiContainer x={contentPadding} y={contentTop}>
-        <SectionPanel y={audioY} width={contentWidth} height={audioPanelH} title="AUDIO">
+        <SectionPanel y={audioY} width={contentWidth} height={audioPanelH}>
           <VolumeSlider
             x={0}
             y={0}
@@ -453,7 +425,7 @@ export const SettingsPage = ({
           />
         </SectionPanel>
 
-        <SectionPanel y={themeY} width={contentWidth} height={themePanelH} title="APPEARANCE">
+        <SectionPanel y={themeY} width={contentWidth} height={themePanelH}>
           <ThemeSelector
             width={contentWidth}
             currentTheme={themeTemplate}
@@ -461,7 +433,7 @@ export const SettingsPage = ({
           />
         </SectionPanel>
 
-        <SectionPanel y={accountY} width={contentWidth} height={accountPanelH} title="ACCOUNT">
+        <SectionPanel y={accountY} width={contentWidth} height={accountPanelH}>
           <SettingRow y={0} label="USERNAME" value={username || 'GUEST'} width={contentWidth} />
           <SettingRow y={rowH + rowGap} label="WALLET" value={truncatedAddress} width={contentWidth} />
         </SectionPanel>
