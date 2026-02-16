@@ -6,7 +6,8 @@ import { MapNode } from './MapNode';
 import { MapPath } from './MapPath';
 import { ZoneBackground } from './ZoneBackground';
 import { LevelPreview } from './LevelPreview';
-import { NODES_PER_ZONE, TOTAL_ZONES, MAP_NODE_POSITIONS } from '../../utils/mapLayout';
+import { NODES_PER_ZONE, TOTAL_ZONES, getThemeNodePositions } from '../../utils/mapLayout';
+import type { ZoneNodePositions } from '../../utils/mapLayout';
 import { isProceduralTheme, FONT_TITLE } from '../../utils/colors';
 
 export interface MapPageProps {
@@ -28,8 +29,9 @@ function getNodePosition(
   nodeInZone: number,
   screenWidth: number,
   zoneHeight: number,
+  positions: ZoneNodePositions,
 ): { x: number; y: number } {
-  const pos = MAP_NODE_POSITIONS[nodeInZone];
+  const pos = positions[nodeInZone];
   return {
     x: pos.x * screenWidth,
     y: pos.y * zoneHeight,
@@ -63,6 +65,9 @@ export const MapPage = ({
   const slideRef = useRef(targetZone * screenWidth);
   const containerRef = useRef<Container>(null);
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+  const leftArrowRef = useRef<Container>(null);
+  const rightArrowRef = useRef<Container>(null);
+  const arrowPhaseRef = useRef(0);
 
   useTick(() => {
     const target = targetZone * screenWidth;
@@ -75,6 +80,11 @@ export const MapPage = ({
     if (containerRef.current) {
       containerRef.current.x = -slideRef.current;
     }
+
+    arrowPhaseRef.current += 0.05;
+    const arrowAlpha = 0.3 + 0.15 * (1 + Math.sin(arrowPhaseRef.current));
+    if (leftArrowRef.current) leftArrowRef.current.alpha = arrowAlpha;
+    if (rightArrowRef.current) rightArrowRef.current.alpha = arrowAlpha;
   });
 
   const handlePointerDown = useCallback((e: { globalX: number; globalY: number }) => {
@@ -89,11 +99,10 @@ export const MapPage = ({
     if (Math.abs(deltaX) < SWIPE_THRESHOLD) return;
 
     setTargetZone((prev) => {
-      const maxZone = Math.min(TOTAL_ZONES - 1, mapData.currentZone - 1);
-      if (deltaX < 0) return Math.min(prev + 1, maxZone);
+      if (deltaX < 0) return Math.min(prev + 1, TOTAL_ZONES - 1);
       return Math.max(prev - 1, 0);
     });
-  }, [mapData.currentZone]);
+  }, []);
 
   const handleNodeTap = useCallback((node: MapNodeData) => {
     if (isGameOver || node.state === 'current' || node.state === 'available' || node.state === 'cleared') {
@@ -128,14 +137,12 @@ export const MapPage = ({
 
   const drawDots = useCallback((g: PixiGraphics) => {
     g.clear();
-    const maxReachable = Math.min(TOTAL_ZONES - 1, mapData.currentZone - 1);
     for (let i = 0; i < TOTAL_ZONES; i++) {
       g.circle((i - 2) * 16, 0, 4);
       const isActive = i === targetZone;
-      const isReachable = i <= maxReachable;
-      g.fill({ color: 0xffffff, alpha: isActive ? 1 : isReachable ? 0.4 : 0.15 });
+      g.fill({ color: 0xffffff, alpha: isActive ? 1 : 0.4 });
     }
-  }, [targetZone, mapData.currentZone]);
+  }, [targetZone]);
 
   const zones = useMemo(() => {
     return Array.from({ length: TOTAL_ZONES }, (_, zoneIdx) => {
@@ -144,9 +151,10 @@ export const MapPage = ({
       const startIdx = zoneIdx * NODES_PER_ZONE;
       const zoneNodes = mapData.nodes.slice(startIdx, startIdx + NODES_PER_ZONE);
       const procedural = isProceduralTheme(theme);
+      const themePositions = getThemeNodePositions(theme);
 
       const nodePositions = zoneNodes.map((_, i) =>
-        getNodePosition(i, screenWidth, zoneHeight),
+        getNodePosition(i, screenWidth, zoneHeight, themePositions),
       );
 
       return { zoneNum, theme, zoneNodes, procedural, nodePositions };
@@ -231,6 +239,41 @@ export const MapPage = ({
           ))}
         </pixiContainer>
       </pixiContainer>
+
+      {targetZone > 0 && (
+        <pixiContainer
+          ref={leftArrowRef}
+          x={20}
+          y={headerH + zoneHeight / 2}
+          eventMode="static"
+          cursor="pointer"
+          onPointerUp={() => setTargetZone((prev) => Math.max(prev - 1, 0))}
+        >
+          <pixiText
+            text={'\u2039'}
+            anchor={0.5}
+            style={{ fontSize: 28, fill: 0xffffff, fontWeight: 'bold' }}
+            eventMode="none"
+          />
+        </pixiContainer>
+      )}
+      {targetZone < TOTAL_ZONES - 1 && (
+        <pixiContainer
+          ref={rightArrowRef}
+          x={screenWidth - 20}
+          y={headerH + zoneHeight / 2}
+          eventMode="static"
+          cursor="pointer"
+          onPointerUp={() => setTargetZone((prev) => Math.min(prev + 1, TOTAL_ZONES - 1))}
+        >
+          <pixiText
+            text={'\u203a'}
+            anchor={0.5}
+            style={{ fontSize: 28, fill: 0xffffff, fontWeight: 'bold' }}
+            eventMode="none"
+          />
+        </pixiContainer>
+      )}
 
       <pixiGraphics
         draw={drawDots}

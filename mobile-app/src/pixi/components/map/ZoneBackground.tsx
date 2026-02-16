@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { getThemeColors, isProceduralTheme, THEME_META, type ThemeId, FONT_TITLE, hexToRgb } from '../../utils/colors';
+import { getThemeMapConfig } from '../../utils/mapLayout';
 import { AssetId } from '../../assets/catalog';
 import { resolveAsset } from '../../assets/resolver';
 import { useTextureWithFallback } from '../../hooks/useTexture';
@@ -20,7 +21,37 @@ export const ZoneBackground = ({ zone, themeId, x, y, width, height }: ZoneBackg
 
   const mapCandidates = useMemo(() => resolveAsset(themeId, AssetId.Map), [themeId]);
   const mapTexture = useTextureWithFallback(mapCandidates);
-  const useMapTexture = !isProceduralTheme(themeId) && !!mapTexture;
+  const hasBackgroundImage = !isProceduralTheme(themeId) && !!mapTexture;
+
+  const config = getThemeMapConfig(themeId);
+
+  // Cover-mode dimensions: scale image to fill zone without distortion
+  const coverLayout = useMemo(() => {
+    if (!hasBackgroundImage || !mapTexture) return null;
+    const imageAR = config.imageAspectRatio ?? (mapTexture.width / mapTexture.height);
+    const viewportAR = width / height;
+    let displayW: number;
+    let displayH: number;
+    if (viewportAR > imageAR) {
+      displayW = width;
+      displayH = width / imageAR;
+    } else {
+      displayH = height;
+      displayW = height * imageAR;
+    }
+    const offsetX = (width - displayW) / 2;
+    const offsetY = (height - displayH) / 2;
+    return { displayW, displayH, offsetX, offsetY };
+  }, [hasBackgroundImage, mapTexture, config.imageAspectRatio, width, height]);
+
+  const drawCoverMask = useCallback(
+    (g: PixiGraphics) => {
+      g.clear();
+      g.rect(0, 0, width, height);
+      g.fill({ color: 0xffffff });
+    },
+    [width, height],
+  );
 
   const drawGradient = useCallback(
     (g: PixiGraphics) => {
@@ -56,15 +87,23 @@ export const ZoneBackground = ({ zone, themeId, x, y, width, height }: ZoneBackg
 
   return (
     <pixiContainer x={x} y={y}>
-      {useMapTexture ? (
-        <pixiSprite
-          texture={mapTexture}
-          x={0}
-          y={0}
-          width={width}
-          height={height}
-          eventMode="none"
-        />
+      {hasBackgroundImage && coverLayout ? (
+        <pixiContainer>
+          <pixiGraphics
+            draw={drawCoverMask}
+            ref={(ref: PixiGraphics | null) => {
+              if (ref?.parent) ref.parent.mask = ref;
+            }}
+          />
+          <pixiSprite
+            texture={mapTexture}
+            x={coverLayout.offsetX}
+            y={coverLayout.offsetY}
+            width={coverLayout.displayW}
+            height={coverLayout.displayH}
+            eventMode="none"
+          />
+        </pixiContainer>
       ) : (
         <pixiGraphics draw={drawGradient} eventMode="none" />
       )}
