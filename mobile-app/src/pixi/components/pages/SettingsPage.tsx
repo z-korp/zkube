@@ -220,11 +220,9 @@ const ThemeOption = ({
       g.setFillStyle({ color: selected ? 0x3b82f6 : 0x0f172a, alpha: selected ? 0.35 : 0.01 });
       g.roundRect(0, 0, width, height, 8);
       g.fill();
-      if (selected) {
-        g.setStrokeStyle({ width: 2, color: 0x60a5fa });
-        g.roundRect(0, 0, width, height, 8);
-        g.stroke();
-      }
+      g.setStrokeStyle({ width: selected ? 2 : 1, color: selected ? 0x60a5fa : 0x475569, alpha: selected ? 1 : 0.5 });
+      g.roundRect(0, 0, width, height, 8);
+      g.stroke();
     },
     [width, height, selected]
   );
@@ -307,15 +305,19 @@ const ThemeSelector = ({
 // SECTION PANEL (wraps title + content in a single panel)
 // ============================================================================
 
+const SECTION_TITLE_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff };
+
 const SectionPanel = ({
   y,
   width,
   height,
+  title,
   children,
 }: {
   y: number;
   width: number;
   height: number;
+  title: string;
   children: React.ReactNode;
 }) => {
   const drawBg = useCallback(
@@ -334,7 +336,8 @@ const SectionPanel = ({
   return (
     <pixiContainer y={y}>
       <pixiGraphics draw={drawBg} eventMode="none" />
-      <pixiContainer y={12}>
+      <pixiText text={title} x={16} y={12} style={SECTION_TITLE_STYLE} eventMode="none" />
+      <pixiContainer y={36}>
         {children}
       </pixiContainer>
     </pixiContainer>
@@ -386,9 +389,10 @@ export const SettingsPage = ({
 
   const themeGridH = getThemeGridContentHeight();
 
-  const audioPanelH = panelPad + sliderH + sliderGap + sliderH + panelPad;
-  const themePanelH = panelPad + themeGridH + panelPad;
-  const accountPanelH = panelPad + rowH + rowGap + rowH + panelPad;
+  const titleH = 36;
+  const audioPanelH = panelPad + titleH + sliderH + sliderGap + sliderH + panelPad;
+  const themePanelH = panelPad + titleH + themeGridH + panelPad;
+  const accountPanelH = panelPad + titleH + rowH + rowGap + rowH + panelPad;
 
   let cy = 0;
 
@@ -406,7 +410,7 @@ export const SettingsPage = ({
        />
 
       <pixiContainer x={contentPadding} y={contentTop}>
-        <SectionPanel y={audioY} width={contentWidth} height={audioPanelH}>
+        <SectionPanel y={audioY} width={contentWidth} height={audioPanelH} title="AUDIO">
           <VolumeSlider
             x={0}
             y={0}
@@ -425,7 +429,7 @@ export const SettingsPage = ({
           />
         </SectionPanel>
 
-        <SectionPanel y={themeY} width={contentWidth} height={themePanelH}>
+        <SectionPanel y={themeY} width={contentWidth} height={themePanelH} title="THEME">
           <ThemeSelector
             width={contentWidth}
             currentTheme={themeTemplate}
@@ -433,7 +437,7 @@ export const SettingsPage = ({
           />
         </SectionPanel>
 
-        <SectionPanel y={accountY} width={contentWidth} height={accountPanelH}>
+        <SectionPanel y={accountY} width={contentWidth} height={accountPanelH} title="ACCOUNT">
           <SettingRow y={0} label="USERNAME" value={username || 'GUEST'} width={contentWidth} />
           <SettingRow y={rowH + rowGap} label="WALLET" value={truncatedAddress} width={contentWidth} />
         </SectionPanel>
