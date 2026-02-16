@@ -11,7 +11,7 @@ const SLIDER_LABEL_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xfffff
 const SETTING_LABEL_STYLE = { fontFamily: FONT_BODY, fontSize: 14, fill: 0x94a3b8 };
 const SETTING_VALUE_STYLE = { fontFamily: FONT_BODY, fontSize: 14, fill: 0xffffff };
 const THEME_HEADER_STYLE = { fontFamily: FONT_TITLE, fontSize: 14, fill: 0xffffff };
-const SECTION_HEADER_STYLE = { fontFamily: FONT_BODY, fontSize: 12, fill: 0x64748b, letterSpacing: 2 };
+const SECTION_HEADER_STYLE = { fontFamily: FONT_TITLE, fontSize: 13, fill: 0xcbd5e1, letterSpacing: 2 };
 const VERSION_STYLE = { fontFamily: FONT_BODY, fontSize: 12, fill: 0x475569 };
 const FOOTER_STYLE = { fontFamily: FONT_BODY, fontSize: 11, fill: 0x475569 };
 
@@ -55,13 +55,10 @@ const VolumeSlider = ({
   );
 
   const drawRow = useCallback(
-    (g: PixiGraphics) => {
-      g.clear();
-      g.setFillStyle({ color: 0x1e293b, alpha: 0.85 });
-      g.roundRect(0, 0, width, rowH, 12);
-      g.fill();
+    (_g: PixiGraphics) => {
+      _g.clear();
     },
-    [width],
+    [],
   );
 
   const drawTrack = useCallback(
@@ -173,19 +170,8 @@ const SettingRow = ({
 }) => {
   const rowH = 50;
 
-  const drawBg = useCallback(
-    (g: PixiGraphics) => {
-      g.clear();
-      g.setFillStyle({ color: 0x1e293b, alpha: 0.85 });
-      g.roundRect(0, 0, width, rowH, 12);
-      g.fill();
-    },
-    [width]
-  );
-
   return (
     <pixiContainer y={y}>
-      <pixiGraphics draw={drawBg} />
       <pixiText
         text={label}
         x={16}
@@ -227,12 +213,16 @@ const ThemeOption = ({
   selected: boolean;
   onSelect: (id: ThemeId) => void;
 }) => {
+  const meta = THEME_META[themeId];
   const iconCandidates = useMemo(() => resolveAsset(themeId, AssetId.ThemeIcon), [themeId]);
   const iconTex = useTextureWithFallback(iconCandidates);
 
   const drawBg = useCallback(
     (g: PixiGraphics) => {
       g.clear();
+      g.setFillStyle({ color: selected ? 0x3b82f6 : 0x0f172a, alpha: selected ? 0.35 : 0.01 });
+      g.roundRect(0, 0, width, height, 8);
+      g.fill();
       if (selected) {
         g.setStrokeStyle({ width: 2, color: 0x60a5fa });
         g.roundRect(0, 0, width, height, 8);
@@ -242,7 +232,12 @@ const ThemeOption = ({
     [width, height, selected]
   );
 
-  const iconSize = Math.min(width, height) * 0.75;
+  const labelStyle = useMemo(
+    () => ({ fontFamily: FONT_BODY, fontSize: 9, fill: selected ? 0xffffff : 0x94a3b8 }),
+    [selected]
+  );
+
+  const iconSize = Math.min(width, height) * 0.55;
 
   return (
     <pixiContainer x={x} y={y}>
@@ -250,19 +245,28 @@ const ThemeOption = ({
         draw={drawBg}
         eventMode="static"
         cursor="pointer"
+        hitArea={new Rectangle(0, 0, width, height)}
         onPointerDown={() => onSelect(themeId)}
       />
       {iconTex && (
         <pixiSprite
           texture={iconTex}
           x={width / 2}
-          y={height / 2}
+          y={height * 0.38}
           anchor={0.5}
           width={iconSize}
           height={iconSize}
           eventMode="none"
         />
       )}
+      <pixiText
+        text={meta.name}
+        x={width / 2}
+        y={height * 0.82}
+        anchor={0.5}
+        style={labelStyle}
+        eventMode="none"
+      />
     </pixiContainer>
   );
 };
@@ -275,18 +279,16 @@ const THEME_GRID_COLS = 5;
 const THEME_GRID_GAP = 8;
 const THEME_OPTION_H = 56;
 
-export function getThemeSelectorHeight(): number {
+export function getThemeGridContentHeight(): number {
   const rows = Math.ceil(THEME_IDS.length / THEME_GRID_COLS);
-  return 28 + rows * THEME_OPTION_H + (rows - 1) * THEME_GRID_GAP + 12;
+  return rows * THEME_OPTION_H + (rows - 1) * THEME_GRID_GAP;
 }
 
 const ThemeSelector = ({
-  y,
   width,
   currentTheme,
   onSelect,
 }: {
-  y: number;
   width: number;
   currentTheme: string;
   onSelect: (theme: ThemeId) => void;
@@ -294,58 +296,74 @@ const ThemeSelector = ({
   const innerW = width - 32;
   const optionW = (innerW - (THEME_GRID_COLS - 1) * THEME_GRID_GAP) / THEME_GRID_COLS;
   const rows = Math.ceil(THEME_IDS.length / THEME_GRID_COLS);
-  const panelH = 28 + rows * THEME_OPTION_H + (rows - 1) * THEME_GRID_GAP + 12;
-
-  const drawBg = useCallback(
-    (g: PixiGraphics) => {
-      g.clear();
-      g.setFillStyle({ color: 0x1e293b, alpha: 0.85 });
-      g.roundRect(0, 0, width, panelH, 12);
-      g.fill();
-    },
-    [width, panelH]
-  );
 
   return (
-    <pixiContainer y={y}>
-      <pixiGraphics draw={drawBg} eventMode="none" />
-      <pixiText text="Theme" x={16} y={6} style={THEME_HEADER_STYLE} eventMode="none" />
-      <pixiContainer x={16} y={28}>
-        {THEME_IDS.map((id, i) => {
-          const col = i % THEME_GRID_COLS;
-          const row = Math.floor(i / THEME_GRID_COLS);
-          return (
-            <ThemeOption
-              key={id}
-              x={col * (optionW + THEME_GRID_GAP)}
-              y={row * (THEME_OPTION_H + THEME_GRID_GAP)}
-              width={optionW}
-              height={THEME_OPTION_H}
-              themeId={id}
-              selected={currentTheme === id}
-              onSelect={onSelect}
-            />
-          );
-        })}
-      </pixiContainer>
+    <pixiContainer x={16} y={0}>
+      {THEME_IDS.map((id, i) => {
+        const col = i % THEME_GRID_COLS;
+        const row = Math.floor(i / THEME_GRID_COLS);
+        return (
+          <ThemeOption
+            key={id}
+            x={col * (optionW + THEME_GRID_GAP)}
+            y={row * (THEME_OPTION_H + THEME_GRID_GAP)}
+            width={optionW}
+            height={THEME_OPTION_H}
+            themeId={id}
+            selected={currentTheme === id}
+            onSelect={onSelect}
+          />
+        );
+      })}
     </pixiContainer>
   );
 };
 
 // ============================================================================
-// SECTION HEADER
+// SECTION PANEL (wraps title + content in a single panel)
 // ============================================================================
 
-const SectionHeader = ({ y, title }: { y: number; title: string }) => {
+const SectionPanel = ({
+  y,
+  width,
+  height,
+  title,
+  children,
+}: {
+  y: number;
+  width: number;
+  height: number;
+  title: string;
+  children: React.ReactNode;
+}) => {
+  const drawBg = useCallback(
+    (g: PixiGraphics) => {
+      g.clear();
+      g.setFillStyle({ color: 0x0f172a, alpha: 0.92 });
+      g.roundRect(0, 0, width, height, 12);
+      g.fill();
+      g.setStrokeStyle({ width: 1, color: 0x334155, alpha: 0.6 });
+      g.roundRect(0, 0, width, height, 12);
+      g.stroke();
+    },
+    [width, height]
+  );
+
   return (
-    <pixiText
-      text={title}
-      x={0}
-      y={y}
-      anchor={{ x: 0, y: 0 }}
-      style={SECTION_HEADER_STYLE}
-      eventMode="none"
-    />
+    <pixiContainer y={y}>
+      <pixiGraphics draw={drawBg} eventMode="none" />
+      <pixiText
+        text={title}
+        x={16}
+        y={12}
+        anchor={{ x: 0, y: 0 }}
+        style={SECTION_HEADER_STYLE}
+        eventMode="none"
+      />
+      <pixiContainer y={32}>
+        {children}
+      </pixiContainer>
+    </pixiContainer>
   );
 };
 
@@ -385,25 +403,25 @@ export const SettingsPage = ({
     ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
     : 'Not connected';
 
-  const rowGap = 12;
-  const sectionGap = 24;
+  const sectionGap = 16;
   const sliderH = 60;
-  const rowH = 50;
-  const themePanelH = getThemeSelectorHeight();
+  const sliderGap = 8;
+  const rowH = 44;
+  const rowGap = 4;
+  const panelPad = 12;
+  const titleH = 32;
+
+  const themeGridH = getThemeGridContentHeight();
+
+  const audioPanelH = titleH + sliderH + sliderGap + sliderH + panelPad;
+  const themePanelH = titleH + themeGridH + panelPad;
+  const accountPanelH = titleH + rowH + rowGap + rowH + panelPad;
 
   let cy = 0;
 
-  const audioHeaderY = cy; cy += 24;
-  const musicSliderY = cy; cy += sliderH + rowGap;
-  const sfxSliderY = cy; cy += sliderH + sectionGap;
-
-  const themeHeaderY = cy; cy += 24;
-  const themeSelectorY = cy; cy += themePanelH + sectionGap;
-
-  const accountHeaderY = cy; cy += 24;
-  const usernameY = cy; cy += rowH + rowGap;
-  const walletY = cy; cy += rowH + 40;
-
+  const audioY = cy; cy += audioPanelH + sectionGap;
+  const themeY = cy; cy += themePanelH + sectionGap;
+  const accountY = cy; cy += accountPanelH + sectionGap;
   const versionY = cy;
 
   return (
@@ -416,49 +434,37 @@ export const SettingsPage = ({
        />
 
       <pixiContainer x={contentPadding} y={contentTop}>
-        <SectionHeader y={audioHeaderY} title="AUDIO" />
+        <SectionPanel y={audioY} width={contentWidth} height={audioPanelH} title="AUDIO">
+          <VolumeSlider
+            x={0}
+            y={0}
+            value={musicVolume}
+            onChange={onMusicVolumeChange ?? (() => {})}
+            label="MUSIC"
+            width={contentWidth}
+          />
+          <VolumeSlider
+            x={0}
+            y={sliderH + sliderGap}
+            value={effectsVolume}
+            onChange={onEffectsVolumeChange ?? (() => {})}
+            label="SOUND EFFECTS"
+            width={contentWidth}
+          />
+        </SectionPanel>
 
-        <VolumeSlider
-          x={0}
-          y={musicSliderY}
-          value={musicVolume}
-          onChange={onMusicVolumeChange ?? (() => {})}
-          label="MUSIC"
-          width={contentWidth}
-        />
-        <VolumeSlider
-          x={0}
-          y={sfxSliderY}
-          value={effectsVolume}
-          onChange={onEffectsVolumeChange ?? (() => {})}
-          label="SOUND EFFECTS"
-          width={contentWidth}
-        />
+        <SectionPanel y={themeY} width={contentWidth} height={themePanelH} title="APPEARANCE">
+          <ThemeSelector
+            width={contentWidth}
+            currentTheme={themeTemplate}
+            onSelect={setThemeTemplate}
+          />
+        </SectionPanel>
 
-        <SectionHeader y={themeHeaderY} title="APPEARANCE" />
-
-        <ThemeSelector
-          y={themeSelectorY}
-          width={contentWidth}
-          currentTheme={themeTemplate}
-          onSelect={setThemeTemplate}
-        />
-
-        <SectionHeader y={accountHeaderY} title="ACCOUNT" />
-
-         <SettingRow
-           y={usernameY}
-           label="USERNAME"
-           value={username || 'GUEST'}
-           width={contentWidth}
-         />
-
-         <SettingRow
-           y={walletY}
-           label="WALLET"
-           value={truncatedAddress}
-           width={contentWidth}
-         />
+        <SectionPanel y={accountY} width={contentWidth} height={accountPanelH} title="ACCOUNT">
+          <SettingRow y={0} label="USERNAME" value={username || 'GUEST'} width={contentWidth} />
+          <SettingRow y={rowH + rowGap} label="WALLET" value={truncatedAddress} width={contentWidth} />
+        </SectionPanel>
 
         <pixiText
           text="zKube v1.2.0"
@@ -468,7 +474,6 @@ export const SettingsPage = ({
           style={VERSION_STYLE}
           eventMode="none"
         />
-
         <pixiText
           text="Built on Starknet with Dojo"
           x={contentWidth / 2}
