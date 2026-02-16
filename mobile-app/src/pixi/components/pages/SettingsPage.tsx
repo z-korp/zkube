@@ -227,29 +227,22 @@ const ThemeOption = ({
   selected: boolean;
   onSelect: (id: ThemeId) => void;
 }) => {
-  const meta = THEME_META[themeId];
   const iconCandidates = useMemo(() => resolveAsset(themeId, AssetId.ThemeIcon), [themeId]);
   const iconTex = useTextureWithFallback(iconCandidates);
 
   const drawBg = useCallback(
     (g: PixiGraphics) => {
       g.clear();
-      g.setFillStyle({ color: selected ? 0x3b82f6 : 0x0f172a, alpha: selected ? 0.9 : 0.6 });
-      g.roundRect(0, 0, width, height, 8);
-      g.fill();
-      g.setStrokeStyle({ width: selected ? 2 : 1, color: selected ? 0x60a5fa : 0x475569, alpha: selected ? 1 : 0.5 });
-      g.roundRect(0, 0, width, height, 8);
-      g.stroke();
+      if (selected) {
+        g.setStrokeStyle({ width: 2, color: 0x60a5fa });
+        g.roundRect(0, 0, width, height, 8);
+        g.stroke();
+      }
     },
     [width, height, selected]
   );
 
-  const labelStyle = useMemo(
-    () => ({ fontFamily: FONT_TITLE, fontSize: 11, fill: selected ? 0xffffff : 0x94a3b8 }),
-    [selected]
-  );
-
-  const iconSize = Math.min(width, height) * 0.45;
+  const iconSize = Math.min(width, height) * 0.75;
 
   return (
     <pixiContainer x={x} y={y}>
@@ -259,34 +252,17 @@ const ThemeOption = ({
         cursor="pointer"
         onPointerDown={() => onSelect(themeId)}
       />
-      {iconTex ? (
+      {iconTex && (
         <pixiSprite
           texture={iconTex}
           x={width / 2}
-          y={height * 0.35}
+          y={height / 2}
           anchor={0.5}
           width={iconSize}
           height={iconSize}
           eventMode="none"
         />
-      ) : (
-        <pixiText
-          text={meta.icon}
-          x={width / 2}
-          y={height * 0.35}
-          anchor={0.5}
-          style={{ fontSize: 18 }}
-          eventMode="none"
-        />
       )}
-      <pixiText
-        text={meta.name}
-        x={width / 2}
-        y={height * 0.75}
-        anchor={0.5}
-        style={labelStyle}
-        eventMode="none"
-      />
     </pixiContainer>
   );
 };
