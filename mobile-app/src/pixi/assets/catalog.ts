@@ -29,6 +29,9 @@ export enum AssetId {
   DecoLeft = 'deco-left',
   DecoRight = 'deco-right',
 
+  // Map
+  Map = 'map',
+
   // Bonus icons
   BonusCombo = 'bonus-combo',
   BonusScore = 'bonus-score',
@@ -161,6 +164,9 @@ export const ASSET_CATALOG: Record<AssetId, AssetMeta> = {
   [AssetId.BonusHarvest]: { filename: 'bonus/harvest.png', kind: 'texture', bundle: 'gameplay' },
   [AssetId.BonusWave]: { filename: 'bonus/wave.svg', kind: 'texture', bundle: 'gameplay' },
   [AssetId.BonusSupply]: { filename: 'bonus/supply.svg', kind: 'texture', bundle: 'gameplay' },
+
+  // Map
+  [AssetId.Map]: { filename: 'map.png', kind: 'texture', bundle: 'essential' },
 
   // 9-slice panels
   [AssetId.PanelWood]: { filename: 'panels/panel-wood.png', kind: 'texture', borders: P, bundle: 'ui' },

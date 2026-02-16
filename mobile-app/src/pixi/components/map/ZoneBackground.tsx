@@ -1,6 +1,9 @@
 import { useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
-import { getThemeColors, THEME_META, type ThemeId, FONT_TITLE, FONT_BODY, hexToRgb } from '../../utils/colors';
+import { getThemeColors, isProceduralTheme, THEME_META, type ThemeId, FONT_TITLE, FONT_BODY, hexToRgb } from '../../utils/colors';
+import { AssetId } from '../../assets/catalog';
+import { resolveAsset } from '../../assets/resolver';
+import { useTextureWithFallback } from '../../hooks/useTexture';
 
 export interface ZoneBackgroundProps {
   zone: number;
@@ -15,7 +18,11 @@ export const ZoneBackground = ({ zone, themeId, x, y, width, height }: ZoneBackg
   const colors = getThemeColors(themeId);
   const meta = THEME_META[themeId];
 
-  const draw = useCallback(
+  const mapCandidates = useMemo(() => resolveAsset(themeId, AssetId.Map), [themeId]);
+  const mapTexture = useTextureWithFallback(mapCandidates);
+  const useMapTexture = !isProceduralTheme(themeId) && !!mapTexture;
+
+  const drawGradient = useCallback(
     (g: PixiGraphics) => {
       g.clear();
 
@@ -62,7 +69,18 @@ export const ZoneBackground = ({ zone, themeId, x, y, width, height }: ZoneBackg
 
   return (
     <pixiContainer x={x} y={y}>
-      <pixiGraphics draw={draw} eventMode="none" />
+      {useMapTexture ? (
+        <pixiSprite
+          texture={mapTexture}
+          x={0}
+          y={0}
+          width={width}
+          height={height}
+          eventMode="none"
+        />
+      ) : (
+        <pixiGraphics draw={drawGradient} eventMode="none" />
+      )}
       <pixiText
          text={`${meta.icon} ZONE ${zone} - ${meta.name.toUpperCase()}`}
          x={width / 2}
