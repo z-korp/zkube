@@ -6,7 +6,7 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useTick } from '@pixi/react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
-import { Button } from '../ui';
+import { PixiButton } from '../../ui/PixiButton';
 import type { QuestFamily, QuestTier } from '@/types/questFamily';
 import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
@@ -316,13 +316,13 @@ const QuestFamilyCard = ({
       {/* Claim button */}
       {hasClaimable && (
         <pixiContainer x={cardPadding} y={headerH + tiersHeight + progressH + 8}>
-            <Button
-               text={isClaiming ? 'CLAIMING...' : `CLAIM T${family.claimableTier!.tier} (+${family.claimableTier!.reward})`}
+            <PixiButton
+               label={isClaiming ? 'CLAIMING...' : `CLAIM T${family.claimableTier!.tier} (+${family.claimableTier!.reward})`}
                width={width - cardPadding * 2}
                height={44}
-               variant="primary"
-               fontSize={14}
-               onClick={handleClaim}
+               variant="green"
+               textStyle={{ fontFamily: FONT_TITLE, fontSize: 14 }}
+               onPress={handleClaim}
              disabled={isClaiming}
            />
         </pixiContainer>
@@ -532,17 +532,17 @@ export const QuestsPage = ({
                style={EMPTY_SUB_STYLE}
                eventMode="none"
              />
-             <Button
-               text={isRefreshing ? 'RETRYING...' : 'RETRY'}
-               x={(contentWidth - 140) / 2}
-               y={122}
-               width={140}
-               height={44}
-               variant="secondary"
-               fontSize={14}
-               onClick={handleRefresh}
-               disabled={isRefreshing}
-             />
+              <PixiButton
+                label={isRefreshing ? 'RETRYING...' : 'RETRY'}
+                x={(contentWidth - 140) / 2}
+                y={122}
+                width={140}
+                height={44}
+                variant="purple"
+                textStyle={{ fontFamily: FONT_TITLE, fontSize: 14 }}
+                onPress={handleRefresh}
+                disabled={isRefreshing}
+              />
           </pixiContainer>
          ) : allFamilies.length === 0 ? (
            <pixiContainer>

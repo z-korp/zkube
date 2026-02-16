@@ -64,6 +64,10 @@ export enum AssetId {
   IconLock = 'icon-lock',
   IconMusic = 'icon-music',
   IconSound = 'icon-sound',
+  IconSurrender = 'icon-surrender',
+  IconMoves = 'icon-moves',
+  IconScore = 'icon-score',
+  IconLevel = 'icon-level',
 
   // Particles
   ParticleSpark = 'particle-spark',
@@ -189,6 +193,10 @@ export const ASSET_CATALOG: Record<AssetId, AssetMeta> = {
   [AssetId.IconLock]: { filename: 'icons/icon-lock.png', kind: 'texture', bundle: 'ui', shared: true },
   [AssetId.IconMusic]: { filename: 'icons/icon-music.png', kind: 'texture', bundle: 'ui', shared: true },
   [AssetId.IconSound]: { filename: 'icons/icon-sound.png', kind: 'texture', bundle: 'ui', shared: true },
+  [AssetId.IconSurrender]: { filename: 'icons/icon-surrender.png', kind: 'texture', bundle: 'ui', shared: true },
+  [AssetId.IconMoves]: { filename: 'icons/icon-moves.png', kind: 'texture', bundle: 'ui', shared: true },
+  [AssetId.IconScore]: { filename: 'icons/icon-score.png', kind: 'texture', bundle: 'ui', shared: true },
+  [AssetId.IconLevel]: { filename: 'icons/icon-level.png', kind: 'texture', bundle: 'ui', shared: true },
 
   // Particles
   [AssetId.ParticleSpark]: { filename: 'particles/particle-spark.png', kind: 'texture', bundle: 'effects', shared: true },
@@ -248,7 +256,8 @@ export type ButtonVariant = 'orange' | 'green' | 'purple' | 'red' | 'icon';
 export type PanelType = 'wood' | 'dark' | 'leaf' | 'glass';
 export type IconType =
   | 'starFilled' | 'starEmpty' | 'cube' | 'crown' | 'fire' | 'scroll'
-  | 'shop' | 'trophy' | 'menu' | 'close' | 'settings' | 'lock' | 'music' | 'sound';
+  | 'shop' | 'trophy' | 'menu' | 'close' | 'settings' | 'lock' | 'music' | 'sound'
+  | 'surrender' | 'moves' | 'score' | 'level';
 
 export const BUTTON_VARIANT_TO_ASSET: Record<ButtonVariant, AssetId> = {
   orange: AssetId.BtnOrange,
@@ -280,6 +289,10 @@ export const ICON_TYPE_TO_ASSET: Record<IconType, AssetId> = {
   lock: AssetId.IconLock,
   music: AssetId.IconMusic,
   sound: AssetId.IconSound,
+  surrender: AssetId.IconSurrender,
+  moves: AssetId.IconMoves,
+  score: AssetId.IconScore,
+  level: AssetId.IconLevel,
 };
 
 export function blockAssetId(width: number): AssetId {

@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
-import { Modal, Button } from '../ui';
+import { Modal } from '../ui';
+import { PixiButton } from '../../ui/PixiButton';
 import { FONT_BODY } from '../../utils/colors';
 
 interface MenuModalProps {
@@ -155,55 +156,55 @@ export const MenuModal = ({
             </pixiContainer>
 
             {/* Confirm button */}
-            <Button
-              text={isSurrendering ? "Surrendering..." : "Yes, Surrender"}
+            <PixiButton
+              label={isSurrendering ? "SURRENDERING..." : "YES, SURRENDER"}
               y={80}
               width={buttonWidth}
               height={buttonHeight}
-              variant="danger"
+              variant="red"
               disabled={isSurrendering}
-              onClick={handleConfirmSurrender}
+              onPress={handleConfirmSurrender}
             />
 
             {/* Cancel button */}
-            <Button
-              text="Cancel"
+            <PixiButton
+              label="CANCEL"
               y={80 + buttonHeight + buttonSpacing}
               width={buttonWidth}
               height={buttonHeight}
-              variant="secondary"
+              variant="purple"
               disabled={isSurrendering}
-              onClick={handleCancelConfirm}
+              onPress={handleCancelConfirm}
             />
           </>
         ) : (
           // Main menu view
           <>
-            <Button
-              text="Resume Game"
+            <PixiButton
+              label="RESUME GAME"
               y={8}
               width={buttonWidth}
               height={buttonHeight}
-              variant="secondary"
-              onClick={handleClose}
+              variant="purple"
+              onPress={handleClose}
             />
 
-            <Button
-              text="Go Home"
+            <PixiButton
+              label="GO HOME"
               y={8 + buttonHeight + buttonSpacing}
               width={buttonWidth}
               height={buttonHeight}
-              variant="secondary"
-              onClick={onGoHome}
+              variant="purple"
+              onPress={onGoHome}
             />
 
-            <Button
-              text="Surrender"
+            <PixiButton
+              label="SURRENDER"
               y={8 + (buttonHeight + buttonSpacing) * 2}
               width={buttonWidth}
               height={buttonHeight}
-              variant="danger"
-              onClick={handleSurrenderClick}
+              variant="red"
+              onPress={handleSurrenderClick}
             />
           </>
         )}

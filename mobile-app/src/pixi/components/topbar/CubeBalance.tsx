@@ -1,7 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
+import { FONT_BODY, type ThemeId } from '../../utils/colors';
+import { usePixiTheme } from '../../themes/ThemeContext';
+import { AssetId } from '../../assets/catalog';
+import { resolveAsset } from '../../assets/resolver';
+import { useTextureWithFallback } from '../../hooks/useTexture';
 import { drawCubeIcon } from '../ui/Icons';
-import { FONT_BODY } from '../../utils/colors';
 
 interface CubeBalanceProps {
   balance: number;
@@ -15,6 +19,13 @@ interface CubeBalanceProps {
  * Cube currency display with icon and balance
  */
 export const CubeBalance = ({ balance, x, y, height, uiScale }: CubeBalanceProps) => {
+  const { themeName } = usePixiTheme();
+  const iconCandidates = useMemo(
+    () => resolveAsset(themeName as ThemeId, AssetId.IconCube),
+    [themeName],
+  );
+  const iconTex = useTextureWithFallback(iconCandidates);
+
   const fontSize = Math.round(14 * uiScale);
   const iconSize = height * 0.7;
   const padding = Math.round(10 * uiScale);
@@ -49,12 +60,24 @@ export const CubeBalance = ({ balance, x, y, height, uiScale }: CubeBalanceProps
     <pixiContainer x={x} y={y}>
       <pixiGraphics draw={drawBackground} eventMode="none" />
       
-      <pixiGraphics
-        x={padding + iconSize / 2}
-        y={height / 2}
-        draw={drawIcon}
-        eventMode="none"
-      />
+      {iconTex ? (
+        <pixiSprite
+          texture={iconTex}
+          x={padding + iconSize / 2}
+          y={height / 2}
+          width={iconSize}
+          height={iconSize}
+          anchor={0.5}
+          eventMode="none"
+        />
+      ) : (
+        <pixiGraphics
+          x={padding + iconSize / 2}
+          y={height / 2}
+          draw={drawIcon}
+          eventMode="none"
+        />
+      )}
       
       <pixiText
         text={balance.toLocaleString()}

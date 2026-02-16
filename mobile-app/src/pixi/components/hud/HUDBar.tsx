@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { LevelBadge } from './LevelBadge';
 import { ProgressBar } from './ProgressBar';
@@ -6,6 +6,11 @@ import { MovesCounter } from './MovesCounter';
 import { ConstraintIndicator } from './ConstraintIndicator';
 import type { ConstraintData } from './ConstraintIndicator';
 import { ConstraintType } from '@/dojo/game/types/constraint';
+import { usePixiTheme } from '../../themes/ThemeContext';
+import { AssetId } from '../../assets/catalog';
+import { resolveAsset } from '../../assets/resolver';
+import { useTextureWithFallback } from '../../hooks/useTexture';
+import type { ThemeId } from '../../utils/colors';
 
 interface HUDBarProps {
   /** Current level */
@@ -54,6 +59,13 @@ export const HUDBar = ({
   y = 0,
   isInDanger = false,
 }: HUDBarProps) => {
+  const { themeName } = usePixiTheme();
+  const barCandidates = useMemo(
+    () => resolveAsset(themeName as ThemeId, AssetId.HudBar),
+    [themeName],
+  );
+  const barTex = useTextureWithFallback(barCandidates);
+
   const hasConstraint1 = constraint1 && constraint1.type !== ConstraintType.None;
   const hasConstraint2 = constraint2 && constraint2.type !== ConstraintType.None;
   const hasConstraint3 = constraint3 && constraint3.type !== ConstraintType.None;
@@ -73,19 +85,25 @@ export const HUDBar = ({
 
   const drawBackground = useCallback((g: PixiGraphics) => {
     g.clear();
-    
-    // Semi-transparent background
-    g.rect(0, 0, width, height);
-    g.fill({ color: 0x1a2744, alpha: 0.9 });
-    
-    g.moveTo(0, height - 1);
-    g.lineTo(width, height - 1);
-    g.stroke({ color: 0x334155, width: 1, alpha: 0.4 });
-  }, [width, height]);
+
+    if (!barTex) {
+      // Procedural fallback
+      g.rect(0, 0, width, height);
+      g.fill({ color: 0x1a2744, alpha: 0.9 });
+
+      g.moveTo(0, height - 1);
+      g.lineTo(width, height - 1);
+      g.stroke({ color: 0x334155, width: 1, alpha: 0.4 });
+    }
+  }, [width, height, barTex]);
 
   return (
     <pixiContainer y={y}>
-      <pixiGraphics draw={drawBackground} />
+      {barTex ? (
+        <pixiSprite texture={barTex} width={width} height={height} />
+      ) : (
+        <pixiGraphics draw={drawBackground} />
+      )}
       
       <LevelBadge
         level={level}

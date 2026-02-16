@@ -6,7 +6,8 @@
 import { useCallback, useMemo, useEffect, useRef } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
 import { useTick } from '@pixi/react';
-import { Modal, Button } from '../ui';
+import { Modal } from '../ui';
+import { PixiButton } from '../../ui/PixiButton';
 import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
 
@@ -252,23 +253,23 @@ export const VictoryModal = ({
 
         {/* Buttons */}
         {onShare && (
-          <Button
-            text="SHARE VICTORY"
+          <PixiButton
+            label="SHARE VICTORY"
             y={290}
             width={buttonWidth}
             height={buttonHeight}
-            variant="primary"
-            onClick={onShare}
+            variant="orange"
+            onPress={onShare}
           />
         )}
 
-        <Button
-          text="BACK TO HOME"
+        <PixiButton
+          label="BACK TO HOME"
           y={onShare ? 290 + buttonHeight + buttonSpacing : 290}
           width={buttonWidth}
           height={buttonHeight}
-          variant="secondary"
-          onClick={onGoHome}
+          variant="purple"
+          onPress={onGoHome}
         />
       </pixiContainer>
     </Modal>

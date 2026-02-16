@@ -15,7 +15,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useTick } from '@pixi/react';
 import { Graphics as PixiGraphics } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
-import { Button } from '../ui';
+import { PixiButton } from '../../ui/PixiButton';
 import type { PlayerMetaData } from '@/hooks/usePlayerMeta';
 import { FONT_TITLE, FONT_BODY, UI } from '../../utils/colors';
 
@@ -205,14 +205,14 @@ const BonusCard = ({
            <pixiText text="STARTING" x={CARD_PAD} y={48} style={STYLE_LABEL} eventMode="none" />
           <LevelPips level={startingLevel} maxLevel={MAX_LEVEL} x={CARD_PAD} y={66} color={accent} />
           <pixiContainer x={btnX} y={48}>
-            <Button
-              text={startMaxed ? 'MAX' : `${startCost}`}
+            <PixiButton
+              label={startMaxed ? 'MAX' : `${startCost}`}
               width={BTN_W}
               height={BTN_H}
-              variant={canStart ? 'primary' : 'secondary'}
+              variant={canStart ? 'orange' : 'purple'}
               disabled={!canStart}
-              onClick={onUpgradeStarting}
-              fontSize={12}
+              onPress={onUpgradeStarting}
+              textStyle={{ fontFamily: FONT_TITLE, fontSize: 12 }}
             />
           </pixiContainer>
 
@@ -220,28 +220,28 @@ const BonusCard = ({
            <pixiText text="BAG" x={CARD_PAD} y={94} style={STYLE_LABEL} eventMode="none" />
           <LevelPips level={bagLevel} maxLevel={MAX_LEVEL} x={CARD_PAD} y={112} color={accent} />
           <pixiContainer x={btnX} y={94}>
-            <Button
-              text={bagMaxed ? 'MAX' : `${bagCost}`}
+            <PixiButton
+              label={bagMaxed ? 'MAX' : `${bagCost}`}
               width={BTN_W}
               height={BTN_H}
-              variant={canBag ? 'primary' : 'secondary'}
+              variant={canBag ? 'orange' : 'purple'}
               disabled={!canBag}
-              onClick={onUpgradeBag}
-              fontSize={12}
+              onPress={onUpgradeBag}
+              textStyle={{ fontFamily: FONT_TITLE, fontSize: 12 }}
             />
           </pixiContainer>
         </>
       ) : (
         /* Unlock button centered in remaining space */
         <pixiContainer x={(width - 120) / 2} y={68}>
-            <Button
-             text={`UNLOCK ${UNLOCK_COST} 🧊`}
+            <PixiButton
+             label={`UNLOCK ${UNLOCK_COST} 🧊`}
              width={120}
              height={40}
-             variant={canUnlock ? 'primary' : 'secondary'}
+             variant={canUnlock ? 'orange' : 'purple'}
              disabled={!canUnlock}
-             onClick={onUnlock}
-             fontSize={13}
+             onPress={onUnlock}
+             textStyle={{ fontFamily: FONT_TITLE, fontSize: 13 }}
            />
         </pixiContainer>
       )}
@@ -316,14 +316,14 @@ const BridgingCard = ({
 
       {/* Upgrade button */}
       <pixiContainer x={width - CARD_PAD - BTN_W} y={86}>
-        <Button
-          text={isMaxed ? 'MAX' : `${cost}`}
+        <PixiButton
+          label={isMaxed ? 'MAX' : `${cost}`}
           width={BTN_W}
           height={BTN_H}
-          variant={canUpgrade ? 'primary' : 'secondary'}
+          variant={canUpgrade ? 'orange' : 'purple'}
           disabled={!canUpgrade}
-          onClick={onUpgrade}
-          fontSize={12}
+          onPress={onUpgrade}
+          textStyle={{ fontFamily: FONT_TITLE, fontSize: 12 }}
         />
       </pixiContainer>
     </pixiContainer>

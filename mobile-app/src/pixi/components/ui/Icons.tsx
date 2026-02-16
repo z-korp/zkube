@@ -1,11 +1,15 @@
+import { useMemo } from 'react';
 import { Graphics as PixiGraphics } from 'pixi.js';
+import { AssetId } from '../../assets/catalog';
+import { resolveAsset } from '../../assets/resolver';
+import { useTextureWithFallback } from '../../hooks/useTexture';
+import { usePixiTheme } from '../../themes/ThemeContext';
+import type { ThemeId } from '../../utils/colors';
 
-/**
- * Utility functions to draw clean, consistent icons in PixiJS
- * All icons are drawn centered at (0,0) with the given size
- */
+// ============================================================================
+// COLOR PALETTE (kept — used by non-icon components)
+// ============================================================================
 
-// Color palette for icons
 export const IconColors = {
   primary: 0xffffff,
   secondary: 0x94a3b8,
@@ -15,293 +19,139 @@ export const IconColors = {
   success: 0x22c55e,
 };
 
-/**
- * Draw a hamburger menu icon
- */
-export const drawMenuIcon = (g: PixiGraphics, size: number, color = IconColors.primary) => {
-  const lineWidth = size * 0.12;
-  const gap = size * 0.22;
-  const lineLength = size * 0.6;
-  
-  g.clear();
-  
-  // Three horizontal lines
-  for (let i = -1; i <= 1; i++) {
-    const y = i * gap;
-    g.roundRect(-lineLength / 2, y - lineWidth / 2, lineLength, lineWidth, lineWidth / 2);
-    g.fill({ color });
-  }
+// ============================================================================
+// ICON NAME → ASSET MAP
+// ============================================================================
+
+const ICON_ASSET_MAP: Record<string, AssetId> = {
+  menu: AssetId.IconMenu,
+  trophy: AssetId.IconTrophy,
+  shop: AssetId.IconShop,
+  quests: AssetId.IconScroll,
+  scroll: AssetId.IconScroll,
+  flag: AssetId.IconSurrender,
+  surrender: AssetId.IconSurrender,
+  cube: AssetId.IconCube,
+  close: AssetId.IconClose,
+  combo: AssetId.IconFire,
+  fire: AssetId.IconFire,
+  moves: AssetId.IconMoves,
+  target: AssetId.IconScore,
+  score: AssetId.IconScore,
+  starFilled: AssetId.IconStarFilled,
+  starEmpty: AssetId.IconStarEmpty,
+  crown: AssetId.IconCrown,
+  settings: AssetId.IconSettings,
+  lock: AssetId.IconLock,
+  music: AssetId.IconMusic,
+  sound: AssetId.IconSound,
+  level: AssetId.IconLevel,
 };
 
-/**
- * Draw a star icon (filled or outline)
- */
-export const drawStarIcon = (g: PixiGraphics, size: number, filled = true, color = IconColors.gold) => {
-  const outerR = size * 0.45;
-  const innerR = outerR * 0.4;
-  const points = 5;
-  
-  g.clear();
-  g.beginPath();
-  
-  for (let i = 0; i < points * 2; i++) {
-    const r = i % 2 === 0 ? outerR : innerR;
-    const angle = (i * Math.PI) / points - Math.PI / 2;
-    const x = Math.cos(angle) * r;
-    const y = Math.sin(angle) * r;
-    
-    if (i === 0) {
-      g.moveTo(x, y);
-    } else {
-      g.lineTo(x, y);
-    }
-  }
-  
-  g.closePath();
-  
-  if (filled) {
-    g.fill({ color });
-  } else {
-    g.stroke({ color, width: size * 0.08 });
-  }
+// ============================================================================
+// SPRITE ICON COMPONENT
+// ============================================================================
+
+interface SpriteIconProps {
+  /** Icon name (matches ICON_ASSET_MAP keys) */
+  name: string;
+  /** Display size in pixels */
+  size?: number;
+  /** X position */
+  x?: number;
+  /** Y position */
+  y?: number;
+  /** Anchor (0–1, default 0.5 = centered) */
+  anchor?: number;
+  /** Alpha */
+  alpha?: number;
+  /** Tint color override */
+  tint?: number;
+}
+
+export const SpriteIcon = ({
+  name,
+  size = 24,
+  x = 0,
+  y = 0,
+  anchor = 0.5,
+  alpha = 1,
+  tint,
+}: SpriteIconProps) => {
+  const { themeName } = usePixiTheme();
+
+  const candidates = useMemo(() => {
+    const assetId = ICON_ASSET_MAP[name];
+    if (!assetId) return null;
+    return resolveAsset(themeName as ThemeId, assetId);
+  }, [name, themeName]);
+
+  const texture = useTextureWithFallback(candidates);
+
+  if (!texture) return null;
+
+  return (
+    <pixiSprite
+      texture={texture}
+      x={x}
+      y={y}
+      width={size}
+      height={size}
+      anchor={anchor}
+      alpha={alpha}
+      tint={tint}
+      eventMode="none"
+    />
+  );
 };
 
-/**
- * Draw a trophy icon
- */
-export const drawTrophyIcon = (g: PixiGraphics, size: number, color = IconColors.gold) => {
+// ============================================================================
+// DEPRECATED DRAW STUBS
+// Kept for backward compatibility with consumers that haven't migrated yet
+// (SurrenderButton, CubeBalance, etc.). Draw a minimal circle placeholder.
+// ============================================================================
+
+/** @deprecated Use SpriteIcon or PixiButton with icon prop instead */
+const drawDeprecatedStub = (g: PixiGraphics, size: number, color = IconColors.secondary) => {
   g.clear();
-  
-  const cupWidth = size * 0.5;
-  const handleSize = size * 0.12;
-  
-  // Cup body
-  g.beginPath();
-  g.moveTo(-cupWidth / 2, -size * 0.25);
-  g.lineTo(-cupWidth / 2 + size * 0.08, size * 0.1);
-  g.lineTo(cupWidth / 2 - size * 0.08, size * 0.1);
-  g.lineTo(cupWidth / 2, -size * 0.25);
-  g.closePath();
-  g.fill({ color });
-  
-  // Cup rim
-  g.roundRect(-cupWidth / 2 - size * 0.03, -size * 0.3, cupWidth + size * 0.06, size * 0.08, size * 0.02);
-  g.fill({ color });
-  
-  // Handles
-  g.circle(-cupWidth / 2 - handleSize / 2, -size * 0.1, handleSize);
-  g.stroke({ color, width: size * 0.06 });
-  g.circle(cupWidth / 2 + handleSize / 2, -size * 0.1, handleSize);
-  g.stroke({ color, width: size * 0.06 });
-  
-  // Base
-  g.rect(-size * 0.05, size * 0.1, size * 0.1, size * 0.12);
-  g.fill({ color });
-  g.roundRect(-size * 0.15, size * 0.22, size * 0.3, size * 0.08, size * 0.02);
-  g.fill({ color });
+  g.circle(0, 0, size * 0.2);
+  g.fill({ color, alpha: 0.4 });
 };
 
-/**
- * Draw a shop/store icon
- */
-export const drawShopIcon = (g: PixiGraphics, size: number, color = IconColors.success) => {
-  g.clear();
-  
-  const bagWidth = size * 0.5;
-  const bagHeight = size * 0.45;
-  
-  // Bag body
-  g.roundRect(-bagWidth / 2, -size * 0.05, bagWidth, bagHeight, size * 0.06);
-  g.fill({ color });
-  
-  // Bag handle
-  g.beginPath();
-  g.moveTo(-size * 0.12, -size * 0.05);
-  g.quadraticCurveTo(-size * 0.12, -size * 0.25, 0, -size * 0.28);
-  g.quadraticCurveTo(size * 0.12, -size * 0.25, size * 0.12, -size * 0.05);
-  g.stroke({ color, width: size * 0.08 });
+/** @deprecated Use SpriteIcon name="menu" or PixiButton icon="menu" */
+export const drawMenuIcon = drawDeprecatedStub;
+
+/** @deprecated Use SpriteIcon name="starFilled" / name="starEmpty" */
+export const drawStarIcon = (g: PixiGraphics, size: number, _filled = true, color = IconColors.gold) => {
+  drawDeprecatedStub(g, size, color);
 };
 
-/**
- * Draw a scroll/quests icon
- */
-export const drawQuestsIcon = (g: PixiGraphics, size: number, color = IconColors.primary) => {
-  g.clear();
-  
-  const scrollWidth = size * 0.45;
-  const scrollHeight = size * 0.55;
-  
-  // Scroll body
-  g.roundRect(-scrollWidth / 2, -scrollHeight / 2, scrollWidth, scrollHeight, size * 0.04);
-  g.fill({ color });
-  
-  // Scroll rolls at top and bottom
-  const rollRadius = size * 0.06;
-  g.circle(-scrollWidth / 2 + rollRadius, -scrollHeight / 2, rollRadius);
-  g.fill({ color });
-  g.circle(scrollWidth / 2 - rollRadius, -scrollHeight / 2, rollRadius);
-  g.fill({ color });
-  
-  // Lines on scroll
-  const lineColor = 0x1e293b;
-  const lineWidth = scrollWidth * 0.6;
-  for (let i = 0; i < 3; i++) {
-    const y = -scrollHeight / 4 + i * size * 0.12;
-    g.rect(-lineWidth / 2, y, lineWidth, size * 0.03);
-    g.fill({ color: lineColor, alpha: 0.5 });
-  }
-};
+/** @deprecated Use SpriteIcon name="trophy" or PixiButton icon="trophy" */
+export const drawTrophyIcon = drawDeprecatedStub;
 
-/**
- * Draw a flag/surrender icon
- */
-export const drawFlagIcon = (g: PixiGraphics, size: number, color = IconColors.danger) => {
-  g.clear();
-  
-  // Pole
-  const poleX = -size * 0.15;
-  g.rect(poleX - size * 0.025, -size * 0.35, size * 0.05, size * 0.7);
-  g.fill({ color: IconColors.secondary });
-  
-  // Flag
-  g.beginPath();
-  g.moveTo(poleX, -size * 0.35);
-  g.lineTo(size * 0.25, -size * 0.2);
-  g.lineTo(poleX, -size * 0.05);
-  g.closePath();
-  g.fill({ color });
-};
+/** @deprecated Use SpriteIcon name="shop" or PixiButton icon="shop" */
+export const drawShopIcon = drawDeprecatedStub;
 
-/**
- * Draw a cube icon (for currency)
- */
-export const drawCubeIcon = (g: PixiGraphics, size: number, color = 0x60a5fa) => {
-  g.clear();
-  
-  const s = size * 0.35;
-  
-  // Top face (lighter)
-  g.beginPath();
-  g.moveTo(0, -s);
-  g.lineTo(s, -s * 0.5);
-  g.lineTo(0, 0);
-  g.lineTo(-s, -s * 0.5);
-  g.closePath();
-  g.fill({ color: 0x93c5fd });
-  
-  // Left face
-  g.beginPath();
-  g.moveTo(-s, -s * 0.5);
-  g.lineTo(0, 0);
-  g.lineTo(0, s);
-  g.lineTo(-s, s * 0.5);
-  g.closePath();
-  g.fill({ color });
-  
-  // Right face (darker)
-  g.beginPath();
-  g.moveTo(s, -s * 0.5);
-  g.lineTo(s, s * 0.5);
-  g.lineTo(0, s);
-  g.lineTo(0, 0);
-  g.closePath();
-  g.fill({ color: 0x3b82f6 });
-};
+/** @deprecated Use SpriteIcon name="quests" or PixiButton icon="scroll" */
+export const drawQuestsIcon = drawDeprecatedStub;
 
-/**
- * Draw a close (X) icon
- */
-export const drawCloseIcon = (g: PixiGraphics, size: number, color = IconColors.primary) => {
-  g.clear();
-  
-  const s = size * 0.25;
-  const lineWidth = size * 0.1;
-  
-  g.roundRect(-s, -lineWidth / 2, s * 2, lineWidth, lineWidth / 2);
-  g.fill({ color });
-  
-  // Rotate 45 degrees by drawing at angle
-  const offset = s * Math.SQRT1_2;
-  g.beginPath();
-  g.moveTo(-offset, -offset);
-  g.lineTo(offset, offset);
-  g.stroke({ color, width: lineWidth, cap: 'round' });
-  
-  g.beginPath();
-  g.moveTo(offset, -offset);
-  g.lineTo(-offset, offset);
-  g.stroke({ color, width: lineWidth, cap: 'round' });
-};
+/** @deprecated Use SpriteIcon name="flag" or PixiButton icon="surrender" */
+export const drawFlagIcon = drawDeprecatedStub;
 
-/**
- * Draw a combo/fire icon
- */
-export const drawComboIcon = (g: PixiGraphics, size: number, color = 0xf97316) => {
-  g.clear();
-  
-  // Flame shape
-  g.beginPath();
-  g.moveTo(0, size * 0.35);
-  g.quadraticCurveTo(-size * 0.25, size * 0.1, -size * 0.2, -size * 0.1);
-  g.quadraticCurveTo(-size * 0.15, -size * 0.3, 0, -size * 0.4);
-  g.quadraticCurveTo(size * 0.15, -size * 0.3, size * 0.2, -size * 0.1);
-  g.quadraticCurveTo(size * 0.25, size * 0.1, 0, size * 0.35);
-  g.fill({ color });
-  
-  // Inner flame (lighter)
-  g.beginPath();
-  g.moveTo(0, size * 0.25);
-  g.quadraticCurveTo(-size * 0.1, size * 0.1, -size * 0.08, 0);
-  g.quadraticCurveTo(-size * 0.05, -size * 0.15, 0, -size * 0.15);
-  g.quadraticCurveTo(size * 0.05, -size * 0.15, size * 0.08, 0);
-  g.quadraticCurveTo(size * 0.1, size * 0.1, 0, size * 0.25);
-  g.fill({ color: 0xfbbf24 });
-};
+/** @deprecated Use SpriteIcon name="cube" or PixiButton icon="cube" */
+export const drawCubeIcon = drawDeprecatedStub;
 
-/**
- * Draw a moves/steps icon
- */
-export const drawMovesIcon = (g: PixiGraphics, size: number, color = IconColors.primary) => {
-  g.clear();
-  
-  // Arrow pointing right
-  const arrowWidth = size * 0.5;
-  const arrowHeight = size * 0.3;
-  const tailHeight = size * 0.15;
-  
-  g.beginPath();
-  g.moveTo(arrowWidth / 2, 0);
-  g.lineTo(0, -arrowHeight / 2);
-  g.lineTo(0, -tailHeight / 2);
-  g.lineTo(-arrowWidth / 2, -tailHeight / 2);
-  g.lineTo(-arrowWidth / 2, tailHeight / 2);
-  g.lineTo(0, tailHeight / 2);
-  g.lineTo(0, arrowHeight / 2);
-  g.closePath();
-  g.fill({ color });
-};
+/** @deprecated Use SpriteIcon name="close" or PixiButton icon="close" */
+export const drawCloseIcon = drawDeprecatedStub;
 
-/**
- * Draw a target/score icon
- */
-export const drawTargetIcon = (g: PixiGraphics, size: number, color = IconColors.primary) => {
-  g.clear();
-  
-  // Concentric circles
-  const rings = [0.4, 0.28, 0.16];
-  rings.forEach((r, i) => {
-    g.circle(0, 0, size * r);
-    if (i % 2 === 0) {
-      g.stroke({ color, width: size * 0.06 });
-    } else {
-      g.fill({ color });
-    }
-  });
-  
-  // Center dot
-  g.circle(0, 0, size * 0.06);
-  g.fill({ color: IconColors.danger });
-};
+/** @deprecated Use SpriteIcon name="combo" or PixiButton icon="fire" */
+export const drawComboIcon = drawDeprecatedStub;
+
+/** @deprecated Use SpriteIcon name="moves" or PixiButton icon="moves" */
+export const drawMovesIcon = drawDeprecatedStub;
+
+/** @deprecated Use SpriteIcon name="target" or PixiButton icon="score" */
+export const drawTargetIcon = drawDeprecatedStub;
 
 export default {
   drawMenuIcon,
@@ -316,4 +166,5 @@ export default {
   drawMovesIcon,
   drawTargetIcon,
   IconColors,
+  SpriteIcon,
 };

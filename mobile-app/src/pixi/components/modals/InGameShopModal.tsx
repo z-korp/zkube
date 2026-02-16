@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
-import { Modal, Button } from '../ui';
+import { Modal } from '../ui';
+import { PixiButton } from '../../ui/PixiButton';
 import { FONT_TITLE, FONT_BODY, FONT_BOLD } from '../../utils/colors';
 import type { SelectedBonusData, UnselectedBonusData } from '../../hooks/usePlayGame';
 
@@ -191,15 +192,15 @@ export const InGameShopModal = ({
           <pixiText text="── BONUS CHARGES ──" x={sectionWidth / 2} y={4} anchor={{ x: 0.5, y: 0 }} style={sectionTitleStyle} eventMode="none" />
           <pixiText text="Buy charges, then assign to bonuses" x={sectionWidth / 2} y={20} anchor={{ x: 0.5, y: 0 }} style={sectionDescStyle} eventMode="none" />
 
-          <Button
-            text={`BUY CHARGE · ${chargeCost}🧊`}
+          <PixiButton
+            label={`BUY CHARGE · ${chargeCost}🧊`}
             y={34}
             width={sectionWidth}
             height={chargesRowH}
-            variant={cubesAvailable >= chargeCost ? 'primary' : 'secondary'}
+            variant={cubesAvailable >= chargeCost ? 'orange' : 'purple'}
             disabled={isPurchasing || cubesAvailable < chargeCost}
-            fontSize={12}
-            onClick={() => { void onBuyCharge(); }}
+            textStyle={{ fontFamily: FONT_TITLE, fontSize: 12 }}
+            onPress={() => { void onBuyCharge(); }}
           />
 
           {unallocatedCharges > 0 && (
@@ -219,16 +220,16 @@ export const InGameShopModal = ({
                     <pixiGraphics draw={drawAllocRow} eventMode="none" />
                     <pixiText text={`${b.icon} ${b.name}`} x={10} y={15} anchor={{ x: 0, y: 0.5 }} style={bonusNameStyle} eventMode="none" />
                     <pixiText text={`${b.inventory}/${b.bagSize}`} x={120} y={15} anchor={{ x: 0, y: 0.5 }} style={metaStyle} eventMode="none" />
-                    <Button
-                      text={isFull ? 'FULL' : '+1'}
+                    <PixiButton
+                      label={isFull ? 'FULL' : '+1'}
                       x={sectionWidth - 64}
                       y={2}
                       width={56}
                       height={26}
-                      variant={isFull ? 'secondary' : 'primary'}
+                      variant={isFull ? 'purple' : 'orange'}
                       disabled={isPurchasing || isFull}
-                      fontSize={11}
-                      onClick={() => { void onAllocateCharge(b.slot); }}
+                      textStyle={{ fontFamily: FONT_TITLE, fontSize: 11 }}
+                      onPress={() => { void onAllocateCharge(b.slot); }}
                     />
                   </pixiContainer>
                 );
@@ -253,16 +254,16 @@ export const InGameShopModal = ({
             return (
               <pixiContainer key={`lvl-${b.slot}`} y={rowY}>
                 <pixiText text={`${b.icon} ${b.name} Lv${b.level}`} x={0} y={16} anchor={{ x: 0, y: 0.5 }} style={bonusNameStyle} eventMode="none" />
-                <Button
-                  text={label}
+                <PixiButton
+                  label={label}
                   x={sectionWidth - 90}
                   y={2}
                   width={82}
                   height={30}
-                  variant={btnDisabled ? 'secondary' : 'primary'}
+                  variant={btnDisabled ? 'purple' : 'orange'}
                   disabled={btnDisabled}
-                  fontSize={11}
-                  onClick={() => { void onLevelUpBonus(b.slot); }}
+                  textStyle={{ fontFamily: FONT_TITLE, fontSize: 11 }}
+                  onPress={() => { void onLevelUpBonus(b.slot); }}
                 />
               </pixiContainer>
             );
@@ -293,16 +294,16 @@ export const InGameShopModal = ({
             return (
               <pixiContainer key={`swap-${b.slot}`} y={rowY}>
                 <pixiText text={`${b.icon} ${b.name}`} x={0} y={16} anchor={{ x: 0, y: 0.5 }} style={bonusNameStyle} eventMode="none" />
-                <Button
-                  text={isPickerOpen ? 'CANCEL' : 'SWAP'}
+                <PixiButton
+                  label={isPickerOpen ? 'CANCEL' : 'SWAP'}
                   x={sectionWidth - 80}
                   y={2}
                   width={72}
                   height={30}
-                  variant={isPickerOpen ? 'danger' : btnDisabled ? 'secondary' : 'primary'}
+                  variant={isPickerOpen ? 'red' : btnDisabled ? 'purple' : 'orange'}
                   disabled={!isPickerOpen && btnDisabled}
-                  fontSize={11}
-                  onClick={() => setSwapOpenSlot(isPickerOpen ? null : b.slot)}
+                  textStyle={{ fontFamily: FONT_TITLE, fontSize: 11 }}
+                  onPress={() => setSwapOpenSlot(isPickerOpen ? null : b.slot)}
                 />
               </pixiContainer>
             );
@@ -316,16 +317,16 @@ export const InGameShopModal = ({
                 return (
                   <pixiContainer key={`pick-${ub.contractValue}`} y={pickY}>
                     <pixiText text={`${ub.icon} ${ub.name}`} x={10} y={14} anchor={{ x: 0, y: 0.5 }} style={bonusNameStyle} eventMode="none" />
-                    <Button
-                      text="SELECT"
+                    <PixiButton
+                      label="SELECT"
                       x={sectionWidth - 100}
                       y={2}
                       width={64}
                       height={26}
-                      variant="primary"
+                      variant="orange"
                       disabled={isPurchasing}
-                      fontSize={10}
-                      onClick={() => {
+                      textStyle={{ fontFamily: FONT_TITLE, fontSize: 10 }}
+                      onPress={() => {
                         void onSwapBonus(swapOpenSlot, ub.contractValue);
                         setSwapOpenSlot(null);
                       }}
@@ -347,14 +348,14 @@ export const InGameShopModal = ({
         </pixiContainer>
 
         {/* Continue Run */}
-        <Button
-          text={isPurchasing ? 'PURCHASING...' : 'CONTINUE RUN'}
+        <PixiButton
+          label={isPurchasing ? 'PURCHASING...' : 'CONTINUE RUN'}
           y={contentHeight - 52}
           width={sectionWidth}
           height={44}
-          variant="secondary"
+          variant="purple"
           disabled={isPurchasing}
-          onClick={onClose}
+          onPress={onClose}
         />
       </pixiContainer>
     </Modal>

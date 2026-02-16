@@ -10,7 +10,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Graphics as PixiGraphics, Texture } from "pixi.js";
 import { PageTopBar } from "./PageTopBar";
-import { Button } from "../ui";
+import { PixiButton } from "../../ui/PixiButton";
 import { usePixiTheme } from "../../themes/ThemeContext";
 import type { PlayerMetaData } from "@/hooks/usePlayerMeta";
 import { BonusType, bonusTypeToContractValue } from "@/dojo/game/types/bonus";
@@ -552,27 +552,27 @@ export const LoadoutPage = ({
 
         {/* Buttons */}
         <pixiContainer y={canBringCubes ? 36 + tileSize + 40 + 90 : 36 + tileSize + 50}>
-           <Button
-             text={isLoading ? "STARTING..." : "START GAME"}
+           <PixiButton
+             label={isLoading ? "STARTING..." : "START GAME"}
              x={0}
              y={0}
              width={contentWidth}
              height={56}
-             variant="primary"
-             fontSize={18}
-             onClick={handleConfirm}
+             variant="green"
+             textStyle={{ fontFamily: FONT_TITLE, fontSize: 18 }}
+             onPress={handleConfirm}
              disabled={isLoading || selected.length !== 3}
            />
 
-           <Button
-             text="CANCEL"
+           <PixiButton
+             label="CANCEL"
              x={0}
             y={68}
             width={contentWidth}
             height={48}
-            variant="secondary"
-            fontSize={16}
-            onClick={onCancel}
+            variant="purple"
+            textStyle={{ fontFamily: FONT_TITLE, fontSize: 16 }}
+            onPress={onCancel}
             disabled={isLoading}
           />
         </pixiContainer>

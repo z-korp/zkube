@@ -5,7 +5,8 @@
 
 import { useCallback, useMemo, useState, useEffect } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
-import { Modal, Button } from '../ui';
+import { Modal } from '../ui';
+import { PixiButton } from '../../ui/PixiButton';
 import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
 const MODAL_TITLE_STYLE = new TextStyle({
@@ -230,13 +231,13 @@ export const LevelCompleteModal = ({
         </pixiContainer>
 
         {/* Continue button */}
-         <Button
-           text="CONTINUE"
+         <PixiButton
+           label="CONTINUE"
            y={bonusAwarded ? 230 : 190}
            width={buttonWidth}
            height={buttonHeight}
-           variant="primary"
-           onClick={onClose}
+           variant="green"
+           onPress={onClose}
          />
       </pixiContainer>
     </Modal>

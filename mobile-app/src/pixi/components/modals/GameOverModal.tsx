@@ -5,7 +5,8 @@
 
 import { useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
-import { Modal, Button } from '../ui';
+import { Modal } from '../ui';
+import { PixiButton } from '../../ui/PixiButton';
 import { FONT_TITLE, FONT_BODY } from '../../utils/colors';
 
 
@@ -127,23 +128,23 @@ export const GameOverModal = ({
 
         {/* Buttons */}
         {onPlayAgain && (
-          <Button
-            text="PLAY AGAIN"
+          <PixiButton
+            label="PLAY AGAIN"
             y={260}
             width={buttonWidth}
             height={buttonHeight}
-            variant="primary"
-            onClick={onPlayAgain}
+            variant="orange"
+            onPress={onPlayAgain}
           />
         )}
 
-        <Button
-          text="BACK TO HOME"
+        <PixiButton
+          label="BACK TO HOME"
           y={onPlayAgain ? 260 + buttonHeight + buttonSpacing : 260}
           width={buttonWidth}
           height={buttonHeight}
-          variant="secondary"
-          onClick={onGoHome}
+          variant="purple"
+          onPress={onGoHome}
         />
       </pixiContainer>
     </Modal>

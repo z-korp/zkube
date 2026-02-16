@@ -229,18 +229,6 @@ const HomeTopBar = ({
     ? Math.max(btnSize, Math.min(120, username.length * 8 + 30))
     : btnSize;
 
-  const [ctrlPressed, setCtrlPressed] = useState(false);
-  const [ctrlHovered, setCtrlHovered] = useState(false);
-  const ctrlScale = ctrlPressed ? 0.9 : ctrlHovered ? 1.05 : 1;
-
-  const drawControllerBtn = useCallback((g: PixiGraphics) => {
-    g.clear();
-    g.roundRect(0, 0, controllerBtnW, btnSize, 8);
-    g.fill({ color: ctrlHovered ? 0x4338ca : 0x3730a3, alpha: 0.9 });
-    g.roundRect(0, 0, controllerBtnW, btnSize, 8);
-    g.stroke({ color: 0x6366f1, width: 1, alpha: 0.5 });
-  }, [controllerBtnW, btnSize, ctrlHovered]);
-
   const settingsX = sw - pad - controllerBtnW;
   const settingsBtnX = settingsX - gap - btnSize;
   const trophyX = settingsBtnX - gap - btnSize;
@@ -260,22 +248,16 @@ const HomeTopBar = ({
       <PixiButton x={trophyX} y={centerY} width={btnSize} height={btnSize} iconOnly icon="trophy" onPress={onTrophyClick} />
       <PixiButton x={settingsBtnX} y={centerY} width={btnSize} height={btnSize} iconOnly icon="settings" onPress={onSettingsClick} />
 
-      <pixiContainer x={settingsX} y={centerY} scale={ctrlScale}>
-        <pixiGraphics draw={drawControllerBtn}
-          eventMode="static" cursor="pointer"
-          onPointerDown={() => setCtrlPressed(true)}
-          onPointerUp={() => { setCtrlPressed(false); isConnected ? onProfileClick() : onConnect?.(); }}
-          onPointerUpOutside={() => { setCtrlPressed(false); setCtrlHovered(false); }}
-          onPointerOver={() => setCtrlHovered(true)}
-          onPointerOut={() => { setCtrlHovered(false); setCtrlPressed(false); }}
-        />
-        <pixiText
-          text={isConnected && username ? username : "👤"}
-          x={controllerBtnW / 2} y={btnSize / 2} anchor={0.5}
-          style={isConnected && username ? usernameStyle : { fontSize: btnSize * 0.45 }}
-          eventMode="none"
-        />
-      </pixiContainer>
+      <PixiButton
+        x={settingsX} y={centerY}
+        width={controllerBtnW} height={btnSize}
+        variant="purple"
+        label={isConnected && username ? username : undefined}
+        icon={!(isConnected && username) ? "menu" : undefined}
+        iconOnly={!(isConnected && username)}
+        onPress={isConnected ? onProfileClick : onConnect}
+        textStyle={usernameStyle}
+      />
     </pixiContainer>
   );
 };
