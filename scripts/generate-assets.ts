@@ -66,6 +66,30 @@ interface CliOptions {
 }
 
 const THEMES: Record<string, ThemeDefinition> = {
+  "theme-1": {
+    name: "Tiki",
+    icon: "🌴",
+    description: "Tropical moonlit beach with carved tiki totems and palm trees",
+    mood: "Warm, tropical, festive",
+    palette: { bg: "#87CEEB", accent: "#FF8C00", blocks: ["#4ADE80", "#4AA8DE", "#9F7AEA", "#FBBF24"] },
+    motifs: "Carved tiki masks, bamboo, palm fronds, coconut shells, tropical flowers, tribal wave patterns",
+    blockMotifs: "Carved tiki mask faces, bamboo weave patterns, tropical flower motifs",
+    scene:
+      "Tropical moonlit beach at night, carved tiki totems glowing by firelight, palm trees silhouetted against starry sky, gentle waves lapping at shore",
+    gridMaterial: "Warm dark wood planks with bamboo frame grain",
+  },
+  "theme-2": {
+    name: "Cosmic",
+    icon: "🌌",
+    description: "Synthwave alien landscape with cratered planets and neon rim-lighting",
+    mood: "Vast, mysterious, electric",
+    palette: { bg: "#0B0D21", accent: "#A29BFE", blocks: ["#00D2D3", "#6C5CE7", "#FD79A8", "#FDCB6E"] },
+    motifs: "Nebula swirls, planet rings, star clusters, cosmic crystals, alien glyphs, wormhole spirals",
+    blockMotifs: "Cosmic crystal formations, nebula swirl patterns, alien glyph carvings",
+    scene:
+      "Alien landscape at twilight, cratered planets on horizon, nebula sky with star clusters, neon rim-lighting on crystalline formations",
+    gridMaterial: "Dark cosmic void with faint star field and purple nebula tint",
+  },
   "theme-3": {
     name: "Easter Island",
     icon: "🗿",
@@ -1013,16 +1037,19 @@ async function generateImage(ai: GoogleGenAI, job: AssetJob, includeRefs: boolea
   throw new Error("Failed to generate image after retries.");
 }
 
+// Dimensions chosen for mobile-first PixiJS with DPR capped at 2.
+// Max physical cell = 56px × 2 = 112px. Block textures at 256/cell = 2.3× max.
+// Grid at 512×640 covers tablet (448×560 logical) at 1.1× buffer.
 const TARGET_DIMENSIONS: Record<string, { width: number; height: number }> = {
-  "block-1.png": { width: 544, height: 544 },
-  "block-2.png": { width: 1088, height: 544 },
-  "block-3.png": { width: 1632, height: 544 },
-  "block-4.png": { width: 2176, height: 544 },
-  "grid-bg.png": { width: 320, height: 400 },
-  "grid-frame.png": { width: 380, height: 460 },
+  "block-1.png": { width: 256, height: 256 },
+  "block-2.png": { width: 512, height: 256 },
+  "block-3.png": { width: 768, height: 256 },
+  "block-4.png": { width: 1024, height: 256 },
+  "grid-bg.png": { width: 512, height: 640 },
+  "grid-frame.png": { width: 576, height: 720 },
   "background.png": { width: 1080, height: 1920 },
   "loading-bg.png": { width: 1080, height: 1920 },
-  "logo.png": { width: 500, height: 500 },
+  "logo.png": { width: 512, height: 512 },
   "map.png": { width: 1080, height: 1920 },
   "theme-icon.png": { width: 128, height: 128 },
 };
@@ -1060,24 +1087,24 @@ path = sys.argv[1]
 img = Image.open(path).convert('RGBA')
 arr = np.array(img, dtype=np.float32)
 r, g, b, a = arr[:,:,0], arr[:,:,1], arr[:,:,2], arr[:,:,3]
-green_mask = (g > 100) & (r < 200) & (b < 200) & (g > r * 1.3) & (g > b * 1.3)
+green_mask = (g > 80) & (r < 220) & (b < 220) & (g > r * 1.2) & (g > b * 1.2)
+max_rb = np.maximum(r, b)
+spill = np.maximum(g - max_rb, 0)
+arr[:,:,1] = np.clip(g - spill * 0.9, 0, 255).astype(np.uint8)
 
 try:
     from scipy.ndimage import binary_dilation, gaussian_filter
 
-    dilated = binary_dilation(green_mask, iterations=1)
-    edge_mask = dilated & ~green_mask
-    alpha = np.where(green_mask, 0, 255).astype(np.float32)
-    alpha = np.where(edge_mask, 128, alpha)
-    alpha = gaussian_filter(alpha, sigma=0.5)
+    dilated = binary_dilation(green_mask, iterations=3)
+    alpha = np.where(dilated, 0, 255).astype(np.float32)
+    alpha = gaussian_filter(alpha, sigma=1.0)
     arr[:,:,3] = np.clip(alpha, 0, 255).astype(np.uint8)
-    fully_transparent = arr[:,:,3] == 0
-    arr[fully_transparent, :3] = 0
+    arr[arr[:,:,3] < 10, :3] = 0
     Image.fromarray(arr.astype(np.uint8), 'RGBA').save(path)
 except Exception:
     arr = arr.astype(np.uint8)
     r, g, b = arr[:,:,0], arr[:,:,1], arr[:,:,2]
-    green_mask = (g > 100) & (r < 200) & (b < 200) & (g > r * 1.3) & (g > b * 1.3)
+    green_mask = (g > 80) & (r < 220) & (b < 220) & (g > r * 1.2) & (g > b * 1.2)
     arr[:,:,3] = np.where(green_mask, 0, 255).astype(np.uint8)
     arr[green_mask, :3] = 0
     Image.fromarray(arr, 'RGBA').save(path)
@@ -1159,11 +1186,21 @@ async function postProcessTheme(themeId: string): Promise<void> {
           .trim();
         const [curW, curH] = sizeOutput.split("x").map(Number);
         if (curW !== target.width || curH !== target.height) {
+          const targetRatio = target.width / target.height;
+          const curRatio = curW / curH;
+          const needsCrop = Math.abs(targetRatio - curRatio) > 0.05;
+          const cropScript = needsCrop
+            ? `tr = ${target.width}/${target.height}; cw, ch = img.size; ` +
+              `nh = int(cw / tr) if tr > 1 else ch; nw = int(ch * tr) if tr <= 1 else cw; ` +
+              `left = (cw - nw) // 2; top = (ch - nh) // 2; ` +
+              `img = img.crop((left, top, left + nw, top + nh)); `
+            : "";
           execSync(
-            `python3 -c "from PIL import Image; img = Image.open('${filePath}'); img = img.resize((${target.width}, ${target.height}), Image.LANCZOS); img.save('${filePath}')"`,
+            `python3 -c "from PIL import Image; img = Image.open('${filePath}'); ${cropScript}img = img.resize((${target.width}, ${target.height}), Image.LANCZOS); img.save('${filePath}')"`,
           );
           resized += 1;
-          console.log(`  📐 ${filename}: ${curW}x${curH} → ${target.width}x${target.height}`);
+          const cropLabel = needsCrop ? " (cropped)" : "";
+          console.log(`  📐 ${filename}: ${curW}x${curH} → ${target.width}x${target.height}${cropLabel}`);
         }
       } catch {
         console.error(`  ❌ ${filename}: resize failed`);

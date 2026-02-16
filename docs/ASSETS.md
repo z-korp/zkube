@@ -71,9 +71,9 @@ All generated assets must follow a **unified art style** to feel like one game, 
 
 Theme-1 (Tiki) and Theme-2 (Cosmic) establish the baseline:
 - **Background** (1080x1920): Illustrated portrait landscape with layered silhouettes, atmospheric depth
-- **Blocks** (544x544 per cell): Emblem-style tile with bold black shapes, 2-3 color tones, subtle texture overlay
-- **Logo** (500x500): "zKube" text with theme motifs and isometric cube element
-- **Grid frame** (380x460): Simple material-colored border panel
+- **Blocks** (256x256 per cell): Emblem-style tile with bold black shapes, 2-3 color tones, subtle texture overlay
+- **Logo** (512x512): "zKube" text with theme motifs and isometric cube element
+- **Grid frame** (576x720): Simple material-colored border panel
 - **UI chrome** (360x40/64): Horizontal bars with subtle bevel/shadow
 
 ---
@@ -114,8 +114,11 @@ An asset is **🎨 Per-theme** when:
 ### Post-Processing Pipeline
 
 1. **JPEG to PNG** — Gemini always returns JPEG
-2. **Green Stripping** — HSV detection: `G > 100 AND R < 200 AND B < 200 AND G > R*1.3 AND G > B*1.3` → alpha=0. Edge feathering via scipy.
-3. **Resize** — Scale to target dimensions
+2. **Green Despill** — Suppress excess green from ALL pixels: `G_new = G - 0.9 * max(G - max(R,B), 0)`
+3. **Green Mask** — Detection: `G > 80 AND R < 220 AND B < 220 AND G > R*1.2 AND G > B*1.2`
+4. **Alpha Matte** — Dilate mask by 3px, gaussian blur sigma=1.0 for soft edges
+5. **Center-Crop** — For multi-cell blocks: crop center strip at target aspect ratio
+6. **Resize** — Scale to target dimensions
 
 ### Prompt Suffix (transparency assets)
 
@@ -134,12 +137,12 @@ The green will be removed in post-processing to create transparency.
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `Block1` | `block-1.png` | 544x544 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
-| `Block2` | `block-2.png` | 1088x544 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
-| `Block3` | `block-3.png` | 1632x544 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
-| `Block4` | `block-4.png` | 2176x544 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
+| `Block1` | `block-1.png` | 256x256 | ✅ theme-4 / ❌ all others |
+| `Block2` | `block-2.png` | 512x256 | ✅ theme-4 / ❌ all others |
+| `Block3` | `block-3.png` | 768x256 | ✅ theme-4 / ❌ all others |
+| `Block4` | `block-4.png` | 1024x256 | ✅ theme-4 / ❌ all others |
 
-**Generation:** 4 x 7 themes = **28 images**. Generate at 1:1 1K, crop center strip for wide blocks.
+**Generation:** 4 x 9 themes = **36 images**. Generate at 1:1 1K, center-crop to target aspect ratio, resize.
 
 **Prompt template (block-1):**
 ```
@@ -181,10 +184,10 @@ Portrait orientation (9:16), mobile-first, rendered in "cover" mode.
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `Background` | `background.png` | 1080x1920 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
-| `LoadingBg` | `loading-bg.png` | 1080x1920 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
+| `Background` | `background.png` | 1080x1920 | ✅ theme-4 / ❌ all others |
+| `LoadingBg` | `loading-bg.png` | 1080x1920 | ✅ theme-4 / ❌ all others |
 
-**Generation:** 2 x 7 = **14 images**. Config: `9:16`, `2K`.
+**Generation:** 2 x 9 = **18 images**. Config: `9:16`, `2K`.
 
 **Prompt template:**
 ```
@@ -211,9 +214,9 @@ Mood: {MOOD}. Palette: {GRADIENT}. Opaque fill. No text, no people.
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `Logo` | `logo.png` | 500x500 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
+| `Logo` | `logo.png` | 512x512 | ✅ theme-4 / ❌ all others |
 
-**Generation:** 7 images. Config: `1:1`, `1K`.
+**Generation:** 9 images. Config: `1:1`, `1K`.
 
 **Prompt template:**
 ```
@@ -233,10 +236,10 @@ Square format. Chromakey green (#00FF00) background.
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `GridBg` | `grid-bg.png` | 320x400 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
-| `GridFrame` | `grid-frame.png` | 380x460 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
+| `GridBg` | `grid-bg.png` | 512x640 | ✅ theme-4 / ❌ all others |
+| `GridFrame` | `grid-frame.png` | 576x720 | ✅ theme-4 / ❌ all others |
 
-**Generation:** 2 x 7 = **14 images**. Config: `3:4`, `1K`.
+**Generation:** 2 x 9 = **18 images**. Config: `4:5`, `1K`.
 
 **Grid-bg materials:**
 
@@ -259,9 +262,9 @@ Super Mario World-style progression map background.
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `Map` | `map.png` | 1080x1920 | ✅ theme-4 only / ❌ all others |
+| `Map` | `map.png` | 1080x1920 | ✅ theme-4 / ❌ all others |
 
-**Generation:** 9 images. Config: `9:16`, `2K`.
+**Generation:** 10 images. Config: `9:16`, `2K`.
 
 ### Map Structure
 
@@ -451,129 +454,19 @@ Use **Suno v5 Sounds mode** (not the music mode):
 3. Paste the prompt into the "Describe the sound you want" field
 4. Download generated audio, trim tight, normalize to **-12 LUFS**, export MP3 192kbps
 
-### Per-Theme SFX Prompts
+### Global SFX Generation Prompts
 
-Currently using a single global set. If per-theme SFX are desired, use these Suno Sounds prompts:
+SFX are shared across all themes — a single set stored in `common/sounds/effects/`. These prompts are theme-neutral, focusing on the game action.
 
-#### Theme 1: Tiki
-
-| Effect | Duration | Prompt |
-|--------|----------|--------|
-| break | 0.3-0.5s | Short wooden bamboo snap with hollow coconut shell pop. Bright tropical percussion hit. Clean attack, fast decay. |
-| explode | 0.5-0.8s | Rapid cascade of bamboo and wooden hits building to a burst. Multiple coconut shells cracking. Short steel drum flourish at peak. |
-| move | 0.15-0.25s | Soft wooden block sliding on bamboo surface. Subtle wood-on-wood friction. Light tropical click. |
-| new | 0.3-0.4s | Upward bamboo wind chime cascade. Three ascending wooden tones. Bamboo sticks falling into place. |
-| start | 0.5-0.8s | Bright conch shell horn blast. Burst of tropical bongo percussion and shakers. Ceremonial game start. |
-| swipe | 0.15-0.2s | Quick whoosh through bamboo reeds. Short breathy swipe with wooden texture. |
-| over | 0.8-1.2s | Deep hollow log drum hit. Slow descending wooden marimba notes. Fading bamboo wind chime. |
-
-#### Theme 2: Cosmic
-
-| Effect | Duration | Prompt |
-|--------|----------|--------|
-| break | 0.3-0.5s | Short bright laser zap with crystalline shimmer tail. Digital energy burst with high-frequency sparkle. |
-| explode | 0.5-0.8s | Rapid cascade of laser zaps building into cosmic energy explosion. Starburst with sweeping synth whoosh. Deep sub-bass thump. |
-| move | 0.15-0.25s | Quick digital slide tone. Short smooth synthesized glide. Gentle beep at rest position. |
-| new | 0.3-0.4s | Digital particles assembling with ascending sparkle tones. Gentle sci-fi shimmer. Matter teleporting into existence. |
-| start | 0.5-0.8s | Sci-fi power-up sequence. Rising synth sweep into bright starburst. Electronic fanfare with pulsing energy. |
-| swipe | 0.15-0.2s | Quick electronic whoosh. Short digital air displacement. Subtle laser trail. |
-| over | 0.8-1.2s | Synthesized power-down sequence. Descending pitch with fading electronic hum. Digital dissolve into silence. |
-
-#### Theme 3: Easter Island
-
-| Effect | Duration | Prompt |
-|--------|----------|--------|
-| break | 0.3-0.5s | Heavy stone cracking combined with bright neon synth zap. Quick rock crumble with electric shimmer. |
-| explode | 0.5-0.8s | Multiple stone blocks shattering with cascading neon synth bursts. Rock crumbling mixed with retro arcade explosion. Deep bass impact. |
-| move | 0.15-0.25s | Quick stone grinding slide. Heavy block on volcanic rock. Gritty texture with faint electronic undertone. |
-| new | 0.3-0.4s | Deep stone rising from earth with ascending retro synth tone. Rock grinding upward with digital shimmer. |
-| start | 0.5-0.8s | Deep volcanic rumble building to bright neon synth stab. Heavy ceremonial impact into electric energy burst. |
-| swipe | 0.15-0.2s | Quick stone scraping whoosh with faint neon trail. Heavy air displacement with digital sparkle. |
-| over | 0.8-1.2s | Heavy stone collapsing with deep thud. Descending retro synth drone. Neon lights flickering and dying. |
-
-#### Theme 4: Maya
-
-| Effect | Duration | Prompt |
-|--------|----------|--------|
-| break | 0.3-0.5s | Quick jade stone chime with wooden crack. Bright crystalline mineral impact with wooden percussion snap. |
-| explode | 0.5-0.8s | Cascade of jade chimes and wooden cracks. Stone temple blocks crumbling with mineral tones. Short ceremonial horn blast. |
-| move | 0.15-0.25s | Stone block sliding across smooth temple floor. Subtle mineral grinding. Clean stone-on-stone friction. |
-| new | 0.3-0.4s | Ascending wooden pan flute trill with stone placement. Jade pieces clicking together. Soft jungle rustle. |
-| start | 0.5-0.8s | Mesoamerican clay ocarina call. Burst of wooden drum and seed rattle. Temple door opening. |
-| swipe | 0.15-0.2s | Breathy whoosh through ancient stone corridor. Faint vine rustle with wooden texture. |
-| over | 0.8-1.2s | Heavy stone temple door slamming shut. Deep reverberating impact. Descending clay flute fading into jungle. |
-
-#### Theme 5: Cyberpunk
-
-| Effect | Duration | Prompt |
-|--------|----------|--------|
-| break | 0.3-0.5s | Sharp digital glitch burst with quick bass drop. Electric crackle with neon buzz. Tight and punchy. |
-| explode | 0.5-0.8s | Rapid glitch cascade building to heavy bass drop explosion. Multiple data streams breaking. Electric surge with digital distortion. |
-| move | 0.15-0.25s | Quick digital data transfer blip. Short electronic slide with bit-crush texture. Mechanical servo. |
-| new | 0.3-0.4s | Digital materialization. Data assembling with ascending bit tones. Holographic projection powering on. |
-| start | 0.5-0.8s | System boot-up. Ascending digital tones with electric power surge. Neon flickering on. Bass drop confirmation. |
-| swipe | 0.15-0.2s | Electric whoosh with digital interference. Neon trail sound. Fast and glitchy. |
-| over | 0.8-1.2s | System crash. Descending digital error tones with power failure. Screen glitching and shutting down. Static dissolve. |
-
-#### Theme 6: Medieval
-
-| Effect | Duration | Prompt |
-|--------|----------|--------|
-| break | 0.3-0.5s | Sword strike on shield with bright metallic ring. Short iron clang with harmonic overtone. |
-| explode | 0.5-0.8s | Rapid clash of swords and shields. Triumphant brass chord. Metallic impacts cascading. Stone crumbling. Trumpet accent. |
-| move | 0.15-0.25s | Stone block sliding across castle floor. Subtle chain link jingle. Heavy medieval block movement. |
-| new | 0.3-0.4s | Ascending harp glissando with soft stone placement. Medieval chime bell ring. Warm magical arrival. |
-| start | 0.5-0.8s | Trumpet fanfare. Medieval herald call. Snare drum roll into brass hit. Castle gates opening. |
-| swipe | 0.15-0.2s | Quick sword drawing whoosh. Blade through air with metallic ring. Short and sharp. |
-| over | 0.8-1.2s | Heavy castle gate slamming. Deep iron impact and chain rattle. Descending somber horn note. |
-
-#### Theme 7: Ancient Egypt
-
-| Effect | Duration | Prompt |
-|--------|----------|--------|
-| break | 0.3-0.5s | Golden chime hit with bright metallic shimmer. Finger cymbal zing with ceramic crack. Desert echo. |
-| explode | 0.5-0.8s | Cascade of golden chimes and ceramic breaks. Treasure chest bursting. Finger cymbals ringing. Ney flute accent. |
-| move | 0.15-0.25s | Sandstone block sliding. Soft gritty sand texture with golden chime. Desert-smooth and elegant. |
-| new | 0.3-0.4s | Ascending golden harp tones with sand falling. Desert wind whisper. Finger cymbal shimmer. |
-| start | 0.5-0.8s | Egyptian horn call with darbuka drum flourish. Golden scepter activation. Regal and commanding. |
-| swipe | 0.15-0.2s | Desert wind whoosh with sand grain texture. Faint golden shimmer trail. Light and exotic. |
-| over | 0.8-1.2s | Stone sarcophagus lid closing. Heavy reverberant thud. Descending ney flute lament. Sand settling. |
-
-#### Theme 8: Volcano
-
-| Effect | Duration | Prompt |
-|--------|----------|--------|
-| break | 0.3-0.5s | Obsidian rock cracking with bright ember burst. Sharp mineral snap with fire crackle. Molten pop. |
-| explode | 0.5-0.8s | Volcanic eruption burst. Rapid lava explosions with cascading rock impacts. Deep bass boom. Showering embers. |
-| move | 0.15-0.25s | Heavy rock grinding across volcanic stone. Deep gritty friction with magma bubble. Short and weighty. |
-| new | 0.3-0.4s | Magma bubbling up with ascending lava hiss. Rock cooling and solidifying with mineral chime. |
-| start | 0.5-0.8s | Volcanic vent blast with deep bass surge. Forge hammer striking anvil. Fire roaring to life. |
-| swipe | 0.15-0.2s | Fire whoosh. Hot air displacement. Ember trail. Fast and aggressive with thermal texture. |
-| over | 0.8-1.2s | Volcanic rock collapsing. Deep ground-shaking impact. Lava hissing and cooling. Ember crackle dying. |
-
-#### Theme 9: Tribal
-
-| Effect | Duration | Prompt |
-|--------|----------|--------|
-| break | 0.3-0.5s | Tight djembe slap with bright kalimba chime. Short hand drum pop with wooden overtone. Organic and warm. |
-| explode | 0.5-0.8s | Rapid polyrhythmic drum burst. Multiple hand drums firing. Ascending kalimba flourish. Seed shaker shower. |
-| move | 0.15-0.25s | Wooden block sliding on woven surface. Soft organic friction with reed texture. Short and warm. |
-| new | 0.3-0.4s | Ascending kalimba notes with soft shaker rustle. Wooden pieces clicking into place. Warm organic arrival. |
-| start | 0.5-0.8s | Talking drum call with djembe flourish. Seed rattle burst. Tribal gathering signal. Energetic. |
-| swipe | 0.15-0.2s | Breathy whoosh through grass reeds. Natural air movement with wooden texture. Organic and gentle. |
-| over | 0.8-1.2s | Deep dunun bass drum fading into slow kalimba descent. Shaker trailing off. Rain stick fade. Peaceful. |
-
-#### Theme 10: Arctic
-
-| Effect | Duration | Prompt |
-|--------|----------|--------|
-| break | 0.3-0.5s | Ice cracking with bright crystalline chime. Sharp frozen snap with glass-like harmonic ring. Clean and cold. |
-| explode | 0.5-0.8s | Rapid ice shattering cascade. Multiple crystals breaking. Glacier burst with deep bass crack. Shimmering ice particles. |
-| move | 0.15-0.25s | Ice block sliding on frozen surface. Smooth crystalline friction. Subtle chime at rest. Precise. |
-| new | 0.3-0.4s | Ascending crystalline bell tones. Ice forming and growing. Frost crackling. Cold sparkle with wind. |
-| start | 0.5-0.8s | Nordic horn call with crystalline chime burst. Ice cracking open. Cold wind rush into crisp bell tone. |
-| swipe | 0.15-0.2s | Cold wind whoosh with ice crystal trail. Frozen air displacement. Short, sharp, clean. |
-| over | 0.8-1.2s | Ice sheet cracking with reverberant boom. Descending frozen bell tones. Wind fading to silence. |
+| Effect | Duration | Suno Sounds Prompt |
+|--------|----------|-----|
+| break | 0.3-0.5s | Short bright impact with crystalline shimmer tail. A satisfying snap-crack of puzzle pieces breaking apart. Quick attack, fast decay. |
+| explode | 0.5-0.8s | Rapid cascade of impacts building to an energy burst. Multiple elements scattering outward. Brief triumphant flourish at peak. Deep bass punctuation. |
+| move | 0.15-0.25s | Quick smooth slide with subtle friction texture. Soft click as piece locks into position. Clean and responsive. |
+| new | 0.3-0.4s | Ascending three-note chime cascade. Elements materializing and clicking into place. Bright and inviting. |
+| start | 0.5-0.8s | Energetic fanfare burst with percussive hits. Confident, punchy game-start signal. Rising energy into a bright accent. |
+| swipe | 0.15-0.2s | Quick airy whoosh. Short directional air displacement with subtle texture. Fast and light. |
+| over | 0.8-1.2s | Deep resonant impact. Slow descending tones with fading reverb. Finality without harshness. |
 
 ---
 
@@ -742,17 +635,17 @@ A crisp Nordic folk electronic instrumental with staccato strings and a tight el
 
 ## Generation Summary
 
-### Per-Theme Visual (themes 3,5-10 = 7 themes)
+### Per-Theme Visual (all 10 themes, theme-4 already done)
 
-| Category | Per Theme | Total |
-|----------|-----------|-------|
-| Blocks | 4 | 28 |
-| Background + Loading BG | 2 | 14 |
-| Logo | 1 | 7 |
-| Grid BG + Frame | 2 | 14 |
-| **Subtotal** | **9** | **63** |
+| Category | Per Theme | Total (9 remaining) |
+|----------|-----------|---------------------|
+| Blocks | 4 | 36 |
+| Background + Loading BG | 2 | 18 |
+| Logo | 1 | 9 |
+| Grid BG + Frame | 2 | 18 |
+| **Subtotal** | **9** | **81** |
 
-### Maps (themes 1-3,5-10 = 9 themes): **9 images**
+### Maps (all 10 themes, theme-4 already done): **9 images**
 
 ### Theme Icons (all 10 themes): **10 images**
 
@@ -765,12 +658,12 @@ A crisp Nordic folk electronic instrumental with staccato strings and a tight el
 | Particles | 4 |
 | **Subtotal** | **22** |
 
-### Grand Total: **104 images to generate**
+### Grand Total: **122 images to generate** (theme-4 done, 113 remaining)
 
 | Tier | Rate | Time | Cost |
 |------|------|------|------|
-| Free | 15 RPM | ~7 min | $0 |
-| Tier 1 | 300 RPM | ~21s | ~$5 |
+| Free | 15 RPM | ~8 min | $0 |
+| Tier 1 | 300 RPM | ~23s | ~$6 |
 
 ---
 
@@ -793,11 +686,11 @@ Requires: `npm install @google/genai p-limit sharp` + `GEMINI_API_KEY` env var.
 
 | Asset | Ratio | Size | Target |
 |-------|-------|------|--------|
-| Blocks (1-cell) | 1:1 | 1K | 544x544 |
-| Blocks (2-4 cell) | 1:1 | 1K | crop + resize |
+| Block-1 | 1:1 | 1K | 256x256 |
+| Block-2/3/4 | 1:1 | 1K | center-crop → 512x256 / 768x256 / 1024x256 |
 | Background/Loading | 9:16 | 2K | 1080x1920 |
-| Logo | 1:1 | 1K | 500x500 |
-| Grid BG/Frame | 3:4 | 1K | 320x400 / 380x460 |
+| Logo | 1:1 | 1K | 512x512 |
+| Grid BG/Frame | 4:5 | 1K | 512x640 / 576x720 |
 | Map | 9:16 | 2K | 1080x1920 |
 | Theme Icon | 1:1 | 1K | 128x128 |
 | Panels | 1:1 | 1K | 96x96 |
@@ -816,11 +709,11 @@ file mobile-app/public/assets/theme-{N}/*.png
 python3 -c "
 from PIL import Image; import sys
 specs = {
-    'block-1.png': (544, 544), 'block-2.png': (1088, 544),
-    'block-3.png': (1632, 544), 'block-4.png': (2176, 544),
-    'grid-bg.png': (320, 400), 'grid-frame.png': (380, 460),
+    'block-1.png': (256, 256), 'block-2.png': (512, 256),
+    'block-3.png': (768, 256), 'block-4.png': (1024, 256),
+    'grid-bg.png': (512, 640), 'grid-frame.png': (576, 720),
     'background.png': (1080, 1920), 'loading-bg.png': (1080, 1920),
-    'logo.png': (500, 500), 'theme-icon.png': (128, 128),
+    'logo.png': (512, 512), 'theme-icon.png': (128, 128),
 }
 theme = sys.argv[1] if len(sys.argv) > 1 else 'theme-4'
 for name, (w, h) in specs.items():
@@ -863,7 +756,7 @@ Catalog: `mobile-app/src/pixi/assets/catalog.ts`. Resolver: `resolver.ts`.
 
 ## Troubleshooting
 
-**Green halo** — Adjust threshold: `g > 80, r < 220, b < 220, g > r*1.2, g > b*1.2`
+**Green halo** — Script uses despill (suppresses excess green from ALL pixels) + dilate-3 + gaussian blur. Current thresholds: `g > 80, r < 220, b < 220, g > r*1.2, g > b*1.2`
 
 **Solid background in game** — Asset not in transparency list, or stripping skipped
 
