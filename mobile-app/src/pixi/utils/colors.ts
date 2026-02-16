@@ -437,8 +437,8 @@ export function getBlockColors(theme: string, blockWidth: number): BlockColors {
 }
 
 export function isProceduralTheme(theme: string): boolean {
-  // Themes 3-10 have no art assets yet — render procedurally
-  return theme !== 'theme-1' && theme !== 'theme-2';
+  // Themes with full art assets use textures; others render procedurally
+  return theme !== 'theme-1' && theme !== 'theme-2' && theme !== 'theme-4';
 }
 
 /**
