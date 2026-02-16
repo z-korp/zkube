@@ -453,13 +453,20 @@ function buildLogoPrompt(theme: ThemeDefinition): string {
   return withStyleAnchor(`
 Generate a game logo for a puzzle game called "zKube".
 Theme: ${theme.name}
-Design: The text "zKube" in a bold stylized font, decorated with ${theme.name} theme elements.
-The letters should be integrated with theme motifs: ${theme.motifs}.
-Below or around the text, include a small isometric cube or geometric shape with the theme's cultural motifs.
-Style: Bold black outline contours. Cel-shaded with gradient fills in the theme's accent color (${theme.palette.accent}). White specular highlights on edges. Glossy carved appearance.
-Color palette: ${theme.palette.accent} as primary, darker shade for shadows, white for highlights.
-The text "zKube" must be clearly readable. The theme elements enhance but don't obscure it.
-Square format. Centered.
+
+LAYOUT: The text "zKube" must be LARGE and DOMINANT — filling at least 70% of the canvas width.
+The text is the hero element. Theme decorations are subtle accents AROUND and BEHIND the text, never competing.
+
+TYPOGRAPHY: Ultra-bold display font. THICK black outline (4-6px). Strong white inner glow or highlight for maximum contrast.
+Each letter clearly separated and readable even at small sizes (48px).
+
+DECORATION: Small ${theme.name} motifs (${theme.motifs}) as subtle accents flanking or framing the text.
+A small isometric cube below or beside the text with theme patterns. Keep decorations MINIMAL — the text is king.
+
+COLOR: Primary fill ${theme.palette.accent} with a darker shade for depth. STRONG white specular highlights on top edges.
+Thick dark outline ensures readability on ANY background. High contrast between fill and outline.
+
+Square format. Centered vertically and horizontally.
 ${CHROMAKEY_SUFFIX}
 `);
 }

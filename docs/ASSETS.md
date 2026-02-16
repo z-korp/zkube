@@ -183,6 +183,8 @@ Background: Plain solid-color background (will be removed via rembg). No text, n
 
 | Theme | THEME_NAME | THEME_DESCRIPTION | BLOCK_COLORS | MOTIFS |
 |-------|-----------|-------------------|--------------|--------|
+| theme-1 | Tiki | Tropical moonlit beach with carved tiki totems and palm trees | `#4ADE80`, `#4AA8DE`, `#9F7AEA`, `#FBBF24` | Carved tiki mask faces, bamboo weave patterns, tropical flower motifs |
+| theme-2 | Cosmic | Synthwave alien landscape with cratered planets and neon rim-lighting | `#00D2D3`, `#6C5CE7`, `#FD79A8`, `#FDCB6E` | Cosmic crystal formations, nebula swirl patterns, alien glyph carvings |
 | theme-3 | Easter Island | Mysterious volcanic island with ancient stone guardians | `#00FF88`, `#00DDFF`, `#FF00FF`, `#FFFF00` | Stone moai faces, volcanic rock patterns, petroglyph carvings |
 | theme-4 | Maya | Ancient jungle temple civilization with jade and gold | `#00E5A0`, `#00B4D8`, `#FF6F91`, `#FFC947` | Jade serpent glyphs, stepped pyramid patterns, feathered serpent motifs |
 | theme-5 | Cyberpunk | Enchanted ancient forest with golden mystical light | `#66BB6A`, `#42A5F5`, `#AB47BC`, `#FFCA28` | Leaf veins, bark rings, moss patches, glowing runes |
