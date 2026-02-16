@@ -3,6 +3,9 @@ import { Graphics as PixiGraphics, Rectangle } from 'pixi.js';
 import { PageTopBar } from './PageTopBar';
 import { useTheme } from '@/ui/elements/theme-provider/hooks';
 import { FONT_TITLE, FONT_BODY, THEME_IDS, THEME_META, type ThemeId } from '../../utils/colors';
+import { resolveAsset } from '../../assets/resolver';
+import { AssetId } from '../../assets/catalog';
+import { useTextureWithFallback } from '../../hooks/useTexture';
 
 const SLIDER_LABEL_STYLE = { fontFamily: FONT_TITLE, fontSize: 16, fill: 0xffffff };
 const SETTING_LABEL_STYLE = { fontFamily: FONT_BODY, fontSize: 14, fill: 0x94a3b8 };
@@ -225,6 +228,8 @@ const ThemeOption = ({
   onSelect: (id: ThemeId) => void;
 }) => {
   const meta = THEME_META[themeId];
+  const iconCandidates = useMemo(() => resolveAsset(themeId, AssetId.ThemeIcon), [themeId]);
+  const iconTex = useTextureWithFallback(iconCandidates);
 
   const drawBg = useCallback(
     (g: PixiGraphics) => {
@@ -244,6 +249,8 @@ const ThemeOption = ({
     [selected]
   );
 
+  const iconSize = Math.min(width, height) * 0.45;
+
   return (
     <pixiContainer x={x} y={y}>
       <pixiGraphics
@@ -252,14 +259,26 @@ const ThemeOption = ({
         cursor="pointer"
         onPointerDown={() => onSelect(themeId)}
       />
-      <pixiText
-        text={meta.icon}
-        x={width / 2}
-        y={height * 0.35}
-        anchor={0.5}
-        style={{ fontSize: 18 }}
-        eventMode="none"
-      />
+      {iconTex ? (
+        <pixiSprite
+          texture={iconTex}
+          x={width / 2}
+          y={height * 0.35}
+          anchor={0.5}
+          width={iconSize}
+          height={iconSize}
+          eventMode="none"
+        />
+      ) : (
+        <pixiText
+          text={meta.icon}
+          x={width / 2}
+          y={height * 0.35}
+          anchor={0.5}
+          style={{ fontSize: 18 }}
+          eventMode="none"
+        />
+      )}
       <pixiText
         text={meta.name}
         x={width / 2}
