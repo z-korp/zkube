@@ -62,6 +62,10 @@ export class BGM {
       });
       this.currentAlias = alias;
       this.currentSound = sound.find(alias);
+      // Sync Sound-level volume so the volume setter stays effective
+      if (this.currentSound) {
+        this.currentSound.volume = this._muted ? 0 : this._volume;
+      }
     } catch (e) {
       console.warn('[BGM] Failed to play', alias, e);
     }

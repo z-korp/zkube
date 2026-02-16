@@ -47,14 +47,7 @@ const STATUS_TEXT_STYLE = {
 
 export { type PlayBonusSlotData as BonusSlotData };
 
-interface CloudData {
-  id: number;
-  x: number;
-  y: number;
-  scale: number;
-  speed: number;
-  alpha: number;
-}
+
 
 export interface PlayScreenProps {
   gameId: number;
@@ -95,47 +88,7 @@ const SkyBackground = ({ w, h }: { w: number; h: number }) => {
   return <pixiGraphics draw={drawGradient} />;
 };
 
-const Clouds = ({ w, h }: { w: number; h: number }) => {
-  const cloudsRef = useRef<CloudData[]>([]);
-  const gfxRef = useRef<PixiGraphics | null>(null);
-  const drawNoop = useCallback(() => {}, []);
 
-  useEffect(() => {
-    if (cloudsRef.current.length > 0) return;
-    const count = Math.max(3, Math.floor(w / 180));
-    for (let i = 0; i < count; i++) {
-      cloudsRef.current.push({
-        id: i,
-        x: Math.random() * (w + 300) - 150,
-        y: 30 + Math.random() * h * 0.15,
-        scale: 0.4 + Math.random() * 0.5,
-        speed: 0.08 + Math.random() * 0.15,
-        alpha: 0.4 + Math.random() * 0.25,
-      });
-    }
-  }, [w, h]);
-
-  const tickCallback = useCallback((ticker: { deltaMS: number }) => {
-    const g = gfxRef.current;
-    if (!g) return;
-    const dt = ticker.deltaMS / 16.667;
-    g.clear();
-    for (const c of cloudsRef.current) {
-      c.x += c.speed * dt;
-      if (c.x > w + 150) { c.x = -150 * c.scale; c.y = 30 + Math.random() * h * 0.15; }
-      const s = c.scale;
-      g.setFillStyle({ color: 0xFFFFFF, alpha: 0.85 * c.alpha });
-      g.circle(c.x, c.y, 24 * s); g.fill();
-      g.circle(c.x + 18 * s, c.y - 5 * s, 18 * s); g.fill();
-      g.circle(c.x - 16 * s, c.y - 3 * s, 16 * s); g.fill();
-      g.circle(c.x + 8 * s, c.y + 7 * s, 20 * s); g.fill();
-    }
-  }, [w, h]);
-
-  useTick(tickCallback);
-
-  return <pixiGraphics ref={gfxRef} draw={drawNoop} eventMode="none" />;
-};
 
 const HudPillButton = ({
   x, y, w, h, icon, onClick,
@@ -465,7 +418,6 @@ const LoadingScreen = ({ sw, sh, topOffset: _topOffset }: { sw: number; sh: numb
   return (
       <pixiContainer>
         <SkyBackground w={sw} h={sh} />
-        <Clouds w={sw} h={sh} />
       <PixiToastLayer screenWidth={sw} screenHeight={sh} />
       <pixiText
         ref={textRef}
@@ -606,7 +558,6 @@ export const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenPro
   return (
     <pixiContainer>
       <SkyBackground w={sw} h={sh} />
-      <Clouds w={sw} h={sh} />
       <PixiToastLayer screenWidth={sw} screenHeight={sh} />
 
       <StatsBar

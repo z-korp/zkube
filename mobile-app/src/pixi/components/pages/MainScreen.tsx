@@ -50,15 +50,6 @@ const MAIN_FOOTER_STYLE = {
 // TYPES
 // ============================================================================
 
-interface CloudData {
-  id: number;
-  x: number;
-  y: number;
-  scale: number;
-  speed: number;
-  alpha: number;
-}
-
 export interface MainScreenProps {
   // Navigation
   initialPage?: string;
@@ -136,52 +127,6 @@ const SkyBackground = ({ w, h }: { w: number; h: number }) => {
     return <pixiSprite texture={bgTex} x={offX} y={offY} scale={{ x: scale, y: scale }} />;
   }
   return <pixiGraphics draw={drawGradient} />;
-};
-
-// ============================================================================
-// CLOUDS
-// ============================================================================
-
-const Clouds = ({ w, h }: { w: number; h: number }) => {
-  const cloudsRef = useRef<CloudData[]>([]);
-  const gfxRef = useRef<PixiGraphics | null>(null);
-  const drawNoop = useCallback(() => {}, []);
-
-  useEffect(() => {
-    if (cloudsRef.current.length > 0) return;
-    const count = Math.max(4, Math.floor(w / 140));
-    for (let i = 0; i < count; i++) {
-      cloudsRef.current.push({
-        id: i,
-        x: Math.random() * (w + 300) - 150,
-        y: 50 + Math.random() * h * 0.25,
-        scale: 0.5 + Math.random() * 0.8,
-        speed: 0.1 + Math.random() * 0.2,
-        alpha: 0.5 + Math.random() * 0.35,
-      });
-    }
-  }, [w, h]);
-
-  const tickClouds = useCallback((ticker: { deltaMS: number }) => {
-    const g = gfxRef.current;
-    if (!g) return;
-    const dt = ticker.deltaMS / 16.667;
-    g.clear();
-    for (const c of cloudsRef.current) {
-      c.x += c.speed * dt;
-      if (c.x > w + 200) { c.x = -200 * c.scale; c.y = 50 + Math.random() * h * 0.25; }
-      const s = c.scale;
-      g.setFillStyle({ color: 0xFFFFFF, alpha: 0.9 * c.alpha });
-      g.circle(c.x, c.y, 28 * s); g.fill();
-      g.circle(c.x + 22 * s, c.y - 7 * s, 22 * s); g.fill();
-      g.circle(c.x - 20 * s, c.y - 4 * s, 20 * s); g.fill();
-      g.circle(c.x + 10 * s, c.y + 9 * s, 24 * s); g.fill();
-      g.circle(c.x - 12 * s, c.y + 10 * s, 18 * s); g.fill();
-    }
-  }, [w, h]);
-  useTick(tickClouds);
-
-  return <pixiGraphics ref={gfxRef} draw={drawNoop} eventMode="none" />;
 };
 
 // ============================================================================
@@ -611,7 +556,6 @@ const PageRenderer = (props: MainScreenProps & {
     <pixiContainer>
       {/* Background (shared, always visible) */}
       <SkyBackground w={sw} h={sh} />
-      <Clouds w={sw} h={sh} />
       <PixiToastLayer screenWidth={sw} screenHeight={sh} />
 
       <pixiContainer ref={pageContainerRef}>
