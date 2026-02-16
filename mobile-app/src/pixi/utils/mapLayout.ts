@@ -96,6 +96,13 @@ export function getCurrentNodeIndex(contractLevel: number): number {
   return contractLevelToNodeIndex(contractLevel);
 }
 
+export { getThemeNodePositions, getThemeMapConfig } from './mapPathData';
+export type { ZoneNodePositions, ThemeMapConfig } from './mapPathData';
+
+/**
+ * @deprecated Use `getThemeNodePositions(themeId)` for theme-aware positions.
+ * Kept for backward compatibility — identical to the default procedural layout.
+ */
 export const MAP_NODE_POSITIONS: ReadonlyArray<{ x: number; y: number }> = [
   { x: 0.35, y: 0.92 },
   { x: 0.65, y: 0.84 },
