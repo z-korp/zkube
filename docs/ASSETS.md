@@ -9,13 +9,21 @@ Single source of truth for every visual, audio, and generated asset in the game.
 1. [Theme Reference](#theme-reference)
 2. [Artistic Direction](#artistic-direction)
 3. [Generation Pipeline](#generation-pipeline)
-4. [Per-Theme Visual Assets](#per-theme-visual-assets)
-5. [Global Visual Assets](#global-visual-assets)
+4. [Per-Theme Visual Assets](#per-theme-visual-assets) (Blocks, Backgrounds, Logos, Grids, Maps, Icons)
+5. [Global Visual Assets](#global-visual-assets) (UI, Bonuses, Panels, Buttons, Icons, Particles, Bosses, Constraints, Consumables)
 6. [Audio — Sound Effects](#audio--sound-effects)
 7. [Audio — Music](#audio--music)
 8. [Asset Catalog Integration](#asset-catalog-integration)
 9. [Verification & Quality Checklist](#verification--quality-checklist)
 10. [Troubleshooting](#troubleshooting)
+
+### New in v2 (aligned with UI_UX.md v2)
+- **Section 5**: Map backgrounds redesigned as per-world (5 maps, not 10)
+- **Section 13**: Boss portraits (10 unique characters)
+- **Section 14**: Constraint icons (7 types for HUD badges)
+- **Section 15**: Consumable icons (3 shop items)
+- **Section 16**: Additional particles (coin, confetti, ember, ring)
+- **Section 17**: Boss defeat shards spritesheet
 
 ---
 
@@ -366,26 +374,46 @@ Aspect ratio 4:5. Plain solid-color background (will be removed via rembg).
 
 ---
 
-### 5. Map — 🎨 Per-Theme
+### 5. Map — 🎨 Per-World (5 maps)
 
-Super Mario World-style progression map background.
+Campaign progression map backgrounds. One per world (not per theme). PixiJS nodes overlay on top.
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `Map` | `map.png` | 1080×1920 | ✅ all themes |
+| `MapWorld1` | `maps/world-1.png` | 750×1600 (@2x: 1500×3200) | ❌ |
+| `MapWorld2` | `maps/world-2.png` | 750×1600 (@2x: 1500×3200) | ❌ |
+| `MapWorld3` | `maps/world-3.png` | 750×1600 (@2x: 1500×3200) | ❌ |
+| `MapWorld4` | `maps/world-4.png` | 750×1600 (@2x: 1500×3200) | ❌ |
+| `MapWorld5` | `maps/world-5.png` | 750×1600 (@2x: 1500×3200) | ❌ |
 
-**Generation**: 10 images. Config: 9:16, 2K.
+**Generation**: 5 images. Config: 9:16, 2K.
 
-**Map Structure**: 5 zones × 11 nodes = 55 total (50 gameplay + 5 shops). S-curve winding path from bottom to top.
+**Map Structure**: Each world = 10 levels. S-curve path with 10 "landing spots" (lighter clearings where PixiJS level nodes are placed). Final node (boss) at top is a distinct landmark.
+
+**Design rules**:
+- Background is a scenic illustration with a clear winding path
+- Path has 10 visible "platform" spots — slightly lighter or clearer areas
+- NO text, NO numbers, NO UI elements on the background (PixiJS handles all interactivity)
+- Boss area at top should be a dramatic landmark (arena, fortress, altar)
+- Shop area just before boss should be a small distinct structure (market stall, chest)
+
+| World | Themes | Map Palette | Scene |
+|-------|--------|-------------|-------|
+| 1 (L1-10) | Ocean + Ice | Cool blues, teals | Coastal cliffs → frozen shore, ocean backdrop, coral & ice |
+| 2 (L11-20) | Forest + Crystal | Greens, emeralds | Dense forest → crystal cavern, glowing mushrooms, vines |
+| 3 (L21-30) | Desert + Sunset | Golds, oranges | Sand dunes → sunset canyon, ancient ruins, oasis |
+| 4 (L31-40) | Neon + Storm | Purples, dark grays | Neon city → storm peaks, lightning, electric glow |
+| 5 (L41-50) | Lava + Shadow | Deep reds, blacks | Volcanic ascent → shadow citadel, lava rivers, embers |
 
 **Prompt**:
 ```
-Top-down illustrated map for a game progression screen.
-Theme: {THEME_NAME} — {THEME_DESCRIPTION}
-PORTRAIT (9:16). Winding S-curve path from bottom to top.
-11 platform locations: 9 small level platforms, 1 shop landmark, 1 large boss arena at top.
-Path meanders with 2-3 switchbacks. Themed terrain fills surrounding space.
-Mood: Adventurous. Palette: {GRADIENT}. Opaque fill. No text, no people.
+Full-screen illustrated map background for a mobile puzzle game.
+World: {WORLD_NAME}. Scene: {WORLD_SCENE}
+PORTRAIT (9:16). A scenic winding path from bottom to top.
+The path has 10 clear circular platform areas (lighter clearings on the path) where game nodes will be placed.
+A dramatic boss landmark at the very top. A small shop structure just before the boss area.
+Layered depth: foreground flora/rocks bottom, path with clearings middle, distant scenery top.
+Mood: Adventurous. Palette: {WORLD_PALETTE}. Opaque fill. No text, no numbers, no UI elements, no people.
 ```
 
 ---
@@ -613,7 +641,170 @@ Plain solid-color background (will be removed via rembg).
 
 ---
 
-### 13. Tutorial Assets — 🌐 Global (NEW)
+### 13. Boss Portraits — 🌐 Global (NEW)
+
+10 unique boss portraits for the boss intro screen. Each boss has a distinct visual identity.
+
+| Asset ID | Filename | Dimensions | Status |
+|----------|----------|------------|--------|
+| `BossComboMaster` | `common/bosses/combo-master.png` | 512×512 | ❌ |
+| `BossDemolisher` | `common/bosses/demolisher.png` | 512×512 | ❌ |
+| `BossDaredevil` | `common/bosses/daredevil.png` | 512×512 | ❌ |
+| `BossPurist` | `common/bosses/purist.png` | 512×512 | ❌ |
+| `BossHarvester` | `common/bosses/harvester.png` | 512×512 | ❌ |
+| `BossTidal` | `common/bosses/tidal.png` | 512×512 | ❌ |
+| `BossStacker` | `common/bosses/stacker.png` | 512×512 | ❌ |
+| `BossSurgeon` | `common/bosses/surgeon.png` | 512×512 | ❌ |
+| `BossAscetic` | `common/bosses/ascetic.png` | 512×512 | ❌ |
+| `BossPerfectionist` | `common/bosses/perfectionist.png` | 512×512 | ❌ |
+
+**Generation**: 10 images. Config: 1:1, 1K.
+
+| Boss | Portrait Concept | Accent Color |
+|------|-----------------|-------------|
+| Combo Master | Figure wreathed in chain lightning, electric arcs | Electric blue `#4AA8DE` |
+| Demolisher | Armored brute with wrecking ball, rubble | Dark red `#D4463B` |
+| Daredevil | Acrobat on a flaming tightrope, fire trails | Hot orange `#FF6600` |
+| Purist | Zen monk with empty hands, serene aura | Silver/white `#C0C0C0` |
+| Harvester | Cloaked figure with giant scythe, grain field | Dark green `#3D9970` |
+| Tidal | Water elemental with crashing waves, deep ocean | Deep ocean `#00B4D8` |
+| Stacker | Tower of blocks forming a golem, stone texture | Stone gray `#9E7E5A` |
+| Surgeon | Masked figure with precise instruments, clinical | Clinical teal `#40E0D0` |
+| Ascetic | Floating meditator, no possessions, golden light | Pale gold `#DAA520` |
+| Perfectionist | Crowned figure atop a flawless grid, royal | Royal purple `#9F7AEA` |
+
+**Prompt**:
+```
+A boss character portrait for a puzzle game.
+Character: {BOSS_NAME} — {BOSS_CONCEPT}.
+Style: Bold black outlines, cel-shaded illustration, 2-3 tonal steps.
+Accent color: {ACCENT_COLOR}. Dramatic lighting from below.
+Upper body/bust composition. Imposing and memorable.
+Must feel threatening but stylized (not photorealistic).
+Square format. Plain solid-color background (will be removed via rembg).
+No text, no logos.
+```
+
+---
+
+### 14. Constraint Icons — 🌐 Global (NEW)
+
+7 constraint type icons for the play screen HUD badges. Rendered at 64×64 in the badge component.
+
+| Asset ID | Filename | Dimensions | Status |
+|----------|----------|------------|--------|
+| `ConstraintClearLines` | `common/constraints/clear-lines.png` | 128×128 | ❌ |
+| `ConstraintBreakBlocks` | `common/constraints/break-blocks.png` | 128×128 | ❌ |
+| `ConstraintAchieveCombo` | `common/constraints/achieve-combo.png` | 128×128 | ❌ |
+| `ConstraintFillAndClear` | `common/constraints/fill-and-clear.png` | 128×128 | ❌ |
+| `ConstraintNoBonusUsed` | `common/constraints/no-bonus-used.png` | 128×128 | ❌ |
+| `ConstraintClearGrid` | `common/constraints/clear-grid.png` | 128×128 | ❌ |
+
+**Generation**: 6 images (None = no icon). Config: 1:1, 1K, resize to 128×128.
+
+| Constraint | Icon Description |
+|------------|-----------------|
+| ClearLines | Three horizontal lines stacked, top line has sparkle burst |
+| BreakBlocks | A cube/block with visible crack/fracture lines splitting it |
+| AchieveCombo | Interlocking chain links with lightning spark at junction |
+| FillAndClear | Upward arrow reaching a horizontal target/goal line |
+| NoBonusUsed | A star shape with a diagonal line through it (prohibition) |
+| ClearGrid | An empty grid outline with sparkle/clean sweep marks |
+
+**Prompt**:
+```
+A constraint icon for a puzzle game HUD badge.
+Design: {CONSTRAINT_DESCRIPTION}.
+Style: Bold white silhouette with clean edges. Must read clearly at 32x32 pixels.
+Iconic and instantly recognizable. Simple shapes, no fine detail.
+Centered. Square. Plain solid-color background (will be removed via rembg).
+```
+
+**Usage in game**: These icons sit inside circular progress ring badges on the HUD bar. The ring fills to show constraint completion progress. See UI_UX.md section 4.5 "Constraint Badge" for details.
+
+---
+
+### 15. Consumable Icons — 🌐 Global (NEW)
+
+3 icons for the in-game shop consumable items.
+
+| Asset ID | Filename | Dimensions | Status |
+|----------|----------|------------|--------|
+| `ConsumableBonusCharge` | `common/consumables/bonus-charge.png` | 128×128 | ❌ |
+| `ConsumableLevelUp` | `common/consumables/level-up.png` | 128×128 | ❌ |
+| `ConsumableSwapBonus` | `common/consumables/swap-bonus.png` | 128×128 | ❌ |
+
+**Generation**: 3 images. Config: 1:1, 1K, resize to 128×128.
+
+| Consumable | Icon Description |
+|------------|-----------------|
+| BonusCharge | A lightning bolt inside a battery/charge cell shape |
+| LevelUp | An upward arrow with a star at its tip, radiating lines |
+| SwapBonus | Two curved arrows forming a swap/exchange circle |
+
+**Prompt**:
+```
+A shop item icon for a puzzle game.
+Design: {CONSUMABLE_DESCRIPTION}.
+Style: Bold colorful illustration with black outlines, cel-shaded.
+Color: Gold and accent tones for premium feel.
+Must be recognizable at 64x64 pixels. Centered. Square.
+Plain solid-color background (will be removed via rembg).
+```
+
+---
+
+### 16. Additional Particles — 🌐 Global (NEW)
+
+Additional particle sprites needed for the redesigned animation system.
+
+| Particle | Shape | Size | Status |
+|----------|-------|------|--------|
+| Coin | Small gold circle with glint | 16×16 | ❌ |
+| Confetti | Small rectangular strip | 8×16 | ❌ |
+| Ember | Teardrop glow | 16×16 | ❌ |
+| Ring | Thin circle outline | 24×24 | ❌ |
+
+**Prompt**:
+```
+A tiny particle sprite: {PARTICLE_SHAPE}.
+Pure white silhouette on solid background. Minimal detail.
+Must read clearly at {SIZE} pixels. Centered.
+Plain solid-color background (will be removed via rembg).
+```
+
+**Usage**:
+- **Coin**: CUBE earning animation (gold tinted at runtime)
+- **Confetti**: Victory celebration (multi-color tinted)
+- **Ember**: Boss level background atmosphere (orange/red tinted)
+- **Ring**: Constraint completion celebration (success color tinted)
+
+---
+
+### 17. Boss Defeat Shards — 🌐 Global (NEW)
+
+Spritesheet of triangular shards for the boss defeat shatter animation.
+
+| Asset ID | Filename | Dimensions | Status |
+|----------|----------|------------|--------|
+| `BossShards` | `common/bosses/boss-shards.png` | 256×64 (4 frames) | ❌ |
+
+**Generation**: 1 spritesheet with 4 shard variants. Config: 4:1.
+
+4 triangular shard shapes (different angles/sizes). White on transparent, tinted at runtime with boss accent color.
+
+**Prompt**:
+```
+A horizontal spritesheet of 4 glass/crystal shard fragments for a shatter animation.
+4 triangular fragments of different sizes and angles, evenly spaced in a row.
+Style: Bold white shapes with sharp edges and a subtle glass refraction line.
+Each shard ~64x64 area. Total: 256x64 strip.
+Plain solid-color background (will be removed via rembg).
+```
+
+---
+
+### 18. Tutorial Assets — 🌐 Global (NEW)
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
@@ -665,6 +856,14 @@ All SFX shared from `common/sounds/effects/`.
 | `SfxClaim` | `claim.mp3` | Quest reward claimed | 0.3-0.5s |
 | `SfxStar` | `star.mp3` | Star earned (level complete) | 0.2-0.3s |
 | `SfxLevelup` | `levelup.mp3` | Level complete fanfare | 0.5-0.8s |
+| `SfxBossIntro` | `boss-intro.mp3` | Boss intro screen appears | 1.0-1.5s |
+| `SfxBossDefeat` | `boss-defeat.mp3` | Boss portrait shatter | 0.8-1.2s |
+| `SfxBonusActivate` | `bonus-activate.mp3` | Bonus used in gameplay | 0.3-0.5s |
+| `SfxShopPurchase` | `shop-purchase.mp3` | Item purchased in shop | 0.3-0.5s |
+| `SfxEquip` | `equip.mp3` | Bonus equipped in loadout | 0.2-0.3s |
+| `SfxUnequip` | `unequip.mp3` | Bonus removed from slot | 0.15-0.2s |
+| `SfxConstraintComplete` | `constraint-complete.mp3` | Constraint badge fulfilled | 0.3-0.5s |
+| `SfxVictory` | `victory.mp3` | Run complete (L50 cleared) | 2.0-3.0s |
 
 ### How to Generate SFX with Suno
 
@@ -694,6 +893,14 @@ All SFX shared from `common/sounds/effects/`.
 | claim | Ascending sparkle cascade with a satisfying chime resolution. Like opening a treasure chest and coins spilling. Brief and celebratory. |
 | star | A single bright bell ding with harmonic overtones. Pure, high-pitched, and clean. Like a star appearing and twinkling once. |
 | levelup | Short triumphant brass fanfare with ascending notes. Confident victory signal. Celebratory but not long — punchy and bright. |
+| boss-intro | Deep ominous rumble building to a dramatic hit. Low brass, war drums, a sense of impending challenge. Tension without resolution. |
+| boss-defeat | Explosive shattering glass/crystal impact followed by triumphant ascending chord. Like a boss shield breaking apart into pieces. |
+| bonus-activate | Quick magical activation burst. A whoosh into a bright energy pulse. Empowering and snappy. |
+| shop-purchase | Satisfying cash register cha-ching with a sparkle tail. Brief and rewarding, like coins well spent. |
+| equip | A solid metallic click-snap, like slotting a gem into place. Satisfying and mechanical. Quick. |
+| unequip | A soft reverse click, like lifting something out of a socket. Quick and gentle. Opposite energy of equip. |
+| constraint-complete | A bright ascending two-note chime with a bell shimmer. Like a checkbox getting ticked. Satisfying completion signal. |
+| victory | Extended triumphant orchestral fanfare with ascending brass, cymbal crashes, and sparkle cascade. Heroic and celebratory. Grand finale energy. |
 
 ---
 
@@ -859,11 +1066,15 @@ A crisp Nordic folk electronic instrumental with staccato strings and a tight el
 | Category | Path Pattern |
 |----------|-------------|
 | Per-theme | `public/assets/{themeId}/{filename}` |
+| World maps | `public/assets/maps/{filename}` |
 | Shared icons | `public/assets/common/icons/{filename}` |
 | Shared UI | `public/assets/common/ui/{filename}` |
 | Shared bonus | `public/assets/common/bonus/{filename}` |
 | Shared panels | `public/assets/common/panels/{filename}` |
 | Shared particles | `public/assets/common/particles/{filename}` |
+| Boss portraits | `public/assets/common/bosses/{filename}` |
+| Constraint icons | `public/assets/common/constraints/{filename}` |
+| Consumable icons | `public/assets/common/consumables/{filename}` |
 | SFX | `public/assets/common/sounds/effects/{filename}` |
 | Music | `public/assets/{themeId}/sounds/musics/{filename}` |
 
@@ -894,10 +1105,10 @@ For per-theme assets, omit shared → resolves to `/assets/${themeId}/...`
 ### Automated Verification
 
 ```bash
-# Check format (must say "PNG image data")
+# Check per-theme assets
 file mobile-app/public/assets/theme-{N}/*.png
 
-# Check dimensions (python)
+# Check per-theme dimensions
 python3 -c "
 from PIL import Image; import sys
 specs = {
@@ -912,12 +1123,45 @@ for name, (w, h) in specs.items():
     try:
         img = Image.open(f'mobile-app/public/assets/{theme}/{name}')
         ok = img.format == 'PNG' and img.size == (w, h)
-        alpha_ok = name in ('background.png','loading-bg.png','grid-bg.png','map.png') or img.mode != 'RGB'
+        alpha_ok = name in ('background.png','loading-bg.png','grid-bg.png') or img.mode != 'RGB'
         status = 'OK' if (ok and alpha_ok) else 'FAIL'
         print(f'  {status} {name}: {img.size[0]}x{img.size[1]} {img.mode}')
     except FileNotFoundError:
         print(f'  MISSING {name}')
 " theme-1
+
+# Check world map backgrounds
+python3 -c "
+from PIL import Image
+for i in range(1, 6):
+    name = f'maps/world-{i}.png'
+    try:
+        img = Image.open(f'mobile-app/public/assets/{name}')
+        print(f'  OK {name}: {img.size[0]}x{img.size[1]} {img.mode}')
+    except FileNotFoundError:
+        print(f'  MISSING {name}')
+"
+
+# Check new global assets
+python3 -c "
+from PIL import Image; import os
+assets = {
+    'common/bosses/': ['combo-master.png','demolisher.png','daredevil.png','purist.png',
+                       'harvester.png','tidal.png','stacker.png','surgeon.png',
+                       'ascetic.png','perfectionist.png'],
+    'common/constraints/': ['clear-lines.png','break-blocks.png','achieve-combo.png',
+                            'fill-and-clear.png','no-bonus-used.png','clear-grid.png'],
+    'common/consumables/': ['bonus-charge.png','level-up.png','swap-bonus.png'],
+}
+for folder, files in assets.items():
+    for f in files:
+        path = f'mobile-app/public/assets/{folder}{f}'
+        try:
+            img = Image.open(path)
+            print(f'  OK {folder}{f}: {img.size[0]}x{img.size[1]}')
+        except FileNotFoundError:
+            print(f'  MISSING {folder}{f}')
+"
 ```
 
 ### Quality Checklist
@@ -962,10 +1206,15 @@ For every generated asset, verify:
 | Background + Loading | 2 | 20 | ✅ Complete |
 | Logo | 1 | 10 | ✅ Complete |
 | Grid BG + Frame | 2 | 20 | ✅ Complete |
-| Map | 1 | 10 | ✅ Complete |
 | Theme Icon | 1 | 10 | ✅ Complete |
 | Music | 4 | 40 | ✅ Complete |
-| **Total** | **15** | **150** | **✅** |
+| **Total** | **14** | **140** | **✅** |
+
+### Per-World Assets (NEW)
+
+| Category | Count | Status |
+|----------|-------|--------|
+| World Map Backgrounds | 5 | ❌ Missing |
 
 ### Global Assets
 
@@ -975,18 +1224,29 @@ For every generated asset, verify:
 | Bonus Icons | 5 | ✅ Complete |
 | 9-Slice Panels | 4 | ❌ Missing |
 | Existing Icons | 18 | ✅ Complete |
-| **New Icons** | **21** | **❌ Missing** |
-| Particles | 4 | ❌ Missing |
+| New Icons | 21 | ❌ Missing |
+| Particles (existing) | 4 | ❌ Missing |
+| **Particles (new)** | **4** | **❌ Missing** |
 | Tutorial Hand | 1 | ❌ Missing |
+| **Boss Portraits** | **10** | **❌ Missing** |
+| **Constraint Icons** | **6** | **❌ Missing** |
+| **Consumable Icons** | **3** | **❌ Missing** |
+| **Boss Defeat Shards** | **1** | **❌ Missing** |
 | Existing SFX | 7 | ✅ Complete |
-| **New SFX** | **5** | **❌ Missing** |
-| **Total Global** | **71** | **41 ✅ / 30 ❌** |
+| **New SFX** | **13** | **❌ Missing** |
+| **Total Global** | **98** | **36 ✅ / 62 ❌** |
 
-### Next Steps
+### Priority Generation Order
 
-1. Generate 21 new icon sprites
-2. Generate 4 particle sprites
-3. Generate 4 panel textures
-4. Generate 1 tutorial hand sprite
-5. Generate 5 new SFX
-6. Register all new assets in catalog.ts and resolver.ts
+1. **Boss portraits (10)** — Required for boss intro screen (core gameplay)
+2. **Constraint icons (6)** — Required for play screen HUD (core gameplay)
+3. **Consumable icons (3)** — Required for in-game shop
+4. **World map backgrounds (5)** — Required for campaign map
+5. **New particles (coin, confetti, ember, ring)** — Required for celebration animations
+6. **Boss defeat shards (1)** — Required for boss defeat animation
+7. **New SFX (13)** — Required for full audio experience
+8. Generate 21 new icon sprites
+9. Generate 4 existing particle sprites
+10. Generate 4 panel textures
+11. Generate 1 tutorial hand sprite
+12. Register all new assets in catalog.ts and resolver.ts
