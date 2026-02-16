@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useTheme } from '@/ui/elements/theme-provider/hooks';
 import { 
   getThemeColors, 
-  isProceduralTheme, 
   type ThemeColors 
 } from '../utils/colors';
 
@@ -11,8 +10,7 @@ export type GridTheme = 'tiki' | 'neon';
 interface PixiThemeContextValue {
   /** Current theme name */
   themeName: string;
-  /** Whether to use procedural rendering (neon) or textures (tiki) */
-  isProcedural: boolean;
+
   /** Theme color palette */
   colors: ThemeColors;
   /** Whether device is mobile (for performance adjustments) */
@@ -72,7 +70,6 @@ export function PixiThemeProvider({ children }: PixiThemeProviderProps) {
   
   const value = useMemo<PixiThemeContextValue>(() => {
     const themeName = themeTemplate;
-    const isProcedural = isProceduralTheme(themeName);
     const colors = getThemeColors(themeName);
     
     const getAssetPath = (asset: string) => {
@@ -81,7 +78,6 @@ export function PixiThemeProvider({ children }: PixiThemeProviderProps) {
     
     return {
       themeName,
-      isProcedural,
       colors,
       isMobile,
       prefersReducedMotion,

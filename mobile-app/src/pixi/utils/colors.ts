@@ -436,10 +436,7 @@ export function getBlockColors(theme: string, blockWidth: number): BlockColors {
   return colors.blocks[blockWidth] || colors.blocks[1];
 }
 
-export function isProceduralTheme(theme: string): boolean {
-  // Themes with full art assets use textures; others render procedurally
-  return theme !== 'theme-1' && theme !== 'theme-2' && theme !== 'theme-4';
-}
+
 
 /**
  * Convert hex color to RGB components

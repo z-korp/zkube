@@ -8,7 +8,7 @@ import { ZoneBackground } from './ZoneBackground';
 import { LevelPreview } from './LevelPreview';
 import { NODES_PER_ZONE, TOTAL_ZONES, getThemeNodePositions } from '../../utils/mapLayout';
 import type { ZoneNodePositions } from '../../utils/mapLayout';
-import { isProceduralTheme, FONT_TITLE } from '../../utils/colors';
+import { FONT_TITLE } from '../../utils/colors';
 
 export interface MapPageProps {
   seed: bigint;
@@ -150,14 +150,13 @@ export const MapPage = ({
       const theme = mapData.zoneThemes[zoneIdx];
       const startIdx = zoneIdx * NODES_PER_ZONE;
       const zoneNodes = mapData.nodes.slice(startIdx, startIdx + NODES_PER_ZONE);
-      const procedural = isProceduralTheme(theme);
       const themePositions = getThemeNodePositions(theme);
 
       const nodePositions = zoneNodes.map((_, i) =>
         getNodePosition(i, screenWidth, zoneHeight, themePositions),
       );
 
-      return { zoneNum, theme, zoneNodes, procedural, nodePositions };
+      return { zoneNum, theme, zoneNodes, nodePositions };
     });
   }, [mapData.nodes, mapData.zoneThemes, screenWidth, zoneHeight]);
 

@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
-import { getThemeColors, isProceduralTheme, THEME_META, type ThemeId, FONT_TITLE, hexToRgb } from '../../utils/colors';
+import { getThemeColors, THEME_META, type ThemeId, FONT_TITLE, hexToRgb } from '../../utils/colors';
 import { getThemeMapConfig } from '../../utils/mapLayout';
 import { AssetId } from '../../assets/catalog';
 import { resolveAsset } from '../../assets/resolver';
@@ -21,7 +21,7 @@ export const ZoneBackground = ({ zone, themeId, x, y, width, height }: ZoneBackg
 
   const mapCandidates = useMemo(() => resolveAsset(themeId, AssetId.Map), [themeId]);
   const mapTexture = useTextureWithFallback(mapCandidates);
-  const hasBackgroundImage = !isProceduralTheme(themeId) && !!mapTexture;
+  const hasBackgroundImage = !!mapTexture;
 
   const config = getThemeMapConfig(themeId);
 

@@ -1,20 +1,10 @@
-import { type ThemeId, isProceduralTheme } from '../utils/colors';
+import { type ThemeId } from '../utils/colors';
 import { AssetId, ASSET_CATALOG } from './catalog';
-
-const FALLBACK_THEME: ThemeId = 'theme-1';
 
 function themeUrl(themeId: ThemeId, filename: string): string {
   return `/assets/${themeId}/${filename}`;
 }
 
-/**
- * Resolve an asset to a URL for a given theme.
- *
- * Returns null when the asset should be skipped (procedural theme + texture-only asset).
- * Returns an ordered array of candidate URLs to try (theme → fallback theme).
- *
- * Sounds always fall back to a real theme since there's no procedural audio.
- */
 export function resolveAsset(themeId: ThemeId, assetId: AssetId): string[] | null {
   const meta = ASSET_CATALOG[assetId];
   if (!meta) return null;
@@ -23,22 +13,7 @@ export function resolveAsset(themeId: ThemeId, assetId: AssetId): string[] | nul
     return [`/assets/common/${meta.filename}`];
   }
 
-  const procedural = isProceduralTheme(themeId);
-
-  // Procedural themes have no texture files of their own — fall back to theme-1
-  if (procedural && meta.kind === 'texture') {
-    return [themeUrl(FALLBACK_THEME, meta.filename)];
-  }
-
-  const candidates: string[] = [];
-
-  candidates.push(themeUrl(themeId, meta.filename));
-
-  if (themeId !== FALLBACK_THEME) {
-    candidates.push(themeUrl(FALLBACK_THEME, meta.filename));
-  }
-
-  return candidates;
+  return [themeUrl(themeId, meta.filename)];
 }
 
 export function resolveAssetUrl(themeId: ThemeId, assetId: AssetId): string | null {
@@ -67,16 +42,7 @@ export function resolveButtonStateUrls(
     };
   }
 
-  const procedural = isProceduralTheme(themeId);
-  if (procedural) return null;
-
-  const build = (filename: string): string[] => {
-    const urls: string[] = [themeUrl(themeId, filename)];
-    if (themeId !== FALLBACK_THEME) {
-      urls.push(themeUrl(FALLBACK_THEME, filename));
-    }
-    return urls;
-  };
+  const build = (filename: string): string[] => [themeUrl(themeId, filename)];
 
   return {
     normal: build(normalFile),
@@ -85,12 +51,6 @@ export function resolveButtonStateUrls(
   };
 }
 
-/**
- * Resolve a sound asset URL.
- *
- * - **SFX** are shared across all themes → always served from theme-1.
- * - **Music** is unique per theme → always served from the requested theme.
- */
 export function resolveSoundUrl(themeId: ThemeId, assetId: AssetId): string | null {
   const meta = ASSET_CATALOG[assetId];
   if (!meta || meta.kind !== 'sound') return null;
@@ -100,13 +60,12 @@ export function resolveSoundUrl(themeId: ThemeId, assetId: AssetId): string | nu
     return `/assets/common/${meta.filename}`;
   }
 
-  // Music: each theme has unique tracks — always use the actual theme
   return themeUrl(themeId, meta.filename);
 }
 
 export function resolveImageAssetUrl(themeId: ThemeId, assetId: AssetId): string {
   const candidates = resolveAsset(themeId, assetId);
-  return candidates?.[0] ?? themeUrl(FALLBACK_THEME, ASSET_CATALOG[assetId]?.filename ?? '');
+  return candidates?.[0] ?? themeUrl(themeId, ASSET_CATALOG[assetId]?.filename ?? '');
 }
 
 export async function validateCatalog(themeId: ThemeId): Promise<{ missing: string[]; valid: number }> {
