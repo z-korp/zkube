@@ -77,18 +77,75 @@ An asset is **🎨 Per-theme** when:
 
 ---
 
+## Chromakey Green Transparency Pipeline
+
+### Why Chromakey Green?
+
+**Gemini cannot generate native transparent PNGs.** All image generation models output solid backgrounds. To work around this limitation, we use a chromakey green (#00FF00) background and strip it in post-processing.
+
+### Model Details
+
+- **Model:** `gemini-3-pro-image-preview` (codename "Nano Banana Pro")
+- **Max Resolution:** 2048×2048
+- **Aspect Ratios:** 1:1, 16:9, 9:16, 4:3, 3:4
+- **Output Format:** Always JPEG (even if PNG requested)
+
+### Assets Requiring Transparency
+
+- **Blocks** (block-1.png through block-4.png)
+- **Logo** (logo.png)
+- **Grid Frame** (grid-frame.png)
+- **Icons** (all icon-*.png files)
+- **Particles** (all particle-*.png files)
+- **Panels** (all panel-*.png files)
+
+### Assets That Are Opaque
+
+- **Background** (background.png)
+- **Loading Background** (loading-bg.png)
+- **Grid Background** (grid-bg.png)
+- **Map** (map.png)
+
+### Post-Processing Steps
+
+All generated assets go through a 3-step pipeline:
+
+1. **JPEG → PNG Conversion**
+   - Gemini always returns JPEG, convert to PNG format
+
+2. **Green Stripping** (transparency assets only)
+   - Detect chromakey green pixels using HSV color space
+   - Algorithm: If `G > 100 AND R < 200 AND B < 200 AND G > R*1.3 AND G > B*1.3` → set alpha to 0
+   - Preserves non-green colors while removing background
+
+3. **Resize to Target Dimensions**
+   - Scale from generation resolution (typically 1024px or 2048px) to final asset size
+   - Maintain aspect ratio and quality
+
+### Prompt Template Modification
+
+For transparency assets, prompts must specify:
+```
+Background: Solid chromakey green (#00FF00, RGB 0,255,0).
+The green will be removed in post-processing to create transparency.
+```
+
+For opaque assets, prompts specify the actual background color/gradient.
+
+---
+
 ## 1. Blocks — 🎨 Per-Theme
 
 Each block type has a distinct width (1-4 cells). These are the most-seen assets in the game.
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `Block1` | `block-1.png` | 544×544 | ✅ themes 1-2, ❌ themes 3-10 |
-| `Block2` | `block-2.png` | 1088×544 | ✅ themes 1-2, ❌ themes 3-10 |
-| `Block3` | `block-3.png` | 1632×544 | ✅ themes 1-2, ❌ themes 3-10 |
-| `Block4` | `block-4.png` | 2176×544 | ✅ themes 1-2, ❌ themes 3-10 |
+| `Block1` | `block-1.png` | 544×544 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
+| `Block2` | `block-2.png` | 1088×544 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
+| `Block3` | `block-3.png` | 1632×544 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
+| `Block4` | `block-4.png` | 2176×544 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
 
-**Generation:** 4 assets × 8 themes = **32 images**
+**Generation:** 4 assets × 7 themes (3,5-10) = **28 images**
 
 **Prompt template:**
 ```
@@ -97,7 +154,9 @@ Theme: {THEME_NAME} — {THEME_DESCRIPTION}
 Style: Bold black outlines, cel-shaded, 2-3 color tones from this palette: {BLOCK_COLORS}
 The block is {WIDTH} cells wide and 1 cell tall (aspect ratio {WIDTH}:1).
 Design: An emblem or decorative tile with the theme's motifs ({MOTIFS}).
-Center the design. Transparent background. No text, no people.
+Center the design. Background: Solid chromakey green (#00FF00, RGB 0,255,0).
+The green will be removed in post-processing to create transparency.
+No text, no people.
 ```
 
 **Per-theme motifs for blocks:**
@@ -120,10 +179,10 @@ The full-screen background defines the theme's atmosphere.
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `Background` | `background.png` | 1456×816 | ✅ themes 1-2, ❌ themes 3-10 |
-| `LoadingBg` | `loading-bg.png` | 1456×816 | ✅ themes 1-2, ❌ themes 3-10 |
+| `Background` | `background.png` | 1456×816 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
+| `LoadingBg` | `loading-bg.png` | 1456×816 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
 
-**Generation:** 2 assets × 8 themes = **16 images**
+**Generation:** 2 assets × 7 themes (3,5-10) = **14 images**
 
 **Prompt template (background):**
 ```
@@ -134,6 +193,7 @@ Style: Digital illustration with layered silhouettes, atmospheric depth, subtle 
 Composition: Landscape orientation (16:9). Foreground decorative elements framing left and right edges.
 Mood: {MOOD}. Rich, immersive, inviting.
 Color palette: gradient from {GRADIENT_START} to {GRADIENT_END} with accent colors {ACCENTS}.
+Background: Full opaque fill (no transparency needed).
 No text, no UI elements, no people, no recognizable characters.
 ```
 
@@ -157,19 +217,21 @@ The logo appears on the home screen. Theme-1 is a tiki cube, Theme-2 is a crysta
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `Logo` | `logo.png` | 500×500 | ✅ themes 1-2, ❌ themes 3-10 |
+| `Logo` | `logo.png` | 500×500 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
 
-**Generation:** 1 asset × 8 themes = **8 images**
+**Generation:** 1 asset × 7 themes (3,5-10) = **7 images**
 
 **Prompt template:**
 ```
 Generate a game logo icon for a puzzle game called "zKube".
 Theme: {THEME_NAME}
 Design: An isometric cube or geometric shape with the theme's motifs on its visible faces.
-Style: Bold black outlines, cel-shading, glossy highlights, centered on transparent background.
+Style: Bold black outlines, cel-shading, glossy highlights, centered.
 Motifs: {MOTIFS} carved/painted/etched on the cube faces.
 Colors: {ACCENT_COLOR} as primary with {SECONDARY_COLORS} for shading.
-Square format. No text, no letters, just the iconic shape.
+Square format. Background: Solid chromakey green (#00FF00, RGB 0,255,0).
+The green will be removed in post-processing to create transparency.
+No text, no letters, just the iconic shape.
 ```
 
 ---
@@ -180,10 +242,10 @@ The grid background and ornamental frame surround the play area.
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `GridBg` | `grid-bg.png` | 320×400 | ✅ themes 1-2, ❌ themes 3-10 |
-| `GridFrame` | `grid-frame.png` | 380×460 | ✅ themes 1-2, ❌ themes 3-10 |
+| `GridBg` | `grid-bg.png` | 320×400 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
+| `GridFrame` | `grid-frame.png` | 380×460 | ✅ themes 1,2,4 / ❌ themes 3,5-10 |
 
-**Generation:** 2 assets × 8 themes = **16 images**
+**Generation:** 2 assets × 7 themes (3,5-10) = **14 images**
 
 **Prompt template (grid-bg):**
 ```
@@ -192,7 +254,19 @@ Theme: {THEME_NAME}
 Style: Muted, low-contrast surface material — {MATERIAL} texture.
 Color: Base fill {GRID_BG_COLOR} with subtle {GRID_CELL_ALT_COLOR} variation.
 Should read as a flat surface the blocks sit on. No grid lines (those are drawn in code).
-Dimensions: 320×400px portrait rectangle. No transparency.
+Dimensions: 320×400px portrait rectangle. Background: Full opaque fill (no transparency needed).
+```
+
+**Prompt template (grid-frame):**
+```
+Generate a decorative frame border for a game grid.
+Theme: {THEME_NAME}
+Style: Simple material-colored border panel with {MATERIAL} texture.
+Design: Rectangular frame (380×460px) with {BORDER_WIDTH}px border on all sides.
+The frame should have decorative edges matching the theme's aesthetic.
+Background: Solid chromakey green (#00FF00, RGB 0,255,0) for the interior cutout.
+The green will be removed in post-processing to create transparency.
+Border color: {FRAME_COLOR}
 ```
 
 **Grid-bg materials per theme:**
@@ -209,96 +283,74 @@ Dimensions: 320×400px portrait rectangle. No transparency.
 
 ---
 
-## 5. Decoratives — 🎨 Per-Theme
+## 5. Map — 🎨 Per-Theme
 
-Flanking elements on left/right of the grid. High visual impact.
+The progression map background (Super Mario World-style level selection).
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `DecoLeft` | `deco-left.png` | ~600×800 (output) | ✅ themes 1-2, ❌ themes 3-10 |
-| `DecoRight` | `deco-right.png` | ~600×800 (output) | ✅ themes 1-2, ❌ themes 3-10 |
+| `Map` | `map.png` | 1456×816 | ✅ theme-4 only / ❌ all others |
 
-**Note:** Theme-1 originals are 3612×2995 — generate at 1024px and let the renderer scale.
-
-**Generation:** 2 assets × 8 themes = **16 images**
+**Generation:** 1 asset × 9 themes (1-3,5-10) = **9 images**
 
 **Prompt template:**
 ```
-Generate a decorative side element for a mobile game screen.
-Theme: {THEME_NAME}
-Content: {DECO_DESCRIPTION}
-Style: Silhouetted foreground element, partially transparent, dark tones with theme accent highlights.
-Composition: Tall portrait format (3:4). Element anchored to {LEFT/RIGHT} edge, fading to transparency on opposite side.
-PNG with transparency. No text, no people.
+Generate a top-down map illustration for a game progression screen.
+Theme: {THEME_NAME} — {THEME_DESCRIPTION}
+Style: Illustrated map view with winding path, landmarks, and decorative terrain.
+Composition: Landscape orientation (16:9). Path should wind from bottom-left to top-right.
+Include 5 distinct landmark areas for boss levels (levels 10, 20, 30, 40, 50).
+Mood: Adventurous, inviting, shows journey progression.
+Color palette: {MAP_COLORS}
+Background: Full opaque fill (no transparency needed).
+No text, no UI elements, no people.
 ```
-
-**Per-theme decoratives:**
-| Theme | Left Deco | Right Deco |
-|-------|-----------|------------|
-| Easter Island | Moai statue silhouette | Volcanic rock formation |
-| Maya | Jungle vine curtain | Stone serpent pillar |
-| Cyberpunk | Ancient twisted tree | Mossy boulder with ferns |
-| Medieval | Stone tower with torch | Shield and crossed swords rack |
-| Ancient Egypt | Obelisk with hieroglyphs | Papyrus reeds and lotus |
-| Volcano | Obsidian column with lava drips | Ember-wreathed rock arch |
-| Tribal | Painted totem pole | Drum and feather arrangement |
-| Arctic | Ice pillar with brass gears | Snow-covered mechanical crane |
 
 ---
 
 ## 6. UI Chrome — 🌐 Global
 
-HUD bar, action bar, and bonus button background are small UI elements. They're barely visible behind text/icons. A single set works across all themes — the background and blocks carry the theme identity.
+HUD bar, action bar, and bonus button background are small UI elements shared across all themes.
 
 | Asset ID | Filename | Dimensions | Type | Status |
 |----------|----------|------------|------|--------|
-| `HudBar` | `hud-bar.png` | 360×40 | 🌐 | ✅ (theme-1 serves all) |
-| `ActionBar` | `action-bar.png` | 360×64 | 🌐 | ✅ (theme-1 serves all) |
-| `BonusBtnBg` | `bonus-btn-bg.png` | 64×64 | 🌐 | ✅ (theme-1 serves all) |
+| `HudBar` | `common/ui/hud-bar.png` | 360×40 | 🌐 | ✅ |
+| `ActionBar` | `common/ui/action-bar.png` | 360×64 | 🌐 | ✅ |
+| `BonusBtnBg` | `common/ui/bonus-btn-bg.png` | 64×64 | 🌐 | ✅ |
+| `StarFilled` | `common/ui/star-filled.png` | 24×24 | 🌐 | ✅ |
+| `StarEmpty` | `common/ui/star-empty.png` | 24×24 | 🌐 | ✅ |
+| `Loader` | `common/ui/loader.svg` | vector | 🌐 | ✅ |
 
 **Generation needed:** 0
 
 ---
 
-## 7. Stars — 🌐 Global
-
-Small rating icons. Functional, not thematic.
-
-| Asset ID | Filename | Dimensions | Type | Status |
-|----------|----------|------------|------|--------|
-| `StarFilled` | `star-filled.png` | 24×24 | 🌐 | ✅ (theme-1 serves all) |
-| `StarEmpty` | `star-empty.png` | 24×24 | 🌐 | ✅ (theme-1 serves all) |
-
-**Generation needed:** 0
-
----
-
-## 8. Bonus Icons — 🌐 Global
+## 7. Bonus Icons — 🌐 Global
 
 Game mechanics icons (Combo, Score, Harvest, Wave, Supply). These represent abilities, not themes.
 
 | Asset ID | Filename | Dimensions | Type | Status |
 |----------|----------|------------|------|--------|
-| `BonusCombo` | `bonus/combo.png` | 256×256 | 🌐 | ✅ (theme-1 serves all) |
-| `BonusScore` | `bonus/score.png` | 256×256 | 🌐 | ✅ (theme-1 serves all) |
-| `BonusHarvest` | `bonus/harvest.png` | 256×256 | 🌐 | ✅ (theme-1 serves all) |
-| `BonusWave` | `bonus/wave.svg` | vector | 🌐 | ✅ (theme-1 serves all) |
-| `BonusSupply` | `bonus/supply.svg` | vector | 🌐 | ✅ (theme-1 serves all) |
+| `BonusCombo` | `common/bonus/combo.png` | 256×256 | 🌐 | ✅ |
+| `BonusScore` | `common/bonus/score.png` | 256×256 | 🌐 | ✅ |
+| `BonusHarvest` | `common/bonus/harvest.png` | 256×256 | 🌐 | ✅ |
+| `BonusWave` | `common/bonus/wave.svg` | vector | 🌐 | ✅ |
+| `BonusSupply` | `common/bonus/supply.svg` | vector | 🌐 | ✅ |
 
 **Generation needed:** 0
 
 ---
 
-## 9. 9-Slice Panels — 🌐 Global (❌ ALL MISSING)
+## 8. 9-Slice Panels — 🌐 Global (❌ ALL MISSING)
 
 Used for modals, popups, card backgrounds. 9-slice means corners stay fixed, edges stretch.
 
 | Asset ID | Filename | Borders | Type | Status |
 |----------|----------|---------|------|--------|
-| `PanelWood` | `panels/panel-wood.png` | 24px | 🌐 | ❌ |
-| `PanelDark` | `panels/panel-dark.png` | 24px | 🌐 | ❌ |
-| `PanelLeaf` | `panels/panel-leaf.png` | 24px | 🌐 | ❌ |
-| `PanelGlass` | `panels/panel-glass.png` | 24px | 🌐 | ❌ |
+| `PanelWood` | `common/panels/panel-wood.png` | 24px | 🌐 | ❌ |
+| `PanelDark` | `common/panels/panel-dark.png` | 24px | 🌐 | ❌ |
+| `PanelLeaf` | `common/panels/panel-leaf.png` | 24px | 🌐 | ❌ |
+| `PanelGlass` | `common/panels/panel-glass.png` | 24px | 🌐 | ❌ |
 
 **Specs:** 96×96px minimum. 24px border on each side = 48×48px stretchable center.
 
@@ -311,7 +363,8 @@ Material: {MATERIAL}
 Style: {STYLE_DESCRIPTION}
 The image is 96×96px. The outer 24px on all sides are the fixed border. The inner 48×48px center will stretch.
 Design the border with decorative edges ({EDGE_STYLE}). Center should be a subtle, stretchable fill.
-Square format. PNG with slight transparency on the center area.
+Square format. Background: Solid chromakey green (#00FF00, RGB 0,255,0) for semi-transparent areas.
+The green will be removed in post-processing to create transparency.
 ```
 
 | Panel | Material | Edge Style |
@@ -323,32 +376,32 @@ Square format. PNG with slight transparency on the center area.
 
 ---
 
-## 10. Buttons — 🌐 Global (NO GENERATION NEEDED)
+## 9. Buttons — 🌐 Global (NO GENERATION NEEDED)
 
 **Buttons are 100% procedural** — drawn with PixiGraphics, no textures used. The `BtnOrange`, `BtnGreen`, `BtnPurple`, `BtnRed`, `BtnIcon` entries in the catalog are unused.
 
 ---
 
-## 11. Icons — 🌐 Global (❌ ALL MISSING)
+## 10. Icons — 🌐 Global
 
 Replace emoji placeholders with proper game icons.
 
 | Asset ID | Filename | Currently Using | Status |
 |----------|----------|-----------------|--------|
-| `IconStarFilled` | `icons/icon-star-filled.png` | ⭐ emoji | ❌ |
-| `IconStarEmpty` | `icons/icon-star-empty.png` | ☆ emoji | ❌ |
-| `IconCube` | `icons/icon-cube.png` | 🧊 emoji | ❌ |
-| `IconCrown` | `icons/icon-crown.png` | 👑 | ❌ |
-| `IconFire` | `icons/icon-fire.png` | 🔥 | ❌ |
-| `IconScroll` | `icons/icon-scroll.png` | 📜 emoji | ❌ |
-| `IconShop` | `icons/icon-shop.png` | 🛒 emoji | ❌ |
-| `IconTrophy` | `icons/icon-trophy.png` | 🏆 emoji | ❌ |
-| `IconMenu` | `icons/icon-menu.png` | ☰ text | ❌ |
-| `IconClose` | `icons/icon-close.png` | ✕ text | ❌ |
-| `IconSettings` | `icons/icon-settings.png` | ⚙ emoji | ❌ |
-| `IconLock` | `icons/icon-lock.png` | 🔒 | ❌ |
-| `IconMusic` | `icons/icon-music.png` | 🎵 | ❌ |
-| `IconSound` | `icons/icon-sound.png` | 🔊 | ❌ |
+| `IconStarFilled` | `common/icons/icon-star-filled.png` | ⭐ emoji | ❌ |
+| `IconStarEmpty` | `common/icons/icon-star-empty.png` | ☆ emoji | ❌ |
+| `IconCube` | `common/icons/icon-cube.png` | 🧊 emoji | ❌ |
+| `IconCrown` | `common/icons/icon-crown.png` | 👑 | ❌ |
+| `IconFire` | `common/icons/icon-fire.png` | 🔥 | ❌ |
+| `IconScroll` | `common/icons/icon-scroll.png` | 📜 emoji | ❌ |
+| `IconShop` | `common/icons/icon-shop.png` | 🛒 emoji | ❌ |
+| `IconTrophy` | `common/icons/icon-trophy.png` | 🏆 emoji | ❌ |
+| `IconMenu` | `common/icons/icon-menu.png` | ☰ text | ❌ |
+| `IconClose` | `common/icons/icon-close.png` | ✕ text | ❌ |
+| `IconSettings` | `common/icons/icon-settings.png` | ⚙ emoji | ❌ |
+| `IconLock` | `common/icons/icon-lock.png` | 🔒 | ❌ |
+| `IconMusic` | `common/icons/icon-music.png` | 🎵 | ❌ |
+| `IconSound` | `common/icons/icon-sound.png` | 🔊 | ❌ |
 
 **Specs:** 48×48px, white fill on transparent background (tinted in code).
 
@@ -357,46 +410,65 @@ Replace emoji placeholders with proper game icons.
 **Prompt template:**
 ```
 Generate a simple game UI icon: {ICON_DESCRIPTION}.
-Style: Clean, bold, white silhouette on transparent background.
+Style: Clean, bold, white silhouette.
 Think "iOS SF Symbols" or "Material Icons" but slightly stylized for a fantasy game.
 48×48 pixels. Thick strokes (3-4px). Rounded corners.
 Single shape, centered, no text, no color (white only).
+Background: Solid chromakey green (#00FF00, RGB 0,255,0).
+The green will be removed in post-processing to create transparency.
 ```
 
 ---
 
-## 12. Particles — 🌐 Global (❌ ALL MISSING)
+## 11. Particles — 🌐 Global (❌ ALL MISSING)
 
 Small textures tinted by code via `ThemeColors.particles`.
 
 | Asset ID | Filename | Type | Status |
 |----------|----------|------|--------|
-| `ParticleSpark` | `particles/particle-spark.png` | 🌐 | ❌ |
-| `ParticleLeaf` | `particles/particle-leaf.png` | 🌐 | ❌ |
-| `ParticleFlower` | `particles/particle-flower.png` | 🌐 | ❌ |
-| `ParticleStar` | `particles/particle-star.png` | 🌐 | ❌ |
+| `ParticleSpark` | `common/particles/particle-spark.png` | 🌐 | ❌ |
+| `ParticleLeaf` | `common/particles/particle-leaf.png` | 🌐 | ❌ |
+| `ParticleFlower` | `common/particles/particle-flower.png` | 🌐 | ❌ |
+| `ParticleStar` | `common/particles/particle-star.png` | 🌐 | ❌ |
 
 **Specs:** 16×16px, white on transparent (code tints them with theme colors).
 
 **Generation:** 4 images (global)
 
+**Prompt template:**
+```
+Generate a small particle texture for game effects.
+Shape: {PARTICLE_SHAPE}
+Style: Simple white silhouette, clean edges, centered.
+16×16 pixels. Single shape, no details, no color (white only).
+Background: Solid chromakey green (#00FF00, RGB 0,255,0).
+The green will be removed in post-processing to create transparency.
+```
+
+| Particle | Shape |
+|----------|-------|
+| Spark | Small 4-pointed star burst |
+| Leaf | Simple leaf silhouette |
+| Flower | 5-petal flower |
+| Star | Classic 5-pointed star |
+
 ---
 
-## 13. Shared Icons (Existing ✅)
+## 12. Shared Icons (Existing ✅)
 
-Already on disk at `public/assets/common/`:
+Already on disk at `public/assets/common/icons/`:
 
 | Asset | Path | Status |
 |-------|------|--------|
-| Moves icon | `common/icon-moves.png` | ✅ |
-| Score icon | `common/icon-score.png` | ✅ |
-| Cube icon | `common/icon-cube.png` | ✅ |
-| Level icon | `common/icon-level.png` | ✅ |
-| Surrender icon | `common/icon-surrender.png` | ✅ |
+| Moves icon | `common/icons/icon-moves.png` | ✅ |
+| Score icon | `common/icons/icon-score.png` | ✅ |
+| Cube icon | `common/icons/icon-cube.png` | ✅ |
+| Level icon | `common/icons/icon-level.png` | ✅ |
+| Surrender icon | `common/icons/icon-surrender.png` | ✅ |
 
 ---
 
-## 14. Miscellaneous (Existing ✅)
+## 13. Miscellaneous (Existing ✅)
 
 | Asset | Path | Status |
 |-------|------|--------|
@@ -407,27 +479,27 @@ Already on disk at `public/assets/common/`:
 
 ---
 
-## 15. Sound Effects (All Complete ✅)
+## 14. Sound Effects (All Complete ✅)
 
-7 SFX × 10 themes = 70 files, all exist.
+All SFX are shared from `common/sounds/effects/` (not per-theme).
 
 | Asset ID | Filename | When Played |
 |----------|----------|-------------|
-| `SfxBreak` | `sounds/effects/break.mp3` | Line cleared |
-| `SfxExplode` | `sounds/effects/explode.mp3` | Multi-line combo |
-| `SfxMove` | `sounds/effects/move.mp3` | Block moved |
-| `SfxNew` | `sounds/effects/new.mp3` | New blocks spawned |
-| `SfxStart` | `sounds/effects/start.mp3` | Game started |
-| `SfxSwipe` | `sounds/effects/swipe.mp3` | Block swiped |
-| `SfxOver` | `sounds/effects/over.mp3` | Game over |
+| `SfxBreak` | `common/sounds/effects/break.mp3` | Line cleared |
+| `SfxExplode` | `common/sounds/effects/explode.mp3` | Multi-line combo |
+| `SfxMove` | `common/sounds/effects/move.mp3` | Block moved |
+| `SfxNew` | `common/sounds/effects/new.mp3` | New blocks spawned |
+| `SfxStart` | `common/sounds/effects/start.mp3` | Game started |
+| `SfxSwipe` | `common/sounds/effects/swipe.mp3` | Block swiped |
+| `SfxOver` | `common/sounds/effects/over.mp3` | Game over |
 
-**Note:** SFX are shared from theme-1 in code (`resolveSoundUrl` always returns theme-1 for SFX).
+**Note:** SFX are global assets, shared across all themes.
 
 ---
 
-## 16. Music Tracks (All Complete ✅)
+## 15. Music Tracks (All Complete ✅)
 
-4 tracks × 10 themes = 40 files, all exist.
+4 tracks × 10 themes = 40 files, all exist. Music is per-theme.
 
 | Asset ID | Filename | When Played |
 |----------|----------|-------------|
@@ -440,18 +512,23 @@ Already on disk at `public/assets/common/`:
 
 ## Generation Summary
 
-### Per-Theme Assets (themes 3-10 = 8 themes)
+### Per-Theme Assets (themes 3,5-10 = 7 themes)
 
 | Category | Assets | Per Theme | Total |
 |----------|--------|-----------|-------|
-| Blocks | block-{1,2,3,4}.png | 4 | 32 |
-| Background | background.png | 1 | 8 |
-| Loading BG | loading-bg.png | 1 | 8 |
-| Logo | logo.png | 1 | 8 |
-| Grid BG | grid-bg.png | 1 | 8 |
-| Grid Frame | grid-frame.png | 1 | 8 |
-| Decoratives | deco-left.png, deco-right.png | 2 | 16 |
-| **Subtotal** | | **11** | **88** |
+| Blocks | block-{1,2,3,4}.png | 4 | 28 |
+| Background | background.png | 1 | 7 |
+| Loading BG | loading-bg.png | 1 | 7 |
+| Logo | logo.png | 1 | 7 |
+| Grid BG | grid-bg.png | 1 | 7 |
+| Grid Frame | grid-frame.png | 1 | 7 |
+| **Subtotal** | | **9** | **63** |
+
+### Maps (themes 1-3,5-10 = 9 themes)
+
+| Category | Assets | Total |
+|----------|--------|-------|
+| Map | map.png | 9 |
 
 ### Global Assets (one set, all themes share)
 
@@ -462,14 +539,18 @@ Already on disk at `public/assets/common/`:
 | Particles | particle-*.png | 4 |
 | **Subtotal** | | **22** |
 
-### Grand Total: **110 images to generate**
+### Grand Total: **94 images to generate**
+
+- Per-theme textures: 63
+- Maps: 9
+- Global assets: 22
 
 ### Estimated Cost & Time
 
-| Tier | Rate | Time for 110 images | Cost |
+| Tier | Rate | Time for 94 images | Cost |
 |------|------|---------------------|------|
-| Free | 15 RPM | ~8 minutes | $0 |
-| Tier 1 | 300 RPM | ~25 seconds | ~$5.50 |
+| Free | 15 RPM | ~7 minutes | $0 |
+| Tier 1 | 300 RPM | ~20 seconds | ~$4.70 |
 
 ---
 
@@ -478,7 +559,7 @@ Already on disk at `public/assets/common/`:
 ### Prerequisites
 
 ```bash
-npm install @google/genai p-limit
+npm install @google/genai p-limit sharp
 export GEMINI_API_KEY="your-key-here"
 ```
 
@@ -508,17 +589,20 @@ npx tsx scripts/generate-assets.ts --dry-run
 ### How It Works
 
 1. Reads `THEME_META` and `ThemeColors` from `colors.ts`
-2. Checks `public/assets/{themeId}/` for existing files
+2. Checks `public/assets/{themeId}/` and `public/assets/common/` for existing files
 3. For each missing asset, builds a prompt from the templates above
-4. Calls Gemini `gemini-2.5-flash-image` with `responseModalities: ["IMAGE"]`
-5. Decodes base64 response and writes PNG to correct path
-6. Rate-limits to stay within API quota (10 concurrent via `p-limit`)
+4. Calls Gemini `gemini-3-pro-image-preview` with `responseModalities: ["IMAGE"]`
+5. Receives JPEG response, converts to PNG
+6. Applies chromakey green stripping for transparency assets
+7. Resizes to target dimensions
+8. Writes final PNG to correct path
+9. Rate-limits to stay within API quota (10 concurrent via `p-limit`)
 
 ### API Configuration
 
 ```typescript
 const config = {
-  model: "gemini-2.5-flash-image",
+  model: "gemini-3-pro-image-preview",
   responseModalities: ["IMAGE"],
   imageConfig: {
     aspectRatio: "1:1",   // or "16:9" for backgrounds
@@ -538,20 +622,40 @@ const config = {
 | Logo | 1:1 | 1K | 1024×1024 |
 | Grid BG | 4:5 | 1K | ~819×1024 |
 | Grid Frame | 4:5 | 1K | ~819×1024 |
-| Decoratives | 3:4 | 1K | ~768×1024 |
+| Map | 16:9 | 2K | 2048×1152 |
 | Panels | 1:1 | 1K | 1024×1024 |
 | Icons | 1:1 | 1K | 1024×1024 (downscale to 48px) |
 | Particles | 1:1 | 1K | 1024×1024 (downscale to 16px) |
 
-### Post-Processing
+### Post-Processing Pipeline
 
-After generation, resize to target dimensions:
-```bash
-# Example: resize blocks to 544×544
-magick block-1-raw.png -resize 544x544 block-1.png
+```typescript
+// 1. JPEG → PNG conversion
+const pngBuffer = await sharp(jpegBuffer).png().toBuffer();
 
-# Example: resize icons to 48×48 with alpha
-magick icon-raw.png -resize 48x48 -background none icon.png
+// 2. Green stripping (transparency assets only)
+const { data, info } = await sharp(pngBuffer)
+  .raw()
+  .toBuffer({ resolveWithObject: true });
+
+for (let i = 0; i < data.length; i += 4) {
+  const r = data[i];
+  const g = data[i + 1];
+  const b = data[i + 2];
+  
+  // Detect chromakey green
+  if (g > 100 && r < 200 && b < 200 && g > r * 1.3 && g > b * 1.3) {
+    data[i + 3] = 0; // Set alpha to 0
+  }
+}
+
+// 3. Resize to target dimensions
+const finalBuffer = await sharp(data, {
+  raw: { width: info.width, height: info.height, channels: 4 }
+})
+  .resize(targetWidth, targetHeight)
+  .png()
+  .toBuffer();
 ```
 
 ---
@@ -560,66 +664,201 @@ magick icon-raw.png -resize 48x48 -background none icon.png
 
 ```
 public/assets/
-├── common/                               ✅ Existing
-│   ├── icon-moves.png
-│   ├── icon-score.png
-│   ├── icon-cube.png
-│   ├── icon-level.png
-│   └── icon-surrender.png
+├── common/                               # ALL shared assets
+│   ├── icons/                            # HUD + catalog icons
+│   │   ├── icon-moves.png               ✅
+│   │   ├── icon-score.png               ✅
+│   │   ├── icon-cube.png                ✅
+│   │   ├── icon-level.png               ✅
+│   │   ├── icon-surrender.png           ✅
+│   │   ├── icon-star-filled.png         ❌ → Generate
+│   │   ├── icon-star-empty.png          ❌ → Generate
+│   │   ├── icon-crown.png               ❌ → Generate
+│   │   ├── icon-fire.png                ❌ → Generate
+│   │   ├── icon-scroll.png              ❌ → Generate
+│   │   ├── icon-shop.png                ❌ → Generate
+│   │   ├── icon-trophy.png              ❌ → Generate
+│   │   ├── icon-menu.png                ❌ → Generate
+│   │   ├── icon-close.png               ❌ → Generate
+│   │   ├── icon-settings.png            ❌ → Generate
+│   │   ├── icon-lock.png                ❌ → Generate
+│   │   ├── icon-music.png               ❌ → Generate
+│   │   └── icon-sound.png               ❌ → Generate
+│   ├── ui/                               # UI Chrome
+│   │   ├── action-bar.png               ✅
+│   │   ├── hud-bar.png                  ✅
+│   │   ├── bonus-btn-bg.png             ✅
+│   │   ├── star-filled.png              ✅
+│   │   ├── star-empty.png               ✅
+│   │   └── loader.svg                   ✅
+│   ├── bonus/                            # Bonus icons
+│   │   ├── combo.png                    ✅
+│   │   ├── score.png                    ✅
+│   │   ├── harvest.png                  ✅
+│   │   ├── wave.svg                     ✅
+│   │   └── supply.svg                   ✅
+│   ├── panels/                           ❌ → Generate
+│   │   ├── panel-wood.png               ❌
+│   │   ├── panel-dark.png               ❌
+│   │   ├── panel-leaf.png               ❌
+│   │   └── panel-glass.png              ❌
+│   ├── particles/                        ❌ → Generate
+│   │   ├── particle-spark.png           ❌
+│   │   ├── particle-leaf.png            ❌
+│   │   ├── particle-flower.png          ❌
+│   │   └── particle-star.png            ❌
+│   └── sounds/effects/                   ✅
+│       ├── break.mp3                    ✅
+│       ├── explode.mp3                  ✅
+│       ├── move.mp3                     ✅
+│       ├── new.mp3                      ✅
+│       ├── start.mp3                    ✅
+│       ├── swipe.mp3                    ✅
+│       └── over.mp3                     ✅
 │
-├── icons/                                ❌ → Generate (🌐 global)
-│   ├── icon-star-filled.png
-│   ├── icon-star-empty.png
-│   ├── icon-cube.png
-│   ├── icon-crown.png
-│   ├── icon-fire.png
-│   ├── icon-scroll.png
-│   ├── icon-shop.png
-│   ├── icon-trophy.png
-│   ├── icon-menu.png
-│   ├── icon-close.png
-│   ├── icon-settings.png
-│   ├── icon-lock.png
-│   ├── icon-music.png
-│   └── icon-sound.png
+├── theme-1/                              ✅ Complete (except map)
+│   ├── block-{1-4}.png                  ✅
+│   ├── background.png                   ✅
+│   ├── loading-bg.png                   ✅
+│   ├── logo.png                         ✅
+│   ├── grid-bg.png                      ✅
+│   ├── grid-frame.png                   ✅
+│   ├── map.png                          ❌ → Generate
+│   └── sounds/musics/                   ✅
+│       ├── main.mp3                     ✅
+│       ├── map.mp3                      ✅
+│       ├── level.mp3                    ✅
+│       └── boss.mp3                     ✅
 │
-├── panels/                               ❌ → Generate (🌐 global)
-│   ├── panel-wood.png
-│   ├── panel-dark.png
-│   ├── panel-leaf.png
-│   └── panel-glass.png
+├── theme-2/                              ✅ Complete (except map)
+│   ├── block-{1-4}.png                  ✅
+│   ├── background.png                   ✅
+│   ├── loading-bg.png                   ✅
+│   ├── logo.png                         ✅
+│   ├── grid-bg.png                      ✅
+│   ├── grid-frame.png                   ✅
+│   ├── map.png                          ❌ → Generate
+│   └── sounds/musics/                   ✅
 │
-├── particles/                            ❌ → Generate (🌐 global)
-│   ├── particle-spark.png
-│   ├── particle-leaf.png
-│   ├── particle-flower.png
-│   └── particle-star.png
+├── theme-3/                              ⚠️ → Generate per-theme textures
+│   ├── block-{1-4}.png                  ❌ → Generate
+│   ├── background.png                   ❌ → Generate
+│   ├── loading-bg.png                   ❌ → Generate
+│   ├── logo.png                         ❌ → Generate
+│   ├── grid-bg.png                      ❌ → Generate
+│   ├── grid-frame.png                   ❌ → Generate
+│   ├── map.png                          ❌ → Generate
+│   └── sounds/musics/                   ✅
 │
-├── theme-1/                              ✅ Complete
-│   ├── block-{1-4}.png
-│   ├── background.png, loading-bg.png
-│   ├── grid-bg.png, grid-frame.png
-│   ├── hud-bar.png, action-bar.png
-│   ├── bonus-btn-bg.png
-│   ├── star-filled.png, star-empty.png
-│   ├── logo.png
-│   ├── deco-left.png, deco-right.png
-│   ├── bonus/{combo,score,harvest}.png
-│   ├── bonus/{wave,supply}.svg
-│   └── sounds/ ✅
+├── theme-4/                              ✅ Complete
+│   ├── block-{1-4}.png                  ✅
+│   ├── background.png                   ✅
+│   ├── loading-bg.png                   ✅
+│   ├── logo.png                         ✅
+│   ├── grid-bg.png                      ✅
+│   ├── grid-frame.png                   ✅
+│   ├── map.png                          ✅
+│   └── sounds/musics/                   ✅
 │
-├── theme-2/                              ✅ Complete (same structure)
-│
-├── theme-3/ through theme-10/            ⚠️ → Generate per-theme textures
-│   ├── block-{1-4}.png                   ❌ → Generate
-│   ├── background.png                    ❌ → Generate
-│   ├── loading-bg.png                    ❌ → Generate
-│   ├── logo.png                          ❌ → Generate
-│   ├── grid-bg.png                       ❌ → Generate
-│   ├── grid-frame.png                    ❌ → Generate
-│   ├── deco-left.png                     ❌ → Generate
-│   ├── deco-right.png                    ❌ → Generate
-│   └── sounds/ ✅                        (already complete)
+├── theme-5/ through theme-10/            ⚠️ → Generate per-theme textures
+│   ├── block-{1-4}.png                  ❌ → Generate
+│   ├── background.png                   ❌ → Generate
+│   ├── loading-bg.png                   ❌ → Generate
+│   ├── logo.png                         ❌ → Generate
+│   ├── grid-bg.png                      ❌ → Generate
+│   ├── grid-frame.png                   ❌ → Generate
+│   ├── map.png                          ❌ → Generate
+│   └── sounds/musics/                   ✅
 ```
 
-**Note:** `hud-bar`, `action-bar`, `bonus-btn-bg`, `star-*`, `bonus/*` are global — themes 3-10 will continue falling back to theme-1 for these via the resolver.
+**Note:** All UI chrome, bonus icons, stars, and SFX are now global assets in `common/`. Themes 3,5-10 use procedural rendering for blocks/backgrounds with fallback to theme-1 textures until generated.
+
+---
+
+## Asset Catalog Integration
+
+The `AssetCatalog` type in `mobile-app/src/pixi/utils/assetCatalog.ts` defines all asset paths. When adding new assets:
+
+1. Add the asset ID to the appropriate section (e.g., `Icons`, `Panels`, `Particles`)
+2. Update the path resolver to point to `common/` for global assets
+3. For per-theme assets, keep the `{themeId}/` prefix
+4. Ensure the filename matches the catalog entry exactly
+
+Example:
+```typescript
+export const AssetCatalog = {
+  Icons: {
+    StarFilled: "common/icons/icon-star-filled.png",
+    StarEmpty: "common/icons/icon-star-empty.png",
+    // ...
+  },
+  Panels: {
+    Wood: "common/panels/panel-wood.png",
+    Dark: "common/panels/panel-dark.png",
+    // ...
+  },
+  Blocks: {
+    Block1: "block-1.png", // Per-theme, resolved to {themeId}/block-1.png
+    // ...
+  },
+};
+```
+
+---
+
+## Quality Checklist
+
+Before marking an asset as complete:
+
+- [ ] Correct dimensions (exact pixel size)
+- [ ] Transparency applied correctly (chromakey green removed)
+- [ ] Style matches reference themes (bold outlines, cel-shading)
+- [ ] Colors match theme palette from `colors.ts`
+- [ ] No text, logos, or recognizable IP
+- [ ] File size reasonable (<500KB for textures, <50KB for icons)
+- [ ] Asset loads correctly in game
+- [ ] No visual artifacts from green stripping
+
+---
+
+## Troubleshooting
+
+### Green Halo Around Edges
+
+**Problem:** Transparent assets have green fringe pixels.
+
+**Solution:** Adjust green detection threshold or use edge erosion:
+```typescript
+// More aggressive green detection
+if (g > 80 && r < 220 && b < 220 && g > r * 1.2 && g > b * 1.2) {
+  data[i + 3] = 0;
+}
+```
+
+### Transparency Not Working
+
+**Problem:** Asset appears with solid background in game.
+
+**Solution:** Verify the asset was processed with green stripping enabled. Check that the asset type is in the transparency list.
+
+### Wrong Aspect Ratio
+
+**Problem:** Generated image doesn't match expected dimensions.
+
+**Solution:** Gemini's aspect ratios are approximate. Use the closest available ratio and resize in post-processing.
+
+### Model Returns Error
+
+**Problem:** API returns "Invalid aspect ratio" or "Invalid image size".
+
+**Solution:** Use only supported aspect ratios (1:1, 16:9, 9:16, 4:3, 3:4) and image sizes (1K, 2K).
+
+---
+
+## Future Improvements
+
+- **Batch retry logic** for failed generations
+- **Quality scoring** to auto-reject low-quality outputs
+- **Style consistency checker** to ensure unified art direction
+- **Automated testing** to verify all assets load correctly
+- **Asset versioning** to track iterations and improvements

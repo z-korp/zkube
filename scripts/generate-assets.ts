@@ -18,7 +18,6 @@ type PerThemeAsset =
   | "loading-bg"
   | "logo"
   | "grid"
-  | "decos"
   | "theme-icon"
   | "map";
 type GlobalAsset = "buttons" | "shared-icons" | "catalog-icons" | "panels" | "particles";
@@ -43,8 +42,6 @@ interface ThemeDefinition {
   blockMotifs: string;
   scene: string;
   gridMaterial: string;
-  decoLeft: string;
-  decoRight: string;
 }
 
 interface AssetJob {
@@ -79,8 +76,6 @@ const THEMES: Record<string, ThemeDefinition> = {
     blockMotifs: "Stone moai faces, volcanic rock patterns, obsidian edges",
     scene: "Volcanic island at night, giant moai statues silhouetted against starry sky, bioluminescent tide pools",
     gridMaterial: "Dark volcanic basalt with faint glow veins",
-    decoLeft: "Moai statue silhouette with glowing eyes",
-    decoRight: "Volcanic rock formation with bioluminescent moss",
   },
   "theme-4": {
     name: "Maya",
@@ -94,8 +89,6 @@ const THEMES: Record<string, ThemeDefinition> = {
     scene:
       "Deep jungle with ancient stepped Mayan temple in background, jade-green canopy, misty waterfalls, turquoise cenote pools",
     gridMaterial: "Deep ocean-floor jade stone with turquoise tint",
-    decoLeft: "Jungle vine curtain with jade ornaments and feathered serpent",
-    decoRight: "Stone serpent pillar with carved glyphs and moss",
   },
   "theme-5": {
     name: "Cyberpunk",
@@ -108,8 +101,6 @@ const THEMES: Record<string, ThemeDefinition> = {
     scene:
       "Rain-slicked cyberpunk alley at night, neon signs reflecting in puddles, towering buildings with holographic billboards",
     gridMaterial: "Dark carbon fiber with faint neon circuit traces",
-    decoLeft: "Cyberpunk neon sign post with flickering lights",
-    decoRight: "Chrome mechanical arm with holographic display",
   },
   "theme-6": {
     name: "Medieval",
@@ -122,8 +113,6 @@ const THEMES: Record<string, ThemeDefinition> = {
     scene:
       "Castle courtyard at sunset, stone walls with burning torches, distant towers, iron portcullis, heraldic banners",
     gridMaterial: "Weathered sandstone with iron-stud grain",
-    decoLeft: "Stone tower with burning torch and ivy",
-    decoRight: "Shield rack with crossed swords and heraldic banner",
   },
   "theme-7": {
     name: "Ancient Egypt",
@@ -136,8 +125,6 @@ const THEMES: Record<string, ThemeDefinition> = {
     scene:
       "Desert at twilight, golden pyramids with hieroglyph-covered obelisks, Nile river reflecting sky, palm trees",
     gridMaterial: "Cool blue-grey slate with gold hieroglyph inlays",
-    decoLeft: "Obelisk with hieroglyphs and Eye of Horus",
-    decoRight: "Papyrus reeds, lotus flowers, and golden ankh",
   },
   "theme-8": {
     name: "Volcano",
@@ -150,8 +137,6 @@ const THEMES: Record<string, ThemeDefinition> = {
     scene:
       "Volcanic forge interior, rivers of lava flowing between obsidian platforms, ember-filled sky, basalt columns",
     gridMaterial: "Cracked obsidian with faint ember glow between fissures",
-    decoLeft: "Obsidian column with lava drips and ember particles",
-    decoRight: "Ember-wreathed rock arch with magma glow",
   },
   "theme-9": {
     name: "Tribal",
@@ -164,8 +149,6 @@ const THEMES: Record<string, ThemeDefinition> = {
     scene:
       "Savanna at dawn, ritual stone circle, painted rocks, wildflowers, distant acacia trees, drum circle",
     gridMaterial: "Rose-tinted clay with faint handprint texture",
-    decoLeft: "Painted totem pole with feathers and bone beads",
-    decoRight: "Ceremonial drum and feather arrangement with painted stones",
   },
   "theme-10": {
     name: "Arctic",
@@ -178,8 +161,6 @@ const THEMES: Record<string, ThemeDefinition> = {
     scene:
       "Frozen tundra under aurora borealis, ice crystal formations, brass and copper mechanical structures half-buried in snow",
     gridMaterial: "Dark worn leather with brass patina rivets",
-    decoLeft: "Ice pillar with embedded brass gears and frost patterns",
-    decoRight: "Snow-covered mechanical crane with copper patina",
   },
 };
 
@@ -189,7 +170,6 @@ const PER_THEME_ASSETS = [
   "loading-bg",
   "logo",
   "grid",
-  "decos",
   "theme-icon",
   "map",
 ] as const;
@@ -255,8 +235,13 @@ const REF_IMAGE_PATHS = {
   background: path.join(THEME_1_ROOT, "background.png"),
   logo: path.join(THEME_1_ROOT, "logo.png"),
   grid: path.join(THEME_1_ROOT, "grid-bg.png"),
-  decos: path.join(THEME_1_ROOT, "deco-left.png"),
 } as const;
+
+const CHROMAKEY_SUFFIX = `
+The subject must be placed on a SOLID BRIGHT CHROMAKEY GREEN (#00FF00) background.
+Do NOT use any green tones in the actual artwork — avoid greens in the subject itself.
+The green background will be removed in post-processing to create transparency.
+`;
 
 type RefKey = keyof typeof REF_IMAGE_PATHS;
 
@@ -409,7 +394,8 @@ The tile should look like a carved/painted cultural emblem — bold central shap
 Color palette: Primary fill ${color} with black outline separators and lighter highlight accents.
 Subtle grunge/distressed texture overlay on the fill areas.
 ${widthLine}
-Transparent background. Centered. No text, no people, no letters.
+Centered. No text, no people, no letters.
+${CHROMAKEY_SUFFIX}
 `);
 }
 
@@ -449,7 +435,8 @@ Top face: Geometric glyph/pattern panel in theme accent color.
 Side faces: Repeating decorative scroll/spiral motifs.
 Style: Bold black outline contours. Cel-shaded with gradient fills in the theme's accent color (${theme.palette.accent}). White specular highlights on edges. Glossy carved appearance.
 Color palette: ${theme.palette.accent} as primary, darker shade for shadows, white for highlights.
-Square format. Transparent background. Centered. No text, no letters.
+Square format. Centered. No text, no letters.
+${CHROMAKEY_SUFFIX}
 `);
 }
 
@@ -474,27 +461,8 @@ Style: An ornate rectangular frame border with themed decorative elements. The C
 Border width: approximately 10% of the image on each side.
 Border decoration: Cultural motifs and patterns from the theme carved into the frame material.
 Frame color: Theme accent (${theme.palette.accent}) with darker shadow tones and bright highlights.
-Portrait rectangle (4:5 ratio). Center is transparent. Bold border.
-`);
-}
-
-function buildDecoPrompt(theme: ThemeDefinition, side: "left" | "right"): string {
-  const content = side === "left" ? theme.decoLeft : theme.decoRight;
-  const sideCaps = side.toUpperCase();
-  const fadeLine =
-    side === "left"
-      ? "Composition: Element anchored to the LEFT edge. Fades to full transparency on the right side."
-      : "Composition: Element anchored to the RIGHT edge. Fades to full transparency on the left side.";
-
-  return withStyleAnchor(`
-Generate a decorative foreground element that sits on the ${sideCaps} side of a mobile game screen.
-Theme: ${theme.name}
-Content: ${content}
-Style: Dark silhouetted foreground element with theme accent color (${theme.palette.accent}) highlights/glow.
-${fadeLine}
-Must not block more than 30% of the screen width.
-Portrait format (3:4). PNG with transparency on the opposite side.
-No text, no people.
+Portrait rectangle (4:5 ratio). Center should be chromakey green so it can be cut out to transparency. Bold border.
+${CHROMAKEY_SUFFIX}
 `);
 }
 
@@ -503,8 +471,9 @@ function buildThemeIconPrompt(theme: ThemeDefinition): string {
 Generate a small square icon representing the "${theme.name}" theme for a game settings menu.
 Theme: ${theme.name} (${theme.icon})
 Design: A single iconic symbol that instantly communicates the theme. For example: ${theme.motifs} — pick the most recognizable single element.
-Style: Bold silhouette icon, white fill on transparent background. Thick strokes (3-4px equivalent). Clean, readable at 48×48 pixels.
+Style: Bold silhouette icon, white fill on solid chromakey green (#00FF00) background. Thick strokes (3-4px equivalent). Clean, readable at 48×48 pixels.
 Centered in frame. Square format. No text.
+${CHROMAKEY_SUFFIX}
 `);
 }
 
@@ -558,10 +527,11 @@ Square format. Slight transparency possible for soft edges. No text, no icons.
 function buildWhiteIconPrompt(description: string): string {
   return withStyleAnchor(`
 Generate a simple game UI icon: ${description}.
-Style: Clean, bold, white silhouette on transparent background.
+Style: Clean, bold, white silhouette on solid chromakey green (#00FF00) background.
 Stylized for a fantasy/tribal puzzle game. Thick strokes (3-4px equivalent).
 Rounded corners. Single shape, centered. No text, no color (white only).
 Square format. 48×48 pixel target (generating larger for quality).
+${CHROMAKEY_SUFFIX}
 `);
 }
 
@@ -571,7 +541,8 @@ Generate a 9-slice panel texture for a game UI.
 Material: ${material}
 The image is 96×96px conceptually. The outer 24px on all sides are the fixed border. The inner 48×48px center will stretch.
 Design the border with decorative edges. Center should be a subtle, stretchable fill matching the material.
-Square format. PNG. The center area should have slight transparency (${alpha} alpha).
+Square format. PNG. The center area should have slight transparency (${alpha} alpha) after chromakey removal.
+${CHROMAKEY_SUFFIX}
 `);
 }
 
@@ -579,9 +550,10 @@ function buildParticlePrompt(description: string): string {
   return withStyleAnchor(`
 Generate a tiny particle texture for a game effect.
 Shape: ${description}
-Style: White silhouette on transparent background. Soft edges with slight glow.
+Style: White silhouette on solid chromakey green (#00FF00) background. Soft edges with slight glow.
 Very simple, minimal detail — this will be rendered at 16×16 pixels and tinted by code.
 Square format. Centered.
+${CHROMAKEY_SUFFIX}
 `);
 }
 
@@ -678,31 +650,6 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
     });
   }
 
-  if (shouldIncludeCategory("decos", filter)) {
-    jobs.push({
-      scope: "per-theme",
-      category: "decos",
-      themeId,
-      filename: "deco-left.png",
-      outputPath: path.join(themeRoot, "deco-left.png"),
-      prompt: buildDecoPrompt(theme, "left"),
-      aspectRatio: "3:4",
-      imageSize: "1K",
-      refKeys: ["decos"],
-    });
-    jobs.push({
-      scope: "per-theme",
-      category: "decos",
-      themeId,
-      filename: "deco-right.png",
-      outputPath: path.join(themeRoot, "deco-right.png"),
-      prompt: buildDecoPrompt(theme, "right"),
-      aspectRatio: "3:4",
-      imageSize: "1K",
-      refKeys: ["decos"],
-    });
-  }
-
   if (shouldIncludeCategory("theme-icon", filter)) {
     jobs.push({
       scope: "per-theme",
@@ -759,7 +706,7 @@ function buildGlobalJobs(filter?: AssetCategory): AssetJob[] {
         scope: "global",
         category: "shared-icons",
         filename: icon.filename,
-        outputPath: path.join(COMMON_ROOT, icon.filename),
+        outputPath: path.join(COMMON_ROOT, "icons", icon.filename),
         prompt: buildWhiteIconPrompt(icon.description),
         aspectRatio: "1:1",
         imageSize: "1K",
@@ -1076,11 +1023,69 @@ const TARGET_DIMENSIONS: Record<string, { width: number; height: number }> = {
   "background.png": { width: 1080, height: 1920 },
   "loading-bg.png": { width: 1080, height: 1920 },
   "logo.png": { width: 500, height: 500 },
-  "deco-left.png": { width: 600, height: 800 },
-  "deco-right.png": { width: 600, height: 800 },
   "map.png": { width: 1080, height: 1920 },
   "theme-icon.png": { width: 128, height: 128 },
 };
+
+const NEEDS_TRANSPARENCY = new Set([
+  "block-1.png",
+  "block-2.png",
+  "block-3.png",
+  "block-4.png",
+  "logo.png",
+  "grid-frame.png",
+  "theme-icon.png",
+]);
+
+function needsChromakeyStrip(filePath: string): boolean {
+  const filename = path.basename(filePath);
+  if (NEEDS_TRANSPARENCY.has(filename)) {
+    return true;
+  }
+  return filename.startsWith("icon-") || filename.startsWith("particle-") || filename.startsWith("panel-");
+}
+
+async function stripChromakeyGreen(filePath: string): Promise<boolean> {
+  if (!needsChromakeyStrip(filePath)) {
+    return false;
+  }
+
+  const { execFileSync } = await import("node:child_process");
+  const script = String.raw`
+import sys
+import numpy as np
+from PIL import Image
+
+path = sys.argv[1]
+img = Image.open(path).convert('RGBA')
+arr = np.array(img, dtype=np.float32)
+r, g, b, a = arr[:,:,0], arr[:,:,1], arr[:,:,2], arr[:,:,3]
+green_mask = (g > 100) & (r < 200) & (b < 200) & (g > r * 1.3) & (g > b * 1.3)
+
+try:
+    from scipy.ndimage import binary_dilation, gaussian_filter
+
+    dilated = binary_dilation(green_mask, iterations=1)
+    edge_mask = dilated & ~green_mask
+    alpha = np.where(green_mask, 0, 255).astype(np.float32)
+    alpha = np.where(edge_mask, 128, alpha)
+    alpha = gaussian_filter(alpha, sigma=0.5)
+    arr[:,:,3] = np.clip(alpha, 0, 255).astype(np.uint8)
+    fully_transparent = arr[:,:,3] == 0
+    arr[fully_transparent, :3] = 0
+    Image.fromarray(arr.astype(np.uint8), 'RGBA').save(path)
+except Exception:
+    arr = arr.astype(np.uint8)
+    r, g, b = arr[:,:,0], arr[:,:,1], arr[:,:,2]
+    green_mask = (g > 100) & (r < 200) & (b < 200) & (g > r * 1.3) & (g > b * 1.3)
+    arr[:,:,3] = np.where(green_mask, 0, 255).astype(np.uint8)
+    arr[green_mask, :3] = 0
+    Image.fromarray(arr, 'RGBA').save(path)
+`;
+
+  execFileSync("python3", ["-c", script, filePath], { stdio: "pipe" });
+  return true;
+}
 
 function isJpeg(buf: Buffer): boolean {
   return buf.length >= 2 && buf[0] === 0xff && buf[1] === 0xd8;
@@ -1106,6 +1111,7 @@ async function postProcessTheme(themeId: string): Promise<void> {
 
   console.log(`\n🔧 Post-processing ${themeId}...`);
   let fixed = 0;
+  let stripped = 0;
   let resized = 0;
   let errors = 0;
 
@@ -1133,6 +1139,16 @@ async function postProcessTheme(themeId: string): Promise<void> {
       }
     }
 
+    try {
+      if (await stripChromakeyGreen(filePath)) {
+        stripped += 1;
+      }
+    } catch {
+      console.error(`  ❌ ${filename}: chromakey strip failed`);
+      errors += 1;
+      continue;
+    }
+
     if (target) {
       try {
         const { execSync } = await import("node:child_process");
@@ -1156,7 +1172,7 @@ async function postProcessTheme(themeId: string): Promise<void> {
     }
   }
 
-  console.log(`  Done: ${fixed} converted, ${resized} resized, ${errors} errors`);
+  console.log(`  Done: ${fixed} converted, ${stripped} chromakey stripped, ${resized} resized, ${errors} errors`);
 }
 
 async function postProcessAll(options: CliOptions): Promise<void> {
@@ -1177,17 +1193,27 @@ async function postProcessAll(options: CliOptions): Promise<void> {
         const files = fs.readdirSync(dirPath).filter((f) => f.endsWith(".png"));
         for (const filename of files) {
           const filePath = path.join(dirPath, filename);
-          const buf = fs.readFileSync(filePath);
+          let buf = fs.readFileSync(filePath);
           if (isJpeg(buf)) {
             try {
               const { execSync } = await import("node:child_process");
               execSync(
                 `python3 -c "from PIL import Image; img = Image.open('${filePath}').convert('RGBA'); img.save('${filePath}', 'PNG')"`,
               );
+              buf = fs.readFileSync(filePath);
               console.log(`  ✅ ${filename}: JPEG→PNG`);
             } catch {
               console.error(`  ❌ ${filename}: conversion failed`);
+              continue;
             }
+          }
+
+          try {
+            if (await stripChromakeyGreen(filePath)) {
+              console.log(`  ✅ ${filename}: chromakey stripped`);
+            }
+          } catch {
+            console.error(`  ❌ ${filename}: chromakey strip failed`);
           }
         }
       }

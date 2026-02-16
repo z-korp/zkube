@@ -21,13 +21,7 @@ export enum AssetId {
   HudBar = 'hud-bar',
   ActionBar = 'action-bar',
   BonusBtnBg = 'bonus-btn-bg',
-  StarFilled = 'star-filled',
-  StarEmpty = 'star-empty',
   Logo = 'logo',
-
-  // Decorative
-  DecoLeft = 'deco-left',
-  DecoRight = 'deco-right',
 
   // Map
   Map = 'map',
@@ -147,70 +141,64 @@ export const ASSET_CATALOG: Record<AssetId, AssetMeta> = {
   [AssetId.LoadingBg]: { filename: 'loading-bg.png', kind: 'texture', bundle: 'essential' },
 
   // UI Chrome
-  [AssetId.HudBar]: { filename: 'hud-bar.png', kind: 'texture', bundle: 'essential' },
-  [AssetId.ActionBar]: { filename: 'action-bar.png', kind: 'texture', bundle: 'essential' },
-  [AssetId.BonusBtnBg]: { filename: 'bonus-btn-bg.png', kind: 'texture', bundle: 'gameplay' },
-  [AssetId.StarFilled]: { filename: 'star-filled.png', kind: 'texture', bundle: 'gameplay' },
-  [AssetId.StarEmpty]: { filename: 'star-empty.png', kind: 'texture', bundle: 'gameplay' },
+  [AssetId.HudBar]: { filename: 'ui/hud-bar.png', kind: 'texture', bundle: 'essential', shared: true },
+  [AssetId.ActionBar]: { filename: 'ui/action-bar.png', kind: 'texture', bundle: 'essential', shared: true },
+  [AssetId.BonusBtnBg]: { filename: 'ui/bonus-btn-bg.png', kind: 'texture', bundle: 'gameplay', shared: true },
   [AssetId.Logo]: { filename: 'logo.png', kind: 'texture', bundle: 'essential' },
 
-  // Decorative
-  [AssetId.DecoLeft]: { filename: 'deco-left.png', kind: 'texture', bundle: 'ui' },
-  [AssetId.DecoRight]: { filename: 'deco-right.png', kind: 'texture', bundle: 'ui' },
-
   // Bonus icons
-  [AssetId.BonusCombo]: { filename: 'bonus/combo.png', kind: 'texture', bundle: 'gameplay' },
-  [AssetId.BonusScore]: { filename: 'bonus/score.png', kind: 'texture', bundle: 'gameplay' },
-  [AssetId.BonusHarvest]: { filename: 'bonus/harvest.png', kind: 'texture', bundle: 'gameplay' },
-  [AssetId.BonusWave]: { filename: 'bonus/wave.svg', kind: 'texture', bundle: 'gameplay' },
-  [AssetId.BonusSupply]: { filename: 'bonus/supply.svg', kind: 'texture', bundle: 'gameplay' },
+  [AssetId.BonusCombo]: { filename: 'bonus/combo.png', kind: 'texture', bundle: 'gameplay', shared: true },
+  [AssetId.BonusScore]: { filename: 'bonus/score.png', kind: 'texture', bundle: 'gameplay', shared: true },
+  [AssetId.BonusHarvest]: { filename: 'bonus/harvest.png', kind: 'texture', bundle: 'gameplay', shared: true },
+  [AssetId.BonusWave]: { filename: 'bonus/wave.svg', kind: 'texture', bundle: 'gameplay', shared: true },
+  [AssetId.BonusSupply]: { filename: 'bonus/supply.svg', kind: 'texture', bundle: 'gameplay', shared: true },
 
   // Map
   [AssetId.Map]: { filename: 'map.png', kind: 'texture', bundle: 'essential' },
 
   // 9-slice panels
-  [AssetId.PanelWood]: { filename: 'panels/panel-wood.png', kind: 'texture', borders: P, bundle: 'ui' },
-  [AssetId.PanelDark]: { filename: 'panels/panel-dark.png', kind: 'texture', borders: P, bundle: 'ui' },
-  [AssetId.PanelLeaf]: { filename: 'panels/panel-leaf.png', kind: 'texture', borders: P, bundle: 'ui' },
-  [AssetId.PanelGlass]: { filename: 'panels/panel-glass.png', kind: 'texture', borders: P, bundle: 'ui' },
+  [AssetId.PanelWood]: { filename: 'panels/panel-wood.png', kind: 'texture', borders: P, bundle: 'ui', shared: true },
+  [AssetId.PanelDark]: { filename: 'panels/panel-dark.png', kind: 'texture', borders: P, bundle: 'ui', shared: true },
+  [AssetId.PanelLeaf]: { filename: 'panels/panel-leaf.png', kind: 'texture', borders: P, bundle: 'ui', shared: true },
+  [AssetId.PanelGlass]: { filename: 'panels/panel-glass.png', kind: 'texture', borders: P, bundle: 'ui', shared: true },
 
   // 9-slice buttons (normal states; pressed/disabled use derived filenames)
-  [AssetId.BtnOrange]: { filename: 'buttons/btn-orange.png', kind: 'texture', borders: B, bundle: 'ui' },
-  [AssetId.BtnGreen]: { filename: 'buttons/btn-green.png', kind: 'texture', borders: B, bundle: 'ui' },
-  [AssetId.BtnPurple]: { filename: 'buttons/btn-purple.png', kind: 'texture', borders: B, bundle: 'ui' },
-  [AssetId.BtnRed]: { filename: 'buttons/btn-red.png', kind: 'texture', borders: B, bundle: 'ui' },
-  [AssetId.BtnIcon]: { filename: 'buttons/btn-icon.png', kind: 'texture', borders: IB, bundle: 'ui' },
+  [AssetId.BtnOrange]: { filename: 'buttons/btn-orange.png', kind: 'texture', borders: B, bundle: 'ui', shared: true },
+  [AssetId.BtnGreen]: { filename: 'buttons/btn-green.png', kind: 'texture', borders: B, bundle: 'ui', shared: true },
+  [AssetId.BtnPurple]: { filename: 'buttons/btn-purple.png', kind: 'texture', borders: B, bundle: 'ui', shared: true },
+  [AssetId.BtnRed]: { filename: 'buttons/btn-red.png', kind: 'texture', borders: B, bundle: 'ui', shared: true },
+  [AssetId.BtnIcon]: { filename: 'buttons/btn-icon.png', kind: 'texture', borders: IB, bundle: 'ui', shared: true },
 
   // Icons
-  [AssetId.IconStarFilled]: { filename: 'icons/icon-star-filled.png', kind: 'texture', bundle: 'ui' },
-  [AssetId.IconStarEmpty]: { filename: 'icons/icon-star-empty.png', kind: 'texture', bundle: 'ui' },
-  [AssetId.IconCube]: { filename: 'icons/icon-cube.png', kind: 'texture', bundle: 'ui' },
-  [AssetId.IconCrown]: { filename: 'icons/icon-crown.png', kind: 'texture', bundle: 'ui' },
-  [AssetId.IconFire]: { filename: 'icons/icon-fire.png', kind: 'texture', bundle: 'ui' },
-  [AssetId.IconScroll]: { filename: 'icons/icon-scroll.png', kind: 'texture', bundle: 'ui' },
-  [AssetId.IconShop]: { filename: 'icons/icon-shop.png', kind: 'texture', bundle: 'ui' },
-  [AssetId.IconTrophy]: { filename: 'icons/icon-trophy.png', kind: 'texture', bundle: 'ui' },
-  [AssetId.IconMenu]: { filename: 'icons/icon-menu.png', kind: 'texture', bundle: 'ui' },
-  [AssetId.IconClose]: { filename: 'icons/icon-close.png', kind: 'texture', bundle: 'ui' },
-  [AssetId.IconSettings]: { filename: 'icons/icon-settings.png', kind: 'texture', bundle: 'ui' },
-  [AssetId.IconLock]: { filename: 'icons/icon-lock.png', kind: 'texture', bundle: 'ui' },
-  [AssetId.IconMusic]: { filename: 'icons/icon-music.png', kind: 'texture', bundle: 'ui' },
-  [AssetId.IconSound]: { filename: 'icons/icon-sound.png', kind: 'texture', bundle: 'ui' },
+  [AssetId.IconStarFilled]: { filename: 'icons/icon-star-filled.png', kind: 'texture', bundle: 'ui', shared: true },
+  [AssetId.IconStarEmpty]: { filename: 'icons/icon-star-empty.png', kind: 'texture', bundle: 'ui', shared: true },
+  [AssetId.IconCube]: { filename: 'icons/icon-cube.png', kind: 'texture', bundle: 'ui', shared: true },
+  [AssetId.IconCrown]: { filename: 'icons/icon-crown.png', kind: 'texture', bundle: 'ui', shared: true },
+  [AssetId.IconFire]: { filename: 'icons/icon-fire.png', kind: 'texture', bundle: 'ui', shared: true },
+  [AssetId.IconScroll]: { filename: 'icons/icon-scroll.png', kind: 'texture', bundle: 'ui', shared: true },
+  [AssetId.IconShop]: { filename: 'icons/icon-shop.png', kind: 'texture', bundle: 'ui', shared: true },
+  [AssetId.IconTrophy]: { filename: 'icons/icon-trophy.png', kind: 'texture', bundle: 'ui', shared: true },
+  [AssetId.IconMenu]: { filename: 'icons/icon-menu.png', kind: 'texture', bundle: 'ui', shared: true },
+  [AssetId.IconClose]: { filename: 'icons/icon-close.png', kind: 'texture', bundle: 'ui', shared: true },
+  [AssetId.IconSettings]: { filename: 'icons/icon-settings.png', kind: 'texture', bundle: 'ui', shared: true },
+  [AssetId.IconLock]: { filename: 'icons/icon-lock.png', kind: 'texture', bundle: 'ui', shared: true },
+  [AssetId.IconMusic]: { filename: 'icons/icon-music.png', kind: 'texture', bundle: 'ui', shared: true },
+  [AssetId.IconSound]: { filename: 'icons/icon-sound.png', kind: 'texture', bundle: 'ui', shared: true },
 
   // Particles
-  [AssetId.ParticleSpark]: { filename: 'particles/particle-spark.png', kind: 'texture', bundle: 'effects' },
-  [AssetId.ParticleLeaf]: { filename: 'particles/particle-leaf.png', kind: 'texture', bundle: 'effects' },
-  [AssetId.ParticleFlower]: { filename: 'particles/particle-flower.png', kind: 'texture', bundle: 'effects' },
-  [AssetId.ParticleStar]: { filename: 'particles/particle-star.png', kind: 'texture', bundle: 'effects' },
+  [AssetId.ParticleSpark]: { filename: 'particles/particle-spark.png', kind: 'texture', bundle: 'effects', shared: true },
+  [AssetId.ParticleLeaf]: { filename: 'particles/particle-leaf.png', kind: 'texture', bundle: 'effects', shared: true },
+  [AssetId.ParticleFlower]: { filename: 'particles/particle-flower.png', kind: 'texture', bundle: 'effects', shared: true },
+  [AssetId.ParticleStar]: { filename: 'particles/particle-star.png', kind: 'texture', bundle: 'effects', shared: true },
 
   // Sounds — effects
-  [AssetId.SfxBreak]: { filename: 'sounds/effects/break.mp3', kind: 'sound', bundle: 'audio' },
-  [AssetId.SfxExplode]: { filename: 'sounds/effects/explode.mp3', kind: 'sound', bundle: 'audio' },
-  [AssetId.SfxMove]: { filename: 'sounds/effects/move.mp3', kind: 'sound', bundle: 'audio' },
-  [AssetId.SfxNew]: { filename: 'sounds/effects/new.mp3', kind: 'sound', bundle: 'audio' },
-  [AssetId.SfxStart]: { filename: 'sounds/effects/start.mp3', kind: 'sound', bundle: 'audio' },
-  [AssetId.SfxSwipe]: { filename: 'sounds/effects/swipe.mp3', kind: 'sound', bundle: 'audio' },
-  [AssetId.SfxOver]: { filename: 'sounds/effects/over.mp3', kind: 'sound', bundle: 'audio' },
+  [AssetId.SfxBreak]: { filename: 'sounds/effects/break.mp3', kind: 'sound', bundle: 'audio', shared: true },
+  [AssetId.SfxExplode]: { filename: 'sounds/effects/explode.mp3', kind: 'sound', bundle: 'audio', shared: true },
+  [AssetId.SfxMove]: { filename: 'sounds/effects/move.mp3', kind: 'sound', bundle: 'audio', shared: true },
+  [AssetId.SfxNew]: { filename: 'sounds/effects/new.mp3', kind: 'sound', bundle: 'audio', shared: true },
+  [AssetId.SfxStart]: { filename: 'sounds/effects/start.mp3', kind: 'sound', bundle: 'audio', shared: true },
+  [AssetId.SfxSwipe]: { filename: 'sounds/effects/swipe.mp3', kind: 'sound', bundle: 'audio', shared: true },
+  [AssetId.SfxOver]: { filename: 'sounds/effects/over.mp3', kind: 'sound', bundle: 'audio', shared: true },
 
   // Sounds — music
   [AssetId.MusicMain]: { filename: 'sounds/musics/main.mp3', kind: 'sound', bundle: 'audio' },
@@ -224,11 +212,11 @@ export const ASSET_CATALOG: Record<AssetId, AssetMeta> = {
 // ============================================================================
 
 export const SHARED_ICON_PATHS = {
-  moves: '/assets/common/icon-moves.png',
-  score: '/assets/common/icon-score.png',
-  cube: '/assets/common/icon-cube.png',
-  level: '/assets/common/icon-level.png',
-  surrender: '/assets/common/icon-surrender.png',
+  moves: '/assets/common/icons/icon-moves.png',
+  score: '/assets/common/icons/icon-score.png',
+  cube: '/assets/common/icons/icon-cube.png',
+  level: '/assets/common/icons/icon-level.png',
+  surrender: '/assets/common/icons/icon-surrender.png',
 } as const;
 
 // ============================================================================

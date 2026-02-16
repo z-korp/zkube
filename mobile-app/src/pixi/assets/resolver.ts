@@ -19,6 +19,10 @@ export function resolveAsset(themeId: ThemeId, assetId: AssetId): string[] | nul
   const meta = ASSET_CATALOG[assetId];
   if (!meta) return null;
 
+  if (meta.shared) {
+    return [`/assets/common/${meta.filename}`];
+  }
+
   const procedural = isProceduralTheme(themeId);
 
   // Procedural themes have no texture files of their own — fall back to theme-1
@@ -46,15 +50,25 @@ export function resolveButtonStateUrls(
   themeId: ThemeId,
   baseFilename: string,
 ): { normal: string[]; pressed: string[]; disabled: string[] } | null {
-  const procedural = isProceduralTheme(themeId);
-  if (procedural) return null;
-
   const ext = baseFilename.slice(baseFilename.lastIndexOf('.'));
   const base = baseFilename.slice(0, baseFilename.lastIndexOf('.'));
 
   const normalFile = baseFilename;
   const pressedFile = `${base}-pressed${ext}`;
   const disabledFile = `${base}-disabled${ext}`;
+
+  const baseAsset = Object.entries(ASSET_CATALOG).find(([, meta]) => meta.filename === baseFilename);
+  if (baseAsset && baseAsset[1].shared) {
+    const build = (filename: string): string[] => [`/assets/common/${filename}`];
+    return {
+      normal: build(normalFile),
+      pressed: build(pressedFile),
+      disabled: build(disabledFile),
+    };
+  }
+
+  const procedural = isProceduralTheme(themeId);
+  if (procedural) return null;
 
   const build = (filename: string): string[] => {
     const urls: string[] = [themeUrl(themeId, filename)];
@@ -81,10 +95,9 @@ export function resolveSoundUrl(themeId: ThemeId, assetId: AssetId): string | nu
   const meta = ASSET_CATALOG[assetId];
   if (!meta || meta.kind !== 'sound') return null;
 
-  // SFX: common across all themes — always use fallback (theme-1)
   const isSfx = (assetId as string).startsWith('sfx-');
   if (isSfx) {
-    return themeUrl(FALLBACK_THEME, meta.filename);
+    return `/assets/common/${meta.filename}`;
   }
 
   // Music: each theme has unique tracks — always use the actual theme
