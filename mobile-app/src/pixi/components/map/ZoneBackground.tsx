@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { Graphics as PixiGraphics, TextStyle } from 'pixi.js';
-import { getThemeColors, isProceduralTheme, THEME_META, type ThemeId, FONT_TITLE, FONT_BODY, hexToRgb } from '../../utils/colors';
+import { getThemeColors, isProceduralTheme, THEME_META, type ThemeId, FONT_TITLE, hexToRgb } from '../../utils/colors';
 import { AssetId } from '../../assets/catalog';
 import { resolveAsset } from '../../assets/resolver';
 import { useTextureWithFallback } from '../../hooks/useTexture';
@@ -39,9 +39,6 @@ export const ZoneBackground = ({ zone, themeId, x, y, width, height }: ZoneBackg
         g.rect(0, i * stepH, width, stepH);
         g.fill({ color: (r << 16) | (gC << 8) | b, alpha: 0.85 });
       }
-
-      g.rect(0, 0, width, 2);
-      g.fill({ color: colors.accent, alpha: 0.5 });
     },
     [width, height, colors],
   );
@@ -55,16 +52,6 @@ export const ZoneBackground = ({ zone, themeId, x, y, width, height }: ZoneBackg
         letterSpacing: 2,
       }),
     [colors.accent],
-  );
-
-  const subtitleStyle = useMemo(
-    () =>
-      new TextStyle({
-        fontFamily: FONT_BODY,
-        fontSize: 10,
-        fill: 0xffffff,
-      }),
-    [],
   );
 
   return (
@@ -82,20 +69,12 @@ export const ZoneBackground = ({ zone, themeId, x, y, width, height }: ZoneBackg
         <pixiGraphics draw={drawGradient} eventMode="none" />
       )}
       <pixiText
-         text={`${meta.icon} ZONE ${zone} - ${meta.name.toUpperCase()}`}
-         x={width / 2}
-         y={14}
-         anchor={{ x: 0.5, y: 0 }}
-         style={titleStyle}
-         eventMode="none"
-       />
-      <pixiText
-        text={meta.description}
+        text={`${meta.icon} ZONE ${zone} - ${meta.name.toUpperCase()}`}
         x={width / 2}
-        y={32}
+        y={14}
         anchor={{ x: 0.5, y: 0 }}
-        style={subtitleStyle}
-        alpha={0.5}
+        style={titleStyle}
+        alpha={0.3}
         eventMode="none"
       />
     </pixiContainer>

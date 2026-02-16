@@ -508,19 +508,33 @@ Centered in frame. Square format. No text.
 
 function buildMapPrompt(theme: ThemeDefinition): string {
   return withStyleAnchor(`
-Generate a vertical scrolling progression map background for a mobile puzzle game zone.
+Generate a full-screen progression map for a mobile puzzle game zone.
 Theme: ${theme.name} — ${theme.description}
-Scene: A winding path through a themed landscape with 11 locations visible:
-- 9 regular stops (small clearings/platforms along the path)
-- 1 shop/marketplace (with a small market stall or treasure chest)
-- 1 boss arena at the top (larger, more dramatic platform with imposing architecture)
-The path winds from bottom to top in a serpentine S-curve pattern.
-Composition: Tall portrait (9:16). Path starts at bottom, ends at dramatic boss area at top.
-Background: ${theme.scene} — atmospheric, with the path cutting through the themed landscape.
+The map shows a winding S-curve path with 11 small stone/themed platforms where game nodes will be placed.
+The path starts at the BOTTOM of the image and winds up to a dramatic boss arena at the TOP.
+
+PLATFORM POSITIONS (approximate, as percentage from left and from top):
+1. Bottom-left area (35% from left, 90% from top) — small circular stone platform
+2. Right side (65% left, 82% top) — small platform
+3. Left side (35% left, 74% top) — small platform
+4. Right side (60% left, 66% top) — small platform
+5. Left side (30% left, 58% top) — small platform
+6. Right side (60% left, 50% top) — small platform
+7. Left side (35% left, 42% top) — small platform
+8. Right side (60% left, 34% top) — small platform
+9. Left side (30% left, 26% top) — small platform
+10. Right side (60% left, 16% top) — slightly larger platform with a market stall or treasure chest (this is the SHOP)
+11. Center top (50% left, 6% top) — LARGE dramatic boss arena with imposing ${theme.name}-themed architecture
+
+A clear winding trail/path connects all 11 platforms in order from bottom to top.
+The platforms should be small circular clearings (except shop = medium, boss = large).
+
+Composition: Portrait (9:16). All 11 platforms must fit within the image — no cropping.
+Background: ${theme.scene} — lush, atmospheric, fills the entire image.
 Mood: ${theme.mood}. Adventurous, inviting exploration.
-Color palette: Dark atmospheric tones with the path slightly lighter. Accent: ${theme.palette.accent}.
-The stop locations should be subtle clearings/platforms — NOT labeled or numbered.
-No text, no UI elements, no people.
+Color palette: Rich atmospheric tones. Path slightly lighter than surroundings. Accent: ${theme.palette.accent}.
+The platforms should be visible but subtle — small stone/themed circles where UI buttons will be overlaid.
+No text, no numbers, no labels, no UI elements, no people.
 `);
 }
 
@@ -1018,7 +1032,6 @@ async function generateImage(ai: GoogleGenAI, job: AssetJob, includeRefs: boolea
           imageConfig: {
             aspectRatio: job.aspectRatio,
             imageSize: job.imageSize,
-            outputMimeType: "image/png",
           },
         },
       });

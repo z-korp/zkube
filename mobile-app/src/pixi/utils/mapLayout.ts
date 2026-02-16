@@ -95,3 +95,17 @@ export function getBossNodeForZone(zone: number): number {
 export function getCurrentNodeIndex(contractLevel: number): number {
   return contractLevelToNodeIndex(contractLevel);
 }
+
+export const MAP_NODE_POSITIONS: ReadonlyArray<{ x: number; y: number }> = [
+  { x: 0.35, y: 0.92 },
+  { x: 0.65, y: 0.84 },
+  { x: 0.35, y: 0.76 },
+  { x: 0.60, y: 0.68 },
+  { x: 0.30, y: 0.60 },
+  { x: 0.60, y: 0.52 },
+  { x: 0.35, y: 0.44 },
+  { x: 0.60, y: 0.36 },
+  { x: 0.30, y: 0.28 },
+  { x: 0.60, y: 0.18 },
+  { x: 0.50, y: 0.07 },
+];

@@ -1,13 +1,13 @@
-import { useCallback, useMemo, useState } from 'react';
-import { Graphics as PixiGraphics } from 'pixi.js';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { Container, Graphics as PixiGraphics } from 'pixi.js';
+import { useTick } from '@pixi/react';
 import { type MapNodeData, useMapData } from '../../hooks/useMapData';
 import { MapNode } from './MapNode';
 import { MapPath } from './MapPath';
 import { ZoneBackground } from './ZoneBackground';
 import { LevelPreview } from './LevelPreview';
-import { PixiScrollContainer } from '../../ui/PixiScrollContainer';
-import { NODES_PER_ZONE, TOTAL_ZONES, TOTAL_NODES } from '../../utils/mapLayout';
-import { FONT_TITLE } from '../../utils/colors';
+import { NODES_PER_ZONE, TOTAL_ZONES, MAP_NODE_POSITIONS } from '../../utils/mapLayout';
+import { isProceduralTheme, FONT_TITLE } from '../../utils/colors';
 
 export interface MapPageProps {
   seed: bigint;
@@ -22,34 +22,18 @@ export interface MapPageProps {
   levelStarsFn?: (level: number) => number;
 }
 
-const NODE_VERTICAL_SPACING = 70;
-const ZONE_HEADER_HEIGHT = 55;
-const ZONE_BOTTOM_PAD = 20;
-const MAP_TOP_PAD = 10;
-
-function getZoneHeight(): number {
-  return ZONE_HEADER_HEIGHT + NODES_PER_ZONE * NODE_VERTICAL_SPACING + ZONE_BOTTOM_PAD;
-}
-
-function getTotalContentHeight(): number {
-  return MAP_TOP_PAD + TOTAL_ZONES * getZoneHeight() + 40;
-}
+const SWIPE_THRESHOLD = 50;
 
 function getNodePosition(
-  nodeIndex: number,
+  nodeInZone: number,
   screenWidth: number,
+  zoneHeight: number,
 ): { x: number; y: number } {
-  const zone = Math.floor(nodeIndex / NODES_PER_ZONE);
-  const nodeInZone = nodeIndex % NODES_PER_ZONE;
-  const zoneY = MAP_TOP_PAD + zone * getZoneHeight();
-
-  const y = zoneY + ZONE_HEADER_HEIGHT + nodeInZone * NODE_VERTICAL_SPACING + NODE_VERTICAL_SPACING / 2;
-
-  const centerX = screenWidth / 2;
-  const amplitude = screenWidth * 0.22;
-  const x = centerX + Math.sin((nodeInZone * Math.PI) / 4) * amplitude;
-
-  return { x, y };
+  const pos = MAP_NODE_POSITIONS[nodeInZone];
+  return {
+    x: pos.x * screenWidth,
+    y: pos.y * zoneHeight,
+  };
 }
 
 const MAP_TITLE_STYLE = {
@@ -71,22 +55,47 @@ export const MapPage = ({
 }: MapPageProps) => {
   const mapData = useMapData(seed, currentLevel, undefined, levelStarsFn);
   const [selectedNode, setSelectedNode] = useState<MapNodeData | null>(null);
+  const [targetZone, setTargetZone] = useState(mapData.currentZone - 1);
 
   const headerH = standalone ? 0 : topBarHeight;
-  const contentHeight = getTotalContentHeight();
-  const scrollAreaHeight = screenHeight - headerH;
+  const zoneHeight = screenHeight - headerH;
 
-  const currentNodeY = useMemo(() => {
-    const pos = getNodePosition(mapData.currentNodeIndex, screenWidth);
-    return pos.y;
-  }, [mapData.currentNodeIndex, screenWidth]);
+  const slideRef = useRef(targetZone * screenWidth);
+  const containerRef = useRef<Container>(null);
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
 
-  const initialScrollY = useMemo(() => {
-    return Math.max(0, currentNodeY - scrollAreaHeight / 2);
-  }, [currentNodeY, scrollAreaHeight]);
+  useTick(() => {
+    const target = targetZone * screenWidth;
+    const diff = target - slideRef.current;
+    if (Math.abs(diff) < 0.5) {
+      slideRef.current = target;
+    } else {
+      slideRef.current += diff * 0.15;
+    }
+    if (containerRef.current) {
+      containerRef.current.x = -slideRef.current;
+    }
+  });
+
+  const handlePointerDown = useCallback((e: { globalX: number; globalY: number }) => {
+    pointerStartRef.current = { x: e.globalX, y: e.globalY };
+  }, []);
+
+  const handlePointerUp = useCallback((e: { globalX: number; globalY: number }) => {
+    if (!pointerStartRef.current) return;
+    const deltaX = e.globalX - pointerStartRef.current.x;
+    pointerStartRef.current = null;
+
+    if (Math.abs(deltaX) < SWIPE_THRESHOLD) return;
+
+    setTargetZone((prev) => {
+      const maxZone = Math.min(TOTAL_ZONES - 1, mapData.currentZone - 1);
+      if (deltaX < 0) return Math.min(prev + 1, maxZone);
+      return Math.max(prev - 1, 0);
+    });
+  }, [mapData.currentZone]);
 
   const handleNodeTap = useCallback((node: MapNodeData) => {
-    // Allow tapping cleared/current nodes in game-over mode for review
     if (isGameOver || node.state === 'current' || node.state === 'available' || node.state === 'cleared') {
       setSelectedNode(node);
     }
@@ -103,15 +112,6 @@ export const MapPage = ({
     setSelectedNode(null);
   }, []);
 
-  const nodePositions = useMemo(() => {
-    return mapData.nodes.map((_, i) => getNodePosition(i, screenWidth));
-  }, [mapData.nodes, screenWidth]);
-
-  const entryDelays = useMemo(() => {
-    const currentIdx = mapData.currentNodeIndex;
-    return mapData.nodes.map((_, i) => Math.abs(i - currentIdx) * 30);
-  }, [mapData.nodes, mapData.currentNodeIndex]);
-
   const drawTitleBar = useCallback((g: PixiGraphics) => {
     g.clear();
     g.rect(0, 0, screenWidth, topBarHeight);
@@ -120,11 +120,44 @@ export const MapPage = ({
     g.fill({ color: 0x1e293b, alpha: 0.5 });
   }, [screenWidth, topBarHeight]);
 
+  const drawSwipeMask = useCallback((g: PixiGraphics) => {
+    g.clear();
+    g.rect(0, 0, screenWidth, zoneHeight);
+    g.fill({ color: 0xffffff });
+  }, [screenWidth, zoneHeight]);
+
+  const drawDots = useCallback((g: PixiGraphics) => {
+    g.clear();
+    const maxReachable = Math.min(TOTAL_ZONES - 1, mapData.currentZone - 1);
+    for (let i = 0; i < TOTAL_ZONES; i++) {
+      g.circle((i - 2) * 16, 0, 4);
+      const isActive = i === targetZone;
+      const isReachable = i <= maxReachable;
+      g.fill({ color: 0xffffff, alpha: isActive ? 1 : isReachable ? 0.4 : 0.15 });
+    }
+  }, [targetZone, mapData.currentZone]);
+
+  const zones = useMemo(() => {
+    return Array.from({ length: TOTAL_ZONES }, (_, zoneIdx) => {
+      const zoneNum = zoneIdx + 1;
+      const theme = mapData.zoneThemes[zoneIdx];
+      const startIdx = zoneIdx * NODES_PER_ZONE;
+      const zoneNodes = mapData.nodes.slice(startIdx, startIdx + NODES_PER_ZONE);
+      const procedural = isProceduralTheme(theme);
+
+      const nodePositions = zoneNodes.map((_, i) =>
+        getNodePosition(i, screenWidth, zoneHeight),
+      );
+
+      return { zoneNum, theme, zoneNodes, procedural, nodePositions };
+    });
+  }, [mapData.nodes, mapData.zoneThemes, screenWidth, zoneHeight]);
+
   return (
     <pixiContainer>
       {!standalone && (
         <pixiContainer>
-          <pixiGraphics draw={drawTitleBar} eventMode="static" onPointerDown={(e: any) => e.stopPropagation()} />
+          <pixiGraphics draw={drawTitleBar} eventMode="static" onPointerDown={(e: { stopPropagation: () => void }) => e.stopPropagation()} />
           {onBack && (
             <pixiText
               text="←"
@@ -137,70 +170,74 @@ export const MapPage = ({
               onPointerUp={onBack}
             />
           )}
-           <pixiText text="WORLD MAP" x={screenWidth / 2} y={topBarHeight / 2} anchor={0.5} style={MAP_TITLE_STYLE} eventMode="none" />
+          <pixiText text="WORLD MAP" x={screenWidth / 2} y={topBarHeight / 2} anchor={0.5} style={MAP_TITLE_STYLE} eventMode="none" />
         </pixiContainer>
       )}
 
-      <PixiScrollContainer
-        x={0}
-        y={headerH}
-        width={screenWidth}
-        height={scrollAreaHeight}
-        contentHeight={contentHeight}
-        initialScrollY={initialScrollY}
-        scrollSpeed={1.2}
-        showScrollbar={true}
-        scrollbarColor={0x94a3b8}
-      >
-        {Array.from({ length: TOTAL_ZONES }, (_, zoneIdx) => {
-          const zoneNum = zoneIdx + 1;
-          const zoneY = MAP_TOP_PAD + zoneIdx * getZoneHeight();
-          const theme = mapData.zoneThemes[zoneIdx];
+      <pixiContainer y={headerH}>
+        <pixiGraphics draw={drawSwipeMask} ref={(ref: PixiGraphics | null) => {
+          if (ref?.parent) ref.parent.mask = ref;
+        }} />
 
-          return (
-            <ZoneBackground
-              key={`zone-${zoneNum}`}
-              zone={zoneNum}
-              themeId={theme}
-              x={0}
-              y={zoneY}
-              width={screenWidth}
-              height={getZoneHeight()}
-            />
-          );
-        })}
+        <pixiContainer
+          ref={containerRef}
+          eventMode="static"
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerUpOutside={handlePointerUp}
+        >
+          {zones.map(({ zoneNum, theme, zoneNodes, procedural, nodePositions }, zoneIdx) => (
+            <pixiContainer key={zoneIdx} x={zoneIdx * screenWidth}>
+              <ZoneBackground
+                zone={zoneNum}
+                themeId={theme}
+                x={0}
+                y={0}
+                width={screenWidth}
+                height={zoneHeight}
+              />
 
-        {mapData.nodes.map((node, i) => {
-          if (i >= TOTAL_NODES - 1) return null;
-          const from = nodePositions[i];
-          const to = nodePositions[i + 1];
-          return (
-            <MapPath
-              key={`path-${i}`}
-              fromX={from.x}
-              fromY={from.y}
-              toX={to.x}
-              toY={to.y}
-              fromState={node.state}
-              toState={mapData.nodes[i + 1].state}
-            />
-          );
-        })}
+              {procedural && zoneNodes.map((node, i) => {
+                if (i >= zoneNodes.length - 1) return null;
+                const from = nodePositions[i];
+                const to = nodePositions[i + 1];
+                return (
+                  <MapPath
+                    key={`path-${zoneIdx}-${i}`}
+                    fromX={from.x}
+                    fromY={from.y}
+                    toX={to.x}
+                    toY={to.y}
+                    fromState={node.state}
+                    toState={zoneNodes[i + 1].state}
+                  />
+                );
+              })}
 
-        {mapData.nodes.map((node, i) => {
-          const pos = nodePositions[i];
-          return (
-            <MapNode
-              key={`node-${i}`}
-              node={node}
-              x={pos.x}
-              y={pos.y}
-              onTap={handleNodeTap}
-              entryDelay={entryDelays[i]}
-            />
-          );
-        })}
-      </PixiScrollContainer>
+              {zoneNodes.map((node, i) => {
+                const pos = nodePositions[i];
+                return (
+                  <MapNode
+                    key={`node-${zoneIdx}-${i}`}
+                    node={node}
+                    x={pos.x}
+                    y={pos.y}
+                    onTap={handleNodeTap}
+                    entryDelay={i * 30}
+                  />
+                );
+              })}
+            </pixiContainer>
+          ))}
+        </pixiContainer>
+      </pixiContainer>
+
+      <pixiGraphics
+        draw={drawDots}
+        x={screenWidth / 2}
+        y={screenHeight - 20}
+        eventMode="none"
+      />
 
       {selectedNode && (
         <LevelPreview
