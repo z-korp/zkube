@@ -23,7 +23,8 @@ type PerThemeAsset =
   | "map";
 type GlobalAsset = "buttons" | "shared-icons" | "catalog-icons" | "panels" | "particles";
 type AssetCategory = PerThemeAsset | GlobalAsset;
-type AspectRatio = "1:1" | "16:9" | "4:5" | "3:4" | "9:16";
+// Nano Banana Pro (Gemini 3 Pro Image) supported aspect ratios
+type AspectRatio = "1:1" | "2:3" | "3:2" | "3:4" | "4:3" | "4:5" | "5:4" | "9:16" | "16:9" | "21:9";
 type ImageSize = "1K" | "2K";
 type LimitRunner = <T>(fn: () => Promise<T>) => Promise<T>;
 type PLimitFactory = (concurrency: number) => LimitRunner;
@@ -64,6 +65,7 @@ interface CliOptions {
   asset?: AssetCategory;
   dryRun: boolean;
   includeRefs: boolean;
+  postProcess: boolean;
 }
 
 const THEMES: Record<string, ThemeDefinition> = {
@@ -416,7 +418,7 @@ function buildBackgroundPrompt(theme: ThemeDefinition): string {
 Generate a full-screen background illustration for a mobile puzzle game.
 Theme: ${theme.name} — ${theme.description}
 Scene: ${theme.scene}
-Composition: Landscape orientation. Layered parallax depth — dark foreground silhouettes framing left and right edges, midground scene elements, atmospheric background fading into sky. Large decorative focal element on one side, bright atmospheric light source on the other.
+Composition: PORTRAIT orientation (9:16 tall mobile screen). Layered parallax depth — dark foreground silhouettes framing left and right edges at the bottom, scene elements in the midground, atmospheric sky/ceiling fading upward. Vertical depth: bottom third is darker foreground, middle third is the main scene, top third is sky/atmosphere.
 Mood: ${theme.mood}. Rich, immersive, inviting.
 Color palette: Deep dark tones for foreground (${theme.palette.bg}), mid-tones for scene (${theme.palette.accent}), with star/light accents.
 NO text, NO UI elements, NO people, NO recognizable characters.
@@ -428,7 +430,7 @@ function buildLoadingBackgroundPrompt(theme: ThemeDefinition): string {
 Generate a full-screen background illustration for a mobile puzzle game.
 Theme: ${theme.name} — ${theme.description}
 Scene: ${theme.scene}
-Composition: Landscape orientation. Layered parallax depth — dark foreground silhouettes framing left and right edges, midground scene elements, atmospheric background fading into sky. Large decorative focal element on one side, bright atmospheric light source on the other.
+Composition: PORTRAIT orientation (9:16 tall mobile screen). Layered parallax depth — dark foreground silhouettes framing left and right edges at the bottom, scene elements in the midground, atmospheric sky/ceiling fading upward. Vertical depth: bottom third is darker foreground, middle third is the main scene, top third is sky/atmosphere.
 Mood: ${theme.mood}. Rich, immersive, inviting.
 Color palette: Deep dark tones for foreground (${theme.palette.bg}), mid-tones for scene (${theme.palette.accent}), with star/light accents.
 Same scene but with a slightly darker, more atmospheric treatment — this is seen briefly during loading.
@@ -617,7 +619,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       filename: "background.png",
       outputPath: path.join(themeRoot, "background.png"),
       prompt: buildBackgroundPrompt(theme),
-      aspectRatio: "16:9",
+      aspectRatio: "9:16",
       imageSize: "2K",
       refKeys: ["background"],
     });
@@ -631,7 +633,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       filename: "loading-bg.png",
       outputPath: path.join(themeRoot, "loading-bg.png"),
       prompt: buildLoadingBackgroundPrompt(theme),
-      aspectRatio: "16:9",
+      aspectRatio: "9:16",
       imageSize: "2K",
       refKeys: ["background"],
     });
@@ -832,6 +834,7 @@ function printHelp(): void {
   console.log("  --dry-run                Print plan only; do not call Gemini API");
   console.log("  --ref                    Include theme-1 reference images (default)");
   console.log("  --no-ref                 Disable reference images");
+  console.log("  --post-process           Convert JPEG→PNG + resize to target dimensions (no API calls)");
   console.log("  --help                   Show this help");
   console.log("");
   console.log(`Per-theme categories: ${PER_THEME_ASSETS.join(", ")}`);
@@ -843,6 +846,7 @@ function parseArgs(argv: string[]): CliOptions {
     scope: "per-theme",
     dryRun: false,
     includeRefs: true,
+    postProcess: false,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -891,6 +895,11 @@ function parseArgs(argv: string[]): CliOptions {
 
     if (arg === "--no-ref") {
       options.includeRefs = false;
+      continue;
+    }
+
+    if (arg === "--post-process") {
+      options.postProcess = true;
       continue;
     }
 
@@ -1057,14 +1066,144 @@ async function generateImage(ai: GoogleGenAI, job: AssetJob, includeRefs: boolea
   throw new Error("Failed to generate image after retries.");
 }
 
+const TARGET_DIMENSIONS: Record<string, { width: number; height: number }> = {
+  "block-1.png": { width: 544, height: 544 },
+  "block-2.png": { width: 1088, height: 544 },
+  "block-3.png": { width: 1632, height: 544 },
+  "block-4.png": { width: 2176, height: 544 },
+  "grid-bg.png": { width: 320, height: 400 },
+  "grid-frame.png": { width: 380, height: 460 },
+  "background.png": { width: 1080, height: 1920 },
+  "loading-bg.png": { width: 1080, height: 1920 },
+  "logo.png": { width: 500, height: 500 },
+  "deco-left.png": { width: 600, height: 800 },
+  "deco-right.png": { width: 600, height: 800 },
+  "map.png": { width: 1080, height: 1920 },
+  "theme-icon.png": { width: 128, height: 128 },
+};
+
+function isJpeg(buf: Buffer): boolean {
+  return buf.length >= 2 && buf[0] === 0xff && buf[1] === 0xd8;
+}
+
 function savePng(outputPath: string, imageBase64: string): void {
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-  fs.writeFileSync(outputPath, Buffer.from(imageBase64, "base64"));
+  const buf = Buffer.from(imageBase64, "base64");
+
+  if (isJpeg(buf)) {
+    console.warn(`   ⚠️  Gemini returned JPEG — saving raw (run post-process to convert)`);
+  }
+
+  fs.writeFileSync(outputPath, buf);
+}
+
+async function postProcessTheme(themeId: string): Promise<void> {
+  const themeRoot = path.join(ASSETS_ROOT, themeId);
+  if (!fs.existsSync(themeRoot)) {
+    console.log(`No assets found at ${relativePath(themeRoot)}`);
+    return;
+  }
+
+  console.log(`\n🔧 Post-processing ${themeId}...`);
+  let fixed = 0;
+  let resized = 0;
+  let errors = 0;
+
+  const files = fs.readdirSync(themeRoot).filter((f) => f.endsWith(".png"));
+
+  for (const filename of files) {
+    const filePath = path.join(themeRoot, filename);
+    let buf = fs.readFileSync(filePath);
+    const target = TARGET_DIMENSIONS[filename];
+
+    if (isJpeg(buf)) {
+      console.log(`  🔄 ${filename}: JPEG→PNG conversion needed`);
+      try {
+        const { execSync } = await import("node:child_process");
+        execSync(
+          `python3 -c "from PIL import Image; img = Image.open('${filePath}').convert('RGBA'); img.save('${filePath}', 'PNG')"`,
+        );
+        buf = fs.readFileSync(filePath);
+        fixed += 1;
+        console.log(`  ✅ ${filename}: converted to PNG`);
+      } catch {
+        console.error(`  ❌ ${filename}: conversion failed (install Pillow: pip install Pillow)`);
+        errors += 1;
+        continue;
+      }
+    }
+
+    if (target) {
+      try {
+        const { execSync } = await import("node:child_process");
+        const sizeOutput = execSync(
+          `python3 -c "from PIL import Image; img = Image.open('${filePath}'); print(f'{img.size[0]}x{img.size[1]}')"`,
+        )
+          .toString()
+          .trim();
+        const [curW, curH] = sizeOutput.split("x").map(Number);
+        if (curW !== target.width || curH !== target.height) {
+          execSync(
+            `python3 -c "from PIL import Image; img = Image.open('${filePath}'); img = img.resize((${target.width}, ${target.height}), Image.LANCZOS); img.save('${filePath}')"`,
+          );
+          resized += 1;
+          console.log(`  📐 ${filename}: ${curW}x${curH} → ${target.width}x${target.height}`);
+        }
+      } catch {
+        console.error(`  ❌ ${filename}: resize failed`);
+        errors += 1;
+      }
+    }
+  }
+
+  console.log(`  Done: ${fixed} converted, ${resized} resized, ${errors} errors`);
+}
+
+async function postProcessAll(options: CliOptions): Promise<void> {
+  if (options.theme) {
+    await postProcessTheme(options.theme);
+  } else if (options.scope === "per-theme" || options.scope === "all") {
+    for (const themeId of Object.keys(THEMES)) {
+      await postProcessTheme(themeId);
+    }
+  }
+
+  if (options.scope === "global" || options.scope === "all") {
+    const commonDirs = ["buttons", "icons", "panels", "particles"];
+    for (const dir of commonDirs) {
+      const dirPath = path.join(COMMON_ROOT, dir);
+      if (fs.existsSync(dirPath)) {
+        console.log(`\n🔧 Post-processing common/${dir}...`);
+        const files = fs.readdirSync(dirPath).filter((f) => f.endsWith(".png"));
+        for (const filename of files) {
+          const filePath = path.join(dirPath, filename);
+          const buf = fs.readFileSync(filePath);
+          if (isJpeg(buf)) {
+            try {
+              const { execSync } = await import("node:child_process");
+              execSync(
+                `python3 -c "from PIL import Image; img = Image.open('${filePath}').convert('RGBA'); img.save('${filePath}', 'PNG')"`,
+              );
+              console.log(`  ✅ ${filename}: JPEG→PNG`);
+            } catch {
+              console.error(`  ❌ ${filename}: conversion failed`);
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
   const { jobs, selectedThemeIds } = buildJobList(options);
+
+  if (options.postProcess) {
+    console.log("🔧 zKube Asset Post-Processor");
+    await postProcessAll(options);
+    return;
+  }
 
   console.log("🎨 zKube Asset Generator");
   console.log(`Model: ${MODEL}`);
