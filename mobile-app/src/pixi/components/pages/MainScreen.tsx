@@ -24,7 +24,6 @@ import { PageTopBar } from './PageTopBar';
 import { PixiToastLayer } from '../ui/PixiToastLayer';
 import { useGame } from '@/hooks/useGame';
 import { useMusicPlayer } from '@/contexts/hooks';
-import type { MusicContext } from '@/contexts/music';
 import { getZone } from '@/pixi/utils/mapLayout';
 import { getZoneTheme } from '@/pixi/utils/zoneThemes';
 import type { PlayerMetaData } from '@/hooks/usePlayerMeta';
@@ -35,6 +34,7 @@ import type { ThemeId } from '../../utils/colors';
 import { resolveAsset } from '../../assets/resolver';
 import { AssetId } from '../../assets/catalog';
 import { useTextureWithFallback } from '../../hooks/useTexture';
+import { PixiButton } from '../../ui/PixiButton';
 
 const MAIN_FOOTER_STYLE = {
   fontFamily: FONT_BODY, fontSize: 10, fill: 0xFFFFFF,
@@ -172,90 +172,7 @@ const Logo = ({ x, y, maxW, maxH }: { x: number; y: number; maxW: number; maxH: 
   );
 };
 
-// ============================================================================
-// STYLED BUTTON (for main menu buttons)
-// ============================================================================
 
-const LandingButton = ({
-  x, y, width, height, label, color, onPress, fontSize = 20,
-}: {
-  x: number; y: number; width: number; height: number;
-  label: string; color: number; onPress: () => void; fontSize?: number;
-}) => {
-  const [pressed, setPressed] = useState(false);
-  const [hovered, setHovered] = useState(false);
-  const scale = pressed ? 0.95 : hovered ? 1.02 : 1;
-  const btnTextStyle = useMemo(() => ({
-    fontFamily: FONT_TITLE, fontSize, fill: 0xFFFFFF, letterSpacing: 1,
-    dropShadow: { alpha: 0.6, angle: Math.PI / 4, blur: 2, distance: 2, color: 0x000000 },
-  }), [fontSize]);
-
-  const draw = useCallback((g: PixiGraphics) => {
-    g.clear();
-    const r = 14;
-    g.setFillStyle({ color: 0x000000, alpha: 0.2 });
-    g.roundRect(3, 4, width, height, r); g.fill();
-    g.setFillStyle({ color });
-    g.roundRect(0, 0, width, height, r); g.fill();
-    g.setFillStyle({ color: 0xFFFFFF, alpha: 0.25 });
-    g.roundRect(4, 3, width - 8, height * 0.35, r - 2); g.fill();
-    g.setStrokeStyle({ width: 2, color: 0xFFFFFF, alpha: 0.3 });
-    g.roundRect(0, 0, width, height, r); g.stroke();
-  }, [width, height, color]);
-
-  return (
-    <pixiContainer x={x} y={y} scale={scale}>
-      <pixiGraphics draw={draw}
-        eventMode="static" cursor="pointer"
-        onPointerDown={() => setPressed(true)}
-        onPointerUp={() => { setPressed(false); onPress(); }}
-        onPointerUpOutside={() => { setPressed(false); setHovered(false); }}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => { setHovered(false); setPressed(false); }}
-      />
-      <pixiText text={label.toUpperCase()} x={width / 2} y={height / 2} anchor={0.5} style={btnTextStyle} eventMode="none" />
-    </pixiContainer>
-  );
-};
-
-// ============================================================================
-// TOP BAR ICON BUTTON
-// ============================================================================
-
-const TopBarButton = ({
-  x, y, size, icon, onClick,
-}: {
-  x: number; y: number; size: number; icon: string; onClick: () => void;
-}) => {
-  const [pressed, setPressed] = useState(false);
-  const [hovered, setHovered] = useState(false);
-  const scale = pressed ? 0.9 : hovered ? 1.05 : 1;
-  const topBtnIconStyle = useMemo(() => ({ fontSize: size * 0.5 }), [size]);
-
-  const draw = useCallback((g: PixiGraphics) => {
-    g.clear();
-    g.setFillStyle({ color: hovered ? 0x334155 : 0x1e293b, alpha: 0.9 });
-    g.roundRect(0, 0, size, size, 8);
-    g.fill();
-    g.setStrokeStyle({ width: 1, color: 0x475569, alpha: 0.5 });
-    g.roundRect(0, 0, size, size, 8);
-    g.stroke();
-  }, [size, hovered]);
-
-  return (
-    <pixiContainer x={x} y={y} scale={scale}>
-      <pixiGraphics draw={draw}
-        eventMode="static" cursor="pointer"
-        onPointerDown={() => setPressed(true)}
-        onPointerUp={() => { setPressed(false); onClick(); }}
-        onPointerUpOutside={() => { setPressed(false); setHovered(false); }}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => { setHovered(false); setPressed(false); }}
-      />
-      <pixiText text={icon} x={size / 2} y={size / 2} anchor={0.5} style={topBtnIconStyle} eventMode="none" />
-    </pixiContainer>
-  );
-};
 
 // ============================================================================
 // HOME TOP BAR
@@ -338,10 +255,10 @@ const HomeTopBar = ({
       <pixiText text="🧊" x={pad} y={topBarH / 2} anchor={{ x: 0, y: 0.5 }} style={cubeIconStyle} />
       <pixiText text={String(cubeBalance)} x={pad + Math.round(20 * uiScale)} y={topBarH / 2} anchor={{ x: 0, y: 0.5 }} style={cubeCountStyle} />
 
-      <TopBarButton x={tutorialX} y={centerY} size={btnSize} icon="📖" onClick={onTutorialClick} />
-      <TopBarButton x={questsX} y={centerY} size={btnSize} icon="📜" onClick={onQuestsClick} />
-      <TopBarButton x={trophyX} y={centerY} size={btnSize} icon="🏆" onClick={onTrophyClick} />
-      <TopBarButton x={settingsBtnX} y={centerY} size={btnSize} icon="⚙" onClick={onSettingsClick} />
+      <PixiButton x={tutorialX} y={centerY} width={btnSize} height={btnSize} iconOnly icon="scroll" onPress={onTutorialClick} />
+      <PixiButton x={questsX} y={centerY} width={btnSize} height={btnSize} iconOnly icon="scroll" onPress={onQuestsClick} />
+      <PixiButton x={trophyX} y={centerY} width={btnSize} height={btnSize} iconOnly icon="trophy" onPress={onTrophyClick} />
+      <PixiButton x={settingsBtnX} y={centerY} width={btnSize} height={btnSize} iconOnly icon="settings" onPress={onSettingsClick} />
 
       <pixiContainer x={settingsX} y={centerY} scale={ctrlScale}>
         <pixiGraphics draw={drawControllerBtn}
@@ -410,27 +327,29 @@ const HomePageContent = ({
       <Logo x={centerX} y={logoY} maxW={logoMaxW} maxH={logoMaxH} />
 
       {/* Play Game */}
-      <LandingButton x={centerX - btnW / 2} y={playY}
-        width={btnW} height={btnH} color={0xF97316}
-        label="Play Game" onPress={() => navigate('loadout')} fontSize={isMobile ? 20 : 24} />
+      <PixiButton x={centerX - btnW / 2} y={playY}
+        width={btnW} height={btnH} variant="orange"
+        label="PLAY GAME" onPress={() => navigate('loadout')}
+        textStyle={{ fontFamily: FONT_TITLE, fontSize: isMobile ? 20 : 24 }} />
 
       {/* My Games */}
-      <LandingButton x={centerX - btnW / 2} y={myGamesY}
-        width={btnW} height={btnH} color={0x3B82F6}
-        label={`My Games${activeGamesCount > 0 ? ` (${activeGamesCount})` : ''}`}
-        onPress={() => navigate('mygames')} fontSize={isMobile ? 18 : 20} />
+      <PixiButton x={centerX - btnW / 2} y={myGamesY}
+        width={btnW} height={btnH} variant="purple"
+        label={`MY GAMES${activeGamesCount > 0 ? ` (${activeGamesCount})` : ''}`}
+        onPress={() => navigate('mygames')}
+        textStyle={{ fontFamily: FONT_TITLE, fontSize: isMobile ? 18 : 20 }} />
 
       {/* Shop */}
-      <LandingButton x={centerX - btnW / 2} y={shopY}
-        width={btnW} height={btnH} color={0x22C55E}
-        label="Shop" onPress={() => navigate('shop')}
-        fontSize={isMobile ? 18 : 20} />
+      <PixiButton x={centerX - btnW / 2} y={shopY}
+        width={btnW} height={btnH} variant="green"
+        label="SHOP" onPress={() => navigate('shop')}
+        textStyle={{ fontFamily: FONT_TITLE, fontSize: isMobile ? 18 : 20 }} />
 
       {/* Leaderboard */}
-      <LandingButton x={centerX - btnW / 2} y={leaderboardY}
-        width={btnW} height={btnH} color={0xEAB308}
-        label="Leaderboard" onPress={() => navigate('leaderboard')}
-        fontSize={isMobile ? 18 : 20} />
+      <PixiButton x={centerX - btnW / 2} y={leaderboardY}
+        width={btnW} height={btnH} variant="orange"
+        label="LEADERBOARD" onPress={() => navigate('leaderboard')}
+        textStyle={{ fontFamily: FONT_TITLE, fontSize: isMobile ? 18 : 20 }} />
 
       {/* Footer */}
       <pixiText text="Built on Starknet with Dojo"

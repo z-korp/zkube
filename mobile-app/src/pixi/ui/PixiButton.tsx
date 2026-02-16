@@ -111,17 +111,28 @@ export function PixiButton({
       return;
     }
 
-    Promise.all([
-      loadTextureCached(stateUrls.normal[0]),
-      loadTextureCached(stateUrls.pressed[0]),
-      loadTextureCached(stateUrls.disabled[0]),
-    ]).then(([normal, pressed, disabledTex]) => {
-      if (!cancelled) {
-        setTextures({ normal, pressed, disabled: disabledTex });
+    const loadWithFallback = async (url: string, fallback: Texture): Promise<Texture> => {
+      try {
+        return await loadTextureCached(url);
+      } catch {
+        return fallback;
       }
-    }).catch(() => {
-      if (!cancelled) setTextures(null);
-    });
+    };
+
+    loadTextureCached(stateUrls.normal[0])
+      .then(async (normal) => {
+        if (cancelled) return;
+        const [pressed, disabledTex] = await Promise.all([
+          loadWithFallback(stateUrls.pressed[0], normal),
+          loadWithFallback(stateUrls.disabled[0], normal),
+        ]);
+        if (!cancelled) {
+          setTextures({ normal, pressed, disabled: disabledTex });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setTextures(null);
+      });
 
     return () => {
       cancelled = true;
