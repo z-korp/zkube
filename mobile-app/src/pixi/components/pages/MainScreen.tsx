@@ -614,6 +614,7 @@ const PageRenderer = (props: MainScreenProps & {
             screenWidth={sw}
             screenHeight={sh}
             topBarHeight={topBarH}
+            uiScale={uiScale}
             musicVolume={musicVolume}
             effectsVolume={effectsVolume}
             onMusicVolumeChange={onMusicVolumeChange}
