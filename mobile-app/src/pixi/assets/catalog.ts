@@ -153,8 +153,8 @@ export const ASSET_CATALOG: Record<AssetId, AssetMeta> = {
   [AssetId.BonusCombo]: { filename: 'bonus/combo.png', kind: 'texture', bundle: 'gameplay', shared: true },
   [AssetId.BonusScore]: { filename: 'bonus/score.png', kind: 'texture', bundle: 'gameplay', shared: true },
   [AssetId.BonusHarvest]: { filename: 'bonus/harvest.png', kind: 'texture', bundle: 'gameplay', shared: true },
-  [AssetId.BonusWave]: { filename: 'bonus/wave.svg', kind: 'texture', bundle: 'gameplay', shared: true },
-  [AssetId.BonusSupply]: { filename: 'bonus/supply.svg', kind: 'texture', bundle: 'gameplay', shared: true },
+  [AssetId.BonusWave]: { filename: 'bonus/wave.png', kind: 'texture', bundle: 'gameplay', shared: true },
+  [AssetId.BonusSupply]: { filename: 'bonus/supply.png', kind: 'texture', bundle: 'gameplay', shared: true },
 
   // Map
   [AssetId.Map]: { filename: 'map.png', kind: 'texture', bundle: 'essential' },

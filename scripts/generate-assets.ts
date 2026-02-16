@@ -20,7 +20,7 @@ type PerThemeAsset =
   | "grid"
   | "theme-icon"
   | "map";
-type GlobalAsset = "buttons" | "shared-icons" | "catalog-icons" | "panels" | "particles";
+type GlobalAsset = "buttons" | "shared-icons" | "catalog-icons" | "bonus-icons" | "ui-chrome" | "panels" | "particles";
 type AssetCategory = PerThemeAsset | GlobalAsset;
 // Nano Banana Pro (Gemini 3 Pro Image) supported aspect ratios
 type AspectRatio = "1:1" | "2:3" | "3:2" | "3:4" | "4:3" | "4:5" | "5:4" | "9:16" | "16:9" | "21:9";
@@ -197,7 +197,7 @@ const PER_THEME_ASSETS = [
   "theme-icon",
   "map",
 ] as const;
-const GLOBAL_ASSETS = ["buttons", "shared-icons", "catalog-icons", "panels", "particles"] as const;
+const GLOBAL_ASSETS = ["buttons", "shared-icons", "catalog-icons", "bonus-icons", "ui-chrome", "panels", "particles"] as const;
 const PER_THEME_ASSET_SET = new Set<PerThemeAsset>(PER_THEME_ASSETS);
 const GLOBAL_ASSET_SET = new Set<GlobalAsset>(GLOBAL_ASSETS);
 const ALL_ASSET_SET = new Set<AssetCategory>([...PER_THEME_ASSETS, ...GLOBAL_ASSETS]);
@@ -233,6 +233,20 @@ const CATALOG_ICON_CONFIGS = [
   { filename: "icon-lock.png", description: "A padlock in locked position — locked/unavailable" },
   { filename: "icon-music.png", description: "A musical note — music toggle" },
   { filename: "icon-sound.png", description: "A speaker with sound waves — sound toggle" },
+] as const;
+
+const BONUS_ICON_CONFIGS = [
+  { filename: "combo.png", description: "A swirling vortex/cyclone of energy — represents combo multiplier power-up. Dynamic spiral motion, glowing trails." },
+  { filename: "score.png", description: "An exploding starburst with radiating rays — represents instant score bonus. Bright, energetic, celebratory." },
+  { filename: "harvest.png", description: "A crystal pickaxe or mining tool striking a gem — represents harvest bonus (destroying blocks for currency). Sharp, impactful." },
+  { filename: "wave.png", description: "A horizontal shockwave or energy pulse rippling outward — represents wave bonus (clearing entire rows). Wide horizontal motion." },
+  { filename: "supply.png", description: "A glowing crate or supply drop with an upward arrow — represents supply bonus (adding new lines). Sturdy, constructive feel." },
+] as const;
+
+const UI_CHROME_CONFIGS = [
+  { filename: "hud-bar.png", description: "A wide horizontal bar for displaying game stats (score, level, moves). Dark semi-transparent with subtle ornate borders on top and bottom edges. Fantasy/tribal style.", width: 360, height: 40 },
+  { filename: "action-bar.png", description: "A wide horizontal action bar for bonus buttons at the bottom of the screen. Dark semi-transparent with ornate borders. Slightly taller than hud-bar. Fantasy/tribal style.", width: 360, height: 64 },
+  { filename: "bonus-btn-bg.png", description: "A square button background for bonus ability icons. Dark circular/rounded-square shape with a glowing border ring. Fantasy/tribal style. Should look pressable.", width: 64, height: 64 },
 ] as const;
 
 const PANEL_CONFIGS = [
@@ -566,6 +580,29 @@ ${CHROMAKEY_SUFFIX}
 `);
 }
 
+function buildBonusIconPrompt(description: string): string {
+  return withStyleAnchor(`
+Generate a game bonus/power-up icon: ${description}
+Style: Colorful, vibrant, detailed fantasy game icon. Rich colors with glowing highlights and subtle shadows.
+The icon should be instantly recognizable at small sizes (64×64 display).
+Centered composition, no text. Slight 3D depth with lighting from top-left.
+Square format. 256×256 pixel target.
+${CHROMAKEY_SUFFIX}
+`);
+}
+
+function buildUiChromePrompt(description: string, width: number, height: number): string {
+  return withStyleAnchor(`
+Generate a game UI element: ${description}
+Dimensions: ${width}×${height} pixels conceptually.
+Style: Semi-transparent dark panel with subtle fantasy/tribal decorative edges.
+The center area should be mostly transparent (alpha ~0.7) so game content shows through.
+Edges should have thin ornate borders matching a tribal/fantasy puzzle game aesthetic.
+No text, no icons — just the background chrome element.
+${CHROMAKEY_SUFFIX}
+`);
+}
+
 function buildPanelPrompt(material: string, alpha: string): string {
   return withStyleAnchor(`
 Generate a 9-slice panel texture for a game UI.
@@ -757,6 +794,36 @@ function buildGlobalJobs(filter?: AssetCategory): AssetJob[] {
         aspectRatio: "1:1",
         imageSize: "1K",
         refKeys: ["logo"],
+      });
+    }
+  }
+
+  if (shouldIncludeCategory("bonus-icons", filter)) {
+    for (const bonus of BONUS_ICON_CONFIGS) {
+      jobs.push({
+        scope: "global",
+        category: "bonus-icons",
+        filename: bonus.filename,
+        outputPath: path.join(COMMON_ROOT, "bonus", bonus.filename),
+        prompt: buildBonusIconPrompt(bonus.description),
+        aspectRatio: "1:1",
+        imageSize: "1K",
+        refKeys: ["logo"],
+      });
+    }
+  }
+
+  if (shouldIncludeCategory("ui-chrome", filter)) {
+    for (const chrome of UI_CHROME_CONFIGS) {
+      jobs.push({
+        scope: "global",
+        category: "ui-chrome",
+        filename: chrome.filename,
+        outputPath: path.join(COMMON_ROOT, "ui", chrome.filename),
+        prompt: buildUiChromePrompt(chrome.description, chrome.width, chrome.height),
+        aspectRatio: chrome.width > chrome.height * 2 ? "16:9" : "1:1",
+        imageSize: "1K",
+        refKeys: ["grid"],
       });
     }
   }
@@ -1229,7 +1296,7 @@ async function postProcessAll(options: CliOptions): Promise<void> {
   }
 
   if (options.scope === "global" || options.scope === "all") {
-    const commonDirs = ["buttons", "icons", "panels", "particles"];
+    const commonDirs = ["bonus", "buttons", "icons", "panels", "particles", "ui"];
     for (const dir of commonDirs) {
       const dirPath = path.join(COMMON_ROOT, dir);
       if (fs.existsSync(dirPath)) {
