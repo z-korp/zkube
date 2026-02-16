@@ -10,7 +10,6 @@ Single source of truth for every visual, audio, and generated asset in the game.
 |--------|---------|
 | ✅ | Exists on disk |
 | ❌ | Not on disk (needs creation) |
-| 🔁 | Currently procedural (code-drawn fallback) |
 | 🎨 | Per-theme (unique art per theme) |
 | 🌐 | Global (shared across all themes) |
 
@@ -91,11 +90,11 @@ An asset is **🎨 Per-theme** when:
 
 ---
 
-## Chromakey Green Transparency Pipeline
+## Background Removal Pipeline
 
-### Why Chromakey Green?
+### Why Background Removal?
 
-**Gemini cannot generate native transparent PNGs.** All outputs have solid backgrounds. We use chromakey green (#00FF00) and strip it in post-processing.
+**Gemini cannot generate native transparent PNGs.** All outputs have solid backgrounds. We use **rembg** (U2-Net AI model) to automatically remove backgrounds in post-processing.
 
 ### Model Details
 
@@ -107,24 +106,41 @@ An asset is **🎨 Per-theme** when:
 
 ### Transparency Classification
 
-**Needs chromakey green removal:** Blocks, Logo, Grid Frame, Theme Icon, Icons, Particles, Panels
+**Needs background removal:** Blocks, Logo, Grid Frame, Theme Icon, Icons, Particles, Panels
 
 **Opaque (no stripping):** Background, Loading BG, Grid BG, Map
 
-### Post-Processing Pipeline
+### Background Removal Tool: rembg
 
-1. **JPEG to PNG** — Gemini always returns JPEG
-2. **Green Despill** — Suppress excess green from ALL pixels: `G_new = G - 0.9 * max(G - max(R,B), 0)`
-3. **Green Mask** — Detection: `G > 80 AND R < 220 AND B < 220 AND G > R*1.2 AND G > B*1.2`
-4. **Alpha Matte** — Dilate mask by 3px, gaussian blur sigma=1.0 for soft edges
-5. **Center-Crop** — For multi-cell blocks: crop center strip at target aspect ratio
-6. **Resize** — Scale to target dimensions
+**Tool:** rembg (U2-Net AI model)  
+**Installation:** `pip install "rembg[cpu]"`  
+**Location:** `references/rembg`
+
+**Python API:**
+```python
+from rembg import remove
+from PIL import Image
+
+img = Image.open(path)
+out = remove(img)
+out.save(path)
+```
+
+**CLI:**
+```bash
+rembg i input.png output.png
+```
+
+**How it works:**
+- U2-Net model auto-downloads from GitHub on first run
+- Much cleaner edges than chromakey threshold methods
+- No green halo artifacts
+- Works with any solid-color background (model detects subject automatically)
 
 ### Prompt Suffix (transparency assets)
 
 ```
-Background: Solid chromakey green (#00FF00, RGB 0,255,0).
-The green will be removed in post-processing to create transparency.
+Background: Plain solid-color background (will be removed via rembg).
 ```
 
 ---
@@ -137,12 +153,12 @@ The green will be removed in post-processing to create transparency.
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `Block1` | `block-1.png` | 256x256 | ✅ theme-4 / ❌ all others |
-| `Block2` | `block-2.png` | 512x256 | ✅ theme-4 / ❌ all others |
-| `Block3` | `block-3.png` | 768x256 | ✅ theme-4 / ❌ all others |
-| `Block4` | `block-4.png` | 1024x256 | ✅ theme-4 / ❌ all others |
+| `Block1` | `block-1.png` | 256x256 | ✅ all themes |
+| `Block2` | `block-2.png` | 512x256 | ✅ all themes |
+| `Block3` | `block-3.png` | 768x256 | ✅ all themes |
+| `Block4` | `block-4.png` | 1024x256 | ✅ all themes |
 
-**Generation:** 4 x 9 themes = **36 images**. Generate at 1:1 1K, center-crop to target aspect ratio, resize.
+**Generation:** 4 x 10 themes = **40 images**. Generate at 1:1 1K, center-crop to target aspect ratio, resize.
 
 **Prompt template (block-1):**
 ```
@@ -150,7 +166,7 @@ Generate a square game tile texture for a puzzle game.
 Theme: {THEME_NAME} — {THEME_DESCRIPTION}
 Style: Bold black outlines, cel-shaded, 2-3 color tones from palette: {BLOCK_COLORS}.
 Design: A single decorative emblem with {MOTIFS}. Centered. Filled.
-Background: Solid chromakey green (#00FF00). No text, no people.
+Background: Plain solid-color background (will be removed via rembg). No text, no people.
 ```
 
 **Prompt template (block-2/3/4 — crop from 1:1):**
@@ -160,7 +176,7 @@ Theme: {THEME_NAME} — {THEME_DESCRIPTION}
 Style: Bold black outlines, cel-shaded, palette: {BLOCK_COLORS}.
 Design: Horizontal panel with {MOTIFS}, aspect ratio {WIDTH}:1.
 Place as horizontal strip in CENTER of square canvas. Empty above/below.
-Background: Solid chromakey green (#00FF00). No text, no people.
+Background: Plain solid-color background (will be removed via rembg). No text, no people.
 ```
 
 ### Per-Theme Block Variables
@@ -184,10 +200,10 @@ Portrait orientation (9:16), mobile-first, rendered in "cover" mode.
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `Background` | `background.png` | 1080x1920 | ✅ theme-4 / ❌ all others |
-| `LoadingBg` | `loading-bg.png` | 1080x1920 | ✅ theme-4 / ❌ all others |
+| `Background` | `background.png` | 1080x1920 | ✅ all themes |
+| `LoadingBg` | `loading-bg.png` | 1080x1920 | ✅ all themes |
 
-**Generation:** 2 x 9 = **18 images**. Config: `9:16`, `2K`.
+**Generation:** 2 x 10 = **20 images**. Config: `9:16`, `2K`.
 
 **Prompt template:**
 ```
@@ -214,9 +230,9 @@ Mood: {MOOD}. Palette: {GRADIENT}. Opaque fill. No text, no people.
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `Logo` | `logo.png` | 512x512 | ✅ theme-4 / ❌ all others |
+| `Logo` | `logo.png` | 512x512 | ✅ all themes |
 
-**Generation:** 9 images. Config: `1:1`, `1K`.
+**Generation:** 10 images. Config: `1:1`, `1K`.
 
 **Prompt template:**
 ```
@@ -227,7 +243,7 @@ Letters integrated with theme motifs: {MOTIFS}.
 Include a small isometric cube with cultural motifs below/around the text.
 Style: Bold outlines, cel-shading, accent color {ACCENT_COLOR}, glossy highlights.
 Text must be clearly readable. Theme elements enhance but don't obscure.
-Square format. Chromakey green (#00FF00) background.
+Square format. Plain solid-color background (will be removed via rembg).
 ```
 
 ---
@@ -236,10 +252,10 @@ Square format. Chromakey green (#00FF00) background.
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `GridBg` | `grid-bg.png` | 512x640 | ✅ theme-4 / ❌ all others |
-| `GridFrame` | `grid-frame.png` | 576x720 | ✅ theme-4 / ❌ all others |
+| `GridBg` | `grid-bg.png` | 512x640 | ✅ all themes |
+| `GridFrame` | `grid-frame.png` | 576x720 | ✅ all themes |
 
-**Generation:** 2 x 9 = **18 images**. Config: `4:5`, `1K`.
+**Generation:** 2 x 10 = **20 images**. Config: `4:5`, `1K`.
 
 **Grid-bg materials:**
 
@@ -262,7 +278,7 @@ Super Mario World-style progression map background.
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `Map` | `map.png` | 1080x1920 | ✅ theme-4 / ❌ all others |
+| `Map` | `map.png` | 1080x1920 | ✅ all themes |
 
 **Generation:** 10 images. Config: `9:16`, `2K`.
 
@@ -296,7 +312,7 @@ Small icon for the settings page theme selector.
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `ThemeIcon` | `theme-icon.png` | 128x128 | ❌ all themes |
+| `ThemeIcon` | `theme-icon.png` | 128x128 | ✅ all themes |
 
 **Generation:** 10 images (all themes). Config: `1:1`, `1K`.
 
@@ -307,7 +323,7 @@ Theme: {THEME_NAME} ({ICON})
 Design: A single iconic symbol that instantly communicates the theme.
 Most recognizable element from: {MOTIFS}.
 Style: Bold silhouette, white fill. Thick strokes. Clean at 48x48.
-Centered. Square. Chromakey green (#00FF00) background.
+Centered. Square. Plain solid-color background (will be removed via rembg).
 ```
 
 ---
@@ -633,23 +649,23 @@ A crisp Nordic folk electronic instrumental with staccato strings and a tight el
 
 ---
 
-## Generation Summary
+## Generation Complete
 
-### Per-Theme Visual (all 10 themes, theme-4 already done)
+All per-theme visual assets have been generated for all 10 themes.
 
-| Category | Per Theme | Total (9 remaining) |
+### Asset Inventory
+
+| Category | Per Theme | Total (All Themes) |
 |----------|-----------|---------------------|
-| Blocks | 4 | 36 |
-| Background + Loading BG | 2 | 18 |
-| Logo | 1 | 9 |
-| Grid BG + Frame | 2 | 18 |
-| **Subtotal** | **9** | **81** |
+| Blocks | 4 | 40 |
+| Background + Loading BG | 2 | 20 |
+| Logo | 1 | 10 |
+| Grid BG + Frame | 2 | 20 |
+| Map | 1 | 10 |
+| Theme Icon | 1 | 10 |
+| **Total Per-Theme** | **11** | **110** |
 
-### Maps (all 10 themes, theme-4 already done): **9 images**
-
-### Theme Icons (all 10 themes): **10 images**
-
-### Global Assets
+### Outstanding Global Assets
 
 | Category | Total |
 |----------|-------|
@@ -658,12 +674,11 @@ A crisp Nordic folk electronic instrumental with staccato strings and a tight el
 | Particles | 4 |
 | **Subtotal** | **22** |
 
-### Grand Total: **122 images to generate** (theme-4 done, 113 remaining)
+### Generation Status
 
-| Tier | Rate | Time | Cost |
-|------|------|------|------|
-| Free | 15 RPM | ~8 min | $0 |
-| Tier 1 | 300 RPM | ~23s | ~$6 |
+- **Per-theme assets:** ✅ Complete (110/110)
+- **Theme icons:** ✅ Complete (10/10)
+- **Global assets:** ❌ Incomplete (0/22)
 
 ---
 
@@ -677,10 +692,17 @@ npx tsx scripts/generate-assets.ts --scope global         # all missing global
 npx tsx scripts/generate-assets.ts --theme theme-3        # specific theme
 npx tsx scripts/generate-assets.ts --asset blocks         # specific category
 npx tsx scripts/generate-assets.ts --dry-run              # plan only
-npx tsx scripts/generate-assets.ts --post-process         # JPEG->PNG + resize
+npx tsx scripts/generate-assets.ts --post-process         # JPEG->PNG + rembg + resize
 ```
 
 Requires: `npm install @google/genai p-limit sharp` + `GEMINI_API_KEY` env var.
+
+### Post-Processing Steps
+
+1. **JPEG to PNG** — Gemini always returns JPEG
+2. **Background Removal** — Apply rembg to transparency assets
+3. **Center-Crop** — For multi-cell blocks: crop center strip at target aspect ratio
+4. **Resize** — Scale to target dimensions
 
 ### Aspect Ratios
 
@@ -744,22 +766,21 @@ Catalog: `mobile-app/src/pixi/assets/catalog.ts`. Resolver: `resolver.ts`.
 ## Quality Checklist
 
 - [ ] Correct dimensions (exact)
-- [ ] Transparency correct (green removed)
+- [ ] Transparency correct (rembg background removal)
 - [ ] Style matches reference (outlines, cel-shading)
 - [ ] Colors match palette from `colors.ts`
 - [ ] No text (except logo "zKube"), no people
 - [ ] File size < 500KB textures, < 50KB icons
 - [ ] Loads correctly in game
-- [ ] No green halo artifacts
 
 ---
 
 ## Troubleshooting
 
-**Green halo** — Script uses despill (suppresses excess green from ALL pixels) + dilate-3 + gaussian blur. Current thresholds: `g > 80, r < 220, b < 220, g > r*1.2, g > b*1.2`
+**Solid background in game** — Asset not in transparency list, or rembg stripping skipped. Re-run post-processing with `--post-process` flag.
 
-**Solid background in game** — Asset not in transparency list, or stripping skipped
-
-**Wrong aspect ratio** — Gemini approximates; resize in post-processing
+**Wrong aspect ratio** — Gemini approximates; resize in post-processing handles final dimensions.
 
 **API error** — Only supported ratios: 1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9
+
+**rembg not installed** — Run `pip install "rembg[cpu]"` in `references/rembg` directory. Model will auto-download on first use.
