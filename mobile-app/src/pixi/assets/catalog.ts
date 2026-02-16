@@ -26,6 +26,9 @@ export enum AssetId {
   // Map
   Map = 'map',
 
+  // Theme icon (settings page theme selector)
+  ThemeIcon = 'theme-icon',
+
   // Bonus icons
   BonusCombo = 'bonus-combo',
   BonusScore = 'bonus-score',
@@ -155,6 +158,8 @@ export const ASSET_CATALOG: Record<AssetId, AssetMeta> = {
 
   // Map
   [AssetId.Map]: { filename: 'map.png', kind: 'texture', bundle: 'essential' },
+
+  [AssetId.ThemeIcon]: { filename: 'theme-icon.png', kind: 'texture', bundle: 'ui' },
 
   // 9-slice panels
   [AssetId.PanelWood]: { filename: 'panels/panel-wood.png', kind: 'texture', borders: P, bundle: 'ui', shared: true },

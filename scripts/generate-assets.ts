@@ -427,15 +427,15 @@ NO text, NO UI elements, NO people, NO recognizable characters.
 
 function buildLogoPrompt(theme: ThemeDefinition): string {
   return withStyleAnchor(`
-Generate a game logo icon for a puzzle game.
+Generate a game logo for a puzzle game called "zKube".
 Theme: ${theme.name}
-Design: An isometric 3D cube (front face dominant, top and right side visible) with the theme's cultural motifs carved/painted on its faces.
-Front face: A stylized mask/emblem with ${theme.motifs} motifs — aggressive/intense expression with bold shapes.
-Top face: Geometric glyph/pattern panel in theme accent color.
-Side faces: Repeating decorative scroll/spiral motifs.
+Design: The text "zKube" in a bold stylized font, decorated with ${theme.name} theme elements.
+The letters should be integrated with theme motifs: ${theme.motifs}.
+Below or around the text, include a small isometric cube or geometric shape with the theme's cultural motifs.
 Style: Bold black outline contours. Cel-shaded with gradient fills in the theme's accent color (${theme.palette.accent}). White specular highlights on edges. Glossy carved appearance.
 Color palette: ${theme.palette.accent} as primary, darker shade for shadows, white for highlights.
-Square format. Centered. No text, no letters.
+The text "zKube" must be clearly readable. The theme elements enhance but don't obscure it.
+Square format. Centered.
 ${CHROMAKEY_SUFFIX}
 `);
 }
