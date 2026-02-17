@@ -18,7 +18,7 @@ Single source of truth for every visual, audio, and generated asset in the game.
 10. [Troubleshooting](#troubleshooting)
 
 ### New in v2 (aligned with UI_UX.md v2)
-- **Section 5**: Map backgrounds redesigned as per-world (5 maps, not 10)
+- **Section 5**: Map backgrounds — per-theme (10 maps, one per theme)
 - **Section 13**: Boss portraits (10 unique characters)
 - **Section 14**: Constraint icons (7 types for HUD badges)
 - **Section 15**: Consumable icons (3 shop items)
@@ -374,21 +374,26 @@ Aspect ratio 4:5. Plain solid-color background (will be removed via rembg).
 
 ---
 
-### 5. Map — 🎨 Per-World (5 maps)
+### 5. Map — 🎨 Per-Theme (10 maps)
 
-Campaign progression map backgrounds. One per world (not per theme). PixiJS nodes overlay on top.
+Campaign progression map backgrounds. One per theme. Each run picks 5 themes for its 5 zones — each zone displays that theme's map with PixiJS nodes layered on top.
 
 | Asset ID | Filename | Dimensions | Status |
 |----------|----------|------------|--------|
-| `MapWorld1` | `maps/world-1.png` | 750×1600 (@2x: 1500×3200) | ❌ |
-| `MapWorld2` | `maps/world-2.png` | 750×1600 (@2x: 1500×3200) | ❌ |
-| `MapWorld3` | `maps/world-3.png` | 750×1600 (@2x: 1500×3200) | ❌ |
-| `MapWorld4` | `maps/world-4.png` | 750×1600 (@2x: 1500×3200) | ❌ |
-| `MapWorld5` | `maps/world-5.png` | 750×1600 (@2x: 1500×3200) | ❌ |
+| `Map` | `theme-1/map.png` | 750×1600 (@2x: 1500×3200) | ✅ |
+| `Map` | `theme-2/map.png` | 750×1600 (@2x: 1500×3200) | ✅ |
+| `Map` | `theme-3/map.png` | 750×1600 (@2x: 1500×3200) | ✅ |
+| `Map` | `theme-4/map.png` | 750×1600 (@2x: 1500×3200) | ✅ |
+| `Map` | `theme-5/map.png` | 750×1600 (@2x: 1500×3200) | ✅ |
+| `Map` | `theme-6/map.png` | 750×1600 (@2x: 1500×3200) | ✅ |
+| `Map` | `theme-7/map.png` | 750×1600 (@2x: 1500×3200) | ✅ |
+| `Map` | `theme-8/map.png` | 750×1600 (@2x: 1500×3200) | ✅ |
+| `Map` | `theme-9/map.png` | 750×1600 (@2x: 1500×3200) | ✅ |
+| `Map` | `theme-10/map.png` | 750×1600 (@2x: 1500×3200) | ✅ |
 
-**Generation**: 5 images. Config: 9:16, 2K.
+**Generation**: 10 images (one per theme). Config: 9:16, 2K. Resolved via `resolveAsset(themeId, AssetId.Map)`.
 
-**Map Structure**: Each world = 10 levels. S-curve path with 10 "landing spots" (lighter clearings where PixiJS level nodes are placed). Final node (boss) at top is a distinct landmark.
+**Map Structure**: Each map = 10 levels (9 classic + 1 boss) + 1 shop node. S-curve path with 10 "landing spots" (lighter clearings where PixiJS level nodes are placed). Final node (boss) at top is a distinct landmark.
 
 **Design rules**:
 - Background is a scenic illustration with a clear winding path
@@ -396,24 +401,30 @@ Campaign progression map backgrounds. One per world (not per theme). PixiJS node
 - NO text, NO numbers, NO UI elements on the background (PixiJS handles all interactivity)
 - Boss area at top should be a dramatic landmark (arena, fortress, altar)
 - Shop area just before boss should be a small distinct structure (market stall, chest)
+- Each map must work as any zone (1-5) since theme-to-zone assignment is random per run
 
-| World | Themes | Map Palette | Scene |
-|-------|--------|-------------|-------|
-| 1 (L1-10) | Ocean + Ice | Cool blues, teals | Coastal cliffs → frozen shore, ocean backdrop, coral & ice |
-| 2 (L11-20) | Forest + Crystal | Greens, emeralds | Dense forest → crystal cavern, glowing mushrooms, vines |
-| 3 (L21-30) | Desert + Sunset | Golds, oranges | Sand dunes → sunset canyon, ancient ruins, oasis |
-| 4 (L31-40) | Neon + Storm | Purples, dark grays | Neon city → storm peaks, lightning, electric glow |
-| 5 (L41-50) | Lava + Shadow | Deep reds, blacks | Volcanic ascent → shadow citadel, lava rivers, embers |
+| Theme | Map Palette | Scene |
+|-------|-------------|-------|
+| Ocean | Cool blues, teals | Coastal cliffs, coral reefs, ocean backdrop |
+| Ice | Whites, pale blues | Frozen shore, ice caves, aurora sky |
+| Forest | Greens, browns | Dense canopy, vine bridges, ancient trees |
+| Crystal | Emeralds, prismatic | Crystal cavern, glowing mushrooms, gem formations |
+| Desert | Warm golds, sand | Sand dunes, oasis, ancient ruins |
+| Sunset | Oranges, reds | Canyon at golden hour, warm rock formations |
+| Neon | Electric purples, pinks | Neon city streets, holographic signs, dark alleys |
+| Storm | Dark grays, lightning whites | Storm peaks, thunderclouds, rain-swept cliffs |
+| Lava | Deep reds, oranges | Volcanic ascent, lava rivers, obsidian rock |
+| Shadow | Blacks, dark purples | Shadow citadel, dim glowing embers, eerie mist |
 
 **Prompt**:
 ```
 Full-screen illustrated map background for a mobile puzzle game.
-World: {WORLD_NAME}. Scene: {WORLD_SCENE}
+Theme: {THEME_NAME}. Scene: {THEME_SCENE}
 PORTRAIT (9:16). A scenic winding path from bottom to top.
 The path has 10 clear circular platform areas (lighter clearings on the path) where game nodes will be placed.
 A dramatic boss landmark at the very top. A small shop structure just before the boss area.
 Layered depth: foreground flora/rocks bottom, path with clearings middle, distant scenery top.
-Mood: Adventurous. Palette: {WORLD_PALETTE}. Opaque fill. No text, no numbers, no UI elements, no people.
+Mood: Adventurous. Palette: {THEME_PALETTE}. Opaque fill. No text, no numbers, no UI elements, no people.
 ```
 
 ---
@@ -1066,7 +1077,7 @@ A crisp Nordic folk electronic instrumental with staccato strings and a tight el
 | Category | Path Pattern |
 |----------|-------------|
 | Per-theme | `public/assets/{themeId}/{filename}` |
-| World maps | `public/assets/maps/{filename}` |
+| Theme maps | `public/assets/{themeId}/map.png` |
 | Shared icons | `public/assets/common/icons/{filename}` |
 | Shared UI | `public/assets/common/ui/{filename}` |
 | Shared bonus | `public/assets/common/bonus/{filename}` |
@@ -1130,11 +1141,11 @@ for name, (w, h) in specs.items():
         print(f'  MISSING {name}')
 " theme-1
 
-# Check world map backgrounds
+# Check per-theme map backgrounds
 python3 -c "
 from PIL import Image
-for i in range(1, 6):
-    name = f'maps/world-{i}.png'
+for i in range(1, 11):
+    name = f'theme-{i}/map.png'
     try:
         img = Image.open(f'mobile-app/public/assets/{name}')
         print(f'  OK {name}: {img.size[0]}x{img.size[1]} {img.mode}')
@@ -1206,15 +1217,10 @@ For every generated asset, verify:
 | Background + Loading | 2 | 20 | ✅ Complete |
 | Logo | 1 | 10 | ✅ Complete |
 | Grid BG + Frame | 2 | 20 | ✅ Complete |
+| Map | 1 | 10 | ✅ Complete |
 | Theme Icon | 1 | 10 | ✅ Complete |
 | Music | 4 | 40 | ✅ Complete |
-| **Total** | **14** | **140** | **✅** |
-
-### Per-World Assets (NEW)
-
-| Category | Count | Status |
-|----------|-------|--------|
-| World Map Backgrounds | 5 | ❌ Missing |
+| **Total** | **15** | **150** | **✅** |
 
 ### Global Assets
 
@@ -1241,7 +1247,7 @@ For every generated asset, verify:
 1. **Boss portraits (10)** — Required for boss intro screen (core gameplay)
 2. **Constraint icons (6)** — Required for play screen HUD (core gameplay)
 3. **Consumable icons (3)** — Required for in-game shop
-4. **World map backgrounds (5)** — Required for campaign map
+4. **Theme map backgrounds (10)** — Already exist, may need regeneration to match new design rules
 5. **New particles (coin, confetti, ember, ring)** — Required for celebration animations
 6. **Boss defeat shards (1)** — Required for boss defeat animation
 7. **New SFX (13)** — Required for full audio experience

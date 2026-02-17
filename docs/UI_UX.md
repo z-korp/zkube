@@ -4,7 +4,7 @@ Complete UI/UX redesign. Every screen, interaction, and data binding derived fro
 
 **Engine**: PixiJS 8 + @pixi/react (declarative). All rendering via `pixiContainer`, `pixiSprite`, `pixiGraphics`, `pixiText`.
 **Target**: 375px portrait (iPhone SE baseline). Responsive via `uiScale = clamp(screenWidth / 375, 0.8, 1.5)`.
-**Style**: Illustrated, bold outlines, theme-driven palettes. 10 visual themes tied to 5 campaign worlds.
+**Style**: Illustrated, bold outlines, theme-driven palettes. 10 visual themes — each run randomly picks 5 to form the campaign zones.
 
 ---
 
@@ -183,17 +183,24 @@ Complete UI/UX redesign. Every screen, interaction, and data binding derived fro
 
 ### 4.1 Color System
 
-#### Theme Palettes (10 themes, 2 per world)
+#### Theme Palettes (10 themes)
 
 Each theme defines: `primary`, `secondary`, `accent`, `background`, `surface`, `gridBg`, `blockColors[4]`, `textPrimary`, `textSecondary`.
 
-| World | Theme A | Theme B | Palette Character |
-|-------|---------|---------|-------------------|
-| 1 (L1-10) | Ocean | Ice | Cool blues, teals, whites |
-| 2 (L11-20) | Forest | Crystal | Greens, emeralds, translucent |
-| 3 (L21-30) | Desert | Sunset | Warm golds, oranges, reds |
-| 4 (L31-40) | Neon | Storm | Electric purples, dark grays, lightning |
-| 5 (L41-50) | Lava | Shadow | Deep reds, blacks, ember glows |
+There are 10 visual themes. Each run, 5 are randomly selected via `deriveZoneThemes(seed)` and assigned to zones 1-5. The theme determines all visuals for that zone: map background, blocks, grid, music.
+
+| Theme | Palette Character |
+|-------|-------------------|
+| Ocean | Cool blues, teals, deep water |
+| Ice | Whites, pale blues, frost |
+| Forest | Greens, browns, natural |
+| Crystal | Emeralds, translucent, prismatic |
+| Desert | Warm golds, sand, dry heat |
+| Sunset | Oranges, reds, warm glow |
+| Neon | Electric purples, pinks, vivid |
+| Storm | Dark grays, lightning whites |
+| Lava | Deep reds, oranges, ember |
+| Shadow | Blacks, dark purples, dim glow |
 
 #### Semantic Colors (theme-independent)
 
@@ -335,7 +342,7 @@ The central navigation screen. No bottom tab bar — everything is tiles/cards.
 #### Transitions
 - Hub -> any screen: slide left
 - Return to hub: slide right
-- Hub -> Play: slide up (entering the game world)
+- Hub -> Play: slide up (entering gameplay)
 
 ---
 
@@ -400,17 +407,17 @@ Shown before starting a new campaign run. Player selects 3 bonuses and optionall
 
 ### 5.3 Campaign Map
 
-Progression map showing all 50 levels across 5 themed worlds. Per-theme static background with PixiJS nodes layered on top.
+Progression map showing all 50 levels across 5 zones. Each run randomly assigns a theme to each zone via `deriveZoneThemes(seed)`, picking 5 from the pool of 10 themes. Each theme has its own map background — the zone displays that theme's map with PixiJS nodes layered on top.
 
 #### Layout Concept
 
 ```
 +------------------------------+
-|  < Hub    WORLD 3: DESERT    |  <- world name + back button
+|  < Hub    ZONE 3: DESERT     |  <- theme name + back button
 +------------------------------+
 |                              |
-|  [STATIC THEME BACKGROUND]   |  <- per-world illustrated background
-|                              |     (single image, scrollable)
+|  [THEME MAP BACKGROUND]      |  <- per-theme illustrated background
+|                              |     (theme-N/map.png)
 |     o-o-o-o-o               |
 |    21 22 23 24 25            |  <- level nodes: small circles
 |         |                    |
@@ -426,18 +433,22 @@ Progression map showing all 50 levels across 5 themed worlds. Per-theme static b
 |           +-----+            |
 |                              |
 +------------------------------+
-  [. . . o .]                    <- world indicator dots (1-5)
+  [. . . o .]                    <- zone indicator dots (1-5)
 ```
 
-#### World Structure
+#### Zone Structure
 
-| World | Levels | Themes | Boss |
-|-------|--------|--------|------|
-| 1 | 1-10 | Ocean / Ice | Boss at L10 |
-| 2 | 11-20 | Forest / Crystal | Boss at L20 |
-| 3 | 21-30 | Desert / Sunset | Boss at L30 |
-| 4 | 31-40 | Neon / Storm | Boss at L40 |
-| 5 | 41-50 | Lava / Shadow | Boss at L50 (Final) |
+5 zones per run, 10 levels each. Theme assignment is random per run (seed-derived).
+
+| Zone | Levels | Theme | Boss |
+|------|--------|-------|------|
+| 1 | 1-10 | Random (from 10) | Boss at L10 |
+| 2 | 11-20 | Random (from 10) | Boss at L20 |
+| 3 | 21-30 | Random (from 10) | Boss at L30 |
+| 4 | 31-40 | Random (from 10) | Boss at L40 |
+| 5 | 41-50 | Random (from 10) | Boss at L50 (Final) |
+
+Theme selection: `deriveZoneThemes(seed)` uses Poseidon hash to deterministically pick 5 unique themes from the 10 available. Same seed = same theme assignment. Each zone gets a different theme.
 
 #### Node Types
 
@@ -451,19 +462,20 @@ Progression map showing all 50 levels across 5 themed worlds. Per-theme static b
 | Locked | 36px dimmed | Grayed out, no interaction | `level > best_level + 1` |
 
 #### Background Design Spec (for asset generation)
-- Each world gets ONE static background image (2x resolution for retina)
+- Each of the 10 themes has ONE map background image (2x resolution for retina)
 - Background is a scenic illustration with a meandering path drawn into it
 - PixiJS nodes are positioned along the path at predefined coordinates
 - The path has clear "landing spots" where nodes sit (slightly lighter areas or clearings)
-- Aspect ratio: tall (roughly 375x800 per world section, scrollable)
+- Aspect ratio: tall (roughly 375x800 per zone section, scrollable)
 - No interactive elements in the background itself — all interaction is PixiJS nodes on top
+- Since themes are randomly assigned to zones, every map must work as any zone (1-5)
 
 #### Interactions
-- **Swipe horizontally** between worlds (smooth slide, snaps to world)
+- **Swipe horizontally** between zones (smooth slide, snaps to zone)
 - **Tap completed/current level** -> enter level (Play Screen)
 - **Tap boss node** -> if shop available first, prompt: "Visit shop before boss?" -> shop or skip
 - **Tap locked level** -> no action (subtle shake feedback)
-- **World dots** at bottom -> tap to jump to world
+- **Zone dots** at bottom -> tap to jump to zone
 
 #### Data Bindings
 
@@ -473,6 +485,7 @@ Progression map showing all 50 levels across 5 themed worlds. Per-theme static b
 | Star ratings | `Game.level_stars` (2 bits per level: 0=none, 1=star, 2=2star, 3=3star) |
 | Best level reached | `PlayerMeta.best_level` |
 | Boss identity | `GameSeed.seed` -> `(level_seed % 10) + 1` -> boss name |
+| Zone theme | `deriveZoneThemes(GameSeed.seed)` -> `ThemeId` per zone |
 
 ---
 
@@ -1502,7 +1515,7 @@ All animations use PixiJS native features:
 **Play Screen (all devices)**:
 - Grid is always centered, max 8 x blockSize wide
 - `blockSize = floor(min(availableWidth, availableHeight * 0.75) / 8)`
-- On wide screens: decorative theme background fills sides (same as map background)
+- On wide screens: decorative theme background fills sides
 - HUD and action bar stretch to match grid width, not screen width
 - NO side panels ever. Desktop = phone layout centered with theme art around it.
 
@@ -1618,7 +1631,7 @@ Quick reference of all assets needed. Full specifications in `ASSETS.md`.
 
 | Asset | Format | Purpose |
 |-------|--------|---------|
-| Map background | PNG, 750x1600 | Campaign map scrollable background |
+| Map background | PNG, 750x1600 | Campaign map zone background (per-theme) |
 | Grid background | PNG, tile | Play screen grid background |
 | Block sprites (4 sizes) | PNG, 64x64 | Block rendering in grid |
 | Block glow variants | PNG, 64x64 | Selected/highlighted blocks |
@@ -1649,7 +1662,7 @@ Quick reference of all assets needed. Full specifications in `ASSETS.md`.
 
 | Asset | Format | Purpose |
 |-------|--------|---------|
-| Theme BGM (5 worlds) | OGG | Background music per world |
+| Theme BGM (10 themes) | OGG | Background music per theme |
 | Boss BGM | OGG | Boss level music |
 | Victory fanfare | OGG | Run complete |
 | Block slide | OGG | Block movement |
