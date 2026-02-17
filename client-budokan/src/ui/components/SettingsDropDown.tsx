@@ -1,6 +1,5 @@
-import { faGear } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from "../elements/button";
+import { Settings } from "lucide-react";
 import { MusicPlayer } from "../modules/MusicPlayer";
 import AccountDetails from "./AccountDetails";
 import {
@@ -19,7 +18,7 @@ export const SettingsDropDown = () => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="icon">
-          <FontAwesomeIcon icon={faGear} />
+          <Settings size={16} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent sideOffset={20}>

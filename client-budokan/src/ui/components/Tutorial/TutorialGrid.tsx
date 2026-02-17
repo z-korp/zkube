@@ -22,7 +22,7 @@ import {
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { BonusType } from "@/dojo/game/types/bonus";
 import BlockContainer from "./TutorialBlock";
 import ConfettiExplosion from "../ConfettiExplosion";

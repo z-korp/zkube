@@ -1,17 +1,10 @@
 import { Game } from "@/dojo/game/models/game";
 import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
-import {
-  faFire,
-  faGem,
-  faLayerGroup,
-  faRotateRight,
-  faTrophy,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useNavigate } from "react-router-dom";
 import { useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
+import { Flame, Gem, Layers, RotateCw, Trophy } from "lucide-react";
 
 interface GameOverDialogProps {
   isOpen: boolean;
@@ -211,7 +204,7 @@ app.zkube.xyz`;
               )}
             </div>
             <div className="text-lg text-slate-400 flex items-center justify-center gap-2">
-              <FontAwesomeIcon icon={faLayerGroup} className="text-purple-400" />
+              <Layers size={16} className="text-purple-400" />
               <span>Reached Level {game.level}</span>
             </div>
           </motion.div>
@@ -225,7 +218,7 @@ app.zkube.xyz`;
             <div className="flex flex-col items-center gap-1 bg-slate-800/60 px-4 py-3 rounded-lg flex-1 border border-cyan-500/20">
               <div className="text-3xl flex gap-2 items-center text-cyan-400 font-bold">
                 {game.totalScore.toLocaleString()}
-                <FontAwesomeIcon icon={faGem} className="text-2xl" />
+                <Gem size={24} className="text-2xl" />
               </div>
               <div className="text-xs text-slate-400">Score</div>
             </div>
@@ -243,7 +236,7 @@ app.zkube.xyz`;
             <div className="flex flex-col items-center gap-1 bg-slate-800/50 px-3 py-3 rounded-lg flex-1">
               <div className="text-2xl flex gap-1.5 items-center text-orange-500">
                 {game.maxComboRun}
-                <FontAwesomeIcon icon={faFire} className="text-xl" />
+                <Flame size={20} className="text-xl" />
               </div>
               <div className="text-xs text-slate-400">Best Combo</div>
             </div>
@@ -255,7 +248,7 @@ app.zkube.xyz`;
               variants={itemVariants}
               className="text-center text-sm text-slate-500"
             >
-              <FontAwesomeIcon icon={faTrophy} className="text-yellow-600 mr-1.5" />
+              <Trophy size={16} className="text-yellow-600 mr-1.5" />
               Your best: Level {playerMeta.bestLevel}
             </motion.div>
           )}
@@ -267,7 +260,7 @@ app.zkube.xyz`;
               onClick={handlePlayAgain}
               className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold rounded-lg px-4 py-3.5 transition-all shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40"
             >
-              <FontAwesomeIcon icon={faRotateRight} />
+              <RotateCw size={16} />
               <span>Play Again</span>
             </button>
 

@@ -1,8 +1,7 @@
 import { Button } from "@/ui/elements/button";
 import { Slider } from "@/ui/elements/slider";
 import { useMusicPlayer } from "@/contexts/hooks";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faVolumeHigh, faVolumeMute } from "@fortawesome/free-solid-svg-icons";
+import { Volume2, VolumeX } from "lucide-react";
 
 export const MusicPlayer = () => {
   const {
@@ -34,9 +33,9 @@ export const MusicPlayer = () => {
           size={"sm"}
         >
           {isPlaying ? (
-            <FontAwesomeIcon className="h-6 w-6" icon={faVolumeHigh} />
+            <Volume2 className="h-6 w-6" size={16} />
           ) : (
-            <FontAwesomeIcon className="h-6 w-6" icon={faVolumeMute} />
+            <VolumeX className="h-6 w-6" size={16} />
           )}
         </Button>
         <Slider
@@ -55,9 +54,9 @@ export const MusicPlayer = () => {
           size={"sm"}
         >
           {isPlaying ? (
-            <FontAwesomeIcon className="h-6 w-6" icon={faVolumeHigh} />
+            <Volume2 className="h-6 w-6" size={16} />
           ) : (
-            <FontAwesomeIcon className="h-6 w-6" icon={faVolumeMute} />
+            <VolumeX className="h-6 w-6" size={16} />
           )}
         </Button>
         <Slider

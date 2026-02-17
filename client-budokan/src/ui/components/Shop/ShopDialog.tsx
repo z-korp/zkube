@@ -13,11 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/ui/elements/tooltip";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faArrowUp,
-  faCircleInfo,
-} from "@fortawesome/free-solid-svg-icons";
+import { ArrowUp, Info } from "lucide-react";
 
 interface ShopDialogProps {
   isOpen: boolean;
@@ -83,7 +79,7 @@ const InfoTip = ({ text }: { text: string }) => (
     <Tooltip>
       <TooltipTrigger asChild>
         <span className="cursor-help ml-1 text-slate-500 hover:text-slate-300 transition-colors">
-          <FontAwesomeIcon icon={faCircleInfo} className="text-[10px]" />
+          <Info size={10} className="text-[10px]" />
         </span>
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-[200px] text-xs">
@@ -393,10 +389,7 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
             {/* Header */}
             <div className="flex items-center gap-2 mb-2">
               <div className="w-7 h-7 rounded-full bg-purple-500/20 flex items-center justify-center">
-                <FontAwesomeIcon
-                  icon={faArrowUp}
-                  className="text-purple-400 text-xs"
-                />
+                <ArrowUp size={12} className="text-purple-400 text-xs" />
               </div>
               <span className="text-xs font-semibold">Bridging</span>
               <InfoTip text="Bring cubes from your wallet into a run to spend at the in-game shop." />

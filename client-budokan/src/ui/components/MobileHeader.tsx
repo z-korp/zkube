@@ -1,5 +1,3 @@
-import { faBars } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Drawer,
   DrawerTrigger,
@@ -20,6 +18,7 @@ import CubeBalance from "./CubeBalance";
 import { ShopButton } from "./Shop/ShopButton";
 import { QuestsButton } from "./Quest/QuestsButton";
 import { AchievementsButton } from "./AchievementsButton";
+import { Menu } from "lucide-react";
 
 const TUTORIAL_PROGRESS_KEY = "zkube_tutorial_step";
 
@@ -75,7 +74,7 @@ const MobileHeader = ({
         onOpenChange={setIsDrawerOpen}
       >
         <DrawerTrigger>
-          <FontAwesomeIcon icon={faBars} size="xl" />
+          <Menu size={24} />
         </DrawerTrigger>
         <DrawerContent>
           <DrawerHeader>

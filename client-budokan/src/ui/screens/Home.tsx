@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Header } from "@/ui/containers/Header";
 import BackGroundBoard from "../components/BackgroundBoard";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
@@ -13,12 +13,7 @@ import HeaderBalance from "../components/HeaderBalance";
 import { PlayFreeGame } from "../actions/PlayFreeGame";
 import { useGame } from "@/hooks/useGame";
 import Tutorial from "../components/Tutorial/Tutorial";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faFire,
-  faStar,
-  faRotateRight,
-} from "@fortawesome/free-solid-svg-icons";
+import { Flame, Star, RotateCw } from "lucide-react";
 import MaxComboIcon from "../components/MaxComboIcon";
 import GameBoard from "../components/GameBoard";
 import { useGrid } from "@/hooks/useGrid";
@@ -492,7 +487,7 @@ export const Home = () => {
               disabled={myGamesLoading}
               className="h-8 w-8 border-white/30 text-white hover:bg-white/10"
             >
-              <FontAwesomeIcon icon={faRotateRight} />
+              <RotateCw size={16} />
             </Button>
           </div>
         </div>
@@ -571,17 +566,11 @@ export const Home = () => {
                             <div className="flex gap-4 justify-center items-center">
                               <div className="grow text-4xl flex gap-2 justify-end">
                                 {game.score}
-                                <FontAwesomeIcon
-                                  icon={faStar}
-                                  className="text-yellow-500"
-                                />
+                                <Star size={16} className="text-yellow-500" />
                               </div>
                               <div className="grow text-4xl flex gap-2 justify-end">
                                 {game.combo}
-                                <FontAwesomeIcon
-                                  icon={faFire}
-                                  className="text-slate-700"
-                                />
+                                <Flame size={16} className="text-slate-700" />
                               </div>
                               <div className="grow text-4xl flex gap-2 justify-end">
                                 {game.max_combo}

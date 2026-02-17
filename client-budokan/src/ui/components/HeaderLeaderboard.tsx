@@ -15,8 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/ui/elements/table";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faRotateRight } from "@fortawesome/free-solid-svg-icons";
+import { RotateCw } from "lucide-react";
 import { useGameTokens } from "metagame-sdk/sql";
 import type { GameTokenData } from "metagame-sdk";
 import {
@@ -164,7 +163,7 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
             className="h-8 w-8"
             title="Refresh leaderboard"
           >
-            <FontAwesomeIcon icon={faRotateRight} className={loading ? "animate-spin" : ""} />
+            <RotateCw size={16} className={loading ? "animate-spin" : ""} />
           </Button>
         </DialogHeader>
         <div className="flex-grow min-h-[460px] flex flex-col">

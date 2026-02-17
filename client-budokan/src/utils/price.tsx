@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { ethers } from "ethers";
 import { symbolImages } from "./tokenImages";
 
 export type Prize = {
@@ -14,7 +13,7 @@ export const formatPrize = (
   token_symbol: string,
   symbolNode?: ReactNode,
 ): Prize => {
-  const rawEthPrize = ethers.utils.formatEther(rawPrize);
+  const rawEthPrize = (Number(rawPrize) / 1e18).toFixed(6);
   const truncatedPrize = parseFloat(rawEthPrize).toFixed(2);
 
   // Check if we have an image for this token

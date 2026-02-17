@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFire, faCircleInfo, faCheck, faBan } from "@fortawesome/free-solid-svg-icons";
-import { motion, AnimatePresence } from "framer-motion";
+import { Flame, Info, Check, Ban } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import { generateLevelConfig } from "@/dojo/game/types/level";
 import type { LevelConfig } from "@/dojo/game/types/level";
@@ -349,7 +348,7 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
                         animate={{ scale: 1, rotate: 0 }}
                         transition={{ type: "spring", stiffness: 300, damping: 15 }}
                       >
-                        <FontAwesomeIcon icon={faCheck} className="text-green-400" width={8} height={8} />
+                        <Check className="text-green-400" size={8} />
                       </motion.div>
                     )}
                   </div>
@@ -425,13 +424,13 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
                         animate={{ rotate: [0, -10, 10, 0] }}
                         transition={{ duration: 0.4 }}
                       >
-                        <FontAwesomeIcon icon={faBan} width={8} height={8} />
+                        <Ban size={8} />
                       </motion.div>
                       <span>Bonus used</span>
                     </>
                   ) : (
                     <>
-                      <FontAwesomeIcon icon={faCheck} width={8} height={8} />
+                      <Check size={8} />
                       <span>No Bonus</span>
                     </>
                   )}
@@ -488,7 +487,7 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
                       {constraint2Progress}/{levelConfig.constraint2.requiredCount}
                     </span>
                     {constraint2Satisfied && (
-                      <FontAwesomeIcon icon={faCheck} className="text-green-400" width={8} height={8} />
+                      <Check className="text-green-400" size={8} />
                     )}
                   </div>
                 </div>
@@ -522,12 +521,12 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
                 >
                   {bonusUsedThisLevel ? (
                     <>
-                      <FontAwesomeIcon icon={faBan} width={8} height={8} />
+                      <Ban size={8} />
                       <span>Bonus #2</span>
                     </>
                   ) : (
                     <>
-                      <FontAwesomeIcon icon={faCheck} width={8} height={8} />
+                      <Check size={8} />
                       <span>No Bonus #2</span>
                     </>
                   )}
@@ -561,11 +560,9 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
                   type="button"
                   className="p-1 hover:bg-slate-700/50 rounded transition-colors cursor-help"
                 >
-                  <FontAwesomeIcon
-                    icon={faCircleInfo}
+                  <Info
                     className="text-slate-400 hover:text-slate-300"
-                    width={14}
-                    height={14}
+                    size={14}
                   />
                 </button>
               </TooltipTrigger>
@@ -628,11 +625,9 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
             <span className={`${isMdOrLarger ? "text-sm" : "text-xs"} font-bold text-orange-400`}>
               {displayCombo}
             </span>
-            <FontAwesomeIcon
-              icon={faFire}
+            <Flame
               className="text-orange-400"
-              width={isMdOrLarger ? 14 : 12}
-              height={isMdOrLarger ? 14 : 12}
+              size={isMdOrLarger ? 14 : 12}
             />
           </div>
         )}

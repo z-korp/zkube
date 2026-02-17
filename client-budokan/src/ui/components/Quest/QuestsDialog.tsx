@@ -4,10 +4,9 @@ import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { QuestFamilyCard } from "./QuestFamilyCard";
 import { useMemo, useCallback, useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faScroll, faSpinner, faTrophy } from "@fortawesome/free-solid-svg-icons";
 import { shortString } from "starknet";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
+import { Loader2, Scroll, Trophy } from "lucide-react";
 
 interface QuestsDialogProps {
   isOpen: boolean;
@@ -69,7 +68,7 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
         className="sm:max-w-[520px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-5 py-5 max-h-[85vh] overflow-hidden gap-0"
       >
         <DialogTitle className="text-2xl text-center mb-3 flex items-center justify-center gap-2">
-          <FontAwesomeIcon icon={faScroll} className="text-yellow-400" />
+          <Scroll size={16} className="text-yellow-400" />
           Daily Quests
         </DialogTitle>
 
@@ -86,7 +85,7 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
         <div className="flex-1 overflow-y-auto space-y-4 pr-1">
           {status === "loading" ? (
             <div className="flex items-center justify-center py-10 text-slate-400">
-              <FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" />
+              <Loader2 size={16} className="animate-spin mr-2" />
               Loading quests...
             </div>
           ) : questFamilies.length === 0 ? (
@@ -108,7 +107,7 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
               {finisherFamily && (
                 <>
                   <div className="text-xs text-slate-500 uppercase tracking-wider mt-2 mb-1 flex items-center gap-2">
-                    <FontAwesomeIcon icon={faTrophy} className="text-yellow-500" />
+                    <Trophy size={16} className="text-yellow-500" />
                     <span>Complete all quests</span>
                   </div>
                   <DailyChampionCard 
@@ -197,8 +196,8 @@ const DailyChampionCard: React.FC<DailyChampionCardProps> = ({
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <FontAwesomeIcon 
-            icon={faTrophy} 
+          <Trophy
+            size={20}
             className={`text-xl ${isClaimed ? "text-yellow-600" : canClaim ? "text-yellow-400" : "text-slate-500"}`}
           />
           <div>
@@ -245,10 +244,10 @@ const DailyChampionCard: React.FC<DailyChampionCardProps> = ({
           className="w-full bg-yellow-600 hover:bg-yellow-500 text-white font-semibold h-10 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
         >
           {isClaiming ? (
-            <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+            <Loader2 size={16} className="animate-spin" />
           ) : (
             <>
-              <FontAwesomeIcon icon={faTrophy} />
+              <Trophy size={16} />
               <span>Claim Daily Champion Reward!</span>
             </>
           )}

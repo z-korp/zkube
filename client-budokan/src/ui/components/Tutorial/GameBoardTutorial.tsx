@@ -10,9 +10,8 @@ import TutorialGrid from "./TutorialGrid";
 import BonusButton from "../BonusButton";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import ImageAssets from "@/ui/theme/ImageAssets";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFire, faCheck } from "@fortawesome/free-solid-svg-icons";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
+import { Check, Flame } from "lucide-react";
 
 interface GameBoardProps {
   initialGrid: number[][];
@@ -301,11 +300,9 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
                 <span className={`${isMdOrLarger ? "text-lg" : "text-base"} font-bold text-orange-400`}>
                   {optimisticCombo}
                 </span>
-                <FontAwesomeIcon
-                  icon={faFire}
+                <Flame
                   className="text-orange-400"
-                  width={isMdOrLarger ? 14 : 12}
-                  height={isMdOrLarger ? 14 : 12}
+                  size={isMdOrLarger ? 14 : 12}
                 />
               </div>
             )}
@@ -322,11 +319,9 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
                 } font-medium`}>
                   2+ lines
                 </span>
-                <FontAwesomeIcon
-                  icon={faCheck}
+                <Check
                   className={constraintSatisfied ? "text-green-400" : "text-slate-500"}
-                  width={10}
-                  height={10}
+                  size={10}
                 />
               </div>
             )}

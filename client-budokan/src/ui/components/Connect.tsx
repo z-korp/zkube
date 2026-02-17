@@ -1,7 +1,6 @@
 import { useConnect } from "@starknet-react/core";
 import { Button } from "@/ui/elements/button";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGamepad } from "@fortawesome/free-solid-svg-icons";
+import { Gamepad2 } from "lucide-react";
 
 const Connect = () => {
   const { connect, connectors, isPending } = useConnect();
@@ -24,7 +23,7 @@ const Connect = () => {
       isLoading={isPending}
       className="gap-2"
     >
-      <FontAwesomeIcon icon={faGamepad} />
+      <Gamepad2 size={16} />
       {isPending ? "Connecting..." : "Log In"}
     </Button>
   );

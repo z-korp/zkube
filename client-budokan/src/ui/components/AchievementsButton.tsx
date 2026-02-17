@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import { Button } from "@/ui/elements/button";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrophy } from "@fortawesome/free-solid-svg-icons";
+import { Trophy } from "lucide-react";
 import { useAccount } from "@starknet-react/core";
 import ControllerConnector from "@cartridge/connector/controller";
 
@@ -32,7 +31,7 @@ export const AchievementsButton: React.FC<AchievementsButtonProps> = ({
       className={className}
       title="View Achievements"
     >
-      <FontAwesomeIcon icon={faTrophy} className={iconOnly ? "" : "mr-2"} />
+      <Trophy size={16} className={iconOnly ? "" : "mr-2"} />
       {!iconOnly && "Trophies"}
     </Button>
   );

@@ -18,10 +18,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/ui/elements/alert-dialog";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrophy } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "@/ui/elements/button";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
+import { Trophy } from "lucide-react";
 
 import {
   TUTORIAL_STEPS,
@@ -293,7 +292,7 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
             </AlertDialogTitle>
             <AlertDialogDescription></AlertDialogDescription>
             <div className="flex flex-col items-center justify-center gap-6 text-sm text-muted-foreground">
-              <FontAwesomeIcon size="2x" icon={faTrophy} color="gold" />
+              <Trophy size={28} className="text-[gold]" />
               <p>You have successfully completed Step {tutorialStep}.</p>
             </div>
           </AlertDialogHeader>

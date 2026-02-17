@@ -1,14 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/ui/elements/button";
 import type { QuestProps } from "@/contexts/quests";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faLock,
-  faCheck,
-  faSquare,
-  faSquareCheck,
-} from "@fortawesome/free-solid-svg-icons";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
+import { Check, Lock, Square, SquareCheck } from "lucide-react";
 
 interface QuestCardProps {
   quest: QuestProps;
@@ -94,7 +88,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest, onClaim }) => {
           {/* Title row with lock/check icon */}
           <div className="flex items-center gap-2">
             {isLocked && (
-              <FontAwesomeIcon icon={faLock} className="text-slate-500 text-sm" />
+              <Lock size={14} className="text-slate-500 text-sm" />
             )}
             <h3 className="text-lg font-semibold text-white tracking-wide uppercase truncate">
               {quest.name}
@@ -113,12 +107,16 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest, onClaim }) => {
             <div className={`flex items-center gap-2 ${
               isClaimed ? "text-slate-500" : "text-slate-300"
             }`}>
-              <FontAwesomeIcon 
-                icon={isClaimed || taskCount >= taskTotal ? faSquareCheck : faSquare} 
-                className={`text-sm ${
-                  isClaimed ? "text-slate-500" : taskCount >= taskTotal ? "text-green-400" : "text-slate-400"
-                }`}
-              />
+              {isClaimed || taskCount >= taskTotal ? (
+                <SquareCheck
+                  size={14}
+                  className={`text-sm ${
+                    isClaimed ? "text-slate-500" : "text-green-400"
+                  }`}
+                />
+              ) : (
+                <Square size={14} className="text-sm text-slate-400" />
+              )}
               <span className="text-sm truncate">
                 {task.description}
               </span>
@@ -158,7 +156,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest, onClaim }) => {
         {/* Count display */}
         <p className="flex items-center gap-2 text-sm text-white font-medium min-w-fit">
           {taskCount >= taskTotal && (
-            <FontAwesomeIcon icon={faCheck} className="text-green-400 text-xs" />
+            <Check size={12} className="text-green-400 text-xs" />
           )}
           <span>
             {taskCount} of {taskTotal}

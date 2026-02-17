@@ -1,5 +1,5 @@
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { useMediaQuery } from "react-responsive";
 import { Button } from "@/ui/elements/button";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";

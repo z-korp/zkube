@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
 import { Slider } from "@/ui/elements/slider";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import {

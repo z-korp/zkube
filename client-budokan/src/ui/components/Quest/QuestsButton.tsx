@@ -1,9 +1,8 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/ui/elements/button";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faScroll } from "@fortawesome/free-solid-svg-icons";
 import { QuestsDialog } from "./QuestsDialog";
 import { useQuests } from "@/contexts/quests";
+import { Scroll } from "lucide-react";
 
 interface QuestsButtonProps {
   className?: string;
@@ -26,7 +25,7 @@ export const QuestsButton: React.FC<QuestsButtonProps> = ({ className = "" }) =>
         onClick={() => setIsOpen(true)}
         className={`relative ${className}`}
       >
-        <FontAwesomeIcon icon={faScroll} className="mr-2" />
+        <Scroll size={16} className="mr-2" />
         Quests
         {claimableCount > 0 && (
           <span className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-500 text-black text-xs font-bold rounded-full flex items-center justify-center">

@@ -1,15 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faCheck,
-  faTrophy,
-} from "@fortawesome/free-solid-svg-icons";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { generateLevelConfig } from "@/dojo/game/types/level";
 import { ConstraintType } from "@/dojo/game/types/constraint";
 import { isInGameShopAvailable } from "@/dojo/game/helpers/runDataPacking";
 import { Button } from "../elements/button";
+import { Check, Trophy } from "lucide-react";
 
 interface LevelCompleteDialogProps {
   isOpen: boolean;
@@ -205,10 +201,10 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
           {/* Score */}
           <div className="flex justify-between items-center bg-slate-800/50 px-3 py-2 rounded-lg">
             <span className="text-slate-300 text-sm">Score</span>
-            <span className="text-green-400 font-semibold text-sm flex items-center gap-2">
-              <FontAwesomeIcon icon={faCheck} className="text-green-400" />
-              {levelFinalScore} / {levelConfig.pointsRequired}
-            </span>
+              <span className="text-green-400 font-semibold text-sm flex items-center gap-2">
+                <Check size={16} className="text-green-400" />
+                {levelFinalScore} / {levelConfig.pointsRequired}
+              </span>
           </div>
 
           {/* Moves */}
@@ -232,7 +228,7 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
               transition={{ duration: 0.6, delay: 0.3 }}
             >
               <span className="text-slate-300 text-sm flex items-center gap-2">
-                <FontAwesomeIcon icon={faTrophy} className="text-green-400" />
+                <Trophy size={16} className="text-green-400" />
                 {levelConfig.constraint.getDescription()}
               </span>
               <motion.span
@@ -241,7 +237,7 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
                 animate={animationPhase >= 2 ? { scale: 1 } : { scale: 0 }}
                 transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.5 }}
               >
-                <FontAwesomeIcon icon={faCheck} />
+                <Check size={16} />
               </motion.span>
             </motion.div>
           )}

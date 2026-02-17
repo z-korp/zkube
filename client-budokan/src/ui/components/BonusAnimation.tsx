@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { BonusType, Bonus } from "@/dojo/game/types/bonus";
 import { Totem } from "@/dojo/game/elements/bonuses/totem";
 import { Wave } from "@/dojo/game/elements/bonuses/wave";

@@ -1,4 +1,3 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Dialog,
   DialogContent,
@@ -9,11 +8,11 @@ import {
   DialogTrigger,
 } from "../elements/dialog";
 import { ScrollArea } from "@/ui/elements/scroll-area";
-import { faHeart, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { useParticipationsFromChest } from "@/hooks/useParticipationsFromChest";
 import { usePlayerList } from "@/hooks/usePlayerList";
 import { Chest } from "@/dojo/game/models/chest";
 import { formatPrize } from "@/utils/price";
+import { Heart, Users } from "lucide-react";
 
 const { VITE_PUBLIC_GAME_TOKEN_SYMBOL } = import.meta.env;
 
@@ -39,7 +38,7 @@ export function DialogPrizePoolContributors({ chest }: { chest: Chest }) {
         <button
           className={`w-10 h-10 rounded-full border border-sky-300 transform }`}
         >
-          <FontAwesomeIcon icon={faUsers} className="text-sky-300" />
+          <Users size={16} className="text-sky-300" />
         </button>
       </DialogTrigger>
       <DialogContent
@@ -97,7 +96,7 @@ export function DialogPrizePoolContributors({ chest }: { chest: Chest }) {
           </div>
         </ScrollArea>
         <DialogFooter>
-          <FontAwesomeIcon icon={faHeart} className="mr-4" />
+          <Heart size={16} className="mr-4" />
         </DialogFooter>
       </DialogContent>
     </Dialog>
