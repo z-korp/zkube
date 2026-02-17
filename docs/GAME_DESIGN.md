@@ -520,10 +520,10 @@ contracts/src/
     └── difficulties/         # Difficulty configurations
 ```
 
-### Client Files (mobile-app)
+### Client Files (client-budokan)
 
 ```
-mobile-app/src/
+client-budokan/src/
 ├── dojo/
 │   ├── game/
 │   │   ├── models/game.ts         # Game model
@@ -536,12 +536,11 @@ mobile-app/src/
 │   ├── useGame.tsx                # Game state hook
 │   ├── usePlayerMeta.tsx          # Meta progression hook
 │   └── useCubeBalance.tsx         # ERC-1155 balance
-└── pixi/
-    ├── components/pages/
-    │   ├── PlayScreen.tsx         # Game play screen
-    │   └── LoadoutPage.tsx        # Bonus selection
-    └── hooks/
-        └── usePlayGame.ts         # Play logic + bonus dispatch
+└── ui/
+    ├── screens/
+    │   └── Play.tsx               # Game play screen
+    └── components/
+        └── Shop/LoadoutDialog.tsx # Bonus selection
 ```
 
 ---

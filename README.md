@@ -59,7 +59,6 @@ See [CLAUDE.md](./CLAUDE.md) for detailed development documentation.
 |----------|-------------|
 | [CLAUDE.md](./CLAUDE.md) | Project architecture and development guide |
 | [docs/GAME_DESIGN.md](./docs/GAME_DESIGN.md) | Complete game design document |
-| [docs/QUEST_SYSTEM.md](./docs/QUEST_SYSTEM.md) | Daily quest implementation |
 | [docs/DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md) | Network deployment guide |
 | [contracts/CLAUDE.md](./contracts/CLAUDE.md) | Smart contract documentation |
 | [client-budokan/CLAUDE.md](./client-budokan/CLAUDE.md) | Frontend documentation |

@@ -21,15 +21,14 @@ zkube/
 ├── packages/
 │   ├── game_erc721/        # Legacy ERC721 contract (replaced by FullTokenContract)
 │   └── token/              # ERC20 test token (Fake LORD)
-├── client-budokan/         # React/TypeScript frontend (BEING DROPPED)
-├── mobile-app/             # PixiJS + Capacitor mobile app (ACTIVE FRONTEND)
+├── client-budokan/         # React/TypeScript frontend (ACTIVE)
 │   ├── src/
-│   │   ├── pixi/           # PixiJS game rendering (components, hooks, utils)
 │   │   ├── dojo/           # Dojo client setup and game helpers
-│   │   ├── ui/             # React UI screens (Home, Settings, etc.)
-│   │   └── hooks/          # Shared React hooks
-│   ├── ios/                # Capacitor iOS project
-│   └── android/            # Capacitor Android project
+│   │   ├── ui/             # React UI screens (Home, Play, Loading)
+│   │   ├── hooks/          # Shared React hooks
+│   │   ├── utils/          # Utility functions
+│   │   ├── stores/         # Zustand state stores
+│   │   └── contexts/       # React context providers
 ├── assets/                 # Game graphics, sounds, and media
 ├── scripts/                # Deployment and utility scripts
 ├── docs/                   # Documentation
@@ -40,25 +39,16 @@ zkube/
 
 ## Technology Stack
 
-### Mobile App (`mobile-app/`) — ACTIVE FRONTEND
-- **Renderer:** PixiJS 8.16.0 + @pixi/react 8.0.5
-- **Framework:** React 19.2.4 + TypeScript 5.8.3
-- **Build Tool:** Vite 6.3.5
-- **Native:** Capacitor 8.0.2 (iOS + Android)
-- **Styling:** TailwindCSS 3.4.4
-- **State Management:** Zustand 4.5.5, MobX 6.13.2, RECS (Reactive ECS)
-- **Starknet:** starknet 8.5.2, @starknet-react/core 5.0.1
-- **Dojo:** @dojoengine/sdk 1.8.1, @dojoengine/core 1.8.1
-- **Wallet:** Cartridge Controller 0.10.7
-- **Audio:** @pixi/sound 6.0.1
-
-### Legacy Frontend (`client-budokan/`) — BEING DROPPED
+### Frontend (`client-budokan/`)
 - **Framework:** React 18.3.1 + TypeScript 5.8.3
 - **Build Tool:** Vite 6.3.5
 - **Styling:** TailwindCSS 3.4.4
 - **State Management:** Zustand 4.5.5, MobX 6.13.2, RECS (Reactive ECS)
 - **Animation:** Framer Motion 11.2.10, GSAP 3.12.5
 - **Audio:** use-sound (Howler.js)
+- **Starknet:** starknet 8.5.2, @starknet-react/core 5.0.1
+- **Dojo:** @dojoengine/sdk 1.8.1, @dojoengine/core 1.8.1
+- **Wallet:** Cartridge Controller 0.10.7
 
 ### Smart Contracts (`contracts/`)
 - **Language:** Cairo 2.13.1
@@ -240,19 +230,12 @@ Daily quests for earning CUBE tokens (102 CUBE/day total):
 
 ## Key Files Reference
 
-### Mobile App Entry Points (Active)
-- `mobile-app/src/main.tsx` - App initialization and providers
-- `mobile-app/src/App.tsx` - Router setup
-- `mobile-app/src/dojo/setup.ts` - Dojo client initialization
-- `mobile-app/src/pixi/components/pages/MainScreen.tsx` - PixiJS page navigator
-- `mobile-app/src/pixi/components/map/MapPage.tsx` - Progression map screen
-- `mobile-app/src/pixi/components/pages/PlayScreen.tsx` - Game play screen
-- `mobile-app/src/ui/screens/Home.tsx` - Home/MyGames screen
-
-### Legacy Frontend Entry Points (Being Dropped)
+### Frontend Entry Points
 - `client-budokan/src/main.tsx` - App initialization and providers
 - `client-budokan/src/App.tsx` - Router setup
 - `client-budokan/src/dojo/setup.ts` - Dojo client initialization
+- `client-budokan/src/ui/screens/Home.tsx` - Home screen
+- `client-budokan/src/ui/screens/Play.tsx` - Game play screen
 - `client-budokan/dojo.config.ts` - Network configuration
 
 ### Smart Contract Entry Points
@@ -281,20 +264,7 @@ Daily quests for earning CUBE tokens (102 CUBE/day total):
 
 ## Development Commands
 
-### Mobile App (Active Frontend)
-```bash
-cd mobile-app
-pnpm slot        # Local development (slot, port 5126)
-pnpm sepolia     # Sepolia testnet
-pnpm mainnet     # Mainnet
-pnpm build       # Production build (tsc + vite)
-pnpm test        # Run tests (vitest)
-pnpm build:cap   # Build + Capacitor copy
-pnpm cap:ios     # Open Xcode project
-pnpm cap:android # Open Android Studio project
-```
-
-### Legacy Frontend (Being Dropped)
+### Frontend
 ```bash
 cd client-budokan
 pnpm slot        # Local development (slot)
@@ -341,10 +311,10 @@ Models are prefixed with this namespace in Torii queries:
 ## Important Patterns
 
 ### Reuse Existing Components
-- Check `mobile-app/src/pixi/components/` for PixiJS game components
-- Check `mobile-app/src/ui/` for React UI screens
+- Check `client-budokan/src/ui/components/` for React UI components
+- Check `client-budokan/src/ui/` for React UI screens
 - Check `contracts/src/helpers/` for utility functions
-- Use existing hooks in `mobile-app/src/hooks/` and `mobile-app/src/pixi/hooks/`
+- Use existing hooks in `client-budokan/src/hooks/`
 
 ### State Management
 - Game state: RECS via Dojo (reactive, synced from Torii)
@@ -353,7 +323,7 @@ Models are prefixed with this namespace in Torii queries:
 - Quests: React Context (`QuestsProvider`)
 
 ### Transaction Flow
-- All game transactions go through `mobile-app/src/dojo/systems.ts`
+- All game transactions go through `client-budokan/src/dojo/systems.ts`
 - Transactions are wrapped with loading toasts and error handling
 - Move transactions update `moveTxStore` for UI feedback
 
@@ -399,8 +369,8 @@ const normalizeEntityId = (entityId: string): Entity => {
 
 ### Frontend Tests
 - Framework: Vitest 2.1.4
-- Location: `mobile-app/src/` (co-located test files)
-- Run: `cd mobile-app && pnpm test`
+- Location: `client-budokan/src/` (co-located test files)
+- Run: `cd client-budokan && pnpm test`
 
 ### Contract Tests
 - Framework: dojo_cairo_test 1.8.0
@@ -499,7 +469,7 @@ sozo migrate -P slot
 
 1. Copy manifest: `cp manifest_slot.json contracts/manifest_slot.json`
 2. Start Torii: `torii --config contracts/torii_slot.toml`
-3. Start client: `cd mobile-app && pnpm slot`
+3. Start client: `cd client-budokan && pnpm slot`
 
 #### Troubleshooting
 
@@ -521,7 +491,4 @@ See `/docs/` for detailed documentation:
 - **GAME_DESIGN.md** - Complete game design (levels, economy, bonuses, quests, achievements)
 - **CONFIGURABLE_SETTINGS.md** - GameSettings customization
 - **DEPLOYMENT_GUIDE.md** - Network deployment guide
-- **FUTURE_FEATURES.md** - Roadmap and planned features
-- **PROGRESSION_MAP.md** - Super Mario World-style level progression map
-- **ASSET_LIST.md** - Comprehensive asset inventory for mobile client
 - **references/** - External reference material (game-components, death-mountain, dark-shuffle, architecture analysis)
