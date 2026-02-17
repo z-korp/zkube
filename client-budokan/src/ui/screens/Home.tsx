@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import { useMusicPlayer } from "@/contexts/hooks";
 import { Button } from "@/ui/elements/button";
 import { useMediaQuery } from "react-responsive";
 import useViewport from "@/hooks/useViewport";
@@ -107,7 +108,12 @@ export const Home = () => {
   const [animationDone, setAnimationDone] = useState(false);
 
   const { theme, themeTemplate } = useTheme();
+  const { setMusicContext } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
+
+  useEffect(() => {
+    setMusicContext("main");
+  }, [setMusicContext]);
 
   const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
 

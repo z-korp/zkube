@@ -2,7 +2,7 @@ import Connect from "./Connect";
 import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
 import CubeBalance from "./CubeBalance";
 import { useCallback, useState, useMemo } from "react";
-import SettingsDropDown from "./SettingsDropDown";
+import SettingsDialog from "./SettingsDialog";
 import { useNavigate } from "react-router-dom";
 import { Controller } from "./Controller";
 import TutorialModal from "./Tutorial/TutorialModal";
@@ -101,7 +101,7 @@ const DesktopHeader = ({
           ACCOUNT_CONNECTOR === "controller" && <Connect />
         )}
         <div className="flex gap-4">
-          <SettingsDropDown />
+          <SettingsDialog />
         </div>
       </div>
     </div>

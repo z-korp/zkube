@@ -6,6 +6,7 @@ import ImageAssets from "@/ui/theme/ImageAssets";
 import PalmTree from "../components/PalmTree";
 import { useGame } from "@/hooks/useGame";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import { useMusicPlayer } from "@/contexts/hooks";
 import { Surrender } from "../actions/Surrender";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useMediaQuery } from "react-responsive";
@@ -82,6 +83,7 @@ export const Play = () => {
   const [isGameLoading, setIsGameLoading] = useState(true);
 
   const { theme, themeTemplate } = useTheme();
+  const { setMusicContext } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
   const gameGrid = useRef<HTMLDivElement>(null);
   const [isGameOn, setIsGameOn] = useState<"idle" | "isOn" | "isOver">("idle");
@@ -161,10 +163,15 @@ export const Play = () => {
     }
   }, [isGameLoading, game, account, gameId, isLoadoutOpen]);
 
-  // Reset the creation flag when gameId changes
   useEffect(() => {
     gameCreationAttemptedRef.current = false;
   }, [gameId]);
+
+  useEffect(() => {
+    const level = game?.level ?? 1;
+    const isBossLevel = level > 0 && level % 10 === 0;
+    setMusicContext(isBossLevel ? "boss" : "level");
+  }, [game?.level, setMusicContext]);
 
   const handleLoadoutConfirm = async (selectedBonuses: number[], cubesToBring: number) => {
     if (!account) return;
