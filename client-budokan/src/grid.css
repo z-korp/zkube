@@ -62,27 +62,23 @@
 }
 
 .block-1 {
-  background-image: url("/assets/block-1.png");
+  background-image: var(--theme-block-1-image, url("/assets/block-1.png"));
   background-size: cover;
-  /*background-color: lightgreen;*/
 }
 
 .block-2 {
-  background-image: url("/assets/block-2.png");
+  background-image: var(--theme-block-2-image, url("/assets/block-2.png"));
   background-size: cover;
-  /*background-color: lightcoral;*/
 }
 
 .block-3 {
-  background-image: url("/assets/block-3.png");
+  background-image: var(--theme-block-3-image, url("/assets/block-3.png"));
   background-size: cover;
-  /*background-color: lightskyblue;*/
 }
 
 .block-4 {
-  background-image: url("/assets/block-4.png");
+  background-image: var(--theme-block-4-image, url("/assets/block-4.png"));
   background-size: cover;
-  /*background-color: lightgoldenrodyellow;*/
 }
 
 @keyframes borderRotate {
@@ -117,18 +113,18 @@
 @keyframes fadeInOutDanger {
   0% {
     box-shadow:
-      inset 0.5em 0.5em rgba(255, 215, 0, 0),
-      inset -0.5em -0.5em rgba(255, 215, 0, 0);
+      inset 0.5em 0.5em transparent,
+      inset -0.5em -0.5em transparent;
   }
   50% {
     box-shadow:
-      inset 0.5em 0.5em 1em rgb(209, 18, 28),
-      inset -0.5em -0.5em 1em rgb(209, 18, 28);
+      inset 0.5em 0.5em 1em var(--theme-danger-zone, rgb(209, 18, 28)),
+      inset -0.5em -0.5em 1em var(--theme-danger-zone, rgb(209, 18, 28));
   }
   100% {
     box-shadow:
-      inset 0.5em 0.5em rgba(255, 215, 0, 0),
-      inset -0.5em -0.5em rgba(255, 215, 0, 0);
+      inset 0.5em 0.5em transparent,
+      inset -0.5em -0.5em transparent;
   }
 }
 

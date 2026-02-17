@@ -23,6 +23,8 @@ import { BonusType } from "@/dojo/game/types/bonus";
 import ConfettiExplosion from "./ConfettiExplosion";
 import type { ConfettiExplosionRef } from "./ConfettiExplosion";
 import { useMusicPlayer } from "@/contexts/hooks";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import { getThemeColors, type ThemeId } from "@/config/themes";
 import useGridAnimations from "@/hooks/useGridAnimations";
 import { useMoveStore } from "@/stores/moveTxStore";
 import { calculateFallDistance } from "@/utils/gridPhysics";
@@ -107,6 +109,8 @@ const Grid: React.FC<GridProps> = ({
   const [lineExplodedCount, setLineExplodedCount] = useState(0);
   const [blockBonus, setBlockBonus] = useState<Block | null>(null);
   const { playExplode, playSwipe } = useMusicPlayer();
+  const { themeTemplate } = useTheme();
+  const themeColors = getThemeColors(themeTemplate as ThemeId);
 
   // ==================== Custom Hooks ====================
 
@@ -602,7 +606,7 @@ const Grid: React.FC<GridProps> = ({
     <>
       <ConfettiExplosion
         ref={explosionRef}
-        colorSet={["#47D1D9", "#8BA3BC", "#1974D1", "#44A4D9", "#01040B"]}
+        colorSet={themeColors.particles.explosion}
       />
       <motion.div
         animate={shouldBounce ? { scale: [1, 1.1, 1, 1.1, 1] } : {}}
@@ -623,7 +627,7 @@ const Grid: React.FC<GridProps> = ({
               height: `${gridHeight * gridSize + borderSize}px`,
               width: `${gridWidth * gridSize + borderSize}px`,
               backgroundImage:
-                "linear-gradient(#1E293B 2px, transparent 2px), linear-gradient(to right, #1E293B 2px, #10172A 2px)",
+                "linear-gradient(var(--theme-grid-lines, #1E293B) 2px, transparent 2px), linear-gradient(to right, var(--theme-grid-lines, #1E293B) 2px, var(--theme-grid-bg, #10172A) 2px)",
               backgroundSize: `${gridSize}px ${gridSize}px`,
             }}
             onMouseMove={handleMouseMove}

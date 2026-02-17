@@ -659,7 +659,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
                 height: `${gridHeight * gridSize + 2}px`,
                 width: `${gridWidth * gridSize + 2}px`,
                 backgroundImage:
-                  "linear-gradient(#1E293B 2px, transparent 2px), linear-gradient(to right, #1E293B 2px, #10172A 2px)",
+                  "linear-gradient(var(--theme-grid-lines, #1E293B) 2px, transparent 2px), linear-gradient(to right, var(--theme-grid-lines, #1E293B) 2px, var(--theme-grid-bg, #10172A) 2px)",
                 backgroundSize: `${gridSize}px ${gridSize}px`,
               }}
               onMouseMove={handleMouseMove}
