@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import ReactDOM from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { setup } from "./dojo/setup.ts";
 import type { SetupResult } from "./dojo/setup.ts";
@@ -9,7 +9,12 @@ import { Loading } from "@/ui/screens/Loading";
 import { MusicPlayerProvider } from "./contexts/music";
 import { SoundPlayerProvider } from "./contexts/sound";
 import { ThemeProvider } from "./ui/elements/theme-provider/index";
-import { StarknetConfig, jsonRpcProvider, voyager } from "@starknet-react/core";
+import {
+  StarknetConfig,
+  jsonRpcProvider,
+  voyager,
+  type Connector,
+} from "@starknet-react/core";
 import { sepolia, mainnet, type NativeCurrency } from "@starknet-react/chains";
 import cartridgeConnector from "./cartridgeConnector";
 import { MetagameProvider } from "./contexts/MetagameProvider";
@@ -34,12 +39,12 @@ function rpc() {
   };
 }
 
-const root = ReactDOM.createRoot(
+const root = createRoot(
   document.getElementById("root") as HTMLElement
 );
 
 export function Main() {
-  const connectors = [cartridgeConnector];
+  const connectors: Connector[] = cartridgeConnector ? [cartridgeConnector] : [];
 
   const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
 
@@ -60,11 +65,6 @@ export function Main() {
   const slotChainId = VITE_PUBLIC_SLOT
     ? `WP_${VITE_PUBLIC_SLOT.toUpperCase().replace(/-/g, "_")}`
     : "WP_ZKUBE";
-
-  enum ChainId {
-    SN_MAIN = "SN_MAIN",
-    SN_SEPOLIA = "SN_SEPOLIA",
-  }
 
   //
   // currencies
@@ -97,6 +97,10 @@ export function Main() {
     testnet: true,
     nativeCurrency: ETH_KATANA,
     rpcUrls: {
+      default: { http: [VITE_PUBLIC_NODE_URL] },
+      public: { http: [VITE_PUBLIC_NODE_URL] },
+    },
+    paymasterRpcUrls: {
       default: { http: [VITE_PUBLIC_NODE_URL] },
       public: { http: [VITE_PUBLIC_NODE_URL] },
     },
