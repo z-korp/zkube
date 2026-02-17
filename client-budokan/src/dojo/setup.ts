@@ -7,26 +7,29 @@ import { defineContractComponents } from "./contractModels";
 import { world } from "./world.ts";
 import type { Config } from "../../dojo.config.ts";
 import { setupWorld } from "./contractSystems.ts";
+import { createLogger } from "@/utils/logger";
 
 export type SetupResult = Awaited<ReturnType<typeof setup>>;
 
 const { VITE_PUBLIC_NAMESPACE } = import.meta.env;
-const namespace = VITE_PUBLIC_NAMESPACE || "zkube_budo_v1_1_3";
+const namespace = VITE_PUBLIC_NAMESPACE || "zkube_budo_v1_2_0";
+const log = createLogger("dojo/setup");
 
 export async function setup({ ...config }: Config) {
-  console.log("[setup.ts] Initializing Dojo setup:", {
+  const worldAddress = config.manifest.world.address || "";
+
+  log.info("Initializing Dojo setup", {
     toriiUrl: config.toriiUrl,
-    worldAddress: config.manifest.world.address,
+    worldAddress,
     namespace,
   });
 
-  // Initialize Torii client for interacting with the Dojo network
   const toriiClient = await new torii.ToriiClient({
     toriiUrl: config.toriiUrl,
-    worldAddress: config.manifest.world.address || "",
+    worldAddress,
   });
 
-  console.log("[setup.ts] Torii client initialized");
+  log.info("Torii client initialized");
 
   // Define contract components based on the world configuration
   const contractComponents = defineContractComponents(world);
@@ -34,21 +37,19 @@ export async function setup({ ...config }: Config) {
   // Create client-side components that mirror the contract components
   const clientModels = models({ contractComponents });
 
-  // Sync Game, GameSeed, PlayerMeta, and GameSettingsMetadata models
-  // All use a single key (game_id or player address) so [undefined] VariableLen works
   const modelsToSync = [
     `${namespace}-Game`,
     `${namespace}-GameSeed`,
-    `${namespace}-PlayerMeta`,
-  ];
+    `${namespace}-GameLevel`,
+  ] as `${string}-${string}`[];
   const modelsToWatch = [
     `${namespace}-Game`,
     `${namespace}-GameSeed`,
+    `${namespace}-GameLevel`,
     `${namespace}-GameSettingsMetadata`,
-    `${namespace}-PlayerMeta`,
   ];
 
-  console.log("[setup.ts] Starting entity sync:", {
+  log.info("Starting entity sync", {
     modelsToSync,
     modelsToWatch,
     pollingInterval: 10000,
@@ -66,10 +67,10 @@ export async function setup({ ...config }: Config) {
     [],
     modelsToWatch,
     10000,
-    true
+    false
   );
 
-  console.log("[setup.ts] Entity sync started");
+  log.info("Entity sync started");
 
   // Set up the world client for interacting with smart contracts
   const client = setupWorld(config);
