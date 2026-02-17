@@ -87,13 +87,13 @@ const DEFAULT_CONFIG = {
   gridCols: 8,
   gridRows: 10,
   minCellSize: 28,
-  maxCellSize: 56,
+  maxCellSize: 80,
   baseStatsBarHeight: 32,
   baseProgressBarHeight: 26,
-  baseActionBarHeight: 64,
+  baseActionBarHeight: 80,
 };
 
-const FRAME_PAD = 12;
+const FRAME_PAD = 6;
 
 const readSafeInset = (name: '--safe-area-top' | '--safe-area-bottom'): number => {
   if (typeof window === 'undefined') return 0;
@@ -163,7 +163,7 @@ export function useFullscreenLayout(config: LayoutConfig = {}): FullscreenLayout
     const baseWidth = 375;
     const uiScale = Math.min(1.5, Math.max(0.8, screenWidth / baseWidth));
 
-    const padding = Math.round(10 * uiScale);
+    const padding = Math.round(6 * uiScale);
     const pillGap = Math.round(8 * uiScale);
     const framePad = FRAME_PAD;
 

@@ -269,7 +269,7 @@ const HomeTopBar = ({
 const HomePageContent = ({
   sw, sh, topBarH, isMobile, uiScale, cubeBalance,
   games, isConnected, username, onConnect, onProfileClick, onTrophyClick,
-  navigate,
+  navigate, onResumeGame,
 }: {
   sw: number;
   sh: number;
@@ -284,6 +284,7 @@ const HomePageContent = ({
   onProfileClick?: () => void;
   onTrophyClick?: () => void;
   navigate: (page: PageId) => void;
+  onResumeGame: (gameId: number) => void;
 }) => {
   const centerX = sw / 2;
   const logoMaxH = isMobile ? 80 : 120;
@@ -295,7 +296,17 @@ const HomePageContent = ({
   const btnGap = 12;
   const firstBtnY = logoY + logoMaxH / 2 + (isMobile ? 20 : 35);
 
-  const activeGamesCount = games.filter(g => !g.gameOver).length;
+  const activeGames = games.filter(g => !g.gameOver);
+  const activeGamesCount = activeGames.length;
+
+  const handlePlay = useCallback(() => {
+    if (activeGames.length > 0) {
+      // Resume most recent active game → go straight to map
+      onResumeGame(activeGames[0].tokenId);
+    } else {
+      navigate('loadout');
+    }
+  }, [activeGames, onResumeGame, navigate]);
 
   let btnIdx = 0;
   const playY = firstBtnY + (btnH + btnGap) * btnIdx++;
@@ -308,10 +319,11 @@ const HomePageContent = ({
       {/* Logo */}
       <Logo x={centerX} y={logoY} maxW={logoMaxW} maxH={logoMaxH} />
 
-      {/* Play Game */}
+      {/* Play Game — resumes active game (map) or starts new (loadout) */}
       <PixiButton x={centerX - btnW / 2} y={playY}
         width={btnW} height={btnH} variant="orange"
-        label="PLAY GAME" onPress={() => navigate('loadout')}
+        label={activeGamesCount > 0 ? "CONTINUE" : "PLAY GAME"}
+        onPress={handlePlay}
         textStyle={{ fontFamily: FONT_TITLE, fontSize: isMobile ? 20 : 24 }} />
 
       {/* My Games */}
@@ -467,6 +479,7 @@ const PageRenderer = (props: MainScreenProps & {
             isConnected={isConnected ?? false} username={username}
             onConnect={onConnect} onProfileClick={onProfileClick} onTrophyClick={onTrophyClick}
             navigate={navigate}
+            onResumeGame={handleNavigateToGame}
           />
         )}
 

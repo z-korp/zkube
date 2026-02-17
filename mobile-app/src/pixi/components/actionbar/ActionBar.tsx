@@ -50,17 +50,17 @@ export const ActionBar = ({
   );
   const barTex = useTextureWithFallback(barCandidates);
 
-  const buttonSize = Math.min(52, height - 12);
-  const buttonGap = Math.round(12);
+  const buttonSize = Math.min(68, Math.round(height * 0.7));
+  const buttonGap = Math.round(14);
   const bonusCount = bonusSlots.length;
 
-  const pillPadX = 16;
+  const pillPadX = 20;
   const pillPadY = 6;
 
   const bonusSectionWidth = bonusCount * buttonSize + (bonusCount - 1) * buttonGap;
 
-  const surrenderW = 34;
-  const surrenderH = buttonSize * 0.65;
+  const surrenderW = Math.round(buttonSize * 0.65);
+  const surrenderH = Math.round(buttonSize * 0.65);
 
   const comboWidth = 50;
   const totalContentW = bonusSectionWidth + (combo > 0 ? comboWidth + 8 : 0) + (showSurrender ? surrenderW + 8 : 0);

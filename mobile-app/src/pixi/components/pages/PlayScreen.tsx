@@ -10,7 +10,7 @@ import { ActionBar } from '../actionbar';
 import { ParticleSystem } from '../effects/ParticleSystem';
 import { ScorePopup } from '../effects/ScorePopup';
 import { ScreenShakeContainer, useScreenShake } from '../effects/ScreenShake';
-import { GameOverModal, VictoryModal, LevelCompleteModal, MenuModal, InGameShopModal } from '../modals';
+import { GameOverModal, VictoryModal, LevelCompleteModal, InGameShopModal } from '../modals';
 import { MapPage } from '../map/MapPage';
 import { ScorePanel } from '../game/ScorePanel';
 import { MovesPanel } from '../game/MovesPanel';
@@ -77,16 +77,18 @@ const SkyBackground = ({ w, h }: { w: number; h: number }) => {
     }
   }, [w, h]);
 
-  if (bgTex) {
+  if (bgTex && bgTex.width > 1 && bgTex.height > 1) {
     const scaleX = w / bgTex.width;
     const scaleY = h / bgTex.height;
     const scale = Math.max(scaleX, scaleY);
     const offX = (w - bgTex.width * scale) / 2;
-    const offY = (h - bgTex.height * scale) / 2;
+    // Bias toward top (0.25) instead of dead-center (0.5) so tiki/sky stays visible on desktop
+    const offY = (h - bgTex.height * scale) * 0.25;
     return <pixiSprite texture={bgTex} x={offX} y={offY} scale={{ x: scale, y: scale }} />;
   }
   return <pixiGraphics draw={drawGradient} />;
 };
+
 
 
 
@@ -221,7 +223,7 @@ const StatsBar = ({
       ) : null}
       <pixiGraphics draw={drawBar} />
 
-      <HudPillButton x={backBtnX} y={backBtnY} w={backBtnW} h={backBtnH} icon="☰" onClick={onHomeClick} />
+      <HudPillButton x={backBtnX} y={backBtnY} w={backBtnW} h={backBtnH} icon="🏠" onClick={onHomeClick} />
 
       <pixiText text={String(level)} x={levelBadgeCX} y={levelBadgeCY} anchor={0.5} style={levelStyle} />
 
@@ -448,7 +450,6 @@ export const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenPro
   }, [gameState.walletDisconnected, onGoHome]);
 
   const [isSurrendering, setIsSurrendering] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const {
     blocks, explodingRows, nextLine, nextLineConsumed: nextLineConsumed,
@@ -520,16 +521,15 @@ export const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenPro
     g.stroke({ color: 0x60a5fa, width: 1.5, alpha: 0.6 });
   }, []);
 
-  type ActiveModal = 'none' | 'menu' | 'gameOver' | 'victory' | 'levelComplete' | 'inGameShop' | 'map';
+  type ActiveModal = 'none' | 'gameOver' | 'victory' | 'levelComplete' | 'inGameShop' | 'map';
   const activeModal: ActiveModal = useMemo(() => {
     if (isGameOver && !isVictory) return 'gameOver';
     if (isVictory) return 'victory';
     if (isLevelComplete) return 'levelComplete';
     if (showMapView) return 'map';
     if (isInGameShopOpen) return 'inGameShop';
-    if (isMenuOpen) return 'menu';
     return 'none';
-  }, [isGameOver, isVictory, isLevelComplete, showMapView, isInGameShopOpen, isMenuOpen]);
+  }, [isGameOver, isVictory, isLevelComplete, showMapView, isInGameShopOpen]);
 
   const isInteractionBlocked = isTxProcessing || isSurrendering || activeModal !== 'none';
 
@@ -543,12 +543,6 @@ export const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenPro
       isLoading,
     });
   }, [isInteractionBlocked, isTxProcessing, isSurrendering, activeModal, blocks.length, isLoading]);
-
-  useEffect(() => {
-    if (isGameOver || isVictory || isLevelComplete || isInGameShopOpen || showMapView) {
-      setIsMenuOpen(false);
-    }
-  }, [isGameOver, isVictory, isLevelComplete, isInGameShopOpen, showMapView]);
 
   if (isLoading || blocks.length === 0) {
     playLog.info("showing LoadingScreen", { isLoading, blockCount: blocks.length });
@@ -566,7 +560,7 @@ export const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenPro
         level={level} levelScore={levelScore} targetScore={targetScore}
         moves={moves} maxMoves={maxMoves}
         combo={combo} isInDanger={isPlayerInDanger} cubeBalance={cubeBalance}
-        onHomeClick={() => setIsMenuOpen(true)}
+        onHomeClick={onGoHome}
       />
 
       <ProgressHudBar
@@ -668,17 +662,6 @@ export const PlayScreenInner = ({ gameId, onGoHome, onPlayAgain }: PlayScreenPro
         onPlayAgain={onPlayAgain} onGoHome={onGoHome}
         screenWidth={sw} screenHeight={sh}
         level={level} totalScore={totalScore} totalCubes={totalCubes} maxCombo={maxCombo} />
-
-      <MenuModal
-        isOpen={activeModal === 'menu'}
-        onClose={() => setIsMenuOpen(false)}
-        onSurrender={handleSurrender}
-        onGoHome={onGoHome}
-        screenWidth={sw}
-        screenHeight={sh}
-        currentLevel={level}
-        cubesEarned={totalCubes}
-      />
 
       <VictoryModal isOpen={activeModal === 'victory'} onClose={onGoHome} onGoHome={onGoHome} onShare={onShare}
         screenWidth={sw} screenHeight={sh}
