@@ -237,7 +237,7 @@ const Grid: React.FC<GridProps> = ({
     if (isTxProcessing || applyData) return;
 
     setBlockBonus(block);
-    if (bonus === BonusType.Wave) {
+    if (bonus === BonusType.Harvest) {
       setBlocks(removeBlocksSameRow(block, blocks));
       getBlocksSameRow(block.y, blocks).forEach((b) => {
         if (gridPosition === null) return;
@@ -246,7 +246,7 @@ const Grid: React.FC<GridProps> = ({
           gridPosition.top + b.y * gridSize
         );
       });
-    } else if (bonus === BonusType.Totem) {
+    } else if (bonus === BonusType.Score) {
       setBlocks(removeBlocksSameWidth(block, blocks));
       getBlocksSameWidth(block, blocks).forEach((b) => {
         if (gridPosition === null) return;
@@ -255,20 +255,20 @@ const Grid: React.FC<GridProps> = ({
           gridPosition.top + b.y * gridSize
         );
       });
-    } else if (bonus === BonusType.Hammer) {
+    } else if (bonus === BonusType.Combo) {
       setBlocks(removeBlockId(block, blocks));
       if (gridPosition === null) return;
       handleTriggerLocalExplosion(
         gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
         gridPosition.top + block.y * gridSize
       );
-    } else if (bonus === BonusType.Shrink) {
+    } else if (bonus === BonusType.Wave) {
       if (gridPosition === null) return;
       handleTriggerLocalExplosion(
         gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
         gridPosition.top + block.y * gridSize
       );
-    } else if (bonus === BonusType.Shuffle) {
+    } else if (bonus === BonusType.Supply) {
       getBlocksSameRow(block.y, blocks).forEach((b) => {
         if (gridPosition === null) return;
         handleTriggerLocalExplosion(

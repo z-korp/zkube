@@ -53,20 +53,20 @@ export class Game {
   public get totalCubes(): number {
     return this.runData.totalCubes;
   }
-  public get hammer(): number {
-    return this.runData.hammerCount;
+  public get comboBonus(): number {
+    return this.runData.comboCount;
+  }
+  public get scoreBonus(): number {
+    return this.runData.scoreCount;
+  }
+  public get harvest(): number {
+    return this.runData.harvestCount;
   }
   public get wave(): number {
     return this.runData.waveCount;
   }
-  public get totem(): number {
-    return this.runData.totemCount;
-  }
-  public get shrink(): number {
-    return this.runData.shrinkCount;
-  }
-  public get shuffle(): number {
-    return this.runData.shuffleCount;
+  public get supply(): number {
+    return this.runData.supplyCount;
   }
   public get maxComboRun(): number {
     return this.runData.maxComboRun;
@@ -192,7 +192,7 @@ export class Game {
 
   // Helper methods for level system
   public getTotalBonuses(): number {
-    return this.hammer + this.wave + this.totem + this.shrink + this.shuffle;
+    return this.comboBonus + this.scoreBonus + this.harvest + this.wave + this.supply;
   }
 
   public hasBonuses(): boolean {

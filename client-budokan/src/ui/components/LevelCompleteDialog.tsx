@@ -17,17 +17,17 @@ interface LevelCompleteDialogProps {
   constraintProgress: number;
   bonusUsedThisLevel: boolean;
   /** Previous bonus counts (before level completion) */
-  prevHammer: number;
+  prevCombo: number;
+  prevScore: number;
+  prevHarvest: number;
   prevWave: number;
-  prevTotem: number;
-  prevShrink: number;
-  prevShuffle: number;
+  prevSupply: number;
   /** Current bonus counts (after level completion) */
-  hammer: number;
+  comboBonus: number;
+  scoreBonus: number;
+  harvest: number;
   wave: number;
-  totem: number;
-  shrink: number;
-  shuffle: number;
+  supply: number;
   /** Total cubes before level completion */
   prevTotalCubes: number;
   /** Total cubes after level completion */
@@ -47,16 +47,16 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   seed,
   constraintProgress: _constraintProgress, // Unused - constraint is always satisfied when level completes
   bonusUsedThisLevel: _bonusUsedThisLevel, // Unused - constraint is always satisfied when level completes
-  prevHammer,
+  prevCombo,
+  prevScore,
+  prevHarvest,
   prevWave,
-  prevTotem,
-  prevShrink,
-  prevShuffle,
-  hammer,
+  prevSupply,
+  comboBonus,
+  scoreBonus,
+  harvest,
   wave,
-  totem,
-  shrink,
-  shuffle,
+  supply,
   prevTotalCubes,
   totalCubes,
   prevTotalScore,
@@ -107,11 +107,11 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   const comboCubes = Math.max(0, totalLevelCubes - baseCubesEarned - bossBonus);
 
   const bonusEarned = [
-    { name: "Hammer", count: hammer - prevHammer },
+    { name: "Combo", count: comboBonus - prevCombo },
+    { name: "Score", count: scoreBonus - prevScore },
+    { name: "Harvest", count: harvest - prevHarvest },
     { name: "Wave", count: wave - prevWave },
-    { name: "Totem", count: totem - prevTotem },
-    { name: "Shrink", count: shrink - prevShrink },
-    { name: "Shuffle", count: shuffle - prevShuffle },
+    { name: "Supply", count: supply - prevSupply },
   ].filter((item) => item.count > 0);
   
   // Check if shop opens after this level

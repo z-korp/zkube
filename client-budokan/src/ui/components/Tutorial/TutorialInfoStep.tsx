@@ -30,10 +30,10 @@ const TutorialInfoStep: React.FC<TutorialInfoStepProps> = ({
   const imgAssets = ImageAssets(themeTemplate);
 
   const getIconForItem = (item: InfoItem): string => {
-    if (item.icon === "shrink") return imgAssets.shrink;
-    if (item.icon === "shuffle") return imgAssets.shuffle;
-    if (item.icon === "bonus") return imgAssets.hammer;
-    if (item.icon === "levelup") return imgAssets.tiki;
+    if (item.icon === "wave") return imgAssets.wave;
+    if (item.icon === "supply") return imgAssets.supply;
+    if (item.icon === "bonus") return imgAssets.combo;
+    if (item.icon === "levelup") return imgAssets.score;
     if (item.icon === "refill") return imgAssets.wave;
     return imgAssets.logo;
   };

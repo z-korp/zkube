@@ -7,12 +7,11 @@ const ImageAssets = (theme: ThemeId) => {
 
   return {
     ...themeImages,
-    hammer: getCommonAssetPath("bonus/combo.png"),
-    tiki: getCommonAssetPath("bonus/score.png"),
-    totem: getCommonAssetPath("bonus/score.png"),
+    combo: getCommonAssetPath("bonus/combo.png"),
+    score: getCommonAssetPath("bonus/score.png"),
+    harvest: getCommonAssetPath("bonus/harvest.png"),
     wave: getCommonAssetPath("bonus/wave.png"),
-    shrink: getCommonAssetPath("bonus/harvest.png"),
-    shuffle: getCommonAssetPath("bonus/supply.png"),
+    supply: getCommonAssetPath("bonus/supply.png"),
     stone1: themeImages.block1,
     stone2: themeImages.block2,
     stone3: themeImages.block3,

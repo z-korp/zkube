@@ -18,9 +18,9 @@ interface GameBoardProps {
   nextLine: number[];
   combo: number;
   maxCombo: number;
-  hammerCount: number;
-  waveCount: number;
-  totemCount: number;
+  comboCount: number;
+  harvestCount: number;
+  scoreCount: number;
   score: number;
   constraintSatisfied?: boolean;
   tutorialProps?: {
@@ -39,9 +39,9 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
   nextLine,
   combo,
   maxCombo,
-  waveCount,
-  hammerCount,
-  totemCount,
+  harvestCount,
+  comboCount,
+  scoreCount,
   score,
   constraintSatisfied,
   tutorialProps,
@@ -64,12 +64,12 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
   // Check if current step is the constraint step
   const isConstraintStep = tutorialProps?.step === 8;
   const [bonusDescription, setBonusDescription] = useState("");
-  const [disableTiki, setDisableTiki] = useState(false);
-  const [highlightedTiki, setHighlightedTiki] = useState(false);
+  const [disableScore, setDisableScore] = useState(false);
+  const [highlightedScore, setHighlightedScore] = useState(false);
   const [disableWave, setDisableWave] = useState(false);
   const [highlightedWave, setHighlightedWave] = useState(false);
-  const [disableHammer, setDisableHammer] = useState(false);
-  const [highlightedHammer, setHighlightedHammer] = useState(false);
+  const [disableCombo, setDisableCombo] = useState(false);
+  const [highlightedCombo, setHighlightedCombo] = useState(false);
 
   const { themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
@@ -90,35 +90,35 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
   const [bonus, setBonus] = useState<BonusType>(BonusType.None);
 
   const handleBonusWaveClick = () => {
-    if (waveCount === 0) return;
-    if (bonus === BonusType.Wave) {
+    if (harvestCount === 0) return;
+    if (bonus === BonusType.Harvest) {
       setBonus(BonusType.None);
       setBonusDescription("");
     } else {
-      setBonus(BonusType.Wave);
-      setBonusDescription("Select the line you want to destroy");
+      setBonus(BonusType.Harvest);
+      setBonusDescription("Select a row to clear");
     }
   };
 
-  const handleBonusTikiClick = () => {
-    if (totemCount === 0) return;
-    if (bonus === BonusType.Totem) {
+  const handleBonusScoreClick = () => {
+    if (scoreCount === 0) return;
+    if (bonus === BonusType.Score) {
       setBonus(BonusType.None);
       setBonusDescription("");
     } else {
-      setBonus(BonusType.Totem);
-      setBonusDescription("Select the block type you want to destroy");
+      setBonus(BonusType.Score);
+      setBonusDescription("Select a block size to harvest");
     }
   };
 
-  const handleBonusHammerClick = () => {
-    if (hammerCount === 0) return;
-    if (bonus === BonusType.Hammer) {
+  const handleBonusComboClick = () => {
+    if (comboCount === 0) return;
+    if (bonus === BonusType.Combo) {
       setBonus(BonusType.None);
       setBonusDescription("");
     } else {
-      setBonus(BonusType.Hammer);
-      setBonusDescription("Select the block you want to destroy");
+      setBonus(BonusType.Combo);
+      setBonusDescription("Select a block for combo bonus");
     }
   };
 
@@ -127,7 +127,7 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
     try {
       // await applyBonus({
       //   account: account as Account,
-      //   bonus: new Bonus(BonusType.Wave).into(),
+      //   bonus: new Bonus(BonusType.Harvest).into(),
       //   row_index: ROWS - rowIndex - 1,
       //   block_index: 0,
       // });
@@ -136,12 +136,12 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
     }
   }, []);
 
-  const handleBonusHammerTx = useCallback(async () => {
+  const handleBonusComboTx = useCallback(async () => {
     setIsTxProcessing(true);
     try {
       // await applyBonus({
       //   account: account as Account,
-      //   bonus: new Bonus(BonusType.Hammer).into(),
+      //   bonus: new Bonus(BonusType.Combo).into(),
       //   row_index: ROWS - rowIndex - 1,
       //   block_index: colIndex,
       // });
@@ -150,12 +150,12 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
     }
   }, []);
 
-  const handleBonusTikiTx = useCallback(async () => {
+  const handleBonusScoreTx = useCallback(async () => {
     setIsTxProcessing(true);
     try {
       // await applyBonus({
       //   account: account as Account,
-      //   bonus: new Bonus(BonusType.Totem).into(),
+      //   bonus: new Bonus(BonusType.Score).into(),
       //   row_index: ROWS - rowIndex - 1,
       //   block_index: colIndex,
       // });
@@ -168,15 +168,15 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
     async (block: Block) => {
       if (onBlockSelect) onBlockSelect(block);
 
-      if (bonus === BonusType.Wave) {
+      if (bonus === BonusType.Harvest) {
         handleBonusWaveTx();
-      } else if (bonus === BonusType.Totem) {
-        handleBonusTikiTx();
-      } else if (bonus === BonusType.Hammer) {
-        handleBonusHammerTx();
+      } else if (bonus === BonusType.Score) {
+        handleBonusScoreTx();
+      } else if (bonus === BonusType.Combo) {
+        handleBonusComboTx();
       }
     },
-    [bonus, handleBonusWaveTx, handleBonusTikiTx, handleBonusHammerTx]
+    [bonus, handleBonusWaveTx, handleBonusScoreTx, handleBonusComboTx]
   );
 
   useEffect(() => {
@@ -245,23 +245,23 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
             <div className="grid grid-cols-3 gap-3">
               <div className="flex flex-col items-start">
                 <BonusButton
-                  onClick={handleBonusHammerClick}
-                  urlImage={imgAssets.hammer}
-                  bonusCount={hammerCount}
-                  tooltipText="Destroys a block"
-                  bonusName={BonusType.Hammer}
+                  onClick={handleBonusComboClick}
+                  urlImage={imgAssets.combo}
+                  bonusCount={comboCount}
+                  tooltipText="Add combo to next move"
+                  bonusName={BonusType.Combo}
                   bonus={bonus}
-                  disabled={disableHammer}
-                  highlighted={highlightedHammer}
+                  disabled={disableCombo}
+                  highlighted={highlightedCombo}
                 />
               </div>
               <div className="flex flex-col items-center">
                 <BonusButton
                   onClick={handleBonusWaveClick}
-                  urlImage={imgAssets.wave}
-                  bonusCount={waveCount}
-                  tooltipText="Destroys an entire line"
-                  bonusName={BonusType.Wave}
+                  urlImage={imgAssets.harvest}
+                  bonusCount={harvestCount}
+                  tooltipText="Destroy all blocks of chosen size"
+                  bonusName={BonusType.Harvest}
                   bonus={bonus}
                   disabled={disableWave}
                   highlighted={highlightedWave}
@@ -269,14 +269,14 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
               </div>
               <div className="flex flex-col w-full items-end">
                 <BonusButton
-                  onClick={handleBonusTikiClick}
-                  urlImage={imgAssets.tiki}
-                  bonusCount={totemCount}
-                  tooltipText="Destroys all blocks of a specific size"
-                  bonusName={BonusType.Totem}
+                  onClick={handleBonusScoreClick}
+                  urlImage={imgAssets.score}
+                  bonusCount={scoreCount}
+                  tooltipText="Add bonus score"
+                  bonusName={BonusType.Score}
                   bonus={bonus}
-                  disabled={disableTiki}
-                  highlighted={highlightedTiki}
+                  disabled={disableScore}
+                  highlighted={highlightedScore}
                 />
               </div>
             </div>
@@ -347,12 +347,12 @@ const GameBoardTutorial: React.FC<GameBoardProps> = ({
             tutorialTargetBlock={tutorialProps?.targetBlock ?? null}
             onUpdate={updateValue}
             ref={setBonus}
-            setDisabledTiki={setDisableTiki}
-            setHighlightedTiki={setHighlightedTiki}
+            setDisabledScore={setDisableScore}
+            setHighlightedScore={setHighlightedScore}
             setDisabledWave={setDisableWave}
             setHighlightedWave={setHighlightedWave}
-            setDisabledHammer={setDisableHammer}
-            setHighlightedHammer={setHighlightedHammer}
+            setDisabledCombo={setDisableCombo}
+            setHighlightedCombo={setHighlightedCombo}
           />
         </div>
 

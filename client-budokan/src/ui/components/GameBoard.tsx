@@ -69,25 +69,25 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [bonus, setBonus] = useState<BonusType>(BonusType.None);
 
   const bonusCounts = useMemo(() => ({
-    [BonusType.Hammer]: game.hammer,
+    [BonusType.Combo]: game.comboBonus,
+    [BonusType.Score]: game.scoreBonus,
+    [BonusType.Harvest]: game.harvest,
     [BonusType.Wave]: game.wave,
-    [BonusType.Totem]: game.totem,
-    [BonusType.Shrink]: game.shrink,
-    [BonusType.Shuffle]: game.shuffle,
-  }), [game.hammer, game.wave, game.totem, game.shrink, game.shuffle]);
+    [BonusType.Supply]: game.supply,
+  }), [game.comboBonus, game.scoreBonus, game.harvest, game.wave, game.supply]);
 
   const getBonusTooltip = (type: BonusType): string => {
     switch (type) {
-      case BonusType.Hammer:
-        return "Destroy a block and connected same-size blocks";
+      case BonusType.Combo:
+        return "Add combo to next move";
+      case BonusType.Score:
+        return "Add bonus score";
+      case BonusType.Harvest:
+        return "Destroy all blocks of chosen size";
       case BonusType.Wave:
-        return "Destroy an entire horizontal line";
-      case BonusType.Totem:
-        return "Destroy all blocks of the same size";
-      case BonusType.Shrink:
-        return "Shrink a block by one size";
-      case BonusType.Shuffle:
-        return "Shuffle a row of blocks";
+        return "Clear horizontal rows";
+      case BonusType.Supply:
+        return "Add new lines at no move cost";
       default:
         return "";
     }
@@ -95,16 +95,16 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const getBonusDescription = (type: BonusType): string => {
     switch (type) {
+      case BonusType.Harvest:
+        return "Select a block size to harvest";
+      case BonusType.Score:
+        return "Apply instant score bonus";
+      case BonusType.Combo:
+        return "Apply combo bonus";
       case BonusType.Wave:
-        return "Select the line you want to destroy";
-      case BonusType.Totem:
-        return "Select the block type you want to destroy";
-      case BonusType.Hammer:
-        return "Select the block you want to destroy";
-      case BonusType.Shrink:
-        return "Select the block you want to shrink";
-      case BonusType.Shuffle:
-        return "Select a row to shuffle";
+        return "Select rows to clear";
+      case BonusType.Supply:
+        return "Add a new line for free";
       default:
         return "";
     }
@@ -112,16 +112,16 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const getBonusIcon = (type: BonusType): string => {
     switch (type) {
-      case BonusType.Hammer:
-        return imgAssets.hammer;
+      case BonusType.Combo:
+        return imgAssets.combo;
+      case BonusType.Score:
+        return imgAssets.score;
+      case BonusType.Harvest:
+        return imgAssets.harvest;
       case BonusType.Wave:
         return imgAssets.wave;
-      case BonusType.Totem:
-        return imgAssets.tiki;
-      case BonusType.Shrink:
-        return imgAssets.shrink;
-      case BonusType.Shuffle:
-        return imgAssets.shuffle;
+      case BonusType.Supply:
+        return imgAssets.supply;
       default:
         return "";
     }
@@ -181,16 +181,16 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   const selectBlock = useCallback(
     async (block: Block) => {
-      if (bonus === BonusType.Wave) {
-        handleBonusTx(BonusType.Wave, block.y, 0);
-      } else if (bonus === BonusType.Totem) {
-        handleBonusTx(BonusType.Totem, block.y, block.x);
-      } else if (bonus === BonusType.Hammer) {
-        handleBonusTx(BonusType.Hammer, block.y, block.x);
-      } else if (bonus === BonusType.Shrink) {
-        handleBonusTx(BonusType.Shrink, block.y, block.x);
-      } else if (bonus === BonusType.Shuffle) {
-        handleBonusTx(BonusType.Shuffle, block.y, block.x);
+      if (bonus === BonusType.Harvest) {
+        handleBonusTx(BonusType.Harvest, block.y, 0);
+      } else if (bonus === BonusType.Score) {
+        handleBonusTx(BonusType.Score, block.y, block.x);
+      } else if (bonus === BonusType.Combo) {
+        handleBonusTx(BonusType.Combo, block.y, block.x);
+      } else if (bonus === BonusType.Wave) {
+        handleBonusTx(BonusType.Wave, block.y, block.x);
+      } else if (bonus === BonusType.Supply) {
+        handleBonusTx(BonusType.Supply, block.y, block.x);
       } else if (bonus === BonusType.None) {
         // No bonus selected
       }

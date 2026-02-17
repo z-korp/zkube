@@ -448,7 +448,7 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
                   <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-600">
                     {bonusUsedThisLevel 
                       ? "You used a bonus this level. The constraint is failed but you can still complete the level."
-                      : "Complete this level without using any bonus (Hammer, Wave, or Totem) to satisfy this constraint."
+                      : "Complete this level without using any bonus (Combo, Score, or Harvest) to satisfy this constraint."
                     }
                   </div>
                 </div>

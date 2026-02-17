@@ -20,6 +20,7 @@ import cartridgeConnector from "./cartridgeConnector";
 import { MetagameProvider } from "./contexts/MetagameProvider";
 import { QuestsProvider } from "./contexts/quests";
 import { ControllersProvider } from "./contexts/controllers";
+import { GameEventsProvider } from "./contexts/gameEvents";
 
 import "./index.css";
 import { type BigNumberish, shortString, PaymasterRpc } from "starknet";
@@ -158,9 +159,11 @@ export function Main() {
                 <DojoProvider value={setupResult}>
                   <ControllersProvider>
                     <QuestsProvider>
-                      <SoundPlayerProvider>
-                        <App />
-                      </SoundPlayerProvider>
+                      <GameEventsProvider>
+                        <SoundPlayerProvider>
+                          <App />
+                        </SoundPlayerProvider>
+                      </GameEventsProvider>
                     </QuestsProvider>
                   </ControllersProvider>
                 </DojoProvider>

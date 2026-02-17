@@ -38,16 +38,16 @@ interface LevelCompletionData {
   levelMoves: number;
   constraintProgress: number;
   bonusUsedThisLevel: boolean;
-  prevHammer: number;
+  prevCombo: number;
+  prevScore: number;
+  prevHarvest: number;
   prevWave: number;
-  prevTotem: number;
-  prevShrink: number;
-  prevShuffle: number;
-  hammer: number;
+  prevSupply: number;
+  comboBonus: number;
+  scoreBonus: number;
+  harvest: number;
   wave: number;
-  totem: number;
-  shrink: number;
-  shuffle: number;
+  supply: number;
   prevTotalCubes: number;
   totalCubes: number;
   /** Total score before level completion (used to calculate level's final score) */
@@ -105,11 +105,11 @@ export const Play = () => {
     levelMoves: number;
     constraintProgress: number;
     bonusUsedThisLevel: boolean;
-    hammer: number;
+    comboBonus: number;
+    scoreBonus: number;
+    harvest: number;
     wave: number;
-    totem: number;
-    shrink: number;
-    shuffle: number;
+    supply: number;
     totalCubes: number;
     totalScore: number;
   } | null>(null);
@@ -196,7 +196,7 @@ export const Play = () => {
 
   const handleLoadoutClose = (open: boolean) => {
     if (!open) {
-      handleLoadoutConfirm([1, 3, 2], 0); // Default: Hammer, Wave, Totem, 0 cubes
+      handleLoadoutConfirm([1, 3, 2], 0);
     }
   };
 
@@ -307,16 +307,16 @@ export const Play = () => {
         levelMoves: prevState.levelMoves,
         constraintProgress: prevState.constraintProgress,
         bonusUsedThisLevel: prevState.bonusUsedThisLevel,
-        prevHammer: prevState.hammer,
+        prevCombo: prevState.comboBonus,
+        prevScore: prevState.scoreBonus,
+        prevHarvest: prevState.harvest,
         prevWave: prevState.wave,
-        prevTotem: prevState.totem,
-        prevShrink: prevState.shrink,
-        prevShuffle: prevState.shuffle,
-        hammer: game.hammer,
+        prevSupply: prevState.supply,
+        comboBonus: game.comboBonus,
+        scoreBonus: game.scoreBonus,
+        harvest: game.harvest,
         wave: game.wave,
-        totem: game.totem,
-        shrink: game.shrink,
-        shuffle: game.shuffle,
+        supply: game.supply,
         prevTotalCubes: prevState.totalCubes,
         totalCubes: game.totalCubes,
         prevTotalScore: levelStartTotalScoreRef.current, // Score at START of the completed level
@@ -336,11 +336,11 @@ export const Play = () => {
       levelMoves: game.levelMoves,
       constraintProgress: game.constraintProgress,
       bonusUsedThisLevel: game.bonusUsedThisLevel,
-      hammer: game.hammer,
+      comboBonus: game.comboBonus,
+      scoreBonus: game.scoreBonus,
+      harvest: game.harvest,
       wave: game.wave,
-      totem: game.totem,
-      shrink: game.shrink,
-      shuffle: game.shuffle,
+      supply: game.supply,
       totalCubes: game.totalCubes,
       totalScore: game.totalScore,
     };
@@ -350,11 +350,11 @@ export const Play = () => {
     game?.levelMoves,
     game?.constraintProgress,
     game?.bonusUsedThisLevel,
-    game?.hammer,
+    game?.comboBonus,
+    game?.scoreBonus,
+    game?.harvest,
     game?.wave,
-    game?.totem,
-    game?.shrink,
-    game?.shuffle,
+    game?.supply,
     game?.over,
     game?.totalCubes,
     game?.totalScore,
@@ -460,16 +460,16 @@ export const Play = () => {
                       seed={seed}
                       constraintProgress={levelCompletionData.constraintProgress}
                       bonusUsedThisLevel={levelCompletionData.bonusUsedThisLevel}
-                      prevHammer={levelCompletionData.prevHammer}
+                      prevCombo={levelCompletionData.prevCombo}
+                      prevScore={levelCompletionData.prevScore}
+                      prevHarvest={levelCompletionData.prevHarvest}
                       prevWave={levelCompletionData.prevWave}
-                      prevTotem={levelCompletionData.prevTotem}
-                      prevShrink={levelCompletionData.prevShrink}
-                      prevShuffle={levelCompletionData.prevShuffle}
-                      hammer={levelCompletionData.hammer}
+                      prevSupply={levelCompletionData.prevSupply}
+                      comboBonus={levelCompletionData.comboBonus}
+                      scoreBonus={levelCompletionData.scoreBonus}
+                      harvest={levelCompletionData.harvest}
                       wave={levelCompletionData.wave}
-                      totem={levelCompletionData.totem}
-                      shrink={levelCompletionData.shrink}
-                      shuffle={levelCompletionData.shuffle}
+                      supply={levelCompletionData.supply}
                       prevTotalCubes={levelCompletionData.prevTotalCubes}
                       totalCubes={levelCompletionData.totalCubes}
                       prevTotalScore={levelCompletionData.prevTotalScore}
@@ -488,11 +488,11 @@ export const Play = () => {
                       gameId={game.id}
                       runData={game.runData}
                       bagSizes={playerMeta?.data ? {
-                        hammer: 1 + playerMeta.data.bagHammerLevel,
+                        combo: 1 + playerMeta.data.bagComboLevel,
+                        score: 1 + playerMeta.data.bagScoreLevel,
+                        harvest: 1 + playerMeta.data.bagHarvestLevel,
                         wave: 1 + playerMeta.data.bagWaveLevel,
-                        totem: 1 + playerMeta.data.bagTotemLevel,
-                        shrink: 1 + playerMeta.data.bagShrinkLevel,
-                        shuffle: 1 + playerMeta.data.bagShuffleLevel,
+                        supply: 1 + playerMeta.data.bagSupplyLevel,
                       } : undefined}
                     />
                   )}

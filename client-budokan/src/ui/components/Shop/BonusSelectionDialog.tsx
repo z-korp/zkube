@@ -19,11 +19,11 @@ interface BonusSelectionDialogProps {
 }
 
 const ALL_BONUSES: BonusType[] = [
-  BonusType.Hammer,
-  BonusType.Totem,
+  BonusType.Combo,
+  BonusType.Score,
+  BonusType.Harvest,
   BonusType.Wave,
-  BonusType.Shrink,
-  BonusType.Shuffle,
+  BonusType.Supply,
 ];
 
 const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
@@ -32,7 +32,7 @@ const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
   onConfirm,
   shrinkUnlocked,
   shuffleUnlocked,
-  initialSelection = [BonusType.Hammer, BonusType.Wave, BonusType.Totem],
+  initialSelection = [BonusType.Combo, BonusType.Harvest, BonusType.Score],
 }) => {
   const { themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
@@ -46,25 +46,25 @@ const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
   }, [isOpen, initialSelection]);
 
   const unlockedMap = useMemo(() => ({
-    [BonusType.Hammer]: true,
-    [BonusType.Totem]: true,
-    [BonusType.Wave]: true,
-    [BonusType.Shrink]: shrinkUnlocked,
-    [BonusType.Shuffle]: shuffleUnlocked,
+    [BonusType.Combo]: true,
+    [BonusType.Score]: true,
+    [BonusType.Harvest]: true,
+    [BonusType.Wave]: shrinkUnlocked,
+    [BonusType.Supply]: shuffleUnlocked,
   }), [shrinkUnlocked, shuffleUnlocked]);
 
   const getBonusIcon = (type: BonusType): string => {
     switch (type) {
-      case BonusType.Hammer:
-        return imgAssets.hammer;
+      case BonusType.Combo:
+        return imgAssets.combo;
+      case BonusType.Score:
+        return imgAssets.score;
+      case BonusType.Harvest:
+        return imgAssets.harvest;
       case BonusType.Wave:
         return imgAssets.wave;
-      case BonusType.Totem:
-        return imgAssets.tiki;
-      case BonusType.Shrink:
-        return imgAssets.shrink;
-      case BonusType.Shuffle:
-        return imgAssets.shuffle;
+      case BonusType.Supply:
+        return imgAssets.supply;
       default:
         return "";
     }
@@ -132,7 +132,7 @@ const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
         </div>
 
         <div className="text-xs text-slate-500 text-center mb-4">
-          Shrink and Shuffle require unlocks from the permanent shop.
+          Wave and Supply require unlocks from the permanent shop.
         </div>
 
         <Button

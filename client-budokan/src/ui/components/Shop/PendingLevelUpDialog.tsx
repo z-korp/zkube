@@ -33,16 +33,16 @@ const PendingLevelUpDialog: React.FC<PendingLevelUpDialogProps> = ({
 
   const getBonusIcon = (bonusType: BonusType): string => {
     switch (bonusType) {
-      case BonusType.Hammer:
-        return imgAssets.hammer;
+      case BonusType.Combo:
+        return imgAssets.combo;
+      case BonusType.Score:
+        return imgAssets.score;
+      case BonusType.Harvest:
+        return imgAssets.harvest;
       case BonusType.Wave:
         return imgAssets.wave;
-      case BonusType.Totem:
-        return imgAssets.tiki;
-      case BonusType.Shrink:
-        return imgAssets.shrink;
-      case BonusType.Shuffle:
-        return imgAssets.shuffle;
+      case BonusType.Supply:
+        return imgAssets.supply;
       default:
         return "";
     }

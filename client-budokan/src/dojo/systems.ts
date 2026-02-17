@@ -25,17 +25,6 @@ const SESSION_ERROR_PATTERNS = [
   "73657373696f6e2f6e6f742d726567697374657265",
 ];
 
-type AllocateCharge = SystemTypes.Signer & {
-  game_id: number;
-  bonus_slot: number;
-};
-
-type SwapBonus = SystemTypes.Signer & {
-  game_id: number;
-  bonus_slot: number;
-  new_bonus_type: number;
-};
-
 function isSessionError(error: unknown): boolean {
   const message =
     error instanceof Error
@@ -333,13 +322,13 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
-  const allocateCharge = async ({ account, ...props }: AllocateCharge) => {
+  const allocateCharge = async ({ account, ...props }: SystemTypes.AllocateCharge) => {
     const setMoveComplete = useMoveStore.getState().setMoveComplete;
     setMoveComplete(false);
     try {
       await handleTransaction(
         account,
-        () => (client.shop as any).allocate_charge({ account, ...props }),
+        () => client.shop.allocate_charge({ account, ...props }),
         "Charge allocated!"
       );
       setMoveComplete(true);
@@ -349,13 +338,13 @@ export function systems({ client }: { client: IWorld }) {
     }
   };
 
-  const swapBonus = async ({ account, ...props }: SwapBonus) => {
+  const swapBonus = async ({ account, ...props }: SystemTypes.SwapBonus) => {
     const setMoveComplete = useMoveStore.getState().setMoveComplete;
     setMoveComplete(false);
     try {
       await handleTransaction(
         account,
-        () => (client.shop as any).swap_bonus({ account, ...props }),
+        () => client.shop.swap_bonus({ account, ...props }),
         "Bonus swapped!"
       );
       setMoveComplete(true);

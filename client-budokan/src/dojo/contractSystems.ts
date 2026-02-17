@@ -26,7 +26,7 @@ export interface Surrender extends Signer {
 
 export interface Create extends Signer {
   token_id: number;
-  selected_bonuses: number[]; // [] uses default Hammer/Wave/Totem
+  selected_bonuses: number[]; // [] uses default Combo/Harvest/Score
   cubes_amount: number; // 0 if not bringing cubes
 }
 
@@ -50,22 +50,33 @@ export interface BonusTx extends Signer {
 }
 
 export interface ShopUpgrade extends Signer {
-  bonus_type: number; // 0=Hammer, 1=Wave, 2=Totem, 3=Shrink, 4=Shuffle
+  bonus_type: number; // 0=Combo, 1=Score, 2=Harvest, 3=Wave, 4=Supply
 }
 
 export interface UnlockBonus extends Signer {
-  bonus_type: number; // 4=Shrink, 5=Shuffle
+  bonus_type: number; // 4=Wave, 5=Supply
 }
 
 export interface PurchaseConsumable extends Signer {
   game_id: number;
-  consumable_type: number; // 0=Bonus1, 1=Bonus2, 2=Bonus3, 3=Refill, 4=LevelUp
-  bonus_slot: number; // Only used for LevelUp (0, 1, or 2), pass 0 for others
+  consumable_type: number;
+  bonus_slot: number;
 }
 
 export interface LevelUpBonus extends Signer {
   game_id: number;
-  bonus_slot: number; // 0, 1, or 2
+  bonus_slot: number;
+}
+
+export interface AllocateCharge extends Signer {
+  game_id: number;
+  bonus_slot: number;
+}
+
+export interface SwapBonus extends Signer {
+  game_id: number;
+  bonus_slot: number;
+  new_bonus_type: number;
 }
 
 export interface ClaimQuest extends Signer {
@@ -215,7 +226,7 @@ export function setupWorld(config: Config) {
     }: BonusTx) => {
       try {
         // Bonus enum serializes as just the variant index:
-        // 0 = None, 1 = Hammer, 2 = Totem, 3 = Wave, 4 = Shrink, 5 = Shuffle
+        // 0 = None, 1 = Combo, 2 = Score, 3 = Harvest, 4 = Wave, 5 = Supply
         return await account.execute([
           {
             contractAddress: bonus_contract.address,
@@ -295,9 +306,6 @@ export function setupWorld(config: Config) {
 
     const purchase_consumable = async ({ account, game_id, consumable_type, bonus_slot }: PurchaseConsumable) => {
       try {
-        // ConsumableType enum serializes as just the variant index:
-        // 0 = Bonus1, 1 = Bonus2, 2 = Bonus3, 3 = Refill, 4 = LevelUp
-        // bonus_slot is only used for LevelUp (0, 1, or 2)
         return await account.execute([
           {
             contractAddress: contract.address,
@@ -307,6 +315,36 @@ export function setupWorld(config: Config) {
         ]);
       } catch (error) {
         console.error("Error executing purchase_consumable:", error);
+        throw error;
+      }
+    };
+
+    const allocate_charge = async ({ account, game_id, bonus_slot }: AllocateCharge) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "allocate_charge",
+            calldata: [game_id, bonus_slot],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing allocate_charge:", error);
+        throw error;
+      }
+    };
+
+    const swap_bonus = async ({ account, game_id, bonus_slot, new_bonus_type }: SwapBonus) => {
+      try {
+        return await account.execute([
+          {
+            contractAddress: contract.address,
+            entrypoint: "swap_bonus",
+            calldata: [game_id, bonus_slot, new_bonus_type],
+          },
+        ]);
+      } catch (error) {
+        console.error("Error executing swap_bonus:", error);
         throw error;
       }
     };
@@ -347,6 +385,8 @@ export function setupWorld(config: Config) {
       upgrade_bag_size,
       upgrade_bridging_rank,
       purchase_consumable,
+      allocate_charge,
+      swap_bonus,
       unlock_bonus,
       level_up_bonus,
     };

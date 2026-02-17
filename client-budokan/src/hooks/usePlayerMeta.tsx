@@ -14,16 +14,16 @@ const normalizeEntityId = (entityId: string): Entity => {
 
 // Bit positions for MetaData unpacking (matching Cairo)
 const META_DATA_POSITIONS = {
-  STARTING_HAMMER: 0,       // 2 bits
-  STARTING_WAVE: 2,         // 2 bits
-  STARTING_TOTEM: 4,        // 2 bits
-  STARTING_SHRINK: 6,       // 2 bits
-  STARTING_SHUFFLE: 8,      // 2 bits
-  BAG_HAMMER_LEVEL: 10,     // 4 bits
-  BAG_WAVE_LEVEL: 14,       // 4 bits
-  BAG_TOTEM_LEVEL: 18,      // 4 bits
-  BAG_SHRINK_LEVEL: 22,     // 4 bits
-  BAG_SHUFFLE_LEVEL: 26,    // 4 bits
+  STARTING_COMBO: 0,        // 2 bits
+  STARTING_SCORE: 2,        // 2 bits
+  STARTING_HARVEST: 4,      // 2 bits
+  STARTING_WAVE: 6,         // 2 bits
+  STARTING_SUPPLY: 8,       // 2 bits
+  BAG_COMBO_LEVEL: 10,      // 4 bits
+  BAG_SCORE_LEVEL: 14,      // 4 bits
+  BAG_HARVEST_LEVEL: 18,    // 4 bits
+  BAG_WAVE_LEVEL: 22,       // 4 bits
+  BAG_SUPPLY_LEVEL: 26,     // 4 bits
   BRIDGING_RANK: 30,        // 4 bits
   SHRINK_UNLOCKED: 34,      // 1 bit
   SHUFFLE_UNLOCKED: 35,     // 1 bit
@@ -32,16 +32,16 @@ const META_DATA_POSITIONS = {
 };
 
 export interface PlayerMetaData {
-  startingHammer: number;
+  startingCombo: number;
+  startingScore: number;
+  startingHarvest: number;
   startingWave: number;
-  startingTotem: number;
-  startingShrink: number;
-  startingShuffle: number;
-  bagHammerLevel: number;
+  startingSupply: number;
+  bagComboLevel: number;
+  bagScoreLevel: number;
+  bagHarvestLevel: number;
   bagWaveLevel: number;
-  bagTotemLevel: number;
-  bagShrinkLevel: number;
-  bagShuffleLevel: number;
+  bagSupplyLevel: number;
   bridgingRank: number;
   shrinkUnlocked: boolean;
   shuffleUnlocked: boolean;
@@ -58,16 +58,16 @@ export interface PlayerMeta {
 
 function unpackMetaData(packed: bigint): PlayerMetaData {
   return {
-    startingHammer: Number((packed >> BigInt(META_DATA_POSITIONS.STARTING_HAMMER)) & BigInt(0x3)),
+    startingCombo: Number((packed >> BigInt(META_DATA_POSITIONS.STARTING_COMBO)) & BigInt(0x3)),
+    startingScore: Number((packed >> BigInt(META_DATA_POSITIONS.STARTING_SCORE)) & BigInt(0x3)),
+    startingHarvest: Number((packed >> BigInt(META_DATA_POSITIONS.STARTING_HARVEST)) & BigInt(0x3)),
     startingWave: Number((packed >> BigInt(META_DATA_POSITIONS.STARTING_WAVE)) & BigInt(0x3)),
-    startingTotem: Number((packed >> BigInt(META_DATA_POSITIONS.STARTING_TOTEM)) & BigInt(0x3)),
-    startingShrink: Number((packed >> BigInt(META_DATA_POSITIONS.STARTING_SHRINK)) & BigInt(0x3)),
-    startingShuffle: Number((packed >> BigInt(META_DATA_POSITIONS.STARTING_SHUFFLE)) & BigInt(0x3)),
-    bagHammerLevel: Number((packed >> BigInt(META_DATA_POSITIONS.BAG_HAMMER_LEVEL)) & BigInt(0xF)),
+    startingSupply: Number((packed >> BigInt(META_DATA_POSITIONS.STARTING_SUPPLY)) & BigInt(0x3)),
+    bagComboLevel: Number((packed >> BigInt(META_DATA_POSITIONS.BAG_COMBO_LEVEL)) & BigInt(0xF)),
+    bagScoreLevel: Number((packed >> BigInt(META_DATA_POSITIONS.BAG_SCORE_LEVEL)) & BigInt(0xF)),
+    bagHarvestLevel: Number((packed >> BigInt(META_DATA_POSITIONS.BAG_HARVEST_LEVEL)) & BigInt(0xF)),
     bagWaveLevel: Number((packed >> BigInt(META_DATA_POSITIONS.BAG_WAVE_LEVEL)) & BigInt(0xF)),
-    bagTotemLevel: Number((packed >> BigInt(META_DATA_POSITIONS.BAG_TOTEM_LEVEL)) & BigInt(0xF)),
-    bagShrinkLevel: Number((packed >> BigInt(META_DATA_POSITIONS.BAG_SHRINK_LEVEL)) & BigInt(0xF)),
-    bagShuffleLevel: Number((packed >> BigInt(META_DATA_POSITIONS.BAG_SHUFFLE_LEVEL)) & BigInt(0xF)),
+    bagSupplyLevel: Number((packed >> BigInt(META_DATA_POSITIONS.BAG_SUPPLY_LEVEL)) & BigInt(0xF)),
     bridgingRank: Number((packed >> BigInt(META_DATA_POSITIONS.BRIDGING_RANK)) & BigInt(0xF)),
     shrinkUnlocked: ((packed >> BigInt(META_DATA_POSITIONS.SHRINK_UNLOCKED)) & BigInt(0x1)) === BigInt(1),
     shuffleUnlocked: ((packed >> BigInt(META_DATA_POSITIONS.SHUFFLE_UNLOCKED)) & BigInt(0x1)) === BigInt(1),

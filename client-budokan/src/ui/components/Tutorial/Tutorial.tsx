@@ -146,32 +146,32 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
           }));
           setIsIntermission(true);
           break;
-        case 4: // Hammer
+        case 4: // Combo
           if (block.y === 9 && block.x >= 6) {
             setGridState((prev) => ({
               ...prev,
               score: prev.score + 25,
-              hammerCount: prev.hammerCount - 1,
+              comboCount: prev.comboCount - 1,
             }));
             setIsIntermission(true);
           }
           break;
-        case 5: // Wave
+        case 5: // Harvest
           if (block.y === 8) {
             setGridState((prev) => ({
               ...prev,
               score: prev.score + 200,
-              waveCount: prev.waveCount - 1,
+              harvestCount: prev.harvestCount - 1,
             }));
             setIsIntermission(true);
           }
           break;
-        case 6: // Totem
+        case 6: // Score
           if (block.width === 3) {
             setGridState((prev) => ({
               ...prev,
               score: prev.score + 150,
-              totemCount: prev.totemCount - 1,
+              scoreCount: prev.scoreCount - 1,
             }));
             setIsIntermission(true);
           }
@@ -244,12 +244,12 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
     
     if (isBonusStep(currentStepConfig)) {
       switch (currentStepConfig.bonusType) {
-        case BonusType.Hammer:
-          return <img className="w-8 h-8" src={imgAssets.hammer} alt="Hammer" />;
-        case BonusType.Wave:
-          return <img className="w-8 h-8" src={imgAssets.wave} alt="Wave" />;
-        case BonusType.Totem:
-          return <img className="w-8 h-8" src={imgAssets.tiki} alt="Totem" />;
+        case BonusType.Combo:
+          return <img className="w-8 h-8" src={imgAssets.combo} alt="Combo" />;
+        case BonusType.Harvest:
+          return <img className="w-8 h-8" src={imgAssets.harvest} alt="Harvest" />;
+        case BonusType.Score:
+          return <img className="w-8 h-8" src={imgAssets.score} alt="Score" />;
         default:
           return null;
       }

@@ -14,11 +14,11 @@
  * │ 40      │ bonus_used_this_level │ 1    │ 0-1      │ For NoBonusUsed │
  * │ 41      │ combo_5_achieved      │ 1    │ 0-1      │ First 5x combo  │
  * │ 42      │ combo_10_achieved     │ 1    │ 0-1      │ First 10x combo │
- * │ 43-50   │ hammer_count          │ 8    │ 0-255    │ Inventory       │
- * │ 51-58   │ wave_count            │ 8    │ 0-255    │ Inventory       │
- * │ 59-66   │ totem_count           │ 8    │ 0-255    │ Inventory       │
- * │ 67-74   │ shrink_count          │ 8    │ 0-255    │ Shrink inventory│
- * │ 75-82   │ shuffle_count         │ 8    │ 0-255    │ Shuffle inv     │
+ * │ 43-50   │ combo_count           │ 8    │ 0-255    │ Inventory       │
+ * │ 51-58   │ score_count           │ 8    │ 0-255    │ Inventory       │
+ * │ 59-66   │ harvest_count         │ 8    │ 0-255    │ Inventory       │
+ * │ 67-74   │ wave_count            │ 8    │ 0-255    │ Inventory       │
+ * │ 75-82   │ supply_count          │ 8    │ 0-255    │ Inventory       │
  * │ 83-90   │ max_combo_run         │ 8    │ 0-255    │ Best combo      │
  * │ 91-98   │ extra_moves           │ 8    │ 0-255    │ Extra move cap  │
  * │ 99-114  │ cubes_brought         │ 16   │ 0-65535  │ Cubes for in-run│
@@ -39,7 +39,8 @@
  * │ 190     │ shop_bonus_2_bought   │ 1    │ 0-1      │ Bonus 2 bought  │
  * │ 191     │ shop_bonus_3_bought   │ 1    │ 0-1      │ Bonus 3 bought  │
  * │ 192-195 │ shop_refills          │ 4    │ 0-15     │ Refills bought  │
- * │ 196-251 │ reserved              │ 56   │ -        │ Future features │
+ * │ 196     │ no_bonus_constraint   │ 1    │ 0-1      │ NoBonusUsed flag│
+ * │ 197-204 │ constraint_3_progress │ 8    │ 0-255    │ 3rd constraint  │
  * └─────────────────────────────────────────────────────────────────────┘
  */
 
@@ -57,11 +58,11 @@ export interface RunData {
   combo10Achieved: boolean;
   
   // Bonus inventory (5 types)
-  hammerCount: number;
+  comboCount: number;
+  scoreCount: number;
+  harvestCount: number;
   waveCount: number;
-  totemCount: number;
-  shrinkCount: number;
-  shuffleCount: number;
+  supplyCount: number;
   
   // Run stats
   maxComboRun: number;
@@ -78,7 +79,7 @@ export interface RunData {
   // Victory flag
   runCompleted: boolean;
   
-  // Bonus V2.0: Selected bonuses (values: 0=None, 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle)
+  // Bonus V2.0: Selected bonuses (values: 0=None, 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply)
   selectedBonus1: number;
   selectedBonus2: number;
   selectedBonus3: number;
@@ -100,6 +101,10 @@ export interface RunData {
   shopBonus2Bought: boolean;
   shopBonus3Bought: boolean;
   shopRefills: number;
+
+  // Constraint tracking
+  noBonusConstraint: boolean;
+  constraint3Progress: number;
 }
 
 // Bit positions (matching Cairo's RunDataBits)
@@ -111,11 +116,11 @@ const CONSTRAINT_2_PROGRESS_POS = 32;
 const BONUS_USED_POS = 40;
 const COMBO_5_ACHIEVED_POS = 41;
 const COMBO_10_ACHIEVED_POS = 42;
-const HAMMER_COUNT_POS = 43;
-const WAVE_COUNT_POS = 51;
-const TOTEM_COUNT_POS = 59;
-const SHRINK_COUNT_POS = 67;
-const SHUFFLE_COUNT_POS = 75;
+const COMBO_COUNT_POS = 43;
+const SCORE_COUNT_POS = 51;
+const HARVEST_COUNT_POS = 59;
+const WAVE_COUNT_POS = 67;
+const SUPPLY_COUNT_POS = 75;
 const MAX_COMBO_RUN_POS = 83;
 const EXTRA_MOVES_POS = 91;
 const CUBES_BROUGHT_POS = 99;
@@ -136,6 +141,8 @@ const SHOP_BONUS_1_BOUGHT_POS = 189;
 const SHOP_BONUS_2_BOUGHT_POS = 190;
 const SHOP_BONUS_3_BOUGHT_POS = 191;
 const SHOP_REFILLS_POS = 192;
+const NO_BONUS_CONSTRAINT_POS = 196;
+const CONSTRAINT_3_PROGRESS_POS = 197;
 
 // Bit masks (after shifting to position 0)
 const MASK_1BIT = BigInt(0x1);
@@ -159,11 +166,11 @@ export function unpackRunData(packed: bigint): RunData {
     bonusUsedThisLevel: ((packed >> BigInt(BONUS_USED_POS)) & MASK_1BIT) === BigInt(1),
     combo5Achieved: ((packed >> BigInt(COMBO_5_ACHIEVED_POS)) & MASK_1BIT) === BigInt(1),
     combo10Achieved: ((packed >> BigInt(COMBO_10_ACHIEVED_POS)) & MASK_1BIT) === BigInt(1),
-    hammerCount: Number((packed >> BigInt(HAMMER_COUNT_POS)) & MASK_8BIT),
+    comboCount: Number((packed >> BigInt(COMBO_COUNT_POS)) & MASK_8BIT),
+    scoreCount: Number((packed >> BigInt(SCORE_COUNT_POS)) & MASK_8BIT),
+    harvestCount: Number((packed >> BigInt(HARVEST_COUNT_POS)) & MASK_8BIT),
     waveCount: Number((packed >> BigInt(WAVE_COUNT_POS)) & MASK_8BIT),
-    totemCount: Number((packed >> BigInt(TOTEM_COUNT_POS)) & MASK_8BIT),
-    shrinkCount: Number((packed >> BigInt(SHRINK_COUNT_POS)) & MASK_8BIT),
-    shuffleCount: Number((packed >> BigInt(SHUFFLE_COUNT_POS)) & MASK_8BIT),
+    supplyCount: Number((packed >> BigInt(SUPPLY_COUNT_POS)) & MASK_8BIT),
     maxComboRun: Number((packed >> BigInt(MAX_COMBO_RUN_POS)) & MASK_8BIT),
     extraMoves: Number((packed >> BigInt(EXTRA_MOVES_POS)) & MASK_8BIT),
     cubesBrought: Number((packed >> BigInt(CUBES_BROUGHT_POS)) & MASK_16BIT),
@@ -186,6 +193,8 @@ export function unpackRunData(packed: bigint): RunData {
     shopBonus2Bought: ((packed >> BigInt(SHOP_BONUS_2_BOUGHT_POS)) & MASK_1BIT) === BigInt(1),
     shopBonus3Bought: ((packed >> BigInt(SHOP_BONUS_3_BOUGHT_POS)) & MASK_1BIT) === BigInt(1),
     shopRefills: Number((packed >> BigInt(SHOP_REFILLS_POS)) & MASK_4BIT),
+    noBonusConstraint: ((packed >> BigInt(NO_BONUS_CONSTRAINT_POS)) & MASK_1BIT) === BigInt(1),
+    constraint3Progress: Number((packed >> BigInt(CONSTRAINT_3_PROGRESS_POS)) & MASK_8BIT),
   };
 }
 
@@ -202,11 +211,11 @@ export function createInitialRunData(): RunData {
     bonusUsedThisLevel: false,
     combo5Achieved: false,
     combo10Achieved: false,
-    hammerCount: 0,
+    comboCount: 0,
+    scoreCount: 0,
+    harvestCount: 0,
     waveCount: 0,
-    totemCount: 0,
-    shrinkCount: 0,
-    shuffleCount: 0,
+    supplyCount: 0,
     maxComboRun: 0,
     extraMoves: 0,
     cubesBrought: 0,
@@ -215,9 +224,9 @@ export function createInitialRunData(): RunData {
     totalScore: 0,
     runCompleted: false,
     // Default selected bonuses (the 3 base unlocked ones)
-    selectedBonus1: 1, // Hammer
-    selectedBonus2: 3, // Wave
-    selectedBonus3: 2, // Totem
+    selectedBonus1: 1,
+    selectedBonus2: 3,
+    selectedBonus3: 2,
     bonus1Level: 0,
     bonus2Level: 0,
     bonus3Level: 0,
@@ -228,6 +237,8 @@ export function createInitialRunData(): RunData {
     shopBonus2Bought: false,
     shopBonus3Bought: false,
     shopRefills: 0,
+    noBonusConstraint: false,
+    constraint3Progress: 0,
   };
 }
 
@@ -275,8 +286,7 @@ export function getEffectiveMaxMoves(
 }
 
 /**
- * Get the cost of a refill based on how many refills have been bought
- * Cost formula: 2 * (refills_bought + 1)
+ * @deprecated V3 uses getBonusChargeCost() with scaling cost. Keeping for backward compat.
  */
 export function getRefillCost(refillsBought: number): number {
   return 2 * (refillsBought + 1);
@@ -284,16 +294,16 @@ export function getRefillCost(refillsBought: number): number {
 
 /**
  * Selected bonus value to name mapping
- * Contract uses: 0=None, 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
+ * Contract uses: 0=None, 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
  */
 export function getSelectedBonusName(value: number): string {
   switch (value) {
     case 0: return "None";
-    case 1: return "Hammer";
-    case 2: return "Totem";
-    case 3: return "Wave";
-    case 4: return "Shrink";
-    case 5: return "Shuffle";
+    case 1: return "Combo";
+    case 2: return "Score";
+    case 3: return "Harvest";
+    case 4: return "Wave";
+    case 5: return "Supply";
     default: return "Unknown";
   }
 }
@@ -303,18 +313,15 @@ export function getSelectedBonusName(value: number): string {
  */
 export function getBonusInventoryCount(runData: RunData, selectedBonusValue: number): number {
   switch (selectedBonusValue) {
-    case 1: return runData.hammerCount;
-    case 2: return runData.totemCount;
-    case 3: return runData.waveCount;
-    case 4: return runData.shrinkCount;
-    case 5: return runData.shuffleCount;
+    case 1: return runData.comboCount;
+    case 2: return runData.scoreCount;
+    case 3: return runData.harvestCount;
+    case 4: return runData.waveCount;
+    case 5: return runData.supplyCount;
     default: return 0;
   }
 }
 
-/**
- * Consumable types for the in-game shop
- */
 export enum ConsumableType {
   Bonus1 = 0,
   Bonus2 = 1,
@@ -323,11 +330,19 @@ export enum ConsumableType {
   LevelUp = 4,
 }
 
-/**
- * Consumable costs
- */
+export const BONUS_CHARGE_BASE_COST = 5;
+export const LEVEL_UP_COST = 50;
+export const SWAP_BONUS_COST = 50;
 export const CONSUMABLE_COSTS = {
-  BONUS: 5,       // Each bonus costs 5 CUBE
-  LEVEL_UP: 50,   // Level up costs 50 CUBE
-  // Refill cost is dynamic: 2 * (refills + 1)
-};
+  BONUS: BONUS_CHARGE_BASE_COST,
+  LEVEL_UP: LEVEL_UP_COST,
+  SWAP_BONUS: SWAP_BONUS_COST,
+} as const;
+
+export function getBonusChargeCost(shopPurchases: number): number {
+  let cost = BONUS_CHARGE_BASE_COST;
+  for (let i = 0; i < shopPurchases; i++) {
+    cost = Math.ceil((cost * 3) / 2);
+  }
+  return cost;
+}

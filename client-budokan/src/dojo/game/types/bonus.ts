@@ -1,9 +1,3 @@
-import { Hammer } from "../elements/bonuses/hammer";
-import { Totem } from "../elements/bonuses/totem";
-import { Wave } from "../elements/bonuses/wave";
-import { Shrink } from "../elements/bonuses/shrink";
-import { Shuffle } from "../elements/bonuses/shuffle";
-
 import ImageAssets from "@/ui/theme/ImageAssets";
 
 const theme = "theme-1";
@@ -11,25 +5,25 @@ const imgAssets = ImageAssets(theme);
 
 export enum BonusType {
   None = "None",
-  Hammer = "Hammer",
-  Totem = "Totem",
+  Combo = "Combo",
+  Score = "Score",
+  Harvest = "Harvest",
   Wave = "Wave",
-  Shrink = "Shrink",
-  Shuffle = "Shuffle",
+  Supply = "Supply",
 }
 
 /**
  * Contract uses these values for selected bonuses:
- * 0 = None, 1 = Hammer, 2 = Totem, 3 = Wave, 4 = Shrink, 5 = Shuffle
+ * 0 = None, 1 = Combo, 2 = Score, 3 = Harvest, 4 = Wave, 5 = Supply
  */
 export function bonusTypeFromContractValue(value: number): BonusType {
   switch (value) {
     case 0: return BonusType.None;
-    case 1: return BonusType.Hammer;
-    case 2: return BonusType.Totem;
-    case 3: return BonusType.Wave;
-    case 4: return BonusType.Shrink;
-    case 5: return BonusType.Shuffle;
+    case 1: return BonusType.Combo;
+    case 2: return BonusType.Score;
+    case 3: return BonusType.Harvest;
+    case 4: return BonusType.Wave;
+    case 5: return BonusType.Supply;
     default: return BonusType.None;
   }
 }
@@ -40,19 +34,13 @@ export function bonusTypeFromContractValue(value: number): BonusType {
 export function bonusTypeToContractValue(type: BonusType): number {
   switch (type) {
     case BonusType.None: return 0;
-    case BonusType.Hammer: return 1;
-    case BonusType.Totem: return 2;
-    case BonusType.Wave: return 3;
-    case BonusType.Shrink: return 4;
-    case BonusType.Shuffle: return 5;
+    case BonusType.Combo: return 1;
+    case BonusType.Score: return 2;
+    case BonusType.Harvest: return 3;
+    case BonusType.Wave: return 4;
+    case BonusType.Supply: return 5;
     default: return 0;
   }
-}
-
-export interface Condition {
-  score: number;
-  combo: number;
-  max_combo: number;
 }
 
 export class Bonus {
@@ -80,22 +68,22 @@ export class Bonus {
 
   public static getBonuses(): Bonus[] {
     return [
-      new Bonus(BonusType.Hammer),
-      new Bonus(BonusType.Totem),
-      new Bonus(BonusType.Wave),
+      new Bonus(BonusType.Combo),
+      new Bonus(BonusType.Score),
+      new Bonus(BonusType.Harvest),
     ];
   }
 
   /**
-   * Get all available bonuses including Shrink and Shuffle
+   * Get all available bonuses
    */
   public static getAllBonuses(): Bonus[] {
     return [
-      new Bonus(BonusType.Hammer),
-      new Bonus(BonusType.Totem),
+      new Bonus(BonusType.Combo),
+      new Bonus(BonusType.Score),
+      new Bonus(BonusType.Harvest),
       new Bonus(BonusType.Wave),
-      new Bonus(BonusType.Shrink),
-      new Bonus(BonusType.Shuffle),
+      new Bonus(BonusType.Supply),
     ];
   }
 
@@ -105,67 +93,33 @@ export class Bonus {
 
   public getIcon(): string {
     switch (this.value) {
-      case BonusType.Hammer:
-        return imgAssets.hammer;
-      case BonusType.Totem:
-        return imgAssets.tiki;
+      case BonusType.Combo:
+        return imgAssets.combo;
+      case BonusType.Score:
+        return imgAssets.score;
+      case BonusType.Harvest:
+        return imgAssets.harvest;
       case BonusType.Wave:
         return imgAssets.wave;
-      case BonusType.Shrink:
-        return imgAssets.shrink;
-      case BonusType.Shuffle:
-        return imgAssets.shuffle;
+      case BonusType.Supply:
+        return imgAssets.supply;
       default:
         return "";
     }
   }
 
-  public getCount(score: number, combo: number, max_combo: number): number {
-    switch (this.value) {
-      case BonusType.Hammer:
-        return Hammer.getCount(score);
-      case BonusType.Totem:
-        return Totem.getCount(max_combo);
-      case BonusType.Wave:
-        return Wave.getCount(combo);
-      case BonusType.Shrink:
-        return Shrink.getCount(score);
-      case BonusType.Shuffle:
-        return Shuffle.getCount(score);
-      default:
-        return 0;
-    }
-  }
-
-  public getConditions(): Condition[] {
-    switch (this.value) {
-      case BonusType.Hammer:
-        return Hammer.getConditions();
-      case BonusType.Totem:
-        return Totem.getConditions();
-      case BonusType.Wave:
-        return Wave.getConditions();
-      case BonusType.Shrink:
-        return Shrink.getConditions();
-      case BonusType.Shuffle:
-        return Shuffle.getConditions();
-      default:
-        return [];
-    }
-  }
-
   public getDescription(): string {
     switch (this.value) {
-      case BonusType.Hammer:
-        return Hammer.getDescription();
-      case BonusType.Totem:
-        return Totem.getDescription();
+      case BonusType.Combo:
+        return "Add combo to next move";
+      case BonusType.Score:
+        return "Add bonus score";
+      case BonusType.Harvest:
+        return "Destroy all blocks of chosen size";
       case BonusType.Wave:
-        return Wave.getDescription();
-      case BonusType.Shrink:
-        return Shrink.getDescription();
-      case BonusType.Shuffle:
-        return Shuffle.getDescription();
+        return "Clear horizontal rows";
+      case BonusType.Supply:
+        return "Add new lines at no move cost";
       default:
         return "";
     }
@@ -173,16 +127,16 @@ export class Bonus {
 
   public getName(): string {
     switch (this.value) {
-      case BonusType.Hammer:
-        return "Hammer";
-      case BonusType.Totem:
-        return "Totem";
+      case BonusType.Combo:
+        return "Combo";
+      case BonusType.Score:
+        return "Score";
+      case BonusType.Harvest:
+        return "Harvest";
       case BonusType.Wave:
         return "Wave";
-      case BonusType.Shrink:
-        return "Shrink";
-      case BonusType.Shuffle:
-        return "Shuffle";
+      case BonusType.Supply:
+        return "Supply";
       default:
         return "";
     }
@@ -190,16 +144,16 @@ export class Bonus {
 
   public getEffect(): string {
     switch (this.value) {
-      case BonusType.Hammer:
-        return "Remove a single block";
-      case BonusType.Totem:
-        return "Remove all blocks of a color";
+      case BonusType.Combo:
+        return "Add combo to next move";
+      case BonusType.Score:
+        return "Add bonus score";
+      case BonusType.Harvest:
+        return "Destroy all blocks of chosen size";
       case BonusType.Wave:
-        return "Remove a row of blocks";
-      case BonusType.Shrink:
-        return "Shrink all blocks by 1 size";
-      case BonusType.Shuffle:
-        return "Randomly rearrange all blocks";
+        return "Clear horizontal rows";
+      case BonusType.Supply:
+        return "Add new lines at no move cost";
       default:
         return "";
     }

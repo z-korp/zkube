@@ -50,14 +50,14 @@ interface LoadoutDialogProps {
 }
 
 const ALL_BONUSES: BonusType[] = [
-  BonusType.Hammer,
-  BonusType.Totem,
+  BonusType.Combo,
+  BonusType.Score,
+  BonusType.Harvest,
   BonusType.Wave,
-  BonusType.Shrink,
-  BonusType.Shuffle,
+  BonusType.Supply,
 ];
 
-const DEFAULT_BONUSES: BonusType[] = [BonusType.Hammer, BonusType.Wave, BonusType.Totem];
+const DEFAULT_BONUSES: BonusType[] = [BonusType.Combo, BonusType.Harvest, BonusType.Score];
 
 // Calculate max cubes allowed based on bridging rank
 export const getMaxCubesForRank = (rank: number): number => {
@@ -97,8 +97,8 @@ const LoadoutDialog: React.FC<LoadoutDialogProps> = ({
       if (saved) {
         // Filter out any bonuses that are no longer unlocked
         const validBonuses = saved.selectedBonuses.filter(b => {
-          if (b === BonusType.Shrink) return playerMetaData?.shrinkUnlocked;
-          if (b === BonusType.Shuffle) return playerMetaData?.shuffleUnlocked;
+          if (b === BonusType.Wave) return playerMetaData?.shrinkUnlocked;
+          if (b === BonusType.Supply) return playerMetaData?.shuffleUnlocked;
           return true;
         });
         setSelected(validBonuses.length === 3 ? validBonuses : DEFAULT_BONUSES);
@@ -111,25 +111,25 @@ const LoadoutDialog: React.FC<LoadoutDialogProps> = ({
   }, [isOpen, playerMetaData, actualMaxCubes]);
 
   const unlockedMap = useMemo(() => ({
-    [BonusType.Hammer]: true,
-    [BonusType.Totem]: true,
-    [BonusType.Wave]: true,
-    [BonusType.Shrink]: playerMetaData?.shrinkUnlocked ?? false,
-    [BonusType.Shuffle]: playerMetaData?.shuffleUnlocked ?? false,
+    [BonusType.Combo]: true,
+    [BonusType.Score]: true,
+    [BonusType.Harvest]: true,
+    [BonusType.Wave]: playerMetaData?.shrinkUnlocked ?? false,
+    [BonusType.Supply]: playerMetaData?.shuffleUnlocked ?? false,
   }), [playerMetaData]);
 
   const getBonusIcon = (type: BonusType): string => {
     switch (type) {
-      case BonusType.Hammer:
-        return imgAssets.hammer;
+      case BonusType.Combo:
+        return imgAssets.combo;
+      case BonusType.Score:
+        return imgAssets.score;
+      case BonusType.Harvest:
+        return imgAssets.harvest;
       case BonusType.Wave:
         return imgAssets.wave;
-      case BonusType.Totem:
-        return imgAssets.tiki;
-      case BonusType.Shrink:
-        return imgAssets.shrink;
-      case BonusType.Shuffle:
-        return imgAssets.shuffle;
+      case BonusType.Supply:
+        return imgAssets.supply;
       default:
         return "";
     }
@@ -139,30 +139,30 @@ const LoadoutDialog: React.FC<LoadoutDialogProps> = ({
     if (!playerMetaData) return { bagSize: 0, startingCount: 0 };
     
     switch (type) {
-      case BonusType.Hammer:
+      case BonusType.Combo:
         return { 
-          bagSize: playerMetaData.bagHammerLevel, 
-          startingCount: playerMetaData.startingHammer 
+          bagSize: playerMetaData.bagComboLevel, 
+          startingCount: playerMetaData.startingCombo 
+        };
+      case BonusType.Harvest:
+        return { 
+          bagSize: playerMetaData.bagHarvestLevel,
+          startingCount: playerMetaData.startingHarvest
+        };
+      case BonusType.Score:
+        return { 
+          bagSize: playerMetaData.bagScoreLevel,
+          startingCount: playerMetaData.startingScore
         };
       case BonusType.Wave:
         return { 
           bagSize: playerMetaData.bagWaveLevel, 
           startingCount: playerMetaData.startingWave 
         };
-      case BonusType.Totem:
+      case BonusType.Supply:
         return { 
-          bagSize: playerMetaData.bagTotemLevel, 
-          startingCount: playerMetaData.startingTotem 
-        };
-      case BonusType.Shrink:
-        return { 
-          bagSize: playerMetaData.bagShrinkLevel, 
-          startingCount: playerMetaData.startingShrink 
-        };
-      case BonusType.Shuffle:
-        return { 
-          bagSize: playerMetaData.bagShuffleLevel, 
-          startingCount: playerMetaData.startingShuffle 
+          bagSize: playerMetaData.bagSupplyLevel, 
+          startingCount: playerMetaData.startingSupply 
         };
       default:
         return { bagSize: 0, startingCount: 0 };
@@ -368,7 +368,7 @@ const LoadoutDialog: React.FC<LoadoutDialogProps> = ({
             <span>Unlock Bridging Rank in the shop to bring cubes into games.</span>
           )}
           {!playerMetaData?.shrinkUnlocked && !playerMetaData?.shuffleUnlocked && (
-            <span> Unlock Shrink and Shuffle in the permanent shop.</span>
+            <span> Unlock Wave and Supply in the permanent shop.</span>
           )}
         </div>
 
