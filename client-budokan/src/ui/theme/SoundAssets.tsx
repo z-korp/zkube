@@ -1,15 +1,26 @@
-const SoundAssets = (theme: string) => {
-  const PathAssets = "/assets/" + theme + "/";
+import {
+  SFX_PATHS,
+  THEME_MUSIC,
+  type MusicContext,
+  type ThemeId,
+} from "@/config/themes";
+
+const SoundAssets = (theme: ThemeId) => {
+  const music: Record<MusicContext, string> = THEME_MUSIC[theme];
 
   return {
-    start: PathAssets + "sounds/effects/start.mp3",
-    over: PathAssets + "sounds/effects/over.mp3",
-    jungle2: PathAssets + "sounds/musics/theme-jungle2.mp3",
-    jungle3: PathAssets + "sounds/musics/theme-jungle3.mp3",
-    swipe: PathAssets + "sounds/effects/swipe.mp3",
-    explode: PathAssets + "sounds/effects/explode.mp3",
-    // Use 'new' sound for constraint satisfaction (achievement-like sound)
-    success: PathAssets + "sounds/effects/new.mp3",
+    music,
+    sfx: SFX_PATHS,
+    start: SFX_PATHS.start,
+    over: SFX_PATHS.over,
+    swipe: SFX_PATHS.swipe,
+    explode: SFX_PATHS.explode,
+    break: SFX_PATHS.break,
+    move: SFX_PATHS.move,
+    new: SFX_PATHS.new,
+    success: SFX_PATHS.new,
+    jungle2: music.main,
+    jungle3: music.level,
   };
 };
 
