@@ -8,7 +8,7 @@ Single source of truth for every sound effect and music track in the game.
 
 1. [Audio Architecture](#audio-architecture)
 2. [Sonic Identity](#sonic-identity)
-3. [SFX Pipeline](#sfx-pipeline) (fal.ai — cassetteai/sound-effects-generator)
+3. [SFX Pipeline](#sfx-pipeline) (fal.ai — ElevenLabs Sound Effects V2)
 4. [SFX Inventory](#sfx-inventory)
 5. [Music Pipeline](#music-pipeline) (Suno v5)
 6. [Per-Theme Music](#per-theme-music)
@@ -86,18 +86,20 @@ The game is about manipulating blocks (cubes = minerals). The puzzle temple aest
 
 ## SFX Pipeline
 
-### Generator: fal.ai — cassetteai/sound-effects-generator
+### Generator: fal.ai — ElevenLabs Sound Effects V2
 
-SFX are generated using CassetteAI's sound effects model via the fal.ai API. Same `@fal-ai/client` package as image generation.
+SFX are generated using ElevenLabs' sound effects model via the fal.ai API. Same `@fal-ai/client` package as image generation. Outputs MP3 directly — no ffmpeg conversion needed.
 
 **API:**
 ```typescript
 import { fal } from "@fal-ai/client";
 
-const result = await fal.subscribe("cassetteai/sound-effects-generator", {
+const result = await fal.subscribe("fal-ai/elevenlabs/sound-effects/v2", {
   input: {
-    prompt: "A single polished obsidian stone tapped sharply against quartz, bright crystalline click with short stone-chamber reverb tail",
-    duration: 1  // integer seconds, 1-30
+    text: "Sharp glass crack with bright shimmer. Quick snap, fast decay, satisfying.",
+    duration_seconds: 1,
+    prompt_influence: 0.3,
+    output_format: "mp3_44100_192",
   },
   logs: true,
   onQueueUpdate: (update) => {
@@ -107,16 +109,19 @@ const result = await fal.subscribe("cassetteai/sound-effects-generator", {
   },
 });
 
-// result.data.audio_file.url → WAV download URL
+// result.data.audio.url → MP3 download URL
 ```
 
 **Key Parameters:**
 | Param | Type | Notes |
 |-------|------|-------|
-| `prompt` | string | Description of the sound — use mineral/crystal/stone textures |
-| `duration` | integer | Duration in seconds, 1-30. **Must be integer.** |
+| `text` | string | Description of the sound effect |
+| `duration_seconds` | float | Duration in seconds, 0.5-22 (optional, auto if omitted) |
+| `prompt_influence` | float | How closely to follow prompt, 0-1 (default 0.3) |
+| `output_format` | string | Codec/rate/bitrate e.g. `mp3_44100_192` (default `mp3_44100_128`) |
+| `loop` | boolean | Create a smoothly looping sound (optional) |
 
-**Output:** WAV file (signed URL at `result.data.audio_file.url`)
+**Output:** MP3 file at 44.1kHz stereo (signed URL at `result.data.audio.url`)
 
 ### Environment
 
@@ -366,15 +371,11 @@ A crisp Nordic folk electronic instrumental with staccato strings and a tight el
 
 ### SFX
 
-1. Download WAV from fal.ai result URL
-2. Convert WAV → MP3 192kbps via ffmpeg
-3. Save to `common/sounds/effects/{name}.mp3`
-
-> **Note:** Normalization TBD after first batch. CassetteAI output levels are undocumented — check empirically with `ffprobe` and decide if LUFS normalization is needed.
+1. Generated as MP3 192kbps directly from ElevenLabs (no conversion needed)
+2. Save to `common/sounds/effects/{name}.mp3`
 
 ### Tools
 
-- **ffmpeg** for WAV→MP3 conversion (and normalization if needed later)
 - Normalization target (if needed): `-12 LUFS` (SFX), `-14 LUFS` (music)
 
 ---

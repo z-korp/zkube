@@ -6,7 +6,7 @@ import { fal } from "@fal-ai/client";
 import sharp from "sharp";
 
 const MODEL = "fal-ai/flux-2-pro";
-const SFX_MODEL = "cassetteai/sound-effects-generator";
+const SFX_MODEL = "fal-ai/elevenlabs/sound-effects/v2";
 const CONCURRENCY = 2;
 const REQUEST_DELAY_MS = 3_000;
 const RETRY_BACKOFF_MS = [15_000, 30_000, 60_000, 120_000] as const;
@@ -1278,10 +1278,11 @@ function extractAudioUrl(response: unknown): string {
   const candidate = response as {
     data?: {
       audio_file?: { url?: string };
+      audio?: { url?: string };
     };
   };
 
-  const url = candidate.data?.audio_file?.url;
+  const url = candidate.data?.audio?.url ?? candidate.data?.audio_file?.url;
   if (typeof url === "string" && url.length > 0) {
     return url;
   }
@@ -1336,15 +1337,17 @@ async function generateSfx(job: SfxJob): Promise<Buffer> {
 
       const response = await fal.subscribe(SFX_MODEL, {
         input: {
-          prompt: job.prompt,
-          duration: job.duration,
+          text: job.prompt,
+          duration_seconds: job.duration,
+          prompt_influence: 0.3,
+          output_format: "mp3_44100_192",
         },
       });
 
       const audioUrl = extractAudioUrl(response);
       const download = await fetch(audioUrl);
       if (!download.ok) {
-        throw new Error(`Failed to download WAV (${download.status})`);
+        throw new Error(`Failed to download audio (${download.status})`);
       }
 
       return Buffer.from(await download.arrayBuffer());
@@ -1363,21 +1366,9 @@ async function generateSfx(job: SfxJob): Promise<Buffer> {
   throw new Error("Failed to generate SFX after retries.");
 }
 
-async function convertWavToMp3(wavBuffer: Buffer, outputPath: string): Promise<void> {
+function saveMp3(mp3Buffer: Buffer, outputPath: string): void {
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-
-  const tempWav = outputPath.replace(/\.mp3$/, ".tmp.wav");
-  fs.writeFileSync(tempWav, wavBuffer);
-
-  try {
-    execSync(`ffmpeg -y -i "${tempWav}" -codec:a libmp3lame -b:a 192k "${outputPath}"`, {
-      stdio: "pipe",
-    });
-  } finally {
-    if (fs.existsSync(tempWav)) {
-      fs.unlinkSync(tempWav);
-    }
-  }
+  fs.writeFileSync(outputPath, mp3Buffer);
 }
 
 function buildSfxJobs(only?: string[]): SfxJob[] {
@@ -1404,13 +1395,7 @@ function buildSfxJobs(only?: string[]): SfxJob[] {
   }));
 }
 
-function verifyFfmpegAvailable(): void {
-  try {
-    execSync("which ffmpeg", { stdio: "pipe" });
-  } catch {
-    throw new Error("ffmpeg is required for SFX conversion. Install ffmpeg and retry.");
-  }
-}
+
 
 async function runSfxMode(options: CliOptions): Promise<void> {
   const jobs = buildSfxJobs(options.only);
@@ -1450,7 +1435,6 @@ async function runSfxMode(options: CliOptions): Promise<void> {
     throw new Error("FAL_KEY is required for generation. Export it and retry.");
   }
 
-  verifyFfmpegAvailable();
   fal.config({ credentials: process.env.FAL_KEY });
 
   const pLimitFactory = await loadPLimitFactory();
@@ -1466,8 +1450,8 @@ async function runSfxMode(options: CliOptions): Promise<void> {
         console.log(`${step}  ⏳ ${job.filename}...`);
 
         try {
-          const wavBuffer = await generateSfx(job);
-          await convertWavToMp3(wavBuffer, job.outputPath);
+          const mp3Buffer = await generateSfx(job);
+          saveMp3(mp3Buffer, job.outputPath);
           const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
           console.log(`${step}  ✅ ${job.filename} (${elapsed}s)`);
           successCount += 1;
