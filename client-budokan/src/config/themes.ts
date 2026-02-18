@@ -15,7 +15,7 @@ export type ThemeId = (typeof THEME_IDS)[number];
 
 export type ThemeMode = "dark" | "light" | "system";
 
-export type MusicContext = "main" | "map" | "level" | "boss";
+export type MusicContext = "main" | "level" | "boss" | "boss2";
 
 export interface ThemeMeta {
   name: string;
@@ -389,67 +389,66 @@ export function getBlockColors(themeId: ThemeId, blockWidth: 1 | 2 | 3 | 4): Blo
   return colors.blocks[blockWidth] ?? colors.blocks[1];
 }
 
-// Themes 1-2 use legacy file names (jungle series), 3-10 use main/map/level/boss
 export const THEME_MUSIC: Record<ThemeId, Record<MusicContext, string>> = {
   "theme-1": {
-    main: "/assets/theme-1/sounds/musics/theme-jungle2.mp3",
-    map: "/assets/theme-1/sounds/musics/intro.mp3",
-    level: "/assets/theme-1/sounds/musics/theme-jungle3.mp3",
-    boss: "/assets/theme-1/sounds/musics/theme-jungle.mp3",
+    main: "/assets/theme-1/sounds/musics/main.mp3",
+    level: "/assets/theme-1/sounds/musics/map.mp3",
+    boss: "/assets/theme-1/sounds/musics/boss.mp3",
+    boss2: "/assets/theme-1/sounds/musics/level.mp3",
   },
   "theme-2": {
-    main: "/assets/theme-2/sounds/musics/theme-jungle2.mp3",
-    map: "/assets/theme-2/sounds/musics/theme-jungle2.mp3",
-    level: "/assets/theme-2/sounds/musics/theme-jungle3.mp3",
-    boss: "/assets/theme-2/sounds/musics/theme-jungle3.mp3",
+    main: "/assets/theme-2/sounds/musics/main.mp3",
+    level: "/assets/theme-2/sounds/musics/map.mp3",
+    boss: "/assets/theme-2/sounds/musics/boss.mp3",
+    boss2: "/assets/theme-2/sounds/musics/level.mp3",
   },
   "theme-3": {
     main: "/assets/theme-3/sounds/musics/main.mp3",
-    map: "/assets/theme-3/sounds/musics/map.mp3",
-    level: "/assets/theme-3/sounds/musics/level.mp3",
+    level: "/assets/theme-3/sounds/musics/map.mp3",
     boss: "/assets/theme-3/sounds/musics/boss.mp3",
+    boss2: "/assets/theme-3/sounds/musics/level.mp3",
   },
   "theme-4": {
     main: "/assets/theme-4/sounds/musics/main.mp3",
-    map: "/assets/theme-4/sounds/musics/map.mp3",
-    level: "/assets/theme-4/sounds/musics/level.mp3",
+    level: "/assets/theme-4/sounds/musics/map.mp3",
     boss: "/assets/theme-4/sounds/musics/boss.mp3",
+    boss2: "/assets/theme-4/sounds/musics/level.mp3",
   },
   "theme-5": {
     main: "/assets/theme-5/sounds/musics/main.mp3",
-    map: "/assets/theme-5/sounds/musics/map.mp3",
-    level: "/assets/theme-5/sounds/musics/level.mp3",
+    level: "/assets/theme-5/sounds/musics/map.mp3",
     boss: "/assets/theme-5/sounds/musics/boss.mp3",
+    boss2: "/assets/theme-5/sounds/musics/level.mp3",
   },
   "theme-6": {
     main: "/assets/theme-6/sounds/musics/main.mp3",
-    map: "/assets/theme-6/sounds/musics/map.mp3",
-    level: "/assets/theme-6/sounds/musics/level.mp3",
+    level: "/assets/theme-6/sounds/musics/map.mp3",
     boss: "/assets/theme-6/sounds/musics/boss.mp3",
+    boss2: "/assets/theme-6/sounds/musics/level.mp3",
   },
   "theme-7": {
     main: "/assets/theme-7/sounds/musics/main.mp3",
-    map: "/assets/theme-7/sounds/musics/map.mp3",
-    level: "/assets/theme-7/sounds/musics/level.mp3",
+    level: "/assets/theme-7/sounds/musics/map.mp3",
     boss: "/assets/theme-7/sounds/musics/boss.mp3",
+    boss2: "/assets/theme-7/sounds/musics/level.mp3",
   },
   "theme-8": {
     main: "/assets/theme-8/sounds/musics/main.mp3",
-    map: "/assets/theme-8/sounds/musics/map.mp3",
-    level: "/assets/theme-8/sounds/musics/level.mp3",
+    level: "/assets/theme-8/sounds/musics/map.mp3",
     boss: "/assets/theme-8/sounds/musics/boss.mp3",
+    boss2: "/assets/theme-8/sounds/musics/level.mp3",
   },
   "theme-9": {
     main: "/assets/theme-9/sounds/musics/main.mp3",
-    map: "/assets/theme-9/sounds/musics/map.mp3",
-    level: "/assets/theme-9/sounds/musics/level.mp3",
+    level: "/assets/theme-9/sounds/musics/map.mp3",
     boss: "/assets/theme-9/sounds/musics/boss.mp3",
+    boss2: "/assets/theme-9/sounds/musics/level.mp3",
   },
   "theme-10": {
     main: "/assets/theme-10/sounds/musics/main.mp3",
-    map: "/assets/theme-10/sounds/musics/map.mp3",
-    level: "/assets/theme-10/sounds/musics/level.mp3",
+    level: "/assets/theme-10/sounds/musics/map.mp3",
     boss: "/assets/theme-10/sounds/musics/boss.mp3",
+    boss2: "/assets/theme-10/sounds/musics/level.mp3",
   },
 };
 
@@ -465,7 +464,6 @@ export const SFX_PATHS = {
 
 export type SfxName = keyof typeof SFX_PATHS;
 
-// Themes 1-2 lack grid-bg, grid-frame, background, theme-icon assets
 export function isLegacyTheme(themeId: ThemeId): boolean {
   return themeId === "theme-1" || themeId === "theme-2";
 }

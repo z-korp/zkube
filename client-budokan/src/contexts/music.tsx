@@ -59,7 +59,6 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
   const [effectsVolume, setEffectsVolumeState] = useState<number>(audioManager.effectsVolume);
   const [currentContext, setCurrentContextState] = useState<MusicContext>(DEFAULT_MUSIC_CONTEXT);
   const [isPlaying, setIsPlaying] = useState<boolean>(audioManager.isPlaying);
-  const wasPlayingBeforeHiddenRef = useRef(false);
   const audioUnlockedRef = useRef(false);
 
   useEffect(() => {
@@ -103,28 +102,6 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       setIsPlaying(audioManager.isPlaying);
     }
   }, [themeId, currentContext]);
-
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        wasPlayingBeforeHiddenRef.current = audioManager.isPlaying;
-        audioManager.pauseAll();
-        setIsPlaying(audioManager.isPlaying);
-        return;
-      }
-
-      if (wasPlayingBeforeHiddenRef.current) {
-        audioManager.resumeAll();
-        setIsPlaying(audioManager.isPlaying);
-      }
-      wasPlayingBeforeHiddenRef.current = false;
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, []);
 
   useEffect(() => {
     return () => {
