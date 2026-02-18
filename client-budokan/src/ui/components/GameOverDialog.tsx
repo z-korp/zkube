@@ -1,8 +1,7 @@
 import { Game } from "@/dojo/game/models/game";
 import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
-import { useNavigate } from "react-router-dom";
 import { useMemo } from "react";
-import { motion } from "motion/react";
+import { motion, type Variants } from "motion/react";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { Flame, Gem, Layers, RotateCw, Trophy } from "lucide-react";
 
@@ -19,17 +18,14 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
   onClose,
   game,
 }) => {
-  const navigate = useNavigate();
   const { playerMeta } = usePlayerMeta();
-  
+
   const handleClose = () => {
     onClose();
-    navigate("/");
   };
 
   const handlePlayAgain = () => {
     onClose();
-    navigate("/");
   };
 
   // Check if this is a new personal best
@@ -108,8 +104,7 @@ app.zkube.xyz`;
     return `https://x.com/intent/tweet?text=${encodeURIComponent(tweetMsg)}`;
   }, [game.level, game.totalCubes, game.totalScore, game.maxComboRun]);
 
-  // Animation variants
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -120,7 +115,7 @@ app.zkube.xyz`;
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
       opacity: 1, 
@@ -129,19 +124,19 @@ app.zkube.xyz`;
     },
   };
 
-  const levelVariants = {
+  const levelVariants: Variants = {
     hidden: { opacity: 0, scale: 0.5 },
     visible: { 
       opacity: 1, 
       scale: 1,
       transition: { 
         duration: 0.5, 
-        ease: [0.34, 1.56, 0.64, 1], // Spring-like overshoot
+        ease: [0.34, 1.56, 0.64, 1],
       }
     },
   };
 
-  const badgeVariants = {
+  const badgeVariants: Variants = {
     hidden: { opacity: 0, scale: 0 },
     visible: { 
       opacity: 1, 

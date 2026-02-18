@@ -1,6 +1,5 @@
 import { Game } from "@/dojo/game/models/game";
 import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
-import { useNavigate } from "react-router-dom";
 import { useMemo, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Flame, Gem, Star, Trophy } from "lucide-react";
@@ -16,7 +15,6 @@ const VictoryDialog: React.FC<VictoryDialogProps> = ({
   onClose,
   game,
 }) => {
-  const navigate = useNavigate();
   const [animationPhase, setAnimationPhase] = useState(0);
 
   // Reset and start animation when dialog opens
@@ -36,7 +34,6 @@ const VictoryDialog: React.FC<VictoryDialogProps> = ({
 
   const handleClose = () => {
     onClose();
-    navigate("/");
   };
 
   // Generate tweet URL for victory
