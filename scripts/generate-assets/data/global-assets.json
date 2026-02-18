@@ -1,0 +1,69 @@
+{
+  "buttons": {
+    "orange": { "color": "#FF8C00", "highlight": "#FFB74D", "shadow": "#CC6600", "desc": "warm orange" },
+    "green": { "color": "#4CAF50", "highlight": "#81C784", "shadow": "#2E7D32", "desc": "emerald green" },
+    "purple": { "color": "#9C27B0", "highlight": "#CE93D8", "shadow": "#6A1B9A", "desc": "royal purple" },
+    "red": { "color": "#F44336", "highlight": "#EF9A9A", "shadow": "#C62828", "desc": "crimson red" },
+    "icon": { "color": "#455A64", "highlight": "#90A4AE", "shadow": "#263238", "desc": "dark grey-blue" }
+  },
+  "sharedIcons": [
+    { "filename": "icon-moves.png", "description": "A pair of footsteps or shoe prints — represents move count in a puzzle game" },
+    { "filename": "icon-score.png", "description": "A star burst or sparkle — represents score/points" },
+    { "filename": "icon-cube.png", "description": "A 3D isometric cube — represents the CUBE currency token" },
+    { "filename": "icon-level.png", "description": "A numbered flag or milestone marker — represents current level" },
+    { "filename": "icon-surrender.png", "description": "A white flag on a pole — represents surrender/quit action" }
+  ],
+  "catalogIcons": [
+    { "filename": "icon-star-filled.png", "description": "A solid filled 5-pointed star — represents filled rating" },
+    { "filename": "icon-star-empty.png", "description": "An outlined empty 5-pointed star — represents empty rating" },
+    { "filename": "icon-cube.png", "description": "A 3D isometric cube — game currency" },
+    { "filename": "icon-crown.png", "description": "A royal crown with 3 points — achievement/rank" },
+    { "filename": "icon-fire.png", "description": "A flame/fire — combo/bonus indicator" },
+    { "filename": "icon-scroll.png", "description": "A rolled parchment scroll — quest/task" },
+    { "filename": "icon-shop.png", "description": "A shopping bag or cart — store/shop" },
+    { "filename": "icon-trophy.png", "description": "A trophy cup with handles — achievement" },
+    { "filename": "icon-menu.png", "description": "Three horizontal lines (hamburger menu) — navigation" },
+    { "filename": "icon-close.png", "description": "An X/cross mark — close/dismiss" },
+    { "filename": "icon-settings.png", "description": "A gear/cog wheel — settings" },
+    { "filename": "icon-lock.png", "description": "A padlock in locked position — locked/unavailable" },
+    { "filename": "icon-music.png", "description": "A musical note — music toggle" },
+    { "filename": "icon-sound.png", "description": "A speaker with sound waves — sound toggle" }
+  ],
+  "bonusIcons": [
+    { "filename": "combo.png", "description": "A swirling vortex/cyclone of energy — represents combo multiplier power-up. Dynamic spiral motion, glowing trails." },
+    { "filename": "score.png", "description": "An exploding starburst with radiating rays — represents instant score bonus. Bright, energetic, celebratory." },
+    { "filename": "harvest.png", "description": "A crystal pickaxe or mining tool striking a gem — represents harvest bonus (destroying blocks for currency). Sharp, impactful." },
+    { "filename": "wave.png", "description": "A horizontal shockwave or energy pulse rippling outward — represents wave bonus (clearing entire rows). Wide horizontal motion." },
+    { "filename": "supply.png", "description": "A glowing crate or supply drop with an upward arrow — represents supply bonus (adding new lines). Sturdy, constructive feel." }
+  ],
+  "uiChrome": [
+    { "filename": "hud-bar.png", "description": "A wide horizontal bar for displaying game stats (score, level, moves). Dark semi-transparent with subtle ornate borders on top and bottom edges. Fantasy/tribal style.", "width": 360, "height": 40 },
+    { "filename": "action-bar.png", "description": "A wide horizontal action bar for bonus buttons at the bottom of the screen. Dark semi-transparent with ornate borders. Slightly taller than hud-bar. Fantasy/tribal style.", "width": 360, "height": 64 },
+    { "filename": "bonus-btn-bg.png", "description": "A square button background for bonus ability icons. Dark circular/rounded-square shape with a glowing border ring. Fantasy/tribal style. Should look pressable.", "width": 64, "height": 64 }
+  ],
+  "panels": [
+    { "filename": "panel-wood.png", "material": "Warm brown wood planks — carved wooden frame with nail studs", "alpha": "0.95" },
+    { "filename": "panel-dark.png", "material": "Dark slate/iron — thin metallic border with rivets", "alpha": "0.95" },
+    { "filename": "panel-leaf.png", "material": "Green plant matter — vine-wrapped edges with small leaves", "alpha": "0.95" },
+    { "filename": "panel-glass.png", "material": "Frosted glass — thin bright border, translucent center", "alpha": "0.85" }
+  ],
+  "particles": [
+    { "filename": "particle-spark.png", "description": "A bright spark/point of light — diamond-shaped glow" },
+    { "filename": "particle-leaf.png", "description": "A small leaf shape — slightly curved" },
+    { "filename": "particle-flower.png", "description": "A tiny 5-petal flower — simple and symmetric" },
+    { "filename": "particle-star.png", "description": "A tiny 4-pointed star — radiating points" }
+  ],
+  "targetDimensions": {
+    "block-1.png": { "width": 544, "height": 544 },
+    "block-2.png": { "width": 1088, "height": 544 },
+    "block-3.png": { "width": 1632, "height": 544 },
+    "block-4.png": { "width": 2176, "height": 544 },
+    "grid-bg.png": { "width": 512, "height": 640 },
+    "grid-frame.png": { "width": 576, "height": 720 },
+    "background.png": { "width": 2048, "height": 2048 },
+    "loading-bg.png": { "width": 2048, "height": 2048 },
+    "logo.png": { "width": 512, "height": 512 },
+    "map.png": { "width": 1080, "height": 1920 },
+    "theme-icon.png": { "width": 128, "height": 128 }
+  }
+}

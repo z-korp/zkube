@@ -1,0 +1,157 @@
+import fs from "node:fs";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+import { fal } from "@fal-ai/client";
+import {
+  IMAGE_MODEL,
+  MAX_RETRIES,
+  RETRY_BACKOFF_MS,
+  SFX_MODEL,
+  isRetryableError,
+  sleep,
+  waitForRequestSlot,
+} from "./env";
+import type { AssetJob, SfxJob } from "./types";
+
+export function resolveReferenceUrl(job: AssetJob, includeRefs: boolean): string | undefined {
+  if (!includeRefs || !job.refPaths || job.refPaths.length === 0) {
+    return undefined;
+  }
+
+  for (const filePath of job.refPaths) {
+    if (!fs.existsSync(filePath)) {
+      continue;
+    }
+    if (path.extname(filePath).toLowerCase() !== ".png") {
+      continue;
+    }
+    return pathToFileURL(filePath).toString();
+  }
+
+  return undefined;
+}
+
+export function extractImageUrl(response: unknown): string {
+  const candidate = response as {
+    data?: {
+      images?: Array<{ url?: string }>;
+      image?: { url?: string };
+    };
+  };
+
+  const fromImages = candidate.data?.images?.find((image) => typeof image.url === "string" && image.url.length > 0)?.url;
+  if (fromImages) {
+    return fromImages;
+  }
+
+  const fromImage = candidate.data?.image?.url;
+  if (typeof fromImage === "string" && fromImage.length > 0) {
+    return fromImage;
+  }
+
+  throw new Error("No image URL returned by fal.ai.");
+}
+
+export function extractAudioUrl(response: unknown): string {
+  const candidate = response as {
+    data?: {
+      audio_file?: { url?: string };
+      audio?: { url?: string };
+    };
+  };
+
+  const url = candidate.data?.audio?.url ?? candidate.data?.audio_file?.url;
+  if (typeof url === "string" && url.length > 0) {
+    return url;
+  }
+
+  throw new Error("No audio URL returned by fal.ai.");
+}
+
+export async function generateImage(job: AssetJob, includeRefs: boolean): Promise<Buffer> {
+  const referenceUrl = resolveReferenceUrl(job, includeRefs);
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    try {
+      await waitForRequestSlot();
+
+      const input: Record<string, unknown> = {
+        prompt: job.prompt,
+        image_size: { width: job.width, height: job.height },
+        num_images: 1,
+        ...(referenceUrl ? { image_url: referenceUrl } : {}),
+      };
+
+      const response = await fal.subscribe(IMAGE_MODEL as string, {
+        input,
+      });
+
+      const imageUrl = extractImageUrl(response);
+      const download = await fetch(imageUrl);
+      if (!download.ok) {
+        throw new Error(`Failed to download generated image (${download.status})`);
+      }
+
+      return Buffer.from(await download.arrayBuffer());
+    } catch (error) {
+      if (isRetryableError(error) && attempt < MAX_RETRIES) {
+        const backoffMs = RETRY_BACKOFF_MS[attempt] ?? RETRY_BACKOFF_MS[RETRY_BACKOFF_MS.length - 1];
+        console.warn(`   ↻ Retryable error. Retrying in ${Math.round(backoffMs / 1000)}s...`);
+        await sleep(backoffMs);
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw new Error("Failed to generate image after retries.");
+}
+
+export async function generateSfx(job: SfxJob): Promise<Buffer> {
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    try {
+      await waitForRequestSlot();
+
+      const response = await fal.subscribe(SFX_MODEL, {
+        input: {
+          text: job.prompt,
+          duration_seconds: job.duration,
+          prompt_influence: 0.3,
+          output_format: "mp3_44100_192",
+        },
+      });
+
+      const audioUrl = extractAudioUrl(response);
+      const download = await fetch(audioUrl);
+      if (!download.ok) {
+        throw new Error(`Failed to download audio (${download.status})`);
+      }
+
+      return Buffer.from(await download.arrayBuffer());
+    } catch (error) {
+      if (isRetryableError(error) && attempt < MAX_RETRIES) {
+        const backoffMs = RETRY_BACKOFF_MS[attempt] ?? RETRY_BACKOFF_MS[RETRY_BACKOFF_MS.length - 1];
+        console.warn(`   ↻ Retryable error. Retrying in ${Math.round(backoffMs / 1000)}s...`);
+        await sleep(backoffMs);
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw new Error("Failed to generate SFX after retries.");
+}
+
+export function savePng(outputPath: string, imageBuffer: Buffer): void {
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, imageBuffer);
+}
+
+export function saveMp3(mp3Buffer: Buffer, outputPath: string): void {
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, mp3Buffer);
+}
+
+export { fal };
