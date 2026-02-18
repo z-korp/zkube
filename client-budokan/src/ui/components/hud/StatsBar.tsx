@@ -1,4 +1,4 @@
-import { Home } from "lucide-react";
+import { Map } from "lucide-react";
 import LevelBadge from "@/ui/components/shared/LevelBadge";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 
@@ -31,7 +31,7 @@ const StatsBar: React.FC<StatsBarProps> = ({
         onClick={onHome}
         className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors shrink-0"
       >
-        <Home size={16} />
+        <Map size={16} />
       </button>
 
       <LevelBadge level={level} size="sm" />
