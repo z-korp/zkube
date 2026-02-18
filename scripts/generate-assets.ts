@@ -6,7 +6,7 @@ import sharp from "sharp";
 const MODEL = "gemini-3-pro-image-preview";
 const CONCURRENCY = 2;
 const REQUEST_DELAY_MS = 3_000;
-const RETRY_BACKOFF_MS = [10_000, 20_000, 40_000] as const;
+const RETRY_BACKOFF_MS = [15_000, 30_000, 60_000, 120_000] as const;
 const MAX_RETRIES = RETRY_BACKOFF_MS.length;
 
 const STYLE_ANCHOR =
@@ -56,6 +56,7 @@ interface AssetJob {
   aspectRatio: AspectRatio;
   imageSize: ImageSize;
   refKeys: RefKey[];
+  refPaths?: string[];
 }
 
 interface CliOptions {
@@ -368,7 +369,7 @@ async function loadPLimitFactory(): Promise<PLimitFactory> {
   return createLimitFallback;
 }
 
-function isRateLimitError(error: unknown): boolean {
+function isRetryableError(error: unknown): boolean {
   const candidate = error as {
     status?: number;
     statusCode?: number;
@@ -377,12 +378,12 @@ function isRateLimitError(error: unknown): boolean {
     message?: string;
   };
   const status = candidate.status ?? candidate.statusCode ?? candidate.code ?? candidate.response?.status;
-  if (status === 429) {
+  if (status === 429 || status === 503) {
     return true;
   }
 
   const message = error instanceof Error ? error.message : String(candidate.message ?? error);
-  return /(^|\D)429(\D|$)|rate\s*limit|quota/i.test(message);
+  return /(^|\D)(429|503)(\D|$)|rate\s*limit|quota|unavailable|high demand/i.test(message);
 }
 
 function formatError(error: unknown): string {
@@ -410,11 +411,22 @@ function loadRefBase64(refKey: RefKey): string | undefined {
   }
 }
 
+function loadFileBase64(filePath: string): string | undefined {
+  try {
+    const data = fs.readFileSync(filePath);
+    return data.toString("base64");
+  } catch {
+    console.warn(`⚠️  Missing reference: ${relativePath(filePath)}`);
+    return undefined;
+  }
+}
+
 function buildBlockPrompt(theme: ThemeDefinition, width: number, color: string): string {
   const sizeLabel = width === 1 ? "1×1 square" : `${width}×1 wide rectangle`;
 
   return `
-Generate a game block texture for a puzzle game. The block is a ${sizeLabel}.
+Redraw the reference image as a game block texture for a puzzle game. The block is a ${sizeLabel}.
+Keep the EXACT same aspect ratio and cell separation as the reference image. ${width > 1 ? `The block must show ${width} distinct cells side by side, each clearly separated.` : ""}
 
 CRITICAL COLOR REQUIREMENT: The DOMINANT color of this block MUST be ${color}. This is the primary fill color.
 Use ${color} for at least 70% of the block surface area. Add darker and lighter shades of ${color} for depth (2-3 tonal steps).
@@ -426,8 +438,9 @@ The pattern should be SUBTLE — visible up close but not overwhelming. The bloc
 
 Style: Hand-painted game art. Flat cel-shaded fills with subtle bevel/lighting (lighter top-left, darker bottom-right).
 Think Clash Royale card art quality — bold, clean, instantly readable at small sizes.
-${width > 1 ? `The block is ${width} cells wide. The texture should tile/extend naturally across the full width with consistent detail.` : ""}
+
 The texture must fill the ENTIRE canvas edge-to-edge. No margins, no padding, no background showing.
+Completely replace the visual content of the reference — keep ONLY its proportions.
 Opaque fill. No transparency. No text. No people. No logos.
 `.trim();
 }
@@ -634,6 +647,8 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       const width = i + 1;
       const color = theme.palette.blocks[i];
       const filename = `block-${width}.png`;
+      const theme1RefPath = path.join(THEME_1_ROOT, filename);
+
       jobs.push({
         scope: "per-theme",
         category: "blocks",
@@ -642,8 +657,9 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
         outputPath: path.join(themeRoot, filename),
         prompt: buildBlockPrompt(theme, width, color),
         aspectRatio: "1:1",
-        imageSize: "2K",
-        refKeys: ["blocks"],
+        imageSize: width === 1 ? "1K" : "2K",
+        refKeys: [],
+        refPaths: [theme1RefPath],
       });
     }
   }
@@ -1068,22 +1084,31 @@ function extractBase64Png(response: unknown): string | undefined {
 }
 
 async function generateImage(ai: GoogleGenAI, job: AssetJob, includeRefs: boolean): Promise<string> {
-  const contents: Array<{ text: string } | { inlineData: { mimeType: "image/png"; data: string } }> = [
-    { text: job.prompt },
-  ];
+  type ContentPart = { text: string } | { inlineData: { mimeType: string; data: string } };
+  let contents: ContentPart[];
 
-  if (includeRefs) {
-    for (const refKey of new Set(job.refKeys)) {
-      const refData = loadRefBase64(refKey);
-      if (!refData) {
+  if (job.refPaths && job.refPaths.length > 0) {
+    contents = [];
+    for (let i = 0; i < job.refPaths.length; i += 1) {
+      const data = loadFileBase64(job.refPaths[i]);
+      if (!data) {
         continue;
       }
-      contents.push({
-        inlineData: {
-          mimeType: "image/png",
-          data: refData,
-        },
-      });
+      const mimeType = isJpeg(Buffer.from(data, "base64")) ? "image/jpeg" : "image/png";
+      contents.push({ text: `Image ${i + 1}:` });
+      contents.push({ inlineData: { mimeType, data } });
+    }
+    contents.push({ text: job.prompt });
+  } else {
+    contents = [{ text: job.prompt }];
+    if (includeRefs) {
+      for (const refKey of new Set(job.refKeys)) {
+        const refData = loadRefBase64(refKey);
+        if (!refData) {
+          continue;
+        }
+        contents.push({ inlineData: { mimeType: "image/png", data: refData } });
+      }
     }
   }
 
@@ -1099,6 +1124,7 @@ async function generateImage(ai: GoogleGenAI, job: AssetJob, includeRefs: boolea
           imageConfig: {
             aspectRatio: job.aspectRatio,
             imageSize: job.imageSize,
+            outputQuality: 100,
           },
         },
       });
@@ -1110,9 +1136,9 @@ async function generateImage(ai: GoogleGenAI, job: AssetJob, includeRefs: boolea
 
       return imageBase64;
     } catch (error) {
-      if (isRateLimitError(error) && attempt < MAX_RETRIES) {
+      if (isRetryableError(error) && attempt < MAX_RETRIES) {
         const backoffMs = RETRY_BACKOFF_MS[attempt] ?? RETRY_BACKOFF_MS[RETRY_BACKOFF_MS.length - 1];
-        console.warn(`   ↻ 429 rate limit hit. Retrying in ${Math.round(backoffMs / 1000)}s...`);
+        console.warn(`   ↻ Retryable error (429/503). Retrying in ${Math.round(backoffMs / 1000)}s...`);
         await sleep(backoffMs);
         continue;
       }
@@ -1316,11 +1342,13 @@ async function main(): Promise<void> {
   const limit = pLimitFactory(CONCURRENCY);
   const failures: Array<{ job: AssetJob; error: unknown; index: number }> = [];
   let successCount = 0;
+  let globalIndex = 0;
 
   await Promise.all(
-    jobs.map((job, index) =>
+    jobs.map((job) =>
       limit(async () => {
-        const step = `[${index + 1}/${jobs.length}]`;
+        globalIndex += 1;
+        const step = `[${globalIndex}/${jobs.length}]`;
         const startedAt = Date.now();
         console.log(`${step}  ⏳ ${job.filename}...`);
 
@@ -1332,7 +1360,7 @@ async function main(): Promise<void> {
           successCount += 1;
         } catch (error) {
           const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
-          failures.push({ job, error, index });
+          failures.push({ job, error, index: globalIndex - 1 });
           console.log(`${step}  ❌ ${job.filename} (${elapsed}s)`);
           console.log(`       ${formatError(error)}`);
         }
