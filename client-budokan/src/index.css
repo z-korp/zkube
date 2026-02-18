@@ -114,36 +114,36 @@
   }
 
   [data-theme="theme-2"] {
-    --theme-bg: #0b0d21;
-    --theme-bg-gradient-start: #0b0d21;
-    --theme-bg-gradient-end: #1a1040;
-    --theme-grid-bg: #12102a;
-    --theme-grid-cell-alt: #1a1535;
-    --theme-grid-lines: #4a3f8a;
+    --theme-bg: #2a1810;
+    --theme-bg-gradient-start: #2a1810;
+    --theme-bg-gradient-end: #3d2817;
+    --theme-grid-bg: #1e1208;
+    --theme-grid-cell-alt: #261810;
+    --theme-grid-lines: #8b6914;
     --theme-grid-bg-image: url("/assets/theme-2/grid-bg.png");
     --theme-grid-frame-image: url("/assets/theme-2/grid-frame.png");
-    --theme-frame-border: #6c5ce7;
-    --theme-hud-bar: #0a0820;
-    --theme-hud-bar-border: #3d3580;
-    --theme-action-bar-bg: #0a0820;
-    --theme-danger-zone: #ff4757;
-    --theme-accent: #a29bfe;
+    --theme-frame-border: #d4af37;
+    --theme-hud-bar: #140c06;
+    --theme-hud-bar-border: #8b6914;
+    --theme-action-bar-bg: #140c06;
+    --theme-danger-zone: #c8553d;
+    --theme-accent: #d4af37;
     --theme-block-1-image: url("/assets/theme-2/block-1.png");
     --theme-block-2-image: url("/assets/theme-2/block-2.png");
     --theme-block-3-image: url("/assets/theme-2/block-3.png");
     --theme-block-4-image: url("/assets/theme-2/block-4.png");
-    --theme-block-1-fill: #00d2d3;
-    --theme-block-1-glow: #01a3a4;
-    --theme-block-1-highlight: #48dbfb;
-    --theme-block-2-fill: #6c5ce7;
-    --theme-block-2-glow: #5541d7;
-    --theme-block-2-highlight: #a29bfe;
-    --theme-block-3-fill: #fd79a8;
-    --theme-block-3-glow: #e84393;
-    --theme-block-3-highlight: #fab1c8;
-    --theme-block-4-fill: #fdcb6e;
-    --theme-block-4-glow: #f9a825;
-    --theme-block-4-highlight: #fdeb9c;
+    --theme-block-1-fill: #d4a574;
+    --theme-block-1-glow: #b88a5a;
+    --theme-block-1-highlight: #e4c098;
+    --theme-block-2-fill: #4169e1;
+    --theme-block-2-glow: #2950c0;
+    --theme-block-2-highlight: #6b8fef;
+    --theme-block-3-fill: #d4af37;
+    --theme-block-3-glow: #b89420;
+    --theme-block-3-highlight: #e4c85e;
+    --theme-block-4-fill: #c8553d;
+    --theme-block-4-glow: #a84028;
+    --theme-block-4-highlight: #d87a66;
   }
 
   [data-theme="theme-3"] {

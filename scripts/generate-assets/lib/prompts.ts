@@ -18,7 +18,7 @@ Use thin black outlines (2-3px) to separate shapes.
 Style: Hand-painted game art. Flat cel-shaded with subtle bevel (lighter top-left, darker bottom-right).
 Think Clash Royale card art — bold, clean, readable at small sizes.
 
-CRITICAL: The texture MUST fill EVERY PIXEL of the canvas. Hard square edges — NO rounded corners, NO border radius, NO margins, NO padding, NO background showing. The block content goes right to the pixel boundary on all 4 sides.
+EDGE TREATMENT: The block content fills the entire canvas but the outermost ~8-10% on all four sides must gradually fade/darken to near-black, creating a soft vignette effect. This makes blocks blend seamlessly on a dark grid. The center 80% has full-intensity color; the edges smoothly transition to dark. NO rounded corners, NO hard border lines — just a smooth darkness fade at the perimeter.
 Opaque fill everywhere. No transparency. No text. No people. No logos.
 `.trim();
 }
@@ -37,7 +37,7 @@ Surrounding decoration: ${theme.blockMotifs} — subtle carved relief flowing co
 
 Style: Hand-painted game art. Flat cel-shaded with subtle bevel (lighter top-left, darker bottom-right).
 Use thin black outlines (2-3px) to separate shapes.
-CRITICAL: Fill every pixel of the canvas with opaque content. Hard rectangular edges — NO rounded corners, NO margins, NO transparency.
+EDGE TREATMENT: Fill every pixel with opaque content. The outermost ~8-10% on all sides must gradually fade/darken to near-black, creating a soft vignette that blends on a dark grid. NO rounded corners, NO hard borders — just a smooth darkness fade at the perimeter.
 `.trim();
 }
 

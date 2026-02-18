@@ -28,8 +28,8 @@ export const THEME_META: Record<ThemeId, ThemeMeta> = {
     description: "Tropical paradise with wooden frames and jungle vibes",
   },
   "theme-2": {
-    name: "Cosmic",
-    description: "Deep space with nebula gradients and star fields",
+    name: "Ancient Egypt",
+    description: "Golden pyramids, hieroglyphs and desert sands",
   },
   "theme-3": {
     name: "Easter Island",
@@ -124,30 +124,30 @@ const TIKI_COLORS: ThemeColors = {
   },
 };
 
-const COSMIC_COLORS: ThemeColors = {
-  background: hex(0x0b0d21),
-  backgroundGradientStart: hex(0x0b0d21),
-  backgroundGradientEnd: hex(0x1a1040),
-  gridLines: hex(0x4a3f8a),
+const ANCIENT_EGYPT_COLORS: ThemeColors = {
+  background: hex(0x2a1810),
+  backgroundGradientStart: hex(0x2a1810),
+  backgroundGradientEnd: hex(0x3d2817),
+  gridLines: hex(0x8b6914),
   gridLinesAlpha: 0.3,
-  gridBg: hex(0x12102a),
-  gridCellAlt: hex(0x1a1535),
-  frameBorder: hex(0x6c5ce7),
-  hudBar: hex(0x0a0820),
-  hudBarBorder: hex(0x3d3580),
-  actionBarBg: hex(0x0a0820),
-  dangerZone: hex(0xff4757),
+  gridBg: hex(0x1e1208),
+  gridCellAlt: hex(0x261810),
+  frameBorder: hex(0xd4af37),
+  hudBar: hex(0x140c06),
+  hudBarBorder: hex(0x8b6914),
+  actionBarBg: hex(0x140c06),
+  dangerZone: hex(0xc8553d),
   dangerZoneAlpha: 0.25,
-  accent: hex(0xa29bfe),
+  accent: hex(0xd4af37),
   blocks: {
-    1: { fill: hex(0x00d2d3), glow: hex(0x01a3a4), highlight: hex(0x48dbfb) },
-    2: { fill: hex(0x6c5ce7), glow: hex(0x5541d7), highlight: hex(0xa29bfe) },
-    3: { fill: hex(0xfd79a8), glow: hex(0xe84393), highlight: hex(0xfab1c8) },
-    4: { fill: hex(0xfdcb6e), glow: hex(0xf9a825), highlight: hex(0xfdeb9c) },
+    1: { fill: hex(0xd4a574), glow: hex(0xb88a5a), highlight: hex(0xe4c098) },
+    2: { fill: hex(0x4169e1), glow: hex(0x2950c0), highlight: hex(0x6b8fef) },
+    3: { fill: hex(0xd4af37), glow: hex(0xb89420), highlight: hex(0xe4c85e) },
+    4: { fill: hex(0xc8553d), glow: hex(0xa84028), highlight: hex(0xd87a66) },
   },
   particles: {
-    primary: [hex(0x00d2d3), hex(0x6c5ce7), hex(0xfd79a8), hex(0xfdcb6e), hex(0xa29bfe)],
-    explosion: [hex(0xffffff), hex(0xa29bfe), hex(0x6c5ce7), hex(0x48dbfb), hex(0xfdcb6e)],
+    primary: [hex(0xd4a574), hex(0x4169e1), hex(0xd4af37), hex(0xc8553d), hex(0xb89420)],
+    explosion: [hex(0xffffff), hex(0xd4af37), hex(0xd4a574), hex(0x4169e1), hex(0xc8553d)],
   },
 };
 
@@ -259,7 +259,7 @@ const MEDIEVAL_COLORS: ThemeColors = {
   },
 };
 
-const ANCIENT_EGYPT_COLORS: ThemeColors = {
+const THEME_7_COLORS: ThemeColors = {
   background: hex(0xd0e8f0),
   backgroundGradientStart: hex(0xe8f4f8),
   backgroundGradientEnd: hex(0xb0d0e0),
@@ -369,12 +369,12 @@ const ARCTIC_COLORS: ThemeColors = {
 
 export const THEME_COLORS: Record<ThemeId, ThemeColors> = {
   "theme-1": TIKI_COLORS,
-  "theme-2": COSMIC_COLORS,
+  "theme-2": ANCIENT_EGYPT_COLORS,
   "theme-3": EASTER_ISLAND_COLORS,
   "theme-4": MAYA_COLORS,
   "theme-5": CYBERPUNK_COLORS,
   "theme-6": MEDIEVAL_COLORS,
-  "theme-7": ANCIENT_EGYPT_COLORS,
+  "theme-7": THEME_7_COLORS,
   "theme-8": VOLCANO_COLORS,
   "theme-9": TRIBAL_COLORS,
   "theme-10": ARCTIC_COLORS,
