@@ -1,39 +1,36 @@
 import { useAccount } from "@starknet-react/core";
-import { useState, useEffect } from "react";
-import { Account } from "starknet";
+import { useState, useEffect, useMemo } from "react";
+import { Account, RpcProvider } from "starknet";
 
-type AccountType = "burner" | "controller";
+const {
+  VITE_PUBLIC_DEPLOY_TYPE,
+  VITE_PUBLIC_NODE_URL,
+  VITE_PUBLIC_MASTER_ADDRESS,
+  VITE_PUBLIC_MASTER_PRIVATE_KEY,
+} = import.meta.env;
 
-// eslint-disable-next-line prefer-const
-export let ACCOUNT_CONNECTOR: AccountType = "controller";
+export const isSlot = VITE_PUBLIC_DEPLOY_TYPE === "slot";
 
 const useAccountCustom = () => {
-  const { account } = useAccount();
+  const { account: controllerAccount } = useAccount();
 
-  //const { account: burner } = useDojo();
+  const burnerAccount = useMemo(() => {
+    if (!isSlot || !VITE_PUBLIC_MASTER_ADDRESS || !VITE_PUBLIC_MASTER_PRIVATE_KEY) return null;
+    const provider = new RpcProvider({ nodeUrl: VITE_PUBLIC_NODE_URL });
+    return new Account(provider, VITE_PUBLIC_MASTER_ADDRESS, VITE_PUBLIC_MASTER_PRIVATE_KEY);
+  }, []);
 
-  const [customAccount, setCustomAccount] = useState<Account | null>(null);
+  const [customAccount, setCustomAccount] = useState<Account | null>(burnerAccount);
 
   useEffect(() => {
-    if (ACCOUNT_CONNECTOR === "burner") {
-      /*if (burner.account) {
-        //console.log("------> setCustomAccount burner.account", burner.account);
-        setCustomAccount(burner.account as Account);
-      } else {
-        setCustomAccount(null);
-      }*/
+    if (isSlot) {
+      setCustomAccount(burnerAccount);
+    } else if (controllerAccount) {
+      setCustomAccount(controllerAccount as Account);
     } else {
-      //console.log("Controller account", account);
-      if (account) {
-        //console.log("------> setCustomAccount account", account);
-        setCustomAccount(account as Account);
-      } else {
-        setCustomAccount(null);
-      }
+      setCustomAccount(null);
     }
-  }, [/*burner,*/ account]);
-
-  //console.log("useAccountCustom", customAccount);
+  }, [controllerAccount, burnerAccount]);
 
   return { account: customAccount };
 };
