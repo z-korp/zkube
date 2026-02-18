@@ -3,7 +3,7 @@ import path from "node:path";
 import { GoogleGenAI } from "@google/genai";
 import sharp from "sharp";
 
-const MODEL = "gemini-3-pro-image-preview";
+const MODEL = process.env.GEMINI_MODEL ?? "gemini-3-pro-image-preview";
 const CONCURRENCY = 2;
 const REQUEST_DELAY_MS = 3_000;
 const RETRY_BACKOFF_MS = [15_000, 30_000, 60_000, 120_000] as const;
