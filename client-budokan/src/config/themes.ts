@@ -464,10 +464,6 @@ export const SFX_PATHS = {
 
 export type SfxName = keyof typeof SFX_PATHS;
 
-export function hasBackgroundImage(themeId: ThemeId): boolean {
-  return themeId !== "theme-1" && themeId !== "theme-2";
-}
-
 export function getThemeAssetPath(themeId: ThemeId, asset: string): string {
   return `/assets/${themeId}/${asset}`;
 }
@@ -486,7 +482,7 @@ export function getThemeImages(themeId: ThemeId) {
     block4: `${base}/block-4.png`,
     loadingBg: `${base}/loading-bg.png`,
     logo: `${base}/logo.png`,
-    background: hasBackgroundImage(themeId) ? `${base}/background.png` : null,
+    background: `${base}/background.png`,
     gridBg: `${base}/grid-bg.png`,
     gridFrame: `${base}/grid-frame.png`,
     themeIcon: `${base}/theme-icon.png`,

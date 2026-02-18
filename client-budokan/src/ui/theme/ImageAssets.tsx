@@ -1,9 +1,7 @@
-import { getCommonAssetPath, getThemeImages, hasBackgroundImage, type ThemeId } from "@/config/themes";
+import { getCommonAssetPath, getThemeImages, type ThemeId } from "@/config/themes";
 
 const ImageAssets = (theme: ThemeId) => {
-  const pathAssets = `/assets/${theme}/`;
   const themeImages = getThemeImages(theme);
-  const hasBg = hasBackgroundImage(theme);
 
   return {
     ...themeImages,
@@ -18,12 +16,8 @@ const ImageAssets = (theme: ThemeId) => {
     stone4: themeImages.block4,
     background: themeImages.loadingBg,
     logo: themeImages.logo,
-    loader: hasBg ? "/assets/theme-1/loader.svg" : `${pathAssets}loader.svg`,
-    imageBackground: themeImages.background ?? `${pathAssets}theme-2-1.png`,
-    imageTotemDark: hasBg ? "" : `${pathAssets}theme-2-totem-dark.png`,
-    imageTotemLight: hasBg ? "" : `${pathAssets}theme-2-totem-light.png`,
-    palmLeft: hasBg ? "" : `${pathAssets}palmtree-left.png`,
-    palmRight: hasBg ? "" : `${pathAssets}palmtree-right.png`,
+    loader: "/assets/theme-1/loader.svg",
+    imageBackground: themeImages.background ?? themeImages.loadingBg,
   };
 };
 
