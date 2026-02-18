@@ -8,6 +8,7 @@ import {
   BonusType,
   bonusTypeToContractValue,
 } from "@/dojo/game/types/bonus";
+import { useMusicPlayer } from "@/contexts/hooks";
 
 interface BonusSelectionDialogProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
   initialSelection = [BonusType.Combo, BonusType.Harvest, BonusType.Score],
 }) => {
   const { themeTemplate } = useTheme();
+  const { playSfx } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
 
   const [selected, setSelected] = useState<BonusType[]>(initialSelection);
@@ -72,6 +74,11 @@ const BonusSelectionDialog: React.FC<BonusSelectionDialogProps> = ({
 
   const toggleBonus = (type: BonusType) => {
     if (!unlockedMap[type]) return;
+    if (selected.includes(type)) {
+      playSfx("unequip");
+    } else if (selected.length < 3) {
+      playSfx("equip");
+    }
     setSelected((prev) => {
       if (prev.includes(type)) {
         return prev.filter((b) => b !== type);

@@ -6,6 +6,7 @@ import { isInGameShopAvailable } from "@/dojo/game/helpers/runDataPacking";
 import { Button } from "../elements/button";
 import { Check, Trophy } from "lucide-react";
 import type { GameLevelData } from "@/hooks/useGameLevel";
+import { useMusicPlayer } from "@/contexts/hooks";
 
 interface LevelCompleteDialogProps {
   isOpen: boolean;
@@ -59,12 +60,19 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   gameLevel,
 }) => {
   const [animationPhase, setAnimationPhase] = useState(0);
+  const { playSfx } = useMusicPlayer();
 
   useEffect(() => {
     if (isOpen) {
       setAnimationPhase(0);
-      const timer1 = setTimeout(() => setAnimationPhase(1), 200);
-      const timer2 = setTimeout(() => setAnimationPhase(2), 800);
+      const timer1 = setTimeout(() => {
+        setAnimationPhase(1);
+        playSfx("coin");
+      }, 200);
+      const timer2 = setTimeout(() => {
+        setAnimationPhase(2);
+        playSfx("star");
+      }, 800);
       const timer3 = setTimeout(() => setAnimationPhase(3), 1200);
       return () => {
         clearTimeout(timer1);
@@ -72,7 +80,7 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
         clearTimeout(timer3);
       };
     }
-  }, [isOpen]);
+  }, [isOpen, playSfx]);
 
   const pointsRequired = gameLevel?.pointsRequired ?? 0;
   const maxMoves = gameLevel?.maxMoves ?? 0;

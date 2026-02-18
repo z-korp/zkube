@@ -16,6 +16,7 @@ import { Bonus } from "@/dojo/game/types/bonus";
 import { useGame } from "@/hooks/useGame";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import { useMusicPlayer } from "@/contexts/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PageTopBar from "@/ui/navigation/PageTopBar";
@@ -33,6 +34,7 @@ const InGameShopPage = () => {
   const gameId = useNavigationStore((s) => s.gameId);
 
   const { account } = useAccountCustom();
+  const { playSfx } = useMusicPlayer();
   const { playerMeta } = usePlayerMeta();
   const { themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
@@ -152,6 +154,7 @@ const InGameShopPage = () => {
         consumable_type: ConsumableType.Refill,
         bonus_slot: 0,
       });
+      playSfx("shop-purchase");
     } catch (error) {
       console.error("Buy charge failed:", error);
       setOptimisticSpent((previous) => Math.max(0, previous - chargeCost));
@@ -159,7 +162,7 @@ const InGameShopPage = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [account, chargeCost, cubesAvailable, gameId, purchaseConsumable, runData]);
+  }, [account, chargeCost, cubesAvailable, gameId, playSfx, purchaseConsumable, runData]);
 
   const handleAllocate = useCallback(
     async (slot: BonusSlot) => {

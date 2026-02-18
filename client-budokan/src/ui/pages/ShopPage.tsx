@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import { useMusicPlayer } from "@/contexts/hooks";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
@@ -75,6 +76,7 @@ const LevelPips = ({ current, max = 3 }: { current: number; max?: number }) => (
 const ShopPage = () => {
   const goBack = useNavigationStore((s) => s.goBack);
   const { account } = useAccountCustom();
+  const { playSfx } = useMusicPlayer();
   const { playerMeta } = usePlayerMeta();
   const { cubeBalance, refetch: refetchCubeBalance } = useCubeBalance();
   const { themeTemplate } = useTheme();
@@ -205,6 +207,7 @@ const ShopPage = () => {
           account,
           bonus_type: card.upgradeBonusType,
         });
+        playSfx("shop-purchase");
         setOptimisticCubeSpent(0);
         await refetchCubeBalance();
       } catch (error) {
@@ -221,6 +224,7 @@ const ShopPage = () => {
       mergedMeta,
       refetchCubeBalance,
       revertOptimistic,
+      playSfx,
       upgradeStartingBonus,
     ],
   );
@@ -239,6 +243,7 @@ const ShopPage = () => {
           account,
           bonus_type: card.upgradeBonusType,
         });
+        playSfx("shop-purchase");
         setOptimisticCubeSpent(0);
         await refetchCubeBalance();
       } catch (error) {
@@ -255,6 +260,7 @@ const ShopPage = () => {
       mergedMeta,
       refetchCubeBalance,
       revertOptimistic,
+      playSfx,
       upgradeBagSize,
     ],
   );

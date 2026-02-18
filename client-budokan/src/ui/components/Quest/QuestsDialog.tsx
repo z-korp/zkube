@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
 import { useQuests } from "@/contexts/quests";
+import { useMusicPlayer } from "@/contexts/hooks";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { QuestFamilyCard } from "./QuestFamilyCard";
@@ -18,6 +19,7 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
   onClose,
 }) => {
   const { questFamilies, status } = useQuests();
+  const { playSfx } = useMusicPlayer();
   const { account } = useAccountCustom();
   const {
     setup: { systemCalls },
@@ -52,8 +54,9 @@ export const QuestsDialog: React.FC<QuestsDialogProps> = ({
         quest_id: questIdFelt,
         interval_id: intervalId,
       });
+      playSfx("claim");
     },
-    [account, systemCalls]
+    [account, playSfx, systemCalls]
   );
 
   // Check if all families are fully claimed

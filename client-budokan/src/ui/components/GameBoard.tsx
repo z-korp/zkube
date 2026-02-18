@@ -8,6 +8,7 @@ import NextLine from "./NextLine";
 import type { Block } from "@/types/types";
 import { Bonus, BonusType } from "@/dojo/game/types/bonus";
 import { Game } from "@/dojo/game/models/game";
+import { useMusicPlayer } from "@/contexts/hooks";
 
 import "../../grid.css";
 
@@ -39,6 +40,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       systemCalls: { applyBonus },
     },
   } = useDojo();
+  const { playSfx } = useMusicPlayer();
 
   const ROWS = 10;
   const COLS = 8;
@@ -84,11 +86,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
           row_index: ROWS - rowIndex - 1,
           block_index: colIndex,
         });
+        playSfx("bonus-activate");
       } finally {
         //setIsLoading(false);
       }
     },
-    [account, applyBonus, game.id]
+    [account, applyBonus, game.id, playSfx]
   );
 
   const selectBlock = useCallback(

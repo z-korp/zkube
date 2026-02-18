@@ -61,7 +61,7 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
   gameLevel,
 }) => {
   const isBoss = isBossLevel(level);
-  const { playSuccess } = useMusicPlayer(); // Use success sound for constraint satisfaction
+  const { playSfx } = useMusicPlayer();
   
   // Track previous constraint progress for animations
   const prevConstraintProgressRef = useRef(constraintProgress);
@@ -149,7 +149,7 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
       // Check if we just satisfied the constraint
       if (!prevSatisfied && constraintSatisfied) {
         setJustSatisfied(true);
-        playSuccess(); // Play sound for constraint satisfaction
+        playSfx("constraint-complete");
         
         // Clear the satisfied animation after a delay
         setTimeout(() => setJustSatisfied(false), 2000);
@@ -157,7 +157,7 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
     }
     
     prevConstraintProgressRef.current = constraintProgress;
-  }, [constraintProgress, levelConfig.constraint, constraintSatisfied, playSuccess]);
+  }, [constraintProgress, levelConfig.constraint, constraintSatisfied, playSfx]);
 
   // Log current game state from contract
   React.useEffect(() => {

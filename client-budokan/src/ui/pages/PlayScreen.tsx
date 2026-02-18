@@ -68,7 +68,7 @@ const PlayScreen: React.FC = () => {
   const navNavigate = useNavigationStore((s) => s.navigate);
   const goBack = useNavigationStore((s) => s.goBack);
   const { themeTemplate } = useTheme();
-  const { setMusicContext } = useMusicPlayer();
+  const { setMusicContext, playSfx } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
 
   const { game, seed } = useGame({
@@ -107,12 +107,17 @@ const PlayScreen: React.FC = () => {
     gameLevel: GameLevelData | null;
   } | null>(null);
   const levelStartTotalScoreRef = useRef<number>(0);
+  const prevBossLevelRef = useRef<number | null>(null);
 
   useEffect(() => {
     const level = game?.level ?? 1;
     const isBossLevel = level > 0 && level % 10 === 0;
+    if (isBossLevel && prevBossLevelRef.current !== level) {
+      playSfx("boss-intro");
+    }
+    prevBossLevelRef.current = level;
     setMusicContext(isBossLevel ? "boss" : "level");
-  }, [game?.level, setMusicContext]);
+  }, [game?.level, playSfx, setMusicContext]);
 
   useEffect(() => {
     setIsGameLoading(true);
@@ -146,12 +151,17 @@ const PlayScreen: React.FC = () => {
   useEffect(() => {
     if (prevGameOverRef.current !== undefined) {
       if (!prevGameOverRef.current && game?.over) {
-        if (game.runCompleted) setIsVictoryOpen(true);
-        else setIsGameOverOpen(true);
+        if (game.runCompleted) {
+          playSfx("victory");
+          setIsVictoryOpen(true);
+        } else {
+          playSfx("over");
+          setIsGameOverOpen(true);
+        }
       }
     }
     prevGameOverRef.current = game?.over;
-  }, [game?.over, game?.runCompleted]);
+  }, [game?.over, game?.runCompleted, playSfx]);
 
   useEffect(() => {
     if (!game) return;
@@ -163,6 +173,11 @@ const PlayScreen: React.FC = () => {
     }
 
     if (prevState && currentLevel > prevState.level && !game.over) {
+      if (prevState.level % 10 === 0) {
+        playSfx("boss-defeat");
+      } else {
+        playSfx("levelup");
+      }
       setLevelCompletionData({
         level: prevState.level,
         levelScore: prevState.levelScore,
@@ -219,6 +234,7 @@ const PlayScreen: React.FC = () => {
     game?.totalCubes,
     game?.totalScore,
     game,
+    playSfx,
   ]);
 
   const handlePendingLevelUpClose = () => {
@@ -232,11 +248,12 @@ const PlayScreen: React.FC = () => {
   const handleSurrender = useCallback(async () => {
     if (!account || !game) return;
     try {
+      playSfx("click");
       await surrender({ account, game_id: game.id });
     } catch (error) {
       console.error("Surrender failed:", error);
     }
-  }, [account, game, surrender]);
+  }, [account, game, playSfx, surrender]);
 
   const levelConfig = useMemo(() => {
     if (!game) return null;
@@ -319,14 +336,18 @@ const PlayScreen: React.FC = () => {
       const count = bonusCounts[type as keyof typeof bonusCounts] ?? 0;
       if (count === 0) return;
       if (activeBonus === type) {
+        playSfx("click");
+        playSfx("unequip");
         setActiveBonus(BonusType.None);
         setBonusDescription("");
       } else {
+        playSfx("click");
+        playSfx("equip");
         setActiveBonus(type);
         setBonusDescription(getBonusDescription(type));
       }
     },
-    [activeBonus, bonusCounts, getBonusDescription]
+    [activeBonus, bonusCounts, getBonusDescription, playSfx]
   );
 
   const selectedBonusSlots = useMemo(() => {

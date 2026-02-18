@@ -110,7 +110,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   activeBonus,
 }) => {
   const isBoss = isBossLevel(level);
-  const { playSuccess } = useMusicPlayer();
+  const { playSfx } = useMusicPlayer();
   
   const prevConstraintProgressRef = useRef(constraintProgress);
   const prevConstraint2ProgressRef = useRef(constraint2Progress);
@@ -193,12 +193,12 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
       !prevSatisfied && constraintSatisfied
     ) {
       setJustSatisfied(true);
-      playSuccess();
+      playSfx("constraint-complete");
       setTimeout(() => setJustSatisfied(false), 2000);
     }
     
     prevConstraintProgressRef.current = constraintProgress;
-  }, [constraintProgress, levelConfig.constraint, constraintSatisfied, playSuccess]);
+  }, [constraintProgress, levelConfig.constraint, constraintSatisfied, playSfx]);
 
   // Track constraint 2 progress and animate newly filled dots
   useEffect(() => {

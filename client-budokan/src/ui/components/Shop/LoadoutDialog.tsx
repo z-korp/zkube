@@ -9,6 +9,7 @@ import {
   BonusType,
   bonusTypeToContractValue,
 } from "@/dojo/game/types/bonus";
+import { useMusicPlayer } from "@/contexts/hooks";
 import type { PlayerMetaData } from "@/hooks/usePlayerMeta";
 
 const LOADOUT_STORAGE_KEY = "zkube_loadout";
@@ -74,6 +75,7 @@ const LoadoutDialog: React.FC<LoadoutDialogProps> = ({
   isLoading = false,
 }) => {
   const { themeTemplate } = useTheme();
+  const { playSfx } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
 
   // Load saved loadout or use defaults
@@ -171,6 +173,11 @@ const LoadoutDialog: React.FC<LoadoutDialogProps> = ({
 
   const toggleBonus = (type: BonusType) => {
     if (!unlockedMap[type]) return;
+    if (selected.includes(type)) {
+      playSfx("unequip");
+    } else if (selected.length < 3) {
+      playSfx("equip");
+    }
     setSelected((prev) => {
       if (prev.includes(type)) {
         return prev.filter((b) => b !== type);

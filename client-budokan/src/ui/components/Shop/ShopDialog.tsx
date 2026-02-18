@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
 import { usePlayerMeta, type PlayerMetaData } from "@/hooks/usePlayerMeta";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { useDojo } from "@/dojo/useDojo";
+import { useMusicPlayer } from "@/contexts/hooks";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { Button } from "@/ui/elements/button";
 import { useState, useMemo, useCallback, useEffect } from "react";
@@ -96,6 +97,7 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
     refetch: refetchCubeBalance,
   } = useCubeBalance();
   const { account } = useAccountCustom();
+  const { playSfx } = useMusicPlayer();
   const {
     setup: { systemCalls },
   } = useDojo();
@@ -151,6 +153,7 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
         account,
         bonus_type: bonusType,
       });
+      playSfx("shop-purchase");
       // Reset optimistic cube spent before refetch to avoid double deduction
       setOptimisticCubeSpent(0);
       await refetchCubeBalance();
@@ -181,6 +184,7 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
     setIsUpgrading(true);
     try {
       await systemCalls.upgradeBagSize({ account, bonus_type: bonusType });
+      playSfx("shop-purchase");
       // Reset optimistic cube spent before refetch to avoid double deduction
       setOptimisticCubeSpent(0);
       await refetchCubeBalance();

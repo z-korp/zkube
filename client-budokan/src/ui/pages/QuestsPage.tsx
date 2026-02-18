@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useQuests } from "@/contexts/quests";
+import { useMusicPlayer } from "@/contexts/hooks";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useNavigationStore } from "@/stores/navigationStore";
@@ -300,6 +301,7 @@ const ChampionPanel: React.FC<ChampionPanelProps> = ({
 
 const QuestsPage: React.FC = () => {
   const goBack = useNavigationStore((state) => state.goBack);
+  const { playSfx } = useMusicPlayer();
   const { account } = useAccountCustom();
   const { questFamilies, status } = useQuests();
   const {
@@ -357,11 +359,12 @@ const QuestsPage: React.FC = () => {
           quest_id: questIdFelt,
           interval_id: intervalId,
         });
+        playSfx("claim");
       } finally {
         setClaimingKey(null);
       }
     },
-    [account, systemCalls],
+    [account, playSfx, systemCalls],
   );
 
   const allClaimed =

@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
 import { useDojo } from "@/dojo/useDojo";
+import { useMusicPlayer } from "@/contexts/hooks";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { motion } from "motion/react";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
@@ -42,6 +43,7 @@ const InGameShopDialog: React.FC<InGameShopDialogProps> = ({
   const { themeTemplate } = useTheme();
   const imgAssets = ImageAssets(themeTemplate);
   const { account } = useAccountCustom();
+  const { playSfx } = useMusicPlayer();
   const {
     setup: { systemCalls },
   } = useDojo();
@@ -84,6 +86,7 @@ const InGameShopDialog: React.FC<InGameShopDialogProps> = ({
         consumable_type: ConsumableType.BonusCharge,
         bonus_slot: 0,
       });
+      playSfx("shop-purchase");
     } catch (error) {
       console.error("Buy charge failed:", error);
     } finally {
@@ -117,6 +120,7 @@ const InGameShopDialog: React.FC<InGameShopDialogProps> = ({
         consumable_type: ConsumableType.LevelUp,
         bonus_slot: bonusSlot,
       });
+      playSfx("shop-purchase");
     } catch (error) {
       console.error("Level up failed:", error);
     } finally {
