@@ -50,7 +50,7 @@ const InGameShopDialog: React.FC<InGameShopDialogProps> = ({
   const [swapSlot, setSwapSlot] = useState<number | null>(null);
 
   const cubesAvailable = useMemo(() => getCubesAvailable(runData), [runData]);
-  const chargeCost = useMemo(() => getBonusChargeCost(runData.shopRefills), [runData.shopRefills]);
+  const chargeCost = useMemo(() => getBonusChargeCost(runData.shopPurchases), [runData.shopPurchases]);
 
   const getBagSizeForBonus = (bonusType: BonusType): number => {
     switch (bonusType) {

@@ -53,7 +53,7 @@ const InGameShopPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [swapSlot, setSwapSlot] = useState<BonusSlot | null>(null);
   const [optimisticSpent, setOptimisticSpent] = useState(0);
-  const [optimisticShopRefills, setOptimisticShopRefills] = useState(0);
+  const [optimisticShopPurchases, setOptimisticShopPurchases] = useState(0);
   const [optimisticCounts, setOptimisticCounts] = useState<Partial<SlotRecord>>({});
   const [optimisticLevels, setOptimisticLevels] = useState<Partial<SlotRecord>>({});
   const [optimisticSelections, setOptimisticSelections] = useState<Partial<SlotRecord>>({});
@@ -61,11 +61,11 @@ const InGameShopPage = () => {
   useEffect(() => {
     setSwapSlot(null);
     setOptimisticSpent(0);
-    setOptimisticShopRefills(0);
+    setOptimisticShopPurchases(0);
     setOptimisticCounts({});
     setOptimisticLevels({});
     setOptimisticSelections({});
-  }, [game?.id, runData?.shopRefills]);
+  }, [game?.id, runData?.shopPurchases]);
 
   const bonusBagSizes = useMemo(() => {
     const meta = playerMeta?.data;
@@ -115,7 +115,7 @@ const InGameShopPage = () => {
   const baseCubesAvailable = runData ? getCubesAvailable(runData) : 0;
   const cubesAvailable = Math.max(0, baseCubesAvailable - optimisticSpent);
   const chargeCost = runData
-    ? getBonusChargeCost(runData.shopRefills + optimisticShopRefills)
+    ? getBonusChargeCost(runData.shopPurchases + optimisticShopPurchases)
     : 0;
 
   const getIcon = useCallback(
@@ -142,7 +142,7 @@ const InGameShopPage = () => {
     if (!account || !gameId || !runData || cubesAvailable < chargeCost) return;
 
     setOptimisticSpent((previous) => previous + chargeCost);
-    setOptimisticShopRefills((previous) => previous + 1);
+    setOptimisticShopPurchases((previous) => previous + 1);
     setIsSubmitting(true);
 
     try {
@@ -155,7 +155,7 @@ const InGameShopPage = () => {
     } catch (error) {
       console.error("Buy charge failed:", error);
       setOptimisticSpent((previous) => Math.max(0, previous - chargeCost));
-      setOptimisticShopRefills((previous) => Math.max(0, previous - 1));
+      setOptimisticShopPurchases((previous) => Math.max(0, previous - 1));
     } finally {
       setIsSubmitting(false);
     }

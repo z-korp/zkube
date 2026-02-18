@@ -95,23 +95,23 @@ export class Game {
   public get freeMoves(): number {
     return this.runData.freeMoves;
   }
-  public get pendingLevelUp(): boolean {
-    return this.runData.pendingLevelUp;
+  public get bossLevelUpPending(): boolean {
+    return this.runData.bossLevelUpPending;
   }
   public get lastShopLevel(): number {
     return this.runData.lastShopLevel;
   }
-  public get shopBonus1Bought(): boolean {
-    return this.runData.shopBonus1Bought;
+  public get shopPurchases(): number {
+    return this.runData.shopPurchases;
   }
-  public get shopBonus2Bought(): boolean {
-    return this.runData.shopBonus2Bought;
+  public get unallocatedCharges(): number {
+    return this.runData.unallocatedCharges;
   }
-  public get shopBonus3Bought(): boolean {
-    return this.runData.shopBonus3Bought;
+  public get shopLevelUpBought(): boolean {
+    return this.runData.shopLevelUpBought;
   }
-  public get shopRefills(): number {
-    return this.runData.shopRefills;
+  public get shopSwapBought(): boolean {
+    return this.runData.shopSwapBought;
   }
   // Victory state
   public get runCompleted(): boolean {

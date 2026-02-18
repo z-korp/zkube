@@ -130,14 +130,14 @@ const PlayScreen: React.FC = () => {
 
   useEffect(() => {
     if (
-      game?.pendingLevelUp &&
+      game?.bossLevelUpPending &&
       !isPendingLevelUpOpen &&
       !isLevelCompleteOpen
     ) {
       setIsPendingLevelUpOpen(true);
     }
   }, [
-    game?.pendingLevelUp,
+    game?.bossLevelUpPending,
     isPendingLevelUpOpen,
     isLevelCompleteOpen,
   ]);
@@ -414,7 +414,7 @@ const PlayScreen: React.FC = () => {
             const shopAvailable = isInGameShopAvailable(completedLevel);
             const shouldOpenShop = !!shopAvailable && !!hasCubesToSpend;
 
-            if (game?.pendingLevelUp) {
+            if (game?.bossLevelUpPending) {
               setOpenShopAfterLevelUp(shouldOpenShop);
               setIsPendingLevelUpOpen(true);
               setLevelCompletionData(null);
