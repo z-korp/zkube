@@ -285,141 +285,122 @@ const SFX_DEFINITIONS = [
     id: "move",
     filename: "move.mp3",
     duration: 1,
-    prompt:
-      "A single polished obsidian stone sliding across smooth quartz surface, brief friction texture ending in a soft mineral click as it locks into position. Clean, responsive, satisfying. Short stone-chamber reverb.",
+    prompt: "Stone block sliding and clicking into place. Short, clean, satisfying click with light reverb.",
   },
   {
     id: "swipe",
     filename: "swipe.mp3",
     duration: 1,
-    prompt:
-      "Quick airy displacement of air across carved stone surface, like a hand brushing over polished basalt. Subtle crystalline shimmer at the tail. Fast, light, directional.",
+    prompt: "Quick soft whoosh with a light crystalline shimmer at the end. Fast and airy.",
   },
   {
     id: "break",
     filename: "break.mp3",
     duration: 1,
-    prompt:
-      "A thin sheet of volcanic glass cracking cleanly in two — bright, sharp snap with crystalline shimmer overtones. Quick attack, fast decay. Satisfying mineral fracture with short stone-chamber reverb.",
+    prompt: "Sharp glass crack with bright shimmer. Quick snap, fast decay, satisfying.",
   },
   {
     id: "explode",
     filename: "explode.mp3",
     duration: 2,
-    prompt:
-      "Rapid cascade of geode crystals shattering in sequence, building to a bright mineral energy burst. Multiple stone fragments scattering across a temple floor. Deep quartz bass punctuation at the peak.",
+    prompt: "Cascading crystal shatter building to a bright energy burst with deep bass hit at the peak.",
   },
   {
     id: "new",
     filename: "new.mp3",
     duration: 1,
-    prompt:
-      "Three ascending crystal chime tones — like tuned mineral bars struck in quick succession. Elements materializing from stone dust and clicking solidly into place. Bright, inviting, with temple reverb.",
+    prompt: "Three quick ascending chime tones. Bright and inviting with light reverb.",
   },
   {
     id: "start",
     filename: "start.mp3",
     duration: 2,
-    prompt:
-      "A stone temple awakening — deep resonant gong strike followed by ascending crystal chime cascade. Percussive mineral impacts build energy into a bright quartz accent. Confident, ceremonial game-start signal.",
+    prompt: "Deep gong strike followed by ascending crystal chimes. Confident and ceremonial.",
   },
   {
     id: "over",
     filename: "over.mp3",
     duration: 2,
-    prompt:
-      "A heavy obsidian block dropping onto stone floor — deep resonant mineral impact. Slow descending crystal tones with fading temple reverb. Finality without harshness. The sound of stone settling.",
+    prompt: "Heavy stone impact with slow descending tones and fading reverb. Somber, final.",
   },
   {
     id: "levelup",
     filename: "levelup.mp3",
     duration: 2,
-    prompt:
-      "Short triumphant fanfare of tuned crystal bars struck in ascending sequence, culminating in a bright resonant singing bowl tone. Stone temple celebration — confident, warm, mineral. Punchy and celebratory.",
+    prompt: "Short triumphant ascending fanfare with a bright resonant bell at the end. Celebratory and warm.",
   },
   {
     id: "victory",
     filename: "victory.mp3",
     duration: 5,
     prompt:
-      "Grand temple ceremony — deep gong strike opens into cascading crystal chimes, ascending mineral bar fanfare, singing bowls ringing in harmony. Layers of stone percussion and crystalline resonance building to a luminous climax. Majestic, earned, transcendent.",
+      "Grand gong opening into cascading chimes and ascending fanfare. Singing bowls building to a bright majestic climax.",
   },
   {
     id: "boss-intro",
     filename: "boss-intro.mp3",
     duration: 3,
-    prompt:
-      "Deep volcanic rumble building slowly — stone grinding against stone, low mineral drones. A massive obsidian slab shifting. Ominous crystal resonances growing in intensity. Tension without resolution — something ancient is awakening. Temple walls vibrating.",
+    prompt: "Deep rumble building slowly with low drones growing in intensity. Ominous and tense, no resolution.",
   },
   {
     id: "boss-defeat",
     filename: "boss-defeat.mp3",
     duration: 2,
-    prompt:
-      "A giant crystal structure shattering explosively — volcanic glass breaking apart in a shower of mineral fragments, followed by a triumphant ascending chord of singing bowls and tuned stone. The boss crumbles, the temple rings with victory.",
+    prompt: "Explosive crystal shatter followed by triumphant ascending chord. Victorious and powerful.",
   },
   {
     id: "click",
     filename: "click.mp3",
     duration: 1,
-    prompt:
-      "A single small polished stone tapped against crystal — minimal, clean, tactile. One short bright click with the tiniest hint of mineral reverb. Crisp and subtle, like a pebble touching quartz.",
+    prompt: "Short crisp stone click. Minimal, clean, tactile. Subtle reverb.",
   },
   {
     id: "coin",
     filename: "coin.mp3",
     duration: 1,
-    prompt:
-      "A crystalline mineral coin striking a stone surface — bright upward ting with metallic-mineral shimmer. Like a faceted gemstone bouncing once on polished obsidian. Quick, rewarding, sparkly.",
+    prompt: "Bright upward ting with metallic shimmer. Quick, rewarding, sparkly.",
   },
   {
     id: "star",
     filename: "star.mp3",
     duration: 1,
-    prompt:
-      "A single pure crystal bell struck cleanly — high, bright, ringing with harmonic overtones. Like a perfectly formed quartz point being flicked. Pure mineral tone with temple resonance.",
+    prompt: "Pure crystal bell strike. High, bright, ringing with harmonic overtones.",
   },
   {
     id: "claim",
     filename: "claim.mp3",
     duration: 2,
-    prompt:
-      "A geode cracking open to reveal crystals inside — initial stone crack, then ascending sparkle cascade of tumbling mineral fragments catching light. Brief celebratory crystal shower with stone-chamber reverb.",
+    prompt: "Stone crack followed by ascending sparkle cascade. Brief celebratory shimmer with reverb.",
   },
   {
     id: "bonus-activate",
     filename: "bonus-activate.mp3",
     duration: 1,
-    prompt:
-      "A crystal being charged with energy — quick stone whoosh into a bright mineral pulse. Like a gemstone suddenly glowing from within. Empowering, snappy, with brief crystalline ring-out.",
+    prompt: "Quick whoosh into a bright energy pulse. Empowering and snappy with brief ring-out.",
   },
   {
     id: "shop-purchase",
     filename: "shop-purchase.mp3",
     duration: 1,
-    prompt:
-      "Multiple small mineral coins dropping into a stone bowl — a satisfying collection of crystal clinks and stone taps. Brief, rewarding. Like gems being exchanged in a temple marketplace.",
+    prompt: "Multiple small coins clinking into a stone bowl. Brief and satisfying.",
   },
   {
     id: "equip",
     filename: "equip.mp3",
     duration: 1,
-    prompt:
-      "A gemstone clicking solidly into a carved stone socket — satisfying mechanical mineral snap. Like slotting a crystal into its perfectly fitted setting. Precise, tactile, definitive.",
+    prompt: "Solid click-snap of something locking into place. Precise and tactile.",
   },
   {
     id: "unequip",
     filename: "unequip.mp3",
     duration: 1,
-    prompt:
-      "A gemstone gently lifted from its stone setting — soft reverse mineral click, like crystal releasing from a socket. Quick, gentle, clean. The inverse of equip.",
+    prompt: "Soft reverse click of something releasing from a slot. Quick and gentle.",
   },
   {
     id: "constraint-complete",
     filename: "constraint-complete.mp3",
     duration: 1,
-    prompt:
-      "Two ascending crystal tones struck in quick succession — a bright mineral checkpoint chime. Like two quartz points being tapped together. Satisfying completion signal with short temple reverb.",
+    prompt: "Two quick ascending chime tones. Bright checkpoint signal with short reverb.",
   },
 ] as const;
 

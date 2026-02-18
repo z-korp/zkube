@@ -147,46 +147,46 @@ All SFX are **🌐 Global** — shared from `common/sounds/effects/`.
 
 | ID | Filename | When Played | Duration | Status | Prompt |
 |----|----------|-------------|----------|--------|--------|
-| move | `move.mp3` | Block moved horizontally | 1 | 🔄 | A single polished obsidian stone sliding across smooth quartz surface, brief friction texture ending in a soft mineral click as it locks into position. Clean, responsive, satisfying. Short stone-chamber reverb. |
-| swipe | `swipe.mp3` | Block swiped (drag gesture) | 1 | 🔄 | Quick airy displacement of air across carved stone surface, like a hand brushing over polished basalt. Subtle crystalline shimmer at the tail. Fast, light, directional. |
-| break | `break.mp3` | Line cleared | 1 | 🔄 | A thin sheet of volcanic glass cracking cleanly in two — bright, sharp snap with crystalline shimmer overtones. Quick attack, fast decay. Satisfying mineral fracture with short stone-chamber reverb. |
-| explode | `explode.mp3` | Multi-line combo clear | 2 | 🔄 | Rapid cascade of geode crystals shattering in sequence, building to a bright mineral energy burst. Multiple stone fragments scattering across a temple floor. Deep quartz bass punctuation at the peak. |
-| new | `new.mp3` | New blocks spawned on grid | 1 | 🔄 | Three ascending crystal chime tones — like tuned mineral bars struck in quick succession. Elements materializing from stone dust and clicking solidly into place. Bright, inviting, with temple reverb. |
+| move | `move.mp3` | Block moved horizontally | 1 | 🔄 | Stone block sliding and clicking into place. Short, clean, satisfying click with light reverb. |
+| swipe | `swipe.mp3` | Block swiped (drag gesture) | 1 | 🔄 | Quick soft whoosh with a light crystalline shimmer at the end. Fast and airy. |
+| break | `break.mp3` | Line cleared | 1 | 🔄 | Sharp glass crack with bright shimmer. Quick snap, fast decay, satisfying. |
+| explode | `explode.mp3` | Multi-line combo clear | 2 | 🔄 | Cascading crystal shatter building to a bright energy burst with deep bass hit at the peak. |
+| new | `new.mp3` | New blocks spawned on grid | 1 | 🔄 | Three quick ascending chime tones. Bright and inviting with light reverb. |
 
 ### Game Flow SFX
 
 | ID | Filename | When Played | Duration | Status | Prompt |
 |----|----------|-------------|----------|--------|--------|
-| start | `start.mp3` | Game run begins | 2 | 🔄 | A stone temple awakening — deep resonant gong strike followed by ascending crystal chime cascade. Percussive mineral impacts build energy into a bright quartz accent. Confident, ceremonial game-start signal. |
-| over | `over.mp3` | Game over (out of moves) | 2 | 🔄 | A heavy obsidian block dropping onto stone floor — deep resonant mineral impact. Slow descending crystal tones with fading temple reverb. Finality without harshness. The sound of stone settling. |
-| levelup | `levelup.mp3` | Level completed successfully | 2 | ❌ | Short triumphant fanfare of tuned crystal bars struck in ascending sequence, culminating in a bright resonant singing bowl tone. Stone temple celebration — confident, warm, mineral. Punchy and celebratory. |
-| victory | `victory.mp3` | Run complete (beat level 50) | 5 | ❌ | Grand temple ceremony — deep gong strike opens into cascading crystal chimes, ascending mineral bar fanfare, singing bowls ringing in harmony. Layers of stone percussion and crystalline resonance building to a luminous climax. Majestic, earned, transcendent. |
+| start | `start.mp3` | Game run begins | 2 | 🔄 | Deep gong strike followed by ascending crystal chimes. Confident and ceremonial. |
+| over | `over.mp3` | Game over (out of moves) | 2 | 🔄 | Heavy stone impact with slow descending tones and fading reverb. Somber, final. |
+| levelup | `levelup.mp3` | Level completed successfully | 2 | 🔄 | Short triumphant ascending fanfare with a bright resonant bell at the end. Celebratory and warm. |
+| victory | `victory.mp3` | Run complete (beat level 50) | 5 | 🔄 | Grand gong opening into cascading chimes and ascending fanfare. Singing bowls building to a bright majestic climax. |
 
 ### Boss SFX
 
 | ID | Filename | When Played | Duration | Status | Prompt |
 |----|----------|-------------|----------|--------|--------|
-| boss-intro | `boss-intro.mp3` | Boss level screen appears | 3 | ❌ | Deep volcanic rumble building slowly — stone grinding against stone, low mineral drones. A massive obsidian slab shifting. Ominous crystal resonances growing in intensity. Tension without resolution — something ancient is awakening. Temple walls vibrating. |
-| boss-defeat | `boss-defeat.mp3` | Boss level defeated | 2 | ❌ | A giant crystal structure shattering explosively — volcanic glass breaking apart in a shower of mineral fragments, followed by a triumphant ascending chord of singing bowls and tuned stone. The boss crumbles, the temple rings with victory. |
+| boss-intro | `boss-intro.mp3` | Boss level screen appears | 3 | 🔄 | Deep rumble building slowly with low drones growing in intensity. Ominous and tense, no resolution. |
+| boss-defeat | `boss-defeat.mp3` | Boss level defeated | 2 | 🔄 | Explosive crystal shatter followed by triumphant ascending chord. Victorious and powerful. |
 
 ### UI Interaction SFX
 
 | ID | Filename | When Played | Duration | Status | Prompt |
 |----|----------|-------------|----------|--------|--------|
-| click | `click.mp3` | UI button tap | 1 | ❌ | A single small polished stone tapped against crystal — minimal, clean, tactile. One short bright click with the tiniest hint of mineral reverb. Crisp and subtle, like a pebble touching quartz. |
-| coin | `coin.mp3` | Cube currency earned | 1 | ❌ | A crystalline mineral coin striking a stone surface — bright upward ting with metallic-mineral shimmer. Like a faceted gemstone bouncing once on polished obsidian. Quick, rewarding, sparkly. |
-| star | `star.mp3` | Star rating earned | 1 | ❌ | A single pure crystal bell struck cleanly — high, bright, ringing with harmonic overtones. Like a perfectly formed quartz point being flicked. Pure mineral tone with temple resonance. |
-| claim | `claim.mp3` | Quest reward claimed | 2 | ❌ | A geode cracking open to reveal crystals inside — initial stone crack, then ascending sparkle cascade of tumbling mineral fragments catching light. Brief celebratory crystal shower with stone-chamber reverb. |
+| click | `click.mp3` | UI button tap | 1 | 🔄 | Short crisp stone click. Minimal, clean, tactile. Subtle reverb. |
+| coin | `coin.mp3` | Cube currency earned | 1 | 🔄 | Bright upward ting with metallic shimmer. Quick, rewarding, sparkly. |
+| star | `star.mp3` | Star rating earned | 1 | 🔄 | Pure crystal bell strike. High, bright, ringing with harmonic overtones. |
+| claim | `claim.mp3` | Quest reward claimed | 2 | 🔄 | Stone crack followed by ascending sparkle cascade. Brief celebratory shimmer with reverb. |
 
 ### Bonus & Shop SFX
 
 | ID | Filename | When Played | Duration | Status | Prompt |
 |----|----------|-------------|----------|--------|--------|
-| bonus-activate | `bonus-activate.mp3` | Bonus power activated | 1 | ❌ | A crystal being charged with energy — quick stone whoosh into a bright mineral pulse. Like a gemstone suddenly glowing from within. Empowering, snappy, with brief crystalline ring-out. |
-| shop-purchase | `shop-purchase.mp3` | Item purchased in shop | 1 | ❌ | Multiple small mineral coins dropping into a stone bowl — a satisfying collection of crystal clinks and stone taps. Brief, rewarding. Like gems being exchanged in a temple marketplace. |
-| equip | `equip.mp3` | Bonus equipped to loadout | 1 | ❌ | A gemstone clicking solidly into a carved stone socket — satisfying mechanical mineral snap. Like slotting a crystal into its perfectly fitted setting. Precise, tactile, definitive. |
-| unequip | `unequip.mp3` | Bonus removed from loadout | 1 | ❌ | A gemstone gently lifted from its stone setting — soft reverse mineral click, like crystal releasing from a socket. Quick, gentle, clean. The inverse of equip. |
-| constraint-complete | `constraint-complete.mp3` | Level constraint fulfilled | 1 | ❌ | Two ascending crystal tones struck in quick succession — a bright mineral checkpoint chime. Like two quartz points being tapped together. Satisfying completion signal with short temple reverb. |
+| bonus-activate | `bonus-activate.mp3` | Bonus power activated | 1 | 🔄 | Quick whoosh into a bright energy pulse. Empowering and snappy with brief ring-out. |
+| shop-purchase | `shop-purchase.mp3` | Item purchased in shop | 1 | 🔄 | Multiple small coins clinking into a stone bowl. Brief and satisfying. |
+| equip | `equip.mp3` | Bonus equipped to loadout | 1 | 🔄 | Solid click-snap of something locking into place. Precise and tactile. |
+| unequip | `unequip.mp3` | Bonus removed from loadout | 1 | 🔄 | Soft reverse click of something releasing from a slot. Quick and gentle. |
+| constraint-complete | `constraint-complete.mp3` | Level constraint fulfilled | 1 | 🔄 | Two quick ascending chime tones. Bright checkpoint signal with short reverb. |
 
 ### Duration Summary
 
