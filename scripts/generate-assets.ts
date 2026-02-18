@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { GoogleGenAI } from "@google/genai";
+import sharp from "sharp";
 
 const MODEL = "gemini-3-pro-image-preview";
 const CONCURRENCY = 2;
@@ -41,6 +42,7 @@ interface ThemeDefinition {
   motifs: string;
   blockMotifs: string;
   scene: string;
+  loadingScene: string;
   gridMaterial: string;
 }
 
@@ -69,85 +71,85 @@ const THEMES: Record<string, ThemeDefinition> = {
   "theme-1": {
     name: "Tiki",
     icon: "🌴",
-    description: "Tropical moonlit beach with carved tiki totems and palm trees",
-    mood: "Warm, tropical, festive",
+    description: "Tropical moonlit beach with carved tiki totems",
+    mood: "Warm, inviting",
     palette: { bg: "#87CEEB", accent: "#FF8C00", blocks: ["#4ADE80", "#4AA8DE", "#9F7AEA", "#FBBF24"] },
-    motifs: "Carved tiki masks, bamboo, palm fronds, coconut shells, tropical flowers, tribal wave patterns",
+    motifs: "Tiki masks, bamboo, palm trees, tropical flowers",
     blockMotifs: "Carved tiki mask faces, bamboo weave patterns, tropical flower motifs",
-    scene:
-      "Tropical moonlit beach at night, carved tiki totems glowing by firelight, palm trees silhouetted against starry sky, gentle waves lapping at shore",
-    gridMaterial: "Warm dark wood planks with bamboo frame grain",
+    scene: "Tropical moonlit beach at night, carved tiki totems, palm trees silhouetted, gentle waves",
+    loadingScene: "Close-up of a carved tiki mask with glowing eyes, surrounded by tropical flowers",
+    gridMaterial: "Weathered bamboo planks with rope lashing",
   },
   "theme-2": {
     name: "Cosmic",
     icon: "🌌",
     description: "Synthwave alien landscape with cratered planets and neon rim-lighting",
-    mood: "Vast, mysterious, electric",
+    mood: "Vast, dreamy",
     palette: { bg: "#0B0D21", accent: "#A29BFE", blocks: ["#00D2D3", "#6C5CE7", "#FD79A8", "#FDCB6E"] },
-    motifs: "Nebula swirls, planet rings, star clusters, cosmic crystals, alien glyphs, wormhole spirals",
+    motifs: "Crystals, nebula swirls, alien glyphs, planets",
     blockMotifs: "Cosmic crystal formations, nebula swirl patterns, alien glyph carvings",
-    scene:
-      "Alien landscape at twilight, cratered planets on horizon, nebula sky with star clusters, neon rim-lighting on crystalline formations",
-    gridMaterial: "Dark cosmic void with faint star field and purple nebula tint",
+    scene: "Synthwave alien landscape, cratered planets, neon rim-lighting",
+    loadingScene: "A swirling nebula with crystal formations floating in deep space",
+    gridMaterial: "Dark crystalline surface with faint nebula glow",
   },
   "theme-3": {
     name: "Easter Island",
     icon: "🗿",
-    description: "Mysterious stone moai statues on a volcanic island under starlit skies",
+    description: "Mysterious volcanic island with ancient stone guardians",
     mood: "Mysterious, eerie, ancient",
-    palette: { bg: "#1A0A2E", accent: "#FF00FF", blocks: ["#39FF14", "#00FFFF", "#FF00FF", "#FFE600"] },
-    motifs: "Stone moai faces, volcanic rock, obsidian, bioluminescent tide pools, star constellations",
-    blockMotifs: "Stone moai faces, volcanic rock patterns, obsidian edges",
-    scene: "Volcanic island at night, giant moai statues silhouetted against starry sky, bioluminescent tide pools",
+    palette: { bg: "#0A0A1A", accent: "#00FFFF", blocks: ["#00FF88", "#00DDFF", "#FF00FF", "#FFFF00"] },
+    motifs: "Moai statues, petroglyphs, volcanic rock",
+    blockMotifs: "Stone moai faces, volcanic rock patterns, petroglyph carvings",
+    scene: "Volcanic island at night, moai silhouettes, bioluminescent pools",
+    loadingScene: "A single moai statue face emerging from volcanic mist, bioluminescent glow",
     gridMaterial: "Dark volcanic basalt with faint glow veins",
   },
   "theme-4": {
     name: "Maya",
     icon: "🏛️",
-    description: "Ancient Mesoamerican temples and jade jungle ruins",
-    mood: "Mystical, ancient, lush",
+    description: "Ancient jungle temple civilization with jade and gold",
+    mood: "Adventurous, lush",
     palette: { bg: "#0A2540", accent: "#00CED1", blocks: ["#00E5A0", "#00B4D8", "#FF6F91", "#FFC947"] },
-    motifs:
-      "Quetzalcoatl serpents, stepped pyramids, jade carvings, sun stones, jaguar patterns, feathered serpent glyphs",
-    blockMotifs: "Jade carvings, serpent glyphs, temple step patterns, sun stone motifs",
-    scene:
-      "Deep jungle with ancient stepped Mayan temple in background, jade-green canopy, misty waterfalls, turquoise cenote pools",
-    gridMaterial: "Deep ocean-floor jade stone with turquoise tint",
+    motifs: "Jade serpents, stepped pyramids, feathered motifs",
+    blockMotifs: "Jade serpent glyphs, stepped pyramid patterns, feathered serpent motifs",
+    scene: "Deep jungle, stepped temple, jade canopy, misty waterfalls",
+    loadingScene: "Jade serpent carving on a moss-covered temple wall, golden light filtering through",
+    gridMaterial: "Deep ocean-floor stone with turquoise tint",
   },
   "theme-5": {
     name: "Cyberpunk",
     icon: "💜",
-    description: "Neon-lit dystopian cityscape with holographic interfaces",
-    mood: "Electric, edgy, futuristic",
-    palette: { bg: "#0D1117", accent: "#BD00FF", blocks: ["#00FF88", "#00BFFF", "#FF00FF", "#FFD700"] },
-    motifs: "Circuit traces, neon signs, holographic glitch, chrome panels, digital rain",
-    blockMotifs: "Circuit board traces, neon glow panels, holographic fragments",
-    scene:
-      "Rain-slicked cyberpunk alley at night, neon signs reflecting in puddles, towering buildings with holographic billboards",
-    gridMaterial: "Dark carbon fiber with faint neon circuit traces",
+    description: "Enchanted ancient forest with golden mystical light",
+    mood: "Serene, enchanted",
+    palette: { bg: "#1A3A1A", accent: "#DAA520", blocks: ["#66BB6A", "#42A5F5", "#AB47BC", "#FFCA28"] },
+    motifs: "Leaf veins, bark rings, glowing runes, moss",
+    blockMotifs: "Leaf veins, bark rings, moss patches, glowing runes",
+    scene: "Forest clearing at golden hour, towering trees with moss",
+    loadingScene: "Ancient tree trunk close-up with glowing runes and bark patterns",
+    gridMaterial: "Dark mossy wood bark",
   },
   "theme-6": {
     name: "Medieval",
     icon: "⚔️",
     description: "Stone castle courtyard with torchlit walls and iron gates",
     mood: "Epic, warm, noble",
-    palette: { bg: "#1A1410", accent: "#DAA520", blocks: ["#CD7F32", "#DC143C", "#228B22", "#FFD700"] },
+    palette: { bg: "#C2956B", accent: "#E07B39", blocks: ["#E07B39", "#D4463B", "#3D9970", "#E8C547"] },
     motifs: "Shield crests, iron rivets, stone bricks, torch flames, heraldic lions, sword motifs",
     blockMotifs: "Shield crests, iron rivets, stone brick patterns",
-    scene:
-      "Castle courtyard at sunset, stone walls with burning torches, distant towers, iron portcullis, heraldic banners",
-    gridMaterial: "Weathered sandstone with iron-stud grain",
+    scene: "Castle courtyard at sunset, torches, towers, iron portcullis",
+    loadingScene: "Torchlit stone wall with a shield and crossed swords, warm firelight",
+    gridMaterial: "Weathered sandstone with grain",
   },
   "theme-7": {
     name: "Ancient Egypt",
     icon: "🏺",
     description: "Golden pyramids at dusk with hieroglyph-covered obelisks",
     mood: "Majestic, mystical, regal",
-    palette: { bg: "#0A1628", accent: "#FFD700", blocks: ["#40E0D0", "#4169E1", "#DDA0DD", "#DAA520"] },
+    palette: { bg: "#D0E8F0", accent: "#40E0D0", blocks: ["#40E0D0", "#5B9BD5", "#B070D0", "#F0C060"] },
     motifs: "Hieroglyphs, scarab beetles, Eye of Horus, lotus flowers, ankh symbols, papyrus scrolls",
     blockMotifs: "Hieroglyphs, scarab beetles, lotus flower carvings",
-    scene:
-      "Desert at twilight, golden pyramids with hieroglyph-covered obelisks, Nile river reflecting sky, palm trees",
+    scene: "Desert twilight, golden pyramids, obelisks, Nile reflection",
+    loadingScene: "Hieroglyph-covered wall with Eye of Horus, golden torchlight",
     gridMaterial: "Cool blue-grey slate with gold hieroglyph inlays",
   },
   "theme-8": {
@@ -155,11 +157,12 @@ const THEMES: Record<string, ThemeDefinition> = {
     icon: "🌋",
     description: "Volcanic forge with rivers of lava and obsidian pillars",
     mood: "Intense, dramatic, primal",
-    palette: { bg: "#1A0A00", accent: "#FF4500", blocks: ["#FF6600", "#DC143C", "#FFB700", "#FF69B4"] },
+    palette: { bg: "#1A0A0A", accent: "#FF6600", blocks: ["#FF6600", "#FF2222", "#FFAA00", "#FF4488"] },
     motifs: "Lava cracks, obsidian shards, ember glow, volcanic vents, magma flows, basalt columns",
     blockMotifs: "Obsidian shards, lava crack patterns, ember glow veins",
     scene:
       "Volcanic forge interior, rivers of lava flowing between obsidian platforms, ember-filled sky, basalt columns",
+    loadingScene: "Obsidian rock face with molten lava cracks glowing orange-red",
     gridMaterial: "Cracked obsidian with faint ember glow between fissures",
   },
   "theme-9": {
@@ -167,11 +170,11 @@ const THEMES: Record<string, ThemeDefinition> = {
     icon: "🪘",
     description: "Earthy savanna ritual grounds with painted stones and drums",
     mood: "Earthy, spiritual, organic",
-    palette: { bg: "#1A1220", accent: "#FF69B4", blocks: ["#8FBC8F", "#87CEEB", "#DDA0DD", "#FFD700"] },
+    palette: { bg: "#FFF0F5", accent: "#FF69B4", blocks: ["#7DCEA0", "#85C1E9", "#D7BDE2", "#F9E154"] },
     motifs: "Painted patterns, drum motifs, feather marks, bone beads, ritual masks, cave paintings",
     blockMotifs: "Painted tribal patterns, drum circle motifs, feather marks",
-    scene:
-      "Savanna at dawn, ritual stone circle, painted rocks, wildflowers, distant acacia trees, drum circle",
+    scene: "Savanna dawn, ritual stone circle, wildflowers, acacia trees",
+    loadingScene: "Painted ritual drum surrounded by feathers and wildflowers, warm earth tones",
     gridMaterial: "Rose-tinted clay with faint handprint texture",
   },
   "theme-10": {
@@ -179,11 +182,11 @@ const THEMES: Record<string, ThemeDefinition> = {
     icon: "❄️",
     description: "Frozen tundra under aurora borealis with steampunk brass structures",
     mood: "Cold, wondrous, mechanical",
-    palette: { bg: "#0A1628", accent: "#B8860B", blocks: ["#CD7F32", "#B8860B", "#808000", "#B7410E"] },
+    palette: { bg: "#2A1F14", accent: "#D4A017", blocks: ["#B87333", "#C5A050", "#6B8E23", "#CC5544"] },
     motifs: "Ice crystals, brass gears, copper pipes, snowflakes, aurora waves, frozen clockwork",
     blockMotifs: "Brass gear faces, copper pipe rivets, frozen clockwork",
-    scene:
-      "Frozen tundra under aurora borealis, ice crystal formations, brass and copper mechanical structures half-buried in snow",
+    scene: "Frozen tundra, aurora borealis, ice crystals, brass structures",
+    loadingScene: "Ice crystal formation with aurora light refracting through, brass gears embedded",
     gridMaterial: "Dark worn leather with brass patina rivets",
   },
 };
@@ -264,7 +267,7 @@ const PARTICLE_CONFIGS = [
 ] as const;
 
 const ROOT_DIR = path.resolve(process.cwd());
-const ASSETS_ROOT = path.join(ROOT_DIR, "mobile-app", "public", "assets");
+const ASSETS_ROOT = path.join(ROOT_DIR, "client-budokan", "public", "assets");
 const COMMON_ROOT = path.join(ASSETS_ROOT, "common");
 const THEME_1_ROOT = path.join(ASSETS_ROOT, "theme-1");
 
@@ -274,12 +277,6 @@ const REF_IMAGE_PATHS = {
   logo: path.join(THEME_1_ROOT, "logo.png"),
   grid: path.join(THEME_1_ROOT, "grid-bg.png"),
 } as const;
-
-const CHROMAKEY_SUFFIX = `
-The subject must be placed on a SOLID BRIGHT CHROMAKEY GREEN (#00FF00) background.
-Do NOT use any green tones in the actual artwork — avoid greens in the subject itself.
-The green background will be removed in post-processing to create transparency.
-`;
 
 type RefKey = keyof typeof REF_IMAGE_PATHS;
 
@@ -413,53 +410,51 @@ function loadRefBase64(refKey: RefKey): string | undefined {
   }
 }
 
-function buildBlockPrompt(theme: ThemeDefinition, width: number, color: string): string {
-  const shapeLine =
-    width === 1
-      ? "Generate a single square game block tile texture for a puzzle game."
-      : `Generate a wide game block tile texture (${width} cells wide, 1 cell tall) for a puzzle game.`;
-
-  const widthLine =
-    width === 1
-      ? ""
-      : "The tile should be horizontally elongated with the pattern repeating/extending across its width.";
+function buildBlockPrompt(theme: ThemeDefinition, width: number): string {
+  const blockColors = theme.palette.blocks.join(", ");
+  if (width === 1) {
+    return withStyleAnchor(`
+Generate a square game tile texture for a puzzle game.
+Theme: ${theme.name} — ${theme.description}
+Style: Bold black outlines, cel-shaded, 2-3 color tones from palette: ${blockColors}.
+Design: A single decorative emblem with ${theme.blockMotifs}. Centered.
+The texture must fill the entire canvas edge-to-edge with no empty margins.
+No text, no people.
+`);
+  }
 
   return withStyleAnchor(`
-${shapeLine}
+Generate a wide game tile (${width} cells wide, 1 tall) for a puzzle game.
 Theme: ${theme.name} — ${theme.description}
-Design: A decorative emblem tile with the theme's motifs: ${theme.blockMotifs}.
-The tile should look like a carved/painted cultural emblem — bold central shape with decorative inner details.
-Color palette: Primary fill ${color} with black outline separators and lighter highlight accents.
-Subtle grunge/distressed texture overlay on the fill areas.
-${widthLine}
-Centered. No text, no people, no letters.
-${CHROMAKEY_SUFFIX}
+Style: Bold black outlines, cel-shaded, palette: ${blockColors}.
+Design: Horizontal panel with ${theme.blockMotifs}, aspect ratio ${width}:1.
+Place as horizontal strip in CENTER of square canvas. The strip fills the full width.
+The art must have no empty margins or padding — content fills edge-to-edge within the strip.
+No text, no people.
 `);
 }
 
 function buildBackgroundPrompt(theme: ThemeDefinition): string {
   return withStyleAnchor(`
-Generate a full-screen background illustration for a mobile puzzle game.
-Theme: ${theme.name} — ${theme.description}
-Scene: ${theme.scene}
-Composition: PORTRAIT orientation (9:16 tall mobile screen). Layered parallax depth — dark foreground silhouettes framing left and right edges at the bottom, scene elements in the midground, atmospheric sky/ceiling fading upward. Vertical depth: bottom third is darker foreground, middle third is the main scene, top third is sky/atmosphere.
-Mood: ${theme.mood}. Rich, immersive, inviting.
-Color palette: Deep dark tones for foreground (${theme.palette.bg}), mid-tones for scene (${theme.palette.accent}), with star/light accents.
-NO text, NO UI elements, NO people, NO recognizable characters.
+Illustrated environment scene for a puzzle game. SQUARE format (1:1).
+Theme: ${theme.name} — ${theme.description}. Scene: ${theme.scene}
+CENTER-WEIGHTED composition: main subject in the center 60% of the canvas.
+Edges filled with atmospheric scenery (sky, ground, foliage) that can be cropped.
+Layered depth: foreground elements, main scene, distant background.
+The art must fill the entire canvas edge-to-edge with no empty margins.
+Mood: ${theme.mood}. Palette: ${theme.palette.bg} to ${theme.palette.accent}. Opaque fill. No text, no people.
 `);
 }
 
 function buildLoadingBackgroundPrompt(theme: ThemeDefinition): string {
   return withStyleAnchor(`
-Generate a full-screen background illustration for a mobile puzzle game.
-Theme: ${theme.name} — ${theme.description}
-Scene: ${theme.scene}
-Composition: PORTRAIT orientation (9:16 tall mobile screen). Layered parallax depth — dark foreground silhouettes framing left and right edges at the bottom, scene elements in the midground, atmospheric sky/ceiling fading upward. Vertical depth: bottom third is darker foreground, middle third is the main scene, top third is sky/atmosphere.
-Mood: ${theme.mood}. Rich, immersive, inviting.
-Color palette: Deep dark tones for foreground (${theme.palette.bg}), mid-tones for scene (${theme.palette.accent}), with star/light accents.
-Same scene but with a slightly darker, more atmospheric treatment — this is seen briefly during loading.
-Slightly blurred/simplified version of the main background. Deeper shadows, more atmospheric fog.
-NO text, NO UI elements, NO people, NO recognizable characters.
+Loading screen illustration for a puzzle game. SQUARE format (1:1).
+Theme: ${theme.name} — ${theme.description}.
+Scene: A close-up atmospheric detail from the theme world — ${theme.loadingScene}.
+CENTER-WEIGHTED: main focal point in the middle. Edges can be cropped.
+Moody, atmospheric, slightly darker than the main background.
+The art must fill the entire canvas edge-to-edge.
+Palette: ${theme.palette.bg} to ${theme.palette.accent}. Opaque fill. No text, no people.
 `);
 }
 
@@ -481,7 +476,7 @@ COLOR: Primary fill ${theme.palette.accent} with a darker shade for depth. STRON
 Thick dark outline ensures readability on ANY background. High contrast between fill and outline.
 
 Square format. Centered vertically and horizontally.
-${CHROMAKEY_SUFFIX}
+Dark background that blends with the theme's background color.
 `);
 }
 
@@ -502,12 +497,12 @@ function buildGridFramePrompt(theme: ThemeDefinition): string {
 Generate an ornamental frame/border for a game grid area.
 Theme: ${theme.name}
 Material: Matches the theme's decorative style — ${theme.motifs}.
-Style: An ornate rectangular frame border with themed decorative elements. The CENTER must be FULLY TRANSPARENT (the game grid shows through).
+Style: An ornate rectangular frame border with themed decorative elements.
 Border width: approximately 10% of the image on each side.
 Border decoration: Cultural motifs and patterns from the theme carved into the frame material.
 Frame color: Theme accent (${theme.palette.accent}) with darker shadow tones and bright highlights.
-Portrait rectangle (4:5 ratio). Center should be chromakey green so it can be cut out to transparency. Bold border.
-${CHROMAKEY_SUFFIX}
+Portrait rectangle (4:5 ratio). The frame art fills the entire canvas edge-to-edge.
+Interior is a dark flat fill matching the grid material.
 `);
 }
 
@@ -516,9 +511,9 @@ function buildThemeIconPrompt(theme: ThemeDefinition): string {
 Generate a small square icon representing the "${theme.name}" theme for a game settings menu.
 Theme: ${theme.name} (${theme.icon})
 Design: A single iconic symbol that instantly communicates the theme. For example: ${theme.motifs} — pick the most recognizable single element.
-Style: Bold silhouette icon, white fill on solid chromakey green (#00FF00) background. Thick strokes (3-4px equivalent). Clean, readable at 48×48 pixels.
+Style: Bold silhouette icon, white fill. Thick strokes (3-4px equivalent). Clean, readable at 48×48 pixels.
 Centered in frame. Square format. No text.
-${CHROMAKEY_SUFFIX}
+Dark background matching the theme.
 `);
 }
 
@@ -572,11 +567,10 @@ Square format. Slight transparency possible for soft edges. No text, no icons.
 function buildWhiteIconPrompt(description: string): string {
   return withStyleAnchor(`
 Generate a simple game UI icon: ${description}.
-Style: Clean, bold, white silhouette on solid chromakey green (#00FF00) background.
+Style: Clean, bold, white silhouette on dark background.
 Stylized for a fantasy/tribal puzzle game. Thick strokes (3-4px equivalent).
 Rounded corners. Single shape, centered. No text, no color (white only).
 Square format. 48×48 pixel target (generating larger for quality).
-${CHROMAKEY_SUFFIX}
 `);
 }
 
@@ -587,7 +581,7 @@ Style: Colorful, vibrant, detailed fantasy game icon. Rich colors with glowing h
 The icon should be instantly recognizable at small sizes (64×64 display).
 Centered composition, no text. Slight 3D depth with lighting from top-left.
 Square format. 256×256 pixel target.
-${CHROMAKEY_SUFFIX}
+Dark background.
 `);
 }
 
@@ -596,10 +590,10 @@ function buildUiChromePrompt(description: string, width: number, height: number)
 Generate a game UI element: ${description}
 Dimensions: ${width}×${height} pixels conceptually.
 Style: Semi-transparent dark panel with subtle fantasy/tribal decorative edges.
-The center area should be mostly transparent (alpha ~0.7) so game content shows through.
+The center area should be darker and flatter than the border so game content reads clearly above it.
 Edges should have thin ornate borders matching a tribal/fantasy puzzle game aesthetic.
 No text, no icons — just the background chrome element.
-${CHROMAKEY_SUFFIX}
+Dark background fill.
 `);
 }
 
@@ -609,8 +603,7 @@ Generate a 9-slice panel texture for a game UI.
 Material: ${material}
 The image is 96×96px conceptually. The outer 24px on all sides are the fixed border. The inner 48×48px center will stretch.
 Design the border with decorative edges. Center should be a subtle, stretchable fill matching the material.
-Square format. PNG. The center area should have slight transparency (${alpha} alpha) after chromakey removal.
-${CHROMAKEY_SUFFIX}
+Square format. PNG. The center area should have slight translucency (${alpha} alpha feel) over a dark background.
 `);
 }
 
@@ -618,10 +611,9 @@ function buildParticlePrompt(description: string): string {
   return withStyleAnchor(`
 Generate a tiny particle texture for a game effect.
 Shape: ${description}
-Style: White silhouette on solid chromakey green (#00FF00) background. Soft edges with slight glow.
+Style: White silhouette on dark background. Soft edges with slight glow.
 Very simple, minimal detail — this will be rendered at 16×16 pixels and tinted by code.
 Square format. Centered.
-${CHROMAKEY_SUFFIX}
 `);
 }
 
@@ -643,9 +635,9 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
         themeId,
         filename,
         outputPath: path.join(themeRoot, filename),
-        prompt: buildBlockPrompt(theme, width, theme.palette.blocks[i]),
+        prompt: buildBlockPrompt(theme, width),
         aspectRatio: "1:1",
-        imageSize: "1K",
+        imageSize: "2K",
         refKeys: ["blocks"],
       });
     }
@@ -659,7 +651,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       filename: "background.png",
       outputPath: path.join(themeRoot, "background.png"),
       prompt: buildBackgroundPrompt(theme),
-      aspectRatio: "9:16",
+      aspectRatio: "1:1",
       imageSize: "2K",
       refKeys: ["background"],
     });
@@ -673,7 +665,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       filename: "loading-bg.png",
       outputPath: path.join(themeRoot, "loading-bg.png"),
       prompt: buildLoadingBackgroundPrompt(theme),
-      aspectRatio: "9:16",
+      aspectRatio: "1:1",
       imageSize: "2K",
       refKeys: ["background"],
     });
@@ -1019,21 +1011,37 @@ function buildHeaderThemeLabel(options: CliOptions, selectedThemeIds: string[]):
 
 function outputSummaryPath(options: CliOptions, selectedThemeIds: string[]): string {
   if (options.scope === "global") {
-    return "mobile-app/public/assets/common/";
+    return "client-budokan/public/assets/common/";
   }
   if (options.scope === "per-theme" && selectedThemeIds.length === 1) {
-    return `mobile-app/public/assets/${selectedThemeIds[0]}/`;
+    return `client-budokan/public/assets/${selectedThemeIds[0]}/`;
   }
-  return "mobile-app/public/assets/";
+  return "client-budokan/public/assets/";
+}
+
+interface GeminiInlineData {
+  data: string;
+  mimeType?: string;
+}
+
+interface GeminiPart {
+  inlineData?: GeminiInlineData;
+  text?: string;
+}
+
+interface GeminiCandidate {
+  content?: {
+    parts?: GeminiPart[];
+  };
+}
+
+interface GeminiResponse {
+  candidates?: GeminiCandidate[];
 }
 
 function extractBase64Png(response: unknown): string | undefined {
-  const direct = (response as any)?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-  if (typeof direct === "string" && direct.length > 0) {
-    return direct;
-  }
-
-  const candidates = (response as any)?.candidates;
+  const resp = response as GeminiResponse;
+  const candidates = resp?.candidates;
   if (!Array.isArray(candidates)) {
     return undefined;
   }
@@ -1111,85 +1119,99 @@ async function generateImage(ai: GoogleGenAI, job: AssetJob, includeRefs: boolea
   throw new Error("Failed to generate image after retries.");
 }
 
-// Dimensions chosen for mobile-first PixiJS with DPR capped at 2.
-// Max physical cell = 56px × 2 = 112px. Block textures at 256/cell = 2.3× max.
-// Grid at 512×640 covers tablet (448×560 logical) at 1.1× buffer.
 const TARGET_DIMENSIONS: Record<string, { width: number; height: number }> = {
-  "block-1.png": { width: 256, height: 256 },
-  "block-2.png": { width: 512, height: 256 },
-  "block-3.png": { width: 768, height: 256 },
-  "block-4.png": { width: 1024, height: 256 },
+  "block-1.png": { width: 544, height: 544 },
+  "block-2.png": { width: 1088, height: 544 },
+  "block-3.png": { width: 1632, height: 544 },
+  "block-4.png": { width: 2176, height: 544 },
   "grid-bg.png": { width: 512, height: 640 },
   "grid-frame.png": { width: 576, height: 720 },
-  "background.png": { width: 1080, height: 1920 },
-  "loading-bg.png": { width: 1080, height: 1920 },
+  "background.png": { width: 2048, height: 2048 },
+  "loading-bg.png": { width: 2048, height: 2048 },
   "logo.png": { width: 512, height: 512 },
   "map.png": { width: 1080, height: 1920 },
   "theme-icon.png": { width: 128, height: 128 },
 };
 
-const NEEDS_TRANSPARENCY = new Set([
-  "block-1.png",
-  "block-2.png",
-  "block-3.png",
-  "block-4.png",
-  "logo.png",
-  "grid-frame.png",
-  "theme-icon.png",
-]);
-
-function needsChromakeyStrip(filePath: string): boolean {
-  const filename = path.basename(filePath);
-  if (NEEDS_TRANSPARENCY.has(filename)) {
-    return true;
-  }
-  return filename.startsWith("icon-") || filename.startsWith("particle-") || filename.startsWith("panel-");
-}
-
-async function stripChromakeyGreen(filePath: string): Promise<boolean> {
-  if (!needsChromakeyStrip(filePath)) {
-    return false;
-  }
-
-  const { execFileSync } = await import("node:child_process");
-  const script = String.raw`
-import sys
-import numpy as np
-from PIL import Image
-
-path = sys.argv[1]
-img = Image.open(path).convert('RGBA')
-arr = np.array(img, dtype=np.float32)
-r, g, b, a = arr[:,:,0], arr[:,:,1], arr[:,:,2], arr[:,:,3]
-green_mask = (g > 80) & (r < 220) & (b < 220) & (g > r * 1.2) & (g > b * 1.2)
-max_rb = np.maximum(r, b)
-spill = np.maximum(g - max_rb, 0)
-arr[:,:,1] = np.clip(g - spill * 0.9, 0, 255).astype(np.uint8)
-
-try:
-    from scipy.ndimage import binary_dilation, gaussian_filter
-
-    dilated = binary_dilation(green_mask, iterations=3)
-    alpha = np.where(dilated, 0, 255).astype(np.float32)
-    alpha = gaussian_filter(alpha, sigma=1.0)
-    arr[:,:,3] = np.clip(alpha, 0, 255).astype(np.uint8)
-    arr[arr[:,:,3] < 10, :3] = 0
-    Image.fromarray(arr.astype(np.uint8), 'RGBA').save(path)
-except Exception:
-    arr = arr.astype(np.uint8)
-    r, g, b = arr[:,:,0], arr[:,:,1], arr[:,:,2]
-    green_mask = (g > 80) & (r < 220) & (b < 220) & (g > r * 1.2) & (g > b * 1.2)
-    arr[:,:,3] = np.where(green_mask, 0, 255).astype(np.uint8)
-    arr[green_mask, :3] = 0
-    Image.fromarray(arr, 'RGBA').save(path)
-`;
-
-  execFileSync("python3", ["-c", script, filePath], { stdio: "pipe" });
-  return true;
-}
-
 function isJpeg(buf: Buffer): boolean {
   return buf.length >= 2 && buf[0] === 0xff && buf[1] === 0xd8;
+}
+
+async function postProcessFile(filePath: string, target: { width: number; height: number }): Promise<string> {
+  const buf = fs.readFileSync(filePath);
+  const metadata = await sharp(buf).metadata();
+  const srcW = metadata.width ?? 0;
+  const srcH = metadata.height ?? 0;
+  if (srcW <= 0 || srcH <= 0) {
+    throw new Error(`invalid source dimensions for ${path.basename(filePath)}`);
+  }
+
+  let pipeline = sharp(buf);
+  const targetRatio = target.width / target.height;
+  const srcRatio = srcW / srcH;
+
+  if (Math.abs(targetRatio - srcRatio) > 0.05) {
+    let cropW: number;
+    let cropH: number;
+    if (targetRatio > srcRatio) {
+      cropW = srcW;
+      cropH = Math.round(srcW / targetRatio);
+    } else {
+      cropH = srcH;
+      cropW = Math.round(srcH * targetRatio);
+    }
+    const left = Math.round((srcW - cropW) / 2);
+    const top = Math.round((srcH - cropH) / 2);
+    pipeline = pipeline.extract({ left, top, width: cropW, height: cropH });
+  }
+
+  const outputBuf = await pipeline.resize(target.width, target.height).png().toBuffer();
+  fs.writeFileSync(filePath, outputBuf);
+
+  return `${srcW}x${srcH} → ${target.width}x${target.height}`;
+}
+
+async function postProcessDirectory(dirPath: string, label: string): Promise<void> {
+  if (!fs.existsSync(dirPath)) {
+    return;
+  }
+
+  const files = fs.readdirSync(dirPath).filter((file) => file.endsWith(".png"));
+  if (files.length === 0) {
+    return;
+  }
+
+  console.log(`\n🔧 Post-processing ${label}...`);
+  let converted = 0;
+  let resized = 0;
+  let errors = 0;
+
+  for (const filename of files) {
+    const filePath = path.join(dirPath, filename);
+    const target = TARGET_DIMENSIONS[filename];
+
+    try {
+      const sourceBuf = fs.readFileSync(filePath);
+      if (isJpeg(sourceBuf)) {
+        const pngBuf = await sharp(sourceBuf).png().toBuffer();
+        fs.writeFileSync(filePath, pngBuf);
+        converted += 1;
+      }
+
+      if (target) {
+        const resizeLabel = await postProcessFile(filePath, target);
+        resized += 1;
+        console.log(`  📐 ${filename}: ${resizeLabel}`);
+      } else if (isJpeg(sourceBuf)) {
+        console.log(`  ✅ ${filename}: JPEG→PNG`);
+      }
+    } catch (error) {
+      errors += 1;
+      console.error(`  ❌ ${filename}: ${formatError(error)}`);
+    }
+  }
+
+  console.log(`  Done: ${converted} converted, ${resized} resized, ${errors} errors`);
 }
 
 function savePng(outputPath: string, imageBase64: string): void {
@@ -1210,80 +1232,7 @@ async function postProcessTheme(themeId: string): Promise<void> {
     return;
   }
 
-  console.log(`\n🔧 Post-processing ${themeId}...`);
-  let fixed = 0;
-  let stripped = 0;
-  let resized = 0;
-  let errors = 0;
-
-  const files = fs.readdirSync(themeRoot).filter((f) => f.endsWith(".png"));
-
-  for (const filename of files) {
-    const filePath = path.join(themeRoot, filename);
-    let buf = fs.readFileSync(filePath);
-    const target = TARGET_DIMENSIONS[filename];
-
-    if (isJpeg(buf)) {
-      console.log(`  🔄 ${filename}: JPEG→PNG conversion needed`);
-      try {
-        const { execSync } = await import("node:child_process");
-        execSync(
-          `python3 -c "from PIL import Image; img = Image.open('${filePath}').convert('RGBA'); img.save('${filePath}', 'PNG')"`,
-        );
-        buf = fs.readFileSync(filePath);
-        fixed += 1;
-        console.log(`  ✅ ${filename}: converted to PNG`);
-      } catch {
-        console.error(`  ❌ ${filename}: conversion failed (install Pillow: pip install Pillow)`);
-        errors += 1;
-        continue;
-      }
-    }
-
-    try {
-      if (await stripChromakeyGreen(filePath)) {
-        stripped += 1;
-      }
-    } catch {
-      console.error(`  ❌ ${filename}: chromakey strip failed`);
-      errors += 1;
-      continue;
-    }
-
-    if (target) {
-      try {
-        const { execSync } = await import("node:child_process");
-        const sizeOutput = execSync(
-          `python3 -c "from PIL import Image; img = Image.open('${filePath}'); print(f'{img.size[0]}x{img.size[1]}')"`,
-        )
-          .toString()
-          .trim();
-        const [curW, curH] = sizeOutput.split("x").map(Number);
-        if (curW !== target.width || curH !== target.height) {
-          const targetRatio = target.width / target.height;
-          const curRatio = curW / curH;
-          const needsCrop = Math.abs(targetRatio - curRatio) > 0.05;
-          const cropScript = needsCrop
-            ? `tr = ${target.width}/${target.height}; cw, ch = img.size; ` +
-              `nh = int(cw / tr) if tr > 1 else ch; nw = int(ch * tr) if tr <= 1 else cw; ` +
-              `left = (cw - nw) // 2; top = (ch - nh) // 2; ` +
-              `img = img.crop((left, top, left + nw, top + nh)); `
-            : "";
-          execSync(
-            `python3 -c "from PIL import Image; img = Image.open('${filePath}'); ${cropScript}img = img.resize((${target.width}, ${target.height}), Image.LANCZOS); img.save('${filePath}')"`,
-          );
-          resized += 1;
-          const cropLabel = needsCrop ? " (cropped)" : "";
-          console.log(`  📐 ${filename}: ${curW}x${curH} → ${target.width}x${target.height}${cropLabel}`);
-        }
-      } catch {
-        console.error(`  ❌ ${filename}: resize failed`);
-        errors += 1;
-      }
-    }
-  }
-
-  console.log(`  Done: ${fixed} converted, ${stripped} chromakey stripped, ${resized} resized, ${errors} errors`);
+  await postProcessDirectory(themeRoot, themeId);
 }
 
 async function postProcessAll(options: CliOptions): Promise<void> {
@@ -1299,35 +1248,7 @@ async function postProcessAll(options: CliOptions): Promise<void> {
     const commonDirs = ["bonus", "buttons", "icons", "panels", "particles", "ui"];
     for (const dir of commonDirs) {
       const dirPath = path.join(COMMON_ROOT, dir);
-      if (fs.existsSync(dirPath)) {
-        console.log(`\n🔧 Post-processing common/${dir}...`);
-        const files = fs.readdirSync(dirPath).filter((f) => f.endsWith(".png"));
-        for (const filename of files) {
-          const filePath = path.join(dirPath, filename);
-          let buf = fs.readFileSync(filePath);
-          if (isJpeg(buf)) {
-            try {
-              const { execSync } = await import("node:child_process");
-              execSync(
-                `python3 -c "from PIL import Image; img = Image.open('${filePath}').convert('RGBA'); img.save('${filePath}', 'PNG')"`,
-              );
-              buf = fs.readFileSync(filePath);
-              console.log(`  ✅ ${filename}: JPEG→PNG`);
-            } catch {
-              console.error(`  ❌ ${filename}: conversion failed`);
-              continue;
-            }
-          }
-
-          try {
-            if (await stripChromakeyGreen(filePath)) {
-              console.log(`  ✅ ${filename}: chromakey stripped`);
-            }
-          } catch {
-            console.error(`  ❌ ${filename}: chromakey strip failed`);
-          }
-        }
-      }
+      await postProcessDirectory(dirPath, `common/${dir}`);
     }
   }
 }
