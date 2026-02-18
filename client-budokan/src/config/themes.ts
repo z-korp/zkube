@@ -464,8 +464,8 @@ export const SFX_PATHS = {
 
 export type SfxName = keyof typeof SFX_PATHS;
 
-export function isLegacyTheme(themeId: ThemeId): boolean {
-  return themeId === "theme-1" || themeId === "theme-2";
+export function hasBackgroundImage(themeId: ThemeId): boolean {
+  return themeId !== "theme-1" && themeId !== "theme-2";
 }
 
 export function getThemeAssetPath(themeId: ThemeId, asset: string): string {
@@ -478,7 +478,6 @@ export function getCommonAssetPath(path: string): string {
 
 export function getThemeImages(themeId: ThemeId) {
   const base = `/assets/${themeId}`;
-  const legacy = isLegacyTheme(themeId);
 
   return {
     block1: `${base}/block-1.png`,
@@ -487,11 +486,11 @@ export function getThemeImages(themeId: ThemeId) {
     block4: `${base}/block-4.png`,
     loadingBg: `${base}/loading-bg.png`,
     logo: `${base}/logo.png`,
-    background: legacy ? null : `${base}/background.png`,
-    gridBg: legacy ? null : `${base}/grid-bg.png`,
-    gridFrame: legacy ? null : `${base}/grid-frame.png`,
-    themeIcon: legacy ? `${base}/logo.png` : `${base}/theme-icon.png`,
-    map: legacy ? null : `${base}/map.png`,
+    background: hasBackgroundImage(themeId) ? `${base}/background.png` : null,
+    gridBg: `${base}/grid-bg.png`,
+    gridFrame: `${base}/grid-frame.png`,
+    themeIcon: `${base}/theme-icon.png`,
+    map: `${base}/map.png`,
   };
 }
 

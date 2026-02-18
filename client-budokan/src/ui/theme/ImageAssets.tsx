@@ -1,9 +1,9 @@
-import { getCommonAssetPath, getThemeImages, isLegacyTheme, type ThemeId } from "@/config/themes";
+import { getCommonAssetPath, getThemeImages, hasBackgroundImage, type ThemeId } from "@/config/themes";
 
 const ImageAssets = (theme: ThemeId) => {
   const pathAssets = `/assets/${theme}/`;
   const themeImages = getThemeImages(theme);
-  const legacy = isLegacyTheme(theme);
+  const hasBg = hasBackgroundImage(theme);
 
   return {
     ...themeImages,
@@ -18,12 +18,12 @@ const ImageAssets = (theme: ThemeId) => {
     stone4: themeImages.block4,
     background: themeImages.loadingBg,
     logo: themeImages.logo,
-    loader: legacy ? `${pathAssets}loader.svg` : "/assets/theme-1/loader.svg",
-    imageBackground: legacy ? `${pathAssets}theme-2-1.png` : (themeImages.background ?? `${pathAssets}loading-bg.png`),
-    imageTotemDark: legacy ? `${pathAssets}theme-2-totem-dark.png` : "",
-    imageTotemLight: legacy ? `${pathAssets}theme-2-totem-light.png` : "",
-    palmLeft: legacy ? `${pathAssets}palmtree-left.png` : "",
-    palmRight: legacy ? `${pathAssets}palmtree-right.png` : "",
+    loader: hasBg ? "/assets/theme-1/loader.svg" : `${pathAssets}loader.svg`,
+    imageBackground: themeImages.background ?? `${pathAssets}theme-2-1.png`,
+    imageTotemDark: hasBg ? "" : `${pathAssets}theme-2-totem-dark.png`,
+    imageTotemLight: hasBg ? "" : `${pathAssets}theme-2-totem-light.png`,
+    palmLeft: hasBg ? "" : `${pathAssets}palmtree-left.png`,
+    palmRight: hasBg ? "" : `${pathAssets}palmtree-right.png`,
   };
 };
 
