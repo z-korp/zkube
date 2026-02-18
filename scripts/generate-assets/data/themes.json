@@ -38,10 +38,10 @@
     "motifs": "Hieroglyphs, scarab beetles, Eye of Horus, lotus flowers, ankh symbols, obelisks, papyrus scrolls",
     "blockMotifs": "Sandstone texture with hieroglyph engravings, gold-lined edges, scarab beetle relief carvings",
     "blockDesigns": [
-      "A sandstone block with deeply engraved Eye of Horus hieroglyph, warm beige texture with fine gold-lined edges, sun-bleached and monumental",
-      "A scarab beetle carved in relief on lapis lazuli blue stone, wings spread wide, gold accent lines on a deep blue surface",
-      "A polished gold-leaf block with engraved lotus flower and ankh symbol pattern, gleaming metallic surface with darker recessed hieroglyphs",
-      "A terracotta-toned sandstone block with engraved cartouche border, hieroglyph symbols filling the interior, thin gold edge lines"
+      "A large Eye of Horus hieroglyph carved deeply into warm sandstone, the eye centered and bold with gold-lined details, flanked by smaller hieroglyphic cartouches and papyrus motifs on each side",
+      "A winged scarab beetle with wings fully spread as the dominant central emblem, carved in raised relief on deep lapis lazuli blue stone, flanked by symmetrical lotus column decorations and gold accent borders",
+      "A bold golden ankh symbol raised in high relief at the center, surrounded by radiating sun-disc rays on a polished gold-leaf surface, flanked by hieroglyphic panel strips and lotus bud accents",
+      "A cartouche seal with Pharaonic hieroglyphics as the central medallion, deeply carved into warm terracotta sandstone, flanked by symmetrical cobra (uraeus) serpent motifs and thin gold edge trim"
     ],
     "scene": "Desert twilight, golden pyramids casting long shadows, hieroglyph-covered obelisks, the Nile reflecting amber sky, palm-lined banks, warm sun-drenched atmosphere",
     "loadingScene": "Close-up of a hieroglyph-covered wall illuminated by golden torchlight, scarab beetle relief with gold leaf details gleaming",

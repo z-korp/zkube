@@ -627,8 +627,8 @@ const Grid: React.FC<GridProps> = ({
               height: `${gridHeight * gridSize + borderSize}px`,
               width: `${gridWidth * gridSize + borderSize}px`,
               backgroundImage:
-                `linear-gradient(var(--theme-grid-lines, #1E293B) 2px, transparent 2px), linear-gradient(to right, var(--theme-grid-lines, #1E293B) 2px, transparent 2px), var(--theme-grid-bg-image, none)`,
-              backgroundSize: `${gridSize}px ${gridSize}px, ${gridSize}px ${gridSize}px, cover`,
+                `linear-gradient(var(--theme-grid-lines, #1E293B) 2px, transparent 2px), linear-gradient(to right, var(--theme-grid-lines, #1E293B) 2px, transparent 2px), linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), var(--theme-grid-bg-image, none)`,
+              backgroundSize: `${gridSize}px ${gridSize}px, ${gridSize}px ${gridSize}px, cover, cover`,
               backgroundColor: `var(--theme-grid-bg, #10172A)`,
             }}
             onMouseMove={handleMouseMove}

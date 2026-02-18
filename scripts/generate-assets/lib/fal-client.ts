@@ -79,6 +79,7 @@ export async function generateImage(job: AssetJob, includeRefs: boolean): Promis
         prompt: job.prompt,
         image_size: { width: job.width, height: job.height },
         num_images: 1,
+        output_format: "png",
         ...(referenceUrl ? { image_url: referenceUrl } : {}),
       };
 

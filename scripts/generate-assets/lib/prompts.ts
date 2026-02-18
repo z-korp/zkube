@@ -4,22 +4,11 @@ export function buildBlock1Prompt(theme: ThemeDefinition, color: string, blockIn
   const focalDesign = theme.blockDesigns?.[blockIndex] ?? `A distinctive ${theme.name}-themed carved element`;
 
   return `
-Generate a game block texture for a puzzle game. The block is a 1×1 square.
-Use the reference image ONLY for aspect ratio and proportions — do NOT copy its visual content.
+${focalDesign}, centered as a bold focal element occupying 60% of a square game block. ${theme.blockMotifs} fill the remaining surface as decorative border relief. Theme: ${theme.name}.
 
-Focal element: ${focalDesign} — centered on the block, taking up ~60% of the space.
-Surrounding decoration: ${theme.blockMotifs} — subtle carved relief filling the remaining area.
-Theme: ${theme.name} — ${theme.description}
+Dominant color ${color} covering 70% of the surface, with 2-3 darker and lighter tonal shades of ${color} for carved depth. Thin black outlines (2-3px) separate each shape. Hand-painted cel-shaded game art, flat color fills with subtle bevel — lighter top-left highlights, darker bottom-right shadows. Bold, clean, readable at 48px display size.
 
-COLOR: The DOMINANT color MUST be ${color}. Use ${color} for at least 70% of the surface.
-Add darker and lighter shades of ${color} for depth (2-3 tonal steps). Muted, earthy tones — NOT neon.
-Use thin black outlines (2-3px) to separate shapes.
-
-Style: Hand-painted game art. Flat cel-shaded with subtle bevel (lighter top-left, darker bottom-right).
-Think Clash Royale card art — bold, clean, readable at small sizes.
-
-EDGE TREATMENT: The block content fills the entire canvas but the outermost ~8-10% on all four sides must gradually fade/darken to near-black, creating a soft vignette effect. This makes blocks blend seamlessly on a dark grid. The center 80% has full-intensity color; the edges smoothly transition to dark. NO rounded corners, NO hard border lines — just a smooth darkness fade at the perimeter.
-Opaque fill everywhere. No transparency. No text. No people. No logos.
+The block fills the entire canvas edge-to-edge. The outermost 8-10% on all four sides gradually fades to near-black, a smooth dark vignette for seamless blending on a dark game grid. The center 80% has full color intensity. Opaque fill everywhere, smooth perimeter fade only.
 `.trim();
 }
 
@@ -27,17 +16,11 @@ export function buildBlockMultiPrompt(theme: ThemeDefinition, color: string, blo
   const focalDesign = theme.blockDesigns?.[blockIndex] ?? `A distinctive ${theme.name}-themed carved element`;
 
   return `
-Generate a seamless game block texture for a puzzle game. The block spans ${blockWidth}×1 cells.
-Theme: ${theme.name} — ${theme.description}
+${focalDesign}, centered as the dominant element of a horizontal game block spanning ${blockWidth} cells wide by 1 cell tall. The central motif is flanked by ${theme.blockMotifs} extending symmetrically to both sides, reading as one cohesive horizontal piece. Theme: ${theme.name}.
 
-The design must read as one cohesive horizontal block with a strong central motif and decorative extensions to both sides.
-The dominant color MUST remain ${color}. Keep muted, earthy tones — NOT neon.
-Focal element: ${focalDesign} — centered, taking up ~60% of the space.
-Surrounding decoration: ${theme.blockMotifs} — subtle carved relief flowing continuously edge-to-edge.
+Dominant color ${color} covering 70% of the surface. 2-3 tonal shades of ${color} for carved depth. Thin black outlines (2-3px) separate shapes. Hand-painted cel-shaded game art, bold and readable at small sizes.
 
-Style: Hand-painted game art. Flat cel-shaded with subtle bevel (lighter top-left, darker bottom-right).
-Use thin black outlines (2-3px) to separate shapes.
-EDGE TREATMENT: Fill every pixel with opaque content. The outermost ~8-10% on all sides must gradually fade/darken to near-black, creating a soft vignette that blends on a dark grid. NO rounded corners, NO hard borders — just a smooth darkness fade at the perimeter.
+The block fills the entire ${blockWidth}:1 canvas edge-to-edge with opaque content. The outermost 8-10% on all sides gradually fades to near-black — a smooth dark vignette for blending on a dark game grid. Center 80% at full color intensity.
 `.trim();
 }
 

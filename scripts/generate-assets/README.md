@@ -50,6 +50,92 @@ scripts/generate-assets/
 | SFX | [ElevenLabs Sound Effects V2](https://fal.ai/models/fal-ai/elevenlabs/sound-effects/v2) | fal.ai | MP3 44.1kHz 192kbps |
 | Music | [Suno v5](https://suno.com) | Manual | MP3 (see [Music](#music) below) |
 
+## Flux 2 Pro Prompting Guide
+
+Reference: [BFL Prompting Guide](https://docs.bfl.ml/guides/prompting_guide_flux2) | [fal.ai API](https://fal.ai/models/fal-ai/flux-2-pro/api)
+
+### Core Principles
+
+1. **Subject first** — Word order matters. Put the most important element at the start of the prompt. Flux 2 Pro pays more attention to what comes first.
+2. **Descriptive, not instructional** — Describe the image as if it already exists. Say "A scarab beetle centered on blue stone" not "Generate a scarab beetle on blue stone."
+3. **No negative prompts** — Flux 2 Pro does not support negative prompts. Focus on what you WANT. Instead of "no blur" say "sharp focus." Instead of "no background" say "dark background."
+4. **Medium length is ideal** — 30-80 words hits the sweet spot. Short (10-30) for quick concepts, long (80+) for complex scenes.
+5. **Priority order** — Main subject → Key action/arrangement → Critical style → Essential context → Secondary details.
+
+### Hex Color Control
+
+Associate hex codes directly with specific objects for precise color matching:
+
+```
+The vase has color #02eb3c         ← good: tied to object
+Use #FF0000 somewhere in the image ← bad: too vague
+```
+
+Gradient syntax: "a gradient starting with color #02eb3c and finishing with color #edfa3c"
+
+### Prompt Structure: Subject + Action + Style + Context
+
+| Component | Description | Example |
+|-----------|-------------|---------|
+| **Subject** | Main focus of the image | "A winged scarab beetle emblem" |
+| **Action** | Arrangement, pose, or state | "centered on lapis lazuli stone, wings spread wide" |
+| **Style** | Artistic approach | "Hand-painted cel-shaded game art, bold black outlines" |
+| **Context** | Setting, lighting, mood | "Dark vignette edges for seamless grid blending" |
+
+### Block Prompt Formula
+
+All block textures follow this pattern:
+
+```
+[blockDesign description], centered as a bold focal element occupying 60% of the block.
+[blockMotifs] fill the remaining surface as decorative border relief.
+Theme: [name].
+
+Dominant color [hex] covering 70% of the surface, with 2-3 tonal shades for depth.
+Thin black outlines (2-3px). Hand-painted cel-shaded game art.
+
+Edge-to-edge fill. Outermost 8-10% fades to near-black — smooth dark vignette.
+```
+
+**Multi-cell blocks** (2×1, 3×1, 4×1): Same formula but emphasize "centered motif flanked by decorations extending symmetrically to both sides, reading as one cohesive horizontal piece."
+
+### Block Design Rules
+
+Each block design (`blockDesigns` in themes.json) MUST describe:
+
+1. **Central symbol** — A bold, recognizable motif that is the focal point (e.g. Eye of Horus, scarab beetle, ankh, cartouche). This is the "head" of the block.
+2. **Flanking decoration** — What extends to the left and right of the center (e.g. hieroglyphic panels, lotus motifs, serpent patterns). These are the "arms."
+3. **Material/surface** — The base texture (e.g. sandstone, lapis lazuli, gold leaf, terracotta).
+
+**Good**: "A winged scarab beetle with wings fully spread as the dominant central emblem, carved in raised relief on deep lapis lazuli blue stone, flanked by symmetrical lotus column decorations and gold accent borders"
+
+**Bad**: "A scarab beetle carved in relief on lapis lazuli blue stone, wings spread wide, gold accent lines on a deep blue surface" (no clear center-vs-side separation)
+
+### Edge Treatment (Vignette)
+
+Flux 2 Pro generates opaque images — no transparency support. Blocks blend onto the dark game grid via a **dark vignette**:
+
+- Center 80% of the block at full color intensity
+- Outermost 8-10% on all four sides smoothly fades to near-black
+- No hard border lines, no rounded corners — just a smooth darkness gradient at the perimeter
+- This creates seamless visual blending when blocks sit on the dark grid background
+
+### What NOT to Include in Prompts
+
+- Text, logos, UI elements, or watermarks
+- People, characters, or faces (except stylized carved reliefs)
+- Transparency instructions (Flux always outputs opaque)
+- Negative language ("no X", "avoid Y", "don't include Z")
+- Multiple unrelated concepts in one prompt
+
+### Iterating on Results
+
+- If the model ignores the vignette: make it the LAST sentence, stated clearly
+- If colors are wrong: use hex codes tied to the specific object
+- If the design is too busy: reduce the decorative description, emphasize "clean, readable at 48px"
+- If the focal element is too small: put it FIRST in the prompt, say "bold" and "occupying 60%"
+- If multi-cell blocks look like repeated tiles: emphasize "one cohesive horizontal piece" and "centered motif with extensions"
+
 ## Images
 
 ### Per-Theme Assets (10 themes × 7 categories = ~110 images)
