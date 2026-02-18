@@ -4,7 +4,7 @@ import { pathToFileURL } from "node:url";
 import { fal } from "@fal-ai/client";
 import sharp from "sharp";
 
-const MODEL = "fal-ai/flux/dev";
+const MODEL = "fal-ai/flux-2-pro";
 const CONCURRENCY = 2;
 const REQUEST_DELAY_MS = 3_000;
 const RETRY_BACKOFF_MS = [15_000, 30_000, 60_000, 120_000] as const;
@@ -1150,7 +1150,7 @@ const TARGET_DIMENSIONS: Record<string, { width: number; height: number }> = {
   "block-1.png": { width: 544, height: 544 },
   "block-2.png": { width: 1088, height: 544 },
   "block-3.png": { width: 1632, height: 544 },
-  "block-4.png": { width: 2048, height: 544 },
+  "block-4.png": { width: 2176, height: 544 },
   "grid-bg.png": { width: 512, height: 640 },
   "grid-frame.png": { width: 576, height: 720 },
   "background.png": { width: 2048, height: 2048 },
