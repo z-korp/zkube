@@ -410,52 +410,56 @@ function loadRefBase64(refKey: RefKey): string | undefined {
   }
 }
 
-function buildBlockPrompt(theme: ThemeDefinition, width: number): string {
-  const blockColors = theme.palette.blocks.join(", ");
-  if (width === 1) {
-    return withStyleAnchor(`
-Generate a square game tile texture for a puzzle game.
-Theme: ${theme.name} — ${theme.description}
-Style: Bold black outlines, cel-shaded, 2-3 color tones from palette: ${blockColors}.
-Design: A single decorative emblem with ${theme.blockMotifs}. Centered.
-The texture must fill the entire canvas edge-to-edge with no empty margins.
-No text, no people.
-`);
-  }
+function buildBlockPrompt(theme: ThemeDefinition, width: number, color: string): string {
+  const sizeLabel = width === 1 ? "1×1 square" : `${width}×1 wide rectangle`;
 
-  return withStyleAnchor(`
-Generate a wide game tile (${width} cells wide, 1 tall) for a puzzle game.
+  return `
+Generate a game block texture for a puzzle game. The block is a ${sizeLabel}.
+
+CRITICAL COLOR REQUIREMENT: The DOMINANT color of this block MUST be ${color}. This is the primary fill color.
+Use ${color} for at least 70% of the block surface area. Add darker and lighter shades of ${color} for depth (2-3 tonal steps).
+Use thin black outlines (2-3px) to separate shapes and add readability.
+
 Theme: ${theme.name} — ${theme.description}
-Style: Bold black outlines, cel-shaded, palette: ${blockColors}.
-Design: Horizontal panel with ${theme.blockMotifs}, aspect ratio ${width}:1.
-Place as horizontal strip in CENTER of square canvas. The strip fills the full width.
-The art must have no empty margins or padding — content fills edge-to-edge within the strip.
-No text, no people.
-`);
+Surface pattern: ${theme.blockMotifs} — carved/etched into the block surface as subtle relief texture.
+The pattern should be SUBTLE — visible up close but not overwhelming. The block color dominates.
+
+Style: Hand-painted game art. Flat cel-shaded fills with subtle bevel/lighting (lighter top-left, darker bottom-right).
+Think Clash Royale card art quality — bold, clean, instantly readable at small sizes.
+${width > 1 ? `The block is ${width} cells wide. The texture should tile/extend naturally across the full width with consistent detail.` : ""}
+The texture must fill the ENTIRE canvas edge-to-edge. No margins, no padding, no background showing.
+Opaque fill. No transparency. No text. No people. No logos.
+`.trim();
 }
 
 function buildBackgroundPrompt(theme: ThemeDefinition): string {
-  return withStyleAnchor(`
-Illustrated environment scene for a puzzle game. SQUARE format (1:1).
-Theme: ${theme.name} — ${theme.description}. Scene: ${theme.scene}
-CENTER-WEIGHTED composition: main subject in the center 60% of the canvas.
-Edges filled with atmospheric scenery (sky, ground, foliage) that can be cropped.
-Layered depth: foreground elements, main scene, distant background.
-The art must fill the entire canvas edge-to-edge with no empty margins.
-Mood: ${theme.mood}. Palette: ${theme.palette.bg} to ${theme.palette.accent}. Opaque fill. No text, no people.
-`);
+  return `
+Generate a full-bleed background image for a mobile puzzle game. SQUARE format (1:1).
+This is NOT a framed picture. The scene fills the ENTIRE canvas from edge to edge like a photograph taken inside the world.
+Theme: ${theme.name} — ${theme.description}.
+Scene: ${theme.scene}
+Style: Rich digital painting. Atmospheric, immersive, painterly. Deep colors and dramatic lighting.
+Composition: The viewer is INSIDE the scene looking around. Layered depth — foreground silhouettes at edges, main scene in the middle, distant background fading into atmosphere.
+Important content stays in the center 60%. Edges are atmospheric filler (sky, ground, foliage).
+Mood: ${theme.mood}. Dominant colors: ${theme.palette.bg} to ${theme.palette.accent}.
+The image must be a seamless full-bleed scene with NO borders, NO frames, NO vignettes, NO picture-in-picture effect.
+Opaque fill. No text, no UI, no people, no logos.
+`.trim();
 }
 
 function buildLoadingBackgroundPrompt(theme: ThemeDefinition): string {
-  return withStyleAnchor(`
-Loading screen illustration for a puzzle game. SQUARE format (1:1).
+  return `
+Generate a full-bleed loading screen image for a mobile puzzle game. SQUARE format (1:1).
+This is NOT a framed picture. The scene fills the ENTIRE canvas from edge to edge.
 Theme: ${theme.name} — ${theme.description}.
-Scene: A close-up atmospheric detail from the theme world — ${theme.loadingScene}.
-CENTER-WEIGHTED: main focal point in the middle. Edges can be cropped.
-Moody, atmospheric, slightly darker than the main background.
-The art must fill the entire canvas edge-to-edge.
-Palette: ${theme.palette.bg} to ${theme.palette.accent}. Opaque fill. No text, no people.
-`);
+Scene: ${theme.loadingScene}
+Style: Rich digital painting. Atmospheric, moody, slightly darker and more mysterious than a typical game background.
+Composition: Close-up atmospheric detail. The viewer is right up against the subject. Fills the full canvas edge to edge.
+Main focal point centered. Edges fade into dark atmosphere.
+Mood: ${theme.mood}. Dominant colors: ${theme.palette.bg} to ${theme.palette.accent}.
+The image must be a seamless full-bleed scene with NO borders, NO frames, NO vignettes, NO picture-in-picture effect.
+Opaque fill. No text, no UI, no people, no logos.
+`.trim();
 }
 
 function buildLogoPrompt(theme: ThemeDefinition): string {
@@ -628,6 +632,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
   if (shouldIncludeCategory("blocks", filter)) {
     for (let i = 0; i < 4; i += 1) {
       const width = i + 1;
+      const color = theme.palette.blocks[i];
       const filename = `block-${width}.png`;
       jobs.push({
         scope: "per-theme",
@@ -635,7 +640,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
         themeId,
         filename,
         outputPath: path.join(themeRoot, filename),
-        prompt: buildBlockPrompt(theme, width),
+        prompt: buildBlockPrompt(theme, width, color),
         aspectRatio: "1:1",
         imageSize: "2K",
         refKeys: ["blocks"],
