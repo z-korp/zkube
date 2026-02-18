@@ -7,7 +7,11 @@ import { useGameLevel } from "@/hooks/useGameLevel";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import useViewport from "@/hooks/useViewport";
 import { useDojo } from "@/dojo/useDojo";
-import { isInGameShopAvailable } from "@/dojo/game/helpers/runDataPacking";
+import {
+  getBonusInventoryCount,
+  isInGameShopAvailable,
+} from "@/dojo/game/helpers/runDataPacking";
+import { BonusType, bonusTypeFromContractValue } from "@/dojo/game/types/bonus";
 import { useNavigationStore } from "@/stores/navigationStore";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import ThemeBackground from "@/ui/components/shared/ThemeBackground";
@@ -83,6 +87,8 @@ const PlayScreen: React.FC = () => {
   const [levelCompletionData, setLevelCompletionData] =
     useState<LevelCompletionData | null>(null);
   const [isGameLoading, setIsGameLoading] = useState(true);
+  const [activeBonus, setActiveBonus] = useState<BonusType>(BonusType.None);
+  const [bonusDescription, setBonusDescription] = useState("");
 
   const prevGameOverRef = useRef<boolean | undefined>(game?.over);
   const prevGameStateRef = useRef<{
@@ -242,6 +248,122 @@ const PlayScreen: React.FC = () => {
 
   const isGameOn = game && !game.over;
 
+  const getBonusDescription = useCallback((type: BonusType): string => {
+    switch (type) {
+      case BonusType.Harvest:
+        return "Select a block size to harvest";
+      case BonusType.Score:
+        return "Apply instant score bonus";
+      case BonusType.Combo:
+        return "Apply combo bonus";
+      case BonusType.Wave:
+        return "Select rows to clear";
+      case BonusType.Supply:
+        return "Add a new line for free";
+      default:
+        return "";
+    }
+  }, []);
+
+  const getBonusTooltip = useCallback((type: BonusType): string => {
+    switch (type) {
+      case BonusType.Combo:
+        return "Add combo to next move";
+      case BonusType.Score:
+        return "Add bonus score";
+      case BonusType.Harvest:
+        return "Destroy all blocks of chosen size";
+      case BonusType.Wave:
+        return "Clear horizontal rows";
+      case BonusType.Supply:
+        return "Add new lines at no move cost";
+      default:
+        return "";
+    }
+  }, []);
+
+  const getBonusIcon = useCallback((type: BonusType): string => {
+    switch (type) {
+      case BonusType.Combo:
+        return imgAssets.combo;
+      case BonusType.Score:
+        return imgAssets.score;
+      case BonusType.Harvest:
+        return imgAssets.harvest;
+      case BonusType.Wave:
+        return imgAssets.wave;
+      case BonusType.Supply:
+        return imgAssets.supply;
+      default:
+        return "";
+    }
+  }, [imgAssets.combo, imgAssets.harvest, imgAssets.score, imgAssets.supply, imgAssets.wave]);
+
+  const bonusCounts = useMemo<Record<BonusType, number>>(
+    () => ({
+      [BonusType.None]: 0,
+      [BonusType.Combo]: game?.comboBonus ?? 0,
+      [BonusType.Score]: game?.scoreBonus ?? 0,
+      [BonusType.Harvest]: game?.harvest ?? 0,
+      [BonusType.Wave]: game?.wave ?? 0,
+      [BonusType.Supply]: game?.supply ?? 0,
+    }),
+    [game?.comboBonus, game?.scoreBonus, game?.harvest, game?.wave, game?.supply]
+  );
+
+  const handleBonusSelect = useCallback(
+    (type: BonusType) => {
+      const count = bonusCounts[type as keyof typeof bonusCounts] ?? 0;
+      if (count === 0) return;
+      if (activeBonus === type) {
+        setActiveBonus(BonusType.None);
+        setBonusDescription("");
+      } else {
+        setActiveBonus(type);
+        setBonusDescription(getBonusDescription(type));
+      }
+    },
+    [activeBonus, bonusCounts, getBonusDescription]
+  );
+
+  const selectedBonusSlots = useMemo(() => {
+    if (!game) return [];
+
+    const slots = [
+      { slot: 0, value: game.selectedBonus1, level: game.bonus1Level },
+      { slot: 1, value: game.selectedBonus2, level: game.bonus2Level },
+      { slot: 2, value: game.selectedBonus3, level: game.bonus3Level },
+    ];
+
+    return slots.map((slot) => {
+      const type = bonusTypeFromContractValue(slot.value);
+      return {
+        slot: slot.slot,
+        type,
+        level: slot.level,
+        count: getBonusInventoryCount(game.runData, slot.value),
+        icon: getBonusIcon(type),
+        tooltip: getBonusTooltip(type),
+      };
+    });
+  }, [
+    game,
+    game?.runData,
+    game?.selectedBonus1,
+    game?.selectedBonus2,
+    game?.selectedBonus3,
+    game?.bonus1Level,
+    game?.bonus2Level,
+    game?.bonus3Level,
+    getBonusIcon,
+    getBonusTooltip,
+  ]);
+
+  useEffect(() => {
+    setActiveBonus(BonusType.None);
+    setBonusDescription("");
+  }, [grid]);
+
   return (
     <div className="h-screen-viewport flex flex-col">
       <ThemeBackground />
@@ -339,33 +461,30 @@ const PlayScreen: React.FC = () => {
       )}
 
       {game && !isGameLoading && !isGridLoading && (
-        <>
-          <div className="px-2 pt-2 space-y-1">
-            <StatsBar
-              level={game.level}
-              levelScore={game.isOver() ? 0 : game.score}
-              targetScore={targetScore}
-              moves={game.levelMoves}
-              maxMoves={maxMoves}
-              totalCubes={game.totalCubes}
-              combo={game.isOver() ? 0 : game.combo}
-              onHome={goBack}
-            />
-            <HudProgressBar
-              levelScore={game.isOver() ? 0 : game.score}
-              targetScore={targetScore}
-              moves={game.levelMoves}
-              maxMoves={maxMoves}
-              constraintProgress={game.constraintProgress}
-              constraint2Progress={game.constraint2Progress}
-              bonusUsedThisLevel={game.bonusUsedThisLevel}
-              gameLevel={gameLevel}
-            />
-          </div>
-        </>
+        <div className="px-2 pt-2 space-y-1 shrink-0">
+          <StatsBar
+            level={game.level}
+            levelScore={game.isOver() ? 0 : game.levelScore}
+            targetScore={targetScore}
+            movesRemaining={maxMoves - game.levelMoves}
+            totalCubes={game.cubesAvailable}
+            combo={game.isOver() ? 0 : game.combo}
+            onHome={goBack}
+          />
+          <HudProgressBar
+            levelScore={game.isOver() ? 0 : game.score}
+            targetScore={targetScore}
+            moves={game.levelMoves}
+            maxMoves={maxMoves}
+            constraintProgress={game.constraintProgress}
+            constraint2Progress={game.constraint2Progress}
+            bonusUsedThisLevel={game.bonusUsedThisLevel}
+            gameLevel={gameLevel}
+          />
+        </div>
       )}
 
-      <div className="flex-1 flex flex-col items-center justify-center min-h-0">
+      <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-2 py-1">
         {(isGameLoading || isGridLoading) && (
           <div className="flex flex-col items-center justify-center gap-4 py-12">
             <img
@@ -380,7 +499,7 @@ const PlayScreen: React.FC = () => {
         )}
 
         {game && isGameOn && !isGridLoading && !isGameLoading && (
-          <div className="flex flex-col items-center game-container">
+          <div className="flex w-full flex-col items-center min-h-0">
             <GameBoard
               initialGrid={grid}
               nextLine={game.isOver() ? [] : game.next_row}
@@ -389,13 +508,14 @@ const PlayScreen: React.FC = () => {
               maxCombo={game.isOver() ? 0 : game.maxComboRun}
               account={account}
               game={game}
-              seed={seed}
+              activeBonus={activeBonus}
+              bonusDescription={bonusDescription}
             />
           </div>
         )}
 
         {game && game.over && !isGridLoading && !isGameLoading && (
-          <div className="flex flex-col items-center game-container opacity-50 pointer-events-none">
+          <div className="flex w-full flex-col items-center min-h-0 opacity-50 pointer-events-none">
             <GameBoard
               initialGrid={grid}
               nextLine={[]}
@@ -404,7 +524,8 @@ const PlayScreen: React.FC = () => {
               maxCombo={0}
               account={account}
               game={game}
-              seed={seed}
+              activeBonus={activeBonus}
+              bonusDescription={bonusDescription}
             />
           </div>
         )}
@@ -412,9 +533,15 @@ const PlayScreen: React.FC = () => {
 
       {game && !game.over && !isGameLoading && !isGridLoading && (
         <GameActionBar
-          bonusSlots={[]}
-          activeBonus={0 as never}
-          combo={game.combo}
+          bonusSlots={selectedBonusSlots.map((slot) => ({
+            type: slot.type,
+            count: slot.count,
+            icon: slot.icon,
+            tooltip: slot.tooltip,
+            onClick: () => handleBonusSelect(slot.type),
+          }))}
+          activeBonus={activeBonus}
+          bonusDescription={bonusDescription}
           onSurrender={handleSurrender}
           isGameOver={game.over}
         />

@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Flag, Flame } from "lucide-react";
+import { Flag } from "lucide-react";
 import { BonusType } from "@/dojo/game/types/bonus";
 import {
   Tooltip,
@@ -19,7 +19,7 @@ interface BonusSlot {
 interface GameActionBarProps {
   bonusSlots: BonusSlot[];
   activeBonus: BonusType;
-  combo: number;
+  bonusDescription: string;
   onSurrender: () => void;
   isGameOver: boolean;
 }
@@ -27,15 +27,20 @@ interface GameActionBarProps {
 const GameActionBar: React.FC<GameActionBarProps> = ({
   bonusSlots,
   activeBonus,
-  combo,
+  bonusDescription,
   onSurrender,
   isGameOver,
 }) => {
   if (isGameOver) return null;
 
   return (
-    <div className="flex justify-center px-4 py-2">
-      <div className="flex items-center gap-2 bg-slate-900/70 backdrop-blur-sm border border-slate-700/50 rounded-full px-4 py-2">
+    <div className="shrink-0 px-4 py-2">
+      {activeBonus !== BonusType.None && bonusDescription && (
+        <div className="mb-1 text-center text-[11px] font-semibold uppercase tracking-wide text-yellow-300">
+          {bonusDescription}
+        </div>
+      )}
+      <div className="mx-auto flex w-fit items-center gap-2 bg-slate-900/70 backdrop-blur-sm border border-slate-700/50 rounded-full px-4 py-2">
         {bonusSlots.map((slot) => {
           const isActive = activeBonus === slot.type;
           const isDisabled = slot.count === 0;
@@ -81,19 +86,10 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                 >
                   <span className="text-xs">{slot.tooltip}</span>
                 </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          );
-        })}
-
-        {combo > 0 && (
-          <div className="flex items-center gap-1 px-2">
-            <Flame size={16} className="text-orange-400" />
-            <span className="font-['Bangers'] text-sm text-orange-400">
-              {combo}x
-            </span>
-          </div>
-        )}
+                </Tooltip>
+              </TooltipProvider>
+            );
+          })}
 
         <div className="w-px h-6 bg-slate-700 mx-1" />
 

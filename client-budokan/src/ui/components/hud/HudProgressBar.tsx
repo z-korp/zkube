@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import ProgressRing from "@/ui/components/shared/ProgressRing";
-import StarRating from "@/ui/components/shared/StarRating";
 import { ConstraintType } from "@/dojo/game/types/constraint";
 import { Rows3, Grid3x3, Flame, ArrowDownUp, Ban, Trash2 } from "lucide-react";
 
@@ -49,7 +48,7 @@ const getConstraintColor = (
   return "blue";
 };
 
-const getStarsFromMoves = (moves: number, maxMoves: number, cube3: number, cube2: number): number => {
+const getCubesFromMoves = (moves: number, maxMoves: number, cube3: number, cube2: number): number => {
   const remaining = maxMoves - moves;
   if (remaining >= cube3) return 3;
   if (remaining >= cube2) return 2;
@@ -107,7 +106,12 @@ const HudProgressBar: React.FC<HudProgressBarProps> = ({
       }
     : null;
 
-  const stars = getStarsFromMoves(moves, maxMoves, cube3Threshold, cube2Threshold);
+  const potentialCubes = getCubesFromMoves(
+    moves,
+    maxMoves,
+    cube3Threshold,
+    cube2Threshold
+  );
 
   return (
     <div className="flex items-center gap-2 px-2 py-1">
@@ -176,7 +180,16 @@ const HudProgressBar: React.FC<HudProgressBarProps> = ({
         />
       )}
 
-      <StarRating stars={stars} size="sm" />
+      <div className="flex items-center gap-0.5">
+        {[1, 2, 3].map((i) => (
+          <span
+            key={i}
+            className={`text-sm ${i <= potentialCubes ? "opacity-100" : "opacity-20"}`}
+          >
+            🧊
+          </span>
+        ))}
+      </div>
     </div>
   );
 };

@@ -6,8 +6,7 @@ interface StatsBarProps {
   level: number;
   levelScore: number;
   targetScore: number;
-  moves: number;
-  maxMoves: number;
+  movesRemaining: number;
   totalCubes: number;
   combo: number;
   onHome: () => void;
@@ -17,14 +16,12 @@ const StatsBar: React.FC<StatsBarProps> = ({
   level,
   levelScore,
   targetScore,
-  moves,
-  maxMoves,
+  movesRemaining,
   totalCubes,
   combo,
   onHome,
 }) => {
   const animatedScore = useLerpNumber(levelScore, { duration: 300, integer: true }) ?? 0;
-  const movesRemaining = maxMoves - moves;
   const isDanger = movesRemaining <= 3 && movesRemaining > 0;
   const isOut = movesRemaining <= 0;
 
@@ -59,11 +56,7 @@ const StatsBar: React.FC<StatsBarProps> = ({
                 : "text-white"
           }`}
         >
-          {moves}
-        </span>
-        <span className="text-slate-500 text-xs">/</span>
-        <span className="font-['Bangers'] text-sm text-slate-400 tabular-nums">
-          {maxMoves}
+          {movesRemaining}
         </span>
       </div>
 
