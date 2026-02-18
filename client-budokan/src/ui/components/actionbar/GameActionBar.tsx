@@ -82,9 +82,9 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                 </TooltipTrigger>
                 <TooltipContent
                   side="top"
-                  className="bg-slate-800 border-slate-600 px-2 py-1"
+                  className="bg-slate-900 border border-slate-500 text-white px-3 py-1.5 shadow-lg"
                 >
-                  <span className="text-xs">{slot.tooltip}</span>
+                  <span className="text-xs font-medium">{slot.tooltip}</span>
                 </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

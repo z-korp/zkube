@@ -15,8 +15,7 @@ import { BonusType, bonusTypeFromContractValue } from "@/dojo/game/types/bonus";
 import { useNavigationStore } from "@/stores/navigationStore";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import ThemeBackground from "@/ui/components/shared/ThemeBackground";
-import StatsBar from "@/ui/components/hud/StatsBar";
-import HudProgressBar from "@/ui/components/hud/HudProgressBar";
+import GameHud from "@/ui/components/hud/GameHud";
 import GameActionBar from "@/ui/components/actionbar/GameActionBar";
 import GameBoard from "@/ui/components/GameBoard";
 import GameOverDialog from "@/ui/components/GameOverDialog";
@@ -461,27 +460,22 @@ const PlayScreen: React.FC = () => {
       )}
 
       {game && !isGameLoading && !isGridLoading && (
-        <div className="px-2 pt-2 space-y-1 shrink-0">
-          <StatsBar
-            level={game.level}
-            levelScore={game.isOver() ? 0 : game.levelScore}
-            targetScore={targetScore}
-            movesRemaining={maxMoves - game.levelMoves}
-            totalCubes={game.cubesAvailable}
-            combo={game.isOver() ? 0 : game.combo}
-            onHome={goBack}
-          />
-          <HudProgressBar
-            levelScore={game.isOver() ? 0 : game.score}
-            targetScore={targetScore}
-            moves={game.levelMoves}
-            maxMoves={maxMoves}
-            constraintProgress={game.constraintProgress}
-            constraint2Progress={game.constraint2Progress}
-            bonusUsedThisLevel={game.bonusUsedThisLevel}
-            gameLevel={gameLevel}
-          />
-        </div>
+        <GameHud
+          level={game.level}
+          levelScore={game.isOver() ? 0 : game.levelScore}
+          targetScore={targetScore}
+          movesRemaining={maxMoves - game.levelMoves}
+          totalCubes={game.cubesAvailable}
+          combo={game.isOver() ? 0 : game.combo}
+          onHome={goBack}
+          constraintProgress={game.constraintProgress}
+          constraint2Progress={game.constraint2Progress}
+          constraint3Progress={game.runData.constraint3Progress}
+          bonusUsedThisLevel={game.bonusUsedThisLevel}
+          gameLevel={gameLevel}
+          moves={game.levelMoves}
+          maxMoves={maxMoves}
+        />
       )}
 
       <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-2 py-1">
