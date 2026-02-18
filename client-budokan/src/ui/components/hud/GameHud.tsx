@@ -3,7 +3,13 @@ import LevelBadge from "@/ui/components/shared/LevelBadge";
 import ProgressRing from "@/ui/components/shared/ProgressRing";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import type { GameLevelData } from "@/hooks/useGameLevel";
-import { ConstraintType } from "@/dojo/game/types/constraint";
+import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/ui/elements/tooltip";
 
 interface GameHudProps {
   level: number;
@@ -209,18 +215,38 @@ const GameHud: React.FC<GameHudProps> = ({
 
         {/* Right: Constraints + Cubes */}
         {constraints.length > 0 && (
-          <div className="flex items-center gap-1 shrink-0">
-            {constraints.map((c, i) => (
-              <ProgressRing
-                key={`constraint-${i}`}
-                progress={getConstraintProgress(c.type, c.progress, c.count, bonusUsedThisLevel)}
-                size={ringSize}
-                color={getConstraintColor(c.type, c.progress, c.count, bonusUsedThisLevel)}
-                icon={getConstraintIcon(c.type, iconSize)}
-                badge={getConstraintBadge(c.type, c.progress, c.count)}
-              />
-            ))}
-          </div>
+          <TooltipProvider delayDuration={200}>
+            <div className="flex items-center gap-1 shrink-0">
+              {constraints.map((c, i) => {
+                const description = Constraint.fromContractValues(
+                  c.type,
+                  c.value,
+                  c.count,
+                ).getDescription();
+                return (
+                  <Tooltip key={`constraint-${i}`}>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <ProgressRing
+                          progress={getConstraintProgress(c.type, c.progress, c.count, bonusUsedThisLevel)}
+                          size={ringSize}
+                          color={getConstraintColor(c.type, c.progress, c.count, bonusUsedThisLevel)}
+                          icon={getConstraintIcon(c.type, iconSize)}
+                          badge={getConstraintBadge(c.type, c.progress, c.count)}
+                        />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="bottom"
+                      className="bg-slate-900 border border-slate-500 text-white text-xs px-2 py-1"
+                    >
+                      {description}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </div>
+          </TooltipProvider>
         )}
 
         <div className="flex items-center gap-0.5 shrink-0">

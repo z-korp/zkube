@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
 import { motion } from "motion/react";
-import { generateLevelConfig } from "@/dojo/game/types/level";
-import { ConstraintType } from "@/dojo/game/types/constraint";
+import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
 import { isInGameShopAvailable } from "@/dojo/game/helpers/runDataPacking";
 import { Button } from "../elements/button";
 import { Check, Trophy } from "lucide-react";
+import type { GameLevelData } from "@/hooks/useGameLevel";
 
 interface LevelCompleteDialogProps {
   isOpen: boolean;
@@ -16,37 +16,32 @@ interface LevelCompleteDialogProps {
   seed: bigint;
   constraintProgress: number;
   bonusUsedThisLevel: boolean;
-  /** Previous bonus counts (before level completion) */
   prevCombo: number;
   prevScore: number;
   prevHarvest: number;
   prevWave: number;
   prevSupply: number;
-  /** Current bonus counts (after level completion) */
   comboBonus: number;
   scoreBonus: number;
   harvest: number;
   wave: number;
   supply: number;
-  /** Total cubes before level completion */
   prevTotalCubes: number;
-  /** Total cubes after level completion */
   totalCubes: number;
-  /** Total score before level completion (cumulative from previous levels) */
   prevTotalScore: number;
-  /** Total score after level completion (includes this level's score) */
   totalScore: number;
+  gameLevel: GameLevelData | null;
 }
 
 const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   isOpen,
   onClose,
   level,
-  levelScore: _levelScore, // Unused - we calculate from totalScore instead
+  levelScore: _levelScore,
   levelMoves,
-  seed,
-  constraintProgress: _constraintProgress, // Unused - constraint is always satisfied when level completes
-  bonusUsedThisLevel: _bonusUsedThisLevel, // Unused - constraint is always satisfied when level completes
+  seed: _seed,
+  constraintProgress: _constraintProgress,
+  bonusUsedThisLevel: _bonusUsedThisLevel,
   prevCombo,
   prevScore,
   prevHarvest,
@@ -61,18 +56,16 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   totalCubes,
   prevTotalScore,
   totalScore,
+  gameLevel,
 }) => {
-  // Animation state for staggered reveals
   const [animationPhase, setAnimationPhase] = useState(0);
 
-  // Reset and start animation when dialog opens
   useEffect(() => {
     if (isOpen) {
       setAnimationPhase(0);
-      // Stagger the animation phases
-      const timer1 = setTimeout(() => setAnimationPhase(1), 200); // Cubes
-      const timer2 = setTimeout(() => setAnimationPhase(2), 800); // Stats
-      const timer3 = setTimeout(() => setAnimationPhase(3), 1200); // Bonuses
+      const timer1 = setTimeout(() => setAnimationPhase(1), 200);
+      const timer2 = setTimeout(() => setAnimationPhase(2), 800);
+      const timer3 = setTimeout(() => setAnimationPhase(3), 1200);
       return () => {
         clearTimeout(timer1);
         clearTimeout(timer2);
@@ -81,20 +74,35 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
     }
   }, [isOpen]);
 
-  // Generate level config to get objectives
-  const levelConfig = useMemo(() => {
-    return generateLevelConfig(seed, level);
-  }, [seed, level]);
+  const pointsRequired = gameLevel?.pointsRequired ?? 0;
+  const maxMoves = gameLevel?.maxMoves ?? 0;
+  const cube3Threshold = gameLevel?.cube3Threshold ?? 0;
+  const cube2Threshold = gameLevel?.cube2Threshold ?? 0;
 
-  // Calculate the actual score achieved on this level
-  // For level 1, totalScore IS the level score
-  // For level 2+, it's the difference from the previous total
+  const constraints: Array<{ type: ConstraintType; value: number; count: number }> = [];
+  if (gameLevel) {
+    if (gameLevel.constraintType !== ConstraintType.None) {
+      constraints.push({ type: gameLevel.constraintType, value: gameLevel.constraintValue, count: gameLevel.constraintCount });
+    }
+    if (gameLevel.constraint2Type !== ConstraintType.None) {
+      constraints.push({ type: gameLevel.constraint2Type, value: gameLevel.constraint2Value, count: gameLevel.constraint2Count });
+    }
+    if (gameLevel.constraint3Type !== ConstraintType.None) {
+      constraints.push({ type: gameLevel.constraint3Type, value: gameLevel.constraint3Value, count: gameLevel.constraint3Count });
+    }
+  }
+
   const levelFinalScore = level === 1 
     ? totalScore 
     : totalScore - prevTotalScore;
 
-  // Calculate cubes earned from move efficiency (1-3)
-  const baseCubesEarned = levelConfig.calculateCubes(levelMoves);
+  const getCubesFromMoves = (moves: number): number => {
+    const remaining = maxMoves - moves;
+    if (remaining >= cube3Threshold) return 3;
+    if (remaining >= cube2Threshold) return 2;
+    return 1;
+  };
+  const baseCubesEarned = getCubesFromMoves(levelMoves);
   
   // Total cubes earned this level (includes combo bonuses, boss bonuses from contract)
   const totalLevelCubes = totalCubes - prevTotalCubes;
@@ -203,7 +211,7 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
             <span className="text-slate-300 text-sm">Score</span>
               <span className="text-green-400 font-semibold text-sm flex items-center gap-2">
                 <Check size={16} className="text-green-400" />
-                {levelFinalScore} / {levelConfig.pointsRequired}
+                {levelFinalScore} / {pointsRequired}
               </span>
           </div>
 
@@ -212,35 +220,35 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
             <span className="text-slate-300 text-sm">Moves</span>
             <span className="text-white font-semibold text-sm">
               {levelMoves}
-              <span className="text-slate-400"> / {levelConfig.maxMoves}</span>
+              <span className="text-slate-400"> / {maxMoves}</span>
             </span>
           </div>
 
-          {/* Constraint (if any) */}
-          {levelConfig.constraint.constraintType !== ConstraintType.None && (
+          {constraints.map((c, i) => (
             <motion.div 
+              key={`constraint-${i}`}
               className="flex justify-between items-center bg-gradient-to-r from-green-900/30 to-emerald-900/30 px-3 py-2 rounded-lg border border-green-500/30"
               initial={{ scale: 1 }}
               animate={animationPhase >= 2 ? { 
                 scale: [1, 1.02, 1],
                 boxShadow: ["0 0 0 rgba(34, 197, 94, 0)", "0 0 15px rgba(34, 197, 94, 0.3)", "0 0 0 rgba(34, 197, 94, 0)"]
               } : {}}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.6, delay: 0.3 + i * 0.15 }}
             >
               <span className="text-slate-300 text-sm flex items-center gap-2">
                 <Trophy size={16} className="text-green-400" />
-                {levelConfig.constraint.getDescription()}
+                {Constraint.fromContractValues(c.type, c.value, c.count).getDescription()}
               </span>
               <motion.span
                 className="flex items-center gap-1 text-green-400 text-sm"
                 initial={{ scale: 0 }}
                 animate={animationPhase >= 2 ? { scale: 1 } : { scale: 0 }}
-                transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.5 }}
+                transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.5 + i * 0.15 }}
               >
                 <Check size={16} />
               </motion.span>
             </motion.div>
-          )}
+          ))}
         </motion.div>
 
         {/* Bonuses Earned */}

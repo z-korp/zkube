@@ -3,7 +3,7 @@ import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useGame } from "@/hooks/useGame";
 import { useGrid } from "@/hooks/useGrid";
-import { useGameLevel } from "@/hooks/useGameLevel";
+import { useGameLevel, type GameLevelData } from "@/hooks/useGameLevel";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import useViewport from "@/hooks/useViewport";
 import { useDojo } from "@/dojo/useDojo";
@@ -52,6 +52,7 @@ interface LevelCompletionData {
   totalCubes: number;
   prevTotalScore: number;
   totalScore: number;
+  gameLevel: GameLevelData | null;
 }
 
 const PlayScreen: React.FC = () => {
@@ -103,6 +104,7 @@ const PlayScreen: React.FC = () => {
     supply: number;
     totalCubes: number;
     totalScore: number;
+    gameLevel: GameLevelData | null;
   } | null>(null);
   const levelStartTotalScoreRef = useRef<number>(0);
 
@@ -181,6 +183,7 @@ const PlayScreen: React.FC = () => {
         totalCubes: game.totalCubes,
         prevTotalScore: levelStartTotalScoreRef.current,
         totalScore: game.totalScore,
+        gameLevel: prevState.gameLevel,
       });
       setIsLevelCompleteOpen(true);
       levelStartTotalScoreRef.current = game.totalScore;
@@ -199,6 +202,7 @@ const PlayScreen: React.FC = () => {
       supply: game.supply,
       totalCubes: game.totalCubes,
       totalScore: game.totalScore,
+      gameLevel,
     };
   }, [
     game?.level,
@@ -447,6 +451,7 @@ const PlayScreen: React.FC = () => {
           totalCubes={levelCompletionData.totalCubes}
           prevTotalScore={levelCompletionData.prevTotalScore}
           totalScore={levelCompletionData.totalScore}
+          gameLevel={levelCompletionData.gameLevel}
         />
       )}
 
@@ -478,7 +483,7 @@ const PlayScreen: React.FC = () => {
         />
       )}
 
-      <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-2 py-1">
+      <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-2 py-1 overflow-hidden">
         {(isGameLoading || isGridLoading) && (
           <div className="flex flex-col items-center justify-center gap-4 py-12">
             <img
@@ -493,7 +498,7 @@ const PlayScreen: React.FC = () => {
         )}
 
         {game && isGameOn && !isGridLoading && !isGameLoading && (
-          <div className="flex w-full flex-col items-center min-h-0">
+          <div className="flex w-full h-full flex-col items-center justify-center min-h-0">
             <GameBoard
               initialGrid={grid}
               nextLine={game.isOver() ? [] : game.next_row}
@@ -509,7 +514,7 @@ const PlayScreen: React.FC = () => {
         )}
 
         {game && game.over && !isGridLoading && !isGameLoading && (
-          <div className="flex w-full flex-col items-center min-h-0 opacity-50 pointer-events-none">
+          <div className="flex w-full h-full flex-col items-center justify-center min-h-0 opacity-50 pointer-events-none">
             <GameBoard
               initialGrid={grid}
               nextLine={[]}
