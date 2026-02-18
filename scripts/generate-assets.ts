@@ -429,6 +429,12 @@ function loadFileBase64(filePath: string): string | undefined {
   }
 }
 
+function blockAspectRatio(width: number): AspectRatio {
+  if (width === 1) return "1:1";
+  if (width === 2) return "16:9";
+  return "21:9";
+}
+
 function buildBlock1Prompt(theme: ThemeDefinition, color: string, blockIndex: number): string {
   const focalDesign = theme.blockDesigns?.[blockIndex] ?? `A distinctive ${theme.name}-themed carved element`;
 
@@ -447,8 +453,8 @@ Use thin black outlines (2-3px) to separate shapes.
 Style: Hand-painted game art. Flat cel-shaded with subtle bevel (lighter top-left, darker bottom-right).
 Think Clash Royale card art — bold, clean, readable at small sizes.
 
-Fill the ENTIRE canvas edge-to-edge. No margins, no padding, no background.
-Opaque. No transparency. No text. No people. No logos.
+CRITICAL: The texture MUST fill EVERY PIXEL of the canvas. Hard square edges — NO rounded corners, NO border radius, NO margins, NO padding, NO background showing. The block content goes right to the pixel boundary on all 4 sides.
+Opaque fill everywhere. No transparency. No text. No people. No logos.
 `.trim();
 }
 
@@ -690,7 +696,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
           filename,
           outputPath: path.join(themeRoot, filename),
           prompt: buildBlockMultiPrompt(theme, color, i),
-          aspectRatio: "1:1",
+          aspectRatio: blockAspectRatio(width),
           imageSize: "2K",
           refKeys: [],
           refPaths: [block1Path, theme1RefPath],
