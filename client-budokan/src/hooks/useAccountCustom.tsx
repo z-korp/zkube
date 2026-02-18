@@ -2,22 +2,18 @@ import { useAccount } from "@starknet-react/core";
 import { useState, useEffect, useMemo } from "react";
 import { Account, RpcProvider } from "starknet";
 
-const {
-  VITE_PUBLIC_DEPLOY_TYPE,
-  VITE_PUBLIC_NODE_URL,
-  VITE_PUBLIC_MASTER_ADDRESS,
-  VITE_PUBLIC_MASTER_PRIVATE_KEY,
-} = import.meta.env;
-
-export const isSlot = VITE_PUBLIC_DEPLOY_TYPE === "slot";
+export const isSlot = import.meta.env.VITE_PUBLIC_DEPLOY_TYPE === "slot";
 
 const useAccountCustom = () => {
   const { account: controllerAccount } = useAccount();
 
   const burnerAccount = useMemo(() => {
-    if (!isSlot || !VITE_PUBLIC_MASTER_ADDRESS || !VITE_PUBLIC_MASTER_PRIVATE_KEY) return null;
-    const provider = new RpcProvider({ nodeUrl: VITE_PUBLIC_NODE_URL });
-    return new Account(provider, VITE_PUBLIC_MASTER_ADDRESS, VITE_PUBLIC_MASTER_PRIVATE_KEY);
+    const masterAddr = import.meta.env.VITE_PUBLIC_MASTER_ADDRESS;
+    const masterKey = import.meta.env.VITE_PUBLIC_MASTER_PRIVATE_KEY;
+    const nodeUrl = import.meta.env.VITE_PUBLIC_NODE_URL;
+    if (!isSlot || !masterAddr || !masterKey) return null;
+    const provider = new RpcProvider({ nodeUrl });
+    return new Account({ provider, address: masterAddr, signer: masterKey });
   }, []);
 
   const [customAccount, setCustomAccount] = useState<Account | null>(burnerAccount);
