@@ -1,0 +1,426 @@
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import { useMusicPlayer } from "@/contexts/hooks";
+import { useGame } from "@/hooks/useGame";
+import { useGrid } from "@/hooks/useGrid";
+import { useGameLevel } from "@/hooks/useGameLevel";
+import useAccountCustom from "@/hooks/useAccountCustom";
+import useViewport from "@/hooks/useViewport";
+import { useDojo } from "@/dojo/useDojo";
+import { isInGameShopAvailable } from "@/dojo/game/helpers/runDataPacking";
+import { useNavigationStore } from "@/stores/navigationStore";
+import ImageAssets from "@/ui/theme/ImageAssets";
+import ThemeBackground from "@/ui/components/shared/ThemeBackground";
+import StatsBar from "@/ui/components/hud/StatsBar";
+import HudProgressBar from "@/ui/components/hud/HudProgressBar";
+import GameActionBar from "@/ui/components/actionbar/GameActionBar";
+import GameBoard from "@/ui/components/GameBoard";
+import GameOverDialog from "@/ui/components/GameOverDialog";
+import VictoryDialog from "@/ui/components/VictoryDialog";
+import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
+import { PendingLevelUpDialog } from "@/ui/components/Shop";
+import Connect from "@/ui/components/Connect";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/ui/elements/dialog";
+import { generateLevelConfig } from "@/dojo/game/types/level";
+
+interface LevelCompletionData {
+  level: number;
+  levelScore: number;
+  levelMoves: number;
+  constraintProgress: number;
+  bonusUsedThisLevel: boolean;
+  prevCombo: number;
+  prevScore: number;
+  prevHarvest: number;
+  prevWave: number;
+  prevSupply: number;
+  comboBonus: number;
+  scoreBonus: number;
+  harvest: number;
+  wave: number;
+  supply: number;
+  prevTotalCubes: number;
+  totalCubes: number;
+  prevTotalScore: number;
+  totalScore: number;
+}
+
+const PlayScreen: React.FC = () => {
+  useViewport();
+
+  const {
+    setup: {
+      systemCalls: { surrender },
+    },
+  } = useDojo();
+  const { account } = useAccountCustom();
+  const gameId = useNavigationStore((s) => s.gameId);
+  const navNavigate = useNavigationStore((s) => s.navigate);
+  const goBack = useNavigationStore((s) => s.goBack);
+  const { themeTemplate } = useTheme();
+  const { setMusicContext } = useMusicPlayer();
+  const imgAssets = ImageAssets(themeTemplate);
+
+  const { game, seed } = useGame({
+    gameId: gameId ?? 0,
+    shouldLog: false,
+  });
+  const grid = useGrid({ gameId: game?.id ?? 0, shouldLog: true });
+  const gameLevel = useGameLevel({ gameId: game?.id });
+
+  const [isGameOverOpen, setIsGameOverOpen] = useState(false);
+  const [isVictoryOpen, setIsVictoryOpen] = useState(false);
+  const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
+  const [isLevelCompleteOpen, setIsLevelCompleteOpen] = useState(false);
+  const [isPendingLevelUpOpen, setIsPendingLevelUpOpen] = useState(false);
+  const [openShopAfterLevelUp, setOpenShopAfterLevelUp] = useState(false);
+  const [levelCompletionData, setLevelCompletionData] =
+    useState<LevelCompletionData | null>(null);
+  const [isGameLoading, setIsGameLoading] = useState(true);
+
+  const prevGameOverRef = useRef<boolean | undefined>(game?.over);
+  const prevGameStateRef = useRef<{
+    level: number;
+    levelScore: number;
+    levelMoves: number;
+    constraintProgress: number;
+    bonusUsedThisLevel: boolean;
+    comboBonus: number;
+    scoreBonus: number;
+    harvest: number;
+    wave: number;
+    supply: number;
+    totalCubes: number;
+    totalScore: number;
+  } | null>(null);
+  const levelStartTotalScoreRef = useRef<number>(0);
+
+  useEffect(() => {
+    const level = game?.level ?? 1;
+    const isBossLevel = level > 0 && level % 10 === 0;
+    setMusicContext(isBossLevel ? "boss" : "level");
+  }, [game?.level, setMusicContext]);
+
+  useEffect(() => {
+    setIsGameLoading(true);
+    const timer = setTimeout(() => setIsGameLoading(false), 5000);
+    return () => clearTimeout(timer);
+  }, [gameId]);
+
+  useEffect(() => {
+    if (game && seed !== 0n) setIsGameLoading(false);
+  }, [game, seed]);
+
+  useEffect(() => {
+    if (!account) setIsConnectDialogOpen(true);
+    else setIsConnectDialogOpen(false);
+  }, [account]);
+
+  useEffect(() => {
+    if (
+      game?.pendingLevelUp &&
+      !isPendingLevelUpOpen &&
+      !isLevelCompleteOpen
+    ) {
+      setIsPendingLevelUpOpen(true);
+    }
+  }, [
+    game?.pendingLevelUp,
+    isPendingLevelUpOpen,
+    isLevelCompleteOpen,
+  ]);
+
+  useEffect(() => {
+    if (prevGameOverRef.current !== undefined) {
+      if (!prevGameOverRef.current && game?.over) {
+        if (game.runCompleted) setIsVictoryOpen(true);
+        else setIsGameOverOpen(true);
+      }
+    }
+    prevGameOverRef.current = game?.over;
+  }, [game?.over, game?.runCompleted]);
+
+  useEffect(() => {
+    if (!game) return;
+    const prevState = prevGameStateRef.current;
+    const currentLevel = game.level;
+
+    if (prevState === null && currentLevel === 1) {
+      levelStartTotalScoreRef.current = 0;
+    }
+
+    if (prevState && currentLevel > prevState.level && !game.over) {
+      setLevelCompletionData({
+        level: prevState.level,
+        levelScore: prevState.levelScore,
+        levelMoves: prevState.levelMoves,
+        constraintProgress: prevState.constraintProgress,
+        bonusUsedThisLevel: prevState.bonusUsedThisLevel,
+        prevCombo: prevState.comboBonus,
+        prevScore: prevState.scoreBonus,
+        prevHarvest: prevState.harvest,
+        prevWave: prevState.wave,
+        prevSupply: prevState.supply,
+        comboBonus: game.comboBonus,
+        scoreBonus: game.scoreBonus,
+        harvest: game.harvest,
+        wave: game.wave,
+        supply: game.supply,
+        prevTotalCubes: prevState.totalCubes,
+        totalCubes: game.totalCubes,
+        prevTotalScore: levelStartTotalScoreRef.current,
+        totalScore: game.totalScore,
+      });
+      setIsLevelCompleteOpen(true);
+      levelStartTotalScoreRef.current = game.totalScore;
+    }
+
+    prevGameStateRef.current = {
+      level: game.level,
+      levelScore: game.levelScore,
+      levelMoves: game.levelMoves,
+      constraintProgress: game.constraintProgress,
+      bonusUsedThisLevel: game.bonusUsedThisLevel,
+      comboBonus: game.comboBonus,
+      scoreBonus: game.scoreBonus,
+      harvest: game.harvest,
+      wave: game.wave,
+      supply: game.supply,
+      totalCubes: game.totalCubes,
+      totalScore: game.totalScore,
+    };
+  }, [
+    game?.level,
+    game?.levelScore,
+    game?.levelMoves,
+    game?.constraintProgress,
+    game?.bonusUsedThisLevel,
+    game?.comboBonus,
+    game?.scoreBonus,
+    game?.harvest,
+    game?.wave,
+    game?.supply,
+    game?.over,
+    game?.totalCubes,
+    game?.totalScore,
+    game,
+  ]);
+
+  const handlePendingLevelUpClose = () => {
+    setIsPendingLevelUpOpen(false);
+    if (openShopAfterLevelUp && game && game.cubesAvailable > 0) {
+      navNavigate("ingameshop");
+    }
+    setOpenShopAfterLevelUp(false);
+  };
+
+  const handleSurrender = useCallback(async () => {
+    if (!account || !game) return;
+    try {
+      await surrender({ account, game_id: game.id });
+    } catch (error) {
+      console.error("Surrender failed:", error);
+    }
+  }, [account, game, surrender]);
+
+  const levelConfig = useMemo(() => {
+    if (!game) return null;
+    return generateLevelConfig(seed, game.level);
+  }, [seed, game?.level, game]);
+
+  const targetScore = gameLevel?.pointsRequired ?? levelConfig?.pointsRequired ?? 0;
+  const maxMoves = gameLevel?.maxMoves ?? levelConfig?.maxMoves ?? 0;
+
+  const isGridLoading =
+    !!game && !game.isOver() && (!grid || grid.length === 0);
+
+  const isGameOn = game && !game.over;
+
+  return (
+    <div className="h-screen-viewport flex flex-col">
+      <ThemeBackground />
+
+      <Dialog open={isConnectDialogOpen} onOpenChange={setIsConnectDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Connect Wallet</DialogTitle>
+            <DialogDescription>
+              Connect your wallet to play.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center pt-4">
+            <Connect />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {game && (
+        <GameOverDialog
+          isOpen={isGameOverOpen}
+          onClose={() => {
+            setIsGameOverOpen(false);
+            navNavigate("home");
+          }}
+          game={game}
+        />
+      )}
+
+      {game && (
+        <VictoryDialog
+          isOpen={isVictoryOpen}
+          onClose={() => {
+            setIsVictoryOpen(false);
+            navNavigate("home");
+          }}
+          game={game}
+        />
+      )}
+
+      {levelCompletionData && (
+        <LevelCompleteDialog
+          isOpen={isLevelCompleteOpen}
+          onClose={() => {
+            setIsLevelCompleteOpen(false);
+            const completedLevel = levelCompletionData.level;
+            const hasCubesToSpend = game && game.cubesAvailable > 0;
+            const shopAvailable = isInGameShopAvailable(completedLevel);
+            const shouldOpenShop = !!shopAvailable && !!hasCubesToSpend;
+
+            if (game?.pendingLevelUp) {
+              setOpenShopAfterLevelUp(shouldOpenShop);
+              setIsPendingLevelUpOpen(true);
+              setLevelCompletionData(null);
+              return;
+            }
+
+            if (shouldOpenShop) {
+              setLevelCompletionData(null);
+              navNavigate("ingameshop");
+            } else {
+              setLevelCompletionData(null);
+            }
+          }}
+          level={levelCompletionData.level}
+          levelScore={levelCompletionData.levelScore}
+          levelMoves={levelCompletionData.levelMoves}
+          seed={seed}
+          constraintProgress={levelCompletionData.constraintProgress}
+          bonusUsedThisLevel={levelCompletionData.bonusUsedThisLevel}
+          prevCombo={levelCompletionData.prevCombo}
+          prevScore={levelCompletionData.prevScore}
+          prevHarvest={levelCompletionData.prevHarvest}
+          prevWave={levelCompletionData.prevWave}
+          prevSupply={levelCompletionData.prevSupply}
+          comboBonus={levelCompletionData.comboBonus}
+          scoreBonus={levelCompletionData.scoreBonus}
+          harvest={levelCompletionData.harvest}
+          wave={levelCompletionData.wave}
+          supply={levelCompletionData.supply}
+          prevTotalCubes={levelCompletionData.prevTotalCubes}
+          totalCubes={levelCompletionData.totalCubes}
+          prevTotalScore={levelCompletionData.prevTotalScore}
+          totalScore={levelCompletionData.totalScore}
+        />
+      )}
+
+      {game && (
+        <PendingLevelUpDialog
+          isOpen={isPendingLevelUpOpen}
+          onClose={handlePendingLevelUpClose}
+          gameId={game.id}
+          runData={game.runData}
+        />
+      )}
+
+      {game && !isGameLoading && !isGridLoading && (
+        <>
+          <div className="px-2 pt-2 space-y-1">
+            <StatsBar
+              level={game.level}
+              levelScore={game.isOver() ? 0 : game.score}
+              targetScore={targetScore}
+              moves={game.levelMoves}
+              maxMoves={maxMoves}
+              totalCubes={game.totalCubes}
+              combo={game.isOver() ? 0 : game.combo}
+              onHome={goBack}
+            />
+            <HudProgressBar
+              levelScore={game.isOver() ? 0 : game.score}
+              targetScore={targetScore}
+              moves={game.levelMoves}
+              maxMoves={maxMoves}
+              constraintProgress={game.constraintProgress}
+              constraint2Progress={game.constraint2Progress}
+              bonusUsedThisLevel={game.bonusUsedThisLevel}
+              gameLevel={gameLevel}
+            />
+          </div>
+        </>
+      )}
+
+      <div className="flex-1 flex flex-col items-center justify-center min-h-0">
+        {(isGameLoading || isGridLoading) && (
+          <div className="flex flex-col items-center justify-center gap-4 py-12">
+            <img
+              src={imgAssets.loader}
+              alt="Loading"
+              className="h-16 w-16 animate-bounce drop-shadow-[0_0_12px_rgba(59,130,246,0.8)]"
+            />
+            <p className="text-lg font-semibold uppercase tracking-[0.25em] text-slate-100">
+              {isGameLoading ? "Preparing game" : "Loading grid"}
+            </p>
+          </div>
+        )}
+
+        {game && isGameOn && !isGridLoading && !isGameLoading && (
+          <div className="flex flex-col items-center game-container">
+            <GameBoard
+              initialGrid={grid}
+              nextLine={game.isOver() ? [] : game.next_row}
+              score={game.isOver() ? 0 : game.score}
+              combo={game.isOver() ? 0 : game.combo}
+              maxCombo={game.isOver() ? 0 : game.maxComboRun}
+              account={account}
+              game={game}
+              seed={seed}
+            />
+          </div>
+        )}
+
+        {game && game.over && !isGridLoading && !isGameLoading && (
+          <div className="flex flex-col items-center game-container opacity-50 pointer-events-none">
+            <GameBoard
+              initialGrid={grid}
+              nextLine={[]}
+              score={0}
+              combo={0}
+              maxCombo={0}
+              account={account}
+              game={game}
+              seed={seed}
+            />
+          </div>
+        )}
+      </div>
+
+      {game && !game.over && !isGameLoading && !isGridLoading && (
+        <GameActionBar
+          bonusSlots={[]}
+          activeBonus={0 as never}
+          combo={game.combo}
+          onSurrender={handleSurrender}
+          isGameOver={game.over}
+        />
+      )}
+    </div>
+  );
+};
+
+export default PlayScreen;
