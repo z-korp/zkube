@@ -41,6 +41,7 @@ interface ThemeDefinition {
   };
   motifs: string;
   blockMotifs: string;
+  blockDesigns?: [string, string, string, string];
   scene: string;
   loadingScene: string;
   gridMaterial: string;
@@ -57,6 +58,7 @@ interface AssetJob {
   imageSize: ImageSize;
   refKeys: RefKey[];
   refPaths?: string[];
+  phase?: number;
 }
 
 interface CliOptions {
@@ -98,9 +100,15 @@ const THEMES: Record<string, ThemeDefinition> = {
     icon: "🗿",
     description: "Mysterious volcanic island with ancient stone guardians",
     mood: "Mysterious, eerie, ancient",
-    palette: { bg: "#0A0A1A", accent: "#00FFFF", blocks: ["#00FF88", "#00DDFF", "#FF00FF", "#FFFF00"] },
+    palette: { bg: "#0A0A1A", accent: "#00FFFF", blocks: ["#4A8A5B", "#3A7A8A", "#8A4A6A", "#B89A4A"] },
     motifs: "Moai statues, petroglyphs, volcanic rock",
     blockMotifs: "Stone moai faces, volcanic rock patterns, petroglyph carvings",
+    blockDesigns: [
+      "A stoic forward-facing moai head with closed eyes, weathered mossy stone texture",
+      "A stern moai head with deep eye sockets looking slightly left, ocean-worn stone with teal lichen",
+      "A fierce moai head with open mouth and bared teeth, dark volcanic basalt with magenta mineral veins",
+      "A wise elder moai head with elongated features and a pukao (topknot hat), sandy weathered stone with ochre patina",
+    ],
     scene: "Volcanic island at night, moai silhouettes, bioluminescent pools",
     loadingScene: "A single moai statue face emerging from volcanic mist, bioluminescent glow",
     gridMaterial: "Dark volcanic basalt with faint glow veins",
@@ -421,27 +429,37 @@ function loadFileBase64(filePath: string): string | undefined {
   }
 }
 
-function buildBlockPrompt(theme: ThemeDefinition, width: number, color: string): string {
-  const sizeLabel = width === 1 ? "1×1 square" : `${width}×1 wide rectangle`;
+function buildBlock1Prompt(theme: ThemeDefinition, color: string, blockIndex: number): string {
+  const focalDesign = theme.blockDesigns?.[blockIndex] ?? `A distinctive ${theme.name}-themed carved element`;
 
   return `
-Redraw the reference image as a game block texture for a puzzle game. The block is a ${sizeLabel}.
-Keep the EXACT same aspect ratio and cell separation as the reference image. ${width > 1 ? `The block must show ${width} distinct cells side by side, each clearly separated.` : ""}
+Generate a game block texture for a puzzle game. The block is a 1×1 square.
+Use the reference image ONLY for aspect ratio and proportions — do NOT copy its visual content.
 
-CRITICAL COLOR REQUIREMENT: The DOMINANT color of this block MUST be ${color}. This is the primary fill color.
-Use ${color} for at least 70% of the block surface area. Add darker and lighter shades of ${color} for depth (2-3 tonal steps).
-Use thin black outlines (2-3px) to separate shapes and add readability.
-
+Focal element: ${focalDesign} — centered on the block, taking up ~60% of the space.
+Surrounding decoration: ${theme.blockMotifs} — subtle carved relief filling the remaining area.
 Theme: ${theme.name} — ${theme.description}
-Surface pattern: ${theme.blockMotifs} — carved/etched into the block surface as subtle relief texture.
-The pattern should be SUBTLE — visible up close but not overwhelming. The block color dominates.
 
-Style: Hand-painted game art. Flat cel-shaded fills with subtle bevel/lighting (lighter top-left, darker bottom-right).
-Think Clash Royale card art quality — bold, clean, instantly readable at small sizes.
+COLOR: The DOMINANT color MUST be ${color}. Use ${color} for at least 70% of the surface.
+Add darker and lighter shades of ${color} for depth (2-3 tonal steps). Muted, earthy tones — NOT neon.
+Use thin black outlines (2-3px) to separate shapes.
 
-The texture must fill the ENTIRE canvas edge-to-edge. No margins, no padding, no background showing.
-Completely replace the visual content of the reference — keep ONLY its proportions.
-Opaque fill. No transparency. No text. No people. No logos.
+Style: Hand-painted game art. Flat cel-shaded with subtle bevel (lighter top-left, darker bottom-right).
+Think Clash Royale card art — bold, clean, readable at small sizes.
+
+Fill the ENTIRE canvas edge-to-edge. No margins, no padding, no background.
+Opaque. No transparency. No text. No people. No logos.
+`.trim();
+}
+
+function buildBlockMultiPrompt(theme: ThemeDefinition, color: string, blockIndex: number): string {
+  const focalDesign = theme.blockDesigns?.[blockIndex] ?? `A distinctive ${theme.name}-themed carved element`;
+
+  return `
+Redraw the content from image 1 onto image 2, and adjust image 1 by adding content so that its aspect ratio matches image 2. At the same time, completely remove the content of image 2, keeping only its aspect ratio. Make sure no blank areas are left.
+The dominant color MUST remain ${color}. Keep muted, earthy tones — NOT neon.
+Focal element: ${focalDesign} — centered, taking up ~60% of the space.
+Surrounding decoration: ${theme.blockMotifs} — subtle carved relief.
 `.trim();
 }
 
@@ -649,18 +667,36 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       const filename = `block-${width}.png`;
       const theme1RefPath = path.join(THEME_1_ROOT, filename);
 
-      jobs.push({
-        scope: "per-theme",
-        category: "blocks",
-        themeId,
-        filename,
-        outputPath: path.join(themeRoot, filename),
-        prompt: buildBlockPrompt(theme, width, color),
-        aspectRatio: "1:1",
-        imageSize: width === 1 ? "1K" : "2K",
-        refKeys: [],
-        refPaths: [theme1RefPath],
-      });
+      if (width === 1) {
+        jobs.push({
+          scope: "per-theme",
+          category: "blocks",
+          themeId,
+          filename,
+          outputPath: path.join(themeRoot, filename),
+          prompt: buildBlock1Prompt(theme, color, i),
+          aspectRatio: "1:1",
+          imageSize: "1K",
+          refKeys: [],
+          refPaths: [theme1RefPath],
+          phase: 0,
+        });
+      } else {
+        const block1Path = path.join(themeRoot, "block-1.png");
+        jobs.push({
+          scope: "per-theme",
+          category: "blocks",
+          themeId,
+          filename,
+          outputPath: path.join(themeRoot, filename),
+          prompt: buildBlockMultiPrompt(theme, color, i),
+          aspectRatio: "1:1",
+          imageSize: "2K",
+          refKeys: [],
+          refPaths: [block1Path, theme1RefPath],
+          phase: 1,
+        });
+      }
     }
   }
 
@@ -1342,31 +1378,66 @@ async function main(): Promise<void> {
   const limit = pLimitFactory(CONCURRENCY);
   const failures: Array<{ job: AssetJob; error: unknown; index: number }> = [];
   let successCount = 0;
+
+  const phase0Jobs = jobs.filter((j) => (j.phase ?? 0) === 0);
+  const phase1Jobs = jobs.filter((j) => (j.phase ?? 0) === 1);
+  const totalJobs = jobs.length;
   let globalIndex = 0;
 
-  await Promise.all(
-    jobs.map((job) =>
-      limit(async () => {
-        globalIndex += 1;
-        const step = `[${globalIndex}/${jobs.length}]`;
-        const startedAt = Date.now();
-        console.log(`${step}  ⏳ ${job.filename}...`);
+  const runBatch = async (batch: AssetJob[]) => {
+    await Promise.all(
+      batch.map((job) =>
+        limit(async () => {
+          globalIndex += 1;
+          const step = `[${globalIndex}/${totalJobs}]`;
+          const startedAt = Date.now();
+          console.log(`${step}  ⏳ ${job.filename}...`);
 
-        try {
-          const imageBase64 = await generateImage(ai, job, options.includeRefs);
-          savePng(job.outputPath, imageBase64);
-          const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
-          console.log(`${step}  ✅ ${job.filename} (${elapsed}s)`);
-          successCount += 1;
-        } catch (error) {
-          const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
-          failures.push({ job, error, index: globalIndex - 1 });
-          console.log(`${step}  ❌ ${job.filename} (${elapsed}s)`);
-          console.log(`       ${formatError(error)}`);
+          try {
+            const imageBase64 = await generateImage(ai, job, options.includeRefs);
+            savePng(job.outputPath, imageBase64);
+            const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+            console.log(`${step}  ✅ ${job.filename} (${elapsed}s)`);
+            successCount += 1;
+          } catch (error) {
+            const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+            failures.push({ job, error, index: globalIndex - 1 });
+            console.log(`${step}  ❌ ${job.filename} (${elapsed}s)`);
+            console.log(`       ${formatError(error)}`);
+          }
+        }),
+      ),
+    );
+  };
+
+  if (phase0Jobs.length > 0) {
+    await runBatch(phase0Jobs);
+  }
+
+  if (phase1Jobs.length > 0) {
+    const block1Targets = TARGET_DIMENSIONS["block-1.png"];
+    const postProcessed = new Set<string>();
+    for (const job of phase1Jobs) {
+      for (const refPath of job.refPaths ?? []) {
+        if (refPath.endsWith("block-1.png") && !refPath.includes("theme-1") && !postProcessed.has(refPath)) {
+          if (fs.existsSync(refPath)) {
+            try {
+              await postProcessFile(refPath, block1Targets);
+              postProcessed.add(refPath);
+              console.log(`  📐 Post-processed ${relativePath(refPath)} to ${block1Targets.width}x${block1Targets.height}`);
+            } catch {
+              console.warn(`  ⚠️  Could not post-process ${relativePath(refPath)}`);
+            }
+          }
         }
-      }),
-    ),
-  );
+      }
+    }
+
+    console.log("");
+    console.log(`Phase 2: generating ${phase1Jobs.length} multi-cell blocks (using block-1 as content source)...`);
+    console.log("");
+    await runBatch(phase1Jobs);
+  }
 
   console.log("");
 
