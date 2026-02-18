@@ -61,12 +61,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
     const observer = new ResizeObserver(([entry]) => {
       const w = entry.contentRect.width;
-      const h = entry.contentRect.height;
       const padding = 24;
-      const cellByWidth = Math.floor((w - padding) / COLS);
-      const verticalPadding = 40;
-      const cellByHeight = Math.floor((h - verticalPadding) / (ROWS + 1));
-      const cellSize = Math.min(cellByWidth, cellByHeight);
+      const cellSize = Math.floor((w - padding) / COLS);
       setGridSize(Math.max(28, Math.min(cellSize, 56)));
     });
 
@@ -131,12 +127,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
     <>
       <Card
         ref={containerRef}
-        className={`relative p-2 md:p-3 bg-secondary w-full max-w-[500px] h-full flex flex-col ${
+        className={`relative p-2 md:p-3 bg-secondary w-full max-w-[500px] ${
           isTxProcessing && "cursor-wait"
         }`}
       >
         <div
-          className={`flex-1 flex justify-center items-center min-h-0 ${
+          className={`flex justify-center items-center ${
             !isTxProcessing && "cursor-move"
           }`}
         >

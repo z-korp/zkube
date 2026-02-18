@@ -105,7 +105,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
 
             <div>
               <p className="mb-1 text-slate-400">Constraints</p>
-              {node.state === "cleared" && constraints.length > 0 ? (
+              {constraints.length > 0 ? (
                 <div className="space-y-1">
                   {constraints.map((constraint) => (
                     <p key={constraint} className="rounded-md bg-slate-800/80 px-2 py-1 text-slate-100">
@@ -113,12 +113,8 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
                     </p>
                   ))}
                 </div>
-              ) : node.state === "cleared" ? (
-                <p className="rounded-md bg-slate-800/60 px-2 py-1 text-slate-300">No constraint</p>
               ) : (
-                <p className="rounded-md bg-slate-800/60 px-2 py-1 text-slate-400 italic text-xs">
-                  Revealed when level starts
-                </p>
+                <p className="rounded-md bg-slate-800/60 px-2 py-1 text-slate-300">No constraint</p>
               )}
             </div>
 

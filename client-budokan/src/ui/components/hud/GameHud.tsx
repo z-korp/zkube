@@ -237,7 +237,7 @@ const GameHud: React.FC<GameHudProps> = ({
                       </div>
                     </TooltipTrigger>
                     <TooltipContent
-                      side="bottom"
+                      side="top"
                       className="bg-slate-900 border border-slate-500 text-white text-xs px-2 py-1"
                     >
                       {description}

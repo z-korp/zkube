@@ -483,7 +483,7 @@ const PlayScreen: React.FC = () => {
         />
       )}
 
-      <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-2 py-1 overflow-hidden">
+      <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-2 py-1">
         {(isGameLoading || isGridLoading) && (
           <div className="flex flex-col items-center justify-center gap-4 py-12">
             <img
@@ -498,7 +498,7 @@ const PlayScreen: React.FC = () => {
         )}
 
         {game && isGameOn && !isGridLoading && !isGameLoading && (
-          <div className="flex w-full h-full flex-col items-center justify-center min-h-0">
+          <div className="flex w-full flex-col items-center min-h-0">
             <GameBoard
               initialGrid={grid}
               nextLine={game.isOver() ? [] : game.next_row}
@@ -514,7 +514,7 @@ const PlayScreen: React.FC = () => {
         )}
 
         {game && game.over && !isGridLoading && !isGameLoading && (
-          <div className="flex w-full h-full flex-col items-center justify-center min-h-0 opacity-50 pointer-events-none">
+          <div className="flex w-full flex-col items-center min-h-0 opacity-50 pointer-events-none">
             <GameBoard
               initialGrid={grid}
               nextLine={[]}
