@@ -1,16 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
-import { GoogleGenAI } from "@google/genai";
+import { pathToFileURL } from "node:url";
+import { fal } from "@fal-ai/client";
 import sharp from "sharp";
 
-const MODEL = process.env.GEMINI_MODEL ?? "gemini-3-pro-image-preview";
+const MODEL = "fal-ai/flux/dev";
 const CONCURRENCY = 2;
 const REQUEST_DELAY_MS = 3_000;
 const RETRY_BACKOFF_MS = [15_000, 30_000, 60_000, 120_000] as const;
 const MAX_RETRIES = RETRY_BACKOFF_MS.length;
-
-const STYLE_ANCHOR =
-  "Art style: Stylized 2D vector/cartoon game art. Bold black outlines as separators. Flat-fill cel-shading with 2-3 tonal steps per surface. Subtle distressed grunge texture overlay. Clean graphic readability. NOT photographic, NOT pixel art, NOT 3D rendered. Think tribal mask / cultural emblem aesthetic.";
 
 type Scope = "per-theme" | "global" | "all";
 type PerThemeAsset =
@@ -23,9 +21,6 @@ type PerThemeAsset =
   | "map";
 type GlobalAsset = "buttons" | "shared-icons" | "catalog-icons" | "bonus-icons" | "ui-chrome" | "panels" | "particles";
 type AssetCategory = PerThemeAsset | GlobalAsset;
-// Nano Banana Pro (Gemini 3 Pro Image) supported aspect ratios
-type AspectRatio = "1:1" | "2:3" | "3:2" | "3:4" | "4:3" | "4:5" | "5:4" | "9:16" | "16:9" | "21:9";
-type ImageSize = "1K" | "2K";
 type LimitRunner = <T>(fn: () => Promise<T>) => Promise<T>;
 type PLimitFactory = (concurrency: number) => LimitRunner;
 
@@ -54,9 +49,8 @@ interface AssetJob {
   filename: string;
   outputPath: string;
   prompt: string;
-  aspectRatio: AspectRatio;
-  imageSize: ImageSize;
-  refKeys: RefKey[];
+  width: number;
+  height: number;
   refPaths?: string[];
   phase?: number;
 }
@@ -278,24 +272,38 @@ const PARTICLE_CONFIGS = [
 const ROOT_DIR = path.resolve(process.cwd());
 const ASSETS_ROOT = path.join(ROOT_DIR, "client-budokan", "public", "assets");
 const COMMON_ROOT = path.join(ASSETS_ROOT, "common");
-const THEME_1_ROOT = path.join(ASSETS_ROOT, "theme-1");
 
-const REF_IMAGE_PATHS = {
-  blocks: path.join(THEME_1_ROOT, "block-1.png"),
-  background: path.join(THEME_1_ROOT, "background.png"),
-  logo: path.join(THEME_1_ROOT, "logo.png"),
-  grid: path.join(THEME_1_ROOT, "grid-bg.png"),
-} as const;
+function loadEnvFromRoot(): void {
+  const envPath = path.join(ROOT_DIR, ".env");
+  if (!fs.existsSync(envPath)) {
+    return;
+  }
 
-type RefKey = keyof typeof REF_IMAGE_PATHS;
+  const envContent = fs.readFileSync(envPath, "utf-8");
+  for (const rawLine of envContent.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) {
+      continue;
+    }
 
-const refCache = new Map<RefKey, string>();
+    const match = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
+    if (!match) {
+      continue;
+    }
+
+    const [, key, rawValue] = match;
+    if (process.env[key] !== undefined) {
+      continue;
+    }
+
+    const value = rawValue.replace(/^['"]|['"]$/g, "");
+    process.env[key] = value;
+  }
+}
+
+loadEnvFromRoot();
 let requestSlotChain: Promise<void> = Promise.resolve();
 let nextRequestAt = 0;
-
-function withStyleAnchor(prompt: string): string {
-  return `${STYLE_ANCHOR}\n${prompt.trim()}`;
-}
 
 function relativePath(filePath: string): string {
   return path.relative(ROOT_DIR, filePath).replace(/\\/g, "/");
@@ -383,15 +391,18 @@ function isRetryableError(error: unknown): boolean {
     statusCode?: number;
     code?: number;
     response?: { status?: number };
+    body?: { status?: number };
     message?: string;
   };
-  const status = candidate.status ?? candidate.statusCode ?? candidate.code ?? candidate.response?.status;
-  if (status === 429 || status === 503) {
+  const status = candidate.status ?? candidate.statusCode ?? candidate.code ?? candidate.response?.status ?? candidate.body?.status;
+  if (status === 408 || status === 409 || status === 425 || status === 429 || status === 500 || status === 502 || status === 503 || status === 504) {
     return true;
   }
 
   const message = error instanceof Error ? error.message : String(candidate.message ?? error);
-  return /(^|\D)(429|503)(\D|$)|rate\s*limit|quota|unavailable|high demand/i.test(message);
+  return /(^|\D)(408|409|425|429|500|502|503|504)(\D|$)|rate\s*limit|quota|unavailable|high demand|timed?\s*out|overloaded|try again/i.test(
+    message,
+  );
 }
 
 function formatError(error: unknown): string {
@@ -401,39 +412,6 @@ function formatError(error: unknown): string {
   return String(error);
 }
 
-function loadRefBase64(refKey: RefKey): string | undefined {
-  const cached = refCache.get(refKey);
-  if (cached) {
-    return cached;
-  }
-
-  const refPath = REF_IMAGE_PATHS[refKey];
-  try {
-    const data = fs.readFileSync(refPath);
-    const base64 = data.toString("base64");
-    refCache.set(refKey, base64);
-    return base64;
-  } catch {
-    console.warn(`⚠️  Missing reference image: ${relativePath(refPath)} (continuing without it)`);
-    return undefined;
-  }
-}
-
-function loadFileBase64(filePath: string): string | undefined {
-  try {
-    const data = fs.readFileSync(filePath);
-    return data.toString("base64");
-  } catch {
-    console.warn(`⚠️  Missing reference: ${relativePath(filePath)}`);
-    return undefined;
-  }
-}
-
-function blockAspectRatio(width: number): AspectRatio {
-  if (width === 1) return "1:1";
-  if (width === 2) return "16:9";
-  return "21:9";
-}
 
 function buildBlock1Prompt(theme: ThemeDefinition, color: string, blockIndex: number): string {
   const focalDesign = theme.blockDesigns?.[blockIndex] ?? `A distinctive ${theme.name}-themed carved element`;
@@ -458,14 +436,21 @@ Opaque fill everywhere. No transparency. No text. No people. No logos.
 `.trim();
 }
 
-function buildBlockMultiPrompt(theme: ThemeDefinition, color: string, blockIndex: number): string {
+function buildBlockMultiPrompt(theme: ThemeDefinition, color: string, blockIndex: number, blockWidth: number): string {
   const focalDesign = theme.blockDesigns?.[blockIndex] ?? `A distinctive ${theme.name}-themed carved element`;
 
   return `
-Redraw the content from image 1 onto image 2, and adjust image 1 by adding content so that its aspect ratio matches image 2. At the same time, completely remove the content of image 2, keeping only its aspect ratio. Make sure no blank areas are left.
+Generate a seamless game block texture for a puzzle game. The block spans ${blockWidth}×1 cells.
+Theme: ${theme.name} — ${theme.description}
+
+The design must read as one cohesive horizontal block with a strong central motif and decorative extensions to both sides.
 The dominant color MUST remain ${color}. Keep muted, earthy tones — NOT neon.
 Focal element: ${focalDesign} — centered, taking up ~60% of the space.
-Surrounding decoration: ${theme.blockMotifs} — subtle carved relief.
+Surrounding decoration: ${theme.blockMotifs} — subtle carved relief flowing continuously edge-to-edge.
+
+Style: Hand-painted game art. Flat cel-shaded with subtle bevel (lighter top-left, darker bottom-right).
+Use thin black outlines (2-3px) to separate shapes.
+CRITICAL: Fill every pixel of the canvas with opaque content. Hard rectangular edges — NO rounded corners, NO margins, NO transparency.
 `.trim();
 }
 
@@ -500,7 +485,9 @@ Opaque fill. No text, no UI, no people, no logos.
 }
 
 function buildLogoPrompt(theme: ThemeDefinition): string {
-  return withStyleAnchor(`
+  return `
+Art style: Stylized 2D vector/cartoon game art. Bold black outlines as separators. Flat-fill cel-shading with 2-3 tonal steps per surface. Subtle distressed grunge texture overlay. Clean graphic readability. NOT photographic, NOT pixel art, NOT 3D rendered. Think tribal mask / cultural emblem aesthetic.
+
 Generate a game logo for a puzzle game called "zKube".
 Theme: ${theme.name}
 
@@ -518,11 +505,13 @@ Thick dark outline ensures readability on ANY background. High contrast between 
 
 Square format. Centered vertically and horizontally.
 Dark background that blends with the theme's background color.
-`);
+`.trim();
 }
 
 function buildGridBackgroundPrompt(theme: ThemeDefinition): string {
-  return withStyleAnchor(`
+  return `
+Art style: Stylized 2D vector/cartoon game art. Bold black outlines as separators. Flat-fill cel-shading with 2-3 tonal steps per surface. Subtle distressed grunge texture overlay. Clean graphic readability. NOT photographic, NOT pixel art, NOT 3D rendered. Think tribal mask / cultural emblem aesthetic.
+
 Generate a subtle background surface texture for a game grid area.
 Theme: ${theme.name}
 Material: ${theme.gridMaterial}
@@ -530,11 +519,13 @@ Style: Muted, low-contrast surface — the blocks will sit ON TOP of this.
 Color: Dark base with very subtle tonal variation. Must not compete with colorful blocks placed on top.
 No grid lines (drawn in code). No patterns that would interfere with gameplay readability.
 Portrait rectangle (4:5 ratio). Filled completely, no transparency.
-`);
+`.trim();
 }
 
 function buildGridFramePrompt(theme: ThemeDefinition): string {
-  return withStyleAnchor(`
+  return `
+Art style: Stylized 2D vector/cartoon game art. Bold black outlines as separators. Flat-fill cel-shading with 2-3 tonal steps per surface. Subtle distressed grunge texture overlay. Clean graphic readability. NOT photographic, NOT pixel art, NOT 3D rendered. Think tribal mask / cultural emblem aesthetic.
+
 Generate an ornamental frame/border for a game grid area.
 Theme: ${theme.name}
 Material: Matches the theme's decorative style — ${theme.motifs}.
@@ -544,22 +535,26 @@ Border decoration: Cultural motifs and patterns from the theme carved into the f
 Frame color: Theme accent (${theme.palette.accent}) with darker shadow tones and bright highlights.
 Portrait rectangle (4:5 ratio). The frame art fills the entire canvas edge-to-edge.
 Interior is a dark flat fill matching the grid material.
-`);
+`.trim();
 }
 
 function buildThemeIconPrompt(theme: ThemeDefinition): string {
-  return withStyleAnchor(`
+  return `
+Art style: Stylized 2D vector/cartoon game art. Bold black outlines as separators. Flat-fill cel-shading with 2-3 tonal steps per surface. Subtle distressed grunge texture overlay. Clean graphic readability. NOT photographic, NOT pixel art, NOT 3D rendered. Think tribal mask / cultural emblem aesthetic.
+
 Generate a small square icon representing the "${theme.name}" theme for a game settings menu.
 Theme: ${theme.name} (${theme.icon})
 Design: A single iconic symbol that instantly communicates the theme. For example: ${theme.motifs} — pick the most recognizable single element.
 Style: Bold silhouette icon, white fill. Thick strokes (3-4px equivalent). Clean, readable at 48×48 pixels.
 Centered in frame. Square format. No text.
 Dark background matching the theme.
-`);
+`.trim();
 }
 
 function buildMapPrompt(theme: ThemeDefinition): string {
-  return withStyleAnchor(`
+  return `
+Art style: Stylized 2D vector/cartoon game art. Bold black outlines as separators. Flat-fill cel-shading with 2-3 tonal steps per surface. Subtle distressed grunge texture overlay. Clean graphic readability. NOT photographic, NOT pixel art, NOT 3D rendered. Think tribal mask / cultural emblem aesthetic.
+
 Generate a full-screen progression map for a mobile puzzle game zone.
 Theme: ${theme.name} — ${theme.description}
 The map shows a winding S-curve path with 11 small stone/themed platforms where game nodes will be placed.
@@ -587,11 +582,13 @@ Mood: ${theme.mood}. Adventurous, inviting exploration.
 Color palette: Rich atmospheric tones. Path slightly lighter than surroundings. Accent: ${theme.palette.accent}.
 The platforms should be visible but subtle — small stone/themed circles where UI buttons will be overlaid.
 No text, no numbers, no labels, no UI elements, no people.
-`);
+`.trim();
 }
 
 function buildButtonPrompt(desc: string, color: string, highlight: string, shadow: string): string {
-  return withStyleAnchor(`
+  return `
+Art style: Stylized 2D vector/cartoon game art. Bold black outlines as separators. Flat-fill cel-shading with 2-3 tonal steps per surface. Subtle distressed grunge texture overlay. Clean graphic readability. NOT photographic, NOT pixel art, NOT 3D rendered. Think tribal mask / cultural emblem aesthetic.
+
 Generate a 9-slice button texture for a game UI.
 Color: ${desc} (${color})
 Style: A rounded rectangle button with:
@@ -602,32 +599,38 @@ Style: A rounded rectangle button with:
 - Subtle bevel to appear pressable
 The image is 96×96px conceptually. The outer 16px on all sides are the fixed border (for 9-slice stretching). The inner 64×64px center stretches.
 Square format. Slight transparency possible for soft edges. No text, no icons.
-`);
+`.trim();
 }
 
 function buildWhiteIconPrompt(description: string): string {
-  return withStyleAnchor(`
+  return `
+Art style: Stylized 2D vector/cartoon game art. Bold black outlines as separators. Flat-fill cel-shading with 2-3 tonal steps per surface. Subtle distressed grunge texture overlay. Clean graphic readability. NOT photographic, NOT pixel art, NOT 3D rendered. Think tribal mask / cultural emblem aesthetic.
+
 Generate a simple game UI icon: ${description}.
 Style: Clean, bold, white silhouette on dark background.
 Stylized for a fantasy/tribal puzzle game. Thick strokes (3-4px equivalent).
 Rounded corners. Single shape, centered. No text, no color (white only).
 Square format. 48×48 pixel target (generating larger for quality).
-`);
+`.trim();
 }
 
 function buildBonusIconPrompt(description: string): string {
-  return withStyleAnchor(`
+  return `
+Art style: Stylized 2D vector/cartoon game art. Bold black outlines as separators. Flat-fill cel-shading with 2-3 tonal steps per surface. Subtle distressed grunge texture overlay. Clean graphic readability. NOT photographic, NOT pixel art, NOT 3D rendered. Think tribal mask / cultural emblem aesthetic.
+
 Generate a game bonus/power-up icon: ${description}
 Style: Colorful, vibrant, detailed fantasy game icon. Rich colors with glowing highlights and subtle shadows.
 The icon should be instantly recognizable at small sizes (64×64 display).
 Centered composition, no text. Slight 3D depth with lighting from top-left.
 Square format. 256×256 pixel target.
 Dark background.
-`);
+`.trim();
 }
 
 function buildUiChromePrompt(description: string, width: number, height: number): string {
-  return withStyleAnchor(`
+  return `
+Art style: Stylized 2D vector/cartoon game art. Bold black outlines as separators. Flat-fill cel-shading with 2-3 tonal steps per surface. Subtle distressed grunge texture overlay. Clean graphic readability. NOT photographic, NOT pixel art, NOT 3D rendered. Think tribal mask / cultural emblem aesthetic.
+
 Generate a game UI element: ${description}
 Dimensions: ${width}×${height} pixels conceptually.
 Style: Semi-transparent dark panel with subtle fantasy/tribal decorative edges.
@@ -635,31 +638,39 @@ The center area should be darker and flatter than the border so game content rea
 Edges should have thin ornate borders matching a tribal/fantasy puzzle game aesthetic.
 No text, no icons — just the background chrome element.
 Dark background fill.
-`);
+`.trim();
 }
 
 function buildPanelPrompt(material: string, alpha: string): string {
-  return withStyleAnchor(`
+  return `
+Art style: Stylized 2D vector/cartoon game art. Bold black outlines as separators. Flat-fill cel-shading with 2-3 tonal steps per surface. Subtle distressed grunge texture overlay. Clean graphic readability. NOT photographic, NOT pixel art, NOT 3D rendered. Think tribal mask / cultural emblem aesthetic.
+
 Generate a 9-slice panel texture for a game UI.
 Material: ${material}
 The image is 96×96px conceptually. The outer 24px on all sides are the fixed border. The inner 48×48px center will stretch.
 Design the border with decorative edges. Center should be a subtle, stretchable fill matching the material.
 Square format. PNG. The center area should have slight translucency (${alpha} alpha feel) over a dark background.
-`);
+`.trim();
 }
 
 function buildParticlePrompt(description: string): string {
-  return withStyleAnchor(`
+  return `
+Art style: Stylized 2D vector/cartoon game art. Bold black outlines as separators. Flat-fill cel-shading with 2-3 tonal steps per surface. Subtle distressed grunge texture overlay. Clean graphic readability. NOT photographic, NOT pixel art, NOT 3D rendered. Think tribal mask / cultural emblem aesthetic.
+
 Generate a tiny particle texture for a game effect.
 Shape: ${description}
 Style: White silhouette on dark background. Soft edges with slight glow.
 Very simple, minimal detail — this will be rendered at 16×16 pixels and tinted by code.
 Square format. Centered.
-`);
+`.trim();
 }
 
 function shouldIncludeCategory(category: AssetCategory, filter?: AssetCategory): boolean {
   return !filter || filter === category;
+}
+
+function getTargetDimensions(filename: string, fallback: { width: number; height: number }): { width: number; height: number } {
+  return TARGET_DIMENSIONS[filename] ?? fallback;
 }
 
 function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: AssetCategory): AssetJob[] {
@@ -671,7 +682,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       const width = i + 1;
       const color = theme.palette.blocks[i];
       const filename = `block-${width}.png`;
-      const theme1RefPath = path.join(THEME_1_ROOT, filename);
+      const target = getTargetDimensions(filename, { width: 1024, height: 1024 });
 
       if (width === 1) {
         jobs.push({
@@ -681,10 +692,8 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
           filename,
           outputPath: path.join(themeRoot, filename),
           prompt: buildBlock1Prompt(theme, color, i),
-          aspectRatio: "1:1",
-          imageSize: "1K",
-          refKeys: [],
-          refPaths: [theme1RefPath],
+          width: target.width,
+          height: target.height,
           phase: 0,
         });
       } else {
@@ -695,11 +704,10 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
           themeId,
           filename,
           outputPath: path.join(themeRoot, filename),
-          prompt: buildBlockMultiPrompt(theme, color, i),
-          aspectRatio: blockAspectRatio(width),
-          imageSize: "2K",
-          refKeys: [],
-          refPaths: [block1Path, theme1RefPath],
+          prompt: buildBlockMultiPrompt(theme, color, i, width),
+          width: target.width,
+          height: target.height,
+          refPaths: [block1Path],
           phase: 1,
         });
       }
@@ -714,9 +722,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       filename: "background.png",
       outputPath: path.join(themeRoot, "background.png"),
       prompt: buildBackgroundPrompt(theme),
-      aspectRatio: "1:1",
-      imageSize: "2K",
-      refKeys: ["background"],
+      ...getTargetDimensions("background.png", { width: 2048, height: 2048 }),
     });
   }
 
@@ -728,9 +734,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       filename: "loading-bg.png",
       outputPath: path.join(themeRoot, "loading-bg.png"),
       prompt: buildLoadingBackgroundPrompt(theme),
-      aspectRatio: "1:1",
-      imageSize: "2K",
-      refKeys: ["background"],
+      ...getTargetDimensions("loading-bg.png", { width: 2048, height: 2048 }),
     });
   }
 
@@ -742,9 +746,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       filename: "logo.png",
       outputPath: path.join(themeRoot, "logo.png"),
       prompt: buildLogoPrompt(theme),
-      aspectRatio: "1:1",
-      imageSize: "1K",
-      refKeys: ["logo"],
+      ...getTargetDimensions("logo.png", { width: 512, height: 512 }),
     });
   }
 
@@ -756,9 +758,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       filename: "grid-bg.png",
       outputPath: path.join(themeRoot, "grid-bg.png"),
       prompt: buildGridBackgroundPrompt(theme),
-      aspectRatio: "4:5",
-      imageSize: "1K",
-      refKeys: ["grid"],
+      ...getTargetDimensions("grid-bg.png", { width: 512, height: 640 }),
     });
     jobs.push({
       scope: "per-theme",
@@ -767,9 +767,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       filename: "grid-frame.png",
       outputPath: path.join(themeRoot, "grid-frame.png"),
       prompt: buildGridFramePrompt(theme),
-      aspectRatio: "4:5",
-      imageSize: "1K",
-      refKeys: ["grid"],
+      ...getTargetDimensions("grid-frame.png", { width: 576, height: 720 }),
     });
   }
 
@@ -781,9 +779,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       filename: "theme-icon.png",
       outputPath: path.join(themeRoot, "theme-icon.png"),
       prompt: buildThemeIconPrompt(theme),
-      aspectRatio: "1:1",
-      imageSize: "1K",
-      refKeys: ["logo"],
+      ...getTargetDimensions("theme-icon.png", { width: 128, height: 128 }),
     });
   }
 
@@ -795,9 +791,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       filename: "map.png",
       outputPath: path.join(themeRoot, "map.png"),
       prompt: buildMapPrompt(theme),
-      aspectRatio: "9:16",
-      imageSize: "2K",
-      refKeys: ["background"],
+      ...getTargetDimensions("map.png", { width: 1080, height: 1920 }),
     });
   }
 
@@ -816,9 +810,8 @@ function buildGlobalJobs(filter?: AssetCategory): AssetJob[] {
         filename,
         outputPath: path.join(COMMON_ROOT, "buttons", filename),
         prompt: buildButtonPrompt(config.desc, config.color, config.highlight, config.shadow),
-        aspectRatio: "1:1",
-        imageSize: "1K",
-        refKeys: ["blocks"],
+        width: 1024,
+        height: 1024,
       });
     }
   }
@@ -831,9 +824,8 @@ function buildGlobalJobs(filter?: AssetCategory): AssetJob[] {
         filename: icon.filename,
         outputPath: path.join(COMMON_ROOT, "icons", icon.filename),
         prompt: buildWhiteIconPrompt(icon.description),
-        aspectRatio: "1:1",
-        imageSize: "1K",
-        refKeys: ["logo"],
+        width: 1024,
+        height: 1024,
       });
     }
   }
@@ -846,9 +838,8 @@ function buildGlobalJobs(filter?: AssetCategory): AssetJob[] {
         filename: icon.filename,
         outputPath: path.join(COMMON_ROOT, "icons", icon.filename),
         prompt: buildWhiteIconPrompt(icon.description),
-        aspectRatio: "1:1",
-        imageSize: "1K",
-        refKeys: ["logo"],
+        width: 1024,
+        height: 1024,
       });
     }
   }
@@ -861,9 +852,8 @@ function buildGlobalJobs(filter?: AssetCategory): AssetJob[] {
         filename: bonus.filename,
         outputPath: path.join(COMMON_ROOT, "bonus", bonus.filename),
         prompt: buildBonusIconPrompt(bonus.description),
-        aspectRatio: "1:1",
-        imageSize: "1K",
-        refKeys: ["logo"],
+        width: 1024,
+        height: 1024,
       });
     }
   }
@@ -876,9 +866,8 @@ function buildGlobalJobs(filter?: AssetCategory): AssetJob[] {
         filename: chrome.filename,
         outputPath: path.join(COMMON_ROOT, "ui", chrome.filename),
         prompt: buildUiChromePrompt(chrome.description, chrome.width, chrome.height),
-        aspectRatio: chrome.width > chrome.height * 2 ? "16:9" : "1:1",
-        imageSize: "1K",
-        refKeys: ["grid"],
+        width: chrome.width,
+        height: chrome.height,
       });
     }
   }
@@ -891,9 +880,8 @@ function buildGlobalJobs(filter?: AssetCategory): AssetJob[] {
         filename: panel.filename,
         outputPath: path.join(COMMON_ROOT, "panels", panel.filename),
         prompt: buildPanelPrompt(panel.material, panel.alpha),
-        aspectRatio: "1:1",
-        imageSize: "1K",
-        refKeys: ["grid"],
+        width: 1024,
+        height: 1024,
       });
     }
   }
@@ -906,9 +894,8 @@ function buildGlobalJobs(filter?: AssetCategory): AssetJob[] {
         filename: particle.filename,
         outputPath: path.join(COMMON_ROOT, "particles", particle.filename),
         prompt: buildParticlePrompt(particle.description),
-        aspectRatio: "1:1",
-        imageSize: "1K",
-        refKeys: ["logo"],
+        width: 1024,
+        height: 1024,
       });
     }
   }
@@ -931,10 +918,10 @@ function printHelp(): void {
   console.log("  --theme <theme-id>       Generate per-theme assets for one theme (example: theme-4)");
   console.log("  --scope <scope>          per-theme | global | all (default: per-theme)");
   console.log("  --asset <category>       Filter to one category");
-  console.log("  --dry-run                Print plan only; do not call Gemini API");
-  console.log("  --ref                    Include theme-1 reference images (default)");
-  console.log("  --no-ref                 Disable reference images");
-  console.log("  --post-process           Convert JPEG→PNG + resize to target dimensions (no API calls)");
+  console.log("  --dry-run                Print plan only; do not call generation API");
+  console.log("  --ref                    Use block-1 as optional reference for wider blocks (default)");
+  console.log("  --no-ref                 Disable optional image references");
+  console.log("  --post-process           Convert non-PNG outputs to PNG (no API calls)");
   console.log("  --help                   Show this help");
   console.log("");
   console.log(`Per-theme categories: ${PER_THEME_ASSETS.join(", ")}`);
@@ -1082,105 +1069,72 @@ function outputSummaryPath(options: CliOptions, selectedThemeIds: string[]): str
   return "client-budokan/public/assets/";
 }
 
-interface GeminiInlineData {
-  data: string;
-  mimeType?: string;
-}
-
-interface GeminiPart {
-  inlineData?: GeminiInlineData;
-  text?: string;
-}
-
-interface GeminiCandidate {
-  content?: {
-    parts?: GeminiPart[];
-  };
-}
-
-interface GeminiResponse {
-  candidates?: GeminiCandidate[];
-}
-
-function extractBase64Png(response: unknown): string | undefined {
-  const resp = response as GeminiResponse;
-  const candidates = resp?.candidates;
-  if (!Array.isArray(candidates)) {
+function resolveReferenceUrl(job: AssetJob, includeRefs: boolean): string | undefined {
+  if (!includeRefs || !job.refPaths || job.refPaths.length === 0) {
     return undefined;
   }
 
-  for (const candidate of candidates) {
-    const parts = candidate?.content?.parts;
-    if (!Array.isArray(parts)) {
+  for (const filePath of job.refPaths) {
+    if (!fs.existsSync(filePath)) {
       continue;
     }
-    for (const part of parts) {
-      const base64 = part?.inlineData?.data;
-      if (typeof base64 === "string" && base64.length > 0) {
-        return base64;
-      }
+    if (path.extname(filePath).toLowerCase() !== ".png") {
+      continue;
     }
+    return pathToFileURL(filePath).toString();
   }
 
   return undefined;
 }
 
-async function generateImage(ai: GoogleGenAI, job: AssetJob, includeRefs: boolean): Promise<string> {
-  type ContentPart = { text: string } | { inlineData: { mimeType: string; data: string } };
-  let contents: ContentPart[];
+function extractImageUrl(response: unknown): string {
+  const candidate = response as {
+    data?: {
+      images?: Array<{ url?: string }>;
+      image?: { url?: string };
+    };
+  };
 
-  if (job.refPaths && job.refPaths.length > 0) {
-    contents = [];
-    for (let i = 0; i < job.refPaths.length; i += 1) {
-      const data = loadFileBase64(job.refPaths[i]);
-      if (!data) {
-        continue;
-      }
-      const mimeType = isJpeg(Buffer.from(data, "base64")) ? "image/jpeg" : "image/png";
-      contents.push({ text: `Image ${i + 1}:` });
-      contents.push({ inlineData: { mimeType, data } });
-    }
-    contents.push({ text: job.prompt });
-  } else {
-    contents = [{ text: job.prompt }];
-    if (includeRefs) {
-      for (const refKey of new Set(job.refKeys)) {
-        const refData = loadRefBase64(refKey);
-        if (!refData) {
-          continue;
-        }
-        contents.push({ inlineData: { mimeType: "image/png", data: refData } });
-      }
-    }
+  const fromImages = candidate.data?.images?.find((image) => typeof image.url === "string" && image.url.length > 0)?.url;
+  if (fromImages) {
+    return fromImages;
   }
+
+  const fromImage = candidate.data?.image?.url;
+  if (typeof fromImage === "string" && fromImage.length > 0) {
+    return fromImage;
+  }
+
+  throw new Error("No image URL returned by fal.ai.");
+}
+
+async function generateImage(job: AssetJob, includeRefs: boolean): Promise<Buffer> {
+  const referenceUrl = resolveReferenceUrl(job, includeRefs);
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
     try {
       await waitForRequestSlot();
 
-      const response = await ai.models.generateContent({
-        model: MODEL,
-        contents,
-        config: {
-          responseModalities: ["IMAGE"],
-          imageConfig: {
-            aspectRatio: job.aspectRatio,
-            imageSize: job.imageSize,
-            outputQuality: 100,
-          },
+      const response = await fal.subscribe(MODEL, {
+        input: {
+          prompt: job.prompt,
+          image_size: { width: job.width, height: job.height },
+          num_images: 1,
+          ...(referenceUrl ? { image_url: referenceUrl } : {}),
         },
       });
 
-      const imageBase64 = extractBase64Png(response);
-      if (!imageBase64) {
-        throw new Error("No inline image data returned by Gemini.");
+      const imageUrl = extractImageUrl(response);
+      const download = await fetch(imageUrl);
+      if (!download.ok) {
+        throw new Error(`Failed to download generated image (${download.status})`);
       }
 
-      return imageBase64;
+      return Buffer.from(await download.arrayBuffer());
     } catch (error) {
       if (isRetryableError(error) && attempt < MAX_RETRIES) {
         const backoffMs = RETRY_BACKOFF_MS[attempt] ?? RETRY_BACKOFF_MS[RETRY_BACKOFF_MS.length - 1];
-        console.warn(`   ↻ Retryable error (429/503). Retrying in ${Math.round(backoffMs / 1000)}s...`);
+        console.warn(`   ↻ Retryable error. Retrying in ${Math.round(backoffMs / 1000)}s...`);
         await sleep(backoffMs);
         continue;
       }
@@ -1196,7 +1150,7 @@ const TARGET_DIMENSIONS: Record<string, { width: number; height: number }> = {
   "block-1.png": { width: 544, height: 544 },
   "block-2.png": { width: 1088, height: 544 },
   "block-3.png": { width: 1632, height: 544 },
-  "block-4.png": { width: 2176, height: 544 },
+  "block-4.png": { width: 2048, height: 544 },
   "grid-bg.png": { width: 512, height: 640 },
   "grid-frame.png": { width: 576, height: 720 },
   "background.png": { width: 2048, height: 2048 },
@@ -1210,38 +1164,21 @@ function isJpeg(buf: Buffer): boolean {
   return buf.length >= 2 && buf[0] === 0xff && buf[1] === 0xd8;
 }
 
-async function postProcessFile(filePath: string, target: { width: number; height: number }): Promise<string> {
+async function postProcessFile(filePath: string): Promise<string> {
   const buf = fs.readFileSync(filePath);
   const metadata = await sharp(buf).metadata();
-  const srcW = metadata.width ?? 0;
-  const srcH = metadata.height ?? 0;
-  if (srcW <= 0 || srcH <= 0) {
-    throw new Error(`invalid source dimensions for ${path.basename(filePath)}`);
+  const srcW = metadata.width ?? "?";
+  const srcH = metadata.height ?? "?";
+  const format = metadata.format ?? "unknown";
+
+  if (format === "png") {
+    return `${srcW}x${srcH} (already PNG)`;
   }
 
-  let pipeline = sharp(buf);
-  const targetRatio = target.width / target.height;
-  const srcRatio = srcW / srcH;
-
-  if (Math.abs(targetRatio - srcRatio) > 0.05) {
-    let cropW: number;
-    let cropH: number;
-    if (targetRatio > srcRatio) {
-      cropW = srcW;
-      cropH = Math.round(srcW / targetRatio);
-    } else {
-      cropH = srcH;
-      cropW = Math.round(srcH * targetRatio);
-    }
-    const left = Math.round((srcW - cropW) / 2);
-    const top = Math.round((srcH - cropH) / 2);
-    pipeline = pipeline.extract({ left, top, width: cropW, height: cropH });
-  }
-
-  const outputBuf = await pipeline.resize(target.width, target.height).png().toBuffer();
+  const outputBuf = await sharp(buf).png().toBuffer();
   fs.writeFileSync(filePath, outputBuf);
 
-  return `${srcW}x${srcH} → ${target.width}x${target.height}`;
+  return `${srcW}x${srcH} ${format.toUpperCase()} → PNG`;
 }
 
 async function postProcessDirectory(dirPath: string, label: string): Promise<void> {
@@ -1256,46 +1193,35 @@ async function postProcessDirectory(dirPath: string, label: string): Promise<voi
 
   console.log(`\n🔧 Post-processing ${label}...`);
   let converted = 0;
-  let resized = 0;
+  let normalized = 0;
   let errors = 0;
 
   for (const filename of files) {
     const filePath = path.join(dirPath, filename);
-    const target = TARGET_DIMENSIONS[filename];
-
     try {
       const sourceBuf = fs.readFileSync(filePath);
-      if (isJpeg(sourceBuf)) {
-        const pngBuf = await sharp(sourceBuf).png().toBuffer();
-        fs.writeFileSync(filePath, pngBuf);
+      const wasJpeg = isJpeg(sourceBuf);
+      const resultLabel = await postProcessFile(filePath);
+
+      if (wasJpeg) {
         converted += 1;
       }
-
-      if (target) {
-        const resizeLabel = await postProcessFile(filePath, target);
-        resized += 1;
-        console.log(`  📐 ${filename}: ${resizeLabel}`);
-      } else if (isJpeg(sourceBuf)) {
-        console.log(`  ✅ ${filename}: JPEG→PNG`);
-      }
+      normalized += 1;
+      console.log(`  📐 ${filename}: ${resultLabel}`);
     } catch (error) {
       errors += 1;
       console.error(`  ❌ ${filename}: ${formatError(error)}`);
     }
   }
 
-  console.log(`  Done: ${converted} converted, ${resized} resized, ${errors} errors`);
+  console.log(`  Done: ${converted} converted, ${normalized} checked, ${errors} errors`);
 }
 
-function savePng(outputPath: string, imageBase64: string): void {
+async function savePng(outputPath: string, imageBuffer: Buffer): Promise<void> {
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-  const buf = Buffer.from(imageBase64, "base64");
-
-  if (isJpeg(buf)) {
-    console.warn(`   ⚠️  Gemini returned JPEG — saving raw (run post-process to convert)`);
-  }
-
-  fs.writeFileSync(outputPath, buf);
+  const metadata = await sharp(imageBuffer).metadata();
+  const output = metadata.format === "png" ? imageBuffer : await sharp(imageBuffer).png().toBuffer();
+  fs.writeFileSync(outputPath, output);
 }
 
 async function postProcessTheme(themeId: string): Promise<void> {
@@ -1369,9 +1295,11 @@ async function main(): Promise<void> {
     return;
   }
 
-  if (!process.env.GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY is required for generation. Export it and retry.");
+  if (!process.env.FAL_KEY) {
+    throw new Error("FAL_KEY is required for generation. Export it and retry.");
   }
+
+  fal.config({ credentials: process.env.FAL_KEY });
 
   // Pressed/disabled button states must be derived via post-processing.
   if (jobs.some((job) => job.category === "buttons")) {
@@ -1379,7 +1307,6 @@ async function main(): Promise<void> {
     console.log("");
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   const pLimitFactory = await loadPLimitFactory();
   const limit = pLimitFactory(CONCURRENCY);
   const failures: Array<{ job: AssetJob; error: unknown; index: number }> = [];
@@ -1400,8 +1327,8 @@ async function main(): Promise<void> {
           console.log(`${step}  ⏳ ${job.filename}...`);
 
           try {
-            const imageBase64 = await generateImage(ai, job, options.includeRefs);
-            savePng(job.outputPath, imageBase64);
+            const imageBuffer = await generateImage(job, options.includeRefs);
+            await savePng(job.outputPath, imageBuffer);
             const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
             console.log(`${step}  ✅ ${job.filename} (${elapsed}s)`);
             successCount += 1;
@@ -1421,26 +1348,8 @@ async function main(): Promise<void> {
   }
 
   if (phase1Jobs.length > 0) {
-    const block1Targets = TARGET_DIMENSIONS["block-1.png"];
-    const postProcessed = new Set<string>();
-    for (const job of phase1Jobs) {
-      for (const refPath of job.refPaths ?? []) {
-        if (refPath.endsWith("block-1.png") && !refPath.includes("theme-1") && !postProcessed.has(refPath)) {
-          if (fs.existsSync(refPath)) {
-            try {
-              await postProcessFile(refPath, block1Targets);
-              postProcessed.add(refPath);
-              console.log(`  📐 Post-processed ${relativePath(refPath)} to ${block1Targets.width}x${block1Targets.height}`);
-            } catch {
-              console.warn(`  ⚠️  Could not post-process ${relativePath(refPath)}`);
-            }
-          }
-        }
-      }
-    }
-
     console.log("");
-    console.log(`Phase 2: generating ${phase1Jobs.length} multi-cell blocks (using block-1 as content source)...`);
+    console.log(`Phase 2: generating ${phase1Jobs.length} multi-cell blocks (using block-1 as optional reference)...`);
     console.log("");
     await runBatch(phase1Jobs);
   }

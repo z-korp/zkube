@@ -55,3 +55,4 @@ addresses.csv
 
 # Zone identifier files (Windows/WSL)
 *:Zone.Identifier
+.env
