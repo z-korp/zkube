@@ -56,13 +56,13 @@ scripts/generate-assets/
 
 | Category | Files per theme | Dimensions | Notes |
 |----------|----------------|------------|-------|
-| blocks | 4 (block-1 to block-4) | 544×544 to 2176×544 | 1-4 cell widths |
+| blocks | 4 (block-1 to block-4) | 192×192 to 768×192 | 1-4 cell widths, covers 3× retina of 56px max cell |
 | background | 1 | 2048×2048 | Square — CSS `object-cover` crops per viewport |
 | loading-bg | 1 | 2048×2048 | Distinct scene from background |
-| logo | 1 | 512×512 | "zKube" text with theme motifs |
-| grid | 2 (grid-bg + grid-frame) | 512×640 / 576×720 | 4:5 portrait |
-| map | 1 | 1080×1920 | 9:16 portrait, S-curve path with 11 platforms |
-| theme-icon | 1 | 128×128 | Settings selector icon |
+| logo | 1 | 1024×1024 | "zKube" text with theme motifs, covers 3× retina of 340px max display |
+| grid | 2 (grid-bg + grid-frame) | 1024×1280 / 1152×1440 | 4:5 portrait, covers 2× retina of 500px grid container |
+| map | 1 | 1080×1920 | 9:16 portrait, SMB-style world map with winding path |
+| theme-icon | 1 | 128×128 | Settings selector icon (40×40 display, 3× retina) |
 
 ### Global Assets (~30 images)
 
@@ -88,7 +88,7 @@ scripts/generate-assets/
 
 ### Data
 
-Theme definitions live in `data/themes.json`. Each theme has: name, icon, description, mood, palette, motifs, blockMotifs, blockDesigns, scene, loadingScene, gridMaterial.
+Theme definitions live in `data/themes.json`. Each theme has: name, icon, description, mood, palette, motifs, blockMotifs, blockDesigns, scene, loadingScene, gridMaterial, music (menu + gameplay prompts).
 
 Global asset configs (buttons, icons, panels, etc.) live in `data/global-assets.json`.
 

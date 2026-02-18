@@ -54,15 +54,15 @@
     { "filename": "particle-star.png", "description": "A tiny 4-pointed star — radiating points" }
   ],
   "targetDimensions": {
-    "block-1.png": { "width": 544, "height": 544 },
-    "block-2.png": { "width": 1088, "height": 544 },
-    "block-3.png": { "width": 1632, "height": 544 },
-    "block-4.png": { "width": 2176, "height": 544 },
-    "grid-bg.png": { "width": 512, "height": 640 },
-    "grid-frame.png": { "width": 576, "height": 720 },
+    "block-1.png": { "width": 192, "height": 192 },
+    "block-2.png": { "width": 384, "height": 192 },
+    "block-3.png": { "width": 576, "height": 192 },
+    "block-4.png": { "width": 768, "height": 192 },
+    "grid-bg.png": { "width": 1024, "height": 1280 },
+    "grid-frame.png": { "width": 1152, "height": 1440 },
     "background.png": { "width": 2048, "height": 2048 },
     "loading-bg.png": { "width": 2048, "height": 2048 },
-    "logo.png": { "width": 512, "height": 512 },
+    "logo.png": { "width": 1024, "height": 1024 },
     "map.png": { "width": 1080, "height": 1920 },
     "theme-icon.png": { "width": 128, "height": 128 }
   }

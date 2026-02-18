@@ -31,8 +31,9 @@ const NextLine = ({
           height: `${gridHeight * gridSize + borderSize}px`,
           width: `${gridWidth * gridSize + borderSize}px`,
           backgroundImage:
-            "linear-gradient(var(--theme-grid-lines, #1E293B) 2px, transparent 2px), linear-gradient(to right, var(--theme-grid-lines, #1E293B) 2px, var(--theme-grid-bg, #10172A) 2px)",
-          backgroundSize: `${gridSize}px ${gridSize}px`,
+            `linear-gradient(var(--theme-grid-lines, #1E293B) 2px, transparent 2px), linear-gradient(to right, var(--theme-grid-lines, #1E293B) 2px, transparent 2px), var(--theme-grid-bg-image, none)`,
+          backgroundSize: `${gridSize}px ${gridSize}px, ${gridSize}px ${gridSize}px, cover`,
+          backgroundColor: `var(--theme-grid-bg, #10172A)`,
         }}
       >
         {blocks.map((block) => (

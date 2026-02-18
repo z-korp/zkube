@@ -1,208 +1,262 @@
 {
   "theme-1": {
-    "name": "Tiki",
-    "icon": "🌴",
-    "description": "Tropical moonlit beach with carved tiki totems",
-    "mood": "Warm, inviting",
+    "name": "Polynesian",
+    "icon": "🌊",
+    "description": "Warm volcanic island with carved tiki totems and tribal tattoo patterns",
+    "mood": "Warm, rhythmic, volcanic",
     "palette": {
-      "bg": "#87CEEB",
-      "accent": "#FF8C00",
-      "blocks": ["#4ADE80", "#4AA8DE", "#9F7AEA", "#FBBF24"]
+      "bg": "#1A0F0A",
+      "accent": "#FF6B35",
+      "blocks": ["#D4844C", "#8B5E3C", "#E8632B", "#DAA520"]
     },
-    "motifs": "Tiki masks, bamboo, palm trees, tropical flowers",
-    "blockMotifs": "Carved tiki mask faces, bamboo weave patterns, tropical flower motifs",
-    "scene": "Tropical moonlit beach at night, carved tiki totems, palm trees silhouetted, gentle waves",
-    "loadingScene": "Close-up of a carved tiki mask with glowing eyes, surrounded by tropical flowers",
-    "gridMaterial": "Weathered bamboo planks with rope lashing",
+    "motifs": "Tiki masks, tribal tattoo patterns, volcanic rock, ocean waves, Polynesian spirals",
+    "blockMotifs": "Wooden tiki faces carved in relief, tribal tattoo etchings, lava crack textures",
+    "blockDesigns": [
+      "A carved wooden tiki mask face with deep-set eyes and wide grinning mouth, warm brown wood grain texture with tribal tattoo scroll patterns",
+      "A fierce tiki warrior face with elaborate tribal tattoo etchings across the surface, dark koa wood texture with orange glow highlights",
+      "A serene tiki ancestor face with closed eyes and peaceful expression, driftwood texture with turquoise shell inlays and spiral carvings",
+      "A volcanic tiki spirit face with glowing lava cracks running through carved obsidian stone, amber and orange molten veins"
+    ],
+    "scene": "Volcanic Polynesian island at sunset, carved tiki totems lining a black sand beach, palm trees swaying, glowing lava flows meeting the ocean, dramatic orange sky",
+    "loadingScene": "Close-up of an ancient carved tiki mask with glowing lava cracks, surrounded by fern fronds and volcanic steam rising",
+    "gridMaterial": "Dark volcanic basalt carved with tribal tattoo patterns and lava vein cracks",
     "music": {
-      "menu": "A laid-back tropical lo-fi instrumental with soft ukulele fingerpicking over warm steel drum chords and gentle bongo percussion. Light marimba accents shimmer through a haze of ocean breeze ambience. Around 95 BPM, calming and inviting.",
-      "gameplay": "An upbeat island funk instrumental driven by a playful ukulele riff and tight djembe percussion. Kalimba runs sparkle over a steel drum melody. Around 115 BPM, focused and rhythmic."
+      "menu": "A warm Polynesian lo-fi instrumental with soft ukulele fingerpicking over gentle log drum rhythms and ocean wave ambience. Nose flute melody floats through warm island breeze. Around 90 BPM, rhythmic and inviting.",
+      "gameplay": "An energetic Polynesian war dance instrumental driven by powerful log drum polyrhythms and fast ukulele strumming. Conch shell accents punctuate the rhythm. Around 120 BPM, volcanic and driving."
     }
   },
   "theme-2": {
-    "name": "Cosmic",
-    "icon": "🌌",
-    "description": "Synthwave alien landscape with cratered planets and neon rim-lighting",
-    "mood": "Vast, dreamy",
+    "name": "Ancient Egypt",
+    "icon": "🏺",
+    "description": "Golden pyramids at dusk with hieroglyph-covered obelisks and sun-drenched sandstone",
+    "mood": "Monumental, divine, sun-drenched",
     "palette": {
-      "bg": "#0B0D21",
-      "accent": "#A29BFE",
-      "blocks": ["#00D2D3", "#6C5CE7", "#FD79A8", "#FDCB6E"]
+      "bg": "#2A1810",
+      "accent": "#D4AF37",
+      "blocks": ["#D4A574", "#4169E1", "#D4AF37", "#C8553D"]
     },
-    "motifs": "Crystals, nebula swirls, alien glyphs, planets",
-    "blockMotifs": "Cosmic crystal formations, nebula swirl patterns, alien glyph carvings",
-    "scene": "Synthwave alien landscape, cratered planets, neon rim-lighting",
-    "loadingScene": "A swirling nebula with crystal formations floating in deep space",
-    "gridMaterial": "Dark crystalline surface with faint nebula glow",
+    "motifs": "Hieroglyphs, scarab beetles, Eye of Horus, lotus flowers, ankh symbols, obelisks, papyrus scrolls",
+    "blockMotifs": "Sandstone texture with hieroglyph engravings, gold-lined edges, scarab beetle relief carvings",
+    "blockDesigns": [
+      "A sandstone block with deeply engraved Eye of Horus hieroglyph, warm beige texture with fine gold-lined edges, sun-bleached and monumental",
+      "A scarab beetle carved in relief on lapis lazuli blue stone, wings spread wide, gold accent lines on a deep blue surface",
+      "A polished gold-leaf block with engraved lotus flower and ankh symbol pattern, gleaming metallic surface with darker recessed hieroglyphs",
+      "A terracotta-toned sandstone block with engraved cartouche border, hieroglyph symbols filling the interior, thin gold edge lines"
+    ],
+    "scene": "Desert twilight, golden pyramids casting long shadows, hieroglyph-covered obelisks, the Nile reflecting amber sky, palm-lined banks, warm sun-drenched atmosphere",
+    "loadingScene": "Close-up of a hieroglyph-covered wall illuminated by golden torchlight, scarab beetle relief with gold leaf details gleaming",
+    "gridMaterial": "Sun-bleached sandstone with faint hieroglyph watermark and gold-lined edge grooves",
     "music": {
-      "menu": "A dreamy space ambient instrumental with lush analog synth pads. A gentle arpeggiator twinkles over soft sub-bass warmth. Around 80 BPM, retro-futuristic and serene.",
-      "gameplay": "A mid-tempo synthwave instrumental with a pulsing bassline under shimmering arpeggiated synths and crisp electronic drums. Around 110 BPM, propulsive and luminous."
+      "menu": "An elegant Egyptian instrumental with a soft oud melody and gentle darbuka hand drum pattern. Arabic maqam Hijaz scale. Around 85 BPM, regal and serene.",
+      "gameplay": "A rhythmic Egyptian fusion instrumental with driving darbuka and riq tambourine groove over punchy bass oud riffs. 115 BPM, monumental and exotic."
     }
   },
   "theme-3": {
-    "name": "Easter Island",
-    "icon": "🗿",
-    "description": "Mysterious volcanic island with ancient stone guardians",
-    "mood": "Mysterious, eerie, ancient",
+    "name": "Norse",
+    "icon": "❄️",
+    "description": "Frost-covered viking realm with heavy rune stones, iron-clad shields, and aurora-lit skies",
+    "mood": "Cold, powerful, mythic",
     "palette": {
-      "bg": "#0A0A1A",
-      "accent": "#00FFFF",
-      "blocks": ["#4A8A5B", "#3A7A8A", "#8A4A6A", "#B89A4A"]
+      "bg": "#0A1520",
+      "accent": "#7EB8DA",
+      "blocks": ["#7B8FA1", "#4A90B8", "#5C636A", "#A8B8C8"]
     },
-    "motifs": "Moai statues, petroglyphs, volcanic rock",
-    "blockMotifs": "Stone moai faces, volcanic rock patterns, petroglyph carvings",
+    "motifs": "Norse runes, Viking knotwork, longship prows, ravens, Mjolnir, frost patterns, iron rivets",
+    "blockMotifs": "Heavy stone blocks with carved runes, metallic iron frame edges, frost glow crystallization",
     "blockDesigns": [
-      "A stoic forward-facing moai head with closed eyes, weathered mossy stone texture",
-      "A stern moai head with deep eye sockets looking slightly left, ocean-worn stone with teal lichen",
-      "A fierce moai head with open mouth and bared teeth, dark volcanic basalt with magenta mineral veins",
-      "A wise elder moai head with elongated features and a pukao (topknot hat), sandy weathered stone with ochre patina"
+      "A heavy granite rune stone block with deeply carved Norse elder futhark rune, frost crystals forming along the carved grooves, cold blue-grey stone",
+      "A dark iron-framed stone block with frost-blue glow seeping from Viking knotwork carvings, metallic rivets at corners, icy blue patina",
+      "A weathered dark grey stone block with iron banding and a raven silhouette carved in Norse style, frost-rimmed edges, heavy and cold",
+      "A massive pale stone block with Mjolnir relief carving, lightning-blue frost glow filling the engraved channels, silver iron frame"
     ],
-    "scene": "Volcanic island at night, moai silhouettes, bioluminescent pools",
-    "loadingScene": "A single moai statue face emerging from volcanic mist, bioluminescent glow",
-    "gridMaterial": "Dark volcanic basalt with faint glow veins",
+    "scene": "Frozen fjord at night, aurora borealis streaming over snow-covered mountains, viking longships moored at icy docks, rune stones glowing faintly in the snow",
+    "loadingScene": "Close-up of an ancient rune stone covered in frost, each carved rune glowing with faint blue light, snow falling gently",
+    "gridMaterial": "Dark rough-hewn granite with iron frame bands and frost crystallization in the crevices",
     "music": {
-      "menu": "A mysterious retro-futuristic instrumental blending ancient atmosphere with neon synthwave. A haunting stone flute melody over warm analog synth pads. Around 85 BPM, otherworldly and contemplative.",
-      "gameplay": "A driving retro synthwave instrumental with punchy bass synth over tight electronic drums and bright neon arpeggios in a minor key. 118 BPM, neon noir tension."
+      "menu": "A haunting Norse ambient instrumental with deep bowed string drone and sparse nyckelharpa melody. Distant war horn echoes through frozen valleys. Around 80 BPM, vast and mythic.",
+      "gameplay": "A powerful Viking folk metal instrumental with driving war drum percussion and fierce fiddle melody over heavy bass drone. 118 BPM, relentless and cold."
     }
   },
   "theme-4": {
-    "name": "Maya",
-    "icon": "🏛️",
-    "description": "Ancient jungle temple civilization with jade and gold",
-    "mood": "Adventurous, lush",
+    "name": "Ancient Greece",
+    "icon": "🏛",
+    "description": "White marble temples overlooking the Aegean Sea with elegant Greek-key borders and clean architecture",
+    "mood": "Elegant, clean, architectural",
     "palette": {
-      "bg": "#0A2540",
-      "accent": "#00CED1",
-      "blocks": ["#00E5A0", "#00B4D8", "#FF6F91", "#FFC947"]
+      "bg": "#1A2030",
+      "accent": "#3B6FA0",
+      "blocks": ["#E0D8CC", "#3B6FA0", "#C8B89A", "#7B9E7B"]
     },
-    "motifs": "Jade serpents, stepped pyramids, feathered motifs",
-    "blockMotifs": "Jade serpent glyphs, stepped pyramid patterns, feathered serpent motifs",
-    "scene": "Deep jungle, stepped temple, jade canopy, misty waterfalls",
-    "loadingScene": "Jade serpent carving on a moss-covered temple wall, golden light filtering through",
-    "gridMaterial": "Deep ocean-floor stone with turquoise tint",
+    "motifs": "Greek columns, olive wreaths, Greek-key meander patterns, amphoras, temple pediments, laurel crowns",
+    "blockMotifs": "Clean white marble texture, blue Greek-key border patterns, hairline pressure cracks",
+    "blockDesigns": [
+      "A clean white marble block with carved Greek-key meander border in blue, smooth polished surface with subtle hairline cracks, elegant and minimal",
+      "A deep blue block with gold Greek-key border, Aegean blue glazed surface with white marble veining, Hellenic rosette in the center",
+      "A warm cream marble block with carved olive wreath relief, subtle golden edge accents, hairline cracks radiating from center",
+      "A pale green-grey marble block with Ionic column fluting detail in relief, blue geometric border, architectural precision"
+    ],
+    "scene": "Aegean Sea coastline at golden hour, white marble temple ruins on a cliff, olive groves descending to azure waters, scattered broken columns, blue sky",
+    "loadingScene": "Close-up of a white marble Ionic column capital with fine hairline cracks, warm golden sunlight streaming through, blue sky behind",
+    "gridMaterial": "Polished white marble with faint blue-grey veining and hairline cracks under pressure",
     "music": {
-      "menu": "An atmospheric Mesoamerican instrumental with a wooden pan flute melody over gentle rain stick textures and soft clay drum rhythm. Around 85 BPM, mysterious but inviting.",
-      "gameplay": "An energetic Latin world music instrumental driven by quick wooden marimba patterns and rattling seed shakers over tight hand drum rhythms. 120 BPM, ritualistic yet playful."
+      "menu": "An elegant Ancient Greek instrumental with gentle lyre arpeggios and soft aulos flute melody over a light frame drum rhythm. Mediterranean breeze ambience. Around 85 BPM, contemplative and noble.",
+      "gameplay": "A rhythmic Mediterranean instrumental with driving frame drum and tambourine over bright lyre patterns and bold aulos melody. 115 BPM, spirited and architectural."
     }
   },
   "theme-5": {
-    "name": "Cyberpunk",
-    "icon": "💜",
-    "description": "Enchanted ancient forest with golden mystical light",
-    "mood": "Serene, enchanted",
+    "name": "Feudal Japan",
+    "icon": "🎎",
+    "description": "Black lacquer dojo with red trim, brushstroke calligraphy, and cherry blossom petals",
+    "mood": "Refined, disciplined, dramatic",
     "palette": {
-      "bg": "#1A3A1A",
-      "accent": "#DAA520",
-      "blocks": ["#66BB6A", "#42A5F5", "#AB47BC", "#FFCA28"]
+      "bg": "#0D0D12",
+      "accent": "#C41E3A",
+      "blocks": ["#C41E3A", "#3A3A4A", "#D4AF37", "#2D5A3D"]
     },
-    "motifs": "Leaf veins, bark rings, glowing runes, moss",
-    "blockMotifs": "Leaf veins, bark rings, moss patches, glowing runes",
-    "scene": "Forest clearing at golden hour, towering trees with moss",
-    "loadingScene": "Ancient tree trunk close-up with glowing runes and bark patterns",
-    "gridMaterial": "Dark mossy wood bark",
+    "motifs": "Cherry blossoms, katana blades, torii gates, kanji brushstrokes, bamboo, paper lanterns",
+    "blockMotifs": "Black lacquer with red trim edges, bold brushstroke symbols, sakura petal accents",
+    "blockDesigns": [
+      "A crimson lacquer block with bold white kanji brushstroke character painted across the surface, black trim border, high-gloss reflective finish",
+      "A deep black lacquer block with subtle dark blue shimmer, gold inlay brushstroke pattern, thin red trim line at edges, refined and dark",
+      "A gleaming gold lacquer block with a black brushstroke enso circle in the center, red corner accents, polished imperial surface",
+      "A dark pine-green lacquer block with golden chrysanthemum brushstroke design, black border, cherry blossom petal accent in one corner"
+    ],
+    "scene": "Feudal Japanese castle courtyard at twilight, black and red architecture, cherry blossom trees in full bloom, stone lanterns glowing, zen rock garden",
+    "loadingScene": "Close-up of a glossy black lacquer surface with crimson kanji brushstrokes, cherry blossom petals drifting down, warm paper lantern light",
+    "gridMaterial": "Black lacquered wood with subtle grain texture and thin red trim border lines",
     "music": {
-      "menu": "A moody cyberpunk instrumental with warm detuned analog synth chords and slow jazzy electric piano over a laid-back hip-hop beat. Around 80 BPM, noir and nocturnal.",
-      "gameplay": "A slick cyberpunk electronic instrumental with a driving bassline, crisp trap hi-hats, and glitchy arpeggiated synths. 120 BPM, focused and calculated."
+      "menu": "A refined Japanese instrumental with gentle koto plucking and soft shakuhachi bamboo flute melody over wind chime accents. Around 80 BPM, meditative and disciplined.",
+      "gameplay": "A dramatic taiko drum instrumental with powerful rhythmic patterns and piercing shinobue flute melody. Shamisen strikes punctuate the beat. 120 BPM, intense and dramatic."
     }
   },
   "theme-6": {
-    "name": "Medieval",
-    "icon": "⚔️",
-    "description": "Stone castle courtyard with torchlit walls and iron gates",
-    "mood": "Epic, warm, noble",
+    "name": "Ancient China",
+    "icon": "🐉",
+    "description": "Imperial jade palace with dragon-scale overlays, golden calligraphy, and mystical mist",
+    "mood": "Mystical, imperial, flowing",
     "palette": {
-      "bg": "#C2956B",
-      "accent": "#E07B39",
-      "blocks": ["#E07B39", "#D4463B", "#3D9970", "#E8C547"]
+      "bg": "#0A1A0A",
+      "accent": "#50C878",
+      "blocks": ["#50C878", "#2E8B57", "#D4AF37", "#B22222"]
     },
-    "motifs": "Shield crests, iron rivets, stone bricks, torch flames, heraldic lions, sword motifs",
-    "blockMotifs": "Shield crests, iron rivets, stone brick patterns",
-    "scene": "Castle courtyard at sunset, torches, towers, iron portcullis",
-    "loadingScene": "Torchlit stone wall with a shield and crossed swords, warm firelight",
-    "gridMaterial": "Weathered sandstone with grain",
+    "motifs": "Imperial dragons, jade carvings, cloud scrolls, gold calligraphy, pagoda roofs, silk lanterns",
+    "blockMotifs": "Jade texture surface, dragon-scale overlay patterns, gold calligraphy accent strokes",
+    "blockDesigns": [
+      "A polished jade block with dragon-scale overlay texture across the surface, gold calligraphy accent stroke in the center, luminous green translucency",
+      "A deep emerald jade block with imperial dragon coil carved in relief, gold-lined edges, rich internal glow like polished stone",
+      "A gleaming gold block with imperial dragon silhouette and cloud scroll engravings, dark jade accents, calligraphy border pattern",
+      "A cinnabar red lacquer block with golden phoenix feather scale pattern, jade green accent inlays, imperial seal motif in center"
+    ],
+    "scene": "Imperial Chinese palace at night, jade-green rooftops curving skyward, golden silk lanterns lining a marble bridge over misty lotus ponds, dragon statues, moonlit pagodas",
+    "loadingScene": "Close-up of a carved jade dragon head with golden eyes gleaming, mystical mist swirling around it, emerald green luminosity from within",
+    "gridMaterial": "Dark jade stone with subtle dragon-scale texture and thin gold calligraphy vein inlays",
     "music": {
-      "menu": "A warm medieval tavern instrumental with gentle lute fingerpicking and a soft hurdy-gurdy drone. Celtic harp arpeggios add magic. Around 90 BPM, nostalgic and comforting.",
-      "gameplay": "An upbeat medieval folk rock instrumental with lively lute strumming and bright tin whistle melody. 125 BPM, spirited and adventurous."
+      "menu": "A mystical Chinese instrumental with gentle guzheng zither arpeggios and soft dizi bamboo flute melody floating over a resonant gong drone. Around 85 BPM, flowing and imperial.",
+      "gameplay": "A dynamic Chinese orchestral instrumental with soaring erhu melody and powerful war drum patterns. Pipa lute runs cascade over thundering timpani. 118 BPM, mystical and commanding."
     }
   },
   "theme-7": {
-    "name": "Ancient Egypt",
+    "name": "Ancient Persia",
     "icon": "🏺",
-    "description": "Golden pyramids at dusk with hieroglyph-covered obelisks",
-    "mood": "Majestic, mystical, regal",
+    "description": "Regal Persian palace with blue geometric tile mosaics, golden relief carvings, and luminous symmetry",
+    "mood": "Regal, symmetrical, luminous",
     "palette": {
-      "bg": "#D0E8F0",
-      "accent": "#40E0D0",
-      "blocks": ["#40E0D0", "#5B9BD5", "#B070D0", "#F0C060"]
+      "bg": "#0A0F2A",
+      "accent": "#1E90FF",
+      "blocks": ["#2E6EB5", "#4040C0", "#D4AF37", "#40B0A0"]
     },
-    "motifs": "Hieroglyphs, scarab beetles, Eye of Horus, lotus flowers, ankh symbols, papyrus scrolls",
-    "blockMotifs": "Hieroglyphs, scarab beetles, lotus flower carvings",
-    "scene": "Desert twilight, golden pyramids, obelisks, Nile reflection",
-    "loadingScene": "Hieroglyph-covered wall with Eye of Horus, golden torchlight",
-    "gridMaterial": "Cool blue-grey slate with gold hieroglyph inlays",
+    "motifs": "Geometric tile stars, relief lions, peacocks, cypress trees, arabesques, muqarnas vaults",
+    "blockMotifs": "Blue geometric tile patterns with gold grout lines, golden relief animal carvings, luminous symmetry effects",
+    "blockDesigns": [
+      "A Persian blue ceramic tile block with intricate Islamic geometric star pattern, gold grout lines between shapes, luminous deep blue glaze",
+      "A royal blue tile block with golden relief lion carving in proud profile, geometric tile border, symmetrical and regal",
+      "A gleaming gold tile block with embossed arabesque floral symmetry pattern, deep blue accent lines, luminous golden surface",
+      "A turquoise and teal tile block with golden peacock relief in the center, geometric mosaic border, iridescent glaze highlights"
+    ],
+    "scene": "Persian palace courtyard at night, blue tile domes and minarets glowing under moonlight, reflecting pools mirroring the stars, golden lamplight, cypress gardens",
+    "loadingScene": "Close-up of an intricate Persian blue geometric tile mosaic wall, golden grout lines catching warm lamplight, luminous symmetrical glow",
+    "gridMaterial": "Deep blue ceramic tile with subtle geometric star pattern and thin gold inlay lines between tiles",
     "music": {
-      "menu": "An elegant Egyptian instrumental with a soft oud melody and gentle darbuka hand drum pattern. Arabic maqam Hijaz scale. Around 85 BPM, regal and serene.",
-      "gameplay": "A rhythmic Egyptian fusion instrumental with driving darbuka and riq tambourine groove over punchy bass oud. 115 BPM, focused and exotic."
+      "menu": "An elegant Persian instrumental with soft santur hammered dulcimer arpeggios and gentle ney flute melody. Zarb hand drum keeps a subtle pulse. Around 85 BPM, regal and luminous.",
+      "gameplay": "A rhythmic Persian fusion instrumental with driving tombak drum patterns and bright tar lute melody. Santur cascades over tight daf frame drum groove. 115 BPM, symmetrical and flowing."
     }
   },
   "theme-8": {
-    "name": "Volcano",
-    "icon": "🌋",
-    "description": "Volcanic forge with rivers of lava and obsidian pillars",
-    "mood": "Intense, dramatic, primal",
+    "name": "Mayan",
+    "icon": "🌿",
+    "description": "Dense jungle temple ruins with carved stone, calendar glyphs, and moss-covered ancient masonry",
+    "mood": "Dense, ancient, powerful",
     "palette": {
-      "bg": "#1A0A0A",
-      "accent": "#FF6600",
-      "blocks": ["#FF6600", "#FF2222", "#FFAA00", "#FF4488"]
+      "bg": "#0A1A0A",
+      "accent": "#4CAF50",
+      "blocks": ["#6B8E23", "#8B7355", "#2E7D52", "#B8A040"]
     },
-    "motifs": "Lava cracks, obsidian shards, ember glow, volcanic vents, magma flows, basalt columns",
-    "blockMotifs": "Obsidian shards, lava crack patterns, ember glow veins",
-    "scene": "Volcanic forge interior, rivers of lava flowing between obsidian platforms, ember-filled sky, basalt columns",
-    "loadingScene": "Obsidian rock face with molten lava cracks glowing orange-red",
-    "gridMaterial": "Cracked obsidian with faint ember glow between fissures",
+    "motifs": "Calendar glyphs, feathered serpents, stepped pyramids, jungle vines, jaguar motifs, obsidian blades",
+    "blockMotifs": "Carved jungle stone with calendar glyph variations, moss growing in the carved crevices",
+    "blockDesigns": [
+      "A carved olive-green jungle stone block with Mayan calendar glyph deeply engraved, moss growing in the carved grooves, weathered and ancient",
+      "A warm brown stone block with Aztec feathered serpent relief carving, jungle moss creeping from edges, dense and powerful texture",
+      "A dark green stone block with Mayan numeral dots-and-bars system carved in relief, vine tendrils wrapping the corners, deep jungle feel",
+      "A khaki-gold stone block with jaguar head glyph carved in profile, obsidian eye inlay glinting, moss and lichen patches at edges"
+    ],
+    "scene": "Deep jungle at dawn, massive stepped Mayan pyramid rising through the canopy, moss-covered stone ruins scattered among giant trees, mist hanging in the air, filtered green light",
+    "loadingScene": "Close-up of a moss-covered carved stone wall with Mayan calendar glyphs, jungle vines creeping over the surface, filtered green light through the canopy",
+    "gridMaterial": "Weathered jungle limestone with moss filling the carved grooves and vine tendrils at edges",
     "music": {
-      "menu": "A dark volcanic ambient instrumental with deep rumbling sub-bass. Slow metallic percussion — anvil strikes and chain rattles. Around 75 BPM, ominous but hypnotic.",
-      "gameplay": "A driving industrial metal instrumental with heavy bass pulse and metallic percussion. 125 BPM, relentless forward momentum."
+      "menu": "An atmospheric Mesoamerican instrumental with a wooden pan flute melody over gentle rain stick textures and soft clay drum rhythm. Jungle bird calls in the distance. Around 85 BPM, mysterious and ancient.",
+      "gameplay": "An energetic Aztec ritual instrumental driven by powerful wooden slit drum patterns and rattling seed shakers over fierce clay ocarina melody. 120 BPM, dense and powerful."
     }
   },
   "theme-9": {
-    "name": "Tribal",
-    "icon": "🪘",
-    "description": "Earthy savanna ritual grounds with painted stones and drums",
-    "mood": "Earthy, spiritual, organic",
+    "name": "Pueblo",
+    "icon": "🪶",
+    "description": "Adobe desert settlement with turquoise inlays, geometric painted borders, and vast canyon skies",
+    "mood": "Earthy, desert, spiritual",
     "palette": {
-      "bg": "#FFF0F5",
-      "accent": "#FF69B4",
-      "blocks": ["#7DCEA0", "#85C1E9", "#D7BDE2", "#F9E154"]
+      "bg": "#2A1F14",
+      "accent": "#40C8B8",
+      "blocks": ["#C4956B", "#40C8B8", "#8B5A2B", "#CC6644"]
     },
-    "motifs": "Painted patterns, drum motifs, feather marks, bone beads, ritual masks, cave paintings",
-    "blockMotifs": "Painted tribal patterns, drum circle motifs, feather marks",
-    "scene": "Savanna dawn, ritual stone circle, wildflowers, acacia trees",
-    "loadingScene": "Painted ritual drum surrounded by feathers and wildflowers, warm earth tones",
-    "gridMaterial": "Rose-tinted clay with faint handprint texture",
+    "motifs": "Turquoise stones, eagle feathers, geometric stepped borders, adobe walls, thunderbird motifs, desert sun",
+    "blockMotifs": "Adobe clay texture, turquoise stone inlays, geometric painted border patterns",
+    "blockDesigns": [
+      "An adobe clay block with a turquoise stone inlay in the center, geometric stepped border painted in white and earth tones, warm sun-baked surface",
+      "A turquoise-dominated block with adobe clay border frame, geometric Pueblo zigzag patterns painted in white, cool and spiritual",
+      "A saddle brown adobe block with thunderbird motif painted in geometric style, turquoise accent dots at corners, warm desert patina",
+      "A terra cotta clay block with turquoise and coral inlay mosaic pattern in the center, geometric painted borders in rust and cream"
+    ],
+    "scene": "Desert mesa at sunset, multi-story adobe pueblo settlement carved into red rock cliffs, turquoise sky fading to orange, vast canyon landscape, scattered sage brush and juniper",
+    "loadingScene": "Close-up of an adobe wall surface with turquoise stone inlays set into geometric painted patterns, warm golden desert light illuminating the texture",
+    "gridMaterial": "Smooth sun-baked adobe clay with faint geometric painted patterns and turquoise inlay fragments",
     "music": {
-      "menu": "A warm organic tribal instrumental with soft djembe hand drumming and gentle kalimba melody. Around 90 BPM, earthy and grounding.",
-      "gameplay": "A groovy Afrobeat instrumental with tight djembe and dunun in polyrhythmic lockstep. Funky kalimba riffs. 120 BPM, joyful and rhythmic."
+      "menu": "A spiritual desert ambient instrumental with soft Native American cedar flute melody over gentle rattle shaker rhythm. Distant canyon wind echoes. Around 80 BPM, earthy and vast.",
+      "gameplay": "A rhythmic Southwestern instrumental with driving hand drum patterns and bright cedar flute runs over steady rattle and bell accents. 115 BPM, grounded and spiritual."
     }
   },
   "theme-10": {
-    "name": "Arctic",
-    "icon": "❄️",
-    "description": "Frozen tundra under aurora borealis with steampunk brass structures",
-    "mood": "Cold, wondrous, mechanical",
+    "name": "Inca",
+    "icon": "🏔",
+    "description": "Mountainous stone citadel with interlocking polygonal masonry, sun-god gold highlights, and rope textile accents",
+    "mood": "Mountainous, precise, monumental",
     "palette": {
-      "bg": "#2A1F14",
-      "accent": "#D4A017",
-      "blocks": ["#B87333", "#C5A050", "#6B8E23", "#CC5544"]
+      "bg": "#1A1A2A",
+      "accent": "#D4AF37",
+      "blocks": ["#9A8E82", "#D4AF37", "#6E7B7C", "#7B8B6B"]
     },
-    "motifs": "Ice crystals, brass gears, copper pipes, snowflakes, aurora waves, frozen clockwork",
-    "blockMotifs": "Brass gear faces, copper pipe rivets, frozen clockwork",
-    "scene": "Frozen tundra, aurora borealis, ice crystals, brass structures",
-    "loadingScene": "Ice crystal formation with aurora light refracting through, brass gears embedded",
-    "gridMaterial": "Dark worn leather with brass patina rivets",
+    "motifs": "Interlocking polygonal stones, Inti sun god disc, quipu rope knots, condor silhouettes, textile weave patterns, mountain terraces",
+    "blockMotifs": "Interlocking polygonal stone masonry with perfect joints, sun-god gold highlight accents, rope and textile border accents",
+    "blockDesigns": [
+      "A warm grey interlocking polygonal stone block with perfectly fitted irregular edges and no mortar, Inca sun-god gold disc accent in center, granite texture",
+      "A gleaming gold block with embossed Inti sun rays radiating outward, rope textile border accent at edges, polished ceremonial surface",
+      "A cool grey polygonal stone block with a condor relief carved in profile, gold highlight accents along wing feathers, mountainous grey granite",
+      "A grey-green stone block with quipu rope knot textile pattern carved as border decoration, gold sun highlights, precise interlocking masonry edges"
+    ],
+    "scene": "Mountain citadel at dawn inspired by Machu Picchu, massive interlocking stone walls, terraced hillsides descending into cloud forest, condors soaring over Andes peaks, golden sunrise",
+    "loadingScene": "Close-up of perfectly interlocking polygonal stone wall with a gold Inti sun-god disc embedded in the masonry, morning mist rolling past the stones",
+    "gridMaterial": "Precisely fitted grey polygonal stone masonry with thin gold highlight lines between the interlocking blocks",
     "music": {
-      "menu": "A serene arctic ambient instrumental with crystalline bell tones and a soft bowed string drone under sparse piano melody. Around 75 BPM, vast and frozen.",
-      "gameplay": "A crisp Nordic folk electronic instrumental with staccato strings and tight electronic drums. Bright folk fiddle melody. 115 BPM, determined and brisk."
+      "menu": "A majestic Andean instrumental with gentle charango melody and soft pan flute harmonies over a steady bombo drum pulse. Mountain wind ambience. Around 85 BPM, monumental and serene.",
+      "gameplay": "A powerful Andean instrumental driven by rapid charango strumming and soaring quena flute over thundering bombo legüero war drums. 120 BPM, precise and mountainous."
     }
   }
 }

@@ -47,7 +47,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       const width = i + 1;
       const color = theme.palette.blocks[i];
       const filename = `block-${width}.png`;
-      const target = getTargetDimensions(filename, { width: 1024, height: 1024 });
+      const target = getTargetDimensions(filename, { width: 192, height: 192 });
 
       if (width === 1) {
         jobs.push({
@@ -111,7 +111,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       filename: "logo.png",
       outputPath: path.join(themeRoot, "logo.png"),
       prompt: buildLogoPrompt(theme),
-      ...getTargetDimensions("logo.png", { width: 512, height: 512 }),
+      ...getTargetDimensions("logo.png", { width: 1024, height: 1024 }),
     });
   }
 
@@ -123,7 +123,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       filename: "grid-bg.png",
       outputPath: path.join(themeRoot, "grid-bg.png"),
       prompt: buildGridBackgroundPrompt(theme),
-      ...getTargetDimensions("grid-bg.png", { width: 512, height: 640 }),
+      ...getTargetDimensions("grid-bg.png", { width: 1024, height: 1280 }),
     });
     jobs.push({
       scope: "per-theme",
@@ -132,7 +132,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       filename: "grid-frame.png",
       outputPath: path.join(themeRoot, "grid-frame.png"),
       prompt: buildGridFramePrompt(theme),
-      ...getTargetDimensions("grid-frame.png", { width: 576, height: 720 }),
+      ...getTargetDimensions("grid-frame.png", { width: 1152, height: 1440 }),
     });
   }
 

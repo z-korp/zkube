@@ -2,6 +2,7 @@ import {
   THEME_IDS,
   THEME_META,
   getThemeColors,
+  getThemeImages,
   type ThemeId,
 } from "@/config/themes";
 
@@ -22,6 +23,7 @@ const toThemeId = (themeId: string): ThemeId => {
 export const ZoneBackground: React.FC<ZoneBackgroundProps> = ({ zone, themeId }) => {
   const safeThemeId = toThemeId(themeId);
   const theme = getThemeColors(safeThemeId);
+  const themeImages = getThemeImages(safeThemeId);
   const meta = THEME_META[safeThemeId];
 
   return (
@@ -31,6 +33,15 @@ export const ZoneBackground: React.FC<ZoneBackgroundProps> = ({ zone, themeId })
         background: `linear-gradient(180deg, ${theme.backgroundGradientStart} 0%, ${theme.backgroundGradientEnd} 100%)`,
       }}
     >
+      <img
+        src={themeImages.map}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover"
+        draggable={false}
+        onError={(e) => {
+          (e.target as HTMLImageElement).style.display = "none";
+        }}
+      />
       <div
         className="absolute inset-0"
         style={{

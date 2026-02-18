@@ -140,35 +140,36 @@ Dark background matching the theme.
 
 export function buildMapPrompt(theme: ThemeDefinition): string {
   return `
-Art style: Stylized 2D vector/cartoon game art. Bold black outlines as separators. Flat-fill cel-shading with 2-3 tonal steps per surface. Subtle distressed grunge texture overlay. Clean graphic readability. NOT photographic, NOT pixel art, NOT 3D rendered. Think tribal mask / cultural emblem aesthetic.
+Art style: Super Mario Bros world map / overworld map illustration. Stylized 2D cartoon game art with bold outlines, rich saturated colors, flat cel-shaded surfaces with 2-3 tonal steps. Hand-painted digital illustration — NOT photographic, NOT pixel art, NOT 3D rendered.
 
-Generate a full-screen progression map for a mobile puzzle game zone.
+Generate a Super Mario Bros-style world map for a mobile puzzle game zone.
 Theme: ${theme.name} — ${theme.description}
-The map shows a winding S-curve path with 11 small stone/themed platforms where game nodes will be placed.
-The path starts at the BOTTOM of the image and winds up to a dramatic boss arena at the TOP.
 
-PLATFORM POSITIONS (approximate, as percentage from left and from top):
-1. Bottom-left area (35% from left, 90% from top) — small circular stone platform
-2. Right side (65% left, 82% top) — small platform
-3. Left side (35% left, 74% top) — small platform
-4. Right side (60% left, 66% top) — small platform
-5. Left side (30% left, 58% top) — small platform
-6. Right side (60% left, 50% top) — small platform
-7. Left side (35% left, 42% top) — small platform
-8. Right side (60% left, 34% top) — small platform
-9. Left side (30% left, 26% top) — small platform
-10. Right side (60% left, 16% top) — slightly larger platform with a market stall or treasure chest (this is the SHOP)
-11. Center top (50% left, 6% top) — LARGE dramatic boss arena with imposing ${theme.name}-themed architecture
+LAYOUT: A winding dirt/stone path snakes from the BOTTOM of the image to the TOP in an S-curve pattern, zigzagging left-right-left-right. The path is wide, clearly visible, and lighter than the surrounding terrain.
 
-A clear winding trail/path connects all 11 platforms in order from bottom to top.
-The platforms should be small circular clearings (except shop = medium, boss = large).
+Along the path are 11 small circular platform clearings where game level nodes will be overlaid by UI code:
+1. Bottom-left (35%, 92%) — small round clearing
+2. Right (65%, 84%) — small clearing
+3. Left (35%, 76%) — small clearing
+4. Right (60%, 68%) — small clearing
+5. Left (30%, 60%) — small clearing
+6. Right (60%, 52%) — small clearing
+7. Left (35%, 44%) — small clearing
+8. Right (60%, 36%) — small clearing
+9. Left (30%, 28%) — small clearing
+10. Right (60%, 18%) — medium clearing with a small themed market stall or treasure chest (SHOP node)
+11. Center-top (50%, 7%) — LARGE imposing boss arena with dramatic ${theme.name}-themed architecture
 
-Composition: Portrait (9:16). All 11 platforms must fit within the image — no cropping.
-Background: ${theme.scene} — lush, atmospheric, fills the entire image.
+SCENERY: The landscape around the path is rich with ${theme.name} themed environment — ${theme.scene}. Lush decorative elements flank the path: ${theme.motifs}. The terrain has depth and variety — hills, vegetation, water features, rocks, themed decorations scattered throughout.
+
+STYLE REFERENCE: Think Super Mario World overworld map — a bird's-eye view of a themed landscape with a clear winding path connecting level platforms. Bright, colorful, inviting. Each platform is a small raised circular area where a player icon would stand.
+
+The clearings/platforms should be SUBTLE — small flat circles on the path, NOT mushroom platforms or elaborate structures (except the boss arena at top which should be dramatic). The UI will overlay interactive buttons on these spots.
+
+Portrait (9:16). Full-bleed — fills entire canvas edge to edge.
 Mood: ${theme.mood}. Adventurous, inviting exploration.
-Color palette: Rich atmospheric tones. Path slightly lighter than surroundings. Accent: ${theme.palette.accent}.
-The platforms should be visible but subtle — small stone/themed circles where UI buttons will be overlaid.
-No text, no numbers, no labels, no UI elements, no people.
+Color: Rich atmospheric palette. Path lighter than surroundings. Accent: ${theme.palette.accent}.
+No text, no numbers, no labels, no UI elements, no people, no characters.
 `.trim();
 }
 
