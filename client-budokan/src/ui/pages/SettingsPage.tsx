@@ -81,8 +81,8 @@ const SettingsPage: React.FC = () => {
               </h2>
             </div>
 
-            <div className="space-y-4">
-              <label className="block">
+            <div className="flex flex-col gap-4">
+              <div className="min-h-[48px]">
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="flex items-center gap-2 text-slate-200 text-sm">
                     <Volume2 size={14} className="text-cyan-300" />
@@ -101,11 +101,11 @@ const SettingsPage: React.FC = () => {
                   onChange={(event) =>
                     setMusicVolume(Number(event.target.value) / 100)
                   }
-                  className="w-full accent-cyan-400"
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-slate-600 accent-cyan-400"
                 />
-              </label>
+              </div>
 
-              <label className="block">
+              <div className="min-h-[48px]">
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="flex items-center gap-2 text-slate-200 text-sm">
                     <Sparkles size={14} className="text-emerald-300" />
@@ -124,9 +124,9 @@ const SettingsPage: React.FC = () => {
                   onChange={(event) =>
                     setEffectsVolume(Number(event.target.value) / 100)
                   }
-                  className="w-full accent-emerald-400"
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-slate-600 accent-emerald-400"
                 />
-              </label>
+              </div>
             </div>
           </motion.section>
 

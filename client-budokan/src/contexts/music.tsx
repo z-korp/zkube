@@ -60,6 +60,7 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
   const [currentContext, setCurrentContextState] = useState<MusicContext>(DEFAULT_MUSIC_CONTEXT);
   const [isPlaying, setIsPlaying] = useState<boolean>(audioManager.isPlaying);
   const wasPlayingBeforeHiddenRef = useRef(false);
+  const audioUnlockedRef = useRef(false);
 
   useEffect(() => {
     const settings = loadAudioSettings();
@@ -68,6 +69,33 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
     setMusicVolumeState(settings.musicVolume);
     setEffectsVolumeState(settings.effectsVolume);
   }, []);
+
+  // Web Audio autoplay policy: browsers block Howl.play() until a user gesture.
+  // Re-trigger playMusic on first interaction so the track actually starts.
+  useEffect(() => {
+    const unlock = () => {
+      if (audioUnlockedRef.current) return;
+      audioUnlockedRef.current = true;
+
+      audioManager.playMusic(themeId, currentContext);
+      setIsPlaying(audioManager.isPlaying);
+
+      document.removeEventListener("click", unlock, true);
+      document.removeEventListener("touchstart", unlock, true);
+      document.removeEventListener("keydown", unlock, true);
+    };
+
+    document.addEventListener("click", unlock, true);
+    document.addEventListener("touchstart", unlock, true);
+    document.addEventListener("keydown", unlock, true);
+
+    return () => {
+      document.removeEventListener("click", unlock, true);
+      document.removeEventListener("touchstart", unlock, true);
+      document.removeEventListener("keydown", unlock, true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [themeId, currentContext]);
 
   useEffect(() => {
     if (audioManager.isPlaying) {
