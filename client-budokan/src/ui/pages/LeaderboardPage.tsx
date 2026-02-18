@@ -1,0 +1,108 @@
+import { motion } from "motion/react";
+import { Crown, Medal, Trophy, Users } from "lucide-react";
+import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
+import { useNavigationStore } from "@/stores/navigationStore";
+import ThemeBackground from "@/ui/components/shared/ThemeBackground";
+import PageTopBar from "@/ui/navigation/PageTopBar";
+
+const rankStyle = (rank: number): string => {
+  if (rank === 1) return "bg-yellow-400/20 text-yellow-100 border border-yellow-300/40";
+  if (rank === 2) return "bg-slate-300/15 text-slate-100 border border-slate-300/35";
+  if (rank === 3) return "bg-amber-500/20 text-amber-100 border border-amber-400/35";
+  return "bg-slate-800/60 text-slate-200 border border-slate-700/50";
+};
+
+const getRankIcon = (rank: number) => {
+  if (rank === 1) return <Crown size={14} className="text-yellow-200" />;
+  if (rank === 2) return <Medal size={14} className="text-slate-100" />;
+  if (rank === 3) return <Trophy size={14} className="text-amber-200" />;
+  return null;
+};
+
+const LeaderboardPage: React.FC = () => {
+  const goBack = useNavigationStore((state) => state.goBack);
+  const { games, loading } = useLeaderboardSlot();
+
+  return (
+    <div className="h-screen-viewport flex flex-col">
+      <ThemeBackground />
+
+      <PageTopBar title="LEADERBOARD" onBack={goBack} />
+
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4">
+        <div className="max-w-[860px] mx-auto pb-8">
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <Users size={17} className="text-cyan-300" />
+              <h2 className="font-['Fredericka_the_Great'] text-lg text-white">
+                Top Players
+              </h2>
+            </div>
+
+            {loading ? (
+              <div className="text-slate-200 text-sm">Loading leaderboard...</div>
+            ) : games.length === 0 ? (
+              <div className="text-slate-200 text-sm">
+                No entries yet. Finish a run to claim rank #1.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[560px] text-sm">
+                  <thead>
+                    <tr className="text-left text-slate-300 border-b border-slate-600/60">
+                      <th className="py-2 px-2 font-['Fredericka_the_Great']">Rank</th>
+                      <th className="py-2 px-2 font-['Fredericka_the_Great']">Player</th>
+                      <th className="py-2 px-2 font-['Fredericka_the_Great']">Level</th>
+                      <th className="py-2 px-2 font-['Fredericka_the_Great']">Score</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {games.map((entry, index) => {
+                      const rank = index + 1;
+                      const playerName = entry.player_name || `Game #${entry.token_id}`;
+
+                      return (
+                        <motion.tr
+                          key={entry.token_id}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.02 }}
+                          className={`${rankStyle(rank)} border-b border-slate-700/40`}
+                        >
+                          <td className="py-2.5 px-2">
+                            <span className="inline-flex items-center gap-1.5 font-['Bangers'] text-lg tracking-wide">
+                              {getRankIcon(rank)}#{rank}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-2 text-white truncate max-w-[260px]">
+                            {playerName}
+                          </td>
+                          <td className="py-2.5 px-2 text-cyan-200">
+                            <span className="font-['Bangers'] text-lg tracking-wide">
+                              {entry.level}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-2 text-amber-200">
+                            <span className="font-['Bangers'] text-lg tracking-wide">
+                              {entry.score}
+                            </span>
+                          </td>
+                        </motion.tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </motion.section>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LeaderboardPage;
