@@ -50,53 +50,51 @@ const LeaderboardPage: React.FC = () => {
                 No entries yet. Finish a run to claim rank #1.
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[560px] text-sm">
-                  <thead>
-                    <tr className="text-left text-slate-300 border-b border-slate-600/60">
-                      <th className="py-2 px-2 font-['Fredericka_the_Great']">Rank</th>
-                      <th className="py-2 px-2 font-['Fredericka_the_Great']">Player</th>
-                      <th className="py-2 px-2 font-['Fredericka_the_Great']">Level</th>
-                      <th className="py-2 px-2 font-['Fredericka_the_Great']">Score</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {games.map((entry, index) => {
-                      const rank = index + 1;
-                      const playerName = entry.player_name || `Game #${entry.token_id}`;
+              <table className="w-full text-sm table-fixed">
+                <thead>
+                  <tr className="text-left text-slate-300 border-b border-slate-600/60">
+                    <th className="py-2 px-2 w-16 font-['Fredericka_the_Great']">Rank</th>
+                    <th className="py-2 px-2 font-['Fredericka_the_Great']">Player</th>
+                    <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
+                    <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {games.map((entry, index) => {
+                    const rank = index + 1;
+                    const playerName = entry.player_name || `Game #${entry.token_id}`;
 
-                      return (
-                        <motion.tr
-                          key={entry.token_id}
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.02 }}
-                          className={`${rankStyle(rank)} border-b border-slate-700/40`}
-                        >
-                          <td className="py-2.5 px-2">
-                            <span className="inline-flex items-center gap-1.5 font-['Bangers'] text-lg tracking-wide">
-                              {getRankIcon(rank)}#{rank}
-                            </span>
-                          </td>
-                          <td className="py-2.5 px-2 text-white truncate max-w-[260px]">
-                            {playerName}
-                          </td>
-                          <td className="py-2.5 px-2 text-cyan-200">
-                            <span className="font-['Bangers'] text-lg tracking-wide">
-                              {entry.level}
-                            </span>
-                          </td>
-                          <td className="py-2.5 px-2 text-amber-200">
-                            <span className="font-['Bangers'] text-lg tracking-wide">
-                              {entry.score}
-                            </span>
-                          </td>
-                        </motion.tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                    return (
+                      <motion.tr
+                        key={entry.token_id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.02 }}
+                        className={`${rankStyle(rank)} border-b border-slate-700/40`}
+                      >
+                        <td className="py-2.5 px-2">
+                          <span className="inline-flex items-center gap-1 font-['Bangers'] text-lg tracking-wide">
+                            {getRankIcon(rank)}#{rank}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-2 text-white truncate">
+                          {playerName}
+                        </td>
+                        <td className="py-2.5 px-2 text-cyan-200 text-right">
+                          <span className="font-['Bangers'] text-lg tracking-wide">
+                            {entry.level}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-2 text-amber-200 text-right">
+                          <span className="font-['Bangers'] text-lg tracking-wide">
+                            {entry.score}
+                          </span>
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             )}
           </motion.section>
         </div>

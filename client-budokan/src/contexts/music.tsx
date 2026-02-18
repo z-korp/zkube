@@ -138,6 +138,9 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
 
   const setMusicContext = useCallback(
     (context: MusicContext) => {
+      if (audioManager.currentThemeId === themeId && audioManager.currentContext === context && audioManager.isPlaying) {
+        return;
+      }
       setCurrentContextState(context);
       audioManager.playMusic(themeId, context);
       setIsPlaying(audioManager.isPlaying);
