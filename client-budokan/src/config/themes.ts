@@ -453,13 +453,31 @@ export const THEME_MUSIC: Record<ThemeId, Record<MusicContext, string>> = {
 };
 
 export const SFX_PATHS = {
+  // Core gameplay
+  move: "/assets/common/sounds/effects/move.mp3",
+  swipe: "/assets/common/sounds/effects/swipe.mp3",
   break: "/assets/common/sounds/effects/break.mp3",
   explode: "/assets/common/sounds/effects/explode.mp3",
-  move: "/assets/common/sounds/effects/move.mp3",
   new: "/assets/common/sounds/effects/new.mp3",
-  over: "/assets/common/sounds/effects/over.mp3",
+  // Game flow
   start: "/assets/common/sounds/effects/start.mp3",
-  swipe: "/assets/common/sounds/effects/swipe.mp3",
+  over: "/assets/common/sounds/effects/over.mp3",
+  levelup: "/assets/common/sounds/effects/levelup.mp3",
+  victory: "/assets/common/sounds/effects/victory.mp3",
+  // Boss
+  "boss-intro": "/assets/common/sounds/effects/boss-intro.mp3",
+  "boss-defeat": "/assets/common/sounds/effects/boss-defeat.mp3",
+  // UI interaction
+  click: "/assets/common/sounds/effects/click.mp3",
+  coin: "/assets/common/sounds/effects/coin.mp3",
+  star: "/assets/common/sounds/effects/star.mp3",
+  claim: "/assets/common/sounds/effects/claim.mp3",
+  // Bonus & shop
+  "bonus-activate": "/assets/common/sounds/effects/bonus-activate.mp3",
+  "shop-purchase": "/assets/common/sounds/effects/shop-purchase.mp3",
+  equip: "/assets/common/sounds/effects/equip.mp3",
+  unequip: "/assets/common/sounds/effects/unequip.mp3",
+  "constraint-complete": "/assets/common/sounds/effects/constraint-complete.mp3",
 } as const;
 
 export type SfxName = keyof typeof SFX_PATHS;

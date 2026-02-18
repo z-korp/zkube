@@ -1,16 +1,18 @@
 import fs from "node:fs";
 import path from "node:path";
+import { execSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 import { fal } from "@fal-ai/client";
 import sharp from "sharp";
 
 const MODEL = "fal-ai/flux-2-pro";
+const SFX_MODEL = "cassetteai/sound-effects-generator";
 const CONCURRENCY = 2;
 const REQUEST_DELAY_MS = 3_000;
 const RETRY_BACKOFF_MS = [15_000, 30_000, 60_000, 120_000] as const;
 const MAX_RETRIES = RETRY_BACKOFF_MS.length;
 
-type Scope = "per-theme" | "global" | "all";
+type Scope = "per-theme" | "global" | "all" | "sfx";
 type PerThemeAsset =
   | "blocks"
   | "background"
@@ -55,10 +57,19 @@ interface AssetJob {
   phase?: number;
 }
 
+interface SfxJob {
+  id: string;
+  filename: string;
+  outputPath: string;
+  prompt: string;
+  duration: number;
+}
+
 interface CliOptions {
   theme?: string;
   scope: Scope;
   asset?: AssetCategory;
+  only?: string[];
   dryRun: boolean;
   includeRefs: boolean;
   postProcess: boolean;
@@ -267,6 +278,149 @@ const PARTICLE_CONFIGS = [
   { filename: "particle-leaf.png", description: "A small leaf shape — slightly curved" },
   { filename: "particle-flower.png", description: "A tiny 5-petal flower — simple and symmetric" },
   { filename: "particle-star.png", description: "A tiny 4-pointed star — radiating points" },
+] as const;
+
+const SFX_DEFINITIONS = [
+  {
+    id: "move",
+    filename: "move.mp3",
+    duration: 1,
+    prompt:
+      "A single polished obsidian stone sliding across smooth quartz surface, brief friction texture ending in a soft mineral click as it locks into position. Clean, responsive, satisfying. Short stone-chamber reverb.",
+  },
+  {
+    id: "swipe",
+    filename: "swipe.mp3",
+    duration: 1,
+    prompt:
+      "Quick airy displacement of air across carved stone surface, like a hand brushing over polished basalt. Subtle crystalline shimmer at the tail. Fast, light, directional.",
+  },
+  {
+    id: "break",
+    filename: "break.mp3",
+    duration: 1,
+    prompt:
+      "A thin sheet of volcanic glass cracking cleanly in two — bright, sharp snap with crystalline shimmer overtones. Quick attack, fast decay. Satisfying mineral fracture with short stone-chamber reverb.",
+  },
+  {
+    id: "explode",
+    filename: "explode.mp3",
+    duration: 2,
+    prompt:
+      "Rapid cascade of geode crystals shattering in sequence, building to a bright mineral energy burst. Multiple stone fragments scattering across a temple floor. Deep quartz bass punctuation at the peak.",
+  },
+  {
+    id: "new",
+    filename: "new.mp3",
+    duration: 1,
+    prompt:
+      "Three ascending crystal chime tones — like tuned mineral bars struck in quick succession. Elements materializing from stone dust and clicking solidly into place. Bright, inviting, with temple reverb.",
+  },
+  {
+    id: "start",
+    filename: "start.mp3",
+    duration: 2,
+    prompt:
+      "A stone temple awakening — deep resonant gong strike followed by ascending crystal chime cascade. Percussive mineral impacts build energy into a bright quartz accent. Confident, ceremonial game-start signal.",
+  },
+  {
+    id: "over",
+    filename: "over.mp3",
+    duration: 2,
+    prompt:
+      "A heavy obsidian block dropping onto stone floor — deep resonant mineral impact. Slow descending crystal tones with fading temple reverb. Finality without harshness. The sound of stone settling.",
+  },
+  {
+    id: "levelup",
+    filename: "levelup.mp3",
+    duration: 2,
+    prompt:
+      "Short triumphant fanfare of tuned crystal bars struck in ascending sequence, culminating in a bright resonant singing bowl tone. Stone temple celebration — confident, warm, mineral. Punchy and celebratory.",
+  },
+  {
+    id: "victory",
+    filename: "victory.mp3",
+    duration: 5,
+    prompt:
+      "Grand temple ceremony — deep gong strike opens into cascading crystal chimes, ascending mineral bar fanfare, singing bowls ringing in harmony. Layers of stone percussion and crystalline resonance building to a luminous climax. Majestic, earned, transcendent.",
+  },
+  {
+    id: "boss-intro",
+    filename: "boss-intro.mp3",
+    duration: 3,
+    prompt:
+      "Deep volcanic rumble building slowly — stone grinding against stone, low mineral drones. A massive obsidian slab shifting. Ominous crystal resonances growing in intensity. Tension without resolution — something ancient is awakening. Temple walls vibrating.",
+  },
+  {
+    id: "boss-defeat",
+    filename: "boss-defeat.mp3",
+    duration: 2,
+    prompt:
+      "A giant crystal structure shattering explosively — volcanic glass breaking apart in a shower of mineral fragments, followed by a triumphant ascending chord of singing bowls and tuned stone. The boss crumbles, the temple rings with victory.",
+  },
+  {
+    id: "click",
+    filename: "click.mp3",
+    duration: 1,
+    prompt:
+      "A single small polished stone tapped against crystal — minimal, clean, tactile. One short bright click with the tiniest hint of mineral reverb. Crisp and subtle, like a pebble touching quartz.",
+  },
+  {
+    id: "coin",
+    filename: "coin.mp3",
+    duration: 1,
+    prompt:
+      "A crystalline mineral coin striking a stone surface — bright upward ting with metallic-mineral shimmer. Like a faceted gemstone bouncing once on polished obsidian. Quick, rewarding, sparkly.",
+  },
+  {
+    id: "star",
+    filename: "star.mp3",
+    duration: 1,
+    prompt:
+      "A single pure crystal bell struck cleanly — high, bright, ringing with harmonic overtones. Like a perfectly formed quartz point being flicked. Pure mineral tone with temple resonance.",
+  },
+  {
+    id: "claim",
+    filename: "claim.mp3",
+    duration: 2,
+    prompt:
+      "A geode cracking open to reveal crystals inside — initial stone crack, then ascending sparkle cascade of tumbling mineral fragments catching light. Brief celebratory crystal shower with stone-chamber reverb.",
+  },
+  {
+    id: "bonus-activate",
+    filename: "bonus-activate.mp3",
+    duration: 1,
+    prompt:
+      "A crystal being charged with energy — quick stone whoosh into a bright mineral pulse. Like a gemstone suddenly glowing from within. Empowering, snappy, with brief crystalline ring-out.",
+  },
+  {
+    id: "shop-purchase",
+    filename: "shop-purchase.mp3",
+    duration: 1,
+    prompt:
+      "Multiple small mineral coins dropping into a stone bowl — a satisfying collection of crystal clinks and stone taps. Brief, rewarding. Like gems being exchanged in a temple marketplace.",
+  },
+  {
+    id: "equip",
+    filename: "equip.mp3",
+    duration: 1,
+    prompt:
+      "A gemstone clicking solidly into a carved stone socket — satisfying mechanical mineral snap. Like slotting a crystal into its perfectly fitted setting. Precise, tactile, definitive.",
+  },
+  {
+    id: "unequip",
+    filename: "unequip.mp3",
+    duration: 1,
+    prompt:
+      "A gemstone gently lifted from its stone setting — soft reverse mineral click, like crystal releasing from a socket. Quick, gentle, clean. The inverse of equip.",
+  },
+  {
+    id: "constraint-complete",
+    filename: "constraint-complete.mp3",
+    duration: 1,
+    prompt:
+      "Two ascending crystal tones struck in quick succession — a bright mineral checkpoint chime. Like two quartz points being tapped together. Satisfying completion signal with short temple reverb.",
+  },
 ] as const;
 
 const ROOT_DIR = path.resolve(process.cwd());
@@ -916,13 +1070,17 @@ function printHelp(): void {
   console.log("");
   console.log("Options:");
   console.log("  --theme <theme-id>       Generate per-theme assets for one theme (example: theme-4)");
-  console.log("  --scope <scope>          per-theme | global | all (default: per-theme)");
+  console.log("  --scope <scope>          per-theme | global | all | sfx (default: per-theme)");
   console.log("  --asset <category>       Filter to one category");
   console.log("  --dry-run                Print plan only; do not call generation API");
   console.log("  --ref                    Use block-1 as optional reference for wider blocks (default)");
   console.log("  --no-ref                 Disable optional image references");
   console.log("  --post-process           Convert non-PNG outputs to PNG (no API calls)");
   console.log("  --help                   Show this help");
+  console.log("");
+  console.log("Scopes: per-theme | global | all | sfx");
+  console.log("SFX-specific:");
+  console.log("  --only <ids>             Comma-separated SFX IDs to generate (sfx scope only)");
   console.log("");
   console.log(`Per-theme categories: ${PER_THEME_ASSETS.join(", ")}`);
   console.log(`Global categories: ${GLOBAL_ASSETS.join(", ")}`);
@@ -952,8 +1110,8 @@ function parseArgs(argv: string[]): CliOptions {
 
     if (arg === "--scope") {
       const scope = readFlagValue(argv, i, "--scope");
-      if (scope !== "per-theme" && scope !== "global" && scope !== "all") {
-        throw new Error(`Invalid scope: ${scope}. Expected per-theme | global | all`);
+      if (scope !== "per-theme" && scope !== "global" && scope !== "all" && scope !== "sfx") {
+        throw new Error(`Invalid scope: ${scope}. Expected per-theme | global | all | sfx`);
       }
       options.scope = scope;
       i += 1;
@@ -966,6 +1124,22 @@ function parseArgs(argv: string[]): CliOptions {
         throw new Error(`Invalid asset category: ${asset}`);
       }
       options.asset = asset as AssetCategory;
+      i += 1;
+      continue;
+    }
+
+    if (arg === "--only") {
+      const onlyValue = readFlagValue(argv, i, "--only");
+      const parsedIds = onlyValue
+        .split(",")
+        .map((id) => id.trim())
+        .filter((id) => id.length > 0);
+
+      if (parsedIds.length === 0) {
+        throw new Error("--only requires at least one SFX ID");
+      }
+
+      options.only = parsedIds;
       i += 1;
       continue;
     }
@@ -991,6 +1165,14 @@ function parseArgs(argv: string[]): CliOptions {
     }
 
     throw new Error(`Unknown argument: ${arg}`);
+  }
+
+  if (options.only && options.scope !== "sfx") {
+    throw new Error("--only can only be used with --scope sfx");
+  }
+
+  if (options.scope === "sfx" && options.asset) {
+    throw new Error("--asset cannot be used with --scope sfx");
   }
 
   return options;
@@ -1060,6 +1242,9 @@ function buildHeaderThemeLabel(options: CliOptions, selectedThemeIds: string[]):
 }
 
 function outputSummaryPath(options: CliOptions, selectedThemeIds: string[]): string {
+  if (options.scope === "sfx") {
+    return "client-budokan/public/assets/common/sounds/effects/";
+  }
   if (options.scope === "global") {
     return "client-budokan/public/assets/common/";
   }
@@ -1108,6 +1293,21 @@ function extractImageUrl(response: unknown): string {
   throw new Error("No image URL returned by fal.ai.");
 }
 
+function extractAudioUrl(response: unknown): string {
+  const candidate = response as {
+    data?: {
+      audio_file?: { url?: string };
+    };
+  };
+
+  const url = candidate.data?.audio_file?.url;
+  if (typeof url === "string" && url.length > 0) {
+    return url;
+  }
+
+  throw new Error("No audio URL returned by fal.ai.");
+}
+
 async function generateImage(job: AssetJob, includeRefs: boolean): Promise<Buffer> {
   const referenceUrl = resolveReferenceUrl(job, includeRefs);
 
@@ -1115,13 +1315,15 @@ async function generateImage(job: AssetJob, includeRefs: boolean): Promise<Buffe
     try {
       await waitForRequestSlot();
 
-      const response = await fal.subscribe(MODEL, {
-        input: {
-          prompt: job.prompt,
-          image_size: { width: job.width, height: job.height },
-          num_images: 1,
-          ...(referenceUrl ? { image_url: referenceUrl } : {}),
-        },
+      const input: Record<string, unknown> = {
+        prompt: job.prompt,
+        image_size: { width: job.width, height: job.height },
+        num_images: 1,
+        ...(referenceUrl ? { image_url: referenceUrl } : {}),
+      };
+
+      const response = await fal.subscribe(MODEL as string, {
+        input,
       });
 
       const imageUrl = extractImageUrl(response);
@@ -1144,6 +1346,174 @@ async function generateImage(job: AssetJob, includeRefs: boolean): Promise<Buffe
   }
 
   throw new Error("Failed to generate image after retries.");
+}
+
+async function generateSfx(job: SfxJob): Promise<Buffer> {
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    try {
+      await waitForRequestSlot();
+
+      const response = await fal.subscribe(SFX_MODEL, {
+        input: {
+          prompt: job.prompt,
+          duration: job.duration,
+        },
+      });
+
+      const audioUrl = extractAudioUrl(response);
+      const download = await fetch(audioUrl);
+      if (!download.ok) {
+        throw new Error(`Failed to download WAV (${download.status})`);
+      }
+
+      return Buffer.from(await download.arrayBuffer());
+    } catch (error) {
+      if (isRetryableError(error) && attempt < MAX_RETRIES) {
+        const backoffMs = RETRY_BACKOFF_MS[attempt] ?? RETRY_BACKOFF_MS[RETRY_BACKOFF_MS.length - 1];
+        console.warn(`   ↻ Retryable error. Retrying in ${Math.round(backoffMs / 1000)}s...`);
+        await sleep(backoffMs);
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw new Error("Failed to generate SFX after retries.");
+}
+
+async function convertWavToMp3(wavBuffer: Buffer, outputPath: string): Promise<void> {
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+
+  const tempWav = outputPath.replace(/\.mp3$/, ".tmp.wav");
+  fs.writeFileSync(tempWav, wavBuffer);
+
+  try {
+    execSync(`ffmpeg -y -i "${tempWav}" -codec:a libmp3lame -b:a 192k "${outputPath}"`, {
+      stdio: "pipe",
+    });
+  } finally {
+    if (fs.existsSync(tempWav)) {
+      fs.unlinkSync(tempWav);
+    }
+  }
+}
+
+function buildSfxJobs(only?: string[]): SfxJob[] {
+  const sfxRoot = path.join(ASSETS_ROOT, "common", "sounds", "effects");
+
+  let definitions = [...SFX_DEFINITIONS];
+  if (only && only.length > 0) {
+    const onlySet = new Set(only);
+    definitions = definitions.filter((definition) => onlySet.has(definition.id));
+    const missing = only.filter((id) => !SFX_DEFINITIONS.some((definition) => definition.id === id));
+    if (missing.length > 0) {
+      throw new Error(
+        `Unknown SFX IDs: ${missing.join(", ")}. Available: ${SFX_DEFINITIONS.map((definition) => definition.id).join(", ")}`,
+      );
+    }
+  }
+
+  return definitions.map((definition) => ({
+    id: definition.id,
+    filename: definition.filename,
+    outputPath: path.join(sfxRoot, definition.filename),
+    prompt: definition.prompt,
+    duration: definition.duration,
+  }));
+}
+
+function verifyFfmpegAvailable(): void {
+  try {
+    execSync("which ffmpeg", { stdio: "pipe" });
+  } catch {
+    throw new Error("ffmpeg is required for SFX conversion. Install ffmpeg and retry.");
+  }
+}
+
+async function runSfxMode(options: CliOptions): Promise<void> {
+  const jobs = buildSfxJobs(options.only);
+
+  console.log("🔊 zKube SFX Generator");
+  console.log(`Model: ${SFX_MODEL}`);
+  console.log(`Scope: ${options.scope}`);
+  if (options.only && options.only.length > 0) {
+    console.log(`SFX filter: ${options.only.join(", ")}`);
+  }
+  if (options.dryRun) {
+    console.log("Dry run: enabled");
+  }
+  console.log("");
+
+  if (jobs.length === 0) {
+    console.log("No SFX matched the selected filters.");
+    return;
+  }
+
+  console.log(`Generating ${jobs.length} SFX assets...`);
+  console.log("");
+
+  if (options.dryRun) {
+    jobs.forEach((job, index) => {
+      const step = `[${index + 1}/${jobs.length}]`;
+      console.log(`${step}  ⏳ ${job.filename}...`);
+      console.log(`${step}  🧪 dry-run -> ${relativePath(job.outputPath)}`);
+    });
+    console.log("");
+    console.log(`✅ Dry run complete! ${jobs.length}/${jobs.length} SFX assets planned.`);
+    console.log("Output: client-budokan/public/assets/common/sounds/effects/");
+    return;
+  }
+
+  if (!process.env.FAL_KEY) {
+    throw new Error("FAL_KEY is required for generation. Export it and retry.");
+  }
+
+  verifyFfmpegAvailable();
+  fal.config({ credentials: process.env.FAL_KEY });
+
+  const pLimitFactory = await loadPLimitFactory();
+  const limit = pLimitFactory(CONCURRENCY);
+  const failures: Array<{ job: SfxJob; error: unknown; index: number }> = [];
+  let successCount = 0;
+
+  await Promise.all(
+    jobs.map((job, index) =>
+      limit(async () => {
+        const step = `[${index + 1}/${jobs.length}]`;
+        const startedAt = Date.now();
+        console.log(`${step}  ⏳ ${job.filename}...`);
+
+        try {
+          const wavBuffer = await generateSfx(job);
+          await convertWavToMp3(wavBuffer, job.outputPath);
+          const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+          console.log(`${step}  ✅ ${job.filename} (${elapsed}s)`);
+          successCount += 1;
+        } catch (error) {
+          const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+          failures.push({ job, error, index });
+          console.log(`${step}  ❌ ${job.filename} (${elapsed}s)`);
+          console.log(`       ${formatError(error)}`);
+        }
+      }),
+    ),
+  );
+
+  console.log("");
+
+  if (failures.length === 0) {
+    console.log(`✅ Complete! ${successCount}/${jobs.length} SFX assets generated.`);
+  } else {
+    console.log(`⚠️ Complete with errors. ${successCount}/${jobs.length} SFX assets generated.`);
+    for (const failure of failures) {
+      const step = `[${failure.index + 1}/${jobs.length}]`;
+      console.log(`- ${step} ${relativePath(failure.job.outputPath)}: ${formatError(failure.error)}`);
+    }
+    process.exitCode = 1;
+  }
+
+  console.log("Output: client-budokan/public/assets/common/sounds/effects/");
 }
 
 const TARGET_DIMENSIONS: Record<string, { width: number; height: number }> = {
@@ -1254,6 +1624,12 @@ async function postProcessAll(options: CliOptions): Promise<void> {
 
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
+
+  if (options.scope === "sfx") {
+    await runSfxMode(options);
+    return;
+  }
+
   const { jobs, selectedThemeIds } = buildJobList(options);
 
   if (options.postProcess) {

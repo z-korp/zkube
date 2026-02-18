@@ -7,12 +7,13 @@ Single source of truth for every sound effect and music track in the game.
 ## Table of Contents
 
 1. [Audio Architecture](#audio-architecture)
-2. [SFX Pipeline](#sfx-pipeline) (fal.ai — cassetteai/sound-effects-generator)
-3. [SFX Inventory](#sfx-inventory)
-4. [Music Pipeline](#music-pipeline) (Suno v5)
-5. [Per-Theme Music](#per-theme-music)
-6. [Post-Production](#post-production)
-7. [Status](#status)
+2. [Sonic Identity](#sonic-identity)
+3. [SFX Pipeline](#sfx-pipeline) (fal.ai — cassetteai/sound-effects-generator)
+4. [SFX Inventory](#sfx-inventory)
+5. [Music Pipeline](#music-pipeline) (Suno v5)
+6. [Per-Theme Music](#per-theme-music)
+7. [Post-Production](#post-production)
+8. [Status](#status)
 
 ---
 
@@ -20,7 +21,7 @@ Single source of truth for every sound effect and music track in the game.
 
 | Symbol | Meaning |
 |--------|---------|
-| ✅ | Exists on disk |
+| 🔄 | Exists on disk — regenerate for consistency |
 | ❌ | Not yet created |
 | 🌐 | Global (shared across all themes) |
 | 🎨 | Per-theme (unique per theme) |
@@ -33,7 +34,7 @@ Single source of truth for every sound effect and music track in the game.
 
 | Category | Path Pattern | Count |
 |----------|-------------|-------|
-| SFX (global) | `public/assets/common/sounds/effects/{name}.mp3` | 7 existing + 13 needed |
+| SFX (global) | `public/assets/common/sounds/effects/{name}.mp3` | 20 total (7 existing + 13 new) |
 | Music (per-theme) | `public/assets/{themeId}/sounds/musics/{track}.mp3` | 4 tracks × 10 themes |
 
 ### Client Integration
@@ -62,11 +63,32 @@ Stored in localStorage (`zkube-audio-settings`):
 
 ---
 
+## Sonic Identity
+
+All zKube SFX share a unified **"crystalline mineral puzzle temple"** character:
+
+### Core Textures
+- **Impacts & clicks** — stone-on-stone, polished obsidian taps, quartz collisions
+- **Chimes & tones** — crystal resonances, singing bowls, tuned mineral bars
+- **Shatters & breaks** — cracking geodes, fracturing gemstone, volcanic glass splintering
+- **Ambience** — subtle reverb tail as if inside a stone temple chamber
+
+### Tonal Guidelines
+- **Bright and clean** in mids/highs for mobile speaker clarity
+- **Never muddy**, never harsh — every sound is satisfying and tactile
+- **Mineral warmth** — not cold digital bleeps, but sounds that feel like they come from stone, crystal, and earth
+- **Consistent reverb** — short stone-chamber reverb on everything (not cavernous, just a hint of space)
+
+### Why This Works for zKube
+The game is about manipulating blocks (cubes = minerals). The puzzle temple aesthetic ties the SFX to the game's identity regardless of which visual theme is active. Stone clicks for moves, crystal chimes for rewards, geode cracks for breaks — it all reinforces the core "cube manipulation" feel.
+
+---
+
 ## SFX Pipeline
 
 ### Generator: fal.ai — cassetteai/sound-effects-generator
 
-SFX are generated using CassetteAI's sound effects model via the fal.ai API. This uses the same `@fal-ai/client` package already installed for image generation.
+SFX are generated using CassetteAI's sound effects model via the fal.ai API. Same `@fal-ai/client` package as image generation.
 
 **API:**
 ```typescript
@@ -74,8 +96,8 @@ import { fal } from "@fal-ai/client";
 
 const result = await fal.subscribe("cassetteai/sound-effects-generator", {
   input: {
-    prompt: "Short bright impact with crystalline shimmer tail",
-    duration: 3  // seconds (max ~30s)
+    prompt: "A single polished obsidian stone tapped sharply against quartz, bright crystalline click with short stone-chamber reverb tail",
+    duration: 1  // integer seconds, 1-30
   },
   logs: true,
   onQueueUpdate: (update) => {
@@ -85,72 +107,95 @@ const result = await fal.subscribe("cassetteai/sound-effects-generator", {
   },
 });
 
-// result.data contains the audio URL
-// Download, trim, normalize, export as MP3
+// result.data.audio_file.url → WAV download URL
 ```
 
 **Key Parameters:**
 | Param | Type | Notes |
 |-------|------|-------|
-| `prompt` | string | Description of the sound |
-| `duration` | number | Duration in seconds (keep short for SFX: 1-5s) |
+| `prompt` | string | Description of the sound — use mineral/crystal/stone textures |
+| `duration` | integer | Duration in seconds, 1-30. **Must be integer.** |
 
-**Post-processing** (after download):
-1. Trim leading/trailing silence
-2. Normalize to **-12 LUFS**
-3. Export as MP3 192kbps
-4. Save to `public/assets/common/sounds/effects/{name}.mp3`
+**Output:** WAV file (signed URL at `result.data.audio_file.url`)
 
 ### Environment
 
 Same `FAL_KEY` from `.env` at project root. Already configured for image generation.
 
+### Generation Script
+
+```bash
+# Generate all SFX (20 total)
+npx tsx scripts/generate-assets.ts --scope sfx
+
+# Dry run (plan only)
+npx tsx scripts/generate-assets.ts --scope sfx --dry-run
+
+# Generate specific SFX by ID
+npx tsx scripts/generate-assets.ts --scope sfx --only break,click,victory
+```
+
 ---
 
 ## SFX Inventory
 
-### Existing SFX — 🌐 Global ✅
+All SFX are **🌐 Global** — shared from `common/sounds/effects/`.
 
-All shared from `common/sounds/effects/`.
+**Every SFX below will be (re)generated in one batch** for sonic consistency.
 
-| ID | Filename | When Played | Duration | Prompt |
-|----|----------|-------------|----------|--------|
-| break | `break.mp3` | Line cleared | 0.3-0.5s | Short bright impact with crystalline shimmer tail. A satisfying snap-crack of puzzle pieces breaking apart. Quick attack, fast decay. |
-| explode | `explode.mp3` | Multi-line combo | 0.5-0.8s | Rapid cascade of impacts building to an energy burst. Multiple elements scattering outward. Brief triumphant flourish at peak. Deep bass punctuation. |
-| move | `move.mp3` | Block moved | 0.15-0.25s | Quick smooth slide with subtle friction texture. Soft click as piece locks into position. Clean and responsive. |
-| new | `new.mp3` | New blocks spawned | 0.3-0.4s | Ascending three-note chime cascade. Elements materializing and clicking into place. Bright and inviting. |
-| start | `start.mp3` | Game started | 0.5-0.8s | Energetic fanfare burst with percussive hits. Confident, punchy game-start signal. Rising energy into a bright accent. |
-| swipe | `swipe.mp3` | Block swiped | 0.15-0.2s | Quick airy whoosh. Short directional air displacement with subtle texture. Fast and light. |
-| over | `over.mp3` | Game over | 0.8-1.2s | Deep resonant impact. Slow descending tones with fading reverb. Finality without harshness. |
+### Core Gameplay SFX
 
-### New SFX Needed — 🌐 Global ❌
+| ID | Filename | When Played | Duration | Status | Prompt |
+|----|----------|-------------|----------|--------|--------|
+| move | `move.mp3` | Block moved horizontally | 1 | 🔄 | A single polished obsidian stone sliding across smooth quartz surface, brief friction texture ending in a soft mineral click as it locks into position. Clean, responsive, satisfying. Short stone-chamber reverb. |
+| swipe | `swipe.mp3` | Block swiped (drag gesture) | 1 | 🔄 | Quick airy displacement of air across carved stone surface, like a hand brushing over polished basalt. Subtle crystalline shimmer at the tail. Fast, light, directional. |
+| break | `break.mp3` | Line cleared | 1 | 🔄 | A thin sheet of volcanic glass cracking cleanly in two — bright, sharp snap with crystalline shimmer overtones. Quick attack, fast decay. Satisfying mineral fracture with short stone-chamber reverb. |
+| explode | `explode.mp3` | Multi-line combo clear | 2 | 🔄 | Rapid cascade of geode crystals shattering in sequence, building to a bright mineral energy burst. Multiple stone fragments scattering across a temple floor. Deep quartz bass punctuation at the peak. |
+| new | `new.mp3` | New blocks spawned on grid | 1 | 🔄 | Three ascending crystal chime tones — like tuned mineral bars struck in quick succession. Elements materializing from stone dust and clicking solidly into place. Bright, inviting, with temple reverb. |
 
-| ID | Filename | When Played | Duration | Prompt |
-|----|----------|-------------|----------|--------|
-| click | `click.mp3` | UI button tap | 0.1-0.15s | Clean minimal button tap. A subtle tactile click with a tiny reverb tail. Crisp and satisfying. Under 0.15 seconds. |
-| coin | `coin.mp3` | Cube earned | 0.2-0.3s | Bright coin clink with metallic shimmer. A single upward ting like a gold coin landing. Quick and rewarding. |
-| claim | `claim.mp3` | Quest reward claimed | 0.3-0.5s | Ascending sparkle cascade with a satisfying chime resolution. Like opening a treasure chest and coins spilling. Brief and celebratory. |
-| star | `star.mp3` | Star earned | 0.2-0.3s | A single bright bell ding with harmonic overtones. Pure, high-pitched, and clean. Like a star appearing and twinkling once. |
-| levelup | `levelup.mp3` | Level complete | 0.5-0.8s | Short triumphant brass fanfare with ascending notes. Confident victory signal. Celebratory but not long — punchy and bright. |
-| boss-intro | `boss-intro.mp3` | Boss screen appears | 1.0-1.5s | Deep ominous rumble building to a dramatic hit. Low brass, war drums, a sense of impending challenge. Tension without resolution. |
-| boss-defeat | `boss-defeat.mp3` | Boss defeated | 0.8-1.2s | Explosive shattering glass/crystal impact followed by triumphant ascending chord. Like a boss shield breaking apart. |
-| bonus-activate | `bonus-activate.mp3` | Bonus used | 0.3-0.5s | Quick magical activation burst. A whoosh into a bright energy pulse. Empowering and snappy. |
-| shop-purchase | `shop-purchase.mp3` | Item purchased | 0.3-0.5s | Satisfying cash register cha-ching with a sparkle tail. Brief and rewarding. |
-| equip | `equip.mp3` | Bonus equipped | 0.2-0.3s | A solid metallic click-snap, like slotting a gem into place. Satisfying and mechanical. |
-| unequip | `unequip.mp3` | Bonus removed | 0.15-0.2s | A soft reverse click, like lifting something out of a socket. Quick and gentle. |
-| constraint-complete | `constraint-complete.mp3` | Constraint fulfilled | 0.3-0.5s | Bright ascending two-note chime with bell shimmer. Like a checkbox getting ticked. Satisfying completion signal. |
-| victory | `victory.mp3` | Run complete (L50) | 2.0-3.0s | Extended triumphant orchestral fanfare with ascending brass, cymbal crashes, and sparkle cascade. Grand finale energy. |
+### Game Flow SFX
 
-### SFX Generation Script Integration
+| ID | Filename | When Played | Duration | Status | Prompt |
+|----|----------|-------------|----------|--------|--------|
+| start | `start.mp3` | Game run begins | 2 | 🔄 | A stone temple awakening — deep resonant gong strike followed by ascending crystal chime cascade. Percussive mineral impacts build energy into a bright quartz accent. Confident, ceremonial game-start signal. |
+| over | `over.mp3` | Game over (out of moves) | 2 | 🔄 | A heavy obsidian block dropping onto stone floor — deep resonant mineral impact. Slow descending crystal tones with fading temple reverb. Finality without harshness. The sound of stone settling. |
+| levelup | `levelup.mp3` | Level completed successfully | 2 | ❌ | Short triumphant fanfare of tuned crystal bars struck in ascending sequence, culminating in a bright resonant singing bowl tone. Stone temple celebration — confident, warm, mineral. Punchy and celebratory. |
+| victory | `victory.mp3` | Run complete (beat level 50) | 5 | ❌ | Grand temple ceremony — deep gong strike opens into cascading crystal chimes, ascending mineral bar fanfare, singing bowls ringing in harmony. Layers of stone percussion and crystalline resonance building to a luminous climax. Majestic, earned, transcendent. |
 
-The `generate-assets.ts` script should be extended with SFX generation support:
+### Boss SFX
 
-```bash
-npx tsx scripts/generate-assets.ts --scope sfx              # all missing SFX
-npx tsx scripts/generate-assets.ts --scope sfx --dry-run     # plan only
-```
+| ID | Filename | When Played | Duration | Status | Prompt |
+|----|----------|-------------|----------|--------|--------|
+| boss-intro | `boss-intro.mp3` | Boss level screen appears | 3 | ❌ | Deep volcanic rumble building slowly — stone grinding against stone, low mineral drones. A massive obsidian slab shifting. Ominous crystal resonances growing in intensity. Tension without resolution — something ancient is awakening. Temple walls vibrating. |
+| boss-defeat | `boss-defeat.mp3` | Boss level defeated | 2 | ❌ | A giant crystal structure shattering explosively — volcanic glass breaking apart in a shower of mineral fragments, followed by a triumphant ascending chord of singing bowls and tuned stone. The boss crumbles, the temple rings with victory. |
 
-Uses `cassetteai/sound-effects-generator` via fal.ai. Same `FAL_KEY` as image generation.
+### UI Interaction SFX
+
+| ID | Filename | When Played | Duration | Status | Prompt |
+|----|----------|-------------|----------|--------|--------|
+| click | `click.mp3` | UI button tap | 1 | ❌ | A single small polished stone tapped against crystal — minimal, clean, tactile. One short bright click with the tiniest hint of mineral reverb. Crisp and subtle, like a pebble touching quartz. |
+| coin | `coin.mp3` | Cube currency earned | 1 | ❌ | A crystalline mineral coin striking a stone surface — bright upward ting with metallic-mineral shimmer. Like a faceted gemstone bouncing once on polished obsidian. Quick, rewarding, sparkly. |
+| star | `star.mp3` | Star rating earned | 1 | ❌ | A single pure crystal bell struck cleanly — high, bright, ringing with harmonic overtones. Like a perfectly formed quartz point being flicked. Pure mineral tone with temple resonance. |
+| claim | `claim.mp3` | Quest reward claimed | 2 | ❌ | A geode cracking open to reveal crystals inside — initial stone crack, then ascending sparkle cascade of tumbling mineral fragments catching light. Brief celebratory crystal shower with stone-chamber reverb. |
+
+### Bonus & Shop SFX
+
+| ID | Filename | When Played | Duration | Status | Prompt |
+|----|----------|-------------|----------|--------|--------|
+| bonus-activate | `bonus-activate.mp3` | Bonus power activated | 1 | ❌ | A crystal being charged with energy — quick stone whoosh into a bright mineral pulse. Like a gemstone suddenly glowing from within. Empowering, snappy, with brief crystalline ring-out. |
+| shop-purchase | `shop-purchase.mp3` | Item purchased in shop | 1 | ❌ | Multiple small mineral coins dropping into a stone bowl — a satisfying collection of crystal clinks and stone taps. Brief, rewarding. Like gems being exchanged in a temple marketplace. |
+| equip | `equip.mp3` | Bonus equipped to loadout | 1 | ❌ | A gemstone clicking solidly into a carved stone socket — satisfying mechanical mineral snap. Like slotting a crystal into its perfectly fitted setting. Precise, tactile, definitive. |
+| unequip | `unequip.mp3` | Bonus removed from loadout | 1 | ❌ | A gemstone gently lifted from its stone setting — soft reverse mineral click, like crystal releasing from a socket. Quick, gentle, clean. The inverse of equip. |
+| constraint-complete | `constraint-complete.mp3` | Level constraint fulfilled | 1 | ❌ | Two ascending crystal tones struck in quick succession — a bright mineral checkpoint chime. Like two quartz points being tapped together. Satisfying completion signal with short temple reverb. |
+
+### Duration Summary
+
+| Duration (seconds) | SFX IDs |
+|--------------------|---------|
+| **1** | move, swipe, break, new, click, coin, star, bonus-activate, shop-purchase, equip, unequip, constraint-complete |
+| **2** | explode, start, over, claim, levelup, boss-defeat |
+| **3** | boss-intro |
+| **5** | victory |
 
 ---
 
@@ -321,17 +366,16 @@ A crisp Nordic folk electronic instrumental with staccato strings and a tight el
 
 ### SFX
 
-1. Download from fal.ai result
-2. Trim tight — no leading/trailing silence
-3. Normalize to **-12 LUFS**
-4. Export MP3 192kbps
-5. Save to `common/sounds/effects/{name}.mp3`
+1. Download WAV from fal.ai result URL
+2. Convert WAV → MP3 192kbps via ffmpeg
+3. Save to `common/sounds/effects/{name}.mp3`
+
+> **Note:** Normalization TBD after first batch. CassetteAI output levels are undocumented — check empirically with `ffprobe` and decide if LUFS normalization is needed.
 
 ### Tools
 
-- **ffmpeg** for trimming, normalization, format conversion
-- **Audacity** for manual trim/crossfade if needed
-- Normalization target: `-12 LUFS` (SFX), `-14 LUFS` (music — slightly quieter)
+- **ffmpeg** for WAV→MP3 conversion (and normalization if needed later)
+- Normalization target (if needed): `-12 LUFS` (SFX), `-14 LUFS` (music)
 
 ---
 
@@ -341,9 +385,9 @@ A crisp Nordic folk electronic instrumental with staccato strings and a tight el
 
 | Category | Count | Status |
 |----------|-------|--------|
-| Existing SFX | 7 | ✅ Complete |
+| Existing SFX (regenerate) | 7 | 🔄 Regenerate for consistency |
 | New SFX | 13 | ❌ Not generated |
-| **Total** | **20** | **7 ✅ / 13 ❌** |
+| **Total** | **20** | **All to be generated in one batch** |
 
 ### Music — 🎨 Per-Theme
 
