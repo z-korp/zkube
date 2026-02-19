@@ -58,6 +58,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
           width: target.width,
           height: target.height,
           phase: 0,
+          removeBg: true,
         });
       } else {
         const block1Path = path.join(themeRoot, "block-1.png");
@@ -72,6 +73,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
           height: target.height,
           refPaths: [block1Path],
           phase: 1,
+          removeBg: true,
         });
       }
     }
