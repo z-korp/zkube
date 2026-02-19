@@ -29,12 +29,12 @@
   ],
   "style": "flat vector, bold cel-shaded, high-contrast graphic style with engraved relief detailing",
   "color_palette": {
-    "primary": "#B0A898",
-    "secondary": "#968C80",
-    "highlight": "#D0C8BC",
-    "shadow": "#6E665C",
-    "background_gradient": ["#B0A898", "#6E665C"],
-    "note": "Deliberately desaturated warm grey. Color is applied programmatically after generation."
+    "primary": "#908880",
+    "secondary": "#787068",
+    "highlight": "#A8A098",
+    "shadow": "#585048",
+    "background_gradient": ["#908880", "#585048"],
+    "note": "Mid-grey tones only. No near-white highlights. Color is applied programmatically after generation."
   },
   "lighting": "simple two-tone cel shading with highlight on upper-left and shadow on lower-right, subtle embossing for carved depth",
   "mood": "bold, textured, {{theme_mood}}",
@@ -59,7 +59,8 @@
     "the {{material}} surface fills 100% of the canvas — sharp corners, no rounded edges, no gaps",
     "{{centerpiece_type}} centered as the dominant focal element",
     "ornamental {{theme_name}} motifs flanking both sides ({{theme_keyword_1}}, {{theme_keyword_2}})",
-    "all colors are desaturated warm grey — light grey highlights, mid grey base, dark grey shadows",
+    "all colors are mid-tone warm grey — no near-white, no bright highlights, darkest grey for shadows",
+    "the brightest pixel must be medium grey #A8A098, never white or near-white",
     "NO saturated hue — only neutral grey tones with good luminance contrast",
     "fully opaque, no transparency",
     "bold outer frame border integrated into the surface edges"
@@ -78,6 +79,9 @@
   ],
   "usage_notes": "This is a master tile generated in neutral grey. It will be cropped to 4 sizes and tinted programmatically. Maintain strong symmetry and clear central hierarchy. Good luminance contrast is critical for rich tinting results.",
   "negative_prompt": [
+    "white",
+    "bright highlights",
+    "near-white areas",
     "saturated color",
     "gold",
     "blue",
