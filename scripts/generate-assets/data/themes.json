@@ -156,7 +156,8 @@
         {
           "material": "pale silver granite"
         }
-      ]
+      ],
+      "blockPrompt": "A wide 4:1 horizontal Norse Viking panel, screen-print style on a solid black background. In the exact center: a single angular elder futhark rune glyph with sharp straight strokes — painted in mid-grey (#8A8278) with black outlines. The rune is compact, fitting in the center quarter of the width. Flowing directly out of the rune on both sides: bold geometric Norse patterns — thick interlocking knotwork bands, angular chevron borders, broad zigzag lines, and heavy straight-edged shapes — connected seamlessly to the rune with zero gap. Only 2-3 large geometric elements per side, each thick and angular. Strictly geometric patterns, no figurative symbols (no ravens, no hammers, no animals, no faces). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Frozen fjord at night, aurora borealis streaming over snow-covered mountains, viking longships moored at icy docks, rune stones glowing faintly in the snow",
     "loadingScene": "Close-up of an ancient rune stone covered in frost, each carved rune glowing with faint blue light, snow falling gently",
