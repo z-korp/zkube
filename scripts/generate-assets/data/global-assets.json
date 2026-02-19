@@ -54,10 +54,10 @@
     { "filename": "particle-star.png", "description": "A tiny 4-pointed star — radiating points" }
   ],
   "targetDimensions": {
-    "block-1.png": { "width": 192, "height": 192 },
-    "block-2.png": { "width": 384, "height": 192 },
-    "block-3.png": { "width": 576, "height": 192 },
-    "block-4.png": { "width": 768, "height": 192 },
+    "block-1.png": { "width": 256, "height": 256 },
+    "block-2.png": { "width": 512, "height": 256 },
+    "block-3.png": { "width": 768, "height": 256 },
+    "block-4.png": { "width": 1024, "height": 256 },
     "grid-bg.png": { "width": 1024, "height": 1280 },
     "grid-frame.png": { "width": 1152, "height": 1440 },
     "background.png": { "width": 2048, "height": 2048 },
