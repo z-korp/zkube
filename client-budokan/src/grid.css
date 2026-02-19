@@ -53,7 +53,7 @@
 
 .block {
   position: absolute;
-  background-color: rgb(15, 15, 15);
+  background-color: transparent;
   display: flex;
   justify-content: center;
   align-items: center;
