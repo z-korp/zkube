@@ -13,6 +13,48 @@ import {
 } from "./env";
 import type { AssetJob, SfxJob } from "./types";
 
+type FluxImageSize =
+  | "square_hd"
+  | "square"
+  | "portrait_4_3"
+  | "portrait_16_9"
+  | "landscape_4_3"
+  | "landscape_16_9"
+  | { width: number; height: number };
+
+/**
+ * Map pixel dimensions to Flux 2 Pro's preferred image_size parameter.
+ * Uses enum strings for standard ratios (better model behavior),
+ * falls back to custom {width, height} for non-standard ratios.
+ */
+export function resolveImageSize(width: number, height: number): FluxImageSize {
+  const ratio = width / height;
+
+  // Square
+  if (Math.abs(ratio - 1) < 0.01) {
+    return width > 512 ? "square_hd" : "square";
+  }
+  // Landscape 4:3  (ratio ≈ 1.333)
+  if (Math.abs(ratio - 4 / 3) < 0.02) {
+    return "landscape_4_3";
+  }
+  // Landscape 16:9 (ratio ≈ 1.778)
+  if (Math.abs(ratio - 16 / 9) < 0.02) {
+    return "landscape_16_9";
+  }
+  // Portrait 4:3   (ratio ≈ 0.75)
+  if (Math.abs(ratio - 3 / 4) < 0.02) {
+    return "portrait_4_3";
+  }
+  // Portrait 16:9  (ratio ≈ 0.5625)
+  if (Math.abs(ratio - 9 / 16) < 0.02) {
+    return "portrait_16_9";
+  }
+
+  // Non-standard ratio → custom dimensions
+  return { width, height };
+}
+
 export function resolveReferenceUrl(job: AssetJob, includeRefs: boolean): string | undefined {
   if (!includeRefs || !job.refPaths || job.refPaths.length === 0) {
     return undefined;
@@ -77,7 +119,7 @@ export async function generateImage(job: AssetJob, includeRefs: boolean): Promis
 
       const input: Record<string, unknown> = {
         prompt: job.prompt,
-        image_size: { width: job.width, height: job.height },
+        image_size: resolveImageSize(job.width, job.height),
         num_images: 1,
         output_format: "png",
         ...(referenceUrl ? { image_url: referenceUrl } : {}),

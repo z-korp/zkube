@@ -37,6 +37,7 @@
       ],
       "blocks": [
         {
+          "material": "warm amber koa wood",
           "centerpiece": "carved tiki mask face with deep-set eyes and wide grinning mouth",
           "centerpiece_expression": "fierce, primal, spiritual",
           "flanking": "tribal tattoo scroll panels",
@@ -44,6 +45,7 @@
           "filler": "lava crack texture accents"
         },
         {
+          "material": "dark brown koa wood",
           "centerpiece": "fierce tiki warrior face with elaborate tattoo etchings",
           "centerpiece_expression": "fierce, bold, ancestral",
           "flanking": "tribal knotwork interlace panels",
@@ -51,6 +53,7 @@
           "filler": "volcanic rock texture accents"
         },
         {
+          "material": "fiery orange-red volcanic stone",
           "centerpiece": "serene tiki ancestor face with closed eyes",
           "centerpiece_expression": "serene, wise, peaceful",
           "flanking": "spiral wave carving panels",
@@ -58,6 +61,7 @@
           "filler": "fern frond relief accents"
         },
         {
+          "material": "golden driftwood",
           "centerpiece": "volcanic tiki spirit face with glowing lava cracks",
           "centerpiece_expression": "mystical, powerful, elemental",
           "flanking": "lava flow channel carving panels",
@@ -112,6 +116,7 @@
       ],
       "blocks": [
         {
+          "material": "warm sandy sandstone",
           "centerpiece": "Eye of Horus hieroglyph",
           "centerpiece_expression": "iconic, protective, authoritative",
           "flanking": "hieroglyphic cartouches",
@@ -119,6 +124,7 @@
           "filler": "scarab beetle relief carvings"
         },
         {
+          "material": "deep lapis lazuli blue stone",
           "centerpiece": "winged scarab beetle with wings fully spread",
           "centerpiece_expression": "divine, regal, majestic",
           "flanking": "lotus column decorations",
@@ -126,6 +132,7 @@
           "filler": "small ankh symbol accents"
         },
         {
+          "material": "polished gold-leaf on stone",
           "centerpiece": "golden ankh symbol with radiating sun-disc rays",
           "centerpiece_expression": "sacred, luminous, eternal",
           "flanking": "hieroglyphic panel strips",
@@ -133,6 +140,7 @@
           "filler": "small Eye of Ra accent reliefs"
         },
         {
+          "material": "warm terracotta red clay",
           "centerpiece": "Pharaonic cartouche seal with hieroglyphics",
           "centerpiece_expression": "royal, commanding, ancient",
           "flanking": "cobra uraeus serpent motifs",
@@ -187,6 +195,7 @@
       ],
       "blocks": [
         {
+          "material": "blue-grey granite",
           "centerpiece": "Norse elder futhark rune symbol",
           "centerpiece_expression": "ancient, powerful, cryptic",
           "flanking": "Viking knotwork interlace panels",
@@ -194,6 +203,7 @@
           "filler": "smaller rune engravings"
         },
         {
+          "material": "frost-blue ice stone",
           "centerpiece": "Viking knotwork medallion with interlace pattern",
           "centerpiece_expression": "intricate, eternal, mesmerizing",
           "flanking": "iron-framed rune panels",
@@ -201,6 +211,7 @@
           "filler": "frost glow crystal accents"
         },
         {
+          "material": "dark iron-grey stone",
           "centerpiece": "Norse raven silhouette in flight",
           "centerpiece_expression": "ominous, wise, watchful",
           "flanking": "iron banding with knotwork panels",
@@ -208,6 +219,7 @@
           "filler": "frost-rimmed rune accents"
         },
         {
+          "material": "pale silver granite",
           "centerpiece": "Mjolnir (Thor's hammer) in bold relief",
           "centerpiece_expression": "powerful, thunderous, divine",
           "flanking": "lightning bolt channel carvings",
@@ -262,6 +274,7 @@
       ],
       "blocks": [
         {
+          "material": "polished white marble",
           "centerpiece": "Greek-key meander medallion pattern",
           "centerpiece_expression": "elegant, mathematical, eternal",
           "flanking": "Ionic column fluting panels",
@@ -269,6 +282,7 @@
           "filler": "olive leaf accent reliefs"
         },
         {
+          "material": "deep Aegean blue marble",
           "centerpiece": "Hellenic rosette sunburst medallion",
           "centerpiece_expression": "radiant, divine, harmonious",
           "flanking": "meander border panels",
@@ -276,6 +290,7 @@
           "filler": "laurel leaf accent carvings"
         },
         {
+          "material": "warm cream marble",
           "centerpiece": "carved olive wreath circle",
           "centerpiece_expression": "noble, victorious, peaceful",
           "flanking": "amphora silhouette panels",
@@ -283,6 +298,7 @@
           "filler": "acanthus leaf accent reliefs"
         },
         {
+          "material": "green-grey marble",
           "centerpiece": "Ionic column capital relief",
           "centerpiece_expression": "architectural, precise, grand",
           "flanking": "geometric rosette panels",
@@ -337,6 +353,7 @@
       ],
       "blocks": [
         {
+          "material": "crimson red lacquered wood",
           "centerpiece": "bold kanji brushstroke character",
           "centerpiece_expression": "fierce, disciplined, powerful",
           "flanking": "red trim accent panels",
@@ -344,6 +361,7 @@
           "filler": "small mon emblem accents"
         },
         {
+          "material": "deep black lacquered wood",
           "centerpiece": "enso circle brushstroke",
           "centerpiece_expression": "zen, infinite, complete",
           "flanking": "bamboo stalk silhouette panels",
@@ -351,6 +369,7 @@
           "filler": "gold dust spatter accents"
         },
         {
+          "material": "gleaming gold lacquered wood",
           "centerpiece": "golden chrysanthemum mon emblem",
           "centerpiece_expression": "imperial, sacred, radiant",
           "flanking": "fan-shaped decorative panels",
@@ -358,6 +377,7 @@
           "filler": "cherry blossom petal accents"
         },
         {
+          "material": "dark pine-green lacquered wood",
           "centerpiece": "katana tsuba (sword guard) circular design",
           "centerpiece_expression": "lethal, refined, elegant",
           "flanking": "pine branch silhouette panels",
@@ -412,6 +432,7 @@
       ],
       "blocks": [
         {
+          "material": "luminous emerald jade stone",
           "centerpiece": "dragon-scale circular medallion",
           "centerpiece_expression": "mystical, imperial, flowing",
           "flanking": "cloud scroll carved panels",
@@ -419,6 +440,7 @@
           "filler": "small pearl accent details"
         },
         {
+          "material": "deep forest-green jade stone",
           "centerpiece": "imperial dragon coil in profile",
           "centerpiece_expression": "powerful, serpentine, majestic",
           "flanking": "jade ruyi scepter panels",
@@ -426,6 +448,7 @@
           "filler": "cloud wisp accent reliefs"
         },
         {
+          "material": "polished gold on stone",
           "centerpiece": "golden phoenix emblem with spread wings",
           "centerpiece_expression": "radiant, rebirth, imperial",
           "flanking": "silk brocade pattern panels",
@@ -433,6 +456,7 @@
           "filler": "jade coin accent details"
         },
         {
+          "material": "cinnabar red lacquer",
           "centerpiece": "imperial seal with phoenix feather pattern",
           "centerpiece_expression": "authoritative, sacred, ornate",
           "flanking": "bamboo stalk carved panels",
@@ -487,6 +511,7 @@
       ],
       "blocks": [
         {
+          "material": "deep Persian blue glazed ceramic tile",
           "centerpiece": "Islamic geometric star pattern medallion",
           "centerpiece_expression": "precise, infinite, mesmerizing",
           "flanking": "arabesque vine panels",
@@ -494,6 +519,7 @@
           "filler": "small rosette accent tiles"
         },
         {
+          "material": "royal indigo glazed ceramic tile",
           "centerpiece": "golden lion in proud profile relief",
           "centerpiece_expression": "regal, powerful, majestic",
           "flanking": "geometric tile panels",
@@ -501,6 +527,7 @@
           "filler": "small star tile accents"
         },
         {
+          "material": "burnished gold metal tile",
           "centerpiece": "embossed arabesque floral symmetry medallion",
           "centerpiece_expression": "elegant, flowing, harmonious",
           "flanking": "cypress tree silhouette panels",
@@ -508,6 +535,7 @@
           "filler": "gold trefoil accent details"
         },
         {
+          "material": "turquoise-teal glazed ceramic tile",
           "centerpiece": "golden peacock in full display",
           "centerpiece_expression": "magnificent, iridescent, proud",
           "flanking": "geometric mosaic panels",
@@ -562,6 +590,7 @@
       ],
       "blocks": [
         {
+          "material": "moss-green jungle limestone",
           "centerpiece": "Mayan calendar sun glyph",
           "centerpiece_expression": "ancient, cosmic, powerful",
           "flanking": "number dots-and-bars panels",
@@ -569,6 +598,7 @@
           "filler": "small jaguar glyph accents"
         },
         {
+          "material": "warm brown jungle stone",
           "centerpiece": "feathered serpent head in profile",
           "centerpiece_expression": "divine, fierce, mythical",
           "flanking": "vine-wrapped column panels",
@@ -576,6 +606,7 @@
           "filler": "moss patch texture accents"
         },
         {
+          "material": "dark emerald-green stone",
           "centerpiece": "Mayan numeral dots-and-bars circle",
           "centerpiece_expression": "mathematical, sacred, precise",
           "flanking": "stepped pyramid silhouette panels",
@@ -583,6 +614,7 @@
           "filler": "vine tendril accent details"
         },
         {
+          "material": "khaki-gold sandstone",
           "centerpiece": "jaguar head glyph in profile",
           "centerpiece_expression": "predatory, powerful, mystical",
           "flanking": "feather fan carved panels",
@@ -637,6 +669,7 @@
       ],
       "blocks": [
         {
+          "material": "warm sandy adobe clay",
           "centerpiece": "turquoise stone inlay medallion",
           "centerpiece_expression": "spiritual, grounding, protective",
           "flanking": "geometric stepped border panels",
@@ -644,6 +677,7 @@
           "filler": "small corn stalk accent motifs"
         },
         {
+          "material": "turquoise-inlaid clay",
           "centerpiece": "geometric thunderbird symbol",
           "centerpiece_expression": "powerful, sacred, sky-spirit",
           "flanking": "turquoise and coral mosaic panels",
@@ -651,6 +685,7 @@
           "filler": "rain cloud accent symbols"
         },
         {
+          "material": "dark saddle-brown adobe",
           "centerpiece": "sun-face medallion with radiating rays",
           "centerpiece_expression": "warm, life-giving, radiant",
           "flanking": "arrow-point geometric panels",
@@ -658,6 +693,7 @@
           "filler": "turquoise dot accent inlays"
         },
         {
+          "material": "terra cotta red clay",
           "centerpiece": "turquoise and coral mosaic circle",
           "centerpiece_expression": "vibrant, precious, ceremonial",
           "flanking": "feather pattern carved panels",
@@ -712,6 +748,7 @@
       ],
       "blocks": [
         {
+          "material": "warm grey granite",
           "centerpiece": "Inti sun-god disc emblem",
           "centerpiece_expression": "divine, radiant, all-seeing",
           "flanking": "polygonal stone masonry panels",
@@ -719,6 +756,7 @@
           "filler": "small terrace step accent reliefs"
         },
         {
+          "material": "polished gold metal on stone",
           "centerpiece": "golden Inti sun with radiating rays",
           "centerpiece_expression": "supreme, luminous, ceremonial",
           "flanking": "quipu rope knot panels",
@@ -726,6 +764,7 @@
           "filler": "gold leaf corner accents"
         },
         {
+          "material": "cool blue-grey granite",
           "centerpiece": "condor in flight silhouette",
           "centerpiece_expression": "majestic, soaring, free",
           "flanking": "mountain peak silhouette panels",
@@ -733,6 +772,7 @@
           "filler": "gold sun-ray accent details"
         },
         {
+          "material": "grey-green stone",
           "centerpiece": "quipu rope knot textile medallion",
           "centerpiece_expression": "mathematical, cultural, recording",
           "flanking": "terraced hillside carved panels",

@@ -46,7 +46,7 @@ function buildSubstitutionMap(theme: ThemeDefinition, blockIndex: number, blockW
   return {
     theme_name: theme.name,
     bg_color: theme.palette.bg,
-    material: bd.material,
+    material: block.material ?? bd.material,
     inlay: bd.inlay,
     centerpiece: block.centerpiece,
     centerpiece_expression: block.centerpiece_expression,

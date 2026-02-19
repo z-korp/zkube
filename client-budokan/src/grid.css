@@ -27,9 +27,6 @@
 
 /* Static Border Style */
 .grid-background.static-border {
-  background-image: var(--theme-grid-frame-image, none);
-  background-size: cover;
-  background-position: center;
   border: 0.35rem solid #030712;
   border-radius: 5px;
   padding: 8px;
@@ -37,9 +34,6 @@
 
 .grid-background.animated-border {
   position: relative;
-  background-image: var(--theme-grid-frame-image, none);
-  background-size: cover;
-  background-position: center;
   border: 0.35rem solid;
   border-radius: 5px;
   padding: 8px;
