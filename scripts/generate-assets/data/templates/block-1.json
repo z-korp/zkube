@@ -1,0 +1,127 @@
+{
+  "style_name": "Edge-Integrated Vignette {{material}} {{centerpiece}} Block",
+  "inspiration": [
+    "{{inspiration_1}}",
+    "{{inspiration_2}}",
+    "Hand-painted cel-shaded game tiles (UI/board-grid readability)",
+    "{{inlay}}-inlay ornamental engraving aesthetics"
+  ],
+  "scene": "A square, edge-to-edge {{material}} game tile featuring a deeply carved {{centerpiece}} as the central focal relief, flanked by {{flanking}} motifs, with {{filler}} details forming a decorative border and negative-space filler engravings.",
+  "subjects": [
+    {
+      "type": "{{centerpiece}}",
+      "description": "deeply carved, bold silhouette with {{inlay}}-lined engraved accents and clean readable contours",
+      "position": "center",
+      "pose": "static carved relief",
+      "size": "very large (about 60% of tile area)",
+      "expression": "{{centerpiece_expression}}",
+      "interaction": "dominant focal symbol; all other motifs frame it"
+    },
+    {
+      "type": "{{flanking}}",
+      "description": "two smaller symmetrical panels with simplified, readable details and subtle {{inlay}}-lined detailing",
+      "position": "mid-left and mid-right (symmetrical flanks)",
+      "pose": "engraved relief panel",
+      "size": "medium",
+      "expression": "ornamental",
+      "interaction": "balances the central motif; provides thematic context"
+    },
+    {
+      "type": "{{bands}}",
+      "description": "repeating decorative shapes carved as a band near the top and bottom regions",
+      "position": "upper band and lower band",
+      "pose": "repeating carved relief",
+      "size": "medium repeating elements",
+      "expression": "decorative and rhythmic",
+      "interaction": "frames the tile and reinforces cultural theme"
+    },
+    {
+      "type": "{{filler}}",
+      "description": "small reliefs and micro-engraved border ornaments filling remaining surface as decorative border relief",
+      "position": "around edges and remaining negative space",
+      "pose": "embossed/engraved alternating relief",
+      "size": "small repeating accents",
+      "expression": "symbolic and ornate",
+      "interaction": "fills remaining surface while preserving readability of main icon"
+    }
+  ],
+  "style": "hand-painted cel-shaded game art; flat color fills with subtle bevel lighting; crisp icon readability",
+  "color_palette": {
+    "primary": "{{primary_color}}",
+    "secondary": "{{secondary_color}}",
+    "highlight": "{{highlight_color}}",
+    "shadow": "{{shadow_color}}",
+    "background_gradient": ["{{primary_color}}", "{{bg_color}}"]
+  },
+  "lighting": "stylized top-left key light; gentle bevel highlights on upper-left edges; deeper shadows cast toward bottom-right within carved grooves; {{inlay}} inlay catches slightly brighter highlights",
+  "mood": "ancient, bold, mystical, game-readable, premium artifact",
+  "background": {
+    "type": "scenery",
+    "details": "no separate background layer; the entire canvas is the tile surface. All visible pixels belong to the {{material}} tile; no white border, no transparency, no backdrop."
+  },
+  "composition": "center focus with symmetrical flanking panels; {{centerpiece}} occupies ~60% of the square; decorative bands and border relief fill remaining space; designed for clean readability at 48px",
+  "camera": {
+    "angle": "front-facing orthographic",
+    "distance": "close-up tile view",
+    "lens": "flat projection (no perspective distortion)",
+    "focus": "uniform sharp focus across full tile; crisp edges and outlines"
+  },
+  "medium": "digital hand-painted illustration simulating carved {{material}} relief with {{inlay}}-lined inlay",
+  "textures": [
+    "{{texture_1}}",
+    "{{texture_2}}",
+    "{{texture_3}}",
+    "{{texture_4}}"
+  ],
+  "resolution": "1024x1024 square (tile-asset ready, scales down cleanly to 48px)",
+  "details": [
+    "dominant {{material}} color {{primary_color}} covers ~70% of surface",
+    "2-3 tonal variations of the same hue family for carved depth (lighter highlights and deeper recess shadows)",
+    "thin black outlines (2-3px equivalent) separating major shapes and element boundaries",
+    "flat fills with subtle bevel shading: lighter top-left, darker bottom-right",
+    "{{inlay}}-lined edges and details on the {{centerpiece}} and select engravings",
+    "clean, bold, simplified shapes for legibility at small sizes",
+    "tile fills the canvas edge-to-edge with no padding"
+  ],
+  "effects": [
+    "edge-integrated surface vignette (tile-only shading, not background)",
+    "subtle ambient occlusion in deeper carvings",
+    "minimal specular glint on {{inlay}} inlay (controlled, not glossy)"
+  ],
+  "themes": [
+    "{{theme_name}}",
+    "{{theme_keyword_1}}",
+    "{{theme_keyword_2}}",
+    "{{theme_keyword_3}}",
+    "game UI readability"
+  ],
+  "usage_notes": "Treat this as a single opaque tile asset: the canvas is fully covered by the {{material}} tile. Apply the vignette as a surface shading pass on the {{material}} (multiply/darken of the {{material}} color), not as a background behind the tile. Preserve strong silhouettes and crisp 2-3px outlines for readability at 48px. Keep gradients minimal - only subtle bevel lighting and the edge shading.",
+  "tile_vignette": {
+    "enabled": true,
+    "region": "outermost 8-10% of the tile perimeter on all sides",
+    "behavior": "smooth, seamless darkening applied to the {{material}} texture itself (fully opaque), increasing toward the extreme edges",
+    "center_preservation": "center ~80% retains full color intensity",
+    "color_method": "darken/multiply the base {{material}} tones toward near-black at the extreme edge without introducing a separate black background layer",
+    "notes": "no visible background; no white or transparent margins; the vignette must not read as a backdrop"
+  },
+  "negative_prompt": [
+    "separate black background",
+    "white background",
+    "transparent background",
+    "floating tile with visible backdrop",
+    "drop shadow outside the tile",
+    "photorealistic lighting",
+    "strong perspective tilt",
+    "overly complex unreadable details",
+    "highly glossy surfaces",
+    "text labels",
+    "logos",
+    "watermarks"
+  ],
+  "generation_hints": {
+    "readability_target": "clear at 48px icon/tile scale",
+    "line_weight": "2-3px equivalent black outline between major shapes",
+    "shape_language": "bold, simplified, clean contours",
+    "edge_rule": "the darkest pixels occur at the extreme perimeter but remain part of the {{material}} surface, not an external background"
+  }
+}

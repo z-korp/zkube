@@ -2,8 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   buildBackgroundPrompt,
-  buildBlock1Prompt,
-  buildBlockMultiPrompt,
+  buildBlockPromptFromTemplate,
   buildBonusIconPrompt,
   buildButtonPrompt,
   buildGridBackgroundPrompt,
@@ -45,7 +44,6 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
   if (shouldIncludeCategory("blocks", filter)) {
     for (let i = 0; i < 4; i += 1) {
       const width = i + 1;
-      const color = theme.palette.blocks[i];
       const filename = `block-${width}.png`;
       const target = getTargetDimensions(filename, { width: 192, height: 192 });
 
@@ -56,7 +54,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
           themeId,
           filename,
           outputPath: path.join(themeRoot, filename),
-          prompt: buildBlock1Prompt(theme, color, i),
+          prompt: buildBlockPromptFromTemplate(theme, i, width),
           width: target.width,
           height: target.height,
           phase: 0,
@@ -69,7 +67,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
           themeId,
           filename,
           outputPath: path.join(themeRoot, filename),
-          prompt: buildBlockMultiPrompt(theme, color, i, width),
+          prompt: buildBlockPromptFromTemplate(theme, i, width),
           width: target.width,
           height: target.height,
           refPaths: [block1Path],

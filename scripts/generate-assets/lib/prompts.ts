@@ -1,27 +1,98 @@
+import fs from "node:fs";
+import path from "node:path";
 import type { ThemeDefinition } from "./types";
 
-export function buildBlock1Prompt(theme: ThemeDefinition, color: string, blockIndex: number): string {
-  const focalDesign = theme.blockDesigns?.[blockIndex] ?? `A distinctive ${theme.name}-themed carved element`;
+const TEMPLATES_DIR = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "data", "templates");
 
-  return `
-${focalDesign}, centered as a bold focal element occupying 60% of a square game block. ${theme.blockMotifs} fill the remaining surface as decorative border relief. Theme: ${theme.name}.
+const templateCache = new Map<string, string>();
 
-Dominant color ${color} covering 70% of the surface, with 2-3 darker and lighter tonal shades of ${color} for carved depth. Thin black outlines (2-3px) separate each shape. Hand-painted cel-shaded game art, flat color fills with subtle bevel — lighter top-left highlights, darker bottom-right shadows. Bold, clean, readable at 48px display size.
-
-The block fills the entire canvas edge-to-edge. The outermost 8-10% on all four sides gradually fades to near-black, a smooth dark vignette for seamless blending on a dark game grid. The center 80% has full color intensity. Opaque fill everywhere, smooth perimeter fade only.
-`.trim();
+function loadTemplate(name: string): string {
+  const cached = templateCache.get(name);
+  if (cached) return cached;
+  const raw = fs.readFileSync(path.join(TEMPLATES_DIR, `${name}.json`), "utf-8");
+  templateCache.set(name, raw);
+  return raw;
 }
 
-export function buildBlockMultiPrompt(theme: ThemeDefinition, color: string, blockIndex: number, blockWidth: number): string {
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const h = hex.replace("#", "");
+  return {
+    r: Number.parseInt(h.substring(0, 2), 16),
+    g: Number.parseInt(h.substring(2, 4), 16),
+    b: Number.parseInt(h.substring(4, 6), 16),
+  };
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  const clamp = (v: number) => Math.max(0, Math.min(255, Math.round(v)));
+  return `#${clamp(r).toString(16).padStart(2, "0")}${clamp(g).toString(16).padStart(2, "0")}${clamp(b).toString(16).padStart(2, "0")}`.toUpperCase();
+}
+
+function darkenHex(hex: string, amount: number): string {
+  const { r, g, b } = hexToRgb(hex);
+  return rgbToHex(r * (1 - amount), g * (1 - amount), b * (1 - amount));
+}
+
+function lightenHex(hex: string, amount: number): string {
+  const { r, g, b } = hexToRgb(hex);
+  return rgbToHex(r + (255 - r) * amount, g + (255 - g) * amount, b + (255 - b) * amount);
+}
+
+function buildSubstitutionMap(theme: ThemeDefinition, blockIndex: number, blockWidth: number): Record<string, string> {
+  const bd = theme.blockData;
+  const block = bd.blocks[blockIndex];
+  const color = theme.palette.blocks[blockIndex];
+
+  return {
+    theme_name: theme.name,
+    bg_color: theme.palette.bg,
+    material: bd.material,
+    inlay: bd.inlay,
+    centerpiece: block.centerpiece,
+    centerpiece_expression: block.centerpiece_expression,
+    flanking: block.flanking,
+    bands: block.bands,
+    filler: block.filler,
+    primary_color: color,
+    secondary_color: darkenHex(color, 0.15),
+    highlight_color: lightenHex(color, 0.15),
+    shadow_color: darkenHex(color, 0.35),
+    inspiration_1: bd.inspirations[0],
+    inspiration_2: bd.inspirations[1],
+    texture_1: bd.textures[0],
+    texture_2: bd.textures[1],
+    texture_3: bd.textures[2],
+    texture_4: bd.textures[3],
+    theme_keyword_1: bd.themeKeywords[0],
+    theme_keyword_2: bd.themeKeywords[1],
+    theme_keyword_3: bd.themeKeywords[2],
+    block_width: String(blockWidth),
+  };
+}
+
+export function buildBlockPromptFromTemplate(theme: ThemeDefinition, blockIndex: number, blockWidth: number): string {
+  const templateName = blockWidth === 1 ? "block-1" : "block-multi";
+  const template = loadTemplate(templateName);
+  const vars = buildSubstitutionMap(theme, blockIndex, blockWidth);
+  return template.replace(/\{\{(\w+)\}\}/g, (_match, key) => vars[key] ?? _match);
+}
+
+/** @deprecated Use buildBlockPromptFromTemplate instead */
+export function buildBlock1Prompt(theme: ThemeDefinition, color: string, blockIndex: number): string {
+  if (theme.blockData) {
+    return buildBlockPromptFromTemplate(theme, blockIndex, 1);
+  }
   const focalDesign = theme.blockDesigns?.[blockIndex] ?? `A distinctive ${theme.name}-themed carved element`;
+  return `${focalDesign}, centered as a bold focal element occupying 60% of a square game block. ${theme.blockMotifs} fill the remaining surface as decorative border relief. Theme: ${theme.name}. Dominant color ${color} covering 70% of the surface. Hand-painted cel-shaded game art.`.trim();
+}
 
-  return `
-${focalDesign}, centered as the dominant element of a horizontal game block spanning ${blockWidth} cells wide by 1 cell tall. The central motif is flanked by ${theme.blockMotifs} extending symmetrically to both sides, reading as one cohesive horizontal piece. Theme: ${theme.name}.
-
-Dominant color ${color} covering 70% of the surface. 2-3 tonal shades of ${color} for carved depth. Thin black outlines (2-3px) separate shapes. Hand-painted cel-shaded game art, bold and readable at small sizes.
-
-The block fills the entire ${blockWidth}:1 canvas edge-to-edge with opaque content. The outermost 8-10% on all sides gradually fades to near-black — a smooth dark vignette for blending on a dark game grid. Center 80% at full color intensity.
-`.trim();
+/** @deprecated Use buildBlockPromptFromTemplate instead */
+export function buildBlockMultiPrompt(theme: ThemeDefinition, color: string, blockIndex: number, blockWidth: number): string {
+  if (theme.blockData) {
+    return buildBlockPromptFromTemplate(theme, blockIndex, blockWidth);
+  }
+  const focalDesign = theme.blockDesigns?.[blockIndex] ?? `A distinctive ${theme.name}-themed carved element`;
+  return `${focalDesign}, centered as the dominant element of a horizontal game block spanning ${blockWidth} cells. Theme: ${theme.name}. Dominant color ${color}. Hand-painted cel-shaded game art.`.trim();
 }
 
 export function buildBackgroundPrompt(theme: ThemeDefinition): string {
