@@ -14,6 +14,7 @@ import {
   useMapLayout,
   type MapLayoutPresetId,
 } from "@/hooks/useMapLayout";
+import { getMapPathTheme, isValidThemeId, type ThemeId } from "@/config/themes";
 import { useNavigationStore } from "@/stores/navigationStore";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 import LevelPreview from "@/ui/components/map/LevelPreview";
@@ -24,6 +25,8 @@ import ZoneBackground from "@/ui/components/map/ZoneBackground";
 /* ------------------------------------------------------------------ */
 
 const SWIPE_THRESHOLD = 50;
+const VB_W = 60;
+const VB_H = 100;
 
 const STATE_COLORS: Record<
   NodeState,
@@ -182,30 +185,30 @@ const MapPage: React.FC = () => {
         >
           {zoneNodes.map((nodes, zoneIdx) => {
             const zone = zoneIdx + 1;
-            const theme = mapData.zoneThemes[zoneIdx] ?? "theme-1";
+            const themeRaw = mapData.zoneThemes[zoneIdx] ?? "theme-1";
+            const themeId: ThemeId = isValidThemeId(themeRaw) ? themeRaw : "theme-1";
             const layout = zoneLayouts[zoneIdx];
+            const pathTheme = getMapPathTheme(themeId);
 
             return (
               <div key={zone} className="relative h-full w-full flex-1">
                 <div className="relative h-full w-full lg:mx-auto lg:w-auto lg:max-w-full lg:aspect-[9/16]">
-                  <ZoneBackground zone={zone} themeId={theme} />
+                  <ZoneBackground zone={zone} themeId={themeId} />
 
-                  {/* ---- SVG map layer ---- */}
                   <svg
-                    viewBox="0 0 100 100"
+                    viewBox={`0 0 ${VB_W} ${VB_H}`}
                     preserveAspectRatio="xMidYMid meet"
                     className="absolute inset-0 h-full w-full"
                   >
-                    {/* Edges (render behind nodes) */}
                     {layout?.edges.map((edge) => {
                       const fromPt = layout.points[edge.from];
                       const toPt = layout.points[edge.to];
                       if (!fromPt || !toPt) return null;
 
-                      const fromX = fromPt.x * 100;
-                      const fromY = fromPt.y * 100;
-                      const toX = toPt.x * 100;
-                      const toY = toPt.y * 100;
+                      const fromX = fromPt.x * VB_W;
+                      const fromY = fromPt.y * VB_H;
+                      const toX = toPt.x * VB_W;
+                      const toY = toPt.y * VB_H;
                       const midY = (fromY + toY) / 2;
                       const d = `M ${fromX} ${fromY} C ${fromX} ${midY}, ${toX} ${midY}, ${toX} ${toY}`;
 
@@ -215,9 +218,9 @@ const MapPage: React.FC = () => {
                             key={`branch-${zoneIdx}-${edge.from}-${edge.to}`}
                             d={d}
                             fill="none"
-                            stroke="rgba(255,255,255,0.2)"
-                            strokeWidth={1.2}
-                            strokeDasharray="3 4"
+                            stroke={pathTheme.branchColor}
+                            strokeWidth={1}
+                            strokeDasharray={pathTheme.branchDash}
                             strokeLinecap="round"
                           />
                         );
@@ -229,34 +232,57 @@ const MapPage: React.FC = () => {
 
                       const pathType = getPathType(fromNode.state, toNode.state);
 
-                      const style =
+                      const stroke =
                         pathType === "cleared"
-                          ? { stroke: "#22c55e", strokeWidth: 2.5, opacity: 0.85 }
+                          ? pathTheme.clearedColor
                           : pathType === "active"
-                            ? { stroke: "#f97316", strokeWidth: 2.5, opacity: 0.85 }
-                            : { stroke: "#6b7280", strokeWidth: 1.5, opacity: 0.45 };
+                            ? pathTheme.activeColor
+                            : pathTheme.lockedColor;
+                      const sw =
+                        pathType === "locked"
+                          ? pathTheme.lockedStrokeWidth
+                          : pathTheme.strokeWidth;
+                      const opacity = pathType === "locked" ? 0.5 : 0.85;
+                      const dash =
+                        pathType === "locked"
+                          ? pathTheme.lockedDash
+                          : pathTheme.pathStyle === "dashed"
+                            ? "8 4"
+                            : pathTheme.pathStyle === "dotted"
+                              ? "2 3"
+                              : undefined;
 
                       return (
-                        <path
-                          key={`main-${zoneIdx}-${edge.from}-${edge.to}`}
-                          d={d}
-                          fill="none"
-                          stroke={style.stroke}
-                          strokeWidth={style.strokeWidth}
-                          strokeLinecap="round"
-                          opacity={style.opacity}
-                          strokeDasharray={pathType === "locked" ? "5 4" : undefined}
-                        />
+                        <g key={`main-${zoneIdx}-${edge.from}-${edge.to}`}>
+                          {pathTheme.pathStyle === "double" && (
+                            <path
+                              d={d}
+                              fill="none"
+                              stroke={stroke}
+                              strokeWidth={sw + 1.6}
+                              strokeLinecap="round"
+                              opacity={opacity * 0.35}
+                            />
+                          )}
+                          <path
+                            d={d}
+                            fill="none"
+                            stroke={stroke}
+                            strokeWidth={sw}
+                            strokeLinecap="round"
+                            opacity={opacity}
+                            strokeDasharray={dash}
+                          />
+                        </g>
                       );
                     })}
 
-                    {/* Nodes */}
                     {nodes.map((node) => {
                       const pt = layout?.points[node.nodeInZone];
                       if (!pt) return null;
 
-                      const cx = pt.x * 100;
-                      const cy = pt.y * 100;
+                      const cx = pt.x * VB_W;
+                      const cy = pt.y * VB_H;
                       const colors = STATE_COLORS[node.state];
                       const isInteractive = node.state !== "locked";
                       const label = getLabel(node);
@@ -276,14 +302,14 @@ const MapPage: React.FC = () => {
                           {node.type === "shop" ? (
                             <>
                               <rect
-                                x={cx - 5}
-                                y={cy - 3.5}
-                                width={10}
-                                height={7}
-                                rx={1.8}
+                                x={cx - 4}
+                                y={cy - 2.5}
+                                width={8}
+                                height={5}
+                                rx={1.2}
                                 fill={colors.fill}
                                 stroke={colors.border}
-                                strokeWidth={0.6}
+                                strokeWidth={0.4}
                               />
                               <text
                                 x={cx}
@@ -291,7 +317,7 @@ const MapPage: React.FC = () => {
                                 textAnchor="middle"
                                 dominantBaseline="central"
                                 fill={colors.text}
-                                fontSize={2.2}
+                                fontSize={1.8}
                                 fontFamily="Bangers"
                                 letterSpacing="0.08em"
                               >
@@ -303,10 +329,10 @@ const MapPage: React.FC = () => {
                               <circle
                                 cx={cx}
                                 cy={cy}
-                                r={node.type === "boss" ? 4.5 : 3.5}
+                                r={node.type === "boss" ? 3.2 : 2.5}
                                 fill={colors.fill}
                                 stroke={colors.border}
-                                strokeWidth={node.type === "boss" ? 0.7 : 0.6}
+                                strokeWidth={node.type === "boss" ? 0.5 : 0.4}
                               />
                               <text
                                 x={cx}
@@ -314,7 +340,7 @@ const MapPage: React.FC = () => {
                                 textAnchor="middle"
                                 dominantBaseline="central"
                                 fill={colors.text}
-                                fontSize={3}
+                                fontSize={2.2}
                                 fontFamily="Bangers"
                               >
                                 {label}
@@ -322,15 +348,14 @@ const MapPage: React.FC = () => {
                             </>
                           )}
 
-                          {/* Stars below cleared nodes */}
                           {node.state === "cleared" && (
                             <text
                               x={cx}
-                              y={cy + (node.type === "boss" ? 6.5 : 5.5)}
+                              y={cy + (node.type === "boss" ? 4.5 : 3.8)}
                               textAnchor="middle"
                               dominantBaseline="central"
                               fill="#facc15"
-                              fontSize={2}
+                              fontSize={1.4}
                             >
                               {"\u2605".repeat(node.stars || 3)}
                             </text>

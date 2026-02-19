@@ -560,3 +560,134 @@ function clamp(value: number, min: number, max: number): number {
 export function isValidThemeId(value: string): value is ThemeId {
   return THEME_IDS.includes(value as ThemeId);
 }
+
+export type MapPathStyle = "solid" | "dashed" | "dotted" | "double";
+
+export interface MapPathTheme {
+  clearedColor: string;
+  activeColor: string;
+  lockedColor: string;
+  branchColor: string;
+  pathStyle: MapPathStyle;
+  lockedDash: string;
+  branchDash: string;
+  strokeWidth: number;
+  lockedStrokeWidth: number;
+}
+
+const MAP_PATH_THEMES: Record<ThemeId, MapPathTheme> = {
+  "theme-1": {
+    clearedColor: "#4ade80",
+    activeColor: "#ff8c00",
+    lockedColor: "#5d4037",
+    branchColor: "rgba(255,200,100,0.25)",
+    pathStyle: "solid",
+    lockedDash: "6 5",
+    branchDash: "3 5",
+    strokeWidth: 2.5,
+    lockedStrokeWidth: 1.8,
+  },
+  "theme-2": {
+    clearedColor: "#d4af37",
+    activeColor: "#4169e1",
+    lockedColor: "#3d2817",
+    branchColor: "rgba(212,175,55,0.2)",
+    pathStyle: "dashed",
+    lockedDash: "8 4",
+    branchDash: "4 6",
+    strokeWidth: 2.8,
+    lockedStrokeWidth: 1.6,
+  },
+  "theme-3": {
+    clearedColor: "#00ff88",
+    activeColor: "#ff00ff",
+    lockedColor: "#1a1a3a",
+    branchColor: "rgba(0,255,255,0.2)",
+    pathStyle: "dotted",
+    lockedDash: "2 4",
+    branchDash: "2 5",
+    strokeWidth: 2.2,
+    lockedStrokeWidth: 1.4,
+  },
+  "theme-4": {
+    clearedColor: "#00e5a0",
+    activeColor: "#ffc947",
+    lockedColor: "#0a2540",
+    branchColor: "rgba(0,206,209,0.2)",
+    pathStyle: "solid",
+    lockedDash: "6 4",
+    branchDash: "3 4",
+    strokeWidth: 2.5,
+    lockedStrokeWidth: 1.6,
+  },
+  "theme-5": {
+    clearedColor: "#66bb6a",
+    activeColor: "#daa520",
+    lockedColor: "#1a3a1a",
+    branchColor: "rgba(218,165,32,0.2)",
+    pathStyle: "dashed",
+    lockedDash: "5 5",
+    branchDash: "4 4",
+    strokeWidth: 2.5,
+    lockedStrokeWidth: 1.6,
+  },
+  "theme-6": {
+    clearedColor: "#e8c547",
+    activeColor: "#e07b39",
+    lockedColor: "#5c3d1e",
+    branchColor: "rgba(205,133,63,0.25)",
+    pathStyle: "solid",
+    lockedDash: "7 5",
+    branchDash: "4 5",
+    strokeWidth: 3,
+    lockedStrokeWidth: 1.8,
+  },
+  "theme-7": {
+    clearedColor: "#40e0d0",
+    activeColor: "#5b9bd5",
+    lockedColor: "#3a6078",
+    branchColor: "rgba(64,224,208,0.2)",
+    pathStyle: "dotted",
+    lockedDash: "3 4",
+    branchDash: "2 4",
+    strokeWidth: 2.2,
+    lockedStrokeWidth: 1.4,
+  },
+  "theme-8": {
+    clearedColor: "#ff6600",
+    activeColor: "#ff2222",
+    lockedColor: "#2d1010",
+    branchColor: "rgba(255,102,0,0.2)",
+    pathStyle: "solid",
+    lockedDash: "5 4",
+    branchDash: "3 5",
+    strokeWidth: 2.8,
+    lockedStrokeWidth: 1.6,
+  },
+  "theme-9": {
+    clearedColor: "#7dcea0",
+    activeColor: "#ff69b4",
+    lockedColor: "#c06090",
+    branchColor: "rgba(255,105,180,0.18)",
+    pathStyle: "dashed",
+    lockedDash: "6 4",
+    branchDash: "4 5",
+    strokeWidth: 2.5,
+    lockedStrokeWidth: 1.6,
+  },
+  "theme-10": {
+    clearedColor: "#c5a050",
+    activeColor: "#b87333",
+    lockedColor: "#1e1610",
+    branchColor: "rgba(212,160,23,0.2)",
+    pathStyle: "solid",
+    lockedDash: "7 4",
+    branchDash: "4 4",
+    strokeWidth: 2.8,
+    lockedStrokeWidth: 1.8,
+  },
+};
+
+export function getMapPathTheme(themeId: ThemeId): MapPathTheme {
+  return MAP_PATH_THEMES[themeId] ?? MAP_PATH_THEMES["theme-1"];
+}
