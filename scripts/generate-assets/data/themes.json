@@ -158,7 +158,7 @@
     },
     "scene": "Frozen fjord at night, aurora borealis streaming over snow-covered mountains, viking longships moored at icy docks, rune stones glowing faintly in the snow",
     "loadingScene": "Close-up of an ancient rune stone covered in frost, each carved rune glowing with faint blue light, snow falling gently",
-    "gridMaterial": "Dark rough-hewn granite with iron frame bands and frost crystallization in the crevices",
+    "gridMaterial": "Dark rough-hewn granite with faint frost crystallization texture embossed at very low opacity",
     "music": {
       "menu": "A haunting Norse ambient instrumental with deep bowed string drone and sparse nyckelharpa melody. Distant war horn echoes through frozen valleys. Around 80 BPM, vast and mythic.",
       "gameplay": "A powerful Viking folk metal instrumental with driving war drum percussion and fierce fiddle melody over heavy bass drone. 118 BPM, relentless and cold."
@@ -213,7 +213,7 @@
     },
     "scene": "Aegean Sea coastline at golden hour, white marble temple ruins on a cliff, olive groves descending to azure waters, scattered broken columns, blue sky",
     "loadingScene": "Close-up of a white marble Ionic column capital with fine hairline cracks, warm golden sunlight streaming through, blue sky behind",
-    "gridMaterial": "Polished white marble with faint blue-grey veining and hairline cracks under pressure",
+    "gridMaterial": "Dark charcoal marble with very faint blue-grey veining and hairline crack texture at low opacity",
     "music": {
       "menu": "An elegant Ancient Greek instrumental with gentle lyre arpeggios and soft aulos flute melody over a light frame drum rhythm. Mediterranean breeze ambience. Around 85 BPM, contemplative and noble.",
       "gameplay": "A rhythmic Mediterranean instrumental with driving frame drum and tambourine over bright lyre patterns and bold aulos melody. 115 BPM, spirited and architectural."
@@ -268,7 +268,7 @@
     },
     "scene": "Feudal Japanese castle courtyard at twilight, black and red architecture, cherry blossom trees in full bloom, stone lanterns glowing, zen rock garden",
     "loadingScene": "Close-up of a glossy black lacquer surface with crimson kanji brushstrokes, cherry blossom petals drifting down, warm paper lantern light",
-    "gridMaterial": "Black lacquered wood with subtle grain texture and thin red trim border lines",
+    "gridMaterial": "Black lacquered wood with very subtle grain texture at low opacity",
     "music": {
       "menu": "A refined Japanese instrumental with gentle koto plucking and soft shakuhachi bamboo flute melody over wind chime accents. Around 80 BPM, meditative and disciplined.",
       "gameplay": "A dramatic taiko drum instrumental with powerful rhythmic patterns and piercing shinobue flute melody. Shamisen strikes punctuate the beat. 120 BPM, intense and dramatic."
@@ -323,7 +323,7 @@
     },
     "scene": "Imperial Chinese palace at night, jade-green rooftops curving skyward, golden silk lanterns lining a marble bridge over misty lotus ponds, dragon statues, moonlit pagodas",
     "loadingScene": "Close-up of a carved jade dragon head with golden eyes gleaming, mystical mist swirling around it, emerald green luminosity from within",
-    "gridMaterial": "Dark jade stone with subtle dragon-scale texture and thin gold calligraphy vein inlays",
+    "gridMaterial": "Dark jade stone with very subtle dragon-scale texture embossed at low opacity",
     "music": {
       "menu": "A mystical Chinese instrumental with gentle guzheng zither arpeggios and soft dizi bamboo flute melody floating over a resonant gong drone. Around 85 BPM, flowing and imperial.",
       "gameplay": "A dynamic Chinese orchestral instrumental with soaring erhu melody and powerful war drum patterns. Pipa lute runs cascade over thundering timpani. 118 BPM, mystical and commanding."
@@ -378,7 +378,7 @@
     },
     "scene": "Persian palace courtyard at night, blue tile domes and minarets glowing under moonlight, reflecting pools mirroring the stars, golden lamplight, cypress gardens",
     "loadingScene": "Close-up of an intricate Persian blue geometric tile mosaic wall, golden grout lines catching warm lamplight, luminous symmetrical glow",
-    "gridMaterial": "Deep blue ceramic tile with subtle geometric star pattern and thin gold inlay lines between tiles",
+    "gridMaterial": "Very dark blue ceramic surface with faint geometric star pattern embossed at very low opacity",
     "music": {
       "menu": "An elegant Persian instrumental with soft santur hammered dulcimer arpeggios and gentle ney flute melody. Zarb hand drum keeps a subtle pulse. Around 85 BPM, regal and luminous.",
       "gameplay": "A rhythmic Persian fusion instrumental with driving tombak drum patterns and bright tar lute melody. Santur cascades over tight daf frame drum groove. 115 BPM, symmetrical and flowing."
@@ -433,7 +433,7 @@
     },
     "scene": "Deep jungle at dawn, massive stepped Mayan pyramid rising through the canopy, moss-covered stone ruins scattered among giant trees, mist hanging in the air, filtered green light",
     "loadingScene": "Close-up of a moss-covered carved stone wall with Mayan calendar glyphs, jungle vines creeping over the surface, filtered green light through the canopy",
-    "gridMaterial": "Weathered jungle limestone with moss filling the carved grooves and vine tendrils at edges",
+    "gridMaterial": "Dark weathered jungle limestone with faint moss texture and carved groove patterns at very low opacity",
     "music": {
       "menu": "An atmospheric Mesoamerican instrumental with a wooden pan flute melody over gentle rain stick textures and soft clay drum rhythm. Jungle bird calls in the distance. Around 85 BPM, mysterious and ancient.",
       "gameplay": "An energetic Aztec ritual instrumental driven by powerful wooden slit drum patterns and rattling seed shakers over fierce clay ocarina melody. 120 BPM, dense and powerful."
@@ -488,7 +488,7 @@
     },
     "scene": "Desert mesa at sunset, multi-story adobe pueblo settlement carved into red rock cliffs, turquoise sky fading to orange, vast canyon landscape, scattered sage brush and juniper",
     "loadingScene": "Close-up of an adobe wall surface with turquoise stone inlays set into geometric painted patterns, warm golden desert light illuminating the texture",
-    "gridMaterial": "Smooth sun-baked adobe clay with faint geometric painted patterns and turquoise inlay fragments",
+    "gridMaterial": "Dark adobe clay with faint geometric painted patterns embossed at very low opacity",
     "music": {
       "menu": "A spiritual desert ambient instrumental with soft Native American cedar flute melody over gentle rattle shaker rhythm. Distant canyon wind echoes. Around 80 BPM, earthy and vast.",
       "gameplay": "A rhythmic Southwestern instrumental with driving hand drum patterns and bright cedar flute runs over steady rattle and bell accents. 115 BPM, grounded and spiritual."
@@ -543,7 +543,7 @@
     },
     "scene": "Mountain citadel at dawn inspired by Machu Picchu, massive interlocking stone walls, terraced hillsides descending into cloud forest, condors soaring over Andes peaks, golden sunrise",
     "loadingScene": "Close-up of perfectly interlocking polygonal stone wall with a gold Inti sun-god disc embedded in the masonry, morning mist rolling past the stones",
-    "gridMaterial": "Precisely fitted grey polygonal stone masonry with thin gold highlight lines between the interlocking blocks",
+    "gridMaterial": "Dark grey polygonal stone masonry with faint interlocking joint texture at very low opacity",
     "music": {
       "menu": "A majestic Andean instrumental with gentle charango melody and soft pan flute harmonies over a steady bombo drum pulse. Mountain wind ambience. Around 85 BPM, monumental and serene.",
       "gameplay": "A powerful Andean instrumental driven by rapid charango strumming and soaring quena flute over thundering bombo legüero war drums. 120 BPM, precise and mountainous."
