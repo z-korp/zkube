@@ -69,6 +69,31 @@ export function buildBlockPromptFromTemplate(theme: ThemeDefinition, blockIndex:
   return template.replace(/\{\{(\w+)\}\}/g, (_match, key) => vars[key] ?? _match);
 }
 
+function buildGridBgSubstitutionMap(theme: ThemeDefinition): Record<string, string> {
+  const bd = theme.blockData;
+  const bg = theme.palette.bg;
+
+  return {
+    theme_name: theme.name,
+    bg_color: bg,
+    bg_secondary: lightenHex(bg, 0.08),
+    bg_highlight: lightenHex(bg, 0.15),
+    bg_shadow: darkenHex(bg, 0.2),
+    grid_material: theme.gridMaterial,
+    motifs_short: theme.motifs.split(",").slice(0, 3).join(","),
+    inspiration_1: bd.inspirations[0],
+    theme_keyword_1: bd.themeKeywords[0],
+    theme_keyword_2: bd.themeKeywords[1],
+    theme_keyword_3: bd.themeKeywords[2],
+  };
+}
+
+export function buildGridBgPromptFromTemplate(theme: ThemeDefinition): string {
+  const template = loadTemplate("grid-bg");
+  const vars = buildGridBgSubstitutionMap(theme);
+  return template.replace(/\{\{(\w+)\}\}/g, (_match, key) => vars[key] ?? _match);
+}
+
 /** @deprecated Use buildBlockPromptFromTemplate instead */
 export function buildBlock1Prompt(theme: ThemeDefinition, color: string, blockIndex: number): string {
   if (theme.blockData) {
@@ -141,10 +166,9 @@ Dark background that blends with the theme's background color.
 `.trim();
 }
 
+/** @deprecated Use buildGridBgPromptFromTemplate instead */
 export function buildGridBackgroundPrompt(theme: ThemeDefinition): string {
-  return `
-A dark, muted ${theme.gridMaterial} surface texture filling the entire canvas edge-to-edge as a portrait rectangle. Flat vector style, bold cel-shaded, 2-3 tonal steps. Theme: ${theme.name}. Very subtle ${theme.name}-themed motifs (${theme.motifs}) faintly embossed at low opacity. Dark base color ${theme.palette.bg} covering 90% of the surface with minimal tonal variation. This is a game board background — colorful blocks will sit on top, so the surface must stay dark, low-contrast, and non-distracting. Sharp rectangular edges, fully opaque, no transparency, no grid lines, no text, no logos.
-`.trim();
+  return buildGridBgPromptFromTemplate(theme);
 }
 
 export function buildGridFramePrompt(theme: ThemeDefinition): string {

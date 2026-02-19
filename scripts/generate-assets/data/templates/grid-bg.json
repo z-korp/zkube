@@ -1,0 +1,79 @@
+{
+  "style_name": "{{theme_name}} Game Grid Backdrop",
+  "inspiration": [
+    "Flat cel-shaded 2D indie mobile games",
+    "{{inspiration_1}}",
+    "Modern flat vector game UI art"
+  ],
+  "scene": "A dark, muted {{grid_material}} surface filling the entire 3:4 portrait canvas edge-to-edge, serving as a non-intrusive game board background with very faint {{theme_name}}-themed motifs barely visible at low opacity.",
+  "subjects": [
+    {
+      "type": "background surface",
+      "description": "dark muted {{grid_material}} base with extremely subtle tonal shifts and faint distressed grunge overlay",
+      "position": "full frame",
+      "pose": "static",
+      "size": "fills entire portrait canvas",
+      "interaction": "foundation for colorful gameplay blocks placed above"
+    }
+  ],
+  "style": "flat vector, bold cel-shaded, 2-3 tonal steps, graphic cartoon game art",
+  "color_palette": {
+    "primary": "{{bg_color}}",
+    "secondary": "{{bg_secondary}}",
+    "highlight": "{{bg_highlight}}",
+    "shadow": "{{bg_shadow}}",
+    "background_gradient": ["{{bg_color}}", "{{bg_shadow}}"]
+  },
+  "lighting": "soft ambient top-down lighting with 2-3 flat cel-shaded tonal steps, no realistic highlights",
+  "mood": "restrained, grounded, culturally inspired minimalism",
+  "background": {
+    "type": "scenery",
+    "details": "flat dark {{grid_material}} surface with faint distressed grunge overlay; very subtle {{theme_name}} motifs ({{motifs_short}}) embossed at extremely low opacity; no grid lines, no high-contrast marks"
+  },
+  "composition": "evenly distributed tonal variation across full canvas, no focal points, designed to not draw attention from foreground gameplay",
+  "camera": {
+    "angle": "top-down orthographic",
+    "distance": "flat view",
+    "lens": "neutral",
+    "focus": "uniformly sharp"
+  },
+  "medium": "digital vector illustration with subtle rasterized grunge overlay",
+  "textures": [
+    "soft distressed grunge",
+    "matte {{grid_material}} feel",
+    "minimal surface noise"
+  ],
+  "details": [
+    "fills entire canvas edge-to-edge with no empty space",
+    "fully opaque with no transparency",
+    "2-3 tonal shades maximum",
+    "dark base color {{bg_color}} covering 90% of surface",
+    "faint cultural motifs only — must not interfere with gameplay readability",
+    "no grid lines, no text, no logos, no UI elements"
+  ],
+  "effects": [
+    "very subtle grain overlay",
+    "faint tonal vignetting toward edges",
+    "minimal cel-step shading"
+  ],
+  "themes": [
+    "{{theme_name}}",
+    "{{theme_keyword_1}}",
+    "{{theme_keyword_2}}",
+    "{{theme_keyword_3}}"
+  ],
+  "usage_notes": "This is a base layer only. Foreground blocks use brighter, higher-contrast colors. Do not increase texture contrast. Maintain flat vector readability. Avoid photorealistic rendering or 3D lighting.",
+  "negative_prompt": [
+    "grid lines",
+    "bright colors",
+    "high contrast patterns",
+    "photorealistic stone",
+    "3D render lighting",
+    "text",
+    "logos",
+    "symbols at full opacity",
+    "decorative borders",
+    "transparency",
+    "white background"
+  ]
+}
