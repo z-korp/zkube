@@ -82,6 +82,7 @@ export interface CliOptions {
   theme?: string;
   scope: Scope;
   asset?: AssetCategory;
+  only?: string[];
   dryRun: boolean;
   includeRefs: boolean;
 }

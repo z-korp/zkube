@@ -283,6 +283,7 @@ function printHelp(): void {
   console.log("  --theme <theme-id>       Generate per-theme assets for one theme (example: theme-4)");
   console.log("  --scope <scope>          per-theme | global | all (default: per-theme)");
   console.log("  --asset <category>       Filter to one category");
+  console.log("  --only <names>           Comma-separated filenames (without .png) e.g. block-1,grid-bg");
   console.log("  --dry-run                Print plan only; do not call generation API");
   console.log("  --ref                    Use block-1 as optional reference for wider blocks (default)");
   console.log("  --no-ref                 Disable optional image references");
@@ -330,6 +331,13 @@ function parseArgs(argv: string[]): CliOptions {
         throw new Error(`Invalid asset category: ${asset}`);
       }
       options.asset = asset as AssetCategory;
+      i += 1;
+      continue;
+    }
+
+    if (arg === "--only") {
+      const val = readFlagValue(argv, i, "--only");
+      options.only = val.split(",").map((s) => s.trim());
       i += 1;
       continue;
     }
@@ -400,6 +408,12 @@ function buildJobList(options: CliOptions): { jobs: AssetJob[]; selectedThemeIds
     jobs.push(...buildGlobalJobs(options.asset));
   }
 
+  if (options.only) {
+    const names = new Set(options.only.map((n) => n.endsWith(".png") ? n : `${n}.png`));
+    const filtered = jobs.filter((j) => names.has(j.filename));
+    return { jobs: filtered, selectedThemeIds };
+  }
+
   return { jobs, selectedThemeIds };
 }
 
@@ -437,6 +451,9 @@ async function main(): Promise<void> {
   console.log(`Reference images: ${options.includeRefs ? "enabled" : "disabled"}`);
   if (options.asset) {
     console.log(`Asset filter: ${options.asset}`);
+  }
+  if (options.only) {
+    console.log(`Only: ${options.only.join(", ")}`);
   }
   if (options.dryRun) {
     console.log("Dry run: enabled");
