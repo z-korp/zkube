@@ -143,15 +143,7 @@ Dark background that blends with the theme's background color.
 
 export function buildGridBackgroundPrompt(theme: ThemeDefinition): string {
   return `
-Art style: Stylized 2D vector/cartoon game art. Bold black outlines as separators. Flat-fill cel-shading with 2-3 tonal steps per surface. Subtle distressed grunge texture overlay. Clean graphic readability. NOT photographic, NOT pixel art, NOT 3D rendered. Think tribal mask / cultural emblem aesthetic.
-
-Generate a subtle background surface texture for a game grid area.
-Theme: ${theme.name}
-Material: ${theme.gridMaterial}
-Style: Muted, low-contrast surface — the blocks will sit ON TOP of this.
-Color: Dark base with very subtle tonal variation. Must not compete with colorful blocks placed on top.
-No grid lines (drawn in code). No patterns that would interfere with gameplay readability.
-Portrait rectangle (4:5 ratio). Filled completely, no transparency.
+A dark, muted ${theme.gridMaterial} surface texture filling the entire canvas edge-to-edge as a portrait rectangle. Flat vector style, bold cel-shaded, 2-3 tonal steps. Theme: ${theme.name}. Very subtle ${theme.name}-themed motifs (${theme.motifs}) faintly embossed at low opacity. Dark base color ${theme.palette.bg} covering 90% of the surface with minimal tonal variation. This is a game board background — colorful blocks will sit on top, so the surface must stay dark, low-contrast, and non-distracting. Sharp rectangular edges, fully opaque, no transparency, no grid lines, no text, no logos.
 `.trim();
 }
 

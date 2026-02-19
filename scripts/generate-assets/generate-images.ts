@@ -123,7 +123,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       filename: "grid-bg.png",
       outputPath: path.join(themeRoot, "grid-bg.png"),
       prompt: buildGridBackgroundPrompt(theme),
-      ...getTargetDimensions("grid-bg.png", { width: 1024, height: 1280 }),
+      ...getTargetDimensions("grid-bg.png", { width: 768, height: 1024 }),
     });
     jobs.push({
       scope: "per-theme",
