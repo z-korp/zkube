@@ -18,7 +18,7 @@ import {
 } from "./lib/prompts";
 import sharp from "sharp";
 import { CONCURRENCY, IMAGE_MODEL, COMMON_ROOT, ASSETS_ROOT, formatError, loadPLimitFactory, relativePath } from "./lib/env";
-import { fal, generateImage, savePng, tintImage } from "./lib/fal-client";
+import { fal, generateImage, savePng, tintImage, featherEdges } from "./lib/fal-client";
 import { GLOBAL_ASSETS, PER_THEME_ASSETS, type AssetCategory, type AssetJob, type CliOptions, type GlobalAsset, type GlobalAssetsData, type PerThemeAsset, type ThemeDefinition } from "./lib/types";
 
 const DATA_DIR = path.join(path.dirname(new URL(import.meta.url).pathname), "data");
@@ -111,8 +111,9 @@ async function runBlockPipeline(
     try {
       const cropped = await cropCenter(masterBuffer, block.width, MASTER_HEIGHT);
       const tinted = await tintImage(cropped, color);
-      await savePng(path.join(themeRoot, block.name), tinted, true);
-      console.log(`  [${block.name}]  Cropped to ${block.width}×${MASTER_HEIGHT}, tinted ${color}`);
+      const feathered = await featherEdges(tinted);
+      await savePng(path.join(themeRoot, block.name), feathered, false);
+      console.log(`  [${block.name}]  Cropped to ${block.width}×${MASTER_HEIGHT}, tinted ${color}, feathered`);
       success += 1;
     } catch (error) {
       console.log(`  [${block.name}]  FAILED: ${formatError(error)}`);

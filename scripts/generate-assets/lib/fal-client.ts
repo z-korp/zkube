@@ -320,6 +320,28 @@ async function nukeWhite(imageBuffer: Buffer, threshold = 240): Promise<Buffer> 
     .toBuffer();
 }
 
+export async function featherEdges(imageBuffer: Buffer, radius = 12): Promise<Buffer> {
+  const image = sharp(imageBuffer).ensureAlpha();
+  const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
+  const { width, height } = info;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const distFromEdge = Math.min(x, y, width - 1 - x, height - 1 - y);
+      if (distFromEdge < radius) {
+        const t = distFromEdge / radius;
+        const featherAlpha = Math.round((1 - Math.cos(t * Math.PI)) / 2 * 255);
+        const idx = (y * width + x) * 4;
+        data[idx + 3] = Math.round((data[idx + 3] * featherAlpha) / 255);
+      }
+    }
+  }
+
+  return sharp(data, { raw: { width, height, channels: 4 } })
+    .png()
+    .toBuffer();
+}
+
 export async function savePng(outputPath: string, imageBuffer: Buffer, stripWhite = false): Promise<void> {
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   const finalBuffer = stripWhite ? await nukeWhite(imageBuffer) : imageBuffer;
