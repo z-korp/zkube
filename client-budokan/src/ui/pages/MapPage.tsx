@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ReactFlow,
+  type Edge,
+  type Node,
+  type NodeTypes,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
 import { useGame } from "@/hooks/useGame";
 import {
   NODES_PER_ZONE,
@@ -16,14 +23,31 @@ import {
 import { useNavigationStore } from "@/stores/navigationStore";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 import LevelPreview from "@/ui/components/map/LevelPreview";
-import MapNode from "@/ui/components/map/MapNode";
-import MapPath from "@/ui/components/map/MapPath";
+import MapFlowNode from "@/ui/components/map/MapFlowNode";
 import ZoneBackground from "@/ui/components/map/ZoneBackground";
 
 const SWIPE_THRESHOLD = 50;
-const SVG_VIEWBOX = 1000;
+const FLOW_WIDTH = 900;
+const FLOW_HEIGHT = 1500;
+
+const nodeTypes: NodeTypes = {
+  mapNode: MapFlowNode,
+};
 
 const canOpenPreview = (node: MapNodeData): boolean => node.state !== "locked";
+
+const getPathType = (
+  fromState: MapNodeData["state"],
+  toState: MapNodeData["state"],
+): "cleared" | "active" | "locked" => {
+  if (fromState === "cleared" && (toState === "cleared" || toState === "visited")) {
+    return "cleared";
+  }
+  if (fromState === "cleared" && (toState === "current" || toState === "available")) {
+    return "active";
+  }
+  return "locked";
+};
 
 const MapPage: React.FC = () => {
   const navigate = useNavigationStore((state) => state.navigate);
@@ -60,6 +84,93 @@ const MapPage: React.FC = () => {
         return mapData.nodes.slice(start, start + NODES_PER_ZONE);
       }),
     [mapData.nodes],
+  );
+
+  const zoneFlowData = useMemo(
+    () =>
+      zoneNodes.map((nodes, zoneIdx) => {
+        const layout = zoneLayouts[zoneIdx];
+        if (!layout) {
+          return { nodes: [] as Node[], edges: [] as Edge[] };
+        }
+
+        const flowNodes: Node[] = nodes.map((node) => {
+          const position = layout.points[node.nodeInZone] ?? { x: 0.5, y: 0.5 };
+          return {
+            id: String(node.nodeInZone),
+            type: "mapNode",
+            data: {
+              node,
+              onTap: (pressedNode: MapNodeData) => {
+                if (canOpenPreview(pressedNode)) {
+                  setSelectedNode(pressedNode);
+                }
+              },
+            },
+            position: {
+              x: position.x * FLOW_WIDTH,
+              y: position.y * FLOW_HEIGHT,
+            },
+            draggable: false,
+            selectable: false,
+          };
+        });
+
+        const flowEdges: Edge[] = layout.edges.map((edge) => {
+          const fromNode = nodes[edge.from];
+          const toNode = nodes[edge.to];
+
+          if (!fromNode || !toNode) {
+            return {
+              id: `${zoneIdx}-${edge.from}-${edge.to}`,
+              source: String(edge.from),
+              target: String(edge.to),
+              type: "smoothstep",
+              animated: false,
+            };
+          }
+
+          if (edge.kind === "branch") {
+            return {
+              id: `branch-${zoneIdx}-${edge.from}-${edge.to}`,
+              source: String(edge.from),
+              target: String(edge.to),
+              type: "bezier",
+              style: {
+                stroke: "rgba(255,255,255,0.2)",
+                strokeWidth: 2,
+                strokeDasharray: "6 8",
+              },
+              interactionWidth: 0,
+            };
+          }
+
+          const pathType = getPathType(fromNode.state, toNode.state);
+          const style =
+            pathType === "cleared"
+              ? { stroke: "#22c55e", strokeWidth: 4, opacity: 0.9 }
+              : pathType === "active"
+                ? { stroke: "#f97316", strokeWidth: 4, opacity: 0.9 }
+                : {
+                    stroke: "#6b7280",
+                    strokeWidth: 2.5,
+                    opacity: 0.45,
+                    strokeDasharray: "8 7",
+                  };
+
+          return {
+            id: `main-${zoneIdx}-${edge.from}-${edge.to}`,
+            source: String(edge.from),
+            target: String(edge.to),
+            type: "smoothstep",
+            style,
+            interactionWidth: 0,
+          };
+        });
+
+        return { nodes: flowNodes, edges: flowEdges };
+      }),
+    [zoneLayouts, zoneNodes],
   );
 
   const onStartDrag = (clientX: number) => {
@@ -129,90 +240,38 @@ const MapPage: React.FC = () => {
           animate={{ x: `-${activeZone * (100 / TOTAL_ZONES)}%` }}
           transition={{ type: "spring", stiffness: 280, damping: 32 }}
         >
-          {zoneNodes.map((nodes, zoneIdx) => {
+          {zoneNodes.map((_nodes, zoneIdx) => {
             const zone = zoneIdx + 1;
             const theme = mapData.zoneThemes[zoneIdx] ?? "theme-1";
-            const layout = zoneLayouts[zoneIdx];
+            const flowData = zoneFlowData[zoneIdx] ?? { nodes: [], edges: [] };
 
             return (
               <div key={zone} className="relative h-full w-full flex-1">
                 <div className="relative h-full w-full lg:mx-auto lg:w-auto lg:max-w-full lg:aspect-[9/16]">
                   <ZoneBackground zone={zone} themeId={theme} />
 
-                  <svg
-                    viewBox={`0 0 ${SVG_VIEWBOX} ${SVG_VIEWBOX}`}
-                    className="pointer-events-none absolute inset-0 h-full w-full"
-                    aria-hidden
-                  >
-                    {layout?.edges.map((edge) => {
-                      const fromPoint = layout.points[edge.from];
-                      const toPoint = layout.points[edge.to];
-
-                      if (!fromPoint || !toPoint) return null;
-
-                      const fromX = fromPoint.x * SVG_VIEWBOX;
-                      const fromY = fromPoint.y * SVG_VIEWBOX;
-                      const toX = toPoint.x * SVG_VIEWBOX;
-                      const toY = toPoint.y * SVG_VIEWBOX;
-
-                      if (edge.kind === "branch") {
-                        const curveDirection = toX >= fromX ? 1 : -1;
-                        const controlX = (fromX + toX) / 2 + curveDirection * 64;
-                        const controlY = (fromY + toY) / 2;
-                        const branchD = `M ${fromX} ${fromY} Q ${controlX} ${controlY} ${toX} ${toY}`;
-
-                        return (
-                          <path
-                            key={`branch-${zoneIdx}-${edge.from}-${edge.to}`}
-                            d={branchD}
-                            fill="none"
-                            stroke="rgba(255,255,255,0.22)"
-                            strokeWidth={2}
-                            strokeDasharray="6 8"
-                            strokeLinecap="round"
-                          />
-                        );
-                      }
-
-                      const fromNode = nodes[edge.from];
-                      const toNode = nodes[edge.to];
-
-                      if (!fromNode || !toNode) return null;
-
-                      return (
-                        <MapPath
-                          key={`path-${zoneIdx}-${edge.from}-${edge.to}`}
-                          fromX={fromX}
-                          fromY={fromY}
-                          toX={toX}
-                          toY={toY}
-                          fromState={fromNode.state}
-                          toState={toNode.state}
-                        />
-                      );
-                    })}
-                  </svg>
-
                   <div className="absolute inset-0">
-                    {nodes.map((node) => {
-                      const position = layout?.points[node.nodeInZone];
-
-                      if (!position) return null;
-
-                      return (
-                        <MapNode
-                          key={`node-${node.nodeIndex}`}
-                          node={node}
-                          xPercent={position.x * 100}
-                          yPercent={position.y * 100}
-                          onTap={(pressedNode) => {
-                            if (canOpenPreview(pressedNode)) {
-                              setSelectedNode(pressedNode);
-                            }
-                          }}
-                        />
-                      );
-                    })}
+                    <ReactFlow
+                      nodes={flowData.nodes}
+                      edges={flowData.edges}
+                      nodeTypes={nodeTypes}
+                      fitView
+                      fitViewOptions={{
+                        padding: 0.16,
+                        minZoom: 0.8,
+                        maxZoom: 1.15,
+                      }}
+                      nodesDraggable={false}
+                      nodesConnectable={false}
+                      elementsSelectable={false}
+                      panOnDrag={false}
+                      zoomOnScroll={false}
+                      zoomOnPinch={false}
+                      zoomOnDoubleClick={false}
+                      preventScrolling={false}
+                      proOptions={{ hideAttribution: true }}
+                      className="!bg-transparent"
+                    />
                   </div>
                 </div>
               </div>
