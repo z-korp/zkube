@@ -22,28 +22,24 @@ const getLabel = (node: MapNodeData): string => {
   if (node.type === "boss") {
     return node.state === "cleared" ? "✓" : "★";
   }
-  if (node.state === "cleared") {
-    return "✓";
-  }
   return String(node.contractLevel ?? "");
 };
 
 export interface MapFlowNodeData {
   node: MapNodeData;
-  onTap: (node: MapNodeData) => void;
   [key: string]: unknown;
 }
 
 function isMapFlowNodeData(data: unknown): data is MapFlowNodeData {
   if (!data || typeof data !== "object") return false;
-  const candidate = data as { node?: unknown; onTap?: unknown };
-  return !!candidate.node && typeof candidate.onTap === "function";
+  const candidate = data as { node?: unknown };
+  return !!candidate.node;
 }
 
 const MapFlowNodeComponent: React.FC<NodeProps> = ({ data }) => {
   if (!isMapFlowNodeData(data)) return null;
 
-  const { node, onTap } = data;
+  const { node } = data;
   const colors = STATE_COLORS[node.state];
   const isInteractive = isInteractiveState(node.state);
   const label = getLabel(node);
@@ -52,16 +48,11 @@ const MapFlowNodeComponent: React.FC<NodeProps> = ({ data }) => {
   return (
     <>
       <Handle type="target" position={Position.Top} className="!h-0 !w-0 !border-0 !opacity-0" />
-      <button
-        type="button"
-        onClick={() => {
-          if (isInteractive) onTap(node);
-        }}
-        className={`relative -translate-x-1/2 -translate-y-1/2 ${isInteractive ? "cursor-pointer" : "cursor-default"} ${
+      <div
+        className={`nodrag nopan relative -translate-x-1/2 -translate-y-1/2 ${isInteractive ? "cursor-pointer" : "cursor-default"} ${
           isCurrent ? "animate-pulse" : ""
         }`}
         style={{ opacity: colors.alpha }}
-        disabled={!isInteractive}
       >
       {node.type === "shop" ? (
         <svg viewBox="0 0 52 44" className="h-14 w-16 overflow-visible" aria-hidden>
@@ -116,7 +107,7 @@ const MapFlowNodeComponent: React.FC<NodeProps> = ({ data }) => {
           {"★".repeat(node.stars || 3)}
         </div>
       )}
-      </button>
+      </div>
       <Handle type="source" position={Position.Bottom} className="!h-0 !w-0 !border-0 !opacity-0" />
     </>
   );

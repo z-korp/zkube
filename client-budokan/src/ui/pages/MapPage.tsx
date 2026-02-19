@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "motion/react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   ReactFlow,
   type Edge,
@@ -21,14 +23,12 @@ import {
 import { useNavigationStore } from "@/stores/navigationStore";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 import LevelPreview from "@/ui/components/map/LevelPreview";
-import MapFlowNode from "@/ui/components/map/MapFlowNode";
+import MapFlowNode, { type MapFlowNodeData } from "@/ui/components/map/MapFlowNode";
 import ZoneBackground from "@/ui/components/map/ZoneBackground";
 
+const SWIPE_THRESHOLD = 50;
 const FLOW_WIDTH = 900;
-const ZONE_SECTION_HEIGHT = 920;
-const FLOW_TOP_PADDING = 96;
-const FLOW_BOTTOM_PADDING = 80;
-const FLOW_SIDE_PADDING = 72;
+const FLOW_HEIGHT = 1500;
 
 const nodeTypes: NodeTypes = {
   mapNode: MapFlowNode,
@@ -48,6 +48,12 @@ const getPathType = (
   }
   return "locked";
 };
+
+function isMapFlowNodeData(data: unknown): data is MapFlowNodeData {
+  if (!data || typeof data !== "object") return false;
+  const candidate = data as { node?: unknown };
+  return !!candidate.node && typeof candidate.node === "object";
+}
 
 const MapPage: React.FC = () => {
   const navigate = useNavigationStore((state) => state.navigate);
@@ -71,21 +77,10 @@ const MapPage: React.FC = () => {
 
   const [activeZone, setActiveZone] = useState(Math.max(0, mapData.currentZone - 1));
   const [selectedNode, setSelectedNode] = useState<MapNodeData | null>(null);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const pointerStartX = useRef<number | null>(null);
 
   useEffect(() => {
     setActiveZone(Math.max(0, mapData.currentZone - 1));
-  }, [mapData.currentZone]);
-
-  useEffect(() => {
-    const container = scrollRef.current;
-    if (!container) return;
-
-    const zoneIndex = Math.max(0, mapData.currentZone - 1);
-    container.scrollTo({
-      top: zoneIndex * ZONE_SECTION_HEIGHT,
-      behavior: "smooth",
-    });
   }, [mapData.currentZone]);
 
   const zoneNodes = useMemo(
@@ -97,103 +92,103 @@ const MapPage: React.FC = () => {
     [mapData.nodes],
   );
 
-  const mapHeight = TOTAL_ZONES * ZONE_SECTION_HEIGHT;
-
-  const flowData = useMemo(() => {
-    const flowNodes: Node[] = [];
-    const flowEdges: Edge[] = [];
-    const laneWidth = FLOW_WIDTH - FLOW_SIDE_PADDING * 2;
-    const zoneFlowHeight = ZONE_SECTION_HEIGHT - FLOW_TOP_PADDING - FLOW_BOTTOM_PADDING;
-
-    zoneNodes.forEach((nodes, zoneIdx) => {
-      const layout = zoneLayouts[zoneIdx];
-      if (!layout) return;
-
-      const baseY = zoneIdx * ZONE_SECTION_HEIGHT + FLOW_TOP_PADDING;
-
-      nodes.forEach((node) => {
-        const position = layout.points[node.nodeInZone] ?? { x: 0.5, y: 0.5 };
-        flowNodes.push({
-          id: `node-${node.nodeIndex}`,
-          type: "mapNode",
-          data: {
-            node,
-            onTap: (pressedNode: MapNodeData) => {
-              if (canOpenPreview(pressedNode)) {
-                setSelectedNode(pressedNode);
-              }
-            },
-          },
-          position: {
-            x: FLOW_SIDE_PADDING + position.x * laneWidth,
-            y: baseY + position.y * zoneFlowHeight,
-          },
-          draggable: false,
-          selectable: false,
-        });
-      });
-
-      layout.edges.forEach((edge) => {
-        const fromNode = nodes[edge.from];
-        const toNode = nodes[edge.to];
-
-        if (!fromNode || !toNode) return;
-
-        if (edge.kind === "branch") {
-          flowEdges.push({
-            id: `branch-${zoneIdx}-${edge.from}-${edge.to}`,
-            source: `node-${fromNode.nodeIndex}`,
-            target: `node-${toNode.nodeIndex}`,
-            type: "bezier",
-            style: {
-              stroke: "rgba(255,255,255,0.2)",
-              strokeWidth: 2,
-              strokeDasharray: "6 8",
-            },
-            interactionWidth: 0,
-          });
-          return;
+  const zoneFlowData = useMemo(
+    () =>
+      zoneNodes.map((nodes, zoneIdx) => {
+        const layout = zoneLayouts[zoneIdx];
+        if (!layout) {
+          return { nodes: [] as Node[], edges: [] as Edge[] };
         }
 
-        const pathType = getPathType(fromNode.state, toNode.state);
-        const style =
-          pathType === "cleared"
-            ? { stroke: "#22c55e", strokeWidth: 4, opacity: 0.9 }
-            : pathType === "active"
-              ? { stroke: "#f97316", strokeWidth: 4, opacity: 0.9 }
-              : {
-                  stroke: "#6b7280",
-                  strokeWidth: 2.5,
-                  opacity: 0.45,
-                  strokeDasharray: "8 7",
-                };
-
-        flowEdges.push({
-          id: `main-${zoneIdx}-${edge.from}-${edge.to}`,
-          source: `node-${fromNode.nodeIndex}`,
-          target: `node-${toNode.nodeIndex}`,
-          type: "smoothstep",
-          style,
-          interactionWidth: 0,
+        const flowNodes: Node[] = nodes.map((node) => {
+          const position = layout.points[node.nodeInZone] ?? { x: 0.5, y: 0.5 };
+          return {
+            id: `node-${node.nodeInZone}`,
+            type: "mapNode",
+            data: { node },
+            position: {
+              x: position.x * FLOW_WIDTH,
+              y: position.y * FLOW_HEIGHT,
+            },
+            draggable: false,
+            selectable: false,
+          };
         });
-      });
-    });
 
-    return { nodes: flowNodes, edges: flowEdges };
-  }, [zoneLayouts, zoneNodes]);
+        const flowEdges: Edge[] = layout.edges.map((edge) => {
+          const fromNode = nodes[edge.from];
+          const toNode = nodes[edge.to];
 
-  const jumpToZone = (zoneIdx: number) => {
-    const container = scrollRef.current;
-    if (!container) return;
-    container.scrollTo({ top: zoneIdx * ZONE_SECTION_HEIGHT, behavior: "smooth" });
+          if (!fromNode || !toNode) {
+            return {
+              id: `${zoneIdx}-${edge.from}-${edge.to}`,
+              source: `node-${edge.from}`,
+              target: `node-${edge.to}`,
+              type: "smoothstep",
+              animated: false,
+            };
+          }
+
+          if (edge.kind === "branch") {
+            return {
+              id: `branch-${zoneIdx}-${edge.from}-${edge.to}`,
+              source: `node-${edge.from}`,
+              target: `node-${edge.to}`,
+              type: "bezier",
+              style: {
+                stroke: "rgba(255,255,255,0.2)",
+                strokeWidth: 2,
+                strokeDasharray: "6 8",
+              },
+              interactionWidth: 0,
+            };
+          }
+
+          const pathType = getPathType(fromNode.state, toNode.state);
+          const style =
+            pathType === "cleared"
+              ? { stroke: "#22c55e", strokeWidth: 4, opacity: 0.9 }
+              : pathType === "active"
+                ? { stroke: "#f97316", strokeWidth: 4, opacity: 0.9 }
+                : {
+                    stroke: "#6b7280",
+                    strokeWidth: 2.5,
+                    opacity: 0.45,
+                    strokeDasharray: "8 7",
+                  };
+
+          return {
+            id: `main-${zoneIdx}-${edge.from}-${edge.to}`,
+            source: `node-${edge.from}`,
+            target: `node-${edge.to}`,
+            type: "smoothstep",
+            style,
+            interactionWidth: 0,
+          };
+        });
+
+        return { nodes: flowNodes, edges: flowEdges };
+      }),
+    [zoneLayouts, zoneNodes],
+  );
+
+  const onStartDrag = (clientX: number) => {
+    pointerStartX.current = clientX;
   };
 
-  const handleScroll = () => {
-    const container = scrollRef.current;
-    if (!container) return;
-    const centerY = container.scrollTop + container.clientHeight * 0.45;
-    const zoneIdx = Math.min(TOTAL_ZONES - 1, Math.max(0, Math.floor(centerY / ZONE_SECTION_HEIGHT)));
-    setActiveZone(zoneIdx);
+  const onEndDrag = (clientX: number) => {
+    if (pointerStartX.current === null) return;
+    const deltaX = clientX - pointerStartX.current;
+    pointerStartX.current = null;
+
+    if (Math.abs(deltaX) < SWIPE_THRESHOLD) return;
+
+    if (deltaX < 0) {
+      setActiveZone((prev) => Math.min(prev + 1, TOTAL_ZONES - 1));
+      return;
+    }
+
+    setActiveZone((prev) => Math.max(prev - 1, 0));
   };
 
   const handlePlay = () => {
@@ -231,58 +226,93 @@ const MapPage: React.FC = () => {
         )}
       />
 
-      <div className="relative flex-1 overflow-hidden">
-        <div
-          ref={scrollRef}
-          className="h-full overflow-y-auto overflow-x-hidden"
-          onScroll={handleScroll}
+      <div
+        className="relative flex-1 overflow-hidden"
+        onMouseDown={(event) => onStartDrag(event.clientX)}
+        onMouseUp={(event) => onEndDrag(event.clientX)}
+        onTouchStart={(event) => onStartDrag(event.touches[0]?.clientX ?? 0)}
+        onTouchEnd={(event) => onEndDrag(event.changedTouches[0]?.clientX ?? 0)}
+      >
+        <motion.div
+          className="flex h-full"
+          style={{ width: `${TOTAL_ZONES * 100}%` }}
+          animate={{ x: `-${activeZone * (100 / TOTAL_ZONES)}%` }}
+          transition={{ type: "spring", stiffness: 280, damping: 32 }}
         >
-          <div className="relative mx-auto w-full max-w-[780px]" style={{ height: mapHeight }}>
-            {Array.from({ length: TOTAL_ZONES }, (_, zoneIdx) => {
-              const zone = zoneIdx + 1;
-              const theme = mapData.zoneThemes[zoneIdx] ?? "theme-1";
+          {zoneNodes.map((_nodes, zoneIdx) => {
+            const zone = zoneIdx + 1;
+            const theme = mapData.zoneThemes[zoneIdx] ?? "theme-1";
+            const flowData = zoneFlowData[zoneIdx] ?? { nodes: [], edges: [] };
 
-              return (
-                <div
-                  key={`zone-bg-${zone}`}
-                  className="absolute left-0 right-0"
-                  style={{ top: zoneIdx * ZONE_SECTION_HEIGHT, height: ZONE_SECTION_HEIGHT }}
-                >
+            return (
+              <div key={zone} className="relative h-full w-full flex-1">
+                <div className="relative h-full w-full lg:mx-auto lg:w-auto lg:max-w-full lg:aspect-[9/16]">
                   <ZoneBackground zone={zone} themeId={theme} />
+
+                  <div className="absolute inset-0">
+                    <ReactFlow
+                      nodes={flowData.nodes}
+                      edges={flowData.edges}
+                      nodeTypes={nodeTypes}
+                      onNodeClick={(_, node) => {
+                        if (!isMapFlowNodeData(node.data)) return;
+                        const pressedNode = node.data.node;
+                        if (canOpenPreview(pressedNode)) {
+                          setSelectedNode(pressedNode);
+                        }
+                      }}
+                      fitView
+                      fitViewOptions={{
+                        padding: 0.16,
+                        minZoom: 0.8,
+                        maxZoom: 1.15,
+                      }}
+                      nodesDraggable={false}
+                      nodesConnectable={false}
+                      elementsSelectable={false}
+                      nodesFocusable={false}
+                      edgesFocusable={false}
+                      panOnDrag={false}
+                      zoomOnScroll={false}
+                      zoomOnPinch={false}
+                      zoomOnDoubleClick={false}
+                      preventScrolling={false}
+                      proOptions={{ hideAttribution: true }}
+                      className="!bg-transparent"
+                    />
+                  </div>
                 </div>
-              );
-            })}
+              </div>
+            );
+          })}
+        </motion.div>
 
-            <div className="absolute inset-0">
-              <ReactFlow
-                nodes={flowData.nodes}
-                edges={flowData.edges}
-                nodeTypes={nodeTypes}
-                fitView={false}
-                defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-                nodesDraggable={false}
-                nodesConnectable={false}
-                elementsSelectable={false}
-                nodesFocusable={false}
-                edgesFocusable={false}
-                panOnDrag={false}
-                zoomOnScroll={false}
-                zoomOnPinch={false}
-                zoomOnDoubleClick={false}
-                preventScrolling={false}
-                proOptions={{ hideAttribution: true }}
-                className="!bg-transparent"
-              />
-            </div>
-          </div>
-        </div>
+        {activeZone > 0 && (
+          <button
+            type="button"
+            className="absolute left-2 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/25 bg-black/40 p-2 text-white transition-colors hover:bg-black/60"
+            onClick={() => setActiveZone((prev) => Math.max(prev - 1, 0))}
+          >
+            <ChevronLeft size={22} />
+          </button>
+        )}
 
-        <div className="absolute right-3 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-2">
+        {activeZone < TOTAL_ZONES - 1 && (
+          <button
+            type="button"
+            className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/25 bg-black/40 p-2 text-white transition-colors hover:bg-black/60"
+            onClick={() => setActiveZone((prev) => Math.min(prev + 1, TOTAL_ZONES - 1))}
+          >
+            <ChevronRight size={22} />
+          </button>
+        )}
+
+        <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2">
           {Array.from({ length: TOTAL_ZONES }, (_, idx) => (
             <button
               key={`zone-dot-${idx}`}
               type="button"
-              onClick={() => jumpToZone(idx)}
+              onClick={() => setActiveZone(idx)}
               className={`h-2.5 w-2.5 rounded-full transition-all ${
                 idx === activeZone ? "scale-125 bg-white" : "bg-white/45"
               }`}
