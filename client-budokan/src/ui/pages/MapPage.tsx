@@ -136,82 +136,84 @@ const MapPage: React.FC = () => {
 
             return (
               <div key={zone} className="relative h-full w-full flex-1">
-                <ZoneBackground zone={zone} themeId={theme} />
+                <div className="relative h-full w-full lg:mx-auto lg:w-auto lg:max-w-full lg:aspect-[9/16]">
+                  <ZoneBackground zone={zone} themeId={theme} />
 
-                <svg
-                  viewBox={`0 0 ${SVG_VIEWBOX} ${SVG_VIEWBOX}`}
-                  className="pointer-events-none absolute inset-0 h-full w-full"
-                  aria-hidden
-                >
-                  {layout?.edges.map((edge) => {
-                    const fromPoint = layout.points[edge.from];
-                    const toPoint = layout.points[edge.to];
+                  <svg
+                    viewBox={`0 0 ${SVG_VIEWBOX} ${SVG_VIEWBOX}`}
+                    className="pointer-events-none absolute inset-0 h-full w-full"
+                    aria-hidden
+                  >
+                    {layout?.edges.map((edge) => {
+                      const fromPoint = layout.points[edge.from];
+                      const toPoint = layout.points[edge.to];
 
-                    if (!fromPoint || !toPoint) return null;
+                      if (!fromPoint || !toPoint) return null;
 
-                    const fromX = fromPoint.x * SVG_VIEWBOX;
-                    const fromY = fromPoint.y * SVG_VIEWBOX;
-                    const toX = toPoint.x * SVG_VIEWBOX;
-                    const toY = toPoint.y * SVG_VIEWBOX;
+                      const fromX = fromPoint.x * SVG_VIEWBOX;
+                      const fromY = fromPoint.y * SVG_VIEWBOX;
+                      const toX = toPoint.x * SVG_VIEWBOX;
+                      const toY = toPoint.y * SVG_VIEWBOX;
 
-                    if (edge.kind === "branch") {
-                      const curveDirection = toX >= fromX ? 1 : -1;
-                      const controlX = (fromX + toX) / 2 + curveDirection * 64;
-                      const controlY = (fromY + toY) / 2;
-                      const branchD = `M ${fromX} ${fromY} Q ${controlX} ${controlY} ${toX} ${toY}`;
+                      if (edge.kind === "branch") {
+                        const curveDirection = toX >= fromX ? 1 : -1;
+                        const controlX = (fromX + toX) / 2 + curveDirection * 64;
+                        const controlY = (fromY + toY) / 2;
+                        const branchD = `M ${fromX} ${fromY} Q ${controlX} ${controlY} ${toX} ${toY}`;
+
+                        return (
+                          <path
+                            key={`branch-${zoneIdx}-${edge.from}-${edge.to}`}
+                            d={branchD}
+                            fill="none"
+                            stroke="rgba(255,255,255,0.22)"
+                            strokeWidth={2}
+                            strokeDasharray="6 8"
+                            strokeLinecap="round"
+                          />
+                        );
+                      }
+
+                      const fromNode = nodes[edge.from];
+                      const toNode = nodes[edge.to];
+
+                      if (!fromNode || !toNode) return null;
 
                       return (
-                        <path
-                          key={`branch-${zoneIdx}-${edge.from}-${edge.to}`}
-                          d={branchD}
-                          fill="none"
-                          stroke="rgba(255,255,255,0.22)"
-                          strokeWidth={2}
-                          strokeDasharray="6 8"
-                          strokeLinecap="round"
+                        <MapPath
+                          key={`path-${zoneIdx}-${edge.from}-${edge.to}`}
+                          fromX={fromX}
+                          fromY={fromY}
+                          toX={toX}
+                          toY={toY}
+                          fromState={fromNode.state}
+                          toState={toNode.state}
                         />
                       );
-                    }
+                    })}
+                  </svg>
 
-                    const fromNode = nodes[edge.from];
-                    const toNode = nodes[edge.to];
+                  <div className="absolute inset-0">
+                    {nodes.map((node) => {
+                      const position = layout?.points[node.nodeInZone];
 
-                    if (!fromNode || !toNode) return null;
+                      if (!position) return null;
 
-                    return (
-                      <MapPath
-                        key={`path-${zoneIdx}-${edge.from}-${edge.to}`}
-                        fromX={fromX}
-                        fromY={fromY}
-                        toX={toX}
-                        toY={toY}
-                        fromState={fromNode.state}
-                        toState={toNode.state}
-                      />
-                    );
-                  })}
-                </svg>
-
-                <div className="absolute inset-0">
-                  {nodes.map((node) => {
-                    const position = layout?.points[node.nodeInZone];
-
-                    if (!position) return null;
-
-                    return (
-                      <MapNode
-                        key={`node-${node.nodeIndex}`}
-                        node={node}
-                        xPercent={position.x * 100}
-                        yPercent={position.y * 100}
-                        onTap={(pressedNode) => {
-                          if (canOpenPreview(pressedNode)) {
-                            setSelectedNode(pressedNode);
-                          }
-                        }}
-                      />
-                    );
-                  })}
+                      return (
+                        <MapNode
+                          key={`node-${node.nodeIndex}`}
+                          node={node}
+                          xPercent={position.x * 100}
+                          yPercent={position.y * 100}
+                          onTap={(pressedNode) => {
+                            if (canOpenPreview(pressedNode)) {
+                              setSelectedNode(pressedNode);
+                            }
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             );
