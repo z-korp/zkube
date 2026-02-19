@@ -134,14 +134,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
             isTxProcessing && "cursor-wait"
           }`}
           style={{
-            backgroundImage:
-              `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), var(--theme-grid-bg-image, none)`,
+            backgroundImage: `var(--theme-grid-bg-image, none)`,
             backgroundSize: "cover",
             backgroundColor: `var(--theme-grid-bg, #10172A)`,
           }}
         >
         <div
-          className={`flex justify-center items-center ${
+          className={`flex flex-col items-center ${
             !isTxProcessing && "cursor-move"
           }`}
         >
@@ -165,9 +164,16 @@ const GameBoard: React.FC<GameBoardProps> = ({
             isTxProcessing={isTxProcessing}
             setIsTxProcessing={setIsTxProcessing}
           />
+          <div className="mt-1">
+            <NextLine
+              nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}
+              gridSize={gridSize}
+              gridHeight={1}
+              gridWidth={COLS}
+            />
+          </div>
         </div>
 
-        {/* Bonus description overlay */}
         {activeBonus !== BonusType.None && (
           <div className="absolute inset-x-0 top-1/2 flex justify-center pointer-events-none z-50">
             <div className="text-yellow-500 px-3 py-1.5 rounded font-bold text-sm bg-black/70 whitespace-nowrap">
@@ -175,16 +181,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
             </div>
           </div>
         )}
-
-        {/* Next Line Preview */}
-        <div className="mt-1">
-          <NextLine
-            nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}
-            gridSize={gridSize}
-            gridHeight={1}
-            gridWidth={COLS}
-          />
-        </div>
       </Card>
     </>
   );
