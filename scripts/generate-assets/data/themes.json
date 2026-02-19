@@ -62,15 +62,15 @@
     "palette": {
       "bg": "#2A1810",
       "accent": "#D4AF37",
-      "blocks": ["#C0392B", "#27AE60", "#1E3A6B", "#A8B0B8"]
+      "blocks": ["#C49A3C", "#B8A060", "#8A7D68", "#D4BD78"]
     },
     "motifs": "Hieroglyphs, scarab beetles, Eye of Horus, lotus flowers, ankh symbols, obelisks, papyrus scrolls",
     "blockMotifs": "Sandstone texture with hieroglyph engravings, gold-lined edges, scarab beetle relief carvings",
     "blockDesigns": [
-      "A large Eye of Horus hieroglyph carved deeply into warm sandstone, the eye centered and bold with gold-lined details, flanked by smaller hieroglyphic cartouches and papyrus motifs on each side",
-      "A winged scarab beetle with wings fully spread as the dominant central emblem, carved in raised relief on deep lapis lazuli blue stone, flanked by symmetrical lotus column decorations and gold accent borders",
-      "A bold golden ankh symbol raised in high relief at the center, surrounded by radiating sun-disc rays on a polished gold-leaf surface, flanked by hieroglyphic panel strips and lotus bud accents",
-      "A cartouche seal with Pharaonic hieroglyphics as the central medallion, deeply carved into warm terracotta sandstone, flanked by symmetrical cobra (uraeus) serpent motifs and thin gold edge trim"
+      "A large Eye of Horus hieroglyph carved deeply into warm golden sandstone, the eye centered and bold with dark amber details, flanked by smaller hieroglyphic cartouches and papyrus motifs on each side",
+      "A winged scarab beetle with wings fully spread as the dominant central emblem, carved in raised relief on deep amber desert stone, flanked by symmetrical lotus column decorations and darker sand accent borders",
+      "A sun-disc carved in raised relief at the center, surrounded by radiating hieroglyphic rays on grey dune stone, flanked by hieroglyphic panel strips and lotus bud accents",
+      "A cartouche seal with Pharaonic hieroglyphics as the central medallion, deeply carved into pale sandy limestone, flanked by symmetrical cobra (uraeus) serpent motifs and thin ochre edge trim"
     ],
     "blockData": {
       "material": "sandstone",
@@ -88,16 +88,16 @@
       ],
       "blocks": [
         {
-          "material": "polished carnelian red stone"
+          "material": "warm golden sandstone"
         },
         {
-          "material": "polished malachite green stone"
+          "material": "deep amber desert stone"
         },
         {
-          "material": "deep dark lapis lazuli stone with golden Ankh inlay"
+          "material": "grey dune stone"
         },
         {
-          "material": "weathered grey limestone"
+          "material": "pale sandy limestone"
         }
       ]
     },

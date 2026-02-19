@@ -3,10 +3,8 @@ import path from "node:path";
 import {
   buildBackgroundPrompt,
   buildBlockBgPromptFromTemplate,
-  buildBlockPromptFromTemplate,
   buildBonusIconPrompt,
   buildButtonPrompt,
-  buildCenterpiecePromptFromTemplate,
   buildGridBackgroundPrompt,
   buildGridFramePrompt,
   buildLoadingBackgroundPrompt,
@@ -19,7 +17,7 @@ import {
   buildWhiteIconPrompt,
 } from "./lib/prompts";
 import { CONCURRENCY, IMAGE_MODEL, COMMON_ROOT, ASSETS_ROOT, formatError, loadPLimitFactory, relativePath } from "./lib/env";
-import { fal, generateImage, removeBackground, tintImage, compositeBlock, savePng, resolveImageSize } from "./lib/fal-client";
+import { fal, generateImage, savePng } from "./lib/fal-client";
 import { GLOBAL_ASSETS, PER_THEME_ASSETS, type AssetCategory, type AssetJob, type CliOptions, type GlobalAsset, type GlobalAssetsData, type PerThemeAsset, type ThemeDefinition } from "./lib/types";
 
 const DATA_DIR = path.join(path.dirname(new URL(import.meta.url).pathname), "data");
@@ -39,17 +37,13 @@ function getTargetDimensions(filename: string, fallback: { width: number; height
   return globalAssets.targetDimensions[filename] ?? fallback;
 }
 
-const CENTERPIECE_SIZE = 768;
-const CENTERPIECE_OVERLAY_SCALE = 0.70;
-
-async function runCompositeBlockPipeline(
+async function runBlockPipeline(
   themeId: string,
   theme: ThemeDefinition,
   options: CliOptions,
 ): Promise<{ success: number; failures: number }> {
   const themeRoot = path.join(ASSETS_ROOT, themeId);
   fs.mkdirSync(themeRoot, { recursive: true });
-  const centerpiecePath = path.join(themeRoot, "centerpiece.png");
 
   const requestedBlocks = [0, 1, 2, 3].filter((i) => {
     if (!options.only) return true;
@@ -57,97 +51,40 @@ async function runCompositeBlockPipeline(
     return options.only.some((n) => (n.endsWith(".png") ? n : `${n}.png`) === fn);
   });
 
-  const centerpieceRequested = options.only
-    ? options.only.some((n) => n === "centerpiece" || n === "centerpiece.png")
-    : true;
-
-  const needsCenterpiece = centerpieceRequested || requestedBlocks.length > 0;
-
-  if (!needsCenterpiece && !centerpieceRequested) {
+  if (requestedBlocks.length === 0) {
     return { success: 0, failures: 0 };
   }
 
   let success = 0;
   let failures = 0;
 
-  // Step 1: Generate + extract centerpiece
-  const centerpieceExists = fs.existsSync(centerpiecePath);
-  let centerpieceBuffer: Buffer | null = null;
-
-  if (needsCenterpiece && (!centerpieceExists || centerpieceRequested)) {
-    const startedAt = Date.now();
-    console.log(`  [centerpiece]  Generating with Flux...`);
-    try {
-      const prompt = buildCenterpiecePromptFromTemplate(theme);
-      const rawBuffer = await generateImage({
-        scope: "per-theme",
-        category: "blocks",
-        themeId,
-        filename: "centerpiece-raw.png",
-        outputPath: path.join(themeRoot, "centerpiece-raw.png"),
-        prompt,
-        width: CENTERPIECE_SIZE,
-        height: CENTERPIECE_SIZE,
-      }, false);
-
-      const elapsed1 = ((Date.now() - startedAt) / 1000).toFixed(1);
-      console.log(`  [centerpiece]  Flux done (${elapsed1}s). Running BiRefNet...`);
-
-      const transparentBuffer = await removeBackground(rawBuffer);
-      const elapsed2 = ((Date.now() - startedAt) / 1000).toFixed(1);
-      console.log(`  [centerpiece]  BiRefNet done (${elapsed2}s total).`);
-
-      await savePng(centerpiecePath, transparentBuffer, false);
-      centerpieceBuffer = transparentBuffer;
-      success += 1;
-    } catch (error) {
-      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
-      console.log(`  [centerpiece]  FAILED (${elapsed}s): ${formatError(error)}`);
-      failures += 1;
-      return { success, failures };
-    }
-  } else if (centerpieceExists) {
-    centerpieceBuffer = fs.readFileSync(centerpiecePath);
-  }
-
-  if (!centerpieceBuffer || requestedBlocks.length === 0) {
-    return { success, failures };
-  }
-
-  // Step 2: Generate block backgrounds + composite
   for (const i of requestedBlocks) {
     const blockWidth = i + 1;
     const filename = `block-${blockWidth}.png`;
     const target = getTargetDimensions(filename, { width: 192, height: 192 });
     const startedAt = Date.now();
 
-    console.log(`  [${filename}]  Generating background...`);
+    console.log(`  [${filename}]  Generating...`);
     try {
-      const bgPrompt = buildBlockBgPromptFromTemplate(theme, i, blockWidth);
+      const prompt = buildBlockBgPromptFromTemplate(theme, i, blockWidth);
       const refPaths = blockWidth > 1 ? [path.join(themeRoot, "block-1.png")] : undefined;
 
-      const bgRaw = await generateImage({
+      const buffer = await generateImage({
         scope: "per-theme",
         category: "blocks",
         themeId,
-        filename: `block-bg-${blockWidth}.png`,
-        outputPath: path.join(themeRoot, `block-bg-${blockWidth}.png`),
-        prompt: bgPrompt,
+        filename,
+        outputPath: path.join(themeRoot, filename),
+        prompt,
         width: target.width,
         height: target.height,
         refPaths,
         stripWhite: true,
       }, options.includeRefs && blockWidth > 1);
 
-      const elapsed1 = ((Date.now() - startedAt) / 1000).toFixed(1);
-      console.log(`  [${filename}]  Background done (${elapsed1}s). Tinting + compositing...`);
-
-      const tinted = await tintImage(centerpieceBuffer, theme.palette.blocks[i]);
-      const composited = await compositeBlock(bgRaw, tinted, CENTERPIECE_OVERLAY_SCALE);
-
-      await savePng(path.join(themeRoot, filename), composited, true);
-      const elapsed2 = ((Date.now() - startedAt) / 1000).toFixed(1);
-      console.log(`  [${filename}]  Done (${elapsed2}s).`);
+      await savePng(path.join(themeRoot, filename), buffer, true);
+      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+      console.log(`  [${filename}]  Done (${elapsed}s).`);
       success += 1;
     } catch (error) {
       const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
@@ -163,7 +100,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
   const themeRoot = path.join(ASSETS_ROOT, themeId);
   const jobs: AssetJob[] = [];
 
-  // Blocks are handled by runCompositeBlockPipeline, not the generic job system
+  // Blocks are handled by runBlockPipeline, not the generic job system
 
   if (shouldIncludeCategory("background", filter)) {
     jobs.push({
@@ -530,7 +467,7 @@ function blocksRequestedByFilters(options: CliOptions): boolean {
   if (options.asset && options.asset !== "blocks") return false;
   if (options.scope === "global") return false;
   if (options.only) {
-    const blockNames = ["centerpiece", "block-1", "block-2", "block-3", "block-4"];
+    const blockNames = ["block-1", "block-2", "block-3", "block-4"];
     return options.only.some((n) => blockNames.includes(n.replace(".png", "")));
   }
   return true;
@@ -540,7 +477,7 @@ async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
   const { jobs, selectedThemeIds } = buildJobList(options);
 
-  console.log("🎨 zKube Asset Generator (Composite Pipeline)");
+  console.log("🎨 zKube Asset Generator");
   console.log(`Model: ${IMAGE_MODEL}`);
   console.log(`Theme: ${buildHeaderThemeLabel(options, selectedThemeIds)}`);
   console.log(`Scope: ${options.scope}`);
@@ -566,7 +503,7 @@ async function main(): Promise<void> {
   if (options.dryRun) {
     if (wantsBlocks) {
       for (const themeId of selectedThemeIds) {
-        console.log(`[${themeId}]  🧪 dry-run -> composite block pipeline (centerpiece + 4 blocks)`);
+        console.log(`[${themeId}]  🧪 dry-run -> block pipeline (4 blocks)`);
       }
     }
     jobs.forEach((job, index) => {
@@ -575,7 +512,7 @@ async function main(): Promise<void> {
       console.log(`${step}  🧪 dry-run -> ${relativePath(job.outputPath)}`);
     });
     console.log("");
-    const blockCount = wantsBlocks ? selectedThemeIds.length * 5 : 0;
+    const blockCount = wantsBlocks ? selectedThemeIds.length * 4 : 0;
     console.log(`✅ Dry run complete! ${jobs.length + blockCount} assets planned.`);
     console.log(`Output: ${outputSummaryPath(options, selectedThemeIds)}`);
     return;
@@ -592,8 +529,8 @@ async function main(): Promise<void> {
 
   if (wantsBlocks) {
     for (const themeId of selectedThemeIds) {
-      console.log(`\n--- ${themeId} (${themes[themeId].name}) — Composite Block Pipeline ---\n`);
-      const result = await runCompositeBlockPipeline(themeId, themes[themeId], options);
+      console.log(`\n--- ${themeId} (${themes[themeId].name}) — Block Pipeline ---\n`);
+      const result = await runBlockPipeline(themeId, themes[themeId], options);
       totalSuccess += result.success;
       totalFailures += result.failures;
     }
