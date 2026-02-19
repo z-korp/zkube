@@ -128,12 +128,18 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   return (
     <>
-      <Card
-        ref={containerRef}
-        className={`relative p-2 md:p-3 bg-secondary w-full max-w-[500px] ${
-          isTxProcessing && "cursor-wait"
-        }`}
-      >
+        <Card
+          ref={containerRef}
+          className={`relative p-2 md:p-3 w-full max-w-[500px] ${
+            isTxProcessing && "cursor-wait"
+          }`}
+          style={{
+            backgroundImage:
+              `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), var(--theme-grid-bg-image, none)`,
+            backgroundSize: "cover",
+            backgroundColor: `var(--theme-grid-bg, #10172A)`,
+          }}
+        >
         <div
           className={`flex justify-center items-center ${
             !isTxProcessing && "cursor-move"
