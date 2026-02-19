@@ -13,9 +13,9 @@
       "description": "{{centerpiece_description}}",
       "position": "center",
       "pose": "front-facing, perfectly symmetrical",
-      "size": "large",
+      "size": "small to medium, occupying no more than 30% of the tile height",
       "expression": "{{centerpiece_expression}}",
-      "interaction": "anchoring the composition as the focal emblem"
+      "interaction": "a subtle focal accent, not dominating the surface"
     },
     {
       "type": "ornamental carvings",
