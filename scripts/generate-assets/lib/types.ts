@@ -66,6 +66,7 @@ export interface AssetJob {
   height: number;
   refPaths?: string[];
   phase?: number;
+  stripWhite?: boolean;
 
 }
 

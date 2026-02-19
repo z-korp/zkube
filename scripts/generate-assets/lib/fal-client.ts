@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import sharp from "sharp";
 import { fal } from "@fal-ai/client";
 import {
   IMAGE_MODEL,
@@ -187,9 +188,25 @@ export async function generateSfx(job: SfxJob): Promise<Buffer> {
   throw new Error("Failed to generate SFX after retries.");
 }
 
-export async function savePng(outputPath: string, imageBuffer: Buffer): Promise<void> {
+async function nukeWhite(imageBuffer: Buffer, threshold = 240): Promise<Buffer> {
+  const image = sharp(imageBuffer).ensureAlpha();
+  const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
+
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i] > threshold && data[i + 1] > threshold && data[i + 2] > threshold) {
+      data[i + 3] = 0;
+    }
+  }
+
+  return sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } })
+    .png()
+    .toBuffer();
+}
+
+export async function savePng(outputPath: string, imageBuffer: Buffer, stripWhite = false): Promise<void> {
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-  fs.writeFileSync(outputPath, imageBuffer);
+  const finalBuffer = stripWhite ? await nukeWhite(imageBuffer) : imageBuffer;
+  fs.writeFileSync(outputPath, finalBuffer);
 }
 
 export function saveMp3(mp3Buffer: Buffer, outputPath: string): void {

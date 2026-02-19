@@ -58,6 +58,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
           width: target.width,
           height: target.height,
           phase: 0,
+          stripWhite: true,
         });
       } else {
         const block1Path = path.join(themeRoot, "block-1.png");
@@ -72,6 +73,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
           height: target.height,
           refPaths: [block1Path],
           phase: 1,
+          stripWhite: true,
         });
       }
     }
@@ -493,7 +495,7 @@ async function main(): Promise<void> {
 
           try {
             const imageBuffer = await generateImage(job, options.includeRefs);
-            await savePng(job.outputPath, imageBuffer);
+            await savePng(job.outputPath, imageBuffer, job.stripWhite);
             const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
             console.log(`${step}  ✅ ${job.filename} (${elapsed}s)`);
             successCount += 1;
