@@ -5,7 +5,7 @@
     "{{inspiration_1}}",
     "Flat cel-shaded UI tiles"
   ],
-  "scene": "A square {{material}} tile that completely fills the canvas edge-to-edge, featuring a bold centered {{centerpiece_type}} in a flat graphic style with no visible background outside the tile.",
+  "scene": "A solid square rectangular {{material}} block with sharp 90-degree corners that completely fills the canvas edge-to-edge with zero empty space, featuring a bold centered {{centerpiece_type}} in a flat graphic style. The block is a perfect rectangle — every pixel of the canvas is covered by the block surface.",
   "subjects": [
     {
       "type": "{{centerpiece_type}}",
@@ -29,7 +29,7 @@
   "mood": "bold, clean, graphic, game-ready",
   "background": {
     "type": "scenery",
-    "details": "NO background layer. The {{material}} tile itself occupies 100% of the canvas. No white, black, or transparent margins."
+    "details": "NO background layer. The solid rectangular {{material}} block itself occupies 100% of the canvas. No margins, no gaps, no empty pixels anywhere."
   },
   "composition": "centered symmetrical layout with strong silhouette and generous negative space around the {{centerpiece_type}}",
   "camera": {
@@ -45,12 +45,12 @@
     "no realistic cracks or noise"
   ],
   "details": [
-    "tile extends fully to canvas edges",
-    "rounded tile corners integrated into same color surface",
-    "no outer margin of any color",
-    "outermost 8-10% of tile darkens using the base {{material}} tone only",
-    "edge darkening is part of the tile surface, not a background",
-    "fully opaque image",
+    "the block is a sharp-cornered rectangle filling 100% of the canvas — no rounded corners, no curved edges",
+    "every single pixel of the image is part of the block surface — zero empty space anywhere",
+    "no outer margin, border, or gap of any color",
+    "outermost 8-10% of block darkens using the base {{material}} tone only",
+    "edge darkening is part of the block surface, not a background",
+    "fully opaque image with no transparency",
     "bold black outline around {{centerpiece_type}} only",
     "limited to 2-3 tonal shades for clarity"
   ],
@@ -65,11 +65,12 @@
     "{{theme_keyword_2}}",
     "{{theme_keyword_3}}"
   ],
-  "usage_notes": "The tile MUST fill the entire image. Do not render a white, black, or transparent background behind it. There should be no visible margin around the tile. The edge darkening must remain {{material}}-colored and integrated into the tile surface.",
+  "usage_notes": "CRITICAL: The rectangular block MUST fill every pixel of the image. Sharp 90-degree corners. No rounded corners. No empty space. No background visible anywhere. The block surface covers the entire canvas from edge to edge, corner to corner.",
   "negative_prompt": [
     "white background",
     "black background",
     "transparent background",
+    "rounded corners",
     "floating tile",
     "drop shadow outside tile",
     "canvas margin",
