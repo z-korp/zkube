@@ -3,72 +3,57 @@
   "inspiration": [
     "{{inspiration_1}}",
     "{{inspiration_2}}",
-    "Flat cel-shaded game tile surfaces",
-    "Art Deco geometric symmetry"
+    "Screen-printed tribal art posters",
+    "Bold brush-painted tapa cloth and body tattoo art"
   ],
-  "scene": "A wide horizontal decorative frieze carved from {{material}}, featuring a central stylized {{centerpiece_type}} surrounded by intricate ornamental carvings inspired by {{theme_name}} motifs. The entire surface fills the canvas edge-to-edge with sharp 90-degree corners.",
+  "scene": "A wide horizontal panel filled with bold {{theme_name}} motifs painted in light grey on a near-black ground. A central simplified {{centerpiece_type}} surrounded by a few large spirals, broad flat bands, and chunky shapes. Fewer elements overall — each one is big, thick, and given plenty of breathing room.",
   "subjects": [
     {
       "type": "{{centerpiece_type}}",
-      "description": "{{centerpiece_description}}",
+      "description": "simplified and abstracted version of {{centerpiece_description}} — reduced to essential shapes with thick flat bands for features, fewer fine details",
       "position": "center",
-      "pose": "front-facing, perfectly symmetrical",
-      "size": "small to medium, occupying no more than 30% of the tile height",
+      "pose": "front-facing, perfectly symmetrical, integrated into the pattern",
+      "size": "small and compact — occupies only the center 1/4 of the total width (the tile is 4:1 ratio, the face fits in a 1:1 square in the exact center)",
       "expression": "{{centerpiece_expression}}",
-      "interaction": "a subtle focal accent, not dominating the surface"
+      "interaction": "directly connected to the surrounding patterns — spirals and shapes flow seamlessly into and out of the face with no gaps"
     },
     {
-      "type": "ornamental carvings",
-      "description": "{{theme_name}}-inspired scrollwork blended with {{motifs_short}} patterns and geometric decorative elements",
-      "position": "left and right panels",
-      "pose": "flowing yet symmetrical",
-      "size": "medium",
-      "expression": "decorative and thematic",
-      "interaction": "forming an elaborate border and filling the horizontal space around the central {{centerpiece_type}}"
+      "type": "tribal painted patterns",
+      "description": "a few large bold {{theme_name}} spirals and {{motifs_short}} motifs painted with very thick strokes on dark ground. Spirals originate directly from the face — growing out of the cheeks, chin, and forehead. Dark space between spirals but not between spirals and face.",
+      "position": "immediately adjacent to and extending from the central motif",
+      "pose": "flowing outward from the face, connected",
+      "size": "very large — few elements, each one thick and chunky",
+      "expression": "powerful and rhythmic",
+      "interaction": "directly touching and merging into the central {{centerpiece_type}} — patterns grow out of the face edges with zero gap between face and patterns"
     }
   ],
-  "style": "flat vector illustration with bold linework, smooth gradients, and high-contrast cel-shaded engraved relief detailing",
+  "style": "screen-print aesthetic with bold flat shapes painted on a dark ground. Thick brush strokes, a few large spirals, visible paint texture and slight grunge. High contrast between dark negative space and lighter painted areas. Fewer elements, each one larger — more dark breathing room between shapes.",
   "color_palette": {
-    "primary": "#908880",
-    "secondary": "#787068",
-    "highlight": "#A8A098",
-    "shadow": "#585048",
-    "background_gradient": ["#908880", "#585048"],
-    "note": "Mid-grey tones only. No near-white highlights. Color is applied programmatically after generation."
+    "primary": "#8A8278",
+    "secondary": "#706860",
+    "highlight": "#A09888",
+    "shadow": "#181210",
+    "background": "#0C0A08",
+    "note": "Light grey shapes on near-black ground. The dark areas stay dark after tinting, the light shapes take the color."
   },
-  "lighting": "simple two-tone cel shading with highlight on upper-left and shadow on lower-right, subtle embossing for carved depth",
-  "mood": "bold, textured, {{theme_mood}}",
+  "lighting": "flat with subtle highlight variation across painted shapes, dark ground absorbs light",
+  "mood": "bold, primal, {{theme_mood}}",
   "background": {
-    "type": "solid",
-    "details": "NO background layer. The solid {{material}} surface occupies 100% of the canvas."
+    "type": "solid dark",
+    "details": "Deep near-black ground (#0C0A08) visible between the painted shapes. The dark ground occupies roughly 40% of the surface."
   },
-  "composition": "wide horizontal banner layout with strict bilateral symmetry centered on the {{centerpiece_type}}, ornamental side panels balanced on both ends, the surface fills every edge of the canvas",
+  "composition": "wide 4:1 horizontal banner. Small {{centerpiece_type}} face centered (fits in center quarter), with patterns flowing directly out of the face edges into the sides — everything is connected as one continuous design. Bilateral symmetry, dark negative space between the painted shapes.",
   "camera": {
     "angle": "front-facing orthographic",
     "distance": "wide shot",
     "lens": "flat projection",
-    "focus": "uniform sharp focus across entire frieze"
+    "focus": "uniform sharp focus"
   },
-  "medium": "digital vector-style illustration with subtle engraved relief overlay",
-  "textures": [
-    "subtle flat {{material}} grain in neutral warm grey",
-    "engraved linework texture for carved details",
-    "subtle surface wear to imply age and authenticity"
-  ],
-  "details": [
-    "the {{material}} surface fills 100% of the canvas — sharp corners, no rounded edges, no gaps",
-    "{{centerpiece_type}} centered as the dominant focal element",
-    "ornamental {{theme_name}} motifs flanking both sides ({{theme_keyword_1}}, {{theme_keyword_2}})",
-    "all colors are mid-tone warm grey — no near-white, no bright highlights, darkest grey for shadows",
-    "the brightest pixel must be medium grey #A8A098, never white or near-white",
-    "NO saturated hue — only neutral grey tones with good luminance contrast",
-    "fully opaque, no transparency",
-    "bold outer frame border integrated into the surface edges"
-  ],
+  "medium": "screen-print style digital illustration",
+  "textures": "slight grunge and paint texture on the flat shapes, subtle ink bleed at edges of strokes, matte finish",
   "effects": [
-    "surface-integrated vignette using multiply shading at edges",
-    "clean vector edges",
-    "soft inner shadow embossing on carved elements",
+    "subtle vignette darkening at edges",
+    "slight paint texture overlay",
     "continuous pattern flow across full width"
   ],
   "themes": [
@@ -77,30 +62,5 @@
     "{{theme_keyword_2}}",
     "{{theme_keyword_3}}"
   ],
-  "usage_notes": "This is a master tile generated in neutral grey. It will be cropped to 4 sizes and tinted programmatically. Maintain strong symmetry and clear central hierarchy. Good luminance contrast is critical for rich tinting results.",
-  "negative_prompt": [
-    "white",
-    "bright highlights",
-    "near-white areas",
-    "saturated color",
-    "gold",
-    "blue",
-    "red",
-    "green",
-    "colorful",
-    "4 separate tiles",
-    "repeated identical pattern",
-    "white background",
-    "black background",
-    "transparent background",
-    "rounded corners",
-    "floating tile",
-    "canvas margin",
-    "photorealistic",
-    "3D render lighting",
-    "text",
-    "logos",
-    "pastel colors",
-    "watercolor blending"
-  ]
+  "usage_notes": "Master tile: light grey shapes on near-black ground. Cropped to 4 sizes and tinted programmatically. Dark areas stay dark, light painted shapes take the tint color. Keep strokes big and bold — readable at small sizes. Fully opaque, sharp corners, edge-to-edge."
 }

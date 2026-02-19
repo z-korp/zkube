@@ -29,6 +29,7 @@ export interface BlockData {
   inspirations: [string, string];
   themeKeywords: [string, string, string];
   blocks: [BlockDesign, BlockDesign, BlockDesign, BlockDesign];
+  blockPrompt?: string;
 }
 
 export interface ThemeDefinition {

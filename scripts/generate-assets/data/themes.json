@@ -7,7 +7,7 @@
     "palette": {
       "bg": "#041A44",
       "accent": "#A9D8FF",
-      "blocks": ["#E6B166", "#5A341B", "#C7643A", "#7D7A3A"]
+      "blocks": ["#7EC8E3", "#2ECFB0", "#1B3A6B", "#B0BEC5"]
     },
     "motifs": "Moon crescents, starlit ocean waves, Polynesian spirals, pearl inlays, palm silhouettes",
     "blockMotifs": "Moonlit tiki relief carvings, deep indigo wood grain, pale pearl inlay accents",
@@ -20,7 +20,7 @@
     "blockData": {
       "material": "carved koa wood",
       "centerpiece_type": "Tiki mask face",
-      "centerpiece_description": "thick, symmetrical carved wooden mask with deep-set round eyes and wide grinning mouth; flat fill with strong black outline and simple two-tone shading",
+      "centerpiece_description": "simplified tiki mask with round eyes, broad nose, and grinning mouth showing a few teeth; bold thick outlines, flat fill, recognizable but not overly detailed",
       "centerpiece_expression": "fierce, primal, spiritual",
       "inspirations": [
         "Polynesian tiki carvings and sacred temple totems",
@@ -44,7 +44,8 @@
         {
           "material": "golden driftwood"
         }
-      ]
+      ],
+      "blockPrompt": "A wide 4:1 horizontal Polynesian tiki panel, screen-print style on a solid black background. In the exact center: a simplified tiki mask face with abstract slit eyes (no round pupils), broad nose, grinning mouth with teeth — painted in mid-grey (#8A8278) with black outlines. The face is compact, fitting in the center quarter of the width. Flowing directly out of the face on both sides: large bold tribal spirals and wave curves, connected to the cheeks and chin — the patterns grow organically from the face with zero gap. Only 2-3 large spirals per side, each thick and chunky. Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Tranquil Polynesian shoreline at deep night, a single distant tiki statue near the waterline, cobalt moonlight across rolling waves, silver foam on black sand, and a star-rich sky",
     "loadingScene": "Moonlit coastal detail with cobalt surf, silver spray, and one subtle carved tiki element in the distance; deep indigo shadows and pale blue-white highlights",
@@ -99,7 +100,8 @@
         {
           "material": "pale sandy limestone"
         }
-      ]
+      ],
+      "blockPrompt": "A wide 4:1 horizontal Ancient Egyptian panel, screen-print style on a solid black background. In the exact center: a simplified Ankh symbol — oval loop on top, horizontal crossbar, vertical stem — painted in mid-grey (#8A8278) with black outlines. The Ankh is compact, fitting in the center quarter of the width. Flowing directly out of the Ankh on both sides: bold abstract geometric shapes only — thick chevron bands, stepped pyramid zigzags, broad horizontal stripes, triangular rays, and concentric arcs — connected seamlessly to the Ankh with zero gap. Only 2-3 large geometric elements per side, each thick and chunky. Strictly geometric patterns, absolutely no figurative symbols (no eyes, no birds, no beetles, no flowers, no animals). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Desert twilight, golden pyramids casting long shadows, hieroglyph-covered obelisks, the Nile reflecting amber sky, palm-lined banks, warm sun-drenched atmosphere",
     "loadingScene": "Close-up of a hieroglyph-covered wall illuminated by golden torchlight, scarab beetle relief with gold leaf details gleaming",
