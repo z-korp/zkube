@@ -20,18 +20,14 @@ export type PLimitFactory = (concurrency: number) => LimitRunner;
 
 export interface BlockDesign {
   material?: string;
-  centerpiece: string;
-  centerpiece_expression: string;
-  flanking: string;
-  bands: string;
-  filler: string;
 }
 
 export interface BlockData {
   material: string;
-  inlay: string;
+  centerpiece_type: string;
+  centerpiece_description: string;
+  centerpiece_expression: string;
   inspirations: [string, string];
-  textures: [string, string, string, string];
   themeKeywords: [string, string, string];
   blocks: [BlockDesign, BlockDesign, BlockDesign, BlockDesign];
 }
@@ -70,6 +66,7 @@ export interface AssetJob {
   height: number;
   refPaths?: string[];
   phase?: number;
+  removeBg?: boolean;
 }
 
 export interface SfxJob {

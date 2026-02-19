@@ -1,51 +1,23 @@
 {
-  "style_name": "Edge-Integrated Vignette {{material}} {{centerpiece}} Horizontal Block ({{block_width}} cells)",
+  "style_name": "Seamless {{centerpiece_type}} Horizontal Tile ({{block_width}} cells)",
   "inspiration": [
+    "Bold vector game icons",
     "{{inspiration_1}}",
-    "{{inspiration_2}}",
-    "Hand-painted cel-shaded game tiles (UI/board-grid readability)",
-    "{{inlay}}-inlay ornamental engraving aesthetics"
+    "Flat cel-shaded UI tiles"
   ],
-  "scene": "A horizontal, edge-to-edge {{material}} game tile spanning {{block_width}} cells wide by 1 cell tall, reading as one cohesive piece. A deeply carved {{centerpiece}} sits at the center as the dominant focal relief. {{flanking}} decorations extend symmetrically to both sides. {{filler}} details fill remaining space as border relief.",
+  "scene": "A horizontal {{material}} tile spanning {{block_width}} cells wide by 1 cell tall that completely fills the canvas edge-to-edge, featuring a bold centered {{centerpiece_type}} in a flat graphic style, reading as one cohesive piece with no visible background outside the tile.",
   "subjects": [
     {
-      "type": "{{centerpiece}}",
-      "description": "deeply carved, bold silhouette with {{inlay}}-lined engraved accents and clean readable contours; the single hero element of the block",
+      "type": "{{centerpiece_type}}",
+      "description": "{{centerpiece_description}}",
       "position": "center of the horizontal tile",
-      "pose": "static carved relief",
-      "size": "large (about 50% of tile height, centered horizontally)",
+      "pose": "flat emblem carved into tile",
+      "size": "approximately 50% of tile height, centered horizontally",
       "expression": "{{centerpiece_expression}}",
-      "interaction": "dominant focal symbol anchoring the entire horizontal block; flanking motifs flow outward from it"
-    },
-    {
-      "type": "{{flanking}}",
-      "description": "symmetrical decorative panels extending outward from the center toward both ends, with simplified readable details and subtle {{inlay}}-lined accents",
-      "position": "left and right of center, extending toward tile edges",
-      "pose": "engraved relief panels flowing horizontally",
-      "size": "medium, filling the horizontal space between center and edges",
-      "expression": "ornamental, directional",
-      "interaction": "creates visual flow from center outward; reinforces the block reads as one piece"
-    },
-    {
-      "type": "{{bands}}",
-      "description": "repeating decorative shapes running as continuous bands along the top and bottom edges of the horizontal tile",
-      "position": "upper edge band and lower edge band (full width)",
-      "pose": "continuous horizontal repeating relief",
-      "size": "narrow repeating elements",
-      "expression": "decorative and rhythmic",
-      "interaction": "unifies the horizontal span; frames the tile top and bottom"
-    },
-    {
-      "type": "{{filler}}",
-      "description": "small reliefs and micro-engraved ornaments filling remaining negative space between the main elements",
-      "position": "gaps between subjects and near edges",
-      "pose": "embossed/engraved accents",
-      "size": "small repeating accents",
-      "expression": "symbolic and ornate",
-      "interaction": "fills remaining surface while preserving readability of main icon"
+      "interaction": "sole focal element anchoring the horizontal block"
     }
   ],
-  "style": "hand-painted cel-shaded game art; flat color fills with subtle bevel lighting; crisp icon readability",
+  "style": "flat vector, bold cel-shaded, high-contrast graphic style",
   "color_palette": {
     "primary": "{{primary_color}}",
     "secondary": "{{secondary_color}}",
@@ -53,78 +25,64 @@
     "shadow": "{{shadow_color}}",
     "background_gradient": ["{{primary_color}}", "{{bg_color}}"]
   },
-  "lighting": "stylized top-left key light; gentle bevel highlights on upper-left edges; deeper shadows cast toward bottom-right within carved grooves; {{inlay}} inlay catches slightly brighter highlights",
-  "mood": "ancient, bold, mystical, game-readable, premium artifact",
+  "lighting": "simple two-tone cel shading with highlight on upper-left and shadow on lower-right",
+  "mood": "bold, clean, graphic, game-ready",
   "background": {
     "type": "scenery",
-    "details": "no separate background layer; the entire canvas is the tile surface. All visible pixels belong to the {{material}} tile; no white border, no transparency, no backdrop."
+    "details": "NO background layer. The {{material}} tile itself occupies 100% of the canvas. No white, black, or transparent margins."
   },
-  "composition": "horizontally centered focus; {{centerpiece}} anchors the middle; decorative elements flow symmetrically left and right; the entire {{block_width}}:1 rectangle reads as a single unified block, not {{block_width}} separate tiles; designed for clean readability at 48px cell height",
+  "composition": "centered symmetrical layout; {{centerpiece_type}} anchors the middle; the entire {{block_width}}:1 rectangle reads as a single unified block, not {{block_width}} separate tiles; generous negative space around the icon",
   "camera": {
     "angle": "front-facing orthographic",
-    "distance": "close-up tile view",
-    "lens": "flat projection (no perspective distortion)",
-    "focus": "uniform sharp focus across full tile; crisp edges and outlines"
+    "distance": "icon view",
+    "lens": "flat projection",
+    "focus": "sharp graphic edges"
   },
-  "medium": "digital hand-painted illustration simulating carved {{material}} relief with {{inlay}}-lined inlay",
+  "medium": "digital vector-style illustration with minimal texture",
   "textures": [
-    "{{texture_1}}",
-    "{{texture_2}}",
-    "{{texture_3}}",
-    "{{texture_4}}"
+    "very subtle flat stone tone",
+    "minimal surface detail",
+    "no realistic cracks or noise"
   ],
-  "resolution": "{{block_width}}:1 horizontal rectangle (tile-asset ready, scales down cleanly to 48px cell height)",
   "details": [
-    "dominant {{material}} color {{primary_color}} covers ~70% of surface",
-    "2-3 tonal variations of the same hue family for carved depth",
-    "thin black outlines (2-3px equivalent) separating major shapes and element boundaries",
-    "flat fills with subtle bevel shading: lighter top-left, darker bottom-right",
-    "{{inlay}}-lined edges and details on the {{centerpiece}} and select engravings",
-    "the block must read as ONE cohesive horizontal piece, not {{block_width}} repeated squares",
-    "clean, bold, simplified shapes for legibility at small sizes",
-    "tile fills the entire {{block_width}}:1 canvas edge-to-edge with no padding"
+    "tile extends fully to canvas edges",
+    "no outer margin of any color",
+    "outermost 8-10% of tile darkens using the base {{material}} tone only",
+    "edge darkening is part of the tile surface, not a background",
+    "fully opaque image",
+    "bold black outline around {{centerpiece_type}} only",
+    "limited to 2-3 tonal shades for clarity",
+    "the block must read as ONE cohesive horizontal piece, not {{block_width}} repeated squares"
   ],
   "effects": [
-    "edge-integrated surface vignette (tile-only shading, not background)",
-    "subtle ambient occlusion in deeper carvings",
-    "minimal specular glint on {{inlay}} inlay (controlled, not glossy)"
+    "surface-integrated vignette using multiply shading of {{material}} color",
+    "clean vector edges",
+    "high contrast silhouette"
   ],
   "themes": [
     "{{theme_name}}",
     "{{theme_keyword_1}}",
     "{{theme_keyword_2}}",
-    "{{theme_keyword_3}}",
-    "game UI readability"
+    "{{theme_keyword_3}}"
   ],
-  "usage_notes": "Treat this as a single opaque tile asset: the canvas is fully covered by the {{material}} tile. The block is {{block_width}} cells wide displayed at ~48px per cell. Apply the vignette as a surface shading pass on the {{material}}, not as a background behind the tile. Preserve strong silhouettes and crisp 2-3px outlines. The design must NOT look like {{block_width}} identical tiles placed side by side - it must be one unified horizontal piece with a centered focal point.",
-  "tile_vignette": {
-    "enabled": true,
-    "region": "outermost 8-10% of the tile perimeter on all sides",
-    "behavior": "smooth, seamless darkening applied to the {{material}} texture itself (fully opaque), increasing toward the extreme edges",
-    "center_preservation": "center ~80% retains full color intensity",
-    "color_method": "darken/multiply the base {{material}} tones toward near-black at the extreme edge without introducing a separate black background layer",
-    "notes": "no visible background; no white or transparent margins; the vignette must not read as a backdrop"
-  },
+  "usage_notes": "The tile MUST fill the entire image. Do not render a white, black, or transparent background behind it. There should be no visible margin around the tile. The design must NOT look like {{block_width}} identical tiles side by side - one unified horizontal piece with a centered focal point.",
   "negative_prompt": [
-    "separate black background",
     "white background",
+    "black background",
     "transparent background",
-    "floating tile with visible backdrop",
-    "drop shadow outside the tile",
+    "floating tile",
+    "drop shadow outside tile",
+    "canvas margin",
+    "separate backdrop",
     "{{block_width}} separate square tiles placed side by side",
     "repeated identical pattern across cells",
-    "photorealistic lighting",
-    "strong perspective tilt",
-    "overly complex unreadable details",
-    "text labels",
+    "photorealistic stone",
+    "heavy cracks",
+    "3D render lighting",
+    "perspective tilt",
+    "complex glyph clusters",
+    "text",
     "logos",
     "watermarks"
-  ],
-  "generation_hints": {
-    "readability_target": "clear at 48px cell-height scale",
-    "line_weight": "2-3px equivalent black outline between major shapes",
-    "shape_language": "bold, simplified, clean contours",
-    "edge_rule": "the darkest pixels occur at the extreme perimeter but remain part of the {{material}} surface, not an external background",
-    "cohesion_rule": "the centerpiece anchors the center; flanking decorations flow outward; the block reads as one piece"
-  }
+  ]
 }

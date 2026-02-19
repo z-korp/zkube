@@ -493,9 +493,9 @@ async function main(): Promise<void> {
 
           try {
             const imageBuffer = await generateImage(job, options.includeRefs);
-            await savePng(job.outputPath, imageBuffer);
+            await savePng(job.outputPath, imageBuffer, job.removeBg);
             const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
-            console.log(`${step}  ✅ ${job.filename} (${elapsed}s)`);
+            console.log(`${step}  ✅ ${job.filename}${job.removeBg ? " +rembg" : ""} (${elapsed}s)`);
             successCount += 1;
           } catch (error) {
             const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);

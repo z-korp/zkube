@@ -19,16 +19,12 @@
     ],
     "blockData": {
       "material": "carved koa wood",
-      "inlay": "shell",
+      "centerpiece_type": "Tiki mask face",
+      "centerpiece_description": "thick, symmetrical carved wooden mask with deep-set round eyes and wide grinning mouth; flat fill with strong black outline and simple two-tone shading",
+      "centerpiece_expression": "fierce, primal, spiritual",
       "inspirations": [
         "Polynesian tiki carvings and sacred temple totems",
         "Tribal tattoo art and oceanic cultural symbols"
-      ],
-      "textures": [
-        "dark koa wood grain with natural knots and warm tones",
-        "deep-carved tiki grooves and chisel marks",
-        "weathered driftwood patina and salt wear",
-        "smooth mother-of-pearl shell inlay with iridescent sheen"
       ],
       "themeKeywords": [
         "Polynesian culture",
@@ -37,36 +33,16 @@
       ],
       "blocks": [
         {
-          "material": "warm amber koa wood",
-          "centerpiece": "carved tiki mask face with deep-set eyes and wide grinning mouth",
-          "centerpiece_expression": "fierce, primal, spiritual",
-          "flanking": "tribal tattoo scroll panels",
-          "bands": "ocean wave carved frieze",
-          "filler": "lava crack texture accents"
+          "material": "warm amber koa wood"
         },
         {
-          "material": "dark brown koa wood",
-          "centerpiece": "fierce tiki warrior face with elaborate tattoo etchings",
-          "centerpiece_expression": "fierce, bold, ancestral",
-          "flanking": "tribal knotwork interlace panels",
-          "bands": "spear-point repeating border pattern",
-          "filler": "volcanic rock texture accents"
+          "material": "dark brown koa wood"
         },
         {
-          "material": "fiery orange-red volcanic stone",
-          "centerpiece": "serene tiki ancestor face with closed eyes",
-          "centerpiece_expression": "serene, wise, peaceful",
-          "flanking": "spiral wave carving panels",
-          "bands": "shell-inlay decorative border",
-          "filler": "fern frond relief accents"
+          "material": "fiery orange-red volcanic stone"
         },
         {
-          "material": "golden driftwood",
-          "centerpiece": "volcanic tiki spirit face with glowing lava cracks",
-          "centerpiece_expression": "mystical, powerful, elemental",
-          "flanking": "lava flow channel carving panels",
-          "bands": "obsidian blade repeating border pattern",
-          "filler": "molten vein texture accents"
+          "material": "golden driftwood"
         }
       ]
     },
@@ -86,7 +62,7 @@
     "palette": {
       "bg": "#2A1810",
       "accent": "#D4AF37",
-      "blocks": ["#D4A574", "#4169E1", "#D4AF37", "#C8553D"]
+      "blocks": ["#5DADE2", "#27AE60", "#1E3A6B", "#D4E6F1"]
     },
     "motifs": "Hieroglyphs, scarab beetles, Eye of Horus, lotus flowers, ankh symbols, obelisks, papyrus scrolls",
     "blockMotifs": "Sandstone texture with hieroglyph engravings, gold-lined edges, scarab beetle relief carvings",
@@ -98,16 +74,12 @@
     ],
     "blockData": {
       "material": "sandstone",
-      "inlay": "gold",
+      "centerpiece_type": "Ankh hieroglyph",
+      "centerpiece_description": "thick symmetrical Ankh with oval loop, straight horizontal crossbar, and centered vertical stem; flat fill with strong black outline and simple two-tone shading",
+      "centerpiece_expression": "iconic and sacred",
       "inspirations": [
         "Ancient Egyptian temple wall reliefs and carved lintels",
         "Hieroglyphic cartouche panels and papyrus friezes"
-      ],
-      "textures": [
-        "warm sandstone grain and pores",
-        "chisel-cut grooves and engraved channels",
-        "subtle stone chips and wear along carvings",
-        "smooth metallic gold inlay lines with mild sheen"
       ],
       "themeKeywords": [
         "Ancient Egypt",
@@ -116,36 +88,16 @@
       ],
       "blocks": [
         {
-          "material": "warm sandy sandstone",
-          "centerpiece": "Eye of Horus hieroglyph",
-          "centerpiece_expression": "iconic, protective, authoritative",
-          "flanking": "hieroglyphic cartouches",
-          "bands": "papyrus motif frieze",
-          "filler": "scarab beetle relief carvings"
+          "material": "bright lapis lazuli blue stone"
         },
         {
-          "material": "deep lapis lazuli blue stone",
-          "centerpiece": "winged scarab beetle with wings fully spread",
-          "centerpiece_expression": "divine, regal, majestic",
-          "flanking": "lotus column decorations",
-          "bands": "hieroglyphic inscription band",
-          "filler": "small ankh symbol accents"
+          "material": "polished malachite green stone"
         },
         {
-          "material": "polished gold-leaf on stone",
-          "centerpiece": "golden ankh symbol with radiating sun-disc rays",
-          "centerpiece_expression": "sacred, luminous, eternal",
-          "flanking": "hieroglyphic panel strips",
-          "bands": "lotus bud garland border",
-          "filler": "small Eye of Ra accent reliefs"
+          "material": "deep dark lapis lazuli stone"
         },
         {
-          "material": "warm terracotta red clay",
-          "centerpiece": "Pharaonic cartouche seal with hieroglyphics",
-          "centerpiece_expression": "royal, commanding, ancient",
-          "flanking": "cobra uraeus serpent motifs",
-          "bands": "meander key pattern border",
-          "filler": "scarab wing accent reliefs"
+          "material": "pale alabaster stone"
         }
       ]
     },
@@ -177,16 +129,12 @@
     ],
     "blockData": {
       "material": "rough-hewn granite",
-      "inlay": "iron",
+      "centerpiece_type": "Norse elder futhark rune",
+      "centerpiece_description": "angular runic glyph with sharp geometric strokes carved into stone; flat fill with strong black outline and two-tone shading",
+      "centerpiece_expression": "ancient, powerful, cryptic",
       "inspirations": [
         "Viking rune stones and carved standing stones",
         "Norse knotwork illuminated manuscripts and shield designs"
-      ],
-      "textures": [
-        "rough grey granite with crystalline specks",
-        "deep-carved rune channel grooves with sharp edges",
-        "frost crystallization forming along carved edges",
-        "dark hammered iron banding with rivet marks"
       ],
       "themeKeywords": [
         "Norse mythology",
@@ -195,36 +143,16 @@
       ],
       "blocks": [
         {
-          "material": "blue-grey granite",
-          "centerpiece": "Norse elder futhark rune symbol",
-          "centerpiece_expression": "ancient, powerful, cryptic",
-          "flanking": "Viking knotwork interlace panels",
-          "bands": "frost crystal decorative border",
-          "filler": "smaller rune engravings"
+          "material": "blue-grey granite"
         },
         {
-          "material": "frost-blue ice stone",
-          "centerpiece": "Viking knotwork medallion with interlace pattern",
-          "centerpiece_expression": "intricate, eternal, mesmerizing",
-          "flanking": "iron-framed rune panels",
-          "bands": "iron rivet line border",
-          "filler": "frost glow crystal accents"
+          "material": "frost-blue ice stone"
         },
         {
-          "material": "dark iron-grey stone",
-          "centerpiece": "Norse raven silhouette in flight",
-          "centerpiece_expression": "ominous, wise, watchful",
-          "flanking": "iron banding with knotwork panels",
-          "bands": "chain-link repeating border pattern",
-          "filler": "frost-rimmed rune accents"
+          "material": "dark iron-grey stone"
         },
         {
-          "material": "pale silver granite",
-          "centerpiece": "Mjolnir (Thor's hammer) in bold relief",
-          "centerpiece_expression": "powerful, thunderous, divine",
-          "flanking": "lightning bolt channel carvings",
-          "bands": "iron frame border with rivets",
-          "filler": "frost crystal corner accents"
+          "material": "pale silver granite"
         }
       ]
     },
@@ -256,16 +184,12 @@
     ],
     "blockData": {
       "material": "polished marble",
-      "inlay": "blue ceramic and gold leaf",
+      "centerpiece_type": "Greek-key meander medallion",
+      "centerpiece_description": "continuous angular spiral pattern forming a square medallion; flat fill with strong black outline and two-tone shading",
+      "centerpiece_expression": "elegant, mathematical, eternal",
       "inspirations": [
         "Ancient Greek temple pediments and Ionic column capitals",
         "Hellenic pottery and Greek-key meander border patterns"
-      ],
-      "textures": [
-        "smooth polished white marble with subtle grey veining",
-        "precision-carved Greek-key channels with clean edges",
-        "hairline pressure cracks radiating from relief carvings",
-        "blue ceramic glaze with gold leaf accent lines"
       ],
       "themeKeywords": [
         "Ancient Greece",
@@ -274,36 +198,16 @@
       ],
       "blocks": [
         {
-          "material": "polished white marble",
-          "centerpiece": "Greek-key meander medallion pattern",
-          "centerpiece_expression": "elegant, mathematical, eternal",
-          "flanking": "Ionic column fluting panels",
-          "bands": "Greek-key border pattern in blue",
-          "filler": "olive leaf accent reliefs"
+          "material": "polished white marble"
         },
         {
-          "material": "deep Aegean blue marble",
-          "centerpiece": "Hellenic rosette sunburst medallion",
-          "centerpiece_expression": "radiant, divine, harmonious",
-          "flanking": "meander border panels",
-          "bands": "wave pattern running border",
-          "filler": "laurel leaf accent carvings"
+          "material": "deep Aegean blue marble"
         },
         {
-          "material": "warm cream marble",
-          "centerpiece": "carved olive wreath circle",
-          "centerpiece_expression": "noble, victorious, peaceful",
-          "flanking": "amphora silhouette panels",
-          "bands": "egg-and-dart molding border",
-          "filler": "acanthus leaf accent reliefs"
+          "material": "warm cream marble"
         },
         {
-          "material": "green-grey marble",
-          "centerpiece": "Ionic column capital relief",
-          "centerpiece_expression": "architectural, precise, grand",
-          "flanking": "geometric rosette panels",
-          "bands": "dentil molding border pattern",
-          "filler": "grape vine accent carvings"
+          "material": "green-grey marble"
         }
       ]
     },
@@ -335,16 +239,12 @@
     ],
     "blockData": {
       "material": "lacquered wood",
-      "inlay": "gold leaf",
+      "centerpiece_type": "Enso circle brushstroke",
+      "centerpiece_description": "bold single-stroke ink circle with confident calligraphic brush movement; flat fill with strong black outline and two-tone shading",
+      "centerpiece_expression": "zen, infinite, complete",
       "inspirations": [
         "Japanese urushi lacquerware and maki-e gold designs",
         "Edo period samurai armor motifs and mon emblems"
-      ],
-      "textures": [
-        "deep glossy lacquer surface with subtle reflections",
-        "precise gold leaf brushstroke inlay patterns",
-        "fine red trim lines with clean lacquered edges",
-        "smooth lacquer surface with hidden wood grain beneath"
       ],
       "themeKeywords": [
         "Feudal Japan",
@@ -353,36 +253,16 @@
       ],
       "blocks": [
         {
-          "material": "crimson red lacquered wood",
-          "centerpiece": "bold kanji brushstroke character",
-          "centerpiece_expression": "fierce, disciplined, powerful",
-          "flanking": "red trim accent panels",
-          "bands": "sakura petal scatter border",
-          "filler": "small mon emblem accents"
+          "material": "crimson red lacquered wood"
         },
         {
-          "material": "deep black lacquered wood",
-          "centerpiece": "enso circle brushstroke",
-          "centerpiece_expression": "zen, infinite, complete",
-          "flanking": "bamboo stalk silhouette panels",
-          "bands": "geometric asanoha pattern border",
-          "filler": "gold dust spatter accents"
+          "material": "deep black lacquered wood"
         },
         {
-          "material": "gleaming gold lacquered wood",
-          "centerpiece": "golden chrysanthemum mon emblem",
-          "centerpiece_expression": "imperial, sacred, radiant",
-          "flanking": "fan-shaped decorative panels",
-          "bands": "wave seigaiha pattern border",
-          "filler": "cherry blossom petal accents"
+          "material": "gleaming gold lacquered wood"
         },
         {
-          "material": "dark pine-green lacquered wood",
-          "centerpiece": "katana tsuba (sword guard) circular design",
-          "centerpiece_expression": "lethal, refined, elegant",
-          "flanking": "pine branch silhouette panels",
-          "bands": "cloud pattern repeating border",
-          "filler": "red cord knot accent details"
+          "material": "dark pine-green lacquered wood"
         }
       ]
     },
@@ -414,16 +294,12 @@
     ],
     "blockData": {
       "material": "polished jade stone",
-      "inlay": "gold",
+      "centerpiece_type": "Imperial dragon medallion",
+      "centerpiece_description": "coiled serpentine dragon in circular composition with flowing whiskers and claws; flat fill with strong black outline and two-tone shading",
+      "centerpiece_expression": "mystical, imperial, flowing",
       "inspirations": [
         "Imperial Chinese jade carvings and silk brocade patterns",
         "Dragon-scale temple roof ornaments and cloud scroll motifs"
-      ],
-      "textures": [
-        "luminous polished jade with internal color variations",
-        "precision-carved dragon-scale texture overlay",
-        "flowing gold calligraphy brush accents",
-        "subtle jade translucency glow along thinner edges"
       ],
       "themeKeywords": [
         "Imperial China",
@@ -432,36 +308,16 @@
       ],
       "blocks": [
         {
-          "material": "luminous emerald jade stone",
-          "centerpiece": "dragon-scale circular medallion",
-          "centerpiece_expression": "mystical, imperial, flowing",
-          "flanking": "cloud scroll carved panels",
-          "bands": "calligraphy brush border pattern",
-          "filler": "small pearl accent details"
+          "material": "luminous emerald jade stone"
         },
         {
-          "material": "deep forest-green jade stone",
-          "centerpiece": "imperial dragon coil in profile",
-          "centerpiece_expression": "powerful, serpentine, majestic",
-          "flanking": "jade ruyi scepter panels",
-          "bands": "meander border pattern",
-          "filler": "cloud wisp accent reliefs"
+          "material": "deep forest-green jade stone"
         },
         {
-          "material": "polished gold on stone",
-          "centerpiece": "golden phoenix emblem with spread wings",
-          "centerpiece_expression": "radiant, rebirth, imperial",
-          "flanking": "silk brocade pattern panels",
-          "bands": "lotus scroll repeating border",
-          "filler": "jade coin accent details"
+          "material": "polished gold on stone"
         },
         {
-          "material": "cinnabar red lacquer",
-          "centerpiece": "imperial seal with phoenix feather pattern",
-          "centerpiece_expression": "authoritative, sacred, ornate",
-          "flanking": "bamboo stalk carved panels",
-          "bands": "dragon-scale repeating border pattern",
-          "filler": "cinnabar accent dot details"
+          "material": "cinnabar red lacquer"
         }
       ]
     },
@@ -493,16 +349,12 @@
     ],
     "blockData": {
       "material": "glazed ceramic tile",
-      "inlay": "gold",
+      "centerpiece_type": "Islamic geometric star pattern",
+      "centerpiece_description": "eight-pointed interlocking star with precise geometric construction; flat fill with strong black outline and two-tone shading",
+      "centerpiece_expression": "precise, infinite, mesmerizing",
       "inspirations": [
         "Persian geometric tile mosaics and muqarnas vault patterns",
         "Achaemenid palace relief carvings and winged lion motifs"
-      ],
-      "textures": [
-        "deep blue ceramic glaze with luminous depth",
-        "geometric tile pattern with crisp gold grout lines",
-        "raised relief animal carvings with burnished gold",
-        "iridescent glaze highlights on curved surfaces"
       ],
       "themeKeywords": [
         "Ancient Persia",
@@ -511,36 +363,16 @@
       ],
       "blocks": [
         {
-          "material": "deep Persian blue glazed ceramic tile",
-          "centerpiece": "Islamic geometric star pattern medallion",
-          "centerpiece_expression": "precise, infinite, mesmerizing",
-          "flanking": "arabesque vine panels",
-          "bands": "geometric tile border strip",
-          "filler": "small rosette accent tiles"
+          "material": "deep Persian blue glazed ceramic tile"
         },
         {
-          "material": "royal indigo glazed ceramic tile",
-          "centerpiece": "golden lion in proud profile relief",
-          "centerpiece_expression": "regal, powerful, majestic",
-          "flanking": "geometric tile panels",
-          "bands": "arch-shaped repeating border pattern",
-          "filler": "small star tile accents"
+          "material": "royal indigo glazed ceramic tile"
         },
         {
-          "material": "burnished gold metal tile",
-          "centerpiece": "embossed arabesque floral symmetry medallion",
-          "centerpiece_expression": "elegant, flowing, harmonious",
-          "flanking": "cypress tree silhouette panels",
-          "bands": "muqarnas arch border pattern",
-          "filler": "gold trefoil accent details"
+          "material": "burnished gold metal tile"
         },
         {
-          "material": "turquoise-teal glazed ceramic tile",
-          "centerpiece": "golden peacock in full display",
-          "centerpiece_expression": "magnificent, iridescent, proud",
-          "flanking": "geometric mosaic panels",
-          "bands": "scallop arch repeating border pattern",
-          "filler": "turquoise gem accent details"
+          "material": "turquoise-teal glazed ceramic tile"
         }
       ]
     },
@@ -572,16 +404,12 @@
     ],
     "blockData": {
       "material": "jungle limestone",
-      "inlay": "obsidian",
+      "centerpiece_type": "Mayan calendar sun glyph",
+      "centerpiece_description": "circular calendar face with central sun motif and radiating segments; flat fill with strong black outline and two-tone shading",
+      "centerpiece_expression": "ancient, cosmic, powerful",
       "inspirations": [
         "Mayan temple carved stone lintels and stela monuments",
         "Calendar glyph panels and feathered serpent architectural reliefs"
-      ],
-      "textures": [
-        "weathered grey-green limestone with natural pitting",
-        "deep-carved glyph channels with moss residue",
-        "vine tendril growth creeping into stone crevices",
-        "dark obsidian inlay with glassy reflections"
       ],
       "themeKeywords": [
         "Mayan civilization",
@@ -590,36 +418,16 @@
       ],
       "blocks": [
         {
-          "material": "moss-green jungle limestone",
-          "centerpiece": "Mayan calendar sun glyph",
-          "centerpiece_expression": "ancient, cosmic, powerful",
-          "flanking": "number dots-and-bars panels",
-          "bands": "step-fret repeating border pattern",
-          "filler": "small jaguar glyph accents"
+          "material": "moss-green jungle limestone"
         },
         {
-          "material": "warm brown jungle stone",
-          "centerpiece": "feathered serpent head in profile",
-          "centerpiece_expression": "divine, fierce, mythical",
-          "flanking": "vine-wrapped column panels",
-          "bands": "serpent body repeating border pattern",
-          "filler": "moss patch texture accents"
+          "material": "warm brown jungle stone"
         },
         {
-          "material": "dark emerald-green stone",
-          "centerpiece": "Mayan numeral dots-and-bars circle",
-          "centerpiece_expression": "mathematical, sacred, precise",
-          "flanking": "stepped pyramid silhouette panels",
-          "bands": "interlocking maze border pattern",
-          "filler": "vine tendril accent details"
+          "material": "dark emerald-green stone"
         },
         {
-          "material": "khaki-gold sandstone",
-          "centerpiece": "jaguar head glyph in profile",
-          "centerpiece_expression": "predatory, powerful, mystical",
-          "flanking": "feather fan carved panels",
-          "bands": "skull rack repeating border pattern",
-          "filler": "obsidian blade accent details"
+          "material": "khaki-gold sandstone"
         }
       ]
     },
@@ -651,16 +459,12 @@
     ],
     "blockData": {
       "material": "adobe clay",
-      "inlay": "turquoise stone",
+      "centerpiece_type": "Thunderbird symbol",
+      "centerpiece_description": "geometric eagle with spread wings in Pueblo painted style; flat fill with strong black outline and two-tone shading",
+      "centerpiece_expression": "powerful, sacred, sky-spirit",
       "inspirations": [
         "Pueblo adobe wall patterns and turquoise jewelry inlays",
         "Southwestern geometric painted pottery and thunderbird motifs"
-      ],
-      "textures": [
-        "warm sun-baked adobe clay surface with fine grain",
-        "geometric painted patterns in earth tones and white",
-        "turquoise stone inlay with natural matrix veining",
-        "smooth clay surface with subtle finger-smoothed marks"
       ],
       "themeKeywords": [
         "Pueblo culture",
@@ -669,36 +473,16 @@
       ],
       "blocks": [
         {
-          "material": "warm sandy adobe clay",
-          "centerpiece": "turquoise stone inlay medallion",
-          "centerpiece_expression": "spiritual, grounding, protective",
-          "flanking": "geometric stepped border panels",
-          "bands": "zigzag painted repeating border pattern",
-          "filler": "small corn stalk accent motifs"
+          "material": "warm sandy adobe clay"
         },
         {
-          "material": "turquoise-inlaid clay",
-          "centerpiece": "geometric thunderbird symbol",
-          "centerpiece_expression": "powerful, sacred, sky-spirit",
-          "flanking": "turquoise and coral mosaic panels",
-          "bands": "step-pattern painted border",
-          "filler": "rain cloud accent symbols"
+          "material": "turquoise-inlaid clay"
         },
         {
-          "material": "dark saddle-brown adobe",
-          "centerpiece": "sun-face medallion with radiating rays",
-          "centerpiece_expression": "warm, life-giving, radiant",
-          "flanking": "arrow-point geometric panels",
-          "bands": "diamond chain repeating border pattern",
-          "filler": "turquoise dot accent inlays"
+          "material": "dark saddle-brown adobe"
         },
         {
-          "material": "terra cotta red clay",
-          "centerpiece": "turquoise and coral mosaic circle",
-          "centerpiece_expression": "vibrant, precious, ceremonial",
-          "flanking": "feather pattern carved panels",
-          "bands": "triangle wave repeating border pattern",
-          "filler": "pottery shard accent details"
+          "material": "terra cotta red clay"
         }
       ]
     },
@@ -730,16 +514,12 @@
     ],
     "blockData": {
       "material": "fitted granite",
-      "inlay": "gold",
+      "centerpiece_type": "Inti sun-god disc",
+      "centerpiece_description": "radiant solar disc with stylized face and emanating ray beams; flat fill with strong black outline and two-tone shading",
+      "centerpiece_expression": "divine, radiant, all-seeing",
       "inspirations": [
         "Inca polygonal masonry walls and sun temple stonework",
         "Quipu rope knot textile patterns and condor iconography"
-      ],
-      "textures": [
-        "precisely fitted grey granite blocks with no mortar",
-        "interlocking polygonal stone edges with perfect joints",
-        "rope textile weave accents at borders",
-        "polished gold ceremonial inlay with warm reflections"
       ],
       "themeKeywords": [
         "Inca empire",
@@ -748,36 +528,16 @@
       ],
       "blocks": [
         {
-          "material": "warm grey granite",
-          "centerpiece": "Inti sun-god disc emblem",
-          "centerpiece_expression": "divine, radiant, all-seeing",
-          "flanking": "polygonal stone masonry panels",
-          "bands": "rope textile weave border",
-          "filler": "small terrace step accent reliefs"
+          "material": "warm grey granite"
         },
         {
-          "material": "polished gold metal on stone",
-          "centerpiece": "golden Inti sun with radiating rays",
-          "centerpiece_expression": "supreme, luminous, ceremonial",
-          "flanking": "quipu rope knot panels",
-          "bands": "interlocking stone repeating border",
-          "filler": "gold leaf corner accents"
+          "material": "polished gold metal on stone"
         },
         {
-          "material": "cool blue-grey granite",
-          "centerpiece": "condor in flight silhouette",
-          "centerpiece_expression": "majestic, soaring, free",
-          "flanking": "mountain peak silhouette panels",
-          "bands": "textile diamond pattern border",
-          "filler": "gold sun-ray accent details"
+          "material": "cool blue-grey granite"
         },
         {
-          "material": "grey-green stone",
-          "centerpiece": "quipu rope knot textile medallion",
-          "centerpiece_expression": "mathematical, cultural, recording",
-          "flanking": "terraced hillside carved panels",
-          "bands": "interlocking polygon repeating border",
-          "filler": "gold disc accent details"
+          "material": "grey-green stone"
         }
       ]
     },
