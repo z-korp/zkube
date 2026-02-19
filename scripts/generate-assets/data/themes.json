@@ -7,7 +7,7 @@
     "palette": {
       "bg": "#1A0F0A",
       "accent": "#FF6B35",
-      "blocks": ["#D48840", "#6B4420", "#8C6850", "#B07038"]
+      "blocks": ["#E6B166", "#5A341B", "#C7643A", "#7D7A3A"]
     },
     "motifs": "Tiki masks, tribal tattoo patterns, volcanic rock, ocean waves, Polynesian spirals",
     "blockMotifs": "Wooden tiki faces carved in relief, tribal tattoo etchings, lava crack textures",
@@ -62,7 +62,7 @@
     "palette": {
       "bg": "#2A1810",
       "accent": "#D4AF37",
-      "blocks": ["#E8A820", "#6B5630", "#8C8478", "#C4A050"]
+      "blocks": ["#F0CF7A", "#6A4A1F", "#B8823A", "#8A7B64"]
     },
     "motifs": "Hieroglyphs, scarab beetles, Eye of Horus, lotus flowers, ankh symbols, obelisks, papyrus scrolls",
     "blockMotifs": "Sandstone texture with hieroglyph engravings, gold-lined edges, scarab beetle relief carvings",
@@ -117,7 +117,7 @@
     "palette": {
       "bg": "#0A1520",
       "accent": "#7EB8DA",
-      "blocks": ["#7898B8", "#3A5068", "#586878", "#90A8C0"]
+      "blocks": ["#A9C4DF", "#2F4760", "#4C7FA3", "#7B6FA3"]
     },
     "motifs": "Norse runes, Viking knotwork, longship prows, ravens, Mjolnir, frost patterns, iron rivets",
     "blockMotifs": "Heavy stone blocks with carved runes, metallic iron frame edges, frost glow crystallization",
@@ -172,7 +172,7 @@
     "palette": {
       "bg": "#1A2030",
       "accent": "#3B6FA0",
-      "blocks": ["#5888B8", "#2A4870", "#687888", "#88A8C8"]
+      "blocks": ["#BFD5E8", "#1F3E63", "#3E7FB3", "#6B86B0"]
     },
     "motifs": "Greek columns, olive wreaths, Greek-key meander patterns, amphoras, temple pediments, laurel crowns",
     "blockMotifs": "Clean white marble texture, blue Greek-key border patterns, hairline pressure cracks",
@@ -227,7 +227,7 @@
     "palette": {
       "bg": "#0D0D12",
       "accent": "#C41E3A",
-      "blocks": ["#C83040", "#601820", "#885058", "#A83848"]
+      "blocks": ["#E19AA3", "#4B1821", "#C45A3A", "#7A3E7E"]
     },
     "motifs": "Cherry blossoms, katana blades, torii gates, kanji brushstrokes, bamboo, paper lanterns",
     "blockMotifs": "Black lacquer with red trim edges, bold brushstroke symbols, sakura petal accents",
@@ -282,7 +282,7 @@
     "palette": {
       "bg": "#0A1A0A",
       "accent": "#50C878",
-      "blocks": ["#48B870", "#1C5838", "#588868", "#38A058"]
+      "blocks": ["#9CD8B6", "#174A33", "#7AA34A", "#3F7F8C"]
     },
     "motifs": "Imperial dragons, jade carvings, cloud scrolls, gold calligraphy, pagoda roofs, silk lanterns",
     "blockMotifs": "Jade texture surface, dragon-scale overlay patterns, gold calligraphy accent strokes",
@@ -337,7 +337,7 @@
     "palette": {
       "bg": "#0A0F2A",
       "accent": "#1E90FF",
-      "blocks": ["#3878C0", "#1C3868", "#485878", "#5888B0"]
+      "blocks": ["#9EB7DF", "#1A2E5A", "#3C5FA8", "#3F8AA2"]
     },
     "motifs": "Geometric tile stars, relief lions, peacocks, cypress trees, arabesques, muqarnas vaults",
     "blockMotifs": "Blue geometric tile patterns with gold grout lines, golden relief animal carvings, luminous symmetry effects",
@@ -392,7 +392,7 @@
     "palette": {
       "bg": "#0A1A0A",
       "accent": "#4CAF50",
-      "blocks": ["#688830", "#3C5018", "#586848", "#889840"]
+      "blocks": ["#A9BE72", "#2E3B1A", "#5E8A3B", "#8A6A3B"]
     },
     "motifs": "Calendar glyphs, feathered serpents, stepped pyramids, jungle vines, jaguar motifs, obsidian blades",
     "blockMotifs": "Carved jungle stone with calendar glyph variations, moss growing in the carved crevices",
@@ -447,7 +447,7 @@
     "palette": {
       "bg": "#2A1F14",
       "accent": "#40C8B8",
-      "blocks": ["#C87850", "#6B3820", "#8C6858", "#A86838"]
+      "blocks": ["#E0A07A", "#5C2E1D", "#B85D3C", "#4E8F9B"]
     },
     "motifs": "Turquoise stones, eagle feathers, geometric stepped borders, adobe walls, thunderbird motifs, desert sun",
     "blockMotifs": "Adobe clay texture, turquoise stone inlays, geometric painted border patterns",
@@ -459,8 +459,8 @@
     ],
     "blockData": {
       "material": "adobe clay",
-      "centerpiece_type": "Thunderbird symbol",
-      "centerpiece_description": "geometric eagle with spread wings in Pueblo painted style; flat fill with strong black outline and two-tone shading",
+      "centerpiece_type": "Thunderbird totem glyph",
+      "centerpiece_description": "compact vertical thunderbird emblem with short wings and stepped geometric body in Pueblo painted style; flat fill with strong black outline and two-tone shading",
       "centerpiece_expression": "powerful, sacred, sky-spirit",
       "inspirations": [
         "Pueblo adobe wall patterns and turquoise jewelry inlays",
@@ -502,7 +502,7 @@
     "palette": {
       "bg": "#1A1A2A",
       "accent": "#D4AF37",
-      "blocks": ["#A89880", "#585040", "#787068", "#908878"]
+      "blocks": ["#C7BCA9", "#4B4438", "#8C8670", "#A08A4E"]
     },
     "motifs": "Interlocking polygonal stones, Inti sun god disc, quipu rope knots, condor silhouettes, textile weave patterns, mountain terraces",
     "blockMotifs": "Interlocking polygonal stone masonry with perfect joints, sun-god gold highlight accents, rope and textile border accents",
