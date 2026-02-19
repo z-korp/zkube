@@ -3,12 +3,16 @@ import { motion } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useGame } from "@/hooks/useGame";
 import {
-  MAP_NODE_POSITIONS,
   NODES_PER_ZONE,
   TOTAL_ZONES,
   useMapData,
   type MapNodeData,
 } from "@/hooks/useMapData";
+import {
+  MAP_LAYOUT_PRESETS,
+  useMapLayout,
+  type MapLayoutPresetId,
+} from "@/hooks/useMapLayout";
 import { useNavigationStore } from "@/stores/navigationStore";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 import LevelPreview from "@/ui/components/map/LevelPreview";
@@ -33,6 +37,13 @@ const MapPage: React.FC = () => {
 
   const currentLevel = game?.level ?? 1;
   const mapData = useMapData({ seed, currentLevel });
+  const [layoutPreset, setLayoutPreset] = useState<MapLayoutPresetId>("balanced");
+  const zoneLayouts = useMapLayout({
+    seed,
+    totalZones: TOTAL_ZONES,
+    nodesPerZone: NODES_PER_ZONE,
+    preset: layoutPreset,
+  });
 
   const [activeZone, setActiveZone] = useState(Math.max(0, mapData.currentZone - 1));
   const [selectedNode, setSelectedNode] = useState<MapNodeData | null>(null);
@@ -82,6 +93,27 @@ const MapPage: React.FC = () => {
         title="WORLD MAP"
         subtitle={`Level ${currentLevel}`}
         onBack={goBack}
+        rightSlot={(
+          <div className="flex items-center gap-1 rounded-lg border border-white/15 bg-black/20 p-1">
+            {Object.entries(MAP_LAYOUT_PRESETS).map(([presetId, preset]) => {
+              const isActive = layoutPreset === presetId;
+              return (
+                <button
+                  key={presetId}
+                  type="button"
+                  onClick={() => setLayoutPreset(presetId as MapLayoutPresetId)}
+                  className={`rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
+                    isActive
+                      ? "bg-white/20 text-white"
+                      : "text-white/70 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
       />
 
       <div
@@ -92,13 +124,15 @@ const MapPage: React.FC = () => {
         onTouchEnd={(event) => onEndDrag(event.changedTouches[0]?.clientX ?? 0)}
       >
         <motion.div
-          className="flex h-full w-[500%]"
-          animate={{ x: `-${activeZone * 20}%` }}
+          className="flex h-full"
+          style={{ width: `${TOTAL_ZONES * 100}%` }}
+          animate={{ x: `-${activeZone * (100 / TOTAL_ZONES)}%` }}
           transition={{ type: "spring", stiffness: 280, damping: 32 }}
         >
           {zoneNodes.map((nodes, zoneIdx) => {
             const zone = zoneIdx + 1;
             const theme = mapData.zoneThemes[zoneIdx] ?? "theme-1";
+            const layout = zoneLayouts[zoneIdx];
 
             return (
               <div key={zone} className="relative h-full w-full flex-1">
@@ -109,19 +143,50 @@ const MapPage: React.FC = () => {
                   className="pointer-events-none absolute inset-0 h-full w-full"
                   aria-hidden
                 >
-                  {nodes.slice(0, -1).map((node, idx) => {
-                    const from = MAP_NODE_POSITIONS[idx];
-                    const to = MAP_NODE_POSITIONS[idx + 1];
+                  {layout?.edges.map((edge) => {
+                    const fromPoint = layout.points[edge.from];
+                    const toPoint = layout.points[edge.to];
+
+                    if (!fromPoint || !toPoint) return null;
+
+                    const fromX = fromPoint.x * SVG_VIEWBOX;
+                    const fromY = fromPoint.y * SVG_VIEWBOX;
+                    const toX = toPoint.x * SVG_VIEWBOX;
+                    const toY = toPoint.y * SVG_VIEWBOX;
+
+                    if (edge.kind === "branch") {
+                      const curveDirection = toX >= fromX ? 1 : -1;
+                      const controlX = (fromX + toX) / 2 + curveDirection * 64;
+                      const controlY = (fromY + toY) / 2;
+                      const branchD = `M ${fromX} ${fromY} Q ${controlX} ${controlY} ${toX} ${toY}`;
+
+                      return (
+                        <path
+                          key={`branch-${zoneIdx}-${edge.from}-${edge.to}`}
+                          d={branchD}
+                          fill="none"
+                          stroke="rgba(255,255,255,0.22)"
+                          strokeWidth={2}
+                          strokeDasharray="6 8"
+                          strokeLinecap="round"
+                        />
+                      );
+                    }
+
+                    const fromNode = nodes[edge.from];
+                    const toNode = nodes[edge.to];
+
+                    if (!fromNode || !toNode) return null;
 
                     return (
                       <MapPath
-                        key={`path-${node.nodeIndex}`}
-                        fromX={from.x * SVG_VIEWBOX}
-                        fromY={from.y * SVG_VIEWBOX}
-                        toX={to.x * SVG_VIEWBOX}
-                        toY={to.y * SVG_VIEWBOX}
-                        fromState={node.state}
-                        toState={nodes[idx + 1].state}
+                        key={`path-${zoneIdx}-${edge.from}-${edge.to}`}
+                        fromX={fromX}
+                        fromY={fromY}
+                        toX={toX}
+                        toY={toY}
+                        fromState={fromNode.state}
+                        toState={toNode.state}
                       />
                     );
                   })}
@@ -129,7 +194,10 @@ const MapPage: React.FC = () => {
 
                 <div className="absolute inset-0">
                   {nodes.map((node) => {
-                    const position = MAP_NODE_POSITIONS[node.nodeInZone];
+                    const position = layout?.points[node.nodeInZone];
+
+                    if (!position) return null;
+
                     return (
                       <MapNode
                         key={`node-${node.nodeIndex}`}
