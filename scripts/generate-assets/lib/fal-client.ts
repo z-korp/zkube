@@ -33,7 +33,7 @@ export function resolveImageSize(width: number, height: number): FluxImageSize {
 
   // Square
   if (Math.abs(ratio - 1) < 0.01) {
-    return width > 512 ? "square_hd" : "square";
+    return width > 512 ? "square_hd" : { width, height };
   }
   // Landscape 4:3  (ratio ≈ 1.333)
   if (Math.abs(ratio - 4 / 3) < 0.02) {
