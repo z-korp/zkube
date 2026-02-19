@@ -7,7 +7,7 @@
     "palette": {
       "bg": "#1A0F0A",
       "accent": "#FF6B35",
-      "blocks": ["#D4844C", "#8B5E3C", "#E8632B", "#DAA520"]
+      "blocks": ["#D48840", "#6B4420", "#8C6850", "#B07038"]
     },
     "motifs": "Tiki masks, tribal tattoo patterns, volcanic rock, ocean waves, Polynesian spirals",
     "blockMotifs": "Wooden tiki faces carved in relief, tribal tattoo etchings, lava crack textures",
@@ -117,7 +117,7 @@
     "palette": {
       "bg": "#0A1520",
       "accent": "#7EB8DA",
-      "blocks": ["#7B8FA1", "#4A90B8", "#5C636A", "#A8B8C8"]
+      "blocks": ["#7898B8", "#3A5068", "#586878", "#90A8C0"]
     },
     "motifs": "Norse runes, Viking knotwork, longship prows, ravens, Mjolnir, frost patterns, iron rivets",
     "blockMotifs": "Heavy stone blocks with carved runes, metallic iron frame edges, frost glow crystallization",
@@ -172,7 +172,7 @@
     "palette": {
       "bg": "#1A2030",
       "accent": "#3B6FA0",
-      "blocks": ["#E0D8CC", "#3B6FA0", "#C8B89A", "#7B9E7B"]
+      "blocks": ["#5888B8", "#2A4870", "#687888", "#88A8C8"]
     },
     "motifs": "Greek columns, olive wreaths, Greek-key meander patterns, amphoras, temple pediments, laurel crowns",
     "blockMotifs": "Clean white marble texture, blue Greek-key border patterns, hairline pressure cracks",
@@ -227,7 +227,7 @@
     "palette": {
       "bg": "#0D0D12",
       "accent": "#C41E3A",
-      "blocks": ["#C41E3A", "#3A3A4A", "#D4AF37", "#2D5A3D"]
+      "blocks": ["#C83040", "#601820", "#885058", "#A83848"]
     },
     "motifs": "Cherry blossoms, katana blades, torii gates, kanji brushstrokes, bamboo, paper lanterns",
     "blockMotifs": "Black lacquer with red trim edges, bold brushstroke symbols, sakura petal accents",
@@ -282,7 +282,7 @@
     "palette": {
       "bg": "#0A1A0A",
       "accent": "#50C878",
-      "blocks": ["#50C878", "#2E8B57", "#D4AF37", "#B22222"]
+      "blocks": ["#48B870", "#1C5838", "#588868", "#38A058"]
     },
     "motifs": "Imperial dragons, jade carvings, cloud scrolls, gold calligraphy, pagoda roofs, silk lanterns",
     "blockMotifs": "Jade texture surface, dragon-scale overlay patterns, gold calligraphy accent strokes",
@@ -337,7 +337,7 @@
     "palette": {
       "bg": "#0A0F2A",
       "accent": "#1E90FF",
-      "blocks": ["#2E6EB5", "#4040C0", "#D4AF37", "#40B0A0"]
+      "blocks": ["#3878C0", "#1C3868", "#485878", "#5888B0"]
     },
     "motifs": "Geometric tile stars, relief lions, peacocks, cypress trees, arabesques, muqarnas vaults",
     "blockMotifs": "Blue geometric tile patterns with gold grout lines, golden relief animal carvings, luminous symmetry effects",
@@ -392,7 +392,7 @@
     "palette": {
       "bg": "#0A1A0A",
       "accent": "#4CAF50",
-      "blocks": ["#6B8E23", "#8B7355", "#2E7D52", "#B8A040"]
+      "blocks": ["#688830", "#3C5018", "#586848", "#889840"]
     },
     "motifs": "Calendar glyphs, feathered serpents, stepped pyramids, jungle vines, jaguar motifs, obsidian blades",
     "blockMotifs": "Carved jungle stone with calendar glyph variations, moss growing in the carved crevices",
@@ -447,7 +447,7 @@
     "palette": {
       "bg": "#2A1F14",
       "accent": "#40C8B8",
-      "blocks": ["#C4956B", "#40C8B8", "#8B5A2B", "#CC6644"]
+      "blocks": ["#C87850", "#6B3820", "#8C6858", "#A86838"]
     },
     "motifs": "Turquoise stones, eagle feathers, geometric stepped borders, adobe walls, thunderbird motifs, desert sun",
     "blockMotifs": "Adobe clay texture, turquoise stone inlays, geometric painted border patterns",
@@ -502,7 +502,7 @@
     "palette": {
       "bg": "#1A1A2A",
       "accent": "#D4AF37",
-      "blocks": ["#9A8E82", "#D4AF37", "#6E7B7C", "#7B8B6B"]
+      "blocks": ["#A89880", "#585040", "#787068", "#908878"]
     },
     "motifs": "Interlocking polygonal stones, Inti sun god disc, quipu rope knots, condor silhouettes, textile weave patterns, mountain terraces",
     "blockMotifs": "Interlocking polygonal stone masonry with perfect joints, sun-god gold highlight accents, rope and textile border accents",
