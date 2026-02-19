@@ -1,0 +1,102 @@
+{
+  "style_name": "{{theme_name}} Master Block Frieze (neutral)",
+  "inspiration": [
+    "{{inspiration_1}}",
+    "{{inspiration_2}}",
+    "Flat cel-shaded game tile surfaces",
+    "Art Deco geometric symmetry"
+  ],
+  "scene": "A wide horizontal decorative frieze carved from {{material}}, featuring a central stylized {{centerpiece_type}} surrounded by intricate ornamental carvings inspired by {{theme_name}} motifs. The entire surface fills the canvas edge-to-edge with sharp 90-degree corners.",
+  "subjects": [
+    {
+      "type": "{{centerpiece_type}}",
+      "description": "{{centerpiece_description}}",
+      "position": "center",
+      "pose": "front-facing, perfectly symmetrical",
+      "size": "large",
+      "expression": "{{centerpiece_expression}}",
+      "interaction": "anchoring the composition as the focal emblem"
+    },
+    {
+      "type": "ornamental carvings",
+      "description": "{{theme_name}}-inspired scrollwork blended with {{motifs_short}} patterns and geometric decorative elements",
+      "position": "left and right panels",
+      "pose": "flowing yet symmetrical",
+      "size": "medium",
+      "expression": "decorative and thematic",
+      "interaction": "forming an elaborate border and filling the horizontal space around the central {{centerpiece_type}}"
+    }
+  ],
+  "style": "flat vector, bold cel-shaded, high-contrast graphic style with engraved relief detailing",
+  "color_palette": {
+    "primary": "#B0A898",
+    "secondary": "#968C80",
+    "highlight": "#D0C8BC",
+    "shadow": "#6E665C",
+    "background_gradient": ["#B0A898", "#6E665C"],
+    "note": "Deliberately desaturated warm grey. Color is applied programmatically after generation."
+  },
+  "lighting": "simple two-tone cel shading with highlight on upper-left and shadow on lower-right, subtle embossing for carved depth",
+  "mood": "bold, textured, {{theme_mood}}",
+  "background": {
+    "type": "solid",
+    "details": "NO background layer. The solid {{material}} surface occupies 100% of the canvas."
+  },
+  "composition": "wide horizontal banner layout with strict bilateral symmetry centered on the {{centerpiece_type}}, ornamental side panels balanced on both ends, the surface fills every edge of the canvas",
+  "camera": {
+    "angle": "front-facing orthographic",
+    "distance": "wide shot",
+    "lens": "flat projection",
+    "focus": "uniform sharp focus across entire frieze"
+  },
+  "medium": "digital vector-style illustration with subtle engraved relief overlay",
+  "textures": [
+    "subtle flat {{material}} grain in neutral warm grey",
+    "engraved linework texture for carved details",
+    "subtle surface wear to imply age and authenticity"
+  ],
+  "details": [
+    "the {{material}} surface fills 100% of the canvas — sharp corners, no rounded edges, no gaps",
+    "{{centerpiece_type}} centered as the dominant focal element",
+    "ornamental {{theme_name}} motifs flanking both sides ({{theme_keyword_1}}, {{theme_keyword_2}})",
+    "all colors are desaturated warm grey — light grey highlights, mid grey base, dark grey shadows",
+    "NO saturated hue — only neutral grey tones with good luminance contrast",
+    "fully opaque, no transparency",
+    "bold outer frame border integrated into the surface edges"
+  ],
+  "effects": [
+    "surface-integrated vignette using multiply shading at edges",
+    "clean vector edges",
+    "soft inner shadow embossing on carved elements",
+    "continuous pattern flow across full width"
+  ],
+  "themes": [
+    "{{theme_name}}",
+    "{{theme_keyword_1}}",
+    "{{theme_keyword_2}}",
+    "{{theme_keyword_3}}"
+  ],
+  "usage_notes": "This is a master tile generated in neutral grey. It will be cropped to 4 sizes and tinted programmatically. Maintain strong symmetry and clear central hierarchy. Good luminance contrast is critical for rich tinting results.",
+  "negative_prompt": [
+    "saturated color",
+    "gold",
+    "blue",
+    "red",
+    "green",
+    "colorful",
+    "4 separate tiles",
+    "repeated identical pattern",
+    "white background",
+    "black background",
+    "transparent background",
+    "rounded corners",
+    "floating tile",
+    "canvas margin",
+    "photorealistic",
+    "3D render lighting",
+    "text",
+    "logos",
+    "pastel colors",
+    "watercolor blending"
+  ]
+}

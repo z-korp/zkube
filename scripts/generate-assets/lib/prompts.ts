@@ -117,6 +117,30 @@ export function buildBlockBgPromptFromTemplate(theme: ThemeDefinition, blockInde
   return template.replace(/\{\{(\w+)\}\}/g, (_match, key) => vars[key] ?? _match);
 }
 
+function buildBlockMasterSubstitutionMap(theme: ThemeDefinition): Record<string, string> {
+  const bd = theme.blockData;
+  return {
+    theme_name: theme.name,
+    theme_mood: theme.mood,
+    material: bd.material,
+    centerpiece_type: bd.centerpiece_type,
+    centerpiece_description: bd.centerpiece_description,
+    centerpiece_expression: bd.centerpiece_expression,
+    motifs_short: theme.motifs.split(",").slice(0, 3).join(","),
+    inspiration_1: bd.inspirations[0],
+    inspiration_2: bd.inspirations[1] ?? bd.inspirations[0],
+    theme_keyword_1: bd.themeKeywords[0],
+    theme_keyword_2: bd.themeKeywords[1],
+    theme_keyword_3: bd.themeKeywords[2],
+  };
+}
+
+export function buildBlockMasterPromptFromTemplate(theme: ThemeDefinition): string {
+  const template = loadTemplate("block-master");
+  const vars = buildBlockMasterSubstitutionMap(theme);
+  return template.replace(/\{\{(\w+)\}\}/g, (_match, key) => vars[key] ?? _match);
+}
+
 function buildGridBgSubstitutionMap(theme: ThemeDefinition): Record<string, string> {
   const bd = theme.blockData;
   const bg = theme.palette.bg;

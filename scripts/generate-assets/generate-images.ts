@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   buildBackgroundPrompt,
-  buildBlockBgPromptFromTemplate,
+  buildBlockMasterPromptFromTemplate,
   buildBonusIconPrompt,
   buildButtonPrompt,
   buildGridBackgroundPrompt,
@@ -16,8 +16,9 @@ import {
   buildUiChromePrompt,
   buildWhiteIconPrompt,
 } from "./lib/prompts";
+import sharp from "sharp";
 import { CONCURRENCY, IMAGE_MODEL, COMMON_ROOT, ASSETS_ROOT, formatError, loadPLimitFactory, relativePath } from "./lib/env";
-import { fal, generateImage, savePng } from "./lib/fal-client";
+import { fal, generateImage, savePng, tintImage } from "./lib/fal-client";
 import { GLOBAL_ASSETS, PER_THEME_ASSETS, type AssetCategory, type AssetJob, type CliOptions, type GlobalAsset, type GlobalAssetsData, type PerThemeAsset, type ThemeDefinition } from "./lib/types";
 
 const DATA_DIR = path.join(path.dirname(new URL(import.meta.url).pathname), "data");
@@ -37,6 +38,24 @@ function getTargetDimensions(filename: string, fallback: { width: number; height
   return globalAssets.targetDimensions[filename] ?? fallback;
 }
 
+const MASTER_WIDTH = 1024;
+const MASTER_HEIGHT = 256;
+const BLOCK_SIZES = [
+  { name: "block-4.png", width: 1024 },
+  { name: "block-3.png", width: 768 },
+  { name: "block-2.png", width: 512 },
+  { name: "block-1.png", width: 256 },
+];
+
+async function cropCenter(imageBuffer: Buffer, targetWidth: number, height: number): Promise<Buffer> {
+  const meta = await sharp(imageBuffer).metadata();
+  const srcWidth = meta.width!;
+  const left = Math.round((srcWidth - targetWidth) / 2);
+  return sharp(imageBuffer)
+    .extract({ left, top: 0, width: targetWidth, height })
+    .toBuffer();
+}
+
 async function runBlockPipeline(
   themeId: string,
   theme: ThemeDefinition,
@@ -45,10 +64,9 @@ async function runBlockPipeline(
   const themeRoot = path.join(ASSETS_ROOT, themeId);
   fs.mkdirSync(themeRoot, { recursive: true });
 
-  const requestedBlocks = [0, 1, 2, 3].filter((i) => {
+  const requestedBlocks = BLOCK_SIZES.filter((b) => {
     if (!options.only) return true;
-    const fn = `block-${i + 1}.png`;
-    return options.only.some((n) => (n.endsWith(".png") ? n : `${n}.png`) === fn);
+    return options.only.some((n) => (n.endsWith(".png") ? n : `${n}.png`) === b.name);
   });
 
   if (requestedBlocks.length === 0) {
@@ -58,37 +76,46 @@ async function runBlockPipeline(
   let success = 0;
   let failures = 0;
 
-  for (const i of requestedBlocks) {
-    const blockWidth = i + 1;
-    const filename = `block-${blockWidth}.png`;
-    const target = getTargetDimensions(filename, { width: 192, height: 192 });
-    const startedAt = Date.now();
+  const masterPath = path.join(themeRoot, "block-master.png");
+  const startedAt = Date.now();
 
-    console.log(`  [${filename}]  Generating...`);
+  console.log(`  [block-master]  Generating neutral master (${MASTER_WIDTH}×${MASTER_HEIGHT})...`);
+  let masterBuffer: Buffer;
+  try {
+    const prompt = buildBlockMasterPromptFromTemplate(theme);
+    masterBuffer = await generateImage({
+      scope: "per-theme",
+      category: "blocks",
+      themeId,
+      filename: "block-master.png",
+      outputPath: masterPath,
+      prompt,
+      width: MASTER_WIDTH,
+      height: MASTER_HEIGHT,
+    }, false);
+
+    await savePng(masterPath, masterBuffer, false);
+    const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+    console.log(`  [block-master]  Done (${elapsed}s). Cropping + tinting...`);
+  } catch (error) {
+    const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+    console.log(`  [block-master]  FAILED (${elapsed}s): ${formatError(error)}`);
+    return { success: 0, failures: requestedBlocks.length };
+  }
+
+  for (const block of requestedBlocks) {
+    const blockIndex = BLOCK_SIZES.indexOf(block);
+    const colorIndex = 3 - blockIndex;
+    const color = theme.palette.blocks[colorIndex];
+
     try {
-      const prompt = buildBlockBgPromptFromTemplate(theme, i, blockWidth);
-      const refPaths = blockWidth > 1 ? [path.join(themeRoot, "block-1.png")] : undefined;
-
-      const buffer = await generateImage({
-        scope: "per-theme",
-        category: "blocks",
-        themeId,
-        filename,
-        outputPath: path.join(themeRoot, filename),
-        prompt,
-        width: target.width,
-        height: target.height,
-        refPaths,
-        stripWhite: true,
-      }, options.includeRefs && blockWidth > 1);
-
-      await savePng(path.join(themeRoot, filename), buffer, true);
-      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
-      console.log(`  [${filename}]  Done (${elapsed}s).`);
+      const cropped = await cropCenter(masterBuffer, block.width, MASTER_HEIGHT);
+      const tinted = await tintImage(cropped, color);
+      await savePng(path.join(themeRoot, block.name), tinted, true);
+      console.log(`  [${block.name}]  Cropped to ${block.width}×${MASTER_HEIGHT}, tinted ${color}`);
       success += 1;
     } catch (error) {
-      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
-      console.log(`  [${filename}]  FAILED (${elapsed}s): ${formatError(error)}`);
+      console.log(`  [${block.name}]  FAILED: ${formatError(error)}`);
       failures += 1;
     }
   }
@@ -467,7 +494,7 @@ function blocksRequestedByFilters(options: CliOptions): boolean {
   if (options.asset && options.asset !== "blocks") return false;
   if (options.scope === "global") return false;
   if (options.only) {
-    const blockNames = ["block-1", "block-2", "block-3", "block-4"];
+    const blockNames = ["block-1", "block-2", "block-3", "block-4", "block-master"];
     return options.only.some((n) => blockNames.includes(n.replace(".png", "")));
   }
   return true;
@@ -503,7 +530,7 @@ async function main(): Promise<void> {
   if (options.dryRun) {
     if (wantsBlocks) {
       for (const themeId of selectedThemeIds) {
-        console.log(`[${themeId}]  🧪 dry-run -> block pipeline (4 blocks)`);
+        console.log(`[${themeId}]  🧪 dry-run -> block pipeline (1 master → crop+tint → 4 blocks)`);
       }
     }
     jobs.forEach((job, index) => {
