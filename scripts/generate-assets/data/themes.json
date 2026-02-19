@@ -119,7 +119,7 @@
     "palette": {
       "bg": "#0A1520",
       "accent": "#7EB8DA",
-      "blocks": ["#A9C4DF", "#2F4760", "#4C7FA3", "#7B6FA3"]
+      "blocks": ["#E8EDF2", "#00CED1", "#7EC8E3", "#2E6B4F"]
     },
     "motifs": "Norse runes, Viking knotwork, longship prows, ravens, Mjolnir, frost patterns, iron rivets",
     "blockMotifs": "Heavy stone blocks with carved runes, metallic iron frame edges, frost glow crystallization",
