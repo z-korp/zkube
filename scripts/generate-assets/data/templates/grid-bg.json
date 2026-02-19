@@ -5,14 +5,14 @@
     "{{inspiration_1}}",
     "Modern flat vector game UI art"
   ],
-  "scene": "A dark, muted {{grid_material}} surface filling the entire 3:4 portrait canvas edge-to-edge, serving as a non-intrusive game board background with very faint {{theme_name}}-themed motifs barely visible at low opacity.",
+  "scene": "A very dark, muted {{grid_material}} surface filling the entire 4:5 portrait canvas edge-to-edge with absolutely no borders or frame lines, serving as a non-intrusive game board background with very faint {{theme_name}}-themed motifs barely visible at low opacity.",
   "subjects": [
     {
       "type": "background surface",
-      "description": "dark muted {{grid_material}} base with extremely subtle tonal shifts and faint distressed grunge overlay",
-      "position": "full frame",
+      "description": "very dark muted {{grid_material}} base with extremely subtle tonal shifts and faint distressed grunge overlay, near-black overall tone",
+      "position": "full frame edge-to-edge",
       "pose": "static",
-      "size": "fills entire portrait canvas",
+      "size": "fills entire portrait canvas seamlessly from edge to edge",
       "interaction": "foundation for colorful gameplay blocks placed above"
     }
   ],
@@ -22,15 +22,15 @@
     "secondary": "{{bg_secondary}}",
     "highlight": "{{bg_highlight}}",
     "shadow": "{{bg_shadow}}",
-    "background_gradient": ["{{bg_color}}", "{{bg_shadow}}"]
+    "background_gradient": ["{{bg_shadow}}", "{{bg_color}}"]
   },
-  "lighting": "soft ambient top-down lighting with 2-3 flat cel-shaded tonal steps, no realistic highlights",
-  "mood": "restrained, grounded, culturally inspired minimalism",
+  "lighting": "very dim ambient top-down lighting with 2-3 flat cel-shaded tonal steps, no realistic highlights, overall dark mood",
+  "mood": "restrained, grounded, culturally inspired minimalism, dark and subdued",
   "background": {
     "type": "scenery",
-    "details": "flat dark {{grid_material}} surface with faint distressed grunge overlay; very subtle {{theme_name}} motifs ({{motifs_short}}) embossed at extremely low opacity; no grid lines, no high-contrast marks"
+    "details": "flat very dark {{grid_material}} surface with faint distressed grunge overlay; very subtle {{theme_name}} motifs ({{motifs_short}}) embossed at extremely low opacity; absolutely no grid lines, no frame lines, no border lines, no rectangular outlines of any kind"
   },
-  "composition": "evenly distributed tonal variation across full canvas, no focal points, designed to not draw attention from foreground gameplay",
+  "composition": "seamless edge-to-edge texture with evenly distributed tonal variation across full canvas, no focal points, no framing elements, designed to not draw attention from foreground gameplay",
   "camera": {
     "angle": "top-down orthographic",
     "distance": "flat view",
@@ -44,12 +44,14 @@
     "minimal surface noise"
   ],
   "details": [
-    "fills entire canvas edge-to-edge with no empty space",
+    "fills entire canvas edge-to-edge as a seamless continuous texture",
     "fully opaque with no transparency",
-    "2-3 tonal shades maximum",
-    "dark base color {{bg_color}} covering 90% of surface",
+    "2-3 tonal shades maximum, all very dark",
+    "very dark base color {{bg_shadow}} covering 95% of surface",
+    "overall brightness well below 30% — should read as near-black with subtle texture",
     "faint cultural motifs only — must not interfere with gameplay readability",
-    "no grid lines, no text, no logos, no UI elements"
+    "absolutely zero border lines, frame lines, rectangular outlines, or edge decorations",
+    "the texture must look the same at all edges — no visible framing whatsoever"
   ],
   "effects": [
     "very subtle grain overlay",
@@ -62,9 +64,16 @@
     "{{theme_keyword_2}}",
     "{{theme_keyword_3}}"
   ],
-  "usage_notes": "This is a base layer only. Foreground blocks use brighter, higher-contrast colors. Do not increase texture contrast. Maintain flat vector readability. Avoid photorealistic rendering or 3D lighting.",
+  "usage_notes": "This is a base layer only. Foreground blocks use brighter, higher-contrast colors. Do not increase texture contrast. Maintain flat vector readability. Avoid photorealistic rendering or 3D lighting. The image must be a seamless dark texture with zero decorative borders.",
   "negative_prompt": [
     "grid lines",
+    "border lines",
+    "frame lines",
+    "rectangular outlines",
+    "decorative borders",
+    "ornamental frames",
+    "edge trim",
+    "gold lines",
     "bright colors",
     "high contrast patterns",
     "photorealistic stone",
@@ -72,7 +81,6 @@
     "text",
     "logos",
     "symbols at full opacity",
-    "decorative borders",
     "transparency",
     "white background"
   ]

@@ -76,9 +76,9 @@ function buildGridBgSubstitutionMap(theme: ThemeDefinition): Record<string, stri
   return {
     theme_name: theme.name,
     bg_color: bg,
-    bg_secondary: lightenHex(bg, 0.08),
-    bg_highlight: lightenHex(bg, 0.15),
-    bg_shadow: darkenHex(bg, 0.2),
+    bg_secondary: darkenHex(bg, 0.1),
+    bg_highlight: lightenHex(bg, 0.08),
+    bg_shadow: darkenHex(bg, 0.4),
     grid_material: theme.gridMaterial,
     motifs_short: theme.motifs.split(",").slice(0, 3).join(","),
     inspiration_1: bd.inspirations[0],
