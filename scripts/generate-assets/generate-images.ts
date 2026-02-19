@@ -94,7 +94,6 @@ async function runBlockPipeline(
       height: MASTER_HEIGHT,
     }, false);
 
-    await savePng(masterPath, masterBuffer, false);
     const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
     console.log(`  [block-master]  Done (${elapsed}s). Cropping + tinting...`);
   } catch (error) {
