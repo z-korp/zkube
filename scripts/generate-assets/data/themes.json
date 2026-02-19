@@ -2,14 +2,14 @@
   "theme-1": {
     "name": "Polynesian",
     "icon": "🌊",
-    "description": "Moonlit Polynesian island with luminous tiki carvings, cobalt surf, and silver lunar haze",
-    "mood": "Nocturnal, lunar, mystical",
+    "description": "Moonlit Polynesian coast in deep cobalt tones, silver surf, and quiet lunar haze with restrained tiki presence",
+    "mood": "Nocturnal, lunar, serene",
     "palette": {
-      "bg": "#081329",
-      "accent": "#BFDCFF",
+      "bg": "#041A44",
+      "accent": "#A9D8FF",
       "blocks": ["#E6B166", "#5A341B", "#C7643A", "#7D7A3A"]
     },
-    "motifs": "Tiki masks, moon crescents, tribal tattoo patterns, starlit ocean waves, Polynesian spirals, pearl inlays",
+    "motifs": "Moon crescents, starlit ocean waves, Polynesian spirals, pearl inlays, palm silhouettes",
     "blockMotifs": "Moonlit tiki relief carvings, deep indigo wood grain, pale pearl inlay accents",
     "blockDesigns": [
       "A carved wooden tiki mask face with deep-set eyes and wide grinning mouth, warm brown wood grain texture with tribal tattoo scroll patterns",
@@ -46,8 +46,8 @@
         }
       ]
     },
-    "scene": "Moonlit Polynesian shoreline at deep night, carved tiki totems lit by cold blue moonlight, dark palms swaying, silver foam breaking on black sand, stars over a calm cobalt ocean",
-    "loadingScene": "Close-up of a carved tiki mask under lunar light, indigo shadows with pale blue-white highlights, mist and sea spray drifting across the surface",
+    "scene": "Tranquil Polynesian shoreline at deep night, a single distant tiki statue near the waterline, cobalt moonlight across rolling waves, silver foam on black sand, and a star-rich sky",
+    "loadingScene": "Moonlit coastal detail with cobalt surf, silver spray, and one subtle carved tiki element in the distance; deep indigo shadows and pale blue-white highlights",
     "gridMaterial": "Dark indigo volcanic basalt with faint moon-etched tribal patterns and subtle silver-blue highlights",
     "music": {
       "menu": "A warm Polynesian lo-fi instrumental with soft ukulele fingerpicking over gentle log drum rhythms and ocean wave ambience. Nose flute melody floats through warm island breeze. Around 90 BPM, rhythmic and inviting.",
