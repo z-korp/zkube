@@ -209,10 +209,11 @@
         {
           "material": "warm cream marble"
         },
-        {
+                 {
           "material": "green-grey marble"
         }
-      ]
+      ],
+      "blockPrompt": "A wide 4:1 horizontal Ancient Greek panel, screen-print style on a solid black background. In the exact center: a bold Greek-key meander square medallion — continuous angular spiral forming a compact square frame — painted in mid-grey (#8A8278) with black outlines. The medallion is compact, fitting in the center quarter of the width. Extending directly from the medallion's corners and edges on both sides: bold geometric Greek patterns — thick meander key bands, stepped wave borders, and broad concentric arcs — the patterns physically touch and grow out of the medallion with absolutely zero gap, as if the meander continues outward. Only 2-3 large geometric elements per side, each thick and architectural. Strictly geometric patterns, no figurative symbols (no columns, no faces, no laurels, no olives, no animals). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Aegean Sea coastline at golden hour, white marble temple ruins on a cliff, olive groves descending to azure waters, scattered broken columns, blue sky",
     "loadingScene": "Close-up of a white marble Ionic column capital with fine hairline cracks, warm golden sunlight streaming through, blue sky behind",
@@ -264,10 +265,11 @@
         {
           "material": "gleaming gold lacquered wood"
         },
-        {
+                 {
           "material": "dark pine-green lacquered wood"
         }
-      ]
+      ],
+      "blockPrompt": "A wide 4:1 horizontal Feudal Japanese panel, screen-print style on a solid black background. In the exact center: a bold enso circle — single thick confident brushstroke forming an incomplete circle — painted in mid-grey (#8A8278) with black interior. The enso is compact, fitting in the center quarter of the width. Extending directly from the enso's brushstroke endpoints on both sides: bold geometric Japanese patterns — thick parallel horizontal bars, angular zigzag bands, and broad stepped rectangles — the patterns physically touch and grow out of the brush endpoints with absolutely zero gap, as if the same brush continued outward. Only 2-3 large geometric elements per side, each thick and bold. Strictly geometric patterns, no figurative symbols (no cherry blossoms, no kanji, no katana, no torii, no flowers). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Feudal Japanese castle courtyard at twilight, black and red architecture, cherry blossom trees in full bloom, stone lanterns glowing, zen rock garden",
     "loadingScene": "Close-up of a glossy black lacquer surface with crimson kanji brushstrokes, cherry blossom petals drifting down, warm paper lantern light",
@@ -319,10 +321,11 @@
         {
           "material": "polished gold on stone"
         },
-        {
+                 {
           "material": "cinnabar red lacquer"
         }
-      ]
+      ],
+      "blockPrompt": "A wide 4:1 horizontal Imperial Chinese panel, screen-print style on a solid black background. In the exact center: a simplified coiled dragon in circular medallion form — serpentine body curving into a compact disc shape with stylized head and flowing whiskers — painted in mid-grey (#8A8278) with black outlines. The dragon medallion is compact, fitting in the center quarter of the width. Extending directly from the dragon's tail and whiskers on both sides: bold geometric Chinese patterns — thick cloud scroll bands, angular interlocking lattice borders, and broad stepped wave shapes — the patterns physically touch and grow out of the dragon with absolutely zero gap, as if the scrollwork continues from the body. Only 2-3 large geometric elements per side, each thick and flowing. Strictly geometric patterns beyond the centerpiece (no phoenixes, no calligraphy, no flowers, no pagodas). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Imperial Chinese palace at night, jade-green rooftops curving skyward, golden silk lanterns lining a marble bridge over misty lotus ponds, dragon statues, moonlit pagodas",
     "loadingScene": "Close-up of a carved jade dragon head with golden eyes gleaming, mystical mist swirling around it, emerald green luminosity from within",
@@ -374,10 +377,11 @@
         {
           "material": "burnished gold metal tile"
         },
-        {
+                 {
           "material": "turquoise-teal glazed ceramic tile"
         }
-      ]
+      ],
+      "blockPrompt": "A wide 4:1 horizontal Ancient Persian panel, screen-print style on a solid black background. In the exact center: a bold eight-pointed Islamic geometric star — precise interlocking lines forming a radiant star pattern — painted in mid-grey (#8A8278) with black outlines. The star is compact, fitting in the center quarter of the width. Extending directly from the star's outer points on both sides: bold geometric Persian patterns — thick arabesque interlocking bands, angular tessellation borders, and broad diamond lattice shapes — the patterns physically touch and grow out of the star points with absolutely zero gap, as if the tessellation continues outward. Only 2-3 large geometric elements per side, each thick and symmetrical. Strictly geometric patterns, no figurative symbols (no lions, no peacocks, no flowers, no cypress trees). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Persian palace courtyard at night, blue tile domes and minarets glowing under moonlight, reflecting pools mirroring the stars, golden lamplight, cypress gardens",
     "loadingScene": "Close-up of an intricate Persian blue geometric tile mosaic wall, golden grout lines catching warm lamplight, luminous symmetrical glow",
@@ -429,10 +433,11 @@
         {
           "material": "dark emerald-green stone"
         },
-        {
+                 {
           "material": "khaki-gold sandstone"
         }
-      ]
+      ],
+      "blockPrompt": "A wide 4:1 horizontal Mayan panel, screen-print style on a solid black background. In the exact center: a simplified Mayan calendar sun disc — circular face with radiating segments and central dot — painted in mid-grey (#8A8278) with black outlines. The sun disc is compact, fitting in the center quarter of the width. Extending directly from the disc's outer segments on both sides: bold geometric Mayan patterns — thick stepped pyramid zigzags, angular T-shaped bands, and broad concentric rectangular frames — the patterns physically touch and grow out of the calendar segments with absolutely zero gap, as if the stone carving continues outward. Only 2-3 large geometric elements per side, each thick and heavy. Strictly geometric patterns, no figurative symbols (no serpents, no jaguars, no skulls, no birds, no glyphs). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Deep jungle at dawn, massive stepped Mayan pyramid rising through the canopy, moss-covered stone ruins scattered among giant trees, mist hanging in the air, filtered green light",
     "loadingScene": "Close-up of a moss-covered carved stone wall with Mayan calendar glyphs, jungle vines creeping over the surface, filtered green light through the canopy",
@@ -484,10 +489,11 @@
         {
           "material": "dark saddle-brown adobe"
         },
-        {
+                 {
           "material": "terra cotta red clay"
         }
-      ]
+      ],
+      "blockPrompt": "A wide 4:1 horizontal Native American Pueblo panel, screen-print style on a solid black background. In the exact center: a simplified native totem pole face — stacked geometric face with round eyes, broad nose, and angular mouth, compact and vertical — painted in mid-grey (#8A8278) with black outlines. The totem is compact, fitting in the center quarter of the width. Extending directly from the totem's sides on both sides: bold geometric Pueblo patterns — thick stepped border bands, angular zigzag lines, and broad diamond shapes — the patterns physically touch and grow out of the totem with absolutely zero gap, as if the painted pottery design continues outward. Only 2-3 large geometric elements per side, each thick and earthy. Strictly geometric patterns beyond the centerpiece (no feathers, no eagles, no animals, no arrows). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Desert mesa at sunset, multi-story adobe pueblo settlement carved into red rock cliffs, turquoise sky fading to orange, vast canyon landscape, scattered sage brush and juniper",
     "loadingScene": "Close-up of an adobe wall surface with turquoise stone inlays set into geometric painted patterns, warm golden desert light illuminating the texture",
@@ -539,10 +545,11 @@
         {
           "material": "cool blue-grey granite"
         },
-        {
+                 {
           "material": "grey-green stone"
         }
-      ]
+      ],
+      "blockPrompt": "A wide 4:1 horizontal Inca panel, screen-print style on a solid black background. In the exact center: a simplified Inti sun-god disc — radiant circular face with short emanating ray beams all around — painted in mid-grey (#8A8278) with black outlines. The sun disc is compact, fitting in the center quarter of the width. Extending directly from the sun's ray tips on both sides: bold geometric Inca patterns — thick interlocking polygonal bands, angular stepped terrace borders, and broad diamond lattice shapes — the patterns physically touch and grow out of the ray endpoints with absolutely zero gap, as if the stonework continues outward. Only 2-3 large geometric elements per side, each thick and monumental. Strictly geometric patterns, no figurative symbols (no condors, no llamas, no rope knots, no faces). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Mountain citadel at dawn inspired by Machu Picchu, massive interlocking stone walls, terraced hillsides descending into cloud forest, condors soaring over Andes peaks, golden sunrise",
     "loadingScene": "Close-up of perfectly interlocking polygonal stone wall with a gold Inti sun-god disc embedded in the masonry, morning mist rolling past the stones",
