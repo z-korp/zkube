@@ -11,7 +11,7 @@ export const Loading = () => {
       <div className="absolute inset-0 overflow-hidden z-10">
         <div
           className="absolute inset-0 bg-cover bg-center animate-zoom-in-out"
-          style={{ backgroundImage: `url('${imgAssets.background}')` }}
+          style={{ backgroundImage: `url('${imgAssets.loadingBackground}')` }}
         />
       </div>
       {/* Logo and Enter Button */}
