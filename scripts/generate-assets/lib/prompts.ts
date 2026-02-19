@@ -69,6 +69,54 @@ export function buildBlockPromptFromTemplate(theme: ThemeDefinition, blockIndex:
   return template.replace(/\{\{(\w+)\}\}/g, (_match, key) => vars[key] ?? _match);
 }
 
+function buildCenterpieceSubstitutionMap(theme: ThemeDefinition): Record<string, string> {
+  const bd = theme.blockData;
+  return {
+    theme_name: theme.name,
+    centerpiece_type: bd.centerpiece_type,
+    centerpiece_description: bd.centerpiece_description,
+    centerpiece_expression: bd.centerpiece_expression,
+    inspiration_1: bd.inspirations[0],
+    theme_keyword_1: bd.themeKeywords[0],
+    theme_keyword_2: bd.themeKeywords[1],
+    theme_keyword_3: bd.themeKeywords[2],
+  };
+}
+
+export function buildCenterpiecePromptFromTemplate(theme: ThemeDefinition): string {
+  const template = loadTemplate("centerpiece");
+  const vars = buildCenterpieceSubstitutionMap(theme);
+  return template.replace(/\{\{(\w+)\}\}/g, (_match, key) => vars[key] ?? _match);
+}
+
+function buildBlockBgSubstitutionMap(theme: ThemeDefinition, blockIndex: number, blockWidth: number): Record<string, string> {
+  const bd = theme.blockData;
+  const block = bd.blocks[blockIndex];
+  const color = theme.palette.blocks[blockIndex];
+
+  return {
+    theme_name: theme.name,
+    bg_color: theme.palette.bg,
+    material: block.material ?? bd.material,
+    primary_color: color,
+    secondary_color: darkenHex(color, 0.15),
+    highlight_color: lightenHex(color, 0.15),
+    shadow_color: darkenHex(color, 0.35),
+    inspiration_1: bd.inspirations[0],
+    theme_keyword_1: bd.themeKeywords[0],
+    theme_keyword_2: bd.themeKeywords[1],
+    theme_keyword_3: bd.themeKeywords[2],
+    block_width: String(blockWidth),
+  };
+}
+
+export function buildBlockBgPromptFromTemplate(theme: ThemeDefinition, blockIndex: number, blockWidth: number): string {
+  const templateName = blockWidth === 1 ? "block-bg-1" : "block-bg-multi";
+  const template = loadTemplate(templateName);
+  const vars = buildBlockBgSubstitutionMap(theme, blockIndex, blockWidth);
+  return template.replace(/\{\{(\w+)\}\}/g, (_match, key) => vars[key] ?? _match);
+}
+
 function buildGridBgSubstitutionMap(theme: ThemeDefinition): Record<string, string> {
   const bd = theme.blockData;
   const bg = theme.palette.bg;

@@ -1,0 +1,78 @@
+{
+  "style_name": "{{theme_name}} Decorative Block Surface ({{block_width}} cells)",
+  "inspiration": [
+    "Bold vector game tile backgrounds",
+    "{{inspiration_1}}",
+    "Flat cel-shaded surface textures"
+  ],
+  "scene": "A solid horizontal rectangular {{material}} surface spanning {{block_width}} cells wide by 1 cell tall, with sharp 90-degree corners filling the entire canvas edge-to-edge. The surface is covered with continuous decorative {{theme_name}}-themed relief patterns. There is absolutely NO central symbol, icon, or focal emblem — only continuous surface decoration reading as one cohesive horizontal piece.",
+  "subjects": [],
+  "style": "flat vector, bold cel-shaded, high-contrast graphic style",
+  "color_palette": {
+    "primary": "{{primary_color}}",
+    "secondary": "{{secondary_color}}",
+    "highlight": "{{highlight_color}}",
+    "shadow": "{{shadow_color}}",
+    "background_gradient": ["{{primary_color}}", "{{bg_color}}"]
+  },
+  "lighting": "simple two-tone cel shading with highlight on upper-left and shadow on lower-right",
+  "mood": "bold, textured, game-ready surface",
+  "background": {
+    "type": "scenery",
+    "details": "NO background layer. The solid {{material}} block surface occupies 100% of the canvas."
+  },
+  "composition": "evenly distributed decorative patterns across the entire horizontal surface with NO focal point, NO central element — continuous ornamental texture reading as one unified piece, not {{block_width}} separate tiles",
+  "camera": {
+    "angle": "front-facing orthographic",
+    "distance": "icon view",
+    "lens": "flat projection",
+    "focus": "sharp graphic edges"
+  },
+  "medium": "digital vector-style illustration with minimal texture",
+  "textures": [
+    "subtle flat {{material}} tone",
+    "decorative relief patterns",
+    "no realistic cracks or noise"
+  ],
+  "details": [
+    "the block fills 100% of the canvas — sharp corners, no rounded edges, no gaps",
+    "surface covered with continuous {{theme_name}} decorative patterns ({{theme_keyword_1}}, {{theme_keyword_2}})",
+    "absolutely NO central symbol, icon, emblem, or focal element",
+    "the decoration is distributed evenly like wallpaper or textile",
+    "must read as ONE cohesive horizontal piece, not {{block_width}} repeated tiles",
+    "outermost 8-10% of surface darkens using the base {{material}} tone",
+    "fully opaque, no transparency",
+    "limited to 2-3 tonal shades of {{primary_color}} for clarity"
+  ],
+  "effects": [
+    "surface-integrated vignette using multiply shading of {{material}} color",
+    "clean vector edges",
+    "continuous pattern flow across full width"
+  ],
+  "themes": [
+    "{{theme_name}}",
+    "{{theme_keyword_1}}",
+    "{{theme_keyword_2}}",
+    "{{theme_keyword_3}}"
+  ],
+  "usage_notes": "This is a BACKGROUND SURFACE ONLY. A separate centerpiece symbol will be composited on top programmatically. The surface must have NO central focal element. The design must NOT look like {{block_width}} identical tiles side by side.",
+  "negative_prompt": [
+    "central symbol",
+    "central icon",
+    "focal emblem",
+    "centered motif",
+    "single dominant element",
+    "{{block_width}} separate tiles",
+    "repeated identical pattern",
+    "white background",
+    "black background",
+    "transparent background",
+    "rounded corners",
+    "floating tile",
+    "canvas margin",
+    "photorealistic stone",
+    "3D render lighting",
+    "text",
+    "logos"
+  ]
+}

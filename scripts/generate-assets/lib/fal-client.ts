@@ -5,6 +5,7 @@ import sharp from "sharp";
 import { fal } from "@fal-ai/client";
 import {
   IMAGE_MODEL,
+  BIREFNET_MODEL,
   MAX_RETRIES,
   RETRY_BACKOFF_MS,
   SFX_MODEL,
@@ -187,6 +188,122 @@ export async function generateSfx(job: SfxJob): Promise<Buffer> {
 
   throw new Error("Failed to generate SFX after retries.");
 }
+
+/* ------------------------------------------------------------------ */
+/*  BiRefNet background removal                                       */
+/* ------------------------------------------------------------------ */
+
+export async function removeBackground(imageBuffer: Buffer): Promise<Buffer> {
+  // Upload raw image to fal storage so BiRefNet can access it
+  const blob = new Blob([imageBuffer], { type: "image/png" });
+  const imageUrl = await fal.storage.upload(blob);
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    try {
+      await waitForRequestSlot();
+
+      const response = await fal.subscribe(BIREFNET_MODEL as string, {
+        input: {
+          image_url: imageUrl,
+          model: "General Use (Heavy)",
+          operating_resolution: "1024x1024",
+          output_format: "png",
+          refine_foreground: true,
+        },
+      });
+
+      const resultUrl = extractImageUrl(response);
+      const download = await fetch(resultUrl);
+      if (!download.ok) {
+        throw new Error(`Failed to download BiRefNet result (${download.status})`);
+      }
+
+      return Buffer.from(await download.arrayBuffer());
+    } catch (error) {
+      if (isRetryableError(error) && attempt < MAX_RETRIES) {
+        const backoffMs = RETRY_BACKOFF_MS[attempt] ?? RETRY_BACKOFF_MS[RETRY_BACKOFF_MS.length - 1];
+        console.warn(`   ↻ BiRefNet retryable error. Retrying in ${Math.round(backoffMs / 1000)}s...`);
+        await sleep(backoffMs);
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw new Error("Failed to remove background after retries.");
+}
+
+/* ------------------------------------------------------------------ */
+/*  Image tinting + compositing (sharp)                               */
+/* ------------------------------------------------------------------ */
+
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const h = hex.replace("#", "");
+  return {
+    r: Number.parseInt(h.substring(0, 2), 16),
+    g: Number.parseInt(h.substring(2, 4), 16),
+    b: Number.parseInt(h.substring(4, 6), 16),
+  };
+}
+
+/**
+ * Tint a transparent PNG to a target color.
+ * Maps luminance → hue: white fill becomes the target color,
+ * dark outlines become a dark shade of the target color.
+ * Alpha channel is preserved.
+ */
+export async function tintImage(imageBuffer: Buffer, hexColor: string): Promise<Buffer> {
+  const { r, g, b } = hexToRgb(hexColor);
+  return sharp(imageBuffer)
+    .ensureAlpha()
+    .tint({ r, g, b })
+    .png()
+    .toBuffer();
+}
+
+/**
+ * Composite a tinted centerpiece onto a block background.
+ * The centerpiece is resized to `scale` fraction of the block height
+ * and centered horizontally and vertically.
+ */
+export async function compositeBlock(
+  bgBuffer: Buffer,
+  centerpieceBuffer: Buffer,
+  scale: number,
+): Promise<Buffer> {
+  const bgMeta = await sharp(bgBuffer).metadata();
+  const bgWidth = bgMeta.width!;
+  const bgHeight = bgMeta.height!;
+
+  // Resize centerpiece to fit within the block
+  const targetHeight = Math.round(bgHeight * scale);
+  const resizedCenterpiece = await sharp(centerpieceBuffer)
+    .resize({ height: targetHeight, fit: "inside" })
+    .toBuffer();
+
+  const cpMeta = await sharp(resizedCenterpiece).metadata();
+  const cpWidth = cpMeta.width!;
+  const cpHeight = cpMeta.height!;
+
+  // Center the overlay
+  const left = Math.round((bgWidth - cpWidth) / 2);
+  const top = Math.round((bgHeight - cpHeight) / 2);
+
+  return sharp(bgBuffer)
+    .ensureAlpha()
+    .composite([{
+      input: resizedCenterpiece,
+      left,
+      top,
+    }])
+    .png()
+    .toBuffer();
+}
+
+/* ------------------------------------------------------------------ */
+/*  nukeWhite post-processing                                         */
+/* ------------------------------------------------------------------ */
 
 async function nukeWhite(imageBuffer: Buffer, threshold = 240): Promise<Buffer> {
   const image = sharp(imageBuffer).ensureAlpha();

@@ -3,6 +3,7 @@ import path from "node:path";
 import type { LimitRunner, PLimitFactory } from "./types";
 
 export const IMAGE_MODEL = "fal-ai/flux-2-pro";
+export const BIREFNET_MODEL = "fal-ai/birefnet/v2";
 export const SFX_MODEL = "fal-ai/elevenlabs/sound-effects/v2";
 export const CONCURRENCY = 2;
 export const REQUEST_DELAY_MS = 3_000;

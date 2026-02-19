@@ -1,0 +1,75 @@
+{
+  "style_name": "{{theme_name}} Decorative Block Surface (square)",
+  "inspiration": [
+    "Bold vector game tile backgrounds",
+    "{{inspiration_1}}",
+    "Flat cel-shaded surface textures"
+  ],
+  "scene": "A solid square {{material}} surface with sharp 90-degree corners filling the entire canvas edge-to-edge. The surface is covered with decorative {{theme_name}}-themed relief patterns and texture. There is absolutely NO central symbol, icon, or focal emblem — only continuous surface decoration.",
+  "subjects": [],
+  "style": "flat vector, bold cel-shaded, high-contrast graphic style",
+  "color_palette": {
+    "primary": "{{primary_color}}",
+    "secondary": "{{secondary_color}}",
+    "highlight": "{{highlight_color}}",
+    "shadow": "{{shadow_color}}",
+    "background_gradient": ["{{primary_color}}", "{{bg_color}}"]
+  },
+  "lighting": "simple two-tone cel shading with highlight on upper-left and shadow on lower-right",
+  "mood": "bold, textured, game-ready surface",
+  "background": {
+    "type": "scenery",
+    "details": "NO background layer. The solid {{material}} block surface occupies 100% of the canvas."
+  },
+  "composition": "evenly distributed decorative patterns across the entire surface with NO focal point, NO central element, NO dominant symbol — just continuous ornamental texture",
+  "camera": {
+    "angle": "front-facing orthographic",
+    "distance": "icon view",
+    "lens": "flat projection",
+    "focus": "sharp graphic edges"
+  },
+  "medium": "digital vector-style illustration with minimal texture",
+  "textures": [
+    "subtle flat {{material}} tone",
+    "decorative relief patterns",
+    "no realistic cracks or noise"
+  ],
+  "details": [
+    "the block fills 100% of the canvas — sharp corners, no rounded edges, no gaps",
+    "surface covered with continuous {{theme_name}} decorative patterns ({{theme_keyword_1}}, {{theme_keyword_2}})",
+    "absolutely NO central symbol, icon, emblem, or focal element",
+    "the decoration is distributed evenly — like wallpaper or textile, not centered around anything",
+    "outermost 8-10% of surface darkens using the base {{material}} tone",
+    "fully opaque, no transparency",
+    "limited to 2-3 tonal shades of {{primary_color}} for clarity"
+  ],
+  "effects": [
+    "surface-integrated vignette using multiply shading of {{material}} color",
+    "clean vector edges",
+    "continuous pattern flow"
+  ],
+  "themes": [
+    "{{theme_name}}",
+    "{{theme_keyword_1}}",
+    "{{theme_keyword_2}}",
+    "{{theme_keyword_3}}"
+  ],
+  "usage_notes": "This is a BACKGROUND SURFACE ONLY. A separate centerpiece symbol will be composited on top programmatically. The surface must have NO central focal element — only evenly distributed decorative texture.",
+  "negative_prompt": [
+    "central symbol",
+    "central icon",
+    "focal emblem",
+    "centered motif",
+    "single dominant element",
+    "white background",
+    "black background",
+    "transparent background",
+    "rounded corners",
+    "floating tile",
+    "canvas margin",
+    "photorealistic stone",
+    "3D render lighting",
+    "text",
+    "logos"
+  ]
+}

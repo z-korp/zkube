@@ -1,0 +1,62 @@
+{
+  "scene": "A single bold {{centerpiece_type}} rendered as a clean flat vector emblem, perfectly centered on a solid pure black background. The symbol uses white and light grey fill tones with dark grey to black outlines. Square canvas.",
+  "subjects": [
+    {
+      "type": "{{centerpiece_type}}",
+      "description": "{{centerpiece_description}}",
+      "position": "dead center of canvas",
+      "pose": "flat front-facing emblem",
+      "size": "fills approximately 70-75% of the canvas",
+      "expression": "{{centerpiece_expression}}"
+    }
+  ],
+  "style": "flat vector, bold cel-shaded, 2-3 tonal steps, thick outlines, graphic game icon",
+  "color_palette": {
+    "fill": "white (#FFFFFF) and light grey (#C0C0C0)",
+    "outlines": "dark grey (#333333) to black (#000000)",
+    "background": "pure black (#000000)"
+  },
+  "lighting": "flat even lighting, no directional shadows, pure silhouette-style rendering",
+  "mood": "bold, iconic, game-ready",
+  "background": {
+    "type": "solid color",
+    "details": "solid pure black (#000000) filling 100% of the canvas behind the symbol"
+  },
+  "composition": "single centered emblem with clear separation from the black background, generous padding on all sides",
+  "camera": {
+    "angle": "front-facing orthographic",
+    "distance": "icon view",
+    "lens": "flat projection",
+    "focus": "sharp vector edges"
+  },
+  "medium": "digital vector illustration, no texture, no grain",
+  "details": [
+    "the symbol uses ONLY white, light grey, and dark grey to black tones — no color",
+    "thick dark outlines (3-4px equivalent) around all shapes",
+    "flat cel-shaded fill with 2-3 tonal steps of grey",
+    "clean vector edges with no anti-aliasing noise",
+    "the background is solid pure black with zero texture or variation",
+    "clear high-contrast separation between symbol and background for clean extraction",
+    "inspired by {{inspiration_1}}"
+  ],
+  "themes": [
+    "{{theme_name}}",
+    "{{theme_keyword_1}}",
+    "{{theme_keyword_2}}",
+    "{{theme_keyword_3}}"
+  ],
+  "negative_prompt": [
+    "colored fill",
+    "textured background",
+    "gradient background",
+    "multiple symbols",
+    "photorealistic",
+    "3D rendering",
+    "soft edges",
+    "blur",
+    "noise",
+    "grain",
+    "text",
+    "logos"
+  ]
+}

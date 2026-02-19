@@ -2,9 +2,11 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   buildBackgroundPrompt,
+  buildBlockBgPromptFromTemplate,
   buildBlockPromptFromTemplate,
   buildBonusIconPrompt,
   buildButtonPrompt,
+  buildCenterpiecePromptFromTemplate,
   buildGridBackgroundPrompt,
   buildGridFramePrompt,
   buildLoadingBackgroundPrompt,
@@ -17,7 +19,7 @@ import {
   buildWhiteIconPrompt,
 } from "./lib/prompts";
 import { CONCURRENCY, IMAGE_MODEL, COMMON_ROOT, ASSETS_ROOT, formatError, loadPLimitFactory, relativePath } from "./lib/env";
-import { fal, generateImage, savePng } from "./lib/fal-client";
+import { fal, generateImage, removeBackground, tintImage, compositeBlock, savePng, resolveImageSize } from "./lib/fal-client";
 import { GLOBAL_ASSETS, PER_THEME_ASSETS, type AssetCategory, type AssetJob, type CliOptions, type GlobalAsset, type GlobalAssetsData, type PerThemeAsset, type ThemeDefinition } from "./lib/types";
 
 const DATA_DIR = path.join(path.dirname(new URL(import.meta.url).pathname), "data");
@@ -37,47 +39,131 @@ function getTargetDimensions(filename: string, fallback: { width: number; height
   return globalAssets.targetDimensions[filename] ?? fallback;
 }
 
+const CENTERPIECE_SIZE = 768;
+const CENTERPIECE_OVERLAY_SCALE = 0.70;
+
+async function runCompositeBlockPipeline(
+  themeId: string,
+  theme: ThemeDefinition,
+  options: CliOptions,
+): Promise<{ success: number; failures: number }> {
+  const themeRoot = path.join(ASSETS_ROOT, themeId);
+  fs.mkdirSync(themeRoot, { recursive: true });
+  const centerpiecePath = path.join(themeRoot, "centerpiece.png");
+
+  const requestedBlocks = [0, 1, 2, 3].filter((i) => {
+    if (!options.only) return true;
+    const fn = `block-${i + 1}.png`;
+    return options.only.some((n) => (n.endsWith(".png") ? n : `${n}.png`) === fn);
+  });
+
+  const centerpieceRequested = options.only
+    ? options.only.some((n) => n === "centerpiece" || n === "centerpiece.png")
+    : true;
+
+  const needsCenterpiece = centerpieceRequested || requestedBlocks.length > 0;
+
+  if (!needsCenterpiece && !centerpieceRequested) {
+    return { success: 0, failures: 0 };
+  }
+
+  let success = 0;
+  let failures = 0;
+
+  // Step 1: Generate + extract centerpiece
+  const centerpieceExists = fs.existsSync(centerpiecePath);
+  let centerpieceBuffer: Buffer | null = null;
+
+  if (needsCenterpiece && (!centerpieceExists || centerpieceRequested)) {
+    const startedAt = Date.now();
+    console.log(`  [centerpiece]  Generating with Flux...`);
+    try {
+      const prompt = buildCenterpiecePromptFromTemplate(theme);
+      const rawBuffer = await generateImage({
+        scope: "per-theme",
+        category: "blocks",
+        themeId,
+        filename: "centerpiece-raw.png",
+        outputPath: path.join(themeRoot, "centerpiece-raw.png"),
+        prompt,
+        width: CENTERPIECE_SIZE,
+        height: CENTERPIECE_SIZE,
+      }, false);
+
+      const elapsed1 = ((Date.now() - startedAt) / 1000).toFixed(1);
+      console.log(`  [centerpiece]  Flux done (${elapsed1}s). Running BiRefNet...`);
+
+      const transparentBuffer = await removeBackground(rawBuffer);
+      const elapsed2 = ((Date.now() - startedAt) / 1000).toFixed(1);
+      console.log(`  [centerpiece]  BiRefNet done (${elapsed2}s total).`);
+
+      await savePng(centerpiecePath, transparentBuffer, false);
+      centerpieceBuffer = transparentBuffer;
+      success += 1;
+    } catch (error) {
+      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+      console.log(`  [centerpiece]  FAILED (${elapsed}s): ${formatError(error)}`);
+      failures += 1;
+      return { success, failures };
+    }
+  } else if (centerpieceExists) {
+    centerpieceBuffer = fs.readFileSync(centerpiecePath);
+  }
+
+  if (!centerpieceBuffer || requestedBlocks.length === 0) {
+    return { success, failures };
+  }
+
+  // Step 2: Generate block backgrounds + composite
+  for (const i of requestedBlocks) {
+    const blockWidth = i + 1;
+    const filename = `block-${blockWidth}.png`;
+    const target = getTargetDimensions(filename, { width: 192, height: 192 });
+    const startedAt = Date.now();
+
+    console.log(`  [${filename}]  Generating background...`);
+    try {
+      const bgPrompt = buildBlockBgPromptFromTemplate(theme, i, blockWidth);
+      const refPaths = blockWidth > 1 ? [path.join(themeRoot, "block-1.png")] : undefined;
+
+      const bgRaw = await generateImage({
+        scope: "per-theme",
+        category: "blocks",
+        themeId,
+        filename: `block-bg-${blockWidth}.png`,
+        outputPath: path.join(themeRoot, `block-bg-${blockWidth}.png`),
+        prompt: bgPrompt,
+        width: target.width,
+        height: target.height,
+        refPaths,
+        stripWhite: true,
+      }, options.includeRefs && blockWidth > 1);
+
+      const elapsed1 = ((Date.now() - startedAt) / 1000).toFixed(1);
+      console.log(`  [${filename}]  Background done (${elapsed1}s). Tinting + compositing...`);
+
+      const tinted = await tintImage(centerpieceBuffer, theme.palette.blocks[i]);
+      const composited = await compositeBlock(bgRaw, tinted, CENTERPIECE_OVERLAY_SCALE);
+
+      await savePng(path.join(themeRoot, filename), composited, true);
+      const elapsed2 = ((Date.now() - startedAt) / 1000).toFixed(1);
+      console.log(`  [${filename}]  Done (${elapsed2}s).`);
+      success += 1;
+    } catch (error) {
+      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+      console.log(`  [${filename}]  FAILED (${elapsed}s): ${formatError(error)}`);
+      failures += 1;
+    }
+  }
+
+  return { success, failures };
+}
+
 function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: AssetCategory): AssetJob[] {
   const themeRoot = path.join(ASSETS_ROOT, themeId);
   const jobs: AssetJob[] = [];
 
-  if (shouldIncludeCategory("blocks", filter)) {
-    for (let i = 0; i < 4; i += 1) {
-      const width = i + 1;
-      const filename = `block-${width}.png`;
-      const target = getTargetDimensions(filename, { width: 192, height: 192 });
-
-      if (width === 1) {
-        jobs.push({
-          scope: "per-theme",
-          category: "blocks",
-          themeId,
-          filename,
-          outputPath: path.join(themeRoot, filename),
-          prompt: buildBlockPromptFromTemplate(theme, i, width),
-          width: target.width,
-          height: target.height,
-          phase: 0,
-          stripWhite: true,
-        });
-      } else {
-        const block1Path = path.join(themeRoot, "block-1.png");
-        jobs.push({
-          scope: "per-theme",
-          category: "blocks",
-          themeId,
-          filename,
-          outputPath: path.join(themeRoot, filename),
-          prompt: buildBlockPromptFromTemplate(theme, i, width),
-          width: target.width,
-          height: target.height,
-          refPaths: [block1Path],
-          phase: 1,
-          stripWhite: true,
-        });
-      }
-    }
-  }
+  // Blocks are handled by runCompositeBlockPipeline, not the generic job system
 
   if (shouldIncludeCategory("background", filter)) {
     jobs.push({
@@ -440,11 +526,21 @@ function outputSummaryPath(options: CliOptions, selectedThemeIds: string[]): str
   return "client-budokan/public/assets/";
 }
 
+function blocksRequestedByFilters(options: CliOptions): boolean {
+  if (options.asset && options.asset !== "blocks") return false;
+  if (options.scope === "global") return false;
+  if (options.only) {
+    const blockNames = ["centerpiece", "block-1", "block-2", "block-3", "block-4"];
+    return options.only.some((n) => blockNames.includes(n.replace(".png", "")));
+  }
+  return true;
+}
+
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
   const { jobs, selectedThemeIds } = buildJobList(options);
 
-  console.log("🎨 zKube Asset Generator");
+  console.log("🎨 zKube Asset Generator (Composite Pipeline)");
   console.log(`Model: ${IMAGE_MODEL}`);
   console.log(`Theme: ${buildHeaderThemeLabel(options, selectedThemeIds)}`);
   console.log(`Scope: ${options.scope}`);
@@ -460,22 +556,27 @@ async function main(): Promise<void> {
   }
   console.log("");
 
-  if (jobs.length === 0) {
+  const wantsBlocks = blocksRequestedByFilters(options) && (options.scope === "per-theme" || options.scope === "all");
+
+  if (jobs.length === 0 && !wantsBlocks) {
     console.log("No assets matched the selected filters.");
     return;
   }
 
-  console.log(`Generating ${jobs.length} assets...`);
-  console.log("");
-
   if (options.dryRun) {
+    if (wantsBlocks) {
+      for (const themeId of selectedThemeIds) {
+        console.log(`[${themeId}]  🧪 dry-run -> composite block pipeline (centerpiece + 4 blocks)`);
+      }
+    }
     jobs.forEach((job, index) => {
       const step = `[${index + 1}/${jobs.length}]`;
       console.log(`${step}  ⏳ ${job.filename}...`);
       console.log(`${step}  🧪 dry-run -> ${relativePath(job.outputPath)}`);
     });
     console.log("");
-    console.log(`✅ Dry run complete! ${jobs.length}/${jobs.length} assets planned.`);
+    const blockCount = wantsBlocks ? selectedThemeIds.length * 5 : 0;
+    console.log(`✅ Dry run complete! ${jobs.length + blockCount} assets planned.`);
     console.log(`Output: ${outputSummaryPath(options, selectedThemeIds)}`);
     return;
   }
@@ -486,68 +587,86 @@ async function main(): Promise<void> {
 
   fal.config({ credentials: process.env.FAL_KEY });
 
-  if (jobs.some((job) => job.category === "buttons")) {
-    console.log("ℹ️  Button -pressed and -disabled variants are intentionally not generated via API.");
-    console.log("");
+  let totalSuccess = 0;
+  let totalFailures = 0;
+
+  if (wantsBlocks) {
+    for (const themeId of selectedThemeIds) {
+      console.log(`\n--- ${themeId} (${themes[themeId].name}) — Composite Block Pipeline ---\n`);
+      const result = await runCompositeBlockPipeline(themeId, themes[themeId], options);
+      totalSuccess += result.success;
+      totalFailures += result.failures;
+    }
   }
 
-  const pLimitFactory = await loadPLimitFactory();
-  const limit = pLimitFactory(CONCURRENCY);
-  const failures: Array<{ job: AssetJob; error: unknown; index: number }> = [];
-  let successCount = 0;
+  if (jobs.length > 0) {
+    if (wantsBlocks) {
+      console.log(`\n--- Generic Assets ---\n`);
+    }
 
-  const phase0Jobs = jobs.filter((j) => (j.phase ?? 0) === 0);
-  const phase1Jobs = jobs.filter((j) => (j.phase ?? 0) === 1);
-  const totalJobs = jobs.length;
-  let globalIndex = 0;
+    if (jobs.some((job) => job.category === "buttons")) {
+      console.log("ℹ️  Button -pressed and -disabled variants are intentionally not generated via API.");
+      console.log("");
+    }
 
-  const runBatch = async (batch: AssetJob[]) => {
-    await Promise.all(
-      batch.map((job) =>
-        limit(async () => {
-          globalIndex += 1;
-          const step = `[${globalIndex}/${totalJobs}]`;
-          const startedAt = Date.now();
-          console.log(`${step}  ⏳ ${job.filename}...`);
+    const pLimitFactory = await loadPLimitFactory();
+    const limit = pLimitFactory(CONCURRENCY);
+    const failures: Array<{ job: AssetJob; error: unknown; index: number }> = [];
 
-          try {
-            const imageBuffer = await generateImage(job, options.includeRefs);
-            await savePng(job.outputPath, imageBuffer, job.stripWhite);
-            const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
-            console.log(`${step}  ✅ ${job.filename} (${elapsed}s)`);
-            successCount += 1;
-          } catch (error) {
-            const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
-            failures.push({ job, error, index: globalIndex - 1 });
-            console.log(`${step}  ❌ ${job.filename} (${elapsed}s)`);
-            console.log(`       ${formatError(error)}`);
-          }
-        }),
-      ),
-    );
-  };
+    const phase0Jobs = jobs.filter((j) => (j.phase ?? 0) === 0);
+    const phase1Jobs = jobs.filter((j) => (j.phase ?? 0) === 1);
+    const totalJobs = jobs.length;
+    let globalIndex = 0;
 
-  if (phase0Jobs.length > 0) {
-    await runBatch(phase0Jobs);
-  }
+    const runBatch = async (batch: AssetJob[]) => {
+      await Promise.all(
+        batch.map((job) =>
+          limit(async () => {
+            globalIndex += 1;
+            const step = `[${globalIndex}/${totalJobs}]`;
+            const startedAt = Date.now();
+            console.log(`${step}  ⏳ ${job.filename}...`);
 
-  if (phase1Jobs.length > 0) {
-    console.log("");
-    console.log(`Phase 2: generating ${phase1Jobs.length} multi-cell blocks (using block-1 as optional reference)...`);
-    console.log("");
-    await runBatch(phase1Jobs);
+            try {
+              const imageBuffer = await generateImage(job, options.includeRefs);
+              await savePng(job.outputPath, imageBuffer, job.stripWhite);
+              const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+              console.log(`${step}  ✅ ${job.filename} (${elapsed}s)`);
+              totalSuccess += 1;
+            } catch (error) {
+              const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+              failures.push({ job, error, index: globalIndex - 1 });
+              console.log(`${step}  ❌ ${job.filename} (${elapsed}s)`);
+              console.log(`       ${formatError(error)}`);
+              totalFailures += 1;
+            }
+          }),
+        ),
+      );
+    };
+
+    if (phase0Jobs.length > 0) {
+      await runBatch(phase0Jobs);
+    }
+
+    if (phase1Jobs.length > 0) {
+      console.log("");
+      await runBatch(phase1Jobs);
+    }
+
+    if (failures.length > 0) {
+      for (const failure of failures) {
+        console.log(`- ${relativePath(failure.job.outputPath)}: ${formatError(failure.error)}`);
+      }
+    }
   }
 
   console.log("");
-
-  if (failures.length === 0) {
-    console.log(`✅ Complete! ${successCount}/${jobs.length} assets generated.`);
+  const totalAssets = totalSuccess + totalFailures;
+  if (totalFailures === 0) {
+    console.log(`✅ Complete! ${totalSuccess}/${totalAssets} assets generated.`);
   } else {
-    console.log(`⚠️ Complete with errors. ${successCount}/${jobs.length} assets generated.`);
-    for (const failure of failures) {
-      const step = `[${failure.index + 1}/${jobs.length}]`;
-      console.log(`- ${step} ${relativePath(failure.job.outputPath)}: ${formatError(failure.error)}`);
-    }
+    console.log(`⚠️ Complete with errors. ${totalSuccess}/${totalAssets} assets generated.`);
     process.exitCode = 1;
   }
 
