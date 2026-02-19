@@ -66,7 +66,7 @@ export interface AssetJob {
   height: number;
   refPaths?: string[];
   phase?: number;
-  removeBg?: boolean;
+
 }
 
 export interface SfxJob {

@@ -1,11 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { fal } from "@fal-ai/client";
-
-const execFileAsync = promisify(execFile);
 import {
   IMAGE_MODEL,
   MAX_RETRIES,
@@ -191,35 +187,9 @@ export async function generateSfx(job: SfxJob): Promise<Buffer> {
   throw new Error("Failed to generate SFX after retries.");
 }
 
-function findRembg(): string {
-  const candidates = [
-    path.join(process.env.HOME ?? "", ".local", "bin", "rembg"),
-    "rembg",
-  ];
-  for (const bin of candidates) {
-    try {
-      fs.accessSync(bin, fs.constants.X_OK);
-      return bin;
-    } catch { /* skip */ }
-  }
-  return "rembg";
-}
-
-let rembgBin: string | undefined;
-
-export async function removeBackground(inputPath: string): Promise<void> {
-  rembgBin ??= findRembg();
-  const tmpPath = `${inputPath}.rembg.png`;
-  await execFileAsync(rembgBin, ["i", inputPath, tmpPath]);
-  fs.renameSync(tmpPath, inputPath);
-}
-
-export async function savePng(outputPath: string, imageBuffer: Buffer, removeBg = false): Promise<void> {
+export async function savePng(outputPath: string, imageBuffer: Buffer): Promise<void> {
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, imageBuffer);
-  if (removeBg) {
-    await removeBackground(outputPath);
-  }
 }
 
 export function saveMp3(mp3Buffer: Buffer, outputPath: string): void {
