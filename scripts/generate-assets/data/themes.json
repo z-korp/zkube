@@ -2,15 +2,15 @@
   "theme-1": {
     "name": "Polynesian",
     "icon": "🌊",
-    "description": "Warm volcanic island with carved tiki totems and tribal tattoo patterns",
-    "mood": "Warm, rhythmic, volcanic",
+    "description": "Moonlit Polynesian island with luminous tiki carvings, cobalt surf, and silver lunar haze",
+    "mood": "Nocturnal, lunar, mystical",
     "palette": {
-      "bg": "#1A0F0A",
-      "accent": "#FF6B35",
+      "bg": "#081329",
+      "accent": "#BFDCFF",
       "blocks": ["#E6B166", "#5A341B", "#C7643A", "#7D7A3A"]
     },
-    "motifs": "Tiki masks, tribal tattoo patterns, volcanic rock, ocean waves, Polynesian spirals",
-    "blockMotifs": "Wooden tiki faces carved in relief, tribal tattoo etchings, lava crack textures",
+    "motifs": "Tiki masks, moon crescents, tribal tattoo patterns, starlit ocean waves, Polynesian spirals, pearl inlays",
+    "blockMotifs": "Moonlit tiki relief carvings, deep indigo wood grain, pale pearl inlay accents",
     "blockDesigns": [
       "A carved wooden tiki mask face with deep-set eyes and wide grinning mouth, warm brown wood grain texture with tribal tattoo scroll patterns",
       "A fierce tiki warrior face with elaborate tribal tattoo etchings across the surface, dark koa wood texture with orange glow highlights",
@@ -46,9 +46,9 @@
         }
       ]
     },
-    "scene": "Volcanic Polynesian island at sunset, carved tiki totems lining a black sand beach, palm trees swaying, glowing lava flows meeting the ocean, dramatic orange sky",
-    "loadingScene": "Close-up of an ancient carved tiki mask with glowing lava cracks, surrounded by fern fronds and volcanic steam rising",
-    "gridMaterial": "Dark volcanic basalt carved with tribal tattoo patterns and lava vein cracks",
+    "scene": "Moonlit Polynesian shoreline at deep night, carved tiki totems lit by cold blue moonlight, dark palms swaying, silver foam breaking on black sand, stars over a calm cobalt ocean",
+    "loadingScene": "Close-up of a carved tiki mask under lunar light, indigo shadows with pale blue-white highlights, mist and sea spray drifting across the surface",
+    "gridMaterial": "Dark indigo volcanic basalt with faint moon-etched tribal patterns and subtle silver-blue highlights",
     "music": {
       "menu": "A warm Polynesian lo-fi instrumental with soft ukulele fingerpicking over gentle log drum rhythms and ocean wave ambience. Nose flute melody floats through warm island breeze. Around 90 BPM, rhythmic and inviting.",
       "gameplay": "An energetic Polynesian war dance instrumental driven by powerful log drum polyrhythms and fast ukulele strumming. Conch shell accents punctuate the rhythm. Around 120 BPM, volcanic and driving."
