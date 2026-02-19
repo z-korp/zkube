@@ -16,7 +16,7 @@
       "interaction": "foundation for colorful gameplay blocks placed above"
     }
   ],
-  "style": "flat vector, bold cel-shaded, 2-3 tonal steps, graphic cartoon game art",
+  "style": "flat vector illustration with bold linework, smooth gradients, and restrained 2-3 step cel shading",
   "color_palette": {
     "primary": "{{bg_color}}",
     "secondary": "{{bg_secondary}}",

@@ -502,9 +502,7 @@ export function getThemeImages(themeId: ThemeId) {
     logo: `${base}/logo.png`,
     background: `${base}/background.png`,
     gridBg: `${base}/grid-bg.png`,
-    gridFrame: `${base}/grid-frame.png`,
     themeIcon: `${base}/theme-icon.png`,
-    map: `${base}/map.png`,
   };
 }
 

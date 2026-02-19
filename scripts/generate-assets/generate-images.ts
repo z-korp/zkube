@@ -6,10 +6,8 @@ import {
   buildBonusIconPrompt,
   buildButtonPrompt,
   buildGridBackgroundPrompt,
-  buildGridFramePrompt,
   buildLoadingBackgroundPrompt,
   buildLogoPrompt,
-  buildMapPrompt,
   buildPanelPrompt,
   buildParticlePrompt,
   buildThemeIconPrompt,
@@ -175,15 +173,6 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       prompt: buildGridBackgroundPrompt(theme),
       ...getTargetDimensions("grid-bg.png", { width: 768, height: 1024 }),
     });
-    jobs.push({
-      scope: "per-theme",
-      category: "grid",
-      themeId,
-      filename: "grid-frame.png",
-      outputPath: path.join(themeRoot, "grid-frame.png"),
-      prompt: buildGridFramePrompt(theme),
-      ...getTargetDimensions("grid-frame.png", { width: 1152, height: 1440 }),
-    });
   }
 
   if (shouldIncludeCategory("theme-icon", filter)) {
@@ -195,18 +184,6 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       outputPath: path.join(themeRoot, "theme-icon.png"),
       prompt: buildThemeIconPrompt(theme),
       ...getTargetDimensions("theme-icon.png", { width: 128, height: 128 }),
-    });
-  }
-
-  if (shouldIncludeCategory("map", filter)) {
-    jobs.push({
-      scope: "per-theme",
-      category: "map",
-      themeId,
-      filename: "map.png",
-      outputPath: path.join(themeRoot, "map.png"),
-      prompt: buildMapPrompt(theme),
-      ...getTargetDimensions("map.png", { width: 1080, height: 1920 }),
     });
   }
 

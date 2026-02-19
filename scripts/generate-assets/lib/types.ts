@@ -5,7 +5,6 @@ export const PER_THEME_ASSETS = [
   "logo",
   "grid",
   "theme-icon",
-  "map",
 ] as const;
 
 export const GLOBAL_ASSETS = ["buttons", "shared-icons", "catalog-icons", "bonus-icons", "ui-chrome", "panels", "particles"] as const;

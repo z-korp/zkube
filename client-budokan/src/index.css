@@ -88,7 +88,7 @@
     --theme-grid-cell-alt: #6d4c41;
     --theme-grid-lines: #3e2723;
     --theme-grid-bg-image: url("/assets/theme-1/grid-bg.png");
-    --theme-grid-frame-image: url("/assets/theme-1/grid-frame.png");
+    --theme-grid-frame-image: none;
     --theme-frame-border: #b8860b;
     --theme-hud-bar: #1a0e08;
     --theme-hud-bar-border: #5d4037;
@@ -121,7 +121,7 @@
     --theme-grid-cell-alt: #261810;
     --theme-grid-lines: #8b6914;
     --theme-grid-bg-image: url("/assets/theme-2/grid-bg.png");
-    --theme-grid-frame-image: url("/assets/theme-2/grid-frame.png");
+    --theme-grid-frame-image: none;
     --theme-frame-border: #d4af37;
     --theme-hud-bar: #140c06;
     --theme-hud-bar-border: #8b6914;
@@ -154,7 +154,7 @@
     --theme-grid-cell-alt: #111130;
     --theme-grid-lines: #ff00ff;
     --theme-grid-bg-image: url("/assets/theme-3/grid-bg.png");
-    --theme-grid-frame-image: url("/assets/theme-3/grid-frame.png");
+    --theme-grid-frame-image: none;
     --theme-frame-border: #ff00ff;
     --theme-hud-bar: #08081a;
     --theme-hud-bar-border: #bf00ff;
@@ -187,7 +187,7 @@
     --theme-grid-cell-alt: #103555;
     --theme-grid-lines: #1a6e8e;
     --theme-grid-bg-image: url("/assets/theme-4/grid-bg.png");
-    --theme-grid-frame-image: url("/assets/theme-4/grid-frame.png");
+    --theme-grid-frame-image: none;
     --theme-frame-border: #20b2aa;
     --theme-hud-bar: #081e35;
     --theme-hud-bar-border: #1a6e8e;
@@ -220,7 +220,7 @@
     --theme-grid-cell-alt: #254a24;
     --theme-grid-lines: #3d6b35;
     --theme-grid-bg-image: url("/assets/theme-5/grid-bg.png");
-    --theme-grid-frame-image: url("/assets/theme-5/grid-frame.png");
+    --theme-grid-frame-image: none;
     --theme-frame-border: #8b7355;
     --theme-hud-bar: #142814;
     --theme-hud-bar-border: #3d6b35;
@@ -253,7 +253,7 @@
     --theme-grid-cell-alt: #aa8a64;
     --theme-grid-lines: #8b6914;
     --theme-grid-bg-image: url("/assets/theme-6/grid-bg.png");
-    --theme-grid-frame-image: url("/assets/theme-6/grid-frame.png");
+    --theme-grid-frame-image: none;
     --theme-frame-border: #cd853f;
     --theme-hud-bar: #5c3d1e;
     --theme-hud-bar-border: #8b6914;
@@ -286,7 +286,7 @@
     --theme-grid-cell-alt: #b5d0de;
     --theme-grid-lines: #6090a8;
     --theme-grid-bg-image: url("/assets/theme-7/grid-bg.png");
-    --theme-grid-frame-image: url("/assets/theme-7/grid-frame.png");
+    --theme-grid-frame-image: none;
     --theme-frame-border: #7eb8d0;
     --theme-hud-bar: #3a6078;
     --theme-hud-bar-border: #6090a8;
@@ -319,7 +319,7 @@
     --theme-grid-cell-alt: #251414;
     --theme-grid-lines: #8b2500;
     --theme-grid-bg-image: url("/assets/theme-8/grid-bg.png");
-    --theme-grid-frame-image: url("/assets/theme-8/grid-frame.png");
+    --theme-grid-frame-image: none;
     --theme-frame-border: #ff4500;
     --theme-hud-bar: #140808;
     --theme-hud-bar-border: #8b2500;
@@ -352,7 +352,7 @@
     --theme-grid-cell-alt: #f5d8e5;
     --theme-grid-lines: #dda0c8;
     --theme-grid-bg-image: url("/assets/theme-9/grid-bg.png");
-    --theme-grid-frame-image: url("/assets/theme-9/grid-frame.png");
+    --theme-grid-frame-image: none;
     --theme-frame-border: #e88ebf;
     --theme-hud-bar: #c06090;
     --theme-hud-bar-border: #dda0c8;
@@ -385,7 +385,7 @@
     --theme-grid-cell-alt: #382c20;
     --theme-grid-lines: #8b6f47;
     --theme-grid-bg-image: url("/assets/theme-10/grid-bg.png");
-    --theme-grid-frame-image: url("/assets/theme-10/grid-frame.png");
+    --theme-grid-frame-image: none;
     --theme-frame-border: #b8860b;
     --theme-hud-bar: #1e1610;
     --theme-hud-bar-border: #8b6f47;

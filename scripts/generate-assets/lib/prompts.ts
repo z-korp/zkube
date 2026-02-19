@@ -186,55 +186,99 @@ export function buildBlockMultiPrompt(theme: ThemeDefinition, color: string, blo
 
 export function buildBackgroundPrompt(theme: ThemeDefinition): string {
   return `
-Generate a full-bleed background image for a mobile puzzle game. SQUARE format (1:1).
-This is NOT a framed picture. The scene fills the ENTIRE canvas from edge to edge like a photograph taken inside the world.
-Theme: ${theme.name} — ${theme.description}.
-Scene: ${theme.scene}
-Style: Rich digital painting. Atmospheric, immersive, painterly. Deep colors and dramatic lighting.
-Composition: The viewer is INSIDE the scene looking around. Layered depth — foreground silhouettes at edges, main scene in the middle, distant background fading into atmosphere.
-Important content stays in the center 60%. Edges are atmospheric filler (sky, ground, foliage).
-Mood: ${theme.mood}. Dominant colors: ${theme.palette.bg} to ${theme.palette.accent}.
-The image must be a seamless full-bleed scene with NO borders, NO frames, NO vignettes, NO picture-in-picture effect.
-Opaque fill. No text, no UI, no people, no logos.
+{
+  "style_name": "${theme.name} Immersive Theme Background",
+  "inspiration": [
+    "${theme.blockData.inspirations[0]}",
+    "${theme.blockData.inspirations[1]}",
+    "Art Deco poster composition",
+    "Modern vector landscape illustration"
+  ],
+  "scene": "${theme.scene}",
+  "style": "flat vector illustration with bold linework, smooth gradients, and high-contrast cel shading",
+  "color_palette": {
+    "primary": "${theme.palette.bg}",
+    "secondary": "${theme.palette.accent}",
+    "highlight": "${lightenHex(theme.palette.accent, 0.25)}",
+    "shadow": "${darkenHex(theme.palette.bg, 0.35)}",
+    "background_gradient": ["${darkenHex(theme.palette.bg, 0.25)}", "${theme.palette.bg}"]
+  },
+  "lighting": "cinematic environmental lighting with clear highlight and shadow separation",
+  "mood": "${theme.mood}",
+  "background": {
+    "type": "scenery",
+    "details": "full-bleed world scene; no frame, no border, no vignette"
+  },
+  "composition": "wide immersive composition with strong central readability and decorative edges",
+  "camera": {
+    "angle": "eye-level",
+    "distance": "wide shot",
+    "lens": "35mm",
+    "focus": "sharp focus across frame"
+  },
+  "medium": "digital vector art",
+  "textures": "clean edges, smooth gradient volumes, subtle print-like grain",
+  "effects": "subtle atmospheric depth and selective glow accents",
+  "themes": ["${theme.name}", "${theme.blockData.themeKeywords[0]}", "${theme.blockData.themeKeywords[1]}", "${theme.blockData.themeKeywords[2]}"],
+  "usage_notes": "Square 1:1, opaque image, no text, no UI, no logos, no characters."
+}
 `.trim();
 }
 
 export function buildLoadingBackgroundPrompt(theme: ThemeDefinition): string {
   return `
-Generate a full-bleed loading screen image for a mobile puzzle game. SQUARE format (1:1).
-This is NOT a framed picture. The scene fills the ENTIRE canvas from edge to edge.
-Theme: ${theme.name} — ${theme.description}.
-Scene: ${theme.loadingScene}
-Style: Rich digital painting. Atmospheric, moody, slightly darker and more mysterious than a typical game background.
-Composition: Close-up atmospheric detail. The viewer is right up against the subject. Fills the full canvas edge to edge.
-Main focal point centered. Edges fade into dark atmosphere.
-Mood: ${theme.mood}. Dominant colors: ${theme.palette.bg} to ${theme.palette.accent}.
-The image must be a seamless full-bleed scene with NO borders, NO frames, NO vignettes, NO picture-in-picture effect.
-Opaque fill. No text, no UI, no people, no logos.
+{
+  "style_name": "${theme.name} Loading Atmosphere",
+  "inspiration": [
+    "${theme.blockData.inspirations[0]}",
+    "${theme.blockData.inspirations[1]}",
+    "Stylized cinematic key art",
+    "Modern vector poster composition"
+  ],
+  "scene": "${theme.loadingScene}",
+  "style": "flat vector illustration with bold linework, smooth gradients, and dramatic cel-shaded contrast",
+  "color_palette": {
+    "primary": "${theme.palette.bg}",
+    "secondary": "${theme.palette.accent}",
+    "highlight": "${lightenHex(theme.palette.accent, 0.22)}",
+    "shadow": "${darkenHex(theme.palette.bg, 0.42)}",
+    "background_gradient": ["${darkenHex(theme.palette.bg, 0.35)}", "${theme.palette.bg}"]
+  },
+  "lighting": "focused hero lighting with moody shadow falloff",
+  "mood": "${theme.mood}, cinematic, mysterious",
+  "background": {
+    "type": "scenery",
+    "details": "close-up immersive scene filling the entire frame"
+  },
+  "composition": "centered focal hierarchy, atmospheric edges, no framing",
+  "camera": {
+    "angle": "eye-level",
+    "distance": "medium close-up",
+    "lens": "50mm",
+    "focus": "sharp hero details"
+  },
+  "medium": "digital vector art",
+  "effects": "subtle glow accents and depth haze",
+  "usage_notes": "Square 1:1, opaque image, no text, no UI, no logos, no characters."
+}
 `.trim();
 }
 
 export function buildLogoPrompt(theme: ThemeDefinition): string {
   return `
-Art style: Stylized 2D vector/cartoon game art. Bold black outlines as separators. Flat-fill cel-shading with 2-3 tonal steps per surface. Subtle distressed grunge texture overlay. Clean graphic readability. NOT photographic, NOT pixel art, NOT 3D rendered. Think tribal mask / cultural emblem aesthetic.
-
-Generate a game logo for a puzzle game called "zKube".
-Theme: ${theme.name}
-
-LAYOUT: The text "zKube" must be LARGE and DOMINANT — filling at least 70% of the canvas width.
-The text is the hero element. Theme decorations are subtle accents AROUND and BEHIND the text, never competing.
-
-TYPOGRAPHY: Ultra-bold display font. THICK black outline (4-6px). Strong white inner glow or highlight for maximum contrast.
-Each letter clearly separated and readable even at small sizes (48px).
-
-DECORATION: Small ${theme.name} motifs (${theme.motifs}) as subtle accents flanking or framing the text.
-A small isometric cube below or beside the text with theme patterns. Keep decorations MINIMAL — the text is king.
-
-COLOR: Primary fill ${theme.palette.accent} with a darker shade for depth. STRONG white specular highlights on top edges.
-Thick dark outline ensures readability on ANY background. High contrast between fill and outline.
-
-Square format. Centered vertically and horizontally.
-Dark background that blends with the theme's background color.
+{
+  "style_name": "${theme.name} zKube Logo",
+  "scene": "A dominant zKube wordmark with subtle ${theme.name} motifs surrounding it",
+  "style": "flat vector illustration with bold linework, smooth gradients, and high-contrast cel shading",
+  "color_palette": {
+    "primary": "${theme.palette.accent}",
+    "highlight": "${lightenHex(theme.palette.accent, 0.3)}",
+    "shadow": "${darkenHex(theme.palette.accent, 0.35)}",
+    "background": "${darkenHex(theme.palette.bg, 0.25)}"
+  },
+  "details": "Text 'zKube' fills at least 70% width, thick dark outline, bright inner highlights, minimal thematic motifs (${theme.motifs})",
+  "usage_notes": "Square format. No extra text. Keep decorative elements secondary to readability."
+}
 `.trim();
 }
 
@@ -261,14 +305,18 @@ Interior is a dark flat fill matching the grid material.
 
 export function buildThemeIconPrompt(theme: ThemeDefinition): string {
   return `
-Art style: Stylized 2D vector/cartoon game art. Bold black outlines as separators. Flat-fill cel-shading with 2-3 tonal steps per surface. Subtle distressed grunge texture overlay. Clean graphic readability. NOT photographic, NOT pixel art, NOT 3D rendered. Think tribal mask / cultural emblem aesthetic.
-
-Generate a small square icon representing the "${theme.name}" theme for a game settings menu.
-Theme: ${theme.name} (${theme.icon})
-Design: A single iconic symbol that instantly communicates the theme. For example: ${theme.motifs} — pick the most recognizable single element.
-Style: Bold silhouette icon, white fill. Thick strokes (3-4px equivalent). Clean, readable at 48×48 pixels.
-Centered in frame. Square format. No text.
-Dark background matching the theme.
+{
+  "style_name": "${theme.name} Theme Icon",
+  "scene": "Single emblematic ${theme.name} symbol",
+  "style": "flat vector icon with bold linework and clean silhouette readability",
+  "color_palette": {
+    "symbol": "#FFFFFF",
+    "background": "${darkenHex(theme.palette.bg, 0.2)}",
+    "accent": "${theme.palette.accent}"
+  },
+  "details": "Use one recognizable symbol from ${theme.motifs}; thick strokes, centered composition, readable at 48x48",
+  "usage_notes": "Square icon, no text, no logos, no clutter."
+}
 `.trim();
 }
 
