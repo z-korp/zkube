@@ -208,19 +208,16 @@ const GameHud: React.FC<GameHudProps> = ({
   return (
     <div className="w-full px-2 pt-2 shrink-0">
       <div className="max-w-[500px] mx-auto w-full bg-slate-900/90 backdrop-blur-sm border border-slate-500/50 rounded-lg px-3 py-2 flex flex-col gap-2">
-        {/* Row 1: Level + Combo | Constraints (centered) | Cubes */}
+        {/* Row 1: Level + Constraints | Combo + Cubes */}
         <div className="flex items-center">
-          <div className="flex items-center gap-1.5 shrink-0 min-w-0">
+          <div className="flex items-center gap-2 shrink-0 min-w-0">
             <span className="font-['Tilt_Prism'] text-base text-yellow-400 tracking-wide">Level</span>
             <div className="w-8 h-8 rounded-full border-2 border-yellow-500 bg-slate-900 flex items-center justify-center shadow-[0_0_8px_rgba(250,204,21,0.3)]">
               <span className="font-['Tilt_Prism'] text-base text-yellow-400 leading-none">{level}</span>
             </div>
-          </div>
-
-          <div className="flex-1 flex items-center justify-center">
             {constraints.length > 0 && (
               <TooltipProvider delayDuration={200}>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 ml-1">
                   {constraints.map((c, i) => {
                     const description = Constraint.fromContractValues(
                       c.type,
@@ -255,6 +252,8 @@ const GameHud: React.FC<GameHudProps> = ({
             )}
           </div>
 
+          <div className="flex-1" />
+
           <div className="flex items-center gap-2 shrink-0">
             <span className={`font-['Tilt_Prism'] text-base tabular-nums ${combo > 0 ? "text-white" : "text-slate-500"}`}>
               🔥{combo}x
@@ -266,9 +265,9 @@ const GameHud: React.FC<GameHudProps> = ({
           </div>
         </div>
 
-        {/* Row 2: Score bar | Moves bar + infotip */}
-        <div className="flex items-end gap-3">
-          <div className="flex-1 min-w-0">
+        {/* Row 2: Score bar (full width) */}
+        <div className="flex flex-col gap-1.5">
+          <div className="min-w-0">
             <div className="flex items-baseline justify-between mb-0.5">
               <span className="font-['Tilt_Prism'] text-sm text-slate-300 tracking-wide">Score</span>
               <span className="font-['Tilt_Prism'] text-sm text-cyan-300 tabular-nums">
@@ -284,7 +283,7 @@ const GameHud: React.FC<GameHudProps> = ({
             </div>
           </div>
 
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0">
             <div className="flex items-baseline justify-between mb-0.5">
               <div className="relative inline-flex items-center gap-1" ref={movesInfoRef}>
                 <span className="font-['Tilt_Prism'] text-sm text-slate-300 tracking-wide">
