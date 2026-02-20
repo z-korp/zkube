@@ -16,6 +16,7 @@ export interface MusicPlayerContextValue {
   setMusicVolume: (volume: number) => void;
   setEffectsVolume: (volume: number) => void;
   setMusicContext: (context: MusicContext) => void;
+  setMusicPlaylist: (contexts: MusicContext[]) => void;
   currentContext: MusicContext;
   isPlaying: boolean;
   playSfx: (name: SfxName) => void;
@@ -37,6 +38,7 @@ export const MusicPlayerContext = createContext<MusicPlayerContextValue>({
   setMusicVolume: noop,
   setEffectsVolume: noop,
   setMusicContext: noop,
+  setMusicPlaylist: noop,
   currentContext: DEFAULT_MUSIC_CONTEXT,
   isPlaying: false,
   playSfx: noop,
@@ -58,6 +60,7 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
   const [musicVolume, setMusicVolumeState] = useState<number>(audioManager.musicVolume);
   const [effectsVolume, setEffectsVolumeState] = useState<number>(audioManager.effectsVolume);
   const [currentContext, setCurrentContextState] = useState<MusicContext>(DEFAULT_MUSIC_CONTEXT);
+  const [playlistContexts, setPlaylistContextsState] = useState<MusicContext[]>([]);
   const [isPlaying, setIsPlaying] = useState<boolean>(audioManager.isPlaying);
   const audioUnlockedRef = useRef(false);
 
@@ -76,7 +79,11 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       if (audioUnlockedRef.current) return;
       audioUnlockedRef.current = true;
 
-      audioManager.playMusic(themeId, currentContext);
+      if (playlistContexts.length > 0) {
+        audioManager.playMusicPlaylist(themeId, playlistContexts);
+      } else {
+        audioManager.playMusic(themeId, currentContext);
+      }
       setIsPlaying(audioManager.isPlaying);
 
       document.removeEventListener("click", unlock, true);
@@ -94,14 +101,18 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       document.removeEventListener("keydown", unlock, true);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [themeId, currentContext]);
+  }, [themeId, currentContext, playlistContexts]);
 
   useEffect(() => {
     if (audioManager.isPlaying) {
-      audioManager.playMusic(themeId, currentContext);
+      if (playlistContexts.length > 0) {
+        audioManager.playMusicPlaylist(themeId, playlistContexts);
+      } else {
+        audioManager.playMusic(themeId, currentContext);
+      }
       setIsPlaying(audioManager.isPlaying);
     }
-  }, [themeId, currentContext]);
+  }, [themeId, currentContext, playlistContexts]);
 
   useEffect(() => {
     return () => {
@@ -138,11 +149,22 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
 
   const setMusicContext = useCallback(
     (context: MusicContext) => {
-      if (audioManager.currentThemeId === themeId && audioManager.currentContext === context && audioManager.isPlaying) {
+      if (audioManager.currentThemeId === themeId && audioManager.currentContext === context && audioManager.isPlaying && playlistContexts.length === 0) {
         return;
       }
+      setPlaylistContextsState([]);
       setCurrentContextState(context);
       audioManager.playMusic(themeId, context);
+      setIsPlaying(audioManager.isPlaying);
+    },
+    [themeId, playlistContexts.length],
+  );
+
+  const setMusicPlaylist = useCallback(
+    (contexts: MusicContext[]) => {
+      setPlaylistContextsState(contexts);
+      setCurrentContextState(contexts[0] ?? DEFAULT_MUSIC_CONTEXT);
+      audioManager.playMusicPlaylist(themeId, contexts);
       setIsPlaying(audioManager.isPlaying);
     },
     [themeId],
@@ -197,6 +219,7 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       setMusicVolume,
       setEffectsVolume,
       setMusicContext,
+      setMusicPlaylist,
       currentContext,
       isPlaying,
       playSfx,
@@ -215,6 +238,7 @@ export function MusicPlayerProvider({ children }: { children: React.ReactNode })
       setMusicVolume,
       setEffectsVolume,
       setMusicContext,
+      setMusicPlaylist,
       currentContext,
       isPlaying,
       playSfx,

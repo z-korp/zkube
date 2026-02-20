@@ -63,6 +63,7 @@ export class AudioManager {
   }
 
   public playMusic(themeId: ThemeId, context: MusicContext): void {
+    this.clearPlaylist();
     const nextUrl = THEME_MUSIC[themeId][context];
     this.clearPendingStop();
 
@@ -78,6 +79,7 @@ export class AudioManager {
       return;
     }
 
+    this.currentMusicHowl.loop(true);
     this.currentMusicHowl.volume(this.musicVolume);
     if (!this.currentMusicHowl.playing()) {
       this.currentMusicHowl.play();
@@ -89,7 +91,39 @@ export class AudioManager {
     this.pausedByManager = false;
   }
 
+  public playMusicPlaylist(themeId: ThemeId, contexts: MusicContext[]): void {
+    if (contexts.length === 0) return;
+
+    const urls = contexts.map((ctx) => THEME_MUSIC[themeId][ctx]);
+
+    // If same theme + same playlist already playing, no-op
+    if (
+      this.playlistThemeId === themeId &&
+      this.playlist.length === urls.length &&
+      this.playlist.every((u, i) => u === urls[i]) &&
+      this.isPlaying
+    ) {
+      return;
+    }
+
+    this.clearPlaylist();
+    this.clearPendingStop();
+
+    if (this.currentMusicHowl && this.currentMusicHowl.playing()) {
+      this.currentMusicHowl.stop();
+    }
+
+    this.playlist = urls;
+    this.playlistIdx = 0;
+    this.playlistThemeId = themeId;
+    this.currentThemeId = themeId;
+    this.currentContext = contexts[0];
+
+    this.playPlaylistTrack();
+  }
+
   public stopMusic(withFade = true): void {
+    this.clearPlaylist();
     this.stopCurrentTrack(withFade);
     this.isPlaying = false;
   }
@@ -147,6 +181,7 @@ export class AudioManager {
   }
 
   public dispose(): void {
+    this.clearPlaylist();
     this.clearPendingStop();
     this.stopCurrentTrack(false);
     this.musicHowls.forEach((howl) => {
@@ -164,6 +199,46 @@ export class AudioManager {
     this.isPlaying = false;
     this.pausedByManager = false;
     Howler.stop();
+  }
+
+  private playPlaylistTrack(): void {
+    const url = this.playlist[this.playlistIdx];
+    if (!url) return;
+
+    const howl = this.getOrCreateMusicHowl(url);
+    howl.loop(false);
+    howl.volume(this.musicVolume);
+
+    howl.off("end");
+    howl.on("end", () => {
+      if (this.playlist.length === 0) return;
+      this.playlistIdx = (this.playlistIdx + 1) % this.playlist.length;
+      this.playPlaylistTrack();
+    });
+
+    this.currentMusicHowl = howl;
+    this.currentMusicUrl = url;
+    this.isPlaying = true;
+    this.pausedByManager = false;
+
+    if (!howl.playing()) {
+      howl.play();
+    }
+  }
+
+  private clearPlaylist(): void {
+    if (this.playlist.length > 0) {
+      for (const url of this.playlist) {
+        const howl = this.musicHowls.get(url);
+        if (howl) {
+          howl.off("end");
+          howl.loop(true);
+        }
+      }
+    }
+    this.playlist = [];
+    this.playlistIdx = 0;
+    this.playlistThemeId = null;
   }
 
   private getOrCreateMusicHowl(url: string): Howl {
