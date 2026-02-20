@@ -9,11 +9,7 @@ import {
   type MapNodeData,
   type NodeState,
 } from "@/hooks/useMapData";
-import {
-  MAP_LAYOUT_PRESETS,
-  useMapLayout,
-  type MapLayoutPresetId,
-} from "@/hooks/useMapLayout";
+import { useMapLayout } from "@/hooks/useMapLayout";
 import { getMapPathTheme, isValidThemeId, type ThemeId } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
@@ -97,12 +93,10 @@ const MapPage: React.FC = () => {
 
   const currentLevel = game?.level ?? 1;
   const mapData = useMapData({ seed, currentLevel });
-  const [layoutPreset, setLayoutPreset] = useState<MapLayoutPresetId>("balanced");
   const zoneLayouts = useMapLayout({
     seed,
     totalZones: TOTAL_ZONES,
     nodesPerZone: NODES_PER_ZONE,
-    preset: layoutPreset,
   });
 
   const [activeZone, setActiveZone] = useState(Math.max(0, mapData.currentZone - 1));
@@ -177,27 +171,7 @@ const MapPage: React.FC = () => {
         title="WORLD MAP"
         subtitle={`Level ${currentLevel}`}
         onBack={goBack}
-        rightSlot={
-          <div className="flex items-center gap-1 rounded-lg border border-white/15 bg-black/20 p-1">
-            {Object.entries(MAP_LAYOUT_PRESETS).map(([presetId, preset]) => {
-              const isActive = layoutPreset === presetId;
-              return (
-                <button
-                  key={presetId}
-                  type="button"
-                  onClick={() => setLayoutPreset(presetId as MapLayoutPresetId)}
-                  className={`rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
-                    isActive
-                      ? "bg-white/20 text-white"
-                      : "text-white/70 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  {preset.label}
-                </button>
-              );
-            })}
-          </div>
-        }
+        rightSlot={null}
       />
 
       {/* ---- Map viewport ---- */}
@@ -241,20 +215,6 @@ const MapPage: React.FC = () => {
                       const toY = toPt.y * VB_H;
                       const midY = (fromY + toY) / 2;
                       const d = `M ${fromX} ${fromY} C ${fromX} ${midY}, ${toX} ${midY}, ${toX} ${toY}`;
-
-                      if (edge.kind === "branch") {
-                        return (
-                          <path
-                            key={`branch-${zoneIdx}-${edge.from}-${edge.to}`}
-                            d={d}
-                            fill="none"
-                            stroke={pathTheme.branchColor}
-                            strokeWidth={1}
-                            strokeDasharray={pathTheme.branchDash}
-                            strokeLinecap="round"
-                          />
-                        );
-                      }
 
                       const fromNode = nodes[edge.from];
                       const toNode = nodes[edge.to];

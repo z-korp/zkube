@@ -126,19 +126,6 @@ function buildZoneLayout(
     edges.push({ from: i, to: i + 1, kind: "main" });
   }
 
-  for (let i = 0; i < nodesPerZone - 2; i++) {
-    const branchRoll = hashToUnit(seed, zoneIndex, i, 201);
-    if (branchRoll > preset.branchOdds) continue;
-
-    const branchTargetRoll = hashToUnit(seed, zoneIndex, i, 202);
-    const target = i + (branchTargetRoll > 1 - preset.branchLongOdds ? 3 : 2);
-
-    if (target >= nodesPerZone) continue;
-    if (target >= lastNode) continue;
-
-    edges.push({ from: i, to: target, kind: "branch" });
-  }
-
   return { points, edges };
 }
 
