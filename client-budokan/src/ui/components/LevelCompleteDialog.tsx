@@ -122,15 +122,6 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   // Extra cubes from combos (total minus base minus boss bonus)
   const comboCubes = Math.max(0, totalLevelCubes - baseCubesEarned - bossBonus);
 
-  const bonusEarned = [
-    { name: "Combo", count: comboBonus - prevCombo },
-    { name: "Score", count: scoreBonus - prevScore },
-    { name: "Harvest", count: harvest - prevHarvest },
-    { name: "Wave", count: wave - prevWave },
-    { name: "Supply", count: supply - prevSupply },
-  ].filter((item) => item.count > 0);
-  
-  // Check if shop opens after this level
   const isShopLevel = isInGameShopAvailable(level);
 
   return (
@@ -257,28 +248,6 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
               </motion.span>
             </motion.div>
           ))}
-        </motion.div>
-
-        {/* Bonuses Earned */}
-        <motion.div
-          className="mb-5"
-          initial={{ opacity: 0, y: 10 }}
-          animate={animationPhase >= 3 ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="text-xs text-slate-400 mb-2 font-medium">Bonuses Earned</div>
-          {bonusEarned.length === 0 ? (
-            <div className="text-sm text-slate-500">No bonuses earned this level.</div>
-          ) : (
-            <div className="space-y-1">
-              {bonusEarned.map((item) => (
-                <div key={item.name} className="flex justify-between text-sm">
-                  <span className="text-slate-300">{item.name}</span>
-                  <span className="text-emerald-400 font-semibold">+{item.count}</span>
-                </div>
-              ))}
-            </div>
-          )}
         </motion.div>
 
         {/* Shop info - only show when shop opens after this level */}
