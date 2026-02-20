@@ -129,8 +129,7 @@ const MapPage: React.FC = () => {
       (n) => n.contractLevel === pendingPreviewLevel && canOpenPreview(n),
     );
     if (node) {
-      setActiveZone(node.zone);
-      setSelectedNode(node);
+      setActiveZone(node.zone - 1);
     }
     setPendingPreviewLevel(null);
   }, [pendingPreviewLevel, mapData.nodes, setPendingPreviewLevel]);
