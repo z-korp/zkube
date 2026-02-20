@@ -219,7 +219,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       filename: "map-bg.png",
       outputPath: path.join(themeRoot, "map-bg.png"),
       prompt: buildMapBackgroundPrompt(theme),
-      ...getTargetDimensions("map-bg.png", { width: 768, height: 1365 }),
+      ...getTargetDimensions("map-bg.png", { width: 2048, height: 2048 }),
     });
   }
 

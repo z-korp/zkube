@@ -190,13 +190,13 @@ export function buildMapBackgroundPrompt(theme: ThemeDefinition): string {
   "lighting": "dramatic overhead lighting with deep shadows, overall dark tone",
   "mood": "${theme.mood}, adventurous, mysterious",
   "layout": {
-    "format": "portrait 9:16",
+    "format": "square 1:1",
     "center_corridor": "A clear winding path corridor running vertically through the center third of the image from bottom to top, the path surface lighter than surroundings",
     "boss_structure": "A prominent ${theme.name}-themed landmark/structure at the top center of the image, clearly visible and imposing",
     "edges": "Dense decorative themed elements at the left and right edges — trees, rocks, ruins, cultural structures — framing the central path",
     "bottom": "Path entrance at the bottom center, inviting the viewer upward"
   },
-  "composition": "vertical portrait composition, path leads the eye from bottom to top toward the boss landmark",
+  "composition": "square composition with vertical emphasis, path leads the eye from bottom to top toward the boss landmark, scenery fills edge-to-edge",
   "camera": {
     "angle": "slightly elevated bird's eye",
     "distance": "wide shot showing full vertical extent",
@@ -207,7 +207,7 @@ export function buildMapBackgroundPrompt(theme: ThemeDefinition): string {
   "textures": "clean edges, smooth gradient volumes, subtle atmospheric depth",
   "effects": "subtle fog/mist between layers, gentle glow on the path and boss structure",
   "themes": ["${theme.name}", "${theme.blockData.themeKeywords[0]}", "${theme.blockData.themeKeywords[1]}", "${theme.blockData.themeKeywords[2]}"],
-  "usage_notes": "Portrait 9:16 opaque image. Overall DARK tone matching the game's dark UI. The central corridor must be clearly visible for SVG road overlay. Boss landmark at top must be prominent. No text, no UI elements, no characters."
+  "usage_notes": "Square 1:1 opaque image. Overall DARK tone matching the game's dark UI. The central corridor must be clearly visible for SVG road overlay. Boss landmark at top must be prominent. No text, no UI elements, no characters."
 }
 `.trim();
 }
