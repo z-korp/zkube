@@ -19,9 +19,11 @@ interface NavigationState {
   isTransitioning: boolean;
   transitionDirection: "forward" | "back" | null;
   gameId: number | null;
+  pendingPreviewLevel: number | null;
   navigate: (page: PageId, gameId?: number) => void;
   goBack: () => void;
   setGameId: (id: number | null) => void;
+  setPendingPreviewLevel: (level: number | null) => void;
 }
 
 const getBackTarget = (page: PageId): PageId => {
@@ -43,6 +45,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
   isTransitioning: false,
   transitionDirection: null,
   gameId: null,
+  pendingPreviewLevel: null,
 
   navigate: (page, gameId) => {
     const { currentPage, isTransitioning } = get();
@@ -79,4 +82,5 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
   },
 
   setGameId: (id) => set({ gameId: id }),
+  setPendingPreviewLevel: (level) => set({ pendingPreviewLevel: level }),
 }));

@@ -81,6 +81,8 @@ const MapPage: React.FC = () => {
   const navigate = useNavigationStore((state) => state.navigate);
   const goBack = useNavigationStore((state) => state.goBack);
   const gameId = useNavigationStore((state) => state.gameId);
+  const pendingPreviewLevel = useNavigationStore((state) => state.pendingPreviewLevel);
+  const setPendingPreviewLevel = useNavigationStore((state) => state.setPendingPreviewLevel);
   const { setThemeTemplate } = useTheme();
   const { setMusicContext } = useMusicPlayer();
 
@@ -116,6 +118,18 @@ const MapPage: React.FC = () => {
     const themeId: ThemeId = isValidThemeId(themeRaw) ? themeRaw : "theme-1";
     setThemeTemplate(themeId, false);
   }, [activeZone, mapData.zoneThemes, setThemeTemplate]);
+
+  useEffect(() => {
+    if (pendingPreviewLevel == null) return;
+    const node = mapData.nodes.find(
+      (n) => n.contractLevel === pendingPreviewLevel && canOpenPreview(n),
+    );
+    if (node) {
+      setActiveZone(node.zone);
+      setSelectedNode(node);
+    }
+    setPendingPreviewLevel(null);
+  }, [pendingPreviewLevel, mapData.nodes, setPendingPreviewLevel]);
 
   /* Split nodes into per-zone arrays */
   const zoneNodes = useMemo(

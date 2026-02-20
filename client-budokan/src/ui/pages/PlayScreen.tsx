@@ -68,6 +68,7 @@ const PlayScreen: React.FC = () => {
   const gameId = useNavigationStore((s) => s.gameId);
   const navNavigate = useNavigationStore((s) => s.navigate);
   const goBack = useNavigationStore((s) => s.goBack);
+  const setPendingPreviewLevel = useNavigationStore((s) => s.setPendingPreviewLevel);
   const { themeTemplate, setThemeTemplate } = useTheme();
   const { setMusicContext, playSfx } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
@@ -461,24 +462,12 @@ const PlayScreen: React.FC = () => {
               navNavigate("ingameshop");
             } else {
               setLevelCompletionData(null);
+              setPendingPreviewLevel(completedLevel + 1);
+              navNavigate("map");
             }
           }}
           level={levelCompletionData.level}
-          levelScore={levelCompletionData.levelScore}
           levelMoves={levelCompletionData.levelMoves}
-          seed={seed}
-          constraintProgress={levelCompletionData.constraintProgress}
-          bonusUsedThisLevel={levelCompletionData.bonusUsedThisLevel}
-          prevCombo={levelCompletionData.prevCombo}
-          prevScore={levelCompletionData.prevScore}
-          prevHarvest={levelCompletionData.prevHarvest}
-          prevWave={levelCompletionData.prevWave}
-          prevSupply={levelCompletionData.prevSupply}
-          comboBonus={levelCompletionData.comboBonus}
-          scoreBonus={levelCompletionData.scoreBonus}
-          harvest={levelCompletionData.harvest}
-          wave={levelCompletionData.wave}
-          supply={levelCompletionData.supply}
           prevTotalCubes={levelCompletionData.prevTotalCubes}
           totalCubes={levelCompletionData.totalCubes}
           prevTotalScore={levelCompletionData.prevTotalScore}

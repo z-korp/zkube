@@ -12,21 +12,7 @@ interface LevelCompleteDialogProps {
   isOpen: boolean;
   onClose: () => void;
   level: number;
-  levelScore: number;
   levelMoves: number;
-  seed: bigint;
-  constraintProgress: number;
-  bonusUsedThisLevel: boolean;
-  prevCombo: number;
-  prevScore: number;
-  prevHarvest: number;
-  prevWave: number;
-  prevSupply: number;
-  comboBonus: number;
-  scoreBonus: number;
-  harvest: number;
-  wave: number;
-  supply: number;
   prevTotalCubes: number;
   totalCubes: number;
   prevTotalScore: number;
@@ -38,21 +24,7 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
   isOpen,
   onClose,
   level,
-  levelScore: _levelScore,
   levelMoves,
-  seed: _seed,
-  constraintProgress: _constraintProgress,
-  bonusUsedThisLevel: _bonusUsedThisLevel,
-  prevCombo,
-  prevScore,
-  prevHarvest,
-  prevWave,
-  prevSupply,
-  comboBonus,
-  scoreBonus,
-  harvest,
-  wave,
-  supply,
   prevTotalCubes,
   totalCubes,
   prevTotalScore,
@@ -274,7 +246,7 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
             onClick={onClose}
             className="w-full py-3 text-lg font-semibold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
           >
-            {isShopLevel ? "Continue to Shop" : `Continue to Level ${level + 1}`}
+            {isShopLevel ? "Continue to Shop" : "Continue"}
           </Button>
         </motion.div>
       </DialogContent>
