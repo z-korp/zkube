@@ -4,7 +4,6 @@ import {
   Check,
   Copy,
   LogOut,
-  Music2,
   Palette,
   UserRound,
   Volume2,
@@ -69,7 +68,7 @@ const SettingsPage: React.FC = () => {
             className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50"
           >
             <div className="flex items-center gap-2 mb-3">
-              <Music2 size={18} className="text-cyan-300" />
+              <Volume2 size={18} className="text-cyan-300" />
               <h2 className="font-['Fredericka_the_Great'] text-lg text-white tracking-wide">
                 AUDIO
               </h2>
@@ -77,7 +76,7 @@ const SettingsPage: React.FC = () => {
 
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3">
-                <Music2 size={16} className="text-cyan-300 shrink-0" />
+                <Volume2 size={16} className="text-cyan-300 shrink-0" />
                 <input
                   type="range"
                   min={0}
