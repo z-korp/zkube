@@ -11,7 +11,7 @@ import { useDojo } from "@/dojo/useDojo";
 import {
   getBonusInventoryCount,
 } from "@/dojo/game/helpers/runDataPacking";
-import { BonusType, bonusTypeFromContractValue } from "@/dojo/game/types/bonus";
+import { Bonus, BonusType, bonusTypeFromContractValue } from "@/dojo/game/types/bonus";
 import { useNavigationStore } from "@/stores/navigationStore";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import ThemeBackground from "@/ui/components/shared/ThemeBackground";
