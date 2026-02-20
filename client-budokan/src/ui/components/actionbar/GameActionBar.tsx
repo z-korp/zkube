@@ -100,7 +100,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                     <img
                       src={slot.icon}
                       alt={slot.type}
-                      className={`w-[clamp(30px,7.5vw,40px)] h-[clamp(30px,7.5vw,40px)] object-contain ${
+                      className={`w-full h-full rounded-full object-cover ${
                         isDisabled ? "grayscale opacity-60" : ""
                       }`}
                     />

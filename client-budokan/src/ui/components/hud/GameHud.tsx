@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useSyncExternalStore } from "react";
 import { Info } from "lucide-react";
 import ProgressRing from "@/ui/components/shared/ProgressRing";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
@@ -27,7 +27,15 @@ interface GameHudProps {
   maxMoves: number;
 }
 
-const ringSize = 40;
+const RING_SIZE_MOBILE = 44;
+const RING_SIZE_DESKTOP = 56;
+const DESKTOP_BREAKPOINT = 640;
+
+const subscribeResize = (cb: () => void) => {
+  window.addEventListener("resize", cb);
+  return () => window.removeEventListener("resize", cb);
+};
+const getIsDesktop = () => window.innerWidth >= DESKTOP_BREAKPOINT;
 
 const CONSTRAINT_ICON_MAP: Record<ConstraintType, string | null> = {
   [ConstraintType.ClearLines]: getCommonAssetPath("constraints/constraint-clear-lines.png"),
@@ -80,7 +88,7 @@ const getValueBadge = (
     case ConstraintType.ClearLines:
       return `${value}+`;
     case ConstraintType.BreakBlocks:
-      return `⊞${value}`;
+      return `${value}`;
     case ConstraintType.AchieveCombo:
       return `${value}x`;
     case ConstraintType.FillAndClear:
@@ -123,6 +131,9 @@ const GameHud: React.FC<GameHudProps> = ({
   gameLevel,
   maxMoves,
 }) => {
+  const isDesktop = useSyncExternalStore(subscribeResize, getIsDesktop, () => false);
+  const ringSize = isDesktop ? RING_SIZE_DESKTOP : RING_SIZE_MOBILE;
+
   const [movesInfoOpen, setMovesInfoOpen] = useState(false);
   const movesInfoRef = useRef<HTMLDivElement>(null);
 
