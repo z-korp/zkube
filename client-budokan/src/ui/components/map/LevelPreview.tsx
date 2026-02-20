@@ -77,6 +77,21 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
           <p className="mt-4 text-sm text-slate-200/90">
             Spend cubes on consumables before the boss encounter.
           </p>
+        ) : node.state === "cleared" || node.state === "visited" ? (
+          <div className="mt-4 space-y-3 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-400">Difficulty</span>
+              <span
+                className={`font-['Bangers'] text-lg tracking-wide ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}
+              >
+                {difficulty}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 rounded-lg bg-emerald-500/15 px-3 py-2 text-emerald-200">
+              <span className="text-lg">✓</span>
+              <span className="font-semibold">Cleared</span>
+            </div>
+          </div>
         ) : (
           <div className="mt-4 space-y-3 text-sm">
             <div className="flex items-center justify-between">
@@ -117,24 +132,17 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
                   { cubes: 3, threshold: levelConfig.cube3Threshold },
                   { cubes: 2, threshold: levelConfig.cube2Threshold },
                   { cubes: 1, threshold: levelConfig.maxMoves },
-                ].map(({ cubes, threshold }) => {
-                  const isAchieved = node.state === "cleared" && cubes <= node.cubesEarned;
-                  return (
-                    <div
-                      key={cubes}
-                      className={`flex items-center justify-between rounded-md px-2 py-1 ${
-                        isAchieved
-                          ? "bg-emerald-500/15 text-emerald-200"
-                          : "bg-slate-800/60 text-slate-300"
-                      }`}
-                    >
-                      <span>{"🧊".repeat(cubes)}</span>
-                      <span className="font-['Bangers'] text-lg tracking-wide">
-                        ≤ {threshold}
-                      </span>
-                    </div>
-                  );
-                })}
+                ].map(({ cubes, threshold }) => (
+                  <div
+                    key={cubes}
+                    className="flex items-center justify-between rounded-md bg-slate-800/60 px-2 py-1 text-slate-300"
+                  >
+                    <span>{"🧊".repeat(cubes)}</span>
+                    <span className="font-['Bangers'] text-lg tracking-wide">
+                      ≤ {threshold}
+                    </span>
+                  </div>
+                ))}
               </div>
             )}
           </div>

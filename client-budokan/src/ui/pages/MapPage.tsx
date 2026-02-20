@@ -338,17 +338,7 @@ const MapPage: React.FC = () => {
                             </>
                           )}
 
-                          {node.state === "cleared" && (
-                            <text
-                              x={cx}
-                              y={cy + (node.type === "boss" ? 4.5 : 3.8)}
-                              textAnchor="middle"
-                              dominantBaseline="central"
-                              fontSize={1.6}
-                            >
-                              {"🧊".repeat(node.cubesEarned || 3)}
-                            </text>
-                          )}
+
                         </g>
                       );
                     })}
