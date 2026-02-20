@@ -48,20 +48,6 @@ const HomePage: React.FC = () => {
     return ownedGames.filter((g) => !g.game_over);
   }, [ownedGames]);
 
-  const hasActiveGame = activeGames.length > 0;
-  const mostRecentActiveGame = hasActiveGame ? activeGames[0] : null;
-
-  const handlePlayGame = useCallback(async () => {
-    if (!account) return;
-
-    if (hasActiveGame && mostRecentActiveGame) {
-      navigate("map", mostRecentActiveGame.token_id);
-      return;
-    }
-
-    navigate("loadout");
-  }, [account, hasActiveGame, mostRecentActiveGame, navigate]);
-
   const handleProfile = useCallback(() => {
     if (!account) return;
   }, [account]);
@@ -101,9 +87,9 @@ const HomePage: React.FC = () => {
           ) : (
             <>
               <NavButton
-                label={hasActiveGame ? "CONTINUE" : "PLAY GAME"}
+                label="NEW GAME"
                 variant="orange"
-                onClick={handlePlayGame}
+                onClick={() => navigate("loadout")}
                 disabled={false}
               />
 

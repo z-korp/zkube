@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { motion } from "motion/react";
-import { CirclePlay, Flag, Layers3, Trophy } from "lucide-react";
+import { CirclePlay, Flag, Trophy } from "lucide-react";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useNavigationStore } from "@/stores/navigationStore";
@@ -35,10 +35,13 @@ const MyGamesPage: React.FC = () => {
 
   const { games, loading } = useGameTokensSlot({ owner: account?.address });
 
-  const sortedGames = useMemo(
-    () => [...games].sort((left, right) => right.token_id - left.token_id),
-    [games],
-  );
+  const { activeGames, finishedGames } = useMemo(() => {
+    const sorted = [...games].sort((left, right) => right.token_id - left.token_id);
+    return {
+      activeGames: sorted.filter((g) => !g.game_over),
+      finishedGames: sorted.filter((g) => g.game_over),
+    };
+  }, [games]);
 
   return (
     <div className="h-screen-viewport flex flex-col">
@@ -56,71 +59,115 @@ const MyGamesPage: React.FC = () => {
             <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50 text-slate-200">
               Connect your wallet to see your game tokens.
             </div>
-          ) : sortedGames.length === 0 ? (
+          ) : activeGames.length === 0 && finishedGames.length === 0 ? (
             <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50 text-slate-200">
               No games yet. Start a run and your games will appear here.
             </div>
           ) : (
-            sortedGames.map((game, index) => {
-              const level = getAttributeNumber(game.metadata, "Level");
-              const score = getAttributeNumber(game.metadata, "Total Score") || game.score;
-              const isActive = !game.game_over;
+            <>
+              {activeGames.length > 0 && (
+                <section>
+                  <h3 className="font-['Fredericka_the_Great'] text-sm text-emerald-300 tracking-wide mb-2 px-1">
+                    Active
+                  </h3>
+                  <div className="flex flex-col gap-3">
+                    {activeGames.map((game, index) => {
+                      const level = getAttributeNumber(game.metadata, "Level");
+                      const score = getAttributeNumber(game.metadata, "Total Score") || game.score;
 
-              return (
-                <motion.article
-                  key={game.token_id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2, delay: index * 0.03 }}
-                  className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h2 className="font-['Fredericka_the_Great'] text-lg text-white leading-tight">
-                        Game #{game.token_id}
-                      </h2>
-                      <div className="mt-2 flex items-center gap-4 text-sm text-slate-200">
-                        <span className="inline-flex items-center gap-1.5">
-                          <Flag size={14} className="text-cyan-300" />
-                          Level
-                          <span className="font-['Bangers'] text-base tracking-wider text-cyan-200">
-                            {level}
-                          </span>
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <Trophy size={14} className="text-amber-300" />
-                          Score
-                          <span className="font-['Bangers'] text-base tracking-wider text-amber-200">
-                            {score}
-                          </span>
-                        </span>
-                      </div>
-                    </div>
-
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs ${
-                        isActive
-                          ? "bg-emerald-500/20 text-emerald-200 border border-emerald-300/20"
-                          : "bg-slate-700/60 text-slate-300 border border-slate-500/30"
-                      }`}
-                    >
-                      <Layers3 size={12} />
-                      {isActive ? "Active" : "Finished"}
-                    </span>
+                      return (
+                        <motion.article
+                          key={game.token_id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.2, delay: index * 0.03 }}
+                          className="bg-slate-800/60 rounded-xl p-4 border border-emerald-500/30"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <h2 className="font-['Fredericka_the_Great'] text-lg text-white leading-tight">
+                                Game #{game.token_id}
+                              </h2>
+                              <div className="mt-2 flex items-center gap-4 text-sm text-slate-200">
+                                <span className="inline-flex items-center gap-1.5">
+                                  <Flag size={14} className="text-cyan-300" />
+                                  Level
+                                  <span className="font-['Bangers'] text-base tracking-wider text-cyan-200">
+                                    {level}
+                                  </span>
+                                </span>
+                                <span className="inline-flex items-center gap-1.5">
+                                  <Trophy size={14} className="text-amber-300" />
+                                  Score
+                                  <span className="font-['Bangers'] text-base tracking-wider text-amber-200">
+                                    {score}
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mt-3">
+                            <GameButton
+                              label="RESUME"
+                              variant="primary"
+                              onClick={() => navigate("map", game.token_id)}
+                            />
+                          </div>
+                        </motion.article>
+                      );
+                    })}
                   </div>
+                </section>
+              )}
 
-                  {isActive && (
-                    <div className="mt-3">
-                      <GameButton
-                        label="RESUME"
-                        variant="primary"
-                        onClick={() => navigate("map", game.token_id)}
-                      />
-                    </div>
-                  )}
-                </motion.article>
-              );
-            })
+              {finishedGames.length > 0 && (
+                <section>
+                  <h3 className="font-['Fredericka_the_Great'] text-sm text-slate-400 tracking-wide mb-2 px-1">
+                    Finished
+                  </h3>
+                  <div className="flex flex-col gap-3">
+                    {finishedGames.map((game, index) => {
+                      const level = getAttributeNumber(game.metadata, "Level");
+                      const score = getAttributeNumber(game.metadata, "Total Score") || game.score;
+
+                      return (
+                        <motion.article
+                          key={game.token_id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.2, delay: index * 0.03 }}
+                          className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <h2 className="font-['Fredericka_the_Great'] text-lg text-white leading-tight">
+                                Game #{game.token_id}
+                              </h2>
+                              <div className="mt-2 flex items-center gap-4 text-sm text-slate-200">
+                                <span className="inline-flex items-center gap-1.5">
+                                  <Flag size={14} className="text-cyan-300" />
+                                  Level
+                                  <span className="font-['Bangers'] text-base tracking-wider text-cyan-200">
+                                    {level}
+                                  </span>
+                                </span>
+                                <span className="inline-flex items-center gap-1.5">
+                                  <Trophy size={14} className="text-amber-300" />
+                                  Score
+                                  <span className="font-['Bangers'] text-base tracking-wider text-amber-200">
+                                    {score}
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.article>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+            </>
           )}
 
           <button

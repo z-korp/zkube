@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Crown, Medal, Trophy, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
 import { useNavigationStore } from "@/stores/navigationStore";
 import ThemeBackground from "@/ui/components/shared/ThemeBackground";
@@ -10,13 +10,6 @@ const rankStyle = (rank: number): string => {
   if (rank === 2) return "bg-slate-300/15 text-slate-100 border border-slate-300/35";
   if (rank === 3) return "bg-amber-500/20 text-amber-100 border border-amber-400/35";
   return "bg-slate-800/60 text-slate-200 border border-slate-700/50";
-};
-
-const getRankIcon = (rank: number) => {
-  if (rank === 1) return <Crown size={14} className="text-yellow-200" />;
-  if (rank === 2) return <Medal size={14} className="text-slate-100" />;
-  if (rank === 3) return <Trophy size={14} className="text-amber-200" />;
-  return null;
 };
 
 const LeaderboardPage: React.FC = () => {
@@ -73,8 +66,8 @@ const LeaderboardPage: React.FC = () => {
                         className={`${rankStyle(rank)} border-b border-slate-700/40`}
                       >
                         <td className="py-2.5 px-2">
-                          <span className="inline-flex items-center gap-1 font-['Bangers'] text-lg tracking-wide">
-                            {getRankIcon(rank)}#{rank}
+                          <span className="font-['Bangers'] text-lg tracking-wide">
+                            #{rank}
                           </span>
                         </td>
                         <td className="py-2.5 px-2 text-white truncate">
