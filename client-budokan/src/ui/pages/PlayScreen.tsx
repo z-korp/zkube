@@ -6,6 +6,7 @@ import { useGrid } from "@/hooks/useGrid";
 import { useGameLevel, type GameLevelData } from "@/hooks/useGameLevel";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import useViewport from "@/hooks/useViewport";
+import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useDojo } from "@/dojo/useDojo";
 import {
   getBonusInventoryCount,
@@ -48,6 +49,7 @@ const PlayScreen: React.FC = () => {
   const { setMusicContext, playSfx } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
 
+  const { playerMeta } = usePlayerMeta();
   const { game, seed } = useGame({
     gameId: gameId ?? 0,
     shouldLog: false,
@@ -226,6 +228,17 @@ const PlayScreen: React.FC = () => {
   const targetScore = gameLevel?.pointsRequired ?? levelConfig?.pointsRequired ?? 0;
   const maxMoves = gameLevel?.maxMoves ?? levelConfig?.maxMoves ?? 0;
 
+  const bonusBagSizes = useMemo(() => {
+    const meta = playerMeta?.data;
+    return {
+      1: 1 + (meta?.bagComboLevel ?? 0),
+      2: 1 + (meta?.bagScoreLevel ?? 0),
+      3: 1 + (meta?.bagHarvestLevel ?? 0),
+      4: 1 + (meta?.bagWaveLevel ?? 0),
+      5: 1 + (meta?.bagSupplyLevel ?? 0),
+    };
+  }, [playerMeta?.data]);
+
   const isGridLoading =
     !!game && !game.isOver() && (!grid || grid.length === 0);
 
@@ -329,6 +342,7 @@ const PlayScreen: React.FC = () => {
         type,
         level: slot.level,
         count: getBonusInventoryCount(game.runData, slot.value),
+        bagSize: bonusBagSizes[slot.value as keyof typeof bonusBagSizes] ?? 1,
         icon: getBonusIcon(type),
         tooltip: getBonusTooltip(type),
       };
@@ -342,6 +356,7 @@ const PlayScreen: React.FC = () => {
     game?.bonus1Level,
     game?.bonus2Level,
     game?.bonus3Level,
+    bonusBagSizes,
     getBonusIcon,
     getBonusTooltip,
   ]);
@@ -408,7 +423,8 @@ const PlayScreen: React.FC = () => {
           movesRemaining={maxMoves - game.levelMoves}
           totalCubes={game.cubesAvailable}
           combo={game.isOver() ? 0 : game.combo}
-          onHome={goBack}
+          onHome={() => navNavigate("home")}
+          onMap={goBack}
           constraintProgress={game.constraintProgress}
           constraint2Progress={game.constraint2Progress}
           constraint3Progress={game.runData.constraint3Progress}
@@ -471,6 +487,8 @@ const PlayScreen: React.FC = () => {
           bonusSlots={selectedBonusSlots.map((slot) => ({
             type: slot.type,
             count: slot.count,
+            level: slot.level,
+            bagSize: slot.bagSize,
             icon: slot.icon,
             tooltip: slot.tooltip,
             onClick: () => handleBonusSelect(slot.type),

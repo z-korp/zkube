@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Flag } from "lucide-react";
+import { Flag, Settings, Volume2, VolumeX } from "lucide-react";
 import { BonusType } from "@/dojo/game/types/bonus";
 import {
   Tooltip,
@@ -7,10 +7,22 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/ui/elements/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/ui/elements/dialog";
+import { Slider } from "@/ui/elements/slider";
+import { Button } from "@/ui/elements/button";
+import { useMusicPlayer } from "@/contexts/hooks";
 
 interface BonusSlot {
   type: BonusType;
   count: number;
+  level: number;
+  bagSize: number;
   icon: string;
   tooltip: string;
   onClick: () => void;
@@ -31,16 +43,26 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
   onSurrender,
   isGameOver,
 }) => {
+  const {
+    musicVolume,
+    effectsVolume,
+    setMusicVolume,
+    setEffectsVolume,
+    isPlaying,
+    playTheme,
+    stopTheme,
+  } = useMusicPlayer();
+
   if (isGameOver) return null;
 
   return (
-    <div className="shrink-0 px-4 pb-4 pt-2">
+    <div className="w-full px-2 pb-3 pt-1 shrink-0">
       {activeBonus !== BonusType.None && bonusDescription && (
         <div className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-yellow-300">
           {bonusDescription}
         </div>
       )}
-      <div className="mx-auto flex w-fit items-center gap-3 bg-slate-900/70 backdrop-blur-sm border border-slate-700/50 rounded-full px-5 py-3">
+      <div className="max-w-[500px] mx-auto w-full flex items-center justify-center gap-3 bg-slate-900/70 backdrop-blur-sm border border-slate-700/50 rounded-lg px-4 py-3">
         {bonusSlots.map((slot) => {
           const isActive = activeBonus === slot.type;
           const isDisabled = slot.count === 0;
@@ -69,6 +91,9 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                         isDisabled ? "grayscale opacity-60" : ""
                       }`}
                     />
+                    <span className="absolute -top-1 -left-1 text-[8px] font-bold rounded-full min-w-[16px] h-[14px] flex items-center justify-center bg-slate-600 text-slate-200 px-0.5 leading-none z-10">
+                      L{slot.level + 1}
+                    </span>
                     <span
                       className={`absolute -top-0.5 -right-0.5 text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center ${
                         isDisabled
@@ -78,6 +103,9 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                     >
                       {slot.count}
                     </span>
+                    <span className="absolute -bottom-1 -right-1 text-[8px] font-bold rounded-full min-w-[16px] h-[14px] flex items-center justify-center bg-slate-700 text-slate-400 border border-slate-600 px-0.5 leading-none z-10">
+                      /{slot.bagSize}
+                    </span>
                   </motion.button>
                 </TooltipTrigger>
                 <TooltipContent
@@ -86,10 +114,10 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                 >
                   <span className="text-xs font-medium">{slot.tooltip}</span>
                 </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            );
-          })}
+              </Tooltip>
+            </TooltipProvider>
+          );
+        })}
 
         <div className="w-px h-8 bg-slate-700 mx-1" />
 
@@ -101,6 +129,58 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
         >
           <Flag size={16} />
         </motion.button>
+
+        <Dialog>
+          <DialogTrigger asChild>
+            <button className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-700/30 hover:bg-slate-600/40 text-slate-400 hover:text-slate-300 transition-all hover:scale-110 active:scale-90">
+              <Settings size={16} />
+            </button>
+          </DialogTrigger>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-bold">Sound Settings</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-4 rounded-lg border p-4">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={() => (isPlaying ? stopTheme() : playTheme())}
+                >
+                  {isPlaying ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                </Button>
+                <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                  <span className="text-xs text-muted-foreground">Music</span>
+                  <Slider
+                    value={[musicVolume]}
+                    onValueChange={(value) => setMusicVolume(value[0])}
+                    max={1}
+                    step={0.05}
+                  />
+                </div>
+                <span className="text-xs tabular-nums text-muted-foreground w-8 text-right shrink-0">
+                  {Math.round(musicVolume * 100)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 shrink-0" />
+                <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                  <span className="text-xs text-muted-foreground">Effects</span>
+                  <Slider
+                    value={[effectsVolume]}
+                    onValueChange={(value) => setEffectsVolume(value[0])}
+                    max={1}
+                    step={0.05}
+                  />
+                </div>
+                <span className="text-xs tabular-nums text-muted-foreground w-8 text-right shrink-0">
+                  {Math.round(effectsVolume * 100)}%
+                </span>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
