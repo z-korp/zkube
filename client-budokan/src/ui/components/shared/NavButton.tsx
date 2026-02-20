@@ -39,7 +39,6 @@ const NavButton: React.FC<NavButtonProps> = ({
       } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:border-b-2 active:mt-[2px]"}`}
       style={{ textShadow: "0 2px 4px rgba(0,0,0,0.4)" }}
     >
-      <span className="absolute inset-x-0 top-0 h-[1px] rounded-t-xl bg-white/25" />
       {label}
       {badge !== undefined && (
         <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-['Bangers'] min-w-[22px] h-[22px] flex items-center justify-center rounded-full px-1.5 shadow-md">

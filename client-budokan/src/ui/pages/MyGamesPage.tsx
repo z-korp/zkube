@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { motion } from "motion/react";
-import { CirclePlay, Flag, Trophy } from "lucide-react";
+import { Box, CirclePlay, Flag, Trophy } from "lucide-react";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useNavigationStore } from "@/stores/navigationStore";
@@ -74,6 +74,7 @@ const MyGamesPage: React.FC = () => {
                     {activeGames.map((game, index) => {
                       const level = getAttributeNumber(game.metadata, "Level");
                       const score = getAttributeNumber(game.metadata, "Total Score") || game.score;
+                      const cubes = getAttributeNumber(game.metadata, "Total Cubes");
 
                       return (
                         <motion.article
@@ -103,6 +104,13 @@ const MyGamesPage: React.FC = () => {
                                     {score}
                                   </span>
                                 </span>
+                                <span className="inline-flex items-center gap-1.5">
+                                  <Box size={14} className="text-purple-300" />
+                                  Cubes
+                                  <span className="font-['Bangers'] text-base tracking-wider text-purple-200">
+                                    {cubes}
+                                  </span>
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -129,6 +137,7 @@ const MyGamesPage: React.FC = () => {
                     {finishedGames.map((game, index) => {
                       const level = getAttributeNumber(game.metadata, "Level");
                       const score = getAttributeNumber(game.metadata, "Total Score") || game.score;
+                      const cubes = getAttributeNumber(game.metadata, "Total Cubes");
 
                       return (
                         <motion.article
@@ -156,6 +165,13 @@ const MyGamesPage: React.FC = () => {
                                   Score
                                   <span className="font-['Bangers'] text-base tracking-wider text-amber-200">
                                     {score}
+                                  </span>
+                                </span>
+                                <span className="inline-flex items-center gap-1.5">
+                                  <Box size={14} className="text-purple-300" />
+                                  Cubes
+                                  <span className="font-['Bangers'] text-base tracking-wider text-purple-200">
+                                    {cubes}
                                   </span>
                                 </span>
                               </div>

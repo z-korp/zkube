@@ -50,6 +50,7 @@ const LeaderboardPage: React.FC = () => {
                     <th className="py-2 px-2 font-['Fredericka_the_Great']">Player</th>
                     <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
                     <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Score</th>
+                    <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Cubes</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -81,6 +82,11 @@ const LeaderboardPage: React.FC = () => {
                         <td className="py-2.5 px-2 text-amber-200 text-right">
                           <span className="font-['Bangers'] text-lg tracking-wide">
                             {entry.score}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-2 text-purple-200 text-right">
+                          <span className="font-['Bangers'] text-lg tracking-wide">
+                            {entry.totalCubes}
                           </span>
                         </td>
                       </motion.tr>
