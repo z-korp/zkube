@@ -10,6 +10,7 @@ const ImageAssets = (theme: ThemeId) => {
     harvest: getCommonAssetPath("bonus/harvest.png"),
     wave: getCommonAssetPath("bonus/wave.png"),
     supply: getCommonAssetPath("bonus/supply.png"),
+    bridging: getCommonAssetPath("bonus/bridging.png"),
     stone1: themeImages.block1,
     stone2: themeImages.block2,
     stone3: themeImages.block3,

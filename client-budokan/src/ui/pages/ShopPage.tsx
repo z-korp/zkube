@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { ArrowUpRight, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useDojo } from "@/dojo/useDojo";
@@ -450,7 +450,7 @@ const ShopPage = () => {
             >
               <div className="mb-3 flex items-start gap-3">
                 <div className="rounded-xl border border-indigo-200/30 bg-indigo-400/20 p-2">
-                  <ArrowUpRight className="h-10 w-10 text-indigo-100" />
+                  <img src={imgAssets.bridging} alt="Bridging" className="h-10 w-10" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-['Fredericka_the_Great'] text-xl leading-none text-indigo-50">

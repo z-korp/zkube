@@ -14,7 +14,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/ui/elements/tooltip";
-import { ArrowUp, Info } from "lucide-react";
+import { Info } from "lucide-react";
 
 interface ShopDialogProps {
   isOpen: boolean;
@@ -391,8 +391,8 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
           <div className="bg-slate-800/30 rounded-lg p-2.5 border border-slate-700/40 flex flex-col">
             {/* Header */}
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-full bg-purple-500/20 flex items-center justify-center">
-                <ArrowUp size={12} className="text-purple-400 text-xs" />
+              <div className="w-7 h-7 rounded-full bg-purple-500/20 flex items-center justify-center overflow-hidden">
+                <img src={imgAssets.bridging} alt="Bridging" className="w-5 h-5" />
               </div>
               <span className="text-xs font-semibold">Bridging</span>
               <InfoTip text="Bring cubes from your wallet into a run to spend at the in-game shop." />

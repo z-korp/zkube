@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { motion } from "motion/react";
-import { Box, Flag, Trophy } from "lucide-react";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useNavigationStore } from "@/stores/navigationStore";
@@ -66,122 +65,127 @@ const MyGamesPage: React.FC = () => {
           ) : (
             <>
               {activeGames.length > 0 && (
-                <section className="bg-slate-900/80 rounded-xl border border-emerald-500/30 overflow-hidden">
-                  <h3 className="font-['Fredericka_the_Great'] text-sm text-emerald-300 tracking-wide px-4 pt-3 pb-2">
+                <motion.section
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-slate-900/80 rounded-xl p-4 border border-emerald-500/30"
+                >
+                  <h3 className="font-['Fredericka_the_Great'] text-lg text-emerald-300 mb-3">
                     Active
                   </h3>
-                  <div className="flex flex-col gap-3 px-3 pb-3">
-                    {activeGames.map((game, index) => {
-                      const level = getAttributeNumber(game.metadata, "Level");
-                      const score = getAttributeNumber(game.metadata, "Total Score") || game.score;
-                      const cubes = getAttributeNumber(game.metadata, "Total Cubes");
+                  <table className="w-full text-sm table-fixed">
+                    <thead>
+                      <tr className="text-left text-slate-300 border-b border-slate-600/60">
+                        <th className="py-2 px-2 font-['Fredericka_the_Great']">Game</th>
+                        <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
+                        <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Score</th>
+                        <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Cubes</th>
+                        <th className="py-2 px-2 w-24 text-right font-['Fredericka_the_Great']"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {activeGames.map((game, index) => {
+                        const level = getAttributeNumber(game.metadata, "Level");
+                        const score = getAttributeNumber(game.metadata, "Total Score") || game.score;
+                        const cubes = getAttributeNumber(game.metadata, "Total Cubes");
 
-                      return (
-                        <motion.article
-                          key={game.token_id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.2, delay: index * 0.03 }}
-                          className="bg-slate-800/60 rounded-lg p-4 border border-emerald-500/20"
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <h2 className="font-['Fredericka_the_Great'] text-lg text-white leading-tight">
-                                Game #{game.token_id}
-                              </h2>
-                              <div className="mt-2 flex items-center gap-4 text-sm text-slate-200">
-                                <span className="inline-flex items-center gap-1.5">
-                                  <Flag size={14} className="text-cyan-300" />
-                                  Level
-                                  <span className="font-['Bangers'] text-base tracking-wider text-cyan-200">
-                                    {level}
-                                  </span>
-                                </span>
-                                <span className="inline-flex items-center gap-1.5">
-                                  <Trophy size={14} className="text-amber-300" />
-                                  Score
-                                  <span className="font-['Bangers'] text-base tracking-wider text-amber-200">
-                                    {score}
-                                  </span>
-                                </span>
-                                <span className="inline-flex items-center gap-1.5">
-                                  <Box size={14} className="text-purple-300" />
-                                  Cubes
-                                  <span className="font-['Bangers'] text-base tracking-wider text-purple-200">
-                                    {cubes}
-                                  </span>
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="mt-3">
-                            <GameButton
-                              label="RESUME"
-                              variant="primary"
-                              onClick={() => navigate("map", game.token_id)}
-                            />
-                          </div>
-                        </motion.article>
-                      );
-                    })}
-                  </div>
-                </section>
+                        return (
+                          <motion.tr
+                            key={game.token_id}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.02 }}
+                            className="border-b border-slate-700/40"
+                          >
+                            <td className="py-2.5 px-2 text-white truncate">
+                              #{game.token_id}
+                            </td>
+                            <td className="py-2.5 px-2 text-cyan-200 text-right">
+                              <span className="font-['Bangers'] text-lg tracking-wide">
+                                {level}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-2 text-amber-200 text-right">
+                              <span className="font-['Bangers'] text-lg tracking-wide">
+                                {score}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-2 text-purple-200 text-right">
+                              <span className="font-['Bangers'] text-lg tracking-wide">
+                                {cubes}
+                              </span>
+                            </td>
+                            <td className="py-1.5 px-2 text-right">
+                              <GameButton
+                                label="RESUME"
+                                variant="primary"
+                                onClick={() => navigate("map", game.token_id)}
+                              />
+                            </td>
+                          </motion.tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </motion.section>
               )}
 
               {finishedGames.length > 0 && (
-                <section className="bg-slate-900/80 rounded-xl border border-slate-600/60 overflow-hidden">
-                  <h3 className="font-['Fredericka_the_Great'] text-sm text-slate-400 tracking-wide px-4 pt-3 pb-2">
+                <motion.section
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60"
+                >
+                  <h3 className="font-['Fredericka_the_Great'] text-lg text-slate-400 mb-3">
                     Finished
                   </h3>
-                  <div className="flex flex-col gap-3 px-3 pb-3">
-                    {finishedGames.map((game, index) => {
-                      const level = getAttributeNumber(game.metadata, "Level");
-                      const score = getAttributeNumber(game.metadata, "Total Score") || game.score;
-                      const cubes = getAttributeNumber(game.metadata, "Total Cubes");
+                  <table className="w-full text-sm table-fixed">
+                    <thead>
+                      <tr className="text-left text-slate-300 border-b border-slate-600/60">
+                        <th className="py-2 px-2 font-['Fredericka_the_Great']">Game</th>
+                        <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
+                        <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Score</th>
+                        <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Cubes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {finishedGames.map((game, index) => {
+                        const level = getAttributeNumber(game.metadata, "Level");
+                        const score = getAttributeNumber(game.metadata, "Total Score") || game.score;
+                        const cubes = getAttributeNumber(game.metadata, "Total Cubes");
 
-                      return (
-                        <motion.article
-                          key={game.token_id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.2, delay: index * 0.03 }}
-                          className="bg-slate-800/60 rounded-lg p-4 border border-slate-600/40"
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <h2 className="font-['Fredericka_the_Great'] text-lg text-white leading-tight">
-                                Game #{game.token_id}
-                              </h2>
-                              <div className="mt-2 flex items-center gap-4 text-sm text-slate-200">
-                                <span className="inline-flex items-center gap-1.5">
-                                  <Flag size={14} className="text-cyan-300" />
-                                  Level
-                                  <span className="font-['Bangers'] text-base tracking-wider text-cyan-200">
-                                    {level}
-                                  </span>
-                                </span>
-                                <span className="inline-flex items-center gap-1.5">
-                                  <Trophy size={14} className="text-amber-300" />
-                                  Score
-                                  <span className="font-['Bangers'] text-base tracking-wider text-amber-200">
-                                    {score}
-                                  </span>
-                                </span>
-                                <span className="inline-flex items-center gap-1.5">
-                                  <Box size={14} className="text-purple-300" />
-                                  Cubes
-                                  <span className="font-['Bangers'] text-base tracking-wider text-purple-200">
-                                    {cubes}
-                                  </span>
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </motion.article>
-                      );
-                    })}
-                  </div>
-                </section>
+                        return (
+                          <motion.tr
+                            key={game.token_id}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.02 }}
+                            className="border-b border-slate-700/40"
+                          >
+                            <td className="py-2.5 px-2 text-white truncate">
+                              #{game.token_id}
+                            </td>
+                            <td className="py-2.5 px-2 text-cyan-200 text-right">
+                              <span className="font-['Bangers'] text-lg tracking-wide">
+                                {level}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-2 text-amber-200 text-right">
+                              <span className="font-['Bangers'] text-lg tracking-wide">
+                                {score}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-2 text-purple-200 text-right">
+                              <span className="font-['Bangers'] text-lg tracking-wide">
+                                {cubes}
+                              </span>
+                            </td>
+                          </motion.tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </motion.section>
               )}
             </>
           )}
