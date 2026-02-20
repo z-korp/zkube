@@ -17,8 +17,17 @@ async function main(): Promise<void> {
   const themesPath = path.join(ROOT_DIR, "scripts", "generate-assets", "data", "themes.json");
   const themes = JSON.parse(fs.readFileSync(themesPath, "utf-8")) as ThemeMap;
 
-  const themeIds = Object.keys(themes).filter((id) => id !== "theme-9");
+  const themeFlag = process.argv.indexOf("--theme");
+  const requestedThemes = themeFlag !== -1 && process.argv[themeFlag + 1]
+    ? process.argv[themeFlag + 1].split(",").map((t) => t.trim())
+    : undefined;
+
+  const themeIds = requestedThemes ?? Object.keys(themes);
   for (const themeId of themeIds) {
+    if (!themes[themeId]) {
+      console.warn(`Unknown theme: ${themeId}, skipping`);
+      continue;
+    }
     const colors = themes[themeId].palette.blocks;
     for (let i = 1; i <= 4; i += 1) {
       const filePath = path.join(ASSETS_ROOT, themeId, `block-${i}.png`);
