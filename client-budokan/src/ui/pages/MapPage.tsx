@@ -10,7 +10,7 @@ import {
   type NodeState,
 } from "@/hooks/useMapData";
 import { useMapLayout } from "@/hooks/useMapLayout";
-import { getMapPathTheme, isValidThemeId, type ThemeId } from "@/config/themes";
+import { getMapPathTheme, getThemeImages, isValidThemeId, type ThemeId } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
@@ -192,6 +192,7 @@ const MapPage: React.FC = () => {
             const zone = zoneIdx + 1;
             const themeRaw = mapData.zoneThemes[zoneIdx] ?? "theme-1";
             const themeId: ThemeId = isValidThemeId(themeRaw) ? themeRaw : "theme-1";
+            const themeImages = getThemeImages(themeId);
             const layout = zoneLayouts[zoneIdx];
             const pathTheme = getMapPathTheme(themeId);
 
@@ -324,15 +325,18 @@ const MapPage: React.FC = () => {
                                 stroke={colors.border}
                                 strokeWidth={0.5}
                               />
-                              <text
-                                x={cx}
-                                y={cy + 0.3}
-                                textAnchor="middle"
-                                dominantBaseline="central"
-                                fontSize={4.5}
-                              >
-                                ☀️
-                              </text>
+                              <clipPath id={`boss-icon-clip-${zoneIdx}-${node.nodeInZone}`}>
+                                <circle cx={cx} cy={cy} r={3.3} />
+                              </clipPath>
+                              <image
+                                href={themeImages.themeIcon}
+                                x={cx - 3.3}
+                                y={cy - 3.3}
+                                width={6.6}
+                                height={6.6}
+                                preserveAspectRatio="xMidYMid slice"
+                                clipPath={`url(#boss-icon-clip-${zoneIdx}-${node.nodeInZone})`}
+                              />
                             </>
                           ) : (
                             <>
