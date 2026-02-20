@@ -3,120 +3,120 @@
     "id": "move",
     "filename": "move.mp3",
     "duration": 1,
-    "prompt": "Stone block sliding and clicking into place. Short, clean, satisfying click with light reverb."
+    "prompt": "Stone block sliding on marble surface, short scrape"
   },
   {
     "id": "swipe",
     "filename": "swipe.mp3",
     "duration": 1,
-    "prompt": "Quick soft whoosh with a light crystalline shimmer at the end. Fast and airy."
+    "prompt": "Quick fabric whoosh, single swipe through air"
   },
   {
     "id": "break",
     "filename": "break.mp3",
     "duration": 1,
-    "prompt": "Sharp glass crack with bright shimmer. Quick snap, fast decay, satisfying."
+    "prompt": "Small ceramic pot cracking apart"
   },
   {
     "id": "explode",
     "filename": "explode.mp3",
     "duration": 2,
-    "prompt": "Cascading crystal shatter building to a bright energy burst with deep bass hit at the peak."
+    "prompt": "Glass shattering with a bright sparkle burst, satisfying"
   },
   {
     "id": "new",
     "filename": "new.mp3",
     "duration": 1,
-    "prompt": "Three quick ascending chime tones. Bright and inviting with light reverb."
+    "prompt": "Stone slab dropping onto a pile, heavy thud"
   },
   {
     "id": "start",
     "filename": "start.mp3",
     "duration": 2,
-    "prompt": "Deep gong strike followed by ascending crystal chimes. Confident and ceremonial."
+    "prompt": "Ancient horn blowing once, epic single note"
   },
   {
     "id": "over",
     "filename": "over.mp3",
     "duration": 2,
-    "prompt": "Heavy stone impact with slow descending tones and fading reverb. Somber, final."
+    "prompt": "Low brass descent, three descending notes, somber"
   },
   {
     "id": "levelup",
     "filename": "levelup.mp3",
     "duration": 2,
-    "prompt": "Short triumphant ascending fanfare with a bright resonant bell at the end. Celebratory and warm."
+    "prompt": "Bright chime ascending three notes, magical sparkle"
   },
   {
     "id": "victory",
     "filename": "victory.mp3",
     "duration": 5,
-    "prompt": "Grand gong opening into cascading chimes and ascending fanfare. Singing bowls building to a bright majestic climax."
+    "prompt": "Triumphant trumpet fanfare, short celebration, 3 seconds"
   },
   {
     "id": "boss-intro",
     "filename": "boss-intro.mp3",
     "duration": 3,
-    "prompt": "Deep rumble building slowly with low drones growing in intensity. Ominous and tense, no resolution."
+    "prompt": "Deep war drum hit with rumbling echo, ominous"
   },
   {
     "id": "boss-defeat",
     "filename": "boss-defeat.mp3",
     "duration": 2,
-    "prompt": "Explosive crystal shatter followed by triumphant ascending chord. Victorious and powerful."
+    "prompt": "Crowd cheering with a final cymbal crash"
   },
   {
     "id": "click",
     "filename": "click.mp3",
     "duration": 1,
-    "prompt": "Short crisp stone click. Minimal, clean, tactile. Subtle reverb."
+    "prompt": "Short wooden button click"
   },
   {
     "id": "coin",
     "filename": "coin.mp3",
     "duration": 1,
-    "prompt": "Bright upward ting with metallic shimmer. Quick, rewarding, sparkly."
+    "prompt": "Single gold coin landing on a wooden table"
   },
   {
     "id": "star",
     "filename": "star.mp3",
     "duration": 1,
-    "prompt": "Pure crystal bell strike. High, bright, ringing with harmonic overtones."
+    "prompt": "Tinkling wind chime, single bright sparkle"
   },
   {
     "id": "claim",
     "filename": "claim.mp3",
     "duration": 2,
-    "prompt": "Stone crack followed by ascending sparkle cascade. Brief celebratory shimmer with reverb."
+    "prompt": "Treasure chest opening with coins spilling out"
   },
   {
     "id": "bonus-activate",
     "filename": "bonus-activate.mp3",
     "duration": 1,
-    "prompt": "Quick whoosh into a bright energy pulse. Empowering and snappy with brief ring-out."
+    "prompt": "Magical power-up whoosh with electric crackle"
   },
   {
     "id": "shop-purchase",
     "filename": "shop-purchase.mp3",
     "duration": 1,
-    "prompt": "Multiple small coins clinking into a stone bowl. Brief and satisfying."
+    "prompt": "Old cash register cha-ching"
   },
   {
     "id": "equip",
     "filename": "equip.mp3",
     "duration": 1,
-    "prompt": "Solid click-snap of something locking into place. Precise and tactile."
+    "prompt": "Metal sword sliding into a leather sheath"
   },
   {
     "id": "unequip",
     "filename": "unequip.mp3",
     "duration": 1,
-    "prompt": "Soft reverse click of something releasing from a slot. Quick and gentle."
+    "prompt": "Metal sword drawn out from leather sheath"
   },
   {
     "id": "constraint-complete",
     "filename": "constraint-complete.mp3",
     "duration": 1,
-    "prompt": "Two quick ascending chime tones. Bright checkpoint signal with short reverb."
+    "prompt": "Lock clicking open with a satisfying clunk"
   }
 ]
