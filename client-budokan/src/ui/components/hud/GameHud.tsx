@@ -208,21 +208,22 @@ const GameHud: React.FC<GameHudProps> = ({
   const potentialCubes = movesRemaining >= cube3Threshold ? 3
     : movesRemaining >= cube2Threshold ? 2 : 1;
 
-  const leftColWidth = 3 * ringSize + 2 * 6;
-
   return (
     <div className="w-full px-2 pt-2 shrink-0">
       <div
         className="max-w-[500px] mx-auto w-full bg-slate-900/90 backdrop-blur-sm border border-slate-500/50 rounded-lg px-3 py-2 grid items-center gap-x-2 gap-y-1.5"
-        style={{ gridTemplateColumns: `${leftColWidth}px 1fr auto` }}
+        style={{ gridTemplateColumns: `auto auto 1fr auto` }}
       >
         <div className="flex items-center gap-1.5">
           <span className="font-['Tilt_Prism'] text-base text-yellow-400 tracking-wide">Level</span>
           <div className="w-8 h-8 rounded-full border-2 border-yellow-500 bg-slate-900 flex items-center justify-center shadow-[0_0_8px_rgba(250,204,21,0.3)]">
             <span className="font-['Tilt_Prism'] text-base text-yellow-400 leading-none">{level}</span>
           </div>
-          <span className="text-xs">🧊</span>
-          <span className="font-['Tilt_Prism'] text-sm text-blue-300 tabular-nums">{totalCubes}</span>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <span className="text-base">🧊</span>
+          <span className="font-['Tilt_Prism'] text-base text-blue-300 tabular-nums">{totalCubes}</span>
         </div>
 
         <div className="min-w-0">
@@ -246,7 +247,7 @@ const GameHud: React.FC<GameHudProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5" style={{ width: leftColWidth }}>
+        <div className="flex items-center gap-1.5 col-span-2">
           <TooltipProvider delayDuration={200}>
             {constraints.map((c, i) => {
               const description = Constraint.fromContractValues(
