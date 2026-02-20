@@ -285,44 +285,44 @@ const MapPage: React.FC = () => {
                               setSelectedNode(node);
                             }
                           }}
-                          style={{ cursor: isInteractive ? "pointer" : "default" }}
+                          style={{
+                            cursor: isInteractive ? "pointer" : "default",
+                            transformOrigin: `${cx}px ${cy}px`,
+                            ...(node.state === "current"
+                              ? { animation: "map-node-pulse 2s ease-in-out infinite" }
+                              : {}),
+                          }}
                           opacity={colors.alpha}
-                          className={node.state === "current" ? "animate-pulse" : ""}
                         >
                           {node.type === "shop" ? (
-                            <>
-                              <rect
-                                x={cx - 4}
-                                y={cy - 2.5}
-                                width={8}
-                                height={5}
-                                rx={1.2}
-                                fill={colors.fill}
-                                stroke={colors.border}
-                                strokeWidth={0.4}
-                              />
-                              <text
-                                x={cx}
-                                y={cy}
-                                textAnchor="middle"
-                                dominantBaseline="central"
-                                fill={colors.text}
-                                fontSize={1.8}
-                                fontFamily="Bangers"
-                                letterSpacing="0.08em"
-                              >
-                                {label}
-                              </text>
-                            </>
+                            <text
+                              x={cx}
+                              y={cy}
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              fontSize={5}
+                            >
+                              🛒
+                            </text>
+                          ) : node.type === "boss" ? (
+                            <text
+                              x={cx}
+                              y={cy}
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              fontSize={7}
+                            >
+                              ☀️
+                            </text>
                           ) : (
                             <>
                               <circle
                                 cx={cx}
                                 cy={cy}
-                                r={node.type === "boss" ? 3.2 : 2.5}
+                                r={2.5}
                                 fill={colors.fill}
                                 stroke={colors.border}
-                                strokeWidth={node.type === "boss" ? 0.5 : 0.4}
+                                strokeWidth={0.4}
                               />
                               <text
                                 x={cx}

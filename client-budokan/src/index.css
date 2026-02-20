@@ -471,6 +471,16 @@ body {
   }
 }
 
+@keyframes map-node-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.18);
+  }
+}
+
 .wiggle {
   animation: wiggle 0.2s ease-in-out infinite;
 }
