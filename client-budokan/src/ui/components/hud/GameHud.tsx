@@ -208,9 +208,6 @@ const GameHud: React.FC<GameHudProps> = ({
   const potentialCubes = movesRemaining >= cube3Threshold ? 3
     : movesRemaining >= cube2Threshold ? 2 : 1;
 
-  const potentialCubes = movesRemaining >= cube3Threshold ? 3
-    : movesRemaining >= cube2Threshold ? 2 : 1;
-
   const leftColWidth = 3 * ringSize + 2 * 6;
 
   return (
