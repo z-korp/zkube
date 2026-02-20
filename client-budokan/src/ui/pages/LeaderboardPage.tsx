@@ -6,10 +6,10 @@ import ThemeBackground from "@/ui/components/shared/ThemeBackground";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 
 const rankStyle = (rank: number): string => {
-  if (rank === 1) return "bg-yellow-400/20 text-yellow-100 border border-yellow-300/40";
-  if (rank === 2) return "bg-slate-300/15 text-slate-100 border border-slate-300/35";
-  if (rank === 3) return "bg-amber-500/20 text-amber-100 border border-amber-400/35";
-  return "bg-slate-900/80 text-slate-200 border border-slate-600/60";
+  if (rank === 1) return "bg-yellow-400/25 text-yellow-100 border border-yellow-300/50";
+  if (rank === 2) return "bg-slate-300/20 text-slate-100 border border-slate-300/45";
+  if (rank === 3) return "bg-amber-500/25 text-amber-100 border border-amber-400/45";
+  return "bg-slate-800/90 text-slate-200 border border-slate-600/70";
 };
 
 const LeaderboardPage: React.FC = () => {
@@ -27,7 +27,7 @@ const LeaderboardPage: React.FC = () => {
           <motion.section
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60"
+            className="bg-slate-900/90 rounded-xl p-4 border border-slate-500/70"
           >
             <div className="flex items-center gap-2 mb-3">
               <Users size={17} className="text-cyan-300" />
@@ -45,7 +45,7 @@ const LeaderboardPage: React.FC = () => {
             ) : (
               <table className="w-full text-sm table-fixed">
                 <thead>
-                  <tr className="text-left text-slate-300 border-b border-slate-600/60">
+                  <tr className="text-left text-slate-200 border-b border-slate-500/60">
                     <th className="py-2 px-2 w-16 font-['Fredericka_the_Great']">Rank</th>
                     <th className="py-2 px-2 font-['Fredericka_the_Great']">Player</th>
                     <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
@@ -90,14 +90,8 @@ const LeaderboardPage: React.FC = () => {
                             {entry.totalCubes}
                           </span>
                         </td>
-                        <td className="py-2.5 px-2 text-right">
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${
-                            entry.gameOver
-                              ? "bg-slate-600/40 text-slate-400"
-                              : "bg-emerald-500/20 text-emerald-300"
-                          }`}>
-                            {entry.gameOver ? "Finished" : "Live"}
-                          </span>
+                        <td className="py-2.5 px-2 text-center text-base">
+                          {entry.gameOver ? "🏁" : "🟢"}
                         </td>
                       </motion.tr>
                     );
