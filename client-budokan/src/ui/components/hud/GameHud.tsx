@@ -205,16 +205,6 @@ const GameHud: React.FC<GameHudProps> = ({
     }
   }
 
-  // DEBUG: force 3 constraints to test layout — REMOVE BEFORE SHIPPING
-  while (constraints.length < 3) {
-    constraints.push({
-      type: ConstraintType.ClearLines,
-      value: 3,
-      count: 2,
-      progress: 1,
-    });
-  }
-
   const potentialCubes = movesRemaining >= cube3Threshold ? 3
     : movesRemaining >= cube2Threshold ? 2 : 1;
 
