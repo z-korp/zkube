@@ -6,7 +6,6 @@ import {
   LogOut,
   Music2,
   Palette,
-  Sparkles,
   UserRound,
   Volume2,
 } from "lucide-react";
@@ -76,17 +75,9 @@ const SettingsPage: React.FC = () => {
               </h2>
             </div>
 
-            <div className="flex flex-col gap-4">
-              <div className="min-h-[48px]">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="flex items-center gap-2 text-slate-200 text-sm">
-                    <Volume2 size={14} className="text-cyan-300" />
-                    Music Volume
-                  </span>
-                  <span className="font-['Bangers'] text-cyan-200 text-lg tracking-wider">
-                    {toPercent(musicVolume)}
-                  </span>
-                </div>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <Music2 size={16} className="text-cyan-300 shrink-0" />
                 <input
                   type="range"
                   min={0}
@@ -96,20 +87,15 @@ const SettingsPage: React.FC = () => {
                   onChange={(event) =>
                     setMusicVolume(Number(event.target.value) / 100)
                   }
-                  className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-slate-600 accent-cyan-400"
+                  className="flex-1 h-2 rounded-lg appearance-none cursor-pointer bg-slate-600 accent-cyan-400"
                 />
+                <span className="font-['Bangers'] text-cyan-200 text-lg tracking-wider w-8 text-right">
+                  {toPercent(musicVolume)}
+                </span>
               </div>
 
-              <div className="min-h-[48px]">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="flex items-center gap-2 text-slate-200 text-sm">
-                    <Sparkles size={14} className="text-emerald-300" />
-                    Effects Volume
-                  </span>
-                  <span className="font-['Bangers'] text-emerald-200 text-lg tracking-wider">
-                    {toPercent(effectsVolume)}
-                  </span>
-                </div>
+              <div className="flex items-center gap-3">
+                <Volume2 size={16} className="text-emerald-300 shrink-0" />
                 <input
                   type="range"
                   min={0}
@@ -119,8 +105,11 @@ const SettingsPage: React.FC = () => {
                   onChange={(event) =>
                     setEffectsVolume(Number(event.target.value) / 100)
                   }
-                  className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-slate-600 accent-emerald-400"
+                  className="flex-1 h-2 rounded-lg appearance-none cursor-pointer bg-slate-600 accent-emerald-400"
                 />
+                <span className="font-['Bangers'] text-emerald-200 text-lg tracking-wider w-8 text-right">
+                  {toPercent(effectsVolume)}
+                </span>
               </div>
             </div>
           </motion.section>

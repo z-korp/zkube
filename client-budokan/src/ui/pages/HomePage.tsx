@@ -115,11 +115,7 @@ const HomePage: React.FC = () => {
           )}
         </div>
 
-        <div className="mt-auto pt-8">
-          <p className="text-xs text-slate-500 text-center">
-            Built on Starknet with Dojo
-          </p>
-        </div>
+
       </div>
     </div>
   );
