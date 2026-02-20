@@ -18,8 +18,10 @@ import { getMapPathTheme, isValidThemeId, type ThemeId } from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
+import { isInGameShopAvailable } from "@/dojo/game/helpers/runDataPacking";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 import LevelPreview from "@/ui/components/map/LevelPreview";
+import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
 import ZoneBackground from "@/ui/components/map/ZoneBackground";
 
 /* ------------------------------------------------------------------ */
@@ -83,6 +85,8 @@ const MapPage: React.FC = () => {
   const gameId = useNavigationStore((state) => state.gameId);
   const pendingPreviewLevel = useNavigationStore((state) => state.pendingPreviewLevel);
   const setPendingPreviewLevel = useNavigationStore((state) => state.setPendingPreviewLevel);
+  const pendingLevelCompletion = useNavigationStore((state) => state.pendingLevelCompletion);
+  const setPendingLevelCompletion = useNavigationStore((state) => state.setPendingLevelCompletion);
   const { setThemeTemplate } = useTheme();
   const { setMusicContext } = useMusicPlayer();
 
@@ -381,10 +385,9 @@ const MapPage: React.FC = () => {
                               y={cy + (node.type === "boss" ? 4.5 : 3.8)}
                               textAnchor="middle"
                               dominantBaseline="central"
-                              fill="#facc15"
-                              fontSize={1.4}
+                              fontSize={1.6}
                             >
-                              {"\u2605".repeat(node.stars || 3)}
+                              {"🧊".repeat(node.cubesEarned || 3)}
                             </text>
                           )}
                         </g>
@@ -434,12 +437,38 @@ const MapPage: React.FC = () => {
         </div>
 
         {/* ---- Level preview modal ---- */}
-        {selectedNode && (
+        {selectedNode && !pendingLevelCompletion && (
           <LevelPreview
             node={selectedNode}
             gameId={gameId}
             onPlay={handlePlay}
             onClose={() => setSelectedNode(null)}
+          />
+        )}
+
+        {/* ---- Level complete overlay ---- */}
+        {pendingLevelCompletion && (
+          <LevelCompleteDialog
+            isOpen={true}
+            onClose={() => {
+              const completedLevel = pendingLevelCompletion.level;
+              const shopAvailable = isInGameShopAvailable(completedLevel);
+
+              setPendingLevelCompletion(null);
+
+              if (shopAvailable) {
+                navigate("ingameshop");
+              } else {
+                setPendingPreviewLevel(completedLevel + 1);
+              }
+            }}
+            level={pendingLevelCompletion.level}
+            levelMoves={pendingLevelCompletion.levelMoves}
+            prevTotalCubes={pendingLevelCompletion.prevTotalCubes}
+            totalCubes={pendingLevelCompletion.totalCubes}
+            prevTotalScore={pendingLevelCompletion.prevTotalScore}
+            totalScore={pendingLevelCompletion.totalScore}
+            gameLevel={pendingLevelCompletion.gameLevel}
           />
         )}
       </div>

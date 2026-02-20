@@ -20,7 +20,7 @@ export interface MapNodeData {
   state: NodeState;
   levelConfig: Level | null;
   zoneTheme: ThemeId;
-  stars: number;
+  cubesEarned: number;
 }
 
 export interface MapData {
@@ -66,7 +66,7 @@ function getNodeType(nodeInZone: number): NodeType {
   return "boss";
 }
 
-function getMapNode(nodeIndex: number): Omit<MapNodeData, "state" | "levelConfig" | "zoneTheme" | "stars"> {
+function getMapNode(nodeIndex: number): Omit<MapNodeData, "state" | "levelConfig" | "zoneTheme" | "cubesEarned"> {
   const zone = Math.floor(nodeIndex / NODES_PER_ZONE) + 1;
   const nodeInZone = nodeIndex % NODES_PER_ZONE;
   const type = getNodeType(nodeInZone);
@@ -176,7 +176,7 @@ export function generateMapData({ seed, currentLevel }: UseMapDataParams): MapDa
       state,
       levelConfig,
       zoneTheme: zoneThemes[node.zone - 1],
-      stars: state === "cleared" && node.contractLevel !== null ? 3 : 0,
+      cubesEarned: state === "cleared" && node.contractLevel !== null ? 3 : 0,
     };
   });
 

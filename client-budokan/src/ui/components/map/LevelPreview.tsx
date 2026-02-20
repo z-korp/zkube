@@ -3,7 +3,6 @@ import { X } from "lucide-react";
 import { ConstraintType } from "@/dojo/game/types/constraint";
 import type { MapNodeData } from "@/hooks/useMapData";
 import GameButton from "@/ui/components/shared/GameButton";
-import StarRating from "@/ui/components/shared/StarRating";
 
 export interface LevelPreviewProps {
   node: MapNodeData;
@@ -35,7 +34,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
   const constraints = levelConfig
     ? [levelConfig.constraint, levelConfig.constraint2]
         .filter((c) => c.constraintType !== ConstraintType.None)
-        .map((c) => c.getLabel())
+        .map((c) => c.getDescription())
     : [];
 
   const canPlay =
@@ -119,8 +118,21 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
             </div>
 
             <div className="flex items-center justify-between pt-1">
-              <span className="text-slate-400">Stars</span>
-              <StarRating stars={node.state === "cleared" ? Math.max(1, node.stars) : 0} />
+              <span className="text-slate-400">Cubes</span>
+              <div className="flex gap-0.5">
+                {[1, 2, 3].map((i) => (
+                  <span
+                    key={i}
+                    className={`text-lg ${
+                      node.state === "cleared" && i <= Math.max(1, node.cubesEarned)
+                        ? "opacity-100"
+                        : "opacity-25"
+                    }`}
+                  >
+                    🧊
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         )}

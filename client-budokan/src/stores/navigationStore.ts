@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { GameLevelData } from "@/hooks/useGameLevel";
 
 export type PageId =
   | "home"
@@ -13,6 +14,16 @@ export type PageId =
   | "tutorial"
   | "ingameshop";
 
+export interface PendingLevelCompletion {
+  level: number;
+  levelMoves: number;
+  prevTotalCubes: number;
+  totalCubes: number;
+  prevTotalScore: number;
+  totalScore: number;
+  gameLevel: GameLevelData | null;
+}
+
 interface NavigationState {
   currentPage: PageId;
   previousPage: PageId | null;
@@ -20,10 +31,12 @@ interface NavigationState {
   transitionDirection: "forward" | "back" | null;
   gameId: number | null;
   pendingPreviewLevel: number | null;
+  pendingLevelCompletion: PendingLevelCompletion | null;
   navigate: (page: PageId, gameId?: number) => void;
   goBack: () => void;
   setGameId: (id: number | null) => void;
   setPendingPreviewLevel: (level: number | null) => void;
+  setPendingLevelCompletion: (data: PendingLevelCompletion | null) => void;
 }
 
 const getBackTarget = (page: PageId): PageId => {
@@ -46,6 +59,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
   transitionDirection: null,
   gameId: null,
   pendingPreviewLevel: null,
+  pendingLevelCompletion: null,
 
   navigate: (page, gameId) => {
     const { currentPage, isTransitioning } = get();
@@ -83,4 +97,5 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
 
   setGameId: (id) => set({ gameId: id }),
   setPendingPreviewLevel: (level) => set({ pendingPreviewLevel: level }),
+  setPendingLevelCompletion: (data) => set({ pendingLevelCompletion: data }),
 }));

@@ -9,7 +9,6 @@ import useViewport from "@/hooks/useViewport";
 import { useDojo } from "@/dojo/useDojo";
 import {
   getBonusInventoryCount,
-  isInGameShopAvailable,
 } from "@/dojo/game/helpers/runDataPacking";
 import { BonusType, bonusTypeFromContractValue } from "@/dojo/game/types/bonus";
 import { useNavigationStore } from "@/stores/navigationStore";
@@ -20,7 +19,6 @@ import GameActionBar from "@/ui/components/actionbar/GameActionBar";
 import GameBoard from "@/ui/components/GameBoard";
 import GameOverDialog from "@/ui/components/GameOverDialog";
 import VictoryDialog from "@/ui/components/VictoryDialog";
-import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
 import { PendingLevelUpDialog } from "@/ui/components/Shop";
 import Connect from "@/ui/components/Connect";
 import {
@@ -32,29 +30,6 @@ import {
 } from "@/ui/elements/dialog";
 import { generateLevelConfig } from "@/dojo/game/types/level";
 import { deriveZoneThemes, getZone } from "@/hooks/useMapData";
-
-interface LevelCompletionData {
-  level: number;
-  levelScore: number;
-  levelMoves: number;
-  constraintProgress: number;
-  bonusUsedThisLevel: boolean;
-  prevCombo: number;
-  prevScore: number;
-  prevHarvest: number;
-  prevWave: number;
-  prevSupply: number;
-  comboBonus: number;
-  scoreBonus: number;
-  harvest: number;
-  wave: number;
-  supply: number;
-  prevTotalCubes: number;
-  totalCubes: number;
-  prevTotalScore: number;
-  totalScore: number;
-  gameLevel: GameLevelData | null;
-}
 
 const PlayScreen: React.FC = () => {
   useViewport();
@@ -68,7 +43,7 @@ const PlayScreen: React.FC = () => {
   const gameId = useNavigationStore((s) => s.gameId);
   const navNavigate = useNavigationStore((s) => s.navigate);
   const goBack = useNavigationStore((s) => s.goBack);
-  const setPendingPreviewLevel = useNavigationStore((s) => s.setPendingPreviewLevel);
+  const setPendingLevelCompletion = useNavigationStore((s) => s.setPendingLevelCompletion);
   const { themeTemplate, setThemeTemplate } = useTheme();
   const { setMusicContext, playSfx } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
@@ -83,11 +58,8 @@ const PlayScreen: React.FC = () => {
   const [isGameOverOpen, setIsGameOverOpen] = useState(false);
   const [isVictoryOpen, setIsVictoryOpen] = useState(false);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
-  const [isLevelCompleteOpen, setIsLevelCompleteOpen] = useState(false);
   const [isPendingLevelUpOpen, setIsPendingLevelUpOpen] = useState(false);
   const [openShopAfterLevelUp, setOpenShopAfterLevelUp] = useState(false);
-  const [levelCompletionData, setLevelCompletionData] =
-    useState<LevelCompletionData | null>(null);
   const [isGameLoading, setIsGameLoading] = useState(true);
   const [activeBonus, setActiveBonus] = useState<BonusType>(BonusType.None);
   const [bonusDescription, setBonusDescription] = useState("");
@@ -147,18 +119,10 @@ const PlayScreen: React.FC = () => {
   }, [account]);
 
   useEffect(() => {
-    if (
-      game?.bossLevelUpPending &&
-      !isPendingLevelUpOpen &&
-      !isLevelCompleteOpen
-    ) {
+    if (game?.bossLevelUpPending && !isPendingLevelUpOpen) {
       setIsPendingLevelUpOpen(true);
     }
-  }, [
-    game?.bossLevelUpPending,
-    isPendingLevelUpOpen,
-    isLevelCompleteOpen,
-  ]);
+  }, [game?.bossLevelUpPending, isPendingLevelUpOpen]);
 
   useEffect(() => {
     if (prevGameOverRef.current !== undefined) {
@@ -190,30 +154,17 @@ const PlayScreen: React.FC = () => {
       } else {
         playSfx("levelup");
       }
-      setLevelCompletionData({
+      setPendingLevelCompletion({
         level: prevState.level,
-        levelScore: prevState.levelScore,
         levelMoves: prevState.levelMoves,
-        constraintProgress: prevState.constraintProgress,
-        bonusUsedThisLevel: prevState.bonusUsedThisLevel,
-        prevCombo: prevState.comboBonus,
-        prevScore: prevState.scoreBonus,
-        prevHarvest: prevState.harvest,
-        prevWave: prevState.wave,
-        prevSupply: prevState.supply,
-        comboBonus: game.comboBonus,
-        scoreBonus: game.scoreBonus,
-        harvest: game.harvest,
-        wave: game.wave,
-        supply: game.supply,
         prevTotalCubes: prevState.totalCubes,
         totalCubes: game.totalCubes,
         prevTotalScore: levelStartTotalScoreRef.current,
         totalScore: game.totalScore,
         gameLevel: prevState.gameLevel,
       });
-      setIsLevelCompleteOpen(true);
       levelStartTotalScoreRef.current = game.totalScore;
+      navNavigate("map");
     }
 
     prevGameStateRef.current = {
@@ -437,42 +388,6 @@ const PlayScreen: React.FC = () => {
             navNavigate("home");
           }}
           game={game}
-        />
-      )}
-
-      {levelCompletionData && (
-        <LevelCompleteDialog
-          isOpen={isLevelCompleteOpen}
-          onClose={() => {
-            setIsLevelCompleteOpen(false);
-            const completedLevel = levelCompletionData.level;
-            const hasCubesToSpend = game && game.cubesAvailable > 0;
-            const shopAvailable = isInGameShopAvailable(completedLevel);
-            const shouldOpenShop = !!shopAvailable && !!hasCubesToSpend;
-
-            if (game?.bossLevelUpPending) {
-              setOpenShopAfterLevelUp(shouldOpenShop);
-              setIsPendingLevelUpOpen(true);
-              setLevelCompletionData(null);
-              return;
-            }
-
-            if (shouldOpenShop) {
-              setLevelCompletionData(null);
-              navNavigate("ingameshop");
-            } else {
-              setLevelCompletionData(null);
-              setPendingPreviewLevel(completedLevel + 1);
-              navNavigate("map");
-            }
-          }}
-          level={levelCompletionData.level}
-          levelMoves={levelCompletionData.levelMoves}
-          prevTotalCubes={levelCompletionData.prevTotalCubes}
-          totalCubes={levelCompletionData.totalCubes}
-          prevTotalScore={levelCompletionData.prevTotalScore}
-          totalScore={levelCompletionData.totalScore}
-          gameLevel={levelCompletionData.gameLevel}
         />
       )}
 
