@@ -7,7 +7,7 @@ export const PER_THEME_ASSETS = [
   "theme-icon",
 ] as const;
 
-export const GLOBAL_ASSETS = ["buttons", "shared-icons", "catalog-icons", "bonus-icons", "ui-chrome", "panels", "particles"] as const;
+export const GLOBAL_ASSETS = ["buttons", "shared-icons", "catalog-icons", "bonus-icons", "constraint-icons", "ui-chrome", "panels", "particles"] as const;
 
 export type Scope = "per-theme" | "global" | "all";
 export type PerThemeAsset = (typeof PER_THEME_ASSETS)[number];
@@ -116,6 +116,7 @@ export interface GlobalAssetsData {
   sharedIcons: FilenameDescription[];
   catalogIcons: FilenameDescription[];
   bonusIcons: FilenameDescription[];
+  constraintIcons: FilenameDescription[];
   uiChrome: UiChromeConfig[];
   panels: PanelConfig[];
   particles: FilenameDescription[];

@@ -207,7 +207,11 @@ Square format. 48x48 pixel target (generating larger for quality).
 }
 
 export function buildBonusIconPrompt(description: string): string {
-  return `A bold ${description}. Drawn in white (#FFFFFF) on a solid black background. Stylized 2D vector game art with bold black outlines and flat cel-shading. Thick strokes, centered composition, instantly readable at small sizes. Sharp square corners — no rounded edges, no circular framing. No text, no logos, no clutter. Square format.`;
+  return `${description}. Stylized 2D game icon, bold black outlines, flat cel-shading with 3 tonal steps. Dark background (#0A0A14). Centered composition filling inner 70% of frame for circular crop. Square format, instantly readable at 48px. No text.`;
+}
+
+export function buildConstraintIconPrompt(description: string): string {
+  return `${description}. Stylized 2D game icon, bold black outlines, flat cel-shading with 3 tonal steps. Dark background (#0A0A14). Centered composition filling inner 70% of frame for circular crop. Square format, instantly readable at 48px. No text.`;
 }
 
 export function buildUiChromePrompt(description: string, width: number, height: number): string {

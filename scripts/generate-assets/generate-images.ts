@@ -6,6 +6,7 @@ import {
   buildBonusIconPrompt,
   buildButtonPrompt,
   buildCommonLogoPrompt,
+  buildConstraintIconPrompt,
   buildGridBackgroundPrompt,
   buildLoadingBackgroundPrompt,
   buildPanelPrompt,
@@ -292,6 +293,20 @@ function buildGlobalJobs(filter?: AssetCategory): AssetJob[] {
         filename: bonus.filename,
         outputPath: path.join(COMMON_ROOT, "bonus", bonus.filename),
         prompt: buildBonusIconPrompt(bonus.description),
+        width: 1024,
+        height: 1024,
+      });
+    }
+  }
+
+  if (shouldIncludeCategory("constraint-icons", filter)) {
+    for (const icon of globalAssets.constraintIcons) {
+      jobs.push({
+        scope: "global",
+        category: "constraint-icons",
+        filename: icon.filename,
+        outputPath: path.join(COMMON_ROOT, "constraints", icon.filename),
+        prompt: buildConstraintIconPrompt(icon.description),
         width: 1024,
         height: 1024,
       });

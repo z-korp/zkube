@@ -25,8 +25,8 @@ interface GameHudProps {
   maxMoves: number;
 }
 
-const ringSize = 32;
-const iconSize = 14;
+const ringSize = 40;
+const iconSize = 18;
 
 const getConstraintIcon = (type: ConstraintType, size: number) => {
   switch (type) {
@@ -164,13 +164,13 @@ const GameHud: React.FC<GameHudProps> = ({
       <div className="max-w-[500px] mx-auto w-full bg-slate-900/60 backdrop-blur-sm rounded-lg px-3 py-2 flex flex-col gap-2">
         {/* Row 1: Level + Combo | Constraints (centered) | Cubes */}
         <div className="flex items-center">
-          <div className="flex items-center gap-1 shrink-0 min-w-0">
-            <span className="font-['Tilt_Prism'] text-sm text-slate-300 tracking-wide">Level</span>
-            <div className="w-7 h-7 rounded-full border-2 border-yellow-500 bg-slate-900 flex items-center justify-center shadow-[0_0_8px_rgba(250,204,21,0.3)]">
-              <span className="font-['Tilt_Prism'] text-xs text-yellow-400 leading-none">{level}</span>
+          <div className="flex items-center gap-1.5 shrink-0 min-w-0">
+            <span className="font-['Tilt_Prism'] text-base text-yellow-400 tracking-wide">Level</span>
+            <div className="w-8 h-8 rounded-full border-2 border-yellow-500 bg-slate-900 flex items-center justify-center shadow-[0_0_8px_rgba(250,204,21,0.3)]">
+              <span className="font-['Tilt_Prism'] text-base text-yellow-400 leading-none">{level}</span>
             </div>
             {combo > 0 && (
-              <span className="font-['Bangers'] text-sm text-orange-400 ml-0.5">
+              <span className="font-['Bangers'] text-base text-orange-400 ml-0.5">
                 🔥{combo}x
               </span>
             )}
@@ -213,9 +213,9 @@ const GameHud: React.FC<GameHudProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-0.5 shrink-0">
-            <span className="text-xs">🧊</span>
-            <span className="font-['Tilt_Prism'] text-sm text-blue-300 tabular-nums">
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-sm">🧊</span>
+            <span className="font-['Tilt_Prism'] text-base text-blue-300 tabular-nums">
               {totalCubes}
             </span>
           </div>
@@ -225,13 +225,13 @@ const GameHud: React.FC<GameHudProps> = ({
         <div className="flex items-end gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline justify-between mb-0.5">
-              <span className="font-['Tilt_Prism'] text-xs text-slate-300 tracking-wide">Score</span>
-              <span className="font-['Tilt_Prism'] text-xs text-cyan-300 tabular-nums">
+              <span className="font-['Tilt_Prism'] text-sm text-slate-300 tracking-wide">Score</span>
+              <span className="font-['Tilt_Prism'] text-sm text-cyan-300 tabular-nums">
                 {animatedScore}
                 <span className="text-slate-400">/{targetScore}</span>
               </span>
             </div>
-            <div className="h-2 bg-slate-700/80 rounded-full overflow-hidden">
+            <div className="h-2.5 bg-slate-700/80 rounded-full overflow-hidden">
               <div
                 className="h-full bg-cyan-500 rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${scoreProgress * 100}%` }}
@@ -244,7 +244,7 @@ const GameHud: React.FC<GameHudProps> = ({
               <TooltipProvider delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="font-['Tilt_Prism'] text-xs text-slate-300 tracking-wide cursor-help underline decoration-dotted decoration-slate-500 underline-offset-2">
+                    <span className="font-['Tilt_Prism'] text-sm text-slate-300 tracking-wide cursor-help underline decoration-dotted decoration-slate-500 underline-offset-2">
                       Moves
                     </span>
                   </TooltipTrigger>
@@ -269,12 +269,12 @@ const GameHud: React.FC<GameHudProps> = ({
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              <span className={`font-['Tilt_Prism'] text-xs tabular-nums ${movesTextColor}`}>
+              <span className={`font-['Tilt_Prism'] text-sm tabular-nums ${movesTextColor}`}>
                 {movesRemaining}
                 <span className="text-slate-400">/{maxMoves}</span>
               </span>
             </div>
-            <div className="relative h-2 bg-slate-700/80 rounded-full overflow-hidden">
+            <div className="relative h-2.5 bg-slate-700/80 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-300 ease-out ${movesBarColor}`}
                 style={{ width: `${movesProgress * 100}%` }}
