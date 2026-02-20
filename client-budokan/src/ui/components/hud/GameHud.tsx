@@ -256,7 +256,7 @@ const GameHud: React.FC<GameHudProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <span className={`font-['Bangers'] text-base tabular-nums ${combo > 0 ? "text-orange-400" : "text-slate-500"}`}>
+            <span className={`font-['Tilt_Prism'] text-base tabular-nums ${combo > 0 ? "text-orange-400" : "text-slate-500"}`}>
               🔥{combo}x
             </span>
             <span className="text-sm">🧊</span>
