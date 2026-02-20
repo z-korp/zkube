@@ -555,11 +555,11 @@ body[style*="pointer-events: none"] #controller * {
   display: none;
 }
 
-/* Mobile toast - position between top and middle */
+/* Mobile toast - position at bottom */
 @media (max-width: 768px) {
   [data-sonner-toaster] {
-    top: 35% !important;
-    bottom: unset !important;
-    transform: translateY(-50%) !important;
+    top: unset !important;
+    bottom: 1rem !important;
+    transform: none !important;
   }
 }
