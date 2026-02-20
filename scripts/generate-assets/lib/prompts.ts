@@ -170,44 +170,37 @@ export function buildThemeIconPrompt(theme: ThemeDefinition): string {
 export function buildMapBackgroundPrompt(theme: ThemeDefinition): string {
   return `
 {
-  "style_name": "${theme.name} Map Background",
+  "style_name": "${theme.name} Decorative Map Backdrop",
   "inspiration": [
     "${theme.blockData.inspirations[0]}",
     "${theme.blockData.inspirations[1]}",
-    "Top-down fantasy adventure map illustration",
-    "Stylized portrait-format game level-select background"
+    "Richly decorated game environment wallpaper",
+    "High-contrast atmospheric scene backdrop"
   ],
-  "scene": "${theme.mapScene}",
-  "boss_landmark": "At the top center of the image: ${theme.bossLandmark}",
-  "style": "flat vector illustration with bold linework, smooth gradients, and high-contrast cel shading",
+  "scene": "A richly detailed ${theme.name} environment scene — ${theme.mapScene}. Purely decorative scenery filling the entire frame, dense with themed environmental elements spread evenly across the canvas.",
+  "style": "flat vector illustration with bold linework, smooth gradients, and very high-contrast cel shading. Strong color saturation with vivid ${theme.palette.accent} accent highlights against deep dark ${theme.palette.bg} shadows.",
   "color_palette": {
     "primary": "${theme.palette.bg}",
     "secondary": "${theme.palette.accent}",
-    "highlight": "${lightenHex(theme.palette.accent, 0.25)}",
-    "shadow": "${darkenHex(theme.palette.bg, 0.35)}",
-    "background_gradient": ["${darkenHex(theme.palette.bg, 0.25)}", "${theme.palette.bg}"]
+    "highlight": "${lightenHex(theme.palette.accent, 0.35)}",
+    "shadow": "${darkenHex(theme.palette.bg, 0.4)}",
+    "accent_pop": "${lightenHex(theme.palette.accent, 0.5)}",
+    "background_gradient": ["${darkenHex(theme.palette.bg, 0.3)}", "${theme.palette.bg}"]
   },
-  "lighting": "dramatic overhead lighting with deep shadows, overall dark tone",
-  "mood": "${theme.mood}, adventurous, mysterious",
-  "layout": {
-    "format": "square 1:1",
-    "center_corridor": "A clear winding path corridor running vertically through the center third of the image from bottom to top, the path surface lighter than surroundings",
-    "boss_structure": "A prominent ${theme.name}-themed landmark/structure at the top center of the image, clearly visible and imposing",
-    "edges": "Dense decorative themed elements at the left and right edges — trees, rocks, ruins, cultural structures — framing the central path",
-    "bottom": "Path entrance at the bottom center, inviting the viewer upward"
-  },
-  "composition": "square composition with vertical emphasis, path leads the eye from bottom to top toward the boss landmark, scenery fills edge-to-edge",
+  "lighting": "dramatic high-contrast lighting with vivid accent color highlights and deep dark shadows",
+  "mood": "${theme.mood}, vibrant, immersive",
+  "composition": "evenly distributed environmental elements filling the entire square canvas, no central focal point, no paths, no roads, no corridors, no clearings",
   "camera": {
-    "angle": "slightly elevated bird's eye",
-    "distance": "wide shot showing full vertical extent",
+    "angle": "eye-level immersive",
+    "distance": "medium shot",
     "lens": "35mm",
-    "focus": "sharp across entire frame"
+    "focus": "sharp across frame"
   },
   "medium": "digital vector art",
-  "textures": "clean edges, smooth gradient volumes, subtle atmospheric depth",
-  "effects": "subtle fog/mist between layers, gentle glow on the path and boss structure",
+  "textures": "clean bold edges, saturated color fills, strong tonal contrast between light and dark areas",
+  "effects": "subtle atmospheric depth, glowing accent-colored highlights on key elements, rich color saturation",
   "themes": ["${theme.name}", "${theme.blockData.themeKeywords[0]}", "${theme.blockData.themeKeywords[1]}", "${theme.blockData.themeKeywords[2]}"],
-  "usage_notes": "Square 1:1 opaque image. Overall DARK tone matching the game's dark UI. The central corridor must be clearly visible for SVG road overlay. Boss landmark at top must be prominent. No text, no UI elements, no characters."
+  "usage_notes": "Square 1:1 opaque image. HIGH CONTRAST — vivid accent colors against very dark background. No paths, no roads, no corridors, no central structures. Pure decorative environment scenery. No text, no UI, no characters. This is a backdrop behind semi-transparent game UI elements so contrast must be strong."
 }
 `.trim();
 }
