@@ -427,7 +427,7 @@ const PlayScreen: React.FC = () => {
         />
       )}
 
-      <div className="flex-1 flex flex-col items-center justify-end min-h-0 px-2 py-1">
+      <div className="flex-1 flex flex-col items-center justify-end min-h-0 px-2 py-1 overflow-hidden">
         {(isGameLoading || isGridLoading) && (
           <div className="flex flex-col items-center justify-center gap-4 py-12">
             <img
