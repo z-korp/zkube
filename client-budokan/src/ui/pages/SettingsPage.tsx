@@ -3,10 +3,8 @@ import { motion } from "motion/react";
 import {
   Check,
   Copy,
-  LogOut,
   Palette,
   UserRound,
-  Volume2,
 } from "lucide-react";
 import { useDisconnect } from "@starknet-react/core";
 import { THEME_IDS, THEME_META } from "@/config/themes";
@@ -65,10 +63,10 @@ const SettingsPage: React.FC = () => {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.22 }}
-            className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50"
+            className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60"
           >
             <div className="flex items-center gap-2 mb-3">
-              <Volume2 size={18} className="text-cyan-300" />
+              <span className="text-lg">🎵</span>
               <h2 className="font-['Fredericka_the_Great'] text-lg text-white tracking-wide">
                 AUDIO
               </h2>
@@ -76,7 +74,7 @@ const SettingsPage: React.FC = () => {
 
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3">
-                <Volume2 size={16} className="text-cyan-300 shrink-0" />
+                <span className="text-base shrink-0">🎵</span>
                 <input
                   type="range"
                   min={0}
@@ -94,7 +92,7 @@ const SettingsPage: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-3">
-                <Volume2 size={16} className="text-emerald-300 shrink-0" />
+                <span className="text-base shrink-0">🔔</span>
                 <input
                   type="range"
                   min={0}
@@ -117,7 +115,7 @@ const SettingsPage: React.FC = () => {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.04 }}
-            className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50"
+            className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60"
           >
             <div className="flex items-center gap-2 mb-3">
               <Palette size={18} className="text-amber-300" />
@@ -166,7 +164,7 @@ const SettingsPage: React.FC = () => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.08 }}
-            className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50"
+            className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60"
           >
             <div className="flex items-center gap-2 mb-3">
               <UserRound size={18} className="text-indigo-300" />
@@ -213,20 +211,7 @@ const SettingsPage: React.FC = () => {
             )}
           </motion.section>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.12 }}
-          >
-            <button
-              type="button"
-              onClick={goBack}
-              className="w-full rounded-xl border border-slate-600/80 bg-slate-900/50 py-3 text-slate-100 hover:bg-slate-800/70 transition-colors inline-flex items-center justify-center gap-2"
-            >
-              <LogOut size={15} />
-              Back
-            </button>
-          </motion.div>
+
         </div>
       </div>
     </div>

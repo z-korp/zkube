@@ -9,7 +9,7 @@ const rankStyle = (rank: number): string => {
   if (rank === 1) return "bg-yellow-400/20 text-yellow-100 border border-yellow-300/40";
   if (rank === 2) return "bg-slate-300/15 text-slate-100 border border-slate-300/35";
   if (rank === 3) return "bg-amber-500/20 text-amber-100 border border-amber-400/35";
-  return "bg-slate-800/60 text-slate-200 border border-slate-700/50";
+  return "bg-slate-900/80 text-slate-200 border border-slate-600/60";
 };
 
 const LeaderboardPage: React.FC = () => {
@@ -27,7 +27,7 @@ const LeaderboardPage: React.FC = () => {
           <motion.section
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50"
+            className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60"
           >
             <div className="flex items-center gap-2 mb-3">
               <Users size={17} className="text-cyan-300" />

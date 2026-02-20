@@ -64,7 +64,7 @@ const TutorialPage: React.FC = () => {
           <motion.section
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50"
+            className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60"
           >
             <h2 className="font-['Fredericka_the_Great'] text-xl text-white mb-4">
               Quick Guide

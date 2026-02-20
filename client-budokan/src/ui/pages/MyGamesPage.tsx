@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { motion } from "motion/react";
-import { Box, CirclePlay, Flag, Trophy } from "lucide-react";
+import { Box, Flag, Trophy } from "lucide-react";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useNavigationStore } from "@/stores/navigationStore";
@@ -52,15 +52,15 @@ const MyGamesPage: React.FC = () => {
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4">
         <div className="max-w-[760px] mx-auto flex flex-col gap-3 pb-8">
           {loading ? (
-            <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50 text-slate-200">
+            <div className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60 text-slate-200">
               Loading your runs...
             </div>
           ) : !account?.address ? (
-            <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50 text-slate-200">
+            <div className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60 text-slate-200">
               Connect your wallet to see your game tokens.
             </div>
           ) : activeGames.length === 0 && finishedGames.length === 0 ? (
-            <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50 text-slate-200">
+            <div className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60 text-slate-200">
               No games yet. Start a run and your games will appear here.
             </div>
           ) : (
@@ -82,7 +82,7 @@ const MyGamesPage: React.FC = () => {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.2, delay: index * 0.03 }}
-                          className="bg-slate-800/60 rounded-xl p-4 border border-emerald-500/30"
+                          className="bg-slate-900/80 rounded-xl p-4 border border-emerald-500/30"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div>
@@ -145,7 +145,7 @@ const MyGamesPage: React.FC = () => {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.2, delay: index * 0.03 }}
-                          className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50"
+                          className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div>
@@ -186,14 +186,7 @@ const MyGamesPage: React.FC = () => {
             </>
           )}
 
-          <button
-            type="button"
-            onClick={goBack}
-            className="mt-1 bg-slate-800/60 rounded-xl p-4 border border-slate-700/50 text-slate-100 hover:bg-slate-700/60 transition-colors inline-flex items-center justify-center gap-2"
-          >
-            <CirclePlay size={16} />
-            <span className="font-['Fredericka_the_Great']">Back to Home</span>
-          </button>
+
         </div>
       </div>
     </div>

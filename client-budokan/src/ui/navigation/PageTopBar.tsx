@@ -24,7 +24,11 @@ const PageTopBar: React.FC<PageTopBarProps> = ({
         >
           <ChevronLeft size={22} />
         </button>
-        <div className="flex flex-col">
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex flex-col text-left hover:opacity-80 transition-opacity"
+        >
           <span className="font-['Fredericka_the_Great'] text-white text-base md:text-lg leading-tight">
             {title}
           </span>
@@ -33,7 +37,7 @@ const PageTopBar: React.FC<PageTopBarProps> = ({
               {subtitle}
             </span>
           )}
-        </div>
+        </button>
       </div>
 
       {cubeBalance !== undefined && (
