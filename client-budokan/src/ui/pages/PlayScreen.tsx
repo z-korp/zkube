@@ -46,7 +46,7 @@ const PlayScreen: React.FC = () => {
   const goBack = useNavigationStore((s) => s.goBack);
   const setPendingLevelCompletion = useNavigationStore((s) => s.setPendingLevelCompletion);
   const { themeTemplate, setThemeTemplate } = useTheme();
-  const { setMusicContext, playSfx } = useMusicPlayer();
+  const { setMusicContext, setMusicPlaylist, playSfx } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
 
   const { playerMeta } = usePlayerMeta();
@@ -88,12 +88,20 @@ const PlayScreen: React.FC = () => {
   useEffect(() => {
     const level = game?.level ?? 1;
     const isBossLevel = level > 0 && level % 10 === 0;
+    const wasBossLevel = prevBossLevelRef.current != null && prevBossLevelRef.current > 0 && prevBossLevelRef.current % 10 === 0;
+
     if (isBossLevel && prevBossLevelRef.current !== level) {
       playSfx("boss-intro");
     }
+
+    if (isBossLevel) {
+      setMusicContext("boss");
+    } else if (wasBossLevel && prevBossLevelRef.current !== level) {
+      setMusicPlaylist(["main", "level"]);
+    }
+
     prevBossLevelRef.current = level;
-    setMusicContext(isBossLevel ? "boss" : "level");
-  }, [game?.level, playSfx, setMusicContext]);
+  }, [game?.level, playSfx, setMusicContext, setMusicPlaylist]);
 
   useEffect(() => {
     if (seed === 0n || !game) return;

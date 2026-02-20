@@ -85,7 +85,7 @@ const MapPage: React.FC = () => {
   const pendingLevelCompletion = useNavigationStore((state) => state.pendingLevelCompletion);
   const setPendingLevelCompletion = useNavigationStore((state) => state.setPendingLevelCompletion);
   const { setThemeTemplate } = useTheme();
-  const { setMusicContext } = useMusicPlayer();
+  const { setMusicPlaylist } = useMusicPlayer();
 
   const { game, seed } = useGame({
     gameId: gameId ?? undefined,
@@ -110,8 +110,8 @@ const MapPage: React.FC = () => {
   }, [mapData.currentZone]);
 
   useEffect(() => {
-    setMusicContext("main");
-  }, [setMusicContext]);
+    setMusicPlaylist(["main", "level"]);
+  }, [setMusicPlaylist]);
 
   useEffect(() => {
     const themeRaw = mapData.zoneThemes[activeZone] ?? "theme-1";

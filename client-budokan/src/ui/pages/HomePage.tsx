@@ -26,15 +26,15 @@ const HomePage: React.FC = () => {
 
   const { account } = useAccountCustom();
   const { themeTemplate, setThemeTemplate } = useTheme();
-  const { setMusicContext } = useMusicPlayer();
+  const { setMusicPlaylist } = useMusicPlayer();
   const { cubeBalance } = useCubeBalance();
   const navigate = useNavigationStore((s) => s.navigate);
   const imgAssets = ImageAssets(themeTemplate);
 
   useEffect(() => {
     setThemeTemplate(loadThemeTemplate(), false);
-    setMusicContext("main");
-  }, [setMusicContext, setThemeTemplate]);
+    setMusicPlaylist(["main", "level"]);
+  }, [setMusicPlaylist, setThemeTemplate]);
 
   const shouldFetchMyGames = Boolean(account?.address);
   const normalizedOwner = normalizeAddress(account?.address);
