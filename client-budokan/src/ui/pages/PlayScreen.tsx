@@ -415,7 +415,6 @@ const PlayScreen: React.FC = () => {
           constraint3Progress={game.runData.constraint3Progress}
           bonusUsedThisLevel={game.bonusUsedThisLevel}
           gameLevel={gameLevel}
-          moves={game.levelMoves}
           maxMoves={maxMoves}
         />
       )}
@@ -481,7 +480,6 @@ const PlayScreen: React.FC = () => {
           activeBonus={activeBonus}
           bonusDescription={bonusDescription}
           onSurrender={handleSurrender}
-          onHome={() => navNavigate("home")}
           onMap={goBack}
           isGameOver={game.over}
         />

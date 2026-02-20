@@ -21,7 +21,7 @@ const TopBar: React.FC<TopBarProps> = ({
     <div className="flex items-center justify-between px-3 md:px-4 h-12 md:h-13 lg:h-14 bg-slate-900/70 backdrop-blur-sm border-b border-slate-700/50">
       <div className="flex items-center gap-1.5">
         <span className="text-lg">🧊</span>
-        <span className="font-['Bangers'] text-yellow-400 text-lg tracking-wide">
+        <span className="font-['Tilt_Prism'] text-yellow-400 text-lg tracking-wide">
           {cubeBalance.toString()}
         </span>
       </div>

@@ -83,7 +83,7 @@ const TutorialPage: React.FC = () => {
                     className="bg-slate-900/50 rounded-xl p-4 border border-slate-600/40"
                   >
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="font-['Bangers'] text-cyan-200 text-lg tracking-wider">
+                      <span className="font-['Tilt_Prism'] text-cyan-200 text-lg tracking-wider">
                         {index + 1}
                       </span>
                       <Icon size={16} className="text-cyan-300" />

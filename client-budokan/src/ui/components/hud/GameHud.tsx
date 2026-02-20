@@ -1,5 +1,4 @@
 import { Rows3, Grid3x3, Flame, ArrowDownUp, Ban, Trash2 } from "lucide-react";
-import LevelBadge from "@/ui/components/shared/LevelBadge";
 import ProgressRing from "@/ui/components/shared/ProgressRing";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import type { GameLevelData } from "@/hooks/useGameLevel";
@@ -23,9 +22,11 @@ interface GameHudProps {
   constraint3Progress: number;
   bonusUsedThisLevel: boolean;
   gameLevel: GameLevelData | null;
-  moves: number;
   maxMoves: number;
 }
+
+const ringSize = 32;
+const iconSize = 14;
 
 const getConstraintIcon = (type: ConstraintType, size: number) => {
   switch (type) {
@@ -86,18 +87,6 @@ const getConstraintBadge = (
   return undefined;
 };
 
-const getCubesFromMoves = (
-  moves: number,
-  maxMoves: number,
-  cube3: number,
-  cube2: number,
-): number => {
-  const remaining = maxMoves - moves;
-  if (remaining >= cube3) return 3;
-  if (remaining >= cube2) return 2;
-  return 1;
-};
-
 interface ConstraintData {
   type: ConstraintType;
   value: number;
@@ -117,14 +106,12 @@ const GameHud: React.FC<GameHudProps> = ({
   constraint3Progress,
   bonusUsedThisLevel,
   gameLevel,
-  moves,
   maxMoves,
 }) => {
   const animatedScore = useLerpNumber(levelScore, { duration: 300, integer: true }) ?? 0;
 
   const cube3Threshold = gameLevel?.cube3Threshold ?? 0;
   const cube2Threshold = gameLevel?.cube2Threshold ?? 0;
-  const potentialCubes = getCubesFromMoves(moves, maxMoves, cube3Threshold, cube2Threshold);
 
   const scoreProgress = targetScore > 0 ? Math.min(1, animatedScore / targetScore) : 0;
   const movesProgress = maxMoves > 0 ? movesRemaining / maxMoves : 0;
@@ -172,75 +159,74 @@ const GameHud: React.FC<GameHudProps> = ({
     }
   }
 
-  const ringSize = 26;
-  const iconSize = 11;
-
   return (
     <div className="w-full px-2 pt-2 shrink-0">
       <div className="max-w-[500px] mx-auto w-full bg-slate-900/60 backdrop-blur-sm rounded-lg px-3 py-2 flex flex-col gap-2">
-        <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold shrink-0">Level</span>
-          <LevelBadge level={level} size="sm" />
-
-          {combo > 0 && (
-            <div className="flex items-center gap-0.5 ml-1 shrink-0">
-              <span className="font-['Bangers'] text-sm text-orange-400">
+        {/* Row 1: Level + Combo | Constraints (centered) | Cubes */}
+        <div className="flex items-center">
+          <div className="flex items-center gap-1 shrink-0 min-w-0">
+            <span className="font-['Tilt_Prism'] text-sm text-slate-300 tracking-wide">Level</span>
+            <div className="w-7 h-7 rounded-full border-2 border-yellow-500 bg-slate-900 flex items-center justify-center shadow-[0_0_8px_rgba(250,204,21,0.3)]">
+              <span className="font-['Tilt_Prism'] text-xs text-yellow-400 leading-none">{level}</span>
+            </div>
+            {combo > 0 && (
+              <span className="font-['Bangers'] text-sm text-orange-400 ml-0.5">
                 🔥{combo}x
               </span>
-            </div>
-          )}
+            )}
+          </div>
 
-          <div className="flex-1" />
-
-          {constraints.length > 0 && (
-            <TooltipProvider delayDuration={200}>
-              <div className="flex items-center gap-1 shrink-0">
-                {constraints.map((c, i) => {
-                  const description = Constraint.fromContractValues(
-                    c.type,
-                    c.value,
-                    c.count,
-                  ).getDescription();
-                  return (
-                    <Tooltip key={`constraint-${i}`}>
-                      <TooltipTrigger asChild>
-                        <div>
-                          <ProgressRing
-                            progress={getConstraintProgress(c.type, c.progress, c.count, bonusUsedThisLevel)}
-                            size={ringSize}
-                            color={getConstraintColor(c.type, c.progress, c.count, bonusUsedThisLevel)}
-                            icon={getConstraintIcon(c.type, iconSize)}
-                            badge={getConstraintBadge(c.type, c.progress, c.count)}
-                          />
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent
-                        side="top"
-                        className="bg-slate-900 border border-slate-500 text-white text-xs px-2 py-1"
-                      >
-                        {description}
-                      </TooltipContent>
-                    </Tooltip>
-                  );
-                })}
-              </div>
-            </TooltipProvider>
-          )}
+          <div className="flex-1 flex items-center justify-center">
+            {constraints.length > 0 && (
+              <TooltipProvider delayDuration={200}>
+                <div className="flex items-center gap-2">
+                  {constraints.map((c, i) => {
+                    const description = Constraint.fromContractValues(
+                      c.type,
+                      c.value,
+                      c.count,
+                    ).getDescription();
+                    return (
+                      <Tooltip key={`constraint-${i}`}>
+                        <TooltipTrigger asChild>
+                          <div>
+                            <ProgressRing
+                              progress={getConstraintProgress(c.type, c.progress, c.count, bonusUsedThisLevel)}
+                              size={ringSize}
+                              color={getConstraintColor(c.type, c.progress, c.count, bonusUsedThisLevel)}
+                              icon={getConstraintIcon(c.type, iconSize)}
+                              badge={getConstraintBadge(c.type, c.progress, c.count)}
+                            />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="top"
+                          className="bg-slate-900 border border-slate-500 text-white text-xs px-2 py-1"
+                        >
+                          {description}
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
+                </div>
+              </TooltipProvider>
+            )}
+          </div>
 
           <div className="flex items-center gap-0.5 shrink-0">
             <span className="text-xs">🧊</span>
-            <span className="font-['Bangers'] text-sm text-blue-300 tabular-nums">
+            <span className="font-['Tilt_Prism'] text-sm text-blue-300 tabular-nums">
               {totalCubes}
             </span>
           </div>
         </div>
 
-        {/* Line 2: Score bar | Moves bar with threshold markers | Potential cubes */}
+        {/* Row 2: Score bar | Moves bar + infotip */}
         <div className="flex items-end gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline justify-between mb-0.5">
-              <span className="text-[10px] text-slate-300 uppercase tracking-wider font-semibold">Score</span>
-              <span className="font-['Bangers'] text-xs text-cyan-300 tabular-nums">
+              <span className="font-['Tilt_Prism'] text-xs text-slate-300 tracking-wide">Score</span>
+              <span className="font-['Tilt_Prism'] text-xs text-cyan-300 tabular-nums">
                 {animatedScore}
                 <span className="text-slate-400">/{targetScore}</span>
               </span>
@@ -255,8 +241,35 @@ const GameHud: React.FC<GameHudProps> = ({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline justify-between mb-0.5">
-              <span className="text-[10px] text-slate-300 uppercase tracking-wider font-semibold">Moves</span>
-              <span className={`font-['Bangers'] text-xs tabular-nums ${movesTextColor}`}>
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="font-['Tilt_Prism'] text-xs text-slate-300 tracking-wide cursor-help underline decoration-dotted decoration-slate-500 underline-offset-2">
+                      Moves
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    className="bg-slate-900 border border-slate-500 text-white text-xs px-3 py-2"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <span>🧊🧊🧊</span>
+                        <span>≥ {cube3Threshold} moves left</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span>🧊🧊</span>
+                        <span>≥ {cube2Threshold} moves left</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span>🧊</span>
+                        <span>Complete level</span>
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <span className={`font-['Tilt_Prism'] text-xs tabular-nums ${movesTextColor}`}>
                 {movesRemaining}
                 <span className="text-slate-400">/{maxMoves}</span>
               </span>
@@ -279,17 +292,6 @@ const GameHud: React.FC<GameHudProps> = ({
                 />
               )}
             </div>
-          </div>
-
-          <div className="flex items-center gap-0.5 shrink-0 pb-0.5">
-            {[1, 2, 3].map((i) => (
-              <span
-                key={i}
-                className={`text-xs ${i <= potentialCubes ? "opacity-100" : "opacity-20"}`}
-              >
-                🧊
-              </span>
-            ))}
           </div>
         </div>
       </div>

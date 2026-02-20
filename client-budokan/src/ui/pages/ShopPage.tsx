@@ -355,7 +355,7 @@ const ShopPage = () => {
               </div>
               <div className="text-right">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-slate-300">Wallet</p>
-                <p className="font-['Bangers'] text-3xl leading-none text-yellow-300">
+                <p className="font-['Tilt_Prism'] text-3xl leading-none text-yellow-300">
                   {cubeBalanceDisplay}
                 </p>
               </div>
@@ -483,7 +483,7 @@ const ShopPage = () => {
               <div className="mb-3 flex items-end justify-between">
                 <div>
                   <p className="text-xs text-slate-400">Max cubes per run</p>
-                  <p className="font-['Bangers'] text-3xl leading-none text-yellow-300">
+                  <p className="font-['Tilt_Prism'] text-3xl leading-none text-yellow-300">
                     {getMaxCubesToBring(bridgingRank)}
                   </p>
                 </div>

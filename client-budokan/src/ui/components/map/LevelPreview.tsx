@@ -121,7 +121,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Difficulty</span>
               <span
-                className={`font-['Bangers'] text-lg tracking-wide ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}
+                className={`font-['Tilt_Prism'] text-lg tracking-wide ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}
               >
                 {difficulty}
               </span>
@@ -152,7 +152,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Difficulty</span>
               <span
-                className={`font-['Bangers'] text-lg tracking-wide ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}
+                className={`font-['Tilt_Prism'] text-lg tracking-wide ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}
               >
                 {difficulty}
               </span>
@@ -160,7 +160,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
 
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Target Score</span>
-              <span className="font-['Bangers'] text-lg tracking-wide text-white">
+              <span className="font-['Tilt_Prism'] text-lg tracking-wide text-white">
                 {String(pointsRequired)}
               </span>
             </div>
@@ -193,7 +193,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
                     className="flex items-center justify-between rounded-md bg-slate-800/60 px-2 py-1 text-slate-300"
                   >
                     <span>{"🧊".repeat(cubes)}</span>
-                    <span className="font-['Bangers'] text-lg tracking-wide">
+                    <span className="font-['Tilt_Prism'] text-lg tracking-wide">
                       ≤ {threshold}
                     </span>
                   </div>

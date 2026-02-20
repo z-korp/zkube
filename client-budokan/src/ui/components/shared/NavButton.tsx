@@ -41,7 +41,7 @@ const NavButton: React.FC<NavButtonProps> = ({
     >
       {label}
       {badge !== undefined && (
-        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-['Bangers'] min-w-[22px] h-[22px] flex items-center justify-center rounded-full px-1.5 shadow-md">
+        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-['Tilt_Prism'] min-w-[22px] h-[22px] flex items-center justify-center rounded-full px-1.5 shadow-md">
           {badge}
         </span>
       )}

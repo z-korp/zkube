@@ -104,7 +104,7 @@ const TierRow: React.FC<TierRowProps> = ({ tier }) => {
           Tier {tier.tier}: {tier.description || tier.name}
         </span>
       </div>
-      <span className="font-['Bangers'] text-lg leading-none tracking-wide text-yellow-300">
+      <span className="font-['Tilt_Prism'] text-lg leading-none tracking-wide text-yellow-300">
         +{tier.reward}
       </span>
     </div>
@@ -158,7 +158,7 @@ const QuestFamilyPanel: React.FC<QuestFamilyPanelProps> = ({
             </p>
           </div>
         </div>
-        <span className="font-['Bangers'] text-2xl leading-none tracking-wide text-cyan-200">
+        <span className="font-['Tilt_Prism'] text-2xl leading-none tracking-wide text-cyan-200">
           {completedTiers}/{family.totalTiers}
         </span>
       </div>
@@ -178,7 +178,7 @@ const QuestFamilyPanel: React.FC<QuestFamilyPanelProps> = ({
             transition={{ duration: 0.45, ease: "easeOut" }}
           />
         </div>
-        <span className="font-['Bangers'] text-xl leading-none tracking-wide text-cyan-100">
+        <span className="font-['Tilt_Prism'] text-xl leading-none tracking-wide text-cyan-100">
           {Math.round(tierProgress)}%
         </span>
       </div>
@@ -193,7 +193,7 @@ const QuestFamilyPanel: React.FC<QuestFamilyPanelProps> = ({
               transition={{ duration: 0.45, ease: "easeOut", delay: 0.06 }}
             />
           </div>
-          <span className="font-['Bangers'] text-lg leading-none tracking-wide text-yellow-200">
+          <span className="font-['Tilt_Prism'] text-lg leading-none tracking-wide text-yellow-200">
             {family.progress}/{family.nextTarget}
           </span>
         </div>
@@ -263,7 +263,7 @@ const ChampionPanel: React.FC<ChampionPanelProps> = ({
             </p>
           </div>
         </div>
-        <span className="font-['Bangers'] text-2xl leading-none tracking-wide text-yellow-100">
+        <span className="font-['Tilt_Prism'] text-2xl leading-none tracking-wide text-yellow-100">
           +{tier.reward}
         </span>
       </div>
@@ -277,7 +277,7 @@ const ChampionPanel: React.FC<ChampionPanelProps> = ({
             transition={{ duration: 0.55, ease: "easeOut" }}
           />
         </div>
-        <span className="font-['Bangers'] text-xl leading-none tracking-wide text-yellow-50">
+        <span className="font-['Tilt_Prism'] text-xl leading-none tracking-wide text-yellow-50">
           {totalCompleted}/{totalQuests}
         </span>
       </div>
@@ -401,7 +401,7 @@ const QuestsPage: React.FC = () => {
                 <p className="text-xs uppercase tracking-[0.16em] text-cyan-100/85">
                   Claimable
                 </p>
-                <p className="font-['Bangers'] text-3xl leading-none tracking-wide text-yellow-200">
+                <p className="font-['Tilt_Prism'] text-3xl leading-none tracking-wide text-yellow-200">
                   {claimableRewards} CUBE
                 </p>
               </div>
@@ -410,7 +410,7 @@ const QuestsPage: React.FC = () => {
             <div className="mt-3 flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-cyan-50/95">
               <Clock3 size={15} className="text-cyan-200" />
               <span>Resets at midnight UTC:</span>
-              <span className="font-['Bangers'] text-xl leading-none tracking-wide text-cyan-100">
+              <span className="font-['Tilt_Prism'] text-xl leading-none tracking-wide text-cyan-100">
                 {formatCountdown(resetInSeconds)}
               </span>
             </div>

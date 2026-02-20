@@ -37,18 +37,18 @@ const StatsBar: React.FC<StatsBarProps> = ({
       <LevelBadge level={level} size="sm" />
 
       <div className="flex items-center gap-0.5 min-w-0">
-        <span className="font-['Bangers'] text-sm text-cyan-400 tabular-nums">
+        <span className="font-['Tilt_Prism'] text-sm text-cyan-400 tabular-nums">
           {animatedScore}
         </span>
         <span className="text-slate-500 text-xs">/</span>
-        <span className="font-['Bangers'] text-sm text-slate-400 tabular-nums">
+        <span className="font-['Tilt_Prism'] text-sm text-slate-400 tabular-nums">
           {targetScore}
         </span>
       </div>
 
       <div className="flex items-center gap-0.5 min-w-0">
         <span
-          className={`font-['Bangers'] text-sm tabular-nums ${
+          className={`font-['Tilt_Prism'] text-sm tabular-nums ${
             isOut
               ? "text-red-500"
               : isDanger
@@ -71,7 +71,7 @@ const StatsBar: React.FC<StatsBarProps> = ({
 
       <div className="flex items-center gap-0.5 shrink-0">
         <span className="text-sm">🧊</span>
-        <span className="font-['Bangers'] text-sm text-yellow-400 tabular-nums">
+        <span className="font-['Tilt_Prism'] text-sm text-yellow-400 tabular-nums">
           {totalCubes}
         </span>
       </div>
