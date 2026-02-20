@@ -361,132 +361,137 @@ const ShopPage = () => {
             </div>
           </motion.div>
 
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            {bonusCards.map((card, index) => {
-              const startLevel = mergedMeta?.[card.startField] ?? 0;
-              const bagLevel = mergedMeta?.[card.bagField] ?? 0;
-              const startCost = getStartingBonusCost(startLevel);
-              const bagCost = getBagSizeCost(bagLevel);
-              const startMaxed = startCost === null;
-              const bagMaxed = bagCost === null;
-              const isLocked = card.unlockField ? !mergedMeta?.[card.unlockField] : false;
-              const canAffordStart = !isLocked && !startMaxed && cubeBalanceDisplay >= (startCost ?? 0);
-              const canAffordBag = !isLocked && !bagMaxed && cubeBalanceDisplay >= (bagCost ?? 0);
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-xl bg-slate-900/80 border border-slate-600/60"
+          >
+            <h3 className="font-['Fredericka_the_Great'] text-lg text-white px-4 pt-3 pb-2">
+              Bonuses
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              {bonusCards.map((card, index) => {
+                const startLevel = mergedMeta?.[card.startField] ?? 0;
+                const bagLevel = mergedMeta?.[card.bagField] ?? 0;
+                const startCost = getStartingBonusCost(startLevel);
+                const bagCost = getBagSizeCost(bagLevel);
+                const startMaxed = startCost === null;
+                const bagMaxed = bagCost === null;
+                const isLocked = card.unlockField ? !mergedMeta?.[card.unlockField] : false;
+                const canAffordStart = !isLocked && !startMaxed && cubeBalanceDisplay >= (startCost ?? 0);
+                const canAffordBag = !isLocked && !bagMaxed && cubeBalanceDisplay >= (bagCost ?? 0);
 
-              return (
-                <motion.section
-                  key={card.id}
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.04 }}
-                  className="rounded-2xl border border-slate-300/15 bg-slate-900/65 p-4 shadow-[0_18px_40px_-28px_rgba(0,0,0,0.9)]"
-                >
-                  <div className="mb-3 flex items-start gap-3">
-                    <div className="rounded-xl border border-white/15 bg-white/10 p-2">
+                return (
+                  <motion.div
+                    key={card.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    className="border-t border-slate-600/60 p-4"
+                  >
+                    <div className="mb-3 flex items-start gap-3">
                       <img src={card.icon} alt={card.name} className="h-10 w-10" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-['Fredericka_the_Great'] text-xl leading-none text-white">
-                        {card.name}
-                      </h3>
-                      <p className="mt-1 text-xs text-slate-300">{card.description}</p>
-                    </div>
-                  </div>
-
-                  {isLocked ? (
-                    <div className="space-y-2 rounded-xl border border-orange-300/30 bg-orange-900/20 p-3">
-                      <p className="text-xs text-orange-100">Unlock this bonus first.</p>
-                      <button
-                        type="button"
-                        disabled={isSubmitting || cubeBalanceDisplay < UNLOCK_BONUS_COST}
-                        onClick={() => handleUnlock(card)}
-                        className="w-full rounded-lg bg-orange-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        UNLOCK {UNLOCK_BONUS_COST} 🧊
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="rounded-xl bg-slate-800/80 p-3">
-                        <div className="mb-2 flex items-center justify-between text-[10px] uppercase tracking-[0.2em] text-slate-300">
-                          <span>Starting Charges</span>
-                          <LevelPips current={startLevel} />
-                        </div>
-                        <button
-                          type="button"
-                          disabled={isSubmitting || startMaxed || !canAffordStart}
-                          onClick={() => handleUpgradeStarting(card)}
-                          className="w-full rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {startMaxed ? "MAX LEVEL" : `UPGRADE ${startCost} 🧊`}
-                        </button>
-                      </div>
-
-                      <div className="rounded-xl bg-slate-800/80 p-3">
-                        <div className="mb-2 flex items-center justify-between text-[10px] uppercase tracking-[0.2em] text-slate-300">
-                          <span>Bag Capacity</span>
-                          <LevelPips current={bagLevel} />
-                        </div>
-                        <button
-                          type="button"
-                          disabled={isSubmitting || bagMaxed || !canAffordBag}
-                          onClick={() => handleUpgradeBag(card)}
-                          className="w-full rounded-lg bg-cyan-500 px-3 py-2 text-sm font-semibold text-black transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {bagMaxed ? "MAX LEVEL" : `UPGRADE ${bagCost} 🧊`}
-                        </button>
+                      <div className="flex-1">
+                        <h4 className="font-['Fredericka_the_Great'] text-lg leading-none text-white">
+                          {card.name}
+                        </h4>
+                        <p className="mt-1 text-xs text-slate-400">{card.description}</p>
                       </div>
                     </div>
-                  )}
-                </motion.section>
-              );
-            })}
 
-            <motion.section
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: bonusCards.length * 0.04 }}
-              className="rounded-2xl border border-indigo-300/20 bg-indigo-950/45 p-4 shadow-[0_18px_40px_-28px_rgba(30,27,75,0.9)]"
-            >
-              <div className="mb-3 flex items-start gap-3">
-                <div className="rounded-xl border border-indigo-200/30 bg-indigo-400/20 p-2">
-                  <img src={imgAssets.bridging} alt="Bridging" className="h-10 w-10" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-['Fredericka_the_Great'] text-xl leading-none text-indigo-50">
-                    Bridging Rank
-                  </h3>
-                  <p className="mt-1 text-xs text-indigo-100/80">
-                    Carry wallet cubes into runs for rest-stop purchases.
+                    {isLocked ? (
+                      <div className="space-y-2">
+                        <p className="text-xs text-orange-300">Unlock this bonus first.</p>
+                        <button
+                          type="button"
+                          disabled={isSubmitting || cubeBalanceDisplay < UNLOCK_BONUS_COST}
+                          onClick={() => handleUnlock(card)}
+                          className="w-full rounded-lg bg-orange-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          UNLOCK {UNLOCK_BONUS_COST} 🧊
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div>
+                          <div className="mb-1.5 flex items-center justify-between text-[10px] uppercase tracking-[0.2em] text-slate-400">
+                            <span>Starting Charges</span>
+                            <LevelPips current={startLevel} />
+                          </div>
+                          <button
+                            type="button"
+                            disabled={isSubmitting || startMaxed || !canAffordStart}
+                            onClick={() => handleUpgradeStarting(card)}
+                            className="w-full rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {startMaxed ? "MAX LEVEL" : `UPGRADE ${startCost} 🧊`}
+                          </button>
+                        </div>
+
+                        <div>
+                          <div className="mb-1.5 flex items-center justify-between text-[10px] uppercase tracking-[0.2em] text-slate-400">
+                            <span>Bag Capacity</span>
+                            <LevelPips current={bagLevel} />
+                          </div>
+                          <button
+                            type="button"
+                            disabled={isSubmitting || bagMaxed || !canAffordBag}
+                            onClick={() => handleUpgradeBag(card)}
+                            className="w-full rounded-lg bg-cyan-500 px-3 py-2 text-sm font-semibold text-black transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {bagMaxed ? "MAX LEVEL" : `UPGRADE ${bagCost} 🧊`}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.section>
+
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="rounded-xl bg-slate-900/80 border border-slate-600/60 p-4"
+          >
+            <div className="mb-3 flex items-start gap-3">
+              <img src={imgAssets.bridging} alt="Bridging" className="h-10 w-10" />
+              <div className="flex-1">
+                <h3 className="font-['Fredericka_the_Great'] text-lg leading-none text-white">
+                  Bridging Rank
+                </h3>
+                <p className="mt-1 text-xs text-slate-400">
+                  Carry wallet cubes into runs for rest-stop purchases.
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <div className="mb-1.5 flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Rank</span>
+                <LevelPips current={bridgingRank} />
+              </div>
+              <div className="mb-3 flex items-end justify-between">
+                <div>
+                  <p className="text-xs text-slate-400">Max cubes per run</p>
+                  <p className="font-['Bangers'] text-3xl leading-none text-yellow-300">
+                    {getMaxCubesToBring(bridgingRank)}
                   </p>
                 </div>
+                <Sparkles className="h-6 w-6 text-yellow-200/80" />
               </div>
-
-              <div className="rounded-xl bg-black/25 p-3">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-indigo-100/80">Rank</span>
-                  <LevelPips current={bridgingRank} />
-                </div>
-                <div className="mb-3 flex items-end justify-between">
-                  <div>
-                    <p className="text-xs text-indigo-100/75">Max cubes per run</p>
-                    <p className="font-['Bangers'] text-3xl leading-none text-yellow-300">
-                      {getMaxCubesToBring(bridgingRank)}
-                    </p>
-                  </div>
-                  <Sparkles className="h-6 w-6 text-yellow-200/80" />
-                </div>
-                <button
-                  type="button"
-                  disabled={isSubmitting || bridgingMaxed || !canAffordBridging}
-                  onClick={handleUpgradeBridging}
-                  className="w-full rounded-lg bg-indigo-400 px-3 py-2 text-sm font-semibold text-slate-950 transition hover:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {bridgingMaxed ? "MAX RANK" : `UPGRADE ${bridgingCost} 🧊`}
-                </button>
-              </div>
-            </motion.section>
-          </div>
+              <button
+                type="button"
+                disabled={isSubmitting || bridgingMaxed || !canAffordBridging}
+                onClick={handleUpgradeBridging}
+                className="w-full rounded-lg bg-indigo-400 px-3 py-2 text-sm font-semibold text-slate-950 transition hover:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {bridgingMaxed ? "MAX RANK" : `UPGRADE ${bridgingCost} 🧊`}
+              </button>
+            </div>
+          </motion.section>
         </div>
       </div>
     </div>

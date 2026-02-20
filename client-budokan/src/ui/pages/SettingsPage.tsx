@@ -151,7 +151,7 @@ const SettingsPage: React.FC = () => {
                     {isSelected && (
                       <Check
                         size={14}
-                        className="absolute top-1 right-1 text-yellow-200 drop-shadow-md"
+                        className="absolute bottom-1 right-1 text-yellow-200 drop-shadow-md"
                       />
                     )}
                   </motion.button>
