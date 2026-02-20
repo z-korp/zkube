@@ -72,9 +72,7 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
     }
   }
 
-  const levelFinalScore = level === 1 
-    ? totalScore 
-    : totalScore - prevTotalScore;
+  const levelFinalScore = totalScore - prevTotalScore;
 
   const getCubesFromMoves = (moves: number): number => {
     const remaining = maxMoves - moves;

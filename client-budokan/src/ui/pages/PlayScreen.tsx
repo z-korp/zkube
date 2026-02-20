@@ -144,8 +144,8 @@ const PlayScreen: React.FC = () => {
     const prevState = prevGameStateRef.current;
     const currentLevel = game.level;
 
-    if (prevState === null && currentLevel === 1) {
-      levelStartTotalScoreRef.current = 0;
+    if (prevState === null) {
+      levelStartTotalScoreRef.current = game.totalScore - game.levelScore;
     }
 
     if (prevState && currentLevel > prevState.level && !game.over) {
