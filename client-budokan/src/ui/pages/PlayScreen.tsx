@@ -261,21 +261,8 @@ const PlayScreen: React.FC = () => {
     }
   }, []);
 
-  const getBonusTooltip = useCallback((type: BonusType): string => {
-    switch (type) {
-      case BonusType.Combo:
-        return "Add combo to next move";
-      case BonusType.Score:
-        return "Add bonus score";
-      case BonusType.Harvest:
-        return "Destroy all blocks of chosen size";
-      case BonusType.Wave:
-        return "Clear horizontal rows";
-      case BonusType.Supply:
-        return "Add new lines at no move cost";
-      default:
-        return "";
-    }
+  const getBonusTooltip = useCallback((type: BonusType, level: number = 0): string => {
+    return new Bonus(type).getEffect(level);
   }, []);
 
   const getBonusIcon = useCallback((type: BonusType): string => {
@@ -344,7 +331,7 @@ const PlayScreen: React.FC = () => {
         count: getBonusInventoryCount(game.runData, slot.value),
         bagSize: bonusBagSizes[slot.value as keyof typeof bonusBagSizes] ?? 1,
         icon: getBonusIcon(type),
-        tooltip: getBonusTooltip(type),
+        tooltip: getBonusTooltip(type, slot.level),
       };
     });
   }, [
@@ -423,8 +410,6 @@ const PlayScreen: React.FC = () => {
           movesRemaining={maxMoves - game.levelMoves}
           totalCubes={game.cubesAvailable}
           combo={game.isOver() ? 0 : game.combo}
-          onHome={() => navNavigate("home")}
-          onMap={goBack}
           constraintProgress={game.constraintProgress}
           constraint2Progress={game.constraint2Progress}
           constraint3Progress={game.runData.constraint3Progress}
@@ -496,6 +481,8 @@ const PlayScreen: React.FC = () => {
           activeBonus={activeBonus}
           bonusDescription={bonusDescription}
           onSurrender={handleSurrender}
+          onHome={() => navNavigate("home")}
+          onMap={goBack}
           isGameOver={game.over}
         />
       )}

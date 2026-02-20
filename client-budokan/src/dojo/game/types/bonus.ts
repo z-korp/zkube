@@ -113,13 +113,13 @@ export class Bonus {
       case BonusType.Combo:
         return "Add combo to next move";
       case BonusType.Score:
-        return "Add bonus score";
+        return "Add instant score";
       case BonusType.Harvest:
-        return "Destroy all blocks of chosen size";
+        return "Destroy all blocks of one size, earn cubes per block";
       case BonusType.Wave:
-        return "Clear horizontal rows";
+        return "Clear entire horizontal rows";
       case BonusType.Supply:
-        return "Add new lines at no move cost";
+        return "Add new lines without spending a move";
       default:
         return "";
     }
@@ -142,20 +142,57 @@ export class Bonus {
     }
   }
 
-  public getEffect(): string {
+  /**
+   * Get the exact effect string for a given bonus level (0-indexed: 0=L1, 1=L2, 2=L3).
+   * All formulas match the contract: grid.cairo lines 328-381.
+   */
+  public getEffect(level: number = 0): string {
+    const n = level + 1; // contract formula: bonus_level + 1
     switch (this.value) {
       case BonusType.Combo:
-        return "Add combo to next move";
+        return `+${n} combo to next move`;
       case BonusType.Score:
-        return "Add bonus score";
+        return `+${n * 10} score`;
       case BonusType.Harvest:
-        return "Destroy all blocks of chosen size";
+        return `+${n} cube per block destroyed`;
       case BonusType.Wave:
-        return "Clear horizontal rows";
+        return `Clear ${n} row${n > 1 ? "s" : ""}`;
       case BonusType.Supply:
-        return "Add new lines at no move cost";
+        return `Add ${n} line${n > 1 ? "s" : ""} (no move cost)`;
       default:
         return "";
     }
+  }
+
+  /**
+   * Short effect for compact UI (action bar tooltips).
+   */
+  public getEffectShort(level: number = 0): string {
+    const n = level + 1;
+    switch (this.value) {
+      case BonusType.Combo:
+        return `+${n} combo`;
+      case BonusType.Score:
+        return `+${n * 10} pts`;
+      case BonusType.Harvest:
+        return `+${n} cube/block`;
+      case BonusType.Wave:
+        return `${n} row${n > 1 ? "s" : ""}`;
+      case BonusType.Supply:
+        return `${n} free line${n > 1 ? "s" : ""}`;
+      default:
+        return "";
+    }
+  }
+
+  /**
+   * Get effect comparison string showing current → next level.
+   * Returns null if already at max level (2).
+   */
+  public getUpgradePreview(currentLevel: number): string | null {
+    if (currentLevel >= 2) return null;
+    const current = this.getEffectShort(currentLevel);
+    const next = this.getEffectShort(currentLevel + 1);
+    return `${current} → ${next}`;
   }
 }

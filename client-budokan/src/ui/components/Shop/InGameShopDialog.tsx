@@ -236,8 +236,13 @@ const InGameShopDialog: React.FC<InGameShopDialogProps> = ({
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium">{bonusName}</div>
                     <div className="text-[10px] text-slate-400">
-                      {currentCount}/{maxCount} in bag · Lv{currentLevel}
+                      {currentCount}/{maxCount} in bag · L{currentLevel}: {new Bonus(bonusType).getEffectShort(item.level)}
                     </div>
+                    {!isMaxLevel && (
+                      <div className="text-[10px] text-emerald-400/70">
+                        → L{currentLevel + 1}: {new Bonus(bonusType).getEffectShort(item.level + 1)}
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex flex-col gap-1">

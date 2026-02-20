@@ -11,6 +11,7 @@ import { useNavigationStore } from "@/stores/navigationStore";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 import ThemeBackground from "@/ui/components/shared/ThemeBackground";
+import { Bonus, BonusType } from "@/dojo/game/types/bonus";
 
 const STARTING_BONUS_COSTS = [100, 250, 500] as const;
 const BAG_SIZE_COSTS = [100, 250, 500] as const;
@@ -38,7 +39,7 @@ type BonusCardConfig = {
   id: number;
   name: string;
   icon: string;
-  description: string;
+  type: BonusType;
   startField: NumericMetaField;
   bagField: NumericMetaField;
   upgradeBonusType: number;
@@ -116,7 +117,7 @@ const ShopPage = () => {
         id: 0,
         name: "Combo",
         icon: imgAssets.combo,
-        description: "Add combo to your next move.",
+        type: BonusType.Combo,
         startField: "startingCombo",
         bagField: "bagComboLevel",
         upgradeBonusType: 0,
@@ -125,7 +126,7 @@ const ShopPage = () => {
         id: 1,
         name: "Score",
         icon: imgAssets.score,
-        description: "Add instant score for clutch clears.",
+        type: BonusType.Score,
         startField: "startingScore",
         bagField: "bagScoreLevel",
         upgradeBonusType: 1,
@@ -134,7 +135,7 @@ const ShopPage = () => {
         id: 2,
         name: "Harvest",
         icon: imgAssets.harvest,
-        description: "Clear one block size and mint more cubes.",
+        type: BonusType.Harvest,
         startField: "startingHarvest",
         bagField: "bagHarvestLevel",
         upgradeBonusType: 2,
@@ -143,7 +144,7 @@ const ShopPage = () => {
         id: 3,
         name: "Wave",
         icon: imgAssets.wave,
-        description: "Wipe whole rows when your board gets messy.",
+        type: BonusType.Wave,
         startField: "startingWave",
         bagField: "bagWaveLevel",
         upgradeBonusType: 3,
@@ -154,7 +155,7 @@ const ShopPage = () => {
         id: 4,
         name: "Supply",
         icon: imgAssets.supply,
-        description: "Add controlled pressure lines without spending moves.",
+        type: BonusType.Supply,
         startField: "startingSupply",
         bagField: "bagSupplyLevel",
         upgradeBonusType: 4,
@@ -395,7 +396,13 @@ const ShopPage = () => {
                         <h4 className="font-['Fredericka_the_Great'] text-lg leading-none text-white">
                           {card.name}
                         </h4>
-                        <p className="mt-1 text-xs text-slate-400">{card.description}</p>
+                        <div className="mt-1 flex flex-col gap-0.5">
+                          {[0, 1, 2].map((lvl) => (
+                            <span key={lvl} className={`text-[10px] ${lvl === 0 ? "text-slate-300" : "text-slate-500"}`}>
+                              L{lvl + 1}: {new Bonus(card.type).getEffect(lvl)}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
 

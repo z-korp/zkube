@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Flag, Settings, Volume2, VolumeX } from "lucide-react";
+import { Home, Map, Flag, Settings, Volume2, VolumeX } from "lucide-react";
 import { BonusType } from "@/dojo/game/types/bonus";
 import {
   Tooltip,
@@ -33,6 +33,8 @@ interface GameActionBarProps {
   activeBonus: BonusType;
   bonusDescription: string;
   onSurrender: () => void;
+  onHome: () => void;
+  onMap: () => void;
   isGameOver: boolean;
 }
 
@@ -41,6 +43,8 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
   activeBonus,
   bonusDescription,
   onSurrender,
+  onHome,
+  onMap,
   isGameOver,
 }) => {
   const {
@@ -62,7 +66,26 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
           {bonusDescription}
         </div>
       )}
-      <div className="max-w-[500px] mx-auto w-full flex items-center justify-center gap-3 bg-slate-900/70 backdrop-blur-sm border border-slate-700/50 rounded-lg px-4 py-3">
+      <div className="max-w-[500px] mx-auto w-full flex items-center justify-center gap-2 bg-slate-900/70 backdrop-blur-sm border border-slate-700/50 rounded-lg px-3 py-3">
+        <motion.button
+          onClick={onHome}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="w-9 h-9 rounded-full flex items-center justify-center bg-slate-700/30 hover:bg-slate-600/40 text-slate-400 hover:text-slate-300 transition-colors shrink-0"
+        >
+          <Home size={15} />
+        </motion.button>
+        <motion.button
+          onClick={onMap}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="w-9 h-9 rounded-full flex items-center justify-center bg-slate-700/30 hover:bg-slate-600/40 text-slate-400 hover:text-slate-300 transition-colors shrink-0"
+        >
+          <Map size={15} />
+        </motion.button>
+
+        <div className="w-px h-8 bg-slate-700 mx-1" />
+
         {bonusSlots.map((slot) => {
           const isActive = activeBonus === slot.type;
           const isDisabled = slot.count === 0;
@@ -91,20 +114,17 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                         isDisabled ? "grayscale opacity-60" : ""
                       }`}
                     />
-                    <span className="absolute -top-1 -left-1 text-[8px] font-bold rounded-full min-w-[16px] h-[14px] flex items-center justify-center bg-slate-600 text-slate-200 px-0.5 leading-none z-10">
-                      L{slot.level + 1}
+                    <span className="absolute -top-0.5 -left-0.5 text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center bg-indigo-500 text-white z-10">
+                      {slot.level + 1}
                     </span>
                     <span
-                      className={`absolute -top-0.5 -right-0.5 text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center ${
+                      className={`absolute -top-0.5 -right-0.5 text-[9px] font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-0.5 ${
                         isDisabled
                           ? "bg-slate-600 text-slate-400"
                           : "bg-yellow-500 text-white"
                       }`}
                     >
-                      {slot.count}
-                    </span>
-                    <span className="absolute -bottom-1 -right-1 text-[8px] font-bold rounded-full min-w-[16px] h-[14px] flex items-center justify-center bg-slate-700 text-slate-400 border border-slate-600 px-0.5 leading-none z-10">
-                      /{slot.bagSize}
+                      {slot.count}/{slot.bagSize}
                     </span>
                   </motion.button>
                 </TooltipTrigger>
@@ -125,15 +145,15 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
           onClick={onSurrender}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          className="w-10 h-10 rounded-full flex items-center justify-center bg-red-900/30 hover:bg-red-800/40 text-red-400 hover:text-red-300 transition-colors"
+          className="w-9 h-9 rounded-full flex items-center justify-center bg-red-900/30 hover:bg-red-800/40 text-red-400 hover:text-red-300 transition-colors"
         >
-          <Flag size={16} />
+          <Flag size={15} />
         </motion.button>
 
         <Dialog>
           <DialogTrigger asChild>
-            <button className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-700/30 hover:bg-slate-600/40 text-slate-400 hover:text-slate-300 transition-all hover:scale-110 active:scale-90">
-              <Settings size={16} />
+            <button className="w-9 h-9 rounded-full flex items-center justify-center bg-slate-700/30 hover:bg-slate-600/40 text-slate-400 hover:text-slate-300 transition-all hover:scale-110 active:scale-90">
+              <Settings size={15} />
             </button>
           </DialogTrigger>
           <DialogContent className="max-w-sm">

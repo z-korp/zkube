@@ -1,4 +1,4 @@
-import { Home, Map, Rows3, Grid3x3, Flame, ArrowDownUp, Ban, Trash2 } from "lucide-react";
+import { Rows3, Grid3x3, Flame, ArrowDownUp, Ban, Trash2 } from "lucide-react";
 import LevelBadge from "@/ui/components/shared/LevelBadge";
 import ProgressRing from "@/ui/components/shared/ProgressRing";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
@@ -18,8 +18,6 @@ interface GameHudProps {
   movesRemaining: number;
   totalCubes: number;
   combo: number;
-  onHome: () => void;
-  onMap: () => void;
   constraintProgress: number;
   constraint2Progress: number;
   constraint3Progress: number;
@@ -114,8 +112,6 @@ const GameHud: React.FC<GameHudProps> = ({
   movesRemaining,
   totalCubes,
   combo,
-  onHome,
-  onMap,
   constraintProgress,
   constraint2Progress,
   constraint3Progress,
@@ -182,31 +178,17 @@ const GameHud: React.FC<GameHudProps> = ({
   return (
     <div className="w-full px-2 pt-2 shrink-0">
       <div className="max-w-[500px] mx-auto w-full bg-slate-900/60 backdrop-blur-sm rounded-lg px-3 py-2 flex flex-col gap-2">
-        {/* Line 1: Nav | Level | Cubes | Constraints */}
         <div className="flex items-center gap-1.5">
-          <button
-            onClick={onHome}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors shrink-0"
-          >
-            <Home size={14} />
-          </button>
-          <button
-            onClick={onMap}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors shrink-0"
-          >
-            <Map size={14} />
-          </button>
-
-          <div className="w-px h-5 bg-slate-700 mx-0.5" />
-
+          <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold shrink-0">Level</span>
           <LevelBadge level={level} size="sm" />
 
-          <div className="flex items-center gap-0.5 ml-1">
-            <span className="text-xs">🧊</span>
-            <span className="font-['Bangers'] text-sm text-blue-300 tabular-nums">
-              {totalCubes}
-            </span>
-          </div>
+          {combo > 0 && (
+            <div className="flex items-center gap-0.5 ml-1 shrink-0">
+              <span className="font-['Bangers'] text-sm text-orange-400">
+                🔥{combo}x
+              </span>
+            </div>
+          )}
 
           <div className="flex-1" />
 
@@ -244,24 +226,24 @@ const GameHud: React.FC<GameHudProps> = ({
               </div>
             </TooltipProvider>
           )}
+
+          <div className="flex items-center gap-0.5 shrink-0">
+            <span className="text-xs">🧊</span>
+            <span className="font-['Bangers'] text-sm text-blue-300 tabular-nums">
+              {totalCubes}
+            </span>
+          </div>
         </div>
 
         {/* Line 2: Score bar | Moves bar with threshold markers | Potential cubes */}
         <div className="flex items-end gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline justify-between mb-0.5">
-              <span className="text-[10px] text-slate-500 uppercase tracking-wider">Score</span>
-              <div className="flex items-center gap-1">
-                <span className="font-['Bangers'] text-xs text-cyan-400 tabular-nums">
-                  {animatedScore}
-                  <span className="text-slate-500">/{targetScore}</span>
-                </span>
-                {combo > 0 && (
-                  <span className="font-['Bangers'] text-xs text-orange-400">
-                    🔥{combo}x
-                  </span>
-                )}
-              </div>
+              <span className="text-[10px] text-slate-300 uppercase tracking-wider font-semibold">Score</span>
+              <span className="font-['Bangers'] text-xs text-cyan-300 tabular-nums">
+                {animatedScore}
+                <span className="text-slate-400">/{targetScore}</span>
+              </span>
             </div>
             <div className="h-2 bg-slate-700/80 rounded-full overflow-hidden">
               <div
@@ -273,10 +255,10 @@ const GameHud: React.FC<GameHudProps> = ({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline justify-between mb-0.5">
-              <span className="text-[10px] text-slate-500 uppercase tracking-wider">Moves</span>
+              <span className="text-[10px] text-slate-300 uppercase tracking-wider font-semibold">Moves</span>
               <span className={`font-['Bangers'] text-xs tabular-nums ${movesTextColor}`}>
                 {movesRemaining}
-                <span className="text-slate-500">/{maxMoves}</span>
+                <span className="text-slate-400">/{maxMoves}</span>
               </span>
             </div>
             <div className="relative h-2 bg-slate-700/80 rounded-full overflow-hidden">
