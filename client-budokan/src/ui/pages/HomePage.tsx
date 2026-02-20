@@ -67,7 +67,7 @@ const HomePage: React.FC = () => {
         onProfile={handleProfile}
       />
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6 gap-5 pb-12">
+      <div className="flex-1 flex flex-col items-center justify-start px-6 gap-3 pt-4">
         {imgAssets.logo && (
           <motion.img
             src={imgAssets.logo}
@@ -83,7 +83,7 @@ const HomePage: React.FC = () => {
           />
         )}
 
-        <div className="flex flex-col items-center gap-3 w-full mt-4">
+        <div className="flex flex-col items-center gap-3 w-full mt-2">
           {!account ? (
             <Connect />
           ) : (
