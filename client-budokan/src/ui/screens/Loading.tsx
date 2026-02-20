@@ -1,3 +1,4 @@
+import { motion } from "motion/react";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 
@@ -6,7 +7,7 @@ export const Loading = () => {
   const imgAssets = ImageAssets(themeTemplate);
 
   return (
-    <div className="h-screen-viewport flex flex-col w-full justify-center items-center relative">
+    <div className="h-screen-viewport flex flex-col w-full items-center relative">
       {/* Background */}
       <div className="absolute inset-0 overflow-hidden z-10">
         <div
@@ -14,12 +15,19 @@ export const Loading = () => {
           style={{ backgroundImage: `url('${imgAssets.loadingBackground}')` }}
         />
       </div>
-      {/* Logo and Enter Button */}
-      <div className="flex flex-col justify-center items-center w-full h-full z-30">
-        <img
+      {/* Logo */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-12 z-30">
+        <motion.img
           src={imgAssets.logo}
           alt="logo"
-          className={"h-32 md:h-40 animate-load"}
+          draggable={false}
+          className="w-48 md:w-64 lg:w-80 max-w-[340px] drop-shadow-2xl"
+          animate={{ y: [0, -4, 0] }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
         />
       </div>
     </div>
