@@ -37,7 +37,7 @@
     "description": "Golden pyramids at dusk with hieroglyph-covered obelisks and sun-drenched sandstone",
     "mood": "Monumental, divine, sun-drenched",
     "palette": {
-      "bg": "#2A1810",
+      "bg": "#120C08",
       "accent": "#D4AF37",
       "blocks": ["#F0EDE8", "#26619C", "#E07858", "#D4AF37"]
     },
@@ -57,7 +57,7 @@
     },
     "scene": "Desert twilight, golden pyramids casting long shadows, hieroglyph-covered obelisks, the Nile reflecting amber sky, palm-lined banks, warm sun-drenched atmosphere",
     "loadingScene": "Close-up of a hieroglyph-covered wall illuminated by golden torchlight, scarab beetle relief with gold leaf details gleaming",
-    "gridMaterial": "Dark weathered sandstone with faint hieroglyph watermark embossed at very low opacity",
+    "gridMaterial": "Near-black charred basalt with very faint hieroglyph watermark embossed at extremely low opacity, overall tone matching deep shadow",
     "music": {
       "menu": "An elegant Egyptian instrumental with a soft oud melody and gentle darbuka hand drum pattern. Arabic maqam Hijaz scale. Around 85 BPM, regal and serene.",
       "gameplay": "A groovy Egyptian fusion instrumental with steady darbuka and riq tambourine rhythm over warm bass oud riffs. Arabic maqam Hijaz scale. 112 BPM, smooth and monumental."
