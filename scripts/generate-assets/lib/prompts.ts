@@ -160,20 +160,7 @@ export function buildLoadingBackgroundPrompt(theme: ThemeDefinition): string {
 }
 
 export function buildThemeIconPrompt(theme: ThemeDefinition): string {
-  return `
-{
-  "style_name": "${theme.name} Theme Icon",
-  "scene": "Single emblematic ${theme.name} symbol",
-  "style": "flat vector icon with bold linework and clean silhouette readability",
-  "color_palette": {
-    "symbol": "#FFFFFF",
-    "background": "${darkenHex(theme.palette.bg, 0.2)}",
-    "accent": "${theme.palette.accent}"
-  },
-  "details": "Use one recognizable symbol from ${theme.motifs}; thick strokes, centered composition, readable at 48x48. Sharp square corners on the image — no rounded edges, no circular framing.",
-  "usage_notes": "Square icon with sharp corners. No rounded edges. No text, no logos, no clutter."
-}
-`.trim();
+  return `A bold ${theme.blockData.centerpiece} icon on a dark background (${darkenHex(theme.palette.bg, 0.2)}). The ${theme.blockData.centerpiece} is drawn in white (#FFFFFF) with ${theme.palette.accent} accent highlights. Stylized 2D vector game art with bold black outlines and flat cel-shading. Thick strokes, centered composition, instantly readable at small sizes. Sharp square corners — no rounded edges, no circular framing. No text, no logos, no clutter. 256x256 pixels.`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -181,7 +168,7 @@ export function buildThemeIconPrompt(theme: ThemeDefinition): string {
 /* ------------------------------------------------------------------ */
 
 export function buildCommonLogoPrompt(): string {
-  return `A bold circular game emblem on a solid black background. A thick ornamental circle with tribal-style decorative border patterns, and the word "zKube" in large bold 3D text centered inside the circle. Stylized 2D vector game art with bold black outlines, flat cel-shading, and subtle grunge texture. Neutral mid-grey tones only (#707070 to #A0A0A0). The circle and text fill most of the canvas. Nothing else — just the emblem, centered, on black. 1024x1024 pixels.`;
+  return `The word "zKube" as a bold game logo on a solid black background. The letters have a faceted prismatic 3D style — each letter face is made of geometric crystal-like planes that catch light differently, creating a multi-tonal shimmering effect across the surface. Bold chunky letterforms with sharp geometric facets. Neutral mid-grey tones only (#707070 to #A0A0A0), no color. Subtle highlights where facet planes meet. Nothing else — just the text, centered, on black. 1024x1024 pixels.`;
 }
 
 /* ------------------------------------------------------------------ */

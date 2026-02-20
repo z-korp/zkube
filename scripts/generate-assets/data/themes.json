@@ -11,6 +11,7 @@
     },
     "motifs": "Moon crescents, starlit ocean waves, Polynesian spirals, pearl inlays, palm silhouettes",
     "blockData": {
+      "centerpiece": "tiki mask",
       "inspirations": [
         "Polynesian tiki carvings and sacred temple totems",
         "Tribal tattoo art and oceanic cultural symbols"
@@ -27,7 +28,7 @@
     "gridMaterial": "Dark indigo volcanic basalt with faint moon-etched tribal patterns and subtle silver-blue highlights",
     "music": {
       "menu": "A warm Polynesian lo-fi instrumental with soft ukulele fingerpicking over gentle log drum rhythms and ocean wave ambience. Nose flute melody floats through warm island breeze. Around 90 BPM, rhythmic and inviting.",
-      "gameplay": "An energetic Polynesian war dance instrumental driven by powerful log drum polyrhythms and fast ukulele strumming. Conch shell accents punctuate the rhythm. Around 120 BPM, volcanic and driving."
+      "gameplay": "A lively Polynesian instrumental with rhythmic ukulele strumming and warm log drum grooves. Nose flute melody and conch shell accents float over a steady island pulse. Around 115 BPM, sunny and groovy."
     }
   },
   "theme-2": {
@@ -42,6 +43,7 @@
     },
     "motifs": "Hieroglyphs, scarab beetles, Eye of Horus, lotus flowers, ankh symbols, obelisks, papyrus scrolls",
     "blockData": {
+      "centerpiece": "winged scarab beetle",
       "inspirations": [
         "Ancient Egyptian temple wall reliefs and carved lintels",
         "Hieroglyphic cartouche panels and papyrus friezes"
@@ -58,7 +60,7 @@
     "gridMaterial": "Dark weathered sandstone with faint hieroglyph watermark embossed at very low opacity",
     "music": {
       "menu": "An elegant Egyptian instrumental with a soft oud melody and gentle darbuka hand drum pattern. Arabic maqam Hijaz scale. Around 85 BPM, regal and serene.",
-      "gameplay": "A rhythmic Egyptian fusion instrumental with driving darbuka and riq tambourine groove over punchy bass oud riffs. 115 BPM, monumental and exotic."
+      "gameplay": "A groovy Egyptian fusion instrumental with steady darbuka and riq tambourine rhythm over warm bass oud riffs. Arabic maqam Hijaz scale. 112 BPM, smooth and monumental."
     }
   },
   "theme-3": {
@@ -73,6 +75,7 @@
     },
     "motifs": "Norse runes, Viking knotwork, longship prows, ravens, Mjolnir, frost patterns, iron rivets",
     "blockData": {
+      "centerpiece": "Yggdrasil world-tree",
       "inspirations": [
         "Viking rune stones and carved standing stones",
         "Norse knotwork illuminated manuscripts and shield designs"
@@ -89,7 +92,7 @@
     "gridMaterial": "Dark rough-hewn granite with faint frost crystallization texture embossed at very low opacity",
     "music": {
       "menu": "A haunting Norse ambient instrumental with deep bowed string drone and sparse nyckelharpa melody. Distant war horn echoes through frozen valleys. Around 80 BPM, vast and mythic.",
-      "gameplay": "A powerful Viking folk metal instrumental with driving war drum percussion and fierce fiddle melody over heavy bass drone. 118 BPM, relentless and cold."
+      "gameplay": "A steady Norse folk instrumental with rhythmic bodhrán drum and warm nyckelharpa melody over a deep bowed string drone. Distant horn accents. 115 BPM, vast and focused."
     }
   },
   "theme-4": {
@@ -104,6 +107,7 @@
     },
     "motifs": "Greek columns, olive wreaths, Greek-key meander patterns, amphoras, temple pediments, laurel crowns",
     "blockData": {
+      "centerpiece": "Greek-key meander medallion",
       "inspirations": [
         "Ancient Greek temple pediments and Ionic column capitals",
         "Hellenic pottery and Greek-key meander border patterns"
@@ -120,7 +124,7 @@
     "gridMaterial": "Dark charcoal marble with very faint blue-grey veining and hairline crack texture at low opacity",
     "music": {
       "menu": "An elegant Ancient Greek instrumental with gentle lyre arpeggios and soft aulos flute melody over a light frame drum rhythm. Mediterranean breeze ambience. Around 85 BPM, contemplative and noble.",
-      "gameplay": "A rhythmic Mediterranean instrumental with driving frame drum and tambourine over bright lyre patterns and bold aulos melody. 115 BPM, spirited and architectural."
+      "gameplay": "A lively Mediterranean instrumental with steady frame drum and tambourine over bright lyre arpeggios and warm aulos melody. 112 BPM, spirited and flowing."
     }
   },
   "theme-5": {
@@ -135,6 +139,7 @@
     },
     "motifs": "Cherry blossoms, katana blades, torii gates, kanji brushstrokes, bamboo, paper lanterns",
     "blockData": {
+      "centerpiece": "cherry blossom flower",
       "inspirations": [
         "Japanese urushi lacquerware and maki-e gold designs",
         "Edo period samurai armor motifs and mon emblems"
@@ -151,7 +156,7 @@
     "gridMaterial": "Black lacquered wood with very subtle grain texture at low opacity",
     "music": {
       "menu": "A refined Japanese instrumental with gentle koto plucking and soft shakuhachi bamboo flute melody over wind chime accents. Around 80 BPM, meditative and disciplined.",
-      "gameplay": "A dramatic taiko drum instrumental with powerful rhythmic patterns and piercing shinobue flute melody. Shamisen strikes punctuate the beat. 120 BPM, intense and dramatic."
+      "gameplay": "A focused Japanese instrumental with steady taiko pulse and flowing shinobue flute melody. Gentle shamisen patterns weave through the rhythm. 115 BPM, refined and purposeful."
     }
   },
   "theme-6": {
@@ -166,6 +171,7 @@
     },
     "motifs": "Imperial dragons, jade carvings, cloud scrolls, gold calligraphy, pagoda roofs, silk lanterns",
     "blockData": {
+      "centerpiece": "coiled dragon",
       "inspirations": [
         "Imperial Chinese jade carvings and silk brocade patterns",
         "Dragon-scale temple roof ornaments and cloud scroll motifs"
@@ -182,7 +188,7 @@
     "gridMaterial": "Dark jade stone with very subtle dragon-scale texture embossed at low opacity",
     "music": {
       "menu": "A mystical Chinese instrumental with gentle guzheng zither arpeggios and soft dizi bamboo flute melody floating over a resonant gong drone. Around 85 BPM, flowing and imperial.",
-      "gameplay": "A dynamic Chinese orchestral instrumental with soaring erhu melody and powerful war drum patterns. Pipa lute runs cascade over thundering timpani. 118 BPM, mystical and commanding."
+      "gameplay": "A flowing Chinese instrumental with warm erhu melody and steady drum rhythms. Gentle pipa lute runs over soft guzheng arpeggios. 115 BPM, mystical and focused."
     }
   },
   "theme-7": {
@@ -197,6 +203,7 @@
     },
     "motifs": "Geometric tile stars, relief lions, peacocks, cypress trees, arabesques, muqarnas vaults",
     "blockData": {
+      "centerpiece": "eight-pointed geometric star",
       "inspirations": [
         "Persian geometric tile mosaics and muqarnas vault patterns",
         "Achaemenid palace relief carvings and winged lion motifs"
@@ -213,7 +220,7 @@
     "gridMaterial": "Very dark blue ceramic surface with faint geometric star pattern embossed at very low opacity",
     "music": {
       "menu": "An elegant Persian instrumental with soft santur hammered dulcimer arpeggios and gentle ney flute melody. Zarb hand drum keeps a subtle pulse. Around 85 BPM, regal and luminous.",
-      "gameplay": "A rhythmic Persian fusion instrumental with driving tombak drum patterns and bright tar lute melody. Santur cascades over tight daf frame drum groove. 115 BPM, symmetrical and flowing."
+      "gameplay": "A groovy Persian fusion instrumental with steady tombak drum patterns and bright tar lute melody. Santur cascades over a relaxed daf frame drum groove. 112 BPM, symmetrical and flowing."
     }
   },
   "theme-8": {
@@ -228,6 +235,7 @@
     },
     "motifs": "Calendar glyphs, feathered serpents, stepped pyramids, jungle vines, jaguar motifs, obsidian blades",
     "blockData": {
+      "centerpiece": "Mayan calendar sun disc",
       "inspirations": [
         "Mayan temple carved stone lintels and stela monuments",
         "Calendar glyph panels and feathered serpent architectural reliefs"
@@ -244,7 +252,7 @@
     "gridMaterial": "Dark weathered jungle limestone with faint moss texture and carved groove patterns at very low opacity",
     "music": {
       "menu": "An atmospheric Mesoamerican instrumental with a wooden pan flute melody over gentle rain stick textures and soft clay drum rhythm. Jungle bird calls in the distance. Around 85 BPM, mysterious and ancient.",
-      "gameplay": "An energetic Aztec ritual instrumental driven by powerful wooden slit drum patterns and rattling seed shakers over fierce clay ocarina melody. 120 BPM, dense and powerful."
+      "gameplay": "A rhythmic Mesoamerican instrumental with steady wooden slit drum grooves and gentle seed shaker textures over a warm clay ocarina melody. 115 BPM, mysterious and earthy."
     }
   },
   "theme-9": {
@@ -259,6 +267,7 @@
     },
     "motifs": "Chokwe masks, geometric scarification patterns, raffia textile weaves, ceremonial staffs, diamond lattice, concentric circles",
     "blockData": {
+      "centerpiece": "Chokwe ceremonial mask",
       "inspirations": [
         "Chokwe Pwo and Mwana Pwo ceremonial masks from Central Africa",
         "Geometric scarification patterns and raffia textile weaving traditions"
@@ -275,7 +284,7 @@
     "gridMaterial": "Dark carved hardwood with faint geometric scarification patterns and diamond lattice texture at very low opacity",
     "music": {
       "menu": "A warm Central African instrumental with soft thumb piano (likembe) melody over gentle wooden slit drum rhythm. Distant forest ambience with bird calls. Around 80 BPM, ancestral and meditative.",
-      "gameplay": "A rhythmic Central African instrumental with driving wooden slit drum patterns and bright thumb piano runs over steady shaker and bell accents. 115 BPM, ceremonial and powerful."
+      "gameplay": "A groovy Central African instrumental with steady wooden slit drum patterns and bright thumb piano melody over gentle shaker and bell accents. 112 BPM, ceremonial and warm."
     }
   },
   "theme-10": {
@@ -290,6 +299,7 @@
     },
     "motifs": "Interlocking polygonal stones, Inti sun god disc, quipu rope knots, condor silhouettes, textile weave patterns, mountain terraces",
     "blockData": {
+      "centerpiece": "chakana (Inca cross)",
       "inspirations": [
         "Inca polygonal masonry walls and sun temple stonework",
         "Quipu rope knot textile patterns and condor iconography"
@@ -306,7 +316,7 @@
     "gridMaterial": "Dark grey polygonal stone masonry with faint interlocking joint texture at very low opacity",
     "music": {
       "menu": "A majestic Andean instrumental with gentle charango melody and soft pan flute harmonies over a steady bombo drum pulse. Mountain wind ambience. Around 85 BPM, monumental and serene.",
-      "gameplay": "A powerful Andean instrumental driven by rapid charango strumming and soaring quena flute over thundering bombo legüero war drums. 120 BPM, precise and mountainous."
+      "gameplay": "A lively Andean instrumental with steady charango strumming and warm quena flute melody over a grounded bombo drum pulse. 115 BPM, precise and mountainous."
     }
   }
 }

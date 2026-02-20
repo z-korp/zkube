@@ -18,6 +18,7 @@ export type LimitRunner = <T>(fn: () => Promise<T>) => Promise<T>;
 export type PLimitFactory = (concurrency: number) => LimitRunner;
 
 export interface BlockData {
+  centerpiece: string;
   inspirations: [string, string];
   themeKeywords: [string, string, string];
   blockPrompt: string;

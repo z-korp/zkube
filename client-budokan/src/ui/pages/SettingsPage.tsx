@@ -150,7 +150,7 @@ const SettingsPage: React.FC = () => {
                     whileTap={{ scale: 0.93 }}
                     onClick={() => setThemeTemplate(themeId)}
                     title={THEME_META[themeId].name}
-                    className={`relative rounded-xl border p-1 transition-colors w-14 h-14 flex items-center justify-center ${
+                    className={`relative rounded-xl border overflow-hidden transition-colors w-14 h-14 flex items-center justify-center ${
                       isSelected
                         ? "border-yellow-300 bg-yellow-500/15"
                         : "border-slate-600/70 bg-slate-900/40 hover:border-slate-400"
@@ -159,7 +159,7 @@ const SettingsPage: React.FC = () => {
                     <img
                       src={themeAssets.themeIcon}
                       alt={THEME_META[themeId].name}
-                      className="w-full h-full rounded-lg object-contain"
+                      className="w-full h-full object-cover"
                       draggable={false}
                     />
                     {isSelected && (

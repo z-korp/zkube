@@ -231,7 +231,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       filename: "theme-icon.png",
       outputPath: path.join(themeRoot, "theme-icon.png"),
       prompt: buildThemeIconPrompt(theme),
-      ...getTargetDimensions("theme-icon.png", { width: 512, height: 512 }),
+      ...getTargetDimensions("theme-icon.png", { width: 256, height: 256 }),
     });
   }
 
