@@ -292,7 +292,7 @@ const LoadoutPage: React.FC = () => {
                 const icon = getBonusIcon(bonusType);
                 const stats = getBonusStats(bonusType);
                 const bonus = new Bonus(bonusType);
-                const description = bonus.getDescription();
+                const description = bonus.getEffect(0);
 
                 return (
                   <motion.button
@@ -305,9 +305,9 @@ const LoadoutPage: React.FC = () => {
                     disabled={isLocked}
                     className={`relative flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
                       isSelected
-                        ? "border-yellow-400 bg-yellow-500/10 shadow-[0_0_12px_rgba(250,204,21,0.15)]"
-                        : "border-slate-700 bg-slate-800/40"
-                    } ${isLocked ? "opacity-40 cursor-not-allowed grayscale" : "hover:border-slate-500"}`}
+                        ? "border-yellow-400 bg-yellow-500/15 shadow-[0_0_14px_rgba(250,204,21,0.2)]"
+                        : "border-slate-600 bg-slate-800/80"
+                    } ${isLocked ? "opacity-40 cursor-not-allowed grayscale" : "hover:border-slate-400"}`}
                   >
                     <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 border-2 border-slate-600">
                       <img
