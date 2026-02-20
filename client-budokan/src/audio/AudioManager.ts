@@ -29,6 +29,12 @@ export class AudioManager {
 
   private pausedByManager = false;
 
+  private playlist: string[] = [];
+
+  private playlistIdx = 0;
+
+  private playlistThemeId: ThemeId | null = null;
+
   public musicVolume: number;
 
   public effectsVolume: number;
