@@ -168,7 +168,7 @@ export function buildThemeIconPrompt(theme: ThemeDefinition): string {
 /* ------------------------------------------------------------------ */
 
 export function buildCommonLogoPrompt(): string {
-  return `The word "zKube" as a bold game logo on a solid black background. The letters have a faceted prismatic 3D style — each letter face is made of geometric crystal-like planes that catch light differently, creating a multi-tonal shimmering effect across the surface. Bold chunky letterforms with sharp geometric facets. Neutral mid-grey tones only (#707070 to #A0A0A0), no color. Subtle highlights where facet planes meet. Nothing else — just the text, centered, on black. 1024x1024 pixels.`;
+  return `The word "zKube" in Tilt Prism font as a bold flat 2D game logo on a solid black background. Chunky geometric letterforms with faceted prismatic surface fills — each letter filled with flat geometric triangular planes like a low-poly mosaic, different grey tones per facet. Completely flat 2D design, no depth, no shadows, no 3D perspective. Neutral mid-grey tones only (#707070 to #A0A0A0), no color. Nothing else — just the text, centered, on black. 1024x1024 pixels.`;
 }
 
 /* ------------------------------------------------------------------ */
