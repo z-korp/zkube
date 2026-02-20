@@ -221,6 +221,8 @@ const GameHud: React.FC<GameHudProps> = ({
           <div className="w-8 h-8 rounded-full border-2 border-yellow-500 bg-slate-900 flex items-center justify-center shadow-[0_0_8px_rgba(250,204,21,0.3)]">
             <span className="font-['Tilt_Prism'] text-base text-yellow-400 leading-none">{level}</span>
           </div>
+          <span className="text-xs">🧊</span>
+          <span className="font-['Tilt_Prism'] text-sm text-blue-300 tabular-nums">{totalCubes}</span>
         </div>
 
         <div className="min-w-0">
@@ -238,12 +240,10 @@ const GameHud: React.FC<GameHudProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           <span className={`font-['Tilt_Prism'] text-sm tabular-nums ${combo > 0 ? "text-white" : "text-slate-500"}`}>
             🔥{combo}x
           </span>
-          <span className="text-xs">🧊</span>
-          <span className="font-['Tilt_Prism'] text-sm text-blue-300 tabular-nums">{totalCubes}</span>
         </div>
 
         <div className="flex items-center gap-1.5" style={{ width: leftColWidth }}>
