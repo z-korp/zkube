@@ -364,7 +364,22 @@ const MapPage: React.FC = () => {
                             </>
                           )}
 
-
+                          {node.state === "cleared" && game && node.contractLevel != null && (() => {
+                            const lvlStars = game.getLevelStars(node.contractLevel);
+                            if (lvlStars <= 0) return null;
+                            const yOff = node.type === "boss" ? 5.5 : node.type === "shop" ? 4.5 : 4;
+                            return (
+                              <text
+                                x={cx}
+                                y={cy + yOff}
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                fontSize={2}
+                              >
+                                {"🧊".repeat(lvlStars)}
+                              </text>
+                            );
+                          })()}
                         </g>
                       );
                     })}
