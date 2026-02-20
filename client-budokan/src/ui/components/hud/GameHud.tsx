@@ -285,13 +285,15 @@ const GameHud: React.FC<GameHudProps> = ({
               <button
                 type="button"
                 onClick={() => setMovesInfoOpen((v) => !v)}
+                onMouseEnter={() => setMovesInfoOpen(true)}
+                onMouseLeave={() => setMovesInfoOpen(false)}
                 className="inline-flex items-center justify-center text-slate-400 hover:text-slate-200 active:text-white transition-colors"
                 aria-label="Cube reward thresholds"
               >
                 <Info size={11} />
               </button>
               {movesInfoOpen && (
-                <div className="absolute left-0 bottom-full mb-1.5 z-50 bg-slate-900 border border-slate-500 rounded-md px-3 py-2 shadow-lg whitespace-nowrap">
+                <div className="absolute left-0 top-full mt-1.5 z-50 bg-slate-900 border border-slate-500 rounded-md px-3 py-2 shadow-lg whitespace-nowrap">
                   <div className="flex flex-col gap-1 text-xs text-white">
                     <div className="flex items-center gap-2">
                       <span>🧊🧊🧊</span>
