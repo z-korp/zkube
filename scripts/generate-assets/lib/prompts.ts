@@ -170,39 +170,97 @@ export function buildThemeIconPrompt(theme: ThemeDefinition): string {
 export function buildMapBackgroundPrompt(theme: ThemeDefinition): string {
   return `
 {
-  "style_name": "${theme.name} Decorative Map Backdrop",
+  "style_name": "${theme.name} Top-Down Map Terrain",
   "inspiration": [
-    "${theme.blockData.inspirations[0]}",
-    "${theme.blockData.inspirations[1]}",
-    "Richly decorated game environment wallpaper",
-    "High-contrast atmospheric scene backdrop"
+    "Satellite photography of natural terrain",
+    "Top-down game map textures",
+    "Stylized aerial landscape illustration"
   ],
-  "scene": "Bird's eye aerial view looking straight down at a ${theme.name} landscape — ${theme.mapScene}. Seen from high above like a satellite or drone photo, terrain features spread naturally with open space between them.",
-  "style": "flat vector illustration with bold linework, smooth gradients, and very high-contrast cel shading. Strong color saturation with vivid ${theme.palette.accent} accent highlights against deep dark ${theme.palette.bg} shadows.",
+  "scene": "Top-down bird's eye aerial view looking straight down at ${theme.mapScene}. Pure natural terrain seen from very high altitude — only ground, water, and natural formations visible. No buildings, no structures, no man-made objects.",
+  "style": "flat vector illustration with smooth gradients and cel shading, stylized satellite-view aesthetic. Rich color saturation.",
   "color_palette": {
     "primary": "${theme.palette.bg}",
     "secondary": "${theme.palette.accent}",
-    "highlight": "${lightenHex(theme.palette.accent, 0.35)}",
-    "shadow": "${darkenHex(theme.palette.bg, 0.4)}",
-    "accent_pop": "${lightenHex(theme.palette.accent, 0.5)}",
-    "background_gradient": ["${darkenHex(theme.palette.bg, 0.3)}", "${theme.palette.bg}"]
+    "highlight": "${lightenHex(theme.palette.accent, 0.3)}",
+    "shadow": "${darkenHex(theme.palette.bg, 0.35)}"
   },
-  "lighting": "dramatic high-contrast lighting with vivid accent color highlights and deep dark shadows",
-  "mood": "${theme.mood}, vibrant, immersive",
-  "composition": "top-down aerial view, sparse environmental elements with breathing room between them, no central focal point, no paths, no roads, no corridors",
+  "lighting": "even overhead lighting as seen from high altitude, subtle shadows from terrain elevation",
+  "mood": "${theme.mood}",
+  "composition": "uniform natural terrain filling the entire canvas edge-to-edge, no focal point, tileable feel, consistent texture across the frame",
   "camera": {
-    "angle": "top-down bird's eye, looking straight down",
-    "distance": "far aerial shot",
-    "lens": "35mm",
-    "focus": "sharp across frame"
+    "angle": "perfectly top-down, 90 degrees straight down",
+    "distance": "high altitude aerial",
+    "lens": "orthographic",
+    "focus": "uniform sharpness"
   },
   "medium": "digital vector art",
-  "textures": "clean bold edges, saturated color fills, strong tonal contrast between light and dark areas",
-  "effects": "subtle atmospheric depth, glowing accent-colored highlights on key elements, rich color saturation",
-  "themes": ["${theme.name}", "${theme.blockData.themeKeywords[0]}", "${theme.blockData.themeKeywords[1]}", "${theme.blockData.themeKeywords[2]}"],
-  "usage_notes": "Square 1:1 opaque image. HIGH CONTRAST — vivid accent colors against very dark background. No paths, no roads, no corridors, no central structures. Pure decorative environment scenery. No text, no UI, no characters. This is a backdrop behind semi-transparent game UI elements so contrast must be strong."
+  "effects": "subtle depth variation in terrain color, natural texture patterns",
+  "themes": ["${theme.name}", "${theme.blockData.themeKeywords[0]}"],
+  "usage_notes": "Square 1:1 opaque image. Pure natural terrain from above. NO buildings, NO structures, NO paths, NO roads, NO text, NO UI, NO characters. Just terrain — water, land, vegetation, sand, ice, rock as appropriate for the theme."
 }
 `.trim();
+}
+
+export function buildMapNodePrompt(theme: ThemeDefinition, nodeType: "level" | "shop" | "boss"): string {
+  const nodeDescriptions: Record<string, Record<string, string>> = {
+    "Polynesian": {
+      level: "A small tropical island seen from above — sandy beach ring around lush green vegetation, surrounded by deep blue ocean. Compact circular island shape.",
+      shop: "A small tropical island with a thatched-roof market hut and wooden dock seen from above — sandy beach, palm trees, a few colorful trade goods visible. Surrounded by ocean.",
+      boss: "A volcanic island seen from above — dark rocky mountain with glowing orange lava crater at the center, surrounded by black volcanic beach and deep ocean. Larger and more dramatic than regular islands.",
+    },
+    "Ancient Egypt": {
+      level: "A small desert oasis seen from above — sandy terrain with a cluster of palm trees around a turquoise water pool. Surrounded by golden desert sand.",
+      shop: "A small desert bazaar seen from above — colorful market tents and awnings arranged around a central well, surrounded by sand.",
+      boss: "A golden pyramid complex seen from above — large pyramid with smaller structures around it, long shadows cast on the sand. Imposing and monumental.",
+    },
+    "Norse": {
+      level: "A small snowy clearing seen from above — a circle of standing rune stones on white snow, surrounded by dark pine forest. Faint blue glow from runes.",
+      shop: "A small Viking village seen from above — a few wooden longhouses with snow-covered roofs arranged around a central fire pit, surrounded by snowy forest.",
+      boss: "A massive frost fortress seen from above — ice-covered great hall with glowing blue windows on a frozen lake, surrounded by snow and dark forest. Imposing scale.",
+    },
+    "Ancient Greece": {
+      level: "A small rocky islet seen from above — white marble column ruins on sun-bleached rock, surrounded by azure Aegean sea.",
+      shop: "A small harbor town seen from above — white buildings with blue roofs clustered around a tiny port with boats, surrounded by sea.",
+      boss: "A grand temple complex on a hilltop seen from above — white marble Parthenon with surrounding columns, olive groves around the base. Gleaming in golden light.",
+    },
+    "Feudal Japan": {
+      level: "A small shrine clearing seen from above — a stone lantern and small torii gate amid pink cherry blossom trees, surrounded by dark misty forest.",
+      shop: "A small tea house seen from above — wooden building with warm light, a zen rock garden beside it, cherry blossoms, surrounded by bamboo forest.",
+      boss: "A grand castle seen from above — multi-tiered Japanese castle with red and black roofs, stone walls, surrounded by cherry blossom gardens and moats. Dramatic scale.",
+    },
+    "Ancient China": {
+      level: "A small pagoda garden seen from above — a jade-green pagoda beside a lotus pond, surrounded by bamboo and misty terrain.",
+      shop: "A small market courtyard seen from above — silk-draped stalls with hanging lanterns around a central jade fountain, surrounded by gardens.",
+      boss: "An imperial palace complex seen from above — golden curved roofs of a grand palace with dragon statues, surrounded by formal gardens and walls. Majestic scale.",
+    },
+    "Ancient Persia": {
+      level: "A small garden pavilion seen from above — a blue-tiled dome structure beside a reflecting pool, surrounded by cypress trees and arid terrain.",
+      shop: "A small caravanserai seen from above — an arched courtyard with colorful goods and carpets, a central fountain, surrounded by desert.",
+      boss: "A grand palace seen from above — massive blue domes and golden minarets, geometric tile courtyards, reflecting pools. Luminous and imposing.",
+    },
+    "Mayan": {
+      level: "A small jungle temple ruin seen from above — a moss-covered stone platform with carved glyphs, partially hidden by jungle canopy. Green vines everywhere.",
+      shop: "A small jungle marketplace seen from above — wooden platforms with woven awnings among the trees, offerings and trade goods visible, surrounded by dense canopy.",
+      boss: "A stepped pyramid seen from above — massive Mayan pyramid rising above the jungle canopy, calendar sun disc carved into the top platform. Ancient and powerful.",
+    },
+    "Chokwe": {
+      level: "A small ceremonial circle seen from above — red earth clearing with carved wooden poles arranged in a ring, surrounded by African forest.",
+      shop: "A small village market seen from above — thatched-roof huts with woven raffia screens around a central fire pit, trade goods spread on cloths, surrounded by forest.",
+      boss: "A grand ceremonial lodge seen from above — large carved wooden structure with mask facade, blazing fires around it, geometric patterns in the red earth. Powerful presence.",
+    },
+    "Inca": {
+      level: "A small stone terrace seen from above — interlocking polygonal stone walls forming a circular platform on a mountainside, surrounded by green highland terrain.",
+      shop: "A small mountain trading post seen from above — stone buildings with textile-draped market stalls, llamas visible, surrounded by terraced mountain slopes.",
+      boss: "A mountain citadel seen from above — massive interlocking stone walls and terraces of a Machu Picchu-style complex, golden Inti sun disc at the center. Cloud forest below.",
+    },
+  };
+
+  const descriptions = nodeDescriptions[theme.name] ?? nodeDescriptions["Polynesian"];
+  const description = descriptions[nodeType] ?? descriptions["level"];
+
+  const sizeHint = nodeType === "boss" ? "occupying 80% of the frame" : "occupying 70% of the frame";
+
+  return `${description} ${sizeHint}. Top-down bird's eye view, looking straight down. Flat vector game art style with bold outlines and cel shading. Dark background (${darkenHex(theme.palette.bg, 0.3)}) surrounding the landmark. Vivid ${theme.palette.accent} accent color highlights. Square format, centered composition for circular crop display. No text, no UI.`;
 }
 
 /* ------------------------------------------------------------------ */

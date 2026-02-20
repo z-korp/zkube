@@ -10,6 +10,7 @@ import {
   buildGridBackgroundPrompt,
   buildLoadingBackgroundPrompt,
   buildMapBackgroundPrompt,
+  buildMapNodePrompt,
   buildPanelPrompt,
   buildParticlePrompt,
   buildThemeIconPrompt,
@@ -221,6 +222,22 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       prompt: buildMapBackgroundPrompt(theme),
       ...getTargetDimensions("map-bg.png", { width: 2048, height: 2048 }),
     });
+  }
+
+  if (shouldIncludeCategory("map-nodes", filter)) {
+    const nodeTypes = ["level", "shop", "boss"] as const;
+    for (const nodeType of nodeTypes) {
+      const filename = `map-node-${nodeType}.png`;
+      jobs.push({
+        scope: "per-theme",
+        category: "map-nodes",
+        themeId,
+        filename,
+        outputPath: path.join(themeRoot, filename),
+        prompt: buildMapNodePrompt(theme, nodeType),
+        ...getTargetDimensions(filename, { width: 512, height: 512 }),
+      });
+    }
   }
 
   // Logo is handled by runLogoPipeline (common master + per-theme tint)

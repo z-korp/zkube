@@ -3,6 +3,7 @@ export const PER_THEME_ASSETS = [
   "background",
   "loading-bg",
   "map-bg",
+  "map-nodes",
   "logo",
   "grid",
   "theme-icon",

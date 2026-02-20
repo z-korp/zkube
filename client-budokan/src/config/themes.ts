@@ -510,6 +510,9 @@ export function getThemeImages(themeId: ThemeId) {
     background: `${base}/background.png`,
     gridBg: `${base}/grid-bg.png`,
     mapBg: `${base}/map-bg.png`,
+    mapNodeLevel: `${base}/map-node-level.png`,
+    mapNodeShop: `${base}/map-node-shop.png`,
+    mapNodeBoss: `${base}/map-node-boss.png`,
     themeIcon: `${base}/theme-icon.png`,
   };
 }

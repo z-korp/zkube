@@ -280,6 +280,14 @@ const MapPage: React.FC = () => {
                       const isInteractive = node.state !== "locked";
                       const label = getLabel(node);
 
+                      const nodeImg =
+                        node.type === "boss"
+                          ? themeImages.mapNodeBoss
+                          : node.type === "shop"
+                            ? themeImages.mapNodeShop
+                            : themeImages.mapNodeLevel;
+                      const r = node.type === "boss" ? 4.5 : node.type === "shop" ? 3.5 : 3;
+
                       return (
                         <g
                           key={`node-${zoneIdx}-${node.nodeInZone}`}
@@ -297,81 +305,46 @@ const MapPage: React.FC = () => {
                           }}
                           opacity={colors.alpha}
                         >
-                          {node.type === "shop" ? (
-                            <>
-                              <circle
-                                cx={cx}
-                                cy={cy}
-                                r={3}
-                                fill={colors.fill}
-                                stroke={colors.border}
-                                strokeWidth={0.4}
-                              />
-                              <text
-                                x={cx}
-                                y={cy + 0.3}
-                                textAnchor="middle"
-                                dominantBaseline="central"
-                                fontSize={3.5}
-                              >
-                                🛒
-                              </text>
-                            </>
-                          ) : node.type === "boss" ? (
-                            <>
-                              <circle
-                                cx={cx}
-                                cy={cy}
-                                r={4}
-                                fill={colors.fill}
-                                stroke={colors.border}
-                                strokeWidth={0.5}
-                              />
-                              <clipPath id={`boss-icon-clip-${zoneIdx}-${node.nodeInZone}`}>
-                                <circle cx={cx} cy={cy} r={3.3} />
-                              </clipPath>
-                              <image
-                                href={themeImages.themeIcon}
-                                x={cx - 3.3}
-                                y={cy - 3.3}
-                                width={6.6}
-                                height={6.6}
-                                preserveAspectRatio="xMidYMid slice"
-                                clipPath={`url(#boss-icon-clip-${zoneIdx}-${node.nodeInZone})`}
-                              />
-                            </>
-                          ) : (
-                            <>
-                              <circle
-                                cx={cx}
-                                cy={cy}
-                                r={2.5}
-                                fill={colors.fill}
-                                stroke={colors.border}
-                                strokeWidth={0.4}
-                              />
-                              <text
-                                x={cx}
-                                y={cy}
-                                textAnchor="middle"
-                                dominantBaseline="central"
-                                fill={colors.text}
-                                fontSize={2.2}
-                                fontFamily="Bangers"
-                              >
-                                {label}
-                              </text>
-                            </>
-                          )}
+                          <clipPath id={`node-clip-${zoneIdx}-${node.nodeInZone}`}>
+                            <circle cx={cx} cy={cy} r={r} />
+                          </clipPath>
+                          <image
+                            href={nodeImg}
+                            x={cx - r}
+                            y={cy - r}
+                            width={r * 2}
+                            height={r * 2}
+                            preserveAspectRatio="xMidYMid slice"
+                            clipPath={`url(#node-clip-${zoneIdx}-${node.nodeInZone})`}
+                          />
+                          <circle
+                            cx={cx}
+                            cy={cy}
+                            r={r}
+                            fill="none"
+                            stroke={colors.border}
+                            strokeWidth={node.type === "boss" ? 0.6 : 0.4}
+                          />
+
+                          <text
+                            x={cx}
+                            y={cy + r + 2}
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            fill={colors.text}
+                            fontSize={2}
+                            fontFamily="Bangers"
+                          >
+                            {label}
+                          </text>
 
                           {node.state === "cleared" && game && node.contractLevel != null && (() => {
                             const lvlStars = game.getLevelStars(node.contractLevel);
                             if (lvlStars <= 0) return null;
-                            const yOff = node.type === "boss" ? 5.5 : node.type === "shop" ? 4.5 : 4;
                             return (
                               <text
                                 x={cx}
-                                y={cy + yOff}
+                                y={cy + r + 4.2}
                                 textAnchor="middle"
                                 dominantBaseline="central"
                                 fontSize={2}
