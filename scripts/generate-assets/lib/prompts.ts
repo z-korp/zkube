@@ -177,7 +177,7 @@ export function buildMapBackgroundPrompt(theme: ThemeDefinition): string {
     "Richly decorated game environment wallpaper",
     "High-contrast atmospheric scene backdrop"
   ],
-  "scene": "A richly detailed ${theme.name} environment scene — ${theme.mapScene}. Purely decorative scenery filling the entire frame, dense with themed environmental elements spread evenly across the canvas.",
+  "scene": "Bird's eye aerial view looking straight down at a ${theme.name} landscape — ${theme.mapScene}. Seen from high above like a satellite or drone photo, terrain features spread naturally with open space between them.",
   "style": "flat vector illustration with bold linework, smooth gradients, and very high-contrast cel shading. Strong color saturation with vivid ${theme.palette.accent} accent highlights against deep dark ${theme.palette.bg} shadows.",
   "color_palette": {
     "primary": "${theme.palette.bg}",
@@ -189,10 +189,10 @@ export function buildMapBackgroundPrompt(theme: ThemeDefinition): string {
   },
   "lighting": "dramatic high-contrast lighting with vivid accent color highlights and deep dark shadows",
   "mood": "${theme.mood}, vibrant, immersive",
-  "composition": "evenly distributed environmental elements filling the entire square canvas, no central focal point, no paths, no roads, no corridors, no clearings",
+  "composition": "top-down aerial view, sparse environmental elements with breathing room between them, no central focal point, no paths, no roads, no corridors",
   "camera": {
-    "angle": "eye-level immersive",
-    "distance": "medium shot",
+    "angle": "top-down bird's eye, looking straight down",
+    "distance": "far aerial shot",
     "lens": "35mm",
     "focus": "sharp across frame"
   },
