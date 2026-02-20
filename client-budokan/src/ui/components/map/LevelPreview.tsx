@@ -1,13 +1,16 @@
 import { motion } from "motion/react";
 import { X } from "lucide-react";
-import { ConstraintType } from "@/dojo/game/types/constraint";
+import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
+import { Difficulty } from "@/dojo/game/types/difficulty";
 import type { MapNodeData } from "@/hooks/useMapData";
 import type { Game } from "@/dojo/game/models/game";
+import type { GameLevelData } from "@/hooks/useGameLevel";
 import GameButton from "@/ui/components/shared/GameButton";
 
 export interface LevelPreviewProps {
   node: MapNodeData;
   game: Game | null;
+  gameLevel: GameLevelData | null;
   gameId: number | null;
   onPlay: () => void;
   onClose: () => void;
@@ -27,19 +30,51 @@ const DIFFICULTY_STYLES: Record<string, string> = {
 export const LevelPreview: React.FC<LevelPreviewProps> = ({
   node,
   game,
+  gameLevel,
   gameId,
   onPlay,
   onClose,
 }) => {
-  const levelConfig = node.levelConfig;
   const stars = game && node.contractLevel ? game.getLevelStars(node.contractLevel) : 0;
 
-  const difficulty = levelConfig?.difficulty.value ?? "Unknown";
-  const constraints = levelConfig
-    ? [levelConfig.constraint, levelConfig.constraint2]
-        .filter((c) => c.constraintType !== ConstraintType.None)
-        .map((c) => c.getDescription())
-    : [];
+  const useContractData = gameLevel && node.contractLevel === gameLevel.level;
+
+  const difficulty = useContractData
+    ? Difficulty.from(gameLevel.difficulty).value
+    : node.levelConfig?.difficulty.value ?? "Unknown";
+
+  const pointsRequired = useContractData
+    ? gameLevel.pointsRequired
+    : node.levelConfig?.pointsRequired ?? 0;
+
+  const maxMoves = useContractData
+    ? gameLevel.maxMoves
+    : node.levelConfig?.maxMoves ?? 0;
+
+  const cube3Threshold = useContractData
+    ? gameLevel.cube3Threshold
+    : node.levelConfig?.cube3Threshold ?? 0;
+
+  const cube2Threshold = useContractData
+    ? gameLevel.cube2Threshold
+    : node.levelConfig?.cube2Threshold ?? 0;
+
+  const constraints: string[] = [];
+  if (useContractData) {
+    [
+      { type: gameLevel.constraintType, value: gameLevel.constraintValue, count: gameLevel.constraintCount },
+      { type: gameLevel.constraint2Type, value: gameLevel.constraint2Value, count: gameLevel.constraint2Count },
+      { type: gameLevel.constraint3Type, value: gameLevel.constraint3Value, count: gameLevel.constraint3Count },
+    ].forEach(({ type, value, count }) => {
+      if (type !== ConstraintType.None) {
+        constraints.push(Constraint.fromContractValues(type, value, count).getDescription());
+      }
+    });
+  } else if (node.levelConfig) {
+    [node.levelConfig.constraint, node.levelConfig.constraint2]
+      .filter((c) => c.constraintType !== ConstraintType.None)
+      .forEach((c) => constraints.push(c.getDescription()));
+  }
 
   const canPlay =
     node.type !== "shop" &&
@@ -100,13 +135,13 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
               </span>
             </div>
 
-            {levelConfig && (
+            {maxMoves > 0 && (
               <div className="space-y-1 pt-1">
                 <p className="mb-1 text-slate-400">Move Thresholds</p>
                 {[
-                  { cubes: 3, threshold: levelConfig.cube3Threshold },
-                  { cubes: 2, threshold: levelConfig.cube2Threshold },
-                  { cubes: 1, threshold: levelConfig.maxMoves },
+                  { cubes: 3, threshold: cube3Threshold },
+                  { cubes: 2, threshold: cube2Threshold },
+                  { cubes: 1, threshold: maxMoves },
                 ].map(({ cubes, threshold }) => {
                   const achieved = cubes <= stars;
                   return (
@@ -142,7 +177,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Target Score</span>
               <span className="font-['Bangers'] text-lg tracking-wide text-white">
-                {String(levelConfig?.pointsRequired ?? 0)}
+                {String(pointsRequired)}
               </span>
             </div>
 
@@ -161,13 +196,13 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
               )}
             </div>
 
-            {levelConfig && (
+            {maxMoves > 0 && (
               <div className="space-y-1 pt-1">
                 <p className="mb-1 text-slate-400">Moves</p>
                 {[
-                  { cubes: 3, threshold: levelConfig.cube3Threshold },
-                  { cubes: 2, threshold: levelConfig.cube2Threshold },
-                  { cubes: 1, threshold: levelConfig.maxMoves },
+                  { cubes: 3, threshold: cube3Threshold },
+                  { cubes: 2, threshold: cube2Threshold },
+                  { cubes: 1, threshold: maxMoves },
                 ].map(({ cubes, threshold }) => (
                   <div
                     key={cubes}

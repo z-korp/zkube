@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useGame } from "@/hooks/useGame";
+import { useGameLevel } from "@/hooks/useGameLevel";
 import {
   NODES_PER_ZONE,
   TOTAL_ZONES,
@@ -90,6 +91,7 @@ const MapPage: React.FC = () => {
     gameId: gameId ?? undefined,
     shouldLog: false,
   });
+  const gameLevel = useGameLevel({ gameId: game?.id });
 
   const currentLevel = game?.level ?? 1;
   const mapData = useMapData({ seed, currentLevel });
@@ -414,6 +416,7 @@ const MapPage: React.FC = () => {
           <LevelPreview
             node={selectedNode}
             game={game ?? null}
+            gameLevel={gameLevel}
             gameId={gameId}
             onPlay={handlePlay}
             onClose={() => setSelectedNode(null)}
