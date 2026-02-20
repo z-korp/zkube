@@ -58,13 +58,13 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
   if (isGameOver) return null;
 
   return (
-    <div className="w-full shrink-0">
+    <div className="w-full px-2 pb-2 shrink-0">
       {activeBonus !== BonusType.None && bonusDescription && (
         <div className="mb-1 text-center text-xs font-semibold uppercase tracking-wide text-yellow-300">
           {bonusDescription}
         </div>
       )}
-      <div className="max-w-[500px] mx-auto w-full flex items-center justify-center gap-[clamp(4px,1.5vw,10px)] bg-slate-900/80 backdrop-blur-sm border-t border-slate-600/60 px-[clamp(8px,2vw,14px)] py-[clamp(8px,2vw,14px)]">
+      <div className="max-w-[500px] mx-auto w-full flex items-center justify-center gap-[clamp(4px,1.5vw,10px)] bg-slate-900/90 backdrop-blur-sm border border-slate-500/50 rounded-lg px-[clamp(8px,2vw,14px)] py-[clamp(8px,2vw,14px)]">
         <motion.button
           onClick={onMap}
           whileHover={{ scale: 1.1 }}

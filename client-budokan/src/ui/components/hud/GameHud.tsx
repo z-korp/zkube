@@ -1,8 +1,8 @@
-import { Rows3, Grid3x3, Flame, ArrowDownUp, Ban, Trash2 } from "lucide-react";
 import ProgressRing from "@/ui/components/shared/ProgressRing";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import { Constraint, ConstraintType } from "@/dojo/game/types/constraint";
+import { getCommonAssetPath } from "@/config/themes";
 import {
   Tooltip,
   TooltipContent,
@@ -28,23 +28,20 @@ interface GameHudProps {
 const ringSize = 40;
 const iconSize = 18;
 
+const CONSTRAINT_ICON_MAP: Record<ConstraintType, string | null> = {
+  [ConstraintType.ClearLines]: getCommonAssetPath("constraints/constraint-clear-lines.png"),
+  [ConstraintType.BreakBlocks]: getCommonAssetPath("constraints/constraint-break-blocks.png"),
+  [ConstraintType.AchieveCombo]: getCommonAssetPath("constraints/constraint-combo.png"),
+  [ConstraintType.FillAndClear]: getCommonAssetPath("constraints/constraint-fill.png"),
+  [ConstraintType.NoBonusUsed]: getCommonAssetPath("constraints/constraint-no-bonus.png"),
+  [ConstraintType.ClearGrid]: getCommonAssetPath("constraints/constraint-clear-grid.png"),
+  [ConstraintType.None]: null,
+};
+
 const getConstraintIcon = (type: ConstraintType, size: number) => {
-  switch (type) {
-    case ConstraintType.ClearLines:
-      return <Rows3 size={size} />;
-    case ConstraintType.BreakBlocks:
-      return <Grid3x3 size={size} />;
-    case ConstraintType.AchieveCombo:
-      return <Flame size={size} />;
-    case ConstraintType.FillAndClear:
-      return <ArrowDownUp size={size} />;
-    case ConstraintType.NoBonusUsed:
-      return <Ban size={size} />;
-    case ConstraintType.ClearGrid:
-      return <Trash2 size={size} />;
-    default:
-      return null;
-  }
+  const src = CONSTRAINT_ICON_MAP[type];
+  if (!src) return null;
+  return <img src={src} alt="" width={size} height={size} className="rounded-full object-cover" />;
 };
 
 const getConstraintColor = (
@@ -161,7 +158,7 @@ const GameHud: React.FC<GameHudProps> = ({
 
   return (
     <div className="w-full px-2 pt-2 shrink-0">
-      <div className="max-w-[500px] mx-auto w-full bg-slate-900/60 backdrop-blur-sm rounded-lg px-3 py-2 flex flex-col gap-2">
+      <div className="max-w-[500px] mx-auto w-full bg-slate-900/90 backdrop-blur-sm border border-slate-500/50 rounded-lg px-3 py-2 flex flex-col gap-2">
         {/* Row 1: Level + Combo | Constraints (centered) | Cubes */}
         <div className="flex items-center">
           <div className="flex items-center gap-1.5 shrink-0 min-w-0">
