@@ -50,7 +50,8 @@ const LeaderboardPage: React.FC = () => {
                     <th className="py-2 px-2 font-['Fredericka_the_Great']">Player</th>
                     <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
                     <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Score</th>
-                    <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Cubes</th>
+                    <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">🧊</th>
+                    <th className="py-2 px-2 w-20 text-right font-['Fredericka_the_Great']">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -84,9 +85,18 @@ const LeaderboardPage: React.FC = () => {
                             {entry.score}
                           </span>
                         </td>
-                        <td className="py-2.5 px-2 text-purple-200 text-right">
+                        <td className="py-2.5 px-2 text-blue-300 text-right">
                           <span className="font-['Bangers'] text-lg tracking-wide">
                             {entry.totalCubes}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-2 text-right">
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            entry.gameOver
+                              ? "bg-slate-600/40 text-slate-400"
+                              : "bg-emerald-500/20 text-emerald-300"
+                          }`}>
+                            {entry.gameOver ? "Finished" : "Live"}
                           </span>
                         </td>
                       </motion.tr>

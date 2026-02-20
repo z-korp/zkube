@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import { motion } from "motion/react";
+import { Play } from "lucide-react";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useNavigationStore } from "@/stores/navigationStore";
 import ThemeBackground from "@/ui/components/shared/ThemeBackground";
-import GameButton from "@/ui/components/shared/GameButton";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 
 const getAttributeNumber = (
@@ -79,8 +79,8 @@ const MyGamesPage: React.FC = () => {
                         <th className="py-2 px-2 font-['Fredericka_the_Great']">Game</th>
                         <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
                         <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Score</th>
-                        <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Cubes</th>
-                        <th className="py-2 px-2 w-24 text-right font-['Fredericka_the_Great']"></th>
+                        <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">🧊</th>
+                        <th className="py-2 px-2 w-12"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -110,17 +110,19 @@ const MyGamesPage: React.FC = () => {
                                 {score}
                               </span>
                             </td>
-                            <td className="py-2.5 px-2 text-purple-200 text-right">
+                            <td className="py-2.5 px-2 text-blue-300 text-right">
                               <span className="font-['Bangers'] text-lg tracking-wide">
                                 {cubes}
                               </span>
                             </td>
                             <td className="py-1.5 px-2 text-right">
-                              <GameButton
-                                label="RESUME"
-                                variant="primary"
+                              <button
+                                type="button"
                                 onClick={() => navigate("map", game.token_id)}
-                              />
+                                className="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-emerald-500 text-black transition hover:bg-emerald-400"
+                              >
+                                <Play size={16} fill="currentColor" />
+                              </button>
                             </td>
                           </motion.tr>
                         );
@@ -145,7 +147,7 @@ const MyGamesPage: React.FC = () => {
                         <th className="py-2 px-2 font-['Fredericka_the_Great']">Game</th>
                         <th className="py-2 px-2 w-14 text-right font-['Fredericka_the_Great']">Lvl</th>
                         <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Score</th>
-                        <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">Cubes</th>
+                        <th className="py-2 px-2 w-16 text-right font-['Fredericka_the_Great']">🧊</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -175,7 +177,7 @@ const MyGamesPage: React.FC = () => {
                                 {score}
                               </span>
                             </td>
-                            <td className="py-2.5 px-2 text-purple-200 text-right">
+                            <td className="py-2.5 px-2 text-blue-300 text-right">
                               <span className="font-['Bangers'] text-lg tracking-wide">
                                 {cubes}
                               </span>

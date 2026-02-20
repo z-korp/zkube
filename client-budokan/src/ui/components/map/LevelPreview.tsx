@@ -95,13 +95,6 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
               </span>
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Max Moves</span>
-              <span className="font-['Bangers'] text-lg tracking-wide text-white">
-                {String(levelConfig?.maxMoves ?? 0)}
-              </span>
-            </div>
-
             <div>
               <p className="mb-1 text-slate-400">Constraints</p>
               {constraints.length > 0 ? (
@@ -117,23 +110,33 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
               )}
             </div>
 
-            <div className="flex items-center justify-between pt-1">
-              <span className="text-slate-400">Cubes</span>
-              <div className="flex gap-0.5">
-                {[1, 2, 3].map((i) => (
-                  <span
-                    key={i}
-                    className={`text-lg ${
-                      node.state === "cleared" && i <= Math.max(1, node.cubesEarned)
-                        ? "opacity-100"
-                        : "opacity-25"
-                    }`}
-                  >
-                    🧊
-                  </span>
-                ))}
+            {levelConfig && (
+              <div className="space-y-1 pt-1">
+                <p className="mb-1 text-slate-400">Moves</p>
+                {[
+                  { cubes: 3, threshold: levelConfig.cube3Threshold },
+                  { cubes: 2, threshold: levelConfig.cube2Threshold },
+                  { cubes: 1, threshold: levelConfig.maxMoves },
+                ].map(({ cubes, threshold }) => {
+                  const isAchieved = node.state === "cleared" && cubes <= node.cubesEarned;
+                  return (
+                    <div
+                      key={cubes}
+                      className={`flex items-center justify-between rounded-md px-2 py-1 ${
+                        isAchieved
+                          ? "bg-emerald-500/15 text-emerald-200"
+                          : "bg-slate-800/60 text-slate-300"
+                      }`}
+                    >
+                      <span>{"🧊".repeat(cubes)}</span>
+                      <span className="font-['Bangers'] text-lg tracking-wide">
+                        ≤ {threshold}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
+            )}
           </div>
         )}
 
