@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { Lock } from "lucide-react";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
@@ -83,6 +83,7 @@ const LoadoutPage: React.FC = () => {
   const [selected, setSelected] = useState<BonusType[]>(DEFAULT_BONUSES);
   const [cubesToBring, setCubesToBring] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const autoStartTriggered = useRef(false);
 
   const playerMetaData = playerMeta?.data ?? null;
   const bridgingRank = playerMetaData?.bridgingRank ?? 0;
@@ -114,6 +115,11 @@ const LoadoutPage: React.FC = () => {
       [BonusType.Supply]: playerMetaData?.shuffleUnlocked ?? false,
     }),
     [playerMetaData],
+  );
+
+  const unlockedBonuses = useMemo(
+    () => ALL_BONUSES.filter((b) => unlockedMap[b]),
+    [unlockedMap],
   );
 
   const getBonusIcon = (type: BonusType): string => {
@@ -175,8 +181,9 @@ const LoadoutPage: React.FC = () => {
     });
   };
 
-  const handleStartGame = useCallback(async () => {
-    if (!account || selected.length !== 3) return;
+  const handleStartGame = useCallback(async (bonusOverride?: BonusType[]) => {
+    const bonuses = bonusOverride ?? selected;
+    if (!account || bonuses.length !== 3) return;
 
     if (cubesToBring > 0) {
       await refetchCubeBalance?.();
@@ -192,7 +199,7 @@ const LoadoutPage: React.FC = () => {
 
     setIsLoading(true);
     try {
-      saveLoadout({ selectedBonuses: selected, cubesToBring });
+      saveLoadout({ selectedBonuses: bonuses, cubesToBring });
 
       const mintResult = await freeMint({
         account,
@@ -203,7 +210,7 @@ const LoadoutPage: React.FC = () => {
       const gameId = mintResult.game_id;
       if (!gameId) throw new Error("Failed to extract game_id from mint");
 
-      const selectedValues = selected.map((type) =>
+      const selectedValues = bonuses.map((type) =>
         bonusTypeToContractValue(type),
       );
       await create({
@@ -243,6 +250,16 @@ const LoadoutPage: React.FC = () => {
     navigate,
   ]);
 
+  // Auto-skip when only 3 bonuses are unlocked (no choice to make)
+  useEffect(() => {
+    if (autoStartTriggered.current) return;
+    if (!playerMetaData || !account) return;
+    if (unlockedBonuses.length !== 3) return;
+
+    autoStartTriggered.current = true;
+    handleStartGame(unlockedBonuses);
+  }, [playerMetaData, account, unlockedBonuses, handleStartGame]);
+
   return (
     <div className="h-screen-viewport flex flex-col">
       <ThemeBackground />
@@ -253,8 +270,8 @@ const LoadoutPage: React.FC = () => {
       />
 
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4">
-        <div className="max-w-[520px] mx-auto flex flex-col gap-6">
-          <div>
+        <div className="max-w-[520px] mx-auto flex flex-col gap-6 pb-8">
+          <section className="bg-slate-900/80 rounded-xl border border-slate-600/60 p-4">
             <p className="text-center text-sm text-slate-400 mb-3">
               Select 3 Bonuses ({selected.length}/3)
             </p>
@@ -322,10 +339,10 @@ const LoadoutPage: React.FC = () => {
                 );
               })}
             </div>
-          </div>
+          </section>
 
           {canBringCubes && (
-            <div className="border-t border-slate-700 pt-4">
+            <section className="bg-slate-900/80 rounded-xl border border-slate-600/60 p-4">
               <p className="text-center text-sm text-slate-400 mb-3">
                 Bring Cubes (Max {maxCubesAllowed})
               </p>
@@ -365,10 +382,10 @@ const LoadoutPage: React.FC = () => {
                   Warning: Brought cubes are lost if you die!
                 </p>
               )}
-            </div>
+            </section>
           )}
 
-          <div className="flex flex-col gap-3 mt-2 pb-8">
+          <div className="flex flex-col gap-3">
             <GameButton
               label={
                 cubesToBring > 0
@@ -378,7 +395,7 @@ const LoadoutPage: React.FC = () => {
               variant="primary"
               disabled={selected.length !== 3}
               loading={isLoading}
-              onClick={handleStartGame}
+              onClick={() => handleStartGame()}
             />
             <GameButton
               label="CANCEL"

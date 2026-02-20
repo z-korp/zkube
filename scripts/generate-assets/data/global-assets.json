@@ -30,11 +30,12 @@
     { "filename": "icon-sound.png", "description": "A speaker with sound waves — sound toggle" }
   ],
   "bonusIcons": [
-    { "filename": "combo.png", "description": "A swirling vortex/cyclone of energy — represents combo multiplier power-up. Dynamic spiral motion, glowing trails." },
-    { "filename": "score.png", "description": "An exploding starburst with radiating rays — represents instant score bonus. Bright, energetic, celebratory." },
-    { "filename": "harvest.png", "description": "A crystal pickaxe or mining tool striking a gem — represents harvest bonus (destroying blocks for currency). Sharp, impactful." },
-    { "filename": "wave.png", "description": "A horizontal shockwave or energy pulse rippling outward — represents wave bonus (clearing entire rows). Wide horizontal motion." },
-    { "filename": "supply.png", "description": "A glowing crate or supply drop with an upward arrow — represents supply bonus (adding new lines). Sturdy, constructive feel." }
+    { "filename": "combo.png", "description": "A joker playing card character — grinning jester face with a pointed hat and bells" },
+    { "filename": "score.png", "description": "A starship — sleek rocket ship with exhaust flames, angled upward" },
+    { "filename": "harvest.png", "description": "A stick of dynamite — single dynamite stick with a lit fuse sparking" },
+    { "filename": "wave.png", "description": "A tidal wave — massive curling ocean wave with spray and foam" },
+    { "filename": "supply.png", "description": "A wooden crate — sturdy supply crate with plank texture and nails" },
+    { "filename": "bridging.png", "description": "A portal — glowing circular dimensional gateway with energy swirl inside" }
   ],
   "uiChrome": [
     { "filename": "hud-bar.png", "description": "A wide horizontal bar for displaying game stats (score, level, moves). Dark semi-transparent with subtle ornate borders on top and bottom edges. Fantasy/tribal style.", "width": 360, "height": 40 },

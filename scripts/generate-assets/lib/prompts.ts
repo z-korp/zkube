@@ -207,16 +207,7 @@ Square format. 48x48 pixel target (generating larger for quality).
 }
 
 export function buildBonusIconPrompt(description: string): string {
-  return `
-${GLOBAL_ART_STYLE}
-
-Generate a game bonus/power-up icon: ${description}
-Style: Colorful, vibrant, detailed fantasy game icon. Rich colors with glowing highlights and subtle shadows.
-The icon should be instantly recognizable at small sizes (64x64 display).
-Centered composition, no text. Slight 3D depth with lighting from top-left.
-Square format. 256x256 pixel target.
-Dark background.
-`.trim();
+  return `A bold ${description}. Drawn in white (#FFFFFF) on a solid black background. Stylized 2D vector game art with bold black outlines and flat cel-shading. Thick strokes, centered composition, instantly readable at small sizes. Sharp square corners — no rounded edges, no circular framing. No text, no logos, no clutter. Square format.`;
 }
 
 export function buildUiChromePrompt(description: string, width: number, height: number): string {

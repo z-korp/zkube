@@ -66,11 +66,11 @@ const MyGamesPage: React.FC = () => {
           ) : (
             <>
               {activeGames.length > 0 && (
-                <section>
-                  <h3 className="font-['Fredericka_the_Great'] text-sm text-emerald-300 tracking-wide mb-2 px-1">
+                <section className="bg-slate-900/80 rounded-xl border border-emerald-500/30 overflow-hidden">
+                  <h3 className="font-['Fredericka_the_Great'] text-sm text-emerald-300 tracking-wide px-4 pt-3 pb-2">
                     Active
                   </h3>
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-3 px-3 pb-3">
                     {activeGames.map((game, index) => {
                       const level = getAttributeNumber(game.metadata, "Level");
                       const score = getAttributeNumber(game.metadata, "Total Score") || game.score;
@@ -82,7 +82,7 @@ const MyGamesPage: React.FC = () => {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.2, delay: index * 0.03 }}
-                          className="bg-slate-900/80 rounded-xl p-4 border border-emerald-500/30"
+                          className="bg-slate-800/60 rounded-lg p-4 border border-emerald-500/20"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div>
@@ -129,11 +129,11 @@ const MyGamesPage: React.FC = () => {
               )}
 
               {finishedGames.length > 0 && (
-                <section>
-                  <h3 className="font-['Fredericka_the_Great'] text-sm text-slate-400 tracking-wide mb-2 px-1">
+                <section className="bg-slate-900/80 rounded-xl border border-slate-600/60 overflow-hidden">
+                  <h3 className="font-['Fredericka_the_Great'] text-sm text-slate-400 tracking-wide px-4 pt-3 pb-2">
                     Finished
                   </h3>
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-3 px-3 pb-3">
                     {finishedGames.map((game, index) => {
                       const level = getAttributeNumber(game.metadata, "Level");
                       const score = getAttributeNumber(game.metadata, "Total Score") || game.score;
@@ -145,7 +145,7 @@ const MyGamesPage: React.FC = () => {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.2, delay: index * 0.03 }}
-                          className="bg-slate-900/80 rounded-xl p-4 border border-slate-600/60"
+                          className="bg-slate-800/60 rounded-lg p-4 border border-slate-600/40"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div>
