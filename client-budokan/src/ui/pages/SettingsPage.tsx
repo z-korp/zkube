@@ -138,7 +138,7 @@ const SettingsPage: React.FC = () => {
               </h2>
             </div>
 
-            <div className="grid grid-cols-5 gap-2">
+            <div className="flex flex-wrap gap-2">
               {THEME_IDS.map((themeId) => {
                 const themeAssets = ImageAssets(themeId);
                 const isSelected = themeTemplate === themeId;
@@ -150,7 +150,7 @@ const SettingsPage: React.FC = () => {
                     whileTap={{ scale: 0.93 }}
                     onClick={() => setThemeTemplate(themeId)}
                     title={THEME_META[themeId].name}
-                    className={`relative rounded-xl border p-1.5 transition-colors aspect-square flex items-center justify-center ${
+                    className={`relative rounded-xl border p-1 transition-colors w-14 h-14 flex items-center justify-center ${
                       isSelected
                         ? "border-yellow-300 bg-yellow-500/15"
                         : "border-slate-600/70 bg-slate-900/40 hover:border-slate-400"
