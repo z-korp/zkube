@@ -3,6 +3,7 @@ import { TooltipProvider } from "@/ui/elements/tooltip";
 import PageNavigator from "@/ui/navigation/PageNavigator";
 import { useNavigationStore } from "@/stores/navigationStore";
 import type { PageId } from "@/stores/navigationStore";
+import { getToastPlacement } from "@/utils/toast";
 import HomePage from "@/ui/pages/HomePage";
 import LoadoutPage from "@/ui/pages/LoadoutPage";
 import PlayScreen from "@/ui/pages/PlayScreen";
@@ -40,7 +41,7 @@ export default function App() {
       <PageNavigator>
         <CurrentPage />
       </PageNavigator>
-      <Toaster position="bottom-right" />
+      <Toaster position={getToastPlacement()} />
     </TooltipProvider>
   );
 }
