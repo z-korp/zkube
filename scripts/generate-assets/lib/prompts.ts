@@ -170,8 +170,8 @@ export function buildThemeIconPrompt(theme: ThemeDefinition): string {
     "background": "${darkenHex(theme.palette.bg, 0.2)}",
     "accent": "${theme.palette.accent}"
   },
-  "details": "Use one recognizable symbol from ${theme.motifs}; thick strokes, centered composition, readable at 48x48",
-  "usage_notes": "Square icon, no text, no logos, no clutter."
+  "details": "Use one recognizable symbol from ${theme.motifs}; thick strokes, centered composition, readable at 48x48. Sharp square corners on the image — no rounded edges, no circular framing.",
+  "usage_notes": "Square icon with sharp corners. No rounded edges. No text, no logos, no clutter."
 }
 `.trim();
 }
@@ -181,7 +181,7 @@ export function buildThemeIconPrompt(theme: ThemeDefinition): string {
 /* ------------------------------------------------------------------ */
 
 export function buildCommonLogoPrompt(): string {
-  return `The word "zKube" as a bold game logo on a solid black background. Large 3D text with highlights and shadows. Neutral mid-grey tones only. Nothing else — just the text, centered, on black. 1024x1024 pixels.`;
+  return `A bold circular game emblem on a solid black background. A thick ornamental circle with tribal-style decorative border patterns, and the word "zKube" in large bold 3D text centered inside the circle. Stylized 2D vector game art with bold black outlines, flat cel-shading, and subtle grunge texture. Neutral mid-grey tones only (#707070 to #A0A0A0). The circle and text fill most of the canvas. Nothing else — just the emblem, centered, on black. 1024x1024 pixels.`;
 }
 
 /* ------------------------------------------------------------------ */
