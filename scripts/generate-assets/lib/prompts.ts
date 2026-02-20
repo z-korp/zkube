@@ -277,7 +277,7 @@ export function buildLogoPrompt(theme: ThemeDefinition): string {
  * Style: bold "zKube" wordmark with 3D depth, shadows, and subtle decorative accents.
  */
 export function buildCommonLogoPrompt(): string {
-  return `The word "zKube" as a bold stylized puzzle game logo, centered on a solid black background. The text is large, filling 70% of the width. Bold chunky letterforms with smooth rounded edges — the lowercase 'z' has a playful decorative spiral curl extending from its bottom stroke. The uppercase 'K' is prominent and angular. Each letter has clear 3D depth with bright highlights on top edges and dark shadows on bottom edges, giving a polished embossed look. Small decorative circle accents near the letters. All rendered in neutral mid-grey tones — letter faces in #A0A0A0 to #C0C0C0, highlights in #D8D8D8, shadows in #505050 to #606060. Solid black background with no patterns, no extra elements, no theme decorations — just the clean grey text logo. The word must read exactly as "zKube". Sharp vector-style game art, 1024x1024 pixels.`;
+  return `The word "zKube" as a bold game logo on a solid black background. Large 3D text with highlights and shadows. Neutral mid-grey tones only. Nothing else — just the text, centered, on black. 1024x1024 pixels.`;
 }
 
 /** @deprecated Use buildGridBgPromptFromTemplate instead */
