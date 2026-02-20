@@ -63,7 +63,7 @@
     "palette": {
       "bg": "#2A1810",
       "accent": "#D4AF37",
-      "blocks": ["#F0CF7A", "#6A4A1F", "#B8823A", "#8A7B64"]
+      "blocks": ["#E8DCC8", "#D4C4A0", "#E07858", "#C8B48A"]
     },
     "motifs": "Hieroglyphs, scarab beetles, Eye of Horus, lotus flowers, ankh symbols, obelisks, papyrus scrolls",
     "blockMotifs": "Sandstone texture with hieroglyph engravings, gold-lined edges, scarab beetle relief carvings",
@@ -101,7 +101,7 @@
           "material": "pale sandy limestone"
         }
       ],
-      "blockPrompt": "A wide 4:1 horizontal Ancient Egyptian panel, screen-print style on a solid black background. In the exact center: a simplified Ankh symbol — oval loop on top, horizontal crossbar, vertical stem — painted in mid-grey (#8A8278) with black outlines. The Ankh is compact, fitting in the center quarter of the width. Flowing directly out of the Ankh on both sides: bold abstract geometric shapes only — thick chevron bands, stepped pyramid zigzags, broad horizontal stripes, triangular rays, and concentric arcs — connected seamlessly to the Ankh with zero gap. Only 2-3 large geometric elements per side, each thick and chunky. Strictly geometric patterns, absolutely no figurative symbols (no eyes, no birds, no beetles, no flowers, no animals). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+      "blockPrompt": "A wide 4:1 horizontal Ancient Egyptian panel, screen-print style on a solid black background. In the exact center: a simplified Ankh symbol — oval loop on top, horizontal crossbar, vertical stem — painted in mid-grey (#8A8278) with black outlines. The Ankh is compact, fitting in the center quarter of the width. Extending directly from the Ankh's crossbar endpoints on both sides: bold geometric Egyptian patterns — thick stepped pyramid zigzags, broad concentric rectangular frames, and angular chevron bands — the patterns physically touch and grow out of the crossbar with absolutely zero gap, as if the stone carving continues outward. Only 2-3 large geometric elements per side, each thick and heavy. Strictly geometric patterns, no figurative symbols (no eyes, no birds, no beetles, no flowers, no animals). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Desert twilight, golden pyramids casting long shadows, hieroglyph-covered obelisks, the Nile reflecting amber sky, palm-lined banks, warm sun-drenched atmosphere",
     "loadingScene": "Close-up of a hieroglyph-covered wall illuminated by golden torchlight, scarab beetle relief with gold leaf details gleaming",
@@ -119,7 +119,7 @@
     "palette": {
       "bg": "#0A1520",
       "accent": "#7EB8DA",
-      "blocks": ["#E8EDF2", "#B8A0D8", "#7EC8E3", "#2E6B4F"]
+      "blocks": ["#E8EDF2", "#C4A882", "#7EC8E3", "#2E6B4F"]
     },
     "motifs": "Norse runes, Viking knotwork, longship prows, ravens, Mjolnir, frost patterns, iron rivets",
     "blockMotifs": "Heavy stone blocks with carved runes, metallic iron frame edges, frost glow crystallization",
@@ -175,7 +175,7 @@
     "palette": {
       "bg": "#1A2030",
       "accent": "#3B6FA0",
-      "blocks": ["#BFD5E8", "#1F3E63", "#3E7FB3", "#6B86B0"]
+      "blocks": ["#BBB093", "#AA633F", "#C8A55F", "#4D89B0"]
     },
     "motifs": "Greek columns, olive wreaths, Greek-key meander patterns, amphoras, temple pediments, laurel crowns",
     "blockMotifs": "Clean white marble texture, blue Greek-key border patterns, hairline pressure cracks",
@@ -231,7 +231,7 @@
     "palette": {
       "bg": "#0D0D12",
       "accent": "#C41E3A",
-      "blocks": ["#E19AA3", "#4B1821", "#C45A3A", "#7A3E7E"]
+      "blocks": ["#F0EDE8", "#4B1821", "#B8922E", "#7A3E7E"]
     },
     "motifs": "Cherry blossoms, katana blades, torii gates, kanji brushstrokes, bamboo, paper lanterns",
     "blockMotifs": "Black lacquer with red trim edges, bold brushstroke symbols, sakura petal accents",
@@ -269,7 +269,7 @@
           "material": "dark pine-green lacquered wood"
         }
       ],
-      "blockPrompt": "A wide 4:1 horizontal Feudal Japanese panel, screen-print style on a solid black background. In the exact center: a bold enso circle — single thick confident brushstroke forming an incomplete circle — painted in mid-grey (#8A8278) with black interior. The enso is compact, fitting in the center quarter of the width. Extending directly from the enso's brushstroke endpoints on both sides: bold geometric Japanese patterns — thick parallel horizontal bars, angular zigzag bands, and broad stepped rectangles — the patterns physically touch and grow out of the brush endpoints with absolutely zero gap, as if the same brush continued outward. Only 2-3 large geometric elements per side, each thick and bold. Strictly geometric patterns, no figurative symbols (no cherry blossoms, no kanji, no katana, no torii, no flowers). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+      "blockPrompt": "A wide 4:1 horizontal Feudal Japanese panel, screen-print style on a solid black background. In the exact center: a simplified cherry blossom flower — five bold rounded petals arranged symmetrically around a central dot cluster — painted in mid-grey (#8A8278) with black outlines. The blossom is compact, fitting in the center quarter of the width. Extending directly from the petal tips on both sides: bold geometric Japanese patterns — thick parallel horizontal bars, angular zigzag bands, and broad stepped rectangles — the patterns physically touch and grow out of the petals with absolutely zero gap, as if the brushwork continues outward. Only 2-3 large geometric elements per side, each thick and bold. Strictly geometric patterns beyond the flower (no kanji, no katana, no torii, no fans). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Feudal Japanese castle courtyard at twilight, black and red architecture, cherry blossom trees in full bloom, stone lanterns glowing, zen rock garden",
     "loadingScene": "Close-up of a glossy black lacquer surface with crimson kanji brushstrokes, cherry blossom petals drifting down, warm paper lantern light",
@@ -287,7 +287,7 @@
     "palette": {
       "bg": "#0A1A0A",
       "accent": "#50C878",
-      "blocks": ["#9CD8B6", "#174A33", "#7AA34A", "#3F7F8C"]
+      "blocks": ["#4A7CB8", "#D4AF37", "#C8C4BC", "#3A8A6A"]
     },
     "motifs": "Imperial dragons, jade carvings, cloud scrolls, gold calligraphy, pagoda roofs, silk lanterns",
     "blockMotifs": "Jade texture surface, dragon-scale overlay patterns, gold calligraphy accent strokes",
@@ -343,7 +343,7 @@
     "palette": {
       "bg": "#0A0F2A",
       "accent": "#1E90FF",
-      "blocks": ["#9EB7DF", "#1A2E5A", "#3C5FA8", "#3F8AA2"]
+      "blocks": ["#F0A0B0", "#7EB0E0", "#00A86B", "#F0A870"]
     },
     "motifs": "Geometric tile stars, relief lions, peacocks, cypress trees, arabesques, muqarnas vaults",
     "blockMotifs": "Blue geometric tile patterns with gold grout lines, golden relief animal carvings, luminous symmetry effects",
@@ -399,7 +399,7 @@
     "palette": {
       "bg": "#0A1A0A",
       "accent": "#4CAF50",
-      "blocks": ["#A9BE72", "#2E3B1A", "#5E8A3B", "#8A6A3B"]
+      "blocks": ["#C8C4BC", "#8CC88A", "#7EC8E3", "#2A6840"]
     },
     "motifs": "Calendar glyphs, feathered serpents, stepped pyramids, jungle vines, jaguar motifs, obsidian blades",
     "blockMotifs": "Carved jungle stone with calendar glyph variations, moss growing in the carved crevices",
@@ -455,7 +455,7 @@
     "palette": {
       "bg": "#2A1F14",
       "accent": "#40C8B8",
-      "blocks": ["#E0A07A", "#5C2E1D", "#B85D3C", "#4E8F9B"]
+      "blocks": ["#C4A882", "#E8D890", "#B85D3C", "#4E8F9B"]
     },
     "motifs": "Turquoise stones, eagle feathers, geometric stepped borders, adobe walls, thunderbird motifs, desert sun",
     "blockMotifs": "Adobe clay texture, turquoise stone inlays, geometric painted border patterns",
@@ -511,7 +511,7 @@
     "palette": {
       "bg": "#1A1A2A",
       "accent": "#D4AF37",
-      "blocks": ["#C7BCA9", "#4B4438", "#8C8670", "#A08A4E"]
+      "blocks": ["#C8C4BC", "#8AB8D8", "#D4B840", "#C4A882"]
     },
     "motifs": "Interlocking polygonal stones, Inti sun god disc, quipu rope knots, condor silhouettes, textile weave patterns, mountain terraces",
     "blockMotifs": "Interlocking polygonal stone masonry with perfect joints, sun-god gold highlight accents, rope and textile border accents",
@@ -549,7 +549,7 @@
           "material": "grey-green stone"
         }
       ],
-      "blockPrompt": "A wide 4:1 horizontal Inca panel, screen-print style on a solid black background. In the exact center: a simplified Inti sun-god disc — radiant circular face with short emanating ray beams all around — painted in mid-grey (#8A8278) with black outlines. The sun disc is compact, fitting in the center quarter of the width. Extending directly from the sun's ray tips on both sides: bold geometric Inca patterns — thick interlocking polygonal bands, angular stepped terrace borders, and broad diamond lattice shapes — the patterns physically touch and grow out of the ray endpoints with absolutely zero gap, as if the stonework continues outward. Only 2-3 large geometric elements per side, each thick and monumental. Strictly geometric patterns, no figurative symbols (no condors, no llamas, no rope knots, no faces). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+      "blockPrompt": "A wide 4:1 horizontal Inca panel, screen-print style on a solid black background. In the exact center: a bold Inca cross (chakana) — stepped cross symbol with a square hole in the center, four stepped arms extending in cardinal directions — painted in mid-grey (#8A8278) with black outlines. The chakana is compact, fitting in the center quarter of the width. Extending directly from the cross's stepped arm endpoints on both sides: bold geometric Inca patterns — thick interlocking polygonal bands, angular stepped terrace borders, and broad diamond lattice shapes — the patterns physically touch and grow out of the arm endpoints with absolutely zero gap, as if the stonework continues outward. Only 2-3 large geometric elements per side, each thick and monumental. Strictly geometric patterns, no figurative symbols (no condors, no llamas, no faces, no sun discs). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Mountain citadel at dawn inspired by Machu Picchu, massive interlocking stone walls, terraced hillsides descending into cloud forest, condors soaring over Andes peaks, golden sunrise",
     "loadingScene": "Close-up of perfectly interlocking polygonal stone wall with a gold Inti sun-god disc embedded in the masonry, morning mist rolling past the stones",
