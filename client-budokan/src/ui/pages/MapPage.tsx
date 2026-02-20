@@ -295,25 +295,45 @@ const MapPage: React.FC = () => {
                           opacity={colors.alpha}
                         >
                           {node.type === "shop" ? (
-                            <text
-                              x={cx}
-                              y={cy}
-                              textAnchor="middle"
-                              dominantBaseline="central"
-                              fontSize={5}
-                            >
-                              🛒
-                            </text>
+                            <>
+                              <circle
+                                cx={cx}
+                                cy={cy}
+                                r={3}
+                                fill={colors.fill}
+                                stroke={colors.border}
+                                strokeWidth={0.4}
+                              />
+                              <text
+                                x={cx}
+                                y={cy + 0.3}
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                fontSize={3.5}
+                              >
+                                🛒
+                              </text>
+                            </>
                           ) : node.type === "boss" ? (
-                            <text
-                              x={cx}
-                              y={cy}
-                              textAnchor="middle"
-                              dominantBaseline="central"
-                              fontSize={7}
-                            >
-                              ☀️
-                            </text>
+                            <>
+                              <circle
+                                cx={cx}
+                                cy={cy}
+                                r={4}
+                                fill={colors.fill}
+                                stroke={colors.border}
+                                strokeWidth={0.5}
+                              />
+                              <text
+                                x={cx}
+                                y={cy + 0.3}
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                fontSize={4.5}
+                              >
+                                ☀️
+                              </text>
+                            </>
                           ) : (
                             <>
                               <circle
@@ -389,6 +409,7 @@ const MapPage: React.FC = () => {
         {selectedNode && !pendingLevelCompletion && (
           <LevelPreview
             node={selectedNode}
+            game={game ?? null}
             gameId={gameId}
             onPlay={handlePlay}
             onClose={() => setSelectedNode(null)}

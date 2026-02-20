@@ -27,6 +27,7 @@ export class Game {
   public max_combo: number;
   public over: boolean;
   public started_at: number;
+  public levelStarsRaw: bigint;
 
   // Level system data (unpacked from run_data)
   public runData: RunData;
@@ -159,6 +160,9 @@ export class Game {
     const runDataBigInt = game.run_data ? BigInt(game.run_data) : BigInt(0);
     this.runData = unpackRunData(runDataBigInt);
 
+    // Level stars: 2 bits per level × 50 levels
+    this.levelStarsRaw = game.level_stars ? BigInt(game.level_stars) : 0n;
+
     // Destructure blocks and colors bitmaps into Rows and Blocks
     this.blocksRaw = game.blocks;
     this.blocks = Packer.sized_unpack(
@@ -197,5 +201,11 @@ export class Game {
 
   public hasBonuses(): boolean {
     return this.getTotalBonuses() > 0;
+  }
+
+  public getLevelStars(level: number): number {
+    if (level < 1 || level > 50) return 0;
+    const shift = BigInt((level - 1) * 2);
+    return Number((this.levelStarsRaw >> shift) & 0x3n);
   }
 }

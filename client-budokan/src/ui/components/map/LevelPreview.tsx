@@ -2,10 +2,12 @@ import { motion } from "motion/react";
 import { X } from "lucide-react";
 import { ConstraintType } from "@/dojo/game/types/constraint";
 import type { MapNodeData } from "@/hooks/useMapData";
+import type { Game } from "@/dojo/game/models/game";
 import GameButton from "@/ui/components/shared/GameButton";
 
 export interface LevelPreviewProps {
   node: MapNodeData;
+  game: Game | null;
   gameId: number | null;
   onPlay: () => void;
   onClose: () => void;
@@ -24,11 +26,13 @@ const DIFFICULTY_STYLES: Record<string, string> = {
 
 export const LevelPreview: React.FC<LevelPreviewProps> = ({
   node,
+  game,
   gameId,
   onPlay,
   onClose,
 }) => {
   const levelConfig = node.levelConfig;
+  const stars = game && node.contractLevel ? game.getLevelStars(node.contractLevel) : 0;
 
   const difficulty = levelConfig?.difficulty.value ?? "Unknown";
   const constraints = levelConfig
@@ -87,10 +91,42 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
                 {difficulty}
               </span>
             </div>
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-500/15 px-3 py-2 text-emerald-200">
-              <span className="text-lg">✓</span>
-              <span className="font-semibold">Cleared</span>
+            <div className="flex items-center justify-between rounded-lg bg-emerald-500/15 px-3 py-2.5">
+              <span className="font-semibold text-emerald-200">✓ Cleared</span>
+              <span className="text-lg tracking-wide">
+                {"🧊".repeat(stars)}
+                {"  ·  ".repeat(0)}
+                {stars === 0 && <span className="text-slate-500 text-sm">—</span>}
+              </span>
             </div>
+
+            {levelConfig && (
+              <div className="space-y-1 pt-1">
+                <p className="mb-1 text-slate-400">Move Thresholds</p>
+                {[
+                  { cubes: 3, threshold: levelConfig.cube3Threshold },
+                  { cubes: 2, threshold: levelConfig.cube2Threshold },
+                  { cubes: 1, threshold: levelConfig.maxMoves },
+                ].map(({ cubes, threshold }) => {
+                  const achieved = cubes <= stars;
+                  return (
+                    <div
+                      key={cubes}
+                      className={`flex items-center justify-between rounded-md px-2 py-1 ${
+                        achieved
+                          ? "bg-emerald-500/15 text-emerald-200"
+                          : "bg-slate-800/60 text-slate-300"
+                      }`}
+                    >
+                      <span>{"🧊".repeat(cubes)}</span>
+                      <span className="font-['Bangers'] text-lg tracking-wide">
+                        {achieved ? "✓" : ""} ≤ {threshold}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         ) : (
           <div className="mt-4 space-y-3 text-sm">
