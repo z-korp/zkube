@@ -142,17 +142,17 @@ const POLYNESIAN_COLORS: ThemeColors = {
 };
 
 const ANCIENT_EGYPT_COLORS: ThemeColors = {
-  background: "#2A1810",
-  backgroundGradientStart: lighten("#2A1810", 0.06),
-  backgroundGradientEnd: darken("#2A1810", 0.12),
+  background: "#120C08",
+  backgroundGradientStart: lighten("#120C08", 0.06),
+  backgroundGradientEnd: darken("#120C08", 0.12),
   gridLines: darken("#D4AF37", 0.25),
   gridLinesAlpha: 0.3,
-  gridBg: lighten("#2A1810", 0.04),
-  gridCellAlt: lighten("#2A1810", 0.07),
+  gridBg: lighten("#120C08", 0.04),
+  gridCellAlt: lighten("#120C08", 0.07),
   frameBorder: "#D4AF37",
-  hudBar: darken("#2A1810", 0.2),
+  hudBar: darken("#120C08", 0.2),
   hudBarBorder: darken("#D4AF37", 0.35),
-  actionBarBg: darken("#2A1810", 0.2),
+  actionBarBg: darken("#120C08", 0.2),
   dangerZone: "#ff4444",
   dangerZoneAlpha: 0.25,
   accent: "#D4AF37",
@@ -509,6 +509,7 @@ export function getThemeImages(themeId: ThemeId) {
     logo: `${base}/logo.png`,
     background: `${base}/background.png`,
     gridBg: `${base}/grid-bg.png`,
+    mapBg: `${base}/map-bg.png`,
     themeIcon: `${base}/theme-icon.png`,
   };
 }

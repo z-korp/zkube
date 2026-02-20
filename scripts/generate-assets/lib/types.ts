@@ -2,6 +2,7 @@ export const PER_THEME_ASSETS = [
   "blocks",
   "background",
   "loading-bg",
+  "map-bg",
   "logo",
   "grid",
   "theme-icon",
@@ -38,6 +39,8 @@ export interface ThemeDefinition {
   blockData: BlockData;
   scene: string;
   loadingScene: string;
+  mapScene: string;
+  bossLandmark: string;
   gridMaterial: string;
   music?: {
     menu: string;

@@ -2,6 +2,7 @@ import {
   THEME_IDS,
   THEME_META,
   getThemeColors,
+  getThemeImages,
   type ThemeId,
 } from "@/config/themes";
 
@@ -22,40 +23,32 @@ const toThemeId = (themeId: string): ThemeId => {
 export const ZoneBackground: React.FC<ZoneBackgroundProps> = ({ zone, themeId }) => {
   const safeThemeId = toThemeId(themeId);
   const theme = getThemeColors(safeThemeId);
+  const images = getThemeImages(safeThemeId);
   const meta = THEME_META[safeThemeId];
 
   return (
     <div
       className="absolute inset-0 overflow-hidden"
-      style={{
-        background: `radial-gradient(circle at 22% 88%, ${theme.blocks[1].glow}40 0%, transparent 38%), radial-gradient(circle at 78% 12%, ${theme.blocks[3].glow}3a 0%, transparent 34%), linear-gradient(180deg, ${theme.backgroundGradientStart} 0%, ${theme.backgroundGradientEnd} 100%)`,
-      }}
+      style={{ backgroundColor: theme.background }}
     >
-      <div
-        className="absolute left-[11%] top-[76%] h-44 w-44 rounded-full blur-3xl"
-        style={{ backgroundColor: `${theme.blocks[2].glow}44` }}
-      />
-      <div
-        className="absolute left-[68%] top-[20%] h-48 w-48 rounded-full blur-3xl"
-        style={{ backgroundColor: `${theme.blocks[4].glow}40` }}
-      />
-      <div
-        className="absolute left-[42%] top-[44%] h-40 w-40 rounded-full blur-3xl"
-        style={{ backgroundColor: `${theme.accent}34` }}
+      <img
+        src={images.mapBg}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover opacity-60"
+        loading="eager"
       />
 
       <div
-        className="absolute inset-0 opacity-25"
+        className="absolute inset-0"
         style={{
-          background:
-            "linear-gradient(108deg, rgba(255,255,255,0.1) 14%, transparent 14%, transparent 50%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.07) 64%, transparent 64%, transparent), linear-gradient(0deg, rgba(255,255,255,0.1) 0%, transparent 32%)",
-          backgroundSize: "260px 260px, 100% 100%",
+          background: `radial-gradient(circle at 22% 88%, ${theme.blocks[1].glow}30 0%, transparent 38%), radial-gradient(circle at 78% 12%, ${theme.blocks[3].glow}28 0%, transparent 34%)`,
         }}
       />
+
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(180deg, transparent 0%, ${theme.background}5c 84%, ${theme.background}b8 100%)`,
+          background: `linear-gradient(180deg, ${theme.background}40 0%, transparent 20%, transparent 80%, ${theme.background}90 100%)`,
         }}
       />
 

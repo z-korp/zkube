@@ -9,6 +9,7 @@ import {
   buildConstraintIconPrompt,
   buildGridBackgroundPrompt,
   buildLoadingBackgroundPrompt,
+  buildMapBackgroundPrompt,
   buildPanelPrompt,
   buildParticlePrompt,
   buildThemeIconPrompt,
@@ -207,6 +208,18 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
       outputPath: path.join(themeRoot, "loading-bg.png"),
       prompt: buildLoadingBackgroundPrompt(theme),
       ...getTargetDimensions("loading-bg.png", { width: 2048, height: 2048 }),
+    });
+  }
+
+  if (shouldIncludeCategory("map-bg", filter)) {
+    jobs.push({
+      scope: "per-theme",
+      category: "map-bg",
+      themeId,
+      filename: "map-bg.png",
+      outputPath: path.join(themeRoot, "map-bg.png"),
+      prompt: buildMapBackgroundPrompt(theme),
+      ...getTargetDimensions("map-bg.png", { width: 768, height: 1365 }),
     });
   }
 

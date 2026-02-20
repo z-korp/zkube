@@ -164,6 +164,55 @@ export function buildThemeIconPrompt(theme: ThemeDefinition): string {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Map background prompt                                             */
+/* ------------------------------------------------------------------ */
+
+export function buildMapBackgroundPrompt(theme: ThemeDefinition): string {
+  return `
+{
+  "style_name": "${theme.name} Map Background",
+  "inspiration": [
+    "${theme.blockData.inspirations[0]}",
+    "${theme.blockData.inspirations[1]}",
+    "Top-down fantasy adventure map illustration",
+    "Stylized portrait-format game level-select background"
+  ],
+  "scene": "${theme.mapScene}",
+  "boss_landmark": "At the top center of the image: ${theme.bossLandmark}",
+  "style": "flat vector illustration with bold linework, smooth gradients, and high-contrast cel shading",
+  "color_palette": {
+    "primary": "${theme.palette.bg}",
+    "secondary": "${theme.palette.accent}",
+    "highlight": "${lightenHex(theme.palette.accent, 0.25)}",
+    "shadow": "${darkenHex(theme.palette.bg, 0.35)}",
+    "background_gradient": ["${darkenHex(theme.palette.bg, 0.25)}", "${theme.palette.bg}"]
+  },
+  "lighting": "dramatic overhead lighting with deep shadows, overall dark tone",
+  "mood": "${theme.mood}, adventurous, mysterious",
+  "layout": {
+    "format": "portrait 9:16",
+    "center_corridor": "A clear winding path corridor running vertically through the center third of the image from bottom to top, the path surface lighter than surroundings",
+    "boss_structure": "A prominent ${theme.name}-themed landmark/structure at the top center of the image, clearly visible and imposing",
+    "edges": "Dense decorative themed elements at the left and right edges — trees, rocks, ruins, cultural structures — framing the central path",
+    "bottom": "Path entrance at the bottom center, inviting the viewer upward"
+  },
+  "composition": "vertical portrait composition, path leads the eye from bottom to top toward the boss landmark",
+  "camera": {
+    "angle": "slightly elevated bird's eye",
+    "distance": "wide shot showing full vertical extent",
+    "lens": "35mm",
+    "focus": "sharp across entire frame"
+  },
+  "medium": "digital vector art",
+  "textures": "clean edges, smooth gradient volumes, subtle atmospheric depth",
+  "effects": "subtle fog/mist between layers, gentle glow on the path and boss structure",
+  "themes": ["${theme.name}", "${theme.blockData.themeKeywords[0]}", "${theme.blockData.themeKeywords[1]}", "${theme.blockData.themeKeywords[2]}"],
+  "usage_notes": "Portrait 9:16 opaque image. Overall DARK tone matching the game's dark UI. The central corridor must be clearly visible for SVG road overlay. Boss landmark at top must be prominent. No text, no UI elements, no characters."
+}
+`.trim();
+}
+
+/* ------------------------------------------------------------------ */
 /*  Logo prompt                                                       */
 /* ------------------------------------------------------------------ */
 

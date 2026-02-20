@@ -178,7 +178,7 @@ const MapPage: React.FC = () => {
 
       {/* ---- Map viewport ---- */}
       <div
-        className="relative flex-1 overflow-hidden"
+        className="relative min-h-0 flex-1 overflow-hidden"
         onMouseDown={(event) => onStartDrag(event.clientX)}
         onMouseUp={(event) => onEndDrag(event.clientX)}
         onTouchStart={(event) => onStartDrag(event.touches[0]?.clientX ?? 0)}
@@ -201,7 +201,7 @@ const MapPage: React.FC = () => {
             return (
               <div key={zone} className="relative h-full w-full flex-1">
                 <ZoneBackground zone={zone} themeId={themeId} />
-                <div className="relative h-full w-full lg:mx-auto lg:w-auto lg:max-w-full lg:aspect-[9/16]">
+                <div className="relative mx-auto h-full w-auto max-w-full aspect-[9/16]">
                   <svg
                     viewBox={`0 0 ${VB_W} ${VB_H}`}
                     preserveAspectRatio="xMidYMid meet"
