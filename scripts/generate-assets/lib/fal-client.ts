@@ -262,45 +262,6 @@ export async function tintImage(imageBuffer: Buffer, hexColor: string): Promise<
     .toBuffer();
 }
 
-/**
- * Composite a tinted centerpiece onto a block background.
- * The centerpiece is resized to `scale` fraction of the block height
- * and centered horizontally and vertically.
- */
-export async function compositeBlock(
-  bgBuffer: Buffer,
-  centerpieceBuffer: Buffer,
-  scale: number,
-): Promise<Buffer> {
-  const bgMeta = await sharp(bgBuffer).metadata();
-  const bgWidth = bgMeta.width!;
-  const bgHeight = bgMeta.height!;
-
-  // Resize centerpiece to fit within the block
-  const targetHeight = Math.round(bgHeight * scale);
-  const resizedCenterpiece = await sharp(centerpieceBuffer)
-    .resize({ height: targetHeight, fit: "inside" })
-    .toBuffer();
-
-  const cpMeta = await sharp(resizedCenterpiece).metadata();
-  const cpWidth = cpMeta.width!;
-  const cpHeight = cpMeta.height!;
-
-  // Center the overlay
-  const left = Math.round((bgWidth - cpWidth) / 2);
-  const top = Math.round((bgHeight - cpHeight) / 2);
-
-  return sharp(bgBuffer)
-    .ensureAlpha()
-    .composite([{
-      input: resizedCenterpiece,
-      left,
-      top,
-    }])
-    .png()
-    .toBuffer();
-}
-
 /* ------------------------------------------------------------------ */
 /*  nukeWhite post-processing                                         */
 /* ------------------------------------------------------------------ */

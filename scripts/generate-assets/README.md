@@ -29,9 +29,11 @@ npx tsx scripts/generate-assets/generate-sfx.ts --only click,coin,victory
 ```
 scripts/generate-assets/
 ├── data/
-│   ├── themes.json          # 10 theme definitions (palette, motifs, scenes)
+│   ├── themes.json          # 10 theme definitions (palette, motifs, scenes, music)
 │   ├── sfx.json             # 20 SFX definitions (id, filename, duration, prompt)
-│   └── global-assets.json   # Buttons, icons, panels, particles, ui-chrome, dimensions
+│   ├── global-assets.json   # Buttons, icons, panels, particles, ui-chrome, dimensions
+│   └── templates/
+│       └── grid-bg.json     # Grid background prompt template with substitution vars
 ├── lib/
 │   ├── types.ts             # Shared TypeScript interfaces
 │   ├── env.ts               # Constants, .env loading, rate limiting, retry logic
@@ -60,15 +62,15 @@ Reference: [BFL Prompting Guide](https://docs.bfl.ml/guides/prompting_guide_flux
 2. **Descriptive, not instructional** — Describe the image as if it already exists. Say "A scarab beetle centered on blue stone" not "Generate a scarab beetle on blue stone."
 3. **No negative prompts** — Flux 2 Pro does not support negative prompts. Focus on what you WANT. Instead of "no blur" say "sharp focus." Instead of "no background" say "dark background."
 4. **Medium length is ideal** — 30-80 words hits the sweet spot. Short (10-30) for quick concepts, long (80+) for complex scenes.
-5. **Priority order** — Main subject → Key action/arrangement → Critical style → Essential context → Secondary details.
+5. **Priority order** — Main subject -> Key action/arrangement -> Critical style -> Essential context -> Secondary details.
 
 ### Hex Color Control
 
 Associate hex codes directly with specific objects for precise color matching:
 
 ```
-The vase has color #02eb3c         ← good: tied to object
-Use #FF0000 somewhere in the image ← bad: too vague
+The vase has color #02eb3c         <- good: tied to object
+Use #FF0000 somewhere in the image <- bad: too vague
 ```
 
 Gradient syntax: "a gradient starting with color #02eb3c and finishing with color #edfa3c"
@@ -81,35 +83,6 @@ Gradient syntax: "a gradient starting with color #02eb3c and finishing with colo
 | **Action** | Arrangement, pose, or state | "centered on lapis lazuli stone, wings spread wide" |
 | **Style** | Artistic approach | "Hand-painted cel-shaded game art, bold black outlines" |
 | **Context** | Setting, lighting, mood | "Dark vignette edges for seamless grid blending" |
-
-### Block Prompt Formula
-
-All block textures follow this pattern:
-
-```
-[blockDesign description], centered as a bold focal element occupying 60% of the block.
-[blockMotifs] fill the remaining surface as decorative border relief.
-Theme: [name].
-
-Dominant color [hex] covering 70% of the surface, with 2-3 tonal shades for depth.
-Thin black outlines (2-3px). Hand-painted cel-shaded game art.
-
-Edge-to-edge fill. Outermost 8-10% fades to near-black — smooth dark vignette.
-```
-
-**Multi-cell blocks** (2×1, 3×1, 4×1): Same formula but emphasize "centered motif flanked by decorations extending symmetrically to both sides, reading as one cohesive horizontal piece."
-
-### Block Design Rules
-
-Each block design (`blockDesigns` in themes.json) MUST describe:
-
-1. **Central symbol** — A bold, recognizable motif that is the focal point (e.g. Eye of Horus, scarab beetle, ankh, cartouche). This is the "head" of the block.
-2. **Flanking decoration** — What extends to the left and right of the center (e.g. hieroglyphic panels, lotus motifs, serpent patterns). These are the "arms."
-3. **Material/surface** — The base texture (e.g. sandstone, lapis lazuli, gold leaf, terracotta).
-
-**Good**: "A winged scarab beetle with wings fully spread as the dominant central emblem, carved in raised relief on deep lapis lazuli blue stone, flanked by symmetrical lotus column decorations and gold accent borders"
-
-**Bad**: "A scarab beetle carved in relief on lapis lazuli blue stone, wings spread wide, gold accent lines on a deep blue surface" (no clear center-vs-side separation)
 
 ### Edge Treatment (Vignette)
 
@@ -138,17 +111,37 @@ Flux 2 Pro generates opaque images — no transparency support. Blocks blend ont
 
 ## Images
 
-### Per-Theme Assets (10 themes × 7 categories = ~110 images)
+### Per-Theme Assets (10 themes x 6 categories = ~90 images)
 
 | Category | Files per theme | Dimensions | Notes |
 |----------|----------------|------------|-------|
-| blocks | 4 (block-1 to block-4) | 192×192 to 768×192 | 1-4 cell widths, covers 3× retina of 56px max cell |
-| background | 1 | 2048×2048 | Square — CSS `object-cover` crops per viewport |
-| loading-bg | 1 | 2048×2048 | Distinct scene from background |
-| logo | 1 | 1024×1024 | "zKube" text with theme motifs, covers 3× retina of 340px max display |
-| grid | 2 (grid-bg + grid-frame) | 1024×1280 / 1152×1440 | 4:5 portrait, covers 2× retina of 500px grid container |
-| map | 1 | 1080×1920 | 9:16 portrait, SMB-style world map with winding path |
-| theme-icon | 1 | 128×128 | Settings selector icon (40×40 display, 3× retina) |
+| blocks | 4 (block-1 to block-4) | 256x256 to 1024x256 | Cropped from 1024x256 master, tinted per palette color |
+| background | 1 | 2048x2048 | Square — CSS `object-cover` crops per viewport |
+| loading-bg | 1 | 2048x2048 | Distinct scene from background |
+| logo | 1 | 1024x1024 | "zKube" text, tinted per theme accent color, bg removed |
+| grid | 1 (grid-bg) | 768x1024 | 3:4 portrait grid background |
+| theme-icon | 1 | 512x512 | Settings selector icon |
+
+### Block Pipeline
+
+Each theme's blocks are generated from a single neutral master image:
+
+1. `blockPrompt` from themes.json -> `generateImage(1024x256)` — neutral grey master
+2. For each block size (block-4=1024, block-3=768, block-2=512, block-1=256): `cropCenter` from master
+3. `tintImage` with the corresponding `palette.blocks[i]` color
+4. `featherEdges` for soft edge blending
+5. Save to `{themeId}/block-{1-4}.png`
+
+### Logo Pipeline
+
+Logos share a common master and are tinted per theme:
+
+1. `buildCommonLogoPrompt()` -> `generateImage(1024x1024)` — neutral grey "zKube" text on black
+2. For each theme: `tintImage` with `palette.accent` color
+3. `removeBackground` via fal.ai API
+4. Save to `{themeId}/logo.png`
+
+The master is cached at `common/logo-master.png` and reused across runs.
 
 ### Global Assets (~30 images)
 
@@ -168,17 +161,25 @@ Flux 2 Pro generates opaque images — no transparency support. Blocks blend ont
 |------|-------------|
 | `--theme <id>` | Generate for one theme (e.g. `theme-4`) |
 | `--scope <s>` | `per-theme` (default), `global`, or `all` |
-| `--asset <cat>` | Filter to one category (e.g. `blocks`, `bonus-icons`) |
+| `--asset <cat>` | Filter to one per-theme category (`blocks`, `background`, `loading-bg`, `logo`, `grid`, `theme-icon`) or global category (`buttons`, `shared-icons`, `catalog-icons`, `bonus-icons`, `ui-chrome`, `panels`, `particles`) |
+| `--only <names>` | Comma-separated filenames without extension (e.g. `block-1,grid-bg`) |
 | `--dry-run` | Print plan without calling API |
 | `--ref` / `--no-ref` | Use block-1 as reference for multi-cell blocks (default: on) |
 
 ### Data
 
-Theme definitions live in `data/themes.json`. Each theme has: name, icon, description, mood, palette, motifs, blockMotifs, blockDesigns, scene, loadingScene, gridMaterial, music (menu + gameplay prompts).
+Theme definitions live in `data/themes.json`. Each theme has: name, icon, description, mood, palette, motifs, blockData (inspirations, themeKeywords, blockPrompt), scene, loadingScene, gridMaterial, music.
 
 Global asset configs (buttons, icons, panels, etc.) live in `data/global-assets.json`.
 
-Prompt builder functions live in `lib/prompts.ts` — they take theme/config data and produce the actual API prompts.
+Prompt builder functions live in `lib/prompts.ts`:
+- `buildBlockMasterPrompt` — returns `blockPrompt` from theme's blockData
+- `buildGridBackgroundPrompt` — template-based, substitutes theme values into `templates/grid-bg.json`
+- `buildBackgroundPrompt` — JSON scene prompt from theme's scene and palette
+- `buildLoadingBackgroundPrompt` — JSON scene prompt from theme's loadingScene
+- `buildThemeIconPrompt` — flat vector icon from theme motifs
+- `buildCommonLogoPrompt` — neutral grey "zKube" logo text
+- `buildButtonPrompt`, `buildWhiteIconPrompt`, `buildBonusIconPrompt`, `buildUiChromePrompt`, `buildPanelPrompt`, `buildParticlePrompt` — global asset prompts
 
 ## SFX
 
@@ -217,7 +218,7 @@ SFX definitions live in `data/sfx.json` — array of `{ id, filename, duration, 
 
 ## Music
 
-Music is generated manually via **Suno v5** (not automated). 4 tracks × 10 themes = 40 files.
+Music is generated manually via **Suno v5** (not automated). 4 tracks x 10 themes = 40 files.
 
 Output: `client-budokan/public/assets/{themeId}/sounds/musics/{track}.mp3`
 
@@ -232,8 +233,8 @@ Output: `client-budokan/public/assets/{themeId}/sounds/musics/{track}.mp3`
 
 ### Track Assignment
 
-- **Menu prompt** → `main.mp3` (home screen) + `map.mp3` (level select)
-- **Gameplay prompt** → `level.mp3` (regular levels) + `boss.mp3` (boss levels)
+- **Menu prompt** -> `main.mp3` (home screen) + `map.mp3` (level select)
+- **Gameplay prompt** -> `level.mp3` (regular levels) + `boss.mp3` (boss levels)
 
 ### Specs
 
@@ -247,83 +248,83 @@ Output: `client-budokan/public/assets/{themeId}/sounds/musics/{track}.mp3`
 ### Per-Theme Music Prompts
 
 <details>
-<summary>Theme 1: Tiki</summary>
+<summary>Theme 1: Polynesian</summary>
 
-**Menu:** A laid-back tropical lo-fi instrumental with soft ukulele fingerpicking over warm steel drum chords and gentle bongo percussion. Light marimba accents shimmer through a haze of ocean breeze ambience. Around 95 BPM, calming and inviting.
+**Menu:** A warm Polynesian lo-fi instrumental with soft ukulele fingerpicking over gentle log drum rhythms and ocean wave ambience. Nose flute melody floats through warm island breeze. Around 90 BPM, rhythmic and inviting.
 
-**Gameplay:** An upbeat island funk instrumental driven by a playful ukulele riff and tight djembe percussion. Kalimba runs sparkle over a steel drum melody. Around 115 BPM, focused and rhythmic.
+**Gameplay:** An energetic Polynesian war dance instrumental driven by powerful log drum polyrhythms and fast ukulele strumming. Conch shell accents punctuate the rhythm. Around 120 BPM, volcanic and driving.
 </details>
 
 <details>
-<summary>Theme 2: Cosmic</summary>
-
-**Menu:** A dreamy space ambient instrumental with lush analog synth pads. A gentle arpeggiator twinkles over soft sub-bass warmth. Around 80 BPM, retro-futuristic and serene.
-
-**Gameplay:** A mid-tempo synthwave instrumental with a pulsing bassline under shimmering arpeggiated synths and crisp electronic drums. Around 110 BPM, propulsive and luminous.
-</details>
-
-<details>
-<summary>Theme 3: Easter Island</summary>
-
-**Menu:** A mysterious retro-futuristic instrumental blending ancient atmosphere with neon synthwave. A haunting stone flute melody over warm analog synth pads. Around 85 BPM, otherworldly and contemplative.
-
-**Gameplay:** A driving retro synthwave instrumental with punchy bass synth over tight electronic drums and bright neon arpeggios in a minor key. 118 BPM, neon noir tension.
-</details>
-
-<details>
-<summary>Theme 4: Maya</summary>
-
-**Menu:** An atmospheric Mesoamerican instrumental with a wooden pan flute melody over gentle rain stick textures and soft clay drum rhythm. Around 85 BPM, mysterious but inviting.
-
-**Gameplay:** An energetic Latin world music instrumental driven by quick wooden marimba patterns and rattling seed shakers over tight hand drum rhythms. 120 BPM, ritualistic yet playful.
-</details>
-
-<details>
-<summary>Theme 5: Cyberpunk (Enchanted Forest)</summary>
-
-**Menu:** A moody cyberpunk instrumental with warm detuned analog synth chords and slow jazzy electric piano over a laid-back hip-hop beat. Around 80 BPM, noir and nocturnal.
-
-**Gameplay:** A slick cyberpunk electronic instrumental with a driving bassline, crisp trap hi-hats, and glitchy arpeggiated synths. 120 BPM, focused and calculated.
-</details>
-
-<details>
-<summary>Theme 6: Medieval</summary>
-
-**Menu:** A warm medieval tavern instrumental with gentle lute fingerpicking and a soft hurdy-gurdy drone. Celtic harp arpeggios add magic. Around 90 BPM, nostalgic and comforting.
-
-**Gameplay:** An upbeat medieval folk rock instrumental with lively lute strumming and bright tin whistle melody. 125 BPM, spirited and adventurous.
-</details>
-
-<details>
-<summary>Theme 7: Ancient Egypt</summary>
+<summary>Theme 2: Ancient Egypt</summary>
 
 **Menu:** An elegant Egyptian instrumental with a soft oud melody and gentle darbuka hand drum pattern. Arabic maqam Hijaz scale. Around 85 BPM, regal and serene.
 
-**Gameplay:** A rhythmic Egyptian fusion instrumental with driving darbuka and riq tambourine groove over punchy bass oud. 115 BPM, focused and exotic.
+**Gameplay:** A rhythmic Egyptian fusion instrumental with driving darbuka and riq tambourine groove over punchy bass oud riffs. 115 BPM, monumental and exotic.
 </details>
 
 <details>
-<summary>Theme 8: Volcano</summary>
+<summary>Theme 3: Norse</summary>
 
-**Menu:** A dark volcanic ambient instrumental with deep rumbling sub-bass. Slow metallic percussion — anvil strikes and chain rattles. Around 75 BPM, ominous but hypnotic.
+**Menu:** A haunting Norse ambient instrumental with deep bowed string drone and sparse nyckelharpa melody. Distant war horn echoes through frozen valleys. Around 80 BPM, vast and mythic.
 
-**Gameplay:** A driving industrial metal instrumental with heavy bass pulse and metallic percussion. 125 BPM, relentless forward momentum.
+**Gameplay:** A powerful Viking folk metal instrumental with driving war drum percussion and fierce fiddle melody over heavy bass drone. 118 BPM, relentless and cold.
 </details>
 
 <details>
-<summary>Theme 9: Tribal</summary>
+<summary>Theme 4: Ancient Greece</summary>
 
-**Menu:** A warm organic tribal instrumental with soft djembe hand drumming and gentle kalimba melody. Around 90 BPM, earthy and grounding.
+**Menu:** An elegant Ancient Greek instrumental with gentle lyre arpeggios and soft aulos flute melody over a light frame drum rhythm. Mediterranean breeze ambience. Around 85 BPM, contemplative and noble.
 
-**Gameplay:** A groovy Afrobeat instrumental with tight djembe and dunun in polyrhythmic lockstep. Funky kalimba riffs. 120 BPM, joyful and rhythmic.
+**Gameplay:** A rhythmic Mediterranean instrumental with driving frame drum and tambourine over bright lyre patterns and bold aulos melody. 115 BPM, spirited and architectural.
 </details>
 
 <details>
-<summary>Theme 10: Arctic</summary>
+<summary>Theme 5: Feudal Japan</summary>
 
-**Menu:** A serene arctic ambient instrumental with crystalline bell tones and a soft bowed string drone under sparse piano melody. Around 75 BPM, vast and frozen.
+**Menu:** A refined Japanese instrumental with gentle koto plucking and soft shakuhachi bamboo flute melody over wind chime accents. Around 80 BPM, meditative and disciplined.
 
-**Gameplay:** A crisp Nordic folk electronic instrumental with staccato strings and tight electronic drums. Bright folk fiddle melody. 115 BPM, determined and brisk.
+**Gameplay:** A dramatic taiko drum instrumental with powerful rhythmic patterns and piercing shinobue flute melody. Shamisen strikes punctuate the beat. 120 BPM, intense and dramatic.
+</details>
+
+<details>
+<summary>Theme 6: Ancient China</summary>
+
+**Menu:** A mystical Chinese instrumental with gentle guzheng zither arpeggios and soft dizi bamboo flute melody floating over a resonant gong drone. Around 85 BPM, flowing and imperial.
+
+**Gameplay:** A dynamic Chinese orchestral instrumental with soaring erhu melody and powerful war drum patterns. Pipa lute runs cascade over thundering timpani. 118 BPM, mystical and commanding.
+</details>
+
+<details>
+<summary>Theme 7: Ancient Persia</summary>
+
+**Menu:** An elegant Persian instrumental with soft santur hammered dulcimer arpeggios and gentle ney flute melody. Zarb hand drum keeps a subtle pulse. Around 85 BPM, regal and luminous.
+
+**Gameplay:** A rhythmic Persian fusion instrumental with driving tombak drum patterns and bright tar lute melody. Santur cascades over tight daf frame drum groove. 115 BPM, symmetrical and flowing.
+</details>
+
+<details>
+<summary>Theme 8: Mayan</summary>
+
+**Menu:** An atmospheric Mesoamerican instrumental with a wooden pan flute melody over gentle rain stick textures and soft clay drum rhythm. Jungle bird calls in the distance. Around 85 BPM, mysterious and ancient.
+
+**Gameplay:** An energetic Aztec ritual instrumental driven by powerful wooden slit drum patterns and rattling seed shakers over fierce clay ocarina melody. 120 BPM, dense and powerful.
+</details>
+
+<details>
+<summary>Theme 9: Chokwe</summary>
+
+**Menu:** A warm Central African instrumental with soft thumb piano (likembe) melody over gentle wooden slit drum rhythm. Distant forest ambience with bird calls. Around 80 BPM, ancestral and meditative.
+
+**Gameplay:** A rhythmic Central African instrumental with driving wooden slit drum patterns and bright thumb piano runs over steady shaker and bell accents. 115 BPM, ceremonial and powerful.
+</details>
+
+<details>
+<summary>Theme 10: Inca</summary>
+
+**Menu:** A majestic Andean instrumental with gentle charango melody and soft pan flute harmonies over a steady bombo drum pulse. Mountain wind ambience. Around 85 BPM, monumental and serene.
+
+**Gameplay:** A powerful Andean instrumental driven by rapid charango strumming and soaring quena flute over thundering bombo leguero war drums. 120 BPM, precise and mountainous.
 </details>
 
 ## Output Paths
@@ -339,15 +340,14 @@ client-budokan/public/assets/
 │   ├── icons/             # UI icons
 │   ├── panels/            # 9-slice panels
 │   ├── particles/         # Particle sprites
-│   └── ui/                # HUD chrome
+│   ├── ui/                # HUD chrome
+│   └── logo-master.png    # Shared neutral logo master (cached)
 ├── theme-1/               # Per-theme assets
 │   ├── block-{1-4}.png
 │   ├── background.png
 │   ├── loading-bg.png
 │   ├── logo.png
 │   ├── grid-bg.png
-│   ├── grid-frame.png
-│   ├── map.png
 │   ├── theme-icon.png
 │   └── sounds/musics/     # Music (4 mp3 files)
 ├── theme-2/

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   buildBackgroundPrompt,
-  buildBlockMasterPromptFromTemplate,
+  buildBlockMasterPrompt,
   buildBonusIconPrompt,
   buildButtonPrompt,
   buildCommonLogoPrompt,
@@ -80,7 +80,7 @@ async function runBlockPipeline(
   console.log(`  [block-master]  Generating neutral master (${MASTER_WIDTH}×${MASTER_HEIGHT})...`);
   let masterBuffer: Buffer;
   try {
-    const prompt = buildBlockMasterPromptFromTemplate(theme);
+    const prompt = buildBlockMasterPrompt(theme);
     masterBuffer = await generateImage({
       scope: "per-theme",
       category: "blocks",

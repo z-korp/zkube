@@ -10,42 +10,17 @@
       "blocks": ["#7EC8E3", "#2ECFB0", "#1B3A6B", "#B0BEC5"]
     },
     "motifs": "Moon crescents, starlit ocean waves, Polynesian spirals, pearl inlays, palm silhouettes",
-    "blockMotifs": "Moonlit tiki relief carvings, deep indigo wood grain, pale pearl inlay accents",
-    "blockDesigns": [
-      "A carved wooden tiki mask face with deep-set eyes and wide grinning mouth, warm brown wood grain texture with tribal tattoo scroll patterns",
-      "A fierce tiki warrior face with elaborate tribal tattoo etchings across the surface, dark koa wood texture with orange glow highlights",
-      "A serene tiki ancestor face with closed eyes and peaceful expression, driftwood texture with turquoise shell inlays and spiral carvings",
-      "A volcanic tiki spirit face with glowing lava cracks running through carved obsidian stone, amber and orange molten veins"
-    ],
     "blockData": {
-      "material": "carved koa wood",
-      "centerpiece_type": "Tiki mask face",
-      "centerpiece_description": "simplified tiki mask with round eyes, broad nose, and grinning mouth showing a few teeth; bold thick outlines, flat fill, recognizable but not overly detailed",
-      "centerpiece_expression": "fierce, primal, spiritual",
       "inspirations": [
         "Polynesian tiki carvings and sacred temple totems",
         "Tribal tattoo art and oceanic cultural symbols"
       ],
-      "themeKeywords": [
-        "Polynesian culture",
-        "tribal spirituality",
-        "oceanic mythology"
-      ],
-      "blocks": [
-        {
-          "material": "warm amber koa wood"
-        },
-        {
-          "material": "dark brown koa wood"
-        },
-        {
-          "material": "fiery orange-red volcanic stone"
-        },
-        {
-          "material": "golden driftwood"
-        }
-      ],
-      "blockPrompt": "A wide 4:1 horizontal Polynesian tiki panel, screen-print style on a solid black background. In the exact center: a simplified tiki mask face with abstract slit eyes (no round pupils), broad nose, grinning mouth with teeth — painted in mid-grey (#8A8278) with black outlines. The face is compact, fitting in the center quarter of the width. Flowing directly out of the face on both sides: large bold tribal spirals and wave curves, connected to the cheeks and chin — the patterns grow organically from the face with zero gap. Only 2-3 large spirals per side, each thick and chunky. Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+       "themeKeywords": [
+         "Polynesian culture",
+         "tribal spirituality",
+         "oceanic mythology"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Polynesian tiki panel, screen-print style on a solid black background. In the exact center: a simplified tiki mask face with abstract slit eyes (no round pupils), broad nose, grinning mouth with teeth — painted in mid-grey (#8A8278) with black outlines. The face is compact, fitting in the center quarter of the width. Flowing directly out of the face on both sides: large bold tribal spirals and wave curves, connected to the cheeks and chin — the patterns grow organically from the face with zero gap. Only 2-3 large spirals per side, each thick and chunky. Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Tranquil Polynesian shoreline at deep night, a single distant tiki statue near the waterline, cobalt moonlight across rolling waves, silver foam on black sand, and a star-rich sky",
     "loadingScene": "Moonlit coastal detail with cobalt surf, silver spray, and one subtle carved tiki element in the distance; deep indigo shadows and pale blue-white highlights",
@@ -66,42 +41,17 @@
       "blocks": ["#F0EDE8", "#26619C", "#E07858", "#D4AF37"]
     },
     "motifs": "Hieroglyphs, scarab beetles, Eye of Horus, lotus flowers, ankh symbols, obelisks, papyrus scrolls",
-    "blockMotifs": "Sandstone texture with hieroglyph engravings, gold-lined edges, scarab beetle relief carvings",
-    "blockDesigns": [
-      "A large Eye of Horus hieroglyph carved deeply into warm golden sandstone, the eye centered and bold with dark amber details, flanked by smaller hieroglyphic cartouches and papyrus motifs on each side",
-      "A winged scarab beetle with wings fully spread as the dominant central emblem, carved in raised relief on deep amber desert stone, flanked by symmetrical lotus column decorations and darker sand accent borders",
-      "A sun-disc carved in raised relief at the center, surrounded by radiating hieroglyphic rays on grey dune stone, flanked by hieroglyphic panel strips and lotus bud accents",
-      "A cartouche seal with Pharaonic hieroglyphics as the central medallion, deeply carved into pale sandy limestone, flanked by symmetrical cobra (uraeus) serpent motifs and thin ochre edge trim"
-    ],
     "blockData": {
-      "material": "sandstone",
-      "centerpiece_type": "Winged scarab",
-      "centerpiece_description": "compact scarab beetle body in the center with broad symmetrical wings fully spread horizontally; flat fill with strong black outline and two-tone shading",
-      "centerpiece_expression": "sacred, solar, reborn",
       "inspirations": [
         "Ancient Egyptian temple wall reliefs and carved lintels",
         "Hieroglyphic cartouche panels and papyrus friezes"
       ],
-      "themeKeywords": [
-        "Ancient Egypt",
-        "protection symbolism",
-        "sacred iconography"
-      ],
-      "blocks": [
-        {
-          "material": "warm golden sandstone"
-        },
-        {
-          "material": "deep amber desert stone"
-        },
-        {
-          "material": "grey dune stone"
-        },
-        {
-          "material": "pale sandy limestone"
-        }
-      ],
-      "blockPrompt": "A wide 4:1 horizontal Ancient Egyptian panel, screen-print style on a solid black background. In the exact center: a winged scarab beetle — compact rounded beetle body with broad symmetrical wings fully spread horizontally to each side — painted in mid-grey (#8A8278) with black outlines. The scarab body is compact, fitting in the center quarter of the width, wings reaching outward. Extending directly from the wingtips on both sides: bold geometric Egyptian patterns — thick stepped pyramid zigzags, broad concentric rectangular frames, and angular chevron bands — the patterns physically touch and grow out of the wingtips with absolutely zero gap, as if the stone carving continues outward. Only 2-3 large geometric elements per side, each thick and heavy. Strictly geometric patterns beyond the scarab (no eyes, no birds, no flowers, no sphinxes). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+       "themeKeywords": [
+         "Ancient Egypt",
+         "protection symbolism",
+         "sacred iconography"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Ancient Egyptian panel, screen-print style on a solid black background. In the exact center: a winged scarab beetle — compact rounded beetle body with broad symmetrical wings fully spread horizontally to each side — painted in mid-grey (#8A8278) with black outlines. The scarab body is compact, fitting in the center quarter of the width, wings reaching outward. Extending directly from the wingtips on both sides: bold geometric Egyptian patterns — thick stepped pyramid zigzags, broad concentric rectangular frames, and angular chevron bands — the patterns physically touch and grow out of the wingtips with absolutely zero gap, as if the stone carving continues outward. Only 2-3 large geometric elements per side, each thick and heavy. Strictly geometric patterns beyond the scarab (no eyes, no birds, no flowers, no sphinxes). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Desert twilight, golden pyramids casting long shadows, hieroglyph-covered obelisks, the Nile reflecting amber sky, palm-lined banks, warm sun-drenched atmosphere",
     "loadingScene": "Close-up of a hieroglyph-covered wall illuminated by golden torchlight, scarab beetle relief with gold leaf details gleaming",
@@ -122,42 +72,17 @@
       "blocks": ["#E8EDF2", "#C4A882", "#7EC8E3", "#2E6B4F"]
     },
     "motifs": "Norse runes, Viking knotwork, longship prows, ravens, Mjolnir, frost patterns, iron rivets",
-    "blockMotifs": "Heavy stone blocks with carved runes, metallic iron frame edges, frost glow crystallization",
-    "blockDesigns": [
-      "A heavy granite rune stone block with deeply carved Norse elder futhark rune, frost crystals forming along the carved grooves, cold blue-grey stone",
-      "A dark iron-framed stone block with frost-blue glow seeping from Viking knotwork carvings, metallic rivets at corners, icy blue patina",
-      "A weathered dark grey stone block with iron banding and a raven silhouette carved in Norse style, frost-rimmed edges, heavy and cold",
-      "A massive pale stone block with Mjolnir relief carving, lightning-blue frost glow filling the engraved channels, silver iron frame"
-    ],
     "blockData": {
-      "material": "rough-hewn granite",
-      "centerpiece_type": "Norse elder futhark rune",
-      "centerpiece_description": "angular runic glyph with sharp geometric strokes carved into stone; flat fill with strong black outline and two-tone shading",
-      "centerpiece_expression": "ancient, powerful, cryptic",
       "inspirations": [
         "Viking rune stones and carved standing stones",
         "Norse knotwork illuminated manuscripts and shield designs"
       ],
-      "themeKeywords": [
-        "Norse mythology",
-        "runic power",
-        "frost and iron craftsmanship"
-      ],
-      "blocks": [
-        {
-          "material": "blue-grey granite"
-        },
-        {
-          "material": "frost-blue ice stone"
-        },
-        {
-          "material": "dark iron-grey stone"
-        },
-        {
-          "material": "pale silver granite"
-        }
-      ],
-      "blockPrompt": "A wide 4:1 horizontal Norse Viking panel, screen-print style on a solid black background. In the exact center: a simplified Yggdrasil world-tree silhouette — thick trunk, broad canopy, visible roots below — painted in mid-grey (#8A8278) with black outlines. The tree is compact, fitting in the center quarter of the width. Extending directly from the tree's branches and roots on both sides: bold geometric Norse knotwork bands and angular chevron borders — the patterns physically touch and grow out of the branches above and roots below with absolutely zero gap, as if the knotwork is woven through the tree itself. Only 2-3 large geometric elements per side, each thick and angular. Strictly geometric patterns, no figurative symbols (no ravens, no hammers, no animals, no faces, no runes). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+       "themeKeywords": [
+         "Norse mythology",
+         "runic power",
+         "frost and iron craftsmanship"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Norse Viking panel, screen-print style on a solid black background. In the exact center: a simplified Yggdrasil world-tree silhouette — thick trunk, broad canopy, visible roots below — painted in mid-grey (#8A8278) with black outlines. The tree is compact, fitting in the center quarter of the width. Extending directly from the tree's branches and roots on both sides: bold geometric Norse knotwork bands and angular chevron borders — the patterns physically touch and grow out of the branches above and roots below with absolutely zero gap, as if the knotwork is woven through the tree itself. Only 2-3 large geometric elements per side, each thick and angular. Strictly geometric patterns, no figurative symbols (no ravens, no hammers, no animals, no faces, no runes). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Frozen fjord at night, aurora borealis streaming over snow-covered mountains, viking longships moored at icy docks, rune stones glowing faintly in the snow",
     "loadingScene": "Close-up of an ancient rune stone covered in frost, each carved rune glowing with faint blue light, snow falling gently",
@@ -178,42 +103,17 @@
       "blocks": ["#BBB093", "#AA633F", "#F0EDE8", "#4D89B0"]
     },
     "motifs": "Greek columns, olive wreaths, Greek-key meander patterns, amphoras, temple pediments, laurel crowns",
-    "blockMotifs": "Clean white marble texture, blue Greek-key border patterns, hairline pressure cracks",
-    "blockDesigns": [
-      "A clean white marble block with carved Greek-key meander border in blue, smooth polished surface with subtle hairline cracks, elegant and minimal",
-      "A deep blue block with gold Greek-key border, Aegean blue glazed surface with white marble veining, Hellenic rosette in the center",
-      "A warm cream marble block with carved olive wreath relief, subtle golden edge accents, hairline cracks radiating from center",
-      "A pale green-grey marble block with Ionic column fluting detail in relief, blue geometric border, architectural precision"
-    ],
     "blockData": {
-      "material": "polished marble",
-      "centerpiece_type": "Greek-key meander medallion",
-      "centerpiece_description": "continuous angular spiral pattern forming a square medallion; flat fill with strong black outline and two-tone shading",
-      "centerpiece_expression": "elegant, mathematical, eternal",
       "inspirations": [
         "Ancient Greek temple pediments and Ionic column capitals",
         "Hellenic pottery and Greek-key meander border patterns"
       ],
-      "themeKeywords": [
-        "Ancient Greece",
-        "classical architecture",
-        "Hellenic elegance"
-      ],
-      "blocks": [
-        {
-          "material": "polished white marble"
-        },
-        {
-          "material": "deep Aegean blue marble"
-        },
-        {
-          "material": "warm cream marble"
-        },
-                 {
-          "material": "green-grey marble"
-        }
-      ],
-      "blockPrompt": "A wide 4:1 horizontal Ancient Greek panel, screen-print style on a solid black background. In the exact center: a bold Greek-key meander square medallion — continuous angular spiral forming a compact square frame — painted in mid-grey (#8A8278) with black outlines. The medallion is compact, fitting in the center quarter of the width. Extending directly from the medallion's corners and edges on both sides: bold geometric Greek patterns — thick meander key bands, stepped wave borders, and broad concentric arcs — the patterns physically touch and grow out of the medallion with absolutely zero gap, as if the meander continues outward. Only 2-3 large geometric elements per side, each thick and architectural. Strictly geometric patterns, no figurative symbols (no columns, no faces, no laurels, no olives, no animals). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+       "themeKeywords": [
+         "Ancient Greece",
+         "classical architecture",
+         "Hellenic elegance"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Ancient Greek panel, screen-print style on a solid black background. In the exact center: a bold Greek-key meander square medallion — continuous angular spiral forming a compact square frame — painted in mid-grey (#8A8278) with black outlines. The medallion is compact, fitting in the center quarter of the width. Extending directly from the medallion's corners and edges on both sides: bold geometric Greek patterns — thick meander key bands, stepped wave borders, and broad concentric arcs — the patterns physically touch and grow out of the medallion with absolutely zero gap, as if the meander continues outward. Only 2-3 large geometric elements per side, each thick and architectural. Strictly geometric patterns, no figurative symbols (no columns, no faces, no laurels, no olives, no animals). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Aegean Sea coastline at golden hour, white marble temple ruins on a cliff, olive groves descending to azure waters, scattered broken columns, blue sky",
     "loadingScene": "Close-up of a white marble Ionic column capital with fine hairline cracks, warm golden sunlight streaming through, blue sky behind",
@@ -234,42 +134,17 @@
       "blocks": ["#F5F3EE", "#4B1821", "#B8922E", "#7A3E7E"]
     },
     "motifs": "Cherry blossoms, katana blades, torii gates, kanji brushstrokes, bamboo, paper lanterns",
-    "blockMotifs": "Black lacquer with red trim edges, bold brushstroke symbols, sakura petal accents",
-    "blockDesigns": [
-      "A crimson lacquer block with bold white kanji brushstroke character painted across the surface, black trim border, high-gloss reflective finish",
-      "A deep black lacquer block with subtle dark blue shimmer, gold inlay brushstroke pattern, thin red trim line at edges, refined and dark",
-      "A gleaming gold lacquer block with a black brushstroke enso circle in the center, red corner accents, polished imperial surface",
-      "A dark pine-green lacquer block with golden chrysanthemum brushstroke design, black border, cherry blossom petal accent in one corner"
-    ],
     "blockData": {
-      "material": "lacquered wood",
-      "centerpiece_type": "Enso circle brushstroke",
-      "centerpiece_description": "bold single-stroke ink circle with confident calligraphic brush movement; flat fill with strong black outline and two-tone shading",
-      "centerpiece_expression": "zen, infinite, complete",
       "inspirations": [
         "Japanese urushi lacquerware and maki-e gold designs",
         "Edo period samurai armor motifs and mon emblems"
       ],
-      "themeKeywords": [
-        "Feudal Japan",
-        "bushido discipline",
-        "refined craftsmanship"
-      ],
-      "blocks": [
-        {
-          "material": "crimson red lacquered wood"
-        },
-        {
-          "material": "deep black lacquered wood"
-        },
-        {
-          "material": "gleaming gold lacquered wood"
-        },
-                 {
-          "material": "dark pine-green lacquered wood"
-        }
-      ],
-      "blockPrompt": "A wide 4:1 horizontal Feudal Japanese panel, screen-print style on a solid black background. In the exact center: a simplified cherry blossom flower — five bold rounded petals arranged symmetrically around a central dot cluster — painted in mid-grey (#8A8278) with black outlines. The blossom is compact, fitting in the center quarter of the width. Extending directly from the petal tips on both sides: bold geometric Japanese patterns — thick parallel horizontal bars, angular zigzag bands, and broad stepped rectangles — the patterns physically touch and grow out of the petals with absolutely zero gap, as if the brushwork continues outward. Only 2-3 large geometric elements per side, each thick and bold. Strictly geometric patterns beyond the flower (no kanji, no katana, no torii, no fans). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+       "themeKeywords": [
+         "Feudal Japan",
+         "bushido discipline",
+         "refined craftsmanship"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Feudal Japanese panel, screen-print style on a solid black background. In the exact center: a simplified cherry blossom flower — five bold rounded petals arranged symmetrically around a central dot cluster — painted in mid-grey (#8A8278) with black outlines. The blossom is compact, fitting in the center quarter of the width. Extending directly from the petal tips on both sides: bold geometric Japanese patterns — thick parallel horizontal bars, angular zigzag bands, and broad stepped rectangles — the patterns physically touch and grow out of the petals with absolutely zero gap, as if the brushwork continues outward. Only 2-3 large geometric elements per side, each thick and bold. Strictly geometric patterns beyond the flower (no kanji, no katana, no torii, no fans). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Feudal Japanese castle courtyard at twilight, black and red architecture, cherry blossom trees in full bloom, stone lanterns glowing, zen rock garden",
     "loadingScene": "Close-up of a glossy black lacquer surface with crimson kanji brushstrokes, cherry blossom petals drifting down, warm paper lantern light",
@@ -290,42 +165,17 @@
       "blocks": ["#4A7CB8", "#D4AF37", "#F0EDE8", "#3A8A6A"]
     },
     "motifs": "Imperial dragons, jade carvings, cloud scrolls, gold calligraphy, pagoda roofs, silk lanterns",
-    "blockMotifs": "Jade texture surface, dragon-scale overlay patterns, gold calligraphy accent strokes",
-    "blockDesigns": [
-      "A polished jade block with dragon-scale overlay texture across the surface, gold calligraphy accent stroke in the center, luminous green translucency",
-      "A deep emerald jade block with imperial dragon coil carved in relief, gold-lined edges, rich internal glow like polished stone",
-      "A gleaming gold block with imperial dragon silhouette and cloud scroll engravings, dark jade accents, calligraphy border pattern",
-      "A cinnabar red lacquer block with golden phoenix feather scale pattern, jade green accent inlays, imperial seal motif in center"
-    ],
     "blockData": {
-      "material": "polished jade stone",
-      "centerpiece_type": "Imperial dragon medallion",
-      "centerpiece_description": "coiled serpentine dragon in circular composition with flowing whiskers and claws; flat fill with strong black outline and two-tone shading",
-      "centerpiece_expression": "mystical, imperial, flowing",
       "inspirations": [
         "Imperial Chinese jade carvings and silk brocade patterns",
         "Dragon-scale temple roof ornaments and cloud scroll motifs"
       ],
-      "themeKeywords": [
-        "Imperial China",
-        "dragon mysticism",
-        "jade craftsmanship"
-      ],
-      "blocks": [
-        {
-          "material": "luminous emerald jade stone"
-        },
-        {
-          "material": "deep forest-green jade stone"
-        },
-        {
-          "material": "polished gold on stone"
-        },
-                 {
-          "material": "cinnabar red lacquer"
-        }
-      ],
-      "blockPrompt": "A wide 4:1 horizontal Imperial Chinese panel, screen-print style on a solid black background. In the exact center: a simplified coiled dragon in circular medallion form — serpentine body curving into a compact disc shape with stylized head and flowing whiskers — painted in mid-grey (#8A8278) with black outlines. The dragon medallion is compact, fitting in the center quarter of the width. Extending directly from the dragon's tail and whiskers on both sides: bold geometric Chinese patterns — thick cloud scroll bands, angular interlocking lattice borders, and broad stepped wave shapes — the patterns physically touch and grow out of the dragon with absolutely zero gap, as if the scrollwork continues from the body. Only 2-3 large geometric elements per side, each thick and flowing. Strictly geometric patterns beyond the centerpiece (no phoenixes, no calligraphy, no flowers, no pagodas). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+       "themeKeywords": [
+         "Imperial China",
+         "dragon mysticism",
+         "jade craftsmanship"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Imperial Chinese panel, screen-print style on a solid black background. In the exact center: a simplified coiled dragon in circular medallion form — serpentine body curving into a compact disc shape with stylized head and flowing whiskers — painted in mid-grey (#8A8278) with black outlines. The dragon medallion is compact, fitting in the center quarter of the width. Extending directly from the dragon's tail and whiskers on both sides: bold geometric Chinese patterns — thick cloud scroll bands, angular interlocking lattice borders, and broad stepped wave shapes — the patterns physically touch and grow out of the dragon with absolutely zero gap, as if the scrollwork continues from the body. Only 2-3 large geometric elements per side, each thick and flowing. Strictly geometric patterns beyond the centerpiece (no phoenixes, no calligraphy, no flowers, no pagodas). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Imperial Chinese palace at night, jade-green rooftops curving skyward, golden silk lanterns lining a marble bridge over misty lotus ponds, dragon statues, moonlit pagodas",
     "loadingScene": "Close-up of a carved jade dragon head with golden eyes gleaming, mystical mist swirling around it, emerald green luminosity from within",
@@ -346,42 +196,17 @@
       "blocks": ["#F0A0B0", "#7EB0E0", "#F0EDE8", "#F0A870"]
     },
     "motifs": "Geometric tile stars, relief lions, peacocks, cypress trees, arabesques, muqarnas vaults",
-    "blockMotifs": "Blue geometric tile patterns with gold grout lines, golden relief animal carvings, luminous symmetry effects",
-    "blockDesigns": [
-      "A Persian blue ceramic tile block with intricate Islamic geometric star pattern, gold grout lines between shapes, luminous deep blue glaze",
-      "A royal blue tile block with golden relief lion carving in proud profile, geometric tile border, symmetrical and regal",
-      "A gleaming gold tile block with embossed arabesque floral symmetry pattern, deep blue accent lines, luminous golden surface",
-      "A turquoise and teal tile block with golden peacock relief in the center, geometric mosaic border, iridescent glaze highlights"
-    ],
     "blockData": {
-      "material": "glazed ceramic tile",
-      "centerpiece_type": "Islamic geometric star pattern",
-      "centerpiece_description": "eight-pointed interlocking star with precise geometric construction; flat fill with strong black outline and two-tone shading",
-      "centerpiece_expression": "precise, infinite, mesmerizing",
       "inspirations": [
         "Persian geometric tile mosaics and muqarnas vault patterns",
         "Achaemenid palace relief carvings and winged lion motifs"
       ],
-      "themeKeywords": [
-        "Ancient Persia",
-        "geometric symmetry",
-        "regal craftsmanship"
-      ],
-      "blocks": [
-        {
-          "material": "deep Persian blue glazed ceramic tile"
-        },
-        {
-          "material": "royal indigo glazed ceramic tile"
-        },
-        {
-          "material": "burnished gold metal tile"
-        },
-                 {
-          "material": "turquoise-teal glazed ceramic tile"
-        }
-      ],
-      "blockPrompt": "A wide 4:1 horizontal Ancient Persian panel, screen-print style on a solid black background. In the exact center: a bold eight-pointed Islamic geometric star — precise interlocking lines forming a radiant star pattern — painted in mid-grey (#8A8278) with black outlines. The star is compact, fitting in the center quarter of the width. Extending directly from the star's outer points on both sides: bold geometric Persian patterns — thick arabesque interlocking bands, angular tessellation borders, and broad diamond lattice shapes — the patterns physically touch and grow out of the star points with absolutely zero gap, as if the tessellation continues outward. Only 2-3 large geometric elements per side, each thick and symmetrical. Strictly geometric patterns, no figurative symbols (no lions, no peacocks, no flowers, no cypress trees). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+       "themeKeywords": [
+         "Ancient Persia",
+         "geometric symmetry",
+         "regal craftsmanship"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Ancient Persian panel, screen-print style on a solid black background. In the exact center: a bold eight-pointed Islamic geometric star — precise interlocking lines forming a radiant star pattern — painted in mid-grey (#8A8278) with black outlines. The star is compact, fitting in the center quarter of the width. Extending directly from the star's outer points on both sides: bold geometric Persian patterns — thick arabesque interlocking bands, angular tessellation borders, and broad diamond lattice shapes — the patterns physically touch and grow out of the star points with absolutely zero gap, as if the tessellation continues outward. Only 2-3 large geometric elements per side, each thick and symmetrical. Strictly geometric patterns, no figurative symbols (no lions, no peacocks, no flowers, no cypress trees). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Persian palace courtyard at night, blue tile domes and minarets glowing under moonlight, reflecting pools mirroring the stars, golden lamplight, cypress gardens",
     "loadingScene": "Close-up of an intricate Persian blue geometric tile mosaic wall, golden grout lines catching warm lamplight, luminous symmetrical glow",
@@ -402,42 +227,17 @@
       "blocks": ["#C8C4BC", "#8CC88A", "#7EC8E3", "#D4AF37"]
     },
     "motifs": "Calendar glyphs, feathered serpents, stepped pyramids, jungle vines, jaguar motifs, obsidian blades",
-    "blockMotifs": "Carved jungle stone with calendar glyph variations, moss growing in the carved crevices",
-    "blockDesigns": [
-      "A carved olive-green jungle stone block with Mayan calendar glyph deeply engraved, moss growing in the carved grooves, weathered and ancient",
-      "A warm brown stone block with Aztec feathered serpent relief carving, jungle moss creeping from edges, dense and powerful texture",
-      "A dark green stone block with Mayan numeral dots-and-bars system carved in relief, vine tendrils wrapping the corners, deep jungle feel",
-      "A khaki-gold stone block with jaguar head glyph carved in profile, obsidian eye inlay glinting, moss and lichen patches at edges"
-    ],
     "blockData": {
-      "material": "jungle limestone",
-      "centerpiece_type": "Mayan calendar sun glyph",
-      "centerpiece_description": "circular calendar face with central sun motif and radiating segments; flat fill with strong black outline and two-tone shading",
-      "centerpiece_expression": "ancient, cosmic, powerful",
       "inspirations": [
         "Mayan temple carved stone lintels and stela monuments",
         "Calendar glyph panels and feathered serpent architectural reliefs"
       ],
-      "themeKeywords": [
-        "Mayan civilization",
-        "calendar mysticism",
-        "jungle temple power"
-      ],
-      "blocks": [
-        {
-          "material": "moss-green jungle limestone"
-        },
-        {
-          "material": "warm brown jungle stone"
-        },
-        {
-          "material": "dark emerald-green stone"
-        },
-                 {
-          "material": "khaki-gold sandstone"
-        }
-      ],
-      "blockPrompt": "A wide 4:1 horizontal Mayan panel, screen-print style on a solid black background. In the exact center: a simplified Mayan calendar sun disc — circular face with radiating segments and central dot — painted in mid-grey (#8A8278) with black outlines. The sun disc is compact, fitting in the center quarter of the width. Extending directly from the disc's outer segments on both sides: bold geometric Mayan patterns — thick stepped pyramid zigzags, angular T-shaped bands, and broad concentric rectangular frames — the patterns physically touch and grow out of the calendar segments with absolutely zero gap, as if the stone carving continues outward. Only 2-3 large geometric elements per side, each thick and heavy. Strictly geometric patterns, no figurative symbols (no serpents, no jaguars, no skulls, no birds, no glyphs). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+       "themeKeywords": [
+         "Mayan civilization",
+         "calendar mysticism",
+         "jungle temple power"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Mayan panel, screen-print style on a solid black background. In the exact center: a simplified Mayan calendar sun disc — circular face with radiating segments and central dot — painted in mid-grey (#8A8278) with black outlines. The sun disc is compact, fitting in the center quarter of the width. Extending directly from the disc's outer segments on both sides: bold geometric Mayan patterns — thick stepped pyramid zigzags, angular T-shaped bands, and broad concentric rectangular frames — the patterns physically touch and grow out of the calendar segments with absolutely zero gap, as if the stone carving continues outward. Only 2-3 large geometric elements per side, each thick and heavy. Strictly geometric patterns, no figurative symbols (no serpents, no jaguars, no skulls, no birds, no glyphs). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Deep jungle at dawn, massive stepped Mayan pyramid rising through the canopy, moss-covered stone ruins scattered among giant trees, mist hanging in the air, filtered green light",
     "loadingScene": "Close-up of a moss-covered carved stone wall with Mayan calendar glyphs, jungle vines creeping over the surface, filtered green light through the canopy",
@@ -458,42 +258,17 @@
       "blocks": ["#C4A882", "#2A6840", "#B85D3C", "#4E8F9B"]
     },
     "motifs": "Chokwe masks, geometric scarification patterns, raffia textile weaves, ceremonial staffs, diamond lattice, concentric circles",
-    "blockMotifs": "Carved dark wood grain, geometric scarification patterns, woven raffia textile bands",
-    "blockDesigns": [
-      "A carved dark wood block with Chokwe geometric scarification pattern in the center, warm brown wood grain texture, woven raffia border accent",
-      "A deep brown carved wood block with concentric circle motif, geometric diamond lattice flanking pattern, ceremonial patina",
-      "A terracotta-pigmented wood block with bold geometric crosshatch pattern, dark carved grooves, warm earth tones",
-      "A dark carved wood block with woven raffia textile pattern band across the center, geometric diamond shapes at edges"
-    ],
     "blockData": {
-      "material": "carved dark wood",
-      "centerpiece_type": "Chokwe mask",
-      "centerpiece_description": "stylized Chokwe ceremonial mask face — oval shape with large almond eyes, small triangular nose, and wide rectangular mouth with geometric scarification lines on cheeks and forehead; flat fill with strong black outline and two-tone shading",
-      "centerpiece_expression": "ancestral, ceremonial, powerful",
       "inspirations": [
         "Chokwe Pwo and Mwana Pwo ceremonial masks from Central Africa",
         "Geometric scarification patterns and raffia textile weaving traditions"
       ],
-      "themeKeywords": [
-        "Chokwe people",
-        "Central African art",
-        "ceremonial masks"
-      ],
-      "blocks": [
-        {
-          "material": "warm brown carved wood"
-        },
-        {
-          "material": "deep dark ceremonial wood"
-        },
-        {
-          "material": "terracotta-pigmented wood"
-        },
-        {
-          "material": "dark polished hardwood"
-        }
-      ],
-      "blockPrompt": "A wide 4:1 horizontal Central African Chokwe panel, screen-print style on a solid black background. In the exact center: a stylized Chokwe mask face — oval shape with large almond eyes, small triangular nose, wide rectangular mouth, and geometric scarification line patterns on cheeks and forehead — painted in mid-grey (#8A8278) with black outlines. The mask is compact, fitting in the center quarter of the width. Extending directly from the mask's cheeks and chin on both sides: bold geometric Chokwe patterns — thick diamond lattice bands, concentric rectangular frames, and angular crosshatch panels — the patterns physically touch and grow out of the mask with absolutely zero gap, as if the carved wood continues outward. Only 2-3 large geometric elements per side, each thick and bold. Strictly geometric patterns beyond the mask (no animals, no figures, no realistic features). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+       "themeKeywords": [
+         "Chokwe people",
+         "Central African art",
+         "ceremonial masks"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Central African Chokwe panel, screen-print style on a solid black background. In the exact center: a stylized Chokwe mask face — oval shape with large almond eyes, small triangular nose, wide rectangular mouth, and geometric scarification line patterns on cheeks and forehead — painted in mid-grey (#8A8278) with black outlines. The mask is compact, fitting in the center quarter of the width. Extending directly from the mask's cheeks and chin on both sides: bold geometric Chokwe patterns — thick diamond lattice bands, concentric rectangular frames, and angular crosshatch panels — the patterns physically touch and grow out of the mask with absolutely zero gap, as if the carved wood continues outward. Only 2-3 large geometric elements per side, each thick and bold. Strictly geometric patterns beyond the mask (no animals, no figures, no realistic features). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Dense Central African forest clearing at dusk, carved wooden ceremonial poles flanking a packed-earth gathering space, warm firelight casting long shadows on woven raffia screens, red earth pigment on bark-cloth hangings",
     "loadingScene": "Close-up of a carved dark wood surface with deep geometric scarification patterns, warm firelight illuminating the grain and casting dramatic shadows across diamond lattice carvings",
@@ -514,42 +289,17 @@
       "blocks": ["#F0EDE8", "#4A8A5A", "#D4B840", "#C4A882"]
     },
     "motifs": "Interlocking polygonal stones, Inti sun god disc, quipu rope knots, condor silhouettes, textile weave patterns, mountain terraces",
-    "blockMotifs": "Interlocking polygonal stone masonry with perfect joints, sun-god gold highlight accents, rope and textile border accents",
-    "blockDesigns": [
-      "A warm grey interlocking polygonal stone block with perfectly fitted irregular edges and no mortar, Inca sun-god gold disc accent in center, granite texture",
-      "A gleaming gold block with embossed Inti sun rays radiating outward, rope textile border accent at edges, polished ceremonial surface",
-      "A cool grey polygonal stone block with a condor relief carved in profile, gold highlight accents along wing feathers, mountainous grey granite",
-      "A grey-green stone block with quipu rope knot textile pattern carved as border decoration, gold sun highlights, precise interlocking masonry edges"
-    ],
     "blockData": {
-      "material": "fitted granite",
-      "centerpiece_type": "Chakana (Inca cross)",
-      "centerpiece_description": "bold stepped cross symbol with a square hole in the center, four stepped arms extending in cardinal directions; flat fill with strong black outline and two-tone shading",
-      "centerpiece_expression": "cosmic, balanced, sacred",
       "inspirations": [
         "Inca polygonal masonry walls and sun temple stonework",
         "Quipu rope knot textile patterns and condor iconography"
       ],
-      "themeKeywords": [
-        "Inca empire",
-        "solar worship",
-        "precision stonework"
-      ],
-      "blocks": [
-        {
-          "material": "warm grey granite"
-        },
-        {
-          "material": "polished gold metal on stone"
-        },
-        {
-          "material": "cool blue-grey granite"
-        },
-                 {
-          "material": "grey-green stone"
-        }
-      ],
-      "blockPrompt": "A wide 4:1 horizontal Inca panel, screen-print style on a solid black background. In the exact center: a bold Inca cross (chakana) — stepped cross symbol with a square hole in the center, four stepped arms extending in cardinal directions — painted in mid-grey (#8A8278) with black outlines. The chakana is compact, fitting in the center quarter of the width. Extending directly from the cross's stepped arm endpoints on both sides: bold geometric Inca patterns — thick interlocking polygonal bands, angular stepped terrace borders, and broad diamond lattice shapes — the patterns physically touch and grow out of the arm endpoints with absolutely zero gap, as if the stonework continues outward. Only 2-3 large geometric elements per side, each thick and monumental. Strictly geometric patterns, no figurative symbols (no condors, no llamas, no sun faces, no rope knots). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+       "themeKeywords": [
+         "Inca empire",
+         "solar worship",
+         "precision stonework"
+       ],
+       "blockPrompt": "A wide 4:1 horizontal Inca panel, screen-print style on a solid black background. In the exact center: a bold Inca cross (chakana) — stepped cross symbol with a square hole in the center, four stepped arms extending in cardinal directions — painted in mid-grey (#8A8278) with black outlines. The chakana is compact, fitting in the center quarter of the width. Extending directly from the cross's stepped arm endpoints on both sides: bold geometric Inca patterns — thick interlocking polygonal bands, angular stepped terrace borders, and broad diamond lattice shapes — the patterns physically touch and grow out of the arm endpoints with absolutely zero gap, as if the stonework continues outward. Only 2-3 large geometric elements per side, each thick and monumental. Strictly geometric patterns, no figurative symbols (no condors, no llamas, no sun faces, no rope knots). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Mountain citadel at dawn inspired by Machu Picchu, massive interlocking stone walls, terraced hillsides descending into cloud forest, condors soaring over Andes peaks, golden sunrise",
     "loadingScene": "Close-up of perfectly interlocking polygonal stone wall with a gold Inti sun-god disc embedded in the masonry, morning mist rolling past the stones",

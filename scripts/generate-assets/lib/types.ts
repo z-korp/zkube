@@ -17,19 +17,10 @@ export type AssetCategory = PerThemeAsset | GlobalAsset;
 export type LimitRunner = <T>(fn: () => Promise<T>) => Promise<T>;
 export type PLimitFactory = (concurrency: number) => LimitRunner;
 
-export interface BlockDesign {
-  material?: string;
-}
-
 export interface BlockData {
-  material: string;
-  centerpiece_type: string;
-  centerpiece_description: string;
-  centerpiece_expression: string;
   inspirations: [string, string];
   themeKeywords: [string, string, string];
-  blocks: [BlockDesign, BlockDesign, BlockDesign, BlockDesign];
-  blockPrompt?: string;
+  blockPrompt: string;
 }
 
 export interface ThemeDefinition {
@@ -43,8 +34,6 @@ export interface ThemeDefinition {
     blocks: [string, string, string, string];
   };
   motifs: string;
-  blockMotifs: string;
-  blockDesigns?: [string, string, string, string];
   blockData: BlockData;
   scene: string;
   loadingScene: string;
