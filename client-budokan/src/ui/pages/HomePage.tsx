@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
+import { loadThemeTemplate } from "@/config/themes";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
@@ -24,15 +25,16 @@ const HomePage: React.FC = () => {
   useViewport();
 
   const { account } = useAccountCustom();
-  const { themeTemplate } = useTheme();
+  const { themeTemplate, setThemeTemplate } = useTheme();
   const { setMusicContext } = useMusicPlayer();
   const { cubeBalance } = useCubeBalance();
   const navigate = useNavigationStore((s) => s.navigate);
   const imgAssets = ImageAssets(themeTemplate);
 
   useEffect(() => {
+    setThemeTemplate(loadThemeTemplate(), false);
     setMusicContext("main");
-  }, [setMusicContext]);
+  }, [setMusicContext, setThemeTemplate]);
 
   const shouldFetchMyGames = Boolean(account?.address);
   const normalizedOwner = normalizeAddress(account?.address);

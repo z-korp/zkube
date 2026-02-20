@@ -31,7 +31,7 @@ import {
   DialogTitle,
 } from "@/ui/elements/dialog";
 import { generateLevelConfig } from "@/dojo/game/types/level";
-import { THEME_IDS, THEME_META } from "@/config/themes";
+import { deriveZoneThemes, getZone } from "@/hooks/useMapData";
 
 interface LevelCompletionData {
   level: number;
@@ -119,6 +119,16 @@ const PlayScreen: React.FC = () => {
     prevBossLevelRef.current = level;
     setMusicContext(isBossLevel ? "boss" : "level");
   }, [game?.level, playSfx, setMusicContext]);
+
+  useEffect(() => {
+    if (seed === 0n || !game) return;
+    const zoneThemes = deriveZoneThemes(seed);
+    const zone = getZone(game.level);
+    const zoneTheme = zoneThemes[zone - 1];
+    if (zoneTheme) {
+      setThemeTemplate(zoneTheme, false);
+    }
+  }, [seed, game?.level, setThemeTemplate]);
 
   useEffect(() => {
     setIsGameLoading(true);
@@ -503,31 +513,6 @@ const PlayScreen: React.FC = () => {
           moves={game.levelMoves}
           maxMoves={maxMoves}
         />
-      )}
-
-      {game && !isGameLoading && !isGridLoading && (
-        <div className="mx-auto w-full max-w-2xl px-2 pt-1 shrink-0">
-          <div className="flex items-center gap-1 overflow-x-auto rounded-lg border border-slate-700/70 bg-slate-900/50 p-1">
-            {THEME_IDS.map((themeId) => {
-              const isActive = themeTemplate === themeId;
-              return (
-                <button
-                  key={themeId}
-                  type="button"
-                  onClick={() => setThemeTemplate(themeId)}
-                  className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
-                    isActive
-                      ? "bg-cyan-500/30 text-cyan-100"
-                      : "bg-slate-800/65 text-slate-300 hover:bg-slate-700/80 hover:text-white"
-                  }`}
-                  title={THEME_META[themeId].name}
-                >
-                  {themeId}
-                </button>
-              );
-            })}
-          </div>
-        </div>
       )}
 
       <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-2 py-1">

@@ -62,7 +62,7 @@ export class AudioManager {
 
     if (this.currentMusicUrl !== nextUrl) {
       if (this.currentMusicHowl && this.currentMusicHowl.playing()) {
-        this.currentMusicHowl.pause();
+        this.currentMusicHowl.stop();
       }
       this.currentMusicHowl = this.getOrCreateMusicHowl(nextUrl);
       this.currentMusicUrl = nextUrl;

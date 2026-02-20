@@ -19,14 +19,15 @@ type ThemeProviderState = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
   themeTemplate: ThemeId;
-  setThemeTemplate: (themeTemplate: ThemeId) => void;
+  /** Set the active theme. Pass `save = false` for temporary overrides (e.g. zone themes). */
+  setThemeTemplate: (themeTemplate: ThemeId, save?: boolean) => void;
 };
 
 const initialState: ThemeProviderState = {
   theme: "system",
   setTheme: () => null,
   themeTemplate: "theme-1",
-  setThemeTemplate: () => null,
+  setThemeTemplate: () => {},
 };
 
 export const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
@@ -71,9 +72,9 @@ export function ThemeProvider({
       setTheme(theme);
     },
     themeTemplate,
-    setThemeTemplate: (nextThemeTemplate: ThemeId) => {
+    setThemeTemplate: (nextThemeTemplate: ThemeId, save = true) => {
       if (!THEME_IDS.includes(nextThemeTemplate)) return;
-      saveThemeTemplate(nextThemeTemplate);
+      if (save) saveThemeTemplate(nextThemeTemplate);
       setThemeTemplate(nextThemeTemplate);
     },
   };
