@@ -75,9 +75,9 @@
     ],
     "blockData": {
       "material": "sandstone",
-      "centerpiece_type": "Eye of Horus",
-      "centerpiece_description": "bold stylized Eye of Horus (Wadjet) — almond eye shape with thick brow line, round pupil, and the characteristic curved falcon cheek marking dropping below; flat fill with strong black outline and two-tone shading",
-      "centerpiece_expression": "protective, divine, all-seeing",
+      "centerpiece_type": "Winged scarab",
+      "centerpiece_description": "compact scarab beetle body in the center with broad symmetrical wings fully spread horizontally; flat fill with strong black outline and two-tone shading",
+      "centerpiece_expression": "sacred, solar, reborn",
       "inspirations": [
         "Ancient Egyptian temple wall reliefs and carved lintels",
         "Hieroglyphic cartouche panels and papyrus friezes"
@@ -101,7 +101,7 @@
           "material": "pale sandy limestone"
         }
       ],
-      "blockPrompt": "A wide 4:1 horizontal Ancient Egyptian panel, screen-print style on a solid black background. In the exact center: a bold stylized Eye of Horus — large almond eye shape with thick brow line, round pupil, and the characteristic curved falcon cheek marking dropping below — painted in mid-grey (#8A8278) with black outlines. The eye is compact, fitting in the center quarter of the width. Extending directly from the eye's brow and cheek lines on both sides: bold geometric Egyptian patterns — thick stepped pyramid zigzags, broad concentric rectangular frames, and angular chevron bands — the patterns physically touch and grow out of the eye with absolutely zero gap, as if the stone carving continues outward. Only 2-3 large geometric elements per side, each thick and heavy. Strictly geometric patterns beyond the eye (no birds, no beetles, no flowers, no animals, no sphinxes). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+      "blockPrompt": "A wide 4:1 horizontal Ancient Egyptian panel, screen-print style on a solid black background. In the exact center: a winged scarab beetle — compact rounded beetle body with broad symmetrical wings fully spread horizontally to each side — painted in mid-grey (#8A8278) with black outlines. The scarab body is compact, fitting in the center quarter of the width, wings reaching outward. Extending directly from the wingtips on both sides: bold geometric Egyptian patterns — thick stepped pyramid zigzags, broad concentric rectangular frames, and angular chevron bands — the patterns physically touch and grow out of the wingtips with absolutely zero gap, as if the stone carving continues outward. Only 2-3 large geometric elements per side, each thick and heavy. Strictly geometric patterns beyond the scarab (no eyes, no birds, no flowers, no sphinxes). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
     "scene": "Desert twilight, golden pyramids casting long shadows, hieroglyph-covered obelisks, the Nile reflecting amber sky, palm-lined banks, warm sun-drenched atmosphere",
     "loadingScene": "Close-up of a hieroglyph-covered wall illuminated by golden torchlight, scarab beetle relief with gold leaf details gleaming",
@@ -448,59 +448,59 @@
     }
   },
   "theme-9": {
-    "name": "Pueblo",
-    "icon": "🪶",
-    "description": "Adobe desert settlement with turquoise inlays, geometric painted borders, and vast canyon skies",
-    "mood": "Earthy, desert, spiritual",
+    "name": "Chokwe",
+    "icon": "🎭",
+    "description": "Central African Chokwe kingdom with carved wooden masks, woven raffia textiles, and red earth pigments",
+    "mood": "Ancestral, ceremonial, powerful",
     "palette": {
-      "bg": "#2A1F14",
-      "accent": "#40C8B8",
+      "bg": "#1A1008",
+      "accent": "#D07850",
       "blocks": ["#C4A882", "#2A6840", "#B85D3C", "#4E8F9B"]
     },
-    "motifs": "Turquoise stones, eagle feathers, geometric stepped borders, adobe walls, thunderbird motifs, desert sun",
-    "blockMotifs": "Adobe clay texture, turquoise stone inlays, geometric painted border patterns",
+    "motifs": "Chokwe masks, geometric scarification patterns, raffia textile weaves, ceremonial staffs, diamond lattice, concentric circles",
+    "blockMotifs": "Carved dark wood grain, geometric scarification patterns, woven raffia textile bands",
     "blockDesigns": [
-      "An adobe clay block with a turquoise stone inlay in the center, geometric stepped border painted in white and earth tones, warm sun-baked surface",
-      "A turquoise-dominated block with adobe clay border frame, geometric Pueblo zigzag patterns painted in white, cool and spiritual",
-      "A saddle brown adobe block with thunderbird motif painted in geometric style, turquoise accent dots at corners, warm desert patina",
-      "A terra cotta clay block with turquoise and coral inlay mosaic pattern in the center, geometric painted borders in rust and cream"
+      "A carved dark wood block with Chokwe geometric scarification pattern in the center, warm brown wood grain texture, woven raffia border accent",
+      "A deep brown carved wood block with concentric circle motif, geometric diamond lattice flanking pattern, ceremonial patina",
+      "A terracotta-pigmented wood block with bold geometric crosshatch pattern, dark carved grooves, warm earth tones",
+      "A dark carved wood block with woven raffia textile pattern band across the center, geometric diamond shapes at edges"
     ],
     "blockData": {
-      "material": "adobe clay",
-      "centerpiece_type": "Amerindian native totem",
-      "centerpiece_description": "vertical carved wooden totem pole with stacked animal and spirit faces — eagle on top, bear face below, geometric wings spreading from the sides; flat fill with strong black outline and two-tone shading",
-      "centerpiece_expression": "ancestral, powerful, nature-spirit",
+      "material": "carved dark wood",
+      "centerpiece_type": "Chokwe mask",
+      "centerpiece_description": "stylized Chokwe ceremonial mask face — oval shape with large almond eyes, small triangular nose, and wide rectangular mouth with geometric scarification lines on cheeks and forehead; flat fill with strong black outline and two-tone shading",
+      "centerpiece_expression": "ancestral, ceremonial, powerful",
       "inspirations": [
-        "Pueblo adobe wall patterns and turquoise jewelry inlays",
-        "Southwestern geometric painted pottery and thunderbird motifs"
+        "Chokwe Pwo and Mwana Pwo ceremonial masks from Central Africa",
+        "Geometric scarification patterns and raffia textile weaving traditions"
       ],
       "themeKeywords": [
-        "Pueblo culture",
-        "desert spirituality",
-        "earthen craftsmanship"
+        "Chokwe people",
+        "Central African art",
+        "ceremonial masks"
       ],
       "blocks": [
         {
-          "material": "warm sandy adobe clay"
+          "material": "warm brown carved wood"
         },
         {
-          "material": "turquoise-inlaid clay"
+          "material": "deep dark ceremonial wood"
         },
         {
-          "material": "dark saddle-brown adobe"
+          "material": "terracotta-pigmented wood"
         },
-                 {
-          "material": "terra cotta red clay"
+        {
+          "material": "dark polished hardwood"
         }
       ],
-      "blockPrompt": "A wide 4:1 horizontal Native American panel, screen-print style on a solid black background. In the exact center: a carved wooden totem pole — vertical stack of stylized spirit faces with an eagle head on top and a bear face below, short geometric wings spreading outward — painted in mid-grey (#8A8278) with black outlines. The totem is compact and vertical, fitting in the center quarter of the width. Extending directly from the totem's wings and base on both sides: bold geometric tribal patterns — thick stepped border bands, angular zigzag lines, and broad diamond shapes — the patterns physically touch and grow out of the totem with absolutely zero gap, as if the carved wood continues outward. Only 2-3 large geometric elements per side, each thick and earthy. Strictly geometric patterns beyond the centerpiece (no arrows, no dreamcatchers, no realistic animals). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
+      "blockPrompt": "A wide 4:1 horizontal Central African Chokwe panel, screen-print style on a solid black background. In the exact center: a stylized Chokwe mask face — oval shape with large almond eyes, small triangular nose, wide rectangular mouth, and geometric scarification line patterns on cheeks and forehead — painted in mid-grey (#8A8278) with black outlines. The mask is compact, fitting in the center quarter of the width. Extending directly from the mask's cheeks and chin on both sides: bold geometric Chokwe patterns — thick diamond lattice bands, concentric rectangular frames, and angular crosshatch panels — the patterns physically touch and grow out of the mask with absolutely zero gap, as if the carved wood continues outward. Only 2-3 large geometric elements per side, each thick and bold. Strictly geometric patterns beyond the mask (no animals, no figures, no realistic features). Style: bold flat painted shapes on black ground, thick confident brush strokes, slight paint texture and grunge, like a hand-pulled screen print. All painted shapes are neutral mid-grey tones only (#706860 to #A09888), black ground visible between shapes. High contrast. No fine detail — every element is large, thick, and graphic. The panel fills edge-to-edge, sharp corners, 1024x256 pixels, fully opaque."
     },
-    "scene": "Desert mesa at sunset, multi-story adobe pueblo settlement carved into red rock cliffs, turquoise sky fading to orange, vast canyon landscape, scattered sage brush and juniper",
-    "loadingScene": "Close-up of an adobe wall surface with turquoise stone inlays set into geometric painted patterns, warm golden desert light illuminating the texture",
-    "gridMaterial": "Dark adobe clay with faint geometric painted patterns embossed at very low opacity",
+    "scene": "Dense Central African forest clearing at dusk, carved wooden ceremonial poles flanking a packed-earth gathering space, warm firelight casting long shadows on woven raffia screens, red earth pigment on bark-cloth hangings",
+    "loadingScene": "Close-up of a carved dark wood surface with deep geometric scarification patterns, warm firelight illuminating the grain and casting dramatic shadows across diamond lattice carvings",
+    "gridMaterial": "Dark carved hardwood with faint geometric scarification patterns and diamond lattice texture at very low opacity",
     "music": {
-      "menu": "A spiritual desert ambient instrumental with soft Native American cedar flute melody over gentle rattle shaker rhythm. Distant canyon wind echoes. Around 80 BPM, earthy and vast.",
-      "gameplay": "A rhythmic Southwestern instrumental with driving hand drum patterns and bright cedar flute runs over steady rattle and bell accents. 115 BPM, grounded and spiritual."
+      "menu": "A warm Central African instrumental with soft thumb piano (likembe) melody over gentle wooden slit drum rhythm. Distant forest ambience with bird calls. Around 80 BPM, ancestral and meditative.",
+      "gameplay": "A rhythmic Central African instrumental with driving wooden slit drum patterns and bright thumb piano runs over steady shaker and bell accents. 115 BPM, ceremonial and powerful."
     }
   },
   "theme-10": {
