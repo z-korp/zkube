@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { motion } from "motion/react";
 import {
   Check,
@@ -42,11 +42,6 @@ const SettingsPage: React.FC = () => {
 
   const accountAddress = account?.address;
   const resolvedUsername = username ?? "Controller User";
-
-  const currentThemeMeta = useMemo(
-    () => THEME_META[themeTemplate] ?? THEME_META["theme-1"],
-    [themeTemplate],
-  );
 
   const handleCopyAddress = async () => {
     if (!accountAddress) return;
@@ -136,17 +131,14 @@ const SettingsPage: React.FC = () => {
             transition={{ duration: 0.25, delay: 0.04 }}
             className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50"
           >
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <div className="flex items-center gap-2">
-                <Palette size={18} className="text-amber-300" />
-                <h2 className="font-['Fredericka_the_Great'] text-lg text-white tracking-wide">
-                  THEME
-                </h2>
-              </div>
-              <span className="text-xs text-slate-300">{currentThemeMeta.name}</span>
+            <div className="flex items-center gap-2 mb-3">
+              <Palette size={18} className="text-amber-300" />
+              <h2 className="font-['Fredericka_the_Great'] text-lg text-white tracking-wide">
+                THEME
+              </h2>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-5 gap-2">
               {THEME_IDS.map((themeId) => {
                 const themeAssets = ImageAssets(themeId);
                 const isSelected = themeTemplate === themeId;
@@ -155,29 +147,27 @@ const SettingsPage: React.FC = () => {
                   <motion.button
                     key={themeId}
                     type="button"
-                    whileTap={{ scale: 0.97 }}
+                    whileTap={{ scale: 0.93 }}
                     onClick={() => setThemeTemplate(themeId)}
-                    className={`rounded-xl border p-2.5 text-left transition-colors ${
+                    title={THEME_META[themeId].name}
+                    className={`relative rounded-xl border p-1.5 transition-colors aspect-square flex items-center justify-center ${
                       isSelected
                         ? "border-yellow-300 bg-yellow-500/15"
                         : "border-slate-600/70 bg-slate-900/40 hover:border-slate-400"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <img
-                        src={themeAssets.logo}
-                        alt={THEME_META[themeId].name}
-                        className="w-10 h-10 rounded-lg object-cover"
-                        draggable={false}
+                    <img
+                      src={themeAssets.themeIcon}
+                      alt={THEME_META[themeId].name}
+                      className="w-full h-full rounded-lg object-contain"
+                      draggable={false}
+                    />
+                    {isSelected && (
+                      <Check
+                        size={14}
+                        className="absolute top-1 right-1 text-yellow-200 drop-shadow-md"
                       />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-white text-sm leading-tight truncate">
-                          {THEME_META[themeId].name}
-                        </p>
-                        <p className="text-slate-400 text-[11px] truncate">{themeId}</p>
-                      </div>
-                      {isSelected && <Check size={16} className="text-yellow-200" />}
-                    </div>
+                    )}
                   </motion.button>
                 );
               })}
