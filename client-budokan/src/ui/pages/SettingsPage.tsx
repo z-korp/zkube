@@ -56,7 +56,7 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="h-screen-viewport flex flex-col">
+    <div className="h-screen-viewport flex flex-col overflow-hidden">
       <ThemeBackground />
 
       <PageTopBar title="SETTINGS" onBack={goBack} />
