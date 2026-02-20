@@ -5,7 +5,8 @@ interface ProgressRingProps {
   size: number;
   color: RingColor;
   icon: React.ReactNode;
-  badge?: string;
+  badgeTopLeft?: string;
+  badgeBottomRight?: string;
 }
 
 const COLOR_MAP: Record<RingColor, string> = {
@@ -22,14 +23,16 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
   size,
   color,
   icon,
-  badge,
+  badgeTopLeft,
+  badgeBottomRight,
 }) => {
-  const strokeWidth = Math.max(2, size * 0.1);
+  const strokeWidth = Math.max(2, size * 0.08);
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const clampedProgress = Math.min(1, Math.max(0, progress));
   const strokeDashoffset = circumference * (1 - clampedProgress);
   const center = size / 2;
+  const innerDiameter = size - strokeWidth * 2;
 
   return (
     <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
@@ -56,13 +59,22 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
         />
       </svg>
 
-      <div className="relative z-10 flex items-center justify-center">
+      <div
+        className="relative z-10 flex items-center justify-center rounded-full overflow-hidden"
+        style={{ width: innerDiameter, height: innerDiameter }}
+      >
         {icon}
       </div>
 
-      {badge && (
-        <span className="absolute -bottom-1 -right-1 bg-slate-800 border border-slate-600 text-white text-[9px] font-['Tilt_Prism'] min-w-[18px] h-[14px] flex items-center justify-center rounded-full px-1 leading-none">
-          {badge}
+      {badgeTopLeft && (
+        <span className="absolute -top-1.5 -left-1.5 bg-slate-800 border border-slate-500 text-white text-[8px] font-bold font-['Tilt_Prism'] min-w-[16px] h-[14px] flex items-center justify-center rounded-full px-1 leading-none z-20">
+          {badgeTopLeft}
+        </span>
+      )}
+
+      {badgeBottomRight && (
+        <span className="absolute -bottom-1.5 -right-1.5 bg-slate-800 border border-slate-500 text-white text-[8px] font-bold font-['Tilt_Prism'] min-w-[16px] h-[14px] flex items-center justify-center rounded-full px-1 leading-none z-20">
+          {badgeBottomRight}
         </span>
       )}
     </div>

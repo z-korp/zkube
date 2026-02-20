@@ -1,3 +1,5 @@
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Info } from "lucide-react";
 import ProgressRing from "@/ui/components/shared/ProgressRing";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import type { GameLevelData } from "@/hooks/useGameLevel";
@@ -26,7 +28,6 @@ interface GameHudProps {
 }
 
 const ringSize = 40;
-const iconSize = 18;
 
 const CONSTRAINT_ICON_MAP: Record<ConstraintType, string | null> = {
   [ConstraintType.ClearLines]: getCommonAssetPath("constraints/constraint-clear-lines.png"),
@@ -38,10 +39,10 @@ const CONSTRAINT_ICON_MAP: Record<ConstraintType, string | null> = {
   [ConstraintType.None]: null,
 };
 
-const getConstraintIcon = (type: ConstraintType, size: number) => {
+const getConstraintIcon = (type: ConstraintType) => {
   const src = CONSTRAINT_ICON_MAP[type];
   if (!src) return null;
-  return <img src={src} alt="" width={size} height={size} className="rounded-full object-cover" />;
+  return <img src={src} alt="" className="w-full h-full rounded-full object-cover" />;
 };
 
 const getConstraintColor = (
@@ -70,7 +71,27 @@ const getConstraintProgress = (
   return count > 0 ? progress / count : 0;
 };
 
-const getConstraintBadge = (
+/** Top-left badge: the constraint's "what" — value threshold or block size */
+const getValueBadge = (
+  type: ConstraintType,
+  value: number,
+): string | undefined => {
+  switch (type) {
+    case ConstraintType.ClearLines:
+      return `${value}+`;
+    case ConstraintType.BreakBlocks:
+      return `⊞${value}`;
+    case ConstraintType.AchieveCombo:
+      return `${value}x`;
+    case ConstraintType.FillAndClear:
+      return `R${value}`;
+    default:
+      return undefined;
+  }
+};
+
+/** Bottom-right badge: progress toward completion */
+const getProgressBadge = (
   type: ConstraintType,
   progress: number,
   count: number,
@@ -78,10 +99,7 @@ const getConstraintBadge = (
   if (type === ConstraintType.NoBonusUsed || type === ConstraintType.ClearGrid) {
     return undefined;
   }
-  if (count > 1) {
-    return `${progress}/${count}`;
-  }
-  return undefined;
+  return `${progress}/${count}`;
 };
 
 interface ConstraintData {
@@ -105,6 +123,26 @@ const GameHud: React.FC<GameHudProps> = ({
   gameLevel,
   maxMoves,
 }) => {
+  const [movesInfoOpen, setMovesInfoOpen] = useState(false);
+  const movesInfoRef = useRef<HTMLDivElement>(null);
+
+  const closeMovesInfo = useCallback(() => setMovesInfoOpen(false), []);
+
+  useEffect(() => {
+    if (!movesInfoOpen) return;
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (movesInfoRef.current && !movesInfoRef.current.contains(e.target as Node)) {
+        closeMovesInfo();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [movesInfoOpen, closeMovesInfo]);
+
   const animatedScore = useLerpNumber(levelScore, { duration: 300, integer: true }) ?? 0;
 
   const cube3Threshold = gameLevel?.cube3Threshold ?? 0;
@@ -191,8 +229,9 @@ const GameHud: React.FC<GameHudProps> = ({
                               progress={getConstraintProgress(c.type, c.progress, c.count, bonusUsedThisLevel)}
                               size={ringSize}
                               color={getConstraintColor(c.type, c.progress, c.count, bonusUsedThisLevel)}
-                              icon={getConstraintIcon(c.type, iconSize)}
-                              badge={getConstraintBadge(c.type, c.progress, c.count)}
+                              icon={getConstraintIcon(c.type)}
+                              badgeTopLeft={getValueBadge(c.type, c.value)}
+                              badgeBottomRight={getProgressBadge(c.type, c.progress, c.count)}
                             />
                           </div>
                         </TooltipTrigger>
@@ -238,18 +277,21 @@ const GameHud: React.FC<GameHudProps> = ({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline justify-between mb-0.5">
-              <TooltipProvider delayDuration={200}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="font-['Tilt_Prism'] text-sm text-slate-300 tracking-wide cursor-help underline decoration-dotted decoration-slate-500 underline-offset-2">
-                      Moves
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="top"
-                    className="bg-slate-900 border border-slate-500 text-white text-xs px-3 py-2"
-                  >
-                    <div className="flex flex-col gap-1">
+              <div className="relative inline-flex items-center gap-1" ref={movesInfoRef}>
+                <span className="font-['Tilt_Prism'] text-sm text-slate-300 tracking-wide">
+                  Moves
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMovesInfoOpen((v) => !v)}
+                  className="inline-flex items-center justify-center text-slate-400 hover:text-slate-200 active:text-white transition-colors"
+                  aria-label="Cube reward thresholds"
+                >
+                  <Info size={12} />
+                </button>
+                {movesInfoOpen && (
+                  <div className="absolute left-0 bottom-full mb-1.5 z-50 bg-slate-900 border border-slate-500 rounded-md px-3 py-2 shadow-lg whitespace-nowrap">
+                    <div className="flex flex-col gap-1 text-xs text-white">
                       <div className="flex items-center gap-2">
                         <span>🧊🧊🧊</span>
                         <span>≥ {cube3Threshold} moves left</span>
@@ -263,9 +305,9 @@ const GameHud: React.FC<GameHudProps> = ({
                         <span>Complete level</span>
                       </div>
                     </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                  </div>
+                )}
+              </div>
               <span className={`font-['Tilt_Prism'] text-sm tabular-nums ${movesTextColor}`}>
                 {movesRemaining}
                 <span className="text-slate-400">/{maxMoves}</span>

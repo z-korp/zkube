@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import type { GameLevelData } from "@/hooks/useGameLevel";
 import ProgressRing from "@/ui/components/shared/ProgressRing";
 import { ConstraintType } from "@/dojo/game/types/constraint";
-import { Rows3, Grid3x3, Flame, ArrowDownUp, Ban, Trash2 } from "lucide-react";
+import { getCommonAssetPath } from "@/config/themes";
 
 interface HudProgressBarProps {
   levelScore: number;
@@ -15,23 +15,20 @@ interface HudProgressBarProps {
   gameLevel: GameLevelData | null;
 }
 
-const getConstraintIcon = (type: ConstraintType, size: number) => {
-  switch (type) {
-    case ConstraintType.ClearLines:
-      return <Rows3 size={size} />;
-    case ConstraintType.BreakBlocks:
-      return <Grid3x3 size={size} />;
-    case ConstraintType.AchieveCombo:
-      return <Flame size={size} />;
-    case ConstraintType.FillAndClear:
-      return <ArrowDownUp size={size} />;
-    case ConstraintType.NoBonusUsed:
-      return <Ban size={size} />;
-    case ConstraintType.ClearGrid:
-      return <Trash2 size={size} />;
-    default:
-      return null;
-  }
+const CONSTRAINT_ICON_MAP: Record<ConstraintType, string | null> = {
+  [ConstraintType.ClearLines]: getCommonAssetPath("constraints/constraint-clear-lines.png"),
+  [ConstraintType.BreakBlocks]: getCommonAssetPath("constraints/constraint-break-blocks.png"),
+  [ConstraintType.AchieveCombo]: getCommonAssetPath("constraints/constraint-combo.png"),
+  [ConstraintType.FillAndClear]: getCommonAssetPath("constraints/constraint-fill.png"),
+  [ConstraintType.NoBonusUsed]: getCommonAssetPath("constraints/constraint-no-bonus.png"),
+  [ConstraintType.ClearGrid]: getCommonAssetPath("constraints/constraint-clear-grid.png"),
+  [ConstraintType.None]: null,
+};
+
+const getConstraintIcon = (type: ConstraintType) => {
+  const src = CONSTRAINT_ICON_MAP[type];
+  if (!src) return null;
+  return <img src={src} alt="" className="w-full h-full rounded-full object-cover" />;
 };
 
 const getConstraintColor = (
@@ -148,9 +145,9 @@ const HudProgressBar: React.FC<HudProgressBarProps> = ({
             constraint1.count,
             bonusUsedThisLevel,
           )}
-          icon={getConstraintIcon(constraint1.type, 12)}
-          badge={
-            constraint1.type !== ConstraintType.NoBonusUsed && constraint1.count > 1
+          icon={getConstraintIcon(constraint1.type)}
+          badgeBottomRight={
+            constraint1.type !== ConstraintType.NoBonusUsed && constraint1.type !== ConstraintType.ClearGrid
               ? `${constraintProgress}/${constraint1.count}`
               : undefined
           }
@@ -171,9 +168,9 @@ const HudProgressBar: React.FC<HudProgressBarProps> = ({
             constraint2.count,
             bonusUsedThisLevel,
           )}
-          icon={getConstraintIcon(constraint2.type, 12)}
-          badge={
-            constraint2.type !== ConstraintType.NoBonusUsed && constraint2.count > 1
+          icon={getConstraintIcon(constraint2.type)}
+          badgeBottomRight={
+            constraint2.type !== ConstraintType.NoBonusUsed && constraint2.type !== ConstraintType.ClearGrid
               ? `${constraint2Progress}/${constraint2.count}`
               : undefined
           }
