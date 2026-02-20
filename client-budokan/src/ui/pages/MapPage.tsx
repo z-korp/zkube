@@ -192,9 +192,8 @@ const MapPage: React.FC = () => {
 
             return (
               <div key={zone} className="relative h-full w-full flex-1">
+                <ZoneBackground zone={zone} themeId={themeId} />
                 <div className="relative h-full w-full lg:mx-auto lg:w-auto lg:max-w-full lg:aspect-[9/16]">
-                  <ZoneBackground zone={zone} themeId={themeId} />
-
                   <svg
                     viewBox={`0 0 ${VB_W} ${VB_H}`}
                     preserveAspectRatio="xMidYMid meet"
