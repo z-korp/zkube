@@ -267,22 +267,17 @@ export function buildLoadingBackgroundPrompt(theme: ThemeDefinition): string {
 `.trim();
 }
 
+/** @deprecated Theme-specific logo prompt — replaced by buildCommonLogoPrompt */
 export function buildLogoPrompt(theme: ThemeDefinition): string {
-  return `
-{
-  "style_name": "${theme.name} zKube Logo",
-  "scene": "A dominant zKube wordmark with subtle ${theme.name} motifs surrounding it",
-  "style": "flat vector illustration with bold linework, smooth gradients, and high-contrast cel shading",
-  "color_palette": {
-    "primary": "${theme.palette.accent}",
-    "highlight": "${lightenHex(theme.palette.accent, 0.3)}",
-    "shadow": "${darkenHex(theme.palette.accent, 0.35)}",
-    "background": "${darkenHex(theme.palette.bg, 0.25)}"
-  },
-  "details": "Text 'zKube' fills at least 70% width, thick dark outline, bright inner highlights, minimal thematic motifs (${theme.motifs})",
-  "usage_notes": "Square format. No extra text. Keep decorative elements secondary to readability."
+  return buildCommonLogoPrompt();
 }
-`.trim();
+
+/**
+ * Common neutral logo prompt — generates a grey master that can be tinted per theme.
+ * Style: bold "zKube" wordmark with 3D depth, shadows, and subtle decorative accents.
+ */
+export function buildCommonLogoPrompt(): string {
+  return `The word "zKube" as a bold stylized puzzle game logo, centered on a solid black background. The text is large, filling 70% of the width. Bold chunky letterforms with smooth rounded edges — the lowercase 'z' has a playful decorative spiral curl extending from its bottom stroke. The uppercase 'K' is prominent and angular. Each letter has clear 3D depth with bright highlights on top edges and dark shadows on bottom edges, giving a polished embossed look. Small decorative circle accents near the letters. All rendered in neutral mid-grey tones — letter faces in #A0A0A0 to #C0C0C0, highlights in #D8D8D8, shadows in #505050 to #606060. Solid black background with no patterns, no extra elements, no theme decorations — just the clean grey text logo. The word must read exactly as "zKube". Sharp vector-style game art, 1024x1024 pixels.`;
 }
 
 /** @deprecated Use buildGridBgPromptFromTemplate instead */

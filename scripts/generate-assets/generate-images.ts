@@ -5,9 +5,9 @@ import {
   buildBlockMasterPromptFromTemplate,
   buildBonusIconPrompt,
   buildButtonPrompt,
+  buildCommonLogoPrompt,
   buildGridBackgroundPrompt,
   buildLoadingBackgroundPrompt,
-  buildLogoPrompt,
   buildPanelPrompt,
   buildParticlePrompt,
   buildThemeIconPrompt,
@@ -16,7 +16,7 @@ import {
 } from "./lib/prompts";
 import sharp from "sharp";
 import { CONCURRENCY, IMAGE_MODEL, COMMON_ROOT, ASSETS_ROOT, formatError, loadPLimitFactory, relativePath } from "./lib/env";
-import { fal, generateImage, savePng, tintImage, featherEdges } from "./lib/fal-client";
+import { fal, generateImage, removeBackground, savePng, tintImage, featherEdges } from "./lib/fal-client";
 import { GLOBAL_ASSETS, PER_THEME_ASSETS, type AssetCategory, type AssetJob, type CliOptions, type GlobalAsset, type GlobalAssetsData, type PerThemeAsset, type ThemeDefinition } from "./lib/types";
 
 const DATA_DIR = path.join(path.dirname(new URL(import.meta.url).pathname), "data");
@@ -121,6 +121,64 @@ async function runBlockPipeline(
   return { success, failures };
 }
 
+const LOGO_MASTER_PATH = path.join(COMMON_ROOT, "logo-master.png");
+const LOGO_SIZE = 1024;
+
+async function runLogoPipeline(
+  selectedThemeIds: string[],
+  options: CliOptions,
+): Promise<{ success: number; failures: number }> {
+  let success = 0;
+  let failures = 0;
+
+  let masterBuffer: Buffer;
+  if (fs.existsSync(LOGO_MASTER_PATH)) {
+    console.log(`  [logo-master]  Using existing master at ${relativePath(LOGO_MASTER_PATH)}`);
+    masterBuffer = fs.readFileSync(LOGO_MASTER_PATH);
+  } else {
+    const startedAt = Date.now();
+    console.log(`  [logo-master]  Generating neutral master (${LOGO_SIZE}×${LOGO_SIZE})...`);
+    try {
+      const prompt = buildCommonLogoPrompt();
+      masterBuffer = await generateImage({
+        scope: "global",
+        category: "logo",
+        filename: "logo-master.png",
+        outputPath: LOGO_MASTER_PATH,
+        prompt,
+        width: LOGO_SIZE,
+        height: LOGO_SIZE,
+      }, false);
+      await savePng(LOGO_MASTER_PATH, masterBuffer, false);
+      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+      console.log(`  [logo-master]  Done (${elapsed}s). Tinting per theme...`);
+    } catch (error) {
+      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+      console.log(`  [logo-master]  FAILED (${elapsed}s): ${formatError(error)}`);
+      return { success: 0, failures: selectedThemeIds.length };
+    }
+  }
+
+  for (const themeId of selectedThemeIds) {
+    const theme = themes[themeId];
+    const color = theme.palette.accent;
+    const outputPath = path.join(ASSETS_ROOT, themeId, "logo.png");
+
+    try {
+      const tinted = await tintImage(masterBuffer, color);
+      const noBg = await removeBackground(tinted);
+      await savePng(outputPath, noBg, false);
+      console.log(`  [${themeId}/logo.png]  Tinted ${color}, bg removed`);
+      success += 1;
+    } catch (error) {
+      console.log(`  [${themeId}/logo.png]  FAILED: ${formatError(error)}`);
+      failures += 1;
+    }
+  }
+
+  return { success, failures };
+}
+
 function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: AssetCategory): AssetJob[] {
   const themeRoot = path.join(ASSETS_ROOT, themeId);
   const jobs: AssetJob[] = [];
@@ -151,17 +209,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
     });
   }
 
-  if (shouldIncludeCategory("logo", filter)) {
-    jobs.push({
-      scope: "per-theme",
-      category: "logo",
-      themeId,
-      filename: "logo.png",
-      outputPath: path.join(themeRoot, "logo.png"),
-      prompt: buildLogoPrompt(theme),
-      ...getTargetDimensions("logo.png", { width: 1024, height: 1024 }),
-    });
-  }
+  // Logo is handled by runLogoPipeline (common master + per-theme tint)
 
   if (shouldIncludeCategory("grid", filter)) {
     jobs.push({
@@ -477,6 +525,15 @@ function blocksRequestedByFilters(options: CliOptions): boolean {
   return true;
 }
 
+function logoRequestedByFilters(options: CliOptions): boolean {
+  if (options.asset && options.asset !== "logo") return false;
+  if (options.scope === "global") return false;
+  if (options.only) {
+    return options.only.some((n) => n.replace(".png", "") === "logo");
+  }
+  return true;
+}
+
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
   const { jobs, selectedThemeIds } = buildJobList(options);
@@ -498,8 +555,9 @@ async function main(): Promise<void> {
   console.log("");
 
   const wantsBlocks = blocksRequestedByFilters(options) && (options.scope === "per-theme" || options.scope === "all");
+  const wantsLogo = logoRequestedByFilters(options) && (options.scope === "per-theme" || options.scope === "all");
 
-  if (jobs.length === 0 && !wantsBlocks) {
+  if (jobs.length === 0 && !wantsBlocks && !wantsLogo) {
     console.log("No assets matched the selected filters.");
     return;
   }
@@ -510,6 +568,9 @@ async function main(): Promise<void> {
         console.log(`[${themeId}]  🧪 dry-run -> block pipeline (1 master → crop+tint → 4 blocks)`);
       }
     }
+    if (wantsLogo) {
+      console.log(`[logo]  🧪 dry-run -> logo pipeline (1 master → tint+bg-remove → ${selectedThemeIds.length} logos)`);
+    }
     jobs.forEach((job, index) => {
       const step = `[${index + 1}/${jobs.length}]`;
       console.log(`${step}  ⏳ ${job.filename}...`);
@@ -517,7 +578,8 @@ async function main(): Promise<void> {
     });
     console.log("");
     const blockCount = wantsBlocks ? selectedThemeIds.length * 4 : 0;
-    console.log(`✅ Dry run complete! ${jobs.length + blockCount} assets planned.`);
+    const logoCount = wantsLogo ? selectedThemeIds.length : 0;
+    console.log(`✅ Dry run complete! ${jobs.length + blockCount + logoCount} assets planned.`);
     console.log(`Output: ${outputSummaryPath(options, selectedThemeIds)}`);
     return;
   }
@@ -538,6 +600,13 @@ async function main(): Promise<void> {
       totalSuccess += result.success;
       totalFailures += result.failures;
     }
+  }
+
+  if (wantsLogo) {
+    console.log(`\n--- Logo Pipeline (1 master → ${selectedThemeIds.length} themed logos) ---\n`);
+    const result = await runLogoPipeline(selectedThemeIds, options);
+    totalSuccess += result.success;
+    totalFailures += result.failures;
   }
 
   if (jobs.length > 0) {
