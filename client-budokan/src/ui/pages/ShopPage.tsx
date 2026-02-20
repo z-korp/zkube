@@ -390,19 +390,17 @@ const ShopPage = () => {
                     transition={{ delay: index * 0.03 }}
                     className="border-t border-slate-600/60 p-4"
                   >
-                    <div className="mb-3 flex items-start gap-3">
-                      <img src={card.icon} alt={card.name} className="h-10 w-10" />
+                    <div className="mb-3 flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border-2 border-slate-600">
+                        <img src={card.icon} alt={card.name} className="w-full h-full object-cover" />
+                      </div>
                       <div className="flex-1">
                         <h4 className="font-['Fredericka_the_Great'] text-lg leading-none text-white">
                           {card.name}
                         </h4>
-                        <div className="mt-1 flex flex-col gap-0.5">
-                          {[0, 1, 2].map((lvl) => (
-                            <span key={lvl} className={`text-[10px] ${lvl === 0 ? "text-slate-300" : "text-slate-500"}`}>
-                              L{lvl + 1}: {new Bonus(card.type).getEffect(lvl)}
-                            </span>
-                          ))}
-                        </div>
+                        <span className="text-xs text-slate-400">
+                          {new Bonus(card.type).getEffect(0)}
+                        </span>
                       </div>
                     </div>
 
