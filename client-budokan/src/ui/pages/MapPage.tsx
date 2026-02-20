@@ -15,6 +15,8 @@ import {
   type MapLayoutPresetId,
 } from "@/hooks/useMapLayout";
 import { getMapPathTheme, isValidThemeId, type ThemeId } from "@/config/themes";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import { useMusicPlayer } from "@/contexts/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 import LevelPreview from "@/ui/components/map/LevelPreview";
@@ -79,6 +81,8 @@ const MapPage: React.FC = () => {
   const navigate = useNavigationStore((state) => state.navigate);
   const goBack = useNavigationStore((state) => state.goBack);
   const gameId = useNavigationStore((state) => state.gameId);
+  const { setThemeTemplate } = useTheme();
+  const { setMusicContext } = useMusicPlayer();
 
   const { game, seed } = useGame({
     gameId: gameId ?? undefined,
@@ -102,6 +106,16 @@ const MapPage: React.FC = () => {
   useEffect(() => {
     setActiveZone(Math.max(0, mapData.currentZone - 1));
   }, [mapData.currentZone]);
+
+  useEffect(() => {
+    setMusicContext("main");
+  }, [setMusicContext]);
+
+  useEffect(() => {
+    const themeRaw = mapData.zoneThemes[activeZone] ?? "theme-1";
+    const themeId: ThemeId = isValidThemeId(themeRaw) ? themeRaw : "theme-1";
+    setThemeTemplate(themeId, false);
+  }, [activeZone, mapData.zoneThemes, setThemeTemplate]);
 
   /* Split nodes into per-zone arrays */
   const zoneNodes = useMemo(
