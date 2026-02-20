@@ -9,6 +9,7 @@ interface BlockProps {
   isTxProcessing?: boolean;
   transitionDuration?: number;
   state?: GameState;
+  isExploding?: boolean;
   handleMouseDown?: (
     e: React.MouseEvent<HTMLDivElement>,
     block: BlockProps["block"]
@@ -28,6 +29,7 @@ const BlockContainer: React.FC<BlockProps> = ({
   transitionDuration = 100,
   isTxProcessing = false,
   state,
+  isExploding = false,
   handleMouseDown,
   handleTouchStart,
   onTransitionBlockStart,
@@ -60,7 +62,7 @@ const BlockContainer: React.FC<BlockProps> = ({
     <div
       className={`block block-${block.width} ${
         isTxProcessing ? "cursor-wait" : ""
-      } ${block.y != gridHeight - 1 ? "z-10" : ""}`}
+      } ${block.y != gridHeight - 1 ? "z-10" : ""} ${isExploding ? "block-exploding" : ""}`}
       ref={ref}
       style={{
         position: "absolute",
@@ -73,7 +75,7 @@ const BlockContainer: React.FC<BlockProps> = ({
           state === GameState.GRAVITY2 ||
           state === GameState.GRAVITY_BONUS
             ? `top ${transitionDuration / 1000}s linear`
-            : "none", // Désactivation de la transition autrement
+            : "none",
         color: "white",
       }}
       onMouseDown={(e) => {

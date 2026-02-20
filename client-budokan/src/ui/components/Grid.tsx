@@ -108,6 +108,7 @@ const Grid: React.FC<GridProps> = ({
   const [isPlayerInDanger, setIsPlayerInDanger] = useState(false);
   const [lineExplodedCount, setLineExplodedCount] = useState(0);
   const [blockBonus, setBlockBonus] = useState<Block | null>(null);
+  const [explodingRows, setExplodingRows] = useState<Set<number>>(new Set());
   const { playExplode, playSwipe } = useMusicPlayer();
   const { themeTemplate } = useTheme();
   const themeColors = getThemeColors(themeTemplate as ThemeId);
@@ -189,13 +190,18 @@ const Grid: React.FC<GridProps> = ({
     setGameState(GameState.DRAGGING);
   };
 
-  const handleDragMove = (x: number, moveType: MoveType) => {
+  const handleDragMove = (x: number, _moveType: MoveType) => {
     if (!dragging) return;
     if (isTxProcessing || applyData) return;
 
     const deltaX = x - dragStartX;
     const newX = initialX + deltaX / gridSize;
     const boundedX = Math.max(0, Math.min(gridWidth - dragging.width, newX));
+
+    // Re-anchor drag origin when clamped at boundary to keep cursor synced with block
+    if (boundedX !== newX) {
+      setDragStartX(x - (boundedX - initialX) * gridSize);
+    }
 
     if (
       !isBlocked(
@@ -207,16 +213,6 @@ const Grid: React.FC<GridProps> = ({
         dragging.id
       )
     ) {
-      // Vérifie si le nouveau X est en dehors des limites de la grille
-      if (boundedX <= 0 || boundedX >= gridWidth - dragging.width) {
-        if (moveType === MoveType.TOUCH) {
-          endDrag(); // Appelle endDrag si le drag sort de la grille sur un touch
-          return;
-        } else {
-          // Si on est en dehors de la grille, cela implique que la nouvelle start position a changer et on doit la mettre à jour
-          setInitialX(blocks.find((b) => b.id === dragging.id)?.x ?? 0);
-        }
-      }
       setBlocks((prevBlocks) =>
         prevBlocks.map((b) =>
           b.id === dragging.id ? { ...b, x: boundedX } : b
@@ -440,6 +436,8 @@ const Grid: React.FC<GridProps> = ({
     });
   };
 
+  const explosionAnimDuration = 250;
+
   const clearCompleteLine = (
     newGravityState: GameState,
     newStateOnComplete: GameState
@@ -454,13 +452,12 @@ const Grid: React.FC<GridProps> = ({
       playExplode();
       setLineExplodedCount(lineExplodedCount + completeRows.length);
 
-      // Calculate absolute position in the viewport
       if (gridPosition === null) return;
 
-      // Trigger particle explosions for each cleared row
+      setExplodingRows(new Set(completeRows));
+
       completeRows.forEach((rowIndex) => {
         const blocksSameRow = getBlocksSameRow(rowIndex, blocks);
-
         blocksSameRow.forEach((block) => {
           handleTriggerLocalExplosion(
             gridPosition.left +
@@ -471,9 +468,12 @@ const Grid: React.FC<GridProps> = ({
         });
       });
 
-      setBlocks(updatedBlocks);
-      setIsMoving(true);
-      setGameState(newGravityState);
+      setTimeout(() => {
+        setExplodingRows(new Set());
+        setBlocks(updatedBlocks);
+        setIsMoving(true);
+        setGameState(newGravityState);
+      }, explosionAnimDuration);
     } else {
       setGameState(newStateOnComplete);
     }
@@ -644,6 +644,7 @@ const Grid: React.FC<GridProps> = ({
                 isTxProcessing={isTxProcessing}
                 transitionDuration={transitionDuration}
                 state={gameState}
+                isExploding={explodingRows.has(block.y)}
                 handleMouseDown={handleMouseDown}
                 handleTouchStart={handleTouchStart}
                 onTransitionBlockStart={() =>

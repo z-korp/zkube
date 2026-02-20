@@ -79,6 +79,29 @@
   background-size: cover;
 }
 
+.block-exploding {
+  animation: blockExplode 250ms ease-out forwards;
+  pointer-events: none;
+  z-index: 50 !important;
+}
+
+@keyframes blockExplode {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  30% {
+    transform: scale(1.15);
+    filter: brightness(2.5);
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+    filter: brightness(3);
+  }
+}
+
 @keyframes borderRotate {
   100% {
     --angle: 420deg;
