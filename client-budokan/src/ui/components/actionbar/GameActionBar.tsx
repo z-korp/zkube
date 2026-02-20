@@ -89,7 +89,7 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
                     disabled={isDisabled}
                     whileHover={isDisabled ? undefined : { scale: 1.1 }}
                     whileTap={isDisabled ? undefined : { scale: 0.9 }}
-                    className={`relative w-[clamp(48px,13vw,64px)] h-[clamp(48px,13vw,64px)] rounded-full overflow-hidden flex items-center justify-center transition-all ${
+                    className={`relative w-[clamp(48px,13vw,64px)] h-[clamp(48px,13vw,64px)] rounded-full overflow-visible flex items-center justify-center transition-all ${
                       isActive
                         ? "ring-2 ring-yellow-400 shadow-[0_0_12px_rgba(250,204,21,0.3)]"
                         : isDisabled

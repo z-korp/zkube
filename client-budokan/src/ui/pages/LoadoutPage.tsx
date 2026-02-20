@@ -7,7 +7,7 @@ import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import { BonusType, bonusTypeToContractValue } from "@/dojo/game/types/bonus";
+import { Bonus, BonusType, bonusTypeToContractValue } from "@/dojo/game/types/bonus";
 import { DEFAULT_SETTINGS_ID } from "@/dojo/game/types/level";
 import { showToast } from "@/utils/toast";
 import { useNavigationStore } from "@/stores/navigationStore";
@@ -272,22 +272,27 @@ const LoadoutPage: React.FC = () => {
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4">
         <div className="max-w-[520px] mx-auto flex flex-col gap-6 pb-8">
           <section className="bg-slate-900/80 rounded-xl border border-slate-600/60 p-4">
-            <p className="text-center text-sm text-slate-400 mb-3">
-              Select 3 Bonuses ({selected.length}/3)
+            <p className="text-center text-base font-['Tilt_Prism'] text-slate-200 mb-1">
+              Choose Your Bonuses
+            </p>
+            <p className="text-center text-xs text-slate-400 mb-4">
+              Pick 3 bonuses to bring into your run. Use them during gameplay to clear lines, boost score, or earn cubes.
             </p>
 
             {selected.length !== 3 && (
               <div className="text-center text-sm text-orange-400 mb-3 bg-orange-500/10 py-2 rounded-lg">
-                You must select exactly 3 bonuses to start
+                Select {3 - selected.length} more bonus{3 - selected.length !== 1 ? "es" : ""}
               </div>
             )}
 
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+            <div className="flex flex-col gap-2">
               {ALL_BONUSES.map((bonusType, index) => {
                 const isSelected = selected.includes(bonusType);
                 const isLocked = !unlockedMap[bonusType];
                 const icon = getBonusIcon(bonusType);
                 const stats = getBonusStats(bonusType);
+                const bonus = new Bonus(bonusType);
+                const description = bonus.getDescription();
 
                 return (
                   <motion.button
@@ -295,44 +300,49 @@ const LoadoutPage: React.FC = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.04 }}
-                    whileTap={isLocked ? undefined : { scale: 0.95 }}
+                    whileTap={isLocked ? undefined : { scale: 0.98 }}
                     onClick={() => toggleBonus(bonusType)}
                     disabled={isLocked}
-                    className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all ${
+                    className={`relative flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
                       isSelected
                         ? "border-yellow-400 bg-yellow-500/10 shadow-[0_0_12px_rgba(250,204,21,0.15)]"
                         : "border-slate-700 bg-slate-800/40"
                     } ${isLocked ? "opacity-40 cursor-not-allowed grayscale" : "hover:border-slate-500"}`}
                   >
-                    <img
-                      src={icon}
-                      alt={bonusType}
-                      className={`w-10 h-10 ${isLocked ? "grayscale" : ""}`}
-                    />
-                    <span
-                      className={`text-xs font-semibold ${isLocked ? "text-slate-500" : "text-white"}`}
-                    >
-                      {bonusType}
-                    </span>
+                    <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 border-2 border-slate-600">
+                      <img
+                        src={icon}
+                        alt={bonusType}
+                        className={`w-full h-full object-cover ${isLocked ? "grayscale" : ""}`}
+                      />
+                    </div>
 
-                    {!isLocked && (
-                      <div className="flex gap-1 mt-0.5">
-                        {stats.startingCount > 0 && (
-                          <span className="bg-green-500/20 text-green-400 text-[9px] px-1.5 py-0.5 rounded">
-                            +{stats.startingCount}
-                          </span>
-                        )}
-                        {stats.bagSize > 0 && (
-                          <span className="bg-blue-500/20 text-blue-400 text-[9px] px-1.5 py-0.5 rounded">
-                            Bag {stats.bagSize}
-                          </span>
-                        )}
-                      </div>
-                    )}
+                    <div className="flex flex-col items-start gap-0.5 flex-1 min-w-0">
+                      <span className={`text-sm font-['Tilt_Prism'] font-semibold ${isLocked ? "text-slate-500" : "text-white"}`}>
+                        {bonusType}
+                      </span>
+                      <span className="text-xs text-slate-400 text-left">
+                        {description}
+                      </span>
+                      {!isLocked && (stats.startingCount > 0 || stats.bagSize > 0) && (
+                        <div className="flex gap-1 mt-0.5">
+                          {stats.startingCount > 0 && (
+                            <span className="bg-green-500/20 text-green-400 text-[9px] px-1.5 py-0.5 rounded">
+                              +{stats.startingCount} start
+                            </span>
+                          )}
+                          {stats.bagSize > 0 && (
+                            <span className="bg-blue-500/20 text-blue-400 text-[9px] px-1.5 py-0.5 rounded">
+                              Bag {stats.bagSize}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
 
                     {isLocked && (
-                      <div className="absolute top-1.5 right-1.5">
-                        <Lock size={12} className="text-red-400" />
+                      <div className="shrink-0">
+                        <Lock size={16} className="text-red-400" />
                       </div>
                     )}
                   </motion.button>
