@@ -39,11 +39,11 @@ export const MAP_LAYOUT_PRESETS = {
   },
   balanced: {
     label: "Balanced",
-    laneSpread: [0.24, 0.5, 0.76] as const,
-    laneJitter: 0.11,
+    laneSpread: [0.15, 0.5, 0.85] as const,
+    laneJitter: 0.14,
     yJitter: 0.024,
-    laneMoveThresholdLow: 0.33,
-    laneMoveThresholdHigh: 0.67,
+    laneMoveThresholdLow: 0.30,
+    laneMoveThresholdHigh: 0.70,
     branchOdds: 0.34,
     branchLongOdds: 0.28,
   },
@@ -120,6 +120,32 @@ function buildZoneLayout(
     const y = clamp(baseY + yJitter, 0.07, 0.93);
 
     points.push({ x, y });
+  }
+
+  const MIN_DIST = 0.11;
+  for (let pass = 0; pass < 3; pass++) {
+    for (let i = 0; i < points.length; i++) {
+      for (let j = i + 1; j < points.length; j++) {
+        const dx = points[j].x - points[i].x;
+        const dy = points[j].y - points[i].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < MIN_DIST && dist > 0) {
+          const push = (MIN_DIST - dist) / 2;
+          const nx = dx / dist;
+          const ny = dy / dist;
+          const iTerminal = i === 0 || i === lastNode;
+          const jTerminal = j === 0 || j === lastNode;
+          if (!iTerminal) {
+            points[i].x = clamp(points[i].x - nx * push, 0.10, 0.90);
+            points[i].y = clamp(points[i].y - ny * push, 0.07, 0.93);
+          }
+          if (!jTerminal) {
+            points[j].x = clamp(points[j].x + nx * push, 0.10, 0.90);
+            points[j].y = clamp(points[j].y + ny * push, 0.07, 0.93);
+          }
+        }
+      }
+    }
   }
 
   for (let i = 0; i < nodesPerZone - 1; i++) {
