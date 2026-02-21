@@ -143,8 +143,8 @@ fi
 print_info "  FullTokenContract class: $TOKEN_CLASS"
 
 # Wait for transactions to be included (Sepolia is slower than Katana)
-print_info "  Waiting for declare transactions to be confirmed (30s)..."
-sleep 30
+print_info "  Waiting for declare transactions to be confirmed (45s)..."
+sleep 45
 
 #-----------------
 # Step 4: Deploy MinigameRegistryContract
@@ -204,8 +204,8 @@ fi
 print_info "  FullTokenContract deployed at: $TOKEN_ADDRESS"
 
 # Wait for contracts to be properly indexed before migration
-print_info "  Waiting for contracts to be indexed..."
-sleep 15
+print_info "  Waiting for contracts to be indexed (60s)..."
+sleep 60
 
 #-----------------
 # Step 6: Update dojo configs with denshokan address
@@ -228,9 +228,9 @@ fi
 #-----------------
 print_info "Step 6: Running sozo migrate (from workspace root)..."
 
-# Sepolia can be slow to index newly deployed contracts.
-# Retry up to 4 times with 60s waits between attempts.
-MAX_ATTEMPTS=4
+# Sepolia requires ~3 minutes for full state propagation after resource
+# registration before contract initialization can succeed.
+MAX_ATTEMPTS=6
 ATTEMPT=1
 MIGRATE_SUCCESS=false
 
@@ -241,8 +241,9 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
 
     if echo "$MIGRATE_OUTPUT" | grep -q "Migration failed"; then
         if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
-            print_warn "Attempt $ATTEMPT failed. Waiting 60s before retry..."
-            sleep 60
+            WAIT_TIME=$((60 + (ATTEMPT - 1) * 60))
+            print_warn "Attempt $ATTEMPT failed. Waiting ${WAIT_TIME}s before retry..."
+            sleep $WAIT_TIME
         else
             print_error "All $MAX_ATTEMPTS migration attempts failed."
         fi

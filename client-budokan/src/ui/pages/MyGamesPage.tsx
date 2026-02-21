@@ -27,12 +27,21 @@ const getAttributeNumber = (
   }
 };
 
+const normalizeAddress = (address: string | undefined): string | undefined => {
+  if (!address) return undefined;
+  if (!address.startsWith("0x")) return address;
+  const hex = address.slice(2).replace(/^0+/, "") || "0";
+  return `0x${hex}`;
+};
+
 const MyGamesPage: React.FC = () => {
   const goBack = useNavigationStore((state) => state.goBack);
   const navigate = useNavigationStore((state) => state.navigate);
   const { account } = useAccountCustom();
 
-  const { games, loading } = useGameTokensSlot({ owner: account?.address });
+  const { games, loading } = useGameTokensSlot({
+    owner: normalizeAddress(account?.address),
+  });
 
   const { activeGames, finishedGames } = useMemo(() => {
     const sorted = [...games].sort((left, right) => right.token_id - left.token_id);

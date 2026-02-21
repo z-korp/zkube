@@ -1,8 +1,8 @@
 {
   "world": {
     "class_hash": "0x381899226c066a0262f45d6ab815f89818e0874ec3e66cdf72b5e92d8db4680",
-    "address": "0x56e9a770456de3e98a9243300832fb1b7c92ec946bbea59d422137c1c222e1f",
-    "seed": "zkube_sepolia_v2",
+    "address": "0x3bdc246e14e21891ed644d29e7c86a2e3bddf997d155e2b958cc705e85988e0",
+    "seed": "zkube_sepolia_v2_4",
     "name": "zKube",
     "entrypoints": [
       "uuid",
@@ -33,8 +33,8 @@
   },
   "contracts": [
     {
-      "address": "0x428dc1f0a7c9b5974422f9853cd31c6616bc66ae0ea45218f220655237214bf",
-      "class_hash": "0x65374daad463359d2e1c7c442318579946a2e21b0d7c75960bba5deff272326",
+      "address": "0x754837f62cf6e18943fbd3e745dd563ea6b19d62f2d40247c8443df4b22e468",
+      "class_hash": "0x7311e652f0580d8cd447d2d88fac0debb68498279f55a71590ca2edf25d7715",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-achievement_system",
       "selector": "0x68ea952c82b2c82a3d76fde7f127bb10e9997ad99322c946602b07b6c06d552",
@@ -47,8 +47,8 @@
       ]
     },
     {
-      "address": "0x331fc5f9ba50d261ce8fa543cda57336486519d9a74de306250206e2ee286b5",
-      "class_hash": "0x2e28246aaabc720db063b769da61db06b5c05b1bcd29eb5e0222d779767d1ce",
+      "address": "0x74d571a400af104a2b8786730aa32c3dc5d9b6acda88aacb2c082f740c355db",
+      "class_hash": "0x6c154e32c8bed2759ff226c2e5cbdc4cca048f51738fdeef0ca3fccad43b589",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-bonus_system",
       "selector": "0x7ddae8715adf015ed6b5c712f7e3a5c01fe157aac2a2f1d42270deca60c5382",
@@ -58,8 +58,8 @@
       ]
     },
     {
-      "address": "0x6d13a7c528aa5abf6047132d9912ae3315459284f4ce240a926d91a9e8612db",
-      "class_hash": "0x67e979e1fa01e3566f4321b2da51bfbbea6039c296d80d252f02ebbf9e91f9b",
+      "address": "0x1d97cb7711d91b0edc12bb2d161e2f76df0baddcdbe1fec7403911577ebe99d",
+      "class_hash": "0x2da4a45dee70d63d874284095a7a6851236d24c653060194f01182d9782f032",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859"
       ],
@@ -73,7 +73,7 @@
       ]
     },
     {
-      "address": "0x2c3e5d67e120b57883c5e2f76b56c8cc0a61fc34368b09f7239c4d52284366",
+      "address": "0x690de553158e369dc50368eab90bbb172c7de1a64e6758978c4627049e5ad08",
       "class_hash": "0x37874ac24c4bd5aed2b3aa64ce11184afead0eb378a89ac67e4ba5b76e340a9",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-cube_token",
@@ -96,8 +96,8 @@
       ]
     },
     {
-      "address": "0x5a3d61f22c801a8a3bf72aa706587c622f3661857132947ba914bde413c5ec6",
-      "class_hash": "0x318e86ab174a5e346bc50a46ef903a2098fc2b4fe014abc5725ff1a484d6fd1",
+      "address": "0x595f18c56c790f979bdeac31e6871ba8f0eff8e6d5e6dd01c21e205a630eb27",
+      "class_hash": "0x4fc51e960cfb020ecd986f29eca7b1b01b767a098543f393c54f994e154b6f7",
       "init_calldata": [
         "0x066bE88C48b0D71d1Bded275e211C2dDe1EF1c078Fd57ece1313f130Bbc5b859",
         "0x045a74be8647d39de23b2b73e98862f6b663164fd8f985cfd80eaa6be495f8ba",
@@ -114,8 +114,8 @@
       ]
     },
     {
-      "address": "0x1b8e01108b49d18e9fd16fffbf19534d183937633ef3dbc13c69583c5a7a129",
-      "class_hash": "0x75cee12836861fdd6417d9cf90f4b4078a5410dafea74f9add2ed106ebec1b8",
+      "address": "0x7f0d94d80899957abdc2069663dfacdabc468b3c6afec843b7f151f281a3116",
+      "class_hash": "0x10b3f28b1ba2531c0c1f318886fb173496810f45969196621e6e7c7a2587af0",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-grid_system",
       "selector": "0x5ff6ef4a16262e788060768405b1310e3a5903dda6cf016268cf4453d31eec",
@@ -130,8 +130,8 @@
       ]
     },
     {
-      "address": "0x1dc3c75bfacddaf99c8e855cc81a05b7fd364bf1826c744cb778f6223324fa6",
-      "class_hash": "0x1d8d8ff159bddbae7fe4255a4a324fb9a4ac32721c5c5c9076fd226be9dc211",
+      "address": "0x7422946b59c7fa198adf5df5a2a68bda3881a25c74ef0adf8b225af11ce3482",
+      "class_hash": "0x2d9ec247203fff8b864b25badd4bb70a28ff195c8b9418eb440896c6d73bbb9",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-level_system",
       "selector": "0xc087c6629c3c13d06cab85b37e88683bcffe82e8123eedbd704ff85463a0a5",
@@ -143,8 +143,8 @@
       ]
     },
     {
-      "address": "0x3dbfd2265b910dade7f0ea14661cf6474d4d98c904ab580685f1df76a95f7a7",
-      "class_hash": "0x43ddb6d4150edfa8689f6ae6e0c695b3d62fa7e0eb2d16606600f2f64902308",
+      "address": "0x3410accb8024ad0c5f73cc9eb746f1e6cb6c2c4813f765beaed8b489fd0b9f3",
+      "class_hash": "0x45e5c78f5a09909acc1a990bfa72a3b1e780ca654386367643910124aa99c1b",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-move_system",
       "selector": "0x3df79bdc704eceb62aa8752e4456ee57de1c2c56b4871b20171ee4ae1e235b7",
@@ -154,8 +154,8 @@
       ]
     },
     {
-      "address": "0x2eae8518a51199f3b1d201fcccd4e241b60c3dcba624d96db9e0bdc9ad1a387",
-      "class_hash": "0x2c80e2f256d34253b7f007b4f926c818166eee1bb4a9bbb28e42f3ddb73af37",
+      "address": "0x14f39cab01a1319a1ede26534acea9ba3e663bbe7684c39b24ae156e9e3b3f9",
+      "class_hash": "0xdaac669b09122e6e0181294ee84a7a5b812a43ded3fce754e325a69425849c",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-quest_system",
       "selector": "0x436c9e32f41800b6e41f7a2132179a85ad4fbbcd73cf2db6bcb4b65fd2071e",
@@ -170,8 +170,8 @@
       ]
     },
     {
-      "address": "0x45cd6419f80493a4174756cc1d41e7e5021b8a4d96b727fd868cdfbb1f3dc19",
-      "class_hash": "0x362e90bebd91e1081960c030807707103f9619bb30e69f9f0210f8aad783296",
+      "address": "0xe5f8484bba789e8a0c925a0280d0d7e2a9d4bb714aeabb68d400e98a3e6666",
+      "class_hash": "0x14faab36e753c7f399df5f24bb0aa300a040257b50a7b6a2739ab67ac922769",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-renderer_systems",
       "selector": "0x35d5ac8794cc2cf3e12c42d4ac579e7a5dc26a70c26e32c599915d2d39586cf",
@@ -180,8 +180,8 @@
       ]
     },
     {
-      "address": "0x44758576d7ed235161b0d4392ed2e06bf4a8f6654f086f6ebe4fb16a177f6d7",
-      "class_hash": "0x30d4bbb4609dc112909950bfa84c83a6f44eaf6c5774d61090799c81bf53f22",
+      "address": "0x66506505e1a15dc853f950659410f4ba11ff182b563ef36a18005323e566b6b",
+      "class_hash": "0x7368d91ff6d26522a2c55cf5e5bfc38ab8f3816449b7702cc3b284347e4688b",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-shop_system",
       "selector": "0x456e9ac1689ce0bf6afd29733b144d9ef8e7db5c0df5ec0dc79ed1ea22579a0",
@@ -192,6 +192,8 @@
         "unlock_bonus",
         "level_up_bonus",
         "purchase_consumable",
+        "allocate_charge",
+        "swap_bonus",
         "upgrade"
       ]
     }
@@ -339,6 +341,11 @@
           "key": false
         },
         {
+          "name": "level_stars",
+          "type": "core::felt252",
+          "key": false
+        },
+        {
           "name": "started_at",
           "type": "core::integer::u64",
           "key": false
@@ -349,7 +356,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x1eb503cf1b0cd4e65e6df68a1a51f4cedf364fc59859e02e070cbbcc18522ae",
+      "class_hash": "0x50e221717b399e0ad38f65b33179c7777bb81926d00bd7433a3f0b8726bd045",
       "tag": "zkube_budo_v1_2_0-Game",
       "selector": "0x32e0585e8074a4c0264a61e3f5d610e990985d9d32194c1b8bdcf9e00a619ad"
     },
@@ -411,6 +418,21 @@
           "key": false
         },
         {
+          "name": "constraint3_type",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint3_value",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
+          "name": "constraint3_count",
+          "type": "core::integer::u8",
+          "key": false
+        },
+        {
           "name": "cube_3_threshold",
           "type": "core::integer::u16",
           "key": false
@@ -421,7 +443,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x1197f6a1f9822e3da9b8a46987f32473bf92e8d67b4205922c87771b9c43934",
+      "class_hash": "0x558ad2fb062104b0be67d68a2aad1c838dc799f09eac2413c5e411c49521e3b",
       "tag": "zkube_budo_v1_2_0-GameLevel",
       "selector": "0xb0da199349d3f33e2645d79b9d60f0eea7fce0e961eb51cbe254065fcdb36a"
     },
@@ -485,22 +507,17 @@
           "key": false
         },
         {
-          "name": "hammer_cost",
+          "name": "combo_cost",
           "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "wave_cost",
+          "name": "score_cost",
           "type": "core::integer::u8",
           "key": false
         },
         {
-          "name": "totem_cost",
-          "type": "core::integer::u8",
-          "key": false
-        },
-        {
-          "name": "extra_moves_cost",
+          "name": "harvest_cost",
           "type": "core::integer::u8",
           "key": false
         },
@@ -640,7 +657,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x2450c42905517a0054314ca2261b0c5e5141c4e7aba7e75d0dd626927128dbe",
+      "class_hash": "0x688f80a840fb89ddaf28ca5aee277ce7a96dc3564679f2a7aae02aee5761343",
       "tag": "zkube_budo_v1_2_0-GameSettings",
       "selector": "0x1c245917b09d68b08ceb4972426ebba162f36b31404a63dc180496cdc6777b"
     },
@@ -976,7 +993,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x2718ba808acc3fc3d3bc9a35f6e5661a01f4cbd28183bbb7f8c3718519a32c0",
+      "class_hash": "0x7a8f7f0be0ab09dcf05b544d7a80fbef4f4a60eeb9c6f180262ceffbf79eb0d",
       "tag": "zkube_budo_v1_2_0-ConstraintProgress",
       "selector": "0x353bf174f35f86ea87568181261d084bde41c365a7d78454eeb7015f9f58988"
     },
@@ -1008,7 +1025,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x3e875141e6c858493cd238cbfff35351a9ac0a9cf0e7a759c11042648927e58",
+      "class_hash": "0x51b555a0bce86813ff95ac210482549d1abf4af198837225e8d2bb1c72f6570",
       "tag": "zkube_budo_v1_2_0-ConsumablePurchased",
       "selector": "0x6735939232284480d9ef5a27efe714fbcaba2d65885f5309083dc29f0320ad1"
     },
@@ -1102,7 +1119,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x16b58c1184a1308c1d911f1cb1b7f03ebe84b97387378194ee7b72b67a2ebbb",
+      "class_hash": "0xcb91f269b7da234b56652f3bf03c55558d79e51e6aef766510bb01d72d3932",
       "tag": "zkube_budo_v1_2_0-LevelStarted",
       "selector": "0x1253fbd361d7ea8f1af4785316aaeea4348f393df3c4e456fcc1f4114c44834"
     },
@@ -1454,7 +1471,7 @@
           "key": false
         }
       ],
-      "class_hash": "0x73331015dbc422db5d6e5f54396ebccb0f20a0c51817c0dd3394acbe2872d9b",
+      "class_hash": "0x5969c7a2965698ea82c48015facd31b000c52fbae36824b24ccaa824c6987bc",
       "tag": "zkube_budo_v1_2_0-UseBonus",
       "selector": "0x12d7603e18f9fa369a823a5096714451ba28a0f67a4b7736a2d26e2e4777c13"
     }
@@ -5856,19 +5873,15 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "hammer_cost",
+          "name": "combo_cost",
           "type": "core::integer::u8"
         },
         {
-          "name": "wave_cost",
+          "name": "score_cost",
           "type": "core::integer::u8"
         },
         {
-          "name": "totem_cost",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "extra_moves_cost",
+          "name": "harvest_cost",
           "type": "core::integer::u8"
         },
         {
@@ -6062,19 +6075,15 @@
           "type": "core::integer::u8"
         },
         {
-          "name": "hammer_cost",
+          "name": "combo_cost",
           "type": "core::integer::u8"
         },
         {
-          "name": "wave_cost",
+          "name": "score_cost",
           "type": "core::integer::u8"
         },
         {
-          "name": "totem_cost",
-          "type": "core::integer::u8"
-        },
-        {
-          "name": "extra_moves_cost",
+          "name": "harvest_cost",
           "type": "core::integer::u8"
         },
         {
@@ -6228,6 +6237,10 @@
           "type": "core::felt252"
         },
         {
+          "name": "level_stars",
+          "type": "core::felt252"
+        },
+        {
           "name": "started_at",
           "type": "core::integer::u64"
         },
@@ -6286,6 +6299,18 @@
           "type": "core::integer::u8"
         },
         {
+          "name": "constraint3_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint3_value",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint3_count",
+          "type": "core::integer::u8"
+        },
+        {
           "name": "cube_3_threshold",
           "type": "core::integer::u16"
         },
@@ -6337,6 +6362,18 @@
         },
         {
           "name": "constraint2_count",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint3_type",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint3_value",
+          "type": "core::integer::u8"
+        },
+        {
+          "name": "constraint3_count",
           "type": "core::integer::u8"
         },
         {
@@ -6395,6 +6432,10 @@
         },
         {
           "name": "run_data",
+          "type": "core::felt252"
+        },
+        {
+          "name": "level_stars",
           "type": "core::felt252"
         },
         {
@@ -6639,19 +6680,15 @@
               "type": "core::integer::u8"
             },
             {
-              "name": "hammer_cost",
+              "name": "combo_cost",
               "type": "core::integer::u8"
             },
             {
-              "name": "wave_cost",
+              "name": "score_cost",
               "type": "core::integer::u8"
             },
             {
-              "name": "totem_cost",
-              "type": "core::integer::u8"
-            },
-            {
-              "name": "extra_moves_cost",
+              "name": "harvest_cost",
               "type": "core::integer::u8"
             },
             {
@@ -7546,6 +7583,42 @@
         },
         {
           "type": "function",
+          "name": "allocate_charge",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "bonus_slot",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "swap_bonus",
+          "inputs": [
+            {
+              "name": "game_id",
+              "type": "core::integer::u64"
+            },
+            {
+              "name": "bonus_slot",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "new_bonus_type",
+              "type": "core::integer::u8"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
           "name": "get_starting_bonus_upgrade_cost",
           "inputs": [
             {
@@ -7636,11 +7709,15 @@
           "type": "()"
         },
         {
-          "name": "Hammer",
+          "name": "Combo",
           "type": "()"
         },
         {
-          "name": "Totem",
+          "name": "Score",
+          "type": "()"
+        },
+        {
+          "name": "Harvest",
           "type": "()"
         },
         {
@@ -7648,11 +7725,7 @@
           "type": "()"
         },
         {
-          "name": "Shrink",
-          "type": "()"
-        },
-        {
-          "name": "Shuffle",
+          "name": "Supply",
           "type": "()"
         }
       ]
@@ -7666,11 +7739,27 @@
           "type": "()"
         },
         {
-          "name": "ClearLines",
+          "name": "ComboLines",
+          "type": "()"
+        },
+        {
+          "name": "BreakBlocks",
+          "type": "()"
+        },
+        {
+          "name": "ComboStreak",
+          "type": "()"
+        },
+        {
+          "name": "FillAndClear",
           "type": "()"
         },
         {
           "name": "NoBonusUsed",
+          "type": "()"
+        },
+        {
+          "name": "ClearGrid",
           "type": "()"
         }
       ]
@@ -7680,23 +7769,15 @@
       "name": "zkube::types::consumable::ConsumableType",
       "variants": [
         {
-          "name": "Bonus1",
-          "type": "()"
-        },
-        {
-          "name": "Bonus2",
-          "type": "()"
-        },
-        {
-          "name": "Bonus3",
-          "type": "()"
-        },
-        {
-          "name": "Refill",
+          "name": "BonusCharge",
           "type": "()"
         },
         {
           "name": "LevelUp",
+          "type": "()"
+        },
+        {
+          "name": "SwapBonus",
           "type": "()"
         }
       ]

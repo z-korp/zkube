@@ -24,9 +24,9 @@ pub impl Champion of AchievementTrait {
     fn points(level: u8) -> u16 {
         match level {
             0 => 20,
-            1 => 60,
-            2 => 100,
-            3 => 500,
+            1 => 40,
+            2 => 60,
+            3 => 100,
             _ => 0,
         }
     }

@@ -13,46 +13,56 @@ import manifestSepolia from "../../contracts/manifest_sepolia.json";
 import manifestMainnet from "../../contracts/manifest_mainnet.json";
 
 const log = createLogger("cartridgeConnector");
-const CONTROLLER_SESSION_VERSION = "2";
+const CONTROLLER_SESSION_VERSION = "4";
+
+function clearControllerStorage() {
+  localStorage.removeItem("sessionSigner");
+  localStorage.removeItem("session");
+  localStorage.removeItem("sessionPolicies");
+  localStorage.removeItem("lastUsedConnector");
+
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const key = localStorage.key(i);
+    if (key?.startsWith("@cartridge/")) {
+      localStorage.removeItem(key);
+    }
+  }
+
+  if (typeof indexedDB !== "undefined") {
+    indexedDB.databases?.().then((dbs) => {
+      for (const db of dbs) {
+        if (db.name) {
+          indexedDB.deleteDatabase(db.name);
+          log.info("Deleted IndexedDB:", db.name);
+        }
+      }
+    }).catch(() => {
+      for (const name of ["@cartridge", "controller", "keyval-store"]) {
+        try { indexedDB.deleteDatabase(name); } catch { /* noop */ }
+      }
+    });
+  }
+}
 
 function migrateControllerSessions() {
   try {
     const storedVersion = localStorage.getItem("controllerSessionVersion");
-    if (storedVersion === CONTROLLER_SESSION_VERSION) return;
+    const storedDeployType = localStorage.getItem("controllerDeployType");
+    const currentDeployType = VITE_PUBLIC_DEPLOY_TYPE || "mainnet";
 
-    const sessionStr = localStorage.getItem("session");
-    if (sessionStr) {
-      try {
-        const session = JSON.parse(sessionStr);
-        if (
-          !session.guardianKeyGuid ||
-          !session.metadataHash ||
-          !session.sessionKeyGuid
-        ) {
-          log.info("Clearing legacy Controller session (missing GUID fields)");
-        }
-      } catch {
-        log.info("Clearing unparseable Controller session");
-      }
-    }
+    const versionChanged = storedVersion !== CONTROLLER_SESSION_VERSION;
+    const deployTypeChanged = storedDeployType !== currentDeployType;
 
-    localStorage.removeItem("sessionSigner");
-    localStorage.removeItem("session");
-    localStorage.removeItem("sessionPolicies");
-    localStorage.removeItem("lastUsedConnector");
+    if (!versionChanged && !deployTypeChanged) return;
 
-    for (let i = localStorage.length - 1; i >= 0; i--) {
-      const key = localStorage.key(i);
-      if (key?.startsWith("@cartridge/")) {
-        localStorage.removeItem(key);
-      }
-    }
+    log.info("Clearing Controller sessions", {
+      reason: deployTypeChanged ? `deploy type changed: ${storedDeployType} → ${currentDeployType}` : `version: ${storedVersion} → ${CONTROLLER_SESSION_VERSION}`,
+    });
+
+    clearControllerStorage();
 
     localStorage.setItem("controllerSessionVersion", CONTROLLER_SESSION_VERSION);
-    log.info("Controller session migration complete", {
-      from: storedVersion ?? "none",
-      to: CONTROLLER_SESSION_VERSION,
-    });
+    localStorage.setItem("controllerDeployType", currentDeployType);
   } catch (e) {
     log.warn("Session migration skipped", e);
   }
@@ -290,7 +300,7 @@ log.info("Configuration", {
 });
 
 export const cartridgeConnector: Connector | null =
-  typeof window !== "undefined" && VITE_PUBLIC_DEPLOY_TYPE !== "slot"
+  typeof window !== "undefined"
     ? createConnector(connectorConfig)
     : null;
 

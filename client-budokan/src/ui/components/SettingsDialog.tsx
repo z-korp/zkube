@@ -11,7 +11,7 @@ import {
 } from "../elements/dialog";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
-import useAccountCustom, { ACCOUNT_CONNECTOR } from "@/hooks/useAccountCustom";
+import useAccountCustom from "@/hooks/useAccountCustom";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useDisconnect } from "@starknet-react/core";
 import {
@@ -157,7 +157,7 @@ export const SettingsDialog = () => {
             </div>
           </div>
 
-          {ACCOUNT_CONNECTOR === "controller" && account?.address && (
+          {account?.address && (
             <div className="flex flex-col gap-3">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Account

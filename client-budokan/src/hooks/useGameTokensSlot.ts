@@ -4,8 +4,7 @@ import { getComponentValue, Has, runQuery } from "@dojoengine/recs";
 import type { GameTokenData } from "metagame-sdk";
 import { unpackRunData } from "@/dojo/game/helpers/runDataPacking";
 
-const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_TORII, VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
-export const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
+const { VITE_PUBLIC_TORII, VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
 
 // Pad address to 66 characters (0x + 64 hex chars)
 const padAddress = (address: string): string => {
@@ -74,7 +73,6 @@ interface TokenBalancesResponse {
 export const useGameTokensSlot = ({
   owner,
   limit = 100,
-  forceRecs = false,
 }: {
   owner?: string;
   sortBy?: string;
@@ -82,7 +80,6 @@ export const useGameTokensSlot = ({
   limit?: number;
   includeMetadata?: boolean;
   gameAddresses?: string[];
-  forceRecs?: boolean; // Force query even on non-slot modes
 }): UseGameTokensSlotResult => {
   const {
     setup: {
@@ -100,7 +97,7 @@ export const useGameTokensSlot = ({
     setRefreshTrigger((prev) => prev + 1);
   }, []);
 
-  const shouldFetch = (isSlotMode || forceRecs) && !!owner;
+  const shouldFetch = !!owner;
 
   useEffect(() => {
     if (!shouldFetch) {
@@ -171,8 +168,12 @@ export const useGameTokensSlot = ({
           })
         );
 
+        console.log("[useGameTokensSlot] Owned token IDs:", [...ownedTokenIds]);
+
         // Query all Game entities from RECS
         const gameEntities = runQuery([Has(Game)]);
+
+        console.log("[useGameTokensSlot] RECS Game entities count:", gameEntities.size);
 
         const gameList: GameTokenData[] = [];
         const seenIds = new Set<number>();
@@ -183,7 +184,9 @@ export const useGameTokensSlot = ({
           if (!gameData || gameData.game_id === 0) continue;
 
           // Only include games owned by the user
-          if (!ownedTokenIds.has(gameData.game_id)) continue;
+          if (!ownedTokenIds.has(gameData.game_id)) {
+            continue;
+          }
 
           // Deduplicate by game_id
           if (seenIds.has(gameData.game_id)) continue;

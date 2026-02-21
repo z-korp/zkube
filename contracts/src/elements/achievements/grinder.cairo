@@ -24,11 +24,11 @@ pub impl Grinder of AchievementTrait {
 
     fn points(level: u8) -> u16 {
         match level {
-            0 => 10,
-            1 => 15,
-            2 => 25,
-            3 => 40,
-            4 => 60,
+            0 => 5,
+            1 => 5,
+            2 => 10,
+            3 => 15,
+            4 => 25,
             _ => 0,
         }
     }

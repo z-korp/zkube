@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
+import { useAccount } from "@starknet-react/core";
+import ControllerConnector from "@cartridge/connector/controller";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { loadThemeTemplate } from "@/config/themes";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import { useNavigationStore } from "@/stores/navigationStore";
+import { useQuests } from "@/contexts/quests";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import TopBar from "@/ui/navigation/TopBar";
 import ThemeBackground from "@/ui/components/shared/ThemeBackground";
@@ -25,10 +29,13 @@ const HomePage: React.FC = () => {
   useViewport();
 
   const { account } = useAccountCustom();
+  const { connector } = useAccount();
+  const { username } = useControllerUsername();
   const { themeTemplate, setThemeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
   const { cubeBalance } = useCubeBalance();
   const navigate = useNavigationStore((s) => s.navigate);
+  const { questFamilies } = useQuests();
   const imgAssets = ImageAssets(themeTemplate);
 
   useEffect(() => {
@@ -42,7 +49,6 @@ const HomePage: React.FC = () => {
   const { games: ownedGames } = useGameTokensSlot({
     owner: shouldFetchMyGames ? normalizedOwner : undefined,
     limit: shouldFetchMyGames ? 100 : 0,
-    forceRecs: true,
   });
 
   const activeGames = useMemo(() => {
@@ -50,9 +56,26 @@ const HomePage: React.FC = () => {
     return ownedGames.filter((g) => !g.game_over);
   }, [ownedGames]);
 
+  const claimableQuestCount = useMemo(
+    () => questFamilies.filter((f) => f.claimableTier !== null).length,
+    [questFamilies],
+  );
+
   const handleProfile = useCallback(() => {
     if (!account) return;
-  }, [account]);
+    const controllerConnector = connector as ControllerConnector;
+    if (controllerConnector?.controller?.openProfile) {
+      controllerConnector.controller.openProfile();
+    }
+  }, [account, connector]);
+
+  const handleTrophies = useCallback(() => {
+    if (!account) return;
+    const controllerConnector = connector as ControllerConnector;
+    if (controllerConnector?.controller?.openProfile) {
+      controllerConnector.controller.openProfile("trophies");
+    }
+  }, [account, connector]);
 
   return (
     <div className="h-screen-viewport flex flex-col">
@@ -62,9 +85,11 @@ const HomePage: React.FC = () => {
         cubeBalance={cubeBalance}
         onTutorial={() => navigate("tutorial")}
         onQuests={() => navigate("quests")}
-        onTrophies={() => {}}
+        onTrophies={handleTrophies}
         onSettings={() => navigate("settings")}
         onProfile={handleProfile}
+        username={username}
+        claimableQuestCount={claimableQuestCount}
       />
 
       <div className="flex-1 flex flex-col items-center justify-start px-6 gap-3 pt-4">

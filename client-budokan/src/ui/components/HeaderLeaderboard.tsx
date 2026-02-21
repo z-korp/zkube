@@ -23,7 +23,7 @@ import {
   getLeaderboardExcludedNames,
   normalizeAddress,
 } from "@/utils/metagame";
-import { useLeaderboardSlot, isSlotMode, type LeaderboardEntry } from "@/hooks/useLeaderboardSlot";
+import { useLeaderboardSlot, type LeaderboardEntry } from "@/hooks/useLeaderboardSlot";
 
 const gameSystemAddress = getGameSystemAddress();
 const excludedLeaderboardNames = getLeaderboardExcludedNames();
@@ -67,7 +67,7 @@ export const HeaderLeaderboard: React.FC<HeaderLeaderboardProps> = ({
     (!metagameResult.games || metagameResult.games.length === 0);
 
   // Use RECS query for slot/sepolia OR as fallback when metagame fails on mainnet
-  const slotResult = useLeaderboardSlot({ forceRecs: useRecsOnly || metagameFailed });
+  const slotResult = useLeaderboardSlot();
 
   // Use RECS for slot/sepolia, metagame for mainnet (with RECS fallback)
   const { games, loading, refetch } = useRecsOnly 
