@@ -13,7 +13,7 @@ import manifestSepolia from "../../contracts/manifest_sepolia.json";
 import manifestMainnet from "../../contracts/manifest_mainnet.json";
 
 const log = createLogger("cartridgeConnector");
-const CONTROLLER_SESSION_VERSION = "2";
+const CONTROLLER_SESSION_VERSION = "3";
 
 function migrateControllerSessions() {
   try {
