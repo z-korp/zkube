@@ -38,7 +38,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
   const subtitle = useMemo(() => {
     if (isNewBestLevel && game.level > 1) return "New personal best!";
     if ([9, 19, 29, 39, 49].includes(game.level)) return "So close to the boss...";
-    if (BOSS_LEVELS.includes(game.level) && game.level < 50) return "Boss defeated!";
+    if (BOSS_LEVELS.includes(game.level) && game.level < 50) return "Fell to the boss...";
     if (game.level >= 40) return "Legendary run!";
     if (game.level >= 25) return "Incredible run!";
     if (game.level >= 10) return "Nice run!";
@@ -50,7 +50,7 @@ const GameOverDialog: React.FC<GameOverDialogProps> = ({
   const subtitleColor = useMemo(() => {
     if (isNewBestLevel && game.level > 1) return "text-yellow-400";
     if ([9, 19, 29, 39, 49].includes(game.level)) return "text-orange-400";
-    if (BOSS_LEVELS.includes(game.level)) return "text-green-400";
+    if (BOSS_LEVELS.includes(game.level)) return "text-red-400";
     if (game.level >= 25) return "text-purple-400";
     if (game.level >= 10) return "text-cyan-400";
     if (game.level >= 5) return "text-slate-300";
