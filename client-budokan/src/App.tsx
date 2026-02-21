@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Toaster } from "./ui/elements/sonner";
 import { TooltipProvider } from "@/ui/elements/tooltip";
 import PageNavigator from "@/ui/navigation/PageNavigator";
@@ -37,10 +38,33 @@ const CurrentPage: React.FC = () => {
   return <>{pageComponents[currentPage]}</>;
 };
 
-export default function App() {
-  const { isReconnecting } = useAccount();
+// starknet-react's isReconnecting is never set to true — auto-connect is fire-and-forget.
+// We gate on lastUsedConnector in localStorage to hold the loading screen until connected or timeout.
+function useAutoConnectGate(): boolean {
+  const { status } = useAccount();
+  const [waiting, setWaiting] = useState(
+    () => localStorage.getItem("lastUsedConnector") !== null,
+  );
 
-  if (isReconnecting) return <Loading />;
+  useEffect(() => {
+    if (!waiting) return;
+
+    if (status === "connected") {
+      setWaiting(false);
+      return;
+    }
+
+    const timer = setTimeout(() => setWaiting(false), 3000);
+    return () => clearTimeout(timer);
+  }, [waiting, status]);
+
+  return waiting;
+}
+
+export default function App() {
+  const waitingForAutoConnect = useAutoConnectGate();
+
+  if (waitingForAutoConnect) return <Loading />;
 
   return (
     <TooltipProvider>

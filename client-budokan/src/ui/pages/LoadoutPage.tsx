@@ -228,7 +228,7 @@ const LoadoutPage: React.FC = () => {
         type: "success",
       });
 
-      navigate("play", gameId);
+      navigate("map", gameId);
     } catch (error) {
       console.error("Error starting game:", error);
       showToast({
