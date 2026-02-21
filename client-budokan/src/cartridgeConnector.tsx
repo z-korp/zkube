@@ -290,7 +290,7 @@ log.info("Configuration", {
 });
 
 export const cartridgeConnector: Connector | null =
-  typeof window !== "undefined" && VITE_PUBLIC_DEPLOY_TYPE !== "slot"
+  typeof window !== "undefined"
     ? createConnector(connectorConfig)
     : null;
 

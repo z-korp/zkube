@@ -171,8 +171,12 @@ export const useGameTokensSlot = ({
           })
         );
 
+        console.log("[useGameTokensSlot] Owned token IDs:", [...ownedTokenIds]);
+
         // Query all Game entities from RECS
         const gameEntities = runQuery([Has(Game)]);
+
+        console.log("[useGameTokensSlot] RECS Game entities count:", gameEntities.size);
 
         const gameList: GameTokenData[] = [];
         const seenIds = new Set<number>();
@@ -183,7 +187,9 @@ export const useGameTokensSlot = ({
           if (!gameData || gameData.game_id === 0) continue;
 
           // Only include games owned by the user
-          if (!ownedTokenIds.has(gameData.game_id)) continue;
+          if (!ownedTokenIds.has(gameData.game_id)) {
+            continue;
+          }
 
           // Deduplicate by game_id
           if (seenIds.has(gameData.game_id)) continue;
