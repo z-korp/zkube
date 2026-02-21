@@ -10,6 +10,7 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import { useNavigationStore } from "@/stores/navigationStore";
+import { useQuests } from "@/contexts/quests";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import TopBar from "@/ui/navigation/TopBar";
 import ThemeBackground from "@/ui/components/shared/ThemeBackground";
@@ -34,6 +35,7 @@ const HomePage: React.FC = () => {
   const { setMusicPlaylist } = useMusicPlayer();
   const { cubeBalance } = useCubeBalance();
   const navigate = useNavigationStore((s) => s.navigate);
+  const { questFamilies } = useQuests();
   const imgAssets = ImageAssets(themeTemplate);
 
   useEffect(() => {
@@ -54,6 +56,11 @@ const HomePage: React.FC = () => {
     if (!ownedGames?.length) return [];
     return ownedGames.filter((g) => !g.game_over);
   }, [ownedGames]);
+
+  const claimableQuestCount = useMemo(
+    () => questFamilies.filter((f) => f.claimableTier !== null).length,
+    [questFamilies],
+  );
 
   const handleProfile = useCallback(() => {
     if (!account) return;
@@ -83,6 +90,7 @@ const HomePage: React.FC = () => {
         onSettings={() => navigate("settings")}
         onProfile={handleProfile}
         username={username}
+        claimableQuestCount={claimableQuestCount}
       />
 
       <div className="flex-1 flex flex-col items-center justify-start px-6 gap-3 pt-4">
