@@ -98,7 +98,7 @@ export class Constraint {
       case ConstraintType.None:
         return "No constraint";
       case ConstraintType.ClearLines:
-        return `Clear ${this.value}+ lines ${this.requiredCount} time${this.requiredCount > 1 ? "s" : ""}`;
+        return `Make ${this.value}+ combos ${this.requiredCount} time${this.requiredCount > 1 ? "s" : ""}`;
       case ConstraintType.BreakBlocks:
         return `Break ${this.requiredCount} size-${this.value} blocks`;
       case ConstraintType.AchieveCombo:
@@ -119,7 +119,7 @@ export class Constraint {
       case ConstraintType.None:
         return "";
       case ConstraintType.ClearLines:
-        return `${this.value}+ lines x${this.requiredCount}`;
+        return `${this.value}+ combos x${this.requiredCount}`;
       case ConstraintType.BreakBlocks:
         return `Break ${this.requiredCount}x size-${this.value}`;
       case ConstraintType.AchieveCombo:
