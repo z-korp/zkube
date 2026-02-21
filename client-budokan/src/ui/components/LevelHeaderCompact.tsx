@@ -350,12 +350,9 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
       {/* Row 1: Level + Score + Cubes (original design) */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 md:gap-2">
-          <span className="font-bold text-base md:text-lg text-white">Level {level}</span>
-          {isBoss && (
-            <span className="text-[8px] md:text-[10px] font-bold px-1 md:px-1.5 py-0.5 rounded bg-gradient-to-r from-red-600 to-orange-500 text-white uppercase">
-              Boss
-            </span>
-          )}
+          <span className={`font-bold text-base md:text-lg ${isBoss ? "text-red-500" : "text-white"}`}>
+            {isBoss ? "BOSS" : "Level"} {level}
+          </span>
         </div>
 
         <div className="flex items-center gap-2 md:gap-3">
