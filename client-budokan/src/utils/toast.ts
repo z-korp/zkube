@@ -115,7 +115,7 @@ export const showToast = ({
 
   switch (type) {
     case "loading":
-      toast.loading(message, toastOptions);
+      toast.loading(message, { ...toastOptions, duration: toastOptions.duration ?? 5000 });
       break;
     case "success":
       toast.success(message, toastOptions);
