@@ -2,10 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import {
   Check,
+  Circle,
+  CircleCheck,
   Clock3,
   Gamepad2,
   ListOrdered,
   Loader2,
+  Lock,
   ScrollText,
   TrendingUp,
   Trophy,
@@ -17,7 +20,7 @@ import { useMusicPlayer } from "@/contexts/hooks";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useNavigationStore } from "@/stores/navigationStore";
-import type { QuestFamily } from "@/types/questFamily";
+import type { QuestFamily, QuestTier } from "@/types/questFamily";
 import GameButton from "@/ui/components/shared/GameButton";
 import ThemeBackground from "@/ui/components/shared/ThemeBackground";
 import PageTopBar from "@/ui/navigation/PageTopBar";
@@ -77,6 +80,36 @@ const formatCountdown = (seconds: number): string => {
   return `${hours}:${minutes}:${secs}`;
 };
 
+const TierRow: React.FC<{ tier: QuestTier }> = ({ tier }) => {
+  let icon: React.ReactNode = <Circle size={13} className="text-slate-400" />;
+  let textClass = "text-slate-200";
+
+  if (tier.claimed) {
+    icon = <CircleCheck size={13} className="text-emerald-400" />;
+    textClass = "text-slate-400 line-through";
+  } else if (tier.completed) {
+    icon = <CircleCheck size={13} className="text-emerald-400" />;
+    textClass = "text-emerald-300";
+  } else if (tier.locked) {
+    icon = <Lock size={13} className="text-slate-500" />;
+    textClass = "text-slate-500";
+  }
+
+  return (
+    <div className="flex items-center justify-between rounded-lg bg-black/20 px-3 py-2">
+      <div className="flex min-w-0 items-center gap-2">
+        {icon}
+        <span className={`truncate text-sm ${textClass}`}>
+          Tier {tier.tier}: {tier.description || tier.name}
+        </span>
+      </div>
+      <span className="font-['Fredericka_the_Great'] text-lg leading-none tracking-wide text-yellow-300">
+        +{tier.reward}
+      </span>
+    </div>
+  );
+};
+
 interface QuestFamilyPanelProps {
   family: QuestFamily;
   onClaim: (questId: string, intervalId: number) => Promise<void>;
@@ -92,8 +125,10 @@ const QuestFamilyPanel: React.FC<QuestFamilyPanelProps> = ({
 }) => {
   const Icon = iconMap[family.icon] ?? ScrollText;
   const allClaimed = family.tiers.every((t) => t.claimed);
-  const maxTarget = family.tiers[family.tiers.length - 1]?.target ?? 1;
-  const fillPercent = Math.min((family.progress / maxTarget) * 100, 100);
+  const progressPercent =
+    family.nextTarget > 0
+      ? Math.min((family.progress / family.nextTarget) * 100, 100)
+      : 100;
 
   const claimableTier = family.claimableTier;
   const claimKey = claimableTier
@@ -125,91 +160,50 @@ const QuestFamilyPanel: React.FC<QuestFamilyPanelProps> = ({
       variants={itemVariants}
       className="rounded-2xl border border-white/10 bg-slate-900/65 p-4 backdrop-blur-sm"
     >
-      <div className="mb-4 flex items-center gap-3">
-        <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-yellow-300">
-          <Icon size={18} />
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-yellow-300">
+            <Icon size={18} />
+          </div>
+          <h2 className="truncate font-['Fredericka_the_Great'] text-xl text-white">
+            {family.name}
+          </h2>
         </div>
-        <h2 className="truncate font-['Fredericka_the_Great'] text-xl text-white">
-          {family.name}
-        </h2>
-        <span className="ml-auto font-['Fredericka_the_Great'] text-lg text-cyan-100">
-          {family.progress}/{maxTarget}
-        </span>
       </div>
 
-      <div className="relative mb-2 px-1">
-        <div className="h-3 rounded-full bg-slate-800">
-          <motion.div
-            className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-sky-300"
-            initial={{ width: 0 }}
-            animate={{ width: `${fillPercent}%` }}
-            transition={{ duration: 0.45, ease: "easeOut" }}
-          />
+      <div className="mb-3 space-y-2">
+        {family.tiers.map((tier) => (
+          <TierRow key={tier.questId} tier={tier} />
+        ))}
+      </div>
+
+      {family.nextTarget > 0 && family.id !== "combo" && family.id !== "combo_streak" && (
+        <div className="mb-4 flex items-center gap-3">
+          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-800">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-sky-300"
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPercent}%` }}
+              transition={{ duration: 0.45, ease: "easeOut" }}
+            />
+          </div>
+          <span className="font-['Fredericka_the_Great'] text-lg leading-none tracking-wide text-cyan-100">
+            {family.progress}/{family.nextTarget}
+          </span>
         </div>
-
-        {family.tiers.map((tier) => {
-          const position = (tier.target / maxTarget) * 100;
-          const reached = family.progress >= tier.target;
-          return (
-            <div
-              key={tier.questId}
-              className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
-              style={{ left: `${position}%` }}
-            >
-              <div
-                className={`h-5 w-5 rounded-full border-2 flex items-center justify-center text-[9px] font-bold ${
-                  tier.claimed
-                    ? "border-emerald-400 bg-emerald-500 text-white"
-                    : reached
-                      ? "border-cyan-300 bg-cyan-400 text-white"
-                      : "border-slate-500 bg-slate-700 text-slate-400"
-                }`}
-              >
-                {tier.claimed ? <Check size={10} /> : tier.target}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="relative mb-4 h-5 px-1">
-        {family.tiers.map((tier) => {
-          const position = (tier.target / maxTarget) * 100;
-          return (
-            <div
-              key={tier.questId}
-              className="absolute -translate-x-1/2"
-              style={{ left: `${position}%` }}
-            >
-              <span
-                className={`text-xs font-bold ${
-                  tier.claimed
-                    ? "text-emerald-400"
-                    : tier.completed
-                      ? "text-yellow-300"
-                      : "text-slate-500"
-                }`}
-              >
-                +{tier.reward}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+      )}
 
       {claimableTier ? (
         <GameButton
-          label={`CLAIM  +${claimableTier.reward} CUBE`}
+          label={`CLAIM TIER ${claimableTier.tier}  +${claimableTier.reward} CUBE`}
           variant="primary"
           loading={isClaiming}
           disabled={disabled}
           onClick={() => onClaim(claimableTier.questId, claimableTier.intervalId)}
         />
       ) : (
-        <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 text-center text-sm text-slate-400">
-          {family.currentTierIndex >= 0
-            ? `${family.tiers[family.currentTierIndex].target - family.progress} more to next reward`
-            : "Complete the next tier to unlock reward"}
+        <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-center text-sm text-slate-300">
+          Complete the next tier to unlock reward
         </div>
       )}
     </motion.section>
