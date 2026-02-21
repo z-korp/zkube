@@ -143,10 +143,21 @@ const MapPage: React.FC = () => {
 
   /* ---- Swipe handlers (Pointer Events for reliable mobile) ---- */
 
+  const isSwiping = useRef(false);
+
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     pointerStartX.current = event.clientX;
     pointerId.current = event.pointerId;
-    (event.currentTarget as HTMLDivElement).setPointerCapture(event.pointerId);
+    isSwiping.current = false;
+  };
+
+  const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (pointerStartX.current === null || isSwiping.current) return;
+    const delta = Math.abs(event.clientX - pointerStartX.current);
+    if (delta > 10) {
+      isSwiping.current = true;
+      (event.currentTarget as HTMLDivElement).setPointerCapture(event.pointerId);
+    }
   };
 
   const onPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -154,6 +165,9 @@ const MapPage: React.FC = () => {
     const deltaX = event.clientX - pointerStartX.current;
     pointerStartX.current = null;
     pointerId.current = null;
+
+    if (!isSwiping.current) return;
+    isSwiping.current = false;
 
     if (Math.abs(deltaX) < SWIPE_THRESHOLD) return;
 
@@ -167,6 +181,7 @@ const MapPage: React.FC = () => {
   const onPointerCancel = () => {
     pointerStartX.current = null;
     pointerId.current = null;
+    isSwiping.current = false;
   };
 
   const handlePlay = () => {
@@ -189,6 +204,7 @@ const MapPage: React.FC = () => {
         className="relative min-h-0 flex-1 overflow-hidden"
         style={{ touchAction: "pan-y" }}
         onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
       >
