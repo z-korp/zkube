@@ -4,7 +4,7 @@ runs:
   using: "composite"
   steps:
     - name: Install asdf
-      uses: asdf-vm/actions/setup@v3
+      uses: asdf-vm/actions/setup@v4
 
     - name: Install Dojo asdf plugins
       run: curl -L https://install.dojoengine.org | bash
