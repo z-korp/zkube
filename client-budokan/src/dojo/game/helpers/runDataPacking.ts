@@ -288,11 +288,9 @@ export function getBonusInventoryCount(runData: RunData, selectedBonusValue: num
 }
 
 export enum ConsumableType {
-  Bonus1 = 0,
-  Bonus2 = 1,
-  Bonus3 = 2,
-  Refill = 3,
-  LevelUp = 4,
+  BonusCharge = 0,
+  LevelUp = 1,
+  SwapBonus = 2,
 }
 
 export const BONUS_CHARGE_BASE_COST = 5;

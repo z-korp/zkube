@@ -151,7 +151,7 @@ const InGameShopPage = () => {
       await purchaseConsumable({
         account,
         game_id: gameId,
-        consumable_type: ConsumableType.Refill,
+        consumable_type: ConsumableType.BonusCharge,
         bonus_slot: 0,
       });
       playSfx("shop-purchase");
