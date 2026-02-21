@@ -104,6 +104,7 @@ const MapPage: React.FC = () => {
   const [activeZone, setActiveZone] = useState(Math.max(0, mapData.currentZone - 1));
   const [selectedNode, setSelectedNode] = useState<MapNodeData | null>(null);
   const pointerStartX = useRef<number | null>(null);
+  const pointerId = useRef<number | null>(null);
 
   useEffect(() => {
     setActiveZone(Math.max(0, mapData.currentZone - 1));
@@ -140,25 +141,32 @@ const MapPage: React.FC = () => {
     [mapData.nodes],
   );
 
-  /* ---- Swipe handlers ---- */
+  /* ---- Swipe handlers (Pointer Events for reliable mobile) ---- */
 
-  const onStartDrag = (clientX: number) => {
-    pointerStartX.current = clientX;
+  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    pointerStartX.current = event.clientX;
+    pointerId.current = event.pointerId;
+    (event.currentTarget as HTMLDivElement).setPointerCapture(event.pointerId);
   };
 
-  const onEndDrag = (clientX: number) => {
+  const onPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
     if (pointerStartX.current === null) return;
-    const deltaX = clientX - pointerStartX.current;
+    const deltaX = event.clientX - pointerStartX.current;
     pointerStartX.current = null;
+    pointerId.current = null;
 
     if (Math.abs(deltaX) < SWIPE_THRESHOLD) return;
 
     if (deltaX < 0) {
       setActiveZone((prev) => Math.min(prev + 1, TOTAL_ZONES - 1));
-      return;
+    } else {
+      setActiveZone((prev) => Math.max(prev - 1, 0));
     }
+  };
 
-    setActiveZone((prev) => Math.max(prev - 1, 0));
+  const onPointerCancel = () => {
+    pointerStartX.current = null;
+    pointerId.current = null;
   };
 
   const handlePlay = () => {
@@ -179,10 +187,10 @@ const MapPage: React.FC = () => {
       {/* ---- Map viewport ---- */}
       <div
         className="relative min-h-0 flex-1 overflow-hidden"
-        onMouseDown={(event) => onStartDrag(event.clientX)}
-        onMouseUp={(event) => onEndDrag(event.clientX)}
-        onTouchStart={(event) => onStartDrag(event.touches[0]?.clientX ?? 0)}
-        onTouchEnd={(event) => onEndDrag(event.changedTouches[0]?.clientX ?? 0)}
+        style={{ touchAction: "pan-y" }}
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerCancel}
       >
         <motion.div
           className="flex h-full"
