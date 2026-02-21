@@ -340,18 +340,20 @@ const MapPage: React.FC = () => {
                           {node.type !== "shop" && (
                             <>
                               <circle
-                                cx={cx}
-                                cy={cy + r + 2}
-                                r={1.8}
-                                fill="rgba(0,0,0,0.7)"
+                                cx={cx + r + 0.6}
+                                cy={cy + r - 0.6}
+                                r={1.6}
+                                fill="rgba(0,0,0,0.75)"
+                                stroke={colors.border}
+                                strokeWidth={0.25}
                               />
                               <text
-                                x={cx}
-                                y={cy + r + 2.1}
+                                x={cx + r + 0.6}
+                                y={cy + r - 0.5}
                                 textAnchor="middle"
                                 dominantBaseline="central"
                                 fill="#ffffff"
-                                fontSize={2}
+                                fontSize={1.8}
                                 fontWeight="bold"
                                 fontFamily="Bangers"
                               >
