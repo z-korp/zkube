@@ -93,9 +93,10 @@ function buildZoneLayout(
   const edges: MapLayoutEdge[] = [];
   const lastNode = nodesPerZone - 1;
 
-  let lane = 1;
+  const startRoll = hashToUnit(seed, zoneIndex, 0, 100);
+  let lane = startRoll < 0.33 ? 0 : startRoll < 0.66 ? 1 : 2;
   const laneLastUsed = [-Infinity, -Infinity, -Infinity];
-  const LANE_STARVE_WINDOW = 3;
+  const LANE_STARVE_WINDOW = 4;
 
   for (let i = 0; i < nodesPerZone; i++) {
     const isBoss = i === lastNode;
@@ -109,14 +110,14 @@ function buildZoneLayout(
 
     if (i > 0) {
       const moveRoll = hashToUnit(seed, zoneIndex, i, 101);
+      const forceRoll = hashToUnit(seed, zoneIndex, i, 104);
 
       const starvedLanes = [0, 1, 2].filter(
         (l) => i - laneLastUsed[l] >= LANE_STARVE_WINDOW && l !== lane,
       );
 
-      if (starvedLanes.length > 0) {
-        const pick = starvedLanes[Math.floor(moveRoll * starvedLanes.length)];
-        lane = pick;
+      if (starvedLanes.length > 0 && forceRoll < 0.75) {
+        lane = starvedLanes[Math.floor(moveRoll * starvedLanes.length)];
       } else {
         let laneDelta = 0;
         if (moveRoll < preset.laneMoveThresholdLow) laneDelta = -1;
