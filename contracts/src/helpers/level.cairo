@@ -460,29 +460,18 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         }
     }
 
-    /// Cost for Fill constraints by target row.
-    /// Higher rows are exponentially harder to maintain.
-    /// row 4->2, 5->5, 6->10, 7->17, 8->26
+    /// Cost for Fill constraints by target filled-row count.
+    /// Higher targets are harder to maintain.
+    /// rows 6->10, 7->17, 8->26, 9->32, 10->40
     fn fill_row_cost(row: u8) -> u8 {
         match row {
             0 | 1 | 2 | 3 | 4 => 2,
             5 => 5,
             6 => 10,
             7 => 17,
-            _ => 26 // row 8+
-        }
-    }
-
-    /// Max times for a Fill constraint by row (cap to keep it reasonable).
-    /// Kept for boss tuning paths; regular Fill generation now always uses times = 1.
-    /// row 4->4, 5->3, 6->2, 7->2, 8->1
-    fn fill_times_cap(row: u8) -> u8 {
-        match row {
-            0 | 1 | 2 | 3 | 4 => 4,
-            5 => 3,
-            6 => 2,
-            7 => 2,
-            _ => 1 // row 8
+            8 => 26,
+            9 => 32,
+            _ => 40 // row 10+
         }
     }
 
@@ -651,31 +640,31 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     }
 
     /// Generate a Fill constraint from budget.
-    /// - Fill chance is higher than before, so rows are raised by tier.
-    /// - Master always targets row 8.
+    /// - Fill chance is higher than before, so row floor rises with tier.
+    /// - Target can now scale up to 10 filled rows at high budget.
     /// - Always requires exactly 1 trigger.
     fn generate_fill_from_budget(seed: felt252, budget: u8, tier: u8) -> LevelConstraint {
-        // Master floor: row 8 always.
-        if tier >= 7 {
-            return LevelConstraintTrait::fill_and_clear(8, 1);
-        }
-
         let seed_u256: u256 = seed.into();
 
-        // Raised floor by tier: MediumHard+ starts at row 7.
-        let min_row: u8 = if tier >= 3 {
+        // Difficulty-scaled floor.
+        let min_row: u8 = if tier >= 7 {
+            9
+        } else if tier >= 5 {
+            8
+        } else if tier >= 3 {
             7
         } else {
             6
         };
 
-        // Determine max feasible row from budget
+        // Determine max feasible row from budget (ceiling up to 10)
         let mut max_row: u8 = min_row;
-        if min_row == 6 && budget >= Self::fill_row_cost(7) {
-            max_row = 7;
-        }
-        if budget >= Self::fill_row_cost(8) {
-            max_row = 8;
+        let mut candidate: u8 = min_row + 1;
+        while candidate <= 10 {
+            if budget >= Self::fill_row_cost(candidate) {
+                max_row = candidate;
+            }
+            candidate += 1;
         }
 
         // Roll row [min_row, max_row] with skew-high
@@ -1026,6 +1015,43 @@ mod tests {
         assert!(
             config.cube_3_threshold < config.cube_2_threshold, "Cube thresholds should be ordered",
         );
+    }
+
+    #[test]
+    fn test_fill_constraint_range_scales_to_ten() {
+        // VeryEasy tier floor starts at 6.
+        let low = LevelGeneratorTrait::generate_constraint_from_budget(
+            1, 10, ConstraintType::FillAndClear, 0, 60,
+        );
+        assert!(low.constraint_type == ConstraintType::FillAndClear, "Should generate Fill");
+        assert!(low.value >= 6 && low.value <= 10, "Tier 0 fill must be within 6..10");
+
+        // MediumHard+ floor starts at 7.
+        let mid = LevelGeneratorTrait::generate_constraint_from_budget(
+            1, 26, ConstraintType::FillAndClear, 3, 60,
+        );
+        assert!(mid.value >= 7 && mid.value <= 10, "Tier 3 fill must be within 7..10");
+
+        // VeryHard+ floor starts at 8.
+        let high = LevelGeneratorTrait::generate_constraint_from_budget(
+            1, 32, ConstraintType::FillAndClear, 5, 60,
+        );
+        assert!(high.value >= 8 && high.value <= 10, "Tier 5 fill must be within 8..10");
+    }
+
+    #[test]
+    fn test_fill_constraint_master_can_hit_ten() {
+        // With budget below row-10 cost, master must cap at 9.
+        let master_capped = LevelGeneratorTrait::generate_constraint_from_budget(
+            1, 39, ConstraintType::FillAndClear, 7, 60,
+        );
+        assert!(master_capped.value == 9, "Master fill should cap at 9 when budget < 40");
+
+        // With budget 40 and seed=1, skew-high roll should allow row 10.
+        let master_max = LevelGeneratorTrait::generate_constraint_from_budget(
+            1, 40, ConstraintType::FillAndClear, 7, 60,
+        );
+        assert!(master_max.value == 10, "Master fill should reach 10 at max budget");
     }
 
     #[test]

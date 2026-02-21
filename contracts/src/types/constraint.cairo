@@ -204,12 +204,17 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
                 }
             },
             ConstraintType::FillAndClear => {
-                // Fill constraint: grid reaches target row height after move resolves
-                // highest_row_after is 0-indexed (0 = bottom row only, 9 = top)
-                // value is the row height target (e.g., 7 means row index 7 occupied after resolve)
+                // Fill constraint: grid reaches target filled-row count after move resolves
+                // highest_row_after is 0-indexed (0 = 1 filled row, 9 = 10 filled rows)
+                // value stores the required filled-row count (6..10)
                 // Triggers when the grid height after everything resolves (gravity + line clears)
                 // meets or exceeds the target
-                if ctx.highest_row_after >= self.value {
+                let rows_filled_after: u8 = if ctx.grid_is_empty {
+                    0
+                } else {
+                    ctx.highest_row_after + 1
+                };
+                if rows_filled_after >= self.value {
                     let next: u16 = current_progress.into() + 1;
                     let max_needed: u16 = self.required_count.into();
                     if next > max_needed {
