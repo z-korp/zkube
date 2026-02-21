@@ -297,7 +297,7 @@ const MapPage: React.FC = () => {
                             : isCleared
                               ? themeImages.mapNodeCompleted
                               : themeImages.mapNodeLevel;
-                      const r = node.type === "boss" ? 4.5 : node.type === "shop" ? 3.5 : 3;
+                      const r = node.type === "boss" ? 6 : node.type === "shop" ? 4.5 : 4;
 
                       return (
                         <g
@@ -340,20 +340,20 @@ const MapPage: React.FC = () => {
                           {node.type !== "shop" && (
                             <>
                               <circle
-                                cx={cx + r + 0.6}
-                                cy={cy + r - 0.6}
-                                r={1.6}
+                                cx={cx + r * 0.7}
+                                cy={cy + r * 0.7}
+                                r={2}
                                 fill="rgba(0,0,0,0.75)"
                                 stroke={colors.border}
-                                strokeWidth={0.25}
+                                strokeWidth={0.3}
                               />
                               <text
-                                x={cx + r + 0.6}
-                                y={cy + r - 0.5}
+                                x={cx + r * 0.7}
+                                y={cy + r * 0.7 + 0.1}
                                 textAnchor="middle"
                                 dominantBaseline="central"
                                 fill="#ffffff"
-                                fontSize={1.8}
+                                fontSize={2.2}
                                 fontWeight="bold"
                                 fontFamily="Bangers"
                               >
