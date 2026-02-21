@@ -297,7 +297,7 @@ const MapPage: React.FC = () => {
                             : isCleared
                               ? themeImages.mapNodeCompleted
                               : themeImages.mapNodeLevel;
-                      const r = node.type === "boss" ? 6 : node.type === "shop" ? 4.5 : 4;
+                      const r = node.type === "boss" ? 7.5 : node.type === "shop" ? 5.5 : 5;
 
                       return (
                         <g

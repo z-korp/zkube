@@ -122,7 +122,7 @@ function buildZoneLayout(
     points.push({ x, y });
   }
 
-  const MIN_DIST = 0.14;
+  const MIN_DIST = 0.18;
   for (let pass = 0; pass < 3; pass++) {
     for (let i = 0; i < points.length; i++) {
       for (let j = i + 1; j < points.length; j++) {
