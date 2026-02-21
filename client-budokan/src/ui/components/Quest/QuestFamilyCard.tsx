@@ -8,6 +8,7 @@ import {
   Gamepad2,
   ListOrdered,
   Lock,
+  TrendingUp,
   Trophy,
   Zap,
   type LucideIcon,
@@ -22,6 +23,7 @@ const iconMap: Record<string, LucideIcon> = {
   "fa-gamepad": Gamepad2,
   "fa-bars-staggered": ListOrdered,
   "fa-bolt": Zap,
+  "fa-arrow-trend-up": TrendingUp,
   "fa-trophy": Trophy,
 };
 

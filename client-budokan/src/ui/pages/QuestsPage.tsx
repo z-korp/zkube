@@ -9,6 +9,7 @@ import {
   Loader2,
   Lock,
   ScrollText,
+  TrendingUp,
   Trophy,
   Zap,
   type LucideIcon,
@@ -28,6 +29,7 @@ const iconMap: Record<string, LucideIcon> = {
   "fa-gamepad": Gamepad2,
   "fa-bars-staggered": ListOrdered,
   "fa-bolt": Zap,
+  "fa-arrow-trend-up": TrendingUp,
   "fa-trophy": Trophy,
 };
 
@@ -259,7 +261,7 @@ const ChampionPanel: React.FC<ChampionPanelProps> = ({
               Daily Champion
             </h2>
             <p className="text-xs uppercase tracking-[0.18em] text-yellow-100/80">
-              Complete all 9 quests
+              Complete all {totalQuests} quests
             </p>
           </div>
         </div>

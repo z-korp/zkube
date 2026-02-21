@@ -6,7 +6,7 @@
  * completes both tier 1 (1 game) and tier 2 (3 games).
  */
 
-export type QuestFamilyId = 'player' | 'clearer' | 'combo' | 'finisher';
+export type QuestFamilyId = 'player' | 'clearer' | 'combo' | 'combo_streak' | 'finisher';
 
 /**
  * Individual tier within a quest family
