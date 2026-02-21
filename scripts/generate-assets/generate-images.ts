@@ -225,7 +225,7 @@ function buildPerThemeJobs(themeId: string, theme: ThemeDefinition, filter?: Ass
   }
 
   if (shouldIncludeCategory("map-nodes", filter)) {
-    const nodeTypes = ["level", "shop", "boss"] as const;
+    const nodeTypes = ["level", "shop", "boss", "completed"] as const;
     for (const nodeType of nodeTypes) {
       const filename = `map-node-${nodeType}.png`;
       jobs.push({

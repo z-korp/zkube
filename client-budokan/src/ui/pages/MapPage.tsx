@@ -280,12 +280,15 @@ const MapPage: React.FC = () => {
                       const isInteractive = node.state !== "locked";
                       const label = getLabel(node);
 
+                      const isCleared = node.state === "cleared" || node.state === "visited";
                       const nodeImg =
                         node.type === "boss"
                           ? themeImages.mapNodeBoss
                           : node.type === "shop"
                             ? themeImages.mapNodeShop
-                            : themeImages.mapNodeLevel;
+                            : isCleared
+                              ? themeImages.mapNodeCompleted
+                              : themeImages.mapNodeLevel;
                       const r = node.type === "boss" ? 4.5 : node.type === "shop" ? 3.5 : 3;
 
                       return (
@@ -326,33 +329,28 @@ const MapPage: React.FC = () => {
                             strokeWidth={node.type === "boss" ? 0.6 : 0.4}
                           />
 
-                          <text
-                            x={cx}
-                            y={cy + r + 2}
-                            textAnchor="middle"
-                            dominantBaseline="central"
-                            fill={colors.text}
-                            fontSize={2}
-                            fontFamily="Bangers"
-                          >
-                            {label}
-                          </text>
-
-                          {node.state === "cleared" && game && node.contractLevel != null && (() => {
-                            const lvlStars = game.getLevelStars(node.contractLevel);
-                            if (lvlStars <= 0) return null;
-                            return (
+                          {node.type !== "shop" && (
+                            <>
+                              <circle
+                                cx={cx}
+                                cy={cy + r + 2}
+                                r={1.8}
+                                fill="rgba(0,0,0,0.7)"
+                              />
                               <text
                                 x={cx}
-                                y={cy + r + 4.2}
+                                y={cy + r + 2.1}
                                 textAnchor="middle"
                                 dominantBaseline="central"
+                                fill="#ffffff"
                                 fontSize={2}
+                                fontWeight="bold"
+                                fontFamily="Bangers"
                               >
-                                {"🧊".repeat(lvlStars)}
+                                {label}
                               </text>
-                            );
-                          })()}
+                            </>
+                          )}
                         </g>
                       );
                     })}

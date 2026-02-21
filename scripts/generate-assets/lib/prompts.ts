@@ -176,7 +176,7 @@ export function buildMapBackgroundPrompt(theme: ThemeDefinition): string {
     "Top-down game map textures",
     "Stylized aerial landscape illustration"
   ],
-  "scene": "Top-down bird's eye aerial view looking straight down at ${theme.mapScene}. Pure natural terrain seen from very high altitude — only ground, water, and natural formations visible. No buildings, no structures, no man-made objects.",
+  "scene": "Top-down bird's eye aerial view looking straight down at a single uniform natural surface — ${theme.mapScene}. ONLY ONE natural element filling the entire frame: just water, or just sand, or just snow, or just jungle canopy, or just earth. Absolutely no islands, no land masses, no clearings, no structures, no objects — pure uniform terrain texture.",
   "style": "flat vector illustration with smooth gradients and cel shading, stylized satellite-view aesthetic. Rich color saturation.",
   "color_palette": {
     "primary": "${theme.palette.bg}",
@@ -201,57 +201,67 @@ export function buildMapBackgroundPrompt(theme: ThemeDefinition): string {
 `.trim();
 }
 
-export function buildMapNodePrompt(theme: ThemeDefinition, nodeType: "level" | "shop" | "boss"): string {
+export function buildMapNodePrompt(theme: ThemeDefinition, nodeType: "level" | "shop" | "boss" | "completed"): string {
   const nodeDescriptions: Record<string, Record<string, string>> = {
     "Polynesian": {
       level: "A small tropical island seen from above — sandy beach ring around lush green vegetation, surrounded by deep blue ocean. Compact circular island shape.",
       shop: "A small tropical island with a thatched-roof market hut and wooden dock seen from above — sandy beach, palm trees, a few colorful trade goods visible. Surrounded by ocean.",
       boss: "A volcanic island seen from above — dark rocky mountain with glowing orange lava crater at the center, surrounded by black volcanic beach and deep ocean. Larger and more dramatic than regular islands.",
+      completed: "A small tropical island seen from above with a bright golden flag planted at its peak — sandy beach ring, lush green vegetation, golden glow emanating from the island. Surrounded by deep blue ocean. Victorious, conquered feel.",
     },
     "Ancient Egypt": {
       level: "A small desert oasis seen from above — sandy terrain with a cluster of palm trees around a turquoise water pool. Surrounded by golden desert sand.",
       shop: "A small desert bazaar seen from above — colorful market tents and awnings arranged around a central well, surrounded by sand.",
       boss: "A golden pyramid complex seen from above — large pyramid with smaller structures around it, long shadows cast on the sand. Imposing and monumental.",
+      completed: "A small desert oasis seen from above with a golden ankh symbol glowing at the center — palm trees, turquoise water, warm golden radiance. Surrounded by sand. Conquered, blessed feel.",
     },
     "Norse": {
       level: "A small snowy clearing seen from above — a circle of standing rune stones on white snow, surrounded by dark pine forest. Faint blue glow from runes.",
       shop: "A small Viking village seen from above — a few wooden longhouses with snow-covered roofs arranged around a central fire pit, surrounded by snowy forest.",
       boss: "A massive frost fortress seen from above — ice-covered great hall with glowing blue windows on a frozen lake, surrounded by snow and dark forest. Imposing scale.",
+      completed: "A small snowy clearing seen from above with rune stones glowing bright blue — warm golden fire burning at the center, victory runes illuminated. Surrounded by dark forest. Conquered feel.",
     },
     "Ancient Greece": {
       level: "A small rocky islet seen from above — white marble column ruins on sun-bleached rock, surrounded by azure Aegean sea.",
       shop: "A small harbor town seen from above — white buildings with blue roofs clustered around a tiny port with boats, surrounded by sea.",
       boss: "A grand temple complex on a hilltop seen from above — white marble Parthenon with surrounding columns, olive groves around the base. Gleaming in golden light.",
+      completed: "A small rocky islet seen from above with a golden laurel wreath glowing at the center — white marble columns intact, warm golden light. Surrounded by azure sea. Victorious feel.",
     },
     "Feudal Japan": {
       level: "A small shrine clearing seen from above — a stone lantern and small torii gate amid pink cherry blossom trees, surrounded by dark misty forest.",
       shop: "A small tea house seen from above — wooden building with warm light, a zen rock garden beside it, cherry blossoms, surrounded by bamboo forest.",
       boss: "A grand castle seen from above — multi-tiered Japanese castle with red and black roofs, stone walls, surrounded by cherry blossom gardens and moats. Dramatic scale.",
+      completed: "A small shrine clearing seen from above with cherry blossoms in full golden bloom — warm light radiating from the torii gate, victorious banners. Surrounded by misty forest. Conquered feel.",
     },
     "Ancient China": {
       level: "A small pagoda garden seen from above — a jade-green pagoda beside a lotus pond, surrounded by bamboo and misty terrain.",
       shop: "A small market courtyard seen from above — silk-draped stalls with hanging lanterns around a central jade fountain, surrounded by gardens.",
       boss: "An imperial palace complex seen from above — golden curved roofs of a grand palace with dragon statues, surrounded by formal gardens and walls. Majestic scale.",
+      completed: "A small pagoda garden seen from above with golden lanterns lit and jade glowing bright — warm imperial radiance from the pagoda. Surrounded by misty terrain. Conquered feel.",
     },
     "Ancient Persia": {
       level: "A small garden pavilion seen from above — a blue-tiled dome structure beside a reflecting pool, surrounded by cypress trees and arid terrain.",
       shop: "A small caravanserai seen from above — an arched courtyard with colorful goods and carpets, a central fountain, surrounded by desert.",
       boss: "A grand palace seen from above — massive blue domes and golden minarets, geometric tile courtyards, reflecting pools. Luminous and imposing.",
+      completed: "A small garden pavilion seen from above with golden light streaming from the blue dome — geometric tiles glowing, reflecting pool shimmering gold. Surrounded by arid terrain. Conquered feel.",
     },
     "Mayan": {
       level: "A small jungle temple ruin seen from above — a moss-covered stone platform with carved glyphs, partially hidden by jungle canopy. Green vines everywhere.",
       shop: "A small jungle marketplace seen from above — wooden platforms with woven awnings among the trees, offerings and trade goods visible, surrounded by dense canopy.",
       boss: "A stepped pyramid seen from above — massive Mayan pyramid rising above the jungle canopy, calendar sun disc carved into the top platform. Ancient and powerful.",
+      completed: "A small jungle temple ruin seen from above with golden glyphs glowing on the stone — warm light radiating through the vines, conquered and reclaimed. Surrounded by canopy. Victorious feel.",
     },
     "Chokwe": {
       level: "A small ceremonial circle seen from above — red earth clearing with carved wooden poles arranged in a ring, surrounded by African forest.",
       shop: "A small village market seen from above — thatched-roof huts with woven raffia screens around a central fire pit, trade goods spread on cloths, surrounded by forest.",
       boss: "A grand ceremonial lodge seen from above — large carved wooden structure with mask facade, blazing fires around it, geometric patterns in the red earth. Powerful presence.",
+      completed: "A small ceremonial circle seen from above with blazing golden fire at the center — carved poles glowing warm, red earth patterns illuminated. Surrounded by forest. Victorious feel.",
     },
     "Inca": {
       level: "A small stone terrace seen from above — interlocking polygonal stone walls forming a circular platform on a mountainside, surrounded by green highland terrain.",
       shop: "A small mountain trading post seen from above — stone buildings with textile-draped market stalls, llamas visible, surrounded by terraced mountain slopes.",
       boss: "A mountain citadel seen from above — massive interlocking stone walls and terraces of a Machu Picchu-style complex, golden Inti sun disc at the center. Cloud forest below.",
+      completed: "A small stone terrace seen from above with a golden Inti sun disc glowing at the center — interlocking stones radiating warm light. Surrounded by highland terrain. Conquered feel.",
     },
   };
 

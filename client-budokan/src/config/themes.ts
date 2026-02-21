@@ -513,6 +513,7 @@ export function getThemeImages(themeId: ThemeId) {
     mapNodeLevel: `${base}/map-node-level.png`,
     mapNodeShop: `${base}/map-node-shop.png`,
     mapNodeBoss: `${base}/map-node-boss.png`,
+    mapNodeCompleted: `${base}/map-node-completed.png`,
     themeIcon: `${base}/theme-icon.png`,
   };
 }
