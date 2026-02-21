@@ -254,7 +254,7 @@ const GameHud: React.FC<GameHudProps> = ({
               side="bottom"
               className="bg-slate-900 border border-slate-500 text-white text-xs px-2 py-1 z-[200]"
             >
-              Combo — lines cleared in one move
+              Combo streak — consecutive moves clearing lines
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
