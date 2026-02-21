@@ -135,9 +135,9 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
     const prevProgress = prevConstraintProgressRef.current;
     const prevSatisfied = prevProgress >= levelConfig.constraint.requiredCount;
     
-    // Check for progress increment (only for ClearLines constraints)
+    // Check for progress increment (only for ComboLines constraints)
     if (
-      levelConfig.constraint.constraintType === ConstraintType.ClearLines &&
+      levelConfig.constraint.constraintType === ConstraintType.ComboLines &&
       constraintProgress > prevProgress
     ) {
       const increment = constraintProgress - prevProgress;
@@ -307,8 +307,8 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
           </div>
         </div>
 
-        {/* Constraint progress bar - ClearLines */}
-        {levelConfig.constraint.constraintType === ConstraintType.ClearLines && (
+            {/* Constraint progress bar - ComboLines */}
+            {levelConfig.constraint.constraintType === ConstraintType.ComboLines && (
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -457,8 +457,8 @@ const LevelHeader: React.FC<LevelHeaderProps> = ({
           </TooltipProvider>
         )}
 
-        {/* Second constraint - ClearLines (for boss levels with dual constraints) */}
-        {hasConstraint2 && levelConfig.constraint2.constraintType === ConstraintType.ClearLines && (
+            {/* Second constraint - ComboLines (for boss levels with dual constraints) */}
+            {hasConstraint2 && levelConfig.constraint2.constraintType === ConstraintType.ComboLines && (
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>

@@ -38,9 +38,9 @@ const subscribeResize = (cb: () => void) => {
 const getIsDesktop = () => window.innerWidth >= DESKTOP_BREAKPOINT;
 
 const CONSTRAINT_ICON_MAP: Record<ConstraintType, string | null> = {
-  [ConstraintType.ClearLines]: getCommonAssetPath("constraints/constraint-clear-lines.png"),
+  [ConstraintType.ComboLines]: getCommonAssetPath("constraints/constraint-clear-lines.png"),
   [ConstraintType.BreakBlocks]: getCommonAssetPath("constraints/constraint-break-blocks.png"),
-  [ConstraintType.AchieveCombo]: getCommonAssetPath("constraints/constraint-combo.png"),
+  [ConstraintType.ComboStreak]: getCommonAssetPath("constraints/constraint-combo.png"),
   [ConstraintType.FillAndClear]: getCommonAssetPath("constraints/constraint-fill.png"),
   [ConstraintType.NoBonusUsed]: getCommonAssetPath("constraints/constraint-no-bonus.png"),
   [ConstraintType.ClearGrid]: getCommonAssetPath("constraints/constraint-clear-grid.png"),
@@ -85,11 +85,11 @@ const getValueBadge = (
   value: number,
 ): string | undefined => {
   switch (type) {
-    case ConstraintType.ClearLines:
+    case ConstraintType.ComboLines:
       return `${value}+`;
     case ConstraintType.BreakBlocks:
       return `${value}`;
-    case ConstraintType.AchieveCombo:
+    case ConstraintType.ComboStreak:
       return `${value}x`;
     case ConstraintType.FillAndClear:
       return `R${value}`;

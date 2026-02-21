@@ -16,9 +16,9 @@ interface HudProgressBarProps {
 }
 
 const CONSTRAINT_ICON_MAP: Record<ConstraintType, string | null> = {
-  [ConstraintType.ClearLines]: getCommonAssetPath("constraints/constraint-clear-lines.png"),
+  [ConstraintType.ComboLines]: getCommonAssetPath("constraints/constraint-clear-lines.png"),
   [ConstraintType.BreakBlocks]: getCommonAssetPath("constraints/constraint-break-blocks.png"),
-  [ConstraintType.AchieveCombo]: getCommonAssetPath("constraints/constraint-combo.png"),
+  [ConstraintType.ComboStreak]: getCommonAssetPath("constraints/constraint-combo.png"),
   [ConstraintType.FillAndClear]: getCommonAssetPath("constraints/constraint-fill.png"),
   [ConstraintType.NoBonusUsed]: getCommonAssetPath("constraints/constraint-no-bonus.png"),
   [ConstraintType.ClearGrid]: getCommonAssetPath("constraints/constraint-clear-grid.png"),

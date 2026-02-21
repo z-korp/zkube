@@ -188,7 +188,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
     }
     
     if (
-      levelConfig.constraint.constraintType === ConstraintType.ClearLines &&
+      levelConfig.constraint.constraintType === ConstraintType.ComboLines &&
       constraintProgress > prevProgress &&
       !prevSatisfied && constraintSatisfied
     ) {
@@ -283,7 +283,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
       );
     }
 
-    // ClearLines constraint with dots
+      // ComboLines constraint with dots
     const constraintId = color === "purple" ? "c2" : "c1";
     const dots = [];
     for (let i = 0; i < constraint.requiredCount; i++) {

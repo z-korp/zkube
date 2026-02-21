@@ -7,11 +7,11 @@ export enum ConstraintType {
   /** No constraint - just reach the point goal */
   None = 0,
   /** Must clear X lines in a single move, Y times */
-  ClearLines = 1,
+  ComboLines = 1,
   /** Must destroy X blocks of a specific size (accumulating) */
   BreakBlocks = 2,
   /** Must reach a combo of X (one-shot) */
-  AchieveCombo = 3,
+  ComboStreak = 3,
   /** Must fill grid to X rows Y times (height after resolve) */
   FillAndClear = 4,
   /** Must complete level without using any bonus (boss-only) */
@@ -45,7 +45,7 @@ export class Constraint {
   }
 
   static clearLines(lines: number, times: number): Constraint {
-    return new Constraint(ConstraintType.ClearLines, lines, times);
+    return new Constraint(ConstraintType.ComboLines, lines, times);
   }
 
   static breakBlocks(targetSize: number, count: number): Constraint {
@@ -53,7 +53,7 @@ export class Constraint {
   }
 
   static achieveCombo(comboTarget: number): Constraint {
-    return new Constraint(ConstraintType.AchieveCombo, comboTarget, 1);
+    return new Constraint(ConstraintType.ComboStreak, comboTarget, 1);
   }
 
   static fillAndClear(targetRow: number, times: number): Constraint {
@@ -76,11 +76,11 @@ export class Constraint {
     switch (this.constraintType) {
       case ConstraintType.None:
         return true;
-      case ConstraintType.ClearLines:
+      case ConstraintType.ComboLines:
         return progress >= this.requiredCount;
       case ConstraintType.BreakBlocks:
         return progress >= this.requiredCount;
-      case ConstraintType.AchieveCombo:
+      case ConstraintType.ComboStreak:
         return progress >= 1;
       case ConstraintType.FillAndClear:
         return progress >= this.requiredCount;
@@ -97,11 +97,11 @@ export class Constraint {
     switch (this.constraintType) {
       case ConstraintType.None:
         return "No constraint";
-      case ConstraintType.ClearLines:
+      case ConstraintType.ComboLines:
         return `Make ${this.value}+ combos ${this.requiredCount} time${this.requiredCount > 1 ? "s" : ""}`;
       case ConstraintType.BreakBlocks:
         return `Break ${this.requiredCount} size-${this.value} blocks`;
-      case ConstraintType.AchieveCombo:
+      case ConstraintType.ComboStreak:
         return `Reach ${this.value}x combo`;
       case ConstraintType.FillAndClear:
         return `Fill to row ${this.value} ${this.requiredCount} time${this.requiredCount > 1 ? "s" : ""}`;
@@ -118,11 +118,11 @@ export class Constraint {
     switch (this.constraintType) {
       case ConstraintType.None:
         return "";
-      case ConstraintType.ClearLines:
+      case ConstraintType.ComboLines:
         return `${this.value}+ combos x${this.requiredCount}`;
       case ConstraintType.BreakBlocks:
         return `Break ${this.requiredCount}x size-${this.value}`;
-      case ConstraintType.AchieveCombo:
+      case ConstraintType.ComboStreak:
         return `${this.value}x combo`;
       case ConstraintType.FillAndClear:
         return `Fill row ${this.value} x${this.requiredCount}`;

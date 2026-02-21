@@ -41,7 +41,7 @@ export interface InteractiveStep extends TutorialStepBase {
   targetBlock: TutorialTarget | null;
   successCondition: string;
   constraint?: {
-    type: "ClearLines" | "NoBonusUsed";
+    type: "ComboLines" | "NoBonusUsed";
     value: number;
     count: number;
   };
@@ -377,7 +377,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     mobileDescription: "Clear 2+ lines",
     targetBlock: { x: 4, y: 8, type: "block" }, // 2-wide block at positions 4-5
     successCondition: "constraint_satisfied",
-    constraint: { type: "ClearLines", value: 2, count: 1 },
+        constraint: { type: "ComboLines", value: 2, count: 1 },
   },
   // Step 9: Earn Cubes (Info)
   {
