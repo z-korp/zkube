@@ -37,7 +37,7 @@ pub impl DailyPlayerOne of QuestTrait {
     }
 }
 
-/// DailyPlayerTwo - Play 3 games (rewards 6 CUBE)
+/// DailyPlayerTwo - Play 3 games (rewards 5 CUBE)
 pub impl DailyPlayerTwo of QuestTrait {
     fn identifier() -> felt252 {
         'DAILY_PLAYER_TWO'
@@ -45,7 +45,7 @@ pub impl DailyPlayerTwo of QuestTrait {
 
     fn props(registry: ContractAddress) -> QuestProps {
         let total = 3;
-        let reward = RewardTrait::new("Quest Reward", "6 CUBE", ICON());
+        let reward = RewardTrait::new("Quest Reward", "5 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
             name: "Getting Started",
             description: "Play 3 games to get in the zone.",
@@ -69,7 +69,7 @@ pub impl DailyPlayerTwo of QuestTrait {
     }
 }
 
-/// DailyPlayerThree - Play 5 games (rewards 12 CUBE)
+/// DailyPlayerThree - Play 5 games (rewards 10 CUBE)
 pub impl DailyPlayerThree of QuestTrait {
     fn identifier() -> felt252 {
         'DAILY_PLAYER_THREE'
@@ -77,7 +77,7 @@ pub impl DailyPlayerThree of QuestTrait {
 
     fn props(registry: ContractAddress) -> QuestProps {
         let total = 5;
-        let reward = RewardTrait::new("Quest Reward", "12 CUBE", ICON());
+        let reward = RewardTrait::new("Quest Reward", "10 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
             name: "Dedicated",
             description: "Play 5 games to prove your dedication.",

@@ -1,17 +1,19 @@
-/// Master achievement - Complete all daily quests
+/// Daily Delusion achievements - Complete all daily quests milestones
 use crate::elements::achievements::interface::{AchievementTask, AchievementTrait, Task, TaskTrait};
 
-/// Master achievement: Complete all daily quests (once)
+/// Daily Delusion achievement levels: Complete all daily quests 1/3/10 times
 pub impl Master of AchievementTrait {
     fn identifier(level: u8) -> felt252 {
         match level {
-            0 => 'DAILY_MASTER',
+            0 => 'DAILY_MASTER_I',
+            1 => 'DAILY_MASTER_II',
+            2 => 'DAILY_MASTER_III',
             _ => '',
         }
     }
 
     fn index(level: u8) -> u8 {
-        27  // Last achievement
+        level + 30  // Offset after Victory Path achievements
     }
 
     fn hidden(level: u8) -> bool {
@@ -20,38 +22,51 @@ pub impl Master of AchievementTrait {
 
     fn points(level: u8) -> u16 {
         match level {
-            0 => 50,
+            0 => 20,
+            1 => 60,
+            2 => 100,
             _ => 0,
         }
     }
 
     fn group() -> felt252 {
-        'Master'
+        'Daily Delusion'
     }
 
     fn icon(level: u8) -> felt252 {
         match level {
-            0 => 'fa-trophy',
+            0 => 'fa-calendar-check',
+            1 => 'fa-calendar-days',
+            2 => 'fa-calendar-week',
             _ => '',
         }
     }
 
     fn title(level: u8) -> felt252 {
         match level {
-            0 => 'Daily Champion',
+            0 => 'Checklist Enjoyer',
+            1 => 'Calendar Cultist',
+            2 => 'Chronically Online',
             _ => '',
         }
     }
 
     fn description(level: u8) -> ByteArray {
         match level {
-            0 => "Complete all 9 daily quests in a single day. True dedication!",
+            0 => "Complete all daily quests 1 time.",
+            1 => "Complete all daily quests 3 times.",
+            2 => "Complete all daily quests 10 times.",
             _ => "",
         }
     }
 
     fn tasks(level: u8) -> Span<AchievementTask> {
-        // This tracks the DailyMaster task from quest completion
-        Task::DailyMaster.tasks(9)
+        let count: u32 = match level {
+            0 => 1,
+            1 => 3,
+            2 => 10,
+            _ => 0,
+        };
+        Task::DailyMaster.tasks(count)
     }
 }

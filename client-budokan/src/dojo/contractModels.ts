@@ -19,6 +19,7 @@ export function defineContractComponents(world: World) {
           combo_counter: RecsType.Number,
           max_combo: RecsType.Number,
           run_data: RecsType.BigInt,
+          level_stars: RecsType.BigInt,
           started_at: RecsType.Number,
           over: RecsType.Boolean,
         },
@@ -32,6 +33,7 @@ export function defineContractComponents(world: World) {
               "u32",
               "u8",
               "u8",
+              "felt252",
               "felt252",
               "u64",
               "bool",
@@ -177,7 +179,9 @@ export function defineContractComponents(world: World) {
           constraint2_type: RecsType.Number,
           constraint2_value: RecsType.Number,
           constraint2_count: RecsType.Number,
-          // Cube thresholds
+          constraint3_type: RecsType.Number,
+          constraint3_value: RecsType.Number,
+          constraint3_count: RecsType.Number,
           cube_3_threshold: RecsType.Number,
           cube_2_threshold: RecsType.Number,
         },
@@ -197,6 +201,9 @@ export function defineContractComponents(world: World) {
               "u8",   // constraint2_type
               "u8",   // constraint2_value
               "u8",   // constraint2_count
+              "u8",   // constraint3_type
+              "u8",   // constraint3_value
+              "u8",   // constraint3_count
               "u16",  // cube_3_threshold
               "u16",  // cube_2_threshold
             ],

@@ -21,7 +21,14 @@ zkube/
 ├── packages/
 │   ├── game_erc721/        # Legacy ERC721 contract (replaced by FullTokenContract)
 │   └── token/              # ERC20 test token (Fake LORD)
-├── client-budokan/         # React/TypeScript frontend application
+├── client-budokan/         # React/TypeScript frontend (ACTIVE)
+│   ├── src/
+│   │   ├── dojo/           # Dojo client setup and game helpers
+│   │   ├── ui/             # React UI screens (Home, Play, Loading)
+│   │   ├── hooks/          # Shared React hooks
+│   │   ├── utils/          # Utility functions
+│   │   ├── stores/         # Zustand state stores
+│   │   └── contexts/       # React context providers
 ├── assets/                 # Game graphics, sounds, and media
 ├── scripts/                # Deployment and utility scripts
 ├── docs/                   # Documentation
@@ -38,10 +45,10 @@ zkube/
 - **Styling:** TailwindCSS 3.4.4
 - **State Management:** Zustand 4.5.5, MobX 6.13.2, RECS (Reactive ECS)
 - **Animation:** Framer Motion 11.2.10, GSAP 3.12.5
+- **Audio:** use-sound (Howler.js)
 - **Starknet:** starknet 8.5.2, @starknet-react/core 5.0.1
 - **Dojo:** @dojoengine/sdk 1.8.1, @dojoengine/core 1.8.1
 - **Wallet:** Cartridge Controller 0.10.7
-- **Audio:** use-sound (Howler.js)
 
 ### Smart Contracts (`contracts/`)
 - **Language:** Cairo 2.13.1
@@ -111,7 +118,7 @@ zkube/
    - Quest progress tracked (games played, lines cleared, combos)
    - Level completes when score threshold + constraints met
    - Bonuses awarded based on star rating (3-star/2-star/1-star performance)
-   - Every 5 levels, in-game shop appears to spend cubes on consumables
+   - Every 10 levels, in-game shop appears to spend cubes on consumables
    - On game over, earned cubes are minted as ERC1155 tokens to player's wallet
 
 3. **State Synchronization:**
@@ -139,16 +146,17 @@ pub const DEFAULT_GRID_HEIGHT: u8 = 10;
 
 ### Bonus System
 
-Five types of bonuses, each with 3 upgrade levels:
-- **Hammer:** Clears a specific block and connected same-size blocks
-- **Wave:** Clears an entire horizontal row
-- **Totem:** Clears all blocks of the same size on the grid
-- **Shrink:** Reduces block size by 1 (unlockable, 200 CUBE)
-- **Shuffle:** Randomizes block positions (unlockable, 200 CUBE)
+Five types of bonuses (V3.0), each with 3 upgrade levels:
+- **Combo:** Adds combo to your next move (+1/+2/+3 by level)
+- **Score:** Instantly adds bonus score (+10/+20/+30 by level)
+- **Harvest:** Destroys all blocks of a chosen size, earns CUBEs per block (+1/+2/+3 CUBE per block by level)
+- **Wave:** Clears entire horizontal rows (1/2/3 rows by level) — unlockable
+- **Supply:** Adds new lines at no move cost (1/2/3 lines by level) — unlockable
 
-Players select 3 bonuses before each run. Bonuses are earned through:
-- Level completion (random bonus from selected 3)
-- Boss level rewards (every 10 levels)
+Players select 3 bonuses before each run. Charges are purchased in shops:
+- Permanent shop: starting charges, bag size upgrades, unlock Wave/Supply
+- In-game shop (every 10 levels): buy charges during run
+- Boss clear (levels 10/20/30/40): awards Level Up Item to upgrade one bonus
 
 ### Level System
 
@@ -182,15 +190,14 @@ Clearing multiple lines in one move awards bonus cubes:
 
 ### Constraint System
 
-Level constraints add challenge for bonus rewards:
-- **ClearLines:** Clear X lines in a single move, Y times per level
-- **NoBonusUsed:** Complete level without using any bonus
-- **Dual constraints:** Higher difficulties can have two constraints
-
-Parameters scale from Easy to Master difficulty:
-- None chance: 30% -> 0%
-- NoBonusUsed chance: 0% -> 25%
-- Dual constraint chance: 0% -> 50%
+7 constraint types (None, ClearLines, BreakBlocks, AchieveCombo, Fill, NoBonusUsed, ClearGrid):
+- **Unified budget system:** All 4 regular types (ClearLines, BreakBlocks, Fill, AchieveCombo) generated from same budget engine
+- **Regular levels (3+):** Type selected by difficulty-weighted probabilities, values from budget
+- **Boss levels (10/20/30/40/50):** Boss identity = which types, budget_max = values
+- **Boss progression:** Dual constraints at L10-30, triple at L40/50
+- **Boss-only types:** NoBonusUsed and ClearGrid only appear on boss levels (binary, no budget)
+- **Fill constraint:** Triggers when grid height after move resolves reaches target row
+- 10 boss identities defined in `contracts/src/helpers/boss.cairo`
 
 ### Quest System
 
@@ -227,6 +234,8 @@ Daily quests for earning CUBE tokens (102 CUBE/day total):
 - `client-budokan/src/main.tsx` - App initialization and providers
 - `client-budokan/src/App.tsx` - Router setup
 - `client-budokan/src/dojo/setup.ts` - Dojo client initialization
+- `client-budokan/src/ui/screens/Home.tsx` - Home screen
+- `client-budokan/src/ui/screens/Play.tsx` - Game play screen
 - `client-budokan/dojo.config.ts` - Network configuration
 
 ### Smart Contract Entry Points
@@ -240,6 +249,7 @@ Daily quests for earning CUBE tokens (102 CUBE/day total):
 - `contracts/src/models/config.cairo` - GameSettings model (configurable parameters)
 - `contracts/src/helpers/controller.cairo` - Grid manipulation logic
 - `contracts/src/helpers/level.cairo` - Level generation with settings
+- `contracts/src/helpers/boss.cairo` - Boss identity system (10 themed bosses)
 - `contracts/src/constants.cairo` - Game constants and namespace
 
 ### Token Contracts
@@ -301,7 +311,8 @@ Models are prefixed with this namespace in Torii queries:
 ## Important Patterns
 
 ### Reuse Existing Components
-- Check `client-budokan/src/ui/components/` before creating new UI components
+- Check `client-budokan/src/ui/components/` for React UI components
+- Check `client-budokan/src/ui/` for React UI screens
 - Check `contracts/src/helpers/` for utility functions
 - Use existing hooks in `client-budokan/src/hooks/`
 
@@ -358,8 +369,8 @@ const normalizeEntityId = (entityId: string): Entity => {
 
 ### Frontend Tests
 - Framework: Vitest 2.1.4
-- Location: `client-budokan/src/test/`
-- Run: `pnpm test`
+- Location: `client-budokan/src/` (co-located test files)
+- Run: `cd client-budokan && pnpm test`
 
 ### Contract Tests
 - Framework: dojo_cairo_test 1.8.0
@@ -477,11 +488,7 @@ sozo migrate -P slot
 ## Documentation
 
 See `/docs/` for detailed documentation:
-- **GAME_DESIGN.md** - Complete game design document
-- **QUEST_SYSTEM.md** - Daily quest system implementation
+- **GAME_DESIGN.md** - Complete game design (levels, economy, bonuses, quests, achievements)
 - **CONFIGURABLE_SETTINGS.md** - GameSettings customization
 - **DEPLOYMENT_GUIDE.md** - Network deployment guide
-- **WORKSPACE_STRUCTURE.md** - Scarb workspace organization
-- **AGENT_QUICKSTART.md** - Quick reference for Claude agents
-- **MILESTONES.md** - Project milestones and completed features
-- **FUTURE_FEATURES.md** - Roadmap and planned features
+- **references/** - External reference material (game-components, death-mountain, dark-shuffle, architecture analysis)

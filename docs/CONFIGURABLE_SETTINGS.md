@@ -33,7 +33,7 @@ pub struct GameSettings {
 |----------|----------|-----------|
 | Level Scaling | `helpers/level.cairo` | BASE_MOVES=20, MAX_MOVES=60, BASE_RATIO=80, MAX_RATIO=250 |
 | Cube Thresholds | `helpers/level.cairo` | CUBE_3_PERCENT=40, CUBE_2_PERCENT=70 |
-| Consumable Costs | `types/consumable.cairo` | HAMMER/WAVE/TOTEM=5, EXTRA_MOVES=10 |
+| Consumable Costs | `types/consumable.cairo` | COMBO/SCORE/HARVEST=5, EXTRA_MOVES=10 |
 | Variance | `helpers/level.cairo` | EARLY=5%, MID=10%, LATE=15% |
 
 ## Design
@@ -61,9 +61,9 @@ pub struct GameSettings {
     pub cube_2_percent: u8,             // 2 cubes if moves <= X% of max (default: 70)
     
     // === Consumable Costs ===
-    pub hammer_cost: u8,                // Cost in cubes (default: 5)
-    pub wave_cost: u8,                  // Cost in cubes (default: 5)
-    pub totem_cost: u8,                 // Cost in cubes (default: 5)
+    pub combo_cost: u8,                 // Cost in cubes (default: 5)
+    pub score_cost: u8,                 // Cost in cubes (default: 5)
+    pub harvest_cost: u8,               // Cost in cubes (default: 5)
     pub extra_moves_cost: u8,           // Cost in cubes (default: 10)
     
     // === Reward Multiplier ===
@@ -81,9 +81,9 @@ Total bits needed for new fields:
 - `max_ratio_x100`: 16 bits
 - `cube_3_percent`: 8 bits
 - `cube_2_percent`: 8 bits
-- `hammer_cost`: 8 bits
-- `wave_cost`: 8 bits
-- `totem_cost`: 8 bits
+- `combo_cost`: 8 bits
+- `score_cost`: 8 bits
+- `harvest_cost`: 8 bits
 - `extra_moves_cost`: 8 bits
 - `cube_multiplier_x100`: 16 bits
 
@@ -100,9 +100,9 @@ Total bits needed for new fields:
 | `max_ratio_x100` | 250 | 2.50 points/move at level cap (50) |
 | `cube_3_percent` | 40 | 3 cubes if <= 40% moves used |
 | `cube_2_percent` | 70 | 2 cubes if <= 70% moves used |
-| `hammer_cost` | 5 | Hammer consumable cost |
-| `wave_cost` | 5 | Wave consumable cost |
-| `totem_cost` | 5 | Totem consumable cost |
+| `combo_cost` | 5 | Combo consumable cost |
+| `score_cost` | 5 | Score consumable cost |
+| `harvest_cost` | 5 | Harvest consumable cost |
 | `extra_moves_cost` | 10 | Extra moves consumable cost |
 | `cube_multiplier_x100` | 100 | 1.0x cube rewards |
 
@@ -186,9 +186,9 @@ GameSettings {
     max_moves: 80,
     cube_3_percent: 50,         // Easier thresholds
     cube_2_percent: 80,
-    hammer_cost: 3,             // Cheaper consumables
-    wave_cost: 3,
-    totem_cost: 3,
+    combo_cost: 3,              // Cheaper consumables
+    score_cost: 3,
+    harvest_cost: 3,
     ...
 }
 ```
@@ -256,9 +256,9 @@ pub struct GameSettings {
     pub cube_2_percent: u8,        // 70 - 2 cubes if moves <= X% of max
     
     // === Consumable Costs ===
-    pub hammer_cost: u8,           // 5
-    pub wave_cost: u8,             // 5
-    pub totem_cost: u8,            // 5
+    pub combo_cost: u8,            // 5
+    pub score_cost: u8,            // 5
+    pub harvest_cost: u8,          // 5
     pub extra_moves_cost: u8,      // 10
     
     // === Reward Multiplier ===
@@ -304,9 +304,9 @@ fn add_custom_game_settings(
     cube_3_percent: u8,
     cube_2_percent: u8,
     // Consumable Costs
-    hammer_cost: u8,
-    wave_cost: u8,
-    totem_cost: u8,
+    combo_cost: u8,
+    score_cost: u8,
+    harvest_cost: u8,
     extra_moves_cost: u8,
     // Reward Multiplier
     cube_multiplier_x100: u16,

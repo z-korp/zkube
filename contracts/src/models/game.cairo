@@ -4,6 +4,7 @@ use core::poseidon::{PoseidonTrait, HashState};
 use core::hash::HashStateTrait;
 
 use alexandria_math::fast_power::fast_power;
+use alexandria_math::BitShift;
 
 use zkube::constants;
 use zkube::helpers::packing::{RunData, RunDataPackingTrait};
@@ -33,6 +34,7 @@ pub struct Game {
     // Level system (bit-packed run progress)
     // ----------------------------------------
     pub run_data: felt252, // Bit-packed: level, score, moves, bonuses, stars, etc.
+    pub level_stars: felt252, // 2 bits per level × 50 levels = 100 bits
 
     // ----------------------------------------
     // Timestamps
@@ -67,13 +69,17 @@ pub struct GameLevel {
     pub max_moves: u16,
     pub difficulty: u8,           // Difficulty enum as u8
     // Primary constraint
-    pub constraint_type: u8,      // ConstraintType enum as u8 (0=None, 1=ClearLines, 2=NoBonusUsed)
-    pub constraint_value: u8,     // For ClearLines: minimum lines to clear
-    pub constraint_count: u8,     // For ClearLines: number of times required
-    // Secondary constraint (for boss levels)
+    pub constraint_type: u8,      // ConstraintType enum as u8 (0-6)
+    pub constraint_value: u8,     // Constraint parameter
+    pub constraint_count: u8,     // Required count
+    // Secondary constraint
     pub constraint2_type: u8,
     pub constraint2_value: u8,
     pub constraint2_count: u8,
+    // Tertiary constraint (boss levels 40/50)
+    pub constraint3_type: u8,
+    pub constraint3_value: u8,
+    pub constraint3_count: u8,
     // Cube thresholds
     pub cube_3_threshold: u16,    // Moves threshold for 3 cubes
     pub cube_2_threshold: u16,    // Moves threshold for 2 cubes
@@ -97,6 +103,9 @@ pub impl GameLevelImpl of GameLevelTrait {
             constraint2_type: config.constraint_2.constraint_type.into(),
             constraint2_value: config.constraint_2.value,
             constraint2_count: config.constraint_2.required_count,
+            constraint3_type: config.constraint_3.constraint_type.into(),
+            constraint3_value: config.constraint_3.value,
+            constraint3_count: config.constraint_3.required_count,
             cube_3_threshold: config.cube_3_threshold,
             cube_2_threshold: config.cube_2_threshold,
         }
@@ -117,6 +126,7 @@ pub impl GameImpl of GameTrait {
             combo_counter: 0,
             max_combo: 0,
             run_data: run_data.pack(),
+            level_stars: 0,
             started_at,
             over: false,
         }
@@ -158,22 +168,34 @@ pub impl GameImpl of GameTrait {
         self.get_run_data().total_cubes
     }
 
-    /// Get hammer count from inventory
+    /// Get combo bonus count from inventory
     #[inline(always)]
-    fn get_hammer_count(self: Game) -> u8 {
-        self.get_run_data().hammer_count
+    fn get_combo_count(self: Game) -> u8 {
+        self.get_run_data().combo_count
     }
 
-    /// Get wave count from inventory
+    /// Get score bonus count from inventory
+    #[inline(always)]
+    fn get_score_count(self: Game) -> u8 {
+        self.get_run_data().score_count
+    }
+
+    /// Get harvest bonus count from inventory
+    #[inline(always)]
+    fn get_harvest_count(self: Game) -> u8 {
+        self.get_run_data().harvest_count
+    }
+
+    /// Get wave bonus count from inventory
     #[inline(always)]
     fn get_wave_count(self: Game) -> u8 {
         self.get_run_data().wave_count
     }
 
-    /// Get totem count from inventory
+    /// Get supply bonus count from inventory
     #[inline(always)]
-    fn get_totem_count(self: Game) -> u8 {
-        self.get_run_data().totem_count
+    fn get_supply_count(self: Game) -> u8 {
+        self.get_run_data().supply_count
     }
 
     /// Check if bonus was used this level (for NoBonusUsed constraint)
@@ -194,8 +216,14 @@ pub impl GameImpl of GameTrait {
         self.get_run_data().constraint_2_progress
     }
 
+    /// Get constraint_3 progress (tertiary constraint)
+    #[inline(always)]
+    fn get_constraint_3_progress(self: Game) -> u8 {
+        self.get_run_data().constraint_3_progress
+    }
+
     /// Get the level (0-2) for a given bonus type based on selected bonuses
-    /// @param bonus_type: 1=Hammer, 2=Totem, 3=Wave, 4=Shrink, 5=Shuffle
+    /// @param bonus_type: 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
     /// Returns 0 (L1), 1 (L2), or 2 (L3)
     fn get_bonus_level(self: Game, bonus_type: u8) -> u8 {
         let run_data = self.get_run_data();
@@ -266,7 +294,7 @@ pub impl GameImpl of GameTrait {
         run_data.level_moves = 0;
         run_data.constraint_progress = 0;
         run_data.constraint_2_progress = 0;
-        run_data.extra_moves = 0;
+        run_data.constraint_3_progress = 0;
         run_data.bonus_used_this_level = false;
 
         // Reset per-level combos
@@ -276,6 +304,26 @@ pub impl GameImpl of GameTrait {
         self.set_run_data(run_data);
 
         (cubes, bonuses, false)
+    }
+
+    /// Get stars earned for a specific level (1-indexed, returns 0-3)
+    /// Each level uses 2 bits: level 1 at bits 0-1, level 2 at bits 2-3, etc.
+    fn get_level_stars(self: Game, level: u8) -> u8 {
+        assert!(level >= 1 && level <= 50, "Level must be 1-50");
+        let shift: u32 = ((level - 1) * 2).into();
+        let data: u256 = self.level_stars.into();
+        (BitShift::shr(data, shift.into()) & 0x3_u256).try_into().unwrap()
+    }
+
+    /// Set stars earned for a specific level (1-indexed, value 0-3)
+    fn set_level_stars(ref self: Game, level: u8, stars: u8) {
+        assert!(level >= 1 && level <= 50, "Level must be 1-50");
+        assert!(stars <= 3, "Stars must be 0-3");
+        let shift: u32 = ((level - 1) * 2).into();
+        let mut data: u256 = self.level_stars.into();
+        let mask: u256 = BitShift::shl(0x3_u256, shift.into());
+        data = (data & ~mask) | BitShift::shl(stars.into() & 0x3_u256, shift.into());
+        self.level_stars = data.try_into().unwrap();
     }
 }
 
@@ -289,6 +337,7 @@ pub impl ZeroableGame of Zero<Game> {
             combo_counter: 0,
             max_combo: 0,
             run_data: 0,
+            level_stars: 0,
             started_at: 0,
             over: false,
         }
@@ -326,11 +375,11 @@ pub impl GameAssert of AssertTrait {
     fn assert_bonus_available(self: Game, bonus: Bonus) {
         let run_data = self.get_run_data();
         let count = match bonus {
-            Bonus::Hammer => run_data.hammer_count,
+            Bonus::Combo => run_data.combo_count,
+            Bonus::Score => run_data.score_count,
+            Bonus::Harvest => run_data.harvest_count,
             Bonus::Wave => run_data.wave_count,
-            Bonus::Totem => run_data.totem_count,
-            Bonus::Shrink => run_data.shrink_count,
-            Bonus::Shuffle => run_data.shuffle_count,
+            Bonus::Supply => run_data.supply_count,
             Bonus::None => 0,
         };
         assert!(count > 0, "Game {} bonus is not available", self.game_id);

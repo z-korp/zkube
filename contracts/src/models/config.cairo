@@ -37,10 +37,9 @@ pub struct GameSettings {
     pub cube_2_percent: u8,     // 2 cubes if moves <= X% of max (default: 70)
     
     // === Consumable Costs ===
-    pub hammer_cost: u8,        // Cost in cubes (default: 5)
-    pub wave_cost: u8,          // Cost in cubes (default: 5)
-    pub totem_cost: u8,         // Cost in cubes (default: 5)
-    pub extra_moves_cost: u8,   // Cost in cubes (default: 10)
+    pub combo_cost: u8,         // Cost in cubes (default: 5)
+    pub score_cost: u8,         // Cost in cubes (default: 5)
+    pub harvest_cost: u8,       // Cost in cubes (default: 5)
     
     // === Difficulty Progression (non-linear tier thresholds) ===
     // Each threshold is the level at which that difficulty tier begins
@@ -120,10 +119,9 @@ pub mod GameSettingsDefaults {
     pub const CUBE_2_PERCENT: u8 = 70;
     
     // Consumable Costs
-    pub const HAMMER_COST: u8 = 5;
-    pub const WAVE_COST: u8 = 5;
-    pub const TOTEM_COST: u8 = 5;
-    pub const EXTRA_MOVES_COST: u8 = 10;
+    pub const COMBO_COST: u8 = 5;
+    pub const SCORE_COST: u8 = 5;
+    pub const HARVEST_COST: u8 = 5;
     
     // Difficulty Progression (non-linear tier thresholds)
     // VeryEasy: 1-3, Easy: 4-7, Medium: 8-11, MediumHard: 12-17
@@ -151,17 +149,17 @@ pub mod GameSettingsDefaults {
     // Line costs: 2->1, 3->2, 4->4, 5->7, 6->11, 7->16
     pub const VERYEASY_BUDGET_MIN: u8 = 1;         // Min budget early (1 = "2 lines x 1 time")
     pub const VERYEASY_BUDGET_MAX: u8 = 3;         // Max ~"2 lines × 2-3 times" at VeryEasy
-    pub const MASTER_BUDGET_MIN: u8 = 25;          // Hard floor at Master
+    pub const MASTER_BUDGET_MIN: u8 = 32;          // Hard floor at Master
     pub const MASTER_BUDGET_MAX: u8 = 40;          // Allows 6×3, 5×5, 4×10 at Master
     // Times floor (soft minimum)
     pub const VERYEASY_MIN_TIMES: u8 = 1;          // At least 1 time
     pub const MASTER_MIN_TIMES: u8 = 2;            // At least 2 times at Master
-    // Dual constraint chance
-    pub const VERYEASY_DUAL_CHANCE: u8 = 0;        // No dual early
-    pub const MASTER_DUAL_CHANCE: u8 = 100;        // ALWAYS dual at Master
-    // Secondary NoBonusUsed chance (only when rolling secondary)
-    pub const VERYEASY_SECONDARY_NO_BONUS_CHANCE: u8 = 0;   // Never early
-    pub const MASTER_SECONDARY_NO_BONUS_CHANCE: u8 = 30;    // 30% at Master
+    // Constraint count range (DEPRECATED — constraint counts are now hardcoded per tier in level.cairo)
+    // These fields kept for packed model layout compatibility but are no longer read.
+    pub const VERYEASY_DUAL_CHANCE: u8 = 0;
+    pub const MASTER_DUAL_CHANCE: u8 = 0;
+    pub const VERYEASY_SECONDARY_NO_BONUS_CHANCE: u8 = 0;
+    pub const MASTER_SECONDARY_NO_BONUS_CHANCE: u8 = 0;
     
     // Pre-packed default values for constraint fields
     // constraint_lines_budgets packing: lines(4x4) + budgets(4x8) + times(2x4) = 56 bits
@@ -248,10 +246,9 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             cube_3_percent: GameSettingsDefaults::CUBE_3_PERCENT,
             cube_2_percent: GameSettingsDefaults::CUBE_2_PERCENT,
             // Consumable Costs
-            hammer_cost: GameSettingsDefaults::HAMMER_COST,
-            wave_cost: GameSettingsDefaults::WAVE_COST,
-            totem_cost: GameSettingsDefaults::TOTEM_COST,
-            extra_moves_cost: GameSettingsDefaults::EXTRA_MOVES_COST,
+            combo_cost: GameSettingsDefaults::COMBO_COST,
+            score_cost: GameSettingsDefaults::SCORE_COST,
+            harvest_cost: GameSettingsDefaults::HARVEST_COST,
             // Difficulty Progression (non-linear tier thresholds)
             tier_1_threshold: GameSettingsDefaults::TIER_1_THRESHOLD,
             tier_2_threshold: GameSettingsDefaults::TIER_2_THRESHOLD,
@@ -349,13 +346,12 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         }
     }
     
-    /// Get consumable cost by type (0=Hammer, 1=Wave, 2=Totem)
-    /// Note: These legacy costs are kept for backwards compatibility but new shop uses fixed prices
+    /// Get consumable cost by type (0=Combo, 1=Score, 2=Harvest)
     fn get_consumable_cost(self: GameSettings, consumable_type: u8) -> u8 {
         match consumable_type {
-            0 => self.hammer_cost,
-            1 => self.wave_cost,
-            2 => self.totem_cost,
+            0 => self.combo_cost,
+            1 => self.score_cost,
+            2 => self.harvest_cost,
             _ => 0,
         }
     }
@@ -393,8 +389,10 @@ pub impl GameSettingsImpl of GameSettingsTrait {
     }
     
     /// Get constraint parameters interpolated for a given difficulty
-    /// Returns (min_lines, max_lines, budget_min, budget_max, min_times, dual_chance, secondary_no_bonus_chance)
-    fn get_constraint_params_for_difficulty(self: GameSettings, difficulty: Difficulty) -> (u8, u8, u8, u8, u8, u8, u8) {
+    /// Returns (min_lines, max_lines, budget_min, budget_max, min_times)
+    /// Note: dual_chance and secondary_no_bonus_chance were removed in the deterministic
+    /// constraint count system. Constraint counts are now hardcoded per tier in level.cairo.
+    fn get_constraint_params_for_difficulty(self: GameSettings, difficulty: Difficulty) -> (u8, u8, u8, u8, u8) {
         // Map difficulty to a 0-7 scale (VeryEasy=0, Master=7)
         // None and Increasing are modes, not tiers - treat as VeryEasy for interpolation
         let diff_value: u8 = match difficulty {
@@ -413,8 +411,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         let (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
              veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max,
              veryeasy_min_times, master_min_times) = self.unpack_lines_budgets();
-        let (veryeasy_dual_chance, master_dual_chance, 
-             veryeasy_secondary_no_bonus, master_secondary_no_bonus) = self.unpack_chances();
         
         // Interpolate each parameter from veryeasy (0) to master (7)
         let min_lines = Self::interpolate(veryeasy_min_lines, master_min_lines, diff_value, 7);
@@ -422,10 +418,8 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         let budget_min = Self::interpolate(veryeasy_budget_min, master_budget_min, diff_value, 7);
         let budget_max = Self::interpolate(veryeasy_budget_max, master_budget_max, diff_value, 7);
         let min_times = Self::interpolate(veryeasy_min_times, master_min_times, diff_value, 7);
-        let dual_chance = Self::interpolate(veryeasy_dual_chance, master_dual_chance, diff_value, 7);
-        let secondary_no_bonus_chance = Self::interpolate(veryeasy_secondary_no_bonus, master_secondary_no_bonus, diff_value, 7);
         
-        (min_lines, max_lines, budget_min, budget_max, min_times, dual_chance, secondary_no_bonus_chance)
+        (min_lines, max_lines, budget_min, budget_max, min_times)
     }
     
     /// Get block weights interpolated for a given difficulty
@@ -463,8 +457,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         let (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
              veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max,
              veryeasy_min_times, master_min_times) = self.unpack_lines_budgets();
-        let (veryeasy_dual_chance, master_dual_chance, 
-             veryeasy_secondary_no_bonus, master_secondary_no_bonus) = self.unpack_chances();
         
         // Lines constraints: min <= max
         if veryeasy_min_lines > veryeasy_max_lines {
@@ -498,22 +490,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             return false;
         }
         if master_budget_max < master_min_cost * master_min_times {
-            return false;
-        }
-        
-        // Dual chance must be 0-100
-        if veryeasy_dual_chance > 100 {
-            return false;
-        }
-        if master_dual_chance > 100 {
-            return false;
-        }
-        
-        // Secondary no bonus chance must be 0-100
-        if veryeasy_secondary_no_bonus > 100 {
-            return false;
-        }
-        if master_secondary_no_bonus > 100 {
             return false;
         }
         
@@ -608,8 +584,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         let (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
              veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max,
              veryeasy_min_times, master_min_times) = self.unpack_lines_budgets();
-        let (veryeasy_dual_chance, master_dual_chance, 
-             veryeasy_secondary_no_bonus, master_secondary_no_bonus) = self.unpack_chances();
         
         // Lines constraints
         assert!(veryeasy_min_lines <= veryeasy_max_lines, "veryeasy_min_lines must be <= veryeasy_max_lines");
@@ -634,14 +608,6 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             master_budget_max >= master_min_cost * master_min_times,
             "master_budget_max must allow master_min_times"
         );
-        
-        // Dual chance must be 0-100
-        assert!(veryeasy_dual_chance <= 100, "veryeasy_dual_chance must be <= 100");
-        assert!(master_dual_chance <= 100, "master_dual_chance must be <= 100");
-        
-        // Secondary no bonus chance must be 0-100
-        assert!(veryeasy_secondary_no_bonus <= 100, "veryeasy_secondary_no_bonus must be <= 100");
-        assert!(master_secondary_no_bonus <= 100, "master_secondary_no_bonus must be <= 100");
         
         // Level scaling
         assert!(self.base_moves <= self.max_moves, "base_moves must be <= max_moves");
@@ -722,10 +688,9 @@ mod tests {
         assert!(settings.cube_3_percent == 40, "Cube 3 percent should be 40");
         assert!(settings.cube_2_percent == 70, "Cube 2 percent should be 70");
         // Consumable Costs
-        assert!(settings.hammer_cost == 5, "Hammer cost should be 5");
-        assert!(settings.wave_cost == 5, "Wave cost should be 5");
-        assert!(settings.totem_cost == 5, "Totem cost should be 5");
-        assert!(settings.extra_moves_cost == 10, "Extra moves cost should be 10");
+        assert!(settings.combo_cost == 5, "Combo cost should be 5");
+        assert!(settings.score_cost == 5, "Score cost should be 5");
+        assert!(settings.harvest_cost == 5, "Harvest cost should be 5");
         // Difficulty Progression (non-linear tier thresholds)
         assert!(settings.tier_1_threshold == 4, "Tier 1 (Easy) should start at level 4");
         assert!(settings.tier_2_threshold == 8, "Tier 2 (Medium) should start at level 8");
@@ -752,9 +717,9 @@ mod tests {
     fn test_get_consumable_cost() {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
         
-        assert!(settings.get_consumable_cost(0) == 5, "Hammer should cost 5");
-        assert!(settings.get_consumable_cost(1) == 5, "Wave should cost 5");
-        assert!(settings.get_consumable_cost(2) == 5, "Totem should cost 5");
+        assert!(settings.get_consumable_cost(0) == 5, "Combo should cost 5");
+        assert!(settings.get_consumable_cost(1) == 5, "Score should cost 5");
+        assert!(settings.get_consumable_cost(2) == 5, "Harvest should cost 5");
         assert!(settings.get_consumable_cost(3) == 0, "Invalid consumable type should return 0");
     }
     
@@ -876,30 +841,26 @@ mod tests {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
         
         // Test VeryEasy difficulty (tier 0)
-        // Returns (min_lines, max_lines, budget_min, budget_max, min_times, dual_chance, secondary_no_bonus_chance)
-        let (min_l, max_l, budget_min, budget_max, min_t, dual, secondary_no_bonus) = settings.get_constraint_params_for_difficulty(Difficulty::VeryEasy);
+        // Returns (min_lines, max_lines, budget_min, budget_max, min_times)
+        let (min_l, max_l, budget_min, budget_max, min_t) = settings.get_constraint_params_for_difficulty(Difficulty::VeryEasy);
         assert!(min_l == 2, "VeryEasy min_lines should be 2");
         assert!(max_l == 2, "VeryEasy max_lines should be 2");
         assert!(budget_min == 1, "VeryEasy budget_min should be 1");
         assert!(budget_max == 3, "VeryEasy budget_max should be 3");
         assert!(min_t == 1, "VeryEasy min_times should be 1");
-        assert!(dual == 0, "VeryEasy dual_chance should be 0");
-        assert!(secondary_no_bonus == 0, "VeryEasy secondary_no_bonus should be 0");
         
         // Test Master difficulty (tier 7)
-        let (min_l, max_l, budget_min, budget_max, min_t, dual, secondary_no_bonus) = settings.get_constraint_params_for_difficulty(Difficulty::Master);
+        let (min_l, max_l, budget_min, budget_max, min_t) = settings.get_constraint_params_for_difficulty(Difficulty::Master);
         assert!(min_l == 4, "Master min_lines should be 4");
         assert!(max_l == 6, "Master max_lines should be 6");
-        assert!(budget_min == 25, "Master budget_min should be 25");
+        assert!(budget_min == 32, "Master budget_min should be 32");
         assert!(budget_max == 40, "Master budget_max should be 40");
         assert!(min_t == 2, "Master min_times should be 2");
-        assert!(dual == 100, "Master dual_chance should be 100");
-        assert!(secondary_no_bonus == 30, "Master secondary_no_bonus should be 30");
         
         // Test mid-difficulty (Hard = tier 4/7)
-        let (_min_l, _max_l, _budget_min, _budget_max, _min_t, dual, _secondary_no_bonus) = settings.get_constraint_params_for_difficulty(Difficulty::Hard);
-        // dual: 0 -> 100 at position 4/7 = 0 + (100*4/7) = 57
-        assert!(dual >= 50 && dual <= 65, "Hard dual_chance should be around 57");
+        let (_min_l, _max_l, budget_min, _budget_max, _min_t) = settings.get_constraint_params_for_difficulty(Difficulty::Hard);
+        // budget_min: 1 -> 32 at position 4/7 = 1 + (31*4/7) = 1 + 17 = 18
+        assert!(budget_min >= 16 && budget_min <= 20, "Hard budget_min should be around 18");
     }
     
     #[test]
@@ -910,8 +871,6 @@ mod tests {
         let (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
              veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max,
              veryeasy_min_times, master_min_times) = settings.unpack_lines_budgets();
-        let (veryeasy_dual_chance, master_dual_chance, 
-             veryeasy_secondary_no_bonus, master_secondary_no_bonus) = settings.unpack_chances();
         
         assert!(veryeasy_min_lines == 2, "VeryEasy min lines should be 2");
         assert!(master_min_lines == 4, "Master min lines should be 4");
@@ -919,14 +878,10 @@ mod tests {
         assert!(master_max_lines == 6, "Master max lines should be 6");
         assert!(veryeasy_budget_min == 1, "VeryEasy budget_min should be 1");
         assert!(veryeasy_budget_max == 3, "VeryEasy budget_max should be 3");
-        assert!(master_budget_min == 25, "Master budget_min should be 25");
+        assert!(master_budget_min == 32, "Master budget_min should be 32");
         assert!(master_budget_max == 40, "Master budget_max should be 40");
         assert!(veryeasy_min_times == 1, "VeryEasy min times should be 1");
         assert!(master_min_times == 2, "Master min times should be 2");
-        assert!(veryeasy_dual_chance == 0, "VeryEasy dual chance should be 0");
-        assert!(master_dual_chance == 100, "Master dual chance should be 100");
-        assert!(veryeasy_secondary_no_bonus == 0, "VeryEasy secondary no bonus should be 0");
-        assert!(master_secondary_no_bonus == 30, "Master secondary no bonus should be 30");
     }
     
     #[test]

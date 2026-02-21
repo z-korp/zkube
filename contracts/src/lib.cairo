@@ -20,11 +20,8 @@ pub mod types {
 mod elements {
     pub mod bonuses {
         pub mod interface;
-        pub mod hammer;
-        pub mod totem;
+        pub mod harvest;
         pub mod wave;
-        pub mod shrink;
-        pub mod shuffle;
     }
     pub mod difficulties {
         pub mod data;
@@ -36,6 +33,8 @@ mod elements {
         pub mod grinder;
         pub mod clearer;
         pub mod combo;
+        pub mod combo_streak;
+        pub mod victory;
         pub mod master;
         pub mod level;
         pub mod scorer;
@@ -46,10 +45,9 @@ mod elements {
         pub mod grinder;
         pub mod clearer;
         pub mod combo;
-        pub mod chain;
-        pub mod superchain;
-        pub mod leveler;
-        pub mod scorer;
+        pub mod streak;
+        pub mod cascade;
+        pub mod champion;
         pub mod master;
     }
     pub mod quests {
@@ -58,6 +56,7 @@ mod elements {
         pub mod player;
         pub mod clearer;
         pub mod combo;
+        pub mod combo_streak;
         pub mod finisher;
     }
 }
@@ -81,6 +80,7 @@ pub mod helpers {
     pub mod packing;
     pub mod level;
     pub mod level_check;
+    pub mod boss;
     pub mod dispatchers;
     pub mod game_libs;
     pub mod game_over;

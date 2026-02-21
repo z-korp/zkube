@@ -76,12 +76,15 @@ pub impl PlayerMetaImpl of PlayerMetaTrait {
     }
 
     /// Get starting bonus count for a specific type
+    /// bonus_type: 0=Combo, 1=Score, 2=Harvest, 3=Wave, 4=Supply
     fn get_starting_bonus(self: PlayerMeta, bonus_type: u8) -> u8 {
         let meta = self.get_meta_data();
         match bonus_type {
-            0 => meta.starting_hammer,
-            1 => meta.starting_wave,
-            2 => meta.starting_totem,
+            0 => meta.starting_combo,
+            1 => meta.starting_score,
+            2 => meta.starting_harvest,
+            3 => meta.starting_wave,
+            4 => meta.starting_supply,
             _ => 0,
         }
     }
@@ -107,7 +110,7 @@ mod tests {
 
         let data = meta.get_meta_data();
         assert!(data.total_runs == 0, "Should have 0 runs");
-        assert!(data.starting_hammer == 0, "Should have 0 starting hammers");
+        assert!(data.starting_combo == 0, "Should have 0 starting combo");
         assert!(data.bridging_rank == 0, "Should have 0 bridging rank");
     }
 

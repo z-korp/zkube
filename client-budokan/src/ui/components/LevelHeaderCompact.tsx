@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faBan, faCircleInfo } from "@fortawesome/free-solid-svg-icons";
-import { motion } from "framer-motion";
+import { Check, Ban, Info } from "lucide-react";
+import { motion } from "motion/react";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
 import { generateLevelConfig } from "@/dojo/game/types/level";
 import type { LevelConfig } from "@/dojo/game/types/level";
@@ -111,7 +110,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
   activeBonus,
 }) => {
   const isBoss = isBossLevel(level);
-  const { playSuccess } = useMusicPlayer();
+  const { playSfx } = useMusicPlayer();
   
   const prevConstraintProgressRef = useRef(constraintProgress);
   const prevConstraint2ProgressRef = useRef(constraint2Progress);
@@ -189,17 +188,17 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
     }
     
     if (
-      levelConfig.constraint.constraintType === ConstraintType.ClearLines &&
+      levelConfig.constraint.constraintType === ConstraintType.ComboLines &&
       constraintProgress > prevProgress &&
       !prevSatisfied && constraintSatisfied
     ) {
       setJustSatisfied(true);
-      playSuccess();
+      playSfx("constraint-complete");
       setTimeout(() => setJustSatisfied(false), 2000);
     }
     
     prevConstraintProgressRef.current = constraintProgress;
-  }, [constraintProgress, levelConfig.constraint, constraintSatisfied, playSuccess]);
+  }, [constraintProgress, levelConfig.constraint, constraintSatisfied, playSfx]);
 
   // Track constraint 2 progress and animate newly filled dots
   useEffect(() => {
@@ -269,9 +268,9 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
                   : "text-green-400"
               }`}>
                 {bonusUsedThisLevel ? (
-                  <FontAwesomeIcon icon={faBan} className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                  <Ban className="w-2.5 h-2.5 md:w-3 md:h-3" />
                 ) : (
-                  <FontAwesomeIcon icon={faCheck} className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                  <Check className="w-2.5 h-2.5 md:w-3 md:h-3" />
                 )}
                 <span className="font-medium">No Bonus</span>
               </div>
@@ -284,7 +283,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
       );
     }
 
-    // ClearLines constraint with dots
+      // ComboLines constraint with dots
     const constraintId = color === "purple" ? "c2" : "c1";
     const dots = [];
     for (let i = 0; i < constraint.requiredCount; i++) {
@@ -332,7 +331,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
               <div className="flex items-center gap-0.5">
                 {dots}
               </div>
-              {satisfied && <FontAwesomeIcon icon={faCheck} className={`w-2.5 h-2.5 md:w-3 md:h-3 ${textColorClass}`} />}
+              {satisfied && <Check className={`w-2.5 h-2.5 md:w-3 md:h-3 ${textColorClass}`} />}
             </motion.div>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2">
@@ -491,10 +490,7 @@ const LevelHeaderCompact: React.FC<LevelHeaderCompactProps> = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-0.5 md:gap-1 bg-slate-800/50 px-1.5 md:px-2 py-0.5 md:py-1 rounded cursor-help hover:bg-slate-700/50 transition-colors">
-                  <FontAwesomeIcon
-                    icon={faCircleInfo}
-                    className={`w-3 h-3 md:w-3.5 md:h-3.5 ${paceTextColor}`}
-                  />
+                  <Info className={`w-3 h-3 md:w-3.5 md:h-3.5 ${paceTextColor}`} />
                   {[1, 2, 3].map((cube) => (
                     <span
                       key={cube}

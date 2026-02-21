@@ -1,8 +1,7 @@
 import { useCallback } from "react";
 import { useAccount } from "@starknet-react/core";
 import { Button } from "../elements/button";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGamepad } from "@fortawesome/free-solid-svg-icons";
+import { Gamepad2 } from "lucide-react";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import ControllerConnector from "@cartridge/connector/controller";
 
@@ -35,7 +34,7 @@ export const Controller = ({ className = "" }: ControllerProps) => {
       className={`gap-2 ${className}`}
       title="Open Profile"
     >
-      <FontAwesomeIcon icon={faGamepad} />
+      <Gamepad2 size={16} />
       <span className="hidden sm:inline">
         {username || shortAddress(address)}
       </span>

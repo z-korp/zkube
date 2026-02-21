@@ -22,7 +22,7 @@ import {
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { BonusType } from "@/dojo/game/types/bonus";
 import BlockContainer from "./TutorialBlock";
 import ConfettiExplosion from "../ConfettiExplosion";
@@ -55,12 +55,12 @@ interface GridProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ref: any;
   intermission?: boolean;
-  setHighlightedTiki?: (highlighted: boolean) => void;
+  setHighlightedScore?: (highlighted: boolean) => void;
   setHighlightedWave?: (highlighted: boolean) => void;
-  setHighlightedHammer?: (highlighted: boolean) => void;
-  setDisabledTiki?: (disabled: boolean) => void;
+  setHighlightedCombo?: (highlighted: boolean) => void;
+  setDisabledScore?: (disabled: boolean) => void;
   setDisabledWave?: (disabled: boolean) => void;
-  setDisabledHammer?: (disabled: boolean) => void;
+  setDisabledCombo?: (disabled: boolean) => void;
 }
 
 const TutorialGrid: React.FC<GridProps> = forwardRef(
@@ -76,11 +76,11 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
       tutorialStep,
       tutorialTargetBlock,
       onUpdate,
-      setDisabledHammer,
-      setDisabledTiki,
+      setDisabledCombo,
+      setDisabledScore,
       setDisabledWave,
-      setHighlightedHammer,
-      setHighlightedTiki,
+      setHighlightedCombo,
+      setHighlightedScore,
       setHighlightedWave,
     },
     ref
@@ -276,7 +276,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
     const handleBonusApplication = (block: Block) => {
       setActionPerformed(true);
       setBlockBonus(block);
-      if (bonus === BonusType.Wave) {
+      if (bonus === BonusType.Harvest) {
         setBlocks((prevBlocks) => {
           const updatedBlocks = removeBlocksSameRow(block, prevBlocks);
           return updatedBlocks;
@@ -288,7 +288,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
             gridPosition.top + b.y * gridSize
           );
         });
-      } else if (bonus === BonusType.Totem) {
+      } else if (bonus === BonusType.Score) {
         setBlocks((prevBlocks) => {
           const updatedBlocks = removeBlocksSameWidth(block, prevBlocks);
           return updatedBlocks;
@@ -300,7 +300,7 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
             gridPosition.top + b.y * gridSize
           );
         });
-      } else if (bonus === BonusType.Hammer) {
+      } else if (bonus === BonusType.Combo) {
         setBlocks((prevBlocks) => {
           const updatedBlocks = removeBlockId(block, prevBlocks);
           return updatedBlocks;
@@ -331,9 +331,9 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         case 8: // Constraints - allow drag
           handleDragStart(e.clientX, block);
           break;
-        case 4: // Hammer bonus - need to select bonus first
-        case 5: // Wave bonus - need to select bonus first
-        case 6: // Totem bonus - need to select bonus first
+        case 4: // Combo bonus - need to select bonus first
+        case 5: // Harvest bonus - need to select bonus first
+        case 6: // Score bonus - need to select bonus first
           setBonusSelectWarning(true);
           break;
         default:
@@ -368,9 +368,9 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
             handleDragStart(touch.clientX, block);
           }
           break;
-        case 4: // Hammer bonus - need to select bonus first
-        case 5: // Wave bonus - need to select bonus first
-        case 6: // Totem bonus - need to select bonus first
+        case 4: // Combo bonus - need to select bonus first
+        case 5: // Harvest bonus - need to select bonus first
+        case 6: // Score bonus - need to select bonus first
           setBonusSelectWarning(true);
           break;
         default:
@@ -602,10 +602,10 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
 
       // Reset all bonus states first
       const resetBonusStates = () => {
-        if (setHighlightedHammer) setHighlightedHammer(false);
-        if (setDisabledHammer) setDisabledHammer(true);
-        if (setHighlightedTiki) setHighlightedTiki(false);
-        if (setDisabledTiki) setDisabledTiki(true);
+        if (setHighlightedCombo) setHighlightedCombo(false);
+        if (setDisabledCombo) setDisabledCombo(true);
+        if (setHighlightedScore) setHighlightedScore(false);
+        if (setDisabledScore) setDisabledScore(true);
         if (setHighlightedWave) setHighlightedWave(false);
         if (setDisabledWave) setDisabledWave(true);
       };
@@ -617,20 +617,20 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
         case 8: // Constraints - no bonus needed
           resetBonusStates();
           break;
-        case 4: // Hammer bonus step
+        case 4: // Combo bonus step
           resetBonusStates();
-          if (setHighlightedHammer) setHighlightedHammer(true);
-          if (setDisabledHammer) setDisabledHammer(false);
+          if (setHighlightedCombo) setHighlightedCombo(true);
+          if (setDisabledCombo) setDisabledCombo(false);
           break;
-        case 5: // Wave bonus step
+        case 5: // Harvest bonus step
           resetBonusStates();
           if (setHighlightedWave) setHighlightedWave(true);
           if (setDisabledWave) setDisabledWave(false);
           break;
-        case 6: // Totem bonus step
+        case 6: // Score bonus step
           resetBonusStates();
-          if (setHighlightedTiki) setHighlightedTiki(true);
-          if (setDisabledTiki) setDisabledTiki(false);
+          if (setHighlightedScore) setHighlightedScore(true);
+          if (setDisabledScore) setDisabledScore(false);
           break;
         default:
           resetBonusStates();
@@ -659,8 +659,8 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
                 height: `${gridHeight * gridSize + 2}px`,
                 width: `${gridWidth * gridSize + 2}px`,
                 backgroundImage:
-                  "linear-gradient(#1E293B 2px, transparent 2px), linear-gradient(to right, #1E293B 2px, #10172A 2px)",
-                backgroundSize: `${gridSize}px ${gridSize}px`,
+                  `linear-gradient(var(--theme-grid-lines, #1E293B) 2px, transparent 2px), linear-gradient(to right, var(--theme-grid-lines, #1E293B) 2px, transparent 2px)`,
+                backgroundSize: `${gridSize}px ${gridSize}px, ${gridSize}px ${gridSize}px`,
               }}
               onMouseMove={handleMouseMove}
               onTouchMove={handleTouchMove}
@@ -709,13 +709,13 @@ const TutorialGrid: React.FC<GridProps> = forwardRef(
                   <div className="flex flex-col items-center justify-center gap-6">
                     <p>Select your bonus before clicking on block</p>
                     {tutorialStep === 4 && (
-                      <img className="w-8 h-8" src={imgAssets.hammer} alt="Hammer"></img>
+                      <img className="w-8 h-8" src={imgAssets.combo} alt="Combo"></img>
                     )}
                     {tutorialStep === 5 && (
-                      <img className="w-8 h-8" src={imgAssets.wave} alt="Wave"></img>
+                      <img className="w-8 h-8" src={imgAssets.harvest} alt="Harvest"></img>
                     )}
                     {tutorialStep === 6 && (
-                      <img className="w-8 h-8" src={imgAssets.tiki} alt="Totem"></img>
+                      <img className="w-8 h-8" src={imgAssets.score} alt="Score"></img>
                     )}
                   </div>
                 </AlertDialogDescription>

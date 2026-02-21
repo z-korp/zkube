@@ -13,20 +13,23 @@ pub use crate::elements::tasks::index::{Task, TaskTrait};
 
 // Constants
 
-pub const QUEST_COUNT: u8 = 10;
+pub const QUEST_COUNT: u8 = 13;
 pub const ONE_DAY: u64 = 24 * 60 * 60; // 86400 seconds
 
 // Quest rewards (in CUBE tokens)
 pub const REWARD_PLAYER_ONE: u8 = 3;
-pub const REWARD_PLAYER_TWO: u8 = 6;
-pub const REWARD_PLAYER_THREE: u8 = 12;
+pub const REWARD_PLAYER_TWO: u8 = 5;
+pub const REWARD_PLAYER_THREE: u8 = 10;
 pub const REWARD_CLEARER_ONE: u8 = 3;
-pub const REWARD_CLEARER_TWO: u8 = 6;
-pub const REWARD_CLEARER_THREE: u8 = 12;
-pub const REWARD_COMBO_ONE: u8 = 5;
-pub const REWARD_COMBO_TWO: u8 = 10;
-pub const REWARD_COMBO_THREE: u8 = 20;
-pub const REWARD_FINISHER: u8 = 25;
+pub const REWARD_CLEARER_TWO: u8 = 5;
+pub const REWARD_CLEARER_THREE: u8 = 10;
+pub const REWARD_COMBO_ONE: u8 = 3;
+pub const REWARD_COMBO_TWO: u8 = 5;
+pub const REWARD_COMBO_THREE: u8 = 10;
+pub const REWARD_COMBO_STREAK_ONE: u8 = 3;
+pub const REWARD_COMBO_STREAK_TWO: u8 = 5;
+pub const REWARD_COMBO_STREAK_THREE: u8 = 10;
+pub const REWARD_FINISHER: u8 = 20;
 
 /// Icon URL for quest rewards display
 pub fn ICON() -> ByteArray {
@@ -48,6 +51,9 @@ pub enum QuestType {
     DailyComboOne,
     DailyComboTwo,
     DailyComboThree,
+    DailyComboStreakOne,
+    DailyComboStreakTwo,
+    DailyComboStreakThree,
     DailyFinisher,
 }
 
@@ -80,6 +86,9 @@ pub impl QuestImpl of IQuest {
             QuestType::DailyComboOne => quests::combo::DailyComboOne::identifier(),
             QuestType::DailyComboTwo => quests::combo::DailyComboTwo::identifier(),
             QuestType::DailyComboThree => quests::combo::DailyComboThree::identifier(),
+            QuestType::DailyComboStreakOne => quests::combo_streak::DailyComboStreakOne::identifier(),
+            QuestType::DailyComboStreakTwo => quests::combo_streak::DailyComboStreakTwo::identifier(),
+            QuestType::DailyComboStreakThree => quests::combo_streak::DailyComboStreakThree::identifier(),
             QuestType::DailyFinisher => quests::finisher::DailyFinisher::identifier(),
             QuestType::None => 0,
         }
@@ -97,6 +106,9 @@ pub impl QuestImpl of IQuest {
             QuestType::DailyComboOne => quests::combo::DailyComboOne::props(registry),
             QuestType::DailyComboTwo => quests::combo::DailyComboTwo::props(registry),
             QuestType::DailyComboThree => quests::combo::DailyComboThree::props(registry),
+            QuestType::DailyComboStreakOne => quests::combo_streak::DailyComboStreakOne::props(registry),
+            QuestType::DailyComboStreakTwo => quests::combo_streak::DailyComboStreakTwo::props(registry),
+            QuestType::DailyComboStreakThree => quests::combo_streak::DailyComboStreakThree::props(registry),
             QuestType::DailyFinisher => quests::finisher::DailyFinisher::props(registry),
             _ => Default::default(),
         }
@@ -114,6 +126,9 @@ pub impl QuestImpl of IQuest {
             QuestType::DailyComboOne => (REWARD_COMBO_ONE, Task::None),
             QuestType::DailyComboTwo => (REWARD_COMBO_TWO, Task::None),
             QuestType::DailyComboThree => (REWARD_COMBO_THREE, Task::None),
+            QuestType::DailyComboStreakOne => (REWARD_COMBO_STREAK_ONE, Task::None),
+            QuestType::DailyComboStreakTwo => (REWARD_COMBO_STREAK_TWO, Task::None),
+            QuestType::DailyComboStreakThree => (REWARD_COMBO_STREAK_THREE, Task::None),
             // DailyFinisher also unlocks the DailyMaster achievement
             QuestType::DailyFinisher => (REWARD_FINISHER, Task::DailyMaster),
             _ => (0, Task::None),
@@ -143,7 +158,10 @@ impl IntoQuestU8 of core::traits::Into<QuestType, u8> {
             QuestType::DailyComboOne => 7,
             QuestType::DailyComboTwo => 8,
             QuestType::DailyComboThree => 9,
-            QuestType::DailyFinisher => 10,
+            QuestType::DailyComboStreakOne => 10,
+            QuestType::DailyComboStreakTwo => 11,
+            QuestType::DailyComboStreakThree => 12,
+            QuestType::DailyFinisher => 13,
         }
     }
 }
@@ -162,7 +180,10 @@ impl IntoU8Quest of core::traits::Into<u8, QuestType> {
             7 => QuestType::DailyComboOne,
             8 => QuestType::DailyComboTwo,
             9 => QuestType::DailyComboThree,
-            10 => QuestType::DailyFinisher,
+            10 => QuestType::DailyComboStreakOne,
+            11 => QuestType::DailyComboStreakTwo,
+            12 => QuestType::DailyComboStreakThree,
+            13 => QuestType::DailyFinisher,
             _ => QuestType::None,
         }
     }
@@ -189,6 +210,12 @@ impl IntoFelt252Quest of core::traits::Into<felt252, QuestType> {
             return QuestType::DailyComboTwo;
         } else if self == quests::combo::DailyComboThree::identifier() {
             return QuestType::DailyComboThree;
+        } else if self == quests::combo_streak::DailyComboStreakOne::identifier() {
+            return QuestType::DailyComboStreakOne;
+        } else if self == quests::combo_streak::DailyComboStreakTwo::identifier() {
+            return QuestType::DailyComboStreakTwo;
+        } else if self == quests::combo_streak::DailyComboStreakThree::identifier() {
+            return QuestType::DailyComboStreakThree;
         } else if self == quests::finisher::DailyFinisher::identifier() {
             return QuestType::DailyFinisher;
         } else {

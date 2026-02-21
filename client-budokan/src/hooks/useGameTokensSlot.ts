@@ -2,6 +2,7 @@ import { useDojo } from "@/dojo/useDojo";
 import { useEffect, useState, useCallback } from "react";
 import { getComponentValue, Has, runQuery } from "@dojoengine/recs";
 import type { GameTokenData } from "metagame-sdk";
+import { unpackRunData } from "@/dojo/game/helpers/runDataPacking";
 
 const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_TORII, VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
 export const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
@@ -203,14 +204,13 @@ export const useGameTokensSlot = ({
             }
           }
 
-          // Always extract game stats from run_data (RECS) for accuracy
-          // Token metadata may have stale values
-          const runData = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
-          const level = Number(runData & BigInt(0xFF));
-          const cubesBrought = Number((runData >> BigInt(99)) & BigInt(0xFFFF));
-          const cubesSpent = Number((runData >> BigInt(115)) & BigInt(0xFFFF));
-          const totalCubes = Number((runData >> BigInt(131)) & BigInt(0xFFFF));
-          const totalScore = Number((runData >> BigInt(147)) & BigInt(0xFFFF));
+          const runDataPacked = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
+          const runData = unpackRunData(runDataPacked);
+          const level = runData.currentLevel;
+          const cubesBrought = runData.cubesBrought;
+          const cubesSpent = runData.cubesSpent;
+          const totalCubes = runData.totalCubes;
+          const totalScore = runData.totalScore;
 
           // Always use RECS-computed values for game stats
           // Token metadata may have stale/incorrect values

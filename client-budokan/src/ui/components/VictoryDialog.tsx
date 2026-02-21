@@ -1,15 +1,8 @@
 import { Game } from "@/dojo/game/models/game";
 import { Dialog, DialogContent, DialogTitle } from "../elements/dialog";
-import {
-  faFire,
-  faGem,
-  faTrophy,
-  faStar,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useNavigate } from "react-router-dom";
 import { useMemo, useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
+import { Flame, Gem, Star, Trophy } from "lucide-react";
 
 interface VictoryDialogProps {
   isOpen: boolean;
@@ -22,7 +15,6 @@ const VictoryDialog: React.FC<VictoryDialogProps> = ({
   onClose,
   game,
 }) => {
-  const navigate = useNavigate();
   const [animationPhase, setAnimationPhase] = useState(0);
 
   // Reset and start animation when dialog opens
@@ -42,7 +34,6 @@ const VictoryDialog: React.FC<VictoryDialogProps> = ({
 
   const handleClose = () => {
     onClose();
-    navigate("/");
   };
 
   // Generate tweet URL for victory
@@ -72,9 +63,9 @@ Play now: app.zkube.xyz
           transition={{ type: "spring", stiffness: 200, damping: 15 }}
         >
           <div className="relative">
-            <FontAwesomeIcon 
-              icon={faTrophy} 
-              className="text-7xl text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.5)]" 
+            <Trophy
+              size={72}
+              className="text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.5)]"
             />
             {/* Sparkles around trophy */}
             <AnimatePresence>
@@ -86,7 +77,7 @@ Play now: app.zkube.xyz
                     transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.5 }}
                     className="absolute top-0 left-0"
                   >
-                    <FontAwesomeIcon icon={faStar} className="text-yellow-300 text-lg" />
+                    <Star size={20} className="text-yellow-300" />
                   </motion.div>
                   <motion.div
                     initial={{ opacity: 0, scale: 0 }}
@@ -94,7 +85,7 @@ Play now: app.zkube.xyz
                     transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.7 }}
                     className="absolute top-0 right-0"
                   >
-                    <FontAwesomeIcon icon={faStar} className="text-yellow-300 text-lg" />
+                    <Star size={20} className="text-yellow-300" />
                   </motion.div>
                   <motion.div
                     initial={{ opacity: 0, scale: 0 }}
@@ -102,7 +93,7 @@ Play now: app.zkube.xyz
                     transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.9 }}
                     className="absolute bottom-0 left-1/2 -translate-x-1/2"
                   >
-                    <FontAwesomeIcon icon={faStar} className="text-yellow-300 text-lg" />
+                    <Star size={20} className="text-yellow-300" />
                   </motion.div>
                 </>
               )}
@@ -134,7 +125,7 @@ Play now: app.zkube.xyz
           >
             <div className="text-6xl font-bold text-white mb-1">50</div>
             <div className="text-lg text-yellow-400 flex items-center justify-center gap-2">
-              <FontAwesomeIcon icon={faTrophy} className="text-yellow-400" />
+              <Trophy size={16} className="text-yellow-400" />
               All Levels Complete
             </div>
           </motion.div>
@@ -159,7 +150,7 @@ Play now: app.zkube.xyz
             <div className="flex flex-col items-center gap-1 bg-cyan-900/30 px-4 py-3 rounded-lg flex-1 border border-cyan-500/30">
               <div className="text-3xl flex gap-2 items-center text-cyan-400">
                 {game.totalScore.toLocaleString()}
-                <FontAwesomeIcon icon={faGem} />
+                <Gem size={16} />
               </div>
               <div className="text-xs text-cyan-400/80">Score</div>
             </div>
@@ -168,7 +159,7 @@ Play now: app.zkube.xyz
             <div className="flex flex-col items-center gap-1 bg-orange-900/30 px-4 py-3 rounded-lg flex-1 border border-orange-500/30">
               <div className="text-3xl flex gap-2 items-center text-orange-500">
                 {game.maxComboRun}
-                <FontAwesomeIcon icon={faFire} />
+                <Flame size={16} />
               </div>
               <div className="text-xs text-orange-400/80">Best Combo</div>
             </div>

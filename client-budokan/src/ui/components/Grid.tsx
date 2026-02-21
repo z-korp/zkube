@@ -18,11 +18,13 @@ import {
 import { MoveType } from "@/enums/moveEnum";
 import AnimatedText from "../elements/animatedText";
 import { ComboMessages } from "@/enums/comboEnum";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { BonusType } from "@/dojo/game/types/bonus";
 import ConfettiExplosion from "./ConfettiExplosion";
 import type { ConfettiExplosionRef } from "./ConfettiExplosion";
 import { useMusicPlayer } from "@/contexts/hooks";
+import { useTheme } from "@/ui/elements/theme-provider/hooks";
+import { getThemeColors, type ThemeId } from "@/config/themes";
 import useGridAnimations from "@/hooks/useGridAnimations";
 import { useMoveStore } from "@/stores/moveTxStore";
 import { calculateFallDistance } from "@/utils/gridPhysics";
@@ -106,7 +108,10 @@ const Grid: React.FC<GridProps> = ({
   const [isPlayerInDanger, setIsPlayerInDanger] = useState(false);
   const [lineExplodedCount, setLineExplodedCount] = useState(0);
   const [blockBonus, setBlockBonus] = useState<Block | null>(null);
+  const [explodingRows, setExplodingRows] = useState<Set<number>>(new Set());
   const { playExplode, playSwipe } = useMusicPlayer();
+  const { themeTemplate } = useTheme();
+  const themeColors = getThemeColors(themeTemplate as ThemeId);
 
   // ==================== Custom Hooks ====================
 
@@ -185,13 +190,18 @@ const Grid: React.FC<GridProps> = ({
     setGameState(GameState.DRAGGING);
   };
 
-  const handleDragMove = (x: number, moveType: MoveType) => {
+  const handleDragMove = (x: number, _moveType: MoveType) => {
     if (!dragging) return;
     if (isTxProcessing || applyData) return;
 
     const deltaX = x - dragStartX;
     const newX = initialX + deltaX / gridSize;
     const boundedX = Math.max(0, Math.min(gridWidth - dragging.width, newX));
+
+    // Re-anchor drag origin when clamped at boundary to keep cursor synced with block
+    if (boundedX !== newX) {
+      setDragStartX(x - (boundedX - initialX) * gridSize);
+    }
 
     if (
       !isBlocked(
@@ -203,16 +213,6 @@ const Grid: React.FC<GridProps> = ({
         dragging.id
       )
     ) {
-      // Vérifie si le nouveau X est en dehors des limites de la grille
-      if (boundedX <= 0 || boundedX >= gridWidth - dragging.width) {
-        if (moveType === MoveType.TOUCH) {
-          endDrag(); // Appelle endDrag si le drag sort de la grille sur un touch
-          return;
-        } else {
-          // Si on est en dehors de la grille, cela implique que la nouvelle start position a changer et on doit la mettre à jour
-          setInitialX(blocks.find((b) => b.id === dragging.id)?.x ?? 0);
-        }
-      }
       setBlocks((prevBlocks) =>
         prevBlocks.map((b) =>
           b.id === dragging.id ? { ...b, x: boundedX } : b
@@ -233,7 +233,7 @@ const Grid: React.FC<GridProps> = ({
     if (isTxProcessing || applyData) return;
 
     setBlockBonus(block);
-    if (bonus === BonusType.Wave) {
+    if (bonus === BonusType.Harvest) {
       setBlocks(removeBlocksSameRow(block, blocks));
       getBlocksSameRow(block.y, blocks).forEach((b) => {
         if (gridPosition === null) return;
@@ -242,7 +242,7 @@ const Grid: React.FC<GridProps> = ({
           gridPosition.top + b.y * gridSize
         );
       });
-    } else if (bonus === BonusType.Totem) {
+    } else if (bonus === BonusType.Score) {
       setBlocks(removeBlocksSameWidth(block, blocks));
       getBlocksSameWidth(block, blocks).forEach((b) => {
         if (gridPosition === null) return;
@@ -251,20 +251,20 @@ const Grid: React.FC<GridProps> = ({
           gridPosition.top + b.y * gridSize
         );
       });
-    } else if (bonus === BonusType.Hammer) {
+    } else if (bonus === BonusType.Combo) {
       setBlocks(removeBlockId(block, blocks));
       if (gridPosition === null) return;
       handleTriggerLocalExplosion(
         gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
         gridPosition.top + block.y * gridSize
       );
-    } else if (bonus === BonusType.Shrink) {
+    } else if (bonus === BonusType.Wave) {
       if (gridPosition === null) return;
       handleTriggerLocalExplosion(
         gridPosition.left + block.x * gridSize + (block.width * gridSize) / 2,
         gridPosition.top + block.y * gridSize
       );
-    } else if (bonus === BonusType.Shuffle) {
+    } else if (bonus === BonusType.Supply) {
       getBlocksSameRow(block.y, blocks).forEach((b) => {
         if (gridPosition === null) return;
         handleTriggerLocalExplosion(
@@ -436,6 +436,8 @@ const Grid: React.FC<GridProps> = ({
     });
   };
 
+  const explosionAnimDuration = 250;
+
   const clearCompleteLine = (
     newGravityState: GameState,
     newStateOnComplete: GameState
@@ -450,13 +452,12 @@ const Grid: React.FC<GridProps> = ({
       playExplode();
       setLineExplodedCount(lineExplodedCount + completeRows.length);
 
-      // Calculate absolute position in the viewport
       if (gridPosition === null) return;
 
-      // Trigger particle explosions for each cleared row
+      setExplodingRows(new Set(completeRows));
+
       completeRows.forEach((rowIndex) => {
         const blocksSameRow = getBlocksSameRow(rowIndex, blocks);
-
         blocksSameRow.forEach((block) => {
           handleTriggerLocalExplosion(
             gridPosition.left +
@@ -467,9 +468,12 @@ const Grid: React.FC<GridProps> = ({
         });
       });
 
-      setBlocks(updatedBlocks);
-      setIsMoving(true);
-      setGameState(newGravityState);
+      setTimeout(() => {
+        setExplodingRows(new Set());
+        setBlocks(updatedBlocks);
+        setIsMoving(true);
+        setGameState(newGravityState);
+      }, explosionAnimDuration);
     } else {
       setGameState(newStateOnComplete);
     }
@@ -602,7 +606,7 @@ const Grid: React.FC<GridProps> = ({
     <>
       <ConfettiExplosion
         ref={explosionRef}
-        colorSet={["#47D1D9", "#8BA3BC", "#1974D1", "#44A4D9", "#01040B"]}
+        colorSet={themeColors.particles.explosion}
       />
       <motion.div
         animate={shouldBounce ? { scale: [1, 1.1, 1, 1.1, 1] } : {}}
@@ -623,8 +627,8 @@ const Grid: React.FC<GridProps> = ({
               height: `${gridHeight * gridSize + borderSize}px`,
               width: `${gridWidth * gridSize + borderSize}px`,
               backgroundImage:
-                "linear-gradient(#1E293B 2px, transparent 2px), linear-gradient(to right, #1E293B 2px, #10172A 2px)",
-              backgroundSize: `${gridSize}px ${gridSize}px`,
+                `linear-gradient(var(--theme-grid-lines, #1E293B) 2px, transparent 2px), linear-gradient(to right, var(--theme-grid-lines, #1E293B) 2px, transparent 2px)`,
+              backgroundSize: `${gridSize}px ${gridSize}px, ${gridSize}px ${gridSize}px`,
             }}
             onMouseMove={handleMouseMove}
             //onMouseUp={handleMouseUp}
@@ -640,6 +644,7 @@ const Grid: React.FC<GridProps> = ({
                 isTxProcessing={isTxProcessing}
                 transitionDuration={transitionDuration}
                 state={gameState}
+                isExploding={explodingRows.has(block.y)}
                 handleMouseDown={handleMouseDown}
                 handleTouchStart={handleTouchStart}
                 onTransitionBlockStart={() =>

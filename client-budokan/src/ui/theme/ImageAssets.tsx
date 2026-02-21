@@ -1,24 +1,31 @@
-const ImageAssets = (theme: string) => {
-  const PathAssets = "/assets/" + theme + "/";
+import { getCommonAssetPath, getThemeImages, type ThemeId } from "@/config/themes";
+
+const ImageAssets = (theme: ThemeId) => {
+  const themeImages = getThemeImages(theme);
 
   return {
-    hammer: PathAssets + "bonus/hammer.png",
-    tiki: PathAssets + "bonus/tiki.png",
-    wave: PathAssets + "bonus/wave.png",
-    shrink: PathAssets + "bonus/shrink.svg",
-    shuffle: PathAssets + "bonus/shuffle.svg",
-    stone1: PathAssets + "block-1.png",
-    stone2: PathAssets + "block-2.png",
-    stone3: PathAssets + "block-3.png",
-    stone4: PathAssets + "block-4.png",
-    background: PathAssets + "loading-bg.png",
-    logo: PathAssets + "logo.png",
-    loader: PathAssets + "loader.svg",
-    imageBackground: PathAssets + "theme-2-1.png",
-    imageTotemDark: PathAssets + "theme-2-totem-dark.png",
-    imageTotemLight: PathAssets + "theme-2-totem-light.png",
-    palmLeft: PathAssets + "palmtree-left.png",
-    palmRight: PathAssets + "palmtree-right.png",
+    ...themeImages,
+    combo: getCommonAssetPath("bonus/combo.png"),
+    score: getCommonAssetPath("bonus/score.png"),
+    harvest: getCommonAssetPath("bonus/harvest.png"),
+    wave: getCommonAssetPath("bonus/wave.png"),
+    supply: getCommonAssetPath("bonus/supply.png"),
+    bridging: getCommonAssetPath("bonus/bridging.png"),
+    constraintClearLines: getCommonAssetPath("constraints/constraint-clear-lines.png"),
+    constraintBreakBlocks: getCommonAssetPath("constraints/constraint-break-blocks.png"),
+    constraintCombo: getCommonAssetPath("constraints/constraint-combo.png"),
+    constraintFill: getCommonAssetPath("constraints/constraint-fill.png"),
+    constraintNoBonus: getCommonAssetPath("constraints/constraint-no-bonus.png"),
+    constraintClearGrid: getCommonAssetPath("constraints/constraint-clear-grid.png"),
+    stone1: themeImages.block1,
+    stone2: themeImages.block2,
+    stone3: themeImages.block3,
+    stone4: themeImages.block4,
+    background: themeImages.background,
+    loadingBackground: themeImages.loadingBg,
+    logo: themeImages.logo,
+    loader: "/assets/theme-1/loader.svg",
+    imageBackground: themeImages.background,
   };
 };
 

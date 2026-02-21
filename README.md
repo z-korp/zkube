@@ -17,7 +17,7 @@ zKube challenges players to manipulate blocks on an 8x10 grid to form solid hori
 ## Key Features
 
 - **50-Level Campaign** - Progressive difficulty from VeryEasy to Master
-- **5 Bonus Types** - Hammer, Wave, Totem, Shrink, Shuffle (each with 3 upgrade levels)
+- **5 Bonus Types** - Combo, Score, Harvest, Wave, Supply (each with 3 upgrade levels)
 - **CUBE Economy** - Earn tokens through gameplay, spend on permanent upgrades
 - **Daily Quests** - 10 quests with 102 CUBE rewards per day
 - **28 Achievements** - Track lifetime progress across multiple categories
@@ -59,7 +59,6 @@ See [CLAUDE.md](./CLAUDE.md) for detailed development documentation.
 |----------|-------------|
 | [CLAUDE.md](./CLAUDE.md) | Project architecture and development guide |
 | [docs/GAME_DESIGN.md](./docs/GAME_DESIGN.md) | Complete game design document |
-| [docs/QUEST_SYSTEM.md](./docs/QUEST_SYSTEM.md) | Daily quest implementation |
 | [docs/DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md) | Network deployment guide |
 | [contracts/CLAUDE.md](./contracts/CLAUDE.md) | Smart contract documentation |
 | [client-budokan/CLAUDE.md](./client-budokan/CLAUDE.md) | Frontend documentation |

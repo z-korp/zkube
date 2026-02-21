@@ -1,170 +1,257 @@
-import React, { createContext, useState, useEffect, useCallback } from "react";
-import useSound from "use-sound";
-import SoundAssets from "@/ui/theme/SoundAssets";
+import { createContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { audioManager } from "@/audio/AudioManager";
+import {
+  type MusicContext,
+  type SfxName,
+  type ThemeId,
+  loadAudioSettings,
+  saveAudioSettings,
+} from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import noop from "@/utils/noop";
 
-type Track = {
-  name: string;
-  url: string;
-};
-
-export const MusicPlayerContext = createContext<{
-  playTheme: () => unknown;
-  stopTheme: () => unknown;
-  isPlaying: boolean;
+export interface MusicPlayerContextValue {
   musicVolume: number;
   effectsVolume: number;
-  setMusicVolume: (volume: number) => unknown;
-  setEffectsVolume: (volume: number) => unknown;
-  setTheme: (theme: boolean) => unknown;
-  playStart: () => unknown;
-  playOver: () => unknown;
-  playSwipe: () => unknown;
-  playExplode: () => unknown;
-  playSuccess: () => unknown;
-}>({
-  playTheme: noop,
-  stopTheme: noop,
-  isPlaying: false,
-  musicVolume: 0.2,
-  setMusicVolume: (volume: number) => {
-    volume;
-  },
-  effectsVolume: 0.2,
+  setMusicVolume: (volume: number) => void;
+  setEffectsVolume: (volume: number) => void;
+  setMusicContext: (context: MusicContext) => void;
+  setMusicPlaylist: (contexts: MusicContext[]) => void;
+  currentContext: MusicContext;
+  isPlaying: boolean;
+  playSfx: (name: SfxName) => void;
+  playStart: () => void;
+  playOver: () => void;
+  playSwipe: () => void;
+  playExplode: () => void;
+  playSuccess: () => void;
+  playTheme: () => void;
+  stopTheme: () => void;
+  setTheme: (theme: boolean) => void;
+}
+
+const DEFAULT_MUSIC_CONTEXT: MusicContext = "main";
+
+export const MusicPlayerContext = createContext<MusicPlayerContextValue>({
+  musicVolume: 0.3,
+  effectsVolume: 0.5,
+  setMusicVolume: noop,
   setEffectsVolume: noop,
-  setTheme: noop,
+  setMusicContext: noop,
+  setMusicPlaylist: noop,
+  currentContext: DEFAULT_MUSIC_CONTEXT,
+  isPlaying: false,
+  playSfx: noop,
   playStart: noop,
   playOver: noop,
   playSwipe: noop,
   playExplode: noop,
   playSuccess: noop,
+  playTheme: noop,
+  stopTheme: noop,
+  setTheme: noop,
 });
 
-export const MusicPlayerProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+const clampVolume = (volume: number): number => Math.min(Math.max(volume, 0), 1);
+
+export function MusicPlayerProvider({ children }: { children: React.ReactNode }) {
   const { themeTemplate } = useTheme();
-  const soundAssets = SoundAssets(themeTemplate);
+  const themeId = themeTemplate as ThemeId;
+  const [musicVolume, setMusicVolumeState] = useState<number>(audioManager.musicVolume);
+  const [effectsVolume, setEffectsVolumeState] = useState<number>(audioManager.effectsVolume);
+  const [currentContext, setCurrentContextState] = useState<MusicContext>(DEFAULT_MUSIC_CONTEXT);
+  const [playlistContexts, setPlaylistContextsState] = useState<MusicContext[]>([]);
+  const [isPlaying, setIsPlaying] = useState<boolean>(audioManager.isPlaying);
+  const audioUnlockedRef = useRef(false);
 
-  const menuTracks: Track[] = [
-    { name: "Intro", url: soundAssets.jungle2 },
-    { name: "Intro", url: soundAssets.jungle2 },
-  ];
+  useEffect(() => {
+    const settings = loadAudioSettings();
+    audioManager.setMusicVolume(settings.musicVolume);
+    audioManager.setEffectsVolume(settings.effectsVolume);
+    setMusicVolumeState(settings.musicVolume);
+    setEffectsVolumeState(settings.effectsVolume);
+  }, []);
 
-  const playTracks: Track[] = [
-    { name: "Play", url: soundAssets.jungle3 },
-    { name: "Play", url: soundAssets.jungle3 },
-  ];
+  // Web Audio autoplay policy: browsers block Howl.play() until a user gesture.
+  // Re-trigger playMusic on first interaction so the track actually starts.
+  useEffect(() => {
+    const unlock = () => {
+      if (audioUnlockedRef.current) return;
+      audioUnlockedRef.current = true;
 
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-  const [tracks, setTracks] = useState(menuTracks);
-  const [theme, setTheme] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [musicVolume, setMusicVolume] = useState(0.2);
-  const [effectsVolume, setEffectsVolume] = useState(0.2);
+      if (playlistContexts.length > 0) {
+        audioManager.playMusicPlaylist(themeId, playlistContexts);
+      } else {
+        audioManager.playMusic(themeId, currentContext);
+      }
+      setIsPlaying(audioManager.isPlaying);
 
-  // Hooks séparés pour chaque effet sonore avec volume indépendant
-  const [playStartSound] = useSound(soundAssets.start, {
-    volume: effectsVolume,
-  });
-  const [playOverSound] = useSound(soundAssets.over, { volume: effectsVolume });
-  const [playSwipeSound] = useSound(soundAssets.swipe, {
-    volume: effectsVolume,
-  });
-  const [playExplodeSound] = useSound(soundAssets.explode, {
-    volume: effectsVolume,
-  });
-  const [playSuccessSound] = useSound(soundAssets.success, {
-    volume: effectsVolume,
-  });
+      document.removeEventListener("click", unlock, true);
+      document.removeEventListener("touchstart", unlock, true);
+      document.removeEventListener("keydown", unlock, true);
+    };
 
-  const goToNextTrack = () => {
-    setCurrentTrackIndex((prevIndex) => {
-      return (prevIndex + 1) % tracks.length;
-    });
-  };
+    document.addEventListener("click", unlock, true);
+    document.addEventListener("touchstart", unlock, true);
+    document.addEventListener("keydown", unlock, true);
 
-  // Fonctions de lecture d'effets sonores simplifiées
+    return () => {
+      document.removeEventListener("click", unlock, true);
+      document.removeEventListener("touchstart", unlock, true);
+      document.removeEventListener("keydown", unlock, true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [themeId, currentContext, playlistContexts]);
+
+  useEffect(() => {
+    if (audioManager.isPlaying) {
+      if (playlistContexts.length > 0) {
+        audioManager.playMusicPlaylist(themeId, playlistContexts);
+      } else {
+        audioManager.playMusic(themeId, currentContext);
+      }
+      setIsPlaying(audioManager.isPlaying);
+    }
+  }, [themeId, currentContext, playlistContexts]);
+
+  useEffect(() => {
+    return () => {
+      audioManager.stopMusic(false);
+      audioManager.dispose();
+    };
+  }, []);
+
+  const setMusicVolume = useCallback(
+    (volume: number) => {
+      const nextVolume = clampVolume(volume);
+      audioManager.setMusicVolume(nextVolume);
+      saveAudioSettings({
+        musicVolume: nextVolume,
+        effectsVolume,
+      });
+      setMusicVolumeState(nextVolume);
+    },
+    [effectsVolume],
+  );
+
+  const setEffectsVolume = useCallback(
+    (volume: number) => {
+      const nextVolume = clampVolume(volume);
+      audioManager.setEffectsVolume(nextVolume);
+      saveAudioSettings({
+        musicVolume,
+        effectsVolume: nextVolume,
+      });
+      setEffectsVolumeState(nextVolume);
+    },
+    [musicVolume],
+  );
+
+  const setMusicContext = useCallback(
+    (context: MusicContext) => {
+      if (audioManager.currentThemeId === themeId && audioManager.currentContext === context && audioManager.isPlaying && playlistContexts.length === 0) {
+        return;
+      }
+      setPlaylistContextsState([]);
+      setCurrentContextState(context);
+      audioManager.playMusic(themeId, context);
+      setIsPlaying(audioManager.isPlaying);
+    },
+    [themeId, playlistContexts.length],
+  );
+
+  const setMusicPlaylist = useCallback(
+    (contexts: MusicContext[]) => {
+      setPlaylistContextsState(contexts);
+      setCurrentContextState(contexts[0] ?? DEFAULT_MUSIC_CONTEXT);
+      audioManager.playMusicPlaylist(themeId, contexts);
+      setIsPlaying(audioManager.isPlaying);
+    },
+    [themeId],
+  );
+
+  const playTheme = useCallback(() => {
+    audioManager.playMusic(themeId, currentContext);
+    setIsPlaying(audioManager.isPlaying);
+  }, [themeId, currentContext]);
+
+  const stopTheme = useCallback(() => {
+    audioManager.stopMusic();
+    setIsPlaying(audioManager.isPlaying);
+  }, []);
+
+  const setTheme = useCallback(
+    (theme: boolean) => {
+      const nextContext: MusicContext = theme ? "main" : "level";
+      setMusicContext(nextContext);
+    },
+    [setMusicContext],
+  );
+
+  const playSfx = useCallback((name: SfxName) => {
+    audioManager.playSfx(name);
+  }, []);
+
   const playStart = useCallback(() => {
-    playStartSound();
-  }, [playStartSound]);
+    audioManager.playSfx("start");
+  }, []);
 
   const playOver = useCallback(() => {
-    playOverSound();
-  }, [playOverSound]);
+    audioManager.playSfx("over");
+  }, []);
 
   const playSwipe = useCallback(() => {
-    playSwipeSound();
-  }, [playSwipeSound]);
+    audioManager.playSfx("swipe");
+  }, []);
 
   const playExplode = useCallback(() => {
-    playExplodeSound();
-  }, [playExplodeSound]);
+    audioManager.playSfx("explode");
+  }, []);
 
   const playSuccess = useCallback(() => {
-    playSuccessSound();
-  }, [playSuccessSound]);
+    audioManager.playSfx("new");
+  }, []);
 
-  const [playTheme, { stop: stopTheme }] = useSound(
-    tracks[currentTrackIndex].url,
-    {
-      volume: musicVolume,
-      onplay: () => setIsPlaying(true),
-      onstop: () => setIsPlaying(false),
-      onend: () => {
-        setIsPlaying(false);
-        goToNextTrack();
-      },
-    },
+  const value = useMemo<MusicPlayerContextValue>(
+    () => ({
+      musicVolume,
+      effectsVolume,
+      setMusicVolume,
+      setEffectsVolume,
+      setMusicContext,
+      setMusicPlaylist,
+      currentContext,
+      isPlaying,
+      playSfx,
+      playStart,
+      playOver,
+      playSwipe,
+      playExplode,
+      playSuccess,
+      playTheme,
+      stopTheme,
+      setTheme,
+    }),
+    [
+      musicVolume,
+      effectsVolume,
+      setMusicVolume,
+      setEffectsVolume,
+      setMusicContext,
+      setMusicPlaylist,
+      currentContext,
+      isPlaying,
+      playSfx,
+      playStart,
+      playOver,
+      playSwipe,
+      playExplode,
+      playSuccess,
+      playTheme,
+      stopTheme,
+      setTheme,
+    ],
   );
 
-  const handleVisibilityChange = useCallback(() => {
-    if (document.hidden) {
-      stopTheme();
-      setIsPlaying(false);
-    }
-  }, [stopTheme]);
-
-  useEffect(() => {
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [handleVisibilityChange]);
-
-  useEffect(() => {
-    playTheme();
-    return () => stopTheme();
-  }, [currentTrackIndex, playTheme, stopTheme]);
-
-  useEffect(() => {
-    setTracks(theme ? menuTracks : playTracks);
-    setCurrentTrackIndex(0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [theme, themeTemplate]);
-
-  return (
-    <MusicPlayerContext.Provider
-      value={{
-        playTheme,
-        stopTheme,
-        isPlaying,
-        musicVolume,
-        setMusicVolume,
-        effectsVolume,
-        setEffectsVolume,
-        setTheme,
-        playStart,
-        playOver,
-        playSwipe,
-        playExplode,
-        playSuccess,
-      }}
-    >
-      {children}
-    </MusicPlayerContext.Provider>
-  );
-};
+  return <MusicPlayerContext.Provider value={value}>{children}</MusicPlayerContext.Provider>;
+}

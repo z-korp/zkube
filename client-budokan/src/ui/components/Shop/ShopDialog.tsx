@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
 import { usePlayerMeta, type PlayerMetaData } from "@/hooks/usePlayerMeta";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import { useDojo } from "@/dojo/useDojo";
+import { useMusicPlayer } from "@/contexts/hooks";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { Button } from "@/ui/elements/button";
 import { useState, useMemo, useCallback, useEffect } from "react";
@@ -13,11 +14,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/ui/elements/tooltip";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faArrowUp,
-  faCircleInfo,
-} from "@fortawesome/free-solid-svg-icons";
+import { Info } from "lucide-react";
 
 interface ShopDialogProps {
   isOpen: boolean;
@@ -42,27 +39,27 @@ const getMaxCubesToBring = (rank: number): number => {
 };
 
 interface OptimisticOverrides {
-  startingHammer?: number;
+  startingCombo?: number;
+  startingScore?: number;
+  startingHarvest?: number;
   startingWave?: number;
-  startingTotem?: number;
-  startingShrink?: number;
-  startingShuffle?: number;
-  bagHammerLevel?: number;
+  startingSupply?: number;
+  bagComboLevel?: number;
+  bagScoreLevel?: number;
+  bagHarvestLevel?: number;
   bagWaveLevel?: number;
-  bagTotemLevel?: number;
-  bagShrinkLevel?: number;
-  bagShuffleLevel?: number;
+  bagSupplyLevel?: number;
   bridgingRank?: number;
   shrinkUnlocked?: boolean;
   shuffleUnlocked?: boolean;
 }
 
 const BONUS_DESCRIPTIONS: Record<number, string> = {
-  0: "Destroys a block and all connected blocks of the same color.",
-  1: "Clears an entire horizontal row.",
-  2: "Clears all blocks of the same size.",
-  3: "Shrinks a block by one size (higher levels improve effect).",
-  4: "Shuffles blocks (higher levels improve effect).",
+  0: "Add combo to your next move.",
+  1: "Add instant bonus score.",
+  2: "Destroy all blocks of a chosen size.",
+  3: "Clear horizontal rows.",
+  4: "Add new lines at no move cost.",
 };
 
 const LevelPips = ({ current, max }: { current: number; max: number }) => (
@@ -83,7 +80,7 @@ const InfoTip = ({ text }: { text: string }) => (
     <Tooltip>
       <TooltipTrigger asChild>
         <span className="cursor-help ml-1 text-slate-500 hover:text-slate-300 transition-colors">
-          <FontAwesomeIcon icon={faCircleInfo} className="text-[10px]" />
+          <Info size={10} className="text-[10px]" />
         </span>
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-[200px] text-xs">
@@ -100,6 +97,7 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
     refetch: refetchCubeBalance,
   } = useCubeBalance();
   const { account } = useAccountCustom();
+  const { playSfx } = useMusicPlayer();
   const {
     setup: { systemCalls },
   } = useDojo();
@@ -137,11 +135,11 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
   const handleUpgradeStartingBonus = async (bonusType: number) => {
     if (!account || !data) return;
     const fieldMap: Record<number, keyof OptimisticOverrides> = {
-      0: "startingHammer",
-      1: "startingWave",
-      2: "startingTotem",
-      3: "startingShrink",
-      4: "startingShuffle",
+      0: "startingCombo",
+      1: "startingScore",
+      2: "startingHarvest",
+      3: "startingWave",
+      4: "startingSupply",
     };
     const field = fieldMap[bonusType];
     const currentLevel = data[field] as number;
@@ -155,6 +153,7 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
         account,
         bonus_type: bonusType,
       });
+      playSfx("shop-purchase");
       // Reset optimistic cube spent before refetch to avoid double deduction
       setOptimisticCubeSpent(0);
       await refetchCubeBalance();
@@ -170,11 +169,11 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
   const handleUpgradeBagSize = async (bonusType: number) => {
     if (!account || !data) return;
     const fieldMap: Record<number, keyof OptimisticOverrides> = {
-      0: "bagHammerLevel",
-      1: "bagWaveLevel",
-      2: "bagTotemLevel",
-      3: "bagShrinkLevel",
-      4: "bagShuffleLevel",
+      0: "bagComboLevel",
+      1: "bagScoreLevel",
+      2: "bagHarvestLevel",
+      3: "bagWaveLevel",
+      4: "bagSupplyLevel",
     };
     const field = fieldMap[bonusType];
     const currentLevel = data[field] as number;
@@ -185,6 +184,7 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
     setIsUpgrading(true);
     try {
       await systemCalls.upgradeBagSize({ account, bonus_type: bonusType });
+      playSfx("shop-purchase");
       // Reset optimistic cube spent before refetch to avoid double deduction
       setOptimisticCubeSpent(0);
       await refetchCubeBalance();
@@ -245,37 +245,37 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
   };
 
   const bonusTypes = [
-    { id: 0, name: "Hammer", img: imgAssets.hammer },
-    { id: 1, name: "Wave", img: imgAssets.wave },
-    { id: 2, name: "Totem", img: imgAssets.tiki },
-    { id: 3, name: "Shrink", img: imgAssets.shrink },
-    { id: 4, name: "Shuffle", img: imgAssets.shuffle },
+    { id: 0, name: "Combo", img: imgAssets.combo },
+    { id: 1, name: "Score", img: imgAssets.score },
+    { id: 2, name: "Harvest", img: imgAssets.harvest },
+    { id: 3, name: "Wave", img: imgAssets.wave },
+    { id: 4, name: "Supply", img: imgAssets.supply },
   ];
 
   const getStartingLevel = (bonusId: number): number => {
     if (!data) return 0;
     return bonusId === 0
-      ? data.startingHammer
+      ? data.startingCombo
       : bonusId === 1
-        ? data.startingWave
+        ? data.startingScore
         : bonusId === 2
-          ? data.startingTotem
+          ? data.startingHarvest
           : bonusId === 3
-            ? data.startingShrink
-            : data.startingShuffle;
+            ? data.startingWave
+            : data.startingSupply;
   };
 
   const getBagLevel = (bonusId: number): number => {
     if (!data) return 0;
     return bonusId === 0
-      ? data.bagHammerLevel
+      ? data.bagComboLevel
       : bonusId === 1
-        ? data.bagWaveLevel
+        ? data.bagScoreLevel
         : bonusId === 2
-          ? data.bagTotemLevel
+          ? data.bagHarvestLevel
           : bonusId === 3
-            ? data.bagShrinkLevel
-            : data.bagShuffleLevel;
+            ? data.bagWaveLevel
+            : data.bagSupplyLevel;
   };
 
   const bridgingRank = data?.bridgingRank || 0;
@@ -371,7 +371,6 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
                   </Button>
                 </div>
 
-                {/* Unlock shrink/shuffle */}
                 {!isUnlocked && bonus.id >= 3 && (
                   <div className="mt-1.5">
                     <Button
@@ -392,11 +391,8 @@ export const ShopDialog: React.FC<ShopDialogProps> = ({ isOpen, onClose }) => {
           <div className="bg-slate-800/30 rounded-lg p-2.5 border border-slate-700/40 flex flex-col">
             {/* Header */}
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-full bg-purple-500/20 flex items-center justify-center">
-                <FontAwesomeIcon
-                  icon={faArrowUp}
-                  className="text-purple-400 text-xs"
-                />
+              <div className="w-7 h-7 rounded-full bg-purple-500/20 flex items-center justify-center overflow-hidden">
+                <img src={imgAssets.bridging} alt="Bridging" className="w-5 h-5" />
               </div>
               <span className="text-xs font-semibold">Bridging</span>
               <InfoTip text="Bring cubes from your wallet into a run to spend at the in-game shop." />

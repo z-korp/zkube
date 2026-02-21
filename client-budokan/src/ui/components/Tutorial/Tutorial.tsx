@@ -18,10 +18,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/ui/elements/alert-dialog";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrophy } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "@/ui/elements/button";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
+import { Trophy } from "lucide-react";
 
 import {
   TUTORIAL_STEPS,
@@ -147,32 +146,32 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
           }));
           setIsIntermission(true);
           break;
-        case 4: // Hammer
+        case 4: // Combo
           if (block.y === 9 && block.x >= 6) {
             setGridState((prev) => ({
               ...prev,
               score: prev.score + 25,
-              hammerCount: prev.hammerCount - 1,
+              comboCount: prev.comboCount - 1,
             }));
             setIsIntermission(true);
           }
           break;
-        case 5: // Wave
+        case 5: // Harvest
           if (block.y === 8) {
             setGridState((prev) => ({
               ...prev,
               score: prev.score + 200,
-              waveCount: prev.waveCount - 1,
+              harvestCount: prev.harvestCount - 1,
             }));
             setIsIntermission(true);
           }
           break;
-        case 6: // Totem
+        case 6: // Score
           if (block.width === 3) {
             setGridState((prev) => ({
               ...prev,
               score: prev.score + 150,
-              totemCount: prev.totemCount - 1,
+              scoreCount: prev.scoreCount - 1,
             }));
             setIsIntermission(true);
           }
@@ -245,12 +244,12 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
     
     if (isBonusStep(currentStepConfig)) {
       switch (currentStepConfig.bonusType) {
-        case BonusType.Hammer:
-          return <img className="w-8 h-8" src={imgAssets.hammer} alt="Hammer" />;
-        case BonusType.Wave:
-          return <img className="w-8 h-8" src={imgAssets.wave} alt="Wave" />;
-        case BonusType.Totem:
-          return <img className="w-8 h-8" src={imgAssets.tiki} alt="Totem" />;
+        case BonusType.Combo:
+          return <img className="w-8 h-8" src={imgAssets.combo} alt="Combo" />;
+        case BonusType.Harvest:
+          return <img className="w-8 h-8" src={imgAssets.harvest} alt="Harvest" />;
+        case BonusType.Score:
+          return <img className="w-8 h-8" src={imgAssets.score} alt="Score" />;
         default:
           return null;
       }
@@ -293,7 +292,7 @@ const Tutorial: React.FC<TutorialProps> = ({ showGrid, endTutorial }) => {
             </AlertDialogTitle>
             <AlertDialogDescription></AlertDialogDescription>
             <div className="flex flex-col items-center justify-center gap-6 text-sm text-muted-foreground">
-              <FontAwesomeIcon size="2x" icon={faTrophy} color="gold" />
+              <Trophy size={28} className="text-[gold]" />
               <p>You have successfully completed Step {tutorialStep}.</p>
             </div>
           </AlertDialogHeader>

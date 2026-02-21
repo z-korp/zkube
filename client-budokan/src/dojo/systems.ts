@@ -1,23 +1,49 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { IWorld } from "./contractSystems";
-import { toast } from "sonner";
 import * as SystemTypes from "./contractSystems";
-import { shortenHex } from "@dojoengine/utils";
 import { Account, type TransactionReceipt } from "starknet";
 import {
-  getToastPlacement,
   getUrl,
   getWalnutUrl,
   shouldShowToast,
-  getToastAction,
   notify,
+  showToast,
+  deriveUserFacingErrorMessage,
 } from "@/utils/toast";
 import { useMoveStore } from "@/stores/moveTxStore";
+import { createLogger } from "@/utils/logger";
 
 export type SystemCalls = ReturnType<typeof systems>;
 
 // Helper to delay execution
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const SESSION_ERROR_PATTERNS = [
+  "session/deserialize-error",
+  "session/not-registered",
+  "73657373696f6e2f646573657269616c697a652d6572726f72",
+  "73657373696f6e2f6e6f742d726567697374657265",
+];
+
+function isSessionError(error: unknown): boolean {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+        ? error
+        : JSON.stringify(error);
+  const lower = message.toLowerCase();
+  return SESSION_ERROR_PATTERNS.some((p) => lower.includes(p));
+}
+
+function clearSessionAndReload() {
+  localStorage.removeItem("sessionSigner");
+  localStorage.removeItem("session");
+  localStorage.removeItem("sessionPolicies");
+  localStorage.removeItem("lastUsedConnector");
+  localStorage.removeItem("controllerSessionVersion");
+  window.location.reload();
+}
 
 // Maximum retries for pre-confirmed transaction waiting
 const MAX_RETRIES = 5;
@@ -25,7 +51,7 @@ const RETRY_DELAY_MS = 500;
 const POLL_INTERVAL_MS = 275;
 
 export function systems({ client }: { client: IWorld }) {
-  const toastPlacement = getToastPlacement();
+  const log = createLogger("dojo/systems");
 
   /**
    * Wait for a transaction to reach PRE_CONFIRMED status (or better).
@@ -49,10 +75,7 @@ export function systems({ client }: { client: IWorld }) {
 
       return receipt;
     } catch (error) {
-      console.warn(
-        `Pre-confirm wait failed (attempt ${retries + 1}/${MAX_RETRIES + 1}):`,
-        error
-      );
+      log.warn(`Pre-confirm wait failed (attempt ${retries + 1}/${MAX_RETRIES + 1})`, error);
       await delay(RETRY_DELAY_MS);
       return waitForPreConfirmedTransaction(account, txHash, retries + 1);
     }
@@ -68,29 +91,23 @@ export function systems({ client }: { client: IWorld }) {
 
     try {
       if (shouldShowToast()) {
-        // Show initial loading toast before transaction
-        toast.loading("Transaction in progress...", {
-          id: toastId,
-          position: toastPlacement,
-        });
+        showToast({ message: "Transaction in progress...", type: "loading", toastId });
       }
 
       // Execute the transaction
       const { transaction_hash } = await action();
-      console.log(
-        "transaction_hash",
+      log.debug("Transaction submitted", {
         transaction_hash,
-        getUrl(transaction_hash),
-        getWalnutUrl(transaction_hash)
-      );
+        url: getUrl(transaction_hash),
+        walnutUrl: getWalnutUrl(transaction_hash),
+      });
 
       if (shouldShowToast()) {
-        // Update the same toast with transaction hash
-        toast.loading("Transaction in progress...", {
-          description: shortenHex(transaction_hash),
-          action: getToastAction(transaction_hash),
-          id: toastId,
-          position: toastPlacement,
+        showToast({
+          message: "Transaction in progress...",
+          txHash: transaction_hash,
+          type: "loading",
+          toastId,
         });
       }
 
@@ -101,14 +118,23 @@ export function systems({ client }: { client: IWorld }) {
       );
       const events = receipt.events;
 
-      // Check if transaction was reverted
       if ((receipt as any).execution_status === "REVERTED") {
-        console.error("Transaction reverted:", receipt);
-        if (shouldShowToast()) {
-          toast.error("Transaction reverted.", {
-            id: toastId,
-            position: toastPlacement,
+        const revertReason = (receipt as any).revert_reason ?? "";
+        if (isSessionError(revertReason)) {
+          log.warn("Transaction reverted with session error, clearing and reloading");
+          showToast({
+            message: "Session expired. Reconnecting...",
+            type: "loading",
+            toastId,
+            durationMs: 3000,
           });
+          clearSessionAndReload();
+          return { transaction_hash, events: [] };
+        }
+
+        log.error("Transaction reverted", receipt);
+        if (shouldShowToast()) {
+          showToast({ message: "Transaction reverted.", type: "error", toastId });
         }
         throw new Error("Transaction reverted");
       }
@@ -117,18 +143,26 @@ export function systems({ client }: { client: IWorld }) {
       notify(successMessage, receipt, toastId);
       return { transaction_hash, events };
     } catch (error) {
-      console.error("Error executing transaction:", error);
+      log.error("Error executing transaction", error);
+
+      if (isSessionError(error)) {
+        log.warn("Stale session detected, clearing and reloading");
+        showToast({
+          message: "Session expired. Reconnecting...",
+          type: "loading",
+          toastId,
+          durationMs: 3000,
+        });
+        clearSessionAndReload();
+        return { transaction_hash: "", events: [] };
+      }
 
       if (shouldShowToast()) {
-        // Don't override if we already showed a revert error
         const errorMessage =
           error instanceof Error && error.message === "Transaction reverted"
             ? "Transaction reverted."
-            : "Transaction failed.";
-        toast.error(errorMessage, {
-          id: toastId,
-          position: toastPlacement,
-        });
+            : deriveUserFacingErrorMessage(error, "Transaction failed.");
+        showToast({ message: errorMessage, type: "error", toastId });
       }
 
       throw error;
@@ -145,7 +179,7 @@ export function systems({ client }: { client: IWorld }) {
       () => client.game.free_mint({ account, ...props, settingsId }),
       "Game has been minted."
     );
-    console.info("[freeMint] tx:", transaction_hash);
+    log.info("freeMint transaction", { transaction_hash });
 
     // Try to extract token_id from Transfer event (ERC721)
     // Transfer event has 5 keys: [selector, from, to, token_id_low, token_id_high]
@@ -159,7 +193,7 @@ export function systems({ client }: { client: IWorld }) {
       const tokenIdLow = BigInt(transferEvent.keys[3] || "0");
       const tokenIdHigh = BigInt(transferEvent.keys[4] || "0");
       game_id = Number(tokenIdLow + (tokenIdHigh << 128n));
-      console.log("[freeMint] game_id:", game_id);
+      log.info("freeMint game_id extracted from transfer", { game_id });
     } else {
       // Fallback: try TokenMetadata event with data.length === 11
       const tokenMetadataEvent = events.find(
@@ -167,9 +201,9 @@ export function systems({ client }: { client: IWorld }) {
       );
       if (tokenMetadataEvent) {
         game_id = parseInt(tokenMetadataEvent.data[1], 16);
-        console.log("[freeMint] game_id (fallback):", game_id);
+        log.info("freeMint game_id extracted from fallback metadata", { game_id });
       } else {
-        console.warn("[freeMint] Could not find Transfer or TokenMetadata event");
+        log.warn("Could not find Transfer or TokenMetadata event for freeMint");
       }
     }
 
@@ -177,7 +211,7 @@ export function systems({ client }: { client: IWorld }) {
   };
 
   const create = async ({ account, ...props }: SystemTypes.Create) => {
-    console.log("[create] params:", {
+    log.debug("create params", {
       token_id: props.token_id,
       selected_bonuses: props.selected_bonuses,
       cubes_amount: props.cubes_amount,
@@ -187,7 +221,7 @@ export function systems({ client }: { client: IWorld }) {
       () => client.game.create({ account, ...props }),
       "Game has been started."
     );
-    console.log("[create] success");
+    log.info("create success");
   };
 
   const surrender = async ({ account, ...props }: SystemTypes.Surrender) => {
@@ -199,7 +233,7 @@ export function systems({ client }: { client: IWorld }) {
   };
 
   const move = async ({ account, ...props }: SystemTypes.Move) => {
-    console.log("move", account, props);
+    log.debug("move", { account: account.address, ...props });
     const setMoveComplete = useMoveStore.getState().setMoveComplete; //  Zustand
     setMoveComplete(false); // Reset before transaction
 
@@ -288,6 +322,38 @@ export function systems({ client }: { client: IWorld }) {
     );
   };
 
+  const allocateCharge = async ({ account, ...props }: SystemTypes.AllocateCharge) => {
+    const setMoveComplete = useMoveStore.getState().setMoveComplete;
+    setMoveComplete(false);
+    try {
+      await handleTransaction(
+        account,
+        () => client.shop.allocate_charge({ account, ...props }),
+        "Charge allocated!"
+      );
+      setMoveComplete(true);
+    } catch (error) {
+      setMoveComplete(true);
+      throw error;
+    }
+  };
+
+  const swapBonus = async ({ account, ...props }: SystemTypes.SwapBonus) => {
+    const setMoveComplete = useMoveStore.getState().setMoveComplete;
+    setMoveComplete(false);
+    try {
+      await handleTransaction(
+        account,
+        () => client.shop.swap_bonus({ account, ...props }),
+        "Bonus swapped!"
+      );
+      setMoveComplete(true);
+    } catch (error) {
+      setMoveComplete(true);
+      throw error;
+    }
+  };
+
   const claimQuest = async ({ account, ...props }: SystemTypes.ClaimQuest) => {
     if (!client.quest) {
       throw new Error("Quest system not available");
@@ -309,6 +375,8 @@ export function systems({ client }: { client: IWorld }) {
     // in-game shop
     purchaseConsumable,
     levelUpBonus,
+    allocateCharge,
+    swapBonus,
     // permanent shop
     upgradeStartingBonus,
     upgradeBagSize,

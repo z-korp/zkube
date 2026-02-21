@@ -24,15 +24,15 @@ const NextLine = ({
   }, [nextLineData]);
 
   return (
-    <div className="grid-background static-border">
+    <div>
       <div
         className={`relative p-r-[1px] p-b-[1px] touch-action-none display-grid grid grid-cols-[repeat(${gridWidth},${gridSize}px)] grid-rows-[repeat(${gridHeight},${gridSize}px)]`}
         style={{
           height: `${gridHeight * gridSize + borderSize}px`,
           width: `${gridWidth * gridSize + borderSize}px`,
           backgroundImage:
-            "linear-gradient(#1E293B 2px, transparent 2px), linear-gradient(to right, #1E293B 2px, #10172A 2px)",
-          backgroundSize: `${gridSize}px ${gridSize}px`,
+            `linear-gradient(var(--theme-grid-lines, #1E293B) 2px, transparent 2px), linear-gradient(to right, var(--theme-grid-lines, #1E293B) 2px, transparent 2px)`,
+          backgroundSize: `${gridSize}px ${gridSize}px, ${gridSize}px ${gridSize}px`,
         }}
       >
         {blocks.map((block) => (

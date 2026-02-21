@@ -146,9 +146,9 @@ mod renderer_systems {
                 run_data.level_moves.into(),
                 game.combo_counter.into(),
                 game.max_combo,
-                run_data.hammer_count,
-                run_data.wave_count,
-                run_data.totem_count,
+                run_data.combo_count,
+                run_data.score_count,
+                run_data.harvest_count,
             )
         }
 
@@ -173,9 +173,9 @@ mod renderer_systems {
             let _score = format!("{}", run_data.total_score);
             let _combo = format!("{}", game.combo_counter);
             let _max_combo = format!("{}", game.max_combo);
-            let _hammer_bonus = format!("{}", run_data.hammer_count);
-            let _wave_bonus = format!("{}", run_data.wave_count);
-            let _totem_bonus = format!("{}", run_data.totem_count);
+            let _combo_bonus = format!("{}", run_data.combo_count);
+            let _score_bonus = format!("{}", run_data.score_count);
+            let _harvest_bonus = format!("{}", run_data.harvest_count);
             let _level = format!("{}", run_data.current_level);
 
             let mut elements = array![
@@ -201,13 +201,13 @@ mod renderer_systems {
                     "Max Combo: " + _max_combo.clone(), "30", "200", "18", "middle", "left"
                 ));
                 elements.append(renderer_helper::create_text(
-                    "Hammer: " + _hammer_bonus.clone(), "30", "250", "18", "middle", "left"
+                    "Combo: " + _combo_bonus.clone(), "30", "250", "18", "middle", "left"
                 ));
                 elements.append(renderer_helper::create_text(
-                    "Wave: " + _wave_bonus.clone(), "30", "275", "18", "middle", "left"
+                    "Score: " + _score_bonus.clone(), "30", "275", "18", "middle", "left"
                 ));
                 elements.append(renderer_helper::create_text(
-                    "Totem: " + _totem_bonus.clone(), "30", "300", "18", "middle", "left"
+                    "Harvest: " + _harvest_bonus.clone(), "30", "300", "18", "middle", "left"
                 ));
             } else {
                 elements.append(renderer_helper::create_text(

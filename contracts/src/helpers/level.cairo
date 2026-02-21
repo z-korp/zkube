@@ -14,8 +14,9 @@ use core::hash::HashStateTrait;
 
 use zkube::types::difficulty::Difficulty;
 use zkube::types::level::LevelConfig;
-use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait};
+use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait, ConstraintType};
 use zkube::models::config::{GameSettings, GameSettingsTrait};
+use zkube::helpers::boss;
 
 /// Constants for level generation
 mod LevelConstants {
@@ -126,14 +127,31 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         // Get difficulty from settings
         let difficulty = settings.get_difficulty_for_level(calc_level);
         
-        // Generate constraints: use seeded boss constraints for boss levels, otherwise normal generation
+        // Generate constraints: use boss identity system for boss levels, otherwise normal generation
         // Respect constraints_enabled setting for both boss and regular levels
-        let (constraint, constraint_2) = if !settings.are_constraints_enabled() {
-            (LevelConstraintTrait::none(), LevelConstraintTrait::none())
+        let (constraint, constraint_2, constraint_3) = if !settings.are_constraints_enabled() {
+            (LevelConstraintTrait::none(), LevelConstraintTrait::none(), LevelConstraintTrait::none())
         } else if BossLevel::is_boss_level(level) {
-            Self::generate_boss_constraints_seeded(level_seed, difficulty, settings)
+            // Boss levels use the boss identity system with budget_max
+            let boss_id = boss::derive_boss_id(level_seed);
+            let (_min_lines, _max_lines, _budget_min, budget_max, _min_times) = 
+                settings.get_constraint_params_for_difficulty(difficulty);
+            let (c1, c2, c3) = boss::generate_boss_constraints(
+                boss_id, difficulty, level_seed, budget_max, points_required
+            );
+            
+            // Level 10/20/30: dual constraints (c3 = None)
+            // Level 40/50: triple constraints (all three active)
+            if level >= 40 {
+                (c1, c2, c3)
+            } else {
+                (c1, c2, LevelConstraintTrait::none())
+            }
         } else {
-            Self::generate_constraints_with_settings(level_seed, level, difficulty, settings)
+            // Regular levels: deterministic count-based constraint generation
+            Self::generate_constraints_with_settings(
+                level_seed, level, difficulty, settings, points_required
+            )
         };
 
         LevelConfig {
@@ -143,152 +161,241 @@ pub impl LevelGenerator of LevelGeneratorTrait {
             difficulty,
             constraint,
             constraint_2,
+            constraint_3,
             cube_3_threshold,
             cube_2_threshold,
         }
     }
     
-    /// Generate seeded boss constraints with max budget for the difficulty
-    /// Boss levels always have dual constraints, randomly seeded
-    /// 
-    /// - Primary: ClearLines with max budget for the level's difficulty
-    /// - Secondary: Either ClearLines (max budget, different line count) or NoBonusUsed based on difficulty's chance
-    fn generate_boss_constraints_seeded(
-        level_seed: felt252,
-        difficulty: Difficulty,
-        settings: GameSettings
-    ) -> (LevelConstraint, LevelConstraint) {
-        // Get constraint params for the difficulty
-        let (min_lines, max_lines, _budget_min, budget_max, min_times, _dual_chance, secondary_no_bonus_chance) = 
-            settings.get_constraint_params_for_difficulty(difficulty);
-        
-        // Primary: Always ClearLines with MAX budget (no rolling)
-        let primary = Self::generate_clear_lines_constraint_max_budget(
-            level_seed, min_lines, max_lines, budget_max, min_times
-        );
-        
-        // Secondary: Always generated (forced dual), but may be NoBonusUsed
-        // Pass primary.value to avoid duplicate line counts
-        let secondary = Self::generate_boss_secondary_constraint(
-            level_seed, min_lines, max_lines, budget_max, min_times, secondary_no_bonus_chance, primary.value
-        );
-        
-        (primary, secondary)
-    }
-    
-    /// Generate a ClearLines constraint using MAX budget (for bosses)
-    /// Same algorithm as generate_clear_lines_constraint but uses budget_max directly
-    fn generate_clear_lines_constraint_max_budget(
-        seed: felt252,
-        min_lines: u8,
-        max_lines: u8,
-        budget_max: u8,
-        min_times: u8,
-    ) -> LevelConstraint {
-        let seed_u256: u256 = seed.into();
-        
-        // Use max budget directly (no rolling)
-        let budget: u8 = budget_max;
-        
-        // Roll lines within [min_lines, max_lines]
-        let lines_range: u8 = if max_lines > min_lines { max_lines - min_lines + 1 } else { 1 };
-        let mut lines: u8 = min_lines + (((seed_u256 / 100) % lines_range.into()).try_into().unwrap());
-        
-        // Compute times_cap = budget / line_cost(lines)
-        let mut cost: u8 = Self::line_cost(lines);
-        let mut times_cap: u8 = if cost > 0 { budget / cost } else { 1 };
-        
-        // Feasibility repair - reduce lines until times_cap >= min_times
-        let mut repair_count: u8 = 0;
-        while times_cap < min_times && lines > 2 && repair_count < 5 {
-            lines = lines - 1;
-            cost = Self::line_cost(lines);
-            times_cap = if cost > 0 { budget / cost } else { 1 };
-            repair_count = repair_count + 1;
-        };
-        
-        // If still infeasible, reduce min_times requirement to times_cap
-        let effective_min_times: u8 = if times_cap < min_times { 
-            if times_cap >= 1 { times_cap } else { 1 }
-        } else { 
-            min_times 
-        };
-        
-        // Roll times with skew-high distribution (max of two rolls)
-        let times: u8 = if times_cap <= 1 {
-            1
-        } else {
-            let t1: u8 = 1 + (((seed_u256 / 1000) % times_cap.into()).try_into().unwrap());
-            let t2: u8 = 1 + (((seed_u256 / 10000) % times_cap.into()).try_into().unwrap());
-            let max_t = if t1 > t2 { t1 } else { t2 };
-            if max_t < effective_min_times { effective_min_times } else { max_t }
-        };
-        
-        LevelConstraintTrait::clear_lines(lines, times)
-    }
-    
-    /// Generate boss secondary constraint (always generated, but may be NoBonusUsed)
-    /// Skips the dual_chance roll since bosses always have dual constraints
-    /// If ClearLines, ensures different line count than primary constraint
-    fn generate_boss_secondary_constraint(
-        seed: felt252,
-        min_lines: u8,
-        max_lines: u8,
-        budget_max: u8,
-        min_times: u8,
-        secondary_no_bonus_chance: u8,
-        primary_lines: u8,
-    ) -> LevelConstraint {
-        let seed_u256: u256 = seed.into();
-        
-        // Roll to see if secondary is NoBonusUsed or ClearLines
-        let no_bonus_roll: u8 = ((seed_u256 / 1000000) % 100).try_into().unwrap();
-        if no_bonus_roll < secondary_no_bonus_chance {
-            return LevelConstraintTrait::no_bonus();
-        }
-        
-        // Generate another ClearLines constraint with shifted seed and max budget
-        // Ensure different line count than primary
-        let secondary_seed: felt252 = (seed_u256 / 10000000).try_into().unwrap();
-        Self::generate_clear_lines_constraint_different(
-            secondary_seed, min_lines, max_lines, budget_max, budget_max, min_times, primary_lines
-        )
-    }
+    // NOTE: generate_boss_constraints_seeded, generate_clear_lines_constraint_max_budget,
+    // and generate_boss_secondary_constraint were removed in the constraint V2 redesign.
+    // Boss constraint generation now uses the boss module (helpers/boss.cairo).
 
-    /// Generate constraints based on seed, level, difficulty, and settings
-    /// Returns (primary_constraint, secondary_constraint)
-    /// Primary is always ClearLines (from level 3+), secondary depends on dual_chance
-    /// If both are ClearLines, they will have different line counts
+    /// Generate constraints based on seed, level, difficulty, and settings.
+    /// Uses unified budget system with weighted type selection.
+    /// 
+    /// Deterministic count-based system: each difficulty tier has a hardcoded
+    /// constraint_min/constraint_max. Roll count in [min, max], generate that many.
+    /// Regular levels generate ComboLines, BreakBlocks, ComboStreak, Fill only.
+    /// NoBonusUsed is boss-only — never generated on regular levels.
+    /// 
+    /// Returns (constraint_1, constraint_2, constraint_3)
     fn generate_constraints_with_settings(
-        level_seed: felt252, level: u8, difficulty: Difficulty, settings: GameSettings
-    ) -> (LevelConstraint, LevelConstraint) {
+        level_seed: felt252,
+        level: u8,
+        difficulty: Difficulty,
+        settings: GameSettings,
+        points_required: u16,
+    ) -> (LevelConstraint, LevelConstraint, LevelConstraint) {
         // Check if constraints are enabled
         if !settings.are_constraints_enabled() {
-            return (LevelConstraintTrait::none(), LevelConstraintTrait::none());
+            return (LevelConstraintTrait::none(), LevelConstraintTrait::none(), LevelConstraintTrait::none());
         }
         
         // No constraint before the start level (levels 1-2 have no constraints)
         if level < settings.constraint_start_level {
-            return (LevelConstraintTrait::none(), LevelConstraintTrait::none());
+            return (LevelConstraintTrait::none(), LevelConstraintTrait::none(), LevelConstraintTrait::none());
         }
         
+        let seed_u256: u256 = level_seed.into();
+        
         // Get interpolated constraint parameters for this difficulty
-        let (min_lines, max_lines, budget_min, budget_max, min_times, dual_chance, secondary_no_bonus_chance) = 
+        let (_min_lines, _max_lines, budget_min, budget_max, _min_times) = 
             settings.get_constraint_params_for_difficulty(difficulty);
         
-        // Generate primary constraint (always ClearLines)
-        let primary = Self::generate_clear_lines_constraint(
-            level_seed, min_lines, max_lines, budget_min, budget_max, min_times
-        );
+        // Get difficulty tier for type selection weights and constraint count
+        let tier = boss::difficulty_to_tier(difficulty);
         
-        // Check if we should have a secondary constraint
-        // Pass primary.value to avoid duplicate line counts
-        let secondary = Self::maybe_generate_secondary_constraint(
-            level_seed, min_lines, max_lines, budget_min, budget_max, min_times, 
-            dual_chance, secondary_no_bonus_chance, primary.value
-        );
+        // Determine how many constraints this level has (deterministic per tier)
+        let (count_min, count_max) = Self::get_constraint_count_range(tier);
         
-        (primary, secondary)
+        // If tier has 0 constraints, return none
+        if count_max == 0 {
+            return (LevelConstraintTrait::none(), LevelConstraintTrait::none(), LevelConstraintTrait::none());
+        }
+        
+        // Roll constraint count in [count_min, count_max]
+        let count: u8 = if count_min == count_max {
+            count_min
+        } else {
+            let count_range: u8 = count_max - count_min + 1;
+            count_min + ((seed_u256 % count_range.into()).try_into().unwrap())
+        };
+        
+        // Generate each constraint with independent budget rolls and type selection
+        // Use different seed derivations for each constraint to ensure independence
+        let mut constraints: Array<LevelConstraint> = array![];
+        let mut used_types: Array<ConstraintType> = array![];
+        let mut i: u8 = 0;
+        while i < count {
+            // Derive a unique seed for this constraint index
+            let constraint_seed: felt252 = {
+                let state: HashState = PoseidonTrait::new();
+                let state = state.update(level_seed);
+                let state = state.update(i.into());
+                let state = state.update('CONSTRAINT');
+                state.finalize()
+            };
+            let constraint_seed_u256: u256 = constraint_seed.into();
+            
+            // Roll budget within [budget_min, budget_max]
+            let budget_range: u8 = if budget_max > budget_min { budget_max - budget_min + 1 } else { 1 };
+            let budget: u8 = budget_min + ((constraint_seed_u256 % budget_range.into()).try_into().unwrap());
+            
+            // Roll constraint type, avoiding duplicates
+            let mut constraint_type = Self::select_constraint_type(constraint_seed, tier);
+            
+            // If this type was already used, cycle to next unused type
+            let mut attempts: u8 = 0;
+            while attempts < 4 {
+                if !Self::type_in_array(@used_types, constraint_type) {
+                    break;
+                }
+                constraint_type = Self::next_regular_type(constraint_type);
+                attempts += 1;
+            };
+            
+            // Generate constraint from budget
+            let constraint = Self::generate_constraint_from_budget(
+                constraint_seed, budget, constraint_type, tier, points_required
+            );
+            constraints.append(constraint);
+            used_types.append(constraint_type);
+            
+            i += 1;
+        };
+        
+        // Pad to 3 constraints (fill with None)
+        let c1 = if constraints.len() > 0 { *constraints.at(0) } else { LevelConstraintTrait::none() };
+        let c2 = if constraints.len() > 1 { *constraints.at(1) } else { LevelConstraintTrait::none() };
+        let c3 = if constraints.len() > 2 { *constraints.at(2) } else { LevelConstraintTrait::none() };
+        
+        (c1, c2, c3)
+    }
+    
+    /// Check if a constraint type is already in the used types array
+    fn type_in_array(arr: @Array<ConstraintType>, t: ConstraintType) -> bool {
+        let mut i: u32 = 0;
+        let len = arr.len();
+        while i < len {
+            if *arr.at(i) == t {
+                return true;
+            }
+            i += 1;
+        };
+        false
+    }
+    
+    /// Select a constraint type using difficulty-weighted probabilities.
+    /// Weights per tier (ComboLines / BreakBlocks / Fill / ComboStreak, sum=100):
+    /// tier 0: [30, 30, 10, 30]
+    /// tier 1: [30, 30, 10, 30]
+    /// tier 2: [29, 29, 12, 30]
+    /// tier 3: [28, 28, 14, 30]
+    /// tier 4: [27, 27, 16, 30]
+    /// tier 5: [27, 26, 17, 30]
+    /// tier 6: [26, 26, 18, 30]
+    /// tier 7: [26, 25, 20, 29]
+    fn select_constraint_type(seed: felt252, tier: u8) -> ConstraintType {
+        let seed_u256: u256 = seed.into();
+        let roll: u8 = ((seed_u256 / 10000) % 100).try_into().unwrap();
+        
+        // Get cumulative thresholds for this tier
+        let (clear_lines_w, break_blocks_w, fill_w) = Self::get_type_weights(tier);
+        // ComboStreak = remainder (100 - combo_lines - break - fill)
+        
+        if roll < clear_lines_w {
+            ConstraintType::ComboLines
+        } else if roll < clear_lines_w + break_blocks_w {
+            ConstraintType::BreakBlocks
+        } else if roll < clear_lines_w + break_blocks_w + fill_w {
+            ConstraintType::FillAndClear
+        } else {
+            ConstraintType::ComboStreak
+        }
+    }
+    
+    /// Get type selection weights for a difficulty tier.
+    /// Returns (combo_lines, break_blocks, fill). ComboStreak = 100 - sum.
+    fn get_type_weights(tier: u8) -> (u8, u8, u8) {
+        match tier {
+            0 => (30, 30, 10),  // VeryEasy
+            1 => (30, 30, 10),  // Easy
+            2 => (29, 29, 12),  // Medium
+            3 => (28, 28, 14),  // MediumHard
+            4 => (27, 27, 16),  // Hard
+            5 => (27, 26, 17),  // VeryHard
+            6 => (26, 26, 18),  // Expert
+            _ => (26, 25, 20),  // Master
+        }
+    }
+    
+    /// Get deterministic constraint count range for a difficulty tier.
+    /// Returns (constraint_min, constraint_max).
+    /// Roll a random count in [min, max] to determine how many constraints a level has.
+    /// NoBonusUsed is boss-only — never generated on regular levels.
+    fn get_constraint_count_range(tier: u8) -> (u8, u8) {
+        match tier {
+            0 => (0, 0),  // VeryEasy: no constraints
+            1 => (1, 1),  // Easy: always 1
+            2 => (1, 2),  // Medium: 1-2
+            3 => (1, 2),  // MediumHard: 1-2
+            4 => (2, 2),  // Hard: always 2
+            5 => (2, 3),  // VeryHard: 2-3
+            6 => (2, 3),  // Expert: 2-3
+            _ => (3, 3),  // Master: always 3
+        }
+    }
+    
+    /// Get minimum lines for ComboLines constraint by tier.
+    /// Prevents boring low-line spam at high difficulty.
+    fn get_min_lines_for_tier(tier: u8) -> u8 {
+        match tier {
+            0 | 1 => 2,       // VeryEasy/Easy: min 2 lines
+            2 | 3 => 3,       // Medium/MediumHard: min 3 lines
+            4 | 5 | 6 => 4,   // Hard/VeryHard/Expert: min 4 lines
+            _ => 5,            // Master: min 5 lines
+        }
+    }
+
+    /// Get maximum lines for ComboLines by tier.
+    /// Prevents very high one-shot requirements too early.
+    fn get_max_lines_for_tier(tier: u8) -> u8 {
+        match tier {
+            0 | 1 => 3,   // VeryEasy/Easy cap at 3 lines
+            2 => 4,       // Medium cap at 4
+            3 => 5,       // MediumHard cap at 5
+            4 => 6,       // Hard cap at 6
+            _ => 7,       // VeryHard/Expert/Master cap at 7
+        }
+    }
+
+    /// Get maximum allowed ComboLines repetitions.
+    /// Keeps line-vs-times tradeoffs across tiers, while capping outliers.
+    fn get_max_combo_lines_times_for_tier(_tier: u8) -> u8 {
+        4
+    }
+    
+    /// Generate a constraint of the given type using the budget system.
+    /// Budget determines the difficulty/scale of the constraint values.
+    fn generate_constraint_from_budget(
+        seed: felt252,
+        budget: u8,
+        constraint_type: ConstraintType,
+        tier: u8,
+        points_required: u16,
+    ) -> LevelConstraint {
+        match constraint_type {
+            ConstraintType::ComboLines => Self::generate_combo_lines_from_budget(seed, budget, tier),
+            ConstraintType::BreakBlocks => Self::generate_break_blocks_from_budget(seed, budget, tier),
+            ConstraintType::FillAndClear => Self::generate_fill_from_budget(seed, budget, tier),
+            ConstraintType::ComboStreak => {
+                Self::generate_combo_streak_from_points(points_required, tier)
+            },
+            ConstraintType::NoBonusUsed => LevelConstraintTrait::no_bonus(),
+            ConstraintType::ClearGrid => LevelConstraintTrait::clear_grid(),
+            ConstraintType::None => LevelConstraintTrait::none(),
+        }
     }
     
     /// Returns the weighted difficulty cost for clearing N lines at once.
@@ -297,11 +404,6 @@ pub impl LevelGenerator of LevelGeneratorTrait {
     /// 
     /// Used by constraint generation to determine how many "times" a constraint requires.
     /// Formula: times = budget / line_cost(lines)
-    /// 
-    /// Examples at Master (budget 25-40):
-    /// - 4 lines (cost 6): times = 4-6
-    /// - 5 lines (cost 10): times = 2-4
-    /// - 6 lines (cost 15): times = 1-2
     fn line_cost(lines: u8) -> u8 {
         match lines {
             0 | 1 => 1,
@@ -314,174 +416,254 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         }
     }
     
-    /// Generate a ClearLines constraint using the weighted budget system
+    /// Cost for breaking blocks of a given size.
+    /// Smaller blocks are easier to find, so cheaper.
+    /// size 1->3, 2->4, 3->5, 4->6
+    fn break_cost(size: u8) -> u8 {
+        match size {
+            1 => 3,
+            2 => 4,
+            3 => 5,
+            _ => 6,  // size 4+
+        }
+    }
+    
+    /// Cost for Fill constraints by target row.
+    /// Higher rows are exponentially harder to maintain.
+    /// row 4->2, 5->5, 6->10, 7->17, 8->26
+    fn fill_row_cost(row: u8) -> u8 {
+        match row {
+            0 | 1 | 2 | 3 | 4 => 2,
+            5 => 5,
+            6 => 10,
+            7 => 17,
+            _ => 26,  // row 8+
+        }
+    }
+    
+    /// Max times for a Fill constraint by row (cap to keep it reasonable).
+    /// Kept for boss tuning paths; regular Fill generation now always uses times = 1.
+    /// row 4->4, 5->3, 6->2, 7->2, 8->1
+    fn fill_times_cap(row: u8) -> u8 {
+        match row {
+            0 | 1 | 2 | 3 | 4 => 4,
+            5 => 3,
+            6 => 2,
+            7 => 2,
+            _ => 1,  // row 8
+        }
+    }
+    
+    /// ComboStreak scale coefficient by tier (x100).
+    /// Easy starts at 0.40, Master reaches 0.75 (linear across tiers 1..7).
+    fn combo_streak_scale_x100_for_tier(tier: u8) -> u16 {
+        if tier <= 1 {
+            return 40;
+        }
+
+        if tier >= 7 {
+            return 75;
+        }
+
+        let step: u16 = (tier - 1).into();
+        40 + (35 * step / 6)
+    }
+
+    /// ComboStreak target scales with points_required and tier.
+    /// Formula: ceil(points_required * scale), where scale is 0.40..0.75.
+    /// Floor: minimum 10.
+    fn combo_streak_target_from_points(points_required: u16, tier: u8) -> u8 {
+        let scale_x100: u16 = Self::combo_streak_scale_x100_for_tier(tier);
+
+        let raw: u32 = points_required.into() * scale_x100.into();
+        let scaled_ceiled: u16 = ((raw + 99_u32) / 100_u32).try_into().unwrap();
+        let target: u16 = if scaled_ceiled < 10 { 10 } else { scaled_ceiled };
+
+        if target > 255 {
+            255
+        } else {
+            target.try_into().unwrap()
+        }
+    }
+    
+    /// Generate a ComboLines constraint from budget.
     /// Algorithm:
-    /// 1. Roll budget within [budget_min, budget_max]
-    /// 2. Roll lines within [min_lines, max_lines]
-    /// 3. Compute times_cap = budget / line_cost(lines)
-    /// 4. Feasibility repair: reduce lines if times_cap < min_times
-    /// 5. Roll times with skew-high distribution (max of two rolls)
-    fn generate_clear_lines_constraint(
-        seed: felt252,
-        min_lines: u8,
-        max_lines: u8,
-        budget_min: u8,
-        budget_max: u8,
-        min_times: u8,
-    ) -> LevelConstraint {
+    /// 1. Determine line range from budget (min from tier, max capped by what budget supports)
+    /// 2. Roll lines with skew-high
+    /// 3. Compute times = budget / line_cost(lines), skew-high roll
+    fn generate_combo_lines_from_budget(seed: felt252, budget: u8, tier: u8) -> LevelConstraint {
         let seed_u256: u256 = seed.into();
         
-        // Step 1: Roll budget within [budget_min, budget_max]
-        let budget_range: u8 = if budget_max > budget_min { budget_max - budget_min + 1 } else { 1 };
-        let budget: u8 = budget_min + ((seed_u256 % budget_range.into()).try_into().unwrap());
+        // Get minimum lines for this tier (prevents boring low-line spam at high difficulty)
+        let min_lines: u8 = Self::get_min_lines_for_tier(tier);
         
-        // Step 2: Roll lines within [min_lines, max_lines]
-        let lines_range: u8 = if max_lines > min_lines { max_lines - min_lines + 1 } else { 1 };
-        let mut lines: u8 = min_lines + (((seed_u256 / 100) % lines_range.into()).try_into().unwrap());
+        // Determine max feasible lines (find highest line count where line_cost <= budget)
+        let mut max_lines: u8 = min_lines;
+        let mut check: u8 = min_lines + 1;
+        while check <= 7 {
+            if budget >= Self::line_cost(check) {
+                max_lines = check;
+            }
+            check += 1;
+        };
+
+        // Also cap by tier so Easy/Medium tiers don't roll overly spiky one-shots.
+        let tier_max = Self::get_max_lines_for_tier(tier);
+        if max_lines > tier_max {
+            max_lines = tier_max;
+        }
         
-        // Step 3: Compute times_cap = budget / line_cost(lines)
-        let mut cost: u8 = Self::line_cost(lines);
-        let mut times_cap: u8 = if cost > 0 { budget / cost } else { 1 };
+        // Roll lines [min_lines, max_lines] with skew-high (max of two rolls)
+        let lines_range: u8 = max_lines - min_lines + 1;
+        let l1: u8 = min_lines + ((seed_u256 % lines_range.into()).try_into().unwrap());
+        let l2: u8 = min_lines + (((seed_u256 / 100) % lines_range.into()).try_into().unwrap());
+        let lines: u8 = if l1 > l2 { l1 } else { l2 };
         
-        // Step 4: Feasibility repair - reduce lines until times_cap >= min_times
-        // This ensures we never generate impossible constraints
-        let mut repair_count: u8 = 0;
-        while times_cap < min_times && lines > 2 && repair_count < 5 {
-            lines = lines - 1;
-            cost = Self::line_cost(lines);
-            times_cap = if cost > 0 { budget / cost } else { 1 };
-            repair_count = repair_count + 1;
+        // Compute times_cap = budget / line_cost(lines), min 1
+        let cost = Self::line_cost(lines);
+        let times_cap: u8 = if cost > 0 { budget / cost } else { 1 };
+        let tier_times_cap: u8 = Self::get_max_combo_lines_times_for_tier(tier);
+        let times_cap = if times_cap < 1 {
+            1
+        } else if times_cap > tier_times_cap {
+            tier_times_cap
+        } else {
+            times_cap
         };
         
-        // If still infeasible, reduce min_times requirement to times_cap
-        let effective_min_times: u8 = if times_cap < min_times { 
-            if times_cap >= 1 { times_cap } else { 1 }
-        } else { 
-            min_times 
-        };
-        
-        // Step 5: Roll times with skew-high distribution (max of two rolls)
-        // This makes higher values more likely while preserving variety
+        // Roll times [1, times_cap] with skew-high
         let times: u8 = if times_cap <= 1 {
             1
         } else {
             let t1: u8 = 1 + (((seed_u256 / 1000) % times_cap.into()).try_into().unwrap());
             let t2: u8 = 1 + (((seed_u256 / 10000) % times_cap.into()).try_into().unwrap());
-            let max_t = if t1 > t2 { t1 } else { t2 };
-            // Enforce minimum times floor
-            if max_t < effective_min_times { effective_min_times } else { max_t }
+            if t1 > t2 { t1 } else { t2 }
         };
         
-        LevelConstraintTrait::clear_lines(lines, times)
+        LevelConstraintTrait::combo_lines(lines, times)
     }
     
-    /// Generate a ClearLines constraint ensuring different line count than primary
-    /// If same line count is rolled, adjusts up or down based on range availability
-    fn generate_clear_lines_constraint_different(
-        seed: felt252,
-        min_lines: u8,
-        max_lines: u8,
-        budget_min: u8,
-        budget_max: u8,
-        min_times: u8,
-        primary_lines: u8,
-    ) -> LevelConstraint {
+    /// Generate a BreakBlocks constraint from budget.
+    /// - Block size varies by difficulty tier: tier 0-1 max=2, tier 2-3 max=3, tier 4+ max=4
+    /// - Tier/size-aware scaling keeps targets realistic with block distributions.
+    /// - blocks_max = (budget * scale) / break_cost(size), clamped [4, 120]
+    /// - Skew-high roll for block count
+    fn generate_break_blocks_from_budget(seed: felt252, budget: u8, tier: u8) -> LevelConstraint {
         let seed_u256: u256 = seed.into();
         
-        // Step 1: Roll budget within [budget_min, budget_max]
-        let budget_range: u8 = if budget_max > budget_min { budget_max - budget_min + 1 } else { 1 };
-        let budget: u8 = budget_min + ((seed_u256 % budget_range.into()).try_into().unwrap());
+        // Max block size by tier
+        let max_size: u8 = if tier <= 1 { 2 } else if tier <= 3 { 3 } else { 4 };
         
-        // Step 2: Roll lines within [min_lines, max_lines]
-        let lines_range: u8 = if max_lines > min_lines { max_lines - min_lines + 1 } else { 1 };
-        let mut lines: u8 = min_lines + (((seed_u256 / 100) % lines_range.into()).try_into().unwrap());
+        // Roll size [1, max_size]
+        let size_range: u8 = max_size;
+        let size: u8 = 1 + ((seed_u256 % size_range.into()).try_into().unwrap());
         
-        // Ensure different from primary - adjust if same
-        if lines == primary_lines {
-            // Try to go one higher first
-            if lines < max_lines {
-                lines = lines + 1;
-            } else if lines > min_lines {
-                // Go lower if at max
-                lines = lines - 1;
-            }
-            // If min_lines == max_lines == primary_lines, we can't avoid duplicate
-            // This is an edge case where range is too small
-        }
+        // Compute blocks_max = (budget * break_scale(size,tier)) / break_cost(size)
+        let break_scale: u16 = Self::break_scale(size, tier);
+        let raw: u16 = (budget.into() * break_scale) / Self::break_cost(size).into();
         
-        // Step 3: Compute times_cap = budget / line_cost(lines)
-        let mut cost: u8 = Self::line_cost(lines);
-        let mut times_cap: u8 = if cost > 0 { budget / cost } else { 1 };
+        // Clamp [4, 120]
+        let blocks_max: u8 = if raw < 4 { 4 }
+            else if raw > 120 { 120 }
+            else { raw.try_into().unwrap() };
         
-        // Step 4: Feasibility repair - reduce lines until times_cap >= min_times
-        // But don't reduce to primary_lines
-        let mut repair_count: u8 = 0;
-        while times_cap < min_times && lines > 2 && repair_count < 5 {
-            let new_lines = lines - 1;
-            // Skip if would match primary
-            if new_lines == primary_lines && new_lines > 2 {
-                lines = new_lines - 1;
-            } else {
-                lines = new_lines;
-            }
-            cost = Self::line_cost(lines);
-            times_cap = if cost > 0 { budget / cost } else { 1 };
-            repair_count = repair_count + 1;
-        };
-        
-        // If still infeasible, reduce min_times requirement to times_cap
-        let effective_min_times: u8 = if times_cap < min_times { 
-            if times_cap >= 1 { times_cap } else { 1 }
-        } else { 
-            min_times 
-        };
-        
-        // Step 5: Roll times with skew-high distribution (max of two rolls)
-        let times: u8 = if times_cap <= 1 {
-            1
+        // Roll count [4, blocks_max] with skew-high
+        let count: u8 = if blocks_max <= 4 {
+            4
         } else {
-            let t1: u8 = 1 + (((seed_u256 / 1000) % times_cap.into()).try_into().unwrap());
-            let t2: u8 = 1 + (((seed_u256 / 10000) % times_cap.into()).try_into().unwrap());
-            let max_t = if t1 > t2 { t1 } else { t2 };
-            if max_t < effective_min_times { effective_min_times } else { max_t }
+            let count_range: u8 = blocks_max - 4 + 1;
+            let c1: u8 = 4 + (((seed_u256 / 100) % count_range.into()).try_into().unwrap());
+            let c2: u8 = 4 + (((seed_u256 / 1000) % count_range.into()).try_into().unwrap());
+            if c1 > c2 { c1 } else { c2 }
         };
         
-        LevelConstraintTrait::clear_lines(lines, times)
+        LevelConstraintTrait::break_blocks(size, count)
     }
     
-    /// Maybe generate a secondary constraint
-    /// Secondary can be either NoBonusUsed or another ClearLines (with different line count)
-    fn maybe_generate_secondary_constraint(
-        seed: felt252,
-        min_lines: u8,
-        max_lines: u8,
-        budget_min: u8,
-        budget_max: u8,
-        min_times: u8,
-        dual_chance: u8,
-        secondary_no_bonus_chance: u8,
-        primary_lines: u8,
-    ) -> LevelConstraint {
+    /// Generate a ComboStreak constraint from score target.
+    /// target = ceil(points_required * scale(tier)), minimum 10.
+    fn generate_combo_streak_from_points(points_required: u16, tier: u8) -> LevelConstraint {
+        LevelConstraintTrait::combo_streak(Self::combo_streak_target_from_points(points_required, tier))
+    }
+    
+    /// Generate a Fill constraint from budget.
+    /// - Fill chance is higher than before, so rows are raised by tier.
+    /// - Master always targets row 8.
+    /// - Always requires exactly 1 trigger.
+    fn generate_fill_from_budget(seed: felt252, budget: u8, tier: u8) -> LevelConstraint {
+        // Master floor: row 8 always.
+        if tier >= 7 {
+            return LevelConstraintTrait::fill_and_clear(8, 1);
+        }
+
         let seed_u256: u256 = seed.into();
-        
-        // Roll to see if we get a secondary constraint at all
-        let dual_roll: u8 = ((seed_u256 / 100000) % 100).try_into().unwrap();
-        if dual_roll >= dual_chance {
-            return LevelConstraintTrait::none();
+
+        // Raised floor by tier: MediumHard+ starts at row 7.
+        let min_row: u8 = if tier >= 3 { 7 } else { 6 };
+
+        // Determine max feasible row from budget
+        let mut max_row: u8 = min_row;
+        if min_row == 6 && budget >= Self::fill_row_cost(7) {
+            max_row = 7;
         }
-        
-        // Roll to see if secondary is NoBonusUsed or ClearLines
-        let no_bonus_roll: u8 = ((seed_u256 / 1000000) % 100).try_into().unwrap();
-        if no_bonus_roll < secondary_no_bonus_chance {
-            return LevelConstraintTrait::no_bonus();
+        if budget >= Self::fill_row_cost(8) {
+            max_row = 8;
         }
-        
-        // Generate another ClearLines constraint with shifted seed
-        // Ensure different line count than primary
-        let secondary_seed: felt252 = (seed_u256 / 10000000).try_into().unwrap();
-        Self::generate_clear_lines_constraint_different(
-            secondary_seed, min_lines, max_lines, budget_min, budget_max, min_times, primary_lines
-        )
+
+        // Roll row [min_row, max_row] with skew-high
+        let row_range: u8 = max_row - min_row + 1;
+        let r1: u8 = min_row + ((seed_u256 % row_range.into()).try_into().unwrap());
+        let r2: u8 = min_row + (((seed_u256 / 100) % row_range.into()).try_into().unwrap());
+        let row: u8 = if r1 > r2 { r1 } else { r2 };
+
+        // Always exactly 1 time
+        LevelConstraintTrait::fill_and_clear(row, 1)
+    }
+
+    /// Scale factor for BreakBlocks target counts.
+    /// Accounts for block-size rarity at higher tiers.
+    fn break_scale(size: u8, tier: u8) -> u16 {
+        match size {
+            1 => {
+                if tier <= 1 {
+                    4
+                } else if tier <= 3 {
+                    3
+                } else if tier <= 5 {
+                    2
+                } else {
+                    1
+                }
+            },
+            2 => {
+                if tier <= 2 {
+                    4
+                } else if tier <= 5 {
+                    3
+                } else {
+                    2
+                }
+            },
+            3 => {
+                if tier <= 3 {
+                    4
+                } else {
+                    3
+                }
+            },
+            _ => 3,
+        }
+    }
+    
+    /// Cycle to next regular constraint type (ComboLines -> BreakBlocks -> Fill -> ComboStreak -> ComboLines)
+    fn next_regular_type(t: ConstraintType) -> ConstraintType {
+        match t {
+            ConstraintType::ComboLines => ConstraintType::BreakBlocks,
+            ConstraintType::BreakBlocks => ConstraintType::FillAndClear,
+            ConstraintType::FillAndClear => ConstraintType::ComboStreak,
+            ConstraintType::ComboStreak => ConstraintType::ComboLines,
+            _ => ConstraintType::ComboLines,  // Fallback for boss-only types
+        }
     }
     
     /// Derive a deterministic seed for a specific level
@@ -566,8 +748,8 @@ pub impl LevelGenerator of LevelGeneratorTrait {
         result.try_into().unwrap()
     }
 
-    /// Generate random bonus type based on seed
-    /// Returns: 0 = Hammer, 1 = Wave, 2 = Totem
+    /// Generate random bonus type based on seed (DEPRECATED - no longer used in V3.0)
+    /// Returns: 0 = Combo, 1 = Score, 2 = Harvest
     fn get_random_bonus_type(seed: felt252, index: u8) -> u8 {
         let state: HashState = PoseidonTrait::new();
         let state = state.update(seed);

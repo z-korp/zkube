@@ -1,30 +1,30 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/ui/elements/button";
 import type { QuestFamily, QuestTier } from "@/types/questFamily";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { motion } from "motion/react";
 import {
-  faLock,
-  faCheck,
-  faCircle,
-  faCircleCheck,
-  faGamepad,
-  faBarsStaggered,
-  faBolt,
-  faTrophy,
-} from "@fortawesome/free-solid-svg-icons";
-import { motion } from "framer-motion";
+  Circle,
+  CircleCheck,
+  Gamepad2,
+  ListOrdered,
+  Lock,
+  TrendingUp,
+  Trophy,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 
 interface QuestFamilyCardProps {
   family: QuestFamily;
   onClaim: (questId: string, intervalId: number) => Promise<void>;
 }
 
-// Map icon names to FontAwesome icons
-const iconMap: Record<string, typeof faGamepad> = {
-  'fa-gamepad': faGamepad,
-  'fa-bars-staggered': faBarsStaggered,
-  'fa-bolt': faBolt,
-  'fa-trophy': faTrophy,
+const iconMap: Record<string, LucideIcon> = {
+  "fa-gamepad": Gamepad2,
+  "fa-bars-staggered": ListOrdered,
+  "fa-bolt": Zap,
+  "fa-arrow-trend-up": TrendingUp,
+  "fa-trophy": Trophy,
 };
 
 // Format countdown timer
@@ -77,7 +77,7 @@ export const QuestFamilyCard: React.FC<QuestFamilyCardProps> = ({ family, onClai
   }, [family.claimableTier, onClaim]);
 
   // Get icon
-  const icon = iconMap[family.icon] || faGamepad;
+  const Icon = iconMap[family.icon] || Gamepad2;
   
   // Calculate state
   const allCompleted = family.tiers.every(t => t.completed);
@@ -112,8 +112,8 @@ export const QuestFamilyCard: React.FC<QuestFamilyCardProps> = ({ family, onClai
       {/* Header: Family name and tier indicator */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <FontAwesomeIcon 
-            icon={icon} 
+          <Icon
+            size={18}
             className={`text-lg ${hasClaimable ? "text-yellow-400" : allClaimed ? "text-slate-500" : "text-blue-400"}`}
           />
           <h3 className="text-lg font-semibold text-white tracking-wide">
@@ -207,19 +207,19 @@ const TierRow: React.FC<TierRowProps> = ({ tier, isCurrentClaimable }) => {
 
   if (tier.claimed) {
     // Completed and claimed
-    iconElement = <FontAwesomeIcon icon={faCircleCheck} className="text-slate-500 text-xs" />;
+    iconElement = <CircleCheck size={12} className="text-slate-500 text-xs" />;
     textStyle = "text-slate-500 line-through";
   } else if (tier.completed) {
     // Completed but not claimed
-    iconElement = <FontAwesomeIcon icon={faCircleCheck} className="text-green-400 text-xs" />;
+    iconElement = <CircleCheck size={12} className="text-green-400 text-xs" />;
     textStyle = "text-green-400";
   } else if (tier.locked) {
     // Locked
-    iconElement = <FontAwesomeIcon icon={faLock} className="text-slate-600 text-xs" />;
+    iconElement = <Lock size={12} className="text-slate-600 text-xs" />;
     textStyle = "text-slate-600";
   } else {
     // In progress
-    iconElement = <FontAwesomeIcon icon={faCircle} className="text-slate-400 text-xs" />;
+    iconElement = <Circle size={12} className="text-slate-400 text-xs" />;
     textStyle = "text-slate-300";
   }
 

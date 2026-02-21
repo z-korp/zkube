@@ -2,6 +2,7 @@ import { useDojo } from "@/dojo/useDojo";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { getComponentValue, Has, runQuery } from "@dojoengine/recs";
 import { useGetUsernames, normalizeAddress } from "./useGetUsernames";
+import { unpackRunData } from "@/dojo/game/helpers/runDataPacking";
 
 const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_TORII, VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
 export const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
@@ -211,12 +212,12 @@ export const useLeaderboardSlot = ({
           // Skip games that haven't started
           if (gameData.blocks === 0n) continue;
 
-          // Extract level data from run_data
-          // See contracts/src/helpers/packing.cairo for bit layout (RunDataBits)
-          const runData = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
-          const level = Number(runData & BigInt(0xFF)); // 8 bits at position 0
-          const totalCubes = Number((runData >> BigInt(131)) & BigInt(0xFFFF)); // 16 bits at position 131
-          const totalScore = Number((runData >> BigInt(147)) & BigInt(0xFFFF)); // 16 bits at position 147
+          // Extract level data from run_data using the canonical unpacker
+          const runDataPacked = gameData.run_data ? BigInt(gameData.run_data) : BigInt(0);
+          const runData = unpackRunData(runDataPacked);
+          const level = runData.currentLevel;
+          const totalCubes = runData.totalCubes;
+          const totalScore = runData.totalScore;
 
           // Get owner info from token data
           const tokenInfo = tokenOwnerMap.get(gameData.game_id);

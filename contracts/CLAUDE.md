@@ -24,15 +24,15 @@ contracts/
 │   │   ├── config.cairo       # Configuration + IMinigameSettings
 │   │   └── renderer.cairo     # NFT metadata & SVG (IMinigameDetails)
 │   ├── types/                 # Type definitions
-│   │   ├── bonus.cairo        # Bonus enum (Hammer, Wave, Totem)
+│   │   ├── bonus.cairo        # Bonus enum (Combo, Score, Harvest, Wave, Supply)
 │   │   ├── difficulty.cairo   # Difficulty levels
 │   │   ├── block.cairo        # Block types
 │   │   ├── width.cairo        # Width types
-│   │   ├── constraint.cairo   # ConstraintType, LevelConstraint
+│   │   ├── constraint.cairo   # ConstraintType (7 types), LevelConstraint, ConstraintContext
 │   │   ├── level.cairo        # LevelConfig
 │   │   └── consumable.cairo   # ConsumableType enum
 │   ├── elements/              # Game element implementations
-│   │   ├── bonuses/           # Bonus mechanics (hammer, wave, totem)
+│   │   ├── bonuses/           # Bonus mechanics (harvest, wave)
 │   │   ├── difficulties/      # Difficulty configurations
 │   │   ├── tasks/             # Quest task definitions
 │   │   └── quests/            # Quest implementations
@@ -42,6 +42,7 @@ contracts/
 │   │   ├── gravity.cairo      # Block falling logic
 │   │   ├── random.cairo       # VRF random generation
 │   │   ├── level.cairo        # Level generation
+│   │   ├── boss.cairo         # Boss identity system (10 bosses)
 │   │   └── config.cairo       # Settings utilities
 │   ├── interfaces/            # Trait definitions
 │   │   └── vrf.cairo          # VRF interface
@@ -103,8 +104,9 @@ pub struct PlayerMeta {
 **Note:** Cube balance is tracked via the ERC1155 CubeToken contract, not in PlayerMeta.
 
 **MetaData bit-packing** (in `helpers/packing.cairo`):
-- `starting_hammer/wave/totem` (2 bits each, 0-3)
-- `bag_hammer/wave/totem_level` (4 bits each)
+- `starting_combo/score/harvest/wave/supply` (2 bits each, 0-3)
+- `bag_combo/score/harvest/wave/supply_level` (4 bits each)
+- `wave_unlocked`, `supply_unlocked` (1 bit each)
 - `bridging_rank` (4 bits)
 - `total_runs`, `total_cubes_earned` (stats)
 
@@ -126,9 +128,9 @@ pub struct GameSettings {
     pub cube_3_percent: u8,        // Default: 40%
     pub cube_2_percent: u8,        // Default: 70%
     // Consumable Costs
-    pub hammer_cost: u8,           // Default: 5
-    pub wave_cost: u8,             // Default: 5
-    pub totem_cost: u8,            // Default: 5
+    pub combo_cost: u8,            // Default: 5
+    pub score_cost: u8,            // Default: 5
+    pub harvest_cost: u8,          // Default: 5
     pub extra_moves_cost: u8,      // Default: 10
     // Difficulty Progression
     pub starting_difficulty: u8,
@@ -170,7 +172,7 @@ trait IGameSystem {
 }
 ```
 
-**`get_game_data` returns:** (level, level_score, level_moves, combo, max_combo, hammer, wave, totem, total_cubes, over)
+**`get_game_data` returns:** (level, level_score, level_moves, combo, max_combo, combo_bonus, score_bonus, harvest, total_cubes, over)
 
 **`get_shop_data` returns:** (cubes_brought, cubes_spent, cubes_available)
 
@@ -186,7 +188,7 @@ Permanent shop for spending cubes on upgrades:
 
 ```cairo
 trait IShopSystem {
-    fn upgrade_starting_bonus(ref self: T, bonus_type: u8);  // 0=Hammer, 1=Wave, 2=Totem
+    fn upgrade_starting_bonus(ref self: T, bonus_type: u8);  // 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply
     fn upgrade_bag_size(ref self: T, bonus_type: u8);
     fn upgrade_bridging_rank(ref self: T);
     fn get_starting_bonus_upgrade_cost(self: @T, current_level: u8) -> u64;
@@ -320,66 +322,59 @@ Bits 16-23:   level_moves (u8)
 Bits 24-31:   constraint_progress (u8)
 Bits 32-39:   constraint_2_progress (u8)
 Bit 40:       bonus_used_this_level (bool)
-Bit 41:       combo_5_achieved (bool)
-Bit 42:       combo_10_achieved (bool)
-Bits 43-50:   hammer_count (u8)
-Bits 51-58:   wave_count (u8)
-Bits 59-66:   totem_count (u8)
-Bits 67-74:   shrink_count (u8)
-Bits 75-82:   shuffle_count (u8)
-Bits 83-90:   max_combo_run (u8)
-Bits 91-98:   extra_moves (u8)
-Bits 99-114:  cubes_brought (u16)
-Bits 115-130: cubes_spent (u16)
-Bits 131-146: total_cubes (u16)
-Bits 147-162: total_score (u16)
-Bit 163:      run_completed (bool) - Victory flag (level 50 cleared)
-Bits 164-166: selected_bonus_1 (3 bits, 0-5)
-Bits 167-169: selected_bonus_2 (3 bits, 0-5)
-Bits 170-172: selected_bonus_3 (3 bits, 0-5)
-Bits 173-174: bonus_1_level (2 bits, 0-2)
-Bits 175-176: bonus_2_level (2 bits, 0-2)
-Bits 177-178: bonus_3_level (2 bits, 0-2)
-Bits 179-181: free_moves (3 bits, 0-7)
-Bit 182:      pending_level_up (bool)
-Bits 183-188: last_shop_level (6 bits)
-Bit 189:      shop_bonus_1_bought (bool)
-Bit 190:      shop_bonus_2_bought (bool)
-Bit 191:      shop_bonus_3_bought (bool)
-Bits 192-195: shop_refills (4 bits)
-Bit 196:      no_bonus_constraint (bool)
+Bits 41-48:   combo_count (u8)
+Bits 49-56:   score_count (u8)
+Bits 57-64:   harvest_count (u8)
+Bits 65-72:   wave_count (u8)
+Bits 73-80:   supply_count (u8)
+Bits 81-88:   max_combo_run (u8)
+Bits 89-104:  cubes_brought (u16)
+Bits 105-120: cubes_spent (u16)
+Bits 121-136: total_cubes (u16)
+Bits 137-152: total_score (u16)
+Bit 153:      run_completed (bool) - Victory flag (level 50 cleared)
+Bits 154-156: selected_bonus_1 (3 bits, 0-5)
+Bits 157-159: selected_bonus_2 (3 bits, 0-5)
+Bits 160-162: selected_bonus_3 (3 bits, 0-5)
+Bits 163-164: bonus_1_level (2 bits, 0-2)
+Bits 165-166: bonus_2_level (2 bits, 0-2)
+Bits 167-168: bonus_3_level (2 bits, 0-2)
+Bits 169-171: free_moves (3 bits, 0-7)
+Bits 172-174: last_shop_level (3 bits, 0-7)
+Bit 175:      no_bonus_constraint (bool)
+Bits 176-183: constraint_3_progress (u8)
+Bits 184-187: shop_purchases (4 bits, 0-15)
+Bits 188-191: unallocated_charges (4 bits, 0-15)
+Bit 192:      shop_level_up_bought (bool)
+Bit 193:      shop_swap_bought (bool)
+Bit 194:      boss_level_up_pending (bool)
 ```
 
-**Total: 197 bits used (55 reserved in felt252)**
+**Total: 195 bits used (57 reserved in felt252)**
 
 ## Bonuses
 
 Five bonus types, each with 3 upgrade levels (L1/L2/L3):
 
-### Hammer (`elements/bonuses/hammer.cairo`)
-Clears the target block and connected same-size blocks.
-- L2: +1 combo bonus
-- L3: +2 combo bonus
+### Combo (non-grid, contract value 1)
+Adds combo to your next move. Default unlocked.
+- L1: +1 combo, L2: +2 combo, L3: +3 combo
 
-### Wave (`elements/bonuses/wave.cairo`)
-Clears an entire horizontal row.
-- L2: +1 free move
-- L3: +2 free moves
+### Score (non-grid, contract value 2)
+Instantly adds bonus score. Default unlocked.
+- L1: +10 score, L2: +20 score, L3: +30 score
 
-### Totem (`elements/bonuses/totem.cairo`)
-Clears all blocks of the same size on the grid.
-- L2: +3 bonus cubes
-- L3: Clears entire grid
+### Harvest (`elements/bonuses/harvest.cairo`, contract value 3)
+Destroys all blocks of a chosen size, earns CUBEs per block. Default unlocked.
+- L1: +1 CUBE/block, L2: +2 CUBE/block, L3: +3 CUBE/block
 
-### Shrink (`elements/bonuses/shrink.cairo`)
-Reduces block size by 1 (size 1 disappears). Unlockable for 200 CUBE.
-- L2: Shrink all same-size blocks
-- L3: Shrink by 2 sizes
+### Wave (`elements/bonuses/wave.cairo`, contract value 4)
+Clears entire horizontal rows. Must unlock in permanent shop.
+- L1: 1 row, L2: 2 rows, L3: 3 rows
 
-### Shuffle (`elements/bonuses/shuffle.cairo`)
-Randomizes block positions using Fisher-Yates algorithm. Unlockable for 200 CUBE.
-- L2: Also shuffles next line
-- L3: Shuffles entire grid
+### Supply (non-grid, contract value 5)
+Adds new lines at no move cost. Must unlock in permanent shop.
+- L1: 1 line, L2: 2 lines, L3: 3 lines
 
 ## ConsumableType (`types/consumable.cairo`)
 
@@ -422,6 +417,24 @@ Defined in `types/difficulty.cairo` and implemented in `elements/difficulties/`:
 - Levels 25-34: VeryHard
 - Levels 35-44: Expert
 - Levels 45+: Master
+
+## Constraint System (`types/constraint.cairo`, `helpers/boss.cairo`)
+
+7 constraint types with a boss identity system for themed boss encounters:
+
+| # | Type | Regular Levels | Boss Only |
+|---|------|:-:|:-:|
+| 0 | None | ✅ | ❌ |
+| 1 | ClearLines | ✅ | ✅ |
+| 2 | BreakBlocks | ✅ | ✅ |
+| 3 | AchieveCombo | ✅ | ✅ |
+| 4 | FillAndClear (Fill) | ✅ | ✅ |
+| 5 | NoBonusUsed | ❌ | ✅ |
+| 6 | ClearGrid | ❌ | ✅ |
+
+**Unified budget system:** All 4 regular types use the same budget-based generation in `helpers/level.cairo`. Regular levels select type by difficulty-weighted probabilities; boss levels use boss identity for types and `budget_max` for values. Boss levels (10/20/30/40/50) use `helpers/boss.cairo` which defines 10 themed bosses. Boss ID is derived from `level_seed % 10 + 1`. L10-30 have dual constraints, L40/50 have triple constraints. NoBonusUsed and ClearGrid are binary (no budget).
+
+The `ConstraintContext` struct (includes `highest_row_after` for Fill constraint) is passed to `update_progress()` for all constraint types, gating expensive computations (e.g., BreakBlocks counting) behind `any_needs_break_blocks()` checks. Fill triggers when grid height after move resolves reaches the target row.
 
 ## Dependencies
 
@@ -495,9 +508,9 @@ Tests in `src/tests/`:
 - `test_create.cairo` - Game creation
 - `test_move.cairo` - Move mechanics
 - `test_play.cairo` - Full gameplay
-- `test_bonus_hammer.cairo` - Hammer bonus
+- `test_bonus_hammer.cairo` - Combo bonus (legacy filename)
 - `test_bonus_wave.cairo` - Wave bonus
-- `test_bonus_totem.cairo` - Totem bonus
+- `test_bonus_totem.cairo` - Harvest bonus (legacy filename, tests harvest mechanics)
 - `test_admin.cairo` - Admin functions
 - `test_pause.cairo` - Pause functionality
 

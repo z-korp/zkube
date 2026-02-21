@@ -45,16 +45,25 @@ pub fn is_level_complete(game_level: @GameLevel, run_data: @RunData) -> bool {
         return false;
     }
     
+    // Check tertiary constraint
+    let constraint_3 = LevelConstraint {
+        constraint_type: (*game_level.constraint3_type).into(),
+        value: *game_level.constraint3_value,
+        required_count: *game_level.constraint3_count,
+    };
+    if !constraint_3.is_satisfied(*run_data.constraint_3_progress, *run_data.bonus_used_this_level) {
+        return false;
+    }
+    
     true
 }
 
 /// Check if level is failed (move limit exceeded without completing).
 #[inline(always)]
 pub fn is_level_failed(game_level: @GameLevel, run_data: @RunData) -> bool {
-    let effective_max_moves: u16 = *game_level.max_moves + (*run_data.extra_moves).into();
     let current_moves: u16 = (*run_data.level_moves).into();
     
-    current_moves >= effective_max_moves && !is_level_complete(game_level, run_data)
+    current_moves >= *game_level.max_moves && !is_level_complete(game_level, run_data)
 }
 
 /// Calculate cubes earned based on moves used.

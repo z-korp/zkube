@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/ui/elements/dialog";
 import { Button } from "@/ui/elements/button";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import { useDojo } from "@/dojo/useDojo";
 import useAccountCustom from "@/hooks/useAccountCustom";
-import { bonusTypeFromContractValue, BonusType } from "@/dojo/game/types/bonus";
+import { bonusTypeFromContractValue, BonusType, Bonus } from "@/dojo/game/types/bonus";
 import type { RunData } from "@/dojo/game/helpers/runDataPacking";
 
 interface PendingLevelUpDialogProps {
@@ -33,16 +33,16 @@ const PendingLevelUpDialog: React.FC<PendingLevelUpDialogProps> = ({
 
   const getBonusIcon = (bonusType: BonusType): string => {
     switch (bonusType) {
-      case BonusType.Hammer:
-        return imgAssets.hammer;
+      case BonusType.Combo:
+        return imgAssets.combo;
+      case BonusType.Score:
+        return imgAssets.score;
+      case BonusType.Harvest:
+        return imgAssets.harvest;
       case BonusType.Wave:
         return imgAssets.wave;
-      case BonusType.Totem:
-        return imgAssets.tiki;
-      case BonusType.Shrink:
-        return imgAssets.shrink;
-      case BonusType.Shuffle:
-        return imgAssets.shuffle;
+      case BonusType.Supply:
+        return imgAssets.supply;
       default:
         return "";
     }
@@ -107,7 +107,14 @@ const PendingLevelUpDialog: React.FC<PendingLevelUpDialogProps> = ({
                   <img src={getBonusIcon(item.type)} alt={item.type} className="w-10 h-10" />
                   <div>
                     <div className="font-medium">{item.type}</div>
-                    <div className="text-xs text-slate-400">Level {currentLevel}/3</div>
+                    <div className="text-xs text-slate-400">
+                      L{currentLevel}: {new Bonus(item.type).getEffectShort(item.level)}
+                    </div>
+                    {!isMax && (
+                      <div className="text-[10px] text-emerald-400">
+                        → L{currentLevel + 1}: {new Bonus(item.type).getEffectShort(item.level + 1)}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <Button

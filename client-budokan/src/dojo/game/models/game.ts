@@ -27,6 +27,7 @@ export class Game {
   public max_combo: number;
   public over: boolean;
   public started_at: number;
+  public levelStarsRaw: bigint;
 
   // Level system data (unpacked from run_data)
   public runData: RunData;
@@ -53,20 +54,20 @@ export class Game {
   public get totalCubes(): number {
     return this.runData.totalCubes;
   }
-  public get hammer(): number {
-    return this.runData.hammerCount;
+  public get comboBonus(): number {
+    return this.runData.comboCount;
+  }
+  public get scoreBonus(): number {
+    return this.runData.scoreCount;
+  }
+  public get harvest(): number {
+    return this.runData.harvestCount;
   }
   public get wave(): number {
     return this.runData.waveCount;
   }
-  public get totem(): number {
-    return this.runData.totemCount;
-  }
-  public get shrink(): number {
-    return this.runData.shrinkCount;
-  }
-  public get shuffle(): number {
-    return this.runData.shuffleCount;
+  public get supply(): number {
+    return this.runData.supplyCount;
   }
   public get maxComboRun(): number {
     return this.runData.maxComboRun;
@@ -95,23 +96,23 @@ export class Game {
   public get freeMoves(): number {
     return this.runData.freeMoves;
   }
-  public get pendingLevelUp(): boolean {
-    return this.runData.pendingLevelUp;
+  public get bossLevelUpPending(): boolean {
+    return this.runData.bossLevelUpPending;
   }
   public get lastShopLevel(): number {
     return this.runData.lastShopLevel;
   }
-  public get shopBonus1Bought(): boolean {
-    return this.runData.shopBonus1Bought;
+  public get shopPurchases(): number {
+    return this.runData.shopPurchases;
   }
-  public get shopBonus2Bought(): boolean {
-    return this.runData.shopBonus2Bought;
+  public get unallocatedCharges(): number {
+    return this.runData.unallocatedCharges;
   }
-  public get shopBonus3Bought(): boolean {
-    return this.runData.shopBonus3Bought;
+  public get shopLevelUpBought(): boolean {
+    return this.runData.shopLevelUpBought;
   }
-  public get shopRefills(): number {
-    return this.runData.shopRefills;
+  public get shopSwapBought(): boolean {
+    return this.runData.shopSwapBought;
   }
   // Victory state
   public get runCompleted(): boolean {
@@ -159,6 +160,9 @@ export class Game {
     const runDataBigInt = game.run_data ? BigInt(game.run_data) : BigInt(0);
     this.runData = unpackRunData(runDataBigInt);
 
+    // Level stars: 2 bits per level × 50 levels
+    this.levelStarsRaw = game.level_stars ? BigInt(game.level_stars) : 0n;
+
     // Destructure blocks and colors bitmaps into Rows and Blocks
     this.blocksRaw = game.blocks;
     this.blocks = Packer.sized_unpack(
@@ -192,10 +196,16 @@ export class Game {
 
   // Helper methods for level system
   public getTotalBonuses(): number {
-    return this.hammer + this.wave + this.totem + this.shrink + this.shuffle;
+    return this.comboBonus + this.scoreBonus + this.harvest + this.wave + this.supply;
   }
 
   public hasBonuses(): boolean {
     return this.getTotalBonuses() > 0;
+  }
+
+  public getLevelStars(level: number): number {
+    if (level < 1 || level > 50) return 0;
+    const shift = BigInt((level - 1) * 2);
+    return Number((this.levelStarsRaw >> shift) & 0x3n);
   }
 }

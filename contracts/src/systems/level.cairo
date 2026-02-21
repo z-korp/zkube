@@ -33,15 +33,14 @@ mod level_system {
     use zkube::constants::DEFAULT_NS;
     use zkube::models::game::{Game, GameTrait, GameLevelTrait};
     use zkube::models::game::GameSeed;
-    use zkube::models::player::{PlayerMeta, PlayerMetaTrait};
     use zkube::helpers::config::ConfigUtilsTrait;
     use zkube::helpers::level::{LevelGeneratorTrait, BossLevel};
     use zkube::helpers::game_libs::{
         GameLibsImpl,
         IGridSystemDispatcherTrait, ICubeTokenDispatcherTrait
     };
+    use zkube::elements::tasks::victory;
     use zkube::types::level::LevelConfigTrait;
-    use zkube::helpers::packing::RunDataHelpersTrait;
     use zkube::types::constraint::ConstraintType;
     use zkube::events::{LevelStarted, LevelCompleted, RunCompleted};
 
@@ -49,7 +48,7 @@ mod level_system {
     use dojo::world::WorldStorage;
     use dojo::event::EventStorage;
 
-    use starknet::{get_block_timestamp, get_caller_address, ContractAddress};
+    use starknet::{get_block_timestamp, get_caller_address};
 
     #[storage]
     struct Storage {}
@@ -66,9 +65,10 @@ mod level_system {
             // Generate level 1 config
             let level_config = LevelGeneratorTrait::generate(base_seed.seed, 1, settings);
             
-            // Check for NoBonusUsed constraint
+            // Check for NoBonusUsed constraint (any of the 3 constraints)
             let has_no_bonus = level_config.constraint.constraint_type == ConstraintType::NoBonusUsed
-                || level_config.constraint_2.constraint_type == ConstraintType::NoBonusUsed;
+                || level_config.constraint_2.constraint_type == ConstraintType::NoBonusUsed
+                || level_config.constraint_3.constraint_type == ConstraintType::NoBonusUsed;
             
             // Write level config to GameLevel model
             let game_level = GameLevelTrait::from_level_config(game_id, level_config);
@@ -110,22 +110,21 @@ mod level_system {
             // Calculate level rewards using LevelGeneratorTrait
             let level_config = LevelGeneratorTrait::generate(base_seed.seed, completed_level, settings);
             let cubes = level_config.calculate_cubes(pre_complete_data.level_moves.into());
-            let bonuses = LevelConfigTrait::get_bonus_reward(cubes);
+            let bonuses: u8 = 0; // V3.0: No bonus rewards from level completion
             let boss_bonus = BossLevel::get_boss_cube_bonus(completed_level);
             let is_victory = completed_level >= 50;
             
+            // Record stars for this level (cubes = 1-3 star rating)
+            game.set_level_stars(completed_level, cubes);
+            
             // Update run_data (no grid changes - that's done via grid_system)
-            let (cubes_final, bonuses_final, is_victory_final) = game.complete_level_data(cubes, bonuses, boss_bonus, is_victory);
+            let (cubes_final, _bonuses_final, is_victory_final) = game.complete_level_data(cubes, bonuses, boss_bonus, is_victory);
+            let bonuses_earned: u8 = 0; // V3.0: No bonus rewards from level completion
             
-            // Award bonuses
-            let bonuses_earned = InternalImpl::award_level_bonuses(
-                ref world, ref game, base_seed.seed, player, bonuses_final
-            );
-            
-            // Check if this was a boss level (10, 20, 30, 40) - set pending_level_up
+            // Check if this was a boss level (10, 20, 30, 40) - set boss_level_up_pending
             if !is_victory_final && (completed_level == 10 || completed_level == 20 || completed_level == 30 || completed_level == 40) {
                 let mut run_data = game.get_run_data();
-                run_data.pending_level_up = true;
+                run_data.boss_level_up_pending = true;
                 game.set_run_data(run_data);
             }
             
@@ -158,11 +157,14 @@ mod level_system {
                         completed_at: get_block_timestamp(),
                     },
                 );
+
+                // Track full-run victory achievement progress
+                let libs = GameLibsImpl::new(world);
+                libs.track_achievement(player, victory::Victory::identifier(), 1, settings.settings_id);
                 
                 // Mint cubes on victory via GameLibs
                 let cubes_to_mint: u256 = final_run_data.total_cubes.into();
                 if cubes_to_mint > 0 {
-                    let libs = GameLibsImpl::new(world);
                     libs.cube.mint(player, cubes_to_mint);
                 }
             } else {
@@ -172,9 +174,10 @@ mod level_system {
                     base_seed.seed, updated_run_data.current_level, settings,
                 );
                 
-                // Set no_bonus_constraint flag for the next level
+                // Set no_bonus_constraint flag for the next level (any of the 3 constraints)
                 let has_no_bonus = next_level_config.constraint.constraint_type == ConstraintType::NoBonusUsed
-                    || next_level_config.constraint_2.constraint_type == ConstraintType::NoBonusUsed;
+                    || next_level_config.constraint_2.constraint_type == ConstraintType::NoBonusUsed
+                    || next_level_config.constraint_3.constraint_type == ConstraintType::NoBonusUsed;
                 let mut run_data_updated = game.get_run_data();
                 run_data_updated.no_bonus_constraint = has_no_bonus;
                 game.set_run_data(run_data_updated);
@@ -226,77 +229,5 @@ mod level_system {
         }
     }
     
-    #[generate_trait]
-    impl InternalImpl of InternalTrait {
-        /// Award random bonuses after completing a level.
-        fn award_level_bonuses(
-            ref world: WorldStorage,
-            ref game: Game,
-            seed: felt252,
-            player: ContractAddress,
-            bonuses_to_award: u8,
-        ) -> u8 {
-            if bonuses_to_award == 0 {
-                return 0;
-            }
-            
-            // Read player meta for bag sizes
-            let mut player_meta: PlayerMeta = world.read_model(player);
-            if !player_meta.exists() {
-                player_meta = PlayerMetaTrait::new(player);
-            }
-            
-            let mut run_data = game.get_run_data();
-            let current_level = run_data.current_level;
-            
-            // Get the 3 selected bonus types
-            let selected = array![
-                run_data.selected_bonus_1,
-                run_data.selected_bonus_2,
-                run_data.selected_bonus_3
-            ];
-            
-            let mut awarded: u8 = 0;
-            let mut i: u8 = 0;
-            loop {
-                if i >= bonuses_to_award {
-                    break;
-                }
-                
-                // Use random to pick one of the 3 selected bonuses
-                let idx_u16: u16 = current_level.into() + i.into();
-                let idx: u8 = if idx_u16 > 255 { 255 } else { idx_u16.try_into().unwrap() };
-                let random_slot = LevelGeneratorTrait::get_random_bonus_type(seed, idx) % 3;
-                
-                // Get the actual bonus type from selected slot
-                let bonus_type = *selected.at(random_slot.into());
-                
-                // Get bag index and size
-                let bag_idx = RunDataHelpersTrait::bonus_type_to_bag_idx(bonus_type);
-                let bag_size = player_meta.get_bag_size(bag_idx);
-                
-                // Get current count and try to award
-                let (current, can_award) = if bonus_type == 1 { (run_data.hammer_count, run_data.hammer_count < bag_size) }
-                    else if bonus_type == 2 { (run_data.totem_count, run_data.totem_count < bag_size) }
-                    else if bonus_type == 3 { (run_data.wave_count, run_data.wave_count < bag_size) }
-                    else if bonus_type == 4 { (run_data.shrink_count, run_data.shrink_count < bag_size) }
-                    else { (run_data.shuffle_count, run_data.shuffle_count < bag_size) };
-                
-                if can_award {
-                    // Increment the appropriate counter
-                    if bonus_type == 1 { run_data.hammer_count = current + 1; }
-                    else if bonus_type == 2 { run_data.totem_count = current + 1; }
-                    else if bonus_type == 3 { run_data.wave_count = current + 1; }
-                    else if bonus_type == 4 { run_data.shrink_count = current + 1; }
-                    else { run_data.shuffle_count = current + 1; }
-                    awarded += 1;
-                }
-                
-                i += 1;
-            };
-            
-            game.set_run_data(run_data);
-            awarded
-        }
-    }
+    // V3.0: award_level_bonuses removed - bonuses are only bought in shops
 }

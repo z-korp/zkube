@@ -20,7 +20,7 @@ mod bonus_system {
         ILevelSystemDispatcherTrait, IGridSystemDispatcherTrait
     };
     use zkube::types::bonus::Bonus;
-    use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait};
+    use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait, ConstraintContext};
     use zkube::events::UseBonus;
 
     use dojo::model::ModelStorage;
@@ -80,7 +80,7 @@ mod bonus_system {
             let game_level: GameLevel = world.read_model(game_id);
             let mut run_data = game.get_run_data();
             
-            // Update constraint progress using GameLevel data
+            // Build constraints from GameLevel data
             let constraint = LevelConstraint {
                 constraint_type: game_level.constraint_type.into(),
                 value: game_level.constraint_value,
@@ -91,8 +91,29 @@ mod bonus_system {
                 value: game_level.constraint2_value,
                 required_count: game_level.constraint2_count,
             };
-            run_data.constraint_progress = constraint.update_progress(run_data.constraint_progress, lines_cleared);
-            run_data.constraint_2_progress = constraint_2.update_progress(run_data.constraint_2_progress, lines_cleared);
+            let constraint_3 = LevelConstraint {
+                constraint_type: game_level.constraint3_type.into(),
+                value: game_level.constraint3_value,
+                required_count: game_level.constraint3_count,
+            };
+            
+            // Build ConstraintContext for bonus action
+            // Note: For bonus actions, highest_row_before/after are 0 and blocks tracking is 0
+            // since bonuses don't contribute to Fill or BreakBlocks constraints
+            // (BreakBlocks via Harvest is tracked by the grid system's assess_game)
+            let ctx = ConstraintContext {
+                lines_cleared,
+                combo_counter: game.combo_counter,
+                highest_row_before: 0,
+                highest_row_after: 0,
+                grid_is_empty: game.blocks == 0,
+                blocks_destroyed_of_target_size: 0,
+            };
+            
+            // Update all three constraint progresses
+            run_data.constraint_progress = constraint.update_progress(run_data.constraint_progress, ctx);
+            run_data.constraint_2_progress = constraint_2.update_progress(run_data.constraint_2_progress, ctx);
+            run_data.constraint_3_progress = constraint_3.update_progress(run_data.constraint_3_progress, ctx);
             
             // Write updated constraint progress
             let mut updated_game: Game = world.read_model(game_id);

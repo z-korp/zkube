@@ -11,15 +11,18 @@ export const NAMESPACE = import.meta.env.VITE_PUBLIC_NAMESPACE || "zkube_budo_v1
  */
 export const QUEST_REWARDS: Record<string, number> = {
   'DAILY_PLAYER_ONE': 3,
-  'DAILY_PLAYER_TWO': 6,
-  'DAILY_PLAYER_THREE': 12,
+  'DAILY_PLAYER_TWO': 5,
+  'DAILY_PLAYER_THREE': 10,
   'DAILY_CLEARER_ONE': 3,
-  'DAILY_CLEARER_TWO': 6,
-  'DAILY_CLEARER_THREE': 12,
-  'DAILY_COMBO_ONE': 5,
-  'DAILY_COMBO_TWO': 10,
-  'DAILY_COMBO_THREE': 20,
-  'DAILY_FINISHER': 25,
+  'DAILY_CLEARER_TWO': 5,
+  'DAILY_CLEARER_THREE': 10,
+  'DAILY_COMBO_ONE': 3,
+  'DAILY_COMBO_TWO': 5,
+  'DAILY_COMBO_THREE': 10,
+  'DAILY_COMBO_STREAK_ONE': 3,
+  'DAILY_COMBO_STREAK_TWO': 5,
+  'DAILY_COMBO_STREAK_THREE': 10,
+  'DAILY_FINISHER': 20,
 };
 
 /**
@@ -43,9 +46,15 @@ export const QUEST_FAMILIES: Record<QuestFamilyId, QuestFamilyConfig> = {
   },
   combo: {
     id: 'combo',
-    name: 'Achieve Combos',
+    name: 'Big Combo Clears',
     icon: 'fa-bolt',
     questIds: ['DAILY_COMBO_ONE', 'DAILY_COMBO_TWO', 'DAILY_COMBO_THREE'],
+  },
+  combo_streak: {
+    id: 'combo_streak',
+    name: 'Combo Streaks',
+    icon: 'fa-arrow-trend-up',
+    questIds: ['DAILY_COMBO_STREAK_ONE', 'DAILY_COMBO_STREAK_TWO', 'DAILY_COMBO_STREAK_THREE'],
   },
   finisher: {
     id: 'finisher',

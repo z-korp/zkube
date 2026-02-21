@@ -27,6 +27,7 @@ dist-ssr
 .env*
 !.env.example
 !.env.slot
+!.env.sepolia
 *.log
 
 # Account files with private keys
@@ -54,3 +55,4 @@ addresses.csv
 
 # Zone identifier files (Windows/WSL)
 *:Zone.Identifier
+.env

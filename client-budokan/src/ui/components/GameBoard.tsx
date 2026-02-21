@@ -1,19 +1,14 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Card } from "@/ui/elements/card";
 import { useDojo } from "@/dojo/useDojo";
-import { useMediaQuery } from "react-responsive";
 import { Account } from "starknet";
 import Grid from "./Grid";
 import { transformDataContractIntoBlock } from "@/utils/gridUtils";
 import NextLine from "./NextLine";
 import type { Block } from "@/types/types";
-import LevelHeaderCompact from "./LevelHeaderCompact";
-import { Bonus, BonusType, bonusTypeFromContractValue } from "@/dojo/game/types/bonus";
-import { getBonusInventoryCount } from "@/dojo/game/helpers/runDataPacking";
+import { Bonus, BonusType } from "@/dojo/game/types/bonus";
 import { Game } from "@/dojo/game/models/game";
-import { useGameLevel } from "@/hooks/useGameLevel";
-import { useTheme } from "@/ui/elements/theme-provider/hooks";
-import ImageAssets from "@/ui/theme/ImageAssets";
+import { useMusicPlayer } from "@/contexts/hooks";
 
 import "../../grid.css";
 
@@ -25,7 +20,8 @@ interface GameBoardProps {
   maxCombo: number;
   account: Account | null;
   game: Game;
-  seed?: bigint;
+  activeBonus: BonusType;
+  bonusDescription: string;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -36,24 +32,20 @@ const GameBoard: React.FC<GameBoardProps> = ({
   maxCombo,
   account,
   game,
-  seed = BigInt(0),
+  activeBonus,
+  bonusDescription,
 }) => {
   const {
     setup: {
       systemCalls: { applyBonus },
     },
   } = useDojo();
+  const { playSfx } = useMusicPlayer();
 
-  const { themeTemplate } = useTheme();
-  const imgAssets = ImageAssets(themeTemplate);
-
-  const isMdOrLarger = useMediaQuery({ query: "(min-width: 768px)" });
   const ROWS = 10;
   const COLS = 8;
-  const GRID_SIZE = isMdOrLarger ? 50 : 40;
-
-  // Fetch GameLevel model from contract (single source of truth for level config)
-  const gameLevel = useGameLevel({ gameId: game.id });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [gridSize, setGridSize] = useState(40);
 
   const [isTxProcessing, setIsTxProcessing] = useState(false);
 
@@ -61,103 +53,25 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [nextLineHasBeenConsumed, setNextLineHasBeenConsumed] = useState(false);
 
   // Optimistic data (score, combo, maxcombo)
-  const [optimisticScore, setOptimisticScore] = useState(score);
-  const [optimisticCombo, setOptimisticCombo] = useState(combo);
-  const [optimisticMaxCombo, setOptimisticMaxCombo] = useState(maxCombo);
-  const [bonusDescription, setBonusDescription] = useState("");
+  const [, setOptimisticScore] = useState(score);
+  const [, setOptimisticCombo] = useState(combo);
+  const [, setOptimisticMaxCombo] = useState(maxCombo);
 
-  const [bonus, setBonus] = useState<BonusType>(BonusType.None);
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
 
-  const bonusCounts = useMemo(() => ({
-    [BonusType.Hammer]: game.hammer,
-    [BonusType.Wave]: game.wave,
-    [BonusType.Totem]: game.totem,
-    [BonusType.Shrink]: game.shrink,
-    [BonusType.Shuffle]: game.shuffle,
-  }), [game.hammer, game.wave, game.totem, game.shrink, game.shuffle]);
-
-  const getBonusTooltip = (type: BonusType): string => {
-    switch (type) {
-      case BonusType.Hammer:
-        return "Destroy a block and connected same-size blocks";
-      case BonusType.Wave:
-        return "Destroy an entire horizontal line";
-      case BonusType.Totem:
-        return "Destroy all blocks of the same size";
-      case BonusType.Shrink:
-        return "Shrink a block by one size";
-      case BonusType.Shuffle:
-        return "Shuffle a row of blocks";
-      default:
-        return "";
-    }
-  };
-
-  const getBonusDescription = (type: BonusType): string => {
-    switch (type) {
-      case BonusType.Wave:
-        return "Select the line you want to destroy";
-      case BonusType.Totem:
-        return "Select the block type you want to destroy";
-      case BonusType.Hammer:
-        return "Select the block you want to destroy";
-      case BonusType.Shrink:
-        return "Select the block you want to shrink";
-      case BonusType.Shuffle:
-        return "Select a row to shuffle";
-      default:
-        return "";
-    }
-  };
-
-  const getBonusIcon = (type: BonusType): string => {
-    switch (type) {
-      case BonusType.Hammer:
-        return imgAssets.hammer;
-      case BonusType.Wave:
-        return imgAssets.wave;
-      case BonusType.Totem:
-        return imgAssets.tiki;
-      case BonusType.Shrink:
-        return imgAssets.shrink;
-      case BonusType.Shuffle:
-        return imgAssets.shuffle;
-      default:
-        return "";
-    }
-  };
-
-  const selectedBonusSlots = useMemo(() => {
-    const slots = [
-      { slot: 0, value: game.selectedBonus1, level: game.bonus1Level },
-      { slot: 1, value: game.selectedBonus2, level: game.bonus2Level },
-      { slot: 2, value: game.selectedBonus3, level: game.bonus3Level },
-    ];
-
-    return slots.map((slot) => {
-      const type = bonusTypeFromContractValue(slot.value);
-      return {
-        slot: slot.slot,
-        type,
-        level: slot.level,
-        count: getBonusInventoryCount(game.runData, slot.value),
-        icon: getBonusIcon(type),
-        tooltip: getBonusTooltip(type),
-      };
+    const observer = new ResizeObserver(([entry]) => {
+      const w = entry.contentRect.width;
+      const padding = 24;
+      const cellSize = Math.floor((w - padding) / COLS);
+      setGridSize(Math.max(28, Math.min(cellSize, 56)));
     });
-  }, [game.runData, game.selectedBonus1, game.selectedBonus2, game.selectedBonus3, game.bonus1Level, game.bonus2Level, game.bonus3Level, imgAssets]);
 
-  const handleBonusSelect = (type: BonusType) => {
-    const count = bonusCounts[type] ?? 0;
-    if (count === 0) return;
-    if (bonus === type) {
-      setBonus(BonusType.None);
-      setBonusDescription("");
-    } else {
-      setBonus(type);
-      setBonusDescription(getBonusDescription(type));
-    }
-  };
+    observer.observe(el);
+
+    return () => observer.disconnect();
+  }, [COLS]);
 
   const handleBonusTx = useCallback(
     async (bonusType: BonusType, rowIndex: number, colIndex: number) => {
@@ -172,38 +86,32 @@ const GameBoard: React.FC<GameBoardProps> = ({
           row_index: ROWS - rowIndex - 1,
           block_index: colIndex,
         });
+        playSfx("bonus-activate");
       } finally {
         //setIsLoading(false);
       }
     },
-    [account, applyBonus, game.id]
+    [account, applyBonus, game.id, playSfx]
   );
 
   const selectBlock = useCallback(
     async (block: Block) => {
-      if (bonus === BonusType.Wave) {
-        handleBonusTx(BonusType.Wave, block.y, 0);
-      } else if (bonus === BonusType.Totem) {
-        handleBonusTx(BonusType.Totem, block.y, block.x);
-      } else if (bonus === BonusType.Hammer) {
-        handleBonusTx(BonusType.Hammer, block.y, block.x);
-      } else if (bonus === BonusType.Shrink) {
-        handleBonusTx(BonusType.Shrink, block.y, block.x);
-      } else if (bonus === BonusType.Shuffle) {
-        handleBonusTx(BonusType.Shuffle, block.y, block.x);
-      } else if (bonus === BonusType.None) {
+      if (activeBonus === BonusType.Harvest) {
+        handleBonusTx(BonusType.Harvest, block.y, 0);
+      } else if (activeBonus === BonusType.Score) {
+        handleBonusTx(BonusType.Score, block.y, block.x);
+      } else if (activeBonus === BonusType.Combo) {
+        handleBonusTx(BonusType.Combo, block.y, block.x);
+      } else if (activeBonus === BonusType.Wave) {
+        handleBonusTx(BonusType.Wave, block.y, block.x);
+      } else if (activeBonus === BonusType.Supply) {
+        handleBonusTx(BonusType.Supply, block.y, block.x);
+      } else if (activeBonus === BonusType.None) {
         // No bonus selected
       }
     },
-    [bonus, handleBonusTx]
+    [activeBonus, handleBonusTx]
   );
-
-  useEffect(() => {
-    // Reset the isTxProcessing state and the bonus state when the grid changes
-    // meaning the tx as been processed, and the client state updated
-    setBonus(BonusType.None);
-    setBonusDescription("");
-  }, [initialGrid]);
 
   const memoizedInitialData = useMemo(() => {
     return transformDataContractIntoBlock(initialGrid);
@@ -220,38 +128,19 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   return (
     <>
-      <Card
-        className={`relative p-2 md:p-3 bg-secondary ${
-          isTxProcessing && "cursor-wait"
-        }`}
-      >
-        {/* Compact Level Header with inline bonuses */}
-        <div className={`${isMdOrLarger ? "w-[420px]" : "w-[340px]"} px-1 mb-1.5`}>
-          <LevelHeaderCompact
-            level={game.level}
-            levelScore={optimisticScore}
-            levelMoves={game.levelMoves}
-            totalCubes={game.totalCubes}
-            totalScore={game.totalScore}
-            maxCombo={optimisticMaxCombo}
-            seed={seed}
-            constraintProgress={game.constraintProgress}
-            constraint2Progress={game.constraint2Progress}
-            bonusUsedThisLevel={game.bonusUsedThisLevel}
-            gameLevel={gameLevel}
-            cubesBrought={game.cubesBrought}
-            cubesSpent={game.cubesSpent}
-            activeBonus={bonus}
-            bonusSlots={selectedBonusSlots.map((slot) => ({
-              ...slot,
-              onClick: () => handleBonusSelect(slot.type),
-            }))}
-          />
-        </div>
-
-        {/* Game Grid */}
+        <Card
+          ref={containerRef}
+          className={`relative p-2 md:p-3 w-full max-w-[500px] ${
+            isTxProcessing && "cursor-wait"
+          }`}
+          style={{
+            backgroundImage: `var(--theme-grid-bg-image, none)`,
+            backgroundSize: "cover",
+            backgroundColor: `var(--theme-grid-bg, #10172A)`,
+          }}
+        >
         <div
-          className={`flex justify-center items-center ${
+          className={`flex flex-col items-center ${
             !isTxProcessing && "cursor-move"
           }`}
         >
@@ -260,11 +149,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
             initialData={memoizedInitialData}
             nextLineData={memoizedNextLineData}
             setNextLineHasBeenConsumed={setNextLineHasBeenConsumed}
-            gridSize={GRID_SIZE}
+            gridSize={gridSize}
             gridHeight={ROWS}
             gridWidth={COLS}
             selectBlock={selectBlock}
-            bonus={bonus}
+            bonus={activeBonus}
             account={account}
             score={game.score}
             combo={game.combo}
@@ -275,26 +164,23 @@ const GameBoard: React.FC<GameBoardProps> = ({
             isTxProcessing={isTxProcessing}
             setIsTxProcessing={setIsTxProcessing}
           />
+          <div className="mt-1">
+            <NextLine
+              nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}
+              gridSize={gridSize}
+              gridHeight={1}
+              gridWidth={COLS}
+            />
+          </div>
         </div>
 
-        {/* Bonus description overlay */}
-        {bonus !== BonusType.None && (
+        {activeBonus !== BonusType.None && (
           <div className="absolute inset-x-0 top-1/2 flex justify-center pointer-events-none z-50">
             <div className="text-yellow-500 px-3 py-1.5 rounded font-bold text-sm bg-black/70 whitespace-nowrap">
               {bonusDescription}
             </div>
           </div>
         )}
-
-        {/* Next Line Preview */}
-        <div className="mt-1">
-          <NextLine
-            nextLineData={nextLineHasBeenConsumed ? [] : memoizedNextLineData}
-            gridSize={GRID_SIZE}
-            gridHeight={1}
-            gridWidth={COLS}
-          />
-        </div>
       </Card>
     </>
   );

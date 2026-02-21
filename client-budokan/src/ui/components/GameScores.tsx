@@ -1,7 +1,6 @@
-import { faStar, faFire } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import MaxComboIcon from "./MaxComboIcon";
 import { useLerpNumber } from "@/hooks/useLerpNumber";
+import { Star, Flame } from "lucide-react";
 
 interface GameScoresProps {
   isMdOrLarger: boolean;
@@ -36,12 +35,7 @@ const GameScores: React.FC<GameScoresProps> = ({
         >
           {displayScore}
         </span>
-        <FontAwesomeIcon
-          icon={faStar}
-          className="text-yellow-500 ml-1"
-          width={26}
-          height={26}
-        />
+        <Star className="text-yellow-500 ml-1" size={26} />
       </div>
       <div
         className={`flex items-center ${isMdOrLarger ? "text-3xl" : "text-2xl"}`}
@@ -51,12 +45,7 @@ const GameScores: React.FC<GameScoresProps> = ({
         >
           {displayCombo}
         </span>
-        <FontAwesomeIcon
-          icon={faFire}
-          className="text-slate-500 ml-1"
-          width={26}
-          height={26}
-        />
+        <Flame className="text-slate-500 ml-1" size={26} />
       </div>
       <div
         className={`flex items-center ${isMdOrLarger ? "text-3xl" : "text-2xl"}`}

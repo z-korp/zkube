@@ -19,7 +19,7 @@ mod move_system {
         GameLibsImpl,
         ILevelSystemDispatcherTrait, IGridSystemDispatcherTrait
     };
-    use zkube::elements::tasks::{clearer, combo};
+    use zkube::elements::tasks::{clearer, combo, combo_streak};
 
     use dojo::model::ModelStorage;
     use dojo::world::WorldStorage;
@@ -82,25 +82,64 @@ mod move_system {
                 // Track achievement progress for lines cleared (cumulative)
                 libs.track_achievement(player, clearer::LineClearer::identifier(), lines_cleared.into(), settings.settings_id);
                 
+                // Achievement combo flow tracking (3+ combos)
+                if lines_cleared >= 2 {
+                    libs.track_achievement(player, combo::ComboTwo::identifier(), 1, settings.settings_id);
+                }
                 if lines_cleared >= 3 {
-                    libs.track_quest(player, combo::ComboThree::identifier(), 1, settings.settings_id);
-                    // Track combo achievement progress
                     libs.track_achievement(player, combo::ComboThree::identifier(), 1, settings.settings_id);
+                }
+                if lines_cleared >= 4 {
+                    libs.track_achievement(player, combo::ComboFour::identifier(), 1, settings.settings_id);
+                }
+                if lines_cleared >= 5 {
+                    libs.track_achievement(player, combo::ComboFive::identifier(), 1, settings.settings_id);
+                }
+                if lines_cleared >= 6 {
+                    libs.track_achievement(player, combo::ComboSix::identifier(), 1, settings.settings_id);
+                }
+                if lines_cleared >= 7 {
+                    libs.track_achievement(player, combo::ComboSeven::identifier(), 1, settings.settings_id);
+                }
+                if lines_cleared >= 8 {
+                    libs.track_achievement(player, combo::ComboEight::identifier(), 1, settings.settings_id);
+                }
+                if lines_cleared >= 9 {
+                    libs.track_achievement(player, combo::ComboNine::identifier(), 1, settings.settings_id);
+                }
+
+                // Quest combo tracking (4/5/6 thresholds)
+                if lines_cleared >= 4 {
+                    libs.track_quest(player, combo::ComboFour::identifier(), 1, settings.settings_id);
                 }
                 if lines_cleared >= 5 {
                     libs.track_quest(player, combo::ComboFive::identifier(), 1, settings.settings_id);
-                    // Track chain achievement progress (5+ lines)
-                    libs.track_achievement(player, combo::ComboFive::identifier(), 1, settings.settings_id);
                 }
-                if lines_cleared >= 7 {
-                    libs.track_quest(player, combo::ComboSeven::identifier(), 1, settings.settings_id);
-                    // Track superchain achievement progress (7+ lines)
-                    libs.track_achievement(player, combo::ComboSeven::identifier(), 1, settings.settings_id);
+                if lines_cleared >= 6 {
+                    libs.track_quest(player, combo::ComboSix::identifier(), 1, settings.settings_id);
                 }
             }
 
             // Re-read game after grid_system modified it
             let game: Game = world.read_model(game_id);
+
+            // Track combo streak quest progress
+            if game.combo_counter >= 15 {
+                libs.track_quest(player, combo_streak::ComboStreakFifteen::identifier(), 1, settings.settings_id);
+                libs.track_achievement(player, combo_streak::ComboStreakFifteen::identifier(), 1, settings.settings_id);
+            }
+            if game.combo_counter >= 20 {
+                libs.track_quest(player, combo_streak::ComboStreakTwenty::identifier(), 1, settings.settings_id);
+            }
+            if game.combo_counter >= 25 {
+                libs.track_quest(player, combo_streak::ComboStreakTwentyFive::identifier(), 1, settings.settings_id);
+            }
+            if game.combo_counter >= 50 {
+                libs.track_achievement(player, combo_streak::ComboStreakFifty::identifier(), 1, settings.settings_id);
+            }
+            if game.combo_counter >= 100 {
+                libs.track_achievement(player, combo_streak::ComboStreakHundred::identifier(), 1, settings.settings_id);
+            }
             let game_level: GameLevel = world.read_model(game_id);
             let run_data = game.get_run_data();
             

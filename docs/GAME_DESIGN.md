@@ -16,6 +16,8 @@
 7. [Cube Economy](#cube-economy)
 8. [Two-Shop System](#two-shop-system)
 9. [Data Architecture](#data-architecture)
+10. [Quest System](#quest-system)
+11. [Achievement System](#achievement-system)
 
 ---
 
@@ -26,7 +28,7 @@ zKube is a **Puzzle Roguelike** where players manipulate blocks on an 8x10 grid 
 - **50 Levels** of progressive difficulty (survival mode after level 50)
 - **CUBE Currency** - ERC-1155 soulbound tokens earned through gameplay
 - **Permanent Shop** - Upgrades that persist across runs
-- **In-Game Shop** - Consumables purchasable every 5 levels
+- **In-Game Shop** - Consumables purchasable every 10 levels
 - **Constraint System** - Per-level challenges for bonus rewards
 - **Meta-Progression** - PlayerMeta tracks upgrades and stats
 
@@ -151,53 +153,111 @@ The variance is applied to both moves and points calculations, ensuring levels f
 
 Players select **3 bonuses** before each run from the 5 available types:
 
-| Bonus | Effect | L2 Bonus | L3 Bonus | Unlock |
-|-------|--------|----------|----------|--------|
-| **Hammer** | Clears target block + connected same-size | +1 combo | +2 combo | Default |
-| **Wave** | Clears entire horizontal row | +1 free move | +2 free moves | Default |
-| **Totem** | Clears all blocks of same size | +3 cubes | Clear entire grid | Default |
-| **Shrink** | Reduces block size by 1 | All same-size | Shrink by 2 | 200 CUBE |
-| **Shuffle** | Randomizes block positions | Also next line | Entire grid | 200 CUBE |
+| Bonus | Effect | L1 | L2 | L3 | Unlock |
+|-------|--------|----|----|----| -------|
+| **Combo** | Adds combo to next move | +1 combo | +2 combo | +3 combo | Default |
+| **Score** | Instantly adds score | +10 score | +20 score | +30 score | Default |
+| **Harvest** | Destroys all blocks of chosen size, earns CUBEs | +1 CUBE/block | +2 CUBE/block | +3 CUBE/block | Default |
+| **Wave** | Clears entire horizontal rows | 1 row | 2 rows | 3 rows | Locked |
+| **Supply** | Adds new lines at no move cost | 1 line | 2 lines | 3 lines | Locked |
 
-### Earning Bonuses
+### Acquiring Bonus Charges
 
-- **Level completion:** Random bonus from selected 3 (capped by bag size)
-- **Boss levels (L10/20/30/40):** Free bonus level-up available
-- **In-game shop:** Purchase additional bonuses with cubes
+- **Permanent shop:** Buy starting charges, upgrade bag size (max 5)
+- **In-game shop (every 10 levels):** Buy charges during run with CUBEs
+- **Boss clear (L10/20/30/40):** Awards Level Up Item to upgrade one bonus
 
 ### Bonus Selection (Run Start)
 
 When creating a game, players select exactly 3 of the 5 bonus types:
-- Shrink and Shuffle require unlocking (200 CUBE each in permanent shop)
-- Default selection: Hammer, Wave, Totem
+- Wave and Supply require unlocking in permanent shop
+- Default selection: Combo, Score, Harvest
 - Selection stored in `run_data` bits 164-172
 
 ---
 
 ## Constraint System
 
-**Location:** `contracts/src/types/constraint.cairo`
+**Location:** `contracts/src/types/constraint.cairo`, `contracts/src/helpers/boss.cairo`
 
-### Constraint Types
+### Constraint Types (7 total)
 
-| Type | Description |
-|------|-------------|
-| **None** | No constraint - just reach point goal |
-| **ClearLines** | Clear X lines in one move, Y times |
-| **NoBonusUsed** | Complete level without using any bonus |
+| # | Type | Value Meaning | Count Meaning | Regular | Boss |
+|---|------|---------------|---------------|:---:|:---:|
+| 0 | **None** | - | - | ✅ | ❌ |
+| 1 | **ClearLines** | Lines to clear in one move | How many times | ✅ | ✅ |
+| 2 | **BreakBlocks** | Block size to target (1-4) | Total blocks to destroy | ✅ | ✅ |
+| 3 | **AchieveCombo** | Combo target to reach | 1 (one-shot) | ✅ | ✅ |
+| 4 | **Fill** | Row height target (after resolve) | How many times | ✅ | ✅ |
+| 5 | **NoBonusUsed** | 0 | 0 | ❌ | ✅ |
+| 6 | **ClearGrid** | 0 | 1 (one-shot) | ❌ | ✅ |
+
+*Note: Fill is stored as `FillAndClear` in code for ABI stability.*
 
 ### When Constraints Apply
 
 - **Levels 1-2:** No constraints (warm-up)
-- **Level 3+:** Constraint generated from seed + difficulty
-- **Dual constraints:** Higher difficulties can have two constraints
+- **Level 3+:** Constraints generated from seed + difficulty via unified budget system
+- **Constraint count:** Deterministic per tier — `constraint_min` to `constraint_max` rolled randomly (0-3 constraints depending on difficulty)
+- **NoBonusUsed:** Boss-only — never generated on regular levels
+- **Boss levels (10/20/30/40/50):** Fixed constraint combos from boss identity system at budget_max, up to triple constraints at L40/50
 
-### Constraint Parameters (Difficulty-Based)
+### Unified Budget System
 
-Constraints scale with difficulty using a budget system:
-- `min_lines` / `max_lines`: Range of lines to clear
-- `budget`: Determines how many times
-- `dual_chance`: Probability of secondary constraint (0% at VeryEasy, 100% at Master)
+All constraint types (regular + boss) use the same budget-based generation engine:
+
+1. **Budget** interpolates from VeryEasy (1-3) to Master (32-40)
+2. **Type selection** uses difficulty-weighted probabilities (regular levels)
+3. **Cost functions** per type convert budget → constraint values
+4. **Skew-high rolls** favor harder values within budget range
+
+**Type Selection Weights (regular levels):**
+
+| Tier | ClearLines | BreakBlocks | Fill | AchieveCombo |
+|------|:---:|:---:|:---:|:---:|
+| 0 (VeryEasy) | 80% | 15% | 0% | 5% |
+| 1 (Easy) | 55% | 15% | 15% | 15% |
+| 2 (Medium) | 50% | 18% | 15% | 17% |
+| 3 (MediumHard) | 45% | 20% | 17% | 18% |
+| 4 (Hard) | 40% | 22% | 18% | 20% |
+| 5 (VeryHard) | 35% | 23% | 20% | 22% |
+| 6 (Expert) | 30% | 24% | 24% | 22% |
+| 7 (Master) | 25% | 25% | 28% | 22% |
+
+**Cost Functions:**
+
+| Type | Cost → Values | Examples (budget=25) |
+|------|--------------|---------------------|
+| ClearLines | line_cost: 2→2, 3→4, 4→6, 5→10, 6→15, 7→20. min_lines: tier 0-1→2, 2-3→3, 4-6→4, 7→5 | 5 lines x2, or 4 lines x4 |
+| BreakBlocks | break_cost(size): 1→3, 2→4, 3→5, 4→6. blocks=(budget×8)/cost | size-2: 50 blocks, size-4: 33 blocks |
+| AchieveCombo | combo_cost(c)=c×(c-1)/2: 3→3, 4→6, 5→10, 6→15, 7→21, 8→28. Max combo = 8 | combo 5 (cost 10) or combo 7 (cost 21) |
+| Fill | row_cost: 4→2, 5→5, 6→10, 7→17, 8→26. times_cap: 4→4, 5→3, 6→2, 7→2, 8→1 | row 6 x2, or row 7 x1 |
+
+**Constraint count:** Deterministic per tier (0 at VeryEasy → 3 at Master). Each constraint rolls a different type from the weight table above.
+
+### Boss Identity System
+
+10 themed bosses with fixed constraint type combinations. Boss identity determines WHICH types, the unified budget system at `budget_max` determines the VALUES.
+
+Selected by `derive_boss_id(level_seed) % 10 + 1`:
+
+| # | Boss | Core Pair (L10-30) | Third Constraint (L40/50) |
+|---|------|--------------------|---------------------------|
+| 1 | Combo Master | ClearLines + AchieveCombo | NoBonusUsed |
+| 2 | Demolisher | BreakBlocks + ClearLines | ClearGrid |
+| 3 | Daredevil | Fill + AchieveCombo | ClearLines |
+| 4 | Purist | NoBonusUsed + ClearLines | AchieveCombo |
+| 5 | Harvester | BreakBlocks + AchieveCombo | Fill |
+| 6 | Tidal | ClearGrid + ClearLines | BreakBlocks |
+| 7 | Stacker | Fill + ClearLines | BreakBlocks |
+| 8 | Surgeon | BreakBlocks + Fill | NoBonusUsed |
+| 9 | Ascetic | NoBonusUsed + AchieveCombo | Fill |
+| 10 | Perfectionist | ClearLines + Fill | AchieveCombo |
+
+**Constraint progression:**
+- L10/20/30: Dual constraints (core pair), generated at budget_max
+- L40/50: Triple constraints (core pair + third), generated at budget_max
+- NoBonusUsed and ClearGrid are binary (no budget needed)
 
 ---
 
@@ -224,17 +284,17 @@ Constraints scale with difficulty using a budget system:
 
 ### Boss Levels
 
-Special levels every 10 levels with bonus rewards:
+Special levels every 10 levels with themed boss identities and bonus rewards:
 
-| Level | Cube Bonus | Special Rules |
-|-------|------------|---------------|
-| 10 | +10 CUBE | Dual constraints |
-| 20 | +20 CUBE | Dual constraints |
-| 30 | +30 CUBE | Dual constraints |
-| 40 | +40 CUBE | Dual constraints |
-| 50 | +50 CUBE | Victory! (`run_completed` flag set) |
+| Level | Cube Bonus | Constraints | Boss Identity |
+|-------|------------|-------------|---------------|
+| 10 | +10 CUBE | Dual (core pair) | Seeded from run |
+| 20 | +20 CUBE | Dual (core pair) | Seeded from run |
+| 30 | +30 CUBE | Dual (core pair) | Seeded from run |
+| 40 | +40 CUBE | Triple (core pair + third) | Seeded from run |
+| 50 | +50 CUBE | Triple (core pair + third) | Seeded from run |
 
-Completing level 50 triggers the victory state and mints all earned cubes.
+Boss identity is determined by `derive_boss_id(level_seed) % 10 + 1`, giving one of 10 themed bosses (see Constraint System for details). Completing level 50 triggers the victory state and mints all earned cubes.
 
 ### Cube Thresholds
 
@@ -277,8 +337,8 @@ WALLET (ERC-1155)
 
 | Bonus | Cost | Effect |
 |-------|------|--------|
-| Shrink | 200 CUBE | Unlock Shrink bonus for selection |
-| Shuffle | 200 CUBE | Unlock Shuffle bonus for selection |
+| Wave | 200 CUBE | Unlock Wave bonus for selection |
+| Supply | 200 CUBE | Unlock Supply bonus for selection |
 
 #### Starting Bonus Upgrades
 
@@ -317,7 +377,7 @@ WALLET (ERC-1155)
 
 **Location:** `contracts/src/systems/shop.cairo` (`purchase_consumable`)
 
-Shop appears after levels 5, 10, 15, 20, etc. (when `(current_level - 1) % 5 == 0`).
+Shop appears after levels 9, 19, 29, 39, 49 (when `(current_level - 1) % 10 == 9`).
 
 | Item | Cost | Effect |
 |------|------|--------|
@@ -355,7 +415,7 @@ pub struct Game {
 }
 ```
 
-### run_data Bit Layout (197 bits used)
+### run_data Bit Layout (205 bits used)
 
 | Bits | Field | Size | Description |
 |------|-------|------|-------------|
@@ -367,11 +427,11 @@ pub struct Game {
 | 40 | bonus_used_this_level | 1 | For NoBonusUsed constraint |
 | 41 | combo_5_achieved | 1 | First 5+ combo flag |
 | 42 | combo_10_achieved | 1 | First 10+ combo flag |
-| 43-50 | hammer_count | 8 | Hammer inventory |
-| 51-58 | wave_count | 8 | Wave inventory |
-| 59-66 | totem_count | 8 | Totem inventory |
-| 67-74 | shrink_count | 8 | Shrink inventory |
-| 75-82 | shuffle_count | 8 | Shuffle inventory |
+| 43-50 | combo_count | 8 | Combo inventory |
+| 51-58 | score_count | 8 | Score inventory |
+| 59-66 | harvest_count | 8 | Harvest inventory |
+| 67-74 | wave_count | 8 | Wave inventory |
+| 75-82 | supply_count | 8 | Supply inventory |
 | 83-90 | max_combo_run | 8 | Best combo this run |
 | 91-98 | extra_moves | 8 | Extra moves from consumables |
 | 99-114 | cubes_brought | 16 | Cubes brought into run |
@@ -393,6 +453,7 @@ pub struct Game {
 | 191 | shop_bonus_3_bought | 1 | Bonus 3 purchased |
 | 192-195 | shop_refills | 4 | Refills purchased |
 | 196 | no_bonus_constraint | 1 | NoBonusUsed active |
+| 197-204 | constraint_3_progress | 8 | Tertiary constraint progress |
 
 ### PlayerMeta Model
 
@@ -409,19 +470,19 @@ pub struct PlayerMeta {
 
 | Bits | Field | Size | Description |
 |------|-------|------|-------------|
-| 0-1 | starting_hammer | 2 | Starting hammers (0-3) |
-| 2-3 | starting_wave | 2 | Starting waves (0-3) |
-| 4-5 | starting_totem | 2 | Starting totems (0-3) |
-| 6-7 | starting_shrink | 2 | Starting shrinks (0-3) |
-| 8-9 | starting_shuffle | 2 | Starting shuffles (0-3) |
-| 10-13 | bag_hammer_level | 4 | Hammer bag capacity |
-| 14-17 | bag_wave_level | 4 | Wave bag capacity |
-| 18-21 | bag_totem_level | 4 | Totem bag capacity |
-| 22-25 | bag_shrink_level | 4 | Shrink bag capacity |
-| 26-29 | bag_shuffle_level | 4 | Shuffle bag capacity |
+| 0-1 | starting_combo | 2 | Starting combo charges (0-3) |
+| 2-3 | starting_score | 2 | Starting score charges (0-3) |
+| 4-5 | starting_harvest | 2 | Starting harvest charges (0-3) |
+| 6-7 | starting_wave | 2 | Starting wave charges (0-3) |
+| 8-9 | starting_supply | 2 | Starting supply charges (0-3) |
+| 10-13 | bag_combo_level | 4 | Combo bag capacity |
+| 14-17 | bag_score_level | 4 | Score bag capacity |
+| 18-21 | bag_harvest_level | 4 | Harvest bag capacity |
+| 22-25 | bag_wave_level | 4 | Wave bag capacity |
+| 26-29 | bag_supply_level | 4 | Supply bag capacity |
 | 30-33 | bridging_rank | 4 | Cube bridging rank (0-15) |
-| 34 | shrink_unlocked | 1 | Shrink bonus unlocked |
-| 35 | shuffle_unlocked | 1 | Shuffle bonus unlocked |
+| 34 | wave_unlocked | 1 | Wave bonus unlocked |
+| 35 | supply_unlocked | 1 | Supply bonus unlocked |
 | 36-51 | total_runs | 16 | Lifetime run count |
 | 52-83 | total_cubes_earned | 32 | Lifetime cubes earned |
 
@@ -450,6 +511,7 @@ contracts/src/
 │   └── consumable.cairo      # ConsumableType enum
 ├── helpers/
 │   ├── level.cairo           # Level generation
+│   ├── boss.cairo            # Boss identity system (10 bosses)
 │   ├── packing.cairo         # Bit-pack/unpack utilities
 │   ├── controller.cairo      # Grid manipulation
 │   └── gravity.cairo         # Block falling logic
@@ -458,37 +520,91 @@ contracts/src/
     └── difficulties/         # Difficulty configurations
 ```
 
-### Client Files
+### Client Files (client-budokan)
 
 ```
 client-budokan/src/
 ├── dojo/
 │   ├── game/
-│   │   ├── models/game.ts    # Game model
-│   │   ├── types/level.ts    # LevelConfig, settings
+│   │   ├── models/game.ts         # Game model
+│   │   ├── types/bonus.ts         # Bonus enum + display names
+│   │   ├── types/level.ts         # LevelConfig, settings
 │   │   └── helpers/
-│   │       └── runDataPacking.ts
-│   └── systems.ts            # Contract calls
+│   │       └── runDataPacking.ts  # Bit-pack/unpack
+│   └── systems.ts                 # Contract calls
 ├── hooks/
-│   ├── useGame.tsx           # Game state hook
-│   ├── usePlayerMeta.tsx     # Meta progression hook
-│   └── useCubeBalance.tsx    # ERC-1155 balance
+│   ├── useGame.tsx                # Game state hook
+│   ├── usePlayerMeta.tsx          # Meta progression hook
+│   └── useCubeBalance.tsx         # ERC-1155 balance
 └── ui/
-    ├── screens/Play.tsx      # Main game screen
+    ├── screens/
+    │   └── Play.tsx               # Game play screen
     └── components/
-        ├── LevelHeader.tsx   # Level progress display
-        ├── LevelCompleteDialog.tsx
-        └── Shop/
-            ├── ShopDialog.tsx        # Permanent shop
-            ├── InGameShopDialog.tsx  # In-game shop
-            └── BringCubesDialog.tsx  # Cube bridging
+        └── Shop/LoadoutDialog.tsx # Bonus selection
 ```
+
+---
+
+## Quest System
+
+**Location:** `contracts/src/systems/quest.cairo`, `contracts/src/elements/quests/`
+
+### Daily Quests (10 total, 102 CUBE/day)
+
+| Category | Quest | Requirement | Reward |
+|----------|-------|-------------|--------|
+| Player | Warm-Up | Play 1 game | 3 CUBE |
+| Player | Getting Started | Play 3 games | 6 CUBE |
+| Player | Dedicated | Play 5 games | 12 CUBE |
+| Clearer | Line Breaker | Clear 10 lines | 3 CUBE |
+| Clearer | Line Crusher | Clear 30 lines | 6 CUBE |
+| Clearer | Line Master | Clear 50 lines | 12 CUBE |
+| Combo | Combo Starter | 3+ line combo | 5 CUBE |
+| Combo | Combo Builder | 5+ line combo | 10 CUBE |
+| Combo | Combo Expert | 7+ line combo | 20 CUBE |
+| Finisher | Daily Champion | Complete all 9 | 25 CUBE |
+
+### Quest Chains
+
+Progress is cumulative within each category. Quests within a family are tiered — completing tier 1 unlocks tier 2, etc. The Finisher quest requires all 9 other quests.
+
+### Integration Points
+
+| Game Function | Quest Progress |
+|---------------|---------------|
+| `create_with_cubes()` | +1 Grinder (games played) |
+| `move()` | +N LineClearer (lines cleared) |
+| `move()` | +1 ComboThree/Five/Seven (if combo achieved) |
+
+### Dependencies
+
+Uses Cartridge's `quest` and `achievement` packages from the arcade repository. Quest system needs `MINTER_ROLE` on `cube_token` to distribute CUBE rewards.
+
+### Known Limitation
+
+The Cartridge Controller's built-in profile quest UI claim button does not work (ENTRYPOINT_NOT_FOUND). Use the in-game QuestsDialog instead, which calls `quest_system.claim()` correctly.
+
+---
+
+## Achievement System
+
+28 trophies tracked via Cartridge's arcade achievement system:
+
+| Category | Milestones |
+|----------|------------|
+| Grinder | 10/25/50/100/250 games played |
+| Clearer | 100/500/1K/5K/10K lines cleared |
+| Combo (3+) | 10/50/100 combos |
+| Chain (5+) | 5/25/50 combos |
+| SuperChain (7+) | 1/10/25 combos |
+| Leveler | Level 10/20/30/40/50 reached |
+| Scorer | 100/200/300 high score |
+| Master | Complete all daily quests |
 
 ---
 
 ## Related Documentation
 
 - [CONFIGURABLE_SETTINGS.md](./CONFIGURABLE_SETTINGS.md) - GameSettings customization
-- [QUEST_SYSTEM.md](./QUEST_SYSTEM.md) - Daily quest system
 - [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) - Network deployment
 - [FUTURE_FEATURES.md](./FUTURE_FEATURES.md) - Planned features
