@@ -22,8 +22,8 @@ pub impl Master of AchievementTrait {
 
     fn points(level: u8) -> u16 {
         match level {
-            0 => 20,
-            1 => 60,
+            0 => 30,
+            1 => 70,
             2 => 100,
             _ => 0,
         }

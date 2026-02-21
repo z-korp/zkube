@@ -204,12 +204,8 @@ fi
 print_info "Step 6: Running sozo migrate (from workspace root)..."
 
 # CRITICAL: Must run from workspace root, NOT from contracts/
-# Running from contracts/ causes init to fail because sozo resolves
-# contract addresses differently in workspace vs package context.
-#
-# Remote slot katana can take a while to index newly deployed contracts.
-# Retry up to 4 times with 60s waits between attempts.
-MAX_ATTEMPTS=4
+# Remote slot katana needs time to index newly deployed contracts.
+MAX_ATTEMPTS=6
 ATTEMPT=1
 MIGRATE_SUCCESS=false
 
@@ -220,8 +216,9 @@ while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
 
     if echo "$MIGRATE_OUTPUT" | grep -q "Migration failed"; then
         if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
-            print_warn "Attempt $ATTEMPT failed. Waiting 60s before retry..."
-            sleep 60
+            WAIT_TIME=$((30 + (ATTEMPT - 1) * 30))
+            print_warn "Attempt $ATTEMPT failed. Waiting ${WAIT_TIME}s before retry..."
+            sleep $WAIT_TIME
         else
             print_error "All $MAX_ATTEMPTS migration attempts failed."
         fi

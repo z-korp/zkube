@@ -24,11 +24,11 @@ pub impl Combo of AchievementTrait {
 
     fn points(level: u8) -> u16 {
         match level {
-            0 => 10,
-            1 => 25,
-            2 => 50,
-            3 => 100,
-            4 => 200,
+            0 => 5,
+            1 => 10,
+            2 => 15,
+            3 => 25,
+            4 => 45,
             _ => 0,
         }
     }
