@@ -41,7 +41,6 @@ const MyGamesPage: React.FC = () => {
 
   const { games, loading } = useGameTokensSlot({
     owner: normalizeAddress(account?.address),
-    forceRecs: true,
   });
 
   const { activeGames, finishedGames } = useMemo(() => {

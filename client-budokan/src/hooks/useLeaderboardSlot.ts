@@ -4,8 +4,7 @@ import { getComponentValue, Has, runQuery } from "@dojoengine/recs";
 import { useGetUsernames, normalizeAddress } from "./useGetUsernames";
 import { unpackRunData } from "@/dojo/game/helpers/runDataPacking";
 
-const { VITE_PUBLIC_DEPLOY_TYPE, VITE_PUBLIC_TORII, VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
-export const isSlotMode = VITE_PUBLIC_DEPLOY_TYPE === "slot";
+const { VITE_PUBLIC_TORII, VITE_PUBLIC_GAME_TOKEN_ADDRESS } = import.meta.env;
 
 // Truncate address to 0x1234...5678 format
 const truncateAddress = (address: string): string => {
@@ -103,11 +102,7 @@ const parsePlayerName = (metadata: string | undefined): string | undefined => {
  * Uses Torii's tokenTransfers query to get token ownership and player names.
  * Uses Cartridge's lookupAddresses for username resolution.
  */
-export const useLeaderboardSlot = ({ 
-  forceRecs = false 
-}: { 
-  forceRecs?: boolean 
-} = {}): UseLeaderboardSlotResult => {
+export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
   const {
     setup: {
       clientModels: {
@@ -124,7 +119,7 @@ export const useLeaderboardSlot = ({
     setRefreshTrigger((prev) => prev + 1);
   }, []);
 
-  const shouldFetch = isSlotMode || forceRecs;
+  const shouldFetch = true;
 
   // Extract unique addresses that need username lookups
   const addressesNeedingLookup = useMemo(() => {

@@ -49,7 +49,6 @@ const HomePage: React.FC = () => {
   const { games: ownedGames } = useGameTokensSlot({
     owner: shouldFetchMyGames ? normalizedOwner : undefined,
     limit: shouldFetchMyGames ? 100 : 0,
-    forceRecs: true,
   });
 
   const activeGames = useMemo(() => {
