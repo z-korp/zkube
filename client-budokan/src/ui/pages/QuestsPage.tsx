@@ -127,9 +127,6 @@ const QuestFamilyPanel: React.FC<QuestFamilyPanelProps> = ({
   disabled,
 }) => {
   const Icon = iconMap[family.icon] ?? ScrollText;
-  const completedTiers = family.tiers.filter((tier) => tier.completed).length;
-  const tierProgress =
-    family.totalTiers > 0 ? (completedTiers / family.totalTiers) * 100 : 0;
   const progressPercent =
     family.nextTarget > 0
       ? Math.min((family.progress / family.nextTarget) * 100, 100)
@@ -151,18 +148,10 @@ const QuestFamilyPanel: React.FC<QuestFamilyPanelProps> = ({
           <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-yellow-300">
             <Icon size={18} />
           </div>
-          <div className="min-w-0">
-            <h2 className="truncate font-['Fredericka_the_Great'] text-xl text-white">
-              {family.name}
-            </h2>
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-300/80">
-              Tier {Math.min(family.currentTierIndex + 1, family.totalTiers)} / {family.totalTiers}
-            </p>
-          </div>
+          <h2 className="truncate font-['Fredericka_the_Great'] text-xl text-white">
+            {family.name}
+          </h2>
         </div>
-        <span className="font-['Fredericka_the_Great'] text-2xl leading-none tracking-wide text-cyan-200">
-          {completedTiers}/{family.totalTiers}
-        </span>
       </div>
 
       <div className="mb-3 space-y-2">
@@ -171,31 +160,17 @@ const QuestFamilyPanel: React.FC<QuestFamilyPanelProps> = ({
         ))}
       </div>
 
-      <div className="mb-2 flex items-center gap-3">
-        <div className="h-3 flex-1 overflow-hidden rounded-full bg-slate-700/80">
-          <motion.div
-            className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-sky-300"
-            initial={{ width: 0 }}
-            animate={{ width: `${tierProgress}%` }}
-            transition={{ duration: 0.45, ease: "easeOut" }}
-          />
-        </div>
-        <span className="font-['Fredericka_the_Great'] text-xl leading-none tracking-wide text-cyan-100">
-          {Math.round(tierProgress)}%
-        </span>
-      </div>
-
       {family.nextTarget > 0 && (
         <div className="mb-4 flex items-center gap-3">
           <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-800">
             <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-yellow-400 to-orange-300"
+              className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-sky-300"
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
-              transition={{ duration: 0.45, ease: "easeOut", delay: 0.06 }}
+              transition={{ duration: 0.45, ease: "easeOut" }}
             />
           </div>
-          <span className="font-['Fredericka_the_Great'] text-lg leading-none tracking-wide text-yellow-200">
+          <span className="font-['Fredericka_the_Great'] text-lg leading-none tracking-wide text-cyan-100">
             {family.progress}/{family.nextTarget}
           </span>
         </div>
