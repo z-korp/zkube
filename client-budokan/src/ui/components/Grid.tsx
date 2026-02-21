@@ -222,6 +222,7 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const handleTouchStart = (e: React.TouchEvent, block: Block) => {
+    e.preventDefault();
     if (isProcessingRef.current || isTxProcessing || applyData) return;
 
     const touch = e.touches[0];
@@ -289,26 +290,28 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
     const touch = e.touches[0];
     handleDragMove(touch.clientX, MoveType.TOUCH);
   };
 
   const endDrag = () => {
     if (!dragging) return;
-    if (isProcessingRef.current || isTxProcessing || applyData) return;
+
+    const shouldSubmitMove = !isProcessingRef.current && !isTxProcessing && !applyData;
 
     setBlocks((prevBlocks) => {
       const updatedBlocks = prevBlocks.map((b) => {
         if (b.id === dragging.id) {
           const finalX = Math.round(b.x);
-          if (Math.trunc(finalX) !== Math.trunc(initialX)) {
+          if (shouldSubmitMove && Math.trunc(finalX) !== Math.trunc(initialX)) {
             setcurrentMove({
               rowIndex: b.y,
               startX: initialX,
               finalX,
             });
           }
-          return { ...b, x: finalX };
+          return { ...b, x: shouldSubmitMove ? finalX : initialX };
         }
         return b;
       });
@@ -316,22 +319,29 @@ const Grid: React.FC<GridProps> = ({
     });
 
     setDragging(null);
-    setIsMoving(true);
-    setGameState(GameState.GRAVITY);
-  };
-
-  const handleTouchEnd = (/*e: React.TouchEvent*/) => {
-    endDrag();
+    if (shouldSubmitMove) {
+      setIsMoving(true);
+      setGameState(GameState.GRAVITY);
+    } else {
+      setGameState(GameState.WAITING);
+    }
   };
 
   useEffect(() => {
-    const handleMouseUp = (/*event: MouseEvent*/) => {
+    const handleMouseUp = () => {
+      endDrag();
+    };
+    const handleTouchEnd = () => {
       endDrag();
     };
     document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener("touchend", handleTouchEnd);
+    document.addEventListener("touchcancel", handleTouchEnd);
 
     return () => {
       document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("touchend", handleTouchEnd);
+      document.removeEventListener("touchcancel", handleTouchEnd);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dragging]);
@@ -631,9 +641,7 @@ const Grid: React.FC<GridProps> = ({
               backgroundSize: `${gridSize}px ${gridSize}px, ${gridSize}px ${gridSize}px`,
             }}
             onMouseMove={handleMouseMove}
-            //onMouseUp={handleMouseUp}
             onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
           >
             {blocks.map((block) => (
               <BlockContainer
