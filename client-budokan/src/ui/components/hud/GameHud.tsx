@@ -241,11 +241,23 @@ const GameHud: React.FC<GameHudProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center">
-          <span className={`font-['Fredericka_the_Great'] text-sm tabular-nums ${combo > 0 ? "text-white" : "text-slate-500"}`}>
-            🔥{combo}x
-          </span>
-        </div>
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center">
+                <span className={`font-['Fredericka_the_Great'] text-sm tabular-nums ${combo > 0 ? "text-white" : "text-slate-500"}`}>
+                  🔥{combo}x
+                </span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent
+              side="bottom"
+              className="bg-slate-900 border border-slate-500 text-white text-xs px-2 py-1 z-[200]"
+            >
+              Combo streak — clear lines consecutively
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
         <div className="flex items-center gap-1.5 col-span-3">
           <TooltipProvider delayDuration={200}>
@@ -294,7 +306,7 @@ const GameHud: React.FC<GameHudProps> = ({
                 <Info size={11} />
               </button>
               {movesInfoOpen && (
-                <div className="absolute left-0 top-full mt-1.5 z-50 bg-slate-900 border border-slate-500 rounded-md px-3 py-2 shadow-lg whitespace-nowrap">
+                <div className="absolute left-0 top-full mt-1.5 z-[200] bg-slate-900 border border-slate-500 rounded-md px-3 py-2 shadow-lg whitespace-nowrap">
                   <div className="flex flex-col gap-1 text-xs text-white">
                     <div className="flex items-center gap-2">
                       <span>🧊🧊🧊</span>
