@@ -285,18 +285,18 @@ const InGameShopPage = () => {
     <div className="h-screen-viewport flex flex-col text-white">
       <ThemeBackground />
 
-      <PageTopBar title="REST STOP" onBack={goBack} cubeBalance={BigInt(cubesAvailable)} />
+      <PageTopBar title="SHOP" onBack={goBack} cubeBalance={BigInt(cubesAvailable)} />
 
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4">
         <div className="mx-auto flex max-w-[860px] flex-col gap-4 pb-10">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl border border-cyan-300/25 bg-cyan-950/35 px-4 py-3 backdrop-blur-sm"
+            className="rounded-2xl border border-cyan-300/30 bg-slate-900/90 px-4 py-3 backdrop-blur-md"
           >
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="font-['Fredericka_the_Great'] text-xl text-cyan-50">Rest Stop Store</p>
+                <p className="font-['Fredericka_the_Great'] text-xl text-cyan-50">Shop</p>
                 <p className="text-xs text-cyan-100/80">Spend run cubes before diving back in.</p>
               </div>
               <div className="text-right">
@@ -307,9 +307,9 @@ const InGameShopPage = () => {
           </motion.div>
 
           {missingGame ? (
-            <div className="rounded-2xl border border-slate-300/20 bg-slate-900/60 px-5 py-8 text-center">
+            <div className="rounded-2xl border border-slate-300/20 bg-slate-900/90 px-5 py-8 text-center backdrop-blur-md">
               <p className="font-['Fredericka_the_Great'] text-2xl text-white">Run not found</p>
-              <p className="mt-2 text-sm text-slate-300">Open this page from an active game rest stop.</p>
+              <p className="mt-2 text-sm text-slate-300">Open this page from an active game shop.</p>
             </div>
           ) : (
             <>
@@ -317,7 +317,7 @@ const InGameShopPage = () => {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.03 }}
-                className="rounded-2xl border border-emerald-300/20 bg-emerald-950/30 p-4"
+                className="rounded-2xl border border-emerald-400/30 bg-slate-900/90 p-4 backdrop-blur-md"
               >
                 <div className="mb-3 flex items-center justify-between">
                   <h2 className="font-['Fredericka_the_Great'] text-xl text-emerald-50">CHARGES</h2>
@@ -345,7 +345,7 @@ const InGameShopPage = () => {
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.05 + index * 0.04 }}
-                        className="rounded-xl border border-emerald-100/20 bg-black/25 p-3"
+                        className="rounded-xl border border-emerald-300/25 bg-black/50 p-3"
                       >
                         <div className="mb-2 flex items-center gap-2">
                           <img src={getIcon(bonus.value)} alt={getSelectedBonusName(bonus.value)} className="h-9 w-9" />
@@ -375,7 +375,7 @@ const InGameShopPage = () => {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.08 }}
-                className="rounded-2xl border border-violet-300/20 bg-violet-950/30 p-4"
+                className="rounded-2xl border border-violet-400/30 bg-slate-900/90 p-4 backdrop-blur-md"
               >
                 <div className="mb-3 flex items-center justify-between">
                   <h2 className="font-['Fredericka_the_Great'] text-xl text-violet-50">LEVEL UP</h2>
@@ -391,7 +391,7 @@ const InGameShopPage = () => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 + index * 0.04 }}
-                        className="rounded-xl border border-violet-100/20 bg-black/25 p-3"
+                        className="rounded-xl border border-violet-300/25 bg-black/50 p-3"
                       >
                         <p className="mb-2 text-sm font-semibold text-white">{getSelectedBonusName(bonus.value)}</p>
                         <p className="mb-2 font-['Fredericka_the_Great'] text-2xl leading-none text-violet-100">
@@ -415,7 +415,7 @@ const InGameShopPage = () => {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.12 }}
-                className="rounded-2xl border border-amber-300/25 bg-amber-950/30 p-4"
+                className="rounded-2xl border border-amber-400/30 bg-slate-900/90 p-4 backdrop-blur-md"
               >
                 <div className="mb-3 flex items-center justify-between">
                   <h2 className="font-['Fredericka_the_Great'] text-xl text-amber-50">SWAP BONUS</h2>
@@ -429,7 +429,7 @@ const InGameShopPage = () => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.14 + index * 0.04 }}
-                      className="rounded-xl border border-amber-100/20 bg-black/25 p-3"
+                      className="rounded-xl border border-amber-300/25 bg-black/50 p-3"
                     >
                       <div className="mb-2 flex items-center justify-between">
                         <p className="text-sm font-semibold text-white">{getSelectedBonusName(bonus.value)}</p>

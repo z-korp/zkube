@@ -468,7 +468,7 @@ const ShopPage = () => {
                   Bridging Rank
                 </h3>
                 <p className="mt-1 text-xs text-slate-400">
-                  Carry wallet cubes into runs for rest-stop purchases.
+                  Carry wallet cubes into runs for shop purchases.
                 </p>
               </div>
             </div>
