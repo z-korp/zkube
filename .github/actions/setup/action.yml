@@ -7,11 +7,15 @@ runs:
       uses: asdf-vm/actions/setup@v4
 
     - name: Install Dojo asdf plugins
-      run: curl -L https://install.dojoengine.org | bash
+      run: |
+        set -euo pipefail
+        for plugin in sozo katana torii; do
+          asdf plugin add "$plugin" "https://github.com/dojoengine/asdf-$plugin.git" || true
+        done
       shell: bash
 
     - name: Install scarb plugin
-      run: asdf plugin add scarb || true
+      run: asdf plugin add scarb https://github.com/software-mansion/asdf-scarb.git || true
       shell: bash
 
     - name: Install tool versions from .tool-versions
