@@ -195,7 +195,7 @@ const MapPage: React.FC = () => {
         <motion.div
           className="flex h-full"
           style={{ width: `${TOTAL_ZONES * 100}%` }}
-          animate={{ x: `-${activeZone * (100 / TOTAL_ZONES)}%` }}
+          animate={{ x: `${-activeZone * 100}vw` }}
           transition={{ type: "spring", stiffness: 280, damping: 32 }}
         >
           {zoneNodes.map((nodes, zoneIdx) => {
@@ -207,7 +207,7 @@ const MapPage: React.FC = () => {
             const pathTheme = getMapPathTheme(themeId);
 
             return (
-              <div key={zone} className="relative h-full w-full flex-1">
+              <div key={zone} className="relative h-full flex-shrink-0" style={{ width: '100vw' }}>
                 <ZoneBackground zone={zone} themeId={themeId} />
                 <div className="relative mx-auto h-full w-auto max-w-full aspect-[9/16]">
                   <svg
