@@ -1,19 +1,20 @@
-/// Daily Delusion achievements - Complete all daily quests milestones
+/// Victory Path achievements - complete level 50 run milestones
 use crate::elements::achievements::interface::{AchievementTask, AchievementTrait, Task, TaskTrait};
 
-/// Daily Delusion achievement levels: Complete all daily quests 1/3/10 times
-pub impl Master of AchievementTrait {
+/// Victory Path levels: 1/3/10/50 full wins
+pub impl Champion of AchievementTrait {
     fn identifier(level: u8) -> felt252 {
         match level {
-            0 => 'DAILY_MASTER_I',
-            1 => 'DAILY_MASTER_II',
-            2 => 'DAILY_MASTER_III',
+            0 => 'CHAMPION_I',
+            1 => 'CHAMPION_II',
+            2 => 'CHAMPION_III',
+            3 => 'CHAMPION_IV',
             _ => '',
         }
     }
 
     fn index(level: u8) -> u8 {
-        level + 30  // Offset after Victory Path achievements
+        level + 26  // Offset after Cascade Ladder achievements
     }
 
     fn hidden(level: u8) -> bool {
@@ -25,37 +26,41 @@ pub impl Master of AchievementTrait {
             0 => 20,
             1 => 60,
             2 => 100,
+            3 => 500,
             _ => 0,
         }
     }
 
     fn group() -> felt252 {
-        'Daily Delusion'
+        'Victory Path'
     }
 
     fn icon(level: u8) -> felt252 {
         match level {
-            0 => 'fa-calendar-check',
-            1 => 'fa-calendar-days',
-            2 => 'fa-calendar-week',
+            0 => 'fa-flag-checkered',
+            1 => 'fa-trophy',
+            2 => 'fa-crown',
+            3 => 'fa-medal',
             _ => '',
         }
     }
 
     fn title(level: u8) -> felt252 {
         match level {
-            0 => 'Checklist Enjoyer',
-            1 => 'Calendar Cultist',
-            2 => 'Chronically Online',
+            0 => 'First Crown',
+            1 => 'Rising Champion',
+            2 => 'Seasoned Champion',
+            3 => 'Grand Champion',
             _ => '',
         }
     }
 
     fn description(level: u8) -> ByteArray {
         match level {
-            0 => "Complete all daily quests 1 time.",
-            1 => "Complete all daily quests 3 times.",
-            2 => "Complete all daily quests 10 times.",
+            0 => "Complete level 50 once.",
+            1 => "Complete level 50 three times.",
+            2 => "Complete level 50 ten times.",
+            3 => "Complete level 50 fifty times.",
             _ => "",
         }
     }
@@ -65,8 +70,9 @@ pub impl Master of AchievementTrait {
             0 => 1,
             1 => 3,
             2 => 10,
+            3 => 50,
             _ => 0,
         };
-        Task::DailyMaster.tasks(count)
+        Task::Victory.tasks(count)
     }
 }

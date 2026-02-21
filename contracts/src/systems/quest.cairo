@@ -94,7 +94,7 @@ pub mod quest_system {
             let world = self.world(@DEFAULT_NS());
             let player_felt: felt252 = player.into();
 
-            // Check if this is one of the 9 daily quests (not DailyFinisher itself)
+            // Check if this is one of the 12 daily quests (not DailyFinisher itself)
             if quest_id == QuestType::DailyPlayerOne.identifier()
                 || quest_id == QuestType::DailyPlayerTwo.identifier()
                 || quest_id == QuestType::DailyPlayerThree.identifier()
@@ -103,7 +103,10 @@ pub mod quest_system {
                 || quest_id == QuestType::DailyClearerThree.identifier()
                 || quest_id == QuestType::DailyComboOne.identifier()
                 || quest_id == QuestType::DailyComboTwo.identifier()
-                || quest_id == QuestType::DailyComboThree.identifier() {
+                || quest_id == QuestType::DailyComboThree.identifier()
+                || quest_id == QuestType::DailyComboStreakOne.identifier()
+                || quest_id == QuestType::DailyComboStreakTwo.identifier()
+                || quest_id == QuestType::DailyComboStreakThree.identifier() {
                 // Progress the DailyFinisher quest
                 self
                     .questable

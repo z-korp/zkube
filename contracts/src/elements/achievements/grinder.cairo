@@ -1,7 +1,7 @@
-/// Grinder achievements - Games played milestones
+/// Play Rhythm achievements - Games played milestones
 use crate::elements::achievements::interface::{AchievementTask, AchievementTrait, Task, TaskTrait};
 
-/// Grinder achievement levels: 10/25/50/100/250 games
+/// Play Rhythm achievement levels: 10/25/50/100/250 games
 pub impl Grinder of AchievementTrait {
     fn identifier(level: u8) -> felt252 {
         match level {
@@ -34,7 +34,7 @@ pub impl Grinder of AchievementTrait {
     }
 
     fn group() -> felt252 {
-        'Grinder'
+        'Play Rhythm'
     }
 
     fn icon(level: u8) -> felt252 {
@@ -50,22 +50,22 @@ pub impl Grinder of AchievementTrait {
 
     fn title(level: u8) -> felt252 {
         match level {
-            0 => 'Novice',
-            1 => 'Apprentice',
-            2 => 'Dedicated',
-            3 => 'Veteran',
-            4 => 'Legend',
+            0 => 'Getting Started',
+            1 => 'In the Groove',
+            2 => 'Steady Player',
+            3 => 'Weekend Warrior',
+            4 => 'Puzzle Veteran',
             _ => '',
         }
     }
 
     fn description(level: u8) -> ByteArray {
         match level {
-            0 => "Play 10 games. Every journey begins with a single step.",
-            1 => "Play 25 games. Practice makes perfect.",
-            2 => "Play 50 games. Dedication is key.",
-            3 => "Play 100 games. A true veteran emerges.",
-            4 => "Play 250 games. Legendary status achieved.",
+            0 => "Play 10 games.",
+            1 => "Play 25 games.",
+            2 => "Play 50 games.",
+            3 => "Play 100 games.",
+            4 => "Play 250 games.",
             _ => "",
         }
     }

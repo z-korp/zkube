@@ -39,6 +39,7 @@ mod level_system {
         GameLibsImpl,
         IGridSystemDispatcherTrait, ICubeTokenDispatcherTrait
     };
+    use zkube::elements::tasks::victory;
     use zkube::types::level::LevelConfigTrait;
     use zkube::types::constraint::ConstraintType;
     use zkube::events::{LevelStarted, LevelCompleted, RunCompleted};
@@ -156,11 +157,14 @@ mod level_system {
                         completed_at: get_block_timestamp(),
                     },
                 );
+
+                // Track full-run victory achievement progress
+                let libs = GameLibsImpl::new(world);
+                libs.track_achievement(player, victory::Victory::identifier(), 1, settings.settings_id);
                 
                 // Mint cubes on victory via GameLibs
                 let cubes_to_mint: u256 = final_run_data.total_cubes.into();
                 if cubes_to_mint > 0 {
-                    let libs = GameLibsImpl::new(world);
                     libs.cube.mint(player, cubes_to_mint);
                 }
             } else {

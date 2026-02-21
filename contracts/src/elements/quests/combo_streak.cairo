@@ -1,28 +1,32 @@
-/// Player quests - Daily quests for playing games
+/// Combo streak quests - Daily quests for reaching combo streak milestones
 use quest::types::reward::RewardTrait;
 use quest::types::task::{Task as QuestTask, TaskTrait as QuestTaskTrait};
 use starknet::ContractAddress;
-use crate::elements::tasks::grinder::Grinder;
+use crate::elements::tasks::combo_streak::{ComboStreakFifteen, ComboStreakTwenty, ComboStreakTwentyFive};
 use super::index::{ICON, ONE_DAY, QuestMetadataTrait, QuestProps, QuestTrait};
 
-/// DailyPlayerOne - Play 1 game (rewards 3 CUBE)
-pub impl DailyPlayerOne of QuestTrait {
+/// DailyComboStreakOne - Reach a 15+ combo streak (rewards 3 CUBE)
+pub impl DailyComboStreakOne of QuestTrait {
     fn identifier() -> felt252 {
-        'DAILY_PLAYER_ONE'
+        'DAILY_COMBO_STREAK_ONE'
     }
 
     fn props(registry: ContractAddress) -> QuestProps {
         let total = 1;
         let reward = RewardTrait::new("Quest Reward", "3 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
-            name: "Warm-Up",
-            description: "Play 1 game to start your day.",
-            icon: "fa-play",
+            name: "Streak Starter",
+            description: "Reach a 15+ combo streak.",
+            icon: "fa-arrow-trend-up",
             registry: registry,
             rewards: array![reward].span(),
         );
         let tasks: Array<QuestTask> = array![
-            QuestTaskTrait::new(Grinder::identifier(), total.into(), Grinder::description(total)),
+            QuestTaskTrait::new(
+                ComboStreakFifteen::identifier(),
+                total.into(),
+                ComboStreakFifteen::description(total),
+            ),
         ];
         QuestProps {
             id: Self::identifier(),
@@ -37,24 +41,28 @@ pub impl DailyPlayerOne of QuestTrait {
     }
 }
 
-/// DailyPlayerTwo - Play 3 games (rewards 5 CUBE)
-pub impl DailyPlayerTwo of QuestTrait {
+/// DailyComboStreakTwo - Reach a 20+ combo streak (rewards 5 CUBE)
+pub impl DailyComboStreakTwo of QuestTrait {
     fn identifier() -> felt252 {
-        'DAILY_PLAYER_TWO'
+        'DAILY_COMBO_STREAK_TWO'
     }
 
     fn props(registry: ContractAddress) -> QuestProps {
-        let total = 3;
+        let total = 1;
         let reward = RewardTrait::new("Quest Reward", "5 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
-            name: "Getting Started",
-            description: "Play 3 games to get in the zone.",
-            icon: "fa-dice-three",
+            name: "Streak Builder",
+            description: "Reach a 20+ combo streak.",
+            icon: "fa-arrow-trend-up",
             registry: registry,
             rewards: array![reward].span(),
         );
         let tasks: Array<QuestTask> = array![
-            QuestTaskTrait::new(Grinder::identifier(), total.into(), Grinder::description(total)),
+            QuestTaskTrait::new(
+                ComboStreakTwenty::identifier(),
+                total.into(),
+                ComboStreakTwenty::description(total),
+            ),
         ];
         QuestProps {
             id: Self::identifier(),
@@ -69,24 +77,28 @@ pub impl DailyPlayerTwo of QuestTrait {
     }
 }
 
-/// DailyPlayerThree - Play 5 games (rewards 10 CUBE)
-pub impl DailyPlayerThree of QuestTrait {
+/// DailyComboStreakThree - Reach a 25+ combo streak (rewards 10 CUBE)
+pub impl DailyComboStreakThree of QuestTrait {
     fn identifier() -> felt252 {
-        'DAILY_PLAYER_THREE'
+        'DAILY_COMBO_STREAK_THREE'
     }
 
     fn props(registry: ContractAddress) -> QuestProps {
-        let total = 5;
+        let total = 1;
         let reward = RewardTrait::new("Quest Reward", "10 CUBE", ICON());
         let metadata = QuestMetadataTrait::new(
-            name: "Dedicated",
-            description: "Play 5 games to prove your dedication.",
-            icon: "fa-fire",
+            name: "Streak Master",
+            description: "Reach a 25+ combo streak.",
+            icon: "fa-arrow-trend-up",
             registry: registry,
             rewards: array![reward].span(),
         );
         let tasks: Array<QuestTask> = array![
-            QuestTaskTrait::new(Grinder::identifier(), total.into(), Grinder::description(total)),
+            QuestTaskTrait::new(
+                ComboStreakTwentyFive::identifier(),
+                total.into(),
+                ComboStreakTwentyFive::description(total),
+            ),
         ];
         QuestProps {
             id: Self::identifier(),
