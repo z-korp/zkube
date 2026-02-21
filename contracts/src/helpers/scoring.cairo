@@ -61,10 +61,7 @@ pub fn calculate_combo_cubes(lines_cleared: u8) -> u16 {
 /// Updates combo_counter, max_combo (per-level), and max_combo_run (per-run).
 #[inline(always)]
 pub fn update_combo_tracking(
-    ref combo_counter: u8,
-    ref max_combo: u8,
-    ref run_data: RunData,
-    lines_cleared: u8,
+    ref combo_counter: u8, ref max_combo: u8, ref run_data: RunData, lines_cleared: u8,
 ) {
     if lines_cleared > 1 {
         combo_counter = saturating_add_u8(combo_counter, lines_cleared);
@@ -91,14 +88,11 @@ pub fn award_combo_cubes(ref run_data: RunData, lines_cleared: u8) {
 /// - Combo tracking (combo_counter, max_combo, max_combo_run)
 /// - Combo cube rewards (4+ lines)
 pub fn process_lines_cleared(
-    ref run_data: RunData,
-    ref combo_counter: u8,
-    ref max_combo: u8,
-    lines_cleared: u8,
+    ref run_data: RunData, ref combo_counter: u8, ref max_combo: u8, lines_cleared: u8,
 ) {
     // Update combo tracking
     update_combo_tracking(ref combo_counter, ref max_combo, ref run_data, lines_cleared);
-    
+
     // Award cubes and achievements
     award_combo_cubes(ref run_data, lines_cleared);
 }

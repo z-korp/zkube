@@ -9,7 +9,7 @@ pub enum Block {
     One,
     Two,
     Three,
-    Four
+    Four,
 }
 
 #[generate_trait]

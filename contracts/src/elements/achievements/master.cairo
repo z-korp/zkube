@@ -13,7 +13,7 @@ pub impl Master of AchievementTrait {
     }
 
     fn index(level: u8) -> u8 {
-        level + 30  // Offset after Victory Path achievements
+        level + 30 // Offset after Victory Path achievements
     }
 
     fn hidden(level: u8) -> bool {

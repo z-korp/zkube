@@ -1,7 +1,7 @@
 use alexandria_math::BitShift;
 
 /// Bit-packing helpers for efficient storage
-/// 
+///
 /// run_data layout (195 bits used, 57 reserved):
 /// ┌─────────────────────────────────────────────────────────────────────┐
 /// │ Bits    │ Field                 │ Size │ Range    │ Description     │
@@ -85,7 +85,7 @@ pub struct RunData {
     pub unallocated_charges: u8, // Purchased charges not assigned to a selected bonus yet
     pub shop_level_up_bought: bool, // True if level-up already bought this shop visit
     pub shop_swap_bought: bool, // True if swap already bought this shop visit
-    pub boss_level_up_pending: bool, // True if a boss reward level-up is awaiting selection
+    pub boss_level_up_pending: bool // True if a boss reward level-up is awaiting selection
 }
 
 /// Bit positions and masks for run_data
@@ -238,7 +238,11 @@ pub impl RunDataPacking of RunDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                if self.bonus_used_this_level { 1_u256 } else { 0_u256 },
+                if self.bonus_used_this_level {
+                    1_u256
+                } else {
+                    0_u256
+                },
                 RunDataBits::BONUS_USED_POS.into(),
             );
         packed = packed
@@ -293,7 +297,11 @@ pub impl RunDataPacking of RunDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                if self.run_completed { 1_u256 } else { 0_u256 },
+                if self.run_completed {
+                    1_u256
+                } else {
+                    0_u256
+                },
                 RunDataBits::RUN_COMPLETED_POS.into(),
             );
         // Bonus V2.0 fields
@@ -341,7 +349,11 @@ pub impl RunDataPacking of RunDataPackingTrait {
         // Constraint flags
         packed = packed
             | BitShift::shl(
-                if self.no_bonus_constraint { 1_u256 } else { 0_u256 },
+                if self.no_bonus_constraint {
+                    1_u256
+                } else {
+                    0_u256
+                },
                 RunDataBits::NO_BONUS_CONSTRAINT_POS.into(),
             );
         // Tertiary constraint progress
@@ -363,17 +375,29 @@ pub impl RunDataPacking of RunDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                if self.shop_level_up_bought { 1_u256 } else { 0_u256 },
+                if self.shop_level_up_bought {
+                    1_u256
+                } else {
+                    0_u256
+                },
                 RunDataBits::SHOP_LEVEL_UP_BOUGHT_POS.into(),
             );
         packed = packed
             | BitShift::shl(
-                if self.shop_swap_bought { 1_u256 } else { 0_u256 },
+                if self.shop_swap_bought {
+                    1_u256
+                } else {
+                    0_u256
+                },
                 RunDataBits::SHOP_SWAP_BOUGHT_POS.into(),
             );
         packed = packed
             | BitShift::shl(
-                if self.boss_level_up_pending { 1_u256 } else { 0_u256 },
+                if self.boss_level_up_pending {
+                    1_u256
+                } else {
+                    0_u256
+                },
                 RunDataBits::BOSS_LEVEL_UP_PENDING_POS.into(),
             );
 
@@ -504,9 +528,7 @@ pub impl RunDataPacking of RunDataPackingTrait {
                 & RunDataBits::UNALLOCATED_CHARGES_MASK)
                 .try_into()
                 .unwrap(),
-            shop_level_up_bought: (BitShift::shr(
-                data, RunDataBits::SHOP_LEVEL_UP_BOUGHT_POS.into(),
-            )
+            shop_level_up_bought: (BitShift::shr(data, RunDataBits::SHOP_LEVEL_UP_BOUGHT_POS.into())
                 & RunDataBits::SHOP_LEVEL_UP_BOUGHT_MASK) == 1,
             shop_swap_bought: (BitShift::shr(data, RunDataBits::SHOP_SWAP_BOUGHT_POS.into())
                 & RunDataBits::SHOP_SWAP_BOUGHT_MASK) == 1,
@@ -531,11 +553,11 @@ pub impl RunDataHelpers of RunDataHelpersTrait {
     #[inline(always)]
     fn bonus_type_to_bag_idx(bonus_type: u8) -> u8 {
         match bonus_type {
-            1 => 0,  // Combo
-            2 => 1,  // Score
-            3 => 2,  // Harvest
-            4 => 3,  // Wave
-            5 => 4,  // Supply
+            1 => 0, // Combo
+            2 => 1, // Score
+            3 => 2, // Harvest
+            4 => 3, // Wave
+            5 => 4, // Supply
             _ => 0,
         }
     }
@@ -560,27 +582,37 @@ pub impl RunDataHelpers of RunDataHelpersTrait {
     fn add_bonus(ref self: RunData, bonus_type: u8, bag_size: u8) -> bool {
         match bonus_type {
             1 => {
-                if self.combo_count >= bag_size { return false; }
+                if self.combo_count >= bag_size {
+                    return false;
+                }
                 self.combo_count += 1;
                 true
             },
             2 => {
-                if self.score_count >= bag_size { return false; }
+                if self.score_count >= bag_size {
+                    return false;
+                }
                 self.score_count += 1;
                 true
             },
             3 => {
-                if self.harvest_count >= bag_size { return false; }
+                if self.harvest_count >= bag_size {
+                    return false;
+                }
                 self.harvest_count += 1;
                 true
             },
             4 => {
-                if self.wave_count >= bag_size { return false; }
+                if self.wave_count >= bag_size {
+                    return false;
+                }
                 self.wave_count += 1;
                 true
             },
             5 => {
-                if self.supply_count >= bag_size { return false; }
+                if self.supply_count >= bag_size {
+                    return false;
+                }
                 self.supply_count += 1;
                 true
             },
@@ -593,15 +625,23 @@ pub impl RunDataHelpers of RunDataHelpersTrait {
     fn get_available_cubes(self: @RunData) -> u16 {
         let total_budget: u32 = (*self.cubes_brought).into() + (*self.total_cubes).into();
         let spent: u32 = (*self.cubes_spent).into();
-        let available: u32 = if total_budget >= spent { total_budget - spent } else { 0 };
-        if available > 65535 { 65535_u16 } else { available.try_into().unwrap() }
+        let available: u32 = if total_budget >= spent {
+            total_budget - spent
+        } else {
+            0
+        };
+        if available > 65535 {
+            65535_u16
+        } else {
+            available.try_into().unwrap()
+        }
     }
 
     /// Spend cubes from budget. Panics if insufficient cubes.
     fn spend_cubes(ref self: RunData, amount: u16) {
         let available = self.get_available_cubes();
         assert!(available >= amount, "Insufficient cubes");
-        
+
         let new_spent: u32 = self.cubes_spent.into() + amount.into();
         assert!(new_spent <= 65535, "Cubes spent overflow");
         self.cubes_spent = new_spent.try_into().unwrap();
@@ -769,12 +809,20 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
             );
         packed = packed
             | BitShift::shl(
-                if self.wave_unlocked { 1_u256 } else { 0_u256 },
+                if self.wave_unlocked {
+                    1_u256
+                } else {
+                    0_u256
+                },
                 MetaDataBits::WAVE_UNLOCKED_POS.into(),
             );
         packed = packed
             | BitShift::shl(
-                if self.supply_unlocked { 1_u256 } else { 0_u256 },
+                if self.supply_unlocked {
+                    1_u256
+                } else {
+                    0_u256
+                },
                 MetaDataBits::SUPPLY_UNLOCKED_POS.into(),
             );
         packed = packed
@@ -858,11 +906,11 @@ pub impl MetaDataPacking of MetaDataPackingTrait {
     fn get_bag_size(self: MetaData, bonus_type: u8) -> u8 {
         let base_size: u8 = 1;
         match bonus_type {
-            0 => base_size + self.bag_combo_level,    // Combo
-            1 => base_size + self.bag_score_level,    // Score
-            2 => base_size + self.bag_harvest_level,  // Harvest
-            3 => base_size + self.bag_wave_level,     // Wave
-            4 => base_size + self.bag_supply_level,   // Supply
+            0 => base_size + self.bag_combo_level, // Combo
+            1 => base_size + self.bag_score_level, // Score
+            2 => base_size + self.bag_harvest_level, // Harvest
+            3 => base_size + self.bag_wave_level, // Wave
+            4 => base_size + self.bag_supply_level, // Supply
             _ => base_size,
         }
     }
@@ -926,8 +974,8 @@ fn pow2_u16(n: u8) -> u16 {
 #[cfg(test)]
 mod tests {
     use super::{
-        RunData, RunDataPacking, RunDataPackingTrait, MetaData, MetaDataPacking,
-        MetaDataPackingTrait,
+        MetaData, MetaDataPacking, MetaDataPackingTrait, RunData, RunDataPacking,
+        RunDataPackingTrait,
     };
 
     #[test]
@@ -994,9 +1042,9 @@ mod tests {
             selected_bonus_1: 4, // Wave
             selected_bonus_2: 1, // Combo
             selected_bonus_3: 5, // Supply
-            bonus_1_level: 2,    // L3
-            bonus_2_level: 1,    // L2
-            bonus_3_level: 0,    // L1
+            bonus_1_level: 2, // L3
+            bonus_2_level: 1, // L2
+            bonus_3_level: 0, // L1
             free_moves: 3,
             // Shop state fields
             last_shop_level: 4,
@@ -1036,11 +1084,20 @@ mod tests {
         assert!(unpacked.cubes_brought == original.cubes_brought, "cubes_brought mismatch");
         assert!(unpacked.cubes_spent == original.cubes_spent, "cubes_spent mismatch");
         assert!(unpacked.total_score == original.total_score, "total_score mismatch");
-        assert!(unpacked.constraint_2_progress == original.constraint_2_progress, "constraint_2_progress mismatch");
+        assert!(
+            unpacked.constraint_2_progress == original.constraint_2_progress,
+            "constraint_2_progress mismatch",
+        );
         // Bonus V2.0 assertions
-        assert!(unpacked.selected_bonus_1 == original.selected_bonus_1, "selected_bonus_1 mismatch");
-        assert!(unpacked.selected_bonus_2 == original.selected_bonus_2, "selected_bonus_2 mismatch");
-        assert!(unpacked.selected_bonus_3 == original.selected_bonus_3, "selected_bonus_3 mismatch");
+        assert!(
+            unpacked.selected_bonus_1 == original.selected_bonus_1, "selected_bonus_1 mismatch",
+        );
+        assert!(
+            unpacked.selected_bonus_2 == original.selected_bonus_2, "selected_bonus_2 mismatch",
+        );
+        assert!(
+            unpacked.selected_bonus_3 == original.selected_bonus_3, "selected_bonus_3 mismatch",
+        );
         assert!(unpacked.bonus_1_level == original.bonus_1_level, "bonus_1_level mismatch");
         assert!(unpacked.bonus_2_level == original.bonus_2_level, "bonus_2_level mismatch");
         assert!(unpacked.bonus_3_level == original.bonus_3_level, "bonus_3_level mismatch");
@@ -1056,14 +1113,22 @@ mod tests {
             unpacked.shop_level_up_bought == original.shop_level_up_bought,
             "shop_level_up_bought mismatch",
         );
-        assert!(unpacked.shop_swap_bought == original.shop_swap_bought, "shop_swap_bought mismatch");
+        assert!(
+            unpacked.shop_swap_bought == original.shop_swap_bought, "shop_swap_bought mismatch",
+        );
         assert!(
             unpacked.boss_level_up_pending == original.boss_level_up_pending,
             "boss_level_up_pending mismatch",
         );
         // Constraint flag assertions
-        assert!(unpacked.no_bonus_constraint == original.no_bonus_constraint, "no_bonus_constraint mismatch");
-        assert!(unpacked.constraint_3_progress == original.constraint_3_progress, "constraint_3_progress mismatch");
+        assert!(
+            unpacked.no_bonus_constraint == original.no_bonus_constraint,
+            "no_bonus_constraint mismatch",
+        );
+        assert!(
+            unpacked.constraint_3_progress == original.constraint_3_progress,
+            "constraint_3_progress mismatch",
+        );
     }
 
     #[test]
@@ -1188,16 +1253,20 @@ mod tests {
 
         assert!(unpacked.starting_combo == original.starting_combo, "starting_combo mismatch");
         assert!(unpacked.starting_score == original.starting_score, "starting_score mismatch");
-        assert!(unpacked.starting_harvest == original.starting_harvest, "starting_harvest mismatch");
+        assert!(
+            unpacked.starting_harvest == original.starting_harvest, "starting_harvest mismatch",
+        );
         assert!(unpacked.starting_wave == original.starting_wave, "starting_wave mismatch");
         assert!(unpacked.starting_supply == original.starting_supply, "starting_supply mismatch");
-        assert!(
-            unpacked.bag_combo_level == original.bag_combo_level, "bag_combo_level mismatch",
-        );
+        assert!(unpacked.bag_combo_level == original.bag_combo_level, "bag_combo_level mismatch");
         assert!(unpacked.bag_score_level == original.bag_score_level, "bag_score_level mismatch");
-        assert!(unpacked.bag_harvest_level == original.bag_harvest_level, "bag_harvest_level mismatch");
+        assert!(
+            unpacked.bag_harvest_level == original.bag_harvest_level, "bag_harvest_level mismatch",
+        );
         assert!(unpacked.bag_wave_level == original.bag_wave_level, "bag_wave_level mismatch");
-        assert!(unpacked.bag_supply_level == original.bag_supply_level, "bag_supply_level mismatch");
+        assert!(
+            unpacked.bag_supply_level == original.bag_supply_level, "bag_supply_level mismatch",
+        );
         assert!(unpacked.bridging_rank == original.bridging_rank, "bridging_rank mismatch");
         assert!(unpacked.wave_unlocked == original.wave_unlocked, "wave_unlocked mismatch");
         assert!(unpacked.supply_unlocked == original.supply_unlocked, "supply_unlocked mismatch");

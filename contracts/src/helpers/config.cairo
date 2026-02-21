@@ -1,11 +1,12 @@
 use dojo::model::ModelStorage;
 use dojo::world::WorldStorage;
-use game_components_token::core::interface::{IMinigameTokenDispatcher, IMinigameTokenDispatcherTrait};
-
+use game_components_token::core::interface::{
+    IMinigameTokenDispatcher, IMinigameTokenDispatcherTrait,
+};
+use zkube::constants::DEFAULT_SETTINGS::DEFAULT_SETTINGS_ID;
 use zkube::helpers::token;
 use zkube::models::config::{GameSettings, GameSettingsTrait};
 use zkube::types::difficulty::Difficulty;
-use zkube::constants::DEFAULT_SETTINGS::DEFAULT_SETTINGS_ID;
 
 #[generate_trait]
 pub impl ConfigUtilsImpl of ConfigUtilsTrait {

@@ -7,7 +7,7 @@ use starknet::ContractAddress;
 pub trait ICubeToken<T> {
     /// Mint cubes to a recipient (only MINTER_ROLE)
     fn mint(ref self: T, recipient: ContractAddress, amount: u256);
-    
+
     /// Burn cubes from an account (caller must be account or have MINTER_ROLE)
     fn burn(ref self: T, account: ContractAddress, amount: u256);
 
@@ -20,13 +20,10 @@ pub trait ICubeToken<T> {
 
 #[dojo::contract]
 pub mod cube_token {
-    use dojo::world::IWorldDispatcherTrait;
-    use dojo::world::WorldStorageTrait;
-    use openzeppelin_access::accesscontrol::AccessControlComponent;
-    use openzeppelin_access::accesscontrol::DEFAULT_ADMIN_ROLE;
+    use dojo::world::{IWorldDispatcherTrait, WorldStorageTrait};
+    use openzeppelin_access::accesscontrol::{AccessControlComponent, DEFAULT_ADMIN_ROLE};
     use openzeppelin_introspection::src5::SRC5Component;
-    use openzeppelin_token::erc20::ERC20Component;
-    use openzeppelin_token::erc20::ERC20HooksEmptyImpl;
+    use openzeppelin_token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
     use starknet::{ContractAddress, get_caller_address, get_contract_address};
     use zkube::constants::DEFAULT_NS;
     use super::ICubeToken;
@@ -44,7 +41,8 @@ pub mod cube_token {
     #[abi(embed_v0)]
     impl ERC20MixinImpl = ERC20Component::ERC20MixinImpl<ContractState>;
     #[abi(embed_v0)]
-    impl AccessControlImpl = AccessControlComponent::AccessControlImpl<ContractState>;
+    impl AccessControlImpl =
+        AccessControlComponent::AccessControlImpl<ContractState>;
 
     // Internal implementations
     impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
@@ -85,14 +83,14 @@ pub mod cube_token {
         // These may not be registered yet if cube_token inits first in the migration batch.
         // Use grant_minter_roles() post-deploy to fix if needed.
         let world = self.world(@DEFAULT_NS());
-        
+
         // Grant to game_system (if already registered)
         match world.dns_address(@"game_system") {
             Option::Some(game_system) => {
                 self.accesscontrol._grant_role(MINTER_ROLE, game_system);
             },
             Option::None => {},
-        };
+        }
 
         // Grant to move_system (if already registered) - handles game over cube minting
         match world.dns_address(@"move_system") {
@@ -100,7 +98,7 @@ pub mod cube_token {
                 self.accesscontrol._grant_role(MINTER_ROLE, move_system);
             },
             Option::None => {},
-        };
+        }
 
         // Grant to shop_system (if already registered)
         match world.dns_address(@"shop_system") {
@@ -108,7 +106,7 @@ pub mod cube_token {
                 self.accesscontrol._grant_role(MINTER_ROLE, shop_system);
             },
             Option::None => {},
-        };
+        }
 
         // Grant to quest_system (if already registered)
         match world.dns_address(@"quest_system") {
@@ -141,20 +139,16 @@ pub mod cube_token {
 
             let world = self.world(@DEFAULT_NS());
 
-            let game_system = world.dns_address(@"game_system")
-                .expect('game_system not in DNS');
+            let game_system = world.dns_address(@"game_system").expect('game_system not in DNS');
             self.accesscontrol._grant_role(MINTER_ROLE, game_system);
 
-            let move_system = world.dns_address(@"move_system")
-                .expect('move_system not in DNS');
+            let move_system = world.dns_address(@"move_system").expect('move_system not in DNS');
             self.accesscontrol._grant_role(MINTER_ROLE, move_system);
 
-            let shop_system = world.dns_address(@"shop_system")
-                .expect('shop_system not in DNS');
+            let shop_system = world.dns_address(@"shop_system").expect('shop_system not in DNS');
             self.accesscontrol._grant_role(MINTER_ROLE, shop_system);
 
-            let quest_system = world.dns_address(@"quest_system")
-                .expect('quest_system not in DNS');
+            let quest_system = world.dns_address(@"quest_system").expect('quest_system not in DNS');
             self.accesscontrol._grant_role(MINTER_ROLE, quest_system);
         }
 

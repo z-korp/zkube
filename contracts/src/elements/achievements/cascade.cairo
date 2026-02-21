@@ -18,7 +18,7 @@ pub impl Cascade of AchievementTrait {
     }
 
     fn index(level: u8) -> u8 {
-        level + 18  // Offset after Streak Spark achievements
+        level + 18 // Offset after Streak Spark achievements
     }
 
     fn hidden(level: u8) -> bool {

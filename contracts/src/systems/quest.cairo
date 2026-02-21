@@ -17,13 +17,13 @@ pub mod quest_system {
     use quest::components::questable::QuestableComponent::InternalImpl as QuestableInternalImpl;
     use quest::interfaces::IQuestRewarder;
     use starknet::ContractAddress;
-
     use crate::constants::DEFAULT_NS;
-    use crate::elements::quests::index::{IQuest, QUEST_COUNT, QuestProps, QuestType};
     use crate::elements::quests::finisher;
+    use crate::elements::quests::index::{IQuest, QUEST_COUNT, QuestProps, QuestType};
     use crate::elements::tasks::master;
-    use crate::helpers::game_libs::{GameLibsImpl, ICubeTokenDispatcherTrait, IAchievementSystemDispatcherTrait};
-
+    use crate::helpers::game_libs::{
+        GameLibsImpl, IAchievementSystemDispatcherTrait, ICubeTokenDispatcherTrait,
+    };
     use super::IQuestSystem;
 
     // Components
@@ -83,8 +83,7 @@ pub mod quest_system {
     impl QuestRewarderImpl of IQuestRewarder<ContractState> {
         fn on_quest_unlock(
             ref self: ContractState, player: ContractAddress, quest_id: felt252, interval_id: u64,
-        ) {
-            // No action needed on unlock
+        ) { // No action needed on unlock
         }
 
         fn on_quest_complete(
@@ -124,7 +123,7 @@ pub mod quest_system {
             let (amount, _task) = quest.reward();
 
             let libs = GameLibsImpl::new(world);
-            
+
             // Mint CUBE tokens as reward
             if amount > 0 {
                 libs.cube.mint(player, amount.into());
@@ -152,7 +151,9 @@ pub mod quest_system {
 
         /// Progress a task for a player
         /// This is called by game_system when relevant actions occur
-        fn progress(ref self: ContractState, player: ContractAddress, task_id: felt252, count: u32) {
+        fn progress(
+            ref self: ContractState, player: ContractAddress, task_id: felt252, count: u32,
+        ) {
             let world = self.world(@DEFAULT_NS());
             let player_felt: felt252 = player.into();
             self.questable.progress(world, player_felt, task_id, count.into(), true);

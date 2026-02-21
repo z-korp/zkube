@@ -115,9 +115,9 @@ pub struct BonusLevelUp {
     pub game_id: u64,
     #[key]
     pub player: ContractAddress,
-    pub bonus_slot: u8,      // 0, 1, or 2 (which of the 3 selected)
-    pub bonus_type: u8,      // The bonus type (1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply)
-    pub new_level: u8,       // New level (1, 2, or 3)
+    pub bonus_slot: u8, // 0, 1, or 2 (which of the 3 selected)
+    pub bonus_type: u8, // The bonus type (1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply)
+    pub new_level: u8 // New level (1, 2, or 3)
 }
 
 /// Emitted when a bonus type is unlocked in the permanent shop
@@ -126,6 +126,6 @@ pub struct BonusLevelUp {
 pub struct BonusUnlocked {
     #[key]
     pub player: ContractAddress,
-    pub bonus_type: u8,      // 4=Wave, 5=Supply
-    pub cost: u16,           // CUBE spent
+    pub bonus_type: u8, // 4=Wave, 5=Supply
+    pub cost: u16 // CUBE spent
 }

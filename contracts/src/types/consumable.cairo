@@ -11,9 +11,9 @@
 
 #[derive(Drop, Copy, Serde, Introspect, PartialEq)]
 pub enum ConsumableType {
-    BonusCharge,    // Buy a bonus charge to unallocated pool (scaling cost)
-    LevelUp,        // Level up a bonus (50 CUBE, 1 per shop)
-    SwapBonus,      // Swap a bonus for a different one (50 CUBE, 1 per shop)
+    BonusCharge, // Buy a bonus charge to unallocated pool (scaling cost)
+    LevelUp, // Level up a bonus (50 CUBE, 1 per shop)
+    SwapBonus // Swap a bonus for a different one (50 CUBE, 1 per shop)
 }
 
 /// Base cost for bonus charge (first purchase)
@@ -43,8 +43,12 @@ pub impl ConsumableImpl of ConsumableTrait {
             // cost = ceil(cost * 3 / 2) = (cost * 3 + 1) / 2
             cost = (cost * 3 + 1) / 2;
             i += 1;
-        };
-        if cost > 65535 { 65535_u16 } else { cost.try_into().unwrap() }
+        }
+        if cost > 65535 {
+            65535_u16
+        } else {
+            cost.try_into().unwrap()
+        }
     }
 
     /// Get the fixed cost of a consumable (for LevelUp and SwapBonus)
@@ -76,20 +80,27 @@ impl IntoU8Consumable of Into<u8, ConsumableType> {
             0 => ConsumableType::BonusCharge,
             1 => ConsumableType::LevelUp,
             2 => ConsumableType::SwapBonus,
-            _ => ConsumableType::BonusCharge, // Default fallback
+            _ => ConsumableType::BonusCharge // Default fallback
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{ConsumableType, ConsumableTrait, BONUS_CHARGE_BASE_COST, LEVEL_UP_COST, SWAP_BONUS_COST};
+    use super::{
+        BONUS_CHARGE_BASE_COST, ConsumableTrait, ConsumableType, LEVEL_UP_COST, SWAP_BONUS_COST,
+    };
 
     #[test]
     fn test_consumable_costs() {
-        assert!(ConsumableType::BonusCharge.get_cost() == BONUS_CHARGE_BASE_COST, "BonusCharge base should be 5");
+        assert!(
+            ConsumableType::BonusCharge.get_cost() == BONUS_CHARGE_BASE_COST,
+            "BonusCharge base should be 5",
+        );
         assert!(ConsumableType::LevelUp.get_cost() == LEVEL_UP_COST, "LevelUp should cost 50");
-        assert!(ConsumableType::SwapBonus.get_cost() == SWAP_BONUS_COST, "SwapBonus should cost 50");
+        assert!(
+            ConsumableType::SwapBonus.get_cost() == SWAP_BONUS_COST, "SwapBonus should cost 50",
+        );
     }
 
     #[test]

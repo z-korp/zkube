@@ -1,5 +1,6 @@
+use zkube::helpers::level::LevelGeneratorTrait;
 /// Boss Identity System
-/// 
+///
 /// 10 themed bosses, each with fixed constraint combinations.
 /// Boss identities define WHICH constraint types, and the unified budget system
 /// (from level.cairo) at max budget determines the VALUES.
@@ -17,8 +18,7 @@
 /// Boss constraints use budget_max from the level's difficulty settings,
 /// generating via the same budget engine as regular levels.
 
-use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait, ConstraintType};
-use zkube::helpers::level::LevelGeneratorTrait;
+use zkube::types::constraint::{ConstraintType, LevelConstraint, LevelConstraintTrait};
 
 /// Boss identity definition: which constraint types this boss uses
 #[derive(Copy, Drop)]
@@ -128,11 +128,7 @@ pub fn derive_boss_id(seed: felt252) -> u8 {
 /// Uses budget_max for the boss's difficulty to create challenging constraints.
 /// NoBonusUsed and ClearGrid are binary — they don't use budget.
 fn generate_boss_constraint(
-    constraint_type: ConstraintType,
-    budget_max: u8,
-    tier: u8,
-    seed: felt252,
-    points_required: u16,
+    constraint_type: ConstraintType, budget_max: u8, tier: u8, seed: felt252, points_required: u16,
 ) -> LevelConstraint {
     match constraint_type {
         // Binary constraints: no budget needed
@@ -141,7 +137,7 @@ fn generate_boss_constraint(
         ConstraintType::None => LevelConstraintTrait::none(),
         // Budget-based constraints: use the same generation as regular levels
         _ => LevelGeneratorTrait::generate_constraint_from_budget(
-            seed, budget_max, constraint_type, tier, points_required
+            seed, budget_max, constraint_type, tier, points_required,
         ),
     }
 }
@@ -157,12 +153,12 @@ pub fn difficulty_to_tier(difficulty: zkube::types::difficulty::Difficulty) -> u
         zkube::types::difficulty::Difficulty::VeryHard => 5,
         zkube::types::difficulty::Difficulty::Expert => 6,
         zkube::types::difficulty::Difficulty::Master => 7,
-        _ => 4, // Increasing defaults to Hard tier
+        _ => 4 // Increasing defaults to Hard tier
     }
 }
 
 /// Generate boss constraints for a specific boss level using the unified budget system.
-/// 
+///
 /// Boss identity determines WHICH types. Budget_max determines the VALUES.
 /// Uses the same budget-based generation engine as regular levels, but at budget_max
 /// to ensure boss constraints are challenging.
@@ -180,29 +176,38 @@ pub fn generate_boss_constraints(
 ) -> (LevelConstraint, LevelConstraint, LevelConstraint) {
     let identity = get_boss_identity(boss_id);
     let tier = difficulty_to_tier(difficulty);
-    
+
     let seed_u256: u256 = seed.into();
-    
+
     // Generate primary constraint at budget_max
     let primary_seed: felt252 = seed;
-    let c1 = generate_boss_constraint(identity.primary_type, budget_max, tier, primary_seed, points_required);
-    
+    let c1 = generate_boss_constraint(
+        identity.primary_type, budget_max, tier, primary_seed, points_required,
+    );
+
     // Generate secondary constraint (different seed segment)
     let secondary_seed: felt252 = (seed_u256 / 10000000).try_into().unwrap();
-    let c2 = generate_boss_constraint(identity.secondary_type, budget_max, tier, secondary_seed, points_required);
-    
+    let c2 = generate_boss_constraint(
+        identity.secondary_type, budget_max, tier, secondary_seed, points_required,
+    );
+
     // Tertiary (caller decides when to include it based on level)
     let tertiary_seed: felt252 = (seed_u256 / 100000000000000).try_into().unwrap();
-    let c3 = generate_boss_constraint(identity.tertiary_type, budget_max, tier, tertiary_seed, points_required);
-    
+    let c3 = generate_boss_constraint(
+        identity.tertiary_type, budget_max, tier, tertiary_seed, points_required,
+    );
+
     (c1, c2, c3)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{get_boss_identity, derive_boss_id, generate_boss_constraints, generate_boss_constraint, difficulty_to_tier};
     use zkube::types::constraint::{ConstraintType, LevelConstraintTrait};
     use zkube::types::difficulty::Difficulty;
+    use super::{
+        derive_boss_id, difficulty_to_tier, generate_boss_constraint, generate_boss_constraints,
+        get_boss_identity,
+    };
 
     #[test]
     fn test_boss_identity_coverage() {
@@ -214,7 +219,9 @@ mod tests {
             // Primary should never be None
             assert!(identity.primary_type != ConstraintType::None, "Primary should not be None");
             // Secondary should never be None
-            assert!(identity.secondary_type != ConstraintType::None, "Secondary should not be None");
+            assert!(
+                identity.secondary_type != ConstraintType::None, "Secondary should not be None",
+            );
             // Tertiary should never be None
             assert!(identity.tertiary_type != ConstraintType::None, "Tertiary should not be None");
             i += 1;
@@ -227,7 +234,7 @@ mod tests {
         let id1 = derive_boss_id('SEED_1');
         let id2 = derive_boss_id('SEED_2');
         let id3 = derive_boss_id('SEED_3');
-        
+
         assert!(id1 >= 1 && id1 <= 10, "Boss ID should be 1-10");
         assert!(id2 >= 1 && id2 <= 10, "Boss ID should be 1-10");
         assert!(id3 >= 1 && id3 <= 10, "Boss ID should be 1-10");
@@ -245,10 +252,15 @@ mod tests {
         // Boss 1 (Combo Master): ComboLines + ComboStreak + NoBonusUsed
         // Budget_max = 24 (Hard difficulty)
         let (c1, c2, _c3) = generate_boss_constraints(1, Difficulty::Hard, 'TEST_SEED', 24, 64);
-        
-        assert!(c1.constraint_type == ConstraintType::ComboLines, "Boss 1 primary should be ComboLines");
-        assert!(c2.constraint_type == ConstraintType::ComboStreak, "Boss 1 secondary should be ComboStreak");
-        
+
+        assert!(
+            c1.constraint_type == ConstraintType::ComboLines, "Boss 1 primary should be ComboLines",
+        );
+        assert!(
+            c2.constraint_type == ConstraintType::ComboStreak,
+            "Boss 1 secondary should be ComboStreak",
+        );
+
         // Values should be reasonable for Hard difficulty at budget_max
         assert!(c1.value >= 2, "Lines should be at least 2");
         assert!(c1.required_count >= 1, "Times should be at least 1");
@@ -260,7 +272,7 @@ mod tests {
         // Boss 1 triple: ComboLines + ComboStreak + NoBonusUsed
         // Budget_max = 34 (Expert difficulty)
         let (c1, c2, c3) = generate_boss_constraints(1, Difficulty::Expert, 'TEST_SEED', 34, 90);
-        
+
         assert!(c1.constraint_type == ConstraintType::ComboLines, "Boss 1 primary");
         assert!(c2.constraint_type == ConstraintType::ComboStreak, "Boss 1 secondary");
         assert!(c3.constraint_type == ConstraintType::NoBonusUsed, "Boss 1 tertiary");
@@ -307,21 +319,29 @@ mod tests {
             i += 1;
         };
     }
-    
+
     #[test]
     fn test_boss_budget_integration() {
         // Verify that budget-based generation produces reasonable values
         // Boss 2 (Demolisher): BreakBlocks + ComboLines + ClearGrid
         let (c1, c2, c3) = generate_boss_constraints(2, Difficulty::Master, 'BUDGET_TEST', 40, 110);
-        
-        assert!(c1.constraint_type == ConstraintType::BreakBlocks, "Boss 2 primary should be BreakBlocks");
-        assert!(c2.constraint_type == ConstraintType::ComboLines, "Boss 2 secondary should be ComboLines");
-        assert!(c3.constraint_type == ConstraintType::ClearGrid, "Boss 2 tertiary should be ClearGrid");
-        
+
+        assert!(
+            c1.constraint_type == ConstraintType::BreakBlocks,
+            "Boss 2 primary should be BreakBlocks",
+        );
+        assert!(
+            c2.constraint_type == ConstraintType::ComboLines,
+            "Boss 2 secondary should be ComboLines",
+        );
+        assert!(
+            c3.constraint_type == ConstraintType::ClearGrid, "Boss 2 tertiary should be ClearGrid",
+        );
+
         // BreakBlocks at budget 40 should have substantial count
         assert!(c1.value >= 1 && c1.value <= 4, "Block size should be 1-4");
         assert!(c1.required_count >= 4, "Block count should be at least 4 at budget 40");
-        
+
         // ComboLines at budget 40 should be challenging
         assert!(c2.value >= 2, "Lines should be at least 2");
     }

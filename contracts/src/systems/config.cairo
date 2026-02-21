@@ -1,4 +1,4 @@
-use zkube::models::config::{GameSettingsMetadata, GameSettings};
+use zkube::models::config::{GameSettings, GameSettingsMetadata};
 use zkube::types::difficulty::Difficulty;
 
 #[starknet::interface]
@@ -7,7 +7,7 @@ trait IConfigSystem<T> {
     fn add_game_settings(
         ref self: T, name: felt252, description: ByteArray, difficulty: Difficulty,
     ) -> u32;
-    
+
     /// Add new game settings with custom parameters
     fn add_custom_game_settings(
         ref self: T,
@@ -38,8 +38,8 @@ trait IConfigSystem<T> {
         constraints_enabled: u8,
         constraint_start_level: u8,
         // Constraint Distribution (packed - use pack_constraint_* helpers)
-        constraint_lines_budgets: u64,  // Packed: lines(4x4bits) + budgets(4x8bits) + times(2x4bits)
-        constraint_chances: u32,        // Packed: dual_chance(2x8bits) + secondary_no_bonus(2x8bits)
+        constraint_lines_budgets: u64, // Packed: lines(4x4bits) + budgets(4x8bits) + times(2x4bits)
+        constraint_chances: u32, // Packed: dual_chance(2x8bits) + secondary_no_bonus(2x8bits)
         // Block Distribution (VeryEasy to Master scaling)
         veryeasy_size1_weight: u8,
         veryeasy_size2_weight: u8,
@@ -69,33 +69,25 @@ trait IConfigSystem<T> {
 
 #[dojo::contract]
 mod config_system {
-    use super::IConfigSystem;
-
-    use starknet::{ContractAddress, get_caller_address, get_block_timestamp};
-    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
-
     use dojo::model::ModelStorage;
     use dojo::world::{WorldStorage, WorldStorageTrait};
-
-    use zkube::models::config::{GameSettingsMetadata, GameSettings, GameSettingsTrait};
-    use zkube::types::difficulty::Difficulty;
-    use zkube::constants::{DEFAULT_NS};
-    use zkube::constants::DEFAULT_SETTINGS::{
-        DEFAULT_SETTINGS_ID,
-        GET_DEFAULT_SETTINGS,
-        GET_DEFAULT_SETTINGS_METADATA,
-    };
-
-    use zkube::helpers::encoding::U256BytesUsedTraitImpl;
-
     use game_components_minigame::extensions::settings::interface::{
         IMinigameSettings, IMinigameSettingsDetails,
     };
     use game_components_minigame::extensions::settings::settings::SettingsComponent;
     use game_components_minigame::extensions::settings::structs::{GameSetting, GameSettingDetails};
     use game_components_minigame::interface::{IMinigameDispatcher, IMinigameDispatcherTrait};
-
     use openzeppelin_introspection::src5::SRC5Component;
+    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+    use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
+    use zkube::constants::DEFAULT_NS;
+    use zkube::constants::DEFAULT_SETTINGS::{
+        DEFAULT_SETTINGS_ID, GET_DEFAULT_SETTINGS, GET_DEFAULT_SETTINGS_METADATA,
+    };
+    use zkube::helpers::encoding::U256BytesUsedTraitImpl;
+    use zkube::models::config::{GameSettings, GameSettingsMetadata, GameSettingsTrait};
+    use zkube::types::difficulty::Difficulty;
+    use super::IConfigSystem;
 
     component!(path: SettingsComponent, storage: settings, event: SettingsEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
@@ -132,15 +124,12 @@ mod config_system {
         created_by: ContractAddress,
     }
 
-    fn dojo_init(
-        ref self: ContractState,
-        creator_address: ContractAddress,
-    ) {
+    fn dojo_init(ref self: ContractState, creator_address: ContractAddress) {
         let mut world: WorldStorage = self.world(@DEFAULT_NS());
         self.settings.initializer();
 
         let current_timestamp = get_block_timestamp();
-        
+
         // Create only the official default settings (ID 0)
         // Only games using these settings can mint cubes and track quest progress
         world.write_model(GET_DEFAULT_SETTINGS());
@@ -248,7 +237,7 @@ mod config_system {
 
             settings_id
         }
-        
+
         fn add_custom_game_settings(
             ref self: ContractState,
             name: felt252,
@@ -303,18 +292,42 @@ mod config_system {
         ) -> u32 {
             // Validate input
             assert(difficulty != Difficulty::None, 'Invalid difficulty');
-            self._validate_settings(
-                base_moves, max_moves, base_ratio_x100, max_ratio_x100,
-                cube_3_percent, cube_2_percent,
-                tier_1_threshold, tier_2_threshold, tier_3_threshold, tier_4_threshold,
-                tier_5_threshold, tier_6_threshold, tier_7_threshold,
-                constraints_enabled, constraint_start_level,
-                constraint_lines_budgets, constraint_chances,
-                veryeasy_size1_weight, veryeasy_size2_weight, veryeasy_size3_weight, veryeasy_size4_weight, veryeasy_size5_weight,
-                master_size1_weight, master_size2_weight, master_size3_weight, master_size4_weight, master_size5_weight,
-                early_variance_percent, mid_variance_percent, late_variance_percent,
-                early_level_threshold, mid_level_threshold, level_cap
-            );
+            self
+                ._validate_settings(
+                    base_moves,
+                    max_moves,
+                    base_ratio_x100,
+                    max_ratio_x100,
+                    cube_3_percent,
+                    cube_2_percent,
+                    tier_1_threshold,
+                    tier_2_threshold,
+                    tier_3_threshold,
+                    tier_4_threshold,
+                    tier_5_threshold,
+                    tier_6_threshold,
+                    tier_7_threshold,
+                    constraints_enabled,
+                    constraint_start_level,
+                    constraint_lines_budgets,
+                    constraint_chances,
+                    veryeasy_size1_weight,
+                    veryeasy_size2_weight,
+                    veryeasy_size3_weight,
+                    veryeasy_size4_weight,
+                    veryeasy_size5_weight,
+                    master_size1_weight,
+                    master_size2_weight,
+                    master_size3_weight,
+                    master_size4_weight,
+                    master_size5_weight,
+                    early_variance_percent,
+                    mid_variance_percent,
+                    late_variance_percent,
+                    early_level_threshold,
+                    mid_level_threshold,
+                    level_cap,
+                );
 
             // Get the world dispatcher
             let mut world: WorldStorage = self.world(@DEFAULT_NS());
@@ -435,7 +448,7 @@ mod config_system {
             settings.exists()
         }
     }
-    
+
     #[generate_trait]
     impl InternalImpl of InternalTrait {
         /// Helper function to get line cost for validation
@@ -451,7 +464,7 @@ mod config_system {
                 _ => 20,
             }
         }
-        
+
         /// Unpack constraint_lines_budgets field
         fn _unpack_lines_budgets(packed: u64) -> (u8, u8, u8, u8, u8, u8, u8, u8, u8, u8) {
             let veryeasy_min_lines: u8 = (packed & 0xF).try_into().unwrap();
@@ -464,20 +477,34 @@ mod config_system {
             let master_budget_max: u8 = ((packed / 0x10000000000) & 0xFF).try_into().unwrap();
             let veryeasy_min_times: u8 = ((packed / 0x1000000000000) & 0xF).try_into().unwrap();
             let master_min_times: u8 = ((packed / 0x10000000000000) & 0xF).try_into().unwrap();
-            (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
-             veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max,
-             veryeasy_min_times, master_min_times)
+            (
+                veryeasy_min_lines,
+                master_min_lines,
+                veryeasy_max_lines,
+                master_max_lines,
+                veryeasy_budget_min,
+                veryeasy_budget_max,
+                master_budget_min,
+                master_budget_max,
+                veryeasy_min_times,
+                master_min_times,
+            )
         }
-        
+
         /// Unpack constraint_chances field
         fn _unpack_chances(packed: u32) -> (u8, u8, u8, u8) {
             let veryeasy_dual_chance: u8 = (packed & 0xFF).try_into().unwrap();
             let master_dual_chance: u8 = ((packed / 0x100) & 0xFF).try_into().unwrap();
             let veryeasy_secondary_no_bonus: u8 = ((packed / 0x10000) & 0xFF).try_into().unwrap();
             let master_secondary_no_bonus: u8 = ((packed / 0x1000000) & 0xFF).try_into().unwrap();
-            (veryeasy_dual_chance, master_dual_chance, veryeasy_secondary_no_bonus, master_secondary_no_bonus)
+            (
+                veryeasy_dual_chance,
+                master_dual_chance,
+                veryeasy_secondary_no_bonus,
+                master_secondary_no_bonus,
+            )
         }
-        
+
         fn _validate_settings(
             self: @ContractState,
             base_moves: u16,
@@ -522,16 +549,16 @@ mod config_system {
             assert!(base_moves > 0, "Base moves must be positive");
             assert!(max_moves >= base_moves, "Max moves must be >= base moves");
             assert!(max_moves <= 255, "Max moves cannot exceed 255");
-            
+
             // Validate ratios
             assert!(base_ratio_x100 > 0, "Base ratio must be positive");
             assert!(max_ratio_x100 >= base_ratio_x100, "Max ratio must be >= base ratio");
-            
+
             // Validate cube thresholds
             assert!(cube_3_percent <= 100, "Cube 3 percent must be <= 100");
             assert!(cube_2_percent <= 100, "Cube 2 percent must be <= 100");
             assert!(cube_3_percent < cube_2_percent, "Cube 3 threshold must be < cube 2 threshold");
-            
+
             // Validate difficulty tier thresholds (must be in ascending order)
             assert!(tier_1_threshold >= 2, "Tier 1 must be >= 2 (at least 1 VeryEasy level)");
             assert!(tier_2_threshold > tier_1_threshold, "Tier 2 must be > tier 1");
@@ -540,64 +567,115 @@ mod config_system {
             assert!(tier_5_threshold > tier_4_threshold, "Tier 5 must be > tier 4");
             assert!(tier_6_threshold > tier_5_threshold, "Tier 6 must be > tier 5");
             assert!(tier_7_threshold > tier_6_threshold, "Tier 7 must be > tier 6");
-            
+
             // Validate constraint settings
             assert!(constraints_enabled <= 1, "Constraints enabled must be 0 or 1");
             // constraint_start_level can be any value (high value = no constraints early)
-            
+
             // Unpack constraint values for validation
-            let (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
-                 veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max,
-                 veryeasy_min_times, master_min_times) = Self::_unpack_lines_budgets(constraint_lines_budgets);
-            let (veryeasy_dual_chance, master_dual_chance, 
-                 veryeasy_secondary_no_bonus, master_secondary_no_bonus) = Self::_unpack_chances(constraint_chances);
-            
+            let (
+                veryeasy_min_lines,
+                master_min_lines,
+                veryeasy_max_lines,
+                master_max_lines,
+                veryeasy_budget_min,
+                veryeasy_budget_max,
+                master_budget_min,
+                master_budget_max,
+                veryeasy_min_times,
+                master_min_times,
+            ) =
+                Self::_unpack_lines_budgets(
+                constraint_lines_budgets,
+            );
+            let (
+                veryeasy_dual_chance,
+                master_dual_chance,
+                veryeasy_secondary_no_bonus,
+                master_secondary_no_bonus,
+            ) =
+                Self::_unpack_chances(
+                constraint_chances,
+            );
+
             // Validate constraint distribution - lines
             assert!(veryeasy_min_lines >= 2, "VeryEasy min lines must be >= 2");
             assert!(veryeasy_max_lines <= 10, "VeryEasy max lines must be <= 10");
-            assert!(veryeasy_min_lines <= veryeasy_max_lines, "VeryEasy min lines must be <= max lines");
+            assert!(
+                veryeasy_min_lines <= veryeasy_max_lines, "VeryEasy min lines must be <= max lines",
+            );
             assert!(master_min_lines >= 2, "Master min lines must be >= 2");
             assert!(master_max_lines <= 10, "Master max lines must be <= 10");
             assert!(master_min_lines <= master_max_lines, "Master min lines must be <= max lines");
-            
+
             // Validate constraint distribution - budget
-            assert!(veryeasy_budget_min <= veryeasy_budget_max, "VeryEasy budget_min must be <= budget_max");
-            assert!(master_budget_min <= master_budget_max, "Master budget_min must be <= budget_max");
-            
+            assert!(
+                veryeasy_budget_min <= veryeasy_budget_max,
+                "VeryEasy budget_min must be <= budget_max",
+            );
+            assert!(
+                master_budget_min <= master_budget_max, "Master budget_min must be <= budget_max",
+            );
+
             // Feasibility: budget_min must allow at least 1 time with min_lines
             let veryeasy_min_cost = Self::_line_cost(veryeasy_min_lines);
             let master_min_cost = Self::_line_cost(master_min_lines);
-            assert!(veryeasy_budget_min >= veryeasy_min_cost, "VeryEasy budget_min must allow at least 1 time");
-            assert!(master_budget_min >= master_min_cost, "Master budget_min must allow at least 1 time");
-            
+            assert!(
+                veryeasy_budget_min >= veryeasy_min_cost,
+                "VeryEasy budget_min must allow at least 1 time",
+            );
+            assert!(
+                master_budget_min >= master_min_cost,
+                "Master budget_min must allow at least 1 time",
+            );
+
             // Feasibility: budget_max must allow min_times with min_lines
-            assert!(veryeasy_budget_max >= veryeasy_min_cost * veryeasy_min_times, "VeryEasy budget_max must allow min_times");
-            assert!(master_budget_max >= master_min_cost * master_min_times, "Master budget_max must allow min_times");
-            
+            assert!(
+                veryeasy_budget_max >= veryeasy_min_cost * veryeasy_min_times,
+                "VeryEasy budget_max must allow min_times",
+            );
+            assert!(
+                master_budget_max >= master_min_cost * master_min_times,
+                "Master budget_max must allow min_times",
+            );
+
             // Validate times floor
             assert!(veryeasy_min_times >= 1, "VeryEasy min times must be >= 1");
             assert!(master_min_times >= 1, "Master min times must be >= 1");
-            
+
             // Validate dual chance and secondary no bonus chance
             assert!(veryeasy_dual_chance <= 100, "VeryEasy dual chance must be <= 100");
             assert!(master_dual_chance <= 100, "Master dual chance must be <= 100");
-            assert!(veryeasy_secondary_no_bonus <= 100, "VeryEasy secondary no bonus must be <= 100");
+            assert!(
+                veryeasy_secondary_no_bonus <= 100, "VeryEasy secondary no bonus must be <= 100",
+            );
             assert!(master_secondary_no_bonus <= 100, "Master secondary no bonus must be <= 100");
-            
+
             // Validate block weights (must have at least some weight to generate blocks)
-            let veryeasy_total: u16 = veryeasy_size1_weight.into() + veryeasy_size2_weight.into() + veryeasy_size3_weight.into() + veryeasy_size4_weight.into() + veryeasy_size5_weight.into();
-            let master_total: u16 = master_size1_weight.into() + master_size2_weight.into() + master_size3_weight.into() + master_size4_weight.into() + master_size5_weight.into();
+            let veryeasy_total: u16 = veryeasy_size1_weight.into()
+                + veryeasy_size2_weight.into()
+                + veryeasy_size3_weight.into()
+                + veryeasy_size4_weight.into()
+                + veryeasy_size5_weight.into();
+            let master_total: u16 = master_size1_weight.into()
+                + master_size2_weight.into()
+                + master_size3_weight.into()
+                + master_size4_weight.into()
+                + master_size5_weight.into();
             assert!(veryeasy_total > 0, "VeryEasy block weights must sum to > 0");
             assert!(master_total > 0, "Master block weights must sum to > 0");
-            
+
             // Validate variance settings
             assert!(early_variance_percent <= 50, "Early variance must be <= 50%");
             assert!(mid_variance_percent <= 50, "Mid variance must be <= 50%");
             assert!(late_variance_percent <= 50, "Late variance must be <= 50%");
-            
+
             // Validate level tier thresholds
-            assert!(early_level_threshold < mid_level_threshold, "Early threshold must be < mid threshold");
-            
+            assert!(
+                early_level_threshold < mid_level_threshold,
+                "Early threshold must be < mid threshold",
+            );
+
             // Validate level cap
             assert!(level_cap > 0, "Level cap must be positive");
             assert!(mid_level_threshold <= level_cap, "Mid threshold must be <= level cap");
@@ -614,12 +692,29 @@ mod config_system {
 
     fn generate_settings_array(game_settings: GameSettings) -> Span<GameSetting> {
         // Unpack constraint values for display
-        let (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
-             veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max,
-             veryeasy_min_times, master_min_times) = game_settings.unpack_lines_budgets();
-        let (veryeasy_dual_chance, master_dual_chance, 
-             veryeasy_secondary_no_bonus, master_secondary_no_bonus) = game_settings.unpack_chances();
-        
+        let (
+            veryeasy_min_lines,
+            master_min_lines,
+            veryeasy_max_lines,
+            master_max_lines,
+            veryeasy_budget_min,
+            veryeasy_budget_max,
+            master_budget_min,
+            master_budget_max,
+            veryeasy_min_times,
+            master_min_times,
+        ) =
+            game_settings
+            .unpack_lines_budgets();
+        let (
+            veryeasy_dual_chance,
+            master_dual_chance,
+            veryeasy_secondary_no_bonus,
+            master_secondary_no_bonus,
+        ) =
+            game_settings
+            .unpack_chances();
+
         array![
             // Basic settings
             GameSetting { name: "Mode", value: difficulty_label(game_settings.get_mode()) },
@@ -629,48 +724,175 @@ mod config_system {
             GameSetting { name: "Base Ratio", value: format_ratio(game_settings.base_ratio_x100) },
             GameSetting { name: "Max Ratio", value: format_ratio(game_settings.max_ratio_x100) },
             // Cube Thresholds
-            GameSetting { name: "3-Cube Threshold", value: format!("{}%", game_settings.cube_3_percent) },
-            GameSetting { name: "2-Cube Threshold", value: format!("{}%", game_settings.cube_2_percent) },
+            GameSetting {
+                name: "3-Cube Threshold", value: format!("{}%", game_settings.cube_3_percent),
+            },
+            GameSetting {
+                name: "2-Cube Threshold", value: format!("{}%", game_settings.cube_2_percent),
+            },
             // Consumable Costs
             GameSetting { name: "Combo Cost", value: format!("{}", game_settings.combo_cost) },
             GameSetting { name: "Score Cost", value: format!("{}", game_settings.score_cost) },
             GameSetting { name: "Harvest Cost", value: format!("{}", game_settings.harvest_cost) },
             // Difficulty Progression (non-linear tier thresholds)
-            GameSetting { name: "VeryEasy", value: format!("Levels 1-{}", game_settings.tier_1_threshold - 1) },
-            GameSetting { name: "Easy", value: format!("Levels {}-{}", game_settings.tier_1_threshold, game_settings.tier_2_threshold - 1) },
-            GameSetting { name: "Medium", value: format!("Levels {}-{}", game_settings.tier_2_threshold, game_settings.tier_3_threshold - 1) },
-            GameSetting { name: "MediumHard", value: format!("Levels {}-{}", game_settings.tier_3_threshold, game_settings.tier_4_threshold - 1) },
-            GameSetting { name: "Hard", value: format!("Levels {}-{}", game_settings.tier_4_threshold, game_settings.tier_5_threshold - 1) },
-            GameSetting { name: "VeryHard", value: format!("Levels {}-{}", game_settings.tier_5_threshold, game_settings.tier_6_threshold - 1) },
-            GameSetting { name: "Expert", value: format!("Levels {}-{}", game_settings.tier_6_threshold, game_settings.tier_7_threshold - 1) },
-            GameSetting { name: "Master", value: format!("Levels {}+", game_settings.tier_7_threshold) },
+            GameSetting {
+                name: "VeryEasy", value: format!("Levels 1-{}", game_settings.tier_1_threshold - 1),
+            },
+            GameSetting {
+                name: "Easy",
+                value: format!(
+                    "Levels {}-{}",
+                    game_settings.tier_1_threshold,
+                    game_settings.tier_2_threshold - 1,
+                ),
+            },
+            GameSetting {
+                name: "Medium",
+                value: format!(
+                    "Levels {}-{}",
+                    game_settings.tier_2_threshold,
+                    game_settings.tier_3_threshold - 1,
+                ),
+            },
+            GameSetting {
+                name: "MediumHard",
+                value: format!(
+                    "Levels {}-{}",
+                    game_settings.tier_3_threshold,
+                    game_settings.tier_4_threshold - 1,
+                ),
+            },
+            GameSetting {
+                name: "Hard",
+                value: format!(
+                    "Levels {}-{}",
+                    game_settings.tier_4_threshold,
+                    game_settings.tier_5_threshold - 1,
+                ),
+            },
+            GameSetting {
+                name: "VeryHard",
+                value: format!(
+                    "Levels {}-{}",
+                    game_settings.tier_5_threshold,
+                    game_settings.tier_6_threshold - 1,
+                ),
+            },
+            GameSetting {
+                name: "Expert",
+                value: format!(
+                    "Levels {}-{}",
+                    game_settings.tier_6_threshold,
+                    game_settings.tier_7_threshold - 1,
+                ),
+            },
+            GameSetting {
+                name: "Master", value: format!("Levels {}+", game_settings.tier_7_threshold),
+            },
             // Constraint Settings
-            GameSetting { name: "Constraints", value: if game_settings.constraints_enabled != 0 { "Enabled" } else { "Disabled" } },
-            GameSetting { name: "Constraint Start", value: format!("Level {}", game_settings.constraint_start_level) },
+            GameSetting {
+                name: "Constraints",
+                value: if game_settings.constraints_enabled != 0 {
+                    "Enabled"
+                } else {
+                    "Disabled"
+                },
+            },
+            GameSetting {
+                name: "Constraint Start",
+                value: format!("Level {}", game_settings.constraint_start_level),
+            },
             // Constraint Distribution (VeryEasy to Master)
-            GameSetting { name: "Lines Range", value: format!("{}-{} to {}-{}", veryeasy_min_lines, veryeasy_max_lines, master_min_lines, master_max_lines) },
-            GameSetting { name: "Budget Range", value: format!("{}-{} to {}-{}", veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max) },
-            GameSetting { name: "Min Times", value: format!("{} to {}", veryeasy_min_times, master_min_times) },
-            GameSetting { name: "Dual Chance", value: format!("{}%-{}%", veryeasy_dual_chance, master_dual_chance) },
-            GameSetting { name: "Secondary NoBonus", value: format!("{}%-{}%", veryeasy_secondary_no_bonus, master_secondary_no_bonus) },
+            GameSetting {
+                name: "Lines Range",
+                value: format!(
+                    "{}-{} to {}-{}",
+                    veryeasy_min_lines,
+                    veryeasy_max_lines,
+                    master_min_lines,
+                    master_max_lines,
+                ),
+            },
+            GameSetting {
+                name: "Budget Range",
+                value: format!(
+                    "{}-{} to {}-{}",
+                    veryeasy_budget_min,
+                    veryeasy_budget_max,
+                    master_budget_min,
+                    master_budget_max,
+                ),
+            },
+            GameSetting {
+                name: "Min Times", value: format!("{} to {}", veryeasy_min_times, master_min_times),
+            },
+            GameSetting {
+                name: "Dual Chance",
+                value: format!("{}%-{}%", veryeasy_dual_chance, master_dual_chance),
+            },
+            GameSetting {
+                name: "Secondary NoBonus",
+                value: format!("{}%-{}%", veryeasy_secondary_no_bonus, master_secondary_no_bonus),
+            },
             // Block Distribution (VeryEasy to Master) - size = block width
-            GameSetting { name: "Size-1 Weight", value: format!("{}-{}", game_settings.veryeasy_size1_weight, game_settings.master_size1_weight) },
-            GameSetting { name: "Size-2 Weight", value: format!("{}-{}", game_settings.veryeasy_size2_weight, game_settings.master_size2_weight) },
-            GameSetting { name: "Size-3 Weight", value: format!("{}-{}", game_settings.veryeasy_size3_weight, game_settings.master_size3_weight) },
-            GameSetting { name: "Size-4 Weight", value: format!("{}-{}", game_settings.veryeasy_size4_weight, game_settings.master_size4_weight) },
-            GameSetting { name: "Size-5 Weight", value: format!("{}-{}", game_settings.veryeasy_size5_weight, game_settings.master_size5_weight) },
+            GameSetting {
+                name: "Size-1 Weight",
+                value: format!(
+                    "{}-{}", game_settings.veryeasy_size1_weight, game_settings.master_size1_weight,
+                ),
+            },
+            GameSetting {
+                name: "Size-2 Weight",
+                value: format!(
+                    "{}-{}", game_settings.veryeasy_size2_weight, game_settings.master_size2_weight,
+                ),
+            },
+            GameSetting {
+                name: "Size-3 Weight",
+                value: format!(
+                    "{}-{}", game_settings.veryeasy_size3_weight, game_settings.master_size3_weight,
+                ),
+            },
+            GameSetting {
+                name: "Size-4 Weight",
+                value: format!(
+                    "{}-{}", game_settings.veryeasy_size4_weight, game_settings.master_size4_weight,
+                ),
+            },
+            GameSetting {
+                name: "Size-5 Weight",
+                value: format!(
+                    "{}-{}", game_settings.veryeasy_size5_weight, game_settings.master_size5_weight,
+                ),
+            },
             // Variance Settings
-            GameSetting { name: "Early Variance", value: format!("{}%", game_settings.early_variance_percent) },
-            GameSetting { name: "Mid Variance", value: format!("{}%", game_settings.mid_variance_percent) },
-            GameSetting { name: "Late Variance", value: format!("{}%", game_settings.late_variance_percent) },
+            GameSetting {
+                name: "Early Variance", value: format!("{}%", game_settings.early_variance_percent),
+            },
+            GameSetting {
+                name: "Mid Variance", value: format!("{}%", game_settings.mid_variance_percent),
+            },
+            GameSetting {
+                name: "Late Variance", value: format!("{}%", game_settings.late_variance_percent),
+            },
             // Level Tier Thresholds
-            GameSetting { name: "Early Levels", value: format!("1-{}", game_settings.early_level_threshold) },
-            GameSetting { name: "Mid Levels", value: format!("{}-{}", game_settings.early_level_threshold + 1, game_settings.mid_level_threshold) },
+            GameSetting {
+                name: "Early Levels", value: format!("1-{}", game_settings.early_level_threshold),
+            },
+            GameSetting {
+                name: "Mid Levels",
+                value: format!(
+                    "{}-{}",
+                    game_settings.early_level_threshold + 1,
+                    game_settings.mid_level_threshold,
+                ),
+            },
             // Level Cap
             GameSetting { name: "Level Cap", value: format!("{}", game_settings.level_cap) },
-        ].span()
+        ]
+            .span()
     }
-    
+
     /// Format a ratio value (e.g., 100 -> "1.00", 250 -> "2.50")
     fn format_ratio(value_x100: u16) -> ByteArray {
         let whole = value_x100 / 100;

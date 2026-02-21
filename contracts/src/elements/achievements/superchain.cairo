@@ -13,7 +13,7 @@ pub impl SuperChain of AchievementTrait {
     }
 
     fn index(level: u8) -> u8 {
-        level + 16  // Offset after Chain achievements
+        level + 16 // Offset after Chain achievements
     }
 
     fn hidden(level: u8) -> bool {

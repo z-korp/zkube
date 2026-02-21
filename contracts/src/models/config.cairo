@@ -1,5 +1,5 @@
-use zkube::types::difficulty::Difficulty;
 use starknet::ContractAddress;
+use zkube::types::difficulty::Difficulty;
 
 #[derive(Introspect, Drop, Serde)]
 #[dojo::model]
@@ -19,43 +19,36 @@ pub struct GameSettingsMetadata {
 pub struct GameSettings {
     #[key]
     pub settings_id: u32,
-    
     // === Mode ===
     // The game mode (e.g., Increasing, VeryEasy, Easy, ..., Master)
     // This selects the overall behavior; actual difficulty tier is derived from
     // starting_difficulty + level progression via get_difficulty_for_level()
     pub mode: u8,
-    
     // === Level Scaling ===
-    pub base_moves: u16,        // Moves at level 1 (default: 20)
-    pub max_moves: u16,         // Moves at level cap (default: 60)
-    pub base_ratio_x100: u16,   // Points/move ratio at level 1 * 100 (default: 80 = 0.80)
-    pub max_ratio_x100: u16,    // Points/move ratio at level cap * 100 (default: 180 = 1.80)
-    
+    pub base_moves: u16, // Moves at level 1 (default: 20)
+    pub max_moves: u16, // Moves at level cap (default: 60)
+    pub base_ratio_x100: u16, // Points/move ratio at level 1 * 100 (default: 80 = 0.80)
+    pub max_ratio_x100: u16, // Points/move ratio at level cap * 100 (default: 180 = 1.80)
     // === Cube Thresholds ===
-    pub cube_3_percent: u8,     // 3 cubes if moves <= X% of max (default: 40)
-    pub cube_2_percent: u8,     // 2 cubes if moves <= X% of max (default: 70)
-    
+    pub cube_3_percent: u8, // 3 cubes if moves <= X% of max (default: 40)
+    pub cube_2_percent: u8, // 2 cubes if moves <= X% of max (default: 70)
     // === Consumable Costs ===
-    pub combo_cost: u8,         // Cost in cubes (default: 5)
-    pub score_cost: u8,         // Cost in cubes (default: 5)
-    pub harvest_cost: u8,       // Cost in cubes (default: 5)
-    
+    pub combo_cost: u8, // Cost in cubes (default: 5)
+    pub score_cost: u8, // Cost in cubes (default: 5)
+    pub harvest_cost: u8, // Cost in cubes (default: 5)
     // === Difficulty Progression (non-linear tier thresholds) ===
     // Each threshold is the level at which that difficulty tier begins
     // Tier 0 (VeryEasy) is always level 1
-    pub tier_1_threshold: u8,   // Level where Easy begins (default: 5)
-    pub tier_2_threshold: u8,   // Level where Medium begins (default: 10)
-    pub tier_3_threshold: u8,   // Level where MediumHard begins (default: 20)
-    pub tier_4_threshold: u8,   // Level where Hard begins (default: 35)
-    pub tier_5_threshold: u8,   // Level where VeryHard begins (default: 50)
-    pub tier_6_threshold: u8,   // Level where Expert begins (default: 70)
-    pub tier_7_threshold: u8,   // Level where Master begins (default: 90)
-    
+    pub tier_1_threshold: u8, // Level where Easy begins (default: 5)
+    pub tier_2_threshold: u8, // Level where Medium begins (default: 10)
+    pub tier_3_threshold: u8, // Level where MediumHard begins (default: 20)
+    pub tier_4_threshold: u8, // Level where Hard begins (default: 35)
+    pub tier_5_threshold: u8, // Level where VeryHard begins (default: 50)
+    pub tier_6_threshold: u8, // Level where Expert begins (default: 70)
+    pub tier_7_threshold: u8, // Level where Master begins (default: 90)
     // === Constraint Settings ===
-    pub constraints_enabled: u8,     // 1=enabled, 0=disabled (default: 1)
-    pub constraint_start_level: u8,  // Level when constraints begin (default: 5)
-    
+    pub constraints_enabled: u8, // 1=enabled, 0=disabled (default: 1)
+    pub constraint_start_level: u8, // Level when constraints begin (default: 5)
     // === Constraint Distribution (PACKED - scales from VeryEasy to Master, tiers 0-7) ===
     // Bit-packed to save storage. Use helper functions to access individual values.
     // constraint_lines_budgets (u64): lines(4x4bits) + budgets(4x8bits) + times(2x4bits) = 56 bits
@@ -76,34 +69,30 @@ pub struct GameSettings {
     //   Bits 16-23: veryeasy_secondary_no_bonus_chance
     //   Bits 24-31: master_secondary_no_bonus_chance
     pub constraint_chances: u32,
-    
     // === Block Distribution (scales from VeryEasy to Master, tiers 0-7) ===
     // Weights for each block size (interpolated by difficulty tier)
     // Weights are relative - they get normalized to sum to 100%
     // "veryeasy_*" = value at tier 0 (VeryEasy), "master_*" = value at tier 7 (Master)
     // size1=1-wide, size2=2-wide, size3=3-wide, size4=4-wide, size5=5-wide
-    pub veryeasy_size1_weight: u8,    // Weight for 1-wide blocks at VeryEasy (default: 20)
-    pub veryeasy_size2_weight: u8,    // Weight for 2-wide blocks at VeryEasy (default: 33)
-    pub veryeasy_size3_weight: u8,    // Weight for 3-wide blocks at VeryEasy (default: 27)
-    pub veryeasy_size4_weight: u8,    // Weight for 4-wide blocks at VeryEasy (default: 13)
-    pub veryeasy_size5_weight: u8,    // Weight for 5-wide blocks at VeryEasy (default: 7)
-    pub master_size1_weight: u8,      // Weight for 1-wide blocks at Master (default: 7)
-    pub master_size2_weight: u8,      // Weight for 2-wide blocks at Master (default: 13)
-    pub master_size3_weight: u8,      // Weight for 3-wide blocks at Master (default: 20)
-    pub master_size4_weight: u8,      // Weight for 4-wide blocks at Master (default: 27)
-    pub master_size5_weight: u8,      // Weight for 5-wide blocks at Master (default: 33)
-    
+    pub veryeasy_size1_weight: u8, // Weight for 1-wide blocks at VeryEasy (default: 20)
+    pub veryeasy_size2_weight: u8, // Weight for 2-wide blocks at VeryEasy (default: 33)
+    pub veryeasy_size3_weight: u8, // Weight for 3-wide blocks at VeryEasy (default: 27)
+    pub veryeasy_size4_weight: u8, // Weight for 4-wide blocks at VeryEasy (default: 13)
+    pub veryeasy_size5_weight: u8, // Weight for 5-wide blocks at VeryEasy (default: 7)
+    pub master_size1_weight: u8, // Weight for 1-wide blocks at Master (default: 7)
+    pub master_size2_weight: u8, // Weight for 2-wide blocks at Master (default: 13)
+    pub master_size3_weight: u8, // Weight for 3-wide blocks at Master (default: 20)
+    pub master_size4_weight: u8, // Weight for 4-wide blocks at Master (default: 27)
+    pub master_size5_weight: u8, // Weight for 5-wide blocks at Master (default: 33)
     // === Variance Settings ===
-    pub early_variance_percent: u8,  // Variance % for early levels (default: 5)
-    pub mid_variance_percent: u8,    // Variance % for mid levels (default: 10)
-    pub late_variance_percent: u8,   // Variance % for late levels (default: 15)
-    
+    pub early_variance_percent: u8, // Variance % for early levels (default: 5)
+    pub mid_variance_percent: u8, // Variance % for mid levels (default: 10)
+    pub late_variance_percent: u8, // Variance % for late levels (default: 15)
     // === Level Tier Thresholds ===
-    pub early_level_threshold: u8,   // End of "early" levels (default: 5)
-    pub mid_level_threshold: u8,     // End of "mid" levels (default: 25)
-    
+    pub early_level_threshold: u8, // End of "early" levels (default: 5)
+    pub mid_level_threshold: u8, // End of "mid" levels (default: 25)
     // === Level Cap ===
-    pub level_cap: u8,               // Max level for scaling (default: 50)
+    pub level_cap: u8 // Max level for scaling (default: 50)
 }
 
 /// Default values for GameSettings
@@ -111,110 +100,111 @@ pub mod GameSettingsDefaults {
     // Level Scaling
     pub const BASE_MOVES: u16 = 20;
     pub const MAX_MOVES: u16 = 60;
-    pub const BASE_RATIO_X100: u16 = 80;   // 0.80
-    pub const MAX_RATIO_X100: u16 = 180;   // 1.80
-    
+    pub const BASE_RATIO_X100: u16 = 80; // 0.80
+    pub const MAX_RATIO_X100: u16 = 180; // 1.80
+
     // Cube Thresholds
     pub const CUBE_3_PERCENT: u8 = 40;
     pub const CUBE_2_PERCENT: u8 = 70;
-    
+
     // Consumable Costs
     pub const COMBO_COST: u8 = 5;
     pub const SCORE_COST: u8 = 5;
     pub const HARVEST_COST: u8 = 5;
-    
+
     // Difficulty Progression (non-linear tier thresholds)
     // VeryEasy: 1-3, Easy: 4-7, Medium: 8-11, MediumHard: 12-17
     // Hard: 18-24, VeryHard: 25-34, Expert: 35-44, Master: 45+
-    pub const TIER_1_THRESHOLD: u8 = 4;   // Easy starts at level 4
-    pub const TIER_2_THRESHOLD: u8 = 8;   // Medium starts at level 8
-    pub const TIER_3_THRESHOLD: u8 = 12;  // MediumHard starts at level 12
-    pub const TIER_4_THRESHOLD: u8 = 18;  // Hard starts at level 18
-    pub const TIER_5_THRESHOLD: u8 = 25;  // VeryHard starts at level 25
-    pub const TIER_6_THRESHOLD: u8 = 35;  // Expert starts at level 35
-    pub const TIER_7_THRESHOLD: u8 = 45;  // Master starts at level 45
-    
+    pub const TIER_1_THRESHOLD: u8 = 4; // Easy starts at level 4
+    pub const TIER_2_THRESHOLD: u8 = 8; // Medium starts at level 8
+    pub const TIER_3_THRESHOLD: u8 = 12; // MediumHard starts at level 12
+    pub const TIER_4_THRESHOLD: u8 = 18; // Hard starts at level 18
+    pub const TIER_5_THRESHOLD: u8 = 25; // VeryHard starts at level 25
+    pub const TIER_6_THRESHOLD: u8 = 35; // Expert starts at level 35
+    pub const TIER_7_THRESHOLD: u8 = 45; // Master starts at level 45
+
     // Constraint Settings
-    pub const CONSTRAINTS_ENABLED: u8 = 1;     // Enabled
-    pub const CONSTRAINT_START_LEVEL: u8 = 3;  // Constraints start at level 3
-    
+    pub const CONSTRAINTS_ENABLED: u8 = 1; // Enabled
+    pub const CONSTRAINT_START_LEVEL: u8 = 3; // Constraints start at level 3
+
     // Constraint Distribution (VeryEasy to Master scaling) - Individual defaults
     // These get packed into constraint_lines_budgets and constraint_chances
     // Line ranges
-    pub const VERYEASY_MIN_LINES: u8 = 2;          // Min 2 lines at VeryEasy
-    pub const MASTER_MIN_LINES: u8 = 4;            // Min 4 lines at Master
-    pub const VERYEASY_MAX_LINES: u8 = 2;          // Only 2 lines early (trivial)
-    pub const MASTER_MAX_LINES: u8 = 6;            // Up to 6 lines at Master
+    pub const VERYEASY_MIN_LINES: u8 = 2; // Min 2 lines at VeryEasy
+    pub const MASTER_MIN_LINES: u8 = 4; // Min 4 lines at Master
+    pub const VERYEASY_MAX_LINES: u8 = 2; // Only 2 lines early (trivial)
+    pub const MASTER_MAX_LINES: u8 = 6; // Up to 6 lines at Master
     // Weighted budget system: times_cap = budget / line_cost(lines)
     // Line costs: 2->1, 3->2, 4->4, 5->7, 6->11, 7->16
-    pub const VERYEASY_BUDGET_MIN: u8 = 1;         // Min budget early (1 = "2 lines x 1 time")
-    pub const VERYEASY_BUDGET_MAX: u8 = 3;         // Max ~"2 lines × 2-3 times" at VeryEasy
-    pub const MASTER_BUDGET_MIN: u8 = 32;          // Hard floor at Master
-    pub const MASTER_BUDGET_MAX: u8 = 40;          // Allows 6×3, 5×5, 4×10 at Master
+    pub const VERYEASY_BUDGET_MIN: u8 = 1; // Min budget early (1 = "2 lines x 1 time")
+    pub const VERYEASY_BUDGET_MAX: u8 = 3; // Max ~"2 lines × 2-3 times" at VeryEasy
+    pub const MASTER_BUDGET_MIN: u8 = 32; // Hard floor at Master
+    pub const MASTER_BUDGET_MAX: u8 = 40; // Allows 6×3, 5×5, 4×10 at Master
     // Times floor (soft minimum)
-    pub const VERYEASY_MIN_TIMES: u8 = 1;          // At least 1 time
-    pub const MASTER_MIN_TIMES: u8 = 2;            // At least 2 times at Master
-    // Constraint count range (DEPRECATED — constraint counts are now hardcoded per tier in level.cairo)
+    pub const VERYEASY_MIN_TIMES: u8 = 1; // At least 1 time
+    pub const MASTER_MIN_TIMES: u8 = 2; // At least 2 times at Master
+    // Constraint count range (DEPRECATED — constraint counts are now hardcoded per tier in
+    // level.cairo)
     // These fields kept for packed model layout compatibility but are no longer read.
     pub const VERYEASY_DUAL_CHANCE: u8 = 0;
     pub const MASTER_DUAL_CHANCE: u8 = 0;
     pub const VERYEASY_SECONDARY_NO_BONUS_CHANCE: u8 = 0;
     pub const MASTER_SECONDARY_NO_BONUS_CHANCE: u8 = 0;
-    
+
     // Pre-packed default values for constraint fields
     // constraint_lines_budgets packing: lines(4x4) + budgets(4x8) + times(2x4) = 56 bits
     pub fn DEFAULT_CONSTRAINT_LINES_BUDGETS() -> u64 {
         let mut packed: u64 = 0;
         // Lines (4 bits each)
-        packed = packed | (VERYEASY_MIN_LINES.into() & 0xF);           // bits 0-3
-        packed = packed | ((MASTER_MIN_LINES.into() & 0xF) * 0x10);    // bits 4-7
+        packed = packed | (VERYEASY_MIN_LINES.into() & 0xF); // bits 0-3
+        packed = packed | ((MASTER_MIN_LINES.into() & 0xF) * 0x10); // bits 4-7
         packed = packed | ((VERYEASY_MAX_LINES.into() & 0xF) * 0x100); // bits 8-11
-        packed = packed | ((MASTER_MAX_LINES.into() & 0xF) * 0x1000);  // bits 12-15
+        packed = packed | ((MASTER_MAX_LINES.into() & 0xF) * 0x1000); // bits 12-15
         // Budgets (8 bits each)
-        packed = packed | (VERYEASY_BUDGET_MIN.into() * 0x10000);      // bits 16-23
-        packed = packed | (VERYEASY_BUDGET_MAX.into() * 0x1000000);    // bits 24-31
-        packed = packed | (MASTER_BUDGET_MIN.into() * 0x100000000);    // bits 32-39
-        packed = packed | (MASTER_BUDGET_MAX.into() * 0x10000000000);  // bits 40-47
+        packed = packed | (VERYEASY_BUDGET_MIN.into() * 0x10000); // bits 16-23
+        packed = packed | (VERYEASY_BUDGET_MAX.into() * 0x1000000); // bits 24-31
+        packed = packed | (MASTER_BUDGET_MIN.into() * 0x100000000); // bits 32-39
+        packed = packed | (MASTER_BUDGET_MAX.into() * 0x10000000000); // bits 40-47
         // Times (4 bits each)
-        packed = packed | ((VERYEASY_MIN_TIMES.into() & 0xF) * 0x1000000000000);   // bits 48-51
-        packed = packed | ((MASTER_MIN_TIMES.into() & 0xF) * 0x10000000000000);    // bits 52-55
+        packed = packed | ((VERYEASY_MIN_TIMES.into() & 0xF) * 0x1000000000000); // bits 48-51
+        packed = packed | ((MASTER_MIN_TIMES.into() & 0xF) * 0x10000000000000); // bits 52-55
         packed
     }
-    
+
     // constraint_chances packing: dual_chance(2x8) + secondary_no_bonus(2x8) = 32 bits
     pub fn DEFAULT_CONSTRAINT_CHANCES() -> u32 {
         let mut packed: u32 = 0;
-        packed = packed | VERYEASY_DUAL_CHANCE.into();                              // bits 0-7
-        packed = packed | (MASTER_DUAL_CHANCE.into() * 0x100);                      // bits 8-15
-        packed = packed | (VERYEASY_SECONDARY_NO_BONUS_CHANCE.into() * 0x10000);    // bits 16-23
-        packed = packed | (MASTER_SECONDARY_NO_BONUS_CHANCE.into() * 0x1000000);    // bits 24-31
+        packed = packed | VERYEASY_DUAL_CHANCE.into(); // bits 0-7
+        packed = packed | (MASTER_DUAL_CHANCE.into() * 0x100); // bits 8-15
+        packed = packed | (VERYEASY_SECONDARY_NO_BONUS_CHANCE.into() * 0x10000); // bits 16-23
+        packed = packed | (MASTER_SECONDARY_NO_BONUS_CHANCE.into() * 0x1000000); // bits 24-31
         packed
     }
-    
+
     // Block Distribution (VeryEasy to Master scaling)
     // Size = block width (1-5). VeryEasy favors smaller blocks, Master favors larger.
-    pub const VERYEASY_SIZE1_WEIGHT: u8 = 20;    // 1-wide blocks at VeryEasy
-    pub const VERYEASY_SIZE2_WEIGHT: u8 = 33;    // 2-wide blocks at VeryEasy
-    pub const VERYEASY_SIZE3_WEIGHT: u8 = 27;    // 3-wide blocks at VeryEasy
-    pub const VERYEASY_SIZE4_WEIGHT: u8 = 13;    // 4-wide blocks at VeryEasy
-    pub const VERYEASY_SIZE5_WEIGHT: u8 = 7;     // 5-wide blocks at VeryEasy
-    pub const MASTER_SIZE1_WEIGHT: u8 = 7;       // 1-wide blocks at Master
-    pub const MASTER_SIZE2_WEIGHT: u8 = 13;      // 2-wide blocks at Master
-    pub const MASTER_SIZE3_WEIGHT: u8 = 20;      // 3-wide blocks at Master
-    pub const MASTER_SIZE4_WEIGHT: u8 = 27;      // 4-wide blocks at Master
-    pub const MASTER_SIZE5_WEIGHT: u8 = 33;      // 5-wide blocks at Master
-    
+    pub const VERYEASY_SIZE1_WEIGHT: u8 = 20; // 1-wide blocks at VeryEasy
+    pub const VERYEASY_SIZE2_WEIGHT: u8 = 33; // 2-wide blocks at VeryEasy
+    pub const VERYEASY_SIZE3_WEIGHT: u8 = 27; // 3-wide blocks at VeryEasy
+    pub const VERYEASY_SIZE4_WEIGHT: u8 = 13; // 4-wide blocks at VeryEasy
+    pub const VERYEASY_SIZE5_WEIGHT: u8 = 7; // 5-wide blocks at VeryEasy
+    pub const MASTER_SIZE1_WEIGHT: u8 = 7; // 1-wide blocks at Master
+    pub const MASTER_SIZE2_WEIGHT: u8 = 13; // 2-wide blocks at Master
+    pub const MASTER_SIZE3_WEIGHT: u8 = 20; // 3-wide blocks at Master
+    pub const MASTER_SIZE4_WEIGHT: u8 = 27; // 4-wide blocks at Master
+    pub const MASTER_SIZE5_WEIGHT: u8 = 33; // 5-wide blocks at Master
+
     // Variance Settings (consistent ±5% across all levels)
-    pub const EARLY_VARIANCE_PERCENT: u8 = 5;  // ±5% for early levels
-    pub const MID_VARIANCE_PERCENT: u8 = 5;    // ±5% for mid levels
-    pub const LATE_VARIANCE_PERCENT: u8 = 5;   // ±5% for late levels
-    
+    pub const EARLY_VARIANCE_PERCENT: u8 = 5; // ±5% for early levels
+    pub const MID_VARIANCE_PERCENT: u8 = 5; // ±5% for mid levels
+    pub const LATE_VARIANCE_PERCENT: u8 = 5; // ±5% for late levels
+
     // Level Tier Thresholds
-    pub const EARLY_LEVEL_THRESHOLD: u8 = 5;   // Levels 1-5 are "early"
-    pub const MID_LEVEL_THRESHOLD: u8 = 25;    // Levels 6-25 are "mid"
-    
+    pub const EARLY_LEVEL_THRESHOLD: u8 = 5; // Levels 1-5 are "early"
+    pub const MID_LEVEL_THRESHOLD: u8 = 25; // Levels 6-25 are "mid"
+
     // Level Cap
-    pub const LEVEL_CAP: u8 = 50;              // Max level for scaling
+    pub const LEVEL_CAP: u8 = 50; // Max level for scaling
 }
 
 #[generate_trait]
@@ -231,7 +221,7 @@ pub impl GameSettingsImpl of GameSettingsTrait {
     fn get_mode(self: GameSettings) -> Difficulty {
         self.mode.into()
     }
-    
+
     /// Create default settings with a given mode
     fn new_with_defaults(settings_id: u32, mode: Difficulty) -> GameSettings {
         GameSettings {
@@ -285,12 +275,12 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             level_cap: GameSettingsDefaults::LEVEL_CAP,
         }
     }
-    
+
     /// Check if constraints are enabled
     fn are_constraints_enabled(self: GameSettings) -> bool {
         self.constraints_enabled != 0
     }
-    
+
     /// Get difficulty for a given level based on settings
     fn get_difficulty_for_level(self: GameSettings, level: u8) -> Difficulty {
         let mode = self.get_mode();
@@ -305,7 +295,7 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         }
 
         // Progressive mode: use non-linear tier thresholds
-        // Tier 0 = VeryEasy, 1 = Easy, 2 = Medium, 3 = MediumHard, 
+        // Tier 0 = VeryEasy, 1 = Easy, 2 = Medium, 3 = MediumHard,
         // 4 = Hard, 5 = VeryHard, 6 = Expert, 7 = Master
         if level >= self.tier_7_threshold {
             Difficulty::Master
@@ -325,7 +315,7 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             Difficulty::VeryEasy
         }
     }
-    
+
     /// Get variance percent for a given level
     fn get_variance_percent(self: GameSettings, level: u8) -> u8 {
         if level <= self.early_level_threshold {
@@ -336,7 +326,7 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             self.late_variance_percent
         }
     }
-    
+
     /// Get the effective level cap
     fn get_level_cap(self: GameSettings) -> u8 {
         if self.level_cap == 0 {
@@ -345,7 +335,7 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             self.level_cap
         }
     }
-    
+
     /// Get consumable cost by type (0=Combo, 1=Score, 2=Harvest)
     fn get_consumable_cost(self: GameSettings, consumable_type: u8) -> u8 {
         match consumable_type {
@@ -355,7 +345,7 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             _ => 0,
         }
     }
-    
+
     /// Unpack constraint_lines_budgets field
     /// Returns (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
     ///          veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max,
@@ -372,27 +362,44 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         let master_budget_max: u8 = ((packed / 0x10000000000) & 0xFF).try_into().unwrap();
         let veryeasy_min_times: u8 = ((packed / 0x1000000000000) & 0xF).try_into().unwrap();
         let master_min_times: u8 = ((packed / 0x10000000000000) & 0xF).try_into().unwrap();
-        (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
-         veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max,
-         veryeasy_min_times, master_min_times)
+        (
+            veryeasy_min_lines,
+            master_min_lines,
+            veryeasy_max_lines,
+            master_max_lines,
+            veryeasy_budget_min,
+            veryeasy_budget_max,
+            master_budget_min,
+            master_budget_max,
+            veryeasy_min_times,
+            master_min_times,
+        )
     }
-    
+
     /// Unpack constraint_chances field
-    /// Returns (veryeasy_dual_chance, master_dual_chance, veryeasy_secondary_no_bonus, master_secondary_no_bonus)
+    /// Returns (veryeasy_dual_chance, master_dual_chance, veryeasy_secondary_no_bonus,
+    /// master_secondary_no_bonus)
     fn unpack_chances(self: GameSettings) -> (u8, u8, u8, u8) {
         let packed = self.constraint_chances;
         let veryeasy_dual_chance: u8 = (packed & 0xFF).try_into().unwrap();
         let master_dual_chance: u8 = ((packed / 0x100) & 0xFF).try_into().unwrap();
         let veryeasy_secondary_no_bonus: u8 = ((packed / 0x10000) & 0xFF).try_into().unwrap();
         let master_secondary_no_bonus: u8 = ((packed / 0x1000000) & 0xFF).try_into().unwrap();
-        (veryeasy_dual_chance, master_dual_chance, veryeasy_secondary_no_bonus, master_secondary_no_bonus)
+        (
+            veryeasy_dual_chance,
+            master_dual_chance,
+            veryeasy_secondary_no_bonus,
+            master_secondary_no_bonus,
+        )
     }
-    
+
     /// Get constraint parameters interpolated for a given difficulty
     /// Returns (min_lines, max_lines, budget_min, budget_max, min_times)
     /// Note: dual_chance and secondary_no_bonus_chance were removed in the deterministic
     /// constraint count system. Constraint counts are now hardcoded per tier in level.cairo.
-    fn get_constraint_params_for_difficulty(self: GameSettings, difficulty: Difficulty) -> (u8, u8, u8, u8, u8) {
+    fn get_constraint_params_for_difficulty(
+        self: GameSettings, difficulty: Difficulty,
+    ) -> (u8, u8, u8, u8, u8) {
         // Map difficulty to a 0-7 scale (VeryEasy=0, Master=7)
         // None and Increasing are modes, not tiers - treat as VeryEasy for interpolation
         let diff_value: u8 = match difficulty {
@@ -406,26 +413,39 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             Difficulty::Expert => 6,
             Difficulty::Master => 7,
         };
-        
+
         // Unpack the constraint values
-        let (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
-             veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max,
-             veryeasy_min_times, master_min_times) = self.unpack_lines_budgets();
-        
+        let (
+            veryeasy_min_lines,
+            master_min_lines,
+            veryeasy_max_lines,
+            master_max_lines,
+            veryeasy_budget_min,
+            veryeasy_budget_max,
+            master_budget_min,
+            master_budget_max,
+            veryeasy_min_times,
+            master_min_times,
+        ) =
+            self
+            .unpack_lines_budgets();
+
         // Interpolate each parameter from veryeasy (0) to master (7)
         let min_lines = Self::interpolate(veryeasy_min_lines, master_min_lines, diff_value, 7);
         let max_lines = Self::interpolate(veryeasy_max_lines, master_max_lines, diff_value, 7);
         let budget_min = Self::interpolate(veryeasy_budget_min, master_budget_min, diff_value, 7);
         let budget_max = Self::interpolate(veryeasy_budget_max, master_budget_max, diff_value, 7);
         let min_times = Self::interpolate(veryeasy_min_times, master_min_times, diff_value, 7);
-        
+
         (min_lines, max_lines, budget_min, budget_max, min_times)
     }
-    
+
     /// Get block weights interpolated for a given difficulty
     /// Returns (size1_weight, size2_weight, size3_weight, size4_weight, size5_weight)
     /// Weights are relative and get normalized by the caller
-    fn get_block_weights_for_difficulty(self: GameSettings, difficulty: Difficulty) -> (u8, u8, u8, u8, u8) {
+    fn get_block_weights_for_difficulty(
+        self: GameSettings, difficulty: Difficulty,
+    ) -> (u8, u8, u8, u8, u8) {
         // Map difficulty to a 0-7 scale (VeryEasy=0, Master=7)
         // None and Increasing are modes, not tiers - treat as VeryEasy for interpolation
         let diff_value: u8 = match difficulty {
@@ -439,25 +459,46 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             Difficulty::Expert => 6,
             Difficulty::Master => 7,
         };
-        
+
         // Interpolate each weight from veryeasy (0) to master (7)
-        let size1_weight = Self::interpolate(self.veryeasy_size1_weight, self.master_size1_weight, diff_value, 7);
-        let size2_weight = Self::interpolate(self.veryeasy_size2_weight, self.master_size2_weight, diff_value, 7);
-        let size3_weight = Self::interpolate(self.veryeasy_size3_weight, self.master_size3_weight, diff_value, 7);
-        let size4_weight = Self::interpolate(self.veryeasy_size4_weight, self.master_size4_weight, diff_value, 7);
-        let size5_weight = Self::interpolate(self.veryeasy_size5_weight, self.master_size5_weight, diff_value, 7);
-        
+        let size1_weight = Self::interpolate(
+            self.veryeasy_size1_weight, self.master_size1_weight, diff_value, 7,
+        );
+        let size2_weight = Self::interpolate(
+            self.veryeasy_size2_weight, self.master_size2_weight, diff_value, 7,
+        );
+        let size3_weight = Self::interpolate(
+            self.veryeasy_size3_weight, self.master_size3_weight, diff_value, 7,
+        );
+        let size4_weight = Self::interpolate(
+            self.veryeasy_size4_weight, self.master_size4_weight, diff_value, 7,
+        );
+        let size5_weight = Self::interpolate(
+            self.veryeasy_size5_weight, self.master_size5_weight, diff_value, 7,
+        );
+
         (size1_weight, size2_weight, size3_weight, size4_weight, size5_weight)
     }
-    
+
     /// Validate all settings invariants
     /// Returns true if all invariants hold, false otherwise
     fn validate(self: GameSettings) -> bool {
         // Unpack constraint values for validation
-        let (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
-             veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max,
-             veryeasy_min_times, master_min_times) = self.unpack_lines_budgets();
-        
+        let (
+            veryeasy_min_lines,
+            master_min_lines,
+            veryeasy_max_lines,
+            master_max_lines,
+            veryeasy_budget_min,
+            veryeasy_budget_max,
+            master_budget_min,
+            master_budget_max,
+            veryeasy_min_times,
+            master_min_times,
+        ) =
+            self
+            .unpack_lines_budgets();
+
         // Lines constraints: min <= max
         if veryeasy_min_lines > veryeasy_max_lines {
             return false;
@@ -465,7 +506,7 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         if master_min_lines > master_max_lines {
             return false;
         }
-        
+
         // Budget constraints: min <= max
         if veryeasy_budget_min > veryeasy_budget_max {
             return false;
@@ -473,7 +514,7 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         if master_budget_min > master_budget_max {
             return false;
         }
-        
+
         // Feasibility: budget_min must allow at least 1 time with min_lines
         // Line costs: 2->1, 3->2, 4->4, 5->7, 6->11, 7->16
         let veryeasy_min_cost = Self::line_cost(veryeasy_min_lines);
@@ -484,7 +525,7 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         if master_budget_min < master_min_cost {
             return false;
         }
-        
+
         // Feasibility: budget_max must allow min_times with min_lines
         if veryeasy_budget_max < veryeasy_min_cost * veryeasy_min_times {
             return false;
@@ -492,7 +533,7 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         if master_budget_max < master_min_cost * master_min_times {
             return false;
         }
-        
+
         // Level scaling: base <= max
         if self.base_moves > self.max_moves {
             return false;
@@ -500,12 +541,12 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         if self.base_ratio_x100 > self.max_ratio_x100 {
             return false;
         }
-        
+
         // Cube thresholds: 3-star should be harder than 2-star (lower %)
         if self.cube_3_percent > self.cube_2_percent {
             return false;
         }
-        
+
         // Level thresholds: early < mid < cap
         if self.early_level_threshold >= self.mid_level_threshold {
             return false;
@@ -513,12 +554,12 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         if self.mid_level_threshold > self.level_cap {
             return false;
         }
-        
+
         // constraints_enabled should be 0 or 1
         if self.constraints_enabled > 1 {
             return false;
         }
-        
+
         // Difficulty tier thresholds must be in ascending order
         if self.tier_1_threshold < 2 {
             return false; // Must have at least 1 level of VeryEasy
@@ -541,29 +582,29 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         if self.tier_7_threshold <= self.tier_6_threshold {
             return false;
         }
-        
+
         // Block weights: at least one weight must be non-zero (avoid div by zero)
-        let veryeasy_total = self.veryeasy_size1_weight.into() 
-            + self.veryeasy_size2_weight.into() 
-            + self.veryeasy_size3_weight.into() 
-            + self.veryeasy_size4_weight.into() 
+        let veryeasy_total = self.veryeasy_size1_weight.into()
+            + self.veryeasy_size2_weight.into()
+            + self.veryeasy_size3_weight.into()
+            + self.veryeasy_size4_weight.into()
             + self.veryeasy_size5_weight.into();
         if veryeasy_total == 0_u16 {
             return false;
         }
-        
-        let master_total = self.master_size1_weight.into() 
-            + self.master_size2_weight.into() 
-            + self.master_size3_weight.into() 
-            + self.master_size4_weight.into() 
+
+        let master_total = self.master_size1_weight.into()
+            + self.master_size2_weight.into()
+            + self.master_size3_weight.into()
+            + self.master_size4_weight.into()
             + self.master_size5_weight.into();
         if master_total == 0_u16 {
             return false;
         }
-        
+
         true
     }
-    
+
     /// Helper function to get line cost for validation
     /// Line costs: 2->1, 3->2, 4->4, 5->7, 6->11, 7->16
     fn line_cost(lines: u8) -> u8 {
@@ -577,84 +618,118 @@ pub impl GameSettingsImpl of GameSettingsTrait {
             _ => 20,
         }
     }
-    
+
     /// Assert all settings invariants hold, panics with descriptive message if not
     fn assert_valid(self: GameSettings) {
         // Unpack constraint values for validation
-        let (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
-             veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max,
-             veryeasy_min_times, master_min_times) = self.unpack_lines_budgets();
-        
+        let (
+            veryeasy_min_lines,
+            master_min_lines,
+            veryeasy_max_lines,
+            master_max_lines,
+            veryeasy_budget_min,
+            veryeasy_budget_max,
+            master_budget_min,
+            master_budget_max,
+            veryeasy_min_times,
+            master_min_times,
+        ) =
+            self
+            .unpack_lines_budgets();
+
         // Lines constraints
-        assert!(veryeasy_min_lines <= veryeasy_max_lines, "veryeasy_min_lines must be <= veryeasy_max_lines");
-        assert!(master_min_lines <= master_max_lines, "master_min_lines must be <= master_max_lines");
-        
+        assert!(
+            veryeasy_min_lines <= veryeasy_max_lines,
+            "veryeasy_min_lines must be <= veryeasy_max_lines",
+        );
+        assert!(
+            master_min_lines <= master_max_lines, "master_min_lines must be <= master_max_lines",
+        );
+
         // Budget constraints
-        assert!(veryeasy_budget_min <= veryeasy_budget_max, "veryeasy_budget_min must be <= veryeasy_budget_max");
-        assert!(master_budget_min <= master_budget_max, "master_budget_min must be <= master_budget_max");
-        
+        assert!(
+            veryeasy_budget_min <= veryeasy_budget_max,
+            "veryeasy_budget_min must be <= veryeasy_budget_max",
+        );
+        assert!(
+            master_budget_min <= master_budget_max,
+            "master_budget_min must be <= master_budget_max",
+        );
+
         // Feasibility: budget_min must allow at least 1 time with min_lines
         let veryeasy_min_cost = Self::line_cost(veryeasy_min_lines);
         let master_min_cost = Self::line_cost(master_min_lines);
-        assert!(veryeasy_budget_min >= veryeasy_min_cost, "veryeasy_budget_min must allow at least 1 time");
-        assert!(master_budget_min >= master_min_cost, "master_budget_min must allow at least 1 time");
-        
+        assert!(
+            veryeasy_budget_min >= veryeasy_min_cost,
+            "veryeasy_budget_min must allow at least 1 time",
+        );
+        assert!(
+            master_budget_min >= master_min_cost, "master_budget_min must allow at least 1 time",
+        );
+
         // Feasibility: budget_max must allow min_times with min_lines
         assert!(
             veryeasy_budget_max >= veryeasy_min_cost * veryeasy_min_times,
-            "veryeasy_budget_max must allow veryeasy_min_times"
+            "veryeasy_budget_max must allow veryeasy_min_times",
         );
         assert!(
             master_budget_max >= master_min_cost * master_min_times,
-            "master_budget_max must allow master_min_times"
+            "master_budget_max must allow master_min_times",
         );
-        
+
         // Level scaling
         assert!(self.base_moves <= self.max_moves, "base_moves must be <= max_moves");
         assert!(self.base_ratio_x100 <= self.max_ratio_x100, "base_ratio must be <= max_ratio");
-        
+
         // Cube thresholds
-        assert!(self.cube_3_percent <= self.cube_2_percent, "cube_3_percent must be <= cube_2_percent");
-        
+        assert!(
+            self.cube_3_percent <= self.cube_2_percent, "cube_3_percent must be <= cube_2_percent",
+        );
+
         // Level thresholds
-        assert!(self.early_level_threshold < self.mid_level_threshold, "early_threshold must be < mid_threshold");
+        assert!(
+            self.early_level_threshold < self.mid_level_threshold,
+            "early_threshold must be < mid_threshold",
+        );
         assert!(self.mid_level_threshold <= self.level_cap, "mid_threshold must be <= level_cap");
-        
+
         // Boolean-like fields
         assert!(self.constraints_enabled <= 1, "constraints_enabled must be 0 or 1");
-        
+
         // Difficulty tier thresholds must be in ascending order
-        assert!(self.tier_1_threshold >= 2, "tier_1_threshold must be >= 2 (at least 1 VeryEasy level)");
+        assert!(
+            self.tier_1_threshold >= 2, "tier_1_threshold must be >= 2 (at least 1 VeryEasy level)",
+        );
         assert!(self.tier_2_threshold > self.tier_1_threshold, "tier_2 must be > tier_1");
         assert!(self.tier_3_threshold > self.tier_2_threshold, "tier_3 must be > tier_2");
         assert!(self.tier_4_threshold > self.tier_3_threshold, "tier_4 must be > tier_3");
         assert!(self.tier_5_threshold > self.tier_4_threshold, "tier_5 must be > tier_4");
         assert!(self.tier_6_threshold > self.tier_5_threshold, "tier_6 must be > tier_5");
         assert!(self.tier_7_threshold > self.tier_6_threshold, "tier_7 must be > tier_6");
-        
+
         // Block weights non-zero
-        let veryeasy_total: u16 = self.veryeasy_size1_weight.into() 
-            + self.veryeasy_size2_weight.into() 
-            + self.veryeasy_size3_weight.into() 
-            + self.veryeasy_size4_weight.into() 
+        let veryeasy_total: u16 = self.veryeasy_size1_weight.into()
+            + self.veryeasy_size2_weight.into()
+            + self.veryeasy_size3_weight.into()
+            + self.veryeasy_size4_weight.into()
             + self.veryeasy_size5_weight.into();
         assert!(veryeasy_total > 0, "veryeasy block weights must have at least one non-zero");
-        
-        let master_total: u16 = self.master_size1_weight.into() 
-            + self.master_size2_weight.into() 
-            + self.master_size3_weight.into() 
-            + self.master_size4_weight.into() 
+
+        let master_total: u16 = self.master_size1_weight.into()
+            + self.master_size2_weight.into()
+            + self.master_size3_weight.into()
+            + self.master_size4_weight.into()
             + self.master_size5_weight.into();
         assert!(master_total > 0, "master block weights must have at least one non-zero");
     }
-    
+
     /// Linear interpolation helper
     /// Interpolates from start_val to end_val based on position/max_position
     fn interpolate(start_val: u8, end_val: u8, position: u8, max_position: u8) -> u8 {
         if max_position == 0 {
             return start_val;
         }
-        
+
         if start_val <= end_val {
             // Increasing: start + (end - start) * position / max
             let range: u16 = (end_val - start_val).into();
@@ -671,13 +746,13 @@ pub impl GameSettingsImpl of GameSettingsTrait {
 
 #[cfg(test)]
 mod tests {
-    use super::{GameSettings, GameSettingsTrait, GameSettingsDefaults};
     use zkube::types::difficulty::Difficulty;
-    
+    use super::{GameSettings, GameSettingsDefaults, GameSettingsTrait};
+
     #[test]
     fn test_new_with_defaults() {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         assert!(settings.settings_id == 1, "Settings ID should be 1");
         // Level Scaling
         assert!(settings.base_moves == 20, "Base moves should be 20");
@@ -712,94 +787,153 @@ mod tests {
         // Level Cap
         assert!(settings.level_cap == 50, "Level cap should be 50");
     }
-    
+
     #[test]
     fn test_get_consumable_cost() {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         assert!(settings.get_consumable_cost(0) == 5, "Combo should cost 5");
         assert!(settings.get_consumable_cost(1) == 5, "Score should cost 5");
         assert!(settings.get_consumable_cost(2) == 5, "Harvest should cost 5");
         assert!(settings.get_consumable_cost(3) == 0, "Invalid consumable type should return 0");
     }
-    
+
     #[test]
     fn test_exists() {
         // Settings with a non-None mode should exist
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
         assert!(settings.exists(), "Settings with id=1 should exist");
-        
+
         // Fixed difficulty settings should also exist
         let easy_settings = GameSettingsTrait::new_with_defaults(2, Difficulty::Easy);
         assert!(easy_settings.exists(), "Settings with Easy difficulty and id=2 should exist");
-        
+
         // Uninitialized settings (mode=None) should not exist
         let default_settings = GameSettingsTrait::new_with_defaults(0, Difficulty::None);
         assert!(!default_settings.exists(), "Settings with mode=None should not exist");
     }
-    
+
     #[test]
     fn test_get_difficulty_for_level() {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         // Non-linear progression with default tier thresholds:
         // VeryEasy: 1-3, Easy: 4-7, Medium: 8-11, MediumHard: 12-17
         // Hard: 18-24, VeryHard: 25-34, Expert: 35-44, Master: 45+
-        assert!(settings.get_difficulty_for_level(1) == Difficulty::VeryEasy, "Level 1 should be VeryEasy");
-        assert!(settings.get_difficulty_for_level(3) == Difficulty::VeryEasy, "Level 3 should be VeryEasy");
+        assert!(
+            settings.get_difficulty_for_level(1) == Difficulty::VeryEasy,
+            "Level 1 should be VeryEasy",
+        );
+        assert!(
+            settings.get_difficulty_for_level(3) == Difficulty::VeryEasy,
+            "Level 3 should be VeryEasy",
+        );
         assert!(settings.get_difficulty_for_level(4) == Difficulty::Easy, "Level 4 should be Easy");
         assert!(settings.get_difficulty_for_level(7) == Difficulty::Easy, "Level 7 should be Easy");
-        assert!(settings.get_difficulty_for_level(8) == Difficulty::Medium, "Level 8 should be Medium");
-        assert!(settings.get_difficulty_for_level(11) == Difficulty::Medium, "Level 11 should be Medium");
-        assert!(settings.get_difficulty_for_level(12) == Difficulty::MediumHard, "Level 12 should be MediumHard");
-        assert!(settings.get_difficulty_for_level(17) == Difficulty::MediumHard, "Level 17 should be MediumHard");
-        assert!(settings.get_difficulty_for_level(18) == Difficulty::Hard, "Level 18 should be Hard");
-        assert!(settings.get_difficulty_for_level(24) == Difficulty::Hard, "Level 24 should be Hard");
-        assert!(settings.get_difficulty_for_level(25) == Difficulty::VeryHard, "Level 25 should be VeryHard");
-        assert!(settings.get_difficulty_for_level(34) == Difficulty::VeryHard, "Level 34 should be VeryHard");
-        assert!(settings.get_difficulty_for_level(35) == Difficulty::Expert, "Level 35 should be Expert");
-        assert!(settings.get_difficulty_for_level(44) == Difficulty::Expert, "Level 44 should be Expert");
-        assert!(settings.get_difficulty_for_level(45) == Difficulty::Master, "Level 45 should be Master");
-        assert!(settings.get_difficulty_for_level(50) == Difficulty::Master, "Level 50 should be Master");
+        assert!(
+            settings.get_difficulty_for_level(8) == Difficulty::Medium, "Level 8 should be Medium",
+        );
+        assert!(
+            settings.get_difficulty_for_level(11) == Difficulty::Medium,
+            "Level 11 should be Medium",
+        );
+        assert!(
+            settings.get_difficulty_for_level(12) == Difficulty::MediumHard,
+            "Level 12 should be MediumHard",
+        );
+        assert!(
+            settings.get_difficulty_for_level(17) == Difficulty::MediumHard,
+            "Level 17 should be MediumHard",
+        );
+        assert!(
+            settings.get_difficulty_for_level(18) == Difficulty::Hard, "Level 18 should be Hard",
+        );
+        assert!(
+            settings.get_difficulty_for_level(24) == Difficulty::Hard, "Level 24 should be Hard",
+        );
+        assert!(
+            settings.get_difficulty_for_level(25) == Difficulty::VeryHard,
+            "Level 25 should be VeryHard",
+        );
+        assert!(
+            settings.get_difficulty_for_level(34) == Difficulty::VeryHard,
+            "Level 34 should be VeryHard",
+        );
+        assert!(
+            settings.get_difficulty_for_level(35) == Difficulty::Expert,
+            "Level 35 should be Expert",
+        );
+        assert!(
+            settings.get_difficulty_for_level(44) == Difficulty::Expert,
+            "Level 44 should be Expert",
+        );
+        assert!(
+            settings.get_difficulty_for_level(45) == Difficulty::Master,
+            "Level 45 should be Master",
+        );
+        assert!(
+            settings.get_difficulty_for_level(50) == Difficulty::Master,
+            "Level 50 should be Master",
+        );
     }
-    
+
     #[test]
     fn test_get_difficulty_for_level_custom_thresholds() {
         let mut settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         // Custom tier thresholds: faster early progression
         // VeryEasy: 1-2, Easy: 3-5, Medium: 6-10, etc.
-        settings.tier_1_threshold = 3;   // Easy starts at level 3
-        settings.tier_2_threshold = 6;   // Medium starts at level 6
-        settings.tier_3_threshold = 11;  // MediumHard starts at level 11
-        settings.tier_4_threshold = 20;  // Hard starts at level 20
-        settings.tier_5_threshold = 30;  // VeryHard starts at level 30
-        settings.tier_6_threshold = 45;  // Expert starts at level 45
-        settings.tier_7_threshold = 60;  // Master starts at level 60
-        
-        assert!(settings.get_difficulty_for_level(1) == Difficulty::VeryEasy, "Level 1 should be VeryEasy");
-        assert!(settings.get_difficulty_for_level(2) == Difficulty::VeryEasy, "Level 2 should be VeryEasy");
+        settings.tier_1_threshold = 3; // Easy starts at level 3
+        settings.tier_2_threshold = 6; // Medium starts at level 6
+        settings.tier_3_threshold = 11; // MediumHard starts at level 11
+        settings.tier_4_threshold = 20; // Hard starts at level 20
+        settings.tier_5_threshold = 30; // VeryHard starts at level 30
+        settings.tier_6_threshold = 45; // Expert starts at level 45
+        settings.tier_7_threshold = 60; // Master starts at level 60
+
+        assert!(
+            settings.get_difficulty_for_level(1) == Difficulty::VeryEasy,
+            "Level 1 should be VeryEasy",
+        );
+        assert!(
+            settings.get_difficulty_for_level(2) == Difficulty::VeryEasy,
+            "Level 2 should be VeryEasy",
+        );
         assert!(settings.get_difficulty_for_level(3) == Difficulty::Easy, "Level 3 should be Easy");
         assert!(settings.get_difficulty_for_level(5) == Difficulty::Easy, "Level 5 should be Easy");
-        assert!(settings.get_difficulty_for_level(6) == Difficulty::Medium, "Level 6 should be Medium");
-        assert!(settings.get_difficulty_for_level(11) == Difficulty::MediumHard, "Level 11 should be MediumHard");
+        assert!(
+            settings.get_difficulty_for_level(6) == Difficulty::Medium, "Level 6 should be Medium",
+        );
+        assert!(
+            settings.get_difficulty_for_level(11) == Difficulty::MediumHard,
+            "Level 11 should be MediumHard",
+        );
     }
-    
+
     #[test]
     fn test_get_difficulty_for_level_caps_at_master() {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         // With default thresholds, Master starts at level 45
         // Any level >= 45 should be Master
-        assert!(settings.get_difficulty_for_level(45) == Difficulty::Master, "Level 45 should be Master");
-        assert!(settings.get_difficulty_for_level(50) == Difficulty::Master, "Level 50 should be Master");
-        assert!(settings.get_difficulty_for_level(255) == Difficulty::Master, "Level 255 should be Master");
+        assert!(
+            settings.get_difficulty_for_level(45) == Difficulty::Master,
+            "Level 45 should be Master",
+        );
+        assert!(
+            settings.get_difficulty_for_level(50) == Difficulty::Master,
+            "Level 50 should be Master",
+        );
+        assert!(
+            settings.get_difficulty_for_level(255) == Difficulty::Master,
+            "Level 255 should be Master",
+        );
     }
-    
+
     #[test]
     fn test_get_variance_percent() {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         // Default thresholds: early=5, mid=25, but all variance values are now 5% (consistent)
         // The variance tier selection still works, but all tiers return 5%
         assert!(settings.get_variance_percent(1) == 5, "Level 1 should use early variance (5%)");
@@ -809,69 +943,85 @@ mod tests {
         assert!(settings.get_variance_percent(26) == 5, "Level 26 should use late variance (5%)");
         assert!(settings.get_variance_percent(50) == 5, "Level 50 should use late variance (5%)");
     }
-    
+
     #[test]
     fn test_are_constraints_enabled() {
         let mut settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         assert!(settings.are_constraints_enabled(), "Constraints should be enabled by default");
-        
+
         settings.constraints_enabled = 0;
         assert!(!settings.are_constraints_enabled(), "Constraints should be disabled");
     }
-    
+
     #[test]
     fn test_interpolate() {
         // Increasing: 0 to 100 over 10 steps
         assert!(GameSettingsTrait::interpolate(0, 100, 0, 10) == 0, "Start should be 0");
         assert!(GameSettingsTrait::interpolate(0, 100, 5, 10) == 50, "Middle should be 50");
         assert!(GameSettingsTrait::interpolate(0, 100, 10, 10) == 100, "End should be 100");
-        
+
         // Decreasing: 100 to 0 over 10 steps
         assert!(GameSettingsTrait::interpolate(100, 0, 0, 10) == 100, "Start should be 100");
         assert!(GameSettingsTrait::interpolate(100, 0, 5, 10) == 50, "Middle should be 50");
         assert!(GameSettingsTrait::interpolate(100, 0, 10, 10) == 0, "End should be 0");
-        
+
         // Edge case: same value
-        assert!(GameSettingsTrait::interpolate(50, 50, 5, 10) == 50, "Same values should stay same");
+        assert!(
+            GameSettingsTrait::interpolate(50, 50, 5, 10) == 50, "Same values should stay same",
+        );
     }
-    
+
     #[test]
     fn test_get_constraint_params_for_difficulty() {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         // Test VeryEasy difficulty (tier 0)
         // Returns (min_lines, max_lines, budget_min, budget_max, min_times)
-        let (min_l, max_l, budget_min, budget_max, min_t) = settings.get_constraint_params_for_difficulty(Difficulty::VeryEasy);
+        let (min_l, max_l, budget_min, budget_max, min_t) = settings
+            .get_constraint_params_for_difficulty(Difficulty::VeryEasy);
         assert!(min_l == 2, "VeryEasy min_lines should be 2");
         assert!(max_l == 2, "VeryEasy max_lines should be 2");
         assert!(budget_min == 1, "VeryEasy budget_min should be 1");
         assert!(budget_max == 3, "VeryEasy budget_max should be 3");
         assert!(min_t == 1, "VeryEasy min_times should be 1");
-        
+
         // Test Master difficulty (tier 7)
-        let (min_l, max_l, budget_min, budget_max, min_t) = settings.get_constraint_params_for_difficulty(Difficulty::Master);
+        let (min_l, max_l, budget_min, budget_max, min_t) = settings
+            .get_constraint_params_for_difficulty(Difficulty::Master);
         assert!(min_l == 4, "Master min_lines should be 4");
         assert!(max_l == 6, "Master max_lines should be 6");
         assert!(budget_min == 32, "Master budget_min should be 32");
         assert!(budget_max == 40, "Master budget_max should be 40");
         assert!(min_t == 2, "Master min_times should be 2");
-        
+
         // Test mid-difficulty (Hard = tier 4/7)
-        let (_min_l, _max_l, budget_min, _budget_max, _min_t) = settings.get_constraint_params_for_difficulty(Difficulty::Hard);
+        let (_min_l, _max_l, budget_min, _budget_max, _min_t) = settings
+            .get_constraint_params_for_difficulty(Difficulty::Hard);
         // budget_min: 1 -> 32 at position 4/7 = 1 + (31*4/7) = 1 + 17 = 18
         assert!(budget_min >= 16 && budget_min <= 20, "Hard budget_min should be around 18");
     }
-    
+
     #[test]
     fn test_constraint_distribution_defaults() {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         // Verify constraint distribution defaults via unpacking
-        let (veryeasy_min_lines, master_min_lines, veryeasy_max_lines, master_max_lines,
-             veryeasy_budget_min, veryeasy_budget_max, master_budget_min, master_budget_max,
-             veryeasy_min_times, master_min_times) = settings.unpack_lines_budgets();
-        
+        let (
+            veryeasy_min_lines,
+            master_min_lines,
+            veryeasy_max_lines,
+            master_max_lines,
+            veryeasy_budget_min,
+            veryeasy_budget_max,
+            master_budget_min,
+            master_budget_max,
+            veryeasy_min_times,
+            master_min_times,
+        ) =
+            settings
+            .unpack_lines_budgets();
+
         assert!(veryeasy_min_lines == 2, "VeryEasy min lines should be 2");
         assert!(master_min_lines == 4, "Master min lines should be 4");
         assert!(veryeasy_max_lines == 2, "VeryEasy max lines should be 2");
@@ -883,11 +1033,11 @@ mod tests {
         assert!(veryeasy_min_times == 1, "VeryEasy min times should be 1");
         assert!(master_min_times == 2, "Master min times should be 2");
     }
-    
+
     #[test]
     fn test_block_weight_defaults() {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         // Verify block weight defaults
         assert!(settings.veryeasy_size1_weight == 20, "VeryEasy size1 weight should be 20");
         assert!(settings.veryeasy_size2_weight == 33, "VeryEasy size2 weight should be 33");
@@ -900,11 +1050,11 @@ mod tests {
         assert!(settings.master_size4_weight == 27, "Master size4 weight should be 27");
         assert!(settings.master_size5_weight == 33, "Master size5 weight should be 33");
     }
-    
+
     #[test]
     fn test_get_block_weights_for_difficulty() {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         // Test VeryEasy difficulty (tier 0 - uses veryeasy_* values exactly)
         let (s1, s2, s3, s4, s5) = settings.get_block_weights_for_difficulty(Difficulty::VeryEasy);
         assert!(s1 == 20, "VeryEasy size1 weight should be 20");
@@ -912,7 +1062,7 @@ mod tests {
         assert!(s3 == 27, "VeryEasy size3 weight should be 27");
         assert!(s4 == 13, "VeryEasy size4 weight should be 13");
         assert!(s5 == 7, "VeryEasy size5 weight should be 7");
-        
+
         // Test Master difficulty (tier 7 - uses master_* values exactly)
         let (s1, s2, s3, s4, s5) = settings.get_block_weights_for_difficulty(Difficulty::Master);
         assert!(s1 == 7, "Master size1 weight should be 7");
@@ -920,7 +1070,7 @@ mod tests {
         assert!(s3 == 20, "Master size3 weight should be 20");
         assert!(s4 == 27, "Master size4 weight should be 27");
         assert!(s5 == 33, "Master size5 weight should be 33");
-        
+
         // Test mid-difficulty (Hard = tier 4/7)
         // The weights should be interpolated between easy and master
         let (s1, s2, s3, s4, s5) = settings.get_block_weights_for_difficulty(Difficulty::Hard);
@@ -929,82 +1079,83 @@ mod tests {
         // s5: 7 -> 33 at position 4/7 = 7 + (26*4/7) = 7 + 14 = 21
         assert!(s5 >= 19 && s5 <= 23, "Hard size5 weight should be around 21");
     }
-    
+
     #[test]
     fn test_validate_defaults_pass() {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
         assert!(settings.validate(), "Default settings should be valid");
     }
-    
+
     #[test]
     fn test_validate_packed_constraint_lines() {
         let mut settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         // Valid defaults
         assert!(settings.validate(), "Should be valid with defaults");
-        
+
         // Test with invalid packed values (min > max for lines)
         // Pack: min_lines=5, max_lines=3 (invalid: min > max)
         // This is packed as: bits 0-3 = veryeasy_min_lines, bits 8-11 = veryeasy_max_lines
         // 5 | (4 << 4) | (3 << 8) | (6 << 12) | budgets | times
         // For simplicity, test that default values pass validation
-        let (veryeasy_min_lines, _, veryeasy_max_lines, _, _, _, _, _, _, _) = settings.unpack_lines_budgets();
+        let (veryeasy_min_lines, _, veryeasy_max_lines, _, _, _, _, _, _, _) = settings
+            .unpack_lines_budgets();
         assert!(veryeasy_min_lines <= veryeasy_max_lines, "Default veryeasy lines should be valid");
     }
-    
+
     #[test]
     fn test_validate_dual_chance_bounds() {
         let settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         // Verify dual chances are within bounds
         let (veryeasy_dual_chance, master_dual_chance, _, _) = settings.unpack_chances();
         assert!(veryeasy_dual_chance <= 100, "VeryEasy dual chance should be <= 100");
         assert!(master_dual_chance <= 100, "Master dual chance should be <= 100");
     }
-    
+
     #[test]
     fn test_validate_level_scaling() {
         let mut settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         // Invalid: base > max
         settings.base_moves = 100;
         settings.max_moves = 50;
         assert!(!settings.validate(), "Should be invalid when base_moves > max_moves");
     }
-    
+
     #[test]
     fn test_validate_cube_thresholds() {
         let mut settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         // Invalid: 3-star threshold > 2-star (should be harder to get 3 stars)
         settings.cube_3_percent = 80;
         settings.cube_2_percent = 50;
         assert!(!settings.validate(), "Should be invalid when cube_3_percent > cube_2_percent");
     }
-    
+
     #[test]
     fn test_validate_level_thresholds() {
         let mut settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         // Invalid: early >= mid
         settings.early_level_threshold = 50;
         settings.mid_level_threshold = 50;
         assert!(!settings.validate(), "Should be invalid when early_threshold >= mid_threshold");
     }
-    
+
     #[test]
     fn test_validate_constraints_enabled_flag() {
         let mut settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         // Invalid: not 0 or 1
         settings.constraints_enabled = 2;
         assert!(!settings.validate(), "Should be invalid when constraints_enabled > 1");
     }
-    
+
     #[test]
     fn test_validate_block_weights_zero() {
         let mut settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         // Invalid: all weights zero (would cause div by zero)
         settings.veryeasy_size1_weight = 0;
         settings.veryeasy_size2_weight = 0;
@@ -1013,24 +1164,24 @@ mod tests {
         settings.veryeasy_size5_weight = 0;
         assert!(!settings.validate(), "Should be invalid when all veryeasy block weights are zero");
     }
-    
+
     #[test]
     fn test_validate_tier_thresholds_order() {
         let mut settings = GameSettingsTrait::new_with_defaults(1, Difficulty::Increasing);
-        
+
         // Valid by default
         assert!(settings.validate(), "Default settings should be valid");
-        
+
         // Invalid: tier_1 < 2 (need at least 1 VeryEasy level)
         settings.tier_1_threshold = 1;
         assert!(!settings.validate(), "Should be invalid when tier_1 < 2");
         settings.tier_1_threshold = 5; // Reset
-        
+
         // Invalid: tier_2 <= tier_1
         settings.tier_2_threshold = 5;
         assert!(!settings.validate(), "Should be invalid when tier_2 <= tier_1");
         settings.tier_2_threshold = 10; // Reset
-        
+
         // Invalid: tier_3 <= tier_2
         settings.tier_3_threshold = 10;
         assert!(!settings.validate(), "Should be invalid when tier_3 <= tier_2");

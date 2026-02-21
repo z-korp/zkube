@@ -2,7 +2,7 @@
 use quest::types::reward::RewardTrait;
 use quest::types::task::{Task as QuestTask, TaskTrait as QuestTaskTrait};
 use starknet::ContractAddress;
-use crate::elements::tasks::combo::{ComboFour, ComboFive, ComboSix};
+use crate::elements::tasks::combo::{ComboFive, ComboFour, ComboSix};
 use super::index::{ICON, ONE_DAY, QuestMetadataTrait, QuestProps, QuestTrait};
 
 /// DailyComboOne - Achieve a 4+ line combo (rewards 3 CUBE)
@@ -90,9 +90,7 @@ pub impl DailyComboThree of QuestTrait {
             rewards: array![reward].span(),
         );
         let tasks: Array<QuestTask> = array![
-            QuestTaskTrait::new(
-                ComboSix::identifier(), total.into(), ComboSix::description(total),
-            ),
+            QuestTaskTrait::new(ComboSix::identifier(), total.into(), ComboSix::description(total)),
         ];
         QuestProps {
             id: Self::identifier(),

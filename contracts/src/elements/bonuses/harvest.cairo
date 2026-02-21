@@ -34,7 +34,7 @@ pub impl BonusImpl of BonusTrait {
                 break;
             }
             shift *= modulo;
-        };
+        }
         let new_blocks: u256 = blocks.into() & ~mask;
         new_blocks.try_into().unwrap()
     }
@@ -59,6 +59,6 @@ pub fn count_blocks_of_size(blocks: felt252, row_index: u8, index: u8) -> u8 {
         if packed.low == 0_u128 && packed.high == 0_u128 {
             break;
         }
-    };
+    }
     count
 }

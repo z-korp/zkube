@@ -1,11 +1,9 @@
-use core::traits::Into;
-use core::num::traits::zero::Zero;
-use core::poseidon::{PoseidonTrait, HashState};
-use core::hash::HashStateTrait;
-
-use alexandria_math::fast_power::fast_power;
 use alexandria_math::BitShift;
-
+use alexandria_math::fast_power::fast_power;
+use core::hash::HashStateTrait;
+use core::num::traits::zero::Zero;
+use core::poseidon::{HashState, PoseidonTrait};
+use core::traits::Into;
 use zkube::constants;
 use zkube::helpers::packing::{RunData, RunDataPackingTrait};
 use zkube::helpers::scoring::saturating_add_u16;
@@ -23,24 +21,20 @@ pub struct Game {
     // ----------------------------------------
     pub blocks: felt252, // 10 lines of 3x8 bits = 240 bits
     pub next_row: u32, // 3x8 bits per row = 24 bits
-
     // ----------------------------------------
     // Per-level combo tracking (resets each level)
     // ----------------------------------------
     pub combo_counter: u8, // Current combo streak this level
     pub max_combo: u8, // Best combo this level
-
     // ----------------------------------------
     // Level system (bit-packed run progress)
     // ----------------------------------------
     pub run_data: felt252, // Bit-packed: level, score, moves, bonuses, stars, etc.
     pub level_stars: felt252, // 2 bits per level × 50 levels = 100 bits
-
     // ----------------------------------------
     // Timestamps
     // ----------------------------------------
     pub started_at: u64, // Run start timestamp
-
     // ----------------------------------------
     // Game state
     // ----------------------------------------
@@ -67,11 +61,11 @@ pub struct GameLevel {
     pub level: u8,
     pub points_required: u16,
     pub max_moves: u16,
-    pub difficulty: u8,           // Difficulty enum as u8
+    pub difficulty: u8, // Difficulty enum as u8
     // Primary constraint
-    pub constraint_type: u8,      // ConstraintType enum as u8 (0-6)
-    pub constraint_value: u8,     // Constraint parameter
-    pub constraint_count: u8,     // Required count
+    pub constraint_type: u8, // ConstraintType enum as u8 (0-6)
+    pub constraint_value: u8, // Constraint parameter
+    pub constraint_count: u8, // Required count
     // Secondary constraint
     pub constraint2_type: u8,
     pub constraint2_value: u8,
@@ -81,10 +75,9 @@ pub struct GameLevel {
     pub constraint3_value: u8,
     pub constraint3_count: u8,
     // Cube thresholds
-    pub cube_3_threshold: u16,    // Moves threshold for 3 cubes
-    pub cube_2_threshold: u16,    // Moves threshold for 2 cubes
+    pub cube_3_threshold: u16, // Moves threshold for 3 cubes
+    pub cube_2_threshold: u16 // Moves threshold for 2 cubes
 }
-
 use zkube::types::level::LevelConfig;
 
 #[generate_trait]
@@ -118,7 +111,7 @@ pub impl GameImpl of GameTrait {
     /// Grid should be initialized separately via grid_system.initialize_grid()
     fn new_empty(game_id: u64, started_at: u64) -> Game {
         let run_data = RunDataPackingTrait::new();
-        
+
         Game {
             game_id,
             blocks: 0,
@@ -209,7 +202,7 @@ pub impl GameImpl of GameTrait {
     fn get_constraint_progress(self: Game) -> u8 {
         self.get_run_data().constraint_progress
     }
-    
+
     /// Get constraint_2 progress (secondary constraint)
     #[inline(always)]
     fn get_constraint_2_progress(self: Game) -> u8 {
@@ -227,7 +220,7 @@ pub impl GameImpl of GameTrait {
     /// Returns 0 (L1), 1 (L2), or 2 (L3)
     fn get_bonus_level(self: Game, bonus_type: u8) -> u8 {
         let run_data = self.get_run_data();
-        
+
         // Find which slot this bonus is in
         if run_data.selected_bonus_1 == bonus_type {
             run_data.bonus_1_level
@@ -268,7 +261,9 @@ pub impl GameImpl of GameTrait {
     /// Complete the current level and advance to next (run_data only, no grid changes)
     /// Grid should be reset separately via grid_system.reset_grid_for_level()
     /// Returns (cubes_earned, bonuses_to_award, is_victory)
-    fn complete_level_data(ref self: Game, cubes: u8, bonuses: u8, boss_bonus: u16, is_victory: bool) -> (u8, u8, bool) {
+    fn complete_level_data(
+        ref self: Game, cubes: u8, bonuses: u8, boss_bonus: u16, is_victory: bool,
+    ) -> (u8, u8, bool) {
         let mut run_data = self.get_run_data();
 
         // Add cubes to total

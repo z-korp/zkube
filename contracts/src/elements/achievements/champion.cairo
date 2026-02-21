@@ -14,7 +14,7 @@ pub impl Champion of AchievementTrait {
     }
 
     fn index(level: u8) -> u8 {
-        level + 26  // Offset after Cascade Ladder achievements
+        level + 26 // Offset after Cascade Ladder achievements
     }
 
     fn hidden(level: u8) -> bool {

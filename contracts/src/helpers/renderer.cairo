@@ -1,7 +1,9 @@
 use alexandria_encoding::base64::Base64Encoder;
-use core::{array::{ArrayTrait, SpanTrait}, clone::Clone, traits::Into};
-use zkube::helpers::encoding::{U256BytesUsedTraitImpl, bytes_base64_encode};
+use core::array::{ArrayTrait, SpanTrait};
+use core::clone::Clone;
+use core::traits::Into;
 use graffiti::json::JsonImpl;
+use zkube::helpers::encoding::{U256BytesUsedTraitImpl, bytes_base64_encode};
 
 pub fn create_text(
     text: ByteArray,
@@ -47,7 +49,7 @@ pub fn combine_elements(ref elements: Span<ByteArray>) -> ByteArray {
             },
             Option::None(()) => { break; },
         }
-    };
+    }
 
     combined
 }
@@ -84,7 +86,7 @@ pub fn create_metadata(
     if player_name != 0 {
         _name
             .append_word(
-                player_name, U256BytesUsedTraitImpl::bytes_used(player_name.into()).into()
+                player_name, U256BytesUsedTraitImpl::bytes_used(player_name.into()).into(),
             );
     }
 
@@ -99,9 +101,8 @@ pub fn create_metadata(
 
     // Combine all elements
     let mut elements = array![
-        rect,
-        create_text("zKube #" + _game_id.clone(), "30", "40", "24", "middle", "left"),
-        create_text(_name.clone(), "30", "80", "20", "middle", "left")
+        rect, create_text("zKube #" + _game_id.clone(), "30", "40", "24", "middle", "left"),
+        create_text(_name.clone(), "30", "80", "20", "middle", "left"),
     ];
 
     if score != 0 {
@@ -112,25 +113,27 @@ pub fn create_metadata(
             .append(create_text("Combo: " + _combo.clone(), "30", "150", "18", "middle", "left"));
         elements
             .append(
-                create_text("Max Combo: " + _max_combo.clone(), "30", "175", "18", "middle", "left")
+                create_text(
+                    "Max Combo: " + _max_combo.clone(), "30", "175", "18", "middle", "left",
+                ),
             );
         elements
             .append(
                 create_text(
-                    "Combo Bonus: " + _combo_bonus.clone(), "30", "225", "18", "middle", "left"
-                )
+                    "Combo Bonus: " + _combo_bonus.clone(), "30", "225", "18", "middle", "left",
+                ),
             );
         elements
             .append(
                 create_text(
-                    "Score Bonus: " + _score_bonus.clone(), "30", "250", "18", "middle", "left"
-                )
+                    "Score Bonus: " + _score_bonus.clone(), "30", "250", "18", "middle", "left",
+                ),
             );
         elements
             .append(
                 create_text(
-                    "Harvest Bonus: " + _harvest_bonus.clone(), "30", "275", "18", "middle", "left"
-                )
+                    "Harvest Bonus: " + _harvest_bonus.clone(), "30", "275", "18", "middle", "left",
+                ),
             );
     } else {
         elements.append(create_text("Game not started", "240", "40", "20", "middle", "left"));
@@ -157,7 +160,7 @@ pub fn create_metadata(
         .add("trait", "Max Combo")
         .add("value", _max_combo)
         .build();
-    let attributes = array![name_str, status_str, score_str, combo_str, max_combo_str,].span();
+    let attributes = array![name_str, status_str, score_str, combo_str, max_combo_str].span();
 
     let metadata = metadata.add_array("attributes", attributes).build();
 

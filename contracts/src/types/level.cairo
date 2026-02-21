@@ -1,8 +1,8 @@
+use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait};
 /// Level configuration types for the level system
 /// Each level has a unique configuration based on the run seed
 
 use zkube::types::difficulty::Difficulty;
-use zkube::types::constraint::{LevelConstraint, LevelConstraintTrait};
 
 /// Configuration for a single level
 #[derive(Copy, Drop, Serde, Introspect)]
@@ -49,9 +49,9 @@ pub impl LevelConfigImpl of LevelConfigTrait {
     /// Check if level is complete (score reached AND all constraints satisfied)
     #[inline(always)]
     fn is_complete(
-        self: LevelConfig, 
-        current_score: u16, 
-        constraint_progress: u8, 
+        self: LevelConfig,
+        current_score: u16,
+        constraint_progress: u8,
         constraint_2_progress: u8,
         constraint_3_progress: u8,
         bonus_used: bool,
@@ -74,7 +74,14 @@ pub impl LevelConfigImpl of LevelConfigTrait {
         bonus_used: bool,
     ) -> bool {
         current_moves >= self.max_moves
-            && !self.is_complete(current_score, constraint_progress, constraint_2_progress, constraint_3_progress, bonus_used)
+            && !self
+                .is_complete(
+                    current_score,
+                    constraint_progress,
+                    constraint_2_progress,
+                    constraint_3_progress,
+                    bonus_used,
+                )
     }
 
     /// Get remaining moves
@@ -113,9 +120,9 @@ pub impl LevelConfigImpl of LevelConfigTrait {
 
 #[cfg(test)]
 mod tests {
-    use super::{LevelConfig, LevelConfigTrait};
-    use zkube::types::difficulty::Difficulty;
     use zkube::types::constraint::LevelConstraintTrait;
+    use zkube::types::difficulty::Difficulty;
+    use super::{LevelConfig, LevelConfigTrait};
 
     fn create_test_config() -> LevelConfig {
         LevelConfig {
@@ -127,7 +134,7 @@ mod tests {
             constraint_2: LevelConstraintTrait::none(), // No secondary constraint
             constraint_3: LevelConstraintTrait::none(), // No tertiary constraint
             cube_3_threshold: 12, // 40% of 30
-            cube_2_threshold: 21, // 70% of 30
+            cube_2_threshold: 21 // 70% of 30
         }
     }
 
@@ -158,7 +165,9 @@ mod tests {
         assert!(!config.is_complete(40, 1, 0, 0, false), "Should not be complete with low score");
 
         // Not complete: constraint not met
-        assert!(!config.is_complete(50, 0, 0, 0, false), "Should not be complete without constraint");
+        assert!(
+            !config.is_complete(50, 0, 0, 0, false), "Should not be complete without constraint",
+        );
 
         // Complete: score met and constraint met
         assert!(config.is_complete(50, 1, 0, 0, false), "Should be complete");
@@ -179,7 +188,7 @@ mod tests {
         assert!(config.is_failed(40, 30, 0, 0, 0, false), "Should be failed at move limit");
         assert!(config.is_failed(50, 30, 0, 0, 0, false), "Should be failed - constraint not met");
     }
-    
+
     #[test]
     fn test_dual_constraints() {
         // Create config with both constraints
@@ -188,23 +197,27 @@ mod tests {
             points_required: 60,
             max_moves: 35,
             difficulty: Difficulty::Hard,
-            constraint: LevelConstraintTrait::combo_lines(3, 2),   // Clear 3+ lines, 2 times
+            constraint: LevelConstraintTrait::combo_lines(3, 2), // Clear 3+ lines, 2 times
             constraint_2: LevelConstraintTrait::combo_lines(2, 3), // Clear 2+ lines, 3 times
             constraint_3: LevelConstraintTrait::none(),
             cube_3_threshold: 14,
             cube_2_threshold: 24,
         };
-        
+
         // Not complete: first constraint not met
-        assert!(!config.is_complete(60, 1, 3, 0, false), "Should not complete - constraint 1 not met");
-        
+        assert!(
+            !config.is_complete(60, 1, 3, 0, false), "Should not complete - constraint 1 not met",
+        );
+
         // Not complete: second constraint not met
-        assert!(!config.is_complete(60, 2, 2, 0, false), "Should not complete - constraint 2 not met");
-        
+        assert!(
+            !config.is_complete(60, 2, 2, 0, false), "Should not complete - constraint 2 not met",
+        );
+
         // Complete: both constraints met
         assert!(config.is_complete(60, 2, 3, 0, false), "Should complete with both constraints");
     }
-    
+
     #[test]
     fn test_mixed_constraints() {
         // ComboLines + NoBonusUsed
@@ -219,14 +232,14 @@ mod tests {
             cube_3_threshold: 16,
             cube_2_threshold: 28,
         };
-        
+
         // Not complete: used bonus
         assert!(!config.is_complete(70, 2, 0, 0, true), "Should not complete - bonus used");
-        
+
         // Complete: both constraints met (ComboLines satisfied, no bonus used)
         assert!(config.is_complete(70, 2, 0, 0, false), "Should complete with both constraints");
     }
-    
+
     #[test]
     fn test_triple_constraints() {
         // ComboLines + ComboStreak + NoBonusUsed (boss level 40/50)
@@ -241,13 +254,15 @@ mod tests {
             cube_3_threshold: 20,
             cube_2_threshold: 35,
         };
-        
+
         // Not complete: third constraint (NoBonusUsed) failed
         assert!(!config.is_complete(80, 3, 1, 0, true), "Should not complete - bonus used");
-        
+
         // Not complete: second constraint not met
-        assert!(!config.is_complete(80, 3, 0, 0, false), "Should not complete - combo not achieved");
-        
+        assert!(
+            !config.is_complete(80, 3, 0, 0, false), "Should not complete - combo not achieved",
+        );
+
         // Complete: all three constraints met
         assert!(config.is_complete(80, 3, 1, 0, false), "Should complete with triple constraints");
     }

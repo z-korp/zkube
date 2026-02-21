@@ -82,5 +82,6 @@ pub struct ConsumablePurchased {
     pub cost: u16,
     pub cubes_remaining: u16,
 }
-
 // NOTE: ConstraintProgress event was removed as it was never emitted
+
+

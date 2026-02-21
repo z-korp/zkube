@@ -1,14 +1,13 @@
-use dojo::world::{WorldStorage, WorldStorageTrait};
-use dojo::model::ModelStorage;
 use dojo::event::EventStorage;
+use dojo::model::ModelStorage;
+use dojo::world::{WorldStorage, WorldStorageTrait};
 use starknet::ContractAddress;
-
-use crate::models::game::{Game, GameSeed};
-use crate::models::config::{GameSettings, GameSettingsMetadata};
-use crate::models::player::PlayerMeta;
 use crate::events::index::{
-    StartGame, UseBonus, LevelStarted, LevelCompleted, RunEnded, ConsumablePurchased
+    ConsumablePurchased, LevelCompleted, LevelStarted, RunEnded, StartGame, UseBonus,
 };
+use crate::models::config::{GameSettings, GameSettingsMetadata};
+use crate::models::game::{Game, GameSeed};
+use crate::models::player::PlayerMeta;
 use crate::systems::cube_token::ICubeTokenDispatcher;
 
 /// Centralized store for world storage access
@@ -102,8 +101,7 @@ pub impl StoreImpl of StoreTrait {
 
     /// Get CubeToken contract dispatcher via world DNS
     fn cube_token_disp(self: @Store) -> ICubeTokenDispatcher {
-        let address = self.world.dns_address(@"cube_token")
-            .expect('CubeToken not found in DNS');
+        let address = self.world.dns_address(@"cube_token").expect('CubeToken not found in DNS');
         ICubeTokenDispatcher { contract_address: address }
     }
 

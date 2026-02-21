@@ -17,10 +17,8 @@ pub mod achievement_system {
     use achievement::components::achievable::AchievableComponent::InternalImpl as AchievableInternalImpl;
     use achievement::interfaces::IAchievementRewarder;
     use starknet::ContractAddress;
-
     use crate::constants::DEFAULT_NS;
     use crate::elements::achievements::index::{ACHIEVEMENT_COUNT, Achievement, AchievementTrait};
-
     use super::IAchievementSystem;
 
     // Components
@@ -60,7 +58,7 @@ pub mod achievement_system {
                     id: achievement.identifier(),
                     rewarder: starknet::get_contract_address(), // This contract handles rewards
                     start: 0, // No time limit
-                    end: 0,   // No time limit
+                    end: 0, // No time limit
                     tasks: achievement.tasks(),
                     metadata: achievement.metadata(),
                     to_store: true,
@@ -96,7 +94,9 @@ pub mod achievement_system {
 
         /// Progress a task for a player
         /// This is called by game_system when relevant actions occur
-        fn progress(ref self: ContractState, player: ContractAddress, task_id: felt252, count: u32) {
+        fn progress(
+            ref self: ContractState, player: ContractAddress, task_id: felt252, count: u32,
+        ) {
             let world = self.world(@DEFAULT_NS());
             let player_felt: felt252 = player.into();
             self.achievable.progress(world, player_felt, task_id, count.into(), true);

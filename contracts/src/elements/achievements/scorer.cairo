@@ -13,7 +13,7 @@ pub impl Scorer of AchievementTrait {
     }
 
     fn index(level: u8) -> u8 {
-        level + 24  // Offset after Leveler achievements
+        level + 24 // Offset after Leveler achievements
     }
 
     fn hidden(level: u8) -> bool {
