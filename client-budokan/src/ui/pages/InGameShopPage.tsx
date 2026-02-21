@@ -301,7 +301,7 @@ const InGameShopPage = () => {
               </div>
               <div className="text-right">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-100/75">Available</p>
-                <p className="font-['Tilt_Prism'] text-4xl leading-none text-yellow-300">{cubesAvailable}</p>
+                <p className="font-['Fredericka_the_Great'] text-4xl leading-none text-yellow-300">{cubesAvailable}</p>
               </div>
             </div>
           </motion.div>
@@ -321,7 +321,7 @@ const InGameShopPage = () => {
               >
                 <div className="mb-3 flex items-center justify-between">
                   <h2 className="font-['Fredericka_the_Great'] text-xl text-emerald-50">CHARGES</h2>
-                  <span className="font-['Tilt_Prism'] text-2xl text-emerald-200">{chargeCost} 🧊</span>
+                  <span className="font-['Fredericka_the_Great'] text-2xl text-emerald-200">{chargeCost} 🧊</span>
                 </div>
 
                 <button
@@ -351,7 +351,7 @@ const InGameShopPage = () => {
                           <img src={getIcon(bonus.value)} alt={getSelectedBonusName(bonus.value)} className="h-9 w-9" />
                           <div>
                             <p className="text-sm font-semibold text-white">{getSelectedBonusName(bonus.value)}</p>
-                            <p className="font-['Tilt_Prism'] text-xl leading-none text-emerald-200">
+                            <p className="font-['Fredericka_the_Great'] text-xl leading-none text-emerald-200">
                               {bonus.count}/{bagMax} · Lv{currentLevel}
                             </p>
                           </div>
@@ -379,7 +379,7 @@ const InGameShopPage = () => {
               >
                 <div className="mb-3 flex items-center justify-between">
                   <h2 className="font-['Fredericka_the_Great'] text-xl text-violet-50">LEVEL UP</h2>
-                  <span className="font-['Tilt_Prism'] text-2xl text-violet-100">{LEVEL_UP_COST} 🧊</span>
+                  <span className="font-['Fredericka_the_Great'] text-2xl text-violet-100">{LEVEL_UP_COST} 🧊</span>
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -394,7 +394,7 @@ const InGameShopPage = () => {
                         className="rounded-xl border border-violet-100/20 bg-black/25 p-3"
                       >
                         <p className="mb-2 text-sm font-semibold text-white">{getSelectedBonusName(bonus.value)}</p>
-                        <p className="mb-2 font-['Tilt_Prism'] text-2xl leading-none text-violet-100">
+                        <p className="mb-2 font-['Fredericka_the_Great'] text-2xl leading-none text-violet-100">
                           LEVEL {bonus.level + 1}/3
                         </p>
                         <button
@@ -419,7 +419,7 @@ const InGameShopPage = () => {
               >
                 <div className="mb-3 flex items-center justify-between">
                   <h2 className="font-['Fredericka_the_Great'] text-xl text-amber-50">SWAP BONUS</h2>
-                  <span className="font-['Tilt_Prism'] text-2xl text-amber-100">{SWAP_BONUS_COST} 🧊</span>
+                  <span className="font-['Fredericka_the_Great'] text-2xl text-amber-100">{SWAP_BONUS_COST} 🧊</span>
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">

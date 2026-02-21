@@ -117,18 +117,16 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
             Spend cubes on consumables before the boss encounter.
           </p>
         ) : node.state === "cleared" || node.state === "visited" ? (
-          <div className="mt-4 space-y-3 text-sm">
+          <div className="mt-4 space-y-3 text-sm font-['Fredericka_the_Great']">
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Difficulty</span>
-              <span
-                className={`font-['Tilt_Prism'] text-lg tracking-wide ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}
-              >
+              <span className={`text-lg ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}>
                 {difficulty}
               </span>
             </div>
             <div className="flex items-center justify-between rounded-lg bg-emerald-500/15 px-3 py-2.5">
-              <span className="font-semibold text-emerald-200">✓ Cleared</span>
-              <span className="text-lg tracking-wide">
+              <span className="text-emerald-200">✓ Cleared</span>
+              <span className="text-lg">
                 {"🧊".repeat(stars)}
                 {stars === 0 && <span className="text-slate-500 text-sm">—</span>}
               </span>
@@ -148,11 +146,11 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
             )}
           </div>
         ) : (
-          <div className="mt-4 space-y-3 text-sm">
+          <div className="mt-4 space-y-3 text-sm font-['Fredericka_the_Great']">
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Difficulty</span>
               <span
-                className={`font-['Tilt_Prism'] text-lg tracking-wide ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}
+                className={`text-lg ${DIFFICULTY_STYLES[difficulty] ?? "text-white"}`}
               >
                 {difficulty}
               </span>
@@ -160,7 +158,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
 
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Target Score</span>
-              <span className="font-['Tilt_Prism'] text-lg tracking-wide text-white">
+              <span className="text-lg text-white">
                 {String(pointsRequired)}
               </span>
             </div>
@@ -193,7 +191,7 @@ export const LevelPreview: React.FC<LevelPreviewProps> = ({
                     className="flex items-center justify-between rounded-md bg-slate-800/60 px-2 py-1 text-slate-300"
                   >
                     <span>{"🧊".repeat(cubes)}</span>
-                    <span className="font-['Tilt_Prism'] text-lg tracking-wide">
+                    <span className="text-lg">
                       ≤ {threshold}
                     </span>
                   </div>

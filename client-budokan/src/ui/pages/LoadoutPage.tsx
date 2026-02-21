@@ -272,7 +272,7 @@ const LoadoutPage: React.FC = () => {
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4">
         <div className="max-w-[520px] mx-auto flex flex-col gap-6 pb-8">
           <section className="bg-slate-900/80 rounded-xl border border-slate-600/60 p-4">
-            <p className="text-center text-base font-['Tilt_Prism'] text-slate-200 mb-1">
+            <p className="text-center text-base font-['Fredericka_the_Great'] text-slate-200 mb-1">
               Choose Your Bonuses
             </p>
             <p className="text-center text-xs text-slate-400 mb-4">
@@ -318,7 +318,7 @@ const LoadoutPage: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col items-start gap-0.5 flex-1 min-w-0">
-                      <span className={`text-sm font-['Tilt_Prism'] font-semibold ${isLocked ? "text-slate-500" : "text-white"}`}>
+                      <span className={`text-sm font-['Fredericka_the_Great'] font-semibold ${isLocked ? "text-slate-500" : "text-white"}`}>
                         {bonusType}
                       </span>
                       <span className="text-xs text-slate-400 text-left">

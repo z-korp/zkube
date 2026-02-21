@@ -86,7 +86,7 @@ const SettingsPage: React.FC = () => {
                   }
                   className="flex-1 h-2 rounded-lg appearance-none cursor-pointer bg-slate-600 accent-cyan-400"
                 />
-                <span className="font-['Tilt_Prism'] text-cyan-200 text-lg tracking-wider w-8 text-right">
+                <span className="font-['Fredericka_the_Great'] text-cyan-200 text-lg tracking-wider w-8 text-right">
                   {toPercent(musicVolume)}
                 </span>
               </div>
@@ -104,7 +104,7 @@ const SettingsPage: React.FC = () => {
                   }
                   className="flex-1 h-2 rounded-lg appearance-none cursor-pointer bg-slate-600 accent-emerald-400"
                 />
-                <span className="font-['Tilt_Prism'] text-emerald-200 text-lg tracking-wider w-8 text-right">
+                <span className="font-['Fredericka_the_Great'] text-emerald-200 text-lg tracking-wider w-8 text-right">
                   {toPercent(effectsVolume)}
                 </span>
               </div>

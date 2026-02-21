@@ -98,7 +98,7 @@ const LevelCompleteDialog: React.FC<LevelCompleteDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         aria-describedby={undefined}
-        className="sm:max-w-[400px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-6 py-8"
+        className="sm:max-w-[400px] w-[95%] flex flex-col mx-auto justify-start rounded-lg px-6 py-8 font-['Fredericka_the_Great']"
       >
         <DialogTitle className="text-3xl text-center mb-4 text-green-400">
           Level {level} Complete!

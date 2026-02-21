@@ -101,17 +101,17 @@ const MyGamesPage: React.FC = () => {
                               #{game.token_id}
                             </td>
                             <td className="py-2.5 px-2 text-cyan-200 text-right">
-                              <span className="font-['Tilt_Prism'] text-lg tracking-wide">
+                              <span className="font-['Fredericka_the_Great'] text-lg tracking-wide">
                                 {level}
                               </span>
                             </td>
                             <td className="py-2.5 px-2 text-amber-200 text-right">
-                              <span className="font-['Tilt_Prism'] text-lg tracking-wide">
+                              <span className="font-['Fredericka_the_Great'] text-lg tracking-wide">
                                 {score}
                               </span>
                             </td>
                             <td className="py-2.5 px-2 text-blue-300 text-right">
-                              <span className="font-['Tilt_Prism'] text-lg tracking-wide">
+                              <span className="font-['Fredericka_the_Great'] text-lg tracking-wide">
                                 {cubes}
                               </span>
                             </td>
@@ -168,17 +168,17 @@ const MyGamesPage: React.FC = () => {
                               #{game.token_id}
                             </td>
                             <td className="py-2.5 px-2 text-cyan-200 text-right">
-                              <span className="font-['Tilt_Prism'] text-lg tracking-wide">
+                              <span className="font-['Fredericka_the_Great'] text-lg tracking-wide">
                                 {level}
                               </span>
                             </td>
                             <td className="py-2.5 px-2 text-amber-200 text-right">
-                              <span className="font-['Tilt_Prism'] text-lg tracking-wide">
+                              <span className="font-['Fredericka_the_Great'] text-lg tracking-wide">
                                 {score}
                               </span>
                             </td>
                             <td className="py-2.5 px-2 text-blue-300 text-right">
-                              <span className="font-['Tilt_Prism'] text-lg tracking-wide">
+                              <span className="font-['Fredericka_the_Great'] text-lg tracking-wide">
                                 {cubes}
                               </span>
                             </td>

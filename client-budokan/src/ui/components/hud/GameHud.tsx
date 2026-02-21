@@ -215,21 +215,21 @@ const GameHud: React.FC<GameHudProps> = ({
         style={{ gridTemplateColumns: `auto auto auto 1fr auto` }}
       >
         <div className="flex items-center gap-1.5">
-          <span className="font-['Tilt_Prism'] text-base text-yellow-400 tracking-wide">Level</span>
+          <span className="font-['Fredericka_the_Great'] text-base text-yellow-400 tracking-wide">Level</span>
           <div className="w-8 h-8 rounded-full border-2 border-yellow-500 bg-slate-900 flex items-center justify-center shadow-[0_0_8px_rgba(250,204,21,0.3)]">
-            <span className="font-['Tilt_Prism'] text-base text-yellow-400 leading-none">{level}</span>
+            <span className="font-['Fredericka_the_Great'] text-base text-yellow-400 leading-none">{level}</span>
           </div>
         </div>
 
         <div className="flex items-center gap-1 col-span-2">
           <span className="text-base">🧊</span>
-          <span className="font-['Tilt_Prism'] text-base text-blue-300 tabular-nums">{totalCubes}</span>
+          <span className="font-['Fredericka_the_Great'] text-base text-blue-300 tabular-nums">{totalCubes}</span>
         </div>
 
         <div className="min-w-0">
           <div className="flex items-baseline justify-between mb-0.5">
-            <span className="font-['Tilt_Prism'] text-xs text-slate-300">Score</span>
-            <span className="font-['Tilt_Prism'] text-xs text-cyan-300 tabular-nums">
+            <span className="font-['Fredericka_the_Great'] text-xs text-slate-300">Score</span>
+            <span className="font-['Fredericka_the_Great'] text-xs text-cyan-300 tabular-nums">
               {animatedScore}<span className="text-slate-400">/{targetScore}</span>
             </span>
           </div>
@@ -242,7 +242,7 @@ const GameHud: React.FC<GameHudProps> = ({
         </div>
 
         <div className="flex items-center">
-          <span className={`font-['Tilt_Prism'] text-sm tabular-nums ${combo > 0 ? "text-white" : "text-slate-500"}`}>
+          <span className={`font-['Fredericka_the_Great'] text-sm tabular-nums ${combo > 0 ? "text-white" : "text-slate-500"}`}>
             🔥{combo}x
           </span>
         </div>
@@ -282,7 +282,7 @@ const GameHud: React.FC<GameHudProps> = ({
         <div className="min-w-0">
           <div className="flex items-baseline justify-between mb-0.5">
             <div className="relative inline-flex items-center gap-1" ref={movesInfoRef}>
-              <span className="font-['Tilt_Prism'] text-xs text-slate-300">Moves</span>
+              <span className="font-['Fredericka_the_Great'] text-xs text-slate-300">Moves</span>
               <button
                 type="button"
                 onClick={() => setMovesInfoOpen((v) => !v)}
@@ -312,7 +312,7 @@ const GameHud: React.FC<GameHudProps> = ({
                 </div>
               )}
             </div>
-            <span className={`font-['Tilt_Prism'] text-xs tabular-nums ${movesTextColor}`}>
+            <span className={`font-['Fredericka_the_Great'] text-xs tabular-nums ${movesTextColor}`}>
               {movesRemaining}<span className="text-slate-400">/{maxMoves}</span>
             </span>
           </div>
@@ -338,7 +338,7 @@ const GameHud: React.FC<GameHudProps> = ({
 
         <div className="flex items-center gap-0.5">
           <span className="text-xs">🧊</span>
-          <span className={`font-['Tilt_Prism'] text-sm tabular-nums ${
+          <span className={`font-['Fredericka_the_Great'] text-sm tabular-nums ${
             potentialCubes >= 3 ? "text-green-400" : potentialCubes >= 2 ? "text-yellow-400" : "text-red-400"
           }`}>+{potentialCubes}</span>
         </div>
