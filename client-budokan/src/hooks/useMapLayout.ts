@@ -94,24 +94,42 @@ function buildZoneLayout(
   const lastNode = nodesPerZone - 1;
 
   let lane = 1;
+  let sameLaneStreak = 0;
 
   for (let i = 0; i < nodesPerZone; i++) {
     const isBoss = i === lastNode;
 
-    if (i > 0 && !isBoss) {
+    if (isBoss) {
+      // Boss always centered
+      const progress = lastNode === 0 ? 0 : i / lastNode;
+      const baseY = 0.92 - progress * 0.84;
+      points.push({ x: 0.5, y: baseY });
+      continue;
+    }
+
+    if (i > 0) {
       const moveRoll = hashToUnit(seed, zoneIndex, i, 101);
+      const prevLane = lane;
       let laneDelta = 0;
 
-      if (moveRoll < preset.laneMoveThresholdLow) laneDelta = -1;
-      if (moveRoll > preset.laneMoveThresholdHigh) laneDelta = 1;
+      if (sameLaneStreak >= 2) {
+        // Stuck on same side too long — force movement toward center or other side
+        if (lane === 0) laneDelta = 1;
+        else if (lane === 2) laneDelta = -1;
+        else laneDelta = moveRoll < 0.5 ? -1 : 1;
+      } else {
+        if (moveRoll < preset.laneMoveThresholdLow) laneDelta = -1;
+        if (moveRoll > preset.laneMoveThresholdHigh) laneDelta = 1;
+      }
 
       lane = clamp(lane + laneDelta, 0, preset.laneSpread.length - 1);
+      sameLaneStreak = lane === prevLane ? sameLaneStreak + 1 : 0;
     }
 
     const xJitter =
-      isBoss ? 0 : (hashToUnit(seed, zoneIndex, i, 102) - 0.5) * preset.laneJitter;
+      (hashToUnit(seed, zoneIndex, i, 102) - 0.5) * preset.laneJitter;
     const yJitter =
-      isBoss ? 0 : (hashToUnit(seed, zoneIndex, i, 103) - 0.5) * preset.yJitter;
+      (hashToUnit(seed, zoneIndex, i, 103) - 0.5) * preset.yJitter;
 
     const progress = lastNode === 0 ? 0 : i / lastNode;
     const baseY = 0.92 - progress * 0.84;
