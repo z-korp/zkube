@@ -94,13 +94,13 @@ function buildZoneLayout(
   const lastNode = nodesPerZone - 1;
 
   let lane = 1;
-  let sameLaneStreak = 0;
+  const laneLastUsed = [-Infinity, -Infinity, -Infinity];
+  const LANE_STARVE_WINDOW = 3;
 
   for (let i = 0; i < nodesPerZone; i++) {
     const isBoss = i === lastNode;
 
     if (isBoss) {
-      // Boss always centered
       const progress = lastNode === 0 ? 0 : i / lastNode;
       const baseY = 0.92 - progress * 0.84;
       points.push({ x: 0.5, y: baseY });
@@ -109,22 +109,23 @@ function buildZoneLayout(
 
     if (i > 0) {
       const moveRoll = hashToUnit(seed, zoneIndex, i, 101);
-      const prevLane = lane;
-      let laneDelta = 0;
 
-      if (sameLaneStreak >= 2) {
-        // Stuck on same side too long — force movement toward center or other side
-        if (lane === 0) laneDelta = 1;
-        else if (lane === 2) laneDelta = -1;
-        else laneDelta = moveRoll < 0.5 ? -1 : 1;
+      const starvedLanes = [0, 1, 2].filter(
+        (l) => i - laneLastUsed[l] >= LANE_STARVE_WINDOW && l !== lane,
+      );
+
+      if (starvedLanes.length > 0) {
+        const pick = starvedLanes[Math.floor(moveRoll * starvedLanes.length)];
+        lane = pick;
       } else {
+        let laneDelta = 0;
         if (moveRoll < preset.laneMoveThresholdLow) laneDelta = -1;
         if (moveRoll > preset.laneMoveThresholdHigh) laneDelta = 1;
+        lane = clamp(lane + laneDelta, 0, preset.laneSpread.length - 1);
       }
-
-      lane = clamp(lane + laneDelta, 0, preset.laneSpread.length - 1);
-      sameLaneStreak = lane === prevLane ? sameLaneStreak + 1 : 0;
     }
+
+    laneLastUsed[lane] = i;
 
     const xJitter =
       (hashToUnit(seed, zoneIndex, i, 102) - 0.5) * preset.laneJitter;
