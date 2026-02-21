@@ -95,7 +95,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
             </div>
           </motion.button>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="bg-slate-800 border-slate-600 p-2 md:p-3">
+        <TooltipContent side="top" className="bg-slate-800 border-slate-600 p-2 md:p-3">
           <div className="text-xs">{tooltip}</div>
         </TooltipContent>
       </Tooltip>
