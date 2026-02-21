@@ -59,7 +59,7 @@
     },
     "scene": "Desert twilight, golden pyramids casting long shadows, hieroglyph-covered obelisks, the Nile reflecting amber sky, palm-lined banks, warm sun-drenched atmosphere",
     "loadingScene": "Close-up of a hieroglyph-covered wall illuminated by golden torchlight, scarab beetle relief with gold leaf details gleaming",
-    "mapScene": "Winding desert sand trail through ancient Egyptian ruins at dusk, crumbling sandstone walls and palm-lined banks of the Nile on both sides, golden torchlight illuminating hieroglyph-covered obelisks along the path",
+    "mapScene": "endless golden desert sand dunes seen from above, warm amber and ochre tones with deep shadow valleys between the dunes, wind-rippled sand texture",
     "bossLandmark": "Golden pyramid with flanking obelisks at the peak, Eye of Horus glowing at the apex, amber sky behind with rays of divine light",
     "gridMaterial": "Near-black charred basalt with very faint hieroglyph watermark embossed at extremely low opacity, overall tone matching deep shadow",
     "music": {
@@ -93,7 +93,7 @@
     },
     "scene": "Frozen fjord at night, aurora borealis streaming over snow-covered mountains, viking longships moored at icy docks, rune stones glowing faintly in the snow",
     "loadingScene": "Close-up of an ancient rune stone covered in frost, each carved rune glowing with faint blue light, snow falling gently",
-    "mapScene": "Winding snowy mountain pass through a frozen Norse fjord, ice-covered rune stones lining the path, distant aurora borealis streaming across the sky, snow-laden pine trees on steep cliffs",
+    "mapScene": "frozen white tundra and cracked ice sheets seen from above, pale blue and silver tones with deep dark crevasses, aurora green shimmer reflecting on the ice surface",
     "bossLandmark": "Frost-covered Valhalla great hall at the mountain peak, massive iron-banded doors flanked by carved dragon pillars, aurora light crowning the rooftop",
     "gridMaterial": "Dark rough-hewn granite with faint frost crystallization texture embossed at very low opacity",
     "music": {
@@ -127,7 +127,7 @@
     },
     "scene": "Aegean Sea coastline at golden hour, white marble temple ruins on a cliff, olive groves descending to azure waters, scattered broken columns, blue sky",
     "loadingScene": "Close-up of a white marble Ionic column capital with fine hairline cracks, warm golden sunlight streaming through, blue sky behind",
-    "mapScene": "Winding white marble road through Aegean coastal hills, broken columns and olive groves flanking the path, azure sea visible through gaps in the terrain, warm golden hour light",
+    "mapScene": "deep azure Aegean sea from above, clear turquoise shallows fading into deep navy blue depths, gentle white foam patterns on the surface, sunlit Mediterranean water",
     "bossLandmark": "Parthenon-like temple on a hilltop, white marble columns gleaming in golden sunlight, olive wreath crown over the pediment, blue sky backdrop",
     "gridMaterial": "Dark charcoal marble with very faint blue-grey veining and hairline crack texture at low opacity",
     "music": {
@@ -161,7 +161,7 @@
     },
     "scene": "Feudal Japanese castle courtyard at twilight, black and red architecture, cherry blossom trees in full bloom, stone lanterns glowing, zen rock garden",
     "loadingScene": "Close-up of a glossy black lacquer surface with crimson kanji brushstrokes, cherry blossom petals drifting down, warm paper lantern light",
-    "mapScene": "Winding stepping-stone path through a misty Japanese mountain valley, cherry blossom trees lining both sides, stone lanterns glowing softly, red torii gates visible in the distance through the mist",
+    "mapScene": "dark misty forest canopy seen from above, layers of deep green and black pine treetops with wisps of white fog drifting between them, moody and atmospheric",
     "bossLandmark": "Red torii gate shrine on a misty mountain peak, layered vermilion gates ascending stone steps, cherry blossoms swirling around the summit shrine",
     "gridMaterial": "Black lacquered wood with very subtle grain texture at low opacity",
     "music": {
@@ -195,7 +195,7 @@
     },
     "scene": "Imperial Chinese palace at night, jade-green rooftops curving skyward, golden silk lanterns lining a marble bridge over misty lotus ponds, dragon statues, moonlit pagodas",
     "loadingScene": "Close-up of a carved jade dragon head with golden eyes gleaming, mystical mist swirling around it, emerald green luminosity from within",
-    "mapScene": "Winding lantern-lit dirt path through a mystical Chinese mountain landscape, silk lanterns hanging from bamboo poles along the way, jade-green pagoda rooftops peeking through mist, lotus ponds flanking the trail",
+    "mapScene": "jade-green river waters flowing through misty terrain seen from above, emerald and dark green tones with soft white mist wisps, smooth flowing water surface with subtle current patterns",
     "bossLandmark": "Imperial jade palace with curved golden roofs at the mountain summit, dragon statues guarding the entrance, silk lanterns glowing emerald and gold, mystical mist swirling at the base",
     "gridMaterial": "Dark jade stone with very subtle dragon-scale texture embossed at low opacity",
     "music": {
@@ -229,7 +229,7 @@
     },
     "scene": "Persian palace courtyard at night, blue tile domes and minarets glowing under moonlight, reflecting pools mirroring the stars, golden lamplight, cypress gardens",
     "loadingScene": "Close-up of an intricate Persian blue geometric tile mosaic wall, golden grout lines catching warm lamplight, luminous symmetrical glow",
-    "mapScene": "Winding mosaic-tiled path through a Persian palace garden at night, blue and gold geometric tiles on the ground, reflecting pools and cypress trees along both sides, warm golden lamplight from ornate lanterns",
+    "mapScene": "deep blue and indigo desert night sky seen from above blending into dark arid terrain, deep royal blue and midnight purple tones, faint starlight reflecting on dark sand",
     "bossLandmark": "Blue-domed palace with golden minarets at the garden's end, intricate geometric tile facade glowing under moonlight, reflecting pool mirroring the luminous structure",
     "gridMaterial": "Very dark blue ceramic surface with faint geometric star pattern embossed at very low opacity",
     "music": {
@@ -263,7 +263,7 @@
     },
     "scene": "Deep jungle at dawn, massive stepped Mayan pyramid rising through the canopy, moss-covered stone ruins scattered among giant trees, mist hanging in the air, filtered green light",
     "loadingScene": "Close-up of a moss-covered carved stone wall with Mayan calendar glyphs, jungle vines creeping over the surface, filtered green light through the canopy",
-    "mapScene": "Winding jungle-overgrown stone path through dense Mesoamerican rainforest, moss-covered carved stone walls on both sides, hanging vines and giant ferns, filtered green light through the canopy, ancient glyphs on trailside stelae",
+    "mapScene": "dense tropical jungle canopy seen from above, rich dark greens and emerald tones, layered treetops with occasional golden light filtering through gaps, lush and impenetrable",
     "bossLandmark": "Stepped Mayan pyramid temple rising above the jungle canopy, calendar sun disc carved into the facade, green vines crawling up the stone steps, golden light breaking through clouds above",
     "gridMaterial": "Dark weathered jungle limestone with faint moss texture and carved groove patterns at very low opacity",
     "music": {
@@ -297,7 +297,7 @@
     },
     "scene": "Dense Central African forest clearing at dusk, carved wooden ceremonial poles flanking a packed-earth gathering space, warm firelight casting long shadows on woven raffia screens, red earth pigment on bark-cloth hangings",
     "loadingScene": "Close-up of a carved dark wood surface with deep geometric scarification patterns, warm firelight illuminating the grain and casting dramatic shadows across diamond lattice carvings",
-    "mapScene": "Winding red earth trail through a Central African forest, carved wooden ceremonial poles lining the path, woven raffia screens and bark-cloth hangings between trees, warm firelight from scattered campfires",
+    "mapScene": "warm red-orange African savanna earth seen from above, rich terracotta and burnt sienna tones with scattered dry golden grass patches, cracked earth texture",
     "bossLandmark": "Carved wooden ceremonial lodge at the forest clearing's center, massive Chokwe mask facade with geometric scarification patterns, blazing ceremonial fires flanking the entrance, red earth pigment on the walls",
     "gridMaterial": "Dark carved hardwood with faint geometric scarification patterns and diamond lattice texture at very low opacity",
     "music": {
@@ -331,7 +331,7 @@
     },
     "scene": "Mountain citadel at dawn inspired by Machu Picchu, massive interlocking stone walls, terraced hillsides descending into cloud forest, condors soaring over Andes peaks, golden sunrise",
     "loadingScene": "Close-up of perfectly interlocking polygonal stone wall with a gold Inti sun-god disc embedded in the masonry, morning mist rolling past the stones",
-    "mapScene": "Winding mountain stone path through Andean highlands, interlocking polygonal stone walls flanking terraced hillsides, condors soaring above, cloud forest rolling through the valley below, golden sunrise on distant peaks",
+    "mapScene": "rugged grey-brown Andean mountain rock terrain seen from above, highland plateau with terraced ridges and weathered stone surfaces, dark slate and warm brown earth tones with patches of hardy green highland grass",
     "bossLandmark": "Machu Picchu-style citadel on a mountain ridge, massive interlocking stone walls with golden Inti sun-god disc at the entrance, morning mist curling around the base, condors circling above",
     "gridMaterial": "Dark grey polygonal stone masonry with faint interlocking joint texture at very low opacity",
     "music": {

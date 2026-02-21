@@ -268,9 +268,9 @@ export function buildMapNodePrompt(theme: ThemeDefinition, nodeType: "level" | "
   const descriptions = nodeDescriptions[theme.name] ?? nodeDescriptions["Polynesian"];
   const description = descriptions[nodeType] ?? descriptions["level"];
 
-  const sizeHint = nodeType === "boss" ? "occupying 80% of the frame" : "occupying 70% of the frame";
+  const sizeHint = nodeType === "boss" ? "occupying 85% of the frame" : "occupying 75% of the frame";
 
-  return `${description} ${sizeHint}. Top-down bird's eye view, looking straight down. Flat vector game art style with bold outlines and cel shading. Dark background (${darkenHex(theme.palette.bg, 0.3)}) surrounding the landmark. Vivid ${theme.palette.accent} accent color highlights. Square format, centered composition for circular crop display. No text, no UI.`;
+  return `${description} ${sizeHint}. Top-down bird's eye view, looking straight down. Highly saturated vibrant colors with strong contrast. Bold thick black outlines (3-4px equivalent). Bright vivid ${theme.palette.accent} and ${lightenHex(theme.palette.accent, 0.4)} accent highlights. Very dark background (${darkenHex(theme.palette.bg, 0.4)}) surrounding the landmark for maximum contrast. Flat vector game art style with cel shading. Square format, centered composition for circular crop display. No text, no UI.`;
 }
 
 /* ------------------------------------------------------------------ */
