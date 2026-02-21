@@ -39,8 +39,8 @@ export const MAP_LAYOUT_PRESETS = {
   },
   balanced: {
     label: "Balanced",
-    laneSpread: [0.15, 0.5, 0.85] as const,
-    laneJitter: 0.14,
+    laneSpread: [0.20, 0.5, 0.80] as const,
+    laneJitter: 0.10,
     yJitter: 0.024,
     laneMoveThresholdLow: 0.30,
     laneMoveThresholdHigh: 0.70,
@@ -96,9 +96,9 @@ function buildZoneLayout(
   let lane = 1;
 
   for (let i = 0; i < nodesPerZone; i++) {
-    const isTerminal = i === 0 || i === lastNode;
+    const isBoss = i === lastNode;
 
-    if (i > 0 && !isTerminal) {
+    if (i > 0 && !isBoss) {
       const moveRoll = hashToUnit(seed, zoneIndex, i, 101);
       let laneDelta = 0;
 
@@ -109,9 +109,9 @@ function buildZoneLayout(
     }
 
     const xJitter =
-      isTerminal ? 0 : (hashToUnit(seed, zoneIndex, i, 102) - 0.5) * preset.laneJitter;
+      isBoss ? 0 : (hashToUnit(seed, zoneIndex, i, 102) - 0.5) * preset.laneJitter;
     const yJitter =
-      isTerminal ? 0 : (hashToUnit(seed, zoneIndex, i, 103) - 0.5) * preset.yJitter;
+      isBoss ? 0 : (hashToUnit(seed, zoneIndex, i, 103) - 0.5) * preset.yJitter;
 
     const progress = lastNode === 0 ? 0 : i / lastNode;
     const baseY = 0.92 - progress * 0.84;
@@ -133,8 +133,8 @@ function buildZoneLayout(
           const push = (MIN_DIST - dist) / 2;
           const nx = dx / dist;
           const ny = dy / dist;
-          const iTerminal = i === 0 || i === lastNode;
-          const jTerminal = j === 0 || j === lastNode;
+          const iTerminal = i === lastNode;
+          const jTerminal = j === lastNode;
           if (!iTerminal) {
             points[i].x = clamp(points[i].x - nx * push, 0.10, 0.90);
             points[i].y = clamp(points[i].y - ny * push, 0.07, 0.93);
