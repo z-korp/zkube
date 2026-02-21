@@ -4,6 +4,8 @@ import PageNavigator from "@/ui/navigation/PageNavigator";
 import { useNavigationStore } from "@/stores/navigationStore";
 import type { PageId } from "@/stores/navigationStore";
 import { getToastPlacement } from "@/utils/toast";
+import { useAccount } from "@starknet-react/core";
+import { Loading } from "@/ui/screens/Loading";
 import HomePage from "@/ui/pages/HomePage";
 import LoadoutPage from "@/ui/pages/LoadoutPage";
 import PlayScreen from "@/ui/pages/PlayScreen";
@@ -36,6 +38,10 @@ const CurrentPage: React.FC = () => {
 };
 
 export default function App() {
+  const { isReconnecting } = useAccount();
+
+  if (isReconnecting) return <Loading />;
+
   return (
     <TooltipProvider>
       <PageNavigator>
