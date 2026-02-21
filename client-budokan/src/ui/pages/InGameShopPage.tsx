@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { ArrowUp, RefreshCcw, WandSparkles } from "lucide-react";
+import { ArrowUp, RefreshCcw } from "lucide-react";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useDojo } from "@/dojo/useDojo";
 import {
@@ -349,11 +349,13 @@ const InGameShopPage = () => {
                     >
                       {/* Card Header: Icon + Name + Level */}
                       <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
-                        <img
-                          src={getIcon(bonus.value)}
-                          alt={getSelectedBonusName(bonus.value)}
-                          className="h-10 w-10"
-                        />
+                        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/15 bg-white/10">
+                          <img
+                            src={getIcon(bonus.value)}
+                            alt={getSelectedBonusName(bonus.value)}
+                            className="h-8 w-8"
+                          />
+                        </div>
                         <div className="min-w-0 flex-1">
                           <p className="font-['Fredericka_the_Great'] text-xl text-white">
                             {getSelectedBonusName(bonus.value)}
@@ -481,10 +483,6 @@ const InGameShopPage = () => {
               disabled={false}
               onClick={handleContinue}
             />
-            <div className="mt-2 flex items-center justify-center gap-1 text-xs text-slate-300">
-              <WandSparkles className="h-3.5 w-3.5" />
-              Actions apply immediately on-chain.
-            </div>
           </motion.div>
         </div>
       </div>
