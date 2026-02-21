@@ -39,7 +39,7 @@ export const MAP_LAYOUT_PRESETS = {
   },
   balanced: {
     label: "Balanced",
-    laneSpread: [0.20, 0.5, 0.80] as const,
+    laneSpread: [0.25, 0.5, 0.75] as const,
     laneJitter: 0.10,
     yJitter: 0.024,
     laneMoveThresholdLow: 0.30,
