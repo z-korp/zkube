@@ -114,11 +114,14 @@ const MapPage: React.FC = () => {
     setMusicPlaylist(["main", "level"]);
   }, [setMusicPlaylist]);
 
+  // Only switch theme/music when the player's current zone changes (zone cleared),
+  // NOT when swiping between zones on the map.
   useEffect(() => {
-    const themeRaw = mapData.zoneThemes[activeZone] ?? "theme-1";
+    const currentZoneIdx = Math.max(0, mapData.currentZone - 1);
+    const themeRaw = mapData.zoneThemes[currentZoneIdx] ?? "theme-1";
     const themeId: ThemeId = isValidThemeId(themeRaw) ? themeRaw : "theme-1";
     setThemeTemplate(themeId, false);
-  }, [activeZone, mapData.zoneThemes, setThemeTemplate]);
+  }, [mapData.currentZone, mapData.zoneThemes, setThemeTemplate]);
 
   useEffect(() => {
     if (pendingPreviewLevel == null) return;
