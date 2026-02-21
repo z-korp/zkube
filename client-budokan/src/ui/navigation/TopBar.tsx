@@ -7,6 +7,7 @@ interface TopBarProps {
   onTrophies: () => void;
   onSettings: () => void;
   onProfile: () => void;
+  username?: string;
 }
 
 const TopBar: React.FC<TopBarProps> = ({
@@ -16,11 +17,22 @@ const TopBar: React.FC<TopBarProps> = ({
   onTrophies,
   onSettings,
   onProfile,
+  username,
 }) => {
   return (
     <div className="flex items-center justify-between px-3 md:px-4 h-12 md:h-13 lg:h-14 bg-slate-900/70 backdrop-blur-sm border-b border-slate-700/50">
       <div className="flex items-center gap-1">
-        <BarIconButton icon={<User size={18} />} onClick={onProfile} />
+        <button
+          onClick={onProfile}
+          className="flex items-center gap-1.5 h-9 px-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
+        >
+          <User size={18} />
+          {username && (
+            <span className="text-sm font-medium max-w-[100px] truncate">
+              {username}
+            </span>
+          )}
+        </button>
         <BarIconButton icon={<Settings2 size={18} />} onClick={onSettings} />
         <BarIconButton icon={<BookOpen size={18} />} onClick={onTutorial} />
         <BarIconButton icon={<Trophy size={18} />} onClick={onTrophies} />

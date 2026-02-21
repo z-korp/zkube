@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
+import { useAccount } from "@starknet-react/core";
+import ControllerConnector from "@cartridge/connector/controller";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { loadThemeTemplate } from "@/config/themes";
 import { useCubeBalance } from "@/hooks/useCubeBalance";
 import useAccountCustom from "@/hooks/useAccountCustom";
+import { useControllerUsername } from "@/hooks/useControllerUsername";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import { useNavigationStore } from "@/stores/navigationStore";
 import ImageAssets from "@/ui/theme/ImageAssets";
@@ -25,6 +28,8 @@ const HomePage: React.FC = () => {
   useViewport();
 
   const { account } = useAccountCustom();
+  const { connector } = useAccount();
+  const { username } = useControllerUsername();
   const { themeTemplate, setThemeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
   const { cubeBalance } = useCubeBalance();
@@ -52,7 +57,19 @@ const HomePage: React.FC = () => {
 
   const handleProfile = useCallback(() => {
     if (!account) return;
-  }, [account]);
+    const controllerConnector = connector as ControllerConnector;
+    if (controllerConnector?.controller?.openProfile) {
+      controllerConnector.controller.openProfile();
+    }
+  }, [account, connector]);
+
+  const handleTrophies = useCallback(() => {
+    if (!account) return;
+    const controllerConnector = connector as ControllerConnector;
+    if (controllerConnector?.controller?.openProfile) {
+      controllerConnector.controller.openProfile("trophies");
+    }
+  }, [account, connector]);
 
   return (
     <div className="h-screen-viewport flex flex-col">
@@ -62,9 +79,10 @@ const HomePage: React.FC = () => {
         cubeBalance={cubeBalance}
         onTutorial={() => navigate("tutorial")}
         onQuests={() => navigate("quests")}
-        onTrophies={() => {}}
+        onTrophies={handleTrophies}
         onSettings={() => navigate("settings")}
         onProfile={handleProfile}
+        username={username}
       />
 
       <div className="flex-1 flex flex-col items-center justify-start px-6 gap-3 pt-4">
