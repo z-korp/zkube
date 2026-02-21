@@ -80,6 +80,29 @@ const formatCountdown = (seconds: number): string => {
   return `${hours}:${minutes}:${secs}`;
 };
 
+const QuestCountdown: React.FC = () => {
+  const [resetInSeconds, setResetInSeconds] = useState<number>(() =>
+    secondsUntilNextUtcMidnight(),
+  );
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setResetInSeconds(secondsUntilNextUtcMidnight());
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="mt-3 flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-cyan-50/95">
+      <Clock3 size={15} className="text-cyan-200" />
+      <span>Resets at midnight UTC:</span>
+      <span className="font-['Fredericka_the_Great'] text-xl leading-none tracking-wide text-cyan-100">
+        {formatCountdown(resetInSeconds)}
+      </span>
+    </div>
+  );
+};
+
 const TierRow: React.FC<{ tier: QuestTier }> = ({ tier }) => {
   let icon: React.ReactNode = <Circle size={13} className="text-slate-400" />;
   let textClass = "text-slate-200";
@@ -301,16 +324,6 @@ const QuestsPage: React.FC = () => {
   } = useDojo();
 
   const [claimingKey, setClaimingKey] = useState<string | null>(null);
-  const [resetInSeconds, setResetInSeconds] = useState<number>(() =>
-    secondsUntilNextUtcMidnight(),
-  );
-
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      setResetInSeconds(secondsUntilNextUtcMidnight());
-    }, 1000);
-    return () => window.clearInterval(interval);
-  }, []);
 
   const { mainFamilies, finisherFamily } = useMemo(() => {
     const main = questFamilies.filter((family) => family.id !== "finisher");
@@ -399,13 +412,7 @@ const QuestsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="mt-3 flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-cyan-50/95">
-              <Clock3 size={15} className="text-cyan-200" />
-              <span>Resets at midnight UTC:</span>
-              <span className="font-['Fredericka_the_Great'] text-xl leading-none tracking-wide text-cyan-100">
-                {formatCountdown(resetInSeconds)}
-              </span>
-            </div>
+            <QuestCountdown />
           </motion.section>
 
           {status === "loading" && (

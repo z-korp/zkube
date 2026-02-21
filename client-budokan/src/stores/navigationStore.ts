@@ -75,7 +75,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
 
     setTimeout(() => {
       set({ isTransitioning: false, transitionDirection: null });
-    }, 300);
+    }, 150);
   },
 
   goBack: () => {
@@ -92,7 +92,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
 
     setTimeout(() => {
       set({ isTransitioning: false, transitionDirection: null });
-    }, 300);
+    }, 150);
   },
 
   setGameId: (id) => set({ gameId: id }),

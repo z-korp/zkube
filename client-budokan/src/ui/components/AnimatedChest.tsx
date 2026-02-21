@@ -39,9 +39,6 @@ const AnimatedChest: React.FC<AnimatedChestProps> = ({
             duration: "random(2, 5)",
             repeat: -1,
             ease: "power1.inOut",
-            onUpdate: () => {
-              particle.style.overflow = "hidden";
-            },
           });
         });
       }
@@ -68,7 +65,7 @@ const AnimatedChest: React.FC<AnimatedChestProps> = ({
     <div className="relative rounded-lg p-4 flex flex-col items-center">
       <div ref={particlesRef} className="absolute inset-0 z-0 overflow-hidden">
         {!isGrayscale &&
-          Array.from({ length: 100 }).map((_, index) => (
+          Array.from({ length: 15 }).map((_, index) => (
             <div
               key={index}
               className="particle w-2 h-2 bg-yellow-500 rounded-full absolute"

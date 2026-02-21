@@ -52,7 +52,7 @@ export async function setup({ ...config }: Config) {
   log.info("Starting entity sync", {
     modelsToSync,
     modelsToWatch,
-    pollingInterval: 10000,
+    batchLimit: 10000,
   });
 
   const sync = await getSyncEntities(

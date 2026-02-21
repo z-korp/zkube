@@ -430,31 +430,26 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
 
   // Compute quests from the raw data
   const quests: QuestProps[] = useMemo(() => {
+    // Build lookup maps for O(1) access instead of O(n) .find() per definition
+    const creationById = new Map(creations.map((c) => [c.definition.id, c]));
+    const completionByKey = new Map(
+      completions.map((c) => [`${c.quest_id}:${c.interval_id}`, c])
+    );
+    const advancementByKey = new Map(
+      advancements.map((a) => [`${a.quest_id}:${a.task_id}:${a.interval_id}`, a])
+    );
+
     const questList = definitions.map((definition) => {
       const intervalId = definition.getIntervalId();
-      const intervalIdToUse = intervalId ?? 0; // Use 0 as fallback
+      const intervalIdToUse = intervalId ?? 0;
       
-      const creation = creations.find(
-        (creation) => creation.definition.id === definition.id,
-      );
+      const creation = creationById.get(definition.id);
+      const completion = completionByKey.get(`${definition.id}:${intervalIdToUse}`);
       
-      // Find completion for the CURRENT interval only (daily reset)
-      const completion = completions.find(
-        (completion) =>
-          completion.quest_id === definition.id &&
-          completion.interval_id === intervalIdToUse,
-      );
-      
-      // Find tasks with advancement data for the CURRENT interval only
       const tasks = definition.tasks.map((task) => {
-        // Only match advancements for the current interval (daily reset)
-        const advancement = advancements.find(
-          (adv) =>
-            adv.quest_id === definition.id &&
-            adv.task_id === task.id &&
-            adv.interval_id === intervalIdToUse,
+        const advancement = advancementByKey.get(
+          `${definition.id}:${task.id}:${intervalIdToUse}`
         );
-        
         return {
           description: task.description,
           total: task.total,
@@ -462,7 +457,7 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
         };
       });
 
-      const result = {
+      return {
         id: definition.id,
         intervalId: intervalIdToUse,
         name: creation?.metadata.name || "Quest",
@@ -471,28 +466,27 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
         end: definition.getNextEnd() || 0,
         completed: (completion?.timestamp || 0) > 0,
         claimed: !!completion && !completion.unclaimed,
-        locked: false, // Will be set based on conditions below
+        locked: false,
         conditions: definition.conditions,
         progression: 0,
         rewards: creation?.metadata.rewards || [],
         tasks,
       };
-      
-      return result;
     });
+
+    // Build completion lookup for condition checks (O(1) instead of O(n) per condition)
+    const completedById = new Map(questList.map((q) => [q.id, q.completed]));
 
     return questList
       .map((quest) => {
-        // A quest is unlocked if it has no conditions OR all condition quests are completed
         const hasNoConditions = !quest.conditions || quest.conditions.length === 0;
         const allConditionsMet = quest.conditions?.every(
-          (questId: string) => questList.find((q) => q.id === questId)?.completed,
+          (questId: string) => completedById.get(questId),
         ) ?? true;
-        const unlocked = hasNoConditions || allConditionsMet;
         
         return {
           ...quest,
-          locked: !unlocked,
+          locked: !(hasNoConditions || allConditionsMet),
           progression: quest.tasks.reduce(
             (acc, task) =>
               acc + (Number(task.count) / Number(task.total)) * 100,
@@ -500,32 +494,33 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
           ) / (quest.tasks.length || 1),
         };
       })
-      .sort((a, b) => a.id.localeCompare(b.id))
-      .sort((a, b) => (a.end > b.end ? 1 : -1))
-      .sort((a, b) => b.progression - a.progression)
-      .sort((a, b) => (a.completed && !b.completed ? -1 : 1));
+      .sort((a, b) => {
+        // Single sort with combined comparator (was 4 separate .sort() calls)
+        // Priority: completed first, then by progression desc, then by end asc, then by id
+        if (a.completed !== b.completed) return a.completed ? -1 : 1;
+        if (a.progression !== b.progression) return b.progression - a.progression;
+        if (a.end !== b.end) return a.end - b.end;
+        return a.id.localeCompare(b.id);
+      });
   }, [definitions, completions, advancements, creations]);
 
   // Compute quest families from the raw quest data
   const questFamilies: QuestFamily[] = useMemo(() => {
-    // Helper to get reward amount - uses QUEST_REWARDS override if available, falls back to parsing metadata
     const getRewardAmount = (questId: string, rewards: QuestReward[]): number => {
-      // Use override if available (since contract metadata may be stale)
       if (QUEST_REWARDS[questId] !== undefined) {
         return QUEST_REWARDS[questId];
       }
-      // Fallback: parse from metadata description
       return rewards.reduce((sum, r) => {
         const match = r.description.match(/(\d+)/);
         return sum + (match ? parseInt(match[1], 10) : 0);
       }, 0);
     };
 
-    // Build families from the QUEST_FAMILIES config
+    const questById = new Map(quests.map((q) => [q.id, q]));
+
     const families: QuestFamily[] = Object.entries(QUEST_FAMILIES).map(([familyId, config]) => {
-      // Get quests for this family in tier order
       const familyQuests = config.questIds
-        .map((questId) => quests.find((q) => q.id === questId))
+        .map((questId) => questById.get(questId))
         .filter((q): q is QuestProps => q !== undefined);
 
       // Build tiers from quests
@@ -563,10 +558,14 @@ export function QuestsProvider({ children }: { children: React.ReactNode }) {
       // Find first claimable tier (completed but not claimed)
       const claimableTier = tiers.find((t) => t.completed && !t.claimed) ?? null;
 
-      // Calculate reward totals
-      const totalReward = tiers.reduce((sum, t) => sum + t.reward, 0);
-      const claimedReward = tiers.filter((t) => t.claimed).reduce((sum, t) => sum + t.reward, 0);
-      const earnedReward = tiers.filter((t) => t.completed).reduce((sum, t) => sum + t.reward, 0);
+      let totalReward = 0;
+      let claimedReward = 0;
+      let earnedReward = 0;
+      for (const t of tiers) {
+        totalReward += t.reward;
+        if (t.claimed) claimedReward += t.reward;
+        if (t.completed) earnedReward += t.reward;
+      }
 
       return {
         id: familyId as QuestFamilyId,

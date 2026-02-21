@@ -39,7 +39,7 @@ export function ControllersProvider({
         pagination: {
           cursor: undefined,
           direction: "Backward",
-          limit: 50_000,
+          limit: 500,
           order_by: [],
         },
       });

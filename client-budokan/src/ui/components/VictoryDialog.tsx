@@ -74,7 +74,7 @@ Play now: app.zkube.xyz
                   <motion.div
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: [0, 1, 0], scale: [0.5, 1, 0.5], x: [-30, -40], y: [-10, -20] }}
-                    transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.5 }}
+                    transition={{ duration: 1, repeat: 3, repeatDelay: 0.5 }}
                     className="absolute top-0 left-0"
                   >
                     <Star size={20} className="text-yellow-300" />
@@ -82,7 +82,7 @@ Play now: app.zkube.xyz
                   <motion.div
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: [0, 1, 0], scale: [0.5, 1, 0.5], x: [30, 40], y: [-5, -15] }}
-                    transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.7 }}
+                    transition={{ duration: 1, repeat: 3, repeatDelay: 0.7 }}
                     className="absolute top-0 right-0"
                   >
                     <Star size={20} className="text-yellow-300" />
@@ -90,7 +90,7 @@ Play now: app.zkube.xyz
                   <motion.div
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: [0, 1, 0], scale: [0.5, 1, 0.5], y: [20, 30] }}
-                    transition={{ duration: 1, repeat: Infinity, repeatDelay: 0.9 }}
+                    transition={{ duration: 1, repeat: 3, repeatDelay: 0.9 }}
                     className="absolute bottom-0 left-1/2 -translate-x-1/2"
                   >
                     <Star size={20} className="text-yellow-300" />

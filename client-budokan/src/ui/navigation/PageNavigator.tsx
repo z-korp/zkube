@@ -5,7 +5,7 @@ interface PageNavigatorProps {
   children: React.ReactNode;
 }
 
-const TRANSITION_DURATION = 0.3;
+const TRANSITION_DURATION = 0.15;
 const EASE_OUT_CUBIC: [number, number, number, number] = [0.33, 1, 0.68, 1];
 
 const PageNavigator: React.FC<PageNavigatorProps> = ({ children }) => {
