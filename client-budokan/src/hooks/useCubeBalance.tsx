@@ -10,6 +10,12 @@ const normalizeAddress = (addr: string): string => {
   return "0x" + addr.slice(2).replace(/^0+/, "").toLowerCase();
 };
 
+const padAddress = (addr: string): string => {
+  if (!addr) return addr;
+  const hex = addr.startsWith("0x") ? addr.slice(2) : addr;
+  return `0x${hex.padStart(64, "0")}`;
+};
+
 interface CubeBalanceResult {
   cubeBalance: bigint;
   isLoading: boolean;
@@ -42,9 +48,12 @@ export const useCubeBalance = (): CubeBalanceResult => {
     try {
       setLoading(true);
 
+      const paddedContract = padAddress(VITE_PUBLIC_CUBE_TOKEN_ADDRESS);
+      const paddedAccount = padAddress(address);
+
       const result = await toriiClient.getTokenBalances({
-        contract_addresses: [VITE_PUBLIC_CUBE_TOKEN_ADDRESS],
-        account_addresses: [address],
+        contract_addresses: [paddedContract],
+        account_addresses: [paddedAccount],
         token_ids: [],
         pagination: {
           limit: 10,
@@ -79,8 +88,8 @@ export const useCubeBalance = (): CubeBalanceResult => {
     const subscribe = async () => {
       try {
         const subscription = await toriiClient.onTokenBalanceUpdated(
-          [VITE_PUBLIC_CUBE_TOKEN_ADDRESS],
-          [address],
+          [padAddress(VITE_PUBLIC_CUBE_TOKEN_ADDRESS)],
+          [padAddress(address)],
           [],
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (update: any) => {

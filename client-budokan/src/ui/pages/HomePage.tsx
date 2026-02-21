@@ -29,7 +29,7 @@ const HomePage: React.FC = () => {
   useViewport();
 
   const { account } = useAccountCustom();
-  const { connector } = useAccount();
+  const { connector, isReconnecting } = useAccount();
   const { username } = useControllerUsername();
   const { themeTemplate, setThemeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
@@ -109,7 +109,7 @@ const HomePage: React.FC = () => {
         )}
 
         <div className="flex flex-col items-center gap-3 w-full mt-2">
-          {!account ? (
+          {isReconnecting ? null : !account ? (
             <Connect />
           ) : (
             <>
