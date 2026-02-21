@@ -3,9 +3,9 @@
 ///
 /// 7 constraint types (0-6):
 /// - None: No constraint
-/// - ClearLines: Clear X lines in a single move, Y times
+/// - ComboLines: Clear X lines in a single move, Y times
 /// - BreakBlocks: Destroy X blocks of a specific size, accumulating count
-/// - AchieveCombo: Reach a combo of X (one-shot: progress=1 once triggered)
+/// - ComboStreak: Reach a combo of X (one-shot: progress=1 once triggered)
 /// - Fill: Fill X rows Y times (tracked via highest_row_after — grid height after resolve)
 /// - NoBonusUsed: Complete level without using any bonus (boss-only)
 /// - ClearGrid: Clear the entire grid (boss-only, one-shot)
@@ -16,13 +16,13 @@ pub enum ConstraintType {
     None,
     /// Must clear X lines in a single move, Y times
     /// value = lines to clear, required_count = how many times
-    ClearLines,
+    ComboLines,
     /// Must destroy blocks of a specific size, accumulating count
     /// value = block_size (1-4), required_count = total blocks to destroy
     BreakBlocks,
     /// Must achieve a combo of at least X lines in a single level
     /// value = combo_target, required_count = 1 (one-shot)
-    AchieveCombo,
+    ComboStreak,
     /// Must fill X rows Y times (grid fills to row X height, then clears lines)
     /// value = rows_to_fill (row height target), required_count = how many times
     FillAndClear,
@@ -38,16 +38,16 @@ pub struct LevelConstraint {
     /// The type of constraint
     pub constraint_type: ConstraintType,
     /// Meaning varies by type:
-    /// - ClearLines: number of lines to clear in one move
+    /// - ComboLines: number of lines to clear in one move
     /// - BreakBlocks: block size to target (1-4)
-    /// - AchieveCombo: combo target to reach
+    /// - ComboStreak: combo target to reach
     /// - FillAndClear: rows to fill (row height target)
     /// - NoBonusUsed/ClearGrid/None: 0
     pub value: u8,
     /// Meaning varies by type:
-    /// - ClearLines: how many times to achieve it
+    /// - ComboLines: how many times to achieve it
     /// - BreakBlocks: total blocks to destroy
-    /// - AchieveCombo: 1 (always one-shot)
+    /// - ComboStreak: 1 (always one-shot)
     /// - FillAndClear: how many times
     /// - NoBonusUsed/ClearGrid/None: 0
     pub required_count: u8,
@@ -96,11 +96,11 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
         LevelConstraint { constraint_type: ConstraintType::None, value: 0, required_count: 0 }
     }
 
-    /// Create a ClearLines constraint
+    /// Create a ComboLines constraint
     #[inline(always)]
-    fn clear_lines(lines: u8, times: u8) -> LevelConstraint {
+    fn combo_lines(lines: u8, times: u8) -> LevelConstraint {
         LevelConstraint {
-            constraint_type: ConstraintType::ClearLines, value: lines, required_count: times,
+            constraint_type: ConstraintType::ComboLines, value: lines, required_count: times,
         }
     }
 
@@ -112,11 +112,11 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
         }
     }
 
-    /// Create an AchieveCombo constraint
+    /// Create a ComboStreak constraint
     #[inline(always)]
-    fn achieve_combo(combo_target: u8) -> LevelConstraint {
+    fn combo_streak(combo_target: u8) -> LevelConstraint {
         LevelConstraint {
-            constraint_type: ConstraintType::AchieveCombo, value: combo_target, required_count: 1,
+            constraint_type: ConstraintType::ComboStreak, value: combo_target, required_count: 1,
         }
     }
 
@@ -147,9 +147,9 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
     fn is_satisfied(self: LevelConstraint, progress: u8, bonus_used: bool) -> bool {
         match self.constraint_type {
             ConstraintType::None => true,
-            ConstraintType::ClearLines => progress >= self.required_count,
+            ConstraintType::ComboLines => progress >= self.required_count,
             ConstraintType::BreakBlocks => progress >= self.required_count,
-            ConstraintType::AchieveCombo => progress >= 1,
+            ConstraintType::ComboStreak => progress >= 1,
             ConstraintType::FillAndClear => progress >= self.required_count,
             ConstraintType::NoBonusUsed => !bonus_used,
             ConstraintType::ClearGrid => progress >= 1,
@@ -162,7 +162,7 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
     fn update_progress(self: LevelConstraint, current_progress: u8, ctx: ConstraintContext) -> u8 {
         match self.constraint_type {
             ConstraintType::None => current_progress,
-            ConstraintType::ClearLines => {
+            ConstraintType::ComboLines => {
                 if ctx.lines_cleared >= self.value {
                     // Clamp progress to required_count
                     let next: u16 = current_progress.into() + 1;
@@ -190,7 +190,7 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
                     current_progress
                 }
             },
-            ConstraintType::AchieveCombo => {
+            ConstraintType::ComboStreak => {
                 // One-shot: set to 1 once combo_counter reaches target
                 if current_progress >= 1 {
                     1 // Already achieved
@@ -236,9 +236,9 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
     fn get_description(self: LevelConstraint) -> felt252 {
         match self.constraint_type {
             ConstraintType::None => 'NO_CONSTRAINT',
-            ConstraintType::ClearLines => 'CLEAR_LINES',
+            ConstraintType::ComboLines => 'COMBO_LINES',
             ConstraintType::BreakBlocks => 'BREAK_BLOCKS',
-            ConstraintType::AchieveCombo => 'ACHIEVE_COMBO',
+            ConstraintType::ComboStreak => 'COMBO_STREAK',
             ConstraintType::FillAndClear => 'FILL',
             ConstraintType::NoBonusUsed => 'NO_BONUS',
             ConstraintType::ClearGrid => 'CLEAR_GRID',
@@ -286,9 +286,9 @@ impl ConstraintTypeIntoU8 of Into<ConstraintType, u8> {
     fn into(self: ConstraintType) -> u8 {
         match self {
             ConstraintType::None => 0,
-            ConstraintType::ClearLines => 1,
+            ConstraintType::ComboLines => 1,
             ConstraintType::BreakBlocks => 2,
-            ConstraintType::AchieveCombo => 3,
+            ConstraintType::ComboStreak => 3,
             ConstraintType::FillAndClear => 4,
             ConstraintType::NoBonusUsed => 5,
             ConstraintType::ClearGrid => 6,
@@ -301,9 +301,9 @@ impl U8IntoConstraintType of Into<u8, ConstraintType> {
     fn into(self: u8) -> ConstraintType {
         match self {
             0 => ConstraintType::None,
-            1 => ConstraintType::ClearLines,
+            1 => ConstraintType::ComboLines,
             2 => ConstraintType::BreakBlocks,
-            3 => ConstraintType::AchieveCombo,
+            3 => ConstraintType::ComboStreak,
             4 => ConstraintType::FillAndClear,
             5 => ConstraintType::NoBonusUsed,
             6 => ConstraintType::ClearGrid,
@@ -327,9 +327,9 @@ mod tests {
     }
 
     #[test]
-    fn test_constraint_clear_lines() {
+    fn test_constraint_combo_lines() {
         // Clear 3 lines, 2 times
-        let constraint = LevelConstraintTrait::clear_lines(3, 2);
+        let constraint = LevelConstraintTrait::combo_lines(3, 2);
         
         // Not satisfied with 0 progress
         assert!(!constraint.is_satisfied(0, false), "Should not be satisfied with 0 progress");
@@ -345,8 +345,8 @@ mod tests {
     }
 
     #[test]
-    fn test_constraint_clear_lines_progress() {
-        let constraint = LevelConstraintTrait::clear_lines(3, 2);
+    fn test_constraint_combo_lines_progress() {
+        let constraint = LevelConstraintTrait::combo_lines(3, 2);
         
         // Clearing 2 lines doesn't count (need 3)
         let ctx = ConstraintContext { lines_cleared: 2, combo_counter: 0, highest_row_before: 0, highest_row_after: 0, grid_is_empty: false, blocks_destroyed_of_target_size: 0 };
@@ -390,8 +390,8 @@ mod tests {
     }
 
     #[test]
-    fn test_constraint_achieve_combo() {
-        let constraint = LevelConstraintTrait::achieve_combo(5);
+    fn test_constraint_combo_streak() {
+        let constraint = LevelConstraintTrait::combo_streak(5);
         
         // Not satisfied at 0
         assert!(!constraint.is_satisfied(0, false), "Should not be satisfied at 0");
@@ -482,17 +482,17 @@ mod tests {
     #[test]
     fn test_constraint_type_conversion() {
         let none: u8 = ConstraintType::None.into();
-        let clear: u8 = ConstraintType::ClearLines.into();
+        let clear: u8 = ConstraintType::ComboLines.into();
         let break_b: u8 = ConstraintType::BreakBlocks.into();
-        let combo: u8 = ConstraintType::AchieveCombo.into();
+        let combo: u8 = ConstraintType::ComboStreak.into();
         let fill: u8 = ConstraintType::FillAndClear.into();
         let no_bonus: u8 = ConstraintType::NoBonusUsed.into();
         let clear_grid: u8 = ConstraintType::ClearGrid.into();
         
         assert!(none == 0, "None should be 0");
-        assert!(clear == 1, "ClearLines should be 1");
+        assert!(clear == 1, "ComboLines should be 1");
         assert!(break_b == 2, "BreakBlocks should be 2");
-        assert!(combo == 3, "AchieveCombo should be 3");
+        assert!(combo == 3, "ComboStreak should be 3");
         assert!(fill == 4, "FillAndClear should be 4");
         assert!(no_bonus == 5, "NoBonusUsed should be 5");
         assert!(clear_grid == 6, "ClearGrid should be 6");
@@ -506,9 +506,9 @@ mod tests {
         let clear_grid_back: ConstraintType = 6_u8.into();
         
         assert!(none_back == ConstraintType::None, "Should convert back to None");
-        assert!(clear_back == ConstraintType::ClearLines, "Should convert back to ClearLines");
+        assert!(clear_back == ConstraintType::ComboLines, "Should convert back to ComboLines");
         assert!(break_back == ConstraintType::BreakBlocks, "Should convert back to BreakBlocks");
-        assert!(combo_back == ConstraintType::AchieveCombo, "Should convert back to AchieveCombo");
+        assert!(combo_back == ConstraintType::ComboStreak, "Should convert back to ComboStreak");
         assert!(fill_back == ConstraintType::FillAndClear, "Should convert back to FillAndClear");
         assert!(no_bonus_back == ConstraintType::NoBonusUsed, "Should convert back to NoBonusUsed");
         assert!(clear_grid_back == ConstraintType::ClearGrid, "Should convert back to ClearGrid");
@@ -528,9 +528,9 @@ mod tests {
     #[test]
     fn test_boss_only_check() {
         assert!(!LevelConstraintTrait::none().is_boss_only(), "None is not boss-only");
-        assert!(!LevelConstraintTrait::clear_lines(3, 2).is_boss_only(), "ClearLines is not boss-only");
+        assert!(!LevelConstraintTrait::combo_lines(3, 2).is_boss_only(), "ComboLines is not boss-only");
         assert!(!LevelConstraintTrait::break_blocks(2, 5).is_boss_only(), "BreakBlocks is not boss-only");
-        assert!(!LevelConstraintTrait::achieve_combo(5).is_boss_only(), "AchieveCombo is not boss-only");
+        assert!(!LevelConstraintTrait::combo_streak(5).is_boss_only(), "ComboStreak is not boss-only");
         assert!(!LevelConstraintTrait::fill_and_clear(7, 2).is_boss_only(), "Fill is not boss-only");
         assert!(LevelConstraintTrait::no_bonus().is_boss_only(), "NoBonusUsed is boss-only");
         assert!(LevelConstraintTrait::clear_grid().is_boss_only(), "ClearGrid is boss-only");

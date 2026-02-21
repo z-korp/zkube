@@ -38,52 +38,52 @@ pub struct BossIdentity {
 pub fn get_boss_identity(boss_id: u8) -> BossIdentity {
     match boss_id {
         1 => BossIdentity {
-            // Combo Master: ClearLines + AchieveCombo + NoBonusUsed
+            // Combo Master: ComboLines + ComboStreak + NoBonusUsed
             id: 1,
-            primary_type: ConstraintType::ClearLines,
-            secondary_type: ConstraintType::AchieveCombo,
+            primary_type: ConstraintType::ComboLines,
+            secondary_type: ConstraintType::ComboStreak,
             tertiary_type: ConstraintType::NoBonusUsed,
         },
         2 => BossIdentity {
-            // Demolisher: BreakBlocks + ClearLines + ClearGrid
+            // Demolisher: BreakBlocks + ComboLines + ClearGrid
             id: 2,
             primary_type: ConstraintType::BreakBlocks,
-            secondary_type: ConstraintType::ClearLines,
+            secondary_type: ConstraintType::ComboLines,
             tertiary_type: ConstraintType::ClearGrid,
         },
         3 => BossIdentity {
-            // Daredevil: Fill + AchieveCombo + ClearLines
+            // Daredevil: Fill + ComboStreak + ComboLines
             id: 3,
             primary_type: ConstraintType::FillAndClear,
-            secondary_type: ConstraintType::AchieveCombo,
-            tertiary_type: ConstraintType::ClearLines,
+            secondary_type: ConstraintType::ComboStreak,
+            tertiary_type: ConstraintType::ComboLines,
         },
         4 => BossIdentity {
-            // Purist: NoBonusUsed + ClearLines + AchieveCombo
+            // Purist: NoBonusUsed + ComboLines + ComboStreak
             id: 4,
             primary_type: ConstraintType::NoBonusUsed,
-            secondary_type: ConstraintType::ClearLines,
-            tertiary_type: ConstraintType::AchieveCombo,
+            secondary_type: ConstraintType::ComboLines,
+            tertiary_type: ConstraintType::ComboStreak,
         },
         5 => BossIdentity {
-            // Harvester: BreakBlocks + AchieveCombo + Fill
+            // Harvester: BreakBlocks + ComboStreak + Fill
             id: 5,
             primary_type: ConstraintType::BreakBlocks,
-            secondary_type: ConstraintType::AchieveCombo,
+            secondary_type: ConstraintType::ComboStreak,
             tertiary_type: ConstraintType::FillAndClear,
         },
         6 => BossIdentity {
-            // Tidal: ClearGrid + ClearLines + BreakBlocks
+            // Tidal: ClearGrid + ComboLines + BreakBlocks
             id: 6,
             primary_type: ConstraintType::ClearGrid,
-            secondary_type: ConstraintType::ClearLines,
+            secondary_type: ConstraintType::ComboLines,
             tertiary_type: ConstraintType::BreakBlocks,
         },
         7 => BossIdentity {
-            // Stacker: Fill + ClearLines + BreakBlocks
+            // Stacker: Fill + ComboLines + BreakBlocks
             id: 7,
             primary_type: ConstraintType::FillAndClear,
-            secondary_type: ConstraintType::ClearLines,
+            secondary_type: ConstraintType::ComboLines,
             tertiary_type: ConstraintType::BreakBlocks,
         },
         8 => BossIdentity {
@@ -94,24 +94,24 @@ pub fn get_boss_identity(boss_id: u8) -> BossIdentity {
             tertiary_type: ConstraintType::NoBonusUsed,
         },
         9 => BossIdentity {
-            // Ascetic: NoBonusUsed + AchieveCombo + Fill
+            // Ascetic: NoBonusUsed + ComboStreak + Fill
             id: 9,
             primary_type: ConstraintType::NoBonusUsed,
-            secondary_type: ConstraintType::AchieveCombo,
+            secondary_type: ConstraintType::ComboStreak,
             tertiary_type: ConstraintType::FillAndClear,
         },
         10 => BossIdentity {
-            // Perfectionist: ClearLines + Fill + AchieveCombo
+            // Perfectionist: ComboLines + Fill + ComboStreak
             id: 10,
-            primary_type: ConstraintType::ClearLines,
+            primary_type: ConstraintType::ComboLines,
             secondary_type: ConstraintType::FillAndClear,
-            tertiary_type: ConstraintType::AchieveCombo,
+            tertiary_type: ConstraintType::ComboStreak,
         },
         _ => BossIdentity {
             // Fallback: same as boss 1
             id: 1,
-            primary_type: ConstraintType::ClearLines,
-            secondary_type: ConstraintType::AchieveCombo,
+            primary_type: ConstraintType::ComboLines,
+            secondary_type: ConstraintType::ComboStreak,
             tertiary_type: ConstraintType::NoBonusUsed,
         },
     }
@@ -132,6 +132,7 @@ fn generate_boss_constraint(
     budget_max: u8,
     tier: u8,
     seed: felt252,
+    points_required: u16,
 ) -> LevelConstraint {
     match constraint_type {
         // Binary constraints: no budget needed
@@ -139,7 +140,9 @@ fn generate_boss_constraint(
         ConstraintType::ClearGrid => LevelConstraintTrait::clear_grid(),
         ConstraintType::None => LevelConstraintTrait::none(),
         // Budget-based constraints: use the same generation as regular levels
-        _ => LevelGeneratorTrait::generate_constraint_from_budget(seed, budget_max, constraint_type, tier),
+        _ => LevelGeneratorTrait::generate_constraint_from_budget(
+            seed, budget_max, constraint_type, tier, points_required
+        ),
     }
 }
 
@@ -173,6 +176,7 @@ pub fn generate_boss_constraints(
     difficulty: zkube::types::difficulty::Difficulty,
     seed: felt252,
     budget_max: u8,
+    points_required: u16,
 ) -> (LevelConstraint, LevelConstraint, LevelConstraint) {
     let identity = get_boss_identity(boss_id);
     let tier = difficulty_to_tier(difficulty);
@@ -181,15 +185,15 @@ pub fn generate_boss_constraints(
     
     // Generate primary constraint at budget_max
     let primary_seed: felt252 = seed;
-    let c1 = generate_boss_constraint(identity.primary_type, budget_max, tier, primary_seed);
+    let c1 = generate_boss_constraint(identity.primary_type, budget_max, tier, primary_seed, points_required);
     
     // Generate secondary constraint (different seed segment)
     let secondary_seed: felt252 = (seed_u256 / 10000000).try_into().unwrap();
-    let c2 = generate_boss_constraint(identity.secondary_type, budget_max, tier, secondary_seed);
+    let c2 = generate_boss_constraint(identity.secondary_type, budget_max, tier, secondary_seed, points_required);
     
     // Tertiary (caller decides when to include it based on level)
     let tertiary_seed: felt252 = (seed_u256 / 100000000000000).try_into().unwrap();
-    let c3 = generate_boss_constraint(identity.tertiary_type, budget_max, tier, tertiary_seed);
+    let c3 = generate_boss_constraint(identity.tertiary_type, budget_max, tier, tertiary_seed, points_required);
     
     (c1, c2, c3)
 }
@@ -238,27 +242,27 @@ mod tests {
 
     #[test]
     fn test_generate_boss_constraints_dual() {
-        // Boss 1 (Combo Master): ClearLines + AchieveCombo + NoBonusUsed
+        // Boss 1 (Combo Master): ComboLines + ComboStreak + NoBonusUsed
         // Budget_max = 24 (Hard difficulty)
-        let (c1, c2, _c3) = generate_boss_constraints(1, Difficulty::Hard, 'TEST_SEED', 24);
+        let (c1, c2, _c3) = generate_boss_constraints(1, Difficulty::Hard, 'TEST_SEED', 24, 64);
         
-        assert!(c1.constraint_type == ConstraintType::ClearLines, "Boss 1 primary should be ClearLines");
-        assert!(c2.constraint_type == ConstraintType::AchieveCombo, "Boss 1 secondary should be AchieveCombo");
+        assert!(c1.constraint_type == ConstraintType::ComboLines, "Boss 1 primary should be ComboLines");
+        assert!(c2.constraint_type == ConstraintType::ComboStreak, "Boss 1 secondary should be ComboStreak");
         
         // Values should be reasonable for Hard difficulty at budget_max
         assert!(c1.value >= 2, "Lines should be at least 2");
         assert!(c1.required_count >= 1, "Times should be at least 1");
-        assert!(c2.value >= 3, "Combo target should be at least 3");
+        assert!(c2.value >= 10, "Combo target should be at least 10");
     }
 
     #[test]
     fn test_generate_boss_constraints_triple() {
-        // Boss 1 triple: ClearLines + AchieveCombo + NoBonusUsed
+        // Boss 1 triple: ComboLines + ComboStreak + NoBonusUsed
         // Budget_max = 34 (Expert difficulty)
-        let (c1, c2, c3) = generate_boss_constraints(1, Difficulty::Expert, 'TEST_SEED', 34);
+        let (c1, c2, c3) = generate_boss_constraints(1, Difficulty::Expert, 'TEST_SEED', 34, 90);
         
-        assert!(c1.constraint_type == ConstraintType::ClearLines, "Boss 1 primary");
-        assert!(c2.constraint_type == ConstraintType::AchieveCombo, "Boss 1 secondary");
+        assert!(c1.constraint_type == ConstraintType::ComboLines, "Boss 1 primary");
+        assert!(c2.constraint_type == ConstraintType::ComboStreak, "Boss 1 secondary");
         assert!(c3.constraint_type == ConstraintType::NoBonusUsed, "Boss 1 tertiary");
     }
 
@@ -272,20 +276,20 @@ mod tests {
 
     #[test]
     fn test_generate_boss_constraint_none() {
-        let c = generate_boss_constraint(ConstraintType::None, 20, 5, 'SEED');
+        let c = generate_boss_constraint(ConstraintType::None, 20, 5, 'SEED', 60);
         assert!(c.constraint_type == ConstraintType::None, "Should be None");
     }
 
     #[test]
     fn test_generate_boss_constraint_no_bonus() {
-        let c = generate_boss_constraint(ConstraintType::NoBonusUsed, 20, 5, 'SEED');
+        let c = generate_boss_constraint(ConstraintType::NoBonusUsed, 20, 5, 'SEED', 60);
         assert!(c.constraint_type == ConstraintType::NoBonusUsed, "Should be NoBonusUsed");
         assert!(c.value == 0, "NoBonusUsed has no value");
     }
 
     #[test]
     fn test_generate_boss_constraint_clear_grid() {
-        let c = generate_boss_constraint(ConstraintType::ClearGrid, 20, 5, 'SEED');
+        let c = generate_boss_constraint(ConstraintType::ClearGrid, 20, 5, 'SEED', 60);
         assert!(c.constraint_type == ConstraintType::ClearGrid, "Should be ClearGrid");
         assert!(c.required_count == 1, "ClearGrid requires 1");
     }
@@ -295,7 +299,7 @@ mod tests {
         let mut i: u8 = 1;
         while i <= 10 {
             // Budget_max = 24 (Hard difficulty)
-            let (c1, c2, c3) = generate_boss_constraints(i, Difficulty::Hard, 'SEED', 24);
+            let (c1, c2, c3) = generate_boss_constraints(i, Difficulty::Hard, 'SEED', 24, 70);
             // All constraints should be valid (non-None for bosses)
             assert!(c1.constraint_type != ConstraintType::None, "Primary should not be None");
             assert!(c2.constraint_type != ConstraintType::None, "Secondary should not be None");
@@ -307,18 +311,18 @@ mod tests {
     #[test]
     fn test_boss_budget_integration() {
         // Verify that budget-based generation produces reasonable values
-        // Boss 2 (Demolisher): BreakBlocks + ClearLines + ClearGrid
-        let (c1, c2, c3) = generate_boss_constraints(2, Difficulty::Master, 'BUDGET_TEST', 40);
+        // Boss 2 (Demolisher): BreakBlocks + ComboLines + ClearGrid
+        let (c1, c2, c3) = generate_boss_constraints(2, Difficulty::Master, 'BUDGET_TEST', 40, 110);
         
         assert!(c1.constraint_type == ConstraintType::BreakBlocks, "Boss 2 primary should be BreakBlocks");
-        assert!(c2.constraint_type == ConstraintType::ClearLines, "Boss 2 secondary should be ClearLines");
+        assert!(c2.constraint_type == ConstraintType::ComboLines, "Boss 2 secondary should be ComboLines");
         assert!(c3.constraint_type == ConstraintType::ClearGrid, "Boss 2 tertiary should be ClearGrid");
         
         // BreakBlocks at budget 40 should have substantial count
         assert!(c1.value >= 1 && c1.value <= 4, "Block size should be 1-4");
         assert!(c1.required_count >= 4, "Block count should be at least 4 at budget 40");
         
-        // ClearLines at budget 40 should be challenging
+        // ComboLines at budget 40 should be challenging
         assert!(c2.value >= 2, "Lines should be at least 2");
     }
 }

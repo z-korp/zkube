@@ -123,7 +123,7 @@ mod tests {
             points_required: 50,
             max_moves: 30,
             difficulty: Difficulty::Medium,
-            constraint: LevelConstraintTrait::clear_lines(2, 1),
+            constraint: LevelConstraintTrait::combo_lines(2, 1),
             constraint_2: LevelConstraintTrait::none(), // No secondary constraint
             constraint_3: LevelConstraintTrait::none(), // No tertiary constraint
             cube_3_threshold: 12, // 40% of 30
@@ -188,8 +188,8 @@ mod tests {
             points_required: 60,
             max_moves: 35,
             difficulty: Difficulty::Hard,
-            constraint: LevelConstraintTrait::clear_lines(3, 2),   // Clear 3+ lines, 2 times
-            constraint_2: LevelConstraintTrait::clear_lines(2, 3), // Clear 2+ lines, 3 times
+            constraint: LevelConstraintTrait::combo_lines(3, 2),   // Clear 3+ lines, 2 times
+            constraint_2: LevelConstraintTrait::combo_lines(2, 3), // Clear 2+ lines, 3 times
             constraint_3: LevelConstraintTrait::none(),
             cube_3_threshold: 14,
             cube_2_threshold: 24,
@@ -207,13 +207,13 @@ mod tests {
     
     #[test]
     fn test_mixed_constraints() {
-        // ClearLines + NoBonusUsed
+        // ComboLines + NoBonusUsed
         let config = LevelConfig {
             level: 25,
             points_required: 70,
             max_moves: 40,
             difficulty: Difficulty::Hard,
-            constraint: LevelConstraintTrait::clear_lines(3, 2),
+            constraint: LevelConstraintTrait::combo_lines(3, 2),
             constraint_2: LevelConstraintTrait::no_bonus(),
             constraint_3: LevelConstraintTrait::none(),
             cube_3_threshold: 16,
@@ -223,20 +223,20 @@ mod tests {
         // Not complete: used bonus
         assert!(!config.is_complete(70, 2, 0, 0, true), "Should not complete - bonus used");
         
-        // Complete: both constraints met (ClearLines satisfied, no bonus used)
+        // Complete: both constraints met (ComboLines satisfied, no bonus used)
         assert!(config.is_complete(70, 2, 0, 0, false), "Should complete with both constraints");
     }
     
     #[test]
     fn test_triple_constraints() {
-        // ClearLines + AchieveCombo + NoBonusUsed (boss level 40/50)
+        // ComboLines + ComboStreak + NoBonusUsed (boss level 40/50)
         let config = LevelConfig {
             level: 40,
             points_required: 80,
             max_moves: 50,
             difficulty: Difficulty::Expert,
-            constraint: LevelConstraintTrait::clear_lines(3, 3),
-            constraint_2: LevelConstraintTrait::achieve_combo(5),
+            constraint: LevelConstraintTrait::combo_lines(3, 3),
+            constraint_2: LevelConstraintTrait::combo_streak(5),
             constraint_3: LevelConstraintTrait::no_bonus(),
             cube_3_threshold: 20,
             cube_2_threshold: 35,
