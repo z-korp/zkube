@@ -1,15 +1,19 @@
 name: 'Setup'
-description: 'Setup tooling'
+description: 'Setup tooling via asdf from .tool-versions'
 runs:
   using: "composite"
   steps:
-    - name: Install dojoup
+    - name: Install asdf
+      uses: asdf-vm/actions/setup@v3
+
+    - name: Install Dojo asdf plugins
       run: curl -L https://install.dojoengine.org | bash
       shell: bash
 
-    - name: Install dojo
-      run: |
-        /home/runner/.config/.dojo/bin/dojoup --version ${{ env.DOJO_VERSION }}
-        sudo mv /home/runner/.config/.dojo/bin/katana /usr/local/bin/
-        sudo mv /home/runner/.config/.dojo/bin/sozo /usr/local/bin/
+    - name: Install scarb plugin
+      run: asdf plugin add scarb || true
+      shell: bash
+
+    - name: Install tool versions from .tool-versions
+      run: asdf install
       shell: bash
