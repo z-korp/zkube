@@ -52,7 +52,7 @@ Roll a random count in `[constraint_min, constraint_max]`, then generate that ma
 
 Weights per tier (must sum to 100). Controls which constraint type is rolled on regular levels.
 
-| Tier | ClearLines | BreakBlocks | Fill | AchieveCombo |
+| Tier | ComboLines | BreakBlocks | FillAndClear | ComboStreak |
 |------|:---:|:---:|:---:|:---:|
 | 0 VeryEasy | 80 | 15 | 0 | 5 |
 | 1 Easy | 55 | 15 | 15 | 15 |
@@ -65,7 +65,7 @@ Weights per tier (must sum to 100). Controls which constraint type is rolled on 
 
 ---
 
-## 4. ClearLines Cost Function
+## 4. ComboLines Cost Function
 
 `line_cost(lines)` — higher lines are exponentially harder. Budget buys `times = budget / line_cost(lines)`.
 
@@ -147,7 +147,7 @@ Roll range is always [4, blocks_max] with skew-high.
 
 ---
 
-## 6. AchieveCombo Cost Function
+## 6. ComboStreak Cost Function
 
 `combo_cost(c) = c × (c-1) / 2` — triangular number. Max feasible combo where cost ≤ budget.
 
@@ -176,7 +176,7 @@ Roll range is always [4, blocks_max] with skew-high.
 
 ---
 
-## 7. Fill Cost Function
+## 7. FillAndClear Cost Function
 
 `fill_row_cost(row)` — higher rows are exponentially harder to maintain. `times = budget / row_cost`, capped by `fill_times_cap(row)`.
 
@@ -240,16 +240,16 @@ Boss levels: **10, 20, 30, 40, 50**
 
 | # | Name | Primary | Secondary | Tertiary (L40/50) |
 |---|------|---------|-----------|-------------------|
-| 1 | Combo Master | ClearLines | AchieveCombo | NoBonusUsed |
-| 2 | Demolisher | BreakBlocks | ClearLines | KeepGridBelow |
-| 3 | Daredevil | Fill | AchieveCombo | ClearLines |
-| 4 | Purist | NoBonusUsed | ClearLines | AchieveCombo |
-| 5 | Harvester | BreakBlocks | AchieveCombo | Fill |
-| 6 | Tidal | KeepGridBelow | ClearLines | BreakBlocks |
-| 7 | Stacker | Fill | ClearLines | BreakBlocks |
-| 8 | Surgeon | BreakBlocks | Fill | NoBonusUsed |
-| 9 | Ascetic | NoBonusUsed | AchieveCombo | Fill |
-| 10 | Perfectionist | ClearLines | Fill | AchieveCombo |
+| 1 | Combo Master | ComboLines | ComboStreak | NoBonusUsed |
+| 2 | Demolisher | BreakBlocks | ComboLines | KeepGridBelow |
+| 3 | Daredevil | FillAndClear | ComboStreak | ComboLines |
+| 4 | Purist | NoBonusUsed | ComboLines | ComboStreak |
+| 5 | Harvester | BreakBlocks | ComboStreak | FillAndClear |
+| 6 | Tidal | KeepGridBelow | ComboLines | BreakBlocks |
+| 7 | Stacker | FillAndClear | ComboLines | BreakBlocks |
+| 8 | Surgeon | BreakBlocks | FillAndClear | NoBonusUsed |
+| 9 | Ascetic | NoBonusUsed | ComboStreak | FillAndClear |
+| 10 | Perfectionist | ComboLines | FillAndClear | ComboStreak |
 
 ### Boss Budget_max by Level
 

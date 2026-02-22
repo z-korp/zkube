@@ -19,7 +19,7 @@ zKube challenges players to manipulate blocks on an 8x10 grid to form solid hori
 - **50-Level Campaign** - Progressive difficulty from VeryEasy to Master
 - **5 Bonus Types** - Combo, Score, Harvest, Wave, Supply (each with 3 upgrade levels)
 - **CUBE Economy** - Earn tokens through gameplay, spend on permanent upgrades
-- **Daily Quests** - 10 quests with 102 CUBE rewards per day
+ **Daily Quests** - 13 quests with 92 CUBE rewards per day
 - **28 Achievements** - Track lifetime progress across multiple categories
 - **Boss Levels** - Special challenges every 10 levels with bonus rewards
 
@@ -66,7 +66,7 @@ See [CLAUDE.md](./CLAUDE.md) for detailed development documentation.
 ## Technology Stack
 
 - **Contracts**: Cairo 2.13.1 / Dojo 1.8.0
-- **Frontend**: React 18 / TypeScript / Vite
+ **Frontend**: React 19 / TypeScript / Vite
 - **Blockchain**: Starknet
 - **Wallet**: Cartridge Controller
 

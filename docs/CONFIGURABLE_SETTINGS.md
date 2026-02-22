@@ -31,10 +31,10 @@ pub struct GameSettings {
 
 | Category | Location | Constants |
 |----------|----------|-----------|
-| Level Scaling | `helpers/level.cairo` | BASE_MOVES=20, MAX_MOVES=60, BASE_RATIO=80, MAX_RATIO=250 |
+| Level Scaling | `helpers/level.cairo` | BASE_MOVES=20, MAX_MOVES=60, BASE_RATIO=80, MAX_RATIO=180 |
 | Cube Thresholds | `helpers/level.cairo` | CUBE_3_PERCENT=40, CUBE_2_PERCENT=70 |
-| Consumable Costs | `types/consumable.cairo` | COMBO/SCORE/HARVEST=5, EXTRA_MOVES=10 |
-| Variance | `helpers/level.cairo` | EARLY=5%, MID=10%, LATE=15% |
+| Consumable Costs | `types/consumable.cairo` | BONUS_CHARGE_BASE=5 (scaling), LEVEL_UP=50, SWAP_BONUS=50 |
+| Variance | `helpers/level.cairo` | EARLY=5%, MID=5%, LATE=5% |
 
 ## Design
 
@@ -54,7 +54,7 @@ pub struct GameSettings {
     pub base_moves: u16,                // Moves at level 1 (default: 20)
     pub max_moves: u16,                 // Moves at level cap (default: 60)
     pub base_ratio_x100: u16,           // Points/move ratio at level 1 × 100 (default: 80 = 0.80)
-    pub max_ratio_x100: u16,            // Points/move ratio at level cap × 100 (default: 250 = 2.50)
+    pub max_ratio_x100: u16,            // Points/move ratio at level cap × 100 (default: 180 = 1.80)
     
     // === Cube Thresholds ===
     pub cube_3_percent: u8,             // 3 cubes if moves <= X% of max (default: 40)
@@ -97,10 +97,10 @@ Total bits needed for new fields:
 | `base_moves` | 20 | Starting moves at level 1 |
 | `max_moves` | 60 | Max moves at level cap (50) |
 | `base_ratio_x100` | 80 | 0.80 points/move at level 1 |
-| `max_ratio_x100` | 250 | 2.50 points/move at level cap (50) |
+| `max_ratio_x100` | 180 | 1.80 points/move at level cap (50) |
 | `cube_3_percent` | 40 | 3 cubes if <= 40% moves used |
 | `cube_2_percent` | 70 | 2 cubes if <= 70% moves used |
-| `combo_cost` | 5 | Combo consumable cost |
+| `combo_cost` | 5 | BonusCharge base cost (scales with purchases) |
 | `score_cost` | 5 | Score consumable cost |
 | `harvest_cost` | 5 | Harvest consumable cost |
 | `extra_moves_cost` | 10 | Extra moves consumable cost |
@@ -217,7 +217,7 @@ GameSettings {
 
 - [Death Mountain GameSettings](../references/death-mountain/contracts/src/models/game.cairo)
 - [Death Mountain Settings System](../references/death-mountain/contracts/src/systems/settings/contracts.cairo)
-- [Current Game Config Reference](./GAME_CONFIG_REFERENCE.md)
+ [Game Design Document](./GAME_DESIGN.md)
 
 ---
 
@@ -249,7 +249,7 @@ pub struct GameSettings {
     pub base_moves: u16,           // 20 - Moves at level 1
     pub max_moves: u16,            // 60 - Moves at level cap
     pub base_ratio_x100: u16,      // 80 - Points/move ratio × 100 at level 1
-    pub max_ratio_x100: u16,       // 250 - Points/move ratio × 100 at level cap
+    pub max_ratio_x100: u16,       // 180 - Points/move ratio × 100 at level cap
     
     // === Cube Thresholds ===
     pub cube_3_percent: u8,        // 40 - 3 cubes if moves <= X% of max
@@ -270,12 +270,12 @@ pub struct GameSettings {
     
     // === Constraint Settings (NEW) ===
     pub constraints_enabled: u8,     // 1 - 0=disabled, 1=enabled
-    pub constraint_start_level: u8,  // 5 - Level when constraints begin
+    pub constraint_start_level: u8,  // 3 - Level when constraints begin
     
     // === Variance Settings (NEW) ===
     pub early_variance_percent: u8,  // 5 - Random variance for early levels
-    pub mid_variance_percent: u8,    // 10 - Random variance for mid levels
-    pub late_variance_percent: u8,   // 15 - Random variance for late levels
+    pub mid_variance_percent: u8,    // 5 - Random variance for mid levels
+    pub late_variance_percent: u8,   // 5 - Random variance for late levels
     
     // === Level Tier Thresholds (NEW) ===
     pub early_level_threshold: u8,   // 10 - End of "early" levels
@@ -336,34 +336,15 @@ fn add_custom_game_settings(
 - Games using settings ID 0, 1, or 2 will use defaults
 
 ### Constraint Distribution System (NEW - January 2026)
+The constraint system uses a **unified budget system** with type selection weights per difficulty tier. See `docs/CONSTRAINT_CONFIG.md` for the full configuration.
 
-The constraint system now uses **scaling parameters** that interpolate from Easy to Master difficulty:
-
-```cairo
-pub struct GameSettings {
-    // ... existing fields ...
-    
-    // === Constraint Distribution (Easy to Master scaling) ===
-    // Probability settings (0-100, interpolated by difficulty)
-    pub easy_none_chance: u8,        // 30 - % chance of no constraint at Easy
-    pub master_none_chance: u8,      // 0 - % chance of no constraint at Master
-    pub easy_no_bonus_chance: u8,    // 0 - % chance of NoBonusUsed at Easy
-    pub master_no_bonus_chance: u8,  // 25 - % chance of NoBonusUsed at Master
-    
-    // ClearLines parameters (min/max lines and times)
-    pub easy_min_lines: u8,          // 2 - Min lines to clear at Easy
-    pub master_min_lines: u8,        // 5 - Min lines to clear at Master
-    pub easy_max_lines: u8,          // 3 - Max lines to clear at Easy
-    pub master_max_lines: u8,        // 7 - Max lines to clear at Master
-    pub easy_min_times: u8,          // 1 - Min times required at Easy
-    pub master_min_times: u8,        // 4 - Min times required at Master
-    pub easy_max_times: u8,          // 2 - Max times required at Easy
-    pub master_max_times: u8,        // 10 - Max times required at Master
-    
-    // Dual constraint chance
-    pub easy_dual_chance: u8,        // 0 - % chance of dual constraint at Easy
-    pub master_dual_chance: u8,      // 50 - % chance of dual constraint at Master
-}
+Key features:
+ Budget scales from VeryEasy (1-3) to Master (32-40)
+ Type selection via difficulty-weighted probabilities (ComboLines, BreakBlocks, FillAndClear, ComboStreak)
+ Cost functions per type convert budget → constraint values with skew-high rolls
+ Deterministic constraint count per tier (0 at VeryEasy → 3 at Master)
+ Boss levels use boss identity for types and budget_max for values
+ NoBonusUsed and KeepGridBelow are boss-only (binary, no budget)
 ```
 
 **How Interpolation Works:**

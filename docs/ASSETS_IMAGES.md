@@ -550,9 +550,9 @@ Centered. Square. Dark background.
 
 | Constraint | Description |
 |------------|------------|
-| ClearLines | Three horizontal lines stacked, top line has sparkle burst |
+| ComboLines | Three horizontal lines stacked, top line has sparkle burst |
 | BreakBlocks | A block with visible crack lines splitting it |
-| AchieveCombo | Chain links with lightning spark at junction |
+| ComboStreak | Chain links with lightning spark at junction |
 | FillAndClear | Upward arrow reaching a horizontal target line |
 | NoBonusUsed | A star with diagonal line through it (prohibition) |
 | KeepGridBelow | Grid with a visible cap line and a warning marker above it |

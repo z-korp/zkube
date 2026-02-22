@@ -27,7 +27,7 @@ This guide explains how to deploy zkube using `FullTokenContract` from game-comp
 │  Dojo Systems (deployed via sozo migrate):                  │
 │  ├── game_system (implements IMinigameTokenData)           │
 │  ├── shop_system (permanent upgrades)                      │
-│  ├── cube_token (soulbound ERC1155 CUBE)                   │
+│  ├── cube_token (ERC-20 CUBE token)                        │
 │  └── config_system                                          │
 │                                                             │
 │  Connection:                                                │
@@ -187,10 +187,10 @@ VITE_PUBLIC_CUBE_TOKEN_ADDRESS=0x<CubeToken_address>
 
 #### Step 9: Update Torii Config
 
-Add the CubeToken as an ERC1155 contract in `torii_slot.toml`:
+Add the CubeToken as an ERC20 contract in `torii_slot.toml`:
 ```toml
 [[contracts]]
-type = "ERC1155"
+type = "ERC20"
 address = "0x<CubeToken_address>"
 ```
 
@@ -200,7 +200,6 @@ The game-components `FullTokenContract` provides:
 
 - ERC721 with metadata
 - Minting with settings and objectives
-- Soulbound token support
 - Custom renderer support
 - Game registry integration
 - Lifecycle management (start/end times)
