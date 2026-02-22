@@ -4,7 +4,6 @@ import { Play } from "lucide-react";
 import { useGameTokensSlot } from "@/hooks/useGameTokensSlot";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useNavigationStore } from "@/stores/navigationStore";
-import ThemeBackground from "@/ui/components/shared/ThemeBackground";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 
 const getAttributeNumber = (
@@ -53,8 +52,6 @@ const MyGamesPage: React.FC = () => {
 
   return (
     <div className="h-screen-viewport flex flex-col">
-      <ThemeBackground />
-
       <PageTopBar title="MY GAMES" onBack={goBack} />
 
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4">

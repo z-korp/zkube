@@ -20,7 +20,6 @@ import { useMusicPlayer } from "@/contexts/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PageTopBar from "@/ui/navigation/PageTopBar";
-import ThemeBackground from "@/ui/components/shared/ThemeBackground";
 import GameButton from "@/ui/components/shared/GameButton";
 
 type BonusSlot = 0 | 1 | 2;
@@ -283,8 +282,6 @@ const InGameShopPage = () => {
 
   return (
     <div className="h-screen-viewport flex flex-col text-white">
-      <ThemeBackground />
-
       <PageTopBar title="SHOP" onBack={goBack} cubeBalance={BigInt(cubesAvailable)} />
 
       <div className="flex-1 overflow-y-auto px-4 py-4 md:px-6">

@@ -13,7 +13,6 @@ import { useNavigationStore } from "@/stores/navigationStore";
 import { useQuests } from "@/contexts/quests";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import TopBar from "@/ui/navigation/TopBar";
-import ThemeBackground from "@/ui/components/shared/ThemeBackground";
 import NavButton from "@/ui/components/shared/NavButton";
 import Connect from "@/ui/components/Connect";
 import useViewport from "@/hooks/useViewport";
@@ -79,8 +78,6 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="h-screen-viewport flex flex-col">
-      <ThemeBackground />
-
       <TopBar
         cubeBalance={cubeBalance}
         onTutorial={() => navigate("tutorial")}

@@ -22,7 +22,6 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import { useNavigationStore } from "@/stores/navigationStore";
 import type { QuestFamily, QuestTier } from "@/types/questFamily";
 import GameButton from "@/ui/components/shared/GameButton";
-import ThemeBackground from "@/ui/components/shared/ThemeBackground";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 import { shortString } from "starknet";
 
@@ -378,8 +377,6 @@ const QuestsPage: React.FC = () => {
 
   return (
     <div className="h-screen-viewport flex flex-col">
-      <ThemeBackground />
-
       <PageTopBar title="DAILY QUESTS" onBack={goBack} />
 
       <div className="flex-1 overflow-y-auto px-4 py-4 md:px-6 md:py-5">

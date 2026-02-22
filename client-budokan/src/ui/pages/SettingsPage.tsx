@@ -12,7 +12,6 @@ import { useMusicPlayer } from "@/contexts/hooks";
 import { useControllerUsername } from "@/hooks/useControllerUsername";
 import useAccountCustom from "@/hooks/useAccountCustom";
 import { useNavigationStore } from "@/stores/navigationStore";
-import ThemeBackground from "@/ui/components/shared/ThemeBackground";
 import GameButton from "@/ui/components/shared/GameButton";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import PageTopBar from "@/ui/navigation/PageTopBar";
@@ -53,8 +52,6 @@ const SettingsPage: React.FC = () => {
 
   return (
     <div className="h-screen-viewport flex flex-col overflow-hidden">
-      <ThemeBackground />
-
       <PageTopBar title="SETTINGS" onBack={goBack} />
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 py-4">

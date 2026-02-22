@@ -14,7 +14,6 @@ import {
 import { Bonus, BonusType, bonusTypeFromContractValue } from "@/dojo/game/types/bonus";
 import { useNavigationStore } from "@/stores/navigationStore";
 import ImageAssets from "@/ui/theme/ImageAssets";
-import ThemeBackground from "@/ui/components/shared/ThemeBackground";
 import GameHud from "@/ui/components/hud/GameHud";
 import GameActionBar from "@/ui/components/actionbar/GameActionBar";
 import GameBoard from "@/ui/components/GameBoard";
@@ -363,8 +362,6 @@ const PlayScreen: React.FC = () => {
 
   return (
     <div className="h-screen-viewport flex flex-col">
-      <ThemeBackground />
-
       <Dialog open={isConnectDialogOpen} onOpenChange={setIsConnectDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

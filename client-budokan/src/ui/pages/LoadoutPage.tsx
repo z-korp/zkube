@@ -13,7 +13,6 @@ import { showToast } from "@/utils/toast";
 import { useNavigationStore } from "@/stores/navigationStore";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import PageTopBar from "@/ui/navigation/PageTopBar";
-import ThemeBackground from "@/ui/components/shared/ThemeBackground";
 import GameButton from "@/ui/components/shared/GameButton";
 import { Slider } from "@/ui/elements/slider";
 import useViewport from "@/hooks/useViewport";
@@ -262,7 +261,6 @@ const LoadoutPage: React.FC = () => {
 
   return (
     <div className="h-screen-viewport flex flex-col">
-      <ThemeBackground />
       <PageTopBar
         title="SELECT LOADOUT"
         onBack={goBack}

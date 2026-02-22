@@ -2,7 +2,6 @@ import { motion } from "motion/react";
 import { Users } from "lucide-react";
 import { useLeaderboardSlot } from "@/hooks/useLeaderboardSlot";
 import { useNavigationStore } from "@/stores/navigationStore";
-import ThemeBackground from "@/ui/components/shared/ThemeBackground";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 
 const rankStyle = (rank: number): string => {
@@ -18,8 +17,6 @@ const LeaderboardPage: React.FC = () => {
 
   return (
     <div className="h-screen-viewport flex flex-col">
-      <ThemeBackground />
-
       <PageTopBar title="LEADERBOARD" onBack={goBack} />
 
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4">

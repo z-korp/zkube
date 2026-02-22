@@ -8,7 +8,6 @@ import {
   Trophy,
 } from "lucide-react";
 import { useNavigationStore } from "@/stores/navigationStore";
-import ThemeBackground from "@/ui/components/shared/ThemeBackground";
 import GameButton from "@/ui/components/shared/GameButton";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 
@@ -55,8 +54,6 @@ const TutorialPage: React.FC = () => {
 
   return (
     <div className="h-screen-viewport flex flex-col">
-      <ThemeBackground />
-
       <PageTopBar title="HOW TO PLAY" onBack={goBack} />
 
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4">
