@@ -96,7 +96,6 @@ const parsePlayerName = (metadata: string | undefined): string | undefined => {
 
 /**
  * Hook for fetching leaderboard data directly from RECS (Torii).
- * Works on slot mode by default, but can be forced on other networks via `forceRecs`.
  * Queries all Game entities and sorts by level -> totalScore -> totalCubes.
  * 
  * Uses Torii's tokenTransfers query to get token ownership and player names.
@@ -186,8 +185,6 @@ export const useLeaderboardSlot = (): UseLeaderboardSlotResult => {
 
                 tokenOwnerMap.set(tokenId, { owner, playerName });
               }
-
-              console.log("[useLeaderboardSlot] Loaded token ownership for", tokenOwnerMap.size, "tokens");
             }
           } catch (error) {
             console.error("[useLeaderboardSlot] Error fetching token data:", error);

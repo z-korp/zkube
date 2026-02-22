@@ -64,9 +64,6 @@ interface TokenBalancesResponse {
 
 /**
  * Hook for fetching game tokens directly from Torii GraphQL.
- * Works on slot mode by default, but can be forced on other networks via `forceRecs`.
- * This is a fallback approach that works without the metagame relayer.
- * 
  * Uses Torii's tokenBalances query to get owned ERC721 tokens, then matches
  * with Game model data from RECS for additional game state info.
  */
@@ -119,8 +116,6 @@ export const useGameTokensSlot = ({
 
         // Pad the owner address for Torii query
         const paddedOwner = padAddress(owner!);
-        
-        console.log("[useGameTokensSlot] Fetching ERC721 tokens for owner:", paddedOwner);
 
         // Query Torii GraphQL for token balances
         const response = await fetch(`${toriiUrl}/graphql`, {
@@ -158,8 +153,6 @@ export const useGameTokensSlot = ({
             return true;
           });
 
-        console.log("[useGameTokensSlot] Found ERC721 tokens:", erc721Tokens.length);
-
         // Get owned token IDs
         const ownedTokenIds = new Set(
           erc721Tokens.map((token) => {
@@ -168,12 +161,8 @@ export const useGameTokensSlot = ({
           })
         );
 
-        console.log("[useGameTokensSlot] Owned token IDs:", [...ownedTokenIds]);
-
         // Query all Game entities from RECS
         const gameEntities = runQuery([Has(Game)]);
-
-        console.log("[useGameTokensSlot] RECS Game entities count:", gameEntities.size);
 
         const gameList: GameTokenData[] = [];
         const seenIds = new Set<number>();

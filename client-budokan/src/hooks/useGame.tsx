@@ -45,12 +45,6 @@ export const useGame = ({
 
   const seed = useMemo(() => {
     const s = seedComponent?.seed ? BigInt(seedComponent.seed) : BigInt(0);
-    console.log("[useGame] GameSeed fetched:", {
-      gameKey,
-      hasSeedComponent: !!seedComponent,
-      seed: s.toString(),
-      retryCount,
-    });
     return s;
   }, [seedComponent, gameKey, retryCount]);
 
@@ -58,7 +52,6 @@ export const useGame = ({
   useEffect(() => {
     if (game && !seedComponent && retryCount < 5) {
       const timer = setTimeout(() => {
-        console.log("[useGame] Retrying seed fetch, attempt:", retryCount + 1);
         setRetryCount((prev) => prev + 1);
       }, 500); // Retry every 500ms
       return () => clearTimeout(timer);
@@ -70,27 +63,7 @@ export const useGame = ({
     setRetryCount(0);
   }, [gameKey]);
 
-  // Log game state when it changes
-  useEffect(() => {
-    if (game) {
-      console.log("[useGame] Game state:", {
-        id: game.id,
-        level: game.level,
-        levelScore: game.levelScore,
-        levelMoves: game.levelMoves,
-        totalCubes: game.totalCubes,
-        totalScore: game.totalScore,
-        comboBonus: game.comboBonus,
-        wave: game.wave,
-        scoreBonus: game.scoreBonus,
-        harvest: game.harvest,
-        supply: game.supply,
-        combo: game.combo,
-        maxCombo: game.max_combo,
-        over: game.over,
-      });
-    }
-  }, [game]);
+
 
   return { game, gameKey, seed };
 };

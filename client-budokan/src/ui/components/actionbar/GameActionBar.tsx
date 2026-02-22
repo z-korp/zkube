@@ -9,6 +9,7 @@ import {
 } from "@/ui/elements/tooltip";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -131,14 +132,31 @@ const GameActionBar: React.FC<GameActionBarProps> = ({
 
         <div className="w-px h-[clamp(30px,7vw,38px)] bg-slate-700" />
 
-        <motion.button
-          onClick={onSurrender}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className="w-[clamp(38px,10vw,48px)] h-[clamp(38px,10vw,48px)] rounded-full flex items-center justify-center bg-red-900/30 hover:bg-red-800/40 text-red-400 hover:text-red-300 transition-colors"
-        >
-          <Flag className="w-[clamp(18px,4.5vw,22px)] h-[clamp(18px,4.5vw,22px)]" />
-        </motion.button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="w-[clamp(38px,10vw,48px)] h-[clamp(38px,10vw,48px)] rounded-full flex items-center justify-center bg-red-900/30 hover:bg-red-800/40 text-red-400 hover:text-red-300 transition-colors"
+            >
+              <Flag className="w-[clamp(18px,4.5vw,22px)] h-[clamp(18px,4.5vw,22px)]" />
+            </motion.button>
+          </DialogTrigger>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-bold">Surrender?</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">Your run will end and progress for this level will be lost.</p>
+            <div className="flex gap-3">
+              <DialogClose asChild>
+                <Button variant="outline" className="flex-1">Cancel</Button>
+              </DialogClose>
+              <DialogClose asChild>
+                <Button variant="destructive" className="flex-1" onClick={onSurrender}>Surrender</Button>
+              </DialogClose>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <Dialog>
           <DialogTrigger asChild>

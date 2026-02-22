@@ -146,7 +146,6 @@ export function setupWorld(config: Config) {
       try {
         const bonusList = selected_bonuses ?? [];
         const calldata = [token_id, bonusList.length, ...bonusList, cubes_amount];
-        console.log("[create] calldata:", calldata);
 
         // On Slot, skip VRF call since it's not deployed
         if (isSlotMode) {

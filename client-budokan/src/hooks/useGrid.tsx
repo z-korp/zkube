@@ -1,15 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useGame } from "@/hooks/useGame";
-import { formatBigIntToBinaryArrayCustom } from "@/utils/gridUtils";
 import useDeepMemo from "./useDeepMemo";
-
-interface DebugData {
-  blocksRaw: bigint;
-  blocksRawBinary: string;
-  blocksRawFormatted: string[];
-  blocksRawFormattedContractOrder: string[];
-  blocks: number[][];
-}
 
 export const useGrid = ({
   gameId,
@@ -36,23 +27,6 @@ export const useGrid = ({
       return;
     }
     if (game && memoizedBlocks.length > 0) {
-      if (shouldLog) {
-        const num = game.blocksRaw;
-        const binaryString = num.toString(2);
-        const [formattedRows, formattedRowsContractOrder] =
-          formatBigIntToBinaryArrayCustom(num);
-
-        const debugData: DebugData = {
-          blocksRaw: num,
-          blocksRawBinary: binaryString,
-          blocksRawFormatted: formattedRows,
-          blocksRawFormattedContractOrder: formattedRowsContractOrder,
-          blocks: memoizedBlocks,
-        };
-
-        console.log("Grid updated:", debugData);
-      }
-
       // Mettre à jour `blocks` et `blocksRef` simultanément
       setBlocks(memoizedBlocks);
       blocksRef.current = memoizedBlocks; // synchroniser la ref
