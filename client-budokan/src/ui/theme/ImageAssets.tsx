@@ -16,7 +16,7 @@ const ImageAssets = (theme: ThemeId) => {
     constraintCombo: getCommonAssetPath("constraints/constraint-combo.png"),
     constraintFill: getCommonAssetPath("constraints/constraint-fill.png"),
     constraintNoBonus: getCommonAssetPath("constraints/constraint-no-bonus.png"),
-    constraintClearGrid: getCommonAssetPath("constraints/constraint-clear-grid.png"),
+    constraintKeepGridBelow: getCommonAssetPath("constraints/constraint-keep-grid-below.png"),
     stone1: themeImages.block1,
     stone2: themeImages.block2,
     stone3: themeImages.block3,

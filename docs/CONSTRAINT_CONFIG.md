@@ -241,11 +241,11 @@ Boss levels: **10, 20, 30, 40, 50**
 | # | Name | Primary | Secondary | Tertiary (L40/50) |
 |---|------|---------|-----------|-------------------|
 | 1 | Combo Master | ClearLines | AchieveCombo | NoBonusUsed |
-| 2 | Demolisher | BreakBlocks | ClearLines | ClearGrid |
+| 2 | Demolisher | BreakBlocks | ClearLines | KeepGridBelow |
 | 3 | Daredevil | Fill | AchieveCombo | ClearLines |
 | 4 | Purist | NoBonusUsed | ClearLines | AchieveCombo |
 | 5 | Harvester | BreakBlocks | AchieveCombo | Fill |
-| 6 | Tidal | ClearGrid | ClearLines | BreakBlocks |
+| 6 | Tidal | KeepGridBelow | ClearLines | BreakBlocks |
 | 7 | Stacker | Fill | ClearLines | BreakBlocks |
 | 8 | Surgeon | BreakBlocks | Fill | NoBonusUsed |
 | 9 | Ascetic | NoBonusUsed | AchieveCombo | Fill |

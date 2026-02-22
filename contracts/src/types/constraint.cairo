@@ -8,7 +8,7 @@
 /// - ComboStreak: Reach a combo of X (one-shot: progress=1 once triggered)
 /// - Fill: Fill X rows Y times (tracked via highest_row_after — grid height after resolve)
 /// - NoBonusUsed: Complete level without using any bonus (boss-only)
-/// - ClearGrid: Clear the entire grid (boss-only, one-shot)
+/// - KeepGridBelow: Keep grid below X filled rows (boss-only, fail-on-breach)
 
 #[derive(Copy, Drop, Serde, PartialEq, Introspect, Debug)]
 pub enum ConstraintType {
@@ -28,8 +28,8 @@ pub enum ConstraintType {
     FillAndClear,
     /// Must complete level without using any bonus (boss-only)
     NoBonusUsed,
-    /// Must clear the entire grid to 0 blocks (boss-only, one-shot)
-    ClearGrid,
+    /// Must keep grid below X filled rows (boss-only, fail-on-breach)
+    KeepGridBelow,
 }
 
 /// A level constraint with its parameters
@@ -42,14 +42,16 @@ pub struct LevelConstraint {
     /// - BreakBlocks: block size to target (1-4)
     /// - ComboStreak: combo target to reach
     /// - FillAndClear: rows to fill (row height target)
-    /// - NoBonusUsed/ClearGrid/None: 0
+    /// - NoBonusUsed/None: 0
+    /// - KeepGridBelow: exclusive filled-row cap (must stay below this many rows)
     pub value: u8,
     /// Meaning varies by type:
     /// - ComboLines: how many times to achieve it
     /// - BreakBlocks: total blocks to destroy
     /// - ComboStreak: 1 (always one-shot)
     /// - FillAndClear: how many times
-    /// - NoBonusUsed/ClearGrid/None: 0
+    /// - NoBonusUsed/None: 0
+    /// - KeepGridBelow: 1 (unused by evaluation, kept for consistency)
     pub required_count: u8,
 }
 
@@ -136,10 +138,21 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
         }
     }
 
-    /// Create a ClearGrid constraint
+    /// Create a KeepGridBelow constraint with an exclusive filled-row cap.
+    /// Example: max_rows_exclusive = 8 means the grid must stay below 8 filled rows.
     #[inline(always)]
-    fn clear_grid() -> LevelConstraint {
-        LevelConstraint { constraint_type: ConstraintType::ClearGrid, value: 0, required_count: 1 }
+    fn keep_grid_below_with_cap(max_rows_exclusive: u8) -> LevelConstraint {
+        let cap = if max_rows_exclusive < 1 { 1 } else { max_rows_exclusive };
+        LevelConstraint {
+            constraint_type: ConstraintType::KeepGridBelow, value: cap, required_count: 1,
+        }
+    }
+
+    /// Create a default KeepGridBelow constraint.
+    /// Default cap is 8 filled rows (exclusive).
+    #[inline(always)]
+    fn keep_grid_below() -> LevelConstraint {
+        Self::keep_grid_below_with_cap(8)
     }
 
     /// Check if constraint is satisfied
@@ -154,7 +167,7 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
             ConstraintType::ComboStreak => progress >= 1,
             ConstraintType::FillAndClear => progress >= self.required_count,
             ConstraintType::NoBonusUsed => !bonus_used,
-            ConstraintType::ClearGrid => progress >= 1,
+            ConstraintType::KeepGridBelow => progress == 0,
         }
     }
 
@@ -227,14 +240,20 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
                 }
             },
             ConstraintType::NoBonusUsed => current_progress, // Tracked via bonus_used flag
-            ConstraintType::ClearGrid => {
-                // One-shot: set to 1 when grid is completely empty
+            ConstraintType::KeepGridBelow => {
+                // Violation flag mode for "keep grid below cap".
+                // progress: 0 = still valid, 1 = breached at least once.
+                // value stores the exclusive row cap (e.g. 8 means rows_filled_after must be <= 7).
                 if current_progress >= 1 {
                     1
-                } else if ctx.grid_is_empty {
-                    1
                 } else {
-                    0
+                    let rows_filled_after: u8 = if ctx.grid_is_empty {
+                        0
+                    } else {
+                        ctx.highest_row_after + 1
+                    };
+                    let max_rows_exclusive: u8 = if self.value == 0 { 1 } else { self.value };
+                    if rows_filled_after >= max_rows_exclusive { 1 } else { 0 }
                 }
             },
         }
@@ -249,7 +268,7 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
             ConstraintType::ComboStreak => 'COMBO_STREAK',
             ConstraintType::FillAndClear => 'FILL',
             ConstraintType::NoBonusUsed => 'NO_BONUS',
-            ConstraintType::ClearGrid => 'CLEAR_GRID',
+            ConstraintType::KeepGridBelow => 'KEEP_GRID_BELOW',
         }
     }
 
@@ -263,7 +282,7 @@ pub impl LevelConstraintImpl of LevelConstraintTrait {
     #[inline(always)]
     fn is_boss_only(self: LevelConstraint) -> bool {
         self.constraint_type == ConstraintType::NoBonusUsed
-            || self.constraint_type == ConstraintType::ClearGrid
+            || self.constraint_type == ConstraintType::KeepGridBelow
     }
 }
 
@@ -303,7 +322,7 @@ impl ConstraintTypeIntoU8 of Into<ConstraintType, u8> {
             ConstraintType::ComboStreak => 3,
             ConstraintType::FillAndClear => 4,
             ConstraintType::NoBonusUsed => 5,
-            ConstraintType::ClearGrid => 6,
+            ConstraintType::KeepGridBelow => 6,
         }
     }
 }
@@ -318,7 +337,7 @@ impl U8IntoConstraintType of Into<u8, ConstraintType> {
             3 => ConstraintType::ComboStreak,
             4 => ConstraintType::FillAndClear,
             5 => ConstraintType::NoBonusUsed,
-            6 => ConstraintType::ClearGrid,
+            6 => ConstraintType::KeepGridBelow,
             _ => ConstraintType::None,
         }
     }
@@ -572,37 +591,49 @@ mod tests {
     }
 
     #[test]
-    fn test_constraint_clear_grid() {
-        let constraint = LevelConstraintTrait::clear_grid();
+    fn test_constraint_keep_grid_below() {
+        let constraint = LevelConstraintTrait::keep_grid_below_with_cap(8);
 
-        // Not satisfied at 0
-        assert!(!constraint.is_satisfied(0, false), "Should not be satisfied at 0");
+        // Satisfied initially (not breached yet)
+        assert!(constraint.is_satisfied(0, false), "Should be satisfied before breach");
 
-        // Grid not empty
+        // 7 filled rows (below cap) keeps it valid
         let ctx = ConstraintContext {
             lines_cleared: 5,
             combo_counter: 0,
             highest_row_before: 3,
-            highest_row_after: 1,
+            highest_row_after: 6,
             grid_is_empty: false,
             blocks_destroyed_of_target_size: 0,
         };
         let progress = constraint.update_progress(0, ctx);
-        assert!(progress == 0, "Grid not empty, no progress");
+        assert!(progress == 0, "Below-cap grid should keep constraint valid");
 
-        // Grid empty
+        // 8 filled rows (at cap) breaches the constraint
         let ctx2 = ConstraintContext {
-            lines_cleared: 5,
+            lines_cleared: 0,
             combo_counter: 0,
-            highest_row_before: 3,
-            highest_row_after: 0,
-            grid_is_empty: true,
+            highest_row_before: 7,
+            highest_row_after: 7,
+            grid_is_empty: false,
             blocks_destroyed_of_target_size: 0,
         };
         let progress2 = constraint.update_progress(0, ctx2);
-        assert!(progress2 == 1, "Grid empty should trigger");
+        assert!(progress2 == 1, "At-cap grid should breach");
 
-        assert!(constraint.is_satisfied(1, false), "Should be satisfied at 1");
+        // Once breached, it stays breached
+        let ctx3 = ConstraintContext {
+            lines_cleared: 0,
+            combo_counter: 0,
+            highest_row_before: 7,
+            highest_row_after: 2,
+            grid_is_empty: false,
+            blocks_destroyed_of_target_size: 0,
+        };
+        let progress3 = constraint.update_progress(progress2, ctx3);
+        assert!(progress3 == 1, "Breach should be sticky");
+
+        assert!(!constraint.is_satisfied(1, false), "Breached keep-grid-below should fail");
     }
 
     #[test]
@@ -613,7 +644,7 @@ mod tests {
         let combo: u8 = ConstraintType::ComboStreak.into();
         let fill: u8 = ConstraintType::FillAndClear.into();
         let no_bonus: u8 = ConstraintType::NoBonusUsed.into();
-        let clear_grid: u8 = ConstraintType::ClearGrid.into();
+        let keep_grid_below: u8 = ConstraintType::KeepGridBelow.into();
 
         assert!(none == 0, "None should be 0");
         assert!(clear == 1, "ComboLines should be 1");
@@ -621,7 +652,7 @@ mod tests {
         assert!(combo == 3, "ComboStreak should be 3");
         assert!(fill == 4, "FillAndClear should be 4");
         assert!(no_bonus == 5, "NoBonusUsed should be 5");
-        assert!(clear_grid == 6, "ClearGrid should be 6");
+        assert!(keep_grid_below == 6, "KeepGridBelow should be 6");
 
         let none_back: ConstraintType = 0_u8.into();
         let clear_back: ConstraintType = 1_u8.into();
@@ -629,7 +660,7 @@ mod tests {
         let combo_back: ConstraintType = 3_u8.into();
         let fill_back: ConstraintType = 4_u8.into();
         let no_bonus_back: ConstraintType = 5_u8.into();
-        let clear_grid_back: ConstraintType = 6_u8.into();
+        let keep_grid_below_back: ConstraintType = 6_u8.into();
 
         assert!(none_back == ConstraintType::None, "Should convert back to None");
         assert!(clear_back == ConstraintType::ComboLines, "Should convert back to ComboLines");
@@ -637,7 +668,10 @@ mod tests {
         assert!(combo_back == ConstraintType::ComboStreak, "Should convert back to ComboStreak");
         assert!(fill_back == ConstraintType::FillAndClear, "Should convert back to FillAndClear");
         assert!(no_bonus_back == ConstraintType::NoBonusUsed, "Should convert back to NoBonusUsed");
-        assert!(clear_grid_back == ConstraintType::ClearGrid, "Should convert back to ClearGrid");
+        assert!(
+            keep_grid_below_back == ConstraintType::KeepGridBelow,
+            "Should convert back to KeepGridBelow",
+        );
     }
 
     #[test]
@@ -668,6 +702,9 @@ mod tests {
             !LevelConstraintTrait::fill_and_clear(7, 2).is_boss_only(), "Fill is not boss-only",
         );
         assert!(LevelConstraintTrait::no_bonus().is_boss_only(), "NoBonusUsed is boss-only");
-        assert!(LevelConstraintTrait::clear_grid().is_boss_only(), "ClearGrid is boss-only");
+        assert!(
+            LevelConstraintTrait::keep_grid_below().is_boss_only(),
+            "KeepGridBelow is boss-only",
+        );
     }
 }

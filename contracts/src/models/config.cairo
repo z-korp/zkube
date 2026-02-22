@@ -128,21 +128,11 @@ pub mod GameSettingsDefaults {
     pub const CONSTRAINT_START_LEVEL: u8 = 3; // Constraints start at level 3
 
     // Constraint Distribution (VeryEasy to Master scaling) - Individual defaults
-    // These get packed into constraint_lines_budgets and constraint_chances
-    // Line ranges
-    pub const VERYEASY_MIN_LINES: u8 = 2; // Min 2 lines at VeryEasy
-    pub const MASTER_MIN_LINES: u8 = 4; // Min 4 lines at Master
-    pub const VERYEASY_MAX_LINES: u8 = 2; // Only 2 lines early (trivial)
-    pub const MASTER_MAX_LINES: u8 = 6; // Up to 6 lines at Master
-    // Weighted budget system: times_cap = budget / line_cost(lines)
-    // Line costs: 2->1, 3->2, 4->4, 5->7, 6->11, 7->16
-    pub const VERYEASY_BUDGET_MIN: u8 = 1; // Min budget early (1 = "2 lines x 1 time")
-    pub const VERYEASY_BUDGET_MAX: u8 = 3; // Max ~"2 lines × 2-3 times" at VeryEasy
-    pub const MASTER_BUDGET_MIN: u8 = 32; // Hard floor at Master
-    pub const MASTER_BUDGET_MAX: u8 = 40; // Allows 6×3, 5×5, 4×10 at Master
-    // Times floor (soft minimum)
-    pub const VERYEASY_MIN_TIMES: u8 = 1; // At least 1 time
-    pub const MASTER_MIN_TIMES: u8 = 2; // At least 2 times at Master
+    // constraint_lines_budgets legacy layout is preserved, but line/times fields are deprecated
+    // and no longer enforced by generation.
+    // Weighted budget system (budget min is derived from budget max)
+    pub const VERYEASY_BUDGET_MAX: u8 = 0; // No regular constraints at VeryEasy
+    pub const MASTER_BUDGET_MAX: u8 = 80; // Wider ceiling for endgame variety
     // Constraint count range (DEPRECATED — constraint counts are now hardcoded per tier in
     // level.cairo)
     // These fields kept for packed model layout compatibility but are no longer read.
@@ -155,19 +145,21 @@ pub mod GameSettingsDefaults {
     // constraint_lines_budgets packing: lines(4x4) + budgets(4x8) + times(2x4) = 56 bits
     pub fn DEFAULT_CONSTRAINT_LINES_BUDGETS() -> u64 {
         let mut packed: u64 = 0;
-        // Lines (4 bits each)
-        packed = packed | (VERYEASY_MIN_LINES.into() & 0xF); // bits 0-3
-        packed = packed | ((MASTER_MIN_LINES.into() & 0xF) * 0x10); // bits 4-7
-        packed = packed | ((VERYEASY_MAX_LINES.into() & 0xF) * 0x100); // bits 8-11
-        packed = packed | ((MASTER_MAX_LINES.into() & 0xF) * 0x1000); // bits 12-15
+        // Lines (4 bits each) - deprecated, set to zero
+        packed = packed | (0_u64 & 0xF); // bits 0-3
+        packed = packed | ((0_u64 & 0xF) * 0x10); // bits 4-7
+        packed = packed | ((0_u64 & 0xF) * 0x100); // bits 8-11
+        packed = packed | ((0_u64 & 0xF) * 0x1000); // bits 12-15
         // Budgets (8 bits each)
-        packed = packed | (VERYEASY_BUDGET_MIN.into() * 0x10000); // bits 16-23
+        let veryeasy_budget_min: u16 = (VERYEASY_BUDGET_MAX.into() * 70 + 99) / 100;
+        packed = packed | (veryeasy_budget_min.into() * 0x10000); // bits 16-23
         packed = packed | (VERYEASY_BUDGET_MAX.into() * 0x1000000); // bits 24-31
-        packed = packed | (MASTER_BUDGET_MIN.into() * 0x100000000); // bits 32-39
+        let master_budget_min: u16 = (MASTER_BUDGET_MAX.into() * 70 + 99) / 100;
+        packed = packed | (master_budget_min.into() * 0x100000000); // bits 32-39
         packed = packed | (MASTER_BUDGET_MAX.into() * 0x10000000000); // bits 40-47
-        // Times (4 bits each)
-        packed = packed | ((VERYEASY_MIN_TIMES.into() & 0xF) * 0x1000000000000); // bits 48-51
-        packed = packed | ((MASTER_MIN_TIMES.into() & 0xF) * 0x10000000000000); // bits 52-55
+        // Times (4 bits each) - deprecated, set to zero
+        packed = packed | ((0_u64 & 0xF) * 0x1000000000000); // bits 48-51
+        packed = packed | ((0_u64 & 0xF) * 0x10000000000000); // bits 52-55
         packed
     }
 
@@ -416,28 +408,25 @@ pub impl GameSettingsImpl of GameSettingsTrait {
 
         // Unpack the constraint values
         let (
-            veryeasy_min_lines,
-            master_min_lines,
-            veryeasy_max_lines,
-            master_max_lines,
-            veryeasy_budget_min,
+            _veryeasy_min_lines,
+            _master_min_lines,
+            _veryeasy_max_lines,
+            _master_max_lines,
+            _veryeasy_budget_min,
             veryeasy_budget_max,
-            master_budget_min,
+            _master_budget_min,
             master_budget_max,
-            veryeasy_min_times,
-            master_min_times,
-        ) =
-            self
-            .unpack_lines_budgets();
+            _veryeasy_min_times,
+            _master_min_times,
+        ) = self.unpack_lines_budgets();
 
-        // Interpolate each parameter from veryeasy (0) to master (7)
-        let min_lines = Self::interpolate(veryeasy_min_lines, master_min_lines, diff_value, 7);
-        let max_lines = Self::interpolate(veryeasy_max_lines, master_max_lines, diff_value, 7);
-        let budget_min = Self::interpolate(veryeasy_budget_min, master_budget_min, diff_value, 7);
+        // Budget is the only active lever for constraint generation.
         let budget_max = Self::interpolate(veryeasy_budget_max, master_budget_max, diff_value, 7);
-        let min_times = Self::interpolate(veryeasy_min_times, master_min_times, diff_value, 7);
+        let budget_min_raw: u16 = budget_max.into() * 70;
+        let budget_min: u8 = ((budget_min_raw + 99) / 100).try_into().unwrap();
 
-        (min_lines, max_lines, budget_min, budget_max, min_times)
+        // Legacy return slots (min_lines, max_lines, min_times) are deprecated.
+        (0, 0, budget_min, budget_max, 0)
     }
 
     /// Get block weights interpolated for a given difficulty
@@ -483,54 +472,30 @@ pub impl GameSettingsImpl of GameSettingsTrait {
     /// Validate all settings invariants
     /// Returns true if all invariants hold, false otherwise
     fn validate(self: GameSettings) -> bool {
-        // Unpack constraint values for validation
+        // Unpack constraint values for validation (line/times slots are deprecated)
         let (
-            veryeasy_min_lines,
-            master_min_lines,
-            veryeasy_max_lines,
-            master_max_lines,
-            veryeasy_budget_min,
+            _veryeasy_min_lines,
+            _master_min_lines,
+            _veryeasy_max_lines,
+            _master_max_lines,
+            _veryeasy_budget_min_raw,
             veryeasy_budget_max,
-            master_budget_min,
+            _master_budget_min_raw,
             master_budget_max,
-            veryeasy_min_times,
-            master_min_times,
-        ) =
-            self
-            .unpack_lines_budgets();
+            _veryeasy_min_times,
+            _master_min_times,
+        ) = self.unpack_lines_budgets();
 
-        // Lines constraints: min <= max
-        if veryeasy_min_lines > veryeasy_max_lines {
+        // Budget constraints: derived min <= max, with non-zero ceiling at Master.
+        let veryeasy_budget_min: u16 = (veryeasy_budget_max.into() * 70 + 99) / 100;
+        let master_budget_min: u16 = (master_budget_max.into() * 70 + 99) / 100;
+        if veryeasy_budget_min > veryeasy_budget_max.into() {
             return false;
         }
-        if master_min_lines > master_max_lines {
+        if master_budget_min > master_budget_max.into() {
             return false;
         }
-
-        // Budget constraints: min <= max
-        if veryeasy_budget_min > veryeasy_budget_max {
-            return false;
-        }
-        if master_budget_min > master_budget_max {
-            return false;
-        }
-
-        // Feasibility: budget_min must allow at least 1 time with min_lines
-        // Line costs: 2->1, 3->2, 4->4, 5->7, 6->11, 7->16
-        let veryeasy_min_cost = Self::line_cost(veryeasy_min_lines);
-        let master_min_cost = Self::line_cost(master_min_lines);
-        if veryeasy_budget_min < veryeasy_min_cost {
-            return false;
-        }
-        if master_budget_min < master_min_cost {
-            return false;
-        }
-
-        // Feasibility: budget_max must allow min_times with min_lines
-        if veryeasy_budget_max < veryeasy_min_cost * veryeasy_min_times {
-            return false;
-        }
-        if master_budget_max < master_min_cost * master_min_times {
+        if master_budget_max == 0 {
             return false;
         }
 
@@ -605,77 +570,34 @@ pub impl GameSettingsImpl of GameSettingsTrait {
         true
     }
 
-    /// Helper function to get line cost for validation
-    /// Line costs: 2->1, 3->2, 4->4, 5->7, 6->11, 7->16
-    fn line_cost(lines: u8) -> u8 {
-        match lines {
-            0 | 1 | 2 => 1,
-            3 => 2,
-            4 => 4,
-            5 => 7,
-            6 => 11,
-            7 => 16,
-            _ => 20,
-        }
-    }
-
     /// Assert all settings invariants hold, panics with descriptive message if not
     fn assert_valid(self: GameSettings) {
-        // Unpack constraint values for validation
+        // Unpack constraint values for validation (line/times slots are deprecated)
         let (
-            veryeasy_min_lines,
-            master_min_lines,
-            veryeasy_max_lines,
-            master_max_lines,
-            veryeasy_budget_min,
+            _veryeasy_min_lines,
+            _master_min_lines,
+            _veryeasy_max_lines,
+            _master_max_lines,
+            _veryeasy_budget_min_raw,
             veryeasy_budget_max,
-            master_budget_min,
+            _master_budget_min_raw,
             master_budget_max,
-            veryeasy_min_times,
-            master_min_times,
-        ) =
-            self
-            .unpack_lines_budgets();
+            _veryeasy_min_times,
+            _master_min_times,
+        ) = self.unpack_lines_budgets();
 
-        // Lines constraints
-        assert!(
-            veryeasy_min_lines <= veryeasy_max_lines,
-            "veryeasy_min_lines must be <= veryeasy_max_lines",
-        );
-        assert!(
-            master_min_lines <= master_max_lines, "master_min_lines must be <= master_max_lines",
-        );
+        let veryeasy_budget_min: u16 = (veryeasy_budget_max.into() * 70 + 99) / 100;
+        let master_budget_min: u16 = (master_budget_max.into() * 70 + 99) / 100;
 
-        // Budget constraints
         assert!(
-            veryeasy_budget_min <= veryeasy_budget_max,
-            "veryeasy_budget_min must be <= veryeasy_budget_max",
+            veryeasy_budget_min <= veryeasy_budget_max.into(),
+            "derived veryeasy_budget_min must be <= veryeasy_budget_max",
         );
         assert!(
-            master_budget_min <= master_budget_max,
-            "master_budget_min must be <= master_budget_max",
+            master_budget_min <= master_budget_max.into(),
+            "derived master_budget_min must be <= master_budget_max",
         );
-
-        // Feasibility: budget_min must allow at least 1 time with min_lines
-        let veryeasy_min_cost = Self::line_cost(veryeasy_min_lines);
-        let master_min_cost = Self::line_cost(master_min_lines);
-        assert!(
-            veryeasy_budget_min >= veryeasy_min_cost,
-            "veryeasy_budget_min must allow at least 1 time",
-        );
-        assert!(
-            master_budget_min >= master_min_cost, "master_budget_min must allow at least 1 time",
-        );
-
-        // Feasibility: budget_max must allow min_times with min_lines
-        assert!(
-            veryeasy_budget_max >= veryeasy_min_cost * veryeasy_min_times,
-            "veryeasy_budget_max must allow veryeasy_min_times",
-        );
-        assert!(
-            master_budget_max >= master_min_cost * master_min_times,
-            "master_budget_max must allow master_min_times",
-        );
+        assert!(master_budget_max > 0, "master_budget_max must be > 0");
 
         // Level scaling
         assert!(self.base_moves <= self.max_moves, "base_moves must be <= max_moves");
@@ -978,28 +900,29 @@ mod tests {
 
         // Test VeryEasy difficulty (tier 0)
         // Returns (min_lines, max_lines, budget_min, budget_max, min_times)
+        // Legacy slots min_lines/max_lines/min_times are deprecated and returned as zero.
         let (min_l, max_l, budget_min, budget_max, min_t) = settings
             .get_constraint_params_for_difficulty(Difficulty::VeryEasy);
-        assert!(min_l == 2, "VeryEasy min_lines should be 2");
-        assert!(max_l == 2, "VeryEasy max_lines should be 2");
-        assert!(budget_min == 1, "VeryEasy budget_min should be 1");
-        assert!(budget_max == 3, "VeryEasy budget_max should be 3");
-        assert!(min_t == 1, "VeryEasy min_times should be 1");
+        assert!(min_l == 0, "VeryEasy min_lines should be deprecated to 0");
+        assert!(max_l == 0, "VeryEasy max_lines should be deprecated to 0");
+        assert!(budget_min == 0, "VeryEasy budget_min should be derived to 0");
+        assert!(budget_max == 0, "VeryEasy budget_max should be 0");
+        assert!(min_t == 0, "VeryEasy min_times should be deprecated to 0");
 
         // Test Master difficulty (tier 7)
         let (min_l, max_l, budget_min, budget_max, min_t) = settings
             .get_constraint_params_for_difficulty(Difficulty::Master);
-        assert!(min_l == 4, "Master min_lines should be 4");
-        assert!(max_l == 6, "Master max_lines should be 6");
-        assert!(budget_min == 32, "Master budget_min should be 32");
-        assert!(budget_max == 40, "Master budget_max should be 40");
-        assert!(min_t == 2, "Master min_times should be 2");
+        assert!(min_l == 0, "Master min_lines should be deprecated to 0");
+        assert!(max_l == 0, "Master max_lines should be deprecated to 0");
+        assert!(budget_min == 56, "Master budget_min should be derived to 56");
+        assert!(budget_max == 80, "Master budget_max should be 80");
+        assert!(min_t == 0, "Master min_times should be deprecated to 0");
 
         // Test mid-difficulty (Hard = tier 4/7)
         let (_min_l, _max_l, budget_min, _budget_max, _min_t) = settings
             .get_constraint_params_for_difficulty(Difficulty::Hard);
-        // budget_min: 1 -> 32 at position 4/7 = 1 + (31*4/7) = 1 + 17 = 18
-        assert!(budget_min >= 16 && budget_min <= 20, "Hard budget_min should be around 18");
+        // Hard budget_max interpolates around 45, then budget_min is ceil(45*0.7) = 32
+        assert!(budget_min == 32, "Hard budget_min should be derived to 32");
     }
 
     #[test]
@@ -1022,16 +945,16 @@ mod tests {
             settings
             .unpack_lines_budgets();
 
-        assert!(veryeasy_min_lines == 2, "VeryEasy min lines should be 2");
-        assert!(master_min_lines == 4, "Master min lines should be 4");
-        assert!(veryeasy_max_lines == 2, "VeryEasy max lines should be 2");
-        assert!(master_max_lines == 6, "Master max lines should be 6");
-        assert!(veryeasy_budget_min == 1, "VeryEasy budget_min should be 1");
-        assert!(veryeasy_budget_max == 3, "VeryEasy budget_max should be 3");
-        assert!(master_budget_min == 32, "Master budget_min should be 32");
-        assert!(master_budget_max == 40, "Master budget_max should be 40");
-        assert!(veryeasy_min_times == 1, "VeryEasy min times should be 1");
-        assert!(master_min_times == 2, "Master min times should be 2");
+        assert!(veryeasy_min_lines == 0, "VeryEasy min lines should be deprecated to 0");
+        assert!(master_min_lines == 0, "Master min lines should be deprecated to 0");
+        assert!(veryeasy_max_lines == 0, "VeryEasy max lines should be deprecated to 0");
+        assert!(master_max_lines == 0, "Master max lines should be deprecated to 0");
+        assert!(veryeasy_budget_min == 0, "VeryEasy budget_min should be derived to 0");
+        assert!(veryeasy_budget_max == 0, "VeryEasy budget_max should be 0");
+        assert!(master_budget_min == 56, "Master budget_min should be derived to 56");
+        assert!(master_budget_max == 80, "Master budget_max should be 80");
+        assert!(veryeasy_min_times == 0, "VeryEasy min times should be deprecated to 0");
+        assert!(master_min_times == 0, "Master min times should be deprecated to 0");
     }
 
     #[test]

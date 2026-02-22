@@ -451,20 +451,6 @@ mod config_system {
 
     #[generate_trait]
     impl InternalImpl of InternalTrait {
-        /// Helper function to get line cost for validation
-        /// Line costs: 2->1, 3->2, 4->4, 5->7, 6->11, 7->16
-        fn _line_cost(lines: u8) -> u8 {
-            match lines {
-                0 | 1 | 2 => 1,
-                3 => 2,
-                4 => 4,
-                5 => 7,
-                6 => 11,
-                7 => 16,
-                _ => 20,
-            }
-        }
-
         /// Unpack constraint_lines_budgets field
         fn _unpack_lines_budgets(packed: u64) -> (u8, u8, u8, u8, u8, u8, u8, u8, u8, u8) {
             let veryeasy_min_lines: u8 = (packed & 0xF).try_into().unwrap();
@@ -574,16 +560,16 @@ mod config_system {
 
             // Unpack constraint values for validation
             let (
-                veryeasy_min_lines,
-                master_min_lines,
-                veryeasy_max_lines,
-                master_max_lines,
-                veryeasy_budget_min,
+                _veryeasy_min_lines,
+                _master_min_lines,
+                _veryeasy_max_lines,
+                _master_max_lines,
+                _veryeasy_budget_min_raw,
                 veryeasy_budget_max,
-                master_budget_min,
+                _master_budget_min_raw,
                 master_budget_max,
-                veryeasy_min_times,
-                master_min_times,
+                _veryeasy_min_times,
+                _master_min_times,
             ) =
                 Self::_unpack_lines_budgets(
                 constraint_lines_budgets,
@@ -598,50 +584,18 @@ mod config_system {
                 constraint_chances,
             );
 
-            // Validate constraint distribution - lines
-            assert!(veryeasy_min_lines >= 2, "VeryEasy min lines must be >= 2");
-            assert!(veryeasy_max_lines <= 10, "VeryEasy max lines must be <= 10");
+            // Budget-only constraint model: budget_min is derived from budget_max (70% ceil).
+            assert!(master_budget_max > 0, "Master budget_max must be > 0");
+            let veryeasy_budget_min: u16 = (veryeasy_budget_max.into() * 70 + 99) / 100;
+            let master_budget_min: u16 = (master_budget_max.into() * 70 + 99) / 100;
             assert!(
-                veryeasy_min_lines <= veryeasy_max_lines, "VeryEasy min lines must be <= max lines",
-            );
-            assert!(master_min_lines >= 2, "Master min lines must be >= 2");
-            assert!(master_max_lines <= 10, "Master max lines must be <= 10");
-            assert!(master_min_lines <= master_max_lines, "Master min lines must be <= max lines");
-
-            // Validate constraint distribution - budget
-            assert!(
-                veryeasy_budget_min <= veryeasy_budget_max,
-                "VeryEasy budget_min must be <= budget_max",
+                veryeasy_budget_min <= veryeasy_budget_max.into(),
+                "Derived VeryEasy budget_min must be <= budget_max",
             );
             assert!(
-                master_budget_min <= master_budget_max, "Master budget_min must be <= budget_max",
+                master_budget_min <= master_budget_max.into(),
+                "Derived Master budget_min must be <= budget_max",
             );
-
-            // Feasibility: budget_min must allow at least 1 time with min_lines
-            let veryeasy_min_cost = Self::_line_cost(veryeasy_min_lines);
-            let master_min_cost = Self::_line_cost(master_min_lines);
-            assert!(
-                veryeasy_budget_min >= veryeasy_min_cost,
-                "VeryEasy budget_min must allow at least 1 time",
-            );
-            assert!(
-                master_budget_min >= master_min_cost,
-                "Master budget_min must allow at least 1 time",
-            );
-
-            // Feasibility: budget_max must allow min_times with min_lines
-            assert!(
-                veryeasy_budget_max >= veryeasy_min_cost * veryeasy_min_times,
-                "VeryEasy budget_max must allow min_times",
-            );
-            assert!(
-                master_budget_max >= master_min_cost * master_min_times,
-                "Master budget_max must allow min_times",
-            );
-
-            // Validate times floor
-            assert!(veryeasy_min_times >= 1, "VeryEasy min times must be >= 1");
-            assert!(master_min_times >= 1, "Master min times must be >= 1");
 
             // Validate dual chance and secondary no bonus chance
             assert!(veryeasy_dual_chance <= 100, "VeryEasy dual chance must be <= 100");

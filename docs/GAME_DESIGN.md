@@ -190,7 +190,7 @@ When creating a game, players select exactly 3 of the 5 bonus types:
 | 3 | **AchieveCombo** | Combo target to reach | 1 (one-shot) | ✅ | ✅ |
 | 4 | **Fill** | Row height target (after resolve) | How many times | ✅ | ✅ |
 | 5 | **NoBonusUsed** | 0 | 0 | ❌ | ✅ |
-| 6 | **ClearGrid** | 0 | 1 (one-shot) | ❌ | ✅ |
+| 6 | **KeepGridBelow** | Keep grid below cap (6/7/8) | 1 (breach flag) | ❌ | ✅ |
 
 *Note: Fill is stored as `FillAndClear` in code for ABI stability.*
 
@@ -244,11 +244,11 @@ Selected by `derive_boss_id(level_seed) % 10 + 1`:
 | # | Boss | Core Pair (L10-30) | Third Constraint (L40/50) |
 |---|------|--------------------|---------------------------|
 | 1 | Combo Master | ClearLines + AchieveCombo | NoBonusUsed |
-| 2 | Demolisher | BreakBlocks + ClearLines | ClearGrid |
+| 2 | Demolisher | BreakBlocks + ClearLines | KeepGridBelow |
 | 3 | Daredevil | Fill + AchieveCombo | ClearLines |
 | 4 | Purist | NoBonusUsed + ClearLines | AchieveCombo |
 | 5 | Harvester | BreakBlocks + AchieveCombo | Fill |
-| 6 | Tidal | ClearGrid + ClearLines | BreakBlocks |
+| 6 | Tidal | KeepGridBelow + ClearLines | BreakBlocks |
 | 7 | Stacker | Fill + ClearLines | BreakBlocks |
 | 8 | Surgeon | BreakBlocks + Fill | NoBonusUsed |
 | 9 | Ascetic | NoBonusUsed + AchieveCombo | Fill |
@@ -257,7 +257,7 @@ Selected by `derive_boss_id(level_seed) % 10 + 1`:
 **Constraint progression:**
 - L10/20/30: Dual constraints (core pair), generated at budget_max
 - L40/50: Triple constraints (core pair + third), generated at budget_max
-- NoBonusUsed and ClearGrid are binary (no budget needed)
+- NoBonusUsed and KeepGridBelow are binary (no budget needed)
 
 ---
 

@@ -43,7 +43,7 @@
     { "filename": "constraint-combo.png", "description": "A chain of three interlocking flame rings stacked vertically, vibrant orange and hot pink with yellow cores" },
     { "filename": "constraint-fill.png", "description": "A grid of blocks being pushed upward by rising arrows, vibrant green and lime with white arrow tips" },
     { "filename": "constraint-no-bonus.png", "description": "A crossed-out magic wand inside a prohibition circle, vibrant red circle and slash over a grey-blue wand with dim sparkles" },
-    { "filename": "constraint-clear-grid.png", "description": "An empty grid frame with a sweeping broom and sparkle trail clearing all blocks away, vibrant white and gold sweep with clean blue grid" }
+    { "filename": "constraint-keep-grid-below.png", "description": "A horizontal warning cap line across a grid with a downward chevron, showing stacked blocks staying below the line, vibrant cyan grid with amber caution line and subtle glow" }
   ],
   "uiChrome": [
     { "filename": "hud-bar.png", "description": "A wide horizontal bar for displaying game stats (score, level, moves). Dark semi-transparent with subtle ornate borders on top and bottom edges. Fantasy/tribal style.", "width": 360, "height": 40 },

@@ -691,7 +691,7 @@ No text, no logos.
 | `ConstraintAchieveCombo` | `common/constraints/achieve-combo.png` | 128×128 | ❌ |
 | `ConstraintFillAndClear` | `common/constraints/fill-and-clear.png` | 128×128 | ❌ |
 | `ConstraintNoBonusUsed` | `common/constraints/no-bonus-used.png` | 128×128 | ❌ |
-| `ConstraintClearGrid` | `common/constraints/clear-grid.png` | 128×128 | ❌ |
+| `ConstraintKeepGridBelow` | `common/constraints/constraint-keep-grid-below.png` | 128×128 | ✅ |
 
 **Generation**: 6 images (None = no icon). Config: 1:1, 1K, resize to 128×128.
 
@@ -702,7 +702,7 @@ No text, no logos.
 | AchieveCombo | Interlocking chain links with lightning spark at junction |
 | FillAndClear | Upward arrow reaching a horizontal target/goal line |
 | NoBonusUsed | A star shape with a diagonal line through it (prohibition) |
-| ClearGrid | An empty grid outline with sparkle/clean sweep marks |
+| KeepGridBelow | A grid with a highlighted cap line and warning marker above it |
 
 **Prompt**:
 ```

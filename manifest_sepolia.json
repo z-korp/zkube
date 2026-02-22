@@ -48,7 +48,7 @@
     },
     {
       "address": "0x74d571a400af104a2b8786730aa32c3dc5d9b6acda88aacb2c082f740c355db",
-      "class_hash": "0x6c154e32c8bed2759ff226c2e5cbdc4cca048f51738fdeef0ca3fccad43b589",
+      "class_hash": "0x30b2f2d1b6d9a7a828e76f90bdf157d3f21452d08364a4dc60e4b622c38173e",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-bonus_system",
       "selector": "0x7ddae8715adf015ed6b5c712f7e3a5c01fe157aac2a2f1d42270deca60c5382",
@@ -115,7 +115,7 @@
     },
     {
       "address": "0x7f0d94d80899957abdc2069663dfacdabc468b3c6afec843b7f151f281a3116",
-      "class_hash": "0x10b3f28b1ba2531c0c1f318886fb173496810f45969196621e6e7c7a2587af0",
+      "class_hash": "0x4f8a5f3a5500ef4dcc9064c92bf33c81ef7c273d2c73670696c7792940da980",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-grid_system",
       "selector": "0x5ff6ef4a16262e788060768405b1310e3a5903dda6cf016268cf4453d31eec",
@@ -131,7 +131,7 @@
     },
     {
       "address": "0x7422946b59c7fa198adf5df5a2a68bda3881a25c74ef0adf8b225af11ce3482",
-      "class_hash": "0x2d9ec247203fff8b864b25badd4bb70a28ff195c8b9418eb440896c6d73bbb9",
+      "class_hash": "0x4a23562d56026b39f7f14b4dd3dcb4ffcf6f2c469b40f953bc8e8d365959cb7",
       "init_calldata": [],
       "tag": "zkube_budo_v1_2_0-level_system",
       "selector": "0xc087c6629c3c13d06cab85b37e88683bcffe82e8123eedbd704ff85463a0a5",
@@ -7759,7 +7759,7 @@
           "type": "()"
         },
         {
-          "name": "ClearGrid",
+                "name": "KeepGridBelow",
           "type": "()"
         }
       ]

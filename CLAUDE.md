@@ -190,12 +190,12 @@ Clearing multiple lines in one move awards bonus cubes:
 
 ### Constraint System
 
-7 constraint types (None, ClearLines, BreakBlocks, AchieveCombo, Fill, NoBonusUsed, ClearGrid):
+7 constraint types (None, ClearLines, BreakBlocks, AchieveCombo, Fill, NoBonusUsed, KeepGridBelow):
 - **Unified budget system:** All 4 regular types (ClearLines, BreakBlocks, Fill, AchieveCombo) generated from same budget engine
 - **Regular levels (3+):** Type selected by difficulty-weighted probabilities, values from budget
 - **Boss levels (10/20/30/40/50):** Boss identity = which types, budget_max = values
 - **Boss progression:** Dual constraints at L10-30, triple at L40/50
-- **Boss-only types:** NoBonusUsed and ClearGrid only appear on boss levels (binary, no budget)
+- **Boss-only types:** NoBonusUsed and KeepGridBelow only appear on boss levels (binary, no budget)
 - **Fill constraint:** Triggers when grid height after move resolves reaches target row
 - 10 boss identities defined in `contracts/src/helpers/boss.cairo`
 

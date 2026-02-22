@@ -43,7 +43,7 @@ const CONSTRAINT_ICON_MAP: Record<ConstraintType, string | null> = {
   [ConstraintType.ComboStreak]: getCommonAssetPath("constraints/constraint-combo.png"),
   [ConstraintType.FillAndClear]: getCommonAssetPath("constraints/constraint-fill.png"),
   [ConstraintType.NoBonusUsed]: getCommonAssetPath("constraints/constraint-no-bonus.png"),
-  [ConstraintType.ClearGrid]: getCommonAssetPath("constraints/constraint-clear-grid.png"),
+  [ConstraintType.KeepGridBelow]: getCommonAssetPath("constraints/constraint-keep-grid-below.png"),
   [ConstraintType.None]: null,
 };
 
@@ -62,6 +62,9 @@ const getConstraintColor = (
   if (type === ConstraintType.NoBonusUsed) {
     return bonusUsed ? "red" : "green";
   }
+  if (type === ConstraintType.KeepGridBelow) {
+    return progress >= 1 ? "red" : "green";
+  }
   if (progress >= count) return "green";
   if (progress > 0) return "orange";
   return "blue";
@@ -75,6 +78,9 @@ const getConstraintProgress = (
 ): number => {
   if (type === ConstraintType.NoBonusUsed) {
     return bonusUsed ? 0 : 1;
+  }
+  if (type === ConstraintType.KeepGridBelow) {
+    return progress >= 1 ? 0 : 1;
   }
   return count > 0 ? progress / count : 0;
 };
@@ -93,6 +99,8 @@ const getValueBadge = (
       return `${value}x`;
     case ConstraintType.FillAndClear:
       return `R${value}`;
+    case ConstraintType.KeepGridBelow:
+      return `<${value}`;
     default:
       return undefined;
   }
@@ -104,7 +112,7 @@ const getProgressBadge = (
   progress: number,
   count: number,
 ): string | undefined => {
-  if (type === ConstraintType.NoBonusUsed || type === ConstraintType.ClearGrid) {
+  if (type === ConstraintType.NoBonusUsed || type === ConstraintType.KeepGridBelow) {
     return undefined;
   }
   return `${progress}/${count}`;

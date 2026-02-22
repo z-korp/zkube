@@ -45,11 +45,11 @@ pub fn get_boss_identity(boss_id: u8) -> BossIdentity {
             tertiary_type: ConstraintType::NoBonusUsed,
         },
         2 => BossIdentity {
-            // Demolisher: BreakBlocks + ComboLines + ClearGrid
+            // Demolisher: BreakBlocks + ComboLines + KeepGridBelow
             id: 2,
             primary_type: ConstraintType::BreakBlocks,
             secondary_type: ConstraintType::ComboLines,
-            tertiary_type: ConstraintType::ClearGrid,
+            tertiary_type: ConstraintType::KeepGridBelow,
         },
         3 => BossIdentity {
             // Daredevil: Fill + ComboStreak + ComboLines
@@ -73,9 +73,9 @@ pub fn get_boss_identity(boss_id: u8) -> BossIdentity {
             tertiary_type: ConstraintType::FillAndClear,
         },
         6 => BossIdentity {
-            // Tidal: ClearGrid + ComboLines + BreakBlocks
+            // Tidal: KeepGridBelow + ComboLines + BreakBlocks
             id: 6,
-            primary_type: ConstraintType::ClearGrid,
+            primary_type: ConstraintType::KeepGridBelow,
             secondary_type: ConstraintType::ComboLines,
             tertiary_type: ConstraintType::BreakBlocks,
         },
@@ -124,21 +124,37 @@ pub fn derive_boss_id(seed: felt252) -> u8 {
     id
 }
 
+/// Get KeepGridBelow cap by boss level.
+/// The constraint is "keep grid below N lines":
+/// - level 10: below 8 lines
+/// - levels 20/30: below 7 lines
+/// - levels 40/50: below 6 lines
+fn keep_grid_below_cap_for_boss_level(level: u8) -> u8 {
+    if level < 20 {
+        8
+    } else if level < 40 {
+        7
+    } else {
+        6
+    }
+}
+
 /// Generate a boss constraint using the unified budget system from level.cairo.
 /// Uses budget_max for the boss's difficulty to create challenging constraints.
-/// NoBonusUsed and ClearGrid are binary — they don't use budget.
+/// NoBonusUsed is binary; KeepGridBelow uses level-scaled cap.
 fn generate_boss_constraint(
-    constraint_type: ConstraintType, budget_max: u8, tier: u8, seed: felt252, points_required: u16,
+    constraint_type: ConstraintType, budget_max: u8, seed: felt252, level: u8,
 ) -> LevelConstraint {
     match constraint_type {
         // Binary constraints: no budget needed
         ConstraintType::NoBonusUsed => LevelConstraintTrait::no_bonus(),
-        ConstraintType::ClearGrid => LevelConstraintTrait::clear_grid(),
+        ConstraintType::KeepGridBelow => {
+            let cap = keep_grid_below_cap_for_boss_level(level);
+            LevelConstraintTrait::keep_grid_below_with_cap(cap)
+        },
         ConstraintType::None => LevelConstraintTrait::none(),
         // Budget-based constraints: use the same generation as regular levels
-        _ => LevelGeneratorTrait::generate_constraint_from_budget(
-            seed, budget_max, constraint_type, tier, points_required,
-        ),
+        _ => LevelGeneratorTrait::generate_constraint_from_budget(seed, budget_max, constraint_type),
     }
 }
 
@@ -169,32 +185,30 @@ pub fn difficulty_to_tier(difficulty: zkube::types::difficulty::Difficulty) -> u
 /// Returns (constraint_1, constraint_2, constraint_3)
 pub fn generate_boss_constraints(
     boss_id: u8,
-    difficulty: zkube::types::difficulty::Difficulty,
+    level: u8,
     seed: felt252,
     budget_max: u8,
-    points_required: u16,
 ) -> (LevelConstraint, LevelConstraint, LevelConstraint) {
     let identity = get_boss_identity(boss_id);
-    let tier = difficulty_to_tier(difficulty);
 
     let seed_u256: u256 = seed.into();
 
     // Generate primary constraint at budget_max
     let primary_seed: felt252 = seed;
     let c1 = generate_boss_constraint(
-        identity.primary_type, budget_max, tier, primary_seed, points_required,
+        identity.primary_type, budget_max, primary_seed, level,
     );
 
     // Generate secondary constraint (different seed segment)
     let secondary_seed: felt252 = (seed_u256 / 10000000).try_into().unwrap();
     let c2 = generate_boss_constraint(
-        identity.secondary_type, budget_max, tier, secondary_seed, points_required,
+        identity.secondary_type, budget_max, secondary_seed, level,
     );
 
     // Tertiary (caller decides when to include it based on level)
     let tertiary_seed: felt252 = (seed_u256 / 100000000000000).try_into().unwrap();
     let c3 = generate_boss_constraint(
-        identity.tertiary_type, budget_max, tier, tertiary_seed, points_required,
+        identity.tertiary_type, budget_max, tertiary_seed, level,
     );
 
     (c1, c2, c3)
@@ -251,7 +265,7 @@ mod tests {
     fn test_generate_boss_constraints_dual() {
         // Boss 1 (Combo Master): ComboLines + ComboStreak + NoBonusUsed
         // Budget_max = 24 (Hard difficulty)
-        let (c1, c2, _c3) = generate_boss_constraints(1, Difficulty::Hard, 'TEST_SEED', 24, 64);
+        let (c1, c2, _c3) = generate_boss_constraints(1, 20, 'TEST_SEED', 24);
 
         assert!(
             c1.constraint_type == ConstraintType::ComboLines, "Boss 1 primary should be ComboLines",
@@ -271,7 +285,7 @@ mod tests {
     fn test_generate_boss_constraints_triple() {
         // Boss 1 triple: ComboLines + ComboStreak + NoBonusUsed
         // Budget_max = 34 (Expert difficulty)
-        let (c1, c2, c3) = generate_boss_constraints(1, Difficulty::Expert, 'TEST_SEED', 34, 90);
+        let (c1, c2, c3) = generate_boss_constraints(1, 40, 'TEST_SEED', 34);
 
         assert!(c1.constraint_type == ConstraintType::ComboLines, "Boss 1 primary");
         assert!(c2.constraint_type == ConstraintType::ComboStreak, "Boss 1 secondary");
@@ -288,22 +302,28 @@ mod tests {
 
     #[test]
     fn test_generate_boss_constraint_none() {
-        let c = generate_boss_constraint(ConstraintType::None, 20, 5, 'SEED', 60);
+        let c = generate_boss_constraint(ConstraintType::None, 20, 'SEED', 20);
         assert!(c.constraint_type == ConstraintType::None, "Should be None");
     }
 
     #[test]
     fn test_generate_boss_constraint_no_bonus() {
-        let c = generate_boss_constraint(ConstraintType::NoBonusUsed, 20, 5, 'SEED', 60);
+        let c = generate_boss_constraint(ConstraintType::NoBonusUsed, 20, 'SEED', 20);
         assert!(c.constraint_type == ConstraintType::NoBonusUsed, "Should be NoBonusUsed");
         assert!(c.value == 0, "NoBonusUsed has no value");
     }
 
     #[test]
-    fn test_generate_boss_constraint_clear_grid() {
-        let c = generate_boss_constraint(ConstraintType::ClearGrid, 20, 5, 'SEED', 60);
-        assert!(c.constraint_type == ConstraintType::ClearGrid, "Should be ClearGrid");
-        assert!(c.required_count == 1, "ClearGrid requires 1");
+    fn test_generate_boss_constraint_keep_grid_below() {
+        let c10 = generate_boss_constraint(ConstraintType::KeepGridBelow, 20, 'SEED', 10);
+        assert!(c10.constraint_type == ConstraintType::KeepGridBelow, "Should be KeepGridBelow");
+        assert!(c10.value == 8, "Level 10 cap should be below 8 lines");
+
+        let c20 = generate_boss_constraint(ConstraintType::KeepGridBelow, 20, 'SEED', 20);
+        assert!(c20.value == 7, "Level 20/30 cap should be below 7 lines");
+
+        let c40 = generate_boss_constraint(ConstraintType::KeepGridBelow, 20, 'SEED', 40);
+        assert!(c40.value == 6, "Level 40/50 cap should be below 6 lines");
     }
 
     #[test]
@@ -311,7 +331,7 @@ mod tests {
         let mut i: u8 = 1;
         while i <= 10 {
             // Budget_max = 24 (Hard difficulty)
-            let (c1, c2, c3) = generate_boss_constraints(i, Difficulty::Hard, 'SEED', 24, 70);
+            let (c1, c2, c3) = generate_boss_constraints(i, 20, 'SEED', 24);
             // All constraints should be valid (non-None for bosses)
             assert!(c1.constraint_type != ConstraintType::None, "Primary should not be None");
             assert!(c2.constraint_type != ConstraintType::None, "Secondary should not be None");
@@ -323,8 +343,8 @@ mod tests {
     #[test]
     fn test_boss_budget_integration() {
         // Verify that budget-based generation produces reasonable values
-        // Boss 2 (Demolisher): BreakBlocks + ComboLines + ClearGrid
-        let (c1, c2, c3) = generate_boss_constraints(2, Difficulty::Master, 'BUDGET_TEST', 40, 110);
+        // Boss 2 (Demolisher): BreakBlocks + ComboLines + KeepGridBelow
+        let (c1, c2, c3) = generate_boss_constraints(2, 50, 'BUDGET_TEST', 80);
 
         assert!(
             c1.constraint_type == ConstraintType::BreakBlocks,
@@ -335,7 +355,8 @@ mod tests {
             "Boss 2 secondary should be ComboLines",
         );
         assert!(
-            c3.constraint_type == ConstraintType::ClearGrid, "Boss 2 tertiary should be ClearGrid",
+            c3.constraint_type == ConstraintType::KeepGridBelow,
+            "Boss 2 tertiary should be KeepGridBelow",
         );
 
         // BreakBlocks at budget 40 should have substantial count
