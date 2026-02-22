@@ -11,11 +11,16 @@ import {
   type NodeState,
 } from "@/hooks/useMapData";
 import { useMapLayout } from "@/hooks/useMapLayout";
-import { getMapPathTheme, getThemeImages, isValidThemeId, type ThemeId } from "@/config/themes";
+import {
+  getMapPathTheme,
+  getThemeImages,
+  isValidThemeId,
+  type ThemeId,
+} from "@/config/themes";
 import { useTheme } from "@/ui/elements/theme-provider/hooks";
 import { useMusicPlayer } from "@/contexts/hooks";
 import { useNavigationStore } from "@/stores/navigationStore";
-import { isInGameShopAvailable } from "@/dojo/game/helpers/runDataPacking";
+import { getDraftEventForCompletedLevel } from "@/utils/draftEvents";
 import PageTopBar from "@/ui/navigation/PageTopBar";
 import LevelPreview from "@/ui/components/map/LevelPreview";
 import LevelCompleteDialog from "@/ui/components/LevelCompleteDialog";
@@ -44,24 +49,31 @@ const STATE_COLORS: Record<
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
-const canOpenPreview = (node: MapNodeData): boolean => node.state !== "locked";
+const canOpenPreview = (node: MapNodeData): boolean =>
+  node.type !== "draft" && node.state !== "locked";
 
 const getPathType = (
   fromState: NodeState,
   toState: NodeState,
 ): "cleared" | "active" | "locked" => {
-  if (fromState === "cleared" && (toState === "cleared" || toState === "visited")) {
+  if (
+    fromState === "cleared" &&
+    (toState === "cleared" || toState === "visited")
+  ) {
     return "cleared";
   }
-  if (fromState === "cleared" && (toState === "current" || toState === "available")) {
+  if (
+    fromState === "cleared" &&
+    (toState === "current" || toState === "available")
+  ) {
     return "active";
   }
   return "locked";
 };
 
 const getLabel = (node: MapNodeData): string => {
-  if (node.type === "shop") {
-    return node.state === "visited" ? "\u2713" : "SHOP";
+  if (node.type === "draft") {
+    return node.state === "visited" ? "\u2713" : "DRAFT";
   }
   if (node.type === "boss") {
     return node.state === "cleared" ? "\u2713" : "\u2605";
@@ -80,10 +92,24 @@ const MapPage: React.FC = () => {
   const navigate = useNavigationStore((state) => state.navigate);
   const goBack = useNavigationStore((state) => state.goBack);
   const gameId = useNavigationStore((state) => state.gameId);
-  const pendingPreviewLevel = useNavigationStore((state) => state.pendingPreviewLevel);
-  const setPendingPreviewLevel = useNavigationStore((state) => state.setPendingPreviewLevel);
-  const pendingLevelCompletion = useNavigationStore((state) => state.pendingLevelCompletion);
-  const setPendingLevelCompletion = useNavigationStore((state) => state.setPendingLevelCompletion);
+  const pendingPreviewLevel = useNavigationStore(
+    (state) => state.pendingPreviewLevel,
+  );
+  const setPendingPreviewLevel = useNavigationStore(
+    (state) => state.setPendingPreviewLevel,
+  );
+  const pendingLevelCompletion = useNavigationStore(
+    (state) => state.pendingLevelCompletion,
+  );
+  const setPendingLevelCompletion = useNavigationStore(
+    (state) => state.setPendingLevelCompletion,
+  );
+  const pendingDraftEvent = useNavigationStore(
+    (state) => state.pendingDraftEvent,
+  );
+  const setPendingDraftEvent = useNavigationStore(
+    (state) => state.setPendingDraftEvent,
+  );
   const { setThemeTemplate } = useTheme();
   const { setMusicPlaylist } = useMusicPlayer();
 
@@ -101,7 +127,9 @@ const MapPage: React.FC = () => {
     nodesPerZone: NODES_PER_ZONE,
   });
 
-  const [activeZone, setActiveZone] = useState(Math.max(0, mapData.currentZone - 1));
+  const [activeZone, setActiveZone] = useState(
+    Math.max(0, mapData.currentZone - 1),
+  );
   const [selectedNode, setSelectedNode] = useState<MapNodeData | null>(null);
   const pointerStartX = useRef<number | null>(null);
   const pointerId = useRef<number | null>(null);
@@ -113,6 +141,12 @@ const MapPage: React.FC = () => {
   useEffect(() => {
     setMusicPlaylist(["main", "level"]);
   }, [setMusicPlaylist]);
+
+  useEffect(() => {
+    if (gameId === null) return;
+    if (!pendingDraftEvent) return;
+    navigate("draft", gameId);
+  }, [gameId, navigate, pendingDraftEvent]);
 
   // Only switch theme/music when the player's current zone changes (zone cleared),
   // NOT when swiping between zones on the map.
@@ -144,6 +178,11 @@ const MapPage: React.FC = () => {
     [mapData.nodes],
   );
 
+  const completionDraftEvent = useMemo(() => {
+    if (!pendingLevelCompletion) return null;
+    return getDraftEventForCompletedLevel(seed, pendingLevelCompletion.level);
+  }, [pendingLevelCompletion, seed]);
+
   /* ---- Swipe handlers (Pointer Events for reliable mobile) ---- */
 
   const isSwiping = useRef(false);
@@ -159,7 +198,9 @@ const MapPage: React.FC = () => {
     const delta = Math.abs(event.clientX - pointerStartX.current);
     if (delta > 10) {
       isSwiping.current = true;
-      (event.currentTarget as HTMLDivElement).setPointerCapture(event.pointerId);
+      (event.currentTarget as HTMLDivElement).setPointerCapture(
+        event.pointerId,
+      );
     }
   };
 
@@ -220,13 +261,19 @@ const MapPage: React.FC = () => {
           {zoneNodes.map((nodes, zoneIdx) => {
             const zone = zoneIdx + 1;
             const themeRaw = mapData.zoneThemes[zoneIdx] ?? "theme-1";
-            const themeId: ThemeId = isValidThemeId(themeRaw) ? themeRaw : "theme-1";
+            const themeId: ThemeId = isValidThemeId(themeRaw)
+              ? themeRaw
+              : "theme-1";
             const themeImages = getThemeImages(themeId);
             const layout = zoneLayouts[zoneIdx];
             const pathTheme = getMapPathTheme(themeId);
 
             return (
-              <div key={zone} className="relative h-full flex-shrink-0" style={{ width: '100vw' }}>
+              <div
+                key={zone}
+                className="relative h-full flex-shrink-0"
+                style={{ width: "100vw" }}
+              >
                 <ZoneBackground zone={zone} themeId={themeId} />
                 <div className="relative mx-auto h-full w-auto max-w-full aspect-[9/16]">
                   <svg
@@ -250,7 +297,10 @@ const MapPage: React.FC = () => {
                       const toNode = nodes[edge.to];
                       if (!fromNode || !toNode) return null;
 
-                      const pathType = getPathType(fromNode.state, toNode.state);
+                      const pathType = getPathType(
+                        fromNode.state,
+                        toNode.state,
+                      );
 
                       const stroke =
                         pathType === "cleared"
@@ -307,16 +357,22 @@ const MapPage: React.FC = () => {
                       const isInteractive = node.state !== "locked";
                       const label = getLabel(node);
 
-                      const isCleared = node.state === "cleared" || node.state === "visited";
+                      const isCleared =
+                        node.state === "cleared" || node.state === "visited";
                       const nodeImg =
                         node.type === "boss"
                           ? themeImages.mapNodeBoss
-                          : node.type === "shop"
-                            ? themeImages.mapNodeShop
+                          : node.type === "draft"
+                            ? themeImages.mapNodeDraft
                             : isCleared
                               ? themeImages.mapNodeCompleted
                               : themeImages.mapNodeLevel;
-                      const r = node.type === "boss" ? 7.5 : node.type === "shop" ? 5.5 : 5;
+                      const r =
+                        node.type === "boss"
+                          ? 7.5
+                          : node.type === "draft"
+                            ? 5.5
+                            : 5;
 
                       return (
                         <g
@@ -330,12 +386,17 @@ const MapPage: React.FC = () => {
                             cursor: isInteractive ? "pointer" : "default",
                             transformOrigin: `${cx}px ${cy}px`,
                             ...(node.state === "current"
-                              ? { animation: "map-node-pulse 2s ease-in-out infinite" }
+                              ? {
+                                  animation:
+                                    "map-node-pulse 2s ease-in-out infinite",
+                                }
                               : {}),
                           }}
                           opacity={colors.alpha}
                         >
-                          <clipPath id={`node-clip-${zoneIdx}-${node.nodeInZone}`}>
+                          <clipPath
+                            id={`node-clip-${zoneIdx}-${node.nodeInZone}`}
+                          >
                             <circle cx={cx} cy={cy} r={r} />
                           </clipPath>
                           <image
@@ -356,7 +417,7 @@ const MapPage: React.FC = () => {
                             strokeWidth={node.type === "boss" ? 0.6 : 0.4}
                           />
 
-                          {node.type !== "shop" && (
+                          {node.type !== "draft" && (
                             <>
                               <circle
                                 cx={cx + r * 0.7}
@@ -405,7 +466,9 @@ const MapPage: React.FC = () => {
           <button
             type="button"
             className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/25 bg-black/40 p-2 text-white transition-colors hover:bg-black/60"
-            onClick={() => setActiveZone((prev) => Math.min(prev + 1, TOTAL_ZONES - 1))}
+            onClick={() =>
+              setActiveZone((prev) => Math.min(prev + 1, TOTAL_ZONES - 1))
+            }
           >
             <ChevronRight size={22} />
           </button>
@@ -444,12 +507,12 @@ const MapPage: React.FC = () => {
             isOpen={true}
             onClose={() => {
               const completedLevel = pendingLevelCompletion.level;
-              const shopAvailable = isInGameShopAvailable(completedLevel);
 
               setPendingLevelCompletion(null);
 
-              if (shopAvailable) {
-                navigate("ingameshop");
+              if (completionDraftEvent) {
+                setPendingDraftEvent(completionDraftEvent);
+                navigate("draft", gameId ?? undefined);
               } else {
                 setPendingPreviewLevel(completedLevel + 1);
               }
@@ -461,6 +524,7 @@ const MapPage: React.FC = () => {
             prevTotalScore={pendingLevelCompletion.prevTotalScore}
             totalScore={pendingLevelCompletion.totalScore}
             gameLevel={pendingLevelCompletion.gameLevel}
+            draftWillOpen={completionDraftEvent !== null}
           />
         )}
       </div>

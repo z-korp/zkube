@@ -50,41 +50,41 @@ export interface RunData {
   constraintProgress: number;
   constraint2Progress: number;
   bonusUsedThisLevel: boolean;
-  
+
   // Bonus inventory (5 types)
   comboCount: number;
   scoreCount: number;
   harvestCount: number;
   waveCount: number;
   supplyCount: number;
-  
+
   // Run stats
   maxComboRun: number;
-  
+
   // Cube economy
   cubesBrought: number;
   cubesSpent: number;
   totalCubes: number;
-  
+
   // Score
   totalScore: number;
-  
+
   // Victory flag
   runCompleted: boolean;
-  
+
   // Selected bonuses (values: 0=None, 1=Combo, 2=Score, 3=Harvest, 4=Wave, 5=Supply)
   selectedBonus1: number;
   selectedBonus2: number;
   selectedBonus3: number;
-  
+
   // Bonus levels (0=L1, 1=L2, 2=L3)
   bonus1Level: number;
   bonus2Level: number;
   bonus3Level: number;
-  
+
   // Free moves from Wave L2/L3
   freeMoves: number;
-  
+
   // In-game shop state
   lastShopLevel: number;
 
@@ -152,9 +152,14 @@ export function unpackRunData(packed: bigint): RunData {
     currentLevel: Number((packed >> BigInt(CURRENT_LEVEL_POS)) & MASK_8BIT),
     levelScore: Number((packed >> BigInt(LEVEL_SCORE_POS)) & MASK_8BIT),
     levelMoves: Number((packed >> BigInt(LEVEL_MOVES_POS)) & MASK_8BIT),
-    constraintProgress: Number((packed >> BigInt(CONSTRAINT_PROGRESS_POS)) & MASK_8BIT),
-    constraint2Progress: Number((packed >> BigInt(CONSTRAINT_2_PROGRESS_POS)) & MASK_8BIT),
-    bonusUsedThisLevel: ((packed >> BigInt(BONUS_USED_POS)) & MASK_1BIT) === BigInt(1),
+    constraintProgress: Number(
+      (packed >> BigInt(CONSTRAINT_PROGRESS_POS)) & MASK_8BIT,
+    ),
+    constraint2Progress: Number(
+      (packed >> BigInt(CONSTRAINT_2_PROGRESS_POS)) & MASK_8BIT,
+    ),
+    bonusUsedThisLevel:
+      ((packed >> BigInt(BONUS_USED_POS)) & MASK_1BIT) === BigInt(1),
     comboCount: Number((packed >> BigInt(COMBO_COUNT_POS)) & MASK_8BIT),
     scoreCount: Number((packed >> BigInt(SCORE_COUNT_POS)) & MASK_8BIT),
     harvestCount: Number((packed >> BigInt(HARVEST_COUNT_POS)) & MASK_8BIT),
@@ -165,22 +170,37 @@ export function unpackRunData(packed: bigint): RunData {
     cubesSpent: Number((packed >> BigInt(CUBES_SPENT_POS)) & MASK_16BIT),
     totalCubes: Number((packed >> BigInt(TOTAL_CUBES_POS)) & MASK_16BIT),
     totalScore: Number((packed >> BigInt(TOTAL_SCORE_POS)) & MASK_16BIT),
-    runCompleted: ((packed >> BigInt(RUN_COMPLETED_POS)) & MASK_1BIT) === BigInt(1),
-    selectedBonus1: Number((packed >> BigInt(SELECTED_BONUS_1_POS)) & MASK_3BIT),
-    selectedBonus2: Number((packed >> BigInt(SELECTED_BONUS_2_POS)) & MASK_3BIT),
-    selectedBonus3: Number((packed >> BigInt(SELECTED_BONUS_3_POS)) & MASK_3BIT),
+    runCompleted:
+      ((packed >> BigInt(RUN_COMPLETED_POS)) & MASK_1BIT) === BigInt(1),
+    selectedBonus1: Number(
+      (packed >> BigInt(SELECTED_BONUS_1_POS)) & MASK_3BIT,
+    ),
+    selectedBonus2: Number(
+      (packed >> BigInt(SELECTED_BONUS_2_POS)) & MASK_3BIT,
+    ),
+    selectedBonus3: Number(
+      (packed >> BigInt(SELECTED_BONUS_3_POS)) & MASK_3BIT,
+    ),
     bonus1Level: Number((packed >> BigInt(BONUS_1_LEVEL_POS)) & MASK_2BIT),
     bonus2Level: Number((packed >> BigInt(BONUS_2_LEVEL_POS)) & MASK_2BIT),
     bonus3Level: Number((packed >> BigInt(BONUS_3_LEVEL_POS)) & MASK_2BIT),
     freeMoves: Number((packed >> BigInt(FREE_MOVES_POS)) & MASK_3BIT),
     lastShopLevel: Number((packed >> BigInt(LAST_SHOP_LEVEL_POS)) & MASK_3BIT),
-    noBonusConstraint: ((packed >> BigInt(NO_BONUS_CONSTRAINT_POS)) & MASK_1BIT) === BigInt(1),
-    constraint3Progress: Number((packed >> BigInt(CONSTRAINT_3_PROGRESS_POS)) & MASK_8BIT),
+    noBonusConstraint:
+      ((packed >> BigInt(NO_BONUS_CONSTRAINT_POS)) & MASK_1BIT) === BigInt(1),
+    constraint3Progress: Number(
+      (packed >> BigInt(CONSTRAINT_3_PROGRESS_POS)) & MASK_8BIT,
+    ),
     shopPurchases: Number((packed >> BigInt(SHOP_PURCHASES_POS)) & MASK_4BIT),
-    unallocatedCharges: Number((packed >> BigInt(UNALLOCATED_CHARGES_POS)) & MASK_4BIT),
-    shopLevelUpBought: ((packed >> BigInt(SHOP_LEVEL_UP_BOUGHT_POS)) & MASK_1BIT) === BigInt(1),
-    shopSwapBought: ((packed >> BigInt(SHOP_SWAP_BOUGHT_POS)) & MASK_1BIT) === BigInt(1),
-    bossLevelUpPending: ((packed >> BigInt(BOSS_LEVEL_UP_PENDING_POS)) & MASK_1BIT) === BigInt(1),
+    unallocatedCharges: Number(
+      (packed >> BigInt(UNALLOCATED_CHARGES_POS)) & MASK_4BIT,
+    ),
+    shopLevelUpBought:
+      ((packed >> BigInt(SHOP_LEVEL_UP_BOUGHT_POS)) & MASK_1BIT) === BigInt(1),
+    shopSwapBought:
+      ((packed >> BigInt(SHOP_SWAP_BOUGHT_POS)) & MASK_1BIT) === BigInt(1),
+    bossLevelUpPending:
+      ((packed >> BigInt(BOSS_LEVEL_UP_PENDING_POS)) & MASK_1BIT) === BigInt(1),
   };
 }
 
@@ -234,14 +254,6 @@ export function getCubesAvailable(runData: RunData): number {
   return Math.max(0, totalBudget - runData.cubesSpent);
 }
 
-export function isInGameShopAvailable(level: number): boolean {
-  return level > 0 && level % 10 === 9;
-}
-
-export function isShopLevel(level: number): boolean {
-  return level > 1 && (level - 1) % 10 === 9;
-}
-
 /**
  * Check if the current level is a boss level (10, 20, 30, 40, 50)
  * Boss levels grant a free level-up on completion
@@ -263,27 +275,43 @@ export function getRefillCost(refillsBought: number): number {
  */
 export function getSelectedBonusName(value: number): string {
   switch (value) {
-    case 0: return "None";
-    case 1: return "Combo";
-    case 2: return "Score";
-    case 3: return "Harvest";
-    case 4: return "Wave";
-    case 5: return "Supply";
-    default: return "Unknown";
+    case 0:
+      return "None";
+    case 1:
+      return "Combo";
+    case 2:
+      return "Score";
+    case 3:
+      return "Harvest";
+    case 4:
+      return "Wave";
+    case 5:
+      return "Supply";
+    default:
+      return "Unknown";
   }
 }
 
 /**
  * Get the inventory count for a selected bonus
  */
-export function getBonusInventoryCount(runData: RunData, selectedBonusValue: number): number {
+export function getBonusInventoryCount(
+  runData: RunData,
+  selectedBonusValue: number,
+): number {
   switch (selectedBonusValue) {
-    case 1: return runData.comboCount;
-    case 2: return runData.scoreCount;
-    case 3: return runData.harvestCount;
-    case 4: return runData.waveCount;
-    case 5: return runData.supplyCount;
-    default: return 0;
+    case 1:
+      return runData.comboCount;
+    case 2:
+      return runData.scoreCount;
+    case 3:
+      return runData.harvestCount;
+    case 4:
+      return runData.waveCount;
+    case 5:
+      return runData.supplyCount;
+    default:
+      return 0;
   }
 }
 

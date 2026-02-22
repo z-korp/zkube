@@ -8,10 +8,12 @@ import useAccountCustom from "@/hooks/useAccountCustom";
 import useViewport from "@/hooks/useViewport";
 import { usePlayerMeta } from "@/hooks/usePlayerMeta";
 import { useDojo } from "@/dojo/useDojo";
+import { getBonusInventoryCount } from "@/dojo/game/helpers/runDataPacking";
 import {
-  getBonusInventoryCount,
-} from "@/dojo/game/helpers/runDataPacking";
-import { Bonus, BonusType, bonusTypeFromContractValue } from "@/dojo/game/types/bonus";
+  Bonus,
+  BonusType,
+  bonusTypeFromContractValue,
+} from "@/dojo/game/types/bonus";
 import { useNavigationStore } from "@/stores/navigationStore";
 import ImageAssets from "@/ui/theme/ImageAssets";
 import GameHud from "@/ui/components/hud/GameHud";
@@ -43,7 +45,9 @@ const PlayScreen: React.FC = () => {
   const gameId = useNavigationStore((s) => s.gameId);
   const navNavigate = useNavigationStore((s) => s.navigate);
   const goBack = useNavigationStore((s) => s.goBack);
-  const setPendingLevelCompletion = useNavigationStore((s) => s.setPendingLevelCompletion);
+  const setPendingLevelCompletion = useNavigationStore(
+    (s) => s.setPendingLevelCompletion,
+  );
   const { themeTemplate, setThemeTemplate } = useTheme();
   const { setMusicContext, setMusicPlaylist, playSfx } = useMusicPlayer();
   const imgAssets = ImageAssets(themeTemplate);
@@ -87,7 +91,10 @@ const PlayScreen: React.FC = () => {
   useEffect(() => {
     const level = game?.level ?? 1;
     const isBossLevel = level > 0 && level % 10 === 0;
-    const wasBossLevel = prevBossLevelRef.current != null && prevBossLevelRef.current > 0 && prevBossLevelRef.current % 10 === 0;
+    const wasBossLevel =
+      prevBossLevelRef.current != null &&
+      prevBossLevelRef.current > 0 &&
+      prevBossLevelRef.current % 10 === 0;
 
     if (isBossLevel && prevBossLevelRef.current !== level) {
       playSfx("boss-intro");
@@ -211,8 +218,8 @@ const PlayScreen: React.FC = () => {
 
   const handlePendingLevelUpClose = () => {
     setIsPendingLevelUpOpen(false);
-    if (openShopAfterLevelUp && game && game.cubesAvailable > 0) {
-      navNavigate("ingameshop");
+    if (openShopAfterLevelUp) {
+      navNavigate("map");
     }
     setOpenShopAfterLevelUp(false);
   };
@@ -232,7 +239,8 @@ const PlayScreen: React.FC = () => {
     return generateLevelConfig(seed, game.level);
   }, [seed, game?.level, game]);
 
-  const targetScore = gameLevel?.pointsRequired ?? levelConfig?.pointsRequired ?? 0;
+  const targetScore =
+    gameLevel?.pointsRequired ?? levelConfig?.pointsRequired ?? 0;
   const maxMoves = gameLevel?.maxMoves ?? levelConfig?.maxMoves ?? 0;
 
   const bonusBagSizes = useMemo(() => {
@@ -268,26 +276,38 @@ const PlayScreen: React.FC = () => {
     }
   }, []);
 
-  const getBonusTooltip = useCallback((type: BonusType, level: number = 0): string => {
-    return new Bonus(type).getEffect(level);
-  }, []);
+  const getBonusTooltip = useCallback(
+    (type: BonusType, level: number = 0): string => {
+      return new Bonus(type).getEffect(level);
+    },
+    [],
+  );
 
-  const getBonusIcon = useCallback((type: BonusType): string => {
-    switch (type) {
-      case BonusType.Combo:
-        return imgAssets.combo;
-      case BonusType.Score:
-        return imgAssets.score;
-      case BonusType.Harvest:
-        return imgAssets.harvest;
-      case BonusType.Wave:
-        return imgAssets.wave;
-      case BonusType.Supply:
-        return imgAssets.supply;
-      default:
-        return "";
-    }
-  }, [imgAssets.combo, imgAssets.harvest, imgAssets.score, imgAssets.supply, imgAssets.wave]);
+  const getBonusIcon = useCallback(
+    (type: BonusType): string => {
+      switch (type) {
+        case BonusType.Combo:
+          return imgAssets.combo;
+        case BonusType.Score:
+          return imgAssets.score;
+        case BonusType.Harvest:
+          return imgAssets.harvest;
+        case BonusType.Wave:
+          return imgAssets.wave;
+        case BonusType.Supply:
+          return imgAssets.supply;
+        default:
+          return "";
+      }
+    },
+    [
+      imgAssets.combo,
+      imgAssets.harvest,
+      imgAssets.score,
+      imgAssets.supply,
+      imgAssets.wave,
+    ],
+  );
 
   const bonusCounts = useMemo<Record<BonusType, number>>(
     () => ({
@@ -298,7 +318,13 @@ const PlayScreen: React.FC = () => {
       [BonusType.Wave]: game?.wave ?? 0,
       [BonusType.Supply]: game?.supply ?? 0,
     }),
-    [game?.comboBonus, game?.scoreBonus, game?.harvest, game?.wave, game?.supply]
+    [
+      game?.comboBonus,
+      game?.scoreBonus,
+      game?.harvest,
+      game?.wave,
+      game?.supply,
+    ],
   );
 
   const handleBonusSelect = useCallback(
@@ -317,7 +343,7 @@ const PlayScreen: React.FC = () => {
         setBonusDescription(getBonusDescription(type));
       }
     },
-    [activeBonus, bonusCounts, getBonusDescription, playSfx]
+    [activeBonus, bonusCounts, getBonusDescription, playSfx],
   );
 
   const selectedBonusSlots = useMemo(() => {
@@ -366,9 +392,7 @@ const PlayScreen: React.FC = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Connect Wallet</DialogTitle>
-            <DialogDescription>
-              Connect your wallet to play.
-            </DialogDescription>
+            <DialogDescription>Connect your wallet to play.</DialogDescription>
           </DialogHeader>
           <div className="flex justify-center pt-4">
             <Connect />

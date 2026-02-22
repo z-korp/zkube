@@ -125,12 +125,6 @@ const HomePage: React.FC = () => {
               />
 
               <NavButton
-                label="SHOP"
-                variant="green"
-                onClick={() => navigate("shop")}
-              />
-
-              <NavButton
                 label="LEADERBOARD"
                 variant="blue"
                 onClick={() => navigate("leaderboard")}
@@ -138,8 +132,6 @@ const HomePage: React.FC = () => {
             </>
           )}
         </div>
-
-
       </div>
     </div>
   );

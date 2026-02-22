@@ -7,8 +7,13 @@ import {
 } from "@/dojo/game/types/level";
 import { THEME_IDS, type ThemeId } from "@/config/themes";
 
-export type NodeType = "classic" | "shop" | "boss";
-export type NodeState = "locked" | "cleared" | "current" | "available" | "visited";
+export type NodeType = "classic" | "draft" | "boss";
+export type NodeState =
+  | "locked"
+  | "cleared"
+  | "current"
+  | "available"
+  | "visited";
 
 export interface MapNodeData {
   nodeIndex: number;
@@ -60,29 +65,32 @@ function poseidon(values: bigint[]): bigint {
 }
 
 function getNodeType(nodeInZone: number): NodeType {
-  if (nodeInZone < CLASSIC_PER_ZONE) return "classic";
-  if (nodeInZone === CLASSIC_PER_ZONE) return "shop";
-  return "boss";
+  if (nodeInZone === NODES_PER_ZONE - 1) return "boss";
+  if (nodeInZone === 0) return "draft";
+  return "classic";
 }
 
-function getMapNode(nodeIndex: number): Omit<MapNodeData, "state" | "levelConfig" | "zoneTheme"> {
+function getMapNode(
+  nodeIndex: number,
+): Omit<MapNodeData, "state" | "levelConfig" | "zoneTheme"> {
   const zone = Math.floor(nodeIndex / NODES_PER_ZONE) + 1;
   const nodeInZone = nodeIndex % NODES_PER_ZONE;
   const type = getNodeType(nodeInZone);
 
   let contractLevel: number | null = null;
   if (type === "classic") {
-    contractLevel = (zone - 1) * LEVELS_PER_ZONE + nodeInZone + 1;
+    const zoneStartLevel = (zone - 1) * LEVELS_PER_ZONE + 1;
+    contractLevel = zoneStartLevel + (nodeInZone - 1);
   } else if (type === "boss") {
     contractLevel = zone * LEVELS_PER_ZONE;
   }
 
   const displayLabel =
-    type === "shop"
-      ? `${zone}-SHOP`
+    type === "draft"
+      ? `${zone}-DRAFT`
       : type === "boss"
         ? `${zone}-BOSS`
-        : `${zone}-${nodeInZone + 1}`;
+        : `${contractLevel ?? ""}`;
 
   return { nodeIndex, zone, nodeInZone, type, contractLevel, displayLabel };
 }
@@ -103,7 +111,7 @@ export function contractLevelToNodeIndex(contractLevel: number): number {
     return (zone - 1) * NODES_PER_ZONE + NODES_PER_ZONE - 1;
   }
 
-  return (zone - 1) * NODES_PER_ZONE + (levelInZone - 1);
+  return (zone - 1) * NODES_PER_ZONE + levelInZone;
 }
 
 export function getZone(level: number): number {
@@ -124,13 +132,9 @@ function getNodeState(
     return "current";
   }
 
-  if (node.type === "shop") {
-    const bossLevel = node.zone * 10;
-    const lastClassicInZone = bossLevel - 1;
-    if (currentLevel > lastClassicInZone && currentLevel <= bossLevel) {
-      return "available";
-    }
-    if (currentLevel > bossLevel) return "visited";
+  if (node.type === "draft") {
+    const zoneStartLevel = (node.zone - 1) * LEVELS_PER_ZONE + 1;
+    if (currentLevel > zoneStartLevel) return "visited";
     return "locked";
   }
 
@@ -148,7 +152,9 @@ export function deriveZoneThemes(seed: bigint): ThemeId[] {
   for (let i = 0; i < TOTAL_ZONES; i++) {
     const stepSeed = poseidon([zoneSeed, BigInt(i)]);
     const remaining = themes.length - i;
-    const offset = Number((stepSeed < 0n ? -stepSeed : stepSeed) % BigInt(remaining));
+    const offset = Number(
+      (stepSeed < 0n ? -stepSeed : stepSeed) % BigInt(remaining),
+    );
     const j = i + offset;
     [themes[i], themes[j]] = [themes[j], themes[i]];
   }
@@ -156,7 +162,10 @@ export function deriveZoneThemes(seed: bigint): ThemeId[] {
   return themes.slice(0, TOTAL_ZONES);
 }
 
-export function generateMapData({ seed, currentLevel }: UseMapDataParams): MapData {
+export function generateMapData({
+  seed,
+  currentLevel,
+}: UseMapDataParams): MapData {
   const clampedLevel = Math.max(1, Math.min(GAMEPLAY_LEVELS, currentLevel));
   const zoneThemes = deriveZoneThemes(seed);
   const allNodes = getAllNodes();

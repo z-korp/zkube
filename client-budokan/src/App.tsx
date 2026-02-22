@@ -12,26 +12,24 @@ import HomePage from "@/ui/pages/HomePage";
 import LoadoutPage from "@/ui/pages/LoadoutPage";
 import PlayScreen from "@/ui/pages/PlayScreen";
 import MapPage from "@/ui/pages/MapPage";
-import ShopPage from "@/ui/pages/ShopPage";
-import InGameShopPage from "@/ui/pages/InGameShopPage";
 import QuestsPage from "@/ui/pages/QuestsPage";
 import SettingsPage from "@/ui/pages/SettingsPage";
 import MyGamesPage from "@/ui/pages/MyGamesPage";
 import LeaderboardPage from "@/ui/pages/LeaderboardPage";
 import TutorialPage from "@/ui/pages/TutorialPage";
+import DraftPage from "@/ui/pages/DraftPage";
 
 const pageComponents: Record<PageId, React.ReactNode> = {
   home: <HomePage />,
   loadout: <LoadoutPage />,
   play: <PlayScreen />,
   map: <MapPage />,
-  shop: <ShopPage />,
   quests: <QuestsPage />,
   leaderboard: <LeaderboardPage />,
   settings: <SettingsPage />,
   mygames: <MyGamesPage />,
   tutorial: <TutorialPage />,
-  ingameshop: <InGameShopPage />,
+  draft: <DraftPage />,
 };
 
 const CurrentPage: React.FC = () => {
