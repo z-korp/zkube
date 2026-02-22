@@ -51,7 +51,6 @@ interface GridProps {
   setOptimisticScore: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticCombo: React.Dispatch<React.SetStateAction<number>>;
   setOptimisticMaxCombo: React.Dispatch<React.SetStateAction<number>>;
-  freezeGrid?: boolean;
 }
 
 const Grid: React.FC<GridProps> = ({
@@ -73,7 +72,6 @@ const Grid: React.FC<GridProps> = ({
   setOptimisticMaxCombo,
   isTxProcessing,
   setIsTxProcessing,
-  freezeGrid = false,
 }) => {
   const {
     setup: {
@@ -133,25 +131,32 @@ const Grid: React.FC<GridProps> = ({
 
   // =================== Grid set up ===================
   useEffect(() => {
+    // All animations and computing are done
+    // we can apply data that we received from smart contract
     if (applyData) {
-      if (freezeGrid) return;
-
       if (deepCompareBlocks(saveGridStateblocks, initialData)) {
+        // Prevent render if the grid is the same
         return;
       }
 
+      // Every time the initial grid changes, we erase the optimistic data
+      // and set the data to the one returned by the contract
+      // just in case of discrepancies
       setOptimisticScore(score);
       setOptimisticCombo(combo);
       setOptimisticMaxCombo(maxCombo);
 
       if (isMoveComplete) {
+        // Save the grid state
         setSaveGridStateblocks(initialData);
         setBlocks(initialData);
         setNextLine(nextLineData);
 
+        // Check if the player is in danger
         const inDanger = initialData.some((block) => block.y < 2);
         setIsPlayerInDanger(inDanger);
 
+        // Reset states
         setLineExplodedCount(0);
         setNextLineHasBeenConsumed(false);
         setApplyData(false);
@@ -159,7 +164,7 @@ const Grid: React.FC<GridProps> = ({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applyData, initialData, isMoveComplete, freezeGrid]);
+  }, [applyData, initialData, isMoveComplete]);
 
   // Keep grid position in store used for particles positionning
   useEffect(() => {

@@ -22,7 +22,6 @@ interface GameBoardProps {
   game: Game;
   activeBonus: BonusType;
   bonusDescription: string;
-  freezeGrid?: boolean;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -35,7 +34,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
   game,
   activeBonus,
   bonusDescription,
-  freezeGrid = false,
 }) => {
   const {
     setup: {
@@ -165,7 +163,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
             setOptimisticMaxCombo={setOptimisticMaxCombo}
             isTxProcessing={isTxProcessing}
             setIsTxProcessing={setIsTxProcessing}
-            freezeGrid={freezeGrid}
           />
           <div className="mt-1">
             <NextLine
